@@ -1,0 +1,11 @@
+<img src="vol_logo.png" align="right" />
+<p><b>Volumes</b> is a small cross-platform module which provides useful volume/device information support for BlitzMax.</p>
+<p>The module is essentially split into two parts, that of volume information, and some functions which give user-specific directory paths.</p>
+<h2>Volume Information</h2>
+<p>Enables access to all volumes on the system, as well as drive-details such as free and total space for the volume.</p>
+<p>To get a list of volumes on the current system, simply call <a href="#ListVolumes">ListVolumes</a> which returns
+a list of <a href="#TVolume">TVolume</a> objects, from which you have access to the extra information.<br>
+You can also retrieve size information directly using <a href="#GetVolumeSize">GetVolumeSize</a> and <a href="#GetVolumeFreeSpace">GetVolumeFreeSpace</a>.
+</p>
+<h2>User Directories</h2>
+<p>Useful for the application developer is access to user-specific directories, like their home and document directories. The Volumes module provides access to four of these for all supported platforms: <a href="#GetUserAppDir">GetUserAppDir</a>, <a href="#GetUserDesktopDir">GetUserDesktopDir</a>, <a href="#GetUserDocumentsDir">GetUserDocumentsDir</a>, and <a href="#GetUserHomeDir">GetUserHomeDir</a>.</p>
