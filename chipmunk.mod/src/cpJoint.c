@@ -28,7 +28,9 @@
 
 cpFloat cp_joint_bias_coef = 0.1f;
 
-void cpJointDestroy(cpJoint *joint){}
+void cpJointDestroy(cpJoint *joint){
+	cpunbind(joint);
+}
 
 void
 cpJointFree(cpJoint *joint)

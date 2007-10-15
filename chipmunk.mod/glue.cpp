@@ -43,6 +43,11 @@ extern "C" {
 	void bmx_cpbody_setvelocity(cpBody * body, cpVect * velocity);
 	void bmx_cpbody_setangularvelocity(cpBody * body, cpFloat av);
 	void bmx_cpbody_setangle(cpBody * body, cpFloat angle);
+	void bmx_cpbody_updatevelocity(cpBody * body, cpVect * gravity, cpFloat damping, cpFloat dt);
+	void bmx_cpbody_applyforce(cpBody * body, cpVect * force, cpVect * offset);
+	cpVect * bmx_cpbody_local2world(cpBody * body, cpVect * vec);
+	cpVect * bmx_cpbody_world2local(cpBody * body, cpVect * vec);
+	cpVect * bmx_cpbody_getvelocity(cpBody * body);
 
 	cpSpace * bmx_cpspace_create(BBObject * handle);
 	void bmx_cpspace_setgravity(cpSpace * space, cpVect * vec);
@@ -52,6 +57,7 @@ extern "C" {
 	cpSpaceHash * bmx_cpspace_getactiveshapes(cpSpace * space);
 	cpSpaceHash * bmx_cpspace_getstaticshapes(cpSpace * space);
 	void bmx_cpspace_setiterations(cpSpace * space, int num);
+	void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint);
 
 
 	cpVect * bmx_cpvect_create(cpFloat x, cpFloat y);
@@ -86,6 +92,7 @@ extern "C" {
 
 	cpFloat bmx_momentforpoly(cpFloat m, BBArray * verts, int count, cpVect * offset);
 	cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset);
+	void bmx_cpdampedspring(cpBody * a, cpBody * b, cpVect * anchor1, cpVect * anchor2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt);
 
 	BBArray * bmx_cppolyshape_getvertsascoords(cpPolyShape * shape);
 	int bmx_cppolyshape_numverts(cpPolyShape * shape);
@@ -193,6 +200,26 @@ void bmx_cpbody_setangularvelocity(cpBody * body, cpFloat av) {
 	body->w = av;
 }
 
+void bmx_cpbody_updatevelocity(cpBody * body, cpVect * gravity, cpFloat damping, cpFloat dt) {
+	cpBodyUpdateVelocity(body, *gravity, damping, dt);
+}
+
+void bmx_cpbody_applyforce(cpBody * body, cpVect * force, cpVect * offset) {
+	cpBodyApplyForce(body, *force, *offset);
+}
+
+cpVect * bmx_cpbody_local2world(cpBody * body, cpVect * vec) {
+	return bmx_cpvect_new(cpBodyLocal2World(body, *vec));
+}
+
+cpVect * bmx_cpbody_world2local(cpBody * body, cpVect * vec) {
+	return bmx_cpvect_new(cpBodyWorld2Local(body, *vec));
+}
+
+cpVect * bmx_cpbody_getvelocity(cpBody * body) {
+	return bmx_cpvect_new(body->v);
+}
+
 // -------------------------------------------------
 
 cpSpace * bmx_cpspace_create(BBObject * handle) {
@@ -229,6 +256,9 @@ void bmx_cpspace_setiterations(cpSpace * space, int num) {
 	space->iterations = num;
 }
 
+void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint) {
+	cpSpaceAddJoint(space, joint);
+}
 
 // -------------------------------------------------
 
@@ -369,6 +399,10 @@ cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset) 
 	return cpMomentForCircle(m, r1, r2, *offset);
 }
 
+void bmx_cpdampedspring(cpBody * a, cpBody * b, cpVect * anchor1, cpVect * anchor2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt) {
+	cpDampedSpring(a, b, *anchor1, *anchor2, rlen, k, dmp, dt);
+}
+
 // -------------------------------------------------
 
 cpShape * bmx_cppolyshape_create(BBObject * handle, cpBody * body, BBArray *verts, int count, cpVect * offset) {
@@ -419,26 +453,34 @@ cpVect * bmx_cpcircleshape_gettransformedcenter(cpCircleShape * shape) {
 // -------------------------------------------------
 
 cpJoint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2) {
-
+	cpJoint * joint = cpPinJointNew(bodyA, bodyB, *anchor1, *anchor2);
+	cpbind(joint, handle);
+	return joint;
 }
 
 // -------------------------------------------------
 
 cpJoint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist) {
-
+	cpJoint * joint = cpSlideJointNew(bodyA, bodyB, *anchor1, *anchor2, minDist, maxDist);
+	cpbind(joint, handle);
+	return joint;
 }
 
 
 // -------------------------------------------------
 
 cpJoint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot) {
-
+	cpJoint * joint = cpPivotJointNew(bodyA, bodyB, *pivot);
+	cpbind(joint, handle);
+	return joint;
 }
 
 
 // -------------------------------------------------
 
 cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor) {
-
+	cpJoint * joint = cpGrooveJointNew(bodyA, bodyB, *grooveA, *grooveB, *anchor);
+	cpbind(joint, handle);
+	return joint;
 }
 

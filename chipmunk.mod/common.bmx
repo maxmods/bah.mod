@@ -65,6 +65,12 @@ Extern
 	Function cpBodyUpdatePosition(handle:Byte Ptr, dt:Float)
 	Function bmx_cpbody_setangularvelocity(handle:Byte Ptr, av:Float)
 	Function bmx_cpbody_setangle(handle:Byte Ptr, angle:Float)
+	Function bmx_cpbody_updatevelocity(handle:Byte Ptr, gravity:Byte Ptr, damping:Float, dt:Float)
+	Function cpBodyResetForces(handle:Byte Ptr)
+	Function bmx_cpbody_applyforce(handle:Byte Ptr, force:Byte Ptr, offset:Byte Ptr)
+	Function bmx_cpbody_local2world:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_cpbody_world2local:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_cpbody_getvelocity:Byte Ptr(cpObjectPtr:Byte Ptr)
 
 	Function bmx_cpspace_create:Byte Ptr(handle:Object)
 	Function bmx_cpspace_setgravity(handle:Byte Ptr, vec:Byte Ptr)
@@ -74,6 +80,7 @@ Extern
 	Function bmx_cpspace_getactiveshapes:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpspace_getstaticshapes:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpspace_setiterations(handle:Byte Ptr, num:Int)
+	Function bmx_cpspace_addjoint(handle:Byte Ptr, joint:Byte Ptr)
 
 	Function bmx_cpvect_create:Byte Ptr(x:Float, y:Float)
 	Function bmx_cpvect_delete(handle:Byte Ptr)
@@ -108,6 +115,7 @@ Extern
 	Function bmx_cpshape_getbody:Byte Ptr(handle:Byte Ptr)
 
 	Function cpMomentForCircle:Float(m:Float, r1:Float, r2:Float, offset:Byte Ptr)
+	Function bmx_cpdampedspring(a:Byte Ptr, b:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, rlen:Float, k:Float, dmp:Float, dt:Float)
 
 	Function bmx_cpcircleshape_create:Byte Ptr(handle:Object, body:Byte Ptr, radius:Float, offset:Byte Ptr)
 	Function bmx_cpcircleshape_getradius:Float(handle:Byte Ptr)
