@@ -1,0 +1,193 @@
+<?xml version="1.0" ?>
+<languages>
+	<lang iso="aa" language="Afar" native="ʿAfár af"/>
+	<lang iso="ab" language="Abkhazian" native="Аҧсуа"/>
+	<lang iso="ae" language="Avestan" native=""/>
+	<lang iso="af" language="Afrikaans" native="Afrikaans"/>
+	<lang iso="ak" language="Akan" native="Akan"/>
+	<lang iso="am" language="Amharic" native="አማርኛ"/>
+	<lang iso="ar" language="Arabic" native="العربية"/>
+	<lang iso="as" language="Assamese" native="অসমীয়া"/>
+	<lang iso="av" language="Avaric" native="Авар МацӀ"/>
+	<lang iso="ay" language="Aymara" native="Aymar Aru"/>
+	<lang iso="az" language="Azerbaijani" native="Azərbaycan"/>
+	<lang iso="ba" language="Bashkir" native="Башҡорт"/>
+	<lang iso="be" language="Belarusian" native="Беларуская"/>
+	<lang iso="bg" language="Bulgarian" native="български"/>
+	<lang iso="bh" language="Bihari" native=""/>
+	<lang iso="bi" language="Bislama" native=""/>
+	<lang iso="bm" language="Bambara" native="Bamanankan"/>
+	<lang iso="bn" language="Bengali" native="বাংলা"/>
+	<lang iso="bo" language="Tibetan" native="བོད་སྐད་"/>
+	<lang iso="br" language="Breton" native="Brezhoneg"/>
+	<lang iso="bs" language="Bosnian" native="Bosanski"/>
+	<lang iso="byn" language="Blin" native="ብሊን"/>
+	<lang iso="ca" language="Catalan" native="Català"/>
+	<lang iso="ce" language="Chechen" native="Нохчийн"/>
+	<lang iso="ch" language="Chamorro" native="Chamoru"/>
+	<lang iso="co" language="Corsican" native="Corsu"/>
+	<lang iso="cr" language="Cree" native="ᓀᐦᐃᔭᐍᐏᐣ"/>
+	<lang iso="cs" language="Czech" native="Čeština"/>
+	<lang iso="cu" language="Old Slavonic" native=""/>
+	<lang iso="cv" language="Chuvash" native=""/>
+	<lang iso="cy" language="Welsh" native="Cymraeg"/>
+	<lang iso="da" language="Danish" native="Dansk"/>
+	<lang iso="de" language="German" native="Deutsch"/>
+	<lang iso="dv" language="Maldivian" native=""/>
+	<lang iso="dz" language="Dzongkha" native="རྫོང་ཁ"/>
+	<lang iso="ee" language="Ewe" native="Eʋegbe"/>
+	<lang iso="el" language="Greek" native="ελληνικά"/>
+	<lang iso="en" language="English" native="English"/>
+	<lang iso="eo" language="Esperanto" native="Esperanto"/>
+	<lang iso="es" language="Spanish" native="Español"/>
+	<lang iso="et" language="Estonian" native="Eesti"/>
+	<lang iso="eu" language="Basque" native="Euskaraz"/>
+	<lang iso="fa" language="Persian" native="فارسى"/>
+	<lang iso="ff" language="Fulah" native="Fulfulde"/>
+	<lang iso="fi" language="Finnish" native="Suomeksi"/>
+	<lang iso="fj" language="Fijian" native="Vaka-Viti"/>
+	<lang iso="fo" language="Faroese" native="Føroyskt"/>
+	<lang iso="fr" language="French" native="Français"/>
+	<lang iso="fy" language="Western Frisian" native="Frysk"/>
+	<lang iso="ga" language="Irish" native="Gaeilge"/>
+	<lang iso="gd" language="Scots Gaelic" native="Gàidhlig"/>
+	<lang iso="gez" language="Ge'ez" native="ግዕዝ"/>
+	<lang iso="gl" language="Galician" native="Galego"/>
+	<lang iso="gn" language="Guarani" native="Avañe'ẽ"/>
+	<lang iso="gu" language="Gujarati" native="ગુજરાતી"/>
+	<lang iso="gv" language="Manx Gaelic" native="Ghaelg"/>
+	<lang iso="ha" language="Hausa" native="هَوُسَ"/>
+	<lang iso="he" language="Hebrew" native="עברית"/>
+	<lang iso="hi" language="Hindi" native="हिन्दी"/>
+	<lang iso="ho" language="Hiri Motu" native=""/>
+	<lang iso="hr" language="Croatian" native="Hrvatski"/>
+	<lang iso="hsb" language="Upper Sorbian" native="Sornjoserbsce"/>
+	<lang iso="hu" language="Hungarian" native="Magyar"/>
+	<lang iso="ht" language="Haitian" native=""/>
+	<lang iso="hy" language="Armenian" native="Հայերէն"/>
+	<lang iso="hz" language="Herero" native="Otjiherero"/>
+	<lang iso="ia" language="Interlingua" native=""/>
+	<lang iso="id" language="Indonesian" native=""/>
+	<lang iso="ie" language="Interlingue" native=""/>
+	<lang iso="ig" language="Igbo" native="Igbo"/>
+	<lang iso="ii" language="Sichuan Yi" native=""/>
+	<lang iso="ik" language="Inupiaq" native="Iñupiaq"/>
+	<lang iso="io" language="Ido" native=""/>
+	<lang iso="is" language="Icelandic" native="Íslenska"/>
+	<lang iso="it" language="Italian" native="Italiano"/>
+	<lang iso="iu" language="Inuktitut" native="ᐃᓄᒃᑎᑐᑦ"/>
+	<lang iso="jp" language="Japanese" native="日本語"/>
+	<lang iso="jv" language="Javanese" native="Basa Jawa"/>
+	<lang iso="ka" language="Georgian" native="Ⴕართული"/>
+	<lang iso="kg" language="Kongo" native="Kikongo"/>
+	<lang iso="ki" language="Kikuyu" native="Gĩkũyũ"/>
+	<lang iso="kj" language="Kwanyama" native="Kuanyama"/>
+	<lang iso="kk" language="Kazakh" native="Қазақша"/>
+	<lang iso="kl" language="Greenlandic" native="Kalaallisut"/>
+	<lang iso="km" language="Khmer" native="ភាសាែខ្មរ"/>
+	<lang iso="kn" language="Kannada" native="ಕನ್ನಡ"/>
+	<lang iso="ko" language="Korean" native="한국어"/>
+	<lang iso="kr" language="Kanuri" native="Kanuri"/>
+	<lang iso="ks" language="Kashmiri" native="काऽशुर"/>
+	<lang iso="ku" language="Kurdish" native="Kurmancî"/>
+	<lang iso="kv" language="Komi" native="Коми"/>
+	<lang iso="kw" language="Cornish" native="Kernewek"/>
+	<lang iso="ky" language="Kyrgyz" native="Кыргыз"/>
+	<lang iso="la" language="Latin" native=""/>
+	<lang iso="lb" language="Luxembourgish" native="Lëtzebuergesch"/>
+	<lang iso="li" language="Limburgish" native="Lèmburgs"/>
+	<lang iso="lg" language="Luganda" native="Luganda"/>
+	<lang iso="ln" language="Lingala" native="Lingála"/>
+	<lang iso="lo" language="Lao" native="ພາສາລາວ"/>
+	<lang iso="lt" language="Lithuanian" native="Lietuvis"/>
+	<lang iso="lu" language="Luba-Katanga" native=""/>
+	<lang iso="lv" language="Latvian" native="Latvieau"/>
+	<lang iso="mg" language="Malagasy" native=""/>
+	<lang iso="mh" language="Marshallese" native="Kajin M̧ajeļ"/>
+	<lang iso="mi" language="Maori" native="Māori"/>
+	<lang iso="mk" language="Macedonian" native="Македонски"/>
+	<lang iso="ml" language="Malayalam" native="മലയാളം"/>
+	<lang iso="mn" language="Mongolian" native="Монгол"/>
+	<lang iso="mo" language="Moldavian" native="Молдовеняскэ"/>
+	<lang iso="mr" language="Marathi" native="मराठी"/>
+	<lang iso="ms" language="Malay" native="Bahasa melayu"/>
+	<lang iso="mt" language="Maltese" native="Il-Malti"/>
+	<lang iso="my" language="Burmese" native="ဗမာစကား"/>
+	<lang iso="na" language="Nauru" native="Ekakairũ Naoero"/>
+	<lang iso="nb" language="Norwegian Bokmål" native="Norsk"/>
+	<lang iso="nd" language="North Ndebele" native=""/>
+	<lang iso="ne" language="Nepali" native="नेपाली"/>
+	<lang iso="ng" language="Ndonga" native="Oshiwambo"/>
+	<lang iso="nl" language="Dutch" native="Nederlands"/>
+	<lang iso="nn" language="Norwegian Nynorsk" native="Norsk"/>
+	<lang iso="no" language="Norwegian" native="Norsk"/>
+	<lang iso="nr" language="South Ndebele" native=""/>
+	<lang iso="nso" language="Northern Sotho" native="SePêdi"/>
+	<lang iso="nv" language="Navajo" native="Diné Bizaad"/>
+	<lang iso="ny" language="Nyanja" native="ChiCheŵa"/>
+	<lang iso="oc" language="Occitan" native="Occitan"/>
+	<lang iso="oj" language="Ojibwa" native="ᐊᓂᔑᓇᐯᒧᐏᐣ"/>
+	<lang iso="om" language="Oromo" native="Afaan Oromo"/>
+	<lang iso="os" language="Ossetian" native="Ирон Ӕвзаг"/>
+	<lang iso="or" language="Oriya" native="ଓଡ଼ିଆ"/>
+	<lang iso="pa" language="Punjabi" native="ਪੰਜਾਬੀ"/>
+	<lang iso="pi" language="Pali" native="पालि"/>
+	<lang iso="pl" language="Polish" native="Polski"/>
+	<lang iso="ps" language="Pushto" native="پښتو"/>
+	<lang iso="pt" language="Portuguese" native="Português"/>
+	<lang iso="qu" language="Quechua" native=""/>
+	<lang iso="ro" language="Romanian" native="Română"/>
+	<lang iso="rm" language="Romansh" native="Rumantsch"/>
+	<lang iso="rn" language="Rundi" native="KiRundi"/>
+	<lang iso="ru" language="Russian" native="Русский"/>
+	<lang iso="rw" language="Kinyarwanda" native="Kinyarwanda"/>
+	<lang iso="sa" language="Sanskrit" native="संस्कृतम्"/>
+	<lang iso="sc" language="Sardinian" native="Sardu"/>
+	<lang iso="sd" language="Sindhi" native="سنڌي"/>
+	<lang iso="se" language="Northern Saami" native="Sámi"/>
+	<lang iso="sg" language="Sango" native="Yângâ tî Sängö"/>
+	<lang iso="sid" language="Sidama" native="Sidámo"/>
+	<lang iso="si" language="Sinhala" native="සිංහල"/>
+	<lang iso="sk" language="Slovak" native="Slovenčina"/>
+	<lang iso="sl" language="Slovenian" native="Slovenski"/>
+	<lang iso="sn" language="Shona" native="ChiShona"/>
+	<lang iso="so" language="Somali" native="af Soomaali"/>
+	<lang iso="sq" language="Albanian" native="Shqip"/>
+	<lang iso="sr" language="Serbian" native="Српски"/>
+	<lang iso="ss" language="Swati" native=""/>
+	<lang iso="st" language="Sotho" native="SeSotho"/>
+	<lang iso="su" language="Sundanese" native="Basa Sunda"/>
+	<lang iso="sv" language="Swedish" native="Svenska"/>
+	<lang iso="sw" language="Swahili" native="Kiswahili"/>
+	<lang iso="ta" language="Tamil" native="தமிழ்"/>
+	<lang iso="te" language="Telugu" native="తెలుగు"/>
+	<lang iso="tg" language="Tajik" native="Забони Тоҷикӣ"/>
+	<lang iso="th" language="Thai" native="ภาษาไทย"/>
+	<lang iso="ti" language="Tigrigna" native="ትግርኛ"/>
+	<lang iso="tig" language="Tigre" native="Tigré"/>
+	<lang iso="tk" language="Turkmen" native="Түркmенче"/>
+	<lang iso="tl" language="Tagalog" native="Tagalog"/>
+	<lang iso="tn" language="Tswana" native="seTswana"/>
+	<lang iso="to" language="Tonga" native="ChiTonga"/>
+	<lang iso="tr" language="Turkish" native="Türkçe"/>
+	<lang iso="ts" language="Tsonga" native="XiTsonga"/>
+	<lang iso="tt" language="Tatar" native="Tatarça"/>
+	<lang iso="tw" language="Twi" native="Twi"/>
+	<lang iso="ty" language="Tahitian" native="Te Reo Tahiti"/>
+	<lang iso="ug" language="Uyghur" native="Уйғур"/>
+	<lang iso="uk" language="Ukrainian" native="Українська"/>
+	<lang iso="ur" language="Urdu" native="اردو"/>
+	<lang iso="uz" language="Uzbek" native="Ўзбек"/>
+	<lang iso="ve" language="Venda" native="TshiVenḓa"/>
+	<lang iso="vi" language="Vietnamese" native="Tiếng Việt"/>
+	<lang iso="vo" language="Volapük" native=""/>
+	<lang iso="wa" language="Walloon" native="Walon"/>
+	<lang iso="wal" language="Walaita" native=""/>
+	<lang iso="wo" language="Wolof" native="Wollof"/>
+	<lang iso="xh" language="Xhosa" native="IsiXhosa"/>
+	<lang iso="yi" language="Yiddish" native="ײִדיש"/>
+	<lang iso="yo" language="Yoruba" native="Yorùbá"/>
+	<lang iso="za" language="Zhuang" native="Saw Cuengh"/>
+	<lang iso="zh" language="Chinese" native="中文"/>
+	<lang iso="zu" language="Zulu" native="IsiZulu"/>
+</languages>

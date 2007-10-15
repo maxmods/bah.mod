@@ -1,0 +1,99 @@
+<img src="logo.png" align="right" />
+<p>
+This is a localization module utilizing the power and speed of the <a href="../../libxml.mod/doc/commands.html">BaH.Libxml</a> module to enable you to create and use easily maintainable localization files.
+</p>
+<h2>What is Localization?</h2>
+<p>Localization allows you to create an application (or game) that works in more than one language. This gives your application appeal to a much wider audience than it might otherwise. Many commercial applications support different languages (or locales), usually accessible via a menu option or preferences.
+</p>
+<p>The International Standards Organization (ISO) is a body which, amongst other things, maintains a list of world-wide languages. Each language has a two letter (ISO 639-1) or three letter (ISO 639-2) code representation. For example, the two-letter ISO code for English is "en".<br>
+The Locale module caters for <b>all</b> two letter ISO codes, and some of three letters. In all, the Locale module knows about 190 individual languages.
+</p>
+<p>In addition to the language codes with their English names, the Locale module includes (for most of the entries) the language name in its native script. For example, the entry for "de" has "German" as the English text, and "Deutsch" as the native text.<br>
+This could allow you, for instance, to include a <i>native</i> language selection menu, rather than a list of languages in English.
+<h2>How do I localize my program?</h2>
+<p>
+Normally, when you write your application, you embed the text (for button, label, DrawText, etc) directly in the code,
+<pre>
+CreateButton("Save", 100, 90, 100, 28, window)
+
+..
+
+DrawText "Press Fire To Start", 460, 500
+</pre>
+, which is all well and good if you are catering for a single-language audience.<br>
+However, for multiple-language support, you need to impliment something slightly more flexible, and this is where the <b>Locale</b> module steps in and takes over for you.</p>
+<p>
+Rather than hard-coding text into your application you store all the text in an external <b>Blitz Locale File</b> (<i>BLF</i>) which is loaded when the application starts. Then, when you want to display a piece of text, you call the <a href="#GetLocaleText">GetLocaleText</a> function using a specific &quot;tag&quot; that represents the word or sentence :
+<pre>
+CreateButton(<a href="#GetLocaleText">GetLocaleText</a>("save"), 100, 90, 100, 28, window)
+
+..
+
+DrawText <a href="#GetLocaleText">GetLocaleText</a>("firetostart"), 460, 500
+</pre>
+, and the text for the <i>current</i> locale is inserted in its place. At any time, you can call <a href="#SetCurrentLocale">SetCurrentLocale</a> with a different locale and from then on every call to <a href="#GetLocaleText">GetLocaleText</a> will retrieve text in that language.
+</p>
+<p>It's as simple and easy as that.</p>
+<p>Since the Locale module is designed with flexibility in mind, you can of course call GetLocaleText with the desired Locale as a parameter too. Which ever way suits your needs best.</p>
+<h2>What does the BLF file look like?</h2>
+<p>The Blitz Locale File format is basically an XML file. This is what a (very small) BLF file might look like:
+<pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;locale default=&quot;en&quot;&gt;
+	&lt;tag name=&quot;apptitle&quot;&gt;
+		&lt;trans lang=&quot;en&quot;&gt;Blitz Locale File Builder&lt;/trans&gt;
+	&lt;/tag&gt;
+	&lt;tag name=&quot;menuopen&quot;&gt;
+		&lt;trans lang=&quot;en&quot; value=&quot;79&quot;&gt;&amp;Open&lt;/trans&gt;
+		&lt;trans lang=&quot;af&quot; value=&quot;79&quot;&gt;&amp;Oop&lt;/trans&gt;
+	&lt;/tag&gt;
+&lt;/locale&gt;
+</pre>
+This particular example has a default language of "en", with two entries, "apptitle" and "menuopen".<br>
+The second entry, "menuopen" has localized text for both English (en) and Afrikaans (af). Optionally, a localized text can also include a integer value. This is handy for things like Menu Item keyboard shortcuts which could be different keys in different languages. In this example, "79" represents KEY_O, which happens to be the same for both languages.
+</p>
+<p>As you can see, the format is very simple: A tag with a list of translated texts.<br>
+When you want to add a new supported language, you add the required &lt;lang... entries for each tag. No recompilation is usually required (unless the BLF file is incbin'd, of course).
+</p>
+<h2>How about some examples</h2>
+<p>
+There are a few examples to help you get to grips with the Locale module, as well as a fully working application (see the next section).<br>
+The examples consist of :
+</p>
+<ul>
+<li><a href="../examples/example_01.bmx">example_01.bmx</a> - Loads a multi-language BLF file and outputs each set of translations in turn to the console.</li>
+<li><a href="../examples/example_02.bmx">example_02.bmx</a> - Displays a list of all the system locale entries.</li>
+</ul>
+<h2>I'm lazy. Isn't there a utility program to help make BLF files?</h2>
+<p>
+Available from within the locale.mod folder is another named "utils". Here you will find a small GUI application (with source) called BLFBuilder. (<b>Note</b>: <i>to compile this, you will need the MaxGUI module</i>).<br>
+BLFBuilder can be used to create and maintain BLF files if you'd rather not create them yourself by hand. As you'd expect, it supports all the languages of the Locale module, and makes the task of maintaining your BLF files a breeze. In fact, BLFBuilder itself was used to create its own BLF file!</p>
+<h3>Using BLFBuilder</h3>
+<p>The main window consists of three areas :</p>
+<ol type="A">
+  <li>List of tag names which are used by your application in calls to <a href="#GetLocaleText">GetLocaleText</a>.</li>
+  <li>Languages in use for this particular BLF file.</li>
+  <li>The actual tag text for the specific language.  </li>
+</ol>
+<p align="center">
+<img src="img_main_window.png" width="511" height="422"/></p>
+<p>To add a new tag, click on Add in the Tags section. This creates a new entry &quot;NEWTAG&quot; which you can rename. </p>
+<p align="center"><img src="img_new_tag.png" width="209" height="354"/></p>
+<p>Once you have decided on the name of your tag, you need to select a language with which to apply some text to the tag. When you initially select a language that has no text associated to the particular tag, it is indicated in the Tags list by a plus-sign (+) next to the tag name. This lets you know which tags need some text. </p>
+<p align="center"><img src="img_name_tag.png" width="511" height="422"/></p>
+<p>Selecting a language enables the Text section, where you are free to add as much text for the tag as you need, including newlines and tabs.<br>
+  There is also an optional &quot;value&quot; field you can use to set an integer. As with the text field, this value is both tag and language specific.</p>
+<p align="center">  <img src="img_tag_text.png" width="302" height="163"/></p>
+<p>Obviously, the most important feature of the Locale module is that it handles multiple languages. So you will probably find a time when you need to add a new language to your BLF file. In the Language section, you simply click on Add to bring up the new language selection window. This window lists <strong>ALL</strong> languages not currently in use by your current BLF file. Simply scroll to the language you wish to add, select it, and press OK. </p>
+<p align="center">  <img src="img_add_language.png" width="211" height="327"/></p>
+<p>The new language will appear in both the languages list and the Default language combobox.<br>
+  As before, choosing this new language will cause the Tags list to show which of the tags do not currently have text for that particular language. Once you've added some text, the Tag list will reflect the new status of that tag.</p>
+<p align="center">  <img src="img_rus_tag_text.png" width="511" height="422"/></p>
+<p>The View menu enables you to change the way languages are displayed, either in English or the native script. </p>
+<p align="center"><img src="img_native_languages.png" width="242" height="121"/></p>
+<p>You can switch between either, at any time, and the lists are updated immediately. The language selection window will also display them in their native script. </p>
+<p align="center"><img src="img_showing_native.png" width="215" height="213"/>  </p>
+<p>Since BLFBuilder is built on top of the Locale module framework, it is also multilingual. The Language menu allows you to switch freely between any of the currently support languages. </p>
+<p align="center"><img src="img_change_language.png" width="232" height="129"/>  </p>
+<p>All the various texts throughout the application will be changed when a different language is chosen. </p>
+<p align="center"><img src="img_localized.png" width="511" height="422"/></p>
