@@ -3,7 +3,7 @@ SuperStrict
 Framework BRL.Max2D
 
 
-Import "main.bmx"
+Import "main2.bmx"
 
 
 InitChipmunk()
@@ -101,7 +101,7 @@ Function init()
 			space.AddBody(body)
 			shape = New CPPolyShape.Create(body, verts, Vec2(0,0))
 			'shape = New CPCircleShape.Create(body, 15.0, Vec2(0,0))
-			shape.SetElasticity(0.4)
+			shape.SetElasticity(0.0)
 			shape.SetFriction(0.8)
 			space.AddShape(shape)
 		Next
