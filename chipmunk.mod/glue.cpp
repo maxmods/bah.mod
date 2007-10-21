@@ -30,6 +30,7 @@ extern "C" {
 	BBObject *cpfind( void *obj );
 	void cpbind( void *obj, BBObject *peer );
 	void _bah_chipmunk_CPPolyShape__setVert(BBArray * verts, int index, cpVect * vec);
+	void _bah_chipmunk_CPContact__setContact(BBArray * conts, int index, cpContact * contact);
 
 	cpBody * bmx_cpbody_create(BBObject * handle, cpFloat mass, cpFloat inertia);
 	cpFloat bmx_cpbody_getmass(cpBody * body);
@@ -58,7 +59,10 @@ extern "C" {
 	cpSpaceHash * bmx_cpspace_getstaticshapes(cpSpace * space);
 	void bmx_cpspace_setiterations(cpSpace * space, int num);
 	void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint);
-
+	void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data);
+	void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b);
+	void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, void *data);
+	void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping);
 
 	cpVect * bmx_cpvect_create(cpFloat x, cpFloat y);
 	void bmx_cpvect_delete(cpVect * vec);
@@ -84,11 +88,18 @@ extern "C" {
 	cpShape * bmx_cpsegmentshape_create(BBObject * handle, cpBody * body, cpVect * a, cpVect * b, cpFloat radius);
 	cpVect * bmx_cpsegmentshape_getendpointa(cpSegmentShape * shape);
 	cpVect * bmx_cpsegmentshape_getendpointb(cpSegmentShape * shape);
+	cpVect * bmx_cpsegmentshape_getnormal(cpSegmentShape * shape);
 
 	void bmx_cpshape_setelasticity(cpShape * shape, cpFloat e);
 	void bmx_cpshape_setfriction(cpShape * shape, cpFloat u);
-	void bmx_cpshape_setcollisiontype(cpShape * shape, int type);
+	void bmx_cpshape_setcollisiontype(cpShape * shape, unsigned long type);
 	cpBody * bmx_cpshape_getbody(cpShape * shape);
+	void bmx_cpshape_setgroup(cpShape * shape, unsigned long group);
+	void bmx_cpshape_setlayers(cpShape * shape, unsigned long layers);
+	void bmx_cpshape_setsurfacevelocity(cpShape * shape, cpVect * velocity);
+	cpVect * bmx_cpshape_getsurfacevelocity(cpShape * shape);
+	cpFloat bmx_cpshape_getelasticity(cpShape * shape);
+	cpFloat bmx_cpshape_getfriction(cpShape * shape);
 
 	cpFloat bmx_momentforpoly(cpFloat m, BBArray * verts, int count, cpVect * offset);
 	cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset);
@@ -110,6 +121,20 @@ extern "C" {
 	cpJoint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot);
 	cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor);
 
+	unsigned int bmx_CP_HASH_PAIR(int collTypeA, int collTypeB);
+
+	cpVect * bmx_cpcontact_getposition(cpContact * contact);
+	cpVect * bmx_cpcontact_getnormal(cpContact * contact);
+	cpFloat bmx_cpcontact_getdistance(cpContact * contact);
+	cpFloat bmx_cpcontact_getjnacc(cpContact * contact);
+	cpFloat bmx_cpcontact_getjtacc(cpContact * contact);
+	void bmx_cpcontact_fill(BBArray * conts, cpContact * contacts, int numContacts);
+
+
+}
+
+unsigned int bmx_CP_HASH_PAIR(int collTypeA, int collTypeB) {
+	return CP_HASH_PAIR(collTypeA, collTypeB);
 }
 
 
@@ -260,6 +285,22 @@ void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint) {
 	cpSpaceAddJoint(space, joint);
 }
 
+void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data) {
+	cpSpaceAddCollisionPairFunc(space, a, b, func, data);
+}
+
+void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b) {
+	cpSpaceRemoveCollisionPairFunc(space, a, b);
+}
+
+void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, void *data) {
+	cpSpaceSetDefaultCollisionPairFunc(space, func, data);
+}
+
+void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping) {
+	space->damping = damping;
+}
+
 // -------------------------------------------------
 
 cpVect * bmx_cpvect_create(cpFloat x, cpFloat y) {
@@ -367,6 +408,10 @@ cpVect * bmx_cpsegmentshape_getendpointb(cpSegmentShape * shape) {
 	return bmx_cpvect_new(shape->b);
 }
 
+cpVect * bmx_cpsegmentshape_getnormal(cpSegmentShape * shape) {
+	return bmx_cpvect_new(shape->n);
+}
+
 // -------------------------------------------------
 
 void bmx_cpshape_setelasticity(cpShape * shape, cpFloat e) {
@@ -377,13 +422,38 @@ void bmx_cpshape_setfriction(cpShape * shape, cpFloat u) {
 	shape->u = u;
 }
 
-void bmx_cpshape_setcollisiontype(cpShape * shape, int type) {
+void bmx_cpshape_setcollisiontype(cpShape * shape, unsigned long type) {
 	shape->collision_type = type;
 }
 
 cpBody * bmx_cpshape_getbody(cpShape * shape) {
 	return shape->body;
 }
+
+void bmx_cpshape_setgroup(cpShape * shape, unsigned long group) {
+	shape->group = group;
+}
+
+void bmx_cpshape_setlayers(cpShape * shape, unsigned long layers) {
+	shape->layers = layers;
+}
+
+void bmx_cpshape_setsurfacevelocity(cpShape * shape, cpVect * velocity) {
+	shape->surface_v = *velocity;
+}
+
+cpVect * bmx_cpshape_getsurfacevelocity(cpShape * shape) {
+	return bmx_cpvect_new(shape->surface_v);
+}
+
+cpFloat bmx_cpshape_getelasticity(cpShape * shape) {
+	return shape->e;
+}
+
+cpFloat bmx_cpshape_getfriction(cpShape * shape) {
+	return shape->u;
+}
+
 
 // -------------------------------------------------
 
@@ -483,4 +553,33 @@ cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * b
 	cpbind(joint, handle);
 	return joint;
 }
+
+// -------------------------------------------------
+
+cpVect * bmx_cpcontact_getposition(cpContact * contact) {
+	return bmx_cpvect_new(contact->p);
+}
+
+cpVect * bmx_cpcontact_getnormal(cpContact * contact) {
+	return bmx_cpvect_new(contact->n);
+}
+
+cpFloat bmx_cpcontact_getdistance(cpContact * contact) {
+	return contact->dist;
+}
+
+cpFloat bmx_cpcontact_getjnacc(cpContact * contact) {
+	return contact->jnAcc;
+}
+
+cpFloat bmx_cpcontact_getjtacc(cpContact * contact) {
+	return contact->jtAcc;
+}
+
+void bmx_cpcontact_fill(BBArray * conts, cpContact * contacts, int numContacts) {
+	for (int i = 0; i< numContacts; i++) {
+		_bah_chipmunk_CPContact__setContact(conts, i, &contacts[i]);
+	}
+}
+
 

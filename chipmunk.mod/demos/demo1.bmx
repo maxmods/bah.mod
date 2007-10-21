@@ -1,7 +1,7 @@
 SuperStrict
 
 Framework BRL.Max2D
-
+Import BRL.StandardIO
 
 Import "main.bmx"
 
@@ -31,7 +31,7 @@ End
 
 
 Function update(ticks:Int)
-	Local steps:Int = 2
+	Local steps:Int = 1
 	Local dt:Float = 1.0/60.0/steps
 	
 	For Local i:Int = 0 Until steps
@@ -54,6 +54,18 @@ Function display()
 
 	update(ticks)
 	
+End Function
+
+Function collFunc:Int(shapeA:cpShape, shapeB:cpShape, contacts:CPContact[], normalCoeficient:Float, data:Object)
+	
+	Local pos:CPVect
+	
+	For Local i:Int = 0 Until contacts.length
+		pos = contacts[i].GetPosition()
+		DrawText "Collision at " + pos.x + ", " + pos.y, 10, -220 + i * 14
+	Next
+
+	Return True
 End Function
 
 
@@ -121,7 +133,7 @@ Function init()
 	shape.SetCollisionType(1)
 	space.AddShape(shape)
 	
-	'cpSpaceAddCollisionPairFunc(space, 1, 0, &collFunc, &some_value);
+	space.AddCollisionPairFunc(1, 0, collFunc)
 
 End Function
 

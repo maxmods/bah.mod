@@ -81,6 +81,12 @@ Extern
 	Function bmx_cpspace_getstaticshapes:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpspace_setiterations(handle:Byte Ptr, num:Int)
 	Function bmx_cpspace_addjoint(handle:Byte Ptr, joint:Byte Ptr)
+	Function bmx_cpspace_addcollisionpairfunc(handle:Byte Ptr, collTypeA:Int, collTypeB:Int, ..
+		func:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object), data:Object)
+	Function bmx_cpspace_removecollisionpairfunc(handle:Byte Ptr, collTypeA:Int, collTypeB:Int)
+	Function bmx_cpspace_setdefaultcollisionpairfunc(handle:Byte Ptr, ..
+		func:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object), data:Object)
+	Function bmx_cpspace_setdamping(handle:Byte Ptr, damping:Float)
 
 	Function bmx_cpvect_create:Byte Ptr(x:Float, y:Float)
 	Function bmx_cpvect_delete(handle:Byte Ptr)
@@ -105,6 +111,7 @@ Extern
 	Function bmx_cpsegmentshape_create:Byte Ptr(handle:Object, body:Byte Ptr, a:Byte Ptr, b:Byte Ptr, radius:Float)
 	Function bmx_cpsegmentshape_getendpointa:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpsegmentshape_getendpointb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpsegmentshape_getnormal:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_cppolyshape_getvertsascoords:Float[](handle:Byte Ptr)
 	Function bmx_cppolyshape_numverts:Int(handle:Byte Ptr)
@@ -113,6 +120,12 @@ Extern
 	Function bmx_cpshape_setfriction(handle:Byte Ptr, u:Float)
 	Function bmx_cpshape_setcollisiontype(handle:Byte Ptr, kind:Int)
 	Function bmx_cpshape_getbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpshape_setgroup(handle:Byte Ptr, group:Int)
+	Function bmx_cpshape_setlayers(handle:Byte Ptr, layers:Int)
+	Function bmx_cpshape_setsurfacevelocity(handle:Byte Ptr, velocity:Byte Ptr)
+	Function bmx_cpshape_getsurfacevelocity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpshape_getelasticity:Float(handle:Byte Ptr)
+	Function bmx_cpshape_getfriction:Float(handle:Byte Ptr)
 
 	Function cpMomentForCircle:Float(m:Float, r1:Float, r2:Float, offset:Byte Ptr)
 	Function bmx_cpdampedspring(a:Byte Ptr, b:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, rlen:Float, k:Float, dmp:Float, dt:Float)
@@ -130,6 +143,14 @@ Extern
 	Function bmx_cppivotjoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, pivot:Byte Ptr)
 	Function bmx_cpgroovejoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, grooveA:Byte Ptr, grooveB:Byte Ptr, anchor:Byte Ptr)
 
+	Function bmx_CP_HASH_PAIR:Int(collTypeA:Int, collTypeB:Int)
+	
+	Function bmx_cpcontact_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpcontact_getnormal:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpcontact_getdistance:Float(handle:Byte Ptr)
+	Function bmx_cpcontact_getjnacc:Float(handle:Byte Ptr)
+	Function bmx_cpcontact_getjtacc:Float(handle:Byte Ptr)
+	
 End Extern
 
 Const INFINITY:Float = 1e1000
