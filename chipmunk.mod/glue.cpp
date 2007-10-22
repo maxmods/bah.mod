@@ -49,6 +49,8 @@ extern "C" {
 	cpVect * bmx_cpbody_local2world(cpBody * body, cpVect * vec);
 	cpVect * bmx_cpbody_world2local(cpBody * body, cpVect * vec);
 	cpVect * bmx_cpbody_getvelocity(cpBody * body);
+	void bmx_body_applyimpulse(cpBody * body, cpVect * impulse, cpVect * offset);
+	void bmx_body_slew(cpBody * body, cpVect * pos, cpFloat dt);
 
 	cpSpace * bmx_cpspace_create(BBObject * handle);
 	void bmx_cpspace_setgravity(cpSpace * space, cpVect * vec);
@@ -100,6 +102,7 @@ extern "C" {
 	cpVect * bmx_cpshape_getsurfacevelocity(cpShape * shape);
 	cpFloat bmx_cpshape_getelasticity(cpShape * shape);
 	cpFloat bmx_cpshape_getfriction(cpShape * shape);
+	cpBB * bmx_shape_cachebb(cpShape * shape);
 
 	cpFloat bmx_momentforpoly(cpFloat m, BBArray * verts, int count, cpVect * offset);
 	cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset);
@@ -130,6 +133,13 @@ extern "C" {
 	cpFloat bmx_cpcontact_getjtacc(cpContact * contact);
 	void bmx_cpcontact_fill(BBArray * conts, cpContact * contacts, int numContacts);
 
+	cpBB * bmx_cpbb_create(cpFloat l, cpFloat b, cpFloat r, cpFloat t);
+	int bmx_cpbb_intersects(cpBB * bb, cpBB * other);
+	int bmx_cpbb_containsbb(cpBB * bb, cpBB * other);
+	int bmx_cpbb_containsvect(cpBB * bb, cpVect * v);
+	cpVect * bmx_cpbb_clampvect(cpBB * bb, cpVect * v);
+	cpVect * bmx_cpbb_wrapvect(cpBB * bb, cpVect * v);
+	void bmx_cpbb_delete(cpBB * bb);
 
 }
 
@@ -243,6 +253,14 @@ cpVect * bmx_cpbody_world2local(cpBody * body, cpVect * vec) {
 
 cpVect * bmx_cpbody_getvelocity(cpBody * body) {
 	return bmx_cpvect_new(body->v);
+}
+
+void bmx_body_applyimpulse(cpBody * body, cpVect * impulse, cpVect * offset) {
+	cpBodyApplyImpulse(body, *impulse, *offset);
+}
+
+void bmx_body_slew(cpBody * body, cpVect * pos, cpFloat dt) {
+	cpBodySlew(body, *pos, dt);
 }
 
 // -------------------------------------------------
@@ -414,6 +432,51 @@ cpVect * bmx_cpsegmentshape_getnormal(cpSegmentShape * shape) {
 
 // -------------------------------------------------
 
+cpBB * bmx_cpbb_new(cpBB bb) {
+	cpBB *bbox = new cpBB;
+	bbox->l = bb.l;
+	bbox->t = bb.t;
+	bbox->r = bb.r;
+	bbox->b = bb.b;
+	return bbox;
+}
+
+void bmx_cpbb_delete(cpBB * bb) {
+	delete bb;
+}
+
+
+cpBB * bmx_cpbb_create(cpFloat l, cpFloat b, cpFloat r, cpFloat t) {
+	cpBB *bbox = new cpBB;
+	bbox->l = l;
+	bbox->t = t;
+	bbox->r = r;
+	bbox->b = b;
+	return bbox;
+}
+
+int bmx_cpbb_intersects(cpBB * bb, cpBB * other) {
+	return cpBBintersects(*bb, *other);
+}
+
+int bmx_cpbb_containsbb(cpBB * bb, cpBB * other) {
+	return cpBBcontainsBB(*bb, *other);
+}
+
+int bmx_cpbb_containsvect(cpBB * bb, cpVect * v) {
+	return cpBBcontainsVect(*bb, *v);
+}
+
+cpVect * bmx_cpbb_clampvect(cpBB * bb, cpVect * v) {
+	return bmx_cpvect_new(cpBBClampVect(*bb, *v));
+}
+
+cpVect * bmx_cpbb_wrapvect(cpBB * bb, cpVect * v) {
+	return bmx_cpvect_new(cpBBWrapVect(*bb, *v));
+}
+
+// -------------------------------------------------
+
 void bmx_cpshape_setelasticity(cpShape * shape, cpFloat e) {
 	shape->e = e;
 }
@@ -454,6 +517,9 @@ cpFloat bmx_cpshape_getfriction(cpShape * shape) {
 	return shape->u;
 }
 
+cpBB * bmx_shape_cachebb(cpShape * shape) {
+	return bmx_cpbb_new(cpShapeCacheBB(shape));
+}
 
 // -------------------------------------------------
 

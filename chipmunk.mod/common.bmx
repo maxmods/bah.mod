@@ -71,6 +71,11 @@ Extern
 	Function bmx_cpbody_local2world:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_cpbody_world2local:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_cpbody_getvelocity:Byte Ptr(cpObjectPtr:Byte Ptr)
+	Function cpBodySetMass(handle:Byte Ptr, mass:Float)
+	Function cpBodySetMoment(handle:Byte Ptr, moment:Float)
+	Function bmx_body_applyimpulse(handle:Byte Ptr, impulse:Byte Ptr, offset:Byte Ptr)
+	Function bmx_body_slew(handle:Byte Ptr, pos:Byte Ptr, dt:Float)
+	Function cpBodyFree(handle:Byte Ptr)
 
 	Function bmx_cpspace_create:Byte Ptr(handle:Object)
 	Function bmx_cpspace_setgravity(handle:Byte Ptr, vec:Byte Ptr)
@@ -126,6 +131,8 @@ Extern
 	Function bmx_cpshape_getsurfacevelocity:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpshape_getelasticity:Float(handle:Byte Ptr)
 	Function bmx_cpshape_getfriction:Float(handle:Byte Ptr)
+	Function cpShapeFree(handle:Byte Ptr)
+	Function bmx_shape_cachebb:Byte Ptr(handle:Byte Ptr)
 
 	Function cpMomentForCircle:Float(m:Float, r1:Float, r2:Float, offset:Byte Ptr)
 	Function bmx_cpdampedspring(a:Byte Ptr, b:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, rlen:Float, k:Float, dmp:Float, dt:Float)
@@ -150,7 +157,15 @@ Extern
 	Function bmx_cpcontact_getdistance:Float(handle:Byte Ptr)
 	Function bmx_cpcontact_getjnacc:Float(handle:Byte Ptr)
 	Function bmx_cpcontact_getjtacc:Float(handle:Byte Ptr)
-	
+
+	Function bmx_cpbb_create:Byte Ptr(l:Float, b:Float, r:Float, t:Float)
+	Function bmx_cpbb_intersects:Int(handle:Byte Ptr, other:Byte Ptr)
+	Function bmx_cpbb_containsbb:Int(handle:Byte Ptr, other:Byte Ptr)
+	Function bmx_cpbb_containsvect:Int(handle:Byte Ptr, v:Byte Ptr)
+	Function bmx_cpbb_clampvect:Byte Ptr(handle:Byte Ptr, v:Byte Ptr)
+	Function bmx_cpbb_wrapvect:Byte Ptr(handle:Byte Ptr, v:Byte Ptr)
+	Function bmx_cpbb_delete(handle:Byte Ptr)
+
 End Extern
 
 Const INFINITY:Float = 1e1000

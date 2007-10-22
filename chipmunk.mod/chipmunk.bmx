@@ -214,6 +214,45 @@ Type CPBody Extends CPObject
 		Return CPVect._create(bmx_cpbody_world2local(cpObjectPtr, vec.vecPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the body mass.
+	End Rem
+	Method SetMass(mass:Float)
+		cpBodySetMass(cpObjectPtr, mass)
+	End Method
+	
+	Rem
+	bbdoc: Sets the body moment.
+	End Rem
+	Method SetMoment(moment:Float)
+		cpBodySetMoment(cpObjectPtr, moment)
+	End Method
+	
+	Rem
+	bbdoc: Apply the @impulse to the body with @offset.
+	about: Both @impulse and @offset should be in world coordinates.
+	End Rem
+	Method ApplyImpulse(impulse:CPVect, offset:CPVect)
+		bmx_body_applyimpulse(cpObjectPtr, impulse.vecPtr, offset.vecPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Slew(pos:CPVect, dt:Float)
+		bmx_body_slew(cpObjectPtr, pos.vecPtr, dt)
+	End Method
+	
+	Rem
+	bbdoc: Frees the body.
+	End Rem
+	Method Free()
+		If cpObjectPtr Then
+			cpBodyFree(cpObjectPtr)
+			cpObjectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 
@@ -573,7 +612,7 @@ Type CPVect
 	Field y:Float
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new CPVect.
 	End Rem
 	Method Create:CPVect(_x:Float, _y:Float)
 		vecPtr = bmx_cpvect_create(_x, _y)
@@ -719,6 +758,74 @@ Type CPVect
 End Type
 
 Rem
+bbdoc: A simple bounding box.
+about: Stored as left, bottom, right, top values.
+End Rem
+Type CPBB
+
+	Field bbPtr:Byte Ptr
+	
+	Rem
+	bbdoc: Creates a new bounding box.
+	End Rem
+	Method Create:CPBB(l:Float, b:Float, r:Float, t:Float)
+		bbPtr = bmx_cpbb_create(l, b, r, t)
+		Return Self
+	End Method
+	
+	Function _create:CPBB(bbPtr:Byte Ptr)
+		If bbPtr Then
+			Local this:CPBB = New CPBB
+			this.bbPtr = bbPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns True if the bounding boxes intersect.
+	End Rem
+	Method Intersects:Int(other:CPBB)
+		Return bmx_cpbb_intersects(bbPtr, other.bbPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the bounding box completely contains @other.
+	End Rem
+	Method ContainsBB:Int(other:CPBB)
+		Return bmx_cpbb_containsbb(bbPtr, other.bbPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the bounding box contains @v.
+	End Rem
+	Method ContainsVect:Int(v:CPVect)
+		Return bmx_cpbb_containsvect(bbPtr, v.vecPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a copy of @v clamped to the bounding box.
+	End Rem
+	Method ClampVect:CPVect(v:CPVect)
+		Return CPVect._create(bmx_cpbb_clampvect(bbPtr, v.vecPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns a copy of @v wrapped to the bounding box.
+	End Rem
+	Method WrapVect:CPVect(v:CPVect)
+		Return CPVect._create(bmx_cpbb_wrapvect(bbPtr, v.vecPtr))
+	End Method
+
+	Method Delete()
+		If bbPtr Then
+			bmx_cpbb_delete(bbPtr)
+			bbPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
 bbdoc: A collision shape.
 about: By attaching shapes to bodies, you can define the a body's shape. You can attach many shapes to a single body 
 to define a complex shape, or none if it doesn't require a shape.
@@ -824,6 +931,23 @@ Type CPShape Extends CPObject
 				Return CPBody._create(p)
 			End If
 			Return body
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Updates and returns the bounding box of the shape.
+	End Rem
+	Method CacheBB:CPBB()
+		Return CPBB._create(bmx_shape_cachebb(cpObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Frees the shape
+	End Rem
+	Method Free()
+		If cpObjectPtr Then
+			cpShapeFree(cpObjectPtr)
+			cpObjectPtr = Null
 		End If
 	End Method
 	
