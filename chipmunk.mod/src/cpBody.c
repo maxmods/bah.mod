@@ -147,6 +147,7 @@ cpDampedSpring(cpBody *a, cpBody *b, cpVect anchr1, cpVect anchr2, cpFloat rlen,
 	cpVect v2 = cpvadd(b->v, cpvmult(cpvperp(r2), b->w));
 	
 	// Calculate the damping force.
+	// This really should be in the impulse solver and can produce problems when using large damping values.
 	cpFloat vrn = cpvdot(cpvsub(v2, v1), n);
 	cpFloat f_damp = vrn*cpfmin(dmp, 1.0f/(dt*(a->m_inv + b->m_inv)));
 	

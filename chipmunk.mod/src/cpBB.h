@@ -49,6 +49,5 @@ cpBBcontainsVect(const cpBB bb, const cpVect v)
 	return (bb.l < v.x && bb.r > v.x && bb.b < v.y && bb.t > v.y);
 }
 
-extern inline cpVect cpBBClampVect(const cpBB bb, const cpVect v); // clamps the vector to lie within the bbox
-extern inline cpVect cpBBWrapVect(const cpBB bb, const cpVect v); // wrap a vector to a bbox
-
+cpVect cpBBClampVect(const cpBB bb, const cpVect v); // clamps the vector to lie within the bbox
+cpVect cpBBWrapVect(const cpBB bb, const cpVect v); // wrap a vector to a bbox

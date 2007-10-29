@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
  
+#include "stdlib.h"
+
 #include "chipmunk.h"
 
 #ifdef __cplusplus
@@ -45,7 +47,7 @@ cpMomentForCircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect offset)
 cpFloat
 cpMomentForPoly(cpFloat m, const int numVerts, cpVect *verts, cpVect offset)
 {
-	cpVect tVerts[numVerts];
+	cpVect *tVerts = calloc(numVerts, sizeof(cpVect));
 	for(int i=0; i<numVerts; i++)
 		tVerts[i] = cpvadd(verts[i], offset);
 	
