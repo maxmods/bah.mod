@@ -51,6 +51,7 @@ Extern
 	Function cpSpaceResizeActiveHash(space:Byte Ptr, dim:Float, count:Int)
 	Function cpSpaceRehashStatic(space:Byte Ptr)
 	Function cpSpaceStep(space:Byte Ptr, dt:Float)
+	Function cpSpaceFree(space:Byte Ptr)
 	
 	Function bmx_cpbody_create:Byte Ptr(handle:Object, mass:Float, inertia:Float)
 	Function bmx_cpbody_getmass:Float(handle:Byte Ptr)
@@ -112,6 +113,7 @@ Extern
 	Function bmx_cpvect_lengthsq:Float(handle:Byte Ptr)
 	Function bmx_cpvect_normalize:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpvect_toangle:Float(handle:Byte Ptr)
+	Function bmx_cpvect_cpvzero:Byte Ptr()
 
 	Function bmx_cpsegmentshape_create:Byte Ptr(handle:Object, body:Byte Ptr, a:Byte Ptr, b:Byte Ptr, radius:Float)
 	Function bmx_cpsegmentshape_getendpointa:Byte Ptr(handle:Byte Ptr)
@@ -149,6 +151,24 @@ Extern
 	Function bmx_cpslidejoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, minDist:Float, maxDist:Float)
 	Function bmx_cppivotjoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, pivot:Byte Ptr)
 	Function bmx_cpgroovejoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, grooveA:Byte Ptr, grooveB:Byte Ptr, anchor:Byte Ptr)
+
+	Function bmx_cppinjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cppinjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_cpslidejoint_getanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpslidejoint_getanchor2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpslidejoint_getmindist:Float(handle:Byte Ptr)
+	Function bmx_cpslidejoint_getmaxdist:Float(handle:Byte Ptr)
+
+	Function bmx_cppivotjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cppivotjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_cpgroovejoint_getgroovea:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpgroovejoint_getgrooveb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpgroovejoint_getanchor:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_cpjoint_getbodya:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpjoint_getbodyb:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_CP_HASH_PAIR:Int(collTypeA:Int, collTypeB:Int)
 	

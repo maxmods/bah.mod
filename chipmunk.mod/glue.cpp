@@ -86,6 +86,8 @@ extern "C" {
 	cpFloat bmx_cpvect_lengthsq(cpVect * vec);
 	cpVect * bmx_cpvect_normalize(cpVect * vec);
 	cpFloat bmx_cpvect_toangle(cpVect * vec);
+	cpVect * bmx_cpvect_cpvzero();
+
 
 	cpShape * bmx_cpsegmentshape_create(BBObject * handle, cpBody * body, cpVect * a, cpVect * b, cpFloat radius);
 	cpVect * bmx_cpsegmentshape_getendpointa(cpSegmentShape * shape);
@@ -140,6 +142,24 @@ extern "C" {
 	cpVect * bmx_cpbb_clampvect(cpBB * bb, cpVect * v);
 	cpVect * bmx_cpbb_wrapvect(cpBB * bb, cpVect * v);
 	void bmx_cpbb_delete(cpBB * bb);
+
+	cpVect * bmx_cppinjoint_getanchor1(cpPinJoint * joint);
+	cpVect * bmx_cppinjoint_getanchor2(cpPinJoint * joint);
+
+	cpVect * bmx_cpslidejoint_getanchor1(cpSlideJoint * joint);
+	cpVect * bmx_cpslidejoint_getanchor2(cpSlideJoint * joint);
+	cpFloat bmx_cpslidejoint_getmindist(cpSlideJoint * joint);
+	cpFloat bmx_cpslidejoint_getmaxdist(cpSlideJoint * joint);
+
+	cpVect * bmx_cppivotjoint_getanchor1(cpPivotJoint * joint);
+	cpVect * bmx_cppivotjoint_getanchor2(cpPivotJoint * joint);
+
+	cpVect * bmx_cpgroovejoint_getgroovea(cpGrooveJoint * joint);
+	cpVect * bmx_cpgroovejoint_getgrooveb(cpGrooveJoint * joint);
+	cpVect * bmx_cpgroovejoint_getanchor(cpGrooveJoint * joint);
+
+	cpBody * bmx_cpjoint_getbodya(cpJoint * joint);
+	cpBody * bmx_cpjoint_getbodyb(cpJoint * joint);
 
 }
 
@@ -409,6 +429,9 @@ cpFloat bmx_cpvect_toangle(cpVect * vec) {
 	return cpvtoangle(*vec);
 }
 
+cpVect * bmx_cpvect_cpvzero() {
+	return bmx_cpvect_new(cpvzero);
+}
 
 // -------------------------------------------------
 
@@ -594,6 +617,14 @@ cpJoint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * body
 	return joint;
 }
 
+cpVect * bmx_cppinjoint_getanchor1(cpPinJoint * joint) {
+	return bmx_cpvect_new(joint->anchr1);
+}
+
+cpVect * bmx_cppinjoint_getanchor2(cpPinJoint * joint) {
+	return bmx_cpvect_new(joint->anchr2);
+}
+
 // -------------------------------------------------
 
 cpJoint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist) {
@@ -602,6 +633,21 @@ cpJoint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bo
 	return joint;
 }
 
+cpVect * bmx_cpslidejoint_getanchor1(cpSlideJoint * joint) {
+	return bmx_cpvect_new(joint->anchr1);
+}
+
+cpVect * bmx_cpslidejoint_getanchor2(cpSlideJoint * joint) {
+	return bmx_cpvect_new(joint->anchr2);
+}
+
+cpFloat bmx_cpslidejoint_getmindist(cpSlideJoint * joint) {
+	return joint->min;
+}
+
+cpFloat bmx_cpslidejoint_getmaxdist(cpSlideJoint * joint) {
+	return joint->max;
+}
 
 // -------------------------------------------------
 
@@ -611,6 +657,13 @@ cpJoint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bo
 	return joint;
 }
 
+cpVect * bmx_cppivotjoint_getanchor1(cpPivotJoint * joint) {
+	return bmx_cpvect_new(joint->anchr1);
+}
+
+cpVect * bmx_cppivotjoint_getanchor2(cpPivotJoint * joint) {
+	return bmx_cpvect_new(joint->anchr2);
+}
 
 // -------------------------------------------------
 
@@ -618,6 +671,28 @@ cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * b
 	cpJoint * joint = cpGrooveJointNew(bodyA, bodyB, *grooveA, *grooveB, *anchor);
 	cpbind(joint, handle);
 	return joint;
+}
+
+cpVect * bmx_cpgroovejoint_getgroovea(cpGrooveJoint * joint) {
+	return bmx_cpvect_new(joint->grv_a);
+}
+
+cpVect * bmx_cpgroovejoint_getgrooveb(cpGrooveJoint * joint) {
+	return bmx_cpvect_new(joint->grv_b);
+}
+
+cpVect * bmx_cpgroovejoint_getanchor(cpGrooveJoint * joint) {
+	return bmx_cpvect_new(joint->anchr2);
+}
+
+// -------------------------------------------------
+
+cpBody * bmx_cpjoint_getbodya(cpJoint * joint) {
+	return joint->a;
+}
+
+cpBody * bmx_cpjoint_getbodyb(cpJoint * joint) {
+	return joint->b;
 }
 
 // -------------------------------------------------
