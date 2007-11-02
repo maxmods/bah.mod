@@ -47,7 +47,7 @@ cpMomentForCircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect offset)
 cpFloat
 cpMomentForPoly(cpFloat m, const int numVerts, cpVect *verts, cpVect offset)
 {
-	cpVect *tVerts = calloc(numVerts, sizeof(cpVect));
+	cpVect *tVerts = (cpVect *)calloc(numVerts, sizeof(cpVect));
 	for(int i=0; i<numVerts; i++)
 		tVerts[i] = cpvadd(verts[i], offset);
 	
@@ -64,5 +64,6 @@ cpMomentForPoly(cpFloat m, const int numVerts, cpVect *verts, cpVect offset)
 		sum2 += a;
 	}
 	
+	free(tVerts);
 	return (m*sum1)/(6.0f*sum2);
 }
