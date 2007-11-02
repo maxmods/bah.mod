@@ -51,6 +51,7 @@ extern "C" {
 	cpVect * bmx_cpbody_getvelocity(cpBody * body);
 	void bmx_body_applyimpulse(cpBody * body, cpVect * impulse, cpVect * offset);
 	void bmx_body_slew(cpBody * body, cpVect * pos, cpFloat dt);
+	void bmx_cpbody_settorque(cpBody * body, cpFloat torque);
 
 	cpSpace * bmx_cpspace_create(BBObject * handle);
 	void bmx_cpspace_setgravity(cpSpace * space, cpVect * vec);
@@ -282,6 +283,11 @@ void bmx_body_applyimpulse(cpBody * body, cpVect * impulse, cpVect * offset) {
 void bmx_body_slew(cpBody * body, cpVect * pos, cpFloat dt) {
 	cpBodySlew(body, *pos, dt);
 }
+
+void bmx_cpbody_settorque(cpBody * body, cpFloat torque) {
+	body->t = torque;
+}
+
 
 // -------------------------------------------------
 

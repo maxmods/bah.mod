@@ -77,6 +77,7 @@ Extern
 	Function bmx_body_applyimpulse(handle:Byte Ptr, impulse:Byte Ptr, offset:Byte Ptr)
 	Function bmx_body_slew(handle:Byte Ptr, pos:Byte Ptr, dt:Float)
 	Function cpBodyFree(handle:Byte Ptr)
+	Function bmx_cpbody_settorque(handle:Byte Ptr, torque:Float)
 
 	Function bmx_cpspace_create:Byte Ptr(handle:Object)
 	Function bmx_cpspace_setgravity(handle:Byte Ptr, vec:Byte Ptr)
