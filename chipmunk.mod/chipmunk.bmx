@@ -25,11 +25,15 @@ bbdoc: Chipmunk 2D Physics
 End Rem
 Module BaH.Chipmunk
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Adds body SetTorque()."
+ModuleInfo "History: Adds joint Free()."
+ModuleInfo "History: Fixes problem where Free'ing wasn't removing the objects from the space."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial release."
 
@@ -62,7 +66,8 @@ End Function
 Type CPObject
 
 	Field cpObjectPtr:Byte Ptr
-
+	Field parent:CPSpace
+	
 End Type
 
 Rem
@@ -258,6 +263,7 @@ Type CPBody Extends CPObject
 	End Rem
 	Method Free()
 		If cpObjectPtr Then
+			cpSpaceRemoveBody(parent.cpObjectPtr, cpObjectPtr)
 			cpBodyFree(cpObjectPtr)
 			cpObjectPtr = Null
 		End If
@@ -330,6 +336,8 @@ Type CPSpace Extends CPObject
 	End Rem
 	Method AddStaticShape(shape:CPShape)
 		bmx_cpspace_addstaticshape(cpObjectPtr, shape.cpObjectPtr)
+		shape.parent = Self
+		shape.static = True
 	End Method
 	
 	Rem
@@ -337,6 +345,7 @@ Type CPSpace Extends CPObject
 	End Rem
 	Method AddBody(body:CPBody)
 		bmx_cpspace_addbody(cpObjectPtr, body.cpObjectPtr)
+		body.parent = Self
 	End Method
 	
 	Rem
@@ -344,6 +353,7 @@ Type CPSpace Extends CPObject
 	End Rem
 	Method AddShape(shape:CPShape)
 		bmx_cpspace_addshape(cpObjectPtr, shape.cpObjectPtr)
+		shape.parent = Self
 	End Method
 
 	Rem
@@ -441,6 +451,7 @@ Type CPSpace Extends CPObject
 	End Rem
 	Method AddJoint(joint:CPJoint)
 		bmx_cpspace_addjoint(cpObjectPtr, joint.cpObjectPtr)
+		joint.parent = Self
 	End Method
 
 	Rem
@@ -862,6 +873,8 @@ match the sprite's shape.
 End Rem
 Type CPShape Extends CPObject
 
+	Field static:Int = False
+
 	Rem
 	bbdoc: Sets the elasticity of the shape.
 	about: A value of 0.0 gives no bounce, while a value of 1.0 will give a "perfect" bounce. However due to inaccuracies
@@ -969,6 +982,11 @@ Type CPShape Extends CPObject
 	End Rem
 	Method Free()
 		If cpObjectPtr Then
+			If static Then
+				cpSpaceRemoveStaticShape(parent.cpObjectPtr, cpObjectPtr)
+			Else
+				cpSpaceRemoveShape(parent.cpObjectPtr, cpObjectPtr)
+			End If
 			cpShapeFree(cpObjectPtr)
 			cpObjectPtr = Null
 		End If
@@ -1161,6 +1179,14 @@ Type CPJoint Extends CPObject
 		Return CPBody(cpfind(bmx_cpjoint_getbodyb(cpObjectPtr)))
 	End Method
 	
+	Method Free()
+		If cpObjectPtr Then
+			cpSpaceRemoveJoint(parent.cpObjectPtr, cpObjectPtr)
+			cpJointFree(cpObjectPtr)
+			cpObjectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem
@@ -1190,7 +1216,7 @@ Type CPPinJoint Extends CPJoint
 	Method GetAnchor2:CPVect()
 		Return CPVect._create(bmx_cppinjoint_getanchor2(cpObjectPtr))
 	End Method	
-	
+
 End Type
 
 Rem

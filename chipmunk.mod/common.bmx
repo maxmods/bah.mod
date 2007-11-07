@@ -94,6 +94,11 @@ Extern
 	Function bmx_cpspace_setdefaultcollisionpairfunc(handle:Byte Ptr, ..
 		func:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object), data:Object)
 	Function bmx_cpspace_setdamping(handle:Byte Ptr, damping:Float)
+	
+	Function cpSpaceRemoveBody(handle:Byte Ptr, body:Byte Ptr)
+	Function cpSpaceRemoveShape(handle:Byte Ptr, shape:Byte Ptr)
+	Function cpSpaceRemoveStaticShape(handle:Byte Ptr, shape:Byte Ptr)
+	Function cpSpaceRemoveJoint(handle:Byte Ptr, body:Byte Ptr)
 
 	Function bmx_cpvect_create:Byte Ptr(x:Float, y:Float)
 	Function bmx_cpvect_delete(handle:Byte Ptr)
@@ -152,6 +157,7 @@ Extern
 	Function bmx_cpslidejoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, minDist:Float, maxDist:Float)
 	Function bmx_cppivotjoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, pivot:Byte Ptr)
 	Function bmx_cpgroovejoint_create:Byte Ptr(handle:Object, bodyA:Byte Ptr, bodyB:Byte Ptr, grooveA:Byte Ptr, grooveB:Byte Ptr, anchor:Byte Ptr)
+	Function cpJointFree(handle:Byte Ptr)
 
 	Function bmx_cppinjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cppinjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
