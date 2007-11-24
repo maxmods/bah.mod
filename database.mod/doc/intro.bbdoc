@@ -1,0 +1,113 @@
+<img src="database_logo.png" align="right" />
+<p>
+The Database Framework module is the core of a set of cross-platform modules to allow you to connect
+to a variety of different databases using a standard set of Types and Functions.<br>
+Using a standard framework means that you don't have to learn or know anything about the underlying database API, since the framework takes care of all the nitty-gritty for you. This way, you only have to worry about the data and the SQLs to access it.
+</p>
+<p>Most databases use, or try to be close to the SQL92 (ANSI-standard) specification, which means that generally, you can re-use the same SQL statements on different databases without worrying about it. Obviously, if you decide to use database-specific SQL, you will have to be careful if you decide you want to then use a different type of database.
+</p>
+<p>Since there are many good online resources, tutorials, and books available that discuss and teach SQL, its use won't be described in great detail in this documentation. We leave it up to you to find out what you need to know ;-)
+</p>
+<h2>Getting Started</h2>
+<p>To connect to a database you need one of the available Database Driver modules.<br>
+As of this version there are currently drivers available for :
+<ul>
+<li>mSQL - (<a href="../../dbmsql.mod/doc/commands.html"> Docs </a>)</li>
+<li>MySQL - (<a href="../../dbmysql.mod/doc/commands.html"> Docs </a>)</li>
+<li>ODBC - (<a href="../../dbodbc.mod/doc/commands.html"> Docs </a>)</li>
+<li>PostgreSQL - (<a href="../../dbpostgresql.mod/doc/commands.html"> Docs </a>)</li>
+<li>SQLite - (<a href="../../dbsqlite.mod/doc/commands.html"> Docs </a>)</li>
+<li>Xbase - (<a href="../../dbxbase.mod/doc/commands.html"> Docs </a>)</li>
+</ul>
+</p>
+<h3>Opening a Connection</h3>
+<p>A <a href="#TDBConnection">TDBConnection</a> object is your interface to the database.<br>
+To create one, you should use the <a href="#LoadDatabase">LoadDatabase</a> function, passing in the relevant parameters. The most important parameter is <i>dbType</i>, which tells the Framework which kind of driver it should load for this connection.<br>
+It is much like the way other "loaders" work in BlitzMax, allowing you connect to several different types of database within the same application.<br>
+<a href="#LoadDatabase">LoadDatabase</a> takes other parameters, each of which may or may not be applicable for a certain driver - see the driver documentation for details.
+</p>
+<p>
+<a href="#LoadDatabase">LoadDatabase</a> will return Null if no valid driver was found.</p>
+<p>If you've provided enough information, the Framework will try to open a connection 
+to the database for you. You can check both <a href="#hasError">hasError</a> and the <a href="#isOpen">isOpen</a> method on the connection
+to determine whether or not it succeeded.
+</p>
+<h3>Communicating with the database</h3>
+<p>Once a connection is open, it's time to start working with the database.</p>
+<p>The Framework has two ways of performing actions on a database.<br>
+The first is to simply execute a query. The second is to prepare the query, and then execute it.</p>
+<p>The first method works like this:
+<pre>db.<a href="#executeQuery">executeQuery</a>("DROP TABLE if exists person")</pre>
+The statement is executed immediately on the database.</p>
+<p> The second method, prepare then execute, requires a bit more work to use, but the advantage over the first method is that although the initial prepare may be relatively slow, it allows multiple subsequent executions of the SQL without having to re-process it each time. (and is therefore more efficient over all)
+</p>
+<p>
+You begin by creating a <a href="#TDatabaseQuery">TDatabaseQuery</a> object,
+<pre>Local query:TDatabaseQuery = TDatabaseQuery.Create(db)</pre>
+The next step is to prepare the query,
+<pre>query.<a href="#prepare">prepare</a>("INSERT INTO person values (NULL, ?, ?)")</pre>
+</p>
+<p>
+With prepared statements/queries you can use placeholders to represent a value that you want to use when you execute it, much like a program variable. In the example above, there are two placeholders, specified by question marks. (<b>Note</b>: Check the database driver documentation for details of placeholder formats)
+</p>
+<p>
+Before the executing the query you need to bind each placeholder with a value. For example:
+<pre>
+For Local i:Int = 0 Until myArray.length
+	query.<a href="#setString">setString</a>(0, myArray[i].forename)
+	query.<a href="#setString">setString</a>(1, myArray[i].surname)
+
+	query.<a href="#execute">execute</a>()
+Next
+</pre>
+As you can see, for each new "insertion" we bind a new piece of data to each placeholder. The execution itself is very fast because the SQL has already been prepared.<br>
+The <b>add&lt;dbtype&gt;()</b> methods are also available for the supported types, which adds a new bind value to the end of the bindings. (see <a href="#addString">addString</a>, <a href="#addInt">addInt</a>, <a href="#addLong">addLong</a>, <a href="#addFloat">addFloat</a> and <a href="#addDouble">addDouble</a>).
+</p>
+<p>
+For SELECT statements, the TDBConnection <a href="#executeQuery">executeQuery</a> method also returns a <a href="#TDatabaseQuery">TDatabaseQuery</a> object.<br>
+A TDatabaseQuery object can be used to process all the rows of data returned from the SELECT. For example:
+</p>
+<pre>Local query:TDatabaseQuery = db.executeQuery("SELECT * FROM person")</pre>
+or, for prepared queries,
+<pre>query.execute()</pre>
+<p>
+There are two ways to get the row data from the SELECT.
+<ul>
+<li>Use the TDatabaseQuery <a href="#nextRow">nextRow</a> method, which fetches the next row, returning True if the fetch was successful, or False if there is no more data.<br>
+Once a row is fetched, you can access the row record using the TDatabaseQuery <a href="#rowRecord">rowRecord</a> method.
+<pre>While query.<a href="#nextRow">nextRow</a>()
+	Local record:<a href="#TQueryRecord">TQueryRecord</a> = query.<a href="#rowRecord">rowRecord</a>()
+	' ...
+Wend</pre>
+</li>
+<li>Use the &quot;EachIn&quot; support, as you would for a TList. For example:
+<pre>For Local record:<a href="#TQueryRecord">TQueryRecord</a> = EachIn query
+	' ...
+Next</pre>
+</li>
+</ul>
+</p>
+<p>The <a href="#rowsAffected">rowsAffected</a> method can be used to determine the number of rows affected by a delete, insert or update.
+</p>
+<h3>Transactions</h3>
+<p>
+Most modern databases support transactions of some kind.<br>
+A transaction is a block of work that doesn't become finalized on the database until you
+commit it. If at some point you want to cancel the transaction, you can "roll" it back to
+the state it was in before you started. This means that you won't have half-processed changes
+in your data if the server/connection goes down half-way through.
+</p>
+<p>To begin a transaction, you can use the <a href="#startTransaction">startTransaction</a> method.<br>
+Once the transaction is started, you should end it by calling either <a href="#commit">commit</a> or <a href="#rollback">rollback</a>.<br>
+If you close the connection before ending the transaction, the state of the transaction is undetermined - see the specific database documentation for details. It is better to end the transaction yourself :-)
+</p>
+<p>When not in a transaction, the default is for all database changing queries (like insert, delete, update, etc) to <b>auto-commit</b>. That is, the database will reflect the changes immediately.
+</p>
+<h2>Examples</h2>
+<p>The following examples use the DBSQLite module to demonstrate use of the Framework.
+<ul>
+<li><a href="../examples/example_01.bmx">example_01.bmx</a></li>
+<li><a href="../examples/example_02.bmx">example_02.bmx</a></li>
+<li><a href="../examples/example_03.bmx">example_03.bmx</a></li>
+</ul>
+</p>
