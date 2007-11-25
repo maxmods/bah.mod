@@ -1,0 +1,26 @@
+<a href="http://www.sqlite.org/"><img src="sqlite_logo.png" border="0" align="right" /></a>
+<p>
+The DBSQLite database driver allows you to connect to SQLite databases through the standard API provided
+by the Database Framework module.
+</p>
+<h2>Requirements</h2>
+<p>Everything you need to compile and work with SQLite databases is provided with the module, including the source to SQLite itself.<br>
+There are no external requirements.
+</p>
+<h2>Accessing an SQLite Database</h2>
+<p>To enable an SQLite connection, you pass a <i>dbtype</i> of &quot;<b>SQLITE</b>&quot; to the
+<a href="../../database.mod/doc/commands.html#LoadDatabase">LoadDatabase</a> function.
+</p>
+<p>The second parameter, <i>dbname</i>, should be either an SQLite database file (either an existing one, or the
+name of one you wish to create), or &quot;<b>:memory:</b>&quot;, which will create an in-memory database.<br>
+Note that in-memory databases last only as long as the connection is open.
+</p>
+<p><i>Host</i>, <i>port</i>, <i>user</i> and <i>password</i> parameters are not required for this driver.
+</p>
+<h2>Prepared Statement Placeholders</h2>
+<p>SQLite can have placeholders of the form "?" or "?nnn" or ":aaa" where "nnn" is an integer and "aaa" is an identifier. Each placeholder has an associated number which is its sequence in the query or the "nnn" in the case of a "?nnn" form. It is allowed for the same valued-placeholder to occur more than once in the same SQL, in which case all instances of that placeholder will be filled in with the same value. 
+</p>
+<h2>SQL with SQLite</h2>
+<p>For a complete guide to SQLite's support of SQL92, you can browse SQLite's online documentation
+<a href="http://www.sqlite.org/lang.html">here</a>.
+</p>
