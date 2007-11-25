@@ -414,6 +414,17 @@ Type TDBDate Extends TDBDateBase
 		this.setDate(value)
 		Return this
 	End Function
+	
+	Rem
+	bbdoc: Creates a TDBDate from a string.
+	about: The date should be in the format: YYYY-MM-DD
+	End Rem
+	Function SetFromString:TDBDate(date:String)
+		Local y:Int, m:Int, d:Int
+		If _parseDate(date, "%Y-%m-%d", Varptr y, Varptr m, Varptr d)
+			Return Set(y, m, d)
+		End If
+	End Function
 
 	Method getDate:Long()
 		Return value
@@ -547,6 +558,17 @@ Type TDBDateTime Extends TDBDateBase
 		Return this
 	End Function
 
+	Rem
+	bbdoc: Creates a TDBDateTime from a string.
+	about: The datetime should be in the format: YYYY-MM-DD HH:MM:SS
+	End Rem
+	Function SetFromString:TDBDateTime(date:String)
+		Local y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int
+		If _parseDateTime(date, "%Y-%m-%d %H:%M:%S", Varptr y, Varptr m, Varptr d, Varptr hh, Varptr mm, Varptr ss)
+			Return Set(y, m, d, hh, mm, ss)
+		End If
+	End Function
+
 	Method setFromParts(y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
 		_year = y
 		_month = m
@@ -638,6 +660,17 @@ Type TDBTime Extends TDBDateBase
 		Return this
 	End Function
 
+	Rem
+	bbdoc: Creates a TDBTime from a string.
+	about: The datetime should be in the format: YYYY-MM-DD HH:MM:SS
+	End Rem
+	Function SetFromString:TDBTime(date:String)
+		Local hh:Int, mm:Int, ss:Int
+		If _parseTime(date, "%H:%M:%S", Varptr hh, Varptr mm, Varptr ss)
+			Return Set(hh, mm, ss)
+		End If
+	End Function
+
 	Method getDate:Long()
 		Return value
 	End Method
@@ -699,6 +732,9 @@ End Type
 Extern
 	Function _calcDateValue(value:Long Ptr, y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
 	Function 	_formatDate:String(format:String, y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
+	Function _parseDate:Int(date:String, format:String, y:Int Ptr, m:Int Ptr, d:Int Ptr)
+	Function _parseDateTime:Int(date:String, format:String, y:Int Ptr, m:Int Ptr, d:Int Ptr, hh:Int Ptr, mm:Int Ptr, ss:Int Ptr)
+	Function _parseTime:Int(date:String, format:String, hh:Int Ptr, mm:Int Ptr, ss:Int Ptr)
 End Extern
 
 
