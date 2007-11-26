@@ -28,6 +28,7 @@ SuperStrict
 Import BRL.Blitz
 
 Import "glue.cpp"
+Import "strptime.bmx"
 
 Const DBTYPE_STRING:Int = 1
 Const DBTYPE_INT:Int = 2
@@ -420,8 +421,8 @@ Type TDBDate Extends TDBDateBase
 	about: The date should be in the format: YYYY-MM-DD
 	End Rem
 	Function SetFromString:TDBDate(date:String)
-		Local y:Int, m:Int, d:Int
-		If _parseDate(date, "%Y-%m-%d", Varptr y, Varptr m, Varptr d)
+		Local y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int
+		If dbStrptime(date, "%Y-%m-%d", y, m, d, hh, mm, ss)
 			Return Set(y, m, d)
 		End If
 	End Function
@@ -564,7 +565,7 @@ Type TDBDateTime Extends TDBDateBase
 	End Rem
 	Function SetFromString:TDBDateTime(date:String)
 		Local y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int
-		If _parseDateTime(date, "%Y-%m-%d %H:%M:%S", Varptr y, Varptr m, Varptr d, Varptr hh, Varptr mm, Varptr ss)
+		If dbStrptime(date, "%Y-%m-%d %H:%M:%S", y, m, d, hh, mm, ss)
 			Return Set(y, m, d, hh, mm, ss)
 		End If
 	End Function
@@ -665,8 +666,8 @@ Type TDBTime Extends TDBDateBase
 	about: The datetime should be in the format: YYYY-MM-DD HH:MM:SS
 	End Rem
 	Function SetFromString:TDBTime(date:String)
-		Local hh:Int, mm:Int, ss:Int
-		If _parseTime(date, "%H:%M:%S", Varptr hh, Varptr mm, Varptr ss)
+		Local y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int
+		If dbStrptime(date, "%H:%M:%S", y, m, d, hh, mm, ss)
 			Return Set(hh, mm, ss)
 		End If
 	End Function
@@ -732,9 +733,6 @@ End Type
 Extern
 	Function _calcDateValue(value:Long Ptr, y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
 	Function 	_formatDate:String(format:String, y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
-	Function _parseDate:Int(date:String, format:String, y:Int Ptr, m:Int Ptr, d:Int Ptr)
-	Function _parseDateTime:Int(date:String, format:String, y:Int Ptr, m:Int Ptr, d:Int Ptr, hh:Int Ptr, mm:Int Ptr, ss:Int Ptr)
-	Function _parseTime:Int(date:String, format:String, hh:Int Ptr, mm:Int Ptr, ss:Int Ptr)
 End Extern
 
 

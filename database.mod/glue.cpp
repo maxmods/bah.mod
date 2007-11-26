@@ -31,9 +31,6 @@ extern "C" {
 
 	void _calcDateValue(BBInt64 * value, int y, int m, int d, int hh, int mm, int ss);
 	BBString * _formatDate(BBString * format, int y, int m, int d, int hh, int mm, int ss);
-	bool _parseDate(BBString * date, BBString * format, int * y, int * m, int * d);
-	bool _parseDateTime(BBString * date, BBString * format, int * y, int * m, int * d, int * hh, int * mm, int * ss);
-	bool _parseTime(BBString * date, BBString * format, int * hh, int * mm, int * ss);
 
 }
 
@@ -71,74 +68,3 @@ BBString * _formatDate(BBString * format, int y, int m, int d, int hh, int mm, i
 	return bbStringFromCString(buffer);
 }
 
-bool _parseDate(BBString * date, BBString * format, int * y, int * m, int * d) {
-
-	tm stm;
-	char * sdate = bbStringToCString(date);
-	char * sformat = bbStringToCString(format);
-
-	char * res = strptime(sdate, sformat, &stm);
-
-	bbMemFree(sdate);
-	bbMemFree(sformat);
-	
-	if (res != NULL) {
-		*y = stm.tm_year + 1900;
-		*m = stm.tm_mon + 1;
-		*d = stm.tm_mday;
-
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool _parseDateTime(BBString * date, BBString * format, int * y, int * m, int * d, int * hh, int * mm, int * ss) {
-
-	tm stm;
-	char * sdate = bbStringToCString(date);
-	char * sformat = bbStringToCString(format);
-
-	char * res = strptime(sdate, sformat, &stm);
-
-	bbMemFree(sdate);
-	bbMemFree(sformat);
-	
-	if (res != NULL) {
-		*y = stm.tm_year + 1900;
-		*m = stm.tm_mon + 1;
-		*d = stm.tm_mday;
-		*hh = stm.tm_hour;
-		*mm = stm.tm_min;
-		*ss = stm.tm_sec;
-
-		return true;
-	} else {
-		return false;
-	}
-
-}
-
-bool _parseTime(BBString * date, BBString * format, int * hh, int * mm, int * ss) {
-
-	tm stm;
-	char * sdate = bbStringToCString(date);
-	char * sformat = bbStringToCString(format);
-
-	char * res = strptime(sdate, sformat, &stm);
-
-	bbMemFree(sdate);
-	bbMemFree(sformat);
-	
-	if (res != NULL) {
-		*hh = stm.tm_hour;
-		*mm = stm.tm_min;
-		*ss = stm.tm_sec;
-
-		return true;
-	} else {
-		return false;
-	}
-
-
-}
