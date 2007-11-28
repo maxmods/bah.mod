@@ -78,7 +78,11 @@ Extern
 	Function bmx_body_slew(handle:Byte Ptr, pos:Byte Ptr, dt:Float)
 	Function cpBodyFree(handle:Byte Ptr)
 	Function bmx_cpbody_settorque(handle:Byte Ptr, torque:Float)
-
+	Function bmx_cpbody_posfunc(handle:Byte Ptr, func(body:Byte Ptr, dt:Float))
+	Function bmx_cpbody_velfunc(handle:Byte Ptr, func(body:Byte Ptr, gravity:Byte Ptr, damping:Float, dt:Float))
+	Function bmx_velocity_function(body:Byte Ptr, gravity:Byte Ptr, damping:Float, dt:Float)
+	Function bmx_position_function(body:Byte Ptr, dt:Float)
+	
 	Function bmx_cpspace_create:Byte Ptr(handle:Object)
 	Function bmx_cpspace_setgravity(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_cpspace_addstaticshape(handle:Byte Ptr, shape:Byte Ptr)
@@ -90,6 +94,7 @@ Extern
 	Function bmx_cpspace_addjoint(handle:Byte Ptr, joint:Byte Ptr)
 	Function bmx_cpspace_addcollisionpairfunc(handle:Byte Ptr, collTypeA:Int, collTypeB:Int, ..
 		func:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object), data:Object)
+	Function bmx_cpspace_addcollisionpairnullfunc(handle:Byte Ptr, collTypeA:Int, collTypeB:Int)
 	Function bmx_cpspace_removecollisionpairfunc(handle:Byte Ptr, collTypeA:Int, collTypeB:Int)
 	Function bmx_cpspace_setdefaultcollisionpairfunc(handle:Byte Ptr, ..
 		func:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object), data:Object)
@@ -120,6 +125,7 @@ Extern
 	Function bmx_cpvect_normalize:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cpvect_toangle:Float(handle:Byte Ptr)
 	Function bmx_cpvect_cpvzero:Byte Ptr()
+	Function bmx_cpvect_fromvect:Byte Ptr(vect:Byte Ptr)
 
 	Function bmx_cpsegmentshape_create:Byte Ptr(handle:Object, body:Byte Ptr, a:Byte Ptr, b:Byte Ptr, radius:Float)
 	Function bmx_cpsegmentshape_getendpointa:Byte Ptr(handle:Byte Ptr)

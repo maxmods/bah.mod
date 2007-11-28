@@ -38,8 +38,8 @@ cpfmin(cpFloat a, cpFloat b)
 }
 
 #ifndef INFINITY
-#define INFINITY (1e1000)
-#endif
+		#define INFINITY (1e1000)
+	#endif
 
 #include "cpVect.h"
 #include "cpBB.h"

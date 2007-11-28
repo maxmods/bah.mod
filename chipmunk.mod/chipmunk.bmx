@@ -25,11 +25,14 @@ bbdoc: Chipmunk 2D Physics
 End Rem
 Module BaH.Chipmunk
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to latest Chipmunk source."
+ModuleInfo "History: Added callbacks for body velocity and position."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Adds body SetTorque()."
 ModuleInfo "History: Adds joint Free()."
@@ -70,12 +73,29 @@ Type CPObject
 	
 End Type
 
+Type _posFunc
+
+	Field func(Body:CPBody, dt:Float)
+	
+End Type
+
+Type _velFunc
+
+	Field func(body:CPBody, gravity:CPVect, damping:Float, dt:Float)
+	
+End Type
+
 Rem
 bbdoc: A rigid body holds the physical properties of an object. (mass, position, velocity, etc.)
 about: It does not have a shape by itself. By attaching shapes to bodies, you can define the a body's shape.
 You can attach many shapes to a single body to define a complex shape, or none if it doesn't require a shape.
 End Rem
 Type CPBody Extends CPObject
+
+	'Global posFuncs:TMap = New TMap
+	'Global velFuncs:TMap = New TMap
+	Field posFunction(body:CPBody, dt:Float)
+	Field velFunction(body:CPBody, gravity:CPVect, damping:Float, dt:Float)
 
 	Function _create:CPBody(cpObjectPtr:Byte Ptr)
 		If cpObjectPtr Then
@@ -259,6 +279,30 @@ Type CPBody Extends CPObject
 	End Method
 	
 	Rem
+	bbdoc: Sets the position function.
+	End Rem
+	Method SetPositionFunction(func(Body:CPBody, dt:Float))
+		posFunction = func
+		bmx_cpbody_posfunc(cpObjectPtr, bmx_position_function)
+	End Method
+	
+	Function _positionFunction(body:CPBody, dt:Float)
+		body.posFunction(body, dt)
+	End Function
+
+	Rem
+	bbdoc: Sets the velocity function.
+	End Rem
+	Method SetVelocityFunction(func(Body:CPBody, gravity:CPVect, damping:Float, dt:Float))
+		velFunction = func
+		bmx_cpbody_velfunc(cpObjectPtr, bmx_velocity_function)
+	End Method
+	
+	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Float, dt:Float)
+		body.velFunction(body, CPVect._create(gravity), damping, dt)
+	End Function
+	
+	Rem
 	bbdoc: Frees the body.
 	End Rem
 	Method Free()
@@ -379,18 +423,23 @@ Type CPSpace Extends CPObject
 	after the DoStep() method returns.
 	</p>
 	End Rem
-	Method AddCollisionPairFunc(collTypeA:Int, collTypeB:Int, cpCollFunc:Int(shapeA:cpShape, shapeB:cpShape, ..
+	Method AddCollisionPairFunc(collTypeA:Int, collTypeB:Int, cpCollFunc:Int(shapeA:CPShape, shapeB:CPShape, ..
 			contacts:CPContact[], normalCoeficient:Float, data:Object), data:Object = Null)
-		Local collpair:_CollisionPair = New _CollisionPair
-		collpair.abHash = bmx_CP_HASH_PAIR(collTypeA, collTypeB)
-		
-		collpair.data = data
-		collpair.func = cpCollFunc
-		
-		' add it (for reference counting
-		collisionPairs.insert(collpair, collpair)
-		
-		bmx_cpspace_addcollisionpairfunc(cpObjectPtr, collTypeA, collTypeB, _doCollision, collpair)
+			
+		If cpCollFunc Then
+			Local collpair:_CollisionPair = New _CollisionPair
+			collpair.abHash = bmx_CP_HASH_PAIR(collTypeA, collTypeB)
+			
+			collpair.data = data
+			collpair.func = cpCollFunc
+			
+			' add it (for reference counting
+			collisionPairs.insert(collpair, collpair)
+			
+			bmx_cpspace_addcollisionpairfunc(cpObjectPtr, collTypeA, collTypeB, _doCollision, collpair)
+		Else
+			bmx_cpspace_addcollisionpairnullfunc(cpObjectPtr, collTypeA, collTypeB)
+		End If
 	End Method
 	
 	Function _doCollision:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object)
@@ -425,7 +474,7 @@ Type CPSpace Extends CPObject
 	Passing Null for @cpCollFunc will reject collisions by default.
 	</p>
 	End Rem
-	Method SetDefaultCollisionPairFunc(cpCollFunc(shapeA:cpShape, shapeB:cpShape, ..
+	Method SetDefaultCollisionPairFunc(cpCollFunc(shapeA:CPShape, shapeB:CPShape, ..
 			contacts:CPContact[], normalCoeficient:Float, data:Object), data:Object = Null)
 			
 		Local collpair:_CollisionPair = New _CollisionPair
@@ -661,6 +710,12 @@ Type CPVect
 			this.vecPtr = vecPtr
 			bmx_cpvect_getxy(vecPtr, Varptr this.x, Varptr this.y)
 			Return this
+		End If
+	End Function
+	
+	Function _createFromVect:CPVect(vect:Byte Ptr)
+		If vect Then
+			Return _create(bmx_cpvect_fromvect(vect))
 		End If
 	End Function
 	

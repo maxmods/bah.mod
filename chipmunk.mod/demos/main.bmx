@@ -18,6 +18,20 @@ Global ticks:Int = 0
 'Global crate:TImage = LoadImage("crate.png")
 'Global ball:TImage = LoadImage("ball.png")
 
+Function drawFPS()
+	Global frame:Int = 0
+	Global fps:Int = 0
+	Global Time:Int = MilliSecs() + 1000
+
+	DrawText fps, -310, -230
+
+	frame:+ 1
+	If MilliSecs() >= Time
+		fps = frame
+		frame = 0
+		Time :+ 1000
+	End If
+End Function
 
 Function drawPolyShape(shape:CPPolyShape)
 

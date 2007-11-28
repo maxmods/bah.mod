@@ -362,8 +362,8 @@ int
 cpCollideShapes(cpShape *a, cpShape *b, cpContact **arr)
 {
 	// Their shape types must be in order.
-	assert(a->type <= b->type);
+	assert(a->klass->type <= b->klass->type);
 	
-	collisionFunc cfunc = colfuncs[a->type + b->type*CP_NUM_SHAPES];
+	collisionFunc cfunc = colfuncs[a->klass->type + b->klass->type*CP_NUM_SHAPES];
 	return (cfunc) ? cfunc(a, b, arr) : 0;
 }

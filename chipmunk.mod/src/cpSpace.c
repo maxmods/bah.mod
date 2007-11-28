@@ -307,6 +307,20 @@ cpSpaceRehashStatic(cpSpace *space)
 	cpSpaceHashRehash(space->staticShapes);
 }
 
+static inline int
+queryReject(cpShape *a, cpShape *b)
+{
+	return
+		// BBoxes must overlap
+	   !cpBBintersects(a->bb, b->bb)
+	   // Don't collide shapes attached to the same body.
+	   || a->body == b->body
+	   // Don't collide objects in the same non-zero group
+	   || (a->group && b->group && a->group == b->group)
+	   // Don't collide objects that don't share at least on layer.
+	   || !(a->layers & b->layers);
+}
+
 // Callback from the spatial hash.
 // TODO: Refactor this into separate functions?
 static int
@@ -318,19 +332,10 @@ queryFunc(void *p1, void *p2, void *data)
 	cpSpace *space = (cpSpace *)data;
 	
 	// Reject any of the simple cases
-	if(
-	   // BBoxes must overlap
-	   !cpBBintersects(a->bb, b->bb)
-	   // Don't collide shapes attached to the same body.
-	   || a->body == b->body
-	   // Don't collide objects in the same non-zero group
-	   || (a->group && b->group && a->group == b->group)
-	   // Don't collide objects that don't share at least on layer.
-	   || !(a->layers & b->layers)
-	   ) return 0;
+	if(queryReject(a,b)) return 0;
 	
 	// Shape 'a' should have the lower shape type. (required by cpCollideShapes() )
-	if(a->type > b->type){
+	if(a->klass->type > b->klass->type){
 		cpShape *temp = a;
 		a = b;
 		b = temp;
@@ -426,8 +431,10 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 	
 	// Integrate velocities.
 	cpFloat damping = pow(1.0f/space->damping, -dt);
-	for(int i=0; i<bodies->num; i++)
-		cpBodyUpdateVelocity((cpBody *)bodies->arr[i], space->gravity, damping, dt);
+	for(int i=0; i<bodies->num; i++){
+		cpBody *body = (cpBody *)bodies->arr[i];
+		body->velocity_func(body, space->gravity, damping, dt);
+	}
 	
 	// Pre-cache BBoxes and shape data.
 	cpSpaceHashEach(space->activeShapes, &updateBBCache, NULL);
@@ -462,8 +469,10 @@ cpSpaceStep(cpSpace *space, cpFloat dt)
 //		cpBodyMarkLowEnergy(bodies->arr[i], dvsq, space->sleepTicks);
 
 	// Integrate positions.
-	for(int i=0; i<bodies->num; i++)
-		cpBodyUpdatePosition((cpBody *)bodies->arr[i], dt);
+	for(int i=0; i<bodies->num; i++){
+		cpBody *body = (cpBody *)bodies->arr[i];
+		body->position_func(body, dt);
+	}
 	
 	// Increment the stamp.
 	space->stamp++;

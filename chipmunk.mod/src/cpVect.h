@@ -18,7 +18,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
+ 
 typedef struct cpVect{
 	cpFloat x,y;
 } cpVect;
@@ -104,4 +104,3 @@ cpVect cpvnormalize(const cpVect v);
 cpVect cpvforangle(const cpFloat a); // convert radians to a normalized vector
 cpFloat cpvtoangle(const cpVect v); // convert a vector to radians
 char *cpvstr(const cpVect v); // get a string representation of a vector
-

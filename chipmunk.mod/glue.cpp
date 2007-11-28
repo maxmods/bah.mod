@@ -31,6 +31,11 @@ extern "C" {
 	void cpbind( void *obj, BBObject *peer );
 	void _bah_chipmunk_CPPolyShape__setVert(BBArray * verts, int index, cpVect * vec);
 	void _bah_chipmunk_CPContact__setContact(BBArray * conts, int index, cpContact * contact);
+	void _bah_chipmunk_CPBody__velocityFunction(BBObject * body, cpVect * gravity, cpFloat damping, cpFloat dt);
+	void _bah_chipmunk_CPBody__positionFunction(BBObject * body, cpFloat dt);
+	
+	void bmx_velocity_function(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt);
+	void bmx_position_function(cpBody *body, cpFloat dt);
 
 	cpBody * bmx_cpbody_create(BBObject * handle, cpFloat mass, cpFloat inertia);
 	cpFloat bmx_cpbody_getmass(cpBody * body);
@@ -52,7 +57,9 @@ extern "C" {
 	void bmx_body_applyimpulse(cpBody * body, cpVect * impulse, cpVect * offset);
 	void bmx_body_slew(cpBody * body, cpVect * pos, cpFloat dt);
 	void bmx_cpbody_settorque(cpBody * body, cpFloat torque);
-
+	void bmx_cpbody_posfunc(cpBody * body, cpBodyPositionFunc func);
+	void bmx_cpbody_velfunc(cpBody * body, cpBodyVelocityFunc func);
+		
 	cpSpace * bmx_cpspace_create(BBObject * handle);
 	void bmx_cpspace_setgravity(cpSpace * space, cpVect * vec);
 	void bmx_cpspace_addstaticshape(cpSpace * space, cpShape * shape);
@@ -63,6 +70,7 @@ extern "C" {
 	void bmx_cpspace_setiterations(cpSpace * space, int num);
 	void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint);
 	void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data);
+	void bmx_cpspace_addcollisionpairnullfunc(cpSpace * space, unsigned long a, unsigned long b);
 	void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b);
 	void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, void *data);
 	void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping);
@@ -88,6 +96,7 @@ extern "C" {
 	cpVect * bmx_cpvect_normalize(cpVect * vec);
 	cpFloat bmx_cpvect_toangle(cpVect * vec);
 	cpVect * bmx_cpvect_cpvzero();
+	cpVect * bmx_cpvect_fromvect(cpVect vect);
 
 
 	cpShape * bmx_cpsegmentshape_create(BBObject * handle, cpBody * body, cpVect * a, cpVect * b, cpFloat radius);
@@ -288,6 +297,21 @@ void bmx_cpbody_settorque(cpBody * body, cpFloat torque) {
 	body->t = torque;
 }
 
+void bmx_cpbody_posfunc(cpBody * body, cpBodyPositionFunc func) {
+	body->position_func = func;
+}
+
+void bmx_cpbody_velfunc(cpBody * body, cpBodyVelocityFunc  func) {
+	body->velocity_func = func;
+}
+
+void bmx_velocity_function(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt) {
+	return _bah_chipmunk_CPBody__velocityFunction(cpfind(body), bmx_cpvect_new(gravity), damping, dt);
+}
+
+void bmx_position_function(cpBody *body, cpFloat dt) {
+	return _bah_chipmunk_CPBody__positionFunction(cpfind(body), dt);
+}
 
 // -------------------------------------------------
 
@@ -330,8 +354,13 @@ void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint) {
 }
 
 void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data) {
-	cpSpaceAddCollisionPairFunc(space, a, b, func, data);
+		cpSpaceAddCollisionPairFunc(space, a, b, func, data);
 }
+
+void bmx_cpspace_addcollisionpairnullfunc(cpSpace * space, unsigned long a, unsigned long b) {
+		cpSpaceAddCollisionPairFunc(space, a, b, NULL, NULL);
+}
+
 
 void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b) {
 	cpSpaceRemoveCollisionPairFunc(space, a, b);
@@ -437,6 +466,10 @@ cpFloat bmx_cpvect_toangle(cpVect * vec) {
 
 cpVect * bmx_cpvect_cpvzero() {
 	return bmx_cpvect_new(cpvzero);
+}
+
+cpVect * bmx_cpvect_fromvect(cpVect vect) {
+	return bmx_cpvect_new(vect);
 }
 
 // -------------------------------------------------

@@ -22,6 +22,8 @@
 // For determinism, you can reset the shape id counter.
 void cpResetShapeIdCounter(void);
 
+struct cpShape;
+
 // Enumeration of shape types.
 typedef enum cpShapeType{
 	CP_CIRCLE_SHAPE,
@@ -30,14 +32,21 @@ typedef enum cpShapeType{
 	CP_NUM_SHAPES
 } cpShapeType;
 
-// Basic shape struct that the others inherit from.
-typedef struct cpShape{
+struct cpShapeClass {
 	cpShapeType type;
-
+	
 	// Called by cpShapeCacheBB().
 	cpBB (*cacheData)(struct cpShape *shape, cpVect p, cpVect rot);
 	// Called to by cpShapeDestroy().
 	void (*destroy)(struct cpShape *shape);
+	
+	// called by cpShapeQueryPoint
+	int (*pointQuery)(struct cpShape *shape, cpVect p);
+};
+
+// Basic shape struct that the others inherit from.
+typedef struct cpShape{
+	const struct cpShapeClass *klass;
 	
 	// Unique id used as the hash value.
 	unsigned int id;
@@ -66,7 +75,7 @@ typedef struct cpShape{
 } cpShape;
 
 // Low level shape initialization func.
-cpShape* cpShapeInit(cpShape *shape, cpShapeType type, cpBody *body);
+cpShape* cpShapeInit(cpShape *shape, const struct cpShapeClass *klass, cpBody *body);
 
 // Basic destructor functions. (allocation functions are not shared)
 void cpShapeDestroy(cpShape *shape);
@@ -74,6 +83,14 @@ void cpShapeFree(cpShape *shape);
 
 // Cache the BBox of the shape.
 cpBB cpShapeCacheBB(cpShape *shape);
+
+// Test if a point lies within a shape.
+int cpShapePointQuery(cpShape *shape, cpVect p);
+
+// Test if a segment collides with a shape.
+// Returns [0-1] if the segment collides and -1 otherwise.
+// 0 would be a collision at point a, 1 would be a collision at point b.
+//cpFloat cpShapeSegmentQuery(cpShape *shape, cpVect a, cpVect b);
 
 
 // Circle shape structure.
