@@ -66,6 +66,8 @@ int main( int argc,char *argv[] ){
 	assert(p);
 	*p=0;
 
+	_globalPool=[[NSAutoreleasePool alloc] init];
+
 	// Bring the app to front :-)
 	ProcessSerialNumber psn = { 0, kCurrentProcess };
 	SetFrontProcess( &psn );
