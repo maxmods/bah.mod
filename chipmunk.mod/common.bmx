@@ -82,6 +82,8 @@ Extern
 	Function bmx_cpbody_velfunc(handle:Byte Ptr, func(body:Byte Ptr, gravity:Byte Ptr, damping:Float, dt:Float))
 	Function bmx_velocity_function(body:Byte Ptr, gravity:Byte Ptr, damping:Float, dt:Float)
 	Function bmx_position_function(body:Byte Ptr, dt:Float)
+	Function bmx_cpbody_setdata(body:Byte Ptr, data:Object)
+	Function bmx_cpbody_getdata:Object(body:Byte Ptr)
 	
 	Function bmx_cpspace_create:Byte Ptr(handle:Object)
 	Function bmx_cpspace_setgravity(handle:Byte Ptr, vec:Byte Ptr)
@@ -146,7 +148,9 @@ Extern
 	Function bmx_cpshape_getelasticity:Float(handle:Byte Ptr)
 	Function bmx_cpshape_getfriction:Float(handle:Byte Ptr)
 	Function cpShapeFree(handle:Byte Ptr)
-	Function bmx_shape_cachebb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpshape_cachebb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cpshape_setdata(handle:Byte Ptr, data:Object)
+	Function bmx_cpshape_getdata:Object(handle:Byte Ptr)
 
 	Function cpMomentForCircle:Float(m:Float, r1:Float, r2:Float, offset:Byte Ptr)
 	Function bmx_cpdampedspring(a:Byte Ptr, b:Byte Ptr, anchor1:Byte Ptr, anchor2:Byte Ptr, rlen:Float, k:Float, dmp:Float, dt:Float)

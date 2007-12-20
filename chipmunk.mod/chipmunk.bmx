@@ -25,11 +25,13 @@ bbdoc: Chipmunk 2D Physics
 End Rem
 Module BaH.Chipmunk
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Added user Set/GetData() methods for CPBody and CPShape."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to latest Chipmunk source."
 ModuleInfo "History: Added callbacks for body velocity and position."
@@ -301,6 +303,20 @@ Type CPBody Extends CPObject
 	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Float, dt:Float)
 		body.velFunction(body, CPVect._create(gravity), damping, dt)
 	End Function
+	
+	Rem
+	bbdoc: Sets user data for the body.
+	End Rem
+	Method SetData(data:Object)
+		bmx_cpbody_setdata(cpObjectPtr, data)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves user data for the body, or Null if not set.
+	End Rem
+	Method GetData:Object()
+		Return bmx_cpbody_getdata(cpObjectPtr)
+	End Method
 	
 	Rem
 	bbdoc: Frees the body.
@@ -1029,9 +1045,23 @@ Type CPShape Extends CPObject
 	bbdoc: Updates and returns the bounding box of the shape.
 	End Rem
 	Method CacheBB:CPBB()
-		Return CPBB._create(bmx_shape_cachebb(cpObjectPtr))
+		Return CPBB._create(bmx_cpshape_cachebb(cpObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Sets user data for the body.
+	End Rem
+	Method SetData(data:Object)
+		bmx_cpshape_setdata(cpObjectPtr, data)
 	End Method
 	
+	Rem
+	bbdoc: Retrieves user data for the body, or Null if not set.
+	End Rem
+	Method GetData:Object()
+		Return bmx_cpshape_getdata(cpObjectPtr)
+	End Method
+
 	Rem
 	bbdoc: Frees the shape
 	End Rem

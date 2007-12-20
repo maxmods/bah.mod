@@ -59,6 +59,8 @@ extern "C" {
 	void bmx_cpbody_settorque(cpBody * body, cpFloat torque);
 	void bmx_cpbody_posfunc(cpBody * body, cpBodyPositionFunc func);
 	void bmx_cpbody_velfunc(cpBody * body, cpBodyVelocityFunc func);
+	void bmx_cpbody_setdata(cpBody * body, BBObject * data);
+	BBObject * bmx_cpbody_getdata(cpBody * body);
 		
 	cpSpace * bmx_cpspace_create(BBObject * handle);
 	void bmx_cpspace_setgravity(cpSpace * space, cpVect * vec);
@@ -114,7 +116,9 @@ extern "C" {
 	cpVect * bmx_cpshape_getsurfacevelocity(cpShape * shape);
 	cpFloat bmx_cpshape_getelasticity(cpShape * shape);
 	cpFloat bmx_cpshape_getfriction(cpShape * shape);
-	cpBB * bmx_shape_cachebb(cpShape * shape);
+	cpBB * bmx_cpshape_cachebb(cpShape * shape);
+	void bmx_cpshape_setdata(cpShape * shape, BBObject * data);
+	BBObject * bmx_cpshape_getdata(cpShape * shape);
 
 	cpFloat bmx_momentforpoly(cpFloat m, BBArray * verts, int count, cpVect * offset);
 	cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset);
@@ -311,6 +315,18 @@ void bmx_velocity_function(cpBody *body, cpVect gravity, cpFloat damping, cpFloa
 
 void bmx_position_function(cpBody *body, cpFloat dt) {
 	return _bah_chipmunk_CPBody__positionFunction(cpfind(body), dt);
+}
+
+void bmx_cpbody_setdata(cpBody * body, BBObject * data) {
+	body->data = data;
+}
+
+BBObject * bmx_cpbody_getdata(cpBody * body) {
+	if (body->data) {
+		return (BBObject*)body->data;
+	} else {
+		return &bbNullObject;
+	}
 }
 
 // -------------------------------------------------
@@ -579,8 +595,20 @@ cpFloat bmx_cpshape_getfriction(cpShape * shape) {
 	return shape->u;
 }
 
-cpBB * bmx_shape_cachebb(cpShape * shape) {
+cpBB * bmx_cpshape_cachebb(cpShape * shape) {
 	return bmx_cpbb_new(cpShapeCacheBB(shape));
+}
+
+void bmx_cpshape_setdata(cpShape * shape, BBObject * data) {
+	shape->data = data;
+}
+
+BBObject * bmx_cpshape_getdata(cpShape * shape) {
+	if (shape->data) {
+		return (BBObject*)shape->data;
+	} else {
+		return &bbNullObject;
+	}
 }
 
 // -------------------------------------------------
