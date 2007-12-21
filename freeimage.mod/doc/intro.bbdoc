@@ -1,0 +1,99 @@
+<a href="http://freeimage.sourceforge.net/"><img src="freeimage_logo.png" border="0" align="right" /></a>
+<p>
+The FreeImage module is a BlitzMax wrapper for the open source FreeImage library.
+</p>
+<p>It adds support for the following image formats : GIF, BMP, DDS, EXR, HDR, ICO, IFF, JNG, JPG, JPEG 2000, KOALA, LBM, Kodak, MNG, PCS, PBM, PGM, PNG, PPM, Photoshop (PSD), Fax G3, SGI, RAS, TARGA, TIFF, WBMP, XBM and XPM.
+</p>
+<h2>Requirements</h2>
+<p>The FreeImage source compiles directly into the module so you have no external requirements.</p>
+<h2>Basic Usage</h2>
+<p>
+If you don't need anything other than an image loader, you just need to Import the module and use LoadPixmap as normal :
+</p>
+<pre>
+Import BaH.FreeImage
+
+Local pixmap:TPixmap = LoadPixmap("myimage.gif")
+</pre>
+<p>
+The module will determine if the image is one of the above formats and load it accordingly.
+</p>
+<h2>Advanced Usage</h2>
+<p>
+The FreeImage module can also be used to load, convert and manipulate images. You can do this via the <a href="#LoadFreeImage">LoadFreeImage</a> function.</p>
+<pre>
+Import BaH.FreeImage
+
+Local image:TFreeImage = LoadFreeImage("myimage.gif")
+</pre>
+<p>
+<a href="#TFreeImage">TFreeImage</a> has a selection of fields and methods that enable you to get information about the image, and manipulate it in various ways.
+</p>
+<h2>Image manipulation</h2>
+<p>This section explains what some of the advanced functionality does.</p>
+<p><b>Note : </b>The FreeImage module creates it's own displayable copy of an image so that the original data remains intact. The module creates
+this display image in a format compatible with TPixmap, upsampling or downsampling as appropriate.
+</p>
+<h3>Conversion Methods</h3>
+<p>The following methods make it possible to convert a bitmap from one bit depth to another.</p>
+<ul>
+<li><a href="#convertTo4Bits">convertTo4Bits</a></li>
+<li><a href="#convertTo8Bits">convertTo8Bits</a></li>
+<li><a href="#convertToGrescale">convertToGreyscale</a></li>
+<li><a href="#convertTo16Bits555">convertTo16Bits555</a></li>
+<li><a href="#convertTo16Bits565">convertTo16Bits565</a></li>
+<li><a href="#convertTo24Bits">convertTo24Bits</a></li>
+<li><a href="#convertTo32Bits">convertTo32Bits</a></li>
+</ul>
+<h3>Tone Mapping</h3>
+<p>
+Tone mapping operators are used to compress a large range of pixel luminances into a smaller range that is suitable for display on devices with limited dynamic range (e.g. display devices such as CRTs or LCDs and print media).
+</p>
+<p>
+In principle this problem is simple: we need to turn an image with a large range of numbers into an image containing integers in the range of 0 to 255 such that we can display it on a printer or a monitor. This suggests linear scaling as a possible solution. However, this approach is flawed because details in the light or dark areas of the image will be lost due to subsequent quantization, and the displayed image will therefore not be perceived the same as the scene that was photographed. For this reason, more elaborate algorithms, called tone mapping operators, have been proposed to accurately render High Dynamic Range images.
+</p>
+<ul>
+<li><a href="#toneMapping">toneMapping</a></li>
+<li><a href="#tmoDrago03">tmoDrago03</a></li>
+<li><a href="#tmoReinhard05">tmoReinhard05</a></li>
+</ul>
+<h3>Rotation and Flipping</h3>
+<ul>
+<li><a href="#rotateClassic">rotateClassic</a></li>
+<li><a href="#rotateEx">rotateEx</a></li>
+<li><a href="#flipHorizontal">flipHorizontal</a></li>
+<li><a href="#flipVertical">flipVertical</a></li>
+</ul>
+<h3>Upsampling / Downsampling</h3>
+<ul>
+<li><a href="#rescale">rescale</a></li>
+<li><a href="#makeThumbnail">makeThumbnail</a></li>
+</ul>
+<h3>Color Manipulation</h3>
+<p>FreeImage uses the RGB(A) color model to represent color images in memory. A 8-bit greyscale image has a single channel, often called the black channel. A 24-bit image is made up of three 8-bit channels: one for each of the red, green and blue colors. For 32-bit images, a fourth 8-bit channel, called alpha channel, is used to create and store masks, which let you manipulate, isolate, and protect specific parts of an image. Unlike the others channels, the alpha channel doesn’t convey color information, in a physical sense.
+</p>
+<p>
+Color manipulation functions used in FreeImage allow you to modify the histogram of a specific channel. This transformation is known as a point operation, and may be used to adjust brightness, contrast or gamma of an image, to perform image enhancement (e.g. histogram equalization, non-linear contrast adjustment) or even to invert or threshold an image.
+</p>
+<p>Currently, the following channels are defined in FreeImage:</p>
+<table width="90%" align="center">
+<tr><th>Channel</th><th>Description</th></tr>
+<tr><td>FICC_RGB</td><td>Function applies to red, green and blue channels</td></tr>
+<tr><td>FICC_RED</td><td>Function applies to red channel only</td></tr>
+<tr><td>FICC_GREEN</td><td>Function applies to green channel only</td></tr>
+<tr><td>FICC_BLUE</td><td>Function applies to blue channel only</td></tr>
+<tr><td>FICC_ALPHA</td><td>Function applies to alpha channel only</td></tr>
+<tr><td>FICC_BLACK</td><td>Function applies to black channel</td></tr>
+<tr><td>FICC_REAL</td><td>Complex images: function applies to the real part</td></tr>
+<tr><td>FICC_IMAG</td><td>Complex images: function applies to the imaginary part</td></tr>
+<tr><td>FICC_MAG</td><td>Complex images: function applies to the magnitude</td></tr>
+<tr><td>FICC_PHASE</td><td>Complex images: function applies to the phase</td></tr>
+</table>
+<p>Available methods : </p>
+<ul>
+<li><a href="#adjustCurve">adjustCurve</a></li>
+<li><a href="#adjustGamma">adjustGamma</a></li>
+<li><a href="#adjustBrightness">adjustBrightness</a></li>
+<li><a href="#adjustContrast">adjustContrast</a></li>
+</ul>
+
