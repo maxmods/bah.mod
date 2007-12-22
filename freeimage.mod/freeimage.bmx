@@ -616,9 +616,11 @@ Type TFreeImage
 				If bmx_freeimage_isTransparent(freeImagePtr) Then
 					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
 
-					?bigendian
+					?win32
+					format = PF_BGRA8888
+					?macos
 					format = PF_RGBA8888
-					?littleendian
+					?linux
 					format = PF_BGRA8888
 					?
 				Else
@@ -631,9 +633,11 @@ Type TFreeImage
 				If bmx_freeimage_isTransparent(freeImagePtr) Then
 					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
 					
-					?bigendian
+					?win32
+					format = PF_BGRA8888
+					?macos
 					format = PF_RGBA8888
-					?littleendian
+					?linux
 					format = PF_BGRA8888
 					?
 				Else
@@ -646,9 +650,11 @@ Type TFreeImage
 				If bmx_freeimage_isTransparent(freeImagePtr) Then
 					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
 
-					?bigendian
+					?win32
+					format = PF_BGRA8888
+					?macos
 					format = PF_RGBA8888
-					?littleendian
+					?linux
 					format = PF_BGRA8888
 					?
 				Else
@@ -656,9 +662,11 @@ Type TFreeImage
 					If bmx_freeimage_GetColorType(freeImagePtr) = FIC_PALETTE Then
 						displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo24Bits(freeImagePtr))
 						
-						?bigendian
+						?win32
+						format = PF_BGR888
+						?macos
 						format = PF_RGB888
-						?littleendian
+						?linux
 						format = PF_BGR888
 						?
 					Else
@@ -669,27 +677,32 @@ Type TFreeImage
 
 			Case 24
 				displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo24Bits(freeImagePtr))
-				?bigendian
+				?win32
+				format = PF_BGR888
+				?macos
 				format = PF_RGB888
-				?littleendian
+				?linux
 				format = PF_BGR888
 				?
 			Case 32
 				displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
-				?bigendian
+				?win32
+				format = PF_BGRA8888
+				?macos
 				format = PF_RGBA8888
-				?littleendian
+				?linux
 				format = PF_BGRA8888
 				?
 			Default ' for everything else...
 				displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo24Bits(freeImagePtr))
 						
-				?bigendian
+				?win32
+				format = PF_BGR888
+				?macos
 				format = PF_RGB888
-				?littleendian
+				?linux
 				format = PF_BGR888
 				?
-
 		End Select
 		
 		bmx_freeimage_FlipVertical(displayImagePtr)
