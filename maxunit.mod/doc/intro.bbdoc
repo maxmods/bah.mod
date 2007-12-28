@@ -1,0 +1,87 @@
+<img src="logo.png" align="right" />
+<p>A unit testing Module based loosely on JUnit.</p>
+To define a test :<br>
+<ol>
+<li> implement a sub-Type of TTest</li>
+<li> initialize the user states by creating a Method tagged with {setup}</li>
+<li> clean-up after a test by creating a Method tagged with {teardown}.</li>
+</ol>
+Here is an example:
+<pre>
+Type MyTest Extends TTest
+
+	Local value1:Int
+	Local value2:Int
+
+	Method setup_some_stuff() { setup }
+		value1 = 2
+		value2 = 3
+	End Method
+
+End Type
+</pre>
+For each test implement a @Method which interacts with the fixture. You tell MaxUnit that this is a test Method by
+tagging it with {test}. The Method can otherwise be called anything you like. It should take no parameters and not
+return anything.<br>
+Verify the expected results with assertions specified by calling @assertTrue with a boolean.
+<pre>
+	Method testAdd() { test }
+		Local result:Int = value1 + value2
+		assertTrue(result = 5)
+	End Method
+</pre>
+Finally, you can run the tests by creating an instance of the TTestSuite and calling its @run method.
+<pre>
+New TTestSuite.run()
+</pre>
+The following code snippet is a complete example, including a failed test :<br>
+You can open the source <a href="example.bmx">here</a>.
+<pre>
+SuperStrict
+
+Import BaH.MaxUnit
+
+New TTestSuite.run()
+
+Type MyTest Extends TTest
+
+	Field  value1:Int
+	Field value2:Int
+
+	Method setup() { setup }
+		value1 = 2
+		value2 = 3
+	End Method
+
+	Method testAdd() { test }
+		Local result:Int = value1 + value2
+		assertTrue(result = 5)
+	End Method
+	
+	Method testMultiply() { test }
+		Local result:Int = value1 * value2
+		assertEqualsI(6, result)
+	End Method
+
+	Method testOops() { test }
+		Local result:Int = value1 + value2
+		assertEqualsI(2, result, "Just here to show a failed test...")
+	End Method
+
+End Type
+</pre>
+The above program should produce the following output :
+<pre>
+[0] ..F
+
+There was 1 failure:
+1) testOops
+    assertEqualsI() : Just here to show a failed test... expected:<2> but was:<5>
+
+
+FAILURES!!!
+Tests run: 3,  Failures: 1,  Errors: 0
+Time: 0.0
+
+Process complete
+</pre>
