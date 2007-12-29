@@ -26,12 +26,15 @@ bbdoc: MaxUnit - Unit Testing
 End Rem
 Module BaH.MaxUnit
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Credit: Based loosely on the JUnit testing framework by Erich Gamma and Kent Beck. see junit.org"
 ModuleInfo "Copyright: (c) 2006,2007 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Improved multiple test-types support."
+ModuleInfo "History: Changed tags to before/after and beforetype/aftertype"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Re-written to use reflection."
 ModuleInfo "History: 1.01"
@@ -49,10 +52,10 @@ Rem
 bbdoc: A test defines a set of test methods to test.
 about: Extend TTest to define your own tests.
 <p>
-To add a setup method, create a method and tag it with {setup}
+Tag a method with {before} and initiliaze any variables/data in that method
 </p>
 <p>
-To add a teardown method, create a method and tag it with {teardown}
+Tag a method with {after} to release any permanent resources you allocated in the setup.
 </p>
 <p>
 For each test method you want to run, tag it with {test}
@@ -63,18 +66,22 @@ Any methods not tagged are ignored by MaxUnit.
 End Rem
 Type TTest Extends TAssert
 
-	'Field tests:TList = New TList
-	'Field failures:TList = New TList
-	'Field errors:TList = New TList
-	'Field currentTest:TTestFunction
-	'Field isFail:Int = False
-	'Field isError:Int = False
+	Field tests:TList = New TList
+	Field failures:TList = New TList
+	Field errors:TList = New TList
+	Field currentTest:TTestFunction
+	Field isFail:Int = False
+	Field isError:Int = False
 	'Field column:Int = 0
-	'Field testCount:Int = 0
-	'Field startTime:Long = 0
+	Field testCount:Int = 0
+	Field startTime:Long = 0
+	Field endTime:Long = 0
 
-	Field _setup:TMethod
-	Field _teardown:TMethod
+	Field _before:TMethod
+	Field _after:TMethod
+
+	Field _beforeType:TMethod
+	Field _afterType:TMethod
 
 End Type
 
@@ -83,23 +90,27 @@ bbdoc: A test suite defines the fixture to run multiple tests.
 End Rem
 Type TTestSuite Extends TAssert
 
-	Global tests:TList = New TList
-	Global failures:TList = New TList
-	Global errors:TList = New TList
-	Global currentTest:TTestFunction
-	Global isFail:Int = False
-	Global isError:Int = False
-	Global column:Int = 0
-	Global testCount:Int = 0
-	Global startTime:Long = 0
+	Field tests:TList = New TList
+	Field failures:TList = New TList
+	Field errors:TList = New TList
+	Field currentTest:TTestFunction
+	Field isFail:Int = False
+	Field isError:Int = False
+	Field column:Int = 0
+	Field testCount:Int = 0
+	Field startTime:Long = 0
 
-	Method _add:TTestFunction(testName:String, instance:Object, f:TMethod )
+	Method _addTest(instance:Object)
+		tests.addLast(instance)
+	End Method
+
+	Method _add:TTestFunction(instance:Object, f:TMethod )
 		Local t:TTestFunction = New TTestFunction
-		t.name = testName
+		t.name = TTypeId.ForObject(instance).Name() + "." + f.Name()
 		t.instance = instance
 		t.test = f
 		
-		tests.addLast(t)
+		TTest(instance).tests.addLast(t)
 		
 		Return t
 	End Method
@@ -112,14 +123,32 @@ Type TTestSuite Extends TAssert
 		startTime = MilliSecs()
 	
 		_addTests()
-	
+
 		_PrintLine("")
 		_Print("[0] ")
-	
-		For Local t:TTestFunction = EachIn tests
 		
-			performTest(t)
+		For Local testType:TTest = EachIn tests
 		
+			testType.startTime = MilliSecs()
+			
+			Local size:Int = testType.tests.count()
+			Local count:Int = 0, doBefore:Int, doAfter:Int
+		
+			For Local t:TTestFunction = EachIn testType.tests
+
+				If Not count Then
+					doBefore = True
+				End If
+				
+				If count = size - 1 Then
+					doAfter = True
+				End If
+				
+				performTest(t, doBefore, doAfter)
+			
+			Next
+			
+			testType.endTime = MilliSecs()
 		Next
 		
 		Local endTime:Long = MilliSecs()
@@ -189,22 +218,33 @@ Type TTestSuite Extends TAssert
 	
 	End Method
 	
-	Method performTest(t:TTestFunction)
+	Method performTest(t:TTestFunction, First:Int = False, last:Int = False)
 		isFail = False
 		isError = False
 
 		' This is the current test
 		currentTest = t
 
+		If First Then
+			Try
+				' run any user-specific pre-test setup
+				If TTest(t.instance)._beforeType Then
+					TTest(t.instance)._beforeType.Invoke(t.instance, Null)
+				End If
+			Catch ex:Object
+				isError = True
+				t.reason = "Exception in beforeType() - " + ex.toString()
+			End Try
+		End If
 			
 		Try
 			' run any user-specific setup
-			If TTest(t.instance)._setup Then
-				TTest(t.instance)._setup.Invoke(t.instance, Null)
+			If TTest(t.instance)._before Then
+				TTest(t.instance)._before.Invoke(t.instance, Null)
 			End If
 		Catch ex:Object
 			isError = True
-			t.reason = "Exception in setup() - " + ex.toString()
+			t.reason = "Exception in before() - " + ex.toString()
 		End Try
 
 
@@ -226,14 +266,25 @@ Type TTestSuite Extends TAssert
 		
 		Try
 			' run any user-specific teardown
-			If TTest(t.instance)._teardown Then
-				TTest(t.instance)._teardown.Invoke(t.instance, Null)
+			If TTest(t.instance)._after Then
+				TTest(t.instance)._after.Invoke(t.instance, Null)
 			End If
 		Catch ex:Object
 			isError = True
-			t.reason = "Exception in tearDown() - " + ex.toString()
+			t.reason = "Exception in after() - " + ex.toString()
 		End Try
 		
+		If last Then
+			Try
+				' run any user-specific post-test setup
+				If TTest(t.instance)._afterType Then
+					TTest(t.instance)._afterType.Invoke(t.instance, Null)
+				End If
+			Catch ex:Object
+				isError = True
+				t.reason = "Exception in afterType() - " + ex.toString()
+			End Try
+		End If
 		
 		If Not isFail Then
 			If Not isError Then
@@ -270,7 +321,7 @@ Type TTestSuite Extends TAssert
 
 		' This is the base type, TTest. We'll run tests on all Types that extend it.	
 		Local idTest:TTypeId = TTypeId.ForName("TTest")
-	
+
 		' process each derived type...
 		For Local id:TTypeId = EachIn idTest.DerivedTypes()
 		
@@ -280,19 +331,30 @@ Type TTestSuite Extends TAssert
 			
 				If Not obj Then
 					obj = id.NewObject()
+					_addTest(obj)
 				End If
 			
 				If meth.MetaData("test") Then      ' a test method
-					_add(meth.name(), obj, meth)
+					_add(obj, meth)
 				End If
 
-				If meth.MetaData("setup") Then     ' a setup method
-					Local f:TField = id.FindField("_setup")
+				If meth.MetaData("before") Then     ' a setup method
+					Local f:TField = id.FindField("_before")
 					f.Set(obj, meth)
 				End If
 
-				If meth.MetaData("teardown") Then  ' a teardown method
-					Local f:TField = id.FindField("_teardown")
+				If meth.MetaData("after") Then  ' a teardown method
+					Local f:TField = id.FindField("_after")
+					f.Set(obj, meth)
+				End If
+
+				If meth.MetaData("beforetype") Then     ' a setup method
+					Local f:TField = id.FindField("_beforetype")
+					f.Set(obj, meth)
+				End If
+
+				If meth.MetaData("aftertype") Then  ' a teardown method
+					Local f:TField = id.FindField("_aftertype")
 					f.Set(obj, meth)
 				End If
 

@@ -7,7 +7,7 @@ Type MyTest Extends TTest        ' <-- extend from TTest
 	Field value1:Int
 	Field value2:Int
 
-	Method setup() { setup }    ' <-- {setup} is run once per test method. Optional.
+	Method setup() { before }    ' <-- {before} is run once per test method. Optional.
 		value1 = 2
 		value2 = 3
 	End Method

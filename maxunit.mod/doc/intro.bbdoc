@@ -3,8 +3,8 @@
 To define a test :<br>
 <ol>
 <li> implement a sub-Type of TTest</li>
-<li> initialize the user states by creating a Method tagged with {setup}</li>
-<li> clean-up after a test by creating a Method tagged with {teardown}.</li>
+<li> initialize the user states by creating a Method tagged with {before}</li>
+<li> clean-up after a test by creating a Method tagged with {after}.</li>
 </ol>
 Here is an example:
 <pre>
@@ -13,7 +13,7 @@ Type MyTest Extends TTest
 	Local value1:Int
 	Local value2:Int
 
-	Method setup_some_stuff() { setup }
+	Method setup() { before }
 		value1 = 2
 		value2 = 3
 	End Method
@@ -48,7 +48,7 @@ Type MyTest Extends TTest
 	Field  value1:Int
 	Field value2:Int
 
-	Method setup() { setup }
+	Method setup() { before }
 		value1 = 2
 		value2 = 3
 	End Method
