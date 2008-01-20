@@ -567,6 +567,7 @@ End Rem
 		Return this
 	End Function
 
+?Not win32
 	Rem
 	bbdoc: RC5 encryption algorithm, using CBC (Cipher-block chaining) mode.
 	about: This is a variable key length cipher with an
@@ -614,7 +615,7 @@ End Rem
 		this.cipherPtr = EVP_rc5_32_12_16_ofb()
 		Return this
 	End Function
-
+?
 End Type
 
 Rem

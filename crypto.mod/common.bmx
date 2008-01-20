@@ -54,24 +54,40 @@ Extern
 
 	Function EVP_des_cbc:Byte Ptr()
 	Function EVP_des_ecb:Byte Ptr()
+?Not win32
 	Function EVP_des_cfb:Byte Ptr()
+?win32
+	Function EVP_des_cfb:Byte Ptr() = "EVP_des_cfb64"
+?
 	Function EVP_des_ofb:Byte Ptr()
 
 	Function EVP_des_ede_cbc:Byte Ptr()
 	Function EVP_des_ede:Byte Ptr()
+?Not win32
 	Function EVP_des_ede_cfb:Byte Ptr()
+?win32
+	Function EVP_des_ede_cfb:Byte Ptr() = "EVP_des_ede_cfb64"
+?
 	Function EVP_des_ede_ofb:Byte Ptr()
 
 	Function EVP_des_ede3_cbc:Byte Ptr()
 	Function EVP_des_ede3:Byte Ptr()
+?Not win32
 	Function EVP_des_ede3_cfb:Byte Ptr()
+?win32
+	Function EVP_des_ede3_cfb:Byte Ptr() = "EVP_des_ede3_cfb64"
+?
 	Function EVP_des_ede3_ofb:Byte Ptr()
 	
 	Function EVP_desx_cbc:Byte Ptr()
 
 	Function EVP_bf_cbc:Byte Ptr()
 	Function EVP_bf_ecb:Byte Ptr()
+?Not win32
 	Function EVP_bf_cfb:Byte Ptr()
+?win32
+	Function EVP_bf_cfb:Byte Ptr() = "EVP_bf_cfb64"
+?
 	Function EVP_bf_ofb:Byte Ptr()
 	
 	Function EVP_rc4:Byte Ptr()
@@ -86,18 +102,28 @@ End Rem
 
 	Function EVP_rc2_cbc:Byte Ptr()
 	Function EVP_rc2_ecb:Byte Ptr()
+?Not win32
 	Function EVP_rc2_cfb:Byte Ptr()
+?win32
+	Function EVP_rc2_cfb:Byte Ptr() = "EVP_rc2_cfb64"
+?
 	Function EVP_rc2_ofb:Byte Ptr()
 	
 	Function EVP_cast5_cbc:Byte Ptr()
 	Function EVP_cast5_ecb:Byte Ptr()
+?Not win32
 	Function EVP_cast5_cfb:Byte Ptr()
+?win32
+	Function EVP_cast5_cfb:Byte Ptr() = "EVP_cast5_cfb64"
+?
 	Function EVP_cast5_ofb:Byte Ptr()
 	
+?Not win32
 	Function EVP_rc5_32_12_16_cbc:Byte Ptr()
 	Function EVP_rc5_32_12_16_ecb:Byte Ptr()
 	Function EVP_rc5_32_12_16_cfb:Byte Ptr()
 	Function EVP_rc5_32_12_16_ofb:Byte Ptr()
+?
 	
 End Extern
 
@@ -125,25 +151,14 @@ Function StringToByteArray:Byte[](text:String)
 End Function
 
 Const EVP_CTRL_INIT:Int = 0
-
 Const EVP_CTRL_SET_KEY_LENGTH:Int = 1
-
 Const EVP_CTRL_GET_RC2_KEY_BITS:Int = 2
-
 Const EVP_CTRL_SET_RC2_KEY_BITS:Int = 3
-
 Const EVP_CTRL_GET_RC5_ROUNDS:Int = 4
-
 Const EVP_CTRL_SET_RC5_ROUNDS:Int = 5
-
 Const EVP_CTRL_RAND_KEY:Int = 6
 
-
 Const EVP_MAX_MD_SIZE:Int = 64	' longest known is SHA512
-
 Const EVP_MAX_KEY_LENGTH:Int = 32
-
 Const EVP_MAX_IV_LENGTH:Int = 16
-
 Const EVP_MAX_BLOCK_LENGTH:Int = 32
-
