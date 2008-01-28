@@ -1,4 +1,4 @@
-' Copyright (c) 2007, Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ ModuleInfo "Version: 1.03"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: PCRE - 1997-2007 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007, 2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
