@@ -27,15 +27,16 @@ Module BaH.MAPM
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
+ModuleInfo "Copyright: MAPM - 1999-2007 Michael C. Ring"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release"
+ModuleInfo "History: 1.00 Initial Release (MAPM 4.9.5)"
 
 
 Import "common.bmx"
 
 Rem
-bbdoc: A numeric type very large numbers.
+bbdoc: A numeric type for very large numbers.
 End Rem
 Type TMAPM
 
