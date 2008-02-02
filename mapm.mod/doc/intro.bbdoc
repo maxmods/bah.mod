@@ -1,1 +1,77 @@
+<h3>About MAPM</h3>
+<p>
+Mike's Arbitrary Precision Math Library is a set of methods that
+allow the user to perform math to any level of accuracy that is
+desired.
+</p>
+<p>
+MAPM allows you to, round a value to any desired precision. This is very handy when
+multiplying for many iterations. Since multiplication guarantees an
+exact result, the number of digits will grow without bound.
+</p>
+<p>
+MAPM has natural support for floating point values. From most of the other
+libraries, they seem to have a preference for integer
+only type math manipulations. (However, this library will also do
+integer only math if you desire).
+</p>
+<p>
+MAPM has trig functions and other common C math library functions. The library
+   will perform the following functions to any desired precision level :
+   SQRT, CBRT, SIN, COS, TAN, ARC-SIN, ARC-COS, ARC-TAN, ARC-TAN2, LOG,
+   LOG10, EXP, POW, SINH, COSH, TANH, ARC-SINH, ARC-COSH, ARC-TANH, and
+   also FACTORIAL.
+</p>
+<h3>MAPM Numerical Limitations</h3>
+<p>
+A general floating point number is of the form:
+<pre>
+Sn.nnnnnnnnE+yyyy        ex: -4.318384739357974916E+6215
+Sn.nnnnnnnnE-yyyy        ex: +8.208237913789131096523645193E-12873
+</pre>
+'S' is the sign, + or -.
+</p>
+<p>
+In MAPM, a number (n.nnnn...) may contain up to ( INT_MAX - 1 ) digits.
+</p>
+<p>
+For example, an MAPM number with a 32 bit integer may contain 2^31 or 2,147,483,647
+digits. All MAPM numbers are stored in RAM, there is no "data on disk" option.
+So to represent the maximum number of digits on a 32 bit CPU will require
+greater than 2 Gig of RAM.
+</p>
+<p>
+For the exponent (yyyy), the limitations are also INT_MAX and INT_MIN.
+</p>
+<p>
+For a 32 bit CPU, the largest number you can represent is approx
+0.9999999....E+2147483647.   (H)
+</p>
+<p>
+For a 32 bit CPU, the smallest number you can represent (other than 0)
+is approx 0.1E-2147483647.  (L)
+</p>
+<p>
+The limitations for negative numbers are the same as positive numbers.
+</p>
+<pre>
+                            Real Number Axis
 
+     +------------------------+    ---    +--------------------------+
+     |                        |     |     |                          |
+    -H                       -L    0.0   +L                         +H
+</pre>
+<p>
+MAPM can represent real numbers from -H to -L, 0.0, +L to +H.
+</p>
+<p>
+The number of significant digits is typically only limited by available RAM.
+</p>
+<p>
+In MAPM, numerical overflows and underflows are not handled very well
+(actually not at all). There really isn't a clean and portable way to
+detect integer overflow and underflow. Per K&R C, the result of integer
+overflow/underflow is implementation dependent. In assembly language, when
+you add two numbers, you have access to a "carry flag" to see if an overflow
+occurred. C has no analogous operator to a carry flag.
+</p>
