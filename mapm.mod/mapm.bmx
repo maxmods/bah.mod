@@ -35,24 +35,30 @@ ModuleInfo "History: 1.00 Initial Release"
 Import "common.bmx"
 
 Rem
-bbdoc: 
+bbdoc: A numeric type very large numbers.
 End Rem
 Type TMAPM
 
 	Field mapmPtr:Byte Ptr
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new MAPM object.
+	End Rem
+	Method New()
+		mapmPtr = m_apm_init()
+	End Method
+	
+	Rem
+	bbdoc: Creates a new MAPM object setting it to the optional @value.
 	End Rem
 	Function CreateMAPM:TMAPM(value:String = Null)
 		Return New TMAPM.Create(value)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new MAPM object setting it to the optional @value.
 	End Rem
 	Method Create:TMAPM(value:String = Null)
-		mapmPtr = m_apm_init()
 		If value Then
 			SetString(value)
 		End If
@@ -106,22 +112,22 @@ Type TMAPM
 	bbdoc: Converts an MAPM value into a string and is meant to be used with floating point MAPM values.
 	about: The output string will always be in scientific (exponential) notation. There will
 	be a leading '-' sign for negative numbers. There will be 'decimal_places' number of digits
-	after the decimal point. If decimal_places is >= 0, the value will be rounded to that number
+	after the decimal point. If decimal_places is &gt;= 0, the value will be rounded to that number
 	of digits and then the string will be filled, with trailing zero's appended if necessary to
-	fill out the decimal place specification. If decimal_places < 0, ALL the significant digits
+	fill out the decimal place specification. If decimal_places &lt; 0, ALL the significant digits
 	of the MAPM number will be output. In some applications, it is convienent to round the value
 	yourself (see 'm_apm_round') and then display ALL the digits.
 	<p>
 	If value = 3.640083E-4
 	<pre>
             1)  ToExpString(4)
-	        string -> "3.6401E-4"
+	        string -&gt; "3.6401E-4"
 
             2)  ToExpString(14)
-	        string -> "3.64008300000000E-4"
+	        string -&gt; "3.64008300000000E-4"
 
             3)  ToExpString(-1)
-	        string -> "3.640083E-4"
+	        string -&gt; "3.640083E-4"
 	</pre>
 	</p>
 	End Rem
@@ -132,7 +138,40 @@ Type TMAPM
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Converts a MAPM value into a string and the output will be formatted in fixed point notation.
+	about: The output string must be large enough to hold the result.
+	<p>
+	    If decimal_places &lt; 0, ALL the significant digits of the MAPM
+	    number will be output.
+	</p>
+	<p>
+	    If decimal_places = 0, the output will be the MAPM value rounded
+	    to the nearest integer and the decimal point will be suppressed.
+	</p>
+	<p>
+	    If decimal_places is &gt; 0, the value will be rounded to that number
+	    of digits and then the string will be filled, with trailing zero's
+	    appended if necessary to fill out the decimal place specification.
+	</p>
+	<p>
+	    In some applications, it is convienent to round the value yourself
+	    (see 'Round()') and then display ALL the digits.
+	</p>
+	<pre>
+	    If value is = 3.6487451E+2 :
+
+	    1)  ToFixtPtString(10)
+	        string -&gt; "364.8745100000"
+
+	    2)  ToFixtPtString(1)
+	        string -&gt; "364.9"
+
+	    3)  ToFixtPtString(0)
+	        string -&gt; "365"
+
+	    4)  ToFixtPtString(-1)
+	        string -&gt; "364.87451"
+	</pre>
 	End Rem
 	Method ToFixtPtString:String(decimalPlaces:Int)
 		Local buf:Byte[SignificantDigits() + 16]
@@ -141,7 +180,63 @@ Type TMAPM
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Converts a MAPM value into a string, outputting all significant digits.
+	about: This is equivalent to  ToFixtPtString(-1)
+	End Rem
+	Method ToString:String()
+		Return ToFixtPtString(-1)
+	End Method
+
+	Rem
+	bbdoc: This method is an extended version of ToFixtPtString which includes 3 additional function parameters:
+	about:
+	<ul>
+	<li>@radix -  Specify the radix character desired. For example, use ',' to set the radix char to a comma.</li>
+	<li> @separator and @separatorCount - Specify a character separator every 'separator_count' characters.
+	    This is used to split up a large number with a 'delimiter' for easier readability. For example,
+		<p>
+	    If separator_char = ',' and separator_count = 3, there will be a
+	    comma inserted before every group of 3 digits in the output string.
+		</p>
+	<p>
+	    6123456789.098765321 will be formatted as "6,123,456,789.098765321"
+	</p>
+	</li>
+	</ul>
+	<p>
+	    Note that only digits before the radix char are separated.
+	</p>
+	<p>
+	    @separator OR @separatorCount = 0 is used to disable
+	    the 'char separator' feature. This would typically be used
+	    when it is only desired to change the radix character.
+	</p>
+	End Rem
+	Method ToFixtPtStringEx:String(decimalPlaces:Int, radix:String, separator:String, separatorCount:Int)
+		Local buf:Byte[SignificantDigits() + 16]
+		m_apm_to_fixpt_stringex(buf, decimalPlaces, mapmPtr, radix[0], separator[0], separatorCount)
+		Return String.FromCString(buf)
+	End Method
+	
+	Rem
+	bbdoc: Converts an MAPM value into a string and is meant to be used with integer values.
+	about: If the MAPM number is not
+	    an integer, the function will truncate the value to the nearest
+	    integer and the output will be formatted as an integer, with a
+	    possible leading '-' sign.
+	<p>
+	Examples:
+	<pre>
+	    MAPM Value            Output String
+	    -----------            -------------
+	    3.28E+2                "328"
+	    -4.56993E+2            "-456"
+	    4.32E-3                "0"
+	    -1.62E+5               "-162000"
+	</pre>
+	    If you want the value 'rounded' to the nearest integer (NNN.99
+	    becomes NNN+1), use ToFixPtString with 0 decimal places.
+	</p>
 	End Rem
 	Method ToIntString:String()
 		Local buf:Byte[SignificantDigits() + 16]
@@ -153,7 +248,7 @@ Type TMAPM
 	bbdoc: Returns the absolute MAPM value.
 	End Rem
 	Method AbsoluteValue:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_absolute_value(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
@@ -162,31 +257,39 @@ Type TMAPM
 	bbdoc: Returns the MAPM value, negated.
 	End Rem
 	Method Negate:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_negate(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns a copy of the number.
 	End Rem
 	Method Copy:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_copy(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Rounds the value of the number to the number of decimal places specified.
+	about: The decimal places parameter is referenced to the number when the
+	    number is in scientific notation.
 	End Rem
 	Method Round:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_round(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
 		
 	Rem
-	bbdoc: 
+	bbdoc: Compares the number to @other.
+	about: The method will return :
+	<pre>
+	    -1 : num &lt; other
+	     0 : num = other
+	     1 : num &gt; other
+	</pre>
 	End Rem
 	Method Compare:Int(other:Object)
 		If TMAPM(other) Then
@@ -267,7 +370,7 @@ Type TMAPM
 	time. This generator will not repeat its pattern until 1.0E+15 numbers have been generated.
 	End Rem
 	Function Random:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_get_random(mapm.mapmPtr)
 		Return mapm
 	End Function
@@ -276,7 +379,7 @@ Type TMAPM
 	bbdoc: Adds @value to the number, returning the result.
 	End Rem
 	Method Add:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_add(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -285,7 +388,7 @@ Type TMAPM
 	bbdoc: Subtracts @value from the number, returning the result.
 	End Rem
 	Method Subtract:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_subtract(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -294,16 +397,33 @@ Type TMAPM
 	bbdoc: Multiplies @value with the number, returning the result.
 	End Rem
 	Method Multiply:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_multiply(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Divides the number by @value.
+	about: Unlike the other three basic operations, division cannot be
+	    counted on to produce non-repeating decimals, so the
+	    @decimalPlaces parameter is used to tell this routine how many
+            digits are to be calculated before stopping.
+	<p>
+	    Note that the number of decimal places is referenced to the
+	    value as if the number was in fixed point notation. Divide
+	    is the only method where decimal places is referenced to
+	    fixed point notation, all other methods are referenced to
+	    scientific notation. This was an intentional design decision
+	    so IntegerDivide' and IntegerDivRem would
+	    work as expected.
+	</p>
+	<p>
+            Division by zero creates a zero result and a warning on stderr.
+	</p>
+
 	End Rem
 	Method Divide:TMAPM(value:TMAPM, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_divide(mapm.mapmPtr, decimalPlaces, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -316,7 +436,7 @@ Type TMAPM
 	</p>
 	End Rem
 	Method Reciprocal:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_reciprocal(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -325,7 +445,7 @@ Type TMAPM
 	bbdoc: Divides the number by @value, truncating the result to an integer.
 	End Rem
 	Method IntegerDivide:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_integer_divide(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -354,7 +474,7 @@ Type TMAPM
 	</pre>
 	End Rem
 	Method Factorial:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_factorial(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
@@ -363,7 +483,7 @@ Type TMAPM
 	bbdoc: Returns the number rounded downwards to the nearest integer.
 	End Rem
 	Method Floor:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_floor(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
@@ -372,7 +492,7 @@ Type TMAPM
 	bbdoc: Returns the number rounded upwards to the nearest integer.
 	End Rem
 	Method Ceil:TMAPM()
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_ceil(mapm.mapmPtr, mapmPtr)
 		Return mapm
 	End Method
@@ -381,7 +501,7 @@ Type TMAPM
 	bbdoc: Computes the GCD (greatest common divisor) of this number and @value.
 	End Rem
 	Method GCD:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_gcd(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -390,7 +510,7 @@ Type TMAPM
 	bbdoc: Computes the LCM (least common multi) of this number and @value.
 	End Rem
 	Method LCM:TMAPM(value:TMAPM)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_lcm(mapm.mapmPtr, mapmPtr, value.mapmPtr)
 		Return mapm
 	End Method
@@ -400,7 +520,7 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Sqrt:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_sqrt(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -410,7 +530,7 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Cbrt:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_cbrt(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -420,7 +540,7 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Log:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_log(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -430,7 +550,7 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Log10:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_log10(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -440,7 +560,7 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Exp:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_exp(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
 	End Method
@@ -450,16 +570,27 @@ Type TMAPM
 	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method Pow:TMAPM(power:TMAPM, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_pow(mapm.mapmPtr, decimalPlaces, mapmPtr, power.mapmPtr)
 		Return mapm
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Raises the number to @power.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	    This method is considerably faster than the
+	    generic Pow method (when @power is not excessively
+	    large). The number and/or @power may be negative.
+	</p>
+	<p>
+	    See the IntPowNr for a @Pow method that does not
+	    perform any rounding operation and is more appropriate for
+	    integer only applications.
+	</p>
 	End Rem
 	Method IntPow:TMAPM(power:Int, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_integer_pow(mapm.mapmPtr, decimalPlaces, mapmPtr, power)
 		Return mapm
 	End Method
@@ -477,7 +608,7 @@ Type TMAPM
 	</p>
 	End Rem
 	Method IntPowNr:TMAPM(power:Int, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_integer_pow_nr(mapm.mapmPtr, decimalPlaces, mapmPtr, power)
 		Return mapm
 	End Method
@@ -488,7 +619,7 @@ Type TMAPM
 	the number of decimal places specified.
 	End Rem
 	Method Sin:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_sin(mapm.mapmPtr, decimalPlaces, DegToRad.Multiply(Self).mapmPtr)
 		Return mapm
 	End Method
@@ -499,7 +630,7 @@ Type TMAPM
 	the number of decimal places specified.
 	End Rem
 	Method Cos:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_cos(mapm.mapmPtr, decimalPlaces, DegToRad.Multiply(Self).mapmPtr)
 		Return mapm
 	End Method
@@ -520,34 +651,79 @@ Type TMAPM
 	the number of decimal places specified.
 	End Rem
 	Method Tan:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_tan(mapm.mapmPtr, decimalPlaces, DegToRad.Multiply(Self).mapmPtr)
 		Return mapm
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the arc sine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	Processing a value &gt; 1 creates a zero result and a warning on stderr.
+	</p>
 	End Rem
 	Method ArcSin:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_arcsin(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return RadToDeg.Multiply(mapm)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the arc sine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	Processing a value &gt; 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ASin:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arcsin(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return RadToDeg.Multiply(mapm)
+	End Method
+
+	Rem
+	bbdoc: Returns the arc cosine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	Processing a value &gt; 1 creates a zero result and a warning on stderr.
+	</p>
 	End Rem
 	Method ArcCos:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_arccos(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return RadToDeg.Multiply(mapm)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the arc cosine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	Processing a value &gt; 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ACos:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arccos(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return RadToDeg.Multiply(mapm)
+	End Method
+
+	Rem
+	bbdoc: Returns the arc tangent of the number.
+	about: The result will be accurate to the number of decimal places specified.
 	End Rem
 	Method ArcTan:TMAPM(decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arctan(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return RadToDeg.Multiply(mapm)
+	End Method
+
+	Rem
+	bbdoc: Returns the arc tangent of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method ATan:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
 		m_apm_arctan(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return RadToDeg.Multiply(mapm)
 	End Method
@@ -558,7 +734,7 @@ Type TMAPM
 	The result will be accurate to the number of decimal places specified.
 	End Rem
 	Function ArcTan2:TMAPM(y:TMAPM, x:TMAPM, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_arctan2(mapm.mapmPtr, decimalPlaces, y.mapmPtr, x.mapmPtr)
 		Return RadToDeg.Multiply(mapm)
 	End Function
@@ -569,10 +745,112 @@ Type TMAPM
 	The result will be accurate to the number of decimal places specified.
 	End Rem
 	Function ATan2:TMAPM(y:TMAPM, x:TMAPM, decimalPlaces:Int)
-		Local mapm:TMAPM = CreateMAPM()
+		Local mapm:TMAPM = New TMAPM
 		m_apm_arctan2(mapm.mapmPtr, decimalPlaces, y.mapmPtr, x.mapmPtr)
 		Return RadToDeg.Multiply(mapm)
 	End Function
+
+	Rem
+	bbdoc: Returns the hyperbolic sine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method Sinh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_sinh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic cosine of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method Cosh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_cosh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic tangent of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method Tanh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_tanh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-sin of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method ArcSinh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arcsinh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-sin of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	End Rem
+	Method ASinh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arcsinh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-cos of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	A number &lt; 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ArcCosh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arccosh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-cos of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	A number &lt; 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ACosh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arccosh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-tan of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	A number &gt;= 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ArcTanh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arctanh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
+
+	Rem
+	bbdoc: Returns the hyperbolic arc-tan of the number.
+	about: The result will be accurate to the number of decimal places specified.
+	<p>
+	A number &gt;= 1 creates a zero result and a warning on stderr.
+	</p>
+	End Rem
+	Method ATanh:TMAPM(decimalPlaces:Int)
+		Local mapm:TMAPM = New TMAPM
+		m_apm_arctanh(mapm.mapmPtr, decimalPlaces, mapmPtr)
+		Return mapm
+	End Method
 
 	Method Delete()
 		If mapmPtr Then
@@ -583,8 +861,8 @@ Type TMAPM
 
 End Type
 
-Global RadToDeg:TMAPM = TMAPM.CreateMAPM("57.2957795130823234")
-Global DegToRad:TMAPM = TMAPM.CreateMAPM("0.0174532925199433")
+Global RadToDeg:TMAPM = TMAPM.CreateMAPM("57.29577951308232087679815481410517033240547246656432154916024386120284714832155263244096899585111094418622338163286489328144826460124831503606826786341194212252638809746726792630798870289311076793826144263826315820961046048702050644425965684112017191205773856628043128496262420337618793729762387079034031598071962408952204518620545992339631484190696622011512660969180151478763736692316410712677403851469016549959419251571198647943521066162438903520230675617779675711331568350620573131336015650134889801878870991777643918273")
+Global DegToRad:TMAPM = TMAPM.CreateMAPM("0.017453292519943295769236907684886127134428718885417254560971914401710091146034494436822415696345094822123044925073790592483854692275281012398474218934047117319168245015010769561697553581238605305168788691271172087032963589602642490187704350918173343939698047594019224158946968481378963297818112495229298469927814479531045416008449560904606967176196468710514390888951836280826780369563245260844119508941294762613143108844183845478429899625621072806214155969235444237497596399365292916062377434350066384054631518680225870239")
 
 Global MM_Zero:TMAPM = TMAPM.CreateMAPM()
 Global MM_One:TMAPM = TMAPM.CreateMAPM("1")
@@ -594,5 +872,12 @@ Global MM_Four:TMAPM = TMAPM.CreateMAPM("4")
 Global MM_Five:TMAPM = TMAPM.CreateMAPM("5")
 Global MM_Ten:TMAPM = TMAPM.CreateMAPM("10")
 
-Global MM_PI:TMAPM = TMAPM.CreateMAPM("3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955")
+Global MM_PI:TMAPM = TMAPM.CreateMAPM("3.1415926535897932384626433832795028841971693993751058209749445923078" + ..
+	"164062862089986280348253421170679821480865132823066470938446095505822" + ..
+	"317253594081284811174502841027019385211055596446229489549303819644288" + ..
+	"109756659334461284756482337867831652712019091456485669234603486104543" + ..
+	"266482133936072602491412737245870066063155881748815209209628292540917" + ..
+	"153643678925903600113305305488204665213841469519415116094330572703657" + ..
+	"595919530921861173819326117931051185480744623799627495673518857527248" + ..
+	"91227938183011949129833673362440656643")
 

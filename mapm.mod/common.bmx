@@ -73,6 +73,8 @@ Extern
 	Function m_apm_to_string(buf:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
 	Function m_apm_to_fixpt_string(buf:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
 	Function m_apm_to_integer_string(buf:Byte Ptr, handle:Byte Ptr)
+	Function m_apm_to_fixpt_stringex(buf:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr, radix:Byte, separator:Byte, separatorCount:Int)
+
 
 	Function m_apm_absolute_value(mapm:Byte Ptr, handle:Byte Ptr)
 	Function m_apm_negate(mapm:Byte Ptr, handle:Byte Ptr)
@@ -119,6 +121,12 @@ Extern
 	Function m_apm_arccos(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
 	Function m_apm_arctan(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
 	Function m_apm_arctan2(mapm:Byte Ptr, decimalPlaces:Int, y:Byte Ptr, x:Byte Ptr)
+	Function m_apm_sinh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
+	Function m_apm_cosh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
+	Function m_apm_tanh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
+	Function m_apm_arcsinh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
+	Function m_apm_arccosh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
+	Function m_apm_arctanh(mapm:Byte Ptr, decimalPlaces:Int, handle:Byte Ptr)
 
 End Extern
 
