@@ -1,0 +1,2592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>DOT Language</title>
+<link rel=stylesheet type=text/css href='../../../../doc/bmxstyle.css'>
+<style type="text/css">
+<!--
+td {
+	background-color: #FFFFFF;
+}
+-->
+</style>
+</head>
+<body>
+<h2><a name="thedotlanguage" id="thedotlanguage"></a>The DOT Language</h2>
+The following is an abstract grammar defining the DOT language.
+Terminals are shown in bold font and nonterminals in italics.
+Literal characters are given in single quotes.
+Parentheses ( and ) indicate grouping when needed.
+Square brackets [ and ] enclose optional items.
+Vertical bars | separate alternatives.
+<table align="center">
+  <tr>
+    <td align="right"><i>graph</i></td>
+    <td align="left">:</td>
+    <td align="left">[ <b>strict</b> ] (<b>graph</b> | <b>digraph</b>) [ <i>ID</i> ] <b>'{'</b> <i>stmt_list</i> <b>'}'</b></td>
+  </tr>
+  <tr>
+<td align="right"><i>stmt_list</i></td>
+<td align="left">:</td>
+    <td align="left">[ <i>stmt</i> [ <b>';'</b> ] [ <i>stmt_list</i> ] ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>stmt</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>node_stmt</i></td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><i>edge_stmt</i></td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><i>attr_stmt</i></td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><i>ID</i> <b>'='</b> <i>ID</i></td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><i>subgraph</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>attr_stmt</i></td>
+    <td align="left">:</td>
+    <td align="left">(<b>graph</b> | <b>node</b> | <b>edge</b>) <i>attr_list</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>attr_list</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>'['</b> [ <i>a_list</i> ] <b>']'</b> [ <i>attr_list</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>a_list</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>ID</i> [ <b>'='</b> <i>ID</i> ] [ <b>','</b> ] [ <i>a_list</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>edge_stmt</i></td>
+    <td align="left">:</td>
+    <td align="left">(<i>node_id</i> | <i>subgraph</i>) <i>edgeRHS</i> [ <i>attr_list</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>edgeRHS</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>edgeop</i> (<i>node_id</i> | <i>subgraph</i>) [ <i>edgeRHS</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>node_stmt</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>node_id</i> [ <i>attr_list</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>node_id</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>ID</i> [ <i>port</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>port</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>':'</b> <i>ID</i> [ <b>':'</b> <i>compass_pt</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><b>':'</b> <i>compass_pt</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>subgraph</i></td>
+    <td align="left">:</td>
+    <td align="left">[ <b>subgraph</b> [ <i>ID</i> ] ] <b>'{'</b> <i>stmt_list</i> <b>'}'</b></td>
+  </tr>
+  <tr>
+    <td align="right"></td>
+    <td align="left">|</td>
+    <td align="left"><b>subgraph</b> <i>ID</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>compass_pt</i></td>
+    <td align="left">:</td>
+    <td align="left">(<b>n</b> | <b>ne</b> | <b>e</b> | <b>se</b> | <b>s</b> | <b>sw</b> | <b>w</b> | <b>nw</b>)</td>
+  </tr>
+</table>
+<p> The keywords <b>node</b>, <b>edge</b>, <b>graph</b>, <b>digraph</b>, <b>subgraph</b>, and <b>strict</b> are case-independent.
+  Note also that the allowed compass point values are not keywords, so
+  these strings can be used elsewhere as ordinary identifiers.</p>
+<p> An <i>ID</i> is one of the following:</p>
+<ul>
+<li> Any string of alphabetic characters, underscores or
+  digits, not beginning with a digit;</li>
+<li> a number [<tt>-</tt>]<sup>?</sup>(<tt>.</tt>[<tt>0</tt>-<tt>9</tt>]<sup>+</sup> | [<tt>0</tt>-<tt>9</tt>]<sup>+</sup>(<tt>.</tt>[<tt>0</tt>-<tt>9</tt>]<sup>*</sup>)<sup>?</sup> );</li>
+<li> any double-quoted string (&quot;...&quot;) possibly containing escaped 
+  quotes (\&quot;);</li>
+<li> an <a name="html" id="html">HTML string</a> (&lt;...&gt;).</li>
+</ul>Note that in HTML strings, angle
+brackets must occur in matched pairs, and unescaped newlines are allowed.
+In addition, the content must be legal XML, so that the special XML
+escape sequences for &quot;, &amp;, &lt;, and &gt; may be necessary
+in order to embed these characters in attribute values or raw text.
+<p> Both quoted strings and HTML strings are scanned as a unit, so
+  any embedded comments will be treated as part of the strings.</p>
+<p> An <i>edgeop</i> is <tt>-&gt;</tt> in directed graphs and <tt>--</tt> in
+  undirected graphs.</p>
+<p> An <i>a_list</i> clause of the form <i>ID</i> is equivalent to <i>ID</i><tt>=true</tt>.</p>
+<p> The language supports C++-style comments: <tt>/* */</tt> and <tt>//</tt>.
+  In addition, a line beginning with a '#' character is considered a line
+  output from a C preprocessor (e.g., #  34 to indicate line 34 ) and discarded.</p>
+<p> Semicolons aid readability but are not required except in the rare case
+  that a named subgraph with no body immediately preceeds an anonymous
+  subgraph, since the precedence rules cause this sequence to be parsed as
+  a subgraph with a heading and a body.</p>
+<p> As another aid for readability, dot allows single logical lines to
+  span multiple physical lines using the standard C convention of a
+  backslash immediately preceding a newline character. In addition, 
+  double-quoted strings can be concatenated using a '+' operator.
+  As HTML strings can contain newline characters, they do not support the
+  concatenation operator.</p>
+<h4>Semantic Notes</h4>
+<p>
+If a default attribute is
+defined using a <b>node</b>, <b>edge</b>, or <b>graph</b> statement,
+or by an attribute assignment not attached to a node or edge, any object of the
+appropriate type defined afterwards will inherit this attribute value.
+This holds until the default attribute is set to a new value, from which
+point the new value is used. Objects defined before a default attribute
+is set will have an empty string value attached to the attribute once
+the default attribute definition is made.</p>
+<p> Note, in particular, that a subgraph receives the attribute settings of
+  its parent graph at the time of its definition. This can be useful; for
+  example, one can assign a font to the root graph and all subgraphs will
+  also use the font. For some attributes, however, this property is
+  undesirable. If one attaches a label to the root graph, it is probably
+  not the desired effect to have the label used by all subgraphs. Rather
+  than listing the graph attribute at the top of the graph, and the
+  resetting the attribute as needed in the subgraphs, one can simple defer
+  the attribute definition if the graph until the appropriate subgraphs
+  have been defined.</p>
+<h4>Character encodings</h4>
+<p>
+The DOT language assumes at least the ascii character set.
+Quoted strings, both ordinary and HTML-like, may contain non-ascii characters.
+In most cases, these strings are uninterpreted: they simply serve as
+unique identifiers or values passed through untouched. Labels, however,
+are meant to be displayed, which requires that the software be able to
+compute the size of the text and determine the appropriate glyphs. 
+For this, it needs to know what character encoding is used.
+</p>
+<p> By default, DOT assumes the UTF-8 character encoding.</p>
+<p> Another way to avoid non-ascii characters in labels is to use HTML entities
+  for special characters. During label evaluation, these entities are
+  translated into the underlying character. This <a href="char.html"> table</a> shows the supported entities, with their Unicode value, a typical
+  glyph, and the HTML entity name. Thus, to include a lower-case Greek beta
+  into a string, one can use the ascii sequence <tt>&amp;beta;</tt>. 
+  In general, one should only use entities that are allowed in the output
+  character set, and for which there is a glyph in the font.</p>
+<h2><a name="graphattributes" id="graphattributes"></a>Graph Attributes</h2>
+<p>
+The table below describes the various attributes used by Graphviz.
+The table gives the name of the attribute, the graph components (node,
+edge, etc.) which use the attribute and the type of the attribute
+(strings representing legal values of that type). Where applicable, the table
+also gives a default value for the attribute, a minimum allowed setting
+for numeric attributes, and certain restrictions on the use of the attribute.
+</p>
+<p> All Graphviz attributes are specified by name-value pairs. Thus, to
+  set the fillcolor of a node <tt>abc</tt>, one would use</p>
+<table>
+  <tr>
+    <td><tt>abc [fillcolor = red]</tt></td>
+  </tr>
+</table>
+Similarly, to set the arrowhead style of an edge <tt>abc -&gt; def</tt>, 
+one would use
+<table>
+  <tr>
+    <td><tt>abc -&gt; def [arrowhead = diamond]</tt></td>
+  </tr>
+</table>
+<p>
+Further details concerning the setting of attributes can be found
+in the description of the <a href="#thedotlanguage">DOT language.</a></p>
+<p> At present, most device-independent units are either inches or <a name="points" id="points"></a> points, 
+which we take as 72 points per inch.</p>
+<p> <a name="h:undir_note" id="h:undir_note"></a><strong>Note:</strong> Some attributes, such as <a href="#d:dir">dir</a> or <a href="#d:arrowtail">arrowtail</a>, are 
+  ambiguous when used in <a href="#thedotlanguage">DOT</a> with an undirected graph since the head and tail of an edge are meaningless. 
+  As a convention, the first time an undirected edge appears, the <a href="#thedotlanguage">DOT</a> parser will assign the left node as the tail node and the right node as
+  the head. For example, the edge <tt>A -- B</tt> will have tail <tt>A</tt> and head <tt>B</tt>. It is the user's responsibility to handle such
+  edges consistently. If the edge appears later, in the format</p>
+<table>
+  <tr>
+    <td><tt>B -- A [taillabel = &quot;tail&quot;]</tt></td>
+  </tr>
+</table>
+<p>
+the drawing will attach the tail label to node <tt>A</tt>.
+To avoid possible confusion when such attributes are required, the user
+is encouraged to use a directed graph.
+If it is important to make the graph appear undirected, this can be
+done using the <a href="#d:dir">dir</a>, <a href="#d:arrowtail">arrowtail</a> or <a href="#d:arrowhead">arrowhead</a> attributes.</p>
+<p> The tools accept standard C representations for <em>int</em> and <em>double</em> types.
+  For the <a name="k:bool" id="k:bool"><em>bool</em></a> type, TRUE values are 
+  represented by &quot;true&quot; (case-insensitive)
+  and any non-zero integer, and FALSE values by &quot;false&quot; (case-insensitive)
+  and zero.
+  In addition, there are a variety of specialized types such as <em>arrowType</em>, <em>color</em>, <em>pointf</em> and <em>rankdir</em>. Legal values for these types are given
+  at the end.</p>
+<p> In the <a name="h:uses" id="h:uses"></a><strong>Used By</strong> field, the 
+  characters E, N, G, S and C
+  represent edges, nodes, the root graph, subgraphs
+  and cluster subgraphs, respectively.
+  This field indicates which graph component uses the attribute.</p>
+<hr align="center" width="70%" size="3" />
+<table align="center">
+  <tr>
+    <th>Name</th>
+    <th><a href="#h:uses">Used By</a></th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Minimum</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td><a href="#d:Damping" name="a:Damping" id="a:Damping">Damping</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.99</td>
+    <td>0.0</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:K" name="a:K" id="a:K">K</a> </td>
+    <td>GC</td>
+    <td>double</td>
+    <td align="center">0.3</td>
+    <td>0</td>
+    <td>fdp only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:URL" name="a:URL" id="a:URL">URL</a> </td>
+    <td>ENGC</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, postscript, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:arrowhead" name="a:arrowhead" id="a:arrowhead">arrowhead</a> </td>
+    <td>E</td>
+    <td><a href="#k:arrowType">arrowType</a> </td>
+    <td align="center">normal</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:arrowsize" name="a:arrowsize" id="a:arrowsize">arrowsize</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">1.0</td>
+    <td>0.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:arrowtail" name="a:arrowtail" id="a:arrowtail">arrowtail</a> </td>
+    <td>E</td>
+    <td><a href="#k:arrowType">arrowType</a> </td>
+    <td align="center">normal</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:bb" name="a:bb" id="a:bb">bb</a> </td>
+    <td>G</td>
+    <td><a href="#k:rect">rect</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>write only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:bgcolor" name="a:bgcolor" id="a:bgcolor">bgcolor</a> </td>
+    <td>GC</td>
+    <td><a href="#k:color">color</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:center" name="a:center" id="a:center">center</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:charset" name="a:charset" id="a:charset">charset</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;UTF-8&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:clusterrank" name="a:clusterrank" id="a:clusterrank">clusterrank</a> </td>
+    <td>G</td>
+    <td><a href="#k:clusterMode">clusterMode</a> </td>
+    <td align="center">local</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:color" name="a:color" id="a:color">color</a> </td>
+    <td>ENC</td>
+    <td><a href="#k:color">color</a> <br />
+      <a href="#k:colorList">colorList</a> </td>
+    <td align="center">black</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:colorscheme" name="a:colorscheme" id="a:colorscheme">colorscheme</a> </td>
+    <td>ENCG</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:comment" name="a:comment" id="a:comment">comment</a> </td>
+    <td>ENG</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:compound" name="a:compound" id="a:compound">compound</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:concentrate" name="a:concentrate" id="a:concentrate">concentrate</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:constraint" name="a:constraint" id="a:constraint">constraint</a> </td>
+    <td>E</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">true</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:decorate" name="a:decorate" id="a:decorate">decorate</a> </td>
+    <td>E</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:defaultdist" name="a:defaultdist" id="a:defaultdist">defaultdist</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">1+(avg. len)*sqrt(|V|)</td>
+    <td>epsilon</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:dim" name="a:dim" id="a:dim">dim</a> </td>
+    <td>G</td>
+    <td>int</td>
+    <td align="center">2</td>
+    <td>2</td>
+    <td>fdp, neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:dir" name="a:dir" id="a:dir">dir</a> </td>
+    <td>E</td>
+    <td><a href="#k:dirType">dirType</a> </td>
+    <td align="center">forward(directed)<br />
+      none(undirected)</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:diredgeconstraints" name="a:diredgeconstraints" id="a:diredgeconstraints">diredgeconstraints</a> </td>
+    <td>G</td>
+    <td>string<br />
+      <a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:distortion" name="a:distortion" id="a:distortion">distortion</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>-100.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:dpi" name="a:dpi" id="a:dpi">dpi</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">96.0<br />
+      0.0</td>
+    <td>&nbsp;</td>
+    <td>svg, bitmap output only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:edgeURL" name="a:edgeURL" id="a:edgeURL">edgeURL</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:edgehref" name="a:edgehref" id="a:edgehref">edgehref</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:edgetarget" name="a:edgetarget" id="a:edgetarget">edgetarget</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:edgetooltip" name="a:edgetooltip" id="a:edgetooltip">edgetooltip</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, cmap only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:epsilon" name="a:epsilon" id="a:epsilon">epsilon</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">.0001 * # nodes(mode == KK)<br />
+      .0001(mode == major)</td>
+    <td>&nbsp;</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:esep" name="a:esep" id="a:esep">esep</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.8*sep</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fillcolor" name="a:fillcolor" id="a:fillcolor">fillcolor</a> </td>
+    <td>NC</td>
+    <td><a href="#k:color">color</a> </td>
+    <td align="center">lightgrey(nodes)<br />
+      black(clusters)</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fixedsize" name="a:fixedsize" id="a:fixedsize">fixedsize</a> </td>
+    <td>N</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fontcolor" name="a:fontcolor" id="a:fontcolor">fontcolor</a> </td>
+    <td>ENGC</td>
+    <td><a href="#k:color">color</a> </td>
+    <td align="center">black</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fontname" name="a:fontname" id="a:fontname">fontname</a> </td>
+    <td>ENGC</td>
+    <td>string</td>
+    <td align="center">&quot;Arial&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fontnames" name="a:fontnames" id="a:fontnames">fontnames</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fontpath" name="a:fontpath" id="a:fontpath">fontpath</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">system-dependent</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:fontsize" name="a:fontsize" id="a:fontsize">fontsize</a> </td>
+    <td>ENGC</td>
+    <td>double</td>
+    <td align="center">14.0</td>
+    <td>1.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:group" name="a:group" id="a:group">group</a> </td>
+    <td>N</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headURL" name="a:headURL" id="a:headURL">headURL</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headclip" name="a:headclip" id="a:headclip">headclip</a> </td>
+    <td>E</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">true</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headhref" name="a:headhref" id="a:headhref">headhref</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headlabel" name="a:headlabel" id="a:headlabel">headlabel</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headport" name="a:headport" id="a:headport">headport</a> </td>
+    <td>E</td>
+    <td><a href="#k:portPos">portPos</a> </td>
+    <td align="center">center</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headtarget" name="a:headtarget" id="a:headtarget">headtarget</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:headtooltip" name="a:headtooltip" id="a:headtooltip">headtooltip</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, cmap only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:height" name="a:height" id="a:height">height</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.5</td>
+    <td>0.02</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:href" name="a:href" id="a:href">href</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, postscript, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:label" name="a:label" id="a:label">label</a> </td>
+    <td>ENGC</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;N&quot;</td>
+    <td>(nodes)<br />
+      &quot;&quot; (otherwise)</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelURL" name="a:labelURL" id="a:labelURL">labelURL</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelangle" name="a:labelangle" id="a:labelangle">labelangle</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">-25.0</td>
+    <td>-180.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labeldistance" name="a:labeldistance" id="a:labeldistance">labeldistance</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">1.0</td>
+    <td>0.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelfloat" name="a:labelfloat" id="a:labelfloat">labelfloat</a> </td>
+    <td>E</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelfontcolor" name="a:labelfontcolor" id="a:labelfontcolor">labelfontcolor</a> </td>
+    <td>E</td>
+    <td><a href="#k:color">color</a> </td>
+    <td align="center">black</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelfontname" name="a:labelfontname" id="a:labelfontname">labelfontname</a> </td>
+    <td>E</td>
+    <td>string</td>
+    <td align="center">&quot;Arial&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelfontsize" name="a:labelfontsize" id="a:labelfontsize">labelfontsize</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">14.0</td>
+    <td>1.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelhref" name="a:labelhref" id="a:labelhref">labelhref</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labeljust" name="a:labeljust" id="a:labeljust">labeljust</a> </td>
+    <td>GC</td>
+    <td>string</td>
+    <td align="center">&quot;c&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labelloc" name="a:labelloc" id="a:labelloc">labelloc</a> </td>
+    <td>GC</td>
+    <td>string</td>
+    <td align="center">&quot;t&quot;</td>
+    <td>clusters)<br />
+      &quot;b&quot;(root graphs)</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labeltarget" name="a:labeltarget" id="a:labeltarget">labeltarget</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:labeltooltip" name="a:labeltooltip" id="a:labeltooltip">labeltooltip</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, cmap only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:landscape" name="a:landscape" id="a:landscape">landscape</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:layer" name="a:layer" id="a:layer">layer</a> </td>
+    <td>EN</td>
+    <td><a href="#k:layerRange">layerRange</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:layers" name="a:layers" id="a:layers">layers</a> </td>
+    <td>G</td>
+    <td><a href="#k:layerList">layerList</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:layersep" name="a:layersep" id="a:layersep">layersep</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot; :\t&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:len" name="a:len" id="a:len">len</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">1.0(neato)<br />
+      0.3(fdp)</td>
+    <td>&nbsp;</td>
+    <td>fdp, neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:levelsgap" name="a:levelsgap" id="a:levelsgap">levelsgap</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>&nbsp;</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:lhead" name="a:lhead" id="a:lhead">lhead</a> </td>
+    <td>E</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:lp" name="a:lp" id="a:lp">lp</a> </td>
+    <td>EGC</td>
+    <td><a href="#k:point">point</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>write only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:ltail" name="a:ltail" id="a:ltail">ltail</a> </td>
+    <td>E</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:margin" name="a:margin" id="a:margin">margin</a> </td>
+    <td>NG</td>
+    <td>double<br />
+      <a href="#k:pointf">pointf</a> </td>
+    <td align="center">&lt;device-dependent&gt;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:maxiter" name="a:maxiter" id="a:maxiter">maxiter</a> </td>
+    <td>G</td>
+    <td>int</td>
+    <td align="center">100 * # nodes(mode == KK)<br />
+      200(mode == major)<br />
+      600(fdp)</td>
+    <td>&nbsp;</td>
+    <td>fdp, neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:mclimit" name="a:mclimit" id="a:mclimit">mclimit</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">1.0</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:mindist" name="a:mindist" id="a:mindist">mindist</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">1.0</td>
+    <td>0.0</td>
+    <td>circo only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:minlen" name="a:minlen" id="a:minlen">minlen</a> </td>
+    <td>E</td>
+    <td>int</td>
+    <td align="center">1</td>
+    <td>0</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:mode" name="a:mode" id="a:mode">mode</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;major&quot;</td>
+    <td>&nbsp;</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:model" name="a:model" id="a:model">model</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;shortpath&quot;</td>
+    <td>&nbsp;</td>
+    <td>neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:nodesep" name="a:nodesep" id="a:nodesep">nodesep</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.25</td>
+    <td>0.02</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:nojustify" name="a:nojustify" id="a:nojustify">nojustify</a> </td>
+    <td>GCNE</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:normalize" name="a:normalize" id="a:normalize">normalize</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:nslimit" name="a:nslimit" id="a:nslimit">nslimit</a> <br />
+      <a href="#d:nslimit1" name="a:nslimit1" id="a:nslimit1">nslimit1</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:ordering" name="a:ordering" id="a:ordering">ordering</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:orientation" name="a:orientation" id="a:orientation">orientation</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>360.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#dd:orientation" name="aa:orientation" id="aa:orientation">orientation</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:outputorder" name="a:outputorder" id="a:outputorder">outputorder</a> </td>
+    <td>G</td>
+    <td><a href="#k:outputMode">outputMode</a> </td>
+    <td align="center">breadthfirst</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:overlap" name="a:overlap" id="a:overlap">overlap</a> </td>
+    <td>G</td>
+    <td>string<br />
+      <a href="#k:bool">bool</a> </td>
+    <td align="center">true</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pack" name="a:pack" id="a:pack">pack</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> <br />
+      int</td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:packmode" name="a:packmode" id="a:packmode">packmode</a> </td>
+    <td>G</td>
+    <td><a href="#k:packMode">packMode</a> </td>
+    <td align="center">node</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pad" name="a:pad" id="a:pad">pad</a> </td>
+    <td>G</td>
+    <td>double<br />
+      <a href="#k:pointf">pointf</a> </td>
+    <td align="center">1<br />
+      18</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:page" name="a:page" id="a:page">page</a> </td>
+    <td>G</td>
+    <td><a href="#k:pointf">pointf</a> </td>
+    <td align="center"></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pagedir" name="a:pagedir" id="a:pagedir">pagedir</a> </td>
+    <td>G</td>
+    <td><a href="#k:pagedir">pagedir</a> </td>
+    <td align="center">BL</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pencolor" name="a:pencolor" id="a:pencolor">pencolor</a> </td>
+    <td>C</td>
+    <td><a href="#k:color">color</a> </td>
+    <td align="center">black</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:peripheries" name="a:peripheries" id="a:peripheries">peripheries</a> </td>
+    <td>NC</td>
+    <td>int</td>
+    <td align="center">shape default(nodes)<br />
+      1(clusters)</td>
+    <td>0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pin" name="a:pin" id="a:pin">pin</a> </td>
+    <td>N</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>fdp, neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:pos" name="a:pos" id="a:pos">pos</a> </td>
+    <td>EN</td>
+    <td><a href="#k:point">point</a> <br />
+      <a href="#k:splineType">splineType</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:quantum" name="a:quantum" id="a:quantum">quantum</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>0.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:rank" name="a:rank" id="a:rank">rank</a> </td>
+    <td>S</td>
+    <td><a href="#k:rankType">rankType</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:rankdir" name="a:rankdir" id="a:rankdir">rankdir</a> </td>
+    <td>G</td>
+    <td><a href="#k:rankdir">rankdir</a> </td>
+    <td align="center">TB</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:ranksep" name="a:ranksep" id="a:ranksep">ranksep</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.5(dot)<br />
+      1.0(twopi)</td>
+    <td>0.02</td>
+    <td>twopi, dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:ratio" name="a:ratio" id="a:ratio">ratio</a> </td>
+    <td>G</td>
+    <td>double<br />
+      string</td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:rects" name="a:rects" id="a:rects">rects</a> </td>
+    <td>N</td>
+    <td><a href="#k:rect">rect</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>write only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:regular" name="a:regular" id="a:regular">regular</a> </td>
+    <td>N</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:remincross" name="a:remincross" id="a:remincross">remincross</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">false</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:resolution" name="a:resolution" id="a:resolution">resolution</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">96.0<br />
+      0.0</td>
+    <td>&nbsp;</td>
+    <td>svg, bitmap output only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:root" name="a:root" id="a:root">root</a> </td>
+    <td>GN</td>
+    <td>string<br />
+      <a href="#k:bool">bool</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>graphs)<br />
+      false(nodes)</td>
+    <td>circo, twopi only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:rotate" name="a:rotate" id="a:rotate">rotate</a> </td>
+    <td>G</td>
+    <td>int</td>
+    <td align="center">0</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:samehead" name="a:samehead" id="a:samehead">samehead</a> </td>
+    <td>E</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:sametail" name="a:sametail" id="a:sametail">sametail</a> </td>
+    <td>E</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:samplepoints" name="a:samplepoints" id="a:samplepoints">samplepoints</a> </td>
+    <td>N</td>
+    <td>int</td>
+    <td align="center">8(output)<br />
+      20(overlap and image maps)</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:searchsize" name="a:searchsize" id="a:searchsize">searchsize</a> </td>
+    <td>G</td>
+    <td>int</td>
+    <td align="center">30</td>
+    <td>&nbsp;</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:sep" name="a:sep" id="a:sep">sep</a> </td>
+    <td>G</td>
+    <td>double<br />
+      <a href="#k:pointf">pointf</a> </td>
+    <td align="center">0.1</td>
+    <td>&nbsp;</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:shape" name="a:shape" id="a:shape">shape</a> </td>
+    <td>N</td>
+    <td><a href="#k:shape">shape</a> </td>
+    <td align="center">ellipse</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:shapefile" name="a:shapefile" id="a:shapefile">shapefile</a> </td>
+    <td>N</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:showboxes" name="a:showboxes" id="a:showboxes">showboxes</a> </td>
+    <td>ENG</td>
+    <td>int</td>
+    <td align="center">0</td>
+    <td>0</td>
+    <td>dot only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:sides" name="a:sides" id="a:sides">sides</a> </td>
+    <td>N</td>
+    <td>int</td>
+    <td align="center">4</td>
+    <td>0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:size" name="a:size" id="a:size">size</a> </td>
+    <td>G</td>
+    <td><a href="#k:pointf">pointf</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:skew" name="a:skew" id="a:skew">skew</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>-100.0</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:splines" name="a:splines" id="a:splines">splines</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> <br />
+      string</td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:start" name="a:start" id="a:start">start</a> </td>
+    <td>G</td>
+    <td><a href="#k:startType">startType</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>fdp, neato only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:style" name="a:style" id="a:style">style</a> </td>
+    <td>ENC</td>
+    <td><a href="#k:style">style</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:stylesheet" name="a:stylesheet" id="a:stylesheet">stylesheet</a> </td>
+    <td>G</td>
+    <td>string</td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailURL" name="a:tailURL" id="a:tailURL">tailURL</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailclip" name="a:tailclip" id="a:tailclip">tailclip</a> </td>
+    <td>E</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">true</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailhref" name="a:tailhref" id="a:tailhref">tailhref</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:taillabel" name="a:taillabel" id="a:taillabel">taillabel</a> </td>
+    <td>E</td>
+    <td><a href="#k:lblString">lblString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailport" name="a:tailport" id="a:tailport">tailport</a> </td>
+    <td>E</td>
+    <td><a href="#k:portPos">portPos</a> </td>
+    <td align="center">center</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailtarget" name="a:tailtarget" id="a:tailtarget">tailtarget</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tailtooltip" name="a:tailtooltip" id="a:tailtooltip">tailtooltip</a> </td>
+    <td>E</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, cmap only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:target" name="a:target" id="a:target">target</a> </td>
+    <td>ENGC</td>
+    <td><a href="#k:escString">escString</a> <br />
+      string</td>
+    <td align="center">&lt;none&gt;</td>
+    <td>&nbsp;</td>
+    <td>svg, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:tooltip" name="a:tooltip" id="a:tooltip">tooltip</a> </td>
+    <td>NEC</td>
+    <td><a href="#k:escString">escString</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>svg, cmap only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:truecolor" name="a:truecolor" id="a:truecolor">truecolor</a> </td>
+    <td>G</td>
+    <td><a href="#k:bool">bool</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>bitmap output only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:vertices" name="a:vertices" id="a:vertices">vertices</a> </td>
+    <td>N</td>
+    <td><a href="#k:pointfList">pointfList</a> </td>
+    <td align="center">&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>write only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:viewport" name="a:viewport" id="a:viewport">viewport</a> </td>
+    <td>G</td>
+    <td><a href="#k:viewPort">viewPort</a> </td>
+    <td align="center">&quot;&quot;</td>
+    <td>&nbsp;</td>
+    <td>bitmap output, cmap, map only</td>
+  </tr>
+  <tr>
+    <td><a href="#d:voro_margin" name="a:voro_margin" id="a:voro_margin">voro_margin</a> </td>
+    <td>G</td>
+    <td>double</td>
+    <td align="center">0.05</td>
+    <td>0.0</td>
+    <td>not dot</td>
+  </tr>
+  <tr>
+    <td><a href="#d:weight" name="a:weight" id="a:weight">weight</a> </td>
+    <td>E</td>
+    <td>double</td>
+    <td align="center">1.0</td>
+    <td>0(dot)<br />
+      1(neato)</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:width" name="a:width" id="a:width">width</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.75</td>
+    <td>0.01</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><a href="#d:z" name="a:z" id="a:z">z</a> </td>
+    <td>N</td>
+    <td>double</td>
+    <td align="center">0.0</td>
+    <td>-MAXFLOAT<br />
+      -1000</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+<hr />
+<h3>Attribute Descriptions</h3>
+<dl>
+  <dt><a href="#a:Damping" name="d:Damping" id="d:Damping"><strong>Damping</strong></a>  </dt>
+  <dd> Factor damping force motions. On each iteration, a nodes movement
+    is limited to this factor of its potential motion. By being less than
+    1.0, the system tends to ``cool'', thereby preventing cycling.  </dd>
+  <dt><a href="#a:K" name="d:K" id="d:K"><strong>K</strong></a>  </dt>
+  <dd> Spring constant used in virtual physical model. It roughly corresponds
+    to an ideal edge length (in inches), in that increasing K tends to 
+    increase the distance between nodes.
+    Note that the edge attribute <a href="#d:len">len</a> can be used to
+    override this value for adjacent nodes.  </dd>
+  <dt><a href="#a:URL" name="d:URL" id="d:URL"><strong>URL</strong></a>  </dt>
+  <dd> Hyperlinks incorporated into device-dependent output. 
+    At present, used in ps2, cmap, i*map and svg formats. 
+    For all these formats, URLs can be attached to nodes, edges and
+    clusters. URL attributes can also be attached to the root graph in ps2,
+    cmap and i*map formats. This serves as the base URL for relative URLs in the 
+    former, and as the default image map file in the latter.
+    <p> For svg, cmapx and imap output, the active area for a node is its 
+      visible image. 
+      For example, an unfilled
+      node with no drawn boundary will only be active on its label. 
+      For other output, the active area is its bounding box.
+      The active area for a cluster is its bounding box. 
+      For edges, the active areas are small circles where the edge contacts its head
+      and tail nodes. In addition, for svg, cmapx and imap, the active area 
+      includes a thin polygon approximating the edge. The circles may 
+      overlap the related node, and the edge URL dominates.
+      If the edge has a label, this will also be active. 
+      Finally, if the edge has a head or tail label, this will also be active.    </p>
+    <p> Note that, for edges, the attributes <a href="#d:headURL">headURL</a>, <a href="#d:tailURL">tailURL</a>, <a href="#d:labelURL">labelURL</a> and <a href="#d:edgeURL">edgeURL</a> allow control of various parts of an
+      edge.
+      Also note that, if active areas of two edges overlap, it is unspecified 
+      which area dominates.  </p>
+  </dd>
+  <dt><a href="#a:arrowhead" name="d:arrowhead" id="d:arrowhead"><strong>arrowhead</strong></a>  </dt>
+  <dd> Style of arrowhead on the head node of an edge. 
+    See also the <a href="#d:dir">dir</a> attribute, 
+    and a <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:arrowsize" name="d:arrowsize" id="d:arrowsize"><strong>arrowsize</strong></a>  </dt>
+  <dd> Multiplicative scale factor for arrowheads.  </dd>
+  <dt><a href="#a:arrowtail" name="d:arrowtail" id="d:arrowtail"><strong>arrowtail</strong></a>  </dt>
+  <dd> Style of arrowhead on the tail node of an edge. 
+    See also the <a href="#d:dir">dir</a> attribute,
+    and a <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:bb" name="d:bb" id="d:bb"><strong>bb</strong></a>  </dt>
+  <dd> Bounding box of drawing in integer points.  </dd>
+  <dt><a href="#a:bgcolor" name="d:bgcolor" id="d:bgcolor"><strong>bgcolor</strong></a>  </dt>
+  <dd> When attached to the root graph, this color is used as the background for 
+    entire canvas. When a cluster attribute, it is used as the initial
+    background for the cluster. If a cluster has a filled <a href="#d:style">style</a>, the
+    cluster's <a href="#d:fillcolor">fillcolor</a> will overlay the 
+    background color.
+    <p> If no background color is specified for the root graph, no graphics
+      operation are performed on the background. This works fine for
+      PostScript but for bitmap output, all bits are initialized to something.
+      This means that when the bitmap output is included in some other
+      document, all of the bits within the bitmap's bounding box will be
+      set, overwriting whatever color or graphics where already on the page.
+      If this effect is not desired, and you only want to set bits explicitly
+      assigned in drawing the graph, set <b>bgcolor</b>=&quot;transparent&quot;.  </p>
+  </dd>
+  <dt><a href="#a:center" name="d:center" id="d:center"><strong>center</strong></a>  </dt>
+  <dd> If true, the drawing is centered in the output canvas.  </dd>
+  <dt><a href="#a:charset" name="d:charset" id="d:charset"><strong>charset</strong></a>  </dt>
+  <dd> Specifies the character encoding used when interpreting string input
+    as a text label. The default value is <tt>&quot;UTF-8&quot;</tt>.
+    The other legal value is <tt>&quot;iso-8859-1&quot;</tt> or, 
+    equivalently, <tt>&quot;Latin1&quot;</tt>. The <b>charset</b> attribute is case-insensitive.
+    Note that if the character encoding used in the input does not
+    match the <b>charset</b> value, the resulting output may be very strange.  </dd>
+  <dt><a href="#a:clusterrank" name="d:clusterrank" id="d:clusterrank"><strong>clusterrank</strong></a>  </dt>
+  <dd> Mode used for handling clusters. If <b>clusterrank</b> is &quot;local&quot;, a
+    subgraph whose name begins with &quot;cluster&quot; is given special treatment.
+    The subgraph is laid out separately, and then integrated as a unit into
+    its parent graph, with a bounding rectangle drawn about it. 
+    If the cluster has a <a href="#d:label">label</a> parameter, this label
+    is displayed within the rectangle.
+    Note also that there can be clusters within clusters.
+    At present, the modes &quot;global&quot; and &quot;none&quot;
+    appear to be identical, both turning off the special cluster processing.  </dd>
+  <dt><a href="#a:color" name="d:color" id="d:color"><strong>color</strong></a>  </dt>
+  <dd> Basic drawing color for graphics, not text. For the latter, use the <a href="#d.fontcolor">fontcolor</a> attribute.
+    <p> For edges, the value
+      can either be a single color or a <a href="#k:colorList">colorList</a>.
+      In the latter case, the edge is drawn using parallel splines or lines,
+      one for each color in the list, in the order given.
+      The head arrow, if any, is drawn using the first color in the list, 
+      and the tail arrow, if any, the second color. This supports the common 
+      case of drawing opposing edges, but using parallel splines instead of 
+      separately routed multiedges. For example, the graph    </p>
+    <pre>
+  digraph G {
+    a -&gt; b [dir=both color=&quot;red:blue&quot;]
+  } 
+  </pre>
+    yields<br />
+    <img src="colorlist.gif" width="83" height="155" />  </dd>
+  <dt><a href="#a:colorscheme" name="d:colorscheme" id="d:colorscheme"><strong>colorscheme</strong></a>  </dt>
+  <dd> This attribute specifies a color scheme namespace. If defined, it specifies
+    the context for interpreting color names. In particular, if a <a href="#k:color">color</a> value has form <tt>&quot;xxx&quot;</tt> or <tt>&quot;//xxx&quot;</tt>, 
+    then the
+    color <tt>xxx</tt> will be evaluated according to the current color scheme.
+    If no color scheme is set, the standard X11 naming is used.
+    For example, if <tt>colorscheme=bugn9</tt>, then <tt>color=7</tt> is interpreted as <tt>&quot;/bugn9/7&quot;</tt>.  </dd>
+  <dt><a href="#a:comment" name="d:comment" id="d:comment"><strong>comment</strong></a>  </dt>
+  <dd> Comments are inserted into output. Device-dependent  </dd>
+  <dt><a href="#a:compound" name="d:compound" id="d:compound"><strong>compound</strong></a>  </dt>
+  <dd> If true, allow edges between clusters. (See <a href="#d:lhead">lhead</a> and <a href="#d:ltail">ltail</a> below.)  </dd>
+  <dt><a href="#a:concentrate" name="d:concentrate" id="d:concentrate"><strong>concentrate</strong></a>  </dt>
+  <dd> If true, use edge concentrators.  </dd>
+  <dt><a href="#a:constraint" name="d:constraint" id="d:constraint"><strong>constraint</strong></a>  </dt>
+  <dd> If false, the edge is not used in ranking the nodes. For example,
+    in the graph
+    <pre>
+  digraph G {
+    a -&gt; c;
+    a -&gt; b;
+    b -&gt; c [constraint=false];
+  }
+  </pre>
+    the edge <code>b -&gt; c</code> does not add a constraint during rank
+    assignment, so the only constraints are that a be above b and c,
+    yielding the graph:<br />
+    <img src="constraint.gif" width="196" height="172" />  </dd>
+  <dt><a href="#a:decorate" name="d:decorate" id="d:decorate"><strong>decorate</strong></a>  </dt>
+  <dd> If true, attach edge label to edge by a 2-segment
+    polyline, underlining the label, then going to the closest point of spline.  </dd>
+  <dt><a href="#a:defaultdist" name="d:defaultdist" id="d:defaultdist"><strong>defaultdist</strong></a>  </dt>
+  <dd> This specifies the distance between nodes in separate connected
+    components. If set too small, connected components may overlap.
+    Only applicable if <a href="#d:pack">pack</a>=false.  </dd>
+  <dt><a href="#a:dim" name="d:dim" id="d:dim"><strong>dim</strong></a>  </dt>
+  <dd> Set the number of dimensions used for the layout. The maximum value
+    allowed is 10.  </dd>
+  <dt><a href="#a:dir" name="d:dir" id="d:dir"><strong>dir</strong></a>  </dt>
+  <dd> Set edge type for drawing arrowheads. This indicates which ends of the
+    edge should be decorated with an arrowhead. The actual style of the
+    arrowhead can be specified using the <a href="#d:arrowhead">arrowhead</a> and <a href="#d:arrowtail">arrowtail</a> attributes.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:diredgeconstraints" name="d:diredgeconstraints" id="d:diredgeconstraints"><strong>diredgeconstraints</strong></a>  </dt>
+  <dd> Only valid when <a href="#d:mode">mode</a>=&quot;ipsep&quot;.
+    If true, constraints are generated for each edge in the largest (heuristic) 
+    directed acyclic subgraph such that the edge must point downwards.
+    If &quot;hier&quot;, generates level constraints similar to those used with <a href="#d:mode">mode</a>=&quot;hier&quot;. The main difference is that, in the latter
+    case, only these constraints are involved, so a faster solver can be used.  </dd>
+  <dt><a href="#a:distortion" name="d:distortion" id="d:distortion"><strong>distortion</strong></a>  </dt>
+  <dd> Distortion factor for <a href="#d:shape"><b>shape</b></a>=polygon. 
+    Positive values cause top part to
+    be larger than bottom; negative values do the opposite.  </dd>
+  <dt><a href="#a:dpi" name="d:dpi" id="d:dpi"><strong>dpi</strong></a>  </dt>
+  <dd> This specifies the expected number of pixels per inch on a display device.
+    For bitmap output, this guarantees that text rendering will be
+    done more accurately, both in size and in placement. For SVG output,
+    it is used to guarantee that the dimensions in the output correspond to
+    the correct number of points or inches.  </dd>
+  <dt><a href="#a:edgeURL" name="d:edgeURL" id="d:edgeURL"><strong>edgeURL</strong></a>  </dt>
+  <dd> If <b>edgeURL</b> is defined, this is the link used for the non-label
+    parts of an edge. This value overrides any <a href="#d:URL">URL</a> defined for the edge.
+    Also, this value is used near the head or tail node unless overridden
+    by a <a href="#d:headURL">headURL</a> or <a href="#d:tailURL">tailURL</a> value,
+    respectively.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:edgehref" name="d:edgehref" id="d:edgehref"><strong>edgehref</strong></a>  </dt>
+  <dd> Synonym for <a href="#d:edgeURL">edgeURL</a>.  </dd>
+  <dt><a href="#a:edgetarget" name="d:edgetarget" id="d:edgetarget"><strong>edgetarget</strong></a>  </dt>
+  <dd> If the edge has a <a href="#d:URL">URL</a> or <a href="#d:edgeURL">edgeURL</a> attribute, this attribute determines which window of the 
+    browser is used
+    for the URL attached to the non-label part of the edge. 
+    Setting it to &quot;_graphviz&quot; will open a new window if it 
+    doesn't already exist, or reuse it if it does.
+    If undefined, the value of the <a href="#d:target">target</a> is used.  </dd>
+  <dt><a href="#a:edgetooltip" name="d:edgetooltip" id="d:edgetooltip"><strong>edgetooltip</strong></a>  </dt>
+  <dd> Tooltip annotation attached to the non-label part of an edge. 
+    This is used only if the edge has a <a href="#d:URL">URL</a> or <a href="#d:edgeURL">edgeURL</a> attribute.  </dd>
+  <dt><a href="#a:epsilon" name="d:epsilon" id="d:epsilon"><strong>epsilon</strong></a>  </dt>
+  <dd> Terminating condition. If the length squared of all energy gradients are
+  &lt; <b>epsilon</b>, the algorithm stops.  </dd>
+  <dt><a href="#a:esep" name="d:esep" id="d:esep"><strong>esep</strong></a>  </dt>
+  <dd> Fraction to increase polygons (multiply
+    coordinates by 1 + esep) for purposes of spline edge routing. 
+    This should normally be strictly less than <a href="#d:sep">sep</a>.  </dd>
+  <dt><a href="#a:fillcolor" name="d:fillcolor" id="d:fillcolor"><strong>fillcolor</strong></a>  </dt>
+  <dd> Color used to fill the background of a node or cluster 
+    assuming <a href="#d:style">style</a>=filled.
+    If <b>fillcolor</b> is not defined, <a href="#d:color">color</a> is 
+    used. (For clusters, if <b>color</b> is not defined, <a href="#d:bgcolor">bgcolor</a> is used.) If this is not defined,
+    the default is used, except for <a href="#d:shape"><b>shape</b></a>=point or when the output
+    format is MIF,
+    which use black by default.
+    <p> Note that a cluster inherits the root graph's attributes if defined.
+      Thus, if the root graph has defined a <b>fillcolor</b>, this will override a <b>color</b> or <b>bgcolor</b> attribute set for the cluster.  </p>
+  </dd>
+  <dt><a href="#a:fixedsize" name="d:fixedsize" id="d:fixedsize"><strong>fixedsize</strong></a>  </dt>
+  <dd> If true, the node size is specified by the values of the <a href="#d:width"><b>width</b></a> and <a href="#d:height"><b>height</b></a> attributes only 
+    and is not expanded to contain the text label.  </dd>
+  <dt><a href="#a:fontcolor" name="d:fontcolor" id="d:fontcolor"><strong>fontcolor</strong></a>  </dt>
+  <dd> Color used for text.  </dd>
+  <dt><a href="#a:fontname" name="d:fontname" id="d:fontname"><strong>fontname</strong></a>  </dt>
+  <dd> Font used for text. This very much depends on the availability of the font
+    when the graph is displayed. As such, it is best to rely on
+    font faces that are generally available, such as  Arial, Times-Roman, Helvetica or
+    Courier.
+    <p><tt>fontname</tt> will be
+      considered the name of a Type 1 or True Type font file. 
+      If you specify <tt>fontname=schlbk</tt>, the tool will look for a 
+      file named <tt>schlbk.ttf</tt> or <tt>schlbk.pfa</tt> or <tt>schlbk.pfb</tt> in one of the directories specified by 
+      the <a href="#d:fontpath">fontpath</a> attribute.
+    The lookup does support various aliases for the common fonts.  </p>
+  </dd>
+  <dt><a href="#a:fontnames" name="d:fontnames" id="d:fontnames"><strong>fontnames</strong></a>  </dt>
+  <dd> Allows user control of how basic fontnames are represented in SVG output.
+    If <tt>fontnames</tt> is undefined or <tt>&quot;svg&quot;</tt>, 
+    the output will try to use known SVG fontnames. For example, the
+    default font <tt>&quot;Times-Roman&quot;</tt> will be mapped to the
+    basic SVG font <tt>&quot;serif&quot;</tt>. This can be overridden by setting <tt>fontnames</tt> to <tt>&quot;ps&quot;</tt> or <tt>&quot;gd&quot;</tt>.
+    In the former case, known PostScript font names such as <tt>&quot;Times-Roman&quot;</tt> will be used in the output.
+    In the latter case, the fontconfig font conventions
+    are used. Thus, <tt>&quot;Times-Roman&quot;</tt> would be treated as <tt>&quot;Nimbus Roman No9 L&quot;</tt>. These last two options are useful
+    with SVG viewers that support these richer fontname spaces.  </dd>
+  <dt><a href="#a:fontpath" name="d:fontpath" id="d:fontpath"><strong>fontpath</strong></a>  </dt>
+  <dd> Directory list used by libgd to search for bitmap fonts if Graphviz
+    was not built with the fontconfig library.
+    If <b>fontpath</b> is not set, the environment 
+    variable <tt>DOTFONTPATH</tt> is checked.
+    If that is not set, <tt>GDFONTPATH</tt> is checked.
+    If not set, libgd uses its compiled-in font path.
+    Note that fontpath is an attribute of the root graph.  </dd>
+  <dt><a href="#a:fontsize" name="d:fontsize" id="d:fontsize"><strong>fontsize</strong></a>  </dt>
+  <dd> Font size, <a href="#points">in points</a>, used for text.  </dd>
+  <dt><a href="#a:group" name="d:group" id="d:group"><strong>group</strong></a>  </dt>
+  <dd> If the end points of an edge belong to the same group, i.e., have the
+    same group attribute, parameters are set to avoid crossings and keep
+  the edges straight.</dd></dt>
+  <dt><a href="#a:headURL" name="d:headURL" id="d:headURL"><strong>headURL</strong></a>  </dt>
+  <dd> If <b>headURL</b> is defined, it is
+    output as part of the head label of the edge. 
+    Also, this value is used near the head node, overriding any <a href="#d:URL">URL</a> value.
+    See <a href="#h:undir_note">limitation</a>.</dd>
+  </dt>
+  <dt><a href="#a:headclip" name="d:headclip" id="d:headclip"><strong>headclip</strong></a>  </dt>
+  <dd> If true, the head of an edge is clipped to the boundary of the head node;
+    otherwise, the end of the edge goes to the center of the node, or the
+    center of a port, if applicable.  </dd>
+  <dt><a href="#a:headhref" name="d:headhref" id="d:headhref"><strong>headhref</strong></a>  </dt>
+  <dd> Synonym for <a href="#d:headURL">headURL</a>.  </dd>
+  <dt><a href="#a:headlabel" name="d:headlabel" id="d:headlabel"><strong>headlabel</strong></a>  </dt>
+  <dd> Text label to be placed near head of edge.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:headport" name="d:headport" id="d:headport"><strong>headport</strong></a>  </dt>
+  <dd> Indicates where on the head node to attach the head of the edge.
+    In the default case, the edge is aimed towards the center of the node,
+    and then clipped at the node boundary.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:headtarget" name="d:headtarget" id="d:headtarget"><strong>headtarget</strong></a>  </dt>
+  <dd> If the edge has a <a href="#d:headURL">headURL</a>, 
+    this attribute determines which window of the 
+    browser is used
+    for the URL. Setting it to &quot;_graphviz&quot; will open a new window if it 
+    doesn't already exist, or reuse it if it does.
+    If undefined, the value of the <a href="#d:target">target</a> is used.  </dd>
+  <dt><a href="#a:headtooltip" name="d:headtooltip" id="d:headtooltip"><strong>headtooltip</strong></a>  </dt>
+  <dd> Tooltip annotation attached to the head of an edge. This is used only
+    if the edge has a <a href="#d:headURL">headURL</a> attribute.  </dd>
+  <dt><a href="#a:height" name="d:height" id="d:height"><strong>height</strong></a>  </dt>
+  <dd> Height of node, in inches. This is taken as the initial, minimum height
+    of the node. If <a href="#d:fixedsize"><b>fixedsize</b></a> is true, this
+    will be the final height of the node. Otherwise, if the node label
+    requires more height to fit, the node's height will be increased to
+    contain the label. Note also that, if the output format is dot, the
+    value given to <b>height</b> will be the final value.  </dd>
+  <dt><a href="#a:href" name="d:href" id="d:href"><strong>href</strong></a>  </dt>
+  <dd> Synonym for <a href="#d:URL">URL</a>.  </dd>
+  <dt><a href="#a:label" name="d:label" id="d:label"><strong>label</strong></a>  </dt>
+  <dd> Text label attached to objects.
+    If a node's <a href="#d:shape">shape</a> is record, then the label can
+    have a <a href="shapes.html#record">special format</a> which describes the record layout.  </dd>
+  <dt><a href="#a:labelURL" name="d:labelURL" id="d:labelURL"><strong>labelURL</strong></a>  </dt>
+  <dd> If <b>labelURL</b> is defined, this is the link used for the label
+    of an edge. This value overrides any <a href="#d:URL">URL</a> defined for the edge.  </dd>
+  <dt><a href="#a:labelangle" name="d:labelangle" id="d:labelangle"><strong>labelangle</strong></a>  </dt>
+  <dd> This, along with <a href="#d:labeldistance">labeldistance</a>, determine 
+    where the
+    headlabel (taillabel) are placed with respect to the head (tail)
+    in polar coordinates. The origin in the coordinate system is
+    the point where the edge touches the node. The ray of 0 degrees
+    goes from the origin back along the edge, parallel to the edge
+    at the origin.
+    <p> The angle, in degrees, specifies the rotation from the 0 degree ray,
+      with positive angles moving counterclockwise and negative angles
+      moving clockwise.  </p>
+  </dd>
+  <dt><a href="#a:labeldistance" name="d:labeldistance" id="d:labeldistance"><strong>labeldistance</strong></a>  </dt>
+  <dd> Multiplicative scaling factor adjusting the distance that 
+    the headlabel(taillabel) is from the head(tail) node.
+    The default distance is 10 points. See <a href="#d:labelangle">labelangle</a> for more details.  </dd>
+  <dt><a href="#a:labelfloat" name="d:labelfloat" id="d:labelfloat"><strong>labelfloat</strong></a>  </dt>
+  <dd> If true, allows edge labels to be less constrained in position.
+    In particular, it may appear on top of other edges.  </dd>
+  <dt><a href="#a:labelfontcolor" name="d:labelfontcolor" id="d:labelfontcolor"><strong>labelfontcolor</strong></a>  </dt>
+  <dd> Color used for headlabel and taillabel.
+    If not set, defaults to edge's fontcolor.  </dd>
+  <dt><a href="#a:labelfontname" name="d:labelfontname" id="d:labelfontname"><strong>labelfontname</strong></a>  </dt>
+  <dd> Font used for headlabel and taillabel. 
+    If not set, defaults to edge's fontname.  </dd>
+  <dt><a href="#a:labelfontsize" name="d:labelfontsize" id="d:labelfontsize"><strong>labelfontsize</strong></a>  </dt>
+  <dd> Font size, <a href="#points">in points</a>, used for headlabel and taillabel.
+    If not set, defaults to edge's fontsize.  </dd>
+  <dt><a href="#a:labelhref" name="d:labelhref" id="d:labelhref"><strong>labelhref</strong></a>  </dt>
+  <dd> Synonym for <a href="#d:labelURL">labelURL</a>.  </dd>
+  <dt><a href="#a:labeljust" name="d:labeljust" id="d:labeljust"><strong>labeljust</strong></a>  </dt>
+  <dd> Justification for cluster labels. If &quot;r&quot;, the label
+    is right-justified within bounding rectangle; if &quot;l&quot;, left-justified;
+    else the label is centered.
+    Note that a subgraph inherits attributes from its parent. Thus, if
+    the root graph sets <b>labeljust</b> to &quot;l&quot;, the subgraph inherits
+  this value.  </dd>
+  <dt><a href="#a:labelloc" name="d:labelloc" id="d:labelloc"><strong>labelloc</strong></a>  </dt>
+  <dd> Top/bottom placement of graph and cluster labels. 
+    If the attribute is &quot;t&quot;, place label at the top;
+    if the attribute is &quot;b&quot;, place label at the bottom.
+    By default, root
+    graph labels go on the bottom and cluster labels go on the top.
+    Note that a subgraph inherits attributes from its parent. Thus, if
+    the root graph sets <b>labelloc</b> to &quot;b&quot;, the subgraph inherits
+  this value.  </dd>
+  <dt><a href="#a:labeltarget" name="d:labeltarget" id="d:labeltarget"><strong>labeltarget</strong></a>  </dt>
+  <dd> If the edge has a <a href="#d:URL">URL</a> or <a href="#d:labelURL">labelURL</a> attribute, this attribute determines which window of the 
+    browser is used
+    for the URL attached to the label.
+    Setting it to &quot;_graphviz&quot; will open a new window if it 
+    doesn't already exist, or reuse it if it does.
+    If undefined, the value of the <a href="#d:target">target</a> is used.  </dd>
+  <dt><a href="#a:labeltooltip" name="d:labeltooltip" id="d:labeltooltip"><strong>labeltooltip</strong></a>  </dt>
+  <dd> Tooltip annotation attached to label of an edge. 
+    This is used only if the edge has a <a href="#d:URL">URL</a> or <a href="#d:labelURL">labelURL</a> attribute.  </dd>
+  <dt><a href="#a:landscape" name="d:landscape" id="d:landscape"><strong>landscape</strong></a>  </dt>
+  <dd> If true, the graph is rendered in landscape mode. Synonymous with <a href="#d:rotate"><tt>rotate=90</tt></a> or <a href="#d:orientation"><tt>orientation=landscape</tt></a>.  </dd>
+  <dt><a href="#a:layer" name="d:layer" id="d:layer"><strong>layer</strong></a>  </dt>
+  <dd> Specifies layers in which the node or edge is present.  </dd>
+  <dt><a href="#a:layers" name="d:layers" id="d:layers"><strong>layers</strong></a>  </dt>
+  <dd> Specifies a linearly ordered list of layer names attached to the graph
+    The graph is then output in separate layers. Only those components 
+    belonging to the current output layer appear.</dd>
+  <dt><a href="#a:layersep" name="d:layersep" id="d:layersep"><strong>layersep</strong></a>  </dt>
+  <dd> Specifies the separator characters used to split the <a href="#d:layers">layers </a>attribute into a list of layer names.  </dd>
+  <dt><a href="#a:len" name="d:len" id="d:len"><strong>len</strong></a>  </dt>
+  <dd> Preferred edge length, in inches.  </dd>
+  <dt><a href="#a:levelsgap" name="d:levelsgap" id="d:levelsgap"><strong>levelsgap</strong></a>  </dt>
+  <dd> Specifies strictness of level constraints in neato
+    when <tt><a href="#d:mode">mode</a>=&quot;ipsep&quot; or &quot;hier&quot;</tt>.
+    Larger positive values mean stricter constraints, which demand more 
+    separation between levels. On the other hand, negative values will relax 
+    the constraints by allowing some overlap between the levels.  </dd>
+  <dt><a href="#a:lhead" name="d:lhead" id="d:lhead"><strong>lhead</strong></a>  </dt>
+  <dd> Logical head of an edge. When <a href="#d:compound"><b>compound</b></a> is true,
+    if <b>lhead</b> is defined and is the name of a cluster containing 
+    the real head,
+    the edge is clipped to the boundary of the cluster.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:lp" name="d:lp" id="d:lp"><strong>lp</strong></a>  </dt>
+  <dd> Label position, <a href="#points">in points</a>.
+    The position indicates the center of the label.  </dd>
+  <dt><a href="#a:ltail" name="d:ltail" id="d:ltail"><strong>ltail</strong></a>  </dt>
+  <dd> Logical tail of an edge. When <a href="#d:compound"><b>compound</b></a> is true,
+    if <b>ltail</b> is defined and is the name of a cluster 
+    containing the real tail,
+    the edge is clipped to the boundary of the cluster.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:margin" name="d:margin" id="d:margin"><strong>margin</strong></a>  </dt>
+  <dd> For graphs, this sets x and y margins of canvas, in inches. If the margin
+    is a single double, both margins are set equal to the given value.
+    <p> Note that the margin is not part of the drawing but just empty space 
+      left around the drawing. It basically corresponds to a translation of 
+      drawing, as would be necessary to center a drawing on a page. Nothing
+      is actually drawn in the margin. To actually extend the background of
+      a drawing, see the <a href="#d:pad">pad</a> attribute.    </p>
+    <p> For nodes, this attribute specifies space left around the node's label.
+      By default, the value is <tt>0.11,0.055</tt>.  </p>
+  </dd>
+  <dt><a href="#a:maxiter" name="d:maxiter" id="d:maxiter"><strong>maxiter</strong></a>  </dt>
+  <dd> Sets the number of iterations used.  </dd>
+  <dt><a href="#a:mclimit" name="d:mclimit" id="d:mclimit"><strong>mclimit</strong></a>  </dt>
+  <dd> Multiplicative scale factor used to alter the MinQuit (default = 8)
+    and MaxIter (default = 24) parameters used during crossing
+    minimization. These correspond to the 
+    number of tries without improvement before quitting and the
+    maximum number of iterations in each pass.  </dd>
+  <dt><a href="#a:mindist" name="d:mindist" id="d:mindist"><strong>mindist</strong></a>  </dt>
+  <dd> Specifies the minimum separation between all nodes.  </dd>
+  <dt><a href="#a:minlen" name="d:minlen" id="d:minlen"><strong>minlen</strong></a>  </dt>
+  <dd> Minimum edge length (rank difference between head and tail).  </dd>
+  <dt><a href="#a:mode" name="d:mode" id="d:mode"><strong>mode</strong></a>  </dt>
+  <dd> Technique for optimizing the layout. If <b>mode</b> is <tt>&quot;major&quot;</tt>,
+    neato uses stress majorization. If <b>mode</b> is <tt>&quot;KK&quot;</tt>,
+    neato uses a version of the gradient descent method. The only advantage
+    to the latter technique is that it is sometimes appreciably faster for
+    small (number of nodes &lt; 100) graphs. A significant disadvantage is that
+    it may cycle.
+    <p> There are two new, experimental modes in neato, &quot;hier&quot;, which adds a top-down
+      directionality similar to the layout used in dot, and &quot;ipsep&quot;, which 
+      allows the graph to specify minimum vertical and horizontal distances
+      between nodes. (See the <a href="#d:sep">sep</a> attribute.)  </p>
+  </dd>
+  <dt><a href="#a:model" name="d:model" id="d:model"><strong>model</strong></a>  </dt>
+  <dd> This value specifies how the distance matrix is computed for the input
+    graph. The distance matrix specifies the ideal distance between every
+    pair of nodes. neato attemps to find a layout which best achieves
+    these distances. By default, it uses the length of the shortest path,
+    where the length of each edge is given by its <a href="#d:len">len</a> attribute. If <b>model</b> is <tt>&quot;circuit&quot;</tt>, neato uses the
+    circuit resistance 
+    model to compute the distances. This tends to emphasize clusters. If <b>model</b> is <tt>&quot;subset&quot;</tt>, neato uses the subset model. This sets the
+    edge length to be the number of nodes that are neighbors of exactly one
+    of the end points, and then calculates the shortest paths. This helps
+    to separate nodes with high degree.  </dd>
+  <dt><a href="#a:nodesep" name="d:nodesep" id="d:nodesep"><strong>nodesep</strong></a>  </dt>
+  <dd> Minimum space between two adjacent nodes in the same rank, in inches.  </dd>
+  <dt><a href="#a:nojustify" name="d:nojustify" id="d:nojustify"><strong>nojustify</strong></a>  </dt>
+  <dd> By default, the justification of multi-line labels is done within the
+    largest context that makes sense. Thus, in the label of a polygonal
+    node, a left-justified line will align with the left side of the node
+    (shifted by the prescribed <a href="#d:margin">margin</a>).
+    In record nodes, left-justified
+    line will line up with the left side of the enclosing column of fields.
+    If <b>nojustify</b> is <tt>&quot;true&quot;</tt>, multi-line labels will be justified 
+    in the context of itself. For example, if the attribute is set, 
+    the first label line is long, and the second is shorter and left-justified,
+    the second will align with the left-most character in the first line,
+    regardless of  how large the node might be.  </dd>
+  <dt><a href="#a:normalize" name="d:normalize" id="d:normalize"><strong>normalize</strong></a>  </dt>
+  <dd> If set, normalize coordinates of final
+    layout so that the first point is at the origin, and then rotate the
+    layout so that the first edge is horizontal.  </dd>
+  <dt><a href="#a:nslimit" name="d:nslimit" id="d:nslimit"><strong>nslimit</strong></a> ,  </dt>
+  <dt><a href="#a:nslimit1" name="d:nslimit1" id="d:nslimit1"><strong>nslimit1</strong></a>  </dt>
+  <dd> Used to set number of iterations in
+    network simplex applications. <b>nslimit</b> is used in
+    computing node x coordinates, <b>nslimit1</b> for ranking nodes.
+    If defined, # iterations = <b>nslimit(1)</b> * # nodes;
+    otherwise,  # iterations = MAXINT.  </dd>
+  <dt><a href="#a:ordering" name="d:ordering" id="d:ordering"><strong>ordering</strong></a>  </dt>
+  <dd> If &quot;out&quot; for a graph G, and n is a node in G, then edges n-&gt;* appear
+    left-to-right in the same order in which they are defined.
+    If &quot;in&quot;, the edges *-&gt;n appear
+    left-to-right in the same order in which they are defined for all
+  nodes n.  </dd>
+  <dt><a href="#a:orientation" name="d:orientation" id="d:orientation"><strong>orientation</strong></a>  </dt>
+  <dd> Angle, in degrees, used to rotate node shapes.  </dd>
+  <dt><a href="#aa:orientation" name="dd:orientation" id="dd:orientation"><strong>orientation</strong></a>  </dt>
+  <dd> If &quot;[lL]*&quot;, set graph orientation to landscape
+    Used only if <a href="#d:rotate"><b>rotate</b></a> is not defined.  </dd>
+  <dt><a href="#a:outputorder" name="d:outputorder" id="d:outputorder"><strong>outputorder</strong></a>  </dt>
+  <dd> Specify order in which nodes and edges are drawn.  </dd>
+  <dt><a href="#a:overlap" name="d:overlap" id="d:overlap"><strong>overlap</strong></a>  </dt>
+  <dd> Determines if and how node overlaps should be removed. Nodes are first
+    enlarged using the <a href="#d:sep"><b>sep</b></a> attribute. 
+    If &quot;true&quot; , overlaps are retained.
+    If the value is &quot;scale&quot;, overlaps are removed by uniformly scaling in x and y.
+    If the value converts to &quot;false&quot;, node overlaps are removed by a 
+    Voronoi-based technique. 
+    If the value is &quot;scalexy&quot;, x and y are separately
+    scaled to remove overlaps. 
+    If the value is &quot;orthoxy&quot; or &quot;orthoyx&quot;, overlaps
+    are moved by optimizing two constraint problems, one for the x axis and
+    one for the y. The suffix indicates which axis is processed first.
+    If the value is &quot;ortho&quot;, the technique is similar to &quot;orthoxy&quot; except a
+    heuristic is used to reduce the bias between the two passes.
+    If the value is &quot;ortho_yx&quot;, the technique is the same as &quot;ortho&quot;, except
+    the roles of x and y are reversed.
+    The values &quot;portho&quot;, &quot;porthoxy&quot;, &quot;porthoxy&quot;, and &quot;portho_yx&quot; are similar
+    to the previous four, except only pseudo-orthogonal ordering is
+    enforced.
+    <p> If the value is &quot;compress&quot;, the layout will be scaled down as much as
+      possible without introducing any overlaps, obviously assuming there are
+    none to begin with.    </p>
+    <p> If the value is &quot;ipsep&quot;, and the layout is done by neato with <a href="#d:mode">mode</a>=&quot;ipsep&quot;, the overlap removal constraints are
+      incorporated into the layout algorithm itself.
+      N.B. At present, this only supports one level of clustering.    </p>
+    <p> If the value is &quot;vpsc&quot;, overlap removal is similarly to &quot;ortho&quot;, except
+      quadratic optimization is used to minimize node displacement.
+      N.B. At present, this mode only works when <a href="#d:mode">mode</a>=&quot;ipsep&quot;.    </p>
+    <p> Except for fdp, the layouts assume <tt>overlap=&quot;true&quot;</tt> as the default. 
+      Fdp first uses a number of passes using built-in, force-directed technique
+      to remove overlaps. Thus, fdp accepts <b>overlap</b> with an integer
+      prefix followed by a colon, specifying the number of tries. If there is
+      no prefix, no initial tries will be performed. If there is nothing following
+      a colon, none of the above methods will be attempted. By default, fdp
+      uses <tt>overlap=&quot;9:portho&quot;</tt>. Note that <tt>overlap=&quot;true&quot;</tt>, <tt>overlap=&quot;0:true&quot;</tt> and <tt>overlap=&quot;0:&quot;</tt> all turn off all overlap
+      removal.    </p>
+    <p> Except for the Voronoi method, all of these transforms preserve the
+      orthogonal ordering of the original layout. That is, if the x coordinates
+      of two nodes are originally the same, they will remain the same, and if
+      the x coordinate of one node is originally less than the x coordinate of
+      another, this relation will still hold in the transformed layout. The
+      similar properties hold for the y coordinates.
+      This is not quite true for the &quot;porth*&quot; cases. For these, orthogonal
+    ordering is only preserved among nodes related by an edge.    </p>
+    <p> <b>NOTE</b>The methods &quot;orthoxy&quot; and &quot;orthoyx&quot; are still evolving. The
+    semantics of these may change, or these methods may disappear altogether.  </p>
+  </dd>
+  <dt><a href="#a:pack" name="d:pack" id="d:pack"><strong>pack</strong></a>  </dt>
+  <dd> This is true if the value of pack is &quot;true&quot; (case-insensitive) or a
+    non-negative integer. If true, each connected component of the graph is 
+    laid out separately, and then the graphs are packed tightly. 
+    If pack has an integral value, this is used as the size,
+    in <a href="#points">points</a>, of
+    a margin around each part; otherwise, a default margin of 8 is used.
+    If pack is interpreted as false, the entire graph is laid out together.
+    The granularity and method of packing is influenced by the <a href="#d:packmode">packmode</a> attribute.
+    <p> For layouts which always do packing, such a twopi, the <b>pack</b> attribute is just used to set the margin.  </p>
+  </dd>
+  <dt><a href="#a:packmode" name="d:packmode" id="d:packmode"><strong>packmode</strong></a>  </dt>
+  <dd> This indicates the granularity and method used for packing
+    (cf. <a href="#k:packMode">packMode</a>). Note that defining <b>packmode</b> will automatically turn on packing as though one had
+    set <b>pack=true</b>.  </dd>
+  <dt><a href="#a:pad" name="d:pad" id="d:pad"><strong>pad</strong></a>  </dt>
+  <dd> The pad attribute specifies how much, in inches, to extend the 
+    drawing area around the minimal area needed to draw the graph.
+    If the pad is a single double, both the x and y pad values are set 
+    equal to the given value. This area is part of the
+    drawing and will be filled with the background color, if appropriate.
+    <p> Normally, a small pad is used for aesthetic reasons, especially when
+      a background color is used, to avoid having nodes and edges abutting
+      the boundary of the drawn region.  </p>
+  </dd>
+  <dt><a href="#a:page" name="d:page" id="d:page"><strong>page</strong></a>  </dt>
+  <dd> Width and height of output pages, in inches. If this is set and is
+    smaller than the size of the layout, a rectangular array of pages of
+    the specified page size is overlaid on the layout, with origins
+    aligned in the lower-left corner, thereby partitioning the layout
+    into pages. The pages are then produced one at a time, in <a href="#d:pagedir">pagedir</a> order.
+    <p> At present, this only works for PostScript output. For other types of
+      output, one should use another tool to split the output into multiple
+      output files. Or use the <a href="#d:viewport">viewport</a> to generate
+      multiple files.  </p>
+  </dd>
+  <dt><a href="#a:pagedir" name="d:pagedir" id="d:pagedir"><strong>pagedir</strong></a>  </dt>
+  <dd> If the <a href="#d:page">page</a> attribute is set and applicable,
+    this attribute specifies the order in which the pages are emitted.
+    This is limited to one of the 8 row or column major orders.  </dd>
+  <dt><a href="#a:pencolor" name="d:pencolor" id="d:pencolor"><strong>pencolor</strong></a>  </dt>
+  <dd> Color used to draw the bounding box around a cluster.
+    If <b>pencolor</b> is not defined, <a href="#d:color"><b>color</b></a> is 
+    used. If this is not defined, <a href="#d:bgcolor">bgcolor</a> is used.
+    If this is not defined, the default is used.
+    <p> Note that a cluster inherits the root graph's attributes if defined.
+      Thus, if the root graph has defined a <b>pencolor</b>, this will override a <b>color</b> or <b>bgcolor</b> attribute set for the cluster.  </p>
+  </dd>
+  <dt><a href="#a:peripheries" name="d:peripheries" id="d:peripheries"><strong>peripheries</strong></a>  </dt>
+  <dd> Set number of peripheries used in polygonal shapes and cluster
+    boundaries. Note that <a href="shapes.html#epsf">user-defined shapes</a> are treated as a 
+    form of box shape, so the default
+    peripheries value is 1 and the user-defined shape will be drawn in
+    a bounding rectangle. Setting <tt>peripheries=0</tt> will turn this off.
+    Also, 1 is the maximum peripheries value for clusters.  </dd>
+  <dt><a href="#a:pin" name="d:pin" id="d:pin"><strong>pin</strong></a>  </dt>
+  <dd> If true and the node has a pos attribute on input, neato prevents the
+    node from moving from the input position. This property can also be specified
+    in the pos attribute itself (cf. the <a href="#d:point">point</a> type).  </dd>
+  <dt><a href="#a:pos" name="d:pos" id="d:pos"><strong>pos</strong></a>  </dt>
+  <dd> Position of node, or spline control points, <a href="#points">in points</a>.
+    For nodes, the position indicates the center of the node.
+    In neato and fdp, pos can be used to set initial position of a node.
+    Concerning this, see the <a href="command.html#d:s">-s</a> command line flag.  </dd>
+  <dt><a href="#a:quantum" name="d:quantum" id="d:quantum"><strong>quantum</strong></a>  </dt>
+  <dd> If <b>quantum</b> &gt; 0.0, node label dimensions
+  will be rounded to integral multiples of the quantum.  </dd>
+  <dt><a href="#a:rank" name="d:rank" id="d:rank"><strong>rank</strong></a>  </dt>
+  <dd> Rank constraints on the nodes in a subgraph.
+    If <b>rank</b>=&quot;same&quot;, all nodes are placed on the same rank. 
+    If <b>rank</b>=&quot;min&quot;, all nodes are placed on the minimum rank. 
+    If <b>rank</b>=&quot;source&quot;, all nodes are placed on the minimum rank, and
+    the only nodes on the minimum rank belong to some subgraph whose
+    rank attribute is &quot;source&quot; or &quot;min&quot;. 
+    Analogous criteria hold for <b>rank</b>=&quot;max&quot; and <b>rank</b>=&quot;sink&quot;.
+    (Note: the
+    minimum rank is topmost or leftmost, and the maximum rank is bottommost
+  or rightmost.)  </dd>
+  <dt><a href="#a:rankdir" name="d:rankdir" id="d:rankdir"><strong>rankdir</strong></a>  </dt>
+  <dd> Sets direction of graph layout. For example, if <b>rankdir</b>=&quot;LR&quot;, 
+    and barring cycles, an edge <code>T -&gt; H;</code> will go
+    from left to right. By default, graphs are laid out from top to bottom.  </dd>
+  <dt><a href="#a:ranksep" name="d:ranksep" id="d:ranksep"><strong>ranksep</strong></a>  </dt>
+  <dd> In dot, this the gives desired rank separation, in inches. This is
+    the minimum vertical distance between the bottom of the nodes in one
+    rank and the tops of nodes in the next. If the value
+    contains &quot;equally&quot;, the centers of all ranks are spaced equally apart.
+    Note that both
+    settings are possible, e.g., ranksep = &quot;1.2 equally&quot;.
+  In twopi, specifies radial separation of concentric circles.  </dd>
+  <dt><a href="#a:ratio" name="d:ratio" id="d:ratio"><strong>ratio</strong></a>  </dt>
+  <dd> Sets the aspect ratio (drawing height/drawing width) for the drawing. 
+    Note that this is adjusted before
+    the <a href="#d:size"><b>size</b></a> attribute constraints are enforced.
+    <p> If <b>ratio</b> is numeric, it is taken as the desired aspect ratio.
+      Then, if the actual aspect ratio is less than the desired ratio, 
+      the drawing height is scaled up to achieve the
+      desired ratio; if the actual ratio is greater than that desired ratio, 
+      the drawing width is scaled up.    </p>
+    <p> If <b>ratio</b> = &quot;fill&quot; and the <a href="#d:size"><b>size</b></a> attribute is set, node positions are scaled, separately in both x
+      and y, so that the final drawing exactly fills the specified size.    </p>
+    <p> If <b>ratio</b> = &quot;compress&quot; and the <a href="#d:size"><b>size</b></a> attribute is set, dot attempts to compress the initial layout to fit 
+      in the given size. This achieves a tighter packing of nodes but 
+      reduces the balance and symmetry. This feature only works in dot.    </p>
+    <p> If <b>ratio</b> = &quot;expand&quot;, the <a href="#d:size"><b>size</b></a> attribute is set, and both the width and the height of the graph are
+      less than the value in <a href="#d:size"><b>size</b></a>, node positions are scaled 
+      uniformly until at least
+      one dimension fits <a href="#d:size"><b>size</b></a> exactly.
+      Note that this is distinct from using <a href="#d:size"><b>size</b></a> as the
+      desired size, as here the drawing is expanded before edges are generated and
+      all node and text sizes remain unchanged.    </p>
+    <p> If <b>ratio</b> = &quot;auto&quot;, the <a href="#d:page"><b>page</b></a> attribute is set and the graph cannot be drawn on a single page,
+      then <a href="#d:size"><b>size</b></a> is set to an ``ideal'' value.
+      In particular, the size in a given dimension will be the smallest integral
+      multiple of the page size in that dimension which is at least half the
+      current size. The two dimensions are then scaled independently to the
+      new size. This feature only works in dot.  </p>
+  </dd>
+  <dt><a href="#a:rects" name="d:rects" id="d:rects"><strong>rects</strong></a>  </dt>
+  <dd> Rectangles for fields of records, <a href="#points">in points</a>.  </dd>
+  <dt><a href="#a:regular" name="d:regular" id="d:regular"><strong>regular</strong></a>  </dt>
+  <dd> If true, force polygon to be regular.  </dd>
+  <dt><a href="#a:remincross" name="d:remincross" id="d:remincross"><strong>remincross</strong></a>  </dt>
+  <dd> If true and there are multiple clusters, run cross
+    minimization a second time.  </dd>
+  <dt><a href="#a:resolution" name="d:resolution" id="d:resolution"><strong>resolution</strong></a>  </dt>
+  <dd> This is a synonym for the <a href="#d:dpi">dpi</a> attribute.  </dd>
+  <dt><a href="#a:root" name="d:root" id="d:root"><strong>root</strong></a>  </dt>
+  <dd> This specifies nodes to be used as the center of the 
+    layout and the root of the generated spanning tree. As a graph attribute,
+    this gives the name of the node. As a node attribute (circo only), it
+    specifies that the node should be used as a central node. In twopi,
+    this will actually be the central node. In circo, the block containing
+    the node will be central in the drawing of its connected component.
+    If not defined,
+    twopi will pick a most central node, and circo will pick a random node.  </dd>
+  <dt><a href="#a:rotate" name="d:rotate" id="d:rotate"><strong>rotate</strong></a>  </dt>
+  <dd> If 90, set drawing orientation to landscape.  </dd>
+  <dt><a href="#a:samehead" name="d:samehead" id="d:samehead"><strong>samehead</strong></a>  </dt>
+  <dd> Edges with the same head and the same <b>samehead</b> value are aimed
+    at the same point on the head.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:sametail" name="d:sametail" id="d:sametail"><strong>sametail</strong></a>  </dt>
+  <dd> Edges with the same tail and the same <b>sametail</b> value are aimed
+    at the same point on the tail.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:samplepoints" name="d:samplepoints" id="d:samplepoints"><strong>samplepoints</strong></a>  </dt>
+  <dd> If the input graph defines the <a href="#d:vertices"><b>vertices</b></a> attribute, and output is dot or xdot, this gives
+    the number of points used for a node whose shape is a circle or ellipse.
+    It plays the same role in neato, when adjusting the layout to avoid
+    overlapping nodes, and in image maps.  </dd>
+  <dt><a href="#a:searchsize" name="d:searchsize" id="d:searchsize"><strong>searchsize</strong></a>  </dt>
+  <dd> During network simplex, maximum number of edges with negative cut values
+    to search when looking for one with minimum cut value.  </dd>
+  <dt><a href="#a:sep" name="d:sep" id="d:sep"><strong>sep</strong></a>  </dt>
+  <dd> Fraction to increase polygons (multiply
+    coordinates by 1 + sep) for purposes of determining overlap. Guarantees
+    a minimal non-zero distance between nodes.
+    If unset but <a href="#d:esep">esep</a> is defined, <tt>sep</tt> will be
+    set to <tt>esep/0.8</tt>. If <tt>esep</tt> is unset, the default value
+    is used.
+    <p> When <a href="#d:overlap">overlap</a>=&quot;ipsep&quot; or &quot;vpsc&quot;, <tt>sep</tt> gives a minimum distance, in inches, to be left between nodes.
+      In this case, if <tt>sep</tt> is a pointf, the x and y separations can be
+      specified separately.  </p>
+  </dd>
+  <dt><a href="#a:shape" name="d:shape" id="d:shape"><strong>shape</strong></a>  </dt>
+  <dd> Set the shape of a node.  </dd>
+  <dt><a href="#a:shapefile" name="d:shapefile" id="d:shapefile"><strong>shapefile</strong></a>  </dt>
+  <dd> If defined, shapefile specifies a file containing user-supplied node content. 
+    The <a href="#d:shape"><b>shape</b></a> of the node is set to box. 
+    The image in the shapefile must be
+    rectangular. The image formats supported as well as the precise semantics of 
+    how the file is used depends on the <a href="http://www.graphviz.org/doc/info/output.html">output format</a>.  For further details, see <a href="http://www.graphviz.org/Documentation/html/shapehowto.html#ext_image">External PostScript files</a>.
+    <p> There is one exception to this usage. 
+      If <b>shape</b> is set to &quot;epsf&quot;, shapefile gives
+      a filename containing a definition of the node in PostScript. 
+      The graphics defined must be contain all of the
+      node content, including any desired boundaries.
+      For further details, see <a href="http://www.graphviz.org/Documentation/html/shapehowto.html#ext_ps"> External PostScript files</a>.  </p>
+  </dd>
+  <dt><a href="#a:showboxes" name="d:showboxes" id="d:showboxes"><strong>showboxes</strong></a>  </dt>
+  <dd> Print guide boxes in PostScript at the beginning of
+    routesplines if 1, or at the end if 2. (Debugging)  </dd>
+  <dt><a href="#a:sides" name="d:sides" id="d:sides"><strong>sides</strong></a>  </dt>
+  <dd> Number of sides if <a href="#d:shape"><b>shape</b></a>=polygon.  </dd>
+  <dt><a href="#a:size" name="d:size" id="d:size"><strong>size</strong></a>  </dt>
+  <dd> Maximum width and height of drawing, in inches.
+    If defined and the drawing is too large, the drawing is uniformly 
+    scaled down so that it fits within the given size.
+    <p> If <tt>size</tt> ends in an exclamation point (<tt>!</tt>), 
+      then it is taken to be
+      the desired size. In this case, if both dimensions of the drawing are
+      less than <tt>size</tt>, the drawing is scaled up uniformly until at
+      least one dimension equals its dimension in <tt>size</tt>.    </p>
+    <p> Note that there is some interaction between the <b>size</b> and <a href="#d:ratio"><b>ratio</b></a> attributes.  </p>
+  </dd>
+  <dt><a href="#a:skew" name="d:skew" id="d:skew"><strong>skew</strong></a>  </dt>
+  <dd> Skew factor for <a href="#d:shape"><b>shape</b></a>=polygon. Positive values
+    skew top of polygon to right; negative to left.  </dd>
+  <dt><a href="#a:splines" name="d:splines" id="d:splines"><strong>splines</strong></a>  </dt>
+  <dd> Controls how, and if, edges are represented. If true, edges are drawn as
+    splines routed around nodes; if false, edges are drawn as line segments.
+    If set to &quot;&quot;, no edges are drawn at all.
+    <p> (1 March 2007) The values <tt>line</tt> and <tt>spline</tt> can be
+      used as synonyms for <tt>false</tt> and <tt>true</tt>, respectively.
+      In addition, the value <tt>polyline</tt> specifies that edges should be
+      drawn as polylines.    </p>
+    <p> By default, the attribute is unset. How this is interpreted depends on
+      the layout. For dot, the default is to draw edges as splines. For all
+      other layouts, the default is to draw edges as line segments. Note that
+      for these latter layouts, if <tt>splines=&quot;true&quot;</tt>, this
+      requires non-overlapping nodes (cf. <a href="#d:overlap"><b>overlap</b></a>).
+      If fdp is used for layout and <tt>splines=&quot;compound&quot;</tt>, then the edges are
+      drawn to avoid clusters as well as nodes.  </p>
+  </dd>
+  <dt><a href="#a:start" name="d:start" id="d:start"><strong>start</strong></a>  </dt>
+  <dd> Parameter used to determine the initial layout of nodes. If unset, the
+    nodes are randomly placed in a unit square with
+    the same seed is always used for the random number generator, so the
+    initial placement is repeatable.  </dd>
+  <dt><a href="#a:style" name="d:style" id="d:style"><strong>style</strong></a>  </dt>
+  <dd> Set style for node or edge. For cluster subgraph, if &quot;filled&quot;, the
+  cluster box's background is filled.  </dd>
+  <dt><a href="#a:stylesheet" name="d:stylesheet" id="d:stylesheet"><strong>stylesheet</strong></a>  </dt>
+  <dd> A URL or pathname specifying an XML style sheet, used in SVG output.  </dd>
+  <dt><a href="#a:tailURL" name="d:tailURL" id="d:tailURL"><strong>tailURL</strong></a>  </dt>
+  <dd> If <b>tailURL</b> is defined, it is
+    output as part of the tail label of the edge.
+    Also, this value is used near the tail node, overriding any <a href="#d:URL">URL</a> value.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:tailclip" name="d:tailclip" id="d:tailclip"><strong>tailclip</strong></a>  </dt>
+  <dd> If true, the tail of an edge is clipped to the boundary of the tail node;
+    otherwise, the end of the edge goes to the center of the node, or the
+    center of a port, if applicable.  </dd>
+  <dt><a href="#a:tailhref" name="d:tailhref" id="d:tailhref"><strong>tailhref</strong></a>  </dt>
+  <dd> Synonym for <a href="#d:tailURL">tailURL</a>.  </dd>
+  <dt><a href="#a:taillabel" name="d:taillabel" id="d:taillabel"><strong>taillabel</strong></a>  </dt>
+  <dd> Text label to be placed near tail of edge.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:tailport" name="d:tailport" id="d:tailport"><strong>tailport</strong></a>  </dt>
+  <dd> Indicates where on the tail node to attach the tail of the edge.
+    See <a href="#h:undir_note">limitation</a>.  </dd>
+  <dt><a href="#a:tailtarget" name="d:tailtarget" id="d:tailtarget"><strong>tailtarget</strong></a>  </dt>
+  <dd> If the edge has a <a href="#d:tailURL">tailURL</a>, 
+    this attribute determines which window of the 
+    browser is used
+    for the URL. Setting it to &quot;_graphviz&quot; will open a new window if it 
+    doesn't already exist, or reuse it if it does.
+    If undefined, the value of the <a href="#d:target">target</a> is used.  </dd>
+  <dt><a href="#a:tailtooltip" name="d:tailtooltip" id="d:tailtooltip"><strong>tailtooltip</strong></a>  </dt>
+  <dd> Tooltip annotation attached to the tail of an edge. This is used only
+    if the edge has a <a href="#d:tailURL">tailURL</a> attribute.  </dd>
+  <dt><a href="#a:target" name="d:target" id="d:target"><strong>target</strong></a>  </dt>
+  <dd> If the object has a URL, this attribute determines which window 
+    of the browser is used for the URL.
+    See <a href="http://www.w3.org/TR/html401/present/frames.html#adef-target">W3C documentation</a>.  </dd>
+  <dt><a href="#a:tooltip" name="d:tooltip" id="d:tooltip"><strong>tooltip</strong></a>  </dt>
+  <dd> Tooltip annotation attached to the node or edge. If unset, Graphviz
+    will use the object's <a href="#d:label">label</a> if defined.
+    Note that if the label is a record specification or an HTML-like
+    label, the resulting tooltip may be unhelpful. In this case, if
+    tooltips will be generated, the user should set a <tt>tooltip</tt> attribute explicitly.  </dd>
+  <dt><a href="#a:truecolor" name="d:truecolor" id="d:truecolor"><strong>truecolor</strong></a>  </dt>
+  <dd> If set explicitly to true or false, the value determines whether or not
+    internal bitmap rendering relies on a truecolor color model or uses
+    a color palette.
+    If the attribute is unset, truecolor is not used 
+    unless there is a <a href="#d:shapefile">shapefile</a> property
+    for some node in the graph. 
+    The output model will use the input model when possible.
+    <p> Use of color palettes results in less memory usage during creation of the
+      bitmaps and smaller output files.    </p>
+    <p> Usually, the only time it is necessary to specify the truetype model
+      is if the graph uses more than 256 colors.
+      However, if one uses <a href="#d:bgcolor">bgcolor</a>=transparent with 
+      a color palette, font
+      antialiasing can show up as a fuzzy white area around characters.
+      Using <b>truecolor</b>=true avoids this problem.  </p>
+  </dd>
+  <dt><a href="#a:vertices" name="d:vertices" id="d:vertices"><strong>vertices</strong></a>  </dt>
+  <dd> If the input graph defines this attribute, the node is polygonal,
+    and output is dot or xdot, this attribute provides the
+    coordinates of the vertices of the node's polygon, in inches.
+    If the node is an ellipse or circle, the <a href="#d:samplepoints">samplepoints</a> attribute affects
+    the output.  </dd>
+  <dt><a href="#a:viewport" name="d:viewport" id="d:viewport"><strong>viewport</strong></a>  </dt>
+  <dd> Clipping window on final drawing.  </dd>
+  <dt><a href="#a:voro_margin" name="d:voro_margin" id="d:voro_margin"><strong>voro_margin</strong></a>  </dt>
+  <dd> Factor to scale up drawing to allow margin for expansion in
+    Voronoi technique. dim' = (1+2*margin)*dim.  </dd>
+  <dt><a href="#a:weight" name="d:weight" id="d:weight"><strong>weight</strong></a>  </dt>
+  <dd> Weight of edge. In dot, the heavier the weight, the shorter,
+    straighter and more vertical the edge is. In neato, the heavier the
+    weight, the more neato will try to place the end points so that the
+    length of the edge is <a href="#d:len">len</a>.  </dd>
+  <dt><a href="#a:width" name="d:width" id="d:width"><strong>width</strong></a>  </dt>
+  <dd> Width of node, in inches. This is taken as the initial, minimum width
+    of the node. If <a href="#d:fixedsize"><b>fixedsize</b></a> is true, this
+    will be the final width of the node. Otherwise, if the node label
+    requires more width to fit, the node's width will be increased to
+    contain the label. Note also that, if the output format is dot, the
+    value given to <b>width</b> will be the final value.  </dd>
+  <dt><a href="#a:z" name="d:z" id="d:z"><strong>z</strong></a>  </dt>
+  <dd> Provides z coordinate value for 3D layouts and displays. If the
+    graph has <a href="#d:dim"><b>dim</b></a> set to 3 (or more), 
+    neato will use a node's <b>z</b> value
+    for the z coordinate of its initial position if 
+    its <a href="#d:pos"><b>pos</b></a> attribute is also defined.
+    <p> Even if no <b>z</b> values are specified in the input, it is necessary to
+      declare a <b>z</b> attribute for nodes, e.g, using <tt>node[z=&quot;&quot;]</tt> in order to get z values on output.
+      Thus, setting <tt>dim=3</tt> but not declaring <b>z</b> will 
+      cause <tt>neato -Tvrml</tt> to
+      layout the graph in 3D but project the layout onto the xy-plane
+      for the rendering. If the <b>z</b> attribute is declared, the final rendering
+      will be in 3D.</p>
+  </dd>
+</dl>
+<h3>Attribute Type Descriptions</h3>
+The following list gives the legal strings corresponding to values of
+the given types.
+<dl>
+  <dt><a name="k:arrowType" id="k:arrowType"></a><strong>arrowType</strong>  </dt>
+  <dd>
+    <table>
+      <tr>
+        <td>&quot;normal&quot;        </td>
+        <td><img src="a_normal.gif" />        </td>
+        <td>&quot;inv&quot;        </td>
+        <td><img src="a_inv.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;dot&quot;        </td>
+        <td><img src="a_dot.gif" />        </td>
+        <td>&quot;invdot&quot;        </td>
+        <td><img src="a_invdot.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;odot&quot;        </td>
+        <td><img src="a_odot.gif" />        </td>
+        <td>&quot;invodot&quot;        </td>
+        <td><img src="a_invodot.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;none&quot;        </td>
+        <td><img src="a_none.gif" />        </td>
+        <td>&quot;tee&quot;        </td>
+        <td><img src="a_tee.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;empty&quot;        </td>
+        <td><img src="a_empty.gif" />        </td>
+        <td>&quot;invempty&quot;        </td>
+        <td><img src="a_invempty.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;diamond&quot;        </td>
+        <td><img src="a_diamond.gif" />        </td>
+        <td>&quot;odiamond&quot;        </td>
+        <td><img src="a_odiamond.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;ediamond&quot;        </td>
+        <td><img src="a_ediamond.gif" />        </td>
+        <td>&quot;crow&quot;        </td>
+        <td><img src="a_crow.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;box&quot;        </td>
+        <td><img src="a_box.gif" />        </td>
+        <td>&quot;obox&quot;        </td>
+        <td><img src="a_obox.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;open&quot;        </td>
+        <td><img src="a_open.gif" />        </td>
+        <td>&quot;halfopen&quot;        </td>
+        <td><img src="a_halfopen.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;vee&quot;        </td>
+        <td><img src="a_open.gif" />    </td>
+      </tr>
+    </table>
+    <p> These are the basic set of backward-compatible arrow shapes. In addition,
+      there is a grammar of <a href="arrows.html">arrow shapes</a> which can be used to describe a collection of 1260 arrow shapes as
+      modifications of a primitive set of 9 arrows. The basic arrows shown
+      above contain all of the primitive shapes
+      (<tt>box</tt>, <tt>crow</tt>, <tt>diamond</tt>, <tt>dot</tt>, <tt>inv</tt>, <tt>none</tt>, <tt>normal</tt>, <tt>tee</tt>, <tt>vee</tt>)
+      plus ones that can be derived from the grammar
+      (<tt>odot</tt>, <tt>invdot</tt>, <tt>invodot</tt>, <tt>obox</tt>, <tt>odiamond</tt>)
+      plus some supported as special cases for backward-compatibility
+      (<tt>ediamond</tt>, <tt>open</tt>, <tt>halfopen</tt>, <tt>empty</tt>, <tt>invempty</tt>).  </p>
+  </dd>
+  <dt><a name="k:clusterMode" id="k:clusterMode"><strong>clusterMode</strong></a>  </dt>
+  <dd>&quot;local&quot;,&quot;global&quot;,&quot;none&quot;  </dd>
+  <dt><a name="k:color" id="k:color"><strong>color</strong></a>  </dt>
+  <dd>Colors can be specified using one of four formats.
+    <table>
+      <tr>
+        <td>&quot;#%2x%2x%2x&quot;        </td>
+        <td>Red-Green-Blue (RGB)      </td>
+      </tr>
+      <tr>
+        <td>&quot;#%2x%2x%2x%2x&quot;        </td>
+        <td>Red-Green-Blue-Alpha (RGBA)      </td>
+      </tr>
+      <tr>
+        <td>H[,&#160;]+S[,&#160;]+V        </td>
+        <td>Hue-Saturation-Value (HSV) 0.0 &lt;= H,S,V &lt;= 1.0      </td>
+      </tr>
+      <tr>
+        <td>string        </td>
+        <td><a href="colors.html">color name</a>      </td>
+      </tr>
+    </table>
+    The specification for the RGB and RGBA formats are the format strings used by <tt>sscanf</tt> to scan the color value. Thus, these values have the form
+    &quot;#RGB&quot; or &quot;#RGBA&quot;, where R, G, B, and A each consist of 2 hexidecimal
+    digits, and can be separated by whitespace. HSV colors have the form of 3
+    numbers between 0 and 1, separated by whitespace or commas.
+    <p> String-valued color specifications are case-insensitive and interpreted 
+      in the context of the current color scheme, as specified by the <a href="#d:colorscheme">colorscheme</a> attribute. If this is undefined,
+      the X11 naming scheme will be used.
+      An initial <tt>&quot;/&quot;</tt> character can be used to override the use of
+      the <tt>colorscheme</tt> attribute. In particular, a single initial <tt>&quot;/&quot;</tt> will cause the string to be evaluated using the default
+      X11 naming. If the color value has the form <tt>&quot;/ssss/yyyy&quot;</tt>, 
+      the name <tt>yyyy</tt> is interpreted using the schema <tt>ssss</tt>.
+      If the color scheme name is empty, i.e., the color has the 
+      form <tt>&quot;//yyyy&quot;</tt>, the <tt>colorscheme</tt> attribute is used.
+      Thus, the forms <tt>&quot;yyyy&quot;</tt> and <tt>&quot;//yyyy&quot;</tt> are
+      equivalent.    </p>
+    <p>At present, Graphviz recognizes the default color scheme <tt>X11</tt>,
+      and the <tt>Brewer color schemes</tt>. The Brewer
+      color schemes are covered by this <a href="colors.html#brewer_license">license</a>.    </p>
+    <p> Examples:<br />
+    </p>
+    <table border="1">
+      <tr>
+        <th>Color        </th>
+        <th>RGB        </th>
+        <th>HSV        </th>
+        <th>String      </th>
+      </tr>
+      <tr>
+        <td align="center" bgcolor="#ffffff">White        </td>
+        <td>&quot;#ffffff&quot;        </td>
+        <td>&quot;0.000 0.000 1.000&quot;        </td>
+        <td>&quot;white&quot;      </td>
+      </tr>
+      <tr>
+        <td align="center" bgcolor="#000000"><font color="white">Black</font>        </td>
+        <td>&quot;#000000&quot;        </td>
+        <td>&quot;0.000 0.000 0.000&quot;        </td>
+        <td>&quot;black&quot;      </td>
+      </tr>
+      <tr>
+        <td align="center" bgcolor="#ff0000">Red        </td>
+        <td>&quot;#ff0000&quot;        </td>
+        <td>&quot;0.000 1.000 1.000&quot;        </td>
+        <td>&quot;red&quot;      </td>
+      </tr>
+      <tr>
+        <td align="center" bgcolor="#40e0d0">Turquoise        </td>
+        <td>&quot;#40e0d0&quot;        </td>
+        <td>&quot;0.482 0.714 0.878&quot;        </td>
+        <td>&quot;turquoise&quot;      </td>
+      </tr>
+      <tr>
+        <td align="center" bgcolor="#a0522d">Sienna        </td>
+        <td>&quot;#a0522d&quot;        </td>
+        <td>&quot;0.051 0.718 0.627&quot;        </td>
+        <td>&quot;sienna&quot;      </td>
+      </tr>
+    </table>
+    <p> Note that some output formats only support a limited number of specific colors. </p>
+    <p> The string value <tt>transparent</tt> can be used to indicate no color.
+      It can be used whenever a
+      color is needed but is most useful with 
+      the <a href="#d:bgcolor">bgcolor</a> attribute.
+      Usually, the same effect can be achieved by setting <a href="#d:style">style</a> to <tt>invis</tt>. </p>
+  </dd>
+  <dt><a name="k:colorList" id="k:colorList"><strong>colorList</strong></a>  </dt>
+  <dd>A colon-separated list of color values: <i>C</i>(:<i>C</i>)*
+    where each <i>C</i> is a <a href="#k:color">color</a> value. </dd>
+  <dt><a name="k:dirType" id="k:dirType"><strong>dirType</strong></a>  </dt>
+  <dd>For an edge <code>T -&gt; H;</code>
+    <table>
+      <tr>
+        <td>&quot;forward&quot;        </td>
+        <td><img src="forward.gif" />        </td>
+        <td>&quot;back&quot;        </td>
+        <td><img src="back.gif" />      </td>
+      </tr>
+      <tr>
+        <td>&quot;both&quot;        </td>
+        <td><img src="both.gif" />        </td>
+        <td>&quot;none&quot;        </td>
+        <td><img src="nohead.gif" />      </td>
+      </tr>
+    </table>
+    For undirected edges <code>T -- H;</code>, one of the nodes, usually
+    the righthand one, is treated as the head for the purpose of 
+  interpreting &quot;forward&quot; and &quot;back&quot;.  </dd>
+  <dt><a name="k:escString" id="k:escString"><strong>escString</strong></a>  </dt>
+  <dd>string allowing escape sequences which are replaced according
+    to the context.
+    For node attributes, the substring &quot;\N&quot; is replaced by the name of the node,
+    and the substring &quot;\G&quot; by the name of the graph.
+    For graph or cluster attributes, the substring &quot;\G&quot; is replaced by the 
+    name of the graph or cluster.
+    For edge attributes, the substring &quot;\E&quot; is replaced by the name of the edge,
+    the substring &quot;\G&quot; is replaced by the name of the graph or cluster,
+    and the substrings &quot;\T&quot; and &quot;\H&quot; by the names of 
+    the tail and head nodes, respectively. 
+    The name of an edge is the string formed from the name of the
+    tail node, the appropriate edge operator (&quot;--&quot; or &quot;-&gt;&quot;) and the name of the
+    head node.
+    <p> In addition, if the associated attribute is <a href="#a:label">label</a>, <a href="#a:headlabel">headlabel</a> or <a href="#a:taillabel">taillabel</a>, 
+      the escape sequences &quot;\n&quot;, &quot;\l&quot; and &quot;\r&quot;
+      divide the label into lines, centered, left-justified, and right-justified,
+      respectively.  </p>
+  </dd>
+  <dt><a name="k:layerList" id="k:layerList"><strong>layerList</strong></a>  </dt>
+  <dd>list of strings separated by characters from the <a href="#a:layersep">layersep</a> attribute (by default, colons, 
+    tabs or spaces), defining <a href="#a:layer">layer</a> names and implicitly numbered 1,2,...  </dd>
+  <dt><a name="k:layerRange" id="k:layerRange"><strong>layerRange</strong></a>  </dt>
+  <dd>layerId or layerId<b>s</b>layerId,<br />
+    where layerId = &quot;all&quot;,
+    a decimal integer or a <a href="#a:layer">layer</a> name.
+    (An integer i corresponds to layer i.)
+    The string <b>s</b> consists of 1 or more separator characters specified
+    by the <a href="#a:layersep">layersep</a> attribute.  </dd>
+  <dt><a name="k:lblString" id="k:lblString"><strong>lblString</strong></a>  </dt>
+  <dd>an <a href="#k:escString">escString</a> or an <a href="shapes.html#html">HTML label</a>.  </dd>
+  <dt><a name="k:outputMode" id="k:outputMode"><strong>outputMode</strong></a>  </dt>
+  <dd>&quot;breadthfirst&quot;,&quot;nodesfirst&quot;,&quot;edgesfirst&quot;
+    These specify the order in which nodes and edges are drawn in concrete
+    output. The default &quot;breadthfirst&quot; is the simplest, but when the graph
+    layout does not avoid edge-node overlap, this mode will sometimes have
+    edges drawn over nodes and sometimes on top of nodes. If the mode
+    &quot;nodesfirst&quot; is chosen, all nodes are drawn first, followed by the
+    edges. This guarantees an edge-node overlap will not be mistaken for
+    an edge ending at a node. On the other hand, usually for aesthetic
+    reasons, it may be desirable that all edges appear beneath nodes, even
+    if the resulting drawing is ambiguous. This can be achieved by choosing
+  &quot;edgesfirst&quot;.  </dd>
+  <dt><a name="k:packMode" id="k:packMode"><strong>packMode</strong></a>  </dt>
+  <dd>&quot;node&quot;,&quot;clust&quot;,&quot;graph&quot;
+    These specify the granularity of packing connected components when
+    the <a href="#d:pack">pack</a> attribute is true. A value of &quot;node&quot; causes
+    packing at the node and edge label, with no overlapping of these objects.
+    This produces a layout with the least area, but it also allows interleaving,
+    where a node of one component may lie between two nodes in another
+    component. A value of &quot;graph&quot; does a packing using the bounding box of the
+    component. Thus, there will be a rectangular region around a component
+    free of elements of any other component.
+    A value of &quot;clust&quot; guarantees that top-level clusters are kept intact.
+    What effect a value has also depends on the layout algorithm. For
+    example, neato does not support clusters, so a value of &quot;clust&quot; will
+    have the same effect as the default &quot;node&quot; value.  </dd>
+  <dt><a name="k:pagedir" id="k:pagedir"><strong>pagedir</strong></a>  </dt>
+  <dd>&quot;BL&quot;, &quot;BR&quot;, &quot;TL&quot;, &quot;TR&quot;, &quot;RB&quot;, &quot;RT&quot;, &quot;LB&quot;, &quot;LT&quot;.
+    These specify the 8 row or column major orders for traversing a 
+    rectangular array, the first character corresponding to the major
+    order and the second to the minor order. Thus, for &quot;BL&quot;, the
+    major order is from bottom to top, and the minor order is from left
+    to right. This means the bottom row is traversed first, from left
+    to right, then the next row up, from left to right, and so on,
+  until the topmost row is traversed.  </dd>
+  <dt><a name="k:point" id="k:point"><strong>point</strong></a>  </dt>
+  <dd>&quot;%f,%f&quot;('!') representing the point (x,y). The 
+    optional '!' indicates the 
+    node position should not change (input-only).
+    <p> If <a href="#d:dim">dim</a> is 3 or more, <b>point</b> may also have
+      the format &quot;%f,%f,%f&quot;('!') to represent the point (x,y,z).  </p>
+  </dd>
+  <dt><a name="k:pointf" id="k:pointf"><strong>pointf</strong></a>  </dt>
+  <dd>&quot;%lf,%lf&quot; representing the point (x,y).  </dd>
+  <dt><a name="k:pointfList" id="k:pointfList"><strong>pointfList</strong></a>  </dt>
+  <dd>list of pointf, separated by spaces.  </dd>
+  <dt><a name="k:portPos" id="k:portPos"><strong>portPos</strong></a>  </dt>
+  <dd>modifier indicating where on a node an edge should be aimed.
+    It has the form <tt><i>portname</i>[:<i>compass_point</i>]</tt> or <tt><i>compass_point</i></tt>.
+    If the first form is used, the corresponding node must either have <a href="shapes.html#record">record</a> shape with one of its fields 
+    having the given <i>portname</i>,
+    or have an <a href="shapes.html#html">HTML-like label</a>, one of 
+    whose components has a <tt>PORT</tt> attribute set to <i>portname</i>.
+    In this case, the edge is aimed for the center of the corresponding
+    field.
+    <p> If a compass point is used, it must have the form <tt>&quot;n&quot;,&quot;ne&quot;,&quot;e&quot;,&quot;se&quot;,&quot;s&quot;,&quot;sw&quot;,&quot;w&quot;,&quot;nw&quot;</tt>. This modifies the edge
+      placement to aim for the corresponding compass point on the port or,
+      in the second form where no <i>portname</i> is supplied, on the node
+      itself.    </p>
+    <p> This attribute can be attached to an edge using the <a href="#k:headport">headport</a> and <a href="#k:tailport">tailport</a> attributes, or as part of the
+      edge description as in
+      <center>
+        <tt>node1:port1 -&gt; node2:port5:nw;</tt>
+      </center>
+    </p>
+    <p> Note that it is legal to have a portname the same as one of
+      the compass points. In this case, this reference will be resolved to
+      the port. Thus, if node <tt>A</tt> has a port <tt>w</tt>, then <tt>headport=w</tt> will refer to the port and not the compass point.
+      At present, in this case, there is no way to specify that the compass
+      point should be used.  </p>
+  </dd>
+  <dt><a name="k:rankType" id="k:rankType"><strong>rankType</strong></a>  </dt>
+  <dd>&quot;same&quot;, &quot;min&quot;, &quot;source&quot;, &quot;max&quot;, &quot;sink&quot;  </dd>
+  <dt><a name="k:rankdir" id="k:rankdir"><strong>rankdir</strong></a>  </dt>
+  <dd>&quot;TB&quot;, &quot;LR&quot;, &quot;BT&quot;, &quot;RL&quot;, corresponding to directed graphs drawn
+    from top to bottom, from left to right, from bottom to top, and from
+  right to left, respectively.  </dd>
+  <dt><a name="k:rect" id="k:rect"><strong>rect</strong></a>  </dt>
+  <dd>&quot;%d,%d,%d,%d&quot;  The rect llx,lly,urx,ury gives the coordinates, in
+    points, of the lower-left corner (llx,lly) and the upper-right corner
+  (urx,ury).  </dd>
+  <dt><a name="k:shape" id="k:shape"><strong>shape</strong></a>  </dt>
+  <dd>A string specifying the <a href="shapes.html">shape</a> of a node. 
+    There are three
+    main types of shapes : <a href="shapes.html#polygon">polygon-based</a>, <a href="shapes.html#record">record-based</a> and <a href="shapes.html#epsf">user-defined</a>.  </dd>
+  <dt><a name="k:splineType" id="k:splineType"><strong>splineType</strong></a>  </dt>
+  <dd>spline ( ';' spline )*<br />
+    <table>
+      <tr>
+        <td align="right">where spline        </td>
+        <td>=        </td>
+        <td>(endp)? (startp)? point (triple)+      </td>
+      </tr>
+      <tr>
+        <td align="right">and triple        </td>
+        <td>=        </td>
+        <td>point point point      </td>
+      </tr>
+      <tr>
+        <td align="right">and endp        </td>
+        <td>=        </td>
+        <td>&quot;e,%d,%d&quot;      </td>
+      </tr>
+      <tr>
+        <td align="right">and startp        </td>
+        <td>=        </td>
+        <td>&quot;s,%d,%d&quot;      </td>
+      </tr>
+    </table>
+    If a spline has points p<sub>1</sub> p<sub>2</sub> p<sub>3</sub> ... p<sub>n</sub>, (n = 1 (mod 3)), the points
+    correspond to the control points of a B-spline from p<sub>1</sub> to p<sub>n</sub>. If startp
+    is given, it touches one node of the edge, and the arrowhead
+    goes from p<sub>1</sub> to startp. If startp is not given, p<sub>1</sub> touches a node.
+    Similarly for p<sub>n</sub> and endp.  </dd>
+  <dt><a name="k:startType" id="k:startType"><strong>startType</strong></a>  </dt>
+  <dd>has the syntax <tt>[<i>style</i>][<i>seed</i>]</tt>.
+    <p> If <i>style</i> is present, it must be one of the strings <tt>&quot;regular&quot;</tt>, <tt>&quot;self&quot;</tt>, or <tt>&quot;random&quot;</tt>. In the first case, the nodes are 
+      placed regularly about a circle. In the second case, 
+      an abbreviated version of neato is run to obtain the initial layout.
+      In the last case, the nodes are placed randomly in a unit square.    </p>
+    <p> If <i>seed</i> is present, it specifies a seed for the random number
+      generator. If <i>seed</i> is a positive number, this is used as the
+      seed. If it is anything else, 
+      the current time, and possibly the process id, is used to pick a seed,
+      thereby making the choice more random. In this case, the seed value
+      is stored in the graph.    </p>
+    <p> If the value is just <tt>&quot;random&quot;</tt>, a time-based seed is chosen.    </p>
+    <p> Note that input positions, specified by a node's <a href="#d:pos">pos</a> attribute, are only used when the style is <tt>&quot;random&quot;</tt>.  </p>
+  </dd>
+  <dt><a name="k:style" id="k:style"><strong>style</strong></a>  </dt>
+  <dd>styleItem ( ',' styleItem )*<br />
+    <table>
+      <tr>
+        <td align="right">where styleItem        </td>
+        <td>=        </td>
+        <td>name or name'('args')'      </td>
+      </tr>
+      <tr>
+        <td align="right">and args        </td>
+        <td>=        </td>
+        <td>name ( ',' name )*      </td>
+      </tr>
+      <tr>
+        <td align="right">and name        </td>
+        <td>=        </td>
+        <td>[^)(, &nbsp;][^)(,]*      </td>
+      </tr>
+    </table>
+    Note that whitespace characters are ignored, except for names which
+    can contain them. A
+    name cannot contain any comma, or left or right parenthesis, and it cannot
+    begin with a whitespace character.
+    <p> At present, the recognized style names are 
+      &quot;dashed&quot;, &quot;dotted&quot;, &quot;solid&quot;, &quot;invis&quot; and &quot;bold&quot; for nodes and edges,
+      and &quot;filled&quot;, &quot;diagonals&quot; and &quot;rounded&quot; for nodes only.
+      The styles &quot;filled&quot; and &quot;rounded&quot; are recognized for clusters.
+      Additional styles are available in
+      device-dependent form. Style lists are passed to device drivers, which
+    can use this to generate appropriate output.    </p>
+    <p> The <a name="d:setlinewidth" id="d:setlinewidth"><tt>setlinewidth</tt></a> style value can be
+      used for more control over the width of edges and node borders than is
+      allowed by <tt>bold</tt>. This style value takes an argument, specifying the
+      width of the line in <a href="#points">points</a>. For example, <tt>style=&quot;bold&quot;</tt> is
+      equivalent to <tt>style=&quot;setlinewidth(2)&quot;</tt>.  </p>
+  </dd>
+  <dt><a name="k:viewPort" id="k:viewPort"><strong>viewPort</strong></a>  </dt>
+  <dd>&quot;%lf,%lf,%lf,%lf,%lf&quot; The viewPort &quot;W,H,Z,x,y&quot; 
+    specifies a viewport for the final image. The pair (W,H) gives the
+    dimensions (width and height) of the viewport image, in <a href="#points">points</a>,
+    in the original graph drawing.
+    The optional Z is the zoom factor, i.e., the resulting image will be
+    Z*W by Z*H points in size. By default, Z is 1.
+    The optional pair (x,y) give the position in the graph, in <a href="#points">points</a>, of the center 
+    of the viewport. To focus on a particular node, (x,y) can be set to the <a href="#a:pos">pos</a> attribute &quot;x,y&quot; of the node. 
+    By default, (x,y) is the center of the graph bounding box, i.e.,
+    (bbx/2,bby/2), where &quot;bbx,bby&quot; is the
+    value of the bounding box attribute <a href="#a:bb">bb</a>.</dd>
+</dl>
+
+</body>
+</html>

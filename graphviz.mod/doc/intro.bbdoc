@@ -1,0 +1,150 @@
+<a href="http://www.graphviz.org/"><img src="gv_logo.png" width="99" height="130" border="0" align="right"/></a>
+<p><a href="http://www.graphviz.org/">Graphviz</a> is an open source graph visualization library, which is a way of representing structural information as diagrams of abstract graphs and networks.</p>
+<p>The Graphviz BlitzMax module allows you to utilise the powers of the layout engine to provide interactive graphs in your applications. These graphs can be generated through the provision of &quot;dot&quot; files, or you can create a graph on the fly using a simple Graph-Node-Edge object heirarchy in memory.</p>
+<h2>Requirements</h2>
+<p>The Graphviz module requires the <strong>BaH.Expat</strong> module, to provide enhanced node text layout.</p>
+<h2>Using the API - Basics </h2>
+<h3>Choosing a renderer</h3>
+<p>
+The Graphviz module is comprised of several separate component modules to allow for different graph renderers.
+</p>
+<p>
+BaH.Graphviz is the core module which is always required.<br>
+To render the graph you need to import a render module. An example of this is the BaH.GraphvizMax2D module, which renders graphs to the current Max2D context. There is also a Cairo renderer available (BaH.GraphvizCairo).
+</p>
+<p>
+With the render module imported into your project, you are ready to start rendering graphs.
+</p>
+<h3>Rendering Graphs</h3>
+<p>
+The first thing you need is a TGVGraphviz render context :
+<pre>
+Local renderer:TGVGraphviz = TGVGraphviz.Create(800, 480)
+</pre>
+The width and height parameters determine the visible graph dimensions in pixels, or in other words the viewport size.
+</p>
+<p>
+Next, we should add a graph. This can be accomplished with <a href="#loadGraphText">loadGraphText</a>() or via an in-memory graph heirarchy with buildGraph() (see <a hreaf="#GraphBuilder">below</a> for more information).<br>
+loadGraphText accepts a String of the dot formatted graph data. How you get the String contents is completely up to you (perhaps via LoadText(), or from a Local string).
+<pre>
+renderer.loadGraphText(LoadText("example.dot"))
+</pre>
+</p>
+<p>
+We now have to tell Graphviz how it should lay out the graph. We do this with the <a href="#layout">layout</a>() method, which takes a particular layout type as a parameter. There is a list of valid layouts <a href="#desc_dot">below</a>.
+<pre>
+renderer.layout("dot")
+</pre>
+Here we are using <b>dot</b> layout, which is the standard for directed-graphs.
+</p>
+<p>
+Sometimes a rendered graph is larger than the area you have to display it in. In these cases you probably want to fit it inside the viewable area.
+<pre>
+renderer.fit(800, 480)
+</pre>
+For graphs that are smaller than the viewable area they will just display as normal. However, the <a href="#fit">fit</a>() method can take an optional third parameter, which, if set to True, will cause the graph to scale up to fit inside the specified area.
+</p>
+<p>
+If you are rendering your graph in an interactive situation, you will to call <a href="#refresh">refresh</a>() to have Graphviz call the appropriate render functions in order to make the graph visible.
+</p>
+<h3>Interacting with Graphviz</h3>
+<p>
+Rather than simply being able to display static graphs, BaH.Graphviz allows you to interact with the graph, providing methods to detect mouse actions such as clicking on a Node or zooming into a graph.
+</p>
+<p>
+This is accomplished with the <a href="#mouseMove">mouseMove</a>(), <a href="#mouseDown">MouseDown</a>(), <a href="#mouseUp">mouseUp</a>() and <a href="#mouseScroll">mouseScroll</a>() methods. Calling these methods at the appropriate times will enable the module to keep the mouse pointer synchronized with the graph.
+</p>
+<p>
+The drawTooltip() method will tell Graphiv to show the tooltip for the current graph object, if one is set.
+</p>
+<p>
+Finally, there are two other methods for retrieving &quot;live&quot; graph object information, which can provide you with graph/node/edge attribute information for either the current object (the mouse is over) or the currently selected object. See <a href="#selectedObject">selectedObject</a> and <a href="#currentObject">currentObject</a>.
+</p>
+<h2><a name="GraphBuilder"></a>Using the API - In-memory graphing</h2>
+<p>
+BaH.Graphviz, as well as displaying graphs from dot files or strings, allows you to programmatically create graphs in memory using a simple Type hierarchy. Those basic buildin-block types are <a href="#TGVGraph">TGVGraph</a>, <a href="#TGVSubGraph">TGVSubGraph</a>, <a href="#TGVNode">TGVNode</a> and <a href="#TGVEdge">TGVEdge</a>.</p>
+<p>
+A TGVGraph represents the whole graph, into which you can add subgraphs, nodes and edges.
+</p>
+<p>
+A <a href="#TGVSubGraph">TGVSubGraph</a> is very similar to a <a href="#TGVGraph">TGVGraph</a> in that it is a container into which you can add other subgraphs, nodes and edges. Elements inside a subgraph are laid out separately from the rest of the graph. 
+</p>
+<p>
+TGVNodes are connected by TGVEdges. 
+</p>
+<p>
+To add a node to a <a href="#TGVGraph">TGVGraph</a> or <a href="#TGVSubGraph">TGVSubGraph</a>, simply call addNode(), giving the node a name which should be unique for the whole graph.
+</p>
+<p>
+Edges are added in a similar fashion, where you add the edge to a <a href="#TGVGraph">TGVGraph</a> or <a href="#TGVSubGraph">TGVSubGraph</a> with addEdge(), setting the each end of the edge to a particular TGVNode.
+<p>
+Each of these types can have the same attributes applied to them as you would specify when building the graph in dot format text. You set attributes and their values with setAttr().
+</p>
+<p>Finally, once your graph is complete you can tell the TGVGraphviz renderer to process it by calling buildGraph(). You then layout/render the graph as normal.
+</p>
+<pre>
+Local graph:TGVGraph = TGVGraph.Create()
+
+' create some nodes
+Local node1:TGVNode = graph.addNode("node1")
+Local node2:TGVNode = graph.addNode("node2")
+Local node3:TGVNode = graph.addNode("node3")
+
+' red text for node2
+node2.setAttr(ATTR_FONTCOLOR, "red")
+
+' different shape for node3
+node3.setAttr(ATTR_NODE_SHAPE, "diamond")
+
+' join the nodes together
+graph.addEdge(node2, node1)
+graph.addEdge(node3, node1)
+
+' now to construct the graph..
+renderer.buildGraph(graph)
+</pre>
+<h2>Examples</h2>
+<p>Here are some examples that show the kind of things that can be done with Graphviz.
+</p>
+<p>The implemented mouse actions in the examples are generally :
+<ul>
+<li><tt>Left button click</tt> - select a node/edge/graph.</li>
+<li><tt>Right button click/drag</tt> - pan graph.</li>
+<li><tt>Mouse scroll</tt> - zoom in / out at mouse position.</li>
+</ul>
+</p>
+<ul>
+<li><a href="../examples/example_01.bmx">example_01.bmx</a> - Graph rendering to a custom viewport/origin.</li>
+<li><a href="../examples/example_02.bmx">example_02.bmx</a> - Interactive layout changing. Live Graph (re)loading.</li>
+<li><a href="../examples/example_03.bmx">example_03.bmx</a> - In-memory graph creation.</li>
+<li><a href="../examples/example_04.bmx">example_04.bmx</a> - TODO : MaxGUI example.</li>
+</ul>
+<h2>Learning Graphviz</h2>
+<p>This section is aimed at providing everything you need to know about creating your own graphs using the&quot;dot&quot; language, as well as help you understand all the attributes available to graphs, nodes and edges.</p>
+<p>There are several types of layout you can specify when creating your graph or when generating a new graph : </p>
+<dl>
+  <dt><a name="desc_dot"></a><strong><tt>dot</tt></strong></dt>
+  <dd>Makes &quot;hierarchical&quot; or layered drawings of directed graphs. The layout algorithm aims edges in the same direction (top to bottom, or left to right) and then attempts to avoid edge crossings and reduce edge length.</dd>
+  <dt><a name="desc_neatofdp"></a><strong><tt>neato</tt></strong> and <strong><tt>fdp</tt></strong></dt>
+  <dd>Makes &quot;spring model&quot; layouts. <tt>neato</tt> uses the Kamada-Kawai algorithm, which is equivalent to statistical multi-dimensional scaling. <tt>fdp</tt> implements the Fruchterman-Reingold heuristic including a multigrid solver that handles larger graphs and clustered undirected graphs. </dd>
+  <dt><a name="desc_twopi"></a><strong><tt>twopi</tt></strong></dt>
+  <dd>Uses a radial layout, after Graham Wills 97. The nodes are placed on concentric circles depending their distance from a given root node.</dd>
+  <dt><a name="desc_circo"></a><strong><tt>circo</tt></strong></dt>
+  <dd>Uses circular layout, after Six and Tollis 99, Kauffman and Wiese 02. This is suitable for certain diagrams of multiple cyclic structures such as certain telecommunications networks.</dd>
+</dl>
+<h3>The Dot Reference</h3>
+<ul>
+  <li><a href="lang.html">The DOT Language and Graph Attributes
+    </a>
+    <ul>
+      <li><a href="lang.html#thedotlanguage">DOT Language</a></li>
+      <li><a href="lang.html#graphattributes">Graph Attributes</a> </li>
+    </ul>
+  </li>
+  <li><a href="shapes.html">Node Shapes</a></li>
+  <li><a href="arrows.html">Arrow Shapes</a></li>
+  <li><a href="colors.html">Colors</a>  </li>
+  <li><a href="char.html">Character Entities table</a> </li>
+</ul>
+<p><em>Note : The  above documentation is taken from the Graphviz online documentation, and has been changed where appropriate for describing use in BlitzMax.</em></p>
+

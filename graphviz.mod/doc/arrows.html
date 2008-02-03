@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>Arrow Shapes</title>
+<link rel=stylesheet type=text/css href='../../../../doc/bmxstyle.css'>
+<style type="text/css">
+<!--
+td {
+	background-color: #FFFFFF;
+}
+-->
+</style></head>
+<body>
+<a name="top" id="top"></a>
+<h1>Arrow Shapes</h1>
+
+Arrow shapes can be specified and named using the following simple
+grammar. 
+Terminals are shown in bold font and nonterminals in italics.
+Literal characters are given in single quotes.
+Square brackets [ and ] enclose optional items.
+Vertical bars | separate alternatives.
+<table align="center">
+  <tr>
+    <td align="right"><i>arrowname</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>aname</i> [ <i>aname</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>aname</i></td>
+    <td align="left">:</td>
+    <td align="left">[ <i>modifiers</i> ] <i>shape</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>modifiers</i></td>
+    <td align="left">:</td>
+    <td align="left">[ <b>'o'</b> ] [ <i>side</i> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>side</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>'l'</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>'r'</b></td>
+  </tr>
+  <tr>
+    <td align="right"><i>shape</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>box</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>crow</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>diamond</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>dot</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>inv</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>none</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>normal</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>tee</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>vee</b></td>
+  </tr>
+</table>
+<p> The primitive shapes are:</p>
+  <table align="center">
+    <tr>
+      <td>&quot;box&quot;</td>
+      <td><img src="a_box.gif" width="159" height="60" /> </td>
+      <td>&quot;crow&quot;</td>
+      <td><img src="a_crow.gif" width="159" height="60" /> </td>
+      <td>&quot;diamond&quot;</td>
+      <td><img src="a_diamond.gif" width="159" height="60" /> </td>
+    </tr>
+    <tr>
+      <td>&quot;dot&quot;</td>
+      <td><img src="a_dot.gif" width="159" height="60" /> </td>
+      <td>&quot;inv&quot;</td>
+      <td><img src="a_inv.gif" width="159" height="60" /> </td>
+      <td>&quot;none&quot;</td>
+      <td><img src="a_none.gif" width="159" height="60" /> </td>
+    </tr>
+    <tr>
+      <td>&quot;normal&quot;</td>
+      <td><img src="a_normal.gif" width="159" height="60" /> </td>
+      <td>&quot;tee&quot;</td>
+      <td><img src="a_tee.gif" width="159" height="60" /> </td>
+      <td>&quot;vee&quot;</td>
+      <td><img src="a_open.gif" width="159" height="60" /> </td>
+    </tr>
+  </table>
+<p> As for the modifiers:</p>
+<dl>
+  <dt>'l' </dt>
+  <dd> Clip the shape, leaving only the part to the left of the edge.</dd>
+  <dt>'r' </dt>
+  <dd> Clip the shape, leaving only the part to the right of the edge.</dd>
+  <dt>'o' </dt>
+  <dd> Use an open (non-filled) version of the shape.</dd>
+</dl>
+Left and right are defined as those directions determined by looking
+from the edge towards the point where the arrow &quot;touches&quot; the node.
+<p> As an example, the arrow shape <tt>lteeoldiamond</tt> is parsed as <tt>'l' 'tee' 'o' 'l' 'diamond'</tt> and corresponds to the shape
+  <center>
+    <img src="a_lteeoldiamond.gif" width="159" height="60" />
+  </center>
+  Note that the first arrow shape specified occurs closest to the node.
+  The second arrow shape, if provided, occurs further from the node.</p>
+<p> Not all syntactically legal combinations of modifiers are meaningful
+  or semantically valid.
+  For example, none of the modifiers make any sense with <tt>none</tt>.
+  The following table indicates which modifiers are allowed with which shapes.</p>
+<p></p>
+<center>
+  <table border="2">
+    <tr align="center">
+      <th>Modifier</th>
+      <th>box</th>
+      <th>crow</th>
+      <th>diamond</th>
+      <th>dot</th>
+      <th>inv</th>
+      <th>none</th>
+      <th>normal</th>
+      <th>tee</th>
+      <th>vee </th>
+    </tr>
+    <tr align="center">
+      <td>'l'/'r'</td>
+      <td>X</td>
+      <td>X</td>
+      <td>X</td>
+      <td>&nbsp;</td>
+      <td>X</td>
+      <td>&nbsp;</td>
+      <td>X</td>
+      <td>X</td>
+      <td>X </td>
+    </tr>
+    <tr align="center">
+      <td>'o'</td>
+      <td>X</td>
+      <td>&nbsp;</td>
+      <td>X</td>
+      <td>X</td>
+      <td>X</td>
+      <td>&nbsp;</td>
+      <td>X</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+  </table>
+</center>
+<p> This yields 36 different arrow shapes. The optional second shape
+  can independently be any of the 36, but since <tt>nonenone</tt> is redundant, there are 36 * 35 = 1260 different combinations.</p>
+<p> The following display contains the 36 combinations possible with a single
+  arrow shape. The node attached to the arrow is not drawn but would appear
+  on the right side of the edge.</p>
+  <table align="center">
+    <tr align=CENTER>
+      <td><img src="aa_box.gif" width="92" height="17"></td>
+      <td><img src="aa_lbox.gif" width="92" height="17"></td>
+      <td><img src="aa_rbox.gif" width="92" height="17"></td>
+      <td><img src="aa_obox.gif" width="92" height="17"></td>
+      <td><img src="aa_olbox.gif" width="92" height="17"></td>
+      <td><img src="aa_orbox.gif" width="92" height="17"> </td>
+    </tr>
+    <tr align=CENTER>
+      <td>box</td>
+      <td>lbox</td>
+      <td>rbox</td>
+      <td>obox</td>
+      <td>olbox</td>
+      <td>orbox </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_crow.gif" width="92" height="17"></td>
+      <td><img src="aa_lcrow.gif" width="92" height="17"></td>
+      <td><img src="aa_rcrow.gif" width="92" height="17"> </td>
+    </tr>
+    <tr align=CENTER>
+      <td>crow</td>
+      <td>lcrow</td>
+      <td>rcrow </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_diamond.gif" width="92" height="17"></td>
+      <td><img src="aa_ldiamond.gif" width="92" height="17"></td>
+      <td><img src="aa_rdiamond.gif" width="92" height="17"></td>
+      <td><img src="aa_odiamond.gif" width="92" height="17"></td>
+      <td><img src="aa_oldiamond.gif" width="92" height="17"></td>
+      <td><img src="aa_ordiamond.gif" width="92" height="17"> </td>
+    </tr>
+    <tr align=CENTER>
+      <td>diamond</td>
+      <td>ldiamond</td>
+      <td>rdiamond</td>
+      <td>odiamond</td>
+      <td>oldiamond</td>
+      <td>ordiamond </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_dot.gif" width="92" height="17"></td>
+      <td><img src="aa_odot.gif" width="92" height="17"> </td>
+    </tr>
+    <tr align=CENTER>
+      <td>dot</td>
+      <td>odot </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_inv.gif" width="92" height="17"></td>
+      <td><img src="aa_linv.gif" width="92" height="17"></td>
+      <td><img src="aa_rinv.gif" width="92" height="17"></td>
+      <td><img src="aa_oinv.gif" width="92" height="17"></td>
+      <td><img src="aa_olinv.gif" width="92" height="17"></td>
+      <td><img src="aa_orinv.gif" width="92" height="17">   </td> </tr>
+    <tr align=CENTER>
+      <td>inv</td>
+      <td>linv</td>
+      <td>rinv</td>
+      <td>oinv</td>
+      <td>olinv</td>
+      <td>orinv </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_none.gif" width="92" height="17"></td>    </tr>
+    <tr align=CENTER>
+      <td>none </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_normal.gif" width="92" height="17"></td>
+      <td><img src="aa_lnormal.gif" width="92" height="17"></td>
+      <td><img src="aa_rnormal.gif" width="92" height="17"></td>
+      <td><img src="aa_onormal.gif" width="92" height="17"></td>
+      <td><img src="aa_olnormal.gif" width="92" height="17"></td>
+      <td><img src="aa_ornormal.gif" width="92" height="17">    </td></tr>
+    <tr align=CENTER>
+      <td>normal</td>
+      <td>lnormal</td>
+      <td>rnormal</td>
+      <td>onormal</td>
+      <td>olnormal</td>
+      <td>ornormal </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_tee.gif" width="92" height="17"></td>
+      <td><img src="aa_ltee.gif" width="92" height="17"></td>
+      <td><img src="aa_rtee.gif" width="92" height="17">    </td></tr>
+    <tr align=CENTER>
+      <td>tee</td>
+      <td>ltee</td>
+      <td>rtee </td>
+    </tr>
+    <tr align=CENTER>
+      <td><img src="aa_vee.gif" width="92" height="17"></td>
+      <td><img src="aa_lvee.gif" width="92" height="17"></td>
+      <td><img src="aa_rvee.gif" width="92" height="17">    </td></tr>
+    <tr align=CENTER>
+      <td>vee</td>
+      <td>lvee</td>
+      <td>rvee </td>
+    </tr>
+  </table>
+</body>
+</html>

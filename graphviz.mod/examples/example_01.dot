@@ -1,0 +1,41 @@
+digraph TypeGraph {
+graph [bgcolor=skyblue3 ]
+node [label="N" shape=box style=filled fontsize=10 fontcolor=black fillcolor=skyblue1 ]
+edge [label=remove color=black fontcolor=white dir=back fontsize=8 ]
+18 -> 1
+1 -> 2
+1 -> 3
+18 -> 5
+5 -> 6
+5 -> 7
+5 -> 8
+5 -> 9
+5 -> 10
+5 -> 11
+4 -> 12 [label="" URL="" length=".5" color="skyblue3"]
+12 -> 13 [label="" URL="" length=".5" color="skyblue3"]
+13 -> 14 [label="" URL="" length=".5" color="skyblue3"]
+15 -> 16 [label="" URL="" length=".5" color="skyblue3"]
+16 -> 17 [label="" URL="" length=".5" color="skyblue3"]
+17 -> 19 [label="" URL="" length=".5" color="skyblue3"]
+1 [label="acad_all" tooltip="Academic"]
+2 [label="acad_conf" tooltip="Academic: Conference"]
+3 [label="acad_lect" tooltip="Academic: Lecture"]
+4 [label="alum_all" tooltip="Alumni"]
+5 [label="arts_all" tooltip="Arts"]
+6 [label="arts_dance" tooltip="Arts: Dance"]
+7 [label="arts_exhibits" tooltip="Arts: Exhibitions"]
+8 [label="arts_films" tooltip="Arts: Film"]
+9 [label="arts_music" tooltip="Arts: Music"]
+10 [label="arts_read" tooltip="Arts: Reading/Talk"]
+11 [label="arts_theater" tooltip="Arts: Theater"]
+12 [label="athletics_all" tooltip="Athletics"]
+13 [label="community_all" tooltip="Community"]
+14 [label="cultural_all" tooltip="Cultural"]
+15 [label="med_all" tooltip="Medical Center"]
+16 [label="other" tooltip="Other"]
+17 [label="religious_all" tooltip="Religious"]
+18 [label="cu_featured" tooltip="CU Event Calendar Featured Event"]
+19 [label="ei_students" tooltip="Earth Institute: Student Event"]
+20 [label="tester" tooltip="tester"]
+}

@@ -1,0 +1,38 @@
+SuperStrict
+
+Import "src/lib/*.h"
+Import "src/lib/graph/*.h"
+Import "src/lib/ast/*.h"
+Import "src/lib/cdt/*.h"
+Import "src/lib/common/*.h"
+Import "src/lib/fdpgen/*.h"
+Import "src/lib/gvc/*.h"
+Import "src/lib/sfio/*.h"
+Import "src/lib/pathplan/*.h"
+Import "src/lib/agutil/*.h"
+Import "src/lib/vmalloc/*.h"
+Import "src/lib/vpsc/*.h"
+
+
+' vmalloc
+Import "src/lib/vmalloc/malloc.c"
+Import "src/lib/vmalloc/vmbest.c"
+Import "src/lib/vmalloc/vmclear.c"
+Import "src/lib/vmalloc/vmclose.c"
+Import "src/lib/vmalloc/vmdcheap.c"
+Import "src/lib/vmalloc/vmdebug.c"
+Import "src/lib/vmalloc/vmdisc.c"
+Import "src/lib/vmalloc/vmexit.c"
+Import "src/lib/vmalloc/vmlast.c"
+Import "src/lib/vmalloc/vmopen.c"
+Import "src/lib/vmalloc/vmpool.c"
+Import "src/lib/vmalloc/vmprivate.c"
+Import "src/lib/vmalloc/vmprofile.c"
+Import "src/lib/vmalloc/vmregion.c"
+Import "src/lib/vmalloc/vmsegment.c"
+Import "src/lib/vmalloc/vmset.c"
+Import "src/lib/vmalloc/vmstat.c"
+Import "src/lib/vmalloc/vmstrdup.c"
+Import "src/lib/vmalloc/vmtrace.c"
+Import "src/lib/vmalloc/vmwalk.c"
+

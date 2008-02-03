@@ -1,0 +1,107 @@
+SuperStrict
+
+Import "../expat.mod/src/*.h"
+
+Import "src/lib/*.h"
+Import "src/lib/graph/*.h"
+Import "src/lib/agraph/*.h"
+Import "src/lib/ast/*.h"
+Import "src/lib/cdt/*.h"
+Import "src/lib/common/*.h"
+Import "src/lib/fdpgen/*.h"
+Import "src/lib/gvc/*.h"
+Import "src/lib/sfio/*.h"
+Import "src/lib/pathplan/*.h"
+Import "src/lib/agutil/*.h"
+Import "src/lib/vmalloc/*.h"
+
+Import "glue.cpp"
+Import "render_glue.cpp"
+
+' cdt
+Import "src/lib/cdt/dtclose.c"
+Import "src/lib/cdt/dtdisc.c"
+Import "src/lib/cdt/dtextract.c"
+Import "src/lib/cdt/dtflatten.c"
+Import "src/lib/cdt/dthash.c"
+Import "src/lib/cdt/dtlist.c"
+Import "src/lib/cdt/dtmethod.c"
+Import "src/lib/cdt/dtopen.c"
+Import "src/lib/cdt/dtrenew.c"
+Import "src/lib/cdt/dtrestore.c"
+Import "src/lib/cdt/dtsize.c"
+Import "src/lib/cdt/dtstat.c"
+Import "src/lib/cdt/dtstrhash.c"
+Import "src/lib/cdt/dttree.c"
+Import "src/lib/cdt/dtview.c"
+Import "src/lib/cdt/dtwalk.c"
+
+' graph
+Import "src/lib/graph/attribs.c"
+Import "src/lib/graph/agxbuf.c"
+Import "src/lib/graph/edge.c"
+Import "src/lib/graph/graph.c"
+Import "src/lib/graph/graphio.c"
+Import "src/lib/graph/lexer.c"
+Import "src/lib/graph/node.c"
+Import "src/lib/graph/parser.c"
+Import "src/lib/graph/refstr.c"
+Import "src/lib/graph/trie.c"
+
+
+' pathplan
+Import "src/lib/pathplan/cvt.c"
+Import "src/lib/pathplan/inpoly.c"
+Import "src/lib/pathplan/route.c"
+Import "src/lib/pathplan/shortest.c"
+Import "src/lib/pathplan/shortestpth.c"
+Import "src/lib/pathplan/solvers.c"
+Import "src/lib/pathplan/triang.c"
+Import "src/lib/pathplan/util.c"
+Import "src/lib/pathplan/visibility.c"
+
+' agutil
+Import "src/lib/agutil/dynattr.c"
+Import "src/lib/agutil/nodeq.c"
+
+' gvc
+Import "src/lib/gvc/gvrender.c"
+Import "src/lib/gvc/gvlayout.c"
+Import "src/lib/gvc/gvdevice.c"
+Import "src/lib/gvc/gvloadimage.c"
+Import "src/lib/gvc/gvcontext.c"
+Import "src/lib/gvc/gvjobs.c"
+Import "src/lib/gvc/gvevent.c"
+Import "src/lib/gvc/gvplugin.c"
+Import "src/lib/gvc/gvconfig.c"
+Import "src/lib/gvc/gvtextlayout.c"
+Import "src/lib/gvc/gvusershape.c"
+Import "src/lib/gvc/gvc.c"
+
+Import "src/lib/gvc/dot_builtins.c" ' BUILT INS !!!
+
+' common
+Import "src/lib/common/arrows.c"
+Import "src/lib/common/colxlate.c"
+Import "src/lib/common/fontmetrics.c"
+Import "src/lib/common/args.c"
+Import "src/lib/common/memory.c"
+Import "src/lib/common/globals.c"
+Import "src/lib/common/htmllex.c"
+Import "src/lib/common/htmlparse.c"
+Import "src/lib/common/htmltable.c"
+Import "src/lib/common/input.c"
+Import "src/lib/common/pointset.c"
+Import "src/lib/common/postproc.c"
+Import "src/lib/common/routespl.c"
+Import "src/lib/common/splines.c"
+Import "src/lib/common/psusershape.c"
+Import "src/lib/common/timing.c"
+Import "src/lib/common/labels.c"
+Import "src/lib/common/ns.c"
+Import "src/lib/common/shapes.c"
+Import "src/lib/common/utils.c"
+Import "src/lib/common/geom.c"
+Import "src/lib/common/output.c"
+Import "src/lib/common/emit.c"
+

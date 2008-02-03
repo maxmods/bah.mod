@@ -1,0 +1,563 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<title>Node Shapes</title>
+<link rel=stylesheet type=text/css href='../../../../doc/bmxstyle.css'>
+<style type="text/css">
+<!--
+td {
+	background-color: #FFFFFF;
+}
+-->
+</style>
+</head>
+<body bgcolor="white">
+<a name="top" id="top"></a>
+<h1>Node Shapes</h1>
+ The geometries of all node shapes are affected by
+the node attributes <a href="lang.html#d:fixedsize"><tt>fixedsize</tt></a>, <a href="lang.html#d:fontname"><tt>fontname</tt></a>, <a href="lang.html#d:fontsize"><tt>fontsize</tt></a>, <a href="lang.html#d:height"><tt>height</tt></a>, <a href="lang.html#d:label"><tt>label</tt></a>, <a href="#d:style"><tt>style</tt></a> and <a href="lang.html#d:width"><tt>width</tt></a>.
+<h2><a name="polygon" id="polygon"></a>Polygon-based Nodes</h2>
+The possible polygon-based shapes are displayed below.
+<table align="center">
+  <tr align="center">
+    <td><img src="box.gif" width="87" height="84" />    </td>
+    <td><img src="polygon.gif" width="87" height="84" />    </td>
+    <td><img src="ellipse.gif" width="87" height="84" />    </td>
+    <td><img src="circle.gif" width="63" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:box" id="d:box"></a>box    </td>
+    <td><a name="d:polygon" id="d:polygon"></a>polygon    </td>
+    <td><a name="d:ellipse" id="d:ellipse"></a>ellipse    </td>
+    <td><a name="d:circle" id="d:circle"></a>circle</td>
+  </tr>
+  <tr align="center">
+    <td><img src="point.gif" width="23" height="47" />    </td>
+    <td><img src="egg.gif" width="89" height="84" />    </td>
+    <td><img src="triangle.gif" width="87" height="84" />    </td>
+    <td><img src="plaintext.gif" width="103" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:point" id="d:point"></a>point    </td>
+    <td><a name="d:egg" id="d:egg"></a>egg    </td>
+    <td><a name="d:triangle" id="d:triangle"></a>triangle    </td>
+    <td><a name="d:plaintext" id="d:plaintext"></a>plaintext </td>
+  </tr>
+  <tr align="center">
+    <td><img src="diamond.gif" width="87" height="84" />    </td>
+    <td><img src="trapezium.gif" width="87" height="84" />    </td>
+    <td><img src="parallelogram.gif" width="89" height="84" />    </td>
+    <td><img src="house.gif" width="87" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:diamond" id="d:diamond"></a>diamond   </td>
+    <td><a name="d:trapezium" id="d:trapezium"></a>trapezium    </td>
+    <td><a name="d:parallelogram" id="d:parallelogram"></a>parallelogram    </td>
+    <td><a name="d:house" id="d:house"></a>house </td>
+  </tr>
+  <tr align="center">
+    <td><img src="pentagon.gif" width="87" height="84" />    </td>
+    <td><img src="hexagon.gif" width="87" height="84" />    </td>
+    <td><img src="septagon.gif" width="87" height="84" />    </td>
+    <td><img src="octagon.gif" width="87" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:pentagon" id="d:pentagon"></a>pentagon    </td>
+    <td><a name="d:hexagon" id="d:hexagon"></a>hexagon    </td>
+    <td><a name="d:septagon" id="d:septagon"></a>septagon    </td>
+    <td><a name="d:octagon" id="d:octagon"></a>octagon </td>
+  </tr>
+  <tr align="center">
+    <td><img src="doublecircle.gif" width="73" height="95" />    </td>
+    <td><img src="doubleoctagon.gif" width="97" height="95" />    </td>
+    <td><img src="tripleoctagon.gif" width="108" height="105" />    </td>
+    <td><img src="invtriangle.gif" width="87" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:doublecircle" id="d:doublecircle"></a>doublecircle    </td>
+    <td><a name="d:doubleoctagon" id="d:doubleoctagon"></a>doubleoctagon    </td>
+    <td><a name="d:tripleoctagon" id="d:tripleoctagon"></a>tripleoctagon    </td>
+    <td><a name="d:invtriangle" id="d:invtriangle"></a>invtriangle </td>
+  </tr>
+  <tr align="center">
+    <td><img src="invtrapezium.gif" width="87" height="84" />    </td>
+    <td><img src="invhouse.gif" width="87" height="84" />    </td>
+    <td><img src="Mdiamond.gif" width="87" height="84" />    </td>
+    <td><img src="Msquare.gif" width="63" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:invtrapezium" id="d:invtrapezium"></a>invtrapezium    </td>
+    <td><a name="d:invhouse" id="d:invhouse"></a>invhouse    </td>
+    <td><a name="d:Mdiamond" id="d:Mdiamond"></a>Mdiamond    </td>
+    <td><a name="d:Msquare" id="d:Msquare"></a>Msquare </td>
+  </tr>
+  <tr align="center">
+    <td><img src="Mcircle.gif" width="63" height="84" />    </td>
+    <td><img src="rect.gif" width="87" height="84" />    </td>
+    <td><img src="rectangle.gif" width="87" height="84" />    </td>
+    <td><img src="none.gif" width="87" height="84" /> </td>
+  </tr>
+  <tr align="center">
+    <td><a name="d:Mcircle" id="d:Mcircle"></a>Mcircle   </td>
+    <td><a name="d:rect" id="d:rect"></a>rect    </td>
+    <td><a name="d:rectangle" id="d:rectangle"></a>rectangle    </td>
+    <td><a name="d:none" id="d:none"></a>none </td>
+  </tr>
+</table>
+As the figures suggest, the shapes <tt>rect</tt> and <tt>rectangle</tt> are synonyms for <tt>box</tt>, and <tt>none</tt> is a synonym for <tt>plaintext</tt>.
+Also, unlike the rest, we have shown these last two 
+without <tt>style=filled</tt> to indicate the normal use. If fill were turned on, the label text would
+appear in a filled rectangle.
+<p> The geometries of polygon-based shapes are also affected
+  by the node attributes <a href="lang.html#d:regular"><tt>regular</tt></a>, <a href="lang.html#d:peripheries"><tt>peripheries</tt></a> and <a href="lang.html#d:orientation"><tt>orientation</tt></a>.
+  If <tt>shape=&quot;polygon&quot;</tt>, the attributes <a href="lang.html#d:sides"><tt>sides</tt></a>, <a href="lang.html#d:skew"><tt>skew</tt></a> and <a href="lang.html#d:distortion"><tt>distortion</tt></a> are also used.
+  If unset, they default to 4, 0.0 and 0.0, respectively.
+  In addition, the 3 M* shapes support auxiliary labels using
+  the <a href="lang.html#d:toplabel"><tt>toplabel</tt></a> and <a href="lang.html#d:bottomlabel"><tt>bottomlabel</tt></a> attributes.
+  On the other hand, the point shape is special in that it is
+  only affected by the <a href="lang.html#d:peripheries"><tt>peripheries</tt></a>, <a href="lang.html#d:width"><tt>width</tt></a> and <a href="lang.html#d:height"><tt>height</tt></a> attributes.</p>
+<h2><a name="record" id="record"></a>Record-based Nodes</h2>
+These are specified by shape values of &quot;record&quot; and &quot;Mrecord&quot;.
+The structure of a record-based node is determined by 
+its <a href="lang.html#d:label"><tt>label</tt></a>,
+which has the following schema:
+<table align="center">
+  <tr>
+    <td align="right"><i>rlabel</i>    </td><td>=
+    </td><td><i>field</i> ( '|' <i>field</i> )*</td>
+  </tr>
+  <tr>
+    <td align="right">where <i>field</i>    </td><td>=
+    </td><td>fieldId</I> or '{' <i>rlabel</i> '}'</td>
+  </tr>
+  <tr>
+    <td align="right">and <i>fieldId</i>    </td><td>=
+    </td><td> [ '&lt;' <i>string</i> '&gt;'] [ <i>string</i> ]</td>
+  </tr>
+</table>
+Literal braces, vertical bars and angle brackets must be escaped.
+Spaces are interpreted as separators between tokens,
+so they must be escaped if you want spaces in the text.
+<p> The first string in <i>fieldId</i> assigns a portname to the field and can 
+  be combined with the node name to indicate where to attach an edge
+  to the node. (See <a href="lang.html#k:portPos">portPos</a>.)
+  The second string is used as the text for the field; it supports the usual <a href="lang.html#k:escString">escape sequences</a> \n, \l and \r.</p>
+<p> Visually, a record is a box, with fields represented by alternating
+  rows of horizontal or vertical subboxes. The Mrecord shape is identical
+  to a record shape, except that the outermost box has rounded corners.
+  Flipping between horizontal and vertical layouts is done by nesting
+  fields in braces &quot;{...}&quot;. The top-level orientation in a record is
+  horizontal. Thus, a record with label &quot;A | B | C | D&quot; will have 4 fields 
+  oriented left to right, while &quot;{A | B | C | D}&quot; will have them 
+  from top to bottom and &quot;A | { B | C } | D&quot; will have &quot;B&quot; over &quot;C&quot;, with
+&quot;A&quot; to the left and &quot;D&quot; to the right of &quot;B&quot; and &quot;C&quot;.</p>
+<p> As an example of a record node, the dot input
+<pre>digraph structs {<br />    node [shape=record];<br />    struct1 [label=&quot;&lt;f0&gt; left|&lt;f1&gt; mid\ dle|&lt;f2&gt; right&quot;];<br />    struct2 [label=&quot;&lt;f0&gt; one|&lt;f1&gt; two&quot;];<br />    struct3 [label=&quot;hello\nworld |{ b |{c|&lt;here&gt; d|e}| f}| g | h&quot;];<br />    struct1:f1 -&gt; struct2:f0;<br />    struct1:f2 -&gt; struct3:here;<br />}</pre>
+  yields the figure<br />
+  <img src="record.gif" /></p>
+<p> If we change node <tt>struct1</tt> to have shape <tt>Mrecord</tt>,
+  it then looks like:<br />
+  <img src="mrecord.gif" /></p>
+<h2><a name="d:style" id="d:style"></a>Styles for Nodes</h2>
+The <a href="lang.html#d:style"><tt>style</tt></a> attribute can be used to modify the appearance of a node.
+At present, there are 8 style values recognized: <tt>filled</tt>, <tt>invisible</tt>, <tt>diagonals</tt>, <tt>rounded</tt>. <tt>dashed</tt>, <tt>dotted</tt>, <tt>solid</tt> and <tt>bold</tt>.
+As usual, the value of the <a href="lang.html#d:style"><tt>style</tt></a> attribute can be a comma-separated list of any of these. If the
+style contains conflicts (e.g, <tt>style=&quot;dotted, solid&quot;</tt>), the last
+attribute wins.
+<dl>
+<dt><a name=d:filled></a><tt>filled</tt></dt>
+  <dd>This value indicates that the node's interior should be filled.
+    The color used is the node's <tt>fillcolor</tt> or, if that's not defined, its <tt>color</tt>. For unfilled nodes, the interior of the node is transparent to
+    whatever color is the current graph or cluster background color.
+    Note that <tt>point</tt> shapes are always filled.
+    <p> Thus, the code
+    <pre> digraph G {
+        rankdir=LR
+        node [shape=box, color=blue]
+        node1 [style=filled] 
+        node2 [style=filled, fillcolor=red] 
+        node0 -&gt; node1 -&gt; node2
+      } </pre>
+      yields the figure<br />
+      <img src="fill.gif" />  </p>
+  </dd><dt><a name=d:invisible></a><tt>invisible</tt></dt>
+  <dd>Setting this style causes the node not to be displayed at all.
+    Note that the node is still used in laying out the graph.  </dd>
+	<dt><a name=d:diagonals></a><tt>diagonals</tt></dt>
+  <dd>The diagonals style causes small chords to be drawn near the vertices
+    of the node's polygon or, in case of circles and ellipses, two chords near
+    the top and the bottom of the shape. The special node shapes <a href="#d:Msquare"><tt>Msquare</tt></a>, <a href="#d:Mcircle"><tt>Mcircle</tt></a>, and <a href="#d:Mdiamond"><tt>Mdiamond</tt></a> are simply an ordinary square, circle and
+    diamond with the diagonals style set.  </dd>
+	<dt><a name=d:rounded></a><tt>rounded</tt></dt>
+  <dd>The rounded style causes the polygonal corners to be smoothed.
+    Note that this style also applies to record-based nodes. Indeed,
+    the <tt>Mrecord</tt> shape is simply shorthand for setting this style.
+    Also, prior to 26 April 2005, the rounded and filled styles were 
+    mutually exclusive.
+    <p> As an example of rounding, dot uses the graph
+    <pre> digraph R {
+        rankdir=LR
+        node [style=rounded]
+        node1 [shape=box]
+        node2 [fillcolor=yellow, style=&quot;rounded,filled&quot;, shape=diamond]
+        node3 [shape=record, label=&quot;{ a | b | c }&quot;]
+        
+        node1 -&gt; node2 -&gt; node3
+      } </pre>
+      to produce the figure<br />
+      <img src="round.gif" />  </p>
+  </dd>
+  <dt><a name=d:dashed></a><tt>dashed</tt></dt>
+  <dd>This style causes the node's border to be drawn as a dashed line.  </dd>
+  <dt><a name=d:dotted></a><tt>dotted</tt></dt>
+  <dd>This style causes the node's border to be drawn as a dotted line.  </dd>
+  <dt><a name=d:solid></a><tt>solid</tt></dt>
+  <dd>This style causes the node's border to be drawn as a solid line,
+    which is the default.  </dd>
+	<dt><a name=d:bold></a><tt>bold</tt></dt>
+  <dd>This style causes the node's border to be drawn as a bold line.
+    See also <a href="lang.html#d:setlinewidth">setlinewidth</a>.</dd>
+</dl>
+<p> Additional styles may be available with a specific code generator.</p>
+<h2><a name="html" id="html"></a>HTML-Like Labels</h2>
+<p> If the value of a label attribute
+  (<a href="lang.html#d:label"><tt>label</tt></a> for nodes, edges, clusters, and
+  graphs, and the <a href="lang.html#d:headlabel"><tt>headlabel</tt></a> and <a href="lang.html#d:taillabel"><tt>taillabel</tt></a> attributes of an edge) is given as an <a href="lang.html#html">HTML string</a>, 
+  that is, delimited by <tt>&lt;...&gt;</tt> rather than <tt>&quot;...&quot;</tt>,
+  the label is interpreted as
+  an HTML description. At their simplest, such labels
+  can describe multiple lines of variously aligned text as provided by ordinary <a href="lang.html#k:escString">string labels</a>. More generally, the
+  label can specify a table similar to those provided by HTML,
+  with different graphical attributes at each level.</p>
+<p> <b>NOTE:</b> The features and syntax supported by these labels are
+  inspired by HTML. However, there are many aspects that are relevant
+  to Graphviz labels that are not in HTML and, conversely, HTML allows
+  various constructs which are meaningless in Graphviz. We will generally
+  refer to these labels as &quot;HTML labels&quot; rather than the cumbersome
+  &quot;HTML-like labels&quot; but the reader is warned that these are not really
+HTML. The grammar below describes precisely what Graphviz will accept.</p>
+<p> Although HTML labels are not, strictly speaking, a shape, they can be
+  viewed as a generalization of the record shapes described above. 
+  In particular, if a node has set its <a href="lang.html#k:shape"><tt>shape</tt></a> attribute to <tt>plaintext</tt>, the HTML label will be the node's
+  shape. On the other hand, if the node has any other shape (except <tt>point</tt>), the HTML label will be embedded within the node the
+  same way an ordinary label would be.</p>
+<p> The following is an abstract grammar for HTML labels.
+  Terminals are shown in bold font and nonterminals in italics.
+  Square brackets [ and ] enclose optional items.
+  Vertical bars | separate alternatives.</p>
+<table align="center">
+  <tr>
+    <td align="right"><i>label</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>text</i></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><i>table</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>text</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>textitem</i></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><i>text</i> <i>textitem</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>textitem</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>string</i></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>&lt;BR/&gt;</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>&lt;FONT&gt;</b> <i>text</i> <b>&lt;/FONT&gt;</b></td>
+  </tr>
+  <tr>
+    <td align="right"><i>table</i></td>
+    <td align="left">:</td>
+    <td align="left">[ <b>&lt;FONT&gt;</b> ] <b>&lt;TABLE&gt;</b> <i>rows</i> <b>&lt;/TABLE&gt;</b> [ <b>&lt;/FONT&gt;</b> ]</td>
+  </tr>
+  <tr>
+    <td align="right"><i>rows</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>row</i></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><i>rows</i> <i>row</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>row</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>&lt;TR&gt;</b> <i>cells</i> <b>&lt;/TR&gt;</b></td>
+  </tr>
+  <tr>
+    <td align="right"><i>cells</i></td>
+    <td align="left">:</td>
+    <td align="left"><i>cell</i></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><i>cells</i> <i>cell</i></td>
+  </tr>
+  <tr>
+    <td align="right"><i>cell</i></td>
+    <td align="left">:</td>
+    <td align="left"><b>&lt;TD&gt;</b> <i>label</i> <b>&lt;/TD&gt;</b></td>
+  </tr>
+  <tr>
+    <td align="right">&nbsp;</td>
+    <td align="left">|</td>
+    <td align="left"><b>&lt;TD&gt;</b> <b>&lt;IMG/&gt;</b> <b>&lt;/TD&gt;</b></td>
+  </tr>
+</table>
+<p> Above, a <i>string</i> is any collection of printable characters, including
+  all spaces. Note that outside of the body of a &lt;TD&gt; element, 
+  whitespace characters are ignored; within a &lt;TD&gt; element, spaces
+  are preserved but all other white space characters are discarded.
+  HTML comments are allowed within an HTML string. They can occur anywhere
+  provided that, if they contain part of an HTML element, they must contain
+the entire element.</p>
+<p> As is obvious from the above description, the interpretation of white space
+  characters is one place where HTML-like labels is very different from 
+  standard HTML. In HTML, any sequence of white space characters is 
+  collapsed to a single space, If the user does not want this to happen, the
+  input must use non-breaking spaces &quot;&amp;nbsp;&quot;. This makes sense in
+  HTML, where text layout depends dynamically on the space available. In
+  Graphviz, the layout is statically determined by the input, so it is
+  reasonable to treat ordinary space characters as non-breaking. In addition,
+  ignoring tabs and newlines allows the input text to be formatted for
+easier reading.</p>
+<p> Each of the HTML elements has a set of optional attributes.
+  Attribute values must appear in double quotes.</p>
+<pre>&lt;TABLE
+  ALIGN=&quot;CENTER|LEFT|RIGHT&quot;
+  BGCOLOR=&quot;<i>color</i>&quot;
+  BORDER=&quot;<i>value</i>&quot;
+  CELLBORDER=&quot;<i>value</i>&quot;
+  CELLPADDING=&quot;<i>value</i>&quot;
+  CELLSPACING=&quot;<i>value</i>&quot;
+  FIXEDSIZE=&quot;FALSE|TRUE&quot;
+  HEIGHT=&quot;<i>value</i>&quot;
+  HREF=&quot;<i>value</i>&quot;
+  PORT=&quot;<i>portName</i>&quot;
+  TARGET=&quot;<i>value</i>&quot;
+  TITLE=&quot;<i>value</i>&quot;
+  TOOLTIP=&quot;<i>value</i>&quot;
+  VALIGN=&quot;MIDDLE|BOTTOM|TOP&quot;
+  WIDTH=&quot;<i>value</i>&quot;
+&gt;</pre>
+<pre>&lt;TD
+  ALIGN="CENTER|LEFT|RIGHT|TEXT"
+  BALIGN="CENTER|LEFT|RIGHT"
+  BGCOLOR="<i>color</i>"
+  BORDER="<i>value</i>"
+  CELLPADDING="<i>value</i>"
+  CELLSPACING="<i>value</i>"
+  COLSPAN="<i>value</i>"
+  FIXEDSIZE="FALSE|TRUE"
+  HEIGHT="<i>value</i>"
+  HREF="<i>value</i>"
+  PORT="<i>portName</i>"
+  ROWSPAN="<i>value</i>"
+  TARGET="<i>value</i>"
+  TITLE="<i>value</i>"
+  TOOLTIP="<i>value</i>"
+  VALIGN="MIDDLE|BOTTOM|TOP"
+  WIDTH="<i>value</i>"
+&gt;</pre>
+<pre>&lt;FONT
+  COLOR="<i>color</i>"
+  FACE="<i>fontname</i>"
+  POINT-SIZE="<i>value</i>"
+&gt;</pre>
+<pre>&lt;BR
+  ALIGN="CENTER|LEFT|RIGHT"
+&gt;</pre>
+<pre>&lt;IMG
+  SRC="<i>value</i>"
+&gt;
+</pre>
+<p> <b><i><font size=-1>ALIGN</font> </i></b>
+<blockquote><p> specifies horizontal placement. When an object is allocated
+  more space than required, this value determines where the extra space
+  is placed left and right of the object.
+  <ul>
+    <li>CENTER aligns the object in the center. (Default) </li>
+    <li>LEFT aligns the object on the left.</li>
+    <li>RIGHT aligns the object on the right. </li>
+    <li>(
+      <T>&lt;TD&gt;</T>
+      only) TEXT aligns lines of text using the full
+      cell width. The alignment of a line is determined by its (possibly
+      implicit) associated
+      <T>&lt;BR&gt;</T>
+      element.</li>
+  </ul>
+The contents of a cell are normally aligned as a block. In particular,
+    lines of text are first aligned as a text block based on the width of
+    the widest line and the corresponding
+    <T>&lt;BR&gt;</T>
+    elements. Then,
+    the entire text block is aligned within a cell. If, however, the
+    cell's <b><i>ALIGN</i></b> value is
+    <T>"TEXT"</T>
+    , and the cell contains
+    lines of text, then the lines are justified using the entire available
+    width of the cell. If the cell does not contain text, then the contained
+    image or table is centered. </p>
+</blockquote>
+<b><i><font size=-1>BALIGN</font> </i></b>
+<blockquote> specifies the default alignment of
+  <T>&lt;BR&gt;</T>
+  elements contained
+  in the cell. That is, if a
+  <T>&lt;BR&gt;</T>
+  element has no
+  explicit <b><i>ALIGN</i></b> attribute, the attribute value is specified
+  by the value of <b><i>BALIGN</i></b>. </blockquote>
+<b><i><font size=-1>BGCOLOR="color"</font></i></b>
+<blockquote> sets the color of the background. This color can be 
+  overridden by a <b><i>BGCOLOR</i></b> attribute in descendents. </blockquote>
+<b><i><font size=-1>BORDER="value"</font></i></b>
+<blockquote> specifies the width of the border around the object in points.
+  A value of zero indicates no border. The default is 1.
+  The maximum value is 255.
+  If set in a table, and <b><i>CELLBORDER</i></b> is not set,
+  this value is also used for all cells in the table.
+  It can be overridden by a <b><i>BORDER</i></b> tag in  a cell. </blockquote>
+<b><i><font size=-1>CELLBORDER="value"</font></i></b>
+<blockquote> specifies the width of the border for all cells in a table.
+  It can be overridden by a <b><i>BORDER</i></b> tag in  a cell.
+  The maximum value is 255. </blockquote>
+<b><i><font size=-1>CELLPADDING="value"</font></i></b>
+<blockquote> specifies the space, in points, between a cell's border and its content.
+  The default is 2.
+  The maximum value is 255. </blockquote>
+<b><i><font size=-1>CELLSPACING="value"</font></i></b>
+<blockquote> specifies the space, in points, between cells in a table and between
+  a cell and the table's border.  The default is 2.
+  The maximum value is 127. </blockquote>
+<b><i><font size=-1>COLOR="color"</font></i></b>
+<blockquote> sets the color of the font within the scope of
+  &lt;FONT&gt;...&lt;/FONT&gt;.
+  This color can be 
+  overridden by a <b><i>COLOR</i></b> attribute in descendents.
+  By default, the font color is determined by the <a href="lang.html#:fontcolor">fontcolor</a> attribute of
+  the corresponding node, edge or graph. </blockquote>
+<b><i><font size=-1>COLSPAN="value"</font></i></b>
+<blockquote> specifies the number of columns spanned by the cell. The default is 1.
+  The maximum value is 65535. </blockquote>
+<b><i><font size=-1>FACE="fontname"</font></i></b>
+<blockquote> specifies the font to use within the scope of
+  &lt;FONT&gt;...&lt;/FONT&gt;.
+  This can be 
+  overridden by a <b><i>FACE</i></b> attribute in descendents.
+  By default, the font name is determined by the <a href="lang.html#:fontname">fontname</a> attribute of the corresponding
+  node, edge or graph. </blockquote>
+<b><i><font size=-1>FIXEDSIZE</font> </i></b>
+<blockquote> specifies whether the values given by the <b><i>WIDTH</i></b> and <b><i>HEIGHT</i></b> attributes are enforced.
+  <p>
+  <ul>
+    <li>FALSE allows the object to grow so that all its contents will fit. (Default) </li>
+    <li>TRUE fixes the object size to its given <b><i>WIDTH</i></b> and <b><i>HEIGHT</i></b>.
+      Both of these attributes must be supplied.</li>
+  </ul>
+</blockquote>
+<b><i><font size=-1>HEIGHT="value"</font></i></b>
+<blockquote> specifies the mininum height, in points, of the object. The height
+  includes the contents, any spacing and the border. Unless <b><i>FIXEDSIZE</i></b> is true, the height will be expanded to allow
+  the contents to fit.
+  The maximum value is 65535. </blockquote>
+<b><i><font size=-1>HREF="value"</font></i></b>
+<blockquote> attaches a URL to the object. </blockquote>
+<b><i><font size=-1>POINT-SIZE="value"</font></i></b>
+<blockquote> sets the size of the font, in points, used within the scope of
+  &lt;FONT&gt;...&lt;/FONT&gt;.
+  This can be 
+  overridden by a <b><i>POINT-SIZE</i></b> attribute in descendents.
+  By default, the font name is determined by the <a href="lang.html#:fontsize">fontsize</a> attribute of the corresponding
+  node, edge or graph. </blockquote>
+<b><i><font size=-1>PORT="value"</font></i></b>
+<blockquote> attaches a portname to the object.
+  (See <a href=lang.html#k:portPos>portPos</a>.)
+  This can be used to modify the head
+  or tail of an edge, so that the end attaches directly to the object. </blockquote>
+<b><i><font size=-1>ROWSPAN="value"</font></i></b>
+<blockquote> specifies the number of rows spanned by the cell. The default is 1.
+  The maximum value is 65535. </blockquote>
+<b><i><font size=-1>SRC="value"</font></i></b>
+<blockquote> specifies the image file to be displayed in the cell.  </blockquote>
+<b><i><font size=-1>TARGET="value"</font></i></b>
+<blockquote> determines which window of the browser is used for the URL if the object 
+  has one. 
+  See <a href="http://www.w3.org/TR/html401/present/frames.html#adef-target">W3C documentation</a>. </blockquote>
+<b><i><font size=-1>TITLE="value"</font></i></b>
+<blockquote> sets the tooltip annotation attached to the element. 
+  This is used only if the element has a HREF attribute. </blockquote>
+<b><i><font size=-1>TOOLTIP="value"</font></i></b>
+<blockquote> is an alias for <b><i><font size=-1>TITLE</font></i></b>. </blockquote>
+<b><i><font size=-1>VALIGN</font> </i></b>
+<blockquote> specifies vertical placement. When an object is allocated
+  more space than required, this value determines where the extra space
+  is placed above and below the object.
+  <ul>
+    <li>MIDDLE aligns the object in the center. (Default) </li>
+    <li>LEFT aligns the object on the left.</li>
+    <li>RIGHT aligns the object on the right. </li>
+  </ul>
+</blockquote>
+<b><i><font size=-1>WIDTH="value"</font></i></b>
+<blockquote> specifies the mininum width, in points, of the object. The width
+  includes the contents, any spacing and the border. Unless <b><i>FIXEDSIZE</i></b> is true, the width will be expanded to allow
+  the contents to fit.
+  The maximum value is 65535. </blockquote>
+</p>
+<p> There is some inheritance among the attributes. If a table specifies
+  a <i><b>CELLPADDING</b></i>, <i><b>CELLBORDER</b></i> or <i><b>BORDER</b></i> value, this value is used by the table's
+  cells unless overridden. If a cell or table specifies a <i><b>BGCOLOR</b></i>,
+  this will be the background color for all of its descendents.
+  Of course, if a background or fill color is specified for the
+  graph object owning the label, this will be the original
+  background for the label.
+  The object's fontname, fontcolor and fontsize attributes
+  are the default for drawing text. These can be overridden by using <i><b>FONT</b></i> to set new values. The new font values will hold
+  until overridden by an enclosed <i><b>FONT</b></i> element.
+  Finally, the pencolor or color of the graph object will be used as
+  the border color.</p>
+<p> Because of certain limitations in handling tables in a device-independent
+  manner, when <i><b>BORDER</b></i> is 1 and both table and cell borders
+  are on and <i><b>CELLSPACING</b></i> is less than 2, anomalies can arise
+  in the output, such as gaps between sides of borders which should be
+  abutting or even collinear. The user can usual get around this by increasing
+  the border size or the spacing, or turning off the table border.</p>
+<p> As an example of HTML labels, the dot input</p>
+<pre>digraph structs {<br />  node [shape=plaintext]
+  struct1 [label=&lt;
+&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;1&quot; CELLSPACING=&quot;0&quot;&gt;<br />  &lt;TR&gt;&lt;TD&gt;left&lt;/TD&gt;&lt;TD PORT=&quot;f1&quot;&gt;mid dle&lt;/TD&gt;&lt;TD PORT=&quot;f2&quot;&gt;right&lt;/TD&gt;&lt;/TR&gt;<br />&lt;/TABLE&gt;&gt;];<br />  struct2 [label=&lt;<br />&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;1&quot; CELLSPACING=&quot;0&quot;&gt;<br />  &lt;TR&gt;&lt;TD PORT=&quot;f0&quot;&gt;one&lt;/TD&gt;&lt;TD&gt;two&lt;/TD&gt;&lt;/TR&gt;<br />&lt;/TABLE&gt;&gt;];<br />  struct3 [label=&lt;<br />&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;1&quot; CELLSPACING=&quot;0&quot; CELLPADDING=&quot;4&quot;&gt;<br />  &lt;TR&gt;<br />    &lt;TD ROWSPAN=&quot;3&quot;&gt;hello&lt;BR/&gt;world&lt;/TD&gt;<br />    &lt;TD COLSPAN=&quot;3&quot;&gt;b&lt;/TD&gt;<br />    &lt;TD ROWSPAN=&quot;3&quot;&gt;g&lt;/TD&gt;<br />    &lt;TD ROWSPAN=&quot;3&quot;&gt;h&lt;/TD&gt;<br />  &lt;/TR&gt;<br />  &lt;TR&gt;<br />    &lt;TD&gt;c&lt;/TD&gt;&lt;TD PORT=&quot;here&quot;&gt;d&lt;/TD&gt;&lt;TD&gt;e&lt;/TD&gt;<br />  &lt;/TR&gt;<br />  &lt;TR&gt;<br />    &lt;TD COLSPAN=&quot;3&quot;&gt;f&lt;/TD&gt;<br />  &lt;/TR&gt;<br />&lt;/TABLE&gt;&gt;];<br />  struct1:f1 -&gt; struct2:f0;<br />  struct1:f2 -&gt; struct3:here;<br />}</pre>
+<p> produces the HTML analogue of the record example above<br>
+  <img src=html1.gif width="316" height="255"></p>
+<p> As usual, an HTML specification is more verbose. On the other hand,
+  HTML labels are much more general, as the following example shows:</p>
+<p> <img src=html2.gif width="625" height="413"></p>
+<p> The source for this graph can be found <a href=html2.dot>here</a>.</p>
+<p> Here is an example using &lt;FONT&gt; elements</p>
+<p> <img src=html3.gif width="366" height="102"></p>
+<p> with the <a href=html3.dot>input graph</a>.</p>
+<p> Here is an example using an &lt;IMG&gt; element</p>
+<p> <img src=html4.gif width="239" height="92"></p>
+<p> with the <a href=html4.dot>input graph</a>.</p>
+</body>
+</html>
