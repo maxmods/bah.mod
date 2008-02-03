@@ -250,7 +250,9 @@
 #define HAVE_SEARCH_H 1
 
 /* Define to 1 if you have the `setenv' function. */
-#define HAVE_SETENV
+#ifndef WIN32
+#define HAVE_SETENV 1
+#endif
 
 /* Define to 1 if you have the `setmode' function. */
 #undef HAVE_SETMODE
