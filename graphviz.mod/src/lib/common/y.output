@@ -1,0 +1,692 @@
+Terminals which are not used
+
+   T_error
+
+
+State 13 conflicts: 1 shift/reduce
+State 22 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: html $end
+
+    1 html: T_html fonttext T_end_html
+    2     | T_html fonttable T_end_html
+    3     | error
+
+    4 fonttext: text
+
+    5 text: text textitem
+    6     | textitem
+
+    7 textitem: string
+    8         | br
+    9         | sfont text nfont
+
+   10 sfont: T_font
+
+   11 nfont: T_end_font
+
+   12 br: T_br T_end_br
+   13   | T_BR
+
+   14 string: T_string
+   15       | string T_string
+
+   16 @1: /* empty */
+
+   17 table: opt_space T_table @1 rows T_end_table opt_space
+
+   18 fonttable: table
+   19          | sfont table nfont
+
+   20 opt_space: string
+   21          | /* empty */
+
+   22 rows: row
+   23     | rows row
+
+   24 @2: /* empty */
+
+   25 row: T_row @2 cells T_end_row
+
+   26 cells: cell
+   27      | cells cell
+
+   28 @3: /* empty */
+
+   29 cell: T_cell fonttable @3 T_end_cell
+
+   30 @4: /* empty */
+
+   31 cell: T_cell fonttext @4 T_end_cell
+
+   32 @5: /* empty */
+
+   33 cell: T_cell image @5 T_end_cell
+
+   34 @6: /* empty */
+
+   35 cell: T_cell @6 T_end_cell
+
+   36 image: T_img T_end_img
+   37      | T_IMG
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256) 3
+T_end_br (258) 12
+T_end_img (259) 36
+T_row (260) 25
+T_end_row (261) 25
+T_html (262) 1 2
+T_end_html (263) 1 2
+T_end_table (264) 17
+T_end_cell (265) 29 31 33 35
+T_end_font (266) 11
+T_string (267) 14 15
+T_error (268)
+T_BR (269) 13
+T_br (270) 12
+T_IMG (271) 37
+T_img (272) 36
+T_table (273) 17
+T_cell (274) 29 31 33 35
+T_font (275) 10
+
+
+Nonterminals, with rules where they appear
+
+$accept (21)
+    on left: 0
+html (22)
+    on left: 1 2 3, on right: 0
+fonttext (23)
+    on left: 4, on right: 1 31
+text (24)
+    on left: 5 6, on right: 4 5 9
+textitem (25)
+    on left: 7 8 9, on right: 5 6
+sfont (26)
+    on left: 10, on right: 9 19
+nfont (27)
+    on left: 11, on right: 9 19
+br (28)
+    on left: 12 13, on right: 8
+string (29)
+    on left: 14 15, on right: 7 15 20
+table (30)
+    on left: 17, on right: 18 19
+@1 (31)
+    on left: 16, on right: 17
+fonttable (32)
+    on left: 18 19, on right: 2 29
+opt_space (33)
+    on left: 20 21, on right: 17
+rows (34)
+    on left: 22 23, on right: 17 23
+row (35)
+    on left: 25, on right: 22 23
+@2 (36)
+    on left: 24, on right: 25
+cells (37)
+    on left: 26 27, on right: 25 27
+cell (38)
+    on left: 29 31 33 35, on right: 26 27
+@3 (39)
+    on left: 28, on right: 29
+@4 (40)
+    on left: 30, on right: 31
+@5 (41)
+    on left: 32, on right: 33
+@6 (42)
+    on left: 34, on right: 35
+image (43)
+    on left: 36 37, on right: 33
+
+
+state 0
+
+    0 $accept: . html $end
+
+    error   shift, and go to state 1
+    T_html  shift, and go to state 2
+
+    html  go to state 3
+
+
+state 1
+
+    3 html: error .
+
+    $default  reduce using rule 3 (html)
+
+
+state 2
+
+    1 html: T_html . fonttext T_end_html
+    2     | T_html . fonttable T_end_html
+
+    T_string  shift, and go to state 4
+    T_BR      shift, and go to state 5
+    T_br      shift, and go to state 6
+    T_font    shift, and go to state 7
+
+    $default  reduce using rule 21 (opt_space)
+
+    fonttext   go to state 8
+    text       go to state 9
+    textitem   go to state 10
+    sfont      go to state 11
+    br         go to state 12
+    string     go to state 13
+    table      go to state 14
+    fonttable  go to state 15
+    opt_space  go to state 16
+
+
+state 3
+
+    0 $accept: html . $end
+
+    $end  shift, and go to state 17
+
+
+state 4
+
+   14 string: T_string .
+
+    $default  reduce using rule 14 (string)
+
+
+state 5
+
+   13 br: T_BR .
+
+    $default  reduce using rule 13 (br)
+
+
+state 6
+
+   12 br: T_br . T_end_br
+
+    T_end_br  shift, and go to state 18
+
+
+state 7
+
+   10 sfont: T_font .
+
+    $default  reduce using rule 10 (sfont)
+
+
+state 8
+
+    1 html: T_html fonttext . T_end_html
+
+    T_end_html  shift, and go to state 19
+
+
+state 9
+
+    4 fonttext: text .
+    5 text: text . textitem
+
+    T_string  shift, and go to state 4
+    T_BR      shift, and go to state 5
+    T_br      shift, and go to state 6
+    T_font    shift, and go to state 7
+
+    $default  reduce using rule 4 (fonttext)
+
+    textitem  go to state 20
+    sfont     go to state 21
+    br        go to state 12
+    string    go to state 22
+
+
+state 10
+
+    6 text: textitem .
+
+    $default  reduce using rule 6 (text)
+
+
+state 11
+
+    9 textitem: sfont . text nfont
+   19 fonttable: sfont . table nfont
+
+    T_string  shift, and go to state 4
+    T_BR      shift, and go to state 5
+    T_br      shift, and go to state 6
+    T_font    shift, and go to state 7
+
+    $default  reduce using rule 21 (opt_space)
+
+    text       go to state 23
+    textitem   go to state 10
+    sfont      go to state 21
+    br         go to state 12
+    string     go to state 13
+    table      go to state 24
+    opt_space  go to state 16
+
+
+state 12
+
+    8 textitem: br .
+
+    $default  reduce using rule 8 (textitem)
+
+
+state 13
+
+    7 textitem: string .
+   15 string: string . T_string
+   20 opt_space: string .
+
+    T_string  shift, and go to state 25
+
+    T_string  [reduce using rule 7 (textitem)]
+    T_table   reduce using rule 20 (opt_space)
+    $default  reduce using rule 7 (textitem)
+
+
+state 14
+
+   18 fonttable: table .
+
+    $default  reduce using rule 18 (fonttable)
+
+
+state 15
+
+    2 html: T_html fonttable . T_end_html
+
+    T_end_html  shift, and go to state 26
+
+
+state 16
+
+   17 table: opt_space . T_table @1 rows T_end_table opt_space
+
+    T_table  shift, and go to state 27
+
+
+state 17
+
+    0 $accept: html $end .
+
+    $default  accept
+
+
+state 18
+
+   12 br: T_br T_end_br .
+
+    $default  reduce using rule 12 (br)
+
+
+state 19
+
+    1 html: T_html fonttext T_end_html .
+
+    $default  reduce using rule 1 (html)
+
+
+state 20
+
+    5 text: text textitem .
+
+    $default  reduce using rule 5 (text)
+
+
+state 21
+
+    9 textitem: sfont . text nfont
+
+    T_string  shift, and go to state 4
+    T_BR      shift, and go to state 5
+    T_br      shift, and go to state 6
+    T_font    shift, and go to state 7
+
+    text      go to state 23
+    textitem  go to state 10
+    sfont     go to state 21
+    br        go to state 12
+    string    go to state 22
+
+
+state 22
+
+    7 textitem: string .
+   15 string: string . T_string
+
+    T_string  shift, and go to state 25
+
+    T_string  [reduce using rule 7 (textitem)]
+    $default  reduce using rule 7 (textitem)
+
+
+state 23
+
+    5 text: text . textitem
+    9 textitem: sfont text . nfont
+
+    T_end_font  shift, and go to state 28
+    T_string    shift, and go to state 4
+    T_BR        shift, and go to state 5
+    T_br        shift, and go to state 6
+    T_font      shift, and go to state 7
+
+    textitem  go to state 20
+    sfont     go to state 21
+    nfont     go to state 29
+    br        go to state 12
+    string    go to state 22
+
+
+state 24
+
+   19 fonttable: sfont table . nfont
+
+    T_end_font  shift, and go to state 28
+
+    nfont  go to state 30
+
+
+state 25
+
+   15 string: string T_string .
+
+    $default  reduce using rule 15 (string)
+
+
+state 26
+
+    2 html: T_html fonttable T_end_html .
+
+    $default  reduce using rule 2 (html)
+
+
+state 27
+
+   17 table: opt_space T_table . @1 rows T_end_table opt_space
+
+    $default  reduce using rule 16 (@1)
+
+    @1  go to state 31
+
+
+state 28
+
+   11 nfont: T_end_font .
+
+    $default  reduce using rule 11 (nfont)
+
+
+state 29
+
+    9 textitem: sfont text nfont .
+
+    $default  reduce using rule 9 (textitem)
+
+
+state 30
+
+   19 fonttable: sfont table nfont .
+
+    $default  reduce using rule 19 (fonttable)
+
+
+state 31
+
+   17 table: opt_space T_table @1 . rows T_end_table opt_space
+
+    T_row  shift, and go to state 32
+
+    rows  go to state 33
+    row   go to state 34
+
+
+state 32
+
+   25 row: T_row . @2 cells T_end_row
+
+    $default  reduce using rule 24 (@2)
+
+    @2  go to state 35
+
+
+state 33
+
+   17 table: opt_space T_table @1 rows . T_end_table opt_space
+   23 rows: rows . row
+
+    T_row        shift, and go to state 32
+    T_end_table  shift, and go to state 36
+
+    row  go to state 37
+
+
+state 34
+
+   22 rows: row .
+
+    $default  reduce using rule 22 (rows)
+
+
+state 35
+
+   25 row: T_row @2 . cells T_end_row
+
+    T_cell  shift, and go to state 38
+
+    cells  go to state 39
+    cell   go to state 40
+
+
+state 36
+
+   17 table: opt_space T_table @1 rows T_end_table . opt_space
+
+    T_string  shift, and go to state 4
+
+    $default  reduce using rule 21 (opt_space)
+
+    string     go to state 41
+    opt_space  go to state 42
+
+
+state 37
+
+   23 rows: rows row .
+
+    $default  reduce using rule 23 (rows)
+
+
+state 38
+
+   29 cell: T_cell . fonttable @3 T_end_cell
+   31     | T_cell . fonttext @4 T_end_cell
+   33     | T_cell . image @5 T_end_cell
+   35     | T_cell . @6 T_end_cell
+
+    T_string  shift, and go to state 4
+    T_BR      shift, and go to state 5
+    T_br      shift, and go to state 6
+    T_IMG     shift, and go to state 43
+    T_img     shift, and go to state 44
+    T_font    shift, and go to state 7
+
+    T_end_cell  reduce using rule 34 (@6)
+    $default    reduce using rule 21 (opt_space)
+
+    fonttext   go to state 45
+    text       go to state 9
+    textitem   go to state 10
+    sfont      go to state 11
+    br         go to state 12
+    string     go to state 13
+    table      go to state 14
+    fonttable  go to state 46
+    opt_space  go to state 16
+    @6         go to state 47
+    image      go to state 48
+
+
+state 39
+
+   25 row: T_row @2 cells . T_end_row
+   27 cells: cells . cell
+
+    T_end_row  shift, and go to state 49
+    T_cell     shift, and go to state 38
+
+    cell  go to state 50
+
+
+state 40
+
+   26 cells: cell .
+
+    $default  reduce using rule 26 (cells)
+
+
+state 41
+
+   15 string: string . T_string
+   20 opt_space: string .
+
+    T_string  shift, and go to state 25
+
+    $default  reduce using rule 20 (opt_space)
+
+
+state 42
+
+   17 table: opt_space T_table @1 rows T_end_table opt_space .
+
+    $default  reduce using rule 17 (table)
+
+
+state 43
+
+   37 image: T_IMG .
+
+    $default  reduce using rule 37 (image)
+
+
+state 44
+
+   36 image: T_img . T_end_img
+
+    T_end_img  shift, and go to state 51
+
+
+state 45
+
+   31 cell: T_cell fonttext . @4 T_end_cell
+
+    $default  reduce using rule 30 (@4)
+
+    @4  go to state 52
+
+
+state 46
+
+   29 cell: T_cell fonttable . @3 T_end_cell
+
+    $default  reduce using rule 28 (@3)
+
+    @3  go to state 53
+
+
+state 47
+
+   35 cell: T_cell @6 . T_end_cell
+
+    T_end_cell  shift, and go to state 54
+
+
+state 48
+
+   33 cell: T_cell image . @5 T_end_cell
+
+    $default  reduce using rule 32 (@5)
+
+    @5  go to state 55
+
+
+state 49
+
+   25 row: T_row @2 cells T_end_row .
+
+    $default  reduce using rule 25 (row)
+
+
+state 50
+
+   27 cells: cells cell .
+
+    $default  reduce using rule 27 (cells)
+
+
+state 51
+
+   36 image: T_img T_end_img .
+
+    $default  reduce using rule 36 (image)
+
+
+state 52
+
+   31 cell: T_cell fonttext @4 . T_end_cell
+
+    T_end_cell  shift, and go to state 56
+
+
+state 53
+
+   29 cell: T_cell fonttable @3 . T_end_cell
+
+    T_end_cell  shift, and go to state 57
+
+
+state 54
+
+   35 cell: T_cell @6 T_end_cell .
+
+    $default  reduce using rule 35 (cell)
+
+
+state 55
+
+   33 cell: T_cell image @5 . T_end_cell
+
+    T_end_cell  shift, and go to state 58
+
+
+state 56
+
+   31 cell: T_cell fonttext @4 T_end_cell .
+
+    $default  reduce using rule 31 (cell)
+
+
+state 57
+
+   29 cell: T_cell fonttable @3 T_end_cell .
+
+    $default  reduce using rule 29 (cell)
+
+
+state 58
+
+   33 cell: T_cell image @5 T_end_cell .
+
+    $default  reduce using rule 33 (cell)
