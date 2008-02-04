@@ -5,11 +5,13 @@ bbdoc: Graphviz
 End Rem
 Module BaH.Graphviz
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Common Public License"
 ModuleInfo "Copyright: AT&T Research"
 ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixed win32 config issue."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Added support for different Graphviz Drivers (renderers) - eg. Max2D, Cairo, etc."
 ModuleInfo "History: Added ATTR_HTML_LABEL for GraphBuilder for constructing complex nodes."
