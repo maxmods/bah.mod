@@ -148,7 +148,7 @@ Type TGVMax2DDriver Extends TGVDriver
 			
 			graphviz.setPenColor()
 			
-			For Local i:Int = 0 To xy.length
+			For Local i:Int = 0 To xy.length / 4 - 1
 				DrawLine xy[i * 2], xy[i * 2 + 1], xy[i * 2 + 2], xy[i * 2 + 3]
 			Next
 			
