@@ -6,10 +6,12 @@ about: A Max2D Graphviz Renderer
 End Rem
 Module BaH.GraphvizMax2D
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Common Public License"
 ModuleInfo "Copyright: 2007,2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixes array out of bounds error."
 ModuleInfo "History: 1.00 Initial Release"
 
 
