@@ -31,13 +31,16 @@ about: An SQLite database driver for #bah.database.Database
 End Rem
 Module BaH.DBSQLite
 
-ModuleInfo "Version: 1.09"
+ModuleInfo "Version: 1.10"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.10"
+ModuleInfo "History: Update to SQLite 3.5.6."
+ModuleInfo "History: Fixed lack oderror reporting during query execution."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Update to SQLite 3.5.2. Now using the Amalgamated version."
 ModuleInfo "History: Implementation of Date, DateTime and Time types."
@@ -492,6 +495,9 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				
 				Return False
 			Default
+
+				' raise an error!
+				conn.setError(convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), Null, TDatabaseError.ERROR_STATEMENT, result)
 
 				sqlite3_reset(stmtHandle)
 				Return False

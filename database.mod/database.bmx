@@ -30,12 +30,14 @@ bbdoc: Database Framework
 End Rem
 Module BaH.Database
 
-ModuleInfo "Version: 1.06"
+ModuleInfo "Version: 1.07"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.07"
+ModuleInfo "History: Resets error status before execution of new query."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Implementation of Date, DateTime and Time types."
 ModuleInfo "History: 1.05"
@@ -149,14 +151,14 @@ Type TDBConnection Abstract
 	about: Check #hasError and #error for details of any problems.
 	End Rem
 	Method executeQuery:TDatabaseQuery(sql:String)
+		resetError()
+	
 		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
 		
 		If sql And sql.length > 0 Then
 			If query.execute(sql) Then
 				' reset error...
-				If _lasterror Then
-					_lasterror.reset()
-				End If
+				resetError()
 			End If
 		End If
 		
@@ -208,6 +210,15 @@ Type TDBConnection Abstract
 		End If
 		
 		Return _lastError
+	End Method
+	
+	Rem
+	bbdoc: Resets error.
+	End Rem
+	Method resetError()
+		If _lasterror Then
+			_lasterror.reset()
+		End If
 	End Method
 	
 	Rem
