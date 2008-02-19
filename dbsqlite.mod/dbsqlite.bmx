@@ -41,6 +41,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Update to SQLite 3.5.6."
 ModuleInfo "History: Fixed lack oderror reporting during query execution."
+ModuleInfo "History: Transaction queries are finalized more quickly."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Update to SQLite 3.5.2. Now using the Amalgamated version."
 ModuleInfo "History: Implementation of Date, DateTime and Time types."
@@ -114,11 +115,15 @@ Type TDBSQLite Extends TDBConnection
 			Return False
 		End If
 		
-		If Not executeQuery("COMMIT") Then
+		Local query:TDatabaseQuery = executeQuery("COMMIT TRANSACTION")
+
+		If hasError() Then
 			setError("Error committing transaction", error().error, TDatabaseError.ERROR_TRANSACTION)
 			
 			Return False
 		End If
+		
+		query.Free()
 
 		Return True
 	End Method
@@ -179,12 +184,16 @@ Type TDBSQLite Extends TDBConnection
 			Return False
 		End If
 		
-		If Not executeQuery("ROLLBACK") Then
+		Local query:TDatabaseQuery = executeQuery("ROLLBACK TRANSACTION")
+		
+		If hasError() Then
 		
 			setError("Error rolling back transaction", error().error, TDatabaseError.ERROR_TRANSACTION)
 			
 			Return False
 		End If
+		
+		query.Free()
 		
 		Return True
 	End Method
@@ -195,12 +204,16 @@ Type TDBSQLite Extends TDBConnection
 			Return False
 		End If
 		
-		If Not executeQuery("BEGIN") Then
+		Local query:TDatabaseQuery = executeQuery("BEGIN TRANSACTION")
+
+		If hasError() Then
 			
 			setError("Error starting transaction", error().error, TDatabaseError.ERROR_TRANSACTION)
 			
 			Return False
 		End If
+		
+		query.Free()
 		
 		Return True
 

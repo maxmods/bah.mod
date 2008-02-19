@@ -28,6 +28,13 @@ If db.isOpen() Then
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
+	
+	' transaction test :-)
+	db.StartTransaction()
+
+	If db.hasError() Then
+		errorAndClose(db)
+	End If
 
 	For Local i:Int = 0 Until names.length
 		db.executeQuery("INSERT INTO person values (NULL, '" + names[i][0] + "', '" + names[i][1] + "')")
@@ -36,7 +43,14 @@ If db.isOpen() Then
 		End If
 		
 	Next
-		
+	
+	' commit our changes :-)
+	db.Commit()
+
+	If db.hasError() Then
+		errorAndClose(db)
+	End If
+
 	Local query:TDatabaseQuery = db.executeQuery("SELECT * from person")
 	If db.hasError() Then
 		errorAndClose(db)
