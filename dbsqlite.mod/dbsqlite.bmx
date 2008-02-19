@@ -40,8 +40,9 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Update to SQLite 3.5.6."
-ModuleInfo "History: Fixed lack oderror reporting during query execution."
+ModuleInfo "History: Fixed lack of error reporting during query execution."
 ModuleInfo "History: Transaction queries are finalized more quickly."
+ModuleInfo "History: Statement should generally be reset before acquiring error message."
 ModuleInfo "History: 1.09"
 ModuleInfo "History: Update to SQLite 3.5.2. Now using the Amalgamated version."
 ModuleInfo "History: Implementation of Date, DateTime and Time types."
@@ -408,6 +409,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				End If
 			
 				If result <> SQLITE_OK Then
+					sqlite3_reset(stmtHandle)
 					conn.setError("Failed to bind parameter (" + i + ")", convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), TDatabaseError.ERROR_STATEMENT, result)
 					
 					free()
@@ -509,10 +511,10 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				Return False
 			Default
 
+				sqlite3_reset(stmtHandle)
+
 				' raise an error!
 				conn.setError(convertUTF8toISO8859(sqlite3_errmsg(TDBSQLite(conn).handle)), Null, TDatabaseError.ERROR_STATEMENT, result)
-
-				sqlite3_reset(stmtHandle)
 				Return False
 		End Select
 		
