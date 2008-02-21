@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,18 @@ bbdoc: libcurl
 End Rem
 Module BaH.libcurl
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1998 - 2007, Daniel Stenberg"
 ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
-ModuleInfo "Copyright: (Wrapper) 2007 Bruce A Henderson"
+ModuleInfo "Copyright: (Wrapper) 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Update to libcurl 7.18.0"
+ModuleInfo "History: Update to c-ares 1.5.1"
+ModuleInfo "History: Now nulls internal slist."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Added c-ares (1.4.0) for asynchronous DNS resolving."
 ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4)"
@@ -41,12 +45,16 @@ ModuleInfo "History: 1.00 Initial Release (libcurl 7.16.4)"
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?macos
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+?win32
+ModuleInfo "CC_OPTS: -DHAVE_GETTIMEOFDAY -DCURL_DISABLE_LDAP"
 ?
 ModuleInfo "CC_OPTS: -DCURL_STATICLIB"
 
 ' NOTES :
 '
 ' Renamed ares/inet_ntop.c to area/ares_inet_ntop.c because of name clash with libcurl
+'
+' Added extra options to config_win32.h
 '
 
 Import "curlmain.bmx"

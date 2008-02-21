@@ -1,4 +1,4 @@
-/* $Id: ares__close_sockets.c,v 1.7 2006-07-22 15:37:10 giva Exp $ */
+/* $Id: ares__close_sockets.c,v 1.8 2007-09-28 14:28:14 sesse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -35,6 +35,8 @@ void ares__close_sockets(ares_channel channel, struct server_state *server)
       /* Advance server->qhead; pull out query as we go. */
       sendreq = server->qhead;
       server->qhead = sendreq->next;
+      if (sendreq->data_storage != NULL)
+        free(sendreq->data_storage);
       free(sendreq);
     }
   server->qtail = NULL;
@@ -45,12 +47,16 @@ void ares__close_sockets(ares_channel channel, struct server_state *server)
   server->tcp_buffer = NULL;
   server->tcp_lenbuf_pos = 0;
 
+  /* Reset brokenness */
+  server->is_broken = 0;
+
   /* Close the TCP and UDP sockets. */
   if (server->tcp_socket != ARES_SOCKET_BAD)
     {
       SOCK_STATE_CALLBACK(channel, server->tcp_socket, 0, 0);
       closesocket(server->tcp_socket);
       server->tcp_socket = ARES_SOCKET_BAD;
+      server->tcp_connection_generation = ++channel->tcp_connection_generation;
     }
   if (server->udp_socket != ARES_SOCKET_BAD)
     {

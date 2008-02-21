@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -120,3 +120,5 @@ Import "src/ares/inet_net_pton.c"
 Import "src/ares/bitncmp.c"
 Import "src/ares/ares_inet_ntop.c" ' rename from inet_ntop.c
 Import "src/ares/ares_parse_ns_reply.c"
+Import "src/ares/ares_llist.c"
+

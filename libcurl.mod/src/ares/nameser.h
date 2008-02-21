@@ -1,4 +1,4 @@
-/* $Id: nameser.h,v 1.19 2007-02-17 13:51:24 yangtse Exp $ */
+/* $Id: nameser.h,v 1.23 2007-11-15 19:44:01 yangtse Exp $ */
 
 #ifndef ARES_NAMESER_H
 #define ARES_NAMESER_H
@@ -7,9 +7,6 @@
    port build */
 
 #ifndef NETWARE
-#ifndef __CYGWIN__
-#include <windows.h>
-#endif
 #include <process.h> /* for the _getpid() proto */
 #endif  /* !NETWARE */
 #include <sys/types.h>
@@ -32,7 +29,7 @@ struct iovec
 int ares_writev (SOCKET s, const struct iovec *vector, size_t count);
 #define writev(s,vect,count)  ares_writev(s,vect,count)
 
-#ifndef __MINGW32__
+#ifndef HAVE_GETTIMEOFDAY
 struct timezone { int dummy; };
 #endif
 
@@ -149,6 +146,11 @@ typedef enum __ns_opcode {
 
 #define T_CNAME                ns_t_cname
 
+#define NS_MAXDNAME   256     /* maximum domain name */
+#define MAXDNAME      NS_MAXDNAME
+
+#define NS_MAXCDNAME  255     /* maximum compressed domain name */
+#define MAXCDNAME     NS_MAXCDNAME
 
 #define NS_PACKETSZ   512     /* maximum packet size */
 #define PACKETSZ       NS_PACKETSZ
