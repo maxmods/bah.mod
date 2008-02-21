@@ -1,7 +1,7 @@
 #ifndef __ARES_SETUP_H
 #define __ARES_SETUP_H
 
-/* $Id: setup.h,v 1.26 2007-06-02 19:48:29 bagder Exp $ */
+/* $Id: setup.h,v 1.28 2007-11-08 18:13:54 yangtse Exp $ */
 
 /* Copyright (C) 2004 - 2007 by Daniel Stenberg et al
  *
@@ -16,13 +16,11 @@
  * without express or implied warranty.
  */
 
-#if !defined(WIN32) && defined(__WIN32__)
-/* Borland fix */
-#define WIN32
-#endif
+/*
+ * Define WIN32 when build target is Win32 API
+ */
 
-#if !defined(WIN32) && defined(_WIN32)
-/* VS2005 on x64 fix */
+#if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #define WIN32
 #endif
 
@@ -95,10 +93,6 @@
     defined(__POCC__)
 #else
 #define ssize_t int
-#endif
-
-#ifndef HAVE_WS2TCPIP_H
-#define socklen_t int
 #endif
 
 #endif /* HAVE_CONFIG_H */

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007 Bruce A Henderson
+ Copyright (c) 2007,2008 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -167,19 +167,20 @@ public:
 	MaxSList();
 	~MaxSList();
 	
-	curl_slist * getSList();
+	struct curl_slist * getSList();
 	void setCount();
 	int getCount();
 	CURLcode getinfo(CURL * curl, CURLINFO info);
 	void addElement(const char * txt);
 	
 private:
-	curl_slist * slist;
+	struct curl_slist * slist;
 	int count;
 };
 
 MaxSList::MaxSList()
 {
+	slist = NULL;
 	count = 0;
 }
 
@@ -187,12 +188,12 @@ MaxSList::~MaxSList() {
 	curl_slist_free_all(slist);
 }
 
-curl_slist * MaxSList::getSList() {
+struct curl_slist * MaxSList::getSList() {
 	return slist;
 }
 
 void MaxSList::setCount() {
-	curl_slist * s = slist;
+	struct curl_slist * s = slist;
 	count = 0;
    	while (s != NULL) {
 		count++;
@@ -311,7 +312,7 @@ MaxSList * bmx_curl_slist_new() {
 	return new MaxSList;
 }
 
-curl_slist * bmx_curl_get_slist(MaxSList * slist) {
+struct curl_slist * bmx_curl_get_slist(MaxSList * slist) {
 	return slist->getSList();
 }
 
@@ -323,7 +324,7 @@ void bmx_curl_slist_free(MaxSList * slist) {
 	delete slist;
 }
 
-char * bmx_curl_get_slist_data(curl_slist * slist) {
+char * bmx_curl_get_slist_data(struct curl_slist * slist) {
 
 	if (slist) {
 		return slist->data;
@@ -332,7 +333,7 @@ char * bmx_curl_get_slist_data(curl_slist * slist) {
 	return NULL;
 }
 
-curl_slist * bmx_curl_get_slist_next(curl_slist * slist) {
+struct curl_slist * bmx_curl_get_slist_next(struct curl_slist * slist) {
 
 	if (slist) {
 		return slist->next;

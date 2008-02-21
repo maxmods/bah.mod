@@ -1,4 +1,4 @@
-/* $Id: ares_destroy.c,v 1.9 2007-05-30 20:49:14 bagder Exp $ */
+/* $Id: ares_destroy.c,v 1.13 2007-10-04 08:07:47 sesse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -16,6 +16,7 @@
  */
 
 #include "setup.h"
+#include <assert.h>
 #include <stdlib.h>
 #include "ares.h"
 #include "ares_private.h"
@@ -37,13 +38,42 @@ void ares_destroy(ares_channel channel)
 {
   int i;
   struct query *query;
-
+  struct list_node* list_head;
+  struct list_node* list_node;
+  
   if (!channel)
     return;
 
+  list_head = &(channel->all_queries);
+  for (list_node = list_head->next; list_node != list_head; )
+    {
+      query = list_node->data;
+      list_node = list_node->next;  /* since we're deleting the query */
+      query->callback(query->arg, ARES_EDESTRUCTION, 0, NULL, 0);
+      ares__free_query(query);
+    }
+#ifndef NDEBUG
+  /* Freeing the query should remove it from all the lists in which it sits,
+   * so all query lists should be empty now.
+   */
+  assert(ares__is_list_empty(&(channel->all_queries)));
+  for (i = 0; i < ARES_QID_TABLE_SIZE; i++)
+    {
+      assert(ares__is_list_empty(&(channel->queries_by_qid[i])));
+    }
+  for (i = 0; i < ARES_TIMEOUT_TABLE_SIZE; i++)
+    {
+      assert(ares__is_list_empty(&(channel->queries_by_timeout[i])));
+    }
+#endif
+
   if (channel->servers) {
     for (i = 0; i < channel->nservers; i++)
-      ares__close_sockets(channel, &channel->servers[i]);
+      {
+        struct server_state *server = &channel->servers[i];
+        ares__close_sockets(channel, server);
+        assert(ares__is_list_empty(&(server->queries_to_server)));
+      }
     free(channel->servers);
   }
 
@@ -58,17 +88,6 @@ void ares_destroy(ares_channel channel)
 
   if (channel->lookups)
     free(channel->lookups);
-
-  while (channel->queries) {
-    query = channel->queries;
-    channel->queries = query->next;
-    query->callback(query->arg, ARES_EDESTRUCTION, NULL, 0);
-    if (query->tcpbuf)
-      free(query->tcpbuf);
-    if (query->skip_server)
-      free(query->skip_server);
-    free(query);
-  }
 
   free(channel);
 }

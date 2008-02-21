@@ -1,4 +1,4 @@
-/* $Id: ares_init.c,v 1.56 2007-06-02 20:09:23 bagder Exp $ */
+/* $Id: ares_init.c,v 1.68 2007-10-22 23:31:40 gknauf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -23,7 +23,10 @@
 #include <malloc.h>
 
 #else
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
+
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -72,7 +75,7 @@ static int config_nameserver(struct server_state **servers, int *nservers,
 static int set_search(ares_channel channel, const char *str);
 static int set_options(ares_channel channel, const char *str);
 static const char *try_option(const char *p, const char *q, const char *opt);
-static void init_id_key(rc4_key* key,int key_data_len);
+static int init_id_key(rc4_key* key,int key_data_len);
 
 #ifndef WIN32
 static int sortlist_alloc(struct apattern **sortlist, int *nsort, struct apattern *pat);
@@ -130,16 +133,31 @@ int ares_init_options(ares_channel *channelptr, struct ares_options *options,
   channel->ndots = -1;
   channel->udp_port = -1;
   channel->tcp_port = -1;
+  channel->socket_send_buffer_size = -1;
+  channel->socket_receive_buffer_size = -1;
   channel->nservers = -1;
   channel->ndomains = -1;
   channel->nsort = -1;
+  channel->tcp_connection_generation = 0;
   channel->lookups = NULL;
-  channel->queries = NULL;
   channel->domains = NULL;
   channel->sortlist = NULL;
   channel->servers = NULL;
   channel->sock_state_cb = NULL;
   channel->sock_state_cb_data = NULL;
+
+  channel->last_timeout_processed = (long)time(NULL);
+
+  /* Initialize our lists of queries */
+  ares__init_list_head(&(channel->all_queries));
+  for (i = 0; i < ARES_QID_TABLE_SIZE; i++)
+    {
+      ares__init_list_head(&(channel->queries_by_qid[i]));
+    }
+  for (i = 0; i < ARES_TIMEOUT_TABLE_SIZE; i++)
+    {
+      ares__init_list_head(&(channel->queries_by_timeout[i]));
+    }
 
   /* Initialize configuration by each of the four sources, from highest
    * precedence to lowest.
@@ -169,6 +187,18 @@ int ares_init_options(ares_channel *channelptr, struct ares_options *options,
       DEBUGF(fprintf(stderr, "Error: init_by_defaults failed: %s\n",
                      ares_strerror(status)));
   }
+
+  /* Generate random key */
+
+  if (status == ARES_SUCCESS) {
+    status = init_id_key(&channel->id_key, ARES_ID_KEY_LEN);
+    if (status == ARES_SUCCESS)
+      channel->next_id = ares__generate_new_id(&channel->id_key);
+    else
+      DEBUGF(fprintf(stderr, "Error: init_id_key failed: %s\n",
+                     ares_strerror(status)));
+  }
+
   if (status != ARES_SUCCESS)
     {
       /* Something failed; clean up memory we may have allocated. */
@@ -198,16 +228,15 @@ int ares_init_options(ares_channel *channelptr, struct ares_options *options,
       server = &channel->servers[i];
       server->udp_socket = ARES_SOCKET_BAD;
       server->tcp_socket = ARES_SOCKET_BAD;
+      server->tcp_connection_generation = ++channel->tcp_connection_generation;
       server->tcp_lenbuf_pos = 0;
       server->tcp_buffer = NULL;
       server->qhead = NULL;
       server->qtail = NULL;
+      ares__init_list_head(&(server->queries_to_server));
+      server->channel = channel;
+      server->is_broken = 0;
     }
-
-  init_id_key(&channel->id_key, ARES_ID_KEY_LEN);
-
-  channel->next_id = ares__generate_new_id(&channel->id_key);
-  channel->queries = NULL;
 
   *channelptr = channel;
   return ARES_SUCCESS;
@@ -235,46 +264,55 @@ int ares_save_options(ares_channel channel, struct ares_options *options,
   options->timeout = channel->timeout;
   options->tries   = channel->tries;
   options->ndots   = channel->ndots;
-  options->udp_port = channel->udp_port;
-  options->tcp_port = channel->tcp_port;
+  options->udp_port = (unsigned short)channel->udp_port;
+  options->tcp_port = (unsigned short)channel->tcp_port;
   options->sock_state_cb     = channel->sock_state_cb;
   options->sock_state_cb_data = channel->sock_state_cb_data;
 
   /* Copy servers */
-  options->servers =
-    malloc(channel->nservers * sizeof(struct server_state));
-  if (!options->servers && channel->nservers != 0)
-    return ARES_ENOMEM;
-  for (i = 0; i < channel->nservers; i++)
-    options->servers[i] = channel->servers[i].addr;
+  if (channel->nservers) {
+    options->servers =
+      malloc(channel->nservers * sizeof(struct server_state));
+    if (!options->servers && channel->nservers != 0)
+      return ARES_ENOMEM;
+    for (i = 0; i < channel->nservers; i++)
+      options->servers[i] = channel->servers[i].addr;
+  }
   options->nservers = channel->nservers;
 
   /* copy domains */
-  options->domains = malloc(channel->ndomains * sizeof(char *));
-  if (!options->domains)
-    return ARES_ENOMEM;
-  for (i = 0; i < channel->ndomains; i++)
-  {
-    options->ndomains = i;
-    options->domains[i] = strdup(channel->domains[i]);
-    if (!options->domains[i])
+  if (channel->ndomains) {
+    options->domains = malloc(channel->ndomains * sizeof(char *));
+    if (!options->domains)
       return ARES_ENOMEM;
+
+    for (i = 0; i < channel->ndomains; i++)
+    {
+      options->ndomains = i;
+      options->domains[i] = strdup(channel->domains[i]);
+      if (!options->domains[i])
+        return ARES_ENOMEM;
+    }
   }
   options->ndomains = channel->ndomains;
 
   /* copy lookups */
-  options->lookups = strdup(channel->lookups);
-  if (!options->lookups)
-    return ARES_ENOMEM;
+  if (channel->lookups) {
+    options->lookups = strdup(channel->lookups);
+    if (!options->lookups && channel->lookups)
+      return ARES_ENOMEM;
+  }
 
   /* copy sortlist */
-  options->sortlist = malloc(channel->nsort * sizeof(struct apattern));
-  if (!options->sortlist)
-    return ARES_ENOMEM;
-  for (i = 0; i < channel->nsort; i++)
-  {
-    memcpy(&(options->sortlist[i]), &(channel->sortlist[i]),
-           sizeof(struct apattern));
+  if (channel->nsort) {
+    options->sortlist = malloc(channel->nsort * sizeof(struct apattern));
+    if (!options->sortlist)
+      return ARES_ENOMEM;
+    for (i = 0; i < channel->nsort; i++)
+    {
+      memcpy(&(options->sortlist[i]), &(channel->sortlist[i]),
+             sizeof(struct apattern));
+    }
   }
   options->nsort = channel->nsort;
 
@@ -305,6 +343,12 @@ static int init_by_options(ares_channel channel,
       channel->sock_state_cb = options->sock_state_cb;
       channel->sock_state_cb_data = options->sock_state_cb_data;
     }
+  if ((optmask & ARES_OPT_SOCK_SNDBUF)
+      && channel->socket_send_buffer_size == -1)
+    channel->socket_send_buffer_size = options->socket_send_buffer_size;
+  if ((optmask & ARES_OPT_SOCK_RCVBUF)
+      && channel->socket_receive_buffer_size == -1)
+    channel->socket_receive_buffer_size = options->socket_receive_buffer_size;
 
   /* Copy the servers, if given. */
   if ((optmask & ARES_OPT_SERVERS) && channel->nservers == -1)
@@ -453,7 +497,7 @@ static int get_iphlpapi_dns_info (char *ret_buf, size_t ret_size)
   FIXED_INFO    *fi   = alloca (sizeof(*fi));
   DWORD          size = sizeof (*fi);
   typedef DWORD (WINAPI* get_net_param_func) (FIXED_INFO*, DWORD*);
-  get_net_param_func GetNetworkParams;  /* available only on Win-98/2000+ */
+  get_net_param_func fpGetNetworkParams;  /* available only on Win-98/2000+ */
   HMODULE        handle;
   IP_ADDR_STRING *ipAddr;
   int            i, count = 0;
@@ -470,16 +514,16 @@ static int get_iphlpapi_dns_info (char *ret_buf, size_t ret_size)
   if (!handle)
      return (0);
 
-  GetNetworkParams = (get_net_param_func) GetProcAddress (handle, "GetNetworkParams");
-  if (!GetNetworkParams)
+  fpGetNetworkParams = (get_net_param_func) GetProcAddress (handle, "GetNetworkParams");
+  if (!fpGetNetworkParams)
      goto quit;
 
-  res = (*GetNetworkParams) (fi, &size);
+  res = (*fpGetNetworkParams) (fi, &size);
   if ((res != ERROR_BUFFER_OVERFLOW) && (res != ERROR_SUCCESS))
      goto quit;
 
   fi = alloca (size);
-  if (!fi || (*GetNetworkParams) (fi, &size) != ERROR_SUCCESS)
+  if (!fi || (*fpGetNetworkParams) (fi, &size) != ERROR_SUCCESS)
      goto quit;
 
   if (debug)
@@ -1303,11 +1347,11 @@ static void randomize_key(unsigned char* key,int key_data_len)
 
   if ( !randomized ) {
     for (;counter<key_data_len;counter++)
-      key[counter]=rand() % 256;
+      key[counter]=(unsigned char)(rand() % 256);
   }
 }
 
-static void init_id_key(rc4_key* key,int key_data_len)
+static int init_id_key(rc4_key* key,int key_data_len)
 {
   unsigned char index1;
   unsigned char index2;
@@ -1316,29 +1360,33 @@ static void init_id_key(rc4_key* key,int key_data_len)
   unsigned char *key_data_ptr = 0;
 
   key_data_ptr = calloc(1,key_data_len);
+  if (!key_data_ptr)
+    return ARES_ENOMEM;
+
   randomize_key(key->state,key_data_len);
   state = &key->state[0];
   for(counter = 0; counter < 256; counter++)
-        state[counter] = counter;
+    /* unnecessary AND but it keeps some compilers happier */
+    state[counter] = (unsigned char)(counter & 0xff);
   key->x = 0;
   key->y = 0;
   index1 = 0;
   index2 = 0;
   for(counter = 0; counter < 256; counter++)
   {
-    index2 = (key_data_ptr[index1] + state[counter] +
-              index2) % 256;
+    index2 = (unsigned char)((key_data_ptr[index1] + state[counter] +
+                              index2) % 256);
     ARES_SWAP_BYTE(&state[counter], &state[index2]);
 
-    index1 = (index1 + 1) % key_data_len;
+    index1 = (unsigned char)((index1 + 1) % key_data_len);
   }
   free(key_data_ptr);
-
+  return ARES_SUCCESS;
 }
 
 short ares__generate_new_id(rc4_key* key)
 {
-  short r;
+  short r=0;
   ares__rc4(key, (unsigned char *)&r, sizeof(r));
   return r;
 }

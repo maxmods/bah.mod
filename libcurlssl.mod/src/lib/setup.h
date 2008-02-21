@@ -20,7 +20,7 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: setup.h,v 1.132 2007-06-30 23:45:57 gknauf Exp $
+ * $Id: setup.h,v 1.136 2007-11-08 18:13:55 yangtse Exp $
  ***************************************************************************/
 
 #ifdef HTTP_ONLY
@@ -32,13 +32,11 @@
 #define CURL_DISABLE_FILE
 #endif /* HTTP_ONLY */
 
-#if !defined(WIN32) && defined(__WIN32__)
-/* Borland fix */
-#define WIN32
-#endif
+/*
+ * Define WIN32 when build target is Win32 API
+ */
 
-#if !defined(WIN32) && defined(_WIN32)
-/* VS2005 on x64 fix */
+#if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
 #define WIN32
 #endif
 
@@ -65,6 +63,11 @@
 
 #ifdef __AMIGA__
 #include "amigaos.h"
+#endif
+
+#ifdef __OS400__
+#include "config-os400.h"
+#include "setup-os400.h"
 #endif
 
 #ifdef TPF
@@ -315,6 +318,7 @@ int fileno( FILE *stream);
 #endif
 
 #ifdef NETWARE
+int netware_init(void);
 #ifndef __NOVELL_LIBC__
 #include <sys/bsdskt.h>
 #include <sys/timeval.h>
@@ -339,8 +343,8 @@ int fileno( FILE *stream);
 #define HAVE_INET_NTOA_R_2_ARGS 1
 #endif
 
-#if defined(USE_GNUTLS) || defined(USE_SSLEAY) || defined(USE_NSS)
-#define USE_SSL    /* Either OpenSSL || GnuTLS || NSS */
+#if defined(USE_GNUTLS) || defined(USE_SSLEAY) || defined(USE_NSS) || defined(USE_QSOSSL)
+#define USE_SSL    /* SSL support has been enabled */
 #endif
 
 #if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_NTLM)

@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2007, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2008, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,7 +18,7 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
- * $Id: cookie.c,v 1.83 2007-04-07 04:51:35 yangtse Exp $
+ * $Id: cookie.c,v 1.86 2008-01-23 22:22:12 bagder Exp $
  ***************************************************************************/
 
 /***
@@ -172,16 +172,13 @@ Curl_cookie_add(struct SessionHandle *data,
                 struct CookieInfo *c,
                 bool httpheader, /* TRUE if HTTP header-style line */
                 char *lineptr,   /* first character of the line */
-                char *domain,    /* default domain */
-                char *path)      /* full path used when this cookie is set,
+                const char *domain, /* default domain */
+                const char *path)   /* full path used when this cookie is set,
                                     used to get default path for the cookie
                                     unless set */
 {
   struct Cookie *clist;
-  char *what;
   char name[MAX_NAME];
-  char *ptr;
-  char *semiptr;
   struct Cookie *co;
   struct Cookie *lastc=NULL;
   time_t now = time(NULL);
@@ -199,7 +196,10 @@ Curl_cookie_add(struct SessionHandle *data,
 
   if(httpheader) {
     /* This line was read off a HTTP-header */
-    char *sep;
+    const char *ptr;
+    const char *sep;
+    const char *semiptr;
+    char *what;
 
     what = malloc(MAX_COOKIE_LINE);
     if(!what) {
@@ -228,7 +228,7 @@ Curl_cookie_add(struct SessionHandle *data,
                        name, what)) {
           /* this is a <name>=<what> pair */
 
-          char *whatptr;
+          const char *whatptr;
 
           /* Strip off trailing whitespace from the 'what' */
           size_t len=strlen(what);
@@ -428,6 +428,7 @@ Curl_cookie_add(struct SessionHandle *data,
   else {
     /* This line is NOT a HTTP header style line, we do offer support for
        reading the odd netscape cookies-file format here */
+    char *ptr;
     char *firstptr;
     char *tok_buf;
     int fields;
@@ -482,7 +483,7 @@ Curl_cookie_add(struct SessionHandle *data,
         /* It turns out, that sometimes the file format allows the path
            field to remain not filled in, we try to detect this and work
            around it! Andrés García made us aware of this... */
-        if (strcmp("TRUE", ptr) && strcmp("FALSE", ptr)) {
+        if(strcmp("TRUE", ptr) && strcmp("FALSE", ptr)) {
           /* only if the path doesn't look like a boolean option! */
           co->path = strdup(ptr);
           if(!co->path)
@@ -655,7 +656,7 @@ Curl_cookie_add(struct SessionHandle *data,
  *
  ****************************************************************************/
 struct CookieInfo *Curl_cookie_init(struct SessionHandle *data,
-                                    char *file,
+                                    const char *file,
                                     struct CookieInfo *inc,
                                     bool newsession)
 {
@@ -734,7 +735,8 @@ struct CookieInfo *Curl_cookie_init(struct SessionHandle *data,
  ****************************************************************************/
 
 struct Cookie *Curl_cookie_getlist(struct CookieInfo *c,
-                                   char *host, char *path, bool secure)
+                                   const char *host, const char *path,
+				   bool secure)
 {
   struct Cookie *newco;
   struct Cookie *co;
@@ -810,7 +812,7 @@ struct Cookie *Curl_cookie_getlist(struct CookieInfo *c,
 void Curl_cookie_clearall(struct CookieInfo *cookies)
 {
   if(cookies) {
-    Curl_cookie_freelist(cookies->cookies);
+    Curl_cookie_freelist(cookies->cookies, TRUE);
     cookies->cookies = NULL;
     cookies->numcookies = 0;
   }
@@ -822,16 +824,22 @@ void Curl_cookie_clearall(struct CookieInfo *cookies)
  *
  * Free a list of cookies previously returned by Curl_cookie_getlist();
  *
+ * The 'cookiestoo' argument tells this function whether to just free the
+ * list or actually also free all cookies within the list as well.
+ *
  ****************************************************************************/
 
-void Curl_cookie_freelist(struct Cookie *co)
+void Curl_cookie_freelist(struct Cookie *co, bool cookiestoo)
 {
   struct Cookie *next;
   if(co) {
     while(co) {
       next = co->next;
-      free(co); /* we only free the struct since the "members" are all
-                      just copied! */
+      if(cookiestoo)
+        freecookie(co);
+      else
+        free(co); /* we only free the struct since the "members" are all just
+                     pointed out in the main cookie list! */
       co = next;
     }
   }
@@ -865,7 +873,7 @@ void Curl_cookie_clearsess(struct CookieInfo *cookies)
       else
         prev->next = next;
 
-      free(curr);
+      freecookie(curr);
       cookies->numcookies--;
     }
     else
@@ -937,7 +945,7 @@ static char *get_netscape_format(const struct Cookie *co)
  *
  * The function returns non-zero on write failure.
  */
-int Curl_cookie_output(struct CookieInfo *c, char *dumphere)
+int Curl_cookie_output(struct CookieInfo *c, const char *dumphere)
 {
   struct Cookie *co;
   FILE *out;
@@ -970,7 +978,7 @@ int Curl_cookie_output(struct CookieInfo *c, char *dumphere)
 
     while(co) {
       format_ptr = get_netscape_format(co);
-      if (format_ptr == NULL) {
+      if(format_ptr == NULL) {
         fprintf(out, "#\n# Fatal libcurl error\n");
         fclose(out);
         return 1;
@@ -994,28 +1002,27 @@ struct curl_slist *Curl_cookie_list(struct SessionHandle *data)
   struct Cookie *c;
   char *line;
 
-  if ((data->cookies == NULL) ||
+  if((data->cookies == NULL) ||
       (data->cookies->numcookies == 0))
     return NULL;
 
   c = data->cookies->cookies;
 
   beg = list;
-  while (c) {
-
+  while(c) {
     /* fill the list with _all_ the cookies we know */
     line = get_netscape_format(c);
-    if (line == NULL) {
+    if(line == NULL) {
       curl_slist_free_all(beg);
       return NULL;
     }
     list = curl_slist_append(list, line);
     free(line);
-    if (list == NULL) {
+    if(list == NULL) {
       curl_slist_free_all(beg);
       return NULL;
     }
-    else if (beg == NULL) {
+    else if(beg == NULL) {
       beg = list;
     }
     c = c->next;

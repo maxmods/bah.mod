@@ -1,4 +1,4 @@
-/* $Id: ares_query.c,v 1.11 2007-06-04 21:26:30 bagder Exp $ */
+/* $Id: ares_query.c,v 1.15 2007-10-18 01:01:20 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -37,7 +37,7 @@ struct qquery {
   void *arg;
 };
 
-static void qcallback(void *arg, int status, unsigned char *abuf, int alen);
+static void qcallback(void *arg, int status, int timeouts, unsigned char *abuf, int alen);
 
 void ares__rc4(rc4_key* key, unsigned char *buffer_ptr, int buffer_len)
 {
@@ -53,13 +53,13 @@ void ares__rc4(rc4_key* key, unsigned char *buffer_ptr, int buffer_len)
   state = &key->state[0];
   for(counter = 0; counter < buffer_len; counter ++)
   {
-	x = (x + 1) % 256;
-	y = (state[x] + y) % 256;
-	ARES_SWAP_BYTE(&state[x], &state[y]);
+    x = (unsigned char)((x + 1) % 256);
+    y = (unsigned char)((state[x] + y) % 256);
+    ARES_SWAP_BYTE(&state[x], &state[y]);
 
-	xorIndex = (state[x] + state[y]) % 256;
+    xorIndex = (unsigned char)((state[x] + state[y]) % 256);
 
-	buffer_ptr[counter] ^= state[xorIndex];
+    buffer_ptr[counter] = (unsigned char)(buffer_ptr[counter]^state[xorIndex]);
   }
   key->x = x;
   key->y = y;
@@ -67,16 +67,20 @@ void ares__rc4(rc4_key* key, unsigned char *buffer_ptr, int buffer_len)
 
 static struct query* find_query_by_id(ares_channel channel, int id)
 {
-  int qid;
-  struct query* q;
+  unsigned short qid;
+  struct list_node* list_head;
+  struct list_node* list_node;
   DNS_HEADER_SET_QID(((unsigned char*)&qid), id);
 
   /* Find the query corresponding to this packet. */
-  for (q = channel->queries; q; q = q->next)
-  {
-	if (q->qid == qid)
+  list_head = &(channel->queries_by_qid[qid % ARES_QID_TABLE_SIZE]);
+  for (list_node = list_head->next; list_node != list_head;
+       list_node = list_node->next)
+    {
+       struct query *q = list_node->data;
+       if (q->qid == qid)
 	  return q;
-  }
+    }
   return NULL;
 }
 
@@ -110,7 +114,8 @@ void ares_query(ares_channel channel, const char *name, int dnsclass,
                         &qlen);
   if (status != ARES_SUCCESS)
     {
-      callback(arg, status, NULL, 0);
+      if (qbuf != NULL) free(qbuf);
+      callback(arg, status, 0, NULL, 0);
       return;
     }
 
@@ -121,7 +126,7 @@ void ares_query(ares_channel channel, const char *name, int dnsclass,
   if (!qquery)
     {
       ares_free_string(qbuf);
-      callback(arg, ARES_ENOMEM, NULL, 0);
+      callback(arg, ARES_ENOMEM, 0, NULL, 0);
       return;
     }
   qquery->callback = callback;
@@ -132,14 +137,14 @@ void ares_query(ares_channel channel, const char *name, int dnsclass,
   ares_free_string(qbuf);
 }
 
-static void qcallback(void *arg, int status, unsigned char *abuf, int alen)
+static void qcallback(void *arg, int status, int timeouts, unsigned char *abuf, int alen)
 {
   struct qquery *qquery = (struct qquery *) arg;
   unsigned int ancount;
   int rcode;
 
   if (status != ARES_SUCCESS)
-    qquery->callback(qquery->arg, status, abuf, alen);
+    qquery->callback(qquery->arg, status, timeouts, abuf, alen);
   else
     {
       /* Pull the response code and answer count from the packet. */
@@ -168,7 +173,7 @@ static void qcallback(void *arg, int status, unsigned char *abuf, int alen)
           status = ARES_EREFUSED;
           break;
         }
-      qquery->callback(qquery->arg, status, abuf, alen);
+      qquery->callback(qquery->arg, status, timeouts, abuf, alen);
     }
   free(qquery);
 }

@@ -1,4 +1,4 @@
-/* $Id: ares_strerror.c,v 1.11 2007-02-21 19:03:20 yangtse Exp $ */
+/* $Id: ares_strerror.c,v 1.12 2007-10-01 22:51:38 bagder Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -46,6 +46,8 @@ const char *ares_strerror(int code)
     "Illegal hints flags specified"
   };
 
-  DEBUGASSERT(code >= 0 && code < (int)(sizeof(errtext) / sizeof(*errtext)));
-  return errtext[code];
+  if(code >= 0 && code < (int)(sizeof(errtext) / sizeof(*errtext)))
+    return errtext[code];
+  else
+    return "unknown";
 }
