@@ -94,6 +94,8 @@
 /* Define to 1 if inet_pton supports IPv6. */
 #define HAVE_INET_PTON_IPV6 1
 
+#define HAVE_NETINET_TCP_H 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
