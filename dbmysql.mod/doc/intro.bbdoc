@@ -1,0 +1,28 @@
+<a href="http://www.mysql.com/"><img src="mysql_logo.png" border="0" align="right" /></a>
+<p>
+The DBMySQL database driver allows you to connect to MySQL databases through the standard API provided
+by the Database Framework module.
+</p>
+<h2>Requirements</h2>
+<p>You will need the MySQL client libraries installed. These can be downloaded from the <a href="http://www.mysql.com">MySQL Website</a>.</p>
+<h3>Platform Specifics</h3>
+<p>The DBMySQL module has been developed and tested using the latest MySQL 5 client/server libraries.</p>
+<p>For Windows users, included with the distribution are includes and a libmysql.a file which are required for compilation. You need to copy the libmysql.a file from dbmysql.mod/lib/win32/ into your BlitzMax/lib folder.
+</p>
+<p>Linux users need to make sure they also install the MySQL "dev" package, which contains the includes and shared objects for compiling against.
+</p>
+<h2>Accessing a MySQL Database</h2>
+<p>To enable a MySQL connection, you simply pass a <i>dbtype</i> of &quot;<b>MYSQL</b>&quot; to the
+<a href="../../database.mod/doc/commands.html#LoadDatabase">LoadDatabase</a> function.
+</p>
+<p>The second parameter <i>dbname</i> is the name of the MySQL database to connect to.</p>
+<p>To connect to a MySQL database on the same machine, you do not need to set values for <i>host</i> or <i>port</i>, as the default is to connect to <b>localhost</b>.</p>
+<p><i>user</i> and <i>password</i> should be filled in as required. MySQL can be set up so that a specific user doesn't need to provide a password to connect.</p>
+<p>The <i>server</i> parameter is not required for this driver.</p>
+<h2>Prepared Statement Placeholders</h2>
+<p>MySQL uses the question mark - ? - notation for placeholders.<br>
+Each question mark represents a separate placeholder to which you need to bind a value.</p>
+<h2>SQL with MySQL</h2>
+<p>For a complete guide to MySQL's SQL syntax, you can browse the online documentation
+<a href="http://dev.mysql.com/doc/">here</a>.
+</p>

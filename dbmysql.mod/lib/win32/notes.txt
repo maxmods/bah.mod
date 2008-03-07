@@ -1,0 +1,4 @@
+# generated using the following :
+
+reimp -d libmysql.lib
+dlltool -k -d libmysql.def -l libmysql.a
