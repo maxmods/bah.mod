@@ -1,0 +1,198 @@
+<a href="http://growl.info"><img src="growl_logo.png" border="0" align="right" /></a>
+<p>
+The Growl module is a BlitzMax binding for Growl, a notification system for Mac OS X.
+</p>
+<h3>What are notifications?</h3>
+<p>
+Notifications are a way for your applications to provide you with new information, without you
+having to switch from the application you're already in.
+</p>
+<h3>Why use Growl?</h3>
+<ul>
+<li>Control
+<p>
+Growl offers you complete control over which notifications are shown and how they are displayed.
+You will not receive any notifications that you do not want, because you can easily turn
+notifications (specific ones or all of them) off.
+</p>
+</li>
+<li>Consistency
+<p>
+Growl centralizes all your notification preferences into its preference pane - you can control them
+all from one place, and you know exactly how they are going to behave.
+</p>
+</li>
+<li>Ease of use
+<p>
+When you start up a Growl-enabled application, it will "just work." Your apps can start displaying
+notifications right away.
+</p>
+</li>
+<li>Powerful
+<p>
+Growl is very flexible. Notifications can be emailed to you or spoken instead of displayed on the screen.
+</p>
+</li>
+</ul>
+<h2>Requirements</h2>
+<p>
+This module is OS X only.
+</p>
+<p>
+Applications using the Growl module will still be able to function if the user does not have Growl installed
+on their computer, except that nothing will happen when notifications are sent.
+</p>
+<h2>Programming with Growl</h2>
+<h3>The Growl delegate</h3>
+<p>
+Growl works with an object called the <a href="#TGrowlDelegate">Growl delegate</a>, which your application creates and sets up. The delegate provides your app's registration dictionary, as well as optionally its name and icon.
+Registering with Growl happens when you set the delegate. When you register, Growl creates a 'ticket' for your application containing its name, icon, and registration dictionary.
+</p>
+<h3>The registration dictionary</h3>
+<p>
+The registration dictionary contains an array of the names of all the notifications your application can post, as well as a subset of the array containing the names or indices of the notifications that should be enabled by default. For example, the all-notifications array lists these names:
+<pre>
+	"Download began" "Download finished" "Download failed"
+</pre>
+and the default-notifications specifies:
+<pre>
+	"Download finished", "Download failed"
+</pre>
+This means that by default, "Download finished" and "Download failed" will be enabled, while "Download began" will be disabled. You can always post a notification regardless of whether it is enabled (or even listed); if it is not enabled, it will simply be ignored.
+</p>
+<h3>The application name and icon</h3>
+<p>
+The application name identifies your app to Growl, besides being displayed to the user. We provide the ability for your app to declare its own name so that you can use a uniform name for multiple versions of your app - for example, if you publish SurfWriter Express and SurfWriter Pro, it would make sense to use a single ticket for both, putting it under the common name SurfWriter.
+</p>
+<p>
+The application icon is usually displayed in notifications when you don't provide a notification icon. Even when you do, the display may badge the notification icon with the application icon.
+</p>
+<p>
+Both the application name and the application icon are looked up by Growl automagically if you don't supply them.
+</p>
+<h3>Notifications</h3>
+<p>
+Each <a href="#TGrowlNotification">notification</a> has several attributes; some required, others optional.
+<dl>
+<dt>Name</dt>
+<dd><p>Identifies the 'class' of notification; for example,
+<tt>&quot;Download started&quot;</tt> and
+<tt>&quot;Download finished&quot;</tt> are good
+notification names. Names should be human-readable, as they are listed
+in the Growl preference pane in your application's ticket.</p></dd>
+
+<dt>Title</dt>
+<dd><p>Displayed to the user when you post the notification. Can be
+different from the name; nonetheless, a good notification name is also
+often a good notification title.</p></dd>
+
+<dt>Description</dt>
+<dd><p>Also displayed to the user when you post the notification, the
+description expands upon the title. A
+<tt>&quot;Download finished&quot;</tt> 
+notification, for example, might list the file or files that were
+downloaded. Other examples:</p>
+<ul>
+	<li>GrowlMail posts a notification for each new message received.
+	The description is the message's text.</li>
+	<li>GrowlTunes posts a notification when the current track in iTunes 
+	changes. The title is the name of the track; the description
+	contains the artist who performed it, the album it's on, and its
+	time and rating.</li>
+	<li>GrowlDict posts a notification after looking up a word, and uses 
+	the definition of the word as the description.</li>
+</ul>
+</dd>
+<dt>IconData</dt>
+<dd><p>A notification can have its own icon - for example, if
+you've just downloaded a file, you might use the icon of the file. It
+can also have an application icon that overrides the one provided by the
+delegate or looked up by Growl (<tt>growlnotify</tt> uses this).</p>
+
+<p>All of the graphical displays included with Growl look for the
+notification icon and then the notification app icon, using whichever is 
+found first. If neither one is found, your application's icon is used.
+Other displays (such as those created by users, or by the Growl team for 
+future versions of Growl) may place the application icon over the
+notification icon as a badge.</p>
+</dd>
+
+<dt>Priority</dt>
+<dd><p>Every notification has a priority. The priorities are:</p>
+
+<dl id="priorityList">
+	<dt class="veryLow">-2</dt>
+	<dd>Very low</dd>
+
+	<dt>-1</dt>
+	<dd>Moderate</dd>
+
+	<dt class="normal">0</dt>
+	<dd>Normal</dd>
+
+	<dt>+1</dt>
+	<dd>High</dd>
+
+	<dt class="emergency">+2</dt>
+	<dd>Emergency</dd>
+</dl>
+
+<p>Priorities are clamped to this range. For most notifications, Normal is reasonable.</p>
+
+<p>Not all displays use priority. In those that do, priority may affect
+font, color, or size, or some combination of these. It may also cause a
+sound (or a different sound) to be played when the notification is
+displayed. All of this is up to the display designer.</p>
+
+<p>The user can override priority for each notification name.</p>
+</dd>
+</dl>	
+<h3>A short example</h3>
+<p>
+The following example will display a Hello World notification :
+<pre>
+SuperStrict
+
+Framework BaH.Growl
+
+Local delegate:TGrowlDelegate = New TGrowlDelegate.Create()
+
+delegate.SetApplicationName("HelloWorld")
+
+delegate.SetAllNotifications(["Hello World"]) ' Supported notifications list
+
+If delegate.Install() Then ' install the delegate, so that we can send notifications
+
+	Local noti:TGrowlNotification = New TGrowlNotification.Create("Hello World", ..
+		"Hello World!", "A small Hello World example from BlitzMax!")
+		
+	noti.Post() ' post the notification
+
+End If
+</pre>
+</p>
+<h3>Important</h3>
+<p>
+In order for your application to use the Growl framework, you need to include the provided Frameworks folder <b>inside</b> your application bundle.
+</p>
+<p>
+You can do this by simply copying the Frameworks folder into the application bundle.
+<ul>
+<li>Right-click on your Application, select Show Package Contents</li>
+<li>Browse into the contents folder, and paste the Frameworks folder there.</li>
+</ul>
+</p>
+<p>
+If you forget to do this, you'll probably see an error which looks something like this :
+<pre>
+dyld: Library not loaded: @executable_path/../Frameworks/Growl.framework/Versions/A/Growl
+  Referenced from: /Applications/BlitzMax/mod/bah.mod/growl.mod/examples/hello_world.debug.app/Contents/MacOS/hello_world.debug
+  Reason: image not found
+</pre>
+</p>
+<p>
+BlitzMax doesn't overwrite the application bundle, so while you are testing your application you will only have to copy the framework into the bundle once.
+</p>
+<p>
+Also note that The Growl Preferences will include an entry for <b>every</b> application you run with a Delegate of a unique name. You may want to delete entries from there as you go. :-)
+</p>
