@@ -47,6 +47,9 @@ extern "C" {
 	void bmx_freeimage_loadImage(MaxFreeImage * freeimage);
 	BYTE * bmx_freeimage_getImage(MaxFreeImage * freeimage);
 	
+	BYTE * bmx_freeimage_GetScanline(MaxFreeImage * freeimage, int line);
+
+	
 	unsigned bmx_freeimage_GetWidth(MaxFreeImage * freeimage);
 	unsigned bmx_freeimage_GetHeight(MaxFreeImage * freeimage);
 	unsigned bmx_freeimage_GetBPP(MaxFreeImage * freeimage);
@@ -57,6 +60,7 @@ extern "C" {
 	
 	FIBITMAP * bmx_freeimage_Rescale(MaxFreeImage * freeimage, int width, int height, FREE_IMAGE_FILTER filter);
 	void bmx_freeimage_setBitmap(MaxFreeImage * freeimage, FIBITMAP * newbitmap);
+	FIBITMAP * bmx_freeimage_getBitmap(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_MakeThumbnail(MaxFreeImage * freeimage, int size);
 	
 	void bmx_freeimage_self_convertTo32Bits(MaxFreeImage * freeimage);
@@ -64,6 +68,7 @@ extern "C" {
 	void bmx_freeimage_self_convertTo8Bits(MaxFreeImage * freeimage);
 	BOOL bmx_freeimage_isTransparent(MaxFreeImage * freeimage);
 	
+	FIBITMAP * bmx_freeimage_convertToRGBF(MaxFreeImage * freeimage);	
 	FIBITMAP * bmx_freeimage_convertTo32Bits(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_convertTo24Bits(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_convertTo8Bits(MaxFreeImage * freeimage);
@@ -181,6 +186,7 @@ public:
 	void loadImage();
 	BYTE * getImage();
 	FIBITMAP * getBitmap();
+	BYTE * GetScanline(int line);
 	unsigned GetWidth();
 	unsigned GetHeight();
 	unsigned GetBPP();
@@ -192,6 +198,7 @@ public:
 	void selfConvertTo32Bits();
 	void selfConvertTo24Bits();
 	void selfConvertTo8Bits();
+	FIBITMAP * ConvertToRGBF();
 	FIBITMAP * ConvertTo32Bits();
 	FIBITMAP * ConvertTo8Bits();
 	FIBITMAP * ConvertTo24Bits();
@@ -282,6 +289,11 @@ FIBITMAP * MaxFreeImage::getBitmap() {
 	return bitmap;
 }
 
+BYTE * MaxFreeImage::GetScanline(int line) {
+	return FreeImage_GetScanLine(bitmap,line);
+}
+
+
 unsigned MaxFreeImage::GetWidth() {
 	return FreeImage_GetWidth(bitmap);
 }
@@ -337,6 +349,10 @@ void MaxFreeImage::selfConvertTo8Bits() {
 	FIBITMAP * newbitmap = ConvertTo8Bits();
 	FreeImage_Unload(bitmap);
 	bitmap = newbitmap;
+}
+
+FIBITMAP * MaxFreeImage::ConvertToRGBF() {
+	return FreeImage_ConvertToRGBF(bitmap);
 }
 
 FIBITMAP * MaxFreeImage::ConvertTo32Bits() {
@@ -499,6 +515,11 @@ BYTE * bmx_freeimage_getImage(MaxFreeImage * freeimage) {
 	return freeimage->getImage();
 }
 
+BYTE * bmx_freeimage_GetScanline(MaxFreeImage * freeimage, int line) {
+	return freeimage->GetScanline(line);
+}
+
+
 unsigned bmx_freeimage_GetWidth(MaxFreeImage * freeimage) {
 	return freeimage->GetWidth();
 }
@@ -525,6 +546,10 @@ FIBITMAP * bmx_freeimage_Rescale(MaxFreeImage * freeimage, int width, int height
 
 void bmx_freeimage_setBitmap(MaxFreeImage * freeimage, FIBITMAP * newbitmap) {
 	freeimage->setBitmap(newbitmap);
+}
+
+FIBITMAP * bmx_freeimage_getBitmap(MaxFreeImage * freeimage) {
+	return freeimage->getBitmap();
 }
 
 FIBITMAP * bmx_freeimage_MakeThumbnail(MaxFreeImage * freeimage, int size) {
@@ -594,6 +619,11 @@ BOOL bmx_freeimage_Paste(MaxFreeImage * freeimage, MaxFreeImage * source, int x,
 FREE_IMAGE_COLOR_TYPE bmx_freeimage_GetColorType(MaxFreeImage * freeimage) {
 	return freeimage->GetColorType();
 }
+
+FIBITMAP * bmx_freeimage_convertToRGBF(MaxFreeImage * freeimage) {
+	return freeimage->ConvertToRGBF();
+}
+
 
 FIBITMAP * bmx_freeimage_convertTo32Bits(MaxFreeImage * freeimage) {
 	return freeimage->ConvertTo32Bits();

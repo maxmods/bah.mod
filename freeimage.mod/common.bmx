@@ -47,6 +47,9 @@ Extern
 	Function bmx_freeimage_loadImage(handle:Byte Ptr)
 	Function bmx_freeimage_getImage:Byte Ptr(handle:Byte Ptr)
 
+	Function bmx_freeimage_GetScanline:Byte Ptr(handle:Byte Ptr,scanline:Int)
+
+	
 	Function bmx_freeimage_GetWidth:Int(handle:Byte Ptr)
 	Function bmx_freeimage_GetHeight:Int(handle:Byte Ptr)
 	Function bmx_freeimage_GetBPP:Int(handle:Byte Ptr)
@@ -55,12 +58,14 @@ Extern
 	
 	Function bmx_freeimage_Rescale:Byte Ptr(handle:Byte Ptr, width:Int, height:Int, filter:Int)
 	Function bmx_freeimage_setBitmap(handle:Byte Ptr, bitmap:Byte Ptr)
+	Function bmx_freeimage_getBitmap:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_MakeThumbnail:Byte Ptr(handle:Byte Ptr, size:Int)
 
 	Function bmx_freeimage_self_convertTo32Bits(handle:Byte Ptr)
 	Function bmx_freeimage_self_convertTo24Bits(handle:Byte Ptr)
 	Function bmx_freeimage_self_convertTo8Bits(handle:Byte Ptr)
 	Function bmx_freeimage_isTransparent:Int(handle:Byte Ptr)
+	Function bmx_freeimage_convertToRGBF:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo32Bits:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo24Bits:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_convertTo8Bits:Byte Ptr(handle:Byte Ptr)
@@ -114,6 +119,15 @@ Extern
 	Function bmx_multifreeimage_movePage:Int(handle:Byte Ptr, source:Int, target:Int)
 	Function bmx_multifreeimage_close:Int(handle:Byte Ptr)
 	Function bmx_multifreeimage_delete(handle:Byte Ptr)
+
+
+	Function FreeImage_GetFIFCount:Int()
+	Function FreeImage_GetFIFExtensionList:Byte Ptr(fif:Int)
+	Function FreeImage_GetFIFDescription:Byte Ptr(fif:Int)
+	Function FreeImage_FIFSupportsReading:Int(fif:Int)
+	Function FreeImage_FIFSupportsWriting:Int(fif:Int)
+	Function FreeImage_GetFIFFromFilenameU:Int(filename:Short Ptr)
+	'Function FreeImage_SetPixelColor(dib:Byte Ptr, x:Int, y:Int, rgbquad:Byte Ptr)
 End Extern
 
 '?win32
@@ -160,6 +174,10 @@ Const FIF_GIF:Int = 25
 Const FIF_HDR:Int = 26
 Const FIF_FAXG3:Int = 27
 Const FIF_SGI:Int = 28
+Const FIF_EXR:Int = 29
+Const FIF_J2K:Int = 30
+Const FIF_JP2:Int = 31
+
 
 Const FILTER_BOX:Int = 0	' Box, pulse, Fourier window, 1st order (constant) b-spline
 Const FILTER_BICUBIC:Int = 1	' Mitchell & Netravali's two-param cubic filter
@@ -188,6 +206,17 @@ Const FIC_CMYK:Int = 5		' CMYK color model
 
 Const BMP_DEFAULT:Int = 0
 Const BMP_SAVE_RLE:Int = 1
+
+Const EXR_DEFAULT:Int = 0      ' save data as half with piz-based wavelet compression
+Const EXR_FLOAT:Int = $0001    ' save data as Float instead of as half (Not recommended)
+Const EXR_NONE:Int = $0002     ' save with no compression
+Const EXR_ZIP:Int = $0004      ' save with zlib compression, in blocks of 16 scan lines
+Const EXR_PIZ:Int = $0008      ' save with piz-based wavelet compression
+Const EXR_PXR24:Int = $0010    ' save with lossy 24-bit Float compression
+Const EXR_B44:Int = $0020      ' save with lossy 44% Float compression - goes To 22% when combined with EXR_LC
+Const EXR_LC:Int = $0040       ' save images with one luminance And two chroma channels, rather than as RGB (lossy compression)
+
+
 Const JPEG_DEFAULT:Int = 0
 Const JPEG_FAST:Int = $0001
 Const JPEG_ACCURATE:Int = $0002

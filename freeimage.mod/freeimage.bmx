@@ -25,12 +25,16 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Fixed problem with TIFF images not loading if there are more than 1 alpha channel in the image. (fredborg)"
+ModuleInfo "History: Added GetBitmap(), GetScanLine() and ConvertToRGBF() methods. (fredborg)"
+ModuleInfo "History: Added GetFormatFromFile(), GetLoadFormats() and GetSaveFormats() helper functions. (fredborg)"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to FreeImage 3.10.0. Adds OpenEXR and OpenJPG(2000) formats."
 ModuleInfo "History: Win32 now compiles as a module, rather than using a DLL :-)"
@@ -715,16 +719,27 @@ Type TFreeImage
 		
 	End Method
 	
+	Method getBitmap:Byte Ptr()
+		Return bmx_freeimage_getBitmap(freeImagePtr)
+	End Method
+
+	
 	Method setBitmap(bitmap:Byte Ptr)
 		bmx_freeimage_setBitmap(freeImagePtr, bitmap)
 	End Method
 	
 	Function error(format:Int, message:Byte Ptr)
 	
-		hasError = True
-		
-		Print "FreeImage : " + String.fromCString(message)
-	
+		Local t:String = String.fromCString(message)
+
+
+		If Not t.contains("Warning:") Then
+			hasError = True
+		End If
+
+
+		Print "FreeImage: " + t
+
 	End Function
 	
 	
@@ -782,6 +797,18 @@ Type TFreeImage
 	End Method
 	
 
+	Rem
+	bbdoc: Gets a memory pointer to the first pixel of a scanline.
+	about: For direct access to the freeimage pixel data, can be used to read or write raw data from the freeimage bitmap.
+	Make sure you know the pixel format of the bitmap before using it.
+	End Rem
+	Method GetScanline:Byte Ptr(scanline:Int)
+	
+		Return bmx_freeimage_GetScanline(freeImagePtr,scanline)
+		
+	End Method
+
+	
 	Rem
 	bbdoc: Resamples the image to the desired destination @width and @height using the specified @filter.
 	about: The following filters can be used for resampling :
@@ -988,6 +1015,15 @@ Type TFreeImage
 	End Method
 
 	Rem
+	bbdoc: Converts an image to RGBF (RGB 32Bit Float).
+	returns: The converted image.
+	End Rem
+	Method convertToRGBF:TFreeImage()
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_ConvertToRGBF(freeImagePtr))
+	End Method
+
+	
+	Rem
 	bbdoc: Quantizes a high-color 24-bit bitmap to an 8-bit palette color bitmap.
 	returns: The converted image.
 	about: @quantize specifies the color reduction algorithm to be used:
@@ -1146,6 +1182,72 @@ Type TFreeImage
 	
 End Type
 
+
+Rem
+bbdoc: Returns the format type for the given filename
+End Rem
+Function GetFormatFromFile:Int(filename:String)
+
+	Local file:Short Ptr = filename.ToWString()
+	Local fif:Int = FreeImage_GetFIFFromFilenameU(file)
+	MemFree file
+	Return fif
+
+End Function
+
+
+Rem
+bbdoc: Returns a String of all loadable formats, in a file selector friendly style.
+End Rem
+Function GetLoadFormats:String()
+
+	Local all:String = "All formats:"
+	Local out:String
+
+	Local fifcount:Int = FreeImage_GetFIFCount()
+	For Local fif:Int = 0 Until fifcount
+		If FreeImage_FIFSupportsReading(fif)
+			Local ext:Byte Ptr = FreeImage_GetFIFExtensionList(fif)
+			Local desc:Byte Ptr = FreeImage_GetFIFDescription(fif)
+			Local tempext:String = String.FromCString(ext)
+			If tempext.find(",")=>0
+				tempext = tempext[..tempext.find(",")]
+			EndIf
+			all :+ String.FromCString(ext)+","
+			out :+ String.FromCString(desc)+" (*."+tempext+"):"+String.FromCString(ext)+";"
+		EndIf
+	Next
+	
+	Return all+";"+out
+		
+End Function
+
+
+Rem
+bbdoc: Returns a String of all saveable formats, in a file selector friendly style.
+End Rem
+Function GetSaveFormats:String()
+
+	Local all:String = "All formats:"
+	Local out:String
+
+	Local fifcount:Int = FreeImage_GetFIFCount()
+	For Local fif:Int = 0 Until fifcount
+		If FreeImage_FIFSupportsWriting(fif)
+			Local ext:Byte Ptr = FreeImage_GetFIFExtensionList(fif)
+			Local desc:Byte Ptr = FreeImage_GetFIFDescription(fif)
+			Local tempext:String = String.FromCString(ext)
+			If tempext.find(",")=>0
+				tempext = tempext[..tempext.find(",")]
+			EndIf
+			all :+ String.FromCString(ext)+","
+			out :+ String.FromCString(desc)+" (*."+tempext+"):"+String.FromCString(ext)+";"
+		EndIf
+	Next
+	
+	Return out
+	
+End Function
 
 
 
