@@ -1,0 +1,35 @@
+<html><head><title>Guide - XML</title>
+<link rel=stylesheet Type=text/css href='../../../../doc/bmxstyle.css'>
+</head><body>
+<h2>Guide - XML</h2>
+<p>XML is a standard for
+markup-based structured documents. Here is <a name="example" id="example"></a>an example XML
+document:</p><pre>&lt;?xml version="1.0"?&gt;
+
+&lt;EXAMPLE prop1="gnome is great" prop2="&amp;amp; linux too"&gt;
+  &lt;head&gt;
+   &lt;title&gt;Welcome to Gnome&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;chapter&gt;
+
+   &lt;title&gt;The Linux adventure&lt;/title&gt;
+   &lt;p&gt;bla bla bla ...&lt;/p&gt;
+   &lt;image href="linus.gif"/&gt;
+   &lt;p&gt;...&lt;/p&gt;
+
+  &lt;/chapter&gt;
+&lt;/EXAMPLE&gt;</pre><p>The first line specifies that it is an XML document and gives useful
+information about its encoding.  Then the rest of the document is a text
+format whose structure is specified by tags between brackets. <strong>Each
+tag opened has to be closed</strong>. XML is pedantic about this. However, if
+a tag is empty (no content), a single tag can serve as both the opening and
+closing tag if it ends with <code>/&gt;</code> rather than with
+<code>&gt;</code>. Note that, for example, the image tag has no content (just
+an attribute) and is closed by ending the tag with <code>/&gt;</code>.</p><p>XML can be applied successfully to a wide range of tasks, ranging from
+long term structured document maintenance (where it follows the steps of
+SGML) to simple data encoding mechanisms like configuration file formatting
+(glade), spreadsheets (gnumeric), or even shorter lived documents such as
+WebDAV where it is used to encode remote calls between a client and a
+server.</p>
+</body>
+</html>

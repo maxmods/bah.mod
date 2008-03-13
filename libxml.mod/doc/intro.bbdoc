@@ -1,0 +1,27 @@
+<a href="http://xmlsoft.org"><img src="libxml2-logo.gif" align="right" border="0"/></a>
+<p>Libxml is the XML parser and toolkit developed for the Gnome project.<br>
+This is the BlitzMax implementation of the libxml library.</p>
+<p>XML itself is a metalanguage to design markup languages, i.e. text language where semantic and
+structure are added to the content using extra "markup" information enclosed between angle brackets.
+HTML is the most well-known markup language.</p>
+<p>Here are some key points about libxml:
+<ul>
+<li>Libxml exports Push (progressive) and Pull (blocking) type parser interfaces for both XML and HTML.</li>
+<li>Libxml can do DTD validation at parse time, using a parsed document instance, or with an arbitrary DTD.</li>
+<li>Libxml includes complete XPath, XPointer and XInclude implementations.</li>
+<li>Basic support for HTTP and FTP client allowing applications to fetch remote resources.</li>
+</ul>
+<h2>Guides</h2>
+The following are some pages that should help you gain a better understanding of XML and how to use it with
+the Libxml module. (written by Daniel Veillard and adapted for BlitzMax by Bruce Henderson)<br>
+<ul>
+<li><a href="guide_xml.html">XML</a></li>
+<li><a href="guide_valdtd.html">Validation &amp; DTDs</a></li>
+<li><a href="guide_namespaces.html">Namespaces</a></li>
+</ul>
+<h2>Tutorials</h2>
+<p>See the <a href="tutorial.html">Libxml Tutorial</a> for an introduction to using the libxml module.<br>
+And the <a href="textreader_tutorial.html">Libxml TxmlTextReader Tutorial</a> for a guide to using the TxmlTextReader API.</p>
+<h2>Examples</h2>
+<p>A quick example of creating an XML document from scratch : <a href="newxml_example.bmx">newxml_example.bmx</a>
+</p>

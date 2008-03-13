@@ -1,0 +1,637 @@
+<html>
+<head>
+<title>Libxml Tutorial</title>
+<link rel=stylesheet Type=text/css href='../../../../doc/bmxstyle.css'>
+</head>
+<body>
+<h1>Libxml Tutorial</h1>
+<a href="http://xmlsoft.org"><img src="libxml2-logo.gif" border="0" align="right"/></a>
+<p>This tutorial is based on the Libxml Tutorial by John Fleck ( &copy;2002, 2003 ), converted for BlitzMax by Bruce Henderson</p>
+<hr width="50%"/>
+<p><a name="contents"><b>Table of Contents</b></a></p>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+  <li><a href="#datatypes">Data Types</a></li>
+  <li><a href="#parsingfile">Parsing the file</a></li>
+  <li><a href="#retrievingcontent">Retrieving Element Content</a></li>
+  <li><a href="#usingxpath">Using XPath to Retrieve Element Content</a></li>
+  <li><a href="#writingcontent">Writing Element content</a></li>
+  <li><a href="#writingattribute">Writing Attribute</a></li>
+  <li><a href="#retrievingattribute">Retrieving Attributes</a></li>
+  <li>A. <a href="#sampledocument">Sample Document</a></li>
+  <li>B. <a href="#codeforkeyword">Code for Keyword Example</a></li>
+  <li>C. <a href="#codeforxpath">Code for XPath Example</a></li>
+  <li>D. <a href="#codeforaddkeyword">Code for Add Keyword Example</a></li>
+  <li>E. <a href="#codeforaddattribute">Code for Add Attribute Example</a></li>
+  <li>F. <a href="#codeforretrieveattribute">Code for Retrieving Attribute Value Example</a></li>
+</ul>
+<hr width="50%"/>
+<h2><a name="introduction"></a>Introduction</h2>
+<p> Libxml is a BlitzMax library implementing functions for reading, creating and manipulating XML data. This tutorial provides example code and explanations of its basic functionality. </p>
+<p> This tutorial is not meant to substitute for that complete documentation, but to illustrate the functions needed to use the library to perform basic operations. </p>
+<p> The tutorial is based on a simple XML application, the format includes metadata and the body of the article. </p>
+<p> The example code in this tutorial demonstrates how to: </p>
+<ul>
+  <li>Parse the document.</li>
+  <li>Extract the text within a specified element.</li>
+  <li>Add an element and its content.</li>
+  <li>Add an attribute.</li>
+  <li>Extract the value of an attribute.</li>
+</ul>
+<p>Full code for the examples is included in the appendices.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="datatypes"></a>Data Types</h2>
+<p> Libxml declares a number of data types we will encounter repeatedly, hiding the messy stuff so you do not have to deal with it unless you have some specific need. </p>
+<dl>
+  <dt><a href="commands.html#TxmlDoc">TxmlDoc</a></dt>
+  <dd> A structure containing the tree created by a parsed doc. </dd>
+  <dt><a href="commands.html#TxmlNode">TxmlNode</a></dt>
+  <dd> A structure containing a single node. </dd>
+</dl>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="parsingfile"></a>Parsing the file</h2>
+<p> Parsing the file requires only the name of the file and a single function call,
+  plus error checking.
+  Full code: <a href="#codeforkeyword" title="B. Code for Keyword Example">Appendix B, <i>Code for Keyword Example</i></a> </p>
+<pre>
+	<a name="declaredoc"></a><img src="images/1.png" alt="1" border="0"> Local doc:TxmlDoc
+	<a name="declarenode"></a><img src="images/2.png" alt="2" border="0"> Local node:TxmlNode
+
+	<a name="parsefile"></a><img src="images/3.png" alt="3" border="0"> doc = TxmlDoc.parseFile(docname)
+
+
+	<a name="checkparseerror"></a><img src="images/4.png" alt="4" border="0">If doc = Null Then
+		Print &quot;Document not parsed successfully.&quot;
+		Return
+	End If
+
+	<a name="getrootelement"></a><img src="images/5.png" alt="5" border="0"> node = doc.GetRootElement()
+	
+	<a name="checkemptyerror"></a><img src="images/6.png" alt="6" border="0">If node = Null Then
+		Print &quot;empty document&quot;
+		doc.free()
+		Return
+	End If
+
+
+	<a name="checkroottype"></a><img src="images/7.png" alt="7" border="0">If node.getName() = &quot;storyinfo&quot; Then
+		parseStory(doc, node)
+	End If</pre>
+<p> </p>
+<p><a href="#declaredoc"><img src="images/1.png" alt="1" border="0"></a> Declare the variable that will refer to your parsed document.</p>
+<p><a href="#declarenode"><img src="images/2.png" alt="2" border="0"></a> Declare a node variable (you'll need this in order to
+  interact with individual nodes).</p>
+<p><a href="#checkparseerror"><img src="images/4.png" alt="4" border="0"></a> Check to see that the document was successfully parsed. If it
+  was not, libxml will at this point register an error and stop. </p>
+<p><a href="#getrootelement"><img src="images/5.png" alt="5" border="0"></a> Retrieve the document's root element.</p>
+<p><a href="#checkemptyerror"><img src="images/6.png" alt="6" border="0"></a> Check to make sure the document actually contains something.</p>
+<p><a href="#checkroottype"><img src="images/7.png" alt="7" border="0"></a> In our case, we need to make sure the document is the right
+  type. "story" is the root type of the documents used in this tutorial.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="retrievingcontent"></a>Retrieving Element Content</h2>
+<p> Retrieving the content of an element involves traversing the document
+  tree until you find what you are looking for. In this case, we are looking
+  for an element called "keyword" contained within element called "story". The
+  process to find the node we are interested in involves tediously walking the
+  tree. We assume you already have an TxmlDoc called <tt>doc</tt> and an TxmlNode called <tt>node</tt>.</p>
+<pre>
+	<a name="getchildnode"></a><img src="images/1.png" alt="1" border="0">Local nodeList:TList = node.getChildren()
+	<a name="huntstoryinfo"></a><img src="images/2.png" alt="2" border="0">Foreach node = EachIn nodeList
+			If node.getName() = "storyinfo" Then
+				parseStory(doc, cur)
+			End If
+	Next
+      </pre>
+<p><img src="images/1.png" alt="1" border="0"></a> Get list of the child nodes of <tt>node</tt>. At this
+  point, <tt>node</tt> points at the document root, which is
+  the element "story".</p>
+<p><a href="#huntstoryinfo"><img src="images/2.png" alt="2" border="0"></a> This loop iterates through the elements that are children of
+  "story", looking for one called "storyinfo". That
+  is the element that will contain the "keywords" we are
+  looking for. Once found, it calls the function <tt>parseStory</tt>.</p>
+<p><br/>
+</p>
+<pre>
+Function parseStory(doc:TxmlDoc, node:TxmlNode)
+
+	Local key:String
+	<a name="anothergetchild"></a><img src="images/1.png" alt="1" border="0">Local children:TList = node.getChildren()
+	
+	<a name="findkeyword"></a><img src="images/2.png" alt="2" border="0">For node = EachIn children
+		If node.getName() = "keyword" Then
+	<a name="foundkeyword"></a><img src="images/3.png" alt="3" border="0">		key = node.getText()
+			Print "keyword: " + key
+		End If
+	Next
+	Return
+End Function
+      </pre>
+<p> </p>
+<p><a href="#anothergetchild"><img src="images/1.png" alt="1" border="0"></a> Again we get thelist of child nodes.</p>
+<p><a href="#findkeyword"><img src="images/2.png" alt="2" border="0"></a> Like the loop above, we then iterate through the nodes, looking
+  for one that matches the element we're interested in, in this case
+  "keyword".</p>
+<p><a href="#foundkeyword"><img src="images/3.png" alt="3" border="0"></a> When we find the "keyword" element, we need to print
+  its contents. Remember that in XML, the text
+  contained within an element is a child node of that element, so we
+  turn to <tt>node.getText()</tt> to retrieve it, which iterates through the child nodes returning all text elements. In this case, we just print it out.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="usingxpath"></a>Using XPath to Retrieve Element Content</h2>
+Libxml includes support for
+      use of XPath expressions to retrieve sets of
+      nodes that match a specified criteria. 
+<p>XPath allows searching through a document
+  for nodes that match specified criteria. In the example below we search
+  through a document for the contents of all <tt class="varname">keyword</tt> elements. </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+  <table border="0" summary="Note">
+    <tr>
+      <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td>
+      <th align="left">Note</th>
+    </tr>
+    <tr>
+      <td colspan="2" align="left" valign="top"><p>A full discussion of <span class="application">XPath</span> is beyond
+          the scope of this document. For details on its use, see the <a href="http://www.w3.org/TR/xpath" target="_top">XPath specification</a>.</p></td>
+    </tr>
+  </table>
+</div>
+<p> Full code for this example is at <a href="#codeforxpath" title="C. Code for XPath Example">Appendix C, <i>Code for XPath Example</i></a>. </p>
+<p>Using <span class="application">XPath</span> requires setting up an
+  xmlXPathContext and then supplying the <span class="application">XPath</span> expression and the context to the <tt class="function">xmlXPathEvalExpression</tt> function. The function returns
+  an xmlXPathObjectPtr, which includes the set of nodes satisfying the <span class="application">XPath</span> expression.</p>
+<pre>
+Function getnodeset:TxmlXPathObject(doc:TxmlDoc, xpath:String)
+	
+	<a name="cocontext"></a><img src="images/1.png" alt="1" border="0"> Local context:TxmlXPathContext
+ 	Local result:TxmlXPathObject
+
+	<a name="cocreatecontext"></a><img src="images/2.png" alt="2" border="0"> context = doc.newXPathContext()
+
+	<a name="corunxpath"></a><img src="images/3.png" alt="3" border="0"> result = context.evalExpression(xpath)
+	
+	<a name="cocheckxpathresult"></a><img src="images/4.png" alt="4" border="0"> If result.nodeSetIsEmpty() Then
+		result.free()
+ 		Print "No result"
+		Return Null
+      </pre>
+<p><a href="#cocontext"><img src="images/1.png" alt="1" border="0"></a> First we declare our variables.</p>
+<p><a href="#cocreatecontext"><img src="images/2.png" alt="2" border="0"></a> Initialize the <tt>context</tt> variable.</p>
+<p><a href="#corunxpath"><img src="images/3.png" alt="3" border="0"></a> Apply the XPath expression.</p>
+<p><a href="#cocheckxpathresult"><img src="images/4.png" alt="4" border="0"></a> Check the result and free the memory allocated to <tt>result</tt> if no result is found.</p>
+<p> </p>
+<p>The TxmlXPathObject returned by the function contains a set of nodes
+  and other information needed to iterate through the set and act on the
+  results. For this example, our function returns the <tt>TxmlXPathObject</tt>. We use it to print the contents of <tt>keyword</tt> nodes in our document. The node set object
+  includes the number of elements in the set (<tt>getNodeCount()</tt>) and
+  an array of nodes (<tt>getNodeList()</tt>): </p>
+<pre>
+<a name="conodesetcounter"></a><img src="images/1.png" alt="1" border="0"> For Local node:TxmlNode = EachIn nodeset.getNodeList()
+
+		<a name="coprintkeywords"></a><img src="images/2.png" alt="2" border="0"> Local keyword:String = node.getText()
+		Print "keyword: " + keyword
+	Next
+      </pre>
+<p><a href="#conodesetcounter"><img src="images/1.png" alt="1" border="0"></a> Here we use getNodeList()  to iterate through the array of nodes.</p>
+<p><a href="#coprintkeywords"><img src="images/2.png" alt="2" border="0"></a> Here we print the contents of each of the nodes returned. </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+  <table border="0" summary="Note">
+    <tr>
+      <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td>
+      <th align="left">Note</th>
+    </tr>
+    <tr>
+      <td colspan="2" align="left" valign="top"><p>Note that we are printing the child node of the node that is
+          returned, because the contents of the <tt>keyword</tt> element are a child text node.</p></td>
+    </tr>
+  </table>
+</div>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="writingcontent"></a>Writing Element Content </h2>
+Writing element content uses many of the same steps we used above
+      - parsing the document and walking the tree. We parse the document,
+      then traverse the tree to find the place we want to insert our element. For
+      this example, we want to again find the "storyinfo" element and
+      this time insert a keyword. Then we'll write the file contents to the console. Full code: <a href="#codeforaddkeyword" title="D. Code for Add Keyword Example">Appendix D, <i>Code for Add Keyword Example</i></a>
+</p>
+<p> The main difference in this example is in <tt>parseStory</tt>: </p>
+<pre>
+Function parseStory (node:TxmlNode, keyword:String)
+
+	<a name="addkeyword"></a><img src="images/1.png" alt="1" border="0"> node.addTextChild("keyword", Null, keyword)
+End Function
+      </pre>
+<p><a href="#addkeyword"><img src="images/1.png" alt="1" border="0"></a> The <tt>addTextChild</tt> method adds a new child element at the
+  current node's location in the
+  tree, specified by <tt>cur</tt>.</p>
+<p> </p>
+<p>Once the node has been added, we would like to write the document to
+  the console. If you want the element to have a namespace, you can add it here as
+  well. In our case, the namespace is Null. </p>
+<pre>
+	doc.saveFormatFile("-", True)
+      </pre>
+<p> The first parameter is the name of the file to be written. You'll notice
+  it is "-". In this case, we are specifying we want to display the contents of the file on the console, rather than write it out to an actual physical file. Setting the second parameter to True ensures indenting on output.
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="writingattribute"></a>Writing Attribute </h2>
+<p>Writing an attribute is similar to writing text to a new element. In
+  this case, we'll add a reference <span class="acronym">URI</span> to our
+  document. Full code: <a href="#codeforaddattribute" title="E. Code for Add Attribute Example">Appendix E, <i>Code for Add Attribute Example</i></a>.</p>
+<p> A <tt class="sgmltag-element">reference</tt> is a child of the <tt class="sgmltag-element">story</tt> element, so finding the place to put our new element and attribute is
+  simple. As soon as we do the error-checking test in our <tt class="function">parseDoc</tt>, we are in the right spot to add our
+  element. But before we do that, we need to make a declaration using a
+  data type we have not seen yet: </p>
+<pre>
+	Local newattr:TxmlAttribute
+      </pre>
+<p> We also need an extra TxmlNode: </p>
+<pre class="programlisting">
+	Local newnode:TxmlNode
+      </pre>
+<p> The rest of <tt>parseDoc</tt> is the same as before until we
+  check to see if our root element is <tt>story</tt>. If it is,
+  then we know we are at the right spot to add our element: </p>
+<pre>
+	<a name="addreferencenode"></a><img src="images/1.png" alt="1" border="0"> newnode = node.addTextChild("reference", Null, Null)
+	<a name="addattributenode"></a><img src="images/2.png" alt="2" border="0"> newattr = newnode.addAttribute("uri", uri)	
+      </pre>
+<p><a href="#addreferencenode"><img src="images/1.png" alt="1" border="0"></a> First we add a new node at the location of the current node
+  pointer, <tt>node</tt>, using the <a href="commands.html#addTextChild" target="_top">addTextChild</a> function.</p>
+<p><a href="#addattributenode"><img src="images/2.png" alt="1" border="0"></a> Next we add a new attribute to the new node, using the <a href="commands.html#addAttribute" target="_top">addAttribute</a> function.</p>
+<p> </p>
+<p>Once the node is added, the file is written to the console just as in the
+  previous example in which we added an element with text content.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="retrievingattribute"></a>Retrieving Attributes </h2>
+<p>Retrieving the value of an attribute is similar to the previous
+  example in which we retrieved a node's text contents. In this case we'll
+  extract the value of the URI we added in the previous
+  section. Full code: <a href="#codeforretrieveattribute" title="F. Code for Retrieving Attribute Value Example">Appendix F, <i>Code for Retrieving Attribute Value Example</i></a>.</p>
+<p> The initial steps for this example are similar to the previous ones: parse
+  the doc, find the element you are interested in, then enter a function to
+  carry out the specific task required. In this case, we call <tt>getReference</tt>: </p>
+<pre>
+Function getReference(doc:TxmlDoc, node:TxmlNode)
+
+	Local uri:String
+	
+	Local list:TList = node.getChildren()
+	For node = EachIn list
+		If node.getName() = "reference" Then
+		<a name="getattributevalue"></a><img src="images/1.png" alt="1" border="0"> uri = node.getAttribute("uri")
+			Print "uri: " + uri
+		End If
+	Next
+End Function
+      </pre>
+<p><a href="#getattributevalue"><img src="images/1.png" alt="1" border="0"></a> The key function is <tt class="function"><a href="commands.html#getAttribute" target="_top">addAttribute</a></tt>, which returns an <tt>String</tt> containing the attribute's value. In this case,
+      we just print it out. </p>
+    <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+      <table border="0" summary="Note">
+        <tr>
+          <td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td>
+          <th align="left">Note</th>
+        </tr>
+        <tr>
+          <td colspan="2" align="left" valign="top"><p> If you are using a <span class="acronym">DTD</span> that declares a fixed or
+              default value for the attribute, this function will retrieve it. </p></td>
+        </tr>
+      </table>
+    </div>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="sampledocument"></a>A. Sample Document</h2>
+    <pre>
+&lt;?xml version="1.0"?&gt;
+&lt;story&gt;
+  &lt;storyinfo&gt;
+    &lt;author&gt;John Fleck&lt;/author&gt;
+
+    &lt;datewritten&gt;June 2, 2002&lt;/datewritten&gt;
+    &lt;keyword&gt;example keyword&lt;/keyword&gt;
+  &lt;/storyinfo&gt;
+  &lt;body&gt;
+    &lt;headline&gt;This is the headline&lt;/headline&gt;
+
+    &lt;para&gt;This is the body text.&lt;/para&gt;
+  &lt;/body&gt;
+&lt;/story&gt;
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="codeforkeyword"></a>B. Code for Keyword Example</h2>
+    <p>You can open the source <a href="keyword.bmx">here</a>.</p>
+    <pre>
+SuperStrict
+
+Import BaH.Libxml
+
+Local docname:String = "sample.xml"
+parseDoc(docname)
+
+
+Function parseStory(doc:TxmlDoc, node:TxmlNode)
+
+	Local key:String
+	Local children:TList = node.getChildren()
+	
+	For node = EachIn children
+		If node.getName() = "keyword" Then
+			key = node.getText()
+			Print "keyword: " + key
+		End If
+	Next
+	Return
+End Function
+
+Function parseDoc(docname:String)
+
+	Local doc:TxmlDoc
+	Local node:TxmlNode
+	
+	doc = TxmlDoc.parseFile(docname)
+	
+	If doc = Null Then
+		Print "Document not parsed successfully."
+		Return
+	End If
+	
+	node = doc.GetRootElement()
+	
+	If node = Null Then
+		Print "empty document"
+		doc.free()
+		Return
+	End If
+	
+	If node.getName() <> "story"
+		Print "document of the wrong type, root node <> story"
+		doc.free()
+		Return
+	End If
+	
+	Local children:TList = node.getChildren()
+	
+	For node = EachIn children
+		If node.getName() = "storyinfo" Then
+			parseStory(doc, node)
+		End If
+	Next
+	
+	doc.free()
+	Return
+End Function
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="codeforxpath"></a>C. Code for XPath Example</h2>
+    <p>You can open the source <a href="xpath.bmx">here</a>.</p>
+    <pre>
+SuperStrict
+
+Import BaH.Libxml
+
+Local docname:String = "sample.xml"
+Local doc:TxmlDoc
+
+Local xpath:String = "//keyword"
+Local nodeset:TxmlNodeSet
+Local result:TxmlXPathObject
+
+doc = getdoc(docname)
+If doc Then
+	result = getNodeSet(doc, xpath)
+	If result
+		nodeset = result.getNodeSet()
+
+		For Local node:TxmlNode = EachIn nodeset.getNodeList()
+
+			Local keyword:String = node.getText()
+			Print "keyword: " + keyword
+		Next
+		result.free()
+	End If
+	
+	doc.free()
+End If
+
+xmlCleanupParser()
+End
+
+
+Function getdoc:TxmlDoc(docname:String)
+	Local doc:TxmlDoc = TxmlDoc.parseFile(docname)
+	
+	If doc = Null Then
+		Print "Document not parsed successfully."
+		Return Null
+	End If
+
+	Return doc
+End Function
+
+
+Function getnodeset:TxmlXPathObject(doc:TxmlDoc, xpath:String)
+	
+	Local context:TxmlXPathContext
+ 	Local result:TxmlXPathObject
+
+	context = doc.newXPathContext()
+	If context = Null Then
+		Print "Error in newXPathContext"
+		Return Null
+	End If
+	result = context.evalExpression(xpath)
+	context.free()
+	
+	If result = Null Then
+		Print "Error in xmlXPathEvalExpression"
+		Return Null
+	End If
+	
+	If result.nodeSetIsEmpty() Then
+		result.free()
+ 		Print "No result"
+		Return Null
+	End If
+	Return result
+End Function
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="codeforaddkeyword"></a>D. Code for Add Keyword Example</h2>
+    <p>You can open the source <a href="addkeyword.bmx">here</a>.</p>
+    <pre>
+SuperStrict
+
+Import BaH.Libxml
+
+Local docname:String = "sample.xml"
+Local keyword:String = "Blitzmax"
+Local doc:TxmlDoc
+
+doc = parseDoc(docname, keyword)
+If doc <> Null Then
+	doc.saveFormatFile("-", False)
+	doc.free()
+End If
+
+Function parseStory(node:TxmlNode, keyword:String)
+	node.addTextChild("keyword", Null, keyword)
+End Function
+
+Function parseDoc:TxmlDoc(docname:String, keyword:String)
+
+	Local doc:TxmlDoc
+	Local node:TxmlNode
+	
+	doc = TxmlDoc.parseFile(docname)
+	
+	If doc = Null Then
+		Print "Document not parsed successfully."
+		Return Null
+	End If
+	
+	node = doc.getRootElement()
+	
+	If node = Null Then
+		Print "empty document"
+		doc.free()
+		Return Null
+	End If
+	
+	If node.getName() <> "story" Then
+		Print "document of the wrong type, root node <> story"
+		doc.free()
+		Return Null
+	End If
+	
+	Local nodelist:TList = node.getChildren()
+	For node = EachIn nodelist
+		If node.getName() = "storyinfo" Then
+			parseStory(node, keyword)
+		End If
+	Next
+	
+	Return doc
+End Function
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="codeforaddattribute"></a>E. Code for Add Attribute Example</h2>
+    <p>You can open the source <a href="addattribute.bmx">here</a>.</p>
+    <pre>
+SuperStrict
+
+Import BaH.Libxml
+
+Local docname:String = "sample.xml"
+Local uri:String = "http://blitzmax.com"
+Local doc:TxmlDoc
+
+doc = parseDoc(docname, uri)
+If doc <> Null Then
+	doc.saveFormatFile("-", True)
+	doc.free()
+End If
+
+
+Function parseDoc:TxmlDoc(docname:String, uri:String)
+
+        Local doc:TxmlDoc
+        Local node:TxmlNode
+        Local newnode:TxmlNode
+        Local newattr:TxmlAttribute
+
+        doc = TxmlDoc.parseFile(docname)
+        
+        If doc = Null Then
+                Print "Document not parsed successfully."
+                Return Null
+        End If
+        
+        node = doc.getRootElement()
+        
+        If node = Null Then
+                Print "empty document"
+                doc.free()
+                Return Null
+        End If
+        
+        If node.getName() <> "story" Then
+                Print "document of the wrong type, root node <> story"
+                doc.free()
+                Return Null
+        End If
+        
+        newnode = node.addTextChild("reference", Null, Null)
+        newattr = newnode.addAttribute("uri", uri)
+        Return doc
+End Function
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+    <h2><a name="codeforretrieveattribute"></a>F. Code for Retrieving Attribute Value Example</h2>
+    <p>You can open the source <a href="getattribute.bmx">here</a>.</p>
+    <pre>
+SuperStrict
+
+Import BaH.Libxml
+
+Local docname:String = "sampleuri.xml"
+parseDoc(docname)
+
+Function getReference(doc:TxmlDoc, node:TxmlNode)
+
+	Local uri:String
+	
+	Local list:TList = node.getChildren()
+	For node = EachIn list
+		If node.getName() = "reference" Then
+			uri = node.getAttribute("uri")
+			Print "uri: " + uri
+		End If
+	Next
+End Function
+
+Function parseDoc(docname:String)
+
+        Local doc:TxmlDoc
+        Local node:TxmlNode
+
+        doc = TxmlDoc.parseFile(docname)
+        
+        If doc = Null Then
+                Print "Document not parsed successfully."
+                Return
+        End If
+        
+        node = doc.getRootElement()
+        
+        If node = Null Then
+                Print "empty document"
+                doc.free()
+                Return
+        End If
+        
+        If node.getName() <> "story" Then
+                Print "document of the wrong type, root node <> story"
+                doc.free()
+                Return
+        End If
+        
+        getReference(doc, node)
+        doc.free()
+End Function
+</pre>
+    <p align="right"><a href="#contents">Table of Contents</a></p>
+    <hr width="50%"/>
+</body>
+</html>

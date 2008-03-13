@@ -1,0 +1,379 @@
+<html>
+<head>
+<title>Libxml Tutorial</title>
+<link rel=stylesheet Type=text/css href='../../../../doc/bmxstyle.css'>
+</head>
+<body>
+<h1>Libxml TxmlTextReader Tutorial</h1>
+<a href="http://xmlsoft.org"><img src="libxml2-logo.gif" border="0" align="right"/></a>
+<p>This tutorial is based on the Libxml2 TextReaderTutorial by Daniel Veillard, converted for BlitzMax by Bruce Henderson.</p>
+<p>This tutorial will present the key points of this API, and some working
+examples to help you get started.</p>
+<hr width="50%"/>
+<p><a name="contents"><strong>Table of Contents</strong></a></p>
+
+<ul>
+  <li><a href="#introduction">Introduction: The API</a></li>
+  <li><a href="#walking">Walking a Simple Tree</a></li>
+  <li><a href="#extracting">Extracting Information for the Current Node</a></li>
+  <li><a href="#extracting1">Extracting Information for the Attributes</a></li>
+  <li><a href="#validating">Validating a Document</a></li>
+  <li><a href="#entities">Entities Substitution</a></li>
+  <li><a href="#L1142">Relax-NG Validation</a></li>
+  <li><a href="#mixing">Mixing the Reader and Tree or XPath Operations</a></li>
+</ul>
+<hr width="50%"/>
+<h2><a name="introduction"></a>Introduction : The API</h2>
+<p>In Libxml, the main API is tree based, where the parsing operation results in a <a href="commands.html#TxmlDoc">document</a> loaded  completely in memory, and expose it as a tree of <a href="commands.html#TxmlNode">nodes</a> all available at the  same time. This is very simple and quite powerful, but has the major  limitation that the size of the document that can be hamdled is limited by  the size of the memory available. Libxml also provide a SAX based API, but that version was  designed upon one of the early expat version of SAX, SAX is  also not formally defined for C. SAX basically work by registering callbacks  which are called directly by the parser as it progresses through the document  streams. The problem is that this programming model is relatively complex,  not well standardized, cannot provide validation directly, makes entity,  namespace and base processing relatively hard.</p>
+<p>The TxmlTextReader API acts as a  cursor going forward on the document stream and stopping at each node in the  way. The user's code keeps control of the progress and simply calls a  Read() method repeatedly to progress to each node in sequence in document  order. There is direct support for namespaces, xml:base, entity handling and  adding DTD validation on top of it was relatively simple. This API is really  close to the <a href="http://www.w3.org/TR/DOM-Level-2-Core/">DOM Core  specification</a>. This provides a far more standard, easy to use and powerful  API than the existing SAX. Moreover integrating extension features based on  the tree seems relatively easy.</p>
+<p>In a nutshell the TxmlTextReader API provides a simpler, more standard and  more extensible interface to handle large documents than the existing SAX  version.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="walking"></a>Walking a Simple Tree</h2>
+<p>Basically the TxmlTextReader API is a forward only tree walking interface. The basic steps are:</p>
+<ol>
+  <li>Prepare a reader context operating on some input<br>
+  </li>
+  <li>Run a loop iterating over all nodes in the document<br>
+  </li>
+  <li>Free up the reader context</li>
+</ol>
+<p>Here is a basic sample doing this:</p>
+<pre>
+
+Function processNode(reader:TxmlTextReader)
+    ' handling of a node in the tree
+End Function
+
+Function streamFile:Int(filename:String)
+    Local reader:TxmlTextReader
+    Local ret:Int
+
+    reader = TxmlTextReader.fromFile(filename)
+    If reader <> Null Then
+        ret = reader.read()
+        While ret = 1
+            processNode(reader)
+            ret = reader.read()
+        Wend
+        reader.free()
+        If ret <> 0 Then
+            Print filename + " : failed to parse"
+        End If
+    Else
+        Print "Unable to open " + filename
+    End If
+End Function
+</pre>
+<p>A few things to notice:</p>
+<ul>
+  <li>the creation of the reader using a filename<br>
+  </li>
+  <li> 	the repeated call to read() and how any return value  different from 1 should stop the loop<br>
+  </li>
+  <li> 	that a negative return means a parsing error  </li>
+  <li> 	how free() should be used to free up the resources used by  the reader.</li>
+</ul>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="extracting"></a>Extracting Information for the Current Node</h2>
+<p>So far the example code did not indicate how information was extracted
+from the reader. It was abstrated as a call to the processNode() routine,
+with the reader as the argument. At each invocation, the parser is stopped on
+a given node and the reader can be used to query the node properties. Each
+<em>Property</em> is available  as a function taking its name. Here follows a list of the properties and methods :</p>
+<table width="80%" border="0" align="center" cellspacing="5">
+  <tr>
+    <td width="30%"><a href="commands.html#nodeType">nodeType</a>()</td>
+    <td><p>The node type:<br>
+      1 - start element<br>
+      15 - end of
+        element<br>
+        2 - attributes<br>
+        3 - text nodes<br>
+        4 - CData sections<br>
+        5 -
+        entity references<br>
+        6 - entity declarations<br>
+        7 - PIs<br>
+        8 - comments<br>
+        9 - the document nodes<br>
+        10 - DTD/Doctype nodes<br>
+        11 - document
+    fragment<br>
+    12 - notation nodes</p>    </td>
+  </tr>
+  <tr>
+    <td><a href="commands.html#name">name</a>()</td>
+    <td>the <a
+    href="http://www.w3.org/TR/REC-xml-names/#ns-qualnames">qualified
+    name</a> of the node, equal to (<em>Prefix</em>:)<em>LocalName</em>.</td>
+  </tr>
+  <tr>
+    <td><a href="commands.html#localName">localName</a>()</td>
+    <td>the <a
+    href="http://www.w3.org/TR/REC-xml-names/#NT-LocalPart">local name</a> of
+    the node.</td>
+  </tr>
+  <tr>
+    <td><a href="commands.html#prefix">prefix</a>()</td>
+    <td>a  shorthand reference to the <a
+    href="http://www.w3.org/TR/REC-xml-names/">namespace</a> associated with
+    the node.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#namespaceUri">namespaceUri</a></em>()</td>
+    <td>the URI defining the <a
+    href="http://www.w3.org/TR/REC-xml-names/">namespace</a> associated with
+    the node.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#baseUri">baseUri</a></em>()</td>
+    <td>the base URI of the node. See the <a
+    href="http://www.w3.org/TR/xmlbase/">XML Base W3C specification</a>.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#depth">depth</a></em>()</td>
+    <td>the depth of the node in the tree, starts at 0 for the
+    root node.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#hasAttributes">hasAttributes</a></em>()</td>
+    <td>whether the node has attributes.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#hasValue">hasValue</a></em>()</td>
+    <td>whether the node can have a text value.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#value">value</a></em>()</td>
+    <td>provides the text value of the node if present.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#isDefault">isDefault</a></em>()</td>
+    <td>whether an Attribute  node was generated from the
+    default value defined in the DTD or schema.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#xmlLang">xmlLang</a></em>()</td>
+    <td>the <a
+    href="http://www.w3.org/TR/REC-xml#sec-lang-tag">xml:lang</a> scope
+    within which the node resides.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#isEmptyElement">isEmptyElement</a></em>()</td>
+    <td>check if the current node is empty, this is a
+    bit bizarre in the sense that <code>&lt;a/&gt;</code> will be considered
+    empty while <code>&lt;a&gt;&lt;/a&gt;</code> will not.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#attributeCount">attributeCount</a></em>()</td>
+    <td>provides the number of attributes of the
+    current node.</td>
+  </tr>
+</table>
+<p>Let's look first at a small example to get this in practice by redefining the processNode() function in the previous example:</p>
+<pre>
+Function processNode(reader)
+	Print reader.depth() + &quot; &quot; + reader.nodeType() + &quot; &quot; + ..
+		reader.name() + &quot; &quot; + reader.isEmptyElement()
+End Function
+</pre>
+<p>and look at the result of calling streamFile(&quot;tst.xml&quot;) for various content of the XML test file.</p>
+<p>For the minimal document &quot;&lt;doc/&gt;&quot; we get:</p>
+<pre>0 1 doc 1</pre>
+<p>Only one node is found, its depth is 0, type 1 indicate an element start, of name &quot;doc&quot; and it is empty. Trying now with &quot;&lt;doc&gt;&lt;/doc&gt;&quot; instead leads to:</p>
+<pre>
+0 1 doc 0
+0 15 doc 0</pre>
+<p>The document root node is not flagged as empty anymore and both a start and an end of element are detected. The following document shows how character data are reported:</p>
+<pre>
+&lt;doc&gt;&lt;a/&gt;&lt;b&gt;some text&lt;/b&gt;
+&lt;c/&gt;&lt;/doc&gt;
+</pre>
+<p>We modifying the processNode() function to also report the node Value:</p>
+<pre>
+Function processNode(reader)
+	Print reader.depth() + &quot; &quot; + reader.nodeType() + &quot; &quot; + ..
+		reader.name() + &quot; &quot; + reader.isEmptyElement() + &quot; &quot; + ..
+		reader.value()
+End Function
+</pre>
+<p>The result of the test is:</p>
+<pre>
+0 1 doc 0 
+1 1 a 1 
+1 1 b 0 
+2 3 #text 0 some text
+1 15 b 0 
+1 14 #text 0 
+
+1 1 c 1 
+0 15 doc 0  
+</pre>
+<p>There are a few things to note:</p>
+<ul>
+  <li> 	the increase of the depth value (first row) as children nodes are  explored<br>
+  </li>
+  <li> 	the text node child of the b element, of type 3 and its content<br>
+  </li>
+  <li> 	the text node containing the line return between elements b and c<br>
+  </li>
+  <li> 	that elements have the Value &quot;&quot; </li>
+</ul>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="extracting1"></a>Extracting Information for the Attributes</h2>
+<p>The previous examples don't indicate how attributes are processed. The
+simple test "<code>&lt;doc a="b"/&gt;</code>" provides the following
+result:</p>
+<pre>0 1 doc 1 </pre>
+
+<p>This proves that attribute nodes are not traversed by default. The
+  <a href="commands.html#hasAttributes">hasAttributes</a> property allow to detect their presence. To check
+their content the API has special instructions. Basically two kinds of operations
+are possible:</p>
+<ol>
+  <li>to move the reader to the attribute nodes of the current element, in
+    that case the cursor is positionned on the attribute node</li>
+  <li>to directly query the element node for the attribute value</li>
+</ol>
+
+<p>In both case the attribute can be designed either by its position in the
+list of attribute (<a href="commands.html#moveToAttributeByIndex">moveToAttributeByIndex</a> or <em><a href="commands.html#getAttributeByIndex">getAttributeByIndex</a></em>) or
+by their name (and namespace):</p>
+<table width="80%" border="0" align="center" cellspacing="5">
+  <tr>
+    <td width="30%"><em><a href="commands.html#getAttributeByIndex">getAttributeByIndex</a></em>(index)</td>
+    <td>provides the value of the attribute with
+    the specified index no relative to the containing element.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#getAttribute">getAttribute</a></em>(name)</td>
+    <td>provides the value of the attribute with
+    the specified qualified name.</td>
+  </tr>
+  <tr>
+    <td><a href="commands.html#getAttributeByNamespace"><em>getAttributeByNamespace</em></a>(localName, namespaceURI)</td>
+    <td>provides the value of the
+    attribute with the specified local name and namespace URI.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToAttributeByIndex">moveToAttributeByIndex</a></em>(no)</td>
+    <td>moves the position of the current
+    instance to the attribute with the specified index relative to the
+    containing element.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToAttribute">moveToAttribute</a></em>(name)</td>
+    <td>moves the position of the current
+    instance to the attribute with the specified qualified name.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToAttributeByNamespace">moveToAttributeByNamespace</a></em>(localName, namespaceURI)</td>
+    <td>moves the position
+    of the current instance to the attribute with the specified local name
+    and namespace URI.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToFirstAttribute">moveToFirstAttribute</a></em>()</td>
+    <td>moves the position of the current
+    instance to the first attribute associated with the current node.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToNextAttribute">moveToNextAttribute</a></em>()</td>
+    <td>moves the position of the current
+    instance to the next attribute associated with the current node.</td>
+  </tr>
+  <tr>
+    <td><em><a href="commands.html#moveToElement">moveToElement</a></em>()</td>
+    <td>moves the position of the current instance to
+    the node that contains the current Attribute  node.</td>
+  </tr>
+</table>
+<p>After modifying the processNode() function to show attributes:</p>
+<pre>
+0 1 doc 1 
+-- 1 2 (a) [b]
+</pre>
+<p>There are a couple of things to note on the attribute processing:</p>
+<ul>
+  <li>Their depth is the one of the carrying element plus one.<br>
+  </li>
+  <li>Namespace declarations are seen as attributes, as in DOM.</li>
+</ul>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="validating"></a>Validating a Document</h2>
+<p>Also included in the API is the ability to DTD validate the parsed document
+progressively. This is simply the activation of the associated feature of the
+parser used by the reader structure. There are a few options available
+defined as follows:</p>
+<table width="80%" border="0" align="center" cellspacing="5">
+  <tr>
+    <th width="30%" scope="col">Constant</th>
+    <th scope="col">Description</th>
+  </tr>
+  <tr>
+    <td>XML_PARSER_LOADDTD</td>
+    <td>force loading the DTD (without validating)</td>
+  </tr>
+  <tr>
+    <td>XML_PARSER_DEFAULTATTRS</td>
+    <td>force attribute defaulting (this also imply
+    loading the DTD)</td>
+  </tr>
+  <tr>
+    <td>XML_PARSER_VALIDATE</td>
+    <td>activate DTD validation (this also imply loading
+    the DTD)</td>
+  </tr>
+  <tr>
+    <td>XML_PARSER_SUBST_ENTITIES</td>
+    <td>substitute entities on the fly, entity
+    reference nodes are not generated and are replaced by their expanded
+    content.</td>
+  </tr>
+</table>
+<p>The <a href="commands.html#getParserProp">getParserProp</a>() and <a href="commands.html#setParserProp">setParserProp</a>() methods can then be used to get
+and set the values of those parser properties of the reader. For example</p>
+<pre>
+Function parseAndValidate(filename):
+	Local reader:TxmlTextReader = TxmlTextReader.fromFile(filename)
+	
+	reader.setParserProp(PARSER_VALIDATE, 1)
+	
+	ret = reader.read()
+	While ret = 1
+		ret = reader.read()
+	wend
+	If ret <> 0 Then
+		Print "Error parsing and validating " + filename
+	End If
+End Function
+</pre>
+<p>This routine will parse and validate the file.</p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="entities"></a>Entities Substitution</h2>
+<p>By default the TxmlTextReader will report entities as such and not replace them with their content. This default behaviour can however be overriden using:</p>
+<pre>reader.setParserProp(PARSER_SUBST_ENTITIES, 1)</pre>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="L1142"></a>Relax-NG Validation</h2>
+<p>Libxml can also validate the document being read using the TxmlTextReader using Relax-NG schemas. While the Relax NG validator can't always work in a streamable mode, only subsets which cannot be reduced to regular expressions need to have their subtree expanded for validation. In practice it means that, unless the schemas for the top level element content is not expressable as a regexp, only a chunk of the document needs to be parsed while validating.</p>
+<p>The steps to do so are:  </p>
+<ul>
+  <li>create a reader working on a document as usual<br>
+  </li>
+  <li>before any call to read associate it to a Relax NG schemas, either the  preparsed schemas or the URL to the schemas to use<br>
+  errors will be reported the usual way, and the validity status can be  obtained using the IsValid() interface of the reader like for DTDs.</li>
+</ul>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+<h2><a name="mixing"></a>Mixing the Reader and Tree or XPath Operations</h2>
+<p>While the reader is a streaming interface, its underlying implementation is based on the DOM builder of libxml. As a result it is relatively simple to mix operations based on both models under some constraints. To do so the reader has an <a href="commands.html#expand">expand</a>() operation allowing to grow the subtree under the current node. It returns a pointer to a standard node which can be manipulated in the usual ways. The node will get all its ancestors and the full subtree available. Usual operations like XPath queries can be used on that reduced view of the document. </p>
+<p align="right"><a href="#contents">Table of Contents</a></p>
+<hr width="50%"/>
+</body>
+</html>
