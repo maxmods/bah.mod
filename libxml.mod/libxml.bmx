@@ -33,7 +33,8 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
-ModuleInfo "History: Added TxmlDoc ToString()."
+ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
+ModuleInfo "History: setContent() now accepts empty string."
 ModuleInfo "History: 1.12"
 ModuleInfo "History: Improved error handling/capture."
 ModuleInfo "History: Fixed xmlGetLastError calling wrong api."
@@ -827,6 +828,18 @@ Type TxmlDoc Extends TxmlBase
 		buffer.free()
 		Return t
 	End Method
+
+	Rem
+	bbdoc: Returns a string representation of the document, optionally formatting the output.
+	End Rem
+	Method ToStringFormat:String(format:Int = False)
+		Local buffer:TxmlBuffer = TxmlBuffer.newBuffer()
+		Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createBuffer(buffer)
+		xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, format)
+		Local t:String = buffer.getContent()
+		buffer.free()
+		Return t
+	End Method
 	
 	Rem
 	bbdoc: Create a new #TxmlXPathContext
@@ -1561,8 +1574,6 @@ Type TxmlNode Extends TxmlBase
 	</ul>
 	End Rem
 	Method setContent(content:String)
-		Assert content, XML_ERROR_PARAM
-		
 		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(content).toCString()
 		xmlNodeSetContent(_xmlNodePtr, cStr)
 		MemFree cStr
