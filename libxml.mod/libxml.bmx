@@ -35,6 +35,7 @@ ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
 ModuleInfo "History: setContent() now accepts empty string."
+ModuleInfo "History: Added TxmlDoc SetEncoding() and SetStandalone() methods."
 ModuleInfo "History: 1.12"
 ModuleInfo "History: Improved error handling/capture."
 ModuleInfo "History: Fixed xmlGetLastError calling wrong api."
@@ -700,11 +701,32 @@ Type TxmlDoc Extends TxmlBase
 	End Method
 	
 	Rem
+	bbdoc: Sets the document encoding.
+	End Rem
+	Method setEncoding(encoding:String)
+		Local enc:Byte Ptr = Byte Ptr(Int Ptr(_xmlDocPtr + _encoding)[0])
+		If enc Then
+			xmlMemFree(enc)
+		End If
+		
+		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
+		Int Ptr(_xmlDocPtr + _encoding)[0] = Int(xmlStrdup(cStr))
+		MemFree(cStr)
+	End Method
+	
+	Rem
 	bbdoc: Is this document standalone?
 	returns: True if the document has no external refs.
 	End Rem
 	Method isStandalone:Int()
 		Return Int Ptr(_xmlDocPtr + _standalone)[0]
+	End Method
+	
+	Rem
+	bbdoc: Sets document to standalone (or not).
+	End Rem
+	Method setStandalone(value:Int)
+		Int Ptr(_xmlDocPtr + _standalone)[0] = value
 	End Method
 	
 	Rem

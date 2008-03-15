@@ -89,6 +89,7 @@ Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 
 	Function xmlMemFree(p:Byte Ptr)
+	Function xmlStrdup:Byte Ptr(s:Byte Ptr)
 	Function _xmlCleanupParser() = "xmlCleanupParser"
 
 	Function xmlNewDoc:Byte Ptr(vers:Byte Ptr)
