@@ -34,9 +34,9 @@ ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
 Import BaH.libxml
+Import BaH.RegEx
 Import BRL.LinkedList
 Import BRL.Map
-Import wx.wxFileName
 Import wx.wxZipOutputStream
 Import wx.wxZipEntry
 
@@ -775,15 +775,19 @@ Type TXLint
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A spreadsheet cell
 End Rem
 Type TXLCell
+
+	Global notNumExp:TRegEx = TRegEx.Create("[^0-9-,.]")
+	Global isNumExp:TRegEx = TRegEx.Create("^-[0-9,.]+$|^[0-9,.]+$")
 
 	Field doc:TXLDocument
 
 	Field row:Int
 	Field col:Int
 	Field value:String
+	Field formula:String
 
 	Method Create:TXLCell(row:Int, col:Int, doc:TXLDocument)
 		Self.row = row
@@ -793,7 +797,7 @@ Type TXLCell
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the value for this cell
 	End Rem
 	Method SetValue(value:String)
 		Self.value = value
@@ -802,16 +806,31 @@ Type TXLCell
 		End If
 	End Method
 	
+	Rem
+	bbdoc: Sets the formula for this cell
+	End Rem
+	Method SetFormula(formula:String)
+		Self.formula = formula
+	End Method
+	
 	Method Save(parent:TxmlNode)
 
 		Local cellNode:TxmlNode = parent.AddChild("c")
 		cellNode.SetAttribute("r", ColToLetter(col) + row)
 		
-		If ValueIsNumber() Then
+		If formula Then
+			AddFormula(cellNode)
 			
+			If value Then
+				AddValue(cellNode)
+			End If
 		Else
-			cellNode.SetAttribute("t", "s")
-			AddSharedString(cellNode)
+			If ValueIsNumber() Then
+				AddValue(cellNode)
+			Else
+				cellNode.SetAttribute("t", "s")
+				AddSharedString(cellNode)
+			End If
 		End If
 		
 	End Method
@@ -826,11 +845,25 @@ Type TXLCell
 		Local valueNode:TxmlNode = parent.AddChild("v")
 		valueNode.SetContent(doc.GetSharedStringId(value))
 	End Method
-	
-	Method ValueIsNumber:Int()
+
+	Method AddValue(parent:TxmlNode)
+		Local valueNode:TxmlNode = parent.AddChild("v")
+		valueNode.SetContent(value)
 	End Method
 
-	' converts a column index into letters.. eg.  A, AB, AZ etc
+	Method AddFormula(parent:TxmlNode)
+		Local formNode:TxmlNode = parent.AddChild("f")
+		formNode.SetContent(formula)
+	End Method
+	
+	Method ValueIsNumber:Int()
+		Return (Not notNumExp.Find(value) And isNumExp.Find(value))
+	End Method
+
+	Rem
+	bbdoc: Converts a column index into the standard spreadsheet letter representation.
+	about: For example, 10 converts to J, and 50 converts to AX.
+	End Rem
 	Function ColToLetter:String(col:Int)
 		Local s:String
 		Repeat
@@ -844,6 +877,13 @@ Type TXLCell
 	
 End Type
 
+Rem
+bbdoc: Converts row,col to the standard spreadsheet address of a cell.
+about: For example (4,5) converts to E4.
+End Rem
+Function XLCellAddress:String(row:Int, col:Int)
+	Return TXLCell.ColToLetter(col) + row
+End Function
 
 
 
