@@ -9,23 +9,25 @@ Type MyApp Extends wxApp
 
 	Method OnInit:Int()
 	
+		Local items:String[] = ["Item A", "Item B", "Item C", "Item D", "Item E"]
+		Local amounts:Int[] = [9, 8, 7, 6, 5]
+		Local prices:Float[] = [6.99, 5.50, 10.0, 25.99, 15.0]
+	
 		Local doc:TXLDocument = New TXLDocument.Create()
 		
 		Local sheet:TXLWorksheet = doc.Workbook().AddWorksheet("July 06")
 		
-		sheet.Cell(7, 1).SetValue("Alpha Hydroxy Toner Mild")
-		sheet.Cell(8, 1).SetValue("Alpha Hydroxy Toner Mild")
-		sheet.Cell(9, 1).SetValue("Aquatrol")
+		For Local i:Int = 0 Until items.length
+			Local row:Int = 3 + i
+			sheet.Cell(row, 1).SetValue(items[i])
+			sheet.Cell(row, 4).SetValue(prices[i])
+			sheet.Cell(row, 5).SetValue(amounts[i])
+			
+			sheet.Cell(row, 6).SetFormula(XLCellAddress(row,4) + "*" + XLCellAddress(row,5))
+		Next
 		
-		sheet.Cell(7, 4).SetValue(10.25)
-		sheet.Cell(7, 5).SetValue(5)
-		' dynamic cell addresses
-		sheet.Cell(7, 6).SetFormula(XLCellAddress(7,4) + "*" + XLCellAddress(7,5))
-
-		sheet.Cell(8, 4).SetValue(6.99)
-		sheet.Cell(8, 5).SetValue(7)
-		' hardcoded addresses
-		sheet.Cell(8, 6).SetFormula("D8*E8")
+		sheet.Cell(9, 5).SetValue("Total")
+		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
 		
 		doc.Save("example1")
 	

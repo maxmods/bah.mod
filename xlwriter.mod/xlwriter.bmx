@@ -48,6 +48,7 @@ Type TXLDocument
 	Field _workbook:TXLWorkbook
 	
 	Field sharedStrings:TMap = New TMap
+	Field styleManager:TXLStyleManager = New TXLStyleManager
 	Field stringsModified:Int = False
 	
 	' properties
@@ -610,7 +611,9 @@ Type TXLWorkbook
 	
 End Type
 
-
+Rem
+bbdoc: 
+End Rem
 Type TXLWorksheet
 
 	Field doc:TXLDocument
@@ -622,6 +625,7 @@ Type TXLWorksheet
 	Field relId:Int
 	
 	Field cells:TXLCellManager = New TXLCellManager
+	Field columns:TMap
 
 	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
 		id = ids + 1
@@ -637,6 +641,31 @@ Type TXLWorksheet
 	End Rem
 	Method Cell:TXLCell(row:Int, col:Int)
 		Return cells.GetCell(row, col, doc)
+	End Method
+	
+	Rem
+	bbdoc: Get a cell by its address (eg. B7)
+	End Rem
+	Method CellA:TWXCell(address:String)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Column:TXLColumn(col:Int)
+		If Not columns Then
+			columns = New TMap
+		End If
+		
+		Local colInd:TXLInt = TXLInt.Set(col)
+		Local c:TXLColumn = TXLColumn(columns.ValueForKey(colInd))
+		
+		If Not c Then
+			c = New TXLColumn.Create(col)
+			columns.Insert(colInd, c)
+		End If
+		
+		Return c
 	End Method
 
 	Method Save(dir:String, wbNode:TxmlNode, zip:wxZipOutputStream, stream:wxTextOutputStream)
@@ -655,6 +684,15 @@ Type TXLWorksheet
 		doc.SetRootElement(root)
 		
 		root.setAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+		
+		' do cols ?
+		If columns Then
+			Local colNode:TxmlNode = root.AddChild("cols")
+			For Local c:TXLColumn = EachIn columns.Values()
+				c.Save(colNode)
+			Next
+		End If
+		
 		
 		Local dataNode:TxmlNode = root.addChild("sheetData")
 		
@@ -696,6 +734,15 @@ Type TXLCellManager
 		
 	End Method
 	
+End Type
+
+Type TXLStyleManager
+
+	Field fonts:TMap
+	
+	Method GetFont:TXLFont()
+	End Method
+
 End Type
 
 Type TXLRow
@@ -751,6 +798,77 @@ Type TXLRow
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TXLColumn
+
+	Field index:Int
+	Field width:Float = -1
+	Field bestFit:Int = False
+	Field visible:Int = True
+	Field collapsed:Int = False
+
+	Method Create:TXLColumn(index:Int)
+		Self.index = index
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetWidth(width:Float)
+		Self.width = width
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetBestFit(bestFit:Int = True)
+		Self.bestFit = bestFit
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetVisible(visible:Int = True)
+		Self.visible = visible
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetCollapsed(collapsed:Int = True)
+		Self.collapsed = collapsed
+	End Method
+	
+	
+	Method Save(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("col")
+		node.SetAttribute("min", index)
+		node.SetAttribute("max", index)
+		
+		If width >= 0 Then
+			node.SetAttribute("width", width)
+			node.SetAttribute("customWidth", True)
+		End If
+		
+		If bestFit Then
+			node.SetAttribute("bestFit", True)
+		End If
+		
+		If Not visible Then
+			node.SetAttribute("hidden", True)
+		End If
+
+		If collapsed Then
+			node.SetAttribute("collapsed", True)
+		End If
+		
+	End Method
+	
+End Type
+
 Type TXLint
 
 	Field value:Int
@@ -788,7 +906,9 @@ Type TXLCell
 	Field col:Int
 	Field value:String
 	Field formula:String
-
+	
+	Field font:TXLFont
+	
 	Method Create:TXLCell(row:Int, col:Int, doc:TXLDocument)
 		Self.row = row
 		Self.col = col
@@ -811,6 +931,16 @@ Type TXLCell
 	End Rem
 	Method SetFormula(formula:String)
 		Self.formula = formula
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetFont:TXLFont()
+		If Not font Then
+			font = New TXLFont
+		End If
+		Return font
 	End Method
 	
 	Method Save(parent:TxmlNode)
@@ -874,6 +1004,94 @@ Type TXLCell
 		Until Not col
 		Return s
 	End Function
+	
+	Rem
+	bbdoc: Converts a column letter representation to an index value.
+	about: For example, J converts to 10, and AX converts to 50.
+	End Rem
+	Function LetterToCol:Int(letter:String)
+		Local n:Int
+		Local level:Int = 1
+		While letter
+			n:+ (letter[letter.length-1] - 64) * level
+			level:* 26
+			letter = letter[..letter.length-1]
+		Wend
+		Return n
+	End Function
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLFont
+
+	Field name:String = "Calibri"
+	Field size:Int = 10
+	Field bold:Int = False
+	Field italic:Int = False
+	Field underline:Int = 0
+	Field strikethrough:Int = False
+	Field color:String
+	
+	Field _key:String
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetName(name:String)
+		Self.name = name
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetSize(size:Int)
+		Self.size = size
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetBold(bold:Int = True)
+		Self.bold = bold
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetItalic(italic:Int = True)
+		Self.italic = italic
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetUnderline(underline:Int = True)
+		Self.underline = underline
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetStrikethrough(strikethrough:Int = True)
+		Self.strikethrough = strikethrough
+	End Method
+
+	Method Update()
+		_key = name + size + bold + italic + underline + strikethrough
+	End Method	
+	
+	Method Compare:Int(obj:Object)
+		If TXLFont(obj) Then
+			If _key < TXLFont(obj)._key Then
+				Return -1
+			Else If _key > TXLFont(obj)._key Then
+				Return 1
+			End If
+		End If
+	End Method
 	
 End Type
 
