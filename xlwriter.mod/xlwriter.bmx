@@ -646,7 +646,7 @@ Type TXLWorksheet
 	Rem
 	bbdoc: Get a cell by its address (eg. B7)
 	End Rem
-	Method CellA:TWXCell(address:String)
+	Method CellA:TXLCell(address:String)
 	End Method
 	
 	Rem
