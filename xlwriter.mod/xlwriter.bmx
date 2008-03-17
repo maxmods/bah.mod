@@ -52,7 +52,6 @@ Type TXLDocument
 	Field _workbook:TXLWorkbook
 	
 	Field sharedStrings:TMap = New TMap
-	Field styleManager:TXLStyleManager = New TXLStyleManager
 	Field stringsModified:Int = False
 	
 	' properties
@@ -688,6 +687,7 @@ Type TXLWorksheet
 	Field selected:Int
 	
 	Field cells:TXLCellManager = New TXLCellManager
+	Field styles:TXLStyleManager = New TXLStyleManager
 	Field columns:TMap
 
 	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
@@ -708,15 +708,28 @@ Type TXLWorksheet
 	bbdoc: 
 	End Rem
 	Method Cell:TXLCell(row:Int, col:Int)
-		Return cells.GetCell(row, col, doc)
+		Return cells.GetCell(row, col, Self)
 	End Method
 	
 	Rem
 	bbdoc: Get a cell by its address (eg. B7)
 	End Rem
-	Method CellA:TXLCell(address:String)
+	Method CellA:TXLCell(cell:String)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Style:TXLStyle(row:Int, col:Int)
+		Return styles.GetStyle(row, col)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method StyleA:TXLStyle(cell:String)
+	End Method
+		
 	Rem
 	bbdoc: 
 	End Rem
@@ -793,7 +806,7 @@ Type TXLCellManager
 	Field maxRow:Int = 0
 	Field maxCol:Int = 0
 
-	Method GetCell:TXLCell(row:Int, col:Int, doc:TXLDocument)
+	Method GetCell:TXLCell(row:Int, col:Int, sheet:TXLWorksheet)
 		If Not minRow Then
 			minRow = row
 			maxRow = row
@@ -817,7 +830,7 @@ Type TXLCellManager
 		minCol = Min(minCol, col)
 		maxCol = Max(maxCol, col)
 
-		Return xlRow.GetCell(col, doc)
+		Return xlRow.GetCell(col, sheet)
 	End Method
 	
 	Method Save(parent:TxmlNode)
@@ -843,11 +856,38 @@ End Type
 
 Type TXLStyleManager
 
-	Field fonts:TMap
+	Field styles:TMap = New TMap
 	
-	Method GetFont:TXLFont()
+	Method GetStyle:TXLStyle(row:Int, col:Int)
+		' get style
+		Local addr:String = XLCellAddress(row, col)
+		Local style:TXLStyle = TXLStyle(styles.ValueForKey(addr))
+
+		If Not style Then
+			style = New TXLStyle
+			styles.Insert(addr, style)
+		End If
+		
+		Return style
 	End Method
 
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLStyle
+
+	Field _font:TXLFont = New TXLFont
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Font:TXLFont()
+		Return _font
+	End Method
+
+		
 End Type
 
 Type TXLRow
@@ -855,7 +895,7 @@ Type TXLRow
 	Field row:Int
 	Field cells:TMap
 	
-	Method GetCell:TXLCell(col:Int, doc:TXLDocument)
+	Method GetCell:TXLCell(col:Int, sheet:TXLWorksheet)
 		If Not cells Then
 			cells = New TMap
 		End If
@@ -864,7 +904,7 @@ Type TXLRow
 		Local cell:TXLCell = TXLCell(cells.ValueForKey(tmpCol))
 		
 		If Not cell Then
-			cell = New TXLCell.Create(row, col, doc)
+			cell = New TXLCell.Create(row, col, sheet)
 			cells.Insert(tmpCol, cell)
 		End If
 		
@@ -1005,19 +1045,17 @@ Type TXLCell
 	Global notNumExp:TRegEx = TRegEx.Create("[^0-9-,.]")
 	Global isNumExp:TRegEx = TRegEx.Create("^-[0-9,.]+$|^[0-9,.]+$")
 
-	Field doc:TXLDocument
+	Field sheet:TXLWorksheet
 
 	Field row:Int
 	Field col:Int
 	Field value:String
 	Field formula:String
 	
-	Field font:TXLFont
-	
-	Method Create:TXLCell(row:Int, col:Int, doc:TXLDocument)
+	Method Create:TXLCell(row:Int, col:Int, sheet:TXLWorksheet)
 		Self.row = row
 		Self.col = col
-		Self.doc = doc
+		Self.sheet = sheet
 		Return Self
 	End Method
 
@@ -1027,7 +1065,7 @@ Type TXLCell
 	Method SetValue(value:String)
 		Self.value = value
 		If Not ValueIsNumber() Then
-			doc.SetSharedString(value)
+			sheet.doc.SetSharedString(value)
 		End If
 	End Method
 	
@@ -1041,11 +1079,8 @@ Type TXLCell
 	Rem
 	bbdoc: 
 	End Rem
-	Method GetFont:TXLFont()
-		If Not font Then
-			font = New TXLFont
-		End If
-		Return font
+	Method GetStyle:TXLStyle()
+		Return sheet.Style(row, col)
 	End Method
 	
 	Method Save(parent:TxmlNode)
@@ -1078,7 +1113,7 @@ Type TXLCell
 	
 	Method AddSharedString(parent:TxmlNode)
 		Local valueNode:TxmlNode = parent.AddChild("v")
-		valueNode.SetContent(doc.GetSharedStringId(value))
+		valueNode.SetContent(sheet.doc.GetSharedStringId(value))
 	End Method
 
 	Method AddValue(parent:TxmlNode)

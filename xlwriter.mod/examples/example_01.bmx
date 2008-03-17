@@ -26,7 +26,10 @@ Type MyApp Extends wxApp
 			sheet.Cell(row, 6).SetFormula(XLCellAddress(row,4) + "*" + XLCellAddress(row,5))
 		Next
 		
-		sheet.Cell(9, 5).SetValue("Total")
+		Local totalCell:TXLCell = sheet.Cell(9, 5)
+		totalCell.SetValue("Total")
+		totalCell.GetStyle().Font().SetBold()
+		
 		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
 		
 		sheet.Column(1).SetWidth(15)
