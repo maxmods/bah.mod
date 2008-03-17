@@ -29,6 +29,8 @@ Type MyApp Extends wxApp
 		sheet.Cell(9, 5).SetValue("Total")
 		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
 		
+		sheet.Column(1).SetWidth(15)
+		
 		doc.Save("example1")
 	
 		OpenURL("example1.xlsx")

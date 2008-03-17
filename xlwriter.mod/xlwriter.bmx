@@ -37,8 +37,12 @@ Import BaH.libxml
 Import BaH.RegEx
 Import BRL.LinkedList
 Import BRL.Map
+Import BRL.RamStream
+Import BRL.TextStream
 Import wx.wxZipOutputStream
 Import wx.wxZipEntry
+
+Incbin "data/theme1.xml"
 
 Rem
 bbdoc: 
@@ -185,9 +189,9 @@ Type TXLDocument
 		extNode.SetAttribute("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml")
 
 		' theme1.xml
-		'extNode = root.AddChild("Override")
-		'extNode.SetAttribute("PartName", "/xl/theme/theme1.xml")
-		'extNode.SetAttribute("ContentType", "application/vnd.openxmlformats-officedocument.theme+xml")
+		extNode = root.AddChild("Override")
+		extNode.SetAttribute("PartName", "/xl/theme/theme1.xml")
+		extNode.SetAttribute("ContentType", "application/vnd.openxmlformats-officedocument.theme+xml")
 
 		' sheets...
 		For Local i:Int = 0 Until _workbook.sheets.count()
@@ -246,7 +250,7 @@ Type TXLDocument
 		relNode.SetAttribute("Target", "docProps/app.xml")
 
 		relNode = root.AddChild("Relationship")
-		relNode.SetAttribute("Id", "rId3")
+		relNode.SetAttribute("Id", "rId2")
 		relNode.SetAttribute("Type", "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties")
 		relNode.SetAttribute("Target", "docProps/core.xml")
 
@@ -278,9 +282,13 @@ Type TXLDocument
 		root.SetAttribute("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties")
 		root.SetAttribute("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
 		
+		SaveApplication(root)
 		SaveDocSecurity(root)
+		SaveScaleCrop(root)
 		SaveHeadingPairs(root)
 		SaveTitlesOfParts(root)
+		SaveLinksUpToDate(root)
+		SaveSharedDoc(root)
 		SaveAppVersion(root)
 
 		zip.PutNextEntry(path + "app.xml")
@@ -303,29 +311,45 @@ Type TXLDocument
 		Local node:TxmlNode = root.AddChild("dc:creator")
 		node.SetContent(creator)
 
-		node = root.AddChild("cp:lastModifiedBy")
-		node.SetContent(lastModifiedBy)
+		If lastModifiedBy Then
+			node = root.AddChild("cp:lastModifiedBy")
+			node.SetContent(lastModifiedBy)
+		End If
 
-		node = root.AddChild("dcterms:created")
-		'node.SetContent(lastModifiedBy)
+		If createDate Then
+			node = root.AddChild("dcterms:created")
+			'node.SetContent(lastModifiedBy)
+		End If
 
-		node = root.AddChild("dcterms:modified")
-		'node.SetContent(lastModifiedBy)
+		If modifyDate Then
+			node = root.AddChild("dcterms:modified")
+			'node.SetContent(lastModifiedBy)
+		End If
 
-		node = root.AddChild("dc:title")
-		node.SetContent(title)
+		If title Then
+			node = root.AddChild("dc:title")
+			node.SetContent(title)
+		End If
 
-		node = root.AddChild("dc:description")
-		node.SetContent(description)
+		If description Then
+			node = root.AddChild("dc:description")
+			node.SetContent(description)
+		End If
 
-		node = root.AddChild("dc:subject")
-		node.SetContent(subject)
+		If subject Then
+			node = root.AddChild("dc:subject")
+			node.SetContent(subject)
+		End If
 
-		node = root.AddChild("cp:keywords")
-		node.SetContent(keywords)
+		If keywords Then
+			node = root.AddChild("cp:keywords")
+			node.SetContent(keywords)
+		End If
 
-		node = root.AddChild("cp:category")
-		node.SetContent(category)
+		If category Then
+			node = root.AddChild("cp:category")
+			node.SetContent(category)
+		End If
 
 		zip.PutNextEntry(path + "core.xml")
 		stream.WriteString(doc.ToString())
@@ -333,9 +357,19 @@ Type TXLDocument
 		doc.Free()
 	End Method
 	
+	Method SaveApplication(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("Application")
+		node.SetContent("Microsoft Excel")
+	End Method
+
 	Method SaveDocSecurity(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("DocSecurity")
 		node.SetContent(0)
+	End Method
+
+	Method SaveScaleCrop(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("ScaleCrop")
+		node.SetContent("false")
 	End Method
 	
 	Method SaveHeadingPairs(parent:TxmlNode)
@@ -366,6 +400,16 @@ Type TXLDocument
 			vtNode.SetContent(sheet.name)
 		Next
 		
+	End Method
+
+	Method SaveLinksUpToDate(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("LinksUpToDate")
+		node.SetContent("false")
+	End Method
+
+	Method SaveSharedDoc(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("SharedDoc")
+		node.SetContent("false")
 	End Method
 	
 	Method SaveAppVersion(parent:TxmlNode)
@@ -405,7 +449,7 @@ Type TXLWorkbook
 		SaveWorkbookRels(dir, zip, stream)
 
 		SaveStyles(dir, zip, stream)
-		'SaveTheme(dir)
+		SaveTheme(dir, zip, stream)
 	
 		Local doc:TxmlDoc = TXLDocument.newXmlDoc()
 		Local root:TxmlNode = TxmlNode.newNode("workbook")
@@ -458,10 +502,10 @@ Type TXLWorkbook
 		relNode.SetAttribute("Target", "styles.xml")
 
 		' themes
-		'relNode = root.AddChild("Relationship")
-		'relNode.SetAttribute("Id", "rId3")
-		'relNode.SetAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme")
-		'relNode.SetAttribute("Target", "theme/theme1.xml")
+		relNode = root.AddChild("Relationship")
+		relNode.SetAttribute("Id", "rId3")
+		relNode.SetAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme")
+		relNode.SetAttribute("Target", "theme/theme1.xml")
 
 		For Local sheet:TXLWorksheet = EachIn sheets
 			relNode = root.AddChild("Relationship")
@@ -485,7 +529,7 @@ Type TXLWorkbook
 
 		root.SetAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
 
-		SaveNumFormats(root)
+		'SaveNumFormats(root)
 		
 		' fonts
 		Local fontsNode:TxmlNode = root.AddChild("fonts")
@@ -494,23 +538,17 @@ Type TXLWorkbook
 		fontsNode.AddChild("font")
 		
 		' fills
-		Local fillsNode:TxmlNode = root.AddChild("fills")
-		fillsNode.SetAttribute("count", 1)
-		Local node:TxmlNode = fillsNode.AddChild("patternFill")
-		node.SetAttribute("patternType", "none")
+		SaveFills(root)
 		
 		' borders
-		Local bordersNode:TxmlNode = root.AddChild("borders")
-		bordersNode.SetAttribute("count", 1)
-		node = bordersNode.AddChild("border")
-		node.SetAttribute("outline", "true")
+		SaveBorders(root)
 		
 		SaveCellStyleXfs(root)
 		SaveCellXfs(root)
 		SaveCellStyles(root)
 		
 		
-		node = root.AddChild("tableStyles")
+		Local node:TxmlNode = root.AddChild("tableStyles")
 		node.SetAttribute("defaultTableStyle", "TableStyleMedium9")
 		node.SetAttribute("defaultPivotStyle", "PivotTableStyle1")
 
@@ -535,7 +573,7 @@ Type TXLWorkbook
 		
 		node = parent.AddChild("sz")
 		node.SetAttribute("val", 12)
-
+Rem
 		node = parent.AddChild("b")
 		node.SetAttribute("val", "none")
 
@@ -547,7 +585,29 @@ Type TXLWorkbook
 
 		node = parent.AddChild("color")
 		node.SetAttribute("rgb", "FF000000")
+End Rem
+	End Method
+	
+	Method SaveFills(parent:TxmlNode)
+		Local fillsNode:TxmlNode = parent.AddChild("fills")
+		fillsNode.SetAttribute("count", 1)
+		Local node:TxmlNode = fillsNode.AddChild("fill")
+		
+		node = node.AddChild("patternFill")
+		node.SetAttribute("patternType", "none")
 
+	End Method
+	
+	Method SaveBorders(parent:TxmlNode)
+		Local bordersNode:TxmlNode = parent.AddChild("borders")
+		bordersNode.SetAttribute("count", 1)
+		
+		Local node:TxmlNode = bordersNode.AddChild("border")
+		node.AddChild("left")
+		node.AddChild("right")
+		node.AddChild("top")
+		node.AddChild("bottom")
+		node.AddChild("diagonal")
 	End Method
 
 	Method SaveCellStyleXfs(parent:TxmlNode)
@@ -569,15 +629,16 @@ Type TXLWorkbook
 			Local node:TxmlNode = xfsNode.AddChild("xf")
 			node.SetAttribute("xfId", "0")
 			node.SetAttribute("fontId", "0")
-			node.SetAttribute("numFmtId", "164")
+			node.SetAttribute("numFmtId", "0")
 			node.SetAttribute("fillId", "0")
 			node.SetAttribute("borderId", "0")
-			
+			Rem
 			node = node.AddChild("alignment")
 			node.SetAttribute("horizontal", "general")
 			node.SetAttribute("vertical", "bottom")
 			node.SetAttribute("textRotation", "0")
 			node.SetAttribute("wrapText", "false")
+			End Rem
 		'Next
 	End Method
 	
@@ -595,18 +656,18 @@ Type TXLWorkbook
 
 		path:+ "theme/"
 
-		Local doc:TxmlDoc = TXLDocument.newXmlDoc()
-		Local root:TxmlNode = TxmlNode.newNode("a:theme")
-		doc.SetRootElement(root)
+		'Local doc:TxmlDoc = TXLDocument.newXmlDoc()
+		'Local root:TxmlNode = TxmlNode.newNode("a:theme")
+		'doc.SetRootElement(root)
 		
-		root.SetAttribute("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
-		root.SetAttribute("name", "Office Theme")
+		'root.SetAttribute("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
+		'root.SetAttribute("name", "Office Theme")
 
 		'doc.SaveFormatFile(path + "theme1.xml", True)
 		zip.PutNextEntry(path + "theme1.xml")
-		stream.WriteString(doc.ToString())
+		stream.WriteString(LoadText("incbin::data/theme1.xml"))
 		
-		doc.Free()
+		'doc.Free()
 	End Method
 	
 End Type
@@ -624,15 +685,22 @@ Type TXLWorksheet
 	Field id:Int
 	Field relId:Int
 	
+	Field selected:Int
+	
 	Field cells:TXLCellManager = New TXLCellManager
 	Field columns:TMap
 
 	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
 		id = ids + 1
-		relId = id + 2
+		relId = id + 3
 		ids:+ 1
 		Self.name = name
 		Self.doc = doc
+		
+		If id = 1 Then
+			selected = True
+		End If
+		
 		Return Self
 	End Method
 	
@@ -678,12 +746,21 @@ Type TXLWorksheet
 		node.SetAttribute("sheetId", id)
 		node.SetAttribute("r:id", "rId" + relId)
 		
-		
+		' the worksheet document ...
 		Local doc:TxmlDoc = TxmlDoc.newDoc("1.0")
 		Local root:TxmlNode = TxmlNode.newNode("worksheet")
 		doc.SetRootElement(root)
 		
 		root.setAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+		
+		cells.SaveDimension(root)
+		
+		Local viewNode:TxmlNode = root.AddChild("sheetViews")
+		node = viewNode.AddChild("sheetView")
+		If selected Then
+			node.SetAttribute("tabSelected", "1")
+		End If
+		node.SetAttribute("workbookViewId", "0")
 		
 		' do cols ?
 		If columns Then
@@ -710,17 +787,36 @@ End Type
 Type TXLCellManager
 
 	Field rows:TMap = New TMap
+	
+	Field minRow:Int = 0
+	Field minCol:Int = 0
+	Field maxRow:Int = 0
+	Field maxCol:Int = 0
 
 	Method GetCell:TXLCell(row:Int, col:Int, doc:TXLDocument)
+		If Not minRow Then
+			minRow = row
+			maxRow = row
+			minCol = col
+			maxCol = col
+		End If
+		
 		' get row
 		Local tmpRow:TXLRow = TXLRow.Create(row)
 		Local xlRow:TXLRow = TXLRow(rows.ValueForKey(tmpRow))
 
 		If Not xlRow Then
+			minRow = Min(minRow, row)
+			maxRow = Max(maxRow, row)
+
 			rows.Insert(tmpRow, tmpRow)
 			xlRow = tmpRow
 		End If
 		
+		
+		minCol = Min(minCol, col)
+		maxCol = Max(maxCol, col)
+
 		Return xlRow.GetCell(col, doc)
 	End Method
 	
@@ -732,6 +828,15 @@ Type TXLCellManager
 		
 		Next
 		
+	End Method
+	
+	Method SaveDimension(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("dimension")
+		If minRow Then
+			node.SetAttribute("ref", XLCellAddress(minRow, minCol) + ":" + XLCellAddress(maxRow, maxCol))
+		Else
+			node.SetAttribute("ref", "A1:A1")
+		End If
 	End Method
 	
 End Type
