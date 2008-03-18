@@ -52,6 +52,7 @@ Type TXLDocument
 	Field _workbook:TXLWorkbook
 	
 	Field sharedStrings:TMap = New TMap
+	Field styles:TXLStyleManager
 	Field stringsModified:Int = False
 	
 	' properties
@@ -70,6 +71,7 @@ Type TXLDocument
 	End Rem
 	Method Create:TXLDocument()
 		_workbook = New TXLWorkbook.Create(Self)
+		styles = New TXLStyleManager.Create(Self)
 		
 		Return Self
 	End Method
@@ -108,6 +110,8 @@ Type TXLDocument
 		SaveDocRels(path, zip, stream)
 		
 		SaveDocProps(path, zip, stream)
+		
+		styles.Save(path, zip, stream)
 		
 		' save the workbook etc
 		_workbook.Save(path, zip, stream)
@@ -447,7 +451,6 @@ Type TXLWorkbook
 		
 		SaveWorkbookRels(dir, zip, stream)
 
-		SaveStyles(dir, zip, stream)
 		SaveTheme(dir, zip, stream)
 	
 		Local doc:TxmlDoc = TXLDocument.newXmlDoc()
@@ -520,7 +523,283 @@ Type TXLWorkbook
 		doc.Free()
 	End Method
 
-	Method SaveStyles(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
+	
+	Method SaveTheme(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
+
+		path:+ "theme/"
+
+		'Local doc:TxmlDoc = TXLDocument.newXmlDoc()
+		'Local root:TxmlNode = TxmlNode.newNode("a:theme")
+		'doc.SetRootElement(root)
+		
+		'root.SetAttribute("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
+		'root.SetAttribute("name", "Office Theme")
+
+		'doc.SaveFormatFile(path + "theme1.xml", True)
+		zip.PutNextEntry(path + "theme1.xml")
+		stream.WriteString(LoadText("incbin::data/theme1.xml"))
+		
+		'doc.Free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLWorksheet
+
+	Field doc:TXLDocument
+
+	Global ids:Int = 0
+
+	Field name:String
+	Field id:Int
+	Field relId:Int
+	
+	Field selected:Int
+	
+	Field cells:TXLCellManager = New TXLCellManager
+	Field columns:TMap
+
+	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
+		id = ids + 1
+		relId = id + 3
+		ids:+ 1
+		Self.name = name
+		Self.doc = doc
+		
+		If id = 1 Then
+			selected = True
+		End If
+		
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Cell:TXLCell(row:Int, col:Int)
+		Return cells.GetCell(row, col, Self)
+	End Method
+	
+	Rem
+	bbdoc: Get a cell by its address (eg. B7)
+	End Rem
+	Method CellA:TXLCell(cell:String)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Style:TXLStyle(row:Int, col:Int)
+		Return cells.GetStyle(row, col)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method StyleA:TXLStyle(cell:String)
+	End Method
+	
+	Method HasStyle:Int(row:Int, col:Int)
+		Return cells.HasStyle(row, col)
+	End Method
+	
+	Method GetStyleId:Int(row:Int, col:Int)
+		Return cells.GetStyleId(row, col)
+	End Method
+		
+	Rem
+	bbdoc: 
+	End Rem
+	Method Column:TXLColumn(col:Int)
+		If Not columns Then
+			columns = New TMap
+		End If
+		
+		Local colInd:TXLInt = TXLInt.Set(col)
+		Local c:TXLColumn = TXLColumn(columns.ValueForKey(colInd))
+		
+		If Not c Then
+			c = New TXLColumn.Create(col)
+			columns.Insert(colInd, c)
+		End If
+		
+		Return c
+	End Method
+
+	Method Save(dir:String, wbNode:TxmlNode, zip:wxZipOutputStream, stream:wxTextOutputStream)
+	
+		dir:+ "worksheets/"
+	
+		Local node:TxmlNode = wbNode.AddChild("sheet")
+		
+		node.SetAttribute("name", name)
+		node.SetAttribute("sheetId", id)
+		node.SetAttribute("r:id", "rId" + relId)
+		
+		' the worksheet document ...
+		Local doc:TxmlDoc = TxmlDoc.newDoc("1.0")
+		Local root:TxmlNode = TxmlNode.newNode("worksheet")
+		doc.SetRootElement(root)
+		
+		root.setAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+		
+		cells.SaveDimension(root)
+		
+		Local viewNode:TxmlNode = root.AddChild("sheetViews")
+		node = viewNode.AddChild("sheetView")
+		If selected Then
+			node.SetAttribute("tabSelected", "1")
+		End If
+		node.SetAttribute("workbookViewId", "0")
+		
+		' do cols ?
+		If columns Then
+			Local colNode:TxmlNode = root.AddChild("cols")
+			For Local c:TXLColumn = EachIn columns.Values()
+				c.Save(colNode)
+			Next
+		End If
+		
+		
+		Local dataNode:TxmlNode = root.addChild("sheetData")
+		
+		cells.Save(dataNode)
+
+
+		zip.PutNextEntry(dir + "sheet" + id + ".xml")
+		stream.WriteString(doc.ToString())
+		
+		doc.Free()
+	End Method
+	
+End Type
+
+Type TXLCellManager
+
+	Field rows:TMap = New TMap
+	Field styles:TMap = New TMap
+	
+	Field minRow:Int = 0
+	Field minCol:Int = 0
+	Field maxRow:Int = 0
+	Field maxCol:Int = 0
+
+	Method GetCell:TXLCell(row:Int, col:Int, sheet:TXLWorksheet)
+		If Not minRow Then
+			minRow = row
+			maxRow = row
+			minCol = col
+			maxCol = col
+		End If
+		
+		' get row
+		Local tmpRow:TXLRow = TXLRow.Create(row)
+		Local xlRow:TXLRow = TXLRow(rows.ValueForKey(tmpRow))
+
+		If Not xlRow Then
+			minRow = Min(minRow, row)
+			maxRow = Max(maxRow, row)
+
+			rows.Insert(tmpRow, tmpRow)
+			xlRow = tmpRow
+		End If
+		
+		
+		minCol = Min(minCol, col)
+		maxCol = Max(maxCol, col)
+
+		Return xlRow.GetCell(col, sheet)
+	End Method
+
+	Method GetStyle:TXLStyle(row:Int, col:Int)
+		' get style
+		Local addr:String = XLCellAddress(row, col)
+		Local style:TXLStyle = TXLStyle(styles.ValueForKey(addr))
+
+		If Not style Then
+			style = New TXLStyle
+			styles.Insert(addr, style)
+		End If
+		
+		Return style
+	End Method
+
+	Method HasStyle:Int(row:Int, col:Int)
+		
+	End Method
+	
+	Method GetStyleId:Int(row:Int, col:Int)
+		
+	End Method
+	
+	Method Save(parent:TxmlNode)
+		
+		For Local row:TXLRow = EachIn rows.keys()
+		
+			row.Save(parent)
+		
+		Next
+		
+	End Method
+	
+	Method SaveDimension(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("dimension")
+		If minRow Then
+			node.SetAttribute("ref", XLCellAddress(minRow, minCol) + ":" + XLCellAddress(maxRow, maxCol))
+		Else
+			node.SetAttribute("ref", "A1:A1")
+		End If
+	End Method
+	
+End Type
+
+Type TXLStyleManager
+	
+	Field _doc:TXLDocument
+
+	Method Create:TXLStyleManager(doc:TXLDocument)
+		_doc = doc
+		Return Self
+	End Method
+	
+	Method BuildMappings()
+		' process all sheets' cell managers to compile a map of all styles used
+		' Notes :
+		' fonts have unique ids
+		' borders have unique ids
+		' fills have unique ids
+		'
+		' a cell xf has (ie. one cell fx per unique set of ids)
+		Rem
+		3 <sequence>
+		4 <element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
+		5 <element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
+		6 <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+		7 </sequence>
+		8 <attribute name="numFmtId" type="ST_NumFmtId" use="optional"/>
+		9 <attribute name="fontId" type="ST_FontId" use="optional"/>
+		10 <attribute name="fillId" type="ST_FillId" use="optional"/>
+		11 <attribute name="borderId" type="ST_BorderId" use="optional"/>
+		12 <attribute name="xfId" type="ST_CellStyleXfId" use="optional"/>
+		13 <attribute name="quotePrefix" type="xsd:boolean" use="optional" default="false"/>
+		14 <attribute name="pivotButton" type="xsd:boolean" use="optional" default="false"/>
+		15 <attribute name="applyNumberFormat" type="xsd:boolean" use="optional"/>
+		16 <attribute name="applyFont" type="xsd:boolean" use="optional"/>
+		17 <attribute name="applyFill" type="xsd:boolean" use="optional"/>
+		18 <attribute name="applyBorder" type="xsd:boolean" use="optional"/>
+		19 <attribute name="applyAlignment" type="xsd:boolean" use="optional"/>
+		20 <attribute name="applyProtection" type="xsd:boolean" use="optional"/>
+		End Rem
+	End Method
+
+	
+	Method Save(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
+		
+		BuildMappings()
+	
 
 		Local doc:TxmlDoc = TXLDocument.newXmlDoc()
 		Local root:TxmlNode = TxmlNode.newNode("styleSheet")
@@ -650,226 +929,6 @@ End Rem
 		node.SetAttribute("xfId", "0")
 		node.SetAttribute("builtinId", "0")
 	End Method
-	
-	Method SaveTheme(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
-
-		path:+ "theme/"
-
-		'Local doc:TxmlDoc = TXLDocument.newXmlDoc()
-		'Local root:TxmlNode = TxmlNode.newNode("a:theme")
-		'doc.SetRootElement(root)
-		
-		'root.SetAttribute("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main")
-		'root.SetAttribute("name", "Office Theme")
-
-		'doc.SaveFormatFile(path + "theme1.xml", True)
-		zip.PutNextEntry(path + "theme1.xml")
-		stream.WriteString(LoadText("incbin::data/theme1.xml"))
-		
-		'doc.Free()
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TXLWorksheet
-
-	Field doc:TXLDocument
-
-	Global ids:Int = 0
-
-	Field name:String
-	Field id:Int
-	Field relId:Int
-	
-	Field selected:Int
-	
-	Field cells:TXLCellManager = New TXLCellManager
-	Field styles:TXLStyleManager = New TXLStyleManager
-	Field columns:TMap
-
-	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
-		id = ids + 1
-		relId = id + 3
-		ids:+ 1
-		Self.name = name
-		Self.doc = doc
-		
-		If id = 1 Then
-			selected = True
-		End If
-		
-		Return Self
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method Cell:TXLCell(row:Int, col:Int)
-		Return cells.GetCell(row, col, Self)
-	End Method
-	
-	Rem
-	bbdoc: Get a cell by its address (eg. B7)
-	End Rem
-	Method CellA:TXLCell(cell:String)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method Style:TXLStyle(row:Int, col:Int)
-		Return styles.GetStyle(row, col)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method StyleA:TXLStyle(cell:String)
-	End Method
-		
-	Rem
-	bbdoc: 
-	End Rem
-	Method Column:TXLColumn(col:Int)
-		If Not columns Then
-			columns = New TMap
-		End If
-		
-		Local colInd:TXLInt = TXLInt.Set(col)
-		Local c:TXLColumn = TXLColumn(columns.ValueForKey(colInd))
-		
-		If Not c Then
-			c = New TXLColumn.Create(col)
-			columns.Insert(colInd, c)
-		End If
-		
-		Return c
-	End Method
-
-	Method Save(dir:String, wbNode:TxmlNode, zip:wxZipOutputStream, stream:wxTextOutputStream)
-	
-		dir:+ "worksheets/"
-	
-		Local node:TxmlNode = wbNode.AddChild("sheet")
-		
-		node.SetAttribute("name", name)
-		node.SetAttribute("sheetId", id)
-		node.SetAttribute("r:id", "rId" + relId)
-		
-		' the worksheet document ...
-		Local doc:TxmlDoc = TxmlDoc.newDoc("1.0")
-		Local root:TxmlNode = TxmlNode.newNode("worksheet")
-		doc.SetRootElement(root)
-		
-		root.setAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
-		
-		cells.SaveDimension(root)
-		
-		Local viewNode:TxmlNode = root.AddChild("sheetViews")
-		node = viewNode.AddChild("sheetView")
-		If selected Then
-			node.SetAttribute("tabSelected", "1")
-		End If
-		node.SetAttribute("workbookViewId", "0")
-		
-		' do cols ?
-		If columns Then
-			Local colNode:TxmlNode = root.AddChild("cols")
-			For Local c:TXLColumn = EachIn columns.Values()
-				c.Save(colNode)
-			Next
-		End If
-		
-		
-		Local dataNode:TxmlNode = root.addChild("sheetData")
-		
-		cells.Save(dataNode)
-
-
-		zip.PutNextEntry(dir + "sheet" + id + ".xml")
-		stream.WriteString(doc.ToString())
-		
-		doc.Free()
-	End Method
-	
-End Type
-
-Type TXLCellManager
-
-	Field rows:TMap = New TMap
-	
-	Field minRow:Int = 0
-	Field minCol:Int = 0
-	Field maxRow:Int = 0
-	Field maxCol:Int = 0
-
-	Method GetCell:TXLCell(row:Int, col:Int, sheet:TXLWorksheet)
-		If Not minRow Then
-			minRow = row
-			maxRow = row
-			minCol = col
-			maxCol = col
-		End If
-		
-		' get row
-		Local tmpRow:TXLRow = TXLRow.Create(row)
-		Local xlRow:TXLRow = TXLRow(rows.ValueForKey(tmpRow))
-
-		If Not xlRow Then
-			minRow = Min(minRow, row)
-			maxRow = Max(maxRow, row)
-
-			rows.Insert(tmpRow, tmpRow)
-			xlRow = tmpRow
-		End If
-		
-		
-		minCol = Min(minCol, col)
-		maxCol = Max(maxCol, col)
-
-		Return xlRow.GetCell(col, sheet)
-	End Method
-	
-	Method Save(parent:TxmlNode)
-		
-		For Local row:TXLRow = EachIn rows.keys()
-		
-			row.Save(parent)
-		
-		Next
-		
-	End Method
-	
-	Method SaveDimension(parent:TxmlNode)
-		Local node:TxmlNode = parent.AddChild("dimension")
-		If minRow Then
-			node.SetAttribute("ref", XLCellAddress(minRow, minCol) + ":" + XLCellAddress(maxRow, maxCol))
-		Else
-			node.SetAttribute("ref", "A1:A1")
-		End If
-	End Method
-	
-End Type
-
-Type TXLStyleManager
-
-	Field styles:TMap = New TMap
-	
-	Method GetStyle:TXLStyle(row:Int, col:Int)
-		' get style
-		Local addr:String = XLCellAddress(row, col)
-		Local style:TXLStyle = TXLStyle(styles.ValueForKey(addr))
-
-		If Not style Then
-			style = New TXLStyle
-			styles.Insert(addr, style)
-		End If
-		
-		Return style
-	End Method
 
 End Type
 
@@ -879,6 +938,7 @@ End Rem
 Type TXLStyle
 
 	Field _font:TXLFont = New TXLFont
+	Field _border:TXLBorder = New TXLBorder
 	
 	Rem
 	bbdoc: 
@@ -1103,6 +1163,10 @@ Type TXLCell
 			End If
 		End If
 		
+		If sheet.HasStyle(row, col) Then
+			cellNode.SetAttribute("s", sheet.GetStyleId(row, col))
+		End If
+		
 	End Method
 	
 	Method AddInlineString(parent:TxmlNode)
@@ -1219,21 +1283,135 @@ Type TXLFont
 		Self.strikethrough = strikethrough
 	End Method
 
-	Method Update()
-		_key = name + size + bold + italic + underline + strikethrough
+	Method GetKey:String()
+		If Not _key Then
+			_key = name + "_" + size + "_" + bold + "_" + italic + "_" + underline + "_" + strikethrough
+		End If
+		Return _key
 	End Method	
 	
 	Method Compare:Int(obj:Object)
 		If TXLFont(obj) Then
-			If _key < TXLFont(obj)._key Then
+			If GetKey() < TXLFont(obj).GetKey() Then
 				Return -1
-			Else If _key > TXLFont(obj)._key Then
+			Else If GetKey() > TXLFont(obj).GetKey() Then
 				Return 1
 			End If
 		End If
 	End Method
 	
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLBorder
+
+	Field bLeft:TXLBorderStyle
+	Field bRight:TXLBorderStyle
+	Field bTop:TXLBorderStyle
+	Field bBottom:TXLBorderStyle
+	Field bDiagonal:TXLBorderStyle
+	Field bHorizontal:TXLBorderStyle
+	Field bVertical:TXLBorderStyle
+	
+	Field diagonalDown:Int
+	Field diagonalUp:Int
+	Field outline:Int
+	
+	Field _key:String
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetLeft:TXLBorderStyle()
+		If Not bLeft Then
+			bLeft = New TXLBorderStyle
+		End If
+		Return bLeft
+	End Method
+
+	Method GetKey:String()
+		If Not _key Then
+			If bLeft Then
+				_key:+ bLeft.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bRight Then
+				_key:+ bRight.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bTop Then
+				_key:+ bTop.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bBottom Then
+				_key:+ bBottom.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bDiagonal Then
+				_key:+ bDiagonal.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bHorizontal Then
+				_key:+ bHorizontal.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			If bVertical Then
+				_key:+ bVertical.GetKey() + "_"
+			Else
+				_key:+ "_"
+			End If
+
+			_key:+ diagonalDown + "_" + diagonalUp + "_" + outline
+		End If
+		Return _key
+	End Method	
+
+End Type
+
+Type TXLBorderStyle
+
+	Field color:String
+	Field style:String = XLSTYLE_BORDER_NONE
+
+	Field _key:String
+
+	Method GetKey:String()
+		If Not _key Then
+			_key = color + "_" + style
+		End If
+		Return _key
+	End Method	
+
+End Type
+
+Const XLSTYLE_BORDER_DASHDOT:String = "dashdot"
+Const XLSTYLE_BORDER_DASHDOTDOT:String = "dashdotdot"
+Const XLSTYLE_BORDER_DASHED:String = "dashed"
+Const XLSTYLE_BORDER_DOTTED:String = "dotted"
+Const XLSTYLE_BORDER_DOUBLE:String = "double"
+Const XLSTYLE_BORDER_HAIR:String = "hair"
+Const XLSTYLE_BORDER_MEDIUM:String = "medium"
+Const XLSTYLE_BORDER_MEDIUMDASHDOT:String = "mediumDashDot"
+Const XLSTYLE_BORDER_MEDIUMDASHDOTDOT:String = "mediumDashDotDot"
+Const XLSTYLE_BORDER_MEDIUMDASHED:String = "mediumDashed"
+Const XLSTYLE_BORDER_NONE:String = "none"
+Const XLSTYLE_BORDER_SLANTDASHDOT:String = "slantDashDot"
+Const XLSTYLE_BORDER_THICK:String = "thick"
+Const XLSTYLE_BORDER_THING:String = "thin"
 
 Rem
 bbdoc: Converts row,col to the standard spreadsheet address of a cell.
