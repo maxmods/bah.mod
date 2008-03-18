@@ -603,11 +603,16 @@ Type TXLWorksheet
 	End Method
 	
 	Method HasStyle:Int(row:Int, col:Int)
-		Return cells.HasStyle(row, col)
+		If GetStyleId(row, col) Then
+			Return True
+		End If
 	End Method
 	
 	Method GetStyleId:Int(row:Int, col:Int)
-		Return cells.GetStyleId(row, col)
+		Local tmp:TXLTmp = TXLTmp(doc.styles.styles.ValueForKey(cells.GetStyle(row, col).GetKey()))
+		If tmp Then
+			Return tmp.id
+		End If
 	End Method
 		
 	Rem
@@ -727,14 +732,6 @@ Type TXLCellManager
 		Return style
 	End Method
 
-	Method HasStyle:Int(row:Int, col:Int)
-		
-	End Method
-	
-	Method GetStyleId:Int(row:Int, col:Int)
-		
-	End Method
-	
 	Method Save(parent:TxmlNode)
 		
 		For Local row:TXLRow = EachIn rows.keys()
@@ -756,9 +753,29 @@ Type TXLCellManager
 	
 End Type
 
+Type TXLTmp
+	Field id:Int
+	Field obj:Object
+	Function Create:TXLTmp(id:Int, obj:Object)
+		Local this:TXLTmp = New TXLTmp
+		this.id = id
+		this.obj = obj
+		Return this
+	End Function
+End Type
+
 Type TXLStyleManager
 	
 	Field _doc:TXLDocument
+	
+	Field fonts:TMap
+	Field fontsList:TList
+	
+	Field borders:TMap
+	Field bordersList:TList
+	
+	Field styles:TMap
+	Field stylesList:TList
 
 	Method Create:TXLStyleManager(doc:TXLDocument)
 		_doc = doc
@@ -766,6 +783,44 @@ Type TXLStyleManager
 	End Method
 	
 	Method BuildMappings()
+	
+		fonts = New TMap
+		fontsList = New TList
+
+		borders = New TMap
+		bordersList = New TList
+		
+		styles = New TMap
+		stylesList = New TList
+		
+		BuildDefaults()
+		
+		For Local sheet:TXLWorksheet = EachIn _doc._workbook.sheets
+		
+			For Local style:TXLStyle = EachIn sheet.cells.styles.Values()
+			
+				Local styleKey:String = style.GetKey()
+				If Not styles.Contains(styleKey) Then
+					styles.Insert(styleKey, TXLTmp.Create(stylesList.Count(), style)) ' key and example
+					stylesList.AddLast(styleKey)
+				End If
+
+				Local fontKey:String = style.Font().GetKey()
+				If Not fonts.Contains(fontKey)
+					fonts.Insert(fontKey, TXLTmp.Create(fontsList.Count(), style.Font())) ' key and example
+					fontsList.AddLast(fontKey)
+				End If
+			
+				Local borderKey:String = style.Border().GetKey()
+				If Not borders.Contains(borderKey) Then
+					borders.Insert(borderKey, TXLTmp.Create(bordersList.Count(), style.Border())) ' key and example
+					bordersList.AddLast(borderKey)
+				End If
+
+			Next
+		
+		Next
+		
 		' process all sheets' cell managers to compile a map of all styles used
 		' Notes :
 		' fonts have unique ids
@@ -794,9 +849,26 @@ Type TXLStyleManager
 		20 <attribute name="applyProtection" type="xsd:boolean" use="optional"/>
 		End Rem
 	End Method
+	
+	Method BuildDefaults()
+		Local font:TXLFont = New TXLFont
+		fonts.Insert(font.GetKey(), TXLTmp.Create(0, font))
+		fontsList.AddLast(font.GetKey())
+		
+		Local border:TXLBorder = New TXLBorder
+		borders.Insert(border.GetKey(), TXLTmp.Create(0, border))
+		bordersList.AddLast(border.GetKey())
+		
+		Local style:TXLStyle = New TXLStyle
+		styles.Insert(style.GetKey(), TXLTmp.Create(0, style))
+		stylesList.AddLast(style.GetKey())
+		
+	End Method
 
 	
 	Method Save(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
+		
+		path:+ "xl/"
 		
 		BuildMappings()
 	
@@ -811,9 +883,10 @@ Type TXLStyleManager
 		
 		' fonts
 		Local fontsNode:TxmlNode = root.AddChild("fonts")
-		fontsNode.SetAttribute("count", 1)
-		'SaveFont(fontsNode.AddChild("font"))
-		fontsNode.AddChild("font")
+		fontsNode.SetAttribute("count", fontsList.Count())
+		For Local key:String = EachIn fontsList
+			SaveFont(fontsNode, key)
+		Next
 		
 		' fills
 		SaveFills(root)
@@ -845,25 +918,31 @@ Type TXLStyleManager
 		node.SetAttribute("formatCode", "General")
 	End Method
 	
-	Method SaveFont(parent:TxmlNode)
-		Local node:TxmlNode = parent.AddChild("name")
-		node.SetAttribute("val", "Arial")
+	Method SaveFont(parent:TxmlNode, key:String)
+		Local fontNode:TxmlNode = parent.AddChild("font")
+		Local font:TXLFont = TXLFont(TXLTmp(fonts.ValueForKey(key)).obj)
+
+		Local node:TxmlNode = fontNode.AddChild("name")
+		node.SetAttribute("val", font.name)
 		
-		node = parent.AddChild("sz")
-		node.SetAttribute("val", 12)
-Rem
-		node = parent.AddChild("b")
-		node.SetAttribute("val", "none")
+		node = fontNode.AddChild("sz")
+		node.SetAttribute("val", font.size)
 
-		node = parent.AddChild("i")
-		node.SetAttribute("val", "none")
+		If font.bold Then
+			node = fontNode.AddChild("b")
+		End If
 
-		node = parent.AddChild("u")
-		node.SetAttribute("val", "none")
+		If font.italic Then
+			node = fontNode.AddChild("i")
+		End If
 
-		node = parent.AddChild("color")
-		node.SetAttribute("rgb", "FF000000")
-End Rem
+		If font.underline Then
+			node = fontNode.AddChild("u")
+		End If
+
+		'node = parent.AddChild("color")
+		'node.SetAttribute("rgb", "FF000000")
+
 	End Method
 	
 	Method SaveFills(parent:TxmlNode)
@@ -901,12 +980,15 @@ End Rem
 	
 	Method SaveCellXfs(parent:TxmlNode)
 		Local xfsNode:TxmlNode = parent.AddChild("cellXfs")
-		xfsNode.SetAttribute("count", 1)
+		xfsNode.SetAttribute("count", stylesList.Count())
 		
-		'For Local i:Int = 0 Until 2
+		For Local key:String = EachIn stylesList
+			Local style:TXLStyle = TXLStyle(TXLTmp(styles.ValueForKey(key)).obj)
+		
 			Local node:TxmlNode = xfsNode.AddChild("xf")
 			node.SetAttribute("xfId", "0")
-			node.SetAttribute("fontId", "0")
+			
+			node.SetAttribute("fontId", TXLTmp(fonts.ValueForKey(style.Font().GetKey())).id)
 			node.SetAttribute("numFmtId", "0")
 			node.SetAttribute("fillId", "0")
 			node.SetAttribute("borderId", "0")
@@ -917,7 +999,7 @@ End Rem
 			node.SetAttribute("textRotation", "0")
 			node.SetAttribute("wrapText", "false")
 			End Rem
-		'Next
+		Next
 	End Method
 	
 	Method SaveCellStyles(parent:TxmlNode)
@@ -940,14 +1022,26 @@ Type TXLStyle
 	Field _font:TXLFont = New TXLFont
 	Field _border:TXLBorder = New TXLBorder
 	
+	Field _key:String
+	
 	Rem
 	bbdoc: 
 	End Rem
 	Method Font:TXLFont()
 		Return _font
 	End Method
+	
+	Method Border:TXLBorder()
+		Return _border
+	End Method
 
-		
+	Method GetKey:String()
+		If Not _key Then
+			_key =_font.GetKey() + "_" + _border.GetKey()
+		End If
+		Return _key
+	End Method
+	
 End Type
 
 Type TXLRow
