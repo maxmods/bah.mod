@@ -1014,15 +1014,21 @@ Type TXLStyleManager
 
 End Type
 
+Type TXLStyleBase
+
+	Field _key:String
+	
+	Method GetKey:String() Abstract
+	
+End Type
+
 Rem
 bbdoc: 
 End Rem
-Type TXLStyle
+Type TXLStyle Extends TXLStyleBase
 
 	Field _font:TXLFont = New TXLFont
 	Field _border:TXLBorder = New TXLBorder
-	
-	Field _key:String
 	
 	Rem
 	bbdoc: 
@@ -1031,6 +1037,9 @@ Type TXLStyle
 		Return _font
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Border:TXLBorder()
 		Return _border
 	End Method
@@ -1231,9 +1240,9 @@ Type TXLCell
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the cell Style.
 	End Rem
-	Method GetStyle:TXLStyle()
+	Method Style:TXLStyle()
 		Return sheet.Style(row, col)
 	End Method
 	
@@ -1323,7 +1332,7 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TXLFont
+Type TXLFont Extends TXLStyleBase
 
 	Field name:String = "Calibri"
 	Field size:Int = 10
@@ -1333,8 +1342,6 @@ Type TXLFont
 	Field strikethrough:Int = False
 	Field color:String
 	
-	Field _key:String
-
 	Rem
 	bbdoc: 
 	End Rem
@@ -1399,7 +1406,7 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TXLBorder
+Type TXLBorder Extends TXLStyleBase
 
 	Field bLeft:TXLBorderStyle
 	Field bRight:TXLBorderStyle
@@ -1412,8 +1419,6 @@ Type TXLBorder
 	Field diagonalDown:Int
 	Field diagonalUp:Int
 	Field outline:Int
-	
-	Field _key:String
 	
 	Rem
 	bbdoc: 
@@ -1476,12 +1481,13 @@ Type TXLBorder
 
 End Type
 
-Type TXLBorderStyle
+Rem
+bbdoc: 
+End Rem
+Type TXLBorderStyle Extends TXLStyleBase
 
 	Field color:String
 	Field style:String = XLSTYLE_BORDER_NONE
-
-	Field _key:String
 
 	Method GetKey:String()
 		If Not _key Then
@@ -1490,6 +1496,105 @@ Type TXLBorderStyle
 		Return _key
 	End Method	
 
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLFill Extends TXLStyleBase
+
+	Field gradientFill:TXLGradientFill
+	Field patternFill:TXLPatternFill
+	
+	Method GetKey:String()
+		If Not _key Then
+			If gradientFill Then
+				_key:+ gradientFill.GetKey()
+			End If
+			_key:+ "_"
+			If patternFill Then
+				_key:+ patternFill.GetKey()
+			End If
+		End If
+		Return _key
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLGradientFill Extends TXLStyleBase
+
+	Method GetKey:String()
+		If Not _key Then
+		End If
+		Return _key
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLPatternFill Extends TXLStyleBase
+
+	Field _bgColor:TXLColor
+	Field _fgColor:TXLColor
+
+	Method GetKey:String()
+		If Not _key Then
+			If _bgColor Then
+				_key:+ _bgColor.GetKey()
+			End If
+			_key:+ "_"
+			If _fgColor Then
+				_key:+ _fgColor.GetKey()
+			End If
+		End If
+		Return _key
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method BGColor:TXLColor()
+		If Not _bgColor Then
+			_bgColor = New TXLColor
+		End If
+		Return _bgColor
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method FGColor:TXLColor()
+		If Not _fgColor Then
+			_fgColor = New TXLColor
+		End If
+		Return _fgColor
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TXLColor Extends TXLStyleBase
+
+	Field _rgb:String
+	Field _tint:Double
+
+	Method GetKey:String()
+		If Not _key Then
+			
+		End If
+		Return _key
+	End Method
+
+	Method SetRGB(rgb:String)
+	End Method
+	
 End Type
 
 Const XLSTYLE_BORDER_DASHDOT:String = "dashdot"
@@ -1506,6 +1611,30 @@ Const XLSTYLE_BORDER_NONE:String = "none"
 Const XLSTYLE_BORDER_SLANTDASHDOT:String = "slantDashDot"
 Const XLSTYLE_BORDER_THICK:String = "thick"
 Const XLSTYLE_BORDER_THING:String = "thin"
+
+Const XLSTYLE_PATTERN_DARKDOWN:String = "darkDown"
+Const XLSTYLE_PATTERN_DARKGRAY:String = "darkGray"
+Const XLSTYLE_PATTERN_DARKGRID:String = "darkGrid"
+Const XLSTYLE_PATTERN_DARKHORIZONTAL:String = "darkHorizontal"
+Const XLSTYLE_PATTERN_DARKTRELLIS:String = "darkTrellis"
+Const XLSTYLE_PATTERN_DARKUP:String = "darkUp"
+Const XLSTYLE_PATTERN_DARKVERTICAL:String = "darkVertical"
+Const XLSTYLE_PATTERN_GRAY0625:String = "gray0625"
+Const XLSTYLE_PATTERN_GRAY125:String = "gray125"
+Const XLSTYLE_PATTERN_LIGHTDOWN:String = "lightDown"
+Const XLSTYLE_PATTERN_LIGHTGRAY:String = "lightGray"
+Const XLSTYLE_PATTERN_LIGHTGRID:String = "lightGrid"
+Const XLSTYLE_PATTERN_LIGHTHORIZONTAL:String = "lightHorizontal"
+Const XLSTYLE_PATTERN_LIGHTTRELLIS:String = "lightTrellis"
+Const XLSTYLE_PATTERN_LIGHTUP:String = "lightUp"
+Const XLSTYLE_PATTERN_LIGHTVERTICAL:String = "lightVertical"
+Const XLSTYLE_PATTERN_MEDIUMGRAY:String = "mediumGray"
+Const XLSTYLE_PATTERN_NONE:String = "none"
+Const XLSTYLE_PATTERN_SOLID:String = "solid"
+
+Const XLSTYLE_GRADIENT_LINEAR:String = "linear"
+Const XLSTYLE_GRADIENT_PATH:String = "path"
+
 
 Rem
 bbdoc: Converts row,col to the standard spreadsheet address of a cell.

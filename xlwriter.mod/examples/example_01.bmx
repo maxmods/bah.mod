@@ -29,12 +29,13 @@ Type MyApp Extends wxApp
 		Local totalCell:TXLCell = sheet.Cell(9, 5)
 		totalCell.SetValue("Total")
 		
-		Local font:TXLFont = totalCell.GetStyle().Font()
+		Local font:TXLFont = totalCell.Style().Font()
 		font.SetBold()
 		font.SetName("Arial")
 		font.SetSize(12)
 		
 		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
+		sheet.Cell(9, 6).Style().Font().SetItalic()
 		
 		sheet.Column(1).SetWidth(15)
 		
