@@ -35,7 +35,6 @@ Type MyApp Extends wxApp
 		font.SetSize(12)
 		
 		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
-		sheet.Cell(9, 6).Style().Font().SetItalic()
 		
 		sheet.Column(1).SetWidth(15)
 		

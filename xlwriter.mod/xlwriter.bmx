@@ -1486,16 +1486,29 @@ bbdoc:
 End Rem
 Type TXLBorderStyle Extends TXLStyleBase
 
-	Field color:String
-	Field style:String = XLSTYLE_BORDER_NONE
+	Field _color: TXLColor
+	Field _style:String = XLSTYLE_BORDER_NONE
 
 	Method GetKey:String()
 		If Not _key Then
-			_key = color + "_" + style
+			If _color Then
+				_key:+ _color.GetKey()
+			End If
+			_key:+ "_" + _style
 		End If
 		Return _key
 	End Method	
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method Color:TXLColor()
+		If Not _color Then
+			_color = New TXLColor
+		End If
+		Return _color
+	End Method
+	
 End Type
 
 Rem
@@ -1503,20 +1516,40 @@ bbdoc:
 End Rem
 Type TXLFill Extends TXLStyleBase
 
-	Field gradientFill:TXLGradientFill
-	Field patternFill:TXLPatternFill
+	Field _gradientFill:TXLGradientFill
+	Field _patternFill:TXLPatternFill
 	
 	Method GetKey:String()
 		If Not _key Then
-			If gradientFill Then
-				_key:+ gradientFill.GetKey()
+			If _gradientFill Then
+				_key:+ _gradientFill.GetKey()
 			End If
 			_key:+ "_"
-			If patternFill Then
-				_key:+ patternFill.GetKey()
+			If _patternFill Then
+				_key:+ _patternFill.GetKey()
 			End If
 		End If
 		Return _key
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GradientFill:TXLGradientFill()
+		If Not _gradientFill Then
+			_gradientFill = New TXLGradientFill
+		End If
+		Return _gradientFill
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method PatternFill:TXLPatternFill()
+		If Not _patternFill Then
+			_patternFill = New TXLPatternFill
+		End If
+		Return _patternFill
 	End Method
 	
 End Type
@@ -1597,6 +1630,20 @@ Type TXLColor Extends TXLStyleBase
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TXLAlignment Extends TXLStyleBase
+
+	Method GetKey:String()
+		If Not _key Then
+			
+		End If
+		Return _key
+	End Method
+	
+End Type
+
 Const XLSTYLE_BORDER_DASHDOT:String = "dashdot"
 Const XLSTYLE_BORDER_DASHDOTDOT:String = "dashdotdot"
 Const XLSTYLE_BORDER_DASHED:String = "dashed"
@@ -1635,6 +1682,14 @@ Const XLSTYLE_PATTERN_SOLID:String = "solid"
 Const XLSTYLE_GRADIENT_LINEAR:String = "linear"
 Const XLSTYLE_GRADIENT_PATH:String = "path"
 
+Const XLSTYLE_HALIGN_CENTER:String = "center"
+Const XLSTYLE_HALIGN_CENTERCONTINUOUS:String = "centerContinuous"
+Const XLSTYLE_HALIGN_DISTRIBUTED:String = "distributed"
+Const XLSTYLE_HALIGN_FILL:String = "fill"
+Const XLSTYLE_HALIGN_GENERAL:String = "general"
+Const XLSTYLE_HALIGN_JUSTIFY:String = "justify"
+Const XLSTYLE_HALIGN_LEFT:String = "left"
+Const XLSTYLE_HALIGN_RIGHT:String = "right"
 
 Rem
 bbdoc: Converts row,col to the standard spreadsheet address of a cell.
