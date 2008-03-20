@@ -774,6 +774,9 @@ Type TXLStyleManager
 	Field borders:TMap
 	Field bordersList:TList
 	
+	Field fills:TMap
+	Field fillsList:TList
+
 	Field styles:TMap
 	Field stylesList:TList
 
@@ -789,6 +792,9 @@ Type TXLStyleManager
 
 		borders = New TMap
 		bordersList = New TList
+
+		fills = New TMap
+		fillsList = New TList
 		
 		styles = New TMap
 		stylesList = New TList
@@ -815,6 +821,12 @@ Type TXLStyleManager
 				If Not borders.Contains(borderKey) Then
 					borders.Insert(borderKey, TXLTmp.Create(bordersList.Count(), style.Border())) ' key and example
 					bordersList.AddLast(borderKey)
+				End If
+
+				Local fillKey:String = style.Fill().GetKey()
+				If Not fills.Contains(fillKey) Then
+					fills.Insert(fillKey, TXLTmp.Create(fillsList.Count(), style.Fill())) ' key and example
+					fillsList.AddLast(fillKey)
 				End If
 
 			Next
@@ -858,6 +870,10 @@ Type TXLStyleManager
 		Local border:TXLBorder = New TXLBorder
 		borders.Insert(border.GetKey(), TXLTmp.Create(0, border))
 		bordersList.AddLast(border.GetKey())
+
+		Local fill:TXLFill = New TXLFill
+		fills.Insert(fill.GetKey(), TXLTmp.Create(0, fill))
+		fillsList.AddLast(fill.GetKey())
 		
 		Local style:TXLStyle = New TXLStyle
 		styles.Insert(style.GetKey(), TXLTmp.Create(0, style))
@@ -892,7 +908,11 @@ Type TXLStyleManager
 		SaveFills(root)
 		
 		' borders
-		SaveBorders(root)
+		Local bordersNode:TxmlNode = root.AddChild("borders")
+		bordersNode.SetAttribute("count", bordersList.Count())
+		For Local key:String = EachIn bordersList
+			SaveBorder(bordersNode, key)
+		Next
 		
 		SaveCellStyleXfs(root)
 		SaveCellXfs(root)
@@ -955,16 +975,11 @@ Type TXLStyleManager
 
 	End Method
 	
-	Method SaveBorders(parent:TxmlNode)
-		Local bordersNode:TxmlNode = parent.AddChild("borders")
-		bordersNode.SetAttribute("count", 1)
-		
-		Local node:TxmlNode = bordersNode.AddChild("border")
-		node.AddChild("left")
-		node.AddChild("right")
-		node.AddChild("top")
-		node.AddChild("bottom")
-		node.AddChild("diagonal")
+	Method SaveBorder(parent:TxmlNode, key:String)
+		Local borderNode:TxmlNode = parent.AddChild("border")
+		Local border:TXLBorder = TXLBorder(TXLTmp(borders.ValueForKey(key)).obj)
+
+		border.Save(borderNode)		
 	End Method
 
 	Method SaveCellStyleXfs(parent:TxmlNode)
@@ -990,8 +1005,8 @@ Type TXLStyleManager
 			
 			node.SetAttribute("fontId", TXLTmp(fonts.ValueForKey(style.Font().GetKey())).id)
 			node.SetAttribute("numFmtId", "0")
-			node.SetAttribute("fillId", "0")
-			node.SetAttribute("borderId", "0")
+			node.SetAttribute("fillId", TXLTmp(fills.ValueForKey(style.Fill().GetKey())).id)
+			node.SetAttribute("borderId", TXLTmp(borders.ValueForKey(style.Border().GetKey())).id)
 			Rem
 			node = node.AddChild("alignment")
 			node.SetAttribute("horizontal", "general")
@@ -1029,6 +1044,7 @@ Type TXLStyle Extends TXLStyleBase
 
 	Field _font:TXLFont = New TXLFont
 	Field _border:TXLBorder = New TXLBorder
+	Field _fill:TXLFill = New TXLFill
 	
 	Rem
 	bbdoc: 
@@ -1043,6 +1059,14 @@ Type TXLStyle Extends TXLStyleBase
 	Method Border:TXLBorder()
 		Return _border
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Fill:TXLFill()
+		Return _fill
+	End Method
+
 
 	Method GetKey:String()
 		If Not _key Then
@@ -1423,12 +1447,43 @@ Type TXLBorder Extends TXLStyleBase
 	Rem
 	bbdoc: 
 	End Rem
-	Method GetLeft:TXLBorderStyle()
+	Method Left:TXLBorderStyle()
 		If Not bLeft Then
 			bLeft = New TXLBorderStyle
 		End If
 		Return bLeft
 	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Right:TXLBorderStyle()
+		If Not bRight Then
+			bRight = New TXLBorderStyle
+		End If
+		Return bRight
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Top:TXLBorderStyle()
+		If Not bTop Then
+			bTop = New TXLBorderStyle
+		End If
+		Return bTop
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Bottom:TXLBorderStyle()
+		If Not bBottom Then
+			bBottom = New TXLBorderStyle
+		End If
+		Return bBottom
+	End Method
+
 
 	Method GetKey:String()
 		If Not _key Then
@@ -1479,6 +1534,35 @@ Type TXLBorder Extends TXLStyleBase
 		Return _key
 	End Method	
 
+	Method Save(parent:TxmlNode)
+		
+		Local node:TxmlNode = parent.AddChild("left")
+		If bLeft Then
+			bLeft.Save(node)
+		End If
+		
+		node = parent.AddChild("right")
+		If bRight Then
+			bRight.Save(node)
+		End If
+
+		node = parent.AddChild("top")
+		If bTop Then
+			bTop.Save(node)
+		End If
+
+		node = parent.AddChild("bottom")
+		If bBottom Then
+			bBottom.Save(node)
+		End If
+
+		node = parent.AddChild("diagonal")
+		If bDiagonal Then
+			bDiagonal.Save(node)
+		End If
+
+	End Method
+	
 End Type
 
 Rem
@@ -1497,7 +1581,14 @@ Type TXLBorderStyle Extends TXLStyleBase
 			_key:+ "_" + _style
 		End If
 		Return _key
-	End Method	
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetStyle(style:String = XLSTYLE_BORDER_THIN)
+		_style = style
+	End Method
 
 	Rem
 	bbdoc: 
@@ -1507,6 +1598,13 @@ Type TXLBorderStyle Extends TXLStyleBase
 			_color = New TXLColor
 		End If
 		Return _color
+	End Method
+	
+	Method Save(parent:TxmlNode)
+		parent.SetAttribute("style", _style)
+		If _color Then
+			_color.Save(parent)
+		End If
 	End Method
 	
 End Type
@@ -1615,25 +1713,87 @@ bbdoc:
 End Rem
 Type TXLColor Extends TXLStyleBase
 
-	Field _rgb:String
+	Field _alpha:Int = 255
+	Field _r:Int = 0
+	Field _g:Int = 0
+	Field _b:Int = 0
 	Field _tint:Double
 
 	Method GetKey:String()
 		If Not _key Then
-			
+			_key:+ Hex(_alpha) + "_" + Hex(_r) + "_" + Hex(_g) + "_" + Hex(_b) + "_" + _tint
 		End If
 		Return _key
 	End Method
 
-	Method SetRGB(rgb:String)
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetRed(_r:Int)
+		Self._r = _r
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetGreen(_g:Int)
+		Self._g = _g
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetBlue(_b:Int)
+		Self._b = _b
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetAlpha(_alpha:Int)
+		Self._alpha = _alpha
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetRGBColour(colour:wxColour)
+		colour.GetRGBA(_r, _g, _b, _alpha)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetARGB:String()
+		Return Hex(_alpha) + Hex(_r) + Hex(_g) + Hex(_b)
+	End Method
+	
+	Method Save(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("color")
+		node.SetAttribute("rgb", GetARGB())
+		If _tint Then
+			node.SetAttribute("tint", _tint)
+		End If
+	End Method
+
+	Method Hex:String(val:Int, length:Int = 2)
+		Local buf:Short[length]
+		For Local k:Int = (length - 1) To 0 Step -1
+			Local n:Int = (val&15) + 48
+			If n > 57 n:+7
+			buf[k]=n
+			val:Shr 4
+		Next
+		Return String.FromShorts( buf, length )
+	End Method
+
 End Type
 
 Rem
 bbdoc: 
 End Rem
 Type TXLAlignment Extends TXLStyleBase
+
 
 	Method GetKey:String()
 		If Not _key Then
@@ -1657,7 +1817,7 @@ Const XLSTYLE_BORDER_MEDIUMDASHED:String = "mediumDashed"
 Const XLSTYLE_BORDER_NONE:String = "none"
 Const XLSTYLE_BORDER_SLANTDASHDOT:String = "slantDashDot"
 Const XLSTYLE_BORDER_THICK:String = "thick"
-Const XLSTYLE_BORDER_THING:String = "thin"
+Const XLSTYLE_BORDER_THIN:String = "thin"
 
 Const XLSTYLE_PATTERN_DARKDOWN:String = "darkDown"
 Const XLSTYLE_PATTERN_DARKGRAY:String = "darkGray"
@@ -1690,6 +1850,12 @@ Const XLSTYLE_HALIGN_GENERAL:String = "general"
 Const XLSTYLE_HALIGN_JUSTIFY:String = "justify"
 Const XLSTYLE_HALIGN_LEFT:String = "left"
 Const XLSTYLE_HALIGN_RIGHT:String = "right"
+
+Const XLSTYLE_VALIGN_BOTTOM:String = "bottom"
+Const XLSTYLE_VALIGN_CENTER:String = "center"
+Const XLSTYLE_VALIGN_DISTRIBUTED:String = "distributed"
+Const XLSTYLE_VALIGN_JUSTIFY:String = "justify"
+Const XLSTYLE_VALIGN_TOP:String = "top"
 
 Rem
 bbdoc: Converts row,col to the standard spreadsheet address of a cell.
