@@ -45,7 +45,7 @@ Import wx.wxZipEntry
 Incbin "data/theme1.xml"
 
 Rem
-bbdoc: 
+bbdoc: An XLSX document.
 End Rem
 Type TXLDocument
 
@@ -67,7 +67,14 @@ Type TXLDocument
 	Field category:String
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new document.
+	End Rem
+	Function CreateDocument:TXLDocument()
+		Return New TXLDocument.Create()
+	End Function
+
+	Rem
+	bbdoc: Creates a new document.
 	End Rem
 	Method Create:TXLDocument()
 		_workbook = New TXLWorkbook.Create(Self)
@@ -85,14 +92,14 @@ Type TXLDocument
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the TXLWorkbook for this document.
 	End Rem
 	Method Workbook:TXLWorkbook()
 		Return _workbook
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Saves the document to @filename.
 	End Rem
 	Method Save(filename:String)
 	
@@ -124,12 +131,13 @@ Type TXLDocument
 		out.Free()
 	End Method
 
-
+	' internal
 	Method SetSharedString(value:String)
 		sharedStrings.Insert(value, New TXLint)
 		stringsModified = True
 	End Method
 	
+	' internal
 	Method GetSharedStringId:Int(value:String)
 		If stringsModified Then
 			Local index:Int
@@ -141,9 +149,14 @@ Type TXLDocument
 			stringsModified = False
 		End If
 		
-		Return TXLint(sharedStrings.ValueForKey(value)).value
+		Local i:TXLInt = TXLint(sharedStrings.ValueForKey(value))
+		If i Then
+			Return i.value
+		End If
+		Return 0
 	End Method
 	
+	' internal
 	Method SaveContentTypes(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 
 		Local doc:TxmlDoc = newXmlDoc()
@@ -210,6 +223,7 @@ Type TXLDocument
 		doc.Free()
 	End Method
 	
+	' internal
 	Method SaveSharedStrings(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 	
 		path:+ "xl/"
@@ -238,6 +252,7 @@ Type TXLDocument
 
 	End Method
 	
+	' internal
 	Method SaveDocRels(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 		path:+ "_rels/"
 		
@@ -268,6 +283,7 @@ Type TXLDocument
 		doc.Free()
 	End Method
 	
+	' internal
 	Method SaveDocProps(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 
 		path:+ "docProps/"
@@ -277,6 +293,7 @@ Type TXLDocument
 		
 	End Method
 	
+	' internal
 	Method SaveDocPropsApp(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 		Local doc:TxmlDoc = newXmlDoc()
 		Local root:TxmlNode = TxmlNode.newNode("Properties")
@@ -300,6 +317,7 @@ Type TXLDocument
 		doc.Free()
 	End Method
 
+	' internal
 	Method SaveDocPropsCore(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 		Local doc:TxmlDoc = newXmlDoc()
 		Local root:TxmlNode = TxmlNode.newNode("cp:coreProperties")
@@ -360,21 +378,25 @@ Type TXLDocument
 		doc.Free()
 	End Method
 	
+	' internal
 	Method SaveApplication(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("Application")
 		node.SetContent("Microsoft Excel")
 	End Method
 
+	' internal
 	Method SaveDocSecurity(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("DocSecurity")
 		node.SetContent(0)
 	End Method
 
+	' internal
 	Method SaveScaleCrop(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("ScaleCrop")
 		node.SetContent("false")
 	End Method
 	
+	' internal
 	Method SaveHeadingPairs(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("HeadingPairs")
 		
@@ -391,6 +413,7 @@ Type TXLDocument
 		vtNode.SetContent(_workbook.sheets.count())
 	End Method
 
+	' internal
 	Method SaveTitlesOfParts(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("TitlesOfParts")
 		
@@ -405,16 +428,19 @@ Type TXLDocument
 		
 	End Method
 
+	' internal
 	Method SaveLinksUpToDate(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("LinksUpToDate")
 		node.SetContent("false")
 	End Method
 
+	' internal
 	Method SaveSharedDoc(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("SharedDoc")
 		node.SetContent("false")
 	End Method
 	
+	' internal
 	Method SaveAppVersion(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("AppVersion")
 		node.SetContent("12.0000")
@@ -423,13 +449,21 @@ Type TXLDocument
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A document workbook.
+about: A workbook is composed of book-level properties and a collection of 1 or more sheets.
+The sheets are the central working surface for a spreadsheet application. The workbook part and
+corresponding properties comprise data used to set application and workbook-level operational
+state. The workbook also serves to bind all the sheets and child objects into an organized
+single file. The workbook properties include information about what application last saved
+the file, where and how the windows of the workbook were positioned, and an enumeration of
+the worksheets in the workbook. 
 End Rem
 Type TXLWorkbook
 
 	Field doc:TXLDocument
 
 	Field sheets:TList = New TList
+	Field _activeSheet:TXLWorksheet
 
 	Method Create:TXLWorkbook(doc:TXLDocument)
 		Self.doc = doc
@@ -437,14 +471,45 @@ Type TXLWorkbook
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates and returns the new worksheet.
+	about: Sets this worksheet as the active sheet.
 	End Rem
 	Method AddWorksheet:TXLWorksheet(name:String)
 		Local sheet:TXLWorksheet = New TXLWorksheet.Create(name, doc)
 		sheets.AddLast(sheet)
+		_activeSheet = sheet
 		Return sheet
 	End Method
+	
+	Rem
+	bbdoc: Returns the active worksheet.
+	End Rem
+	Method ActiveSheet:TXLWorksheet()
+		Return _activeSheet
+	End Method
+	
+	Rem
+	bbdoc: Sets the active worksheet to that indexed by @index.
+	End Rem
+	Method SetActiveSheet:TXLWorksheet(index:Int)
+		_activeSheet = TXLWorksheet(sheets.ValueAtIndex(index))
+		Return ActiveSheet()
+	End Method
+	
+	Rem
+	bbdoc: Sets the active worksheet to that named by @name.
+	End Rem
+	Method SetActiveSheetByName:TXLWorkSheet(name:String)
+		For Local sheet:TXLWorksheet = EachIn sheets
+			If sheet.name = name Then
+				_activeSheet = sheet
+				Return ActiveSheet()
+			End If
+		Next
+		Return Null
+	End Method
 
+	' internal
 	Method Save(dir:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 	
 		dir:+ "xl/"
@@ -482,6 +547,7 @@ Type TXLWorkbook
 		doc.Free()
 	End Method
 
+	' internal
 	Method SaveWorkbookRels(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 		path:+ "_rels/"
 
@@ -523,7 +589,7 @@ Type TXLWorkbook
 		doc.Free()
 	End Method
 
-	
+	' internal
 	Method SaveTheme(path:String, zip:wxZipOutputStream, stream:wxTextOutputStream)
 
 		path:+ "theme/"
@@ -562,6 +628,7 @@ Type TXLWorksheet
 	Field cells:TXLCellManager = New TXLCellManager
 	Field columns:TMap
 
+	' internal
 	Method Create:TXLWorksheet(name:String, doc:TXLDocument)
 		id = ids + 1
 		relId = id + 3
@@ -577,29 +644,36 @@ Type TXLWorksheet
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Get a cell by @row and @col.
 	End Rem
 	Method Cell:TXLCell(row:Int, col:Int)
 		Return cells.GetCell(row, col, Self)
 	End Method
 	
 	Rem
-	bbdoc: Get a cell by its address (eg. B7)
+	bbdoc: Get a cell by its @address (eg. B7)
 	End Rem
-	Method CellA:TXLCell(cell:String)
+	Method CellA:TXLCell(address:String)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the style for the cell at @row, @col.
 	End Rem
 	Method Style:TXLStyle(row:Int, col:Int)
 		Return cells.GetStyle(row, col)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the style for the cell at @address
 	End Rem
-	Method StyleA:TXLStyle(cell:String)
+	Method StyleA:TXLStyle(address:String)
+	End Method
+	
+	Rem
+	bbddoc: Returns the row at position @r.
+	End Rem
+	Method Row:TXLRow(r:Int)
+		Return cells.GetRow(r, Self)
 	End Method
 	
 	Method HasStyle:Int(row:Int, col:Int)
@@ -616,7 +690,7 @@ Type TXLWorksheet
 	End Method
 		
 	Rem
-	bbdoc: 
+	bbdoc: Returns the column at position @col.
 	End Rem
 	Method Column:TXLColumn(col:Int)
 		If Not columns Then
@@ -627,13 +701,14 @@ Type TXLWorksheet
 		Local c:TXLColumn = TXLColumn(columns.ValueForKey(colInd))
 		
 		If Not c Then
-			c = New TXLColumn.Create(col)
+			c = New TXLColumn.Create(col, Self)
 			columns.Insert(colInd, c)
 		End If
 		
 		Return c
 	End Method
 
+	' internal
 	Method Save(dir:String, wbNode:TxmlNode, zip:wxZipOutputStream, stream:wxTextOutputStream)
 	
 		dir:+ "worksheets/"
@@ -693,11 +768,24 @@ Type TXLCellManager
 	Field maxCol:Int = 0
 
 	Method GetCell:TXLCell(row:Int, col:Int, sheet:TXLWorksheet)
+		Local xlRow:TXLRow = GetRow(row, sheet)
+		
+		If Not minCol Then
+			minCol = col
+			maxCol = col
+		End If
+
+		minCol = Min(minCol, col)
+		maxCol = Max(maxCol, col)
+
+		Return xlRow.GetCell(col, sheet)
+	End Method
+	
+	Method GetRow:TXLRow(row:Int, sheet:TXLWorksheet)
+	
 		If Not minRow Then
 			minRow = row
 			maxRow = row
-			minCol = col
-			maxCol = col
 		End If
 		
 		' get row
@@ -705,6 +793,7 @@ Type TXLCellManager
 		Local xlRow:TXLRow = TXLRow(rows.ValueForKey(tmpRow))
 
 		If Not xlRow Then
+			tmpRow.sheet = sheet
 			minRow = Min(minRow, row)
 			maxRow = Max(maxRow, row)
 
@@ -712,11 +801,7 @@ Type TXLCellManager
 			xlRow = tmpRow
 		End If
 		
-		
-		minCol = Min(minCol, col)
-		maxCol = Max(maxCol, col)
-
-		Return xlRow.GetCell(col, sheet)
+		Return xlRow
 	End Method
 
 	Method GetStyle:TXLStyle(row:Int, col:Int)
@@ -832,34 +917,7 @@ Type TXLStyleManager
 			Next
 		
 		Next
-		
-		' process all sheets' cell managers to compile a map of all styles used
-		' Notes :
-		' fonts have unique ids
-		' borders have unique ids
-		' fills have unique ids
-		'
-		' a cell xf has (ie. one cell fx per unique set of ids)
-		Rem
-		3 <sequence>
-		4 <element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
-		5 <element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
-		6 <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
-		7 </sequence>
-		8 <attribute name="numFmtId" type="ST_NumFmtId" use="optional"/>
-		9 <attribute name="fontId" type="ST_FontId" use="optional"/>
-		10 <attribute name="fillId" type="ST_FillId" use="optional"/>
-		11 <attribute name="borderId" type="ST_BorderId" use="optional"/>
-		12 <attribute name="xfId" type="ST_CellStyleXfId" use="optional"/>
-		13 <attribute name="quotePrefix" type="xsd:boolean" use="optional" default="false"/>
-		14 <attribute name="pivotButton" type="xsd:boolean" use="optional" default="false"/>
-		15 <attribute name="applyNumberFormat" type="xsd:boolean" use="optional"/>
-		16 <attribute name="applyFont" type="xsd:boolean" use="optional"/>
-		17 <attribute name="applyFill" type="xsd:boolean" use="optional"/>
-		18 <attribute name="applyBorder" type="xsd:boolean" use="optional"/>
-		19 <attribute name="applyAlignment" type="xsd:boolean" use="optional"/>
-		20 <attribute name="applyProtection" type="xsd:boolean" use="optional"/>
-		End Rem
+
 	End Method
 	
 	Method BuildDefaults()
@@ -895,6 +953,7 @@ Type TXLStyleManager
 
 		root.SetAttribute("xmlns", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
 
+		' TODO
 		'SaveNumFormats(root)
 		
 		' fonts
@@ -939,29 +998,9 @@ Type TXLStyleManager
 	End Method
 	
 	Method SaveFont(parent:TxmlNode, key:String)
-		Local fontNode:TxmlNode = parent.AddChild("font")
 		Local font:TXLFont = TXLFont(TXLTmp(fonts.ValueForKey(key)).obj)
-
-		Local node:TxmlNode = fontNode.AddChild("name")
-		node.SetAttribute("val", font.name)
 		
-		node = fontNode.AddChild("sz")
-		node.SetAttribute("val", font.size)
-
-		If font.bold Then
-			node = fontNode.AddChild("b")
-		End If
-
-		If font.italic Then
-			node = fontNode.AddChild("i")
-		End If
-
-		If font.underline Then
-			node = fontNode.AddChild("u")
-		End If
-
-		'node = parent.AddChild("color")
-		'node.SetAttribute("rgb", "FF000000")
+		font.Save(parent)
 
 	End Method
 	
@@ -996,7 +1035,7 @@ Type TXLStyleManager
 	Method SaveCellXfs(parent:TxmlNode)
 		Local xfsNode:TxmlNode = parent.AddChild("cellXfs")
 		xfsNode.SetAttribute("count", stylesList.Count())
-		
+
 		For Local key:String = EachIn stylesList
 			Local style:TXLStyle = TXLStyle(TXLTmp(styles.ValueForKey(key)).obj)
 		
@@ -1007,13 +1046,10 @@ Type TXLStyleManager
 			node.SetAttribute("numFmtId", "0")
 			node.SetAttribute("fillId", TXLTmp(fills.ValueForKey(style.Fill().GetKey())).id)
 			node.SetAttribute("borderId", TXLTmp(borders.ValueForKey(style.Border().GetKey())).id)
-			Rem
-			node = node.AddChild("alignment")
-			node.SetAttribute("horizontal", "general")
-			node.SetAttribute("vertical", "bottom")
-			node.SetAttribute("textRotation", "0")
-			node.SetAttribute("wrapText", "false")
-			End Rem
+			
+			If style._alignment Then
+				style._alignment.Save(node)
+			End If
 		Next
 	End Method
 	
@@ -1038,49 +1074,76 @@ Type TXLStyleBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Contains formatting information for the contents of the cells on a sheet.
 End Rem
 Type TXLStyle Extends TXLStyleBase
 
 	Field _font:TXLFont = New TXLFont
 	Field _border:TXLBorder = New TXLBorder
 	Field _fill:TXLFill = New TXLFill
+	Field _alignment:TXLAlignment
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the font for this style.
 	End Rem
 	Method Font:TXLFont()
 		Return _font
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the border for this style.
 	End Rem
 	Method Border:TXLBorder()
 		Return _border
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the fill settings for this style.
 	End Rem
 	Method Fill:TXLFill()
 		Return _fill
+	End Method
+	
+	Rem
+	bbdoc: Returns the alignment for this style.
+	End Rem
+	Method Alignment:TXLAlignment()
+		If Not _alignment Then
+			_alignment = New TXLAlignment
+		End If
+		Return _alignment
 	End Method
 
 
 	Method GetKey:String()
 		If Not _key Then
-			_key =_font.GetKey() + "_" + _border.GetKey()
+			_key =_font.GetKey() + "_" + _border.GetKey() + "_" + _fill.GetKey()
+			_key:+ "_"
+			If _alignment Then
+				_key:+ _alignment.GetKey()
+			End If
 		End If
 		Return _key
 	End Method
 	
 End Type
 
+Rem
+bbdoc: A worksheet row.
+End Rem
 Type TXLRow
 
 	Field row:Int
 	Field cells:TMap
+	
+	Field collapsed:Int
+	Field hidden:Int
+	Field height:Double
+	Field outlineLevel:Int
+	Field thickBot:Int
+	Field thickTop:Int
+	
+	Field sheet:TXLWorksheet
 	
 	Method GetCell:TXLCell(col:Int, sheet:TXLWorksheet)
 		If Not cells Then
@@ -1114,11 +1177,35 @@ Type TXLRow
 		End If
 		Return 0
 	End Method
+	
+	Rem
+	bbdoc: Sets the row height, in points.
+	End Rem
+	Method SetHeight(height:Double)
+		Self.height = height
+	End Method
+	
+	Rem
+	bbdoc: Returns and enables the TXLStyle for this row
+	End Rem
+	Method Style:TXLStyle()
+		Return sheet.Style(row, 0)
+	End Method
 
 	Method Save(parent:TxmlNode)
 		
 		Local rowNode:TxmlNode = parent.AddChild("row")
 		rowNode.SetAttribute("r", row)
+
+		If sheet.HasStyle(row, 0) Then
+			rowNode.SetAttribute("customFormat", "1")
+			rowNode.SetAttribute("s", sheet.GetStyleId(row, 0))
+		End If
+		
+		If height Then
+			rowNode.SetAttribute("customHeight", 1)
+			rowNode.SetAttribute("ht", height)
+		End If
 		
 		For Local cell:TXLCell = EachIn cells.Values()
 		
@@ -1131,7 +1218,7 @@ Type TXLRow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Defines column width and column formatting for a column of the worksheet. 
 End Rem
 Type TXLColumn
 
@@ -1140,9 +1227,12 @@ Type TXLColumn
 	Field bestFit:Int = False
 	Field visible:Int = True
 	Field collapsed:Int = False
+	
+	Field sheet:TXLWorksheet
 
-	Method Create:TXLColumn(index:Int)
+	Method Create:TXLColumn(index:Int, sheet:TXLWorksheet)
 		Self.index = index
+		Self.sheet = sheet
 		Return Self
 	End Method
 	
@@ -1174,6 +1264,13 @@ Type TXLColumn
 		Self.collapsed = collapsed
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Style:TXLStyle()
+		Return sheet.Style(0, index)
+	End Method
+	
 	
 	Method Save(parent:TxmlNode)
 		Local node:TxmlNode = parent.AddChild("col")
@@ -1196,7 +1293,11 @@ Type TXLColumn
 		If collapsed Then
 			node.SetAttribute("collapsed", True)
 		End If
-		
+
+		If sheet.HasStyle(0, index) Then
+			node.SetAttribute("style", sheet.GetStyleId(0, index))
+		End If
+
 	End Method
 	
 End Type
@@ -1364,7 +1465,7 @@ Type TXLFont Extends TXLStyleBase
 	Field italic:Int = False
 	Field underline:Int = 0
 	Field strikethrough:Int = False
-	Field color:String
+	Field _color:TXLColor
 	
 	Rem
 	bbdoc: 
@@ -1407,10 +1508,23 @@ Type TXLFont Extends TXLStyleBase
 	Method SetStrikethrough(strikethrough:Int = True)
 		Self.strikethrough = strikethrough
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Color:TXLColor()
+		If Not _color Then
+			_color = New TXLColor
+		End If
+		Return _color
+	End Method
 
 	Method GetKey:String()
 		If Not _key Then
-			_key = name + "_" + size + "_" + bold + "_" + italic + "_" + underline + "_" + strikethrough
+			_key = name + "_" + size + "_" + bold + "_" + italic + "_" + underline + "_" + strikethrough + "_"
+			If _color Then
+				_key:+ _color.GetKey()
+			End If
 		End If
 		Return _key
 	End Method	
@@ -1423,6 +1537,33 @@ Type TXLFont Extends TXLStyleBase
 				Return 1
 			End If
 		End If
+	End Method
+	
+	Method Save(parent:TxmlNode)
+		Local fontNode:TxmlNode = parent.AddChild("font")
+
+		Local node:TxmlNode = fontNode.AddChild("name")
+		node.SetAttribute("val", name)
+		
+		node = fontNode.AddChild("sz")
+		node.SetAttribute("val", size)
+
+		If bold Then
+			node = fontNode.AddChild("b")
+		End If
+
+		If italic Then
+			node = fontNode.AddChild("i")
+		End If
+
+		If underline Then
+			node = fontNode.AddChild("u")
+		End If
+		
+		If _color Then
+			_color.Save(fontNode)
+		End If
+
 	End Method
 	
 End Type
@@ -1440,9 +1581,11 @@ Type TXLBorder Extends TXLStyleBase
 	Field bHorizontal:TXLBorderStyle
 	Field bVertical:TXLBorderStyle
 	
+	Field bOutline:TXLBorderOutline
+	
 	Field diagonalDown:Int
 	Field diagonalUp:Int
-	Field outline:Int
+	Field _outline:Int
 	
 	Rem
 	bbdoc: 
@@ -1482,6 +1625,20 @@ Type TXLBorder Extends TXLStyleBase
 			bBottom = New TXLBorderStyle
 		End If
 		Return bBottom
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Outline:TXLBorderStyle()
+		If Not bOutline Then
+			bOutline = New TXLBorderOutline
+			bOutline.bLeft = Left()
+			bOutline.bRight = Right()
+			bOutline.bTop = Top()
+			bOutline.bBottom = Bottom()
+		End If
+		Return bOutline
 	End Method
 
 
@@ -1529,7 +1686,7 @@ Type TXLBorder Extends TXLStyleBase
 				_key:+ "_"
 			End If
 
-			_key:+ diagonalDown + "_" + diagonalUp + "_" + outline
+			_key:+ diagonalDown + "_" + diagonalUp + "_" + _outline
 		End If
 		Return _key
 	End Method	
@@ -1566,7 +1723,44 @@ Type TXLBorder Extends TXLStyleBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Convenience Type for working with all borders of a cell together.
+End Rem
+Type TXLBorderOutline Extends TXLBorderStyle
+
+	Field bLeft:TXLBorderStyle
+	Field bRight:TXLBorderStyle
+	Field bTop:TXLBorderStyle
+	Field bBottom:TXLBorderStyle
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetStyle(style:String = XLSTYLE_BORDER_THIN)
+		Super.SetStyle(style)
+		bLeft.SetStyle(style)
+		bRight.SetStyle(style)
+		bTop.SetStyle(style)
+		bBottom.SetStyle(style)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Color:TXLColor()
+		If Not _color Then
+			_color = New TXLColor
+		End If
+		bLeft._color = _color
+		bRight._color = _color
+		bTop._color = _color
+		bBottom._color = _color
+		Return _color
+	End Method
+
+End Type
+
+Rem
+bbdoc: The style and colouring of one edge of a cell border
 End Rem
 Type TXLBorderStyle Extends TXLStyleBase
 
@@ -1757,6 +1951,15 @@ Type TXLColor Extends TXLStyleBase
 	Rem
 	bbdoc: 
 	End Rem
+	Method SetRGB(_r:Int, _g:Int, _b:Int)
+		Self._r = _r
+		Self._g = _g
+		Self._b = _b
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetRGBColour(colour:wxColour)
 		colour.GetRGBA(_r, _g, _b, _alpha)
 	End Method
@@ -1794,12 +1997,157 @@ bbdoc:
 End Rem
 Type TXLAlignment Extends TXLStyleBase
 
+	Field horizontal:String
+	Field indent:Int
+	Field justifyLastLine:Int
+	Field readingOrder:Int
+	Field relativeIndent:Int
+	Field shrinkToFit:Int
+	Field textRotation:Int
+	Field vertical:String
+	Field wrapText:Int
 
 	Method GetKey:String()
 		If Not _key Then
-			
+			If horizontal Then
+				_key:+ horizontal
+			End If
+			_key:+ "_"
+			If indent Then
+				_key:+ indent
+			End If
+			_key:+ "_"
+			If justifyLastLine Then
+				_key:+ justifyLastLine
+			End If
+			_key:+ "_"
+			If readingOrder Then
+				_key:+ readingOrder
+			End If
+			_key:+ "_"
+			If relativeIndent Then
+				_key:+ relativeIndent
+			End If
+			_key:+ "_"
+			If shrinkToFit Then
+				_key:+ shrinkToFit
+			End If
+			_key:+ "_"
+			If textRotation Then
+				_key:+ textRotation
+			End If
+			_key:+ "_"
+			If vertical Then
+				_key:+ vertical
+			End If
+			_key:+ "_"
+			If wrapText Then
+				_key:+ wrapText
+			End If
 		End If
 		Return _key
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetHorizontal(horizontal:String = XLSTYLE_HALIGN_GENERAL)
+		Self.horizontal = horizontal
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetIndent(indent:Int)
+		Self.indent = indent
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetJustifyLastLine(justifyLastLine:Int)
+		Self.justifyLastLine = justifyLastLine
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetReadingOrder(readingOrder:Int)
+		Self.readingOrder = readingOrder
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetRelativeIndent(relativeIndent:Int)
+		Self.relativeIndent = relativeIndent
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetShrinkToFit(shrinkToFit:Int)
+		Self.shrinkToFit = shrinkToFit
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetTextRotation(textRotation:Int)
+		Self.textRotation = textRotation
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetVertical(vertical:String)
+		Self.vertical = vertical
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetWrapText(wrapText:Int)
+		Self.wrapText = wrapText
+	End Method
+	
+	Method Save(parent:TxmlNode)
+		Local node:TxmlNode = parent.AddChild("alignment")
+		If horizontal Then
+			node.SetAttribute("horizontal", horizontal)
+		End If
+
+		If indent Then
+			node.SetAttribute("indent", indent)
+		End If
+
+		If justifyLastLine Then
+			node.SetAttribute(justifyLastLine, "true")
+		End If
+
+		If readingOrder Then
+			node.SetAttribute("readingOrder", readingOrder)
+		End If
+
+		If relativeIndent Then
+			node.SetAttribute("relativeIndent", relativeIndent)
+		End If
+
+		If shrinkToFit Then
+			node.SetAttribute("shrinkToFit", "true")
+		End If
+
+		If textRotation Then
+			node.SetAttribute("textRotation", textRotation)
+		End If
+
+		If vertical Then
+			node.SetAttribute("vertical", vertical)
+		End If
+
+		If wrapText Then
+			node.SetAttribute("wrapText", "true")
+		End If
 	End Method
 	
 End Type

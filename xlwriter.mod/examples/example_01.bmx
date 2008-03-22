@@ -17,9 +17,20 @@ Type MyApp Extends wxApp
 		
 		Local sheet:TXLWorksheet = doc.Workbook().AddWorksheet("July 06")
 		
+		' headings
+		sheet.Cell(2, 1).SetValue("Item")
+		sheet.Cell(2, 4).SetValue("Price")
+		sheet.Cell(2, 5).SetValue("Amount")
+		sheet.Cell(2, 6).SetValue("Total")
+		
+		sheet.Row(2).Style().Alignment().SetHorizontal(XLSTYLE_HALIGN_CENTER)
+		sheet.Row(2).Style().Font().SetBold()
+		
+		' items
 		For Local i:Int = 0 Until items.length
 			Local row:Int = 3 + i
 			sheet.Cell(row, 1).SetValue(items[i])   ' item description
+			sheet.Cell(row, 1).Style().Font().Color().SetRGB(0, 0, 255) ' items are blue :-)
 			sheet.Cell(row, 4).SetValue(prices[i])  ' price per item
 			sheet.Cell(row, 5).SetValue(amounts[i]) ' no. of items
 			
@@ -41,6 +52,7 @@ Type MyApp Extends wxApp
 		sheet.Cell(9, 6).Style().Border().Top().SetStyle()
 		sheet.Cell(9, 6).Style().Border().Bottom().SetStyle()
 		
+		' expand the first column width
 		sheet.Column(1).SetWidth(15)
 		
 		doc.Save("example1")
