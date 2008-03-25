@@ -499,7 +499,7 @@ Type TXLWorkbook
 	Rem
 	bbdoc: Sets the active worksheet to that named by @name.
 	End Rem
-	Method SetActiveSheetByName:TXLWorkSheet(name:String)
+	Method SetActiveSheetByName:TXLWorksheet(name:String)
 		For Local sheet:TXLWorksheet = EachIn sheets
 			If sheet.name = name Then
 				_activeSheet = sheet
@@ -1043,7 +1043,11 @@ Type TXLStyleManager
 			node.SetAttribute("xfId", "0")
 			
 			node.SetAttribute("fontId", TXLTmp(fonts.ValueForKey(style.Font().GetKey())).id)
-			node.SetAttribute("numFmtId", "0")
+			If style._numberFormat And style._numberFormat.formatId Then
+				node.SetAttribute("numFmtId", style._numberFormat.formatId)
+			Else
+				node.SetAttribute("numFmtId", "0")
+			End If
 			node.SetAttribute("fillId", TXLTmp(fills.ValueForKey(style.Fill().GetKey())).id)
 			node.SetAttribute("borderId", TXLTmp(borders.ValueForKey(style.Border().GetKey())).id)
 			
@@ -1082,6 +1086,7 @@ Type TXLStyle Extends TXLStyleBase
 	Field _border:TXLBorder = New TXLBorder
 	Field _fill:TXLFill = New TXLFill
 	Field _alignment:TXLAlignment
+	Field _numberFormat:TXLNumberFormat
 	
 	Rem
 	bbdoc: Returns the font for this style.
@@ -1114,6 +1119,21 @@ Type TXLStyle Extends TXLStyleBase
 		Return _alignment
 	End Method
 
+	Rem
+	bbdoc: Returns the number formatting for this style.
+	End Rem
+	Method Format:TXLNumberFormat(formatId:Int = 0, formatCode:String = Null)
+		If Not _numberFormat Then
+			_numberFormat = New TXLNumberFormat
+			If formatId Then
+				_numberFormat.formatId = formatId
+			End If
+			If formatCode Then
+				_numberFormat.formatCode = formatCode
+			End If
+		End If
+		Return _numberFormat
+	End Method
 
 	Method GetKey:String()
 		If Not _key Then
@@ -1121,6 +1141,10 @@ Type TXLStyle Extends TXLStyleBase
 			_key:+ "_"
 			If _alignment Then
 				_key:+ _alignment.GetKey()
+			End If
+			_key:+ "_"
+			If _numberFormat Then
+				_key:+ _numberFormat.GetKey()
 			End If
 		End If
 		Return _key
@@ -1192,6 +1216,7 @@ Type TXLRow
 		Return sheet.Style(row, 0)
 	End Method
 
+	' internal
 	Method Save(parent:TxmlNode)
 		
 		Local rowNode:TxmlNode = parent.AddChild("row")
@@ -1455,7 +1480,7 @@ Type TXLCell
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Defines the properties for one of the fonts used in the workbook.
 End Rem
 Type TXLFont Extends TXLStyleBase
 
@@ -1466,51 +1491,59 @@ Type TXLFont Extends TXLStyleBase
 	Field underline:Int = 0
 	Field strikethrough:Int = False
 	Field _color:TXLColor
+	Field family:Int
+	Field vertAlign:String
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the face name for the font.
+	about: If the font doesn't exist (because it isn't installed on the system), or the charset is invalid for
+	that font, then another font should be substituted.
+	<p>
+	The length for the name should be a maximum of 31 characters.
+	</p>
 	End Rem
 	Method SetName(name:String)
 		Self.name = name
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the point size (1/72 of an inch) of the Latin and East Asian text.
 	End Rem
 	Method SetSize(size:Int)
 		Self.size = size
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the bold face font style.
 	End Rem
 	Method SetBold(bold:Int = True)
 		Self.bold = bold
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Displays characters in italic font style.
+	about: The italic style is defined by the font at a system level.
 	End Rem
 	Method SetItalic(italic:Int = True)
 		Self.italic = italic
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets character underlining.
 	End Rem
 	Method SetUnderline(underline:Int = True)
 		Self.underline = underline
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Draws a strikethrough line through the horizontal middle of the text.
 	End Rem
 	Method SetStrikethrough(strikethrough:Int = True)
 		Self.strikethrough = strikethrough
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the TXLColor object for this font style.
 	End Rem
 	Method Color:TXLColor()
 		If Not _color Then
@@ -1518,10 +1551,51 @@ Type TXLFont Extends TXLStyleBase
 		End If
 		Return _color
 	End Method
+	
+	Rem
+	bbdoc: Sets the font family this font belongs to.
+	about: A font family is a set of fonts having common stroke width and serif characteristics. This is system
+	level font information. The font name overrides when there are conflicting values.
+	<p>
+	Possible values are :
+	<ul>
+	<li>XLSTYLE_FONTFAM_NONE</li>
+	<li>XLSTYLE_FONTFAM_ROMAN</li>
+	<li>XLSTYLE_FONTFAM_SWISS</li>
+	<li>XLSTYLE_FONTFAM_MODERN</li>
+	<li>XLSTYLE_FONTFAM_SCRIPT</li>
+	<li>XLSTYLE_FONTFAM_DECORATIVE</li>
+	</ul>
+	</p>
+	End Rem
+	Method SetFamily(family:Int)
+		Self.family = family
+	End Method
+	
+	Rem
+	bbdoc: Adjusts the vertical position of the text relative to the text's default appearance for this run.
+	about: It is used to get 'superscript' or 'subscript' texts, and shall reduce the font size (if a smaller
+	size is available) accordingly.
+	<p>Possible values are :
+	<table align="center" wdith="90%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>XLSTYLE_FONTVALIGN_BASELINE</td><td>Returns the text in this run to the baseline, default, 
+	alignment, and returns it to the original font size.</td></tr>
+	<tr><td>XLSTYLE_FONTVALIGN_SUBSCRIPT</td><td>Specifies that this text should be subscript.
+		<p>Lowers the text in this run below the baseline and changes it to a smaller size, if a smaller size is available.</p></td></tr>
+	<tr><td>XLSTYLE_FONTVALIGN_SUPERSCRIPT</td><td>Specifies that this text should be superscript.
+		<p>Raises the text in this run above the baseline and changes it to a smaller size, if a smaller size is available.</p></td></tr>
+	</table>
+	</p>
+	End Rem
+	Method SetVertAlign(vertAlign:String)
+		Self.vertAlign = vertAlign
+	End Method
 
 	Method GetKey:String()
 		If Not _key Then
-			_key = name + "_" + size + "_" + bold + "_" + italic + "_" + underline + "_" + strikethrough + "_"
+			_key = name + "_" + size + "_" + bold + "_" + italic + "_" + underline + "_" + strikethrough + "_" + ..
+				family + "_" + vertAlign + "_"
 			If _color Then
 				_key:+ _color.GetKey()
 			End If
@@ -1559,9 +1633,18 @@ Type TXLFont Extends TXLStyleBase
 		If underline Then
 			node = fontNode.AddChild("u")
 		End If
+
+		If strikethrough Then
+			node = fontNode.AddChild("strike")
+		End If
 		
 		If _color Then
 			_color.Save(fontNode)
+		End If
+		
+		If family Then
+			node = fontNode.AddChild("family")
+			node.SetAttribute("val", family)
 		End If
 
 	End Method
@@ -1847,16 +1930,127 @@ Type TXLFill Extends TXLStyleBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: This element defines a gradient-style cell fill.
+about: Gradient cell fills can use one or two colors as the end points of color interpolation.
 End Rem
 Type TXLGradientFill Extends TXLStyleBase
 
+	Field stops:TList = New TList
+	Field _bottom:Double
+	Field _degree:Double
+	Field _left:Double
+	Field _right:Double
+	Field _top:Double
+	Field _type:String
+
 	Method GetKey:String()
 		If Not _key Then
+			_key:+ _bottom + "_"
+			_key:+ _left + "_"
+			_key:+ _right + "_"
+			_key:+ _top + "_"
+			_key:+ _degree + "_"
+			_key:+ _type + "_"
+		
+			For Local stop:TXLGradientStop = EachIn stops
+				_key:+ stop.GetKey()
+				_key:+ "_"
+			Next
 		End If
 		Return _key
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddStop:TXLGradientStop()
+		Local stop:TXLGradientStop = New TXLGradientStop
+		stops.AddLast(stop)
+		Return stop
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetBottom(value:Double)
+		_bottom = value
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetLeft(value:Double)
+		_left = value
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetRight(value:Double)
+		_right = value
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetTop(value:Double)
+		_top = value
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetDegree(value:Double)
+		_degree = value
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetType(value:String)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: One of a sequence of two or more gradient stops, constituting a gradient fill.
+End Rem
+Type TXLGradientStop Extends TXLStyleBase
+
+	Field _color:TXLColor
+	Field position:Double
+
+	Method GetKey:String()
+		If Not _key Then
+			If _color Then
+				_key:+ _color.GetKey()
+			End If
+			_key:+ "_"
+			_key:+ position
+		End If
+		Return _key
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Color:TXLColor()
+		If _color Then
+			_color = New TXLColor
+		End If
+		Return _color
+	End Method
+	
+	Rem
+	bbdoc: Position information for this gradient stop.
+	about: Interpreted exactly like gradientFill left, right, bottom, top. The position indicated here indicates
+	the point where the color is pure. Before and and after this position the color can be in transition (or pure,
+	depending on if this is the last stop or not).
+	End Rem
+	Method SetPosition(position:Double)
+		Self.position = position
+	End Method
+
 End Type
 
 Rem
@@ -1903,7 +2097,7 @@ Type TXLPatternFill Extends TXLStyleBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: One of the colors associated with the data bar or color scale.
 End Rem
 Type TXLColor Extends TXLStyleBase
 
@@ -1921,28 +2115,29 @@ Type TXLColor Extends TXLStyleBase
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the red value for the color (0-255).
 	End Rem
 	Method SetRed(_r:Int)
 		Self._r = _r
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the green value for the color (0-255).
 	End Rem
 	Method SetGreen(_g:Int)
 		Self._g = _g
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the blue value for the color (0-255).
 	End Rem
 	Method SetBlue(_b:Int)
 		Self._b = _b
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the alpha value for the color (0-255).
+	about: Where 0 is transparent and 255 is opaque.
 	End Rem
 	Method SetAlpha(_alpha:Int)
 		Self._alpha = _alpha
@@ -1965,10 +2160,25 @@ Type TXLColor Extends TXLStyleBase
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the color as a hex-string in the format, ARGB.
 	End Rem
 	Method GetARGB:String()
 		Return Hex(_alpha) + Hex(_r) + Hex(_g) + Hex(_b)
+	End Method
+	
+	Rem
+	bbdoc: Specifies the tint value applied to the color.
+	about: If tint is supplied, then it is applied to the RGB value of the color to determine the final color applied.
+	<p>
+	The tint value is stored as a double from -1.0 .. 1.0, where -1.0 means 100% darken and 1.0 means 100% lighten.
+	Also, 0.0 means no change.
+	</p>
+	<p>
+	In loading the RGB value, it is converted to HLS where HLS values are (0..HLSMAX), where HLSMAX is currently 255.
+	</p>
+	End Rem
+	Method SetTint(tint:Double)
+		_tint = tint
 	End Method
 	
 	Method Save(parent:TxmlNode)
@@ -1993,7 +2203,9 @@ Type TXLColor Extends TXLStyleBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Formatting information pertaining to text alignment in cells.
+about: There are a variety of choices for how text is aligned both horizontally and vertically, as well as
+indentation settings, and so on.
 End Rem
 Type TXLAlignment Extends TXLStyleBase
 
@@ -2049,63 +2261,140 @@ Type TXLAlignment Extends TXLStyleBase
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Specifies the type of horizontal alignment in cells.
+	about: Possible values are :
+	<table align="center" wdith="90%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>XLSTYLE_HALIGN_CENTER</td><td>The horizontal alignment is centered, meaning the text
+is centered across the cell.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_CENTERCONTINUOUS</td><td>The horizontal alignment is centered across multiple
+cells.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_DISTRIBUTED</td><td>Indicates that each 'word' in each line of text inside the cell is
+	evenly distributed across the width of the cell, with flush right and left margins.
+When there is also an indent value to apply, both the left and right side of the cell are padded by the indent value.
+A 'word' is a set of characters with no space character in them. Two lines inside a cell are separated by a carriage return.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_FILL</td><td>Indicates that the value of the cell should be filled
+across the entire width of the cell. If blank cells to the right also have the fill alignment, they are also filled
+with the value, using a convention similar to XLSTYLE_HALIGN_CENTERCONTINUOUS.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_GENERAL</td><td>The horizontal alignment is general-aligned. Text data
+is left-aligned. Numbers, dates, and times are rightaligned.
+Boolean types are centered. Changing the alignment does not change the type of data.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_JUSTIFY</td><td>The horizontal alignment is justified (flush left and
+right). For each line of text, aligns each line of the wrapped text in a cell to the right and left (except the
+last line). If no single line of text wraps in the cell, then the text is not justified.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_LEFT</td><td>The horizontal alignment is left-aligned, even in Rightto-
+Left mode. Aligns contents at the left edge of the
+cell. If an indent amount is specified, the contents of
+the cell is indented from the left by the specified
+number of character spaces. The character spaces are
+based on the default font and font size for the
+workbook.</td></tr>
+	<tr><td>XLSTYLE_HALIGN_RIGHT</td><td>The horizontal alignment is right-aligned, meaning that
+cell contents are aligned at the right edge of the cell, even in Right-to-Left mode.</td></tr>
+	</table>
 	End Rem
 	Method SetHorizontal(horizontal:String = XLSTYLE_HALIGN_GENERAL)
 		Self.horizontal = horizontal
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: An integer value, where an increment of 1 represents 3 spaces.
+	about: Indicates the number of spaces (of the normal style font) of indentation for text in a cell. The number
+	of spaces to indent is calculated as following:
+	<pre>
+	Number of spaces to indent = indent value * 3
+	</pre>
 	End Rem
 	Method SetIndent(indent:Int)
 		Self.indent = indent
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: A boolean value indicating if the cells justified or distributed alignment should be used on the last line of text.
+	about: This is typical for East Asian alignments but not typical in other contexts.
 	End Rem
 	Method SetJustifyLastLine(justifyLastLine:Int)
 		Self.justifyLastLine = justifyLastLine
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: An integer value indicating whether the reading order (bidirectionality) of the cell is left-to-right, right-to-left, or context dependent.
+	about: 
+	<pre>
+	0 - Context Dependent
+	1 - Left-to-Right
+	2 - Right-to-Left
+	</pre>
 	End Rem
 	Method SetReadingOrder(readingOrder:Int)
 		Self.readingOrder = readingOrder
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: An integer value to indicate the additional number of spaces of indentation to adjust for text in a cell.
 	End Rem
 	Method SetRelativeIndent(relativeIndent:Int)
 		Self.relativeIndent = relativeIndent
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: A boolean value indicating if the displayed text in the cell should be shrunk to fit the cell width.
+	about: Not applicable when a cell contains multiple lines of text.
 	End Rem
 	Method SetShrinkToFit(shrinkToFit:Int)
 		Self.shrinkToFit = shrinkToFit
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Text rotation in cells.
+	about: Expressed in degrees. Values range from 0 to 180. The first letter of the text is considered the center-point of the arc.
+	<p>
+	For 0 - 90, the value represents degrees above horizon. For 91-180 the degrees below the horizon is calculated as:
+	<pre>
+	[degrees below horizon] = 90 - textRotation.
+	</pre>
+	<table align="center" width="90%">
+	<tr><th>Angle</th><th>Example</th></tr>
+	<tr align="center"><td>0</td><td><img src="text_rot_000.png"/></td></tr>
+	<tr align="center"><td>45</td><td><img src="text_rot_045.png"/></td></tr>
+	<tr align="center"><td>90</td><td><img src="text_rot_090.png"/></td></tr>
+	<tr align="center"><td>135</td><td><img src="text_rot_135.png"/></td></tr>
+	<tr align="center"><td>180</td><td><img src="text_rot_180.png"/></td></tr>
+	</table>
+	</p>
 	End Rem
 	Method SetTextRotation(textRotation:Int)
 		Self.textRotation = textRotation
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Vertical alignment in cells.
+	about: Possible values are :
+	<table align="center" wdith="90%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>XLSTYLE_VALIGN_BOTTOM</td><td>The vertical alignment is aligned-to-bottom.</td></tr>
+	<tr><td>XLSTYLE_VALIGN_CENTER</td><td>The vertical alignment is centered across the height of the cell.</td></tr>
+	<tr><td>XLSTYLE_VALIGN_DISTRIBUTED</td><td>When text direction is horizontal: the vertical
+alignment of lines of text is distributed vertically, where each line of text inside the cell is evenly
+distributed across the height of the cell, with flush top and bottom margins.
+When text direction is vertical: behaves exactly as distributed horizontal alignment. The first words in a
+line of text (appearing at the top of the cell) are flush with the top edge of the cell, and the last words of a
+line of text are flush with the bottom edge of the cell, and the line of text is distributed evenly from top to bottom.</td></tr>
+	<tr><td>XLSTYLE_VALIGN_JUSTIFY</td><td>When text direction is horizontal: the vertical
+alignment of lines of text is distributed vertically, where each line of text inside the cell is evenly
+distributed across the height of the cell, with flush top and bottom margins.
+When text direction is vertical: similar behavior as horizontal justification. The alignment is justified (flush
+top and bottom in this case). For each line of text, each line of the wrapped text in a cell is aligned to the top
+and bottom (except the last line). If no single line of text wraps in the cell, then the text is not justified.</td></tr>
+	<tr><td>XLSTYLE_VALIGN_TOP</td><td>The vertical alignment is aligned-to-top.</td></tr>
+	</table>
 	End Rem
 	Method SetVertical(vertical:String)
 		Self.vertical = vertical
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: A boolean value indicating if the text in a cell should be line-wrapped within the cell.
 	End Rem
 	Method SetWrapText(wrapText:Int)
 		Self.wrapText = wrapText
@@ -2148,6 +2437,147 @@ Type TXLAlignment Extends TXLStyleBase
 		If wrapText Then
 			node.SetAttribute("wrapText", "true")
 		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Specifies the number format properties which indicate how to format and render the numeric value of a cell.
+about: Following is a listing of number formats whose formatCode value is implied rather than explicitly saved in
+the file. In this case a numFmtId value is written on the xf record, but no corresponding numFmt element is written.
+<table align="center" wdith="90%">
+<tr><th>Id</th><th>Format Code</th></tr>
+<tr><td>0</td><td>General</td></tr>
+<tr><td>1</td><td>0</td></tr>
+<tr><td>2</td><td>0.00</td></tr>
+<tr><td>3</td><td>#,##0</td></tr>
+<tr><td>4</td><td>#,##0.00</td></tr>
+<tr><td>9</td><td>0%</td></tr>
+<tr><td>10</td><td>0.00%</td></tr>
+<tr><td>11</td><td>0.00E+00</td></tr>
+<tr><td>12</td><td># ?/?</td></tr>
+<tr><td>13</td><td># ??/??</td></tr>
+<tr><td>14</td><td>mm-dd-yy</td></tr>
+<tr><td>15</td><td>d-mmm-yy</td></tr>
+<tr><td>16</td><td>d-mmm</td></tr>
+<tr><td>17</td><td>mmm-yy</td></tr>
+<tr><td>18</td><td>h:mm AM/PM</td></tr>
+<tr><td>19</td><td>h:mm:ss AM/PM</td></tr>
+<tr><td>20</td><td>h:mm</td></tr>
+<tr><td>21</td><td>h:mm:ss</td></tr>
+<tr><td>22</td><td>m/d/yy h:mm</td></tr>
+<tr><td>37</td><td>#,##0 ;(#,##0)</td></tr>
+<tr><td>38</td><td>#,##0 ;[Red](#,##0)</td></tr>
+<tr><td>39</td><td>#,##0.00;(#,##0.00)</td></tr>
+<tr><td>40</td><td>#,##0.00;[Red](#,##0.00)</td></tr>
+<tr><td>45</td><td>mm:ss</td></tr>
+<tr><td>46</td><td>[h]:mm:ss</td></tr>
+<tr><td>47</td><td>mmss.0</td></tr>
+<tr><td>48</td><td>##0.0E+0</td></tr>
+<tr><td>49</td><td>@</td></tr>
+</table>
+<p>
+<b>Number Format Codes</b><br>
+Up to four sections of format codes can be specified. The format codes, separated by semicolons, define the
+formats for positive numbers, negative numbers, zero values, and text, in that order. If only two sections are
+specified, the first is used for positive numbers and zeros, and the second is used for negative numbers. If only
+one section is specified, it is used for all numbers. To skip a section, the ending semicolon for that section must
+be written.
+</p>
+<p align="center"><img src="formatcode_format.png"/></p>
+<p>
+The first section, "Format for positive numbers", is the format code that applies to the cell when the cell value
+contains a positive number.
+</p>
+<p>
+The second section, "Format for negative numbers", is the format code that applies to the cell when the cell
+value contains a negative number.
+</p>
+<p>
+The third section, "Format for zeros", is the format code that applies to the cell when the cell value is zero.
+The fourth, and last, section, "Format for text", is the format code that applies to the cell when the cell value is
+text.
+</p>
+<p>
+The &amp; (ampersand) text operator is used to join, or concatenate, two values.
+</p>
+<p>
+The following table describes the different symbols that are available for use in custom number formats.
+<table align="center" wdith="90%">
+<tr><th>Format Symbol</th><th>Description and result</th></tr>
+<tr><td>0</td><td>Digit placeholder. For example, if the value 8.9 is to be displayed as 8.90, use the format
+#.00</td></tr>
+<tr><td>#</td><td>Digit placeholder. This symbol follows the same rules as the 0 symbol. However, the
+application shall not display extra zeros when the number typed has fewer digits on
+either side of the decimal than there are # symbols in the format. For example, if the
+custom format is #.##, and 8.9 is in the cell, the number 8.9 is displayed.</td></tr>
+<tr><td>?</td><td>Digit placeholder. This symbol follows the same rules as the 0 symbol. However, the
+application shall put a space for insignificant zeros on either side of the decimal point so
+that decimal points are aligned in the column. For example, the custom format 0.0? aligns
+the decimal points for the numbers 8.9 and 88.99 in a column.</td></tr>
+<tr><td>. (period)</td><td>Decimal point.</td></tr>
+<tr><td>%</td><td>Percentage. If the cell contains a number between 0 and 1, and the custom format 0% is
+used, the application shall multiply the number by 100 and adds the percentage symbol
+in the cell.</td></tr>
+<tr><td>, (comma)</td><td>Thousands separator. The application shall separate thousands by commas if the format
+contains a comma that is enclosed by number signs (#) or by zeros. A comma that follows
+a placeholder scales the number by one thousand. For example, if the format is #.0,, and
+the cell value is 12,200,000 then the number 12.2 is displayed.</td></tr>
+<tr><td>E- E+ e- e+</td><td>Scientific format. The application shall display a number to the right of the "E" symbol
+that corresponds to the number of places that the decimal point was moved. For
+example, if the format is 0.00E+00, and the value 12,200,000 is in the cell, the number
+1.22E+07 is displayed. If the number format is #0.0E+0, then the number 12.2E+6 is
+displayed.</td></tr>
+<tr><td>$-+/():space</td><td>Displays the symbol. If it is desired to display a character that differs from one of these
+symbols, precede the character with a backslash (\). Alternatively, enclose the character
+in quotation marks. For example, if the number format is (000), and the value 12 is in the
+cell, the number (012) is displayed.</td></tr>
+<tr><td>\</td><td>Display the next character in the format. The application shall not display the backslash.
+For example, if the number format is 0\!, and the value 3 is in the cell, the value 3! is
+displayed.</td></tr>
+<tr><td>*</td><td>Repeat the next character in the format enough times to fill the column to its current
+width. There shall not be more than one asterisk in one section of the format. If more
+than one asterisk appears in one section of the format, all but the last asterisk shall be
+ignored. For example, if the number format is 0*x, and the value 3 is in the cell, the value
+3xxxxxx is displayed. The number of x characters that are displayed in the cell varies
+based on the width of the column.</td></tr>
+<tr><td>_ (underline)</td><td>Skip the width of the next character. This is useful for lining up negative and positive
+values in different cells of the same column. For example, the number format
+<tt>_(0.0_);(0.0)</tt> aligns the numbers 2.3 and -4.5 in the column even though the negative number is enclosed by parentheses.</td></tr>
+<tr><td>"text"</td><td>Display whatever text is inside the quotation marks. For example, the format 0.00
+"dollars" displays 1.23 dollars when the value 1.23 is in the cell.</td></tr>
+<tr><td>@</td><td>Text placeholder. If text is typed in the cell, the text from the cell is placed in the format
+where the at symbol (@) appears. For example, if the number format is "Bob "@" Smith"
+(including quotation marks), and the value "John" is in the cell, the value Bob John Smith is displayed.</td></tr>
+</table>
+</p>
+End Rem
+Type TXLNumberFormat Extends TXLStyleBase
+
+	Field formatId:Int = 0
+	Field formatCode:String
+
+	Method GetKey:String()
+		If Not _key Then
+			_key:+ formatId
+			_key:+ "_"
+			_key:+ formatCode
+		End If
+		Return _key
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatId(formatId:Int)
+		Self.formatId = formatId
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormatCode(formatCode:String)
+		Self.formatCode = formatCode
 	End Method
 	
 End Type
@@ -2204,6 +2634,17 @@ Const XLSTYLE_VALIGN_CENTER:String = "center"
 Const XLSTYLE_VALIGN_DISTRIBUTED:String = "distributed"
 Const XLSTYLE_VALIGN_JUSTIFY:String = "justify"
 Const XLSTYLE_VALIGN_TOP:String = "top"
+
+Const XLSTYLE_FONTFAM_NONE:Int = 0
+Const XLSTYLE_FONTFAM_ROMAN:Int = 1
+Const XLSTYLE_FONTFAM_SWISS:Int = 2
+Const XLSTYLE_FONTFAM_MODERN:Int = 3
+Const XLSTYLE_FONTFAM_SCRIPT:Int = 4
+Const XLSTYLE_FONTFAM_DECORATIVE:Int = 5
+
+Const XLSTYLE_FONTVALIGN_BASELINE:String = "baseline"
+Const XLSTYLE_FONTVALIGN_SUBSCRIPT:String = "subscript"
+Const XLSTYLE_FONTVALIGN_SUPERSCRIPT:String = "superscript"
 
 Rem
 bbdoc: Converts row,col to the standard spreadsheet address of a cell.

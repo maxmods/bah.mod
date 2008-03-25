@@ -31,10 +31,14 @@ Type MyApp Extends wxApp
 			Local row:Int = 3 + i
 			sheet.Cell(row, 1).SetValue(items[i])   ' item description
 			sheet.Cell(row, 1).Style().Font().Color().SetRGB(0, 0, 255) ' items are blue :-)
+
 			sheet.Cell(row, 4).SetValue(prices[i])  ' price per item
+			sheet.Cell(row, 4).Style().Format(2)    ' show with 2 decimal places
+
 			sheet.Cell(row, 5).SetValue(amounts[i]) ' no. of items
 			
 			sheet.Cell(row, 6).SetFormula(XLCellAddress(row,4) + "*" + XLCellAddress(row,5))
+			sheet.Cell(row, 6).Style().Format(2)    ' show with 2 decimal places
 		Next
 		
 		Local totalCell:TXLCell = sheet.Cell(9, 5)
@@ -43,7 +47,6 @@ Type MyApp Extends wxApp
 		Local font:TXLFont = totalCell.Style().Font()
 		font.SetBold()
 		font.SetName("Arial")
-		font.SetSize(12)
 		
 		' calculate the total
 		sheet.Cell(9, 6).SetFormula("SUM(F3:F7)")
@@ -51,6 +54,9 @@ Type MyApp Extends wxApp
 		' add a top and bottom thin border to the total amount
 		sheet.Cell(9, 6).Style().Border().Top().SetStyle()
 		sheet.Cell(9, 6).Style().Border().Bottom().SetStyle()
+		
+		' show with 2 decimal places
+		sheet.Cell(9, 6).Style().Format(2)
 		
 		' expand the first column width
 		sheet.Column(1).SetWidth(15)
