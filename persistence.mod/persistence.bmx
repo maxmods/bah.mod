@@ -93,6 +93,19 @@ Type TPersist
 	End Method
 	
 	Rem
+	bbdoc: Serializes an Object to a TxmlDoc structure.
+	about: It is up to the user to free the returned TxmlDoc object.
+	End Rem
+	Method SerializeToDoc:TxmlDoc(obj:Object)
+		Free()
+		SerializeObject(obj)
+		
+		Local exportDoc:TxmlDoc = doc
+		doc = Null
+		Return exportDoc
+	End Method
+
+	Rem
 	bbdoc: 
 	End Rem
 	Method ToString:String()
@@ -223,11 +236,27 @@ Type TPersist
 	Rem
 	bbdoc: De-serializes @text into an Object structure.
 	End Rem
-	Function DeSerialize:Object(text:String)
+	Function DeSerialize:Object(data:Object)
 		Local ser:TPersist = New TPersist
 		
-		Return ser.DeSerializeObject(text)
+		If TxmlDoc(data) Then
+			Return ser.DeSerializeFromDoc(TxmlDoc(data))
+		Else If String(data) Then
+			Return ser.DeSerializeObject(String(data))
+		End If
 	End Function
+
+	Rem
+	bbdoc: De-serializes @doc into an Object structure.
+	about: It is up to the user to free the supplied TxmlDoc.
+	End Rem
+	Method DeSerializeFromDoc:Object(xmlDoc:TxmlDoc)
+		doc = xmlDoc
+
+		Local obj:Object = DeSerializeObject("", doc.GetRootElement())
+		doc = Null
+		Return obj
+	End Method
 	
 	Rem
 	bbdoc: 
