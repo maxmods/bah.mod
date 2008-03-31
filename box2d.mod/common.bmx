@@ -37,6 +37,7 @@ Extern
 	Function bmx_b2world_createstaticbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	Function bmx_b2world_destroybody(handle:Byte Ptr, body:Byte Ptr)
+	Function bmx_b2world_getgroundbody:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -52,13 +53,33 @@ Extern
 
 	Function bmx_b2polygondef_create:Byte Ptr()
 	Function bmx_b2polygondef_setasbox(handle:Byte Ptr, hx:Float, hy:Float)
+	Function bmx_b2polygondef_delete(handle:Byte Ptr)
 
 	Function bmx_b2body_createshape:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, shape:Object)
 	Function bmx_b2body_destroyshape(handle:Byte Ptr, shape:Byte Ptr)
 	Function bmx_b2body_setmassfromshapes(handle:Byte Ptr)
 	Function bmx_b2body_getposition:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_getangle:Float(handle:Byte Ptr)
+	Function bmx_b2body_getmaxbody:Object(handle:Byte Ptr)
+	Function bmx_b2body_getnext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2body_getshapelist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2body_isstatic:Int(handle:Byte Ptr)
+	Function bmx_b2body_isdynamic:Int(handle:Byte Ptr)
+	Function bmx_b2body_isfrozen:Int(handle:Byte Ptr)
+	Function bmx_b2body_issleeping:Int(handle:Byte Ptr)
+	Function bmx_b2body_allowsleeping(handle:Byte Ptr, flag:Int)
+	Function bmx_b2body_wakeup(handle:Byte Ptr)
+	Function bmx_b2body_puttosleep(handle:Byte Ptr)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
+
+	Function bmx_b2circledef_create:Byte Ptr()
+	Function bmx_b2circledef_setradius(handle:Byte Ptr, radius:Float)
+	Function bmx_b2circledef_setlocalposition(handle:Byte Ptr, pos:Byte Ptr)
+	Function bmx_b2circledef_delete(handle:Byte Ptr)
+
+	Function bmx_b2shape_issensor:Int(handle:Byte Ptr)
+	Function bmx_b2shape_getbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
 
 End Extern

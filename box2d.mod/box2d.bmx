@@ -90,9 +90,9 @@ Type b2World
 	End Method
 
 	Rem
-	bbdoc: Register a routine For debug drawing. The debug draw functions are called
-	/// inside the b2World::Step Method, so make sure your renderer is ready To
-	/// consume draw commands when you call Step().
+	bbdoc: Register a routine for debug drawing.
+	about: The debug draw functions are called inside the b2World::DoStep method, so make sure your renderer is ready to
+	consume draw commands when you call DoStep().
 	End Rem
 	Method SetDebugDraw(debugDraw:b2DebugDraw)
 	End Method
@@ -151,11 +151,12 @@ Type b2World
 	/// You can use this To simplify the creation of joints.
 	End Rem
 	Method GetGroundBody:b2Body()
+		Return b2Body._create(bmx_b2world_getgroundbody(b2ObjectPtr))
 	End Method
 
 	Rem
-	bbdoc: Take a time Step. This performs collision detection, integration,
-	/// And constraint solution.
+	bbdoc: Take a time Step.
+	about: This performs collision detection, integration, and constraint solution.
 	/// @param timeStep the amount of time To simulate, this should Not vary.
 	/// @param iterations the number of iterations To be used by the constraint solver.
 	End Rem
@@ -350,6 +351,17 @@ Type b2Body
 	Field b2ObjectPtr:Byte Ptr
 	Field userData:Object
 
+	Function _create:b2Body(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local body:b2Body = b2Body(bmx_b2body_getmaxbody(b2ObjectPtr))
+			If Not body Then
+				body = New b2Body
+				body.b2ObjectPtr = b2ObjectPtr
+			End If
+			Return body
+		End If
+	End Function
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -387,14 +399,253 @@ Type b2Body
 	Method GetAngle:Float()
 		Return bmx_b2body_getangle(b2ObjectPtr)
 	End Method
-	
+
+	Rem
+	bbdoc: Get the world position of the center of mass.
+	End Rem
+	Method GetWorldCenter:b2Vec2()
+	End Method
+
+	Rem
+	bbdoc:Get the Local position of the center of mass.
+	End Rem
+	Method GetLocalCenter:b2Vec2()
+	End Method
+
+	Rem
+	bbdoc: Set the linear velocity of the center of mass.
+	/// @param v the New linear velocity of the center of mass.
+	End Rem
+	Method SetLinearVelocity(v:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Get the linear velocity of the center of mass.
+	/// @Return the linear velocity of the center of mass
+	End Rem
+	Method GetLinearVelocity:b2Vec2()
+	End Method
+
+	Rem
+	bbdoc: Set the angular velocity.
+	/// @param omega the New angular velocity in radians/Second.
+	End Rem
+	Method SetAngularVelocity(omega:Float)
+	End Method
+
+	Rem
+	bbdoc: Get the angular velocity.
+	/// @Return the angular velocity in radians/Second.
+	End Rem
+	Method GetAngularVelocity:Float()
+	End Method
+
+	Rem
+	bbdoc: Apply a force at a world point. If the force is not
+	/// applied at the center of mass, it will generate a torque and
+	/// affect the angular velocity. This wakes up the body.
+	/// @param force the world force vector, usually in Newtons (N).
+	/// @param point the world position of the point of application.
+	End Rem
+	Method ApplyForce(force:b2Vec2, point:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Apply a torque. This affects the angular velocity
+	/// without affecting the linear velocity of the center of mass.
+	/// This wakes up the body.
+	/// @param torque about the z-axis (out of the screen), usually in N-m.
+	End Rem
+	Method ApplyTorque(torque:Float)
+	End Method
+
+	Rem
+	bbdoc: Apply an impulse at a point. This immediately modifies the velocity.
+	/// It also modifies the angular velocity If the point of application
+	/// is Not at the center of mass. This wakes up the body.
+	/// @param impulse the world impulse vector, usually in N-seconds Or kg-m/s.
+	/// @param point the world position of the point of application.
+	End Rem
+	Method ApplyImpulse(impulse:b2Vec2, point:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Get the total mass of the body.
+	/// @Return the mass, usually in kilograms (kg).
+	End Rem
+	Method GetMass:Float()
+	End Method
+
+	Rem
+	bbdoc: Get the central rotational inertia of the body.
+	/// @return the rotational inertia, usually in kg-m^2.
+	End Rem
+	Method GetInertia:Float()
+	End Method
+
+	Rem
+	bbdoc: Get the world coordinates of a point given the local coordinates.
+	/// @param localPoint a point on the body measured relative the the body's origin.
+	/// @return the same point expressed in world coordinates.
+	End Rem
+	Method GetWorldPoint:b2Vec2(localPoint:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Get the world coordinates of a vector given the local coordinates.
+	/// @param localVector a vector fixed in the body.
+	/// @return the same vector expressed in world coordinates.
+	End Rem
+	Method GetWorldVector:b2Vec2(localVector:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Gets a local point relative to the body's origin given a world point.
+	/// @param a point in world coordinates.
+	/// @return the corresponding local point relative to the body's origin.
+	End Rem
+	Method GetLocalPoint:b2Vec2(worldPoint:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Gets a local vector given a world vector.
+	/// @param a vector in world coordinates.
+	/// @return the corresponding local vector.
+	End Rem
+	Method GetLocalVector:b2Vec2(worldVector:b2Vec2)
+	End Method
+
+	Rem
+	bbdoc: Is this body treated like a bullet for continuous collision detection?
+	End Rem
+	Method IsBullet:Int()
+	End Method
+
+	Rem
+	bbdoc: Should this body be treated like a bullet for continuous collision detection?
+	End Rem
+	Method SetBullet(flag:Int)
+	End Method
+
+	Rem
+	bbdoc: Is this body static (immovable)?
+	End Rem
+	Method IsStatic:Int()
+		Return bmx_b2body_isstatic(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Is this body dynamic (movable)?
+	End Rem
+	Method IsDynamic:Int()
+		Return bmx_b2body_isdynamic(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Is this body frozen?
+	End Rem
+	Method IsFrozen:Int()
+		Return bmx_b2body_isfrozen(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Is this body sleeping (not simulating).
+	End Rem
+	Method IsSleeping:Int()
+		Return bmx_b2body_issleeping(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: You can disable sleeping on this body.
+	End Rem
+	Method AllowSleeping(flag:Int)
+		bmx_b2body_allowsleeping(b2ObjectPtr, flag)
+	End Method
+
+	Rem
+	bbdoc: Wake up this body so it will begin simulating.
+	End Rem
+	Method WakeUp()
+		bmx_b2body_wakeup(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Put this body to sleep so it will stop simulating.
+	/// This also sets the velocity to zero.
+	End Rem
+	Method PutToSleep()
+		bmx_b2body_puttosleep(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the list of all shapes attached to this body.
+	End Rem
+	Method GetShapeList:b2Shape()
+		Return b2Shape._create(bmx_b2body_getshapelist(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the list of all joints attached to this body.
+	End Rem
+	Method GetJointList:b2JointEdge()
+	End Method
+
+	Rem
+	bbdoc: Get the next body in the world's body list.
+	End Rem
+	Method GetNext:b2Body()
+		Return _create(bmx_b2body_getnext(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the user data pointer that was provided in the body definition.
+	End Rem
+	Method GetUserData:Object()
+		Return userData
+	End Method
+
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2Shape
 
 	Field b2ObjectPtr:Byte Ptr
 	Field userData:Object
 
+	Function _create:b2Shape(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local shape:b2Shape = b2Shape(bmx_b2shape_getmaxshape(b2ObjectPtr))
+			If Not shape Then
+				shape = New b2Shape
+				shape.b2ObjectPtr = b2ObjectPtr
+			End If
+			Return shape
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsSensor:Int()
+		Return bmx_b2shape_issensor(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetBody:b2Body()
+		Return b2Body._create(bmx_b2shape_getbody(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetUserData:Object()
+		Return userData
+	End Method
+	
 End Type
 
 Type b2ContactFilter
@@ -606,9 +857,6 @@ Type b2BodyDef
 	Method SetIsBullet(bullet:Int)
 	End Method
 	
-	Method IsBullet:Int()
-	End Method
-
 	Method Delete()
 		If b2ObjectPtr Then
 			bmx_b2bodydef_delete(b2ObjectPtr)
@@ -619,6 +867,9 @@ Type b2BodyDef
 End Type
 
 Type b2JointDef
+End Type
+
+Type b2JointEdge
 End Type
 
 Type b2MassData
@@ -671,7 +922,55 @@ Type b2PolygonDef Extends b2ShapeDef
 	Method SetAsBox(hx:Float, hy:Float)
 		bmx_b2polygondef_setasbox(b2ObjectPtr, hx, hy)
 	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2polygondef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type b2CircleDef Extends b2ShapeDef
 
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateCircleDef:b2CircleDef()
+		Return New b2CircleDef.Create()
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:b2CircleDef()
+		b2ObjectPtr = bmx_b2circledef_create()
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetRadius(radius:Float)
+		bmx_b2circledef_setradius(b2ObjectPtr, radius)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetLocalPosition(pos:b2Vec2)
+		bmx_b2circledef_setlocalposition(b2ObjectPtr, pos.b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2circledef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type

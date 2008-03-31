@@ -45,6 +45,7 @@ extern "C" {
 	b2Body * bmx_b2world_createstaticbody(b2World * world, b2BodyDef * def, BBObject * body);
 	b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
+	b2Body * bmx_b2world_getgroundbody(b2World * world);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -60,14 +61,34 @@ extern "C" {
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
+	void bmx_b2polygondef_delete(b2PolygonDef * def);
 
 	b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape);
 	void bmx_b2body_destroyshape(b2Body * body, b2Shape * shape);
 	void bmx_b2body_setmassfromshapes(b2Body * body);
 	b2Vec2 * bmx_b2body_getposition(b2Body * body);
 	float32 bmx_b2body_getangle(b2Body * body);
+	BBObject * bmx_b2body_getmaxbody(b2Body * body);
+	b2Body * bmx_b2body_getnext(b2Body * body);
+	b2Shape * bmx_b2body_getshapelist(b2Body * body);
+	bool bmx_b2body_isstatic(b2Body * body);
+	bool bmx_b2body_isdynamic(b2Body * body);
+	bool bmx_b2body_isfrozen(b2Body * body);
+	bool bmx_b2body_issleeping(b2Body * body);
+	void bmx_b2body_allowsleeping(b2Body * body, bool flag);
+	void bmx_b2body_wakeup(b2Body * body);
+	void bmx_b2body_puttosleep(b2Body * body);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
+
+	b2CircleDef * bmx_b2circledef_create();
+	void bmx_b2circledef_setradius(b2CircleDef * def, float32 radius);
+	void bmx_b2circledef_setlocalposition(b2CircleDef * def, b2Vec2 * pos);
+	void bmx_b2circledef_delete(b2CircleDef * def);
+
+	bool bmx_b2shape_issensor(b2Shape * shape);
+	b2Body * bmx_b2shape_getbody(b2Shape * shape);
+	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
 
 }
 
@@ -149,6 +170,10 @@ void bmx_b2world_destroybody(b2World * world, b2Body * body) {
 	world->DestroyBody(body);
 }
 
+b2Body * bmx_b2world_getgroundbody(b2World * world) {
+	return world->GetGroundBody();
+}
+
 // *****************************************************
 
 b2BodyDef * bmx_b2bodydef_create() {
@@ -202,6 +227,10 @@ void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy) {
 	def->SetAsBox(hx, hy);
 }
 
+void bmx_b2polygondef_delete(b2PolygonDef * def) {
+	delete def;
+}
+
 // *****************************************************
 
 b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape) {
@@ -229,6 +258,51 @@ b2Vec2 * bmx_b2body_getposition(b2Body * body) {
 float32 bmx_b2body_getangle(b2Body * body) {
 	return body->GetAngle();
 }
+
+BBObject * bmx_b2body_getmaxbody(b2Body * body) {
+	void * obj = body->GetUserData();
+	if (obj) {
+		return (BBObject *)obj;
+	}
+	return &bbNullObject;
+}
+
+b2Body * bmx_b2body_getnext(b2Body * body) {
+	return body->GetNext();
+}
+
+b2Shape * bmx_b2body_getshapelist(b2Body * body) {
+	return body->GetShapeList();
+}
+
+bool bmx_b2body_isstatic(b2Body * body) {
+	return body->IsStatic();
+}
+
+bool bmx_b2body_isdynamic(b2Body * body) {
+	return body->IsDynamic();
+}
+
+bool bmx_b2body_isfrozen(b2Body * body) {
+	return body->IsFrozen();
+}
+
+bool bmx_b2body_issleeping(b2Body * body) {
+	return body->IsSleeping();
+}
+
+void bmx_b2body_allowsleeping(b2Body * body, bool flag) {
+	body->AllowSleeping(flag);
+}
+
+void bmx_b2body_wakeup(b2Body * body) {
+	body->WakeUp();
+}
+
+void bmx_b2body_puttosleep(b2Body * body) {
+	body->PutToSleep();
+}
+
 
 // *****************************************************
 
@@ -280,4 +354,42 @@ private:
 MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle) {
 	return new MaxDebugDraw(handle);
 }
+
+// *****************************************************
+
+b2CircleDef * bmx_b2circledef_create() {
+	return new b2CircleDef;
+}
+
+void bmx_b2circledef_setradius(b2CircleDef * def, float32 radius) {
+	def->radius = radius;
+}
+
+void bmx_b2circledef_setlocalposition(b2CircleDef * def, b2Vec2 * pos) {
+	def->localPosition = *pos;
+}
+
+void bmx_b2circledef_delete(b2CircleDef * def) {
+	delete def;
+}
+
+
+// *****************************************************
+
+bool bmx_b2shape_issensor(b2Shape * shape) {
+	return shape->IsSensor();
+}
+
+b2Body * bmx_b2shape_getbody(b2Shape * shape) {
+	return shape->GetBody();
+}
+
+BBObject * bmx_b2shape_getmaxshape(b2Shape * shape) {
+	void * obj = shape->GetUserData();
+	if (obj) {
+		return (BBObject *)obj;
+	}
+	return &bbNullObject;
+}
+
 
