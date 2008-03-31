@@ -43,6 +43,7 @@ Extern
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
 	'Function bmx_b2bodydef_settype(handle:Byte Ptr, bodyType:Int)
 	Function bmx_b2bodydef_setposition(handle:Byte Ptr, position:Byte Ptr)
+	Function bmx_b2bodydef_setangle(handle:Byte Ptr, angle:Float)
 
 	Function bmx_b2world_create:Byte Ptr(worldAABB:Byte Ptr, gravity:Byte Ptr, doSleep:Int)
 	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, iterations:Int)
@@ -70,8 +71,14 @@ Extern
 	Function bmx_b2body_allowsleeping(handle:Byte Ptr, flag:Int)
 	Function bmx_b2body_wakeup(handle:Byte Ptr)
 	Function bmx_b2body_puttosleep(handle:Byte Ptr)
+	Function bmx_b2body_isbullet:Int(handle:Byte Ptr)
+	Function bmx_b2body_setbullet(handle:Byte Ptr, flag:Int)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
+	Function bmx_b2debugdraw_setflags(handle:Byte Ptr, flags:Int)
+	Function bmx_b2debugdraw_getflags:Int(handle:Byte Ptr)
+	Function bmx_b2debugdraw_appendflags(handle:Byte Ptr, flags:Int)
+	Function bmx_b2debugdraw_clearflags(handle:Byte Ptr, flags:Int)
 
 	Function bmx_b2circledef_create:Byte Ptr()
 	Function bmx_b2circledef_setradius(handle:Byte Ptr, radius:Float)
@@ -81,5 +88,8 @@ Extern
 	Function bmx_b2shape_issensor:Int(handle:Byte Ptr)
 	Function bmx_b2shape_getbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
+
+	Function bmx_b2revolutejointdef_create:Byte Ptr()
+	Function bmx_b2revolutejointdef_initialize(handle:Byte Ptr, body1:Byte Ptr, body2:Byte Ptr, anchor:Byte Ptr)
 
 End Extern

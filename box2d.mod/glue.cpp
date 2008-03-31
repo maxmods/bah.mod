@@ -51,6 +51,7 @@ extern "C" {
 	void bmx_b2bodydef_delete(b2BodyDef * def);
 	//void bmx_b2bodydef_settype(b2BodyDef * def, b2BodyDef::Type bodyType);
 	void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position);
+	void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int iterations);
@@ -78,8 +79,14 @@ extern "C" {
 	void bmx_b2body_allowsleeping(b2Body * body, bool flag);
 	void bmx_b2body_wakeup(b2Body * body);
 	void bmx_b2body_puttosleep(b2Body * body);
+	bool bmx_b2body_isbullet(b2Body * body);
+	void bmx_b2body_setbullet(b2Body * body, bool flag);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
+	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, int flags);
+	int bmx_b2debugdraw_getflags(MaxDebugDraw * dbg);
+	void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, int flags);
+	void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, int flags);
 
 	b2CircleDef * bmx_b2circledef_create();
 	void bmx_b2circledef_setradius(b2CircleDef * def, float32 radius);
@@ -89,6 +96,9 @@ extern "C" {
 	bool bmx_b2shape_issensor(b2Shape * shape);
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
+
+	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
+	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
 
 }
 
@@ -192,6 +202,10 @@ void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position) {
 	def->position = *position;
 }
 
+void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle) {
+	def->angle = angle / 57.2957795f;
+}
+
 // *****************************************************
 
 b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep) {
@@ -256,7 +270,7 @@ b2Vec2 * bmx_b2body_getposition(b2Body * body) {
 }
 
 float32 bmx_b2body_getangle(b2Body * body) {
-	return body->GetAngle();
+	return body->GetAngle() * 57.2957795f;
 }
 
 BBObject * bmx_b2body_getmaxbody(b2Body * body) {
@@ -303,6 +317,13 @@ void bmx_b2body_puttosleep(b2Body * body) {
 	body->PutToSleep();
 }
 
+bool bmx_b2body_isbullet(b2Body * body) {
+	return body->IsBullet();
+}
+
+void bmx_b2body_setbullet(b2Body * body, bool flag) {
+	body->SetBullet(flag);
+}
 
 // *****************************************************
 
@@ -355,6 +376,22 @@ MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle) {
 	return new MaxDebugDraw(handle);
 }
 
+void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, int flags) {
+	dbg->SetFlags(flags);
+}
+
+int bmx_b2debugdraw_getflags(MaxDebugDraw * dbg) {
+	return dbg->GetFlags();
+}
+
+void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, int flags) {
+	dbg->AppendFlags(flags);
+}
+
+void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, int flags) {
+	dbg->ClearFlags(flags);
+}
+
 // *****************************************************
 
 b2CircleDef * bmx_b2circledef_create() {
@@ -392,4 +429,13 @@ BBObject * bmx_b2shape_getmaxshape(b2Shape * shape) {
 	return &bbNullObject;
 }
 
+// *****************************************************
+
+b2RevoluteJointDef * bmx_b2revolutejointdef_create() {
+	return new b2RevoluteJointDef;
+}
+
+void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor) {
+	def->Initialize(body1, body2, *anchor);
+}
 

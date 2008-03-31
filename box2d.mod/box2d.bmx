@@ -331,22 +331,40 @@ Type b2Vec2
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2DestructionListener
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2BoundaryListener
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2ContactListener
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2Contact
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2Joint
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2Body
 	Field b2ObjectPtr:Byte Ptr
 	Field userData:Object
@@ -394,7 +412,9 @@ Type b2Body
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Get the angle in degrees.
+	returns: The current world rotation angle in degrees.
+
 	End Rem
 	Method GetAngle:Float()
 		Return bmx_b2body_getangle(b2ObjectPtr)
@@ -519,12 +539,14 @@ Type b2Body
 	bbdoc: Is this body treated like a bullet for continuous collision detection?
 	End Rem
 	Method IsBullet:Int()
+		Return bmx_b2body_isbullet(b2ObjectPtr)
 	End Method
 
 	Rem
 	bbdoc: Should this body be treated like a bullet for continuous collision detection?
 	End Rem
 	Method SetBullet(flag:Int)
+		bmx_b2body_setbullet(b2ObjectPtr, flag)
 	End Method
 
 	Rem
@@ -648,6 +670,9 @@ Type b2Shape
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2ContactFilter
 
 End Type
@@ -656,11 +681,54 @@ Type b2DebugDraw
 
 	Field b2ObjectPtr:Byte Ptr
 
+	Const e_shapeBit:Int = $0001        ' draw shapes
+	Const e_jointBit:Int = $0002        ' draw joint connections
+	Const e_coreShapeBit:Int = $0004    ' draw core (TOI) shapes
+	Const e_aabbBit:Int = $0008         ' draw axis aligned bounding boxes
+	Const e_obbBit:Int = $0010          ' draw oriented bounding boxes
+	Const e_pairBit:Int = $0020         ' draw broad-phase pairs
+	Const e_centerOfMassBit:Int = $0040 ' draw center of mass frame
+
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:b2DebugDraw()
 		b2ObjectPtr = bmx_b2debugdraw_create(Self)
 		Return Self
 	End Method
+	
+	Rem
+	bbdoc: Set the drawing flags.
+	End Rem
+	Method SetFlags(flags:Int)
+		bmx_b2debugdraw_setflags(b2ObjectPtr, flags)
+	End Method
+	
+	Rem
+	bbdoc: Get the drawing flags.
+	End Rem
+	Method GetFlags:Int()
+		Return bmx_b2debugdraw_getflags(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Append flags to the current flags.
+	End Rem
+	Method AppendFlags(flags:Int)
+		bmx_b2debugdraw_appendflags(b2ObjectPtr, flags)
+	End Method
+	
+	Rem
+	bbdoc: Clear flags from the current flags.
+	End Rem
+	Method ClearFlags(flags:Int)
+		bmx_b2debugdraw_clearflags(b2ObjectPtr, flags)
+	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method DrawPolygon(vertices:b2Vec2[], color:b2Color) Abstract
 
 
@@ -697,6 +765,9 @@ Type b2DebugDraw
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2XForm
 End Type
 
@@ -776,11 +847,9 @@ Type b2BodyDef
 	bbdoc: Use this To store application specific body data.
 	End Rem
 	Method SetUserData(data:Object)
+		userData = data
 	End Method
 	
-	'Method GetUserData:Object()
-	'End Method
-
 	Rem
 	bbdoc: The world position of the body. Avoid creating bodies at the origin
 	/// since this can lead To many overlapping shapes.
@@ -790,14 +859,12 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: The world angle of the body in radians.
+	bbdoc: The world angle of the body in degrees.
 	End Rem
 	Method SetAngle(angle:Float)
+		bmx_b2bodydef_setangle(b2ObjectPtr, angle)
 	End Method
 	
-	'Method GetAngle:Float()
-	'End Method
-
 	Rem
 	bbdoc: Linear damping is use To reduce the linear velocity. The damping parameter
 	/// can be larger than 1.0f but the damping effect becomes sensitive To the
@@ -836,6 +903,9 @@ Type b2BodyDef
 	Method isSleeping:Int()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetIsSleeping(sleeping:Int)
 	End Method
 
@@ -866,15 +936,30 @@ Type b2BodyDef
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2JointDef
+
+	Field b2ObjectPtr:Byte Ptr
+
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2JointEdge
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2MassData
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2ShapeDef
 
 	Field b2ObjectPtr:Byte Ptr
@@ -974,3 +1059,26 @@ Type b2CircleDef Extends b2ShapeDef
 	End Method
 
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2RevoluteJointDef Extends b2JointDef
+
+	Function CreateRevoluteJointDef:b2RevoluteJointDef()
+		Return New b2RevoluteJointDef.Create()
+	End Function
+	
+	Method Create:b2RevoluteJointDef()
+		b2ObjectPtr = bmx_b2revolutejointdef_create()
+		Return Self
+	End Method
+	
+	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2)
+		bmx_b2revolutejointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, anchor.b2ObjectPtr)
+	End Method
+	
+	
+
+End Type
+
