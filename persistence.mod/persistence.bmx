@@ -43,12 +43,23 @@ bbdoc: Object Persistence.
 End Rem
 Type TPersist
 
+	Rem
+	bbdoc: File format version
+	End Rem
+	Const BMO_VERSION:Int = 1
+
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
 	
 	Field lastNode:TxmlNode
 	
-	Field format:Int = True
+	Rem
+	bbdoc: Serialized formatting.
+	about: Set to True to have the data formatted nicely. Default is False - off.
+	End Rem
+	Global format:Int = False
+	
+	Field fileVersion:Int
 
 	Rem
 	bbdoc: Serializes the specified Object into a String.
@@ -122,6 +133,7 @@ Type TPersist
 		If Not doc Then
 			doc = TxmlDoc.newDoc("1.0")
 			parent = TxmlNode.newNode("bmo") ' BlitzMax Object
+			parent.SetAttribute("ver", BMO_VERSION) ' set the format version
 			doc.setRootElement(parent)
 		Else
 			If Not parent Then
@@ -144,6 +156,10 @@ Type TPersist
 			End If
 	
 			For Local f:TField = EachIn tid.EnumFields()
+			
+				If f.MetaData("nopersist") Then
+					Continue
+				End If
 			
 				Local fieldType:TTypeId = f.TypeId()
 				
@@ -182,32 +198,40 @@ Type TPersist
 						
 							Local elementType:TTypeId = fieldType.ElementType()
 							
-							For Local i:Int = 0 Until fieldType.ArrayLength(f.Get(obj))
+							Select elementType
+								Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+
+									Local content:String = ""
+									
+									For Local i:Int = 0 Until fieldType.ArrayLength(f.Get(obj))
+									
+										Local aObj:Object = fieldType.GetArrayElement(f.Get(obj), i)
+
+										If i Then
+											content:+ " "
+										End If
+										content:+ String(aObj)
+									Next
+									
+									fieldNode.SetContent(content)
+									
+								Default
+									For Local i:Int = 0 Until fieldType.ArrayLength(f.Get(obj))
+									
+										Local elementNode:TxmlNode = fieldNode.addChild("val")
+										
+										Local aObj:Object = fieldType.GetArrayElement(f.Get(obj), i)
+									
+										Select elementType
+											Case StringTypeId
+												elementNode.setContent(String(aObj))
+											Default
+												SerializeObject(aObj, elementNode)
+										End Select
+									Next
 							
-								Local elementNode:TxmlNode = fieldNode.addChild("val")
-								
-								Local aObj:Object = fieldType.GetArrayElement(f.Get(obj), i)
-							
-								Select elementType
-									Case ByteTypeId
-										elementNode.setContent(String(aObj))
-									Case ShortTypeId
-										elementNode.setContent(String(aObj))
-									Case IntTypeId
-										elementNode.setContent(String(aObj))
-									Case LongTypeId
-										elementNode.setContent(String(aObj))
-									Case FloatTypeId
-										elementNode.setContent(String(aObj))
-									Case DoubleTypeId
-										elementNode.setContent(String(aObj))
-									Case StringTypeId
-										elementNode.setContent(String(aObj))
-									Default
-										SerializeObject(aObj, elementNode)
-								End Select
-							Next
-							
+							End Select
+
 						Else
 							Local fieldObject:Object = f.Get(obj)
 							Local fieldRef:String = GetObjRef(fieldObject)
@@ -253,7 +277,9 @@ Type TPersist
 	Method DeSerializeFromDoc:Object(xmlDoc:TxmlDoc)
 		doc = xmlDoc
 
-		Local obj:Object = DeSerializeObject("", doc.GetRootElement())
+		Local root:TxmlNode = doc.GetRootElement()
+		fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
+		Local obj:Object = DeSerializeObject("", root)
 		doc = Null
 		Return obj
 	End Method
@@ -268,6 +294,7 @@ Type TPersist
 		If Not doc Then
 			doc = TxmlDoc.parseDoc(text)
 			parent = doc.GetRootElement()
+			fileVersion = parent.GetAttribute("ver").ToInt() ' get the format version
 			node = TxmlNode(parent.GetFirstChild())
 			lastNode = node
 		Else
@@ -320,36 +347,61 @@ Type TPersist
 
 								Local arrayType:TTypeId = fieldObj.TypeId()
 								Local arrayElementType:TTypeId = arrayType.ElementType()
-							
-								Local arrayList:TList = fieldNode.getChildren()
-								
-								Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-								fieldObj.Set(obj, arrayObj)
-								
-								Local i:Int
-								For Local arrayNode:TxmlNode = EachIn arrayList
-
+			
+								If fileVersion Then
+									' for file Version 1+
+									
 									Select arrayElementType
-										Case ByteTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case ShortTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case IntTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case LongTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case FloatTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case DoubleTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-										Case StringTypeId
-											arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+										Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+										
+											Local arrayList:String[] = fieldNode.GetContent().Split(" ")
+											Local arrayObj:Object = arrayType.NewArray(arrayList.length)
+											fieldObj.Set(obj, arrayObj)
+											
+											For Local i:Int = 0 Until arrayList.length
+												arrayType.SetArrayElement(arrayObj, i, arrayList[i])
+											Next
+											
 										Default
-											arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+											Local arrayList:TList = fieldNode.getChildren()
+											
+											Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+											fieldObj.Set(obj, arrayObj)
+											
+											Local i:Int
+											For Local arrayNode:TxmlNode = EachIn arrayList
+			
+												Select arrayElementType
+													Case StringTypeId
+														arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+													Default
+														arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+												End Select
+			
+												i:+ 1
+											Next
 									End Select
-
-									i:+ 1
-								Next
+								Else
+									' For file version 0 (zero)
+									
+									Local arrayList:TList = fieldNode.getChildren()
+									
+									Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+									fieldObj.Set(obj, arrayObj)
+									
+									Local i:Int
+									For Local arrayNode:TxmlNode = EachIn arrayList
+	
+										Select arrayElementType
+											Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
+												arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+											Default
+												arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+										End Select
+	
+										i:+ 1
+									Next
+								End If
 							Else
 								' is this a reference?
 								Local ref:String = fieldNode.getAttribute("ref")
