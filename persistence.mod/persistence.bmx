@@ -37,6 +37,7 @@ ModuleInfo "History: Initial Release"
 Import BaH.libxml
 Import BRL.Reflection
 Import BRL.Map
+Import BRL.Stream
 
 Rem
 bbdoc: Object Persistence.
@@ -82,7 +83,7 @@ Type TPersist
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Serializes an Object to a String.
 	End Rem
 	Method SerializeToString:String(obj:Object)
 		Free()
@@ -92,7 +93,7 @@ Type TPersist
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Serializes an Object to the file @filename.
 	End Rem
 	Method SerializeToFile(obj:Object, filename:String)
 		Free()
@@ -117,7 +118,20 @@ Type TPersist
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Serializes an Object to a Stream.
+	about: It is up to the user to close the stream.
+	End Rem
+	Method SerializeToStream(obj:Object, stream:TStream)
+		Free()
+		SerializeObject(obj)
+		
+		If doc Then
+			stream.WriteString(ToString())
+		End If
+	End Method
+
+	Rem
+	bbdoc: Returns the serialized object as a string.
 	End Rem
 	Method ToString:String()
 		If doc Then
@@ -259,17 +273,20 @@ Type TPersist
 	
 	Rem
 	bbdoc: De-serializes @text into an Object structure.
+	about: Accepts a TxmlDoc, TStream or a String (of data).
 	End Rem
 	Function DeSerialize:Object(data:Object)
 		Local ser:TPersist = New TPersist
 		
 		If TxmlDoc(data) Then
 			Return ser.DeSerializeFromDoc(TxmlDoc(data))
+		Else If TStream(data) Then
+			Return ser.DeSerializeFromStream(TStream(data))
 		Else If String(data) Then
 			Return ser.DeSerializeObject(String(data))
 		End If
 	End Function
-
+	
 	Rem
 	bbdoc: De-serializes @doc into an Object structure.
 	about: It is up to the user to free the supplied TxmlDoc.
@@ -280,6 +297,40 @@ Type TPersist
 		Local root:TxmlNode = doc.GetRootElement()
 		fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
 		Local obj:Object = DeSerializeObject("", root)
+		doc = Null
+		Return obj
+	End Method
+
+	Rem
+	bbdoc: De-serializes the file @filename into an Object structure.
+	End Rem
+	Method DeSerializeFromFile:Object(filename:String)
+		doc = TxmlDoc.parseFile(filename)
+
+		If doc Then
+			Local root:TxmlNode = doc.GetRootElement()
+			fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
+			Local obj:Object = DeSerializeObject("", root)
+			doc.Free()
+			doc = Null
+			Return obj
+		End If
+	End Method
+
+	Rem
+	bbdoc: De-serializes @stream into an Object structure.
+	End Rem
+	Method DeSerializeFromStream:Object(stream:TStream)
+		Local data:String
+		Local buf:Byte[2048]
+		
+		While Not stream.Eof()
+			Local count:Int = stream.Read(buf, 2048)
+			data:+ String.FromBytes(buf, count)
+		Wend
+	
+		Local obj:Object = DeSerializeObject(data)
+		doc.Free()
 		doc = Null
 		Return obj
 	End Method

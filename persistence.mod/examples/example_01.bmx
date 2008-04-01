@@ -78,10 +78,25 @@ End Type
 
 Local test:TTest = TTest.Set()
 
+' ++  Serialize to a String
 Local s:String = TPersist.Serialize(test)
 Print s
+
+' ++  De-serialize the String
 Local obj:Object = TPersist.DeSerialize(s)
+
+Local pers:TPersist = New TPersist
+
+' ++ Create a Stream and Serialize the current object to it.
+Local stream:TStream = WriteStream("example.bmo")
+pers.SerializeToStream(obj, stream)
+stream.Close()
+
+' ++ De-serialize from a Stream.
+stream = ReadStream("example.bmo")
+obj = TPersist.DeSerialize(stream)
+
+' ++ Serialize and output the latest object... all should be well :-)
 TPersist.format = True
 Print TPersist.Serialize(obj)
-
 
