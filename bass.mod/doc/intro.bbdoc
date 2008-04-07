@@ -1,0 +1,18 @@
+<a href="http://www.un4seen.com/"><img src="bass_logo.gif" align="right" border="0" /></a>
+<p>
+BASS is an audio library for use in Windows and Mac OSX software.<br>
+Its purpose is to provide developers with powerful and efficient sample, stream (MP3, MP2, MP1, OGG, WAV, AIFF, custom generated,
+and more via add-ons), MOD music (XM, IT, S3M, MOD, MTM, UMX), MO3 music (MP3/OGG compressed MODs), and recording functions.
+</p>
+<p>
+This BlitzMax module, as well as the standard streaming functionality also supports the use of TStream, allowing even more flexibility than BASS already provides.
+</p>
+<h3>How to package the library with your App</h3>
+<p>
+You can find the runtime libraries in the <tt>lib/^platform^</tt> folder of the module distribution, where ^platform^ is either <tt>win32</tt> or  <tt>macos</tt>.
+<p>
+On Windows, you should place the <tt>bass.dll</tt> file in the same folder as your app.
+</p>
+<p>
+On OS X, the <tt>libbass.dylib</tt> should be placed inside the application bundle. For example, if your application was called MyApp, then the library would need to be placed in <tt>MyApp.app/Contents/MacOS/</tt>.
+</p>
