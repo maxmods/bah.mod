@@ -188,7 +188,15 @@ End Rem
 Type TBassChannel
 
 	Field handle:Int
-	
+
+	Function _create:TBassChannel(handle:Int)
+		If handle Then
+			Local this:TBassChannel = New TBassChannel
+			this.handle = handle
+			Return this
+		End If
+	End Function
+
 	Rem
 	bbdoc: Starts (or resumes) playback of a sample, stream, MOD music, or recording.
 	returns: If successful, TRUE is returned, else FALSE is returned. Use #BASS_ErrorGetCode to get the error code. 
@@ -574,6 +582,13 @@ Type TBassStream Extends TBassChannel
 	Field callback:Int(handle:TBassStream, buffer:Byte Ptr, length:Int, user:Object)
 	Field userData:Object
 
+	Function _create:TBassStream(handle:Int)
+		If handle Then
+			Local this:TBassStream = New TBassStream
+			this.handle = handle
+			Return this
+		End If
+	End Function
 
 	Rem
 	bbdoc: 
