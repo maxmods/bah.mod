@@ -40,6 +40,10 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
 Import BRL.Stream
 Import "common.bmx"
 
+Private
+Global fx_factories:TBassFXFactory
+Public
+
 
 Rem
 Parameters: 
@@ -516,9 +520,24 @@ Type TBassFX
 	bbdoc: 
 	End Rem
 	Method GetParameters:TBassFXType()
-		Select fxType
-			
-		End Select
+		Local fx:TBassFXType
+		
+		Local factory:TBassFXFactory = fx_factories
+
+		While factory
+			fx = factory.FXForType(fxType)
+			If fx Exit
+			factory = factory._succ
+		Wend
+
+		Return fx
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetParameters:Int(fx:TBassFXType)
+		Return BASS_FXSetParameters(handle, fx.fxPtr)
 	End Method
 	
 End Type
@@ -529,7 +548,14 @@ End Rem
 Type TBassFXType
 
 	Field fxPtr:Byte Ptr
-	
+
+	Method Delete()
+		If fxPtr Then
+			bmx_bass_fxdelete(fxPtr)
+			fxPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -1639,5 +1665,37 @@ Type TBassRecordInfo
 		End If
 	End Method
 	
+End Type
+
+Type TBassFXFactory
+	Field _succ:TBassFXFactory
+	
+	Method New()
+		_succ = fx_factories
+		fx_factories = Self
+	End Method
+	
+	Method FXForType:TBassFXType(fxType:Int) Abstract
+		
+End Type
+
+New TBassCoreFXFactory
+
+Type TBassCoreFXFactory Extends TBassFXFactory
+
+	Method FXForType:TBassFXType(fxType:Int)
+		Select fxType
+			Case BASS_FX_DX8_CHORUS
+			Case BASS_FX_DX8_COMPRESSOR
+			Case BASS_FX_DX8_DISTORTION
+			Case BASS_FX_DX8_ECHO
+			Case BASS_FX_DX8_FLANGER
+			Case BASS_FX_DX8_GARGLE
+			Case BASS_FX_DX8_I3DL2REVERB
+			Case BASS_FX_DX8_PARAMEQ
+			Case BASS_FX_DX8_REVERB
+		End Select
+	End Method	
+
 End Type
 

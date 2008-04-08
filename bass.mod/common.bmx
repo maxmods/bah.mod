@@ -88,6 +88,9 @@ Extern
 	Function bmx_recordinfo_issinglein:Int(handle:Byte Ptr)
 	Function bmx_recordinfo_getfreq:Int(handle:Byte Ptr)
 	Function bmx_recordinfo_delete(handle:Byte Ptr)
+	
+	Function bmx_bass_fxdelete(handle:Byte Ptr)
+
 End Extern
 
 ?win32
@@ -126,7 +129,7 @@ Extern
 	Function BASS_SetConfig:Int(option:Int, value:Int)
 
 	Function BASS_FXReset:Int(handle:Int)
-
+	Function BASS_FXSetParameters:Int(handle:Int, fx:Byte Ptr)
 
 	Function BASS_MusicFree:Int(handle:Int)
 	

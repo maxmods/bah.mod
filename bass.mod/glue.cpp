@@ -87,6 +87,8 @@ extern "C" {
 	DWORD bmx_recordinfo_getfreq(BASS_RECORDINFO * info);
 	void bmx_recordinfo_delete(BASS_RECORDINFO * info);
 
+	void bmx_bass_fxdelete(void * fx);
+
 }
 
 
@@ -344,3 +346,8 @@ void bmx_recordinfo_delete(BASS_RECORDINFO * info) {
 	delete info;
 }
 
+// *************************************************
+
+void bmx_bass_fxdelete(void * fx) {
+	delete fx;
+}
