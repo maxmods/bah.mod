@@ -31,6 +31,8 @@ extern "C" {
 	void _bah_box2d_b2Vec2__setVec(BBArray * array, int index, b2Vec2 * vec);
 
 	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
+	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
+	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
 
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
@@ -46,6 +48,13 @@ extern "C" {
 	b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
 	b2Body * bmx_b2world_getgroundbody(b2World * world);
+	void bmx_b2world_setwarmstarting(b2World * world, bool flag);
+	void bmx_b2world_setpositioncorrection(b2World * world, bool flag);
+	void bmx_b2world_setcontinuousphysics(b2World * world, bool flag);
+	void bmx_b2world_validate(b2World * world);
+	void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw);
+	b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def, BBObject * joint);
+	void bmx_b2world_destroyjoint(b2World * world, b2Joint * joint);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -83,10 +92,10 @@ extern "C" {
 	void bmx_b2body_setbullet(b2Body * body, bool flag);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
-	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, int flags);
-	int bmx_b2debugdraw_getflags(MaxDebugDraw * dbg);
-	void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, int flags);
-	void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, int flags);
+	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
+	uint32 bmx_b2debugdraw_getflags(MaxDebugDraw * dbg);
+	void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, uint32 flags);
+	void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, uint32 flags);
 
 	b2CircleDef * bmx_b2circledef_create();
 	void bmx_b2circledef_setradius(b2CircleDef * def, float32 radius);
@@ -99,6 +108,8 @@ extern "C" {
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
+
+	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
 
 }
 
@@ -182,6 +193,40 @@ void bmx_b2world_destroybody(b2World * world, b2Body * body) {
 
 b2Body * bmx_b2world_getgroundbody(b2World * world) {
 	return world->GetGroundBody();
+}
+
+void bmx_b2world_setwarmstarting(b2World * world, bool flag) {
+	world->SetWarmStarting(flag);
+}
+
+void bmx_b2world_setpositioncorrection(b2World * world, bool flag) {
+	world->SetPositionCorrection(flag);
+}
+
+void bmx_b2world_setcontinuousphysics(b2World * world, bool flag) {
+	world->SetContinuousPhysics(flag);
+}
+
+void bmx_b2world_validate(b2World * world) {
+	world->Validate();
+}
+
+void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw) {
+	world->SetDebugDraw(debugDraw);
+}
+
+b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def, BBObject * joint) {
+	def->userData = joint;
+	BBRETAIN(joint);
+	return world->CreateJoint(def);
+}
+
+void bmx_b2world_destroyjoint(b2World * world, b2Joint * joint) {
+	void * data = joint->GetUserData();
+	if (data && data != &bbNullObject) {
+		BBRELEASE((BBObject*)data);
+	}
+	world->DestroyJoint(joint);
 }
 
 // *****************************************************
@@ -336,6 +381,8 @@ public:
 	{
 	}
 
+	~MaxDebugDraw() {}
+
 	void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
 		BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
 		for (int i = 0; i < vertexCount; i++) {
@@ -348,23 +395,35 @@ public:
 	}
 
 	void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
-	
+		BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
+		for (int i = 0; i < vertexCount; i++) {
+			_bah_box2d_b2Vec2__setVec(array, i, bmx_b2vec2_new(vertices[i]));
+		}
+		_bah_box2d_b2DebugDraw__DrawSolidPolygon(maxHandle, array, 
+			static_cast<int>(color.r * 255.0f),
+			static_cast<int>(color.g * 255.0f),
+			static_cast<int>(color.b * 255.0f));
 	}
 
 	void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color) {
-	
 	}
 
 	void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) {
-	
 	}
 
 	void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) {
-	
+		_bah_box2d_b2DebugDraw__DrawSegment(maxHandle, bmx_b2vec2_new(p1), bmx_b2vec2_new(p2), 
+			static_cast<int>(color.r * 255.0f),
+			static_cast<int>(color.g * 255.0f),
+			static_cast<int>(color.b * 255.0f));
 	}
 
 	void DrawXForm(const b2XForm& xf) {
 	
+	}
+	
+	void SetFlags(uint32 flags) {
+		b2DebugDraw::m_drawFlags = flags;
 	}
 	
 private:
@@ -376,19 +435,19 @@ MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle) {
 	return new MaxDebugDraw(handle);
 }
 
-void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, int flags) {
+void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags) {
 	dbg->SetFlags(flags);
 }
 
-int bmx_b2debugdraw_getflags(MaxDebugDraw * dbg) {
+uint32 bmx_b2debugdraw_getflags(MaxDebugDraw * dbg) {
 	return dbg->GetFlags();
 }
 
-void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, int flags) {
+void bmx_b2debugdraw_appendflags(MaxDebugDraw * dbg, uint32 flags) {
 	dbg->AppendFlags(flags);
 }
 
-void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, int flags) {
+void bmx_b2debugdraw_clearflags(MaxDebugDraw * dbg, uint32 flags) {
 	dbg->ClearFlags(flags);
 }
 
@@ -437,5 +496,15 @@ b2RevoluteJointDef * bmx_b2revolutejointdef_create() {
 
 void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor) {
 	def->Initialize(body1, body2, *anchor);
+}
+
+// *****************************************************
+
+BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint) {
+	void * obj = joint->GetUserData();
+	if (obj) {
+		return (BBObject *)obj;
+	}
+	return &bbNullObject;
 }
 

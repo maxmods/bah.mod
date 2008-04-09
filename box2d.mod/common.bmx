@@ -38,6 +38,13 @@ Extern
 	Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	Function bmx_b2world_destroybody(handle:Byte Ptr, body:Byte Ptr)
 	Function bmx_b2world_getgroundbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2world_setwarmstarting(handle:Byte Ptr, flag:Int)
+	Function bmx_b2world_setpositioncorrection(handle:Byte Ptr, flag:Int)
+	Function bmx_b2world_setcontinuousphysics(handle:Byte Ptr, flag:Int)
+	Function bmx_b2world_validate(handle:Byte Ptr)
+	Function bmx_b2world_setdebugDraw(handle:Byte Ptr, debugDraw:Byte Ptr)
+	Function bmx_b2world_createjoint:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, joint:Object)
+	Function bmx_b2world_destroyjoint(handle:Byte Ptr, joint:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -91,5 +98,7 @@ Extern
 
 	Function bmx_b2revolutejointdef_create:Byte Ptr()
 	Function bmx_b2revolutejointdef_initialize(handle:Byte Ptr, body1:Byte Ptr, body2:Byte Ptr, anchor:Byte Ptr)
+
+	Function bmx_b2joint_getmaxjoint:Object(handle:Byte Ptr)
 
 End Extern

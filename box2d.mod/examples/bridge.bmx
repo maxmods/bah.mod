@@ -1,14 +1,24 @@
 SuperStrict
 
 Framework BaH.Box2d
-
+Import BRL.GLMax2D
 
 Import "test.bmx"
+
+
+Graphics 800,600, 0
+SetBlend alphablend
+
+
+Run(New Bridge.Create(), New TSettings)
+
 
 
 Type Bridge Extends Test
 
 	Method Create:Bridge()
+	
+		Init()
 	
 		Local ground:b2Body
 		
@@ -48,6 +58,8 @@ Type Bridge Extends Test
 		Local anchor:b2Vec2 = New b2Vec2.Create(-15.0 + 1.0 * numPlanks, 5.0)
 		jd.Initialize(prevBody, ground, anchor)
 		m_world.CreateJoint(jd)
+		
+		Return Self
 		
 	End Method
 

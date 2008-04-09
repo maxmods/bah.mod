@@ -95,6 +95,7 @@ Type b2World
 	consume draw commands when you call DoStep().
 	End Rem
 	Method SetDebugDraw(debugDraw:b2DebugDraw)
+		bmx_b2world_setdebugDraw(b2ObjectPtr, debugDraw.b2ObjectPtr)
 	End Method
 
 	Rem
@@ -137,6 +138,10 @@ Type b2World
 	/// @warning This Function is locked during callbacks.
 	End Rem
 	Method CreateJoint:b2Joint(def:b2JointDef)
+		Local joint:b2Joint = New b2Joint
+		joint.userData = def.userData ' copy the userData
+		joint.b2ObjectPtr = bmx_b2world_createjoint(b2ObjectPtr, def.b2ObjectPtr, joint)
+		Return joint
 	End Method
 
 	Rem
@@ -144,6 +149,7 @@ Type b2World
 	/// @warning This Function is locked during callbacks.
 	End Rem
 	Method DestroyJoint(joint:b2Joint)
+		bmx_b2world_destroyjoint(b2ObjectPtr, joint.b2ObjectPtr)
 	End Method
 
 	Rem
@@ -210,7 +216,35 @@ Type b2World
 	End Rem
 	Method GetContactList:b2Contact[]()
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetWarmStarting(flag:Int)
+		bmx_b2world_setwarmstarting(b2ObjectPtr, flag)
+	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPositionCorrection(flag:Int)
+		bmx_b2world_setpositioncorrection(b2ObjectPtr, flag)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetContinuousPhysics(flag:Int)
+		bmx_b2world_setcontinuousphysics(b2ObjectPtr, flag)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Validate()
+		bmx_b2world_validate(b2ObjectPtr)
+	End Method
+	
 End Type
 
 Rem
@@ -306,11 +340,25 @@ Type b2Vec2
 	Method GetX:Float()
 		Return bmx_b2vec2_getx(b2ObjectPtr)
 	End Method
-	
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method X:Float()
+		Return bmx_b2vec2_getx(b2ObjectPtr)
+	End Method
+
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetY:Float()
+		Return bmx_b2vec2_gety(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Y:Float()
 		Return bmx_b2vec2_gety(b2ObjectPtr)
 	End Method
 
@@ -360,6 +408,29 @@ Rem
 bbdoc: 
 End Rem
 Type b2Joint
+
+	Field b2ObjectPtr:Byte Ptr
+	Field userData:Object
+
+	Function _create:b2Joint(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local joint:b2Joint = b2Joint(bmx_b2joint_getmaxjoint(b2ObjectPtr))
+			If Not joint Then
+				joint = New b2Joint
+				joint.b2ObjectPtr = b2ObjectPtr
+			End If
+			Return joint
+		End If
+	End Function
+
+	Rem
+	bbdoc: Get the user data pointer that was provided in the joint definition.
+	End Rem
+	Method GetUserData:Object()
+		Return userData
+	End Method
+
+
 End Type
 
 Rem
@@ -689,13 +760,8 @@ Type b2DebugDraw
 	Const e_pairBit:Int = $0020         ' draw broad-phase pairs
 	Const e_centerOfMassBit:Int = $0040 ' draw center of mass frame
 
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method Create:b2DebugDraw()
+	Method New()
 		b2ObjectPtr = bmx_b2debugdraw_create(Self)
-		Return Self
 	End Method
 	
 	Rem
@@ -741,6 +807,10 @@ Type b2DebugDraw
 	End Rem
 	Method DrawSolidPolygon(vertices:b2Vec2[], color:b2Color) Abstract
 
+	Function _DrawSolidPolygon(obj:b2DebugDraw , vertices:b2Vec2[], r:Int, g:Int, b:Int)
+		obj.DrawSolidPolygon(vertices, b2Color.Set(r, g, b))
+	End Function
+
 	Rem
 	bbdoc: Draw a circle.
 	End Rem
@@ -755,6 +825,10 @@ Type b2DebugDraw
 	bbdoc: Draw a line segment.
 	End Rem
 	Method DrawSegment(p1:b2Vec2, p2:b2Vec2, color:b2Color) Abstract
+
+	Function _DrawSegment(obj:b2DebugDraw, p1:Byte Ptr, p2:Byte Ptr, r:Int, g:Int, b:Int)
+		obj.DrawSegment(b2Vec2._create(p1), b2Vec2._create(p2), b2Color.Set(r, g, b))
+	End Function
 	
 	Rem
 	bbdoc: Draw a transform. Choose your own length scale.
@@ -942,6 +1016,7 @@ End Rem
 Type b2JointDef
 
 	Field b2ObjectPtr:Byte Ptr
+	Field userData:Object
 
 End Type
 
