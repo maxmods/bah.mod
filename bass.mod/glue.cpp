@@ -89,6 +89,9 @@ extern "C" {
 
 	void bmx_bass_fxdelete(void * fx);
 
+	BASS_3DVECTOR * bmx_bass_3dvector_create();
+	void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec);
+
 }
 
 
@@ -350,4 +353,14 @@ void bmx_recordinfo_delete(BASS_RECORDINFO * info) {
 
 void bmx_bass_fxdelete(void * fx) {
 	delete fx;
+}
+
+// *************************************************
+
+BASS_3DVECTOR * bmx_bass_3dvector_create() {
+	return new BASS_3DVECTOR;
+}
+
+void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec) {
+	delete vec;
 }

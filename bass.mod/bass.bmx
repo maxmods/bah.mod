@@ -60,7 +60,13 @@ Parameters:
 End Rem
 
 Rem
-bbdoc: 
+bbdoc: Used with TBass.GetInfo to retrieve information on the current device. 
+about: 
+<p>
+<b>OS X notes</b> - Only the latency, minbuf, initflags, speakers and freq members are used. Hardware mixing and
+EAX are unavailable in OS X. The speakers and freq values will change as the device's output is changed, eg.
+via its control panel.
+</p>
 End Rem
 Type TBassInfo
 
@@ -75,98 +81,112 @@ Type TBassInfo
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: flagsThe device's capabilities... a combination of these flags.
+	about: 
 	End Rem
 	Method GetFlags:Int()
 		Return bmx_bassinfo_getflags(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The device's total amount of hardware memory. 
 	End Rem
 	Method GetHWSize:Int()
 		Return bmx_bassinfo_gethwsize(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The device's amount of free hardware memory.
 	End Rem
 	Method GetHWFree:Int()
 		Return bmx_bassinfo_gethwfree(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of free sample slots in the hardware.
 	End Rem
 	Method GetFreeSam:Int()
 		Return bmx_bassinfo_getfreesam(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of free 3D sample slots in the hardware.
 	End Rem
 	Method GetFree3d:Int()
 		Return bmx_bassinfo_getfree3d(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The minimum sample rate supported by the hardware.
 	End Rem
 	Method GetMinRate:Int()
 		Return bmx_bassinfo_getminrate(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The maximum sample rate supported by the hardware.
 	End Rem
 	Method GetMaxRate:Int()
 		Return bmx_bassinfo_getmaxrate(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The device supports EAX and has it enabled?
+	about: The device's "Hardware acceleration" needs to be set to "Full" in its "Advanced Properties" setup,
+	else EAX is disabled. This is always FALSE if BASS_DEVICE_3D was not specified when TBass.Init was called. 
 	End Rem
 	Method GetEAX:Int()
 		Return bmx_bassinfo_geteax(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The minimum buffer length (rounded up to the nearest millisecond) recommended for use (with the BASS_CONFIG_BUFFER config option).
+	about: Requires that BASS_DEVICE_LATENCY was used when TBass.Init was called
 	End Rem
 	Method GetMinBuf:Int()
 		Return bmx_bassinfo_getminbuf(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: DirectSound version...
+	about: 9 = DX9/8/7/5 features are available, 8 = DX8/7/5 features are available,
+	7 = DX7/5 features are available, 5 = DX5 features are available.
+	0 = none of the DX9/8/7/5 features are available.
 	End Rem
 	Method GetDSVer:Int()
 		Return bmx_bassinfo_getdsver(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The average delay (rounded up to the nearest millisecond) for playback of TBassStream/TBassMusic channels to start and be heard.
+	about: Requires that BASS_DEVICE_LATENCY was used when TBass.Init was called.
 	End Rem
 	Method GetLatency:Int()
 		Return bmx_bassinfo_getlatency(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The flags parameter of the TBass.Init call.
 	End Rem
 	Method GetInitFlags:Int()
 		Return bmx_bassinfo_getinitflags(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of speakers the device/drivers supports...
+	about: 2 means that there is no support for speaker assignment (this will always be the case with VxD
+	drivers). It's also possible that it could mistakenly be 2 with some devices/drivers, when the device in 
+	fact supports more speakers. In that case the BASS_DEVICE_CPSPEAKERS flag can be used in the TBass.Init call
+	to use the Windows control panel setting, or the BASS_DEVICE_SPEAKERS flag can be used to force the
+	enabling of speaker assignment.
 	End Rem
 	Method GetSpeakers:Int()
 		Return bmx_bassinfo_getspeakers(bassInfoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The device's current output sample rate.
+	about: This is only available on Windows Vista and OS X.
 	End Rem
 	Method GetFreq:Int()
 		Return bmx_bassinfo_getfreq(bassInfoPtr)
@@ -476,10 +496,206 @@ Type TBassChannel
 	</li>
 	<li><b>value</b> : A variable to receive the attribute value.</li>
 	</ul>
-	<p>
 	End Rem
 	Method GetAttribute:Int(attrib:Int, value:Float Var)
 		Return BASS_ChannelGetAttribute(handle, attrib, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: Sets the value of a channel's attribute. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code.
+	about: Parameters: 
+	<ul>
+	<li><b>attrib</b> : The attribute to set the value of... one of the following.
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_ATTRIB_EAXMIX</td><td>EAX wet/dry mix. (TBassSample/TBassMusic/TBassStream only)
+	<p>
+	The wet / dry ratio... 0 (full dry) to 1 (full wet), -1 = automatically calculate the mix based on the distance (the default).
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_FREQ</td><td>Sample rate.
+	<p>
+	The sample rate... 100 (min) to 100000 (max), 0 = original rate (when the channel was created). The value
+	will be rounded down to a whole number. 
+	</p>
+	<p>
+	This attribute applies to playback of the channel, and does not affect the channel's sample data, so has no
+	real effect on decoding channels. It is still adjustable though, so that it can be used by the BASSmix
+	add-on, and anything else that wants to use it. 
+	</p>
+	<p>
+	Although the standard valid sample rate range is 100 to 100000, some devices/drivers may have a different
+	valid range. See the minrate and maxrate members of the TBassInfo Type. 
+	</p>
+	<p>
+	It is not possible to change the sample rate of a channel if the "with FX flag" DX8 effect implementation
+	enabled on it, unless DirectX 9 or above is installed. 
+	</p>
+	<p>
+	It requires an increased amount of CPU processing to play MOD musics and streams at increased sample rates.
+	If you plan to play MOD musics or streams at greatly increased sample rates, then you should increase the
+	buffer lengths (BASS_CONFIG_BUFFER) to avoid possible break-ups in the sound. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_AMPLIFY</td><td>Amplification level. (TBassMusic)
+	<p>
+	Amplification level... 0 (min) to 100 (max). This will be rounded down to a whole number. 
+	</p>
+	<p>
+	As the amplification level get's higher, the sample data's range increases, and therefore, the resolution
+	increases. But if the level is set too high, then clipping can occur, which can result in distortion of the
+	sound. 
+	</p>
+	<p>
+	You can check the current level of a MOD music at any time by using TBassChannel.GetLevel. By doing so, you
+	can decide if a MOD music's amplification level needs adjusting. 
+	</p>
+	<p>
+	The default amplification level is 50. 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_BPM</td><td>BPM. (TBassMusic)
+	<p>
+	The BPM... 1 (min) to 255 (max). This will be rounded down to a whole number. 
+	</p>
+	<p>
+	This attribute is a direct mapping of the MOD's BPM, so the value can be changed via effects in the MOD
+	itself. 
+	</p>
+	<p>
+	Note that by changing this attribute, you are changing the playback length. 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_PANSEP</td><td>Pan separation level. (TBassMusic)
+	<p>
+	Pan separation... 0 (min) to 100 (max), 50 = linear. This will be rounded down to a whole number.
+	</p>
+	<p>
+	By default BASS uses a linear panning "curve". If you want to use the panning of FT2, use a pan separation
+	setting of around 35. To use the Amiga panning (ie. full left and right) set it to 100. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_PSCALER</td><td>Position scaler. (TBassMusic)
+	<p>
+	The scaler... 1 (min) to 256 (max). This will be rounded down to a whole number. 
+	</p>
+	<p>
+	When getting the order position via TBassChannel.GetPosition, the row will be scaled by this value.
+	By using a higher scaler, you can get a more precise position indication. 
+	</p>
+	<p>
+	The default position scaler is 1. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_SPEED</td><td>Speed. (TBassMusic)
+	<p>
+	The speed... 0 (min) to 255 (max). This will be rounded down to a whole number. 
+	</p>
+	<p>
+	This attribute is a direct mapping of the MOD's speed, so the value can be changed via effects in the MOD
+	itself. 
+	</p>
+	<p>
+	The "speed" is the number of ticks per row. Setting it to 0, stops and ends the music. Note that by
+	changing this attribute, you are changing the playback length. 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_VOL_CHAN + channel</td><td>A channel volume level. (TBassMusic)
+	<p>
+	For channels, 0 = first channel.
+	</p>
+	<p>
+	The volume curve used by this attribute is always linear, eg. 0.5 = 50%. The BASS_CONFIG_CURVE_VOL config
+	option setting has no effect on this. The volume level of all channels is initially 1 (full). 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length. 
+	</p>
+	<p>
+	This attribute can also be used to count the number of channels in a MOD Music.
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_VOL_GLOBAL</td><td>Global volume level. (TBassMusic)
+	<p>
+	The global volume level... 0 (min) to 64 (max, 128 for IT format). This will be rounded down to a whole number. 
+	</p>
+	<p>
+	This attribute is a direct mapping of the MOD's global volume, so the value can be changed via effects in
+	the MOD itself. 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length.
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_MUSIC_VOL_INST + inst</td><td>An instrument/sample volume level. (TBassMusic)
+	<p>
+	For instruments, 0 = first instrument.
+	</p>
+	<p>
+	The volume curve used by this attribute is always linear, eg. 0.5 = 50%. The BASS_CONFIG_CURVE_VOL config
+	option setting has no effect on this. The volume level of all instruments is initially 1 (full). For MOD
+	formats that do not use instruments, read "sample" for "instrument". 
+	</p>
+	<p>
+	During playback, the effect of changes to this attribute are not heard instantaneously, due to buffering.
+	To reduce the delay, use the BASS_CONFIG_BUFFER config option to reduce the buffer length. 
+	</p>
+	<p>
+	This attribute can also be used to count the number of instruments in a MOD music. 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_PAN</td><td>Panning/balance position.
+	<p>
+	The pan position... -1 (full left) to +1 (full right), 0 = centre. 
+	</p>
+	<p>
+	This attribute applies to playback of the channel, and does not affect the channel's sample data, so has no
+	real effect on decoding channels. It is still adjustable though, so that it can be used by the BASSmix
+	add-on, and anything else that wants to use it. 
+	</p>
+	<p>
+	It is not possible to set the pan position of a 3D channel. It is also not possible to set the pan position
+	when using speaker assignment, but if needed, it can be done via a DSP function instead (not on mono
+	channels). 
+	</p>
+	</td></tr>
+	<tr><td>BASS_ATTRIB_VOL</td><td>Volume level.
+	<p>
+	The volume level... 0 (silent) to 1 (full). 
+	</p>
+	<p>
+	This attribute applies to playback of the channel, and does not affect the channel's sample data, so has no
+	real effect on decoding channels. It is still adjustable though, so that it can be used by the BASSmix
+	add-on, and anything else that wants to use it. 
+	<p>
+	</p>
+	When using BASS_ChannelSlideAttribute to slide this attribute, a negative volume value can be used to
+	fade-out and then stop the channel. 
+	</p>
+	</td></tr>
+	</table>
+	<i>Other attributes may be supported by add-ons, see the documentation.</i>
+	</li>
+	<li><b>value</b> : A variable to receive the attribute value.</li>
+	</ul>
+	End Rem
+	Method SetAttribute:Int(attrib:Int, value:Float)
+		Return BASS_ChannelSetAttribute(handle, attrib, value)
 	End Method
 	
 	Rem
@@ -498,6 +714,99 @@ Type TBassChannel
 		Return BASS_ChannelSetLink(handle, channel.handle)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Get3DPosition:Int(pos:TBass3DVector = Null, orient:TBass3DVector = Null, vel:TBass3DVector = Null)
+		If pos Then
+			If orient Then
+				If vel Then
+					Return BASS_ChannelGet3DPosition(handle, pos.vectorPtr, orient.vectorPtr, vel.vectorPtr)
+				Else
+					Return BASS_ChannelGet3DPosition(handle, pos.vectorPtr, orient.vectorPtr, Null)
+				End If
+			Else
+				If vel Then
+					Return BASS_ChannelGet3DPosition(handle, pos.vectorPtr, Null, vel.vectorPtr)
+				Else
+					Return BASS_ChannelGet3DPosition(handle, pos.vectorPtr, Null, Null)
+				End If
+			End If
+		Else
+			If orient Then
+				If vel Then
+					Return BASS_ChannelGet3DPosition(handle, Null, orient.vectorPtr, vel.vectorPtr)
+				Else
+					Return BASS_ChannelGet3DPosition(handle, Null, orient.vectorPtr, Null)
+				End If
+			Else
+				If vel Then
+					Return BASS_ChannelGet3DPosition(handle, Null, Null, vel.vectorPtr)
+				Else
+					Return BASS_ChannelGet3DPosition(handle, Null, Null, Null)
+				End If
+			End If
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Sets the 3D position of a sample, stream, or MOD music channel with 3D functionality. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: 
+	End Rem
+	Method Set3DPosition:Int(pos:TBass3DVector = Null, orient:TBass3DVector = Null, vel:TBass3DVector = Null)
+		If pos Then
+			If orient Then
+				If vel Then
+					Return BASS_ChannelSet3DPosition(handle, pos.vectorPtr, orient.vectorPtr, vel.vectorPtr)
+				Else
+					Return BASS_ChannelSet3DPosition(handle, pos.vectorPtr, orient.vectorPtr, Null)
+				End If
+			Else
+				If vel Then
+					Return BASS_ChannelSet3DPosition(handle, pos.vectorPtr, Null, vel.vectorPtr)
+				Else
+					Return BASS_ChannelSet3DPosition(handle, pos.vectorPtr, Null, Null)
+				End If
+			End If
+		Else
+			If orient Then
+				If vel Then
+					Return BASS_ChannelSet3DPosition(handle, Null, orient.vectorPtr, vel.vectorPtr)
+				Else
+					Return BASS_ChannelSet3DPosition(handle, Null, orient.vectorPtr, Null)
+				End If
+			Else
+				If vel Then
+					Return BASS_ChannelSet3DPosition(handle, Null, Null, vel.vectorPtr)
+				Else
+					Return BASS_ChannelSet3DPosition(handle, Null, Null, Null)
+				End If
+			End If
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Sets the 3D attributes of a sample, stream, or MOD music channel with 3D functionality. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: 
+	End Rem
+	Method Set3DAttributes:Int(mode:Int = -1, minDist:Float = 0, maxDist:Float = 0, iangle:Int = -1, ..
+			oangle:Int = -1, outvol:Float = -1)
+		Return BASS_ChannelSet3DAttributes(handle, mode, minDist, maxDist, iangle, oangle, outvol)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves the 3D attributes of a sample, stream, or MOD music channel with 3D functionality.
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code.
+	about: 
+	End Rem
+	Method Get3DAttributes:Int(mode:Int Var, minDist:Float Var, maxDist:Float Var, iangle:Int Var, oangle:Int Var, ..
+			outvol:Float Var)
+		Return BASS_ChannelGet3DAttributes(handle, Varptr mode, Varptr minDist, Varptr maxDist, ..
+			Varptr iangle, Varptr oangle, Varptr outvol)
+	End Method
+
 End Type
 
 Rem
@@ -1444,6 +1753,83 @@ Type TBass
 		Return BASS_SetConfig(option, value)
 	End Function
 	
+	Rem
+	bbdoc: Applies changes made to the 3D system. 
+	about: This function must be called to apply any changes made with TBass.Set3DFactors, TBass.Set3DPosition,
+	TBassChannel.Set3DAttributes or TBassChannel.Set3DPosition. This allows multiple changes to be synchronized,
+	and also improves performance. 
+	<p>
+	This function applies 3D changes on all the initialized devices. There is no need to re-call it for each
+	individual device when using multiple devices.
+	</p>
+	End Rem
+	Function Apply3D()
+		BASS_Apply3D()
+	End Function
+?win32
+	Rem
+	bbdoc: Retrieves the current type of EAX environment and its parameters. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: 
+	End Rem
+	Function GetEAXParameters:Int(env:Int Var, vol:Float Var, decay:Float Var, damp:Float Var)
+		Return BASS_GetEAXParameters(Varptr env, Varptr vol, Varptr decay, Varptr damp)
+	End Function
+	
+	Rem
+	bbdoc: Sets the type of EAX environment and its parameters. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: 
+	End Rem
+	Function SetEAXParameters:Int(env:Int, vol:Float, decay:Float, damp:Float)
+		Return BASS_SetEAXParameters(env, vol, decay, damp)
+	End Function
+?
+	Rem
+	bbdoc: Retrieves the factors that affect the calculations of 3D sound. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: Parameters: 
+	<ul>
+	<li><b>distf</b> : The distance factor</li>
+	<li><b>rollf</b> : The rolloff factor</li>
+	<li><b>doppf</b> : The doppler factor</li>
+	</ul>
+	<p>
+	When using multiple devices, the current thread's device setting (as set with BASS_SetDevice)
+	determines which device this function call applies to.
+	</p>
+	End Rem
+	Function Get3DFactors:Int(distf:Float Var, rollf:Float Var, doppf:Float Var)
+		Return BASS_Get3DFactors(Varptr distf, Varptr rollf, Varptr doppf)
+	End Function
+	
+	Rem
+	bbdoc: Sets the factors that affect the calculations of 3D sound. 
+	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: Parameters
+	<ul>
+	<li><b>distf</b> : The distance factor... 0 or less = leave current... examples: 1.0 = use meters,
+	0.9144 = use yards, 0.3048 = use feet. By default BASS measures distances in meters, you can change this
+	setting if you are using a different unit of measurement. </li>
+	<li><b>rollf</b> : The rolloff factor, how fast the sound quietens with distance... 0.0 (min) - 10.0 (max),
+	less than 0.0 = leave current...
+	examples: 0.0 = no rolloff, 1.0 = real world, 2.0 = 2x real. </li>
+	<li><b>doppf</b> : The doppler factor... 0.0 (min) - 10.0 (max), less than 0.0 = leave current... examples:
+	0.0 = no doppler, 1.0 = real world, 2.0 = 2x real. The doppler effect is the way a sound appears to change
+	pitch when it is moving towards or away from you. The listener and sound velocity settings are used to
+	calculate this effect, this doppf value can be used to lessen or exaggerate the effect.</li>
+	</ul>
+	<p>
+	As with all 3D functions, use #Apply3D to apply the changes. 
+	</p>
+	<p>
+	When using multiple devices, the current thread's device setting (as set with BASS_SetDevice) determines which device this function call applies to. 
+	</p>
+	End Rem
+	Function Set3DFactors:Int(distf:Float, rollf:Float, doppf:Float)
+		Return BASS_Set3DFactors(distf, rollf, doppf)
+	End Function
+	
 End Type
 
 Rem
@@ -1680,6 +2066,45 @@ Type TBassRecordInfo
 		End If
 	End Method
 	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TBass3DVector
+
+	Field vectorPtr:Byte Ptr
+
+	Function _create:TBass3DVector(vectorPtr:Byte Ptr)
+		If vectorPtr Then
+			Local this:TBass3DVector = New TBass3DVector
+			this.vectorPtr = vectorPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateVector:TBass3DVector()
+		Return New TBass3DVector.Create()
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TBass3DVector()
+		vectorPtr = bmx_bass_3dvector_create()
+		Return Self
+	End Method
+	
+	
+	Method Delete()
+		If vectorPtr Then
+			bmx_bass_3dvector_delete(vectorPtr)
+			vectorPtr = Null
+		End If
+	End Method
 End Type
 
 Type TBassFXFactory

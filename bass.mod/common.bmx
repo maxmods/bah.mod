@@ -91,6 +91,9 @@ Extern
 	
 	Function bmx_bass_fxdelete(handle:Byte Ptr)
 
+	Function bmx_bass_3dvector_create:Byte Ptr()
+	Function bmx_bass_3dvector_delete(handle:Byte Ptr)
+
 End Extern
 
 ?win32
@@ -105,6 +108,14 @@ Extern
 	Function BASS_SetDevice:Int(device:Int)
 	Function BASS_GetDevice:Int()
 	Function BASS_GetCPU:Float()
+	Function BASS_Apply3D()
+?win32
+	Function BASS_GetEAXParameters:Int(env:Int Ptr, vol:Float Ptr, decay:Float Ptr, damp:Float Ptr)
+	Function BASS_SetEAXParameters:Int(env:Int, vol:Float, decay:Float, damp:Float)
+?
+	Function BASS_Get3DFactors:Int(distf:Float Ptr, rollf:Float Ptr, doppf:Float Ptr)
+	Function BASS_Set3DFactors:Int(distf:Float, rollf:Float, doppf:Float)
+
 	
 	Function BASS_ChannelPlay:Int(handle:Int, restart:Int)
 	Function BASS_ChannelPause:Int(handle:Int)
@@ -117,7 +128,14 @@ Extern
 	Function BASS_ChannelIsSliding:Int(handle:Int, attrib:Int)
 	Function BASS_ChannelSetFX:Int(handle:Int, fxType:Int, priority:Int)
 	Function BASS_ChannelGetAttribute:Int(handle:Int, attrib:Int, value:Float Ptr)
+	Function BASS_ChannelSetAttribute:Int(handle:Int, attrib:Int, value:Float)
 	Function BASS_ChannelSetLink:Int(handle:Int, channel:Int)
+	Function BASS_ChannelGet3DPosition:Int(handle:Int, pos:Byte Ptr, orient:Byte Ptr, vel:Byte Ptr)
+	Function BASS_ChannelSet3DPosition:Int(handle:Int, pos:Byte Ptr, orient:Byte Ptr, vel:Byte Ptr)
+	Function BASS_ChannelSet3DAttributes:Int(handle:Int, mode:Int, minDist:Float, maxDist:Float, iangle:Int, ..
+			oangle:Int, outvol:Float)
+	Function BASS_ChannelGet3DAttributes:Int(handle:Int, mode:Int Ptr, minDist:Float Ptr, maxDist:Float Ptr, ..
+		iangle:Int Ptr, oangle:Int Ptr, outvol:Float Ptr)
 
 	Function BASS_StreamCreateFile:Int(mem:Int, filename:Byte Ptr, offset:Long, length:Long, flags:Int)
 	Function BASS_StreamFree:Int(handle:Int)
