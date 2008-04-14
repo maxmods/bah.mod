@@ -1,0 +1,30 @@
+
+Using libfmodex.dylib in a Bundle
+---------------------------------
+
+libfmodex.dylib needs to be modified to work from inside an application bundle.
+
+When you run "otool -D libfmodex.dylib", it will output the following :
+
+libfmodex.dylib:
+./libfmodex.dylib
+
+
+This won't work with an application bundle. The library name must be prefixed with "@executable_path". We can 
+convert it as follows :
+
+install_name_tool -id @executable_path/libfmodex.dylib libfmodex.dylib
+
+
+When we again run otool, the result will be :
+
+libfmodex.dylib:
+@executable_path/libfmodex.dylib
+
+
+The dylib can now be used inside your application bundle.
+
+
+The dylib shipped with BaH.FMOD has already been "fixed".
+
+:o)
