@@ -357,19 +357,89 @@ Type TFMODSound
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the length of the sound using the specified time unit.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>length</b> : Variable that receives the length of the sound. </li>
+	<li><b>lengthType</b> : Time unit retrieve into the length parameter. See FMOD_TIMEUNIT.</li>
+	</ul>
+	<p>
+	Certain timeunits do not work depending on the file format. For example FMOD_TIMEUNIT_MODORDER will not work
+	with an mp3 file.
+	</p>
+	<p>
+	A length of $FFFFFFFF usually means it is of unlimited length, such as an internet radio stream or
+	MOD/S3M/XM/IT file which may loop forever.
+	</p>
+	<p>
+	Warning! Using a VBR source that does not have an associated length information in milliseconds or pcm samples
+	(such as MP3 or MOD/S3M/XM/IT) may return inaccurate lengths specify FMOD_TIMEUNIT_MS or FMOD_TIMEUNIT_PCM.
+	</p>
+	<p>
+	If you want FMOD to retrieve an accurate length it will have to pre-scan the file first in this case. You will
+	have to specify FMOD_ACCURATETIME when loading or opening the sound. This means there is a slight delay as
+	FMOD scans the whole file when loading the sound to find the right length in millseconds or pcm samples, and
+	this also creates a seek table as it does this for seeking purposes.
+	</p>
 	End Rem
 	Method GetLength:Int(length:Int Var, lengthType:Int)
 		Return FMOD_Sound_GetLength(soundPtr, Varptr length, lengthType)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns format information about the sound.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>soundType</b> : Variable that receives the type of sound.</li>
+	<li><b>soundFormat</b> : Variable that receives the format of the sound.</li>
+	<li><b>channels</b> : Variable that receives the number of channels for the sound.</li>
+	<li><b>bits</b> : Variable that receives the number of bits per sample for the sound. This corresponds to
+	FMOD_SOUND_FORMAT but is provided as an integer format for convenience. Hardware compressed formats such as
+	VAG, XADPCM, GCADPCM that stay compressed in memory will return 0.</li>
+	</ul>
 	End Rem
 	Method GetFormat:Int(soundType:Int Var, soundFormat:Int Var, channels:Int Var, bits:Int Var)
 		Return FMOD_Sound_GetFormat(soundPtr, Varptr soundType, Varptr soundFormat, Varptr channels, Varptr bits)
 	End Method
-	
+
+	Rem
+	bbdoc: Returns the sound type of the sound.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>soundType</b> : Variable that receives the type of sound.</li>
+	</ul>
+	End Rem
+	Method GetSoundType:Int(soundType:Int Var)
+		Return FMOD_Sound_GetFormat(soundPtr, Varptr soundType, Null, Null, Null)
+	End Method
+
+	Rem
+	bbdoc: Returns the sound format of the sound.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>soundFormat</b> : Variable that receives the format of the sound.</li>
+	</ul>
+	End Rem
+	Method GetSoundFormat:Int(soundFormat:Int Var)
+		Return FMOD_Sound_GetFormat(soundPtr, Null, Varptr soundFormat, Null, Null)
+	End Method
+
+	Rem
+	bbdoc: Returns the number of channels for the sound.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>channels</b> : Variable that receives the number of channels for the sound.</li>
+	</ul>
+	End Rem
+	Method GetSoundChannels:Int(channels:Int Var)
+		Return FMOD_Sound_GetFormat(soundPtr, Null, Null, Varptr channels, Null)
+	End Method
+
 	Rem
 	bbdoc: 
 	End Rem
@@ -477,6 +547,16 @@ Type TFMODSound
 	End Rem
 	Method SetMusicChannelVolume:Int(channel:Int, volume:Int)
 		Return FMOD_Sound_SetMusicChannelVolume(soundPtr, channel, volume)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetTag:TFMODTag(name:String, index:Int)
+		Local s:Byte Ptr = name.ToCString()
+		Local tag:TFMODTag = TFMODTag._create(bmx_FMOD_Sound_GetTag(soundPtr, s, index))
+		MemFree(s)
+		Return tag
 	End Method
 	
 	Rem
@@ -745,6 +825,16 @@ Rem
 bbdoc: 
 End Rem
 Type TFMODTag
+
+	Field tagPtr:Byte Ptr
+
+	Function _create:TFMODTag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TFMODTag = New TFMODTag
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
 	
 	Method GetTagType:Int()
 	End Method
@@ -755,6 +845,21 @@ Type TFMODTag
 	Method GetName:String()
 	End Method
 	
+	Method GetDataAsString:String()
+		Local s:Byte Ptr = bmx_fmodtag_getdata(tagPtr)
+		Return String.FromCString(s)
+	End Method
+
+	Method GetData:Byte Ptr()
+		Return bmx_fmodtag_getdata(tagPtr)
+	End Method
+
+	Method Delete()
+		If tagPtr Then
+			bmx_fmodtag_delete(tagPtr)
+			tagPtr = Null
+		End If
+	End Method
 	
 End Type
 

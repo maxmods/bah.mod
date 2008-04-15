@@ -44,6 +44,12 @@ Extern
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
 
 	Function bmx_FMOD_SoundGroup_GetSound:Byte Ptr(handle:Byte Ptr, index:Int)
+	
+	Function bmx_FMOD_Sound_GetTag:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, index:Int)
+	
+	Function bmx_fmodtag_getdata:Byte Ptr(handle:Byte Ptr)
+	Function bmx_fmodtag_delete(handle:Byte Ptr)
+
 End Extern
 
 ?win32
@@ -377,3 +383,29 @@ Const FMOD_SOUND_FORMAT_VAG:Int = 8
 Const FMOD_SOUND_FORMAT_XMA:Int = 9
 Const FMOD_SOUND_FORMAT_MPEG:Int = 10
 
+Const FMOD_SOUND_TYPE_UNKNOWN:Int = 0          ' 3rd party / unknown plugin format. 
+Const FMOD_SOUND_TYPE_AAC:Int = 1              ' AAC.  Currently unsupported. 
+Const FMOD_SOUND_TYPE_AIFF:Int = 2             ' AIFF.
+Const FMOD_SOUND_TYPE_ASF:Int = 3              ' Microsoft Advanced Systems Format (ie WMA/ASF/WMV). 
+Const FMOD_SOUND_TYPE_AT3:Int = 4              ' Sony ATRAC 3 format 
+Const FMOD_SOUND_TYPE_CDDA:Int = 5             ' Digital CD audio. 
+Const FMOD_SOUND_TYPE_DLS:Int = 6              ' Sound font / downloadable sound bank. 
+Const FMOD_SOUND_TYPE_FLAC:Int = 7             ' FLAC lossless codec. 
+Const FMOD_SOUND_TYPE_FSB:Int = 8              ' FMOD Sample Bank. 
+Const FMOD_SOUND_TYPE_GCADPCM:Int = 9          ' GameCube ADPCM
+Const FMOD_SOUND_TYPE_IT:Int = 10              ' Impulse Tracker.
+Const FMOD_SOUND_TYPE_MIDI:Int = 11            ' MIDI. 
+Const FMOD_SOUND_TYPE_MOD:Int = 12             ' Protracker / Fasttracker MOD. 
+Const FMOD_SOUND_TYPE_MPEG:Int = 13            ' MP2/MP3 MPEG. 
+Const FMOD_SOUND_TYPE_OGGVORBIS:Int = 14       ' Ogg vorbis.
+Const FMOD_SOUND_TYPE_PLAYLIST:Int = 15        ' Information only from ASX/PLS/M3U/WAX playlists
+Const FMOD_SOUND_TYPE_RAW:Int = 16             ' Raw PCM data.
+Const FMOD_SOUND_TYPE_S3M:Int = 17             ' ScreamTracker 3. 
+Const FMOD_SOUND_TYPE_SF2:Int = 18             ' Sound font 2 format. 
+Const FMOD_SOUND_TYPE_USER:Int = 19            ' User created sound. 
+Const FMOD_SOUND_TYPE_WAV:Int = 20             ' Microsoft WAV.
+Const FMOD_SOUND_TYPE_XM:Int = 21              ' FastTracker 2 XM.
+Const FMOD_SOUND_TYPE_XMA:Int = 22             ' Xbox360 XMA 
+Const FMOD_SOUND_TYPE_VAG:Int = 23             ' PlayStation 2 / PlayStation Portable adpcm VAG format.
+Const FMOD_SOUND_TYPE_MAX:Int = 24             ' Maximum number of sound types supported. 
+   

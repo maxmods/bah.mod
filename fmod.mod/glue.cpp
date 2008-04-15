@@ -45,6 +45,12 @@ extern "C" {
 	
 	FMOD_SOUND * bmx_FMOD_SoundGroup_GetSound(FMOD_SOUNDGROUP *soundgroup, int index);
 
+	FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int index);
+	
+	void * bmx_fmodtag_getdata(FMOD_TAG * tag);
+	void bmx_fmodtag_delete(FMOD_TAG * tag);
+
+
 }
 
 unsigned int bmx_fmod_getversion() {
@@ -178,4 +184,27 @@ FMOD_SOUND * bmx_FMOD_SoundGroup_GetSound(FMOD_SOUNDGROUP *soundgroup, int index
 	}
 	
 	return sound;
+}
+
+
+// ++++++++++++++++++++++++++++++++
+
+FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int index) {
+	FMOD_TAG * tag = new FMOD_TAG;
+	FMOD_RESULT result = FMOD_Sound_GetTag(sound, name, index, tag);
+	if (result) {
+		return 0;
+	}
+	
+	return tag;
+}
+
+// ++++++++++++++++++++++++++++++++
+
+void * bmx_fmodtag_getdata(FMOD_TAG * tag) {
+	return tag->data;
+}
+
+void bmx_fmodtag_delete(FMOD_TAG * tag) {
+	delete tag;
 }
