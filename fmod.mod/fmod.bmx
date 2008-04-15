@@ -36,7 +36,7 @@ ModuleInfo "Copyright: FMOD - 2004-2008 Firelight Technologies, Pty, Ltd"
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ?macos
 ' -bind_at_load removes linker warnings on 10.4
-ModuleInfo "LD_OPTS:  -bind_at_load -L%PWD%/lib/macos"
+ModuleInfo "LD_OPTS: -bind_at_load -L%PWD%/lib/macos"
 ?linux
 ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
 ?
