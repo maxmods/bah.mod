@@ -164,6 +164,15 @@ Type TFMODSystem
 		End If
 	End Method
 	
+	Method PlayDSP:TFMODChannel(channelId:Int, dsp:TFMODDsp, paused:Int = False, reuse:TFMODChannel = Null)
+		If reuse Then
+			bmx_FMOD_System_PlayDSP(systemPtr, channelId, dsp.dspPtr, paused, reuse.channelPtr)
+			Return reuse
+		Else
+			Return TFMODChannel._create(bmx_FMOD_System_PlayDSP(systemPtr, channelId, dsp.dspPtr, paused, Null))
+		End If
+	End Method
+	
 	Rem
 	bbdoc:
 	End Rem
@@ -605,14 +614,14 @@ Type TFMODChannel
 	bbdoc: Retrieves the position and velocity of a 3d channel.  
 	End Rem
 	Method Get3DAttributes:Int(pos:TFMODVector, vel:TFMODVector)
-		Return FMOD_Channel_Get3DAttributes(channelPtr, Varptr pos, Varptr vel)
+		Return bmx_FMOD_Channel_Get3DAttributes(channelPtr, Varptr pos, Varptr vel)
 	End Method
 
 	Rem
 	bbdoc: 
 	End Rem	
 	Method Get3DConeOrientation:Int(orientation:TFMODVector)
-		Return FMOD_Channel_Get3DConeOrientation(channelPtr, Varptr orientation)
+		Return bmx_FMOD_Channel_Get3DConeOrientation(channelPtr, Varptr orientation)
 	End Method
 	
 	Rem
@@ -631,21 +640,21 @@ Type TFMODChannel
 	bbdoc: 
 	End Rem	
 	Method Get3DDopplerLevel:Int(level:Float Var)
-		Return FMOD_Channel_Get3DDopplerLevel(channelPtr, Varptr level)
+		Return bmx_FMOD_Channel_Get3DDopplerLevel(channelPtr, Varptr level)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem	
 	Method Get3DMinMaxDistance:Int(minDistance:Float Var, maxDistance:Float Var)
-		Return FMOD_Channel_Get3DMinMaxDistance(channelPtr, Varptr minDistance, Varptr maxDistance)
+		Return bmx_FMOD_Channel_Get3DMinMaxDistance(channelPtr, Varptr minDistance, Varptr maxDistance)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem	
 	Method Get3DOcclusion:Int(directOcclusion:Float Var, reverbOcclusion:Float Var)
-		Return FMOD_Channel_Get3DOcclusion(channelPtr, Varptr directOcclusion, Varptr reverbOcclusion)
+		Return bmx_FMOD_Channel_Get3DOcclusion(channelPtr, Varptr directOcclusion, Varptr reverbOcclusion)
 	End Method
 	
 	Rem
@@ -653,7 +662,7 @@ Type TFMODChannel
 	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DPanLevel:Int(level:Float Var)
-		Return FMOD_Channel_Get3DPanLevel(channelPtr, Varptr level)
+		Return bmx_FMOD_Channel_Get3DPanLevel(channelPtr, Varptr level)
 	End Method
 	
 	Rem
@@ -661,7 +670,7 @@ Type TFMODChannel
 	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DSpread:Int(angle:Float Var)
-		Return FMOD_Channel_Get3DSpread(channelPtr, Varptr angle)
+		Return bmx_FMOD_Channel_Get3DSpread(channelPtr, Varptr angle)
 	End Method
 	
 	
@@ -671,28 +680,35 @@ Type TFMODChannel
 	about: 
 	End Rem
 	Method IsPlaying:Int(playing:Int Var)
-		Return FMOD_Channel_IsPlaying(channelPtr, Varptr playing)
+		Return bmx_FMOD_Channel_IsPlaying(channelPtr, Varptr playing)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetPaused:Int(paused:Int Var)
-		Return FMOD_Channel_GetPaused(channelPtr, Varptr paused)
+		Return bmx_FMOD_Channel_GetPaused(channelPtr, Varptr paused)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method Stop:Int()
-		Return FMOD_Channel_Stop:Int(channelPtr)
+		Return bmx_FMOD_Channel_Stop:Int(channelPtr)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetVolume:Int(volume:Float Var)
-		Return FMOD_Channel_GetVolume(channelPtr, Varptr volume)
+		Return bmx_FMOD_Channel_GetVolume(channelPtr, Varptr volume)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetVolume:Int(volume:Float)
+		Return bmx_FMOD_Channel_SetVolume(channelPtr, volume)
 	End Method
 	
 	Rem
@@ -701,42 +717,42 @@ Type TFMODChannel
 	about: 
 	End Rem
 	Method GetFrequency:Int(frequency:Float Var)
-		Return FMOD_Channel_GetFrequency(channelPtr, Varptr frequency)
+		Return bmx_FMOD_Channel_GetFrequency(channelPtr, Varptr frequency)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetIndex:Int(index:Int Var)
-		Return FMOD_Channel_GetIndex(channelPtr, Varptr index)
+		Return bmx_FMOD_Channel_GetIndex(channelPtr, Varptr index)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetLoopCount:Int(loopCount:Int Var)
-		Return FMOD_Channel_GetLoopCount(channelPtr, Varptr loopCount)
+		Return bmx_FMOD_Channel_GetLoopCount(channelPtr, Varptr loopCount)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetLoopPoints:Int(loopStart:Int Var, loopStartType:Int, loopEnd:Int Var, loopEndType:Int)
-		Return FMOD_Channel_GetLoopPoints(channelPtr, Varptr loopStart, loopStartType, Varptr loopEnd, loopEndType)
+		Return bmx_FMOD_Channel_GetLoopPoints(channelPtr, Varptr loopStart, loopStartType, Varptr loopEnd, loopEndType)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetPosition:Int(position:Int Var, posType:Int)
-		Return FMOD_Channel_GetPosition(channelPtr, Varptr position, posType)
+		Return bmx_FMOD_Channel_GetPosition(channelPtr, Varptr position, posType)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method IsVirtual:Int(virtual:Int Var)
-		Return FMOD_Channel_IsVirtual(channelPtr, Varptr virtual)
+		Return bmx_FMOD_Channel_IsVirtual(channelPtr, Varptr virtual)
 	End Method
 	
 	Rem
@@ -747,7 +763,7 @@ Type TFMODChannel
 	channels between real and virtual. 
 	End Rem
 	Method GetAudibility:Int(audibility:Float Var)
-		Return FMOD_Channel_GetAudibility(channelPtr, Varptr audibility)
+		Return bmx_FMOD_Channel_GetAudibility(channelPtr, Varptr audibility)
 	End Method
 	
 	Rem
@@ -782,14 +798,35 @@ Type TFMODChannel
 	</p>
 	End Rem
 	Method GetDelay:Int(delayType:Int, delayHi:Int Var, delayLo:Int Var)
-		Return FMOD_Channel_GetDelay(channelPtr, delayType, Varptr delayHi, Varptr delayLo)
+		Return bmx_FMOD_Channel_GetDelay(channelPtr, delayType, Varptr delayHi, Varptr delayLo)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method SetPaused:Int(paused:Int)
-		Return FMOD_Channel_SetPaused(channelPtr, paused)
+		Return bmx_FMOD_Channel_SetPaused(channelPtr, paused)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPan:Int(pan:Float Var)
+		Return bmx_FMOD_Channel_GetPan(channelPtr, Varptr pan)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPan:Int(pan:Float)
+		Return bmx_FMOD_Channel_SetPan(channelPtr, pan)
+	End Method
+	
+	Method Delete()
+		If channelPtr Then
+			bmx_fmodchannel_delete(channelPtr)
+			channelPtr = Null
+		End If
 	End Method
 	
 End Type
@@ -964,6 +1001,13 @@ Type TFMODDsp
 	End Rem
 	Method GetDefaults:Int(frequency:Float Var, volume:Float Var, pan:Float Var, priority:Int Var)
 		Return FMOD_DSP_GetDefaults(dspPtr, Varptr frequency, Varptr volume, Varptr pan, Varptr priority)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method DSPRelease:Int()
+		Return FMOD_DSP_Release(dspPtr)
 	End Method
 	
 End Type

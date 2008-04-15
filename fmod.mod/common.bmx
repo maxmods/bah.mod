@@ -36,9 +36,36 @@ Extern
 	Function bmx_FMOD_System_PlaySound:Byte Ptr(handle:Byte Ptr, channelId:Int, sound:Byte Ptr, paused:Int, reuse:Byte Ptr)
 	Function bmx_FMOD_System_GetChannel:Byte Ptr(handle:Byte Ptr, channelId:Int)
 	Function bmx_FMOD_System_CreateDSPByType:Byte Ptr(handle:Byte Ptr, dspType:Int, ret:Int Ptr)
+	Function bmx_FMOD_System_PlayDSP:Byte Ptr(handle:Byte Ptr, channelId:Int, dsp:Byte Ptr, paused:Int, reuse:Byte Ptr)
 
+	Function bmx_fmodchannel_delete(handle:Byte Ptr)
 	Function bmx_FMOD_Channel_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
 	Function bmx_FMOD_Channel_GetCurrentSound:Byte Ptr(handle:Byte Ptr)
+	Function bmx_FMOD_Channel_GetPaused:Int(handle:Byte Ptr, paused:Int Ptr)
+	Function bmx_FMOD_Channel_SetPaused:Int(handle:Byte Ptr, paused:Int)
+	Function bmx_FMOD_Channel_Stop:Int(handle:Byte Ptr)
+	Function bmx_FMOD_Channel_GetVolume:Int(handle:Byte Ptr, volume:Float Ptr)
+	Function bmx_FMOD_Channel_SetVolume:Int(handle:Byte Ptr, volume:Float)
+	Function bmx_FMOD_Channel_GetPan:Int(handle:Byte Ptr, pan:Float Ptr)
+	Function bmx_FMOD_Channel_SetPan:Int(handle:Byte Ptr, pan:Float)
+	Function bmx_FMOD_Channel_GetDelay:Int(handle:Byte Ptr, delayType:Int, delayHi:Int Ptr, delayLo:Int Ptr)
+
+	Function bmx_FMOD_Channel_IsPlaying:Int(handle:Byte Ptr, playing:Int Ptr)
+	Function bmx_FMOD_Channel_GetFrequency:Int(handle:Byte Ptr, frequency:Float Ptr)
+	Function bmx_FMOD_Channel_GetPosition:Int(handle:Byte Ptr, position:Int Ptr, posType:Int)
+	Function bmx_FMOD_Channel_IsVirtual:Int(handle:Byte Ptr, virtual:Int Ptr)
+	Function bmx_FMOD_Channel_GetAudibility:Int(handle:Byte Ptr, audibility:Float Ptr)
+	Function bmx_FMOD_Channel_GetIndex:Int(handle:Byte Ptr, index:Int Ptr)
+	Function bmx_FMOD_Channel_GetLoopCount:Int(handle:Byte Ptr, loopCount:Int Ptr)
+	Function bmx_FMOD_Channel_GetLoopPoints:Int(handle:Byte Ptr, loopStart:Int Ptr, loopStartType:Int, loopEnd:Int Ptr, loopEndType:Int)
+	Function bmx_FMOD_Channel_Get3DDopplerLevel:Int(handle:Byte Ptr, level:Float Ptr)
+	Function bmx_FMOD_Channel_Get3DMinMaxDistance:Int(handle:Byte Ptr, minDistance:Float Ptr, maxDistance:Float Ptr)
+	Function bmx_FMOD_Channel_Get3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float Ptr, reverbOcclusion:Float Ptr)
+	Function bmx_FMOD_Channel_Get3DPanLevel:Int(handle:Byte Ptr, level:Float Ptr)
+	Function bmx_FMOD_Channel_Get3DSpread:Int(handle:Byte Ptr, angle:Float Ptr)
+	Function bmx_FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
+	Function bmx_FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:Byte Ptr)
+
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
@@ -100,28 +127,6 @@ Extern
 	Function FMOD_Sound_GetOpenState:Int(handle:Byte Ptr, openState:Int Ptr, percentBuffered:Int Ptr, starving:Int Ptr)
 	Function FMOD_Sound_GetName:Int(handle:Byte Ptr, vstr:Byte Ptr, length:Int)
 
-
-	Function FMOD_Channel_IsPlaying:Int(handle:Byte Ptr, playing:Int Ptr)
-	Function FMOD_Channel_GetPaused:Int(handle:Byte Ptr, paused:Int Ptr)
-	Function FMOD_Channel_Stop:Int(handle:Byte Ptr)
-	Function FMOD_Channel_GetVolume:Int(handle:Byte Ptr, volume:Float Ptr)
-	Function FMOD_Channel_GetFrequency:Int(handle:Byte Ptr, frequency:Float Ptr)
-	Function FMOD_Channel_GetPosition:Int(handle:Byte Ptr, position:Int Ptr, posType:Int)
-	Function FMOD_Channel_IsVirtual:Int(handle:Byte Ptr, virtual:Int Ptr)
-	Function FMOD_Channel_GetAudibility:Int(handle:Byte Ptr, audibility:Float Ptr)
-	Function FMOD_Channel_GetDelay:Int(handle:Byte Ptr, delayType:Int, delayHi:Int Ptr, delayLo:Int Ptr)
-	Function FMOD_Channel_GetIndex:Int(handle:Byte Ptr, index:Int Ptr)
-	Function FMOD_Channel_GetLoopCount:Int(handle:Byte Ptr, loopCount:Int Ptr)
-	Function FMOD_Channel_GetLoopPoints:Int(handle:Byte Ptr, loopStart:Int Ptr, loopStartType:Int, loopEnd:Int Ptr, loopEndType:Int)
-	Function FMOD_Channel_Get3DDopplerLevel:Int(handle:Byte Ptr, level:Float Ptr)
-	Function FMOD_Channel_Get3DMinMaxDistance:Int(handle:Byte Ptr, minDistance:Float Ptr, maxDistance:Float Ptr)
-	Function FMOD_Channel_Get3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float Ptr, reverbOcclusion:Float Ptr)
-	Function FMOD_Channel_Get3DPanLevel:Int(handle:Byte Ptr, level:Float Ptr)
-	Function FMOD_Channel_Get3DSpread:Int(handle:Byte Ptr, angle:Float Ptr)
-	Function FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
-	Function FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:Byte Ptr)
-	Function FMOD_Channel_SetPaused:Int(handle:Byte Ptr, paused:Int)
-
 	Function FMOD_DSP_GetActive:Int(handle:Byte Ptr, active:Int Ptr)
 	Function FMOD_DSP_SetActive:Int(handle:Byte Ptr, active:Int)
 	Function FMOD_DSP_Remove:Int(handle:Byte Ptr)
@@ -134,6 +139,7 @@ Extern
 	Function FMOD_DSP_GetInfo:Int(handle:Byte Ptr, vstr:Byte Ptr, version:Int Ptr, channels:Int Ptr, cw:Int Ptr, ch:Int Ptr)
 	Function FMOD_DSP_GetType:Int(handle:Byte Ptr, dspType:Int Ptr)
 	Function FMOD_DSP_GetDefaults:Int(handle:Byte Ptr, frequency:Float Ptr, volume:Float Ptr, pan:Float Ptr, priority:Int Ptr)
+	Function FMOD_DSP_Release:Int(handle:Byte Ptr)
 
 	Function FMOD_SoundGroup_GetMaxAudible:Int(handle:Byte Ptr, maxAudible:Int Ptr)
 	Function FMOD_SoundGroup_GetMaxAudibleBehavior:Int(handle:Byte Ptr, behavior:Int Ptr)
@@ -370,6 +376,74 @@ Const FMOD_DSP_DISTORTION_LEVEL:Int = 0    ' Distortion value.  0.0 To 1.0.  Def
 Const FMOD_DSP_PARAMEQ_CENTER:Int = 0     ' Frequency center.  20.0 to 22000.0.  Default = 8000.0.
 Const FMOD_DSP_PARAMEQ_BANDWIDTH:Int = 1  ' Octave range around the center frequency to filter.  0.2 to 5.0.  Default = 1.0.
 Const FMOD_DSP_PARAMEQ_GAIN:Int = 2        ' Frequency Gain.  0.05 to 3.0.  Default = 1.0. 
+
+Const FMOD_DSP_OSCILLATOR_TYPE:Int = 0   ' Waveform type.  0 = sine.  1 = square. 2 = sawup. 3 = sawdown. 4 = triangle. 5 = noise.
+Const FMOD_DSP_OSCILLATOR_RATE:Int = 1    ' Frequency of the sinewave in hz.  1.0 to 22000.0.  Default = 220.0.
+
+Const FMOD_DSP_ITLOWPASS_CUTOFF:Int = 0    ' Lowpass cutoff frequency in hz.  1.0 to 22000.0.  Default = 5000.0/
+Const FMOD_DSP_ITLOWPASS_RESONANCE:Int = 1  ' Lowpass resonance Q value.  0.0 to 127.0.  Default = 1.0.
+
+Const FMOD_DSP_HIGHPASS_CUTOFF:Int = 0    ' Highpass cutoff frequency in hz.  1.0 to output 22000.0.  Default = 5000.0.
+Const FMOD_DSP_HIGHPASS_RESONANCE:Int = 1  ' Highpass resonance Q value.  1.0 to 10.0.  Default = 1.0.
+
+Const FMOD_DSP_FLANGE_DRYMIX:Int = 0      ' Volume of original signal to pass to output.  0.0 to 1.0. Default = 0.45.
+Const FMOD_DSP_FLANGE_WETMIX:Int = 1      ' Volume of flange signal to pass to output.  0.0 to 1.0. Default = 0.55.
+Const FMOD_DSP_FLANGE_DEPTH:Int = 2       ' Flange depth.  0.01 to 1.0.  Default = 1.0.
+Const FMOD_DSP_FLANGE_RATE:Int = 3        ' Flange speed in hz.  0.0 to 20.0.  Default = 0.1.
+
+Const FMOD_DSP_NORMALIZE_FADETIME:Int = 0    ' Time to ramp the silence to full in ms.  0.0 to 20000.0. Default = 5000.0.
+Const FMOD_DSP_NORMALIZE_THRESHHOLD:Int = 1  ' Lower volume range threshold to ignore.  0.0 to 1.0.  Default = 0.1.  Raise higher to stop amplification of very quiet signals.
+Const FMOD_DSP_NORMALIZE_MAXAMP:Int = 2       ' Maximum amplification allowed.  1.0 to 100000.0.  Default = 20.0.  1.0 = no amplifaction, higher values allow more boost.
+
+Const FMOD_DSP_PITCHSHIFT_PITCH:Int = 0       ' Pitch value.  0.5 to 2.0.  Default = 1.0. 0.5 = one octave down, 2.0 = one octave up.  1.0 does not change the pitch.
+Const FMOD_DSP_PITCHSHIFT_FFTSIZE:Int = 1     ' FFT window size.  256, 512, 1024, 2048, 4096.  Default = 1024.  Increase this to reduce 'smearing'.  This effect is a warbling sound similar to when an mp3 is encoded at very low bitrates.
+Const FMOD_DSP_PITCHSHIFT_OVERLAP:Int = 2     ' Removed.  Do not use.  FMOD now uses 4 overlaps and cannot be changed.
+Const FMOD_DSP_PITCHSHIFT_MAXCHANNELS:Int = 3  ' Maximum channels supported.  0 to 16.  0 = same as fmod's default output polyphony, 1 = mono, 2 = stereo etc.  See remarks for more.  Default = 0.  It is suggested to leave at 0!
+
+Const FMOD_DSP_CHORUS_DRYMIX:Int = 0    ' Volume of original signal to pass to output.  0.0 to 1.0. Default = 0.5.
+Const FMOD_DSP_CHORUS_WETMIX1:Int = 1   ' Volume of 1st chorus tap.  0.0 to 1.0.  Default = 0.5.
+Const FMOD_DSP_CHORUS_WETMIX2:Int = 2   ' Volume of 2nd chorus tap. This tap is 90 degrees out of phase of the first tap.  0.0 to 1.0.  Default = 0.5.
+Const FMOD_DSP_CHORUS_WETMIX3:Int = 3   ' Volume of 3rd chorus tap. This tap is 90 degrees out of phase of the second tap.  0.0 to 1.0.  Default = 0.5.
+Const FMOD_DSP_CHORUS_DELAY:Int = 4     ' Chorus delay in ms.  0.1 to 100.0.  Default = 40.0 ms.
+Const FMOD_DSP_CHORUS_RATE:Int = 5      ' Chorus modulation rate in hz.  0.0 to 20.0.  Default = 0.8 hz.
+Const FMOD_DSP_CHORUS_DEPTH:Int = 6     ' Chorus modulation depth.  0.0 to 1.0.  Default = 0.03.
+Const FMOD_DSP_CHORUS_FEEDBACK:Int = 7  ' Chorus feedback.  Controls how much of the wet signal gets fed back into the chorus buffer.  0.0 to 1.0.  Default = 0.0.
+
+Const FMOD_DSP_REVERB_ROOMSIZE:Int = 0 ' Roomsize. 0.0 to 1.0.  Default = 0.5
+Const FMOD_DSP_REVERB_DAMP:Int = 1     ' Damp.     0.0 to 1.0.  Default = 0.5
+Const FMOD_DSP_REVERB_WETMIX:Int = 2   ' Wet mix.  0.0 to 1.0.  Default = 0.33
+Const FMOD_DSP_REVERB_DRYMIX:Int = 3   ' Dry mix.  0.0 to 1.0.  Default = 0.66
+Const FMOD_DSP_REVERB_WIDTH:Int = 4    ' Stereo width. 0.0 to 1.0.  Default = 1.0
+Const FMOD_DSP_REVERB_MODE:Int = 5     ' Mode.     0 (normal), 1 (freeze).  Default = 0
+
+Const FMOD_DSP_ITECHO_WETDRYMIX:Int = 0      ' Ratio of wet (processed) signal to dry (unprocessed) signal. Must be in the range from 0.0 through 100.0 (all wet). The default value is 50.
+Const FMOD_DSP_ITECHO_FEEDBACK:Int = 1       ' Percentage of output fed back into input, in the range from 0.0 through 100.0. The default value is 50.
+Const FMOD_DSP_ITECHO_LEFTDELAY:Int = 2      ' Delay for left channel, in milliseconds, in the range from 1.0 through 2000.0. The default value is 500 ms.
+Const FMOD_DSP_ITECHO_RIGHTDELAY:Int = 3     ' Delay for right channel, in milliseconds, in the range from 1.0 through 2000.0. The default value is 500 ms.
+Const FMOD_DSP_ITECHO_PANDELAY:Int = 4       ' Value that specifies whether to swap left and right delays with each successive echo. The default value is zero, meaning no swap. Possible values are defined as 0.0 (equivalent to FALSE) and 1.0 (equivalent to TRUE).  CURRENTLY NOT SUPPORTED.
+
+Const FMOD_DSP_COMPRESSOR_THRESHOLD:Int = 0  ' Threshold level (dB) in the range from -60 through 0. The default value is 0.
+Const FMOD_DSP_COMPRESSOR_ATTACK:Int = 1     ' Gain reduction attack time (milliseconds), in the range from 10 through 200. The default value is 50.
+Const FMOD_DSP_COMPRESSOR_RELEASE:Int = 2    ' Gain reduction release time (milliseconds), in the range from 20 through 1000. The default value is 50.
+Const FMOD_DSP_COMPRESSOR_GAINMAKEUP:Int = 3  ' Make-up gain (dB) applied after limiting, in the range from 0 through 30. The default value is 0.
+
+Const FMOD_DSP_SFXREVERB_DRYLEVEL:Int = 0            ' Dry Level      : Mix level of dry signal in output in mB.  Ranges from -10000.0 to 0.0.  Default is 0.
+Const FMOD_DSP_SFXREVERB_ROOM:Int = 1                ' Room           : Room effect level at low frequencies in mB.  Ranges from -10000.0 to 0.0.  Default is 0.0.
+Const FMOD_DSP_SFXREVERB_ROOMHF:Int = 2              ' Room HF        : Room effect high-frequency level re. low frequency level in mB.  Ranges from -10000.0 to 0.0.  Default is 0.0.
+Const FMOD_DSP_SFXREVERB_ROOMROLLOFFFACTOR:Int = 3   ' Room Rolloff   : Like DS3D flRolloffFactor but for room effect.  Ranges from 0.0 to 10.0. Default is 10.0
+Const FMOD_DSP_SFXREVERB_DECAYTIME:Int = 4           ' Decay Time     : Reverberation decay time at low-frequencies in seconds.  Ranges from 0.1 to 20.0. Default is 1.0.
+Const FMOD_DSP_SFXREVERB_DECAYHFRATIO:Int = 5        ' Decay HF Ratio : High-frequency to low-frequency decay time ratio.  Ranges from 0.1 to 2.0. Default is 0.5.
+Const FMOD_DSP_SFXREVERB_REFLECTIONSLEVEL:Int = 6    ' Reflections    : Early reflections level relative to room effect in mB.  Ranges from -10000.0 to 1000.0.  Default is -10000.0.
+Const FMOD_DSP_SFXREVERB_REFLECTIONSDELAY:Int = 7    ' Reflect Delay  : Delay time of first reflection in seconds.  Ranges from 0.0 to 0.3.  Default is 0.02.
+Const FMOD_DSP_SFXREVERB_REVERBLEVEL:Int = 8         ' Reverb         : Late reverberation level relative to room effect in mB.  Ranges from -10000.0 to 2000.0.  Default is 0.0.
+Const FMOD_DSP_SFXREVERB_REVERBDELAY:Int = 9         ' Reverb Delay   : Late reverberation delay time relative to first reflection in seconds.  Ranges from 0.0 to 0.1.  Default is 0.04.
+Const FMOD_DSP_SFXREVERB_DIFFUSION:Int = 10          ' Diffusion      : Reverberation diffusion (echo density) in percent.  Ranges from 0.0 to 100.0.  Default is 100.0.
+Const FMOD_DSP_SFXREVERB_DENSITY:Int = 11            ' Density        : Reverberation density (modal density) in percent.  Ranges from 0.0 to 100.0.  Default is 100.0.
+Const FMOD_DSP_SFXREVERB_HFREFERENCE:Int = 12        ' HF Reference   : Reference high frequency in Hz.  Ranges from 20.0 to 20000.0. Default is 5000.0.
+Const FMOD_DSP_SFXREVERB_ROOMLF:Int = 13             ' Room LF        : Room effect low-frequency level in mB.  Ranges from -10000.0 to 0.0.  Default is 0.0.
+Const FMOD_DSP_SFXREVERB_LFREFERENCE:Int = 14        ' LF Reference   : Reference low-frequency in Hz.  Ranges from 20.0 to 1000.0. Default is 250.0.
+
+Const FMOD_DSP_LOWPASS_SIMPLE_CUTOFF:Int = 0     ' Lowpass cutoff frequency in hz.  10.0 to 22000.0.  Default = 5000.0
 
 Const FMOD_SOUND_FORMAT_NONE:Int = 0
 Const FMOD_SOUND_FORMAT_PCM8:Int = 1

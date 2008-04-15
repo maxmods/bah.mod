@@ -23,6 +23,8 @@
 #include "fmod.h"
 #include "blitz.h"
 
+class MAX_FMOD_CHANNEL;
+
 extern "C" {
 
 	unsigned int bmx_fmod_getversion();
@@ -30,14 +32,45 @@ extern "C" {
 	FMOD_SYSTEM  * bmx_FMOD_System_Create(FMOD_RESULT * result);
 	FMOD_SOUND * bmx_FMOD_System_CreateSound(FMOD_SYSTEM *system, const char * filename, FMOD_MODE mode,
 		FMOD_CREATESOUNDEXINFO * exInfo, FMOD_RESULT * ret);
-	FMOD_CHANNEL * bmx_FMOD_System_PlaySound(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_SOUND * sound,
-		FMOD_BOOL paused, FMOD_CHANNEL * reuse);
-	FMOD_CHANNEL * bmx_FMOD_System_GetChannel(FMOD_SYSTEM *system, int channelId);
+	MAX_FMOD_CHANNEL * bmx_FMOD_System_PlaySound(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_SOUND * sound,
+		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse);
+	MAX_FMOD_CHANNEL * bmx_FMOD_System_GetChannel(FMOD_SYSTEM *system, int channelId);
 	FMOD_DSP * bmx_FMOD_System_CreateDSPByType(FMOD_SYSTEM *system, FMOD_DSP_TYPE dspType, FMOD_RESULT * ret);
+	MAX_FMOD_CHANNEL * bmx_FMOD_System_PlayDSP(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_DSP * dsp,
+		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse);
 
 
-	FMOD_RESULT bmx_FMOD_Channel_GetSpectrum(FMOD_CHANNEL *channel, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType);
-	FMOD_SOUND * bmx_FMOD_Channel_GetCurrentSound(FMOD_CHANNEL *channel);
+	void bmx_fmodchannel_delete(MAX_FMOD_CHANNEL * channel);
+	FMOD_RESULT bmx_FMOD_Channel_GetSpectrum(MAX_FMOD_CHANNEL *channel, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType);
+	FMOD_SOUND * bmx_FMOD_Channel_GetCurrentSound(MAX_FMOD_CHANNEL *channel);
+	FMOD_RESULT bmx_FMOD_Channel_GetPaused(MAX_FMOD_CHANNEL *channel, FMOD_BOOL * paused);
+	FMOD_RESULT bmx_FMOD_Channel_SetPaused(MAX_FMOD_CHANNEL *channel, FMOD_BOOL paused);
+	FMOD_RESULT bmx_FMOD_Channel_Stop(MAX_FMOD_CHANNEL *channel);
+	FMOD_RESULT bmx_FMOD_Channel_GetVolume(MAX_FMOD_CHANNEL *channel, float * volume);
+	FMOD_RESULT bmx_FMOD_Channel_SetVolume(MAX_FMOD_CHANNEL *channel, float volume);
+	FMOD_RESULT bmx_FMOD_Channel_GetPan(MAX_FMOD_CHANNEL *channel, float * pan);
+	FMOD_RESULT bmx_FMOD_Channel_SetPan(MAX_FMOD_CHANNEL *channel, float pan);
+	FMOD_RESULT bmx_FMOD_Channel_GetDelay(MAX_FMOD_CHANNEL *channel, FMOD_DELAYTYPE delaytype, unsigned int *delayhi, unsigned int *delaylo);
+
+	FMOD_RESULT bmx_FMOD_Channel_IsPlaying(MAX_FMOD_CHANNEL *channel, FMOD_BOOL *isplaying);
+	FMOD_RESULT bmx_FMOD_Channel_IsVirtual(MAX_FMOD_CHANNEL *channel, FMOD_BOOL *isvirtual);
+	FMOD_RESULT bmx_FMOD_Channel_GetAudibility(MAX_FMOD_CHANNEL *channel, float *audibility);
+	FMOD_RESULT bmx_FMOD_Channel_GetIndex(MAX_FMOD_CHANNEL *channel, int *index);
+	FMOD_RESULT bmx_FMOD_Channel_SetFrequency(MAX_FMOD_CHANNEL *channel, float frequency);
+	FMOD_RESULT bmx_FMOD_Channel_GetFrequency(MAX_FMOD_CHANNEL *channel, float *frequency);
+	FMOD_RESULT bmx_FMOD_Channel_GetPosition(MAX_FMOD_CHANNEL *channel, unsigned int *position, FMOD_TIMEUNIT postype);
+	FMOD_RESULT bmx_FMOD_Channel_SetLoopCount(MAX_FMOD_CHANNEL *channel, int loopcount);
+	FMOD_RESULT bmx_FMOD_Channel_GetLoopCount(MAX_FMOD_CHANNEL *channel, int *loopcount);
+	FMOD_RESULT bmx_FMOD_Channel_SetLoopPoints(MAX_FMOD_CHANNEL *channel, unsigned int loopstart, FMOD_TIMEUNIT loopstarttype, unsigned int loopend, FMOD_TIMEUNIT loopendtype);
+	FMOD_RESULT bmx_FMOD_Channel_GetLoopPoints(MAX_FMOD_CHANNEL *channel, unsigned int *loopstart, FMOD_TIMEUNIT loopstarttype, unsigned int *loopend, FMOD_TIMEUNIT loopendtype);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DAttributes(MAX_FMOD_CHANNEL *channel, FMOD_VECTOR *pos, FMOD_VECTOR *vel);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DMinMaxDistance(MAX_FMOD_CHANNEL *channel, float *mindistance, float *maxdistance);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DConeOrientation(MAX_FMOD_CHANNEL *channel, FMOD_VECTOR *orientation);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DOcclusion(MAX_FMOD_CHANNEL *channel, float *directocclusion, float *reverbocclusion);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DDopplerLevel(MAX_FMOD_CHANNEL *channel, float *level);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DSpread(MAX_FMOD_CHANNEL *channel, float *angle);
+	FMOD_RESULT bmx_FMOD_Channel_Get3DPanLevel(MAX_FMOD_CHANNEL *channel, float *level);
+
 
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
 	void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length);	
@@ -52,6 +85,18 @@ extern "C" {
 
 
 }
+
+class MAX_FMOD_CHANNEL
+{
+public:
+	MAX_FMOD_CHANNEL()
+	{
+		channel = 0;
+	}
+	
+	FMOD_CHANNEL * channel;
+};
+
 
 unsigned int bmx_fmod_getversion() {
 	return FMOD_VERSION;
@@ -82,30 +127,34 @@ FMOD_SOUND * bmx_FMOD_System_CreateSound(FMOD_SYSTEM *system, const char * filen
 
 }
 
-FMOD_CHANNEL * bmx_FMOD_System_PlaySound(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_SOUND * sound,
-		FMOD_BOOL paused, FMOD_CHANNEL * reuse) {
-
-	FMOD_CHANNEL * channel;
+MAX_FMOD_CHANNEL * bmx_FMOD_System_PlaySound(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_SOUND * sound,
+		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse) {
 	
 	if (reuse) {
-		channel = reuse;
-	}
+		FMOD_RESULT result = FMOD_System_PlaySound(system, channelId, sound, paused, &reuse->channel);
+		return reuse;
+	} else {
 
-	FMOD_RESULT result = FMOD_System_PlaySound(system, channelId, sound, paused, &channel);
+		MAX_FMOD_CHANNEL * channel = new MAX_FMOD_CHANNEL();
+		
+		FMOD_RESULT result = FMOD_System_PlaySound(system, channelId, sound, paused, &channel->channel);
 	
-	if (result) {
-		return 0;
+		if (result) {
+			delete channel;
+			return 0;
+		}
+		
+		return channel;	
 	}
-	
-	return channel;	
 }
 
-FMOD_CHANNEL * bmx_FMOD_System_GetChannel(FMOD_SYSTEM *system, int channelId) {
-	FMOD_CHANNEL * channel;
+MAX_FMOD_CHANNEL * bmx_FMOD_System_GetChannel(FMOD_SYSTEM *system, int channelId) {
+	MAX_FMOD_CHANNEL * channel = new MAX_FMOD_CHANNEL();
 	
-	FMOD_RESULT result = FMOD_System_GetChannel(system, channelId, &channel);
+	FMOD_RESULT result = FMOD_System_GetChannel(system, channelId, &channel->channel);
 	
 	if (result) {
+		delete channel;
 		return 0;
 	}
 	
@@ -113,6 +162,7 @@ FMOD_CHANNEL * bmx_FMOD_System_GetChannel(FMOD_SYSTEM *system, int channelId) {
 }
 
 FMOD_DSP * bmx_FMOD_System_CreateDSPByType(FMOD_SYSTEM *system, FMOD_DSP_TYPE dspType, FMOD_RESULT * ret) {
+
 	FMOD_DSP * dsp;
 	
 	*ret = FMOD_System_CreateDSPByType(system, dspType, &dsp);
@@ -124,14 +174,41 @@ FMOD_DSP * bmx_FMOD_System_CreateDSPByType(FMOD_SYSTEM *system, FMOD_DSP_TYPE ds
 	return dsp;
 }
 
+MAX_FMOD_CHANNEL * bmx_FMOD_System_PlayDSP(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_DSP * dsp,
+		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse) {
+
+	if (reuse) {
+		FMOD_RESULT result = FMOD_System_PlayDSP(system, channelId, dsp, paused, &reuse->channel);
+		
+		return reuse;
+	} else {
+	
+		MAX_FMOD_CHANNEL * channel = new MAX_FMOD_CHANNEL();
+
+		FMOD_RESULT result = FMOD_System_PlayDSP(system, channelId, dsp, paused, &channel->channel);
+	
+		if (result) {
+			delete channel;
+			return 0;
+		}
+		return channel;	
+	}
+}
+
+
 // ++++++++++++++++++++++++++++++++
 
-FMOD_RESULT bmx_FMOD_Channel_GetSpectrum(FMOD_CHANNEL *channel, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType) {
+void bmx_fmodchannel_delete(MAX_FMOD_CHANNEL * channel) {
+	delete channel;
+}
+
+
+FMOD_RESULT bmx_FMOD_Channel_GetSpectrum(MAX_FMOD_CHANNEL *channel, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType) {
 
 	int size = spectrumArray->scales[0];
 	float arr[size];
 	
-	FMOD_RESULT res = FMOD_Channel_GetSpectrum(channel, &arr[0], size, channelOffset, windowType);
+	FMOD_RESULT res = FMOD_Channel_GetSpectrum(channel->channel, &arr[0], size, channelOffset, windowType);
 
 	float *s=(float*)BBARRAYDATA( spectrumArray, spectrumArray->dims );
 	for (int i = 0; i < size; i ++) {
@@ -141,11 +218,11 @@ FMOD_RESULT bmx_FMOD_Channel_GetSpectrum(FMOD_CHANNEL *channel, BBArray * spectr
 	return res;
 }
 
-FMOD_SOUND * bmx_FMOD_Channel_GetCurrentSound(FMOD_CHANNEL *channel) {
+FMOD_SOUND * bmx_FMOD_Channel_GetCurrentSound(MAX_FMOD_CHANNEL *channel) {
 
 	FMOD_SOUND * sound;
 	
-	FMOD_RESULT result = FMOD_Channel_GetCurrentSound(channel, &sound);
+	FMOD_RESULT result = FMOD_Channel_GetCurrentSound(channel->channel, &sound);
 
 	if (result) {
 		return 0;
@@ -153,6 +230,111 @@ FMOD_SOUND * bmx_FMOD_Channel_GetCurrentSound(FMOD_CHANNEL *channel) {
 	
 	return sound;
 }
+
+FMOD_RESULT bmx_FMOD_Channel_GetPaused(MAX_FMOD_CHANNEL *channel, FMOD_BOOL * paused) {
+	return FMOD_Channel_GetPaused(channel->channel, paused);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetPaused(MAX_FMOD_CHANNEL *channel, FMOD_BOOL paused) {
+	return FMOD_Channel_SetPaused(channel->channel, paused);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Stop(MAX_FMOD_CHANNEL *channel) {
+	return FMOD_Channel_Stop(channel->channel);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetVolume(MAX_FMOD_CHANNEL *channel, float * volume) {
+	return FMOD_Channel_GetVolume(channel->channel, volume);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetVolume(MAX_FMOD_CHANNEL *channel, float volume) {
+	return FMOD_Channel_SetVolume(channel->channel, volume);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetPan(MAX_FMOD_CHANNEL *channel, float * pan) {
+	return FMOD_Channel_GetPan(channel->channel, pan);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetPan(MAX_FMOD_CHANNEL *channel, float pan) {
+	return FMOD_Channel_SetPan(channel->channel, pan);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetDelay(MAX_FMOD_CHANNEL *channel, FMOD_DELAYTYPE delaytype, unsigned int *delayhi, unsigned int *delaylo) {
+	return FMOD_Channel_GetDelay(channel->channel, delaytype, delayhi, delaylo);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_IsPlaying(MAX_FMOD_CHANNEL *channel, FMOD_BOOL *isplaying) {
+    return FMOD_Channel_IsPlaying(channel->channel, isplaying);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_IsVirtual(MAX_FMOD_CHANNEL *channel, FMOD_BOOL *isvirtual) {
+    return FMOD_Channel_IsVirtual(channel->channel, isvirtual);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetAudibility(MAX_FMOD_CHANNEL *channel, float *audibility) {
+    return FMOD_Channel_GetAudibility(channel->channel, audibility);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetIndex(MAX_FMOD_CHANNEL *channel, int *index) {
+    return FMOD_Channel_GetIndex(channel->channel, index);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetFrequency(MAX_FMOD_CHANNEL *channel, float frequency) {
+    return FMOD_Channel_SetFrequency(channel->channel, frequency);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetFrequency(MAX_FMOD_CHANNEL *channel, float *frequency) {
+    return FMOD_Channel_GetFrequency(channel->channel, frequency);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetPosition(MAX_FMOD_CHANNEL *channel, unsigned int *position, FMOD_TIMEUNIT postype) {
+    return FMOD_Channel_GetPosition(channel->channel, position, postype);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetLoopCount(MAX_FMOD_CHANNEL *channel, int loopcount) {
+    return FMOD_Channel_SetLoopCount(channel->channel, loopcount);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetLoopCount(MAX_FMOD_CHANNEL *channel, int *loopcount) {
+    return FMOD_Channel_GetLoopCount(channel->channel, loopcount);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetLoopPoints(MAX_FMOD_CHANNEL *channel, unsigned int loopstart, FMOD_TIMEUNIT loopstarttype, unsigned int loopend, FMOD_TIMEUNIT loopendtype) {
+    return FMOD_Channel_SetLoopPoints(channel->channel, loopstart, loopstarttype, loopend, loopendtype);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetLoopPoints(MAX_FMOD_CHANNEL *channel, unsigned int *loopstart, FMOD_TIMEUNIT loopstarttype, unsigned int *loopend, FMOD_TIMEUNIT loopendtype) {
+    return FMOD_Channel_GetLoopPoints(channel->channel, loopstart, loopstarttype, loopend, loopendtype);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DAttributes(MAX_FMOD_CHANNEL *channel, FMOD_VECTOR *pos, FMOD_VECTOR *vel) {
+    return FMOD_Channel_Get3DAttributes(channel->channel, pos, vel);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DMinMaxDistance(MAX_FMOD_CHANNEL *channel, float *mindistance, float *maxdistance) {
+    return FMOD_Channel_Get3DMinMaxDistance(channel->channel, mindistance, maxdistance);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DConeOrientation(MAX_FMOD_CHANNEL *channel, FMOD_VECTOR *orientation) {
+    return FMOD_Channel_Get3DConeOrientation(channel->channel, orientation);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DOcclusion(MAX_FMOD_CHANNEL *channel, float *directocclusion, float *reverbocclusion) {
+    return FMOD_Channel_Get3DOcclusion(channel->channel, directocclusion, reverbocclusion);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DDopplerLevel(MAX_FMOD_CHANNEL *channel, float *level) {
+    return FMOD_Channel_Get3DDopplerLevel(channel->channel, level);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DSpread(MAX_FMOD_CHANNEL *channel, float *angle) {
+    return FMOD_Channel_Get3DSpread(channel->channel, angle);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_Get3DPanLevel(MAX_FMOD_CHANNEL *channel, float *level) {
+    return FMOD_Channel_Get3DPanLevel(channel->channel, level);
+}
+
 
 // ++++++++++++++++++++++++++++++++
 
