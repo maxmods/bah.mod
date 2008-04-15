@@ -22,6 +22,8 @@ SuperStrict
 
 Import BRL.Blitz
 
+?win32
+Import "-lfmodex"
 ?macos
 Import "-lfmodex"
 ?
@@ -46,7 +48,13 @@ Extern
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
 
 	Function bmx_FMOD_SoundGroup_GetSound:Byte Ptr(handle:Byte Ptr, index:Int)
+End Extern
 
+?win32
+Extern "win32"
+?Not win32
+Extern
+?
 	Function FMOD_System_Release:Int(handle:Byte Ptr)
 	Function FMOD_System_Init:Int(handle:Byte Ptr, maxChannels:Int, flags:Int, extraDriverData:Byte Ptr)
 	Function FMOD_System_Update:Int(handle:Byte Ptr)
@@ -56,7 +64,7 @@ Extern
 	Function FMOD_System_Get3DSettings:Int(handle:Byte Ptr, dopplerScale:Float Ptr, distanceFactor:Float Ptr, rollOffScale:Float Ptr)
 	Function FMOD_System_Get3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float Ptr, y:Float Ptr, active:Int Ptr)
 	Function FMOD_System_GetCPUUsage:Int(handle:Byte Ptr, dsp:Float Ptr, stream:Float Ptr, update:Float Ptr, total:Float Ptr)
-	Function FMOD_System_GetHardwareChannels:Int(handle:Byte Ptr, channels:Int Ptr)
+	Function FMOD_System_GetHardwareChannels:Int(handle:Byte Ptr, num2D:Int Ptr, num3D:Int Ptr, total:Int Ptr)
 	Function FMOD_System_GetVersion:Int(handle:Byte Ptr, version:Int Ptr)
 	Function FMOD_System_GetNumCDROMDrives:Int(handle:Byte Ptr, numDrives:Int Ptr)
 	Function FMOD_System_GetSoundRAM:Int(handle:Byte Ptr, currentAlloced:Int Ptr, maxAlloced:Int Ptr, total:Int Ptr)
@@ -68,7 +76,7 @@ Extern
 	Function FMOD_Sound_SetMode:Int(handle:Byte Ptr, mode:Int)
 	Function FMOD_Sound_GetLength:Int(handle:Byte Ptr, length:Int Ptr, lengthType:Int)
 	Function FMOD_Sound_Release:Int(handle:Byte Ptr)
-	Function FMOD_Sound_GetMode:Int(handle:Byte Ptr, mode:Int ptr)
+	Function FMOD_Sound_GetMode:Int(handle:Byte Ptr, mode:Int Ptr)
 	Function FMOD_Sound_GetLoopCount:Int(handle:Byte Ptr, loopCount:Int Ptr)
 	Function FMOD_Sound_SetLoopCount:Int(handle:Byte Ptr, loopCount:Int)
 	Function FMOD_Sound_SetLoopPoints:Int(handle:Byte Ptr, loopStart:Int, loopStartType:Int, loopEnd:Int, loopEndType:Int)

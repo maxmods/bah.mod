@@ -26,8 +26,11 @@ End Rem
 Module BaH.FMOD
 
 ModuleInfo "Version: 1.00"
-ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008 Bruce A Henderson"
+ModuleInfo "License: Wrapper - MIT"
+ModuleInfo "License: FMOD - See http://www.fmod.org"
+ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: FMOD - 2004-2008 Firelight Technologies, Pty, Ltd"
+
 
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
@@ -222,8 +225,8 @@ Type TFMODSystem
 	Rem
 	bbdoc:
 	End Rem
-	Method GetHardwareChannels:Int(channels:Int Var)
-		Return FMOD_System_GetHardwareChannels(systemPtr, Varptr channels)
+	Method GetHardwareChannels:Int(num2D:Int Var, num3D:Int Var, total:Int Var)
+		Return FMOD_System_GetHardwareChannels(systemPtr, Varptr num2D, Varptr num3D, Varptr total)
 	End Method
 	
 	Rem
