@@ -38,6 +38,8 @@ extern "C" {
 	FMOD_DSP * bmx_FMOD_System_CreateDSPByType(FMOD_SYSTEM *system, FMOD_DSP_TYPE dspType, FMOD_RESULT * ret);
 	MAX_FMOD_CHANNEL * bmx_FMOD_System_PlayDSP(FMOD_SYSTEM *system, FMOD_CHANNELINDEX channelId, FMOD_DSP * dsp,
 		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse);
+	FMOD_SOUND * bmx_FMOD_System_CreateStream(FMOD_SYSTEM *system, const char * filename, FMOD_MODE mode,
+		FMOD_CREATESOUNDEXINFO * exInfo, FMOD_RESULT * ret);
 
 
 	void bmx_fmodchannel_delete(MAX_FMOD_CHANNEL * channel);
@@ -75,11 +77,19 @@ extern "C" {
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
 	void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length);	
 	void bmx_soundexinfo_delete(FMOD_CREATESOUNDEXINFO * info);
-	
+	void bmx_soundexinfo_setnumchannels(FMOD_CREATESOUNDEXINFO * info, int numChannels);
+	void bmx_soundexinfo_setdefaultfrequency(FMOD_CREATESOUNDEXINFO * info, int frequency);
+	void bmx_soundexinfo_setformat(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_FORMAT format);
+	void bmx_soundexinfo_setdecodebuffersize(FMOD_CREATESOUNDEXINFO * info, unsigned int bufferSize);
+	void bmx_soundexinfo_setinitialsubsound(FMOD_CREATESOUNDEXINFO * info, int initial);
+	void bmx_soundexinfo_setnumsubsounds(FMOD_CREATESOUNDEXINFO * info, int num);
+
+
 	FMOD_SOUND * bmx_FMOD_SoundGroup_GetSound(FMOD_SOUNDGROUP *soundgroup, int index);
 
 	FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int index);
-	
+	FMOD_RESULT bmx_FMOD_Sound_SetSubSoundSentence(FMOD_SOUND * sound, BBArray * soundList);
+
 	void * bmx_fmodtag_getdata(FMOD_TAG * tag);
 	void bmx_fmodtag_delete(FMOD_TAG * tag);
 
@@ -195,6 +205,20 @@ MAX_FMOD_CHANNEL * bmx_FMOD_System_PlayDSP(FMOD_SYSTEM *system, FMOD_CHANNELINDE
 	}
 }
 
+FMOD_SOUND * bmx_FMOD_System_CreateStream(FMOD_SYSTEM *system, const char * filename, FMOD_MODE mode, FMOD_CREATESOUNDEXINFO * exInfo,
+		FMOD_RESULT * result) {
+
+	FMOD_SOUND * sound;
+	
+	*result = FMOD_System_CreateStream(system, filename, mode, exInfo, &sound);
+	
+	if (*result) {
+		return 0;
+	}
+	
+	return sound;
+
+}
 
 // ++++++++++++++++++++++++++++++++
 
@@ -355,6 +379,32 @@ void bmx_soundexinfo_delete(FMOD_CREATESOUNDEXINFO * info) {
 	delete info;
 }
 
+void bmx_soundexinfo_setnumchannels(FMOD_CREATESOUNDEXINFO * info, int numChannels) {
+	info->numchannels = numChannels;
+}
+
+void bmx_soundexinfo_setdefaultfrequency(FMOD_CREATESOUNDEXINFO * info, int frequency) {
+	info->defaultfrequency = frequency;
+}
+
+void bmx_soundexinfo_setformat(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_FORMAT format) {
+	info->format = format;
+}
+
+void bmx_soundexinfo_setdecodebuffersize(FMOD_CREATESOUNDEXINFO * info, unsigned int bufferSize) {
+	info->decodebuffersize = bufferSize;
+}
+
+void bmx_soundexinfo_setinitialsubsound(FMOD_CREATESOUNDEXINFO * info, int initial) {
+	info->initialsubsound = initial;
+}
+
+void bmx_soundexinfo_setnumsubsounds(FMOD_CREATESOUNDEXINFO * info, int num) {
+	info->numsubsounds = num;
+}
+
+
+
 // ++++++++++++++++++++++++++++++++
 
 FMOD_SOUND * bmx_FMOD_SoundGroup_GetSound(FMOD_SOUNDGROUP *soundgroup, int index) {
@@ -380,6 +430,14 @@ FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int inde
 	
 	return tag;
 }
+
+FMOD_RESULT bmx_FMOD_Sound_SetSubSoundSentence(FMOD_SOUND * sound, BBArray * soundList) {
+	int length = soundList->scales[0];
+	int *s=(int*)BBARRAYDATA( soundList, soundList->dims );
+
+	return FMOD_Sound_SetSubSoundSentence(sound, s, length);
+}
+
 
 // ++++++++++++++++++++++++++++++++
 

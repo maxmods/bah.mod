@@ -37,6 +37,7 @@ Extern
 	Function bmx_FMOD_System_GetChannel:Byte Ptr(handle:Byte Ptr, channelId:Int)
 	Function bmx_FMOD_System_CreateDSPByType:Byte Ptr(handle:Byte Ptr, dspType:Int, ret:Int Ptr)
 	Function bmx_FMOD_System_PlayDSP:Byte Ptr(handle:Byte Ptr, channelId:Int, dsp:Byte Ptr, paused:Int, reuse:Byte Ptr)
+	Function bmx_FMOD_System_CreateStream:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, mode:Int, exInfo:Byte Ptr, ret:Int Ptr)
 
 	Function bmx_fmodchannel_delete(handle:Byte Ptr)
 	Function bmx_FMOD_Channel_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
@@ -70,11 +71,18 @@ Extern
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
+	Function bmx_soundexinfo_setnumchannels(handle:Byte Ptr, numChannels:Int)
+	Function bmx_soundexinfo_setdefaultfrequency(handle:Byte Ptr, frequency:Int)
+	Function bmx_soundexinfo_setformat(handle:Byte Ptr, format:Int)
+	Function bmx_soundexinfo_setdecodebuffersize(handle:Byte Ptr, bufferSize:Int)
+	Function bmx_soundexinfo_setinitialsubsound(handle:Byte Ptr, initial:Int)
+	Function bmx_soundexinfo_setnumsubsounds(handle:Byte Ptr, num:Int)
 
 	Function bmx_FMOD_SoundGroup_GetSound:Byte Ptr(handle:Byte Ptr, index:Int)
 	
 	Function bmx_FMOD_Sound_GetTag:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, index:Int)
-	
+	Function bmx_FMOD_Sound_SetSubSoundSentence:Int(handle:Byte Ptr, soundList:Int[])
+
 	Function bmx_fmodtag_getdata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_fmodtag_delete(handle:Byte Ptr)
 
@@ -127,7 +135,8 @@ Extern
 	Function FMOD_Sound_GetNumTags:Int(handle:Byte Ptr, numTags:Int Ptr, numTagsUpdated:Int Ptr)
 	Function FMOD_Sound_GetOpenState:Int(handle:Byte Ptr, openState:Int Ptr, percentBuffered:Int Ptr, starving:Int Ptr)
 	Function FMOD_Sound_GetName:Int(handle:Byte Ptr, vstr:Byte Ptr, length:Int)
-
+	Function FMOD_Sound_SetSubSound:Int(handle:Byte Ptr, index:Int, subsound:Byte Ptr)
+		
 	Function FMOD_DSP_GetActive:Int(handle:Byte Ptr, active:Int Ptr)
 	Function FMOD_DSP_SetActive:Int(handle:Byte Ptr, active:Int)
 	Function FMOD_DSP_Remove:Int(handle:Byte Ptr)

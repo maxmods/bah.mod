@@ -137,7 +137,41 @@ Type TFMODSystem
 		
 		Return sound
 	End Method
-	
+
+	Rem
+	bbdoc:
+	End Rem
+	Method CreateStreamURL:TFMODSound(filename:String, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+		Local sound:TFMODSound
+		Local ret:Int
+		
+		Local s:Byte Ptr = filename.ToCString()
+		If exInfo Then
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, filename, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Else
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, filename, mode, Null, Varptr ret))
+		End If
+		MemFree(s)
+		
+		Return sound
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateStreamPtr:TFMODSound(mem:Byte Ptr, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+		Local sound:TFMODSound
+		Local ret:Int
+		
+		If exInfo Then
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Else
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, mode, Null, Varptr ret))
+		End If
+		
+		Return sound
+	End Method
+
 	Rem
 	bbdoc: Creates an FMOD defined built in DSP unit object to be inserted into a DSP network, for the purposes of sound filtering or sound generation.
 	about: This method is used to create special effects that come built into FMOD. 
@@ -585,6 +619,20 @@ Type TFMODSound
 	Rem
 	bbdoc: 
 	End Rem
+	Method SetSubSound:Int(index:Int, subsound:TFMODSound)
+		Return FMOD_Sound_SetSubSound(soundPtr, index, subsound.soundPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetSubSoundSentence:Int(soundList:Int[])
+		Return bmx_FMOD_Sound_SetSubSoundSentence(soundPtr, soundList)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SoundRelease:Int()
 		If soundPtr Then
 			Local res:Int = FMOD_Sound_Release(soundPtr)
@@ -855,6 +903,49 @@ Type TFMODCreateSoundExInfo
 	Method SetLength(length:Int)
 		bmx_soundexinfo_setlength(soundExInfoPtr, length)
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetNumChannels(numChannels:Int)
+		bmx_soundexinfo_setnumchannels(soundExInfoPtr, numChannels)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetDefaultFrequency(frequency:Int)
+		bmx_soundexinfo_setdefaultfrequency(soundExInfoPtr, frequency)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFormat(format:Int)
+		bmx_soundexinfo_setformat(soundExInfoPtr, format)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetDecodeBufferSize(bufferSize:Int)
+		bmx_soundexinfo_setdecodebuffersize(soundExInfoPtr, bufferSize)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetInitialSubSound(initial:Int)
+		bmx_soundexinfo_setinitialsubsound(soundExInfoPtr, initial)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetNumSubSounds(num:Int)
+		bmx_soundexinfo_setnumsubsounds(soundExInfoPtr, num)
+	End Method
+	
 
 	Method Delete()
 		If soundExInfoPtr Then
@@ -880,20 +971,35 @@ Type TFMODTag
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetTagType:Int()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetDataType:Int()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetName:String()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetDataAsString:String()
 		Local s:Byte Ptr = bmx_fmodtag_getdata(tagPtr)
 		Return String.FromCString(s)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetData:Byte Ptr()
 		Return bmx_fmodtag_getdata(tagPtr)
 	End Method
