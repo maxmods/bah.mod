@@ -719,6 +719,13 @@ Type TFMODChannel
 	Method GetFrequency:Int(frequency:Float Var)
 		Return bmx_FMOD_Channel_GetFrequency(channelPtr, Varptr frequency)
 	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFrequency:Int(frequency:Float)
+		Return bmx_FMOD_Channel_SetFrequency(channelPtr, frequency)
+	End Method
 	
 	Rem
 	bbdoc: 

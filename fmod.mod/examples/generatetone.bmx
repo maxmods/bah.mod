@@ -14,7 +14,6 @@ system.Init(32)
 
 
 ' Create DSP units for each type of noise we want.
-
 Local dsp:TFMODDsp = system.CreateDSPByType(FMOD_DSP_TYPE_OSCILLATOR)
 dsp.SetParameter(FMOD_DSP_OSCILLATOR_RATE, 440.0)
 
@@ -60,7 +59,7 @@ While Not KeyDown(KEY_ESCAPE)
 
 		If KeyHit(KEY_3) Then
 			channel = system.PlayDSP(FMOD_CHANNEL_REUSE, dsp, True, channel)
-			channel.SetVolume(0.5)
+			channel.SetVolume(0.25)
 			dsp.SetParameter(FMOD_DSP_OSCILLATOR_TYPE, 2)
 
 			channel.SetPaused(False)
@@ -87,7 +86,43 @@ While Not KeyDown(KEY_ESCAPE)
 		End If
 		
 		If KeyHit(KEY_V) Then
-'			If KeyDown(
+			Local volume:Float
+			channel.GetVolume(volume)
+			
+			If KeyDown(KEY_LSHIFT) Then
+				volume:+ 0.1
+			Else
+				volume:- 0.1
+			End If
+			
+			channel.SetVolume(volume)
+		End If
+
+		If KeyHit(KEY_F) Then
+			Local frequency:Float
+			channel.GetFrequency(frequency)
+			
+			If KeyDown(KEY_LSHIFT) Then
+				frequency:+ 500
+			Else
+				frequency:- 500
+			End If
+			
+			channel.SetFrequency(frequency)
+		End If
+	
+		If KeyHit(KEY_OPENBRACKET) Then
+			Local pan:Float
+			channel.GetPan(pan)
+			pan:- 0.1
+			channel.SetPan(pan)
+		End If
+
+		If KeyHit(KEY_CLOSEBRACKET) Then
+			Local pan:Float
+			channel.GetPan(pan)
+			pan:+ 0.1
+			channel.SetPan(pan)
 		End If
 	
 		system.Update()
@@ -105,21 +140,18 @@ While Not KeyDown(KEY_ESCAPE)
 			channel.GetPan(pan)
 		End If
 		
-'		Local s:String = "Time " + Pad(pos / 1000 / 60) + ":" + Pad(pos / 1000 Mod 60) + ..
-'			":" + Pad(pos / 10 Mod 100) + " /" + Pad(lenms / 1000 / 60) + ":" + Pad(lenms / 1000 Mod 60) + ..
-'			":" + Pad(lenms / 10 Mod 100)
-'			
-'		If paused Then
-'			s:+ " : Paused"
-'		Else If playing Then
-'			s:+ " : Playing"
-'		Else
-'			s:+ " : Stopped"
-'		End If
-'		
-'		s:+ " : Channels Playing : " + channelsPlaying
-'		
-'		DrawText s, 50, 200
+		Local s:String = "Channel "
+		If playing Then
+			s:+ " Playing"
+		Else
+			s:+ " Stopped"
+		End If
+		
+		s:+ " : Frequency " + frequency
+		s:+ " Volume " + volume
+		s:+ " Pan " + pan
+
+		DrawText s, 20, 340
 		
 	Flip
 

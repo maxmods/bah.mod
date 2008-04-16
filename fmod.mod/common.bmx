@@ -52,6 +52,7 @@ Extern
 
 	Function bmx_FMOD_Channel_IsPlaying:Int(handle:Byte Ptr, playing:Int Ptr)
 	Function bmx_FMOD_Channel_GetFrequency:Int(handle:Byte Ptr, frequency:Float Ptr)
+	Function bmx_FMOD_Channel_SetFrequency:Int(handle:Byte Ptr, frequency:Float)
 	Function bmx_FMOD_Channel_GetPosition:Int(handle:Byte Ptr, position:Int Ptr, posType:Int)
 	Function bmx_FMOD_Channel_IsVirtual:Int(handle:Byte Ptr, virtual:Int Ptr)
 	Function bmx_FMOD_Channel_GetAudibility:Int(handle:Byte Ptr, audibility:Float Ptr)
