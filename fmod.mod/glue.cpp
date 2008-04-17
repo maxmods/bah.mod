@@ -96,6 +96,13 @@ extern "C" {
 
 	void * bmx_fmodtag_getdata(FMOD_TAG * tag);
 	void bmx_fmodtag_delete(FMOD_TAG * tag);
+	FMOD_TAGTYPE bmx_fmodtag_gettagtype(FMOD_TAG * tag);
+	FMOD_TAGDATATYPE bmx_fmodtag_getdatatype(FMOD_TAG * tag);
+	char * bmx_fmodtag_getname(FMOD_TAG * tag);
+	unsigned int bmx_fmodtag_getdatalength(FMOD_TAG * tag);
+	FMOD_BOOL bmx_fmodtag_getupdated(FMOD_TAG * tag);
+	
+	MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgroup, int index);
 
 
 }
@@ -491,3 +498,39 @@ void * bmx_fmodtag_getdata(FMOD_TAG * tag) {
 void bmx_fmodtag_delete(FMOD_TAG * tag) {
 	delete tag;
 }
+
+FMOD_TAGTYPE bmx_fmodtag_gettagtype(FMOD_TAG * tag) {
+	return tag->type;
+}
+
+FMOD_TAGDATATYPE bmx_fmodtag_getdatatype(FMOD_TAG * tag) {
+	return tag->datatype;
+}
+
+char * bmx_fmodtag_getname(FMOD_TAG * tag) {
+	return tag->name;
+}
+
+unsigned int bmx_fmodtag_getdatalength(FMOD_TAG * tag) {
+	return tag->datalen;
+}
+
+FMOD_BOOL bmx_fmodtag_getupdated(FMOD_TAG * tag) {
+	return tag->updated;
+}
+
+
+// ++++++++++++++++++++++++++++++++
+
+MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgroup, int index) {
+	MAX_FMOD_CHANNEL * channel = new MAX_FMOD_CHANNEL;
+	FMOD_RESULT result = FMOD_ChannelGroup_GetChannel(channelgroup, index, &channel->channel);
+	
+	if (result) {
+		delete channel;
+		return 0;
+	}
+	
+	return channel;
+}
+

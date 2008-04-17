@@ -88,6 +88,11 @@ Extern
 
 	Function bmx_fmodtag_getdata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_fmodtag_delete(handle:Byte Ptr)
+	Function bmx_fmodtag_gettagtype:Int(handle:Byte Ptr)
+	Function bmx_fmodtag_getdatatype:Int(handle:Byte Ptr)
+	Function bmx_fmodtag_getname:Byte Ptr(handle:Byte Ptr)
+	Function bmx_fmodtag_getdatalength:Int(handle:Byte Ptr)
+	Function bmx_fmodtag_getupdated:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -183,6 +188,28 @@ Extern
 	Function FMOD_Reverb_Set3DAttributes:Int(handle:Byte Ptr, position:Byte Ptr, minDistance:Float, maxDistance:Float)
 	Function FMOD_Reverb_GetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 	Function FMOD_Reverb_SetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+
+	Function FMOD_ChannelGroup_GetVolume:Int(handle:Byte Ptr, volume:Float Ptr)
+	Function FMOD_ChannelGroup_SetVolume:Int(handle:Byte Ptr, volume:Float)
+	Function FMOD_ChannelGroup_Stop:Int(handle:Byte Ptr)
+	Function FMOD_ChannelGroup_GetMute:Int(handle:Byte Ptr, mute:Int Ptr)
+	Function FMOD_ChannelGroup_SetMute:Int(handle:Byte Ptr, mute:Int)
+	Function FMOD_ChannelGroup_GetPaused:Int(handle:Byte Ptr, paused:Int Ptr)
+	Function FMOD_ChannelGroup_SetPaused:Int(handle:Byte Ptr, paused:Int)
+	Function FMOD_ChannelGroup_GetPitch:Int(handle:Byte Ptr, pitch:Float Ptr)
+	Function FMOD_ChannelGroup_SetPitch:Int(handle:Byte Ptr, pitch:Float)
+	Function FMOD_ChannelGroup_GetNumChannels:Int(handle:Byte Ptr, numChannels:Int Ptr)
+	Function FMOD_ChannelGroup_GetNumGroups:Int(handle:Byte Ptr, numGroups:Int Ptr)
+	Function FMOD_ChannelGroup_Get3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float Ptr, reverbOcclusion:Float Ptr)
+	Function FMOD_ChannelGroup_Set3DOcclusion:Int(handle:Byte Ptr, directOcclusion:Float, reverbOcclusion:Float)
+	Function FMOD_ChannelGroup_Override3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
+	Function FMOD_ChannelGroup_OverrideFrequency:Int(handle:Byte Ptr, frequency:Float)
+	Function FMOD_ChannelGroup_OverridePan:Int(handle:Byte Ptr, pan:Float)
+	Function FMOD_ChannelGroup_OverrideSpeakerMix:Int(handle:Byte Ptr, frontleft:Float, frontright:Float, center:Float, ..
+		lfe:Float, backleft:Float, backright:Float, sideleft:Float, sideright:Float)
+	Function FMOD_ChannelGroup_OverrideVolume:Int(handle:Byte Ptr, volume:Float)
+	Function FMOD_ChannelGroup_Release:Int(handle:Byte Ptr)
+	Function bmx_FMOD_ChannelGroup_GetChannel:Byte Ptr(handle:Byte Ptr, index:Int)
 
 End Extern
 
@@ -702,3 +729,24 @@ Const FMOD_REVERB_FLAGS_HIGHQUALITYDPL2REVERB:Int = $00000800 ' GameCube/Wii. Us
 Const FMOD_REVERB_FLAGS_DEFAULT:Int = FMOD_REVERB_FLAGS_DECAYTIMESCALE | FMOD_REVERB_FLAGS_REFLECTIONSSCALE | ..
 	FMOD_REVERB_FLAGS_REFLECTIONSDELAYSCALE | FMOD_REVERB_FLAGS_REVERBSCALE | FMOD_REVERB_FLAGS_REVERBDELAYSCALE | ..
 	FMOD_REVERB_FLAGS_DECAYHFLIMIT | FMOD_REVERB_FLAGS_CORE0 | FMOD_REVERB_FLAGS_CORE1
+
+Const FMOD_TAGDATATYPE_BINARY:Int = 0
+Const FMOD_TAGDATATYPE_INT:Int = 1
+Const FMOD_TAGDATATYPE_FLOAT:Int = 2
+Const FMOD_TAGDATATYPE_STRING:Int = 3
+Const FMOD_TAGDATATYPE_STRING_UTF16:Int = 4
+Const FMOD_TAGDATATYPE_STRING_UTF16BE:Int = 5
+Const FMOD_TAGDATATYPE_STRING_UTF8:Int = 6
+Const FMOD_TAGDATATYPE_CDTOC:Int = 7
+
+Const FMOD_TAGTYPE_UNKNOWN:Int = 0
+Const FMOD_TAGTYPE_ID3V1:Int = 1
+Const FMOD_TAGTYPE_ID3V2:Int = 2
+Const FMOD_TAGTYPE_VORBISCOMMENT:Int = 3
+Const FMOD_TAGTYPE_SHOUTCAST:Int = 4
+Const FMOD_TAGTYPE_ICECAST:Int = 5
+Const FMOD_TAGTYPE_ASF:Int = 6
+Const FMOD_TAGTYPE_MIDI:Int = 7
+Const FMOD_TAGTYPE_PLAYLIST:Int = 8
+Const FMOD_TAGTYPE_FMOD:Int = 9
+Const FMOD_TAGTYPE_USER:Int = 10

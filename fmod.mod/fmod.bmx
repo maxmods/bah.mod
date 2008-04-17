@@ -672,9 +672,14 @@ Type TFMODSound
 	bbdoc: 
 	End Rem
 	Method GetTag:TFMODTag(name:String, index:Int)
-		Local s:Byte Ptr = name.ToCString()
-		Local tag:TFMODTag = TFMODTag._create(bmx_FMOD_Sound_GetTag(soundPtr, s, index))
-		MemFree(s)
+		Local tag:TFMODTag
+		If name Then
+			Local s:Byte Ptr = name.ToCString()
+			tag = TFMODTag._create(bmx_FMOD_Sound_GetTag(soundPtr, s, index))
+			MemFree(s)
+		Else
+			tag = TFMODTag._create(bmx_FMOD_Sound_GetTag(soundPtr, Null, index))
+		End If
 		Return tag
 	End Method
 	
@@ -1040,7 +1045,7 @@ Type TFMODCreateSoundExInfo
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Structure describing a piece of tag data.
 End Rem
 Type TFMODTag
 
@@ -1055,21 +1060,31 @@ Type TFMODTag
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: The type of this tag. 
 	End Rem
 	Method GetTagType:Int()
+		Return bmx_fmodtag_gettagtype(tagPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The type of data that this tag contains.
 	End Rem
 	Method GetDataType:Int()
+		Return bmx_fmodtag_getdatatype(tagPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The name of this tag i.e. "TITLE", "ARTIST" etc.
 	End Rem
 	Method GetName:String()
+		Return String.FromCString(bmx_fmodtag_getname(tagPtr))
+	End Method
+	
+	Rem
+	bbdoc: Length of the data contained in this tag.
+	End Rem
+	Method GetDataLength:Int()
+		Return bmx_fmodtag_getdatalength(tagPtr)
 	End Method
 	
 	Rem
@@ -1085,6 +1100,13 @@ Type TFMODTag
 	End Rem
 	Method GetData:Byte Ptr()
 		Return bmx_fmodtag_getdata(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: True if this tag has been updated since last being accessed with TFMODSound.GetTag
+	End Rem
+	Method GetUpdated:Int()
+		Return bmx_fmodtag_getupdated(tagPtr)
 	End Method
 
 	Method Delete()
@@ -1394,6 +1416,9 @@ Type TFMODReverb
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TFMODChannelGroup
 
 	Field channelGroupPtr:Byte Ptr
@@ -1406,7 +1431,146 @@ Type TFMODChannelGroup
 		End If
 	End Function
 	
-
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetVolume:Int(volume:Float Var)
+		Return FMOD_ChannelGroup_GetVolume(channelGroupPtr, Varptr volume)
+	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetVolume:Int(volume:Float)
+		Return FMOD_ChannelGroup_SetVolume(channelGroupPtr, volume)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Stop:Int()
+		Return FMOD_ChannelGroup_Stop(channelGroupPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetMute:Int(mute:Int Var)
+		Return FMOD_ChannelGroup_GetMute(channelGroupPtr, Varptr mute)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetMute:Int(mute:Int)
+		Return FMOD_ChannelGroup_SetMute(channelGroupPtr, mute)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPaused:Int(paused:Int Var)
+		Return FMOD_ChannelGroup_GetPaused(channelGroupPtr, Varptr paused)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPaused:Int(paused:Int)
+		Return FMOD_ChannelGroup_SetPaused(channelGroupPtr, paused)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPitch:Int(pitch:Float Var)
+		Return FMOD_ChannelGroup_GetPitch(channelGroupPtr, Varptr pitch)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPitch:Int(pitch:Float)
+		Return FMOD_ChannelGroup_SetPitch(channelGroupPtr, pitch)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNumChannels:Int(numChannels:Int Var)
+		Return FMOD_ChannelGroup_GetNumChannels(channelGroupPtr, Varptr numChannels)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNumGroups:Int(numGroups:Int Var)
+		Return FMOD_ChannelGroup_GetNumGroups(channelGroupPtr, Varptr numGroups)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetChannel:TFMODChannel(index:Int)
+		Return TFMODChannel._create(bmx_FMOD_ChannelGroup_GetChannel(channelGroupPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Get3DOcclusion:Int(directOcclusion:Float Var, reverbOcclusion:Float Var)
+		Return FMOD_ChannelGroup_Get3DOcclusion(channelGroupPtr, Varptr directOcclusion, Varptr reverbOcclusion)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Set3DOcclusion:Int(directOcclusion:Float, reverbOcclusion:Float)
+		Return FMOD_ChannelGroup_Set3DOcclusion(channelGroupPtr, directOcclusion, reverbOcclusion)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Override3DAttributes:Int(pos:TFMODVector, vel:TFMODVector)
+		Return FMOD_ChannelGroup_Override3DAttributes(channelGroupPtr, Varptr pos, Varptr vel)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OverrideFrequency:Int(frequency:Float)
+		Return FMOD_ChannelGroup_OverrideFrequency(channelGroupPtr, frequency)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OverridePan:Int(pan:Float)
+		Return FMOD_ChannelGroup_OverridePan(channelGroupPtr, pan)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OverrideSpeakerMix:Int(frontleft:Float, frontright:Float, center:Float, ..
+			lfe:Float, backleft:Float, backright:Float, sideleft:Float, sideright:Float)
+		Return FMOD_ChannelGroup_OverrideSpeakerMix(channelGroupPtr, frontleft, frontright, center, ..
+			lfe, backleft, backright, sideleft, sideright)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method OverrideVolume:Int(volume:Float)
+		Return FMOD_ChannelGroup_OverrideVolume(channelGroupPtr, volume)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ChannelGroupRelease:Int()
+		Return FMOD_ChannelGroup_Release(channelGroupPtr)
+	End Method
 
 End Type
