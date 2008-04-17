@@ -40,6 +40,8 @@ extern "C" {
 		FMOD_BOOL paused, MAX_FMOD_CHANNEL * reuse);
 	FMOD_SOUND * bmx_FMOD_System_CreateStream(FMOD_SYSTEM *system, const char * filename, FMOD_MODE mode,
 		FMOD_CREATESOUNDEXINFO * exInfo, FMOD_RESULT * ret);
+	FMOD_REVERB * bmx_FMOD_System_CreateReverb(FMOD_SYSTEM *system);
+	FMOD_RESULT bmx_FMOD_System_GetSpectrum(FMOD_SYSTEM *system, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType);
 
 
 	void bmx_fmodchannel_delete(MAX_FMOD_CHANNEL * channel);
@@ -89,6 +91,8 @@ extern "C" {
 
 	FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int index);
 	FMOD_RESULT bmx_FMOD_Sound_SetSubSoundSentence(FMOD_SOUND * sound, BBArray * soundList);
+	FMOD_SOUND * bmx_FMOD_Sound_GetSubSound(FMOD_SOUND * sound, int index);
+
 
 	void * bmx_fmodtag_getdata(FMOD_TAG * tag);
 	void bmx_fmodtag_delete(FMOD_TAG * tag);
@@ -219,6 +223,34 @@ FMOD_SOUND * bmx_FMOD_System_CreateStream(FMOD_SYSTEM *system, const char * file
 	return sound;
 
 }
+
+FMOD_REVERB * bmx_FMOD_System_CreateReverb(FMOD_SYSTEM *system) {
+	FMOD_REVERB * reverb;
+	
+	FMOD_RESULT result = FMOD_System_CreateReverb(system, &reverb);
+	
+	if (result) {
+		return 0;
+	}
+	
+	return reverb;
+}
+
+FMOD_RESULT bmx_FMOD_System_GetSpectrum(FMOD_SYSTEM *system, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType) {
+
+	int size = spectrumArray->scales[0];
+	float arr[size];
+	
+	FMOD_RESULT res = FMOD_System_GetSpectrum(system, &arr[0], size, channelOffset, windowType);
+
+	float *s=(float*)BBARRAYDATA( spectrumArray, spectrumArray->dims );
+	for (int i = 0; i < size; i ++) {
+		s[i] = arr[i];
+	}
+	
+	return res;
+}
+
 
 // ++++++++++++++++++++++++++++++++
 
@@ -438,6 +470,17 @@ FMOD_RESULT bmx_FMOD_Sound_SetSubSoundSentence(FMOD_SOUND * sound, BBArray * sou
 	return FMOD_Sound_SetSubSoundSentence(sound, s, length);
 }
 
+FMOD_SOUND * bmx_FMOD_Sound_GetSubSound(FMOD_SOUND * sound, int index) {
+	FMOD_SOUND * subsound;
+	FMOD_RESULT result = FMOD_Sound_GetSubSound(sound, index, &subsound);
+
+	if (result) {
+		return 0;
+	}
+	
+	return subsound;
+	
+}
 
 // ++++++++++++++++++++++++++++++++
 

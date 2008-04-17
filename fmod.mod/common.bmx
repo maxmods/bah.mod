@@ -38,6 +38,8 @@ Extern
 	Function bmx_FMOD_System_CreateDSPByType:Byte Ptr(handle:Byte Ptr, dspType:Int, ret:Int Ptr)
 	Function bmx_FMOD_System_PlayDSP:Byte Ptr(handle:Byte Ptr, channelId:Int, dsp:Byte Ptr, paused:Int, reuse:Byte Ptr)
 	Function bmx_FMOD_System_CreateStream:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, mode:Int, exInfo:Byte Ptr, ret:Int Ptr)
+	Function bmx_FMOD_System_CreateReverb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_FMOD_System_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
 
 	Function bmx_fmodchannel_delete(handle:Byte Ptr)
 	Function bmx_FMOD_Channel_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
@@ -82,6 +84,7 @@ Extern
 	
 	Function bmx_FMOD_Sound_GetTag:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, index:Int)
 	Function bmx_FMOD_Sound_SetSubSoundSentence:Int(handle:Byte Ptr, soundList:Int[])
+	Function bmx_FMOD_Sound_GetSubSound:Byte Ptr(handle:Byte Ptr, index:Int)
 
 	Function bmx_fmodtag_getdata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_fmodtag_delete(handle:Byte Ptr)
@@ -108,7 +111,15 @@ Extern
 	Function FMOD_System_GetSoundRAM:Int(handle:Byte Ptr, currentAlloced:Int Ptr, maxAlloced:Int Ptr, total:Int Ptr)
 	Function FMOD_System_Close:Int(handle:Byte Ptr)
 	Function FMOD_System_AddDSP:Int(handle:Byte Ptr, dsp:Byte Ptr, conn:Byte Ptr)
-
+	Function FMOD_System_GetSpeakerMode:Int(handle:Byte Ptr, speakerMode:Int Ptr)
+	Function FMOD_System_GetStreamBufferSize:Int(handle:Byte Ptr, fileBufferSize:Int Ptr, fileBufferSizeType:Int Ptr)
+	Function FMOD_System_GetSoftwareFormat:Int(handle:Byte Ptr, sampleRate:Int Ptr, format:Int Ptr, numOutputChannels:Int Ptr, ..
+		maxInputChannels:Int Ptr, resampleMethod:Int Ptr, bits:Int Ptr)
+	Function FMOD_System_GetSoftwareChannels:Int(handle:Byte Ptr, numSoftwareChannels:Int Ptr)
+	Function FMOD_System_GetRecordDriver:Int(handle:Byte Ptr, driver:Int Ptr)
+	Function FMOD_System_GetRecordDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, minFrequency:Int Ptr, maxFrequency:Int Ptr)
+	Function FMOD_System_GetRecordNumDrivers:Int(handle:Byte Ptr, numDrivers:Int Ptr)
+	Function FMOD_System_GetRecordPosition:Int(handle:Byte Ptr, position:Int Ptr)
 
 
 	Function FMOD_Sound_SetMode:Int(handle:Byte Ptr, mode:Int)
@@ -165,6 +176,14 @@ Extern
 	Function FMOD_SoundGroup_SetVolume:Int(handle:Byte Ptr, volume:Float)
 	Function FMOD_SoundGroup_Stop:Int(handle:Byte Ptr)
 
+	Function FMOD_Reverb_GetActive:Int(handle:Byte Ptr, active:Int Ptr)
+	Function FMOD_Reverb_SetActive:Int(handle:Byte Ptr, active:Int)
+	Function FMOD_Reverb_Release:Int(handle:Byte Ptr)
+	Function FMOD_Reverb_Get3DAttributes:Int(handle:Byte Ptr, position:Byte Ptr, minDistance:Float Ptr, maxDistance:Float Ptr)
+	Function FMOD_Reverb_Set3DAttributes:Int(handle:Byte Ptr, position:Byte Ptr, minDistance:Float, maxDistance:Float)
+	Function FMOD_Reverb_GetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+	Function FMOD_Reverb_SetProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+
 End Extern
 
 Extern
@@ -190,6 +209,180 @@ Extern
 		Field z:Float
 	End Type
 
+	Rem
+	bbdoc: Structure defining a reverb environment.
+	End Rem
+	Type TFMODReverbProperties
+		Rem
+		bbdoc: Instance
+		about: 0 , 3 , 0 , Environment Instance.
+		Simultaneous HW reverbs are possible on some platforms.
+		<p>
+		(SUPPORTED:EAX4/SFX(3 instances)/GC and Wii (2 instances)) 
+		</p>
+		End Rem
+		Field Instance:Int
+		Rem
+		bbdoc: Environment
+		about: -1 , 25 , -1 , sets all listener properties. -1 = OFF.
+		<p>
+		(SUPPORTED:EAX/PS2) 
+		</p>
+		End Rem
+		Field Environment:Int
+		Rem
+		bbdoc: EnvSize
+		about: 1.0 , 100.0 , 7.5 , environment size in meters
+		<p>
+		(SUPPORTED:EAX) 
+		</p>
+		End Rem
+		Field EnvSize:Float
+		Rem
+		bbdoc: EnvDiffusion
+		about: 0.0 , 1.0 , 1.0 , environment diffusion
+		<p>
+		(SUPPORTED:EAX/Xbox1/GC)
+		</p>
+		End Rem
+		Field EnvDiffusion:Float
+		Rem
+		bbdoc: Room
+		about: 
+		End Rem
+		Field Room:Int
+		Rem
+		bbdoc: RoomHF
+		about: 
+		End Rem
+		Field RoomHF:Int
+		Rem
+		bbdoc: RoomLF
+		about: 
+		End Rem
+		Field RoomLF:Int
+		Rem
+		bbdoc: DecayTime
+		about: 
+		End Rem
+		Field DecayTime:Float
+		Rem
+		bbdoc: DecayHFRatio
+		about: 
+		End Rem
+		Field DecayHFRatio:Float
+		Rem
+		bbdoc: DecayLFRatio
+		about: 
+		End Rem
+		Field DecayLFRatio:Float
+		Rem
+		bbdoc: Reflections
+		about: 
+		End Rem
+		Field Reflections:Int
+		Rem
+		bbdoc: ReflectionsDelay
+		about: 
+		End Rem
+		Field ReflectionsDelay:Float
+		Rem
+		bbdoc: ReflectionsPan1
+		about: 
+		End Rem
+		Field ReflectionsPan1:Float
+		Rem
+		bbdoc: ReflectionsPan2
+		about: 
+		End Rem
+		Field ReflectionsPan2:Float
+		Rem
+		bbdoc: ReflectionsPan3
+		about: 
+		End Rem
+		Field ReflectionsPan3:Float
+		Rem
+		bbdoc: Reverb
+		about: 
+		End Rem
+		Field Reverb:Int
+		Rem
+		bbdoc: ReverbDelay
+		about: 
+		End Rem
+		Field ReverbDelay:Float
+		Rem
+		bbdoc: ReverbPan1
+		about: 
+		End Rem
+		Field ReverbPan1:Float
+		Rem
+		bbdoc: ReverbPan2
+		about: 
+		End Rem
+		Field ReverbPan2:Float
+		Rem
+		bbdoc: ReverbPan3
+		about: 
+		End Rem
+		Field ReverbPan3:Float
+		Rem
+		bbdoc: EchoTime
+		about: 
+		End Rem
+		Field EchoTime:Float
+		Rem
+		bbdoc: EchoDepth
+		about: 
+		End Rem
+		Field EchoDepth:Float
+		Rem
+		bbdoc: ModulationTime
+		about: 
+		End Rem
+		Field ModulationTime:Float
+		Rem
+		bbdoc: ModulationDepth
+		about: 
+		End Rem
+		Field ModulationDepth:Float
+		Rem
+		bbdoc: AirAbsorptionHF
+		about: 
+		End Rem
+		Field AirAbsorptionHF:Float
+		Rem
+		bbdoc: HFReference
+		about: 
+		End Rem
+		Field HFReference:Float
+		Rem
+		bbdoc: LFReference
+		about: 
+		End Rem
+		Field LFReference:Float
+		Rem
+		bbdoc: RoomRolloffFactor
+		about: 
+		End Rem
+		Field RoomRolloffFactor:Float
+		Rem
+		bbdoc: Diffusion
+		about: 
+		End Rem
+		Field Diffusion:Float
+		Rem
+		bbdoc: Density
+		about: 
+		End Rem
+		Field Density:Float
+		Rem
+		bbdoc: Flags
+		about: 
+		End Rem
+		Field Flags:Int
+	End Type
+	
 End Extern
 
 Const FMOD_CHANNEL_FREE:Int = -1      ' For a channel index, FMOD chooses a free voice using the priority system. */
@@ -493,3 +686,19 @@ Const FMOD_SOUND_TYPE_XMA:Int = 22             ' Xbox360 XMA
 Const FMOD_SOUND_TYPE_VAG:Int = 23             ' PlayStation 2 / PlayStation Portable adpcm VAG format.
 Const FMOD_SOUND_TYPE_MAX:Int = 24             ' Maximum number of sound types supported. 
    
+Const FMOD_REVERB_FLAGS_DECAYTIMESCALE:Int = $00000001 ' 'EnvSize' affects reverberation decay time
+Const FMOD_REVERB_FLAGS_REFLECTIONSSCALE:Int = $00000002 ' 'EnvSize' affects reflection level
+Const FMOD_REVERB_FLAGS_REFLECTIONSDELAYSCALE:Int = $00000004 ' 'EnvSize' affects initial reflection delay time
+Const FMOD_REVERB_FLAGS_REVERBSCALE:Int = $00000008 ' 'EnvSize' affects reflections level
+Const FMOD_REVERB_FLAGS_REVERBDELAYSCALE:Int = $00000010 ' 'EnvSize' affects late reverberation delay time
+Const FMOD_REVERB_FLAGS_DECAYHFLIMIT:Int = $00000020 ' AirAbsorptionHF affects DecayHFRatio
+Const FMOD_REVERB_FLAGS_ECHOTIMESCALE:Int = $00000040 ' 'EnvSize' affects echo time
+Const FMOD_REVERB_FLAGS_MODULATIONTIMESCALE:Int = $00000080 ' 'EnvSize' affects modulation time
+Const FMOD_REVERB_FLAGS_CORE0:Int = $00000100 ' PS2 Only - Reverb is applied to CORE0 (hw voices 0-23)
+Const FMOD_REVERB_FLAGS_CORE1:Int = $00000200 ' PS2 Only - Reverb is applied to CORE1 (hw voices 24-47)
+Const FMOD_REVERB_FLAGS_HIGHQUALITYREVERB:Int = $00000400 ' GameCube/Wii. Use high quality reverb
+Const FMOD_REVERB_FLAGS_HIGHQUALITYDPL2REVERB:Int = $00000800 ' GameCube/Wii. Use high quality DPL2 reverb
+
+Const FMOD_REVERB_FLAGS_DEFAULT:Int = FMOD_REVERB_FLAGS_DECAYTIMESCALE | FMOD_REVERB_FLAGS_REFLECTIONSSCALE | ..
+	FMOD_REVERB_FLAGS_REFLECTIONSDELAYSCALE | FMOD_REVERB_FLAGS_REVERBSCALE | FMOD_REVERB_FLAGS_REVERBDELAYSCALE | ..
+	FMOD_REVERB_FLAGS_DECAYHFLIMIT | FMOD_REVERB_FLAGS_CORE0 | FMOD_REVERB_FLAGS_CORE1

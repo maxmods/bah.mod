@@ -21,7 +21,7 @@
 SuperStrict
 
 Rem
-bbdoc: 
+bbdoc: FMOD
 End Rem
 Module BaH.FMOD
 
@@ -102,6 +102,13 @@ Type TFMODSystem
 	End Rem
 	Method Update:Int()
 		Return FMOD_System_Update(systemPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateReverb:TFMODReverb()
+		Return TFMODReverb._create(bmx_FMOD_System_CreateReverb(systemPtr))
 	End Method
 	
 	Rem
@@ -291,6 +298,75 @@ Type TFMODSystem
 	End Rem
 	Method GetVersion:Int(version:Int Var)
 		Return FMOD_System_GetVersion(systemPtr, Varptr version)
+	End Method
+
+	Rem
+	bbdoc:
+	End Rem
+	Method GetSpectrum:Int(spectrumArray:Float[], channelOffset:Int, windowType:Int)
+		Return bmx_FMOD_System_GetSpectrum(systemPtr, spectrumArray, channelOffset, windowType)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetSpeakerMode:Int(speakerMode:Int Var)
+		Return FMOD_System_GetSpeakerMode(systemPtr, Varptr speakerMode)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetStreamBufferSize:Int(fileBufferSize:Int Var, fileBufferSizeType:Int Var)
+		Return FMOD_System_GetStreamBufferSize(systemPtr, Varptr fileBufferSize, Varptr fileBufferSizeType)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetSoftwareFormat:Int(sampleRate:Int Var, format:Int Var, numOutputChannels:Int Var, ..
+			maxInputChannels:Int Var, resampleMethod:Int Var, bits:Int Var)
+		Return FMOD_System_GetSoftwareFormat(systemPtr, Varptr sampleRate, Varptr format, Varptr numOutputChannels, ..
+				Varptr maxInputChannels, Varptr resampleMethod, Varptr bits)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetSoftwareChannels:Int(numSoftwareChannels:Int Var)
+		Return FMOD_System_GetSoftwareChannels(systemPtr, Varptr numSoftwareChannels)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetRecordDriver:Int(driver:Int Var)
+		Return FMOD_System_GetRecordDriver(systemPtr, Varptr driver)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetRecordDriverCaps:Int(id:Int, caps:Int Var, minFrequency:Int Var, maxFrequency:Int Var)
+		Return FMOD_System_GetRecordDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency)
+	End Method
+	
+	Method GetRecordDriverInfo:String(id:Int, guid:Int Var)
+		
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetRecordNumDrivers:Int(numDrivers:Int Var)
+		Return FMOD_System_GetRecordNumDrivers(systemPtr, Varptr numDrivers)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method GetRecordPosition:Int(position:Int Var)
+		Return FMOD_System_GetRecordPosition(systemPtr, Varptr position)
 	End Method
 
 	Rem
@@ -511,7 +587,7 @@ Type TFMODSound
 	End Rem
 	Method GetName:String()
 		Local vstr:Byte[] = New Byte[256]
-		Local ret:Int = FMOD_Sound_GetName(soundPtr, Varptr vstr, 256)
+		Local ret:Int = FMOD_Sound_GetName(soundPtr, vstr, 256)
 		Return String.FromCString(vstr)
 	End Method
 	
@@ -628,6 +704,13 @@ Type TFMODSound
 	End Rem
 	Method SetSubSoundSentence:Int(soundList:Int[])
 		Return bmx_FMOD_Sound_SetSubSoundSentence(soundPtr, soundList)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetSubSound:TFMODSound(index:Int)
+		Return TFMODSound._create(bmx_FMOD_Sound_GetSubSound(soundPtr, index))
 	End Method
 	
 	Rem
@@ -1089,7 +1172,7 @@ Type TFMODDsp
 	End Rem
 	Method GetParameter:String(index:Int, value:Float Var)
 		Local vstr:Byte[] = New Byte[16]
-		Local ret:Int = FMOD_DSP_GetParameter(dspPtr, index, Varptr value, Varptr vstr, 16)
+		Local ret:Int = FMOD_DSP_GetParameter(dspPtr, index, Varptr value, vstr, 16)
 		Return String.FromCString(vstr)
 	End Method
 
@@ -1098,7 +1181,7 @@ Type TFMODDsp
 	End Rem
 	Method GetInfo:String(version:Int Var, channels:Int Var)
 		Local vstr:Byte[] = New Byte[32]
-		Local ret:Int = FMOD_DSP_GetInfo(dspPtr, Varptr vstr, Varptr version, Varptr channels, Null, Null)
+		Local ret:Int = FMOD_DSP_GetInfo(dspPtr, vstr, Varptr version, Varptr channels, Null, Null)
 		Return String.FromCString(vstr)
 	End Method
 
@@ -1166,7 +1249,7 @@ Type TFMODSoundGroup
 	End Rem
 	Method GetName:String()
 		Local vstr:Byte[] = New Byte[256]
-		Local ret:Int = FMOD_SoundGroup_GetName(soundGroupPtr, Varptr vstr, 256)
+		Local ret:Int = FMOD_SoundGroup_GetName(soundGroupPtr, vstr, 256)
 		Return String.FromCString(vstr)
 	End Method
 	
@@ -1239,5 +1322,91 @@ Type TFMODSoundGroup
 	Method Stop:Int()
 		Return FMOD_SoundGroup_Stop(soundGroupPtr)
 	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TFMODReverb
+
+	Field reverbPtr:Byte Ptr
+	
+	Function _create:TFMODReverb(reverbPtr:Byte Ptr)
+		If reverbPtr Then
+			Local this:TFMODReverb = New TFMODReverb
+			this.reverbPtr = reverbPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetActive:Int(active:Int Var)
+		Return FMOD_Reverb_GetActive(reverbPtr, Varptr active)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetActive:Int(active:Int)
+		Return FMOD_Reverb_SetActive(reverbPtr, active)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ReverbRelease:Int()
+		If reverbPtr Then
+			Return FMOD_Reverb_Release(reverbPtr)
+			reverbPtr = Null
+		End If
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Get3DAttributes:Int(position:TFMODVector, minDistance:Float Var, maxDistance:Float Var)
+		Return FMOD_Reverb_Get3DAttributes(reverbPtr, Varptr position, Varptr minDistance, Varptr maxDistance)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Set3DAttributes:Int(position:TFMODVector, minDistance:Float, maxDistance:Float)
+		Return FMOD_Reverb_Set3DAttributes(reverbPtr, Varptr position, minDistance, maxDistance)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetProperties:Int(properties:TFMODReverbProperties)
+		Return FMOD_Reverb_GetProperties(reverbPtr, Varptr properties)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetProperties:Int(properties:TFMODReverbProperties)
+		Return FMOD_Reverb_SetProperties(reverbPtr, Varptr properties)
+	End Method
+	
+End Type
+
+Type TFMODChannelGroup
+
+	Field channelGroupPtr:Byte Ptr
+	
+	Function _create:TFMODChannelGroup(channelGroupPtr:Byte Ptr)
+		If channelGroupPtr Then
+			Local this:TFMODChannelGroup = New TFMODChannelGroup
+			this.channelGroupPtr = channelGroupPtr
+			Return this
+		End If
+	End Function
+	
+
+	
 
 End Type
