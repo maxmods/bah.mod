@@ -1,0 +1,209 @@
+<html>
+<head>
+<title>libxslt Tutorial</title>
+<link rel=stylesheet Type=text/css href='../../../../doc/bmxstyle.css'>
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<h1 class="title">
+<a href="http://xmlsoft.org/XSLT"><img src="libxslt-logo.gif" width="180" height="68" border="0" align="right"/></a>
+<a name="id2702654"></a>libxslt Tutorial</h1>
+<p class="releaseinfo">
+      This tutorial is based on the Libxslt Tutorial by John Fleck ( ©2001 ), converted for BlitzMax by Bruce Henderson
+</p>
+
+<p><b>Table of Contents</b></p>
+<ul>
+  <li><a href="#introduction">Introduction</a></li>
+
+  <li><a href="#functions">Primary Functions</a></li>
+<ul>
+<li> <a href="#preparing">Preparing to Parse</a></li>
+<li><a href="#parsethestylesheet">Parse the Stylesheet</a></li>
+<li> <a href="#parseinputfile">Parse the Input File</a></li>
+<li> <a href="#applyingstylesheet">Applying the Stylesheet</a></li>
+<li> <a href="#saveresult">Saving the result</a></li>
+<li> <a href="#cleanup">Cleanup</a></li>
+</ul>
+<li>A. <a href="#thecode">The Code</a>
+</li>
+</ul>
+
+<p>
+<a name="id2705766"></a><b>Abstract</b>
+</p>
+<p>A tutorial on building a simple application using the
+      libxslt library to perform
+      XSLT transformations to convert an
+      XML file into HTML.</p>
+
+<h2><a name="introduction"></a>Introduction</h2>
+<p>The Extensible Markup Language (XML) is a World
+    Wide Web Consortium standard for the exchange of structured data in text
+    form. Its popularity stems from its universality. Any computer can
+    read a text file. With the proper tools, any computer can read any other
+    computer's XML files.
+</p>
+<p>One of the most important of those tools is XSLT:
+      Extensible Stylesheet Language Transformations. XSLT
+      is a declarative language that allows you to
+      translate your XML into arbitrary text output
+      using a stylesheet. libxslt provides the
+      functions to perform the transformation.
+</p>
+<p>This tutorial illustrates a simple program that reads an
+      XML file, applies a stylesheet and saves the resulting
+      output.
+</p>
+<p>References:</p>
+<ul>
+<li>
+<a name="id2708005"></a><a href="http://www.w3.org/XML/" target="_top">W3C XML page</a></li>
+
+<li><a name="id2708026"></a><a href="http://www.w3.org/Style/XSL/" target="_top">W3C
+	  XSL page.</a></li>
+<li><a name="id2708047"></a><a href="http://xmlsoft.org/XSLT/" target="_top">libxslt</a></li>
+</ul>
+
+<h2><a name="functions"></a>Primary Functions</h2>
+
+<p><b>Table of Contents</b></p>
+<ul>
+<li><a href="#preparing">Preparing to Parse</a></li>
+<li><a href="#parsethestylesheet">Parse the Stylesheet</a></li>
+<li><a href="#parseinputfile">Parse the Input File</a></li>
+<li><a href="#applyingstylesheet">Applying the Stylesheet</a></li>
+<li><a href="#saveresult">Saving the result</a></li>
+<li><a href="#parameters">Parameters</a></li>
+<li><a href="#cleanup">Cleanup</a></li>
+</ul>
+
+<p>To transform an XML file, you must perform three
+    functions:</p>
+<ol type="1">
+<li><a name="id2708093"></a>parse the input file</li>
+<li><a name="id2708101"></a>parse the stylesheet</li>
+<li><a name="id2708110"></a>apply the stylesheet</li>
+</ol>
+
+<h3 class="title"><a name="preparing"></a>Preparing to Parse</h3>
+<p>Before you can begin parsing input files or stylesheets, there are
+      several steps you need to take to set up entity handling. These steps are
+	not unique to libxslt. Any
+	libxml program that parses
+      XML files would need to take similar steps. 
+</p>
+
+<p>First, you need set up some libxml
+	housekeeping. Pass the integer value <i>1</i> to the
+	<tt><a href="../../libxml.mod/doc/commands.html#xmlSubstituteEntitiesDefault">xmlSubstituteEntitiesDefault</a></tt> function, which tells
+	the libxml parser to substitute entities as
+	it parses your file. (Passing <i>0</i> causes
+	libxml to not perform entity substitution.)</p>
+<p>Second, set <tt><a href="../../libxml.mod/doc/commands.html#xmlLoadExtDtdDefaultValue">xmlLoadExtDtdDefaultValue</a></tt> equal to
+	<i>1</i>. This tells libxml
+	to load external entity subsets. If you do not do this and your
+	input file includes entities through external subsets, you will get
+	errors.</p>
+
+<h3 class="title"><a name="parsethestylesheet"></a>Parse the Stylesheet</h3>
+<p>Parsing the stylesheet takes a single function call, which takes a
+	string variable:
+<pre class="programlisting">
+cur = TxsltStylesheet.parseStylesheetFile(&quot;example_sort.xslt&quot;)
+</pre>
+	The return value
+	is of type <a href="commands.html#TxsltStylesheet">TxsltStylesheet</a>, a Type that contains the stylesheet tree and other information about the
+	stylesheet. It can be manipulated directly, but for this example you
+	will not need to.
+      </p>
+
+<h3 class="title"><a name="parseinputfile"></a>Parse the Input File</h3>
+<p>Parsing the input file takes a single function call:
+<pre class="programlisting">
+doc = TxmlDoc.parseFile(&quot;example_sort.xml&quot;)</pre>
+	It returns a <a href="../../libxml.mod/doc/commands.html#TxmlDoc">TxmlDoc</a>, an xml type that
+	contains the document tree. It can be manipulated directly, but for this
+	example you will not need to.
+      </p>
+
+
+      <h3 class="title"><a name="applyingstylesheet"></a>Applying the Stylesheet</h3>
+<p>Now that you have trees representing the document and the stylesheet
+	in memory, apply the stylesheet to the document. The
+	method that does this is <tt><a href="commands.html#applyStylesheet">applyStylesheet</a></tt>:
+<pre class="programlisting">
+res = cur.applyStylesheet(doc)
+</pre>
+	The method takes a 
+	<a href="../../libxml.mod/doc/commands.html#TxmlDoc">TxmlDoc</a>, the value returned by the previous function.
+	<h3 class="title"><a name="saveresult"></a>Saving the result</h3>
+<p>Libxslt includes methods for
+	saving the resulting output. For this example,
+      <tt><a href="commands.html#saveResultToFilename">saveResultToFilename</a></tt> is used, and the results are
+      saved to the file &quot;example_sort.html&quot;:
+<pre class="programlisting">
+cur.saveResultToFilename(&quot;example_sort.html&quot;, res)</pre>
+
+<h3 class="title"><a name="id2708587"></a>Note</h3>
+<p>Libxml also contains output
+	    functions, such as <tt><a href="../../libxml.mod/doc/commands.html#saveFile">saveFile</a></tt>, which can be
+	    used here. However, output-related information contained in the
+	    stylesheet, such as a declaration of the encoding to be used, will
+	    be lost if one of the libxslt save
+	    functions is not used.</p>
+
+
+<h3 class="title"><a name="cleanup"></a>Cleanup</h3>
+<p>After you are finished, libxslt and
+	libxml provide functions for deallocating
+      memory.
+</p>
+      
+<pre class="programlisting">
+<a name="cleanupstylesheet"></a><img src="images/1.png" alt="1" border="0">cur.free()
+<a name="cleanupresults"></a><img src="images/2.png" alt="2" border="0">res.free()
+<a name="cleanupdoc"></a><img src="images/3.png" alt="3" border="0">doc.free()
+
+<a name="cleanupglobals"></a><img src="images/4.png" alt="4" border="0">xsltCleanupGlobals()
+<a name="cleanupparser"></a><img src="images/5.png" alt="5" border="0">xmlCleanupParse()
+</pre>
+	
+<p><a href="#cleanupstylesheet"><img src="images/1.png" alt="1" border="0"></a> Free the memory used by your stylesheet.</p>
+<p><a href="#cleanupresults"><img src="images/2.png" alt="2" border="0"></a> Free the memory used by the results document.</p>
+<p><a href="#cleanupdoc"><img src="images/3.png" alt="3" border="0"></a> Free the memory used by your original document.</p>
+<p><a href="#cleanupglobals"><img src="images/4.png" alt="4" border="0"></a> Free memory used by libxslt global variables</p>
+<p><a href="#cleanupparser"><img src="images/5.png" alt="5" border="0"></a> Free memory used by the XML parser</p>
+
+<p>&nbsp;</p>
+
+<h2 class="title" style="clear: both"><a name="thecode"></a>A. The Code</h2>
+<p>You can open the source <a href="libxslt_tutorial.bmx">here</a>.</p>
+<pre class="programlisting">
+SuperStrict
+
+Framework BaH.libxslt
+Import BaH.libxml
+
+Local cur:TxsltStylesheet
+Local doc:TxmlDoc
+Local res:TxmlDoc
+
+xmlSubstituteEntitiesDefault(1)
+xmlLoadExtDtdDefaultValue = 1
+
+cur = TxsltStylesheet.parseStylesheetFile(&quot;example_sort.xslt&quot;)
+
+doc = TxmlDoc.parseFile(&quot;example_sort.xml&quot;)
+res = cur.applyStylesheet(doc)
+
+cur.saveResultToFilename(&quot;example_sort.html&quot;, res)
+
+cur.free()
+res.free()
+doc.free()
+
+xsltCleanupGlobals()
+xmlCleanupParser()
+</pre>
+</body>
+</html>

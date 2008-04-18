@@ -1,0 +1,33 @@
+<a href="http://xmlsoft.org/XSLT"><img src="libxslt-logo.gif" align="right" border="0"/></a>
+<p>Libxslt is the XSLT processor developed for the Gnome project.<br>
+This is the BlitzMax implementation of the libxslt library.</p>
+
+<p>XSLT itself is a an XML language to define transformation for XML. Libxslt is based on libxml2
+the XML library developed for the Gnome project.<br>
+For more information on XSLT, visit the <a href="http://www.w3.org/TR/xslt">XSLT website</a>.</p>
+<p><b><i>You need the BaH.Libxml module in order to build applications which use Libxslt.</i></b></p>
+
+<p>Here are some key points about libxslt:</p>
+<ul>
+<li>Libxslt is based on libxml for XML parsing, tree manipulation and XPath support</li>
+<li>This library is released under the MIT Licence</li>
+<li>Though not designed primarily with performances in mind, libxslt seems to be a relatively fast processor.</li>
+</ul>
+<h2>Basic Use</h2>
+<p>
+Doing an XSLT transformation can be done in a few simple steps:
+<ol>
+<li>configure the parser for XSLT:<br><br>
+      <a href="../../libxml.mod/doc/commands.html#xmlSubstituteEntitiesDefault">xmlSubstituteEntitiesDefault</a>();<br>
+      <a href="../../libxml.mod/doc/commands.html#xmlLoadExtDtdDefaultValue">xmlLoadExtDtdDefaultValue</a> = 1<br><br>
+</li>
+<li>parse the stylesheet with TxsltStylesheet.<a href="#parseStylesheetFile">parseStylesheetFile</a>()</li>
+<li>parse the document with TxmlDoc.<a href="../../libxml.mod/doc/commands.html#parseFile">parseFile</a>()</li>
+<li>apply the stylesheet using <a href="#applyStylesheet">applyStylesheet</a>()</li>
+<li>save the result using <a href="#saveResultToFilename">saveResultToFilename</a>() if needed set <a href="../../libxml.mod/doc/commands.html#xmlIndentTreeOutput">xmlIndentTreeOutput</a> to 1</li>
+</ol>
+</p>
+<h2>Tutorial</h2>
+<p>See the <a href="tutorial.html">Libxslt Tutorial</a> for an introduction to using the libxslt module.<br>
+</p>
+
