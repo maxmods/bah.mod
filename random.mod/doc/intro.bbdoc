@@ -1,0 +1,10 @@
+<p>
+<a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/">SFMT</a> is a new variant of Mersenne Twister, a pseudorandom number generator.<br>
+This is a cross-platform BlitzMax implementation of SFMT.
+</p>
+<p>Apart from <a href="#Rand64">Rand64</a>, the module function names are the same as the <a href="../../../brl.mod/random.mod/doc/commands.html">BRL.Random</a> functions, which should allow for this module to be used as a drop-in replacement. (It's up to the developer to sort out Framework/Import issues)
+</p>
+<p>The SFMT module is also generally faster than the equivalent BRL.Random functions.</p>
+<h3>Usage</h3>
+<p>Before using any of the number generation functions, you need to initialize the internal 'state' array by first calling <a href="#SeedRnd">SeedRnd</a>. Also, if you want to mix use of <a href="#Rand64">Rand64</a> and <a href="#Rand">Rand</a>, you will need to re-initialize the state array before the call to the function.
+</p>
