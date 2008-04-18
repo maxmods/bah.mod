@@ -1,0 +1,906 @@
+<style><!--
+tt { color:#d24502; }
+.ex { color:#d24502; }
+//--></style>
+<p>
+<a href="http://www.clearsilver.net">ClearSilver</a> is a fast, powerful, and language-neutral template system. It is designed to make it easy to create template driven static or dynamic websites.<br>
+This module implements the ClearSilver API in an easy-to-use BlitzMax style.
+</p>
+<p>Features of ClearSilver :</p>
+<ul>
+<li>Fast, simple, language-neutral template system.</li>
+<li>Powerful template language supports variable substitution, template includes, conditionals, loops, macros, recursive macros, local variables.</li>
+<li>Full CGI-handling kit with support for CGI/1.1, RFC 2388, automatic gzip compression, and other CGI standards.</li>
+<li>"Pipelined" rendering model stores rendering data in an intermediate static dataset and makes debugging easier.</li>
+<li>Separate your web application from its appearance.</li>
+<li>Allow non-programmers access to edit parts of the site appearance.</li>
+</ul>
+<h2>Templating Guide</h2>
+<p>
+The following guide is based on the documentation available at <a href="http://www.clearsilver.net/docs/">http://www.clearsilver.net/docs/</a>.
+</p>
+<h3>The dataset and HDF Files </h3>
+<p> It is often convenient to load elements of a dataset from
+disk. Normally data is loaded from a ClearSilver file format called
+HDF, although it could easily be loaded from XML or another format.
+HDF stands for Hierarchical Data Format (yes, another HDF). It
+supports two different syntax for representing the dataset hierarchy
+which can be intermixed arbitrarily. The first is a simple dotted path
+scheme:
+</p><p>
+</p><pre>Page.Name = My Index
+Page.URL = /myindex.html
+Page.Menu.0 = Home
+Page.Menu.1 = Preferences
+Page.Menu.2 = Help
+Page.Menu.3 = Support
+</pre>
+The second is a nested elements scheme:
+<pre>Page {
+  Name = My Index
+  URL = /myindex.html
+  Menu {
+    0 = Home
+    1 = Preferences
+    2 = Help
+    3 = Support
+  }
+}
+</pre>
+The hierarchy within an HDF file can be arbitrarily nested and
+contain any data elements desired. For instance, to extend the format
+of the Menu above, we could add:
+<pre>Page {
+  Menu {
+    0 {
+      Name = Home
+      URL = /
+    }
+    1 {
+      Name = Preferences
+      URL = /prefs
+    } 
+    2 {
+      Name = Help
+      URL = /help.html
+    }
+    3 {
+      Name = Support
+      URL = /feedback/
+    }
+  }
+}
+</pre>
+Because APIs for HDF support reading and writing files in these
+formats, HDF can serve as a great configuration or persistence
+language. However, its primary purpose here is to load static
+elements into the dataset for use in a ClearSilver template.
+<p>
+When a ClearSilver template is rendering, it can reference specific
+variables in the dataset or iterate over all of the elements at a
+specific point in the dataset hierarchy. For example, a CS template
+which was rendering the HDF dataset above might iterate over
+<tt>Page.Menu</tt>, rendering each menu item's <tt>.Name</tt> and
+<tt>.URL</tt> elements.
+</p><p>
+There are two more important parts of the HDF file syntax.
+</p><ol>
+ <li>A name can copy the contents of another name by using a colon
+  instead of an equals sign. For example,
+  <pre>Page.Name : Page.Menu.0.Name</pre>
+  This means that <tt>Page.Name</tt> is the same as <tt>Page.Menu.0.Name</tt>.
+  Note that <tt>Page.Menu.0.Name</tt> has to be defined before you can
+  copy it into <tt>Page.Name</tt>.
+ </li><li>A name can be set to a multi-line string value. This uses a
+  syntax similar to standard UNIX shell/Perl syntax. For example:
+<pre>Page.Name &lt;&lt; EOM
+This is my multi-line page name.
+Isn't it spiffy?
+EOM
+</pre>
+</li>
+</ol>
+<h3>ClearSilver templates</a></h3>
+A ClearSilver template file, usually denoted by .cst or .cs,
+consists of text with embedded ClearSilver templating commands. The
+syntax for the embedded commands is similar to many other HTML
+macro/template systems, which use <tt class="ex">&lt;? ?&gt;</tt> tags. A
+ClearSilver command consists of an opening delimiter, <tt class="ex">&lt;?cs</tt> , a
+command designation, and then the command parameters, and the closing
+delimiter, <tt class="ex">?&gt;</tt>.
+<p>
+The template commands are:<br>
+&nbsp;&nbsp; <b>Substitution:</b>
+  <a href="#var" class="ex">var</a>,
+  <a class="ex" href="#evar">evar</a>,
+  <a class="ex" href="#lvar">lvar</a>,
+  <a class="ex" href="#include">include</a>,
+  <a class="ex" href="#linclude">linclude</a>,
+  <a class="ex" href="#set">set</a>,
+  <a class="ex" href="#namex">name</a><br>
+&nbsp;&nbsp; <b>Flow Control:</b>
+  <a class="ex" href="#if">if</a>,
+  <a class="ex" href="#if">else</a>,
+  <a class="ex" href="#if">elif</a>,
+  <a class="ex" href="#alt">alt</a><br>
+&nbsp;&nbsp; <b>Iteration:</b>
+  <a class="ex" href="#each">each</a>,
+  <a class="ex" href="#loop">loop</a>,
+  <a class="ex" href="#with">with</a><br>
+&nbsp;&nbsp; <b>Macros:</b>
+  <a class="ex" href="http://www.clearsilver.net/docs/man_macros.hdf#def">def</a>,
+  <a class="ex" href="http://www.clearsilver.net/docs/man_macros.hdf#call">call</a><br>
+</p><p>
+All Flow Control, Iteration, and the <tt class="ex">def</tt> command have a corresponding ending
+command, just like HTML. So <tt class="ex">if</tt> has a corresponding <tt class="ex">/if</tt>.
+</p><p>
+Most commands take one or more <a href="#expressions">expresssions</a> as arguments.
+</p><p>
+In addition, Clearsilver supports comments using the # (hash) character,
+ie:
+<tt class="ex">&lt;?cs # this is a comment ?&gt;</tt>
+</p><p><b>
+<h3><a name="subst"></a>Substitution</h3></b></p>
+<p>
+<a name="var"></a>
+Simple variable substitution is done with:
+<tt class="ex">&lt;?cs var:Page.Name ?&gt;</tt>
+Ie, the command is <tt class="ex">var</tt> and the parameter is the name of the var, ie
+<tt class="ex">Page.Name</tt>.
+</p><p>
+<a name="evar"></a>
+<tt class="ex">evar</tt> is like <tt class="ex">var</tt>, except that the value of the
+dataset variable is also parsed for ClearSilver commands. This
+<tt class="ex">evar</tt> parsing happens during the load and parse of the CS
+template. As a result, syntax errors will be reported before display
+begins, and <tt class="ex">evar</tt> can not be used to display elements within
+an <tt class="ex">each</tt> loop.
+</p><p>
+<a name="lvar"></a>
+<tt class="ex">lvar</tt> is like <tt class="ex">evar</tt>, except that the
+value of the dataset variable is parsed at render time, not parse time.
+Syntax errors will be reported at render time. If you are not buffering
+your output, this will cause a partial page render. The CGI Kit always
+buffers its output.
+</p><p>
+<a name="namex"></a>
+<tt class="ex">name</tt> will substitute the name of the lowest part of the
+dataset, ie <tt class="ex">&lt;?cs name:Page.Name ?&gt;</tt> will result in
+<tt class="ex">Name</tt>. This is most useful during iteration or macro
+expansion, where the true name of the aliased variable could have
+specific meaning. (pointers to later examples). There is an equivalent
+built-in function which does the same thing, such that
+<tt class="ex">&lt;?cs name:Page.Name ?&gt;</tt> is equivalent to
+<tt class="ex">&lt;?cs var:name(Page.Name) ?&gt;</tt>. Note also that
+when used on a local variable, this will return the name of the variable
+the local variable is mapped to.
+</p><p>
+<a name="include"></a>
+<tt class="ex">include</tt> will include (and parse) another CS file. The
+parameter to include can be either a string or a variable. A string
+is denoted by double quotes, ie: <tt class="ex">&lt;?cs include:"header.cs"
+?&gt;</tt> The file is searched for in the HDF search
+path. <i>Note</i>: because this include happens at load/parse time,
+you can not use a local variable which is part of an <tt class="ex">each</tt>
+expression. This also means that using flow control (if/else) will have
+no affect on whether or not the file is loaded and parsed, it will
+always be loaded and parsed.
+</p><p>
+<a name="linclude"></a>
+<tt class="ex">linclude</tt> is similar to <tt class="ex">include</tt>, but the
+loading/parsing occurs at render time. local variables can be used to
+specify the filename, and conditional variables can be used to prevent
+loading of the file. Local variables are not passed to the linclude
+file, however. Like <tt class="ex">lvar</tt>, errors will be reported at
+render time.
+</p><p>
+<a name="set"></a>
+<tt class="ex">set</tt> will set a value in the dataset. The syntax for a
+set is fairly complicated. In general, the <tt class="ex">set</tt> command
+should be used only where necessary: most of the dataset should be
+specified either in static HDF files, or in the CGI via the HDF api.
+Typically, the set command is used for formatting, ie for splitting a
+set of elements into a number of columns, or for determining whether
+there were any matches during an iteration. (pointers to later
+examples)
+</p><p>
+<a name="set"></a>A <tt class="ex">set</tt> command consists of the HDF value you are setting, and an
+expression that is evaluated to determine the value. For example:
+<code>&lt;?cs set:Page.Title = "The Title is " + Page.Menu.0.Name ?&gt;</code>
+</p><p>
+</p><p><a name="set"><b></b></a></p>
+<h3><a name="flow"></a><b>Flow Control</b></h3>
+<p></p>
+<p>
+<a name="if"></a>
+ClearSilver provides <tt class="ex">if/elif/else</tt> commands for flow control.
+The argument to if and elif is an expression, evaluated as a boolean.
+So, the following if command always evaluates to true:
+</p><pre>&lt;?cs if:#1 ?&gt;
+&lt;?cs /if ?&gt;
+</pre>
+<a name="if"></a>Note the ending <code>/if</code> command as well.
+<p>
+<a name="alt"></a>
+<tt class="ex">alt</tt> is short hand for an <tt class="ex">if var
+else</tt>. If the argument to alt is true, it is displayed, otherwise
+everthing to the closing <tt class="ex">/alt</tt> is displayed. These two
+are identical:
+</p><pre>  &lt;?cs alt:my_text ?&gt;There is nothing to see here&lt;?cs /alt ?&gt;
+  &lt;?cs if:my_text ?&gt;&lt;?cs var:my_text&lt;?cs else ?&gt;There is nothing to see here&lt;?cs /if ?&gt;
+</pre>
+<p><a name="alt"><b></b></a></p>
+<h3><a name="iteration"></a><b>Iteration</b></h3>
+<p></p>
+<p>
+As part of the "safety" of running rendering a CS macro, the only
+iteration supported is guaranteed to be finite. The iteration command
+is each. each iterates over all of the children of a node of the
+dataset. For example, consider the following dataset:
+</p><pre>Page {
+  Access = Public
+  Content = myword.cs
+  Menu {
+    0 {
+      Name = Home
+      URL = /
+    }
+    1 {
+      Name = Preferences
+      URL = /prefs
+    } 
+    2 {
+      Name = Help
+      URL = /help.html
+    }
+    3 {
+      Name = Support
+      URL = /feedback/
+    }
+  }
+}
+</pre>
+Using <tt class="ex">each</tt> on <tt class="ex">Page</tt> will result in iterating through
+<tt class="ex">Page.Access</tt>, <tt class="ex">Page.Content</tt>, and <tt class="ex">Page.Menu</tt>.
+Using <tt class="ex">each</tt> on <tt class="ex">Page.Menu</tt> will iterate through
+<tt class="ex">Page.Menu.0</tt>, <tt class="ex">Page.Menu.1</tt>, <tt class="ex">Page.Menu.2</tt> and
+<tt class="ex">Page.Menu.3</tt>. For instance, to show the menu, you might do
+the following:
+<pre>&lt;?cs each:item = Page.Menu ?&gt;
+  &lt;?cs name:item ?&gt; - &lt;a href="&lt;?cs var:item.URL ?&gt;"&gt;
+        &lt;?cs var:item.Name ?&gt;&lt;/a&gt;&lt;br&gt;
+&lt;?cs /each ?&gt;
+</pre>
+This results in the following HTML snippet (with some additional whitespace):
+<pre>  0 - &lt;a href="/"&gt;Home&lt;/a&gt;&lt;br&gt;
+  1 - &lt;a href="/prefs"&gt;Preferences&lt;/a&gt;&lt;br&gt;
+  2 - &lt;a href="/help.html"&gt;Help&lt;/a&gt;&lt;br&gt;
+  3 - &lt;a href="/feedback/"&gt;Support&lt;/a&gt;&lt;br&gt;
+</pre>
+Note that the local variable, in this case item, acts the same as if
+you were actually using <tt class="ex">Page.Menu.0</tt>, ie you can access the
+sub-elements of the dataset from there easily.
+<p>
+Note also the use of the <tt class="ex">name</tt> command to access the name of
+the child that the local variable is pointing to.
+</p><p>
+<a name="with"></a><tt class="ex">with</tt> is similar to the Pascal
+<i>with</i> operand. It is similar to <tt class="ex">each</tt>, except
+instead of iterating over the variables, it allows access to that
+variable by a different variable name. Conceptually, you can also think
+of this as a scoped variable pointer. This is usually most convenient
+when you have longer variable names consisting of a complex syntax, for
+instance:
+</p><pre>&lt;?cs with:item = Page.Menu[Query.foo - #1] ?&gt;
+  &lt;?cs name:item ?&gt; - &lt;a href="&lt;?cs var:item.URL ?&gt;"&gt;
+        &lt;?cs var:item.Name ?&gt;&lt;/a&gt;&lt;br&gt;
+&lt;?cs /with ?&gt;
+</pre>
+<a name="with"></a>Which results in (if Query.foo == 3) (with additional whitespace):
+<pre>  2 - &lt;a href="/help.html"&gt;Help&lt;/a&gt;&lt;br&gt;
+</pre>
+<p>
+<a name="loop"></a><tt class="ex">loop</tt> is used to create a numeric loop.
+The arguments to <tt class="ex">loop</tt> are the starting number, the
+ending number, and the step. ClearSilver will always evaluate the loop
+expression to guarantee that it will finish. For instance, if you use a
+negative step value, but the ending number is greater than the starting
+number, ClearSilver will automatically switch the starting and ending
+numbers. The expressions are only evaluated once, so changing the
+variables in the loop will have no affect. Some quick examples:
+</p><pre>&lt;?cs loop:x = #1, #5, #2 ?&gt;&lt;?cs var:x ?&gt;, &lt;?cs /loop ?&gt;
+1, 3, 5
+
+&lt;?cs loop:x = #1, #205, #2 ?&gt;&lt;?cs var:x ?&gt;, &lt;?cs /loop ?&gt;
+1, 3, 5... 205
+
+backwards
+&lt;?cs loop:x = #205, #1, "-2" ?&gt;&lt;?cs var:x ?&gt;, &lt;?cs /loop ?&gt;
+205, 203, 201, ... 1
+</pre>
+
+<h3><a name="expressions"></a>Template Expressions</h3>
+Clearsilver has a generalized expression syntax which can be used in
+place of any paramater.
+<p>
+Some example expressions:
+</p><pre>  Page.Title
+  Page["Title"]
+  Page[varname]
+  Page["Title"] == "Home"
+  (#Page.Count &gt; #1) || (?Page.Next)
+</pre>
+ClearSilver expressions have four different argument types. They are:
+<ul>
+  <li> A number. A number is any string that can be converted to a
+  number, or you can force a string to be a number using the #
+  operator.<br>
+  Examples include: <tt class="ex">103, 0x1a, -23, +14, #83</tt>
+  </li><li> A String. A string is any set of characters within either single
+  quotes or double quotes. There is currently no escaping mechanism.
+  </li><li> A Variable. A variable is either a reference to a local variable
+  (as created by <tt class="ex">call/def, each, with, loop</tt>) or a
+  reference to the global HDF dataset. If your variable name is a
+  number, you must use the $ operator to force variable evaluation.
+  </li><li> Numeric Variable. This is a variable value converted to a number.
+</li></ul>
+<p>
+ClearSilver expressions have four different evaluation types: variable, string,
+numeric and boolean. Which evaluation is used depends on the types
+involved and the operator. Operators are either boolean, numeric, or
+numeric/string. For numeric/string operators, if either argument is a
+number, then they are evaluated as a number. Otherwise, the string
+version of the operator is used. The only really different operator is
++, which is numeric addition and string concatenation.
+</p><p>
+Evaluation as Boolean:
+</p><ul>
+  <li> Number: 0 is false, everything else is true
+  </li><li> String: Empty string is false. String "0" is false. Everything
+  else is true.
+  </li><li> Variable: Non-existing variable is false. Existing variable is
+  treated the same as a string.
+  </li><li> Numeric Variable: Non-existing is 0. Doesn't convert to a number
+  is treated as a 0. Otherwise, converted to a number. Evaluated same
+  as a Number.
+</li></ul>
+Evaluation as a Number:
+<ul>
+  <li> Number: as a number
+  </li><li> String: Converted to a number. If its not a valid number, than
+  it will be converted to 0.
+  </li><li> Variable: If it doesn't exist, its 0. Otherwise, treated the
+  same as a string.
+  </li><li> Numeric Variable: Same as Variable.
+</li></ul>
+Evaluation as a String:
+<ul>
+  <li> Number: a number in base 10
+  </li><li> String: As String
+  </li><li> Variable: Non-existing variable is the empty string.
+  </li><li> Numeric Variable: Converted to number, than converted to string
+  in base 10.
+</li></ul>
+Evaluation as a Variable is used when you expect the operator to be a
+variable. Using a variable operator on a non-variable argument is
+undefined. In some instances, it will raise an error, in some instances
+ClearSilver will treat a string as a variable name, in some cases it
+will just ignore it. This behavior is subject to change at any time,
+don't rely on the current behavior. The dot and bracket operators are
+used to refer to lower parts of the HDF dataset.
+<p>
+The list of operators, from low to high precedence:
+<table style="border-collapse: collapse;" align="center">
+  <tbody><tr style="border-bottom: 3px double black;" align="center">
+  <td>Operator</td> <td>Operation</td> <td>Evaluation Type</td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>,</td> <td>C Comma Operator </td> <td> n/a </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>||</td> <td>Boolean OR</td> <td> Boolean </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>&amp;&amp;</td> <td>Boolean AND</td> <td> Boolean </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>==</td><td> Equal </td> <td> String/Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>!=</td><td> Not Equal </td> <td> String/Numeric </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>&gt;</td><td> String Greater Than </td> <td> String/Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>&gt;=</td><td> Greater Than/Equals </td> <td> String/Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>&lt;</td><td> Less Than </td> <td> String/Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>&lt;=</td><td> Less Than/Equals </td> <td> String/Numeric </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>+</td><td> String Concat / Add </td> <td> String/Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>-</td><td> Subtract </td> <td> Numeric </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>*</td><td> Multiply </td> <td> Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>/</td><td> Divide </td> <td> Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>%</td><td> Modulo </td> <td> Numeric </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>+</td><td> (unary) Positive </td> <td> Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>-</td><td> (unary) Negative </td> <td> Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>#</td><td> (unary) Force Numeric </td> <td> Numeric </td>
+  </tr>
+  <tr align="center">
+  <td>$</td><td> (unary) Force Variable </td> <td> Variable </td>
+  </tr>
+  <tr align="center">
+  <td>!</td> <td>(unary) Boolean NOT</td> <td> Boolean </td>
+  </tr>
+  <tr align="center">
+  <td>?</td> <td>(unary) Existance </td> <td> Boolean </td>
+  </tr>
+  <tr style="border-top: 1px solid rgb(136, 136, 136);" align="center">
+  <td>.</td><td> Descend Variable Name</td> <td> Variable </td>
+  </tr>
+  <tr align="center">
+  <td>[ ]</td><td> Expand Variable Name </td> <td> Variable </td>
+  </tr>
+  <tr align="center">
+  <td>( )</td><td> Function Call </td> <td> n/a </td>
+  </tr>
+</tbody></table>
+Addition does not force numeric evaluation. During string evaluation, +
+represents string concatination.
+</p><p>
+Here is an example of rendering data into 2 columns in
+an HTML table:
+</p><pre>&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Column 1&lt;/th&gt;&lt;th&gt;Column 2&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;?cs set:count = #0 ?&gt;
+  &lt;?cs each:item = Page.Items ?&gt;
+    &lt;?cs if:count % #2 ?&gt;
+      &lt;tr&gt;
+    &lt;?cs /if ?&gt;
+      &lt;td&gt;&lt;?cs var:item.Number ?&gt; - 
+        &lt;?cs var:item.Name ?&gt;&lt;/td&gt;
+    &lt;?cs set:count = count + #1 ?&gt;
+    &lt;?cs if:count % #2 ?&gt;
+      &lt;/tr&gt;
+    &lt;?cs /if ?&gt;
+  &lt;?cs /each ?&gt;
+&lt;/table&gt;
+</pre>
+
+<h3>Macros</h3>
+<p>
+ClearSilver also supports the concept of macros. There are
+two commands for this support, <code>def</code> which defines the
+macro, and <code>call</code> which issues the call. Here is an
+example macro definition. This macro takes the value of one variable,
+and walks a part of the dataset to expand that value into a string
+value.
+</p><pre>&lt;?cs def:map_val(val, map) ?&gt;
+  &lt;?cs each:item = map ?&gt;
+    &lt;?cs if:val == item ?&gt;
+      &lt;?cs var:item.val ?&gt;
+    &lt;?cs /if ?&gt;
+  &lt;?cs /each ?&gt;
+&lt;?cs /def ?&gt;
+</pre>
+You might call this with the following dataset:
+<pre>Lang.Dates {
+  Weekdays {
+    0 = 0
+    0.val = Sunday
+    1 = 1
+    1.val = Monday
+    2 = 2
+    2.val = Tuesday
+    3 = 3
+    3.val = Wednesday
+    4 = 4
+    4.val = Thursday
+    5 = 5
+    5.val = Friday
+    6 = 6
+    6.val = Saturday
+  }
+}
+</pre>
+<pre>&lt;?cs call:map_val(#6, Lang.Dates.Weekdays) ?&gt;
+</pre>
+This will result in the output of "Saturday". Note that in reality,
+the output is going to contain a lot of whitespace. This is a common
+side-effect of each iteration. This is template substitution, all of
+the whitespace you see outside CS tags will actually be passed on to
+the output stream, and that includes once for every iteration through
+the loop. For that reason, you might want to define the
+<code>map_val</code> function without the whitespace. One way of doing
+that is to create one big long line with all the tags right next to
+eachother. However, because whitespace inside of template tags is not
+passed on, you can hide whitespace within the tags, or within comment
+tags.
+<p>
+</p><pre>&lt;?cs def:map_val(val, map) ?&gt;&lt;?cs each:item = map 
+    ?&gt;&lt;?cs if:val == item 
+      ?&gt;&lt;?cs var:item.val ?&gt;&lt;?cs 
+      /if ?&gt;&lt;?cs 
+    /each ?&gt;&lt;?cs 
+/def ?&gt;</pre>
+<p>
+You can also see from this example, that macro arguments can be any of
+the four types of arguments. Currently, if you were to pass a string or
+numeric value as the item parameter, ie a parameter which is expected to
+be a part of the dataset, weird things will happen. In some cases, it
+will always evaluate to the value, ie if you pass item as "wow", and ask
+for item.foo, you'll get "wow". If you ask for the children of item, it
+will think you are crazy, and instead assume that you meant item as a
+global variable, and look it up in the dataset under that name.
+</p>
+
+<h3>Expression Functions</h3>
+Clearsilver has some built-in functions for expressions. These
+functions allow access and manipulation of expression arguments.
+Currently, all functions return string or numeric values. Functions
+can be used in expressions anywhere a variable could be used.
+<p>
+<table border="1">
+<tbody><tr><th>Function</th><th>Arguments</th><th>Description</th></tr>
+<tr><td>subcount(var)</td><td>An HDF variable</td>
+  <td>Returns the number of child nodes for the HDF variable</td></tr>
+<tr><td>name(local)</td><td>A local variable</td>
+  <td>Returns the HDF variable name for a local variable alias</td></tr>
+<tr><td>first(local)</td><td>A local variable</td>
+  <td>Returns true iff the local variable is the first in a loop or
+  each</td></tr>
+<tr><td>last(local)</td><td>A local variable</td>
+  <td>Returns true iff the local variable is the last in a loop or
+  each</td></tr>
+<tr><td>abs(expr)</td><td>A numeric expression</td>
+  <td>Returns the absolute value of the numeric expressions</td></tr>
+<tr><td>max(expr, expr)</td><td>Two numeric expressions</td>
+  <td>Returns the larger of two numeric expressions</td></tr>
+<tr><td>min(expr, expr)</td><td>Two numeric expressions</td>
+  <td>Returns the smaller of two numeric expressions</td></tr>
+<tr><td nowrap="nowrap">string.slice(expr, start, end)</td><td>A string expression, and two numeric expressions</td>
+  <td>Returns the string slice starting at start and ending at end,
+  similar to the Python slice operator</td></tr>
+<tr><td nowrap="nowrap">string.find(string, substr)</td><td>Two string expressions</td>
+  <td>Returns the numeric position of the substring in the string (if
+  found), otherwise returns -1
+  similar to the Python string.find method</td></tr>
+<tr><td>string.length(expr)</td><td>A string expression</td>
+  <td>Returns the length of the string expression</td></tr>
+<tr><td>_(expr)</td><td>A string expression</td>
+  <td>Only available if compiled with gettext support, returns the translated
+  version of the string expression as returned by gettext()</td></tr>
+</tbody></table>
+</p><h2>Template Filters</h2>
+The Clearsilver API allows the user to add string manipulation functions
+to the built-in functions. These functions can take just one string
+argument and return a string. The Clearsilver CGI Kit has several Web
+specific filters that are added to Clearsilver. These filters are added
+by default to the CS layer of most of the language wrappers. They
+are a powerful mechanism when composing URLs, providing data to
+Javascript, or simply ensuring that data is HTML safe.
+<p>
+<table border="1">
+<tbody><tr><td>url_escape</td>
+  <td>This URL encodes the string. This converts characters such as
+  <tt>?</tt>, <tt>&amp;</tt>, and <tt>=</tt> into their URL safe
+  equivilants using the <tt>%hh</tt> syntax. </td></tr>
+<tr><td>html_escape</td>
+  <td>This HTML escapes the string. This converts characters such
+  as <tt>&gt;</tt>, <tt>&lt;</tt>, and <tt>&amp;</tt> into their
+  HTML safe equivilants such as <tt>&amp;gt;</tt>, <tt>&amp;lt;</tt>,
+  and <tt>&amp;amp;</tt>.
+  </td></tr>
+<tr><td>js_escape</td>
+  <td>This Javascript escapes the string so it will be valid data for
+  placement into a Javascript string. This converts characters
+  such as <tt>"</tt>, <tt>'</tt>, and <tt>\</tt> into their Javascript
+  string safe equivilants <tt>\"</tt>, <tt>\'</tt>, and <tt>\\</tt>.</td>
+  </tr>
+<tr><td>text_html</td>
+  <td>This pretty-formats normal text into an HTML fragment, attempting
+  to detect paragraph boundaries and allowing it to wrap reasonably.
+  </td></tr>
+<tr><td>html_strip</td>
+  <td>This removes all HTML tags and then converts any &amp; based HTML
+  escaped data into normal text. Combine this with html_escape() if you
+  would like to strip the HTML tags from text and display the result
+  in an HTML safe way.</td>
+  </tr>
+</tbody></table>
+</p><p>
+These filters can be used anywhere in an expression. This makes them
+extremely useful for composing URLs or forcing data to be HTML
+safe. Here are some examples:
+</p><pre>&lt;?cs var:html_escape(Page.Title) ?&gt;
+&lt;?cs set:url = "http://www.google.com/q=" + url_escape(Query.q) ?&gt;
+
+&lt;IMG onclick="handleClick('&lt;?cs var:js_escape(url)')" SRC="foo.gif"&gt;
+
+&lt;A HREF="/newurl?_done=&lt;?cs var:url_escape(url) ?&gt;"&gt;click here&lt;/A&gt;
+</pre>
+<h3><a name="cgikit"></a>CGI Kit</h3>
+<p> The ClearSilver CGI kit provides an interface to common CGI
+interface which integrates with the ClearSilver template language. It
+preloads CGI information into your ClearSilver dataset, making that
+information available in a standard location in the HDF dataset.The
+ClearSilver CGI kit also supports RFC 2388 file uploads via HTTP, and
+it is one of the only interfaces which allows your CGI to retrieve
+upload status information via a callback.
+</p>
+<h3>1. Preloaded HDF Data</h3>
+<p>
+Several different types of data are preloaded into the HDF dataset by
+the Clearsilver CGI kit. This allows Clearsilver template code direct
+access to information such as query parmaters and Cookies. This also
+makes it easy for your application code to get this data from one
+place (the HDF context) with a single API. Because this is a terribly
+useful utility, environment which operate without the Clearsilver CGI
+kit may wish to emulate this behavior.
+</p>
+<h3>1.1. HTML Form Variables</h3>
+<p>
+The HTML form GET or POST variables are pre-populated into the HDF
+dataset at Query.*. If a paramater is specified multiple times, then
+the element will have subelements including the different values
+provided. The base variable will retain the last value provided. Here
+is an example of an HDF Query.* tree that might result from an HTML
+form:
+</p>
+<pre>
+Query.name = David
+Query.email = david@neotonic.com
+Query.multSelect = third value
+Query.multSelect.0 = first value
+Query.multSelect.1 = second value
+Query.multSelect.2 = third value
+</pre>
+<h3>1.2 Cookies</h3>
+<p>
+The HTTP Cookie data is provided, along with decoded versions of
+individual cookies. Here is an example of the HDF Cookie.* tree that
+might result:
+</p>
+<pre>
+Cookie = help_pos_x=461; help_pos_y=206; E=v=1&e=305,1,303; 
+Cookie.help_pos_x = 461
+Cookie.help_pos_y = 206
+Cookie.E = v=1&e=305,1,303
+
+</pre>
+<h3>1.3. HTTP headers</h3>
+<p>
+The following HTTP headers are mapped into HDF:
+</p>
+<pre>
+HTTP.Accept = image/gif, image/x-xbitmap, image/jpeg, image/pjpeg
+HTTP.AcceptEncoding = gzip, deflate
+HTTP.AcceptLanguage = en-us
+HTTP.Cookie = help_pos_x=461; help_pos_y=206; E=v=1&e=305,1,303; 
+HTTP.Host = jeske-dev.trakken.com
+HTTP.UserAgent = Mozilla/4.0 (compatible; MSIE 6.0;)
+HTTP.Referer = http://www.clearsilver.net/cgi-bin/test.py
+</pre>
+<h3>1.4. Apache Environment </h3>
+<pre>
+CGI.DocumentRoot = /home/jeske/htdocs
+CGI.GatewayInterface = CGI/1.1
+CGI.QueryString = done=1
+CGI.RemoteAddress = 216.103.193.234
+CGI.RemotePort = 1870
+CGI.RequestMethod = GET
+CGI.RequestURI = /cgi-bin/test.py?done=1
+CGI.ScriptFilename = /home/jeske/htdocs/cgi-bin/test.py
+CGI.ScriptName = /cgi-bin/test.py
+CGI.ServerAddress = 64.167.132.245
+CGI.ServerAdmin = webmaster@neotonic.com
+CGI.ServerName = www.clearsilver.net
+CGI.ServerPort = 80
+CGI.ServerProtocol = HTTP/1.1
+CGI.ServerSoftware = Apache/1.3.26 (Unix)
+</pre>
+<h3>2. HTTP Upload</h3>
+<p>
+The CGI Kit also provides a facility for parsing of HTTP POST data,
+including multi-part file upload. It has a unique callback interface
+which allows you to retrieve constant status information about the
+progress of an ongoing upload. Handling the POST data occurs when you
+call <tt>parse()</tt>. You must have already setup the upload
+callback, either by calling setUploadCB() from a wrapper, or by
+setting the upload_cb value of the CGI structure from C/C++.
+</p>
+<p> After parse has completed, the Query.* HDF value for your
+<tt>INPUT TYPE=FILE</tT> paramater will contain the filename of the
+file uploaded. You then provide the name of your form value to the
+fileHandle() method to get a <tt>FILE *</tt> for an uploaded
+file.</p>
+<h3>3. Utility Functions </h3>
+<p>
+Utility functions are provided to handle redirection, as well as
+setting cookies. Refer to the reference for information about how to
+use these functions.
+</p>
+<hr>
+<p>
+The following HDF variables are used by the ClearSilver CGI Kit:
+</p>
+<h3>Changing the output</h3>
+<DL>
+  <DT>cgiout.Location, cgiout.Status, cgiout.ContentType, cgiout.other.*</dt>
+  <DD>This variable tree is used to send extra HTTP &amp; CGI headers
+  during <a href="#display">display</a>().
+  Location, Status and ContentType are the known values. These are
+  mapped directly to the Location, Status and Content-Type headers.
+  <a href="#display">display</a>() will also walk the cgiout.other.* vars, using the value
+  as output.
+  Ie, <code>cgiout.other.encoding = Content-Encoding: gzip</code> will add a
+  <code>Content-Encoding: gzip</code>
+  header to the output.</dd>
+<p></p>
+  <DT>Config.NoCache</dt>
+  <DD>If <code>Config.NoCache</code> is set, then the following headers will
+  be added during <a href="#display">display</a>():
+  <pre>
+
+  Pragma: no-cache
+  Expires: Fri, 01 Jan 1990 00:00:00 GMT
+  Cache-control: no-cache, must-revalidate, no-cache="Set-Cookie", private
+  </pre>
+  These headers are designed to attempt to prevent all browsers and
+  proxies from caching the page. This is generally a very evil thing to
+  do, as it means any page render, including the user pressing the back
+  button, for some browsers this will also include printing, viewing
+  page source, etc.</dd>
+<p></p>
+  <DT>Config.CompressionEnabled</dt>
+  <DD>If this is set to a positive integer, and the output is HTML, then
+  <a href="#display">display</a> will gzip compress the output for browsers which support it.</dd>
+<p></p>
+  <DT>Config.TimeFooter</dt>
+  <DD>By default, <a href="#display">display</a> will add an "execution time" html comment
+  to the end of the rendered page if the page output type is text/html.
+  The format of the comment is &lt;!-- 0.5:1 --&gt; where the first
+  number is the total time between the call to cgi-init and the call to
+  <a href="#display">display</a>, and the number after the colon is 1 if the output is
+  compressd, and 0 if not.</dd>
+<p></p>
+
+  <DT>Config.WhiteSpaceStrip,</dt>
+  <DD>This variable indicates the amount of whitespace stripping that is
+  applied to html output in <a href="#display">display</a>. ClearSilver has a tendency to
+  add lots of whitespace to your output unless you are very careful with
+  the formatting of your clearsilver commands. This is because all
+  whitespace is included in the output, which includes and space you use
+  to indent your clearsilver commands, and any newlines you add. There
+  are three levels available. 0 is no whitespace stripping. 1 is a
+  somewhat "minimal" whitespace stripping that attempts to just remove
+  extra lines but leave your formatting mostly the same. 2 is designed
+  to strip all extra whitespace. The default is level 1. If you are
+  compressing your output, you probably don't need to remove the
+  whitespace.</dd>
+</dl>
+<h3>Configuration</h3>
+<dl>
+  <DT>Config.Upload.TmpDir</dt>
+  <DD>Where the PUT handler and the RFC2388 multipart/form-data POST
+  handler create temporary files that are uploaded to the server. The
+  default value is <tt>/var/tmp</tt>.</dd>
+<p></p>
+  <DT>Config.Upload.Unlink</dt>
+  <DD>By default, the PUT handler, and the RFC2388 multipart/form-data
+  POST file handler unlink the files they create in <a href="#parse">parse</a> as soon as
+  they create them, but keep the file handle open to the files. This
+  means that as soon as the files are closed, they will be removed.
+  If the CGI prematurely exits, the files will automatically be removed.
+  If this is set to 0, the files will not be unlinked immediately. This
+  would allow you to access the files directly from your CGI, instead of
+  only accessing them through the existing filehandle returned by
+  <a href="#fileHandle">filehandle</a>. The files will be in Config.Upload.TmpDir and be
+  named <tt>cgi_upload.XXXXXX</tt> as created by <tt>mkstemp()</tt>.
+  The files will be removed in <tt>cgi_destroy()</tt>, but if the CGI
+  exits prematurely, the files will not be removed. You will need to
+  have a periodic job cleanup old files to prevent your filesystem from
+  filling up.</dd>
+
+<p></p>
+  <DT>CookieAuthority.*</dt>
+  <DD>A cookie authority is the domain for which a cookie is said to be
+  valid. Ie, if your CGI is running on www.neotonic.com, and you want
+  your cookie to be valid for all neotonic.com domains, the authority is
+  .neotonic.com. If your CGI is responding to multiple domains, the
+  easiest way to handle this is to have a list of domain authorities,
+  and use the <a href="#cookieAuthority">cookieAuthority</a> call to determine what domain
+  authority to use in the <a href="#cookieSet">cookieSet</a> call. The CookieAuthority.*
+  variables each contain a single authority, ie:
+<pre>
+    CookieAuthority.0 = .neotonic.com
+    CookieAuthority.1 = .neotonic.co.uk
+    CookieAuthority.1 = .neotonic.jp
+</pre>
+  So, the cookie will be valid on www.neotonic.com and www1.neotonic.com.</dd>
+<p></p>
+  <dt>Config.TagStart</dt>
+  <dd>This variable is not specific to the CGI Kit. You can set this
+  variable to change the clearsilver command. By default, all
+  clearsilver commands are enclosed in <tt>&lt;?cs ... ?&gt;</tt>. You can
+  replace the cs portion of this with another tag using the
+  Config.TagStart variable.</dd>
+<p></p>
+  <dt>Config.VarEscapeMode</dt>
+  <dd>This variable is not specific to the CGI Kit. This variable must
+  be set before the call to <tt>cs_init()</tt> (which is done in
+  <tt><a href="#display">display</a>()</tt> if using the CGI Kit). This variable sets the
+  default escape mode for all <tt>var:</tt> commands. Currently,
+  possible values are none, script, url, and html.</dd>
+</dl>
+<h3>Debug Variables</h3>
+<dl>
+  <DT>Query.debug, Config.DebugPassword, Config.DebugEnabled</dt>
+  <DD>If Config.DebugEnabled is set to 1, and if Query.debug is
+  non-empty and matches Config.DebugPassword, then <a href="#display">display</a> with add
+  debug output to the end of the rendered page. This output is subject
+  to change, but currently includes the environment variables and the
+  full HDF dump.</dd>
+
+<p></p>
+  <DT>Query.debug, Config.DumpPassword, Config.DebugEnabled</dt>
+  <DD>If Config.DebugEnabled is set to 1, and if Query.debug is
+  non-empty and matches Config.DumpPassword, then <a href="#display">display</a> will dump
+  the HDF and the CS parse tree as text/plain instead of rendering the
+  page.</dd>
+<p></p>
+  <DT>Query.debug_pause, Config.DebugPassword, Config.DebugEnabled</dt>
+  <DD>If Config.DebugEnabled is set to 1, and if Query.debug_pause is
+  non-empty and matches Config.DebugPassword, then cgi_init will call
+  <tt>sleep(20)</tt>. This will cause the CGI to pause for 20 seconds,
+  allowing you to attach to the running CGI will a debugger, strace,
+  truss, or other debugging aid.</dd>
+<p></p>
+  <DT>Query.xdisplay, Config.Displays.*, Config.Debugger</dt>
+  <DD> Used during cgi_init(). If you specify a form value of
+  <code>xdisplay=yourmachine:0</code> to a CGI, cgi_init() check your
+  display against the list of allowed displays in Config.Displays (ie,
+  <code>Config.Displays.0 = yourmachine:0</code>, and if it matches, it
+  will launch the debugger specified by Config.Debugger against the
+  currently running CGI. This allows you to use an X based debugger on
+  a currently running CGI. The default Config.Debugger is
+  <pre>/usr/local/bin/sudo /usr/local/bin/ddd -display %s %s %d</pre>
+
+  Where the first %s will get the value of Query.xdisplay, the second %s
+  gets the argv[0] (ie, the path to the currently running program) and
+  the %d is the PID of the running program.</dd>
+</dl>
+<h3>Extra Variables</h3>
+<p>
+There are also a couple of useful extra variables you can use to change the rendering :
+</p>
+<dl>
+  <dt>ClearSilver.DisplayDebug</dt>
+  <dd>If this variable is set to 1, then render will include a dump of
+  the HDF contents at the end of the rendered page.</dd>
+<p></p>
+  <dt>ClearSilver.WhiteSpaceStrip</dt>
+  <dd>This is used the same as the Config.WhiteSpaceStrip variable in
+  the CGI Kit.</dd>
+</dl>
