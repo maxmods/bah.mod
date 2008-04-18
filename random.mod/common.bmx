@@ -27,17 +27,19 @@ SuperStrict
 
 Import BRL.Blitz
 
-Import "src/*.h"
-Import "src/SFMT.c"
-
 ?MacOSPPC
 Import "src/ppc/*.h"
-Import "src/ppc/SFMT-alti.c"
 ?MacOSX86
 'Import "src/x86/*.h"
 'Import "src/x86/SFMT-sse2.c"
 ?
 
+Import "src/*.h"
+Import "src/SFMT.c"
+
+?MacOSPPC
+Import "src/ppc/SFMT-alti.c"
+?
 
 Import "sfmtglue.cpp"
 

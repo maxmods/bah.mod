@@ -30,12 +30,14 @@ bbdoc: Random Numbers - SFMT
 End Rem
 Module BaH.Random
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: SFMT - 2006,2007 Mutsuo Saito, Makoto Matsumoto and Hiroshima"
 ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Fix for PPC Mac compile."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Automatically initializes via SeedRnd() if required."
 ModuleInfo "History: 1.00"
@@ -78,8 +80,8 @@ The optional parameter allows you to use #Rand32 in 2 ways:<br>
 End Rem
 Function Rand:Int( min_value:Int, max_value:Int = 1 )
 	If Not kRndInitialized SeedRnd(0)
-	Local range:Int = max_value - min_value
-	If range > 0 Return Int( bmx_genrand_res53()*(1+range) )+min_value
+	Local range:Double = max_value - min_value
+	If range > 0 Return Int( bmx_genrand_res53()*(1:Double+range) )+min_value
 	Return Int( bmx_genrand_res53()*(1-range) )+max_value
 End Function
 

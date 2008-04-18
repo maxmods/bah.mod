@@ -56,5 +56,5 @@ void bmx_gen_rand64(BBInt64 * r) {
 }
 
 double bmx_genrand_res53() {
-	return genrand_res53();
+    return to_res53(gen_rand64());
 }
