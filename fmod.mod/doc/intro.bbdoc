@@ -1,0 +1,124 @@
+<a href="http://www.fmod.org/"><img src="fmod_logo.jpg" align="right" border="0" /></a>
+<p>
+FMOD Ex is a cross-platform audio engine for game developers, multimedia developers, sound designers, musicians and audio engineers<br>
+This BlitzMax module enables easy integration of FMOD into your projects.
+</p>
+<h3>Introduction</h3>
+<p>
+Throughout documentation certain terms and concepts will be used. This section will explain some of these to alleviate confusion.
+</p>
+<p>
+It is recommended when you see an API function highlighted as a link, that you check the API reference for more detail. 
+Samples vs bytes vs milliseconds
+Within FMOD functions you will see references to PCM samples, bytes and milliseconds.
+To understand what the difference is a diagram has been provided to show how raw PCM sample data is stored in FMOD buffers.
+</p>
+<img src="diag.png"/>
+<p>
+In this diagram you will see that a stereo sound has its left/right data interleaved one after the other.
+<ul>
+<li>A left/right pair (a sound with 2 channels) is called a sample. </li>
+<li>Because this is made up of 16bit data, 1 sample = 4 bytes. </li>
+<li>If the sample rate, or playback rate is 44.1khz, or 44100 samples per second, then 1 sample is 1/44100th of a second, or 1/44th of a millisecond. Therefore 44100 samples = 1 second or 1000ms worth of data. </li>
+</ul>
+To convert between the different terminologies, the following formulas can be used.
+<ul>
+<li>ms = samples * 1000 / samplerate. </li>
+<li>samples = ms * samplerate / 1000. </li>
+<li>samplerate = samples * 1000 / ms. </li>
+<li>bytes = samples * bits * channels / 8. </li>
+<li>samples = bytes * 8 / bits / channels. </li>
+</ul>
+</p>
+<p>
+Some functions like TFMODSound.GetLength provide the length in milliseconds, bytes and samples to avoid needing to do these calculations.
+</p>
+<p>
+Sounds. Samples vs compressed samples vs streams.
+When a sound is loaded, it is either decompressed as a static sample into memory as PCM (samples), loaded into memory in its native format and decompressed at runtime (compressed samples), or streamed and decoded in realtime (in chunks) from an external media such as a harddisk or CD (streams).
+<ul>
+<li>"Samples" are good for small sounds that need to be played more than once at a time, for example sound effects. These generally use little or no CPU to play back and can be hardware accelerated. See FMOD_CREATESAMPLE. </li>
+<li>"Streams" are good for large sounds that are too large to fit into memory and need to be streamed from disk into a small ringbuffer that FMOD manages. These take a small amount of CPU and disk bandwidth based on the file format. For example mp3 takes more cpu power to decode in real-time than a PCM decompressed wav file does. A streaming sound can only be played once, not multiple times due to it only having 1 file handle per stream and 1 ringbuffer to decode into. See FMOD_CREATESTREAM. </li>
+<li>"Compressed samples" are a new advanced option that allows the user to load a certain compressed file format (such as IMA ADPCM, MP2, MP3 and XMA formats currently), and leave them compressed in memory without decompressing them. They are software mixed on the CPU and don't have the 'once only' limitation of streams. They take more cpu than a standard PCM sample, but actually less than a stream due to not doing any disk access and much smaller memory buffers. See FMOD_CREATECOMPRESSEDSAMPLE. </li>
+</ul>
+</p>
+<p>
+You may notice "Sample" and "Stream" terminology is used here but there is no class name with this terminology in them. That is because all FMOD APIs are now consolidated into one "Sound" type.
+By default TFMODSystem.CreateSound will want to decode the whole sound fully into memory (ie, as a decompressed sample).
+To have it stream in realtime and save memory, use the FMOD_CREATESTREAM flag when creating a sound, or use the helper function TFMODSystem.CreateStream which is essentially the same as TFMODSystem.CreateSound but just has the FMOD_CREATESTREAM flag added in automatically for you.
+To make a compressed sample use TFMODSystem.CreateSound with FMOD_CREATECOMPRESSEDSAMPLE.
+</p>
+<h3>Hardware vs Software</h3>
+<p>
+FMOD Ex has its support for either hardware accelerated sound playback, via DirectSound or console hardware API's, but FMOD also has its own fallback software mixing mechanism.
+With hardware and software based sounds comes certain features and trade-offs when they are used.
+Hardware sounds (created with FMOD_HARDWARE usually have lower CPU impact, have lower latency, and can get access to hardware reverb like EAX4 for example.
+Hardware sounds are also limited in some ways, for example due to DirectSound limitations on Windows for example, arbitrary loop points are not supported with static samples (it is either loop the whole sound, or don't loop the sample), and non reverb effects cannot be played on them (ie chorus, distortion, lowpass etc).
+</p>
+<p>
+Software sounds (created with FMOD_SOFTWARE sometimes have higher CPU impact, but can do much more, for example complex looping, realtime analysis, effects and sample accurate synchronization.
+</p>
+<h3>Hardware vs Software.</h3>
+<p><b>Hardware Pros.</b>
+<ul>
+<li>Usually lower latency. (Although on consoles or ASIO output in windows, using FMOD_SOFTWARE can have extremely low latency as low as 2-5ms) </il>
+<li>Less CPU time. (Although on Windows software is a lot faster due to bad hardware sound card driver design, and inefficiencies in the DirectSound API). </il>
+<li>On Windows, access to EAX2, EAX3, EAX4, I3DL2 reverb per voice. (FMOD Ex has its own high quality I3DL2 reverb solution in software, but may not be as flexible or have the quality of EAX4 for example.). </il>
+<li>Free hardware obstruction / occlusion (this is usually equivalent to a lowpass filter or reverb attenuation which can also be performed in software at some expense to the CPU), but only on EAX compatible sound cards on Windows. FMOD_SOFTWARE is cross platform. </il>
+<li>On PS2, PSP, XBox, GameCube, Wii, hardware voices can play back ADPCM compressed sound data with no cpu hit. </il>
+<li>On a limited number of soundcards, hardware 3d sounds will be realtime encoded into an AC3 Dolby Digital stream via a digital / optical output on the card so an amplifier can play it in 3D surround sound. FMOD software mixing now supports 5.1 and 7.1 mixing at slightly higher CPU expense, and will work via analog outputs such as soundcards with 3 stereo jacks to run to a 5.1 speaker setup. </il>
+</ul>
+<b>Hardware Cons.</b>
+<ul>
+<li>No point to point looping on win32. XBox and GameCube allow point to point looping and PS2 only allows loopstart, so therefore cross platform compatibility cannot be assured. </il>
+<li>No access to hardware effects per voice. Most PC sound cards and consoles do not support hardware accelerated effects such as lowpass, distortion, flange, chorus etc. </il>
+<li>No loop count control. A sound can only be looped infinitely or not at all. </il>
+<li>Inconsistent feature support, for example a PS2 does not support EAX reverb, and 3d sound implementations always sound different. </il>
+<li>Sometimes a lot slower than FMOD software mixing on Windows. Virtual voices that make a lot of state changes when swapping in and out can be very expensive in hardware (noticable framerate drops), but for free in software. </il>
+</ul>
+<b>Software Pros.</b>
+<ul>
+<li>Consistent sound on every platform, there is no variation in playback. </il>
+<li>Sample accurate synchronization callbacks and events. </il>
+<li>Compressed sample playback support without using streams. </il>
+<li>Cross platform reverb. </il>
+<li>Complex looping and loop cou</il>nts. 
+<li>Reverse sample playback. </il>
+<li>Spectrum analysis. </il>
+<li>Filters per channel or for the global mix, to perform effects such as lowpass, distortion, flange, chorus etc. </il>
+<li>Complex DSP network construction for realtime sound synthesis. </il>
+<li>Access to final mix buffer to allow analyzing, drawing to screen, or saving to file. </il>
+</ul>
+<b>Software Cons.</b>
+<ul>
+<li>Latency on some sound devices (such as win32 waveout output) can be high. </li>
+<li>Memory usage is higher due to allocation of mix units and mix buffers, or simply the fact of having to store sounds in main ram rather than sound ram. (becoming less relevant these days). </li>
+</ul>
+</p>
+<h3>Channels and sounds.</h3>
+<p>
+When you have loaded your sounds, you will want to play them. When you play them you will use TFMODSystem.PlaySound, which will return you a pointer to a Channel / FMOD_CHANNEL handle.
+</p>
+<p>
+The index that TFMODSystem.PlaySound requires is generally recommended to always be FMOD_CHANNEL_FREE. This will mean FMOD will choose a non playing channel for you to play on.
+</p>
+<h3>2D vs 3D.</h3>
+<p>
+A 3D sound source is a channel that has a position and a velocity. When a 3D channel is playing, its volume, speaker placement and pitch will be affected automatically based on the relation to the listener.
+A listener is the player, or the game camera. It has a position, velocity like a sound source, but it also has an orientation.
+</p>
+<p>
+The listener and the source distance from each other determine the volume.
+The listener and the source relative velocity determines the pitch (doppler effect).
+The orientation of the listener to the source determines the pan or speaker placement.
+</p>
+<p>
+A 2D sound is simply different in that it is not affected by the 3D sound listener, and does not have doppler or attenuation or speaker placement affected by it. 
+A 2D sound can call TFMODChannel.SetSpeakerMix, TFMODChannel.SetSpeakerLevels or TFMODChannel.SetPan, whereas a 3D sound cannot.
+A 3D sound can call any function with the word 3D in the function name, whereas a 2D sound cannot.
+</p>
+<p>
+For a more detailed description of 3D sound, read the tutorial in the documentation on 3D sound.
+</p>
+ 
+

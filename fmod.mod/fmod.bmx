@@ -1432,126 +1432,311 @@ Type TFMODChannelGroup
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the master volume level for the channel group. 
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>volume</b> : Variable to receive the channel group volume level, from 0.0 to 1.0 inclusive.
+	0.0 = silent, 1.0 = full volume. Default = 1.0. </li>
+	</ul>
 	End Rem
 	Method GetVolume:Int(volume:Float Var)
 		Return FMOD_ChannelGroup_GetVolume(channelGroupPtr, Varptr volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the master volume for the channel group linearly.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>volume</b> : A linear volume level, from 0.0 to 1.0 inclusive. 0.0 = silent, 1.0 = full volume.
+	Default = 1.0.</li>
+	</ul>
 	End Rem
 	Method SetVolume:Int(volume:Float)
 		Return FMOD_ChannelGroup_SetVolume(channelGroupPtr, volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Stops all channels within the channelgroup
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem
 	Method Stop:Int()
 		Return FMOD_ChannelGroup_Stop(channelGroupPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the mute state of a ChannelGroup.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>mute</b> : Variable to receive the pause state of the channelgroup. </li>
+	</ul>
 	End Rem
 	Method GetMute:Int(mute:Int Var)
 		Return FMOD_ChannelGroup_GetMute(channelGroupPtr, Varptr mute)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Mutes a channelgroup, and the channels within it, or unmutes any unmuted channels if set to false.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>mute</b> : Mute state to set. True = channelgroup state is set to muted. False = channelgroup state is set to unmuted.</li>
+	</ul>
 	End Rem
 	Method SetMute:Int(mute:Int)
 		Return FMOD_ChannelGroup_SetMute(channelGroupPtr, mute)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the pause state of a ChannelGroup.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>paused</b> : Variable to receive the pause state of the channelgroup.</li>
+	</ul>
 	End Rem
 	Method GetPaused:Int(paused:Int Var)
 		Return FMOD_ChannelGroup_GetPaused(channelGroupPtr, Varptr paused)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Pauses a channelgroup, and the channels within it, or unpauses any unpaused channels if set to false.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>paused</b> : Paused state to set. true = channelgroup state is set to paused. false = channelgroup state is set to unpaused.</li>
+	</ul>
 	End Rem
 	Method SetPaused:Int(paused:Int)
 		Return FMOD_ChannelGroup_SetPaused(channelGroupPtr, paused)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the master pitch level for the channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>pitch</b> : Variable to receive the channel group pitch value, from 0.0 to 10.0 inclusive.
+	0.0 = silent, 1.0 = full volume. Default = 1.0.</li>
+	</ul>
 	End Rem
 	Method GetPitch:Int(pitch:Float Var)
 		Return FMOD_ChannelGroup_GetPitch(channelGroupPtr, Varptr pitch)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the master pitch for the channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>pitch</b> : A pitch level, from 0.0 to 10.0 inclusive. 0.5 = half pitch, 2.0 = double pitch. Default = 1.0.</li>
+	</ul>
+	<p>
+	This method does not go through and overwrite the channel frequencies. It scales them by the channel group's
+	pitch.
+	</p>
+	<p>
+	That way when TFMODChannel.setFrequency / TFMODChannel.getFrequency is called the respective individual channel
+	frequencies will still be preserved. 
+	</p>
 	End Rem
 	Method SetPitch:Int(pitch:Float)
 		Return FMOD_ChannelGroup_SetPitch(channelGroupPtr, pitch)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current number of assigned channels to this channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>numChannels</b> : Variable to receive the current number of assigned channels in this channel group.</li>
+	</ul>
+	<p>
+	Use this method to enumerate the channels within the channel group. You can then use TFMODChannelGroup.getChannel
+	to retrieve each individual channel.
+	</p>
 	End Rem
 	Method GetNumChannels:Int(numChannels:Int Var)
 		Return FMOD_ChannelGroup_GetNumChannels(channelGroupPtr, Varptr numChannels)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the number of sub groups under this channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>numGroups</b> : Variable to receive the number of channel groups within this channel group.</li>
+	</ul>
 	End Rem
 	Method GetNumGroups:Int(numGroups:Int Var)
 		Return FMOD_ChannelGroup_GetNumGroups(channelGroupPtr, Varptr numGroups)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a channel from the current channel group.
+	about: Parameters: 
+	<ul>
+	<li><b>index</b> : Index of the channel inside the channel group, from 0 to the number of channels returned by
+	TFMODChannelGroup.getNumChannels.</li>
+	</ul>
 	End Rem
 	Method GetChannel:TFMODChannel(index:Int)
 		Return TFMODChannel._create(bmx_FMOD_ChannelGroup_GetChannel(channelGroupPtr, index))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the master occlusion factors for the channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>directOcclusion</b> : Variable that receives the occlusion factor for the direct path.
+	0.0 = not occluded. 1.0 = fully occluded. Default = 0.0.</li>
+	<li><b>reverbOcclusion</b> : Variable that receives the occlusion factor for the reverb mix.
+	0.0 = not occluded. 1.0 = fully occluded. Default = 0.0.</li>
+	</ul>
 	End Rem
 	Method Get3DOcclusion:Int(directOcclusion:Float Var, reverbOcclusion:Float Var)
 		Return FMOD_ChannelGroup_Get3DOcclusion(channelGroupPtr, Varptr directOcclusion, Varptr reverbOcclusion)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the master occlusion factors for the channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>directOcclusion</b> : Occlusion factor for the direct path. 0.0 = not occluded. 1.0 = fully occluded. Default = 0.0.</li>
+	<li><b>reverbOcclusion</b> : Occlusion factor for the reverb mix. 0.0 = not occluded. 1.0 = fully occluded. Default = 0.0.</li>
+	</ul>
+	<p>
+	This method does not go through and overwrite the channel occlusion factors. It scales them by the channel
+	group's occlusion factors.
+	</p>
+	<p>
+	That way when TFMODChannel.set3DOcclusion / TFMODChannel.get3DOcclusion is called the respective individual channel
+	occlusion factors will still be preserved. This means that final Channel occlusion values will be affected by
+	both ChannelGroup occlusion and geometry (if any). 
+	</p>
 	End Rem
 	Method Set3DOcclusion:Int(directOcclusion:Float, reverbOcclusion:Float)
 		Return FMOD_ChannelGroup_Set3DOcclusion(channelGroupPtr, directOcclusion, reverbOcclusion)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Overrides the position and velocity of all channels within this channel group and those of any sub channelgroups.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>pos</b> : Position in 3D space of the channels in the group.</li>
+	<li><b>vel</b> : Velocity in 'distance units per second' in 3D space of the group of channels.</li>
+	</ul>
+	<p>
+	A 'distance unit' is specified by TFMODSystem.set3DSettings. By default this is set to meters which is a distance
+	scale of 1.0.
+	</p>
 	End Rem
 	Method Override3DAttributes:Int(pos:TFMODVector, vel:TFMODVector)
 		Return FMOD_ChannelGroup_Override3DAttributes(channelGroupPtr, Varptr pos, Varptr vel)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Overrides the frequency or playback rate, in HZ of all channels within this channel group and those of any sub channelgroups.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>frequency</b> : A frequency value in HZ. This value can also be negative to play the sound backwards
+	(negative frequencies allowed with FMOD_SOFTWARE based non-stream sounds only). DirectSound hardware voices
+	have limited frequency range on some soundcards.</li>
+	</ul>
+	<p>
+	When a sound is played, it plays at the default frequency of the sound which can be set by TFMODSound.setDefaults.
+	</p>
+	<p>
+	For most file formats, the volume is determined by the audio format.
+	</p>
+	<p>
+	Frequency limitations for sounds created with FMOD_HARDWARE in DirectSound.
+	</p>
+	<p>
+	Every hardware device has a minimum and maximum frequency. This means setting the frequency above the maximum
+	and below the minimum will have no effect.
+	</p>
+	<p>
+	FMOD clamps frequencies to these values when playing back on hardware, so if you are setting the frequency
+	outside of this range, the frequency will stay at either the minimum or maximum.
+	</p>
+	<p>
+	Note that FMOD_SOFTWARE based sounds do not have this limitation.
+	</p>
+	<p>
+	To find out the minimum and maximum value before initializing FMOD (maybe to decide whether to use a different
+	soundcard, output mode, or drop back fully to software mixing), you can use the TFMODSystem.getDriverCaps
+	method. 
+	</p>
 	End Rem
 	Method OverrideFrequency:Int(frequency:Float)
 		Return FMOD_ChannelGroup_OverrideFrequency(channelGroupPtr, frequency)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets pan position linearly of all channels within this channel group and those of any sub channelgroups.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>pan</b> : A left/right pan level, from -1.0 to 1.0 inclusive. -1.0 = Full left, 0.0 = center, 1.0 = full right.
+	Default = 0.0.</li>
+	</ul>
+	<p>
+	Panning only works on sounds created with FMOD_2D. 3D sounds are not pannable.
+	</p>
+	<p>
+	Only sounds that are mono or stereo can be panned. Multichannel sounds (ie >2 channels) cannot be panned.
+	</p>
+	<p>
+	Mono sounds are panned from left to right using constant power panning. This means when pan = 0.0, the balance
+	for the sound in each speaker is 71% left and 71% right, not 50% left and 50% right. This gives (audibly)
+	smoother pans.
+	</p>
+	<p>
+	Stereo sounds heave each left/right value faded up and down according to the specified pan position. This
+	means when pan = 0.0, the balance for the sound in each speaker is 100% left and 100% right. When pan = -1.0,
+	only the left channel of the stereo sound is audible, when pan = 1.0, only the right channel of the stereo
+	sound is audible.
+	</p>
 	End Rem
 	Method OverridePan:Int(pan:Float)
 		Return FMOD_ChannelGroup_OverridePan(channelGroupPtr, pan)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Overrides all channel speaker levels for each speaker individually.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>frontleft</b> : Level for this channel in the front left speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume. </li>
+	<li><b>frontright</b> : Level for this channel in the front right speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	<li><b>center</b> : Level for this channel in the center speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume. </li>
+	<li><b>lfe</b> : Level for this channel in the subwoofer speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	<li><b>backleft</b> : Level for this channel in the back left speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	<li><b>backright</b> : Level for this channel in the back right speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	<li><b>sideleft</b> : Level for this channel in the side left speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	<li><b>sideright</b> : Level for this channel in the side right speaker of a multichannel speaker setup. 0.0 = silent, 1.0 = full volume.</li>
+	</ul>
+	<p>
+	This method only works on sounds created with FMOD_2D. 3D sounds are not pannable and will return
+	FMOD_ERR_NEEDS2D.
+	</p>
+	<p>
+	Only sounds create with FMOD_SOFTWARE playing on this channel will allow this functionality.
+	</p>
+	<p>
+	Speakers specified that don't exist will simply be ignored.
+	</p>
+	<p>
+	For more advanced speaker control, including sending the different channels of a stereo sound to arbitrary
+	speakers, see TFMODChannel.SetSpeakerLevels.
+	</p>
 	End Rem
 	Method OverrideSpeakerMix:Int(frontleft:Float, frontright:Float, center:Float, ..
 			lfe:Float, backleft:Float, backright:Float, sideleft:Float, sideright:Float)
@@ -1560,14 +1745,33 @@ Type TFMODChannelGroup
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Overrides the volume of all channels within this channel group and those of any sub channelgroups.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>volume</b> : A linear volume level, from 0.0 to 1.0 inclusive. 0.0 = silent, 1.0 = full volume. Default = 1.0.</li>
+	</ul>
+	<p>
+	This is not to be used as a master volume for the group, as it will modify the volumes of the channels
+	themselves.
+	</p>
+	<p>
+	If you want to scale the volume of the group, use TFMODChannelGroup.SetVolume.
+	</p>
 	End Rem
 	Method OverrideVolume:Int(volume:Float)
 		Return FMOD_ChannelGroup_OverrideVolume(channelGroupPtr, volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees a channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: All channels assigned to this group are returned back to the master channel group owned by the
+	System object. See TFMODSystem.GetMasterChannelGroup.
+	<p>
+	All child groups assigned to this group are returned back to the master channel group owned by the System
+	object. See TFMODSystem.GetMasterChannelGroup.
+	</p>
 	End Rem
 	Method ChannelGroupRelease:Int()
 		Return FMOD_ChannelGroup_Release(channelGroupPtr)
