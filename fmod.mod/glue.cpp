@@ -42,6 +42,8 @@ extern "C" {
 		FMOD_CREATESOUNDEXINFO * exInfo, FMOD_RESULT * ret);
 	FMOD_REVERB * bmx_FMOD_System_CreateReverb(FMOD_SYSTEM *system);
 	FMOD_RESULT bmx_FMOD_System_GetSpectrum(FMOD_SYSTEM *system, BBArray * spectrumArray, int channelOffset, FMOD_DSP_FFT_WINDOW windowType);
+	FMOD_CHANNELGROUP * bmx_FMOD_System_CreateChannelGroup(FMOD_SYSTEM *system, const char * name);
+	FMOD_CHANNELGROUP * bmx_FMOD_System_GetMasterChannelGroup(FMOD_SYSTEM *system);
 
 
 	void bmx_fmodchannel_delete(MAX_FMOD_CHANNEL * channel);
@@ -258,6 +260,29 @@ FMOD_RESULT bmx_FMOD_System_GetSpectrum(FMOD_SYSTEM *system, BBArray * spectrumA
 	return res;
 }
 
+FMOD_CHANNELGROUP * bmx_FMOD_System_CreateChannelGroup(FMOD_SYSTEM *system, const char * name) {
+	FMOD_CHANNELGROUP * group;
+	
+	FMOD_RESULT res = FMOD_System_CreateChannelGroup(system, name, &group);
+	
+	if (res) {
+		return 0;
+	}
+	
+	return group;
+}
+
+FMOD_CHANNELGROUP * bmx_FMOD_System_GetMasterChannelGroup(FMOD_SYSTEM *system) {
+	FMOD_CHANNELGROUP * group;
+	
+	FMOD_RESULT res = FMOD_System_GetMasterChannelGroup(system, &group);
+	
+	if (res) {
+		return 0;
+	}
+	
+	return group;	
+}
 
 // ++++++++++++++++++++++++++++++++
 

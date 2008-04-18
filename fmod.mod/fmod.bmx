@@ -178,6 +178,23 @@ Type TFMODSystem
 		
 		Return sound
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateChannelGroup:TFMODChannelGroup(name:String)
+		Local s:Byte Ptr = name.ToCString()
+		Local group:TFMODChannelGroup = TFMODChannelGroup._create(bmx_FMOD_System_CreateChannelGroup(systemPtr, s))
+		MemFree(s)
+		Return group
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetMasterChannelGroup:TFMODChannelGroup()
+		Return TFMODChannelGroup._create(bmx_FMOD_System_GetMasterChannelGroup(systemPtr))
+	End Method
 
 	Rem
 	bbdoc: Creates an FMOD defined built in DSP unit object to be inserted into a DSP network, for the purposes of sound filtering or sound generation.
@@ -965,6 +982,13 @@ Type TFMODChannel
 		Return bmx_FMOD_Channel_SetPan(channelPtr, pan)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetChannelGroup:Int(group:TFMODChannelGroup)
+		Return FMOD_Channel_SetChannelGroup(channelPtr, group.channelGroupPtr)
+	End Method
+	
 	Method Delete()
 		If channelPtr Then
 			bmx_fmodchannel_delete(channelPtr)
@@ -1430,6 +1454,13 @@ Type TFMODChannelGroup
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddGroup:Int(group:TFMODChannelGroup)
+		Return FMOD_ChannelGroup_AddGroup(channelGroupPtr, group.channelGroupPtr)
+	End Method
 	
 	Rem
 	bbdoc: Retrieves the master volume level for the channel group. 

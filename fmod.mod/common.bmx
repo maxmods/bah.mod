@@ -40,6 +40,8 @@ Extern
 	Function bmx_FMOD_System_CreateStream:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, mode:Int, exInfo:Byte Ptr, ret:Int Ptr)
 	Function bmx_FMOD_System_CreateReverb:Byte Ptr(handle:Byte Ptr)
 	Function bmx_FMOD_System_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
+	Function bmx_FMOD_System_CreateChannelGroup:Byte Ptr(handle:Byte Ptr, s:Byte Ptr)
+	Function bmx_FMOD_System_GetMasterChannelGroup:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_fmodchannel_delete(handle:Byte Ptr)
 	Function bmx_FMOD_Channel_GetSpectrum:Int(handle:Byte Ptr, spectrumArray:Float[], channelOffset:Int, windowType:Int)
@@ -93,6 +95,8 @@ Extern
 	Function bmx_fmodtag_getname:Byte Ptr(handle:Byte Ptr)
 	Function bmx_fmodtag_getdatalength:Int(handle:Byte Ptr)
 	Function bmx_fmodtag_getupdated:Int(handle:Byte Ptr)
+
+	Function bmx_FMOD_ChannelGroup_GetChannel:Byte Ptr(handle:Byte Ptr, index:Int)
 
 End Extern
 
@@ -209,7 +213,9 @@ Extern
 		lfe:Float, backleft:Float, backright:Float, sideleft:Float, sideright:Float)
 	Function FMOD_ChannelGroup_OverrideVolume:Int(handle:Byte Ptr, volume:Float)
 	Function FMOD_ChannelGroup_Release:Int(handle:Byte Ptr)
-	Function bmx_FMOD_ChannelGroup_GetChannel:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function FMOD_ChannelGroup_AddGroup:Int(handle:Byte Ptr, group:Byte Ptr)
+
+	Function FMOD_Channel_SetChannelGroup:Int(handle:Byte Ptr, group:Byte Ptr)
 
 End Extern
 
