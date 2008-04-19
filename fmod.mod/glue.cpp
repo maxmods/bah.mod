@@ -76,6 +76,7 @@ extern "C" {
 	FMOD_RESULT bmx_FMOD_Channel_Get3DDopplerLevel(MAX_FMOD_CHANNEL *channel, float *level);
 	FMOD_RESULT bmx_FMOD_Channel_Get3DSpread(MAX_FMOD_CHANNEL *channel, float *angle);
 	FMOD_RESULT bmx_FMOD_Channel_Get3DPanLevel(MAX_FMOD_CHANNEL *channel, float *level);
+	FMOD_RESULT bmx_FMOD_Channel_SetChannelGroup(MAX_FMOD_CHANNEL *channel, FMOD_CHANNELGROUP * group);
 
 
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
@@ -268,7 +269,7 @@ FMOD_CHANNELGROUP * bmx_FMOD_System_CreateChannelGroup(FMOD_SYSTEM *system, cons
 	if (res) {
 		return 0;
 	}
-	
+
 	return group;
 }
 
@@ -423,6 +424,9 @@ FMOD_RESULT bmx_FMOD_Channel_Get3DPanLevel(MAX_FMOD_CHANNEL *channel, float *lev
     return FMOD_Channel_Get3DPanLevel(channel->channel, level);
 }
 
+FMOD_RESULT bmx_FMOD_Channel_SetChannelGroup(MAX_FMOD_CHANNEL *channel, FMOD_CHANNELGROUP * group) {
+	return FMOD_Channel_SetChannelGroup(channel->channel, group);
+}
 
 // ++++++++++++++++++++++++++++++++
 

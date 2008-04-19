@@ -753,6 +753,9 @@ bbdoc: An audio channel.
 End Rem
 Type TFMODChannel
 
+	' NOTE : Remember Channel uses a custom class, so all calls NEED to be filtered through
+	' the glue code ! ! ! !
+
 	Field channelPtr:Byte Ptr
 	
 	Function _create:TFMODChannel(channelPtr:Byte Ptr)
@@ -765,6 +768,7 @@ Type TFMODChannel
 
 	Rem
 	bbdoc: Retrieves the position and velocity of a 3d channel.  
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem
 	Method Get3DAttributes:Int(pos:TFMODVector, vel:TFMODVector)
 		Return bmx_FMOD_Channel_Get3DAttributes(channelPtr, Varptr pos, Varptr vel)
@@ -772,6 +776,7 @@ Type TFMODChannel
 
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DConeOrientation:Int(orientation:TFMODVector)
 		Return bmx_FMOD_Channel_Get3DConeOrientation(channelPtr, Varptr orientation)
@@ -779,18 +784,21 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DConeSettings:Int(insideConeAngle:Float Var, outsideConeAngle:Float Var, outsideVolume:Float Var)
 	End Method
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DCustomRollOff:Int(points:TFMODVector[])
 	End Method
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DDopplerLevel:Int(level:Float Var)
 		Return bmx_FMOD_Channel_Get3DDopplerLevel(channelPtr, Varptr level)
@@ -798,6 +806,7 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DMinMaxDistance:Int(minDistance:Float Var, maxDistance:Float Var)
 		Return bmx_FMOD_Channel_Get3DMinMaxDistance(channelPtr, Varptr minDistance, Varptr maxDistance)
@@ -805,13 +814,14 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DOcclusion:Int(directOcclusion:Float Var, reverbOcclusion:Float Var)
 		Return bmx_FMOD_Channel_Get3DOcclusion(channelPtr, Varptr directOcclusion, Varptr reverbOcclusion)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the current 3D mix level for the channel set by Channel::set3DPanLevel. 
+	bbdoc: Retrieves the current 3D mix level for the channel set by TFMODChannel.Set3DPanLevel. 
 	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DPanLevel:Int(level:Float Var)
@@ -819,7 +829,7 @@ Type TFMODChannel
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the stereo (and above) spread angle specified by Channel::set3DSpread.  
+	bbdoc: Retrieves the stereo (and above) spread angle specified by TFMODChannel.Set3DSpread.  
 	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DSpread:Int(angle:Float Var)
@@ -830,35 +840,66 @@ Type TFMODChannel
 	Rem
 	bbdoc: Returns the playing state for the current channel.  
 	returns: If the method succeeds then the return value is FMOD_OK.
-	about: 
+	about: Parameters: 
+	<ul>
+	<li><b>playing</b> : Variable that receives the current channel's playing status.
+	true = the channel is currently playing a sound. false = the channel is not playing a sound.  </li>
+	</ul>
 	End Rem
 	Method IsPlaying:Int(playing:Int Var)
 		Return bmx_FMOD_Channel_IsPlaying(channelPtr, Varptr playing)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the paused state of the channel.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>paused</b> : Variable that receives the current paused state. True = the sound is
+	paused. False = the sound is not paused.  </li>
+	</ul>
 	End Rem
 	Method GetPaused:Int(paused:Int Var)
 		Return bmx_FMOD_Channel_GetPaused(channelPtr, Varptr paused)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Stops the channel from playing.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Makes it available for re-use by the priority system. 
 	End Rem
 	Method Stop:Int()
 		Return bmx_FMOD_Channel_Stop:Int(channelPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the volume level for the channel. 
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>volume</b> : Variable to receive the channel volume level, from 0.0 to 1.0 inclusive.
+	0.0 = silent, 1.0 = full volume. Default = 1.0.</li>
+	</ul>
 	End Rem
 	Method GetVolume:Int(volume:Float Var)
 		Return bmx_FMOD_Channel_GetVolume(channelPtr, Varptr volume)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the volume for the channel linearly.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>volume</b> : A linear volume level, from 0.0 to 1.0 inclusive. 0.0 = silent,
+	1.0 = full volume. Default = 1.0. </li>
+	</ul>
+	<p>
+	When a sound is played, it plays at the default volume of the sound which can be set by
+	TFMODSound.SetDefaults.
+	</p>
+	<p>
+	For most file formats, the volume is determined by the audio format. 
+	</p>
 	End Rem
 	Method SetVolume:Int(volume:Float)
 		Return bmx_FMOD_Channel_SetVolume(channelPtr, volume)
@@ -867,49 +908,146 @@ Type TFMODChannel
 	Rem
 	bbdoc: Returns the frequency in HZ of the channel.
 	returns: If the method succeeds then the return value is FMOD_OK.
-	about: 
+	about: Parameters: 
+	<ul>
+	<li><b>frequency</b> : Variable that receives the current frequency of the channel in HZ.  </li>
+	</ul>
 	End Rem
 	Method GetFrequency:Int(frequency:Float Var)
 		Return bmx_FMOD_Channel_GetFrequency(channelPtr, Varptr frequency)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the channel's frequency or playback rate, in HZ.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>frequency</b> : A frequency value in HZ. This value can also be negative to play the
+	sound backwards (negative frequencies allowed with FMOD_SOFTWARE based non-stream sounds
+	only). DirectSound hardware voices have limited frequency range on some soundcards.</li>
+	</ul>
+	<p>
+	When a sound is played, it plays at the default frequency of the sound which can be set by
+	TFMODSound.SetDefaults.
+	</p>
+	<p>
+	For most file formats, the volume is determined by the audio format.
+	</p>
+	<h3>Frequency limitations for sounds created with FMOD_HARDWARE in DirectSound.</h3>
+	<p>
+	Every hardware device has a minimum and maximum frequency. This means setting the frequency
+	above the maximum and below the minimum will have no effect.
+	</p>
+	<p>
+	FMOD clamps frequencies to these values when playing back on hardware, so if you are
+	setting the frequency outside of this range, the frequency will stay at either the minimum
+	or maximum.
+	</p>
+	<p>
+	Note that FMOD_SOFTWARE based sounds do not have this limitation.
+	</p>
+	<p>
+	To find out the minimum and maximum value before initializing FMOD (maybe to decide whether to use a
+	different soundcard, output mode, or drop back fully to software mixing), you can use the
+	TFMODSystem.GetDriverCaps method. 
+	</p>
 	End Rem
 	Method SetFrequency:Int(frequency:Float)
 		Return bmx_FMOD_Channel_SetFrequency(channelPtr, frequency)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the internal channel index for a channel.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>index</b> : Variable to receive the channel index. This will be from 0 to the value specified in
+	TFMODSystem.Init minus 1.</li>
+	</ul>
+	<p>
+	Note that working with channel indicies directly is not recommended. It is recommended that you use
+	FMOD_CHANNEL_FREE for the index in TFMODSystem.PlaySound to use FMOD's channel manager. 
+	</p>
 	End Rem
 	Method GetIndex:Int(index:Int Var)
 		Return bmx_FMOD_Channel_GetIndex(channelPtr, Varptr index)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current loop count for the specified channel.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>loopCount</b> : Variable that receives the number of times a channel will loop before stopping.
+	0 = oneshot. 1 = loop once then stop. -1 = loop forever. Default = -1  </li>
+	</ul>
+	<p>
+	This function retrieves the <b>current</b> loop countdown value for the channel being played.
+	</p>
+	<p>
+	This means it will decrement until reaching 0, as it plays. To reset the value, use TFMODChannel.SetLoopCount.
+	</p>
 	End Rem
 	Method GetLoopCount:Int(loopCount:Int Var)
 		Return bmx_FMOD_Channel_GetLoopCount(channelPtr, Varptr loopCount)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the loop points for a channel. 
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>loopStart</b> : Variable to receive the loop start point. This point in time is played, so it is inclusive.</li>
+	<li><b>loopStartType</b> : The time format used for the returned loop start point. See FMOD_TIMEUNIT.</li>
+	<li><b>loopEnd</b> : Variable to receive the loop end point. This point in time is played, so it is inclusive.</li>
+	<li><b>loopEndType</b> : The time format used for the returned loop end point. See FMOD_TIMEUNIT.  </li>
+	</ul>
 	End Rem
 	Method GetLoopPoints:Int(loopStart:Int Var, loopStartType:Int, loopEnd:Int Var, loopEndType:Int)
 		Return bmx_FMOD_Channel_GetLoopPoints(channelPtr, Varptr loopStart, loopStartType, Varptr loopEnd, loopEndType)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current PCM offset or playback position for the specified channel.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>position</b> : Variable that receives the position of the sound. </li>
+	<li><b>posType</b> : Time unit to retrieve into the position parameter. See FMOD_TIMEUNIT.  </li>
+	</ul>
+	<p>
+	Certain timeunits do not work depending on the file format. For example FMOD_TIMEUNIT_MODORDER will not
+	work with an mp3 file.
+	</p>
+	<p>
+	A PCM sample is a unit of measurement in audio that contains the data for one audible element of sound.
+	1 sample might be 16bit stereo, so 1 sample contains 4 bytes. 44,100 samples of a 44khz sound would
+	represent 1 second of data. 
+	</p>
 	End Rem
 	Method GetPosition:Int(position:Int Var, posType:Int)
 		Return bmx_FMOD_Channel_GetPosition(channelPtr, Varptr position, posType)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current channel's status of whether it is virtual (emulated) or not due to FMOD Ex's virtual channel management system.  
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: Parameters: 
+	<ul>
+	<li><b>virtual</b> : variable that receives the current channel's virtual status. true = the channel is
+	inaudible and currently being emulated at no cpu cost. false = the channel is a real hardware or software
+	voice and should be audible. </li>
+	</ul>
+	<p>
+	Virtual channels are not audible, because there are no more real hardware or software channels available.
+	</p>
+	<p>
+	If you are plotting virtual voices vs real voices graphically, and wondering why FMOD sometimes chooses
+	seemingly random channels to be virtual that are usually far away, that is because they are probably
+	silent. It doesn't matter which are virtual and which are not if they are silent. Virtual voices are not
+	calculation on 'closest to listener' calculation, they are based on audibility. See the tutorial in the
+	FMOD Ex documentation for more information on virtual channels. 
+	</p>
 	End Rem
 	Method IsVirtual:Int(virtual:Int Var)
 		Return bmx_FMOD_Channel_IsVirtual(channelPtr, Varptr virtual)
@@ -963,6 +1101,7 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem
 	Method SetPaused:Int(paused:Int)
 		Return bmx_FMOD_Channel_SetPaused(channelPtr, paused)
@@ -970,6 +1109,7 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem
 	Method GetPan:Int(pan:Float Var)
 		Return bmx_FMOD_Channel_GetPan(channelPtr, Varptr pan)
@@ -977,16 +1117,19 @@ Type TFMODChannel
 	
 	Rem
 	bbdoc: 
+	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem
 	Method SetPan:Int(pan:Float)
 		Return bmx_FMOD_Channel_SetPan(channelPtr, pan)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets a channel to belong to a specified channel group.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: A channelgroup can contain many channels.
 	End Rem
 	Method SetChannelGroup:Int(group:TFMODChannelGroup)
-		Return FMOD_Channel_SetChannelGroup(channelPtr, group.channelGroupPtr)
+		Return bmx_FMOD_Channel_SetChannelGroup(channelPtr, group.channelGroupPtr)
 	End Method
 	
 	Method Delete()
@@ -1454,6 +1597,13 @@ Type TFMODChannelGroup
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method AddDSP:Int(dsp:TFMODDsp)
+		Return FMOD_ChannelGroup_AddDSP(channelGroupPtr, dsp.dspPtr, Null)
+	End Method
 	
 	Rem
 	bbdoc: 

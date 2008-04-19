@@ -71,7 +71,7 @@ Extern
 	Function bmx_FMOD_Channel_Get3DSpread:Int(handle:Byte Ptr, angle:Float Ptr)
 	Function bmx_FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
 	Function bmx_FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:Byte Ptr)
-
+	Function bmx_FMOD_Channel_SetChannelGroup:Int(handle:Byte Ptr, group:Byte Ptr)
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
@@ -214,8 +214,7 @@ Extern
 	Function FMOD_ChannelGroup_OverrideVolume:Int(handle:Byte Ptr, volume:Float)
 	Function FMOD_ChannelGroup_Release:Int(handle:Byte Ptr)
 	Function FMOD_ChannelGroup_AddGroup:Int(handle:Byte Ptr, group:Byte Ptr)
-
-	Function FMOD_Channel_SetChannelGroup:Int(handle:Byte Ptr, group:Byte Ptr)
+	Function FMOD_ChannelGroup_AddDSP:Int(handle:Byte Ptr, dsp:Byte Ptr, connection:Byte Ptr)
 
 End Extern
 
@@ -680,6 +679,9 @@ Const FMOD_DSP_SFXREVERB_ROOMLF:Int = 13             ' Room LF        : Room eff
 Const FMOD_DSP_SFXREVERB_LFREFERENCE:Int = 14        ' LF Reference   : Reference low-frequency in Hz.  Ranges from 20.0 to 1000.0. Default is 250.0.
 
 Const FMOD_DSP_LOWPASS_SIMPLE_CUTOFF:Int = 0     ' Lowpass cutoff frequency in hz.  10.0 to 22000.0.  Default = 5000.0
+
+Const FMOD_DSP_LOWPASS_CUTOFF:Int = 0    ' Lowpass cutoff frequency in hz.   10.0 to 22000.0.  Default = 5000.0.
+Const FMOD_DSP_LOWPASS_RESONANCE:Int = 1 ' Lowpass resonance Q value. 1.0 to 10.0.  Default = 1.0.
 
 Const FMOD_SOUND_FORMAT_NONE:Int = 0
 Const FMOD_SOUND_FORMAT_PCM8:Int = 1
