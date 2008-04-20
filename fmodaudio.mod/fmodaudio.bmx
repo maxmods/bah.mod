@@ -146,9 +146,32 @@ Type TFMODSoundSound Extends TSound
 		loop_flag:& ~ 3 ' trim off the above flags
 		flags:| loop_flag ' apply any FMOD specific flags
 
+		Local this:TFMODSoundSound = New TFMODSoundSound
+
 		If String(url) Then
-			Local this:TFMODSoundSound = New TFMODSoundSound
-			this._sound = _driver._system.CreateSoundURL(String(url), flags)
+			Local s:String = String(url)
+			
+			Local i:Int = s.Find( "::",0 )
+			' a "normal" url?
+			If i = -1 Then
+				this._sound = _driver._system.CreateSoundURL(s, flags)
+			Else
+				Local proto:String = s[..i].ToLower()
+				Local path:String = s[i+2..]
+				
+				If proto = "incbin" Then
+					Local buf:Byte Ptr = IncbinPtr( path )
+					If Not buf Then
+						Return Null
+					End If
+					
+					Local exinfo:TFMODCreateSoundExInfo = New TFMODCreateSoundExInfo
+					exinfo.SetLength(IncbinLen( path ))
+
+					this._sound = _driver._system.CreateSoundPtr(buf, flags | FMOD_OPENMEMORY, exinfo)
+				End If
+			End If
+		
 			Return this
 		End If
 	End Function
