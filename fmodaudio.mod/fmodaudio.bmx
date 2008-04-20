@@ -83,8 +83,8 @@ Type TFMODAudioDriver Extends TAudioDriver
 		Return TFMODSoundSound.Load(url, flags)
 	End Method
 
-	Method AllocChannel:TChannel() 
-		Return New TChannel
+	Method AllocChannel:TChannel()
+		Return New TFMODSoundChannel
 	End Method
 
 	Function timerCallback:Object( id:Int, data:Object, context:Object )
@@ -104,15 +104,29 @@ Type TFMODSoundSound Extends TSound
 	Field _sound:TFMODSound
 
 	Method Play:TChannel( alloced_channel:TChannel=Null )
-		If Not alloced_channel Then
-			Local channel:TFMODChannel = _driver._system.PlaySound(FMOD_CHANNEL_FREE, _sound)
-			Return New TFMODSoundChannel.Create(channel)
-		End If
+		Return StartSound(alloced_channel, False)
 	End Method
 	
 	Method Cue:TChannel( alloced_channel:TChannel=Null )
-		' TODO : implement me
-		Return New TChannel
+		Return StartSound(alloced_channel, True)
+	End Method
+	
+	Method StartSound:TChannel(alloced_channel:TChannel=Null, pause:Int = False)
+		If Not alloced_channel Then
+			Local channel:TFMODChannel = _driver._system.PlaySound(FMOD_CHANNEL_FREE, _sound, pause)
+			Return New TFMODSoundChannel.Create(channel)
+		Else
+			Local chan:TFMODSoundChannel = TFMODSoundChannel(alloced_channel)
+			If chan Then
+				If Not chan._channel Then
+					Local channel:TFMODChannel = _driver._system.PlaySound(FMOD_CHANNEL_FREE, _sound, pause)
+					Return chan.Create(channel)
+				Else
+					Local channel:TFMODChannel = _driver._system.PlaySound(FMOD_CHANNEL_FREE, _sound, pause, chan._channel)
+					Return chan.Create(channel)
+				End If
+			End If
+		End If
 	End Method
 	
 	Function Load:TSound( url:Object,loop_flag:Int )
@@ -128,6 +142,9 @@ Type TFMODSoundSound Extends TSound
 		Else
 			flags:| FMOD_SOFTWARE
 		End If
+		
+		loop_flag:& ~ 3 ' trim off the above flags
+		flags:| loop_flag ' apply any FMOD specific flags
 
 		If String(url) Then
 			Local this:TFMODSoundSound = New TFMODSoundSound
@@ -150,6 +167,7 @@ Type TFMODSoundChannel Extends TChannel
 	Method Create:TFMODSoundChannel(channel:TFMODChannel)
 		_channel = channel
 		channel.GetFrequency(_freq)
+		Return Self
 	End Method
 
 	Method Stop()

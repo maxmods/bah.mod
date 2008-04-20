@@ -1,5 +1,5 @@
 '
-' Play some audio !
+' Cue the music !
 '
 SuperStrict
 
@@ -17,7 +17,13 @@ SetAudioDriver("FMOD")
 
 Local sound:TSound = LoadSound("../../fmod.mod/examples/media/drumloop.wav")
 
-PlaySound(sound)
+Local channel:TChannel = CueSound(sound)
+
+ ' wait a while
+Delay(500)
+
+' start playing !
+ResumeChannel(channel)
 
 Local i:Int
 
