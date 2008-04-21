@@ -1,0 +1,29 @@
+<a href="http://www.boost.org/"><img src="datetime_logo.png" align="right" border="0"></a>
+<p>
+This Blitzmax DateTime module utilizes the <a href="http://www.boost.org/">BOOST</a> C++ library datetime functions to provide an extensive set of date and time features.
+</p>
+<p>
+The module allows for control and maipulation of dates, times, periods, durations, time zones and the localization of month and weekday names (both for long and short formats).
+</p>
+<h3>Requirements</h3>
+<p>
+The DateTime module requires the <b>BaH.Boost</b> module, which should be available from the same place you found this.
+</p>
+<h3>Dates</h3>
+<p>
+Dates are based on the Gregorian calendar using a "proleptic" system, which extends dates back prior to the Gregorian Calendar's first adoption in 1582. The current implementation supports dates in the range 1400-Jan-01 to 9999-Dec-31. Many references will represent dates prior to 1582 using the Julian Calendar, so caution is in order if accurate calculations are required on historic dates. 
+</p>
+<p>Types for date processing include <a href="#TDate">TDate</a>, <a href="#TPartialDate">TPartialDate</a>, <a href="#TDatePeriod">TDatePeriod</a> and the abstract <a href="#TDateIterator">TDateIterator</a> (of which <a href="#TDateDayIterator">TDateDayIterator</a>, <a href="#TDateMonthIterator">TDateMonthIterator</a> and <a href="#TDateYearIterator">TDateYearIterator</a> are the implementations).
+</p>
+<p>Examples of usage include :</p>
+<table width="90%" align="center">
+<tr><th>Example</th><th>Description</th></tr>
+<tr><td nowrap><a href="../examples/days_alive.bmx">Days Alive</a><br>
+<a href="../examples/days_between_new_years.bmx">Days Between New Years</a></td><td>Simple date arithmetic. Retrieve current day from clock.</td></tr>
+<tr><td><a href="../examples/print_month.bmx">Print a month</a></td><td>Small utility which prints out all the days in a month from command line. Need to know if 1999-Jan-1 was a Friday or a Saturday? This program shows how to do it.</td></tr>
+<tr><td><a href="../examples/holidays.bmx">Print Holidays</a></td><td>Uses date generators to convert abstract specification into concrete set of dates.</td></tr>
+</table>
+<h3>Times</h3>
+<p>
+
+</p>
