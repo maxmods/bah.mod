@@ -154,15 +154,21 @@ Type TISoundEngine
 	Rem
 	bbdoc: 
 	End Rem
-	Method Play3D:TISound(soundFileName:String, pos:TVec3D, playLooped:Int = False, startPaused:Int = False, ..
+	Method Play3D:TISound(soundFileName:String, pos:TIVec3D, playLooped:Int = False, startPaused:Int = False, ..
 			track:Int = False, streamMode:Int = ESM_AUTO_DETECT, enableSoundEffects:Int = False)
-		
+		Assert pos, "Please provide a position vector"
+			
+		Local s:Byte Ptr = soundfileName.ToCString()
+		Local sound:Byte Ptr = bmx_soundengine_play3d(refPtr, s, pos.vecPtr, playLooped, startPaused, track, streamMode, enableSoundEffects)
+		MemFree(s)
+
+		Return TISound._create(sound)
 	End Method
 
 	Rem
 	bbdoc: 
 	End Rem
-	Method Play3DSource:TISound(source:TISoundSource, pos:TVec3D, playLooped:Int = False, startPaused:Int = False, ..
+	Method Play3DSource:TISound(source:TISoundSource, pos:TIVec3D, playLooped:Int = False, startPaused:Int = False, ..
 			track:Int = False, enableSoundEffects:Int = False)
 		
 	End Method
@@ -219,7 +225,20 @@ Type TISoundEngine
 	\param upvector Vector pointing 'up', so the engine can decide where is left and right. 
 	This vector is usually (0,1,0).*/
 	End Rem
-	Method SetListenerPosition(pos:TVec3D, lookDir:TVec3D, velPerSecond:TVec3D = Null, upVector:TVec3D = Null)
+	Method SetListenerPosition(pos:TIVec3D, lookDir:TIVec3D, velPerSecond:TIVec3D = Null, upVector:TIVec3D = Null)
+		If velPerSecond Then
+			If upVector Then
+				bmx_soundengine_setlistenerposition(refPtr, pos.vecPtr, lookDir.vecPtr, velPerSecond.vecPtr, upVector.vecPtr)
+			Else
+				bmx_soundengine_setlistenerposition(refPtr, pos.vecPtr, lookDir.vecPtr, velPerSecond.vecPtr, Null)
+			End If
+		Else
+			If upVector Then
+				bmx_soundengine_setlistenerposition(refPtr, pos.vecPtr, lookDir.vecPtr, Null, upVector.vecPtr)
+			Else
+				bmx_soundengine_setlistenerposition(refPtr, pos.vecPtr, lookDir.vecPtr, Null, Null)
+			End If
+		End If
 	End Method
 
 	Rem
@@ -491,13 +510,14 @@ Type TISound
 	Rem
 	sets the position of the sound in 3d space
 	end rem
-	Method SetPosition(position:TVec3D)
+	Method SetPosition(position:TIVec3D)
+		bmx_sound_setposition(soundPtr, position.vecPtr)
 	End Method
 
 	Rem
 	returns the position of the sound in 3d space
 	end rem
-	Method GetPosition:TVec3D()
+	Method GetPosition:TIVec3D()
 	End Method
 
 	Rem
@@ -507,7 +527,7 @@ Type TISound
 	ISoundEngine::setDopplerEffectParameters() to adjust two parameters influencing 
 	the doppler effects intensity.
 	End Rem
-	Method SetVelocity(vel:TVec3D)
+	Method SetVelocity(vel:TIVec3D)
 	End Method
 
 	Rem
@@ -517,7 +537,7 @@ Type TISound
 	ISoundEngine::setDopplerEffectParameters() to adjust two parameters influencing 
 	the doppler effects intensity.
 	End Rem
-	Method GetVelocity:TVec3D()
+	Method GetVelocity:TIVec3D()
 	End Method
 
 	Rem
@@ -837,7 +857,50 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TVec3D
+Type TIVec3D
+
+	Field vecPtr:Byte Ptr
+	
+	Function _create:TIVec3D(vecPtr:Byte Ptr)
+		If vecPtr Then
+			Local this:TIVec3D = New TIVec3D
+			this.vecPtr = vecPtr
+			Return this
+		End If
+	End Function
+	
+	Function CreateVec3D:TIVec3D(x:Float = 0.0, y:Float = 0.0, z:Float = 0.0)
+		Return New TIVec3D.Create(x, y, z)
+	End Function
+	
+	Method Create:TIVec3D(_x:Float = 0.0, _y:Float = 0.0, _z:Float = 0.0)
+		vecPtr = bmx_vec3df_create(_x, _y, _z)
+		Return Self
+	End Method
+
+	Method Delete()
+		If vecPtr Then
+			bmx_vec3df_delete(vecPtr)
+			vecPtr = Null
+		End If
+	End Method
+	
+	Function Zero:TIVec3D()
+		Return New TIVec3D.Create()
+	End Function
+	
+	Method X:Float()
+		Return bmx_vec3df_x(vecPtr)
+	End Method
+	
+	Method Y:Float()
+		Return bmx_vec3df_y(vecPtr)
+	End Method
+	
+	Method Z:Float()
+		Return bmx_vec3df_z(vecPtr)
+	End Method
+	
 End Type
 
 Rem
@@ -855,6 +918,5 @@ Type TAudioStreamFormat
 		End If
 	End Function
 
-	
 End Type
 

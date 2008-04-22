@@ -23,6 +23,7 @@
 #include <irrKlang.h>
 
 class MaxSAudioStreamFormat;
+class Maxvec3df;
 
 extern "C" {
 
@@ -47,6 +48,9 @@ extern "C" {
 	irrklang::ISoundSource* bmx_soundengine_addsoundsourcefrommemory(irrklang::ISoundEngine* engine, void * memory, irrklang::ik_s32 sizeInBytes, const irrklang::ik_c8 * name, bool copyMemory);
 	irrklang::ISound* bmx_soundengine_play2dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source,
 		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects);
+	irrklang::ISound* bmx_soundengine_play3d(irrklang::ISoundEngine* engine, const char *  soundFileName, Maxvec3df * pos,
+		bool  playLooped, bool  startPaused, bool  track, irrklang::E_STREAM_MODE  streamMode, bool  enableSoundEffects);
+	void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3df * pos, Maxvec3df * lookDir, Maxvec3df * velPerSecond, Maxvec3df * upVector);
 
 	void bmx_sound_setispaused(irrklang::ISound * sound, bool paused);
 	bool bmx_sound_getispaused(irrklang::ISound * sound);
@@ -69,6 +73,7 @@ extern "C" {
 	irrklang::ik_u32 bmx_sound_getplaylength(irrklang::ISound * sound);
 	irrklang::ISoundEffectControl * bmx_sound_getsoundeffectcontrol(irrklang::ISound * sound);
 	void bmx_sound_drop(irrklang::ISound * sound);
+	void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position);
 
 	const irrklang::ik_c8 * bmx_soundsource_getname(irrklang::ISoundSource * source);
 	void bmx_soundsource_setstreammode(irrklang::ISoundSource * source, irrklang::E_STREAM_MODE mode);
@@ -86,6 +91,12 @@ extern "C" {
 	void bmx_soundsource_setforcedstreamingthreshold(irrklang::ISoundSource * source, irrklang::ik_s32 thresholdBytes);
 	irrklang::ik_s32 bmx_soundsource_getforcedstreamingthreshold(irrklang::ISoundSource * source);
 
+	Maxvec3df * bmx_vec3df_create(irrklang::ik_f32 x, irrklang::ik_f32 y, irrklang::ik_f32 z);
+	void bmx_vec3df_delete(Maxvec3df * vec);
+	irrklang::ik_f32 bmx_vec3df_x(Maxvec3df * vec);
+	irrklang::ik_f32 bmx_vec3df_y(Maxvec3df * vec);
+	irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec);
+
 }
 
 
@@ -100,6 +111,16 @@ public:
 	irrklang::SAudioStreamFormat format;
 };
 
+class Maxvec3df
+{
+public:
+	Maxvec3df(irrklang::vec3df v)
+		: vec(v)
+	{
+	}
+	
+	irrklang::vec3df vec;
+};
 
 // *****************************************************
 
@@ -180,6 +201,17 @@ irrklang::ISoundSource* bmx_soundengine_addsoundsourcefrommemory(irrklang::ISoun
 irrklang::ISound* bmx_soundengine_play2dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source,
 		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects) {
 	return engine->play2D(source, playLooped, startPaused, track, enableSoundEffects);
+}
+
+irrklang::ISound* bmx_soundengine_play3d(irrklang::ISoundEngine* engine, const char *  soundFileName, Maxvec3df * pos, bool playLooped,
+		bool  startPaused, bool track, irrklang::E_STREAM_MODE  streamMode, bool  enableSoundEffects) {
+
+	return engine->play3D(soundFileName, pos->vec, playLooped, startPaused, track, streamMode, enableSoundEffects);
+}
+
+void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3df * pos, Maxvec3df * lookDir, Maxvec3df * velPerSecond, Maxvec3df * upVector) {
+	engine->setListenerPosition(pos->vec, lookDir->vec, (velPerSecond) ? velPerSecond->vec : irrklang::vec3df(0,0,0),
+		(upVector) ? upVector->vec : irrklang::vec3df(0,1,0));
 }
 
 // *****************************************************
@@ -268,6 +300,9 @@ void bmx_sound_drop(irrklang::ISound * sound) {
 	sound->drop();
 }
 
+void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position) {
+	sound->setPosition(position->vec);
+}
 
 // *****************************************************
 
@@ -329,5 +364,29 @@ void bmx_soundsource_setforcedstreamingthreshold(irrklang::ISoundSource * source
 
 irrklang::ik_s32 bmx_soundsource_getforcedstreamingthreshold(irrklang::ISoundSource * source) {
 	return source->getForcedStreamingForceThreshold ();
+}
+
+// *****************************************************
+
+
+Maxvec3df * bmx_vec3df_create(irrklang::ik_f32 x, irrklang::ik_f32 y, irrklang::ik_f32 z) {
+	irrklang::vec3df pos(x, y, z);
+	return new Maxvec3df(pos);
+}
+
+void bmx_vec3df_delete(Maxvec3df * vec) {
+	delete vec;
+}
+
+irrklang::ik_f32 bmx_vec3df_x(Maxvec3df * vec) {
+	return vec->vec.X;
+}
+
+irrklang::ik_f32 bmx_vec3df_y(Maxvec3df * vec) {
+	return vec->vec.Y;
+}
+
+irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec) {
+	return vec->vec.Z;
 }
 
