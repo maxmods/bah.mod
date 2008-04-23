@@ -144,7 +144,8 @@ Type TISoundEngine
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Plays a sound source as 2D sound with its default settings stored in TISoundSource. 
+	returns: A TISound object only if the parameters 'track', 'startPaused' or 'enableSoundEffects' have been set to true.
 	End Rem
 	Method Play2DSource:TISound(source:TISoundSource, playLooped:Int = False, startPaused:Int = False, ..
 			track:Int = False, enableSoundEffects:Int = False)
@@ -170,7 +171,7 @@ Type TISoundEngine
 	End Rem
 	Method Play3DSource:TISound(source:TISoundSource, pos:TIVec3D, playLooped:Int = False, startPaused:Int = False, ..
 			track:Int = False, enableSoundEffects:Int = False)
-		
+		Return TISound._create(bmx_soundengine_play3dsource(refPtr, source.soundSourcePtr, pos.vecPtr, playLooped, startPaused, track, enableSoundEffects))
 	End Method
 
 	Rem
@@ -199,23 +200,23 @@ Type TISoundEngine
 
 	Rem
 	bbdoc: Sets master sound volume. This value is multiplied with all sounds played.
-	/** \param volume 0 (silent) to 1.0f (full volume)
+	about: \param volume 0 (silent) to 1.0f (full volume)
 	End Rem
 	Method SetSoundVolume(volume:Float)
 		bmx_soundengine_setsoundvolume(refPtr, volume)
 	End Method
 
 	Rem
-	Returns master sound volume.
-	/* A value between 0.0 and 1.0. Default is 1.0. Can be changed using setSoundVolume().
+	bbdoc: Returns master sound volume.
+	about: A value between 0.0 and 1.0. Default is 1.0. Can be changed using setSoundVolume().
 	End Rem
 	Method GetSoundVolume:Float()
 		Return bmx_soundengine_getsoundvolume(refPtr)
 	End Method
 
 	Rem
-	Sets the current listener 3d position.
-	/** When playing sounds in 3D, updating the position of the listener every frame should be
+	bbdoc: Sets the current listener 3d position.
+	about: When playing sounds in 3D, updating the position of the listener every frame should be
 	done using this function.
 	\param pos Position of the camera or listener.
 	\param lookdir Direction vector where the camera or listener is looking into. If you have a 
@@ -242,8 +243,9 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	Updates the audio engine. This should be called several times per frame if irrKlang was started in single thread mode.
-	/** This updates the 3d positions of the sounds as well as their volumes, effects,
+	bbdoc: Updates the audio engine.
+	about: This should be called several times per frame if irrKlang was started in single thread mode.
+	This updates the 3d positions of the sounds as well as their volumes, effects,
 	streams and other stuff. Call this several times per frame (the more the better) if you
 	specified irrKlang to run single threaded. Otherwise it is not necessary to use this method.
 	This method is being called by the scene manager automaticly if you are using one, so
@@ -259,8 +261,6 @@ Type TISoundEngine
 	Method IsCurrentlyPlaying:Int(soundName:String)
 	End Method
 
-	
-
 	Rem
 	bbdoc: Returns if a sound with the specified source is currently playing.
 	End Rem
@@ -268,8 +268,8 @@ Type TISoundEngine
 	End Method
 	
 	Rem
-	 Sets the default minimal distance for 3D sounds.
-	/**  This value influences how loud a sound is heard based on its distance.
+	bbdoc: Sets the default minimal distance for 3D sounds.
+	about: This value influences how loud a sound is heard based on its distance.
 	See ISound::setMinDistance() for details about what the min distance is.
 	It is also possible to influence this default value for every sound file 
 	using ISoundSource::setDefaultMinDistance().
@@ -282,8 +282,8 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	 Returns the default minimal distance for 3D sounds.
-	/**  This value influences how loud a sound is heard based on its distance.
+	bbdoc: Returns the default minimal distance for 3D sounds.
+	about: This value influences how loud a sound is heard based on its distance.
 	You can change it using setDefault3DSoundMinDistance().
 	See ISound::setMinDistance() for details about what the min distance is.
 	It is also possible to influence this default value for every sound file 
@@ -295,8 +295,8 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	 Sets the default maximal distance for 3D sounds.
-	/** Changing this value is usually not necessary. Use setDefault3DSoundMinDistance() instead.
+	bbdoc: Sets the default maximal distance for 3D sounds.
+	about: Changing this value is usually not necessary. Use setDefault3DSoundMinDistance() instead.
 	Don't change this value if you don't know what you are doing: This value causes the sound
 	to stop attenuating after it reaches the max distance. Most people think that this sets the
 	volume of the sound to 0 after this distance, but this is not true. Only change the
@@ -313,8 +313,8 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	 Returns the default maximal distance for 3D sounds.
-	/**  This value influences how loud a sound is heard based on its distance.
+	bbdoc: Returns the default maximal distance for 3D sounds.
+	about: This value influences how loud a sound is heard based on its distance.
 	You can change it using setDefault3DSoundmaxDistance(), but 
 	changing this value is usually not necessary. This value causes the sound
 	to stop attenuating after it reaches the max distance. Most people think that this sets the
@@ -330,8 +330,8 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	 Sets a rolloff factor which influences the amount of attenuation that is applied to 3D sounds.
-	/** The rolloff factor can range from 0.0 to 10.0, where 0 is no rolloff. 1.0 is the default 
+	bbdoc: Sets a rolloff factor which influences the amount of attenuation that is applied to 3D sounds.
+	about: The rolloff factor can range from 0.0 to 10.0, where 0 is no rolloff. 1.0 is the default 
 	rolloff factor set, the value which we also experience in the real world. A value of 2 would mean
 	twice the real-world rolloff.
 	End Rem
@@ -340,8 +340,8 @@ Type TISoundEngine
 	End Method
 
 	Rem
-	 Sets parameters affecting the doppler effect.
-	/** \param dopplerFactor is a value between 0 and 10 which multiplies the doppler 
+	bbdoc: Sets parameters affecting the doppler effect.
+	about: \param dopplerFactor is a value between 0 and 10 which multiplies the doppler 
 	effect. Default value is 1.0, which is the real world doppler effect, and 10.0f 
 	would be ten times the real world doppler effect.
 	\param distanceFactor is the number of meters in a vector unit. The default value
@@ -375,22 +375,22 @@ Type TISound
 	End Function
 
 	Rem
-	returns if the sound is paused
+	bbdoc: Sets the paused status of the sound.
 	End Rem
-	Method SetIsPaused(paused:Int = True)
+	Method SetPaused(paused:Int = True)
 		bmx_sound_setispaused(soundPtr, paused)
 	End Method
 
 	Rem
-	returns if the sound is paused
-	end rem
-	Method GetIsPaused:Int()
+	bbdoc: returns if the sound is paused
+	End Rem
+	Method IsPaused:Int()
 		Return bmx_sound_getispaused(soundPtr)
 	End Method
 
 	Rem
-	Will stop the sound and free its resources.
-	/** If you just want to pause the sound, use setIsPaused().
+	bbdoc: Will stop the sound and free its resources.
+	about: If you just want to pause the sound, use setIsPaused().
 	After calling stop(), isFinished() will usually return true.
 	End Rem
 	Method Stop()
@@ -398,8 +398,8 @@ Type TISound
 	End Method
 
 	Rem
-	returns volume of the sound, a value between 0 (mute) and 1 (full volume).
-	/** (this volume gets multiplied with the master volume of the sound engine
+	bbdoc: Returns volume of the sound, a value between 0 (mute) and 1 (full volume).
+	about: (this volume gets multiplied with the master volume of the sound engine
 	and other parameters like distance to listener when played as 3d sound) 
 	End Rem
 	Method GetVolume:Float()
@@ -407,8 +407,8 @@ Type TISound
 	End Method
 
 	Rem
-	sets the volume of the sound, a value between 0 (mute) and 1 (full volume).
-	/** This volume gets multiplied with the master volume of the sound engine
+	bbdoc: Sets the volume of the sound, a value between 0 (mute) and 1 (full volume).
+	about: This volume gets multiplied with the master volume of the sound engine
 	and other parameters like distance to listener when played as 3d sound. 
 	End Rem
 	Method SetVolume(volume:Float)
@@ -416,41 +416,55 @@ Type TISound
 	End Method
 
 	Rem
-	sets the pan of the sound. Takes a value between -1 and 1, 0 is center.
-	end rem
+	bbdoc: Sets the pan of the sound.
+	about: Parameters: 
+	<ul>
+	<li><b>pan</b> : A value between -1 and 1, 0 is center.</li>
+	</ul>
+	End Rem
 	Method SetPan(pan:Float)
 		bmx_sound_setpan(soundPtr, pan)
 	End Method
 
 	Rem
-	returns the pan of the sound. Takes a value between -1 and 1, 0 is center.
-	end rem
+	bbdoc: Returns the pan of the sound.
+	about: A value between -1 and 1, 0 is center.
+	End Rem
 	Method GetPan:Float()
 		Return bmx_sound_getpan(soundPtr)
 	End Method
 
 	Rem
-	returns if the sound has been started to play looped
-	end rem
+	bbdoc: Returns True if the sound has been started to play looped.
+	End Rem
 	Method IsLooped:Int()
 		Return bmx_sound_islooped(soundPtr)
 	End Method
 
 	Rem
-	changes the loop mode of the sound. 
-	/** If the sound is playing looped and it is changed to not-looped, then it 
-	will stop playing after the loop has finished. 
-	If it is not looped and changed to looped, the sound will start repeating to be 
-	played when it reaches its end. 
+	bbdoc: Changes the loop mode of the sound. 
+	about: Parameters: 
+	<ul>
+	<li><b>looped</b> : The looping status. Set to False not to loop.</li>
+	</ul>
+	<p>
+	If the sound is playing looped and it is changed to not-looped, then it will stop playing after the
+	loop has finished.
+	</p>
+	<p>
+	If it is not looped and changed to looped, the sound will start repeating to be played when it reaches its end. 
+	</p>
+	<p>
 	Invoking this method will not have an effect when the sound already has stopped.
+	</p>
 	End Rem
 	Method SetIsLooped(looped:Int)
 		bmx_sound_setislooped(soundPtr, looped)
 	End Method
 
 	Rem
-	returns if the sound has finished playing.
-	/** Don't mix this up with isPaused(). isFinished() returns if the sound has been
+	bbdoc: Returns if the sound has finished playing.
+	about: Don't mix this up with isPaused(). isFinished() returns if the sound has been
 	finished playing. If it has, is maybe already have been removed from the playing list of the
 	sound engine and calls to any other of the methods of ISound will not have any result.
 	If you call stop() to a playing sound will result that this function will return true
@@ -461,8 +475,8 @@ Type TISound
 	End Method
 
 	Rem
-	Sets the minimal distance if this is a 3D sound.
-	/** Changes the distance at which the 3D sound stops getting louder. This works
+	bbdoc: Sets the minimal distance if this is a 3D sound.
+	about: Changes the distance at which the 3D sound stops getting louder. This works
 	like this: As a listener approaches a 3D sound source, the sound gets louder.
 	Past a certain point, it is not reasonable for the volume to continue to increase.
 	Either the maximum (zero) has been reached, or the nature of the sound source
@@ -476,16 +490,16 @@ Type TISound
 	End Method
 
 	Rem
-	Returns the minimal distance if this is a 3D sound.
-	/** See setMinDistance() for details.
+	bbdoc: Returns the minimal distance if this is a 3D sound.
+	about: See SetMinDistance() for details.
 	End Rem
 	Method GetMinDistance:Float()
 		Return bmx_sound_getmindistance(soundPtr)
 	End Method
 
 	Rem
-	Sets the maximal distance if this is a 3D sound.
-	/** Changing this value is usually not necessary. Use setMinDistance() instead.
+	bbdoc: Sets the maximal distance if this is a 3D sound.
+	about: Changing this value is usually not necessary. Use setMinDistance() instead.
 	Don't change this value if you don't know what you are doing: This value causes the sound
 	to stop attenuating after it reaches the max distance. Most people think that this sets the
 	volume of the sound to 0 after this distance, but this is not true. Only change the
@@ -498,31 +512,29 @@ Type TISound
 	End Method
 
 	Rem
-	Returns the maximal distance if this is a 3D sound.
-	/** See setMaxDistance() for details.
+	bbdoc: Returns the maximal distance if this is a 3D sound.
+	about: See setMaxDistance() for details.
 	End Rem
 	Method GetMaxDistance:Float()
 		Return bmx_sound_getmaxdistance(soundPtr)
 	End Method
 
-	
-
 	Rem
-	sets the position of the sound in 3d space
-	end rem
+	bbdoc: Sets the position of the sound in 3d space
+	End Rem
 	Method SetPosition(position:TIVec3D)
 		bmx_sound_setposition(soundPtr, position.vecPtr)
 	End Method
 
 	Rem
-	returns the position of the sound in 3d space
-	end rem
+	bbdoc: Returns the position of the sound in 3d space
+	End Rem
 	Method GetPosition:TIVec3D()
 	End Method
 
 	Rem
-	sets the position of the sound in 3d space, needed for Doppler effects.
-	/** To use doppler effects use ISound::setVelocity to set a sounds velocity, 
+	bbdoc: Sets the position of the sound in 3d space, needed for Doppler effects.
+	about: To use doppler effects use ISound::setVelocity to set a sounds velocity, 
 	ISoundEngine::setListenerPosition() to set the listeners velocity and 
 	ISoundEngine::setDopplerEffectParameters() to adjust two parameters influencing 
 	the doppler effects intensity.
@@ -531,8 +543,8 @@ Type TISound
 	End Method
 
 	Rem
-	returns the velocity of the sound in 3d space, needed for Doppler effects.
-	/** To use doppler effects use ISound::setVelocity to set a sounds velocity, 
+	bbdoc: Returns the velocity of the sound in 3d space, needed for Doppler effects.
+	about: To use doppler effects use ISound::setVelocity to set a sounds velocity, 
 	ISoundEngine::setListenerPosition() to set the listeners velocity and 
 	ISoundEngine::setDopplerEffectParameters() to adjust two parameters influencing 
 	the doppler effects intensity.
@@ -541,29 +553,30 @@ Type TISound
 	End Method
 
 	Rem
-	returns the current play position of the sound in milliseconds.
-	/** \return Returns -1 if not implemented or possible for this sound for example
+	bbdoc: Returns the current play position of the sound in milliseconds.
+	about: \return Returns -1 if not implemented or possible for this sound for example
 	because it already has been stopped and freed internally or similar.
 	End Rem
 	Method GetPlayPosition:Int()
 		Return bmx_sound_getplayposition(soundPtr)
 	End Method
 	
-	Rem sets the current play position of the sound in milliseconds.
-	/** \param pos Position in milliseconds. Must be between 0 and the value returned
+	Rem
+	bbdoc:sets the current play position of the sound in milliseconds.
+	about: \param pos Position in milliseconds. Must be between 0 And the value returned
 	by getPlayPosition().
-	\return Returns true successful. False is returned for example if the sound already finished
-	playing and is stopped or the audio source is not seekable, for example if it 
-	is an internet stream or a a file format not supporting seeking (a .MOD file for example).
-	A file can be tested if it can bee seeking using ISoundSource::getIsSeekingSupported().
+	\Return Returns True successful. False is returned For example If the sound already finished
+	playing And is stopped Or the audio source is Not seekable, For example If it 
+	is an internet stream Or a a file format Not supporting seeking (a .Mod file For example).
+	A file can be tested If it can bee seeking using ISoundSource::getIsSeekingSupported().
 	End Rem
 	Method SetPlayPosition:Int(pos:Int)
 		Return bmx_sound_setplayposition(soundPtr, pos)
 	End Method
 
 	Rem
-	Sets the playback speed (frequency) of the sound.
-	/** Plays the sound at a higher or lower speed, increasing or decreasing its
+	bbdoc: Sets the playback speed (frequency) of the sound.
+	about: /** Plays the sound at a higher or lower speed, increasing or decreasing its
 	frequency which makes it sound lower or higher.
 	Note that this feature is not available on all sound output drivers (it is on the
 	DirectSound drivers at least), and it does not work together with the 
@@ -580,16 +593,16 @@ Type TISound
 	End Method
 
 	Rem
-	Returns the playback speed set by setPlaybackSpeed(). Default: 1.0f.
-	/** See setPlaybackSpeed() for details
+	bbdoc: Returns the playback speed set by setPlaybackSpeed(). Default: 1.0f.
+	about: See setPlaybackSpeed() for details
 	End Rem
 	Method GetPlaybackSpeed:Float()
 		Return bmx_sound_getplaybackspeed(soundPtr)
 	End Method
 
 	Rem
-	returns the play length of the sound in milliseconds.
-	/** Returns -1 if not known for this sound for example because its decoder
+	bbdoc: Returns the play length of the sound in milliseconds.
+	about: Returns -1 if not known for this sound for example because its decoder
 	does not support length reporting or it is a file stream of unknown size.
 	Note: You can also use ISoundSource::getPlayLength() to get the length of 
 	a sound without actually needing to play it.
@@ -618,6 +631,15 @@ Type TISound
 	End Rem
 	Method Drop()
 		bmx_sound_drop(soundPtr)
+	End Method
+	
+	' we kind of need to ensure that the sound is dropped once we go out of scope - just in case
+	' the user forgot to drop us.
+	Method Delete()
+		If soundPtr Then
+			Drop()
+			soundPtr = Null
+		End If
 	End Method
 	
 End Type
@@ -715,7 +737,7 @@ Type TISoundSource
 	
 	Rem
 	bbdoc: Returns the default volume for a sound played from this source.
-	/** You can influence this default volume value using setDefaultVolume().
+	about: You can influence this default volume value using setDefaultVolume().
 	Note that the default volume is being multiplied with the master volume
 	of ISoundEngine, change this via ISoundEngine::setSoundVolume(). 
 	//! \return 0 (silent) to 1.0f (full volume). Default value is 1.0f.
@@ -725,8 +747,8 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 sets the default minimal distance for 3D sounds played from this source.
-	/**  This value influences how loud a sound is heard based on its distance.
+	bbdoc: Sets the default minimal distance for 3D sounds played from this source.
+	about: This value influences how loud a sound is heard based on its distance.
 	See ISound::setMinDistance() for details about what the min distance is.
 	This method only influences the initial distance value of sounds. For changing the
 	distance while the sound is playing, use ISound::setMinDistance() and ISound::setMaxDistance().
@@ -740,8 +762,8 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 Returns the default minimal distance for 3D sounds played from this source.
-	/**  This value influences how loud a sound is heard based on its distance.
+	bbdoc: Returns the default minimal distance for 3D sounds played from this source.
+	about: This value influences how loud a sound is heard based on its distance.
 	See ISound::setMinDistance() for details about what the minimal distance is.
 	\return Default minimal distance for 3d sounds from this source. If setDefaultMinDistance()
 	was set to a negative value, it will return the default value set in the engine,
@@ -753,8 +775,8 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 Sets the default maximum distance for 3D sounds played from this source.
-	/**  Changing this value is usually not necessary. Use setDefaultMinDistance() instead.
+	bbdoc: Sets the default maximum distance for 3D sounds played from this source.
+	about: Changing this value is usually not necessary. Use setDefaultMinDistance() instead.
 	Don't change this value if you don't know what you are doing: This value causes the sound
 	to stop attenuating after it reaches the max distance. Most people think that this sets the
 	volume of the sound to 0 after this distance, but this is not true. Only change the
@@ -773,8 +795,8 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 returns the default maximum distance for 3D sounds played from this source.
-	/** This value influences how loud a sound is heard based on its distance.
+	bbdoc: Returns the default maximum distance for 3D sounds played from this source.
+	about: This value influences how loud a sound is heard based on its distance.
 	Changing this value is usually not necessary. Use setDefaultMinDistance() instead.
 	Don't change this value if you don't know what you are doing: This value causes the sound
 	to stop attenuating after it reaches the max distance. Most people think that this sets the
@@ -803,8 +825,8 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 Sets the threshold size where irrKlang decides to force streaming a file independent of the user specified setting.
-	/** When specifying ESM_NO_STREAMING for playing back a sound file, irrKlang will
+	bbdoc: Sets the threshold size where irrKlang decides to force streaming a file independent of the user specified setting.
+	about: When specifying ESM_NO_STREAMING for playing back a sound file, irrKlang will
 	ignore this setting if the file is bigger than this threshold and stream the file
 	anyway. Please note that if an audio format loader is not able to return the 
 	size of a sound source and returns -1 as length, this will be ignored as well 
@@ -817,9 +839,9 @@ Type TISoundSource
 	End Method
 	
 	Rem
-	 Returns the threshold size where irrKlang decides to force streaming a file independent of the user specified setting.
-	/**  The value is specified in uncompressed bytes and its default value is 
-	about one Megabyte. See setForcedStreamingThreshold() for details.
+	bbdoc: Returns the threshold size where irrKlang decides to force streaming a file independent of the user specified setting.
+	about: The value is specified in uncompressed bytes and its default value is about one Megabyte. See
+	SetForcedStreamingThreshold() for details.
 	End Rem
 	Method GetForcedStreamingThreshold:Int()
 		Return bmx_soundsource_getforcedstreamingthreshold(soundSourcePtr)
@@ -850,8 +872,267 @@ Type TISoundEffectControl
 		End If
 	End Function
 
+	Rem
+	bbdoc: Disables all active sound effects
+	End Rem
+	Method DisableAllEffects()
+	End Method
 	
+	Rem
+	bbdoc: Enables the chorus sound effect or adjusts its values.
+	about: Chorus is a voice-doubling effect created by echoing the
+	original sound with a slight delay and slightly modulating the delay of the echo. 
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fWetDryMix Ratio of wet (processed) signal to dry (unprocessed) signal. Minimal Value:0, Maximal Value:100.0f;
+	\param fDepth Percentage by which the delay time is modulated by the low-frequency oscillator, in hundredths of a percentage point. Minimal Value:0, Maximal Value:100.0f;
+	\param fFeedback Percentage of output signal to feed back into the effect's input. Minimal Value:-99, Maximal Value:99.0f;
+	\param fFrequency Frequency of the LFO. Minimal Value:0, Maximal Value:10.0f;
+	\param sinusWaveForm True for sinus wave form, false for triangle.
+	\param fDelay Number of milliseconds the input is delayed before it is played back. Minimal Value:0, Maximal Value:20.0f;
+	\param lPhase Phase differential between left and right LFOs. Possible values:
+		-180, -90, 0, 90, 180
+	\return Returns true if successful.
+	End Rem
+	Method EnableChorusSoundEffect:Int(fWetDryMix:Float = 50, fDepth:Float = 10, fFeedback:Float = 25, ..
+			fFrequency:Float = 1.1, sinusWaveForm:Int = True, fDelay:Float = 16, lPhase:Int = 90)
+	End Method
 	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableChorusSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsChorusSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Compressor sound effect or adjusts its values.
+	about: Compressor is a reduction in the fluctuation of a signal above a certain amplitude. 
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fGain Output gain of signal after Compressor. Minimal Value:-60, Maximal Value:60.0f;
+	\param fAttack Time before Compressor reaches its full value. Minimal Value:0.01, Maximal Value:500.0f;
+	\param fRelease Speed at which Compressor is stopped after input drops below fThreshold. Minimal Value:50, Maximal Value:3000.0f;
+	\param fThreshold Point at which Compressor begins, in decibels. Minimal Value:-60, Maximal Value:0.0f;
+	\param fRatio Compressor ratio. Minimal Value:1, Maximal Value:100.0f;
+	\param fPredelay Time after lThreshold is reached before attack phase is started, in milliseconds. Minimal Value:0, Maximal Value:4.0f;
+	\return Returns true if successful.
+	End Rem
+	Method EnableCompressorSoundEffect:Int( fGain:Float = 0, fAttack:Float = 10, fRelease:Float = 200, ..
+			fThreshold:Float = -20, fRatio:Float = 3, fPredelay:Float = 4)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableCompressorSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsCompressorSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Distortion sound effect or adjusts its values.
+	about: Distortion is achieved by adding harmonics to the signal in such a way that,
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	as the level increases, the top of the waveform becomes squared off or clipped.
+	\param fGain Amount of signal change after distortion. Minimal Value:-60, Maximal Value:0;
+	\param fEdge Percentage of distortion intensity. Minimal Value:0, Maximal Value:100;
+	\param fPostEQCenterFrequency Center frequency of harmonic content addition. Minimal Value:100, Maximal Value:8000;
+	\param fPostEQBandwidth Width of frequency band that determines range of harmonic content addition. Minimal Value:100, Maximal Value:8000;
+	\param fPreLowpassCutoff Filter cutoff for high-frequency harmonics attenuation. Minimal Value:100, Maximal Value:8000;
+	\return Returns true if successful.
+	End Rem
+	Method EnableDistortionSoundEffect:Int(fGain:Float = -18, fEdge:Float = 15, fPostEQCenterFrequency:Float = 2400, ..
+			fPostEQBandwidth:Float = 2400, fPreLowpassCutoff:Float = 8000)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableDistortionSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsDistortionSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Echo sound effect or adjusts its values.
+	about: An echo effect causes an entire sound to be repeated after a fixed delay.
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fWetDryMix Ratio of wet (processed) signal to dry (unprocessed) signal. Minimal Value:0, Maximal Value:100.0f;
+	\param fFeedback Percentage of output fed back into input. Minimal Value:0, Maximal Value:100.0f;
+	\param fLeftDelay Delay for left channel, in milliseconds. Minimal Value:1, Maximal Value:2000.0f;
+	\param fRightDelay Delay for right channel, in milliseconds. Minimal Value:1, Maximal Value:2000.0f;
+	\param lPanDelay Value that specifies whether to swap left and right delays with each successive echo. Minimal Value:0, Maximal Value:1;
+	\return Returns true if successful.
+	End Rem
+	Method EnableEchoSoundEffect:Int(fWetDryMix:Float = 50, fFeedback:Float = 50, fLeftDelay:Float = 500, ..
+			fRightDelay:Float = 500, lPanDelay:Int = 0)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableEchoSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsEchoSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Flanger sound effect or adjusts its values.
+	about: Flange is an echo effect in which the delay between the original 
+	signal and its echo is very short and varies over time. The result is 
+	sometimes referred to as a sweeping sound. The term flange originated
+	with the practice of grabbing the flanges of a tape reel to change the speed. 
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fWetDryMix Ratio of wet (processed) signal to dry (unprocessed) signal. Minimal Value:0, Maximal Value:100.0f;
+	\param fDepth Percentage by which the delay time is modulated by the low-frequency oscillator, in hundredths of a percentage point. Minimal Value:0, Maximal Value:100.0f;
+	\param fFeedback Percentage of output signal to feed back into the effect's input. Minimal Value:-99, Maximal Value:99.0f;
+	\param fFrequency Frequency of the LFO. Minimal Value:0, Maximal Value:10.0f;
+	\param triangleWaveForm True for triangle wave form, false for square.
+	\param fDelay Number of milliseconds the input is delayed before it is played back. Minimal Value:0, Maximal Value:20.0f;
+	\param lPhase Phase differential between left and right LFOs. Possible values:
+		-180, -90, 0, 90, 180
+	\return Returns true if successful.
+	End Rem
+	Method EnableFlangerSoundEffect:Int(fWetDryMix:Float = 50, fDepth:Float = 100, fFeedback:Float = -50, ..
+			fFrequency:Float = 0.25, triangleWaveForm:Int = True, fDelay:Float = 2, lPhase:Int = 0)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableFlangerSoundEffect()
+	End Method
+	
+	Rem
+	returns if the sound effect is active on the sound
+	end rem
+	Method IsFlangerSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Gargle sound effect or adjusts its values.
+	about: The gargle effect modulates the amplitude of the signal. 
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param rateHz Rate of modulation, in Hertz. Minimal Value:1, Maximal Value:1000
+	\param sinusWaveForm True for sinus wave form, false for triangle.
+	\return Returns true if successful.
+	End Rem
+	Method EnableGargleSoundEffect:Int(rateHz:Int = 20, sinusWaveForm:Int = True)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableGargleSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsGargleSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Interactive 3D Level 2 reverb sound effect or adjusts its values.
+	about: An implementation of the listener properties in the I3DL2 specification. Source properties are not supported.
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param lRoom Attenuation of the room effect, in millibels (mB). Interval: [-10000, 0] Default: -1000 mB
+	\param lRoomHF Attenuation of the room high-frequency effect. Interval: [-10000, 0]      default: 0 mB
+	\param flRoomRolloffFactor Rolloff factor for the reflected signals. Interval: [0.0, 10.0]      default: 0.0
+	\param flDecayTime Decay time, in seconds. Interval: [0.1, 20.0]      default: 1.49s
+	\param flDecayHFRatio Ratio of the decay time at high frequencies to the decay time at low frequencies. Interval: [0.1, 2.0]       default: 0.83
+	\param lReflections Attenuation of early reflections relative to lRoom. Interval: [-10000, 1000]   default: -2602 mB
+	\param flReflectionsDelay Delay time of the first reflection relative to the direct path in seconds. Interval: [0.0, 0.3]       default: 0.007 s
+	\param lReverb Attenuation of late reverberation relative to lRoom, in mB. Interval: [-10000, 2000]   default: 200 mB
+	\param flReverbDelay Time limit between the early reflections and the late reverberation relative to the time of the first reflection. Interval: [0.0, 0.1]       default: 0.011 s
+	\param flDiffusion Echo density in the late reverberation decay in percent. Interval: [0.0, 100.0]     default: 100.0 %
+	\param flDensity Modal density in the late reverberation decay, in percent. Interval: [0.0, 100.0]     default: 100.0 %
+	\param flHFReference Reference high frequency, in hertz. Interval: [20.0, 20000.0]  default: 5000.0 Hz 
+	\return Returns true if successful.
+	End Rem
+	Method EnableI3DL2ReverbSoundEffect:Int(lRoom:Int = -1000, lRoomHF:Int = -100, flRoomRolloffFactor:Float = 0, ..
+			flDecayTime:Float = 1.49, flDecayHFRatio:Float = 0.83, lReflections:Int = -2602, flReflectionsDelay:Float = 0.007, ..
+			lReverb:Int = 200, flReverbDelay:Float = 0.011, flDiffusion:Float = 100.0, ..
+			flDensity:Float = 100.0, flHFReference:Float = 5000.0 )
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableI3DL2ReverbSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsI3DL2ReverbSoundEffectEnabled()
+	End Method
+	
+	Rem
+	bbdoc: Enables the ParamEq sound effect or adjusts its values.
+	about: Parametric equalizer amplifies or attenuates signals of a given frequency. 
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fCenter Center frequency, in hertz, The default value is 8000. Minimal Value:80, Maximal Value:16000.0f
+	\param fBandwidth Bandwidth, in semitones, The default value is 12. Minimal Value:1.0f, Maximal Value:36.0f
+	\param fGain Gain, default value is 0. Minimal Value:-15.0f, Maximal Value:15.0f
+	\return Returns true if successful.
+	End Rem
+	Method EnableParamEqSoundEffect:Int(fCenter:Float = 8000, fBandwidth:Float = 12, fGain:Float = 0)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableParamEqSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsParamEqSoundEffectEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: Enables the Waves Reverb sound effect or adjusts its values.
+	about: \param fInGain Input gain of signal, in decibels (dB). Min/Max: [-96.0,0.0] Default: 0.0 dB.
+	If this sound effect is already enabled, calling this only modifies the parameters of the active effect.
+	\param fReverbMix Reverb mix, in dB. Min/Max: [-96.0,0.0] Default: 0.0 dB
+	\param fReverbTime Reverb time, in milliseconds. Min/Max: [0.001,3000.0] Default: 1000.0 ms
+	\param fHighFreqRTRatio High-frequency reverb time ratio. Min/Max: [0.001,0.999] Default: 0.001 
+	\return Returns true if successful.
+	End Rem
+	Method EnableWavesReverbSoundEffect:Int(fInGain:Float = 0, fReverbMix:Float = 0, ..
+			fReverbTime:Float = 1000, fHighFreqRTRatio:Float = 0.001)
+	End Method
+	
+	Rem
+	bbdoc: Removes the sound effect from the sound
+	End Rem
+	Method DisableWavesReverbSoundEffect()
+	End Method
+	
+	Rem
+	bbdoc: Returns if the sound effect is active on the sound
+	End Rem
+	Method IsWavesReverbSoundEffectEnabled:Int()
+	End Method
+
 End Type
 
 Rem
@@ -869,10 +1150,16 @@ Type TIVec3D
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateVec3D:TIVec3D(x:Float = 0.0, y:Float = 0.0, z:Float = 0.0)
 		Return New TIVec3D.Create(x, y, z)
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TIVec3D(_x:Float = 0.0, _y:Float = 0.0, _z:Float = 0.0)
 		vecPtr = bmx_vec3df_create(_x, _y, _z)
 		Return Self
@@ -885,18 +1172,30 @@ Type TIVec3D
 		End If
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function Zero:TIVec3D()
 		Return New TIVec3D.Create()
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method X:Float()
 		Return bmx_vec3df_x(vecPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Y:Float()
 		Return bmx_vec3df_y(vecPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Z:Float()
 		Return bmx_vec3df_z(vecPtr)
 	End Method
@@ -904,7 +1203,7 @@ Type TIVec3D
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Type describing an audio stream format with helper functions 
 End Rem
 Type TAudioStreamFormat
 
@@ -917,6 +1216,63 @@ Type TAudioStreamFormat
 			Return this
 		End If
 	End Function
+
+	Method Delete()
+		If formatPtr Then
+			bmx_audiostreamformat_delete(formatPtr)
+			formatPtr = Null
+		End If
+	End Method
+
+	Rem
+	bbdoc: Number of channels, 1 for mono, 2 for stereo
+	End Rem
+	Method GetChannelCount:Int()
+	End Method
+
+	Rem
+	bbdoc: Amount of frames in the sample data or stream. 
+	about: If the stream has an unknown lenght, this is -1
+	End Rem
+	Method GetFrameCount:Int()
+	End Method
+
+	Rem
+	bbdoc: Samples per second
+	End Rem
+	Method GetSampleRate:Int()
+	End Method
+	
+	Rem
+	bbdoc: Format of the sample data
+	End Rem
+	Method GetSampleFormat:Int()
+	End Method
+
+	Rem
+	bbdoc: Returns the size of a sample of the data described by the stream data in bytes
+	End Rem
+	Method getSampleSize:Int()
+	End Method
+	
+	Rem
+	bbdoc: Returns the frame size of the stream data in bytes
+	End Rem
+	Method getFrameSize:Int()
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the sample data in bytes
+	about: Returns an invalid negative value when the stream has an unknown length
+	End Rem
+	Method getSampleDataSize:Int()
+	End Method
+	
+	Rem
+	bbdoc: Returns amount of bytes per second
+	End Rem
+	Method getBytesPerSecond:Int()
+	End Method
 
 End Type
 

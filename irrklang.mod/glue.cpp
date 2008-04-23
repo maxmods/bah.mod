@@ -51,6 +51,8 @@ extern "C" {
 	irrklang::ISound* bmx_soundengine_play3d(irrklang::ISoundEngine* engine, const char *  soundFileName, Maxvec3df * pos,
 		bool  playLooped, bool  startPaused, bool  track, irrklang::E_STREAM_MODE  streamMode, bool  enableSoundEffects);
 	void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3df * pos, Maxvec3df * lookDir, Maxvec3df * velPerSecond, Maxvec3df * upVector);
+	irrklang::ISound* bmx_soundengine_play3dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source, Maxvec3df * pos,
+		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects);
 
 	void bmx_sound_setispaused(irrklang::ISound * sound, bool paused);
 	bool bmx_sound_getispaused(irrklang::ISound * sound);
@@ -96,6 +98,8 @@ extern "C" {
 	irrklang::ik_f32 bmx_vec3df_x(Maxvec3df * vec);
 	irrklang::ik_f32 bmx_vec3df_y(Maxvec3df * vec);
 	irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec);
+
+	void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format);
 
 }
 
@@ -212,6 +216,11 @@ irrklang::ISound* bmx_soundengine_play3d(irrklang::ISoundEngine* engine, const c
 void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3df * pos, Maxvec3df * lookDir, Maxvec3df * velPerSecond, Maxvec3df * upVector) {
 	engine->setListenerPosition(pos->vec, lookDir->vec, (velPerSecond) ? velPerSecond->vec : irrklang::vec3df(0,0,0),
 		(upVector) ? upVector->vec : irrklang::vec3df(0,1,0));
+}
+
+irrklang::ISound* bmx_soundengine_play3dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source, Maxvec3df * pos,
+		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects) {
+	return engine->play3D(source, pos->vec, playLooped, startPaused, track, enableSoundEffects);
 }
 
 // *****************************************************
@@ -388,5 +397,12 @@ irrklang::ik_f32 bmx_vec3df_y(Maxvec3df * vec) {
 
 irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec) {
 	return vec->vec.Z;
+}
+
+// *****************************************************
+
+
+void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format) {
+	delete format;
 }
 

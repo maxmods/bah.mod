@@ -1,5 +1,4 @@
 ' This example will show how to play sounds directly from memory using irrKlang.
-
 ' This is useful for embedding sounds directly in executables.
 '
 SuperStrict
@@ -24,22 +23,16 @@ End If
 
 
 ' To make irrKlang know about the memory we want to play, we register
-
 ' the memory chunk as a sound source. We specify the name "testsound", so
-
 ' we can use the name later for playing back the sound. Note that you
-
 ' could also specify a better fitting name like "ok.wav".
-
 ' The method addSoundSource() also returns a pointer to the created sound source,
-
 ' it can be used as parameter for play2D() later, if you don't want to
-
 ' play sounds via string names.
-_engine.AddSoundSourceFromMemory(IncbinPtr("media/getout.ogg"), IncbinLen("media/getout.ogg"), "testsound")
+_engine.AddSoundSourceFromMemory(IncbinPtr("media/getout.ogg"), IncbinLen("media/getout.ogg"), "testsound.ogg")
 
 ' play the sound we added to memory
-_engine.Play2D("testsound")
+_engine.Play2D("testsound.ogg")
 
 Graphics 640,480,0
 

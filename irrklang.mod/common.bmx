@@ -50,6 +50,7 @@ Extern
 	Function bmx_soundengine_play2dsource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, enableSoundEffects:Int)
 	Function bmx_soundengine_play3d:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, streamMode:Int, enableSoundEffects:Int)
 	Function bmx_soundengine_setlistenerposition(handle:Byte Ptr, pos:Byte Ptr, lookDir:Byte Ptr, velPerSecond:Byte Ptr, upVector:Byte Ptr)
+	Function bmx_soundengine_play3dsource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, enableSoundEffects:Int)
 
 	Function bmx_sound_setispaused(handle:Byte Ptr, paused:Int)
 	Function bmx_sound_getispaused:Int(handle:Byte Ptr)
@@ -95,6 +96,8 @@ Extern
 	Function bmx_vec3df_x:Float(handle:Byte Ptr)
 	Function bmx_vec3df_y:Float(handle:Byte Ptr)
 	Function bmx_vec3df_z:Float(handle:Byte Ptr)
+
+	Function bmx_audiostreamformat_delete(handle:Byte Ptr)
 
 End Extern
 
