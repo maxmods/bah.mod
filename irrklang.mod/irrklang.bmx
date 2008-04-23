@@ -259,12 +259,17 @@ Type TISoundEngine
 	bbdoc: Returns if a sound with the specified name is currently playing.
 	End Rem
 	Method IsCurrentlyPlaying:Int(soundName:String)
+		Local s:Byte Ptr = soundName.ToCString()
+		Local ret:Int = bmx_soundengine_iscurrentlyplaying(refPtr, s)
+		MemFree(s)
+		Return ret
 	End Method
 
 	Rem
 	bbdoc: Returns if a sound with the specified source is currently playing.
 	End Rem
 	Method IsCurrentlyPlayingSource:Int(source:TISoundSource)
+		Return bmx_soundengine_iscurrentlyplayingsource(refPtr, source.soundSourcePtr)
 	End Method
 	
 	Rem
@@ -876,6 +881,7 @@ Type TISoundEffectControl
 	bbdoc: Disables all active sound effects
 	End Rem
 	Method DisableAllEffects()
+		bmx_soundeffect_disablealleffects(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -895,18 +901,22 @@ Type TISoundEffectControl
 	End Rem
 	Method EnableChorusSoundEffect:Int(fWetDryMix:Float = 50, fDepth:Float = 10, fFeedback:Float = 25, ..
 			fFrequency:Float = 1.1, sinusWaveForm:Int = True, fDelay:Float = 16, lPhase:Int = 90)
+		Return bmx_soundeffect_enablechorussoundeffect(soundEffectPtr, fWetDryMix, fDepth, fFeedback, ..
+			fFrequency, sinusWaveForm, fDelay, lPhase)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableChorusSoundEffect()
+		bmx_soundeffect_disablechorussoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsChorusSoundEffectEnabled:Int()
+		Return bmx_soundeffect_ischorussoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -921,20 +931,24 @@ Type TISoundEffectControl
 	\param fPredelay Time after lThreshold is reached before attack phase is started, in milliseconds. Minimal Value:0, Maximal Value:4.0f;
 	\return Returns true if successful.
 	End Rem
-	Method EnableCompressorSoundEffect:Int( fGain:Float = 0, fAttack:Float = 10, fRelease:Float = 200, ..
+	Method EnableCompressorSoundEffect:Int(fGain:Float = 0, fAttack:Float = 10, fRelease:Float = 200, ..
 			fThreshold:Float = -20, fRatio:Float = 3, fPredelay:Float = 4)
+		Return bmx_soundeffect_enablecompressorsoundeffect(soundEffectPtr, fGain, fAttack, fRelease, ..
+			fThreshold, fRatio, fPredelay)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableCompressorSoundEffect()
+		bmx_soundeffect_disablecompressorsoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsCompressorSoundEffectEnabled:Int()
+		Return bmx_soundeffect_iscompressorsoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -951,18 +965,22 @@ Type TISoundEffectControl
 	End Rem
 	Method EnableDistortionSoundEffect:Int(fGain:Float = -18, fEdge:Float = 15, fPostEQCenterFrequency:Float = 2400, ..
 			fPostEQBandwidth:Float = 2400, fPreLowpassCutoff:Float = 8000)
+		Return bmx_soundeffect_enabledistortionsoundeffect(soundEffectPtr, fGain, fEdge, fPostEQCenterFrequency, ..
+			fPostEQBandwidth, fPreLowpassCutoff)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableDistortionSoundEffect()
+		bmx_soundeffect_disabledistortionsoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsDistortionSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isdistortionsoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -978,18 +996,22 @@ Type TISoundEffectControl
 	End Rem
 	Method EnableEchoSoundEffect:Int(fWetDryMix:Float = 50, fFeedback:Float = 50, fLeftDelay:Float = 500, ..
 			fRightDelay:Float = 500, lPanDelay:Int = 0)
+		Return bmx_soundeffect_enableechosoundeffect(soundEffectPtr, fWetDryMix, fFeedback, fLeftDelay, ..
+			fRightDelay, lPanDelay)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableEchoSoundEffect()
+		bmx_soundeffect_disableechosoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsEchoSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isechosoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -1011,18 +1033,22 @@ Type TISoundEffectControl
 	End Rem
 	Method EnableFlangerSoundEffect:Int(fWetDryMix:Float = 50, fDepth:Float = 100, fFeedback:Float = -50, ..
 			fFrequency:Float = 0.25, triangleWaveForm:Int = True, fDelay:Float = 2, lPhase:Int = 0)
+		Return bmx_soundeffect_enableflangersoundeffect(soundEffectPtr, fWetDryMix, fDepth, fFeedback, ..
+			fFrequency, triangleWaveForm, fDelay, lPhase)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableFlangerSoundEffect()
+		bmx_soundeffect_disableflangersoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	returns if the sound effect is active on the sound
 	end rem
 	Method IsFlangerSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isflangersoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -1034,18 +1060,21 @@ Type TISoundEffectControl
 	\return Returns true if successful.
 	End Rem
 	Method EnableGargleSoundEffect:Int(rateHz:Int = 20, sinusWaveForm:Int = True)
+		Return bmx_soundeffect_enablegarglesoundeffect(soundEffectPtr, rateHz, sinusWaveForm)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableGargleSoundEffect()
+		bmx_soundeffect_disablegarglesoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsGargleSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isgarglesoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -1070,18 +1099,23 @@ Type TISoundEffectControl
 			flDecayTime:Float = 1.49, flDecayHFRatio:Float = 0.83, lReflections:Int = -2602, flReflectionsDelay:Float = 0.007, ..
 			lReverb:Int = 200, flReverbDelay:Float = 0.011, flDiffusion:Float = 100.0, ..
 			flDensity:Float = 100.0, flHFReference:Float = 5000.0 )
+		Return bmx_soundeffect_enablei3dl2reverbsoundeffect(soundEffectPtr, lRoom, lRoomHF, flRoomRolloffFactor, ..
+			flDecayTime, flDecayHFRatio, lReflections, flReflectionsDelay, ..
+			lReverb, flReverbDelay, flDiffusion, flDensity, flHFReference)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableI3DL2ReverbSoundEffect()
+		bmx_soundeffect_disablei3dl2reverbsoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
-	Method IsI3DL2ReverbSoundEffectEnabled()
+	Method IsI3DL2ReverbSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isi3dl2reverbsoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -1094,18 +1128,21 @@ Type TISoundEffectControl
 	\return Returns true if successful.
 	End Rem
 	Method EnableParamEqSoundEffect:Int(fCenter:Float = 8000, fBandwidth:Float = 12, fGain:Float = 0)
+		Return bmx_soundeffect_enableparameqsoundeffect(soundEffectPtr, fCenter, fBandwidth, fGain)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableParamEqSoundEffect()
+		bmx_soundeffect_disableparameqsoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsParamEqSoundEffectEnabled:Int()
+		Return bmx_soundeffect_isparameqsoundeffectenabled(soundEffectPtr)
 	End Method
 	
 	Rem
@@ -1119,18 +1156,21 @@ Type TISoundEffectControl
 	End Rem
 	Method EnableWavesReverbSoundEffect:Int(fInGain:Float = 0, fReverbMix:Float = 0, ..
 			fReverbTime:Float = 1000, fHighFreqRTRatio:Float = 0.001)
+		Return bmx_soundeffect_enablewavesreverdsoundeffect(soundEffectPtr, fInGain, fReverbMix, fReverbTime, fHighFreqRTRatio)
 	End Method
 	
 	Rem
 	bbdoc: Removes the sound effect from the sound
 	End Rem
 	Method DisableWavesReverbSoundEffect()
+		bmx_soundeffect_disablewavesreverbsoundeffect(soundEffectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns if the sound effect is active on the sound
 	End Rem
 	Method IsWavesReverbSoundEffectEnabled:Int()
+		Return bmx_soundeffect_iswavesreverbsoundeffectenabled(soundEffectPtr)
 	End Method
 
 End Type

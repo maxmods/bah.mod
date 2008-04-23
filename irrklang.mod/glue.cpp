@@ -53,6 +53,8 @@ extern "C" {
 	void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3df * pos, Maxvec3df * lookDir, Maxvec3df * velPerSecond, Maxvec3df * upVector);
 	irrklang::ISound* bmx_soundengine_play3dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source, Maxvec3df * pos,
 		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects);
+	bool bmx_soundengine_iscurrentlyplaying(irrklang::ISoundEngine* engine, const char *name);
+	bool bmx_soundengine_iscurrentlyplayingsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source);
 
 	void bmx_sound_setispaused(irrklang::ISound * sound, bool paused);
 	bool bmx_sound_getispaused(irrklang::ISound * sound);
@@ -100,6 +102,42 @@ extern "C" {
 	irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec);
 
 	void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format);
+
+	void bmx_soundeffect_disablealleffects(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enablechorussoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fDepth, irrklang::ik_f32 fFeedback,
+		irrklang::ik_f32 fFrequency, bool sinusWaveForm, irrklang::ik_f32 fDelay, irrklang::ik_s32 lPhase);
+	void bmx_soundeffect_disablechorussoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_ischorussoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enablecompressorsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fGain, irrklang::ik_f32 fAttack, irrklang::ik_f32 fRelease,
+		irrklang::ik_f32 fThreshold, irrklang::ik_f32 fRatio, irrklang::ik_f32 fPredelay);
+	void bmx_soundeffect_disablecompressorsoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_iscompressorsoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enabledistortionsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fGain, irrklang::ik_f32 fEdge, irrklang::ik_f32 fPostEQCenterFrequency,
+		irrklang::ik_f32 fPostEQBandwidth, irrklang::ik_f32 fPreLowpassCutoff);
+	void bmx_soundeffect_disabledistortionsoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isdistortionsoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enableechosoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fFeedback, irrklang::ik_f32 fLeftDelay,
+		irrklang::ik_f32 fRightDelay, irrklang::ik_s32 lPanDelay);
+	void bmx_soundeffect_disableechosoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isechosoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enableflangersoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fDepth, irrklang::ik_f32 fFeedback,
+		irrklang::ik_f32 fFrequency, bool triangleWaveForm, irrklang::ik_f32 fDelay, irrklang::ik_s32 lPhase);
+	void bmx_soundeffect_disableflangersoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isflangersoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enablegarglesoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_s32 rateHz, bool sinusWaveForm);
+	void bmx_soundeffect_disablegarglesoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isgarglesoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enablei3dl2reverbsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_s32 lRoom, irrklang::ik_s32 lRoomHF, irrklang::ik_f32 flRoomRolloffFactor,
+		irrklang::ik_f32 flDecayTime, irrklang::ik_f32 flDecayHFRatio, irrklang::ik_s32 lReflections, irrklang::ik_f32 flReflectionsDelay,
+		irrklang::ik_s32 lReverb, irrklang::ik_f32 flReverbDelay, irrklang::ik_f32 flDiffusion, irrklang::ik_f32 flDensity, irrklang::ik_f32 flHFReference);
+	void bmx_soundeffect_disablei3dl2reverbsoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isi3dl2reverbsoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enableparameqsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fCenter, irrklang::ik_f32 fBandwidth, irrklang::ik_f32 fGain);
+	void bmx_soundeffect_disableparameqsoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_isparameqsoundeffectenabled(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_enablewavesreverdsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fInGain, irrklang::ik_f32 fReverbMix, irrklang::ik_f32 fReverbTime, irrklang::ik_f32 fHighFreqRTRatio);
+	void bmx_soundeffect_disablewavesreverbsoundeffect(irrklang::ISoundEffectControl * effect);
+	bool bmx_soundeffect_iswavesreverbsoundeffectenabled(irrklang::ISoundEffectControl * effect);
 
 }
 
@@ -221,6 +259,14 @@ void bmx_soundengine_setlistenerposition(irrklang::ISoundEngine* engine, Maxvec3
 irrklang::ISound* bmx_soundengine_play3dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source, Maxvec3df * pos,
 		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects) {
 	return engine->play3D(source, pos->vec, playLooped, startPaused, track, enableSoundEffects);
+}
+
+bool bmx_soundengine_iscurrentlyplaying(irrklang::ISoundEngine* engine, const char *name) {
+	return engine->isCurrentlyPlaying(name);
+}
+
+bool bmx_soundengine_iscurrentlyplayingsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source) {
+	return engine->isCurrentlyPlaying(source);
 }
 
 // *****************************************************
@@ -404,5 +450,129 @@ irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec) {
 
 void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format) {
 	delete format;
+}
+
+
+// *****************************************************
+
+
+void bmx_soundeffect_disablealleffects(irrklang::ISoundEffectControl * effect) {
+    effect->disableAllEffects();
+}
+
+bool bmx_soundeffect_enablechorussoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fDepth, irrklang::ik_f32 fFeedback,
+        irrklang::ik_f32 fFrequency, bool sinusWaveForm, irrklang::ik_f32 fDelay, irrklang::ik_s32 lPhase) {
+    return effect->enableChorusSoundEffect(fWetDryMix, fDepth, fFeedback, fFrequency, sinusWaveForm, fDelay, lPhase);
+}
+
+void bmx_soundeffect_disablechorussoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableChorusSoundEffect();
+}
+
+bool bmx_soundeffect_ischorussoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isChorusSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enablecompressorsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fGain, irrklang::ik_f32 fAttack, irrklang::ik_f32 fRelease,
+        irrklang::ik_f32 fThreshold, irrklang::ik_f32 fRatio, irrklang::ik_f32 fPredelay) {
+    return effect->enableCompressorSoundEffect(fGain, fAttack, fRelease, fThreshold, fRatio, fPredelay);
+}
+
+void bmx_soundeffect_disablecompressorsoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableCompressorSoundEffect();
+}
+
+bool bmx_soundeffect_iscompressorsoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isCompressorSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enabledistortionsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fGain, irrklang::ik_f32 fEdge, irrklang::ik_f32 fPostEQCenterFrequency,
+        irrklang::ik_f32 fPostEQBandwidth, irrklang::ik_f32 fPreLowpassCutoff) {
+    return effect->enableDistortionSoundEffect(fGain, fEdge, fPostEQCenterFrequency, fPostEQBandwidth, fPreLowpassCutoff);
+}
+
+void bmx_soundeffect_disabledistortionsoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableDistortionSoundEffect();
+}
+
+bool bmx_soundeffect_isdistortionsoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isDistortionSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enableechosoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fFeedback, irrklang::ik_f32 fLeftDelay,
+        irrklang::ik_f32 fRightDelay, irrklang::ik_s32 lPanDelay) {
+    return effect->enableEchoSoundEffect(fWetDryMix, fFeedback, fLeftDelay, fRightDelay, lPanDelay);
+}
+
+void bmx_soundeffect_disableechosoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableEchoSoundEffect();
+}
+
+bool bmx_soundeffect_isechosoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isEchoSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enableflangersoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fDepth, irrklang::ik_f32 fFeedback,
+        irrklang::ik_f32 fFrequency, bool triangleWaveForm, irrklang::ik_f32 fDelay, irrklang::ik_s32 lPhase) {
+    return effect->enableFlangerSoundEffect(fWetDryMix, fDepth, fFeedback, fFrequency, triangleWaveForm, fDelay, lPhase);
+}
+
+void bmx_soundeffect_disableflangersoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableFlangerSoundEffect();
+}
+
+bool bmx_soundeffect_isflangersoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isFlangerSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enablegarglesoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_s32 rateHz, bool sinusWaveForm) {
+    return effect->enableGargleSoundEffect(rateHz, sinusWaveForm);
+}
+
+void bmx_soundeffect_disablegarglesoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableGargleSoundEffect();
+}
+
+bool bmx_soundeffect_isgarglesoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isGargleSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enablei3dl2reverbsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_s32 lRoom, irrklang::ik_s32 lRoomHF, irrklang::ik_f32 flRoomRolloffFactor,
+        irrklang::ik_f32 flDecayTime, irrklang::ik_f32 flDecayHFRatio, irrklang::ik_s32 lReflections, irrklang::ik_f32 flReflectionsDelay,
+        irrklang::ik_s32 lReverb, irrklang::ik_f32 flReverbDelay, irrklang::ik_f32 flDiffusion, irrklang::ik_f32 flDensity, irrklang::ik_f32 flHFReference) {
+    return effect->enableI3DL2ReverbSoundEffect(lRoom, lRoomHF, flRoomRolloffFactor,
+        flDecayTime, flDecayHFRatio, lReflections, flReflectionsDelay, lReverb, flReverbDelay, flDiffusion, flDensity, flHFReference);
+}
+
+void bmx_soundeffect_disablei3dl2reverbsoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableI3DL2ReverbSoundEffect();
+}
+
+bool bmx_soundeffect_isi3dl2reverbsoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isI3DL2ReverbSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enableparameqsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fCenter, irrklang::ik_f32 fBandwidth, irrklang::ik_f32 fGain) {
+    return effect->enableParamEqSoundEffect(fCenter, fBandwidth, fGain);
+}
+
+void bmx_soundeffect_disableparameqsoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableParamEqSoundEffect();
+}
+
+bool bmx_soundeffect_isparameqsoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isParamEqSoundEffectEnabled();
+}
+
+bool bmx_soundeffect_enablewavesreverdsoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fInGain, irrklang::ik_f32 fReverbMix, irrklang::ik_f32 fReverbTime, irrklang::ik_f32 fHighFreqRTRatio) {
+    return effect->enableWavesReverbSoundEffect(fInGain, fReverbMix, fReverbTime, fHighFreqRTRatio);
+}
+
+void bmx_soundeffect_disablewavesreverbsoundeffect(irrklang::ISoundEffectControl * effect) {
+    effect->disableWavesReverbSoundEffect();
+}
+
+bool bmx_soundeffect_iswavesreverbsoundeffectenabled(irrklang::ISoundEffectControl * effect) {
+    return effect->isWavesReverbSoundEffectEnabled();
 }
 

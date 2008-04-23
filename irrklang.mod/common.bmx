@@ -51,6 +51,8 @@ Extern
 	Function bmx_soundengine_play3d:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, streamMode:Int, enableSoundEffects:Int)
 	Function bmx_soundengine_setlistenerposition(handle:Byte Ptr, pos:Byte Ptr, lookDir:Byte Ptr, velPerSecond:Byte Ptr, upVector:Byte Ptr)
 	Function bmx_soundengine_play3dsource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, enableSoundEffects:Int)
+	Function bmx_soundengine_iscurrentlyplaying:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_soundengine_iscurrentlyplayingsource:Int(handle:Byte Ptr, source:Byte Ptr)
 
 	Function bmx_sound_setispaused(handle:Byte Ptr, paused:Int)
 	Function bmx_sound_getispaused:Int(handle:Byte Ptr)
@@ -98,6 +100,42 @@ Extern
 	Function bmx_vec3df_z:Float(handle:Byte Ptr)
 
 	Function bmx_audiostreamformat_delete(handle:Byte Ptr)
+	
+	Function bmx_soundeffect_disablealleffects(handle:Byte Ptr)
+	Function bmx_soundeffect_enablechorussoundeffect:Int(handle:Byte Ptr, fWetDryMix:Float, fDepth:Float, fFeedback:Float, ..
+		fFrequency:Float, sinusWaveForm:Int, fDelay:Float, lPhase:Int)
+	Function bmx_soundeffect_disablechorussoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_ischorussoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enablecompressorsoundeffect:Int(handle:Byte Ptr, fGain:Float, fAttack:Float, fRelease:Float, ..
+		fThreshold:Float, fRatio:Float, fPredelay:Float)
+	Function bmx_soundeffect_disablecompressorsoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_iscompressorsoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enabledistortionsoundeffect:Int(handle:Byte Ptr, fGain:Float, fEdge:Float, fPostEQCenterFrequency:Float, ..
+		fPostEQBandwidth:Float, fPreLowpassCutoff:Float)
+	Function bmx_soundeffect_disabledistortionsoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isdistortionsoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enableechosoundeffect:Int(handle:Byte Ptr, fWetDryMix:Float, fFeedback:Float, fLeftDelay:Float, ..
+		fRightDelay:Float, lPanDelay:Int)
+	Function bmx_soundeffect_disableechosoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isechosoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enableflangersoundeffect:Int(handle:Byte Ptr, fWetDryMix:Float, fDepth:Float, fFeedback:Float, ..
+		fFrequency:Float, triangleWaveForm:Int, fDelay:Float, lPhase:Int)
+	Function bmx_soundeffect_disableflangersoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isflangersoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enablegarglesoundeffect:Int(handle:Byte Ptr, rateHz:Int, sinusWaveForm:Int)
+	Function bmx_soundeffect_disablegarglesoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isgarglesoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enablei3dl2reverbsoundeffect:Int(handle:Byte Ptr, lRoom:Int, lRoomHF:Int, flRoomRolloffFactor:Float, ..
+		flDecayTime:Float, flDecayHFRatio:Float, lReflections:Int, flReflectionsDelay:Float, ..
+		lReverb:Int, flReverbDelay:Float, flDiffusion:Float, flDensity:Float, flHFReference:Float)
+	Function bmx_soundeffect_disablei3dl2reverbsoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isi3dl2reverbsoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enableparameqsoundeffect:Int(handle:Byte Ptr, fCenter:Float, fBandwidth:Float, fGain:Float)
+	Function bmx_soundeffect_disableparameqsoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_isparameqsoundeffectenabled:Int(handle:Byte Ptr)
+	Function bmx_soundeffect_enablewavesreverdsoundeffect:Int(handle:Byte Ptr, fInGain:Float, fReverbMix:Float, fReverbTime:Float, fHighFreqRTRatio:Float)
+	Function bmx_soundeffect_disablewavesreverbsoundeffect(handle:Byte Ptr)
+	Function bmx_soundeffect_iswavesreverbsoundeffectenabled:Int(handle:Byte Ptr)
 
 End Extern
 
