@@ -6,12 +6,14 @@ about: A MySQL database driver for #bah.database.Database
 End Rem
 Module BaH.DBMySQL
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Minor update."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed lastInsertId() issue."
 ModuleInfo "History: Win32 now uses local static lib. No copying required!"
@@ -734,6 +736,10 @@ Type TMySQLResultSet Extends TQueryResultSet
 		cleanup()
 	
 		Super.clear()
+	End Method
+	
+	Method reset()
+		clear()
 	End Method
 	
 	Method free()
