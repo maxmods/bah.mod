@@ -39,7 +39,8 @@ ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the 
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.11"
-ModuleInfo "History: Update to SQLite 3.5.7."
+ModuleInfo "History: Update to SQLite 3.5.8."
+ModuleInfo "History: Fixed prepared statement reuse issue."
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Update to SQLite 3.5.6."
 ModuleInfo "History: Fixed lack of error reporting during query execution."
@@ -306,6 +307,14 @@ Type TSQLiteResultSet Extends TQueryResultSet
 	
 	Method Delete()
 		free()
+	End Method
+	
+	Method reset()
+		initialFetch = True
+		index = SQL_BeforeFirstRow
+		If stmtHandle Then
+			sqlite3_reset(stmtHandle)
+		End If
 	End Method
 
 	Function Create:TQueryResultSet(db:TDBConnection, sql:String = Null)
