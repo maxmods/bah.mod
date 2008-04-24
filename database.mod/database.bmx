@@ -30,12 +30,14 @@ bbdoc: Database Framework
 End Rem
 Module BaH.Database
 
-ModuleInfo "Version: 1.07"
+ModuleInfo "Version: 1.08"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.08"
+ModuleInfo "History: Fixed prepared statement reuse issue with some drivers."
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Resets error status before execution of new query."
 ModuleInfo "History: 1.06"
@@ -452,7 +454,7 @@ Type TDatabaseQuery
 				If Not resultSet.nextRow() Then
 					resultSet.setRowIndex(SQL_AfterLastRow)
 					' done with the resultset...
-					resultSet.free()
+					resultSet.reset()
 					Return False
 				End If
 		End Select
@@ -818,6 +820,9 @@ Type TQueryResultSet
 		End If
 		
 		boundValues[index] = value
+	End Method
+	
+	Method reset()
 	End Method
 	
 	Method free()
