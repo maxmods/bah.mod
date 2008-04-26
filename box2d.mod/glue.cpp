@@ -33,6 +33,7 @@ extern "C" {
 	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
+	BBObject * _bah_box2d_b2World__createJoint(b2JointType type);
 
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
@@ -53,14 +54,28 @@ extern "C" {
 	void bmx_b2world_setcontinuousphysics(b2World * world, bool flag);
 	void bmx_b2world_validate(b2World * world);
 	void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw);
-	b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def, BBObject * joint);
+	b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def);
 	void bmx_b2world_destroyjoint(b2World * world, b2Joint * joint);
+	b2Body * bmx_b2world_getbodylist(b2World * world);
+	b2Joint * bmx_b2world_getjointlist(b2World * world);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
 	//void bmx_b2bodydef_settype(b2BodyDef * def, b2BodyDef::Type bodyType);
 	void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position);
 	void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle);
+	void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data);
+	bool bmx_b2bodydef_issleeping(b2BodyDef * def);
+	void bmx_b2bodydef_setissleeping(b2BodyDef * def, bool sleeping);
+	void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, bool fixed);
+	bool bmx_b2bodydef_getfixedrotation(b2BodyDef * def);
+	void bmx_b2bodydef_setisbullet(b2BodyDef * def, bool bullet);
+	void bmx_b2bodydef_setlineardamping(b2BodyDef * def, float32 damping);
+	float32 bmx_b2bodydef_getlineardamping(b2BodyDef * def);
+	void bmx_b2bodydef_setangulardamping(b2BodyDef * def, float32 damping);
+	float32 bmx_b2bodydef_getangulardamping(b2BodyDef * def);
+	void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow);
+	bool bmx_b2bodydef_getallowsleep(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int iterations);
@@ -90,6 +105,22 @@ extern "C" {
 	void bmx_b2body_puttosleep(b2Body * body);
 	bool bmx_b2body_isbullet(b2Body * body);
 	void bmx_b2body_setbullet(b2Body * body, bool flag);
+	b2Vec2 * bmx_b2body_getworldcenter(b2Body * body);
+	b2Vec2 * bmx_b2body_getlocalcenter(b2Body * body);
+	void bmx_b2body_setlinearvelocity(b2Body * body, b2Vec2 * v);
+	b2Vec2 * bmx_b2body_getlinearvelocity(b2Body * body);
+	void bmx_b2body_setangularvelocity(b2Body * body, float32 omega);
+	float32 bmx_b2body_getangularvelocity(b2Body * body);
+	void bmx_b2body_applyforce(b2Body * body, b2Vec2 * force, b2Vec2 * point);
+	void bmx_b2body_applytorque(b2Body * body, float32 torque);
+	void bmx_b2body_applyimpulse(b2Body * body, b2Vec2 * impulse, b2Vec2 * point);
+	float32 bmx_b2body_getmass(b2Body * body);
+	float32 bmx_b2body_getinertia(b2Body * body);
+	b2Vec2 * bmx_b2body_getworldpoint(b2Body * body, b2Vec2 * localPoint);
+	b2Vec2 * bmx_b2body_getworldvector(b2Body * body, b2Vec2 * localVector);
+	b2Vec2 * bmx_b2body_getlocalpoint(b2Body * body, b2Vec2 * worldPoint);
+	b2Vec2 * bmx_b2body_getlocalvector(b2Body * body, b2Vec2 * worldVector);
+	b2JointEdge * bmx_b2body_getjointlist(b2Body * body);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
 	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
@@ -110,6 +141,18 @@ extern "C" {
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
 
 	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
+	void bmx_b2joint_attachobject(b2Joint * joint, BBObject *joint);
+
+	b2MassData * bmx_b2massdata_new();
+	void bmx_b2massdata_delete(b2MassData * data);
+	void bmx_b2massdata_setmass(b2MassData * data, float32 mass);
+	void bmx_b2massdata_setcenter(b2MassData * data, b2Vec2 * center);
+	void bmx_b2massdata_seti(b2MassData * data, float32 i);
+
+	b2Body * bmx_b2jointedge_getother(b2JointEdge * joint);
+	b2Joint * bmx_b2jointedge_getjoint(b2JointEdge * joint);
+	b2JointEdge * bmx_b2jointedge_getprev(b2JointEdge * joint);
+	b2JointEdge * bmx_b2jointedge_getnext(b2JointEdge * joint);
 
 }
 
@@ -215,7 +258,8 @@ void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw) {
 	world->SetDebugDraw(debugDraw);
 }
 
-b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def, BBObject * joint) {
+b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def) {
+	BBObject * joint = _bah_box2d_b2World__createJoint(def->type);
 	def->userData = joint;
 	BBRETAIN(joint);
 	return world->CreateJoint(def);
@@ -227,6 +271,14 @@ void bmx_b2world_destroyjoint(b2World * world, b2Joint * joint) {
 		BBRELEASE((BBObject*)data);
 	}
 	world->DestroyJoint(joint);
+}
+
+b2Body * bmx_b2world_getbodylist(b2World * world) {
+	return world->GetBodyList();
+}
+
+b2Joint * bmx_b2world_getjointlist(b2World * world) {
+	return world->GetJointList();
 }
 
 // *****************************************************
@@ -250,6 +302,55 @@ void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position) {
 void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle) {
 	def->angle = angle / 57.2957795f;
 }
+
+void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data) {
+	def->massData = *data;
+}
+
+bool bmx_b2bodydef_issleeping(b2BodyDef * def) {
+	return def->isSleeping;
+}
+
+void bmx_b2bodydef_setissleeping(b2BodyDef * def, bool sleeping) {
+	def->isSleeping = sleeping;
+}
+
+void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, bool fixed) {
+	def->fixedRotation = fixed;
+}
+
+bool bmx_b2bodydef_getfixedrotation(b2BodyDef * def) {
+	return def->fixedRotation;
+}
+
+void bmx_b2bodydef_setisbullet(b2BodyDef * def, bool bullet) {
+	def->isBullet = bullet;
+}
+
+void bmx_b2bodydef_setlineardamping(b2BodyDef * def, float32 damping) {
+	def->linearDamping = damping;
+}
+
+float32 bmx_b2bodydef_getlineardamping(b2BodyDef * def) {
+	return def->linearDamping;
+}
+
+void bmx_b2bodydef_setangulardamping(b2BodyDef * def, float32 damping) {
+	def->angularDamping = damping;
+}
+
+float32 bmx_b2bodydef_getangulardamping(b2BodyDef * def) {
+	return def->angularDamping;
+}
+
+void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow) {
+	def->allowSleep = allow;
+}
+
+bool bmx_b2bodydef_getallowsleep(b2BodyDef * def) {
+	return def->allowSleep;
+}
+
 
 // *****************************************************
 
@@ -369,6 +470,71 @@ bool bmx_b2body_isbullet(b2Body * body) {
 void bmx_b2body_setbullet(b2Body * body, bool flag) {
 	body->SetBullet(flag);
 }
+
+b2Vec2 * bmx_b2body_getworldcenter(b2Body * body) {
+	return bmx_b2vec2_new(body->GetWorldCenter());
+}
+
+b2Vec2 * bmx_b2body_getlocalcenter(b2Body * body) {
+	return bmx_b2vec2_new(body->GetLocalCenter());
+}
+
+void bmx_b2body_setlinearvelocity(b2Body * body, b2Vec2 * v) {
+	body->SetLinearVelocity(*v);
+}
+
+b2Vec2 * bmx_b2body_getlinearvelocity(b2Body * body) {
+	return bmx_b2vec2_new(body->GetLinearVelocity());
+}
+
+void bmx_b2body_setangularvelocity(b2Body * body, float32 omega) {
+	body->SetAngularVelocity(omega * 0.0174533f);
+}
+
+float32 bmx_b2body_getangularvelocity(b2Body * body) {
+	return body->GetAngularVelocity() * 57.2957795f;
+}
+
+void bmx_b2body_applyforce(b2Body * body, b2Vec2 * force, b2Vec2 * point) {
+	body->ApplyForce(*force, *point);
+}
+
+void bmx_b2body_applytorque(b2Body * body, float32 torque) {
+	body->ApplyTorque(torque);
+}
+
+void bmx_b2body_applyimpulse(b2Body * body, b2Vec2 * impulse, b2Vec2 * point) {
+	body->ApplyImpulse(*impulse, *point);
+}
+
+float32 bmx_b2body_getmass(b2Body * body) {
+	return body->GetMass();
+}
+
+float32 bmx_b2body_getinertia(b2Body * body) {
+	return body->GetInertia();
+}
+
+b2Vec2 * bmx_b2body_getworldpoint(b2Body * body, b2Vec2 * localPoint) {
+	return bmx_b2vec2_new(body->GetWorldPoint(*localPoint));
+}
+
+b2Vec2 * bmx_b2body_getworldvector(b2Body * body, b2Vec2 * localVector) {
+	return bmx_b2vec2_new(body->GetWorldVector(*localVector));
+}
+
+b2Vec2 * bmx_b2body_getlocalpoint(b2Body * body, b2Vec2 * worldPoint) {
+	return bmx_b2vec2_new(body->GetLocalPoint(*worldPoint));
+}
+
+b2Vec2 * bmx_b2body_getlocalvector(b2Body * body, b2Vec2 * worldVector) {
+	return bmx_b2vec2_new(body->GetLocalVector(*worldVector));
+}
+
+b2JointEdge * bmx_b2body_getjointlist(b2Body * body) {
+	return body->GetJointList();
+}
+
 
 // *****************************************************
 
@@ -506,5 +672,45 @@ BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint) {
 		return (BBObject *)obj;
 	}
 	return &bbNullObject;
+}
+
+// *****************************************************
+
+b2MassData * bmx_b2massdata_new() {
+	return new b2MassData;
+}
+
+void bmx_b2massdata_delete(b2MassData * data) {
+	delete data;
+}
+
+void bmx_b2massdata_setmass(b2MassData * data, float32 mass) {
+	data->mass = mass;
+}
+
+void bmx_b2massdata_setcenter(b2MassData * data, b2Vec2 * center) {
+	data->center = *center;
+}
+
+void bmx_b2massdata_seti(b2MassData * data, float32 i) {
+	data->I = i;
+}
+
+// *****************************************************
+
+b2Body * bmx_b2jointedge_getother(b2JointEdge * joint) {
+	return joint->other;
+}
+
+b2Joint * bmx_b2jointedge_getjoint(b2JointEdge * joint) {
+	return joint->joint;
+}
+
+b2JointEdge * bmx_b2jointedge_getprev(b2JointEdge * joint) {
+	return joint->prev;
+}
+
+b2JointEdge * bmx_b2jointedge_getnext(b2JointEdge * joint) {
+	return joint->next;
 }
 
