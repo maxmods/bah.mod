@@ -28,6 +28,7 @@ class b2Body;
 class b2Joint;
 class b2Contact;
 struct b2ContactPoint;
+struct b2ContactResult;
 
 /// Joints and shapes are destroyed when their associated
 /// body is destroyed. Implement this listener so that you
@@ -91,15 +92,18 @@ public:
 
 	/// Called when a contact point is added. This includes the geometry
 	/// and the forces.
-	virtual void Add(b2ContactPoint* point) = 0;
+	virtual void Add(const b2ContactPoint* point) { B2_NOT_USED(point); }
 
 	/// Called when a contact point persists. This includes the geometry
 	/// and the forces.
-	virtual void Persist(b2ContactPoint* point) = 0;
+	virtual void Persist(const b2ContactPoint* point) { B2_NOT_USED(point); }
 
 	/// Called when a contact point is removed. This includes the last
 	/// computed geometry and forces.
-	virtual void Remove(b2ContactPoint* point) = 0;
+	virtual void Remove(const b2ContactPoint* point) { B2_NOT_USED(point); }
+
+	/// Called after a contact point is solved.
+	virtual void Result(const b2ContactResult* point) { B2_NOT_USED(point); }
 };
 
 /// Color for debug drawing. Each value has the range [0,1].

@@ -24,6 +24,9 @@
 #include "Box2D.h"
 
 class MaxDebugDraw;
+class MaxContactFilter;
+class MaxContactListener;
+class MaxBoundaryListener;
 
 extern "C" {
 
@@ -34,6 +37,12 @@ extern "C" {
 	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
 	BBObject * _bah_box2d_b2World__createJoint(b2JointType type);
+	bool _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
+	void _bah_box2d_b2ContactListener__Add(BBObject * maxHandle, const b2ContactPoint* point);
+	void _bah_box2d_b2ContactListener__Persist(BBObject * maxHandle, const b2ContactPoint* point);
+	void _bah_box2d_b2ContactListener__Removed(BBObject * maxHandle, const b2ContactPoint* point);
+	void _bah_box2d_b2ContactListener__Result(BBObject * maxHandle, const b2ContactResult* result);
+	void _bah_box2d_b2BoundaryListener__Violation(BBObject * maxHandle, b2Body * body);
 
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
@@ -45,8 +54,8 @@ extern "C" {
 	float32 bmx_b2vec2_getx(b2Vec2 * vec);
 	float32 bmx_b2vec2_gety(b2Vec2 * vec);
 
-	b2Body * bmx_b2world_createstaticbody(b2World * world, b2BodyDef * def, BBObject * body);
-	b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
+	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
+	//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
 	b2Body * bmx_b2world_getgroundbody(b2World * world);
 	void bmx_b2world_setwarmstarting(b2World * world, bool flag);
@@ -58,6 +67,9 @@ extern "C" {
 	void bmx_b2world_destroyjoint(b2World * world, b2Joint * joint);
 	b2Body * bmx_b2world_getbodylist(b2World * world);
 	b2Joint * bmx_b2world_getjointlist(b2World * world);
+	void bmx_b2world_setfilter(b2World * world, b2ContactFilter * filter);
+	void bmx_b2world_setcontactlistener(b2World * world, b2ContactListener * listener);
+	void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * listener);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -154,6 +166,15 @@ extern "C" {
 	b2JointEdge * bmx_b2jointedge_getprev(b2JointEdge * joint);
 	b2JointEdge * bmx_b2jointedge_getnext(b2JointEdge * joint);
 
+	MaxContactFilter * bmx_b2contactfilter_new(BBObject * handle);
+	void bmx_b2contactfilter_delete(MaxContactFilter * filter);
+
+	MaxContactListener * bmx_b2contactlistener_new(BBObject * handle);
+	void bmx_b2contactlistener_delete(MaxContactListener * filter);
+
+	MaxBoundaryListener * bmx_b2boundarylistener_new(BBObject * handle);
+	void bmx_b2boundarylistener_delete(MaxBoundaryListener * filter);
+
 }
 
 
@@ -214,17 +235,17 @@ float32 bmx_b2vec2_gety(b2Vec2 * vec) {
 
 // *****************************************************
 
-b2Body * bmx_b2world_createstaticbody(b2World * world, b2BodyDef * def, BBObject * body) {
+b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body) {
 	def->userData = body;
 	BBRETAIN(body);
-	return world->CreateStaticBody(def);
+	return world->CreateBody(def);
 }
 
-b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body) {
-	def->userData = body;
-	BBRETAIN(body);
-	return world->CreateDynamicBody(def);
-}
+//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body) {
+//	def->userData = body;
+//	BBRETAIN(body);
+//	return world->CreateDynamicBody(def);
+//}
 
 void bmx_b2world_destroybody(b2World * world, b2Body * body) {
 	void * data = body->GetUserData();
@@ -279,6 +300,18 @@ b2Body * bmx_b2world_getbodylist(b2World * world) {
 
 b2Joint * bmx_b2world_getjointlist(b2World * world) {
 	return world->GetJointList();
+}
+
+void bmx_b2world_setfilter(b2World * world, b2ContactFilter * filter) {
+	world->SetContactFilter(filter);
+}
+
+void bmx_b2world_setcontactlistener(b2World * world, b2ContactListener * listener) {
+	world->SetContactListener(listener);
+}
+
+void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * listener) {
+	world->SetBoundaryListener(listener);
 }
 
 // *****************************************************
@@ -712,5 +745,99 @@ b2JointEdge * bmx_b2jointedge_getprev(b2JointEdge * joint) {
 
 b2JointEdge * bmx_b2jointedge_getnext(b2JointEdge * joint) {
 	return joint->next;
+}
+
+
+// *****************************************************
+
+class MaxContactFilter : public b2ContactFilter
+{
+public:
+	MaxContactFilter::MaxContactFilter(BBObject * handle)
+		: maxHandle(handle)
+	{
+	}
+	
+	bool MaxContactFilter::ShouldCollide(b2Shape* shape1, b2Shape* shape2) {
+		return _bah_box2d_b2ContactFilter__ShouldCollide(maxHandle, shape1, shape2);
+	}
+
+
+private:
+	BBObject * maxHandle;
+};
+
+MaxContactFilter * bmx_b2contactfilter_new(BBObject * handle) {
+	return new MaxContactFilter(handle);
+}
+
+void bmx_b2contactfilter_delete(MaxContactFilter * filter) {
+	delete filter;
+}
+
+
+// *****************************************************
+
+class MaxContactListener : public b2ContactListener
+{
+public:
+	MaxContactListener::MaxContactListener(BBObject * handle)
+		: maxHandle(handle)
+	{
+	}
+	
+	void MaxContactListener::Add(const b2ContactPoint* point) {
+		_bah_box2d_b2ContactListener__Add(maxHandle, point);
+	}
+
+	void MaxContactListener::Persist(const b2ContactPoint* point) {
+		_bah_box2d_b2ContactListener__Persist(maxHandle, point);
+	}
+
+	void MaxContactListener::Remove(const b2ContactPoint* point) {
+		_bah_box2d_b2ContactListener__Removed(maxHandle, point);
+	}
+
+	void MaxContactListener::Result(const b2ContactResult* result) {
+		_bah_box2d_b2ContactListener__Result(maxHandle, result);
+	}
+
+private:
+	BBObject * maxHandle;
+};
+
+MaxContactListener * bmx_b2contactlistener_new(BBObject * handle) {
+	return new MaxContactListener(handle);
+}
+
+void bmx_b2contactlistener_delete(MaxContactListener * listener) {
+	delete listener;
+}
+
+// *****************************************************
+
+class MaxBoundaryListener : public b2BoundaryListener
+{
+public:
+	MaxBoundaryListener::MaxBoundaryListener(BBObject * handle)
+		: maxHandle(handle)
+	{
+	}
+	
+	void MaxBoundaryListener::Violation(b2Body* body) {
+		_bah_box2d_b2BoundaryListener__Violation(maxHandle, body);
+	}
+	
+private:
+	BBObject * maxHandle;
+};
+
+
+MaxBoundaryListener * bmx_b2boundarylistener_new(BBObject * handle) {
+	return new MaxBoundaryListener(handle);
+}
+
+void bmx_b2boundarylistener_delete(MaxBoundaryListener * listener) {
+	delete listener;
 }
 

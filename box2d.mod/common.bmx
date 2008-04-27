@@ -34,8 +34,8 @@ Extern
 	Function bmx_b2vec2_getx:Float(handle:Byte Ptr)
 	Function bmx_b2vec2_gety:Float(handle:Byte Ptr)
 
-	Function bmx_b2world_createstaticbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
-	Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
+	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
+	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	Function bmx_b2world_destroybody(handle:Byte Ptr, body:Byte Ptr)
 	Function bmx_b2world_getgroundbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2world_setwarmstarting(handle:Byte Ptr, flag:Int)
@@ -47,6 +47,9 @@ Extern
 	Function bmx_b2world_destroyjoint(handle:Byte Ptr, joint:Byte Ptr)
 	Function bmx_b2world_getbodylist:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2world_getjointlist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2world_setfilter(handle:Byte Ptr, filter:Byte Ptr)
+	Function bmx_b2world_setcontactlistener(handle:Byte Ptr, listener:Byte Ptr)
+	Function bmx_b2world_setboundarylistener(handle:Byte Ptr, listener:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -142,6 +145,15 @@ Extern
 	Function bmx_b2jointedge_getprev:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2jointedge_getnext:Byte Ptr(handle:Byte Ptr)
 
+	Function bmx_b2contactfilter_new:Byte Ptr(handle:Object)
+	Function bmx_b2contactfilter_delete(handle:Byte Ptr)
+
+	Function bmx_b2contactlistener_new:Byte Ptr(handle:Object)
+	Function bmx_b2contactlistener_delete(handle:Byte Ptr)
+
+	Function bmx_b2boundarylistener_new:Byte Ptr(handle:Object)
+	Function bmx_b2boundarylistener_delete(handle:Byte Ptr)
+	
 End Extern
 
 Const e_unknownJoint:Int = 0

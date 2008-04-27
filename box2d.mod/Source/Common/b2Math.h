@@ -159,7 +159,7 @@ struct b2Vec2
 	float32 Normalize()
 	{
 		float32 length = Length();
-		if (length < FLOAT32_EPSILON)
+		if (length < B2_FLT_EPSILON)
 		{
 			return 0.0f;
 		} 
@@ -186,7 +186,7 @@ struct b2Vec2
 	float32 Normalize()
 	{
 		float32 length = Length();
-		if (length < FLOAT32_EPSILON)
+		if (length < B2_FLT_EPSILON)
 		{
 			return 0.0f;
 		}
@@ -283,7 +283,7 @@ struct b2Mat22
 		b2Mat22 B;
 		int n = 0;
 
-		if(b2Abs(det) <= (FLOAT32_EPSILON<<8))
+		if(b2Abs(det) <= (B2_FLT_EPSILON<<8))
 		{
 			n = 3;
 			a = a<<n; b = b<<n; 
@@ -315,7 +315,7 @@ struct b2Mat22
 		b2Vec2 x;
 
 		
-		if(b2Abs(det) <= (FLOAT32_EPSILON<<8))
+		if(b2Abs(det) <= (B2_FLT_EPSILON<<8))
 		{
 			n = 3;
 			a11 = col1.x<<n; a12 = col2.x<<n;

@@ -45,10 +45,13 @@
 b2GearJoint::b2GearJoint(const b2GearJointDef* def)
 : b2Joint(def)
 {
-	b2Assert(def->joint1->m_type == e_revoluteJoint || def->joint1->m_type == e_prismaticJoint);
-	b2Assert(def->joint2->m_type == e_revoluteJoint || def->joint2->m_type == e_prismaticJoint);
-	b2Assert(def->joint1->m_body1->IsStatic());
-	b2Assert(def->joint2->m_body1->IsStatic());
+	b2JointType type1 = def->joint1->GetType();
+	b2JointType type2 = def->joint2->GetType();
+
+	b2Assert(type1 == e_revoluteJoint || type1 == e_prismaticJoint);
+	b2Assert(type2 == e_revoluteJoint || type2 == e_prismaticJoint);
+	b2Assert(def->joint1->GetBody1()->IsStatic());
+	b2Assert(def->joint2->GetBody1()->IsStatic());
 
 	m_revolute1 = NULL;
 	m_prismatic1 = NULL;
@@ -57,9 +60,9 @@ b2GearJoint::b2GearJoint(const b2GearJointDef* def)
 
 	float32 coordinate1, coordinate2;
 
-	m_ground1 = def->joint1->m_body1;
-	m_body1 = def->joint1->m_body2;
-	if (def->joint1->m_type == e_revoluteJoint)
+	m_ground1 = def->joint1->GetBody1();
+	m_body1 = def->joint1->GetBody2();
+	if (type1 == e_revoluteJoint)
 	{
 		m_revolute1 = (b2RevoluteJoint*)def->joint1;
 		m_groundAnchor1 = m_revolute1->m_localAnchor1;
@@ -74,9 +77,9 @@ b2GearJoint::b2GearJoint(const b2GearJointDef* def)
 		coordinate1 = m_prismatic1->GetJointTranslation();
 	}
 
-	m_ground2 = def->joint2->m_body1;
-	m_body2 = def->joint2->m_body2;
-	if (def->joint2->m_type == e_revoluteJoint)
+	m_ground2 = def->joint2->GetBody1();
+	m_body2 = def->joint2->GetBody2();
+	if (type2 == e_revoluteJoint)
 	{
 		m_revolute2 = (b2RevoluteJoint*)def->joint2;
 		m_groundAnchor2 = m_revolute2->m_localAnchor1;

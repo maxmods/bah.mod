@@ -59,10 +59,23 @@ struct b2ContactPoint
 	b2Shape* shape1;		///< the first shape
 	b2Shape* shape2;		///< the second shape
 	b2Vec2 position;		///< position in world coordinates
+	b2Vec2 velocity;		///< velocity of point on body2 relative to point on body1 (pre-solver)
 	b2Vec2 normal;			///< points from shape1 to shape2
 	float32 separation;		///< the separation is negative when shapes are touching
-	float32 normalForce;	///< the signed magnitude of the normal force
-	float32 tangentForce;	///< the signed magnitude of the tangent force
+	float32 friction;		///< the combined friction coefficient
+	float32 restitution;	///< the combined restitution coefficient
+	b2ContactID id;			///< the contact id identifies the features in contact
+};
+
+/// This structure is used to report contact point results.
+struct b2ContactResult
+{
+	b2Shape* shape1;		///< the first shape
+	b2Shape* shape2;		///< the second shape
+	b2Vec2 position;		///< position in world coordinates
+	b2Vec2 normal;			///< points from shape1 to shape2
+	float32 normalImpulse;	///< the normal impulse applied to body2
+	float32 tangentImpulse;	///< the tangent impulse applied to body2
 	b2ContactID id;			///< the contact id identifies the features in contact
 };
 

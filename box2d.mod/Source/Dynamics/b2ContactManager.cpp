@@ -35,7 +35,7 @@ void* b2ContactManager::PairAdded(void* proxyUserData1, void* proxyUserData2)
 		return &m_nullContact;
 	}
 
-	if (shape1->m_body == shape2->m_body)
+	if (shape1->GetBody() == shape2->GetBody())
 	{
 		return &m_nullContact;
 	}
@@ -135,23 +135,30 @@ void b2ContactManager::Destroy(b2Contact* c)
 	int32 manifoldCount = c->GetManifoldCount();
 	if (manifoldCount > 0 && m_world->m_contactListener)
 	{
+		b2Body* b1 = shape1->GetBody();
+		b2Body* b2 = shape2->GetBody();
+
+		b2Manifold* manifolds = c->GetManifolds();
 		b2ContactPoint cp;
 		cp.shape1 = c->GetShape1();
 		cp.shape2 = c->GetShape2();
-		b2Body* b1 = cp.shape1->GetBody();
-		b2Manifold* manifolds = c->GetManifolds();
+		cp.friction = c->m_friction;
+		cp.restitution = c->m_restitution;
+
 		for (int32 i = 0; i < manifoldCount; ++i)
 		{
 			b2Manifold* manifold = manifolds + i;
 			cp.normal = manifold->normal;
+
 			for (int32 j = 0; j < manifold->pointCount; ++j)
 			{
-				b2ManifoldPoint* point = manifold->points + j;
-				cp.position = b2Mul(b1->GetXForm(), point->localPoint1);
-				cp.separation = point->separation;
-				cp.normalForce = point->normalForce;
-				cp.tangentForce = point->tangentForce;
-				cp.id = point->id;
+				b2ManifoldPoint* mp = manifold->points + j;
+				cp.position = b1->GetWorldPoint(mp->localPoint1);
+				b2Vec2 v1 = b1->GetLinearVelocityFromLocalPoint(mp->localPoint1);
+				b2Vec2 v2 = b2->GetLinearVelocityFromLocalPoint(mp->localPoint2);
+				cp.velocity = v2 - v1;
+				cp.separation = mp->separation;
+				cp.id = mp->id;
 				m_world->m_contactListener->Remove(&cp);
 			}
 		}
@@ -229,44 +236,5 @@ void b2ContactManager::Collide()
 		}
 
 		c->Update(m_world->m_contactListener);
-
-		if (c->IsSolid() == false && m_world->m_contactListener)
-		{
-			// report the sensor.
-			b2ContactPoint cp;
-			cp.shape1 = c->GetShape1();
-			cp.shape2 = c->GetShape2();
-			
-			// sensors have no force.
-			cp.normalForce = 0.0f;
-			cp.tangentForce = 0.0f;
-
-			b2Body* b1 = cp.shape1->GetBody();
-			int32 manifoldCount = c->GetManifoldCount();
-			b2Manifold* manifolds = c->GetManifolds();
-			for (int32 i = 0; i < manifoldCount; ++i)
-			{
-				b2Manifold* manifold = manifolds + i;
-				cp.normal = manifold->normal;
-				for (int32 j = 0; j < manifold->pointCount; ++j)
-				{
-					b2ManifoldPoint* point = manifold->points + j;
-					cp.position = b2Mul(b1->GetXForm(), point->localPoint1);
-					cp.separation = point->separation;
-
-					if (point->id.features.flip & b2_newPoint)
-					{
-						point->id.features.flip &= ~b2_newPoint;
-						cp.id = point->id;
-						m_world->m_contactListener->Add(&cp);
-					}
-					else
-					{
-						cp.id = point->id;
-						m_world->m_contactListener->Persist(&cp);
-					}
-				}
-			}
-		}
 	}
 }

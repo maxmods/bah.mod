@@ -39,8 +39,8 @@ void b2PolygonContact::Destroy(b2Contact* contact, b2BlockAllocator* allocator)
 b2PolygonContact::b2PolygonContact(b2Shape* s1, b2Shape* s2)
 	: b2Contact(s1, s2)
 {
-	b2Assert(m_shape1->m_type == e_polygonShape);
-	b2Assert(m_shape2->m_type == e_polygonShape);
+	b2Assert(m_shape1->GetType() == e_polygonShape);
+	b2Assert(m_shape2->GetType() == e_polygonShape);
 	m_manifold.pointCount = 0;
 }
 
@@ -54,7 +54,13 @@ void b2PolygonContact::Evaluate(b2ContactListener* listener)
 
 	b2CollidePolygons(&m_manifold, (b2PolygonShape*)m_shape1, b1->GetXForm(), (b2PolygonShape*)m_shape2, b2->GetXForm());
 
-	bool match[b2_maxManifoldPoints] = {false, false};
+	bool persisted[b2_maxManifoldPoints] = {false, false};
+
+	b2ContactPoint cp;
+	cp.shape1 = m_shape1;
+	cp.shape2 = m_shape2;
+	cp.friction = m_friction;
+	cp.restitution = m_restitution;
 
 	// Match contact ids to facilitate warm starting.
 	if (m_manifold.pointCount > 0)
@@ -63,36 +69,57 @@ void b2PolygonContact::Evaluate(b2ContactListener* listener)
 		// stored impulses to warm start the solver.
 		for (int32 i = 0; i < m_manifold.pointCount; ++i)
 		{
-			b2ManifoldPoint* cp = m_manifold.points + i;
-			cp->normalForce = 0.0f;
-			cp->tangentForce = 0.0f;
-			bool matched = false;
-			b2ContactID id = cp->id;
+			b2ManifoldPoint* mp = m_manifold.points + i;
+			mp->normalImpulse = 0.0f;
+			mp->tangentImpulse = 0.0f;
+			bool found = false;
+			b2ContactID id = mp->id;
 
 			for (int32 j = 0; j < m0.pointCount; ++j)
 			{
-				if (match[j] == true)
-					continue;
-
-				b2ManifoldPoint* cp0 = m0.points + j;
-				b2ContactID id0 = cp0->id;
-				id0.features.flip &= ~b2_newPoint;
-
-				if (id0.key == id.key)
+				if (persisted[j] == true)
 				{
-					match[j] = true;
-					cp->normalForce = cp0->normalForce;
-					cp->tangentForce = cp0->tangentForce;
+					continue;
+				}
 
-					// Not a new point.
-					matched = true;
+				b2ManifoldPoint* mp0 = m0.points + j;
+
+				if (mp0->id.key == id.key)
+				{
+					persisted[j] = true;
+					mp->normalImpulse = mp0->normalImpulse;
+					mp->tangentImpulse = mp0->tangentImpulse;
+
+					// A persistent point.
+					found = true;
+
+					// Report persistent point.
+					if (listener != NULL)
+					{
+						cp.position = b1->GetWorldPoint(mp->localPoint1);
+						b2Vec2 v1 = b1->GetLinearVelocityFromLocalPoint(mp->localPoint1);
+						b2Vec2 v2 = b2->GetLinearVelocityFromLocalPoint(mp->localPoint2);
+						cp.velocity = v2 - v1;
+						cp.normal = m_manifold.normal;
+						cp.separation = mp->separation;
+						cp.id = id;
+						listener->Persist(&cp);
+					}
 					break;
 				}
 			}
 
-			if (matched == false)
+			// Report added point.
+			if (found == false && listener != NULL)
 			{
-				cp->id.features.flip |= b2_newPoint;
+				cp.position = b1->GetWorldPoint(mp->localPoint1);
+				b2Vec2 v1 = b1->GetLinearVelocityFromLocalPoint(mp->localPoint1);
+				b2Vec2 v2 = b2->GetLinearVelocityFromLocalPoint(mp->localPoint2);
+				cp.velocity = v2 - v1;
+				cp.normal = m_manifold.normal;
+				cp.separation = mp->separation;
+				cp.id = id;
+				listener->Add(&cp);
 			}
 		}
 
@@ -103,27 +130,27 @@ void b2PolygonContact::Evaluate(b2ContactListener* listener)
 		m_manifoldCount = 0;
 	}
 
-	// Report removed points.
-	if (listener && m0.pointCount > 0)
+	if (listener == NULL)
 	{
-		b2ContactPoint cp;
-		cp.shape1 = m_shape1;
-		cp.shape2 = m_shape2;
-		cp.normal = m0.normal;
-		for (int32 i = 0; i < m0.pointCount; ++i)
-		{
-			if (match[i])
-			{
-				continue;
-			}
+		return;
+	}
 
-			b2ManifoldPoint* mp0 = m0.points + i;
-			cp.position = b2Mul(b1->GetXForm(), mp0->localPoint1);
-			cp.separation = mp0->separation;
-			cp.normalForce = mp0->normalForce;
-			cp.tangentForce = mp0->tangentForce;
-			cp.id = mp0->id;
-			listener->Remove(&cp);
+	// Report removed points.
+	for (int32 i = 0; i < m0.pointCount; ++i)
+	{
+		if (persisted[i])
+		{
+			continue;
 		}
+
+		b2ManifoldPoint* mp0 = m0.points + i;
+		cp.position = b1->GetWorldPoint(mp0->localPoint1);
+		b2Vec2 v1 = b1->GetLinearVelocityFromLocalPoint(mp0->localPoint1);
+		b2Vec2 v2 = b2->GetLinearVelocityFromLocalPoint(mp0->localPoint2);
+		cp.velocity = v2 - v1;
+		cp.normal = m0.normal;
+		cp.separation = mp0->separation;
+		cp.id = mp0->id;
+		listener->Remove(&cp);
 	}
 }

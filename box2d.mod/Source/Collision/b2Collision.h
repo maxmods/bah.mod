@@ -31,8 +31,6 @@ class b2CircleShape;
 class b2PolygonShape;
 
 const uint8 b2_nullFeature = UCHAR_MAX;
-const uint8 b2_newPoint = 0x02;
-const uint8 b2_oldPoint = 0x04;
 
 /// Contact ids to facilitate warm starting.
 union b2ContactID
@@ -58,8 +56,8 @@ struct b2ManifoldPoint
 	b2Vec2 localPoint1;		///< local position of the contact point in body1
 	b2Vec2 localPoint2;		///< local position of the contact point in body2
 	float32 separation;		///< the separation of the shapes along the normal vector
-	float32 normalForce;	///< the non-penetration force
-	float32 tangentForce;	///< the friction force
+	float32 normalImpulse;	///< the non-penetration impulse
+	float32 tangentImpulse;	///< the friction impulse
 	b2ContactID id;			///< uniquely identifies a contact point between two shapes
 };
 

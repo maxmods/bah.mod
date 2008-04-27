@@ -131,7 +131,14 @@ public:
 	/// Get the user data pointer.
 	void* GetUserData();
 
+	/// Set the user data pointer.
+	void SetUserData(void* data);
+
 	//--------------- Internals Below -------------------
+protected:
+	friend class b2World;
+	friend class b2Body;
+	friend class b2Island;
 
 	static b2Joint* Create(const b2JointDef* def, b2BlockAllocator* allocator);
 	static void Destroy(b2Joint* joint, b2BlockAllocator* allocator);
@@ -202,6 +209,11 @@ inline b2Joint* b2Joint::GetNext()
 inline void* b2Joint::GetUserData()
 {
 	return m_userData;
+}
+
+inline void b2Joint::SetUserData(void* data)
+{
+	m_userData = data;
 }
 
 #endif

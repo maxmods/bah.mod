@@ -27,7 +27,7 @@ Type Bridge Extends Test
 
 		Local bd:b2BodyDef = New b2BodyDef.Create()
 		bd.SetPosition(New b2Vec2.Create(0.0, -10.0))
-		ground = m_world.CreateStaticBody(bd)
+		ground = m_world.CreateBody(bd)
 		ground.CreateShape(sd)
 		
 		
@@ -44,7 +44,7 @@ Type Bridge Extends Test
 		
 			bd = New b2BodyDef.Create()
 			bd.SetPosition(New b2Vec2.Create(-14.5 + 1.0 * i, 5.0))
-			Local body:b2Body = m_world.CreateDynamicBody(bd)
+			Local body:b2Body = m_world.CreateBody(bd)
 			body.CreateShape(sd)
 			body.SetMassFromShapes()
 		

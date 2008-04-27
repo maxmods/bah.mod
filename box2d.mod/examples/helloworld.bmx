@@ -28,7 +28,7 @@ groundBodyDef.SetPosition(New b2Vec2.Create(0.0, -10.0))
 ' Call the body factory which allocates memory for the ground body
 ' from a pool and creates the ground box shape (also from a pool).
 ' The body is also added to the world.
-Local groundBody:b2Body = world.CreateStaticBody(groundBodyDef)
+Local groundBody:b2Body = world.CreateBody(groundBodyDef)
 
 ' Define the ground box shape.
 Local groundShapeDef:b2PolygonDef = New b2PolygonDef.Create()
@@ -47,7 +47,7 @@ groundBody.CreateShape(groundShapeDef)
 ' Define the dynamic body. We set its position and call the body factory.
 Local bodyDef:b2BodyDef = New b2BodyDef.Create()
 bodyDef.SetPosition(New b2Vec2.Create(0.0, 4.0))
-Local body:b2Body = world.CreateDynamicBody(bodyDef)
+Local body:b2Body = world.CreateBody(bodyDef)
 
 ' Define another box shape for our dynamic body.
 Local shapeDef:b2PolygonDef = New b2PolygonDef.Create()

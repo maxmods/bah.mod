@@ -49,6 +49,7 @@ b2MouseJoint::b2MouseJoint(const b2MouseJointDef* def)
 	float32 k = (def->timeStep * mass) * (omega * omega);
 
 	// magic formulas
+	b2Assert(d + k > B2_FLT_EPSILON);
 	m_gamma = 1.0f / (d + k);
 	m_beta = k / (d + k);
 }

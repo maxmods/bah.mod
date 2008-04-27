@@ -136,7 +136,6 @@ public:
 	float32 GetMotorTorque() const;
 
 	//--------------- Internals Below -------------------
-
 	b2RevoluteJoint(const b2RevoluteJointDef* def);
 
 	void InitVelocityConstraints(const b2TimeStep& step);

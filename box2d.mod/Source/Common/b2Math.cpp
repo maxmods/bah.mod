@@ -25,7 +25,7 @@ const b2XForm b2XForm_identity(b2Vec2_zero, b2Mat22_identity);
 void b2Sweep::GetXForm(b2XForm* xf, float32 t) const
 {
 	// center = p + R * localCenter
-	if (1.0f - t0 > FLOAT32_EPSILON)
+	if (1.0f - t0 > B2_FLT_EPSILON)
 	{
 		float32 alpha = (t - t0) / (1.0f - t0);
 		xf->position = (1.0f - alpha) * c0 + alpha * c;
@@ -44,7 +44,7 @@ void b2Sweep::GetXForm(b2XForm* xf, float32 t) const
 
 void b2Sweep::Advance(float32 t)
 {
-	if (t0 < t && 1.0f - t0 > FLOAT32_EPSILON)
+	if (t0 < t && 1.0f - t0 > B2_FLT_EPSILON)
 	{
 		float32 alpha = (t - t0) / (1.0f - t0);
 		c0 = (1.0f - alpha) * c0 + alpha * c;

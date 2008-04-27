@@ -59,7 +59,7 @@ b2World::b2World(const b2AABB& worldAABB, const b2Vec2& gravity, bool doSleep)
 	m_broadPhase = new (mem) b2BroadPhase(worldAABB, &m_contactManager);
 
 	b2BodyDef bd;
-	m_groundBody = CreateStaticBody(&bd);
+	m_groundBody = CreateBody(&bd);
 }
 
 b2World::~b2World()
@@ -69,22 +69,22 @@ b2World::~b2World()
 	b2Free(m_broadPhase);
 }
 
-void b2World::SetListener(b2DestructionListener* listener)
+void b2World::SetDestructionListener(b2DestructionListener* listener)
 {
 	m_destructionListener = listener;
 }
 
-void b2World::SetListener(b2BoundaryListener* listener)
+void b2World::SetBoundaryListener(b2BoundaryListener* listener)
 {
 	m_boundaryListener = listener;
 }
 
-void b2World::SetFilter(b2ContactFilter* filter)
+void b2World::SetContactFilter(b2ContactFilter* filter)
 {
 	m_contactFilter = filter;
 }
 
-void b2World::SetListener(b2ContactListener* listener)
+void b2World::SetContactListener(b2ContactListener* listener)
 {
 	m_contactListener = listener;
 }
@@ -94,7 +94,7 @@ void b2World::SetDebugDraw(b2DebugDraw* debugDraw)
 	m_debugDraw = debugDraw;
 }
 
-b2Body* b2World::CreateStaticBody(const b2BodyDef* def)
+b2Body* b2World::CreateBody(const b2BodyDef* def)
 {
 	b2Assert(m_lock == false);
 	if (m_lock == true)
@@ -103,31 +103,7 @@ b2Body* b2World::CreateStaticBody(const b2BodyDef* def)
 	}
 
 	void* mem = m_blockAllocator.Allocate(sizeof(b2Body));
-	b2Body* b = new (mem) b2Body(def, b2Body::e_staticType, this);
-
-	// Add to world doubly linked list.
-	b->m_prev = NULL;
-	b->m_next = m_bodyList;
-	if (m_bodyList)
-	{
-		m_bodyList->m_prev = b;
-	}
-	m_bodyList = b;
-	++m_bodyCount;
-
-	return b;
-}
-
-b2Body* b2World::CreateDynamicBody(const b2BodyDef* def)
-{
-	b2Assert(m_lock == false);
-	if (m_lock == true)
-	{
-		return NULL;
-	}
-
-	void* mem = m_blockAllocator.Allocate(sizeof(b2Body));
-	b2Body* b = new (mem) b2Body(def, b2Body::e_dynamicType, this);
+	b2Body* b = new (mem) b2Body(def, this);
 
 	// Add to world doubly linked list.
 	b->m_prev = NULL;
@@ -242,7 +218,7 @@ b2Joint* b2World::CreateJoint(const b2JointDef* def)
 		b2Body* b = def->body1->m_shapeCount < def->body2->m_shapeCount ? def->body1 : def->body2;
 		for (b2Shape* s = b->m_shapeList; s; s = s->m_next)
 		{
-			s->ResetProxy(m_broadPhase, b->GetXForm());
+			s->RefilterProxy(m_broadPhase, b->GetXForm());
 		}
 	}
 
@@ -329,9 +305,14 @@ void b2World::DestroyJoint(b2Joint* j)
 		b2Body* b = body1->m_shapeCount < body2->m_shapeCount ? body1 : body2;
 		for (b2Shape* s = b->m_shapeList; s; s = s->m_next)
 		{
-			s->ResetProxy(m_broadPhase, b->GetXForm());
+			s->RefilterProxy(m_broadPhase, b->GetXForm());
 		}
 	}
+}
+
+void b2World::Refilter(b2Shape* shape)
+{
+	shape->RefilterProxy(m_broadPhase, shape->GetBody()->GetXForm());
 }
 
 // Find islands, integrate and solve constraints, solve position constraints
@@ -581,7 +562,7 @@ void b2World::SolveTOI(const b2TimeStep& step)
 				c->m_flags |= b2Contact::e_toiFlag;
 			}
 
-			if (FLOAT32_EPSILON < toi && toi < minTOI)
+			if (B2_FLT_EPSILON < toi && toi < minTOI)
 			{
 				// This is the minimum TOI found so far.
 				minContact = c;
@@ -589,7 +570,7 @@ void b2World::SolveTOI(const b2TimeStep& step)
 			}
 		}
 
-		if (minContact == NULL || 1.0f - 100.0f * FLOAT32_EPSILON < minTOI)
+		if (minContact == NULL || 1.0f - 100.0f * B2_FLT_EPSILON < minTOI)
 		{
 			// No more TOI events. Done!
 			break;
@@ -692,7 +673,7 @@ void b2World::SolveTOI(const b2TimeStep& step)
 
 		b2TimeStep subStep;
 		subStep.dt = (1.0f - minTOI) * step.dt;
-		b2Assert(subStep.dt > FLOAT32_EPSILON);
+		b2Assert(subStep.dt > B2_FLT_EPSILON);
 		subStep.inv_dt = 1.0f / subStep.dt;
 		subStep.maxIterations = step.maxIterations;
 
@@ -811,7 +792,7 @@ void b2World::DrawShape(b2Shape* shape, const b2XForm& xf, const b2Color& color,
 {
 	b2Color coreColor(0.9f, 0.6f, 0.6f);
 
-	switch (shape->m_type)
+	switch (shape->GetType())
 	{
 	case e_circleShape:
 		{
@@ -1080,4 +1061,9 @@ int32 b2World::GetProxyCount() const
 int32 b2World::GetPairCount() const
 {
 	return m_broadPhase->m_pairManager.m_pairCount;
+}
+
+bool b2World::InRange(const b2AABB& aabb) const
+{
+	return m_broadPhase->InRange(aabb);
 }

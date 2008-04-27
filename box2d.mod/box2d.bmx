@@ -41,6 +41,10 @@ End Rem
 Type b2World
 
 	Field b2ObjectPtr:Byte Ptr
+	
+	Field filter:b2ContactFilter
+	Field contactListener:b2ContactListener
+	Field boundaryListener:b2BoundaryListener
 
 	Rem
 	bbdoc: 
@@ -74,19 +78,25 @@ Type b2World
 	bbdoc: Register a broad-phase boundary listener.
 	End Rem
 	Method SetBoundaryListener(listener:b2BoundaryListener)
+		boundaryListener = listener
+		bmx_b2world_setboundarylistener(b2ObjectPtr, listener.b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: Register a contact filter To provide specific control over collision.
-	/// Otherwise the Default filter is used (b2_defaultFilter).
+	bbdoc: Register a contact filter to provide specific control over collision.
+	about: Otherwise the default filter is used.
 	End Rem
-	Method SetFilter(filter:b2ContactFilter)
+	Method SetFilter(_filter:b2ContactFilter)
+		filter = _filter
+		bmx_b2world_setfilter(b2ObjectPtr, filter.b2ObjectPtr)
 	End Method
 
 	Rem
 	bbdoc: Register a contact event listener
 	End Rem
 	Method SetContactListener(listener:b2ContactListener)
+		contactListener = listener
+		bmx_b2world_setcontactlistener(b2ObjectPtr, listener.b2ObjectPtr)
 	End Method
 
 	Rem
@@ -99,32 +109,32 @@ Type b2World
 	End Method
 
 	Rem
-	bbdoc: Create a static rigid body given a definition
+	bbdoc: Create a rigid body given a definition
 	about: No reference to the definition is retained.
 	<p>
 	Warning: This method is locked during callbacks.
 	</p>
 	End Rem
-	Method CreateStaticBody:b2Body(def:b2BodyDef)
+	Method CreateBody:b2Body(def:b2BodyDef)
 		Local body:b2Body = New b2Body
 		body.userData = def.userData ' copy the userData
-		body.b2ObjectPtr = bmx_b2world_createstaticbody(b2ObjectPtr, def.b2ObjectPtr, body)
+		body.b2ObjectPtr = bmx_b2world_createbody(b2ObjectPtr, def.b2ObjectPtr, body)
 		Return body
 	End Method
 
-	Rem
-	bbdoc: Create a dynamic rigid body given a definition.
-	about: No reference to the definition is retained.
-	<p>
-	Warning: This method is locked during callbacks.
-	</p>
-	End Rem
-	Method CreateDynamicBody:b2Body(def:b2BodyDef)
-		Local body:b2Body = New b2Body
-		body.userData = def.userData ' copy the userData
-		body.b2ObjectPtr = bmx_b2world_createdynamicbody(b2ObjectPtr, def.b2ObjectPtr, body)
-		Return body
-	End Method
+'	Rem
+'	bbdoc: Create a dynamic rigid body given a definition.
+'	about: No reference To the definition is retained.
+'	<p>
+'	Warning: This Method is locked during callbacks.
+'	</p>
+'	End Rem
+'	Method CreateDynamicBody:b2Body(def:b2BodyDef)
+'		Local body:b2Body = New b2Body
+'		body.userData = def.userData ' copy the userData
+'		body.b2ObjectPtr = bmx_b2world_createdynamicbody(b2ObjectPtr, def.b2ObjectPtr, body)
+'		Return body
+'	End Method
 
 	Rem
 	bbdoc: Destroy a rigid body given a definition.
@@ -421,21 +431,171 @@ Type b2DestructionListener
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Use this type for when a body's shape passes outside of the world boundary.
+about: Override Violation().
 End Rem
 Type b2BoundaryListener
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Method New()
+		b2ObjectPtr = bmx_b2boundarylistener_new(Self)
+	End Method
+	
+	Rem
+	bbdoc: This is called for each body that leaves the world boundary.
+	about: Warning: you can't modify the world inside this callback.
+	End Rem
+	Method Violation(body:b2Body)
+	End Method
+
+	Function _Violation(listener:b2BoundaryListener, body:Byte Ptr)
+		listener.Violation(b2Body._create(body))
+	End Function
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2boundarylistener_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
 bbdoc: 
 End Rem
 Type b2ContactListener
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Method New()
+		b2ObjectPtr = bmx_b2contactlistener_new(Self)
+	End Method
+
+	Rem
+	bbdoc: Called when a contact point is added.
+	about: This includes the geometry and the forces.
+	End Rem
+	Method Add(point:b2ContactPoint)
+	End Method
+	
+	Function _Add(listener:b2ContactListener, point:Byte Ptr)
+		listener.Add(b2ContactPoint._create(point))
+	End Function
+
+	Rem
+	bbdoc: Called when a contact point persists.
+	about: This includes the geometry and the forces.
+	End Rem
+	Method Persist(point:b2ContactPoint)
+	End Method
+	
+	Function _Persist(listener:b2ContactListener, point:Byte Ptr)
+		listener.Persist(b2ContactPoint._create(point))
+	End Function
+
+	Rem
+	bbdoc: Called when a contact point is removed.
+	about: This includes the last computed geometry and forces.
+	End Rem
+	Method Removed(point:b2ContactPoint)
+	End Method
+
+	Function _Removed(listener:b2ContactListener, point:Byte Ptr)
+		listener.Removed(b2ContactPoint._create(point))
+	End Function
+
+	Rem
+	bbdoc: Called after a contact point is solved.
+	End Rem
+	Method Result(result:b2ContactResult)
+	End Method
+	
+	Function _Result(listener:b2ContactListener, result:Byte Ptr)
+		listener.Result(b2ContactResult._create(result))
+	End Function
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2contactlistener_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Implement this type and override ShouldCollide() to provide collision filtering.
+about: In other words, you can implement this type if you want finer control over contact creation.
+End Rem
+Type b2ContactFilter
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Method New()
+		b2ObjectPtr = bmx_b2contactfilter_new(Self)
+	End Method
+
+	Rem
+	bbdoc: Return True if contact calculations should be performed between these two shapes.
+	about: Warning:  for performance reasons this is only called when the AABBs begin to overlap.
+	End Rem
+	Method ShouldCollide:Int(shape1:b2Shape, shape2:b2Shape)
+		Return True
+	End Method
+
+	Function _ShouldCollide:Int(filter:b2ContactFilter, shape1:Byte Ptr, shape2:Byte Ptr)
+		Return filter.ShouldCollide(b2Shape._create(shape1), b2Shape._create(shape2))
+	End Function
+	
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2contactfilter_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem
 bbdoc: 
 End Rem
 Type b2Contact
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2ContactPoint
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Function _create:b2ContactPoint(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local contactPoint:b2ContactPoint = New b2ContactPoint
+			contactPoint.b2ObjectPtr = b2ObjectPtr
+			Return contactPoint
+		End If
+	End Function
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2ContactResult
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Function _create:b2ContactResult(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local result:b2ContactResult = New b2ContactResult
+			result.b2ObjectPtr = b2ObjectPtr
+			Return result
+		End If
+	End Function
+
 End Type
 
 Rem
@@ -799,13 +959,6 @@ Type b2Shape
 		Return userData
 	End Method
 	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type b2ContactFilter
-
 End Type
 
 Type b2DebugDraw
@@ -1323,18 +1476,324 @@ Type b2RevoluteJointDef Extends b2JointDef
 	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2)
 		bmx_b2revolutejointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, anchor.b2ObjectPtr)
 	End Method
-	
-	
 
 End Type
 
+Rem
+bbdoc:
+End Rem
 Type b2PulleyJointDef Extends b2JointDef
+	
+	Rem
+	bbdoc: Initialize the bodies, anchors, lengths, max lengths, and ratio using the world anchors.
+	End Rem
+	Method Initialize(body1:b2Body, body2:b2Body, groundAnchor1:b2Vec2, groundAnchor2:b2Vec2, ..
+	                anchor1:b2Vec2, anchor2:b2Vec2, ratio:Float)
+	End Method
+	
+	Rem
+	bbdoc: The first ground anchor in world coordinates. This point never moves.
+	end rem
+	Method SetGroundAnchor1(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetGroundAnchor1:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The second ground anchor in world coordinates. This point never moves.
+	end rem
+	Method SetGroundAnchor2(anchod:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetGroundAnchor2:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body1's origin.
+	end rem
+	Method SetLocalAnchor1(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetLocalAnchor1:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body2's origin.
+	end rem
+	Method SetLocalAnchor2(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetLocalAnchor2:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The a reference length for the segment attached to body1.
+	end rem
+	Method SetLength1(length:Float)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetLength1:Float()
+	End Method
+	
+	Rem
+	bbdoc: The maximum length of the segment attached to body1.
+	end rem
+	Method SetMaxLength1(maxLength:Float)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetMaxLength1:Float()
+	End Method
+	
+	Rem
+	bbdoc: The a reference length for the segment attached to body2.
+	end rem
+	Method SetLength2(length:Float)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetLength2:Float()
+	End Method
+	
+	Rem
+	bbdoc: The maximum length of the segment attached to body2.
+	end rem
+	Method SetMaxLength2(maxLength:Float)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetMaxLength2:Float()
+	End Method
+	
+	Rem
+	bbdoc: The pulley ratio, used to simulate a block-and-tackle.
+	end rem
+	Method SetRatio(ratio:Float)
+	End Method
+	
+	Rem
+	bbdoc:
+	end rem
+	Method GetRatio:Float()
+	End Method
+
 End Type
 
 Type b2PrismaticJointDef Extends b2JointDef
+	
+	Rem
+	bbdoc: Initialize the bodies, anchors, axis, and reference angle using the world
+	/// anchor and world axis.
+	end rem
+	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2, axis:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body1's origin.
+	end rem
+	Method SetLocalAnchor1(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetLocalAnchor1:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body2's origin.
+	end rem
+	Method SetLocalAnchor2(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetLocalAnchor2:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The local translation axis in body1.
+	end rem
+	Method SetLocalAxis1(axis:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetLocalAxis1:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The constrained angle between the bodies: body2_angle - body1_angle.
+	end rem
+	Method SetReferenceAngle(angle:Float)
+	End Method
+	
+	Method GetReferenceAngle:Float()
+	End Method
+	
+	Rem
+	bbdoc: Enable/disable the joint limit.
+	end rem
+	Method EnableLimit(value:Int)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method IsLimitEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: The lower translation limit, usually in meters.
+	end rem
+	Method SetLowerTranslation(translation:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetLowerTranslation:Float()
+	End Method
+	
+	Rem
+	bbdoc: The upper translation limit, usually in meters.
+	end rem
+	Method SetUpperTranslation(translation:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetUpperTranslation:Float()
+	End Method
+	
+	Rem
+	bbdoc: Enable/disable the joint motor.
+	end rem
+	Method EnableMotor(value:Int)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method IsMotorEnabled:Int()
+	End Method
+	
+	Rem
+	bbdoc: The maximum motor torque, usually in N-m.
+	end rem
+	Method SetMaxMotorForce(force:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetMaxMotorForce:Float()
+	End Method
+	
+	Rem
+	bbdoc: The desired motor speed in radians per second.
+	end rem
+	Method SetMotorSpeed(speed:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetMotorSpeed:Float()
+	End Method
+
 End Type
 
 Type b2MouseJointDef Extends b2JointDef
+	
+	Rem
+	bbdoc: The initial world target point.
+	about: This is assumed to coincide with the body anchor initially.
+	End Rem
+	Method SetTarget(target:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetTarget:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: The maximum constraint force that can be exerted to move the candidate body.
+	about: Usually you will express as some multiple of the weight (multiplier * mass * gravity).
+	End Rem
+	Method SetMaxForce(maxForce:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetMaxForce:Float()
+	End Method
+	
+	Rem
+	bbdoc: The response speed.
+	end rem
+	Method SetFrequencyHz(frequency:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetFrequencyHz:Float()
+	End Method
+	
+	Rem
+	bbdoc: The damping ratio.
+	about: 0 = no damping, 1 = critical damping.
+	End Rem
+	Method SetDampingRatio(ratio:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetDampingRatio:Float()
+	End Method
+	
+	Rem
+	bbdoc: The time step used in the simulation.
+	end rem
+	Method SetTimeStep(timeStep:Float)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method GetTimeStep:Float()
+	End Method
+
 End Type
 
 Type b2GearJointDef Extends b2JointDef
@@ -1687,9 +2146,61 @@ Type b2PulleyJoint Extends b2Joint
 End Type
 
 Type b2MouseJoint Extends b2Joint
+
+	Method GetAnchor1:b2Vec2()
+	End Method
+	
+	Method GetAnchor2:b2Vec2()
+	End Method
+	
+	Method GetReactionForce:b2Vec2()
+	End Method
+	
+	Method GetReactionTorque:Float()
+	End Method
+	
+	Rem
+	bbdoc: Use this to update the target point.
+	end rem
+	Method SetTarget(target:b2Vec2)
+	End Method
+
 End Type
 
+Rem
+bbdoc: A gear joint is used to connect two joints together.
+about: Either joint can be a revolute or prismatic joint. You specify a gear ratio to bind the motions
+together:
+<pre>
+	coordinate1 + ratio * coordinate2 = constant
+</pre>
+The ratio can be negative or positive. If one joint is a revolute joint and the other joint is a prismatic
+joint, then the ratio will have units of length or units of 1/length.
+<p>
+Warning: The revolute and prismatic joints must be attached to fixed bodies (which must be body1 on those
+joints).
+</p>
+End Rem
 Type b2GearJoint Extends b2Joint
+
+	Method GetAnchor1:b2Vec2()
+	End Method
+	
+	Method GetAnchor2:b2Vec2()
+	End Method
+	
+	Method GetReactionForce:b2Vec2()
+	End Method
+	
+	Method GetReactionTorque:Float()
+	End Method
+	
+	Rem
+	bbdoc: Get the gear ratio.
+	End Rem
+	Method GetRatio:Float()
+	End Method
+
 End Type
 
 

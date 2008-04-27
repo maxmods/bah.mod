@@ -55,7 +55,7 @@ void b2PulleyJointDef::Initialize(b2Body* b1, b2Body* b2,
 	b2Vec2 d2 = anchor2 - ga2;
 	length2 = d2.Length();
 	ratio = r;
-	b2Assert(ratio > FLOAT32_EPSILON);
+	b2Assert(ratio > B2_FLT_EPSILON);
 	float32 C = length1 + ratio * length2;
 	maxLength1 = C - ratio * b2_minPulleyLength;
 	maxLength2 = (C - b2_minPulleyLength) / ratio;
@@ -64,7 +64,7 @@ void b2PulleyJointDef::Initialize(b2Body* b1, b2Body* b2,
 b2PulleyJoint::b2PulleyJoint(const b2PulleyJointDef* def)
 : b2Joint(def)
 {
-	m_ground = m_body1->m_world->m_groundBody;
+	m_ground = m_body1->GetWorld()->GetGroundBody();
 	m_groundAnchor1 = def->groundAnchor1 - m_ground->GetXForm().position;
 	m_groundAnchor2 = def->groundAnchor2 - m_ground->GetXForm().position;
 	m_localAnchor1 = def->localAnchor1;
@@ -163,9 +163,9 @@ void b2PulleyJoint::InitVelocityConstraints(const b2TimeStep& step)
 	m_limitMass1 = b1->m_invMass + b1->m_invI * cr1u1 * cr1u1;
 	m_limitMass2 = b2->m_invMass + b2->m_invI * cr2u2 * cr2u2;
 	m_pulleyMass = m_limitMass1 + m_ratio * m_ratio * m_limitMass2;
-	b2Assert(m_limitMass1 > FLOAT32_EPSILON);
-	b2Assert(m_limitMass2 > FLOAT32_EPSILON);
-	b2Assert(m_pulleyMass > FLOAT32_EPSILON);
+	b2Assert(m_limitMass1 > B2_FLT_EPSILON);
+	b2Assert(m_limitMass2 > B2_FLT_EPSILON);
+	b2Assert(m_pulleyMass > B2_FLT_EPSILON);
 	m_limitMass1 = 1.0f / m_limitMass1;
 	m_limitMass2 = 1.0f / m_limitMass2;
 	m_pulleyMass = 1.0f / m_pulleyMass;
