@@ -366,14 +366,14 @@ Type b2Vec2
 	Rem
 	bbdoc: 
 	End Rem
-	Function CreateVec2:b2Vec2(x:Float, y:Float)
+	Function CreateVec2:b2Vec2(x:Float = 0, y:Float = 0)
 		Return New b2Vec2.Create(x, y)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method Create:b2Vec2(x:Float, y:Float)
+	Method Create:b2Vec2(x:Float = 0, y:Float = 0)
 		b2ObjectPtr = bmx_b2vec2_create(x, y)
 		Return Self
 	End Method
@@ -404,6 +404,17 @@ Type b2Vec2
 	End Rem
 	Method Y:Float()
 		Return bmx_b2vec2_gety(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem	
+	Method Add(vec:b2Vec2)
+		bmx_b2vec2_add(b2ObjectPtr, vec.b2ObjectPtr)
+	End Method
+	
+	Method Copy(vec:b2Vec2)
+		bmx_b2vec2_copy(b2ObjectPtr, vec.b2ObjectPtr)
 	End Method
 
 	Method Delete()
@@ -1092,19 +1103,8 @@ Type b2BodyDef
 	'End Rem
 	'Const e_dynamicBody:Int = 1
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Function CreateBodyDef:b2BodyDef()
-		Return New b2BodyDef.Create()
-	End Function
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method Create:b2BodyDef()
+	Method New()
 		b2ObjectPtr = bmx_b2bodydef_create()
-		Return Self
 	End Method
 	
 	'Rem
@@ -1385,21 +1385,10 @@ about: Vertices must be in CCW order.
 End Rem
 Type b2PolygonDef Extends b2ShapeDef
 
-	Rem
-	bbdoc: 
-	End Rem
-	Function CreatePolygonDef:b2PolygonDef()
-		Return New b2PolygonDef.Create()
-	End Function
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method Create:b2PolygonDef()
+	Method New()
 		b2ObjectPtr = bmx_b2polygondef_create()
-		Return Self
 	End Method
-
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -1464,19 +1453,24 @@ bbdoc:
 End Rem
 Type b2RevoluteJointDef Extends b2JointDef
 
-	Function CreateRevoluteJointDef:b2RevoluteJointDef()
-		Return New b2RevoluteJointDef.Create()
-	End Function
-	
-	Method Create:b2RevoluteJointDef()
+	Method New()
 		b2ObjectPtr = bmx_b2revolutejointdef_create()
-		Return Self
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2)
 		bmx_b2revolutejointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, anchor.b2ObjectPtr)
 	End Method
 
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2revolutejointdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem

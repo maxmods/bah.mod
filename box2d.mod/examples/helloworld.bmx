@@ -22,7 +22,7 @@ Local doSleep:Int = True
 Local world:b2World = New b2World.Create(worldAABB, gravity, doSleep)
 
 ' Define the ground body.
-Local groundBodyDef:b2BodyDef = New b2BodyDef.Create()
+Local groundBodyDef:b2BodyDef = New b2BodyDef
 groundBodyDef.SetPosition(New b2Vec2.Create(0.0, -10.0))
 
 ' Call the body factory which allocates memory for the ground body
@@ -31,7 +31,7 @@ groundBodyDef.SetPosition(New b2Vec2.Create(0.0, -10.0))
 Local groundBody:b2Body = world.CreateBody(groundBodyDef)
 
 ' Define the ground box shape.
-Local groundShapeDef:b2PolygonDef = New b2PolygonDef.Create()
+Local groundShapeDef:b2PolygonDef = New b2PolygonDef
 
 ' The extents are the half-widths of the box.
 groundShapeDef.SetAsBox(50.0, 10.0)
@@ -45,12 +45,12 @@ groundShapeDef.SetDensity(0.0)
 groundBody.CreateShape(groundShapeDef)
 
 ' Define the dynamic body. We set its position and call the body factory.
-Local bodyDef:b2BodyDef = New b2BodyDef.Create()
+Local bodyDef:b2BodyDef = New b2BodyDef
 bodyDef.SetPosition(New b2Vec2.Create(0.0, 4.0))
 Local body:b2Body = world.CreateBody(bodyDef)
 
 ' Define another box shape for our dynamic body.
-Local shapeDef:b2PolygonDef = New b2PolygonDef.Create()
+Local shapeDef:b2PolygonDef = New b2PolygonDef
 shapeDef.SetAsBox(1.0, 1.0)
 
 

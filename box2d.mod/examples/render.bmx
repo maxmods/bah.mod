@@ -11,15 +11,15 @@ Type debugDraw Extends b2DebugDraw
 	bbdoc: Draw a solid closed polygon provided in CCW order
 	End Rem
 	Method DrawSolidPolygon(vertices:b2Vec2[], color:b2Color)
-DebugLog "DrawSolidPolygon"
+'DebugLog "~n~nDrawSolidPolygon"
 		SetAlpha 0.5
 		SetColor(color.red / 2, color.green / 2, color.blue / 2)
 		
 		Local poly:Float[] = New Float[vertices.length * 2]
 		For Local i:Int = 0 Until vertices.length
-			poly[i * 2] = vertices[i].X()
-			poly[i * 2 + 1] = vertices[i].Y()
-DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
+			poly[i * 2] = vertices[i].X() * 7
+			poly[i * 2 + 1] = vertices[i].Y() * -7
+'DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 		Next
 		DrawPoly(poly)
 		
@@ -27,7 +27,7 @@ DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 		SetColor(color.red / 2, color.green / 2, color.blue / 2)
 		
 		For Local i:Int = 0 Until vertices.length - 1
-			DrawLine poly[i * 2], poly[i * 2 + 1], poly[i * 2 + 2], poly[i * + 3]
+			DrawLine poly[i * 2], poly[i * 2 + 1], poly[i * 2 + 2], poly[i * 2 + 3]
 		Next
 		DrawLine poly[0], poly[1], poly[poly.length - 2], poly[poly.length - 1]
 		
@@ -50,7 +50,7 @@ DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 	End Rem
 	Method DrawSegment(p1:b2Vec2, p2:b2Vec2, color:b2Color)
 		SetColor(color.red, color.green, color.blue)
-		DrawLine p1.x(), p1.y(), p2.x(), p2.y()
+		DrawLine p1.x() * 6, p1.y() * -7, p2.x() * 6, p2.y() * -7
 	End Method
 	
 	Rem

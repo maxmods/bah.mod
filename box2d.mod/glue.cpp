@@ -53,6 +53,8 @@ extern "C" {
 	void bmx_b2vec2_delete(b2Vec2 * vec);
 	float32 bmx_b2vec2_getx(b2Vec2 * vec);
 	float32 bmx_b2vec2_gety(b2Vec2 * vec);
+	void bmx_b2vec2_add(b2Vec2 * vec, b2Vec2 * other);
+	void bmx_b2vec2_copy(b2Vec2 * vec, b2Vec2 * other);
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
 	//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
@@ -151,6 +153,7 @@ extern "C" {
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
+	void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def);
 
 	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
 	void bmx_b2joint_attachobject(b2Joint * joint, BBObject *joint);
@@ -206,9 +209,9 @@ void bmx_b2abb_setupperbound(b2AABB * aabb, b2Vec2 * upperBound) {
 // *****************************************************
 
 b2Vec2 * bmx_b2vec2_new(b2Vec2 v) {
-	b2Vec2 *vec = new b2Vec2;
-	vec->x = v.x;
-	vec->y = v.y;
+	b2Vec2 *vec = new b2Vec2(v.x, v.y);
+//	vec->x = v.x;
+//	vec->y = v.y;
 	return vec;
 }
 
@@ -232,6 +235,13 @@ float32 bmx_b2vec2_gety(b2Vec2 * vec) {
 	return vec->y;
 }
 
+void bmx_b2vec2_add(b2Vec2 * vec, b2Vec2 * other) {
+	*vec += *other;
+}
+
+void bmx_b2vec2_copy(b2Vec2 * vec, b2Vec2 * other) {
+	*vec = *other;
+}
 
 // *****************************************************
 
@@ -423,6 +433,7 @@ void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy) {
 void bmx_b2polygondef_delete(b2PolygonDef * def) {
 	delete def;
 }
+
 
 // *****************************************************
 
@@ -695,6 +706,10 @@ b2RevoluteJointDef * bmx_b2revolutejointdef_create() {
 
 void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor) {
 	def->Initialize(body1, body2, *anchor);
+}
+
+void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def) {
+	delete def;
 }
 
 // *****************************************************

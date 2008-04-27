@@ -33,6 +33,8 @@ Extern
 	Function bmx_b2vec2_delete(handle:Byte Ptr)
 	Function bmx_b2vec2_getx:Float(handle:Byte Ptr)
 	Function bmx_b2vec2_gety:Float(handle:Byte Ptr)
+	Function bmx_b2vec2_add(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_b2vec2_copy(handle:Byte Ptr, vec:Byte Ptr)
 
 	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
@@ -131,6 +133,7 @@ Extern
 
 	Function bmx_b2revolutejointdef_create:Byte Ptr()
 	Function bmx_b2revolutejointdef_initialize(handle:Byte Ptr, body1:Byte Ptr, body2:Byte Ptr, anchor:Byte Ptr)
+	Function bmx_b2revolutejointdef_delete(handle:Byte Ptr)
 
 	Function bmx_b2joint_getmaxjoint:Object(handle:Byte Ptr)
 

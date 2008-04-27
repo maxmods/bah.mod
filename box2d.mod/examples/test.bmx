@@ -5,12 +5,12 @@ Import "render.bmx"
 
 Function Run(tst:Test, settings:TSettings)
 
-	SetOrigin(400,300)
-	Local ratio:Float = 800 / 600.0
-	Local ex:Float = 25 * ratio
-	Local ey:Float = 25
+	SetOrigin(400,500)
+	'Local ratio:Float = 800 / 600.0
+	'Local ex:Float = 25 * ratio
+	'Local ey:Float = 25
 
-	SetScale 10, 2
+	'SetScale 10, 2
 	
 	'gluOrtho2D(0 - ex, 0 + ex,  20 - ey, 20 + ey)
 	
@@ -79,9 +79,9 @@ Type Test
 		flags :+ settings.drawCOMs				* b2DebugDraw.e_centerOfMassBit
 		m_debugDraw.SetFlags(flags)
 
-		m_world.SetWarmStarting(settings.enableWarmStarting)
-		m_world.SetPositionCorrection(settings.enablePositionCorrection)
-		m_world.SetContinuousPhysics(settings.enableTOI)
+		'm_world.SetWarmStarting(settings.enableWarmStarting)
+		'm_world.SetPositionCorrection(settings.enablePositionCorrection)
+		'm_world.SetContinuousPhysics(settings.enableTOI)
 
 		'm_pointCount = 0;
 
