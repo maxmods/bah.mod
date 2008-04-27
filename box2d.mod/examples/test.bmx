@@ -79,9 +79,9 @@ Type Test
 		flags :+ settings.drawCOMs				* b2DebugDraw.e_centerOfMassBit
 		m_debugDraw.SetFlags(flags)
 
-		'm_world.SetWarmStarting(settings.enableWarmStarting)
-		'm_world.SetPositionCorrection(settings.enablePositionCorrection)
-		'm_world.SetContinuousPhysics(settings.enableTOI)
+		m_world.SetWarmStarting(settings.enableWarmStarting)
+		m_world.SetPositionCorrection(settings.enablePositionCorrection)
+		m_world.SetContinuousPhysics(settings.enableTOI)
 
 		'm_pointCount = 0;
 
@@ -97,7 +97,7 @@ End Type
 Type TSettings
 
 	Field hz:Float = 60
-	Field iterationCount:Int
+	Field iterationCount:Int = 10
 	Field drawShapes:Int = 1
 	Field drawJoints:Int = 1
 	Field drawCoreShapes:Int

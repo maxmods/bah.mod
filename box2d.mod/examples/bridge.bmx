@@ -13,7 +13,6 @@ SetBlend alphablend
 Run(New Bridge.Create(), New TSettings)
 
 
-
 Type Bridge Extends Test
 
 	Method Create:Bridge()

@@ -17,8 +17,8 @@ Type debugDraw Extends b2DebugDraw
 		
 		Local poly:Float[] = New Float[vertices.length * 2]
 		For Local i:Int = 0 Until vertices.length
-			poly[i * 2] = vertices[i].X() * 7
-			poly[i * 2 + 1] = vertices[i].Y() * -7
+			poly[i * 2] = vertices[i].X() * 8
+			poly[i * 2 + 1] = vertices[i].Y() * -8
 'DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 		Next
 		DrawPoly(poly)
@@ -50,7 +50,7 @@ Type debugDraw Extends b2DebugDraw
 	End Rem
 	Method DrawSegment(p1:b2Vec2, p2:b2Vec2, color:b2Color)
 		SetColor(color.red, color.green, color.blue)
-		DrawLine p1.x() * 6, p1.y() * -7, p2.x() * 6, p2.y() * -7
+		DrawLine p1.x() * 8, p1.y() * -8, p2.x() * 8, p2.y() * -8
 	End Method
 	
 	Rem
