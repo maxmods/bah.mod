@@ -41,6 +41,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.11"
 ModuleInfo "History: Update to SQLite 3.5.8."
 ModuleInfo "History: Fixed prepared statement reuse issue."
+ModuleInfo "History: Fixed problem where open/live queries could cause problem when committing."
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Update to SQLite 3.5.6."
 ModuleInfo "History: Fixed lack of error reporting during query execution."
@@ -119,6 +120,9 @@ Type TDBSQLite Extends TDBConnection
 			Return False
 		End If
 		
+		' we need to ensure our queries are in a state that can be committed.
+		resetQueries()
+		
 		Local query:TDatabaseQuery = executeQuery("COMMIT TRANSACTION")
 
 		If hasError() Then
@@ -187,6 +191,9 @@ Type TDBSQLite Extends TDBConnection
 		If Not _isOpen Then
 			Return False
 		End If
+		
+		' we need to ensure our queries are in a state that can be rolledback.
+		resetQueries()
 		
 		Local query:TDatabaseQuery = executeQuery("ROLLBACK TRANSACTION")
 		
@@ -276,6 +283,12 @@ Type TDBSQLite Extends TDBConnection
 			q.free()
 		Next
 		queries.clear()
+	End Method
+
+	Method resetQueries()
+		For Local q:TSQLiteResultSet = EachIn queries
+			q.reset()
+		Next
 	End Method
 	
 	Method addQuery(query:TSQLiteResultSet)
