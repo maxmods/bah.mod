@@ -246,6 +246,19 @@ extern "C" {
 	bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint);
 	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag);
 
+	float32 bmx_b2prismaticjoint_getjointspeed(b2PrismaticJoint * joint);
+	bool bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, bool flag);
+	float32 bmx_b2prismaticjoint_getlowerlimit(b2PrismaticJoint * joint);
+	float32 bmx_b2prismaticjoint_getupperlimit(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_setlimits(b2PrismaticJoint * joint, float32 lowerLimit, float32 upperLimit);
+	bool bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, bool flag);
+	void bmx_b2prismaticjoint_setmotorspeed(b2PrismaticJoint * joint, float32 speed);
+	float32 bmx_b2prismaticjoint_getmotorspeed(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 force);
+	float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint);
+
 }
 
 
@@ -1181,5 +1194,56 @@ bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint) {
 
 void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag) {
 	joint->EnableLimit(flag);
+}
+
+
+// *****************************************************
+
+float32 bmx_b2prismaticjoint_getjointspeed(b2PrismaticJoint * joint) {
+    return joint->GetJointSpeed();
+}
+
+bool bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint) {
+    return joint->IsLimitEnabled();
+}
+
+void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, bool flag) {
+    joint->EnableLimit(flag);
+}
+
+float32 bmx_b2prismaticjoint_getlowerlimit(b2PrismaticJoint * joint) {
+    return joint->GetLowerLimit();
+}
+
+float32 bmx_b2prismaticjoint_getupperlimit(b2PrismaticJoint * joint) {
+    return joint->GetUpperLimit();
+}
+
+void bmx_b2prismaticjoint_setlimits(b2PrismaticJoint * joint, float32 lowerLimit, float32 upperLimit) {
+    joint->SetLimits(lowerLimit, upperLimit);
+}
+
+bool bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint) {
+    return joint->IsMotorEnabled();
+}
+
+void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, bool flag) {
+    joint->EnableMotor(flag);
+}
+
+void bmx_b2prismaticjoint_setmotorspeed(b2PrismaticJoint * joint, float32 speed) {
+    joint->SetMotorSpeed(speed);
+}
+
+float32 bmx_b2prismaticjoint_getmotorspeed(b2PrismaticJoint * joint) {
+    return joint->GetMotorSpeed();
+}
+
+void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 force) {
+    joint->SetMaxMotorForce(force);
+}
+
+float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint) {
+    return joint->GetMotorForce();
 }
 

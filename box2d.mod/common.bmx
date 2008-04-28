@@ -224,6 +224,19 @@ Extern
 	Function bmx_b2revolutejoint_islimitenabled:Int(handle:Byte Ptr)
 	Function bmx_b2revolutejoint_enablelimit(handle:Byte Ptr, flag:Int)
 
+	Function bmx_b2prismaticjoint_getjointspeed:Float(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_islimitenabled:Int(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_enablelimit(handle:Byte Ptr, flag:Int)
+	Function bmx_b2prismaticjoint_getlowerlimit:Float(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_getupperlimit:Float(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_setlimits(handle:Byte Ptr, lowerLimit:Float, upperLimit:Float)
+	Function bmx_b2prismaticjoint_ismotorenabled:Int(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_enablemotor(handle:Byte Ptr, flag:Int)
+	Function bmx_b2prismaticjoint_setmotorspeed(handle:Byte Ptr, speed:Float)
+	Function bmx_b2prismaticjoint_getmotorspeed:Float(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_setmaxmotorforce(handle:Byte Ptr, force:Float)
+	Function bmx_b2prismaticjoint_getmotorforce:Float(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0

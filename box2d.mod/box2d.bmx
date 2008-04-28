@@ -2290,72 +2290,84 @@ Type b2PrismaticJoint Extends b2Joint
 	bbdoc: Get the current joint translation speed, usually in meters per second.
 	end rem
 	Method GetJointSpeed:Float()
+		Return bmx_b2prismaticjoint_getjointspeed(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Is the joint limit enabled?
 	end rem
 	Method IsLimitEnabled:Int()
+		Return bmx_b2prismaticjoint_islimitenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint limit.
 	end rem
 	Method EnableLimit(flag:Int)
+		bmx_b2prismaticjoint_enablelimit(b2ObjectPtr, flag)
 	End Method
 	
 	Rem
 	bbdoc: Get the lower joint limit, usually in meters.
 	end rem
 	Method GetLowerLimit:Float()
+		Return bmx_b2prismaticjoint_getlowerlimit(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Get the upper joint limit, usually in meters.
 	end rem
 	Method GetUpperLimit:Float()
+		Return bmx_b2prismaticjoint_getupperlimit(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Set the joint limits, usually in meters.
 	end rem
-	Method SetLimits(Lower:Float, Upper:Float);
+	Method SetLimits(lowerLimit:Float, upperLimit:Float)
+		bmx_b2prismaticjoint_setlimits(b2ObjectPtr, lowerLimit, upperLimit)
 	End Method
 	
 	Rem
 	bbdoc: Is the joint motor enabled?
 	end rem
 	Method IsMotorEnabled:Int()
+		Return bmx_b2prismaticjoint_ismotorenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint motor.
 	end rem
-	Method EnableMotor(flag:Int);
+	Method EnableMotor(flag:Int)
+		bmx_b2prismaticjoint_enablemotor(b2ObjectPtr, flag)
 	End Method
 	
 	Rem
 	bbdoc: Set the motor speed, usually in meters per second.
 	end rem
-	Method SetMotorSpeed(speed:Float);
+	Method SetMotorSpeed(speed:Float)
+		bmx_b2prismaticjoint_setmotorspeed(b2ObjectPtr, speed)
 	End Method
 	
 	Rem
 	bbdoc: Get the motor speed, usually in meters per second.
 	end rem
 	Method GetMotorSpeed:Float()
+		Return bmx_b2prismaticjoint_getmotorspeed(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Set the maximum motor force, usually in N.
 	end rem
-	Method SetMaxMotorForce(force:Float);
+	Method SetMaxMotorForce(force:Float)
+		bmx_b2prismaticjoint_setmaxmotorforce(b2ObjectPtr, force)
 	End Method
 	
 	Rem
 	bbdoc: Get the current motor force, usually in N.
 	end rem
 	Method GetMotorForce:Float()
+		Return bmx_b2prismaticjoint_getmotorforce(b2ObjectPtr)
 	End Method
 
 End Type
