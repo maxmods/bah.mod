@@ -36,6 +36,7 @@ extern "C" {
 	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
+	void _bah_box2d_b2DebugDraw__DrawSolidCircle(BBObject * maxHandle, b2Vec2 * center, float32 radius, b2Vec2 * axis, int r, int g, int b);
 	BBObject * _bah_box2d_b2World__createJoint(b2JointType type);
 	bool _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
 	void _bah_box2d_b2ContactListener__Add(BBObject * maxHandle, const b2ContactPoint* point);
@@ -55,6 +56,10 @@ extern "C" {
 	float32 bmx_b2vec2_gety(b2Vec2 * vec);
 	void bmx_b2vec2_add(b2Vec2 * vec, b2Vec2 * other);
 	void bmx_b2vec2_copy(b2Vec2 * vec, b2Vec2 * other);
+	void bmx_b2vec2_set(b2Vec2 * vec, float32 x, float32 y);
+	b2Vec2 * bmx_b2vec2_subtract(b2Vec2 * vec, b2Vec2 * other);
+	float32 bmx_b2vec2_length(b2Vec2 * vec);
+
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
 	//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
@@ -101,6 +106,7 @@ extern "C" {
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
 	void bmx_b2polygondef_delete(b2PolygonDef * def);
+	void bmx_b2polygondef_setasorientedbox(b2PolygonDef * def, float32 hx, float32 hy, b2Vec2 * center, float32 angle);
 
 	b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape);
 	void bmx_b2body_destroyshape(b2Body * body, b2Shape * shape);
@@ -146,6 +152,8 @@ extern "C" {
 	void bmx_b2circledef_setradius(b2CircleDef * def, float32 radius);
 	void bmx_b2circledef_setlocalposition(b2CircleDef * def, b2Vec2 * pos);
 	void bmx_b2circledef_delete(b2CircleDef * def);
+	float32 bmx_b2circledef_getradius(b2CircleDef * def);
+	b2Vec2 * bmx_b2circledef_getlocalposition(b2CircleDef * def);
 
 	bool bmx_b2shape_issensor(b2Shape * shape);
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
@@ -177,6 +185,22 @@ extern "C" {
 
 	MaxBoundaryListener * bmx_b2boundarylistener_new(BBObject * handle);
 	void bmx_b2boundarylistener_delete(MaxBoundaryListener * filter);
+
+	void bmx_b2jointdef_setcollideconnected(b2JointDef * def, bool collideConnected);
+	bool bmx_b2jointdef_getcollideconnected(b2JointDef * def);
+	void bmx_b2jointdef_setbody1(b2JointDef * def, b2Body * body);
+	b2Body * bmx_b2jointdef_getbody1(b2JointDef * def);
+	void bmx_b2jointdef_setbody2(b2JointDef * def, b2Body * body);
+	b2Body * bmx_b2jointdef_getbody2(b2JointDef * def);
+
+	b2DistanceJointDef * bmx_b2distancejointdef_new();
+	void bmx_b2distancejointdef_setlocalanchor1(b2DistanceJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2distancejointdef_getlocalanchor1(b2DistanceJointDef * def);
+	void bmx_b2distancejointdef_setlocalanchor2(b2DistanceJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2distancejointdef_getlocalanchor2(b2DistanceJointDef * def);
+	void bmx_b2distancejointdef_setlength(b2DistanceJointDef * def, float32 length);
+	float32 bmx_b2distancejointdef_getlength(b2DistanceJointDef * def);
+	void bmx_b2distancejointdef_delete(b2DistanceJointDef * def);
 
 }
 
@@ -241,6 +265,18 @@ void bmx_b2vec2_add(b2Vec2 * vec, b2Vec2 * other) {
 
 void bmx_b2vec2_copy(b2Vec2 * vec, b2Vec2 * other) {
 	*vec = *other;
+}
+
+void bmx_b2vec2_set(b2Vec2 * vec, float32 x, float32 y) {
+	vec->Set(x, y);
+}
+
+b2Vec2 * bmx_b2vec2_subtract(b2Vec2 * vec, b2Vec2 * other) {
+	return bmx_b2vec2_new(*vec - *other);
+}
+
+float32 bmx_b2vec2_length(b2Vec2 * vec) {
+	return vec->Length();
 }
 
 // *****************************************************
@@ -434,6 +470,9 @@ void bmx_b2polygondef_delete(b2PolygonDef * def) {
 	delete def;
 }
 
+void bmx_b2polygondef_setasorientedbox(b2PolygonDef * def, float32 hx, float32 hy, b2Vec2 * center, float32 angle) {
+	def->SetAsBox(hx, hy, *center, angle * 0.0174533f);
+}
 
 // *****************************************************
 
@@ -619,6 +658,11 @@ public:
 	}
 
 	void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color) {
+		_bah_box2d_b2DebugDraw__DrawSolidCircle(maxHandle, bmx_b2vec2_new(center), radius, 
+			bmx_b2vec2_new(axis), 
+			static_cast<int>(color.r * 255.0f),
+			static_cast<int>(color.g * 255.0f),
+			static_cast<int>(color.b * 255.0f));
 	}
 
 	void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color) {
@@ -677,6 +721,14 @@ void bmx_b2circledef_setlocalposition(b2CircleDef * def, b2Vec2 * pos) {
 
 void bmx_b2circledef_delete(b2CircleDef * def) {
 	delete def;
+}
+
+float32 bmx_b2circledef_getradius(b2CircleDef * def) {
+	return def->radius;
+}
+
+b2Vec2 * bmx_b2circledef_getlocalposition(b2CircleDef * def) {
+	return bmx_b2vec2_new(def->localPosition);
 }
 
 
@@ -854,5 +906,65 @@ MaxBoundaryListener * bmx_b2boundarylistener_new(BBObject * handle) {
 
 void bmx_b2boundarylistener_delete(MaxBoundaryListener * listener) {
 	delete listener;
+}
+
+// *****************************************************
+
+void bmx_b2jointdef_setcollideconnected(b2JointDef * def, bool collideConnected) {
+	def->collideConnected = collideConnected;
+}
+
+bool bmx_b2jointdef_getcollideconnected(b2JointDef * def) {
+	return def->collideConnected;
+}
+
+void bmx_b2jointdef_setbody1(b2JointDef * def, b2Body * body) {
+	def->body1 = body;
+}
+
+b2Body * bmx_b2jointdef_getbody1(b2JointDef * def) {
+	return def->body1;
+}
+
+void bmx_b2jointdef_setbody2(b2JointDef * def, b2Body * body) {
+	def->body2 = body;
+}
+
+b2Body * bmx_b2jointdef_getbody2(b2JointDef * def) {
+	return def->body2;
+}
+
+// *****************************************************
+
+b2DistanceJointDef * bmx_b2distancejointdef_new() {
+	return new b2DistanceJointDef;
+}
+
+void bmx_b2distancejointdef_setlocalanchor1(b2DistanceJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2distancejointdef_getlocalanchor1(b2DistanceJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor1);
+}
+
+void bmx_b2distancejointdef_setlocalanchor2(b2DistanceJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor2 = *anchor;
+}
+
+b2Vec2 * bmx_b2distancejointdef_getlocalanchor2(b2DistanceJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor2);
+}
+
+void bmx_b2distancejointdef_setlength(b2DistanceJointDef * def, float32 length) {
+	def->length = length;
+}
+
+float32 bmx_b2distancejointdef_getlength(b2DistanceJointDef * def) {
+	return def->length;
+}
+
+void bmx_b2distancejointdef_delete(b2DistanceJointDef * def) {
+	delete def;
 }
 

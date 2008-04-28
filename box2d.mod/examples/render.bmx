@@ -2,6 +2,9 @@ SuperStrict
 
 Import BRL.GLMax2D
 
+Global xScale:Float = 8
+Global yScale:Float = 8
+
 Type debugDraw Extends b2DebugDraw
 
 	Method DrawPolygon(vertices:b2Vec2[], color:b2Color)
@@ -17,8 +20,8 @@ Type debugDraw Extends b2DebugDraw
 		
 		Local poly:Float[] = New Float[vertices.length * 2]
 		For Local i:Int = 0 Until vertices.length
-			poly[i * 2] = vertices[i].X() * 8
-			poly[i * 2 + 1] = vertices[i].Y() * -8
+			poly[i * 2] = vertices[i].X() * xScale
+			poly[i * 2 + 1] = vertices[i].Y() * (-yScale)
 'DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 		Next
 		DrawPoly(poly)
@@ -43,6 +46,14 @@ Type debugDraw Extends b2DebugDraw
 	bbdoc: Draw a solid circle.
 	End Rem
 	Method DrawSolidCircle(center:b2Vec2, radius:Float, axis:b2Vec2, color:b2Color)
+		SetAlpha 1
+		SetColor(color.red / 2, color.green / 2, color.blue / 2)
+
+		DrawOval (center.X() - radius) * xScale, (center.Y() - radius) * (-yScale), (radius * 2) * xScale, (radius * 2) * (-yScale)
+		
+'		SetAlpha 1
+'		SetColor(color.red / 2, color.green / 2, color.blue / 2)
+
 	End Method
 	
 	Rem
@@ -50,7 +61,7 @@ Type debugDraw Extends b2DebugDraw
 	End Rem
 	Method DrawSegment(p1:b2Vec2, p2:b2Vec2, color:b2Color)
 		SetColor(color.red, color.green, color.blue)
-		DrawLine p1.x() * 8, p1.y() * -8, p2.x() * 8, p2.y() * -8
+		DrawLine p1.x() * xScale, p1.y() * (-yScale), p2.x() * xScale, p2.y() * (-yScale)
 	End Method
 	
 	Rem

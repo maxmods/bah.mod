@@ -413,8 +413,32 @@ Type b2Vec2
 		bmx_b2vec2_add(b2ObjectPtr, vec.b2ObjectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem	
 	Method Copy(vec:b2Vec2)
 		bmx_b2vec2_copy(b2ObjectPtr, vec.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem	
+	Method Subtract:b2Vec2(vec:b2Vec2)
+		Return _create(bmx_b2vec2_subtract(b2ObjectPtr, vec.b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem	
+	Method Set(x:Float, y:Float)
+		bmx_b2vec2_set(b2ObjectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem	
+	Method Length:Float()
+		Return bmx_b2vec2_length(b2ObjectPtr)
 	End Method
 
 	Method Delete()
@@ -431,6 +455,11 @@ Type b2Vec2
 	Function _setVec(array:b2Vec2[], index:Int, vec:Byte Ptr)
 		array[index] = _create(vec)
 	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Global ZERO:b2Vec2 = New b2Vec2.Create()
 	
 End Type
 
@@ -1045,6 +1074,10 @@ Type b2DebugDraw
 	End Rem
 	Method DrawSolidCircle(center:b2Vec2, radius:Float, axis:b2Vec2, color:b2Color) Abstract
 	
+	Function _DrawSolidCircle(obj:b2DebugDraw, center:Byte Ptr, radius:Float, axis:Byte Ptr, r:Int, g:Int, b:Int)
+		obj.DrawSolidCircle(b2Vec2._create(center), radius, b2Vec2._create(axis), b2Color.Set(r, g, b))
+	End Function
+	
 	Rem
 	bbdoc: Draw a line segment.
 	End Rem
@@ -1257,6 +1290,42 @@ Type b2JointDef
 	Field b2ObjectPtr:Byte Ptr
 	Field userData:Object
 
+	Rem
+	bbdoc: The First attached body.
+	End Rem
+	Method SetBody1(body:b2Body)
+		bmx_b2jointdef_setbody1(b2ObjectPtr, body.b2ObjectPtr)
+	End Method
+	
+	Method GetBody1:b2Body()
+		Return b2Body._create(bmx_b2jointdef_getbody1(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: The Second attached body.
+	End Rem
+	Method SetBody2(body:b2Body)
+		bmx_b2jointdef_setbody2(b2ObjectPtr, body.b2ObjectPtr)
+	End Method
+	
+	Method GetBody2:b2Body()
+		Return b2Body._create(bmx_b2jointdef_getbody2(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Set this flag To True If the attached bodies should collide.
+	End Rem
+	Method SetCollideConnected(collideConnected:Int)
+		bmx_b2jointdef_setcollideconnected(b2ObjectPtr, collideConnected)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetCollideConnected:Int()
+		Return bmx_b2jointdef_getcollideconnected(b2ObjectPtr)
+	End Method
+
 End Type
 
 Rem
@@ -1396,6 +1465,13 @@ Type b2PolygonDef Extends b2ShapeDef
 		bmx_b2polygondef_setasbox(b2ObjectPtr, hx, hy)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetAsOrientedBox(hx:Float, hy:Float, center:b2Vec2, angle:Float)
+		bmx_b2polygondef_setasorientedbox(b2ObjectPtr, hx, hy, center.b2ObjectPtr, angle)
+	End Method
+
 	Method Delete()
 		If b2ObjectPtr Then
 			bmx_b2polygondef_delete(b2ObjectPtr)
@@ -1410,21 +1486,10 @@ bbdoc: Used to build circle shapes.
 End Rem
 Type b2CircleDef Extends b2ShapeDef
 
-	Rem
-	bbdoc: 
-	End Rem
-	Function CreateCircleDef:b2CircleDef()
-		Return New b2CircleDef.Create()
-	End Function
-
-	Rem
-	bbdoc: 
-	End Rem
-	Method Create:b2CircleDef()
+	Method New()
 		b2ObjectPtr = bmx_b2circledef_create()
-		Return Self
 	End Method
-
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -1432,11 +1497,19 @@ Type b2CircleDef Extends b2ShapeDef
 		bmx_b2circledef_setradius(b2ObjectPtr, radius)
 	End Method
 	
+	Method GetRadius:Float()
+		Return bmx_b2circledef_getradius(b2ObjectPtr)
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem
 	Method SetLocalPosition(pos:b2Vec2)
 		bmx_b2circledef_setlocalposition(b2ObjectPtr, pos.b2ObjectPtr)
+	End Method
+	
+	Method GetLocalPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2circledef_getlocalposition(b2ObjectPtr))
 	End Method
 
 	Method Delete()
@@ -1804,13 +1877,8 @@ Warning: Do not use a zero or short length.
 End Rem
 Type b2DistanceJointDef Extends b2JointDef
 
-	Function CreateDistanceJointDef:b2DistanceJointDef()
-		Return New b2DistanceJointDef.Create()
-	End Function
-	
-	Method Create:b2DistanceJointDef()
-'		b2ObjectPtr = bmx_b2distancejointdef_create()
-		Return Self
+	Method New()
+		b2ObjectPtr = bmx_b2distancejointdef_new()
 	End Method
 	
 	Method Initialize(body1:b2Body, body2:b2Body, anchor1:b2Vec2, anchor2:b2Vec2)
@@ -1820,18 +1888,42 @@ Type b2DistanceJointDef Extends b2JointDef
 	bbdoc: 
 	End Rem
 	Method SetLocalAnchor1(anchor:b2Vec2)
+		bmx_b2distancejointdef_setlocalanchor1(b2ObjectPtr, anchor.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetLocalAnchor1:b2Vec2()
+		Return b2Vec2._create(bmx_b2distancejointdef_getlocalanchor1(b2ObjectPtr))
 	End Method
 
 	Rem
 	 The Local anchor point relative To body2's origin.
 	End Rem
 	Method SetLocalAnchor2(anchor:b2Vec2)
+		bmx_b2distancejointdef_setlocalanchor2(b2ObjectPtr, anchor.b2ObjectPtr)
+	End Method
+
+	Rem
+	 The Local anchor point relative To body2's origin.
+	End Rem
+	Method GetLocalAnchor2:b2Vec2()
+		Return b2Vec2._create(bmx_b2distancejointdef_getlocalanchor2(b2ObjectPtr))
 	End Method
 
 	Rem
 	 The equilibrium length between the anchor points.
 	End Rem
 	Method SetLength(length:Float)
+		bmx_b2distancejointdef_setlength(b2ObjectPtr, length)
+	End Method
+
+	Rem
+	 The equilibrium length between the anchor points.
+	End Rem
+	Method GetLength:Float()
+		Return bmx_b2distancejointdef_getlength(b2ObjectPtr)
 	End Method
 
 	Rem
@@ -1849,7 +1941,7 @@ Type b2DistanceJointDef Extends b2JointDef
 	
 	Method Delete()
 		If b2ObjectPtr Then
-'			bmx_b2distancejointdef_delete(b2ObjectPtr)
+			bmx_b2distancejointdef_delete(b2ObjectPtr)
 			b2ObjectPtr = Null
 		End If
 	End Method

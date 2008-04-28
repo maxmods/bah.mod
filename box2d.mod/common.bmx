@@ -35,6 +35,10 @@ Extern
 	Function bmx_b2vec2_gety:Float(handle:Byte Ptr)
 	Function bmx_b2vec2_add(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_b2vec2_copy(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_b2vec2_set(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_b2vec2_subtract:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_b2vec2_length:Float(handle:Byte Ptr)
+
 
 	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
@@ -81,6 +85,7 @@ Extern
 	Function bmx_b2polygondef_create:Byte Ptr()
 	Function bmx_b2polygondef_setasbox(handle:Byte Ptr, hx:Float, hy:Float)
 	Function bmx_b2polygondef_delete(handle:Byte Ptr)
+	Function bmx_b2polygondef_setasorientedbox(handle:Byte Ptr, hx:Float, hy:Float, center:Byte Ptr, angle:Float)
 
 	Function bmx_b2body_createshape:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, shape:Object)
 	Function bmx_b2body_destroyshape(handle:Byte Ptr, shape:Byte Ptr)
@@ -126,10 +131,19 @@ Extern
 	Function bmx_b2circledef_setradius(handle:Byte Ptr, radius:Float)
 	Function bmx_b2circledef_setlocalposition(handle:Byte Ptr, pos:Byte Ptr)
 	Function bmx_b2circledef_delete(handle:Byte Ptr)
+	Function bmx_b2circledef_getradius:Float(handle:Byte Ptr)
+	Function bmx_b2circledef_getlocalposition:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2shape_issensor:Int(handle:Byte Ptr)
 	Function bmx_b2shape_getbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
+
+	Function bmx_b2jointdef_setcollideconnected(handle:Byte Ptr, collideConnected:Int)
+	Function bmx_b2jointdef_getcollideconnected:Int(handle:Byte Ptr)
+	Function bmx_b2jointdef_setbody1(handle:Byte Ptr, body:Byte Ptr)
+	Function bmx_b2jointdef_getbody1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2jointdef_setbody2(handle:Byte Ptr, body:Byte Ptr)
+	Function bmx_b2jointdef_getbody2:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2revolutejointdef_create:Byte Ptr()
 	Function bmx_b2revolutejointdef_initialize(handle:Byte Ptr, body1:Byte Ptr, body2:Byte Ptr, anchor:Byte Ptr)
@@ -156,7 +170,16 @@ Extern
 
 	Function bmx_b2boundarylistener_new:Byte Ptr(handle:Object)
 	Function bmx_b2boundarylistener_delete(handle:Byte Ptr)
-	
+
+	Function bmx_b2distancejointdef_new:Byte Ptr()
+	Function bmx_b2distancejointdef_setlocalanchor1(handle:Byte Ptr, anchor:Byte Ptr)
+	Function bmx_b2distancejointdef_getlocalanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2distancejointdef_setlocalanchor2(handle:Byte Ptr, anchor:Byte Ptr)
+	Function bmx_b2distancejointdef_getlocalanchor2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2distancejointdef_setlength(handle:Byte Ptr, length:Float)
+	Function bmx_b2distancejointdef_getlength:Float(handle:Byte Ptr)
+	Function bmx_b2distancejointdef_delete(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0

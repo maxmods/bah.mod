@@ -38,7 +38,13 @@ Type Test
 	Field m_world:b2World
 	Field m_debugDraw:b2DebugDraw = New debugDraw
 
-	Method Init()
+	Method Init(xs:Float = 0, ys:Float = 0)
+		If xs Then
+			xScale = xs
+		End If
+		If ys Then
+			yScale = ys
+		End If
 		m_worldAABB.SetLowerBound(New b2Vec2.Create(-200.0, -100.0))
 		m_worldAABB.SetUpperBound(New b2Vec2.Create(200.0, 200.0))
 	
