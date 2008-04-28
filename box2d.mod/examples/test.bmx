@@ -18,6 +18,8 @@ Function Run(tst:Test, settings:TSettings)
 	
 		Cls
 		
+		tst.Keyboard()
+		
 		tst.DoStep(settings)
 		
 		Flip
@@ -95,6 +97,9 @@ Type Test
 	
 		m_world.Validate()
 
+	End Method
+	
+	Method Keyboard()
 	End Method
 	
 End Type

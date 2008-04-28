@@ -162,9 +162,24 @@ extern "C" {
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
 	void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def);
+	bool bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, bool limit);
+	float32 bmx_b2revolutejointdef_getlowerangle(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setlowerangle(b2RevoluteJointDef * def, float32 angle);
+	float32 bmx_b2revolutejointdef_getupperangle(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setupperangle(b2RevoluteJointDef * def, float32 angle);
+	bool bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, bool value);
+	float32 bmx_b2revolutejointdef_getmotorspeed(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setmotorspeed(b2RevoluteJointDef * def, float32 speed);
+	float32 bmx_b2revolutejointdef_getmaxmotortorque(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setmaxmotortorque(b2RevoluteJointDef * def, float32 torque);
 
 	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
 	void bmx_b2joint_attachobject(b2Joint * joint, BBObject *joint);
+	b2Body * bmx_b2joint_getbody1(b2Joint * joint);
+	b2Body * bmx_b2joint_getbody2(b2Joint * joint);
+	b2Joint * bmx_b2joint_getnext(b2Joint * joint);
 
 	b2MassData * bmx_b2massdata_new();
 	void bmx_b2massdata_delete(b2MassData * data);
@@ -201,6 +216,35 @@ extern "C" {
 	void bmx_b2distancejointdef_setlength(b2DistanceJointDef * def, float32 length);
 	float32 bmx_b2distancejointdef_getlength(b2DistanceJointDef * def);
 	void bmx_b2distancejointdef_delete(b2DistanceJointDef * def);
+
+	b2PrismaticJointDef * bmx_b2prismaticjointdef_create();
+	void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, bool value);
+	bool bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setlowertranslation(b2PrismaticJointDef * def, float32 translation);
+	float32 bmx_b2prismaticjointdef_getlowertranslation(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setuppertranslation(b2PrismaticJointDef * def, float32 translation);
+	float32 bmx_b2prismaticjointdef_getuppertranslation(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, bool value);
+	bool bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setmaxmotorforce(b2PrismaticJointDef * def, float32 force);
+	float32 bmx_b2prismaticjointdef_getmaxmotorforce(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setmotorspeed(b2PrismaticJointDef * def, float32 speed);
+	float32 bmx_b2prismaticjointdef_getmotorspeed(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_delete(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_initialize(b2PrismaticJointDef * def, b2Body * body1, b2Body * body2,
+		b2Vec2 * anchor, b2Vec2 * axis);
+
+	float32 bmx_b2revolutejoint_getlowerlimit(b2RevoluteJoint * joint);
+	float32 bmx_b2revolutejoint_getupperlimit(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_setlimits(b2RevoluteJoint * joint, float32 lowerLimit, float32 upperLimit);
+	bool bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, bool flag);
+	void bmx_b2revolutejoint_setmotorspeed(b2RevoluteJoint * joint, float32 speed);
+	float32 bmx_b2revolutejoint_getmotorspeed(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_setmaxmotortorque(b2RevoluteJoint * joint, float32 torque);
+	float32 bmx_b2revolutejoint_getmotortorque(b2RevoluteJoint * joint);
+	bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag);
 
 }
 
@@ -764,6 +808,55 @@ void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def) {
 	delete def;
 }
 
+bool bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def) {
+    return def->enableLimit;
+}
+
+void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, bool limit) {
+    def->enableLimit = limit;
+}
+
+float32 bmx_b2revolutejointdef_getlowerangle(b2RevoluteJointDef * def) {
+    return def->lowerAngle * 57.2957795f;
+}
+
+void bmx_b2revolutejointdef_setlowerangle(b2RevoluteJointDef * def, float32 angle) {
+    def->lowerAngle = angle * 0.0174533f;
+}
+
+float32 bmx_b2revolutejointdef_getupperangle(b2RevoluteJointDef * def) {
+    return def->upperAngle * 57.2957795f;
+}
+
+void bmx_b2revolutejointdef_setupperangle(b2RevoluteJointDef * def, float32 angle) {
+    def->upperAngle = angle * 0.0174533f;
+}
+
+bool bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def) {
+    return def->enableMotor;
+}
+
+void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, bool value) {
+    def->enableMotor = value;
+}
+
+float32 bmx_b2revolutejointdef_getmotorspeed(b2RevoluteJointDef * def) {
+    return def->motorSpeed * 57.2957795f;
+}
+
+void bmx_b2revolutejointdef_setmotorspeed(b2RevoluteJointDef * def, float32 speed) {
+    def->motorSpeed = speed * 0.0174533f;
+}
+
+float32 bmx_b2revolutejointdef_getmaxmotortorque(b2RevoluteJointDef * def) {
+    return def->maxMotorTorque;
+}
+
+void bmx_b2revolutejointdef_setmaxmotortorque(b2RevoluteJointDef * def, float32 torque) {
+    def->maxMotorTorque = torque;
+}
+
+
 // *****************************************************
 
 BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint) {
@@ -772,6 +865,18 @@ BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint) {
 		return (BBObject *)obj;
 	}
 	return &bbNullObject;
+}
+
+b2Body * bmx_b2joint_getbody1(b2Joint * joint) {
+	return joint->GetBody1();
+}
+
+b2Body * bmx_b2joint_getbody2(b2Joint * joint) {
+	return joint->GetBody2();
+}
+
+b2Joint * bmx_b2joint_getnext(b2Joint * joint) {
+	return joint->GetNext();
 }
 
 // *****************************************************
@@ -966,5 +1071,115 @@ float32 bmx_b2distancejointdef_getlength(b2DistanceJointDef * def) {
 
 void bmx_b2distancejointdef_delete(b2DistanceJointDef * def) {
 	delete def;
+}
+
+
+// *****************************************************
+
+b2PrismaticJointDef * bmx_b2prismaticjointdef_create() {
+    return new b2PrismaticJointDef;
+}
+
+void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, bool value) {
+    def->enableLimit = value;
+}
+
+bool bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def) {
+    return def->enableLimit;
+}
+
+void bmx_b2prismaticjointdef_setlowertranslation(b2PrismaticJointDef * def, float32 translation) {
+    def->lowerTranslation = translation;
+}
+
+float32 bmx_b2prismaticjointdef_getlowertranslation(b2PrismaticJointDef * def) {
+    return def->lowerTranslation;
+}
+
+void bmx_b2prismaticjointdef_setuppertranslation(b2PrismaticJointDef * def, float32 translation) {
+    def->upperTranslation = translation;
+}
+
+float32 bmx_b2prismaticjointdef_getuppertranslation(b2PrismaticJointDef * def) {
+    return def->upperTranslation;
+}
+
+void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, bool value) {
+    def->enableMotor = value;
+}
+
+bool bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def) {
+    return def->enableMotor;
+}
+
+void bmx_b2prismaticjointdef_setmaxmotorforce(b2PrismaticJointDef * def, float32 force) {
+    def->maxMotorForce = force;
+}
+
+float32 bmx_b2prismaticjointdef_getmaxmotorforce(b2PrismaticJointDef * def) {
+    return def->maxMotorForce;
+}
+
+void bmx_b2prismaticjointdef_setmotorspeed(b2PrismaticJointDef * def, float32 speed) {
+    def->motorSpeed = speed * 0.0174533f;
+}
+
+float32 bmx_b2prismaticjointdef_getmotorspeed(b2PrismaticJointDef * def) {
+    return def->motorSpeed * 57.2957795f;
+}
+
+void bmx_b2prismaticjointdef_delete(b2PrismaticJointDef * def) {
+    delete def;
+}
+
+void bmx_b2prismaticjointdef_initialize(b2PrismaticJointDef * def, b2Body * body1, b2Body * body2,
+		b2Vec2 * anchor, b2Vec2 * axis) {
+	def->Initialize(body1, body2, *anchor, *axis);
+}
+
+// *****************************************************
+
+float32 bmx_b2revolutejoint_getlowerlimit(b2RevoluteJoint * joint) {
+    return joint->GetLowerLimit() * 57.2957795f;
+}
+
+float32 bmx_b2revolutejoint_getupperlimit(b2RevoluteJoint * joint) {
+    return joint->GetUpperLimit() * 57.2957795f;
+}
+
+void bmx_b2revolutejoint_setlimits(b2RevoluteJoint * joint, float32 lowerLimit, float32 upperLimit) {
+    joint->SetLimits(lowerLimit * 0.0174533f, upperLimit * 0.0174533f);
+}
+
+bool bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint) {
+    return joint->IsMotorEnabled();
+}
+
+void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, bool flag) {
+    joint->EnableMotor(flag);
+}
+
+void bmx_b2revolutejoint_setmotorspeed(b2RevoluteJoint * joint, float32 speed) {
+    joint->SetMotorSpeed(speed * 0.0174533f);
+}
+
+float32 bmx_b2revolutejoint_getmotorspeed(b2RevoluteJoint * joint) {
+    return joint->GetMotorSpeed() * 57.2957795f;
+}
+
+void bmx_b2revolutejoint_setmaxmotortorque(b2RevoluteJoint * joint, float32 torque) {
+    joint->SetMaxMotorTorque(torque);
+}
+
+float32 bmx_b2revolutejoint_getmotortorque(b2RevoluteJoint * joint) {
+    return joint->GetMotorTorque();
+}
+
+bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint) {
+	return joint->IsLimitEnabled();
+}
+
+void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag) {
+	joint->EnableLimit(flag);
 }
 

@@ -660,6 +660,27 @@ Type b2Joint
 			Return joint
 		End If
 	End Function
+	
+	Rem
+	bbdoc: Get the first body attached to this joint.
+	end rem
+	Method GetBody1:b2Body()
+		Return b2Body._create(bmx_b2joint_getbody1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the second body attached to this joint.
+	end rem
+	Method GetBody2:b2Body()
+		Return b2Body._create(bmx_b2joint_getbody2(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the next joint the world joint list.
+	end rem
+	Method GetNext:b2Joint()
+		Return b2Joint._create(bmx_b2joint_getnext(b2ObjectPtr))
+	End Method
 
 	Rem
 	bbdoc: Get the user data pointer that was provided in the joint definition.
@@ -1536,6 +1557,127 @@ Type b2RevoluteJointDef Extends b2JointDef
 	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2)
 		bmx_b2revolutejointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, anchor.b2ObjectPtr)
 	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body1's origin.
+	end rem
+	Method GetLocalAnchor1:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetLocalAnchor1(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: The local anchor point relative to body2's origin.
+	end rem
+	Method GetLocalAnchor2:b2Vec2()
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetLocalAnchor2(anchor:b2Vec2)
+	End Method
+	
+	Rem
+	bbdoc: The body2 angle minus body1 angle in the reference state (radians).
+	end rem
+	Method GetReferenceAngle:Float()
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetReferenceAngle(angle:Float)
+	End Method
+	
+	Rem
+	bbdoc: A flag to enable joint limits.
+	end rem
+	Method IsLimitEnabled:Int()
+		Return bmx_b2revolutejointdef_islimitenabled(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method EnableLimit(limit:Int)
+		bmx_b2revolutejointdef_enablelimit(b2ObjectPtr, limit)
+	End Method
+	
+	Rem
+	bbdoc: The lower angle for the joint limit (radians).
+	end rem
+	Method GetLowerAngle:Float()
+		Return bmx_b2revolutejointdef_getlowerangle(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetLowerAngle(angle:Float)
+		bmx_b2revolutejointdef_setlowerangle(b2ObjectPtr, angle)
+	End Method
+	
+	Rem
+	bbdoc: The upper angle for the joint limit (radians).
+	end rem
+	Method GetUpperAngle:Float()
+		Return bmx_b2revolutejointdef_getupperangle(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetUpperAngle(angle:Float)
+		bmx_b2revolutejointdef_setupperangle(b2ObjectPtr, angle)
+	End Method
+	
+	Rem
+	bbdoc: A flag to enable the joint motor.
+	end rem
+	Method IsMotorEnabled:Int()
+		Return bmx_b2revolutejointdef_ismotorenabled(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method EnableMotor(value:Int)
+		bmx_b2revolutejointdef_enablemotor(b2ObjectPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: The desired motor speed. Usually in radians per second.
+	end rem
+	Method GetMotorSpeed:Float()
+		Return bmx_b2revolutejointdef_getmotorspeed(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetMotorSpeed(speed:Float)
+		bmx_b2revolutejointdef_setmotorspeed(b2ObjectPtr, speed)
+	End Method
+	
+	Rem
+	bbdoc: The maximum motor torque used to achieve the desired motor speed.
+	/// Usually in N-m.
+	end rem
+	Method GetMaxMotorTorque:Float()
+		Return bmx_b2revolutejointdef_getmaxmotortorque(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	end rem
+	Method SetMaxMotorTorque(torque:Float)
+		bmx_b2revolutejointdef_setmaxmotortorque(b2ObjectPtr, torque)
+	End Method
 
 	Method Delete()
 		If b2ObjectPtr Then
@@ -1669,12 +1811,18 @@ Type b2PulleyJointDef Extends b2JointDef
 End Type
 
 Type b2PrismaticJointDef Extends b2JointDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2prismaticjointdef_create()
+	End Method
 	
 	Rem
 	bbdoc: Initialize the bodies, anchors, axis, and reference angle using the world
 	/// anchor and world axis.
 	end rem
 	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2, axis:b2Vec2)
+		bmx_b2prismaticjointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, ..
+				anchor.b2ObjectPtr, axis.b2ObjectPtr)
 	End Method
 	
 	Rem
@@ -1726,72 +1874,91 @@ Type b2PrismaticJointDef Extends b2JointDef
 	bbdoc: Enable/disable the joint limit.
 	end rem
 	Method EnableLimit(value:Int)
+		bmx_b2prismaticjointdef_enablelimit(b2ObjectPtr, value)
 	End Method
 	
 	Rem
 	bbdoc: 
 	end rem
 	Method IsLimitEnabled:Int()
+		Return bmx_b2prismaticjointdef_islimitenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: The lower translation limit, usually in meters.
 	end rem
 	Method SetLowerTranslation(translation:Float)
+		bmx_b2prismaticjointdef_setlowertranslation(b2ObjectPtr, translation)
 	End Method
 	
 	Rem
 	bbdoc: 
 	end rem
 	Method GetLowerTranslation:Float()
+		Return bmx_b2prismaticjointdef_getlowertranslation(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: The upper translation limit, usually in meters.
 	end rem
 	Method SetUpperTranslation(translation:Float)
+		bmx_b2prismaticjointdef_setuppertranslation(b2ObjectPtr, translation)
 	End Method
 	
 	Rem
 	bbdoc: 
 	end rem
 	Method GetUpperTranslation:Float()
+		Return bmx_b2prismaticjointdef_getuppertranslation(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint motor.
 	end rem
 	Method EnableMotor(value:Int)
+		bmx_b2prismaticjointdef_enablemotor(b2ObjectPtr, value)
 	End Method
 	
 	Rem
 	bbdoc: 
 	end rem
 	Method IsMotorEnabled:Int()
+		Return bmx_b2prismaticjointdef_ismotorenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: The maximum motor torque, usually in N-m.
 	end rem
 	Method SetMaxMotorForce(force:Float)
+		bmx_b2prismaticjointdef_setmaxmotorforce(b2ObjectPtr, force)
 	End Method
 	
 	Rem
 	bbdoc: 
 	end rem
 	Method GetMaxMotorForce:Float()
+		Return bmx_b2prismaticjointdef_getmaxmotorforce(b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: The desired motor speed in radians per second.
-	end rem
+	bbdoc: The desired motor speed in degrees per second.
+	End Rem
 	Method SetMotorSpeed(speed:Float)
+		bmx_b2prismaticjointdef_setmotorspeed(b2ObjectPtr, speed)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: The motorspeed, in degrees per second.
+	End Rem
 	Method GetMotorSpeed:Float()
+		Return bmx_b2prismaticjointdef_getmotorspeed(b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2prismaticjointdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
 	End Method
 
 End Type
@@ -2024,66 +2191,77 @@ Type b2RevoluteJoint Extends b2Joint
 	bbdoc: Is the joint limit enabled?
 	end rem
 	Method IsLimitEnabled:Float()
+		Return bmx_b2revolutejoint_islimitenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint limit.
 	end rem
 	Method EnableLimit(flag:Int)
+		bmx_b2revolutejoint_enablelimit(b2ObjectPtr, flag)
 	End Method
 	
 	Rem
-	bbdoc: Get the lower joint limit in radians.
-	end rem
+	bbdoc: Get the lower joint limit in degrees.
+	End Rem
 	Method GetLowerLimit:Float()
+		Return bmx_b2revolutejoint_getlowerlimit(b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: Get the upper joint limit in radians.
-	end rem
+	bbdoc: Get the upper joint limit in degrees.
+	End Rem
 	Method GetUpperLimit:Float()
+		Return bmx_b2revolutejoint_getupperlimit(b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: Set the joint limits in radians.
-	end rem
-	Method SetLimits(Lower:Float, Upper:Float)
+	bbdoc: Set the joint limits in degrees.
+	End Rem
+	Method SetLimits(lowerLimit:Float, upperLimit:Float)
+		bmx_b2revolutejoint_setlimits(b2ObjectPtr, lowerLimit, upperLimit)
 	End Method
 	
 	Rem
 	bbdoc: Is the joint motor enabled?
 	end rem
 	Method IsMotorEnabled:Int()
+		Return bmx_b2revolutejoint_ismotorenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint motor.
 	end rem
 	Method EnableMotor(flag:Int)
+		bmx_b2revolutejoint_enablemotor(b2ObjectPtr, flag)
 	End Method
 	
 	Rem
 	bbdoc: Set the motor speed in radians per second.
 	end rem
 	Method SetMotorSpeed(speed:Float)
+		bmx_b2revolutejoint_setmotorspeed(b2ObjectPtr, speed)
 	End Method
 	
 	Rem
 	bbdoc: Get the motor speed in radians per second.
 	end rem
 	Method GetMotorSpeed:Float()
+		Return bmx_b2revolutejoint_getmotorspeed(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Set the maximum motor torque, usually in N-m.
 	end rem
 	Method SetMaxMotorTorque(torque:Float)
+		bmx_b2revolutejoint_setmaxmotortorque(b2ObjectPtr, torque)
 	End Method
 	
 	Rem
 	bbdoc: Get the current motor torque, usually in N-m.
 	end rem
 	Method GetMotorTorque:Float()
+		Return bmx_b2revolutejoint_getmotortorque(b2ObjectPtr)
 	End Method
 
 End Type
