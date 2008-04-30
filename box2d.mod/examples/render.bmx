@@ -71,6 +71,5 @@ Type debugDraw Extends b2DebugDraw
 	Method DrawXForm(xf:b2XForm)
 	End Method
 
-
 End Type
 

@@ -289,6 +289,13 @@ Type b2World
 		bmx_b2world_validate(b2ObjectPtr)
 	End Method
 	
+	Rem
+	bbdoc:  Change the global gravity vector.
+	End Rem
+	Method SetGravity(gravity:b2Vec2)
+		bmx_b2world_setgravity(b2ObjectPtr, gravity.b2ObjectPtr)
+	End Method
+	
 End Type
 
 Rem
@@ -454,6 +461,10 @@ Type b2Vec2
 	
 	Function _setVec(array:b2Vec2[], index:Int, vec:Byte Ptr)
 		array[index] = _create(vec)
+	End Function
+
+	Function _getVec:Byte Ptr(array:b2Vec2[], index:Int)
+		Return array[index].b2ObjectPtr
 	End Function
 	
 	Rem
@@ -1120,12 +1131,6 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type b2XForm
-End Type
-
-Rem
-bbdoc: 
-End Rem
 Type b2Color
 	
 	Field red:Int, green:Int, blue:Int
@@ -1492,6 +1497,10 @@ Type b2PolygonDef Extends b2ShapeDef
 	Method SetAsOrientedBox(hx:Float, hy:Float, center:b2Vec2, angle:Float)
 		bmx_b2polygondef_setasorientedbox(b2ObjectPtr, hx, hy, center.b2ObjectPtr, angle)
 	End Method
+	
+	Method SetVertices(vertices:b2Vec2[])
+		bmx_b2polygondef_setvertices(b2ObjectPtr, vertices)
+	End Method
 
 	Method Delete()
 		If b2ObjectPtr Then
@@ -1501,6 +1510,10 @@ Type b2PolygonDef Extends b2ShapeDef
 	End Method
 	
 End Type
+
+Extern
+	Function bmx_b2polygondef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
+End Extern
 
 Rem
 bbdoc: Used to build circle shapes.
@@ -2266,6 +2279,9 @@ Type b2RevoluteJoint Extends b2Joint
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type b2PrismaticJoint Extends b2Joint
 	
 	Method GetAnchor1:b2Vec2()
@@ -2282,7 +2298,7 @@ Type b2PrismaticJoint Extends b2Joint
 	
 	Rem
 	bbdoc: Get the current joint translation, usually in meters.
-	end rem
+	End Rem
 	Method GetJointTranslation:Float()
 	End Method
 	
@@ -2479,4 +2495,135 @@ Type b2GearJoint Extends b2Joint
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type b2XForm
+	
+	Field b2ObjectPtr:Byte Ptr
+	Field owner:Int
+	
+	Function _create:b2XForm(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2XForm = New b2XForm
+			this.b2ObjectPtr = b2ObjectPtr
+			this.owner = False
+			Return this
+		End If
+	End Function
+	
+	Method Create:b2XForm()
+		b2ObjectPtr = bmx_b2xform_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2xform_getposition(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPosition(pos:b2Vec2)
+		bmx_b2xform_setposition(b2ObjectPtr, pos.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetR:b2Mat22()
+		Return b2Mat22._create(bmx_b2xform_getr(b2ObjectPtr))	
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetR(r:b2Mat22)
+		bmx_b2xform_setr(b2ObjectPtr, r.b2ObjectPtr)
+	End Method
+	
+	Method Delete()
+		If b2ObjectPtr And owner Then
+			bmx_b2xform_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2Mat22
+
+	Field b2ObjectPtr:Byte Ptr
+	
+	Function _create:b2Mat22(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2Mat22 = New b2Mat22
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Initialize this matrix using an angle. This matrix becomes
+	/// an orthonormal rotation matrix.
+	End Rem
+	Method SetAngle(angle:Float)
+		bmx_b2mat22_setangle(b2ObjectPtr, angle)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Perform the cross product on a vector and a scalar.
+about: In 2D this produces a vector.
+End Rem
+Function b2Cross:b2Vec2(a:b2Vec2, s:Float)
+	Return b2Vec2._create(bmx_b2cross(a.b2ObjectPtr, s))
+End Function
+
+Rem
+bbdoc: Perform the cross product on a scalar and a vector.
+about: In 2D this produces a vector.
+End Rem
+Function b2CrossF:b2Vec2(s:Float, a:b2Vec2)
+	Return b2Vec2._create(bmx_b2crossf(s, a.b2ObjectPtr))
+End Function
+
+Rem
+bbdoc: Multiply a matrix times a vector.
+about: If a rotation matrix is provided, then this transforms the vector from one frame to another.
+End Rem
+Function b2Mul:b2Vec2(A:b2Mat22, v:b2Vec2)
+	Return b2Vec2._create(bmx_b2mul(A.b2ObjectPtr, v.b2ObjectPtr))
+End Function
+
+Rem
+bbdoc: Multiply a matrix transpose times a vector.
+about: If a rotation matrix is provided, then this transforms the vector from one frame to another
+(inverse transform).
+End Rem
+Function b2MulT:b2Vec2(A:b2Mat22, v:b2Vec2)
+	Return b2Vec2._create(bmx_b2mult(A.b2ObjectPtr, v.b2ObjectPtr))
+End Function
+
+Rem
+bbdoc: 
+end rem
+Function b2MulF:b2Vec2(T:b2XForm, v:b2Vec2)
+	Return b2Vec2._create(bmx_b2mulf(T.b2ObjectPtr, v.b2ObjectPtr))
+End Function
+
+Rem
+bbdoc: 
+end rem
+Function b2MulTF:b2Vec2(T:b2XForm, v:b2Vec2)
+	Return b2Vec2._create(bmx_b2multf(T.b2ObjectPtr, v.b2ObjectPtr))
+End Function
 

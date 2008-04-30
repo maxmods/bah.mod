@@ -39,6 +39,7 @@ Type Test
 	Field m_worldAABB:b2AABB = New b2AABB.Create()
 	Field m_world:b2World
 	Field m_debugDraw:b2DebugDraw = New debugDraw
+	Field m_textLine:Int
 
 	Method Init(xs:Float = 0, ys:Float = 0)
 		If xs Then
@@ -58,6 +59,8 @@ Type Test
 	End Method
 
 	Method DoStep(settings:TSettings)
+	
+		m_textLine = 10
 
 		Local timeStep:Float
 		If settings.hz > 0.0 Then
@@ -100,6 +103,19 @@ Type Test
 	End Method
 	
 	Method Keyboard()
+	End Method
+
+	Method DrawString(text:String, x:Int, y:Int)
+		SetColor(255, 255, 255)
+		
+		Local ox:Float, oy:Float
+		GetOrigin(ox, oy)
+		
+		SetOrigin 0,0
+		
+		DrawText text, x, y
+		
+		SetOrigin ox, oy
 	End Method
 	
 End Type

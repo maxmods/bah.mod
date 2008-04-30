@@ -119,6 +119,25 @@ Type MotorsAndLimits Extends Test
 		
 	End Method
 
+	Method DoStep(settings:TSettings)
+		Super.DoStep(settings)
+
+		DrawString("Keys: (L) limits, (M) motors, (P) prismatic speed", 5, m_textLine)
+
+		m_textLine :+ 12
+
+		Local torque1:Float = m_joint1.GetMotorTorque()
+
+		Local torque2:Float = m_joint2.GetMotorTorque()
+
+		Local force3:Float = m_joint3.GetMotorForce()
+
+		DrawString("Motor Torque = " + torque1 + ", " + torque2 + " : Motor Force = " + force3, 5, m_textLine)
+
+		m_textLine :+ 12
+
+	End Method
+	
 End Type
 
 

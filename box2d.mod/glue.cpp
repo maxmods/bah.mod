@@ -32,6 +32,7 @@ extern "C" {
 
 	BBArray * _bah_box2d_b2Vec2__newVecArray(int count);
 	void _bah_box2d_b2Vec2__setVec(BBArray * array, int index, b2Vec2 * vec);
+	b2Vec2 * _bah_box2d_b2Vec2__getVec(BBArray * array, int index);
 
 	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
@@ -77,6 +78,7 @@ extern "C" {
 	void bmx_b2world_setfilter(b2World * world, b2ContactFilter * filter);
 	void bmx_b2world_setcontactlistener(b2World * world, b2ContactListener * listener);
 	void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * listener);
+	void bmx_b2world_setgravity(b2World * world, b2Vec2 * gravity);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -107,6 +109,7 @@ extern "C" {
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
 	void bmx_b2polygondef_delete(b2PolygonDef * def);
 	void bmx_b2polygondef_setasorientedbox(b2PolygonDef * def, float32 hx, float32 hy, b2Vec2 * center, float32 angle);
+	void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices);
 
 	b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape);
 	void bmx_b2body_destroyshape(b2Body * body, b2Shape * shape);
@@ -258,6 +261,22 @@ extern "C" {
 	float32 bmx_b2prismaticjoint_getmotorspeed(b2PrismaticJoint * joint);
 	void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 force);
 	float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint);
+
+	b2Vec2 * bmx_b2cross(b2Vec2 * a, float32 s);
+	b2Vec2 * bmx_b2crossf(float32 s, b2Vec2 * a);
+	b2Vec2 * bmx_b2mul(b2Mat22 * A, b2Vec2 * v);
+	b2Vec2 * bmx_b2mult(b2Mat22 * A, b2Vec2 * v);
+	b2Vec2 * bmx_b2mulf(b2XForm * T, b2Vec2 * v);
+	b2Vec2 * bmx_b2multf(b2XForm * T, b2Vec2 * v);
+
+	b2XForm * bmx_b2xform_create();
+	b2Vec2 * bmx_b2xform_getposition(b2XForm * form);
+	void bmx_b2xform_setposition(b2XForm * form, b2Vec2 * pos);
+	b2Mat22 * bmx_b2xform_getr(b2XForm * form);
+	void bmx_b2xform_setr(b2XForm * form, b2Mat22 * r);
+	void bmx_b2xform_delete(b2XForm * form);
+
+	void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle);
 
 }
 
@@ -417,6 +436,10 @@ void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * liste
 	world->SetBoundaryListener(listener);
 }
 
+void bmx_b2world_setgravity(b2World * world, b2Vec2 * gravity) {
+	world->SetGravity(*gravity);
+}
+
 // *****************************************************
 
 b2BodyDef * bmx_b2bodydef_create() {
@@ -529,6 +552,16 @@ void bmx_b2polygondef_delete(b2PolygonDef * def) {
 
 void bmx_b2polygondef_setasorientedbox(b2PolygonDef * def, float32 hx, float32 hy, b2Vec2 * center, float32 angle) {
 	def->SetAsBox(hx, hy, *center, angle * 0.0174533f);
+}
+
+void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices) {
+	int n = vertices->scales[0];
+	def->vertexCount = n;
+	
+	for (int i = 0; i < n; i++) {
+		def->vertices[i] = *_bah_box2d_b2Vec2__getVec(vertices, i);
+
+	}
 }
 
 // *****************************************************
@@ -1247,3 +1280,62 @@ float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint) {
     return joint->GetMotorForce();
 }
 
+
+// *****************************************************
+
+b2Vec2 * bmx_b2cross(b2Vec2 * a, float32 s) {
+	return bmx_b2vec2_new(b2Cross(*a, s));
+}
+
+b2Vec2 * bmx_b2crossf(float32 s, b2Vec2 * a) {
+	return bmx_b2vec2_new(b2Cross(s, *a));
+}
+
+b2Vec2 * bmx_b2mul(b2Mat22 * A, b2Vec2 * v) {
+	return bmx_b2vec2_new(b2Mul(*A, *v));
+}
+
+b2Vec2 * bmx_b2mult(b2Mat22 * A, b2Vec2 * v) {
+	return bmx_b2vec2_new(b2MulT(*A, *v));
+}
+
+b2Vec2 * bmx_b2mulf(b2XForm * T, b2Vec2 * v) {
+	return bmx_b2vec2_new(b2Mul(*T, *v));
+}
+
+b2Vec2 * bmx_b2multf(b2XForm * T, b2Vec2 * v) {
+	return bmx_b2vec2_new(b2MulT(*T, *v));
+}
+
+
+// *****************************************************
+
+b2XForm * bmx_b2xform_create() {
+	return new b2XForm;
+}
+
+b2Vec2 * bmx_b2xform_getposition(b2XForm * form) {
+	return bmx_b2vec2_new(form->position);
+}
+
+void bmx_b2xform_setposition(b2XForm * form, b2Vec2 * pos) {
+	form->position = *pos;
+}
+
+b2Mat22 * bmx_b2xform_getr(b2XForm * form) {
+	return &form->R;
+}
+
+void bmx_b2xform_setr(b2XForm * form, b2Mat22 * r) {
+	form->R = *r;
+}
+
+void bmx_b2xform_delete(b2XForm * form) {
+	delete form;
+}
+
+// *****************************************************
+
+void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle) {
+	mat->Set(angle * 0.0174533f);
+}

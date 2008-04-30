@@ -56,6 +56,7 @@ Extern
 	Function bmx_b2world_setfilter(handle:Byte Ptr, filter:Byte Ptr)
 	Function bmx_b2world_setcontactlistener(handle:Byte Ptr, listener:Byte Ptr)
 	Function bmx_b2world_setboundarylistener(handle:Byte Ptr, listener:Byte Ptr)
+	Function bmx_b2world_setgravity(handle:Byte Ptr, gravity:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -236,6 +237,22 @@ Extern
 	Function bmx_b2prismaticjoint_getmotorspeed:Float(handle:Byte Ptr)
 	Function bmx_b2prismaticjoint_setmaxmotorforce(handle:Byte Ptr, force:Float)
 	Function bmx_b2prismaticjoint_getmotorforce:Float(handle:Byte Ptr)
+
+	Function bmx_b2cross:Byte Ptr(a:Byte Ptr, s:Float)
+	Function bmx_b2crossf:Byte Ptr(s:Float, a:Byte Ptr)
+	Function bmx_b2mul:Byte Ptr(A:Byte Ptr, v:Byte Ptr)
+	Function bmx_b2mult:Byte Ptr(A:Byte Ptr, v:Byte Ptr)
+	Function bmx_b2mulf:Byte Ptr(T:Byte Ptr, v:Byte Ptr)
+	Function bmx_b2multf:Byte Ptr(T:Byte Ptr, v:Byte Ptr)
+
+	Function bmx_b2xform_create:Byte Ptr()
+	Function bmx_b2xform_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2xform_setposition(handle:Byte Ptr, pos:Byte Ptr)
+	Function bmx_b2xform_getr:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2xform_setr(handle:Byte Ptr, r:Byte Ptr)
+	Function bmx_b2xform_delete(handle:Byte Ptr)
+
+	Function bmx_b2mat22_setangle(handle:Byte Ptr, angle:Float)
 
 End Extern
 
