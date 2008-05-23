@@ -77,7 +77,11 @@ extern "C" {
 	FMOD_RESULT bmx_FMOD_Channel_Get3DSpread(MAX_FMOD_CHANNEL *channel, float *angle);
 	FMOD_RESULT bmx_FMOD_Channel_Get3DPanLevel(MAX_FMOD_CHANNEL *channel, float *level);
 	FMOD_RESULT bmx_FMOD_Channel_SetChannelGroup(MAX_FMOD_CHANNEL *channel, FMOD_CHANNELGROUP * group);
-
+	FMOD_RESULT bmx_FMOD_Channel_Get3DConeSettings(MAX_FMOD_CHANNEL *channel, float * insideConeAngle, float * outsideConeAngle, float * outsideVolume);
+	FMOD_CHANNELGROUP * bmx_FMOD_Channel_GetChannelGroup(MAX_FMOD_CHANNEL *channel);
+	FMOD_RESULT bmx_FMOD_Channel_GetMode(MAX_FMOD_CHANNEL *channel, FMOD_MODE * mode);
+	FMOD_RESULT bmx_FMOD_Channel_GetMute(MAX_FMOD_CHANNEL *channel, FMOD_BOOL * mute);
+	FMOD_RESULT bmx_FMOD_Channel_GetPriority(MAX_FMOD_CHANNEL *channel, int * priority);
 
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
 	void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length);	
@@ -107,6 +111,7 @@ extern "C" {
 	
 	MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgroup, int index);
 
+	void bmx_fmodreverbchannelproperties_delete(FMOD_REVERB_CHANNELPROPERTIES * prop);
 
 }
 
@@ -428,6 +433,34 @@ FMOD_RESULT bmx_FMOD_Channel_SetChannelGroup(MAX_FMOD_CHANNEL *channel, FMOD_CHA
 	return FMOD_Channel_SetChannelGroup(channel->channel, group);
 }
 
+FMOD_RESULT bmx_FMOD_Channel_Get3DConeSettings(MAX_FMOD_CHANNEL *channel, float * insideConeAngle, float * outsideConeAngle, float * outsideVolume) {
+	return FMOD_Channel_Get3DConeSettings(channel->channel, insideConeAngle, outsideConeAngle, outsideVolume);
+}
+
+FMOD_CHANNELGROUP * bmx_FMOD_Channel_GetChannelGroup(MAX_FMOD_CHANNEL *channel) {
+	FMOD_CHANNELGROUP * group;
+
+	FMOD_RESULT result = FMOD_Channel_GetChannelGroup(channel->channel, &group);
+
+	if (result) {
+		return 0;
+	}
+	
+	return group;
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetMode(MAX_FMOD_CHANNEL *channel, FMOD_MODE * mode) {
+	return FMOD_Channel_GetMode(channel->channel, mode);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetMute(MAX_FMOD_CHANNEL *channel, FMOD_BOOL * mute) {
+	return FMOD_Channel_GetMute(channel->channel, mute);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetPriority(MAX_FMOD_CHANNEL *channel, int * priority) {
+	return FMOD_Channel_GetPriority(channel->channel, priority);
+}
+
 // ++++++++++++++++++++++++++++++++
 
 FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create() {
@@ -562,4 +595,11 @@ MAX_FMOD_CHANNEL * bmx_FMOD_ChannelGroup_GetChannel(FMOD_CHANNELGROUP *channelgr
 	
 	return channel;
 }
+
+// ++++++++++++++++++++++++++++++++
+
+void bmx_fmodreverbchannelproperties_delete(FMOD_REVERB_CHANNELPROPERTIES * prop) {
+	delete prop;
+}
+
 

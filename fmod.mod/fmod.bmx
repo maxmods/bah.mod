@@ -787,6 +787,7 @@ Type TFMODChannel
 	returns: If the method succeeds then the return value is FMOD_OK.
 	End Rem	
 	Method Get3DConeSettings:Int(insideConeAngle:Float Var, outsideConeAngle:Float Var, outsideVolume:Float Var)
+		Return bmx_FMOD_Channel_Get3DConeSettings(channelPtr, Varptr insideConeAngle, Varptr outsideConeAngle, Varptr outsideVolume)
 	End Method
 	
 	Rem
@@ -1130,6 +1131,60 @@ Type TFMODChannel
 	End Rem
 	Method SetChannelGroup:Int(group:TFMODChannelGroup)
 		Return bmx_FMOD_Channel_SetChannelGroup(channelPtr, group.channelGroupPtr)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves the currently assigned channel group for the channel.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	End Rem
+	Method GetChannelGroup:TFMODChannelGroup()
+		Return TFMODChannelGroup._create(bmx_FMOD_Channel_GetChannelGroup(channelPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetInputChannelMix:Int(levels:Float[])
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetMode:Int(mode:Int Var)
+		Return bmx_FMOD_Channel_GetMode(channelPtr, Varptr mode)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetMute:Int(mute:Int Var)
+		Return bmx_FMOD_Channel_GetMute(channelPtr, Varptr mute)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPriority:Int(priority:Int Var)
+		Return bmx_FMOD_Channel_GetPriority(channelPtr, Varptr priority)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetReverbProperties:TFMODReverbChannelProperties()
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetSpeakerLevels:Int(speaker:Int, levels:Float[])
+	End Method	
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetSpeakerMix:Int(frontleft:Float Var, frontright:Float Var, center:Float Var, ..
+			lfe:Float Var, backleft:Float Var, backright:Float Var, sideleft:Float Var, sideright:Float Var)
 	End Method
 	
 	Method Delete()
@@ -1956,6 +2011,30 @@ Type TFMODChannelGroup
 	End Rem
 	Method ChannelGroupRelease:Int()
 		Return FMOD_ChannelGroup_Release(channelGroupPtr)
+	End Method
+
+End Type
+
+Rem
+bbdoc: Structure defining the properties for a reverb source, related to an FMOD channel.
+End Rem
+Type TFMODReverbChannelProperties
+
+	Field reverbPtr:Byte Ptr
+
+	Function _create:TFMODReverbChannelProperties(reverbPtr:Byte Ptr)
+		If reverbPtr Then
+			Local this:TFMODReverbChannelProperties = New TFMODReverbChannelProperties
+			this.reverbPtr = reverbPtr
+			Return this
+		End If
+	End Function
+	
+	Method Delete()
+		If reverbPtr Then
+			bmx_fmodreverbchannelproperties_delete(reverbPtr)
+			reverbPtr = Null
+		End If
 	End Method
 
 End Type

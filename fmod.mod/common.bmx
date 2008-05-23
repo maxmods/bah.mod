@@ -72,6 +72,11 @@ Extern
 	Function bmx_FMOD_Channel_Get3DAttributes:Int(handle:Byte Ptr, pos:Byte Ptr, vel:Byte Ptr)
 	Function bmx_FMOD_Channel_Get3DConeOrientation:Int(handle:Byte Ptr, orientation:Byte Ptr)
 	Function bmx_FMOD_Channel_SetChannelGroup:Int(handle:Byte Ptr, group:Byte Ptr)
+	Function bmx_FMOD_Channel_Get3DConeSettings:Int(handle:Byte Ptr, insideConeAngle:Float Ptr, outsideConeAngle:Float Ptr, outsideVolume:Float Ptr)
+	Function bmx_FMOD_Channel_GetChannelGroup:Byte Ptr(handle:Byte Ptr)
+	Function bmx_FMOD_Channel_GetMode:Int(handle:Byte Ptr, mode:Int Ptr)
+	Function bmx_FMOD_Channel_GetMute:Int(handle:Byte Ptr, mute:Int Ptr)
+	Function bmx_FMOD_Channel_GetPriority:Int(handle:Byte Ptr, priority:Int Ptr)
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
@@ -97,6 +102,8 @@ Extern
 	Function bmx_fmodtag_getupdated:Int(handle:Byte Ptr)
 
 	Function bmx_FMOD_ChannelGroup_GetChannel:Byte Ptr(handle:Byte Ptr, index:Int)
+
+	Function bmx_fmodreverbchannelproperties_delete(handle:Byte Ptr)
 
 End Extern
 
