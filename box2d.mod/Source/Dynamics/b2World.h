@@ -162,6 +162,9 @@ public:
 
 	/// Change the global gravity vector.
 	void SetGravity(const b2Vec2& gravity);
+	
+	/// Get the global gravity vector.
+	b2Vec2 GetGravity() const;
 
 private:
 
@@ -251,6 +254,11 @@ inline int32 b2World::GetContactCount() const
 inline void b2World::SetGravity(const b2Vec2& gravity)
 {
 	m_gravity = gravity;
+}
+
+inline b2Vec2 b2World::GetGravity() const
+{
+	return m_gravity;
 }
 
 #endif

@@ -479,10 +479,19 @@ void b2World::Solve(const b2TimeStep& step)
 // Find TOI contacts and solve them.
 void b2World::SolveTOI(const b2TimeStep& step)
 {
-	// Reserve an island and a stack for TOI island solution.
+	// Reserve an island and a queue for TOI island solution.
 	b2Island island(m_bodyCount, b2_maxTOIContactsPerIsland, 0, &m_stackAllocator, m_contactListener);
-	int32 stackSize = m_bodyCount;
-	b2Body** stack = (b2Body**)m_stackAllocator.Allocate(stackSize * sizeof(b2Body*));
+	
+	//Simple one pass queue
+	//Relies on the fact that we're only making one pass
+	//through and each body can only be pushed/popped once.
+	//To push: 
+	//  queue[queueStart+queueSize++] = newElement;
+	//To pop: 
+	//	poppedElement = queue[queueStart++];
+	//  --queueSize;
+	int32 queueCapacity = m_bodyCount;
+	b2Body** queue = (b2Body**)m_stackAllocator.Allocate(queueCapacity* sizeof(b2Body*));
 
 	for (b2Body* b = m_bodyList; b; b = b->m_next)
 	{
@@ -495,6 +504,13 @@ void b2World::SolveTOI(const b2TimeStep& step)
 		// Invalidate TOI
 		c->m_flags &= ~(b2Contact::e_toiFlag | b2Contact::e_islandFlag);
 	}
+
+#ifdef B2_TOI_JOINTS
+	for (b2Joint* j = m_jointList; j; j = j->m_next)
+	{
+            j->m_islandFlag = false;
+	}
+#endif
 
 	// Find TOI events and solve them.
 	for (;;)
@@ -602,17 +618,21 @@ void b2World::SolveTOI(const b2TimeStep& step)
 			seed = b2;
 		}
 
-		// Reset island and stack.
+		// Reset island and queue.
 		island.Clear();
-		int32 stackCount = 0;
-		stack[stackCount++] = seed;
+		
+		int32 queueStart = 0; //starting index for queue
+		int32 queueSize = 0;  //elements in queue
+		queue[queueStart + queueSize++] = seed;
 		seed->m_flags |= b2Body::e_islandFlag;
 
-		// Perform a depth first search (DFS) on the contact graph.
-		while (stackCount > 0)
+		// Perform a breadth first search (BFS) on the contact/joint graph.
+		while (queueSize > 0)
 		{
 			// Grab the next body off the stack and add it to the island.
-			b2Body* b = stack[--stackCount];
+			b2Body* b = queue[queueStart++];
+			--queueSize;
+			
 			island.Add(b);
 
 			// Make sure the body is awake.
@@ -665,13 +685,51 @@ void b2World::SolveTOI(const b2TimeStep& step)
 					other->WakeUp();
 				}
 
-				b2Assert(stackCount < stackSize);
-				stack[stackCount++] = other;
+				b2Assert(queueStart + queueSize < queueCapacity);
+				queue[queueStart + queueSize++] = other;
 				other->m_flags |= b2Body::e_islandFlag;
 			}
+			
+#ifdef B2_TOI_JOINTS
+			for (b2JointEdge* jn = b->m_jointList; jn; jn = jn->next)
+			{
+				if (island.m_jointCount == island.m_jointCapacity)
+				{
+					continue;
+				}
+				
+				if (jn->joint->m_islandFlag == true)
+				{
+					continue;
+				}
+				
+				island.Add(jn->joint);
+				
+				jn->joint->m_islandFlag = true;
+				
+				b2Body* other = jn->other;
+				
+				if (other->m_flags & b2Body::e_islandFlag)
+				{
+					continue;
+				}
+				
+				if (!other->IsStatic())
+				{
+					other->Advance(minTOI);
+					other->WakeUp();
+				}
+				
+				b2Assert(queueStart + queueSize < queueCapacity);
+				queue[queueStart + queueSize++] = other;
+				other->m_flags |= b2Body::e_islandFlag;
+			}
+#endif
+
 		}
 
 		b2TimeStep subStep;
+		subStep.warmStarting = false;
 		subStep.dt = (1.0f - minTOI) * step.dt;
 		b2Assert(subStep.dt > B2_FLT_EPSILON);
 		subStep.inv_dt = 1.0f / subStep.dt;
@@ -722,12 +780,19 @@ void b2World::SolveTOI(const b2TimeStep& step)
 			c->m_flags &= ~(b2Contact::e_toiFlag | b2Contact::e_islandFlag);
 		}
 
+		for (int32 i = 0; i < island.m_jointCount; ++i)
+		{
+			// Allow joints to participate in future TOI islands.
+			b2Joint* j = island.m_joints[i];
+			j->m_islandFlag = false;
+		}
+		
 		// Commit shape proxy movements to the broad-phase so that new contacts are created.
 		// Also, some contacts can be destroyed.
 		m_broadPhase->Commit();
 	}
 
-	m_stackAllocator.Free(stack);
+	m_stackAllocator.Free(queue);
 }
 
 void b2World::Step(float32 dt, int32 iterations)

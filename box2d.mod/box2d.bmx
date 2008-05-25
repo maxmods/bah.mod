@@ -241,7 +241,7 @@ Type b2World
 	End Method
 
 	Rem
-	bbdoc: Get the world shape list.
+	bbdoc: Get the world joint list.
 	returns: The head of the world shape list.
 	about: These shapes may or may not be attached to bodies. With the returned shape, use 
 	b2Shape::GetWorldNext To get the next shape in the world list. A Null shape indicates the end of the
@@ -251,16 +251,6 @@ Type b2World
 		Return b2Joint._create(bmx_b2world_getjointlist(b2ObjectPtr))
 	End Method
 
-	Rem
-	bbdoc: Get the world shape list.
-	returns: The head of the world shape list.
-	about: These shapes may or may not be attached to bodies. With the returned shape, use
-	b2Shape::GetWorldNext To get the Next shape in the world list. A Null shape indicates the end of the
-	list.
-	End Rem
-	Method GetContactList:b2Contact[]()
-	End Method
-	
 	Rem
 	bbdoc: 
 	End Rem
@@ -283,7 +273,7 @@ Type b2World
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Perform validation of internal data structures.
 	End Rem
 	Method Validate()
 		bmx_b2world_validate(b2ObjectPtr)
@@ -294,6 +284,34 @@ Type b2World
 	End Rem
 	Method SetGravity(gravity:b2Vec2)
 		bmx_b2world_setgravity(b2ObjectPtr, gravity.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the number of broad-phase proxies.
+	End Rem
+	Method GetProxyCount:Int()
+		Return bmx_b2world_getproxycount(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the number of broad-phase pairs. 
+	End Rem
+	Method GetPairCount:Int()
+		Return bmx_b2world_getpaircount(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the number of bodies. 
+	End Rem
+	Method GetBodyCount:Int()
+		Return bmx_b2world_getbodycount(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the number joints. 
+	End Rem
+	Method GetJointCount:Int()
+		Return bmx_b2world_getjointcount(b2ObjectPtr)
 	End Method
 	
 End Type
@@ -514,7 +532,11 @@ Type b2BoundaryListener
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Implement this type to get collision results. 
+about: You can use these results for things like sounds and game logic. You can also get contact results by traversing
+the contact lists after the time step. However, you might miss some contacts because continuous physics leads to
+sub-stepping. Additionally you may receive multiple callbacks for the same contact in a single time step.
+You should strive to make your callbacks efficient because there may be many callbacks per time step. 
 End Rem
 Type b2ContactListener
 
@@ -610,13 +632,65 @@ Type b2ContactFilter
 End Type
 
 Rem
-bbdoc: 
+bbdoc: This type manages contact between two shapes.
+about: A contact exists for each overlapping AABB in the broad-phase (except if filtered). Therefore a contact
+object may exist that has no contact points.
 End Rem
 Type b2Contact
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Function _create:b2Contact(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local contact:b2Contact = New b2Contact
+			contact.b2ObjectPtr = b2ObjectPtr
+			Return contact
+		End If
+	End Function
+
+	Rem
+	bbdoc: Get the first shape in this contact.
+	End Rem
+	Method GetShape1:b2Shape()
+		Return b2Shape._create(bmx_b2contact_getshape1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the second shape in this contact.
+	End Rem
+	Method GetShape2:b2Shape()
+		Return b2Shape._create(bmx_b2contact_getshape2(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the next contact in the world's contact list.
+	End Rem
+	Method GetNext:b2Contact()
+		Return b2Contact._create(bmx_b2contact_getnext(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Is this contact solid?
+	returns: True if this contact should generate a response.
+	End Rem
+	Method IsSolid:Int()
+		Return bmx_b2contact_issolid(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the number of manifolds.
+	about: This is 0 or 1 between convex shapes.
+	This may be greater than 1 for convex-vs-concave shapes. Each
+	manifold holds up to two contact points with a shared contact normal.
+	End Rem
+	Method GetManifoldCount:Int()
+		Return bmx_b2contact_getmanifoldcount(b2ObjectPtr)
+	End Method
+	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: This type is used to report contact points. 
 End Rem
 Type b2ContactPoint
 
@@ -630,10 +704,66 @@ Type b2ContactPoint
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the first shape.
+	End Rem
+	Method GetShape1:b2Shape()
+		Return b2Shape._create(bmx_b2contactpoint_getshape1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the second shape.
+	End Rem
+	Method GetShape2:b2Shape()
+		Return b2Shape._create(bmx_b2contactpoint_getshape2(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns position in world coordinates.
+	End Rem
+	Method GetPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2contactpoint_getposition(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Returns the velocity of point on body2 relative to point on body1 (pre-solver).
+	End Rem
+	Method GetVelocity:b2Vec2()
+		Return b2Vec2._create(bmx_b2contactpoint_getvelocity(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Points from shape1 to shape2.
+	End Rem
+	Method GetNormal:b2Vec2()
+		Return b2Vec2._create(bmx_b2contactpoint_getnormal(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: The separation is negative when shapes are touching 
+	End Rem
+	Method GetSeparation:Float()
+		Return bmx_b2contactpoint_getseparation(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the combined friction coefficient.
+	End Rem
+	Method GetFriction:Float()
+		Return bmx_b2contactpoint_getfriction(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the combined restitution coefficient.
+	End Rem
+	Method GetRestitution:Float()
+		Return bmx_b2contactpoint_getrestitution(b2ObjectPtr)
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: This type is used to report contact point results.
 End Rem
 Type b2ContactResult
 
@@ -647,10 +777,54 @@ Type b2ContactResult
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the first shape.
+	End Rem
+	Method GetShape1:b2Shape()
+		Return b2Shape._create(bmx_b2contactresult_getshape1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the second shape.
+	End Rem
+	Method GetShape2:b2Shape()
+		Return b2Shape._create(bmx_b2contactresult_getshape2(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns position in world coordinates.
+	End Rem
+	Method GetPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2contactresult_getposition(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Points from shape1 to shape2.
+	End Rem
+	Method GetNormal:b2Vec2()
+		Return b2Vec2._create(bmx_b2contactresult_getnormal(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the normal impulse applied to body2.
+	End Rem
+	Method GetNormalImpulse:Float()
+		Return bmx_b2contactresult_getnormalimpulse(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the tangent impulse applied to body2.
+	End Rem
+	Method GetTangentImpulse:Float()
+		Return bmx_b2contactresult_gettangentimpulse(b2ObjectPtr)
+	End Method
+	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: The base joint type.
+about: Joints are used to constraint two bodies together in various fashions.
+Some joints also feature limits and motors. 
 End Rem
 Type b2Joint
 

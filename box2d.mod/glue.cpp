@@ -79,6 +79,10 @@ extern "C" {
 	void bmx_b2world_setcontactlistener(b2World * world, b2ContactListener * listener);
 	void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * listener);
 	void bmx_b2world_setgravity(b2World * world, b2Vec2 * gravity);
+	int32 bmx_b2world_getproxycount(b2World * world);
+	int32 bmx_b2world_getpaircount(b2World * world);
+	int32 bmx_b2world_getbodycount(b2World * world);
+	int32 bmx_b2world_getjointcount(b2World * world);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -278,6 +282,28 @@ extern "C" {
 
 	void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle);
 
+	b2Shape * bmx_b2contact_getshape1(b2Contact * contact);
+	b2Shape * bmx_b2contact_getshape2(b2Contact * contact);
+	b2Contact * bmx_b2contact_getnext(b2Contact * contact);
+	bool bmx_b2contact_issolid(b2Contact * contact);
+	int32 bmx_b2contact_getmanifoldcount(b2Contact * contact);
+
+	b2Shape * bmx_b2contactresult_getshape1(b2ContactResult * contactResult);
+	b2Shape * bmx_b2contactresult_getshape2(b2ContactResult * contactResult);
+	b2Vec2 * bmx_b2contactresult_getposition(b2ContactResult * contactResult);
+	b2Vec2 * bmx_b2contactresult_getnormal(b2ContactResult * contactResult);
+	float32 bmx_b2contactresult_getnormalimpulse(b2ContactResult * contactResult);
+	float32 bmx_b2contactresult_gettangentimpulse(b2ContactResult * contactResult);
+
+	b2Shape * bmx_b2contactpoint_getshape1(b2ContactPoint * contactPoint);
+	b2Shape * bmx_b2contactpoint_getshape2(b2ContactPoint * contactPoint);
+	b2Vec2 * bmx_b2contactpoint_getposition(b2ContactPoint * contactPoint);
+	b2Vec2 * bmx_b2contactpoint_getvelocity(b2ContactPoint * contactPoint);
+	b2Vec2 * bmx_b2contactpoint_getnormal(b2ContactPoint * contactPoint);
+	float32 bmx_b2contactpoint_getseparation(b2ContactPoint * contactPoint);
+	float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint);
+	float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint);
+
 }
 
 
@@ -438,6 +464,22 @@ void bmx_b2world_setboundarylistener(b2World * world, b2BoundaryListener * liste
 
 void bmx_b2world_setgravity(b2World * world, b2Vec2 * gravity) {
 	world->SetGravity(*gravity);
+}
+
+int32 bmx_b2world_getproxycount(b2World * world) {
+	return world->GetProxyCount();
+}
+
+int32 bmx_b2world_getpaircount(b2World * world) {
+	return world->GetPairCount();
+}
+
+int32 bmx_b2world_getbodycount(b2World * world) {
+	return world->GetBodyCount();
+}
+
+int32 bmx_b2world_getjointcount(b2World * world) {
+	return world->GetJointCount();
 }
 
 // *****************************************************
@@ -1339,3 +1381,86 @@ void bmx_b2xform_delete(b2XForm * form) {
 void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle) {
 	mat->Set(angle * 0.0174533f);
 }
+
+// *****************************************************
+
+b2Shape * bmx_b2contact_getshape1(b2Contact * contact) {
+	return contact->GetShape1();
+}
+
+b2Shape * bmx_b2contact_getshape2(b2Contact * contact) {
+	return contact->GetShape2();
+}
+
+b2Contact * bmx_b2contact_getnext(b2Contact * contact) {
+	return contact->GetNext();
+}
+
+bool bmx_b2contact_issolid(b2Contact * contact) {
+	return contact->IsSolid();
+}
+
+int32 bmx_b2contact_getmanifoldcount(b2Contact * contact) {
+	return contact->GetManifoldCount();
+}
+
+// *****************************************************
+
+b2Shape * bmx_b2contactresult_getshape1(b2ContactResult * contactResult) {
+	return contactResult->shape1;
+}
+
+b2Shape * bmx_b2contactresult_getshape2(b2ContactResult * contactResult) {
+	return contactResult->shape2;
+}
+
+b2Vec2 * bmx_b2contactresult_getposition(b2ContactResult * contactResult) {
+	return bmx_b2vec2_new(contactResult->position);
+}
+
+b2Vec2 * bmx_b2contactresult_getnormal(b2ContactResult * contactResult) {
+	return bmx_b2vec2_new(contactResult->normal);
+}
+
+float32 bmx_b2contactresult_getnormalimpulse(b2ContactResult * contactResult) {
+	return contactResult->normalImpulse;
+}
+
+float32 bmx_b2contactresult_gettangentimpulse(b2ContactResult * contactResult) {
+	return contactResult->tangentImpulse;
+}
+
+// *****************************************************
+
+b2Shape * bmx_b2contactpoint_getshape1(b2ContactPoint * contactPoint) {
+	return contactPoint->shape1;
+}
+
+b2Shape * bmx_b2contactpoint_getshape2(b2ContactPoint * contactPoint) {
+	return contactPoint->shape2;
+}
+
+b2Vec2 * bmx_b2contactpoint_getposition(b2ContactPoint * contactPoint) {
+	return bmx_b2vec2_new(contactPoint->position);
+}
+
+b2Vec2 * bmx_b2contactpoint_getvelocity(b2ContactPoint * contactPoint) {
+	return bmx_b2vec2_new(contactPoint->velocity);
+}
+
+b2Vec2 * bmx_b2contactpoint_getnormal(b2ContactPoint * contactPoint) {
+	return bmx_b2vec2_new(contactPoint->normal);
+}
+
+float32 bmx_b2contactpoint_getseparation(b2ContactPoint * contactPoint) {
+	return contactPoint->separation;
+}
+
+float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint) {
+	return contactPoint->friction;
+}
+
+float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint) {
+	return contactPoint->restitution;
+}
+

@@ -57,6 +57,11 @@ Extern
 	Function bmx_b2world_setcontactlistener(handle:Byte Ptr, listener:Byte Ptr)
 	Function bmx_b2world_setboundarylistener(handle:Byte Ptr, listener:Byte Ptr)
 	Function bmx_b2world_setgravity(handle:Byte Ptr, gravity:Byte Ptr)
+	Function bmx_b2world_getcontactlist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2world_getproxycount:Int(handle:Byte Ptr)
+	Function bmx_b2world_getpaircount:Int(handle:Byte Ptr)
+	Function bmx_b2world_getbodycount:Int(handle:Byte Ptr)
+	Function bmx_b2world_getjointcount:Int(handle:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -253,6 +258,28 @@ Extern
 	Function bmx_b2xform_delete(handle:Byte Ptr)
 
 	Function bmx_b2mat22_setangle(handle:Byte Ptr, angle:Float)
+
+	Function bmx_b2contact_getshape1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contact_getshape2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contact_getnext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contact_issolid:Int(handle:Byte Ptr)
+	Function bmx_b2contact_getmanifoldcount:Int(handle:Byte Ptr)
+
+	Function bmx_b2contactresult_getshape1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactresult_getshape2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactresult_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactresult_getnormal:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactresult_getnormalimpulse:Float(handle:Byte Ptr)
+	Function bmx_b2contactresult_gettangentimpulse:Float(handle:Byte Ptr)
+
+	Function bmx_b2contactpoint_getshape1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getshape2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getvelocity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getnormal:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getseparation:Float(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getfriction:Float(handle:Byte Ptr)
+	Function bmx_b2contactpoint_getrestitution:Float(handle:Byte Ptr)
 
 End Extern
 

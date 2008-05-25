@@ -164,7 +164,20 @@ void b2RevoluteJoint::SolveVelocityConstraints(const b2TimeStep& step)
 	// Solve point-to-point constraint
 	b2Vec2 pivotCdot = b2->m_linearVelocity + b2Cross(b2->m_angularVelocity, r2) - b1->m_linearVelocity - b2Cross(b1->m_angularVelocity, r1);
 	b2Vec2 pivotForce = -B2FORCE_INV_SCALE(step.inv_dt) * b2Mul(m_pivotMass, pivotCdot);
+#ifdef B2_TOI_JOINTS
+	if (step.warmStarting)
+	{
+			m_pivotForce += pivotForce;
+			m_lastWarmStartingPivotForce = m_pivotForce;
+	}
+	else
+	{
+		m_pivotForce = m_lastWarmStartingPivotForce;
+		//Do not update warm starting value!
+	}
+#else
 	m_pivotForce += pivotForce;
+#endif
 
 	b2Vec2 P = B2FORCE_SCALE(step.dt) * pivotForce;
 	b1->m_linearVelocity -= b1->m_invMass * P;
