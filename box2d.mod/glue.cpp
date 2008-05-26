@@ -108,6 +108,7 @@ extern "C" {
 	void bmx_b2shapedef_setfriction(b2ShapeDef * def, float32 friction);
 	void bmx_b2shapedef_setrestitution(b2ShapeDef * def, float32 restitution);
 	void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density);
+	void bmx_b2shapedef_setfilter(b2ShapeDef * def, b2FilterData * filterData);
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
@@ -165,6 +166,7 @@ extern "C" {
 	bool bmx_b2shape_issensor(b2Shape * shape);
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
+	b2Shape * bmx_b2shape_getnext(b2Shape * shape);
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
@@ -181,6 +183,12 @@ extern "C" {
 	void bmx_b2revolutejointdef_setmotorspeed(b2RevoluteJointDef * def, float32 speed);
 	float32 bmx_b2revolutejointdef_getmaxmotortorque(b2RevoluteJointDef * def);
 	void bmx_b2revolutejointdef_setmaxmotortorque(b2RevoluteJointDef * def, float32 torque);
+	b2Vec2 * bmx_b2revolutejointdef_getlocalanchor1(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setlocalanchor1(b2RevoluteJointDef * def, b2Vec2 *anchor);
+	b2Vec2 * bmx_b2revolutejointdef_getlocalanchor2(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setlocalanchor2(b2RevoluteJointDef * def, b2Vec2 *anchor);
+	float32 bmx_b2revolutejointdef_getreferenceangle(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_setreferenceangle(b2RevoluteJointDef * def, float32 angle);
 
 	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
 	void bmx_b2joint_attachobject(b2Joint * joint, BBObject *joint);
@@ -223,6 +231,9 @@ extern "C" {
 	void bmx_b2distancejointdef_setlength(b2DistanceJointDef * def, float32 length);
 	float32 bmx_b2distancejointdef_getlength(b2DistanceJointDef * def);
 	void bmx_b2distancejointdef_delete(b2DistanceJointDef * def);
+	void bmx_b2distancejointdef_setfrequencyhz(b2DistanceJointDef * def, float32 freq);
+	void bmx_b2distancejointdef_setdampingratio(b2DistanceJointDef * def, float32 ratio);
+	void bmx_b2distancejointdef_initialize(b2DistanceJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor1, b2Vec2 * anchor2);
 
 	b2PrismaticJointDef * bmx_b2prismaticjointdef_create();
 	void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, bool value);
@@ -240,6 +251,15 @@ extern "C" {
 	void bmx_b2prismaticjointdef_delete(b2PrismaticJointDef * def);
 	void bmx_b2prismaticjointdef_initialize(b2PrismaticJointDef * def, b2Body * body1, b2Body * body2,
 		b2Vec2 * anchor, b2Vec2 * axis);
+	void bmx_b2prismaticjointdef_setlocalanchor1(b2PrismaticJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2prismaticjointdef_getlocalanchor1(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setlocalanchor2(b2PrismaticJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2prismaticjointdef_getlocalanchor2(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setlocalaxis1(b2PrismaticJointDef * def, b2Vec2 * axis);
+	b2Vec2 * bmx_b2prismaticjointdef_getlocalaxis1(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_setreferenceangle(b2PrismaticJointDef * def, float32 angle);
+	float32 bmx_b2prismaticjointdef_getreferenceangle(b2PrismaticJointDef * def);
+
 
 	float32 bmx_b2revolutejoint_getlowerlimit(b2RevoluteJoint * joint);
 	float32 bmx_b2revolutejoint_getupperlimit(b2RevoluteJoint * joint);
@@ -252,6 +272,12 @@ extern "C" {
 	float32 bmx_b2revolutejoint_getmotortorque(b2RevoluteJoint * joint);
 	bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint);
 	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag);
+	b2Vec2 * bmx_b2revolutejoint_getanchor1(b2RevoluteJoint * joint);
+	b2Vec2 * bmx_b2revolutejoint_getanchor2(b2RevoluteJoint * joint);
+	b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint);
+	float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint);
+	float32 bmx_b2revolutejoint_getjointangle(b2RevoluteJoint * joint);
+	float32 bmx_b2revolutejoint_getjointspeed(b2RevoluteJoint * joint);
 
 	float32 bmx_b2prismaticjoint_getjointspeed(b2PrismaticJoint * joint);
 	bool bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint);
@@ -265,6 +291,11 @@ extern "C" {
 	float32 bmx_b2prismaticjoint_getmotorspeed(b2PrismaticJoint * joint);
 	void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 force);
 	float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint);
+	b2Vec2 * bmx_b2prismaticjoint_getanchor1(b2PrismaticJoint * joint);
+	b2Vec2 * bmx_b2prismaticjoint_getanchor2(b2PrismaticJoint * joint);
+	b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint);
+	float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint);
+	float32 bmx_b2prismaticjoint_getjointtranslation(b2PrismaticJoint * joint);
 
 	b2Vec2 * bmx_b2cross(b2Vec2 * a, float32 s);
 	b2Vec2 * bmx_b2crossf(float32 s, b2Vec2 * a);
@@ -303,6 +334,84 @@ extern "C" {
 	float32 bmx_b2contactpoint_getseparation(b2ContactPoint * contactPoint);
 	float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint);
 	float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint);
+
+	b2FilterData * bmx_b2filterdata_create();
+	uint16  bmx_b2filterdata_getcategorybits(b2FilterData * filterData);
+	void bmx_b2filterdata_setcategorybits(b2FilterData * filterData, uint16 categoryBits);
+	uint16  bmx_b2filterdata_getmaskbits(b2FilterData * filterData);
+	void bmx_b2filterdata_setmaskbits(b2FilterData * filterData, uint16 maskBits);
+	int16 bmx_b2filterdata_getgroupindex(b2FilterData * filterData);
+	void bmx_b2filterdata_setgroupindex(b2FilterData * filterData, int16 index);
+	void bmx_b2filterdata_delete(b2FilterData * filterData);
+
+	b2GearJointDef * bmx_b2gearjointdef_new();
+	void bmx_b2gearjointdef_setjoint1(b2GearJointDef * def, b2Joint * joint);
+	void bmx_b2gearjointdef_setjoint2(b2GearJointDef * def, b2Joint * joint);
+	void bmx_b2gearjointdef_setratio(b2GearJointDef * def, float32 ratio);
+	void bmx_b2gearjointdef_delete(b2GearJointDef * def);
+
+	b2Vec2 * bmx_b2gearjoint_getanchor1(b2GearJoint * joint);
+	b2Vec2 * bmx_b2gearjoint_getanchor2(b2GearJoint * joint);
+	b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint);
+	float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint);
+	float32 bmx_b2gearjoint_getratio(b2GearJoint * joint);
+
+	b2Vec2 * bmx_b2mousejoint_getanchor1(b2MouseJoint * joint);
+	b2Vec2 * bmx_b2mousejoint_getanchor2(b2MouseJoint * joint);
+	b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint);
+	float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint);
+	void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target);
+
+	b2Vec2 * bmx_b2pulleyjoint_getanchor1(b2PulleyJoint * joint);
+	b2Vec2 * bmx_b2pulleyjoint_getanchor2(b2PulleyJoint * joint);
+	b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint);
+	float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint);
+	b2Vec2 * bmx_b2pulleyjoint_getgroundanchor1(b2PulleyJoint * joint);
+	b2Vec2 * bmx_b2pulleyjoint_getgroundanchor2(b2PulleyJoint * joint);
+	float32 bmx_b2pulleyjoint_getlength1(b2PulleyJoint * joint);
+	float32 bmx_b2pulleyjoint_getlength2(b2PulleyJoint * joint);
+	float32 bmx_b2pulleyjoint_getratio(b2PulleyJoint * joint);
+
+	b2Vec2 * bmx_b2distancejoint_getanchor1(b2DistanceJoint * joint);
+	b2Vec2 * bmx_b2distancejoint_getanchor2(b2DistanceJoint * joint);
+	b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint);
+	float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint);
+
+	b2MouseJointDef * bmx_b2mousejointdef_new();
+	void bmx_b2mousejointdef_settarget(b2MouseJointDef * def, b2Vec2 * target);
+	b2Vec2 * bmx_b2mousejointdef_gettarget(b2MouseJointDef * def);
+	void bmx_b2mousejointdef_setmaxforce(b2MouseJointDef * def, float32 maxForce);
+	float32 bmx_b2mousejointdef_getmaxforce(b2MouseJointDef * def);
+	void bmx_b2mousejointdef_setfrequencyhz(b2MouseJointDef * def, float32 frequency);
+	float32 bmx_b2mousejointdef_getfrequencyhz(b2MouseJointDef * def);
+	void bmx_b2mousejointdef_setdampingration(b2MouseJointDef * def, float32 ratio);
+	float32 bmx_b2mousejointdef_getdampingratio(b2MouseJointDef * def);
+	void bmx_b2mousejointdef_settimestep(b2MouseJointDef * def, float32 timeStep);
+	float32 bmx_b2mousejointdef_gettimestep(b2MouseJointDef * def);
+	void bmx_b2mousejointdef_delete(b2MouseJointDef * def);
+
+	b2PulleyJointDef * bmx_b2pulleyjointdef_create();
+	void bmx_b2pulleyjointdef_initialize(b2PulleyJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * groundAnchor1, 
+		b2Vec2 * groundAnchor2, b2Vec2 * anchor1, b2Vec2 * anchor2, float32 ratio);
+	void bmx_b2pulleyjointdef_setgroundanchor1(b2PulleyJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2pulleyjointdef_getgroundanchor1(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setgroundanchor2(b2PulleyJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2pulleyjointdef_getgroundanchor2(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setlocalanchor1(b2PulleyJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2pulleyjointdef_getlocalanchor1(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setlocalanchor2(b2PulleyJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2pulleyjointdef_getlocalanchor2(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setlength1(b2PulleyJointDef * def, float32 length);
+	float32 bmx_b2pulleyjointdef_getlength1(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setmaxlength1(b2PulleyJointDef * def, float32 maxLength);
+	float32 bmx_b2pulleyjointdef_getmaxlength1(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setlength2(b2PulleyJointDef * def, float32 length);
+	float32 bmx_b2pulleyjointdef_getlength2(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setmaxlength2(b2PulleyJointDef * def, float32 maxLength);
+	float32 bmx_b2pulleyjointdef_getmaxlength2(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_setratio(b2PulleyJointDef * def, float32 ratio);
+	float32 bmx_b2pulleyjointdef_getratio(b2PulleyJointDef * def);
+	void bmx_b2pulleyjointdef_delete(b2PulleyJointDef * def);
 
 }
 
@@ -576,6 +685,10 @@ void bmx_b2shapedef_setrestitution(b2ShapeDef * def, float32 restitution) {
 
 void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density) {
 	def->density = density;
+}
+
+void bmx_b2shapedef_setfilter(b2ShapeDef * def, b2FilterData * filterData) {
+	def->filter = *filterData;
 }
 
 // *****************************************************
@@ -882,6 +995,10 @@ BBObject * bmx_b2shape_getmaxshape(b2Shape * shape) {
 	return &bbNullObject;
 }
 
+b2Shape * bmx_b2shape_getnext(b2Shape * shape) {
+	return shape->GetNext();
+}
+
 // *****************************************************
 
 b2RevoluteJointDef * bmx_b2revolutejointdef_create() {
@@ -942,6 +1059,30 @@ float32 bmx_b2revolutejointdef_getmaxmotortorque(b2RevoluteJointDef * def) {
 
 void bmx_b2revolutejointdef_setmaxmotortorque(b2RevoluteJointDef * def, float32 torque) {
     def->maxMotorTorque = torque;
+}
+
+b2Vec2 * bmx_b2revolutejointdef_getlocalanchor1(b2RevoluteJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor1);
+}
+
+void bmx_b2revolutejointdef_setlocalanchor1(b2RevoluteJointDef * def, b2Vec2 *anchor) {
+	def->localAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2revolutejointdef_getlocalanchor2(b2RevoluteJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor2);
+}
+
+void bmx_b2revolutejointdef_setlocalanchor2(b2RevoluteJointDef * def, b2Vec2 *anchor) {
+	def->localAnchor2 = *anchor;
+}
+
+float32 bmx_b2revolutejointdef_getreferenceangle(b2RevoluteJointDef * def) {
+	return def->referenceAngle * 57.2957795f;
+}
+
+void bmx_b2revolutejointdef_setreferenceangle(b2RevoluteJointDef * def, float32 angle) {
+	def->referenceAngle = angle * 0.0174533f;
 }
 
 
@@ -1161,6 +1302,18 @@ void bmx_b2distancejointdef_delete(b2DistanceJointDef * def) {
 	delete def;
 }
 
+void bmx_b2distancejointdef_setfrequencyhz(b2DistanceJointDef * def, float32 freq) {
+	def->frequencyHz = freq;
+}
+
+void bmx_b2distancejointdef_setdampingratio(b2DistanceJointDef * def, float32 ratio) {
+	def->dampingRatio = ratio;
+}
+
+void bmx_b2distancejointdef_initialize(b2DistanceJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor1, b2Vec2 * anchor2) {
+	def->Initialize(body1, body2, *anchor1, *anchor2);
+}
+
 
 // *****************************************************
 
@@ -1225,6 +1378,39 @@ void bmx_b2prismaticjointdef_initialize(b2PrismaticJointDef * def, b2Body * body
 	def->Initialize(body1, body2, *anchor, *axis);
 }
 
+void bmx_b2prismaticjointdef_setlocalanchor1(b2PrismaticJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2prismaticjointdef_getlocalanchor1(b2PrismaticJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor1);
+}
+
+void bmx_b2prismaticjointdef_setlocalanchor2(b2PrismaticJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor2 = *anchor;
+}
+
+b2Vec2 * bmx_b2prismaticjointdef_getlocalanchor2(b2PrismaticJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor2);
+}
+
+void bmx_b2prismaticjointdef_setlocalaxis1(b2PrismaticJointDef * def, b2Vec2 * axis) {
+	def->localAxis1 = *axis;
+}
+
+b2Vec2 * bmx_b2prismaticjointdef_getlocalaxis1(b2PrismaticJointDef * def) {
+	return bmx_b2vec2_new(def->localAxis1);
+}
+
+void bmx_b2prismaticjointdef_setreferenceangle(b2PrismaticJointDef * def, float32 angle) {
+	def->referenceAngle = angle * 0.0174533f;
+}
+
+float32 bmx_b2prismaticjointdef_getreferenceangle(b2PrismaticJointDef * def) {
+	return def->referenceAngle * 57.2957795f;
+}
+
+
 // *****************************************************
 
 float32 bmx_b2revolutejoint_getlowerlimit(b2RevoluteJoint * joint) {
@@ -1269,6 +1455,30 @@ bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint) {
 
 void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag) {
 	joint->EnableLimit(flag);
+}
+
+b2Vec2 * bmx_b2revolutejoint_getanchor1(b2RevoluteJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2revolutejoint_getanchor2(b2RevoluteJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+float32 bmx_b2revolutejoint_getjointangle(b2RevoluteJoint * joint) {
+	return joint->GetJointAngle() * 57.2957795f;
+}
+
+float32 bmx_b2revolutejoint_getjointspeed(b2RevoluteJoint * joint) {
+	return joint->GetJointSpeed() * 57.2957795f;
 }
 
 
@@ -1320,6 +1530,26 @@ void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 for
 
 float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint) {
     return joint->GetMotorForce();
+}
+
+b2Vec2 * bmx_b2prismaticjoint_getanchor1(b2PrismaticJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2prismaticjoint_getanchor2(b2PrismaticJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+float32 bmx_b2prismaticjoint_getjointtranslation(b2PrismaticJoint * joint) {
+	return joint->GetJointTranslation();
 }
 
 
@@ -1462,5 +1692,300 @@ float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint) {
 
 float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint) {
 	return contactPoint->restitution;
+}
+
+
+// *****************************************************
+
+b2FilterData * bmx_b2filterdata_create() {
+	return new b2FilterData;
+}
+
+uint16  bmx_b2filterdata_getcategorybits(b2FilterData * filterData) {
+	return filterData->categoryBits;
+}
+
+void bmx_b2filterdata_setcategorybits(b2FilterData * filterData, uint16 categoryBits) {
+	filterData->categoryBits = categoryBits;
+}
+
+uint16  bmx_b2filterdata_getmaskbits(b2FilterData * filterData) {
+	return filterData->maskBits;
+}
+
+void bmx_b2filterdata_setmaskbits(b2FilterData * filterData, uint16 maskBits) {
+	filterData->maskBits = maskBits;
+}
+
+int16 bmx_b2filterdata_getgroupindex(b2FilterData * filterData) {
+	return filterData->groupIndex;
+}
+
+void bmx_b2filterdata_setgroupindex(b2FilterData * filterData, int16 index) {
+	filterData->groupIndex = index;
+}
+
+void bmx_b2filterdata_delete(b2FilterData * filterData) {
+	delete filterData;
+}
+
+// *****************************************************
+
+b2GearJointDef * bmx_b2gearjointdef_new() {
+	return new b2GearJointDef;
+}
+
+void bmx_b2gearjointdef_setjoint1(b2GearJointDef * def, b2Joint * joint) {
+	def->joint1 = joint;
+}
+
+void bmx_b2gearjointdef_setjoint2(b2GearJointDef * def, b2Joint * joint) {
+	def->joint2 = joint;
+}
+
+void bmx_b2gearjointdef_setratio(b2GearJointDef * def, float32 ratio) {
+	def->ratio = ratio;
+}
+
+void bmx_b2gearjointdef_delete(b2GearJointDef * def) {
+	delete def;
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2gearjoint_getanchor1(b2GearJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2gearjoint_getanchor2(b2GearJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+float32 bmx_b2gearjoint_getratio(b2GearJoint * joint) {
+	return joint->GetRatio();
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2mousejoint_getanchor1(b2MouseJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2mousejoint_getanchor2(b2MouseJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target) {
+	joint->SetTarget(*target);
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2pulleyjoint_getanchor1(b2PulleyJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2pulleyjoint_getanchor2(b2PulleyJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+b2Vec2 * bmx_b2pulleyjoint_getgroundanchor1(b2PulleyJoint * joint) {
+	return bmx_b2vec2_new(joint->GetGroundAnchor1());
+}
+
+b2Vec2 * bmx_b2pulleyjoint_getgroundanchor2(b2PulleyJoint * joint) {
+	return bmx_b2vec2_new(joint->GetGroundAnchor2());
+}
+
+float32 bmx_b2pulleyjoint_getlength1(b2PulleyJoint * joint) {
+	return joint->GetLength1();
+}
+
+float32 bmx_b2pulleyjoint_getlength2(b2PulleyJoint * joint) {
+	return joint->GetLength2();
+}
+
+float32 bmx_b2pulleyjoint_getratio(b2PulleyJoint * joint) {
+	return joint->GetRatio();
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2distancejoint_getanchor1(b2DistanceJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2distancejoint_getanchor2(b2DistanceJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint) {
+	return bmx_b2vec2_new(joint->GetReactionForce());
+}
+
+float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint) {
+	return joint->GetReactionTorque();
+}
+
+// *****************************************************
+
+b2MouseJointDef * bmx_b2mousejointdef_new() {
+	return new b2MouseJointDef;
+}
+
+void bmx_b2mousejointdef_settarget(b2MouseJointDef * def, b2Vec2 * target) {
+	def->target = *target;
+}
+
+b2Vec2 * bmx_b2mousejointdef_gettarget(b2MouseJointDef * def) {
+	return bmx_b2vec2_new(def->target);
+}
+
+void bmx_b2mousejointdef_setmaxforce(b2MouseJointDef * def, float32 maxForce) {
+	def->maxForce = maxForce;
+}
+
+float32 bmx_b2mousejointdef_getmaxforce(b2MouseJointDef * def) {
+	return def->maxForce;
+}
+
+void bmx_b2mousejointdef_setfrequencyhz(b2MouseJointDef * def, float32 frequency) {
+	def->frequencyHz = frequency;
+}
+
+float32 bmx_b2mousejointdef_getfrequencyhz(b2MouseJointDef * def) {
+	return def->frequencyHz;
+}
+
+void bmx_b2mousejointdef_setdampingration(b2MouseJointDef * def, float32 ratio) {
+	def->dampingRatio = ratio;
+}
+
+float32 bmx_b2mousejointdef_getdampingratio(b2MouseJointDef * def) {
+	return def->dampingRatio;
+}
+
+void bmx_b2mousejointdef_settimestep(b2MouseJointDef * def, float32 timeStep) {
+	def->timeStep = timeStep;
+}
+
+float32 bmx_b2mousejointdef_gettimestep(b2MouseJointDef * def) {
+	return def->timeStep;
+}
+
+void bmx_b2mousejointdef_delete(b2MouseJointDef * def) {
+	delete def;
+}
+
+
+// *****************************************************
+
+b2PulleyJointDef * bmx_b2pulleyjointdef_create() {
+	return new b2PulleyJointDef;
+}
+
+void bmx_b2pulleyjointdef_initialize(b2PulleyJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * groundAnchor1, 
+		b2Vec2 * groundAnchor2, b2Vec2 * anchor1, b2Vec2 * anchor2, float32 ratio) {
+	def->Initialize(body1, body2, *groundAnchor1, *groundAnchor2, *anchor1, *anchor2, ratio);
+}
+
+void bmx_b2pulleyjointdef_setgroundanchor1(b2PulleyJointDef * def, b2Vec2 * anchor) {
+	def->groundAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2pulleyjointdef_getgroundanchor1(b2PulleyJointDef * def) {
+	return bmx_b2vec2_new(def->groundAnchor1);
+}
+
+void bmx_b2pulleyjointdef_setgroundanchor2(b2PulleyJointDef * def, b2Vec2 * anchor) {
+	def->groundAnchor2 = *anchor;
+}
+
+b2Vec2 * bmx_b2pulleyjointdef_getgroundanchor2(b2PulleyJointDef * def) {
+	return bmx_b2vec2_new(def->groundAnchor2);
+}
+
+void bmx_b2pulleyjointdef_setlocalanchor1(b2PulleyJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2pulleyjointdef_getlocalanchor1(b2PulleyJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor1);
+}
+
+void bmx_b2pulleyjointdef_setlocalanchor2(b2PulleyJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor2 = *anchor;
+}
+
+b2Vec2 * bmx_b2pulleyjointdef_getlocalanchor2(b2PulleyJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor2);
+}
+
+void bmx_b2pulleyjointdef_setlength1(b2PulleyJointDef * def, float32 length) {
+	def->length1 = length;
+}
+
+float32 bmx_b2pulleyjointdef_getlength1(b2PulleyJointDef * def) {
+	return def->length1;
+}
+
+void bmx_b2pulleyjointdef_setmaxlength1(b2PulleyJointDef * def, float32 maxLength) {
+	def->maxLength1 = maxLength;
+}
+
+float32 bmx_b2pulleyjointdef_getmaxlength1(b2PulleyJointDef * def) {
+	return def->maxLength1;
+}
+
+void bmx_b2pulleyjointdef_setlength2(b2PulleyJointDef * def, float32 length) {
+	def->length2 = length;
+}
+
+float32 bmx_b2pulleyjointdef_getlength2(b2PulleyJointDef * def) {
+	return def->length2;
+}
+
+void bmx_b2pulleyjointdef_setmaxlength2(b2PulleyJointDef * def, float32 maxLength) {
+	def->maxLength2 = maxLength;
+}
+
+float32 bmx_b2pulleyjointdef_getmaxlength2(b2PulleyJointDef * def) {
+	return def->maxLength2;
+}
+
+void bmx_b2pulleyjointdef_setratio(b2PulleyJointDef * def, float32 ratio) {
+	def->ratio = ratio;
+}
+
+float32 bmx_b2pulleyjointdef_getratio(b2PulleyJointDef * def) {
+	return def->ratio;
+}
+
+void bmx_b2pulleyjointdef_delete(b2PulleyJointDef * def) {
+	delete def;
 }
 
