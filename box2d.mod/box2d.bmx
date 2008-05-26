@@ -1390,6 +1390,13 @@ Type b2BodyDef
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method GetPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2bodydef_getposition(b2ObjectPtr))
+	End Method
+	
+	Rem
 	bbdoc: The world angle of the body in degrees.
 	End Rem
 	Method SetAngle(angle:Float)

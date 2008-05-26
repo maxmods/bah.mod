@@ -101,6 +101,7 @@ extern "C" {
 	float32 bmx_b2bodydef_getangulardamping(b2BodyDef * def);
 	void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow);
 	bool bmx_b2bodydef_getallowsleep(b2BodyDef * def);
+	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int iterations);
@@ -661,6 +662,9 @@ bool bmx_b2bodydef_getallowsleep(b2BodyDef * def) {
 	return def->allowSleep;
 }
 
+b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def) {
+	return bmx_b2vec2_new(def->position);
+}
 
 // *****************************************************
 

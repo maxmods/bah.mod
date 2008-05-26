@@ -80,6 +80,7 @@ Extern
 	Function bmx_b2bodydef_getangulardamping:Float(handle:Byte Ptr)
 	Function bmx_b2bodydef_setallowsleep(handle:Byte Ptr, allow:Int)
 	Function bmx_b2bodydef_getallowsleep:Int(handle:Byte Ptr)
+	Function bmx_b2bodydef_getposition:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2world_create:Byte Ptr(worldAABB:Byte Ptr, gravity:Byte Ptr, doSleep:Int)
 	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, iterations:Int)
