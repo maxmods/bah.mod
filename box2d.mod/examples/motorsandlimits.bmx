@@ -96,6 +96,7 @@ Type MotorsAndLimits Extends Test
 	End Method
 
 	Method Keyboard()
+		Super.Keyboard()
 	
 		If KeyHit(KEY_L) Then
 			m_joint2.EnableLimit(Not m_joint2.IsLimitEnabled())

@@ -1,5 +1,6 @@
 SuperStrict
 
+Import BRL.FreeTypeFont
 Import "render.bmx"
 
 Global viewZoom:Float = 1
@@ -8,6 +9,8 @@ Global viewCenter:b2Vec2 = New b2Vec2.Create(0.0, 20.0)
 Global mouseState:Int = False
 
 Function Run(tst:Test, settings:TSettings)
+
+	detailFont = LoadImageFont(CurrentDir() + "/04B_03__.ttf", 8)
 
 	SetOrigin(400,500)
 	'Local ratio:Float = 800 / 600.0
@@ -79,7 +82,7 @@ Type Test
 	Field m_textLine:Int
 	Field m_mouseWorld:b2Vec2
 	Field m_mouseJoint:b2MouseJoint
-
+	
 	Method Init(xs:Float = 0, ys:Float = 0)
 		If xs Then
 			xScale = xs
@@ -142,6 +145,9 @@ Type Test
 	End Method
 	
 	Method Keyboard()
+		If KeyHit(KEY_F) Then
+			debugDraw(m_debugDraw).showDetails = Not debugDraw(m_debugDraw).showDetails
+		End If
 	End Method
 
 	Method DrawString(text:String, x:Int, y:Int)
@@ -261,3 +267,4 @@ Function ConvertScreenToWorld:b2Vec2(x:Int, y:Int)
 
 	Return New b2Vec2.Create((1.0 - u) * _lower.X() + u * _upper.X(), (1.0 - v) * _lower.Y() + v * _upper.Y())
 End Function
+

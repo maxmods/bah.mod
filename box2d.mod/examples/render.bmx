@@ -4,8 +4,11 @@ Import BRL.GLMax2D
 
 Global xScale:Float = 8
 Global yScale:Float = 8
+Global detailFont:TImageFont
 
 Type debugDraw Extends b2DebugDraw
+
+	Field showDetails:Int = False
 
 	Method DrawPolygon(vertices:b2Vec2[], color:b2Color)
 	End Method
@@ -15,6 +18,7 @@ Type debugDraw Extends b2DebugDraw
 	End Rem
 	Method DrawSolidPolygon(vertices:b2Vec2[], color:b2Color)
 'DebugLog "~n~nDrawSolidPolygon"
+		SetImageFont(detailFont)
 		SetAlpha 0.5
 		SetColor(color.red / 2, color.green / 2, color.blue / 2)
 		
@@ -31,9 +35,18 @@ Type debugDraw Extends b2DebugDraw
 		
 		For Local i:Int = 0 Until vertices.length - 1
 			DrawLine poly[i * 2], poly[i * 2 + 1], poly[i * 2 + 2], poly[i * 2 + 3]
+			
+			If showDetails Then
+				DrawText StripPlaces(vertices[i + 1].X()) + "," + StripPlaces(vertices[i + 1].Y()), poly[i * 2 + 2] + 5, poly[i * 2 + 3] + 5
+			End If
 		Next
 		DrawLine poly[0], poly[1], poly[poly.length - 2], poly[poly.length - 1]
+
+		If showDetails Then
+			DrawText StripPlaces(vertices[0].X()) + "," + StripPlaces(vertices[1].Y()), poly[0] + 5, poly[1] + 5
+		End If
 		
+		SetImageFont(Null)
 	End Method
 
 	Rem
@@ -73,3 +86,10 @@ Type debugDraw Extends b2DebugDraw
 
 End Type
 
+Function StripPlaces:String(text:String, size:Int = 2)
+	Local pos:Int = text.find(".")
+	If pos < 0 Or text.length < pos + size Then
+		Return text
+	End If
+	Return text[..pos + size]
+End Function

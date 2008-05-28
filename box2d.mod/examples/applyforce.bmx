@@ -87,33 +87,21 @@ Type ApplyForce Extends Test
 	End Method
 	
 	Method Keyboard()
+		Super.Keyboard()
 		
 		If KeyDown(KEY_W) Then
-
 			Local f:b2Vec2 = m_body.GetWorldVector(New b2Vec2.Create(0.0, -50.0))
-
 			Local p:b2Vec2 = m_body.GetWorldPoint(New b2Vec2.Create(0.0, 1.0))
-
 			m_body.ApplyForce(f, p)
-
 		End If
-
-
 
 		If KeyDown(KEY_A)
-
 			m_body.ApplyTorque(10.0)
-
 		End If
-
-
 
 		If KeyDown(KEY_D)
-
 			m_body.ApplyTorque(-10.0)
-
 		End If
-
 
 	End Method
 

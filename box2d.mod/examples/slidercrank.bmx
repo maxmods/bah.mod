@@ -98,6 +98,7 @@ Type SliderCrank Extends Test
 	End Method
 	
 	Method Keyboard()
+		Super.Keyboard()
 		
 		If KeyHit(KEY_F) Then
 			m_joint2.EnableMotor(Not m_joint2.IsMotorEnabled())
