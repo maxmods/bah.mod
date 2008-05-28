@@ -314,6 +314,17 @@ Type b2World
 		Return bmx_b2world_getjointcount(b2ObjectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Query:Int(aabb:b2AABB, shapes:b2Shape[])
+		Return bmx_b2world_query(b2ObjectPtr, aabb.b2ObjectPtr, shapes)
+	End Method
+	
+	Function _setShape(shapes:b2Shape[], index:Int, shape:Byte Ptr)
+		shapes[index] = b2Shape._create(shape)
+	End Function
+	
 End Type
 
 Rem
@@ -437,30 +448,51 @@ Type b2Vec2
 	Method Add(vec:b2Vec2)
 		bmx_b2vec2_add(b2ObjectPtr, vec.b2ObjectPtr)
 	End Method
-	
+
 	Rem
 	bbdoc: 
+	End Rem	
+	Method Plus:b2Vec2(vec:b2Vec2)
+		Return _create(bmx_b2vec2_plus(b2ObjectPtr, vec.b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Multiplies the vector by @value.
+	End Rem	
+	Method Multiply(value:Float)
+		bmx_b2vec2_multiply(b2ObjectPtr, value)
+	End Method
+
+	Rem
+	bbdoc: Divides the vector by @value.
+	End Rem	
+	Method Divide(value:Float)
+		bmx_b2vec2_multiply(b2ObjectPtr, 1.0 / value)
+	End Method
+
+	Rem
+	bbdoc: Copies @vec into this object.
 	End Rem	
 	Method Copy(vec:b2Vec2)
 		bmx_b2vec2_copy(b2ObjectPtr, vec.b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Subtracts @vec from this object, returning a new b2Vec2.
 	End Rem	
 	Method Subtract:b2Vec2(vec:b2Vec2)
 		Return _create(bmx_b2vec2_subtract(b2ObjectPtr, vec.b2ObjectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the x and y parts.
 	End Rem	
 	Method Set(x:Float, y:Float)
 		bmx_b2vec2_set(b2ObjectPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the length of this vector.
 	End Rem	
 	Method Length:Float()
 		Return bmx_b2vec2_length(b2ObjectPtr)
@@ -491,6 +523,13 @@ Type b2Vec2
 	Global ZERO:b2Vec2 = New b2Vec2.Create()
 	
 End Type
+
+Rem
+bbdoc: Convenience function for creating a b2Vec2 object.
+End Rem
+Function Vec2:b2Vec2(x:Float, y:Float)
+	Return New b2Vec2.Create(x, y)
+End Function
 
 Rem
 bbdoc: 
@@ -1163,6 +1202,13 @@ Type b2Body
 		Return userData
 	End Method
 
+	Rem
+	bbdoc: Get the body transform for the body's origin. 
+	End Rem
+	Method GetXForm:b2XForm()
+		Return b2XForm._create(bmx_b2body_getxform(b2ObjectPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -1214,6 +1260,13 @@ Type b2Shape
 	End Rem
 	Method GetNext:b2Shape()
 		Return _create(bmx_b2shape_getnext(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TestPoint:Int(xf:b2XForm, p:b2Vec2)
+		Return bmx_b2shape_testpoint(b2ObjectPtr, xf.b2ObjectPtr, p.b2ObjectPtr)
 	End Method
 	
 End Type
@@ -1387,6 +1440,14 @@ Type b2BodyDef
 	End Rem
 	Method SetPosition(position:b2Vec2)
 		bmx_b2bodydef_setposition(b2ObjectPtr, position.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: The world position of the body.
+	about: Avoid creating bodies at the origin since this can lead to many overlapping shapes.
+	End Rem
+	Method SetPositionXY(x:Float, y:Float)
+		bmx_b2bodydef_setpositionxy(b2ObjectPtr, x, y)
 	End Method
 	
 	Rem
@@ -1792,6 +1853,7 @@ End Type
 
 Extern
 	Function bmx_b2polygondef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
+	Function bmx_b2world_query:Int(handle:Byte Ptr, aabb:Byte Ptr, shapes:b2Shape[])
 End Extern
 
 Rem

@@ -33,6 +33,7 @@ extern "C" {
 	BBArray * _bah_box2d_b2Vec2__newVecArray(int count);
 	void _bah_box2d_b2Vec2__setVec(BBArray * array, int index, b2Vec2 * vec);
 	b2Vec2 * _bah_box2d_b2Vec2__getVec(BBArray * array, int index);
+	void _bah_box2d_b2World__setShape(BBArray * shapes, int index, b2Shape * shape);
 
 	void _bah_box2d_b2DebugDraw__DrawPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSolidPolygon(BBObject * maxHandle, BBArray * array, int r, int g, int b);
@@ -60,6 +61,8 @@ extern "C" {
 	void bmx_b2vec2_set(b2Vec2 * vec, float32 x, float32 y);
 	b2Vec2 * bmx_b2vec2_subtract(b2Vec2 * vec, b2Vec2 * other);
 	float32 bmx_b2vec2_length(b2Vec2 * vec);
+	void bmx_b2vec2_multiply(b2Vec2 * vec, float32 value);
+	b2Vec2 * bmx_b2vec2_plus(b2Vec2 * vec, b2Vec2 * other);
 
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
@@ -83,11 +86,13 @@ extern "C" {
 	int32 bmx_b2world_getpaircount(b2World * world);
 	int32 bmx_b2world_getbodycount(b2World * world);
 	int32 bmx_b2world_getjointcount(b2World * world);
+	int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
 	//void bmx_b2bodydef_settype(b2BodyDef * def, b2BodyDef::Type bodyType);
 	void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position);
+	void bmx_b2bodydef_setpositionxy(b2BodyDef * def, float32 x, float32 y);
 	void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle);
 	void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data);
 	bool bmx_b2bodydef_issleeping(b2BodyDef * def);
@@ -150,6 +155,7 @@ extern "C" {
 	b2Vec2 * bmx_b2body_getlocalpoint(b2Body * body, b2Vec2 * worldPoint);
 	b2Vec2 * bmx_b2body_getlocalvector(b2Body * body, b2Vec2 * worldVector);
 	b2JointEdge * bmx_b2body_getjointlist(b2Body * body);
+	const b2XForm * bmx_b2body_getxform(b2Body * body);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
 	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
@@ -168,6 +174,7 @@ extern "C" {
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
 	b2Shape * bmx_b2shape_getnext(b2Shape * shape);
+	bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p);
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
@@ -491,6 +498,14 @@ float32 bmx_b2vec2_length(b2Vec2 * vec) {
 	return vec->Length();
 }
 
+void bmx_b2vec2_multiply(b2Vec2 * vec, float32 value) {
+	*vec *= value;
+}
+
+b2Vec2 * bmx_b2vec2_plus(b2Vec2 * vec, b2Vec2 * other) {
+	return bmx_b2vec2_new(*vec + *other);
+}
+
 // *****************************************************
 
 b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body) {
@@ -592,6 +607,21 @@ int32 bmx_b2world_getjointcount(b2World * world) {
 	return world->GetJointCount();
 }
 
+int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes) {
+	int32 n = shapes->scales[0];
+	b2Shape* _shapes[n];
+	
+	int32 ret = world->Query(*aabb, _shapes, n);
+
+	int32 count = (ret < n) ? ret : n;
+
+	for (int i = 0; i < count; i++) {
+		_bah_box2d_b2World__setShape(shapes, i, _shapes[i]);
+	}
+
+	return ret;
+}
+
 // *****************************************************
 
 b2BodyDef * bmx_b2bodydef_create() {
@@ -664,6 +694,10 @@ bool bmx_b2bodydef_getallowsleep(b2BodyDef * def) {
 
 b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def) {
 	return bmx_b2vec2_new(def->position);
+}
+
+void bmx_b2bodydef_setpositionxy(b2BodyDef * def, float32 x, float32 y) {
+	def->position = b2Vec2(x, y);
 }
 
 // *****************************************************
@@ -867,6 +901,9 @@ b2JointEdge * bmx_b2body_getjointlist(b2Body * body) {
 	return body->GetJointList();
 }
 
+const b2XForm * bmx_b2body_getxform(b2Body * body) {
+	return &body->GetXForm();
+}
 
 // *****************************************************
 
@@ -1001,6 +1038,10 @@ BBObject * bmx_b2shape_getmaxshape(b2Shape * shape) {
 
 b2Shape * bmx_b2shape_getnext(b2Shape * shape) {
 	return shape->GetNext();
+}
+
+bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p) {
+	return shape->TestPoint(*xf, *p);
 }
 
 // *****************************************************

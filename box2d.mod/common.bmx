@@ -38,7 +38,8 @@ Extern
 	Function bmx_b2vec2_set(handle:Byte Ptr, x:Float, y:Float)
 	Function bmx_b2vec2_subtract:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_b2vec2_length:Float(handle:Byte Ptr)
-
+	Function bmx_b2vec2_multiply(handle:Byte Ptr, value:Float)
+	Function bmx_b2vec2_plus:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
 
 	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
@@ -67,6 +68,7 @@ Extern
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
 	'Function bmx_b2bodydef_settype(handle:Byte Ptr, bodyType:Int)
 	Function bmx_b2bodydef_setposition(handle:Byte Ptr, position:Byte Ptr)
+	Function bmx_b2bodydef_setpositionxy(handle:Byte Ptr, x:Float, y:Float)
 	Function bmx_b2bodydef_setangle(handle:Byte Ptr, angle:Float)
 	Function bmx_b2bodydef_setmassdata(handle:Byte Ptr, data:Byte Ptr)
 	Function bmx_b2bodydef_issleeping:Int(handle:Byte Ptr)
@@ -128,6 +130,7 @@ Extern
 	Function bmx_b2body_getlocalpoint:Byte Ptr(handle:Byte Ptr, worldPoint:Byte Ptr)
 	Function bmx_b2body_getlocalvector:Byte Ptr(handle:Byte Ptr, worldVector:Byte Ptr)
 	Function bmx_b2body_getjointlist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2body_getxform:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
 	Function bmx_b2debugdraw_setflags(handle:Byte Ptr, flags:Int)
@@ -146,6 +149,7 @@ Extern
 	Function bmx_b2shape_getbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
 	Function bmx_b2shape_getnext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2shape_testpoint:Int(handle:Byte Ptr, xf:Byte Ptr, p:Byte Ptr)
 
 	Function bmx_b2jointdef_setcollideconnected(handle:Byte Ptr, collideConnected:Int)
 	Function bmx_b2jointdef_getcollideconnected:Int(handle:Byte Ptr)
