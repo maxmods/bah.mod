@@ -55,6 +55,10 @@ extern "C" {
 		bool  playLooped, bool  startPaused, bool  track, bool  enableSoundEffects);
 	bool bmx_soundengine_iscurrentlyplaying(irrklang::ISoundEngine* engine, const char *name);
 	bool bmx_soundengine_iscurrentlyplayingsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source);
+	irrklang::ik_s32 bmx_soundengine_getsoundsourcecount(irrklang::ISoundEngine* engine);
+	void bmx_soundengine_removesoundsource(irrklang::ISoundEngine* engine, const irrklang::ik_c8 * name);
+	void bmx_soundengine_removesoundsourcesource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source);
+	const char * bmx_soundengine_getdrivername(irrklang::ISoundEngine* engine);
 
 	void bmx_sound_setispaused(irrklang::ISound * sound, bool paused);
 	bool bmx_sound_getispaused(irrklang::ISound * sound);
@@ -102,6 +106,14 @@ extern "C" {
 	irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec);
 
 	void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getchannelcount(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getframecount(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getsamplerate(MaxSAudioStreamFormat * format);
+	irrklang::ESampleFormat bmx_audiostreamformat_getsampleformat(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getsamplesize(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getframesize(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getsampledatasize(MaxSAudioStreamFormat * format);
+	irrklang::ik_s32 bmx_audiostreamformat_getbytespersecond(MaxSAudioStreamFormat * format);
 
 	void bmx_soundeffect_disablealleffects(irrklang::ISoundEffectControl * effect);
 	bool bmx_soundeffect_enablechorussoundeffect(irrklang::ISoundEffectControl * effect, irrklang::ik_f32 fWetDryMix, irrklang::ik_f32 fDepth, irrklang::ik_f32 fFeedback,
@@ -268,6 +280,23 @@ bool bmx_soundengine_iscurrentlyplaying(irrklang::ISoundEngine* engine, const ch
 bool bmx_soundengine_iscurrentlyplayingsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source) {
 	return engine->isCurrentlyPlaying(source);
 }
+
+irrklang::ik_s32 bmx_soundengine_getsoundsourcecount(irrklang::ISoundEngine* engine) {
+	return engine->getSoundSourceCount();
+}
+
+void bmx_soundengine_removesoundsource(irrklang::ISoundEngine* engine, const irrklang::ik_c8 * name) {
+	engine->removeSoundSource(name);
+}
+
+void bmx_soundengine_removesoundsourcesource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source) {
+	engine->removeSoundSource(source);
+}
+
+const char * bmx_soundengine_getdrivername(irrklang::ISoundEngine* engine) {
+	return engine->getDriverName();
+}
+
 
 // *****************************************************
 
@@ -450,6 +479,38 @@ irrklang::ik_f32 bmx_vec3df_z(Maxvec3df * vec) {
 
 void bmx_audiostreamformat_delete(MaxSAudioStreamFormat * format) {
 	delete format;
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getchannelcount(MaxSAudioStreamFormat * format) {
+	return format->format.ChannelCount;
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getframecount(MaxSAudioStreamFormat * format) {
+	return format->format.FrameCount;
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getsamplerate(MaxSAudioStreamFormat * format) {
+	return format->format.SampleRate;
+}
+
+irrklang::ESampleFormat bmx_audiostreamformat_getsampleformat(MaxSAudioStreamFormat * format) {
+	return format->format.SampleFormat;
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getsamplesize(MaxSAudioStreamFormat * format) {
+	return format->format.getSampleSize();
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getframesize(MaxSAudioStreamFormat * format) {
+	return format->format.getFrameSize();
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getsampledatasize(MaxSAudioStreamFormat * format) {
+	return format->format.getSampleDataSize();
+}
+
+irrklang::ik_s32 bmx_audiostreamformat_getbytespersecond(MaxSAudioStreamFormat * format) {
+	return format->format.getBytesPerSecond();
 }
 
 

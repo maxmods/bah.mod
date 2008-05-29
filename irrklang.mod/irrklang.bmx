@@ -131,6 +131,13 @@ Type TISoundEngine
 	End Method
 
 	Rem
+	bbdoc: Returns the name of the sound driver, like 'ALSA' for the alsa device.
+	End Rem
+	Method GetDriverName:String()
+		Return String.fromCString(bmx_soundengine_getdrivername(refPtr))
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method Play2D:TISound(soundfileName:String, playLooped:Int = False, startPaused:Int = False, ..  
@@ -153,7 +160,28 @@ Type TISoundEngine
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Loads a sound source (if not loaded already) from a file and plays it. 
+	about: Parameters:
+	<ul>
+	<li><b>sourceFileName</b> : Filename of sound, like "sounds/test.wav" or "foobar.ogg".  </li>
+	<li><b>playLooped</b> : Plays the sound in loop mode. If set to 'false', the sound is played
+	once, then stopped and deleted from the internal playing list. Calls to ISound have no
+	effect after such a non looped sound has been stopped automaticly.  </li>
+	<li><b>startPaused</b> : Starts the sound paused. This implies that track=true. Use this if
+	you want to modify some of the playing parameters before the sound actually plays. Usually
+	you would set this parameter to true, then use the ISound interface to modify some of the
+	sound parameters and then call ISound::setPaused(false); Note: You need to call ISound::drop()
+	when setting this parameter to true and you don't need the ISound object anymore. See
+	'return' for details.  </li>
+	<li><b>track</b> : Makes it possible to track the sound. Causes the method to return an
+	ISound interface. See 'return' for details.  </li>
+	<li><b>streamMode</b> : Specifies if the file should be streamed or loaded completely into
+	memory for playing. ESM_AUTO_DETECT sets this to autodetection. Note: if the sound has been
+	loaded or played before into the engine, this parameter has no effect.  </li>
+	<li><b>enableSoundEffects</b> : Makes it possible to use sound effects such as chorus,
+	distorsions, echo, reverb and similar for this sound. Sound effects can then be controlled
+	via ISound::getSoundEffectControl(). Only enable if necessary.  </li>
+	</ul>
 	End Rem
 	Method Play3D:TISound(soundFileName:String, pos:TIVec3D, playLooped:Int = False, startPaused:Int = False, ..
 			track:Int = False, streamMode:Int = ESM_AUTO_DETECT, enableSoundEffects:Int = False)
@@ -189,6 +217,13 @@ Type TISoundEngine
 	End Method
 
 	Rem
+	bbdoc: Returns amount of loaded sound sources.
+	End Rem
+	Method GetSoundSourceCount:Int()
+		Return bmx_soundengine_getsoundsourcecount(refPtr)
+	End Method
+
+	Rem
 	bbdoc: Removes all sound sources from the engine
 	about: This will also cause all sounds to be stopped. 
 	Removing sound sources is only necessary if you know you won't use a lot of non-streamed
@@ -196,6 +231,22 @@ Type TISoundEngine
 	End Rem
 	Method RemoveAllSoundSources()
 		bmx_soundengine_removeallsoundsources(refPtr)
+	End Method
+
+	Rem
+	bbdoc: Removes a sound source from the engine, freeing the memory it occupies.
+	End Rem
+	Method RemoveSoundSource(name:String)
+		Local s:Byte Ptr = name.ToCString()
+		bmx_soundengine_removesoundsource(refPtr, s)
+		MemFree(s)
+	End Method
+
+	Rem
+	bbdoc: Removes a sound source from the engine, freeing the memory it occupies.
+	End Rem
+	Method RemoveSoundSourceSource(source:TISoundSource)
+		bmx_soundengine_removesoundsourcesource(refPtr, source.soundSourcePtr)
 	End Method
 
 	Rem
@@ -535,6 +586,7 @@ Type TISound
 	bbdoc: Returns the position of the sound in 3d space
 	End Rem
 	Method GetPosition:TIVec3D()
+		' TODO
 	End Method
 
 	Rem
@@ -545,6 +597,7 @@ Type TISound
 	the doppler effects intensity.
 	End Rem
 	Method SetVelocity(vel:TIVec3D)
+		' TODO
 	End Method
 
 	Rem
@@ -555,6 +608,7 @@ Type TISound
 	the doppler effects intensity.
 	End Rem
 	Method GetVelocity:TIVec3D()
+		' TODO
 	End Method
 
 	Rem
@@ -1176,7 +1230,7 @@ Type TISoundEffectControl
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A 3d vector template type for representing vectors and points in 3d.
 End Rem
 Type TIVec3D
 
@@ -1240,6 +1294,51 @@ Type TIVec3D
 		Return bmx_vec3df_z(vecPtr)
 	End Method
 	
+	Method Invert()
+	End Method
+	
+	Method CrossProduct:TIVec3D(p:TIVec3D)
+	End Method
+	
+	Method DotProduct:Float(other:TIVec3D)
+	End Method
+	 
+	Method Equals:Int(other:TIVec3D) 
+	End Method
+	 
+	Method GetDistanceFrom:Double(other:TIVec3D)
+	End Method
+	 
+	Method GetDistanceFromSQ:Float(other:TIVec3D)
+	End Method
+	 
+	Method GetHorizontalAngle:TIVec3D() 
+	End Method
+	 
+	Method GetInterpolated:TIVec3D(other:TIVec3D, d:Float)
+	End Method
+	 
+	Method GetLength:Double()  
+	End Method
+	 
+	Method GetLengthSQ:Double()
+	End Method
+	 
+	Method IsBetweenPoints (startPoint:TIVec3D, endPoint:TIVec3D)
+	End Method
+	 
+	Method Normalize:TIVec3D() 
+	End Method
+
+	Method RotateXYBy(degrees:Double, center:TIVec3D)
+	End Method
+	 
+	Method RotateXZBy(degrees:Double, center:TIVec3D) 
+	End Method
+
+	Method RotateYZBy(degrees:Double, center:TIVec3D) 
+	End Method
+
 End Type
 
 Rem
@@ -1268,6 +1367,7 @@ Type TAudioStreamFormat
 	bbdoc: Number of channels, 1 for mono, 2 for stereo
 	End Rem
 	Method GetChannelCount:Int()
+		Return bmx_audiostreamformat_getchannelcount(formatPtr)
 	End Method
 
 	Rem
@@ -1275,43 +1375,51 @@ Type TAudioStreamFormat
 	about: If the stream has an unknown lenght, this is -1
 	End Rem
 	Method GetFrameCount:Int()
+		Return bmx_audiostreamformat_getframecount(formatPtr)
 	End Method
 
 	Rem
 	bbdoc: Samples per second
 	End Rem
 	Method GetSampleRate:Int()
+		Return bmx_audiostreamformat_getsamplerate(formatPtr)
 	End Method
 	
 	Rem
-	bbdoc: Format of the sample data
+	bbdoc: Format of the sample data.
+	about: One of ESF_U8 or ESF_S16.
 	End Rem
 	Method GetSampleFormat:Int()
+		Return bmx_audiostreamformat_getsampleformat(formatPtr)
 	End Method
 
 	Rem
 	bbdoc: Returns the size of a sample of the data described by the stream data in bytes
 	End Rem
-	Method getSampleSize:Int()
+	Method GetSampleSize:Int()
+		Return bmx_audiostreamformat_getsamplesize(formatPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the frame size of the stream data in bytes
 	End Rem
-	Method getFrameSize:Int()
+	Method GetFrameSize:Int()
+		Return bmx_audiostreamformat_getframesize(formatPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the size of the sample data in bytes
 	about: Returns an invalid negative value when the stream has an unknown length
 	End Rem
-	Method getSampleDataSize:Int()
+	Method GetSampleDataSize:Int()
+		Return bmx_audiostreamformat_getsampledatasize(formatPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns amount of bytes per second
 	End Rem
-	Method getBytesPerSecond:Int()
+	Method GetBytesPerSecond:Int()
+		Return bmx_audiostreamformat_getbytespersecond(formatPtr)
 	End Method
 
 End Type

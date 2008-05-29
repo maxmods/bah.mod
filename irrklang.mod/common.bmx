@@ -53,6 +53,10 @@ Extern
 	Function bmx_soundengine_play3dsource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, enableSoundEffects:Int)
 	Function bmx_soundengine_iscurrentlyplaying:Int(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_soundengine_iscurrentlyplayingsource:Int(handle:Byte Ptr, source:Byte Ptr)
+	Function bmx_soundengine_getsoundsourcecount:Int(handle:Byte Ptr)
+	Function bmx_soundengine_removesoundsource(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_soundengine_removesoundsourcesource(handle:Byte Ptr, source:Byte Ptr)
+	Function bmx_soundengine_getdrivername:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_sound_setispaused(handle:Byte Ptr, paused:Int)
 	Function bmx_sound_getispaused:Int(handle:Byte Ptr)
@@ -100,7 +104,15 @@ Extern
 	Function bmx_vec3df_z:Float(handle:Byte Ptr)
 
 	Function bmx_audiostreamformat_delete(handle:Byte Ptr)
-	
+	Function bmx_audiostreamformat_getchannelcount:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getframecount:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getsamplerate:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getsampleformat:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getsamplesize:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getframesize:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getsampledatasize:Int(handle:Byte Ptr)
+	Function bmx_audiostreamformat_getbytespersecond:Int(handle:Byte Ptr)
+
 	Function bmx_soundeffect_disablealleffects(handle:Byte Ptr)
 	Function bmx_soundeffect_enablechorussoundeffect:Int(handle:Byte Ptr, fWetDryMix:Float, fDepth:Float, fFeedback:Float, ..
 		fFrequency:Float, sinusWaveForm:Int, fDelay:Float, lPhase:Int)
@@ -163,3 +175,5 @@ Const ESM_AUTO_DETECT:Int = 0
 Const ESM_STREAMING:Int = 1
 Const ESM_NO_STREAMING:Int = 2
 
+Const ESF_U8:Int = 0
+Const ESF_S16:Int = 1
