@@ -62,6 +62,10 @@ Type b2World
 	End Method
 
 	Method Free()
+		If b2ObjectPtr Then
+			bmx_b2world_free(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
 	End Method
 	
 	Method Delete()
@@ -1736,6 +1740,13 @@ Type b2ShapeDef
 		bmx_b2shapedef_setfilter(b2ObjectPtr, filter.b2ObjectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the contact filtering data.
+	End Rem
+	Method GetFilter:b2FilterData()
+		Return b2FilterData._create(bmx_b2shapedef_getfilter(b2ObjectPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -1743,9 +1754,21 @@ bbdoc: This holds contact filtering data.
 End Rem
 Type b2FilterData
 
+	Field owner:Int
 	Field b2ObjectPtr:Byte Ptr
 
+	Function _create:b2FilterData(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2FilterData = New b2FilterData
+			this.Free()
+			this.owner = False
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
 	Method New()
+		owner = True
 		b2ObjectPtr = bmx_b2filterdata_create()	
 	End Method
 	
@@ -1802,11 +1825,15 @@ Type b2FilterData
 		bmx_b2filterdata_setgroupindex(b2ObjectPtr, index)
 	End Method
 
-	Method Delete()
-		If b2ObjectPtr Then
+	Method Free()
+		If b2ObjectPtr And owner Then
 			bmx_b2filterdata_delete(b2ObjectPtr)
 			b2ObjectPtr = Null
 		End If
+	End Method
+	
+	Method Delete()
+		Free()
 	End Method
 	
 End Type

@@ -63,6 +63,7 @@ Extern
 	Function bmx_b2world_getpaircount:Int(handle:Byte Ptr)
 	Function bmx_b2world_getbodycount:Int(handle:Byte Ptr)
 	Function bmx_b2world_getjointcount:Int(handle:Byte Ptr)
+	Function bmx_b2world_free(handle:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -91,6 +92,7 @@ Extern
 	Function bmx_b2shapedef_setrestitution(handle:Byte Ptr, restitution:Float)
 	Function bmx_b2shapedef_setdensity(handle:Byte Ptr, density:Float)
 	Function bmx_b2shapedef_setfilter(handle:Byte Ptr, filter:Byte Ptr)
+	Function bmx_b2shapedef_getfilter:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2polygondef_create:Byte Ptr()
 	Function bmx_b2polygondef_setasbox(handle:Byte Ptr, hx:Float, hy:Float)

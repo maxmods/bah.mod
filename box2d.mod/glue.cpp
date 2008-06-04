@@ -87,6 +87,7 @@ extern "C" {
 	int32 bmx_b2world_getbodycount(b2World * world);
 	int32 bmx_b2world_getjointcount(b2World * world);
 	int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes);
+	void bmx_b2world_free(b2World * world);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -115,6 +116,7 @@ extern "C" {
 	void bmx_b2shapedef_setrestitution(b2ShapeDef * def, float32 restitution);
 	void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density);
 	void bmx_b2shapedef_setfilter(b2ShapeDef * def, b2FilterData * filterData);
+	b2FilterData * bmx_b2shapedef_getfilter(b2ShapeDef * def);
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
@@ -622,6 +624,10 @@ int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes) {
 	return ret;
 }
 
+void bmx_b2world_free(b2World * world) {
+	delete world;
+}
+
 // *****************************************************
 
 b2BodyDef * bmx_b2bodydef_create() {
@@ -727,6 +733,10 @@ void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density) {
 
 void bmx_b2shapedef_setfilter(b2ShapeDef * def, b2FilterData * filterData) {
 	def->filter = *filterData;
+}
+
+b2FilterData * bmx_b2shapedef_getfilter(b2ShapeDef * def) {
+	return &def->filter;
 }
 
 // *****************************************************

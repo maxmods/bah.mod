@@ -64,7 +64,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 			</dt>
 			<dt>
 				<span class="sect1">
-					<a href="#d0e265">2.6. The Testbed</a>
+					<a href="#d0e265">2.6. The Examples</a>
 				</span>
 			</dt>
 		</dl>
@@ -729,7 +729,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 			</dt>
 			<dt>
 				<span class="sect1">
-					<a href="#d0e265">2.6. The Testbed</a>
+					<a href="#d0e265">2.6. The Examples</a>
 				</span>
 			</dt>
 		</dl>
@@ -793,8 +793,8 @@ worldAABB.SetUpperBound(100.0, 100.0)
 			rest. A sleeping body doesn't require any simulation.
 		</p>
 		<pre class="programlisting">
-b2Vec2 gravity(0.0f, -10.0f)
-bool doSleep = true;
+Local gravity:b2Vec2 = New b2Vec2.Create(0.0, -10.0)
+Local doSleep:int = true
 		</pre>
 		<p>
 			Now we create the world object. Normally you would create
@@ -803,7 +803,7 @@ bool doSleep = true;
 			works fine in this example.
 		</p>
 		<pre class="programlisting">
-b2World world(worldAABB, gravity, doSleep);
+Local world:b2World = New b2World.Create(worldAABB, gravity, doSleep)
 		</pre>
 		<p>
 			So now we have our physics world, let's start adding some
@@ -856,7 +856,6 @@ b2World world(worldAABB, gravity, doSleep);
 			of the ground body.
 		</p>
 		<pre class="programlisting">
-
 Local groundBodyDef:b2BodyDef = New b2BodyDef
 groundBodyDef.SetPositionXY(0.0, -10.0)
 		</pre>
@@ -897,7 +896,7 @@ groundShapeDef.SetAsBox(50.0, 10.0)
 			polygon shape on the ground body.
 		</p>
 		<pre class="programlisting">
-groundBody-&gt;CreateShape(&amp;groundShapeDef);
+groundBody.CreateShape(groundShapeDef)
 		</pre>
 		<p>
 			Again, Box2D does not keep a reference to the shape or body
@@ -943,8 +942,9 @@ groundBody-&gt;CreateShape(&amp;groundShapeDef);
 			.
 		</p>
 		<pre class="programlisting">
-b2BodyDef bodyDef; bodyDef.position.Set(0.0f, 4.0f); b2Body*
-body = world.CreateBody(&amp;bodyDef);
+Local bodyDef:b2BodyDef = new b2BodyDef
+bodyDef.SetPositionXY(0.0, 4.0)
+Local body:b2Body = world.CreateBody(bodyDef)
 		</pre>
 		<p>
 			Next we create and attach a polygon shape. Notice that we
@@ -961,10 +961,12 @@ body = world.CreateBody(&amp;bodyDef);
 			for the ground body.
 		</p>
 		<pre class="programlisting">
-b2PolygonDef shapeDef; shapeDef.SetAsBox(1.0f, 1.0f);
-shapeDef.density = 1.0f; shapeDef.friction = 0.3f;
-body-&gt;CreateShape(&amp;shapeDef);
-body-&gt;SetMassFromShapes();
+Local shapeDef:b2PolygonDef = New b2PolygonDef
+shapeDef.SetAsBox(1.0, 1.0)
+shapeDef.SetDensity(1.0)
+shapeDef.SetFriction(0.3)
+body.CreateShape(shapeDef)
+body.SetMassFromShapes()
 		</pre>
 		<p>
 			That's it for initialization. We are now ready to begin
@@ -1005,7 +1007,6 @@ body-&gt;SetMassFromShapes();
 			to). Without further ado, here is the time step.
 		</p>
 		<pre class="programlisting">
-
 Local timeStep:Float = 1.0 / 60.0
 		</pre>
 		<p>
@@ -1086,70 +1087,19 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e265"></a>
-						2.6.&nbsp;The Testbed
+						2.6.&nbsp;The Examples
 					</h2>
 				</div>
 			</div>
 		</div>
 		<p>
 			Once you have conquered the HelloWorld example, you should
-			start looking at Box2D's testbed. The testbed is a
-			unit-testing framework and demo environment. Here are some
-			of the features:
+			start looking at Box2D's examples. 
 		</p>
-		<div class="itemizedlist">
-			<ul type="disc">
-				<li>
-					<p>Camera with pan and zoom.</p>
-				</li>
-				<li>
-					<p>
-						Mouse picking of shapes attached to dynamic
-						bodies.
-					</p>
-				</li>
-				<li>
-					<p>Extensible set of tests.</p>
-				</li>
-				<li>
-					<p>
-						GUI for selecting tests, parameter tuning, and
-						debug drawing options.
-					</p>
-				</li>
-				<li>
-					<p>Pause and single step simulation.</p>
-				</li>
-				<li>
-					<p>Text rendering.</p>
-				</li>
-			</ul>
-		</div>
-		<div class="screenshot">
-			<div class="mediaobject">
-				<img src="images/testbed.gif"></div>
-		</div>
 		<p>
 			The testbed has many examples of Box2D usage in the test
 			cases and the framework itself. I encourage you to explore
 			and tinker with the testbed as you learn Box2D.
-		</p>
-		<p>
-			<span class="emphasis">
-				<em>Note:</em>
-			</span>
-			the testbed is written using
-			<a href="http://freeglut.sourceforge.net/" target="_top">
-				freeglut
-			</a>
-			and
-			<a href="http://www.cs.unc.edu/~rademach/glui/"
-				target="_top">
-				GLUI
-			</a>
-			. The testbed is not part of the Box2D library. Box2D is
-			agnostic about rendering. As shown by the HelloWorld
-			example, you don't need a renderer to use Box2D.
 		</p>
 	</div>
 </div>
@@ -1386,9 +1336,9 @@ Method DestroyShape(shape:b2Shape)
 			body. If you have the body, you can get the actor.
 		</p>
 		<pre class="programlisting">
-GameActor* actor = GameCreateActor()
-b2BodyDef bodyDef
-bodyDef.userData = actor
+Local actor:GameActor = GameCreateActor()
+Local bodyDef:b2BodyDef = new b2BodyDef
+bodyDef.SetUserData(actor)
 actor.body = box2Dworld.CreateBody(bodyDef)
 		</pre>
 		<p>
@@ -1550,15 +1500,15 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 		</p>
 		<p>
 			To create and destory a world you need to use
-			<tt class="literal">new</tt>
+			<tt class="literal">Create</tt>
 			and
-			<tt class="literal">delete</tt>
+			<tt class="literal">Free</tt>
 			.
 		</p>
 		<pre class="programlisting">
-
-			b2World* myWorld = new b2World(aabb, gravity, doSleep); ...
-			do stuff ... delete myWorld;
+Local myWorld:b2World = new b2World.Create(aabb, gravity, doSleep);
+... do stuff ...
+myWorld.Free()
 		</pre>
 		<div class="caution"
 			style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -1609,8 +1559,9 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 				specify a time step and an iteration count. For example:
 			</p>
 			<pre class="programlisting">
-float32 timeStep = 1.0f / 60.f; int32 iterationCount =
-10; myWorld-&gt;Step(timeStep, iterationCount);
+Local timeStep:Float = 1.0 / 60.0
+Local iterationCount:Int = 10
+myWorld.DoStep(timeStep, iterationCount)
 			</pre>
 			<p>
 				After the time step you can examine your bodies and
@@ -2222,21 +2173,6 @@ Local dynamicBody:b2Body = myWorld.CreateBody(bodyDef)
 myWorld.DestroyBody(dynamicBody)
 dynamicBody = NULL
 		</pre>
-		<div class="caution"
-			style="margin-left: 0.5in; margin-right: 0.5in;">
-			<h3 class="title">Caution</h3>
-			<p>
-				<span class="emphasis">
-					<em>Never</em>
-				</span>
-				use
-				<tt class="literal">new</tt>
-				or
-				<tt class="literal">malloc</tt>
-				to create a body. The world won't know about the body
-				and the body won't be properly initialized.
-			</p>
-		</div>
 		<p>
 			Static bodies do not move under the influence of other
 			bodies. You may manually move static bodies, but you should
@@ -2319,14 +2255,14 @@ Local ground:b2Body = myWorld.GetGroundBody() ... build a joint using the ground
 				body. You may want to adjust the mass of the body based
 				on the current shapes.
 			</p>
-			<pre class="programlisting">void SetMassFromShapes();</pre>
+			<pre class="programlisting">Method SetMassFromShapes()</pre>
 			<p>
 				You may also want to set the mass properties directly.
 				For example, you may change the shapes, but want to use
 				your own mass formulas.
 			</p>
 			<pre class="programlisting">
-void SetMass(massData:b2MassData)
+Method SetMass(massData:b2MassData)
 			</pre>
 			<p>
 				The body's mass data is available through the following
@@ -2398,10 +2334,10 @@ Method WakeUp()
 				since you will normally use Box2D to simulate movement.
 			</p>
 			<pre class="programlisting">
-bool SetXForm(const b2Vec2&amp; position, float32 angle)
-const b2XForm&amp; GetXForm() const;
-const b2Vec2&amp; GetPosition()
-const; float32 GetAngle()
+Method SetXForm:Int(position:b2Vec2, angle:Float)
+Method GetXForm:b2XForm()
+Method GetPosition:b2Vec2()
+Method GetAngle:Float()
 			</pre>
 			<p>
 				You can access the center of mass position in world
@@ -2411,17 +2347,17 @@ const; float32 GetAngle()
 				with the body transform.
 			</p>
 			<pre class="programlisting">
-const b2Vec2&amp; GetWorldCenter() const;
+Method GetWorldCenter:b2Vec2()
 			</pre>
 			<p>
 				You can access the linear and angular velocity. The
 				linear velocity is for the center of mass.
 			</p>
 			<pre class="programlisting">
-void SetLinearVelocity(const b2Vec2&amp; v);
-b2Vec2 GetLinearVelocity() const;
-void SetAngularVelocity(float32 omega);
-float32 GetAngularVelocity() const;
+Method SetLinearVelocity(v:b2Vec2)
+Method GetLinearVelocity:b2Vec2()
+Method SetAngularVelocity(omega:Float)
+Method GetAngularVelocity:Float()
 			</pre>
 		</div>
 		<div class="sect2" lang="en">
@@ -2501,11 +2437,12 @@ Method GetLocalVector:b2Vec2(worldVector:b2Vec2)
 				useful if you need to access the shape's user data.
 			</p>
 			<pre class="programlisting">
-for (b2Shape* s = body-&gt;GetShapeList(); s; s = s-&gt;GetNext())
-{
-MyShapeData* data = (MyShapeData*)s-&gt;GetUserData();
-... do something with data ...
-}
+Local s:b2Shape = body.GetShapeList()
+While s
+	Local data:MyShapeData = MyShapeData(s.GetUserData())
+	... do something with data ...
+	s = s.GetNext()
+Wend
 			</pre>
 			<p>You can similarly iterate over the body's joint list.</p>
 		</div>
@@ -2665,7 +2602,7 @@ MyShapeData* data = (MyShapeData*)s-&gt;GetUserData();
 				following formula:
 			</p>
 			<pre class="programlisting">
-float32 friction; friction = sqrtf(shape1-&gt;friction * shape2-&gt;friction);
+Local friction:Float = sqrtf(shape1.GetFriction() * shape2.GetFriction())
 			</pre>
 			<p>
 				Restitution is used to make objects bounce. The
@@ -2684,8 +2621,7 @@ float32 friction; friction = sqrtf(shape1-&gt;friction * shape2-&gt;friction);
 				formula.
 			</p>
 			<pre class="programlisting">
-float32 restitution; restitution =
-b2Max(shape1-&gt;restitution, shape2-&gt;restitution);
+Local restitution:Float = b2Max(shape1.GetRestitution(), shape2.GetRestitution())
 			</pre>
 			<p>
 				When a shape develops multiple contacts, restitution is
@@ -2752,10 +2688,10 @@ b2Max(shape1-&gt;restitution, shape2-&gt;restitution);
 				. For example:
 			</p>
 			<pre class="programlisting">
-playerShapeDef.filter.categoryBits = 0x0002;
-monsterShapeDef.filter.categoryBits = 0x0004;
-playerShape.filter.maskBits = 0x0004;
-monsterShapeDef.filter.maskBits = 0x0002;
+playerShapeDef.GetFilter().SetCategoryBits($0002
+monsterShapeDef.GetFilter().SetCategoryBits($0004)
+playerShape.GetFilter().SetMaskBits($0004)
+monsterShapeDef.GetFilter().SetMaskBits($0002)
 			</pre>
 			<p>
 				Collision groups let you specify an integral group
@@ -2767,10 +2703,10 @@ monsterShapeDef.filter.maskBits = 0x0002;
 				always collide, but shape3 and shape4 never collide.
 			</p>
 			<pre class="programlisting">
-shape1Def.filter.groupIndex = 2;
-shape2Def.filter.groupIndex = 2;
-shape3Def.filter.groupIndex = -8;
-shape4Def.filter.groupIndex = -8;
+shape1Def.GetFilter().SetGroupIndex(2)
+shape2Def.GetFilter().SetGroupIndex(2)
+shape3Def.GetFilter().SetGroupIndex(-8)
+shape4Def.GetFilter().SetGroupIndex(-8)
 			</pre>
 			<p>
 				Collisions between shapes of different group indices are
@@ -2924,11 +2860,12 @@ def.SetLocalPosition(Vec2(1.0, 0.0))
 				triangle:
 			</p>
 			<pre class="programlisting">
-b2PolygonDef triangleDef;
-triangleDef.vertexCount = 3;
-triangleDef.vertices[0].Set(-1.0f, 0.0f);
-triangleDef.vertices[1].Set(1.0f, 0.0f);
-triangleDef.vertices[2].Set(0.0f, 2.0f);
+Local triangleDef:b2PolygonDef = New b2PolygonDef
+Local vertices:b2Vec2[] = New b2Vec2[3]
+vertices[0] = Vec2(-1.0, 0.0)
+vertices[1] = Vec2(1.0, 0.0)
+vertices[2] = Vec2(0.0, 2.0)
+triangleDef.SetVertices(vertices)
 			</pre>
 			<p>
 				The vertices are defined in the coordinate system of the
@@ -2942,15 +2879,15 @@ triangleDef.vertices[2].Set(0.0f, 2.0f);
 				offset from the body origin.
 			</p>
 			<pre class="programlisting">
-b2PolygonDef alignedBoxDef
-float32 hx = 1.0f; // half-width
-float32 hy = 2.0f; // half-height
-alignedBoxDef.SetAsBox(hx, hy);
+Local alignedBoxDef:b2PolygonDef = New b2PolygonDef
+Local hx:Float = 1.0 ' half-width
+Local hy:Float = 2.0 ' half-height
+alignedBoxDef.SetAsBox(hx, hy)
 
-b2PolygonDef orientedBoxDef
-b2Vec2 center(-1.5f, 0.0f);
-float32 angle = 0.5f * b2_pi;
-orientedBoxDef.SetAsBox(hx, hy, center, angle);
+Local orientedBoxDef:b2PolygonDef = New b2PolygonDef
+Local center:b2Vec2 = Vec2(-1.5, 0.0)
+Local angle:Float = 90
+orientedBoxDef.SetAsOrientedBox(hx, hy, center, angle)
 			</pre>
 		</div>
 	</div>
@@ -2971,7 +2908,7 @@ orientedBoxDef.SetAsBox(hx, hy, center, angle);
 		</p>
 		<pre class="programlisting">
 Local circleDef:b2CircleDef = new b2CircleDef
-circleDef.SetRadius(171.887339)
+circleDef.SetRadius(3.0)
 circleDef.SetDensity(2.5)
 Local myShape:b2Shape = myBody.CreateShape(circleDef)
 [optionally store shape reference somewhere]
@@ -3006,7 +2943,7 @@ myBody.SetMassFromShapes()
 			of destroying the attached shapes.
 		</p>
 		<pre class="programlisting">
-			myBody-&gt;DestroyShape(myShape);
+myBody.DestroyShape(myShape)
 		</pre>
 		<p>
 			After removing shapes from a body, you may want to call
