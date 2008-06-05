@@ -38,6 +38,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Fixed prepared statement reuse issue with some drivers."
+ModuleInfo "History: Added some integrity checks to TQueryRecord methods."
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Resets error status before execution of new query."
 ModuleInfo "History: 1.06"
@@ -930,7 +931,7 @@ Type TQueryRecord
 	End Rem
 	Method getStringByName:String(name:String)
 		Local f:TQueryField = getFieldByName(name)
-		If f Then
+		If f And f.value Then
 			Return f.value.getString()
 		End If
 	End Method
@@ -952,7 +953,7 @@ Type TQueryRecord
 	End Rem
 	Method getIntByName:Int(name:String)
 		Local f:TQueryField = getFieldByName(name)
-		If f Then
+		If f And f.value Then
 			Return f.value.getInt()
 		End If
 	End Method
@@ -974,7 +975,7 @@ Type TQueryRecord
 	End Rem
 	Method getLongByName:Long(name:String)
 		Local f:TQueryField = getFieldByName(name)
-		If f Then
+		If f And f.value Then
 			Return f.value.getLong()
 		End If
 	End Method
@@ -996,7 +997,7 @@ Type TQueryRecord
 	End Rem
 	Method getFloatByName:Float(name:String)
 		Local f:TQueryField = getFieldByName(name)
-		If f Then
+		If f And f.value Then
 			Return f.value.getFloat()
 		End If
 	End Method
@@ -1018,7 +1019,7 @@ Type TQueryRecord
 	End Rem
 	Method getDoubleByName:String(name:String)
 		Local f:TQueryField = getFieldByName(name)
-		If f Then
+		If f And f.value Then
 			Return f.value.getDouble()
 		End If
 	End Method
