@@ -20,6 +20,8 @@
 ' 
 SuperStrict
 
+Import BRL.Blitz
+
 Import "-lirrKlang"
 
 Import "include/*.h"
@@ -80,6 +82,7 @@ Extern
 	Function bmx_sound_getsoundeffectcontrol:Byte Ptr(handle:Byte Ptr)
 	Function bmx_sound_drop(handle:Byte Ptr)
 	Function bmx_sound_setposition(handle:Byte Ptr, position:Byte Ptr)
+	Function bmx_sound_Setsoundstopeventreceiver(handle:Byte Ptr, receiver:Byte Ptr)
 
 	Function bmx_soundsource_getname:Byte Ptr(handle:Byte Ptr)
 	Function bmx_soundsource_setstreammode(handle:Byte Ptr, mode:Int)
@@ -148,6 +151,9 @@ Extern
 	Function bmx_soundeffect_enablewavesreverdsoundeffect:Int(handle:Byte Ptr, fInGain:Float, fReverbMix:Float, fReverbTime:Float, fHighFreqRTRatio:Float)
 	Function bmx_soundeffect_disablewavesreverbsoundeffect(handle:Byte Ptr)
 	Function bmx_soundeffect_iswavesreverbsoundeffectenabled:Int(handle:Byte Ptr)
+
+	Function bmx_soundstopeventreceiver_create:Byte Ptr(handle:Object)
+	Function bmx_soundstopeventreceiver_delete(handle:Byte Ptr)
 
 End Extern
 

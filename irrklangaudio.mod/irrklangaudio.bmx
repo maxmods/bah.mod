@@ -30,6 +30,9 @@ ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial Release."
+
 Import BaH.irrKlang
 Import BRL.Audio
 Import BRL.FileSystem
@@ -102,17 +105,6 @@ Type TISoundSourceSound Extends TSound
 				channel = _driver._engine.Play2DSource(_sound, isLooped, pause)
 			End If
 			Return New TTISoundChannel.Create(channel)
-'		Else
-'			Local chan:TFMODSoundChannel = TFMODSoundChannel(alloced_channel)
-'			If chan Then
-'				If Not chan._channel Then
-'					Local channel:TFMODChannel = _driver._engine.PlaySound(FMOD_CHANNEL_FREE, _sound, pause)
-'					Return chan.Create(channel)
-'				Else
-'					Local channel:TFMODChannel = _driver._engine.PlaySound(FMOD_CHANNEL_FREE, _sound, pause, chan._channel)
-'					Return chan.Create(channel)
-'				End If
-'			End If
 		End If
 	End Method
 	

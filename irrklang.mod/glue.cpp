@@ -24,8 +24,13 @@
 
 class MaxSAudioStreamFormat;
 class Maxvec3df;
+class MaxSoundStopEventReceiver;
 
 extern "C" {
+
+#include <blitz.h>
+
+    void _bah_irrklang_TISoundStopEventReceiver__OnSoundStopped(irrklang::ISound* sound, irrklang::E_STOP_EVENT_CAUSE reason, BBObject * handle);
 
 	irrklang::ISoundEngine* bmx_createIrrKlangDevice(irrklang::E_SOUND_OUTPUT_DRIVER driver, int options, const char * deviceID);
 
@@ -82,6 +87,7 @@ extern "C" {
 	irrklang::ISoundEffectControl * bmx_sound_getsoundeffectcontrol(irrklang::ISound * sound);
 	void bmx_sound_drop(irrklang::ISound * sound);
 	void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position);
+	void bmx_sound_Setsoundstopeventreceiver(irrklang::ISound * sound, MaxSoundStopEventReceiver * receiver);
 
 	const irrklang::ik_c8 * bmx_soundsource_getname(irrklang::ISoundSource * source);
 	void bmx_soundsource_setstreammode(irrklang::ISoundSource * source, irrklang::E_STREAM_MODE mode);
@@ -151,6 +157,9 @@ extern "C" {
 	void bmx_soundeffect_disablewavesreverbsoundeffect(irrklang::ISoundEffectControl * effect);
 	bool bmx_soundeffect_iswavesreverbsoundeffectenabled(irrklang::ISoundEffectControl * effect);
 
+	MaxSoundStopEventReceiver * bmx_soundstopeventreceiver_create(BBObject * handle);
+	void bmx_soundstopeventreceiver_delete(MaxSoundStopEventReceiver * handle);
+
 }
 
 
@@ -174,6 +183,29 @@ public:
 	}
 	
 	irrklang::vec3df vec;
+};
+
+class MaxSoundStopEventReceiver : public irrklang::ISoundStopEventReceiver
+{
+public:
+	MaxSoundStopEventReceiver(BBObject * handle)
+		: maxHandle(handle)
+	{
+		BBRETAIN(handle);
+	}
+	
+	~MaxSoundStopEventReceiver()
+	{
+		BBRELEASE(maxHandle);
+	}
+	
+	virtual void OnSoundStopped(irrklang::ISound* sound, irrklang::E_STOP_EVENT_CAUSE reason, void* userData)
+     {
+        _bah_irrklang_TISoundStopEventReceiver__OnSoundStopped(sound, reason, maxHandle);
+     }
+
+private:
+	BBObject * maxHandle;
 };
 
 // *****************************************************
@@ -386,6 +418,10 @@ void bmx_sound_drop(irrklang::ISound * sound) {
 
 void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position) {
 	sound->setPosition(position->vec);
+}
+
+void bmx_sound_Setsoundstopeventreceiver(irrklang::ISound * sound, MaxSoundStopEventReceiver * receiver) {
+	sound->setSoundStopEventReceiver(receiver);
 }
 
 // *****************************************************
@@ -637,3 +673,13 @@ bool bmx_soundeffect_iswavesreverbsoundeffectenabled(irrklang::ISoundEffectContr
     return effect->isWavesReverbSoundEffectEnabled();
 }
 
+// *****************************************************
+
+
+MaxSoundStopEventReceiver * bmx_soundstopeventreceiver_create(BBObject * handle) {
+	return new MaxSoundStopEventReceiver(handle);
+}
+
+void bmx_soundstopeventreceiver_delete(MaxSoundStopEventReceiver * handle) {
+	delete handle;
+}
