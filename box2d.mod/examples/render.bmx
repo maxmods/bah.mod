@@ -17,7 +17,6 @@ Type debugDraw Extends b2DebugDraw
 	bbdoc: Draw a solid closed polygon provided in CCW order
 	End Rem
 	Method DrawSolidPolygon(vertices:b2Vec2[], color:b2Color)
-'DebugLog "~n~nDrawSolidPolygon"
 		SetImageFont(detailFont)
 		SetAlpha 0.5
 		SetColor(color.red / 2, color.green / 2, color.blue / 2)
@@ -26,7 +25,6 @@ Type debugDraw Extends b2DebugDraw
 		For Local i:Int = 0 Until vertices.length
 			poly[i * 2] = vertices[i].X() * xScale
 			poly[i * 2 + 1] = vertices[i].Y() * (-yScale)
-'DebugLog "x = " + poly[i * 2] + ", y = " + poly[i * 2 + 1]
 		Next
 		DrawPoly(poly)
 		
@@ -82,6 +80,15 @@ Type debugDraw Extends b2DebugDraw
 	/// @param xf a transform.
 	End Rem
 	Method DrawXForm(xf:b2XForm)
+	End Method
+
+	Method DrawPoint(p:b2Vec2, size:Float, color:b2Color)
+		glPointSize(size)
+		
+		SetColor(color.red, color.green, color.blue)
+		Plot(p.x() * xScale, p.y() * (-yScale))
+		
+		glPointSize(1.0)
 	End Method
 
 End Type

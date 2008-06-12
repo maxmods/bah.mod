@@ -75,6 +75,7 @@ End Function
 
 
 Type Test
+	Const k_maxContactPoints:Int = 2048
 
 	Field m_worldAABB:b2AABB = New b2AABB.Create()
 	Field m_world:b2World
@@ -82,6 +83,12 @@ Type Test
 	Field m_textLine:Int
 	Field m_mouseWorld:b2Vec2
 	Field m_mouseJoint:b2MouseJoint
+	
+	Field m_points:ContactPoint[] = New ContactPoint[k_maxContactPoints]
+	Field m_contactListener:ContactListener = New ContactListener
+	Field m_pointCount:Int
+	
+	Field _settings:TSettings
 	
 	Method Init(xs:Float = 0, ys:Float = 0)
 		If xs Then
@@ -96,11 +103,16 @@ Type Test
 		Local gravity:b2Vec2 = New b2Vec2.Create(0.0, -10.0)
 		m_world = New b2World.Create(m_worldAABB, gravity, True)
 
+		m_contactListener._test = Self
+
 		m_world.SetDebugDraw(m_debugDraw)
+		m_world.SetContactListener(m_contactListener)
 		
 	End Method
 
 	Method DoStep(settings:TSettings)
+	
+		_settings = settings
 	
 		m_textLine = 10
 
@@ -136,17 +148,66 @@ Type Test
 		m_world.SetPositionCorrection(settings.enablePositionCorrection)
 		m_world.SetContinuousPhysics(settings.enableTOI)
 
-		'm_pointCount = 0;
+		m_pointCount = 0
 
 		m_world.DoStep(timeStep, settings.iterationCount)
 	
 		m_world.Validate()
 
+
+
+		If settings.drawContactPoints Then
+
+			Const k_axisScale:Int = 0.3
+	
+			For Local i:Int = 0 Until m_pointCount
+
+				Local point:ContactPoint = m_points[i]
+	
+				If point.state = 0 then
+					' Add
+					debugDraw(m_debugDraw).DrawPoint(point.position, 5.0, b2Color.Set(76, 242, 76))
+				Else If point.state = 1 Then
+					' Persist
+					debugDraw(m_debugDraw).DrawPoint(point.position, 3.0, b2Color.Set(76, 76, 242))
+				Else
+					' Remove
+					debugDraw(m_debugDraw).DrawPoint(point.position, 5.0, b2Color.Set(242, 76, 76))
+				End If
+	Rem
+				If (settings->drawContactNormals == 1)
+				{
+					b2Vec2 p1 = point->position;
+					b2Vec2 p2 = p1 + k_axisScale * point->normal;
+					m_debugDraw.DrawSegment(p1, p2, b2Color(0.4f, 0.9f, 0.4f));
+				}
+				Else If (settings->drawContactForces == 1)
+				{
+					//b2Vec2 p1 = point->position;
+					//b2Vec2 p2 = p1 + k_forceScale * point->normalForce * point->normal;
+					//DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.3f));
+				}
+	
+				If (settings->drawFrictionForces == 1)
+				{
+					//b2Vec2 tangent = b2Cross(point->normal, 1.0f);
+					//b2Vec2 p1 = point->position;
+					//b2Vec2 p2 = p1 + k_forceScale * point->tangentForce * tangent;
+					//DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.3f));
+				}
+				End Rem
+			Next
+		End If
+	
 	End Method
 	
 	Method Keyboard()
 		If KeyHit(KEY_F) Then
 			debugDraw(m_debugDraw).showDetails = Not debugDraw(m_debugDraw).showDetails
+		End If
+		
+		If KeyHit(KEY_C) Then
+			_settings.drawContactPoints = Not _settings.drawContactPoints
 		End If
 	End Method
 
@@ -252,6 +313,89 @@ Type TSettings
 
 
 End Type
+
+Type ContactPoint
+
+	Const e_contactAdded:Int = 0
+	Const e_contactPersisted:Int = 1
+	Const e_contactRemoved:Int = 2
+
+	Field shape1:b2Shape
+	Field shape2:b2Shape
+	Field normal:b2Vec2 
+	Field position:b2Vec2 
+	Field velocity:b2Vec2 
+	Field id:Int
+	Field state:Int
+End Type
+
+Type ContactListener Extends b2ContactListener
+
+	Field _test:Test
+	
+	Method Add(point:b2ContactPoint)
+		If _test.m_pointCount = Test.k_maxContactPoints Then
+			Return
+		End If
+	
+		Local cp:ContactPoint = _test.m_points[_test.m_pointCount]
+		If Not cp Then
+			cp = New ContactPoint
+			_test.m_points[_test.m_pointCount] = cp
+		End If
+		
+		cp.shape1 = point.GetShape1()
+		cp.shape2 = point.GetShape2()
+		cp.position = point.GetPosition()
+		cp.normal = point.GetNormal()
+'		cp.id = point->id
+		cp.state = ContactPoint.e_contactAdded
+	
+		_test.m_pointCount :+ 1
+	End Method
+	
+	Method Persist(point:b2ContactPoint)
+		If _test.m_pointCount = Test.k_maxContactPoints Then
+			Return
+		End If
+	
+		Local cp:ContactPoint = _test.m_points[_test.m_pointCount]
+		If Not cp Then
+			cp = New ContactPoint
+			_test.m_points[_test.m_pointCount] = cp
+		End If
+		cp.shape1 = point.GetShape1()
+		cp.shape2 = point.GetShape2()
+		cp.position = point.GetPosition()
+		cp.normal = point.GetNormal()
+'		cp.id = point->id
+		cp.state = ContactPoint.e_contactPersisted
+	
+		_test.m_pointCount :+ 1
+	End Method
+
+	Method Remove(point:b2ContactPoint)
+		If _test.m_pointCount = Test.k_maxContactPoints Then
+			Return
+		End If
+	
+		Local cp:ContactPoint = _test.m_points[_test.m_pointCount]
+		If Not cp Then
+			cp = New ContactPoint
+			_test.m_points[_test.m_pointCount] = cp
+		End If
+		cp.shape1 = point.GetShape1()
+		cp.shape2 = point.GetShape2()
+		cp.position = point.GetPosition()
+		cp.normal = point.GetNormal()
+'		cp.id = point->id
+		cp.state = ContactPoint.e_contactRemoved
+	
+		_test.m_pointCount :+ 1
+	End Method
+
+End Type
+
 
 Function ConvertScreenToWorld:b2Vec2(x:Int, y:Int)
 'DebugStop
