@@ -48,6 +48,7 @@ Type CollisionFiltering Extends Test
 		ground = m_world.CreateBody(bd)
 		ground.CreateShape(sd)
 		
+		
 		' Small triangle
 		Local triangleShapeDef:b2PolygonDef = New b2PolygonDef
 
@@ -59,6 +60,7 @@ Type CollisionFiltering Extends Test
 		triangleShapeDef.SetVertices(vertices)
 		triangleShapeDef.SetDensity(1.0)
 
+		' modify the def's filter
 		triangleShapeDef.GetFilter().SetGroupIndex(k_smallGroup)
 		triangleShapeDef.GetFilter().SetCategoryBits(k_triangleCategory)
 		triangleShapeDef.GetFilter().SetMaskBits(k_triangleMask)
@@ -86,17 +88,65 @@ Type CollisionFiltering Extends Test
 		body2.SetMassFromShapes()
 
 		
-		
 		' Small box
+		Local boxShapeDef:b2PolygonDef = New b2PolygonDef
+		boxShapeDef.SetAsBox(1.0, 0.5)
+		boxShapeDef.SetDensity(1.0)
+
+		' create our own filter object
+		Local filter:b2FilterData = New b2FilterData
+		filter.SetGroupIndex(k_smallGroup)
+		filter.SetCategoryBits(k_boxCategory)
+		filter.SetMaskBits(k_boxMask)
+
+		boxShapeDef.SetFilter(filter)
+		
+		Local boxBodyDef:b2BodyDef = New b2BodyDef
+		boxBodyDef.SetPositionXY(0.0, 2.0)
+
+		Local body3:b2Body = m_world.CreateBody(boxBodyDef)
+		body3.CreateShape(boxShapeDef)
+		body3.SetMassFromShapes()
 		
 		
 		' Large box (recycle definitions)
-		
+		boxShapeDef.SetAsBox(2.0, 1.0)
+		boxShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
+		boxBodyDef.SetPositionXY(0.0, 6.0)
+
+		Local body4:b2Body = m_world.CreateBody(boxBodyDef)
+		body4.CreateShape(boxShapeDef)
+		body4.SetMassFromShapes()
+
 		
 		' Small circle
+		Local circleShapeDef:b2CircleDef = New b2CircleDef
+		circleShapeDef.SetRadius(1.0)
+		circleShapeDef.SetDensity(1.0)
+
+		filter = New b2FilterData
+		filter.SetGroupIndex(k_smallGroup)
+		filter.SetCategoryBits(k_circleCategory)
+		filter.SetMaskBits(k_circleMask)
 		
+		circleShapeDef.SetFilter(filter)
+
+		Local circleBodyDef:b2BodyDef = New b2BodyDef
+		circleBodyDef.SetPositionXY(5.0, 2.0)
+		
+		Local body5:b2Body = m_world.CreateBody(circleBodyDef)
+		body5.CreateShape(circleShapeDef)
+		body5.SetMassFromShapes()
+
 		
 		' Large circle
+		circleShapeDef.SetRadius(circleShapeDef.GetRadius() * 2.0)
+		circleShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
+		circleBodyDef.SetPositionXY(5.0, 6.0)
+
+		Local body6:b2Body = m_world.CreateBody(circleBodyDef)
+		body6.CreateShape(circleShapeDef)
+		body6.SetMassFromShapes()
 		
 		Return Self
 	End Method
