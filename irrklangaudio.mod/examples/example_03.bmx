@@ -18,14 +18,14 @@ For Local i:Int = 0 Until drivers.length
 Next
 
 SetAudioDriver("irrKlang")
-'DebugStop
+
 Local sound:TSound = LoadSound("incbin::../../irrklang.mod/examples/media/getout.ogg", SOUND_LOOP)
 
 PlaySound(sound)
 
 Local i:Int
 
-While i < 30
+While i < 300
 
 	Delay(100)
 	i:+ 1

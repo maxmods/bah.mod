@@ -21,7 +21,7 @@ PlaySound(sound)
 
 Local i:Int
 
-While i < 30
+While i < 300
 
 	Delay(100)
 	i:+ 1

@@ -126,6 +126,26 @@ Type TISoundEngine
 		MemFree(s)
 		Return TISoundSource._create(source)
 	End Method
+	
+	Rem
+	bbdoc: Adds a sound source as alias for an existing sound source, but with a different name or optional different default settings. 
+	returns: The added sound source or Null if not sucessful because for example a sound already existed with that name. If not successful, the reason will be printed into the log. 
+	about: This is useful if you want to play multiple sounds but each sound isn't necessarily one single file.
+	Also useful if you want to or play the same sound using different names, volumes or min and max 3D distances. 
+	<p>Parameters:
+	<ul>
+	<li><b>baseSource </b> : The sound source where this sound source should be based on. This sound source will use the
+	baseSource as base to access the file and similar, but it will have its own name and its own default settings. </li>
+	<li><b>soundName </b> : Name of the new sound source to be added. </li>
+	</ul>
+	</p>
+	End Rem
+	Method AddSoundSourceAlias:TISoundSource(baseSource:TISoundSource, soundName:String)
+		Local s:Byte Ptr = soundName.ToCString()
+		Local source:Byte Ptr = bmx_soundengine_addsoundsourcealias(refPtr, baseSource.soundSourcePtr, s)
+		MemFree(s)
+		Return TISoundSource._create(source)
+	End Method
 
 	Rem
 	bbdoc: Drops the object.
@@ -623,7 +643,7 @@ Type TISound
 	bbdoc: Returns the position of the sound in 3d space
 	End Rem
 	Method GetPosition:TIVec3D()
-		' TODO
+		Return TIVec3D._create(bmx_sound_getposition(soundPtr))
 	End Method
 
 	Rem
@@ -634,7 +654,7 @@ Type TISound
 	the doppler effects intensity.
 	End Rem
 	Method SetVelocity(vel:TIVec3D)
-		' TODO
+		bmx_sound_setvelocity(soundPtr, vel.vecPtr)
 	End Method
 
 	Rem
@@ -645,7 +665,7 @@ Type TISound
 	the doppler effects intensity.
 	End Rem
 	Method GetVelocity:TIVec3D()
-		' TODO
+		Return TIVec3D._create(bmx_sound_getvelocity(soundPtr))
 	End Method
 
 	Rem
@@ -744,7 +764,7 @@ Type TISound
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Drops the object. Decrements the reference counter by one.
 	End Rem
 	Method Drop()
 		bmx_sound_drop(soundPtr)
@@ -1168,7 +1188,6 @@ Type TISoundEffectControl
 	<li><b>triangleWaveForm </b> : True for triangle wave form, false for square.</li>
 	<li><b>fDelay </b> : Number of milliseconds the input is delayed before it is played back. Minimal Value:0, Maximal Value:20.0</li>
 	<li><b>lPhase </b> : Phase differential between left and right LFOs. Possible values: -180, -90, 0, 90, 180</li>
-	<li><b>XXXXXXXXXXXXXXX </b> : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</li>
 	</ul>
 	</p>
 	End Rem
@@ -1350,6 +1369,13 @@ Type TIVec3D
 	bbdoc: 
 	End Rem
 	Function CreateVec3D:TIVec3D(x:Float = 0.0, y:Float = 0.0, z:Float = 0.0)
+		Return New TIVec3D.Create(x, y, z)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function Set:TIVec3D(x:Float = 0.0, y:Float = 0.0, z:Float = 0.0)
 		Return New TIVec3D.Create(x, y, z)
 	End Function
 	

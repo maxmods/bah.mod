@@ -2,3 +2,164 @@
 <p>
 The irrKlang module is a BlitzMax wrapper for the irrKlang cross-platform sound library.
 </p>
+<h2>Requirements</h2>
+<h3>Win32</h3>
+<p>
+You will need to deploy the irrKlang.dll either in your application folder, the Windows/System32 folder, or another folder that is on the PATH.
+</p>
+<p>
+The ikpMP3.dll is only required if you wish to handle .mp3 audio.
+</p>
+<h3>MacOS</h3>
+<p>
+The libirrklang.dylib shared library should be copied into your application bundle, in Contents/MacOS.
+</p>
+<p>
+For .mp3 audio support, you should copy ipkMP3.dylib into the same location.
+</p>
+<p>
+Please note, that the dylib shipped with this module has been modified to work from the application bundle. By default it is set to work from the current directory. This won't work for an app with an Application Bundle. If you want to configure a new dylib in the same way, you can run the following command from the Terminal :<br>
+<pre>install_name_tool -id @@executable_path/libirrklang.dylib libirrklang.dylib</pre>
+</p>
+<h3>Linux</h3>
+<p>
+You will need to deploy the libIrrklang.so shared object into your LD_LIBRARY_PATH. On some systems, this includes the folder /usr/local/lib. It may work from the application directory.
+</p>
+<p>
+For .mp3 audio support, you should copy ikpMP3.so into the same location.
+</p>
+<a name="startinguptheengine"></a>
+<h2>Starting up the Engine</h2>
+<p>
+irrKlang is designed so that it is very easy to achieve everything, its interface should be very simple to use. The Examples show how to play oggs and mp3 files.
+</p>
+<p>
+To start up the sound engine, you simply need to call #CreateIrrKlangDevice(). To shut it down, call Drop() :
+</p>
+<pre>
+ Import BaH.irrKlang
+ ' ...
+ ' start up the engine
+ Local engine:TISoundEngine = CreateIrrKlangDevice()
+        
+ ' ...
+ 
+ ' after finished,
+ ' close the engine again
+ engine.Drop() 
+</pre>
+<p>
+The createIrrKlangDevice() function also accepts several parameters, so that you can specify which sound driver should be used, if plugins should be used, and similar. 
+</p>
+<a name="playingsounds"></a>
+<h2>Playing Sounds</h2>
+<p>
+Once you have irrKlang running (like in Starting up the Engine), you can start playing sounds:
+<pre>
+ engine.play2D("someSoundFile.wav")
+</pre>
+This works with all supported file types. You can replace "someSoundFile.wav" with "someSoundFile.mp3", or "someSoundFile.ogg", for example.
+To play a sound looped, set the second parameter to 'true':
+<pre>
+ engine.play2D("myMusic.mp3", True)
+</pre>
+To stop this looping sound again, use engine.StopAllSounds() to stop all sounds, or Stop() if you only want to stop that single sound. <a href="#influencingsoundsduringplayback">Influencing Sounds during Playback</a> shows how to get to that TISound interface. 
+</p>
+<a name="influencingsoundsduringplayback"></a>
+<h2>Influencing Sounds during Playback</h2>
+To influence parameters of the sound such as pan, volume or playback speed during runtime, to get the play position or stop playback of single playing sounds, you can use the TISound interface. TISoundEngine.Play2D (and also Play3D) returns an object for this interface when its third ('startPaused') or fourth ('track') parameter was set to true:
+<pre>
+Local snd:TISound = engine.Play2D("myMusic.mp3", True, False, True) 
+ ' ...
+ If snd Then
+     snd.SetVolume(someNewValue)
+ 
+ ' ...
+ 
+ If snd Then
+     snd.drop() ' don't forget to release the object once it is no longer needed by you
+     snd = Null
+ End If
+</pre>
+The TISound interface can also be used to test if the sound has been finished, set event receivers, pause and unpause sounds and similar. 
+</p>
+<a name="usingsoundsources"></a>
+<h2>Using Sound Sources</h2>
+<p>
+To be more flexible playing back sounds, irrKlang uses the concept of sound sources. A sound source can be simply the name of a sound file, such as "sound.wav". It is possible to add "sound.wav" as sound source to irrKlang, and play it using the sound source object:
+<pre>
+ Local shootSound:TISoundSource = engine.AddSoundSourceFromFile("shoot.wav") 
+ engine.Play2DSource(shootSound)
+ ' note: you don't need to drop() the shootSound if you don't use it anymore
+</pre>
+The advantage of using TISoundSource is that it is possible to set default values for this source, such as volume or distances if it should be used as 3D sound:
+<pre>
+ Local shootSound:TISoundSource = engine.AddSoundSourceFromFile("shoot.wav");
+ shootSound.SetDefaultVolume(0.5)
+ ' shootSound will now be played with half its sound volume by default:
+ engine.Play2DSource(shootSound)
+</pre>
+It is also possible to have multiple settings for the same sound file:
+<pre>
+ Local shootSound:TISoundSource = engine.AddSoundSourceFromFile("shoot.wav")
+ Local shootSound2:TISoundSource = engine.AddSoundSourceAlias(shootSound, "silentShoot"); 
+ shootSound2.setDefaultVolume(0.1)
+ ' shootSound will now be played with 100% of its sound volume by default,
+ ' shootSound2 will now be played 10% of its sound volume by default. 
+</pre>
+Using AddSoundSourceFromMemory(), it is also possible to play sounds back directly from memory, without files. Of course, it is not necessary to use sound sources. Using TISound, it is possible to change the settings of all sounds, too. But using sound sources, it is not necessary to do this every time a sound is played. 
+</p>
+<a name="3dsound"></a>
+<h2>3D Sound</h2>
+<p>
+There is nothing difficult in playing sounds in 3D using irrKlang: Instead of using TISoundEngine.Play2D(), just use TISoundEngine.Play3D(), which takes a 3D position as additional parameter:
+<pre>
+ Local position:TIVec3D = TIVec3D.Set(23,70,90)
+ engine.Play3D("yourSound.wav", position)
+</pre>
+But to make it sound realistic, you need to set a minimal sound distance: If your sound is caused by a bee, it will usually have a smaller sound radius than for example a jet engine. You can set default values using sound sources (see <a href="#usingsoundsources">Using Sound Sources</a>) or set these values after you have started the sound paused:
+<pre>
+ Local position:TIVec3D = TIVec3D.Set(23,70,90)
+ ' start the sound paused:
+ Local snd:TISound = engine.Play3D("yourSound.wav", position, False, True)
+ If snd Then
+    snd.SetMinDistance(30.0) ' a loud sound
+    snd.SetIsPaused(False) ' unpause the sound
+ End If
+</pre>
+There is also the possibility to change the maxDistance, but it is only necessary to change this in very rare cicumstances. If the sound moves, it is also a good idea to update its position from time to time:
+<pre>
+ If snd Then
+    snd.SetPosition(newPosition)
+ End If
+</pre>
+And don't forget to Drop() the sound after you don't need it anymore. If you do, it's nothing severe because irrKlang will still clean up the sounds resources after it has finished, but you still would waste some few bytes of memory:
+<pre>
+ If snd Then
+    snd.Drop()
+    snd = Null
+ End If
+</pre>
+To update the position of yourself, the listener of the 3D sounds, use this from time to time:
+<pre>
+ Local position:TIVec3D = TIVec3D.Set(0,0,0)         ' position of the listener
+ Local lookDirection:TIVec3D = TIVec3D.Set(10,0,10)  ' the direction the listener looks into
+ Local velPerSecond:TIVec3D = TIVec3D.Set(0,0,0)     ' only relevant for doppler effects
+ Local upVector:TIVec3D = TIVec3D.Set(0,1,0)         ' where 'up' is in your 3D scene
+ engine.SetListenerPosition(position, lookDirection, velPerSecond, upVector)
+ </pre>
+<a name="removingsounds"></a>
+<h2>Removing Sounds</h2>
+<p>
+irrKlang manages the memory usage of sounds by itself, so usually, you don't have to care about memory management. But if you know you need to reduce the amount of used memory at a certain point in your program, you can do this:
+<pre>
+ engine.RemoveAllSoundSources()
+</pre>
+This will remove all sounds and also cause all sounds to be stopped. To remove single sounds from the engine, use:
+<pre>
+ engine.RemoveSoundSourceSource(pointerToSomeSoundSource) 
+ ' or:
+ engine.RemoveSoundSource("nameOfASoundFile.wav")
+</pre>
+Note: Only removing buffered sounds will reduce the amount of memory used by irrKlang, streamed sounds don't occupy a lot of memory when they are not played. 
+</p>

@@ -59,6 +59,7 @@ Extern
 	Function bmx_soundengine_removesoundsource(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_soundengine_removesoundsourcesource(handle:Byte Ptr, source:Byte Ptr)
 	Function bmx_soundengine_getdrivername:Byte Ptr(handle:Byte Ptr)
+	Function bmx_soundengine_addsoundsourcealias:Byte Ptr(handle:Byte Ptr, baseSource:Byte Ptr, s:Byte Ptr)
 
 	Function bmx_sound_setispaused(handle:Byte Ptr, paused:Int)
 	Function bmx_sound_getispaused:Int(handle:Byte Ptr)
@@ -83,6 +84,9 @@ Extern
 	Function bmx_sound_drop(handle:Byte Ptr)
 	Function bmx_sound_setposition(handle:Byte Ptr, position:Byte Ptr)
 	Function bmx_sound_Setsoundstopeventreceiver(handle:Byte Ptr, receiver:Byte Ptr)
+	Function bmx_sound_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_sound_setvelocity(handle:Byte Ptr, vel:Byte Ptr)
+	Function bmx_sound_getvelocity:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_soundsource_getname:Byte Ptr(handle:Byte Ptr)
 	Function bmx_soundsource_setstreammode(handle:Byte Ptr, mode:Int)

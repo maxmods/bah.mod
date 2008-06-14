@@ -64,6 +64,7 @@ extern "C" {
 	void bmx_soundengine_removesoundsource(irrklang::ISoundEngine* engine, const irrklang::ik_c8 * name);
 	void bmx_soundengine_removesoundsourcesource(irrklang::ISoundEngine* engine, irrklang::ISoundSource * source);
 	const char * bmx_soundengine_getdrivername(irrklang::ISoundEngine* engine);
+	irrklang::ISoundSource* bmx_soundengine_addsoundsourcealias(irrklang::ISoundEngine* engine, irrklang::ISoundSource * baseSource, const irrklang::ik_c8 * name);
 
 	void bmx_sound_setispaused(irrklang::ISound * sound, bool paused);
 	bool bmx_sound_getispaused(irrklang::ISound * sound);
@@ -88,6 +89,9 @@ extern "C" {
 	void bmx_sound_drop(irrklang::ISound * sound);
 	void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position);
 	void bmx_sound_Setsoundstopeventreceiver(irrklang::ISound * sound, MaxSoundStopEventReceiver * receiver);
+	Maxvec3df * bmx_sound_getposition(irrklang::ISound * sound);
+	void bmx_sound_setvelocity(irrklang::ISound * sound, Maxvec3df * vel);
+	Maxvec3df * bmx_sound_getvelocity(irrklang::ISound * sound);
 
 	const irrklang::ik_c8 * bmx_soundsource_getname(irrklang::ISoundSource * source);
 	void bmx_soundsource_setstreammode(irrklang::ISoundSource * source, irrklang::E_STREAM_MODE mode);
@@ -329,6 +333,9 @@ const char * bmx_soundengine_getdrivername(irrklang::ISoundEngine* engine) {
 	return engine->getDriverName();
 }
 
+irrklang::ISoundSource* bmx_soundengine_addsoundsourcealias(irrklang::ISoundEngine* engine, irrklang::ISoundSource * baseSource, const irrklang::ik_c8 * name) {
+	return engine->addSoundSourceAlias(baseSource, name);
+}
 
 // *****************************************************
 
@@ -422,6 +429,18 @@ void bmx_sound_setposition(irrklang::ISound * sound, Maxvec3df * position) {
 
 void bmx_sound_Setsoundstopeventreceiver(irrklang::ISound * sound, MaxSoundStopEventReceiver * receiver) {
 	sound->setSoundStopEventReceiver(receiver);
+}
+
+Maxvec3df * bmx_sound_getposition(irrklang::ISound * sound) {
+	return new Maxvec3df(sound->getPosition());
+}
+
+void bmx_sound_setvelocity(irrklang::ISound * sound, Maxvec3df * vel) {
+	sound->setVelocity(vel->vec);
+}
+
+Maxvec3df * bmx_sound_getvelocity(irrklang::ISound * sound) {
+	return new Maxvec3df(sound->getVelocity());
 }
 
 // *****************************************************
