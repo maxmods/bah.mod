@@ -945,7 +945,13 @@ Type b2Body
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a shape and attach it to this body. 
+	about: Warning: This method is locked during callbacks.
+	<p>Parameters:
+	<ul>
+	<li><b>def </b> : the shape definition.</li>
+	</ul>
+	</p>
 	End Rem
 	Method CreateShape:b2Shape(def:b2ShapeDef)
 		Local shape:b2Shape = New b2Shape
@@ -955,21 +961,28 @@ Type b2Body
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Destroy a shape. 
+	about: This removes the shape from the broad-phase and therefore destroys any contacts associated with this shape.
+	All shapes attached to a body are implicitly destroyed when the body is destroyed.
+	<p>
+	Warning: This method is locked during callbacks.
+	</p>
 	End Rem
 	Method DestroyShape(shape:b2Shape)
 		bmx_b2body_destroyshape(b2ObjectPtr, shape.b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Compute the mass properties from the attached shapes. 
+	about: You typically call this after adding all the shapes. If you add or remove shapes later, you may
+	want to call this again. Note that this changes the center of mass position. 
 	End Rem
 	Method SetMassFromShapes()
 		bmx_b2body_setmassfromshapes(b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Get the world body origin position. 
 	End Rem
 	Method GetPosition:b2Vec2()
 		Return b2Vec2._create(bmx_b2body_getposition(b2ObjectPtr))
@@ -999,7 +1012,10 @@ Type b2Body
 
 	Rem
 	bbdoc: Set the linear velocity of the center of mass.
-	/// @param v the New linear velocity of the center of mass.
+	about: Parameters:
+	<ul>
+	<li><b>v </b> : the New linear velocity of the center of mass.</li>
+	</ul>
 	End Rem
 	Method SetLinearVelocity(v:b2Vec2)
 		bmx_b2body_setlinearvelocity(b2ObjectPtr, v.b2ObjectPtr)
@@ -1015,7 +1031,10 @@ Type b2Body
 	
 	Rem
 	bbdoc: Set the angular velocity.
-	/// @param omega the New angular velocity in degrees/Second.
+	about: Parameters:
+	<ul>
+	<li><b>omega </b> : the New angular velocity in degrees/Second.</li>
+	</ul>
 	End Rem
 	Method SetAngularVelocity(omega:Float)
 		bmx_b2body_setangularvelocity(b2ObjectPtr, omega)
@@ -1030,11 +1049,15 @@ Type b2Body
 	End Method
 	
 	Rem
-	bbdoc: Apply a force at a world point. If the force is not
-	/// applied at the center of mass, it will generate a torque and
-	/// affect the angular velocity. This wakes up the body.
-	/// @param force the world force vector, usually in Newtons (N).
-	/// @param point the world position of the point of application.
+	bbdoc: Apply a force at a world point.
+	about: If the force is not applied at the center of mass, it will generate a torque and affect the angular velocity.
+	This wakes up the body.
+	<p>Parameters:
+	<ul>
+	<li><b>force </b> : the world force vector, usually in Newtons (N).</li>
+	<li><b>point </b> : the world position of the point of application.</li>
+	</ul>
+	</p>
 	End Rem
 	Method ApplyForce(force:b2Vec2, point:b2Vec2)
 		bmx_b2body_applyforce(b2ObjectPtr, force.b2ObjectPtr, point.b2ObjectPtr)
@@ -1043,8 +1066,12 @@ Type b2Body
 	Rem
 	bbdoc: Apply a torque.
 	about: This affects the angular velocity without affecting the linear velocity of the center of mass.
-	/// This wakes up the body.
-	/// @param torque about the z-axis (out of the screen), usually in N-m.
+	This wakes up the body.
+	<p>Parameters:
+	<ul>
+	<li><b> torque </b> : about the z-axis (out of the screen), usually in N-m.</li>
+	</ul>
+	</p>
 	End Rem
 	Method ApplyTorque(torque:Float)
 		bmx_b2body_applytorque(b2ObjectPtr, torque)
@@ -1053,10 +1080,13 @@ Type b2Body
 	Rem
 	bbdoc: Apply an impulse at a point.
 	about: This immediately modifies the velocity.
-	/// It also modifies the angular velocity If the point of application
-	/// is not at the center of mass. This wakes up the body.
-	/// @param impulse the world impulse vector, usually in N-seconds Or kg-m/s.
-	/// @param point the world position of the point of application.
+	It also modifies the angular velocity If the point of application is not at the center of mass. This wakes up the body.
+	<p>Parameters:
+	<ul>
+	<li><b> impulse </b> : the world impulse vector, usually in N-seconds Or kg-m/s.</li>
+	<li><b> point </b> : the world position of the point of application.</li>
+	</ul>
+	</p>
 	End Rem
 	Method ApplyImpulse(impulse:b2Vec2, point:b2Vec2)
 		bmx_b2body_applyimpulse(b2ObjectPtr, impulse.b2ObjectPtr, point.b2ObjectPtr)
@@ -1064,7 +1094,7 @@ Type b2Body
 
 	Rem
 	bbdoc: Get the total mass of the body.
-	/// @Return the mass, usually in kilograms (kg).
+	returns: The mass, usually in kilograms (kg).
 	End Rem
 	Method GetMass:Float()
 		Return bmx_b2body_getmass(b2ObjectPtr)
@@ -1081,7 +1111,10 @@ Type b2Body
 	Rem
 	bbdoc: Get the world coordinates of a point given the local coordinates.
 	returns: The same point expressed in world coordinates.
-	/// @param localPoint a point on the body measured relative the the body's origin.
+	about: Parameters:
+	<ul>
+	<li><b>localPoint </b> : a point on the body measured relative the the body's origin.</li>
+	</ul>
 	End Rem
 	Method GetWorldPoint:b2Vec2(localPoint:b2Vec2)
 		Return b2Vec2._create(bmx_b2body_getworldpoint(b2ObjectPtr, localPoint.b2ObjectPtr))
@@ -1090,7 +1123,10 @@ Type b2Body
 	Rem
 	bbdoc: Get the world coordinates of a vector given the local coordinates.
 	returns: The same vector expressed in world coordinates.
-	/// @param localVector a vector fixed in the body.
+	about: Parameters:
+	<ul>
+	<li><b>localVector </b> : a vector fixed in the body.</li>
+	</ul>
 	End Rem
 	Method GetWorldVector:b2Vec2(localVector:b2Vec2)
 		Return b2Vec2._create(bmx_b2body_getworldvector(b2ObjectPtr, localVector.b2ObjectPtr))
@@ -1099,7 +1135,10 @@ Type b2Body
 	Rem
 	bbdoc: Gets a local point relative to the body's origin given a world point.
 	returns: The corresponding local point relative to the body's origin.
-	/// @param a point in world coordinates.
+	about: Parameters:
+	<ul>
+	<li><b>worldPoint </b> : a point in world coordinates.</li>
+	</ul>
 	End Rem
 	Method GetLocalPoint:b2Vec2(worldPoint:b2Vec2)
 		Return b2Vec2._create(bmx_b2body_getlocalpoint(b2ObjectPtr, worldPoint.b2ObjectPtr))
@@ -1108,7 +1147,10 @@ Type b2Body
 	Rem
 	bbdoc: Gets a local vector given a world vector.
 	returns: The corresponding local vector.
-	/// @param a vector in world coordinates.
+	about: Parameters:
+	<ul>
+	<li><b>worldVector </b> : a vector in world coordinates.</li>
+	</ul>
 	End Rem
 	Method GetLocalVector:b2Vec2(worldVector:b2Vec2)
 		Return b2Vec2._create(bmx_b2body_getlocalvector(b2ObjectPtr, worldVector.b2ObjectPtr))
@@ -1213,6 +1255,14 @@ Type b2Body
 		Return b2XForm._create(bmx_b2body_getxform(b2ObjectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Set the position of the body's origin and rotation (degrees). 
+	about: This breaks any contacts and wakes the other bodies. 
+	End Rem
+	Method SetXForm:Int(position:b2Vec2, angle:Float)
+		Return bmx_b2body_setxform(b2ObjectPtr, position.b2ObjectPtr, angle)
+	End Method
+	
 End Type
 
 Rem
@@ -1267,7 +1317,8 @@ Type b2Shape
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Test a point for containment in this shape. 
+	about: This only works for convex shapes. 
 	End Rem
 	Method TestPoint:Int(xf:b2XForm, p:b2Vec2)
 		Return bmx_b2shape_testpoint(b2ObjectPtr, xf.b2ObjectPtr, p.b2ObjectPtr)
@@ -1275,6 +1326,9 @@ Type b2Shape
 	
 End Type
 
+Rem
+bbdoc: Implement and register this type with a b2World to provide debug drawing of physics entities in your game. 
+End Rem
 Type b2DebugDraw
 
 	Field b2ObjectPtr:Byte Ptr
@@ -1320,7 +1374,7 @@ Type b2DebugDraw
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Draw a closed polygon provided in CCW order. 
 	End Rem
 	Method DrawPolygon(vertices:b2Vec2[], color:b2Color) Abstract
 
@@ -1388,38 +1442,18 @@ Type b2Color
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A body definition holds all the data needed to construct a rigid body. 
+about: You can safely re-use body definitions. 
 End Rem
 Type b2BodyDef
 
 	Field b2ObjectPtr:Byte Ptr
 	Field userData:Object
 
-	'Rem
-	'bbdoc: A static body should Not move And has infinite mass.
-	'End Rem
-	'Const e_staticBody:Int = 0
-	'Rem
-	'bbdoc: A regular moving body.
-	'End Rem
-	'Const e_dynamicBody:Int = 1
-	
 	Method New()
 		b2ObjectPtr = bmx_b2bodydef_create()
 	End Method
 	
-	'Rem
-	'bbdoc: We need the body Type To setup collision filtering correctly, so
-	'/// that static bodies don't collide with each other. You can't change
-	''/// this once a body is created.
-	'End Rem
-	'Method SetType(bodyType:Int)
-	'	bmx_b2bodydef_settype(b2ObjectPtr, bodyType)
-	'End Method
-	
-	'Method GetType:Int()
-	'End Method
-
 	Rem
 	bbdoc: You can use this to initialized the mass properties of the body.
 	about: If you prefer, you can set the mass properties after the shapes have been added using b2Body.SetMassFromShapes.
@@ -1455,7 +1489,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the world position of the body. 
 	End Rem
 	Method GetPosition:b2Vec2()
 		Return b2Vec2._create(bmx_b2bodydef_getposition(b2ObjectPtr))
@@ -1478,7 +1512,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the linear damping.
 	End Rem
 	Method GetLinearDamping:Float()
 		Return bmx_b2bodydef_getlineardamping(b2ObjectPtr)
@@ -1494,7 +1528,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the angular damping.
 	End Rem
 	Method GetAngularDamping:Float()
 		Return bmx_b2bodydef_getangulardamping(b2ObjectPtr)
@@ -1509,7 +1543,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the body is allowed to sleep.
 	End Rem
 	Method GetAllowSleep:Int()
 		Return bmx_b2bodydef_getallowsleep(b2ObjectPtr)
@@ -1523,7 +1557,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Enables/Disables the sleeping state of the body.
 	End Rem
 	Method SetIsSleeping(sleeping:Int)
 		bmx_b2bodydef_setissleeping(b2ObjectPtr, sleeping)
@@ -1537,7 +1571,7 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if rotation is fixed.
 	End Rem
 	Method GetFixedRotation:Int()
 		Return bmx_b2bodydef_getfixedrotation(b2ObjectPtr)
@@ -1564,7 +1598,7 @@ Type b2BodyDef
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Joint definitions are used to construct joints. 
 End Rem
 Type b2JointDef
 
@@ -1579,7 +1613,7 @@ Type b2JointDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the first attached body.
 	End Rem
 	Method GetBody1:b2Body()
 		Return b2Body._create(bmx_b2jointdef_getbody1(b2ObjectPtr))
@@ -1593,21 +1627,21 @@ Type b2JointDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the second attached body.
 	End Rem
 	Method GetBody2:b2Body()
 		Return b2Body._create(bmx_b2jointdef_getbody2(b2ObjectPtr))
 	End Method
 
 	Rem
-	bbdoc: Set this flag To True If the attached bodies should collide.
+	bbdoc: Set this flag to True if the attached bodies should collide.
 	End Rem
 	Method SetCollideConnected(collideConnected:Int)
 		bmx_b2jointdef_setcollideconnected(b2ObjectPtr, collideConnected)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the attached bodies should collide.
 	End Rem
 	Method GetCollideConnected:Int()
 		Return bmx_b2jointdef_getcollideconnected(b2ObjectPtr)
@@ -1849,21 +1883,33 @@ Type b2PolygonDef Extends b2ShapeDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Build vertices to represent an axis-aligned box. 
+	about: Parameters:
+	<ul>
+	<li><b>hx </b> : the half-width.</li>
+	<li><b>hy </b> : the half-height. </li>
+	</ul>
 	End Rem
 	Method SetAsBox(hx:Float, hy:Float)
 		bmx_b2polygondef_setasbox(b2ObjectPtr, hx, hy)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Build vertices to represent an oriented box. 
+	about: Parameters:
+	<ul>
+	<li><b>hx </b> : the half-width.</li>
+	<li><b>hy </b> : the half-height. </li>
+	<li><b>center </b> : the center of the box in local coordinates. </li>
+	<li><b>angle </b> : the rotation of the box in local coordinates. </li>
+	</ul>
 	End Rem
 	Method SetAsOrientedBox(hx:Float, hy:Float, center:b2Vec2, angle:Float)
 		bmx_b2polygondef_setasorientedbox(b2ObjectPtr, hx, hy, center.b2ObjectPtr, angle)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the polygon vertices in local coordinates.
 	End Rem
 	Method SetVertices(vertices:b2Vec2[])
 		bmx_b2polygondef_setvertices(b2ObjectPtr, vertices)
@@ -1893,28 +1939,28 @@ Type b2CircleDef Extends b2ShapeDef
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the circle radius.
 	End Rem
 	Method SetRadius(radius:Float)
 		bmx_b2circledef_setradius(b2ObjectPtr, radius)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the circle radius.
 	End Rem
 	Method GetRadius:Float()
 		Return bmx_b2circledef_getradius(b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the local position.
 	End Rem
 	Method SetLocalPosition(pos:b2Vec2)
 		bmx_b2circledef_setlocalposition(b2ObjectPtr, pos.b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the local position.
 	End Rem
 	Method GetLocalPosition:b2Vec2()
 		Return b2Vec2._create(bmx_b2circledef_getlocalposition(b2ObjectPtr))
@@ -2112,8 +2158,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the first ground anchor, in world coordinates.
+	End Rem
 	Method GetGroundAnchor1:b2Vec2()
 		Return b2Vec2._create(bmx_b2pulleyjointdef_getgroundanchor1(b2ObjectPtr))
 	End Method
@@ -2126,8 +2172,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the second ground anchor, in world coordinates.
+	End Rem
 	Method GetGroundAnchor2:b2Vec2()
 		Return b2Vec2._create(bmx_b2pulleyjointdef_getgroundanchor2(b2ObjectPtr))
 	End Method
@@ -2140,8 +2186,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the local anchor point.
+	End Rem
 	Method GetLocalAnchor1:b2Vec2()
 		Return b2Vec2._create(bmx_b2pulleyjointdef_getlocalanchor1(b2ObjectPtr))
 	End Method
@@ -2154,8 +2200,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the local anchor point.
+	End Rem
 	Method GetLocalAnchor2:b2Vec2()
 		Return b2Vec2._create(bmx_b2pulleyjointdef_getlocalanchor2(b2ObjectPtr))
 	End Method
@@ -2168,8 +2214,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the reference length for the segment attached to body1.
+	End Rem
 	Method GetLength1:Float()
 		Return bmx_b2pulleyjointdef_getlength1(b2ObjectPtr)
 	End Method
@@ -2182,8 +2228,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the maximum length of the segment attached to body1.
+	End Rem
 	Method GetMaxLength1:Float()
 		Return bmx_b2pulleyjointdef_getmaxlength1(b2ObjectPtr)
 	End Method
@@ -2196,8 +2242,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the reference length for the segment attached to body2.
+	End Rem
 	Method GetLength2:Float()
 		Return bmx_b2pulleyjointdef_getlength2(b2ObjectPtr)
 	End Method
@@ -2210,8 +2256,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the maximum length of the segment attached to body2.
+	End Rem
 	Method GetMaxLength2:Float()
 		Return bmx_b2pulleyjointdef_getmaxlength2(b2ObjectPtr)
 	End Method
@@ -2224,8 +2270,8 @@ Type b2PulleyJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc:
-	end rem
+	bbdoc: Returns the pulley ratio.
+	End Rem
 	Method GetRatio:Float()
 		Return bmx_b2pulleyjointdef_getratio(b2ObjectPtr)
 	End Method
@@ -2262,98 +2308,98 @@ Type b2PrismaticJointDef Extends b2JointDef
 	
 	Rem
 	bbdoc: The local anchor point relative to body1's origin.
-	end rem
+	End Rem
 	Method SetLocalAnchor1(anchor:b2Vec2)
 		bmx_b2prismaticjointdef_setlocalanchor1(b2ObjectPtr, anchor.b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the local anchor point.
+	End Rem
 	Method GetLocalAnchor1:b2Vec2()
 		Return b2Vec2._create(bmx_b2prismaticjointdef_getlocalanchor1(b2ObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: The local anchor point relative to body2's origin.
-	end rem
+	End Rem
 	Method SetLocalAnchor2(anchor:b2Vec2)
 		bmx_b2prismaticjointdef_setlocalanchor2(b2ObjectPtr, anchor.b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the local anchor point.
+	End Rem
 	Method GetLocalAnchor2:b2Vec2()
 		Return b2Vec2._create(bmx_b2prismaticjointdef_getlocalanchor2(b2ObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: The local translation axis in body1.
-	end rem
+	End Rem
 	Method SetLocalAxis1(axis:b2Vec2)
 		bmx_b2prismaticjointdef_setlocalaxis1(b2ObjectPtr, axis.b2ObjectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the local translation axis in body1.
+	End Rem
 	Method GetLocalAxis1:b2Vec2()
 		Return b2Vec2._create(bmx_b2prismaticjointdef_getlocalaxis1(b2ObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: The constrained angle between the bodies: body2_angle - body1_angle.
-	end rem
+	End Rem
 	Method SetReferenceAngle(angle:Float)
 		bmx_b2prismaticjointdef_setreferenceangle(b2ObjectPtr, angle)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the constrained angle between the bodies.
+	End Rem
 	Method GetReferenceAngle:Float()
 		Return bmx_b2prismaticjointdef_getreferenceangle(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Enable/disable the joint limit.
-	end rem
+	End Rem
 	Method EnableLimit(value:Int)
 		bmx_b2prismaticjointdef_enablelimit(b2ObjectPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns True if the joint limit is enabled.
+	End Rem
 	Method IsLimitEnabled:Int()
 		Return bmx_b2prismaticjointdef_islimitenabled(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: The lower translation limit, usually in meters.
-	end rem
+	End Rem
 	Method SetLowerTranslation(translation:Float)
 		bmx_b2prismaticjointdef_setlowertranslation(b2ObjectPtr, translation)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the lower translation limit.
+	End Rem
 	Method GetLowerTranslation:Float()
 		Return bmx_b2prismaticjointdef_getlowertranslation(b2ObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: The upper translation limit, usually in meters.
-	end rem
+	End Rem
 	Method SetUpperTranslation(translation:Float)
 		bmx_b2prismaticjointdef_setuppertranslation(b2ObjectPtr, translation)
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the upper translation limit.
+	End Rem
 	Method GetUpperTranslation:Float()
 		Return bmx_b2prismaticjointdef_getuppertranslation(b2ObjectPtr)
 	End Method
@@ -2366,8 +2412,8 @@ Type b2PrismaticJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns true if the joint motor is enabled.
+	End Rem
 	Method IsMotorEnabled:Int()
 		Return bmx_b2prismaticjointdef_ismotorenabled(b2ObjectPtr)
 	End Method
@@ -2380,8 +2426,8 @@ Type b2PrismaticJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the maximum motor torque.
+	End Rem
 	Method GetMaxMotorForce:Float()
 		Return bmx_b2prismaticjointdef_getmaxmotorforce(b2ObjectPtr)
 	End Method
@@ -2428,8 +2474,8 @@ Type b2MouseJointDef Extends b2JointDef
 	End Method
 	
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Returns the initial world target point.
+	End Rem
 	Method GetTarget:b2Vec2()
 		Return b2Vec2._create(bmx_b2mousejointdef_gettarget(b2ObjectPtr))
 	End Method
@@ -3111,6 +3157,9 @@ Type b2XForm
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:b2XForm()
 		b2ObjectPtr = bmx_b2xform_create()
 		owner = True
@@ -3155,7 +3204,8 @@ Type b2XForm
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A 2-by-2 matrix.
+about: Stored in column-major order. 
 End Rem
 Type b2Mat22
 
@@ -3170,8 +3220,8 @@ Type b2Mat22
 	End Function
 
 	Rem
-	bbdoc: Initialize this matrix using an angle. This matrix becomes
-	/// an orthonormal rotation matrix.
+	bbdoc: Initialize this matrix using an angle.
+	about: This matrix becomes an orthonormal rotation matrix.
 	End Rem
 	Method SetAngle(angle:Float)
 		bmx_b2mat22_setangle(b2ObjectPtr, angle)

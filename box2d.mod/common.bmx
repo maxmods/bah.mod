@@ -133,6 +133,7 @@ Extern
 	Function bmx_b2body_getlocalvector:Byte Ptr(handle:Byte Ptr, worldVector:Byte Ptr)
 	Function bmx_b2body_getjointlist:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_getxform:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2body_setxform:Int(handle:Byte Ptr, position:Byte Ptr, angle:Float)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
 	Function bmx_b2debugdraw_setflags(handle:Byte Ptr, flags:Int)

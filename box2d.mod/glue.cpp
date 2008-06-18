@@ -159,6 +159,7 @@ extern "C" {
 	b2Vec2 * bmx_b2body_getlocalvector(b2Body * body, b2Vec2 * worldVector);
 	b2JointEdge * bmx_b2body_getjointlist(b2Body * body);
 	const b2XForm * bmx_b2body_getxform(b2Body * body);
+	bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
 	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
@@ -946,6 +947,10 @@ b2JointEdge * bmx_b2body_getjointlist(b2Body * body) {
 
 const b2XForm * bmx_b2body_getxform(b2Body * body) {
 	return &body->GetXForm();
+}
+
+bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle) {
+	body->SetXForm(*position, angle * 0.0174533f);
 }
 
 // *****************************************************
