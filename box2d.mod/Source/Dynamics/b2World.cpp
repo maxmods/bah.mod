@@ -480,7 +480,7 @@ void b2World::Solve(const b2TimeStep& step)
 void b2World::SolveTOI(const b2TimeStep& step)
 {
 	// Reserve an island and a queue for TOI island solution.
-	b2Island island(m_bodyCount, b2_maxTOIContactsPerIsland, 0, &m_stackAllocator, m_contactListener);
+	b2Island island(m_bodyCount, b2_maxTOIContactsPerIsland, b2_maxTOIJointsPerIsland, &m_stackAllocator, m_contactListener);
 	
 	//Simple one pass queue
 	//Relies on the fact that we're only making one pass

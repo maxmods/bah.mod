@@ -147,7 +147,7 @@ void b2CollidePolygonAndCircle(
 	{
 		p = vertices[vertIndex1] + u * e;
 		manifold->points[0].id.features.incidentEdge = (uint8)normalIndex;
-		manifold->points[0].id.features.incidentVertex = 0;
+		manifold->points[0].id.features.incidentVertex = b2_nullFeature;
 	}
 
 	b2Vec2 d = cLocal - p;

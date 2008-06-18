@@ -41,8 +41,6 @@ b2PolyAndCircleContact::b2PolyAndCircleContact(b2Shape* s1, b2Shape* s2)
 	b2Assert(m_shape1->GetType() == e_polygonShape);
 	b2Assert(m_shape2->GetType() == e_circleShape);
 	m_manifold.pointCount = 0;
-	m_manifold.points[0].normalImpulse = 0.0f;
-	m_manifold.points[0].tangentImpulse = 0.0f;
 }
 
 void b2PolyAndCircleContact::Evaluate(b2ContactListener* listener)
