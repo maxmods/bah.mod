@@ -25,11 +25,13 @@ bbdoc: Mike's Arbitrary Precision Math library
 End Rem
 Module BaH.MAPM
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: MAPM - 1999-2007 Michael C. Ring"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "Hisotry: Added Modulo() method."
 ModuleInfo "History: 1.00 Initial Release (MAPM 4.9.5)"
 
 
@@ -851,6 +853,15 @@ Type TMAPM
 		Local mapm:TMAPM = New TMAPM
 		m_apm_arctanh(mapm.mapmPtr, decimalPlaces, mapmPtr)
 		Return mapm
+	End Method
+	
+	Rem
+	bbdoc: Returns the remainder of the number divided by @divisor.
+	End Rem
+	Method Modulo:TMAPM(divisor:TMAPM)
+		Local a:TMAPM = IntegerDivide(divisor)
+		Local b:TMAPM = a.Multiply(divisor)
+		Return Subtract(b)
 	End Method
 
 	Method Delete()
