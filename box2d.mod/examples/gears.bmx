@@ -23,7 +23,7 @@ Type Gears Extends Test
 	
 	Method Create:Gears()
 	
-		Init()
+		Init(20, 20)
 				
 		Local ground:b2Body
 

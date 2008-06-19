@@ -20,7 +20,7 @@ Type SliderCrank Extends Test
 
 	Method Create:SliderCrank()
 	
-		Init()
+		Init(16, 16)
 				
 		Local ground:b2Body
 

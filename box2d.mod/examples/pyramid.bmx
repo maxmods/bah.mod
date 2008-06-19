@@ -17,7 +17,7 @@ Type Pyramid Extends Test
 
 	Method Create:Pyramid()
 	
-		Init()
+		Init(10, 10)
 	
 		Local ground:b2Body
 		

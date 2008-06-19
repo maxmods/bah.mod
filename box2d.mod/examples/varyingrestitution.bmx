@@ -17,7 +17,7 @@ Type VaryingRestitution Extends Test
 
 	Method Create:VaryingRestitution()
 	
-		Init()
+		Init(20, 20)
 	
 		Local ground:b2Body
 

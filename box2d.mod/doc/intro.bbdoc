@@ -496,11 +496,6 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 					<a href="#d0e1481">10.2. Tolerances</a>
 				</span>
 			</dt>
-			<dt>
-				<span class="sect1">
-					<a href="#d0e1488">10.3. Memory Allocation</a>
-				</span>
-			</dt>
 		</dl>
 	</dd>
 	<dt>
@@ -516,7 +511,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 			<div>
 				<h2 class="title">
 					<a name="d0e15"></a>
-					Chapter&nbsp;1.&nbsp;Introduction
+					Chapter 1. Introduction
 				</h2>
 			</div>
 		</div>
@@ -544,7 +539,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e28"></a>
-						1.1.&nbsp;Prerequisites
+						1.1. Prerequisites
 					</h2>
 				</div>
 			</div>
@@ -579,7 +574,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e44"></a>
-						1.2.&nbsp;Core Concepts
+						1.2. Core Concepts
 					</h2>
 				</div>
 			</div>
@@ -690,7 +685,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 			<div>
 				<h2 class="title">
 					<a name="d0e110"></a>
-					Chapter&nbsp;2.&nbsp;Hello Box2D
+					Chapter 2. Hello Box2D
 				</h2>
 			</div>
 		</div>
@@ -749,7 +744,7 @@ BaH.Box2D is a BlitzMax language binding (wrapper) of the Box2D library. The doc
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e118"></a>
-						2.1.&nbsp;Creating a World
+						2.1. Creating a World
 					</h2>
 				</div>
 			</div>
@@ -816,7 +811,7 @@ Local world:b2World = New b2World.Create(worldAABB, gravity, doSleep)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e143"></a>
-						2.2.&nbsp;Creating a Ground Box
+						2.2. Creating a Ground Box
 					</h2>
 				</div>
 			</div>
@@ -925,7 +920,7 @@ groundBody.CreateShape(groundShapeDef)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e203"></a>
-						2.3.&nbsp;Creating a Dynamic Body
+						2.3. Creating a Dynamic Body
 					</h2>
 				</div>
 			</div>
@@ -979,7 +974,7 @@ body.SetMassFromShapes()
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e227"></a>
-						2.4.&nbsp;Simulating the World (of Box2D)
+						2.4. Simulating the World (of Box2D)
 					</h2>
 				</div>
 			</div>
@@ -1028,7 +1023,9 @@ Local timeStep:Float = 1.0 / 60.0
 			improves the quality of your simulation. Here is our chosen
 			iteration count.
 		</p>
-		<pre class="programlisting">Local iterations:Int = 10</pre>
+		<pre class="programlisting">
+Local iterations:Int = 10
+</pre>
 		<p>
 			Note that the time step and the iteration count are
 			completely unrelated. An iteration is not a sub-step. One
@@ -1067,7 +1064,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e257"></a>
-						2.5.&nbsp;Cleanup
+						2.5. Cleanup
 					</h2>
 				</div>
 			</div>
@@ -1087,7 +1084,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e265"></a>
-						2.6.&nbsp;The Examples
+						2.6. The Examples
 					</h2>
 				</div>
 			</div>
@@ -1109,7 +1106,7 @@ Next
 			<div>
 				<h2 class="title">
 					<a name="d0e305"></a>
-					Chapter&nbsp;3.&nbsp;API Design
+					Chapter 3. API Design
 				</h2>
 			</div>
 		</div>
@@ -1152,7 +1149,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e308"></a>
-						3.1.&nbsp;Memory Management
+						3.1. Memory Management
 					</h2>
 				</div>
 			</div>
@@ -1206,7 +1203,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e348"></a>
-						3.2.&nbsp;Factories and Definitions
+						3.2. Factories and Definitions
 					</h2>
 				</div>
 			</div>
@@ -1268,7 +1265,7 @@ Method DestroyShape(shape:b2Shape)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="units"></a>
-						3.3.&nbsp;Units
+						3.3. Units
 					</h2>
 				</div>
 			</div>
@@ -1308,7 +1305,7 @@ Method DestroyShape(shape:b2Shape)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e397"></a>
-						3.4.&nbsp;User Data
+						3.4. User Data
 					</h2>
 				</div>
 			</div>
@@ -1383,7 +1380,7 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e451"></a>
-						3.5.&nbsp;Strawman
+						3.5. Strawman
 					</h2>
 				</div>
 			</div>
@@ -1403,7 +1400,7 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 			<div>
 				<h2 class="title">
 					<a name="d0e459"></a>
-					Chapter&nbsp;4.&nbsp;The World
+					Chapter 4. The World
 				</h2>
 			</div>
 		</div>
@@ -1459,7 +1456,7 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e462"></a>
-						4.1.&nbsp;About
+						4.1. About
 					</h2>
 				</div>
 			</div>
@@ -1481,7 +1478,7 @@ actor.body = box2Dworld.CreateBody(bodyDef)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e473"></a>
-						4.2.&nbsp;Creating and Destroying a World
+						4.2. Creating and Destroying a World
 					</h2>
 				</div>
 			</div>
@@ -1530,7 +1527,7 @@ myWorld.Free()
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e496"></a>
-						4.3.&nbsp;Using a World
+						4.3. Using a World
 					</h2>
 				</div>
 			</div>
@@ -1549,7 +1546,7 @@ myWorld.Free()
 					<div>
 						<h3 class="title">
 							<a name="d0e504"></a>
-							4.3.1.&nbsp;Simulation
+							4.3.1. Simulation
 						</h3>
 					</div>
 				</div>
@@ -1596,7 +1593,7 @@ myWorld.DoStep(timeStep, iterationCount)
 					<div>
 						<h3 class="title">
 							<a name="d0e517"></a>
-							4.3.2.&nbsp;Exploring the World
+							4.3.2. Exploring the World
 						</h3>
 					</div>
 				</div>
@@ -1657,7 +1654,7 @@ Wend
 			</p>
 			<pre class="programlisting">
 Local node:b2Body = myWorld.GetBodyList()
-While (node) {
+While node
 	Local b:b2Body = node
 	node = node.GetNext()
 
@@ -1682,7 +1679,7 @@ Wend
 					<div>
 						<h3 class="title">
 							<a name="d0e544"></a>
-							4.3.3.&nbsp;AABB Queries
+							4.3.3. AABB Queries
 						</h3>
 					</div>
 				</div>
@@ -1726,7 +1723,7 @@ Next
 			<div>
 				<h2 class="title">
 					<a name="d0e560"></a>
-					Chapter&nbsp;5.&nbsp;Bodies
+					Chapter 5. Bodies
 				</h2>
 			</div>
 		</div>
@@ -1839,7 +1836,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e563"></a>
-						5.1.&nbsp;About
+						5.1. About
 					</h2>
 				</div>
 			</div>
@@ -1873,7 +1870,7 @@ Next
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e575"></a>
-						5.2.&nbsp;Body Definition
+						5.2. Body Definition
 					</h2>
 				</div>
 			</div>
@@ -1898,7 +1895,7 @@ Next
 					<div>
 						<h3 class="title">
 							<a name="d0e587"></a>
-							5.2.1.&nbsp;Mass Properties
+							5.2.1. Mass Properties
 						</h3>
 					</div>
 				</div>
@@ -1959,7 +1956,7 @@ bodyDef.SetRotationalInertia(3.0)  ' the rotational inertia in kg*m^2.
 					<div>
 						<h3 class="title">
 							<a name="d0e612"></a>
-							5.2.2.&nbsp;Position and Angle
+							5.2.2. Position and Angle
 						</h3>
 					</div>
 				</div>
@@ -2012,7 +2009,7 @@ bodyDef.SetAngle(45)            ' the body's angle in degrees.
 					<div>
 						<h3 class="title">
 							<a name="d0e635"></a>
-							5.2.3.&nbsp;Damping
+							5.2.3. Damping
 						</h3>
 					</div>
 				</div>
@@ -2054,7 +2051,7 @@ bodyDef.SetAngularDamping(0.01)
 					<div>
 						<h3 class="title">
 							<a name="d0e649"></a>
-							5.2.4.&nbsp;Sleep Parameters
+							5.2.4. Sleep Parameters
 						</h3>
 					</div>
 				</div>
@@ -2091,7 +2088,7 @@ bodyDef.SetIsSleeping(False)
 					<div>
 						<h3 class="title">
 							<a name="bullets"></a>
-							5.2.5.&nbsp;Bullets
+							5.2.5. Bullets
 						</h3>
 					</div>
 				</div>
@@ -2133,7 +2130,9 @@ bodyDef.SetIsSleeping(False)
 				your game design. If you decide a body should be treated
 				as a bullet, use the following setting.
 			</p>
-			<pre class="programlisting">bodyDef.SetIsBullet(True)</pre>
+			<pre class="programlisting">
+bodyDef.SetIsBullet(True)
+</pre>
 			<p>The bullet flag only affects dynamic bodies.</p>
 			<p>
 				CCD is expensive so you probably don't want all moving
@@ -2151,7 +2150,7 @@ bodyDef.SetIsSleeping(False)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e683"></a>
-						5.3.&nbsp;Body Factory
+						5.3. Body Factory
 					</h2>
 				</div>
 			</div>
@@ -2205,8 +2204,8 @@ dynamicBody = NULL
 			automatically destroyed. This has important implications for
 			how you manage shape and joint references. See
 			<a href="#implicit_destruction"
-				title="9.2.&nbsp;Implicit Destruction">
-				Section&nbsp;9.2, &#8220;Implicit Destruction&#8221;
+				title="9.2. Implicit Destruction">
+				Section 9.2, &#8220;Implicit Destruction&#8221;
 			</a>
 			for details.
 		</p>
@@ -2227,7 +2226,7 @@ Local ground:b2Body = myWorld.GetGroundBody() ... build a joint using the ground
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e720"></a>
-						5.4.&nbsp;Using a Body
+						5.4. Using a Body
 					</h2>
 				</div>
 			</div>
@@ -2244,7 +2243,7 @@ Local ground:b2Body = myWorld.GetGroundBody() ... build a joint using the ground
 					<div>
 						<h3 class="title">
 							<a name="d0e725"></a>
-							5.4.1.&nbsp;Mass Data
+							5.4.1. Mass Data
 						</h3>
 					</div>
 				</div>
@@ -2255,7 +2254,9 @@ Local ground:b2Body = myWorld.GetGroundBody() ... build a joint using the ground
 				body. You may want to adjust the mass of the body based
 				on the current shapes.
 			</p>
-			<pre class="programlisting">Method SetMassFromShapes()</pre>
+			<pre class="programlisting">
+Method SetMassFromShapes()
+</pre>
 			<p>
 				You may also want to set the mass properties directly.
 				For example, you may change the shapes, but want to use
@@ -2280,7 +2281,7 @@ Method GetLocalCenter:b2Vec2()
 					<div>
 						<h3 class="title">
 							<a name="d0e740"></a>
-							5.4.2.&nbsp;State Information
+							5.4.2. State Information
 						</h3>
 					</div>
 				</div>
@@ -2305,13 +2306,13 @@ Method WakeUp()
 			</pre>
 			<p>
 				The bullet state is described in
-				<a href="#bullets" title="5.2.5.&nbsp;Bullets">
-					Section&nbsp;5.2.5, &#8220;Bullets&#8221;
+				<a href="#bullets" title="5.2.5. Bullets">
+					Section 5.2.5, &#8220;Bullets&#8221;
 				</a>
 				. The frozen state is described in
 				<a href="#world_boundary"
-					title="9.1.&nbsp;World Boundary">
-					Section&nbsp;9.1, &#8220;World Boundary&#8221;
+					title="9.1. World Boundary">
+					Section 9.1, &#8220;World Boundary&#8221;
 				</a>
 				.
 			</p>
@@ -2322,7 +2323,7 @@ Method WakeUp()
 					<div>
 						<h3 class="title">
 							<a name="d0e753"></a>
-							5.4.3.&nbsp;Position and Velocity
+							5.4.3. Position and Velocity
 						</h3>
 					</div>
 				</div>
@@ -2366,7 +2367,7 @@ Method GetAngularVelocity:Float()
 					<div>
 						<h3 class="title">
 							<a name="d0e768"></a>
-							5.4.4.&nbsp;Forces and Impulses
+							5.4.4. Forces and Impulses
 						</h3>
 					</div>
 				</div>
@@ -2401,7 +2402,7 @@ End If
 					<div>
 						<h3 class="title">
 							<a name="d0e779"></a>
-							5.4.5.&nbsp;Coordinate Transformations
+							5.4.5. Coordinate Transformations
 						</h3>
 					</div>
 				</div>
@@ -2427,7 +2428,7 @@ Method GetLocalVector:b2Vec2(worldVector:b2Vec2)
 					<div>
 						<h3 class="title">
 							<a name="d0e786"></a>
-							5.4.6.&nbsp;Lists
+							5.4.6. Lists
 						</h3>
 					</div>
 				</div>
@@ -2454,7 +2455,7 @@ Wend
 			<div>
 				<h2 class="title">
 					<a name="shapes"></a>
-					Chapter&nbsp;6.&nbsp;Shapes
+					Chapter 6. Shapes
 				</h2>
 			</div>
 		</div>
@@ -2532,7 +2533,7 @@ Wend
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e798"></a>
-						6.1.&nbsp;About
+						6.1. About
 					</h2>
 				</div>
 			</div>
@@ -2562,7 +2563,7 @@ Wend
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e807"></a>
-						6.2.&nbsp;The Shape Definition
+						6.2. The Shape Definition
 					</h2>
 				</div>
 			</div>
@@ -2579,7 +2580,7 @@ Wend
 					<div>
 						<h3 class="title">
 							<a name="d0e815"></a>
-							6.2.1.&nbsp;Friction and Restitution
+							6.2.1. Friction and Restitution
 						</h3>
 					</div>
 				</div>
@@ -2602,7 +2603,7 @@ Wend
 				following formula:
 			</p>
 			<pre class="programlisting">
-Local friction:Float = sqrtf(shape1.GetFriction() * shape2.GetFriction())
+Local friction:Float = Sqr(shape1.GetFriction() * shape2.GetFriction())
 			</pre>
 			<p>
 				Restitution is used to make objects bounce. The
@@ -2637,7 +2638,7 @@ Local restitution:Float = b2Max(shape1.GetRestitution(), shape2.GetRestitution()
 					<div>
 						<h3 class="title">
 							<a name="d0e837"></a>
-							6.2.2.&nbsp;Density
+							6.2.2. Density
 						</h3>
 					</div>
 				</div>
@@ -2659,7 +2660,7 @@ Local restitution:Float = b2Max(shape1.GetRestitution(), shape2.GetRestitution()
 					<div>
 						<h3 class="title">
 							<a name="d0e845"></a>
-							6.2.3.&nbsp;Filtering
+							6.2.3. Filtering
 						</h3>
 					</div>
 				</div>
@@ -2688,7 +2689,7 @@ Local restitution:Float = b2Max(shape1.GetRestitution(), shape2.GetRestitution()
 				. For example:
 			</p>
 			<pre class="programlisting">
-playerShapeDef.GetFilter().SetCategoryBits($0002
+playerShapeDef.GetFilter().SetCategoryBits($0002)
 monsterShapeDef.GetFilter().SetCategoryBits($0004)
 playerShape.GetFilter().SetMaskBits($0004)
 monsterShapeDef.GetFilter().SetMaskBits($0002)
@@ -2762,7 +2763,7 @@ shape4Def.GetFilter().SetGroupIndex(-8)
 					<div>
 						<h3 class="title">
 							<a name="d0e889"></a>
-							6.2.4.&nbsp;Sensors
+							6.2.4. Sensors
 						</h3>
 					</div>
 				</div>
@@ -2789,7 +2790,7 @@ myShapeDef.SetIsSensor(True)
 					<div>
 						<h3 class="title">
 							<a name="d0e898"></a>
-							6.2.5.&nbsp;Circle Definitions
+							6.2.5. Circle Definitions
 						</h3>
 					</div>
 				</div>
@@ -2812,7 +2813,7 @@ def.SetLocalPosition(Vec2(1.0, 0.0))
 					<div>
 						<h3 class="title">
 							<a name="d0e910"></a>
-							6.2.6.&nbsp;Polygon Definitions
+							6.2.6. Polygon Definitions
 						</h3>
 					</div>
 				</div>
@@ -2897,7 +2898,7 @@ orientedBoxDef.SetAsOrientedBox(hx, hy, center, angle)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e950"></a>
-						6.3.&nbsp;Shape Factory
+						6.3. Shape Factory
 					</h2>
 				</div>
 			</div>
@@ -2919,8 +2920,8 @@ Local myShape:b2Shape = myBody.CreateShape(circleDef)
 			automatically be destroyed when the parent body is destroyed
 			(see
 			<a href="#implicit_destruction"
-				title="9.2.&nbsp;Implicit Destruction">
-				Section&nbsp;9.2, &#8220;Implicit Destruction&#8221;
+				title="9.2. Implicit Destruction">
+				Section 9.2, &#8220;Implicit Destruction&#8221;
 			</a>
 			).
 		</p>
@@ -2957,7 +2958,7 @@ myBody.DestroyShape(myShape)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e976"></a>
-						6.4.&nbsp;Using a Shape
+						6.4. Using a Shape
 					</h2>
 				</div>
 			</div>
@@ -2977,7 +2978,7 @@ myBody.DestroyShape(myShape)
 			<div>
 				<h2 class="title">
 					<a name="d0e984"></a>
-					Chapter&nbsp;7.&nbsp;Joints
+					Chapter 7. Joints
 				</h2>
 			</div>
 		</div>
@@ -3097,7 +3098,7 @@ myBody.DestroyShape(myShape)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e987"></a>
-						7.1.&nbsp;About
+						7.1. About
 					</h2>
 				</div>
 			</div>
@@ -3131,7 +3132,7 @@ myBody.DestroyShape(myShape)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e996"></a>
-						7.2.&nbsp;The Joint Definition
+						7.2. The Joint Definition
 					</h2>
 				</div>
 			</div>
@@ -3185,7 +3186,7 @@ myBody.DestroyShape(myShape)
 					<div>
 						<h3 class="title">
 							<a name="d0e1018"></a>
-							7.2.1.&nbsp;Distance Joint
+							7.2.1. Distance Joint
 						</h3>
 					</div>
 				</div>
@@ -3224,7 +3225,7 @@ jointDef.SetCollideConnected(True)
 					<div>
 						<h3 class="title">
 							<a name="d0e1034"></a>
-							7.2.2.&nbsp;Revolute Joint
+							7.2.2. Revolute Joint
 						</h3>
 					</div>
 				</div>
@@ -3333,7 +3334,7 @@ jointDef.EnableMotor(True)
 					<div>
 						<h3 class="title">
 							<a name="d0e1077"></a>
-							7.2.3.&nbsp;Prismatic Joint
+							7.2.3. Prismatic Joint
 						</h3>
 					</div>
 				</div>
@@ -3356,15 +3357,15 @@ jointDef.EnableMotor(True)
 				joint limit and a friction motor:
 			</p>
 			<pre class="programlisting">
-b2PrismaticJointDef jointDef
-b2Vec2 worldAxis(1.0f, 0.0f)
-jointDef.Initialize(myBody1, myBody2, myBody1-&gt;GetWorldCenter(), worldAxis)
-jointDef.lowerTranslation = -5.0f
-jointDef.upperTranslation = 2.5f
-jointDef.enableLimit = true
-jointDef.motorForce = 1.0f
-jointDef.motorSpeed = 0.0f
-jointDef.enableMotor = true;
+Local jointDef:b2PrismaticJointDef = new b2PrismaticJointDef
+Local worldAxis:b2Vec2 = new b2Vec2.Create(1.0, 0.0)
+jointDef.Initialize(myBody1, myBody2, myBody1.GetWorldCenter(), worldAxis)
+jointDef.SetLowerTranslation(-5.0)
+jointDef.SetUpperTranslation(2.5)
+jointDef.SetEnableLimit(True)
+jointDef.SetMotorForce(1.0)
+jointDef.SetMotorSpeed(0.0)
+jointDef.EnableMotor(True)
 			</pre>
 			<p>
 				The revolute joint has an implicit axis coming out of
@@ -3386,7 +3387,7 @@ jointDef.enableMotor = true;
 					<div>
 						<h3 class="title">
 							<a name="d0e1097"></a>
-							7.2.4.&nbsp;Pulley Joint
+							7.2.4. Pulley Joint
 						</h3>
 					</div>
 				</div>
@@ -3416,7 +3417,7 @@ length1 + length2 = constant
 				create mechanical leverage.
 			</p>
 			<pre class="programlisting">
-				length1 + ratio * length2 == constant
+length1 + ratio * length2 = constant
 			</pre>
 			<p>
 				For example, if the ratio is 2, then length1 will vary
@@ -3453,7 +3454,7 @@ jointDef.SetMaxLength2(20.0)
 					<div>
 						<h3 class="title">
 							<a name="d0e1123"></a>
-							7.2.5.&nbsp;Gear Joint
+							7.2.5. Gear Joint
 						</h3>
 					</div>
 				</div>
@@ -3491,8 +3492,7 @@ jointDef.SetMaxLength2(20.0)
 				length or one over length.
 			</p>
 			<pre class="programlisting">
-
-				coordinate1 + ratio * coordinate2 == constant
+coordinate1 + ratio * coordinate2 = constant
 			</pre>
 			<p>Here is an example gear joint:</p>
 			<pre class="programlisting">
@@ -3527,7 +3527,7 @@ jointDef.SetRatio(2.0 * Pi / myLength)
 					<div>
 						<h3 class="title">
 							<a name="d0e1150"></a>
-							7.2.6.&nbsp;Mouse Joint
+							7.2.6. Mouse Joint
 						</h3>
 					</div>
 				</div>
@@ -3545,7 +3545,7 @@ jointDef.SetRatio(2.0 * Pi / myLength)
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1155"></a>
-						7.3.&nbsp;Joint Factory
+						7.3. Joint Factory
 					</h2>
 				</div>
 			</div>
@@ -3602,8 +3602,8 @@ joint = Null
 			the attached bodies. In this case you don't need to
 			implement the listener class. See
 			<a href="#implicit_destruction"
-				title="9.2.&nbsp;Implicit Destruction">
-				Section&nbsp;9.2, &#8220;Implicit Destruction&#8221;
+				title="9.2 Implicit Destruction">
+				Section 9.2, &quote;Implicit Destruction&quote;
 			</a>
 			for details.
 		</p>
@@ -3614,7 +3614,7 @@ joint = Null
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1187"></a>
-						7.4.&nbsp;Using Joints
+						7.4. Using Joints
 					</h2>
 				</div>
 			</div>
@@ -3630,9 +3630,11 @@ joint = Null
 			user data from a joint.
 		</p>
 		<pre class="programlisting">
-
-			b2Body* GetBody1(); b2Body* GetBody2(); b2Vec2 GetAnchor1();
-			b2Vec2 GetAnchor2(); void* GetUserData();
+Method GetBody1:b2Body()
+Method GetBody2:b2Body()
+Method GetAnchor1:b2Vec2()
+Method GetAnchor2:b2Vec2()
+Method GetUserData:Object()
 		</pre>
 		<p>
 			All joints have a reaction force and torque. This the
@@ -3642,7 +3644,8 @@ joint = Null
 			don't call them if you don't need the result.
 		</p>
 		<pre class="programlisting">
-			b2Vec2 GetReactionForce(); float32 GetReactionTorque();
+Method GetReactionForce:b2Vec2()
+Method GetReactionTorque:Float()
 		</pre>
 		<div class="sect2" lang="en">
 			<div class="titlepage">
@@ -3650,7 +3653,7 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1200"></a>
-							7.4.1.&nbsp;Using Distance Joints
+							7.4.1. Using Distance Joints
 						</h3>
 					</div>
 				</div>
@@ -3666,7 +3669,7 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1205"></a>
-							7.4.2.&nbsp;Using Revolute Joints
+							7.4.2. Using Revolute Joints
 						</h3>
 					</div>
 				</div>
@@ -3676,13 +3679,14 @@ joint = Null
 				motor torque.
 			</p>
 			<pre class="programlisting">
-				float32 GetJointAngle() const; float32 GetJointSpeed()
-				const; float32 GetMotorTorque() const;
+Method GetJointAngle:Float()
+Method GetJointSpeed:Float()
+Method GetMotorTorque:Float()
 			</pre>
 			<p>You also update the motor parameters each step.</p>
 			<pre class="programlisting">
-				void SetMotorSpeed(float32 speed); void
-				SetMaxMotorTorque(float32 torque);
+Method SetMotorSpeed(speed:Float)
+Method SetMaxMotorTorque(torque:Float)
 			</pre>
 			<p>
 				Joint motors have some interesting abilities. You can
@@ -3691,20 +3695,20 @@ joint = Null
 				according to whatever function you want.
 			</p>
 			<pre class="programlisting">
-
-				... Game Loop Begin ...
-				myJoint-&gt;SetMotorSpeed(cosf(0.5f * time)); ... Game
-				Loop End ...
+... Game Loop Begin ...
+myJoint.SetMotorSpeed(Cos(0.5 * time))
+ ... Game Loop End ...
 			</pre>
 			<p>
 				You can also use joint motors to track a desired joint
 				angle. For example:
 			</p>
 			<pre class="programlisting">
-				... Game Loop Begin ... float32 angleError =
-				myJoint-&gt;GetJointAngle() - angleTarget; float32 gain
-				= 0.1f; myJoint-&gt;SetMotorSpeed(-gain * angleError);
-				... Game Loop End ...
+... Game Loop Begin ...
+Local angleError:Float = myJoint.GetJointAngle() - angleTarget
+Local gain:Float = 0.1
+myJoint.SetMotorSpeed(-gain * angleError)
+... Game Loop End ...
 			</pre>
 			<p>
 				Generally your gain parameter should not be too large.
@@ -3717,7 +3721,7 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1226"></a>
-							7.4.3.&nbsp;Using Prismatic Joints
+							7.4.3. Using Prismatic Joints
 						</h3>
 					</div>
 				</div>
@@ -3727,10 +3731,11 @@ joint = Null
 				joint. Here are the relevant member functions:
 			</p>
 			<pre class="programlisting">
-				float32 GetJointTranslation() const; float32
-				GetJointSpeed() const; float32 GetMotorForce() const;
-				void SetMotorSpeed(float32 speed); void
-				SetMotorForce(float32 force);
+Method GetJointTranslation:Float()
+Method GetJointSpeed:Float()
+Method GetMotorForce:Float()
+Method SetMotorSpeed(speed:Float)
+Method SetMotorForce(force:Float)
 			</pre>
 		</div>
 		<div class="sect2" lang="en">
@@ -3739,15 +3744,15 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1233"></a>
-							7.4.4.&nbsp;Using Pulley Joints
+							7.4.4. Using Pulley Joints
 						</h3>
 					</div>
 				</div>
 			</div>
 			<p>Pully joints provide the current lengths.</p>
 			<pre class="programlisting">
-
-				float32 GetLength1() const; float32 GetLength2() const;
+Method GetLength1:Float()
+Method GetLength2:Float()
 			</pre>
 		</div>
 		<div class="sect2" lang="en">
@@ -3756,7 +3761,7 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1240"></a>
-							7.4.5.&nbsp;Using Gear Joints
+							7.4.5. Using Gear Joints
 						</h3>
 					</div>
 				</div>
@@ -3774,7 +3779,7 @@ joint = Null
 					<div>
 						<h3 class="title">
 							<a name="d0e1248"></a>
-							7.4.6.&nbsp;Using Mouse Joints
+							7.4.6. Using Mouse Joints
 						</h3>
 					</div>
 				</div>
@@ -3792,7 +3797,7 @@ joint = Null
 			<div>
 				<h2 class="title">
 					<a name="d0e1253"></a>
-					Chapter&nbsp;8.&nbsp;Contacts
+					Chapter 8. Contacts
 				</h2>
 			</div>
 		</div>
@@ -3825,7 +3830,7 @@ joint = Null
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1256"></a>
-						8.1.&nbsp;About
+						8.1. About
 					</h2>
 				</div>
 			</div>
@@ -3931,7 +3936,7 @@ joint = Null
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1310"></a>
-						8.2.&nbsp;Contact Listener
+						8.2. Contact Listener
 					</h2>
 				</div>
 			</div>
@@ -3945,19 +3950,25 @@ joint = Null
 			contact points.
 		</p>
 		<pre class="programlisting">
+Type MyContactListener Extends b2ContactListener
 
-			class MyContactListener : public b2ContactListener { public:
-			void Add(const b2ContactPoint* point) { // handle add point
-			}
+	Method Add(point:b2ContactPoint)
+		' handle add point
+	End Method
+	
+	Method Persist(point:b2ContactPoint)
+		' handle persist point
+	End Method
+	
+	Method Remove(point:b2ContactPoint)
+		' handle remove point
+	End Method
+	
+	Method Result(point:b2ContactResult)
+		' handle results
+	End Method
 
-			void Persist(const b2ContactPoint* point) { // handle
-			persist point }
-
-			void Remove(const b2ContactPoint* point) { // handle remove
-			point }
-
-			void Result(const b2ContactResult* point) { // handle
-			results } };
+End Type
 		</pre>
 		<div class="caution"
 			style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -3992,7 +4003,7 @@ joint = Null
 			called. These result structures contain the sub-step
 			impulses. Again, due to continuous physics you may receive
 			multiple results per contact point per
-			<tt class="function">b2World::Step</tt>
+			<tt class="function">b2World::DoStep</tt>
 			.
 		</p>
 		<p>
@@ -4032,35 +4043,53 @@ joint = Null
 			.
 		</p>
 		<pre class="programlisting">
+' We are going to destroy some bodies according to contact
+' points. We must buffer the bodies that should be destroyed
+' because they may belong to multiple contact points.
+Local k_maxNuke:Int = 6
+Local nuke:b2Body[] = new b2Body[k_maxNuke]
+Local nukeCount:Int = 0
 
-			// We are going to destroy some bodies according to contact
-			// points. We must buffer the bodies that should be
-			destroyed // because they may belong to multiple contact
-			points. const int32 k_maxNuke = 6; b2Body* nuke[k_maxNuke];
-			int32 nukeCount = 0;
+' Traverse the contact buffer. Destroy bodies that
+' are touching heavier bodies.
+For Local i:Int = 0 Until m_pointCount
 
-			// Traverse the contact buffer. Destroy bodies that // are
-			touching heavier bodies. for (int32 i = 0; i &lt;
-			m_pointCount; ++i) { ContactPoint* point = m_points + i;
+	Local point:ContactPoint = m_points[i]
+	
+	Local body1:b2Body = point.GetShape1().GetBody()
+	Local body2:b2Body = point.GetShape2().GetBody()
+	Local mass1:Float = body1.GetMass()
+	Local mass2:Float = body2.GetMass()
+	
+	If mass1 &gt; 0.0 And mass2 &gt; 0.0 Then
+	
+		If mass2 &gt; mass1 Then
+			nuke[nukeCount] = body1
+		Else
+			nuke[nukeCount] = body2
+		End If
+		nukeCount:+ 1
+	
+		If nukeCount = k_maxNuke Then
+			Exit
+		End If
+	
+Next
 
-			b2Body* body1 = point-&gt;shape1-&gt;GetBody(); b2Body*
-			body2 = point-&gt;shape2-&gt;GetBody(); float32 mass1 =
-			body1-&gt;GetMass(); float32 mass2 = body2-&gt;GetMass();
+' Sort the nuke array to group duplicates.
+'std::sort(nuke, nuke + nukeCount); .. .TODO
 
-			if (mass1 &gt; 0.0f &amp;&amp; mass2 &gt; 0.0f) { if (mass2
-			&gt; mass1) { nuke[nukeCount++] = body1; } else {
-			nuke[nukeCount++] = body2; }
+' Destroy the bodies, skipping duplicates.
+Local i:Int = 0
+While i &lt; nukeCount
+	Local b:b2Body = nuke[i]
+	i:+ 1
+	While i &lt; nukeCount And nuke[i] = b
+		i:+ 1
+	Wend
 
-			if (nukeCount == k_maxNuke) { break; } } }
-
-			// Sort the nuke array to group duplicates. std::sort(nuke,
-			nuke + nukeCount);
-
-			// Destroy the bodies, skipping duplicates. int32 i = 0;
-			while (i &lt; nukeCount) { b2Body* b = nuke[i++]; while (i
-			&lt; nukeCount &amp;&amp; nuke[i] == b) { ++i; }
-
-			m_world-&gt;DestroyBody(b); }
+	m_world.DestroyBody(b)
+Wend
 
 		</pre>
 	</div>
@@ -4070,7 +4099,7 @@ joint = Null
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1359"></a>
-						8.3.&nbsp;Contact Filtering
+						8.3. Contact Filtering
 					</h2>
 				</div>
 			</div>
@@ -4102,25 +4131,27 @@ joint = Null
 			uses the
 			<span class="structname">b2FilterData</span>
 			defined in
-			<a href="#shapes" title="Chapter&nbsp;6.&nbsp;Shapes">
-				Chapter&nbsp;6,
+			<a href="#shapes" title="Chapter 6. Shapes">
+				Chapter 6,
 				<i>Shapes</i>
 			</a>
 			.
 		</p>
 		<pre class="programlisting">
-bool b2ContactFilter::ShouldCollide(b2Shape* shape1,
-b2Shape* shape2) { const b2FilterData&amp; filter1 =
-shape1-&gt;GetFilterData(); const b2FilterData&amp; filter2
-= shape2-&gt;GetFilterData();
+Method ShouldCollide:Int(shape1:b2Shape, shape2:b2Shape)
 
-if (filter1.groupIndex == filter2.groupIndex &amp;&amp;
-filter1.groupIndex != 0) { return filter1.groupIndex &gt; 0;
-}
+	Local filter1:b2FilterData = shape1.GetFilterData()
+	Local filter2:b2FilterData = shape2.GetFilterData()
 
-bool collide = (filter1.maskBits &amp; filter2.categoryBits)
-!= 0 &amp;&amp; (filter1.categoryBits &amp;
-filter2.maskBits) != 0; return collide; }
+	If filter1.GetGroupIndex() = filter2.GetGroupIndex() And filter1.GetGroupIndex() &lt;&gt; 0 Then
+		return filter1.GetGroupIndex() &gt; 0
+	End If
+
+	Local collide:Int = (filter1.maskBits &amp; filter2.categoryBits) &lt;&gt; 0 And ..
+		(filter1.categoryBits &amp; filter2.maskBits) &lt;&gt; 0
+	return collide
+	
+End Method
 
 		</pre>
 	</div>
@@ -4131,7 +4162,7 @@ filter2.maskBits) != 0; return collide; }
 			<div>
 				<h2 class="title">
 					<a name="d0e1390"></a>
-					Chapter&nbsp;9.&nbsp;Loose Ends
+					Chapter 9. Loose Ends
 				</h2>
 			</div>
 		</div>
@@ -4161,7 +4192,7 @@ filter2.maskBits) != 0; return collide; }
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="world_boundary"></a>
-						9.1.&nbsp;World Boundary
+						9.1. World Boundary
 					</h2>
 				</div>
 			</div>
@@ -4178,10 +4209,14 @@ filter2.maskBits) != 0; return collide; }
 			handle the event.
 		</p>
 		<pre class="programlisting">
-class MyBoundaryListener : public b2BoundaryListener { void
-Violation(b2Body* body) { MyActor* myActor =
-(MyActor*)body-&gt;GetUserData();
-myActor-&gt;MarkForErrorHandling(); } };
+Type MyBoundaryListener Extends b2BoundaryListener
+
+	Method Violation(body:b2Body)
+		Local myActor:MyActor = MyActor(body.GetUserData())
+		myActor.MarkForErrorHandling()
+	End Method
+
+End Type
 		</pre>
 		<p>
 			You can then register an instance of your boundary listener
@@ -4189,7 +4224,7 @@ myActor-&gt;MarkForErrorHandling(); } };
 			initialization.
 		</p>
 		<pre class="programlisting">
-myWorld-&gt;SetListener(myBoundaryListener);
+myWorld.SetBoundaryListener(myBoundaryListener)
 		</pre>
 	</div>
 	<div class="sect1" lang="en">
@@ -4198,7 +4233,7 @@ myWorld-&gt;SetListener(myBoundaryListener);
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="implicit_destruction"></a>
-						9.2.&nbsp;Implicit Destruction
+						9.2. Implicit Destruction
 					</h2>
 				</div>
 			</div>
@@ -4295,9 +4330,13 @@ myWorld-&gt;SetListener(myBoundaryListener);
 			prevent your code from accessing orphaned pointers.
 		</p>
 		<pre class="programlisting">
-class MyDestructionListener : public b2DestructionListener {
-void SayGoodbye(b2Joint* joint) { // remove all references
-to joint. } };
+Type MyDestructionListener Extends b2DestructionListener
+
+	Method SayGoodbye(joint:b2Joint)
+		' remove all references to joint.
+	End Method
+
+End Type
 		</pre>
 		<p>
 			You can then register an instance of your destruction
@@ -4305,7 +4344,7 @@ to joint. } };
 			world initialization.
 		</p>
 		<pre class="programlisting">
-			myWorld-&gt;SetListener(myDestructionListener);
+myWorld.SetDestructionListener(myDestructionListener)
 		</pre>
 	</div>
 </div>
@@ -4315,7 +4354,7 @@ to joint. } };
 			<div>
 				<h2 class="title">
 					<a name="d0e1465"></a>
-					Chapter&nbsp;10.&nbsp;Settings
+					Chapter 10. Settings
 				</h2>
 			</div>
 		</div>
@@ -4335,11 +4374,6 @@ to joint. } };
 					<a href="#d0e1481">10.2. Tolerances</a>
 				</span>
 			</dt>
-			<dt>
-				<span class="sect1">
-					<a href="#d0e1488">10.3. Memory Allocation</a>
-				</span>
-			</dt>
 		</dl>
 	</div>
 	<div class="sect1" lang="en">
@@ -4348,7 +4382,7 @@ to joint. } };
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1468"></a>
-						10.1.&nbsp;About
+						10.1. About
 					</h2>
 				</div>
 			</div>
@@ -4372,7 +4406,7 @@ to joint. } };
 				<div>
 					<h2 class="title" style="clear: both">
 						<a name="d0e1481"></a>
-						10.2.&nbsp;Tolerances
+						10.2. Tolerances
 					</h2>
 				</div>
 			</div>
@@ -4380,54 +4414,11 @@ to joint. } };
 		<p>
 			There are many tolerances settings that depend on using MKS
 			units. See
-			<a href="#units" title="3.3.&nbsp;Units">
-				Section&nbsp;3.3, &#8220;Units&#8221;
+			<a href="#units" title="3.3. Units">
+				Section 3.3, &#8220;Units&#8221;
 			</a>
 			for a deeper explanation of the unit system. See the doxygen
 			docs for explanation of the individual tolerances.
-		</p>
-	</div>
-	<div class="sect1" lang="en">
-		<div class="titlepage">
-			<div>
-				<div>
-					<h2 class="title" style="clear: both">
-						<a name="d0e1488"></a>
-						10.3.&nbsp;Memory Allocation
-					</h2>
-				</div>
-			</div>
-		</div>
-		<p>
-			All of Box2D's memory allocations are funnelled through
-			<tt class="function">b2Alloc</tt>
-			and
-			<tt class="function">b2Free</tt>
-			except in the following cases.
-		</p>
-		<div class="itemizedlist">
-			<ul type="disc">
-				<li>
-					<p>
-						<tt class="classname">b2World</tt>
-						can be built on the stack or with whatever
-						allocator you like.
-					</p>
-				</li>
-				<li>
-					<p>
-						Any other Box2D class that you create without
-						using a factory method. This includes things
-						like callbacks classes and contact point
-						buffers.
-					</p>
-				</li>
-			</ul>
-		</div>
-		<p>
-			Feel free to redirect the allocation by modifying
-			<tt class="filename">b2Settings.cpp</tt>
-			.
 		</p>
 	</div>
 </div>
@@ -4437,7 +4428,7 @@ to joint. } };
 			<div>
 				<h2 class="title">
 					<a name="d0e1513"></a>
-					Chapter&nbsp;11.&nbsp;Debug Drawing
+					Chapter 11. Debug Drawing
 				</h2>
 			</div>
 		</div>
@@ -4487,9 +4478,5 @@ to joint. } };
 		how to implement debug drawing as well as how to draw contact
 		points.
 	</p>
-	<div class="screenshot">
-		<div class="mediaobject">
-			<img src="images/debugDraw.gif"></div>
-	</div>
 </div>
 </div>

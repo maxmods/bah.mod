@@ -21,7 +21,7 @@ Type MotorsAndLimits Extends Test
 
 	Method Create:MotorsAndLimits()
 	
-		Init()
+		Init(20, 20)
 
 		Local ground:b2Body
 

@@ -17,7 +17,7 @@ Type Chain Extends Test
 
 	Method Create:Chain()
 	
-		Init()
+		Init(15, 15)
 	
 		Local ground:b2Body
 		

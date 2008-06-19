@@ -9,7 +9,6 @@ Import "test.bmx"
 Graphics 800,600, 0
 SetBlend alphablend
 
-
 Run(New Bridge.Create(), New TSettings)
 
 
@@ -17,7 +16,7 @@ Type Bridge Extends Test
 
 	Method Create:Bridge()
 	
-		Init()
+		Init(22, 22)
 	
 		Local ground:b2Body
 		
@@ -57,6 +56,35 @@ Type Bridge Extends Test
 		Local anchor:b2Vec2 = New b2Vec2.Create(-15.0 + 1.0 * numPlanks, 5.0)
 		jd.Initialize(prevBody, ground, anchor)
 		m_world.CreateJoint(jd)
+
+		For Local i:Int = 0 Until 2
+	
+			Local sd:b2PolygonDef = New b2PolygonDef
+			Local vertices:b2Vec2[] = New b2Vec2[3]
+			vertices[0] = Vec2(-0.5, 0.0)
+			vertices[1] = Vec2(0.5, 0.0)
+			vertices[2] = Vec2(0.0, 1.5)
+			sd.SetVertices(vertices)
+			sd.SetDensity(1.0)
+			
+			Local bd:b2BodyDef = New b2BodyDef
+			bd.SetPositionXY(-8.0 + 8.0 * i, 12.0)
+			Local body:b2Body = m_world.CreateBody(bd)
+			body.CreateShape(sd)
+			body.SetMassFromShapes()
+		Next
+		
+		For Local i:Int = 0 Until 3
+			Local sd1:b2CircleDef = New b2CircleDef
+			sd1.SetRadius(0.5)
+			sd1.SetDensity(1.0)
+			
+			Local bd:b2BodyDef = New b2BodyDef
+			bd.SetPositionXY(-6.0 + 6.0 * i, 10.0)
+			Local body:b2Body = m_world.CreateBody(bd)
+			body.CreateShape(sd1)
+			body.SetMassFromShapes()
+		Next
 		
 		Return Self
 		

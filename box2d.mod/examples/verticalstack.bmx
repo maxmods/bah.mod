@@ -47,7 +47,7 @@ Type VerticalStack Extends Test
 			For Local i:Int = 0 Until 16
 				bd = New b2BodyDef
 
-				bd.SetPositionXY(xs[j], 0.752 + 1.54 * i)
+				bd.SetPositionXY(xs[j], 0.752 + 1.4 * i)
 				Local body:b2Body = m_world.CreateBody(bd)
 
 				body.CreateShape(sd)

@@ -9,7 +9,6 @@ Import "test.bmx"
 Graphics 800,600, 0
 SetBlend alphablend
 
-
 Run(New Dominos.Create(), New TSettings)
 
 
@@ -17,7 +16,7 @@ Type Dominos Extends Test
 
 	Method Create:Dominos()
 	
-		Init(14, 14)
+		Init(22, 22)
 	
 		Local b1:b2Body
 
@@ -45,7 +44,7 @@ Type Dominos Extends Test
 		
 		 For Local i:Int = 0 Until 10
 		     bd = New b2BodyDef
-		     bd.SetPosition(New b2vec2.Create(-6.0 + 1.0 * i, 11.25))
+		     bd.SetPosition(New b2Vec2.Create(-6.0 + 1.0 * i, 11.25))
 		     Local body:b2Body = m_world.CreateBody(bd)
 		     body.CreateShape(sd)
 		     body.SetMassFromShapes()

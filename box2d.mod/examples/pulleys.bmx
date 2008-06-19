@@ -19,7 +19,7 @@ Type Pulleys Extends Test
 	
 	Method Create:Pulleys()
 	
-		Init()
+		Init(12, 12)
 				
 		Local ground:b2Body
 

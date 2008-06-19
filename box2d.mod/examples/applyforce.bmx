@@ -20,7 +20,7 @@ Type ApplyForce Extends Test
 
 	Method Create:ApplyForce()
 	
-		Init()
+		Init(12, 12)
 						
 		m_world.SetGravity(New b2Vec2.Create(0.0, 0.0))
 
@@ -54,9 +54,9 @@ Type ApplyForce Extends Test
 
 		Local sd1:b2PolygonDef = New b2PolygonDef
 		Local vertices:b2Vec2[] = New b2Vec2[3]
-		vertices[0] = b2Mulf(xf1, New b2Vec2.Create(-1.0, 0.0))
-		vertices[1] = b2Mulf(xf1, New b2Vec2.Create(1.0, 0.0))
-		vertices[2] = b2Mulf(xf1, New b2Vec2.Create(0.0, 0.5))
+		vertices[0] = b2MulF(xf1, New b2Vec2.Create(-1.0, 0.0))
+		vertices[1] = b2MulF(xf1, New b2Vec2.Create(1.0, 0.0))
+		vertices[2] = b2MulF(xf1, New b2Vec2.Create(0.0, 0.5))
 		sd1.SetVertices(vertices)
 		sd1.SetDensity(2.0)
 
@@ -66,9 +66,9 @@ Type ApplyForce Extends Test
 
 		Local sd2:b2PolygonDef = New b2PolygonDef
 		vertices = New b2Vec2[3]
-		vertices[0] = b2Mulf(xf2, New b2Vec2.Create(-1.0, 0.0))
-		vertices[1] = b2Mulf(xf2, New b2Vec2.Create(1.0, 0.0))
-		vertices[2] = b2Mulf(xf2, New b2Vec2.Create(0.0, 0.5))
+		vertices[0] = b2MulF(xf2, New b2Vec2.Create(-1.0, 0.0))
+		vertices[1] = b2MulF(xf2, New b2Vec2.Create(1.0, 0.0))
+		vertices[2] = b2MulF(xf2, New b2Vec2.Create(0.0, 0.5))
 		sd2.SetVertices(vertices)
 		sd2.SetDensity(2.0)
 

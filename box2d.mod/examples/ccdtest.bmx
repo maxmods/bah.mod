@@ -17,7 +17,7 @@ Type CCDTest Extends Test
 
 	Method Create:CCDTest()
 	
-		Init()
+		Init(15, 15)
 
 		Const k_restitution:Float = 1.4
 		
