@@ -5,7 +5,7 @@ Import "render.bmx"
 
 Global viewZoom:Float = 1
 Global tx:Int, ty:Int, tw:Int = 800, th:Int = 600
-Global viewCenter:b2Vec2 = New b2Vec2.Create(0.0, 20.0)
+Global viewCenter:b2Vec2 = New b2Vec2.Create(0.0, 0.0)
 Global mouseState:Int = False
 
 Function Run(tst:Test, settings:TSettings)
@@ -48,7 +48,7 @@ Function Mouse(tst:Test)
 	If MouseDown(1) Then
 
 		Local p:b2Vec2 = ConvertScreenToWorld(x, y)
-	
+
 		' button pressed
 		If Not mouseState Then
 		
@@ -164,7 +164,7 @@ Type Test
 
 				Local point:ContactPoint = m_points[i]
 	
-				If point.state = 0 then
+				If point.state = 0 Then
 					' Add
 					debugDraw(m_debugDraw).DrawPoint(point.position, 5.0, b2Color.Set(76, 242, 76))
 				Else If point.state = 1 Then
@@ -229,7 +229,7 @@ Type Test
 	
 	Method MouseDown(p:b2Vec2)
 		m_mouseWorld  = p
-DebugLog p.X() + ", " + p.Y()
+
 		If m_mouseJoint Then
 			Return
 		End If
@@ -280,7 +280,13 @@ DebugLog p.X() + ", " + p.Y()
 
 	Method MouseMove(p:b2Vec2)
 		m_mouseWorld = p
-	
+
+If debugDraw(m_debugDraw).showDetails Then
+SetImageFont(detailFont)
+SetColor(255, 255, 255)
+DrawText StripPlaces(p.X()) + "," + StripPlaces(p.Y()), MouseX() - 400, MouseY() - 500 - 10
+SetImageFont(Null)
+End If
 		If m_mouseJoint Then
 			m_mouseJoint.SetTarget(p)
 		End If
@@ -398,17 +404,26 @@ End Type
 
 
 Function ConvertScreenToWorld:b2Vec2(x:Int, y:Int)
-'DebugStop
-	Local u:Float = x / Float(tw)
-	Local v:Float = (th - y) / Float(th)
+	Local ox:Float, oy:Float
+	GetOrigin(ox, oy)
+	
+	x :- ox
+	y :- oy
 
-	Local ratio:Float = tw / Float(th)
-	Local extents:b2Vec2 = New b2Vec2.Create(ratio * 25.0, 25.0)
-	extents.Multiply(viewZoom)
+	Local wx:Float = x / xScale
+	Local wy:Float = y / yScale
+	
+	Return Vec2(wx, -wy)
+	'Local u:Float = x / Float(tw)
+	'Local v:Float = (th - y) / Float(th)
 
-	Local _lower:b2Vec2 = viewCenter.Subtract(extents)
-	Local _upper:b2Vec2 = viewCenter.Plus(extents)
+	'Local ratio:Float = tw / Float(th)
+	'Local extents:b2Vec2 = New b2Vec2.Create(ratio * 38, 50.0)
+	'extents.Multiply(viewZoom)
 
-	Return New b2Vec2.Create((1.0 - u) * _lower.X() + u * _upper.X(), (1.0 - v) * _lower.Y() + v * _upper.Y())
+	'Local _lower:b2Vec2 = viewCenter.Subtract(extents)
+	'Local _upper:b2Vec2 = viewCenter.Plus(extents)
+
+	'Return New b2Vec2.Create((1.0 - u) * _lower.X() + u * _upper.X(), (1.0 - v) * _lower.Y() + v * _upper.Y())
 End Function
 

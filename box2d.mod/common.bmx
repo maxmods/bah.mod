@@ -28,6 +28,7 @@ Extern
 	Function bmx_b2aabb_delete(handle:Byte Ptr)
 	Function bmx_b2abb_setlowerbound(handle:Byte Ptr, lowerBound:Byte Ptr)
 	Function bmx_b2abb_setupperbound(handle:Byte Ptr, upperBound:Byte Ptr)
+	Function bmx_b2abb_isvalid(handle:Byte Ptr)
 
 	Function bmx_b2vec2_create:Byte Ptr(x:Float, y:Float)
 	Function bmx_b2vec2_delete(handle:Byte Ptr)
@@ -40,6 +41,8 @@ Extern
 	Function bmx_b2vec2_length:Float(handle:Byte Ptr)
 	Function bmx_b2vec2_multiply(handle:Byte Ptr, value:Float)
 	Function bmx_b2vec2_plus:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
+	Function bmx_b2vec2_normalize:Float(handle:Byte Ptr)
+	Function bmx_b2vec2_lengthsquared:Float(handle:Byte Ptr)
 
 	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
@@ -64,6 +67,7 @@ Extern
 	Function bmx_b2world_getbodycount:Int(handle:Byte Ptr)
 	Function bmx_b2world_getjointcount:Int(handle:Byte Ptr)
 	Function bmx_b2world_free(handle:Byte Ptr)
+	Function bmx_b2world_setdestructionlistener(handle:Byte Ptr, listener:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -396,6 +400,9 @@ Extern
 	Function bmx_b2pulleyjointdef_setratio(handle:Byte Ptr, ratio:Float)
 	Function bmx_b2pulleyjointdef_getratio:Float(handle:Byte Ptr)
 	Function bmx_b2pulleyjointdef_delete(handle:Byte Ptr)
+
+	Function bmx_b2destructionlistener_new:Byte Ptr(handle:Object)
+	Function bmx_b2destructionlistener_delete(handle:Byte Ptr)
 
 End Extern
 

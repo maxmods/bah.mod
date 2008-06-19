@@ -28,6 +28,7 @@ class MaxContactFilter;
 class MaxContactListener;
 class MaxBoundaryListener;
 class MaxFilterData;
+class MaxDestructionListener;
 
 extern "C" {
 
@@ -48,10 +49,14 @@ extern "C" {
 	void _bah_box2d_b2ContactListener__Result(BBObject * maxHandle, const b2ContactResult* result);
 	void _bah_box2d_b2BoundaryListener__Violation(BBObject * maxHandle, b2Body * body);
 
+	void _bah_box2d_b2DestructionListener__SayGoodbyeJoint(BBObject * maxHandle, b2Joint * joint);
+	void _bah_box2d_b2DestructionListener__SayGoodbyeShape(BBObject * maxHandle, b2Shape * shape);
+
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
 	void bmx_b2abb_setlowerbound(b2AABB * aabb, b2Vec2 * lowerBound);
 	void bmx_b2abb_setupperbound(b2AABB * aabb, b2Vec2 * upperBound);
+	bool bmx_b2abb_isvalid(b2AABB * aabb);
 
 	b2Vec2 * bmx_b2vec2_create(float32 x, float32 y);
 	void bmx_b2vec2_delete(b2Vec2 * vec);
@@ -64,6 +69,8 @@ extern "C" {
 	float32 bmx_b2vec2_length(b2Vec2 * vec);
 	void bmx_b2vec2_multiply(b2Vec2 * vec, float32 value);
 	b2Vec2 * bmx_b2vec2_plus(b2Vec2 * vec, b2Vec2 * other);
+	float32 bmx_b2vec2_normalize(b2Vec2 * vec);
+	float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec);
 
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
@@ -89,6 +96,7 @@ extern "C" {
 	int32 bmx_b2world_getjointcount(b2World * world);
 	int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes);
 	void bmx_b2world_free(b2World * world);
+	void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -425,6 +433,9 @@ extern "C" {
 	float32 bmx_b2pulleyjointdef_getratio(b2PulleyJointDef * def);
 	void bmx_b2pulleyjointdef_delete(b2PulleyJointDef * def);
 
+	MaxDestructionListener * bmx_b2destructionlistener_new(BBObject * handle);
+	void bmx_b2destructionlistener_delete(MaxDestructionListener * listener);
+
 }
 
 class MaxFilterData
@@ -485,6 +496,10 @@ void bmx_b2abb_setupperbound(b2AABB * aabb, b2Vec2 * upperBound) {
 	aabb->upperBound = *upperBound;
 }
 
+bool bmx_b2abb_isvalid(b2AABB * aabb) {
+	return aabb->IsValid();
+}
+
 // *****************************************************
 
 b2Vec2 * bmx_b2vec2_new(b2Vec2 v) {
@@ -540,6 +555,14 @@ void bmx_b2vec2_multiply(b2Vec2 * vec, float32 value) {
 
 b2Vec2 * bmx_b2vec2_plus(b2Vec2 * vec, b2Vec2 * other) {
 	return bmx_b2vec2_new(*vec + *other);
+}
+
+float32 bmx_b2vec2_normalize(b2Vec2 * vec) {
+	return vec->Normalize();
+}
+
+float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec) {
+	return vec->LengthSquared();
 }
 
 // *****************************************************
@@ -660,6 +683,10 @@ int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes) {
 
 void bmx_b2world_free(b2World * world) {
 	delete world;
+}
+
+void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener) {
+	world->SetDestructionListener(listener);
 }
 
 // *****************************************************
@@ -2082,3 +2109,42 @@ void bmx_b2pulleyjointdef_delete(b2PulleyJointDef * def) {
 	delete def;
 }
 
+// *****************************************************
+
+class MaxDestructionListener : public b2DestructionListener
+{
+public:
+	MaxDestructionListener::MaxDestructionListener(BBObject * handle)
+		: maxHandle(handle)
+	{
+	}
+	
+	void MaxDestructionListener::SayGoodbye(b2Joint * joint) {
+		_bah_box2d_b2DestructionListener__SayGoodbyeJoint(maxHandle, joint);
+		void * data = joint->GetUserData();
+		if (data && data != &bbNullObject) {
+			BBRELEASE((BBObject*)data);
+			joint->SetUserData(0);
+		}
+	}
+
+	void MaxDestructionListener::SayGoodbye(b2Shape * shape) {
+		_bah_box2d_b2DestructionListener__SayGoodbyeShape(maxHandle, shape);
+		void * data = shape->GetUserData();
+		if (data && data != &bbNullObject) {
+			BBRELEASE((BBObject*)data);
+			shape->SetUserData(0);
+		}
+	}
+	
+private:
+	BBObject * maxHandle;
+};
+
+MaxDestructionListener * bmx_b2destructionlistener_new(BBObject * handle) {
+	return new MaxDestructionListener(handle);
+}
+
+void bmx_b2destructionlistener_delete(MaxDestructionListener * listener) {
+	delete listener;
+}

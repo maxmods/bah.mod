@@ -36,7 +36,8 @@ ModuleInfo "History: 1.00 Initial Release"
 Import "common.bmx"
 
 Rem
-bbdoc: 
+bbdoc: The world type manages all physics entities, dynamic simulation, and asynchronous queries. 
+about: The world also contains efficient memory management facilities. 
 End Rem
 Type b2World
 
@@ -45,19 +46,24 @@ Type b2World
 	Field filter:b2ContactFilter
 	Field contactListener:b2ContactListener
 	Field boundaryListener:b2BoundaryListener
+	Field destructionListener:b2DestructionListener
 
 	Rem
-	bbdoc: 
+	bbdoc: Construct a world object. 
 	End Rem
 	Function CreateWorld:b2World(worldAABB:b2AABB, gravity:b2Vec2, doSleep:Int)
 		Return New b2World.Create(worldAABB, gravity, doSleep)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Construct a world object. 
 	End Rem
 	Method Create:b2World(worldAABB:b2AABB, gravity:b2Vec2, doSleep:Int)
 		b2ObjectPtr = bmx_b2world_create(worldAABB.b2ObjectPtr, gravity.b2ObjectPtr, doSleep)
+		
+		' setup default destruction listener
+		SetDestructionListener(New b2DestructionListener)
+		
 		Return Self
 	End Method
 
@@ -75,7 +81,9 @@ Type b2World
 	Rem
 	bbdoc: Register a destruction listener.
 	End Rem
-	Method SetDestructListener(listener:b2DestructionListener)
+	Method SetDestructionListener(listener:b2DestructionListener)
+		destructionListener = listener
+		bmx_b2world_setdestructionlistener(b2ObjectPtr, listener.b2ObjectPtr)
 	End Method
 
 	Rem
@@ -256,21 +264,21 @@ Type b2World
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Enable/disable warm starting. For testing. 
 	End Rem
 	Method SetWarmStarting(flag:Int)
 		bmx_b2world_setwarmstarting(b2ObjectPtr, flag)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Enable/disable position correction. For testing. 
 	End Rem
 	Method SetPositionCorrection(flag:Int)
 		bmx_b2world_setpositioncorrection(b2ObjectPtr, flag)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Enable/disable continuous physics. For testing. 
 	End Rem
 	Method SetContinuousPhysics(flag:Int)
 		bmx_b2world_setcontinuousphysics(b2ObjectPtr, flag)
@@ -319,7 +327,9 @@ Type b2World
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Query the world for all shapes that potentially overlap the provided AABB.
+	returns: The number of shapes found in aabb. 
+	about: You provide a shape array for populating. The number of shapes found is returned. 
 	End Rem
 	Method Query:Int(aabb:b2AABB, shapes:b2Shape[])
 		Return bmx_b2world_query(b2ObjectPtr, aabb.b2ObjectPtr, shapes)
@@ -339,14 +349,14 @@ Type b2AABB
 	Field b2ObjectPtr:Byte Ptr 
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new AABB
 	End Rem
 	Function CreateAABB:b2AABB(lowerBound:b2Vec2 = Null, upperBound:b2Vec2 = Null)
 		Return New b2AABB.Create(lowerBound, upperBound)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new AABB
 	End Rem
 	Method Create:b2AABB(lowerBound:b2Vec2 = Null, upperBound:b2Vec2 = Null)
 		If lowerBound Then
@@ -366,17 +376,24 @@ Type b2AABB
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the lower vertex.
 	End Rem
 	Method SetLowerBound(lowerBound:b2Vec2)
 		bmx_b2abb_setlowerbound(b2ObjectPtr, lowerBound.b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the upper vertex.
 	End Rem
 	Method SetUpperBound(upperBound:b2Vec2)
 		bmx_b2abb_setupperbound(b2ObjectPtr, upperBound.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Verify that the bounds are sorted. 
+	End Rem
+	Method IsValid:Int()
+		Return bmx_b2abb_isvalid(b2ObjectPtr)
 	End Method
 
 	Method Delete()
@@ -389,7 +406,7 @@ Type b2AABB
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A 2D column vector. 
 End Rem
 Type b2Vec2
 
@@ -404,14 +421,14 @@ Type b2Vec2
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new vector with the given coordinates.
 	End Rem
 	Function CreateVec2:b2Vec2(x:Float = 0, y:Float = 0)
 		Return New b2Vec2.Create(x, y)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new vector with the given coordinates.
 	End Rem
 	Method Create:b2Vec2(x:Float = 0, y:Float = 0)
 		b2ObjectPtr = bmx_b2vec2_create(x, y)
@@ -419,42 +436,43 @@ Type b2Vec2
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the X coordinate.
 	End Rem
 	Method GetX:Float()
 		Return bmx_b2vec2_getx(b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the X coordinate.
 	End Rem
 	Method X:Float()
 		Return bmx_b2vec2_getx(b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the Y coordinate.
 	End Rem
 	Method GetY:Float()
 		Return bmx_b2vec2_gety(b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the Y coordinate.
 	End Rem
 	Method Y:Float()
 		Return bmx_b2vec2_gety(b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Adds @vec to this vector.
 	End Rem	
 	Method Add(vec:b2Vec2)
 		bmx_b2vec2_add(b2ObjectPtr, vec.b2ObjectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Adds @vec to this vector, returning the a new b2Vec2.
+	about: This object is not modified.
 	End Rem	
 	Method Plus:b2Vec2(vec:b2Vec2)
 		Return _create(bmx_b2vec2_plus(b2ObjectPtr, vec.b2ObjectPtr))
@@ -483,6 +501,7 @@ Type b2Vec2
 	
 	Rem
 	bbdoc: Subtracts @vec from this object, returning a new b2Vec2.
+	about: This object is not modified.
 	End Rem	
 	Method Subtract:b2Vec2(vec:b2Vec2)
 		Return _create(bmx_b2vec2_subtract(b2ObjectPtr, vec.b2ObjectPtr))
@@ -500,6 +519,22 @@ Type b2Vec2
 	End Rem	
 	Method Length:Float()
 		Return bmx_b2vec2_length(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Convert this vector into a unit vector.
+	returns: The length. 
+	End Rem
+	Method Normalize:Float()
+		Return bmx_b2vec2_normalize(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the length squared.
+	about: For performance, use this instead of b2Vec2::Length (if possible).
+	End Rem
+	Method LengthSquared:Float()
+		Return bmx_b2vec2_lengthsquared(b2ObjectPtr)
 	End Method
 
 	Method Delete()
@@ -522,7 +557,7 @@ Type b2Vec2
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: A zero vector (0,0)
 	End Rem
 	Global ZERO:b2Vec2 = New b2Vec2.Create()
 	
@@ -536,9 +571,43 @@ Function Vec2:b2Vec2(x:Float, y:Float)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Joints and shapes are destroyed when their associated body is destroyed. 
+about: Implement this listener so that you may nullify references to these joints and shapes. 
 End Rem
 Type b2DestructionListener
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Method New()
+		b2ObjectPtr = bmx_b2destructionlistener_new(Self)
+	End Method
+
+	Rem
+	bbdoc: Called when any joint is about to be destroyed due to the destruction of one of its attached bodies. 
+	End Rem
+	Method SayGoodbyeJoint(joint:b2Joint)
+	End Method
+
+	Function _SayGoodbyeJoint(listener:b2DestructionListener, joint:Byte Ptr)
+		listener.SayGoodbyeJoint(b2Joint._create(joint))
+	End Function
+	
+	Rem
+	bbdoc: Called when any shape is about to be destroyed due to the destruction of its parent body. 
+	End Rem
+	Method SayGoodbyeShape(shape:b2Shape)
+	End Method
+	
+	Function _SayGoodbyeShape(listener:b2DestructionListener, shape:Byte Ptr)
+		listener.SayGoodbyeShape(b2Shape._create(shape))
+	End Function
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2destructionlistener_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -1425,7 +1494,8 @@ Type b2DebugDraw
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Color for debug drawing.
+about: Each value has the range [0,1]. 
 End Rem
 Type b2Color
 	
