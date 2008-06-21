@@ -443,35 +443,50 @@ extern "C" {
 class MaxFilterData
 {
 public:
-	MaxFilterData(const b2FilterData& fd)
-		: data(fd)
+	MaxFilterData(b2FilterData& fd)
 	{
+		data = &fd;
+		owner = false;
 	}
 
 	MaxFilterData()
 	{
+		data = new b2FilterData;
+		owner = true;
+	}
+
+	~MaxFilterData()
+	{
+		if (owner) {
+			delete data;
+		}
 	}
 	
 	const b2FilterData& getData() {
-		return data;
+		return *data;
 	}
 	
 	void setCategoryBits(uint16 categoryBits) {
-		data.categoryBits = categoryBits;
+		data->categoryBits = categoryBits;
 	}
 	
 	void setMaskBits(uint16 maskBits) {
-		data.maskBits = maskBits;
+		data->maskBits = maskBits;
 	}
 	
 	void setGroupIndex(int16 index) {
-		data.groupIndex = index;
+		data->groupIndex = index;
 	}
 	
+	int16 getGroupIndex() {
+		return data->groupIndex;
+	}
 	
 private:
-	b2FilterData data;
+	b2FilterData * data;
+	bool owner;
 };
+
 
 // *****************************************************
 

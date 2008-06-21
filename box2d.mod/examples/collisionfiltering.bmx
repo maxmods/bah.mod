@@ -30,7 +30,7 @@ Type CollisionFiltering Extends Test
 	Const k_circleCategory:Short = $0008:Short
 
 	Const k_triangleMask:Short = $FFFF:Short
-	Const k_boxMask:Short = $FFFF:Short ^ k_triangleCategory
+	Const k_boxMask:Short = $FFFF:Short ~ k_triangleCategory
 	Const k_circleMask:Short = $FFFF:Short
 
 
@@ -80,8 +80,8 @@ Type CollisionFiltering Extends Test
 		triangleShapeDef.SetVertices(vertices)
 		
 		triangleShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
-		triangleBodyDef.SetPositionXY(-4.5, 6.0)
-		'triangleBodyDef.SetFixedRotation(True) ' look at me!
+		triangleBodyDef.SetPositionXY(-5, 6.0)
+		triangleBodyDef.SetFixedRotation(True) ' look at me!
 
 		Local body2:b2Body = m_world.CreateBody(triangleBodyDef)
 		body2.CreateShape(triangleShapeDef)
