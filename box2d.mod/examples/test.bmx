@@ -86,6 +86,7 @@ Type Test
 	
 	Field m_points:ContactPoint[] = New ContactPoint[k_maxContactPoints]
 	Field m_contactListener:ContactListener = New ContactListener
+	Field m_destructionListener:DestructionListener = New DestructionListener
 	Field m_pointCount:Int
 	
 	Field _settings:TSettings
@@ -104,9 +105,11 @@ Type Test
 		m_world = New b2World.Create(m_worldAABB, gravity, True)
 
 		m_contactListener._test = Self
+		m_destructionListener._test = Self
 
 		m_world.SetDebugDraw(m_debugDraw)
 		m_world.SetContactListener(m_contactListener)
+		m_world.SetDestructionListener(m_destructionListener)
 		
 	End Method
 
@@ -155,7 +158,19 @@ Type Test
 		m_world.Validate()
 
 
+		If m_mouseJoint Then
 
+			Local body:b2Body = m_mouseJoint.GetBody2()
+			Local p1:b2Vec2 = body.GetWorldPoint(m_mouseJoint.GetLocalAnchor())
+			Local p2:b2Vec2 = m_mouseJoint.GetTarget()
+			
+			debugDraw(m_debugDraw).DrawPoint(p1, 4.0, b2Color.Set(0, 255, 0))
+			debugDraw(m_debugDraw).DrawPoint(p2, 4.0, b2Color.Set(0, 255, 0))
+		
+			m_debugDraw.DrawSegment(p1, p2, b2Color.Set(204, 204, 204))
+		End If
+
+		
 		If settings.drawContactPoints Then
 
 			Const k_axisScale:Int = 0.3
@@ -281,15 +296,19 @@ Type Test
 	Method MouseMove(p:b2Vec2)
 		m_mouseWorld = p
 
-If debugDraw(m_debugDraw).showDetails Then
-SetImageFont(detailFont)
-SetColor(255, 255, 255)
-DrawText StripPlaces(p.X()) + "," + StripPlaces(p.Y()), MouseX() - 400, MouseY() - 500 - 10
-SetImageFont(Null)
-End If
+		If debugDraw(m_debugDraw).showDetails Then
+			SetImageFont(detailFont)
+			SetColor(255, 255, 255)
+			DrawText StripPlaces(p.X()) + "," + StripPlaces(p.Y()), MouseX() - 400, MouseY() - 500 - 10
+			SetImageFont(Null)
+		End If
+		
 		If m_mouseJoint Then
 			m_mouseJoint.SetTarget(p)
 		End If
+	End Method
+	
+	Method JointDestroyed(joint:b2Joint)
 	End Method
 	
 End Type
@@ -402,6 +421,20 @@ Type ContactListener Extends b2ContactListener
 
 End Type
 
+Type DestructionListener Extends b2DestructionListener
+
+
+	Field _test:Test
+
+	Method SayGoodbyeJoint(joint:b2Joint)
+		If _test.m_mouseJoint = joint
+			_test.m_mouseJoint = Null
+		Else
+			_test.JointDestroyed(joint)
+		End If
+	End Method
+
+End Type
 
 Function ConvertScreenToWorld:b2Vec2(x:Int, y:Int)
 	Local ox:Float, oy:Float

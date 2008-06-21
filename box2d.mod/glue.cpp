@@ -381,6 +381,8 @@ extern "C" {
 	b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint);
 	float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint);
 	void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target);
+	b2Vec2 * bmx_b2mousejoint_gettarget(b2MouseJoint * joint);
+	b2Vec2 * bmx_b2mousejoint_getlocalanchor(b2MouseJoint * joint);
 
 	b2Vec2 * bmx_b2pulleyjoint_getanchor1(b2PulleyJoint * joint);
 	b2Vec2 * bmx_b2pulleyjoint_getanchor2(b2PulleyJoint * joint);
@@ -1913,6 +1915,14 @@ float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint) {
 
 void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target) {
 	joint->SetTarget(*target);
+}
+
+b2Vec2 * bmx_b2mousejoint_gettarget(b2MouseJoint * joint) {
+	return bmx_b2vec2_new(joint->m_target);
+}
+
+b2Vec2 * bmx_b2mousejoint_getlocalanchor(b2MouseJoint * joint) {
+	return bmx_b2vec2_new(joint->m_localAnchor);
 }
 
 // *****************************************************

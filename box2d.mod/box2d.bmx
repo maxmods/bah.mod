@@ -3154,6 +3154,20 @@ Type b2MouseJoint Extends b2Joint
 		bmx_b2mousejoint_settarget(b2ObjectPtr, target.b2ObjectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the target point.
+	End Rem
+	Method GetTarget:b2Vec2()
+		Return b2Vec2._create(bmx_b2mousejoint_gettarget(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the local anchor.
+	End Rem
+	Method GetLocalAnchor:b2Vec2()
+		Return b2Vec2._create(bmx_b2mousejoint_getlocalanchor(b2ObjectPtr))
+	End Method
+	
 End Type
 
 Rem

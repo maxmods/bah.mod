@@ -349,6 +349,8 @@ Extern
 	Function bmx_b2mousejoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2mousejoint_getreactiontorque:Float(handle:Byte Ptr)
 	Function bmx_b2mousejoint_settarget(handle:Byte Ptr, target:Byte Ptr)
+	Function bmx_b2mousejoint_gettarget:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2mousejoint_getlocalanchor:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2pulleyjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2pulleyjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
