@@ -32,6 +32,7 @@ ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
+ModuleInfo "History: Added Theo Jansen example."
 ModuleInfo "History: 1.00 Initial Release"
 
 
