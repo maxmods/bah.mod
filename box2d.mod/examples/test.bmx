@@ -1,3 +1,6 @@
+'
+' Part of the examples framework... imported by the examples.
+'
 SuperStrict
 
 Import BRL.FreeTypeFont
@@ -13,13 +16,6 @@ Function Run(tst:Test, settings:TSettings)
 	detailFont = LoadImageFont(CurrentDir() + "/04B_03__.ttf", 8)
 
 	SetOrigin(400,500)
-	'Local ratio:Float = 800 / 600.0
-	'Local ex:Float = 25 * ratio
-	'Local ey:Float = 25
-
-	'SetScale 10, 2
-	
-	'gluOrtho2D(0 - ex, 0 + ex,  20 - ey, 20 + ey)
 	
 	While Not KeyDown(KEY_ESCAPE)
 	

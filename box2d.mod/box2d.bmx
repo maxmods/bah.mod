@@ -25,11 +25,14 @@ bbdoc: Box2D
 End Rem
 Module BaH.Box2D
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to box2d svn (rev 168)"
+ModuleInfo "History: Added car example."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
 ModuleInfo "History: Added Theo Jansen example."

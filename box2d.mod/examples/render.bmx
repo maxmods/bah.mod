@@ -1,3 +1,6 @@
+'
+' Part of the examples framework... imported by test.bmx
+'
 SuperStrict
 
 Import BRL.GLMax2D
