@@ -33,6 +33,7 @@ ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to box2d svn (rev 168)"
 ModuleInfo "History: Added car example."
+ModuleInfo "History: Fixed typo in b2ContactListener - Remove()."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
 ModuleInfo "History: Added Theo Jansen example."
@@ -690,11 +691,11 @@ Type b2ContactListener
 	bbdoc: Called when a contact point is removed.
 	about: This includes the last computed geometry and forces.
 	End Rem
-	Method Removed(point:b2ContactPoint)
+	Method Remove(point:b2ContactPoint)
 	End Method
 
-	Function _Removed(listener:b2ContactListener, point:Byte Ptr)
-		listener.Removed(b2ContactPoint._create(point))
+	Function _Remove(listener:b2ContactListener, point:Byte Ptr)
+		listener.Remove(b2ContactPoint._create(point))
 	End Function
 
 	Rem

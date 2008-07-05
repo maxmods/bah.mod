@@ -45,7 +45,7 @@ extern "C" {
 	bool _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
 	void _bah_box2d_b2ContactListener__Add(BBObject * maxHandle, const b2ContactPoint* point);
 	void _bah_box2d_b2ContactListener__Persist(BBObject * maxHandle, const b2ContactPoint* point);
-	void _bah_box2d_b2ContactListener__Removed(BBObject * maxHandle, const b2ContactPoint* point);
+	void _bah_box2d_b2ContactListener__Remove(BBObject * maxHandle, const b2ContactPoint* point);
 	void _bah_box2d_b2ContactListener__Result(BBObject * maxHandle, const b2ContactResult* result);
 	void _bah_box2d_b2BoundaryListener__Violation(BBObject * maxHandle, b2Body * body);
 
@@ -1333,7 +1333,7 @@ public:
 	}
 
 	void MaxContactListener::Remove(const b2ContactPoint* point) {
-		_bah_box2d_b2ContactListener__Removed(maxHandle, point);
+		_bah_box2d_b2ContactListener__Remove(maxHandle, point);
 	}
 
 	void MaxContactListener::Result(const b2ContactResult* result) {
