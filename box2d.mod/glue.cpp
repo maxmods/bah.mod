@@ -97,6 +97,7 @@ extern "C" {
 	int32 bmx_b2world_query(b2World * world, b2AABB * aabb, BBArray * shapes);
 	void bmx_b2world_free(b2World * world);
 	void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener);
+	void bmx_b2world_refilter(b2World * world, b2Shape * shape);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -189,6 +190,14 @@ extern "C" {
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
 	b2Shape * bmx_b2shape_getnext(b2Shape * shape);
 	bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p);
+	float32 bmx_b2shape_getsweepradius(b2Shape * shape);
+	float32 bmx_b2shape_getfriction(b2Shape * shape);
+	float32 bmx_b2shape_getrestitution(b2Shape * shape);
+	void bmx_b2shape_computeaabb(b2Shape * shape, b2AABB * aabb, b2XForm * xf);
+	void bmx_b2shape_computesweptaabb(b2Shape * shape, b2AABB * aabb, b2XForm * xf1, b2XForm * xf2);
+	void bmx_b2shape_computemass(b2Shape * shape, b2MassData * data);
+	MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape);
+	void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data);
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
@@ -451,6 +460,12 @@ public:
 		owner = false;
 	}
 
+	MaxFilterData(const b2FilterData& fd)
+	{
+		data = const_cast<b2FilterData *>(&fd);
+		owner = false;
+	}
+
 	MaxFilterData()
 	{
 		data = new b2FilterData;
@@ -706,6 +721,10 @@ void bmx_b2world_free(b2World * world) {
 
 void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener) {
 	world->SetDestructionListener(listener);
+}
+
+void bmx_b2world_refilter(b2World * world, b2Shape * shape) {
+	world->Refilter(shape);
 }
 
 // *****************************************************
@@ -1144,6 +1163,38 @@ b2Shape * bmx_b2shape_getnext(b2Shape * shape) {
 
 bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p) {
 	return shape->TestPoint(*xf, *p);
+}
+
+float32 bmx_b2shape_getsweepradius(b2Shape * shape) {
+	return shape->GetSweepRadius();
+}
+
+float32 bmx_b2shape_getfriction(b2Shape * shape) {
+	return shape->GetFriction();
+}
+
+float32 bmx_b2shape_getrestitution(b2Shape * shape) {
+	return shape->GetRestitution();
+}
+
+void bmx_b2shape_computeaabb(b2Shape * shape, b2AABB * aabb, b2XForm * xf) {
+	shape->ComputeAABB(aabb, *xf);
+}
+
+void bmx_b2shape_computesweptaabb(b2Shape * shape, b2AABB * aabb, b2XForm * xf1, b2XForm * xf2) {
+	shape->ComputeSweptAABB(aabb, *xf1, *xf2);
+}
+
+void bmx_b2shape_computemass(b2Shape * shape, b2MassData * data) {
+	shape->ComputeMass(data);
+}
+
+MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape) {
+	return new MaxFilterData(shape->GetFilterData());
+}
+
+void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data) {
+	shape->SetFilterData(data->getData());
 }
 
 // *****************************************************

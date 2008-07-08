@@ -68,6 +68,7 @@ Extern
 	Function bmx_b2world_getjointcount:Int(handle:Byte Ptr)
 	Function bmx_b2world_free(handle:Byte Ptr)
 	Function bmx_b2world_setdestructionlistener(handle:Byte Ptr, listener:Byte Ptr)
+	Function bmx_b2world_refilter(handle:Byte Ptr, shape:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -159,6 +160,14 @@ Extern
 	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
 	Function bmx_b2shape_getnext:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_testpoint:Int(handle:Byte Ptr, xf:Byte Ptr, p:Byte Ptr)
+	Function bmx_b2shape_getsweepradius:Float(handle:Byte Ptr)
+	Function bmx_b2shape_getfriction:Float(handle:Byte Ptr)
+	Function bmx_b2shape_getrestitution:Float(handle:Byte Ptr)
+	Function bmx_b2shape_computeaabb(handle:Byte Ptr, aabb:Byte Ptr, xf:Byte Ptr)
+	Function bmx_b2shape_computesweptaabb(handle:Byte Ptr, aabb:Byte Ptr, xf1:Byte Ptr, xf2:Byte Ptr)
+	Function bmx_b2shape_computemass(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_b2shape_getfilterdata:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2shape_setfilterdata(handle:Byte Ptr, data:Byte Ptr)
 
 	Function bmx_b2jointdef_setcollideconnected(handle:Byte Ptr, collideConnected:Int)
 	Function bmx_b2jointdef_getcollideconnected:Int(handle:Byte Ptr)

@@ -35,6 +35,7 @@ ModuleInfo "History: Updated to box2d svn (rev 168)"
 ModuleInfo "History: Added car example."
 ModuleInfo "History: Added b2ShapeDef - SetIsSensor and IsSensor methods."
 ModuleInfo "History: Fixed typo in b2ContactListener - Remove()."
+ModuleInfo "History: Added b2World.Refilter() and several missing b2Shape methods."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
 ModuleInfo "History: Added Theo Jansen example."
@@ -232,29 +233,22 @@ Type b2World
 	Rem
 	bbdoc: Take a time Step.
 	about: This performs collision detection, integration, and constraint solution.
-	/// @param timeStep the amount of time To simulate, this should Not vary.
-	/// @param iterations the number of iterations To be used by the constraint solver.
+	<p>Parameters: 
+	<ul>
+	<li><b> timeStep </b> : the amount of time To simulate, this should Not vary. </li>
+	<li><b> iterations </b> : the number of iterations To be used by the constraint solver.</li>
+	</ul>
+	</p>
 	End Rem
 	Method DoStep(timeStep:Float, iterations:Int)
 		bmx_b2world_dostep(b2ObjectPtr, timeStep, iterations)
 	End Method
 
 	Rem
-	bbdoc:  Query the world For all shapes that potentially overlap the
-	/// provided AABB. You provide a shape pointer buffer of specified
-	/// size. The number of shapes found is returned.
-	/// @param aabb the query box.
-	/// @param shapes a user allocated shape pointer array of size maxCount (Or greater).
-	/// @param maxCount the capacity of the shapes array.
-	/// @Return the number of shapes found in aabb.
-	End Rem
-	'int32 Query(Const b2AABB& aabb, b2Shape** shapes, int32 maxCount);
-
-	Rem
-	bbdoc: Get the world shape list. These shapes May Or May Not be attached To bodies.
-	/// With the returned shape, use b2Shape::GetWorldNext To get the Next shape in
-	/// the world list. A Null shape indicates the End of the list.
-	/// @Return the head of the world shape list.
+	bbdoc: Get the world body list. 
+	returns: The head of the world body list. 
+	about: With the returned body, use b2Body::GetNext to get the next body in the world list. A NULL body indicates
+	the end of the list. 
 	End Rem
 	Method GetBodyList:b2Body()
 		Return b2Body._create(bmx_b2world_getbodylist(b2ObjectPtr))
@@ -262,10 +256,9 @@ Type b2World
 
 	Rem
 	bbdoc: Get the world joint list.
-	returns: The head of the world shape list.
-	about: These shapes may or may not be attached to bodies. With the returned shape, use 
-	b2Shape::GetWorldNext To get the next shape in the world list. A Null shape indicates the end of the
-	list.
+	returns: The head of the world joint list. 
+	about: With the returned joint, use b2Joint::GetNext to get the next joint in the world list. A NULL joint indicates
+	the end of the list.
 	End Rem
 	Method GetJointList:b2Joint()
 		Return b2Joint._create(bmx_b2world_getjointlist(b2ObjectPtr))
@@ -341,6 +334,14 @@ Type b2World
 	End Rem
 	Method Query:Int(aabb:b2AABB, shapes:b2Shape[])
 		Return bmx_b2world_query(b2ObjectPtr, aabb.b2ObjectPtr, shapes)
+	End Method
+	
+	Rem
+	bbdoc: Re-filter a shape.
+	about: This re-runs contact filtering on a shape.
+	End Rem
+	Method Refilter(shape:b2Shape)
+		bmx_b2world_refilter(b2ObjectPtr, shape.b2ObjectPtr)
 	End Method
 	
 	Function _setShape(shapes:b2Shape[], index:Int, shape:Byte Ptr)
@@ -1387,6 +1388,13 @@ Type b2Shape
 	End Method
 	
 	Rem
+	bbdoc: Sets the user data.
+	End Rem
+	Method SetUserData(data:Object)
+		userData = data
+	End Method
+	
+	Rem
 	bbdoc: Get the next shape in the parent body's shape list. 
 	End Rem
 	Method GetNext:b2Shape()
@@ -1399,6 +1407,71 @@ Type b2Shape
 	End Rem
 	Method TestPoint:Int(xf:b2XForm, p:b2Vec2)
 		Return bmx_b2shape_testpoint(b2ObjectPtr, xf.b2ObjectPtr, p.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the contact filtering data. 
+	End Rem
+	Method GetFilterData:b2FilterData()
+		Return b2FilterData._create(bmx_b2shape_getfilterdata(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Set the contact filtering data. 
+	about: You must call b2World::Refilter to correct existing contacts/non-contacts. 
+	End Rem
+	Method SetFilterData(data:b2FilterData)
+		bmx_b2shape_setfilterdata(b2ObjectPtr, data.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+'	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)''
+'	End Method
+	
+	Rem
+	bbdoc: Get the maximum radius about the parent body's center of mass. 
+	End Rem
+	Method GetSweepRadius:Float()
+		Return bmx_b2shape_getsweepradius(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the coefficient of friction. 
+	End Rem
+	Method GetFriction:Float()
+		Return bmx_b2shape_getfriction(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the coefficient of restitution. 
+	End Rem
+	Method GetRestitution:Float()
+		Return bmx_b2shape_getrestitution(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Given a transform, compute the associated axis aligned bounding box for this shape.
+	End Rem
+	Method ComputeAABB(aabb:b2AABB, xf:b2XForm)
+		bmx_b2shape_computeaabb(b2ObjectPtr, aabb.b2ObjectPtr, xf.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Given two transforms, compute the associated swept axis aligned bounding box for this shape. 
+	End Rem
+	Method ComputeSweptAABB(aabb:b2AABB, xf1:b2XForm, xf2:b2XForm)
+		bmx_b2shape_computesweptaabb(b2ObjectPtr, aabb.b2ObjectPtr, xf1.b2ObjectPtr, xf2.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Compute the mass properties of this shape using its dimensions and density. 
+	returns: the mass data for this shape.
+	about: The inertia tensor is computed about the local origin, not the centroid. 
+	End Rem
+	Method ComputeMass(data:b2MassData)
+		bmx_b2shape_computemass(b2ObjectPtr, data.b2ObjectPtr)
 	End Method
 	
 End Type
