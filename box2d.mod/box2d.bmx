@@ -33,6 +33,7 @@ ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to box2d svn (rev 168)"
 ModuleInfo "History: Added car example."
+ModuleInfo "History: Added b2ShapeDef - SetIsSensor and IsSensor methods."
 ModuleInfo "History: Fixed typo in b2ContactListener - Remove()."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
@@ -1856,6 +1857,21 @@ Type b2ShapeDef
 	End Rem
 	Method GetFilter:b2FilterData()
 		Return b2FilterData._create(bmx_b2shapedef_getfilter(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: A sensor shape collects contact information but never generates a collision response.
+	End Rem
+	Method SetIsSensor(sensor:Int)
+		bmx_b2shapedef_setissensor(b2ObjectPtr, sensor)
+	End Method
+	
+	Rem
+	bbdoc: Returns True if this shape is a sensor.
+	about: A sensor shape collects contact information but never generates a collision response.
+	End Rem
+	Method IsSensor:Int()
+		Return bmx_b2shapedef_issensor(b2ObjectPtr)
 	End Method
 	
 End Type

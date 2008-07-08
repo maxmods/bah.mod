@@ -126,6 +126,8 @@ extern "C" {
 	void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density);
 	void bmx_b2shapedef_setfilter(b2ShapeDef * def, MaxFilterData* filterData);
 	MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def);
+	void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor);
+	bool bmx_b2shapedef_issensor(b2ShapeDef * def);
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
@@ -815,6 +817,14 @@ void bmx_b2shapedef_setfilter(b2ShapeDef * def, MaxFilterData * filterData) {
 
 MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def) {
 	return new MaxFilterData(def->filter);
+}
+
+void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor) {
+	def->isSensor = sensor;
+}
+
+bool bmx_b2shapedef_issensor(b2ShapeDef * def) {
+	return def->isSensor;
 }
 
 // *****************************************************
