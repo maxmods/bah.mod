@@ -37,6 +37,8 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
 ?
 
+?Not Linux
+
 Import BRL.Stream
 Import "common.bmx"
 
@@ -318,6 +320,7 @@ Type TBassChannel
 	</p>
 	End Rem
 	Method GetTags:String[](tags:Int)
+		Return bmx_bass_channelgettags(handle, tags)
 	End Method
 	
 	Rem
@@ -807,6 +810,90 @@ Type TBassChannel
 			Varptr iangle, Varptr oangle, Varptr outvol)
 	End Method
 
+	Rem
+	bbdoc: Retrieves the immediate sample data (or an FFT representation of it) of a stream or MOD music channel.
+	returns: If an error occurs, -1 is returned, use BASS_ErrorGetCode to get the error code. When requesting FFT data, the number of bytes read from the channel (to perform the FFT) is returned. When requesting sample data, the number of bytes written to buffer will be returned (not necessarily the same as the number of bytes read when using the BASS_DATA_FLOAT flag). When using the BASS_DATA_AVAILABLE flag, the number of bytes in the channel's buffer is returned.
+	about: Can also be used with a recording channel.
+	<p>
+	This method can only return as much data as has been written to the channel's buffer, so it may not always
+	be possible to get the amount of data requested, especially if you request large amounts. If you really do
+	need large amounts, then increase the buffer lengths (BASS_CONFIG_BUFFER). The BASS_DATA_AVAILABLE flag
+	can be used to check how much data a channel's buffer contains at any time, including when stopped or stalled.
+	</p>
+	<p>
+	When requesting data from a "decoding channel" (BASS_STREAM_DECODE or BASS_MUSIC_DECODE was used at creation),
+	there are no intermediate buffers involved, so as much data as is available can be decoded in one go.
+	</p>
+	<p>
+	When retrieving sample data, 8-bit samples are unsigned (0 to 255) , 16-bit samples are signed (-32768 to 32767),
+	 32-bit floating-point samples range from -1 to +1 (not clipped, so can actually be outside this range).
+	That's unless the BASS_DATA_FLOAT flag is used, in which case, the sample data will be converted to 32-bit
+	floating-point (if it isn't already).
+	</p>
+	<p>
+	When requesting FFT data, floating-point values ranging from 0 to 1 are returned. Only the first half of the
+	FFT is useful, so that's what BASS returns. For example, with a 2048 sample FFT, it will return 1024 values;
+	the 1st value being the DC component, the 2nd being the amplitude at 1/2048 of the channel's sample rate, then
+	the amplitude at 2/2048, 3/2048, etc... A Hann window is applied to the sample data to reduce leakage, unless
+	the BASS_DATA_FFT_NOWINDOW flag is used.
+	</p>
+	<p>
+	Channels that have 2 or more sample channels (ie. stereo or above) may have FFT performed on each individual
+	channel, using the BASS_DATA_FFT_INDIVIDUAL flag. Without this flag, all the channels are combined, and a
+	single mono FFT is performed. Performing the extra individual FFTs of course increases the amount of processing
+	required. The return values are interleaved in the same order as the channel's sample data, eg. stereo = left,
+	right,left,etc...
+	</p>
+	<p>
+	This method is most useful if you wish to visualize (eg. spectrum analyze) the sound.
+	</p>
+	End Rem
+	Method GetData:Int(buffer:Byte Ptr, length:Int)
+		Return BASS_ChannelGetData(handle, buffer, length)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves the device that a channel is using.
+	returns: If successful, the device number is returned, else -1 is returned. Use BASS_ErrorGetCode to get the error code.
+	End Rem
+	Method GetDevice:Int()
+		Return BASS_ChannelGetDevice(handle)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetInfo:TBassChannelInfo()
+	End Method
+	
+	Rem
+	bbdoc: Locks a stream, MOD music or recording channel to the current thread.
+	about: Locking a channel prevents other threads from performing most functions on it, including buffer updates.
+	Other threads wanting to access a locked channel will block until it is unlocked, so a channel should only be
+	locked very briefly. A channel must be unlocked in the same thread that it was locked.
+	End Rem
+	Method Lock:Int(value:Int)
+		Return BASS_ChannelLock(handle, value)
+	End Method
+	
+	Rem
+	bbdoc: Translates a time (seconds) position into bytes, based on a channel's format.
+	returns: If successful, then the translated length is returned, else -1 is returned. Use BASS_ErrorGetCode to get the error code.
+	about: The translation is based on the channel's initial sample rate, when it was created.
+	<p>
+	The return value is rounded down to the position of the nearest sample.
+	</p>
+	End Rem
+	Method Seconds2Bytes:Long(pos:Double)
+		Local bytes:Long
+		bmx_bass_channelseconds2bytes(handle, Varptr bytes, pos)
+		Return bytes
+	End Method
+	
+	' TODO
+	Method SetSync()
+	End Method
+	
 End Type
 
 Rem
@@ -1192,6 +1279,9 @@ Type TBassSample
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TBassSampleInfo
 
 	Field sampleinfoPtr:Byte Ptr
@@ -1785,6 +1875,7 @@ Type TBass
 		Return BASS_SetEAXParameters(env, vol, decay, damp)
 	End Function
 ?
+?Not Linux
 	Rem
 	bbdoc: Retrieves the factors that affect the calculations of 3D sound. 
 	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
@@ -1931,7 +2022,7 @@ Type TBassRecord Extends TBassChannel
 	Rem
 	bbdoc: 
 	End Rem
-	Function GetDevice:Int()
+	Function GetRecordDevice:Int()
 		Return BASS_RecordGetDevice()
 	End Function
 	
@@ -1973,7 +2064,7 @@ Type TBassRecord Extends TBassChannel
 	Rem
 	bbdoc: 
 	End Rem
-	Function GetInfo:TBassRecordInfo()
+	Function GetRecordInfo:TBassRecordInfo()
 		Return TBassRecordInfo._create(bmx_bass_recordgetinfo())
 	End Function
 	
@@ -2139,3 +2230,5 @@ Type TBassCoreFXFactory Extends TBassFXFactory
 
 End Type
 
+
+?

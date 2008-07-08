@@ -20,6 +20,8 @@
 ' 
 SuperStrict
 
+Import BRL.Blitz
+
 ?win32
 Import "lib/win32/bass.lib"
 ?macos
@@ -51,6 +53,8 @@ Extern
 	Function bmx_bass_channelgetlength(handle:Int, length:Long Ptr, mode:Int)
 	Function bmx_bass_channelgetposition(handle:Int, pos:Long Ptr, mode:Int)
 	Function bmx_bass_channelgetpositionlowhigh(handle:Int, pos:Long Ptr, mode:Int, low:Int Ptr, high:Int Ptr)
+	Function bmx_bass_channelseconds2bytes(handle:Int, bytes:Long Ptr, pos:Double)
+	Function bmx_bass_channelgettags:String[](handle:Int, tags:Int)
 
 	Function bmx_bass_streamgetfileposition(handle:Int, pos:Long Ptr, mode:Int)
 	Function bmx_bass_streamcreatetstream:Int(handle:Object, system:Int, flags:Int)
@@ -136,6 +140,9 @@ Extern
 			oangle:Int, outvol:Float)
 	Function BASS_ChannelGet3DAttributes:Int(handle:Int, mode:Int Ptr, minDist:Float Ptr, maxDist:Float Ptr, ..
 		iangle:Int Ptr, oangle:Int Ptr, outvol:Float Ptr)
+	Function BASS_ChannelGetData:Int(handle:Int, buffer:Byte Ptr, length:Int)
+	Function BASS_ChannelGetDevice:Int(handle:Int)
+	Function BASS_ChannelLock:Int(handle:Int, value:Int)
 
 	Function BASS_StreamCreateFile:Int(mem:Int, filename:Byte Ptr, offset:Long, length:Long, flags:Int)
 	Function BASS_StreamFree:Int(handle:Int)

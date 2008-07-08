@@ -24,6 +24,8 @@
 
 extern "C" {
 
+#include "blitz.h"
+
 	void _bah_bass_TBassStream__fileCloseProc(void * obj);
 	void _bah_bass_TBassStream__fileLenProc(void * obj, QWORD * len);
 	DWORD _bah_bass_TBassStream__fileReadProc(void * buffer, DWORD length, void * obj);
@@ -49,6 +51,8 @@ extern "C" {
 	DWORD bmx_bass_channelgetlevel(DWORD handle, DWORD * left, DWORD * right);
 	void bmx_bass_channelgetposition(DWORD handle, QWORD * pos, DWORD mode);
 	void bmx_bass_channelgetpositionlowhigh(DWORD handle, QWORD * pos, DWORD mode, DWORD * low, DWORD * high);
+	void bmx_bass_channelseconds2bytes(DWORD handle, QWORD * bytes, double pos);
+	BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags);
 
 	//HSTREAM bmx_bass_streamcreatefile(filename:Byte Ptr, offset:Int, length:Int, flags:Int)
 	void bmx_bass_streamgetfileposition(DWORD handle, QWORD * pos, DWORD mode);
@@ -176,6 +180,43 @@ void bmx_bass_channelgetpositionlowhigh(DWORD handle, QWORD * pos, DWORD mode, D
 	*pos = BASS_ChannelGetPosition(handle, mode);
 	*low = LOWORD(*pos);
 	*high = HIWORD(*pos);
+}
+
+void bmx_bass_channelseconds2bytes(DWORD handle, QWORD * bytes, double pos) {
+	*bytes = BASS_ChannelSeconds2Bytes(handle, pos);
+}
+
+BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
+
+	const char * text = BASS_ChannelGetTags(handle, tags);
+	
+	if (text) {
+		int count = 0;
+		const char * current = text;
+		
+		while (*current) {
+			current += strlen(current) + 1;
+			count++;
+		}
+		
+		BBArray * p = bbArrayNew1D("$", count);
+		BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+		
+		count = 0;
+		current = text;
+		while (*current) {
+			s[count] = bbStringFromCString( current );
+			BBRETAIN( s[count] );
+
+			current += strlen(current) + 1;
+			count++;
+		}
+		
+		return p;
+	
+	} else {
+		return &bbEmptyArray;
+	}
 }
 
 // *************************************************
