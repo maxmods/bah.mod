@@ -143,6 +143,7 @@ Extern
 	Function BASS_ChannelGetData:Int(handle:Int, buffer:Byte Ptr, length:Int)
 	Function BASS_ChannelGetDevice:Int(handle:Int)
 	Function BASS_ChannelLock:Int(handle:Int, value:Int)
+	Function BASS_ChannelSetPosition:Int(handle:Int, pos:Long, mode:Int)
 
 	Function BASS_StreamCreateFile:Int(mem:Int, filename:Byte Ptr, offset:Long, length:Long, flags:Int)
 	Function BASS_StreamFree:Int(handle:Int)

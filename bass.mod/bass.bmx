@@ -894,6 +894,35 @@ Type TBassChannel
 	Method SetSync()
 	End Method
 	
+	Rem
+	bbdoc: Sets the playback position of a sample, MOD music, or stream. 
+	about: Setting the position of a MOD music in bytes (other than 0) requires that the BASS_MUSIC_PRESCAN flag was
+	used in the BASS_MusicLoad call. When setting the position in orders and rows, the channel's byte position (as
+	reported by BASS_ChannelGetPosition) is reset to 0. This is because it is not possible to get the byte position
+	of an order/row position; it is possible that a position may never be played in the normal course of events, or
+	it may be played multiple times. 
+	<p>
+	When setting the position of a MOD music, and the BASS_MUSIC_POSRESET flag is active, all notes that were playing
+	before the position changed will be stopped. Otherwise, the notes will continue playing until they are stopped in
+	the MOD music. When setting the position in bytes, the BPM, speed and global volume are updated to what they would
+	normally be at the new position. Otherwise they are left as they were prior to the position change, unless the seek
+	position is 0 (the start), in which case they are also reset to the starting values (with the BASS_MUSIC_POSRESET
+	flag). When the BASS_MUSIC_POSRESETEX flag is active, the BPM, speed and global volume are reset with every seek.
+	</p>
+	<p>
+	For MP3/MP2/MP1 streams, if the BASS_STREAM_PRESCAN flag was used when BASS_StreamCreateFile was called to create the
+	stream, seeking will be accurate to the exact requested byte. Otherwise it will be an approximation, which is generally
+	still quite accurate. 
+	</p>
+	<p>
+	Seeking in internet file (and "buffered" user file) streams is possible once the download has reached the requested
+	position, so long as the file is not being streamed in blocks (BASS_STREAM_BLOCK flag). 
+	</p>
+	End Rem
+	Method SetPosition:Int(pos:Long, mode:Int)
+		Return BASS_ChannelSetPosition(handle, pos, mode)
+	End Method
+	
 End Type
 
 Rem
