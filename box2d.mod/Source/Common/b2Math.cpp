@@ -22,6 +22,34 @@ const b2Vec2 b2Vec2_zero(0.0f, 0.0f);
 const b2Mat22 b2Mat22_identity(1.0f, 0.0f, 0.0f, 1.0f);
 const b2XForm b2XForm_identity(b2Vec2_zero, b2Mat22_identity);
 
+/// Solve A * x = b, where b is a column vector. This is more efficient
+/// than computing the inverse in one-shot cases.
+b2Vec3 b2Mat33::Solve33(const b2Vec3& b) const
+{
+	float32 det = b2Dot(col1, b2Cross(col2, col3));
+	b2Assert(det != 0.0f);
+	det = 1.0f / det;
+	b2Vec3 x;
+	x.x = det * b2Dot(b, b2Cross(col2, col3));
+	x.y = det * b2Dot(col1, b2Cross(b, col3));
+	x.z = det * b2Dot(col1, b2Cross(col2, b));
+	return x;
+}
+
+/// Solve A * x = b, where b is a column vector. This is more efficient
+/// than computing the inverse in one-shot cases.
+b2Vec2 b2Mat33::Solve22(const b2Vec2& b) const
+{
+	float32 a11 = col1.x, a12 = col2.x, a21 = col1.y, a22 = col2.y;
+	float32 det = a11 * a22 - a12 * a21;
+	b2Assert(det != 0.0f);
+	det = 1.0f / det;
+	b2Vec2 x;
+	x.x = det * (a22 * b.x - a12 * b.y);
+	x.y = det * (a11 * b.y - a21 * b.x);
+	return x;
+}
+
 void b2Sweep::GetXForm(b2XForm* xf, float32 t) const
 {
 	// center = p + R * localCenter

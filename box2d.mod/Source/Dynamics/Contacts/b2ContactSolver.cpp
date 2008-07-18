@@ -158,11 +158,12 @@ b2ContactSolver::b2ContactSolver(const b2TimeStep& step, b2Contact** contacts, i
 					// K is safe to invert.
 					cc->K.col1.Set(k11, k12);
 					cc->K.col2.Set(k12, k22);
-					cc->normalMass = cc->K.Invert();
+					cc->normalMass = cc->K.GetInverse();
 				}
 				else
 				{
 					// The constraints are redundant, just use one.
+					// TODO_ERIN use deepest?
 					cc->pointCount = 1;
 				}
 			}
@@ -535,6 +536,8 @@ void b2ContactSolver::FinalizeVelocityConstraints()
 	}
 }
 
+#if 1
+// Sequential solver.
 bool b2ContactSolver::SolvePositionConstraints(float32 baumgarte)
 {
 	float32 minSeparation = 0.0f;
@@ -548,7 +551,7 @@ bool b2ContactSolver::SolvePositionConstraints(float32 baumgarte)
 		float32 invI1 = b1->m_mass * b1->m_invI;
 		float32 invMass2 = b2->m_mass * b2->m_invMass;
 		float32 invI2 = b2->m_mass * b2->m_invI;
-		
+
 		b2Vec2 normal = c->normal;
 
 		// Solver normal constraints
@@ -591,3 +594,135 @@ bool b2ContactSolver::SolvePositionConstraints(float32 baumgarte)
 	// push the separation above -b2_linearSlop.
 	return minSeparation >= -1.5f * b2_linearSlop;
 }
+
+#else
+
+// Block solver. Doesn't seem that great.
+void b2ContactSolver::SolvePositionConstraints(float32 baumgarte)
+{
+	for (int32 i = 0; i < m_constraintCount; ++i)
+	{
+		b2ContactConstraint* c = m_constraints + i;
+		b2Body* b1 = c->body1;
+		b2Body* b2 = c->body2;
+		float32 invMass1 = b1->m_mass * b1->m_invMass;
+		float32 invI1 = b1->m_mass * b1->m_invI;
+		float32 invMass2 = b2->m_mass * b2->m_invMass;
+		float32 invI2 = b2->m_mass * b2->m_invI;
+
+		b2Vec2 normal = c->normal;
+		bool singlePoint = c->pointCount == 1;
+
+		if (c->pointCount == 2)
+		{
+			b2ContactConstraintPoint* ccp1 = c->points + 0;
+			b2ContactConstraintPoint* ccp2 = c->points + 1;
+
+			b2Vec2 r11 = b2Mul(b1->GetXForm().R, ccp1->localAnchor1 - b1->GetLocalCenter());
+			b2Vec2 r12 = b2Mul(b2->GetXForm().R, ccp1->localAnchor2 - b2->GetLocalCenter());
+
+			b2Vec2 r21 = b2Mul(b1->GetXForm().R, ccp2->localAnchor1 - b1->GetLocalCenter());
+			b2Vec2 r22 = b2Mul(b2->GetXForm().R, ccp2->localAnchor2 - b2->GetLocalCenter());
+
+			b2Vec2 p11 = b1->m_sweep.c + r11;
+			b2Vec2 p12 = b2->m_sweep.c + r12;
+			b2Vec2 dp1 = p12 - p11;
+
+			b2Vec2 p21 = b1->m_sweep.c + r21;
+			b2Vec2 p22 = b2->m_sweep.c + r22;
+			b2Vec2 dp2 = p22 - p21;
+
+			float32 rn11 = b2Cross(r11, normal);
+			float32 rn12 = b2Cross(r12, normal);
+			float32 rn21 = b2Cross(r21, normal);
+			float32 rn22 = b2Cross(r22, normal);
+
+			float32 k11 = invMass1 + invMass2 + invI1 * rn11 * rn11 + invI2 * rn12 * rn12;
+			float32 k22 = invMass1 + invMass2 + invI1 * rn21 * rn21 + invI2 * rn22 * rn22;
+			float32 k12 = invMass1 + invMass2 + invI1 * rn11 * rn21 + invI2 * rn12 * rn22;
+
+			// Ensure a reasonable condition number.
+			const float32 k_maxConditionNumber = 100.0f;
+			if (k11 * k11 < k_maxConditionNumber * (k11 * k22 - k12 * k12))
+			{
+				b2Mat22 K;
+				K.col1.Set(k11, k12);
+				K.col2.Set(k12, k22);
+
+				float32 separation1 = b2Dot(dp1, normal) + ccp1->separation;
+				float32 separation2 = b2Dot(dp2, normal) + ccp2->separation;
+
+				b2Vec2 C;
+				C.x = baumgarte * (separation1 + b2_linearSlop);
+				C.y = baumgarte * (separation2 + b2_linearSlop);
+
+				b2Vec2 f = K.Solve(-C);
+
+				if (f.x < 0.0f && f.y < 0.0f)
+				{
+					f.SetZero();
+				}
+				else if (f.x < 0.0f)
+				{
+					f.x = 0.0f;
+					f.y = -C.y / k22;
+				}
+				else if (f.y < 0.0f)
+				{
+					f.x = -C.x / k11;
+					f.y = 0.0f;
+				}
+
+				b2Vec2 P1 = f.x * normal;
+				b2Vec2 P2 = f.y * normal;
+
+				b1->m_sweep.c -= invMass1 * (P1 + P2);
+				b1->m_sweep.a -= invI1 * (b2Cross(r11, P1) + b2Cross(r21, P2));
+				b1->SynchronizeTransform();
+
+				b2->m_sweep.c += invMass2 * (P1 + P2);
+				b2->m_sweep.a += invI2 * (b2Cross(r12, P1) + b2Cross(r22, P2));
+				b2->SynchronizeTransform();
+			}
+			else
+			{
+				// The constraints are linearly dependent, so just use the first one.
+				// This my cause a problem if the deepest one is ignored.
+				singlePoint = true;
+			}
+		}
+
+		if (singlePoint)
+		{
+			b2ContactConstraintPoint* ccp = c->points + 0;
+
+			b2Vec2 r1 = b2Mul(b1->GetXForm().R, ccp->localAnchor1 - b1->GetLocalCenter());
+			b2Vec2 r2 = b2Mul(b2->GetXForm().R, ccp->localAnchor2 - b2->GetLocalCenter());
+
+			b2Vec2 p1 = b1->m_sweep.c + r1;
+			b2Vec2 p2 = b2->m_sweep.c + r2;
+			b2Vec2 dp = p2 - p1;
+
+			// Approximate the current separation.
+			float32 separation = b2Dot(dp, normal) + ccp->separation;
+
+			// Prevent large corrections and allow slop.
+			float32 C = baumgarte * b2Clamp(separation + b2_linearSlop, -b2_maxLinearCorrection, 0.0f);
+
+			// Compute normal impulse
+			float32 impulse = -ccp->equalizedMass * C;
+
+			b2Vec2 P = impulse * normal;
+
+			b1->m_sweep.c -= invMass1 * P;
+			b1->m_sweep.a -= invI1 * b2Cross(r1, P);
+			b1->SynchronizeTransform();
+
+			b2->m_sweep.c += invMass2 * P;
+			b2->m_sweep.a += invI2 * b2Cross(r2, P);
+			b2->SynchronizeTransform();
+		}
+	}
+}
+
+#endif

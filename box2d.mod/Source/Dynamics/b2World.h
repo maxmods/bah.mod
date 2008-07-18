@@ -40,9 +40,9 @@ struct b2TimeStep
 	float32 dt;			// time step
 	float32 inv_dt;		// inverse time step (0 if dt == 0).
 	float32 dtRatio;	// dt * inv_dt0
-	int32 maxIterations;
+	int32 velocityIterations;
+	int32 positionIterations;
 	bool warmStarting;
-	bool positionCorrection;
 };
 
 /// The world class manages all physics entities, dynamic simulation,
@@ -105,8 +105,9 @@ public:
 	/// Take a time step. This performs collision detection, integration,
 	/// and constraint solution.
 	/// @param timeStep the amount of time to simulate, this should not vary.
-	/// @param iterations the number of iterations to be used by the constraint solver.
-	void Step(float32 timeStep, int32 iterations);
+	/// @param velocityIterations for the velocity constraint solver.
+	/// @param positionIterations for the position constraint solver.
+	void Step(float32 timeStep, int32 velocityIterations, int32 positionIterations);
 
 	/// Query the world for all shapes that potentially overlap the
 	/// provided AABB. You provide a shape pointer buffer of specified
@@ -135,9 +136,6 @@ public:
 
 	/// Enable/disable warm starting. For testing.
 	void SetWarmStarting(bool flag) { m_warmStarting = flag; }
-
-	/// Enable/disable position correction. For testing.
-	void SetPositionCorrection(bool flag) { m_positionCorrection = flag; }
 
 	/// Enable/disable continuous physics. For testing.
 	void SetContinuousPhysics(bool flag) { m_continuousPhysics = flag; }
@@ -207,12 +205,9 @@ private:
 	b2ContactListener* m_contactListener;
 	b2DebugDraw* m_debugDraw;
 
+	// This is used to compute the time step ratio to
+	// support a variable time step.
 	float32 m_inv_dt0;
-
-	int32 m_positionIterationCount;
-
-	// This is for debugging the solver.
-	bool m_positionCorrection;
 
 	// This is for debugging the solver.
 	bool m_warmStarting;

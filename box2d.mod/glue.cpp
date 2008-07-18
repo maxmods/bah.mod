@@ -78,7 +78,6 @@ extern "C" {
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
 	b2Body * bmx_b2world_getgroundbody(b2World * world);
 	void bmx_b2world_setwarmstarting(b2World * world, bool flag);
-	void bmx_b2world_setpositioncorrection(b2World * world, bool flag);
 	void bmx_b2world_setcontinuousphysics(b2World * world, bool flag);
 	void bmx_b2world_validate(b2World * world);
 	void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw);
@@ -120,7 +119,7 @@ extern "C" {
 	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
-	void bmx_b2world_dostep(b2World * world, float32 timeStep, int iterations);
+	void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations);
 
 	void bmx_b2shapedef_setfriction(b2ShapeDef * def, float32 friction);
 	void bmx_b2shapedef_setrestitution(b2ShapeDef * def, float32 restitution);
@@ -305,8 +304,8 @@ extern "C" {
 	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag);
 	b2Vec2 * bmx_b2revolutejoint_getanchor1(b2RevoluteJoint * joint);
 	b2Vec2 * bmx_b2revolutejoint_getanchor2(b2RevoluteJoint * joint);
-	b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint);
-	float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint);
+	b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint, float32 inv_dt);
+	float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint, float32 inv_dt);
 	float32 bmx_b2revolutejoint_getjointangle(b2RevoluteJoint * joint);
 	float32 bmx_b2revolutejoint_getjointspeed(b2RevoluteJoint * joint);
 
@@ -324,8 +323,8 @@ extern "C" {
 	float32 bmx_b2prismaticjoint_getmotorforce(b2PrismaticJoint * joint);
 	b2Vec2 * bmx_b2prismaticjoint_getanchor1(b2PrismaticJoint * joint);
 	b2Vec2 * bmx_b2prismaticjoint_getanchor2(b2PrismaticJoint * joint);
-	b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint);
-	float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint);
+	b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint, float32 inv_dt);
+	float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint, float32 inv_dt);
 	float32 bmx_b2prismaticjoint_getjointtranslation(b2PrismaticJoint * joint);
 
 	b2Vec2 * bmx_b2cross(b2Vec2 * a, float32 s);
@@ -383,22 +382,22 @@ extern "C" {
 
 	b2Vec2 * bmx_b2gearjoint_getanchor1(b2GearJoint * joint);
 	b2Vec2 * bmx_b2gearjoint_getanchor2(b2GearJoint * joint);
-	b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint);
-	float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint);
+	b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint, float32 inv_dt);
+	float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint, float32 inv_dt);
 	float32 bmx_b2gearjoint_getratio(b2GearJoint * joint);
 
 	b2Vec2 * bmx_b2mousejoint_getanchor1(b2MouseJoint * joint);
 	b2Vec2 * bmx_b2mousejoint_getanchor2(b2MouseJoint * joint);
-	b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint);
-	float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint);
+	b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint, float32 inv_dt);
+	float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint, float32 inv_dt);
 	void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target);
 	b2Vec2 * bmx_b2mousejoint_gettarget(b2MouseJoint * joint);
 	b2Vec2 * bmx_b2mousejoint_getlocalanchor(b2MouseJoint * joint);
 
 	b2Vec2 * bmx_b2pulleyjoint_getanchor1(b2PulleyJoint * joint);
 	b2Vec2 * bmx_b2pulleyjoint_getanchor2(b2PulleyJoint * joint);
-	b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint);
-	float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint);
+	b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint, float32 inv_dt);
+	float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint, float32 inv_dt);
 	b2Vec2 * bmx_b2pulleyjoint_getgroundanchor1(b2PulleyJoint * joint);
 	b2Vec2 * bmx_b2pulleyjoint_getgroundanchor2(b2PulleyJoint * joint);
 	float32 bmx_b2pulleyjoint_getlength1(b2PulleyJoint * joint);
@@ -407,8 +406,8 @@ extern "C" {
 
 	b2Vec2 * bmx_b2distancejoint_getanchor1(b2DistanceJoint * joint);
 	b2Vec2 * bmx_b2distancejoint_getanchor2(b2DistanceJoint * joint);
-	b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint);
-	float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint);
+	b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint, float32 inv_dt);
+	float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint, float32 inv_dt);
 
 	b2MouseJointDef * bmx_b2mousejointdef_new();
 	void bmx_b2mousejointdef_settarget(b2MouseJointDef * def, b2Vec2 * target);
@@ -419,8 +418,6 @@ extern "C" {
 	float32 bmx_b2mousejointdef_getfrequencyhz(b2MouseJointDef * def);
 	void bmx_b2mousejointdef_setdampingration(b2MouseJointDef * def, float32 ratio);
 	float32 bmx_b2mousejointdef_getdampingratio(b2MouseJointDef * def);
-	void bmx_b2mousejointdef_settimestep(b2MouseJointDef * def, float32 timeStep);
-	float32 bmx_b2mousejointdef_gettimestep(b2MouseJointDef * def);
 	void bmx_b2mousejointdef_delete(b2MouseJointDef * def);
 
 	b2PulleyJointDef * bmx_b2pulleyjointdef_create();
@@ -629,10 +626,6 @@ void bmx_b2world_setwarmstarting(b2World * world, bool flag) {
 	world->SetWarmStarting(flag);
 }
 
-void bmx_b2world_setpositioncorrection(b2World * world, bool flag) {
-	world->SetPositionCorrection(flag);
-}
-
 void bmx_b2world_setcontinuousphysics(b2World * world, bool flag) {
 	world->SetContinuousPhysics(flag);
 }
@@ -811,8 +804,8 @@ b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep)
 	return new b2World(*worldAABB, *gravity, doSleep);
 }
 
-void bmx_b2world_dostep(b2World * world, float32 timeStep, int iterations) {
-	world->Step(timeStep, iterations);
+void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations) {
+	world->Step(timeStep, velocityIterations, positionIterations);
 }
 
 
@@ -1663,12 +1656,12 @@ b2Vec2 * bmx_b2revolutejoint_getanchor2(b2RevoluteJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2revolutejoint_getreactiontorque(b2RevoluteJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 float32 bmx_b2revolutejoint_getjointangle(b2RevoluteJoint * joint) {
@@ -1738,12 +1731,12 @@ b2Vec2 * bmx_b2prismaticjoint_getanchor2(b2PrismaticJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2prismaticjoint_getreactionforce(b2PrismaticJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2prismaticjoint_getreactiontorque(b2PrismaticJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 float32 bmx_b2prismaticjoint_getjointtranslation(b2PrismaticJoint * joint) {
@@ -1959,12 +1952,12 @@ b2Vec2 * bmx_b2gearjoint_getanchor2(b2GearJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2gearjoint_getreactionforce(b2GearJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2gearjoint_getreactiontorque(b2GearJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 float32 bmx_b2gearjoint_getratio(b2GearJoint * joint) {
@@ -1981,12 +1974,12 @@ b2Vec2 * bmx_b2mousejoint_getanchor2(b2MouseJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2mousejoint_getreactionforce(b2MouseJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2mousejoint_getreactiontorque(b2MouseJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 void bmx_b2mousejoint_settarget(b2MouseJoint * joint, b2Vec2 * target) {
@@ -2011,12 +2004,12 @@ b2Vec2 * bmx_b2pulleyjoint_getanchor2(b2PulleyJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2pulleyjoint_getreactionforce(b2PulleyJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2pulleyjoint_getreactiontorque(b2PulleyJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 b2Vec2 * bmx_b2pulleyjoint_getgroundanchor1(b2PulleyJoint * joint) {
@@ -2049,12 +2042,12 @@ b2Vec2 * bmx_b2distancejoint_getanchor2(b2DistanceJoint * joint) {
 	return bmx_b2vec2_new(joint->GetAnchor2());
 }
 
-b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint) {
-	return bmx_b2vec2_new(joint->GetReactionForce());
+b2Vec2 * bmx_b2distancejoint_getreactionforce(b2DistanceJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
 }
 
-float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint) {
-	return joint->GetReactionTorque();
+float32 bmx_b2distancejoint_getreactiontorque(b2DistanceJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
 }
 
 // *****************************************************
@@ -2093,14 +2086,6 @@ void bmx_b2mousejointdef_setdampingration(b2MouseJointDef * def, float32 ratio) 
 
 float32 bmx_b2mousejointdef_getdampingratio(b2MouseJointDef * def) {
 	return def->dampingRatio;
-}
-
-void bmx_b2mousejointdef_settimestep(b2MouseJointDef * def, float32 timeStep) {
-	def->timeStep = timeStep;
-}
-
-float32 bmx_b2mousejointdef_gettimestep(b2MouseJointDef * def) {
-	return def->timeStep;
 }
 
 void bmx_b2mousejointdef_delete(b2MouseJointDef * def) {

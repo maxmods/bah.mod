@@ -34,7 +34,7 @@ Type Pyramid Extends Test
 		sd.SetAsBox(a, a)
 		sd.SetDensity(5)
 
-		Local x:b2Vec2 = New b2Vec2.Create(-10.0, 0.75)
+		Local x:b2Vec2 = New b2Vec2.Create(-10.0, 1.0)
 		Local y:b2Vec2 = New b2Vec2.Create()
 
 		Local deltaX:b2Vec2 = New b2Vec2.Create(0.5625, 2.0)

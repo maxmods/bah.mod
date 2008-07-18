@@ -31,8 +31,11 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.02"
-ModuleInfo "History: Updated to box2d svn (rev 168)"
+ModuleInfo "History: Updated to box2d svn (rev 169)"
+ModuleInfo "History: API CHANGES : DoStep() - changed iteration parameters"
+ModuleInfo "History: API CHANGES : joints - GetReactionForce() And GetReactionTorque() added 'dt' parameter."
 ModuleInfo "History: Added car example."
+ModuleInfo "History: Added revolute example."
 ModuleInfo "History: Added b2ShapeDef - SetIsSensor and IsSensor methods."
 ModuleInfo "History: Fixed typo in b2ContactListener - Remove()."
 ModuleInfo "History: Added b2World.Refilter() and several missing b2Shape methods."
@@ -56,7 +59,6 @@ Type b2World
 	Field contactListener:b2ContactListener
 	Field boundaryListener:b2BoundaryListener
 	Field destructionListener:b2DestructionListener
-
 	Rem
 	bbdoc: Construct a world object. 
 	End Rem
@@ -236,12 +238,13 @@ Type b2World
 	<p>Parameters: 
 	<ul>
 	<li><b> timeStep </b> : the amount of time To simulate, this should Not vary. </li>
-	<li><b> iterations </b> : the number of iterations To be used by the constraint solver.</li>
+	<li><b> velocityIterations </b> : for the velocity constraint solver.</li>
+	<li><b> positionIterations </b> : for the position constraint solver.</li>
 	</ul>
 	</p>
 	End Rem
-	Method DoStep(timeStep:Float, iterations:Int)
-		bmx_b2world_dostep(b2ObjectPtr, timeStep, iterations)
+	Method DoStep(timeStep:Float, velocityIterations:Int, positionIterations:Int)
+		bmx_b2world_dostep(b2ObjectPtr, timeStep, velocityIterations, positionIterations)
 	End Method
 
 	Rem
@@ -269,13 +272,6 @@ Type b2World
 	End Rem
 	Method SetWarmStarting(flag:Int)
 		bmx_b2world_setwarmstarting(b2ObjectPtr, flag)
-	End Method
-
-	Rem
-	bbdoc: Enable/disable position correction. For testing. 
-	End Rem
-	Method SetPositionCorrection(flag:Int)
-		bmx_b2world_setpositioncorrection(b2ObjectPtr, flag)
 	End Method
 
 	Rem
@@ -2690,20 +2686,6 @@ Type b2MouseJointDef Extends b2JointDef
 		Return bmx_b2mousejointdef_getdampingratio(b2ObjectPtr)
 	End Method
 	
-	Rem
-	bbdoc: The time step used in the simulation.
-	end rem
-	Method SetTimeStep(timeStep:Float)
-		bmx_b2mousejointdef_settimestep(b2ObjectPtr, timeStep)
-	End Method
-	
-	Rem
-	bbdoc: Returns the time step used in the simulation.
-	End Rem
-	Method GetTimeStep:Float()
-		Return bmx_b2mousejointdef_gettimestep(b2ObjectPtr)
-	End Method
-
 	Method Delete()
 		If b2ObjectPtr Then
 			bmx_b2mousejointdef_delete(b2ObjectPtr)
@@ -2865,15 +2847,15 @@ Type b2DistanceJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2distancejoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2distancejoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2. 
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2distancejoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2distancejoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 
 End Type
@@ -2903,15 +2885,15 @@ Type b2RevoluteJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2revolutejoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2revolutejoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2. 
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2revolutejoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2revolutejoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 	
 	Rem
@@ -3029,15 +3011,15 @@ Type b2PrismaticJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2prismaticjoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2prismaticjoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2. 
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2prismaticjoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2prismaticjoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 	
 	Rem
@@ -3161,15 +3143,15 @@ Type b2PulleyJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2pulleyjoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2pulleyjoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2. 
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2pulleyjoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2pulleyjoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 	
 	Rem
@@ -3232,15 +3214,15 @@ Type b2MouseJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2mousejoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2mousejoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2. 
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2mousejoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2mousejoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 	
 	Rem
@@ -3299,15 +3281,15 @@ Type b2GearJoint Extends b2Joint
 	Rem
 	bbdoc: Get the reaction force on body2 at the joint anchor. 
 	End Rem
-	Method GetReactionForce:b2Vec2()
-		Return b2Vec2._create(bmx_b2gearjoint_getreactionforce(b2ObjectPtr))
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2gearjoint_getreactionforce(b2ObjectPtr, inv_dt))
 	End Method
 	
 	Rem
 	bbdoc: Get the reaction torque on body2.
 	End Rem
-	Method GetReactionTorque:Float()
-		Return bmx_b2gearjoint_getreactiontorque(b2ObjectPtr)
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2gearjoint_getreactiontorque(b2ObjectPtr, inv_dt)
 	End Method
 	
 	Rem

@@ -49,7 +49,6 @@ Extern
 	Function bmx_b2world_destroybody(handle:Byte Ptr, body:Byte Ptr)
 	Function bmx_b2world_getgroundbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2world_setwarmstarting(handle:Byte Ptr, flag:Int)
-	Function bmx_b2world_setpositioncorrection(handle:Byte Ptr, flag:Int)
 	Function bmx_b2world_setcontinuousphysics(handle:Byte Ptr, flag:Int)
 	Function bmx_b2world_validate(handle:Byte Ptr)
 	Function bmx_b2world_setdebugDraw(handle:Byte Ptr, debugDraw:Byte Ptr)
@@ -91,7 +90,7 @@ Extern
 	Function bmx_b2bodydef_getposition:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2world_create:Byte Ptr(worldAABB:Byte Ptr, gravity:Byte Ptr, doSleep:Int)
-	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, iterations:Int)
+	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, velocityIterations:Int, positionIterations:Int)
 
 	Function bmx_b2shapedef_setfriction(handle:Byte Ptr, friction:Float)
 	Function bmx_b2shapedef_setrestitution(handle:Byte Ptr, restitution:Float)
@@ -273,8 +272,8 @@ Extern
 	Function bmx_b2revolutejoint_enablelimit(handle:Byte Ptr, flag:Int)
 	Function bmx_b2revolutejoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2revolutejoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2revolutejoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2revolutejoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2revolutejoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2revolutejoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 	Function bmx_b2revolutejoint_getjointangle:Float(handle:Byte Ptr)
 	Function bmx_b2revolutejoint_getjointspeed:Float(handle:Byte Ptr)
 
@@ -292,8 +291,8 @@ Extern
 	Function bmx_b2prismaticjoint_getmotorforce:Float(handle:Byte Ptr)
 	Function bmx_b2prismaticjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2prismaticjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2prismaticjoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2prismaticjoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2prismaticjoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2prismaticjoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 	Function bmx_b2prismaticjoint_getjointtranslation:Float(handle:Byte Ptr)
 
 	Function bmx_b2cross:Byte Ptr(a:Byte Ptr, s:Float)
@@ -351,22 +350,22 @@ Extern
 
 	Function bmx_b2gearjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2gearjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2gearjoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2gearjoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2gearjoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2gearjoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 	Function bmx_b2gearjoint_getratio:Float(handle:Byte Ptr)
 
 	Function bmx_b2mousejoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2mousejoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2mousejoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2mousejoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2mousejoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2mousejoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 	Function bmx_b2mousejoint_settarget(handle:Byte Ptr, target:Byte Ptr)
 	Function bmx_b2mousejoint_gettarget:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2mousejoint_getlocalanchor:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2pulleyjoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2pulleyjoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2pulleyjoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2pulleyjoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2pulleyjoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2pulleyjoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 	Function bmx_b2pulleyjoint_getgroundanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2pulleyjoint_getgroundanchor2:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2pulleyjoint_getlength1:Float(handle:Byte Ptr)
@@ -375,8 +374,8 @@ Extern
 
 	Function bmx_b2distancejoint_getanchor1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2distancejoint_getanchor2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2distancejoint_getreactionforce:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2distancejoint_getreactiontorque:Float(handle:Byte Ptr)
+	Function bmx_b2distancejoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2distancejoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
 
 	Function bmx_b2mousejointdef_new:Byte Ptr()
 	Function bmx_b2mousejointdef_settarget(handle:Byte Ptr, target:Byte Ptr)
@@ -387,8 +386,6 @@ Extern
 	Function bmx_b2mousejointdef_getfrequencyhz:Float(handle:Byte Ptr)
 	Function bmx_b2mousejointdef_setdampingration(handle:Byte Ptr, ratio:Float)
 	Function bmx_b2mousejointdef_getdampingratio:Float(handle:Byte Ptr)
-	Function bmx_b2mousejointdef_settimestep(handle:Byte Ptr, timeStep:Float)
-	Function bmx_b2mousejointdef_gettimestep:Float(handle:Byte Ptr)
 	Function bmx_b2mousejointdef_delete(handle:Byte Ptr)
 
 	Function bmx_b2pulleyjointdef_create:Byte Ptr()

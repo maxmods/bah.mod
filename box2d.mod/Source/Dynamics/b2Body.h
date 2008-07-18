@@ -317,8 +317,9 @@ private:
 	uint16 m_flags;
 	int16 m_type;
 
-	b2XForm m_xf;		// the body origin transform
+	int32 m_islandIndex;
 
+	b2XForm m_xf;		// the body origin transform
 	b2Sweep m_sweep;	// the swept motion for CCD
 
 	b2Vec2 m_linearVelocity;

@@ -144,12 +144,12 @@ Type Test
 		m_debugDraw.SetFlags(flags)
 
 		m_world.SetWarmStarting(settings.enableWarmStarting)
-		m_world.SetPositionCorrection(settings.enablePositionCorrection)
+'		m_world.SetPositionCorrection(settings.enablePositionCorrection)
 		m_world.SetContinuousPhysics(settings.enableTOI)
 
 		m_pointCount = 0
 
-		m_world.DoStep(timeStep, settings.iterationCount)
+		m_world.DoStep(timeStep, settings.velocityIterations, settings.positionIterations)
 	
 		m_world.Validate()
 
@@ -313,7 +313,8 @@ End Type
 Type TSettings
 
 	Field hz:Float = 60
-	Field iterationCount:Int = 10
+	Field velocityIterations:Int = 10
+	Field positionIterations:Int = 8
 	Field drawShapes:Int = 1
 	Field drawJoints:Int = 1
 	Field drawCoreShapes:Int
@@ -327,7 +328,6 @@ Type TSettings
 	Field drawCOMs:Int
 	Field drawStats:Int
 	Field enableWarmStarting:Int = 1
-	Field enablePositionCorrection:Int = 1
 	Field enableTOI:Int = 1
 	Field pause:Int
 	Field singleStep:Int

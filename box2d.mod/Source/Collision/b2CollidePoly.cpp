@@ -326,26 +326,28 @@ void b2CollidePolygons(b2Manifold* manifold,
 	np = ClipSegmentToLine(clipPoints2, clipPoints1,  sideNormal, sideOffset2);
 
 	if (np < 2)
+	{
 		return;
-
-	// We are guaranteed to have two contact points.
+	}
 
 	// Now clipPoints2 contains the clipped points.
 	manifold->normal = flip ? -frontNormal : frontNormal;
 
-	b2ManifoldPoint* cp1 = manifold->points + 0;
-	cp1->separation = b2Dot(frontNormal, clipPoints2[0].v) - frontOffset;
-	cp1->localPoint1 = b2MulT(xfA, clipPoints2[0].v);
-	cp1->localPoint2 = b2MulT(xfB, clipPoints2[0].v);
-	cp1->id = clipPoints2[0].id;
-	cp1->id.features.flip = flip;
+	int32 pointCount = 0;
+	for (int32 i = 0; i < b2_maxManifoldPoints; ++i)
+	{
+		float32 separation = b2Dot(frontNormal, clipPoints2[i].v) - frontOffset;
 
-	b2ManifoldPoint* cp2 = manifold->points + 1;
-	cp2->localPoint1 = b2MulT(xfA, clipPoints2[1].v);
-	cp2->localPoint2 = b2MulT(xfB, clipPoints2[1].v);
-	cp2->separation = b2Dot(frontNormal, clipPoints2[1].v) - frontOffset;
-	cp2->id = clipPoints2[1].id;
-	cp2->id.features.flip = flip;
+		if (separation <= 0.0f)
+		{
+			b2ManifoldPoint* cp = manifold->points + pointCount;
+			cp->separation = separation;
+			cp->localPoint1 = b2MulT(xfA, clipPoints2[i].v);
+			cp->localPoint2 = b2MulT(xfB, clipPoints2[i].v);
+			cp->id = clipPoints2[i].id;
+			cp->id.features.flip = flip;
+			++pointCount;
+		}
+	}
 
-	manifold->pointCount = 2;
-}
+	manifold->pointCount = pointCount;}

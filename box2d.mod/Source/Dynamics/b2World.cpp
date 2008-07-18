@@ -43,7 +43,6 @@ b2World::b2World(const b2AABB& worldAABB, const b2Vec2& gravity, bool doSleep)
 	m_contactCount = 0;
 	m_jointCount = 0;
 
-	m_positionCorrection = true;
 	m_warmStarting = true;
 	m_continuousPhysics = true;
 
@@ -318,8 +317,6 @@ void b2World::Refilter(b2Shape* shape)
 // Find islands, integrate and solve constraints, solve position constraints
 void b2World::Solve(const b2TimeStep& step)
 {
-	m_positionIterationCount = 0;
-
 	// Size the island for the worst case.
 	b2Island island(m_bodyCount, m_contactCount, m_jointCount, &m_stackAllocator, m_contactListener);
 
@@ -429,8 +426,7 @@ void b2World::Solve(const b2TimeStep& step)
 			}
 		}
 
-		island.Solve(step, m_gravity, m_positionCorrection, m_allowSleep);
-		m_positionIterationCount = b2Max(m_positionIterationCount, island.m_positionIterationCount);
+		island.Solve(step, m_gravity, m_allowSleep);
 
 		// Post solve cleanup.
 		for (int32 i = 0; i < island.m_bodyCount; ++i)
@@ -733,7 +729,8 @@ void b2World::SolveTOI(const b2TimeStep& step)
 		subStep.dt = (1.0f - minTOI) * step.dt;
 		b2Assert(subStep.dt > B2_FLT_EPSILON);
 		subStep.inv_dt = 1.0f / subStep.dt;
-		subStep.maxIterations = step.maxIterations;
+		subStep.velocityIterations = step.velocityIterations;
+		subStep.positionIterations = step.positionIterations;
 
 		island.SolveTOI(subStep);
 
@@ -795,13 +792,14 @@ void b2World::SolveTOI(const b2TimeStep& step)
 	m_stackAllocator.Free(queue);
 }
 
-void b2World::Step(float32 dt, int32 iterations)
+void b2World::Step(float32 dt, int32 velocityIterations, int32 positionIterations)
 {
 	m_lock = true;
 
 	b2TimeStep step;
 	step.dt = dt;
-	step.maxIterations	= iterations;
+	step.velocityIterations	= velocityIterations;
+	step.positionIterations = positionIterations;
 	if (dt > 0.0f)
 	{
 		step.inv_dt = 1.0f / dt;
@@ -813,7 +811,6 @@ void b2World::Step(float32 dt, int32 iterations)
 
 	step.dtRatio = m_inv_dt0 * dt;
 
-	step.positionCorrection = m_positionCorrection;
 	step.warmStarting = m_warmStarting;
 	
 	// Update contacts.
