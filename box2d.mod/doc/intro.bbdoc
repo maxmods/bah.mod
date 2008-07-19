@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="manual.css" type="text/css">
 <a href="www.box2d.org/"><img src="box2d_logo.gif" align="right" border="0" /></a>
 <p>
 Box2D is a 2D rigid body simulation library for games. It can be used to make objects move in believable ways and make the world seem more interactive. From the game's point of view a physics engine is just a system for procedural animation. Rather than paying (or begging) an animator to move your actors around, you can let Sir Isaac Newton do the directing.
@@ -1005,56 +1006,60 @@ body.SetMassFromShapes()
 Local timeStep:Float = 1.0 / 60.0
 		</pre>
 		<p>
-			In addition to the integrator, Box2D also uses a larger bit
-			of code called a
-			<span class="emphasis">
-				<em>constraint solver</em>
-			</span>
-			. The constraint solver solves all the constraints in the
-			simulation, one at a time. A single constraint can be solved
-			perfectly. However, when we solve one constraint, we
-			slightly disrupt other constraints. To get a good solution,
-			we need to iterate over all constraints a number of times.
-			The suggested iteration count for Box2D is 10. You can tune
-			this number to your liking, just keep in mind that this has
-			a trade-off between speed and accuracy. Using fewer
-			iterations increases performance but accuracy suffers.
-			Likewise, using more iterations decreases performance but
-			improves the quality of your simulation. Here is our chosen
-			iteration count.
+		In addition to the integrator, Box2D also uses a larger bit
+		of code called a <span class="emphasis"><em>constraint solver</em></span>.
+		The constraint solver solves all the constraints in the simulation, one
+		at a time. A single constraint can be solved perfectly. However, when we
+		solve one constraint, we slightly disrupt other constraints. To get a good
+		solution, we need to iterate over all constraints a number of times.
+		</p>
+		<p>
+		There are two phases in the constraint solver: a velocity phase and a
+		position phase. In the velocity phase the solver computes the impulses
+		necessary for the bodies to move correctly. In the position phase the
+		solver adjusts the positions of the bodies to reduce overlap and joint
+		detachment. Each phase has its own iteration count. In addition, the
+		position phase will exit iteraions early if the errors are small.
+		</p>
+		<p>
+		The suggested iteration count for Box2D is 10 for both velocity and
+		position. You can tune this number to your liking, just keep in mind
+		that this has a trade-off between speed and accuracy. Using fewer
+		iterations increases performance but accuracy suffers. Likewise, using
+		more iterations decreases performance but improves the quality of your
+		simulation. For this simple example, we don't need many iterations.
+		Here are our chosen iteration counts.
 		</p>
 		<pre class="programlisting">
-Local iterations:Int = 10
-</pre>
+Local velocityIterations:Int = 8
+Local positionIterations:Int = 1
+		</pre>
 		<p>
-			Note that the time step and the iteration count are
-			completely unrelated. An iteration is not a sub-step. One
-			iteration is a single pass over all the constraints withing
-			a time step. You can have multiple passes over the
-			constraints within a single time step.
+		Note that the time step and the iteration count are completely
+		unrelated. An iteration is not a sub-step. One iteration is a single
+		pass over all the constraints withing a time step. You can have multiple
+		passes over the constraints within a single time step.
 		</p>
 		<p>
-			We are now ready to begin the simulation loop. In your game
-			the simulation loop can be merged with your game loop. In
-			each pass through your game loop you call
-			<tt class="literal">b2World::DoStep</tt>
-			. Just one call is usually enough, depending on your frame
-			rate and your physics time step.
+		We are now ready to begin the simulation loop. In your game the
+		simulation loop can be merged with your game loop. In each pass through
+		your game loop you call <tt class="literal">b2World::Step</tt>. Just
+		one call is usually enough, depending on your frame rate and your
+		physics time step.
 		</p>
 		<p>
-			The Hello World program was designed to be dead simple, so
-			it has no graphical output. Rather that being utterly boring
-			by producing no output, the code prints out the position and
-			rotation of the dynamic body. Yay! Here is the simulation
-			loop that simulates 60 time steps for a total of 1 second of
-			simulated time.
+		The Hello World program was designed to be dead simple, so it has
+		no graphical output. Rather that being utterly boring by producing
+		no output, the code prints out the position and rotation of the dynamic
+		body. Yay! Here is the simulation loop that simulates 60 time steps
+		for a total of 1 second of simulated time.
 		</p>
-		<pre class="programlisting">
+<pre class="programlisting">
 For Local i:Int = 0 Until 60
-	world.DoStep(timeStep, iterations)
+	world.DoStep(timeStep, velocityIterations, positionIterations)
 	Local position:b2Vec2 = body.GetPosition()
 	Local angle:Float = body.GetAngle()
-	printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
+	Print position.X() + " " + position.Y() + " " + angle
 Next
 		</pre>
 	</div>
@@ -1184,11 +1189,15 @@ Next
 			these operations are fast and cause little heap traffic.
 		</p>
 		<p>
-			The
-			<tt class="classname">b2World</tt>
-			class provides factories for you to create bodies, shapes,
-			and joints. This allows Box2D to use the SOA and hide the
-			gory details from you.
+		Since Box2D uses a SOA, you should never 
+		<span class="emphasis"><em>new</em></span>
+		or <span class="emphasis"><em>malloc</em></span>
+		a body, shape, or joint. You do have to allocate a 
+		<tt class="classname">b2World</tt>. The <tt class="classname">b2World</tt> 
+		class provides factories for you to create bodies, shapes, and 
+		joints. This allows Box2D to use the SOA and hide the gory details
+		from you. Never, ever, call <tt class="literal">delete</tt> or 
+		<tt class="literal">free</tt> on a body, shape, or joint.
 		</p>
 		<p>
 			While executing a time step, Box2D needs some temporary
@@ -2217,7 +2226,8 @@ dynamicBody = NULL
 			shapes to the ground body.
 		</p>
 		<pre class="programlisting">
-Local ground:b2Body = myWorld.GetGroundBody() ... build a joint using the ground body ...
+Local ground:b2Body = myWorld.GetGroundBody()
+... build a joint using the ground body ...
 		</pre>
 	</div>
 	<div class="sect1" lang="en">
@@ -3533,9 +3543,8 @@ jointDef.SetRatio(2.0 * Pi / myLength)
 				</div>
 			</div>
 			<p>
-				The mouse joint is used in the testbed to manipulate
-				bodies with the mouse. Please see the testbed and
-				b2MouseJoint.h for details.
+				The mouse joint is used in the examples to manipulate
+				bodies with the mouse.
 			</p>
 		</div>
 	</div>
@@ -3558,12 +3567,7 @@ jointDef.SetRatio(2.0 * Pi / myLength)
 			style="margin-left: 0.5in; margin-right: 0.5in;">
 			<h3 class="title">Caution</h3>
 			<p>
-				Don't try to create a body or joint on the stack or on
-				the heap using
-				<tt class="literal">new</tt>
-				or
-				<tt class="literal">malloc</tt>
-				. You must create and destroy bodies and joints using
+				You must create and destroy bodies and joints using
 				the create and destroy methods of the
 				<tt class="classname">b2World</tt>
 				class.
