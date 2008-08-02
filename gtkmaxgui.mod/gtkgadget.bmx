@@ -51,6 +51,9 @@ Type TGTKGadget Extends TGadget
 	' a map to hold connection handler ids... sometimes we need to disconnect the little buggers.
 	Field connectionMap:TMap = New TMap
 
+	' a unique identifier for this gadget
+	Field accelMapId:String
+
 	Method Init(GadgetClass:Int, _x:Int, _y:Int, _w:Int, _h:Int, _style:Int)
 		SetRect(_x,_y,_w,_h)
 		class = GadgetClass
@@ -91,6 +94,29 @@ Type TGTKGadget Extends TGadget
 	
 	Method addConnection(name:String, id:Int)
 		connectionMap.Insert(name, TGTKInteger.Set(id))
+	End Method
+	
+	Method getAccelPath:String()
+		If parent Then
+			Return TGTKGadget(parent).getAccelPath() + "/" + accelMapId
+		End If
+		Return "<" + StripAll(AppArgs[0]) + "-" + accelMapId + ">"
+	End Method
+	
+	Method setAccelEntry:String(keycode:Int, modifier:Int)
+		Local path:String = gtkCheckAndConvert(getAccelPath())
+
+		If Not gtk_accel_map_lookup_entry(path) Then
+			 gtk_accel_map_add_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier))
+		Else
+			gtk_accel_map_change_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier), True)
+		End If
+
+		Return path
+	End Method
+	
+	Method setAccelMapId(id:String)
+		accelMapId = id.Replace("&", "")
 	End Method
 
 	Function Create:TGTKGadget(GadgetClass:Int, x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
@@ -641,6 +667,7 @@ Type TGTKWindow Extends TGTKContainer
 
 		accelGroup = gtk_accel_group_new()
 		gtk_window_add_accel_group(handle, accelGroup)
+		setAccelMapId(label)
 
 		If ~style & WINDOW_HIDDEN
 			Setshow(True)
@@ -1093,6 +1120,8 @@ Type TGTKButton Extends TGTKGadget
 		parent = group
 
 		makeButton(gtkCheckAndConvert(label))
+		
+		setAccelMapId(label)
 
 		gtk_layout_put(TGTKContainer(parent).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
@@ -1206,8 +1235,12 @@ Type TGTKButton Extends TGTKGadget
 	bbdoc: Sets a hot key for the button.
 	End Rem
 	Method SetHotKey(keycode:Int, modifier:Int)
-		gtk_widget_add_accelerator(handle, "clicked", getWindow().accelGroup, TGTKKeyMap.mapKey(keycode), ..
-			TGTKKeyMap.mapModifier(modifier), 0)
+		Local path:String = setAccelEntry(keycode, modifier)
+		If keycode = 0 Then
+			gtk_widget_set_accel_path(handle, Null, getWindow().accelGroup)
+		Else
+			gtk_widget_set_accel_path(handle, path, getWindow().accelGroup)
+		End If
 	End Method
 
 	Method toString:String()
@@ -1674,6 +1707,8 @@ Type TGTKMenuItem Extends TGTKGadget
 			' A popupmenu... perhaps?
 			windowAccelGroup = Null
 		End If
+		
+		setAccelMapId(_label)
 
 
 		' this is our menu item / text
@@ -1793,8 +1828,13 @@ Type TGTKMenuItem Extends TGTKGadget
 	Method SetHotKey(keycode:Int, modifier:Int)
 		myKeycode = keycode
 		myModifier = modifier
-		gtk_widget_add_accelerator(handle, "activate", windowAccelGroup, TGTKKeyMap.mapKey(keycode), ..
-			TGTKKeyMap.mapModifier(modifier), GTK_ACCEL_VISIBLE)
+		
+		Local path:String = setAccelEntry(keycode, modifier)
+		If keycode = 0 Then
+			gtk_menu_item_set_accel_path(handle, Null)
+		Else
+			gtk_menu_item_set_accel_path(handle, path)
+		End If
 		
 		' override F10 menu access?
 		If keycode = KEY_F10 And modifier = 0 Then

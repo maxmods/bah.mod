@@ -119,6 +119,7 @@ Extern
 	Function gtk_widget_get_pointer(widget:Byte Ptr, x:Int Var, y:Int Var)
 	Function gtk_widget_get_parent_window:Byte Ptr(widget:Byte Ptr)
 	Function gdk_window_get_position(window:Byte Ptr, x:Int Var, y:Int Var)
+	Function gtk_widget_set_accel_path(window:Byte Ptr, path:Byte Ptr, accelGroup:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)
@@ -186,6 +187,7 @@ Extern
 	Function gtk_image_menu_item_new_from_stock:Byte Ptr(txt:Byte Ptr, accel_group:Byte Ptr)
 	Function gtk_menu_popup(menu:Byte Ptr, parent_menu_shell:Byte Ptr, parent_menu_item:Byte Ptr, ..
 				func:Byte Ptr, data:Byte Ptr, button:Int, activate_time:Int)
+	Function gtk_menu_item_set_accel_path(menu:Byte Ptr, path:Byte Ptr)
 
 	Function g_object_set_data(handle:Byte Ptr, name:Byte Ptr, pointer:Object)
 	Function g_object_unref(handle:Byte Ptr)
@@ -469,6 +471,11 @@ Extern
 	Function gdk_display_get_default:Byte Ptr()
 	Function gdk_display_get_pointer(display:Byte Ptr, screen:Byte Ptr Ptr, x:Int Var, y:Int Var, mask:Byte Ptr)
 
+	Function gtk_accel_map_lookup_entry:Int(path:Byte Ptr)
+	Function gtk_accel_map_add_entry(path:Byte Ptr, key:Int, modifier:Int)
+	Function gtk_accel_map_change_entry:Int(path:Byte Ptr, key:Int, modifier:Int, rep:Int)
+	Function gtk_accelerator_name:Byte Ptr(keycode:Int, modifier:Int)
+	
 	' types
 	Function gnome_canvas_group_get_type:Int()
 	Function gnome_canvas_widget_get_type:Int()
