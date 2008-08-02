@@ -243,7 +243,6 @@ Type TGTKGadget Extends TGadget
 	bbdoc: Perform an activation command on the gadget.
 	End Rem
 	Method Activate(cmd:Int)
-		If Not visible Return
 		Select cmd
 			Case ACTIVATE_FOCUS
 				gtk_widget_grab_focus(handle)
