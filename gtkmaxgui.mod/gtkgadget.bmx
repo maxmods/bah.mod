@@ -47,6 +47,9 @@ Type TGTKGadget Extends TGadget
 	
 	Field mySetVisible:Int = True
 	Field visible:Int = False
+	
+	' a map to hold connection handler ids... sometimes we need to disconnect the little buggers.
+	Field connectionMap:TMap = New TMap
 
 	Method Init(GadgetClass:Int, _x:Int, _y:Int, _w:Int, _h:Int, _style:Int)
 		SetRect(_x,_y,_w,_h)
@@ -82,6 +85,12 @@ Type TGTKGadget Extends TGadget
 			GadgetMap.Remove(TGTKInteger.Set(Int Ptr(handle)[0]))
 		End If
 		
+		connectionMap.Clear()
+		
+	End Method
+	
+	Method addConnection(name:String, id:Int)
+		connectionMap.Insert(name, TGTKInteger.Set(id))
 	End Method
 
 	Function Create:TGTKGadget(GadgetClass:Int, x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
@@ -603,18 +612,18 @@ Type TGTKWindow Extends TGTKContainer
 		EVENT_WINDOWACCEPT	Drag and Drop operation was attempted
 		End Rem
 		' move
-		g_signal_cb3(handle, "configure_event", OnWindowMoveSize, Self, Destroy, 0)
+		addConnection("configure_event", g_signal_cb3(handle, "configure_event", OnWindowMoveSize, Self, Destroy, 0))
 		' size
-		g_signal_cb2(handle, "check-resize", OnWindowSize, Self, Destroy, 0)
+		addConnection("check-resize", g_signal_cb2(handle, "check-resize", OnWindowSize, Self, Destroy, 0))
 		' close
-		g_signal_cb3(handle, "delete-event", OnWindowClose, Self, Destroy, 0)
+		addConnection("delete-event", g_signal_cb3(handle, "delete-event", OnWindowClose, Self, Destroy, 0))
 		' activate
-		g_signal_cb3(handle, "focus-in-event", OnWindowActivate, Self, Destroy, 0)
-		g_signal_cb3(handle, "focus-out-event", OnWindowDeactivate, Self, Destroy, 0)
+		addConnection("focus-in-event", g_signal_cb3(handle, "focus-in-event", OnWindowActivate, Self, Destroy, 0))
+		addConnection("focus-out-event", g_signal_cb3(handle, "focus-out-event", OnWindowDeactivate, Self, Destroy, 0))
 		' accept
 		'g_signal_cb3(handle, "XXXXXX", WindowAccept, Self, Destroy, 0)
 		' minimize / maximize
-		g_signal_cb3(handle, "window-state-event", OnWindowStateChange, Self, Destroy, 0)
+		addConnection("window-state-event", g_signal_cb3(handle, "window-state-event", OnWindowStateChange, Self, Destroy, 0))
 
 		If style & WINDOW_ACCEPTFILES Then
 
@@ -1097,12 +1106,12 @@ Type TGTKButton Extends TGTKGadget
 		setShow(True)
 
 		' button clicked handler
-		g_signal_cb2(handle, "clicked", OnButtonClicked, Self, Destroy, 0)
+		addConnection("clicked", g_signal_cb2(handle, "clicked", OnButtonClicked, Self, Destroy, 0))
 		' catch right-mouse buttons
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
 
-		g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0)
-		g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0)
+		addConnection("enter-notify-event", g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0))
+		addConnection("leave-notify-event", g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0))
 
 	End Method
 
@@ -1277,7 +1286,9 @@ Type TGTKToggleButton Extends TGTKButton
 		If bool <> gtk_toggle_button_get_active(handle) Then
 			ignoreButtonClick = True
 		End If
+		
 		gtk_toggle_button_set_active(handle, bool)
+		
 		isSelected = bool
 	End Method
 
@@ -1305,6 +1316,12 @@ Type TGTKToggleButton Extends TGTKButton
 		TGTKButton(obj).ignoreButtonClick = False
 	End Function
 
+	Method disableEvents()
+	End Method
+	
+	Method enableEvents()
+	End Method
+	
 End Type
 
 Rem
@@ -1338,7 +1355,32 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 		gtk_button_set_use_underline(handle, True)
 		
 	End Method
+
+	Method SetSelected(bool:Int)
+		disableEvents()
+		
+		gtk_toggle_button_set_active(handle, bool)
+		
+		enableEvents()
+		
+		isSelected = bool
+	End Method
+
+	Method disableEvents()
+		For Local gadget:TGTKButtonRadio = EachIn parent.kids
+			Local id:TGTKInteger = TGTKInteger(gadget.connectionMap.ValueForKey("clicked"))
+			If id Then
+				g_signal_handler_disconnect(gadget.handle, id.value)
+			End If
+		Next
+	End Method
 	
+	Method enableEvents()
+		For Local gadget:TGTKButtonRadio = EachIn parent.kids
+			gadget.addConnection("clicked", g_signal_cb2(gadget.handle, "clicked", OnButtonClicked, gadget, Destroy, 0))
+		Next
+	End Method
+
 End Type
 
 Rem
@@ -1406,9 +1448,9 @@ Type TGTKLabel Extends TGTKGadget
 			gtk_event_box_set_visible_window(ebox, False)
 			gtk_widget_add_events(ebox, GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK)
 			
-			g_signal_cb3(ebox, "enter-notify-event", OnMouseEnter, Self, Destroy, 0)
-			g_signal_cb3(ebox, "leave-notify-event", OnMouseLeave, Self, Destroy, 0)
-			g_signal_cb3(ebox, "button-press-event", OnMouseDown, Self, Destroy, 0)
+			addConnection("enter-notify-event", g_signal_cb3(ebox, "enter-notify-event", OnMouseEnter, Self, Destroy, 0))
+			addConnection("leave-notify-event", g_signal_cb3(ebox, "leave-notify-event", OnMouseLeave, Self, Destroy, 0))
+			addConnection("button-press-event", g_signal_cb3(ebox, "button-press-event", OnMouseDown, Self, Destroy, 0))
 
 			' show the box
 			gtk_widget_show(ebox)
@@ -1734,7 +1776,7 @@ Type TGTKMenuItem Extends TGTKGadget
 
 			' Add an activate signal and store ourself in the menu data
 			If Not TGTKWindow(parent) And Not isSeparator Then
-				g_signal_cb2(handle, "activate", MenuSelected, Self, Destroy, 0)
+				addConnection("activate", g_signal_cb2(handle, "activate", MenuSelected, Self, Destroy, 0))
 				g_object_set_data(handle, "_maxmenu", Self)
 			End If
 		Else ' popupmenu...
@@ -1829,7 +1871,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			EndIf
 
 			' we need to catch toggles!
-			g_signal_cb2(handle, "toggled", MenuSelected, Self, Destroy, 0)
+			addConnection("toggled", g_signal_cb2(handle, "toggled", MenuSelected, Self, Destroy, 0))
 			g_object_set_data(handle, "_maxmenu", Self)
 
 			isCheckable = True
@@ -2000,11 +2042,11 @@ Type TGTKTextField Extends TGTKEditable
 
 
 		' add callbacks
-		g_signal_cb2(handle, "changed", OnTextChanged, Self, Destroy, 0)
-		g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "focus-out-event", OnFocusLost, Self, Destroy, 0)
+		addConnection("changed", g_signal_cb2(handle, "changed", OnTextChanged, Self, Destroy, 0))
+		addConnection("key-press-event", g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0))
+		addConnection("focus-out-event", g_signal_cb3(handle, "focus-out-event", OnFocusLost, Self, Destroy, 0))
 		' catch right-mouse buttons
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
 
 	End Method
 
@@ -2136,12 +2178,12 @@ Type TGTKTextArea Extends TGTKEditable
 		gtk_container_add(scrollWindow, handle)
 
 
-		g_signal_cb2(_textBuffer, "changed", OnTextChanged, Self, Destroy, 0)
-		g_signal_cb5(handle, "move-cursor", OnCursorMoved, Self, Destroy, 0)
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0)
-		g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "focus-out-event", OnFocusLost, Self, Destroy, 0)
+		addConnection("changed", g_signal_cb2(_textBuffer, "changed", OnTextChanged, Self, Destroy, 0))
+		addConnection("move-cursor", g_signal_cb5(handle, "move-cursor", OnCursorMoved, Self, Destroy, 0))
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
+		addConnection("button-release-event", g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0))
+		addConnection("key-press-event", g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0))
+		addConnection("focus-out-event", g_signal_cb3(handle, "focus-out-event", OnFocusLost, Self, Destroy, 0))
 
 		'g_signal_cb3(handle, "visibility-notify-event", OnVisibilityChange, Self, Destroy, 0)
 
@@ -2897,17 +2939,17 @@ Type TGTKPanel Extends TGTKContainer
 			GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK)' | ..
 '				GDK_POINTER_MOTION_HINT_MASK)
 
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0)
-		g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0)
-		g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0)
-		g_signal_cb3(handle, "motion-notify-event", OnMouseMove, Self, Destroy, 0)
-		g_signal_cb3(handle, "expose-event", OnExpose, Self, Destroy, 0)
-		g_signal_cb3(handle, "scroll-event", OnScroll, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
+		addConnection("button-release-event", g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0))
+		addConnection("enter-notify-event", g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0))
+		addConnection("leave-notify-event", g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0))
+		addConnection("motion-notify-event", g_signal_cb3(handle, "motion-notify-event", OnMouseMove, Self, Destroy, 0))
+		addConnection("expose-event", g_signal_cb3(handle, "expose-event", OnExpose, Self, Destroy, 0))
+		addConnection("scroll-event", g_signal_cb3(handle, "scroll-event", OnScroll, Self, Destroy, 0))
 		'g_signal_cb3(handle, "event", EventCallback, Self, Destroy, 0)
 
-		g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "key-release-event", OnKeyUp, Self, Destroy, 0)
+		addConnection("key-press-event", g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0))
+		addConnection("key-release-event", g_signal_cb3(handle, "key-release-event", OnKeyUp, Self, Destroy, 0))
 
 		gtk_widget_show(handle)
 
@@ -3371,9 +3413,9 @@ Type TGTKComboBox Extends TGTKList
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 		
-		g_signal_cb2(handle, "changed", OnSelectionChanged, Self, Destroy, 0)
+		addConnection("changed", g_signal_cb2(handle, "changed", OnSelectionChanged, Self, Destroy, 0))
 		' catch right-mouse buttons
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
 
 	End Method
 	
@@ -3632,7 +3674,7 @@ Type TGTKScrollBar Extends TGTKRange
 
 		setShow(True)
 
-		g_signal_cb4a(handle, "change-value", OnChangeValue, Self, Destroy, 0)
+		addConnection("change-value", g_signal_cb4a(handle, "change-value", OnChangeValue, Self, Destroy, 0))
 		
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
@@ -3686,7 +3728,7 @@ Type TGTKTrackBar Extends TGTKRange
 		'gtk_fixed_put(TGTKContainer(group).container, handle, x, y)
 		'gtk_widget_set_size_request(handle, w, h)
 		
-		g_signal_cb4a(handle, "change-value", OnChangeValue, Self, Destroy, 0)
+		addConnection("change-value", g_signal_cb4a(handle, "change-value", OnChangeValue, Self, Destroy, 0))
 
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
@@ -3762,16 +3804,16 @@ Type TGTKStepper Extends TGTKRange
 			gtk_box_pack_start(handle, buttonUp, True, True, 0)
 		End If
 
-		g_signal_cb2(buttonUp, "clicked", OnButtonClicked, Self, Destroy, 0)
-		g_signal_cb2(buttonDown, "clicked", OnButtonClicked, Self, Destroy, 0)
+		addConnection("clickedup", g_signal_cb2(buttonUp, "clicked", OnButtonClicked, Self, Destroy, 0))
+		addConnection("clickeddown", g_signal_cb2(buttonDown, "clicked", OnButtonClicked, Self, Destroy, 0))
 
 		SetShow(True)
 
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
-		g_signal_cb3(gtk_bin_get_child(buttonUp), "expose-event", OnExpose, Self, Destroy, 0)
-		g_signal_cb3(gtk_bin_get_child(buttonDown), "expose-event", OnExpose, Self, Destroy, 0)
+		addConnection("expose-eventup", g_signal_cb3(gtk_bin_get_child(buttonUp), "expose-event", OnExpose, Self, Destroy, 0))
+		addConnection("expose-eventdown", g_signal_cb3(gtk_bin_get_child(buttonDown), "expose-event", OnExpose, Self, Destroy, 0))
 
 	End Method
 	
@@ -4019,11 +4061,11 @@ Type TGTKToolbar Extends TGTKGadget
 				gtk_tool_button_set_label(toolitems[index], gtkCheckAndConvert(text))
 				gtk_tool_button_set_icon_widget(toolitems[index], imageWidget)
 
-				g_signal_cb2(toolitems[index], "toggled", OnToolItemToggled, Self, Destroy, 0)
+				addConnection("toggled", g_signal_cb2(toolitems[index], "toggled", OnToolItemToggled, Self, Destroy, 0))
 			Else
 				toolitems[index] = gtk_tool_button_new(imageWidget, gtkCheckAndConvert(text))
 
-				g_signal_cb2(toolitems[index], "clicked", OnToolItemClicked, Self, Destroy, 0)
+				addConnection("clicked", g_signal_cb2(toolitems[index], "clicked", OnToolItemClicked, Self, Destroy, 0))
 			End If
 
 			' Add a tooltip
@@ -4268,10 +4310,10 @@ Type TGTKListWithScrollWindow Extends TGTKList
 
 
 		' add callback
-		g_signal_cb2(_selection, "changed", OnSelectionChanged, Self, Destroy, 0)
+		addConnection("changed", g_signal_cb2(_selection, "changed", OnSelectionChanged, Self, Destroy, 0))
 		
 		' catch right-mouse buttons
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
 	End Method
 
 	Method SetShow(truefalse:Int)
@@ -4322,7 +4364,7 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 		' remove *our* reference to the store... when the list is destroyed this will be too
 		g_object_unref(_store)
 
-		g_signal_cb4(handle, "row-activated", OnRowActivated, Self, Destroy, 0)
+		addConnection("row-activated", g_signal_cb4(handle, "row-activated", OnRowActivated, Self, Destroy, 0))
 
 		SetShow(True)
 
@@ -4819,9 +4861,9 @@ Type TGTKTreeView Extends TGTKTreeViewNode
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
 
-		g_signal_cb4(handle, "row-activated", OnRowActivated, Self, Destroy, 0)
-		g_signal_cb4(handle, "row-expanded", OnRowExpanded, Self, Destroy, 0)
-		g_signal_cb4(handle, "row-collapsed", OnRowCollapsed, Self, Destroy, 0)
+		addConnection("row-activated", g_signal_cb4(handle, "row-activated", OnRowActivated, Self, Destroy, 0))
+		addConnection("row-expanded", g_signal_cb4(handle, "row-expanded", OnRowExpanded, Self, Destroy, 0))
+		addConnection("row-collapsed", g_signal_cb4(handle, "row-collapsed", OnRowCollapsed, Self, Destroy, 0))
 
 		isRoot = True
 	End Method
@@ -4950,22 +4992,22 @@ Type TGTKCanvas Extends TGTKGadget
 		' we need to handle our own redrawing...
 		gtk_widget_set_double_buffered(handle, False)
 
-		g_signal_cb3(handle, "expose_event", CanvasRedraw, Self, Destroy, 0)
+		addConnection("expose_event", g_signal_cb3(handle, "expose_event", CanvasRedraw, Self, Destroy, 0))
 
 		gtk_widget_add_events(handle, GDK_BUTTON_PRESS_MASK | ..
 			GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | ..
 			GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK)' | ..
 '				GDK_POINTER_MOTION_HINT_MASK)
 
-		g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0)
-		g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0)
-		g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0)
-		g_signal_cb3(handle, "motion-notify-event", OnMouseMove, Self, Destroy, 0)
-		g_signal_cb3(handle, "scroll-event", OnScroll, Self, Destroy, 0)
+		addConnection("button-press-event", g_signal_cb3(handle, "button-press-event", OnMouseDown, Self, Destroy, 0))
+		addConnection("button-release-event", g_signal_cb3(handle, "button-release-event", OnMouseUp, Self, Destroy, 0))
+		addConnection("enter-notify-event", g_signal_cb3(handle, "enter-notify-event", OnMouseEnter, Self, Destroy, 0))
+		addConnection("leave-notify-event", g_signal_cb3(handle, "leave-notify-event", OnMouseLeave, Self, Destroy, 0))
+		addConnection("motion-notify-event", g_signal_cb3(handle, "motion-notify-event", OnMouseMove, Self, Destroy, 0))
+		addConnection("scroll-event", g_signal_cb3(handle, "scroll-event", OnScroll, Self, Destroy, 0))
 
-		g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0)
-		g_signal_cb3(handle, "key-release-event", OnKeyUp, Self, Destroy, 0)
+		addConnection("key-press-event", g_signal_cb3(handle, "key-press-event", OnKeyDown, Self, Destroy, 0))
+		addConnection("key-release-event", g_signal_cb3(handle, "key-release-event", OnKeyUp, Self, Destroy, 0))
 
 		SetShow(True)
 	End Method
