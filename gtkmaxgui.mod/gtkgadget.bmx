@@ -45,6 +45,7 @@ Type TGTKGadget Extends TGadget
 
 	Field initialSizing:Int = False
 	
+	Field mySetVisible:Int = True
 	Field visible:Int = False
 
 	Method Init(GadgetClass:Int, _x:Int, _y:Int, _w:Int, _h:Int, _style:Int)
@@ -159,12 +160,27 @@ Type TGTKGadget Extends TGadget
 	End Rem
 	Method SetShow(truefalse:Int)
 		visible = truefalse
+		mySetVisible = visible
 		
 		If truefalse Then
 			gtk_widget_show(handle)
 		Else
 			gtk_widget_hide(handle)
 		EndIf
+		
+		UpdateChildVisibility()
+	End Method
+
+	Method UpdateChildVisibility()
+		For Local gadget:TGTKGadget = EachIn kids
+			If Not visible Then
+				gadget.visible = False
+			Else
+				gadget.visible = gadget.mySetVisible
+			End If
+			
+			gadget.UpdateChildVisibility()
+		Next
 	End Method
 
 	Rem
@@ -1440,6 +1456,7 @@ Type TGTKLabel Extends TGTKGadget
 	End Rem
 	Method SetShow(truefalse:Int)
 		visible = truefalse
+		mySetVisible = visible
 		
 		If hasFrame Then
 			If truefalse Then
@@ -2272,6 +2289,7 @@ Type TGTKTextArea Extends TGTKEditable
 	End Rem
 	Method SetShow(truefalse:Int)
 		visible = truefalse
+		mySetVisible = visible
 		
 		If truefalse Then
 			gtk_widget_show(handle)
@@ -3095,6 +3113,7 @@ Type TGTKPanel Extends TGTKContainer
 	End Rem
 	Method SetShow(truefalse:Int)
 		visible = truefalse
+		mySetVisible = visible
 		
 		If truefalse Then
 			If frame Then
@@ -3109,6 +3128,8 @@ Type TGTKPanel Extends TGTKContainer
 				gtk_widget_hide(handle)
 			End If
 		EndIf
+
+		UpdateChildVisibility()
 	End Method
 
 	Method Free()
@@ -4254,6 +4275,7 @@ Type TGTKListWithScrollWindow Extends TGTKList
 
 	Method SetShow(truefalse:Int)
 		visible = truefalse
+		mySetVisible = visible
 		
 		If truefalse Then
 			gtk_widget_show(scrollWindow)
@@ -4262,6 +4284,8 @@ Type TGTKListWithScrollWindow Extends TGTKList
 			gtk_widget_hide(scrollWindow)
 			gtk_widget_hide(handle)
 		EndIf
+
+		UpdateChildVisibility()
 	End Method
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
