@@ -12,7 +12,11 @@ button[0]=CreateButton("Push Button",10,10,140,24,window,BUTTON_PUSH)
 button[1]=CreateButton("Checkbox Button",10,34,140,24,window,BUTTON_CHECKBOX)
 button[2]=CreateButton("Radio Button 1",10,58,140,24,window,BUTTON_RADIO)
 button[3]=CreateButton("Radio Button 2",10,82,140,24,window,BUTTON_RADIO)
-button[4]=CreateButton("Radio Button 2",10,106,140,24,window,BUTTON_RADIO)
+button[4]=CreateButton("Radio Button 3",10,106,140,24,window,BUTTON_RADIO)
+
+' select Radio Button 2
+SetButtonState(button[3], True)
+
 button[5]=CreateButton("OK",10,140,70,24,window,BUTTON_OK)
 button[6]=CreateButton("Cancel",84,140,70,24,window,BUTTON_CANCEL)
 

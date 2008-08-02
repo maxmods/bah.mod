@@ -1326,6 +1326,7 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 
 		If _group = Null Then
 			handle = gtk_radio_button_new_with_label(Null, label)
+			gtk_toggle_button_set_active(handle, True)
 			isSelected = True
 		Else
 			handle = gtk_radio_button_new_with_label(_group, label)
@@ -1337,7 +1338,7 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 		gtk_button_set_use_underline(handle, True)
 		
 	End Method
-
+	
 End Type
 
 Rem
