@@ -42,6 +42,8 @@ SetPanelPixmap(panel4, pixmap, PANELPIXMAP_CENTER)
 SetPanelPixmap(panel5, pixmap, PANELPIXMAP_FIT)
 SetPanelPixmap(panel6, pixmap, PANELPIXMAP_STRETCH)
 
+CreateButton("Clear",5,5,64,24,panel4)
+
 panel5.SetColor(255, 255, 255)
 
 

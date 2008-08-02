@@ -3,6 +3,7 @@
 Strict 
 
 Framework bah.gtkmaxgui
+Import brl.eventqueue
 
 Local window:TGadget
 Local panel1:TGadget

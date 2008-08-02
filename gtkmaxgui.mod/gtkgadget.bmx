@@ -45,7 +45,7 @@ Type TGTKGadget Extends TGadget
 
 	Field initialSizing:Int = False
 	
-	Field visible:Int = True
+	Field visible:Int = False
 
 	Method Init(GadgetClass:Int, _x:Int, _y:Int, _w:Int, _h:Int, _style:Int)
 		SetRect(_x,_y,_w,_h)
@@ -243,6 +243,7 @@ Type TGTKGadget Extends TGadget
 	bbdoc: Perform an activation command on the gadget.
 	End Rem
 	Method Activate(cmd:Int)
+		If Not visible Return
 		Select cmd
 			Case ACTIVATE_FOCUS
 				gtk_widget_grab_focus(handle)
@@ -482,7 +483,7 @@ Type TGTKWindow Extends TGTKContainer
 	
 	Field ignoreMoveEvent:Int
 	Field ignoreSizeEvent:Int
-
+	
 	Function CreateWindow:TGTKWindow(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		Local this:TGTKWindow = New TGTKWindow
 
@@ -534,7 +535,7 @@ Type TGTKWindow Extends TGTKContainer
 		gtk_window_move(handle, x, y)
 		
 		gtk_window_set_default_size(handle, w, calcHeight(h))
-		
+
 		gtk_window_set_decorated(handle, (style & WINDOW_TITLEBAR))
 		gtk_window_set_resizable(handle, (style & WINDOW_RESIZABLE))
 		
@@ -980,6 +981,8 @@ Print "OnDragDrop"
 	Method Activate(cmd:Int)
 		Super.Activate(cmd)
 		
+		If Not visible Return
+
 		Select cmd
 			Case ACTIVATE_MAXIMIZE
 				gtk_window_maximize(handle)
@@ -3247,12 +3250,25 @@ Type TGTKPanel Extends TGTKContainer
 					visualpixbuf = gdk_pixbuf_copy(panelPixBuf)
 					pbx = width / 2 - panelPixmap.width / 2
 					pby = height / 2 - panelPixmap.height / 2
+					
 				Case PANELPIXMAP_FIT
 					Local _w:Float = width / (panelPixmap.width * 1.0)
 					Local _h:Float = height / (panelPixmap.height * 1.0)
 
 					Local newWidth:Int = Min(_w, _h) * panelPixmap.width
 					Local newHeight:Int = Min(_w, _h) * panelPixmap.height
+
+					pbx = width / 2 - newWidth / 2
+					pby = height / 2 - newHeight / 2
+
+					visualpixbuf = gdk_pixbuf_scale_simple(panelPixbuf, newWidth, newHeight, GDK_INTERP_BILINEAR)
+
+				Case PANELPIXMAP_FIT2
+					Local _w:Float = width / (panelPixmap.width * 1.0)
+					Local _h:Float = height / (panelPixmap.height * 1.0)
+
+					Local newWidth:Int = Max(_w, _h) * panelPixmap.width
+					Local newHeight:Int = Max(_w, _h) * panelPixmap.height
 
 					pbx = width / 2 - newWidth / 2
 					pby = height / 2 - newHeight / 2

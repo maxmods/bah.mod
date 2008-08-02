@@ -3,7 +3,7 @@ SuperStrict
 ?linux
 Framework bah.gtkmaxgui
 ?
-
+Import brl.eventqueue
 
 Local window:TGadget
 Local panel:TGadget

@@ -53,6 +53,7 @@ Extern
 	Function gtk_init(argc:Int, argv:Byte Ptr Ptr Ptr)
 	Function gtk_main_iteration_do:Int(blocking:Int)
 	Function gtk_main_quit()
+	Function gtk_events_pending:Int()
 
 	Function gtk_get_current_event_time:Int()
 
@@ -92,6 +93,7 @@ Extern
 	Function gtk_window_get_title:Byte Ptr(window:Byte Ptr)
 	Function gtk_window_set_transient_for(window:Byte Ptr, parent:Byte Ptr)
 	Function gtk_window_get_position(window:Byte Ptr, x:Int Ptr, y:Int Ptr)
+	Function gtk_widget_set_uposition(window:Byte Ptr, x:Int, y:Int)
 
 	Function gtk_widget_destroy(widgetPtr:Byte Ptr)
 	Function gtk_widget_show(widgetPtr:Byte Ptr)

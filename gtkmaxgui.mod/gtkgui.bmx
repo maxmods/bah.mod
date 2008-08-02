@@ -30,7 +30,11 @@ Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 	Field	gui:TGTKGUIDriver
 	
 	Method Poll()
-		gtk_main_iteration_do(False)
+		Local count:Int = 25
+		While gtk_events_pending() And count
+			gtk_main_iteration_do(False)
+			count:- 1
+		Wend
 		Super.Poll()
 	End Method
 		
