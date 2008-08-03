@@ -475,7 +475,7 @@ Extern
 	Function gdk_display_get_default:Byte Ptr()
 	Function gdk_display_get_pointer(display:Byte Ptr, screen:Byte Ptr Ptr, x:Int Var, y:Int Var, mask:Byte Ptr)
 
-	Function gtk_accel_map_lookup_entry:Int(path:Byte Ptr)
+	Function gtk_accel_map_lookup_entry:Int(path:Byte Ptr, key:Byte Ptr = Null)
 	Function gtk_accel_map_add_entry(path:Byte Ptr, key:Int, modifier:Int)
 	Function gtk_accel_map_change_entry:Int(path:Byte Ptr, key:Int, modifier:Int, rep:Int)
 	Function gtk_accelerator_name:Byte Ptr(keycode:Int, modifier:Int)

@@ -1763,8 +1763,6 @@ Type TGTKMenuItem Extends TGTKGadget
 
 			_label = processText(_label)
 			
-			image = gtk_image_new()
-			
 			' does this label have a mnemonic?
 			If p >= 0 Then
 				'_label = _label.replace("&", "_")
@@ -2020,7 +2018,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			pixmap = Null
 		End If
 		If image Then
-			g_object_unref(image)
+		'	g_object_unref(image) ' oops.. TODO: we might need this still.
 			image = Null
 		End If
 		If imagePixbuf Then
@@ -2052,6 +2050,10 @@ Type TGTKMenuItem Extends TGTKGadget
 				imagePixbuf = Int Ptr(gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
 								pixmap.width, pixmap.height, pixmap.Pitch, Null, Null))
 				
+				If Not image Then
+					image = gtk_image_new()
+				End If
+
 				gtk_image_set_from_pixbuf(image, Int(imagePixbuf))
 			Else
 				If pixmap Then
@@ -2060,7 +2062,9 @@ Type TGTKMenuItem Extends TGTKGadget
 				End If
 			End If
 			
-			gtk_image_menu_item_set_image(handle, image)
+			If image Then
+				gtk_image_menu_item_set_image(handle, image)
+			End If
 		End If
 	End Method
 
