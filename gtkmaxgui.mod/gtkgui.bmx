@@ -317,6 +317,12 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		font.name = name
 		font.size = size
 		font.style = flags
+		
+		Return DoLoadFont(font)
+
+	End Method
+	
+	Method DoLoadFont:TGuiFont(font:TGuiFont)
 
 		Local widget:Byte Ptr = gtk_label_new(Null)
 		Local _context:Byte Ptr  = gtk_widget_get_pango_context(widget)
@@ -335,14 +341,16 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 			font.path = ""
 			Return font
 		Else
-			Select name
+			Select font.name
 				Case "Lucida"
 					' No Lucida? Try FreeSerif...
-					font = LoadFont("FreeSerif", size, flags)
+					font.name = "FreeSerif"
+					font = DoLoadFont(font)
 				Case "FreeSerif"
 					Return Null
 				Default ' try a default...
-					font = LoadFont("Lucida", size, flags)
+					font.name = "Lucida"
+					font = DoLoadFont(font)
 			End Select
 
 			If font Then
@@ -352,7 +360,16 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 			Return Null
 		End If
 
+	End Method
 
+
+	Method LoadFontWithDouble:TGuiFont(name:String, size:Double, flags:Int)
+		Local font:TGuiFont = New TGuiFont
+		font.name = name
+		font.size = size
+		font.style = flags
+		
+		Return DoLoadFont(font)
 	End Method
 
 	Function fontforeach:Int(fontset:Byte Ptr, _font:Byte Ptr, data:Object)
@@ -427,7 +444,7 @@ Type TGTKGUIDriver Extends TMaxGUIDriver
 		gtkgroup = TGTKGadget(group)
 
 		If gtkclass > -1 Then
-			gadget = TGTKGadget.Create(gtkclass, x, y, w, h, name, gtkgroup, style)
+			gadget = TGTKGadget.Create(gtkclass, x, y, w, h, name, gtkgroup, style, GadgetClass)
 		End If
 
 		Return gadget

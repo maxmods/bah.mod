@@ -188,6 +188,9 @@ Extern
 	Function gtk_menu_popup(menu:Byte Ptr, parent_menu_shell:Byte Ptr, parent_menu_item:Byte Ptr, ..
 				func:Byte Ptr, data:Byte Ptr, button:Int, activate_time:Int)
 	Function gtk_menu_item_set_accel_path(menu:Byte Ptr, path:Byte Ptr)
+	Function gtk_image_menu_item_set_image(menu:Byte Ptr, image:Byte Ptr)
+	Function gtk_image_menu_item_new_with_label:Byte Ptr(label:Byte Ptr)
+	Function gtk_image_menu_item_new_with_mnemonic:Byte Ptr(label:Byte Ptr)
 
 	Function g_object_set_data(handle:Byte Ptr, name:Byte Ptr, pointer:Object)
 	Function g_object_unref(handle:Byte Ptr)
@@ -350,6 +353,7 @@ Extern
 	Function gtk_image_new:Byte Ptr()
 	Function gtk_image_set_from_pixbuf(widgetPtr:Byte Ptr, image:Int)
 	Function gdk_pixbuf_rotate_simple:Byte Ptr(pixbuf:Byte Ptr, rotate:Int)
+	Function gtk_image_clear(imagePtr:Byte Ptr)
 
 	Function gtk_toolbar_new:Byte Ptr()
 	Function gtk_tool_button_new:Byte Ptr(icon:Byte Ptr, label:Byte Ptr)

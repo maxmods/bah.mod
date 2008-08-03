@@ -31,7 +31,7 @@ Rem
 bbdoc: The base for all TGTK gadgets
 End Rem
 Type TGTKGadget Extends TGadget
-	Field class:Int
+	Field iclass:Int
 	' usually the pointer to the gtk widget
 	Field handle:Byte Ptr
 
@@ -42,6 +42,7 @@ Type TGTKGadget Extends TGadget
 	Field _font:TGuiFont
 	' this gadgets' tooltips object (pointer to)
 	Field _tooltip:Byte Ptr
+	Field tooltipText:String
 
 	Field initialSizing:Int = False
 	
@@ -53,10 +54,13 @@ Type TGTKGadget Extends TGadget
 
 	' a unique identifier for this gadget
 	Field accelMapId:String
+	
+	' the class id of this gadget in MaxGUI terms.
+	Field maxguiClass:Int
 
 	Method Init(GadgetClass:Int, _x:Int, _y:Int, _w:Int, _h:Int, _style:Int)
 		SetRect(_x,_y,_w,_h)
-		class = GadgetClass
+		iclass = GadgetClass
 		kids = New TList
 		style = _style
 	End Method
@@ -119,7 +123,7 @@ Type TGTKGadget Extends TGadget
 		accelMapId = id.Replace("&", "")
 	End Method
 
-	Function Create:TGTKGadget(GadgetClass:Int, x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
+	Function Create:TGTKGadget(GadgetClass:Int, x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int, mgclass:Int)
 
 		Local gadget:TGTKGadget
 		
@@ -182,6 +186,8 @@ Type TGTKGadget Extends TGadget
 			gadget._SetParent group
 		End If
 		gadget.SetShape x,y,w,h
+		' set the maxgui class type
+		gadget.maxguiClass = mgclass
 
 		Return gadget
 	End Function
@@ -364,12 +370,20 @@ Type TGTKGadget Extends TGadget
 	End Rem
 	Method setToolTip(tip:String)
 		initToolTips()
+		tooltipText = tip
 		
 		If tip And tip.length > 0 Then
 			gtk_tooltips_set_tip(_tooltip, handle, gtkCheckAndConvert(tip), Null)
 		Else
 			gtk_tooltips_set_tip(_tooltip, handle, Null, Null)
-		End If		
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Get the gadget tooltip
+	End Rem
+	Method getToolTip:String()
+		Return tooltipText
 	End Method
 	
 	' checks text for mnemonics, and converts to UTF-8 if required.
@@ -410,6 +424,10 @@ Type TGTKGadget Extends TGadget
 		Super.SetRect(x, y, w, h)
 	End Method
 
+	Method Class:Int()
+		Return maxguiClass
+	EndMethod
+
 End Type
 
 Rem
@@ -427,7 +445,7 @@ Type TGTKDesktop Extends TGTKGadget
 
 	Method initDesktop()
 
-		class = GTK_DESKTOP
+		iclass = GTK_DESKTOP
 
 		handle = gdk_screen_get_default()
 
@@ -478,7 +496,7 @@ Type TGTKContainer Extends TGTKGadget
 	Method ClientWidth:Int()
 		Return width
 		Local _width:Int
-		Select class
+		Select iclass
 			Case GTK_WINDOW
 				_width = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 8))[0]
 
@@ -499,7 +517,7 @@ Type TGTKContainer Extends TGTKGadget
 
 	Method ClientHeight:Int()
 		Return height
-		Select class
+		Select iclass
 			Case GTK_WINDOW
 				Local _height:Int = Int Ptr(Byte Ptr(container + _OFFSET_GTK_ALLOCATION + 12))[0]
 				Return _height
@@ -1115,7 +1133,7 @@ Type TGTKButton Extends TGTKGadget
 
 	Method initButton(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
 		
-		Init(class, x, y, w, h, style)
+		Init(iclass, x, y, w, h, style)
 
 		parent = group
 
@@ -1126,7 +1144,8 @@ Type TGTKButton Extends TGTKGadget
 		gtk_layout_put(TGTKContainer(parent).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
-
+		sensitivity:| SENSITIZE_MOUSE
+		
 		' Set as default ?
 		If style = BUTTON_OK Then
 			gtk_widget_grab_default(handle)
@@ -1399,6 +1418,16 @@ Type TGTKButtonRadio Extends TGTKToggleButton
 		isSelected = bool
 	End Method
 
+	Function OnButtonClicked(widget:Byte Ptr, obj:Object)
+		TGTKToggleButton(obj).isSelected = gtk_toggle_button_get_active(widget)
+
+		If TGTKToggleButton(obj).isSelected Then
+			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), ButtonState(TGadget(obj)))
+		End If
+		
+		TGTKButton(obj).ignoreButtonClick = False
+	End Function
+
 	Method disableEvents()
 		For Local gadget:TGTKButtonRadio = EachIn parent.kids
 			Local id:TGTKInteger = TGTKInteger(gadget.connectionMap.ValueForKey("clicked"))
@@ -1476,6 +1505,9 @@ Type TGTKLabel Extends TGTKGadget
 				gtk_misc_set_alignment(handle, 0, 0.5)	
 			End If
 
+
+			sensitivity:| SENSITIZE_MOUSE
+			
 			' since a Label can't accept events, we wrap it inside an event box which can
 			ebox = gtk_event_box_new()
 			gtk_event_box_set_visible_window(ebox, False)
@@ -1686,6 +1718,10 @@ Type TGTKMenuItem Extends TGTKGadget
 	
 	Field windowAccelGroup:Byte Ptr
 	
+	Field pixmap:TPixmap
+	Field imagePixbuf:Byte Ptr
+	Field image:Byte Ptr
+	
 	Function CreateMenuItem:TGTKMenuItem(label:String, tag:Int, parent:TGadget)
 		Local this:TGTKMenuItem = New TGTKMenuItem
 
@@ -1695,7 +1731,7 @@ Type TGTKMenuItem Extends TGTKGadget
 	End Function
 
 	Method initMenu(_label:String, _tag:Int, _parent:TGadget)
-		class = GTK_MENUITEM
+		iclass = GTK_MENUITEM
 		tag = _tag
 
 		If TGTKWindow(_parent) Then
@@ -1717,6 +1753,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			handle = gtk_separator_menu_item_new()
 			isSeparator = True
 		Else
+	
 			' convert underscores to doubles
 			'_label = _label.replace("_", "__")
 
@@ -1726,6 +1763,8 @@ Type TGTKMenuItem Extends TGTKGadget
 
 			_label = processText(_label)
 			
+			image = gtk_image_new()
+			
 			' does this label have a mnemonic?
 			If p >= 0 Then
 				'_label = _label.replace("&", "_")
@@ -1733,7 +1772,7 @@ Type TGTKMenuItem Extends TGTKGadget
 
 	                Local txt:String = getGTKStockIDFromName(_label.Replace("_",""))
 				If txt = _label.Replace("_","") Or TGTKWindow(_parent) Then
-					handle = gtk_menu_item_new_with_mnemonic(_label)
+					handle = gtk_image_menu_item_new_with_mnemonic(_label)
 				Else
 					If windowAccelGroup Then
 						handle = gtk_image_menu_item_new_from_stock(txt, windowAccelGroup)
@@ -1747,7 +1786,7 @@ Type TGTKMenuItem Extends TGTKGadget
 
 				Local txt:String = getGTKStockIDFromName(_label)
 				If txt = _label Or TGTKWindow(_parent) Then
-					handle = gtk_menu_item_new_with_label(_label)
+					handle = gtk_image_menu_item_new_with_label(_label)
 				Else
 					If windowAccelGroup Then
 						handle = gtk_image_menu_item_new_from_stock(txt, windowAccelGroup)
@@ -1977,12 +2016,52 @@ Type TGTKMenuItem Extends TGTKGadget
 		handle = Null
 		menu = Null
 
+		If pixmap Then
+			pixmap = Null
+		End If
+		If image Then
+			g_object_unref(image)
+			image = Null
+		End If
+		If imagePixbuf Then
+			g_object_unref(imagePixbuf)
+			imagePixbuf = Null
+		End If
+
 	End Method
 
 	Method rethink()
 	End Method
 
 	Method DoLayout()
+	End Method
+
+	Method SetPixmap(pix:TPixmap, flags:Int)
+		If Not isSeparator Then
+			If pix Then
+				If PixmapFormat(pix) <> PF_RGBA8888 And PixmapFormat(pix) <> PF_BGRA8888 Then
+					pixmap = pix.convert( PF_RGBA8888 )
+				Else
+					pixmap = pix
+				End If
+				
+				If imagePixbuf Then
+					g_object_unref(imagePixbuf)
+				End If
+	
+				imagePixbuf = Int Ptr(gdk_pixbuf_new_from_data(pixmap.pixels, GDK_COLORSPACE_RGB, True, 8, ..
+								pixmap.width, pixmap.height, pixmap.Pitch, Null, Null))
+				
+				gtk_image_set_from_pixbuf(image, Int(imagePixbuf))
+			Else
+				If pixmap Then
+					gtk_image_clear(image)
+					pixmap = Null
+				End If
+			End If
+			
+			gtk_image_menu_item_set_image(handle, image)
+		End If
 	End Method
 
 	Method toString:String()
@@ -2973,6 +3052,10 @@ Type TGTKPanel Extends TGTKContainer
 		Init(GTK_PANEL, x, y, w, h, style)
 
 		container = handle
+		
+		If style & PANEL_ACTIVE
+			sensitivity:| SENSITIZE_MOUSE | SENSITIZE_KEYS
+		End If
 
 		gtk_widget_add_events(handle, GDK_BUTTON_PRESS_MASK | ..
 			GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | ..
@@ -4325,7 +4408,7 @@ Type TGTKListWithScrollWindow Extends TGTKList
 	Field scrollWindow:Byte Ptr
 
 	Method Init(GadgetClass:Int, x:Int, y:Int, w:Int, h:Int, style:Int)
-		Super.init(class, x, y, w, h, style)
+		Super.init(iclass, x, y, w, h, style)
 	
 		handle = gtk_tree_view_new()
 		gtk_tree_view_set_headers_visible(handle, False)
@@ -5025,6 +5108,7 @@ Type TGTKCanvas Extends TGTKGadget
 		gtk_layout_put(TGTKContainer(group).container, handle, x, y)
 		gtk_widget_set_size_request(handle, w, Max(h,0))
 
+		sensitivity:| SENSITIZE_MOUSE | SENSITIZE_KEYS
 
 		' we need to allow the drawing area to accept focus !
 		g_object_set_int(handle, "can-focus", True)
