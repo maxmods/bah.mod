@@ -36,6 +36,7 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
 ?
 
+?Not Linux
 Import BaH.Bass
 
 Import "common.bmx"
@@ -355,4 +356,4 @@ Type TBassFXFXFactory Extends TBassFXFactory
 
 End Type
 
-
+?
