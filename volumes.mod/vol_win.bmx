@@ -193,6 +193,10 @@ Type TWinVolume Extends TVolume
 		Return String.fromWString(b)
 	End Method
 
+	Method GetCustomDir:String(dirType:Int)
+		Return Null
+	End Method
+	
 End Type
 
 Type TVolSpace

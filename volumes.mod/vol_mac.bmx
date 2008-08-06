@@ -38,7 +38,7 @@ Const kDesktopFolderType:Int = Asc("d") Shl 24 | Asc("e") Shl 16 | Asc( "s") Shl
 Const kCurrentUserFolderType:Int = Asc("c") Shl 24 | Asc("u") Shl 16 | Asc( "s") Shl 8 | Asc("r")
 Const kApplicationSupportFolderType:Int = Asc("a") Shl 24 | Asc("s") Shl 16 | Asc( "u") Shl 8 | Asc("p")
 Const kDocumentsFolderType:Int = Asc("d") Shl 24 | Asc("o") Shl 16 | Asc( "c") Shl 8 | Asc("s")
-
+Const kSharedUserDataFolderType:Int = Asc("s") Shl 24 | Asc("d") Shl 16 | Asc( "a") Shl 8 | Asc("t")
 
 Type Tstatfs
 	Const f_otype:Int = 0    ' Type of file system (reserved: zero) */
@@ -264,6 +264,16 @@ Type TMacVolume Extends TVolume
 	
 	Method GetUserDocumentsDir:String()
 		Return getPath(kDocumentsFolderType)
+	End Method
+
+	Method GetCustomDir:String(dirType:Int)
+	
+		Select dirType
+			Case DT_SHAREDUSERDATA
+				Return getPath(kSharedUserDataFolderType)
+		End Select
+		
+		Return Null
 	End Method
 
 End Type

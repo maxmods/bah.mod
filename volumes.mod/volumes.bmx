@@ -5,12 +5,14 @@ bbdoc: Volumes
 End Rem
 Module BaH.Volumes
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Copyright: (c) 2006, 2007 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Added GetCustomDir function."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Updated Win32 to use SHGetFolderPathW instead of SHGetFolderPathA"
 ModuleInfo "History: 1.03"

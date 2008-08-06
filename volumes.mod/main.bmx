@@ -80,6 +80,8 @@ Type TVolume
 	Method GetUserAppDir:String() Abstract
 	Method GetUserDocumentsDir:String() Abstract
 	
+	Method GetCustomDir:String(dirType:Int) Abstract
+	
 End Type
 
 
@@ -88,7 +90,7 @@ bbdoc: Returns a list of volumes on the system.
 End Rem
 Function ListVolumes:TList()
 
-	Return volume_driver.ListVolumes()
+	Return volume_driver.listVolumes()
 
 End Function
 
@@ -101,7 +103,7 @@ about: Parameters:
 End Rem
 Function GetVolumeFreeSpace:Long(vol:String)
 
-	Return volume_driver.GetVolumeFreeSpace(vol)
+	Return volume_driver.getVolumeFreeSpace(vol)
 
 End Function
 
@@ -114,7 +116,7 @@ about: Parameters:
 End Rem
 Function GetVolumeSize:Long(vol:String)
 
-	Return volume_driver.GetVolumeSize(vol)
+	Return volume_driver.getVolumeSize(vol)
 
 End Function
 
@@ -127,7 +129,7 @@ about: Parameters:
 End Rem
 Function GetVolumeInfo:TVolume(vol:String)
 
-	Return volume_driver.GetVolumeInfo(vol)
+	Return volume_driver.getVolumeInfo(vol)
 
 End Function
 
@@ -186,3 +188,20 @@ End Rem
 Function GetUserDocumentsDir:String()
 	Return volume_driver.GetUserDocumentsDir()
 End Function
+
+Rem
+bbdoc: Returns the custom directory path.
+about: The following table lists valid @dirType -
+<table align="center">
+<tr><th>Platform</th><th>dirType</th><th>Description</th></tr>
+<tr><td>Mac</td><td>DT_SHAREDUSERDATA</td><td>The Shared documents folder.</td></tr>
+</table>
+<p>Returns Null if @dirType is not valid for the platform.</p>
+End Rem
+Function GetCustomDir:String(dirType:Int)
+	Return volume_driver.GetCustomDir(dirType)
+End Function
+
+' custom dir types
+
+Const DT_SHAREDUSERDATA:Int = $0001

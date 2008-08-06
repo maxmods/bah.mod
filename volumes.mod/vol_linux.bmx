@@ -225,6 +225,10 @@ Type TLinuxVolume Extends TVolume
 		Return getHome() + "/Documents"
 	End Method
 
+	Method GetCustomDir:String(dirType:Int)
+		Return Null
+	End Method
+
 End Type
 
 Type TVolSpace
