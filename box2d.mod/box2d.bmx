@@ -25,11 +25,14 @@ bbdoc: Box2D
 End Rem
 Module BaH.Box2D
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
+ModuleInfo "History: Added b2OBB type."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to box2d svn (rev 169)"
 ModuleInfo "History: API CHANGES : DoStep() - changed iteration parameters"
@@ -183,7 +186,6 @@ Type b2World
 	</p>
 	End Rem
 	Method CreateJoint:b2Joint(def:b2JointDef)
-		Local jointType:Int
 		Local joint:b2Joint = b2Joint._create(bmx_b2world_createjoint(b2ObjectPtr, def.b2ObjectPtr))
 		joint.userData = def.userData ' copy the userData
 		Return joint
@@ -1029,12 +1031,27 @@ Type b2Body
 	</p>
 	End Rem
 	Method CreateShape:b2Shape(def:b2ShapeDef)
-		Local shape:b2Shape = New b2Shape
+		Local shape:b2Shape = b2Shape._create(bmx_b2body_createshape(b2ObjectPtr, def.b2ObjectPtr))
 		shape.userData = def.userData ' copy the userData
-		shape.b2ObjectPtr = bmx_b2body_createshape(b2ObjectPtr, def.b2ObjectPtr, shape)
 		Return shape
 	End Method
-	
+
+	Function _createShape:b2Shape(shapeType:Int)
+		Local shape:b2Shape
+		Select shapeType
+			Case e_unknownShape
+				shape = New b2Shape
+			Case e_circleShape
+				shape = New b2CircleShape
+			Case e_polygonShape
+				shape = New b2PolygonShape
+			Default
+				DebugLog "Warning, shape type '" + shapeType + "' is not defined in module."
+				shape = New b2Shape
+		End Select
+		Return shape
+	End Function
+
 	Rem
 	bbdoc: Destroy a shape. 
 	about: This removes the shape from the broad-phase and therefore destroys any contacts associated with this shape.
@@ -1358,6 +1375,10 @@ Type b2Shape
 			If Not shape Then
 				shape = New b2Shape
 				shape.b2ObjectPtr = b2ObjectPtr
+			Else
+				If Not shape.b2ObjectPtr Then
+					shape.b2ObjectPtr = b2ObjectPtr
+				EndIf
 			End If
 			Return shape
 		End If
@@ -2087,9 +2108,83 @@ Type b2PolygonDef Extends b2ShapeDef
 	
 End Type
 
+Rem
+bbdoc: A convex polygon.
+End Rem
+Type b2PolygonShape Extends b2Shape
+
+	Rem
+	bbdoc: Get the oriented bounding box relative to the parent body.
+	End Rem
+	Method GetOBB:b2OBB()
+		Return b2OBB._create(bmx_b2polygonshape_getobb(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get local centroid relative to the parent body.
+	End Rem
+	Method GetCentroid:b2Vec2()
+		Return b2Vec2._create(bmx_b2polygonshape_getcentroid(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the vertex count. 
+	End Rem
+	Method GetVertexCount:Int()
+		Return bmx_b2polygonshape_getvertexcount(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the vertices in local coordinates.
+	End Rem
+	Method GetVertices:b2Vec2[]()
+		Return bmx_b2polygonshape_getvertices(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the core vertices in local coordinates.
+	End Rem
+	Method GetCoreVertices:b2Vec2[]()
+		Return bmx_b2polygonshape_getcorevertices(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the edge normal vectors.
+	about: There is one for each vertex.
+	End Rem
+	Method GetNormals:b2Vec2[]()
+		Return bmx_b2polygonshape_getnormals(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the first vertex and apply the supplied transform.
+	End Rem
+	Method GetFirstVertex:b2Vec2(xf:b2XForm)
+		Return b2Vec2._create(bmx_b2polygonshape_getfirstvertex(b2ObjectPtr, xf.b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the centroid and apply the supplied transform.
+	End Rem
+	Method Centroid:b2Vec2(xf:b2XForm)
+		Return b2Vec2._create(bmx_b2polygonshape_centroid(b2ObjectPtr, xf.b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the support point in the given world direction.
+	End Rem
+	Method Support:b2Vec2(xf:b2XForm, d:b2Vec2)
+		Return b2Vec2._create(bmx_b2polygonshape_support(b2ObjectPtr, xf.b2ObjectPtr, d.b2ObjectPtr))
+	End Method
+
+End Type
+
 Extern
 	Function bmx_b2polygondef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
 	Function bmx_b2world_query:Int(handle:Byte Ptr, aabb:Byte Ptr, shapes:b2Shape[])
+	Function bmx_b2polygonshape_getvertices:b2Vec2[](handle:Byte Ptr)
+	Function bmx_b2polygonshape_getcorevertices:b2Vec2[](handle:Byte Ptr)
+	Function bmx_b2polygonshape_getnormals:b2Vec2[](handle:Byte Ptr)
 End Extern
 
 Rem
@@ -2134,6 +2229,27 @@ Type b2CircleDef Extends b2ShapeDef
 			bmx_b2circledef_delete(b2ObjectPtr)
 			b2ObjectPtr = Null
 		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: A circle shape.
+End Rem
+Type b2CircleShape Extends b2Shape
+
+	Rem
+	bbdoc: Get the local position of this circle in its parent body.
+	End Rem
+	Method GetLocalPosition:b2Vec2()
+		Return b2Vec2._create(bmx_b2circleshape_getlocalposition(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Get the radius of this circle. 
+	End Rem
+	Method GetRadius:Float()
+		Return bmx_b2circleshape_getradius(b2ObjectPtr)
 	End Method
 
 End Type
@@ -3390,6 +3506,44 @@ Type b2Mat22
 		bmx_b2mat22_setangle(b2ObjectPtr, angle)
 	End Method
 	
+End Type
+
+Rem
+bbdoc: An oriented bounding box.
+End Rem
+Type b2OBB
+
+	Field b2ObjectPtr:Byte Ptr
+	
+	Function _create:b2OBB(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2OBB = New b2OBB
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Returns the rotation matrix.
+	End Rem
+	Method GetRotationMatrix:b2Mat22()
+		Return b2Mat22._create(bmx_b2obb_getrotationmatrix(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Returns the local centroid.
+	End Rem
+	Method GetCenter:b2Vec2()
+		Return b2Vec2._create(bmx_b2obb_getcenter(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the half-widths.
+	End Rem
+	Method GetExtents:b2Vec2()
+		Return b2Vec2._create(bmx_b2obb_getextents(b2ObjectPtr))
+	End Method
+
 End Type
 
 Rem

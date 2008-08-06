@@ -51,6 +51,7 @@ extern "C" {
 
 	void _bah_box2d_b2DestructionListener__SayGoodbyeJoint(BBObject * maxHandle, b2Joint * joint);
 	void _bah_box2d_b2DestructionListener__SayGoodbyeShape(BBObject * maxHandle, b2Shape * shape);
+	BBObject * _bah_box2d_b2Body__createShape(b2ShapeType type);
 
 	b2AABB * bmx_b2aabb_create(b2Vec2 * lowerBound, b2Vec2 * upperBound);
 	void bmx_b2aabb_delete(b2AABB * aabb);
@@ -71,7 +72,7 @@ extern "C" {
 	b2Vec2 * bmx_b2vec2_plus(b2Vec2 * vec, b2Vec2 * other);
 	float32 bmx_b2vec2_normalize(b2Vec2 * vec);
 	float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec);
-
+	BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount);
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
 	//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
@@ -135,7 +136,7 @@ extern "C" {
 	void bmx_b2polygondef_setasorientedbox(b2PolygonDef * def, float32 hx, float32 hy, b2Vec2 * center, float32 angle);
 	void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices);
 
-	b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape);
+	b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def);
 	void bmx_b2body_destroyshape(b2Body * body, b2Shape * shape);
 	void bmx_b2body_setmassfromshapes(b2Body * body);
 	b2Vec2 * bmx_b2body_getposition(b2Body * body);
@@ -446,6 +447,24 @@ extern "C" {
 	MaxDestructionListener * bmx_b2destructionlistener_new(BBObject * handle);
 	void bmx_b2destructionlistener_delete(MaxDestructionListener * listener);
 
+	b2Mat22 * bmx_b2obb_getrotationmatrix(b2OBB * obb);
+	b2Vec2 * bmx_b2obb_getcenter(b2OBB * obb);
+	b2Vec2 * bmx_b2obb_getextents(b2OBB * obb);
+	void bmx_b2obb_delete(b2OBB * obb);
+
+	BBArray * bmx_b2polygonshape_getvertices(b2PolygonShape * shape);
+	BBArray * bmx_b2polygonshape_getcorevertices(b2PolygonShape * shape);
+	BBArray * bmx_b2polygonshape_getnormals(b2PolygonShape * shape);
+	const b2OBB * bmx_b2polygonshape_getobb(b2PolygonShape * shape);
+	b2Vec2 * bmx_b2polygonshape_getcentroid(b2PolygonShape * shape);
+	int bmx_b2polygonshape_getvertexcount(b2PolygonShape * shape);
+	b2Vec2 * bmx_b2polygonshape_getfirstvertex(b2PolygonShape * shape, b2XForm * xf);
+	b2Vec2 * bmx_b2polygonshape_centroid(b2PolygonShape * shape, b2XForm * xf);
+	b2Vec2 * bmx_b2polygonshape_support(b2PolygonShape * shape, b2XForm * xf, b2Vec2 * d);
+
+	b2Vec2 * bmx_b2circleshape_getlocalposition(b2CircleShape * shape);
+	float32 bmx_b2circleshape_getradius(b2CircleShape * shape);
+
 }
 
 class MaxFilterData
@@ -594,6 +613,15 @@ float32 bmx_b2vec2_normalize(b2Vec2 * vec) {
 
 float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec) {
 	return vec->LengthSquared();
+}
+
+BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount) {
+	BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
+	for (int i = 0; i < vertexCount; i++) {
+		_bah_box2d_b2Vec2__setVec(array, i, bmx_b2vec2_new(vertices[i]));
+	}
+	
+	return array;
 }
 
 // *****************************************************
@@ -869,7 +897,8 @@ void bmx_b2polygondef_setvertices(b2PolygonDef * def, BBArray * vertices) {
 
 // *****************************************************
 
-b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def, BBObject * shape) {
+b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def) {
+	BBObject * shape  = _bah_box2d_b2Body__createShape(def->type);
 	def->userData = shape;
 	BBRETAIN(shape);
 	return body->CreateShape(def);
@@ -1033,10 +1062,7 @@ public:
 	~MaxDebugDraw() {}
 
 	void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
-		BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
-		for (int i = 0; i < vertexCount; i++) {
-			_bah_box2d_b2Vec2__setVec(array, i, bmx_b2vec2_new(vertices[i]));
-		}
+		BBArray * array = bmx_b2vec2_getvertexarray(vertices, vertexCount);
 		_bah_box2d_b2DebugDraw__DrawPolygon(maxHandle, array, 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
@@ -1044,10 +1070,7 @@ public:
 	}
 
 	void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color) {
-		BBArray * array = _bah_box2d_b2Vec2__newVecArray(vertexCount);
-		for (int i = 0; i < vertexCount; i++) {
-			_bah_box2d_b2Vec2__setVec(array, i, bmx_b2vec2_new(vertices[i]));
-		}
+		BBArray * array = bmx_b2vec2_getvertexarray(vertices, vertexCount);
 		_bah_box2d_b2DebugDraw__DrawSolidPolygon(maxHandle, array, 
 			static_cast<int>(color.r * 255.0f),
 			static_cast<int>(color.g * 255.0f),
@@ -2219,3 +2242,67 @@ MaxDestructionListener * bmx_b2destructionlistener_new(BBObject * handle) {
 void bmx_b2destructionlistener_delete(MaxDestructionListener * listener) {
 	delete listener;
 }
+
+// *****************************************************
+
+b2Mat22 * bmx_b2obb_getrotationmatrix(b2OBB * obb) {
+	return &obb->R;
+}
+
+b2Vec2 * bmx_b2obb_getcenter(b2OBB * obb) {
+	return bmx_b2vec2_new(obb->center);
+}
+
+b2Vec2 * bmx_b2obb_getextents(b2OBB * obb) {
+	return bmx_b2vec2_new(obb->extents);
+}
+
+// *****************************************************
+
+BBArray * bmx_b2polygonshape_getvertices(b2PolygonShape * shape) {
+	return bmx_b2vec2_getvertexarray(shape->GetVertices(), shape->GetVertexCount());
+}
+
+BBArray * bmx_b2polygonshape_getcorevertices(b2PolygonShape * shape) {
+	return bmx_b2vec2_getvertexarray(shape->GetCoreVertices(), shape->GetVertexCount());
+}
+
+BBArray * bmx_b2polygonshape_getnormals(b2PolygonShape * shape) {
+	return bmx_b2vec2_getvertexarray(shape->GetNormals(), shape->GetVertexCount());
+}
+
+const b2OBB * bmx_b2polygonshape_getobb(b2PolygonShape * shape) {
+	return &shape->GetOBB();
+}
+
+b2Vec2 * bmx_b2polygonshape_getcentroid(b2PolygonShape * shape) {
+	return bmx_b2vec2_new(shape->GetCentroid());
+}
+
+int bmx_b2polygonshape_getvertexcount(b2PolygonShape * shape) {
+	return shape->GetVertexCount();
+}
+
+b2Vec2 * bmx_b2polygonshape_getfirstvertex(b2PolygonShape * shape, b2XForm * xf) {
+	return bmx_b2vec2_new(shape->GetFirstVertex(*xf));
+}
+
+b2Vec2 * bmx_b2polygonshape_centroid(b2PolygonShape * shape, b2XForm * xf) {
+	return bmx_b2vec2_new(shape->Centroid(*xf));
+}
+
+b2Vec2 * bmx_b2polygonshape_support(b2PolygonShape * shape, b2XForm * xf, b2Vec2 * d) {
+	return bmx_b2vec2_new(shape->Support(*xf, *d));
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2circleshape_getlocalposition(b2CircleShape * shape) {
+	return bmx_b2vec2_new(shape->GetLocalPosition());
+}
+
+float32 bmx_b2circleshape_getradius(b2CircleShape * shape) {
+	return shape->GetRadius();
+}
+
+

@@ -105,7 +105,7 @@ Extern
 	Function bmx_b2polygondef_delete(handle:Byte Ptr)
 	Function bmx_b2polygondef_setasorientedbox(handle:Byte Ptr, hx:Float, hy:Float, center:Byte Ptr, angle:Float)
 
-	Function bmx_b2body_createshape:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, shape:Object)
+	Function bmx_b2body_createshape:Byte Ptr(handle:Byte Ptr, def:Byte Ptr)
 	Function bmx_b2body_destroyshape(handle:Byte Ptr, shape:Byte Ptr)
 	Function bmx_b2body_setmassfromshapes(handle:Byte Ptr)
 	Function bmx_b2body_getposition:Byte Ptr(handle:Byte Ptr)
@@ -414,6 +414,20 @@ Extern
 	Function bmx_b2destructionlistener_new:Byte Ptr(handle:Object)
 	Function bmx_b2destructionlistener_delete(handle:Byte Ptr)
 
+	Function bmx_b2obb_getrotationmatrix:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2obb_getcenter:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2obb_getextents:Byte Ptr(handle:Byte Ptr)
+	
+	Function bmx_b2polygonshape_getobb:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2polygonshape_getcentroid:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2polygonshape_getvertexcount:Int(handle:Byte Ptr)
+	Function bmx_b2polygonshape_getfirstvertex:Byte Ptr(handle:Byte Ptr, xf:Byte Ptr)
+	Function bmx_b2polygonshape_centroid:Byte Ptr(handle:Byte Ptr, xf:Byte Ptr)
+	Function bmx_b2polygonshape_support:Byte Ptr(handle:Byte Ptr, xf:Byte Ptr, d:Byte Ptr)
+
+	Function bmx_b2circleshape_getlocalposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2circleshape_getradius:Float(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0
@@ -423,4 +437,8 @@ Const e_distanceJoint:Int = 3
 Const e_pulleyJoint:Int = 4
 Const e_mouseJoint:Int = 5
 Const e_gearJoint:Int = 6
+
+Const e_unknownShape:Int = -1
+Const e_circleShape:Int = 0
+Const e_polygonShape:Int = 1
 
