@@ -25,12 +25,14 @@ bbdoc: Libxml
 End Rem
 Module BaH.LibXml
 
-ModuleInfo "Version: 1.13"
+ModuleInfo "Version: 1.14"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libxml2) 1998-2007 Daniel Veillard"
 ModuleInfo "Copyright: (wrapper) 2006-2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.14"
+ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -3690,6 +3692,10 @@ Type TxmlTextReader
 	
 	Field _xmlTextReaderPtr:Byte Ptr
 	
+	Field docTextPtr:Byte Ptr
+	Field urlTextPtr:Byte Ptr
+	Field encTextPtr:Byte Ptr
+	
 	' internal function... not part of the API !
 	Function _create:TxmlTextReader(_xmlTextReaderPtr:Byte Ptr)
 		If _xmlTextReaderPtr <> Null Then
@@ -3702,6 +3708,23 @@ Type TxmlTextReader
 			Return Null
 		End If
 	End Function
+	
+	Method Delete()
+		If docTextPtr Then
+			MemFree docTextPtr
+			docTextPtr = Null
+		End If
+		
+		If urlTextPtr Then
+			MemFree urlTextPtr
+			urlTextPtr = Null
+		End If
+		
+		If encTextPtr Then
+			MemFree encTextPtr
+			encTextPtr = Null
+		End If
+	End Method
 
 	Rem
 	bbdoc: Parse an XML file from the filesystem or the network.
@@ -3795,20 +3818,24 @@ Type TxmlTextReader
 		Assert text, XML_ERROR_PARAM
 		Assert url, XML_ERROR_PARAM
 		
-		Local cStr1:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
-		Local cStr2:Byte Ptr = _xmlConvertMaxToUTF8(url).toCString()
+		Local docTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
+		Local urlTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(url).toCString()
 		
 		Local t:TxmlTextReader = Null
 		If encoding <> Null Then
-			Local cStr3:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
-			t = _create(xmlReaderForDoc(cStr1, cStr2, cStr3, options))
-			MemFree cStr3
+			Local encTextPtr:Byte Ptr = _xmlConvertMaxToUTF8(encoding).toCString()
+			t = _create(xmlReaderForDoc(docTextPtr, urlTextPtr, encTextPtr, options))
+			If t Then
+				t.encTextPtr = encTextPtr
+			End If
 		Else
-			t = _create(xmlReaderForDoc(cStr1, cStr2, Null, options))
+			t = _create(xmlReaderForDoc(docTextPtr, urlTextPtr, Null, options))
 		End If
 		
-		MemFree cStr1
-		MemFree cStr2
+		If t Then
+			t.docTextPtr = docTextPtr
+			t.urlTextPtr = urlTextPtr
+		End If
 		
 		Return t
 	End Function
