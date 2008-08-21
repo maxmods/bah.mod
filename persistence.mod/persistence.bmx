@@ -416,42 +416,45 @@ Type TPersist
 										Default
 											Local arrayList:TList = fieldNode.getChildren()
 											
-											Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-											fieldObj.Set(obj, arrayObj)
-											
-											Local i:Int
-											For Local arrayNode:TxmlNode = EachIn arrayList
-			
-												Select arrayElementType
-													Case StringTypeId
-														arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-													Default
-														arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-												End Select
-			
-												i:+ 1
-											Next
+											If arrayList ' Birdie
+												Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+												fieldObj.Set(obj, arrayObj)
+												
+												Local i:Int
+												For Local arrayNode:TxmlNode = EachIn arrayList
+				
+													Select arrayElementType
+														Case StringTypeId
+															arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+														Default
+															arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+													End Select
+				
+													i:+ 1
+												Next
+											EndIf
 									End Select
 								Else
 									' For file version 0 (zero)
 									
 									Local arrayList:TList = fieldNode.getChildren()
+									If arrayList 'Birdie
+										Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+										fieldObj.Set(obj, arrayObj)
 									
-									Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-									fieldObj.Set(obj, arrayObj)
-									
-									Local i:Int
-									For Local arrayNode:TxmlNode = EachIn arrayList
-	
-										Select arrayElementType
-											Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
-												arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-											Default
-												arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-										End Select
-	
-										i:+ 1
-									Next
+										Local i:Int
+										For Local arrayNode:TxmlNode = EachIn arrayList
+		
+											Select arrayElementType
+												Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
+													arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+												Default
+													arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+											End Select
+		
+											i:+ 1
+										Next
+									EndIf
 								End If
 							Else
 								' is this a reference?
@@ -496,4 +499,3 @@ Type TPersist
 	End Function
 
 End Type
-
