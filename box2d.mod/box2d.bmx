@@ -31,8 +31,13 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
 ModuleInfo "History: Added b2OBB type."
+ModuleInfo "History: Added b2Segment type."
+ModuleInfo "History: Added b2World Raycast(), RaycastOne() and InRange() methods."
+ModuleInfo "History: Added b2Body.GetWorld() method."
+ModuleInfo "History: Added raycast example."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Updated to box2d svn (rev 169)"
 ModuleInfo "History: API CHANGES : DoStep() - changed iteration parameters"
@@ -63,6 +68,15 @@ Type b2World
 	Field contactListener:b2ContactListener
 	Field boundaryListener:b2BoundaryListener
 	Field destructionListener:b2DestructionListener
+	
+	Function _create:b2World(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2World = New b2World
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
 	Rem
 	bbdoc: Construct a world object. 
 	End Rem
@@ -149,20 +163,6 @@ Type b2World
 		Return body
 	End Method
 
-'	Rem
-'	bbdoc: Create a dynamic rigid body given a definition.
-'	about: No reference To the definition is retained.
-'	<p>
-'	Warning: This Method is locked during callbacks.
-'	</p>
-'	End Rem
-'	Method CreateDynamicBody:b2Body(def:b2BodyDef)
-'		Local body:b2Body = New b2Body
-'		body.userData = def.userData ' copy the userData
-'		body.b2ObjectPtr = bmx_b2world_createdynamicbody(b2ObjectPtr, def.b2ObjectPtr, body)
-'		Return body
-'	End Method
-
 	Rem
 	bbdoc: Destroy a rigid body given a definition.
 	about: No reference to the definition is retained.
@@ -229,7 +229,7 @@ Type b2World
 
 	Rem
 	bbdoc: The world provides a single static ground body with no collision shapes.
-	about: You can use this to simplify the creation of joints.
+	about: You can use this to simplify the creation of joints and static shapes.
 	End Rem
 	Method GetGroundBody:b2Body()
 		Return b2Body._create(bmx_b2world_getgroundbody(b2ObjectPtr))
@@ -341,6 +341,29 @@ Type b2World
 	End Rem
 	Method Refilter(shape:b2Shape)
 		bmx_b2world_refilter(b2ObjectPtr, shape.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc:  Query the world for all shapes that intersect a given segment.
+	about: You provide a shape array of an appropriate size. The number of shapes found is returned, and the array
+	is filled in order of intersection.
+	End Rem
+	Method Raycast:Int(segment:b2Segment, shapes:b2Shape[], solidShapes:Int)
+		Return bmx_b2world_raycast(b2ObjectPtr, segment.b2ObjectPtr, shapes, solidShapes)
+	End Method
+
+	Rem
+	bbdoc: Performs a raycast as with Raycast, finding the first intersecting shape.
+	End Rem
+	Method RaycastOne:b2Shape(segment:b2Segment, lambda:Float Var, normal:b2Vec2, solidShapes:Int)
+		Return b2Shape._create(bmx_b2world_raycastone(b2ObjectPtr, segment.b2ObjectPtr, Varptr lambda, normal.b2ObjectPtr, solidShapes))
+	End Method
+	
+	Rem
+	bbdoc: Check if the AABB is within the broadphase limits.
+	End Rem
+	Method InRange:Int(aabb:b2AABB)
+		Return bmx_b2world_inrange(b2ObjectPtr, aabb.b2ObjectPtr)
 	End Method
 	
 	Function _setShape(shapes:b2Shape[], index:Int, shape:Byte Ptr)
@@ -489,15 +512,17 @@ Type b2Vec2
 	Rem
 	bbdoc: Multiplies the vector by @value.
 	End Rem	
-	Method Multiply(value:Float)
+	Method Multiply:b2Vec2(value:Float)
 		bmx_b2vec2_multiply(b2ObjectPtr, value)
+		Return Self
 	End Method
 
 	Rem
 	bbdoc: Divides the vector by @value.
 	End Rem	
-	Method Divide(value:Float)
+	Method Divide:b2Vec2(value:Float)
 		bmx_b2vec2_multiply(b2ObjectPtr, 1.0 / value)
+		Return Self
 	End Method
 
 	Rem
@@ -1355,6 +1380,13 @@ Type b2Body
 		Return bmx_b2body_setxform(b2ObjectPtr, position.b2ObjectPtr, angle)
 	End Method
 	
+	Rem
+	bbdoc: Get the parent world of this body.
+	End Rem
+	Method GetWorld:b2World()
+		Return b2World._create(bmx_b2body_getworld(b2ObjectPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -2182,6 +2214,7 @@ End Type
 Extern
 	Function bmx_b2polygondef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
 	Function bmx_b2world_query:Int(handle:Byte Ptr, aabb:Byte Ptr, shapes:b2Shape[])
+	Function bmx_b2world_raycast:Int(handle:Byte Ptr, segment:Byte Ptr, shapes:b2Shape[], solidShapes:Int)
 	Function bmx_b2polygonshape_getvertices:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2polygonshape_getcorevertices:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2polygonshape_getnormals:b2Vec2[](handle:Byte Ptr)
@@ -3547,6 +3580,86 @@ Type b2OBB
 End Type
 
 Rem
+bbdoc: A line segment.
+End Rem
+Type b2Segment
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Function _create:b2Segment(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2Segment = New b2Segment
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Creates a new b2Segment object.
+	End Rem
+	Method CreateXY:b2Segment(x1:Float, y1:Float, x2:Float, y2:Float)
+		b2ObjectPtr = bmx_b2segment_createxy(x1, y1, x2, y2)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Creates a new b2Segment object.
+	End Rem
+	Method Create:b2Segment(p1:b2Vec2 = Null, p2:b2Vec2 = Null)
+		If p1 Then
+			If p2 Then
+				b2ObjectPtr = bmx_b2segment_create(p1.b2ObjectPtr, p2.b2ObjectPtr)
+			Else
+				b2ObjectPtr = bmx_b2segment_create(p1.b2ObjectPtr, Null)
+			End If
+		Else
+			If p2 Then
+				b2ObjectPtr = bmx_b2segment_create(Null, p2.b2ObjectPtr)
+			Else
+				b2ObjectPtr = bmx_b2segment_create(Null, Null)
+			End If
+		End If
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Returns the start point of this segment.
+	End Rem
+	Method GetStartPoint:b2Vec2()
+		Return b2Vec2._create(bmx_b2segment_getstartpoint(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the end point of this segment.
+	End Rem
+	Method GetEndPoint:b2Vec2()
+		Return b2Vec2._create(bmx_b2segment_getendpoint(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the start point of this segment.
+	End Rem
+	Method SetStartPoint(point:b2Vec2)
+		bmx_b2segment_setstartpoint(b2ObjectPtr, point.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the end point of this segment.
+	End Rem
+	Method SetEndPoint(point:b2Vec2)
+		bmx_b2segment_setendpoint(b2ObjectPtr, point.b2ObjectPtr)
+	End Method
+	
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2segment_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
 bbdoc: Perform the cross product on a vector and a scalar.
 about: In 2D this produces a vector.
 End Rem
@@ -3560,6 +3673,13 @@ about: In 2D this produces a vector.
 End Rem
 Function b2CrossF:b2Vec2(s:Float, a:b2Vec2)
 	Return b2Vec2._create(bmx_b2crossf(s, a.b2ObjectPtr))
+End Function
+
+Rem
+bbdoc: Peform the dot product on two vectors.
+End Rem
+Function b2Dot:Float(a:b2Vec2, b:b2Vec2)
+	Return bmx_b2dot(a.b2ObjectPtr, b.b2ObjectPtr)
 End Function
 
 Rem

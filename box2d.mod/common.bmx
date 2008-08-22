@@ -68,6 +68,8 @@ Extern
 	Function bmx_b2world_free(handle:Byte Ptr)
 	Function bmx_b2world_setdestructionlistener(handle:Byte Ptr, listener:Byte Ptr)
 	Function bmx_b2world_refilter(handle:Byte Ptr, shape:Byte Ptr)
+	Function bmx_b2world_raycastone:Byte Ptr(handle:Byte Ptr, segment:Byte Ptr, lambda:Float Ptr, normal:Byte Ptr, solidShapes:Int)
+	Function bmx_b2world_inrange:Int(handle:Byte Ptr, aabb:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -140,6 +142,7 @@ Extern
 	Function bmx_b2body_getjointlist:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_getxform:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_setxform:Int(handle:Byte Ptr, position:Byte Ptr, angle:Float)
+	Function bmx_b2body_getworld:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
 	Function bmx_b2debugdraw_setflags(handle:Byte Ptr, flags:Int)
@@ -301,6 +304,7 @@ Extern
 	Function bmx_b2mult:Byte Ptr(A:Byte Ptr, v:Byte Ptr)
 	Function bmx_b2mulf:Byte Ptr(T:Byte Ptr, v:Byte Ptr)
 	Function bmx_b2multf:Byte Ptr(T:Byte Ptr, v:Byte Ptr)
+	Function bmx_b2dot:Float(a:Byte Ptr, b:Byte Ptr)
 
 	Function bmx_b2xform_create:Byte Ptr()
 	Function bmx_b2xform_getposition:Byte Ptr(handle:Byte Ptr)
@@ -427,6 +431,14 @@ Extern
 
 	Function bmx_b2circleshape_getlocalposition:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2circleshape_getradius:Float(handle:Byte Ptr)
+
+	Function bmx_b2segment_createxy:Byte Ptr(x1:Float, y1:Float, x2:Float, y2:Float)
+	Function bmx_b2segment_create:Byte Ptr(p1:Byte Ptr, p2:Byte Ptr)
+	Function bmx_b2segment_getstartpoint:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2segment_getendpoint:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2segment_setstartpoint(handle:Byte Ptr, point:Byte Ptr)
+	Function bmx_b2segment_setendpoint(handle:Byte Ptr, point:Byte Ptr)
+	Function bmx_b2segment_delete(handle:Byte Ptr)
 
 End Extern
 

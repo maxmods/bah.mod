@@ -239,7 +239,7 @@ float32 DistanceGeneric(b2Vec2* x1, b2Vec2* x2,
 #ifdef TARGET_FLOAT32_IS_FIXED
 		if (pointCount == 3 || vSqr <= 5.0*B2_FLT_EPSILON * maxSqr)
 #else
-		if (pointCount == 3 || vSqr <= 100.0f * B2_FLT_EPSILON * maxSqr)
+		if (vSqr <= 100.0f * B2_FLT_EPSILON * maxSqr)
 #endif
 		{
 			g_GJK_Iterations = iter;

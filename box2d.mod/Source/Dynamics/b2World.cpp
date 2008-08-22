@@ -311,6 +311,8 @@ void b2World::DestroyJoint(b2Joint* j)
 
 void b2World::Refilter(b2Shape* shape)
 {
+	b2Assert(m_lock == false);
+
 	shape->RefilterProxy(m_broadPhase, shape->GetBody()->GetXForm());
 }
 
@@ -850,6 +852,45 @@ int32 b2World::Query(const b2AABB& aabb, b2Shape** shapes, int32 maxCount)
 	return count;
 }
 
+int32 b2World::Raycast(const b2Segment& segment, b2Shape** shapes, int32 maxCount, bool solidShapes, void* userData)
+{
+	m_raycastSegment = &segment;
+	m_raycastUserData = userData;
+	m_raycastSolidShape = solidShapes;
+
+	void** results = (void**)m_stackAllocator.Allocate(maxCount * sizeof(void*));
+
+	int32 count = m_broadPhase->QuerySegment(segment,results,maxCount, &RaycastSortKey);
+
+	for (int32 i = 0; i < count; ++i)
+	{
+		shapes[i] = (b2Shape*)results[i];
+	}
+
+	m_stackAllocator.Free(results);
+	return count;
+}
+
+b2Shape* b2World::RaycastOne(const b2Segment& segment, float32* lambda, b2Vec2* normal, bool solidShapes, void* userData)
+{
+	int32 maxCount = 1;
+	b2Shape* shape;
+
+	int32 count = Raycast(segment, &shape, maxCount, solidShapes, userData);
+
+	if(count==0)
+		return NULL;
+
+	b2Assert(count==1);
+
+	//Redundantly do TestSegment a second time, as the previous one's results are inaccessible
+
+	const b2XForm xf = shape->GetBody()->GetXForm();
+	shape->TestSegment(xf, lambda, normal,segment,1);
+	//We already know it returns true
+	return shape;
+}
+
 void b2World::DrawShape(b2Shape* shape, const b2XForm& xf, const b2Color& color, bool core)
 {
 	b2Color coreColor(0.9f, 0.6f, 0.6f);
@@ -1128,4 +1169,25 @@ int32 b2World::GetPairCount() const
 bool b2World::InRange(const b2AABB& aabb) const
 {
 	return m_broadPhase->InRange(aabb);
+}
+
+float32 b2World::RaycastSortKey(void* data)
+{
+	b2Shape* shape = (b2Shape*)data;
+	b2Body* body = shape->GetBody();
+	b2World* world = body->GetWorld();
+	const b2XForm xf = body->GetXForm();
+
+	if(world->m_contactFilter && !world->m_contactFilter->RayCollide(world->m_raycastUserData,shape))
+		return -1;
+
+	float32 lambda;
+	b2SegmentCollide collide = shape->TestSegment(xf, &lambda, &world->m_raycastNormal, *world->m_raycastSegment,1);
+
+	if(world->m_raycastSolidShape && collide==e_missCollide)
+		return -1;
+	if(!world->m_raycastSolidShape && collide!=e_hitCollide)
+		return -1;
+
+	return lambda;
 }

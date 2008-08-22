@@ -37,6 +37,14 @@ bool b2ContactFilter::ShouldCollide(b2Shape* shape1, b2Shape* shape2)
 	return collide;
 }
 
+bool b2ContactFilter::RayCollide(void* userData, b2Shape* shape)
+{
+	//By default, cast userData as a shape, and then collide if the shapes would collide
+	if(!userData)
+		return true;
+	return ShouldCollide((b2Shape*)userData,shape);
+}
+
 b2DebugDraw::b2DebugDraw()
 {
 	m_drawFlags = 0;

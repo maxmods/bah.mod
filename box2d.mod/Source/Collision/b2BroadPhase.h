@@ -64,6 +64,8 @@ struct b2Proxy
 	void* userData;
 };
 
+typedef float32 (*SortKeyFunc)(void* shape);
+
 class b2BroadPhase
 {
 public:
@@ -91,6 +93,14 @@ public:
 	// the count, up to the supplied maximum count.
 	int32 Query(const b2AABB& aabb, void** userData, int32 maxCount);
 
+	// Query a segment for overlapping proxies, returns the user data and
+	// the count, up to the supplied maximum count.
+	// If sortKey is provided, then it is a function mapping from proxy userDatas to distances along the segment (between 0 & 1)
+	// Then the returned proxies are sorted on that, before being truncated to maxCount
+	// The sortKey of a proxy is assumed to be larger than the closest point inside the proxy along the segment, this allows for early exits
+	// Proxies with a negative sortKey are discarded
+	int32 QuerySegment(const b2Segment& segment, void** userData, int32 maxCount, SortKeyFunc sortKey);
+
 	void Validate();
 	void ValidatePairs();
 
@@ -104,6 +114,7 @@ private:
 				b2Bound* bounds, int32 boundCount, int32 axis);
 	void IncrementOverlapCount(int32 proxyId);
 	void IncrementTimeStamp();
+	void AddProxyResult(uint16 proxyId, b2Proxy* proxy, int32 maxCount, SortKeyFunc sortKey);
 
 public:
 	friend class b2PairManager;
@@ -116,6 +127,7 @@ public:
 	b2Bound m_bounds[2][2*b2_maxProxies];
 
 	uint16 m_queryResults[b2_maxProxies];
+	float32 m_querySortKeys[b2_maxProxies];
 	int32 m_queryResultCount;
 
 	b2AABB m_worldAABB;

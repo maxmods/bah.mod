@@ -141,8 +141,8 @@ bool b2BroadPhase::TestOverlap(const b2BoundValues& b, b2Proxy* p)
 
 void b2BroadPhase::ComputeBounds(uint16* lowerValues, uint16* upperValues, const b2AABB& aabb)
 {
-	b2Assert(aabb.upperBound.x > aabb.lowerBound.x);
-	b2Assert(aabb.upperBound.y > aabb.lowerBound.y);
+	b2Assert(aabb.upperBound.x >= aabb.lowerBound.x);
+	b2Assert(aabb.upperBound.y >= aabb.lowerBound.y);
 
 	b2Vec2 minVertex = b2Clamp(aabb.lowerBound, m_worldAABB.lowerBound, m_worldAABB.upperBound);
 	b2Vec2 maxVertex = b2Clamp(aabb.upperBound, m_worldAABB.lowerBound, m_worldAABB.upperBound);
@@ -666,4 +666,297 @@ void b2BroadPhase::Validate()
 			b2Assert(bound->stabbingCount == stabbingCount);
 		}
 	}
+}
+
+
+int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int32 maxCount, SortKeyFunc sortKey)
+{
+	float32 maxLambda = 1;
+
+	float32 dx = (segment.p2.x-segment.p1.x)*m_quantizationFactor.x;
+	float32 dy = (segment.p2.y-segment.p1.y)*m_quantizationFactor.y;
+
+	int32 sx = dx<-B2_FLT_EPSILON ? -1 : (dx>B2_FLT_EPSILON ? 1 : 0);
+	int32 sy = dy<-B2_FLT_EPSILON ? -1 : (dy>B2_FLT_EPSILON ? 1 : 0);
+
+	b2Assert(sx!=0||sy!=0);
+
+	float32 p1x = (segment.p1.x-m_worldAABB.lowerBound.x)*m_quantizationFactor.x;
+	float32 p1y = (segment.p1.y-m_worldAABB.lowerBound.y)*m_quantizationFactor.y;
+
+	uint16 startValues[2];
+	uint16 startValues2[2];
+
+	int32 xIndex;
+	int32 yIndex;
+
+	uint16 proxyId;
+	b2Proxy* proxy;
+	
+	// TODO_ERIN implement fast float to uint16 conversion.
+	startValues[0] = (uint16)(p1x) & (B2BROADPHASE_MAX - 1);
+	startValues2[0] = (uint16)(p1x) | 1;
+
+	startValues[1] = (uint16)(p1y) & (B2BROADPHASE_MAX - 1);
+	startValues2[1] = (uint16)(p1y) | 1;
+
+	//First deal with all the proxies that contain segment.p1
+	int32 lowerIndex;
+	int32 upperIndex;
+	Query(&lowerIndex,&upperIndex,startValues[0],startValues2[0],m_bounds[0],2*m_proxyCount,0);
+	if(sx>=0)	xIndex = upperIndex-1;
+	else		xIndex = lowerIndex;
+	Query(&lowerIndex,&upperIndex,startValues[1],startValues2[1],m_bounds[1],2*m_proxyCount,1);
+	if(sy>=0)	yIndex = upperIndex-1;
+	else		yIndex = lowerIndex;
+
+	//If we are using sortKey, then sort what we have so far, filtering negative keys
+	if(sortKey)
+	{
+		//Fill keys
+		for(int32 i=0;i<m_queryResultCount;i++)
+		{
+			m_querySortKeys[i] = sortKey(m_proxyPool[m_queryResults[i]].userData);
+		}
+		//Bubble sort keys
+		//Sorting negative values to the top, so we can easily remove them
+		int32 i = 0;
+		while(i<m_queryResultCount-1)
+		{
+			float32 a = m_querySortKeys[i];
+			float32 b = m_querySortKeys[i+1];
+			if((a<0)?(b>=0):(a>b&&b>=0))
+			{
+				m_querySortKeys[i+1] = a;
+				m_querySortKeys[i]   = b;
+				uint16 tempValue = m_queryResults[i+1];
+				m_queryResults[i+1] = m_queryResults[i];
+				m_queryResults[i] = tempValue;
+				i--;
+				if(i==-1) i=1;
+			}
+			else
+			{
+				i++;
+			}
+		}
+		//Skim off negative values
+		while(m_queryResultCount>0 && m_querySortKeys[m_queryResultCount-1]<0)
+			m_queryResultCount--;
+	}
+
+	//Now work through the rest of the segment
+	do//while(false)
+	{
+		float32 xProgress;
+		float32 yProgress;
+		if(xIndex<0||xIndex>=m_proxyCount*2)
+			break;
+		if(yIndex<0||yIndex>=m_proxyCount*2)
+			break;
+		if(sx!=0)
+		{
+			//Move on to the next bound
+			if(sx>0)
+			{
+				xIndex++;
+				if(xIndex==m_proxyCount*2)
+					break;
+			}
+			else
+			{
+				xIndex--;
+				if(xIndex<0)
+					break;
+			}
+			xProgress = (m_bounds[0][xIndex].value-p1x)/dx;
+		}
+		if(sy!=0)
+		{
+			//Move on to the next bound
+			if(sy>0)
+			{
+				yIndex++;
+				if(yIndex==m_proxyCount*2)
+					break;
+			}
+			else
+			{
+				yIndex--;
+				if(yIndex<0)
+					break;
+			}
+			yProgress = (m_bounds[1][yIndex].value-p1y)/dy;
+		}
+		for(;;)
+		{
+			if(sy==0||(sx!=0&&xProgress<yProgress))
+			{
+				if(xProgress>maxLambda)
+					break;
+
+				//Check that we are entering a proxy, not leaving
+				if(sx>0?m_bounds[0][xIndex].IsLower():m_bounds[0][xIndex].IsUpper()){
+					//Check the other axis of the proxy
+					proxyId = m_bounds[0][xIndex].proxyId;
+					proxy = m_proxyPool+proxyId;
+					if(sy>=0)
+					{
+						if(proxy->lowerBounds[1]<=yIndex-1&&proxy->upperBounds[1]>=yIndex)
+						{
+							//Add the proxy
+							if(sortKey)
+							{
+								AddProxyResult(proxyId,proxy,maxCount,sortKey);
+							}
+							else
+							{
+								m_queryResults[m_queryResultCount] = proxyId;
+								++m_queryResultCount;
+							}
+						}
+					}
+					else
+					{
+						if(proxy->lowerBounds[1]<=yIndex&&proxy->upperBounds[1]>=yIndex+1)
+						{
+							//Add the proxy
+							if(sortKey)
+							{
+								AddProxyResult(proxyId,proxy,maxCount,sortKey);
+							}
+							else
+							{
+								m_queryResults[m_queryResultCount] = proxyId;
+								++m_queryResultCount;
+							}
+						}
+					}
+				}
+
+				//Early out
+				if(sortKey && m_queryResultCount==maxCount && m_queryResultCount>0 && xProgress>m_querySortKeys[m_queryResultCount-1])
+					break;
+
+				//Move on to the next bound
+				if(sx>0)
+				{
+					xIndex++;
+					if(xIndex==m_proxyCount*2)
+						break;
+				}
+				else
+				{
+					xIndex--;
+					if(xIndex<0)
+						break;
+				}
+				xProgress = (m_bounds[0][xIndex].value - p1x) / dx;
+			}
+			else
+			{
+				if(yProgress>maxLambda)
+					break;
+
+				//Check that we are entering a proxy, not leaving
+				if(sy>0?m_bounds[1][yIndex].IsLower():m_bounds[1][yIndex].IsUpper()){
+					//Check the other axis of the proxy
+					proxyId = m_bounds[1][yIndex].proxyId;
+					proxy = m_proxyPool+proxyId;
+					if(sx>=0)
+					{
+						if(proxy->lowerBounds[0]<=xIndex-1&&proxy->upperBounds[0]>=xIndex)
+						{
+							//Add the proxy
+							if(sortKey)
+							{
+								AddProxyResult(proxyId,proxy,maxCount,sortKey);
+							}
+							else
+							{
+								m_queryResults[m_queryResultCount] = proxyId;
+								++m_queryResultCount;
+							}
+						}
+					}
+					else
+					{
+						if(proxy->lowerBounds[0]<=xIndex&&proxy->upperBounds[0]>=xIndex+1)
+						{
+							//Add the proxy
+							if(sortKey)
+							{
+								AddProxyResult(proxyId,proxy,maxCount,sortKey);
+							}
+							else
+							{
+								m_queryResults[m_queryResultCount] = proxyId;
+								++m_queryResultCount;
+							}
+						}
+					}
+				}
+
+				//Early out
+				if(sortKey && m_queryResultCount==maxCount && m_queryResultCount>0 && yProgress>m_querySortKeys[m_queryResultCount-1])
+					break;
+
+				//Move on to the next bound
+				if(sy>0)
+				{
+					yIndex++;
+					if(yIndex==m_proxyCount*2)
+						break;
+				}
+				else
+				{
+					yIndex--;
+					if(yIndex<0)
+						break;
+				}
+				yProgress = (m_bounds[1][yIndex].value - p1y) / dy;
+			}
+		}
+	}while(0);
+
+	int32 count = 0;
+	for(int32 i=0;i < m_queryResultCount && count<maxCount; ++i, ++count)
+	{
+		b2Assert(m_queryResults[i] < b2_maxProxies);
+		b2Proxy* proxy = m_proxyPool + m_queryResults[i];
+		b2Assert(proxy->IsValid());
+		userData[i] = proxy->userData;
+	}
+
+	// Prepare for next query.
+	m_queryResultCount = 0;
+	IncrementTimeStamp();
+	
+	return count;
+
+}
+void b2BroadPhase::AddProxyResult(uint16 proxyId, b2Proxy* proxy, int32 maxCount, SortKeyFunc sortKey)
+{
+	float32 key = sortKey(proxy->userData);
+	//Filter proxies on positive keys
+	if(key<0)
+		return;
+	//Merge the new key into the sorted list.
+	//float32* p = std::lower_bound(m_querySortKeys,m_querySortKeys+m_queryResultCount,key);
+	float32* p = m_querySortKeys;
+	while(*p<key&&p<m_querySortKeys+m_queryResultCount)
+		p++;
+	int32 i = (int32)(p-m_querySortKeys);
+	if(maxCount==m_queryResultCount&&i==m_queryResultCount)
+		return;
+	if(maxCount==m_queryResultCount)
+		m_queryResultCount--;
+	//std::copy_backward
+	for(int32 j=m_queryResultCount+1;j>i;--j){
+		m_querySortKeys[j] = m_querySortKeys[j-1];
+		m_queryResults[j]  = m_queryResults[j-1];
+	}
+	m_querySortKeys[i] = key;
+	m_queryResults[i] = proxyId;
+	m_queryResultCount++;
 }

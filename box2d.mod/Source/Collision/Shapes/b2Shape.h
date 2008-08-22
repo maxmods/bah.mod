@@ -64,6 +64,14 @@ enum b2ShapeType
 	e_shapeTypeCount,
 };
 
+/// Return codes from TestSegment
+enum b2SegmentCollide
+{
+	e_startsInsideCollide = -1,
+	e_missCollide = 0,
+	e_hitCollide = 1
+};
+
 /// A shape definition is used to construct a shape. This class defines an
 /// abstract shape definition. You can reuse shape definitions safely.
 struct b2ShapeDef
@@ -156,12 +164,11 @@ public:
 	/// is not set.
 	/// @param segment defines the begin and end point of the ray cast.
 	/// @param maxLambda a number typically in the range [0,1].
-	/// @return true if there was an intersection.
-	virtual bool TestSegment(	const b2XForm& xf,
-								float32* lambda,
-								b2Vec2* normal,
-								const b2Segment& segment,
-								float32 maxLambda) const = 0;
+	virtual b2SegmentCollide TestSegment(	const b2XForm& xf,
+											float32* lambda,
+											b2Vec2* normal,
+											const b2Segment& segment,
+											float32 maxLambda) const = 0;
 
 	/// Given a transform, compute the associated axis aligned bounding box for this shape.
 	/// @param aabb returns the axis aligned box.

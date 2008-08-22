@@ -258,7 +258,7 @@ bool b2PolygonShape::TestPoint(const b2XForm& xf, const b2Vec2& p) const
 	return true;
 }
 
-bool b2PolygonShape::TestSegment(
+b2SegmentCollide b2PolygonShape::TestSegment(
 	const b2XForm& xf,
 	float32* lambda,
 	b2Vec2* normal,
@@ -280,28 +280,37 @@ bool b2PolygonShape::TestSegment(
 		float32 numerator = b2Dot(m_normals[i], m_vertices[i] - p1);
 		float32 denominator = b2Dot(m_normals[i], d);
 
-		// Note: we want this predicate without division:
-		// lower < numerator / denominator, where denominator < 0
-		// Since denominator < 0, we have to flip the inequality:
-		// lower < numerator / denominator <==> denominator * lower > numerator.
-
-		if (denominator < 0.0f && numerator < lower * denominator)
-		{
-			// Increase lower.
-			// The segment enters this half-space.
-			lower = numerator / denominator;
-			index = i;
+		if (denominator == 0.0f)
+		{	
+			if (numerator < 0.0f)
+			{
+				return e_missCollide;
+			}
 		}
-		else if (denominator > 0.0f && numerator < upper * denominator)
+		else
 		{
-			// Decrease upper.
-			// The segment exits this half-space.
-			upper = numerator / denominator;
+			// Note: we want this predicate without division:
+			// lower < numerator / denominator, where denominator < 0
+			// Since denominator < 0, we have to flip the inequality:
+			// lower < numerator / denominator <==> denominator * lower > numerator.
+			if (denominator < 0.0f && numerator < lower * denominator)
+			{
+				// Increase lower.
+				// The segment enters this half-space.
+				lower = numerator / denominator;
+				index = i;
+			}
+			else if (denominator > 0.0f && numerator < upper * denominator)
+			{
+				// Decrease upper.
+				// The segment exits this half-space.
+				upper = numerator / denominator;
+			}
 		}
 
 		if (upper < lower)
 		{
-			return false;
+			return e_missCollide;
 		}
 	}
 
@@ -311,10 +320,11 @@ bool b2PolygonShape::TestSegment(
 	{
 		*lambda = lower;
 		*normal = b2Mul(xf.R, m_normals[index]);
-		return true;
+		return e_hitCollide;
 	}
 
-	return false;
+	*lambda = 0;
+	return e_startsInsideCollide;
 }
 
 void b2PolygonShape::ComputeAABB(b2AABB* aabb, const b2XForm& xf) const

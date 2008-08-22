@@ -70,6 +70,9 @@ public:
 	/// Return true if contact calculations should be performed between these two shapes.
 	/// @warning for performance reasons this is only called when the AABBs begin to overlap.
 	virtual bool ShouldCollide(b2Shape* shape1, b2Shape* shape2);
+
+	/// Return true if the given shape should be considered for ray intersection
+	virtual bool RayCollide(void* userData, b2Shape* b2Shape);
 };
 
 /// The default contact filter.

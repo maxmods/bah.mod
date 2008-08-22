@@ -117,7 +117,30 @@ public:
 	/// @param maxCount the capacity of the shapes array.
 	/// @return the number of shapes found in aabb.
 	int32 Query(const b2AABB& aabb, b2Shape** shapes, int32 maxCount);
-	
+
+	/// Query the world for all shapes that intersect a given segment. You provide a shap
+	/// pointer buffer of specified size. The number of shapes found is returned, and the buffer
+	/// is filled in order of intersection
+	/// @param segment defines the begin and end point of the ray cast, from p1 to p2.
+	/// Use b2Segment.Extend to create (semi-)infinite rays
+	/// @param shapes a user allocated shape pointer array of size maxCount (or greater).
+	/// @param maxCount the capacity of the shapes array
+	/// @param solidShapes determines if shapes that the ray starts in are counted as hits.
+	/// @param userData passed through the worlds contact filter, with method RayCollide. This can be used to filter valid shapes
+	/// @returns the number of shapes found
+	int32 Raycast(const b2Segment& segment, b2Shape** shapes, int32 maxCount, bool solidShapes, void* userData);
+
+	/// Performs a raycast as with Raycast, finding the first intersecting shape.
+	/// @param segment defines the begin and end point of the ray cast, from p1 to p2.
+	/// Use b2Segment.Extend to create (semi-)infinite rays	
+	/// @param lambda returns the hit fraction. You can use this to compute the contact point
+	/// p = (1 - lambda) * segment.p1 + lambda * segment.p2.
+	/// @param normal returns the normal at the contact point. If there is no intersection, the normal
+	/// is not set.
+	/// @param solidShapes determines if shapes that the ray starts in are counted as hits.
+	/// @returns the colliding shape shape, or null if not found
+	b2Shape* RaycastOne(const b2Segment& segment, float32* lambda, b2Vec2* normal, bool solidShapes, void* userData);
+
 	/// Check if the AABB is within the broadphase limits.
 	bool InRange(const b2AABB& aabb) const;
 
@@ -176,6 +199,9 @@ private:
 	void DrawShape(b2Shape* shape, const b2XForm& xf, const b2Color& color, bool core);
 	void DrawDebugData();
 
+	//Is it safe to pass private static function pointers?
+	static float32 RaycastSortKey(void* shape);
+
 	b2BlockAllocator m_blockAllocator;
 	b2StackAllocator m_stackAllocator;
 
@@ -186,6 +212,12 @@ private:
 
 	b2Body* m_bodyList;
 	b2Joint* m_jointList;
+
+	b2Vec2 m_raycastNormal;
+	void* m_raycastUserData;
+	const b2Segment* m_raycastSegment;
+	bool m_raycastSolidShape;
+
 
 	// Do not access
 	b2Contact* m_contactList;

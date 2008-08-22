@@ -75,7 +75,6 @@ extern "C" {
 	BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount);
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
-	//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
 	b2Body * bmx_b2world_getgroundbody(b2World * world);
 	void bmx_b2world_setwarmstarting(b2World * world, bool flag);
@@ -98,10 +97,12 @@ extern "C" {
 	void bmx_b2world_free(b2World * world);
 	void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener);
 	void bmx_b2world_refilter(b2World * world, b2Shape * shape);
+	int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, bool solidShapes);
+	b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, bool solidShapes);
+	bool bmx_b2world_inrange(b2World * world, b2AABB * aabb);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
-	//void bmx_b2bodydef_settype(b2BodyDef * def, b2BodyDef::Type bodyType);
 	void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position);
 	void bmx_b2bodydef_setpositionxy(b2BodyDef * def, float32 x, float32 y);
 	void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle);
@@ -171,6 +172,7 @@ extern "C" {
 	b2JointEdge * bmx_b2body_getjointlist(b2Body * body);
 	const b2XForm * bmx_b2body_getxform(b2Body * body);
 	bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle);
+	b2World * bmx_b2body_getworld(b2Body * body);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
 	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
@@ -334,6 +336,7 @@ extern "C" {
 	b2Vec2 * bmx_b2mult(b2Mat22 * A, b2Vec2 * v);
 	b2Vec2 * bmx_b2mulf(b2XForm * T, b2Vec2 * v);
 	b2Vec2 * bmx_b2multf(b2XForm * T, b2Vec2 * v);
+	float32 bmx_b2dot(b2Vec2 * a, b2Vec2 * b);
 
 	b2XForm * bmx_b2xform_create();
 	b2Vec2 * bmx_b2xform_getposition(b2XForm * form);
@@ -465,6 +468,14 @@ extern "C" {
 	b2Vec2 * bmx_b2circleshape_getlocalposition(b2CircleShape * shape);
 	float32 bmx_b2circleshape_getradius(b2CircleShape * shape);
 
+	b2Segment * bmx_b2segment_createxy(float32 x1, float32 y1, float32 x2, float32 y2);
+	b2Segment * bmx_b2segment_create(b2Vec2 * p1, b2Vec2 * p2);
+	b2Vec2 * bmx_b2segment_getstartpoint(b2Segment * seg);
+	b2Vec2 * bmx_b2segment_getendpoint(b2Segment * seg);
+	void bmx_b2segment_setstartpoint(b2Segment * seg, b2Vec2 * point);
+	void bmx_b2segment_setendpoint(b2Segment * seg, b2Vec2 * point);
+	void bmx_b2segment_delete(b2Segment * seg);
+
 }
 
 class MaxFilterData
@@ -554,8 +565,6 @@ bool bmx_b2abb_isvalid(b2AABB * aabb) {
 
 b2Vec2 * bmx_b2vec2_new(b2Vec2 v) {
 	b2Vec2 *vec = new b2Vec2(v.x, v.y);
-//	vec->x = v.x;
-//	vec->y = v.y;
 	return vec;
 }
 
@@ -631,12 +640,6 @@ b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * bod
 	BBRETAIN(body);
 	return world->CreateBody(def);
 }
-
-//b2Body * bmx_b2world_createdynamicbody(b2World * world, b2BodyDef * def, BBObject * body) {
-//	def->userData = body;
-//	BBRETAIN(body);
-//	return world->CreateDynamicBody(def);
-//}
 
 void bmx_b2world_destroybody(b2World * world, b2Body * body) {
 	void * data = body->GetUserData();
@@ -748,6 +751,29 @@ void bmx_b2world_refilter(b2World * world, b2Shape * shape) {
 	world->Refilter(shape);
 }
 
+int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, bool solidShapes) {
+	int32 n = shapes->scales[0];
+	b2Shape* _shapes[n];
+	
+	int32 ret = world->Raycast(*segment, _shapes, n, solidShapes, NULL);
+
+	int32 count = (ret < n) ? ret : n;
+
+	for (int i = 0; i < count; i++) {
+		_bah_box2d_b2World__setShape(shapes, i, _shapes[i]);
+	}
+
+	return ret;
+}
+
+b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, bool solidShapes) {
+	return world->RaycastOne(*segment, lambda, normal, solidShapes, NULL);
+}
+
+bool bmx_b2world_inrange(b2World * world, b2AABB * aabb) {
+	return world->InRange(*aabb);
+}
+
 // *****************************************************
 
 b2BodyDef * bmx_b2bodydef_create() {
@@ -757,10 +783,6 @@ b2BodyDef * bmx_b2bodydef_create() {
 void bmx_b2bodydef_delete(b2BodyDef * def) {
 	delete def;
 }
-
-//void bmx_b2bodydef_settype(b2BodyDef * def, b2BodyDef::Type bodyType) {
-//	def->type = bodyType;
-//}
 
 void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position) {
 	def->position = *position;
@@ -1046,6 +1068,10 @@ const b2XForm * bmx_b2body_getxform(b2Body * body) {
 
 bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle) {
 	body->SetXForm(*position, angle * 0.0174533f);
+}
+
+b2World * bmx_b2body_getworld(b2Body * body) {
+	return body->GetWorld();
 }
 
 // *****************************************************
@@ -1793,6 +1819,9 @@ b2Vec2 * bmx_b2multf(b2XForm * T, b2Vec2 * v) {
 	return bmx_b2vec2_new(b2MulT(*T, *v));
 }
 
+float32 bmx_b2dot(b2Vec2 * a, b2Vec2 * b) {
+	return b2Dot(*a, *b);
+}
 
 // *****************************************************
 
@@ -2305,4 +2334,43 @@ float32 bmx_b2circleshape_getradius(b2CircleShape * shape) {
 	return shape->GetRadius();
 }
 
+// *****************************************************
+
+b2Segment * bmx_b2segment_createxy(float32 x1, float32 y1, float32 x2, float32 y2) {
+	b2Segment * seg = new b2Segment;
+	seg->p1 = b2Vec2(x1, y1);
+	seg->p2 = b2Vec2(x2, y2);
+	return seg;
+}
+
+b2Segment * bmx_b2segment_create(b2Vec2 * p1, b2Vec2 * p2) {
+	b2Segment * seg = new b2Segment;
+	if (p1) {
+		seg->p1 = *p1;
+	}
+	if (p2) {
+		seg->p2 = *p2;
+	}
+	return seg;
+}
+
+b2Vec2 * bmx_b2segment_getstartpoint(b2Segment * seg) {
+	return bmx_b2vec2_new(seg->p1);
+}
+
+b2Vec2 * bmx_b2segment_getendpoint(b2Segment * seg) {
+	return bmx_b2vec2_new(seg->p2);
+}
+
+void bmx_b2segment_setstartpoint(b2Segment * seg, b2Vec2 * point) {
+	seg->p1 = *point;
+}
+
+void bmx_b2segment_setendpoint(b2Segment * seg, b2Vec2 * point) {
+	seg->p2 = *point;
+}
+
+void bmx_b2segment_delete(b2Segment * seg) {
+	delete seg;
+}
 

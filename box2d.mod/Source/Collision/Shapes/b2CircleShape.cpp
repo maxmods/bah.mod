@@ -48,7 +48,7 @@ bool b2CircleShape::TestPoint(const b2XForm& transform, const b2Vec2& p) const
 // From Section 3.1.2
 // x = s + a * r
 // norm(x) = radius
-bool b2CircleShape::TestSegment(const b2XForm& transform,
+b2SegmentCollide b2CircleShape::TestSegment(const b2XForm& transform,
 								float32* lambda,
 								b2Vec2* normal,
 								const b2Segment& segment,
@@ -61,7 +61,8 @@ bool b2CircleShape::TestSegment(const b2XForm& transform,
 	// Does the segment start inside the circle?
 	if (b < 0.0f)
 	{
-		return false;
+		*lambda = 0;
+		return e_startsInsideCollide;
 	}
 
 	// Solve quadratic equation.
@@ -73,7 +74,7 @@ bool b2CircleShape::TestSegment(const b2XForm& transform,
 	// Check for negative discriminant and short segment.
 	if (sigma < 0.0f || rr < B2_FLT_EPSILON)
 	{
-		return false;
+		return e_missCollide;
 	}
 
 	// Find the point of intersection of the line with the circle.
@@ -86,10 +87,10 @@ bool b2CircleShape::TestSegment(const b2XForm& transform,
 		*lambda = a;
 		*normal = s + a * r;
 		normal->Normalize();
-		return true;
+		return e_hitCollide;
 	}
 
-	return false;
+	return e_missCollide;
 }
 
 void b2CircleShape::ComputeAABB(b2AABB* aabb, const b2XForm& transform) const
