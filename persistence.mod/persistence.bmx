@@ -47,7 +47,7 @@ Type TPersist
 	Rem
 	bbdoc: File format version
 	End Rem
-	Const BMO_VERSION:Int = 1
+	Const BMO_VERSION:Int = 2
 
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
@@ -139,6 +139,46 @@ Type TPersist
 		End If
 	End Method
 	
+	Method ProcessArray(arrayObject:Object, size:Int, node:TxmlNode, typeId:TTypeId)
+	
+		Local elementType:TTypeId = typeId.ElementType()
+		
+		Select elementType
+			Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+
+				Local content:String = ""
+				
+				For Local i:Int = 0 Until size
+				
+					Local aObj:Object = typeId.GetArrayElement(arrayObject, i)
+
+					If i Then
+						content:+ " "
+					End If
+					content:+ String(aObj)
+				Next
+				
+				node.SetContent(content)
+			Default
+
+				For Local i:Int = 0 Until size
+				
+					Local elementNode:TxmlNode = node.addChild("val")
+					
+					Local aObj:Object = typeId.GetArrayElement(arrayObject, i)
+				
+					Select elementType
+						Case StringTypeId
+							elementNode.setContent(String(aObj))
+						Default
+							SerializeObject(aObj, elementNode)
+					End Select
+				Next
+				
+		End Select
+		
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -156,113 +196,122 @@ Type TPersist
 		End If
 		
 		If obj Then
+		
+			Local objectIsArray:Int = False
+		
 			Local tid:TTypeId = TTypeId.ForObject(obj)
-	
-			Local node:TxmlNode = parent.addChild(tid.Name())
+			Local tidName:String = tid.Name()
+			
+			' Is this an array "Object" ?
+			If tidName.EndsWith("[]") Then
+				tidName = "_array_"
+				objectIsArray = True
+			End If
+
+			Local node:TxmlNode = parent.addChild(tidName)
 			
 			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
 			objectMap.Insert(objRef, objRef)
+
+			' We need to handle array objects differently..
+			If objectIsArray Then
 			
-			' special case for String object
-			If tid = StringTypeId Then
-				node.SetContent(String(obj))
-			End If
-	
-			For Local f:TField = EachIn tid.EnumFields()
-			
-				If f.MetaData("nopersist") Then
-					Continue
+				tidName = tid.Name()[..tid.Name().length - 2]
+				
+				Local size:Int
+				
+				' it's possible that the array is zero-length, in which case the object type
+				' is undefined. Therefore we default it to type "Object".
+				' This doesn't matter, since it's essentially a Null Object which has no
+				' inherent value. We only store the instance so that the de-serialized object will
+				' look similar.
+				Try
+					size = tid.ArrayLength(obj)
+				Catch e$
+					tidName = "Object"
+					size = 0
+				End Try
+
+				node.setAttribute("type", tidName)
+				node.setAttribute("size", size)
+
+				If size > 0 Then
+				
+					ProcessArray(obj, size, node, tid)
+
 				End If
 			
-				Local fieldType:TTypeId = f.TypeId()
-				
-				Local fieldNode:TxmlNode = node.addChild("field")
-				fieldNode.setAttribute("name", f.Name())
-				
-				Local t:String
-				Select fieldType
-					Case ByteTypeId
-						t = "byte"
-						fieldNode.setContent(f.GetInt(obj))
-					Case ShortTypeId
-						t = "short"
-						fieldNode.setContent(f.GetInt(obj))
-					Case IntTypeId
-						t = "int"
-						fieldNode.setContent(f.GetInt(obj))
-					Case LongTypeId
-						t = "long"
-						fieldNode.setContent(f.GetLong(obj))
-					Case FloatTypeId
-						t = "float"
-						fieldNode.setContent(f.GetFloat(obj))
-					Case DoubleTypeId
-						t = "double"
-						fieldNode.setContent(f.GetDouble(obj))
-					Case StringTypeId
-						t = "string"
-						fieldNode.setContent(f.GetString(obj))
-					Default
-						t = fieldType.Name()
-						If fieldType.ExtendsType( ArrayTypeId ) Then
+			Else
 						
-							' prefix and strip brackets
-							t = "array:" + t.Replace("[]", "")
-						
-							Local elementType:TTypeId = fieldType.ElementType()
+				' special case for String object
+				If tid = StringTypeId Then
+					node.SetContent(String(obj))
+				End If
+		
+				For Local f:TField = EachIn tid.EnumFields()
+				
+					If f.MetaData("nopersist") Then
+						Continue
+					End If
+				
+					Local fieldType:TTypeId = f.TypeId()
+					
+					Local fieldNode:TxmlNode = node.addChild("field")
+					fieldNode.setAttribute("name", f.Name())
+					
+					Local t:String
+					Select fieldType
+						Case ByteTypeId
+							t = "byte"
+							fieldNode.setContent(f.GetInt(obj))
+						Case ShortTypeId
+							t = "short"
+							fieldNode.setContent(f.GetInt(obj))
+						Case IntTypeId
+							t = "int"
+							fieldNode.setContent(f.GetInt(obj))
+						Case LongTypeId
+							t = "long"
+							fieldNode.setContent(f.GetLong(obj))
+						Case FloatTypeId
+							t = "float"
+							fieldNode.setContent(f.GetFloat(obj))
+						Case DoubleTypeId
+							t = "double"
+							fieldNode.setContent(f.GetDouble(obj))
+						Case StringTypeId
+							t = "string"
+							fieldNode.setContent(f.GetString(obj))
+						Default
+							t = fieldType.Name()
+
+							If fieldType.ExtendsType( ArrayTypeId ) Then
 							
-							Select elementType
-								Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
-
-									Local content:String = ""
-									
-									For Local i:Int = 0 Until fieldType.ArrayLength(f.Get(obj))
-									
-										Local aObj:Object = fieldType.GetArrayElement(f.Get(obj), i)
-
-										If i Then
-											content:+ " "
-										End If
-										content:+ String(aObj)
-									Next
-									
-									fieldNode.SetContent(content)
-									
-								Default
-									For Local i:Int = 0 Until fieldType.ArrayLength(f.Get(obj))
-									
-										Local elementNode:TxmlNode = fieldNode.addChild("val")
-										
-										Local aObj:Object = fieldType.GetArrayElement(f.Get(obj), i)
-									
-										Select elementType
-											Case StringTypeId
-												elementNode.setContent(String(aObj))
-											Default
-												SerializeObject(aObj, elementNode)
-										End Select
-									Next
+								' prefix and strip brackets
+								t = "array:" + t.Replace("[]", "")
 							
-							End Select
+								ProcessArray(f.Get(obj), fieldType.ArrayLength(f.Get(obj)), fieldNode, fieldType)
 
-						Else
-							Local fieldObject:Object = f.Get(obj)
-							Local fieldRef:String = GetObjRef(fieldObject)
-							If fieldObject Then
-								If Not objectMap.Contains(fieldRef) Then
-									SerializeObject(fieldObject, fieldNode)
-								Else
-									fieldNode.setAttribute("ref", fieldRef)
+							Else
+								Local fieldObject:Object = f.Get(obj)
+								Local fieldRef:String = GetObjRef(fieldObject)
+
+								If fieldObject Then
+									If Not objectMap.Contains(fieldRef) Then
+										SerializeObject(fieldObject, fieldNode)
+									Else
+										fieldNode.setAttribute("ref", fieldRef)
+									End If
 								End If
 							End If
-						End If
-				End Select
+					End Select
+					
+					fieldNode.setAttribute("type", t)
 				
-				fieldNode.setAttribute("type", t)
-			
-			Next
-
+				Next
+			End If
+	
 		End If
 		
 	End Method
@@ -361,121 +410,166 @@ Type TPersist
 		
 		
 		If node Then
+		
+			Local nodeName:String = node.GetName()
 			
-			Local objType:TTypeId = TTypeId.ForName(node.GetName())
-
-			' special case for String object
-			If objType = StringTypeId Then
-				obj = node.GetContent()
-				Return obj
-			End If
+			' Is this an array "Object" ?
+			If nodeName = "_array_" Then
 			
-			' create the object
-			obj = objType.NewObject()
-			objectMap.Insert(node.getAttribute("ref"), obj)
-			
-			For Local fieldNode:TxmlNode = EachIn node.getChildren()
-			
-				' this should be a field
-				If fieldNode.GetName() = "field" Then
+				Local objType:TTypeId = TTypeId.ForName(node.getAttribute("type") + "[]")
 				
-					Local fieldObj:TField = objType.FindField(fieldNode.getAttribute("name"))
-					
-					Local fieldType:String = fieldNode.getAttribute("type")
-					Select fieldType
-						Case "byte", "short", "int"
-							fieldObj.SetInt(obj, fieldNode.GetContent().toInt())
-						Case "long"
-							fieldObj.SetLong(obj, fieldNode.GetContent().toLong())
-						Case "float"
-							fieldObj.SetFloat(obj, fieldNode.GetContent().toFloat())
-						Case "double"
-							fieldObj.SetDouble(obj, fieldNode.GetContent().toDouble())
-						Case "string"
-							fieldObj.SetString(obj, fieldNode.GetContent())
+				Local size:Int = node.getAttribute("size").toInt()
+				obj = objType.NewArray(size)
+
+				If size > 0 Then
+					Local arrayElementType:TTypeId = objType.ElementType()
+	
+					Select arrayElementType
+						Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+						
+							Local arrayList:String[] = node.GetContent().Split(" ")
+							
+							For Local i:Int = 0 Until arrayList.length
+								objType.SetArrayElement(obj, i, arrayList[i])
+							Next
+							
 						Default
-							If fieldType.StartsWith("array:") Then
-
-								Local arrayType:TTypeId = fieldObj.TypeId()
-								Local arrayElementType:TTypeId = arrayType.ElementType()
-			
-								If fileVersion Then
-									' for file Version 1+
-									
+							Local arrayList:TList = node.getChildren()
+							
+							If arrayList
+								
+								Local i:Int
+								For Local arrayNode:TxmlNode = EachIn arrayList
+		
 									Select arrayElementType
-										Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
-										
-											Local arrayList:String[] = fieldNode.GetContent().Split(" ")
-											Local arrayObj:Object = arrayType.NewArray(arrayList.length)
-											fieldObj.Set(obj, arrayObj)
-											
-											For Local i:Int = 0 Until arrayList.length
-												arrayType.SetArrayElement(arrayObj, i, arrayList[i])
-											Next
-											
+										Case StringTypeId
+											objType.SetArrayElement(obj, i, arrayNode.GetContent())
 										Default
-											Local arrayList:TList = fieldNode.getChildren()
-											
-											If arrayList ' Birdie
-												Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-												fieldObj.Set(obj, arrayObj)
-												
-												Local i:Int
-												For Local arrayNode:TxmlNode = EachIn arrayList
-				
-													Select arrayElementType
-														Case StringTypeId
-															arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-														Default
-															arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-													End Select
-				
-													i:+ 1
-												Next
-											EndIf
+											objType.SetArrayElement(obj, i, DeSerializeObject("", arrayNode))
 									End Select
-								Else
-									' For file version 0 (zero)
-									
-									Local arrayList:TList = fieldNode.getChildren()
-									If arrayList 'Birdie
-										Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-										fieldObj.Set(obj, arrayObj)
-									
-										Local i:Int
-										For Local arrayNode:TxmlNode = EachIn arrayList
 		
-											Select arrayElementType
-												Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
-													arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-												Default
-													arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-											End Select
-		
-											i:+ 1
-										Next
-									EndIf
-								End If
-							Else
-								' is this a reference?
-								Local ref:String = fieldNode.getAttribute("ref")
-								If ref Then
-									Local objRef:Object = objectMap.ValueForKey(ref)
-									If objRef Then
-										fieldObj.Set(obj, objRef)
-									Else
-										Throw New "Reference not mapped yet : " + ref
-									End If
-								Else
-									fieldObj.Set(obj, DeSerializeObject("", fieldNode))
-								End If
-							End If
+									i:+ 1
+								Next
+							EndIf
 					End Select
-					
 				End If
 			
-			Next
+			Else
 			
+				Local objType:TTypeId = TTypeId.ForName(nodeName)
+	
+				' special case for String object
+				If objType = StringTypeId Then
+					obj = node.GetContent()
+					Return obj
+				End If
+				
+				' create the object
+				obj = objType.NewObject()
+				objectMap.Insert(node.getAttribute("ref"), obj)
+				
+				For Local fieldNode:TxmlNode = EachIn node.getChildren()
+				
+					' this should be a field
+					If fieldNode.GetName() = "field" Then
+					
+						Local fieldObj:TField = objType.FindField(fieldNode.getAttribute("name"))
+						
+						Local fieldType:String = fieldNode.getAttribute("type")
+						Select fieldType
+							Case "byte", "short", "int"
+								fieldObj.SetInt(obj, fieldNode.GetContent().toInt())
+							Case "long"
+								fieldObj.SetLong(obj, fieldNode.GetContent().toLong())
+							Case "float"
+								fieldObj.SetFloat(obj, fieldNode.GetContent().toFloat())
+							Case "double"
+								fieldObj.SetDouble(obj, fieldNode.GetContent().toDouble())
+							Case "string"
+								fieldObj.SetString(obj, fieldNode.GetContent())
+							Default
+								If fieldType.StartsWith("array:") Then
+	
+									Local arrayType:TTypeId = fieldObj.TypeId()
+									Local arrayElementType:TTypeId = arrayType.ElementType()
+				
+									If fileVersion Then
+										' for file Version 1+
+										
+										Select arrayElementType
+											Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+											
+												Local arrayList:String[] = fieldNode.GetContent().Split(" ")
+												Local arrayObj:Object = arrayType.NewArray(arrayList.length)
+												fieldObj.Set(obj, arrayObj)
+												
+												For Local i:Int = 0 Until arrayList.length
+													arrayType.SetArrayElement(arrayObj, i, arrayList[i])
+												Next
+												
+											Default
+												Local arrayList:TList = fieldNode.getChildren()
+												
+												If arrayList ' Birdie
+													Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+													fieldObj.Set(obj, arrayObj)
+													
+													Local i:Int
+													For Local arrayNode:TxmlNode = EachIn arrayList
+					
+														Select arrayElementType
+															Case StringTypeId
+																arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+															Default
+																arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+														End Select
+					
+														i:+ 1
+													Next
+												EndIf
+										End Select
+									Else
+										' For file version 0 (zero)
+										
+										Local arrayList:TList = fieldNode.getChildren()
+										If arrayList 'Birdie
+											Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+											fieldObj.Set(obj, arrayObj)
+										
+											Local i:Int
+											For Local arrayNode:TxmlNode = EachIn arrayList
+			
+												Select arrayElementType
+													Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
+														arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+													Default
+														arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+												End Select
+			
+												i:+ 1
+											Next
+										EndIf
+									End If
+								Else
+									' is this a reference?
+									Local ref:String = fieldNode.getAttribute("ref")
+									If ref Then
+										Local objRef:Object = objectMap.ValueForKey(ref)
+										If objRef Then
+											fieldObj.Set(obj, objRef)
+										Else
+											Throw New "Reference not mapped yet : " + ref
+										End If
+									Else
+										fieldObj.Set(obj, DeSerializeObject("", fieldNode))
+									End If
+								End If
+						End Select
+						
+					End If
+				
+				Next
+			End If
 		End If
 	
 		Return obj
