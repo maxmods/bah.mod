@@ -1,0 +1,33 @@
+<a href="http://www.postgresql.org/"><img src="postgresql_logo.png" border="0" align="right" /></a>
+<p>
+The DBPostgreSQL database driver allows you to connect to PostgreSQL databases through the
+standard API provided by the Database Framework module.
+</p>
+<h2>Requirements</h2>
+<p>
+You will need the PostgreSQL (libpq) client libraries installed. You can download these from the <a href="http://www.postgresql.org/">PostgreSQL website</a>.
+</p>
+<p>The DBPostgreSQL module has been developed and tested using the latest version 8 PostgreSQL database and libraries. It is suggested that this is the version you use, as previous versions may not have all the functionality required for this driver.</p>
+<h3>Platform Specifics</h3>
+<p>
+On Windows, a libpq.a file has been provided (in the lib folder) for compilation. This should be copied into the BlitzMax/lib folder.
+</p>
+<p>Linux users should install the PostgreSQL "dev" packages to enable correct linking of the applications to take place.</p>
+<p>For MacOS, a pre-compiled package can be downloaded from <a href="http://www.entropy.ch/software/macosx/postgresql/">here</a>.<br>
+<b>Note</b> : To link to the OS X shared objects (.dylib) requires a tweak to bmk. Until the new version is released officially, see the Module Tweaks section of the Blitz forums for details of what to change.</p>
+<h2>Accessing a PostgreSQL Database</h2>
+<p>To enable a PostgreSQL connection, you simply pass a <i>dbtype</i> of &quot;<b>POSTGRESQL</b>&quot; to the
+<a href="../../database.mod/doc/commands.html#LoadDatabase">LoadDatabase</a> function.
+</p>
+<p>The <i>dbname</i> parameter refers to the name of the database you wish to connect to.</p>
+<p>The <i>host</i> and <i>port</i> parameters are optional if you are connecting to a local PostgreSQL server.</p>
+<p><i>user</i> and <i>password</i> should be filled in as required.</p>
+<h2>Prepared Statement Placeholders</h2>
+<p>
+PostgreSQL placeholders are defined by the form $n. Where n is a number starting at 1. (for example, $1, would be the first parameter).</p>
+<p>Remember that the Database Framework bindings start at 0, rather than 1, so in the code, binding to 0 would actual bind to the placeholder $1.
+</p>
+<h2>SQL with PostgreSQL</h2>
+<p>For a complete guide to the PostgreSQL syntax, you can browse the excellent online documentation
+<a href="http://www.postgresql.org/">here</a>.
+</p>
