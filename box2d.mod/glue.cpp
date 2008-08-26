@@ -346,6 +346,7 @@ extern "C" {
 	void bmx_b2xform_delete(b2XForm * form);
 
 	void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle);
+	float32 bmx_b2mat22_getangle(b2Mat22 * mat);
 
 	b2Shape * bmx_b2contact_getshape1(b2Contact * contact);
 	b2Shape * bmx_b2contact_getshape2(b2Contact * contact);
@@ -1853,6 +1854,10 @@ void bmx_b2xform_delete(b2XForm * form) {
 
 void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle) {
 	mat->Set(angle * 0.0174533f);
+}
+
+float32 bmx_b2mat22_getangle(b2Mat22 * mat) {
+	return mat->GetAngle() * 57.2957795f;
 }
 
 // *****************************************************

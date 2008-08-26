@@ -314,6 +314,7 @@ Extern
 	Function bmx_b2xform_delete(handle:Byte Ptr)
 
 	Function bmx_b2mat22_setangle(handle:Byte Ptr, angle:Float)
+	Function bmx_b2mat22_getangle:Float(handle:Byte Ptr)
 
 	Function bmx_b2contact_getshape1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2contact_getshape2:Byte Ptr(handle:Byte Ptr)

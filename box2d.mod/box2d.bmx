@@ -25,11 +25,14 @@ bbdoc: Box2D
 End Rem
 Module BaH.Box2D
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
+ModuleInfo "History: Added b2Mat22.GetAngle() method."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -1997,6 +2000,13 @@ Type b2ShapeDef
 		Return bmx_b2shapedef_issensor(b2ObjectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the user data.
+	End Rem
+	Method SetUserData(data:Object)
+		userData = data
+	End Method
+	
 End Type
 
 Rem
@@ -3539,6 +3549,13 @@ Type b2Mat22
 		bmx_b2mat22_setangle(b2ObjectPtr, angle)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetAngle:Float()
+		Return bmx_b2mat22_getangle(b2ObjectPtr)
+	End Method
+
 End Type
 
 Rem
