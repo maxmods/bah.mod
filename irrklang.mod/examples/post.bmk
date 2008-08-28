@@ -1,0 +1,25 @@
+# post build script
+#
+# We want to ensure that that dlls are here !
+#
+
+@define copydll
+	local ext
+
+	if bmk.Platform() == "win32" then
+		ext = "dll"
+	elseif bmk.Platform() == "linux" then
+		ext = "so"
+	else
+		ext = "dylib"
+	end
+
+	local path = utils.ModulePath("bah.irrklang") .. "/lib/" .. bmk.Platform() .. "/"
+	local file = arg1 .. "." .. ext
+
+	sys.CopyFile(path .. file, %exedir% .. "/" .. file)
+@end
+
+# do the copy
+copydll irrKlang
+copydll ikpMP3
