@@ -42,7 +42,7 @@ While Not KeyDown(KEY_ESCAPE)
 	Cls
 
 	DrawText "Playing sound from memory.", 50, 20
-	DrawText "Press any key to play, ESCAPE to end program.", 50, 40
+	DrawText "ESCAPE to end program.", 50, 40
 
 	Flip
 

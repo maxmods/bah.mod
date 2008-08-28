@@ -8,18 +8,21 @@
 
 	if bmk.Platform() == "win32" then
 		ext = "dll"
+		pre = "i"
 	elseif bmk.Platform() == "linux" then
 		ext = "so"
+		pre = "libI"
 	else
 		ext = "dylib"
+		pre = "libi"
 	end
 
 	local path = utils.ModulePath("bah.irrklang") .. "/lib/" .. bmk.Platform() .. "/"
-	local file = arg1 .. "." .. ext
+	local file = pre .. arg1 .. "." .. ext
 
 	sys.CopyFile(path .. file, %exedir% .. "/" .. file)
 @end
 
 # do the copy
-copydll irrKlang
+copydll rrKlang
 copydll ikpMP3

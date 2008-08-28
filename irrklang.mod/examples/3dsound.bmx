@@ -61,12 +61,12 @@ While Not KeyDown(KEY_ESCAPE)
 	posOnCircle :+ 2.3
 	posOnCircle = posOnCircle Mod 360
 	
-	Local pos3d:TIVec3d = New TIVec3d.Create(radius * Cos(posOnCircle), 0, radius * Sin(posOnCircle * 0.5))
+	Local pos3d:TIVec3D = New TIVec3D.Create(radius * Cos(posOnCircle), 0, radius * Sin(posOnCircle * 0.5))
 
 	' After we know the positions, we need to let irrKlang know about the
 	' listener position (always position (0,0,0), facing forward in this example)
 	' and let irrKlang know about our calculated 3D music position
-	_engine.SetListenerPosition(TIVec3d.Zero(), New TIVec3d.Create(0,0,1))
+	_engine.SetListenerPosition(TIVec3D.Zero(), New TIVec3D.Create(0,0,1))
 
 	If music Then
 		music.SetPosition(pos3d)
@@ -92,7 +92,7 @@ While Not KeyDown(KEY_ESCAPE)
 	Delay(100)
 	
 	
-	If KeyDown(KEY_SPACE) Then
+	If KeyHit(KEY_SPACE) Then
 		' Play random sound at some random position.
 		' Note that when calling Play3D(), no obejct is returned because we didn't
 		' specify the sound to start paused or to track it (as we did above
