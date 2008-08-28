@@ -5,6 +5,7 @@
 
 @define copydll
 	local ext
+	local pre
 
 	if bmk.Platform() == "win32" then
 		ext = "dll"
@@ -20,7 +21,7 @@
 	local path = utils.ModulePath("bah.irrklang") .. "/lib/" .. bmk.Platform() .. "/"
 	local file = pre .. arg1 .. "." .. ext
 
-	sys.CopyFile(path .. file, %exedir% .. "/" .. file)
+	sys.CopyFile(path .. file, %exepath% .. "/" .. file)
 @end
 
 # do the copy
