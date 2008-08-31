@@ -24,6 +24,8 @@ Import BRL.Blitz
 
 ?macos
 Import "-lavbin"
+?win32
+Import "lib/win32/avbin.a"
 ?
 
 Import "include/*.h"
