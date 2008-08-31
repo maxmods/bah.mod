@@ -36,7 +36,8 @@ Print "Avbin Audio buffer size = " + TAVbin.GetAudioBufferSize()
 
 ' the file to play...
 'Local filename:String = "/Volumes/Misc Data/im/stuff/big_buck_bunny_480p_stereo.avi"
-Local filename:String = "V:/im/stuff/big_buck_bunny_480p_stereo.avi"
+'Local filename:String = "V:/im/stuff/big_buck_bunny_480p_stereo.avi"
+Local filename:String = "/home/brucey/Videos/big_buck_bunny_480p_stereo.avi"
 
 Local file:TAVbinFile = TAVbinFile.OpenFilename(filename)
 

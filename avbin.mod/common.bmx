@@ -26,6 +26,8 @@ Import BRL.Blitz
 Import "-lavbin"
 ?win32
 Import "lib/win32/avbin.a"
+?linux
+Import "-lavbin"
 ?
 
 Import "include/*.h"
