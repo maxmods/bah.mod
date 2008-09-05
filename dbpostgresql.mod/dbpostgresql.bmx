@@ -39,6 +39,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
 ModuleInfo "History: isOpen() now checks the connection status."
+ModuleInfo "History: Sets active to false when all rows read."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -572,6 +573,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		End If
 		
 		If index >= _queryRows - 1 Then
+			_isActive = False
 			Return False
 		End If
 		
