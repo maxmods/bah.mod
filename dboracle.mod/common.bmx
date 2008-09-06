@@ -23,14 +23,15 @@ SuperStrict
 Import BRL.Blitz
 
 ?macos
-Import "-locci10"
-Import "-lclntst10"
+Import "-locilib"
+?win32
+Import "-locilibm"
 ?
 
 Import "include/*.h"
 
-Import "oracleglue.cpp"
-
+'Import "oracleglue.cpp"
+Import "oracleglueoci.cpp"
 
 Extern
 
@@ -49,6 +50,7 @@ Extern
 	Function bmx_ora_statement_setAutoCommit(stmtHandle:Byte Ptr, autoCommit:Int)
 	Function bmx_ora_statement_getUpdateCount:Int(stmtHandle:Byte Ptr)
 	Function bmx_ora_statement_getResultSet:Byte Ptr(stmtHandle:Byte Ptr)
+	Function bmx_ora_statement_free:Int(stmtHandle:Byte Ptr)
 
 	Function bmx_ora_resultset_getColCount:Int(resultSetHandle:Byte Ptr)
 	Function bmx_ora_resultset_getColInfo:String(resultSetHandle:Byte Ptr, index:Int, dataType:Int Ptr, columnSize:Int Ptr, ..
@@ -56,7 +58,7 @@ Extern
 	Function bmx_ora_resultset_next:Int(resultSetHandle:Byte Ptr)
 	Function bmx_ora_resultset_isNull:Int(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getInt:Int(resultSetHandle:Byte Ptr, index:Int)
-	Function bmx_ora_resultset_getFloat:Float(resultSetHandle:Byte Ptr, index:Int)
+	'Function bmx_ora_resultset_getFloat:Float(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getDouble:Double(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getString:String(resultSetHandle:Byte Ptr, index:Int)
 
@@ -74,6 +76,20 @@ Const STATEMENT_STREAM_DATA_AVAILABLE:Int = 5
 Const RESULTSET_END_OF_FETCH:Int = 0
 Const RESULTSET_DATA_AVAILABLE:Int = 1
 Const RESULTSET_STREAM_DATA_AVAILABLE:Int = 2
+
+Const OCI_CDT_INTEGER:Int = 1        
+Const OCI_CDT_DOUBLE:Int = 2        
+Const OCI_CDT_DATETIME:Int = 3        
+Const OCI_CDT_TEXT:Int = 4        
+Const OCI_CDT_LONG:Int = 5        
+Const OCI_CDT_CURSOR:Int = 6        
+Const OCI_CDT_LOB:Int = 7    
+Const OCI_CDT_FILE:Int = 8
+Const OCI_CDT_TIMESTAMP:Int = 9
+Const OCI_CDT_INTERVAL:Int = 10
+Const OCI_CDT_RAW:Int = 11
+Const OCI_CDT_OBJECT:Int = 12
+
 
 Const OCCI_SQLT_CHR:Int = 1
 Const OCCI_SQLT_NUM:Int = 2

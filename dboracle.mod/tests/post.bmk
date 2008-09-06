@@ -1,0 +1,28 @@
+# post build script
+#
+# We want to ensure that that dlls are here !
+#
+
+@define copydlls
+
+	docopy = function(file)
+		local path = utils.ModulePath("bah.dboracle") .. "/lib/" .. bmk.Platform() .. "/"
+		sys.CopyFile(path .. file, %exepath% .. "/" .. file)
+	end
+
+	if bmk.Platform() == "win32" then
+
+		docopy("ocilibm.dll")
+	elseif bmk.Platform() == "linux" then
+
+# TODO
+	else
+		docopy("libocilib.2.dylib")
+	end
+
+@end
+
+# do the copy
+copydlls
+
+

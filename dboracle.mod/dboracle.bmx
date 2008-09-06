@@ -38,7 +38,8 @@ ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "CC_OPTS: -fexceptions"
 
 ?macos
-ModuleInfo "LD_OPTS: -L/Users/brucey/Documents/programming/c/ohome/lib"
+'ModuleInfo "LD_OPTS: -L/Users/brucey/Documents/programming/c/ohome/lib"
+ModuleInfo "LD_OPTS: -L%PWD%/lib/macos/"
 ?
 
 Import BaH.Database
@@ -252,21 +253,21 @@ Type TOracleResultSet Extends TQueryResultSet
 			Try
 				stmtHandle = bmx_ora_connection_createStatement(conn.handle)
 			Catch err:TOracleSQLException
-				conn.setError("Error closing result set", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+				conn.setError("Error creating statement", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
 				Return False
 			End Try 
 			
 		End If
 		
 		' set autocommit mode, if required
-		Try
-			If TDBOracle(conn).autoCommit <> bmx_ora_statement_getAutoCommit(stmtHandle) Then
-				bmx_ora_statement_setAutoCommit(stmtHandle, TDBOracle(conn).autoCommit)
-			End If
-		Catch err:TOracleSQLException
-			conn.setError("Error setting commit mode", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
-			Return False
-		End Try 
+'		Try
+'			If TDBOracle(conn).autoCommit <> bmx_ora_statement_getAutoCommit(conn) Then
+'				bmx_ora_statement_setAutoCommit(conn, TDBOracle(conn).autoCommit)
+'			End If
+'		Catch err:TOracleSQLException
+'			conn.setError("Error setting commit mode", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+'			Return False
+'		End Try 
 		
 		Local status:Int
 		
@@ -302,7 +303,6 @@ Type TOracleResultSet Extends TQueryResultSet
 				initRecord(fieldCount)
 
 				' we can now populate the fields with information (column name, size, etc)
-				' TODO
 				If fieldCount Then
 				
 					Local columnName:String
@@ -316,7 +316,7 @@ Type TOracleResultSet Extends TQueryResultSet
 					For Local i:Int = 0 Until fieldCount
 
 						' get the column/field description
-						columnName = bmx_ora_resultset_getColInfo(resultSetHandle, i, Varptr dataType, Varptr columnSize, ..
+						columnName = bmx_ora_resultset_getColInfo(resultSetHandle, i + 1, Varptr dataType, Varptr columnSize, ..
 							Varptr precision, Varptr scale, Varptr nullable)
 
 						Local qf:TQueryField = TQueryField.Create(columnName, dbTypeFromNative(Null, dataType, scale))
@@ -349,6 +349,11 @@ Type TOracleResultSet Extends TQueryResultSet
 					conn.setError("Error getting update count", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
 					Return False
 				End Try
+				
+				If TDBOracle(conn).autoCommit Then
+					' auto commit..
+					conn.commit()
+				End If
 				
 		End Select
 
@@ -412,7 +417,7 @@ Type TOracleResultSet Extends TQueryResultSet
 
 					Case DBTYPE_FLOAT
 					
-						Local value:Float = bmx_ora_resultset_getFloat(resultSetHandle, i + 1)
+						Local value:Float = Float(bmx_ora_resultset_getDouble(resultSetHandle, i + 1))
 						
 						values[i] = New TDBFloat
 						values[i].setFloat(value)
@@ -456,21 +461,19 @@ Type TOracleResultSet Extends TQueryResultSet
 		Local dbType:Int
 		
 		Select _type
-			Case OCCIINT
-				dbType = DBTYPE_INT
-			Case OCCI_SQLT_NUM, OCCINUMBER
+			Case OCI_CDT_INTEGER
 				If _flags = 0 Then ' the number scale
 					dbType = DBTYPE_INT
 				Else
 					dbType = DBTYPE_LONG
 				End If
-			Case OCCIIBDOUBLE
+			Case OCI_CDT_DOUBLE
 				dbType = DBTYPE_DOUBLE
-			Case OCCIIBFLOAT
-				dbType = DBTYPE_FLOAT
-			Case OCCI_SQLT_DAT, OCCIDATE
+			'Case OCCIIBFLOAT
+			'	dbType = DBTYPE_FLOAT
+			Case OCI_CDT_DATETIME
 				dbType = DBTYPE_DATETIME
-			Case OCCI_SQLT_BLOB, OCCIBLOB
+			Case OCI_CDT_LOB
 				dbType = DBTYPE_BLOB
 			Default
 				dbType = DBTYPE_STRING
@@ -490,6 +493,15 @@ Type TOracleResultSet Extends TQueryResultSet
 		resetValues(size)
 	End Method
 
+	Method cleanup()
+
+		If stmtHandle Then
+			bmx_ora_statement_free(stmtHandle)
+			stmtHandle = Null
+		End If
+
+	End Method
+	
 End Type
 
 

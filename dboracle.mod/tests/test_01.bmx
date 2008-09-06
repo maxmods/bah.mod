@@ -14,6 +14,10 @@ If Not db Then
 	End
 End If
 
+If db.hasError() Then
+	errorAndClose(db)
+End If
+
 Local names:String[][] = [ ..
 	[ "Alfred", "Aho" ],   ..
 	[ "Brian", "Kernighan" ], ..
@@ -65,7 +69,6 @@ If db.isOpen() Then
 		
 		DebugLog("Name = " + record.GetString(1) + " " + record.GetString(2))
 	Wend
-	
 			
 	db.close()
 	
