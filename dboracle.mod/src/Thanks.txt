@@ -1,0 +1,31 @@
+OCILIB THANKS file
+
+OCILIB has originally been written by Vincent Rogier.
+
+Many people have further contributed to OCILIB by reporting problems, 
+suggesting various improvements, or submitting actual code. Here is
+a list of these people. 
+
+Help me keep it complete and exempt of errors.
+
+    * Bug Reporting
+
+        - Marco Bisioli
+        - hoa pham
+        - Dominique Cretel
+        - Andrew White
+ 
+    * Platform validation
+
+        - Dominique Cretel (AIX platform)
+
+    * Improvements suggestions
+
+        - hoa pham
+        - Dominique Devienne
+        - Andrew White
+        - Marco Bisioli
+ 
+    * Special Thanks
+
+        - Jonah H. Harris

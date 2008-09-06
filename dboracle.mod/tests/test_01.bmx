@@ -4,7 +4,7 @@ Framework BaH.DBOracle
 Import BRL.filesystem
 Import PUB.Stdc
 
-putenv_("ORACLE_HOME=/Users/brucey/Documents/programming/c/ohome")
+'putenv_("ORACLE_HOME=/Users/brucey/Documents/programming/c/ohome")
 
 'DebugStop
 Local db:TDBConnection = LoadDatabase("ORACLE", "xe", "192.168.2.31", Null, "brucey", "brucey")

@@ -40,6 +40,9 @@ ModuleInfo "CC_OPTS: -fexceptions"
 ?macos
 'ModuleInfo "LD_OPTS: -L/Users/brucey/Documents/programming/c/ohome/lib"
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos/"
+?win32
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32/"
+ModuleInfo "CC_OPTS: -DOCI_API=__cdecl"
 ?
 
 Import BaH.Database

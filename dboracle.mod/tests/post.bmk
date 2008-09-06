@@ -11,7 +11,6 @@
 	end
 
 	if bmk.Platform() == "win32" then
-
 		docopy("ocilibm.dll")
 	elseif bmk.Platform() == "linux" then
 
