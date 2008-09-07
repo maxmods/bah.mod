@@ -281,11 +281,23 @@ void bmx_soundengine_setdopplereffectparameters(irrklang::ISoundEngine* engine, 
 }
 
 irrklang::ISoundSource* bmx_soundengine_addsoundsourcefromfile(irrklang::ISoundEngine* engine, const irrklang::ik_c8 * filename, irrklang::E_STREAM_MODE mode, bool preload) {
-	return engine->addSoundSourceFromFile(filename, mode, preload);
+	// check if sound is already loaded, if it is, we return the current object.
+	irrklang::ISoundSource* source = engine->getSoundSource(filename, false);
+	// otherwise, we'll load it.
+	if (!source) {
+		source = engine->addSoundSourceFromFile(filename, mode, preload);
+	}
+	return source;
 }
 
 irrklang::ISoundSource* bmx_soundengine_addsoundsourcefrommemory(irrklang::ISoundEngine* engine, void * memory, irrklang::ik_s32 sizeInBytes, const irrklang::ik_c8 * name, bool copyMemory) {
-	return engine->addSoundSourceFromMemory(memory, sizeInBytes, name, copyMemory);
+	// check if sound is already loaded, if it is, we return the current object.
+	irrklang::ISoundSource* source = engine->getSoundSource(name, false);
+	// otherwise, we'll load it.
+	if (!source) {
+		source = engine->addSoundSourceFromMemory(memory, sizeInBytes, name, copyMemory);
+	}
+	return source;
 }
 
 irrklang::ISound* bmx_soundengine_play2dsource(irrklang::ISoundEngine* engine, irrklang::ISoundSource* source,

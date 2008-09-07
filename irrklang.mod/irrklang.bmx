@@ -25,12 +25,14 @@ bbdoc: irrKlang
 End Rem
 Module BaH.irrKlang
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: irrKlang - See http://www.ambiera.com/irrklang/license.html"
 ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
 ModuleInfo "Copyright: irrKlang - Nikolaus Gebhardt / Ambiera 2001-2007"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Loading the same sound twice now returns a valid object."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (irrKlang 1.04)"
 
