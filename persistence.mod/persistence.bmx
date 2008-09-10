@@ -289,8 +289,13 @@ Type TPersist
 							If fieldType.ExtendsType( ArrayTypeId ) Then
 							
 								' prefix and strip brackets
-								t = "array:" + t.Replace("[]", "")
-							
+								Local dims:Int = t.split("[").length
+								If dims = 1 Then
+									t = "array:" + t.Replace("[]", "")
+								Else
+									t = "array:" + t
+								End If
+
 								ProcessArray(f.Get(obj), fieldType.ArrayLength(f.Get(obj)), fieldNode, fieldType)
 
 							Else
