@@ -47,7 +47,7 @@ Type TPersist
 	Rem
 	bbdoc: File format version
 	End Rem
-	Const BMO_VERSION:Int = 2
+	Const BMO_VERSION:Int = 3
 
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
@@ -295,6 +295,20 @@ Type TPersist
 								Else
 									t = "array:" + t
 								End If
+								
+								dims = fieldType.ArrayDimensions(f.Get(obj))
+								If dims > 1 Then
+									Local scales:String
+									For Local i:Int = 0 Until dims - 1
+										scales :+ (fieldType.ArrayLength(f.Get(obj), i) / fieldType.ArrayLength(f.Get(obj), i + 1))
+										scales :+ ","
+									Next
+									
+									scales:+ fieldType.ArrayLength(f.Get(obj), dims - 1)
+									
+									fieldNode.setAttribute("scales", scales)
+								End If
+								
 
 								ProcessArray(f.Get(obj), fieldType.ArrayLength(f.Get(obj)), fieldNode, fieldType)
 
@@ -499,13 +513,23 @@ Type TPersist
 									Local arrayElementType:TTypeId = arrayType.ElementType()
 				
 									If fileVersion Then
-										' for file Version 1+
 										
+										' for file version 3+
+										Local scalesi:Int[]
+										Local scales:String[] = fieldNode.getAttribute("scales").split(",")
+										If scales.length > 1 Then
+											scalesi = New Int[scales.length]
+											For Local i:Int = 0 Until scales.length
+												scalesi[i] = Int(scales[i])
+											Next
+										End If
+										
+										' for file Version 1+
 										Select arrayElementType
 											Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
 											
 												Local arrayList:String[] = fieldNode.GetContent().Split(" ")
-												Local arrayObj:Object = arrayType.NewArray(arrayList.length)
+												Local arrayObj:Object = arrayType.NewArray(arrayList.length, scalesi)
 												fieldObj.Set(obj, arrayObj)
 												
 												For Local i:Int = 0 Until arrayList.length
@@ -516,7 +540,7 @@ Type TPersist
 												Local arrayList:TList = fieldNode.getChildren()
 												
 												If arrayList ' Birdie
-													Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+													Local arrayObj:Object = arrayType.NewArray(arrayList.Count(), scalesi)
 													fieldObj.Set(obj, arrayObj)
 													
 													Local i:Int

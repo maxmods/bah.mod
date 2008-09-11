@@ -17,6 +17,7 @@ Type TObj
 	Field numbersf:Float[]
 	Field numbersd:Double[]
 	Field numbersl:Long[]
+	Field multi:Int[,,]
 	Field circularRef:TTest
 	Field refNull:TTest
 	Field emptyList:TList = New TList
@@ -31,6 +32,10 @@ Type TObj
 		this.numbersf = [ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 ]
 		this.numbersd = [ 1.0:Double, 2.0:Double, 3.0:Double, 4.0:Double, 5.0:Double, 6.0:Double ]
 		this.numbersl = [ 1:Long, 2:Long, 3:Long, 4:Long, 5:Long, 6:Long ]
+		this.multi    = New Int[3,4,5]
+		this.multi[0,0,0] = 22
+		this.multi[1,2,2] = 33
+		this.multi[2,3,4] = 44
 		this.list.AddLast("Item 1")
 		this.rect.x = 100
 		this.rect.y = 200
