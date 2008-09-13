@@ -40,6 +40,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: isOpen() now checks the connection status."
 ModuleInfo "History: Sets active to false when all rows read."
+ModuleInfo "History: Resultset cleanup improvements."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -288,11 +289,15 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		cleanup()
 	End Method
 
-	Method cleanup()
+	Method clearResultSet()
 		If pgResult Then
 			bmx_pgsql_PQclear(pgResult)
 			pgResult = Null
 		End If
+	End Method
+	
+	Method cleanup()
+		clearResultSet()
 		index = SQL_BeforeFirstRow
 		_isActive = False
 		_queryRows = -1
@@ -505,6 +510,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		
 		If Not pgResult Then
 			conn.setError("Error executing prepared statement", "", TDatabaseError.ERROR_STATEMENT, 0)				
+			cleanup()
 			Return False
 		End If
 
@@ -522,6 +528,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 			Default
 				' an error!
 				conn.setError("Error executing prepared statement", convertUTF8toISO8859(bmx_pgsql_PQerrorMessage(conn.handle)), TDatabaseError.ERROR_STATEMENT, 0)				
+				cleanup()
 				Return False
 		End Select
 
@@ -554,7 +561,14 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 			Next
 		End If
 
-		_isActive = True
+		' did we return any data?
+		' if we didn't, then we may as well cleanup now
+		If _queryRows < 1 Then
+			cleanup()
+		Else
+			_isActive = True
+		End If
+		
 		Return True
 	End Method
 	
@@ -569,11 +583,12 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 	Method nextRow:Int()
 
 		If Not _isActive
+			cleanup()
 			Return False
 		End If
 		
 		If index >= _queryRows - 1 Then
-			_isActive = False
+			cleanup()
 			Return False
 		End If
 		
@@ -617,6 +632,10 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		Next
 		
 		index:+ 1
+		
+		If index >= _queryRows - 1 Then
+			cleanup()
+		End If
 		
 		Return True
 	End Method
