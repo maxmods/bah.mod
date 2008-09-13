@@ -41,6 +41,7 @@ ModuleInfo "History: 1.03"
 ModuleInfo "History: isOpen() now checks the connection status."
 ModuleInfo "History: Sets active to false when all rows read."
 ModuleInfo "History: Resultset cleanup improvements."
+ModuleInfo "History: Fixed prepared statement dealloc case issue."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -282,7 +283,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 	
 	Method Delete()
 		If _preparedStatementName Then
-			executeQuery("DEALLOCATE " + _preparedStatementName)
+			executeQuery("DEALLOCATE ~q" + _preparedStatementName + "~q")
 			_preparedStatementName = Null
 		End If
 		cleanup()
@@ -398,7 +399,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		If Not _preparedStatementName Then
 			_preparedStatementName = "prep" + Self.toString()
 		Else
-			executeQuery("DEALLOCATE " + _preparedStatementName)
+			executeQuery("DEALLOCATE ~q" + _preparedStatementName + "~q")
 			cleanup()
 		End If
 		
