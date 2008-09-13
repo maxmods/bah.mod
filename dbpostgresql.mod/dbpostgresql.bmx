@@ -315,6 +315,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		pgResult = bmx_pgsql_PQexec(conn.handle, q)
 		
 		If Not pgResult Then
+			cleanup()
 			Return False
 		End If
 		
@@ -332,6 +333,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 			Default
 				' an error!
 				conn.setError("Error executing statement", convertUTF8toISO8859(bmx_pgsql_PQerrorMessage(conn.handle)), TDatabaseError.ERROR_STATEMENT, 0)				
+				cleanup()
 				Return False
 		End Select
 
@@ -364,7 +366,12 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 			Next
 		End If
 		
-		_isActive = True
+		If _queryRows = -1 Then
+			cleanup()
+		Else
+			_isActive = True
+		End If
+		
 		Return True
 	End Method
 
@@ -404,6 +411,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		
 		If bmx_pgsql_PQresultStatus(pgResult) <> PGRES_COMMAND_OK Then
 			conn.setError("Error preparing statement", convertUTF8toISO8859(bmx_pgsql_PQerrorMessage(conn.handle)), TDatabaseError.ERROR_STATEMENT, 0)				
+			cleanup()
 			Return False
 		End If
 
