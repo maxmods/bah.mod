@@ -132,7 +132,6 @@ Type TDBPostgreSQL Extends TDBConnection
 		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
 		
 		Local sql:String = "Select tablename from pg_tables where schemaname Not in ('pg_catalog', 'information_schema')"
-			
 		If query.execute(sql) Then
 			While query.nextRow()
 				tables.addLast(query.value(0).getString())
@@ -377,10 +376,12 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 
 	Method initRecord(size:Int)
 
-		rec.clear()
-
-		If size > 0 Then		
-			rec.init(size)
+		If rec Then
+			rec.clear()
+	
+			If size > 0 Then		
+				rec.init(size)
+			End If
 		End If
 		
 		resetValues(size)
@@ -642,7 +643,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		index:+ 1
 		
 		If index >= _queryRows - 1 Then
-			cleanup()
+			clearResultSet()
 		End If
 		
 		Return True
