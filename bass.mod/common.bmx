@@ -59,6 +59,8 @@ Extern
 	Function bmx_bass_streamgetfileposition(handle:Int, pos:Long Ptr, mode:Int)
 	Function bmx_bass_streamcreatetstream:Int(handle:Object, system:Int, flags:Int)
 
+	Function bmx_bass_getsampleinfo:Byte Ptr(handle:Int)
+	
 	Function bmx_sampleinfo_getfreq:Int(handle:Byte Ptr)
 	Function bmx_sampleinfo_getvolume:Float(handle:Byte Ptr)
 	Function bmx_sampleinfo_getpan:Float(handle:Byte Ptr)
@@ -97,6 +99,16 @@ Extern
 
 	Function bmx_bass_3dvector_create:Byte Ptr()
 	Function bmx_bass_3dvector_delete(handle:Byte Ptr)
+
+	Function bmx_bass_getchannelinfo:Byte Ptr(handle:int)
+	Function bmx_channelinfo_getfreq:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getchannels:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getflags:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getctype:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getorigres:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getsample:Int(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_getfilename:Byte Ptr(channelinfoPtr:Byte Ptr)
+	Function bmx_channelinfo_delete(channelinfoPtr:Byte Ptr)
 
 End Extern
 
@@ -161,6 +173,11 @@ Extern
 	
 	Function BASS_SampleStop:Int(handle:Int)
 	Function BASS_SampleFree:Int(handle:Int)
+	Function BASS_SampleCreate:Int(length:Int, freq:Int, channels:Int, maxPlaybacks:Int, flags:Int)
+	Function BASS_SampleLoad:Int(mem:Int, file:Byte Ptr, offset:Long, length:Int, _max:Int, flags:Int)
+	Function BASS_SampleGetChannel:Int(handle:Int, onlyNew:Int)
+	Function BASS_SampleGetData:Int(handle:Int, buffer:Byte Ptr)
+	Function BASS_SampleSetData:Int(handle:Int, buffer:Byte Ptr)
 
 	Function BASS_MusicLoad:Int(mem:Int, file:Byte Ptr, offset:Long, length:Int, flags:Int, freq:Int)
 

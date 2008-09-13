@@ -58,6 +58,8 @@ extern "C" {
 	void bmx_bass_streamgetfileposition(DWORD handle, QWORD * pos, DWORD mode);
 	DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags);
 
+	BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle);
+
 	DWORD bmx_sampleinfo_getfreq(BASS_SAMPLE * info);
 	float bmx_sampleinfo_getvolume(BASS_SAMPLE * info);
 	float bmx_sampleinfo_getpan(BASS_SAMPLE * info);
@@ -95,6 +97,16 @@ extern "C" {
 
 	BASS_3DVECTOR * bmx_bass_3dvector_create();
 	void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec);
+
+	BASS_CHANNELINFO * bmx_bass_getchannelinfo(DWORD handle);
+	DWORD bmx_channelinfo_getfreq(BASS_CHANNELINFO * info);
+	DWORD bmx_channelinfo_getchannels(BASS_CHANNELINFO * info);
+	DWORD bmx_channelinfo_getflags(BASS_CHANNELINFO * info);
+	DWORD bmx_channelinfo_getctype(BASS_CHANNELINFO * info);
+	DWORD bmx_channelinfo_getorigres(BASS_CHANNELINFO * info);
+	HSAMPLE bmx_channelinfo_getsample(BASS_CHANNELINFO * info);
+	const char * bmx_channelinfo_getfilename(BASS_CHANNELINFO * info);
+	void bmx_channelinfo_delete(BASS_CHANNELINFO * info);
 
 }
 
@@ -254,6 +266,16 @@ DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags) {
 
 // *************************************************
 
+BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle) {
+	BASS_SAMPLE * info = new BASS_SAMPLE;
+	BOOL success = BASS_SampleGetInfo(handle, info);
+	if (!success) {
+		delete info;
+		return 0;
+	}
+	return info;
+}
+
 DWORD bmx_sampleinfo_getfreq(BASS_SAMPLE * info) {
     return info->freq;
 }
@@ -405,3 +427,48 @@ BASS_3DVECTOR * bmx_bass_3dvector_create() {
 void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec) {
 	delete vec;
 }
+
+// *************************************************
+
+BASS_CHANNELINFO * bmx_bass_getchannelinfo(DWORD handle) {
+	BASS_CHANNELINFO * info = new BASS_CHANNELINFO;
+	BOOL success = BASS_ChannelGetInfo(handle, info);
+	if (!success) {
+		delete info;
+		return 0;
+	}
+	return info;
+}
+
+DWORD bmx_channelinfo_getfreq(BASS_CHANNELINFO * info) {
+	return info->freq;
+}
+
+DWORD bmx_channelinfo_getchannels(BASS_CHANNELINFO * info) {
+	return info->chans;
+}
+
+DWORD bmx_channelinfo_getflags(BASS_CHANNELINFO * info) {
+	return info->flags;
+}
+
+DWORD bmx_channelinfo_getctype(BASS_CHANNELINFO * info) {
+	return info->ctype;
+}
+
+DWORD bmx_channelinfo_getorigres(BASS_CHANNELINFO * info) {
+	return info->origres;
+}
+
+HSAMPLE bmx_channelinfo_getsample(BASS_CHANNELINFO * info) {
+	return info->sample;
+}
+
+const char * bmx_channelinfo_getfilename(BASS_CHANNELINFO * info) {
+	return info->filename;
+}
+
+void bmx_channelinfo_delete(BASS_CHANNELINFO * info) {
+	delete info;
+}
+

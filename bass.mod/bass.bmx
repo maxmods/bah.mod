@@ -861,9 +861,10 @@ Type TBassChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves information on a channel. 
 	End Rem
 	Method GetInfo:TBassChannelInfo()
+		Return TBassChannelInfo._create(bmx_bass_getchannelinfo(handle))
 	End Method
 	
 	Rem
@@ -1228,40 +1229,65 @@ Type TBassSample
 
 	Field handle:Int
 
+	Function _create:TBassSample(handle:Int)
+		If handle Then
+			Local this:TBassSample = New TBassSample
+			this.handle = handle
+			Return this
+		End If
+	End Function
+
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new sample.
+	about: 
 	End Rem
-	Function SampleCreate:TBassSample()
+	Function SampleCreate:TBassSample(length:Int, freq:Int, channels:Int, maxPlaybacks:Int, flags:Int)
+		Return New TBassSample.Create(length, freq, channels, maxPlaybacks, flags)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method Create:TBassSample()
+	Method Create:TBassSample(length:Int, freq:Int, channels:Int, maxPlaybacks:Int, flags:Int)
+		Return TBassSample._create(BASS_SampleCreate(length, freq, channels, maxPlaybacks, flags))
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Function SampleFileLoad:TBassSample()
+	Function SampleFileLoad:TBassSample(file:String, offset:Long, length:Int, maxPlaybacks:Int, flags:Int)
+		Return New TBassSample.FileLoad(file, offset, length, maxPlaybacks, flags)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method FileLoad:TBassSample()
+	Method FileLoad:TBassSample(file:String, offset:Long, length:Int, maxPlaybacks:Int, flags:Int)
+		Local s:Byte Ptr = file.ToCString()
+		handle = BASS_SampleLoad(False, s, offset, length, maxPlaybacks, flags)
+		MemFree(s)
+		If Not handle Then
+			Return Null
+		End If
+		Return Self
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Function SampleMemLoad:TBassSample()
+	Function SampleMemLoad:TBassSample(mem:Byte Ptr, length:Int, maxPlaybacks:Int, flags:Int)
+		Return New TBassSample.MemLoad(mem, length, maxPlaybacks, flags)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method MemLoad:TBassSample()
+	Method MemLoad:TBassSample(mem:Byte Ptr, length:Int, maxPlaybacks:Int, flags:Int)
+		handle = BASS_SampleLoad(True, mem, 0, length, maxPlaybacks, flags)
+		If Not handle Then
+			Return Null
+		End If
+		Return Self
 	End Method
 	
 	Rem
@@ -1273,9 +1299,10 @@ Type TBassSample
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates/initializes a playback channel for a sample. 
 	End Rem
 	Method GetChannel:TBassChannel(onlyNew:Int)
+		Return TBassChannel._create(BASS_SampleGetChannel(handle, onlyNew))
 	End Method
 	
 	Rem
@@ -1289,15 +1316,24 @@ Type TBassSample
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a sample's default attributes and other information. 
 	End Rem
-	Method GetInfo:Int(info:TBassSampleInfo)
+	Method GetInfo:TBassSampleInfo()
+		Return TBassSampleInfo._create(bmx_bass_getsampleinfo(handle))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a copy of a sample's data. 
 	End Rem
 	Method GetData:Int(buffer:Byte Ptr)
+		Return BASS_SampleGetData(handle, buffer)
+	End Method
+	
+	Rem
+	bbdoc: Sets a sample's data. 
+	End Rem
+	Method SetData:Int(buffer:Byte Ptr)
+		Return BASS_SampleSetData(handle, buffer)
 	End Method
 	
 	Rem
@@ -1583,6 +1619,73 @@ Rem
 bbdoc: 
 End Rem
 Type TBassChannelInfo
+
+	Field channelinfoPtr:Byte Ptr
+	
+	Function _create:TBassChannelInfo(channelinfoPtr:Byte Ptr)
+		If channelinfoPtr Then
+			Local this:TBassChannelInfo = New TBassChannelInfo
+			this.channelinfoPtr = channelinfoPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetFreq:Int()
+	   Return bmx_channelinfo_getfreq(channelinfoPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetChannels:Int()
+	   Return bmx_channelinfo_getchannels(channelinfoPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetFlags:Int()
+	   Return bmx_channelinfo_getflags(channelinfoPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetCType:Int()
+	   Return bmx_channelinfo_getctype(channelinfoPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetOrigRes:Int()
+	   Return bmx_channelinfo_getorigres(channelinfoPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetSample:TBassSample()
+	   Return TBassSample._create(bmx_channelinfo_getsample(channelinfoPtr))
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetFilename:String()
+	   Return String.FromCString(bmx_channelinfo_getfilename(channelinfoPtr))
+	End Method
+
+	Method Delete()
+		If channelinfoPtr Then
+			bmx_channelinfo_delete(channelinfoPtr)
+			channelinfoPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem
