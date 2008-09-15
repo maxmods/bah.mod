@@ -464,7 +464,7 @@ Type TDatabaseQuery
 	End Method
 
 	Method isActive:Int()
-		Return resultSet.isActive()
+		Return resultSet And resultSet.isActive()
 	End Method
 
 	Method rowIndex:Int()
@@ -778,7 +778,9 @@ Type TQueryResultSet
 	Method resetValues(size:Int)
 		If values Then
 			For Local i:Int = 0 Until values.length
-				values[i].clear()
+				If values[i] Then
+					values[i].clear()
+				End If
 			Next
 			values = Null
 		End If
@@ -1027,7 +1029,9 @@ Type TQueryRecord
 	Method clear()
 		If fields Then
 			For Local i:Int = 0 Until fields.length
-				fields[i].clear()
+				If fields[i] Then
+					fields[i].clear()
+				End If
 			Next
 			fields = Null
 			
