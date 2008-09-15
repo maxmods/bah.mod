@@ -1,4 +1,4 @@
-' Copyright (c) 2007, Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -15,7 +15,7 @@
 ' THIS SOFTWARE IS PROVIDED BY Bruce A Henderson ``AS IS'' AND ANY
 ' EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ' WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-' DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+' DISCLAIMED. IN NO EVENT SHALL Bruce A Henderson BE LIABLE FOR ANY
 ' DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 ' (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ' LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -34,12 +34,12 @@ Module BaH.DBSQLite
 ModuleInfo "Version: 1.11"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the code to the public domain. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means."
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.11"
-ModuleInfo "History: Update to SQLite 3.5.8."
+ModuleInfo "History: Update to SQLite 3.6.2."
 ModuleInfo "History: Fixed prepared statement reuse issue."
 ModuleInfo "History: Fixed problem where open/live queries could cause problem when committing."
 ModuleInfo "History: 1.10"
