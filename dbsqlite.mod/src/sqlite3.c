@@ -18428,7 +18428,7 @@ SQLITE_PRIVATE int sqlite3IsNaN(double x){
   **      ...
   */
 #ifdef __FAST_MATH__
-# error SQLite will not work correctly with the -ffast-math option of GCC.
+//# error SQLite will not work correctly with the -ffast-math option of GCC.
 #endif
   volatile double y = x;
   volatile double z = y;
