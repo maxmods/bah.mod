@@ -107,8 +107,14 @@ Extern
 	Function bmx_cegui_editbox_setselection(handle:Byte Ptr, startPos:Int, endPos:Int)
 	Function bmx_cegui_editbox_setmaxtextlength(handle:Byte Ptr, maxLen:Int)
 
+	Function bmx_cegui_logger_setlogginglevel(level:Int)
+	Function bmx_cegui_logger_setlogfilename(filename:Byte Ptr, append:Int)
+	Function bmx_cegui_logger_logevent(message:Byte Ptr, level:Int)
+	Function bmx_cegui_customlogger_create:Byte Ptr(handle:Object)
+	Function bmx_cegui_customlogger_delete(handle:Byte Ptr)
+	Function bmx_cegui_logger_getlogginglevel:Int()
+	
 End Extern
-
 
 ' converts a UTF character array from byte-size characters to short-size characters
 ' based on the TextStream UTF code...
@@ -190,5 +196,31 @@ Function _convertMaxToUTF8:String(text:String)
 
 	Return String.fromBytes(s, count)
 End Function
+
+Rem
+bbdoc: Log Errors.
+about: Only actual error conditions will be logged.
+End Rem
+Const LOG_ERRORS:Int = 0
+Rem
+bbdoc: Log Warnings.
+about: Warnings will be logged as well.
+End Rem
+Const LOG_WARNINGS:Int = 1
+Rem
+bbdoc: Log Standard.
+about: Basic events will be logged (Default level).
+End Rem
+Const LOG_STANDARD:Int = 2
+Rem
+bbdoc: Log informative.
+about: Useful tracing (Object creations etc) information will be logged.
+End Rem
+Const LOG_INFORMATIVE:Int = 3
+Rem
+bbdoc: Log Insane.
+about: Mostly everything gets logged (use For heavy tracing only, Log WILL be big).
+End Rem
+Const LOG_INSANE:Int = 4
 
 

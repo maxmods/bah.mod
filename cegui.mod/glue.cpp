@@ -51,6 +51,15 @@ MaxConnection * MaxCEEventCallback::subscribeEvent(CEGUI::Window * handle, const
 	return new MaxConnection(handle->subscribeEvent(name, CEGUI::Event::Subscriber(&MaxCEEventCallback::EventCallback, this)));
 }
 
+MaxLogger::MaxLogger(BBObject * handle)
+	: maxHandle(handle)
+{
+}
+
+void MaxLogger::logEvent(const CEGUI::String& message, CEGUI::LoggingLevel level) {
+	_bah_cegui_TCECustomLogger__logEvent(maxHandle, message.data(), level);
+}
+
 // *************************************************
 
 MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle) {
@@ -265,16 +274,13 @@ void bmx_cegui_eventargs_delete(MaxEventArgs * args) {
 CEGUI::Renderer * bmx_cegui_new_oglrenderer() {
 
 	// we pass in the codec because otherwise it will attempt to load it from the shared library
-	return new CEGUI::OpenGLRenderer(0);//, new CEGUI::FreeImageImageCodec());
+	return new CEGUI::OpenGLRenderer(0);
 }
 
 CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r) {
 	// we pass in the renderer otherwise it will attepmt to load it from the shared library
-	CEGUI::System * sys =  new CEGUI::System(r);//, 0, new CEGUI::LibxmlParser());
+	CEGUI::System * sys =  new CEGUI::System(r);
 	
-	CEGUI::Logger::getSingleton().setLoggingLevel(CEGUI::Insane);
-	CEGUI::Logger::getSingleton().setLogFilename("debug.log");
-
 	return sys;
 }
 
@@ -678,3 +684,28 @@ void bmx_cegui_editbox_setmaxtextlength(CEGUI::Editbox * eb, int maxLen) {
 	eb->setMaxTextLength(maxLen);
 }
 
+// *************************************************
+
+void bmx_cegui_logger_setlogginglevel(CEGUI::LoggingLevel level) {
+	CEGUI::Logger::getSingleton().setLoggingLevel(level);
+}
+
+void bmx_cegui_logger_setlogfilename(const CEGUI::utf8 * filename, bool append) {
+	CEGUI::Logger::getSingleton().setLogFilename(filename, append);
+}
+
+void bmx_cegui_logger_logevent(const CEGUI::utf8 * message, CEGUI::LoggingLevel level) {
+	CEGUI::Logger::getSingleton().logEvent(message, level);
+}
+
+MaxLogger * bmx_cegui_customlogger_create(BBObject * handle) {
+	return new MaxLogger(handle);
+}
+
+void bmx_cegui_customlogger_delete(MaxLogger * logger) {
+	delete logger;
+}
+
+CEGUI::LoggingLevel bmx_cegui_logger_getlogginglevel() {
+	return CEGUI::Logger::getSingleton().getLoggingLevel();
+}

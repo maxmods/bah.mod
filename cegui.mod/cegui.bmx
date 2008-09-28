@@ -62,7 +62,7 @@ Import "common.bmx"
 '  Commented out "main" method. Looks like this isn't designed to build static on Mac... haw.
 '
 
-
+' some global stuff
 Global cegui_systemPtr:Byte Ptr
 Global cegui_rendererPtr:Byte Ptr
 Global cegui_startTime:Int
@@ -84,22 +84,26 @@ Function cegui_cleanup()
 End Function
 
 Rem
-bbdoc:
+bbdoc: Initializes CEGUI
 End Rem
 Function Init_CEGUI()
 	If Not cegui_rendererPtr Then
+		' creates a new opengle renderer
 		cegui_rendererPtr = bmx_cegui_new_oglrenderer()
 
 		If cegui_rendererPtr Then
+			' creates a new CEGUI system
 			cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr)
 		End If
 
+		' TODO : there are probably better ways to do this
 		cegui_startTime = MilliSecs()
 		
 		AddHook EmitEventHook,TCEEvent.Keyhook,Null,0
 	End If
 End Function
 
+' TODO : not sure if this gets called?
 OnEnd cegui_cleanup
 
 
@@ -124,16 +128,11 @@ Type TCEConnection
 	
 End Type
 
+' keeps track of our subscribed events
 Type TCEEventHandler
 
-	'Field eventHandlerPtr:Byte Ptr
-	
 	Field callbacks:TMap = New TMap
 
-	Method New()
-		'eventHandlerPtr = bmx_cegui_eventhandler_new()
-	End Method
-	
 	Method AddCallback:TCEEventCallback(owner:Object, name:String, callback:Int(args:TCEEventArgs))
 		Local cb:TCEEventCallback = New TCEEventCallback
 		cb.callback = callback
@@ -164,15 +163,9 @@ Type TCEEventHandler
 		
 	End Method
 		
-	Method Delete()
-		'If eventHandlerPtr Then
-		'	bmx_cegui_eventhandler_delete(eventHandlerPtr)
-		'	eventHandlerPtr = Null
-		'End If
-	End Method
-	
 End Type
 
+' an event callback hook
 Type TCEEventCallback
 
 	Field callbackPtr:Byte Ptr
@@ -2582,5 +2575,98 @@ Type TCERenderer
 	Method getIdentifierString:String()
 	End Method
 
+End Type
+
+Rem
+bbdoc: Default implementation for the Logger.
+about: If you want to redirect CEGUI logs to some place other than a text file, implement your own TCECustomLogger implementation
+and create a object of the your type before creating the CEGUI::System singleton.
+End Rem
+Type TCELogger
+
+	Field objectPtr:Byte Ptr
+	
+	Rem
+	bbdoc: Returns the current logger.
+	End Rem
+	Function GetLogger:TCELogger()
+		If TCECustomLogger.logger Then
+			Return TCECustomLogger.logger
+		Else
+			Return New TCELogger
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Set the level of logging information that will get out to the log file.
+	about: One of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE or LOG_INSANE.
+	End Rem
+	Method setLoggingLevel(level:Int)
+		bmx_cegui_logger_setlogginglevel(level)
+	End Method
+	
+	Rem
+	bbdoc: Set the name of the log file where all subsequent log entries should be written.
+	End Rem
+	Method setLogFilename(filename:String, append:Int = False)
+		bmx_cegui_logger_setlogfilename(_convertMaxToUTF8(filename), append)
+	End Method
+
+	Rem
+	bbdoc: Returns the current logging level setting.
+	about: One of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE or LOG_INSANE.
+	End Rem	
+	Method getLoggingLevel:Int()
+		Return bmx_cegui_logger_getlogginglevel()
+	End Method
+
+	Method logEvent(message:String, level:Int = LOG_STANDARD)	
+		bmx_cegui_logger_logevent(_convertMaxToUTF8(message), level)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: A custom logger.
+about: Override setLogFilename() and logEvent() in your own implementation.
+End Rem
+Type TCECustomLogger Extends TCELogger
+
+	Global logger:TCECustomLogger
+
+	' creates a new instance of a custom logger
+	Method New()
+		If logger Then
+			bmx_cegui_customlogger_delete(logger.objectPtr)
+		End If
+		
+		logger = Self
+		objectPtr = bmx_cegui_customlogger_create(Self)
+	End Method
+	
+	Rem
+	bbdoc: Set the name of the log file where all subsequent log entries should be written.
+	about: The interpretation of file name may differ depending on the concrete logger implementation. 
+	<p>
+	Override this method to implement your own functionality.
+	</p>
+	End Rem
+	Method setLogFilename(filename:String, append:Int = False)
+		Super.setLogFilename(filename, append)
+	End Method
+	
+	Rem
+	bbdoc: Adds an event to the log.
+	about: Override this method to implement your own functionality.
+	End Rem
+	Method logEvent(message:String, level:Int = LOG_STANDARD)	
+		Super.logEvent(message, level)
+	End Method
+	
+	' callback hook for custom logging
+	Function _logEvent(instance:TCECustomLogger, message:Byte Ptr, level:Int)
+		instance.logEvent(_convertUTF8ToMax(message), level)
+	End Function
+	
 End Type
 

@@ -23,10 +23,12 @@
 #include "CEGUI.h"
 
 #include <OpenGLGUIRenderer/openglrenderer.h>
+#include "CEGUIDefaultLogger.h"
 
 class MaxCEEventCallback;
 class MaxEventArgs;
 class MaxConnection;
+class MaxLogger;
 
 extern "C" {
 
@@ -34,6 +36,7 @@ extern "C" {
 #include "keycodes.h"
 
 	bool _bah_cegui_TCEEventCallback__callback(BBObject * cb, BBObject * args);
+	void _bah_cegui_TCECustomLogger__logEvent(BBObject * handle, const CEGUI::utf8 * message, CEGUI::LoggingLevel level);
 
 	BBObject * _bah_cegui_TCEEditbox__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEFrameWindow__create(CEGUI::Window * window);
@@ -108,9 +111,6 @@ extern "C" {
 	BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name);
 	BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix);
 
-	//MaxCEEventHandler * bmx_cegui_eventhandler_new();
-	//void bmx_cegui_eventhandler_delete(MaxCEEventHandler * handle);
-
 	MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle);
 
 	void bmx_cegui_eventargs_delete(MaxEventArgs * args);
@@ -171,6 +171,12 @@ extern "C" {
 	void bmx_cegui_editbox_setselection(CEGUI::Editbox * eb, int startPos, int endPos);
 	void bmx_cegui_editbox_setmaxtextlength(CEGUI::Editbox * eb, int maxLen);
 
+	void bmx_cegui_logger_setlogginglevel(CEGUI::LoggingLevel level);
+	void bmx_cegui_logger_setlogfilename(const CEGUI::utf8 * filename, bool append);
+	void bmx_cegui_logger_logevent(const CEGUI::utf8 * message, CEGUI::LoggingLevel level);
+	MaxLogger * bmx_cegui_customlogger_create(BBObject * handle);
+	void bmx_cegui_customlogger_delete(MaxLogger * logger);
+	CEGUI::LoggingLevel bmx_cegui_logger_getlogginglevel();
 
 }
 
@@ -208,5 +214,15 @@ private:
 	CEGUI::Event::Connection conn;
 };
 
+class MaxLogger : public CEGUI::DefaultLogger
+{
+public:
+	MaxLogger(BBObject * handle);
+	virtual void logEvent(const CEGUI::String& message, CEGUI::LoggingLevel level = CEGUI::Standard);
+
+
+private:
+	BBObject * maxHandle;
+};
 
 

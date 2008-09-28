@@ -8,6 +8,10 @@ Graphics 800, 600, 0
 
 HideMouse
 
+' use our own logger (choice of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE, LOG_INSANE)
+New CustomLogger
+TCELogger.GetLogger().setLoggingLevel(LOG_ERRORS)
+
 Init_CEGUI()
 
 TCESchemeManager.loadScheme("WindowsLook.scheme")
@@ -73,4 +77,20 @@ Function clicked:Int(args:TCEEventArgs)
 	window.show()
 	Return True
 End Function
+
+' a custom logger
+Type CustomLogger Extends TCECustomLogger
+
+	' does nothing - we are outputting to the debuglog
+	Method setLogFilename(filename:String, append:Int = False)
+	End Method
+
+	' called for *every* event
+	Method logEvent(message:String, level:Int = LOG_STANDARD)	
+		If getLoggingLevel() >= level Then
+			DebugLog "EVENT : " + message
+		End If
+	End Method
+
+End Type
 
