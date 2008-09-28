@@ -93,7 +93,8 @@ extern "C" {
 	void bmx_cegui_delete_system(CEGUI::System * s);
 	void bmx_cegui_delete_renderer(CEGUI::Renderer * r);
 
-	CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme);
+	CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup);
+	
 	void bmx_cegui_system_setDefaultFont(const CEGUI::utf8 * font);
 	void bmx_cegui_system_setDefaultMouseCursor(const CEGUI::utf8 * l, const CEGUI::utf8 * kind);
 	void bmx_cegui_system_renderGUI();
@@ -103,7 +104,7 @@ extern "C" {
 	bool bmx_cegui_system_injectMouseButtonDown(int button);
 	bool bmx_cegui_system_injectMouseButtonUp(int button);
 	
-	CEGUI::Window * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * layout);
+	BBObject * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
 	BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name);
 	BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix);
 

@@ -409,10 +409,16 @@ Type TCESystem Extends TCEEventSet
 		bmx_cegui_system_renderGUI()
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function setDefaultFont(font:String)
 		bmx_cegui_system_setDefaultFont(_convertMaxToUTF8(font))
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function setDefaultMouseCursor(a:String, b:String)
 		bmx_cegui_system_setDefaultMouseCursor(_convertMaxToUTF8(a), _convertMaxToUTF8(b))
 	End Function
@@ -456,6 +462,9 @@ Type TCESystem Extends TCEEventSet
 		Return bmx_cegui_system_injectchar(key)
 	End Function
 	
+	Function getRenderer:TCERenderer()
+		
+	End Function
 	
 End Type
 
@@ -465,10 +474,10 @@ End Rem
 Type TCESchemeManager
 
 	Rem
-	bbdoc: 
+	bbdoc: Loads a scheme.
 	End Rem
-	Function loadScheme:TCEScheme(scheme:String)
-		Return TCEScheme._create(bmx_cegui_schememanager_loadScheme(_convertMaxToUTF8(scheme)))
+	Function loadScheme:TCEScheme(scheme:String, resourceGroup:String = "")
+		Return TCEScheme._create(bmx_cegui_schememanager_loadScheme(_convertMaxToUTF8(scheme), _convertMaxToUTF8(resourceGroup)))
 	End Function
 
 	Function isSchemePresent:Int(scheme:String)
@@ -483,14 +492,25 @@ Type TCESchemeManager
 End Type
 
 Rem
-bbdoc: 
+bbdoc: The WindowManager describes an object that manages creation and lifetime of Window objects.
+about: The WindowManager is the means by which Window objects are created and destroyed. For each sub-type of
+Window that is to be created, there must exist a WindowFactory object which is registered with the
+WindowFactoryManager. Additionally, the WindowManager tracks every Window object created, and can be used to access
+those Window objects by name.
 End Rem
 Type TCEWindowManager
 
-	Function loadWindowLayout:TCEWindow(layout:String)
-		Return TCEWindow._create(bmx_cegui_windowmanager_loadWindowLayout(_convertMaxToUTF8(layout)))
+	Rem
+	bbdoc: Creates a set of windows (a Gui layout) from the information in the specified XML file.
+	End Rem
+	Function loadWindowLayout:TCEWindow(filename:String, namePrefix:String = "", resourceGroup:String = "")
+		Return TCEWindow(bmx_cegui_windowmanager_loadWindowLayout(_convertMaxToUTF8(filename), ..
+			_convertMaxToUTF8(namePrefix), _convertMaxToUTF8(resourceGroup)))
 	End Function
 
+	Rem
+	bbdoc: Returns a reference to the specified Window object.
+	End Rem
 	Function getWindow:TCEWindow(name:String)
 		Return TCEWindow(bmx_cegui_windowmanager_getwindow(_convertMaxToUTF8(name)))
 	End Function
@@ -517,6 +537,10 @@ Type TCEWindowManager
 		End If
 	End Function
 
+	Rem
+	bbdoc: Creates a new Window object of the specified type, and gives it the specified unique name.
+	returns: The newly created Window object.
+	End Rem
 	Function CreateWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
 		Return TCEWindow(bmx_cegui_windowmanager_createwindow(_convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
 	End Function
@@ -905,70 +929,88 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Activate the Window giving it input focus and bringing it to the top of all windows with the same always-on-top settig as this Window.
 	End Rem
 	Method activate()
 		bmx_cegui_window_activate(objectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Deactivate the window.
+	about: No further inputs will be received by the window until it is re-activated either
+	programmatically or by the user interacting with the gui.
 	End Rem
 	Method deactivate()
 		bmx_cegui_window_deactivate(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's position.
+	about: Sets the position of the area occupied by this window. The position is offset from the top-left corner
+	of this windows parent window or from the top-left corner of the display if this window has no parent
+	(i.e. it is the root window).
 	End Rem
 	Method setPosition(x:Float, y:Float)
 		bmx_cegui_window_setposition(objectPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's X position.
+	about: Sets the x position (left edge) of the area occupied by this window. The position is offset from
+	the left edge of this windows parent window or from the left edge of the display if this window has no parent
+	(i.e. it is the root window).
 	End Rem
 	Method setXPosition(x:Float)
 		bmx_cegui_window_setxposition(objectPtr, x)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's Y position.
+	about: Sets the y position (top edge) of the area occupied by this window. The position is offset from
+	the top edge of this windows parent window or from the top edge of the display if this window has no parent
+	(i.e. it is the root window).
 	End Rem
 	Method setYPosition(y:Float)
 		bmx_cegui_window_setyposition(objectPtr, y)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's size.
+	about: Sets the size of the area occupied by this window.
 	End Rem
 	Method setSize(width:Float, height:Float)
 		bmx_cegui_window_setsize(objectPtr, width, height)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's width.
+	about: Sets the width of the area occupied by this window.
 	End Rem
 	Method setWidth(width:Float)
 		bmx_cegui_window_setwidth(objectPtr, width)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's height.
+	about: Sets the height of the area occupied by this window.
 	End Rem
 	Method setHeight(height:Float)
 		bmx_cegui_window_setheight(objectPtr, height)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's maximum size.
+	about: Sets the maximum size that this windows area may occupy (whether size changes occur by user interaction,
+	general system operation, or by direct setting by client code).
 	End Rem
 	Method setMaxSize(width:Float, height:Float)
 		bmx_cegui_window_setmaxsize(objectPtr, width, height)
 	End Method
 	 
 	Rem
-	bbdoc: 
+	bbdoc: Set the window's minimum size.
+	about: Sets the minimum size that this windows area may occupy (whether size changes occur by user interaction,
+	general system operation, or by direct setting by client code).
 	End Rem
 	Method setMinSize(width:Float, height:Float)
 		bmx_cegui_window_setminsize(objectPtr, width, height)
@@ -986,14 +1028,17 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Hides the Window.
+	about: If the window is the active window, it will become deactivated as a result of being hidden.
 	End Rem
 	Method hide()
 		bmx_cegui_window_hide(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Shows the Window.
+	about: Showing a window does not automatically activate the window. If you want the window to also become
+	active you will need to call the Window::activate member also.
 	End Rem
 	Method show()
 		bmx_cegui_window_show(objectPtr)
@@ -2332,11 +2377,210 @@ Type TCEItemListBox Extends TCEScrolledItemListBase
 
 End Type
 
+Rem
+bbdoc: Encapsulates text rendering functionality for a typeface.
+about: A Font object is created for each unique typeface required. The Font type provides methods for loading
+typefaces from various sources, and then for outputting text via the Renderer object.
+<p>
+This type is not specific to any font renderer, it just provides the basic interfaces needed to manage fonts.
+</p>
+End Rem
 Type TCEFont
 
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCEFont(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEFont = New TCEFont
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Method isCodepointAvailable:Int(cp:Int)
+	End Method
+	
+	Method getLineSpacing:Float(yScale:Float = 1.0)
+	End Method
+
+	Method getFontHeight:Float(yScale:Float = 1.0)
+	End Method
+
+	Method getBaseline:Float(yScale:Float = 1.0)
+	End Method
+	
 End Type
 
 Type TCEImage
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TCEImagesetManager
+
+	Function createImageset:TCEImageset(filename:String, resourceGroup:String = "")
+	End Function
+	
+	Function createImagesetFromTexture:TCEImageset(name:String, texture:TCETexture)
+	End Function
+	
+	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "")
+	End Function
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCETexture
+
+	Field objectPtr:Byte Ptr
+	
+	Method getWidth:Int()
+	End Method
+	
+	Method getOriginalWidth:Int()
+	End Method
+	
+	Method getXScale:Float()
+	End Method
+	
+	Method getHeight:Int()
+	End Method
+	
+	Method getOriginalHeight:Int()
+	End Method
+	
+	Method getYScale:Float()
+	End Method
+	
+	Method loadFromFile(filename:String, resourceGroup:String)
+	End Method
+	
+	Method loadFromMemory(buffer:Byte Ptr, width:Int, height:Int, pixelFormat:Int)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Offers functions to define, access, and draw, a set of image components on a single graphical surface or Texture.
+about: Imageset objects are a means by which a single graphical image (file, Texture, etc), can be split into
+a number of 'components' which can later be accessed via name. The components of an Imageset can queried for various
+details, and sent to the Renderer object for drawing.
+End Rem
+Type TCEImageset
+
+	Field objectPtr:Byte Ptr
+
+	Method getName:String()
+	End Method
+	
+	Method getImageCount:Int()
+	End Method
+	
+	Method isImageDefined:Int(name:String)
+	End Method
+	
+	'method getImage:TCEImage(name:String)
+	'End method
+	
+	Method undefineImage(name:String)
+	End Method
+	
+	Method undefinAllImages()
+	End Method
+	
+	Method getImageSize(name:String, width:Float Var, height:Float Var)
+	End Method
+	
+	Method getImageWidth:Float(name:String)
+	End Method
+	
+	Method getImageHeight:Float(name:String)
+	End Method
+	
+	Method getImageOffset(name:String, x:Float Var, y:Float Var)
+	End Method
+	
+	Method getImageOffsetX:Float(name:String)
+	End Method
+	
+	Method getImageOffsetY:Float(name:String)
+	End Method
+	
+	Method defineImage(name:String, x:Float, y:Float, width:Float, height:Float, renderOffsetX:Float, renderOffsetY:Float)
+	End Method
+	
+	Method isAutoScaled:Int()
+	End Method
+	
+	Method getNativeResolution(width:Float Var, height:Float Var)
+	End Method
+	
+	Method setAutoScalingEnabled(setting:Int)
+	End Method
+
+	Method setNativeResolution(width:Float, height:Float)
+	End Method
+	
+	Method notifyScreenResolution(width:Float, height:Float)
+	End Method
+	
+End Type
+
+
+Type TCERenderer
+
+	Field objectPtr:Byte Ptr
+	
+	Method CreateTexture:TCETexture(filename:String, resourceGroup:String)
+	End Method
+	
+	Method createTextureWithSize:TCETexture(size:Float)
+	End Method
+	
+	Method destroyTexture(texture:TCETexture)
+	End Method
+	
+	Method destroyAllTextures()
+	End Method
+	
+	Method isQueueingEnabled:Int()
+	End Method
+	
+	Method getWidth:Float()
+	End Method
+	
+	Method getHeight:Float()
+	End Method
+	
+	Method getSize(width:Float Var, height:Float Var)
+	End Method
+	
+	Method getMaxTextureSize:Int()
+	End Method
+	
+	Method getHorzScreenDPI:Int()
+	End Method
+	
+	Method getVertScreenDPI:Int()
+	End Method
+	
+	Method resetZValue()
+	End Method
+	
+	Method advanceZValue()
+	End Method
+	
+	Method getCurrentZ:Float()
+	End Method
+	
+	Method getZLayer:Float(layer:Int)
+	End Method
+	
+	Method getIdentifierString:String()
+	End Method
+
+End Type
 

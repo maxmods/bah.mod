@@ -31,7 +31,7 @@ Extern
 	Function bmx_cegui_delete_system(system:Byte Ptr)
 	Function bmx_cegui_delete_renderer(renderer:Byte Ptr)
 	
-	Function bmx_cegui_schememanager_loadScheme:Byte Ptr(scheme:Byte Ptr)
+	Function bmx_cegui_schememanager_loadScheme:Byte Ptr(scheme:Byte Ptr, resourceGroup:Byte Ptr)
 	
 	Function bmx_cegui_system_setDefaultFont(font:Byte Ptr)
 	Function bmx_cegui_system_setDefaultMouseCursor(look:Byte Ptr, kind:Byte Ptr)
@@ -43,7 +43,7 @@ Extern
 	Function bmx_cegui_system_injectMouseButtonDown:Int(button:Int)
 	
 	
-	Function bmx_cegui_windowmanager_loadWindowLayout:Byte Ptr(layout:Byte Ptr)
+	Function bmx_cegui_windowmanager_loadWindowLayout:Object(filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_windowmanager_getwindow:Object(name:Byte Ptr)
 	Function bmx_cegui_windowmanager_createwindow:Object(windowType:Byte Ptr, name:Byte Ptr, prefix:Byte Ptr)
 	

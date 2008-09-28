@@ -288,8 +288,8 @@ void bmx_cegui_delete_renderer(CEGUI::Renderer * r) {
 
 // *************************************************
 
-CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme) {
-	return CEGUI::SchemeManager::getSingleton().loadScheme(scheme);
+CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup) {
+	return CEGUI::SchemeManager::getSingleton().loadScheme(scheme, resourceGroup);
 }
 
 // *************************************************
@@ -312,8 +312,8 @@ void bmx_cegui_system_setGUISheet(CEGUI::Window * window) {
 
 // *************************************************
 
-CEGUI::Window * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * layout) {
-	return CEGUI::WindowManager::getSingleton().loadWindowLayout(layout);
+BBObject * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * layout, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup) {
+	return newObjectForWindow(CEGUI::WindowManager::getSingleton().loadWindowLayout(layout, namePrefix, resourceGroup));
 }
 
 BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name) {
