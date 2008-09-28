@@ -141,10 +141,15 @@ Texture* FreeImageImageCodec::load(const RawDataContainer& data, Texture* result
             for (uint j = 0; j < width; ++j)
             {
                 uint p = *(((uint*)(srcBuf + i * pitch)) + j);
+// BaH - fixed colour issues on Mac
+#if defined(__APPLE__)
+                p &= 0xFFFFFFFF;
+#else
                 uint r = (p >> 16) & 0x000000FF;
                 uint b = (p << 16) & 0x00FF0000;
                 p &= 0xFF00FF00;
                 p |= r | b;
+#endif
                 // At the same time we can flip verticaly the image
                 // (since textures are required to be upside down)
                 // hence this funny maths

@@ -61,6 +61,9 @@ Import "common.bmx"
 ' Modified macPlugins.cpp
 '  Commented out "main" method. Looks like this isn't designed to build static on Mac... haw.
 '
+' CEGUIFreeImageImageCodec.cpp
+'  Fixed endian colour issue on Mac.
+'
 
 ' some global stuff
 Global cegui_systemPtr:Byte Ptr
