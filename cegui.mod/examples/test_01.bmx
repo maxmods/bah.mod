@@ -39,7 +39,7 @@ root.addChildWindow(eb)
 
 eb.setText("Type here")
 eb.setPosition(40, 130)
-eb.setSize(180, 25)
+eb.setSize(180, 30)
 
 ' loaded window
 Local window:TCEWindow = TCEWindowManager.getWindow("HelloWorldWindow")

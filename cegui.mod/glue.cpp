@@ -330,6 +330,31 @@ BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, 
 	return newObjectForWindow(CEGUI::WindowManager::getSingleton().createWindow(windowType, name, prefix));
 }
 
+bool bmx_cegui_windowmanager_iswindowpresent(const CEGUI::utf8 * name) {
+	return CEGUI::WindowManager::getSingleton().isWindowPresent(name);
+}
+
+void bmx_cegui_windowmanager_destroyallwindows() {
+	CEGUI::WindowManager::getSingleton().destroyAllWindows();
+}
+
+void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::Window * window) {
+	CEGUI::WindowManager::getSingleton().destroyWindow(window);
+}
+
+void bmx_cegui_windowmanager_destroywindowname(const CEGUI::utf8 * window) {
+	CEGUI::WindowManager::getSingleton().destroyWindow(window);
+}
+
+void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::Window * window, const CEGUI::utf8 * newName) {
+	CEGUI::WindowManager::getSingleton().renameWindow(window, newName);
+}
+
+void bmx_cegui_windowmanager_renamewindowname(const CEGUI::utf8 * window, const CEGUI::utf8 * newName) {
+	CEGUI::WindowManager::getSingleton().renameWindow(window, newName);
+}
+
+
 // *************************************************
 
 bool bmx_cegui_system_injectTimePulse(float t) {

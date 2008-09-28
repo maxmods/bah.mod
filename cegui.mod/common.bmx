@@ -46,7 +46,13 @@ Extern
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_windowmanager_getwindow:Object(name:Byte Ptr)
 	Function bmx_cegui_windowmanager_createwindow:Object(windowType:Byte Ptr, name:Byte Ptr, prefix:Byte Ptr)
-	
+	Function bmx_cegui_windowmanager_iswindowpresent:Int(name:Byte Ptr)
+	Function bmx_cegui_windowmanager_destroyallwindows()
+	Function bmx_cegui_windowmanager_destroywindowwindow(window:Byte Ptr)
+	Function bmx_cegui_windowmanager_destroywindowname(window:Byte Ptr)
+	Function bmx_cegui_windowmanager_renamewindowwindow(window:Byte Ptr, newName:Byte Ptr)
+	Function bmx_cegui_windowmanager_renamewindowname(window:Byte Ptr, newName:Byte Ptr)
+
 	'Function bmx_cegui_eventhandler_new:Byte Ptr()
 	'Function bmx_cegui_eventhandler_delete(handle:Byte Ptr)
 	Function bmx_cegui_eventcallback_new:Byte Ptr(handle:Object)

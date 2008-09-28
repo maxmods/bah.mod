@@ -511,25 +511,42 @@ Type TCEWindowManager
 		Return TCEWindow(bmx_cegui_windowmanager_getwindow(_convertMaxToUTF8(name)))
 	End Function
 	
+	Rem
+	bbdoc: Examines the list of Window objects to see if one exists with the given name. 
+	returns: True if a Window object was found with a name matching @name. False if no matching Window object was found.
+	End Rem
 	Function isWindowPresent:Int(name:String)
+		Return bmx_cegui_windowmanager_iswindowpresent(_convertMaxToUTF8(name))
 	End Function
 	
+	Rem
+	bbdoc: Destroys all Window objects within the system. 
+	End Rem
 	Function destroyAllWindows()
+		bmx_cegui_windowmanager_destroyallwindows()
 	End Function
 	
+	Rem
+	bbdoc: Destroys the specified Window. 
+	about: This function accepts either the window name (String), or window object (TCEWindow).
+	End Rem
 	Function destroyWindow(window:Object)
 		If TCEWindow(window) Then
-			
+			bmx_cegui_windowmanager_destroywindowwindow(TCEWindow(window).objectPtr)
 		ElseIf String(window) Then
-		
+			bmx_cegui_windowmanager_destroywindowname(_convertMaxToUTF8(String(window)))
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Renames a window.
+	about: This function accepts either the window name (String), or window object (TCEWindow).
+	End Rem
 	Function renameWindow(window:Object, newName:String)
 		If TCEWindow(window) Then
-			
+			bmx_cegui_windowmanager_renamewindowwindow(TCEWindow(window).objectPtr, _convertMaxToUTF8(newName))
 		ElseIf String(window) Then
-		
+			bmx_cegui_windowmanager_renamewindowname(_convertMaxToUTF8(String(window)), _convertMaxToUTF8(newName))
 		End If
 	End Function
 
@@ -1676,6 +1693,217 @@ Type TCECombobox Extends TCEWindow
 		End If
 	End Function
 
+	' event names from edit box
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventValidationStringChanged:String = "ValidationStringChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTextInvalidated:String = "TextInvalidatedEvent"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventInvalidEntryAttempted:String = "InvalidEntryAttempted"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventCaratMoved:String = "CaratMoved"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTextSelectionChanged:String = "TextSelectionChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventEditboxFull:String = "EditboxFullEvent"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTextAccepted:String = "TextAcceptedEvent"
+	
+	' event names from list box
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventListContentsChanged:String = "ListContentsChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventListSelectionChanged:String = "ListSelectionChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSortModeChanged:String = "SortModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+	
+	' events we produce / generate ourselves
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventDropListDisplayed:String = "DropListDisplayed"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventDropListRemoved:String = "DropListRemoved"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventListSelectionAccepted:String = "ListSelectionAccepted"
+	
+	Method isHit:Int(x:Float, y:Float)
+	End Method
+	
+	Method getSingleClickEnabled:Int()
+	End Method
+	 
+	Method isDropDownListVisible:Int()
+	End Method
+	 
+	Method getEditbox:TCEEditbox()
+	End Method
+	 
+	Method getPushButton:TCEPushButton()
+	End Method
+	 
+	'ComboDropList * getDropList()
+	 
+	Method hasInputFocus:Int()
+	End Method
+	 
+	Method isReadOnly:Int()
+	End Method
+	 
+	Method isTextValid:Int()
+	End Method
+	 
+	Method getValidationString:String()
+	End Method
+	 
+	Method getCaratIndex:Int()
+	End Method
+	 
+	Method getSelectionStartIndex:Int()
+	End Method
+	 
+	Method getSelectionEndIndex:Int()
+	End Method
+	 
+	Method getSelectionLength:Int()
+	End Method
+	 
+	Method getMaxTextLength:Int()
+	End Method
+	 
+	Method getItemCount:Int()
+	End Method
+	 
+	Method getSelectedItem:TCEListboxItem()
+	End Method
+	 
+	Method getListboxItemFromIndex:TCEListboxItem(index:Int)
+	End Method
+	 
+	Method getItemIndex:Int(item:TCEListboxItem)
+	End Method
+	 
+	Method isSortEnabled:Int()
+	End Method
+	 
+	Method isItemSelected:Int(index:Int)
+	End Method
+	 
+	Method findItemWithText:TCEListboxItem(text:String, startItem:TCEListboxItem)
+	End Method
+	 
+	Method isListboxItemInList:Int(item:TCEListboxItem)
+	End Method
+	 
+	Method isVertScrollbarAlwaysShown:Int()
+	End Method
+	 
+	Method isHorzScrollbarAlwaysShown:Int()
+	End Method
+	 
+	Method initialiseComponents()
+	End Method
+	 
+	Method showDropList()
+	End Method
+	 
+	Method hideDropList()
+	End Method
+	 
+	Method setSingleClickEnabled(setting:Int)
+	End Method
+	 
+	Method setReadOnly(setting:Int)
+	End Method
+	 
+	Method setValidationString(validationString:String)
+	End Method
+	 
+	Method setCaratIndex(caratPos:Int)
+	End Method
+	 
+	Method setSelection(startPos:Int, endPos:Int)
+	End Method
+	 
+	Method setMaxTextLength(maxLen:Int)
+	End Method
+	 
+	Method activateEditbox()
+	End Method
+	 
+	Method resetList()
+	End Method
+	 
+	Method addItem(item:TCEListboxItem)
+	End Method
+	 
+	Method insertItem(item:TCEListboxItem, position:TCEListboxItem)
+	End Method
+	 
+	Method removeItem(item:TCEListboxItem)
+	End Method
+	 
+	Method clearAllSelections()
+	End Method
+	 
+	Method setSortingEnabled(setting:Int)
+	End Method
+	 
+	Method setShowVertScrollbar(setting:Int)
+	End Method
+	 
+	Method setShowHorzScrollbar(setting:Int)
+	End Method
+	 
+	Method setItemSelectState(item:TCEListboxItem, state:Int)
+	End Method
+	 
+	Method setItemSelectStateIndex(itemIndex:Int, state:Int)
+	End Method
+	 
+	Method handleUpdatedListItemData()
+	End Method
+	 
 
 End Type
 
@@ -1712,9 +1940,36 @@ Type TCEGroupBox Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for the Spinner widget.
+about: The spinner widget has a text area where numbers may be entered and two buttons which may be used to
+increase or decrease the value in the text area by a user specified amount.
+<p>
+<b>Note:</b>
+While the Spinner widget has support for floating point values, the results of using this support in its current
+state may not be satisfactory. The general advice, for the moment, is to avoid very large or very small values
+in floating point mode, and to perform as little manipulation of the values as possible. The various issues you
+may see range from scientific notation appearing in the box, to complete breakdown of 'expected' values upon
+manipulation. This is something that we intend to address for a future release.
+</p>
 End Rem
 Type TCESpinner Extends TCEWindow
+
+	Rem
+	bbdoc: Display mode - Floating point decimal.
+	End Rem
+	Const INPUT_FLOAT:Int = 0
+	Rem
+	bbdoc: Display mode - Integer decimal.
+	End Rem
+	Const INPUT_INTEGER:Int = 1
+	Rem
+	bbdoc: Display mode - Hexadecimal.
+	End Rem
+	Const INPUT_HEX:Int = 2
+	Rem
+	bbdoc: Display mode - Octal.
+	End Rem
+	Const INPUT_OCTAL:Int = 3
 
 	Function _create:TCESpinner(objectPtr:Byte Ptr)
 		If objectPtr Then
@@ -1724,6 +1979,63 @@ Type TCESpinner Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventNamespace:String = "Spinner"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventValueChanged:String = "ValueChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventStepChanged:String = "StepChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventMaximumValueChanged:String = "MaximumValueChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventMinimumValueChanged:String = "MinimumValueChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTextInputModeChanged:String = "TextInputModeChanged"
+
+	
+	Method getCurrentValue:Float()
+	End Method
+	 
+	Method getStepSize:Float()
+	End Method
+	 
+	Method getMaximumValue:Float()
+	End Method
+	 
+	Method getMinimumValue:Float()
+	End Method
+	 
+	Method getTextInputMode:Int()
+	End Method
+	 
+	Method setCurrentValue(value:Float)
+	End Method
+	 
+	Method setStepSize(stepSize:Float)
+	End Method
+	 
+	Method setMaximumValue(maxValue:Float)
+	End Method
+	 
+	Method setMinimumValue(minVaue:Float)
+	End Method
+	 
+	Method setTextInputMode(mode:Int)
+	End Method
+
+	
 End Type
 
 
@@ -2407,7 +2719,38 @@ Type TCEFont
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TCEImage
+
+	Method getSize(width:Float Var, height:Float Var)
+	End Method
+	
+	Method getWidth:Float()
+	End Method
+	
+	Method getHeight:Float()
+	End Method
+	
+	Method getOffsets(x:Float Var, y:Float Var)
+	End Method
+	
+	Method getOffsetX:Float()
+	End Method
+	
+	Method getOffsetY:Float()
+	End Method
+	
+	Method getName:String()
+	End Method
+	
+	Method getImagesetName:String()
+	End Method
+	
+	Method getImageset:TCEImageset()
+	End Method
+	
 End Type
 
 Rem
@@ -2422,6 +2765,26 @@ Type TCEImagesetManager
 	End Function
 	
 	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "")
+	End Function
+	
+	Function destroyImageSet(imageset:Object)
+		If TCEImageset(imageset) Then
+		
+		ElseIf String(imageset) Then
+		
+		End If
+	End Function
+	
+	Function destroyAllImagesets()
+	End Function
+	
+	Function getImageset:TCEImageset(name:String)
+	End Function
+	
+	Function isImagesetPresent:Int(name:String)
+	End Function
+	
+	Function notifyScreenResolution(width:Float, height:Float)
 	End Function
 	
 End Type

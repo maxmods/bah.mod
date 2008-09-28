@@ -110,6 +110,12 @@ extern "C" {
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
 	BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name);
 	BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix);
+	bool bmx_cegui_windowmanager_iswindowpresent(const CEGUI::utf8 * name);
+	void bmx_cegui_windowmanager_destroyallwindows();
+	void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::Window * window);
+	void bmx_cegui_windowmanager_destroywindowname(const CEGUI::utf8 * window);
+	void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::Window * window, const CEGUI::utf8 * newName);
+	void bmx_cegui_windowmanager_renamewindowname(const CEGUI::utf8 * window, const CEGUI::utf8 * newName);
 
 	MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle);
 
