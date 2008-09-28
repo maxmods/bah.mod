@@ -67,7 +67,7 @@ Each item in here has a comment to describe what it's for.
 // SILLYImageCodec, TGAImageCodec 
 //////////////////////////////////////////////////////////////////////////
 #ifndef CEGUI_DEFAULT_IMAGE_CODEC
-#   define CEGUI_DEFAULT_IMAGE_CODEC SILLYImageCodec
+#   define CEGUI_DEFAULT_IMAGE_CODEC FreeImageImageCodec
 #endif
 
 //////////////////////////////////////////////////////////////////////////
