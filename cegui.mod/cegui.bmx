@@ -1982,10 +1982,6 @@ Type TCESpinner Extends TCEWindow
 	Rem
 	bbdoc: 
 	End Rem
-	Const EventNamespace:String = "Spinner"
-	Rem
-	bbdoc: 
-	End Rem
 	Const EventValueChanged:String = "ValueChanged"
 	Rem
 	bbdoc: 
@@ -2160,7 +2156,8 @@ Type TCEDragContainer Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Helper container window that has configurable clipping.
+about: Used by the TCEItemListbox widget. 
 End Rem
 Type TCEClippedContainer Extends TCEWindow
 
@@ -2175,7 +2172,7 @@ Type TCEClippedContainer Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Helper container window type which is used in the implementation of the TCEScrollablePane widget. 
 End Rem
 Type TCEScrolledContainer Extends TCEWindow
 
@@ -2190,7 +2187,7 @@ Type TCEScrolledContainer Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for list header segment window. 
 End Rem
 Type TCEListHeaderSegment Extends TCEWindow
 
@@ -2205,7 +2202,7 @@ Type TCEListHeaderSegment Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for the multi column list header widget. 
 End Rem
 Type TCEListHeader Extends TCEWindow
 
@@ -2232,10 +2229,68 @@ Type TCEScrollbar Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventScrollPositionChanged:String = "ScrollPosChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventThumbTrackStarted:String = "ThumbTrackStarted"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventThumbTrackEnded:String = "ThumbTrackEnded"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventScrollConfigChanged:String = "ScrollConfigChanged"
+
+
+	Method getDocumentSize:Float()
+	End Method
+	
+	Method getPageSize:Float()
+	End Method
+	
+	Method getStepSize:Float()
+	End Method
+	
+	Method getOverlapSize:Float()
+	End Method
+	
+	Method getScrollPosition:Float()
+	End Method
+	
+	Method getIncreaseButton:TCEPushButton()
+	End Method
+	
+	Method getDecreaseButton:TCEPushButton()
+	End Method
+	
+	'Thumb * 	getThumb ()
+	
+	Method setDocumentSize(documentSize:Float)
+	End Method
+	
+	Method setPageSize(pageSize:Float)
+	End Method
+	
+	Method setStepSize(stepSize:Float)
+	End Method
+	
+	Method setOverlapSize(overlapSize:Float)
+	End Method
+	
+	Method setScrollPosition(position:Float)
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for Slider widgets.
+about: The slider widget has a default range of 0.0 - 1.0. This enables use of the slider value to
+scale any value needed by way of a simple multiplication. 
 End Rem
 Type TCESlider Extends TCEWindow
 
@@ -2247,10 +2302,43 @@ Type TCESlider Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventValueChanged:String = "ValueChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventThumbTrackStarted:String = "ThumbTrackStarted"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventThumbTrackEnded:String = "ThumbTrackEnded"
+
+	Method getCurrentValue:Float()
+	End Method
+	
+	Method getMaxValue:Float()
+	End Method
+	
+	Method getClickStep:Float()
+	End Method
+	
+	'Thumb * 	getThumb()
+	
+	Method setMaxValue(maxVal:Float)
+	End Method
+	
+	Method setCurrentValue(value:Float)
+	End Method
+	
+	Method setClickStep(clickStep:Float)
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for standard Tab Control widget. 
 End Rem
 Type TCETabControl Extends TCEWindow
 
@@ -2261,6 +2349,78 @@ Type TCETabControl Extends TCEWindow
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: Event triggered when there is a change to the currently selected tab. 
+	End Rem
+	Const EventSelectionChanged:String = "TabSelectionChanged"
+
+
+	Method getTabCount:Int()
+	End Method
+	
+	Method getTabPanePosition:Int()
+	End Method
+	
+	Method setTabPanePosition(pos:Int)
+	End Method
+	
+	Method setSelectedTab(name:String)
+	End Method
+	
+	Method setSelectedTabForID(ID:Int)
+	End Method
+	
+	Method setSelectedTabAtIndex(index:Int)
+	End Method
+	
+	Method makeTabVisible(name:String)
+	End Method
+	
+	Method makeTabVisibleForID(ID:Int)
+	End Method
+	
+	Method makeTabVisibleAtIndex(index:Int)
+	End Method
+	
+	Method getTabContentsAtIndex:TCEWindow(index:Int)
+	End Method
+	
+	Method getTabContents:TCEWindow(name:String)
+	End Method
+	
+	Method getTabContentsForID:TCEWindow(ID:Int)
+	End Method
+	
+	Method isTabContentsSelected:Int(wnd:TCEWindow)
+	End Method
+	
+	Method getSelectedTabIndex:Int()
+	End Method
+	
+	Method getTabHeight:Float()
+	End Method
+	
+	Method getTabTextPadding:Float()
+	End Method
+	
+	Method initialiseComponents()
+	End Method
+	
+	Method setTabHeight(height:Float)
+	End Method
+	
+	Method setTabTextPadding(padding:Float)
+	End Method
+	
+	Method addTab(wnd:TCEWindow)
+	End Method
+	
+	Method removeTab(name:String)
+	End Method
+	
+	Method removeTabForID(ID:Int)
+	End Method
 
 End Type
 
@@ -2277,6 +2437,63 @@ Type TCETooltip Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventHoverTimeChanged:String = "HoverTimeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventDisplayTimeChanged:String = "DisplayTimeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventFadeTimeChanged:String = "FadeTimeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTooltipActive:String = "TooltipActive"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventTooltipInactive:String = "TooltipInactive"
+
+	Method setTargetWindow(wnd:TCEWindow)
+	End Method
+	
+	Method getTargetWindow:TCEWindow()
+	End Method
+	
+	Method resetTimer()
+	End Method
+	
+	Method getHoverTime:Float()
+	End Method
+	
+	Method setDisplayTime(seconds:Float)
+	End Method
+	
+	Method getFadeTime:Float()
+	End Method
+	
+	Method setHoverTime(seconds:Float)
+	End Method
+	
+	Method getDisplayTime:Float()
+	End Method
+	
+	Method setFadeTime(seconds:Float)
+	End Method
+	
+	Method positionSelf()
+	End Method
+	
+	Method sizeSelf()
+	End Method
+	
+	Method getTextSize(width:Float Var, height:Float Var) 
+	End Method
+
 End Type
 
 Rem
@@ -2291,6 +2508,155 @@ Type TCETree Extends TCEWindow
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventListContentsChanged:String = "ListItemsChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSelectionChanged:String = "ItemSelectionChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSortModeChanged:String = "SortModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventMultiselectModeChanged:String = "MuliselectModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventBranchOpened:String = "BranchOpened"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventBranchClosed:String = "BranchClosed"
+
+
+	Method getItemCount:Int()
+	End Method
+	
+	Method getSelectedCount:Int()
+	End Method
+	
+	Method getFirstSelectedItem:TCETreeItem()
+	End Method
+	
+	Method getLastSelectedItem:TCETreeItem()
+	End Method
+	
+	Method getNextSelected:TCETreeItem(startItem:TCETreeItem)
+	End Method
+	
+	'Method getNextSelectedItemFromList:TCETreeItem(Const LBItemList &itemList, start_item:TCETreeItem, bool foundStartItem:Int)
+	'End Method
+	
+	Method isSortEnabled:Int()
+	End Method
+	
+	Method setItemRenderArea(x:Float, y:Float, w:Float, h:Float)
+	End Method
+	
+	Method getVertScrollbar:TCEScrollbar()
+	End Method
+	
+	Method getHorzScrollbar:TCEScrollbar()
+	End Method
+	
+	Method isMultiselectEnabled:Int()
+	End Method
+	
+	Method isItemTooltipsEnabled:Int()
+	End Method
+	
+	Method findFirstItemWithText:TCETreeItem(text:String)
+	End Method
+	
+	Method findNextItemWithText:TCETreeItem(text:String, startItem:TCETreeItem)
+	End Method
+	
+	'Method findItemWithTextFromList:TCETreeItem(Const LBItemList &itemList, String &text:String, start_item:TCETreeItem, foundStartItem:Int)
+	'End Method
+	
+	Method findFirstItemWithID:TCETreeItem(searchID:Int)
+	End Method
+	
+	Method findNextItemWithID:TCETreeItem(searchID:Int, startItem:TCETreeItem)
+	End Method
+	
+	'Method findItemWithIDFromList:TCETreeItem(Const LBItemList &itemList, uint searchID:Int, start_item:TCETreeItem, foundStartItem:Int)
+	'End Method
+	
+	Method isTreeItemInList:Int(item:TCETreeItem)
+	End Method
+	
+	Method isVertScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method isHorzScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method initialise()
+	End Method
+	
+	Method resetList()
+	End Method
+	
+	Method addItem(item:TCETreeItem)
+	End Method
+	
+	Method insertItem(item:TCETreeItem, position:TCETreeItem)
+	End Method
+	
+	Method removeItem(item:TCETreeItem)
+	End Method
+	
+	Method clearAllSelections()
+	End Method
+	
+	'Method clearAllSelectionsFromList:Int(Const LBItemList &itemList)
+	'End Method
+	
+	Method setSortingEnabled(setting:Int)
+	End Method
+	
+	Method setMultiselectEnabled(setting:Int)
+	End Method
+	
+	Method setShowVertScrollbar(setting:Int)
+	End Method
+	
+	Method setShowHorzScrollbar(setting:Int)
+	End Method
+	
+	Method setItemTooltipsEnabled(setting:Int)
+	End Method
+	
+	Method setItemSelectState(item:TCETreeItem, state:Int)
+	End Method
+	
+	Method setItemSelectStateIndex(itemIndex:Int, state:Int)
+	End Method
+	
+	Method setLookNFeel(look:String)
+	End Method
+	
+	Method handleUpdatedItemData()
+	End Method
+	
+	Method ensureItemIsVisible(item:TCETreeItem)
+	End Method
+	
 
 End Type
 
@@ -2308,6 +2674,127 @@ Type TCETreeItem
 			Return this
 		End If
 	End Function
+
+	Method getFont:TCEFont()
+	End Method
+	
+	Method getTextColours:TCEColourRect()
+	End Method
+	
+	Method setFont(font:Object)
+		If TCEFont(font) Then
+		
+		ElseIf String(font) Then
+		
+		End If
+	End Method
+	
+	Method setTextColours(cols:TCEColourRect)
+	End Method
+	
+	'Method setTextColours(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+	'End Method
+	
+	'Method setTextColours(col:TCEColour)
+	'End Method
+	
+	Method getText:String()
+	End Method
+	
+	Method getTooltipText:String()
+	End Method
+	
+	Method getID:Int()
+	End Method
+	
+	Method getUserData:Object()
+	End Method
+	
+	Method isSelected:Int()
+	End Method
+	
+	Method isDisabled:Int()
+	End Method
+	
+	Method isAutoDeleted:Int()
+	End Method
+	
+	Method getOwnerWindow:TCEWindow()
+	End Method
+	
+	Method getSelectionColours:TCEColourRect()
+	End Method
+	
+	Method getSelectionBrushImage:TCEImage()
+	End Method
+	
+	Method setText(text:String)
+	End Method
+	
+	Method setTooltipText(text:String)
+	End Method
+	
+	Method setID(itemId:Int)
+	End Method
+	
+	Method setUserData(itemData:Object)
+	End Method
+	
+	Method setSelected(setting:Int)
+	End Method
+	
+	Method setDisabled(setting:Int)
+	End Method
+	
+	Method setAutoDeleted(setting:Int)
+	End Method
+	
+	Method setOwnerWindow(owner:TCEWindow)
+	End Method
+	
+	Method setSelectionColours(cols:TCEColourRect)
+	End Method
+	
+	'Method setSelectionColours(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+	'End Method
+	
+	'Method setSelectionColours(col:TCEColour)
+	'End Method
+	
+	Method setSelectionBrushImage(image:TCEImage)
+	End Method
+	
+	Method setSelectionBrushImageByName(imageset:String, image:String)
+	End Method
+	
+	Method setButtonLocation(x:Float, y:Float, w:Float, h:Float)
+	End Method
+	
+	Method getButtonLocation(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	End Method
+	
+	Method getIsOpen:Int()
+	End Method
+	
+	Method toggleIsOpen()
+	End Method
+	
+	Method getTreeItemFromIndex:TCETreeItem(itemIndex:Int)
+	End Method
+	
+	Method getItemCount:Int()
+	End Method
+	
+	'LBItemList & 	getItemList()
+	
+	Method addItem(item:TCETreeItem)
+	End Method
+	
+	Method setIcon(theIcon:TCEImage)
+	End Method
+	
+	Method getPixelSize(width:Float Var, height:Float Var) 
+	End Method
 
 End Type
 
@@ -2661,6 +3148,9 @@ Type TCEEditbox Extends TCEWindow
 
 End Type
 
+Rem
+bbdoc: ScrolledItemListBase window type. 
+End Rem
 Type TCEScrolledItemListBase Extends TCEItemListBase
 
 	Function _create:TCEScrolledItemListBase(objectPtr:Byte Ptr)
@@ -2671,8 +3161,38 @@ Type TCEScrolledItemListBase Extends TCEItemListBase
 		End If
 	End Function
 
+	Rem
+	bbdoc: Event fired when the vertical scroll bar mode changes. 
+	End Rem
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Rem
+	bbdoc: Event fired when the horizontal scroll bar mode change. 
+	End Rem
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+
+	Method isVertScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method isHorzScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method getVertScrollbar:TCEScrollbar()
+	End Method
+	
+	Method getHorzScrollbar:TCEScrollbar()
+	End Method
+	
+	Method setShowVertScrollbar(mode:Int)
+	End Method
+	
+	Method setShowHorzScrollbar(mode:Int)
+	End Method
+
 End Type
 
+Rem
+bbdoc: ItemListbox window type. 
+End Rem
 Type TCEItemListBox Extends TCEScrolledItemListBase
 
 	Function _create:TCEItemListBox(objectPtr:Byte Ptr)
@@ -2682,6 +3202,49 @@ Type TCEItemListBox Extends TCEScrolledItemListBase
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: Event fired when the selection changes. 
+	End Rem
+	Const EventSelectionChanged:String = "SelectionChanged"
+	Rem
+	bbdoc: Event fired when the multiselect mode changes. 
+	End Rem
+	Const EventMultiSelectModeChanged:String = "MultiSelectModeChanged"
+
+
+	Method getSelectedCount:Int()
+	End Method
+	
+	Method getLastSelectedItem:TCEItemEntry()
+	End Method
+	
+	Method getFirstSelectedItem:TCEItemEntry(startIndex:Int = 0)
+	End Method
+	
+	Method getNextSelectedItem:TCEItemEntry()
+	End Method
+	
+	Method getNextSelectedItemAfter:TCEItemEntry(startItem:TCEItemEntry)
+	End Method
+	
+	Method isMultiSelectEnabled:Int()
+	End Method
+	
+	Method isItemSelected:Int(index:Int)
+	End Method
+	
+	Method setMultiSelectEnabled(state:Int)
+	End Method
+	
+	Method clearAllSelections()
+	End Method
+	
+	Method selectRange(a:Int, z:Int)
+	End Method
+	
+	Method selectAllItems()
+	End Method
 
 End Type
 
@@ -3035,4 +3598,12 @@ Type TCECustomLogger Extends TCELogger
 	End Function
 	
 End Type
+
+
+Type TCEColourRect
+End Type
+
+Type TCEColour
+End Type
+
 
