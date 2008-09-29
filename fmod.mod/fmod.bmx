@@ -49,23 +49,23 @@ End Rem
 Global FMOD_VERSION:Int = bmx_fmod_getversion()
 
 Rem
-bbdoc: 
+bbdoc: The FMOD System object.
 End Rem
 Type TFMODSystem
 
 	Field systemPtr:Byte Ptr
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates an instance of an FMOD system object.
 	End Rem
 	Function CreateSystem:TFMODSystem()
-		Return New TFMODSystem.Create()
+		Return New TFMODSystem.create()
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates an instance of an FMOD system object.
 	End Rem
-	Method Create:TFMODSystem()
+	Method create:TFMODSystem()
 		Local res:Int
 		systemPtr = bmx_FMOD_System_Create(Varptr res)
 		If res Then
@@ -74,6 +74,14 @@ Type TFMODSystem
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Adds a pre-created DSP unit or effect to the head of the System DSP chain.  
+	about: This is a wrapper function to insert a DSP unit at the top of the System DSP chain.
+	<p>
+	It disconnects the head unit from its input, then inserts the unit at the head and reconnects the previously
+	disconnected input back as as an input to the new unit.
+	</p>
+	End Rem
 	Method AddDSP:Int(dsp:TFMODDsp)
 		Return FMOD_System_AddDSP(systemPtr, dsp.dspPtr, Null)
 	End Method
@@ -98,31 +106,96 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Updates the FMOD system.
+	returns: If the method succeeds then the return value is FMOD_OK.
+	about: This should be called once per 'game' tick, or once per frame in your application.  
+	<p>
+	This updates the following things :
+	</p>
+	<p>
+	3D Sound. 3D positioning will not update if this function is not called. Virtual voices. If more voices are played
+	than there are real hardware/software voices, this function must be called to handle the virtualization. *_NRT
+	output modes. This function must be called to drive the output for these output modes. FMOD_INIT_STREAM_FROM_UPDATE.
+	This function must be called to update the streamer if this flag has been used. Callbacks. This function must be
+	called to fire callbacks if they are specified. FMOD_NONBLOCKING. This function must be called to make sounds
+	opened with FMOD_NONBLOCKING flag to work properly. 
+	</p>
+	<p>
+	If FMOD_OUTPUTTYPE_NOSOUND_NRT or FMOD_OUTPUTTYPE_WAVWRITER_NRT output modes are used, this function also drives
+	the software / DSP engine, instead of it running asynchronously in a thread as is the default behaviour.
+	</p>
+	<p>
+	This can be used for faster than realtime updates to the decoding or DSP engine which might be useful if the output
+	is the wav writer for example.
+	</p>
+	<p>
+	If FMOD_INIT_STREAM_FROM_UPDATE is used, this function will update the stream engine. Combining this with the non
+	realtime output will mean smoother captured output.
+	</p>
 	End Rem
 	Method Update:Int()
 		Return FMOD_System_Update(systemPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a 'virtual reverb' object.
+	about: This object reacts to 3d location and morphs the reverb environment based on how close it is to the
+	reverb object's center.
+	<p>
+	Multiple reverb objects can be created to achieve a multi-reverb environment.  
+	</p>
+	<p>The 3D reverb object is a sphere having 3D attributes (position, minimum distance, maximum distance) and
+	reverb properties.
+	</p>
+	<p>
+	The properties and 3D attributes of all reverb objects collectively determine, along with the listener's position,
+	the settings of and input gains into a single 3D reverb DSP.
+	</p>
+	<p>
+	Please note that this only applies to software channels. When the listener is within the sphere of effect of one
+	or more 3d reverbs, the listener's 3D reverb properties are a weighted combination of such 3d reverbs. When the
+	listener is outside all of the reverbs, the 3D reverb setting is set to the default ambient reverb setting.
+	</p>
+	<p>
+	Use System.SetReverbAmbientProperties to set a 'background' default reverb environment. This is a reverb that
+	will be morphed to if the listener is not within any virtual reverb zones.
+	</p>
+	<p>
+	By default the ambient reverb is set to 'off'. 
+	</p>
+	<p>
+	Creating multiple reverb objects does not impact performance. These are 'virtual reverbs'. There will still be
+	only 1 physical reverb DSP running that just morphs between the different virtual reverbs. 
+	</p>
+	<p>
+	System.SetReverbProperties can still be used in conjunction with the 3d based virtual reverb system. This allows
+	2d sounds to have reverb. If this call is used at the same time virtual reverb objects are active, 2 physical
+	reverb dsps will be used, incurring a small memory and cpu hit. 
+	</p>
 	End Rem
 	Method CreateReverb:TFMODReverb()
 		Return TFMODReverb._create(bmx_FMOD_System_CreateReverb(systemPtr))
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Loads a sound into memory, or opens it for streaming. 
 	End Rem
 	Method CreateSoundURL:TFMODSound(filename:String, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
-		Local s:Byte Ptr = filename.ToCString()
-		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, filename, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Local s:Byte Ptr
+		' 16-bit chars?
+		If mode & FMOD_UNICODE Then
+			s = filename.ToWString()
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, filename, mode, Null, Varptr ret))
+			s = filename.ToCString()
+		End If
+	
+		If exInfo Then
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Else
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, mode, Null, Varptr ret))
 		End If
 		MemFree(s)
 		
@@ -130,7 +203,7 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Loads a sound into memory, or opens it for streaming. 
 	End Rem
 	Method CreateSoundPtr:TFMODSound(mem:Byte Ptr, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
@@ -146,17 +219,41 @@ Type TFMODSystem
 	End Method
 
 	Rem
-	bbdoc:
+	bbdoc: Loads a sound into memory, or opens it for streaming. 
+	End Rem
+	Method CreateSound:TFMODSound(mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+		Local sound:TFMODSound
+		Local ret:Int
+		
+		If exInfo Then
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Else
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, mode, Null, Varptr ret))
+		End If
+		
+		Return sound
+	End Method
+
+	Rem
+	bbdoc: Opens a sound for streaming.
+	about: This is a helper method that is the same as System.CreateSound but has the FMOD_CREATESTREAM flag added internally.  
 	End Rem
 	Method CreateStreamURL:TFMODSound(filename:String, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
-		Local s:Byte Ptr = filename.ToCString()
-		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, filename, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Local s:Byte Ptr
+		' 16-bit chars?
+		If mode & FMOD_UNICODE Then
+			s = filename.ToWString()
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, filename, mode, Null, Varptr ret))
+			s = filename.ToCString()
+		End If
+		
+		If exInfo Then
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, mode, exInfo.soundExInfoPtr, Varptr ret))
+		Else
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, mode, Null, Varptr ret))
 		End If
 		MemFree(s)
 		
@@ -164,7 +261,8 @@ Type TFMODSystem
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Opens a sound for streaming.
+	about: This is a helper method that is the same as System.CreateSound but has the FMOD_CREATESTREAM flag added internally.  
 	End Rem
 	Method CreateStreamPtr:TFMODSound(mem:Byte Ptr, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
@@ -180,7 +278,23 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a channel group object.
+	about: These objects can be used to assign channels to for group channel settings, such as volume.
+	<p>
+	Channel groups are also used for sub-mixing. Any channels that are assigned to a channel group get submixed
+	into that channel group's DSP.  
+	</p>
+	<p>
+	See the channel group type definition for the types of operations that can be performed on 'groups' of channels.
+	</p>
+	<p>
+	The channel group can for example be used to have 2 seperate groups of master volume, instead of one global
+	master volume.
+	</p>
+	<p>
+	A channel group can be used for sub-mixing, ie so that a set of channels can be mixed into a channel group,
+	then can have effects applied to it without affecting other channels.
+	</p>
 	End Rem
 	Method CreateChannelGroup:TFMODChannelGroup(name:String)
 		Local s:Byte Ptr = name.ToCString()
@@ -190,7 +304,12 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a handle to the internal master channel group.
+	about: This is the default channel group that all channels play on.
+	<p>
+	This channel group can be used to do things like set the master volume for all playing sounds. See the
+	TFMODChannelGroup API for more functionality. 
+	</p>
 	End Rem
 	Method GetMasterChannelGroup:TFMODChannelGroup()
 		Return TFMODChannelGroup._create(bmx_FMOD_System_GetMasterChannelGroup(systemPtr))
@@ -222,6 +341,9 @@ Type TFMODSystem
 		End If
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method PlayDSP:TFMODChannel(channelId:Int, dsp:TFMODDsp, paused:Int = False, reuse:TFMODChannel = Null)
 		If reuse Then
 			bmx_FMOD_System_PlayDSP(systemPtr, channelId, dsp.dspPtr, paused, reuse.channelPtr)
@@ -265,6 +387,7 @@ Type TFMODSystem
 	bbdoc:
 	End Rem
 	Method GetCDROMDriveName:String[](drive:Int)
+		' TODO
 	End Method
 	?
 	
@@ -368,8 +491,11 @@ Type TFMODSystem
 		Return FMOD_System_GetRecordDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency)
 	End Method
 	
+	Rem
+	bbdoc: Retrieves identification information about a sound device specified by its index, and specific to the output mode set with System::setOutput.
+	End Rem
 	Method GetRecordDriverInfo:String(id:Int, guid:Int Var)
-		
+		' TODO
 	End Method
 	
 	Rem
@@ -744,6 +870,10 @@ Type TFMODSound
 			soundPtr = Null
 			Return res
 		End If
+	End Method
+	
+	Method GetUserData:Object()
+		Return bmx_FMOD_Sound_GetUserData(soundPtr)
 	End Method
 	
 End Type
@@ -1171,7 +1301,15 @@ Type TFMODChannel
 	Rem
 	bbdoc: 
 	End Rem
-	Method GetReverbProperties:TFMODReverbChannelProperties()
+	Method GetReverbProperties:Int(properties:TFMODReverbChannelProperties)
+		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetReverbProperties:Int(properties:TFMODReverbChannelProperties)
+		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
 	End Method
 	
 	Rem
@@ -1256,6 +1394,32 @@ Type TFMODCreateSoundExInfo
 		bmx_soundexinfo_setnumsubsounds(soundExInfoPtr, num)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPCMReadCallback(callback:Int(sound:TFMODSound, data:Byte Ptr, dataLen:Int))
+		Local obj:TFMODCreateSoundCallbackHandler = _getorcreateuserdata()
+		obj.pcmReadCallback = callback
+		bmx_soundexinfo_setpcmreadcallback(soundExInfoPtr, TFMODCreateSoundCallbackHandler._PCMReadCallback)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPCMSetPosCallback(callback:Int(sound:TFMODSound, subsound:Int, position:Int, posType:Int))
+		Local obj:TFMODCreateSoundCallbackHandler = _getorcreateuserdata()
+		obj.pcmSetPosCallback = callback
+		bmx_soundexinfo_setpcmsetposcallback(soundExInfoPtr, TFMODCreateSoundCallbackHandler._PCMSetPosCallback)
+	End Method
+	
+	Method _getorcreateuserdata:TFMODCreateSoundCallbackHandler()
+		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(bmx_soundexinfo_getuserdata(soundExInfoPtr))
+		If Not obj Then
+			obj = New TFMODCreateSoundCallbackHandler
+			bmx_soundexinfo_setuserdata(soundExInfoPtr, obj)
+		End If
+		Return obj
+	End Method
 
 	Method Delete()
 		If soundExInfoPtr Then
@@ -1265,6 +1429,42 @@ Type TFMODCreateSoundExInfo
 	End Method	
 	
 End Type
+
+Type TFMODCreateSoundCallbackHandler
+
+	Field pcmReadCallback:Int(sound:TFMODSound, data:Byte Ptr, dataLen:Int)
+	Field pcmSetPosCallback:Int(sound:TFMODSound, subsound:Int, position:Int, posType:Int)
+	Field nonBlockCallback:Int(sound:TFMODSound, result:Int)
+	
+	Function _PCMReadCallback:Int(sound:Byte Ptr, data:Byte Ptr, dataLen:Int)
+		Local snd:TFMODSound = TFMODSound._create(sound)
+		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
+		If obj Then
+			Return obj.pcmReadCallback(snd, data, dataLen)
+		End If
+		Return FMOD_OK
+	End Function
+
+	Function _PCMSetPosCallback:Int(sound:Byte Ptr, subsound:Int, position:Int, posType:Int)
+		Local snd:TFMODSound = TFMODSound._create(sound)
+		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
+		If obj Then
+			Return obj.pcmSetPosCallback(snd, subsound, position, posType)
+		End If
+		Return FMOD_OK
+	End Function
+
+	Function _NonBlockCallback:Int(sound:Byte Ptr, result:Int)
+		Local snd:TFMODSound = TFMODSound._create(sound)
+		Local obj:TFMODCreateSoundCallbackHandler = TFMODCreateSoundCallbackHandler(snd.GetUserData())
+		If obj Then
+			Return obj.nonBlockCallback(snd, result)
+		End If
+		Return FMOD_OK
+	End Function
+
+End Type
+
 
 Rem
 bbdoc: Structure describing a piece of tag data.
@@ -1654,14 +1854,22 @@ Type TFMODChannelGroup
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adds a DSP effect to this channelgroup, affecting all channels that belong to it.
+	about: Because it is a submix, only one instance of the effect is added, and all subsequent channels are affected.  
+	<p>
+	This is a wrapper method to insert a DSP unit at the top of the channel group DSP chain.
+	</p>
+	<p>
+	It disconnects the head unit from its input, then inserts the unit at the head and reconnects the previously
+	disconnected input back as as an input to the new unit.
+	</p>
 	End Rem
 	Method AddDSP:Int(dsp:TFMODDsp)
 		Return FMOD_ChannelGroup_AddDSP(channelGroupPtr, dsp.dspPtr, Null)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adds a channel group as a child of the current channel group.
 	End Rem
 	Method AddGroup:Int(group:TFMODChannelGroup)
 		Return FMOD_ChannelGroup_AddGroup(channelGroupPtr, group.channelGroupPtr)
@@ -2000,6 +2208,13 @@ Type TFMODChannelGroup
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method OverrideReverbProperties:Int(properties:TFMODReverbChannelProperties)
+		Return FMOD_ChannelGroup_OverrideReverbProperties(channelGroupPtr, Varptr properties)
+	End Method
+	
+	Rem
 	bbdoc: Frees a channel group.
 	returns: If the method succeeds then the return value is FMOD_OK.
 	about: All channels assigned to this group are returned back to the master channel group owned by the
@@ -2016,8 +2231,8 @@ Type TFMODChannelGroup
 End Type
 
 Rem
-bbdoc: Structure defining the properties for a reverb source, related to an FMOD channel.
-End Rem
+'bbdoc: Structure defining the properties For a reverb source, related To an FMOD channel.
+'End Rem
 Type TFMODReverbChannelProperties
 
 	Field reverbPtr:Byte Ptr
@@ -2038,3 +2253,4 @@ Type TFMODReverbChannelProperties
 	End Method
 
 End Type
+End Rem

@@ -77,6 +77,8 @@ Extern
 	Function bmx_FMOD_Channel_GetMode:Int(handle:Byte Ptr, mode:Int Ptr)
 	Function bmx_FMOD_Channel_GetMute:Int(handle:Byte Ptr, mute:Int Ptr)
 	Function bmx_FMOD_Channel_GetPriority:Int(handle:Byte Ptr, priority:Int Ptr)
+	Function bmx_FMOD_Channel_GetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+	Function bmx_FMOD_Channel_SetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
@@ -86,12 +88,18 @@ Extern
 	Function bmx_soundexinfo_setdecodebuffersize(handle:Byte Ptr, bufferSize:Int)
 	Function bmx_soundexinfo_setinitialsubsound(handle:Byte Ptr, initial:Int)
 	Function bmx_soundexinfo_setnumsubsounds(handle:Byte Ptr, num:Int)
+	Function bmx_soundexinfo_setpcmreadcallback(handle:Byte Ptr, callback:Int(sound:Byte Ptr, data:Byte Ptr, dataLen:Int))
+	Function bmx_soundexinfo_setpcmsetposcallback(handle:Byte Ptr, callback:Int(sound:Byte Ptr, subsound:Int, position:Int, posType:Int))
+	Function bmx_soundexinfo_getuserdata:Object(handle:Byte Ptr)
+	Function bmx_soundexinfo_setuserdata(handle:Byte Ptr, obj:Object)
 
 	Function bmx_FMOD_SoundGroup_GetSound:Byte Ptr(handle:Byte Ptr, index:Int)
 	
 	Function bmx_FMOD_Sound_GetTag:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, index:Int)
 	Function bmx_FMOD_Sound_SetSubSoundSentence:Int(handle:Byte Ptr, soundList:Int[])
 	Function bmx_FMOD_Sound_GetSubSound:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_FMOD_Sound_GetUserData:Object(handle:Byte Ptr)
+	'Function bmx_FMOD_Sound_SetUserData(handle:Byte Ptr, obj:Object)
 
 	Function bmx_fmodtag_getdata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_fmodtag_delete(handle:Byte Ptr)
@@ -222,6 +230,7 @@ Extern
 	Function FMOD_ChannelGroup_Release:Int(handle:Byte Ptr)
 	Function FMOD_ChannelGroup_AddGroup:Int(handle:Byte Ptr, group:Byte Ptr)
 	Function FMOD_ChannelGroup_AddDSP:Int(handle:Byte Ptr, dsp:Byte Ptr, connection:Byte Ptr)
+	Function FMOD_ChannelGroup_OverrideReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 
 End Extern
 
@@ -421,6 +430,30 @@ Extern
 		End Rem
 		Field Flags:Int
 	End Type
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Type TFMODReverbChannelProperties
+		Field Direct:Int
+		Field DirectHF:Int
+		Field Room:Int
+		Field RoomHF:Int
+		Field Obstruction:Int
+		Field ObstructionLFRatio:Float
+		Field Occlusion:Int
+		Field OcclusionLFRatio:Float
+		Field OcclusionRoomRatio:Float
+		Field OcclusionDirectRatio:Float
+		Field Exclusion:Int
+		Field ExclusionLFRatio:Float
+		Field OutsideVolumeHF:Int
+		Field DopplerFactor:Float
+		Field RolloffFactor:Float
+		Field RoomRolloffFactor:Float
+		Field AirAbsorptionFactor:Float
+		Field Flags:Int
+End Type
 	
 End Extern
 

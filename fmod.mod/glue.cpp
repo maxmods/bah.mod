@@ -82,6 +82,8 @@ extern "C" {
 	FMOD_RESULT bmx_FMOD_Channel_GetMode(MAX_FMOD_CHANNEL *channel, FMOD_MODE * mode);
 	FMOD_RESULT bmx_FMOD_Channel_GetMute(MAX_FMOD_CHANNEL *channel, FMOD_BOOL * mute);
 	FMOD_RESULT bmx_FMOD_Channel_GetPriority(MAX_FMOD_CHANNEL *channel, int * priority);
+	FMOD_RESULT bmx_FMOD_Channel_GetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties);
+	FMOD_RESULT bmx_FMOD_Channel_SetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties);
 
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
 	void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length);	
@@ -92,6 +94,10 @@ extern "C" {
 	void bmx_soundexinfo_setdecodebuffersize(FMOD_CREATESOUNDEXINFO * info, unsigned int bufferSize);
 	void bmx_soundexinfo_setinitialsubsound(FMOD_CREATESOUNDEXINFO * info, int initial);
 	void bmx_soundexinfo_setnumsubsounds(FMOD_CREATESOUNDEXINFO * info, int num);
+	void bmx_soundexinfo_setpcmreadcallback(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_PCMREADCALLBACK cb);
+	void bmx_soundexinfo_setpcmsetposcallback(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_PCMSETPOSCALLBACK cb);
+	BBObject * bmx_soundexinfo_getuserdata(FMOD_CREATESOUNDEXINFO * info);
+	void bmx_soundexinfo_setuserdata(FMOD_CREATESOUNDEXINFO * info, BBObject * obj);
 
 
 	FMOD_SOUND * bmx_FMOD_SoundGroup_GetSound(FMOD_SOUNDGROUP *soundgroup, int index);
@@ -99,6 +105,8 @@ extern "C" {
 	FMOD_TAG * bmx_FMOD_Sound_GetTag(FMOD_SOUND * sound, const char * name, int index);
 	FMOD_RESULT bmx_FMOD_Sound_SetSubSoundSentence(FMOD_SOUND * sound, BBArray * soundList);
 	FMOD_SOUND * bmx_FMOD_Sound_GetSubSound(FMOD_SOUND * sound, int index);
+	BBObject * bmx_FMOD_Sound_GetUserData(FMOD_SOUND * sound);
+	void bmx_FMOD_Sound_SetUserData(FMOD_SOUND * sound, BBObject * obj);
 
 
 	void * bmx_fmodtag_getdata(FMOD_TAG * tag);
@@ -461,6 +469,14 @@ FMOD_RESULT bmx_FMOD_Channel_GetPriority(MAX_FMOD_CHANNEL *channel, int * priori
 	return FMOD_Channel_GetPriority(channel->channel, priority);
 }
 
+FMOD_RESULT bmx_FMOD_Channel_GetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties) {
+	return FMOD_Channel_GetReverbProperties(channel->channel, properties);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties) {
+	return FMOD_Channel_SetReverbProperties(channel->channel, properties);
+}
+
 // ++++++++++++++++++++++++++++++++
 
 FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create() {
@@ -504,7 +520,27 @@ void bmx_soundexinfo_setnumsubsounds(FMOD_CREATESOUNDEXINFO * info, int num) {
 	info->numsubsounds = num;
 }
 
+void bmx_soundexinfo_setpcmreadcallback(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_PCMREADCALLBACK cb) {
+	info->pcmreadcallback = cb;
+}
 
+BBObject * bmx_soundexinfo_getuserdata(FMOD_CREATESOUNDEXINFO * info) {
+	void * obj = info->userdata;
+	if (obj) {
+		return (BBObject*)obj;
+	} else {
+		return &bbNullObject;
+	}
+}
+
+void bmx_soundexinfo_setuserdata(FMOD_CREATESOUNDEXINFO * info, BBObject * obj) {
+	BBRETAIN(obj);
+	info->userdata = obj;
+}
+
+void bmx_soundexinfo_setpcmsetposcallback(FMOD_CREATESOUNDEXINFO * info, FMOD_SOUND_PCMSETPOSCALLBACK cb) {
+	info->pcmsetposcallback = cb;
+}
 
 // ++++++++++++++++++++++++++++++++
 
@@ -550,6 +586,21 @@ FMOD_SOUND * bmx_FMOD_Sound_GetSubSound(FMOD_SOUND * sound, int index) {
 	return subsound;
 	
 }
+
+BBObject * bmx_FMOD_Sound_GetUserData(FMOD_SOUND * sound) {
+	void * data;
+	FMOD_RESULT ret = FMOD_Sound_GetUserData(sound, &data);
+	if (data) {
+		return (BBObject*)data;
+	} else {
+		return &bbNullObject;
+	}
+}
+
+void bmx_FMOD_Sound_SetUserData(FMOD_SOUND * sound, BBObject * obj) {
+	
+}
+
 
 // ++++++++++++++++++++++++++++++++
 
