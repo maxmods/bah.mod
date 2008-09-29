@@ -734,3 +734,23 @@ void bmx_cegui_customlogger_delete(MaxLogger * logger) {
 CEGUI::LoggingLevel bmx_cegui_logger_getlogginglevel() {
 	return CEGUI::Logger::getSingleton().getLoggingLevel();
 }
+
+// *************************************************
+
+bool bmx_cegui_eventargs_gethandled(MaxEventArgs * args) {
+	return args->Args().handled;
+}
+
+BBObject * bmx_cegui_windoweventargs_getwindow(MaxEventArgs * args) {
+	return newObjectForWindow(static_cast<const CEGUI::WindowEventArgs&>(args->Args()).window);
+}
+
+BBObject * bmx_cegui_activationeventargs_getotherwindow(MaxEventArgs * args) {
+	return newObjectForWindow(static_cast<const CEGUI::ActivationEventArgs&>(args->Args()).otherWindow);
+}
+
+float bmx_cegui_updateeventargs_gettimesincelastframe(MaxEventArgs * args) {
+	return static_cast<const CEGUI::UpdateEventArgs&>(args->Args()).d_timeSinceLastFrame;
+}
+
+

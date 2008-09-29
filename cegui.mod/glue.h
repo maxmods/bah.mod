@@ -184,6 +184,11 @@ extern "C" {
 	void bmx_cegui_customlogger_delete(MaxLogger * logger);
 	CEGUI::LoggingLevel bmx_cegui_logger_getlogginglevel();
 
+	bool bmx_cegui_eventargs_gethandled(MaxEventArgs * args);
+	BBObject * bmx_cegui_windoweventargs_getwindow(MaxEventArgs * args);
+	BBObject * bmx_cegui_activationeventargs_getotherwindow(MaxEventArgs * args);
+	float bmx_cegui_updateeventargs_gettimesincelastframe(MaxEventArgs * args);
+
 }
 
 class MaxConnection

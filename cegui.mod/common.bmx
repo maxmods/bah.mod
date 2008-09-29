@@ -119,7 +119,12 @@ Extern
 	Function bmx_cegui_customlogger_create:Byte Ptr(handle:Object)
 	Function bmx_cegui_customlogger_delete(handle:Byte Ptr)
 	Function bmx_cegui_logger_getlogginglevel:Int()
-	
+
+	Function bmx_cegui_eventargs_gethandled:Int(handle:Byte Ptr)
+	Function bmx_cegui_windoweventargs_getwindow:Object(handle:Byte Ptr)
+	Function bmx_cegui_activationeventargs_getotherwindow:Object(handle:Byte Ptr)
+	Function bmx_cegui_updateeventargs_gettimesincelastframe:Float(handle:Byte Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

@@ -219,6 +219,12 @@ Type TCEEventArgs
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Returns the event handled status.
+	End Rem
+	Method getHandled:Int()
+		Return bmx_cegui_eventargs_gethandled(eventArgsPtr)
+	End Method
 	
 	Method Delete()
 		If eventArgsPtr Then
@@ -257,6 +263,13 @@ Type TCEWindowEventArgs Extends TCEEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the Window object of relevance to the event. 
+	End Rem
+	Method getWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_windoweventargs_getwindow(eventArgsPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -272,6 +285,13 @@ Type TCEActivationEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the other window involved in the activation change.
+	End Rem
+	Method getOtherWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_activationeventargs_getotherwindow(eventArgsPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -287,6 +307,12 @@ Type TCEDragDropEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method getDragDropItem:TCEDragContainer()
+	End Method
+	
 End Type
 
 Rem
@@ -302,6 +328,12 @@ Type TCEHeaderSequenceEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Method getOldIndex:Int()
+	End Method
+	
+	Method getNewIndex:Int()
+	End Method
+	
 End Type
 
 Rem
@@ -347,6 +379,9 @@ Type TCETreeEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Method getTreeItem:TCETreeItem()
+	End Method
+	
 End Type
 
 Rem
@@ -362,6 +397,13 @@ Type TCEUpdateEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the time since the last frame update. 
+	End Rem
+	Method getTimeSinceLastFrame:Float()
+		Return bmx_cegui_updateeventargs_gettimesincelastframe(eventArgsPtr)
+	End Method
+	
 End Type
 
 Rem
