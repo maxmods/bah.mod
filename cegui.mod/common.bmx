@@ -125,6 +125,43 @@ Extern
 	Function bmx_cegui_activationeventargs_getotherwindow:Object(handle:Byte Ptr)
 	Function bmx_cegui_updateeventargs_gettimesincelastframe:Float(handle:Byte Ptr)
 
+	Function bmx_cegui_framewindow_issizingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_isframeenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_istitlebarenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_isclosebuttonenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_isrollupenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_isrolledup:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_getsizingborderthickness:Float(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_setsizingenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_setframeenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_settitlebarenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_setclosebuttonenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_rollupenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_togglerollup(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_setsizingborderthickness(handle:Byte Ptr, pixels:Float)
+	Function bmx_cegui_framewindow_isdragmovingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_setdragmovingenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_framewindow_ishit:Int(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_framewindow_gettitlebar:Object(handle:Byte Ptr)
+	Function bmx_cegui_framewindow_getclosebutton:Object(handle:Byte Ptr)
+
+	Function bmx_cegui_titlebar_isdraggingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_titlebar_setdraggingenabled(handle:Byte Ptr, setting:Int)
+
+	Function bmx_cegui_buttonbase_ishovering:Int(handle:Byte Ptr)
+	Function bmx_cegui_buttonbase_ispushed:Int(handle:Byte Ptr)
+
+	Function bmx_cegui_radiobutton_isselected:Int(handle:Byte Ptr)
+	Function bmx_cegui_radiobutton_getgroupid:Int(handle:Byte Ptr)
+	Function bmx_cegui_radiobutton_getselectedbuttoningroup:Object(handle:Byte Ptr)
+	Function bmx_cegui_radiobutton_setselected(handle:Byte Ptr, selected:Int)
+	Function bmx_cegui_radiobutton_setgroupid(handle:Byte Ptr, group:Int)
+
+	Function bmx_cegui_combodroplist_setarmed(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_combodroplist_isarmed:Int(handle:Byte Ptr)
+	Function bmx_cegui_combodroplist_setautoarmenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_combodroplist_isautoarmenabled:Int(handle:Byte Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

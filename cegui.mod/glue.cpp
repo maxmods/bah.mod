@@ -753,4 +753,144 @@ float bmx_cegui_updateeventargs_gettimesincelastframe(MaxEventArgs * args) {
 	return static_cast<const CEGUI::UpdateEventArgs&>(args->Args()).d_timeSinceLastFrame;
 }
 
+// *************************************************
+
+bool bmx_cegui_framewindow_issizingenabled(CEGUI::FrameWindow * win) {
+	return win->isSizingEnabled();
+}
+
+bool bmx_cegui_framewindow_isframeenabled(CEGUI::FrameWindow * win) {
+	return win->isFrameEnabled();
+}
+
+bool bmx_cegui_framewindow_istitlebarenabled(CEGUI::FrameWindow * win) {
+	return win->isTitleBarEnabled();
+}
+
+bool bmx_cegui_framewindow_isclosebuttonenabled(CEGUI::FrameWindow * win) {
+	return win->isCloseButtonEnabled();
+}
+
+bool bmx_cegui_framewindow_isrollupenabled(CEGUI::FrameWindow * win) {
+	return win->isRollupEnabled();
+}
+
+bool bmx_cegui_framewindow_isrolledup(CEGUI::FrameWindow * win) {
+	return win->isRolledup();
+}
+
+float bmx_cegui_framewindow_getsizingborderthickness(CEGUI::FrameWindow * win) {
+	return win->getSizingBorderThickness();
+}
+
+void bmx_cegui_framewindow_setsizingenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setSizingEnabled(setting);
+}
+
+void bmx_cegui_framewindow_setframeenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setFrameEnabled(setting);
+}
+
+void bmx_cegui_framewindow_settitlebarenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setTitleBarEnabled(setting);
+}
+
+void bmx_cegui_framewindow_setclosebuttonenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setCloseButtonEnabled(setting);
+}
+
+void bmx_cegui_framewindow_rollupenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setRollupEnabled(setting);
+}
+
+void bmx_cegui_framewindow_togglerollup(CEGUI::FrameWindow * win) {
+	win->toggleRollup();
+}
+
+void bmx_cegui_framewindow_setsizingborderthickness(CEGUI::FrameWindow * win, float pixels) {
+	win->setSizingBorderThickness(pixels);
+}
+
+bool bmx_cegui_framewindow_isdragmovingenabled(CEGUI::FrameWindow * win) {
+	return win->isDragMovingEnabled();
+}
+
+void bmx_cegui_framewindow_setdragmovingenabled(CEGUI::FrameWindow * win, bool setting) {
+	win->setDragMovingEnabled(setting);
+}
+
+bool bmx_cegui_framewindow_ishit(CEGUI::FrameWindow * win, float x, float y) {
+	return win->isHit(CEGUI::Point(x, y));
+}
+
+BBObject * bmx_cegui_framewindow_gettitlebar(CEGUI::FrameWindow * win) {
+	return _bah_cegui_TCETitlebar__create(win->getTitlebar());
+}
+
+BBObject * bmx_cegui_framewindow_getclosebutton(CEGUI::FrameWindow * win) {
+		return _bah_cegui_TCEPushButton__create(win->getCloseButton());
+}
+
+// *************************************************
+
+
+bool bmx_cegui_titlebar_isdraggingenabled(CEGUI::Titlebar * tb) {
+	return tb->isDraggingEnabled();
+}
+
+void bmx_cegui_titlebar_setdraggingenabled(CEGUI::Titlebar * tb, bool setting) {
+	tb->setDraggingEnabled(setting);
+}
+
+// *************************************************
+
+
+bool bmx_cegui_buttonbase_ishovering(CEGUI::ButtonBase * base) {
+	return base->isHovering();
+}
+
+bool bmx_cegui_buttonbase_ispushed(CEGUI::ButtonBase * base) {
+	return base->isPushed();
+}
+
+// *************************************************
+
+bool bmx_cegui_radiobutton_isselected(CEGUI::RadioButton * rb) {
+	return rb->isSelected();
+}
+
+CEGUI::ulong bmx_cegui_radiobutton_getgroupid(CEGUI::RadioButton * rb) {
+	return rb->getGroupID();
+}
+
+BBObject * bmx_cegui_radiobutton_getselectedbuttoningroup(CEGUI::RadioButton * rb) {
+	return _bah_cegui_TCERadioButton__create(rb->getSelectedButtonInGroup());
+}
+
+void bmx_cegui_radiobutton_setselected(CEGUI::RadioButton * rb, bool selected) {
+	rb->setSelected(selected);
+}
+
+void bmx_cegui_radiobutton_setgroupid(CEGUI::RadioButton * rb, CEGUI::ulong group) {
+	rb->setGroupID(group);
+}
+
+// *************************************************
+
+void bmx_cegui_combodroplist_setarmed(CEGUI::ComboDropList * list, bool setting) {
+	list->setArmed(setting);
+}
+
+bool bmx_cegui_combodroplist_isarmed(CEGUI::ComboDropList * list) {
+	return list->isArmed();
+}
+
+void bmx_cegui_combodroplist_setautoarmenabled(CEGUI::ComboDropList * list, bool setting) {
+	list->setAutoArmEnabled(setting);
+}
+
+bool bmx_cegui_combodroplist_isautoarmenabled(CEGUI::ComboDropList * list) {
+	return list->isAutoArmEnabled();
+}
+
 

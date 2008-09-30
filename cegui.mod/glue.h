@@ -189,6 +189,43 @@ extern "C" {
 	BBObject * bmx_cegui_activationeventargs_getotherwindow(MaxEventArgs * args);
 	float bmx_cegui_updateeventargs_gettimesincelastframe(MaxEventArgs * args);
 
+	bool bmx_cegui_framewindow_issizingenabled(CEGUI::FrameWindow * win);
+	bool bmx_cegui_framewindow_isframeenabled(CEGUI::FrameWindow * win);
+	bool bmx_cegui_framewindow_istitlebarenabled(CEGUI::FrameWindow * win);
+	bool bmx_cegui_framewindow_isclosebuttonenabled(CEGUI::FrameWindow * win);
+	bool bmx_cegui_framewindow_isrollupenabled(CEGUI::FrameWindow * win);
+	bool bmx_cegui_framewindow_isrolledup(CEGUI::FrameWindow * win);
+	float bmx_cegui_framewindow_getsizingborderthickness(CEGUI::FrameWindow * win);
+	void bmx_cegui_framewindow_setsizingenabled(CEGUI::FrameWindow * win, bool setting);
+	void bmx_cegui_framewindow_setframeenabled(CEGUI::FrameWindow * win, bool setting);
+	void bmx_cegui_framewindow_settitlebarenabled(CEGUI::FrameWindow * win, bool setting);
+	void bmx_cegui_framewindow_setclosebuttonenabled(CEGUI::FrameWindow * win, bool setting);
+	void bmx_cegui_framewindow_rollupenabled(CEGUI::FrameWindow * win, bool setting);
+	void bmx_cegui_framewindow_togglerollup(CEGUI::FrameWindow * win);
+	void bmx_cegui_framewindow_setsizingborderthickness(CEGUI::FrameWindow * win, float pixels);
+	bool bmx_cegui_framewindow_isdragmovingenabled(CEGUI::FrameWindow * win);
+	void bmx_cegui_framewindow_setdragmovingenabled(CEGUI::FrameWindow * win, bool setting);
+	bool bmx_cegui_framewindow_ishit(CEGUI::FrameWindow * win, float x, float y);
+	BBObject * bmx_cegui_framewindow_gettitlebar(CEGUI::FrameWindow * win);
+	BBObject * bmx_cegui_framewindow_getclosebutton(CEGUI::FrameWindow * win);
+
+	bool bmx_cegui_titlebar_isdraggingenabled(CEGUI::Titlebar * tb);
+	void bmx_cegui_titlebar_setdraggingenabled(CEGUI::Titlebar * tb, bool setting);
+
+	bool bmx_cegui_buttonbase_ishovering(CEGUI::ButtonBase * base);
+	bool bmx_cegui_buttonbase_ispushed(CEGUI::ButtonBase * base);
+
+	bool bmx_cegui_radiobutton_isselected(CEGUI::RadioButton * rb);
+	CEGUI::ulong bmx_cegui_radiobutton_getgroupid(CEGUI::RadioButton * rb);
+	BBObject * bmx_cegui_radiobutton_getselectedbuttoningroup(CEGUI::RadioButton * rb);
+	void bmx_cegui_radiobutton_setselected(CEGUI::RadioButton * rb, bool selected);
+	void bmx_cegui_radiobutton_setgroupid(CEGUI::RadioButton * rb, CEGUI::ulong group);
+
+	void bmx_cegui_combodroplist_setarmed(CEGUI::ComboDropList * list, bool setting);
+	bool bmx_cegui_combodroplist_isarmed(CEGUI::ComboDropList * list);
+	void bmx_cegui_combodroplist_setautoarmenabled(CEGUI::ComboDropList * list, bool setting);
+	bool bmx_cegui_combodroplist_isautoarmenabled(CEGUI::ComboDropList * list);
+
 }
 
 class MaxConnection

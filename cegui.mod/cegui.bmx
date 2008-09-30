@@ -1160,64 +1160,139 @@ Type TCEFrameWindow Extends TCEWindow
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Returns whether this window is sizable.
+	about: Note that this requires that the window have an enabled frame and that sizing itself is enabled.
+	End Rem
 	Method isSizingEnabled:Int()
+		Return bmx_cegui_framewindow_issizingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the frame for this window is enabled. 
+	End Rem
 	Method isFrameEnabled:Int()
+		Return bmx_cegui_framewindow_isframeenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the title bar for this window is enabled. 
+	End Rem
 	Method isTitleBarEnabled:Int()
+		Return bmx_cegui_framewindow_istitlebarenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this close button for this window is enabled. 
+	End Rem
 	Method isCloseButtonEnabled:Int()
+		Return bmx_cegui_framewindow_isclosebuttonenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether roll up (a.k.a shading) is enabled for this window. 
+	End Rem
 	Method isRollupEnabled:Int()
+		Return bmx_cegui_framewindow_isrollupenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the window is currently rolled up (a.k.a shaded). 
+	End Rem
 	Method isRolledup:Int()
+		Return bmx_cegui_framewindow_isrolledup(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the thickness of the sizing border. 
+	End Rem
 	Method getSizingBorderThickness:Float()
+		Return bmx_cegui_framewindow_getsizingborderthickness(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables sizing for this window. 
+	End Rem
 	Method setSizingEnabled(setting:Int)
+		bmx_cegui_framewindow_setsizingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables the frame for this window. 
+	End Rem
 	Method setFrameEnabled(setting:Int)
+		bmx_cegui_framewindow_setframeenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables the title bar for the frame window. 
+	End Rem
 	Method setTitleBarEnabled(setting:Int)
+		bmx_cegui_framewindow_settitlebarenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables the close button for the frame window. 
+	End Rem
 	Method setCloseButtonEnabled(setting:Int)
+		bmx_cegui_framewindow_setclosebuttonenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables roll-up (shading) for this window. 
+	End Rem
 	Method setRollupEnabled(setting:Int)
+		bmx_cegui_framewindow_rollupenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Toggles the state of the window between rolled-up (shaded) and normal sizes.
+	about: This requires roll-up to be enabled. 
+	End Rem
 	Method toggleRollup()
+		bmx_cegui_framewindow_togglerollup(objectPtr)
 	End Method
 	
-	Method setSizingBorderThickness(pizels:Float)
+	Rem
+	bbdoc: Set the size of the sizing border for this window. 
+	End Rem
+	Method setSizingBorderThickness(pixels:Float)
+		bmx_cegui_framewindow_setsizingborderthickness(objectPtr, pixels)
 	End Method
 	
-	Method offsetPixelPosition(x:Float, y:Float)
-	End Method
-	
+	Rem
+	bbdoc: Returns whether this FrameWindow can be moved by dragging the title bar. 
+	End Rem
 	Method isDragMovingEnabled:Int()
+		Return bmx_cegui_framewindow_isdragmovingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this FrameWindow can be moved by dragging the title bar. 
+	End Rem
 	Method setDragMovingEnabled(setting:Int)
+		bmx_cegui_framewindow_setdragmovingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Checks if the given pixel position would hit this window. 
+	End Rem
 	Method isHit:Int(x:Float, y:Float)
+		Return bmx_cegui_framewindow_ishit(objectPtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: Returns the Titlebar component widget for this FrameWindow. 
+	End Rem
 	Method getTitlebar:TCETitlebar()
+		Return TCETitlebar(bmx_cegui_framewindow_gettitlebar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the close button component widget for this FrameWindow. 
+	End Rem
 	Method getCloseButton:TCEPushButton()
+		Return TCEPushButton(bmx_cegui_framewindow_getclosebutton(objectPtr))
 	End Method
 	
 End Type
@@ -1235,10 +1310,18 @@ Type TCETitlebar Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns whether this title bar will respond to dragging. 
+	End Rem
 	Method isDraggingEnabled:Int()
+		Return bmx_cegui_titlebar_isdraggingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this title bar widget will respond to dragging. 
+	End Rem
 	Method setDraggingEnabled(setting:Int)
+		bmx_cegui_titlebar_setdraggingenabled(objectPtr, setting)
 	End Method
 
 End Type
@@ -1364,10 +1447,18 @@ bbdoc: Base type for all the 'button' type widgets (push button, radio button, c
 End Rem
 Type TCEButtonBase Extends TCEWindow
 
+	Rem
+	bbdoc: Returns true if user is hovering over this widget (or it's pushed and user is not over it for highlight).
+	End Rem
 	Method isHovering:Int()
+		Return bmx_cegui_buttonbase_ishovering(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns true if the button widget is in the pushed state.
+	End Rem
 	Method isPushed:Int()
+		Return bmx_cegui_buttonbase_ispushed(objectPtr)
 	End Method
 	
 End Type
@@ -1443,7 +1534,7 @@ Type TCETabButton Extends TCEButtonBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type to provide the logic for Radio Button widgets. 
 End Rem
 Type TCERadioButton Extends TCEButtonBase
 
@@ -1454,6 +1545,46 @@ Type TCERadioButton Extends TCEButtonBase
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: The selected state of the widget has changed. 
+	End Rem
+	Const EventSelectStateChanged:String = "SelectStateChanged"
+	
+	Rem
+	bbdoc: Returns true if the radio button is selected (has the checkmark).
+	End Rem
+	Method isSelected:Int()
+		Return bmx_cegui_radiobutton_isselected(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the groupID assigned to this radio button.
+	End Rem
+	Method getGroupID:Int()
+		Return bmx_cegui_radiobutton_getgroupid(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the RadioButton object within the same group as this RadioButton, that is currently selected. 
+	End Rem
+	Method getSelectedButtonInGroup:TCERadioButton()
+		Return TCERadioButton(bmx_cegui_radiobutton_getselectedbuttoningroup(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets whether the radio button is selected or not.
+	End Rem
+	Method setSelected(selected:Int)
+		bmx_cegui_radiobutton_setselected(objectPtr, selected)
+	End Method
+	
+	Rem
+	bbdoc: Sets the groupID for this radio button.
+	End Rem
+	Method setGroupID(group:Int)
+		bmx_cegui_radiobutton_setgroupid(objectPtr, group)
+	End Method
 
 End Type
 
@@ -1606,7 +1737,8 @@ Type TCEListbox Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for the combo box drop down list.
+about: This is a specialisation of TCEListbox. 
 End Rem
 Type TCEComboDropList Extends TCEListbox
 
@@ -1617,6 +1749,39 @@ Type TCEComboDropList Extends TCEListbox
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: Event fired when the user confirms the selection by clicking the mouse. 
+	End Rem
+	Const EventListSelectionAccepted:String = "ListSelectionAccepted"
+
+	Rem
+	bbdoc: Sets whether the drop-list is 'armed' for selection. 
+	End Rem
+	Method setArmed(setting:Int)
+		bmx_cegui_combodroplist_setarmed(objectPtr, setting)
+	End Method
+	
+	Rem
+	bbdoc: Returns the 'armed' state of the ComboDropList. 
+	End Rem
+	Method isArmed:Int()
+		Return bmx_cegui_combodroplist_isarmed(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Sets the mode of operation for the ComboDropList. 
+	End Rem
+	Method setAutoArmEnabled(setting:Int)
+		bmx_cegui_combodroplist_setautoarmenabled(objectPtr, setting)
+	End Method
+	
+	Rem
+	bbdoc: Returns the mode of operation for the drop-list.
+	End Rem
+	Method isAutoArmEnabled:Int()
+		Return bmx_cegui_combodroplist_isautoarmenabled(objectPtr)
+	End Method
 
 End Type
 
@@ -1824,7 +1989,8 @@ Type TCECombobox Extends TCEWindow
 	Method getPushButton:TCEPushButton()
 	End Method
 	 
-	'ComboDropList * getDropList()
+	Method getDropList:TCEComboDropList()
+	End Method
 	 
 	Method hasInputFocus:Int()
 	End Method
@@ -1967,7 +2133,7 @@ Type TCEGUISheet Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for standard GroupBox widget.
 End Rem
 Type TCEGroupBox Extends TCEWindow
 
