@@ -624,12 +624,14 @@
     ***************************************************
     -->
     <WidgetLook name="TaharezLook/FrameWindow">
+        <PropertyDefinition name="ClientAreaColour" initialValue="FF141B38" redrawOnWrite="true" />
         <PropertyLinkDefinition name="CaptionColour" widget="__auto_titlebar__" targetProperty="CaptionColour" initialValue="FFFFFFFF" />
         <PropertyLinkDefinition name="TitlebarFont" widget="__auto_titlebar__" targetProperty="Font" />
         <Property name="NSSizingCursorImage" value="set:TaharezLook image:MouseNoSoCursor" />
         <Property name="EWSizingCursorImage" value="set:TaharezLook image:MouseEsWeCursor" />
         <Property name="NWSESizingCursorImage" value="set:TaharezLook image:MouseNwSeCursor" />
         <Property name="NESWSizingCursorImage" value="set:TaharezLook image:MouseNeSwCursor" />
+        <Property name="UnifiedMinSize" value="{{0.1,0},{0.1,0}}" />
         <NamedArea name="ClientWithTitleWithFrame">
             <Area>
                 <Dim type="LeftEdge" ><ImageDim imageset="TaharezLook" image="WindowTopLeft" dimension="Width" /></Dim>
@@ -740,10 +742,31 @@
                 <Image type="LeftEdge" imageset="TaharezLook" image="WindowLeftEdge" />
                 <Image type="RightEdge" imageset="TaharezLook" image="WindowRightEdge" />
                 <Image type="BottomEdge" imageset="TaharezLook" image="WindowBottomEdge" />
-                <Image type="Background" imageset="TaharezLook" image="ClientBrush" />
-                <VertFormat type="Tiled" />
-                <HorzFormat type="Tiled" />
             </FrameComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge" ><ImageDim imageset="TaharezLook" image="WindowTopLeft" dimension="Width" /></Dim>
+                    <Dim type="TopEdge" ><WidgetDim widget="__auto_titlebar__" dimension="BottomEdge" /></Dim>
+                    <Dim type="RightEdge" >
+                        <UnifiedDim scale="1" type="Width">
+                            <DimOperator op="Subtract">
+                                <ImageDim imageset="TaharezLook" image="WindowTopRight" dimension="Width" />
+                            </DimOperator>
+                        </UnifiedDim>
+                    </Dim>
+                    <Dim type="BottomEdge" >
+                        <UnifiedDim scale="1" type="Height">
+                            <DimOperator op="Subtract">
+                                <ImageDim imageset="TaharezLook" image="WindowBottomEdge" dimension="Height" />
+                            </DimOperator>
+                        </UnifiedDim>
+                    </Dim>
+                </Area>
+                <Image imageset="TaharezLook" image="GenericBrush" />
+                <ColourProperty name="ClientAreaColour" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
         </ImagerySection>
         <ImagerySection name="notitle_frame">
             <FrameComponent>
@@ -760,10 +783,31 @@
                 <Image type="LeftEdge" imageset="TaharezLook" image="WindowLeftEdge" />
                 <Image type="RightEdge" imageset="TaharezLook" image="WindowRightEdge" />
                 <Image type="BottomEdge" imageset="TaharezLook" image="WindowBottomEdge" />
-                <Image type="Background" imageset="TaharezLook" image="ClientBrush" />
-                <VertFormat type="Tiled" />
-                <HorzFormat type="Tiled" />
             </FrameComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge" ><ImageDim imageset="TaharezLook" image="WindowTopLeft" dimension="Width" /></Dim>
+                    <Dim type="TopEdge" ><ImageDim imageset="TaharezLook" image="WindowTopEdge" dimension="Width" /></Dim>
+                    <Dim type="RightEdge" >
+                        <UnifiedDim scale="1" type="Width">
+                            <DimOperator op="Subtract">
+                                <ImageDim imageset="TaharezLook" image="WindowTopRight" dimension="Width" />
+                            </DimOperator>
+                        </UnifiedDim>
+                    </Dim>
+                    <Dim type="BottomEdge" >
+                        <UnifiedDim scale="1" type="Height">
+                            <DimOperator op="Subtract">
+                                <ImageDim imageset="TaharezLook" image="WindowBottomEdge" dimension="Height" />
+                            </DimOperator>
+                        </UnifiedDim>
+                    </Dim>
+                </Area>
+                <Image imageset="TaharezLook" image="GenericBrush" />
+                <ColourProperty name="ClientAreaColour" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
         </ImagerySection>
         <ImagerySection name="withtitle_noframe_client_area">
             <ImageryComponent>
@@ -773,9 +817,10 @@
                     <Dim type="Width" ><UnifiedDim scale="1" type="Width" /></Dim>
                     <Dim type="BottomEdge" ><UnifiedDim scale="1" type="BottomEdge" /></Dim>
                 </Area>
-                <Image imageset="TaharezLook" image="ClientBrush" />
-                <VertFormat type="Tiled" />
-                <HorzFormat type="Tiled" />
+                <Image imageset="TaharezLook" image="GenericBrush" />
+                <ColourProperty name="ClientAreaColour" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
             </ImageryComponent>
         </ImagerySection>
         <ImagerySection name="notitle_noframe_client_area">
@@ -786,9 +831,10 @@
                     <Dim type="Width" ><UnifiedDim scale="1" type="Width" /></Dim>
                     <Dim type="Height" ><UnifiedDim scale="1" type="Height" /></Dim>
                 </Area>
-                <Image imageset="TaharezLook" image="ClientBrush" />
-                <VertFormat type="Tiled" />
-                <HorzFormat type="Tiled" />
+                <Image imageset="TaharezLook" image="GenericBrush" />
+                <ColourProperty name="ClientAreaColour" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
             </ImageryComponent>
         </ImagerySection>
         <StateImagery name="ActiveWithTitleWithFrame">
@@ -856,6 +902,135 @@
             <Layer>
                 <Section section="notitle_noframe_client_area">
                     <Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" />
+                </Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+
+    <!--
+    ***************************************************
+        TaharezLook/GroupBox
+    ***************************************************
+    -->
+    <WidgetLook name="TaharezLook/GroupBox">
+        <PropertyDefinition name="FrameColours" initialValue="tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" redrawOnWrite="true" />
+        <PropertyDefinition name="BackgroundColours" initialValue="tl:FFDFDFDF tr:FFDFDFDF bl:FFDFDFDF br:FFDFDFDF" redrawOnWrite="true" />
+
+        <PropertyDefinition name="BackgroundTextColours" initialValue="tl:FF000000 tr:FF000000 bl:FF000000 br:FF000000" redrawOnWrite="true" />
+
+	    <PropertyDefinition name="DisabledTextColour" initialValue="FF888888" redrawOnWrite="true" />
+        <PropertyDefinition name="NormalTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
+        <PropertyDefinition name="TextBackground" initialValue="FF888888" redrawOnWrite="true" />
+
+        <Child type="DefaultWindow" nameSuffix="__auto_contentpane__">
+            <Area>
+                <Dim type="LeftEdge">
+                    <AbsoluteDim value="8" />
+                </Dim>
+                <Dim type="TopEdge">
+                    <AbsoluteDim value="20" />
+                </Dim>
+                <Dim type="RightEdge">
+                    <UnifiedDim scale="1" offset="0" type="RightEdge">
+                        <DimOperator op="Subtract">
+                            <AbsoluteDim value="8" />
+                        </DimOperator>
+                    </UnifiedDim>
+                </Dim>
+                <Dim type="BottomEdge">
+                    <UnifiedDim scale="1" offset="0" type="BottomEdge">
+                        <DimOperator op="Subtract">
+                            <AbsoluteDim value="8" />
+                        </DimOperator>
+                    </UnifiedDim>
+                </Dim>
+            </Area>
+        </Child>
+        <ImagerySection name="label">
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <AbsoluteDim value="15" />
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <AbsoluteDim value="0" />
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <UnifiedDim scale="1" offset="0" type="RightEdge" />
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <UnifiedDim scale="1" offset="0" type="BottomEdge" />
+                    </Dim>
+                </Area>
+                <VertFormat type="TopAligned" />
+                <HorzFormat type="LeftAligned" />
+            </TextComponent>
+        </ImagerySection>
+        <ImagerySection name="frame">
+            <FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <AbsoluteDim value="0" />
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <AbsoluteDim value="11" />
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <UnifiedDim scale="1" offset="0" type="RightEdge" />
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <UnifiedDim scale="1" offset="0" type="BottomEdge" />
+                    </Dim>
+                </Area>
+                <Image type="TopLeftCorner" imageset="TaharezLook" image="StaticTopLeft" />
+                <Image type="TopRightCorner" imageset="TaharezLook" image="StaticTopRight" />
+                <Image type="BottomLeftCorner" imageset="TaharezLook" image="StaticBottomLeft" />
+                <Image type="BottomRightCorner" imageset="TaharezLook" image="StaticBottomRight" />
+                <Image type="LeftEdge" imageset="TaharezLook" image="StaticLeft" />
+                <Image type="TopEdge" imageset="TaharezLook" image="StaticTop" />
+                <Image type="RightEdge" imageset="TaharezLook" image="StaticRight" />
+                <Image type="BottomEdge" imageset="TaharezLook" image="StaticBottom" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </FrameComponent>
+        </ImagerySection>
+        <ImagerySection name="label_bg">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge" >
+                        <AbsoluteDim value="13" />
+                    </Dim>
+                    <Dim type="TopEdge" >
+                        <AbsoluteDim value="0" />
+                    </Dim>
+                    <Dim type="Width" >
+                        <FontDim type="HorzExtent" padding="5" />
+                    </Dim>
+                    <Dim type="Height" >
+                        <FontDim type="LineSpacing" />
+                    </Dim>
+                </Area>
+                <Image imageset="TaharezLook" image="StaticBackdrop" />
+                <ColourRectProperty name="BackgroundTextColours" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Enabled">
+            <Layer>
+                <Section section="frame" />
+                <Section section="label_bg" />
+                <Section section="label">
+                    <ColourProperty name="NormalTextColour" />
+                </Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section section="frame" />
+                    <Section section="label_bg" />
+                    <Section section="label">
+                    <ColourProperty name="DisabledTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
@@ -4530,5 +4705,98 @@
         </StateImagery>
     </WidgetLook>
 
+<!--
+/**********************************************************************************************************
+	TaharezLook/Tree
+***********************************************************************************************************/
+-->
+<WidgetLook name="TaharezLook/Tree">
+        <Property name="SelectionBrushImage" value="set:TaharezLook image:GenericBrush" />
+        <Property name="NormalTextColour" value="FF000000" />
+        <Property name="SelectedTextColour" value="FFFFFFFF" />
+        <Property name="ActiveSelectionColour" value="FF607FFF" />
+        <Property name="InactiveSelectionColour" value="FF808080" />
+        <NamedArea name="ItemRenderingArea">
+            <Area>
+                <Dim type="LeftEdge" ><ImageDim imageset="TaharezLook" image="WindowLeftEdge" dimension="Width" /></Dim>
+                <Dim type="TopEdge" ><ImageDim imageset="TaharezLook" image="WindowTopEdge" dimension="Height" /></Dim>
+                <Dim type="RightEdge" >
+                    <UnifiedDim scale="1" type="RightEdge">
+                        <DimOperator op="Subtract">
+                            <ImageDim imageset="TaharezLook" image="WindowRightEdge" dimension="Width" />
+                        </DimOperator>
+                    </UnifiedDim>
+                </Dim>
+                <Dim type="BottomEdge" >
+                    <UnifiedDim scale="1" type="BottomEdge">
+                        <DimOperator op="Subtract">
+                            <ImageDim imageset="TaharezLook" image="WindowBottomEdge" dimension="Height" />
+                        </DimOperator>
+                    </UnifiedDim>
+                </Dim>
+            </Area>
+        </NamedArea>
+        <Child  type="TaharezLook/HorizontalScrollbar" nameSuffix="__auto_hscrollbar__">
+            <Area>
+                <Dim type="LeftEdge" ><AbsoluteDim value="5" /></Dim>
+                <Dim type="TopEdge" ><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width" ><UnifiedDim scale="1" offset="-25" type="Width" /></Dim>
+                <Dim type="Height" ><AbsoluteDim value="10" /></Dim>
+            </Area>
+            <VertAlignment type="BottomAligned" />
+        </Child>
+        <Child  type="TaharezLook/VerticalScrollbar" nameSuffix="__auto_vscrollbar__">
+            <Area>
+                <Dim type="LeftEdge" ><AbsoluteDim value="-5" /></Dim>
+                <Dim type="TopEdge" ><AbsoluteDim value="5" /></Dim>
+                <Dim type="Width" ><AbsoluteDim value="10" /></Dim>
+                <Dim type="Height" ><UnifiedDim scale="1" offset="-10" type="Height" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+        <ImagerySection name="OpenTreeButton">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="TaharezLook" image="TreeListClosed" />
+              <!--  <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" /> -->
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="CloseTreeButton">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image imageset="TaharezLook" image="TreeListOpened" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Enabled">
+            <Layer>
+                <Section look="TaharezLook/StaticShared" section="frame">
+                    <Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" />
+                </Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section look="TaharezLook/StaticShared" section="frame">
+                    <Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" />
+                </Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+
+
 </Falagard>
+
 

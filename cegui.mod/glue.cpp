@@ -893,4 +893,181 @@ bool bmx_cegui_combodroplist_isautoarmenabled(CEGUI::ComboDropList * list) {
 	return list->isAutoArmEnabled();
 }
 
+// *************************************************
+
+bool bmx_cegui_multilineeditbox_hasinputfocus(CEGUI::MultiLineEditbox * eb) {
+	return eb->hasInputFocus();
+}
+
+bool bmx_cegui_multilineeditbox_isreadonly(CEGUI::MultiLineEditbox * eb) {
+	return eb->isReadOnly();
+}
+
+int bmx_cegui_multilineeditbox_getcaratindex(CEGUI::MultiLineEditbox * eb) {
+	return eb->getCaratIndex();
+}
+
+int bmx_cegui_multilineeditbox_getselectionstartindex(CEGUI::MultiLineEditbox * eb) {
+	return eb->getSelectionStartIndex();
+}
+
+int bmx_cegui_multilineeditbox_getselectionendindex(CEGUI::MultiLineEditbox * eb) {
+	return eb->getSelectionEndIndex();
+}
+
+int bmx_cegui_multilineeditbox_getselectionlength(CEGUI::MultiLineEditbox * eb) {
+	return eb->getSelectionLength();
+}
+
+int bmx_cegui_multilineeditbox_getmaxtextlength(CEGUI::MultiLineEditbox * eb) {
+	return eb->getMaxTextLength();
+}
+
+bool bmx_cegui_multilineeditbox_iswordwrapped(CEGUI::MultiLineEditbox * eb) {
+	return eb->isWordWrapped();
+}
+
+BBObject * bmx_cegui_multilineeditbox_getvertscrollbar(CEGUI::MultiLineEditbox * eb) {
+	return _bah_cegui_TCEScrollbar__create(eb->getVertScrollbar());
+}
+
+bool bmx_cegui_multilineeditbox_isvertscrollbaralwaysshown(CEGUI::MultiLineEditbox * eb) {
+	return eb->isVertScrollbarAlwaysShown();
+}
+
+BBObject * bmx_cegui_multilineeditbox_gethorzscrollbar(CEGUI::MultiLineEditbox * eb) {
+	return _bah_cegui_TCEScrollbar__create(eb->getHorzScrollbar());
+}
+
+void bmx_cegui_multilineeditbox_gettextrenderarea(CEGUI::MultiLineEditbox * eb, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = eb->getTextRenderArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+int bmx_cegui_multilineeditbox_getlinenumberfromindex(CEGUI::MultiLineEditbox * eb, int index) {
+	return eb->getLineNumberFromIndex(index);
+}
+
+void bmx_cegui_multilineeditbox_setreadonly(CEGUI::MultiLineEditbox * eb, bool setting) {
+	eb->setReadOnly(setting);
+}
+
+void bmx_cegui_multilineeditbox_setcaratindex(CEGUI::MultiLineEditbox * eb, int caratPos) {
+	eb->setCaratIndex(caratPos);
+}
+
+void bmx_cegui_multilineeditbox_setselection(CEGUI::MultiLineEditbox * eb, int startPos, int endPos) {
+	eb->setSelection(startPos, endPos);
+}
+
+void bmx_cegui_multilineeditbox_setmaxtextlength(CEGUI::MultiLineEditbox * eb, int maxLen) {
+	eb->setMaxTextLength(maxLen);
+}
+
+void bmx_cegui_multilineeditbox_ensurecaratisvisible(CEGUI::MultiLineEditbox * eb) {
+	eb->ensureCaratIsVisible();
+}
+
+void bmx_cegui_multilineeditbox_setwordwrapping(CEGUI::MultiLineEditbox * eb, bool setting) {
+	eb->setWordWrapping(setting);
+}
+
+void bmx_cegui_multilineeditbox_setshowvertscrollbar(CEGUI::MultiLineEditbox * eb, bool setting) {
+	eb->setShowVertScrollbar(setting);
+}
+
+
+// *************************************************
+
+bool bmx_cegui_scrolleditemlistbase_isvertscrollbaralwaysshown(CEGUI::ScrolledItemListBase * lb) {
+	return lb->isVertScrollbarAlwaysShown();
+}
+
+bool bmx_cegui_scrolleditemlistbase_ishorzscrollbaralwaysshown(CEGUI::ScrolledItemListBase * lb) {
+	return lb->isHorzScrollbarAlwaysShown();
+}
+
+BBObject * bmx_cegui_scrolleditemlistbase_getvertscrollbar(CEGUI::ScrolledItemListBase * lb) {
+
+}
+
+BBObject * bmx_cegui_scrolleditemlistbase_gethorzscrollbar(CEGUI::ScrolledItemListBase * lb) {
+
+}
+
+void bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(CEGUI::ScrolledItemListBase * lb, bool mode) {
+	lb->setShowVertScrollbar(mode);
+}
+
+void bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(CEGUI::ScrolledItemListBase * lb, bool mode) {
+	lb->setShowHorzScrollbar(mode);
+}
+
+
+// *************************************************
+
+int bmx_cegui_itemlistbox_getselectedcount(CEGUI::ItemListbox * lb) {
+	return lb->getSelectedCount();
+}
+
+BBObject * bmx_cegui_itemlistbox_getlastselecteditem(CEGUI::ItemListbox * lb) {
+	return _bah_cegui_TCEItemEntry__create(lb->getLastSelectedItem());
+}
+
+BBObject * bmx_cegui_itemlistbox_getfirstselecteditem(CEGUI::ItemListbox * lb, int startIndex) {
+	return _bah_cegui_TCEItemEntry__create(lb->getFirstSelectedItem(startIndex));
+}
+
+BBObject * bmx_cegui_itemlistbox_getnextselecteditem(CEGUI::ItemListbox * lb) {
+	return _bah_cegui_TCEItemEntry__create(lb->getNextSelectedItem());
+}
+
+BBObject * bmx_cegui_itemlistbox_getnextselecteditemafter(CEGUI::ItemListbox * lb, const CEGUI::ItemEntry * startItem) {
+	return _bah_cegui_TCEItemEntry__create(lb->getNextSelectedItemAfter(startItem));
+}
+
+bool bmx_cegui_itemlistbox_ismultiselectenabled(CEGUI::ItemListbox * lb) {
+	return lb->isMultiSelectEnabled();
+}
+
+bool bmx_cegui_itemlistbox_isitemselected(CEGUI::ItemListbox * lb, int index) {
+	return lb->isItemSelected(index);
+}
+
+void bmx_cegui_itemlistbox_setmultiselectenabled(CEGUI::ItemListbox * lb, bool state) {
+	lb->setMultiSelectEnabled(state);
+}
+
+void bmx_cegui_itemlistbox_clearallselections(CEGUI::ItemListbox * lb) {
+	lb->clearAllSelections();
+}
+
+void bmx_cegui_itemlistbox_selectrange(CEGUI::ItemListbox * lb, int a, int z) {
+	lb->selectRange(a, z);
+}
+
+void bmx_cegui_itemlistbox_selectallitems(CEGUI::ItemListbox * lb) {
+	lb->selectAllItems();
+}
+
+// *************************************************
+
+CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
+	return CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile(name, filename, resourceGroup);
+}
+
+// *************************************************
+
+CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
+	return CEGUI::FontManager::getSingleton().createFont(filename, resourceGroup);
+}
+
+bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name) {
+	return CEGUI::FontManager::getSingleton().isFontPresent(name);
+}
+
+
 

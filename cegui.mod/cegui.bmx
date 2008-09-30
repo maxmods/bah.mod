@@ -3083,107 +3083,186 @@ Type TCEMultiLineEditbox Extends TCEWindow
 
 
 	Rem
-	bbdoc: 
+	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
 	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The word wrap mode of the text box has been changed. 
 	End Rem
 	Const EventWordWrapModeChanged:String = "WordWrapModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The maximum allowable string length has been changed. 
 	End Rem
 	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The text carat (insert point) has changed. 
 	End Rem
 	Const EventCaratMoved:String = "CaratMoved"
 	Rem
-	bbdoc: 
+	bbdoc: The current text selection has changed.
 	End Rem
 	Const EventTextSelectionChanged:String = "TextSelectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
 	Const EventEditboxFull:String = "EditboxFullEvent"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes.
 	End Rem
 	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 
+	Rem
+	bbdoc: Returns true if the edit box has input focus.
+	End Rem
 	Method hasInputFocus:Int()
+		Return bmx_cegui_multilineeditbox_hasinputfocus(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns true if the edit box is read-only.
+	End Rem
 	Method isReadOnly:Int()
+		Return bmx_cegui_multilineeditbox_isreadonly(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current position of the carat.
+	End Rem
 	Method getCaratIndex:Int()
+		Return bmx_cegui_multilineeditbox_getcaratindex(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current selection start point.
+	returns: ndex of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	End Rem
 	Method getSelectionStartIndex:Int()
+		Return bmx_cegui_multilineeditbox_getselectionstartindex(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current selection end point.
+	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the carat.
+	End Rem
 	Method getSelectionEndIndex:Int()
+		Return bmx_cegui_multilineeditbox_getselectionendindex(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the length of the current selection (in code points / characters).
+	End Rem
 	Method getSelectionLength:Int()
+		Return bmx_cegui_multilineeditbox_getselectionlength(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the maximum text length set for this edit box.
+	End Rem
 	Method getMaxTextLength:Int()
+		Return bmx_cegui_multilineeditbox_getmaxtextlength(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the text in the edit box will be word-wrapped.
+	End Rem
 	Method isWordWrapped:Int()
+		Return bmx_cegui_multilineeditbox_iswordwrapped(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the vertical scrollbar component widget for this MultiLineEditbox.
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_multilineeditbox_getvertscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown.
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_multilineeditbox_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the horizontal scrollbar component widget for this MultiLineEditbox.
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_multilineeditbox_gethorzscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns an area describing, in un-clipped pixels, the window relative area that the text should be rendered in to.
+	End Rem
 	Method getTextRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_multilineeditbox_gettextrenderarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
 	'Const LineList & 	getFormattedLines()
 	
+	Rem
+	bbdoc: Returns the line number for the given character index.
+	End Rem
 	Method getLineNumberFromIndex:Int(index:Int)
+		Return bmx_cegui_multilineeditbox_getlinenumberfromindex(objectPtr, index)
 	End Method
 	
-	Method initialiseComponents()
-	End Method
-	
+	Rem
+	bbdoc: Specifies whether the edit box is read-only.
+	End Rem
 	Method setReadOnly(setting:Int)
+		bmx_cegui_multilineeditbox_setreadonly(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current position of the carat.
+	End Rem
 	Method setCaratIndex(caratPos:Int)
+		bmx_cegui_multilineeditbox_setcaratindex(objectPtr, caratPos)
 	End Method
 	
+	Rem
+	bbdoc: Defines the current selection for the edit box.
+	End Rem
 	Method setSelection(startPos:Int, endPos:Int)
+		bmx_cegui_multilineeditbox_setselection(objectPtr, startPos, endPos)
 	End Method
 	
+	Rem
+	bbdoc: Sets the maximum text length for this edit box.
+	End Rem
 	Method setMaxTextLength(maxLen:Int)
+		bmx_cegui_multilineeditbox_setmaxtextlength(objectPtr, maxLen)
 	End Method
 	
+	Rem
+	bbdoc: Scrolls the editbox so that the carat is visible.
+	End Rem
 	Method ensureCaratIsVisible()
+		bmx_cegui_multilineeditbox_ensurecaratisvisible(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the text will be word wrapped or not.
+	End Rem
 	Method setWordWrapping(setting:Int)
+		bmx_cegui_multilineeditbox_setwordwrapping(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown.
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_multilineeditbox_setshowvertscrollbar(objectPtr, setting)
 	End Method
 
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for an Editbox widget.
 End Rem
 Type TCEEditbox Extends TCEWindow
 
@@ -3197,158 +3276,171 @@ Type TCEEditbox Extends TCEWindow
 
 
 	Rem
-	bbdoc: 
+	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
 	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The masked rendering mode (password mode) has been changed. 
 	End Rem
 	Const EventMaskedRenderingModeChanged:String = "MaskRenderChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The code point (character) to use for masked text has been changed. 
 	End Rem
 	Const EventMaskCodePointChanged:String = "MaskCPChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The validation string has been changed. 
 	End Rem
 	Const EventValidationStringChanged:String = "ValidatorChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The maximum allowable string length has been changed. 
 	End Rem
 	Const EventMaximumTextLengthChanged:String = "MaxTextLenChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
 	Const EventTextInvalidated:String = "TextInvalidated"
 	Rem
-	bbdoc: 
+	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
 	Const EventInvalidEntryAttempted:String = "InvalidInputAttempt"
 	Rem
-	bbdoc: 
+	bbdoc: The text carat (insert point) has changed. 
 	End Rem
 	Const EventCaratMoved:String = "TextCaratMoved"
 	Rem
-	bbdoc: 
+	bbdoc: The current text selection has changed. 
 	End Rem
 	Const EventTextSelectionChanged:String = "TextSelectChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
 	Const EventEditboxFull:String = "EditboxFull"
 	Rem
-	bbdoc: 
+	bbdoc: The user has accepted the current text by pressing Return, Enter, or Tab. 
 	End Rem
 	Const EventTextAccepted:String = "TextAccepted"
 
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the Editbox has input focus.
 	End Rem
 	Method hasInputFocus:Int()
 		Return bmx_cegui_editbox_hasinputfocus(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the Editbox is read-only.
 	End Rem
 	Method isReadOnly:Int()
 		Return bmx_cegui_editbox_isreadonly(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the text for the Editbox will be rendered masked.
 	End Rem
 	Method isTextMasked:Int()
 		Return bmx_cegui_editbox_istextmasked(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the Editbox text is valid given the currently set validation string.
+	about: It is possible to programmatically set 'invalid' text for the Editbox by calling setText. This has certain
+	implications since if invalid text is set, whatever the user types into the box will be rejected when the input is validated.
+	<p>
+	Validation is performed by means of a regular expression. If the text matches the regex, the text is said to have passed
+	validation. If the text does not match with the regex then the text fails validation.
+	</p>
 	End Rem
 	Method isTextValid:Int()
 		Return bmx_cegui_editbox_istextvalid(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the currently set validation string
 	End Rem
 	Method getValidationString:String()
 		Return _convertUTF8ToMax(bmx_cegui_editbox_getvalidationstring(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current position of the carat.
+	returns: Index of the insert carat relative to the start of the text.
 	End Rem
 	Method getCaratIndex:Int()
 		Return bmx_cegui_editbox_getcaratindex(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current selection start point.
+	returns: Index of the selection start point relative to the start of the text. If no selection is defined this function returns the position of the carat.
 	End Rem
 	Method getSelectionStartIndex:Int()
 		Return bmx_cegui_editbox_getselectionstartindex(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current selection end point.
+	returns: Index of the selection end point relative to the start of the text. If no selection is defined this function returns the position of the carat.
 	End Rem
 	Method getSelectionEndIndex:Int()
 		Return bmx_cegui_editbox_getselectionendindex(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the length of the current selection (in code points / characters).
 	End Rem
 	Method getSelectionLength:Int()
 		Return bmx_cegui_editbox_getselectionlength(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the maximum text length set for this Editbox.
 	End Rem
 	Method getMaxTextLength:Int()
 		Return bmx_cegui_editbox_getmaxtextlength(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Specifies whether the Editbox is read-only.
 	End Rem
 	Method setReadOnly(setting:Int)
 		bmx_cegui_editbox_setreadonly(objectPtr, setting)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Specifies whether the text for the Editbox will be rendered masked.
 	End Rem
 	Method setTextMasked(setting:Int)
 		bmx_cegui_editbox_settextmasked(objectPtr, setting)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the text validation string.
+	about: Validation is performed by means of a regular expression. If the text matches the regex, the text is said to have
+	passed validation. If the text does not match with the regex then the text fails validation.
 	End Rem
 	Method setValidationString(validationString:String)
 		bmx_cegui_editbox_setvalidationstring(objectPtr, _convertMaxToUTF8(validationString))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the current position of the carat.
 	End Rem
 	Method setCaratIndex(caratPos:Int)
 		bmx_cegui_editbox_setcaratindex(objectPtr, caratPos)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Defines the current selection for the Editbox.
 	End Rem
 	Method setSelection(startPos:Int, endPos:Int)
 		bmx_cegui_editbox_setselection(objectPtr, startPos, endPos)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the maximum text length for this Editbox.
+	about: Depending on the validation string set, the actual length of text that can be entered may be less than the
+	value set here (it will never be more).
 	End Rem
 	Method setMaxTextLength(maxLen:Int)
 		bmx_cegui_editbox_setmaxtextlength(objectPtr, maxLen)
@@ -3378,22 +3470,46 @@ Type TCEScrolledItemListBase Extends TCEItemListBase
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 
+	Rem
+	bbdoc: Returns whether the vertical scrollbar is being forced visible. Despite content size. 
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_scrolleditemlistbase_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the horizontal scrollbar is being forced visible. Despite content size. 
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_scrolleditemlistbase_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Get the vertical scrollbar component attached to this window. 
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_scrolleditemlistbase_getvertscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Get the horizontal scrollbar component attached to this window. 
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_scrolleditemlistbase_gethorzscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the vertical scrollbar should be forced visible. Despite content size. 
+	End Rem
 	Method setShowVertScrollbar(mode:Int)
+		bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(objectPtr, mode)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the horizontal scrollbar should be forced visible. Despite content size.
+	End Rem
 	Method setShowHorzScrollbar(mode:Int)
+		bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(objectPtr, mode)
 	End Method
 
 End Type
@@ -3420,38 +3536,84 @@ Type TCEItemListBox Extends TCEScrolledItemListBase
 	End Rem
 	Const EventMultiSelectModeChanged:String = "MultiSelectModeChanged"
 
-
+	Rem
+	bbdoc: 
+	End Rem
 	Method getSelectedCount:Int()
+		Return bmx_cegui_itemlistbox_getselectedcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the last selected item.
+	End Rem
 	Method getLastSelectedItem:TCEItemEntry()
+		Return TCEItemEntry(bmx_cegui_itemlistbox_getlastselecteditem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the first selected item.
+	about: If multiselect is disabled then this does the equivalent of calling getLastSelectedItem. If multiselect
+	is enabled it will search the array starting at start_index.
+	End Rem
 	Method getFirstSelectedItem:TCEItemEntry(startIndex:Int = 0)
+		Return TCEItemEntry(bmx_cegui_itemlistbox_getfirstselecteditem(objectPtr, startIndex))
 	End Method
 	
+	Rem
+	bbdoc: Returns the next seleced item relative to a previous call to getFirstSelectedItem or getNextSelectedItem.
+	End Rem
 	Method getNextSelectedItem:TCEItemEntry()
+		Return TCEItemEntry(bmx_cegui_itemlistbox_getnextselecteditem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the next selected item after the item @startItem given.
+	End Rem
 	Method getNextSelectedItemAfter:TCEItemEntry(startItem:TCEItemEntry)
+		Return TCEItemEntry(bmx_cegui_itemlistbox_getnextselecteditemafter(objectPtr, startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns True if multiple selections are allowed, False if not.
+	End Rem
 	Method isMultiSelectEnabled:Int()
+		Return bmx_cegui_itemlistbox_ismultiselectenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns True if the item at the given index is selectable and currently selected. 
+	End Rem
 	Method isItemSelected:Int(index:Int)
+		Return bmx_cegui_itemlistbox_isitemselected(objectPtr, index)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether or not multiple selections should be allowed. 
+	End Rem
 	Method setMultiSelectEnabled(state:Int)
+		bmx_cegui_itemlistbox_setmultiselectenabled(objectPtr, state)
 	End Method
 	
+	Rem
+	bbdoc: Clears all selections. 
+	End Rem
 	Method clearAllSelections()
+		bmx_cegui_itemlistbox_clearallselections(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Selects a range of items.
+	End Rem
 	Method selectRange(a:Int, z:Int)
+		bmx_cegui_itemlistbox_selectrange(objectPtr, a, z)
 	End Method
 	
+	Rem
+	bbdoc: Selects all items.
+	about: Does nothing if multiselect is disabled. 
+	End Rem
 	Method selectAllItems()
+		bmx_cegui_itemlistbox_selectallitems(objectPtr)
 	End Method
 
 End Type
@@ -3536,6 +3698,7 @@ Type TCEImagesetManager
 	End Function
 	
 	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "")
+		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromimagefile(_convertMaxToUTF8(name), _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
 	End Function
 	
 	Function destroyImageSet(imageset:Object)
@@ -3602,6 +3765,14 @@ End Rem
 Type TCEImageset
 
 	Field objectPtr:Byte Ptr
+
+	Function _create:TCEImageset(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEImageset = New TCEImageset
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
 
 	Method getName:String()
 	End Method
@@ -3814,4 +3985,38 @@ End Type
 Type TCEColour
 End Type
 
+Rem
+bbdoc: Provides a shared library of Font objects to the system.
+about: The FontManager is used to create, access, and destroy Font objects. The idea is that the
+FontManager will function as a central repository for Font objects used within the GUI system, and that
+those Font objects can be accessed, via a unique name, by any interested party within the system.
+End Rem
+Type TCEFontManager
+
+	Function createFont:TCEFont(filename:String, resourceGroup:String = "")
+		Return TCEFont._create(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
+	End Function
+	
+	Function createFontType:TCEFont(fontType:String, name:String, fontName:String, resourceGroup:String = "")
+	End Function
+	
+	Function destroyFont(font:Object)
+		If TCEFont(font) Then
+		ElseIf String(font) Then
+		End If
+	End Function
+	
+	Function destroyAllFonts()
+	End Function
+	
+	Function isFontPresent:Int(name:String)
+		Return bmx_cegui_fontmanager_isfontpresent(_convertMaxToUTF8(name))
+	End Function
+	
+	Function getFont:TCEFont(name:String)
+	End Function
+	
+	
+
+End Type
 

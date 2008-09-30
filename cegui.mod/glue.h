@@ -226,6 +226,54 @@ extern "C" {
 	void bmx_cegui_combodroplist_setautoarmenabled(CEGUI::ComboDropList * list, bool setting);
 	bool bmx_cegui_combodroplist_isautoarmenabled(CEGUI::ComboDropList * list);
 
+	bool bmx_cegui_multilineeditbox_hasinputfocus(CEGUI::MultiLineEditbox * eb);
+	bool bmx_cegui_multilineeditbox_isreadonly(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getcaratindex(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getselectionstartindex(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getselectionendindex(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getselectionlength(CEGUI::MultiLineEditbox * eb);
+	int bmx_cegui_multilineeditbox_getmaxtextlength(CEGUI::MultiLineEditbox * eb);
+	bool bmx_cegui_multilineeditbox_iswordwrapped(CEGUI::MultiLineEditbox * eb);
+	BBObject * bmx_cegui_multilineeditbox_getvertscrollbar(CEGUI::MultiLineEditbox * eb);
+	bool bmx_cegui_multilineeditbox_isvertscrollbaralwaysshown(CEGUI::MultiLineEditbox * eb);
+	BBObject * bmx_cegui_multilineeditbox_gethorzscrollbar(CEGUI::MultiLineEditbox * eb);
+	void bmx_cegui_multilineeditbox_gettextrenderarea(CEGUI::MultiLineEditbox * eb, float * x, float * y, float * w, float * h);
+	int bmx_cegui_multilineeditbox_getlinenumberfromindex(CEGUI::MultiLineEditbox * eb, int index);
+	void bmx_cegui_multilineeditbox_setreadonly(CEGUI::MultiLineEditbox * eb, bool setting);
+	void bmx_cegui_multilineeditbox_setcaratindex(CEGUI::MultiLineEditbox * eb, int caratPos);
+	void bmx_cegui_multilineeditbox_setselection(CEGUI::MultiLineEditbox * eb, int startPos, int endPos);
+	void bmx_cegui_multilineeditbox_setmaxtextlength(CEGUI::MultiLineEditbox * eb, int maxLen);
+	void bmx_cegui_multilineeditbox_ensurecaratisvisible(CEGUI::MultiLineEditbox * eb);
+	void bmx_cegui_multilineeditbox_setwordwrapping(CEGUI::MultiLineEditbox * eb, bool setting);
+	void bmx_cegui_multilineeditbox_setshowvertscrollbar(CEGUI::MultiLineEditbox * eb, bool setting);
+
+	
+	bool bmx_cegui_scrolleditemlistbase_isvertscrollbaralwaysshown(CEGUI::ScrolledItemListBase * lb);
+	bool bmx_cegui_scrolleditemlistbase_ishorzscrollbaralwaysshown(CEGUI::ScrolledItemListBase * lb);
+	BBObject * bmx_cegui_scrolleditemlistbase_getvertscrollbar(CEGUI::ScrolledItemListBase * lb);
+	BBObject * bmx_cegui_scrolleditemlistbase_gethorzscrollbar(CEGUI::ScrolledItemListBase * lb);
+	void bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(CEGUI::ScrolledItemListBase * lb, bool mode);
+	void bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(CEGUI::ScrolledItemListBase * lb, bool mode);
+
+	int bmx_cegui_itemlistbox_getselectedcount(CEGUI::ItemListbox * lb);
+	BBObject * bmx_cegui_itemlistbox_getlastselecteditem(CEGUI::ItemListbox * lb);
+	BBObject * bmx_cegui_itemlistbox_getfirstselecteditem(CEGUI::ItemListbox * lb, int startIndex);
+	BBObject * bmx_cegui_itemlistbox_getnextselecteditem(CEGUI::ItemListbox * lb);
+	BBObject * bmx_cegui_itemlistbox_getnextselecteditemafter(CEGUI::ItemListbox * lb, const CEGUI::ItemEntry * startItem);
+	bool bmx_cegui_itemlistbox_ismultiselectenabled(CEGUI::ItemListbox * lb);
+	bool bmx_cegui_itemlistbox_isitemselected(CEGUI::ItemListbox * lb, int index);
+	void bmx_cegui_itemlistbox_setmultiselectenabled(CEGUI::ItemListbox * lb, bool state);
+	void bmx_cegui_itemlistbox_clearallselections(CEGUI::ItemListbox * lb);
+	void bmx_cegui_itemlistbox_selectrange(CEGUI::ItemListbox * lb, int a, int z);
+	void bmx_cegui_itemlistbox_selectallitems(CEGUI::ItemListbox * lb);
+
+
+	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+
+	CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name);
+
+
 }
 
 class MaxConnection

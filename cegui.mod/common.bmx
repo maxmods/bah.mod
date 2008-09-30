@@ -162,6 +162,51 @@ Extern
 	Function bmx_cegui_combodroplist_setautoarmenabled(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_combodroplist_isautoarmenabled:Int(handle:Byte Ptr)
 
+	Function bmx_cegui_multilineeditbox_hasinputfocus:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_isreadonly:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getcaratindex:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getselectionstartindex:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getselectionendindex:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getselectionlength:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getmaxtextlength:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_iswordwrapped:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_getvertscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_isvertscrollbaralwaysshown:Int(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_gethorzscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_gettextrenderarea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+	Function bmx_cegui_multilineeditbox_getlinenumberfromindex:Int(handle:Byte Ptr, index:Int)
+	Function bmx_cegui_multilineeditbox_setreadonly(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_multilineeditbox_setcaratindex(handle:Byte Ptr, caratPos:Int)
+	Function bmx_cegui_multilineeditbox_setselection(handle:Byte Ptr, startPos:Int, endPos:Int)
+	Function bmx_cegui_multilineeditbox_setmaxtextlength(handle:Byte Ptr, maxLen:Int)
+	Function bmx_cegui_multilineeditbox_ensurecaratisvisible(handle:Byte Ptr)
+	Function bmx_cegui_multilineeditbox_setwordwrapping(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_multilineeditbox_setshowvertscrollbar(handle:Byte Ptr, setting:Int)
+
+	Function bmx_cegui_scrolleditemlistbase_isvertscrollbaralwaysshown:Int(handle:Byte Ptr)
+	Function bmx_cegui_scrolleditemlistbase_ishorzscrollbaralwaysshown:Int(handle:Byte Ptr)
+	Function bmx_cegui_scrolleditemlistbase_getvertscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_scrolleditemlistbase_gethorzscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(handle:Byte Ptr, mode:Int)
+	Function bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(handle:Byte Ptr, mode:Int)
+
+	Function bmx_cegui_itemlistbox_getselectedcount:Int(handle:Byte Ptr)
+	Function bmx_cegui_itemlistbox_getlastselecteditem:Object(handle:Byte Ptr)
+	Function bmx_cegui_itemlistbox_getfirstselecteditem:Object(handle:Byte Ptr, startIndex:Int)
+	Function bmx_cegui_itemlistbox_getnextselecteditem:Object(handle:Byte Ptr)
+	Function bmx_cegui_itemlistbox_getnextselecteditemafter:Object(handle:Byte Ptr, startItem:Byte Ptr)
+	Function bmx_cegui_itemlistbox_ismultiselectenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_itemlistbox_isitemselected:Int(handle:Byte Ptr, index:Int)
+	Function bmx_cegui_itemlistbox_setmultiselectenabled(handle:Byte Ptr, state:Int)
+	Function bmx_cegui_itemlistbox_clearallselections(handle:Byte Ptr)
+	Function bmx_cegui_itemlistbox_selectrange(handle:Byte Ptr, a:Int, z:Int)
+	Function bmx_cegui_itemlistbox_selectallitems(handle:Byte Ptr)
+
+	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Byte Ptr(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
+
+	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_fontmanager_isfontpresent:Int(name:Byte Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters
