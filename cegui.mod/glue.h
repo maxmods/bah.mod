@@ -274,6 +274,16 @@ extern "C" {
 	CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
 	bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name);
 
+	float bmx_cegui_spinner_getcurrentvalue(CEGUI::Spinner * spinner);
+	float bmx_cegui_spinner_getstepsize(CEGUI::Spinner * spinner);
+	float bmx_cegui_spinner_getmaximumvalue(CEGUI::Spinner * spinner);
+	float bmx_cegui_spinner_getminimumvalue(CEGUI::Spinner * spinner);
+	CEGUI::Spinner::TextInputMode bmx_cegui_spinner_gettextinputmode(CEGUI::Spinner * spinner);
+	void bmx_cegui_spinner_setcurrentvalue(CEGUI::Spinner * spinner, float value);
+	void bmx_cegui_spinner_setstepsize(CEGUI::Spinner * spinner, float stepSize);
+	void bmx_cegui_spinner_setmaximumvalue(CEGUI::Spinner * spinner, float maxValue);
+	void bmx_cegui_spinner_setminimumvalue(CEGUI::Spinner * spinner, float minValue);
+	void bmx_cegui_spinner_settextinputmode(CEGUI::Spinner * spinner, CEGUI::Spinner::TextInputMode mode);
 
 }
 

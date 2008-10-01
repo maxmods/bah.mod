@@ -207,6 +207,17 @@ Extern
 	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_fontmanager_isfontpresent:Int(name:Byte Ptr)
 
+	Function bmx_cegui_spinner_getcurrentvalue:Float(handle:Byte Ptr)
+	Function bmx_cegui_spinner_getstepsize:Float(handle:Byte Ptr)
+	Function bmx_cegui_spinner_getmaximumvalue:Float(handle:Byte Ptr)
+	Function bmx_cegui_spinner_getminimumvalue:Float(handle:Byte Ptr)
+	Function bmx_cegui_spinner_gettextinputmode:Int(handle:Byte Ptr)
+	Function bmx_cegui_spinner_setcurrentvalue(handle:Byte Ptr, value:Float)
+	Function bmx_cegui_spinner_setstepsize(handle:Byte Ptr, stepSize:Float)
+	Function bmx_cegui_spinner_setmaximumvalue(handle:Byte Ptr, maxValue:Float)
+	Function bmx_cegui_spinner_setminimumvalue(handle:Byte Ptr, minValue:Float)
+	Function bmx_cegui_spinner_settextinputmode(handle:Byte Ptr, mode:Int)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

@@ -1077,5 +1077,46 @@ bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name) {
 	return CEGUI::FontManager::getSingleton().isFontPresent(name);
 }
 
+// *************************************************
+
+float bmx_cegui_spinner_getcurrentvalue(CEGUI::Spinner * spinner) {
+	return spinner->getCurrentValue();
+}
+
+float bmx_cegui_spinner_getstepsize(CEGUI::Spinner * spinner) {
+	return spinner->getStepSize();
+}
+
+float bmx_cegui_spinner_getmaximumvalue(CEGUI::Spinner * spinner) {
+	return spinner->getMaximumValue();
+}
+
+float bmx_cegui_spinner_getminimumvalue(CEGUI::Spinner * spinner) {
+	return spinner->getMinimumValue();
+}
+
+CEGUI::Spinner::TextInputMode bmx_cegui_spinner_gettextinputmode(CEGUI::Spinner * spinner) {
+	return spinner->getTextInputMode();
+}
+
+void bmx_cegui_spinner_setcurrentvalue(CEGUI::Spinner * spinner, float value) {
+	spinner->setCurrentValue(value);
+}
+
+void bmx_cegui_spinner_setstepsize(CEGUI::Spinner * spinner, float stepSize) {
+	spinner->setStepSize(stepSize);
+}
+
+void bmx_cegui_spinner_setmaximumvalue(CEGUI::Spinner * spinner, float maxValue) {
+	spinner->setMaximumValue(maxValue);
+}
+
+void bmx_cegui_spinner_setminimumvalue(CEGUI::Spinner * spinner, float minValue) {
+	spinner->setMinimumValue(minValue);
+}
+
+void bmx_cegui_spinner_settextinputmode(CEGUI::Spinner * spinner, CEGUI::Spinner::TextInputMode mode) {
+	spinner->setTextInputMode(mode);
+}
 
 

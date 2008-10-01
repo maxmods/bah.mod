@@ -2228,33 +2228,43 @@ Type TCESpinner Extends TCEWindow
 
 	
 	Method getCurrentValue:Float()
+		Return bmx_cegui_spinner_getcurrentvalue(objectPtr)
 	End Method
 	 
 	Method getStepSize:Float()
+		Return bmx_cegui_spinner_getstepsize(objectPtr)
 	End Method
 	 
 	Method getMaximumValue:Float()
+		Return bmx_cegui_spinner_getmaximumvalue(objectPtr)
 	End Method
 	 
 	Method getMinimumValue:Float()
+		Return bmx_cegui_spinner_getminimumvalue(objectPtr)
 	End Method
 	 
 	Method getTextInputMode:Int()
+		Return bmx_cegui_spinner_gettextinputmode(objectPtr)
 	End Method
 	 
 	Method setCurrentValue(value:Float)
+		bmx_cegui_spinner_setcurrentvalue(objectPtr, value)
 	End Method
 	 
 	Method setStepSize(stepSize:Float)
+		bmx_cegui_spinner_setstepsize(objectPtr, stepSize)
 	End Method
 	 
 	Method setMaximumValue(maxValue:Float)
+		bmx_cegui_spinner_setmaximumvalue(objectPtr, maxValue)
 	End Method
 	 
-	Method setMinimumValue(minVaue:Float)
+	Method setMinimumValue(minValue:Float)
+		bmx_cegui_spinner_setminimumvalue(objectPtr, minValue)
 	End Method
 	 
 	Method setTextInputMode(mode:Int)
+		bmx_cegui_spinner_settextinputmode(objectPtr, mode)
 	End Method
 
 	
@@ -2334,6 +2344,30 @@ Type TCEItemEntry Extends TCEWindow
 		End If
 	End Function
 
+	Method getItemPixelSize(w:Float Var, h:Float Var)
+	End Method
+
+	Method getOwnerList:TCEItemListBase()
+	End Method
+	
+	Method isSelected:Int()
+	End Method
+	
+	Method isSelectable:Int()
+	End Method
+	
+	Method setSelected(setting:Int)
+	End Method
+	
+	Method selectEntry()
+	End Method
+	
+	Method deselect()
+	End Method
+	
+	Method setSelectable(setting:Int)
+	End Method
+
 End Type
 
 Rem
@@ -2348,6 +2382,30 @@ Type TCEMenuItem Extends TCEItemEntry
 			Return this
 		End If
 	End Function
+
+	Method isHovering:Int()
+	End Method
+	
+	Method isPushed:Int()
+	End Method
+	
+	Method isOpened:Int()
+	End Method
+	
+	Method getPopupMenu:TCEPopupMenu()
+	End Method
+	
+	Method setPopupMenu(popup:TCEPopupMenu)
+	End Method
+	
+	Method openPopupMenu(Notify:Int = True)
+	End Method
+	
+	Method closePopupMenu(Notify:Int = True)
+	End Method
+	
+	Method togglePopupMenu:Int()
+	End Method
 
 End Type
 
@@ -2364,6 +2422,99 @@ Type TCEScrollablePane Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventContentPaneChanged:String = "ContentPaneChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventAutoSizeSettingChanged:String = "AutoSizeSettingChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventContentPaneScrolled:String = "ContentPaneScrolled"
+
+	Method getContentPane:TCEScrolledContainer()
+	End Method
+	
+	Method isVertScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method setShowVertScrollbar(setting:Int)
+	End Method
+	
+	Method isHorzScrollbarAlwaysShown:Int()
+	End Method
+	
+	Method setShowHorzScrollbar(setting:Int)
+	End Method
+	
+	Method isContentPaneAutoSized:Int()
+	End Method
+	
+	Method setContentPaneAutoSized(setting:Int)
+	End Method
+	
+	Method getContentPaneArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	End Method
+	
+	Method setContentPaneArea(x:Float, y:Float, w:Float, h:Float)
+	End Method
+	
+	Method getHorizontalStepSize:Float()
+	End Method
+	
+	Method setHorizontalStepSize(stepSize:Float)
+	End Method
+	
+	Method getHorizontalOverlapSize:Float()
+	End Method
+	
+	Method setHorizontalOverlapSize(overlap:Float)
+	End Method
+	
+	Method getHorizontalScrollPosition:Float()
+	End Method
+	
+	Method setHorizontalScrollPosition(position:Float)
+	End Method
+	
+	Method getVerticalStepSize:Float()
+	End Method
+	
+	Method setVerticalStepSize(stepSize:Float)
+	End Method
+	
+	Method getVerticalOverlapSize:Float()
+	End Method
+	
+	Method setVerticalOverlapSize(overlap:Float)
+	End Method
+	
+	Method getVerticalScrollPosition:Float()
+	End Method
+	
+	Method setVerticalScrollPosition(position:Float)
+	End Method
+	
+	Method getViewableArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	End Method
+	
+	Method getVertScrollbar:TCEScrollbar()
+	End Method
+	
+	Method getHorzScrollbar:TCEScrollbar() 
+	End Method
+	
 End Type
 
 Rem
