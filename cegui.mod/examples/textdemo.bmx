@@ -58,15 +58,18 @@ initStaticText()
 initSingleLineEdit()
 initMultiLineEdit()
 
-
+' Quit button
+subscribeEvent("TextDemo/Quit", TCEPushButton.EventClicked, quitDemo);
 
 SetColor(255, 255, 255)
 
-While Not KeyDown(KEY_ESCAPE)
+Global quitting:Int = False
+
+While Not quitting And Not KeyDown(KEY_ESCAPE)
 
 	Cls
 	
-	TCEEvent.mouseEvents(MouseX(), MouseY())
+	TCEEvent.mouseEvents(MouseX(), MouseY(), MouseZ())
 	TCESystem.renderGUI()
 
 	Flip
@@ -102,11 +105,24 @@ Function initStaticText()
 End Function
 
 Function initSingleLineEdit()
-	' TODO
+    ' Only accepts digits For the age Field
+    If TCEWindowManager.isWindowPresent("TextDemo/editAge") Then
+        TCEEditbox(TCEWindowManager.getWindow("TextDemo/editAge")).setValidationString("[0-9]*")
+    End If
+
+    ' Set password restrictions
+    If TCEWindowManager.isWindowPresent("TextDemo/editAge") Then
+        Local passwd:TCEEditbox = TCEEditbox(TCEWindowManager.getWindow("TextDemo/editPasswd"))
+        passwd.setValidationString("[A-Za-z0-9]*")
+        ' Render masked
+        passwd.setTextMasked(True)
+    End If
+
 End Function
 
 Function initMultiLineEdit()
-	' TODO
+    ' Scrollbar checkbox
+    subscribeEvent("TextDemo/forceScroll", TCECheckbox.EventCheckStateChanged, vertScrollChangedHandler)
 End Function
 
 Function initRadio(radio:String, group:Int, selected:Int)
@@ -190,6 +206,23 @@ Function formatChangedHandler:Int(args:TCEEventArgs)
 
 End Function
 
+Function vertScrollChangedHandler:Int(args:TCEEventArgs)
+    If TCEWindowManager.isWindowPresent("TextDemo/editMulti") Then
+        Local multiEdit:TCEMultiLineEditbox = TCEMultiLineEditbox(TCEWindowManager.getWindow("TextDemo/editMulti"))
+        ' Use setter For a change
+        multiEdit.setShowVertScrollbar(isCheckboxSelected("TextDemo/forceScroll"))
+    End If
+
+    ' event was handled
+    Return True
+End Function
+
+Function quitDemo:Int(args:TCEEventArgs)
+	quitting = True
+
+    ' event was handled
+    Return True
+End Function
 
 ' a custom logger
 Type CustomLogger Extends TCECustomLogger

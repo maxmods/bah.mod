@@ -300,109 +300,117 @@ CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, c
 
 // *************************************************
 
-void bmx_cegui_system_setDefaultFont(const CEGUI::utf8 * font) {
-	CEGUI::System::getSingleton().setDefaultFont(font);
+void bmx_cegui_system_setDefaultFont(CEGUI::System * sys, const CEGUI::utf8 * font) {
+	sys->setDefaultFont(font);
 }
 
-void bmx_cegui_system_setDefaultMouseCursor(const CEGUI::utf8 * l, const CEGUI::utf8 * kind) {
-	CEGUI::System::getSingleton().setDefaultMouseCursor(l, kind);
+void bmx_cegui_system_setDefaultMouseCursor(CEGUI::System * sys, const CEGUI::utf8 * l, const CEGUI::utf8 * kind) {
+	sys->setDefaultMouseCursor(l, kind);
 }
 
-void bmx_cegui_system_renderGUI() {
-	CEGUI::System::getSingleton().renderGUI();
+void bmx_cegui_system_renderGUI(CEGUI::System * sys) {
+	sys->renderGUI();
 }
 
-void bmx_cegui_system_setGUISheet(CEGUI::Window * window) {
-	CEGUI::System::getSingleton().setGUISheet(window);
+void bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window) {
+	sys->setGUISheet(window);
 }
 
 // *************************************************
 
-BBObject * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * layout, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup) {
-	return newObjectForWindow(CEGUI::WindowManager::getSingleton().loadWindowLayout(layout, namePrefix, resourceGroup));
+CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton() {
+	return &CEGUI::WindowManager::getSingleton();
 }
 
-BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name) {
-	return newObjectForWindow(CEGUI::WindowManager::getSingleton().getWindow(name));
+BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * layout, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup) {
+	return newObjectForWindow(mgr->loadWindowLayout(layout, namePrefix, resourceGroup));
 }
 
-BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix) {
-	return newObjectForWindow(CEGUI::WindowManager::getSingleton().createWindow(windowType, name, prefix));
+BBObject * bmx_cegui_windowmanager_getwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name) {
+	return newObjectForWindow(mgr->getWindow(name));
 }
 
-bool bmx_cegui_windowmanager_iswindowpresent(const CEGUI::utf8 * name) {
-	return CEGUI::WindowManager::getSingleton().isWindowPresent(name);
+BBObject * bmx_cegui_windowmanager_createwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix) {
+	return newObjectForWindow(mgr->createWindow(windowType, name, prefix));
 }
 
-void bmx_cegui_windowmanager_destroyallwindows() {
-	CEGUI::WindowManager::getSingleton().destroyAllWindows();
+bool bmx_cegui_windowmanager_iswindowpresent(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name) {
+	return mgr->isWindowPresent(name);
 }
 
-void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::Window * window) {
-	CEGUI::WindowManager::getSingleton().destroyWindow(window);
+void bmx_cegui_windowmanager_destroyallwindows(CEGUI::WindowManager * mgr) {
+	mgr->destroyAllWindows();
 }
 
-void bmx_cegui_windowmanager_destroywindowname(const CEGUI::utf8 * window) {
-	CEGUI::WindowManager::getSingleton().destroyWindow(window);
+void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window) {
+	mgr->destroyWindow(window);
 }
 
-void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::Window * window, const CEGUI::utf8 * newName) {
-	CEGUI::WindowManager::getSingleton().renameWindow(window, newName);
+void bmx_cegui_windowmanager_destroywindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window) {
+	mgr->destroyWindow(window);
 }
 
-void bmx_cegui_windowmanager_renamewindowname(const CEGUI::utf8 * window, const CEGUI::utf8 * newName) {
-	CEGUI::WindowManager::getSingleton().renameWindow(window, newName);
+void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window, const CEGUI::utf8 * newName) {
+	mgr->renameWindow(window, newName);
+}
+
+void bmx_cegui_windowmanager_renamewindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window, const CEGUI::utf8 * newName) {
+	mgr->renameWindow(window, newName);
 }
 
 
 // *************************************************
 
-bool bmx_cegui_system_injectTimePulse(float t) {
-	return CEGUI::System::getSingleton().injectTimePulse(t);
+bool bmx_cegui_system_injectTimePulse(CEGUI::System * sys, float t) {
+	return sys->injectTimePulse(t);
 }
 
-bool bmx_cegui_system_injectMousePosition(int x, int y) {
-	return CEGUI::System::getSingleton().injectMousePosition(static_cast<float>(x),static_cast<float>(y)); 
+bool bmx_cegui_system_injectMousePosition(CEGUI::System * sys, int x, int y) {
+	return sys->injectMousePosition(static_cast<float>(x),static_cast<float>(y)); 
 }
 
-bool bmx_cegui_system_injectMouseButtonDown(int button) {
+bool bmx_cegui_system_injectMouseButtonDown(CEGUI::System * sys, int button) {
 	switch (button) {
 		case 1:
-			return CEGUI::System::getSingleton().injectMouseButtonDown(CEGUI::LeftButton);
+			return sys->injectMouseButtonDown(CEGUI::LeftButton);
 		case 2:
-			return CEGUI::System::getSingleton().injectMouseButtonDown(CEGUI::RightButton);
+			return sys->injectMouseButtonDown(CEGUI::RightButton);
 		case 3:
-			return CEGUI::System::getSingleton().injectMouseButtonDown(CEGUI::MiddleButton);
+			return sys->injectMouseButtonDown(CEGUI::MiddleButton);
 		default:
-			return CEGUI::System::getSingleton().injectMouseButtonDown(CEGUI::NoButton);
+			return sys->injectMouseButtonDown(CEGUI::NoButton);
 	}
 	return CEGUI::NoButton;
 }
 
-bool bmx_cegui_system_injectMouseButtonUp(int button) {
+bool bmx_cegui_system_injectMouseButtonUp(CEGUI::System * sys, int button) {
 	switch (button) {
 		case 1:
-			return CEGUI::System::getSingleton().injectMouseButtonUp(CEGUI::LeftButton);
+			return sys->injectMouseButtonUp(CEGUI::LeftButton);
 		case 2:
-			return CEGUI::System::getSingleton().injectMouseButtonUp(CEGUI::RightButton);
+			return sys->injectMouseButtonUp(CEGUI::RightButton);
 		case 3:
-			return CEGUI::System::getSingleton().injectMouseButtonUp(CEGUI::MiddleButton);
+			return sys->injectMouseButtonUp(CEGUI::MiddleButton);
 		default:
-			return CEGUI::System::getSingleton().injectMouseButtonUp(CEGUI::NoButton);
+			return sys->injectMouseButtonUp(CEGUI::NoButton);
 	}
 	return CEGUI::NoButton;
 }
 
-bool bmx_cegui_system_injectkeydown(int key) {
-	return CEGUI::System::getSingleton().injectKeyDown(bmx_cegui_mapmaxtocekey(key));
+bool bmx_cegui_system_injectkeydown(CEGUI::System * sys, int key) {
+	return sys->injectKeyDown(bmx_cegui_mapmaxtocekey(key));
 }
 
-bool bmx_cegui_system_injectkeyup(int key) {
-	return CEGUI::System::getSingleton().injectKeyUp(bmx_cegui_mapmaxtocekey(key));
+bool bmx_cegui_system_injectkeyup(CEGUI::System * sys, int key) {
+	return sys->injectKeyUp(bmx_cegui_mapmaxtocekey(key));
 }
 
-bool bmx_cegui_system_injectchar(CEGUI::utf32 key) {
-	return CEGUI::System::getSingleton().injectChar(key);
+bool bmx_cegui_system_injectchar(CEGUI::System * sys, CEGUI::utf32 key) {
+	return sys->injectChar(key);
+}
+
+bool bmx_cegui_system_injectMouseWheelChange(CEGUI::System * sys, int delta) {
+	return sys->injectMouseWheelChange(static_cast<float>(delta));
 }
 
 // *************************************************

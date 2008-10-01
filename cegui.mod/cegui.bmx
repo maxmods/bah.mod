@@ -66,7 +66,6 @@ Import "common.bmx"
 '
 
 ' some global stuff
-Global cegui_systemPtr:Byte Ptr
 Global cegui_rendererPtr:Byte Ptr
 Global cegui_startTime:Int
 
@@ -74,9 +73,9 @@ Global ce_event_handler:TCEEventHandler = New TCEEventHandler
 
 Function cegui_cleanup()
 
-	If cegui_systemPtr Then
-		bmx_cegui_delete_system(cegui_systemPtr)
-		cegui_systemPtr = Null
+	If TCESystem.cegui_systemPtr Then
+		bmx_cegui_delete_system(TCESystem.cegui_systemPtr)
+		TCESystem.cegui_systemPtr = Null
 	End If
 	
 	If cegui_rendererPtr Then
@@ -96,7 +95,9 @@ Function Init_CEGUI()
 
 		If cegui_rendererPtr Then
 			' creates a new CEGUI system
-			cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr)
+			TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr)
+			
+			TCEWindowManager.windowManagerPtr = bmx_cegui_windowmanager_getsingleton()
 		End If
 
 		' TODO : there are probably better ways to do this
@@ -440,32 +441,34 @@ bbdoc:
 End Rem
 Type TCESystem Extends TCEEventSet
 
+	Global cegui_systemPtr:Byte Ptr
+
 	Rem
 	bbdoc: Render the GUI.
 	End Rem
 	Function renderGUI()
-		bmx_cegui_system_renderGUI()
+		bmx_cegui_system_renderGUI(cegui_systemPtr)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Function setDefaultFont(font:String)
-		bmx_cegui_system_setDefaultFont(_convertMaxToUTF8(font))
+		bmx_cegui_system_setDefaultFont(cegui_systemPtr, _convertMaxToUTF8(font))
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Function setDefaultMouseCursor(a:String, b:String)
-		bmx_cegui_system_setDefaultMouseCursor(_convertMaxToUTF8(a), _convertMaxToUTF8(b))
+		bmx_cegui_system_setDefaultMouseCursor(cegui_systemPtr, _convertMaxToUTF8(a), _convertMaxToUTF8(b))
 	End Function
 	
 	Rem
 	bbdoc: Set the active GUI sheet (root) window.
 	End Rem
 	Function setGUISheet(window:TCEWindow)
-		bmx_cegui_system_setGUISheet(window.objectPtr)
+		bmx_cegui_system_setGUISheet(cegui_systemPtr, window.objectPtr)
 	End Function
 	
 	Rem
@@ -473,31 +476,35 @@ Type TCESystem Extends TCEEventSet
 	about: Accepts a value indicating the amount of time passed, in seconds, since the last time this method was called.
 	End Rem 
 	Function injectTimePulse(time:Float)
-		bmx_cegui_system_injectTimePulse(time)
+		bmx_cegui_system_injectTimePulse(cegui_systemPtr ,time)
 	End Function
 	
 	Function injectMousePosition(x:Int, y:Int)
-		bmx_cegui_system_injectMousePosition(x, y)
+		bmx_cegui_system_injectMousePosition(cegui_systemPtr, x, y)
 	End Function
 	
 	Function injectMouseButtonUp(button:Int)
-		bmx_cegui_system_injectMouseButtonUp(button)
+		bmx_cegui_system_injectMouseButtonUp(cegui_systemPtr, button)
 	End Function
 
 	Function injectMouseButtonDown(button:Int)
-		bmx_cegui_system_injectMouseButtonDown(button)
+		bmx_cegui_system_injectMouseButtonDown(cegui_systemPtr, button)
+	End Function
+	
+	Function injectMouseWheelChange(delta:Int)
+		bmx_cegui_system_injectMouseWheelChange(cegui_systemPtr, delta)
 	End Function
 	
 	Function injectKeyDown:Int(key:Int)
-		Return bmx_cegui_system_injectkeydown(key)
+		Return bmx_cegui_system_injectkeydown(cegui_systemPtr, key)
 	End Function
 
 	Function injectKeyUp:Int(key:Int)
-		Return bmx_cegui_system_injectkeyup(key)
+		Return bmx_cegui_system_injectkeyup(cegui_systemPtr, key)
 	End Function
 
 	Function injectChar:Int(key:Int)
-		Return bmx_cegui_system_injectchar(key)
+		Return bmx_cegui_system_injectchar(cegui_systemPtr, key)
 	End Function
 	
 	Function getRenderer:TCERenderer()
@@ -538,11 +545,13 @@ those Window objects by name.
 End Rem
 Type TCEWindowManager
 
+	Global windowManagerPtr:Byte Ptr
+
 	Rem
 	bbdoc: Creates a set of windows (a Gui layout) from the information in the specified XML file.
 	End Rem
 	Function loadWindowLayout:TCEWindow(filename:String, namePrefix:String = "", resourceGroup:String = "")
-		Return TCEWindow(bmx_cegui_windowmanager_loadWindowLayout(_convertMaxToUTF8(filename), ..
+		Return TCEWindow(bmx_cegui_windowmanager_loadWindowLayout(windowManagerPtr, _convertMaxToUTF8(filename), ..
 			_convertMaxToUTF8(namePrefix), _convertMaxToUTF8(resourceGroup)))
 	End Function
 
@@ -550,7 +559,7 @@ Type TCEWindowManager
 	bbdoc: Returns a reference to the specified Window object.
 	End Rem
 	Function getWindow:TCEWindow(name:String)
-		Return TCEWindow(bmx_cegui_windowmanager_getwindow(_convertMaxToUTF8(name)))
+		Return TCEWindow(bmx_cegui_windowmanager_getwindow(windowManagerPtr, _convertMaxToUTF8(name)))
 	End Function
 	
 	Rem
@@ -558,14 +567,14 @@ Type TCEWindowManager
 	returns: True if a Window object was found with a name matching @name. False if no matching Window object was found.
 	End Rem
 	Function isWindowPresent:Int(name:String)
-		Return bmx_cegui_windowmanager_iswindowpresent(_convertMaxToUTF8(name))
+		Return bmx_cegui_windowmanager_iswindowpresent(windowManagerPtr, _convertMaxToUTF8(name))
 	End Function
 	
 	Rem
 	bbdoc: Destroys all Window objects within the system. 
 	End Rem
 	Function destroyAllWindows()
-		bmx_cegui_windowmanager_destroyallwindows()
+		bmx_cegui_windowmanager_destroyallwindows(windowManagerPtr)
 	End Function
 	
 	Rem
@@ -574,9 +583,9 @@ Type TCEWindowManager
 	End Rem
 	Function destroyWindow(window:Object)
 		If TCEWindow(window) Then
-			bmx_cegui_windowmanager_destroywindowwindow(TCEWindow(window).objectPtr)
+			bmx_cegui_windowmanager_destroywindowwindow(windowManagerPtr, TCEWindow(window).objectPtr)
 		ElseIf String(window) Then
-			bmx_cegui_windowmanager_destroywindowname(_convertMaxToUTF8(String(window)))
+			bmx_cegui_windowmanager_destroywindowname(windowManagerPtr, _convertMaxToUTF8(String(window)))
 		End If
 	End Function
 	
@@ -586,9 +595,9 @@ Type TCEWindowManager
 	End Rem
 	Function renameWindow(window:Object, newName:String)
 		If TCEWindow(window) Then
-			bmx_cegui_windowmanager_renamewindowwindow(TCEWindow(window).objectPtr, _convertMaxToUTF8(newName))
+			bmx_cegui_windowmanager_renamewindowwindow(windowManagerPtr, TCEWindow(window).objectPtr, _convertMaxToUTF8(newName))
 		ElseIf String(window) Then
-			bmx_cegui_windowmanager_renamewindowname(_convertMaxToUTF8(String(window)), _convertMaxToUTF8(newName))
+			bmx_cegui_windowmanager_renamewindowname(windowManagerPtr, _convertMaxToUTF8(String(window)), _convertMaxToUTF8(newName))
 		End If
 	End Function
 
@@ -597,7 +606,7 @@ Type TCEWindowManager
 	returns: The newly created Window object.
 	End Rem
 	Function CreateWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
-		Return TCEWindow(bmx_cegui_windowmanager_createwindow(_convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
+		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
 	End Function
 	
 End Type
@@ -1328,11 +1337,11 @@ End Type
 
 Type TCEEvent
 
-	Global mx:Int, my:Int
+	Global mx:Int, my:Int, mwheel:Int
 	Global mb1:Int, mb2:Int, mb3:Int
 	
 
-	Function mouseEvents(x:Int, y:Int)
+	Function mouseEvents(x:Int, y:Int, wheel:Int = 0)
 	
 		Local elapsed:Float = (MilliSecs() - cegui_startTime)/1000.0
 		
@@ -1343,6 +1352,15 @@ Type TCEEvent
 			mx = x
 			my = y
 		
+		End If
+		
+		If wheel <> mwheel Then
+			If wheel < mwheel Then
+				TCESystem.injectMouseWheelChange((mwheel - wheel) * -1)
+			Else
+				TCESystem.injectMouseWheelChange(wheel - mwheel)
+			End If
+			mwheel = wheel
 		End If
 		
 		If mb1 Then

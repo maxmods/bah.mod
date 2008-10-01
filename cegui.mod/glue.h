@@ -98,24 +98,30 @@ extern "C" {
 
 	CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup);
 	
-	void bmx_cegui_system_setDefaultFont(const CEGUI::utf8 * font);
-	void bmx_cegui_system_setDefaultMouseCursor(const CEGUI::utf8 * l, const CEGUI::utf8 * kind);
-	void bmx_cegui_system_renderGUI();
-	void bmx_cegui_system_setGUISheet(CEGUI::Window * window);
-	bool bmx_cegui_system_injectTimePulse(float t);
-	bool bmx_cegui_system_injectMousePosition(int x, int y);
-	bool bmx_cegui_system_injectMouseButtonDown(int button);
-	bool bmx_cegui_system_injectMouseButtonUp(int button);
-	
-	BBObject * bmx_cegui_windowmanager_loadWindowLayout(const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
-	BBObject * bmx_cegui_windowmanager_getwindow(const CEGUI::utf8 * name);
-	BBObject * bmx_cegui_windowmanager_createwindow(const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix);
-	bool bmx_cegui_windowmanager_iswindowpresent(const CEGUI::utf8 * name);
-	void bmx_cegui_windowmanager_destroyallwindows();
-	void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::Window * window);
-	void bmx_cegui_windowmanager_destroywindowname(const CEGUI::utf8 * window);
-	void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::Window * window, const CEGUI::utf8 * newName);
-	void bmx_cegui_windowmanager_renamewindowname(const CEGUI::utf8 * window, const CEGUI::utf8 * newName);
+	void bmx_cegui_system_setDefaultFont(CEGUI::System * sys, const CEGUI::utf8 * font);
+	void bmx_cegui_system_setDefaultMouseCursor(CEGUI::System * sys, const CEGUI::utf8 * l, const CEGUI::utf8 * kind);
+	void bmx_cegui_system_renderGUI(CEGUI::System * sys);
+	void bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window);
+	bool bmx_cegui_system_injectTimePulse(CEGUI::System * sys, float t);
+	bool bmx_cegui_system_injectMousePosition(CEGUI::System * sys, int x, int y);
+	bool bmx_cegui_system_injectMouseButtonDown(CEGUI::System * sys, int button);
+	bool bmx_cegui_system_injectMouseButtonUp(CEGUI::System * sys, int button);
+	bool bmx_cegui_system_injectMouseWheelChange(CEGUI::System * sys, int delta);
+	CEGUI::uint bmx_cegui_mapmaxtocekey(int key);
+	bool bmx_cegui_system_injectkeydown(CEGUI::System * sys, int key);
+	bool bmx_cegui_system_injectkeyup(CEGUI::System * sys, int key);
+	bool bmx_cegui_system_injectchar(CEGUI::System * sys, CEGUI::utf32 key);
+
+	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
+	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
+	BBObject * bmx_cegui_windowmanager_getwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name);
+	BBObject * bmx_cegui_windowmanager_createwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix);
+	bool bmx_cegui_windowmanager_iswindowpresent(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name);
+	void bmx_cegui_windowmanager_destroyallwindows(CEGUI::WindowManager * mgr);
+	void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window);
+	void bmx_cegui_windowmanager_destroywindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window);
+	void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window, const CEGUI::utf8 * newName);
+	void bmx_cegui_windowmanager_renamewindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window, const CEGUI::utf8 * newName);
 
 	MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle);
 
@@ -154,11 +160,6 @@ extern "C" {
 	void bmx_cegui_progressbar_setstepsize(CEGUI::ProgressBar * pb, float stepVal);
 	void bmx_cegui_progressbar_dostep(CEGUI::ProgressBar * pb);
 	void bmx_cegui_progressbar_adjustprogress(CEGUI::ProgressBar * pb, float delta);
-
-	CEGUI::uint bmx_cegui_mapmaxtocekey(int key);
-	bool bmx_cegui_system_injectkeydown(int key);
-	bool bmx_cegui_system_injectkeyup(int key);
-	bool bmx_cegui_system_injectchar(CEGUI::utf32 key);
 
 	bool bmx_cegui_editbox_hasinputfocus(CEGUI::Editbox * eb);
 	bool bmx_cegui_editbox_isreadonly(CEGUI::Editbox * eb);

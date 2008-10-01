@@ -54,7 +54,7 @@ While Not KeyDown(KEY_ESCAPE)
 
 	Cls
 	
-	TCEEvent.mouseEvents(MouseX(), MouseY())
+	TCEEvent.mouseEvents(MouseX(), MouseY(), MouseZ())
 	TCESystem.renderGUI()
 
 	Flip
