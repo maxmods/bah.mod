@@ -1119,4 +1119,213 @@ void bmx_cegui_spinner_settextinputmode(CEGUI::Spinner * spinner, CEGUI::Spinner
 	spinner->setTextInputMode(mode);
 }
 
+// *************************************************
+
+float bmx_cegui_scrollbar_getdocumentsize(CEGUI::Scrollbar * sb) {
+	return sb->getDocumentSize();
+}
+
+float bmx_cegui_scrollbar_getpagesize(CEGUI::Scrollbar * sb) {
+	return sb->getPageSize();
+}
+
+float bmx_cegui_scrollbar_getstepsize(CEGUI::Scrollbar * sb) {
+	return sb->getStepSize();
+}
+
+float bmx_cegui_scrollbar_getoverlapsize(CEGUI::Scrollbar * sb) {
+	return sb->getOverlapSize();
+}
+
+float bmx_cegui_scrollbar_getscrollposition(CEGUI::Scrollbar * sb) {
+	return sb->getScrollPosition();
+}
+
+BBObject * bmx_cegui_scrollbar_getincreasebutton(CEGUI::Scrollbar * sb) {
+	return _bah_cegui_TCEPushButton__create(sb->getIncreaseButton());
+}
+
+BBObject * bmx_cegui_scrollbar_getdecreasebutton(CEGUI::Scrollbar * sb) {
+	return _bah_cegui_TCEPushButton__create(sb->getDecreaseButton());
+}
+
+void bmx_cegui_scrollbar_setdocumentsize(CEGUI::Scrollbar * sb, float documentSize) {
+	sb->setDocumentSize(documentSize);
+}
+
+void bmx_cegui_scrollbar_setpagesize(CEGUI::Scrollbar * sb, float pageSize) {
+	sb->setPageSize(pageSize);
+}
+
+void bmx_cegui_scrollbar_setstepsize(CEGUI::Scrollbar * sb, float stepSize) {
+	sb->setStepSize(stepSize);
+}
+
+void bmx_cegui_scrollbar_setoverlapsize(CEGUI::Scrollbar * sb, float overlapSize) {
+	sb->setOverlapSize(overlapSize);
+}
+
+void bmx_cegui_scrollbar_setscrollposition(CEGUI::Scrollbar * sb, float position) {
+	sb->setScrollPosition(position);
+}
+
+
+// *************************************************
+
+float bmx_cegui_slider_getcurrentvalue(CEGUI::Slider * slider) {
+	return slider->getCurrentValue();
+}
+
+float bmx_cegui_slider_getmaxvalue(CEGUI::Slider * slider) {
+	return slider->getMaxValue();
+}
+
+float bmx_cegui_slider_getclickstep(CEGUI::Slider * slider) {
+	return slider->getClickStep();
+}
+
+void bmx_cegui_slider_setmaxvalue(CEGUI::Slider * slider, float maxVal) {
+	slider->setMaxValue(maxVal);
+}
+
+void bmx_cegui_slider_setcurrentvalue(CEGUI::Slider * slider, float value) {
+	slider->setCurrentValue(value);
+}
+
+void bmx_cegui_slider_setclickstep(CEGUI::Slider * slider, float clickStep) {
+	slider->setClickStep(clickStep);
+}
+
+
+// *************************************************
+
+BBObject * bmx_cegui_tooltip_gettargetwindow(CEGUI::Tooltip * tt) {
+	return newObjectForWindow(const_cast<CEGUI::Window *>(tt->getTargetWindow()));
+}
+
+float bmx_cegui_tooltip_gethovertime(CEGUI::Tooltip * tt) {
+	return tt->getHoverTime();
+}
+
+void bmx_cegui_tooltip_setdisplaytime(CEGUI::Tooltip * tt, float seconds) {
+	tt->setDisplayTime(seconds);
+}
+
+float bmx_cegui_tooltip_getfadetime(CEGUI::Tooltip * tt) {
+	return tt->getFadeTime();
+}
+
+void bmx_cegui_tooltip_sethovertime(CEGUI::Tooltip * tt, float seconds) {
+	tt->setHoverTime(seconds);
+}
+
+float bmx_cegui_tooltip_getdisplaytime(CEGUI::Tooltip * tt) {
+	return tt->getDisplayTime();
+}
+
+void bmx_cegui_tooltip_setfadetime(CEGUI::Tooltip * tt, float seconds) {
+	tt->setFadeTime(seconds);
+}
+
+void bmx_cegui_tooltip_positionself(CEGUI::Tooltip * tt) {
+	tt->positionSelf();
+}
+
+void bmx_cegui_tooltip_sizeself(CEGUI::Tooltip * tt) {
+	tt->sizeSelf();
+}
+
+void bmx_cegui_tooltip_gettextsize(CEGUI::Tooltip * tt, float * width, float * height) {
+	CEGUI::Size s(tt->getTextSize());
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
+
+// *************************************************
+
+int bmx_cegui_tabcontrol_gettabcount(CEGUI::TabControl * tc) {
+	return tc->getTabCount();
+}
+
+CEGUI::TabControl::TabPanePosition bmx_cegui_tabcontrol_gettabpaneposition(CEGUI::TabControl * tc) {
+	return tc->getTabPanePosition();
+}
+
+void bmx_cegui_tabcontrol_settabpaneposition(CEGUI::TabControl * tc, CEGUI::TabControl::TabPanePosition pos) {
+	tc->setTabPanePosition(pos);
+}
+
+void bmx_cegui_tabcontrol_setselectedtab(CEGUI::TabControl * tc, const CEGUI::utf8 * name) {
+	tc->setSelectedTab(name);
+}
+
+void bmx_cegui_tabcontrol_setselectedtabforid(CEGUI::TabControl * tc, CEGUI::uint ID) {
+	tc->setSelectedTab(ID);
+}
+
+void bmx_cegui_tabcontrol_setselectedtabatindex(CEGUI::TabControl * tc, int index) {
+	tc->setSelectedTabAtIndex(index);
+}
+
+void bmx_cegui_tabcontrol_maketabvisible(CEGUI::TabControl * tc, const CEGUI::utf8 * name) {
+	tc->makeTabVisible(name);
+}
+
+void bmx_cegui_tabcontrol_maketabvisibleforid(CEGUI::TabControl * tc, CEGUI::uint ID) {
+	tc->makeTabVisible(ID);
+}
+
+void bmx_cegui_tabcontrol_maketabvisibleatindex(CEGUI::TabControl * tc, int index) {
+	tc->makeTabVisibleAtIndex(index);
+}
+
+BBObject * bmx_cegui_tabcontrol_gettabcontentsatindex(CEGUI::TabControl * tc, int index) {
+	return newObjectForWindow(tc->getTabContentsAtIndex(index));
+}
+
+BBObject * bmx_cegui_tabcontrol_gettabcontents(CEGUI::TabControl * tc, const CEGUI::utf8 * name) {
+	return newObjectForWindow(tc->getTabContents(name));
+}
+
+BBObject * bmx_cegui_tabcontrol_gettabcontentsforid(CEGUI::TabControl * tc, CEGUI::uint ID) {
+	return newObjectForWindow(tc->getTabContents(ID));
+}
+
+bool bmx_cegui_tabcontrol_istabcontentsselected(CEGUI::TabControl * tc, CEGUI::Window * wnd) {
+	return tc->isTabContentsSelected(wnd);
+}
+
+int bmx_cegui_tabcontrol_getselectedtabindex(CEGUI::TabControl * tc) {
+	return tc->getSelectedTabIndex();
+}
+
+float bmx_cegui_tabcontrol_gettabheight(CEGUI::TabControl * tc) {
+	return tc->getTabHeight().d_offset;
+}
+
+float bmx_cegui_tabcontrol_gettabtextpadding(CEGUI::TabControl * tc) {
+	return tc->getTabTextPadding().d_offset;
+}
+
+void bmx_cegui_tabcontrol_settabheight(CEGUI::TabControl * tc, float height) {
+	tc->setTabHeight(guessUDim(height));
+}
+
+void bmx_cegui_tabcontrol_settabtextpadding(CEGUI::TabControl * tc, float padding) {
+	tc->setTabTextPadding(guessUDim(padding));
+}
+
+void bmx_cegui_tabcontrol_addtab(CEGUI::TabControl * tc, CEGUI::Window * wnd) {
+	tc->addTab(wnd);
+}
+
+void bmx_cegui_tabcontrol_removetab(CEGUI::TabControl * tc, const CEGUI::utf8 * name) {
+	tc->removeTab(name);
+}
+
+void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID) {
+	tc->removeTab(ID);
+}
+
 

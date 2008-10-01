@@ -73,6 +73,9 @@ Global ce_event_handler:TCEEventHandler = New TCEEventHandler
 
 Function cegui_cleanup()
 
+	' remove the event hook!
+	RemoveHook EmitEventHook,TCEEvent.Keyhook
+
 	If TCESystem.cegui_systemPtr Then
 		bmx_cegui_delete_system(TCESystem.cegui_systemPtr)
 		TCESystem.cegui_systemPtr = Null
@@ -2206,63 +2209,92 @@ Type TCESpinner Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the spinner value changes. 
 	End Rem
 	Const EventValueChanged:String = "ValueChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the step value changes. 
 	End Rem
 	Const EventStepChanged:String = "StepChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the maximum spinner value changes. 
 	End Rem
 	Const EventMaximumValueChanged:String = "MaximumValueChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the minimum spinner value changes. 
 	End Rem
 	Const EventMinimumValueChanged:String = "MinimumValueChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the input/display mode is changed. 
 	End Rem
 	Const EventTextInputModeChanged:String = "TextInputModeChanged"
 
-	
+	Rem
+	bbdoc: Returns the current spinner value.
+	End Rem
 	Method getCurrentValue:Float()
 		Return bmx_cegui_spinner_getcurrentvalue(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current step value.
+	End Rem
 	Method getStepSize:Float()
 		Return bmx_cegui_spinner_getstepsize(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current maximum limit value for the Spinner.
+	End Rem
 	Method getMaximumValue:Float()
 		Return bmx_cegui_spinner_getmaximumvalue(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current minimum limit value for the Spinner.
+	End Rem
 	Method getMinimumValue:Float()
 		Return bmx_cegui_spinner_getminimumvalue(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current text input / display mode setting.
+	End Rem
 	Method getTextInputMode:Int()
 		Return bmx_cegui_spinner_gettextinputmode(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the current spinner value.
+	End Rem
 	Method setCurrentValue(value:Float)
 		bmx_cegui_spinner_setcurrentvalue(objectPtr, value)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the current step value.
+	End Rem
 	Method setStepSize(stepSize:Float)
 		bmx_cegui_spinner_setstepsize(objectPtr, stepSize)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the spinner maximum value.
+	End Rem
 	Method setMaximumValue(maxValue:Float)
 		bmx_cegui_spinner_setmaximumvalue(objectPtr, maxValue)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the spinner minimum value.
+	End Rem
 	Method setMinimumValue(minValue:Float)
 		bmx_cegui_spinner_setminimumvalue(objectPtr, minValue)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the spinner input / display mode.
+	End Rem
 	Method setTextInputMode(mode:Int)
 		bmx_cegui_spinner_settextinputmode(objectPtr, mode)
 	End Method
@@ -2591,10 +2623,167 @@ Type TCEListHeader Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSortColumnChanged:String = "SortColumnChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSortDirectionChanged:String = "SortDirectionChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentSized:String = "SegmentSized"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentClicked:String = "SegmentClicked"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSplitterDoubleClicked:String = "SplitterDoubleClicked"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentSequenceChanged:String = "SegmentSequenceChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentAdded:String = "SegmentAdded"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentRemoved:String = "SegmentRemoved"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSortSettingChanged:String = "SortSettingChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventDragMoveSettingChanged:String = "DragMoveSettingChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventDragSizeSettingChanged:String = "DragSizeSettingChanged"
+	Rem
+	bbdoc: 
+	End Rem
+	Const EventSegmentRenderOffsetChanged:String = "SegmentOffsetChanged"
+
+
+	Method getColumnCount:Int()
+	End Method
+	
+	Method getSegmentFromColumn:TCEListHeaderSegment(column:Int)
+	End Method
+	 
+	Method getSegmentFromID:TCEListHeaderSegment(id:Int)
+	End Method
+	 
+	Method getSortSegment:TCEListHeaderSegment()
+	End Method
+	 
+	Method getColumnFromSegment:Int(segment:TCEListHeaderSegment)
+	End Method
+	 
+	Method getColumnFromID:Int(id:Int)
+	End Method
+	 
+	Method getSortColumn:Int()
+	End Method
+	 
+	Method getColumnWithText:Int(text:String)
+	End Method
+	 
+	Method getPixelOffsetToSegment:Float(segment:TCEListHeaderSegment)
+	End Method
+	 
+	Method getPixelOffsetToColumn:Float(column:Int)
+	End Method
+	 
+	Method getTotalSegmentsPixelExtent:Float()
+	End Method
+	 
+	Method getColumnWidth:Float(column:Int)
+	End Method
+	 
+	Method getSortDirection:Int()
+	End Method
+	 
+	Method isSortingEnabled:Int()
+	End Method
+	 
+	Method isColumnSizingEnabled:Int()
+	End Method
+	 
+	Method isColumnDraggingEnabled:Int()
+	End Method
+	 
+	Method getSegmentOffset:Float()
+	End Method
+	 
+	Method setSortingEnabled(setting:Int)
+	End Method
+	 
+	Method setSortDirection(direction:Int)
+	End Method
+	 
+	Method setSortSegment(segment:TCEListHeaderSegment)
+	End Method
+	 
+	Method setSortColumn(column:Int)
+	End Method
+	 
+	Method setSortColumnFromID(id:Int)
+	End Method
+	 
+	Method setColumnSizingEnabled(setting:Int)
+	End Method
+	 
+	Method setColumnDraggingEnabled(setting:Int)
+	End Method
+	 
+	Method addColumn(text:String, id:Int, width:Float)
+	End Method
+	 
+	Method insertColumn(text:String, id:Int, width:Float, position:Int)
+	End Method
+	 
+	Method insertColumnAtSegment(text:String, id:Int, width:Float, position:TCEListHeaderSegment)
+	End Method
+	 
+	Method removeColumn(column:Int)
+	End Method
+	 
+	Method removeSegment(segment:TCEListHeaderSegment)
+	End Method
+	 
+	Method moveColumn(column:Int, position:Int)
+	End Method
+	 
+	Method moveColumnAtSegment(column:Int, position:TCEListHeaderSegment)
+	End Method
+	 
+	Method moveSegment(segment:TCEListHeaderSegment, position:Int)
+	End Method
+	 
+	Method moveSegmentAtSegment(segment:TCEListHeaderSegment, position:TCEListHeaderSegment)
+	End Method
+	 
+	Method setSegmentOffset(offset:Float)
+	End Method
+	 
+	Method setColumnWidth(column:Int, width:Float)
+	End Method
+		
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base scroll bar type.
+about: This base type for scroll bars does not have any idea of direction - a derived type would add whatever meaning
+is appropriate according to what that derived type represents to the user.
 End Rem
 Type TCEScrollbar Extends TCEWindow
 
@@ -2607,59 +2796,173 @@ Type TCEScrollbar Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the scroll bar position value changes. 
 	End Rem
 	Const EventScrollPositionChanged:String = "ScrollPosChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the user begins dragging the thumb. 
 	End Rem
 	Const EventThumbTrackStarted:String = "ThumbTrackStarted"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the user releases the thumb. 
 	End Rem
 	Const EventThumbTrackEnded:String = "ThumbTrackEnded"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the scroll bar configuration data changes. 
 	End Rem
 	Const EventScrollConfigChanged:String = "ScrollConfigChanged"
 
-
+	Rem
+	bbdoc: Returns the size of the document or data.
+	about: The document size should be thought of as the total size of the data that is being scrolled
+	through (the number of lines in a text file for example).
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method getDocumentSize:Float()
+		Return bmx_cegui_scrollbar_getdocumentsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the page size for this scroll bar.
+	about: The page size is typically the amount of data that can be displayed at one time. This value is also used
+	when calculating the amount the position will change when you click either side of the scroll bar thumb - the
+	amount the position changes will is (pageSize - overlapSize).
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method getPageSize:Float()
+		Return bmx_cegui_scrollbar_getpagesize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the step size for this scroll bar.
+	about: The step size is typically a single unit of data that can be displayed, this is the amount the position
+	will change when you click either of the arrow buttons on the scroll bar. (this could be 1 for a single line
+	of text, for example).
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method getStepSize:Float()
+		Return bmx_cegui_scrollbar_getstepsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the overlap size for this scroll bar.
+	about: The overlap size is the amount of data from the end of a 'page' that will remain visible when the position
+	is moved by a page. This is usually used so that the user keeps some context of where they were within the
+	document's data when jumping a page at a time.
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method getOverlapSize:Float()
+		Return bmx_cegui_scrollbar_getoverlapsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current position of scroll bar within the document.
+	about: The range of the scroll bar is from 0 to the size of the document minus the size of a page
+	(0 <= position <= (documentSize - pageSize)).
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method getScrollPosition:Float()
+		Return bmx_cegui_scrollbar_getscrollposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the 'increase' PushButtoncomponent widget for this Scrollbar.
+	End Rem
 	Method getIncreaseButton:TCEPushButton()
+		Return TCEPushButton(bmx_cegui_scrollbar_getincreasebutton(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the 'decrease' PushButton component widget for this Scrollbar.
+	End Rem
 	Method getDecreaseButton:TCEPushButton()
+		Return TCEPushButton(bmx_cegui_scrollbar_getdecreasebutton(objectPtr))
 	End Method
 	
 	'Thumb * 	getThumb ()
 	
+	Rem
+	bbdoc: Sets the size of the document or data.
+	about: The document size should be thought of as the total size of the data that is being scrolled
+	through (the number of lines in a text file for example).
+	<p>
+	The value set has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method setDocumentSize(documentSize:Float)
+		bmx_cegui_scrollbar_setdocumentsize(objectPtr, documentSize)
 	End Method
 	
+	Rem
+	bbdoc: Sets the page size for this scroll bar.
+	about: The page size is typically the amount of data that can be displayed at one time. This value is also
+	used when calculating the amount the position will change when you click either side of the scroll bar thumb
+	- the amount the position changes will is (pageSize - overlapSize).
+	<p>
+	The value set has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method setPageSize(pageSize:Float)
+		bmx_cegui_scrollbar_setpagesize(objectPtr, pageSize)
 	End Method
 	
+	Rem
+	bbdoc: Sets the step size for this scroll bar.
+	about: The step size is typically a single unit of data that can be displayed, this is the amount the position
+	will change when you click either of the arrow buttons on the scroll bar. (this could be 1 for a single line
+	of text, for example).
+	<p>
+	The value set has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method setStepSize(stepSize:Float)
+		bmx_cegui_scrollbar_setstepsize(objectPtr, stepSize)
 	End Method
 	
+	Rem
+	bbdoc: Sets the overlap size for this scroll bar.
+	about: The overlap size is the amount of data from the end of a 'page' that will remain visible when the position
+	is moved by a page. This is usually used so that the user keeps some context of where they were within the
+	document's data when jumping a page at a time.
+	<p>
+	The value set has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method setOverlapSize(overlapSize:Float)
+		bmx_cegui_scrollbar_setoverlapsize(objectPtr, overlapSize)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current position of scroll bar within the document.
+	about: The range of the scroll bar is from 0 to the size of the document minus the size of a page
+	(0 <= position <= (documentSize - pageSize)), any attempt to set the position outside this range will be adjusted
+	so that it falls within the legal range.
+	<p>
+	The returned value has no meaning within the Gui system, it is left up to the application to assign appropriate
+	values for the application specific use of the scroll bar.
+	</p>
+	End Rem
 	Method setScrollPosition(position:Float)
+		bmx_cegui_scrollbar_setscrollposition(objectPtr, position)
 	End Method
 
 End Type
@@ -2680,36 +2983,65 @@ Type TCESlider Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the slider value changes. 
 	End Rem
 	Const EventValueChanged:String = "ValueChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the user begins dragging the thumb. 
 	End Rem
 	Const EventThumbTrackStarted:String = "ThumbTrackStarted"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the user releases the thumb.
 	End Rem
 	Const EventThumbTrackEnded:String = "ThumbTrackEnded"
 
+	Rem
+	bbdoc: Returns the current slider value.
+	End Rem
 	Method getCurrentValue:Float()
+		Return bmx_cegui_slider_getcurrentvalue(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the maximum value set for this widget.
+	End Rem
 	Method getMaxValue:Float()
+		Return bmx_cegui_slider_getmaxvalue(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current click step setting for the slider.
+	about: The click step size is the amount the slider value will be adjusted when the widget is clicked
+	either side of the slider thumb.
+	End Rem
 	Method getClickStep:Float()
+		Return bmx_cegui_slider_getclickstep(objectPtr)
 	End Method
 	
 	'Thumb * 	getThumb()
 	
+	Rem
+	bbdoc: Sets the maximum value for the slider.
+	about: Note that the minimum value is fixed at 0.
+	End Rem
 	Method setMaxValue(maxVal:Float)
+		bmx_cegui_slider_setmaxvalue(objectPtr, maxVal)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current slider value.
+	End Rem
 	Method setCurrentValue(value:Float)
+		bmx_cegui_slider_setcurrentvalue(objectPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current click step setting for the slider.
+	about: The click step size is the amount the slider value will be adjusted when the widget is clicked
+	either side of the slider thumb.
+	End Rem
 	Method setClickStep(clickStep:Float)
+		bmx_cegui_slider_setclickstep(objectPtr, clickStep)
 	End Method
 
 End Type
@@ -2732,71 +3064,157 @@ Type TCETabControl Extends TCEWindow
 	End Rem
 	Const EventSelectionChanged:String = "TabSelectionChanged"
 
-
+	Rem
+	bbdoc: Returns number of tabs.
+	End Rem
 	Method getTabCount:Int()
+		Return bmx_cegui_tabcontrol_gettabcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the positioning of the tab pane.
+	End Rem
 	Method getTabPanePosition:Int()
+		Return bmx_cegui_tabcontrol_gettabpaneposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Changes the positioning of the tab button pane.
+	End Rem
 	Method setTabPanePosition(pos:Int)
+		bmx_cegui_tabcontrol_settabpaneposition(objectPtr, pos)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selected tab by the name of the root window within it.
+	about: Also ensures that the tab is made visible (tab pane is scrolled if required).
+	End Rem
 	Method setSelectedTab(name:String)
+		bmx_cegui_tabcontrol_setselectedtab(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Sets the selected tab by the ID of the root window within it.
+	about: Also ensures that the tab is made visible (tab pane is scrolled if required).
+	End Rem
 	Method setSelectedTabForID(ID:Int)
+		bmx_cegui_tabcontrol_setselectedtabforid(objectPtr, ID)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selected tab by the index position in the tab control.
+	about: Also ensures that the tab is made visible (tab pane is scrolled if required).
+	End Rem
 	Method setSelectedTabAtIndex(index:Int)
+		bmx_cegui_tabcontrol_setselectedtabatindex(objectPtr, index)
 	End Method
 	
+	Rem
+	bbdoc: Ensures that the tab by the name of the root window within it is visible.
+	End Rem
 	Method makeTabVisible(name:String)
+		bmx_cegui_tabcontrol_maketabvisible(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Ensures that the tab by the ID of the root window within it is visible.
+	End Rem
 	Method makeTabVisibleForID(ID:Int)
+		bmx_cegui_tabcontrol_maketabvisibleforid(objectPtr, ID)
 	End Method
 	
+	Rem
+	bbdoc: Ensure that the tab by the index position in the tab control is visible.
+	End Rem
 	Method makeTabVisibleAtIndex(index:Int)
+		bmx_cegui_tabcontrol_maketabvisibleatindex(objectPtr, index)
 	End Method
 	
+	Rem
+	bbdoc: Returns the Window which is the first child of the tab at index position index.
+	End Rem
 	Method getTabContentsAtIndex:TCEWindow(index:Int)
+		Return TCEWindow(bmx_cegui_tabcontrol_gettabcontentsatindex(objectPtr, index))
 	End Method
 	
+	Rem
+	bbdoc: Returns the Window which is the tab content with the given name.
+	End Rem
 	Method getTabContents:TCEWindow(name:String)
+		Return TCEWindow(bmx_cegui_tabcontrol_gettabcontents(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	
+	Rem
+	bbdoc: Returns the Window which is the tab content with the given ID.
+	End Rem
 	Method getTabContentsForID:TCEWindow(ID:Int)
+		Return TCEWindow(bmx_cegui_tabcontrol_gettabcontentsforid(objectPtr, ID))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the tab contents window is currently selected. 
+	End Rem
 	Method isTabContentsSelected:Int(wnd:TCEWindow)
+		Return bmx_cegui_tabcontrol_istabcontentsselected(objectPtr, wnd.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the index of the currently selected tab. 
+	End Rem
 	Method getSelectedTabIndex:Int()
+		Return bmx_cegui_tabcontrol_getselectedtabindex(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the height of the tabs. 
+	End Rem
 	Method getTabHeight:Float()
+		Return bmx_cegui_tabcontrol_gettabheight(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the amount of padding to add either side of the text in the tab. 
+	End Rem
 	Method getTabTextPadding:Float()
+		Return bmx_cegui_tabcontrol_gettabtextpadding(objectPtr)
 	End Method
 	
-	Method initialiseComponents()
-	End Method
-	
+	Rem
+	bbdoc: Sets the height of the tabs. 
+	End Rem
 	Method setTabHeight(height:Float)
+		bmx_cegui_tabcontrol_settabheight(objectPtr, height)
 	End Method
 	
+	Rem
+	bbdoc: Sets the amount of padding to add either side of the text in the tab. 
+	End Rem
 	Method setTabTextPadding(padding:Float)
+		bmx_cegui_tabcontrol_settabtextpadding(objectPtr, padding)
 	End Method
 	
+	Rem
+	bbdoc: Adds a new tab to the tab control.
+	about: The new tab will be added with the same text as the window passed in.
+	End Rem
 	Method addTab(wnd:TCEWindow)
+		bmx_cegui_tabcontrol_addtab(objectPtr, wnd.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Removes the named tab from the tab control.
+	about: The tab content will be destroyed.
+	End Rem
 	Method removeTab(name:String)
+		bmx_cegui_tabcontrol_removetab(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Removes the tab with the given ID from the tab control.
+	about: The tab content will be destroyed.
+	End Rem
 	Method removeTabForID(ID:Int)
+		bmx_cegui_tabcontrol_removetabforid(objectPtr, ID)
 	End Method
 
 End Type
@@ -2815,60 +3233,96 @@ Type TCETooltip Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the hover timeout gets changed. 
 	End Rem
 	Const EventHoverTimeChanged:String = "HoverTimeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the display timeout gets changed. 
 	End Rem
 	Const EventDisplayTimeChanged:String = "DisplayTimeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the fade timeout gets changed. 
 	End Rem
 	Const EventFadeTimeChanged:String = "FadeTimeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the tooltip is about to get activated. 
 	End Rem
 	Const EventTooltipActive:String = "TooltipActive"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the tooltip has been deactivated. 
 	End Rem
 	Const EventTooltipInactive:String = "TooltipInactive"
 
-	Method setTargetWindow(wnd:TCEWindow)
-	End Method
-	
+	Rem
+	bbdoc: Returns the current target window for this Tooltip.
+	End Rem
 	Method getTargetWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_tooltip_gettargetwindow(objectPtr))
 	End Method
 	
-	Method resetTimer()
-	End Method
-	
+	Rem
+	bbdoc: Returns the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
+	End Rem
 	Method getHoverTime:Float()
+		Return bmx_cegui_tooltip_gethovertime(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
+	about: 0 indicates that the tooltip should never timesout and auto-deactivate.
+	End Rem
 	Method setDisplayTime(seconds:Float)
+		bmx_cegui_tooltip_setdisplaytime(objectPtr, seconds)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of seconds that should be taken to fade the tooltip into and out of visibility.
+	End Rem
 	Method getFadeTime:Float()
+		Return bmx_cegui_tooltip_getfadetime(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
+	End Rem
 	Method setHoverTime(seconds:Float)
+		bmx_cegui_tooltip_sethovertime(objectPtr, seconds)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
+	about: 0 indicates that the tooltip never timesout and auto-deactivates.
+	End Rem
 	Method getDisplayTime:Float()
+		Return bmx_cegui_tooltip_getdisplaytime(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the number of seconds that should be taken to fade the tooltip into and out of visibility.
+	End Rem
 	Method setFadeTime(seconds:Float)
+		bmx_cegui_tooltip_setfadetime(objectPtr, seconds)
 	End Method
 	
+	Rem
+	bbdoc: Causes the tooltip to position itself appropriately.
+	End Rem
 	Method positionSelf()
+		bmx_cegui_tooltip_positionself(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Causes the tooltip to resize itself appropriately.
+	End Rem
 	Method sizeSelf()
+		bmx_cegui_tooltip_sizeself(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the size of the area that will be occupied by the tooltip text, given any current formatting options.
+	End Rem
 	Method getTextSize(width:Float Var, height:Float Var) 
+		bmx_cegui_tooltip_gettextsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
 End Type

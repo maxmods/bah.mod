@@ -285,6 +285,60 @@ extern "C" {
 	void bmx_cegui_spinner_setminimumvalue(CEGUI::Spinner * spinner, float minValue);
 	void bmx_cegui_spinner_settextinputmode(CEGUI::Spinner * spinner, CEGUI::Spinner::TextInputMode mode);
 
+	float bmx_cegui_scrollbar_getdocumentsize(CEGUI::Scrollbar * sb);
+	float bmx_cegui_scrollbar_getpagesize(CEGUI::Scrollbar * sb);
+	float bmx_cegui_scrollbar_getstepsize(CEGUI::Scrollbar * sb);
+	float bmx_cegui_scrollbar_getoverlapsize(CEGUI::Scrollbar * sb);
+	float bmx_cegui_scrollbar_getscrollposition(CEGUI::Scrollbar * sb);
+	BBObject * bmx_cegui_scrollbar_getincreasebutton(CEGUI::Scrollbar * sb);
+	BBObject * bmx_cegui_scrollbar_getdecreasebutton(CEGUI::Scrollbar * sb);
+	void bmx_cegui_scrollbar_setdocumentsize(CEGUI::Scrollbar * sb, float documentSize);
+	void bmx_cegui_scrollbar_setpagesize(CEGUI::Scrollbar * sb, float pageSize);
+	void bmx_cegui_scrollbar_setstepsize(CEGUI::Scrollbar * sb, float stepSize);
+	void bmx_cegui_scrollbar_setoverlapsize(CEGUI::Scrollbar * sb, float overlapSize);
+	void bmx_cegui_scrollbar_setscrollposition(CEGUI::Scrollbar * sb, float position);
+
+	float bmx_cegui_slider_getcurrentvalue(CEGUI::Slider * slider);
+	float bmx_cegui_slider_getmaxvalue(CEGUI::Slider * slider);
+	float bmx_cegui_slider_getclickstep(CEGUI::Slider * slider);
+	void bmx_cegui_slider_setmaxvalue(CEGUI::Slider * slider, float maxVal);
+	void bmx_cegui_slider_setcurrentvalue(CEGUI::Slider * slider, float value);
+	void bmx_cegui_slider_setclickstep(CEGUI::Slider * slider, float clickStep);
+
+	BBObject * bmx_cegui_tooltip_gettargetwindow(CEGUI::Tooltip * tt);
+	float bmx_cegui_tooltip_gethovertime(CEGUI::Tooltip * tt);
+	void bmx_cegui_tooltip_setdisplaytime(CEGUI::Tooltip * tt, float seconds);
+	float bmx_cegui_tooltip_getfadetime(CEGUI::Tooltip * tt);
+	void bmx_cegui_tooltip_sethovertime(CEGUI::Tooltip * tt, float seconds);
+	float bmx_cegui_tooltip_getdisplaytime(CEGUI::Tooltip * tt);
+	void bmx_cegui_tooltip_setfadetime(CEGUI::Tooltip * tt, float seconds);
+	void bmx_cegui_tooltip_positionself(CEGUI::Tooltip * tt);
+	void bmx_cegui_tooltip_sizeself(CEGUI::Tooltip * tt);
+	void bmx_cegui_tooltip_gettextsize(CEGUI::Tooltip * tt, float * width, float * height);
+
+	int bmx_cegui_tabcontrol_gettabcount(CEGUI::TabControl * tc);
+	CEGUI::TabControl::TabPanePosition bmx_cegui_tabcontrol_gettabpaneposition(CEGUI::TabControl * tc);
+	void bmx_cegui_tabcontrol_settabpaneposition(CEGUI::TabControl * tc, CEGUI::TabControl::TabPanePosition pos);
+	void bmx_cegui_tabcontrol_setselectedtab(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
+	void bmx_cegui_tabcontrol_setselectedtabforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+	void bmx_cegui_tabcontrol_setselectedtabatindex(CEGUI::TabControl * tc, int index);
+	void bmx_cegui_tabcontrol_maketabvisible(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
+	void bmx_cegui_tabcontrol_maketabvisibleforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+	void bmx_cegui_tabcontrol_maketabvisibleatindex(CEGUI::TabControl * tc, int index);
+	BBObject * bmx_cegui_tabcontrol_gettabcontentsatindex(CEGUI::TabControl * tc, int index);
+	BBObject * bmx_cegui_tabcontrol_gettabcontents(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
+	BBObject * bmx_cegui_tabcontrol_gettabcontentsforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+	bool bmx_cegui_tabcontrol_istabcontentsselected(CEGUI::TabControl * tc, CEGUI::Window * wnd);
+	int bmx_cegui_tabcontrol_getselectedtabindex(CEGUI::TabControl * tc);
+	float bmx_cegui_tabcontrol_gettabheight(CEGUI::TabControl * tc);
+	float bmx_cegui_tabcontrol_gettabtextpadding(CEGUI::TabControl * tc);
+	void bmx_cegui_tabcontrol_settabheight(CEGUI::TabControl * tc, float height);
+	void bmx_cegui_tabcontrol_settabtextpadding(CEGUI::TabControl * tc, float padding);
+	void bmx_cegui_tabcontrol_addtab(CEGUI::TabControl * tc, CEGUI::Window * wnd);
+	void bmx_cegui_tabcontrol_removetab(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
+	void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+
+
 }
 
 class MaxConnection
