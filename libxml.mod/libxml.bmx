@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
+ModuleInfo "History: Added xmlParserMaxDepth global variable."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -141,6 +142,12 @@ Extern
 	Disabled by default.
 	End Rem
 	Global xmlSaveNoEmptyTags:Int
+
+	Rem
+	bbdoc: Arbitrary depth limit for the XML documents that we allow to process.
+	about: This is not a limitation of the parser but a safety boundary feature. 
+	End Rem
+	Global xmlParserMaxDepth:Int
 
 End Extern
 
