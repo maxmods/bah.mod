@@ -39,6 +39,11 @@ Import BRL.Reflection
 Import BRL.Map
 Import BRL.Stream
 
+' libxml global... FIXME : fix in libxml
+Extern 
+	Global xmlParserMaxDepth:Int
+End Extern
+
 Rem
 bbdoc: Object Persistence.
 End Rem
@@ -59,6 +64,21 @@ Type TPersist
 	about: Set to True to have the data formatted nicely. Default is False - off.
 	End Rem
 	Global format:Int = False
+	
+	Rem
+	bbdoc: Compressed serialization.
+	about: Set to True to compress the serialized data. Default is False - no compression.
+	End Rem
+	Global compressed:Int = False
+	
+	Rem
+	bbdoc: Node-depth of XML to support when de-serializing.
+	about: Default is 1024.
+	<p>
+	If you have any problems with this, make it bigger.
+	</p>
+	End Rem
+	Global maxDepth:Int = xmlParserMaxDepth
 	
 	Field fileVersion:Int
 
@@ -100,6 +120,11 @@ Type TPersist
 		SerializeObject(obj)
 		
 		If doc Then
+			If compressed Then
+				doc.setCompressMode(9)
+			Else
+				doc.setCompressMode(0)
+			End If
 			doc.saveFormatFile(filename, format)
 		End If
 	End Method
@@ -135,6 +160,11 @@ Type TPersist
 	End Rem
 	Method ToString:String()
 		If doc Then
+			If compressed Then
+				doc.setCompressMode(9)
+			Else
+				doc.setCompressMode(0)
+			End If
 			Return doc.ToStringFormat(format)
 		End If
 	End Method
@@ -169,7 +199,10 @@ Type TPersist
 				
 					Select elementType
 						Case StringTypeId
-							elementNode.setContent(String(aObj))
+							' only if not empty
+							If String(aObj) Then
+								elementNode.setContent(String(aObj))
+							End If
 						Default
 							SerializeObject(aObj, elementNode)
 					End Select
@@ -282,7 +315,11 @@ Type TPersist
 							fieldNode.setContent(f.GetDouble(obj))
 						Case StringTypeId
 							t = "string"
-							fieldNode.setContent(f.GetString(obj))
+							' only if not empty
+							Local s:String = f.GetString(obj)
+							If s Then
+								fieldNode.setContent(s)
+							End If
 						Default
 							t = fieldType.Name()
 
@@ -346,6 +383,8 @@ Type TPersist
 	Function DeSerialize:Object(data:Object)
 		Local ser:TPersist = New TPersist
 		
+		xmlParserMaxDepth = maxDepth
+		
 		If TxmlDoc(data) Then
 			Return ser.DeSerializeFromDoc(TxmlDoc(data))
 		Else If TStream(data) Then
@@ -362,6 +401,8 @@ Type TPersist
 	Method DeSerializeFromDoc:Object(xmlDoc:TxmlDoc)
 		doc = xmlDoc
 
+		xmlParserMaxDepth = maxDepth
+
 		Local root:TxmlNode = doc.GetRootElement()
 		fileVersion = root.GetAttribute("ver").ToInt() ' get the format version
 		Local obj:Object = DeSerializeObject("", root)
@@ -373,6 +414,9 @@ Type TPersist
 	bbdoc: De-serializes the file @filename into an Object structure.
 	End Rem
 	Method DeSerializeFromFile:Object(filename:String)
+	
+		xmlParserMaxDepth = maxDepth
+
 		doc = TxmlDoc.parseFile(filename)
 
 		If doc Then
@@ -391,6 +435,8 @@ Type TPersist
 	Method DeSerializeFromStream:Object(stream:TStream)
 		Local data:String
 		Local buf:Byte[2048]
+
+		xmlParserMaxDepth = maxDepth
 		
 		While Not stream.Eof()
 			Local count:Int = stream.Read(buf, 2048)
@@ -411,6 +457,8 @@ Type TPersist
 		Local node:TxmlNode
 		
 		If Not doc Then
+			xmlParserMaxDepth = maxDepth
+			
 			doc = TxmlDoc.parseDoc(text)
 			parent = doc.GetRootElement()
 			fileVersion = parent.GetAttribute("ver").ToInt() ' get the format version
@@ -480,13 +528,14 @@ Type TPersist
 				' special case for String object
 				If objType = StringTypeId Then
 					obj = node.GetContent()
+					objectMap.Insert(node.getAttribute("ref"), obj)
 					Return obj
 				End If
 				
 				' create the object
 				obj = objType.NewObject()
 				objectMap.Insert(node.getAttribute("ref"), obj)
-				
+
 				For Local fieldNode:TxmlNode = EachIn node.getChildren()
 				
 					' this should be a field
