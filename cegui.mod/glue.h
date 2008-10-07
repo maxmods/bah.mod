@@ -97,6 +97,9 @@ extern "C" {
 	void bmx_cegui_delete_renderer(CEGUI::Renderer * r);
 
 	CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup);
+	bool bmx_cegui_schememanager_isschemepresent(const CEGUI::utf8 * scheme);
+	CEGUI::Scheme * bmx_cegui_schememanager_getscheme(const CEGUI::utf8 * name);
+	void bmx_cegui_schememanager_unloadallschemes();
 	
 	void bmx_cegui_system_setDefaultFont(CEGUI::System * sys, const CEGUI::utf8 * font);
 	void bmx_cegui_system_setDefaultMouseCursor(CEGUI::System * sys, const CEGUI::utf8 * l, const CEGUI::utf8 * kind);
@@ -111,6 +114,16 @@ extern "C" {
 	bool bmx_cegui_system_injectkeydown(CEGUI::System * sys, int key);
 	bool bmx_cegui_system_injectkeyup(CEGUI::System * sys, int key);
 	bool bmx_cegui_system_injectchar(CEGUI::System * sys, CEGUI::utf32 key);
+	CEGUI::Font * bmx_cegui_system_getDefaultFont(CEGUI::System * sys);
+	void bmx_cegui_system_signalredraw(CEGUI::System * sys);
+	bool bmx_cegui_system_isredrawrequested(CEGUI::System * sys);
+	double bmx_cegui_system_getsingleclicktimeout(CEGUI::System * sys);
+	double bmx_cegui_system_getmulticlicktimeout(CEGUI::System * sys);
+	void bmx_cegui_system_getmulticlicktoleranceareasize(CEGUI::System * sys, float * width, float * height);
+	void bmx_cegui_system_setsingleclicktimeout(CEGUI::System * sys, double timeout);
+	void bmx_cegui_system_setmulticlicktimeout(CEGUI::System * sys, double timeout);
+	void bmx_cegui_system_setmulticlicktoleranceareasize(CEGUI::System * sys, float width, float height);
+
 
 	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
@@ -270,7 +283,16 @@ extern "C" {
 
 
 	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimageset(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture);
+	void bmx_cegui_imagesetmanager_destroyimageset(CEGUI::Imageset * imageset);
+	void bmx_cegui_imagesetmanager_destroyimagesetname(const CEGUI::utf8 * name);
+	void bmx_cegui_imagesetmanager_destroyallimagesets();
+	CEGUI::Imageset * bmx_cegui_imagesetmanager_getimageset(const CEGUI::utf8 * name);
+	bool bmx_cegui_imagesetmanager_isimagesetpresent(const CEGUI::utf8 * name);
+	void bmx_cegui_imagesetmanager_notifyscreenresolution(float width, float height);
 
+	
 	CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
 	bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name);
 
@@ -337,6 +359,38 @@ extern "C" {
 	void bmx_cegui_tabcontrol_addtab(CEGUI::TabControl * tc, CEGUI::Window * wnd);
 	void bmx_cegui_tabcontrol_removetab(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
 	void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+
+	CEGUI::Texture * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	CEGUI::Texture * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size);
+	void bmx_cegui_renderer_destroytexture(CEGUI::Renderer * rend, CEGUI::Texture * texture);
+	void bmx_cegui_renderer_destroyalltextures(CEGUI::Renderer * rend);
+	bool bmx_cegui_renderer_isqueueingenabled(CEGUI::Renderer * rend);
+	float bmx_cegui_renderer_getwidth(CEGUI::Renderer * rend);
+	float bmx_cegui_renderer_getheight(CEGUI::Renderer * rend);
+	void bmx_cegui_renderer_getsize(CEGUI::Renderer * rend, float * width, float * height);
+	CEGUI::uint bmx_cegui_renderer_getmaxtexturesize(CEGUI::Renderer * rend);
+	CEGUI::uint bmx_cegui_renderer_gethorzscreendpi(CEGUI::Renderer * rend);
+	CEGUI::uint bmx_cegui_renderer_getvertscreendpi(CEGUI::Renderer * rend);
+	void bmx_cegui_renderer_resetzvalue(CEGUI::Renderer * rend);
+	void bmx_cegui_renderer_advancezvalue(CEGUI::Renderer * rend);
+	float bmx_cegui_renderer_getcurrentz(CEGUI::Renderer * rend);
+	float bmx_cegui_renderer_getzlayer(CEGUI::Renderer * rend, CEGUI::uint layer);
+	const CEGUI::utf8 * bmx_cegui_renderer_getidentifierstring(CEGUI::Renderer * rend);
+
+
+	int bmx_cegui_texture_getwidth(CEGUI::Texture * texture);
+	int bmx_cegui_texture_getoriginalwidth(CEGUI::Texture * texture);
+	float bmx_cegui_texture_getxscale(CEGUI::Texture * texture);
+	int bmx_cegui_texture_getheight(CEGUI::Texture * texture);
+	int bmx_cegui_texture_getoriginalheight(CEGUI::Texture * texture);
+	float bmx_cegui_texture_getyscale(CEGUI::Texture * texture);
+	void bmx_cegui_texture_loadfromfile(CEGUI::Texture * texture, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	void bmx_cegui_texture_loadfrommemory(CEGUI::Texture * texture, const void * buffer, CEGUI::uint width, CEGUI::uint height, CEGUI::Texture::PixelFormat pixelFormat);
+
+	void bmx_cegui_scheme_loadresources(CEGUI::Scheme * scheme);
+	void bmx_cegui_scheme_unloadresources(CEGUI::Scheme * scheme);
+	bool bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme);
+	const CEGUI::utf8 * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme);
 
 
 }

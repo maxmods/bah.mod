@@ -32,6 +32,9 @@ Extern
 	Function bmx_cegui_delete_renderer(renderer:Byte Ptr)
 	
 	Function bmx_cegui_schememanager_loadScheme:Byte Ptr(scheme:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_schememanager_isschemepresent:Int(scheme:Byte Ptr)
+	Function bmx_cegui_schememanager_getscheme:Byte Ptr(name:Byte Ptr)
+	Function bmx_cegui_schememanager_unloadallschemes()
 	
 	Function bmx_cegui_system_setDefaultFont(handle:Byte Ptr, font:Byte Ptr)
 	Function bmx_cegui_system_setDefaultMouseCursor(handle:Byte Ptr, look:Byte Ptr, kind:Byte Ptr)
@@ -45,6 +48,15 @@ Extern
 	Function bmx_cegui_system_injectkeydown:Int(handle:Byte Ptr, key:Int)
 	Function bmx_cegui_system_injectkeyup:Int(handle:Byte Ptr, key:Int)
 	Function bmx_cegui_system_injectchar:Int(handle:Byte Ptr, key:Int)
+	Function bmx_cegui_system_getDefaultFont:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_system_signalredraw(handle:Byte Ptr)
+	Function bmx_cegui_system_isredrawrequested:Int(handle:Byte Ptr)
+	Function bmx_cegui_system_getsingleclicktimeout:Double(handle:Byte Ptr)
+	Function bmx_cegui_system_getmulticlicktimeout:Double(handle:Byte Ptr)
+	Function bmx_cegui_system_getmulticlicktoleranceareasize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_system_setsingleclicktimeout(handle:Byte Ptr, timeout:Double)
+	Function bmx_cegui_system_setmulticlicktimeout(handle:Byte Ptr, timeout:Double)
+	Function bmx_cegui_system_setmulticlicktoleranceareasize(handle:Byte Ptr, width:Float, height:Float)
 	
 	Function bmx_cegui_windowmanager_getsingleton:Byte Ptr()
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(handle:Byte Ptr, filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
@@ -203,6 +215,14 @@ Extern
 	Function bmx_cegui_itemlistbox_selectallitems(handle:Byte Ptr)
 
 	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Byte Ptr(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_createimageset:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_createimagesetfromtexture:Byte Ptr(name:Byte Ptr, texture:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_destroyimageset(objectPtr:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_destroyimagesetname(imageset:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_destroyallimagesets()
+	Function bmx_cegui_imagesetmanager_getimageset:Byte Ptr(name:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_isimagesetpresent:Int(name:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_notifyscreenresolution(width:Float, height:Float)
 
 	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_fontmanager_isfontpresent:Int(name:Byte Ptr)
@@ -270,6 +290,37 @@ Extern
 	Function bmx_cegui_tabcontrol_addtab(handle:Byte Ptr, wnd:Byte Ptr)
 	Function bmx_cegui_tabcontrol_removetab(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_tabcontrol_removetabforid(handle:Byte Ptr, ID:Int)
+
+	Function bmx_cegui_renderer_createtexture:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_renderer_createtexturewithsize:Byte Ptr(handle:Byte Ptr, size:Float)
+	Function bmx_cegui_renderer_destroytexture(handle:Byte Ptr, texture:Byte Ptr)
+	Function bmx_cegui_renderer_destroyalltextures(handle:Byte Ptr)
+	Function bmx_cegui_renderer_isqueueingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getwidth:Float(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getheight:Float(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_renderer_getmaxtexturesize:Int(handle:Byte Ptr)
+	Function bmx_cegui_renderer_gethorzscreendpi:Int(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getvertscreendpi:Int(handle:Byte Ptr)
+	Function bmx_cegui_renderer_resetzvalue(handle:Byte Ptr)
+	Function bmx_cegui_renderer_advancezvalue(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getcurrentz:Float(handle:Byte Ptr)
+	Function bmx_cegui_renderer_getzlayer:Float(handle:Byte Ptr, layer:Int)
+	Function bmx_cegui_renderer_getidentifierstring:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_cegui_texture_getwidth:Int(handle:Byte Ptr)
+	Function bmx_cegui_texture_getoriginalwidth:Int(handle:Byte Ptr)
+	Function bmx_cegui_texture_getxscale:Float(handle:Byte Ptr)
+	Function bmx_cegui_texture_getheight:Int(handle:Byte Ptr)
+	Function bmx_cegui_texture_getoriginalheight:Int(handle:Byte Ptr)
+	Function bmx_cegui_texture_getyscale:Float(handle:Byte Ptr)
+	Function bmx_cegui_texture_loadfromfile(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_texture_loadfrommemory(handle:Byte Ptr, buffer:Byte Ptr, width:Int, height:Int, pixelFormat:Int)
+
+	Function bmx_cegui_scheme_loadresources(handle:Byte Ptr)
+	Function bmx_cegui_scheme_unloadresources(handle:Byte Ptr)
+	Function bmx_cegui_scheme_resourcesloaded:Int(handle:Byte Ptr)
+	Function bmx_cegui_scheme_getname:Byte Ptr(handle:Byte Ptr)
 
 End Extern
 
