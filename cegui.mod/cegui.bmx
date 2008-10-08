@@ -2818,232 +2818,307 @@ Type TCEMultiColumnList Extends TCEWindow
 	bbdoc: 
 	End Rem
 	Const EventListColumnMoved:String = "ColMoved"
-
+Rem
 	Method isUserSortControlEnabled:Int()
+		Return bmx_cegui_multicolumnlist_isusersortcontrolenabled(objectPtr)
 	End Method
 	
 	Method isUserColumnSizingEnabled:Int()
+		Return bmx_cegui_multicolumnlist_isusercolumnsizingenabled(objectPtr)
 	End Method
 	
 	Method isUserColumnDraggingEnabled:Int()
+		Return bmx_cegui_multicolumnlist_isusercolumndraggingenabled(objectPtr)
 	End Method
 	
 	Method getColumnCount:Int()
+		Return bmx_cegui_multicolumnlist_getcolumncount(objectPtr)
 	End Method
 	
 	Method getRowCount:Int()
+		Return bmx_cegui_multicolumnlist_getrowcount(objectPtr)
 	End Method
 	
 	Method getSortColumn:Int()
+		Return bmx_cegui_multicolumnlist_getsortcolumn(objectPtr)
 	End Method
 	
-	Method getColumnWithID:Int(col_id:Int)
+	Method getColumnWithID:Int(colId:Int)
+		Return bmx_cegui_multicolumnlist_getcolumnwithid(objectPtr, colId)
 	End Method
 	
 	Method getColumnWithHeaderText:Int(text:String)
+		Return bmx_cegui_multicolumnlist_getcolumnwithheadertext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	
 	Method getTotalColumnHeadersWidth:Float()
+		Return bmx_cegui_multicolumnlist_gettotalcolumnheaderswidth(objectPtr)
 	End Method
 	
-	Method getColumnHeaderWidth:Float(col_idx:Int)
+	Method getColumnHeaderWidth:Float(colIdx:Int)
+		Return bmx_cegui_multicolumnlist_getcolumnheaderwidth(objectPtr, colIdx)
 	End Method
 	
 	Method getSortDirection:Int()
+		Return bmx_cegui_multicolumnlist_getsortdirection(objectPtr)
 	End Method
 	
-	Method getHeaderSegmentForColumn:TCEListHeaderSegment(col_idx:Int)
+	Method getHeaderSegmentForColumn:TCEListHeaderSegment(colIdx:Int)
+		Return TCEListHeaderSegment(bmx_cegui_multicolumnlist_getheadersegmentforcolumn(objectPtr, colIdx))
 	End Method
 	
 	Method getItemRowIndex:Int(item:TCEListboxItem)
+		Return bmx_cegui_multicolumnlist_getitemrowindex(objectPtr, item.objectPtr)
 	End Method
 	
 	Method getItemColumnIndex:Int(item:TCEListboxItem)
+		Return bmx_cegui_multicolumnlist_getitemcolumnindex(objectPtr, item.objectPtr)
 	End Method
 	
 	Method getItemGridReference(item:TCEListboxItem, row:Int Var, col:Int Var)
+		bmx_cegui_multicolumnlist_getitemgridreference(objectPtr, item.objectPtr, Varptr row, Varptr col)
 	End Method
 	
 	Method getItemAtGridReference:TCEListboxItem(row:Int, col:Int)
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_getitematgridreference(objectPtr, row, col))
 	End Method
 	
-	Method isListboxItemInColumn:Int(item:TCEListboxItem, col_idx:Int)
+	Method isListboxItemInColumn:Int(item:TCEListboxItem, colIdx:Int)
+		Return bmx_cegui_multicolumnlist_islistboxitemincolumn(objectPtr, item.objectPtr, colIdx)
 	End Method
 	
-	Method isListboxItemInRow:Int(item:TCEListboxItem, row_idx:Int)
+	Method isListboxItemInRow:Int(item:TCEListboxItem, rowIdx:Int)
+		Return bmx_cegui_multicolumnlist_islistboxiteminrow(objectPtr, item.objectPtr, rowIdx)
 	End Method
 	
 	Method isListboxItemInList:Int(item:TCEListboxItem)
+		Return bmx_cegui_multicolumnlist_islistboxiteminlist(objectPtr, item.objectPtr)
 	End Method
 	
-	Method findColumnItemWithText:TCEListboxItem(text:String, col_idx:Int, start_item:TCEListboxItem)
+	Method findColumnItemWithText:TCEListboxItem(text:String, colIdx:Int, startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_findcolumnitemwithtext(objectPtr, _convertMaxToUTF8(text), colIdx, startItem.objectPtr))
 	End Method
 	
-	Method findRowItemWithText:TCEListboxItem(text:String, row_idx:Int, start_item:TCEListboxItem)
+	Method findRowItemWithText:TCEListboxItem(text:String, rowIdx:Int, startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_findrowitemwithtext(objectPtr, _convertMaxToUTF8(text), rowIdx, startItem.objectPtr))
 	End Method
 	
-	Method findListItemWithText:TCEListboxItem(text:String, start_item:TCEListboxItem)
+	Method findListItemWithText:TCEListboxItem(text:String, startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_findlistitemwithtext(objectPtr, _convertMaxToUTF8(text), startItem.objectPtr))
 	End Method
 	
 	Method getFirstSelectedItem:TCEListboxItem()
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_getfirstselecteditem(objectPtr))
 	End Method
 	
-	Method getNextSelected:TCEListboxItem(start_item:TCEListboxItem)
+	Method getNextSelected:TCEListboxItem(startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_multicolumnlist_getnextselected(objectPtr, startItem.objectPtr))
 	End Method
 	
 	Method getSelectedCount:Int()
+		Return bmx_cegui_multicolumnlist_getselectedcount(objectPtr)
 	End Method
 	
 	Method isItemSelected:Int(row:Int, col:Int)
+		Return bmx_cegui_multicolumnlist_isitemselected(objectPtr, row, col)
 	End Method
 	
 	Method getNominatedSelectionColumnID:Int()
+		Return bmx_cegui_multicolumnlist_getnominatedselectioncolumnid(objectPtr)
 	End Method
 	
 	Method getNominatedSelectionColumn:Int()
+		Return bmx_cegui_multicolumnlist_getnominatedselectioncolum(objectPtr)
 	End Method
 	
 	Method getNominatedSelectionRow:Int()
+		Return bmx_cegui_multicolumnlist_getnominatedselectionrow(objectPtr)
 	End Method
 	
 	Method getSelectionMode:Int()
+		Return bmx_cegui_multicolumnlist_getselectionmode(objectPtr)
 	End Method
 	
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_multicolumnlist_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_multicolumnlist_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	
-	Method getColumnID:Int(col_idx:Int)
+	Method getColumnID:Int(colIdx:Int)
+		Return bmx_cegui_multicolumnlist_getcolumnid(objectPtr, colIdx)
 	End Method
 	
-	Method getRowID:Int(row_idx:Int)
+	Method getRowID:Int(rowIdx:Int)
+		Return bmx_cegui_multicolumnlist_getrowid(objectPtr, rowIdx)
 	End Method
 	
-	Method getRowWithID:Int(row_id:Int)
+	Method getRowWithID:Int(rowId:Int)
+		Return bmx_cegui_multicolumnlist_getrowwithid(objectPtr, rowId)
 	End Method
-	
+
 	Method getListRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_multicolumnlist_getlistrenderarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_multicolumnlist_getvertscrollbar(objectPtr))
 	End Method
 	
 	Method getHorzScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_multicolumnlist_gethorzscrollbar(objectPtr))
 	End Method
 	
 	Method getListHeader:TCEListHeader()
+		Return TCEListHeader(bmx_cegui_multicolumnlist_getlistheader(objectPtr))
 	End Method
 	
 	Method getTotalRowsHeight:Float()
+		Return bmx_cegui_multicolumnlist_gettotalrowsheight(objectPtr)
 	End Method
 	
-	Method getWidestColumnItemWidth:Float(col_idx:Int)
+	Method getWidestColumnItemWidth:Float(colIdx:Int)
+		Return bmx_cegui_multicolumnlist_getwidestcolumnitemwidth(objectPtr, colIdx)
 	End Method
 	
-	Method getHighestRowItemHeight:Float(row_idx:Int)
+	Method getHighestRowItemHeight:Float(rowIdx:Int)
+		Return bmx_cegui_multicolumnlist_gethighestrowitemheight(objectPtr, rowIdx)
 	End Method
 	
 	Method resetList()
+		bmx_cegui_multicolumnlist_resetlist(objectPtr)
 	End Method
 	
-	Method addColumn(text:String, col_id:Int, width:Float)
+	Method addColumn(text:String, colId:Int, width:Float)
+		bmx_cegui_multicolumnlist_addcolumn(objectPtr, _convertMaxToUTF8(text), colId, width)
 	End Method
 	
-	Method insertColumn(text:String, col_id:Int, width:Float, position:Int)
+	Method insertColumn(text:String, colId:Int, width:Float, position:Int)
+		bmx_cegui_multicolumnlist_insertcolumn(objectPtr, _convertMaxToUTF8(text), colId, width, position)
 	End Method
 	
-	Method removeColumn(col_idx:Int)
+	Method removeColumn(colIdx:Int)
+		bmx_cegui_multicolumnlist_removecolumn(objectPtr, colIdx)
 	End Method
 	
-	Method removeColumnWithID(col_id:Int)
+	Method removeColumnWithID(colId:Int)
+		bmx_cegui_multicolumnlist_removecolumnwithid(objectPtr, colId)
 	End Method
 	
-	Method moveColumn(col_idx:Int, position:Int)
+	Method moveColumn(colIdx:Int, position:Int)
+		bmx_cegui_multicolumnlist_movecolumn(objectPtr, colIdx, position)
 	End Method
 	
-	Method moveColumnWithID(col_id:Int, position:Int)
+	Method moveColumnWithID(colId:Int, position:Int)
+		bmx_cegui_multicolumnlist_movecolumnwithid(objectPtr, colId, position)
 	End Method
 	
-	Method addRow:Int(row_id:Int = 0)
+	Method addRow:Int(rowId:Int = 0)
+		bmx_cegui_multicolumnlist_addrow(objectPtr, rowId)
 	End Method
 	
-	Method addRowItem:Int(item:TCEListboxItem, col_id:Int, row_id:Int = 0)
+	Method addRowItem:Int(item:TCEListboxItem, colId:Int, rowId:Int = 0)
+		Return bmx_cegui_multicolumnlist_addrowitem(objectPtr, item.objectPtr, colId, rowId)
 	End Method
 	
-	Method insertRow:Int(row_idx:Int, row_id:Int = 0)
+	Method insertRow:Int(rowIdx:Int, rowId:Int = 0)
+		Return bmx_cegui_multicolumnlist_insertrow(objectPtr, rowIdx, rowId)
 	End Method
 	
-	Method insertRowItem:Int(item:TCEListboxItem, col_id:Int, row_idx:Int, row_id:Int = 0)
+	Method insertRowItem:Int(item:TCEListboxItem, colId:Int, rowIdx:Int, rowId:Int = 0)
+		Return bmx_cegui_multicolumnlist_insertrowitem(objectPtr, item.objectPtr, colId, rowIdx, rowId)
 	End Method
 	
-	Method removeRow(row_idx:Int)
+	Method removeRow(rowIdx:Int)
+		bmx_cegui_multicolumnlist_removerow(objectPtr, rowIdx)
 	End Method
 	
 	Method setItemForGridRef(item:TCEListboxItem, row:Int, col:Int)
+		bmx_cegui_multicolumnlist_setitemforgridref(objectPtr, item.objectPtr, row, col)
 	End Method
 	
-	Method setItem(item:TCEListboxItem, col_id:Int, row_idx:Int)
+	Method setItem(item:TCEListboxItem, colId:Int, rowIdx:Int)
+		bmx_cegui_multicolumnlist_setitem(objectPtr, item.objectPtr, colId, rowIdx)
 	End Method
 	
-	Method setSelectionMode(sel_mode:Int)
+	Method setSelectionMode(selMode:Int)
+		bmx_cegui_multicolumnlist_setselectionmode(objectPtr, selMode)
 	End Method
 	
-	Method setNominatedSelectionColumnID(col_id:Int)
+	Method setNominatedSelectionColumnID(colId:Int)
+		bmx_cegui_multicolumnlist_setnominatedselectioncolumnid(objectPtr, colId)
 	End Method
 	
-	Method setNominatedSelectionColumn(col_idx:Int)
+	Method setNominatedSelectionColumn(colIdx:Int)
+		bmx_cegui_multicolumnlist_setnominatedselectioncolumn(objectPtr, colIdx)
 	End Method
 	
-	Method setNominatedSelectionRow(row_idx:Int)
+	Method setNominatedSelectionRow(rowIdx:Int)
+		bmx_cegui_multicolumnlist_setnominatedselectionrow(objectPtr, rowIdx)
 	End Method
 	
 	Method setSortDirection(direction:Int)
+		bmx_cegui_multicolumnlist_setsortdirection(objectPtr, direction)
 	End Method
 	
-	Method setSortColumn(col_idx:Int)
+	Method setSortColumn(colIdx:Int)
+		bmx_cegui_multicolumnlist_setsortcolumn(objectPtr, colIdx)
 	End Method
 	
-	Method setSortColumnByID(col_id:Int)
+	Method setSortColumnByID(colId:Int)
+		bmx_cegui_multicolumnlist_setsortcolumnbyid(objectPtr, colId)
 	End Method
 	
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_multicolumnlist_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	
 	Method setShowHorzScrollbar(setting:Int)
+		bmx_cegui_multicolumnlist_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	
 	Method clearAllSelections()
+		bmx_cegui_multicolumnlist_clearallselections(objectPtr)
 	End Method
 	
 	Method setItemSelectState(item:TCEListboxItem, state:Int)
+		bmx_cegui_multicolumnlist_setitemselectstate(objectPtr, item.objectPtr, state)
 	End Method
 	
 	Method setItemSelectStateForGridRef(row:Int, col:Int, state:Int)
+		bmx_cegui_multicolumnlist_setitemselectstateforgridref(objectPtr, row, col, state)
 	End Method
 	
 	Method handleUpdatedItemData()
+		bmx_cegui_multicolumnlist_handleupdateditemdata(objectPtr)
 	End Method
 	
-	Method setColumnHeaderWidth(col_idx:Int, width:Float)
+	Method setColumnHeaderWidth(colIdx:Int, width:Float)
+		bmx_cegui_multicolumnlist_setcolumnheaderwidth(objectPtr, colIdx, width)
 	End Method
 	
 	Method setUserSortControlEnabled(setting:Int)
+		bmx_cegui_multicolumnlist_setusersortcontrolenabled(objectPtr, setting)
 	End Method
 	
 	Method setUserColumnSizingEnabled(setting:Int)
+		bmx_cegui_multicolumnlist_setusercolumnsizingenabled(objectPtr, setting)
 	End Method
 	
 	Method setUserColumnDraggingEnabled(setting:Int)
+		bmx_cegui_multicolumnlist_setusercolumndraggingenabled(objectPtr, setting)
 	End Method
 	
-	Method autoSizeColumnHeader(col_idx:Int)
+	Method autoSizeColumnHeader(colIdx:Int)
+		bmx_cegui_multicolumnlist_autosizecolumnheader(objectPtr, colIdx)
 	End Method
 	
-	Method setRowID(row_idx:Int, row_id:Int)
+	Method setRowID(rowIdx:Int, rowId:Int)
+		bmx_cegui_multicolumnlist_setrowid(objectPtr, rowIdx, rowId)
 	End Method
-	
+End Rem
 End Type
 
 Rem
