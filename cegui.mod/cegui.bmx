@@ -1732,6 +1732,19 @@ Type TCEListHeaderSegment Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Const SORT_NONE:Int = 0
+	Rem
+	bbdoc: 
+	End Rem
+	Const SORT_ASCENDING:Int = 1
+	Rem
+	bbdoc: 
+	End Rem
+	Const SORT_DESCENDING:Int = 2
+
 End Type
 
 Rem
@@ -2775,350 +2788,590 @@ Type TCEMultiColumnList Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the selection mode for the list box changes. 
 	End Rem
 	Const EventSelectionModeChanged:String = "SelectModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the nominated select column changes. 
 	End Rem
 	Const EventNominatedSelectColumnChanged:String = "NomSelColChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the nominated select row changes. 
 	End Rem
 	Const EventNominatedSelectRowChanged:String = "NomSelRowChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the vertical scroll bar 'force' setting changes. 
 	End Rem
 	Const EventVertScrollbarModeChanged:String = "VertBarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the horizontal scroll bar 'force' setting changes. 
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzBarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the current selection(s) within the list box changes. 
 	End Rem
 	Const EventSelectionChanged:String = "SelectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the contents of the list box changes. 
 	End Rem
 	Const EventListContentsChanged:String = "ContentsChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the sort column changes. 
 	End Rem
 	Const EventSortColumnChanged:String = "SortColChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the sort direction changes. 
 	End Rem
 	Const EventSortDirectionChanged:String = "SortDirChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the width of a column in the list changes. 
 	End Rem
 	Const EventListColumnSized:String = "ColSized"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the column order changes. 
 	End Rem
 	Const EventListColumnMoved:String = "ColMoved"
-Rem
+
+	Rem
+	bbdoc: Returns whether user manipulation of the sort column and direction are enabled.
+	End Rem
 	Method isUserSortControlEnabled:Int()
 		Return bmx_cegui_multicolumnlist_isusersortcontrolenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the user may size column segments.
+	End Rem
 	Method isUserColumnSizingEnabled:Int()
 		Return bmx_cegui_multicolumnlist_isusercolumnsizingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the user may modify the order of the columns.
+	End Rem
 	Method isUserColumnDraggingEnabled:Int()
 		Return bmx_cegui_multicolumnlist_isusercolumndraggingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of columns in the multi-column list.
+	End Rem
 	Method getColumnCount:Int()
 		Return bmx_cegui_multicolumnlist_getcolumncount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of rows in the multi-column list.
+	End Rem
 	Method getRowCount:Int()
 		Return bmx_cegui_multicolumnlist_getrowcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the zero based index of the current sort column.
+	about: There must be at least one column to successfully call this method.
+	End Rem
 	Method getSortColumn:Int()
 		Return bmx_cegui_multicolumnlist_getsortcolumn(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the zero based column index of the column with the specified ID.
+	End Rem
 	Method getColumnWithID:Int(colId:Int)
 		Return bmx_cegui_multicolumnlist_getcolumnwithid(objectPtr, colId)
 	End Method
 	
+	Rem
+	bbdoc: Returns the zero based index of the column whos header text matches the specified text.
+	End Rem
 	Method getColumnWithHeaderText:Int(text:String)
 		Return bmx_cegui_multicolumnlist_getcolumnwithheadertext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	
+	Rem
+	bbdoc: Returns the total width of all column headers.
+	End Rem
 	Method getTotalColumnHeadersWidth:Float()
 		Return bmx_cegui_multicolumnlist_gettotalcolumnheaderswidth(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the width of the specified column header (and therefore the column itself).
+	End Rem
 	Method getColumnHeaderWidth:Float(colIdx:Int)
 		Return bmx_cegui_multicolumnlist_getcolumnheaderwidth(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Returns the currently set sort direction.
+	about: One of TCEListHeaderSegment.SORT_NONE, TCEListHeaderSegment.SORT_ASCENDING or TCEListHeaderSegment.SORT_DESCENDING.
+	End Rem
 	Method getSortDirection:Int()
 		Return bmx_cegui_multicolumnlist_getsortdirection(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the TCEListHeaderSegment object for the specified column.
+	End Rem
 	Method getHeaderSegmentForColumn:TCEListHeaderSegment(colIdx:Int)
 		Return TCEListHeaderSegment(bmx_cegui_multicolumnlist_getheadersegmentforcolumn(objectPtr, colIdx))
 	End Method
 	
+	Rem
+	bbdoc: Returns the zero based index of the Row that contains @item.
+	End Rem
 	Method getItemRowIndex:Int(item:TCEListboxItem)
 		Return bmx_cegui_multicolumnlist_getitemrowindex(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current zero based index of the column that contains @item.
+	End Rem
 	Method getItemColumnIndex:Int(item:TCEListboxItem)
 		Return bmx_cegui_multicolumnlist_getitemcolumnindex(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the grid reference for @item.
+	End Rem
 	Method getItemGridReference(item:TCEListboxItem, row:Int Var, col:Int Var)
 		bmx_cegui_multicolumnlist_getitemgridreference(objectPtr, item.objectPtr, Varptr row, Varptr col)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ListboxItem at the specified grid reference.
+	End Rem
 	Method getItemAtGridReference:TCEListboxItem(row:Int, col:Int)
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_getitematgridreference(objectPtr, row, col))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether ListboxItem @item is attached to the column at index @colIdx.
+	End Rem
 	Method isListboxItemInColumn:Int(item:TCEListboxItem, colIdx:Int)
 		Return bmx_cegui_multicolumnlist_islistboxitemincolumn(objectPtr, item.objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether ListboxItem @item is attached to the row at index @rowIdx.
+	End Rem
 	Method isListboxItemInRow:Int(item:TCEListboxItem, rowIdx:Int)
 		Return bmx_cegui_multicolumnlist_islistboxiteminrow(objectPtr, item.objectPtr, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether ListboxItem @item is attached to the list box.
+	End Rem
 	Method isListboxItemInList:Int(item:TCEListboxItem)
 		Return bmx_cegui_multicolumnlist_islistboxiteminlist(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ListboxItem in column colIdx that has the text string @text.
+	End Rem
 	Method findColumnItemWithText:TCEListboxItem(text:String, colIdx:Int, startItem:TCEListboxItem)
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_findcolumnitemwithtext(objectPtr, _convertMaxToUTF8(text), colIdx, startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the ListboxItem in row @rowIdx that has the text string @text.
+	End Rem
 	Method findRowItemWithText:TCEListboxItem(text:String, rowIdx:Int, startItem:TCEListboxItem)
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_findrowitemwithtext(objectPtr, _convertMaxToUTF8(text), rowIdx, startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the ListboxItem that has the text string @text.
+	End Rem
 	Method findListItemWithText:TCEListboxItem(text:String, startItem:TCEListboxItem)
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_findlistitemwithtext(objectPtr, _convertMaxToUTF8(text), startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the first selected ListboxItem attached to this list box.
+	End Rem
 	Method getFirstSelectedItem:TCEListboxItem()
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_getfirstselecteditem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the next selected ListboxItem after @startItem.
+	End Rem
 	Method getNextSelected:TCEListboxItem(startItem:TCEListboxItem)
 		Return TCEListboxItem(bmx_cegui_multicolumnlist_getnextselected(objectPtr, startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of selected ListboxItems attached to this list box.
+	End Rem
 	Method getSelectedCount:Int()
 		Return bmx_cegui_multicolumnlist_getselectedcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the ListboxItem at the grid reference is selected.
+	End Rem
 	Method isItemSelected:Int(row:Int, col:Int)
 		Return bmx_cegui_multicolumnlist_isitemselected(objectPtr, row, col)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ID of the currently set nominated selection column to be used when in one of the NominatedColumn* selection modes.
+	End Rem
 	Method getNominatedSelectionColumnID:Int()
 		Return bmx_cegui_multicolumnlist_getnominatedselectioncolumnid(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the index of the currently set nominated selection column to be used when in one of the NominatedColumn* selection modes.
+	End Rem
 	Method getNominatedSelectionColumn:Int()
 		Return bmx_cegui_multicolumnlist_getnominatedselectioncolum(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the index of the currently set nominated selection row to be used when in one of the NominatedRow* selection modes.
+	End Rem
 	Method getNominatedSelectionRow:Int()
 		Return bmx_cegui_multicolumnlist_getnominatedselectionrow(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the currently set selection mode.
+	End Rem
 	Method getSelectionMode:Int()
 		Return bmx_cegui_multicolumnlist_getselectionmode(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown.
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
 		Return bmx_cegui_multicolumnlist_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the horizontal scroll bar is always shown.
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
 		Return bmx_cegui_multicolumnlist_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ID code assigned to the requested column.
+	End Rem
 	Method getColumnID:Int(colIdx:Int)
 		Return bmx_cegui_multicolumnlist_getcolumnid(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ID code assigned to the requested row.
+	End Rem
 	Method getRowID:Int(rowIdx:Int)
 		Return bmx_cegui_multicolumnlist_getrowid(objectPtr, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Return the zero based row index of the row with the specified ID.
+	End Rem
 	Method getRowWithID:Int(rowId:Int)
 		Return bmx_cegui_multicolumnlist_getrowwithid(objectPtr, rowId)
 	End Method
 
+	Rem
+	bbdoc: Return the rectangular area describing, in un-clipped pixels, the window relative area that is to be used for rendering list items.
+	End Rem
 	Method getListRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
 		bmx_cegui_multicolumnlist_getlistrenderarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Returns the vertical scrollbar component widget for this MultiColumnList.
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
 		Return TCEScrollbar(bmx_cegui_multicolumnlist_getvertscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the horizontal scrollbar component widget for this MultiColumnList.
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar()
 		Return TCEScrollbar(bmx_cegui_multicolumnlist_gethorzscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the list header component widget for this MultiColumnList.
+	End Rem
 	Method getListHeader:TCEListHeader()
 		Return TCEListHeader(bmx_cegui_multicolumnlist_getlistheader(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the sum of all row heights in pixels. 
+	End Rem
 	Method getTotalRowsHeight:Float()
 		Return bmx_cegui_multicolumnlist_gettotalrowsheight(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel width of the widest item in the given column. 
+	End Rem
 	Method getWidestColumnItemWidth:Float(colIdx:Int)
 		Return bmx_cegui_multicolumnlist_getwidestcolumnitemwidth(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Returns, in pixels, the height of the highest item in the given row. 
+	End Rem
 	Method getHighestRowItemHeight:Float(rowIdx:Int)
 		Return bmx_cegui_multicolumnlist_gethighestrowitemheight(objectPtr, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Remove all items from the list.
+	about: Note that this will cause 'AutoDelete' items to be deleted.
+	End Rem
 	Method resetList()
 		bmx_cegui_multicolumnlist_resetlist(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Add a column to the list box.
+	End Rem
 	Method addColumn(text:String, colId:Int, width:Float)
 		bmx_cegui_multicolumnlist_addcolumn(objectPtr, _convertMaxToUTF8(text), colId, width)
 	End Method
 	
+	Rem
+	bbdoc: Insert a new column in the list.
+	End Rem
 	Method insertColumn(text:String, colId:Int, width:Float, position:Int)
 		bmx_cegui_multicolumnlist_insertcolumn(objectPtr, _convertMaxToUTF8(text), colId, width, position)
 	End Method
 	
+	Rem
+	bbdoc: Removes a column from the list box.
+	about: This will cause any ListboxItem using the autoDelete option in the column to be deleted.
+	End Rem
 	Method removeColumn(colIdx:Int)
 		bmx_cegui_multicolumnlist_removecolumn(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Removes a column from the list box.
+	about: This will cause any ListboxItem using the autoDelete option in the column to be deleted.
+	End Rem
 	Method removeColumnWithID(colId:Int)
 		bmx_cegui_multicolumnlist_removecolumnwithid(objectPtr, colId)
 	End Method
 	
+	Rem
+	bbdoc: Moves the column at index @colIdx so it is at index @position.
+	End Rem
 	Method moveColumn(colIdx:Int, position:Int)
 		bmx_cegui_multicolumnlist_movecolumn(objectPtr, colIdx, position)
 	End Method
 	
+	Rem
+	bbdoc: Moves the column with ID @colId so it is at index @position.
+	End Rem
 	Method moveColumnWithID(colId:Int, position:Int)
 		bmx_cegui_multicolumnlist_movecolumnwithid(objectPtr, colId, position)
 	End Method
 	
+	Rem
+	bbdoc: Adds an empty row to the list box.
+	about: If the list is being sorted, the new row will appear at an appropriate position according to
+	the sorting being applied. If no sorting is being done, the new row will appear at the bottom
+	of the list.
+	End Rem
 	Method addRow:Int(rowId:Int = 0)
-		bmx_cegui_multicolumnlist_addrow(objectPtr, rowId)
+		Return bmx_cegui_multicolumnlist_addrow(objectPtr, rowId)
 	End Method
 	
+	Rem
+	bbdoc: Adds a row to the list box, and set the item in the column with ID @colId to @item.
+	about: If the list is being sorted, the new row will appear at an appropriate position
+	according to the sorting being applied. If no sorting is being done, the new row will appear
+	at the bottom of the list.
+	End Rem
 	Method addRowItem:Int(item:TCEListboxItem, colId:Int, rowId:Int = 0)
 		Return bmx_cegui_multicolumnlist_addrowitem(objectPtr, item.objectPtr, colId, rowId)
 	End Method
 	
+	Rem
+	bbdoc: Inserts an empty row into the list box.
+	about: If the list is being sorted, the new row will appear at an appropriate position according
+	to the sorting being applied. If no sorting is being done, the new row will appear at the specified
+	index.
+	End Rem
 	Method insertRow:Int(rowIdx:Int, rowId:Int = 0)
 		Return bmx_cegui_multicolumnlist_insertrow(objectPtr, rowIdx, rowId)
 	End Method
 	
+	Rem
+	bbdoc: Inserts a row into the list box, and set the item in the column with ID @colId to @item.
+	End Rem
 	Method insertRowItem:Int(item:TCEListboxItem, colId:Int, rowIdx:Int, rowId:Int = 0)
 		Return bmx_cegui_multicolumnlist_insertrowitem(objectPtr, item.objectPtr, colId, rowIdx, rowId)
 	End Method
 	
+	Rem
+	bbdoc: Removes the list box row with index @rowIdx.
+	bout: Any ListboxItem in row rowIdx using autoDelete mode will be deleted.
+	End Rem
 	Method removeRow(rowIdx:Int)
 		bmx_cegui_multicolumnlist_removerow(objectPtr, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Sets the ListboxItem for grid reference position.
+	End Rem
 	Method setItemForGridRef(item:TCEListboxItem, row:Int, col:Int)
 		bmx_cegui_multicolumnlist_setitemforgridref(objectPtr, item.objectPtr, row, col)
 	End Method
 	
+	Rem
+	bbdoc: Sets the ListboxItem for the column with ID @colId in row @rowIdx.
+	End Rem
 	Method setItem(item:TCEListboxItem, colId:Int, rowIdx:Int)
 		bmx_cegui_multicolumnlist_setitem(objectPtr, item.objectPtr, colId, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection mode for the list box.
+	End Rem
 	Method setSelectionMode(selMode:Int)
 		bmx_cegui_multicolumnlist_setselectionmode(objectPtr, selMode)
 	End Method
 	
+	Rem
+	bbdoc: Sets the column to be used for the NominatedColumn* selection modes.
+	End Rem
 	Method setNominatedSelectionColumnID(colId:Int)
 		bmx_cegui_multicolumnlist_setnominatedselectioncolumnid(objectPtr, colId)
 	End Method
 	
+	Rem
+	bbdoc: Sets the column to be used for the NominatedColumn* selection modes.
+	End Rem
 	Method setNominatedSelectionColumn(colIdx:Int)
 		bmx_cegui_multicolumnlist_setnominatedselectioncolumn(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Sets the row to be used for the NominatedRow* selection modes.
+	End Rem
 	Method setNominatedSelectionRow(rowIdx:Int)
 		bmx_cegui_multicolumnlist_setnominatedselectionrow(objectPtr, rowIdx)
 	End Method
 	
+	Rem
+	bbdoc: Sets the sort direction to be used.
+	End Rem
 	Method setSortDirection(direction:Int)
 		bmx_cegui_multicolumnlist_setsortdirection(objectPtr, direction)
 	End Method
 	
+	Rem
+	bbdoc: Sets the column to be used as the sort key.
+	End Rem
 	Method setSortColumn(colIdx:Int)
 		bmx_cegui_multicolumnlist_setsortcolumn(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Sets the column to be used as the sort key
+	End Rem
 	Method setSortColumnByID(colId:Int)
 		bmx_cegui_multicolumnlist_setsortcolumnbyid(objectPtr, colId)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown, or just when needed.
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
 		bmx_cegui_multicolumnlist_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the horizontal scroll bar should always be shown, or just when needed.
+	End Rem
 	Method setShowHorzScrollbar(setting:Int)
 		bmx_cegui_multicolumnlist_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Removes the selected state from any currently selected ListboxItem attached to the list.
+	End Rem
 	Method clearAllSelections()
 		bmx_cegui_multicolumnlist_clearallselections(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets or clears the selected state of the given ListboxItem which must be attached to the list.
+	End Rem
 	Method setItemSelectState(item:TCEListboxItem, state:Int)
 		bmx_cegui_multicolumnlist_setitemselectstate(objectPtr, item.objectPtr, state)
 	End Method
 	
+	Rem
+	bbdoc: Sets or clears the selected state of the ListboxItem at the given grid reference.
+	End Rem
 	Method setItemSelectStateForGridRef(row:Int, col:Int, state:Int)
 		bmx_cegui_multicolumnlist_setitemselectstateforgridref(objectPtr, row, col, state)
 	End Method
 	
+	Rem
+	bbdoc: Informs the list box that one or more attached ListboxItems have been externally modified, and the list should re-sync its internal state and refresh the display as needed.
+	End Rem
 	Method handleUpdatedItemData()
 		bmx_cegui_multicolumnlist_handleupdateditemdata(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the width of the specified column header (and therefore the column itself).
+	End Rem
 	Method setColumnHeaderWidth(colIdx:Int, width:Float)
 		bmx_cegui_multicolumnlist_setcolumnheaderwidth(objectPtr, colIdx, width)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether user manipulation of the sort column and direction are enabled.
+	End Rem
 	Method setUserSortControlEnabled(setting:Int)
 		bmx_cegui_multicolumnlist_setusersortcontrolenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the user may size column segments.
+	End Rem
 	Method setUserColumnSizingEnabled(setting:Int)
 		bmx_cegui_multicolumnlist_setusercolumnsizingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the user may modify the order of the columns.
+	End Rem
 	Method setUserColumnDraggingEnabled(setting:Int)
 		bmx_cegui_multicolumnlist_setusercolumndraggingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Automatically determines the "best fit" size for the specified column and sets the column width to the same.
+	End Rem
 	Method autoSizeColumnHeader(colIdx:Int)
 		bmx_cegui_multicolumnlist_autosizecolumnheader(objectPtr, colIdx)
 	End Method
 	
+	Rem
+	bbdoc: Set the ID code assigned to a given row.
+	End Rem
 	Method setRowID(rowIdx:Int, rowId:Int)
 		bmx_cegui_multicolumnlist_setrowid(objectPtr, rowIdx, rowId)
 	End Method
-End Rem
+
 End Type
 
 Rem

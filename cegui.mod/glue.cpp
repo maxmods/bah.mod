@@ -1594,3 +1594,314 @@ void bmx_cegui_listboxitem_setownerwindow(CEGUI::ListboxItem * item, CEGUI::Wind
 	item->setOwnerWindow(owner);
 }
 
+
+// *************************************************
+
+
+bool bmx_cegui_multicolumnlist_isusersortcontrolenabled(CEGUI::MultiColumnList * mc) {
+	return mc->isUserSortControlEnabled();
+}
+
+bool bmx_cegui_multicolumnlist_isusercolumnsizingenabled(CEGUI::MultiColumnList * mc) {
+	return mc->isUserColumnSizingEnabled();
+}
+
+bool bmx_cegui_multicolumnlist_isusercolumndraggingenabled(CEGUI::MultiColumnList * mc) {
+	return mc->isUserColumnDraggingEnabled();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getcolumncount(CEGUI::MultiColumnList * mc) {
+	return mc->getColumnCount();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getrowcount(CEGUI::MultiColumnList * mc) {
+	return mc->getRowCount();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getsortcolumn(CEGUI::MultiColumnList * mc) {
+	return mc->getSortColumn();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getcolumnwithid(CEGUI::MultiColumnList * mc, CEGUI::uint colId) {
+	return mc->getColumnWithID(colId);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getcolumnwithheadertext(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text) {
+	return mc->getColumnWithHeaderText(text);
+}
+
+float bmx_cegui_multicolumnlist_gettotalcolumnheaderswidth(CEGUI::MultiColumnList * mc) {
+	return mc->getTotalColumnHeadersWidth().d_offset;
+}
+
+float bmx_cegui_multicolumnlist_getcolumnheaderwidth(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	return mc->getColumnHeaderWidth(colIdx).d_offset;
+}
+
+CEGUI::ListHeaderSegment::SortDirection bmx_cegui_multicolumnlist_getsortdirection(CEGUI::MultiColumnList * mc) {
+	return mc->getSortDirection();
+}
+
+MaxListHeaderSegment * bmx_cegui_multicolumnlist_getheadersegmentforcolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+ // TODO
+	return NULL;
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getitemrowindex(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item) {
+	return mc->getItemRowIndex(item);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getitemcolumnindex(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item) {
+	return mc->getItemColumnIndex(item);
+}
+
+void bmx_cegui_multicolumnlist_getitemgridreference(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item, int * row, int * col) {
+	CEGUI::MCLGridRef ref = mc->getItemGridReference(item);
+	*row = ref.row;
+	*col = ref.column;
+}
+
+BBObject * bmx_cegui_multicolumnlist_getitematgridreference(CEGUI::MultiColumnList * mc, int row, int col) {
+	return _bah_cegui_TCEListboxItem__create(mc->getItemAtGridReference(CEGUI::MCLGridRef(row, col)));
+}
+
+bool bmx_cegui_multicolumnlist_islistboxitemincolumn(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item, CEGUI::uint colIdx) {
+	return mc->isListboxItemInColumn(item, colIdx);
+}
+
+bool bmx_cegui_multicolumnlist_islistboxiteminrow(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item, CEGUI::uint rowIdx) {
+	return mc->isListboxItemInRow(item, rowIdx);
+}
+
+bool bmx_cegui_multicolumnlist_islistboxiteminlist(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * item) {
+	return mc->isListboxItemInList(item);
+}
+
+BBObject * bmx_cegui_multicolumnlist_findcolumnitemwithtext(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colIdx, const CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(mc->findColumnItemWithText(text, colIdx, startItem));
+}
+
+BBObject * bmx_cegui_multicolumnlist_findrowitemwithtext(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint rowIdx, const CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(mc->findRowItemWithText(text, rowIdx, startItem));
+}
+
+BBObject * bmx_cegui_multicolumnlist_findlistitemwithtext(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, const CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(mc->findListItemWithText(text, startItem));
+}
+
+BBObject * bmx_cegui_multicolumnlist_getfirstselecteditem(CEGUI::MultiColumnList * mc) {
+	return _bah_cegui_TCEListboxItem__create(mc->getFirstSelectedItem());
+}
+
+BBObject * bmx_cegui_multicolumnlist_getnextselected(CEGUI::MultiColumnList * mc, const CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(mc->getNextSelected(startItem));
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getselectedcount(CEGUI::MultiColumnList * mc) {
+	return mc->getSelectedCount();
+}
+
+bool bmx_cegui_multicolumnlist_isitemselected(CEGUI::MultiColumnList * mc, int row, int col) {
+	return mc->isItemSelected(CEGUI::MCLGridRef(row, col));
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getnominatedselectioncolumnid(CEGUI::MultiColumnList * mc) {
+	return mc->getNominatedSelectionColumnID();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getnominatedselectioncolum(CEGUI::MultiColumnList * mc) {
+	return mc->getNominatedSelectionColumn();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getnominatedselectionrow(CEGUI::MultiColumnList * mc) {
+	return mc->getNominatedSelectionRow();
+}
+
+CEGUI::MultiColumnList::SelectionMode bmx_cegui_multicolumnlist_getselectionmode(CEGUI::MultiColumnList * mc) {
+	return mc->getSelectionMode();
+}
+
+bool bmx_cegui_multicolumnlist_isvertscrollbaralwaysshown(CEGUI::MultiColumnList * mc) {
+	return mc->isVertScrollbarAlwaysShown();
+}
+
+bool bmx_cegui_multicolumnlist_ishorzscrollbaralwaysshown(CEGUI::MultiColumnList * mc) {
+	return mc->isHorzScrollbarAlwaysShown();
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getcolumnid(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	return mc->getColumnID(colIdx);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getrowid(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx) {
+	return mc->getRowID(rowIdx);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_getrowwithid(CEGUI::MultiColumnList * mc, CEGUI::uint rowId) {
+	return mc->getRowWithID(rowId);
+}
+
+void bmx_cegui_multicolumnlist_getlistrenderarea(CEGUI::MultiColumnList * mc, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = mc->getListRenderArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+BBObject * bmx_cegui_multicolumnlist_getvertscrollbar(CEGUI::MultiColumnList * mc) {
+	return _bah_cegui_TCEScrollbar__create(mc->getVertScrollbar());
+}
+
+BBObject * bmx_cegui_multicolumnlist_gethorzscrollbar(CEGUI::MultiColumnList * mc) {
+	return _bah_cegui_TCEScrollbar__create(mc->getHorzScrollbar());
+}
+
+BBObject * bmx_cegui_multicolumnlist_getlistheader(CEGUI::MultiColumnList * mc) {
+	return _bah_cegui_TCEListHeader__create(mc->getListHeader());
+}
+
+float bmx_cegui_multicolumnlist_gettotalrowsheight(CEGUI::MultiColumnList * mc) {
+	return mc->getTotalRowsHeight();
+}
+
+float bmx_cegui_multicolumnlist_getwidestcolumnitemwidth(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	return mc->getWidestColumnItemWidth(colIdx);
+}
+
+float bmx_cegui_multicolumnlist_gethighestrowitemheight(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx) {
+	return mc->getHighestRowItemHeight(rowIdx);
+}
+
+void bmx_cegui_multicolumnlist_resetlist(CEGUI::MultiColumnList * mc) {
+	mc->resetList();
+}
+
+void bmx_cegui_multicolumnlist_addcolumn(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, float width) {
+	mc->addColumn(text, colId, guessUDim(width));
+}
+
+void bmx_cegui_multicolumnlist_insertcolumn(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, float width, CEGUI::uint position) {
+	mc->insertColumn(text, colId, guessUDim(width), position);
+}
+
+void bmx_cegui_multicolumnlist_removecolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	mc->removeColumn(colIdx);
+}
+
+void bmx_cegui_multicolumnlist_removecolumnwithid(CEGUI::MultiColumnList * mc, CEGUI::uint colId) {
+	mc->removeColumnWithID(colId);
+}
+
+void bmx_cegui_multicolumnlist_movecolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx, CEGUI::uint position) {
+	mc->moveColumn(colIdx, position);
+}
+
+void bmx_cegui_multicolumnlist_movecolumnwithid(CEGUI::MultiColumnList * mc, CEGUI::uint colId, CEGUI::uint position) {
+	mc->moveColumnWithID(colId, position);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_addrow(CEGUI::MultiColumnList * mc, CEGUI::uint rowId) {
+	return mc->addRow(rowId);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_addrowitem(CEGUI::MultiColumnList * mc, CEGUI::ListboxItem * item, CEGUI::uint colId, CEGUI::uint rowId) {
+	return mc->addRow(item, colId, rowId);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_insertrow(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx, CEGUI::uint rowId) {
+	return mc->insertRow(rowIdx, rowId);
+}
+
+CEGUI::uint bmx_cegui_multicolumnlist_insertrowitem(CEGUI::MultiColumnList * mc, CEGUI::ListboxItem * item, CEGUI::uint colId, CEGUI::uint rowIdx, CEGUI::uint rowId) {
+	return mc->insertRow(item, colId, rowIdx, rowId);
+}
+
+void bmx_cegui_multicolumnlist_removerow(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx) {
+	mc->removeRow(rowIdx);
+}
+
+void bmx_cegui_multicolumnlist_setitemforgridref(CEGUI::MultiColumnList * mc, CEGUI::ListboxItem * item, int row, int col) {
+	mc->setItem(item, CEGUI::MCLGridRef(row, col));
+}
+
+void bmx_cegui_multicolumnlist_setitem(CEGUI::MultiColumnList * mc, CEGUI::ListboxItem * item, CEGUI::uint colId, CEGUI::uint rowIdx) {
+	mc->setItem(item, colId, rowIdx);
+}
+
+void bmx_cegui_multicolumnlist_setselectionmode(CEGUI::MultiColumnList * mc, CEGUI::MultiColumnList::SelectionMode selMode) {
+	mc->setSelectionMode(selMode);
+}
+
+void bmx_cegui_multicolumnlist_setnominatedselectioncolumnid(CEGUI::MultiColumnList * mc, CEGUI::uint colId) {
+	mc->setNominatedSelectionColumnID(colId);
+}
+
+void bmx_cegui_multicolumnlist_setnominatedselectioncolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	mc->setNominatedSelectionColumn(colIdx);
+}
+
+void bmx_cegui_multicolumnlist_setnominatedselectionrow(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx) {
+	mc->setNominatedSelectionRow(rowIdx);
+}
+
+void bmx_cegui_multicolumnlist_setsortdirection(CEGUI::MultiColumnList * mc, CEGUI::ListHeaderSegment::SortDirection direction) {
+	mc->setSortDirection(direction);
+}
+
+void bmx_cegui_multicolumnlist_setsortcolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	mc->setSortColumn(colIdx);
+}
+
+void bmx_cegui_multicolumnlist_setsortcolumnbyid(CEGUI::MultiColumnList * mc, CEGUI::uint colId) {
+	mc->setSortColumnByID(colId);
+}
+
+void bmx_cegui_multicolumnlist_setshowvertscrollbar(CEGUI::MultiColumnList * mc, bool setting) {
+	mc->setShowVertScrollbar(setting);
+}
+
+void bmx_cegui_multicolumnlist_setshowhorzscrollbar(CEGUI::MultiColumnList * mc, bool setting) {
+	mc->setShowHorzScrollbar(setting);
+}
+
+void bmx_cegui_multicolumnlist_clearallselections(CEGUI::MultiColumnList * mc) {
+	mc->clearAllSelections();
+}
+
+void bmx_cegui_multicolumnlist_setitemselectstate(CEGUI::MultiColumnList * mc, CEGUI::ListboxItem * item, bool state) {
+	mc->setItemSelectState(item, state);
+}
+
+void bmx_cegui_multicolumnlist_setitemselectstateforgridref(CEGUI::MultiColumnList * mc, int row, int col, bool state) {
+	mc->setItemSelectState(CEGUI::MCLGridRef(row, col), state);
+}
+
+void bmx_cegui_multicolumnlist_handleupdateditemdata(CEGUI::MultiColumnList * mc) {
+	mc->handleUpdatedItemData();
+}
+
+void bmx_cegui_multicolumnlist_setcolumnheaderwidth(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx, float width) {
+	mc->setColumnHeaderWidth(colIdx, guessUDim(width));
+}
+
+void bmx_cegui_multicolumnlist_setusersortcontrolenabled(CEGUI::MultiColumnList * mc, bool setting) {
+	mc->setUserSortControlEnabled(setting);
+}
+
+void bmx_cegui_multicolumnlist_setusercolumnsizingenabled(CEGUI::MultiColumnList * mc, bool setting) {
+	mc->setUserColumnSizingEnabled(setting);
+}
+
+void bmx_cegui_multicolumnlist_setusercolumndraggingenabled(CEGUI::MultiColumnList * mc, bool setting) {
+	mc->setUserColumnDraggingEnabled(setting);
+}
+
+void bmx_cegui_multicolumnlist_autosizecolumnheader(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
+	mc->autoSizeColumnHeader(colIdx);
+}
+
+void bmx_cegui_multicolumnlist_setrowid(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx, CEGUI::uint rowId) {
+	mc->setRowID(rowIdx, rowId);
+}
+

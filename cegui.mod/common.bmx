@@ -336,7 +336,7 @@ Extern
 	Function bmx_cegui_listboxitem_setdisabled(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_listboxitem_setautodeleted(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_listboxitem_setownerwindow(handle:Byte Ptr, owner:Byte Ptr)
-Rem
+
 	Function bmx_cegui_multicolumnlist_isusersortcontrolenabled:Int(handle:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_isusercolumnsizingenabled:Int(handle:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_isusercolumndraggingenabled:Int(handle:Byte Ptr)
@@ -353,7 +353,7 @@ Rem
 	Function bmx_cegui_multicolumnlist_getitemcolumnindex:Int(handle:Byte Ptr, item:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_getitemgridreference(handle:Byte Ptr, item:Byte Ptr, row:Int Ptr, col:Int Ptr)
 	Function bmx_cegui_multicolumnlist_getitematgridreference:Object(handle:Byte Ptr, row:Int, col:Int)
-	Function bmx_cegui_multicolumnlist_islistboxitemincolumn(handle:Byte Ptr, item:Byte Ptr, colIdx:Int)
+	Function bmx_cegui_multicolumnlist_islistboxitemincolumn:Int(handle:Byte Ptr, item:Byte Ptr, colIdx:Int)
 	Function bmx_cegui_multicolumnlist_islistboxiteminrow:Int(handle:Byte Ptr, item:Byte Ptr, rowIdx:Int)
 	Function bmx_cegui_multicolumnlist_islistboxiteminlist:Int(handle:Byte Ptr, item:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_findcolumnitemwithtext:Object(handle:Byte Ptr, text:Byte Ptr, colIdx:Int, startItem:Byte Ptr)
@@ -386,10 +386,10 @@ Rem
 	Function bmx_cegui_multicolumnlist_removecolumnwithid(handle:Byte Ptr, colId:Int)
 	Function bmx_cegui_multicolumnlist_movecolumn(handle:Byte Ptr, colIdx:Int, position:Int)
 	Function bmx_cegui_multicolumnlist_movecolumnwithid(handle:Byte Ptr, colId:Int, position:Int)
-	Function bmx_cegui_multicolumnlist_addrow(handle:Byte Ptr, rowId:Int)
-	Function bmx_cegui_multicolumnlist_addrowitem(handle:Byte Ptr, item:Byte Ptr, colId:Int, rowId:Int)
-	Function bmx_cegui_multicolumnlist_insertrow(handle:Byte Ptr, rowIdx:Int, rowId:Int)
-	Function bmx_cegui_multicolumnlist_insertrowitem(handle:Byte Ptr, item:Byte Ptr, colId:Int, rowIdx:Int, rowId:Int)
+	Function bmx_cegui_multicolumnlist_addrow:Int(handle:Byte Ptr, rowId:Int)
+	Function bmx_cegui_multicolumnlist_addrowitem:Int(handle:Byte Ptr, item:Byte Ptr, colId:Int, rowId:Int)
+	Function bmx_cegui_multicolumnlist_insertrow:Int(handle:Byte Ptr, rowIdx:Int, rowId:Int)
+	Function bmx_cegui_multicolumnlist_insertrowitem:Int(handle:Byte Ptr, item:Byte Ptr, colId:Int, rowIdx:Int, rowId:Int)
 	Function bmx_cegui_multicolumnlist_removerow(handle:Byte Ptr, rowIdx:Int)
 	Function bmx_cegui_multicolumnlist_setitemforgridref(handle:Byte Ptr, item:Byte Ptr, row:Int, col:Int)
 	Function bmx_cegui_multicolumnlist_setitem(handle:Byte Ptr, item:Byte Ptr, colId:Int, rowIdx:Int)
@@ -412,7 +412,7 @@ Rem
 	Function bmx_cegui_multicolumnlist_setusercolumndraggingenabled(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_multicolumnlist_autosizecolumnheader(handle:Byte Ptr, colIdx:Int)
 	Function bmx_cegui_multicolumnlist_setrowid(handle:Byte Ptr, rowIdx:Int, rowId:Int)
-End Rem
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters
