@@ -1416,12 +1416,12 @@ void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID)
 // *************************************************
 
 
-CEGUI::Texture * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
-	return rend->createTexture(filename, resourceGroup);
+BBObject * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
+	return _bah_cegui_TCETexture__create(rend->createTexture(filename, resourceGroup));
 }
 
-CEGUI::Texture * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size) {
-	return rend->createTexture(size);
+BBObject * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size) {
+	return _bah_cegui_TCETexture__create(rend->createTexture(size));
 }
 
 void bmx_cegui_renderer_destroytexture(CEGUI::Renderer * rend, CEGUI::Texture * texture) {
@@ -1534,5 +1534,63 @@ bool bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme) {
 
 const CEGUI::utf8 * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme) {
 	return scheme->getName().data();
+}
+
+// *************************************************
+
+const CEGUI::utf8 * bmx_cegui_listboxitem_gettext(CEGUI::ListboxItem * item) {
+	return item->getText().data();
+}
+
+const CEGUI::utf8 * bmx_cegui_listboxitem_gettooltiptext(CEGUI::ListboxItem * item) {
+	return item->getTooltipText().data();
+}
+
+CEGUI::uint bmx_cegui_listboxitem_getid(CEGUI::ListboxItem * item) {
+	return item->getID();
+}
+
+bool bmx_cegui_listboxitem_isselected(CEGUI::ListboxItem * item) {
+	return item->isSelected();
+}
+
+bool bmx_cegui_listboxitem_isdisabled(CEGUI::ListboxItem * item) {
+	return item->isDisabled();
+}
+
+bool bmx_cegui_listboxitem_isautodeleted(CEGUI::ListboxItem * item) {
+	return item->isAutoDeleted();
+}
+
+BBObject * bmx_cegui_listboxitem_getownerwindow(CEGUI::ListboxItem * item) {
+	return newObjectForWindow(const_cast<CEGUI::Window *>(item->getOwnerWindow()));
+}
+
+void bmx_cegui_listboxitem_settext(CEGUI::ListboxItem * item, const CEGUI::utf8 * text) {
+	item->setText(text);
+}
+
+void bmx_cegui_listboxitem_settooltiptext(CEGUI::ListboxItem * item, const CEGUI::utf8 * text) {
+	item->setTooltipText(text);
+}
+
+void bmx_cegui_listboxitem_setid(CEGUI::ListboxItem * item, CEGUI::uint itemId) {
+	item->setID(itemId);
+}
+
+void bmx_cegui_listboxitem_setselected(CEGUI::ListboxItem * item, bool setting) {
+	item->setSelected(setting);
+}
+
+void bmx_cegui_listboxitem_setdisabled(CEGUI::ListboxItem * item, bool setting) {
+	item->setDisabled(setting);
+}
+
+void bmx_cegui_listboxitem_setautodeleted(CEGUI::ListboxItem * item, bool setting) {
+	item->setAutoDeleted(setting);
+}
+
+void bmx_cegui_listboxitem_setownerwindow(CEGUI::ListboxItem * item, CEGUI::Window * owner) {
+	item->setOwnerWindow(owner);
 }
 

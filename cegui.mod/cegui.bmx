@@ -796,27 +796,34 @@ Type TCEListboxItem
 	End Function
 
 	Method getText:String()
+		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettext(objectPtr))
 	End Method
 	
 	Method getTooltipText:String()
+		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettooltiptext(objectPtr))
 	End Method
 	
 	Method getID:Int()
+		Return bmx_cegui_listboxitem_getid(objectPtr)
 	End Method
 	
 	Method getUserData:Object()
 	End Method
 	
 	Method isSelected:Int()
+		Return bmx_cegui_listboxitem_isselected(objectPtr)
 	End Method
 	
 	Method isDisabled:Int()
+		Return bmx_cegui_listboxitem_isdisabled(objectPtr)
 	End Method
 	
 	Method isAutoDeleted:Int()
+		Return bmx_cegui_listboxitem_isautodeleted(objectPtr)
 	End Method
 	
 	Method getOwnerWindow:TCEWindow()
+		Return TCEWindow._create(bmx_cegui_listboxitem_getownerwindow(objectPtr))
 	End Method
 	
 	Method getSelectionColours:TCEColourRect()
@@ -826,27 +833,34 @@ Type TCEListboxItem
 	End Method
 	
 	Method setText(text:String)
+		bmx_cegui_listboxitem_settext(objectPtr, text)
 	End Method
 	
 	Method setTooltipText(text:String)
+		bmx_cegui_listboxitem_settooltiptext(objectPtr, text)
 	End Method
 	
-	Method setID(item_id:Int)
+	Method setID(itemId:Int)
+		bmx_cegui_listboxitem_setid(objectPtr, itemId)
 	End Method
 	
-	Method setUserData(item_data:Object)
+	Method setUserData(itemData:Object)
 	End Method
 	
 	Method setSelected(setting:Int)
+		bmx_cegui_listboxitem_setselected(objectPtr, setting)
 	End Method
 	
 	Method setDisabled(setting:Int)
+		bmx_cegui_listboxitem_setdisabled(objectPtr, setting)
 	End Method
 	
 	Method setAutoDeleted(setting:Int)
+		bmx_cegui_listboxitem_setautodeleted(objectPtr, setting)
 	End Method
 	
 	Method setOwnerWindow(owner:TCEWindow)
+		bmx_cegui_listboxitem_setownerwindow(objectPtr, owner.objectPtr)
 	End Method
 	
 	Method setSelectionColours(cols:TCEColourRect)
@@ -3012,7 +3026,7 @@ Type TCEMultiColumnList Extends TCEWindow
 	Method handleUpdatedItemData()
 	End Method
 	
-	Method setColumnHeaderWidth(col_idx:Int, width:float)
+	Method setColumnHeaderWidth(col_idx:Int, width:Float)
 	End Method
 	
 	Method setUserSortControlEnabled(setting:Int)

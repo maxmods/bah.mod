@@ -89,6 +89,8 @@ extern "C" {
 	BBObject * _bah_cegui_TCEWindowEventArgs__create(MaxEventArgs * maxArgs);
 	BBObject * _bah_cegui_TCEEventArgs__create(MaxEventArgs * maxArgs);
 	
+	BBObject * _bah_cegui_TCETexture__create(CEGUI::Texture * texture);
+	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
 	CEGUI::Renderer * bmx_cegui_new_oglrenderer();
@@ -360,8 +362,8 @@ extern "C" {
 	void bmx_cegui_tabcontrol_removetab(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
 	void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID);
 
-	CEGUI::Texture * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
-	CEGUI::Texture * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size);
+	BBObject * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
+	BBObject * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size);
 	void bmx_cegui_renderer_destroytexture(CEGUI::Renderer * rend, CEGUI::Texture * texture);
 	void bmx_cegui_renderer_destroyalltextures(CEGUI::Renderer * rend);
 	bool bmx_cegui_renderer_isqueueingenabled(CEGUI::Renderer * rend);
@@ -391,6 +393,21 @@ extern "C" {
 	void bmx_cegui_scheme_unloadresources(CEGUI::Scheme * scheme);
 	bool bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme);
 	const CEGUI::utf8 * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme);
+
+	const CEGUI::utf8 * bmx_cegui_listboxitem_gettext(CEGUI::ListboxItem * item);
+	const CEGUI::utf8 * bmx_cegui_listboxitem_gettooltiptext(CEGUI::ListboxItem * item);
+	CEGUI::uint bmx_cegui_listboxitem_getid(CEGUI::ListboxItem * item);
+	bool bmx_cegui_listboxitem_isselected(CEGUI::ListboxItem * item);
+	bool bmx_cegui_listboxitem_isdisabled(CEGUI::ListboxItem * item);
+	bool bmx_cegui_listboxitem_isautodeleted(CEGUI::ListboxItem * item);
+	BBObject * bmx_cegui_listboxitem_getownerwindow(CEGUI::ListboxItem * item);
+	void bmx_cegui_listboxitem_settext(CEGUI::ListboxItem * item, const CEGUI::utf8 * text);
+	void bmx_cegui_listboxitem_settooltiptext(CEGUI::ListboxItem * item, const CEGUI::utf8 * text);
+	void bmx_cegui_listboxitem_setid(CEGUI::ListboxItem * item, CEGUI::uint itemId);
+	void bmx_cegui_listboxitem_setselected(CEGUI::ListboxItem * item, bool setting);
+	void bmx_cegui_listboxitem_setdisabled(CEGUI::ListboxItem * item, bool setting);
+	void bmx_cegui_listboxitem_setautodeleted(CEGUI::ListboxItem * item, bool setting);
+	void bmx_cegui_listboxitem_setownerwindow(CEGUI::ListboxItem * item, CEGUI::Window * owner);
 
 
 }

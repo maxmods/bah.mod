@@ -1588,7 +1588,7 @@ Type TCERenderer
 	specified file. You can check the ultimate sizes by querying the texture after creation.
 	End Rem
 	Method CreateTexture:TCETexture(filename:String, resourceGroup:String)
-		Return TCETexture._create(bmx_cegui_renderer_createtexture(objectPtr, _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
+		Return TCETexture(bmx_cegui_renderer_createtexture(objectPtr, _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
 	End Method
 	
 	Rem
@@ -1602,7 +1602,7 @@ Type TCERenderer
 	</p>
 	End Rem
 	Method createTextureWithSize:TCETexture(size:Float)
-		Return TCETexture._create(bmx_cegui_renderer_createtexturewithsize(objectPtr, size))
+		Return TCETexture(bmx_cegui_renderer_createtexturewithsize(objectPtr, size))
 	End Method
 	
 	Rem

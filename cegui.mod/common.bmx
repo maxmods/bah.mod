@@ -291,8 +291,8 @@ Extern
 	Function bmx_cegui_tabcontrol_removetab(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_tabcontrol_removetabforid(handle:Byte Ptr, ID:Int)
 
-	Function bmx_cegui_renderer_createtexture:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_renderer_createtexturewithsize:Byte Ptr(handle:Byte Ptr, size:Float)
+	Function bmx_cegui_renderer_createtexture:Object(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_renderer_createtexturewithsize:Object(handle:Byte Ptr, size:Float)
 	Function bmx_cegui_renderer_destroytexture(handle:Byte Ptr, texture:Byte Ptr)
 	Function bmx_cegui_renderer_destroyalltextures(handle:Byte Ptr)
 	Function bmx_cegui_renderer_isqueueingenabled:Int(handle:Byte Ptr)
@@ -321,6 +321,21 @@ Extern
 	Function bmx_cegui_scheme_unloadresources(handle:Byte Ptr)
 	Function bmx_cegui_scheme_resourcesloaded:Int(handle:Byte Ptr)
 	Function bmx_cegui_scheme_getname:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_cegui_listboxitem_gettext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_gettooltiptext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_getid:Int(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_isselected:Int(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_isdisabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_isautodeleted:Int(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_getownerwindow:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_listboxitem_settext(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_cegui_listboxitem_settooltiptext(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_cegui_listboxitem_setid(handle:Byte Ptr, itemId:Int)
+	Function bmx_cegui_listboxitem_setselected(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_listboxitem_setdisabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_listboxitem_setautodeleted(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_listboxitem_setownerwindow(handle:Byte Ptr, owner:Byte Ptr)
 
 End Extern
 
