@@ -52,7 +52,7 @@ Type TPersist
 	Rem
 	bbdoc: File format version
 	End Rem
-	Const BMO_VERSION:Int = 3
+	Const BMO_VERSION:Int = 4
 
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
@@ -234,18 +234,33 @@ Type TPersist
 		
 			Local tid:TTypeId = TTypeId.ForObject(obj)
 			Local tidName:String = tid.Name()
-			
+
 			' Is this an array "Object" ?
 			If tidName.EndsWith("[]") Then
 				tidName = "_array_"
 				objectIsArray = True
 			End If
-
+			
 			Local node:TxmlNode = parent.addChild(tidName)
 			
 			Local objRef:String = GetObjRef(obj)
 			node.setAttribute("ref", objRef)
 			objectMap.Insert(objRef, objRef)
+
+			' is this a TMap object?
+			If tidName = "TMap" Then
+
+				' special case for TMaps
+				' They have a Global "nil" object which needs to be referenced properly.
+				' We add a specific reference to nil, which we'll use to re-reference when we de-serialize.
+
+				Local ref:String = GetObjRef(New TMap._root)
+				If Not objectMap.ValueForKey(ref) Then
+					'Local node:TxmlNode = parent.addChild("TMap_nil")
+					node.setAttribute("nil", ref)
+					objectMap.Insert(ref, ref)
+				End If
+			End If
 
 			' We need to handle array objects differently..
 			If objectIsArray Then
@@ -466,10 +481,18 @@ Type TPersist
 			lastNode = node
 		Else
 			If Not parent Then
+				' find the next element node, if there is one. (content are also "nodes")
 				node = TxmlNode(lastNode.NextSibling())
+				While node And (node.getType() <> XML_ELEMENT_NODE)
+					node = TxmlNode(node.NextSibling())
+				Wend
+				If Not node Then
+					Return Null
+				End If
 				lastNode = node
 			Else
 				node = TxmlNode(parent.GetFirstChild())
+				lastNode = node
 			End If
 		End If
 		
@@ -530,6 +553,17 @@ Type TPersist
 					obj = node.GetContent()
 					objectMap.Insert(node.getAttribute("ref"), obj)
 					Return obj
+				End If
+
+				If nodeName = "TMap" Then
+
+					' special case for TMaps
+					' They have a Global "nil" object which needs to be referenced properly.
+			
+					Local attr:String = node.getAttribute("nil")
+					If attr Then
+						objectMap.Insert(attr, New TMap._root)
+					End If
 				End If
 				
 				' create the object
