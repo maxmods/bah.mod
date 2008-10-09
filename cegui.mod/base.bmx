@@ -854,7 +854,145 @@ Type TCEWindow Extends TCEEventSet
 	Method deactivate()
 		bmx_cegui_window_deactivate(objectPtr)
 	End Method
+
+	Method setClippedByParent(setting:Int)
+	End Method
 	
+	Method setID(ID:Int)
+	End Method
+	
+	Method setPrefix(prefix:String)
+	End Method
+	
+	Method insertText(text:String, position:String)
+	End Method
+	
+	Method appendText(text:String)
+	End Method
+	
+	Method setFont(font:TCEFont)
+	End Method
+	
+	Method setFontByName(name:String)
+	End Method
+	
+	Method removeChildWindow(window:Object)
+		If TCEWindow(window) Then
+		ElseIf String(window) Then
+		End If
+	End Method
+	
+	Method removeChildWindowForID(ID:Int)
+	End Method
+	
+	Method moveToFront()
+	End Method
+	
+	Method moveToBack()
+	End Method
+	
+	Method captureInput:Int()
+	End Method
+	
+	Method releaseInput()
+	End Method
+	
+	Method setRestoreCapture(setting:Int)
+	End Method
+	
+	Method SetAlpha(alpha:Float)
+	End Method
+	
+	Method setInheritsAlpha(setting:Int)
+	End Method
+	
+	Method requestRedraw()
+	End Method
+	
+	Method setMouseCursor(image:TCEImage)
+	End Method
+	
+	Method setMouseCursorMode(image:Int)
+	End Method
+	
+	Method setMouseCursorByName(imageset:String, imageName:String)
+	End Method
+	
+	'method setUserData(void *user_data)
+	'end method
+	
+	Method setZOrderingEnabled(setting:Int)
+	End Method
+	
+	Method setWantsMultiClickEvents(setting:Int)
+	End Method
+	
+	Method setMouseAutoRepeatEnabled(setting:Int)
+	End Method
+	
+	Method setAutoRepeatDelay(Delay:Float)
+	End Method
+	
+	Method setAutoRepeatRate(rate:Float)
+	End Method
+	
+	Method setDistributesCapturedInputs(setting:Int)
+	End Method
+	
+	Method notifyDragDropItemEnters(item:TCEDragContainer)
+	End Method
+	
+	Method notifyDragDropItemLeaves(item:TCEDragContainer)
+	End Method
+	
+	Method notifyDragDropItemDropped(item:TCEDragContainer)
+	End Method
+	
+	Method destroy()
+	End Method
+	
+	Method setTooltip(tooltip:TCETooltip)
+	End Method
+	
+	Method setTooltipType(tooltipType:String)
+	End Method
+	
+	Method setTooltipText(tip:String)
+	End Method
+	
+	Method setInheritsTooltipText(setting:Int)
+	End Method
+	
+	Method setRiseOnClickEnabled(setting:Int)
+	End Method
+	
+	Method setVerticalAlignment(alignment:Int)
+	End Method
+	
+	Method setHorizontalAlignment(alignment:Int)
+	End Method
+	
+	Method setLookNFeel(look:String)
+	End Method
+	
+	Method setModalState(state:Int)
+	End Method
+	
+	Method performChildWindowLayout()
+	End Method
+	
+	Method setUserString(name:String, value:String)
+	End Method
+	
+	'method setArea(const UDim &xpos, UDim &ypos, UDim &width, UDim &height)
+	'end method
+	
+	'method setArea(const UVector2 &pos, UVector2 &size)
+	'end method
+	
+	'method setArea(const URect &area)
+	'end method
+
 	Rem
 	bbdoc: Set the window's position.
 	about: Sets the position of the area occupied by this window. The position is offset from the top-left corner
@@ -955,9 +1093,89 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_show(objectPtr)
 	End Method
 	
+	Method getTooltip:TCETooltip()
+	End Method
 	
+	Method getTooltipType:String()
+	End Method
 	
+	Method getTooltipText:String()
+	End Method
 	
+	Method inheritsTooltipText:Int()
+	End Method
+	
+	Method isRiseOnClickEnabled:Int()
+	End Method
+	
+	Method testClassName:Int(className:String)
+	End Method
+	
+	Method getVerticalAlignment:Int()
+	End Method
+	
+	Method getHorizontalAlignment:Int()
+	End Method
+	
+	Method getLookNFeel:String()
+	End Method
+	
+	Method getModalState:Int()
+	End Method
+	
+	Method getUserString:String(name:String)
+	End Method
+	
+	Method isUserStringDefined(name:String)
+	End Method
+	
+	Method getActiveSibling:TCEWindow()
+	End Method
+	
+	Method getParentPixelSize(width:Float Var, height:Float Var)
+	End Method
+	
+	Method getParentPixelWidth:Float()
+	End Method
+	
+	Method getParentPixelHeight:Float()
+	End Method
+	
+	Method isMousePassThroughEnabled:Int()
+	End Method
+	
+	Method isAutoWindow:Int()
+	End Method
+	
+	Method isWritingXMLAllowed:Int()
+	End Method
+	
+	Method isDragDropTarget:Int()
+	End Method
+	
+	Method rename(newName:String)
+	End Method
+	
+	Method initialiseComponents()
+	End Method
+	
+	Method setDestroyedByParent(setting:Int)
+	End Method
+	
+	Method setAlwaysOnTop(setting:Int)
+	End Method
+	
+	Method setEnabled(setting:Int)
+	End Method
+	
+	Method enable()
+	End Method
+	
+	Method disable()
+	End Method
+	
+	Method setVisible(setting:Int)
+	End Method
 
 	Rem
 	bbdoc: 
@@ -966,6 +1184,62 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_settext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 
+	Method getArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	End Method
+	
+	Method getPosition(x:Float Var, y:Float Var)
+	End Method
+	
+	Method getXPosition:Float()
+	End Method
+	
+	Method getYPosition:Float()
+	End Method
+	
+	Method getSize(w:Float Var, h:Float Var)
+	End Method
+	
+	Method getWidth:Float()
+	End Method
+	
+	Method getHeight:Float()
+	End Method
+	
+	Method getMaxSize(w:Float Var, h:Float Var)
+	End Method
+	
+	Method getMinSize(w:Float Var, h:Float Var)
+	End Method
+	
+	Method render()
+	End Method
+	
+	Method beginInitialisation()
+	End Method
+	
+	Method endInitialisation()
+	End Method
+	
+	Method setMousePassThroughEnabled(setting:Int)
+	End Method
+	
+	Method setWindowRenderer(name:String)
+	End Method
+	
+	Method getWindowRendererName:String()
+	End Method
+	
+	Method setWritingXMLAllowed(allow:Int)
+	End Method
+	
+	Method notifyScreenAreaChanged()
+	End Method
+	
+	Method setFalagardType(_type:String, rendererType:String = "")
+	End Method
+	
+	Method setDragDropTarget(setting:Int)
+	End Method
 
 	' properties
 	Method removeProperty(name:String)
@@ -1305,6 +1579,16 @@ Rem
 bbdoc: 
 End Rem
 Type TCEImage
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCEImage(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEImage = New TCEImage
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
 
 	Method getSize(width:Float Var, height:Float Var)
 	End Method
@@ -1703,6 +1987,218 @@ Type TCERenderer
 	End Rem
 	Method getIdentifierString:String()
 		Return _convertUTF8ToMax(bmx_cegui_renderer_getidentifierstring(objectPtr))
+	End Method
+
+End Type
+
+Rem
+bbdoc: Base type for Tooltip widgets.
+about: The Tooltip type shows a simple pop-up window around the mouse position with some text information.
+The tool-tip fades in when the user hovers with the mouse over a window which has tool-tip text set,
+and then fades out after some pre-set time.
+<p>
+For Tooltip to work properly, you must specify a default tool-tip widget type via TCESystem::setTooltip,
+or by setting a custom tool-tip object for your Window(s). Additionally, you need to ensure that time
+pulses are properly passed to the system via System::injectTimePulse. 
+</p>
+End Rem
+Type TCETooltip Extends TCEWindow
+
+	Function _create:TCETooltip(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCETooltip = New TCETooltip
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Event fired when the hover timeout gets changed. 
+	End Rem
+	Const EventHoverTimeChanged:String = "HoverTimeChanged"
+	Rem
+	bbdoc: Event fired when the display timeout gets changed. 
+	End Rem
+	Const EventDisplayTimeChanged:String = "DisplayTimeChanged"
+	Rem
+	bbdoc: Event fired when the fade timeout gets changed. 
+	End Rem
+	Const EventFadeTimeChanged:String = "FadeTimeChanged"
+	Rem
+	bbdoc: Event fired when the tooltip is about to get activated. 
+	End Rem
+	Const EventTooltipActive:String = "TooltipActive"
+	Rem
+	bbdoc: Event fired when the tooltip has been deactivated. 
+	End Rem
+	Const EventTooltipInactive:String = "TooltipInactive"
+
+	Rem
+	bbdoc: Returns the current target window for this Tooltip.
+	End Rem
+	Method getTargetWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_tooltip_gettargetwindow(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
+	End Rem
+	Method getHoverTime:Float()
+		Return bmx_cegui_tooltip_gethovertime(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
+	about: 0 indicates that the tooltip should never timesout and auto-deactivate.
+	End Rem
+	Method setDisplayTime(seconds:Float)
+		bmx_cegui_tooltip_setdisplaytime(objectPtr, seconds)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of seconds that should be taken to fade the tooltip into and out of visibility.
+	End Rem
+	Method getFadeTime:Float()
+		Return bmx_cegui_tooltip_getfadetime(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
+	End Rem
+	Method setHoverTime(seconds:Float)
+		bmx_cegui_tooltip_sethovertime(objectPtr, seconds)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
+	about: 0 indicates that the tooltip never timesout and auto-deactivates.
+	End Rem
+	Method getDisplayTime:Float()
+		Return bmx_cegui_tooltip_getdisplaytime(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of seconds that should be taken to fade the tooltip into and out of visibility.
+	End Rem
+	Method setFadeTime(seconds:Float)
+		bmx_cegui_tooltip_setfadetime(objectPtr, seconds)
+	End Method
+	
+	Rem
+	bbdoc: Causes the tooltip to position itself appropriately.
+	End Rem
+	Method positionSelf()
+		bmx_cegui_tooltip_positionself(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Causes the tooltip to resize itself appropriately.
+	End Rem
+	Method sizeSelf()
+		bmx_cegui_tooltip_sizeself(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the area that will be occupied by the tooltip text, given any current formatting options.
+	End Rem
+	Method getTextSize(width:Float Var, height:Float Var) 
+		bmx_cegui_tooltip_gettextsize(objectPtr, Varptr width, Varptr height)
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEDragContainer Extends TCEWindow
+
+	Function _create:TCEDragContainer(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEDragContainer = New TCEDragContainer
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Event fired when the user begins dragging the thumb. 
+	End Rem
+	Const EventDragStarted:String = "DragStarted"
+	Rem
+	bbdoc: Event fired when the user releases the thumb. 
+	End Rem
+	Const EventDragEnded:String = "DragEnded"
+	Rem
+	bbdoc: Event fired when the drag position has changed. 
+	End Rem
+	Const EventDragPositionChanged:String = "DragPositionChanged"
+	Rem
+	bbdoc: Event fired when dragging is enabled or disabled. 
+	End Rem
+	Const EventDragEnabledChanged:String = "DragEnabledChanged"
+	Rem
+	bbdoc: Event fired when the alpha value used when dragging is changed. 
+	End Rem
+	Const EventDragAlphaChanged:String = "DragAlphaChanged"
+	Rem
+	bbdoc: Event fired when the mouse cursor used when dragging is changed. 
+	End Rem
+	Const EventDragMouseCursorChanged:String = "DragMouseCursorChanged"
+	Rem
+	bbdoc: Event fired when the drag pixel threshold is changed. 
+	End Rem
+	Const EventDragThresholdChanged:String = "DragThresholdChanged"
+	Rem
+	bbdoc: Event fired when the drop target changes. 
+	End Rem
+	Const EventDragDropTargetChanged:String = "DragDropTargetChanged"
+
+	Method isDraggingEnabled:Int()
+		Return bmx_cegui_dragcontainer_isdraggingenabled(objectPtr)
+	End Method
+	
+	Method setDraggingEnabled(setting:Int)
+		bmx_cegui_dragcontainer_setdraggingenabled(objectPtr, setting)
+	End Method
+	
+	Method isBeingDragged:Int()
+		Return bmx_cegui_dragcontainer_isbeingdragged(objectPtr)
+	End Method
+	
+	Method getPixelDragThreshold:Float()
+		Return bmx_cegui_dragcontainer_getpixeldragthreshold(objectPtr)
+	End Method
+	
+	Method setPixelDragThreshold(pixels:Float)
+		bmx_cegui_dragcontainer_setpixeldragthreshold(objectPtr, pixels)
+	End Method
+	
+	Method getDragAlpha:Float()
+		Return bmx_cegui_dragcontainer_getdragalpha(objectPtr)
+	End Method
+	
+	Method setDragAlpha(alpha:Float)
+		bmx_cegui_dragcontainer_setdragalpha(objectPtr, alpha)
+	End Method
+	
+	Method getDragCursorImage:TCEImage()
+		Return TCEImage(bmx_cegui_dragcontainer_getdragcursorimage(objectPtr))
+	End Method
+	
+	Method setDragCursorImage(image:TCEImage)
+		bmx_cegui_dragcontainer_setdragcursorimage(objectPtr, image.objectPtr)
+	End Method
+	
+	Method setDragCursorImageMode(image:Int)
+		bmx_cegui_dragcontainer_setdragcursorimagemode(objectPtr, image)
+	End Method
+	
+	Method setDragCursorImageByName(imageset:String, image:String)
+		bmx_cegui_dragcontainer_setdragcursorimagebyname(objectPtr, imageset,image)
+	End Method
+	
+	Method getCurrentDropTarget:TCEWindow() 
+		Return TCEWindow(bmx_cegui_dragcontainer_getcurrentdroptarget(objectPtr))
 	End Method
 
 End Type

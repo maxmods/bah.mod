@@ -1905,3 +1905,54 @@ void bmx_cegui_multicolumnlist_setrowid(CEGUI::MultiColumnList * mc, CEGUI::uint
 	mc->setRowID(rowIdx, rowId);
 }
 
+
+// *************************************************
+
+bool bmx_cegui_dragcontainer_isdraggingenabled(CEGUI::DragContainer * dc) {
+	return dc->isDraggingEnabled();
+}
+
+void bmx_cegui_dragcontainer_setdraggingenabled(CEGUI::DragContainer * dc, bool setting) {
+	dc->setDraggingEnabled(setting);
+}
+
+bool bmx_cegui_dragcontainer_isbeingdragged(CEGUI::DragContainer * dc) {
+	return dc->isBeingDragged();
+}
+
+float bmx_cegui_dragcontainer_getpixeldragthreshold(CEGUI::DragContainer * dc) {
+	return dc->getPixelDragThreshold();
+}
+
+void bmx_cegui_dragcontainer_setpixeldragthreshold(CEGUI::DragContainer * dc, float pixels) {
+	dc->setPixelDragThreshold(pixels);
+}
+
+float bmx_cegui_dragcontainer_getdragalpha(CEGUI::DragContainer * dc) {
+	return dc->getDragAlpha();
+}
+
+void bmx_cegui_dragcontainer_setdragalpha(CEGUI::DragContainer * dc, float alpha) {
+	dc->setDragAlpha(alpha);
+}
+
+BBObject * bmx_cegui_dragcontainer_getdragcursorimage(CEGUI::DragContainer * dc) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image*>(dc->getDragCursorImage()));
+}
+
+void bmx_cegui_dragcontainer_setdragcursorimage(CEGUI::DragContainer * dc, CEGUI::Image * image) {
+	dc->setDragCursorImage(image);
+}
+
+void bmx_cegui_dragcontainer_setdragcursorimagemode(CEGUI::DragContainer * dc, CEGUI::MouseCursorImage image) {
+	dc->setDragCursorImage(image);
+}
+
+void bmx_cegui_dragcontainer_setdragcursorimagebyname(CEGUI::DragContainer * dc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image) {
+	dc->setDragCursorImage(imageset, image);
+}
+
+BBObject * bmx_cegui_dragcontainer_getcurrentdroptarget(CEGUI::DragContainer * dc) {
+	return newObjectForWindow(dc->getCurrentDropTarget());
+}
+

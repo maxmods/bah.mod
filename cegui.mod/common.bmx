@@ -413,6 +413,19 @@ Extern
 	Function bmx_cegui_multicolumnlist_autosizecolumnheader(handle:Byte Ptr, colIdx:Int)
 	Function bmx_cegui_multicolumnlist_setrowid(handle:Byte Ptr, rowIdx:Int, rowId:Int)
 
+	Function bmx_cegui_dragcontainer_isdraggingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_dragcontainer_setdraggingenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_dragcontainer_isbeingdragged:Int(handle:Byte Ptr)
+	Function bmx_cegui_dragcontainer_getpixeldragthreshold:Float(handle:Byte Ptr)
+	Function bmx_cegui_dragcontainer_setpixeldragthreshold(handle:Byte Ptr, pixels:Float)
+	Function bmx_cegui_dragcontainer_getdragalpha:Float(handle:Byte Ptr)
+	Function bmx_cegui_dragcontainer_setdragalpha(handle:Byte Ptr, alpha:Float)
+	Function bmx_cegui_dragcontainer_getdragcursorimage:Object(handle:Byte Ptr)
+	Function bmx_cegui_dragcontainer_setdragcursorimage(handle:Byte Ptr, image:Byte Ptr)
+	Function bmx_cegui_dragcontainer_setdragcursorimagemode(handle:Byte Ptr, image:Int)
+	Function bmx_cegui_dragcontainer_setdragcursorimagebyname(handle:Byte Ptr, imageset:Byte Ptr, image:Byte ptr)
+	Function bmx_cegui_dragcontainer_getcurrentdroptarget:Object(handle:Byte Ptr)
+	
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

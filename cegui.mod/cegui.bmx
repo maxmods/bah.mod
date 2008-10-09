@@ -1400,6 +1400,87 @@ Type TCEItemListBase Extends TCEWindow
 		End If
 	End Function
 
+	Method getItemCount:Int()
+	End Method
+	
+	Method getItemFromIndex:TCEItemEntry(index:Int)
+	End Method
+	
+	Method getItemIndex:Int(item:TCEItemEntry)
+	End Method
+	
+	Method findItemWithText:TCEItemEntry(text:String, startItem:TCEItemEntry)
+	End Method
+	
+	Method isItemInList:Int(item:TCEItemEntry)
+	End Method
+	
+	Method isAutoResizeEnabled:Int()
+	End Method
+	
+	Method isSortEnabled:Int()
+	End Method
+	
+	Method getSortMode:Int()
+	End Method
+	
+	'Method getSortCallback()
+	'End Method
+	
+	Method initialiseComponents()
+	End Method
+	
+	Method resetList()
+	End Method
+	
+	Method addItem(item:TCEItemEntry)
+	End Method
+	
+	Method insertItem(item:TCEItemEntry, position:TCEItemEntry)
+	End Method
+	
+	Method removeItem(item:TCEItemEntry)
+	End Method
+	
+	Method handleUpdatedItemData(resort:Int = False)
+	End Method
+	
+	Method setAutoResizeEnabled(setting:Int)
+	End Method
+	
+	Method sizeToContent()
+	End Method
+	
+	Method endInitialisation()
+	End Method
+	
+	Method performChildWindowLayout()
+	End Method
+	
+	Method getItemRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	End Method
+	
+	Method getContentPane:TCEWindow()
+	End Method
+	
+	Method notifyItemClicked(li:TCEItemEntry)
+	End Method
+	
+	Method notifyItemSelectState(li:TCEItemEntry, state:Int)
+	End Method
+	
+	Method setSortEnabled(setting:Int)
+	End Method
+	
+	Method setSortMode(mode:Int)
+	End Method
+	
+	'Method setSortCallback(SortCallback cb)
+	'End Method
+	
+	Method SortList(relayout:Int = True)
+	End Method
+
 End Type
 
 Rem
@@ -1415,10 +1496,28 @@ Type TCEMenuBase Extends TCEItemListBase
 		End If
 	End Function
 
+	Method getItemSpacing:Float()
+	End Method
+	
+	Method isMultiplePopupsAllowed:Int()
+	End Method
+	
+	Method getPopupMenuItem:TCEMenuItem()
+	End Method
+	
+	Method setItemSpacing(spacing:Float)
+	End Method
+	
+	Method changePopupMenuItem(item:TCEMenuItem)
+	End Method
+	
+	Method setAllowMultiplePopups(setting:Int)
+	End Method
+
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for menu bars. 
 End Rem
 Type TCEMenubar Extends TCEMenuBase
 
@@ -1444,6 +1543,27 @@ Type TCEPopupMenu Extends TCEMenuBase
 			Return this
 		End If
 	End Function
+
+	Method getFadeInTime:Float()
+	End Method
+	
+	Method getFadeOutTime:Float()
+	End Method
+	
+	Method isPopupMenuOpen:Int()
+	End Method
+	
+	Method setFadeInTime(fadetime:Float)
+	End Method
+	
+	Method setFadeOutTime(fadetime:Float)
+	End Method
+	
+	Method openPopupMenu(Notify:Int = True)
+	End Method
+	
+	Method closePopupMenu(Notify:Int = True)
+	End Method
 
 End Type
 
@@ -1634,21 +1754,6 @@ Type TCEScrollablePane Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
-End Rem
-Type TCEDragContainer Extends TCEWindow
-
-	Function _create:TCEDragContainer(objectPtr:Byte Ptr)
-		If objectPtr Then
-			Local this:TCEDragContainer = New TCEDragContainer
-			this.objectPtr = objectPtr
-			Return this
-		End If
-	End Function
-
-End Type
-
-Rem
 bbdoc: Helper container window that has configurable clipping.
 about: Used by the TCEItemListbox widget. 
 End Rem
@@ -1734,6 +1839,47 @@ Type TCEListHeaderSegment Extends TCEWindow
 
 	Rem
 	bbdoc: 
+	end rem
+	Const EventSegmentClicked:String = "SegmentClicked"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSplitterDoubleClicked:String = "SplitterDoubleClicked"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSizingSettingChanged:String = "SizingSettingChanged"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSortDirectionChanged:String = "SortDirectionChanged"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventMovableSettingChanged:String = "MovableSettingChanged"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSegmentDragStart:String = "SegmentDragStart"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSegmentDragStop:String = "SegmentDragStop"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSegmentDragPositionChanged:String = "SegmentDragPositionChanged"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventSegmentSized:String = "SegmentSized"
+	Rem
+	bbdoc: 
+	end rem
+	Const EventClickableSettingChanged:String = "ClickableSettingChanged"
+
+	Rem
+	bbdoc: 
 	End Rem
 	Const SORT_NONE:Int = 0
 	Rem
@@ -1744,6 +1890,54 @@ Type TCEListHeaderSegment Extends TCEWindow
 	bbdoc: 
 	End Rem
 	Const SORT_DESCENDING:Int = 2
+
+	Method isSizingEnabled:Int()
+	End Method
+	
+	Method getSortDirection:Int()
+	End Method
+	
+	Method isDragMovingEnabled:Int()
+	End Method
+	
+	Method getDragMoveOffset(x:Float Var, y:Float Var)
+	End Method
+	
+	Method isClickable:Int()
+	End Method
+	
+	Method isSegmentHovering:Int()
+	End Method
+	
+	Method isSegmentPushed:Int()
+	End Method
+	
+	Method isSplitterHovering:Int()
+	End Method
+	
+	Method isBeingDragMoved:Int()
+	End Method
+	
+	Method isBeingDragSized:Int()
+	End Method
+	
+	Method getSizingCursorImage:TCEImage()
+	End Method
+	
+	Method getMovingCursorImage:TCEImage()
+	End Method
+	
+	Method setSizingEnabled(setting:Int)
+	End Method
+	
+	Method setSortDirection(sortDir:Int)
+	End Method
+	
+	Method setDragMovingEnabled(setting:Int)
+	End Method
+	
+	Method setClickable(setting:Int)
+	End Method
 
 End Type
 
@@ -2352,122 +2546,6 @@ Type TCETabControl Extends TCEWindow
 	End Rem
 	Method removeTabForID(ID:Int)
 		bmx_cegui_tabcontrol_removetabforid(objectPtr, ID)
-	End Method
-
-End Type
-
-Rem
-bbdoc: Base type for Tooltip widgets.
-about: The Tooltip type shows a simple pop-up window around the mouse position with some text information.
-The tool-tip fades in when the user hovers with the mouse over a window which has tool-tip text set,
-and then fades out after some pre-set time.
-<p>
-For Tooltip to work properly, you must specify a default tool-tip widget type via TCESystem::setTooltip,
-or by setting a custom tool-tip object for your Window(s). Additionally, you need to ensure that time
-pulses are properly passed to the system via System::injectTimePulse. 
-</p>
-End Rem
-Type TCETooltip Extends TCEWindow
-
-	Function _create:TCETooltip(objectPtr:Byte Ptr)
-		If objectPtr Then
-			Local this:TCETooltip = New TCETooltip
-			this.objectPtr = objectPtr
-			Return this
-		End If
-	End Function
-
-	Rem
-	bbdoc: Event fired when the hover timeout gets changed. 
-	End Rem
-	Const EventHoverTimeChanged:String = "HoverTimeChanged"
-	Rem
-	bbdoc: Event fired when the display timeout gets changed. 
-	End Rem
-	Const EventDisplayTimeChanged:String = "DisplayTimeChanged"
-	Rem
-	bbdoc: Event fired when the fade timeout gets changed. 
-	End Rem
-	Const EventFadeTimeChanged:String = "FadeTimeChanged"
-	Rem
-	bbdoc: Event fired when the tooltip is about to get activated. 
-	End Rem
-	Const EventTooltipActive:String = "TooltipActive"
-	Rem
-	bbdoc: Event fired when the tooltip has been deactivated. 
-	End Rem
-	Const EventTooltipInactive:String = "TooltipInactive"
-
-	Rem
-	bbdoc: Returns the current target window for this Tooltip.
-	End Rem
-	Method getTargetWindow:TCEWindow()
-		Return TCEWindow(bmx_cegui_tooltip_gettargetwindow(objectPtr))
-	End Method
-	
-	Rem
-	bbdoc: Returns the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
-	End Rem
-	Method getHoverTime:Float()
-		Return bmx_cegui_tooltip_gethovertime(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
-	about: 0 indicates that the tooltip should never timesout and auto-deactivate.
-	End Rem
-	Method setDisplayTime(seconds:Float)
-		bmx_cegui_tooltip_setdisplaytime(objectPtr, seconds)
-	End Method
-	
-	Rem
-	bbdoc: Returns the number of seconds that should be taken to fade the tooltip into and out of visibility.
-	End Rem
-	Method getFadeTime:Float()
-		Return bmx_cegui_tooltip_getfadetime(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the number of seconds the mouse should hover stationary over the target window before the tooltip gets activated.
-	End Rem
-	Method setHoverTime(seconds:Float)
-		bmx_cegui_tooltip_sethovertime(objectPtr, seconds)
-	End Method
-	
-	Rem
-	bbdoc: Returns the number of seconds the tooltip should be displayed for before it automatically de-activates itself.
-	about: 0 indicates that the tooltip never timesout and auto-deactivates.
-	End Rem
-	Method getDisplayTime:Float()
-		Return bmx_cegui_tooltip_getdisplaytime(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the number of seconds that should be taken to fade the tooltip into and out of visibility.
-	End Rem
-	Method setFadeTime(seconds:Float)
-		bmx_cegui_tooltip_setfadetime(objectPtr, seconds)
-	End Method
-	
-	Rem
-	bbdoc: Causes the tooltip to position itself appropriately.
-	End Rem
-	Method positionSelf()
-		bmx_cegui_tooltip_positionself(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Causes the tooltip to resize itself appropriately.
-	End Rem
-	Method sizeSelf()
-		bmx_cegui_tooltip_sizeself(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the size of the area that will be occupied by the tooltip text, given any current formatting options.
-	End Rem
-	Method getTextSize(width:Float Var, height:Float Var) 
-		bmx_cegui_tooltip_gettextsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
 End Type

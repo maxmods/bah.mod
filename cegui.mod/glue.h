@@ -92,6 +92,7 @@ extern "C" {
 	
 	BBObject * _bah_cegui_TCETexture__create(CEGUI::Texture * texture);
 	BBObject * _bah_cegui_TCEListboxItem__create(CEGUI::ListboxItem * item);
+	BBObject * _bah_cegui_TCEImage__create(CEGUI::Image * image);
 	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
@@ -487,6 +488,18 @@ extern "C" {
 	void bmx_cegui_multicolumnlist_autosizecolumnheader(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx);
 	void bmx_cegui_multicolumnlist_setrowid(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx, CEGUI::uint rowId);
 
+	bool bmx_cegui_dragcontainer_isdraggingenabled(CEGUI::DragContainer * dc);
+	void bmx_cegui_dragcontainer_setdraggingenabled(CEGUI::DragContainer * dc, bool setting);
+	bool bmx_cegui_dragcontainer_isbeingdragged(CEGUI::DragContainer * dc);
+	float bmx_cegui_dragcontainer_getpixeldragthreshold(CEGUI::DragContainer * dc);
+	void bmx_cegui_dragcontainer_setpixeldragthreshold(CEGUI::DragContainer * dc, float pixels);
+	float bmx_cegui_dragcontainer_getdragalpha(CEGUI::DragContainer * dc);
+	void bmx_cegui_dragcontainer_setdragalpha(CEGUI::DragContainer * dc, float alpha);
+	BBObject * bmx_cegui_dragcontainer_getdragcursorimage(CEGUI::DragContainer * dc);
+	void bmx_cegui_dragcontainer_setdragcursorimage(CEGUI::DragContainer * dc, CEGUI::Image * image);
+	void bmx_cegui_dragcontainer_setdragcursorimagemode(CEGUI::DragContainer * dc, CEGUI::MouseCursorImage image);
+	void bmx_cegui_dragcontainer_setdragcursorimagebyname(CEGUI::DragContainer * dc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image);
+	BBObject * bmx_cegui_dragcontainer_getcurrentdroptarget(CEGUI::DragContainer * dc);
 	
 }
 
