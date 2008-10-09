@@ -1460,10 +1460,335 @@ Type TCECustomLogger Extends TCELogger
 	
 End Type
 
+Rem
+bbdoc: Holds details of colours for the four corners of a rectangle.
+End Rem
 Type TCEColourRect
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCEColourRect(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEColourRect = New TCEColourRect
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateColourRect:TCEColourRect(colour:TCEColour)
+		Return New TCEColourRect.Create(colour)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TCEColourRect(colour:TCEColour)
+		bmx_cegui_colourrect_create(colour.objectPtr)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Set the alpha value to use for all four corners of the ColourRect.
+	End Rem
+	Method setAlpha(alpha:Float)
+		bmx_cegui_colourrect_setalpha(objectPtr, alpha)
+	End Method
+	 
+	Rem
+	bbdoc: Set the alpha value to use for the top edge of the ColourRect.
+	End Rem
+	Method setTopAlpha(alpha:Float)
+		bmx_cegui_colourrect_settopalpha(objectPtr, alpha)
+	End Method
+	 
+	Rem
+	bbdoc: Set the alpha value to use for the bottom edge of the ColourRect.
+	End Rem
+	Method setBottomAlpha(alpha:Float)
+		bmx_cegui_colourrect_setbottomalpha(objectPtr, alpha)
+	End Method
+	 
+	Rem
+	bbdoc: Set the alpha value to use for the left edge of the ColourRect.
+	End Rem
+	Method setLeftAlpha(alpha:Float)
+		bmx_cegui_colourrect_setleftalpha(objectPtr, alpha)
+	End Method
+	 
+	Rem
+	bbdoc: Set the alpha value to use for the right edge of the ColourRect.
+	End Rem
+	Method setRightAlpha(alpha:Float)
+		bmx_cegui_colourrect_setrightalpha(objectPtr, alpha)
+	End Method
+	 
+	Rem
+	bbdoc: Determinate the ColourRect is monochromatic or variegated.
+	End Rem
+	Method isMonochromatic:Int()
+		Return bmx_cegui_colourrect_ismonochromatic(objectPtr)
+	End Method
+	 
+	Rem
+	bbdoc: Gets a portion of this ColourRect as a subset ColourRect.
+	End Rem
+	Method getSubRectangle:TCEColourRect(_left:Float, _right:Float, _top:Float, _bottom:Float)
+		Return TCEColourRect._create(bmx_cegui_colourrect_getsubrectangle(objectPtr, _left, _right, _top, _bottom))
+	End Method
+	 
+	Rem
+	bbdoc: Get the colour at a point in the rectangle.
+	End Rem
+	Method getColourAtPoint:TCEColour(x:Float, y:Float)
+		Return TCEColour._create(bmx_cegui_colourrect_getcolouratpoint(objectPtr, x, y))
+	End Method
+	 
+	Rem
+	bbdoc: Set the colour of all four corners simultaneously.
+	End Rem
+	Method setColours(col:TCEColour)
+		bmx_cegui_colourrect_setcolours(objectPtr, col.objectPtr)
+	End Method
+	 
+	Rem
+	bbdoc: Module the alpha components of each corner's colour by a constant.
+	End Rem
+	Method modulateAlpha(alpha:Float)
+		bmx_cegui_colourrect_modulatealpha(objectPtr, alpha)
+	End Method
+	
+	Rem
+	bbdoc: Sets the top-left corner's colour.
+	End Rem
+	Method setTopLeft(colour:TCEColour)
+		bmx_cegui_colourrect_settopleft(objectPtr, colour.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the top-right corner's colour.
+	End Rem
+	Method setTopRight(colour:TCEColour)
+		bmx_cegui_colourrect_settopright(objectPtr, colour.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the bottom-left corner's colour.
+	End Rem
+	Method setBottomLeft(colour:TCEColour)
+		bmx_cegui_colourrect_setbottomleft(objectPtr, colour.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the bottom-right corner's colour.
+	End Rem
+	Method setBottomRight(colour:TCEColour)
+		bmx_cegui_colourrect_setbottomright(objectPtr, colour.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the top-left corner's colour.
+	End Rem
+	Method getTopLeft:TCEColour()
+		Return TCEColour._create(bmx_cegui_colourrect_gettopleft(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the top-right corner's colour.
+	End Rem
+	Method getTopRight:TCEColour()
+		Return TCEColour._create(bmx_cegui_colourrect_gettopright(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the bottom-left corner's colour.
+	End Rem
+	Method getBottomLeft:TCEColour()
+		Return TCEColour._create(bmx_cegui_colourrect_getbottomleft(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the bottom-right corner's colour.
+	End Rem
+	Method getBottomRight:TCEColour()
+		Return TCEColour._create(bmx_cegui_colourrect_getbottomright(objectPtr))
+	End Method
+	
+
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_colourrect_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
 End Type
 
+Rem
+bbdoc: Represents colour values within the system.
+End Rem
 Type TCEColour
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCEColour(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEColour = New TCEColour
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateColour:TCEColour(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
+		Return New TCEColour.Create(red, green, blue, alpha)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TCEColour(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
+		objectPtr = bmx_cegui_colour_create(red, green, blue, alpha)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getARGB:Int()
+		Return bmx_cegui_colour_getargb(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getAlpha:Float()
+		Return bmx_cegui_colour_getalpha(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getRed:Float()
+		Return bmx_cegui_colour_getred(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getGreen:Float()
+		Return bmx_cegui_colour_getgreen(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getBlue:Float()
+		Return bmx_cegui_colour_getblue(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getHue:Float()
+		Return bmx_cegui_colour_gethue(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getSaturation:Float()
+		Return bmx_cegui_colour_getsaturation(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getLumination:Float()
+		Return bmx_cegui_colour_getlumination(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setARGB(argb:Int)
+		bmx_cegui_colour_setargb(objectPtr, argb)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setAlpha(alpha:Float)
+		bmx_cegui_colour_setalpha(objectPtr, alpha)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setRed(red:Float)
+		bmx_cegui_colour_setred(objectPtr, red)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setGreen(green:Float)
+		bmx_cegui_colour_setgreen(objectPtr, green)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setBlue(blue:Float)
+		bmx_cegui_colour_setblue(objectPtr, blue)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method set(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
+		bmx_cegui_colour_set(objectPtr, red, green, blue, alpha)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setRGB(red:Float, green:Float, blue:Float)
+		bmx_cegui_colour_setrgb(objectPtr, red, green, blue)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setHSL(hue:Float, saturation:Float, luminance:Float, alpha:Float = 1.0)
+		bmx_cegui_colour_sethsl(objectPtr, hue, saturation, luminance, alpha)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method invertColour()
+		bmx_cegui_colour_inverColour(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method invertColourWithAlpha()
+		bmx_cegui_colour_invertColourWithAlpha(objectPtr)
+	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_colour_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem

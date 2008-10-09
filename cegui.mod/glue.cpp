@@ -72,6 +72,36 @@ MaxConnection * bmx_cegui_eventset_subscribeevent(CEGUI::Window * handle, const 
 
 // *************************************************
 
+MaxCEColour::MaxCEColour(CEGUI::colour col)
+	: colour(col)
+{
+}
+
+MaxCEColour::~MaxCEColour()
+{
+}
+
+CEGUI::colour MaxCEColour::Colour() {
+	return colour;
+}
+
+// *************************************************
+
+MaxCEColourRect::MaxCEColourRect(CEGUI::ColourRect col)
+	: rect(col)
+{
+}
+
+MaxCEColourRect::~MaxCEColourRect()
+{
+}
+
+CEGUI::ColourRect MaxCEColourRect::Rect() {
+	return rect;
+}
+
+// *************************************************
+
 BBObject * newObjectForWindow(CEGUI::Window * window) {
 
 	if (dynamic_cast<CEGUI::Editbox*>(window)) {
@@ -1954,5 +1984,169 @@ void bmx_cegui_dragcontainer_setdragcursorimagebyname(CEGUI::DragContainer * dc,
 
 BBObject * bmx_cegui_dragcontainer_getcurrentdroptarget(CEGUI::DragContainer * dc) {
 	return newObjectForWindow(dc->getCurrentDropTarget());
+}
+
+// *************************************************
+
+MaxCEColour * bmx_cegui_colour_create(float red, float green, float blue, float alpha) {
+	return new MaxCEColour(CEGUI::colour(red, green, blue, alpha));
+}
+
+void bmx_cegui_colour_delete(MaxCEColour * col) {
+	delete col;
+}
+
+CEGUI::argb_t bmx_cegui_colour_getargb(MaxCEColour * col) {
+	return col->Colour().getARGB();
+}
+
+float bmx_cegui_colour_getalpha(MaxCEColour * col) {
+	return col->Colour().getAlpha();
+}
+
+float bmx_cegui_colour_getred(MaxCEColour * col) {
+	return col->Colour().getRed();
+}
+
+float bmx_cegui_colour_getgreen(MaxCEColour * col) {
+	return col->Colour().getGreen();
+}
+
+float bmx_cegui_colour_getblue(MaxCEColour * col) {
+	return col->Colour().getBlue();
+}
+
+float bmx_cegui_colour_gethue(MaxCEColour * col) {
+	return col->Colour().getHue();
+}
+
+float bmx_cegui_colour_getsaturation(MaxCEColour * col) {
+	return col->Colour().getSaturation();
+}
+
+float bmx_cegui_colour_getlumination(MaxCEColour * col) {
+	return col->Colour().getLumination();
+}
+
+void bmx_cegui_colour_setargb(MaxCEColour * col, CEGUI::argb_t argb) {
+	col->Colour().setARGB(argb);
+}
+
+void bmx_cegui_colour_setalpha(MaxCEColour * col, float alpha) {
+	col->Colour().setAlpha(alpha);
+}
+
+void bmx_cegui_colour_setred(MaxCEColour * col, float red) {
+	col->Colour().setRed(red);
+}
+
+void bmx_cegui_colour_setgreen(MaxCEColour * col, float green) {
+	col->Colour().setGreen(green);
+}
+
+void bmx_cegui_colour_setblue(MaxCEColour * col, float blue) {
+	col->Colour().setBlue(blue);
+}
+
+void bmx_cegui_colour_set(MaxCEColour * col, float red, float green, float blue, float alpha) {
+	col->Colour().set(red, green, blue, alpha);
+}
+
+void bmx_cegui_colour_setrgb(MaxCEColour * col, float red, float green, float blue) {
+	col->Colour().setRGB(red, green, blue);
+}
+
+void bmx_cegui_colour_sethsl(MaxCEColour * col, float hue, float saturation, float luminance, float alpha) {
+	col->Colour().setHSL(hue, saturation, luminance, alpha);
+}
+
+void bmx_cegui_colour_inverColour(MaxCEColour * col) {
+	col->Colour().invertColour();
+}
+
+void bmx_cegui_colour_invertColourWithAlpha(MaxCEColour * col) {
+	col->Colour().invertColourWithAlpha();
+}
+
+// *************************************************
+
+MaxCEColourRect * bmx_cegui_colourrect_create(MaxCEColour * col) {
+	return new MaxCEColourRect(CEGUI::ColourRect(col->Colour()));
+}
+
+void bmx_cegui_colourrect_setalpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().setAlpha(alpha);
+}
+
+void bmx_cegui_colourrect_settopalpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().setTopAlpha(alpha);
+}
+
+void bmx_cegui_colourrect_setbottomalpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().setBottomAlpha(alpha);
+}
+
+void bmx_cegui_colourrect_setleftalpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().setLeftAlpha(alpha);
+}
+
+void bmx_cegui_colourrect_setrightalpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().setRightAlpha(alpha);
+}
+
+bool bmx_cegui_colourrect_ismonochromatic(MaxCEColourRect * rect) {
+	return rect->Rect().isMonochromatic();
+}
+
+MaxCEColourRect * bmx_cegui_colourrect_getsubrectangle(MaxCEColourRect * rect, float left, float right, float top, float bottom) {
+	return new MaxCEColourRect(rect->Rect().getSubRectangle(left, right, top, bottom));
+}
+
+MaxCEColour * bmx_cegui_colourrect_getcolouratpoint(MaxCEColourRect * rect, float x, float y) {
+	return new MaxCEColour(rect->Rect().getColourAtPoint(x, y));
+}
+
+void bmx_cegui_colourrect_setcolours(MaxCEColourRect * rect, MaxCEColour * col) {
+	rect->Rect().setColours(col->Colour());
+}
+
+void bmx_cegui_colourrect_modulatealpha(MaxCEColourRect * rect, float alpha) {
+	rect->Rect().modulateAlpha(alpha);
+}
+
+void bmx_cegui_colourrect_settopleft(MaxCEColourRect * rect, MaxCEColour * col) {
+	rect->Rect().d_top_left = col->Colour();
+}
+
+void bmx_cegui_colourrect_settopright(MaxCEColourRect * rect, MaxCEColour * col) {
+	rect->Rect().d_top_right = col->Colour();
+}
+
+void bmx_cegui_colourrect_setbottomleft(MaxCEColourRect * rect, MaxCEColour * col) {
+	rect->Rect().d_bottom_left = col->Colour();
+}
+
+void bmx_cegui_colourrect_setbottomright(MaxCEColourRect * rect, MaxCEColour * col) {
+	rect->Rect().d_bottom_right = col->Colour();
+}
+
+MaxCEColour * bmx_cegui_colourrect_gettopleft(MaxCEColourRect * rect) {
+	return new MaxCEColour(rect->Rect().d_top_left);
+}
+
+MaxCEColour * bmx_cegui_colourrect_gettopright(MaxCEColourRect * rect) {
+	return new MaxCEColour(rect->Rect().d_top_right);
+}
+
+MaxCEColour * bmx_cegui_colourrect_getbottomleft(MaxCEColourRect * rect) {
+	return new MaxCEColour(rect->Rect().d_bottom_left);
+}
+
+MaxCEColour * bmx_cegui_colourrect_getbottomright(MaxCEColourRect * rect) {
+	return new MaxCEColour(rect->Rect().d_bottom_right);
+}
+
+void bmx_cegui_colourrect_delete(MaxCEColourRect * rect) {
+	delete rect;
 }
 

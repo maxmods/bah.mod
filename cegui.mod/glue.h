@@ -30,6 +30,8 @@ class MaxEventArgs;
 class MaxConnection;
 class MaxLogger;
 class MaxListHeaderSegment;
+class MaxCEColour;
+class MaxCEColourRect;
 
 extern "C" {
 
@@ -500,6 +502,48 @@ extern "C" {
 	void bmx_cegui_dragcontainer_setdragcursorimagemode(CEGUI::DragContainer * dc, CEGUI::MouseCursorImage image);
 	void bmx_cegui_dragcontainer_setdragcursorimagebyname(CEGUI::DragContainer * dc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image);
 	BBObject * bmx_cegui_dragcontainer_getcurrentdroptarget(CEGUI::DragContainer * dc);
+
+	MaxCEColour * bmx_cegui_colour_create(float red, float green, float blue, float alpha);
+	void bmx_cegui_colour_delete(MaxCEColour * col);
+	CEGUI::argb_t bmx_cegui_colour_getargb(MaxCEColour * col);
+	float bmx_cegui_colour_getalpha(MaxCEColour * col);
+	float bmx_cegui_colour_getred(MaxCEColour * col);
+	float bmx_cegui_colour_getgreen(MaxCEColour * col);
+	float bmx_cegui_colour_getblue(MaxCEColour * col);
+	float bmx_cegui_colour_gethue(MaxCEColour * col);
+	float bmx_cegui_colour_getsaturation(MaxCEColour * col);
+	float bmx_cegui_colour_getlumination(MaxCEColour * col);
+	void bmx_cegui_colour_setargb(MaxCEColour * col, CEGUI::argb_t argb);
+	void bmx_cegui_colour_setalpha(MaxCEColour * col, float alpha);
+	void bmx_cegui_colour_setred(MaxCEColour * col, float red);
+	void bmx_cegui_colour_setgreen(MaxCEColour * col, float green);
+	void bmx_cegui_colour_setblue(MaxCEColour * col, float blue);
+	void bmx_cegui_colour_set(MaxCEColour * col, float red, float green, float blue, float alpha);
+	void bmx_cegui_colour_setrgb(MaxCEColour * col, float red, float green, float blue);
+	void bmx_cegui_colour_sethsl(MaxCEColour * col, float hue, float saturation, float luminance, float alpha);
+	void bmx_cegui_colour_inverColour(MaxCEColour * col);
+	void bmx_cegui_colour_invertColourWithAlpha(MaxCEColour * col);
+
+	MaxCEColourRect * bmx_cegui_colourrect_create(MaxCEColour * col);
+	void bmx_cegui_colourrect_setalpha(MaxCEColourRect * rect, float alpha);
+	void bmx_cegui_colourrect_settopalpha(MaxCEColourRect * rect, float alpha);
+	void bmx_cegui_colourrect_setbottomalpha(MaxCEColourRect * rect, float alpha);
+	void bmx_cegui_colourrect_setleftalpha(MaxCEColourRect * rect, float alpha);
+	void bmx_cegui_colourrect_setrightalpha(MaxCEColourRect * rect, float alpha);
+	bool bmx_cegui_colourrect_ismonochromatic(MaxCEColourRect * rect);
+	MaxCEColourRect * bmx_cegui_colourrect_getsubrectangle(MaxCEColourRect * rect, float left, float right, float top, float bottom);
+	MaxCEColour * bmx_cegui_colourrect_getcolouratpoint(MaxCEColourRect * rect, float x, float y);
+	void bmx_cegui_colourrect_setcolours(MaxCEColourRect * rect, MaxCEColour * col);
+	void bmx_cegui_colourrect_modulatealpha(MaxCEColourRect * rect, float alpha);
+	void bmx_cegui_colourrect_settopleft(MaxCEColourRect * rect, MaxCEColour * col);
+	void bmx_cegui_colourrect_settopright(MaxCEColourRect * rect, MaxCEColour * col);
+	void bmx_cegui_colourrect_setbottomleft(MaxCEColourRect * rect, MaxCEColour * col);
+	void bmx_cegui_colourrect_setbottomright(MaxCEColourRect * rect, MaxCEColour * col);
+	MaxCEColour * bmx_cegui_colourrect_gettopleft(MaxCEColourRect * rect);
+	MaxCEColour * bmx_cegui_colourrect_gettopright(MaxCEColourRect * rect);
+	MaxCEColour * bmx_cegui_colourrect_getbottomleft(MaxCEColourRect * rect);
+	MaxCEColour * bmx_cegui_colourrect_getbottomright(MaxCEColourRect * rect);
+	void bmx_cegui_colourrect_delete(MaxCEColourRect * rect);
 	
 }
 
@@ -548,4 +592,27 @@ private:
 	BBObject * maxHandle;
 };
 
+class MaxCEColour
+{
+public:
+	MaxCEColour(CEGUI::colour col);
+	~MaxCEColour();
+
+	CEGUI::colour Colour();
+	
+private:
+	CEGUI::colour colour;
+};
+
+class MaxCEColourRect
+{
+public:
+	MaxCEColourRect(CEGUI::ColourRect col);
+	~MaxCEColourRect();
+
+	CEGUI::ColourRect Rect();
+	
+private:
+	CEGUI::ColourRect rect;
+};
 
