@@ -469,6 +469,39 @@ Extern
 	Function bmx_cegui_colourrect_getbottomright:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cegui_colourrect_delete(handle:Byte Ptr)
 
+	Function bmx_cegui_menubase_getitemspacing:Float(handle:Byte Ptr)
+	Function bmx_cegui_menubase_ismultiplepopupsallowed:Int(handle:Byte Ptr)
+	Function bmx_cegui_menubase_getpopupmenuitem:Object(handle:Byte Ptr)
+	Function bmx_cegui_menubase_setitemspacing(handle:Byte Ptr, spacing:Float)
+	Function bmx_cegui_menubase_changepopupmenuitem(handle:Byte Ptr, item:Byte Ptr)
+	Function bmx_cegui_menubase_setallowmultiplepopups(handle:Byte Ptr, setting:Int)
+
+	Function bmx_cegui_popupmenu_getfadeintime:Float(handle:Byte Ptr)
+	Function bmx_cegui_popupmenu_getfadeouttime:Float(handle:Byte Ptr)
+	Function bmx_cegui_popupmenu_ispopupmenuopen:Int(handle:Byte Ptr)
+	Function bmx_cegui_popupmenu_setfadeintime(handle:Byte Ptr, fadetime:Float)
+	Function bmx_cegui_popupmenu_setfadeouttime(handle:Byte Ptr, fadetime:Float)
+	Function bmx_cegui_popupmenu_openpopupmenu(handle:Byte Ptr, _notify:Int)
+	Function bmx_cegui_popupmenu_closepopupmenu(handle:Byte Ptr, _notify:Int)
+
+	Function bmx_cegui_itementry_getitempixelsize(handle:Byte Ptr, w:Float Ptr, h:Float Ptr)
+	Function bmx_cegui_itementry_getownerlist:Object(handle:Byte Ptr)
+	Function bmx_cegui_itementry_isselected:Int(handle:Byte Ptr)
+	Function bmx_cegui_itementry_isselectable:Int(handle:Byte Ptr)
+	Function bmx_cegui_itementry_setselected(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_itementry_selectentry(handle:Byte Ptr)
+	Function bmx_cegui_itementry_deselect(handle:Byte Ptr)
+	Function bmx_cegui_itementry_setselectable(handle:Byte Ptr, setting:Int)
+
+	Function bmx_cegui_menuitem_ishovering:Int(handle:Byte Ptr)
+	Function bmx_cegui_menuitem_ispushed:Int(handle:Byte Ptr)
+	Function bmx_cegui_menuitem_isopened:Int(handle:Byte Ptr)
+	Function bmx_cegui_menuitem_getpopupmenu:Object(handle:Byte Ptr)
+	Function bmx_cegui_menuitem_setpopupmenu(handle:Byte Ptr, popup:Byte Ptr)
+	Function bmx_cegui_menuitem_openpopupmenu(handle:Byte Ptr, _notify:Int)
+	Function bmx_cegui_menuitem_closepopupmenu(handle:Byte Ptr, _notify:Int)
+	Function bmx_cegui_menuitem_togglepopupmenu:Int(handle:Byte Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

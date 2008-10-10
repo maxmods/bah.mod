@@ -1484,7 +1484,7 @@ Type TCEItemListBase Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for menus. 
 End Rem
 Type TCEMenuBase Extends TCEItemListBase
 
@@ -1496,22 +1496,55 @@ Type TCEMenuBase Extends TCEItemListBase
 		End If
 	End Function
 
+	Rem
+	bbdoc: A MenuItem attached to this menu opened a PopupMenu. 
+	End Rem
+	Const EventPopupOpened:String = "PopupOpened"
+	Rem
+	bbdoc: A MenuItem attached to this menu opened a PopupMenu. 
+	End Rem
+	Const EventPopupClosed:String = "PopupClosed"
+
+	Rem
+	bbdoc: Gets the item spacing for this menu. 
+	End Rem
 	Method getItemSpacing:Float()
+		Return bmx_cegui_menubase_getitemspacing(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this menu allows multiple popup menus to open at the same time. 
+	End Rem
 	Method isMultiplePopupsAllowed:Int()
+		Return bmx_cegui_menubase_ismultiplepopupsallowed(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets currently opened MenuItem in this menu. Returns NULL if no menu item is open. 
+	End Rem
 	Method getPopupMenuItem:TCEMenuItem()
+		Return TCEMenuItem(bmx_cegui_menubase_getpopupmenuitem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the item spacing for this menu. 
+	End Rem
 	Method setItemSpacing(spacing:Float)
+		bmx_cegui_menubase_setitemspacing(objectPtr, spacing)
 	End Method
 	
+	Rem
+	bbdoc: Changes the currently open MenuItem in this menu. 
+	End Rem
 	Method changePopupMenuItem(item:TCEMenuItem)
+		bmx_cegui_menubase_changepopupmenuitem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this menu allows multiple popup menus to be opened simultaneously. 
+	End Rem
 	Method setAllowMultiplePopups(setting:Int)
+		bmx_cegui_menubase_setallowmultiplepopups(objectPtr, setting)
 	End Method
 
 End Type
@@ -1532,7 +1565,7 @@ Type TCEMenubar Extends TCEMenuBase
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for popup menus. 
 End Rem
 Type TCEPopupMenu Extends TCEMenuBase
 
@@ -1544,31 +1577,59 @@ Type TCEPopupMenu Extends TCEMenuBase
 		End If
 	End Function
 
+	Rem
+	bbdoc: Gets the fade in time for this popup menu. 
+	End Rem
 	Method getFadeInTime:Float()
+		Return bmx_cegui_popupmenu_getfadeintime(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the fade out time for this popup menu. 
+	End Rem
 	Method getFadeOutTime:Float()
+		Return bmx_cegui_popupmenu_getfadeouttime(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Find out if this popup menu is open or closed. 
+	End Rem
 	Method isPopupMenuOpen:Int()
+		Return bmx_cegui_popupmenu_ispopupmenuopen(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the fade in time for this popup menu. 
+	End Rem
 	Method setFadeInTime(fadetime:Float)
+		bmx_cegui_popupmenu_setfadeintime(objectPtr, fadetime)
 	End Method
 	
+	Rem
+	bbdoc: Sets the fade out time for this popup menu. 
+	End Rem
 	Method setFadeOutTime(fadetime:Float)
+		bmx_cegui_popupmenu_setfadeouttime(objectPtr, fadetime)
 	End Method
 	
-	Method openPopupMenu(Notify:Int = True)
+	Rem
+	bbdoc: Tells the popup menu to open. 
+	End Rem
+	Method openPopupMenu(_notify:Int = True)
+		bmx_cegui_popupmenu_openpopupmenu(objectPtr, _notify)
 	End Method
 	
-	Method closePopupMenu(Notify:Int = True)
+	Rem
+	bbdoc: Tells the popup menu to close. 
+	End Rem
+	Method closePopupMenu(_notify:Int = True)
+		bmx_cegui_popupmenu_closepopupmenu(objectPtr, _notify)
 	End Method
 
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for item type widgets. 
 End Rem
 Type TCEItemEntry Extends TCEWindow
 
@@ -1581,27 +1642,35 @@ Type TCEItemEntry Extends TCEWindow
 	End Function
 
 	Method getItemPixelSize(w:Float Var, h:Float Var)
+		bmx_cegui_itementry_getitempixelsize(objectPtr, Varptr w, Varptr h)
 	End Method
 
 	Method getOwnerList:TCEItemListBase()
+		Return TCEItemListBase(bmx_cegui_itementry_getownerlist(objectPtr))
 	End Method
 	
 	Method isSelected:Int()
+		Return bmx_cegui_itementry_isselected(objectPtr)
 	End Method
 	
 	Method isSelectable:Int()
+		Return bmx_cegui_itementry_isselectable(objectPtr)
 	End Method
 	
 	Method setSelected(setting:Int)
+		bmx_cegui_itementry_setselected(objectPtr, setting)
 	End Method
 	
 	Method selectEntry()
+		bmx_cegui_itementry_selectentry(objectPtr)
 	End Method
 	
 	Method deselect()
+		bmx_cegui_itementry_deselect(objectPtr)
 	End Method
 	
 	Method setSelectable(setting:Int)
+		bmx_cegui_itementry_setselectable(objectPtr, setting)
 	End Method
 
 End Type
@@ -1618,29 +1687,42 @@ Type TCEMenuItem Extends TCEItemEntry
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: The menu item was clicked. 
+	End Rem
+	Const EventClicked:String = "Clicked"
 
 	Method isHovering:Int()
+		Return bmx_cegui_menuitem_ishovering(objectPtr)
 	End Method
 	
 	Method isPushed:Int()
+		Return bmx_cegui_menuitem_ispushed(objectPtr)
 	End Method
 	
 	Method isOpened:Int()
+		Return bmx_cegui_menuitem_isopened(objectPtr)
 	End Method
 	
 	Method getPopupMenu:TCEPopupMenu()
+		Return TCEPopupMenu(bmx_cegui_menuitem_getpopupmenu(objectPtr))
 	End Method
 	
 	Method setPopupMenu(popup:TCEPopupMenu)
+		bmx_cegui_menuitem_setpopupmenu(objectPtr, popup.objectPtr)
 	End Method
 	
-	Method openPopupMenu(Notify:Int = True)
+	Method openPopupMenu(_notify:Int = True)
+		bmx_cegui_menuitem_openpopupmenu(objectPtr, _notify)
 	End Method
 	
-	Method closePopupMenu(Notify:Int = True)
+	Method closePopupMenu(_notify:Int = True)
+		bmx_cegui_menuitem_closepopupmenu(objectPtr, _notify)
 	End Method
 	
 	Method togglePopupMenu:Int()
+		Return bmx_cegui_menuitem_togglepopupmenu(objectPtr)
 	End Method
 
 End Type

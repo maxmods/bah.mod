@@ -1493,7 +1493,7 @@ Type TCEColourRect
 	Rem
 	bbdoc: Set the alpha value to use for all four corners of the ColourRect.
 	End Rem
-	Method setAlpha(alpha:Float)
+	Method SetAlpha(alpha:Float)
 		bmx_cegui_colourrect_setalpha(objectPtr, alpha)
 	End Method
 	 
@@ -1666,7 +1666,7 @@ Type TCEColour
 	Rem
 	bbdoc: 
 	End Rem
-	Method getAlpha:Float()
+	Method GetAlpha:Float()
 		Return bmx_cegui_colour_getalpha(objectPtr)
 	End Method
 	
@@ -1722,7 +1722,7 @@ Type TCEColour
 	Rem
 	bbdoc: 
 	End Rem
-	Method setAlpha(alpha:Float)
+	Method SetAlpha(alpha:Float)
 		bmx_cegui_colour_setalpha(objectPtr, alpha)
 	End Method
 	
@@ -2478,50 +2478,98 @@ Type TCEDragContainer Extends TCEWindow
 	End Rem
 	Const EventDragDropTargetChanged:String = "DragDropTargetChanged"
 
+	Rem
+	bbdoc: Returns whether dragging is currently enabled for this DragContainer. 
+	End Rem
 	Method isDraggingEnabled:Int()
 		Return bmx_cegui_dragcontainer_isdraggingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether dragging is currently enabled for this DragContainer. 
+	End Rem
 	Method setDraggingEnabled(setting:Int)
 		bmx_cegui_dragcontainer_setdraggingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the DragContainer is currently being dragged. 
+	End Rem
 	Method isBeingDragged:Int()
 		Return bmx_cegui_dragcontainer_isbeingdragged(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current drag threshold in pixels.
+	about: The drag threshold is the number of pixels that the mouse must be moved with the left button
+	held down in order to commence a drag operation.
+	End Rem
 	Method getPixelDragThreshold:Float()
 		Return bmx_cegui_dragcontainer_getpixeldragthreshold(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current drag threshold in pixels.
+	about: The drag threshold is the number of pixels that the mouse must be moved with the left button
+	held down in order to commence a drag operation.
+	End Rem
 	Method setPixelDragThreshold(pixels:Float)
 		bmx_cegui_dragcontainer_setpixeldragthreshold(objectPtr, pixels)
 	End Method
 	
+	Rem
+	bbdoc: Returns the alpha value that will be set on the DragContainer while a drag operation is in progress.
+	End Rem
 	Method getDragAlpha:Float()
 		Return bmx_cegui_dragcontainer_getdragalpha(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the alpha value to be set on the DragContainer when a drag operation is in progress.
+	about: This method can be used while a drag is in progress to update the alpha. Note that the normal
+	setAlpha method does not affect alpha while a drag is in progress, but once the drag operation has
+	ended, any value set via setAlpha will be restored.
+	End Rem
 	Method setDragAlpha(alpha:Float)
 		bmx_cegui_dragcontainer_setdragalpha(objectPtr, alpha)
 	End Method
 	
+	Rem
+	bbdoc: Returns the Image currently set to be used for the mouse cursor when a drag operation is in progress. 
+	End Rem
 	Method getDragCursorImage:TCEImage()
 		Return TCEImage(bmx_cegui_dragcontainer_getdragcursorimage(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the Image to be used for the mouse cursor when a drag operation is in progress.
+	about: This method may be used during a drag operation to update the current mouse cursor image.
+	End Rem
 	Method setDragCursorImage(image:TCEImage)
 		bmx_cegui_dragcontainer_setdragcursorimage(objectPtr, image.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the Image to be used for the mouse cursor when a drag operation is in progress.
+	about: This method may be used during a drag operation to update the current mouse cursor image.
+	End Rem
 	Method setDragCursorImageMode(image:Int)
 		bmx_cegui_dragcontainer_setdragcursorimagemode(objectPtr, image)
 	End Method
 	
+	Rem
+	bbdoc: Sets the Image to be used for the mouse cursor when a drag operation is in progress.
+	about: This method may be used during a drag operation to update the current mouse cursor image.
+	End Rem
 	Method setDragCursorImageByName(imageset:String, image:String)
 		bmx_cegui_dragcontainer_setdragcursorimagebyname(objectPtr, imageset,image)
 	End Method
 	
+	Rem
+	bbdoc: Return the Window object that is the current drop target for the DragContainer.
+	about: The drop target for a DragContainer is basically the Window that the DragContainer is within
+	while being dragged. The drop target may be Null to indicate no target.
+	End Rem
 	Method getCurrentDropTarget:TCEWindow() 
 		Return TCEWindow(bmx_cegui_dragcontainer_getcurrentdroptarget(objectPtr))
 	End Method

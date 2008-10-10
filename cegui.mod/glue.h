@@ -544,7 +544,40 @@ extern "C" {
 	MaxCEColour * bmx_cegui_colourrect_getbottomleft(MaxCEColourRect * rect);
 	MaxCEColour * bmx_cegui_colourrect_getbottomright(MaxCEColourRect * rect);
 	void bmx_cegui_colourrect_delete(MaxCEColourRect * rect);
+
+	float bmx_cegui_menubase_getitemspacing(CEGUI::MenuBase * base);
+	bool bmx_cegui_menubase_ismultiplepopupsallowed(CEGUI::MenuBase * base);
+	BBObject * bmx_cegui_menubase_getpopupmenuitem(CEGUI::MenuBase * base);
+	void bmx_cegui_menubase_setitemspacing(CEGUI::MenuBase * base, float spacing);
+	void bmx_cegui_menubase_changepopupmenuitem(CEGUI::MenuBase * base, CEGUI::MenuItem * item);
+	void bmx_cegui_menubase_setallowmultiplepopups(CEGUI::MenuBase * base, bool setting);
 	
+	float bmx_cegui_popupmenu_getfadeintime(CEGUI::PopupMenu * menu);
+	float bmx_cegui_popupmenu_getfadeouttime(CEGUI::PopupMenu * menu);
+	bool bmx_cegui_popupmenu_ispopupmenuopen(CEGUI::PopupMenu * menu);
+	void bmx_cegui_popupmenu_setfadeintime(CEGUI::PopupMenu * menu, float fadetime);
+	void bmx_cegui_popupmenu_setfadeouttime(CEGUI::PopupMenu * menu, float fadetime);
+	void bmx_cegui_popupmenu_openpopupmenu(CEGUI::PopupMenu * menu, bool _notify);
+	void bmx_cegui_popupmenu_closepopupmenu(CEGUI::PopupMenu * menu, bool _notify);
+
+	void bmx_cegui_itementry_getitempixelsize(CEGUI::ItemEntry * entry, float * w, float * h);
+	BBObject * bmx_cegui_itementry_getownerlist(CEGUI::ItemEntry * entry);
+	bool bmx_cegui_itementry_isselected(CEGUI::ItemEntry * entry);
+	bool bmx_cegui_itementry_isselectable(CEGUI::ItemEntry * entry);
+	void bmx_cegui_itementry_setselected(CEGUI::ItemEntry * entry, bool setting);
+	void bmx_cegui_itementry_selectentry(CEGUI::ItemEntry * entry);
+	void bmx_cegui_itementry_deselect(CEGUI::ItemEntry * entry);
+	void bmx_cegui_itementry_setselectable(CEGUI::ItemEntry * entry, bool setting);
+
+	bool bmx_cegui_menuitem_ishovering(CEGUI::MenuItem * item);
+	bool bmx_cegui_menuitem_ispushed(CEGUI::MenuItem * item);
+	bool bmx_cegui_menuitem_isopened(CEGUI::MenuItem * item);
+	BBObject * bmx_cegui_menuitem_getpopupmenu(CEGUI::MenuItem * item);
+	void bmx_cegui_menuitem_setpopupmenu(CEGUI::MenuItem * item, CEGUI::PopupMenu * popup);
+	void bmx_cegui_menuitem_openpopupmenu(CEGUI::MenuItem * item, bool _notify);
+	void bmx_cegui_menuitem_closepopupmenu(CEGUI::MenuItem * item, bool _notify);
+	bool bmx_cegui_menuitem_togglepopupmenu(CEGUI::MenuItem * item);
+
 }
 
 class MaxConnection

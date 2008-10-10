@@ -104,6 +104,10 @@ CEGUI::ColourRect MaxCEColourRect::Rect() {
 
 BBObject * newObjectForWindow(CEGUI::Window * window) {
 
+	if (!window) {
+		return &bbNullObject;
+	}
+
 	if (dynamic_cast<CEGUI::Editbox*>(window)) {
 		return _bah_cegui_TCEEditbox__create(window);
 	}
@@ -2148,5 +2152,134 @@ MaxCEColour * bmx_cegui_colourrect_getbottomright(MaxCEColourRect * rect) {
 
 void bmx_cegui_colourrect_delete(MaxCEColourRect * rect) {
 	delete rect;
+}
+
+// *************************************************
+
+
+float bmx_cegui_menubase_getitemspacing(CEGUI::MenuBase * base) {
+	return base->getItemSpacing();
+}
+
+bool bmx_cegui_menubase_ismultiplepopupsallowed(CEGUI::MenuBase * base) {
+	return base->isMultiplePopupsAllowed();
+}
+
+BBObject * bmx_cegui_menubase_getpopupmenuitem(CEGUI::MenuBase * base) {
+	return _bah_cegui_TCEMenuItem__create(base->getPopupMenuItem());
+}
+
+void bmx_cegui_menubase_setitemspacing(CEGUI::MenuBase * base, float spacing) {
+	base->setItemSpacing(spacing);
+}
+
+void bmx_cegui_menubase_changepopupmenuitem(CEGUI::MenuBase * base, CEGUI::MenuItem * item) {
+	base->changePopupMenuItem(item);
+}
+
+void bmx_cegui_menubase_setallowmultiplepopups(CEGUI::MenuBase * base, bool setting) {
+	base->setAllowMultiplePopups(setting);
+}
+
+// *************************************************
+
+
+float bmx_cegui_popupmenu_getfadeintime(CEGUI::PopupMenu * menu) {
+	return menu->getFadeInTime();
+}
+
+float bmx_cegui_popupmenu_getfadeouttime(CEGUI::PopupMenu * menu) {
+	return menu->getFadeOutTime();
+}
+
+bool bmx_cegui_popupmenu_ispopupmenuopen(CEGUI::PopupMenu * menu) {
+	return menu->isPopupMenuOpen();
+}
+
+void bmx_cegui_popupmenu_setfadeintime(CEGUI::PopupMenu * menu, float fadetime) {
+	menu->setFadeInTime(fadetime);
+}
+
+void bmx_cegui_popupmenu_setfadeouttime(CEGUI::PopupMenu * menu, float fadetime) {
+	menu->setFadeOutTime(fadetime);
+}
+
+void bmx_cegui_popupmenu_openpopupmenu(CEGUI::PopupMenu * menu, bool _notify) {
+	menu->openPopupMenu(_notify);
+}
+
+void bmx_cegui_popupmenu_closepopupmenu(CEGUI::PopupMenu * menu, bool _notify) {
+	menu->closePopupMenu(_notify);
+}
+
+// *************************************************
+
+void bmx_cegui_itementry_getitempixelsize(CEGUI::ItemEntry * entry, float * w, float * h) {
+	CEGUI::Size s(entry->getItemPixelSize());
+	*w = s.d_width;
+	*h = s.d_height;
+}
+
+BBObject * bmx_cegui_itementry_getownerlist(CEGUI::ItemEntry * entry) {
+	return newObjectForWindow(entry->getOwnerList());
+}
+
+bool bmx_cegui_itementry_isselected(CEGUI::ItemEntry * entry) {
+	return entry->isSelected();
+}
+
+bool bmx_cegui_itementry_isselectable(CEGUI::ItemEntry * entry) {
+	return entry->isSelectable();
+}
+
+void bmx_cegui_itementry_setselected(CEGUI::ItemEntry * entry, bool setting) {
+	entry->setSelected(setting);
+}
+
+void bmx_cegui_itementry_selectentry(CEGUI::ItemEntry * entry) {
+	entry->select();
+}
+
+void bmx_cegui_itementry_deselect(CEGUI::ItemEntry * entry) {
+	entry->deselect();
+}
+
+void bmx_cegui_itementry_setselectable(CEGUI::ItemEntry * entry, bool setting) {
+	entry->setSelectable(setting);
+}
+
+// *************************************************
+
+
+bool bmx_cegui_menuitem_ishovering(CEGUI::MenuItem * item) {
+	return item->isHovering();
+}
+
+bool bmx_cegui_menuitem_ispushed(CEGUI::MenuItem * item) {
+	return item->isPushed();
+}
+
+bool bmx_cegui_menuitem_isopened(CEGUI::MenuItem * item) {
+	return item->isOpened();
+}
+
+BBObject * bmx_cegui_menuitem_getpopupmenu(CEGUI::MenuItem * item) {
+	return newObjectForWindow(item->getPopupMenu());
+}
+
+void bmx_cegui_menuitem_setpopupmenu(CEGUI::MenuItem * item, CEGUI::PopupMenu * popup) {
+	item->setPopupMenu(popup);
+}
+
+void bmx_cegui_menuitem_openpopupmenu(CEGUI::MenuItem * item, bool _notify) {
+	item->openPopupMenu(_notify);
+}
+
+void bmx_cegui_menuitem_closepopupmenu(CEGUI::MenuItem * item, bool _notify) {
+	item->closePopupMenu(_notify);
+}
+
+bool bmx_cegui_menuitem_togglepopupmenu(CEGUI::MenuItem * item) {
+	return item->togglePopupMenu();
 }
 
