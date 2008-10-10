@@ -200,6 +200,8 @@ extern "C" {
 	void bmx_b2shape_computemass(b2Shape * shape, b2MassData * data);
 	MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape);
 	void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data);
+	void bmx_b2shape_setfriction(b2Shape * shape, float32 friction);
+	void bmx_b2shape_setrestitution(b2Shape * shape, float32 restitution);
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
@@ -477,6 +479,47 @@ extern "C" {
 	void bmx_b2segment_setendpoint(b2Segment * seg, b2Vec2 * point);
 	void bmx_b2segment_delete(b2Segment * seg);
 
+	b2LineJointDef * bmx_b2linejointdef_create();
+	void bmx_b2linejointdef_initialize(b2LineJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor, b2Vec2 * axis);
+	void bmx_b2linejointdef_setlocalanchor1(b2LineJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2linejointdef_getlocalanchor1(b2LineJointDef * def);
+	void bmx_b2linejointdef_setlocalanchor2(b2LineJointDef * def, b2Vec2 * anchor);
+	b2Vec2 * bmx_b2linejointdef_getlocalanchor2(b2LineJointDef * def);
+	void bmx_b2linejointdef_setlocalaxis1(b2LineJointDef * def, b2Vec2 * axis);
+	b2Vec2 * bmx_b2linejointdef_getlocalaxis1(b2LineJointDef * def);
+	void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, bool limit);
+	bool bmx_b2linejointdef_getlimit(b2LineJointDef * def);
+	void bmx_b2linejointdef_setlowertranslation(b2LineJointDef * def, float32 translation);
+	float32 bmx_b2linejointdef_getlowertranslation(b2LineJointDef * def);
+	void bmx_b2linejointdef_setuppertranslation(b2LineJointDef * def, float32 translation);
+	float32 bmx_b2linejointdef_getuppertranslation(b2LineJointDef * def);
+	void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, bool enable);
+	bool bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def);
+	void bmx_b2linejointdef_setmaxmotorforce(b2LineJointDef * def, float32 maxForce);
+	float32 bmx_b2linejointdef_getmaxmotorforce(b2LineJointDef * def);
+	void bmx_b2linejointdef_setmotorspeed(b2LineJointDef * def, float32 speed);
+	float32 bmx_b2linejointdef_getmotorspeed(b2LineJointDef * def);
+	void bmx_b2linejointdef_delete(b2LineJointDef * def);
+	
+	b2Vec2 * bmx_b2linejoint_getanchor1(b2LineJoint * joint);
+	b2Vec2 * bmx_b2linejoint_getanchor2(b2LineJoint * joint);
+	b2Vec2 * bmx_b2linejoint_getreactionforce(b2LineJoint * joint, float32 inv_dt);
+	float32 bmx_b2linejoint_getreactiontorque(b2LineJoint * joint, float32 inv_dt);
+	float32 bmx_b2linejoint_getjointtranslation(b2LineJoint * joint);
+	float32 bmx_b2linejoint_getjointspeed(b2LineJoint * joint);
+	bool bmx_b2linejoint_islimitenabled(b2LineJoint * joint);
+	void bmx_b2linejoint_enablelimit(b2LineJoint * joint, bool flag);
+	float32 bmx_b2linejoint_getlowerlimit(b2LineJoint * joint);
+	float32 bmx_b2linejoint_getupperlimit(b2LineJoint * joint);
+	void bmx_b2linejoint_setlimits(b2LineJoint * joint, float32 _lower, float32 _upper);
+	bool bmx_b2linejoint_ismotorenabled(b2LineJoint * joint);
+	void bmx_b2linejoint_enablemotor(b2LineJoint * joint, bool flag);
+	void bmx_b2linejoint_setmotorspeed(b2LineJoint * joint, float32 speed);
+	float32 bmx_b2linejoint_getmotorspeed(b2LineJoint * joint);
+	void bmx_b2linejoint_setmaxmotorforce(b2LineJoint * joint, float32 force);
+	float32 bmx_b2linejoint_getmotorforce(b2LineJoint * joint);
+
+	
 }
 
 class MaxFilterData
@@ -1238,6 +1281,14 @@ MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape) {
 
 void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data) {
 	shape->SetFilterData(data->getData());
+}
+
+void bmx_b2shape_setfriction(b2Shape * shape, float32 friction) {
+	shape->SetFriction(friction);
+}
+
+void bmx_b2shape_setrestitution(b2Shape * shape, float32 restitution) {
+	shape->SetRestitution(restitution);
 }
 
 // *****************************************************
@@ -2377,5 +2428,161 @@ void bmx_b2segment_setendpoint(b2Segment * seg, b2Vec2 * point) {
 
 void bmx_b2segment_delete(b2Segment * seg) {
 	delete seg;
+}
+
+// *****************************************************
+
+b2LineJointDef * bmx_b2linejointdef_create() {
+	return new b2LineJointDef();
+}
+
+void bmx_b2linejointdef_initialize(b2LineJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor, b2Vec2 * axis) {
+	def->Initialize(body1, body2, *anchor, *axis);
+}
+
+void bmx_b2linejointdef_setlocalanchor1(b2LineJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor1 = *anchor;
+}
+
+b2Vec2 * bmx_b2linejointdef_getlocalanchor1(b2LineJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor1);
+}
+
+void bmx_b2linejointdef_setlocalanchor2(b2LineJointDef * def, b2Vec2 * anchor) {
+	def->localAnchor2 = *anchor;
+}
+
+b2Vec2 * bmx_b2linejointdef_getlocalanchor2(b2LineJointDef * def) {
+	return bmx_b2vec2_new(def->localAnchor2);
+}
+
+void bmx_b2linejointdef_setlocalaxis1(b2LineJointDef * def, b2Vec2 * axis) {
+	def->localAxis1 = *axis;
+}
+
+b2Vec2 * bmx_b2linejointdef_getlocalaxis1(b2LineJointDef * def) {
+	return bmx_b2vec2_new(def->localAxis1);
+}
+
+void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, bool limit) {
+	def->enableLimit = limit;
+}
+
+bool bmx_b2linejointdef_getlimit(b2LineJointDef * def) {
+	return def->enableLimit;
+}
+
+void bmx_b2linejointdef_setlowertranslation(b2LineJointDef * def, float32 translation) {
+	def->lowerTranslation = translation;
+}
+
+float32 bmx_b2linejointdef_getlowertranslation(b2LineJointDef * def) {
+	return def->lowerTranslation;
+}
+
+void bmx_b2linejointdef_setuppertranslation(b2LineJointDef * def, float32 translation) {
+	def->upperTranslation = translation;
+}
+
+float32 bmx_b2linejointdef_getuppertranslation(b2LineJointDef * def) {
+	return def->upperTranslation;
+}
+
+void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, bool enable) {
+	def->enableMotor = enable;
+}
+
+bool bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def) {
+	return def->enableMotor;
+}
+
+void bmx_b2linejointdef_setmaxmotorforce(b2LineJointDef * def, float32 maxForce) {
+	def->maxMotorForce = maxForce;
+}
+
+float32 bmx_b2linejointdef_getmaxmotorforce(b2LineJointDef * def) {
+	return def->maxMotorForce;
+}
+
+void bmx_b2linejointdef_setmotorspeed(b2LineJointDef * def, float32 speed) {
+	def->motorSpeed = speed * 0.0174533f;
+}
+
+float32 bmx_b2linejointdef_getmotorspeed(b2LineJointDef * def) {
+	return def->motorSpeed * 57.2957795f;
+}
+
+void bmx_b2linejointdef_delete(b2LineJointDef * def) {
+	delete def;
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2linejoint_getanchor1(b2LineJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor1());
+}
+
+b2Vec2 * bmx_b2linejoint_getanchor2(b2LineJoint * joint) {
+	return bmx_b2vec2_new(joint->GetAnchor2());
+}
+
+b2Vec2 * bmx_b2linejoint_getreactionforce(b2LineJoint * joint, float32 inv_dt) {
+	return bmx_b2vec2_new(joint->GetReactionForce(inv_dt));
+}
+
+float32 bmx_b2linejoint_getreactiontorque(b2LineJoint * joint, float32 inv_dt) {
+	return joint->GetReactionTorque(inv_dt);
+}
+
+float32 bmx_b2linejoint_getjointtranslation(b2LineJoint * joint) {
+	return joint->GetJointTranslation();
+}
+
+float32 bmx_b2linejoint_getjointspeed(b2LineJoint * joint) {
+	return joint->GetJointSpeed();
+}
+
+bool bmx_b2linejoint_islimitenabled(b2LineJoint * joint) {
+	return joint->IsLimitEnabled();
+}
+
+void bmx_b2linejoint_enablelimit(b2LineJoint * joint, bool flag) {
+	return joint->EnableLimit(flag);
+}
+
+float32 bmx_b2linejoint_getlowerlimit(b2LineJoint * joint) {
+	return joint->GetLowerLimit();
+}
+
+float32 bmx_b2linejoint_getupperlimit(b2LineJoint * joint) {
+	return joint->GetUpperLimit();
+}
+
+void bmx_b2linejoint_setlimits(b2LineJoint * joint, float32 _lower, float32 _upper) {
+	joint->SetLimits(_lower, _upper);
+}
+
+bool bmx_b2linejoint_ismotorenabled(b2LineJoint * joint) {
+	return joint->IsMotorEnabled();
+}
+
+void bmx_b2linejoint_enablemotor(b2LineJoint * joint, bool flag) {
+	joint->EnableMotor(flag);
+}
+
+void bmx_b2linejoint_setmotorspeed(b2LineJoint * joint, float32 speed) {
+	joint->SetMotorSpeed(speed);
+}
+
+float32 bmx_b2linejoint_getmotorspeed(b2LineJoint * joint) {
+	return joint->GetMotorSpeed();
+}
+
+void bmx_b2linejoint_setmaxmotorforce(b2LineJoint * joint, float32 force) {
+	joint->SetMaxMotorForce(force);
+}
+
+float32 bmx_b2linejoint_getmotorforce(b2LineJoint * joint) {
+	return joint->GetMotorForce();
 }
 

@@ -43,12 +43,15 @@ b2ContactSolver::b2ContactSolver(const b2TimeStep& step, b2Contact** contacts, i
 	{
 		b2Contact* contact = contacts[i];
 
-		b2Body* b1 = contact->m_shape1->GetBody();
-		b2Body* b2 = contact->m_shape2->GetBody();
+		b2Shape* shape1 = contact->m_shape1;
+		b2Shape* shape2 = contact->m_shape2;
+		b2Body* b1 = shape1->GetBody();
+		b2Body* b2 = shape2->GetBody();
 		int32 manifoldCount = contact->GetManifoldCount();
 		b2Manifold* manifolds = contact->GetManifolds();
-		float32 friction = contact->m_friction;
-		float32 restitution = contact->m_restitution;
+
+		float32 friction = b2MixFriction(shape1->GetFriction(), shape2->GetFriction());
+		float32 restitution = b2MixRestitution(shape1->GetRestitution(), shape2->GetRestitution());
 
 		b2Vec2 v1 = b1->m_linearVelocity;
 		b2Vec2 v2 = b2->m_linearVelocity;

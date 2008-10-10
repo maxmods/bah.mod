@@ -18,6 +18,7 @@
 
 #include "b2Joint.h"
 #include "b2DistanceJoint.h"
+#include "b2LineJoint.h"
 #include "b2MouseJoint.h"
 #include "b2RevoluteJoint.h"
 #include "b2PrismaticJoint.h"
@@ -78,6 +79,13 @@ b2Joint* b2Joint::Create(const b2JointDef* def, b2BlockAllocator* allocator)
 		}
 		break;
 
+	case e_lineJoint:
+		{
+			void* mem = allocator->Allocate(sizeof(b2LineJoint));
+			joint = new (mem) b2LineJoint((b2LineJointDef*)def);
+		}
+		break;
+
 	default:
 		b2Assert(false);
 		break;
@@ -113,6 +121,10 @@ void b2Joint::Destroy(b2Joint* joint, b2BlockAllocator* allocator)
 
 	case e_gearJoint:
 		allocator->Free(joint, sizeof(b2GearJoint));
+		break;
+
+	case e_lineJoint:
+		allocator->Free(joint, sizeof(b2LineJoint));
 		break;
 
 	default:

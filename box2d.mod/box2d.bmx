@@ -31,8 +31,11 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
+ModuleInfo "History: Updated to box2d svn (rev 175)"
+ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."
+ModuleInfo "History: Added shape SetFriction() and SetRestitution() methods."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -212,6 +215,8 @@ Type b2World
 				joint = New b2MouseJoint
 			Case e_gearJoint
 				joint = New b2GearJoint
+			Case e_lineJoint
+				joint = New b2LineJoint
 			Default
 				DebugLog "Warning, joint type '" + jointType + "' is not defined in module."
 				joint = New b2Joint
@@ -1498,10 +1503,24 @@ Type b2Shape
 	End Method
 	
 	Rem
+	bbdoc: Set the coefficient of friction.
+	End Rem
+	Method SetFriction(friction:Float)
+		bmx_b2shape_setfriction(b2ObjectPtr, friction)
+	End Method
+	
+	Rem
 	bbdoc: Get the coefficient of restitution. 
 	End Rem
 	Method GetRestitution:Float()
 		Return bmx_b2shape_getrestitution(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set the coefficient of restitution.
+	End Rem
+	Method SetRestitution(restitution:Float)
+		bmx_b2shape_setrestitution(b2ObjectPtr, restitution)
 	End Method
 	
 	Rem
@@ -2894,6 +2913,289 @@ Type b2GearJointDef Extends b2JointDef
 		End If
 	End Method
 
+End Type
+
+Rem
+bbdoc: Line joint definition.
+about: This requires defining a line of motion using an axis and an anchor point. The definition uses local
+anchor points and a local axis so that the initial configuration can violate the constraint slightly. The joint translation is zero
+when the local anchor points coincide in world space. Using local anchors and a local axis helps when saving and loading a game.
+End Rem
+Type b2LineJointDef Extends b2JointDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2linejointdef_create()
+	End Method
+	
+	Rem
+	bbdoc: Initialize the bodies, anchors, axis, and reference angle using the world anchor and world axis.
+	End Rem
+	Method Initialize(body1:b2Body, body2:b2Body, anchor:b2Vec2, axis:b2Vec2)
+		bmx_b2linejointdef_initialize(b2ObjectPtr, body1.b2ObjectPtr, body2.b2ObjectPtr, ..
+				anchor.b2ObjectPtr, axis.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Sets the local anchor point relative to body1's origin. 
+	End Rem
+	Method SetLocalAnchor1(anchor:b2Vec2)
+		bmx_b2linejointdef_setlocalanchor1(b2ObjectPtr, anchor.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the local anchor point relative to body1's origin. 
+	End Rem
+	Method GetLocalAnchor1:b2Vec2()
+		Return b2Vec2._create(bmx_b2linejointdef_getlocalanchor1(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Sets the Local anchor point relative to body2's origin.
+	End Rem
+	Method SetLocalAnchor2(anchor:b2Vec2)
+		bmx_b2linejointdef_setlocalanchor2(b2ObjectPtr, anchor.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the Local anchor point relative to body2's origin.
+	End Rem
+	Method GetLocalAnchor2:b2Vec2()
+		Return b2Vec2._create(bmx_b2linejointdef_getlocalanchor2(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: Sets the local translation axis in body1.
+	End Rem
+	Method SetLocalAxis1(axis:b2Vec2)
+		bmx_b2linejointdef_setlocalaxis1(b2ObjectPtr, axis.b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the local translation axis in body1.
+	End Rem
+	Method GetLocalAxis1:b2Vec2()
+		Return b2Vec2._create(bmx_b2linejointdef_getlocalaxis1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Enables/disables the joint limit.
+	End Rem
+	Method EnableLimit(limit:Int)
+		bmx_b2linejointdef_enablelimit(b2ObjectPtr, limit)
+	End Method
+	
+	Rem
+	bbdoc: Returns the joint limit.
+	End Rem
+	Method GetLimit:Int()
+		Return bmx_b2linejointdef_getlimit(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the lower translation limit, usually in meters.
+	End Rem
+	Method SetLowerTranslation(translation:Float)
+		bmx_b2linejointdef_setlowertranslation(b2ObjectPtr, translation)
+	End Method
+	
+	Rem
+	bbdoc: Gets the lower translation limit, usually in meters.
+	End Rem
+	Method GetLowerTranslation:Float()
+		Return bmx_b2linejointdef_getlowertranslation(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Sets the upper translation limit, usually in meters.
+	End Rem
+	Method SetUpperTranslation(translation:Float)
+		bmx_b2linejointdef_setuppertranslation(b2ObjectPtr, translation)
+	End Method
+	
+	Rem
+	bbdoc: Gets the upper translation limit, usually in meters.
+	End Rem
+	Method GetUpperTranslation:Float()
+		Return bmx_b2linejointdef_getuppertranslation(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Enables/disables the joint motor.
+	End Rem
+	Method EnableMotor(enable:Int)
+		bmx_b2linejointdef_enablemotor(b2ObjectPtr, enable)
+	End Method
+	
+	Rem
+	bbdoc: Is the motor enabled?
+	End Rem
+	Method IsMotorEnabled:Int()
+		Return bmx_b2linejointdef_ismotorenabled(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the maximum motor torque, usually in N-m.
+	End Rem
+	Method SetMaxMotorForce(maxForce:Float)
+		bmx_b2linejointdef_setmaxmotorforce(b2ObjectPtr, maxForce)
+	End Method
+	
+	Rem
+	bbdoc: Returns the maximum motor torque, usually in N-m.
+	End Rem
+	Method GetMaxMotorForce:Float()
+		Return bmx_b2linejointdef_getmaxmotorforce(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the desired motor speed, in degrees per second.
+	End Rem
+	Method SetMotorSpeed(speed:Float)
+		bmx_b2linejointdef_setmotorspeed(b2ObjectPtr, speed)
+	End Method
+	
+	Rem
+	bbdoc: Returns the desired motor speed, in degrees per second.
+	End Rem
+	Method GetMotorSpeed:Float()
+		Return bmx_b2linejointdef_getmotorspeed(b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2linejointdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: A line joint.
+about: This joint provides one degree of freedom: translation along an axis fixed in body1. You can use a joint limit to restrict
+the range of motion and a joint motor to drive the motion or to model joint friction.
+End Rem
+Type b2LineJoint Extends b2Joint
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetAnchor1:b2Vec2()
+		Return b2Vec2._create(bmx_b2linejoint_getanchor1(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetAnchor2:b2Vec2()
+		Return b2Vec2._create(bmx_b2linejoint_getanchor2(b2ObjectPtr))
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetReactionForce:b2Vec2(inv_dt:Float)
+		Return b2Vec2._create(bmx_b2linejoint_getreactionforce(b2ObjectPtr, inv_dt))
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetReactionTorque:Float(inv_dt:Float)
+		Return bmx_b2linejoint_getreactiontorque(b2ObjectPtr, inv_dt)
+	End Method
+
+	Rem
+	bbdoc: Get the current joint translation, usually in meters.
+	End Rem
+	Method GetJointTranslation:Float()
+		Return bmx_b2linejoint_getjointtranslation(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the current joint translation speed, usually in meters per second.
+	End Rem
+	Method GetJointSpeed:Float()
+		Return bmx_b2linejoint_getjointspeed(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Is the joint limit enabled?
+	End Rem
+	Method IsLimitEnabled:Int()
+		Return bmx_b2linejoint_islimitenabled(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Enable/disable the joint limit.
+	End Rem
+	Method EnableLimit(flag:Int)
+		bmx_b2linejoint_enablelimit(b2ObjectPtr, flag)
+	End Method
+
+	Rem
+	bbdoc: Get the lower joint limit, usually in meters.
+	End Rem
+	Method GetLowerLimit:Float()
+		Return bmx_b2linejoint_getlowerlimit(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Get the upper joint limit, usually in meters.
+	End Rem
+	Method GetUpperLimit:Float()
+		Return bmx_b2linejoint_getupperlimit(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Set the joint limits, usually in meters.
+	End Rem
+	Method SetLimits(_lower:Float, _upper:Float)
+		bmx_b2linejoint_setlimits(b2ObjectPtr, _lower, _upper)
+	End Method
+
+	Rem
+	bbdoc: Is the joint motor enabled?
+	End Rem
+	Method IsMotorEnabled:Int()
+		Return bmx_b2linejoint_ismotorenabled(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Enable/disable the joint motor.
+	End Rem
+	Method EnableMotor(flag:Int)
+		bmx_b2linejoint_enablemotor(b2ObjectPtr, flag)
+	End Method
+
+	Rem
+	bbdoc: Set the motor speed, usually in meters per second.
+	End Rem
+	Method SetMotorSpeed(speed:Float)
+		bmx_b2linejoint_setmotorspeed(b2ObjectPtr, speed)
+	End Method
+
+	Rem
+	bbdoc: Get the motor speed, usually in meters per second.
+	End Rem
+	Method GetMotorSpeed:Float()
+		Return bmx_b2linejoint_getmotorspeed(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: Set the maximum motor force, usually in N.
+	End Rem
+	Method SetMaxMotorForce(force:Float)
+		bmx_b2linejoint_setmaxmotorforce(b2ObjectPtr, force)
+	End Method
+
+	Rem
+	bbdoc: Get the current motor force, usually in N.
+	End Rem
+	Method GetMotorForce:Float()
+		Return bmx_b2linejoint_getmotorforce(b2ObjectPtr)
+	End Method
+	
 End Type
 
 Rem

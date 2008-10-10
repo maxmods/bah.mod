@@ -130,20 +130,20 @@ void b2ContactManager::Destroy(b2Contact* c)
 {
 	b2Shape* shape1 = c->GetShape1();
 	b2Shape* shape2 = c->GetShape2();
+	b2Body* body1 = shape1->GetBody();
+	b2Body* body2 = shape2->GetBody();
+
+	b2ContactPoint cp;
+	cp.shape1 = shape1;
+	cp.shape2 = shape2;
+	cp.friction = b2MixFriction(shape1->GetFriction(), shape2->GetFriction());
+	cp.restitution = b2MixRestitution(shape1->GetRestitution(), shape2->GetRestitution());
 
 	// Inform the user that this contact is ending.
 	int32 manifoldCount = c->GetManifoldCount();
 	if (manifoldCount > 0 && m_world->m_contactListener)
 	{
-		b2Body* b1 = shape1->GetBody();
-		b2Body* b2 = shape2->GetBody();
-
 		b2Manifold* manifolds = c->GetManifolds();
-		b2ContactPoint cp;
-		cp.shape1 = c->GetShape1();
-		cp.shape2 = c->GetShape2();
-		cp.friction = c->m_friction;
-		cp.restitution = c->m_restitution;
 
 		for (int32 i = 0; i < manifoldCount; ++i)
 		{
@@ -153,9 +153,9 @@ void b2ContactManager::Destroy(b2Contact* c)
 			for (int32 j = 0; j < manifold->pointCount; ++j)
 			{
 				b2ManifoldPoint* mp = manifold->points + j;
-				cp.position = b1->GetWorldPoint(mp->localPoint1);
-				b2Vec2 v1 = b1->GetLinearVelocityFromLocalPoint(mp->localPoint1);
-				b2Vec2 v2 = b2->GetLinearVelocityFromLocalPoint(mp->localPoint2);
+				cp.position = body1->GetWorldPoint(mp->localPoint1);
+				b2Vec2 v1 = body1->GetLinearVelocityFromLocalPoint(mp->localPoint1);
+				b2Vec2 v2 = body2->GetLinearVelocityFromLocalPoint(mp->localPoint2);
 				cp.velocity = v2 - v1;
 				cp.separation = mp->separation;
 				cp.id = mp->id;
@@ -179,9 +179,6 @@ void b2ContactManager::Destroy(b2Contact* c)
 	{
 		m_world->m_contactList = c->m_next;
 	}
-
-	b2Body* body1 = shape1->GetBody();
-	b2Body* body2 = shape2->GetBody();
 
 	// Remove from body 1
 	if (c->m_node1.prev)

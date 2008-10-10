@@ -34,7 +34,8 @@ enum b2JointType
 	e_distanceJoint,
 	e_pulleyJoint,
 	e_mouseJoint,
-	e_gearJoint
+	e_gearJoint,
+	e_lineJoint
 };
 
 enum b2LimitState

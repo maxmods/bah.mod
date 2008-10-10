@@ -148,10 +148,6 @@ public:
 	b2Shape* m_shape1;
 	b2Shape* m_shape2;
 
-	// Combined friction
-	float32 m_friction;
-	float32 m_restitution;
-
 	float32 m_toi;
 };
 

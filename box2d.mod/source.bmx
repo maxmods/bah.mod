@@ -45,6 +45,7 @@ Import "Source/Dynamics/Joints/b2Joint.cpp"
 Import "Source/Dynamics/Joints/b2MouseJoint.cpp"
 Import "Source/Dynamics/Joints/b2PrismaticJoint.cpp"
 Import "Source/Dynamics/Joints/b2PulleyJoint.cpp"
+Import "Source/Dynamics/Joints/b2LineJoint.cpp"
 
 Import "Source/Collision/b2BroadPhase.cpp"
 Import "Source/Collision/b2TimeOfImpact.cpp"

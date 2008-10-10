@@ -170,6 +170,8 @@ Extern
 	Function bmx_b2shape_computemass(handle:Byte Ptr, data:Byte Ptr)
 	Function bmx_b2shape_getfilterdata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_setfilterdata(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_b2shape_setfriction(handle:Byte Ptr, friction:Float)
+	Function bmx_b2shape_setrestitution(handle:Byte Ptr, restitution:Float)
 
 	Function bmx_b2jointdef_setcollideconnected(handle:Byte Ptr, collideConnected:Int)
 	Function bmx_b2jointdef_getcollideconnected:Int(handle:Byte Ptr)
@@ -441,6 +443,46 @@ Extern
 	Function bmx_b2segment_setendpoint(handle:Byte Ptr, point:Byte Ptr)
 	Function bmx_b2segment_delete(handle:Byte Ptr)
 
+	Function bmx_b2linejointdef_create:Byte Ptr()
+	Function bmx_b2linejointdef_initialize(handle:Byte Ptr, body1:Byte Ptr, body2:Byte Ptr, anchor:Byte Ptr, axis:Byte Ptr)
+	Function bmx_b2linejointdef_setlocalanchor1(handle:Byte Ptr, anchor:Byte Ptr)
+	Function bmx_b2linejointdef_getlocalanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setlocalanchor2(handle:Byte Ptr, anchor:Byte Ptr)
+	Function bmx_b2linejointdef_getlocalanchor2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setlocalaxis1(handle:Byte Ptr, axis:Byte Ptr)
+	Function bmx_b2linejointdef_getlocalaxis1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2linejointdef_enablelimit(handle:Byte Ptr, limit:Int)
+	Function bmx_b2linejointdef_getlimit:Int(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setlowertranslation(handle:Byte Ptr, translation:Float)
+	Function bmx_b2linejointdef_getlowertranslation:Float(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setuppertranslation(handle:Byte Ptr, translation:Float)
+	Function bmx_b2linejointdef_getuppertranslation:Float(handle:Byte Ptr)
+	Function bmx_b2linejointdef_enablemotor(handle:Byte Ptr, enable:Int)
+	Function bmx_b2linejointdef_ismotorenabled:Int(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setmaxmotorforce(handle:Byte Ptr, maxForce:Float)
+	Function bmx_b2linejointdef_getmaxmotorforce:Float(handle:Byte Ptr)
+	Function bmx_b2linejointdef_setmotorspeed(handle:Byte Ptr, speed:Float)
+	Function bmx_b2linejointdef_getmotorspeed:Float(handle:Byte Ptr)
+	Function bmx_b2linejointdef_delete(handle:Byte Ptr)
+
+	Function bmx_b2linejoint_getanchor1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2linejoint_getanchor2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2linejoint_getreactionforce:Byte Ptr(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2linejoint_getreactiontorque:Float(handle:Byte Ptr, inv_dt:Float)
+	Function bmx_b2linejoint_getjointtranslation:Float(handle:Byte Ptr)
+	Function bmx_b2linejoint_getjointspeed:Float(handle:Byte Ptr)
+	Function bmx_b2linejoint_islimitenabled:Int(handle:Byte Ptr)
+	Function bmx_b2linejoint_enablelimit(handle:Byte Ptr, flag:Int)
+	Function bmx_b2linejoint_getlowerlimit:Float(handle:Byte Ptr)
+	Function bmx_b2linejoint_getupperlimit:Float(handle:Byte Ptr)
+	Function bmx_b2linejoint_setlimits(handle:Byte Ptr, _lower:Float, _upper:Float)
+	Function bmx_b2linejoint_ismotorenabled:Int(handle:Byte Ptr)
+	Function bmx_b2linejoint_enablemotor(handle:Byte Ptr, flag:Int)
+	Function bmx_b2linejoint_setmotorspeed(handle:Byte Ptr, speed:Float)
+	Function bmx_b2linejoint_getmotorspeed:Float(handle:Byte Ptr)
+	Function bmx_b2linejoint_setmaxmotorforce(handle:Byte Ptr, force:Float)
+	Function bmx_b2linejoint_getmotorforce:Float(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0
@@ -450,6 +492,7 @@ Const e_distanceJoint:Int = 3
 Const e_pulleyJoint:Int = 4
 Const e_mouseJoint:Int = 5
 Const e_gearJoint:Int = 6
+Const e_lineJoint:Int = 7
 
 Const e_unknownShape:Int = -1
 Const e_circleShape:Int = 0

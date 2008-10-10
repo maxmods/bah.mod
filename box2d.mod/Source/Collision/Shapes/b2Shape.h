@@ -194,8 +194,14 @@ public:
 	/// Get the coefficient of friction.
 	float32 GetFriction() const;
 
+	/// Set the coefficient of friction.
+	void SetFriction(float32 friction);
+
 	/// Get the coefficient of restitution.
 	float32 GetRestitution() const;
+
+	/// Set the coefficient of restitution.
+	void SetRestitution(float32 restitution);
 
 protected:
 
@@ -284,9 +290,19 @@ inline float32 b2Shape::GetFriction() const
 	return m_friction;
 }
 
+inline void b2Shape::SetFriction(float32 friction)
+{
+	m_friction = friction;
+}
+
 inline float32 b2Shape::GetRestitution() const
 {
 	return m_restitution;
+}
+
+inline void b2Shape::SetRestitution(float32 restitution)
+{
+	m_restitution = restitution;
 }
 
 #endif

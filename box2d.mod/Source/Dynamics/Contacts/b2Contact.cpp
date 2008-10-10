@@ -127,8 +127,6 @@ b2Contact::b2Contact(b2Shape* s1, b2Shape* s2)
 
 	m_manifoldCount = 0;
 
-	m_friction = b2MixFriction(m_shape1->GetFriction(), m_shape2->GetFriction());
-	m_restitution = b2MixRestitution(m_shape1->GetRestitution(), m_shape2->GetRestitution());
 	m_prev = NULL;
 	m_next = NULL;
 

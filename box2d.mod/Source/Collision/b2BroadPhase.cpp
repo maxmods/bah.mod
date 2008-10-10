@@ -746,10 +746,10 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 	}
 
 	//Now work through the rest of the segment
-	do//while(false)
+	for (;;)
 	{
-		float32 xProgress;
-		float32 yProgress;
+		float32 xProgress = 0;
+		float32 yProgress = 0;
 		if(xIndex<0||xIndex>=m_proxyCount*2)
 			break;
 		if(yIndex<0||yIndex>=m_proxyCount*2)
@@ -917,7 +917,9 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 				yProgress = (m_bounds[1][yIndex].value - p1y) / dy;
 			}
 		}
-	}while(0);
+
+		break;
+	}
 
 	int32 count = 0;
 	for(int32 i=0;i < m_queryResultCount && count<maxCount; ++i, ++count)

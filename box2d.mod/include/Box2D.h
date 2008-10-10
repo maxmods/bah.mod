@@ -43,10 +43,11 @@ For discussion please visit http://www.box2d.org/forum
 #include "../Source/Dynamics/Contacts/b2Contact.h"
 
 #include "../Source/Dynamics/Joints/b2DistanceJoint.h"
+#include "../Source/Dynamics/Joints/b2GearJoint.h"
+#include "../Source/Dynamics/Joints/b2LineJoint.h"
 #include "../Source/Dynamics/Joints/b2MouseJoint.h"
 #include "../Source/Dynamics/Joints/b2PrismaticJoint.h"
-#include "../Source/Dynamics/Joints/b2RevoluteJoint.h"
 #include "../Source/Dynamics/Joints/b2PulleyJoint.h"
-#include "../Source/Dynamics/Joints/b2GearJoint.h"
+#include "../Source/Dynamics/Joints/b2RevoluteJoint.h"
 
 #endif
