@@ -577,3 +577,7 @@ Const XML_ERR_NONE:Int = 0
 Const XML_ERR_WARNING:Int = 1
 Const XML_ERR_ERROR:Int = 2
 Const XML_ERR_FATAL:Int = 3
+
+' BOM - UTF-8
+Const BOM_UTF8:String = Chr(239) + Chr(187) + Chr(191)
+

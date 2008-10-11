@@ -34,6 +34,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
 ModuleInfo "History: Added xmlParserMaxDepth global variable."
+ModuleInfo "History: Added utf-8 BOM detection/strip for doc string parsing."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -615,6 +616,11 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Function parseDoc:TxmlDoc(text:String)
 		Assert text, XML_ERROR_PARAM
+
+		' strip utf8 BOM		
+		If text[..3] = BOM_UTF8 Then
+			text = text[3..]
+		End If
 		
 		Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
 		Local _xmlDocPtr:Byte Ptr = xmlParseDoc(cStr)
