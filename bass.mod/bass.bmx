@@ -1027,7 +1027,15 @@ Type TBassStream Extends TBassChannel
 	bbdoc: 
 	End Rem
 	Method Create:TBassStream(freq:Int, chans:Int, flags:Int, proc:Int(handle:TBassStream, buffer:Byte Ptr, length:Int, user:Object), user:Object)
+		callback = proc
+		userData = user
+		handle = BASS_StreamCreate(freq, chans, flags, _streamcallback, Self)
+		Return Self
 	End Method
+	
+	Function _streamcallback:Int(handle:Int, buffer:Byte Ptr, length:Int, data:Object)
+		Return TBassStream(data).callback(TBassStream(data), buffer, length, TBassStream(data).userData)
+	End Function
 	
 	Rem
 	bbdoc: 

@@ -100,7 +100,7 @@ Extern
 	Function bmx_bass_3dvector_create:Byte Ptr()
 	Function bmx_bass_3dvector_delete(handle:Byte Ptr)
 
-	Function bmx_bass_getchannelinfo:Byte Ptr(handle:int)
+	Function bmx_bass_getchannelinfo:Byte Ptr(handle:Int)
 	Function bmx_channelinfo_getfreq:Int(channelinfoPtr:Byte Ptr)
 	Function bmx_channelinfo_getchannels:Int(channelinfoPtr:Byte Ptr)
 	Function bmx_channelinfo_getflags:Int(channelinfoPtr:Byte Ptr)
@@ -157,6 +157,7 @@ Extern
 	Function BASS_ChannelLock:Int(handle:Int, value:Int)
 	Function BASS_ChannelSetPosition:Int(handle:Int, pos:Long, mode:Int)
 
+	Function BASS_StreamCreate:Int(freq:Int, chans:Int, flags:Int, callback:Int(handle:Int, buffer:Byte Ptr, length:Int, data:Object), user:Object)
 	Function BASS_StreamCreateFile:Int(mem:Int, filename:Byte Ptr, offset:Long, length:Long, flags:Int)
 	Function BASS_StreamFree:Int(handle:Int)
 	Function BASS_SetVolume:Int(volume:Float)
