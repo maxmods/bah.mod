@@ -1,0 +1,26 @@
+SOURCES=Ay_Apu.cpp Ym2612_Emu.cpp Ay_Cpu.cpp Ay_Emu.cpp Blip_Buffer.cpp Classic_Emu.cpp \
+	Data_Reader.cpp Dual_Resampler.cpp Effects_Buffer.cpp Fir_Resampler.cpp Gb_Apu.cpp \
+	Gb_Cpu.cpp Gb_Oscs.cpp Gbs_Emu.cpp Gme_File.cpp gme.cpp Gym_Emu.cpp Hes_Apu.cpp Hes_Cpu.cpp \
+	Hes_Emu.cpp Kss_Cpu.cpp Kss_Emu.cpp Kss_Scc_Apu.cpp M3u_Playlist.cpp Multi_Buffer.cpp \
+	Music_Emu.cpp Nes_Apu.cpp Nes_Cpu.cpp Nes_Fme7_Apu.cpp Nes_Namco_Apu.cpp Nes_Oscs.cpp \
+	Nes_Vrc6_Apu.cpp Nsf_Emu.cpp Nsfe_Emu.cpp Sap_Apu.cpp Sap_Cpu.cpp Sap_Emu.cpp Sms_Apu.cpp \
+	Snes_Spc.cpp Spc_Cpu.cpp Spc_Dsp.cpp Spc_Emu.cpp Vgm_Emu_Impl.cpp Vgm_Emu.cpp Ym2413_Emu.cpp 
+
+CC=g++
+CFLAGS=-Wno-ctor-dtor-privacy -c -Wall
+LDFLAGS=-shared
+OBJECTS=$(SOURCES:.cpp=.o)
+TARGET=libgme.so
+TARGETPATH=../../lib/linux/
+
+all: $(SOURCES) $(TARGET)
+	
+clean:
+	rm -rf *o 
+
+$(TARGET): $(OBJECTS) 
+	g++  $(OBJECTS)  $(LDFLAGS) -o $@
+	mv $(TARGET)  $(TARGETPATH)$(TARGET)
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
