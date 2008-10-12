@@ -1,0 +1,50 @@
+; dlltool -z libgme.def --export-all-symbol libgme.dll
+LIBRARY libgme.dll
+EXPORTS
+	gme_ay_type @ 1052 DATA
+	gme_delete @ 1053
+	gme_equalizer @ 1054
+	gme_gbs_type @ 1055 DATA
+	gme_gym_type @ 1056 DATA
+	gme_hes_type @ 1057 DATA
+	gme_identify_extension @ 1058
+	gme_identify_file @ 1059
+	gme_identify_header @ 1060
+	gme_ignore_silence @ 1061
+	gme_kss_type @ 1062 DATA
+	gme_load_custom @ 1063
+	gme_load_data @ 1064
+	gme_load_file @ 1065
+	gme_load_m3u @ 1066
+	gme_load_m3u_data @ 1067
+	gme_mute_voice @ 1068
+	gme_mute_voices @ 1069
+	gme_new_emu @ 1070
+	gme_nsf_type @ 1071 DATA
+	gme_nsfe_type @ 1072 DATA
+	gme_open_data @ 1073
+	gme_open_file @ 1074
+	gme_play @ 1075
+	gme_sap_type @ 1076 DATA
+	gme_seek @ 1077
+	gme_set_equalizer @ 1078
+	gme_set_fade @ 1079
+	gme_set_stereo_depth @ 1080
+	gme_set_tempo @ 1081
+	gme_set_user_cleanup @ 1082
+	gme_set_user_data @ 1083
+	gme_spc_type @ 1084 DATA
+	gme_start_track @ 1085
+	gme_tell @ 1086
+	gme_track_count @ 1087
+	gme_track_ended @ 1088
+	gme_track_info @ 1089
+	gme_type @ 1090
+	gme_type_list @ 1091
+	gme_user_data @ 1092
+	gme_vgm_type @ 1093 DATA
+	gme_vgz_type @ 1094 DATA
+	gme_voice_count @ 1095
+	gme_voice_names @ 1096
+	gme_warning @ 1097
+	gme_wrong_file_type @ 1098 DATA
