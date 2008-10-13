@@ -570,117 +570,120 @@ Type TPersist
 				obj = objType.NewObject()
 				objectMap.Insert(node.getAttribute("ref"), obj)
 
-				For Local fieldNode:TxmlNode = EachIn node.getChildren()
-				
-					' this should be a field
-					If fieldNode.GetName() = "field" Then
+				' does the node contain child nodes?
+				If node.getChildren() <> Null Then
+					For Local fieldNode:TxmlNode = EachIn node.getChildren()
 					
-						Local fieldObj:TField = objType.FindField(fieldNode.getAttribute("name"))
+						' this should be a field
+						If fieldNode.GetName() = "field" Then
 						
-						Local fieldType:String = fieldNode.getAttribute("type")
-						Select fieldType
-							Case "byte", "short", "int"
-								fieldObj.SetInt(obj, fieldNode.GetContent().toInt())
-							Case "long"
-								fieldObj.SetLong(obj, fieldNode.GetContent().toLong())
-							Case "float"
-								fieldObj.SetFloat(obj, fieldNode.GetContent().toFloat())
-							Case "double"
-								fieldObj.SetDouble(obj, fieldNode.GetContent().toDouble())
-							Case "string"
-								fieldObj.SetString(obj, fieldNode.GetContent())
-							Default
-								If fieldType.StartsWith("array:") Then
-	
-									Local arrayType:TTypeId = fieldObj.TypeId()
-									Local arrayElementType:TTypeId = arrayType.ElementType()
-				
-									If fileVersion Then
-										
-										' for file version 3+
-										Local scalesi:Int[]
-										Local scales:String[] = fieldNode.getAttribute("scales").split(",")
-										If scales.length > 1 Then
-											scalesi = New Int[scales.length]
-											For Local i:Int = 0 Until scales.length
-												scalesi[i] = Int(scales[i])
-											Next
-										End If
-										
-										' for file Version 1+
-										Select arrayElementType
-											Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
+							Local fieldObj:TField = objType.FindField(fieldNode.getAttribute("name"))
+							
+							Local fieldType:String = fieldNode.getAttribute("type")
+							Select fieldType
+								Case "byte", "short", "int"
+									fieldObj.SetInt(obj, fieldNode.GetContent().toInt())
+								Case "long"
+									fieldObj.SetLong(obj, fieldNode.GetContent().toLong())
+								Case "float"
+									fieldObj.SetFloat(obj, fieldNode.GetContent().toFloat())
+								Case "double"
+									fieldObj.SetDouble(obj, fieldNode.GetContent().toDouble())
+								Case "string"
+									fieldObj.SetString(obj, fieldNode.GetContent())
+								Default
+									If fieldType.StartsWith("array:") Then
+		
+										Local arrayType:TTypeId = fieldObj.TypeId()
+										Local arrayElementType:TTypeId = arrayType.ElementType()
+					
+										If fileVersion Then
 											
-												Local arrayList:String[] = fieldNode.GetContent().Split(" ")
-												Local arrayObj:Object = arrayType.NewArray(arrayList.length, scalesi)
-												fieldObj.Set(obj, arrayObj)
-												
-												For Local i:Int = 0 Until arrayList.length
-													arrayType.SetArrayElement(arrayObj, i, arrayList[i])
+											' for file version 3+
+											Local scalesi:Int[]
+											Local scales:String[] = fieldNode.getAttribute("scales").split(",")
+											If scales.length > 1 Then
+												scalesi = New Int[scales.length]
+												For Local i:Int = 0 Until scales.length
+													scalesi[i] = Int(scales[i])
 												Next
+											End If
+											
+											' for file Version 1+
+											Select arrayElementType
+												Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId
 												
-											Default
-												Local arrayList:TList = fieldNode.getChildren()
-												
-												If arrayList ' Birdie
-													Local arrayObj:Object = arrayType.NewArray(arrayList.Count(), scalesi)
+													Local arrayList:String[] = fieldNode.GetContent().Split(" ")
+													Local arrayObj:Object = arrayType.NewArray(arrayList.length, scalesi)
 													fieldObj.Set(obj, arrayObj)
 													
-													Local i:Int
-													For Local arrayNode:TxmlNode = EachIn arrayList
-					
-														Select arrayElementType
-															Case StringTypeId
-																arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-															Default
-																arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-														End Select
-					
-														i:+ 1
+													For Local i:Int = 0 Until arrayList.length
+														arrayType.SetArrayElement(arrayObj, i, arrayList[i])
 													Next
-												EndIf
-										End Select
-									Else
-										' For file version 0 (zero)
-										
-										Local arrayList:TList = fieldNode.getChildren()
-										If arrayList 'Birdie
-											Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
-											fieldObj.Set(obj, arrayObj)
-										
-											Local i:Int
-											For Local arrayNode:TxmlNode = EachIn arrayList
-			
-												Select arrayElementType
-													Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
-														arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
-													Default
-														arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
-												End Select
-			
-												i:+ 1
-											Next
-										EndIf
-									End If
-								Else
-									' is this a reference?
-									Local ref:String = fieldNode.getAttribute("ref")
-									If ref Then
-										Local objRef:Object = objectMap.ValueForKey(ref)
-										If objRef Then
-											fieldObj.Set(obj, objRef)
+													
+												Default
+													Local arrayList:TList = fieldNode.getChildren()
+													
+													If arrayList ' Birdie
+														Local arrayObj:Object = arrayType.NewArray(arrayList.Count(), scalesi)
+														fieldObj.Set(obj, arrayObj)
+														
+														Local i:Int
+														For Local arrayNode:TxmlNode = EachIn arrayList
+						
+															Select arrayElementType
+																Case StringTypeId
+																	arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+																Default
+																	arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+															End Select
+						
+															i:+ 1
+														Next
+													EndIf
+											End Select
 										Else
-											Throw New "Reference not mapped yet : " + ref
+											' For file version 0 (zero)
+											
+											Local arrayList:TList = fieldNode.getChildren()
+											If arrayList 'Birdie
+												Local arrayObj:Object = arrayType.NewArray(arrayList.Count())
+												fieldObj.Set(obj, arrayObj)
+											
+												Local i:Int
+												For Local arrayNode:TxmlNode = EachIn arrayList
+				
+													Select arrayElementType
+														Case ByteTypeId, ShortTypeId, IntTypeId, LongTypeId, FloatTypeId, DoubleTypeId, StringTypeId
+															arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
+														Default
+															arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+													End Select
+				
+													i:+ 1
+												Next
+											EndIf
 										End If
 									Else
-										fieldObj.Set(obj, DeSerializeObject("", fieldNode))
+										' is this a reference?
+										Local ref:String = fieldNode.getAttribute("ref")
+										If ref Then
+											Local objRef:Object = objectMap.ValueForKey(ref)
+											If objRef Then
+												fieldObj.Set(obj, objRef)
+											Else
+												Throw New "Reference not mapped yet : " + ref
+											End If
+										Else
+											fieldObj.Set(obj, DeSerializeObject("", fieldNode))
+										End If
 									End If
-								End If
-						End Select
-						
-					End If
-				
-				Next
+							End Select
+							
+						End If
+					
+					Next
+				End If
 			End If
 		End If
 	
