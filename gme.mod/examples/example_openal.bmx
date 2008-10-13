@@ -1,19 +1,13 @@
-' Example player for BaH.GME using BASS audio library.
+' Example player for BaH.GME using OpenAL audio library.
 '
 ' 
 '
 SuperStrict
 
-Framework BaH.GMEBass
+Framework BaH.GMEOpenAL
 Import BRL.StandardIO
 Import BRL.Max2D
 Import BRL.GLMax2D
-
-' initialize BASS
-If Not TBass.Init(-1,44100,0,Null,Null) Then
-	DebugLog "Can't initialize device : " + TBass.ErrorGetCode()
-	End
-End If
 
 ' create a player
 Local player:TGMEPlayer = GetGMEPlayer()
@@ -105,9 +99,7 @@ While Not KeyDown(key_escape)
 	Flip
 	
 Wend
-	
 
-TBass.Free()
 
 End
 

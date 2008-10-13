@@ -360,6 +360,16 @@ Type TGMEPlayer
 		' Override !
 	End Method
 	
+	Rem
+	bbdoc: Update the current track.
+	about: This is required for GME drivers that don't run their own update loop.
+	<p>
+	Call this often.
+	</p>
+	End Rem
+	Method Update()
+	End Method
+	
 End Type
 
 
