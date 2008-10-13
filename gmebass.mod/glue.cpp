@@ -44,7 +44,7 @@ public:
 	}
 	
 	HSTREAM channel_create(DWORD freq, DWORD chans, DWORD flags) {
-		stream = BASS_StreamCreate(freq, chans, flags, bass_cb, this);
+		stream = BASS_StreamCreate(freq, chans, flags, (STREAMPROC*)&bass_cb, this);
 		return stream;
 	}
 	
