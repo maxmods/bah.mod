@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.05"
+ModuleInfo "History: Fixed conversion issue with 4-bit paletted images."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fixed problem with TIFF images not loading if there are more than 1 alpha channel in the image. (fredborg)"
 ModuleInfo "History: Added GetBitmap(), GetScanLine() and ConvertToRGBF() methods. (fredborg)"
@@ -632,25 +634,7 @@ Type TFreeImage
 					format = PF_I8
 				End If
 
-			' we don't support 4 bpp images in BlitzMax... convert to something else.
-			Case 4
-				If bmx_freeimage_isTransparent(freeImagePtr) Then
-					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
-					
-					?win32
-					format = PF_BGRA8888
-					?macos
-					format = PF_RGBA8888
-					?linux
-					format = PF_BGRA8888
-					?
-				Else
-					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo8Bits(freeImagePtr))
-
-					format = PF_I8
-				End If
-
-			Case 8
+			Case 4,8
 				If bmx_freeimage_isTransparent(freeImagePtr) Then
 					displayImagePtr = newImageFromBitmap(Self, bmx_freeimage_convertTo32Bits(freeImagePtr))
 
