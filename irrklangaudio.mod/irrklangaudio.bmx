@@ -26,10 +26,12 @@ about: Provides irrKlang driver for use with the BRL.Audio module.
 End Rem
 Module BaH.irrKlangAudio
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixed StartSound not returning a TChannel object."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -100,9 +102,9 @@ Type TISoundSourceSound Extends TSound
 		If Not alloced_channel Then
 			Local channel:TISound
 			If is3D Then
-				channel = _driver._engine.Play3DSource(_sound, TIVec3D.Zero(), isLooped, pause)
+				channel = _driver._engine.Play3DSource(_sound, TIVec3D.Zero(), isLooped, pause, True)
 			Else
-				channel = _driver._engine.Play2DSource(_sound, isLooped, pause)
+				channel = _driver._engine.Play2DSource(_sound, isLooped, pause, True)
 			End If
 			Return New TTISoundChannel.Create(channel)
 		End If
