@@ -126,6 +126,10 @@ void b2PrismaticJoint::InitVelocityConstraints(const b2TimeStep& step)
 	b2Body* b1 = m_body1;
 	b2Body* b2 = m_body2;
 
+	// You cannot create a prismatic joint between bodies that
+	// both have fixed rotation.
+	b2Assert(b1->m_invI > 0.0f || b2->m_invI > 0.0f);
+
 	m_localCenter1 = b1->GetLocalCenter();
 	m_localCenter2 = b2->GetLocalCenter();
 

@@ -67,6 +67,13 @@ void b2RevoluteJoint::InitVelocityConstraints(const b2TimeStep& step)
 	b2Body* b1 = m_body1;
 	b2Body* b2 = m_body2;
 
+	if (m_enableMotor || m_enableLimit)
+	{
+		// You cannot create a rotation limit between bodies that
+		// both have fixed rotation.
+		b2Assert(b1->m_invI > 0.0f || b2->m_invI > 0.0f);
+	}
+
 	// Compute the effective mass matrix.
 	b2Vec2 r1 = b2Mul(b1->GetXForm().R, m_localAnchor1 - b1->GetLocalCenter());
 	b2Vec2 r2 = b2Mul(b2->GetXForm().R, m_localAnchor2 - b2->GetLocalCenter());

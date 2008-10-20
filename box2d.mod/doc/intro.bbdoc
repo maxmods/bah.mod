@@ -4148,11 +4148,11 @@ Method ShouldCollide:Int(shape1:b2Shape, shape2:b2Shape)
 	Local filter2:b2FilterData = shape2.GetFilterData()
 
 	If filter1.GetGroupIndex() = filter2.GetGroupIndex() And filter1.GetGroupIndex() &lt;&gt; 0 Then
-		return filter1.GetGroupIndex() &gt; 0
+		return filter1.GetGroupIndex() &lt; $7FFF
 	End If
 
-	Local collide:Int = (filter1.maskBits &amp; filter2.categoryBits) &lt;&gt; 0 And ..
-		(filter1.categoryBits &amp; filter2.maskBits) &lt;&gt; 0
+	Local collide:Int = (filter1.GetMaskBits() &amp; filter2.GetCategoryBits()) &lt;&gt; 0 And ..
+		(filter1.GetCategoryBits() &amp; filter2.GetMaskBits()) &lt;&gt; 0
 	return collide
 	
 End Method

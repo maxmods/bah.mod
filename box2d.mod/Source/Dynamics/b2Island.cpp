@@ -368,29 +368,21 @@ void b2Island::SolveTOI(b2TimeStep& subStep)
 
 	// No warm starting needed for TOI contact events.
 
-#ifdef B2_TOI_JOINTS
-	// For joints, initialize with the last full step warm starting values
-	subStep.warmStarting = true;
-	
+	// Warm starting for joints is off for now, but we need to
+	// call this function to compute Jacobians.
 	for (int32 i = 0; i < m_jointCount; ++i)
 	{
 		m_joints[i]->InitVelocityConstraints(subStep);
 	}
-	
-	// ...but don't update the warm starting during TOI solve!
-	subStep.warmStarting = false;
-#endif
 
 	// Solve velocity constraints.
 	for (int32 i = 0; i < subStep.velocityIterations; ++i)
 	{
 		contactSolver.SolveVelocityConstraints();
-#ifdef B2_TOI_JOINTS
 		for (int32 j = 0; j < m_jointCount; ++j)
 		{
 			m_joints[j]->SolveVelocityConstraints(subStep);
 		}
-#endif
 	}
 
 	// Don't store the TOI contact forces for warm starting
@@ -423,11 +415,10 @@ void b2Island::SolveTOI(b2TimeStep& subStep)
 	for (int32 i = 0; i < subStep.positionIterations; ++i)
 	{
 		bool contactsOkay = contactSolver.SolvePositionConstraints(k_toiBaumgarte);
-#ifdef B2_TOI_JOINTS
 		bool jointsOkay = true;
 		for (int32 j = 0; j < m_jointCount; ++j)
 		{
-			bool jointOkay = m_joints[j]->SolvePositionConstraints();
+			bool jointOkay = m_joints[j]->SolvePositionConstraints(k_toiBaumgarte);
 			jointsOkay = jointsOkay && jointOkay;
 		}
 		
@@ -435,12 +426,6 @@ void b2Island::SolveTOI(b2TimeStep& subStep)
 		{
 			break;
 		}
-#else
-		if (contactsOkay)
-		{
-			break;
-		}
-#endif
 	}
 
 	Report(contactSolver.m_constraints);

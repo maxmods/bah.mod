@@ -160,10 +160,6 @@ public:
 	float32 m_lowerAngle;
 	float32 m_upperAngle;
 	b2LimitState m_limitState;
-	
-#ifdef B2_TOI_JOINTS
-	b2Vec2 m_lastWarmStartingPivotForce;
-#endif
 };
 
 inline float32 b2RevoluteJoint::GetMotorSpeed() const

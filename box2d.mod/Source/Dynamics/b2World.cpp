@@ -503,12 +503,10 @@ void b2World::SolveTOI(const b2TimeStep& step)
 		c->m_flags &= ~(b2Contact::e_toiFlag | b2Contact::e_islandFlag);
 	}
 
-#ifdef B2_TOI_JOINTS
 	for (b2Joint* j = m_jointList; j; j = j->m_next)
 	{
             j->m_islandFlag = false;
 	}
-#endif
 
 	// Find TOI events and solve them.
 	for (;;)
@@ -688,7 +686,6 @@ void b2World::SolveTOI(const b2TimeStep& step)
 				other->m_flags |= b2Body::e_islandFlag;
 			}
 			
-#ifdef B2_TOI_JOINTS
 			for (b2JointEdge* jn = b->m_jointList; jn; jn = jn->next)
 			{
 				if (island.m_jointCount == island.m_jointCapacity)
@@ -722,8 +719,6 @@ void b2World::SolveTOI(const b2TimeStep& step)
 				queue[queueStart + queueSize++] = other;
 				other->m_flags |= b2Body::e_islandFlag;
 			}
-#endif
-
 		}
 
 		b2TimeStep subStep;
@@ -731,6 +726,7 @@ void b2World::SolveTOI(const b2TimeStep& step)
 		subStep.dt = (1.0f - minTOI) * step.dt;
 		b2Assert(subStep.dt > B2_FLT_EPSILON);
 		subStep.inv_dt = 1.0f / subStep.dt;
+		subStep.dtRatio = 0.0f;
 		subStep.velocityIterations = step.velocityIterations;
 		subStep.positionIterations = step.positionIterations;
 

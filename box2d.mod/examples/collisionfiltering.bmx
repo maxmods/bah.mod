@@ -33,10 +33,10 @@ Type CollisionFiltering Extends Test
 	Const k_boxMask:Short = $FFFF:Short ~ k_triangleCategory
 	Const k_circleMask:Short = $FFFF:Short
 
-
 	Method Create:CollisionFiltering()
-	
+
 		Init(20, 20)
+		m_world.SetFilter(New myfilter)
 	
 		Local ground:b2Body
 		
@@ -151,7 +151,41 @@ Type CollisionFiltering Extends Test
 		Return Self
 	End Method
 
+	Method Keyboard()
+		Super.Keyboard()
+	
+		If KeyHit(KEY_SPACE) Then
+			' Small box
+			Local boxShapeDef:b2PolygonDef = New b2PolygonDef
+			boxShapeDef.SetAsBox(1.0, 0.5)
+			boxShapeDef.SetDensity(1.0)
+	
+			Local boxBodyDef:b2BodyDef = New b2BodyDef
+			boxBodyDef.SetPosition(ConvertScreenToWorld(MouseX(), MouseY()))
+	
+			Local body3:b2Body = m_world.CreateBody(boxBodyDef)
+			body3.CreateShape(boxShapeDef)
+			body3.SetMassFromShapes()
+
+		End If
+		
+	End Method
+
 End Type
 
+Type myfilter Extends b2ContactFilter
+	Method ShouldCollide:Int(shape1:b2Shape, shape2:b2Shape)
 
+		Local filter1:b2FilterData = shape1.GetFilterData()
+		Local filter2:b2FilterData = shape2.GetFilterData()
+
+		If filter1.GetGroupIndex() = filter2.GetGroupIndex() And filter1.GetGroupIndex() <> 0
+ 			Return filter1.GetGroupIndex() < $7FFF
+		End If
+	
+		Local collide:Int = (filter1.GetMaskBits() & filter2.GetCategoryBits()) <> 0 And (filter1.GetCategoryBits() & filter2.GetMaskBits()) <> 0
+		Return collide
+
+	End Method
+End Type
 
