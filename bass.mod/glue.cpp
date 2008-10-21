@@ -57,6 +57,7 @@ extern "C" {
 	//HSTREAM bmx_bass_streamcreatefile(filename:Byte Ptr, offset:Int, length:Int, flags:Int)
 	void bmx_bass_streamgetfileposition(DWORD handle, QWORD * pos, DWORD mode);
 	DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags);
+	HSTREAM bmx_bass_streamcreateurlncb( char *url, DWORD offset, DWORD flags, void *user);
 
 	BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle);
 
@@ -262,6 +263,10 @@ DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags) {
 		bmx_bass_fileSeekProc};
 	
 	return BASS_StreamCreateFileUser(system, flags, &fileprocs, handle);
+}
+
+HSTREAM bmx_bass_streamcreateurlncb( char *url, DWORD offset, DWORD flags, void *user) {
+	return BASS_StreamCreateURL(url, offset, flags, NULL, user);
 }
 
 // *************************************************

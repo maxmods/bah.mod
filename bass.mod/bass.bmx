@@ -1007,6 +1007,7 @@ Type TBassStream Extends TBassChannel
 	Field _stream:TStream
 	Field callback:Int(handle:TBassStream, buffer:Byte Ptr, length:Int, user:Object)
 	Field userData:Object
+	Field dlcallback:Int(buffer:Byte Ptr, length:Int, user:Object)
 
 	Function _create:TBassStream(handle:Int)
 		If handle Then
@@ -1147,16 +1148,32 @@ Type TBassStream Extends TBassChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a sample stream from an MP3, MP2, MP1, OGG, WAV, AIFF or plugin supported file on the internet, optionally receiving the downloaded data in a callback function. 
 	End Rem
-	Function StreamCreateURL:TBassStream()
+	Function StreamCreateURL:TBassStream(url:String, offset:Int, flags:Int, proc(buffer:Byte Ptr, length:Int, user:Object), data:Object)
+		Return New TBassStream.CreateURL(url, offset, flags, proc, data)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a sample stream from an MP3, MP2, MP1, OGG, WAV, AIFF or plugin supported file on the internet, optionally receiving the downloaded data in a callback function. 
 	End Rem
-	Method CreateURL:TBassStream()
+	Method CreateURL:TBassStream(url:String, offset:Int, flags:Int, proc(buffer:Byte Ptr, length:Int, data:Object), user:Object)
+		userData = user
+		Local s:Byte Ptr = url.ToCString()
+		If proc Then
+			dlcallback = proc
+			handle = BASS_StreamCreateURL(s, offset, flags, _dlstreamcallback, Self)
+		Else
+			' a bit hacky... wouldn't let me pass NULL into the above call... so we do it in the glue instead...
+			handle = bmx_bass_streamcreateurlncb(s, offset, flags, Self)
+		End If
+		MemFree(s)
+		Return Self
 	End Method
+	
+	Function _dlstreamcallback:Int(buffer:Byte Ptr, length:Int, data:Object)
+		Return TBassStream(data).dlcallback(buffer, length, TBassStream(data).userData)
+	End Function
 
 	Rem
 	bbdoc: 

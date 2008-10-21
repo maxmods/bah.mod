@@ -58,6 +58,7 @@ Extern
 
 	Function bmx_bass_streamgetfileposition(handle:Int, pos:Long Ptr, mode:Int)
 	Function bmx_bass_streamcreatetstream:Int(handle:Object, system:Int, flags:Int)
+	Function bmx_bass_streamcreateurlncb:Int(url:Byte Ptr, offset:Int, flags:Int, user:Object)
 
 	Function bmx_bass_getsampleinfo:Byte Ptr(handle:Int)
 	
@@ -166,6 +167,7 @@ Extern
 	Function BASS_Update:Int(length:Int)
 	Function BASS_GetConfig:Int(option:Int)
 	Function BASS_SetConfig:Int(option:Int, value:Int)
+	Function BASS_StreamCreateURL:Int(url:Byte Ptr, offset:Int, flags:Int, callback:Int(buffer:Byte Ptr, length:Int, data:Object), user:Object)
 
 	Function BASS_FXReset:Int(handle:Int)
 	Function BASS_FXSetParameters:Int(handle:Int, fx:Byte Ptr)
