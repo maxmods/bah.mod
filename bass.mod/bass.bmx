@@ -1007,7 +1007,7 @@ Type TBassStream Extends TBassChannel
 	Field _stream:TStream
 	Field callback:Int(handle:TBassStream, buffer:Byte Ptr, length:Int, user:Object)
 	Field userData:Object
-	Field dlcallback:Int(buffer:Byte Ptr, length:Int, user:Object)
+	Field dlcallback(buffer:Byte Ptr, length:Int, user:Object)
 
 	Function _create:TBassStream(handle:Int)
 		If handle Then
@@ -1162,7 +1162,7 @@ Type TBassStream Extends TBassChannel
 		Local s:Byte Ptr = url.ToCString()
 		If proc Then
 			dlcallback = proc
-			handle = BASS_StreamCreateURL(s, offset, flags, _dlstreamcallback, Self)
+			handle = bmx_bass_streamcreateurl(s, offset, flags, Self)
 		Else
 			' a bit hacky... wouldn't let me pass NULL into the above call... so we do it in the glue instead...
 			handle = bmx_bass_streamcreateurlncb(s, offset, flags, Self)
@@ -1171,8 +1171,8 @@ Type TBassStream Extends TBassChannel
 		Return Self
 	End Method
 	
-	Function _dlstreamcallback:Int(buffer:Byte Ptr, length:Int, data:Object)
-		Return TBassStream(data).dlcallback(buffer, length, TBassStream(data).userData)
+	Function _dlstreamcallback(buffer:Byte Ptr, length:Int, data:Object)
+		TBassStream(data).dlcallback(buffer, length, TBassStream(data).userData)
 	End Function
 
 	Rem

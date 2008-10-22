@@ -30,6 +30,8 @@ extern "C" {
 	void _bah_bass_TBassStream__fileLenProc(void * obj, QWORD * len);
 	DWORD _bah_bass_TBassStream__fileReadProc(void * buffer, DWORD length, void * obj);
 	BOOL _bah_bass_TBassStream__fileSeekProc(QWORD offset, void * obj);
+	void _bah_bass_TBassStream__dlstreamcallback(const void * buffer, DWORD length, void * user);
+
 
 	DWORD bmx_bassinfo_getflags(BASS_INFO * info);
 	DWORD bmx_bassinfo_gethwsize(BASS_INFO * info);
@@ -58,6 +60,7 @@ extern "C" {
 	void bmx_bass_streamgetfileposition(DWORD handle, QWORD * pos, DWORD mode);
 	DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags);
 	HSTREAM bmx_bass_streamcreateurlncb( char *url, DWORD offset, DWORD flags, void *user);
+	HSTREAM bmx_bass_streamcreateurl( char *url, DWORD offset, DWORD flags, void *user);
 
 	BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle);
 
@@ -267,6 +270,14 @@ DWORD bmx_bass_streamcreatetstream(void * handle, DWORD system, DWORD flags) {
 
 HSTREAM bmx_bass_streamcreateurlncb( char *url, DWORD offset, DWORD flags, void *user) {
 	return BASS_StreamCreateURL(url, offset, flags, NULL, user);
+}
+
+void CALLBACK bmx_bass_dlstreamcallback(const void *buffer, DWORD length, void *user) {
+	_bah_bass_TBassStream__dlstreamcallback(buffer, length, user);
+};
+
+HSTREAM bmx_bass_streamcreateurl( char *url, DWORD offset, DWORD flags, void *user) {
+	return BASS_StreamCreateURL(url, offset, flags, &bmx_bass_dlstreamcallback, user);
 }
 
 // *************************************************
