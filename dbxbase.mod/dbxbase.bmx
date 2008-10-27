@@ -1,3 +1,23 @@
+' Copyright (c) 2007,2008 Bruce A Henderson
+' 
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+' 
+' The above copyright notice and this permission notice shall be included in
+' all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+' THE SOFTWARE.
+'
 SuperStrict
 
 Rem
@@ -6,13 +26,15 @@ about: An Xbase database driver for #bah.database.Database
 End Rem
 Module BaH.DBXbase
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: Libraries - LGPL"
 ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed undefined uint on MacOS."
 ModuleInfo "History: Fixed lots of compile errors on Win32."
@@ -63,6 +85,9 @@ Type TDBXbase Extends TDBConnection
 	End Method
 	
 	Method getTables:String[]()
+	End Method
+	
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
 	End Method
 	
 	Method open:Int(user:String = Null, pass:String = Null)
@@ -287,7 +312,7 @@ Type TXbaseResultSet Extends TQueryResultSet
 	Method rowsAffected:Int()
 	End Method
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 
 		Local dbType:Int
 		
@@ -305,7 +330,7 @@ Type TXbaseResultSet Extends TQueryResultSet
 		End Select
 
 		Return dbType
-	End Method
+	End Function
 
 End Type
 

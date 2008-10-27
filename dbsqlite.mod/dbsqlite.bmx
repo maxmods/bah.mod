@@ -42,6 +42,7 @@ ModuleInfo "History: 1.11"
 ModuleInfo "History: Update to SQLite 3.6.4."
 ModuleInfo "History: Fixed prepared statement reuse issue."
 ModuleInfo "History: Fixed problem where open/live queries could cause problem when committing."
+ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: 1.10"
 ModuleInfo "History: Update to SQLite 3.5.6."
 ModuleInfo "History: Fixed lack of error reporting during query execution."
@@ -166,6 +167,59 @@ Type TDBSQLite Extends TDBConnection
 		End If
 		
 		Return list
+	End Method
+	
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
+		If Not _isOpen Then
+			Return Null
+		End If
+		
+		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
+		
+		Local table:TDBTable
+
+		Local sql:String = "PRAGMA table_info(" + tableName + ")"
+			
+		If query.execute(sql) Then
+			table = New TDBTable
+			table.name = tableName
+			
+			Local cols:TList = New TList
+			
+			For Local rec:TQueryRecord = EachIn query
+				Local name:String = rec.GetString(1)
+				Local dbType:Int = TSQLiteResultSet.dbTypeFromNative(rec.GetString(2))
+				Local nullable:Int = rec.GetInt(3)
+				Local defaultValue:TDBType = rec.value(4)
+				
+				cols.AddLast(TDBColumn.Create(name, dbType, nullable, defaultValue))
+			Next
+			
+			table.SetCountColumns(cols.count())
+			Local i:Int
+			For Local col:TDBColumn = EachIn cols
+				table.SetColumn(i, col)
+				i:+ 1
+			Next
+			
+			cols.Clear()
+			
+			If withDDL Then
+				sql = "SELECT sql FROM sqlite_master WHERE Type = 'table' and name = '" + tableName + "'"
+				If query.execute(sql) Then
+					
+					For Local rec:TQueryRecord = EachIn query
+						table.ddl:+ rec.GetString(0) + ";~n~n"
+					Next
+
+				End If
+				
+			End If
+		Else
+			' no table?
+		End If
+		
+		Return table
 	End Method
 
 	Method open:Int(user:String = Null, pass:String = Null)
@@ -572,7 +626,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 		
 	End Method
 	
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 		
 		name = name.ToLower()
 		
@@ -595,7 +649,7 @@ Type TSQLiteResultSet Extends TQueryResultSet
 				Return DBTYPE_STRING
 		End Select
 		
-	End Method
+	End Function
 
 	Method lastInsertedId:Long()
 		If isActive() Then

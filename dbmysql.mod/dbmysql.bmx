@@ -1,3 +1,28 @@
+' Copyright (c) 2007,2008 Bruce A Henderson
+' All rights reserved.
+'
+' Redistribution and use in source and binary forms, with or without
+' modification, are permitted provided that the following conditions are met:
+'     * Redistributions of source code must retain the above copyright
+'       notice, this list of conditions and the following disclaimer.
+'     * Redistributions in binary form must reproduce the above copyright
+'       notice, this list of conditions and the following disclaimer in the
+'       documentation and/or other materials provided with the distribution.
+'     * Neither the auther nor the names of its contributors may be used to 
+'       endorse or promote products derived from this software without specific
+'       prior written permission.
+'
+' THIS SOFTWARE IS PROVIDED BY Bruce A Henderson ``AS IS'' AND ANY
+' EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+' WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+' DISCLAIMED. IN NO EVENT SHALL Bruce A Henderson BE LIABLE FOR ANY
+' DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+' (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+' LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+' ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+' (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'
 SuperStrict
 
 Rem
@@ -9,11 +34,12 @@ Module BaH.DBMySQL
 ModuleInfo "Version: 1.06"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
+ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed lastInsertId() issue."
 ModuleInfo "History: Win32 now uses local static lib. No copying required!"
@@ -118,6 +144,86 @@ Type TDBMySQL Extends TDBConnection
 		End If
 		
 		Return list
+	End Method
+
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
+		If Not _isOpen Then
+			Return Null
+		End If
+		
+		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
+		
+		Local table:TDBTable
+
+		Local sql:String = "SHOW COLUMNS FROM " + tableName
+			
+		If query.execute(sql) Then
+			table = New TDBTable
+			table.name = tableName
+			
+			Local cols:TList = New TList
+			
+			For Local rec:TQueryRecord = EachIn query
+
+				Local name:String = rec.GetString(0)
+				Local _type:String = rec.GetString(1).Split("(")[0]
+				Local dbType:Int
+				Select _type
+					Case "boolean", "bool", "tinyint", "smallint", "mediumint", "int", "integer"
+						dbType = DBTYPE_INT
+					Case "bigint"
+						dbType = DBTYPE_LONG
+					Case "real", "double", "decimal"
+						dbType = DBTYPE_DOUBLE
+					Case "float"
+						dbType = DBTYPE_FLOAT
+					Case "date"
+						dbType = DBTYPE_DATE
+					Case "timestamp", "datetime"
+						dbType = DBTYPE_DATETIME
+					Case "time"
+						dbType = DBTYPE_TIME
+					Case "tinyblob", "blob", "mediumblob", "longblob"
+						dbType = DBTYPE_BLOB
+					Default
+						dbType = DBTYPE_STRING
+				End Select
+				
+				Local nullable:Int
+				If rec.GetString(2) = "YES" Then
+					nullable = True
+				End If
+				
+				Local defaultValue:TDBType = rec.value(4)
+				
+				cols.AddLast(TDBColumn.Create(name, dbType, nullable, defaultValue))
+			Next
+			
+			table.SetCountColumns(cols.count())
+			Local i:Int
+			For Local col:TDBColumn = EachIn cols
+				table.SetColumn(i, col)
+				i:+ 1
+			Next
+			
+			cols.Clear()
+			
+			If withDDL Then
+				sql = "SHOW CREATE TABLE " + tableName
+				If query.execute(sql) Then
+					
+					For Local rec:TQueryRecord = EachIn query
+						table.ddl:+ rec.GetString(1) + ";~n~n"
+					Next
+
+				End If
+				
+			End If
+		Else
+			' no table?
+		End If
+		
+		Return table
 	End Method
 	
 	Method open:Int(user:String = Null, pass:String = Null)
@@ -653,7 +759,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 		Return _rowsAffected
 	End Method
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 	
 		Local dbType:Int
 		
@@ -685,7 +791,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 		End Select
 		
 		Return dbType
-	End Method
+	End Function
 
 	Method cleanup()
 

@@ -42,6 +42,7 @@ ModuleInfo "History: isOpen() now checks the connection status."
 ModuleInfo "History: Sets active to false when all rows read."
 ModuleInfo "History: Resultset cleanup improvements."
 ModuleInfo "History: Fixed prepared statement dealloc case issue."
+ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -149,6 +150,9 @@ Type TDBPostgreSQL Extends TDBConnection
 		End If
 		
 		Return list
+	End Method
+
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
 	End Method
 	
 	Method open:Int(user:String = Null, pass:String = Null)
@@ -661,7 +665,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		Return _rowsAffected
 	End Method
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 	
 		Local dbType:Int
 		
@@ -687,7 +691,7 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		End Select
 		
 		Return dbType
-	End Method
+	End Function
 
 End Type
 

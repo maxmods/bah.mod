@@ -214,7 +214,10 @@ Type TDBODBC Extends TDBConnection
 		
 		Return list
 	End Method
-	
+
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
+	End Method
+
 	Method open:Int(user:String = Null, pass:String = Null)
 	
 		If _isOpen Then
@@ -990,7 +993,7 @@ Type TODBCResultSet Extends TQueryResultSet
 		Return -1
 	End Method
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 		Local dbType:Int
 		
 		Select _type
@@ -1014,7 +1017,7 @@ Type TODBCResultSet Extends TQueryResultSet
 		End Select
 		
 		Return dbType
-	End Method
+	End Function
 
 	Method initRecord(size:Int)
 

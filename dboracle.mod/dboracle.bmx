@@ -107,6 +107,9 @@ Type TDBOracle Extends TDBConnection
 	Method getTables:String[]()
 	End Method
 	
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
+	End Method
+	
 	Method open:Int(user:String = Null, pass:String = Null)
 	
 		If Not envHandle Then
@@ -460,7 +463,7 @@ Type TOracleResultSet Extends TQueryResultSet
 		Return _rowsAffected
 	End Method
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0)
 		Local dbType:Int
 		
 		Select _type
@@ -483,7 +486,7 @@ Type TOracleResultSet Extends TQueryResultSet
 		End Select
 		
 		Return dbType
-	End Method
+	End Function
 
 	Method initRecord(size:Int)
 

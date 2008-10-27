@@ -1,4 +1,4 @@
-' Copyright (c) 2007, Bruce A Henderson
+' Copyright (c) 2007,2008 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -15,7 +15,7 @@
 ' THIS SOFTWARE IS PROVIDED BY Bruce A Henderson ``AS IS'' AND ANY
 ' EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 ' WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-' DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+' DISCLAIMED. IN NO EVENT SHALL Bruce A Henderson BE LIABLE FOR ANY
 ' DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 ' (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 ' LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -39,6 +39,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.08"
 ModuleInfo "History: Fixed prepared statement reuse issue with some drivers."
 ModuleInfo "History: Added some integrity checks to TQueryRecord methods."
+ModuleInfo "History: Added getTableInfo(), TDBTable and TDBColum."
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Resets error status before execution of new query."
 ModuleInfo "History: 1.06"
@@ -123,6 +124,11 @@ Type TDBConnection Abstract
 	bbdoc: Returns a list of table names for the current database.
 	End Rem
 	Method getTables:String[]() Abstract
+
+	Rem
+	bbdoc: 
+	End Rem	
+	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False) Abstract
 	
 	Rem
 	bbdoc: Attempts to open a new database connection.
@@ -739,7 +745,7 @@ Type TQueryResultSet
 	Method lastInsertedId:Long() Abstract
 	Method rowsAffected:Int() Abstract
 
-	Method dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0) Abstract
+	Function dbTypeFromNative:Int(name:String, _type:Int = 0, _flags:Int = 0) Abstract
 
 	Method rowRecord:TQueryRecord()
 		If Not isActive() Then
@@ -1210,6 +1216,70 @@ Type TDatabaseError
 		db = Null
 	End Method
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TDBTable
+
+	Rem
+	bbdoc: 
+	End Rem
+	Field name:String
+
+	Rem
+	bbdoc: 
+	End Rem
+	Field columns:TDBColumn[]
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Field ddl:String
+	
+	Method SetCountColumns(count:Int)
+		columns = New TDBColumn[count]
+	End Method
+	
+	Method SetColumn(index:Int, col:TDBColumn)
+		columns[index] = col
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TDBColumn
+
+	Rem
+	bbdoc: 
+	End Rem
+	Field name:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field dbType:Int
+	Rem
+	bbdoc: 
+	End Rem
+	Field nullable:Int
+	Rem
+	bbdoc: 
+	End Rem
+	Field defaultValue:TDBType
+
+	Function Create:TDBColumn(name:String, dbType:Int, nullable:Int, defaultValue:TDBType)
+		Local this:TDBColumn = New TDBColumn
+		this.name = name
+		this.dbType = dbType
+		this.nullable = nullable
+		this.defaultValue = defaultValue
+		Return this
+	End Function
+	
+End Type
+
 
 Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
