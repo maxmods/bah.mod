@@ -95,6 +95,7 @@ extern "C" {
 	BBObject * _bah_cegui_TCETexture__create(CEGUI::Texture * texture);
 	BBObject * _bah_cegui_TCEListboxItem__create(CEGUI::ListboxItem * item);
 	BBObject * _bah_cegui_TCEImage__create(CEGUI::Image * image);
+	BBObject * _bah_cegui_TCETreeItem__create(CEGUI::TreeItem * item);
 	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
@@ -578,6 +579,43 @@ extern "C" {
 	void bmx_cegui_menuitem_closepopupmenu(CEGUI::MenuItem * item, bool _notify);
 	bool bmx_cegui_menuitem_togglepopupmenu(CEGUI::MenuItem * item);
 
+	void bmx_cegui_treeitem_settextcolours(CEGUI::TreeItem * ti, MaxCEColourRect * cols);
+	void bmx_cegui_treeitem_settextcoloursforcorners(CEGUI::TreeItem * ti, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour);
+	void bmx_cegui_treeitem_settextcoloursforcolour(CEGUI::TreeItem * ti, MaxCEColour * col);
+	const CEGUI::utf8 * bmx_cegui_treeitem_gettext(CEGUI::TreeItem * ti);
+	const CEGUI::utf8 * bmx_cegui_treeitem_gettooltiptext(CEGUI::TreeItem * ti);
+	CEGUI::uint bmx_cegui_treeitem_getid(CEGUI::TreeItem * ti);
+	BBObject * bmx_cegui_treeitem_getuserdata(CEGUI::TreeItem * ti);
+	bool bmx_cegui_treeitem_isselected(CEGUI::TreeItem * ti);
+	bool bmx_cegui_treeitem_isdisabled(CEGUI::TreeItem * ti);
+	bool bmx_cegui_treeitem_isautodeleted(CEGUI::TreeItem * ti);
+	BBObject * bmx_cegui_treeitem_getownerwindow(CEGUI::TreeItem * ti);
+	MaxCEColourRect * bmx_cegui_treeitem_getselectioncolours(CEGUI::TreeItem * ti);
+	BBObject * bmx_cegui_treeitem_getselectionbrushimage(CEGUI::TreeItem * ti);
+	void bmx_cegui_treeitem_settext(CEGUI::TreeItem * ti, const CEGUI::utf8 * text);
+	void bmx_cegui_treeitem_settooltiptext(CEGUI::TreeItem * ti, const CEGUI::utf8 * text);
+	void bmx_cegui_treeitem_setid(CEGUI::TreeItem * ti, CEGUI::uint itemId);
+	void bmx_cegui_treeitem_setuserdata(CEGUI::TreeItem * ti, BBObject * itemData);
+	void bmx_cegui_treeitem_setselected(CEGUI::TreeItem * ti, bool setting);
+	void bmx_cegui_treeitem_setdisabled(CEGUI::TreeItem * ti, bool setting);
+	void bmx_cegui_treeitem_setautodeleted(CEGUI::TreeItem * ti, bool setting);
+	void bmx_cegui_treeitem_setownerwindow(CEGUI::TreeItem * ti, CEGUI::Window * owner);
+	void bmx_cegui_treeitem_setselectioncolours(CEGUI::TreeItem * ti, MaxCEColourRect * cols);
+	void bmx_cegui_treeitem_setselectioncoloursforcorners(CEGUI::TreeItem * ti, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour);
+	void bmx_cegui_treeitem_setselectioncoloursforcolour(CEGUI::TreeItem * ti, MaxCEColour * col);
+	void bmx_cegui_treeitem_setselectionbrushimage(CEGUI::TreeItem * ti, CEGUI::Image * image);
+	void bmx_cegui_treeitem_setselectionbrushimagebyname(CEGUI::TreeItem * ti, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image);
+	void bmx_cegui_treeitem_setbuttonlocation(CEGUI::TreeItem * ti, float x, float y, float w, float h);
+	void bmx_cegui_treeitem_getbuttonlocation(CEGUI::TreeItem * ti, float * x, float * y, float * w, float * h);
+	bool bmx_cegui_treeitem_getisopen(CEGUI::TreeItem * ti);
+	void bmx_cegui_treeitem_toggleisopen(CEGUI::TreeItem * ti);
+	BBObject * bmx_cegui_treeitem_gettreeitemfromindex(CEGUI::TreeItem * ti, int itemIndex);
+	int bmx_cegui_treeitem_getitemcount(CEGUI::TreeItem * ti);
+	void bmx_cegui_treeitem_additem(CEGUI::TreeItem * ti, CEGUI::TreeItem * item);
+	void bmx_cegui_treeitem_seticon(CEGUI::TreeItem * ti, CEGUI::Image * theIcon);
+	void bmx_cegui_treeitem_getpixelsize(CEGUI::TreeItem * ti, float * width, float * height);
+
+	
 }
 
 class MaxConnection

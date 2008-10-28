@@ -2797,7 +2797,7 @@ Type TCETree Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for list box items.
 End Rem
 Type TCETreeItem
 
@@ -2811,12 +2811,21 @@ Type TCETreeItem
 		End If
 	End Function
 
+	Rem
+	bbdoc: TODO
+	End Rem
 	Method getFont:TCEFont()
 	End Method
 	
+	Rem
+	bbdoc: TODO
+	End Rem
 	Method getTextColours:TCEColourRect()
 	End Method
 	
+	Rem
+	bbdoc: TODO
+	End Rem
 	Method setFont(font:Object)
 		If TCEFont(font) Then
 		
@@ -2825,111 +2834,259 @@ Type TCETreeItem
 		End If
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for text rendering.
+	End Rem
 	Method setTextColours(cols:TCEColourRect)
+		bmx_cegui_treeitem_settextcolours(objectPtr, cols.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for text rendering.
+	End Rem
 	Method setTextColoursForCorners(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+		bmx_cegui_treeitem_settextcoloursforcorners(objectPtr, topLeftColour.objectPtr, topRightColour.objectPtr, bottomLeftColour.objectPtr, bottomRightColour.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for text rendering.
+	End Rem
 	Method setTextColoursForColour(col:TCEColour)
+		bmx_cegui_treeitem_settextcoloursforcolour(objectPtr, col.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the text string set for this list box item.
+	about: Note that even if the item does not render text, the text string can still be useful, since it is used for
+	sorting list box items.
+	End Rem
 	Method getText:String()
+		Return _convertUTF8ToMax(bmx_cegui_treeitem_gettext(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the tooltip text.
+	End Rem
 	Method getTooltipText:String()
+		Return _convertUTF8ToMax(bmx_cegui_treeitem_gettooltiptext(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current ID assigned to this list box item.
+	about: Note that the system does not make use of this value, client code can assign any meaning it wishes to the ID.
+	End Rem
 	Method getID:Int()
+		Return bmx_cegui_treeitem_getid(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the reference to any client assigned user data attached to this lis box item.
+	End Rem
 	Method getUserData:Object()
+		Return bmx_cegui_treeitem_getuserdata(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is selected.
+	End Rem
 	Method isSelected:Int()
+		Return bmx_cegui_treeitem_isselected(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is disabled.
+	End Rem
 	Method isDisabled:Int()
+		Return bmx_cegui_treeitem_isdisabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item will be automatically deleted when the list box it is attached to is destroyed, or when the item is removed from the list box.
+	End Rem
 	Method isAutoDeleted:Int()
+		Return bmx_cegui_treeitem_isautodeleted(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the owner window for this TreeItem.
+	about: The owner of a TreeItem is typically set by the list box widgets when an item is added or inserted.
+	End Rem
 	Method getOwnerWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_treeitem_getownerwindow(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current colours used for selection highlighting.
+	End Rem
 	Method getSelectionColours:TCEColourRect()
+		Return TCEColourRect._create(bmx_cegui_treeitem_getselectioncolours(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current selection highlighting brush.
+	End Rem
 	Method getSelectionBrushImage:TCEImage()
+		Return TCEImage._create(bmx_cegui_treeitem_getselectionbrushimage(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the text string for this list box item.
+	about: Note that even if the item does not render text, the text string can still be useful, since it is used for 
+	sorting list box items.
+	End Rem
 	Method setText(text:String)
+		bmx_cegui_treeitem_settext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	
+	Rem
+	bbdoc: Sets the tooltip text.
+	End Rem
 	Method setTooltipText(text:String)
+		bmx_cegui_treeitem_settooltiptext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	
+	Rem
+	bbdoc: Sets the ID assigned to this list box item.
+	about: Note that the system does not make use of this value, client code can assign any meaning it wishes to the ID.
+	End Rem
 	Method setID(itemId:Int)
+		bmx_cegui_treeitem_setid(objectPtr, itemId)
 	End Method
 	
+	Rem
+	bbdoc: Sets the client assigned user data attached to this lis box item.
+	End Rem
 	Method setUserData(itemData:Object)
+		bmx_cegui_treeitem_setuserdata(objectPtr, itemData)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item is selected.
+	End Rem
 	Method setSelected(setting:Int)
+		bmx_cegui_treeitem_setselected(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item is disabled.
+	End Rem
 	Method setDisabled(setting:Int)
+		bmx_cegui_treeitem_setdisabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item will be automatically deleted when the list box it is attached to is destroyed, or when the item is removed from the list box.
+	End Rem
 	Method setAutoDeleted(setting:Int)
+		bmx_cegui_treeitem_setautodeleted(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Set the owner window for this TreeItem.
+	about: This is called by all the list box widgets when an item is added or inserted.
+	End Rem
 	Method setOwnerWindow(owner:TCEWindow)
+		bmx_cegui_treeitem_setownerwindow(objectPtr, owner.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting.
+	End Rem
 	Method setSelectionColours(cols:TCEColourRect)
+		bmx_cegui_treeitem_setselectioncolours(objectPtr, cols.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting.
+	End Rem
 	Method setSelectionColoursForCorners(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+		bmx_cegui_treeitem_setselectioncoloursforcorners(objectPtr, topLeftColour.objectPtr, topRightColour.objectPtr, bottomLeftColour.objectPtr, bottomRightColour.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting.
+	End Rem
 	Method setSelectionColoursForColour(col:TCEColour)
+		bmx_cegui_treeitem_setselectioncoloursforcolour(objectPtr, col.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection highlighting brush image.
+	End Rem
 	Method setSelectionBrushImage(image:TCEImage)
+		bmx_cegui_treeitem_setselectionbrushimage(objectPtr, image.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection highlighting brush image.
+	End Rem
 	Method setSelectionBrushImageByName(imageset:String, image:String)
+		bmx_cegui_treeitem_setselectionbrushimagebyname(objectPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(image))
 	End Method
 	
+	Rem
+	bbdoc: Tells the treeItem where its button is located.
+	End Rem
 	Method setButtonLocation(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_treeitem_setbuttonlocation(objectPtr, x, y, w, h)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getButtonLocation(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_treeitem_getbuttonlocation(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getIsOpen:Int()
+		Return bmx_cegui_treeitem_getisopen(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method toggleIsOpen()
+		bmx_cegui_treeitem_toggleisopen(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getTreeItemFromIndex:TCETreeItem(itemIndex:Int)
+		Return TCETreeItem(bmx_cegui_treeitem_gettreeitemfromindex(objectPtr, itemIndex))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getItemCount:Int()
+		Return bmx_cegui_treeitem_getitemcount(objectPtr)
 	End Method
 	
 	'LBItemList & 	getItemList()
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method addItem(item:TCETreeItem)
+		bmx_cegui_treeitem_additem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setIcon(theIcon:TCEImage)
+		bmx_cegui_treeitem_seticon(objectPtr, theIcon.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the rendered pixel size of this list box item.
+	End Rem
 	Method getPixelSize(width:Float Var, height:Float Var) 
+		bmx_cegui_treeitem_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
 End Type

@@ -2283,3 +2283,157 @@ bool bmx_cegui_menuitem_togglepopupmenu(CEGUI::MenuItem * item) {
 	return item->togglePopupMenu();
 }
 
+// *************************************************
+
+void bmx_cegui_treeitem_settextcolours(CEGUI::TreeItem * ti, MaxCEColourRect * cols) {
+	ti->setTextColours(cols->Rect());
+}
+
+void bmx_cegui_treeitem_settextcoloursforcorners(CEGUI::TreeItem * ti, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour) {
+	ti->setTextColours(topLeftColour->Colour(), topRightColour->Colour(), bottomLeftColour->Colour(), bottomRightColour->Colour());
+}
+
+void bmx_cegui_treeitem_settextcoloursforcolour(CEGUI::TreeItem * ti, MaxCEColour * col) {
+	ti->setTextColours(col->Colour());
+}
+
+const CEGUI::utf8 * bmx_cegui_treeitem_gettext(CEGUI::TreeItem * ti) {
+	return ti->getText().data();
+}
+
+const CEGUI::utf8 * bmx_cegui_treeitem_gettooltiptext(CEGUI::TreeItem * ti) {
+	return ti->getTooltipText().data();
+}
+
+CEGUI::uint bmx_cegui_treeitem_getid(CEGUI::TreeItem * ti) {
+	return ti->getID();
+}
+
+BBObject * bmx_cegui_treeitem_getuserdata(CEGUI::TreeItem * ti) {
+	void * data = ti->getUserData();
+	if (data) {
+		return (BBObject*)data;
+	} else {
+		return &bbNullObject;
+	}
+}
+
+bool bmx_cegui_treeitem_isselected(CEGUI::TreeItem * ti) {
+	return ti->isSelected();
+}
+
+bool bmx_cegui_treeitem_isdisabled(CEGUI::TreeItem * ti) {
+	return ti->isDisabled();
+}
+
+bool bmx_cegui_treeitem_isautodeleted(CEGUI::TreeItem * ti) {
+	return ti->isAutoDeleted();
+}
+
+BBObject * bmx_cegui_treeitem_getownerwindow(CEGUI::TreeItem * ti) {
+	return newObjectForWindow(const_cast<CEGUI::Window *>(ti->getOwnerWindow()));
+}
+
+MaxCEColourRect * bmx_cegui_treeitem_getselectioncolours(CEGUI::TreeItem * ti) {
+	return new MaxCEColourRect(ti->getSelectionColours());
+}
+
+BBObject * bmx_cegui_treeitem_getselectionbrushimage(CEGUI::TreeItem * ti) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image *>(ti->getSelectionBrushImage()));
+}
+
+void bmx_cegui_treeitem_settext(CEGUI::TreeItem * ti, const CEGUI::utf8 * text) {
+	ti->setText(text);
+}
+
+void bmx_cegui_treeitem_settooltiptext(CEGUI::TreeItem * ti, const CEGUI::utf8 * text) {
+	ti->setTooltipText(text);
+}
+
+void bmx_cegui_treeitem_setid(CEGUI::TreeItem * ti, CEGUI::uint itemId) {
+	ti->setID(itemId);
+}
+
+void bmx_cegui_treeitem_setuserdata(CEGUI::TreeItem * ti, BBObject * itemData) {
+	ti->setUserData(itemData);
+}
+
+void bmx_cegui_treeitem_setselected(CEGUI::TreeItem * ti, bool setting) {
+	ti->setSelected(setting);
+}
+
+void bmx_cegui_treeitem_setdisabled(CEGUI::TreeItem * ti, bool setting) {
+	ti->setDisabled(setting);
+}
+
+void bmx_cegui_treeitem_setautodeleted(CEGUI::TreeItem * ti, bool setting) {
+	ti->setAutoDeleted(setting);
+}
+
+void bmx_cegui_treeitem_setownerwindow(CEGUI::TreeItem * ti, CEGUI::Window * owner) {
+	ti->setOwnerWindow(owner);
+}
+
+void bmx_cegui_treeitem_setselectioncolours(CEGUI::TreeItem * ti, MaxCEColourRect * cols) {
+	ti->setSelectionColours(cols->Rect());
+}
+
+void bmx_cegui_treeitem_setselectioncoloursforcorners(CEGUI::TreeItem * ti, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour) {
+	ti->setSelectionColours(topLeftColour->Colour(), topRightColour->Colour(), bottomLeftColour->Colour(), bottomRightColour->Colour());
+}
+
+void bmx_cegui_treeitem_setselectioncoloursforcolour(CEGUI::TreeItem * ti, MaxCEColour * col) {
+	ti->setSelectionColours(col->Colour());
+}
+
+void bmx_cegui_treeitem_setselectionbrushimage(CEGUI::TreeItem * ti, CEGUI::Image * image) {
+	ti->setSelectionBrushImage(image);
+}
+
+void bmx_cegui_treeitem_setselectionbrushimagebyname(CEGUI::TreeItem * ti, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image) {
+	ti->setSelectionBrushImage(imageset, image);
+}
+
+void bmx_cegui_treeitem_setbuttonlocation(CEGUI::TreeItem * ti, float x, float y, float w, float h) {
+	CEGUI::Rect r(x, y, w, h);
+	ti->setButtonLocation(r);
+}
+
+void bmx_cegui_treeitem_getbuttonlocation(CEGUI::TreeItem * ti, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = ti->getButtonLocation();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+bool bmx_cegui_treeitem_getisopen(CEGUI::TreeItem * ti) {
+	return ti->getIsOpen();
+}
+
+void bmx_cegui_treeitem_toggleisopen(CEGUI::TreeItem * ti) {
+	ti->toggleIsOpen();
+}
+
+BBObject * bmx_cegui_treeitem_gettreeitemfromindex(CEGUI::TreeItem * ti, int itemIndex) {
+	return _bah_cegui_TCETreeItem__create(ti->getTreeItemFromIndex(itemIndex));
+}
+
+int bmx_cegui_treeitem_getitemcount(CEGUI::TreeItem * ti) {
+	return ti->getItemCount();
+}
+
+void bmx_cegui_treeitem_additem(CEGUI::TreeItem * ti, CEGUI::TreeItem * item) {
+	ti->addItem(item);
+}
+
+void bmx_cegui_treeitem_seticon(CEGUI::TreeItem * ti, CEGUI::Image * theIcon) {
+	ti->setIcon(*theIcon);
+}
+
+void bmx_cegui_treeitem_getpixelsize(CEGUI::TreeItem * ti, float * width, float * height) {
+	CEGUI::Size s = ti->getPixelSize();
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
