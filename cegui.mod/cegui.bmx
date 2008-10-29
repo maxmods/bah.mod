@@ -896,28 +896,62 @@ Type TCEListboxTextItem Extends TCEListboxItem
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns a reference to the font being used by this ListboxTextItem.
+	about: This method will try a number of places to find a font to be used. If no font can be found, NULL is
+	returned.
+	End Rem
 	Method getFont:TCEFont()
+		Return TCEFont._create(bmx_cegui_listboxtextitem_getfont(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current colours used for text rendering. 
+	End Rem
 	Method getTextColours:TCEColourRect()
+		Return TCEColourRect._create(bmx_cegui_listboxtextitem_gettextcolours(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the font to be used by this ListboxTextItem. 
+	End Rem
 	Method setFont(font:TCEFont)
+		bmx_cegui_listboxtextitem_setfont(objectPtr, font.objectPtr)
 	End Method
 	
-	Method setFontByName(font_name:String)
+	Rem
+	bbdoc: Sets the font to be used by this ListboxTextItem. 
+	End Rem
+	Method setFontByName(fontName:String)
+		bmx_cegui_listboxtextitem_setfontbyname(objectPtr, _convertMaxToUTF8(fontName))
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for text rendering. 
+	End Rem
 	Method setTextColours(cols:TCEColourRect)
+		bmx_cegui_listboxtextitem_settextcolours(objectPtr, cols.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setTextColoursForCorners(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+		bmx_cegui_listboxtextitem_settextcoloursforcorner(objectPtr, topLeftColour.objectPtr, topRightColour.objectPtr, bottomLeftColour.objectPtr, bottomRightColour.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colour used for text rendering. 
+	End Rem
 	Method setTextColoursForColour(col:TCEColour)
+		bmx_cegui_listboxtextitem_settextcoloursforcolour(objectPtr, col.objectPtr)
 	End Method
 	
-	Method getPixelSize(width:Float Var, height:Float Var) 
+	Rem
+	bbdoc: Returns the rendered pixel size of this list box item. 
+	End Rem
+	Method getPixelSize(width:Float Var, height:Float Var)
+		bmx_cegui_listboxtextitem_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
 End Type
@@ -1007,75 +1041,75 @@ Type TCECombobox Extends TCEWindow
 
 	' event names from edit box
 	Rem
-	bbdoc: 
+	bbdoc: The read-only mode for the edit box has been changed. 
 	End Rem
 	Const EventReadOnlyModeChanged:String = "ReadOnlyChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The validation string has been changed. 
 	End Rem
 	Const EventValidationStringChanged:String = "ValidationStringChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The maximum allowable string length has been changed. 
 	End Rem
 	Const EventMaximumTextLengthChanged:String = "MaximumTextLengthChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Some operation has made the current text invalid with regards to the validation string. 
 	End Rem
 	Const EventTextInvalidated:String = "TextInvalidatedEvent"
 	Rem
-	bbdoc: 
+	bbdoc: The user attempted to modify the text in a way that would have made it invalid. 
 	End Rem
 	Const EventInvalidEntryAttempted:String = "InvalidEntryAttempted"
 	Rem
-	bbdoc: 
+	bbdoc: The text carat (insert point) has changed. 
 	End Rem
 	Const EventCaratMoved:String = "CaratMoved"
 	Rem
-	bbdoc: 
+	bbdoc: The current text selection has changed. 
 	End Rem
 	Const EventTextSelectionChanged:String = "TextSelectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: The number of characters in the edit box has reached the current maximum. 
 	End Rem
 	Const EventEditboxFull:String = "EditboxFullEvent"
 	Rem
-	bbdoc: 
+	bbdoc: The user has accepted the current text by pressing Return, Enter, or Tab. 
 	End Rem
 	Const EventTextAccepted:String = "TextAcceptedEvent"
 	
 	' event names from list box
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
 	Const EventListContentsChanged:String = "ListContentsChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
 	Const EventListSelectionChanged:String = "ListSelectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
 	Const EventSortModeChanged:String = "SortModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes. 
 	End Rem
 	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 	
 	' events we produce / generate ourselves
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the drop-down list is displayed. 
 	End Rem
 	Const EventDropListDisplayed:String = "DropListDisplayed"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the drop-down list is removed / hidden. 
 	End Rem
 	Const EventDropListRemoved:String = "DropListRemoved"
 	Rem
-	bbdoc: 
+	bbdoc: 	Event triggered when the user accepts a selection from the drop-down list. 
 	End Rem
 	Const EventListSelectionAccepted:String = "ListSelectionAccepted"
 	
@@ -1720,34 +1754,58 @@ Type TCEMenuItem Extends TCEItemEntry
 	End Rem
 	Const EventClicked:String = "Clicked"
 
+	Rem
+	bbdoc: Returns true if user is hovering over this widget (or it's pushed and user is not over it for highlight) 
+	End Rem
 	Method isHovering:Int()
 		Return bmx_cegui_menuitem_ishovering(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns true if the button widget is in the pushed state. 
+	End Rem
 	Method isPushed:Int()
 		Return bmx_cegui_menuitem_ispushed(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns true if the popup menu attached to the menu item is open. 
+	End Rem
 	Method isOpened:Int()
 		Return bmx_cegui_menuitem_isopened(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the PopupMenu that is currently attached to this MenuItem. 
+	End Rem
 	Method getPopupMenu:TCEPopupMenu()
 		Return TCEPopupMenu(bmx_cegui_menuitem_getpopupmenu(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the popup menu for this item. 
+	End Rem
 	Method setPopupMenu(popup:TCEPopupMenu)
 		bmx_cegui_menuitem_setpopupmenu(objectPtr, popup.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Opens the PopupMenu. 
+	End Rem
 	Method openPopupMenu(_notify:Int = True)
 		bmx_cegui_menuitem_openpopupmenu(objectPtr, _notify)
 	End Method
 	
+	Rem
+	bbdoc: Closes the PopupMenu. 
+	End Rem
 	Method closePopupMenu(_notify:Int = True)
 		bmx_cegui_menuitem_closepopupmenu(objectPtr, _notify)
 	End Method
 	
+	Rem
+	bbdoc: Toggles the PopupMenu. 
+	End Rem
 	Method togglePopupMenu:Int()
 		Return bmx_cegui_menuitem_togglepopupmenu(objectPtr)
 	End Method
@@ -1755,7 +1813,10 @@ Type TCEMenuItem Extends TCEItemEntry
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for the ScrollablePane widget.
+about: The ScrollablePane widget allows child windows to be attached which cover an area larger than the
+ScrollablePane itself and these child windows can be scrolled into view using the scrollbars of the
+scrollable pane.
 End Rem
 Type TCEScrollablePane Extends TCEWindow
 
@@ -1768,96 +1829,195 @@ Type TCEScrollablePane Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when an area on the content pane has been updated. 
 	End Rem
 	Const EventContentPaneChanged:String = "ContentPaneChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes. 
 	End Rem
 	Const EventVertScrollbarModeChanged:String = "VertScrollbarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollbarModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the auto size setting changes. 
 	End Rem
 	Const EventAutoSizeSettingChanged:String = "AutoSizeSettingChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the pane gets scrolled. 
 	End Rem
 	Const EventContentPaneScrolled:String = "ContentPaneScrolled"
 
+	Rem
+	bbdoc: Returns a reference to the window holding the pane contents.
+	about: The purpose of this is so that attached windows may be inspected, client code may not modify
+	the returned window in any way.
+	End Rem
 	Method getContentPane:TCEScrolledContainer()
+		Return TCEScrolledContainer(bmx_cegui_scrollablepane_getcontentpane(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown. 
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_scrollablepane_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown. 
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_scrollablepane_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the horizontal scroll bar is always shown. 
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_scrollablepane_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the horizontal scroll bar should always be shown. 
+	End Rem
 	Method setShowHorzScrollbar(setting:Int)
+		bmx_cegui_scrollablepane_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the content pane is auto sized. 
+	End Rem
 	Method isContentPaneAutoSized:Int()
+		Return bmx_cegui_scrollablepane_iscontentpaneautosized(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Set whether the content pane should be auto-sized. 
+	End Rem
 	Method setContentPaneAutoSized(setting:Int)
+		bmx_cegui_scrollablepane_setcontentpaneautosized(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current content pane area for the ScrollablePane. 
+	End Rem
 	Method getContentPaneArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_scrollablepane_getcontentpanearea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current content pane area for the ScrollablePane. 
+	about: If the ScrollablePane is configured to auto-size the content pane this call will have no effect.
+	End Rem
 	Method setContentPaneArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_scrollablepane_setcontentpanearea(objectPtr, x, y, w, h)
 	End Method
 	
+	Rem
+	bbdoc: Returns the horizontal scrollbar step size as a fraction of one complete view page. 
+	End Rem
 	Method getHorizontalStepSize:Float()
+		Return bmx_cegui_scrollablepane_gethorizontalstepsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the horizontal scrollbar step size as a fraction of one complete view page. 
+	End Rem
 	Method setHorizontalStepSize(stepSize:Float)
+		bmx_cegui_scrollablepane_sethorizontalstepsize(objectPtr, stepSize)
 	End Method
 	
+	Rem
+	bbdoc: Returns the horizontal scrollbar overlap size as a fraction of one complete view page. 
+	End Rem
 	Method getHorizontalOverlapSize:Float()
+		Return bmx_cegui_scrollablepane_gethorizontaloverlapsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the horizontal scrollbar overlap size as a fraction of one complete view page. 
+	End Rem
 	Method setHorizontalOverlapSize(overlap:Float)
+		bmx_cegui_scrollablepane_sethorizontaloverlapsize(objectPtr, overlap)
 	End Method
 	
+	Rem
+	bbdoc: Returns the horizontal scroll position as a fraction of the complete scrollable width. 
+	End Rem
 	Method getHorizontalScrollPosition:Float()
+		Return bmx_cegui_scrollablepane_gethorizontalscrollposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the horizontal scroll position as a fraction of the complete scrollable width. 
+	End Rem
 	Method setHorizontalScrollPosition(position:Float)
+		bmx_cegui_scrollablepane_sethorizontalscrollposition(objectPtr, position)
 	End Method
 	
+	Rem
+	bbdoc: Returns the vertical scrollbar step size as a fraction of one complete view page. 
+	End Rem
 	Method getVerticalStepSize:Float()
+		Return bmx_cegui_scrollablepane_getverticalstepsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the vertical scrollbar step size as a fraction of one complete view page. 
+	End Rem
 	Method setVerticalStepSize(stepSize:Float)
+		bmx_cegui_scrollablepane_setverticalstepsize(objectPtr, stepSize)
 	End Method
 	
+	Rem
+	bbdoc: Returns the vertical scrollbar overlap size as a fraction of one complete view page. 
+	End Rem
 	Method getVerticalOverlapSize:Float()
+		Return bmx_cegui_scrollablepane_getverticaloverlapsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the vertical scrollbar overlap size as a fraction of one complete view page. 
+	End Rem
 	Method setVerticalOverlapSize(overlap:Float)
+		bmx_cegui_scrollablepane_setverticaloverlapsize(objectPtr, overlap)
 	End Method
 	
+	Rem
+	bbdoc: Returns the vertical scroll position as a fraction of the complete scrollable height. 
+	End Rem
 	Method getVerticalScrollPosition:Float()
+		Return bmx_cegui_scrollablepane_getverticalscrollposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the vertical scroll position as a fraction of the complete scrollable height. 
+	End Rem
 	Method setVerticalScrollPosition(position:Float)
+		bmx_cegui_scrollablepane_setverticalscrollposition(objectPtr, position)
 	End Method
 	
+	Rem
+	bbdoc: Returns a Rect that described the pane's viewable area, relative to this Window, in pixels. 
+	End Rem
 	Method getViewableArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_scrollablepane_getviewablearea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Returns a reference to the vertical scrollbar component widget for this ScrollablePane. 
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_scrollablepane_getvertscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Return a reference to the horizontal scrollbar component widget for this ScrollablePane. 
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar() 
+		Return TCEScrollbar(bmx_cegui_scrollablepane_gethorzscrollbar(objectPtr))
 	End Method
 	
 End Type

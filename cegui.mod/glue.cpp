@@ -2437,3 +2437,148 @@ void bmx_cegui_treeitem_getpixelsize(CEGUI::TreeItem * ti, float * width, float 
 	*height = s.d_height;
 }
 
+// *************************************************
+
+CEGUI::Font * bmx_cegui_listboxtextitem_getfont(CEGUI::ListboxTextItem * item) {
+	return item->getFont();
+}
+
+MaxCEColourRect * bmx_cegui_listboxtextitem_gettextcolours(CEGUI::ListboxTextItem * item) {
+	CEGUI::ColourRect r = item->getTextColours();
+	return new MaxCEColourRect(r);
+}
+
+void bmx_cegui_listboxtextitem_setfont(CEGUI::ListboxTextItem * item, CEGUI::Font * font) {
+	item->setFont(font);
+}
+
+void bmx_cegui_listboxtextitem_setfontbyname(CEGUI::ListboxTextItem * item, const CEGUI::utf8 * fontName) {
+	item->setFont(fontName);
+}
+
+void bmx_cegui_listboxtextitem_settextcolours(CEGUI::ListboxTextItem * item, MaxCEColourRect * cols) {
+	item->setTextColours(cols->Rect());
+}
+
+void bmx_cegui_listboxtextitem_settextcoloursforcorner(CEGUI::ListboxTextItem * item, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour) {
+	item->setTextColours(topLeftColour->Colour(), topRightColour->Colour(), bottomLeftColour->Colour(), bottomRightColour->Colour());
+}
+
+void bmx_cegui_listboxtextitem_settextcoloursforcolour(CEGUI::ListboxTextItem * item, MaxCEColour * col) {
+	item->setTextColours(col->Colour());
+}
+
+void bmx_cegui_listboxtextitem_getpixelsize(CEGUI::ListboxTextItem * item, float * width, float * height) {
+	CEGUI::Size s = item->getPixelSize();
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
+
+// *************************************************
+
+BBObject * bmx_cegui_scrollablepane_getcontentpane(CEGUI::ScrollablePane * sp) {
+	return _bah_cegui_TCEScrolledContainer__create(const_cast<CEGUI::ScrolledContainer *>(sp->getContentPane()));
+}
+
+bool bmx_cegui_scrollablepane_isvertscrollbaralwaysshown(CEGUI::ScrollablePane * sp) {
+	return sp->isVertScrollbarAlwaysShown();
+}
+
+void bmx_cegui_scrollablepane_setshowvertscrollbar(CEGUI::ScrollablePane * sp, bool setting) {
+	sp->setShowVertScrollbar(setting);
+}
+
+bool bmx_cegui_scrollablepane_ishorzscrollbaralwaysshown(CEGUI::ScrollablePane * sp) {
+	return sp->isHorzScrollbarAlwaysShown();
+}
+
+void bmx_cegui_scrollablepane_setshowhorzscrollbar(CEGUI::ScrollablePane * sp, bool setting) {
+	sp->setShowHorzScrollbar(setting);
+}
+
+bool bmx_cegui_scrollablepane_iscontentpaneautosized(CEGUI::ScrollablePane * sp) {
+	return sp->isContentPaneAutoSized();
+}
+
+void bmx_cegui_scrollablepane_setcontentpaneautosized(CEGUI::ScrollablePane * sp, bool setting) {
+	sp->setContentPaneAutoSized(setting);
+}
+
+void bmx_cegui_scrollablepane_getcontentpanearea(CEGUI::ScrollablePane * sp, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = sp->getContentPaneArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_scrollablepane_setcontentpanearea(CEGUI::ScrollablePane * sp, float x, float y, float w, float h) {
+	CEGUI::Rect r(x, y, w, h);
+	sp->setContentPaneArea(r);
+}
+
+float bmx_cegui_scrollablepane_gethorizontalstepsize(CEGUI::ScrollablePane * sp) {
+	return sp->getHorizontalStepSize();
+}
+
+void bmx_cegui_scrollablepane_sethorizontalstepsize(CEGUI::ScrollablePane * sp, float stepSize) {
+	sp->setHorizontalStepSize(stepSize);
+}
+
+float bmx_cegui_scrollablepane_gethorizontaloverlapsize(CEGUI::ScrollablePane * sp) {
+	return sp->getHorizontalOverlapSize();
+}
+
+void bmx_cegui_scrollablepane_sethorizontaloverlapsize(CEGUI::ScrollablePane * sp, float overlap) {
+	sp->setHorizontalOverlapSize(overlap);
+}
+
+float bmx_cegui_scrollablepane_gethorizontalscrollposition(CEGUI::ScrollablePane * sp) {
+	return sp->getHorizontalScrollPosition();
+}
+
+void bmx_cegui_scrollablepane_sethorizontalscrollposition(CEGUI::ScrollablePane * sp, float position) {
+	sp->setHorizontalScrollPosition(position);
+}
+
+float bmx_cegui_scrollablepane_getverticalstepsize(CEGUI::ScrollablePane * sp) {
+	return sp->getVerticalStepSize();
+}
+
+void bmx_cegui_scrollablepane_setverticalstepsize(CEGUI::ScrollablePane * sp, float stepSize) {
+	sp->setVerticalStepSize(stepSize);
+}
+
+float bmx_cegui_scrollablepane_getverticaloverlapsize(CEGUI::ScrollablePane * sp) {
+	return sp->getVerticalOverlapSize();
+}
+
+void bmx_cegui_scrollablepane_setverticaloverlapsize(CEGUI::ScrollablePane * sp, float overlap) {
+	sp->setVerticalOverlapSize(overlap);
+}
+
+float bmx_cegui_scrollablepane_getverticalscrollposition(CEGUI::ScrollablePane * sp) {
+	return sp->getVerticalScrollPosition();
+}
+
+void bmx_cegui_scrollablepane_setverticalscrollposition(CEGUI::ScrollablePane * sp, float position) {
+	sp->setVerticalScrollPosition(position);
+}
+
+void bmx_cegui_scrollablepane_getviewablearea(CEGUI::ScrollablePane * sp, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = sp->getViewableArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+BBObject * bmx_cegui_scrollablepane_getvertscrollbar(CEGUI::ScrollablePane * sp) {
+	return _bah_cegui_TCEScrollbar__create(sp->getVertScrollbar());
+}
+
+BBObject * bmx_cegui_scrollablepane_gethorzscrollbar(CEGUI::ScrollablePane * sp) {
+	return _bah_cegui_TCEScrollbar__create(sp->getHorzScrollbar());
+}
+

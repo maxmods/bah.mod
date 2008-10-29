@@ -615,7 +615,40 @@ extern "C" {
 	void bmx_cegui_treeitem_seticon(CEGUI::TreeItem * ti, CEGUI::Image * theIcon);
 	void bmx_cegui_treeitem_getpixelsize(CEGUI::TreeItem * ti, float * width, float * height);
 
-	
+	CEGUI::Font * bmx_cegui_listboxtextitem_getfont(CEGUI::ListboxTextItem * item);
+	MaxCEColourRect * bmx_cegui_listboxtextitem_gettextcolours(CEGUI::ListboxTextItem * item);
+	void bmx_cegui_listboxtextitem_setfont(CEGUI::ListboxTextItem * item, CEGUI::Font * font);
+	void bmx_cegui_listboxtextitem_setfontbyname(CEGUI::ListboxTextItem * item, const CEGUI::utf8 * fontName);
+	void bmx_cegui_listboxtextitem_settextcolours(CEGUI::ListboxTextItem * item, MaxCEColourRect * cols);
+	void bmx_cegui_listboxtextitem_settextcoloursforcorner(CEGUI::ListboxTextItem * item, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour);
+	void bmx_cegui_listboxtextitem_settextcoloursforcolour(CEGUI::ListboxTextItem * item, MaxCEColour * col);
+	void bmx_cegui_listboxtextitem_getpixelsize(CEGUI::ListboxTextItem * item, float * width, float * height);
+
+	BBObject * bmx_cegui_scrollablepane_getcontentpane(CEGUI::ScrollablePane * sp);
+	bool bmx_cegui_scrollablepane_isvertscrollbaralwaysshown(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setshowvertscrollbar(CEGUI::ScrollablePane * sp, bool setting);
+	bool bmx_cegui_scrollablepane_ishorzscrollbaralwaysshown(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setshowhorzscrollbar(CEGUI::ScrollablePane * sp, bool setting);
+	bool bmx_cegui_scrollablepane_iscontentpaneautosized(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setcontentpaneautosized(CEGUI::ScrollablePane * sp, bool setting);
+	void bmx_cegui_scrollablepane_getcontentpanearea(CEGUI::ScrollablePane * sp, float * x, float * y, float * w, float * h);
+	void bmx_cegui_scrollablepane_setcontentpanearea(CEGUI::ScrollablePane * sp, float x, float y, float w, float h);
+	float bmx_cegui_scrollablepane_gethorizontalstepsize(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_sethorizontalstepsize(CEGUI::ScrollablePane * sp, float stepSize);
+	float bmx_cegui_scrollablepane_gethorizontaloverlapsize(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_sethorizontaloverlapsize(CEGUI::ScrollablePane * sp, float overlap);
+	float bmx_cegui_scrollablepane_gethorizontalscrollposition(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_sethorizontalscrollposition(CEGUI::ScrollablePane * sp, float position);
+	float bmx_cegui_scrollablepane_getverticalstepsize(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setverticalstepsize(CEGUI::ScrollablePane * sp, float stepSize);
+	float bmx_cegui_scrollablepane_getverticaloverlapsize(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setverticaloverlapsize(CEGUI::ScrollablePane * sp, float overlap);
+	float bmx_cegui_scrollablepane_getverticalscrollposition(CEGUI::ScrollablePane * sp);
+	void bmx_cegui_scrollablepane_setverticalscrollposition(CEGUI::ScrollablePane * sp, float position);
+	void bmx_cegui_scrollablepane_getviewablearea(CEGUI::ScrollablePane * sp, float * x, float * y, float * w, float * h);
+	BBObject * bmx_cegui_scrollablepane_getvertscrollbar(CEGUI::ScrollablePane * sp);
+	BBObject * bmx_cegui_scrollablepane_gethorzscrollbar(CEGUI::ScrollablePane * sp);
+
 }
 
 class MaxConnection
