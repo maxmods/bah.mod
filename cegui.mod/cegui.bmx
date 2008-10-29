@@ -1641,34 +1641,61 @@ Type TCEItemEntry Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the "optimal" size for the item.
+	End Rem
 	Method getItemPixelSize(w:Float Var, h:Float Var)
 		bmx_cegui_itementry_getitempixelsize(objectPtr, Varptr w, Varptr h)
 	End Method
 
+	Rem
+	bbdoc: Returns a reference to the owner ItemListBase, or Null if there is none. 
+	End Rem
 	Method getOwnerList:TCEItemListBase()
 		Return TCEItemListBase(bmx_cegui_itementry_getownerlist(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is selected or not. 
+	End Rem
 	Method isSelected:Int()
 		Return bmx_cegui_itementry_isselected(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is selectable or not. 
+	End Rem
 	Method isSelectable:Int()
 		Return bmx_cegui_itementry_isselectable(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection state of this item (on/off).
+	about: If this item is not selectable this function does nothing.
+	End Rem
 	Method setSelected(setting:Int)
 		bmx_cegui_itementry_setselected(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Selects the item. 
+	End Rem
 	Method selectEntry()
 		bmx_cegui_itementry_selectentry(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Deselects the item. 
+	End Rem
 	Method deselect()
 		bmx_cegui_itementry_deselect(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item will be selectable.
+	about: If the item is currently selectable and selected, calling this function with setting as 'false'
+	will first deselect the item and then disable selectability.
+	End Rem
 	Method setSelectable(setting:Int)
 		bmx_cegui_itementry_setselectable(objectPtr, setting)
 	End Method
@@ -1676,7 +1703,7 @@ Type TCEItemEntry Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for menu items.
 End Rem
 Type TCEMenuItem Extends TCEItemEntry
 
