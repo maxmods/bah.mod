@@ -795,90 +795,183 @@ Type TCEListboxItem
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the text string set for this list box item.
+	about: Note that even if the item does not render text, the text string can still be useful,
+	since it is used for sorting list box items.
+	End Rem
 	Method getText:String()
 		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettext(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the tooltip text.
+	End Rem
 	Method getTooltipText:String()
 		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettooltiptext(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current ID assigned to this list box item.
+	about: Note that the system does not make use of this value, client code can assign any meaning it
+	wishes to the ID.
+	End Rem
 	Method getID:Int()
 		Return bmx_cegui_listboxitem_getid(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getUserData:Object()
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is selected. 
+	End Rem
 	Method isSelected:Int()
 		Return bmx_cegui_listboxitem_isselected(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item is disabled. 
+	End Rem
 	Method isDisabled:Int()
 		Return bmx_cegui_listboxitem_isdisabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this item will be automatically deleted when the list box it is attached to is destroyed, or when the item is removed from the list box.
+	End Rem
 	Method isAutoDeleted:Int()
 		Return bmx_cegui_listboxitem_isautodeleted(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the owner window for this ListboxItem.
+	about: The owner of a ListboxItem is typically set by the list box widgets when an item is added or inserted.
+	End Rem
 	Method getOwnerWindow:TCEWindow()
-		Return TCEWindow._create(bmx_cegui_listboxitem_getownerwindow(objectPtr))
+		Return TCEWindow(bmx_cegui_listboxitem_getownerwindow(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current colours used for selection highlighting. 
+	End Rem
 	Method getSelectionColours:TCEColourRect()
+		Return TCEColourRect._create(bmx_cegui_listboxitem_getselectioncolours(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current selection highlighting brush. 
+	End Rem
 	Method getSelectionBrushImage:TCEImage()
+		Return TCEImage(bmx_cegui_listboxitem_getselectionbrushimage(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the text string for this list box item.
+	about: Note that even if the item does not render text, the text string can still be useful, since
+	it is used for sorting list box items.
+	End Rem
 	Method setText(text:String)
 		bmx_cegui_listboxitem_settext(objectPtr, text)
 	End Method
 	
+	Rem
+	bbdoc: Sets the tooltip text.
+	End Rem
 	Method setTooltipText(text:String)
 		bmx_cegui_listboxitem_settooltiptext(objectPtr, text)
 	End Method
 	
+	Rem
+	bbdoc: Sets the ID assigned to this list box item.
+	about: Note that the system does not make use of this value, client code can assign any meaning it
+	wishes to the ID.
+	End Rem
 	Method setID(itemId:Int)
 		bmx_cegui_listboxitem_setid(objectPtr, itemId)
 	End Method
 	
+	Rem
+	bbdoc: Sets the client assigned user data attached to this lis box item.
+	about: Note that the system does not make use of this data, client code can assign any meaning it
+	wishes to the attached data.
+	End Rem
 	Method setUserData(itemData:Object)
+		bmx_cegui_listboxitem_setuserdata(objectPtr, itemData)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item is selected. 
+	End Rem
 	Method setSelected(setting:Int)
 		bmx_cegui_listboxitem_setselected(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item is disabled. 
+	End Rem
 	Method setDisabled(setting:Int)
 		bmx_cegui_listboxitem_setdisabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this item will be automatically deleted when the list box it is attached to is destroyed, or when the item is removed from the list box.
+	End Rem
 	Method setAutoDeleted(setting:Int)
 		bmx_cegui_listboxitem_setautodeleted(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the owner window for this ListboxItem.
+	about: This is called by all the list box widgets when an item is added or inserted. 
+	End Rem
 	Method setOwnerWindow(owner:TCEWindow)
 		bmx_cegui_listboxitem_setownerwindow(objectPtr, owner.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting. 
+	End Rem
 	Method setSelectionColours(cols:TCEColourRect)
+		bmx_cegui_listboxitem_setselectioncolours(objectPtr, cols.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting. 
+	End Rem
 	Method setSelectionColoursForCorners(topLeftColour:TCEColour, topRightColour:TCEColour, bottomLeftColour:TCEColour, bottomRightColour:TCEColour)
+		bmx_cegui_listboxitem_setselectioncoloursforcorners(objectPtr, topLeftColour.objectPtr, topRightColour.objectPtr, bottomLeftColour.objectPtr, bottomRightColour.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting. 
+	End Rem
 	Method setSelectionColoursForColour(col:TCEColour)
+		bmx_cegui_listboxitem_setselectioncoloursforcolour(objectPtr, col.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the colours used for selection highlighting. 
+	End Rem
 	Method setSelectionBrushImage(image:TCEImage)
+		bmx_cegui_listboxitem_setselectionbrushimage(objectPtr, image.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection highlighting brush image. 
+	End Rem
 	Method setSelectionBrushImageByName(imageset:String, image:String)
+		bmx_cegui_listboxitem_setselectionbrushimagebyname(objectPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(image))
 	End Method
 	
+	Rem
+	bbdoc: Sets the selection highlighting brush image. 
+	End Rem
 	Method getPixelSize(width:Float Var, height:Float Var)
+		bmx_cegui_listboxitem_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
 End Type

@@ -1628,6 +1628,45 @@ void bmx_cegui_listboxitem_setownerwindow(CEGUI::ListboxItem * item, CEGUI::Wind
 	item->setOwnerWindow(owner);
 }
 
+void bmx_cegui_listboxitem_setuserdata(CEGUI::ListboxItem * item, BBObject * itemData) {
+	item->setUserData(itemData);
+}
+
+MaxCEColourRect * bmx_cegui_listboxitem_getselectioncolours(CEGUI::ListboxItem * item) {
+	CEGUI::ColourRect r = item->getSelectionColours();
+	return new MaxCEColourRect(r);
+}
+
+BBObject * bmx_cegui_listboxitem_getselectionbrushimage(CEGUI::ListboxItem * item) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image*>(item->getSelectionBrushImage()));
+}
+
+void bmx_cegui_listboxitem_setselectioncolours(CEGUI::ListboxItem * item, MaxCEColourRect * cols) {
+	item->setSelectionColours(cols->Rect());
+}
+
+void bmx_cegui_listboxitem_setselectioncoloursforcorners(CEGUI::ListboxItem * item, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour) {
+	item->setSelectionColours(topLeftColour->Colour(), topRightColour->Colour(), bottomLeftColour->Colour(), bottomRightColour->Colour());
+}
+
+void bmx_cegui_listboxitem_setselectioncoloursforcolour(CEGUI::ListboxItem * item, MaxCEColour * col) {
+	item->setSelectionColours(col->Colour());
+}
+
+void bmx_cegui_listboxitem_setselectionbrushimage(CEGUI::ListboxItem * item, CEGUI::Image * image) {
+	item->setSelectionBrushImage(image);
+}
+
+void bmx_cegui_listboxitem_setselectionbrushimagebyname(CEGUI::ListboxItem * item, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image) {
+	item->setSelectionBrushImage(imageset, image);
+}
+
+void bmx_cegui_listboxitem_getpixelsize(CEGUI::ListboxItem * item, float * width, float * height) {
+	CEGUI::Size s = item->getPixelSize();
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
 
 // *************************************************
 

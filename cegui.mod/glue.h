@@ -414,6 +414,15 @@ extern "C" {
 	void bmx_cegui_listboxitem_setdisabled(CEGUI::ListboxItem * item, bool setting);
 	void bmx_cegui_listboxitem_setautodeleted(CEGUI::ListboxItem * item, bool setting);
 	void bmx_cegui_listboxitem_setownerwindow(CEGUI::ListboxItem * item, CEGUI::Window * owner);
+	void bmx_cegui_listboxitem_setuserdata(CEGUI::ListboxItem * item, BBObject * itemData);
+	MaxCEColourRect * bmx_cegui_listboxitem_getselectioncolours(CEGUI::ListboxItem * item);
+	BBObject * bmx_cegui_listboxitem_getselectionbrushimage(CEGUI::ListboxItem * item);
+	void bmx_cegui_listboxitem_setselectioncolours(CEGUI::ListboxItem * item, MaxCEColourRect * cols);
+	void bmx_cegui_listboxitem_setselectioncoloursforcorners(CEGUI::ListboxItem * item, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour);
+	void bmx_cegui_listboxitem_setselectioncoloursforcolour(CEGUI::ListboxItem * item, MaxCEColour * col);
+	void bmx_cegui_listboxitem_setselectionbrushimage(CEGUI::ListboxItem * item, CEGUI::Image * image);
+	void bmx_cegui_listboxitem_setselectionbrushimagebyname(CEGUI::ListboxItem * item, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image);
+	void bmx_cegui_listboxitem_getpixelsize(CEGUI::ListboxItem * item, float * width, float * height);
 
 	bool bmx_cegui_multicolumnlist_isusersortcontrolenabled(CEGUI::MultiColumnList * mc);
 	bool bmx_cegui_multicolumnlist_isusercolumnsizingenabled(CEGUI::MultiColumnList * mc);
