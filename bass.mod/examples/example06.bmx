@@ -20,7 +20,7 @@ BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0) ' minimize automatic pre-buffering, so 
 Local isMod:Int = False
 
 ' rocking!
-Local url:String = "http://www.sky.fm/mp3/classical.pls"
+Local url:String = "http://www.sky.fm/mp3/soundtracks.pls"
 
 Local channel:TBassChannel = New TBassStream.StreamCreateURL(url, 0, BASS_SAMPLE_FLOAT|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE, Null, Null)
 
@@ -30,6 +30,12 @@ If channel Then
 	If Not channel.Play(False) Then
 		DebugLog "can't play... : "  + TBass.ErrorGetCode()
 	Else
+	
+		' output some stream information
+		Local tags:String[] = channel.getTags(BASS_TAG_ICY)
+		For Local s:String = EachIn tags
+			DebugLog s
+		Next
 	
 	Graphics 640, 480, 0
 

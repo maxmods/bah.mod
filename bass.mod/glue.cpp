@@ -114,6 +114,15 @@ extern "C" {
 
 }
 
+typedef struct {
+    char id[3];
+    char title[30];
+    char artist[30];
+    char album[30];
+    char year[4];
+    char comment[30];
+    BYTE genre;
+} TAG_ID3;
 
 DWORD bmx_bassinfo_getflags(BASS_INFO * info) {
     return info->flags;
@@ -204,34 +213,73 @@ void bmx_bass_channelseconds2bytes(DWORD handle, QWORD * bytes, double pos) {
 
 BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
 
-	const char * text = BASS_ChannelGetTags(handle, tags);
-	
-	if (text) {
-		int count = 0;
-		const char * current = text;
-		
-		while (*current) {
-			current += strlen(current) + 1;
-			count++;
-		}
-		
-		BBArray * p = bbArrayNew1D("$", count);
-		BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
-		
-		count = 0;
-		current = text;
-		while (*current) {
-			s[count] = bbStringFromCString( current );
-			BBRETAIN( s[count] );
+	if (tags == BASS_TAG_ID3) {
+		TAG_ID3 *id3= (TAG_ID3*) BASS_ChannelGetTags(handle, BASS_TAG_ID3); // get the ID3 tags
+		if (id3) {
+			
+			char buffer[4];
+			
+			BBArray * p = bbArrayNew1D("$", 7);
+			BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+						
+			sprintf(buffer, "%.3s", id3->id);
+			s[0] = bbStringFromCString(buffer);
+			BBRETAIN( s[0] );
+			
+			s[1] = bbStringFromCString(id3->title);
+			BBRETAIN( s[1] );
+			
+			s[2] = bbStringFromCString(id3->artist);
+			BBRETAIN( s[2] );
+			
+			s[3] = bbStringFromCString(id3->album);
+			BBRETAIN( s[3] );
 
-			current += strlen(current) + 1;
-			count++;
+			sprintf(buffer, "%.4s", id3->year);
+			s[4] = bbStringFromCString(buffer);
+			BBRETAIN( s[4] );
+			
+			s[5] = bbStringFromCString(id3->comment);
+			BBRETAIN( s[5] );
+						
+			sprintf(buffer, "%d", id3->genre);
+			s[6] = bbStringFromCString(buffer);
+			BBRETAIN( s[6] );
+			
+			return p;
+		} else {
+			return &bbEmptyArray;
 		}
-		
-		return p;
-	
 	} else {
-		return &bbEmptyArray;
+		const char * text = BASS_ChannelGetTags(handle, tags);
+		
+		if (text) {
+			int count = 0;
+			const char * current = text;
+			
+			while (*current) {
+				current += strlen(current) + 1;
+				count++;
+			}
+			
+			BBArray * p = bbArrayNew1D("$", count);
+			BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+			
+			count = 0;
+			current = text;
+			while (*current) {
+				s[count] = bbStringFromCString( current );
+				BBRETAIN( s[count] );
+	
+				current += strlen(current) + 1;
+				count++;
+			}
+			
+			return p;
+		
+		} else {
+			return &bbEmptyArray;
+		}
 	}
 }
 
