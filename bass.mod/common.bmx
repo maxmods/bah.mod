@@ -112,6 +112,8 @@ Extern
 	Function bmx_channelinfo_getfilename:Byte Ptr(channelinfoPtr:Byte Ptr)
 	Function bmx_channelinfo_delete(channelinfoPtr:Byte Ptr)
 
+	Function bmx_bass_getinfo:Byte Ptr()
+	
 End Extern
 
 ?win32

@@ -2078,6 +2078,15 @@ Type TBass
 		Return BASS_Set3DFactors(distf, rollf, doppf)
 	End Function
 	
+	Rem
+	bbdoc: Retrieves information on the device being used. 
+	returns: If successful, a TBassInfo object is returned, otherwise Null.
+	about: When using multiple devices, the current thread's device setting (as set with BASS_SetDevice) determines which device this function call applies to. 
+	End Rem
+	Function GetInfo:TBassInfo()
+		Return TBassInfo._create(bmx_bass_getinfo())
+	End Function
+	
 End Type
 
 Rem

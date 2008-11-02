@@ -112,6 +112,8 @@ extern "C" {
 	const char * bmx_channelinfo_getfilename(BASS_CHANNELINFO * info);
 	void bmx_channelinfo_delete(BASS_CHANNELINFO * info);
 
+	BASS_INFO * bmx_bass_getinfo();
+
 }
 
 typedef struct {
@@ -535,4 +537,17 @@ const char * bmx_channelinfo_getfilename(BASS_CHANNELINFO * info) {
 void bmx_channelinfo_delete(BASS_CHANNELINFO * info) {
 	delete info;
 }
+
+// *************************************************
+
+BASS_INFO * bmx_bass_getinfo() {
+	BASS_INFO * info = new BASS_INFO;
+	BOOL success = BASS_GetInfo(info);
+	if (!success) {
+		delete info;
+		return 0;
+	}
+	return info;
+}
+
 
