@@ -39,14 +39,19 @@ End Function
 Rem
 bbdoc: Initializes CEGUI
 End Rem
-Function Init_CEGUI()
+Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null)
 	If Not cegui_rendererPtr Then
 		' creates a new opengle renderer
 		cegui_rendererPtr = bmx_cegui_new_oglrenderer()
 
 		If cegui_rendererPtr Then
 			' creates a new CEGUI system
-			TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr)
+			If resourceProvider Then
+				TCESystem.resourceProvider = resourceProvider
+				TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr, resourceProvider.objectPtr)
+			Else
+				TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr, Null)
+			End If
 			
 			TCEWindowManager.windowManagerPtr = bmx_cegui_windowmanager_getsingleton()
 		End If
@@ -57,6 +62,102 @@ Function Init_CEGUI()
 		AddHook EmitEventHook,TCEEvent.Keyhook,Null,0
 	End If
 End Function
+
+Rem
+bbdoc: Type that defines the required interface for all resource provider sub-types.
+about: A ResourceProvider is used to load both XML and binary data from an external source. This could
+be from a filesystem or the resource manager of a specific renderer. 
+End Rem
+Type TCEResourceProvider
+
+	Field objectPtr:Byte Ptr
+	
+	Method New()
+		objectPtr = bmx_cegui_resourceprovider_create(Self)
+	End Method
+	
+	Rem
+	bbdoc: Load XML data using InputSource objects. 
+	End Rem	
+	Method loadRawDataContainer(filename:String, dataContainer:TCERawDataContainer, resourceGroup:String)
+	End Method
+	
+	Function _loadRawDataContainer(provider:TCEResourceProvider, filename:Byte Ptr, container:Byte Ptr, resourceGroup:Byte Ptr)
+		provider.loadRawDataContainer(_convertUTF8ToMax(filename), TCERawDataContainer._create(container), _convertUTF8ToMax(resourceGroup))
+	End Function
+
+	Rem
+	bbdoc: Unload raw binary data.
+	about: This gives the resource provider a change to unload the data in its own way before the data
+	container object is destroyed. If it does nothing, then the object will release its memory. 
+	End Rem	
+	Method unloadRawDataContainer(dataContainer:TCERawDataContainer)
+	End Method
+	
+	Function _unloadRawDataContainer(provider:TCEResourceProvider, container:Byte Ptr)
+		provider.unloadRawDataContainer(TCERawDataContainer._create(container))
+	End Function
+
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_resourceprovider_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Type used as the databuffer for loading files throughout the library. 
+End Rem
+Type TCERawDataContainer
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCERawDataContainer(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCERawDataContainer = New TCERawDataContainer
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Sets a pointer to the external data. 
+	End Rem
+	Method setData(data:Byte Ptr)
+		bmx_cegui_rawdatacontainer_setdata(objectPtr, data)
+	End Method
+	
+	Rem
+	bbdoc: Returns a pointer to the external data. 
+	End Rem
+	Method getDataPtr:Byte Ptr()
+		Return bmx_cegui_rawdatacontainer_getdataptr(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the size of the external data. 
+	End Rem
+	Method setSize(size:Int)
+		bmx_cegui_rawdatacontainer_setsize(objectPtr, size)
+	End Method
+	
+	Rem
+	bbdoc: Gets the size of the external data. 
+	End Rem
+	Method getSize:Int()
+		Return bmx_cegui_rawdatacontainer_getsize(objectPtr)
+	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_rawdatacontainer_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+End Type
 
 
 Type TCEConnection
@@ -220,6 +321,7 @@ Type TCESystem Extends TCEEventSet
 
 	Global cegui_systemPtr:Byte Ptr
 
+	Global resourceProvider:TCEResourceProvider
 	
 	Rem
 	bbdoc: 

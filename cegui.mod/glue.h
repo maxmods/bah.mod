@@ -32,6 +32,8 @@ class MaxLogger;
 class MaxListHeaderSegment;
 class MaxCEColour;
 class MaxCEColourRect;
+class MaxResourceProvider;
+class MaxRawDataContainer;
 
 extern "C" {
 
@@ -97,10 +99,13 @@ extern "C" {
 	BBObject * _bah_cegui_TCEImage__create(CEGUI::Image * image);
 	BBObject * _bah_cegui_TCETreeItem__create(CEGUI::TreeItem * item);
 	
+	void _bah_cegui_TCEResourceProvider__loadRawDataContainer(BBObject * handle, const CEGUI::utf8 * filename, MaxRawDataContainer * container, const CEGUI::utf8 * resourceGroup);
+	void _bah_cegui_TCEResourceProvider__unloadRawDataContainer(BBObject * handle, MaxRawDataContainer * data);
+	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
 	CEGUI::Renderer * bmx_cegui_new_oglrenderer();
-	CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r);
+	CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r, MaxResourceProvider * provider);
 	void bmx_cegui_delete_system(CEGUI::System * s);
 	void bmx_cegui_delete_renderer(CEGUI::Renderer * r);
 
@@ -658,6 +663,54 @@ extern "C" {
 	BBObject * bmx_cegui_scrollablepane_getvertscrollbar(CEGUI::ScrollablePane * sp);
 	BBObject * bmx_cegui_scrollablepane_gethorzscrollbar(CEGUI::ScrollablePane * sp);
 
+	int bmx_cegui_tree_getitemcount(CEGUI::Tree * tree);
+	int bmx_cegui_tree_getselectedcount(CEGUI::Tree * tree);
+	BBObject * bmx_cegui_tree_getfirstselecteditem(CEGUI::Tree * tree);
+	BBObject * bmx_cegui_tree_getlastselecteditem(CEGUI::Tree * tree);
+	BBObject * bmx_cegui_tree_getnextselected(CEGUI::Tree * tree, CEGUI::TreeItem * startItem);
+	bool bmx_cegui_tree_issortenabled(CEGUI::Tree * tree);
+	void bmx_cegui_tree_setitemrenderarea(CEGUI::Tree * tree, float x, float y, float w, float h);
+	BBObject * bmx_cegui_tree_getvertscrollbar(CEGUI::Tree * tree);
+	BBObject * bmx_cegui_tree_gethorzscrollbar(CEGUI::Tree * tree);
+	bool bmx_cegui_tree_ismultiselectenabled(CEGUI::Tree * tree);
+	bool bmx_cegui_tree_isitemtooltipsenabled(CEGUI::Tree * tree);
+	BBObject * bmx_cegui_tree_findfirstitemwithtext(CEGUI::Tree * tree, const CEGUI::utf8 * text);
+	BBObject * bmx_cegui_tree_findnextitemwithtext(CEGUI::Tree * tree, const CEGUI::utf8 * text, CEGUI::TreeItem * startItem);
+	BBObject * bmx_cegui_tree_findfirstitemwithid(CEGUI::Tree * tree, CEGUI::uint searchID);
+	BBObject * bmx_cegui_tree_findnextitemwithid(CEGUI::Tree * tree, CEGUI::uint searchID, CEGUI::TreeItem * startItem);
+	bool bmx_cegui_tree_istreeiteminlist(CEGUI::Tree * tree, CEGUI::TreeItem * item);
+	bool bmx_cegui_tree_isvertscrollbaralwaysshown(CEGUI::Tree * tree);
+	bool bmx_cegui_tree_ishorzscrollbaralwaysshown(CEGUI::Tree * tree);
+	void bmx_cegui_tree_resetlist(CEGUI::Tree * tree);
+	void bmx_cegui_tree_additem(CEGUI::Tree * tree, CEGUI::TreeItem * item);
+	void bmx_cegui_tree_insertitem(CEGUI::Tree * tree, CEGUI::TreeItem * item, CEGUI::TreeItem * position);
+	void bmx_cegui_tree_removeitem(CEGUI::Tree * tree, CEGUI::TreeItem * item);
+	void bmx_cegui_tree_clearallselections(CEGUI::Tree * tree);
+	void bmx_cegui_tree_setsortingenabled(CEGUI::Tree * tree, bool setting);
+	void bmx_cegui_tree_setmultiselectenabled(CEGUI::Tree * tree, bool setting);
+	void bmx_cegui_tree_setshowvertscrollbar(CEGUI::Tree * tree, bool setting);
+	void bmx_cegui_tree_setshowhorzscrollbar(CEGUI::Tree * tree, bool setting);
+	void bmx_cegui_tree_setitemtooltipsenabled(CEGUI::Tree * tree, bool setting);
+	void bmx_cegui_tree_setitemselectstate(CEGUI::Tree * tree, CEGUI::TreeItem * item, bool state);
+	void bmx_cegui_tree_setitemselectstateindex(CEGUI::Tree * tree, int itemIndex, bool state);
+	void bmx_cegui_tree_setlooknfeel(CEGUI::Tree * tree, const CEGUI::utf8 * look);
+	void bmx_cegui_tree_handleupdateditemdata(CEGUI::Tree * tree);
+	void bmx_cegui_tree_ensureitemisvisible(CEGUI::Tree * tree, CEGUI::TreeItem * item);
+
+	void bmx_cegui_tabbutton_setselected(CEGUI::TabButton * button, bool selected);
+	bool bmx_cegui_tabbutton_isselected(CEGUI::TabButton * button);
+	void bmx_cegui_tabbutton_settargetwindow(CEGUI::TabButton * button, CEGUI::Window * wnd);
+	BBObject * bmx_cegui_tabbutton_gettargetwindow(CEGUI::TabButton * button);
+
+	MaxResourceProvider * bmx_cegui_resourceprovider_create(BBObject * handle);
+	void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider);
+	void bmx_cegui_rawdatacontainer_delete(MaxRawDataContainer * container);
+
+	void bmx_cegui_rawdatacontainer_setdata(MaxRawDataContainer * container, CEGUI::uint8 * data);
+	CEGUI::uint8 * bmx_cegui_rawdatacontainer_getdataptr(MaxRawDataContainer * container);
+	void bmx_cegui_rawdatacontainer_setsize(MaxRawDataContainer * container, int size);
+	int bmx_cegui_rawdatacontainer_getsize(MaxRawDataContainer * container);
+
 }
 
 class MaxConnection
@@ -728,4 +781,30 @@ public:
 private:
 	CEGUI::ColourRect rect;
 };
+
+
+
+class MaxResourceProvider : public CEGUI::ResourceProvider
+{
+public:
+	MaxResourceProvider(BBObject * handle);
+	virtual ~MaxResourceProvider();
+	virtual void loadRawDataContainer(const CEGUI::String &filename, CEGUI::RawDataContainer &output, const CEGUI::String &resourceGroup);
+	virtual void unloadRawDataContainer(CEGUI::RawDataContainer &data);
+
+private:
+	BBObject * maxHandle;
+};
+
+class MaxRawDataContainer
+{
+public:
+	MaxRawDataContainer(CEGUI::RawDataContainer & container);
+	
+	CEGUI::RawDataContainer & Container();
+
+private:
+	CEGUI::RawDataContainer & container;
+};
+
 

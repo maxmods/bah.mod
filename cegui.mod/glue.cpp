@@ -102,6 +102,36 @@ CEGUI::ColourRect MaxCEColourRect::Rect() {
 
 // *************************************************
 
+MaxResourceProvider::MaxResourceProvider(BBObject * handle)
+	: maxHandle(handle)
+{
+}
+
+MaxResourceProvider::~MaxResourceProvider(void)
+{
+}
+
+void MaxResourceProvider::loadRawDataContainer(const CEGUI::String &filename, CEGUI::RawDataContainer &output, const CEGUI::String &resourceGroup) {
+	_bah_cegui_TCEResourceProvider__loadRawDataContainer(maxHandle, filename.data(), new MaxRawDataContainer(output), resourceGroup.data());
+}
+
+void MaxResourceProvider::unloadRawDataContainer(CEGUI::RawDataContainer &data) {
+	_bah_cegui_TCEResourceProvider__unloadRawDataContainer(maxHandle, new MaxRawDataContainer(data));
+}
+
+// *************************************************
+
+MaxRawDataContainer::MaxRawDataContainer(CEGUI::RawDataContainer & container)
+	: container(container)
+{
+}
+	
+CEGUI::RawDataContainer & MaxRawDataContainer::Container() {
+	return container;
+}
+
+// *************************************************
+
 BBObject * newObjectForWindow(CEGUI::Window * window) {
 
 	if (!window) {
@@ -311,9 +341,9 @@ CEGUI::Renderer * bmx_cegui_new_oglrenderer() {
 	return new CEGUI::OpenGLRenderer(0);
 }
 
-CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r) {
+CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r, MaxResourceProvider * provider) {
 	// we pass in the renderer otherwise it will attepmt to load it from the shared library
-	CEGUI::System * sys =  new CEGUI::System(r);
+	CEGUI::System * sys =  new CEGUI::System(r, provider);
 	
 	return sys;
 }
@@ -2619,5 +2649,194 @@ BBObject * bmx_cegui_scrollablepane_getvertscrollbar(CEGUI::ScrollablePane * sp)
 
 BBObject * bmx_cegui_scrollablepane_gethorzscrollbar(CEGUI::ScrollablePane * sp) {
 	return _bah_cegui_TCEScrollbar__create(sp->getHorzScrollbar());
+}
+
+
+// *************************************************
+
+
+int bmx_cegui_tree_getitemcount(CEGUI::Tree * tree) {
+	return tree->getItemCount();
+}
+
+int bmx_cegui_tree_getselectedcount(CEGUI::Tree * tree) {
+	return tree->getSelectedCount();
+}
+
+BBObject * bmx_cegui_tree_getfirstselecteditem(CEGUI::Tree * tree) {
+	return _bah_cegui_TCETreeItem__create(tree->getFirstSelectedItem());
+}
+
+BBObject * bmx_cegui_tree_getlastselecteditem(CEGUI::Tree * tree) {
+	return _bah_cegui_TCETreeItem__create(tree->getLastSelectedItem());
+}
+
+BBObject * bmx_cegui_tree_getnextselected(CEGUI::Tree * tree, CEGUI::TreeItem * startItem) {
+	return _bah_cegui_TCETreeItem__create(tree->getNextSelected(startItem));
+}
+
+bool bmx_cegui_tree_issortenabled(CEGUI::Tree * tree) {
+	return tree->isSortEnabled();
+}
+
+void bmx_cegui_tree_setitemrenderarea(CEGUI::Tree * tree, float x, float y, float w, float h) {
+	CEGUI::Rect r(x, y, w, h);
+	tree->setItemRenderArea(r);
+}
+
+BBObject * bmx_cegui_tree_getvertscrollbar(CEGUI::Tree * tree) {
+	return _bah_cegui_TCEScrollbar__create(tree->getVertScrollbar());
+}
+
+BBObject * bmx_cegui_tree_gethorzscrollbar(CEGUI::Tree * tree) {
+	return _bah_cegui_TCEScrollbar__create(tree->getHorzScrollbar());
+}
+
+bool bmx_cegui_tree_ismultiselectenabled(CEGUI::Tree * tree) {
+	return tree->isMultiselectEnabled();
+}
+
+bool bmx_cegui_tree_isitemtooltipsenabled(CEGUI::Tree * tree) {
+	return tree->isItemTooltipsEnabled();
+}
+
+BBObject * bmx_cegui_tree_findfirstitemwithtext(CEGUI::Tree * tree, const CEGUI::utf8 * text) {
+	return _bah_cegui_TCETreeItem__create(tree->findFirstItemWithText(text));
+}
+
+BBObject * bmx_cegui_tree_findnextitemwithtext(CEGUI::Tree * tree, const CEGUI::utf8 * text, CEGUI::TreeItem * startItem) {
+	return _bah_cegui_TCETreeItem__create(tree->findNextItemWithText(text, startItem));
+}
+
+BBObject * bmx_cegui_tree_findfirstitemwithid(CEGUI::Tree * tree, CEGUI::uint searchID) {
+	return _bah_cegui_TCETreeItem__create(tree->findFirstItemWithID(searchID));
+}
+
+BBObject * bmx_cegui_tree_findnextitemwithid(CEGUI::Tree * tree, CEGUI::uint searchID, CEGUI::TreeItem * startItem) {
+	return _bah_cegui_TCETreeItem__create(tree->findNextItemWithID(searchID, startItem));
+}
+
+bool bmx_cegui_tree_istreeiteminlist(CEGUI::Tree * tree, CEGUI::TreeItem * item) {
+	return tree->isTreeItemInList(item);
+}
+
+bool bmx_cegui_tree_isvertscrollbaralwaysshown(CEGUI::Tree * tree) {
+	return tree->isVertScrollbarAlwaysShown();
+}
+
+bool bmx_cegui_tree_ishorzscrollbaralwaysshown(CEGUI::Tree * tree) {
+	return tree->isHorzScrollbarAlwaysShown();
+}
+
+void bmx_cegui_tree_resetlist(CEGUI::Tree * tree) {
+	tree->resetList();
+}
+
+void bmx_cegui_tree_additem(CEGUI::Tree * tree, CEGUI::TreeItem * item) {
+	tree->addItem(item);
+}
+
+void bmx_cegui_tree_insertitem(CEGUI::Tree * tree, CEGUI::TreeItem * item, CEGUI::TreeItem * position) {
+	tree->insertItem(item, position);
+}
+
+void bmx_cegui_tree_removeitem(CEGUI::Tree * tree, CEGUI::TreeItem * item) {
+	tree->removeItem(item);
+}
+
+void bmx_cegui_tree_clearallselections(CEGUI::Tree * tree) {
+	tree->clearAllSelections();
+}
+
+void bmx_cegui_tree_setsortingenabled(CEGUI::Tree * tree, bool setting) {
+	tree->setSortingEnabled(setting);
+}
+
+void bmx_cegui_tree_setmultiselectenabled(CEGUI::Tree * tree, bool setting) {
+	tree->setMultiselectEnabled(setting);
+}
+
+void bmx_cegui_tree_setshowvertscrollbar(CEGUI::Tree * tree, bool setting) {
+	tree->setShowVertScrollbar(setting);
+}
+
+void bmx_cegui_tree_setshowhorzscrollbar(CEGUI::Tree * tree, bool setting) {
+	tree->setShowHorzScrollbar(setting);
+}
+
+void bmx_cegui_tree_setitemtooltipsenabled(CEGUI::Tree * tree, bool setting) {
+	tree->setItemTooltipsEnabled(setting);
+}
+
+void bmx_cegui_tree_setitemselectstate(CEGUI::Tree * tree, CEGUI::TreeItem * item, bool state) {
+	tree->setItemSelectState(item, state);
+}
+
+void bmx_cegui_tree_setitemselectstateindex(CEGUI::Tree * tree, int itemIndex, bool state) {
+	tree->setItemSelectState(itemIndex, state);
+}
+
+void bmx_cegui_tree_setlooknfeel(CEGUI::Tree * tree, const CEGUI::utf8 * look) {
+	tree->setLookNFeel(look);
+}
+
+void bmx_cegui_tree_handleupdateditemdata(CEGUI::Tree * tree) {
+	tree->handleUpdatedItemData();
+}
+
+void bmx_cegui_tree_ensureitemisvisible(CEGUI::Tree * tree, CEGUI::TreeItem * item) {
+	tree->ensureItemIsVisible(item);
+}
+
+// *************************************************
+
+void bmx_cegui_tabbutton_setselected(CEGUI::TabButton * button, bool selected) {
+	button->setSelected(selected);
+}
+
+bool bmx_cegui_tabbutton_isselected(CEGUI::TabButton * button) {
+	return button->isSelected();
+}
+
+void bmx_cegui_tabbutton_settargetwindow(CEGUI::TabButton * button, CEGUI::Window * wnd) {
+	button->setTargetWindow(wnd);
+}
+
+BBObject * bmx_cegui_tabbutton_gettargetwindow(CEGUI::TabButton * button) {
+	return newObjectForWindow(button->getTargetWindow());
+}
+
+// *************************************************
+
+MaxResourceProvider * bmx_cegui_resourceprovider_create(BBObject * handle) {
+	return new MaxResourceProvider(handle);
+}
+
+void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider) {
+	delete provider;
+}
+
+// *************************************************
+
+void bmx_cegui_rawdatacontainer_delete(MaxRawDataContainer * container) {
+	delete container;
+}
+
+// *************************************************
+
+void bmx_cegui_rawdatacontainer_setdata(MaxRawDataContainer * container, CEGUI::uint8 * data) {
+	container->Container().setData(data);
+}
+
+CEGUI::uint8 * bmx_cegui_rawdatacontainer_getdataptr(MaxRawDataContainer * container) {
+	return container->Container().getDataPtr();
+}
+
+void bmx_cegui_rawdatacontainer_setsize(MaxRawDataContainer * container, int size) {
+	container->Container().setSize(size);
+}
+
+int bmx_cegui_rawdatacontainer_getsize(MaxRawDataContainer * container) {
+	return container->Container().getSize();
 }
 

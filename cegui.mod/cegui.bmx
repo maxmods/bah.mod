@@ -230,13 +230,9 @@ Type TCEUpdateEventArgs Extends TCEWindowEventArgs
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for a movable, sizable, window with a title-bar and a frame. 
 End Rem
 Type TCEFrameWindow Extends TCEWindow
-
-	Const EventRollupToggled:String = "RollupToggled"
-	Const EventCloseClicked:String = "CloseClicked"
-
 
 	Function _create:TCEFrameWindow(objectPtr:Byte Ptr)
 		If objectPtr Then
@@ -245,6 +241,15 @@ Type TCEFrameWindow Extends TCEWindow
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: Fired when the rollup (shade) state of the window changes. 
+	End Rem
+	Const EventRollupToggled:String = "RollupToggled"
+	Rem
+	bbdoc: Fired when the close button for the window is clicked. 
+	End Rem
+	Const EventCloseClicked:String = "CloseClicked"
 	
 	Rem
 	bbdoc: Returns whether this window is sizable.
@@ -516,16 +521,32 @@ Type TCETabButton Extends TCEButtonBase
 	End Rem
 	Const EventScrolled:String = "Scrolled"
 
+	Rem
+	bbdoc: Sets whether this tab button is selected or not. 
+	End Rem
 	Method setSelected(selected:Int)
+		bmx_cegui_tabbutton_setselected(objectPtr, selected)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this tab button is selected or not. 
+	End Rem
 	Method isSelected:Int()
+		Return bmx_cegui_tabbutton_isselected(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the target window which is the content pane which this button is covering. 
+	End Rem
 	Method setTargetWindow(wnd:TCEWindow)
+		bmx_cegui_tabbutton_settargetwindow(objectPtr, wnd.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the target window which is the content pane which this button is covering. 
+	End Rem
 	Method getTargetWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_tabbutton_gettargetwindow(objectPtr))
 	End Method
 
 End Type
@@ -2913,7 +2934,7 @@ Type TCETabControl Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for standard Tree widget. 
 End Rem
 Type TCETree Extends TCEWindow
 
@@ -2926,151 +2947,291 @@ Type TCETree Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the contents of the list is changed. 
 	End Rem
 	Const EventListContentsChanged:String = "ListItemsChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when there is a change to the currently selected item(s). 
 	End Rem
 	Const EventSelectionChanged:String = "ItemSelectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the sort mode setting changes. 
 	End Rem
 	Const EventSortModeChanged:String = "SortModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the multi-select mode setting changes. 
 	End Rem
 	Const EventMultiselectModeChanged:String = "MuliselectModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the vertical scroll bar 'force' setting changes. 
 	End Rem
 	Const EventVertScrollbarModeChanged:String = "VertScrollModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when the horizontal scroll bar 'force' setting changes. 
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when a branch of the tree is opened by the user. 
 	End Rem
 	Const EventBranchOpened:String = "BranchOpened"
 	Rem
-	bbdoc: 
+	bbdoc: Event triggered when a branch of the tree is closed by the user. 
 	End Rem
 	Const EventBranchClosed:String = "BranchClosed"
 
-
+	Rem
+	bbdoc: Returns number of items attached to the list box. 
+	End Rem
 	Method getItemCount:Int()
+		Return bmx_cegui_tree_getitemcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of selected items in the list box. 
+	End Rem
 	Method getSelectedCount:Int()
+		Return bmx_cegui_tree_getselectedcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the first selected item. 
+	End Rem
 	Method getFirstSelectedItem:TCETreeItem()
+		Return TCETreeItem(bmx_cegui_tree_getfirstselecteditem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the last selected item. 
+	End Rem
 	Method getLastSelectedItem:TCETreeItem()
+		Return TCETreeItem(bmx_cegui_tree_getlastselecteditem(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the next selected item after item @startItem. 
+	End Rem
 	Method getNextSelected:TCETreeItem(startItem:TCETreeItem)
+		Return TCETreeItem(bmx_cegui_tree_getnextselected(objectPtr, startItem.objectPtr))
 	End Method
 	
 	'Method getNextSelectedItemFromList:TCETreeItem(Const LBItemList &itemList, start_item:TCETreeItem, bool foundStartItem:Int)
 	'End Method
 	
+	Rem
+	bbdoc: Returns whether list sorting is enabled 
+	End Rem
 	Method isSortEnabled:Int()
+		Return bmx_cegui_tree_issortenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setItemRenderArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_tree_setitemrenderarea(objectPtr, x, y, w, h)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_tree_getvertscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_tree_gethorzscrollbar(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether multi-select is enabled 
+	End Rem
 	Method isMultiselectEnabled:Int()
+		Return bmx_cegui_tree_ismultiselectenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method isItemTooltipsEnabled:Int()
+		Return bmx_cegui_tree_isitemtooltipsenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Searches the list for an item with the specified text. 
+	End Rem
 	Method findFirstItemWithText:TCETreeItem(text:String)
+		Return TCETreeItem(bmx_cegui_tree_findfirstitemwithtext(objectPtr, _convertMaxToUTF8(text)))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method findNextItemWithText:TCETreeItem(text:String, startItem:TCETreeItem)
+		Return TCETreeItem(bmx_cegui_tree_findnextitemwithtext(objectPtr, _convertMaxToUTF8(text), startItem.objectPtr))
 	End Method
 	
 	'Method findItemWithTextFromList:TCETreeItem(Const LBItemList &itemList, String &text:String, start_item:TCETreeItem, foundStartItem:Int)
 	'End Method
 	
+	Rem
+	bbdoc: Searches the list for an item with the specified ID. 
+	End Rem
 	Method findFirstItemWithID:TCETreeItem(searchID:Int)
+		Return TCETreeItem(bmx_cegui_tree_findfirstitemwithid(objectPtr, searchID))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method findNextItemWithID:TCETreeItem(searchID:Int, startItem:TCETreeItem)
+		Return TCETreeItem(bmx_cegui_tree_findnextitemwithid(objectPtr, searchID, startItem.objectPtr))
 	End Method
 	
 	'Method findItemWithIDFromList:TCETreeItem(Const LBItemList &itemList, uint searchID:Int, start_item:TCETreeItem, foundStartItem:Int)
 	'End Method
 	
+	Rem
+	bbdoc: Returns whether the specified TreeItem is in the List. 
+	End Rem
 	Method isTreeItemInList:Int(item:TCETreeItem)
+		Return bmx_cegui_tree_istreeiteminlist(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown. 
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_tree_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the horizontal scroll bar is always shown. 
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_tree_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	
-	Method initialise()
-	End Method
-	
+	Rem
+	bbdoc: Removes all items from the list.
+	about: Note that this will cause 'AutoDelete' items to be deleted. 
+	End Rem
 	Method resetList()
+		bmx_cegui_tree_resetlist(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Adds the given TreeItem to the list. 
+	End Rem
 	Method addItem(item:TCETreeItem)
+		bmx_cegui_tree_additem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Inserts an item into the list box after a specified item already in the list.
+	about: Note that if the list is sorted, the item may not end up in the requested position.
+	End Rem
 	Method insertItem(item:TCETreeItem, position:TCETreeItem)
+		bmx_cegui_tree_insertitem(objectPtr, item.objectPtr, position.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Removes the given item from the list box.
+	about: If the item is has the auto delete state set, the item will be deleted. 
+	End Rem
 	Method removeItem(item:TCETreeItem)
+		bmx_cegui_tree_removeitem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Clear the selected state for all items. 
+	End Rem
 	Method clearAllSelections()
+		bmx_cegui_tree_clearallselections(objectPtr)
 	End Method
 	
 	'Method clearAllSelectionsFromList:Int(Const LBItemList &itemList)
 	'End Method
 	
+	Rem
+	bbdoc: Set whether the list should be sorted. 
+	End Rem
 	Method setSortingEnabled(setting:Int)
+		bmx_cegui_tree_setsortingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the list should allow multiple selections or just a single selection. 
+	End Rem
 	Method setMultiselectEnabled(setting:Int)
+		bmx_cegui_tree_setmultiselectenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown. 
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_tree_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the horizontal scroll bar should always be shown. 
+	End Rem
 	Method setShowHorzScrollbar(setting:Int)
+		bmx_cegui_tree_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setItemTooltipsEnabled(setting:Int)
+		bmx_cegui_tree_setitemtooltipsenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Set the select state of an attached TreeItem.
+	about:  This is the recommended way of selecting and deselecting items attached to a list box as it
+	respects the multi-select mode setting. It is possible to modify the setting on TreeItems directly,
+	but that approach does not respect the settings of the list box.
+	End Rem
 	Method setItemSelectState(item:TCETreeItem, state:Int)
+		bmx_cegui_tree_setitemselectstate(objectPtr, item.objectPtr, state)
 	End Method
 	
+	Rem
+	bbdoc: Set the select state of an attached TreeItem.
+	about: This is the recommended way of selecting and deselecting items attached to a list box as it
+	respects the multi-select mode setting. It is possible to modify the setting on TreeItems directly,
+	but that approach does not respect the settings of the list box.
+	End Rem
 	Method setItemSelectStateIndex(itemIndex:Int, state:Int)
+		bmx_cegui_tree_setitemselectstateindex(objectPtr, itemIndex, state)
 	End Method
 	
+	Rem
+	bbdoc: Set the LookNFeel that shoule be used for this window. 
+	End Rem
 	Method setLookNFeel(look:String)
+		bmx_cegui_tree_setlooknfeel(objectPtr, _convertMaxToUTF8(look))
 	End Method
 	
+	Rem
+	bbdoc: Causes the list box to update it's internal state after changes have been made to one or more attached TreeItem objects.
+	about: Client code must call this whenever it has made any changes to TreeItem objects already
+	attached to the list box. If you are just adding items, or removed items to update them prior
+	to re-adding them, there is no need to call this method.
+	End Rem
 	Method handleUpdatedItemData()
+		bmx_cegui_tree_handleupdateditemdata(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Ensure the item at the specified index is visible within the list box. 
+	End Rem
 	Method ensureItemIsVisible(item:TCETreeItem)
+		bmx_cegui_tree_ensureitemisvisible(objectPtr, item.objectPtr)
 	End Method
 	
 

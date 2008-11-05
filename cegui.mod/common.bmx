@@ -27,7 +27,7 @@ Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"
 
 	Function bmx_cegui_new_oglrenderer:Byte Ptr()
-	Function bmx_cegui_new_system:Byte Ptr(renderer:Byte Ptr)
+	Function bmx_cegui_new_system:Byte Ptr(renderer:Byte Ptr, resourceProvider:Byte Ptr)
 	Function bmx_cegui_delete_system(system:Byte Ptr)
 	Function bmx_cegui_delete_renderer(renderer:Byte Ptr)
 	
@@ -580,6 +580,54 @@ Extern
 	Function bmx_cegui_scrollablepane_getviewablearea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
 	Function bmx_cegui_scrollablepane_getvertscrollbar:Object(handle:Byte Ptr)
 	Function bmx_cegui_scrollablepane_gethorzscrollbar:Object(handle:Byte Ptr)
+
+	Function bmx_cegui_tree_getitemcount:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_getselectedcount:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_getfirstselecteditem:Object(handle:Byte Ptr)
+	Function bmx_cegui_tree_getlastselecteditem:Object(handle:Byte Ptr)
+	Function bmx_cegui_tree_getnextselected:Object(handle:Byte Ptr, startItem:Byte Ptr)
+	Function bmx_cegui_tree_issortenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_setitemrenderarea(handle:Byte Ptr, x:Float, y:Float, w:Float, h:Float)
+	Function bmx_cegui_tree_getvertscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_tree_gethorzscrollbar:Object(handle:Byte Ptr)
+	Function bmx_cegui_tree_ismultiselectenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_isitemtooltipsenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_findfirstitemwithtext:Object(handle:Byte Ptr, text:Byte Ptr)
+	Function bmx_cegui_tree_findnextitemwithtext:Object(handle:Byte Ptr, text:Byte Ptr, startItem:Byte Ptr)
+	Function bmx_cegui_tree_findfirstitemwithid:Object(handle:Byte Ptr, searchID:Int)
+	Function bmx_cegui_tree_findnextitemwithid:Object(handle:Byte Ptr, searchID:Int, startItem:Byte Ptr)
+	Function bmx_cegui_tree_istreeiteminlist:Int(handle:Byte Ptr, item:Byte Ptr)
+	Function bmx_cegui_tree_isvertscrollbaralwaysshown:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_ishorzscrollbaralwaysshown:Int(handle:Byte Ptr)
+	Function bmx_cegui_tree_resetlist(handle:Byte Ptr)
+	Function bmx_cegui_tree_additem(handle:Byte Ptr, item:Byte Ptr)
+	Function bmx_cegui_tree_insertitem(handle:Byte Ptr, item:Byte Ptr, position:Byte Ptr)
+	Function bmx_cegui_tree_removeitem(handle:Byte Ptr, item:Byte Ptr)
+	Function bmx_cegui_tree_clearallselections(handle:Byte Ptr)
+	Function bmx_cegui_tree_setsortingenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_tree_setmultiselectenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_tree_setshowvertscrollbar(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_tree_setshowhorzscrollbar(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_tree_setitemtooltipsenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_tree_setitemselectstate(handle:Byte Ptr, item:Byte Ptr, state:Int)
+	Function bmx_cegui_tree_setitemselectstateindex(handle:Byte Ptr, itemIndex:Int, state:Int)
+	Function bmx_cegui_tree_setlooknfeel(handle:Byte Ptr, look:Byte Ptr)
+	Function bmx_cegui_tree_handleupdateditemdata(handle:Byte Ptr)
+	Function bmx_cegui_tree_ensureitemisvisible(handle:Byte Ptr, item:Byte Ptr)
+
+	Function bmx_cegui_tabbutton_setselected(handle:Byte Ptr, selected:Int)
+	Function bmx_cegui_tabbutton_isselected:Int(handle:Byte Ptr)
+	Function bmx_cegui_tabbutton_settargetwindow(handle:Byte Ptr, wnd:Byte Ptr)
+	Function bmx_cegui_tabbutton_gettargetwindow:Object(handle:Byte Ptr)
+
+	Function bmx_cegui_resourceprovider_create:Byte Ptr(handle:Object)
+	Function bmx_cegui_resourceprovider_delete(handle:Byte Ptr)
+	Function bmx_cegui_rawdatacontainer_delete(handle:Byte Ptr)
+
+	Function bmx_cegui_rawdatacontainer_setdata(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_cegui_rawdatacontainer_getdataptr:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_rawdatacontainer_setsize(handle:Byte Ptr, size:Int)
+	Function bmx_cegui_rawdatacontainer_getsize:Int(handle:Byte Ptr)
 
 End Extern
 
