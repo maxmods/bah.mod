@@ -644,111 +644,255 @@ Type TCEListbox Extends TCEWindow
 	End Rem
 	Const EventHorzScrollbarModeChanged:String = "HorzScrollModeChanged"
 
+	Rem
+	bbdoc: Returns number of items attached to the list box. 
+	End Rem
 	Method getItemCount:Int()
+		Return bmx_cegui_listbox_getitemcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of selected items in the list box. 
+	End Rem
 	Method getSelectedCount:Int()
+		Return bmx_cegui_listbox_getselectedcount(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the first selected item. 
+	End Rem
 	Method getFirstSelectedItem:TCEListboxItem()
+		Return TCEListboxItem(bmx_cegui_listbox_getfirstselecteditem(objectPtr))
 	End Method
 	 
-	Method getNextSelected:TCEListboxItem(start_item:TCEListboxItem)
+	Rem
+	bbdoc: Returns the next selected item after item startItem. 
+	End Rem
+	Method getNextSelected:TCEListboxItem(startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_listbox_getnextselected(objectPtr, startItem.objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the item at index position index. 
+	End Rem
 	Method getListboxItemFromIndex:TCEListboxItem(index:Int)
+		Return TCEListboxItem(bmx_cegui_listbox_getlistboxitemfromindex(objectPtr, index))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the index of ListboxItem @item. 
+	End Rem
 	Method getItemIndex:Int(item:TCEListboxItem)
+		Return bmx_cegui_listbox_getitemindex(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether list sorting is enabled 
+	End Rem
 	Method isSortEnabled:Int()
+		Return bmx_cegui_listbox_issortenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether multi-select is enabled 
+	End Rem
 	Method isMultiselectEnabled:Int()
+		Return bmx_cegui_listbox_ismultiselectenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether item tooltips are enabled.
+	End Rem
 	Method isItemTooltipsEnabled:Int()
+		Return bmx_cegui_listbox_isitemtooltipsenabled(objectPtr)
 	End Method
 	
-	Method isItemSelected(index:Int)
+	Rem
+	bbdoc: Returns whether the string at index position index is selected 
+	End Rem
+	Method isItemSelected:Int(index:Int)
+		Return bmx_cegui_listbox_isitemselected(objectPtr, index)
 	End Method
 	 
-	Method findItemWithText:TCEListboxItem(text:String, start_item:TCEListboxItem)
+	Rem
+	bbdoc: Searches the list for an item with the specified text. 
+	End Rem
+	Method findItemWithText:TCEListboxItem(text:String, startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_listbox_finditemwithtext(objectPtr, _convertMaxToUTF8(text), startItem))
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the specified ListboxItem is in the List. 
+	End Rem
 	Method isListboxItemInList:Int(item:TCEListboxItem)
+		Return bmx_cegui_listbox_islistboxiteminlist(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown. 
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_listbox_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the horizontal scroll bar is always shown. 
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_listbox_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	 
-	Method initialiseComponents()
-	End Method
-	 
+	Rem
+	bbdoc: Removes all items from the list.
+	about: Note that this will cause 'AutoDelete' items to be deleted. 
+	End Rem
 	Method resetList()
+		bmx_cegui_listbox_resetlist(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Adds the given ListboxItem to the list. 
+	End Rem
 	Method addItem(item:TCEListboxItem)
+		bmx_cegui_listbox_additem(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Inserts an item into the list box before a specified item already in the list.
+	about: Note that if the list is sorted, the item may not end up in the requested position.
+	End Rem
 	Method insertItem(item:TCEListboxItem, position:TCEListboxItem)
+		bmx_cegui_listbox_insertitem(objectPtr, item.objectPtr, position.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Removes the given item from the list box.
+	about: If the item is has the auto delete state set, the item will be deleted. 
+	End Rem
 	Method removeItem(item:TCEListboxItem)
+		bmx_cegui_listbox_removeitem(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Clears the selected state for all items. 
+	End Rem
 	Method clearAllSelections()
+		bmx_cegui_listbox_clearallselections(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the list should be sorted. 
+	End Rem
 	Method setSortingEnabled(setting:Int)
+		bmx_cegui_listbox_setsortingenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the list should allow multiple selections or just a single selection. 
+	End Rem
 	Method setMultiselectEnabled(setting:Int)
+		bmx_cegui_listbox_setmultiselectenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown. 
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_listbox_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the horizontal scroll bar should always be shown. 
+	End Rem
 	Method setShowHorzScrollbar(setting:Int)
+		bmx_cegui_listbox_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether item tooltips are enabled.
+	End Rem
 	Method setItemTooltipsEnabled(setting:Int)
+		bmx_cegui_listbox_setitemtooltipsenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the select state of an attached ListboxItem.
+	about: This is the recommended way of selecting and deselecting items attached to a list box as
+	it respects the multi-select mode setting. It is possible to modify the setting on ListboxItems
+	directly, but that approach does not respect the settings of the list box.
+	End Rem
 	Method setItemSelectState(item:TCEListboxItem, state:Int)
+		bmx_cegui_listbox_setitemselectstate(objectPtr, item.objectPtr, state)
 	End Method
 	 
-	Method setItemSelectStateForIndex(item_index:Int, state:Int)
+	Rem
+	bbdoc: Sets the select state of an attached ListboxItem.
+	about: This is the recommended way of selecting and deselecting items attached to a list box
+	as it respects the multi-select mode setting. It is possible to modify the setting on ListboxItems
+	directly, but that approach does not respect the settings of the list box.
+	End Rem
+	Method setItemSelectStateForIndex(itemIndex:Int, state:Int)
+		bmx_cegui_listbox_setitemselectstateforindex(objectPtr, itemIndex, state)
 	End Method
 	 
+	Rem
+	bbdoc: Causes the list box to update it's internal state after changes have been made to one or more attached ListboxItem objects.
+	about: Client code must call this whenever it has made any changes to ListboxItem objects already
+	attached to the list box. If you are just adding items, or removed items to update them prior
+	to re-adding them, there is no need to call this method.
+	End Rem
 	Method handleUpdatedItemData()
+		bmx_cegui_listbox_handleupdateditemdata(objectPtr)
 	End Method
 	 
-	Method ensureItemIsVisibleForIndex(item_index:Int)
+	Rem
+	bbdoc: Ensures the item at the specified index is visible within the list box. 
+	End Rem
+	Method ensureItemIsVisibleForIndex(itemIndex:Int)
+		bmx_cegui_listbox_ensureitemisvisibleforindex(objectPtr, itemIndex)
 	End Method
 	 
+	Rem
+	bbdoc: Ensures the item at the specified index is visible within the list box. 
+	End Rem
 	Method ensureItemIsVisible(item:TCEListboxItem)
+		bmx_cegui_listbox_ensureitemisvisible(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns a rect describing, in un-clipped pixels, the window relative area that is to be used for rendering list items. 
+	End Rem
 	Method getListRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_listbox_getlistrenderarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the vertical scrollbar component widget for this Listbox. 
+	End Rem
 	Method getVertScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_listbox_getvertscrollbar(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the horizontal scrollbar component widget for this Listbox. 
+	End Rem
 	Method getHorzScrollbar:TCEScrollbar()
+		Return TCEScrollbar(bmx_cegui_listbox_gethorzscrollbar(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the sum of all item heights. 
+	End Rem
 	Method getTotalItemsHeight:Float()
+		Return bmx_cegui_listbox_gettotalitemsheight(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the width of the widest item. 
+	End Rem
 	Method getWidestItemWidth:Float()
+		Return bmx_cegui_listbox_getwidestitemwidth(objectPtr)
 	End Method
-
 	
 End Type
 
@@ -1536,7 +1680,7 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: Base type for item list widgets. 
 End Rem
 Type TCEItemListBase Extends TCEWindow
 
@@ -1548,85 +1692,184 @@ Type TCEItemListBase Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: Event triggered when the contents of the list is changed. 
+	End Rem
+	Const EventListContentsChanged:String = "ListItemsChanged"
+	Rem
+	bbdoc: Event fired when the sort enabled state changes. 
+	End Rem
+	Const EventSortEnabledChanged:String = "SortEnabledChanged"
+	Rem
+	bbdoc: Event fired when the sort mode changes. 
+	End Rem
+	Const EventSortModeChanged:String = "SortModeChanged"
+	
+	Rem
+	bbdoc: Returns number of items attached to the list. 
+	End Rem
 	Method getItemCount:Int()
+		Return bmx_cegui_itemlistbase_getitemcount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the item at index position index. 
+	End Rem
 	Method getItemFromIndex:TCEItemEntry(index:Int)
+		Return TCEItemEntry(bmx_cegui_itemlistbase_getitemfromindex(objectPtr, index))
 	End Method
 	
+	Rem
+	bbdoc: Returns the index of ItemEntry item. 
+	End Rem
 	Method getItemIndex:Int(item:TCEItemEntry)
+		Return bmx_cegui_itemlistbase_getitemindex(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Searches the list for an item with the specified text. 
+	End Rem
 	Method findItemWithText:TCEItemEntry(text:String, startItem:TCEItemEntry)
+		Return TCEItemEntry(bmx_cegui_itemlistbase_finditemwithtext(objectPtr, text, startItem.objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the specified ItemEntry is in the List. 
+	End Rem
 	Method isItemInList:Int(item:TCEItemEntry)
+		Return bmx_cegui_itemlistbase_isiteminlist(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window is automatically resized to fit its content. 
+	End Rem
 	Method isAutoResizeEnabled:Int()
+		Return bmx_cegui_itemlistbase_isautoresizeenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns 'true' if the list is sorted. 
+	End Rem
 	Method isSortEnabled:Int()
+		Return bmx_cegui_itemlistbase_issortenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Get sort mode. 
+	End Rem
 	Method getSortMode:Int()
+		Return bmx_cegui_itemlistbase_getsortmode(objectPtr)
 	End Method
 	
 	'Method getSortCallback()
 	'End Method
 	
-	Method initialiseComponents()
-	End Method
-	
+	Rem
+	bbdoc: Removes all items from the list.
+	about: Note that this will cause items, which does not have the 'DestroyedByParent' property set
+	to 'false', to be deleted. 
+	End Rem
 	Method resetList()
+		bmx_cegui_itemlistbase_resetlist(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Adds the given ItemEntry to the list. 
+	End Rem
 	Method addItem(item:TCEItemEntry)
+		bmx_cegui_itemlistbase_additem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Inserts an item into the list before a specified item already in the list.
+	about: Note that if the list is sorted, the item may not end up in the requested position.
+	End Rem
 	Method insertItem(item:TCEItemEntry, position:TCEItemEntry)
+		bmx_cegui_itemlistbase_insertitem(objectPtr, item.objectPtr, position.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Removes the given item from the list.
+	about: If the item is has the 'DestroyedByParent' property set to 'true', the item will be deleted.
+	End Rem
 	Method removeItem(item:TCEItemEntry)
+		bmx_cegui_itemlistbase_removeitem(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Causes the list to update it's internal state after changes have been made to one or more attached ItemEntry objects.
+	about: It should not be necessary to call this from client code, as the ItemEntries themselves
+	call it if their parent is an ItemListBase.
+	End Rem
 	Method handleUpdatedItemData(resort:Int = False)
+		bmx_cegui_itemlistbase_handleupdateditemdata(objectPtr, resort)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether or not this ItemListBase widget should automatically resize to fit its content. 
+	End Rem
 	Method setAutoResizeEnabled(setting:Int)
+		bmx_cegui_itemlistbase_setautoresizeenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Resizes the ItemListBase to exactly fit the content that is attached to it.
+	End Rem
 	Method sizeToContent()
+		bmx_cegui_itemlistbase_sizetocontent(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Triggers a ListContentsChanged event.
+	about: These are not fired during initialisation for optimization purposes. 
+	End Rem
 	Method endInitialisation()
+		bmx_cegui_itemlistbase_endinitialisation(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Called to perform extended laying out of attached child windows. 
+	End Rem
 	Method performChildWindowLayout()
+		bmx_cegui_itemlistbase_performchildwindowlayout(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns a rect describing, in un-clipped pixels, the window relative area that is to be used for rendering list items. 
+	End Rem
 	Method getItemRenderArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_itemlistbase_getitemrenderarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Returns the window that all items are directed too. 
+	End Rem
 	Method getContentPane:TCEWindow()
+		Return TCEWindow(bmx_cegui_itemlistbase_getcontentpane(objectPtr))
 	End Method
 	
-	Method notifyItemClicked(li:TCEItemEntry)
-	End Method
-	
-	Method notifyItemSelectState(li:TCEItemEntry, state:Int)
-	End Method
-	
+	Rem
+	bbdoc: Sets whether the list should be sorted (by text). 
+	End Rem
 	Method setSortEnabled(setting:Int)
+		bmx_cegui_itemlistbase_setsortenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the mode to be used when sorting the list. 
+	End Rem
 	Method setSortMode(mode:Int)
+		bmx_cegui_itemlistbase_setsortmode(objectPtr, mode)
 	End Method
 	
 	'Method setSortCallback(SortCallback cb)
 	'End Method
 	
+	Rem
+	bbdoc: Sorts the list. 
+	End Rem
 	Method SortList(relayout:Int = True)
+		bmx_cegui_itemlistbase_sortlist(objectPtr, relayout)
 	End Method
 
 End Type

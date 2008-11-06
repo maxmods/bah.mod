@@ -711,6 +711,63 @@ extern "C" {
 	void bmx_cegui_rawdatacontainer_setsize(MaxRawDataContainer * container, int size);
 	int bmx_cegui_rawdatacontainer_getsize(MaxRawDataContainer * container);
 
+	int bmx_cegui_listbox_getitemcount(CEGUI::Listbox * lb);
+	int bmx_cegui_listbox_getselectedcount(CEGUI::Listbox * lb);
+	BBObject * bmx_cegui_listbox_getfirstselecteditem(CEGUI::Listbox * lb);
+	BBObject * bmx_cegui_listbox_getnextselected(CEGUI::Listbox * lb, CEGUI::ListboxItem * startItem);
+	BBObject * bmx_cegui_listbox_getlistboxitemfromindex(CEGUI::Listbox * lb, int index);
+	int bmx_cegui_listbox_getitemindex(CEGUI::Listbox * lb, CEGUI::ListboxItem * item);
+	bool bmx_cegui_listbox_issortenabled(CEGUI::Listbox * lb);
+	bool bmx_cegui_listbox_ismultiselectenabled(CEGUI::Listbox * lb);
+	bool bmx_cegui_listbox_isitemtooltipsenabled(CEGUI::Listbox * lb);
+	bool bmx_cegui_listbox_isitemselected(CEGUI::Listbox * lb, int index);
+	BBObject * bmx_cegui_listbox_finditemwithtext(CEGUI::Listbox * lb, const CEGUI::utf8 * text, CEGUI::ListboxItem * startItem);
+	bool bmx_cegui_listbox_islistboxiteminlist(CEGUI::Listbox * lb, CEGUI::ListboxItem * item);
+	bool bmx_cegui_listbox_isvertscrollbaralwaysshown(CEGUI::Listbox * lb);
+	bool bmx_cegui_listbox_ishorzscrollbaralwaysshown(CEGUI::Listbox * lb);
+	void bmx_cegui_listbox_resetlist(CEGUI::Listbox * lb);
+	void bmx_cegui_listbox_additem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item);
+	void bmx_cegui_listbox_insertitem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item, CEGUI::ListboxItem * position);
+	void bmx_cegui_listbox_removeitem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item);
+	void bmx_cegui_listbox_clearallselections(CEGUI::Listbox * lb);
+	void bmx_cegui_listbox_setsortingenabled(CEGUI::Listbox * lb, bool setting);
+	void bmx_cegui_listbox_setmultiselectenabled(CEGUI::Listbox * lb, bool setting);
+	void bmx_cegui_listbox_setshowvertscrollbar(CEGUI::Listbox * lb, bool setting);
+	void bmx_cegui_listbox_setshowhorzscrollbar(CEGUI::Listbox * lb, bool setting);
+	void bmx_cegui_listbox_setitemtooltipsenabled(CEGUI::Listbox * lb, bool setting);
+	void bmx_cegui_listbox_setitemselectstate(CEGUI::Listbox * lb, CEGUI::ListboxItem * item, bool state);
+	void bmx_cegui_listbox_setitemselectstateforindex(CEGUI::Listbox * lb, int itemIndex, bool state);
+	void bmx_cegui_listbox_handleupdateditemdata(CEGUI::Listbox * lb);
+	void bmx_cegui_listbox_ensureitemisvisibleforindex(CEGUI::Listbox * lb, int itemIndex);
+	void bmx_cegui_listbox_ensureitemisvisible(CEGUI::Listbox * lb, CEGUI::ListboxItem * item);
+	void bmx_cegui_listbox_getlistrenderarea(CEGUI::Listbox * lb, float * x, float * y, float * w, float * h);
+	BBObject * bmx_cegui_listbox_getvertscrollbar(CEGUI::Listbox * lb);
+	BBObject * bmx_cegui_listbox_gethorzscrollbar(CEGUI::Listbox * lb);
+	float bmx_cegui_listbox_gettotalitemsheight(CEGUI::Listbox * lb);
+	float bmx_cegui_listbox_getwidestitemwidth(CEGUI::Listbox * lb);
+
+	int bmx_cegui_itemlistbase_getitemcount(CEGUI::ItemListBase * lb);
+	BBObject * bmx_cegui_itemlistbase_getitemfromindex(CEGUI::ItemListBase * lb, int index);
+	int bmx_cegui_itemlistbase_getitemindex(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item);
+	BBObject * bmx_cegui_itemlistbase_finditemwithtext(CEGUI::ItemListBase * lb, CEGUI::uint8 * text, CEGUI::ItemEntry * startItem);
+	bool bmx_cegui_itemlistbase_isiteminlist(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item);
+	bool bmx_cegui_itemlistbase_isautoresizeenabled(CEGUI::ItemListBase * lb);
+	bool bmx_cegui_itemlistbase_issortenabled(CEGUI::ItemListBase * lb);
+	CEGUI::ItemListBase::SortMode bmx_cegui_itemlistbase_getsortmode(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_resetlist(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_additem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item);
+	void bmx_cegui_itemlistbase_insertitem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item, CEGUI::ItemEntry * position);
+	void bmx_cegui_itemlistbase_removeitem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item);
+	void bmx_cegui_itemlistbase_handleupdateditemdata(CEGUI::ItemListBase * lb, bool resort);
+	void bmx_cegui_itemlistbase_setautoresizeenabled(CEGUI::ItemListBase * lb, bool setting);
+	void bmx_cegui_itemlistbase_sizetocontent(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_endinitialisation(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_performchildwindowlayout(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_getitemrenderarea(CEGUI::ItemListBase * lb, float * x, float * y, float * w, float * h);
+	BBObject * bmx_cegui_itemlistbase_getcontentpane(CEGUI::ItemListBase * lb);
+	void bmx_cegui_itemlistbase_setsortenabled(CEGUI::ItemListBase * lb, bool setting);
+	void bmx_cegui_itemlistbase_setsortmode(CEGUI::ItemListBase * lb, CEGUI::ItemListBase::SortMode mode);
+	void bmx_cegui_itemlistbase_sortlist(CEGUI::ItemListBase * lb, bool relayout);
 }
 
 class MaxConnection

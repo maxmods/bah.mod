@@ -2840,3 +2840,238 @@ int bmx_cegui_rawdatacontainer_getsize(MaxRawDataContainer * container) {
 	return container->Container().getSize();
 }
 
+// *************************************************
+
+int bmx_cegui_listbox_getitemcount(CEGUI::Listbox * lb) {
+	return lb->getItemCount();
+}
+
+int bmx_cegui_listbox_getselectedcount(CEGUI::Listbox * lb) {
+	return lb->getSelectedCount();
+}
+
+BBObject * bmx_cegui_listbox_getfirstselecteditem(CEGUI::Listbox * lb) {
+	return _bah_cegui_TCEListboxItem__create(lb->getFirstSelectedItem());
+}
+
+BBObject * bmx_cegui_listbox_getnextselected(CEGUI::Listbox * lb, CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(lb->getNextSelected(startItem));
+}
+
+BBObject * bmx_cegui_listbox_getlistboxitemfromindex(CEGUI::Listbox * lb, int index) {
+	return _bah_cegui_TCEListboxItem__create(lb->getListboxItemFromIndex(index));
+}
+
+int bmx_cegui_listbox_getitemindex(CEGUI::Listbox * lb, CEGUI::ListboxItem * item) {
+	return lb->getItemIndex(item);
+}
+
+bool bmx_cegui_listbox_issortenabled(CEGUI::Listbox * lb) {
+	return lb->isSortEnabled();
+}
+
+bool bmx_cegui_listbox_ismultiselectenabled(CEGUI::Listbox * lb) {
+	return lb->isMultiselectEnabled();
+}
+
+bool bmx_cegui_listbox_isitemtooltipsenabled(CEGUI::Listbox * lb) {
+	return lb->isItemTooltipsEnabled();
+}
+
+bool bmx_cegui_listbox_isitemselected(CEGUI::Listbox * lb, int index) {
+	return lb->isItemSelected(index);
+}
+
+BBObject * bmx_cegui_listbox_finditemwithtext(CEGUI::Listbox * lb, const CEGUI::utf8 * text, CEGUI::ListboxItem * startItem) {
+	return _bah_cegui_TCEListboxItem__create(lb->findItemWithText(text, startItem));
+}
+
+bool bmx_cegui_listbox_islistboxiteminlist(CEGUI::Listbox * lb, CEGUI::ListboxItem * item) {
+	return lb->isListboxItemInList(item);
+}
+
+bool bmx_cegui_listbox_isvertscrollbaralwaysshown(CEGUI::Listbox * lb) {
+	return lb->isVertScrollbarAlwaysShown();
+}
+
+bool bmx_cegui_listbox_ishorzscrollbaralwaysshown(CEGUI::Listbox * lb) {
+	return lb->isHorzScrollbarAlwaysShown();
+}
+
+void bmx_cegui_listbox_resetlist(CEGUI::Listbox * lb) {
+	lb->resetList();
+}
+
+void bmx_cegui_listbox_additem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item) {
+	lb->addItem(item);
+}
+
+void bmx_cegui_listbox_insertitem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item, CEGUI::ListboxItem * position) {
+	lb->insertItem(item, position);
+}
+
+void bmx_cegui_listbox_removeitem(CEGUI::Listbox * lb, CEGUI::ListboxItem * item) {
+	lb->removeItem(item);
+}
+
+void bmx_cegui_listbox_clearallselections(CEGUI::Listbox * lb) {
+	lb->clearAllSelections();
+}
+
+void bmx_cegui_listbox_setsortingenabled(CEGUI::Listbox * lb, bool setting) {
+	lb->setSortingEnabled(setting);
+}
+
+void bmx_cegui_listbox_setmultiselectenabled(CEGUI::Listbox * lb, bool setting) {
+	lb->setMultiselectEnabled(setting);
+}
+
+void bmx_cegui_listbox_setshowvertscrollbar(CEGUI::Listbox * lb, bool setting) {
+	lb->setShowVertScrollbar(setting);
+}
+
+void bmx_cegui_listbox_setshowhorzscrollbar(CEGUI::Listbox * lb, bool setting) {
+	lb->setShowHorzScrollbar(setting);
+}
+
+void bmx_cegui_listbox_setitemtooltipsenabled(CEGUI::Listbox * lb, bool setting) {
+	lb->setItemTooltipsEnabled(setting);
+}
+
+void bmx_cegui_listbox_setitemselectstate(CEGUI::Listbox * lb, CEGUI::ListboxItem * item, bool state) {
+	lb->setItemSelectState(item, state);
+}
+
+void bmx_cegui_listbox_setitemselectstateforindex(CEGUI::Listbox * lb, int itemIndex, bool state) {
+	lb->setItemSelectState(itemIndex, state);
+}
+
+void bmx_cegui_listbox_handleupdateditemdata(CEGUI::Listbox * lb) {
+	lb->handleUpdatedItemData();
+}
+
+void bmx_cegui_listbox_ensureitemisvisibleforindex(CEGUI::Listbox * lb, int itemIndex) {
+	lb->ensureItemIsVisible(itemIndex);
+}
+
+void bmx_cegui_listbox_ensureitemisvisible(CEGUI::Listbox * lb, CEGUI::ListboxItem * item) {
+	lb->ensureItemIsVisible(item);
+}
+
+void bmx_cegui_listbox_getlistrenderarea(CEGUI::Listbox * lb, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r(lb->getListRenderArea());
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+BBObject * bmx_cegui_listbox_getvertscrollbar(CEGUI::Listbox * lb) {
+	return _bah_cegui_TCEScrollbar__create(lb->getVertScrollbar());
+}
+
+BBObject * bmx_cegui_listbox_gethorzscrollbar(CEGUI::Listbox * lb) {
+	return _bah_cegui_TCEScrollbar__create(lb->getHorzScrollbar());
+}
+
+float bmx_cegui_listbox_gettotalitemsheight(CEGUI::Listbox * lb) {
+	return lb->getTotalItemsHeight();
+}
+
+float bmx_cegui_listbox_getwidestitemwidth(CEGUI::Listbox * lb) {
+	return lb->getWidestItemWidth();
+}
+
+// *************************************************
+
+int bmx_cegui_itemlistbase_getitemcount(CEGUI::ItemListBase * lb) {
+	return lb->getItemCount();
+}
+
+BBObject * bmx_cegui_itemlistbase_getitemfromindex(CEGUI::ItemListBase * lb, int index) {
+	return _bah_cegui_TCEItemEntry__create(lb->getItemFromIndex(index));
+}
+
+int bmx_cegui_itemlistbase_getitemindex(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item) {
+	return lb->getItemIndex(item);
+}
+
+BBObject * bmx_cegui_itemlistbase_finditemwithtext(CEGUI::ItemListBase * lb, CEGUI::uint8 * text, CEGUI::ItemEntry * startItem) {
+	return _bah_cegui_TCEItemEntry__create(lb->findItemWithText(text, startItem));
+}
+
+bool bmx_cegui_itemlistbase_isiteminlist(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item) {
+	return lb->isItemInList(item);
+}
+
+bool bmx_cegui_itemlistbase_isautoresizeenabled(CEGUI::ItemListBase * lb) {
+	return lb->isAutoResizeEnabled();
+}
+
+bool bmx_cegui_itemlistbase_issortenabled(CEGUI::ItemListBase * lb) {
+	return lb->isSortEnabled();
+}
+
+CEGUI::ItemListBase::SortMode bmx_cegui_itemlistbase_getsortmode(CEGUI::ItemListBase * lb) {
+	return lb->getSortMode();
+}
+
+void bmx_cegui_itemlistbase_resetlist(CEGUI::ItemListBase * lb) {
+	lb->resetList();
+}
+
+void bmx_cegui_itemlistbase_additem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item) {
+	lb->addItem(item);
+}
+
+void bmx_cegui_itemlistbase_insertitem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item, CEGUI::ItemEntry * position) {
+	lb->insertItem(item, position);
+}
+
+void bmx_cegui_itemlistbase_removeitem(CEGUI::ItemListBase * lb, CEGUI::ItemEntry * item) {
+	lb->removeItem(item);
+}
+
+void bmx_cegui_itemlistbase_handleupdateditemdata(CEGUI::ItemListBase * lb, bool resort) {
+	lb->handleUpdatedItemData(resort);
+}
+
+void bmx_cegui_itemlistbase_setautoresizeenabled(CEGUI::ItemListBase * lb, bool setting) {
+	lb->setAutoResizeEnabled(setting);
+}
+
+void bmx_cegui_itemlistbase_sizetocontent(CEGUI::ItemListBase * lb) {
+	lb->sizeToContent();
+}
+
+void bmx_cegui_itemlistbase_endinitialisation(CEGUI::ItemListBase * lb) {
+	lb->endInitialisation();
+}
+
+void bmx_cegui_itemlistbase_performchildwindowlayout(CEGUI::ItemListBase * lb) {
+	lb->performChildWindowLayout();
+}
+
+void bmx_cegui_itemlistbase_getitemrenderarea(CEGUI::ItemListBase * lb, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r(lb->getItemRenderArea());
+
+}
+
+BBObject * bmx_cegui_itemlistbase_getcontentpane(CEGUI::ItemListBase * lb) {
+	return newObjectForWindow(lb->getContentPane());
+}
+
+void bmx_cegui_itemlistbase_setsortenabled(CEGUI::ItemListBase * lb, bool setting) {
+	lb->setSortEnabled(setting);
+}
+
+void bmx_cegui_itemlistbase_setsortmode(CEGUI::ItemListBase * lb, CEGUI::ItemListBase::SortMode mode) {
+	lb->setSortMode(mode);
+}
+
+void bmx_cegui_itemlistbase_sortlist(CEGUI::ItemListBase * lb, bool relayout) {
+	lb->sortList(relayout);
+}
+
+
+
