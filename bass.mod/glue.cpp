@@ -99,8 +99,16 @@ extern "C" {
 
 	void bmx_bass_fxdelete(void * fx);
 
-	BASS_3DVECTOR * bmx_bass_3dvector_create();
+	BASS_3DVECTOR * bmx_bass_3dvector_new();
+	void bmx_bass_3dvector_setxyz(BASS_3DVECTOR * vec, float x, float y, float z);
 	void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec);
+	float bmx_bass_3dvector_getx(BASS_3DVECTOR * vec);
+	float bmx_bass_3dvector_gety(BASS_3DVECTOR * vec);
+	float bmx_bass_3dvector_getz(BASS_3DVECTOR * vec);
+	void bmx_bass_3dvector_setx(BASS_3DVECTOR * vec, float value);
+	void bmx_bass_3dvector_sety(BASS_3DVECTOR * vec, float value);
+	void bmx_bass_3dvector_setz(BASS_3DVECTOR * vec, float value);
+	void bmx_bass_3dvector_getxyz(BASS_3DVECTOR * vec, float * x, float * y, float * z);
 
 	BASS_CHANNELINFO * bmx_bass_getchannelinfo(DWORD handle);
 	DWORD bmx_channelinfo_getfreq(BASS_CHANNELINFO * info);
@@ -214,74 +222,95 @@ void bmx_bass_channelseconds2bytes(DWORD handle, QWORD * bytes, double pos) {
 }
 
 BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
-
-	if (tags == BASS_TAG_ID3) {
-		TAG_ID3 *id3= (TAG_ID3*) BASS_ChannelGetTags(handle, BASS_TAG_ID3); // get the ID3 tags
-		if (id3) {
-			
-			char buffer[4];
-			
-			BBArray * p = bbArrayNew1D("$", 7);
-			BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
-						
-			sprintf(buffer, "%.3s", id3->id);
-			s[0] = bbStringFromCString(buffer);
-			BBRETAIN( s[0] );
-			
-			s[1] = bbStringFromCString(id3->title);
-			BBRETAIN( s[1] );
-			
-			s[2] = bbStringFromCString(id3->artist);
-			BBRETAIN( s[2] );
-			
-			s[3] = bbStringFromCString(id3->album);
-			BBRETAIN( s[3] );
-
-			sprintf(buffer, "%.4s", id3->year);
-			s[4] = bbStringFromCString(buffer);
-			BBRETAIN( s[4] );
-			
-			s[5] = bbStringFromCString(id3->comment);
-			BBRETAIN( s[5] );
-						
-			sprintf(buffer, "%d", id3->genre);
-			s[6] = bbStringFromCString(buffer);
-			BBRETAIN( s[6] );
-			
-			return p;
-		} else {
-			return &bbEmptyArray;
-		}
-	} else {
-		const char * text = BASS_ChannelGetTags(handle, tags);
-		
-		if (text) {
-			int count = 0;
-			const char * current = text;
-			
-			while (*current) {
-				current += strlen(current) + 1;
-				count++;
-			}
-			
-			BBArray * p = bbArrayNew1D("$", count);
-			BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
-			
-			count = 0;
-			current = text;
-			while (*current) {
-				s[count] = bbStringFromCString( current );
-				BBRETAIN( s[count] );
+	const char * text;
 	
-				current += strlen(current) + 1;
-				count++;
+	switch (tags) {
+		case BASS_TAG_ID3:
+			TAG_ID3 *id3= (TAG_ID3*) BASS_ChannelGetTags(handle, BASS_TAG_ID3); // get the ID3 tags
+			if (id3) {
+				
+				char buffer[4];
+				
+				BBArray * p = bbArrayNew1D("$", 7);
+				BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+							
+				sprintf(buffer, "%.3s", id3->id);
+				s[0] = bbStringFromCString(buffer);
+				BBRETAIN( s[0] );
+				
+				s[1] = bbStringFromCString(id3->title);
+				BBRETAIN( s[1] );
+				
+				s[2] = bbStringFromCString(id3->artist);
+				BBRETAIN( s[2] );
+				
+				s[3] = bbStringFromCString(id3->album);
+				BBRETAIN( s[3] );
+	
+				sprintf(buffer, "%.4s", id3->year);
+				s[4] = bbStringFromCString(buffer);
+				BBRETAIN( s[4] );
+				
+				s[5] = bbStringFromCString(id3->comment);
+				BBRETAIN( s[5] );
+							
+				sprintf(buffer, "%d", id3->genre);
+				s[6] = bbStringFromCString(buffer);
+				BBRETAIN( s[6] );
+				
+				return p;
+			} else {
+				return &bbEmptyArray;
 			}
-			
-			return p;
+		case BASS_TAG_META:
+		case BASS_TAG_LYRICS3:
+		case BASS_TAG_VENDOR:
+		case BASS_TAG_MUSIC_NAME:
+		case BASS_TAG_MUSIC_MESSAGE:
+			text = BASS_ChannelGetTags(handle, tags);
+
+			if (text) {
+				BBArray * p = bbArrayNew1D("$", 1);
+				BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+				
+				s[0] = bbStringFromCString( text );
+				BBRETAIN( s[0] );
+
+				return p;
+			} else {
+				return &bbEmptyArray;
+			}
 		
-		} else {
-			return &bbEmptyArray;
-		}
+		default:
+			text = BASS_ChannelGetTags(handle, tags);
+			
+			if (text) {
+				int count = 0;
+				const char * current = text;
+				
+				while (*current) {
+					current += strlen(current) + 1;
+					count++;
+				}
+				
+				BBArray * p = bbArrayNew1D("$", count);
+				BBString **s = (BBString**)BBARRAYDATA( p,p->dims );
+				
+				count = 0;
+				current = text;
+				while (*current) {
+					s[count] = bbStringFromCString( current );
+					BBRETAIN( s[count] );
+		
+					current += strlen(current) + 1;
+					count++;
+				}
+				
+				return p;
+			
+			} else {
+				return &bbEmptyArray;
+			}
 	}
 }
 
@@ -486,12 +515,48 @@ void bmx_bass_fxdelete(void * fx) {
 
 // *************************************************
 
-BASS_3DVECTOR * bmx_bass_3dvector_create() {
+BASS_3DVECTOR * bmx_bass_3dvector_new() {
 	return new BASS_3DVECTOR;
+}
+
+void bmx_bass_3dvector_setxyz(BASS_3DVECTOR * vec, float x, float y, float z) {
+	vec->x = x;
+	vec->y = y;
+	vec->z = z;
 }
 
 void bmx_bass_3dvector_delete(BASS_3DVECTOR * vec) {
 	delete vec;
+}
+
+float bmx_bass_3dvector_getx(BASS_3DVECTOR * vec) {
+	return vec->x;
+}
+
+float bmx_bass_3dvector_gety(BASS_3DVECTOR * vec) {
+	return vec->y;
+}
+
+float bmx_bass_3dvector_getz(BASS_3DVECTOR * vec) {
+	return vec->z;
+}
+
+void bmx_bass_3dvector_setx(BASS_3DVECTOR * vec, float value) {
+	vec->x = value;
+}
+
+void bmx_bass_3dvector_sety(BASS_3DVECTOR * vec, float value) {
+	vec->y = value;
+}
+
+void bmx_bass_3dvector_setz(BASS_3DVECTOR * vec, float value) {
+	vec->z = value;
+}
+
+void bmx_bass_3dvector_getxyz(BASS_3DVECTOR * vec, float * x, float * y, float * z) {
+	*x = vec->x;
+	*y = vec->y;
+	*z = vec->z;
 }
 
 // *************************************************

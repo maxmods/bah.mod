@@ -99,8 +99,16 @@ Extern
 	
 	Function bmx_bass_fxdelete(handle:Byte Ptr)
 
-	Function bmx_bass_3dvector_create:Byte Ptr()
+	Function bmx_bass_3dvector_new:Byte Ptr()
+	Function bmx_bass_3dvector_setxyz(handle:Byte Ptr, x:Float, y:Float, z:Float)
 	Function bmx_bass_3dvector_delete(handle:Byte Ptr)
+	Function bmx_bass_3dvector_getx:Float(handle:Byte Ptr)
+	Function bmx_bass_3dvector_gety:Float(handle:Byte Ptr)
+	Function bmx_bass_3dvector_getz:Float(handle:Byte Ptr)
+	Function bmx_bass_3dvector_setx(handle:Byte Ptr, value:Float)
+	Function bmx_bass_3dvector_sety(handle:Byte Ptr, value:Float)
+	Function bmx_bass_3dvector_setz(handle:Byte Ptr, value:Float)
+	Function bmx_bass_3dvector_getxyz(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, z:Float Ptr)
 
 	Function bmx_bass_getchannelinfo:Byte Ptr(handle:Int)
 	Function bmx_channelinfo_getfreq:Int(channelinfoPtr:Byte Ptr)

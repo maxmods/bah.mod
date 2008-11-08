@@ -2326,7 +2326,7 @@ Type TBassRecordInfo
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Type used by the 3D functions to describe positions, velocities, and orientations. 
 End Rem
 Type TBass3DVector
 
@@ -2339,20 +2339,80 @@ Type TBass3DVector
 			Return this
 		End If
 	End Function
+	
+	Method New()
+		vectorPtr = bmx_bass_3dvector_new()
+	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new 3D Vector object.
 	End Rem
-	Function CreateVector:TBass3DVector()
-		Return New TBass3DVector.Create()
+	Function CreateVector:TBass3DVector(x:Float = 0, y:Float = 0, z:Float = 0)
+		Return New TBass3DVector.Create(x, y, z)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new 3D Vector object.
 	End Rem
-	Method Create:TBass3DVector()
-		vectorPtr = bmx_bass_3dvector_create()
+	Method Create:TBass3DVector(x:Float = 0, y:Float = 0, z:Float = 0)
+		bmx_bass_3dvector_setxyz(vectorPtr, x, y, z)
 		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the X vector.
+	End Rem
+	Method GetX:Float()
+		Return bmx_bass_3dvector_getx(vectorPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the Y vector.
+	End Rem
+	Method GetY:Float()
+		Return bmx_bass_3dvector_gety(vectorPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the Z vector.
+	End Rem
+	Method GetZ:Float()
+		Return bmx_bass_3dvector_getz(vectorPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the X vector.
+	End Rem
+	Method SetX(value:Float)
+		bmx_bass_3dvector_setx(vectorPtr, value)
+	End Method
+
+	Rem
+	bbdoc: Sets the Y vector.
+	End Rem
+	Method SetY(value:Float)
+		bmx_bass_3dvector_sety(vectorPtr, value)
+	End Method
+
+	Rem
+	bbdoc: Sets the Y vector.
+	End Rem
+	Method SetZ(value:Float)
+		bmx_bass_3dvector_setz(vectorPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns X, Y and Z.
+	End Rem
+	Method GetXYZ(x:Float Var, y:Float Var, z:Float Var)
+		bmx_bass_3dvector_getxyz(vectorPtr, Varptr x, Varptr y, Varptr z)
+	End Method
+	
+	Rem
+	bbdoc: Sets X, Y and Z.
+	End Rem
+	Method SetXYZ(x:Float, y:Float, z:Float)
+		bmx_bass_3dvector_setxyz(vectorPtr, x, y, z)
 	End Method
 	
 	
