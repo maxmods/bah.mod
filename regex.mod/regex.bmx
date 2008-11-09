@@ -30,13 +30,15 @@ bbdoc: Regular Expressions
 End Rem
 Module BaH.RegEx
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: PCRE - 1997-2007 University of Cambridge"
 ModuleInfo "Copyright: Wrapper - 2007, 2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Fixed offset problems when working with non-ascii text."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to PCRE 7.4"
 ModuleInfo "History: 1.02"
@@ -147,7 +149,6 @@ Type TRegEx
 	<p>Doesn't affect the original @target contents.</p>
 	End Rem
 	Method Replace:String(target:String, replaceWith:String, startPos:Int = 0)
-
 		If Not options Then
 			options = New TRegExOptions
 		End If
@@ -180,6 +181,9 @@ Type TRegEx
 		' initial search...
 		Local result:Int = pcre_exec(pcre, Null, targ, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
 
+		' process string as UTF-8. This should keep offsets correct when processing non-ascii text.
+		Local lastTargetutf8:String = convertISO8859toUTF8(lastTarget)
+
 		' if there wasn't an error... process the match (even for no-match)
 		While result >= 0 Or result = REGEX_NOMATCH
 
@@ -187,16 +191,16 @@ Type TRegEx
 			Local ofs:Int Ptr = Int Ptr(offsets)
 			For Local i:Int = 0 To result
 				Local idx:Int = i * 2
-				replaceStr = replaceStr.Replace( "\" + i, lastTarget[ofs[idx]..ofs[idx+1]])
+				replaceStr = replaceStr.Replace( "\" + i, lastTargetutf8[ofs[idx]..ofs[idx+1]])
 			Next
 
 			If result > 0 Then
 				' add text so far, and the replacement
-				retString:+ lastTarget[startPos..Int Ptr(offsets)[0]] + replaceStr
+				retString:+ lastTargetutf8[startPos..Int Ptr(offsets)[0]] + replaceStr
 			
 			Else
 				' search finished. Fill to the end
-				retString:+ lastTarget[startPos..targLength]
+				retString:+ lastTargetutf8[startPos..targLength]
 
 				Exit
 			End If
@@ -208,7 +212,7 @@ Type TRegEx
 			If Not globalReplace Then
 				
 				' all done. Fill to the end
-				retString:+ lastTarget[startPos..targLength]
+				retString:+ lastTargetutf8[startPos..targLength]
 
 				Exit
 			End If
@@ -216,9 +220,9 @@ Type TRegEx
 			' find the next match
 			result:Int = pcre_exec(pcre, Null, targ, targLength, startPos, getExecOpt(), offsets, sizeOffsets)
 
-		Wend		
-				
-		Return retString
+		Wend	
+		
+		Return convertUTF8toISO8859(retString) ' convert back to max string
 	End Method
 	
 	Rem
