@@ -2,11 +2,11 @@
 *      Perl-Compatible Regular Expressions       *
 *************************************************/
 
-/*PCRE is a library of functions to support regular expressions whose syntax
+/* PCRE is a library of functions to support regular expressions whose syntax
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2007 University of Cambridge
+           Copyright (c) 1997-2008 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ Arguments:
 Returns:           0 if data returned, negative on error
 */
 
-PCRE_EXP_DEFN int
+PCRE_EXP_DEFN int PCRE_CALL_CONVENTION
 pcre_fullinfo(const pcre *argument_re, const pcre_extra *extra_data, int what,
   void *where)
 {

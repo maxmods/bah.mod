@@ -33,13 +33,15 @@ Module BaH.RegEx
 ModuleInfo "Version: 1.04"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2007 University of Cambridge"
+ModuleInfo "Copyright: PCRE - 1997-2008 University of Cambridge"
 ModuleInfo "Copyright: Wrapper - 2007, 2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.04"
+ModuleInfo "History: Updated to PCRE 7.8"
 ModuleInfo "History: Fixed offset problems when working with non-ascii text."
 ModuleInfo "History: Fixed Replace() where loop was overflowing."
+ModuleInfo "History: Added test_08 for utf-8."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to PCRE 7.4"
 ModuleInfo "History: 1.02"
@@ -188,7 +190,7 @@ Type TRegEx
 		' if there wasn't an error... process the match (even for no-match)
 		While result >= 0 Or result = REGEX_NOMATCH
 
-			Local replaceStr:String = replaceWith
+			Local replaceStr:String = convertISO8859toUTF8(replaceWith) ' converted to UTF-8
 			Local ofs:Int Ptr = Int Ptr(offsets)
 			For Local i:Int = 0 Until result
 				Local idx:Int = i * 2

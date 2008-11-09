@@ -43,13 +43,11 @@ Import "src/pcre_refcount.c"
 Import "src/pcre_study.c"
 Import "src/pcre_tables.c"
 Import "src/pcre_try_flipped.c"
-Import "src/pcre_ucp_searchfuncs.c"
+'Import "src/pcre_ucp_searchfuncs.c"
 Import "src/pcre_valid_utf8.c"
 Import "src/pcre_version.c"
 Import "src/pcre_xclass.c"
-
-' modified pcre_dfa_exec.c to remove compilation warnings. (see BaH)
-' modified pcre_exec.c to remove compilation warnings. (see BaH)
+Import "src/pcre_ucd.c"
 
 
 ' Request types for pcre_config().
