@@ -350,6 +350,13 @@ extern "C" {
 
 	void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle);
 	float32 bmx_b2mat22_getangle(b2Mat22 * mat);
+	b2Mat22 * bmx_b2mat22_create(float32 a11, float32 a12, float32 a21, float32 a22);
+	b2Mat22 * bmx_b2mat22_createvec(b2Vec2 * c1, b2Vec2 * c2);
+	b2Mat22 * bmx_b2mat22_createangle(float32 angle);
+	void bmx_b2mat22_setidentity(b2Mat22 * mat);
+	void bmx_b2mat22_setzero(b2Mat22 * mat);
+	b2Mat22 * bmx_b2mat22_getinverse(b2Mat22 * mat);
+	void bmx_b2mat22_delete(b2Mat22 * mat);
 
 	b2Shape * bmx_b2contact_getshape1(b2Contact * contact);
 	b2Shape * bmx_b2contact_getshape2(b2Contact * contact);
@@ -1968,6 +1975,39 @@ void bmx_b2mat22_setangle(b2Mat22 * mat, float32 angle) {
 float32 bmx_b2mat22_getangle(b2Mat22 * mat) {
 	return mat->GetAngle() * 57.2957795f;
 }
+
+b2Mat22 * bmx_b2mat22_create(float32 a11, float32 a12, float32 a21, float32 a22) {
+	return new b2Mat22(a11, a12, a21, a22);
+}
+
+b2Mat22 * bmx_b2mat22_createvec(b2Vec2 * c1, b2Vec2 * c2) {
+	return new b2Mat22(*c1, *c2);
+}
+
+b2Mat22 * bmx_b2mat22_createangle(float32 angle) {
+	return new b2Mat22(angle * 0.0174533f);
+}
+
+void bmx_b2mat22_setidentity(b2Mat22 * mat) {
+	mat->SetIdentity();
+}
+
+void bmx_b2mat22_setzero(b2Mat22 * mat) {
+	mat->SetZero();
+}
+
+b2Mat22 * bmx_b2mat22_getinverse(b2Mat22 * mat) {
+	b2Mat22 * m = new b2Mat22;
+	b2Mat22 imat = mat->GetInverse();
+	m->col1 = imat.col1;
+	m->col2 = imat.col2;
+	return m;
+}
+
+void bmx_b2mat22_delete(b2Mat22 * mat) {
+	delete mat;
+}
+
 
 // *****************************************************
 

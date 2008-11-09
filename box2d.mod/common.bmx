@@ -317,6 +317,13 @@ Extern
 
 	Function bmx_b2mat22_setangle(handle:Byte Ptr, angle:Float)
 	Function bmx_b2mat22_getangle:Float(handle:Byte Ptr)
+	Function bmx_b2mat22_create:Byte Ptr(a11:Float, a12:Float, a21:Float, a22:Float)
+	Function bmx_b2mat22_createvec:Byte Ptr(c1:Byte Ptr, c2:Byte Ptr)
+	Function bmx_b2mat22_createangle:Byte Ptr(angle:Float)
+	Function bmx_b2mat22_setidentity(handle:Byte Ptr)
+	Function bmx_b2mat22_setzero(handle:Byte Ptr)
+	Function bmx_b2mat22_getinverse:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2mat22_delete(handle:Byte Ptr)
 
 	Function bmx_b2contact_getshape1:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2contact_getshape2:Byte Ptr(handle:Byte Ptr)

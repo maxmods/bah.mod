@@ -35,6 +35,7 @@ ModuleInfo "History: Updated to box2d svn (rev 179)"
 ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."
+ModuleInfo "History: Added b2Mat22 Create... methods, and others."
 ModuleInfo "History: Added shape SetFriction() and SetRestitution() methods."
 ModuleInfo "History: Fixed contact filter example and docs."
 ModuleInfo "History: Added b2EdgeShape type."
@@ -3991,14 +3992,44 @@ End Rem
 Type b2Mat22
 
 	Field b2ObjectPtr:Byte Ptr
+	Field owner:Int
 	
-	Function _create:b2Mat22(b2ObjectPtr:Byte Ptr)
+	Function _create:b2Mat22(b2ObjectPtr:Byte Ptr, isOwner:Int = False)
 		If b2ObjectPtr Then
 			Local this:b2Mat22 = New b2Mat22
 			this.b2ObjectPtr = b2ObjectPtr
+			this.owner = isOwner
 			Return this
 		End If
 	End Function
+
+	Rem
+	bbdoc: Constructs the matrix using scalars.
+	End Rem
+	Method Create:b2Mat22(a11:Float, a12:Float, a21:Float, a22:Float)
+		b2ObjectPtr = bmx_b2mat22_create(a11, a12, a21, a22)
+		owner = True
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Constructs the matrix using columns.
+	End Rem
+	Method CreateVec:b2Mat22(c1:b2Vec2, c2:b2Vec2)
+		b2ObjectPtr = bmx_b2mat22_createvec(c1.b2ObjectPtr, c2.b2ObjectPtr)
+		owner = True
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Constructs the matrix using an angle.
+	about: This matrix becomes an orthonormal rotation matrix.
+	End Rem
+	Method CreateAngle:b2Mat22(angle:Float)
+		b2ObjectPtr = bmx_b2mat22_createangle(angle)
+		owner = True
+		Return Self
+	End Method
 
 	Rem
 	bbdoc: Initialize this matrix using an angle.
@@ -4009,10 +4040,38 @@ Type b2Mat22
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the angle.
 	End Rem
 	Method GetAngle:Float()
 		Return bmx_b2mat22_getangle(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set this to the identity matrix.
+	End Rem
+	Method SetIdentity()
+		bmx_b2mat22_setidentity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set this matrix to all zeros.
+	End Rem
+	Method SetZero()
+		bmx_b2mat22_setzero(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Computes the inverse of this matrix, such that inv(A) * A = identity.
+	End Rem
+	Method GetInverse:b2Mat22()
+		Return b2Mat22._create(bmx_b2mat22_getinverse(b2ObjectPtr), True)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr And owner Then
+			bmx_b2mat22_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
 	End Method
 
 End Type
