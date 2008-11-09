@@ -4006,7 +4006,7 @@ Type b2Mat22
 	Rem
 	bbdoc: Constructs the matrix using scalars.
 	End Rem
-	Method Create:b2Mat22(a11:Float, a12:Float, a21:Float, a22:Float)
+	Method Create:b2Mat22(a11:Float = 0, a12:Float = 0, a21:Float = 0, a22:Float = 0)
 		b2ObjectPtr = bmx_b2mat22_create(a11, a12, a21, a22)
 		owner = True
 		Return Self
