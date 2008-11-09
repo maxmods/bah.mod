@@ -1,0 +1,25 @@
+<p>
+This module is designed to parse FTP directory listings, returning a list of objects that represent files and directories.
+</p>
+<p>
+Currently, the module can read the following types of FTP server listings :
+<ul>
+<li>Unix / Linux</li>
+<li>Enterprise Unix</li>
+<li>Netware</li>
+<li>NT</li>
+<li>OS2</li>
+<li>OS400</li>
+<li>MVS</li>
+<li>VMS</li>
+</ul>
+</p>
+<h3>Requirements</h3>
+<p>
+The BaH.RegEx module is required for list processing.
+</p>
+<h3>Usage</h3>
+<p>
+Create an instance of <a href="#TFTPParserFactory">TFTPParserFactory</a>, and use the <a href="#parseList">parseList</a>() method to parse the listing, returning a TList of <a href="#TFilePath">TFilePath</a> objects.
+</p>
+<p>The listing should be passed in as a single String.</p>
