@@ -19,6 +19,7 @@
 #include "b2Shape.h"
 #include "b2CircleShape.h"
 #include "b2PolygonShape.h"
+#include "b2EdgeShape.h"
 #include "../b2Collision.h"
 #include "../b2BroadPhase.h"
 #include "../../Common/b2BlockAllocator.h"
@@ -49,6 +50,7 @@ b2Shape* b2Shape::Create(const b2ShapeDef* def, b2BlockAllocator* allocator)
 
 void b2Shape::Destroy(b2Shape* s, b2BlockAllocator* allocator)
 {
+	b2EdgeShape* edge;
 	switch (s->GetType())
 	{
 	case e_circleShape:
@@ -59,6 +61,14 @@ void b2Shape::Destroy(b2Shape* s, b2BlockAllocator* allocator)
 	case e_polygonShape:
 		s->~b2Shape();
 		allocator->Free(s, sizeof(b2PolygonShape));
+		break;
+
+	case e_edgeShape:
+		edge = (b2EdgeShape*) s;
+		if (edge->m_nextEdge != NULL) edge->m_nextEdge->m_prevEdge = NULL;
+		if (edge->m_prevEdge != NULL) edge->m_prevEdge->m_nextEdge = NULL;
+		s->~b2Shape();
+		allocator->Free(s, sizeof(b2EdgeShape));
 		break;
 
 	default:

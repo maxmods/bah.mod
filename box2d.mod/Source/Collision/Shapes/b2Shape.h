@@ -61,6 +61,7 @@ enum b2ShapeType
 	e_unknownShape = -1,
 	e_circleShape,
 	e_polygonShape,
+	e_edgeShape,
 	e_shapeTypeCount,
 };
 

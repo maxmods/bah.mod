@@ -60,6 +60,7 @@ b2RevoluteJoint::b2RevoluteJoint(const b2RevoluteJointDef* def)
 	m_motorSpeed = def->motorSpeed;
 	m_enableLimit = def->enableLimit;
 	m_enableMotor = def->enableMotor;
+	m_limitState = e_inactiveLimit;
 }
 
 void b2RevoluteJoint::InitVelocityConstraints(const b2TimeStep& step)
@@ -136,6 +137,10 @@ void b2RevoluteJoint::InitVelocityConstraints(const b2TimeStep& step)
 			m_impulse.z = 0.0f;
 		}
 	}
+	else
+	{
+		m_limitState = e_inactiveLimit;
+	}
 
 	if (step.warmStarting)
 	{
@@ -171,6 +176,7 @@ void b2RevoluteJoint::SolveVelocityConstraints(const b2TimeStep& step)
 	float32 m1 = b1->m_invMass, m2 = b2->m_invMass;
 	float32 i1 = b1->m_invI, i2 = b2->m_invI;
 
+	// Solve motor constraint.
 	if (m_enableMotor && m_limitState != e_equalLimits)
 	{
 		float32 Cdot = w2 - w1 - m_motorSpeed;
@@ -184,6 +190,7 @@ void b2RevoluteJoint::SolveVelocityConstraints(const b2TimeStep& step)
 		w2 += i2 * impulse;
 	}
 
+	// Solve limit constraint.
 	if (m_enableLimit && m_limitState != e_inactiveLimit)
 	{
 		b2Vec2 r1 = b2Mul(b1->GetXForm().R, m_localAnchor1 - b1->GetLocalCenter());

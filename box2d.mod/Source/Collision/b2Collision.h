@@ -29,6 +29,7 @@
 class b2Shape;
 class b2CircleShape;
 class b2PolygonShape;
+class b2EdgeShape;
 
 const uint8 b2_nullFeature = UCHAR_MAX;
 

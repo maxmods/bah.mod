@@ -483,6 +483,28 @@ Extern
 	Function bmx_b2linejoint_setmaxmotorforce(handle:Byte Ptr, force:Float)
 	Function bmx_b2linejoint_getmotorforce:Float(handle:Byte Ptr)
 
+	Function bmx_b2edgechaindef_create:Byte Ptr()
+	Function bmx_b2edgechaindef_getdef:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgechaindef_isaloop:Int(handle:Byte Ptr)
+	Function bmx_b2edgechaindef_setisaloop(handle:Byte Ptr, value:Int)
+	Function bmx_b2edgechaindef_delete(handle:Byte Ptr)
+
+	Function bmx_b2edgeshape_getlength:Float(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getvertex1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getvertex2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getcorevertex1:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getcorevertex2:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getnormalvector:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getdirectionvector:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getcorner1vector:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getcorner2vector:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_corner1isconvex:Int(handle:Byte Ptr)
+	Function bmx_b2edgeshape_corner2isconvex:Int(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getfirstvertex:Byte Ptr(handle:Byte Ptr, xf:Byte Ptr)
+	Function bmx_b2edgeshape_support:Byte Ptr(handle:Byte Ptr, xf:Byte Ptr, d:Byte Ptr)
+	Function bmx_b2edgeshape_getnextedge:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2edgeshape_getprevedge:Byte Ptr(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0
@@ -497,4 +519,6 @@ Const e_lineJoint:Int = 7
 Const e_unknownShape:Int = -1
 Const e_circleShape:Int = 0
 Const e_polygonShape:Int = 1
+Const e_edgeShape:Int = 2
+
 

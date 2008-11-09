@@ -31,12 +31,14 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
-ModuleInfo "History: Updated to box2d svn (rev 177)"
+ModuleInfo "History: Updated to box2d svn (rev 179)"
 ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."
 ModuleInfo "History: Added shape SetFriction() and SetRestitution() methods."
 ModuleInfo "History: Fixed contact filter example and docs."
+ModuleInfo "History: Added b2EdgeShape type."
+ModuleInfo "History: Added dynamicedges and pyramidstaticedges examples."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -1065,7 +1067,8 @@ Type b2Body
 	</p>
 	End Rem
 	Method CreateShape:b2Shape(def:b2ShapeDef)
-		Local shape:b2Shape = b2Shape._create(bmx_b2body_createshape(b2ObjectPtr, def.b2ObjectPtr))
+		Local shape:b2Shape
+		shape = b2Shape._create(bmx_b2body_createshape(b2ObjectPtr, def.b2ObjectPtr))
 		shape.userData = def.userData ' copy the userData
 		Return shape
 	End Method
@@ -1079,6 +1082,8 @@ Type b2Body
 				shape = New b2CircleShape
 			Case e_polygonShape
 				shape = New b2PolygonShape
+			Case e_edgeShape
+				shape = New b2EdgeShape
 			Default
 				DebugLog "Warning, shape type '" + shapeType + "' is not defined in module."
 				shape = New b2Shape
@@ -2248,6 +2253,7 @@ Extern
 	Function bmx_b2polygonshape_getvertices:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2polygonshape_getcorevertices:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2polygonshape_getnormals:b2Vec2[](handle:Byte Ptr)
+	Function bmx_b2edgechaindef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
 End Extern
 
 Rem
@@ -2315,6 +2321,156 @@ Type b2CircleShape Extends b2Shape
 		Return bmx_b2circleshape_getradius(b2ObjectPtr)
 	End Method
 
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2EdgeChainDef Extends b2ShapeDef
+
+	Field shapeDefPtr:Byte Ptr
+
+	Field vertices:b2Vec2[]
+
+	Method New()
+		shapeDefPtr = bmx_b2edgechaindef_create()
+		b2ObjectPtr = bmx_b2edgechaindef_getdef(shapeDefPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetVertices(vertices:b2Vec2[])
+		Self.vertices = vertices
+		bmx_b2edgechaindef_setvertices(shapeDefPtr, vertices)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetVertices:b2Vec2[]()
+		Return vertices
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method isALoop:Int()
+		Return bmx_b2edgechaindef_isaloop(shapeDefPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetIsALoop(value:Int)
+		bmx_b2edgechaindef_setisaloop(shapeDefPtr, value)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			vertices = Null
+			bmx_b2edgechaindef_delete(shapeDefPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2EdgeShape Extends b2Shape
+
+	Function _create:b2EdgeShape(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2EdgeShape = New b2EdgeShape
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+
+	Method GetLength:Float()
+		Return bmx_b2edgeshape_getlength(b2ObjectPtr)
+	End Method
+
+	' Local position of vertex in parent body
+	Method GetVertex1:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getvertex1(b2ObjectPtr))
+	End Method
+
+
+	' Local position of vertex in parent body
+	Method GetVertex2:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getvertex2(b2ObjectPtr))
+	End Method
+
+
+	' "Core" vertex with TOI slop For b2Distance functions:
+	Method GetCoreVertex1:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getcorevertex1(b2ObjectPtr))
+	End Method
+
+
+	' "Core" vertex with TOI slop For b2Distance functions:
+	Method GetCoreVertex2:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getcorevertex2(b2ObjectPtr))
+	End Method
+
+	
+	' Perpendicular unit vector point, pointing from the solid side To the empty side: 
+	Method GetNormalVector:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getnormalvector(b2ObjectPtr))
+	End Method
+
+	
+	' Parallel unit vector, pointing from vertex1 To vertex2:
+	Method GetDirectionVector:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getdirectionvector(b2ObjectPtr))
+	End Method
+
+	
+	Method GetCorner1Vector:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getcorner1vector(b2ObjectPtr))
+	End Method
+
+	
+	Method GetCorner2Vector:b2Vec2()
+		Return b2Vec2._create(bmx_b2edgeshape_getcorner2vector(b2ObjectPtr))
+	End Method
+
+	
+	Method Corner1IsConvex:Int()
+		Return bmx_b2edgeshape_corner1isconvex(b2ObjectPtr)
+	End Method
+
+	
+	Method Corner2IsConvex:Int()
+		Return bmx_b2edgeshape_corner2isconvex(b2ObjectPtr)
+	End Method
+
+
+	Method GetFirstVertex:b2Vec2(xf:b2XForm)
+		Return b2Vec2._create(bmx_b2edgeshape_getfirstvertex(b2ObjectPtr, xf.b2ObjectPtr))
+	End Method
+
+
+	Method Support:b2Vec2(xf:b2XForm, d:b2Vec2)
+		Return b2Vec2._create(bmx_b2edgeshape_support(b2ObjectPtr, xf.b2ObjectPtr, d.b2ObjectPtr))
+	End Method
+
+	
+	' Get the Next edge in the chain.
+	Method GetNextEdge:b2EdgeShape()
+		Return b2EdgeShape._create(bmx_b2edgeshape_getnextedge(b2ObjectPtr))
+	End Method
+
+	
+	' Get the previous edge in the chain.
+	Method GetPrevEdge:b2EdgeShape()
+		Return b2EdgeShape._create(bmx_b2edgeshape_getprevedge(b2ObjectPtr))
+	End Method
+
+	
 End Type
 
 Rem

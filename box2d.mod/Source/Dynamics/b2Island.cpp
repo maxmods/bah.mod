@@ -207,8 +207,8 @@ void b2Island::Solve(const b2TimeStep& step, const b2Vec2& gravity, bool allowSl
 
 		// Check for large velocities.
 #ifdef TARGET_FLOAT32_IS_FIXED
-				// Fixed point code written this way to prevent
-				// overflows, float code is optimized for speed
+		// Fixed point code written this way to prevent
+		// overflows, float code is optimized for speed
 
 		float32 vMagnitude = b->m_linearVelocity.Length();
 		if(vMagnitude > b2_maxLinearVelocity) {

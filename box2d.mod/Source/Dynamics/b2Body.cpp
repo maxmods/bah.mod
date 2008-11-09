@@ -20,6 +20,7 @@
 #include "b2World.h"
 #include "Joints/b2Joint.h"
 #include "../Collision/Shapes/b2Shape.h"
+#include "../Collision/Shapes/b2EdgeShape.h"
 
 b2Body::b2Body(const b2BodyDef* bd, b2World* world)
 {
@@ -112,6 +113,20 @@ b2Body::~b2Body()
 	// shapes and joints are destroyed in b2World::Destroy
 }
 
+
+float32 connectEdges(b2EdgeShape * const & s1, b2EdgeShape * const & s2, float32 angle1)
+{
+	float32 angle2 = b2Atan2(s2->GetDirectionVector().y, s2->GetDirectionVector().x);
+	b2Vec2 core = tanf((angle2 - angle1) * 0.5f) * s2->GetDirectionVector();
+	core = b2_toiSlop * (core - s2->GetNormalVector()) + s2->GetVertex1();
+	b2Vec2 cornerDir = s1->GetDirectionVector() + s2->GetDirectionVector();
+	cornerDir.Normalize();
+	bool convex = b2Dot(s1->GetDirectionVector(), s2->GetNormalVector()) > 0.0f;
+	s1->SetNextEdge(s2, core, cornerDir, convex);
+	s2->SetPrevEdge(s1, core, cornerDir, convex);
+	return angle2;
+}
+
 b2Shape* b2Body::CreateShape(b2ShapeDef* def)
 {
 	b2Assert(m_world->m_lock == false);
@@ -119,9 +134,56 @@ b2Shape* b2Body::CreateShape(b2ShapeDef* def)
 	{
 		return NULL;
 	}
-
+	
+	
+	// TODO: Decide on a better place to initialize edgeShapes. (b2Shape::Create() can't
+	//       return more than one shape to add to parent body... maybe it should add
+	//       shapes directly to the body instead of returning them?)
+	if (def->type == e_edgeShape) {
+		b2EdgeChainDef* edgeDef = (b2EdgeChainDef*)def;
+		b2Vec2 v1;
+		b2Vec2 v2;
+		int i;
+		
+		if (edgeDef->isALoop) {
+			v1 = edgeDef->vertices[edgeDef->vertexCount-1];
+			i = 0;
+		} else {
+			v1 = edgeDef->vertices[0];
+			i = 1;
+		}
+		
+		b2EdgeShape* s0 = NULL;
+		b2EdgeShape* s1 = NULL;
+		b2EdgeShape* s2 = NULL;
+		float32 angle = 0.0f;
+		for (; i < edgeDef->vertexCount; i++) {
+			v2 = edgeDef->vertices[i];
+			
+			void* mem = m_world->m_blockAllocator.Allocate(sizeof(b2EdgeShape));
+			s2 = new (mem) b2EdgeShape(v1, v2, def);
+			s2->m_next = m_shapeList;
+			m_shapeList = s2;
+			++m_shapeCount;
+			s2->m_body = this;
+			s2->CreateProxy(m_world->m_broadPhase, m_xf);
+			s2->UpdateSweepRadius(m_sweep.localCenter);
+			
+			if (s1 == NULL) {
+				s0 = s2;
+				angle = b2Atan2(s2->GetDirectionVector().y, s2->GetDirectionVector().x);
+			} else {
+				angle = connectEdges(s1, s2, angle);
+			}
+			s1 = s2;
+			v1 = v2;
+		}
+		if (edgeDef->isALoop) connectEdges(s1, s0, angle);
+		return s0;
+	}
+	
 	b2Shape* s = b2Shape::Create(def, &m_world->m_blockAllocator);
-
+	
 	s->m_next = m_shapeList;
 	m_shapeList = s;
 	++m_shapeCount;

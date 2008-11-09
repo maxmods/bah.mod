@@ -107,6 +107,7 @@ b2LineJoint::b2LineJoint(const b2LineJointDef* def)
 	m_motorSpeed = def->motorSpeed;
 	m_enableLimit = def->enableLimit;
 	m_enableMotor = def->enableMotor;
+	m_limitState = e_inactiveLimit;
 
 	m_axis.SetZero();
 	m_perp.SetZero();
@@ -191,6 +192,10 @@ void b2LineJoint::InitVelocityConstraints(const b2TimeStep& step)
 			m_limitState = e_inactiveLimit;
 			m_impulse.y = 0.0f;
 		}
+	}
+	else
+	{
+		m_limitState = e_inactiveLimit;
 	}
 
 	if (m_enableMotor == false)

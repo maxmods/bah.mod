@@ -35,6 +35,7 @@ For discussion please visit http://www.box2d.org/forum
 
 #include "../Source/Collision/Shapes/b2CircleShape.h"
 #include "../Source/Collision/Shapes/b2PolygonShape.h"
+#include "../Source/Collision/Shapes/b2EdgeShape.h"
 #include "../Source/Collision/b2BroadPhase.h"
 #include "../Source/Dynamics/b2WorldCallbacks.h"
 #include "../Source/Dynamics/b2World.h"

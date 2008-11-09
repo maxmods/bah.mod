@@ -37,6 +37,8 @@ Import "Source/Dynamics/Contacts/b2PolyContact.cpp"
 Import "Source/Dynamics/Contacts/b2Contact.cpp"
 Import "Source/Dynamics/Contacts/b2ContactSolver.cpp"
 Import "Source/Dynamics/Contacts/b2PolyAndCircleContact.cpp"
+Import "Source/Dynamics/Contacts/b2EdgeAndCircleContact.cpp"
+Import "Source/Dynamics/Contacts/b2PolyAndEdgeContact.cpp"
 
 Import "Source/Dynamics/Joints/b2DistanceJoint.cpp"
 Import "Source/Dynamics/Joints/b2RevoluteJoint.cpp"
@@ -58,7 +60,7 @@ Import "Source/Collision/b2PairManager.cpp"
 Import "Source/Collision/Shapes/b2CircleShape.cpp"
 Import "Source/Collision/Shapes/b2Shape.cpp"
 Import "Source/Collision/Shapes/b2PolygonShape.cpp"
-
+Import "Source/Collision/Shapes/b2EdgeShape.cpp"
 
 Import "Source/Common/b2BlockAllocator.cpp"
 Import "Source/Common/b2StackAllocator.cpp"

@@ -19,6 +19,7 @@
 #include "b2Collision.h"
 #include "Shapes/b2CircleShape.h"
 #include "Shapes/b2PolygonShape.h"
+#include "Shapes/b2EdgeShape.h"
 
 int32 g_GJK_Iterations = 0;
 
@@ -287,6 +288,58 @@ static float32 DistanceCC(
 	return 0.0f;
 }
 
+static float32 DistanceEdgeCircle(
+	b2Vec2* x1, b2Vec2* x2,
+	const b2EdgeShape* edge, const b2XForm& xf1,
+	const b2CircleShape* circle, const b2XForm& xf2)
+{
+	b2Vec2 vWorld;
+	b2Vec2 d;
+	float32 dSqr;
+	float32 dLen;
+	float32 r = circle->GetRadius() - b2_toiSlop;
+	b2Vec2 cWorld = b2Mul(xf2, circle->GetLocalPosition());
+	b2Vec2 cLocal = b2MulT(xf1, cWorld);
+	float32 dirDist = b2Dot(cLocal - edge->GetCoreVertex1(), edge->GetDirectionVector());
+	if (dirDist <= 0.0f) {
+		vWorld = b2Mul(xf1, edge->GetCoreVertex1());
+	} else if (dirDist >= edge->GetLength()) {
+		vWorld = b2Mul(xf1, edge->GetCoreVertex2());
+	} else {
+		*x1 = b2Mul(xf1, edge->GetCoreVertex1() + dirDist * edge->GetDirectionVector());
+		dLen = b2Dot(cLocal - edge->GetCoreVertex1(), edge->GetNormalVector());
+		if (dLen < 0.0f) {
+			if (dLen < -r) {
+				*x2 = b2Mul(xf1, cLocal + r * edge->GetNormalVector());
+				return -dLen - r;
+			} else {
+				*x2 = *x1;
+				return 0.0f;
+			}
+		} else {
+			if (dLen > r) {
+				*x2 = b2Mul(xf1, cLocal  - r * edge->GetNormalVector());
+				return dLen - r;
+			} else {
+				*x2 = *x1;
+				return 0.0f;
+			}
+		}
+	}
+	
+	*x1 = vWorld;
+	d = cWorld - vWorld;
+	dSqr = b2Dot(d, d);
+	if (dSqr > r * r) {
+		dLen = d.Normalize();
+		*x2 = cWorld - r * d;
+		return dLen - r;
+	} else {
+		*x2 = vWorld;
+		return 0.0f;
+	}
+}
+
 // This is used for polygon-vs-circle distance.
 struct Point
 {
@@ -358,6 +411,26 @@ float32 b2Distance(b2Vec2* x1, b2Vec2* x2,
 	if (type1 == e_polygonShape && type2 == e_polygonShape)
 	{
 		return DistanceGeneric(x1, x2, (b2PolygonShape*)shape1, xf1, (b2PolygonShape*)shape2, xf2);
+	}
+
+	if (type1 == e_edgeShape && type2 == e_circleShape)
+	{
+		return DistanceEdgeCircle(x1, x2, (b2EdgeShape*)shape1, xf1, (b2CircleShape*)shape2, xf2);
+	}
+	
+	if (type1 == e_circleShape && type2 == e_edgeShape)
+	{
+		return DistanceEdgeCircle(x2, x1, (b2EdgeShape*)shape2, xf2, (b2CircleShape*)shape1, xf1);
+	}
+
+	if (type1 == e_polygonShape && type2 == e_edgeShape)
+	{
+		return DistanceGeneric(x2, x1, (b2EdgeShape*)shape2, xf2, (b2PolygonShape*)shape1, xf1);
+	}
+
+	if (type1 == e_edgeShape && type2 == e_polygonShape)
+	{
+		return DistanceGeneric(x1, x2, (b2EdgeShape*)shape1, xf1, (b2PolygonShape*)shape2, xf2);
 	}
 
 	return 0.0f;

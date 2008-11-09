@@ -148,7 +148,7 @@ public:
 	b2Vec3 m_impulse;
 	float32 m_motorImpulse;
 
-	b2Mat33 m_mass;		// effective mass for point-to-point constraint.
+	b2Mat33 m_mass;			// effective mass for point-to-point constraint.
 	float32 m_motorMass;	// effective mass for motor/limit angular constraint.
 	
 	bool m_enableMotor;

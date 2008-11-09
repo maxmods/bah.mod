@@ -116,6 +116,7 @@ b2PrismaticJoint::b2PrismaticJoint(const b2PrismaticJointDef* def)
 	m_motorSpeed = def->motorSpeed;
 	m_enableLimit = def->enableLimit;
 	m_enableMotor = def->enableMotor;
+	m_limitState = e_inactiveLimit;
 
 	m_axis.SetZero();
 	m_perp.SetZero();
@@ -208,6 +209,10 @@ void b2PrismaticJoint::InitVelocityConstraints(const b2TimeStep& step)
 			m_limitState = e_inactiveLimit;
 			m_impulse.z = 0.0f;
 		}
+	}
+	else
+	{
+		m_limitState = e_inactiveLimit;
 	}
 
 	if (m_enableMotor == false)

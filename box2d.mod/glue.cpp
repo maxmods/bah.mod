@@ -29,6 +29,7 @@ class MaxContactListener;
 class MaxBoundaryListener;
 class MaxFilterData;
 class MaxDestructionListener;
+class Maxb2EdgeChainDef;
 
 extern "C" {
 
@@ -519,7 +520,29 @@ extern "C" {
 	void bmx_b2linejoint_setmaxmotorforce(b2LineJoint * joint, float32 force);
 	float32 bmx_b2linejoint_getmotorforce(b2LineJoint * joint);
 
-	
+	Maxb2EdgeChainDef * bmx_b2edgechaindef_create();
+	b2EdgeChainDef * bmx_b2edgechaindef_getdef(Maxb2EdgeChainDef * def);
+	bool bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def);
+	void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, bool value);
+	void bmx_b2edgechaindef_delete(Maxb2EdgeChainDef * def);
+	void bmx_b2edgechaindef_setvertices(Maxb2EdgeChainDef * def, BBArray * vertices);
+
+	float32 bmx_b2edgeshape_getlength(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getvertex1(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getvertex2(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getcorevertex1(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getcorevertex2(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getnormalvector(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getdirectionvector(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getcorner1vector(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getcorner2vector(b2EdgeShape * shape);
+	bool bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape);
+	bool bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape);
+	b2Vec2 * bmx_b2edgeshape_getfirstvertex(b2EdgeShape * shape, b2XForm * xf);
+	b2Vec2 * bmx_b2edgeshape_support(b2EdgeShape * shape, b2XForm * xf, b2Vec2 * d);
+	b2EdgeShape * bmx_b2edgeshape_getnextedge(b2EdgeShape * shape);
+	b2EdgeShape * bmx_b2edgeshape_getprevedge(b2EdgeShape * shape);
+
 }
 
 class MaxFilterData
@@ -573,6 +596,41 @@ public:
 private:
 	b2FilterData * data;
 	bool owner;
+};
+
+
+// *****************************************************
+
+class Maxb2EdgeChainDef
+{
+public:
+	Maxb2EdgeChainDef()
+	{
+		def = new b2EdgeChainDef;
+		vertices = NULL;
+	}
+	
+	~Maxb2EdgeChainDef()
+	{
+		delete def;
+		if (vertices) {
+			delete [] vertices;
+		}
+	}
+
+	void initVertices(int size) {
+		if (vertices) {
+			delete [] vertices;
+			def->vertices = NULL;
+		}
+		
+		vertices = new b2Vec2[size];
+		def->vertexCount = size;
+		def->vertices = vertices;
+	}	
+	
+	b2EdgeChainDef * def;
+	b2Vec2 * vertices;
 };
 
 
@@ -2585,4 +2643,102 @@ void bmx_b2linejoint_setmaxmotorforce(b2LineJoint * joint, float32 force) {
 float32 bmx_b2linejoint_getmotorforce(b2LineJoint * joint) {
 	return joint->GetMotorForce();
 }
+
+
+// *****************************************************
+
+Maxb2EdgeChainDef * bmx_b2edgechaindef_create() {
+	return new Maxb2EdgeChainDef;
+}
+
+b2EdgeChainDef * bmx_b2edgechaindef_getdef(Maxb2EdgeChainDef * def) {
+	return def->def;
+}
+
+bool bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def) {
+	return def->def->isALoop;
+}
+
+void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, bool value) {
+	def->def->isALoop = value;
+}
+
+void bmx_b2edgechaindef_delete(Maxb2EdgeChainDef * def) {
+	delete def;
+}
+
+
+void bmx_b2edgechaindef_setvertices(Maxb2EdgeChainDef * def, BBArray * vertices) {
+
+	int n = vertices->scales[0];
+
+	def->initVertices(n);
+	
+	for (int i = 0; i < n; i++) {
+		def->vertices[i] = *_bah_box2d_b2Vec2__getVec(vertices, i);
+	}
+}
+
+// *****************************************************
+
+float32 bmx_b2edgeshape_getlength(b2EdgeShape * shape) {
+	return shape->GetLength();
+}
+
+b2Vec2 * bmx_b2edgeshape_getvertex1(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetVertex1());
+}
+
+b2Vec2 * bmx_b2edgeshape_getvertex2(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetVertex2());
+}
+
+b2Vec2 * bmx_b2edgeshape_getcorevertex1(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetCoreVertex1());
+}
+
+b2Vec2 * bmx_b2edgeshape_getcorevertex2(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetCoreVertex2());
+}
+
+b2Vec2 * bmx_b2edgeshape_getnormalvector(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetNormalVector());
+}
+
+b2Vec2 * bmx_b2edgeshape_getdirectionvector(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetDirectionVector());
+}
+
+b2Vec2 * bmx_b2edgeshape_getcorner1vector(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetCorner1Vector());
+}
+
+b2Vec2 * bmx_b2edgeshape_getcorner2vector(b2EdgeShape * shape) {
+	return bmx_b2vec2_new(shape->GetCorner2Vector());
+}
+
+bool bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape) {
+	return shape->Corner1IsConvex();
+}
+
+bool bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape) {
+	return shape->Corner2IsConvex();
+}
+
+b2Vec2 * bmx_b2edgeshape_getfirstvertex(b2EdgeShape * shape, b2XForm * xf) {
+	return bmx_b2vec2_new(shape->GetFirstVertex(*xf));
+}
+
+b2Vec2 * bmx_b2edgeshape_support(b2EdgeShape * shape, b2XForm * xf, b2Vec2 * d) {
+	return bmx_b2vec2_new(shape->Support(*xf, *d));
+}
+
+b2EdgeShape * bmx_b2edgeshape_getnextedge(b2EdgeShape * shape) {
+	return shape->GetNextEdge();
+}
+
+b2EdgeShape * bmx_b2edgeshape_getprevedge(b2EdgeShape * shape) {
+	return shape->GetPrevEdge();
+}
+
 

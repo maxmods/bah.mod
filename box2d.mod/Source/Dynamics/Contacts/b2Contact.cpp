@@ -20,6 +20,8 @@
 #include "b2CircleContact.h"
 #include "b2PolyAndCircleContact.h"
 #include "b2PolyContact.h"
+#include "b2EdgeAndCircleContact.h"
+#include "b2PolyAndEdgeContact.h"
 #include "b2ContactSolver.h"
 #include "../../Collision/b2Collision.h"
 #include "../../Collision/Shapes/b2Shape.h"
@@ -35,6 +37,9 @@ void b2Contact::InitializeRegisters()
 	AddType(b2CircleContact::Create, b2CircleContact::Destroy, e_circleShape, e_circleShape);
 	AddType(b2PolyAndCircleContact::Create, b2PolyAndCircleContact::Destroy, e_polygonShape, e_circleShape);
 	AddType(b2PolygonContact::Create, b2PolygonContact::Destroy, e_polygonShape, e_polygonShape);
+	
+	AddType(b2EdgeAndCircleContact::Create, b2EdgeAndCircleContact::Destroy, e_edgeShape, e_circleShape);
+	AddType(b2PolyAndEdgeContact::Create, b2PolyAndEdgeContact::Destroy, e_polygonShape, e_edgeShape);
 }
 
 void b2Contact::AddType(b2ContactCreateFcn* createFcn, b2ContactDestroyFcn* destoryFcn,
