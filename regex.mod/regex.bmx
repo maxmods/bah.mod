@@ -39,6 +39,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fixed offset problems when working with non-ascii text."
+ModuleInfo "History: Fixed Replace() where loop was overflowing."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to PCRE 7.4"
 ModuleInfo "History: 1.02"
@@ -189,7 +190,7 @@ Type TRegEx
 
 			Local replaceStr:String = replaceWith
 			Local ofs:Int Ptr = Int Ptr(offsets)
-			For Local i:Int = 0 To result
+			For Local i:Int = 0 Until result
 				Local idx:Int = i * 2
 				replaceStr = replaceStr.Replace( "\" + i, lastTargetutf8[ofs[idx]..ofs[idx+1]])
 			Next
