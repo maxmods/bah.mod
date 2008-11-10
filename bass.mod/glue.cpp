@@ -223,10 +223,11 @@ void bmx_bass_channelseconds2bytes(DWORD handle, QWORD * bytes, double pos) {
 
 BBArray * bmx_bass_channelgettags(DWORD handle, DWORD tags) {
 	const char * text;
+	TAG_ID3 *id3;
 	
 	switch (tags) {
 		case BASS_TAG_ID3:
-			TAG_ID3 *id3= (TAG_ID3*) BASS_ChannelGetTags(handle, BASS_TAG_ID3); // get the ID3 tags
+			id3 = (TAG_ID3*) BASS_ChannelGetTags(handle, BASS_TAG_ID3); // get the ID3 tags
 			if (id3) {
 				
 				char buffer[4];
