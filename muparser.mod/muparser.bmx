@@ -37,6 +37,14 @@ ModuleInfo "CC_OPTS: -fexceptions"' -D_UNICODE"
 
 Import "common.bmx"
 
+'
+' Notes :
+'
+' Modified muParser.cpp
+'   Added Degree/Radian conversions for trig functions.
+'   Changed constant _pi to pi.
+'
+
 Rem
 bbdoc: Mathematical expressions parser.
 about: Standard implementation of the mathematical expressions parser.

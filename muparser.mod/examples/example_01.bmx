@@ -12,7 +12,6 @@ Try
 
 	parser.DefineVar("a", fVal)
 	parser.DefineFun1("MyFunc", MyFunction)
-	parser.DefineConst("pi", Pi)
 	parser.SetExpr(expr)
 
 	Print parser.Eval()

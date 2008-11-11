@@ -36,6 +36,10 @@
 /** \brief The eulerian number. */
 #define PARSER_CONST_E   2.718281828459045235360287
 
+// BaH
+#define RAD_TO_DEG 57.2957795130823208767981548141052
+#define DEG_TO_RAD 0.0174532925199432957692369076848861
+
 using namespace std;
 
 /** \file
@@ -50,12 +54,12 @@ namespace mu
   
   //---------------------------------------------------------------------------
   // Trigonometric function
-  value_type Parser::Sin(value_type v)   { return sin(v);  }
-  value_type Parser::Cos(value_type v)   { return cos(v);  }
-  value_type Parser::Tan(value_type v)   { return tan(v);  }
-  value_type Parser::ASin(value_type v)  { return asin(v); }
-  value_type Parser::ACos(value_type v)  { return acos(v); }
-  value_type Parser::ATan(value_type v)  { return atan(v); }
+  value_type Parser::Sin(value_type v)   { return sin(v * DEG_TO_RAD);  } // BaH
+  value_type Parser::Cos(value_type v)   { return cos(v * DEG_TO_RAD);  }
+  value_type Parser::Tan(value_type v)   { return tan(v * DEG_TO_RAD);  }
+  value_type Parser::ASin(value_type v)  { return asin(v) * RAD_TO_DEG; }
+  value_type Parser::ACos(value_type v)  { return acos(v) * RAD_TO_DEG; }
+  value_type Parser::ATan(value_type v)  { return atan(v) * RAD_TO_DEG; }
   value_type Parser::Sinh(value_type v)  { return sinh(v); }
   value_type Parser::Cosh(value_type v)  { return cosh(v); }
   value_type Parser::Tanh(value_type v)  { return tanh(v); }
@@ -281,7 +285,7 @@ namespace mu
   */
   void Parser::InitConst()
   {
-    DefineConst(_T("_pi"), (value_type)PARSER_CONST_PI);
+    DefineConst(_T("pi"), (value_type)PARSER_CONST_PI); // BaH
     DefineConst(_T("_e"), (value_type)PARSER_CONST_E);
   }
 
