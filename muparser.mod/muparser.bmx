@@ -74,6 +74,9 @@ End Rem
 Type TmuParserBase
 
 	Field parserPtr:Byte Ptr
+	
+	Field varFactoryCallback:Double Ptr(name:String, userData:Object)
+	Field vfUserData:Object
 
 	Rem
 	bbdoc: Calculates the result.
@@ -156,7 +159,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearVar()
 		bmx_muparser_parserbase_clearvar(parserPtr)
-
 	End Method
 
 	Rem
@@ -164,7 +166,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearFun()
 		bmx_muparser_parserbase_clearfun(parserPtr)
-
 	End Method
 
 	Rem
@@ -173,7 +174,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearConst()
 		bmx_muparser_parserbase_clearconst(parserPtr)
-
 	End Method
 
 	Rem
@@ -181,7 +181,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearInfixOprt()
 		bmx_muparser_parserbase_clearinfixoprt(parserPtr)
-
 	End Method
 
 	Rem
@@ -189,7 +188,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearPostfixOprt()
 		bmx_muparser_parserbase_clearpostfixoprt(parserPtr)
-
 	End Method
 
 	Rem
@@ -197,7 +195,6 @@ Type TmuParserBase
 	End Rem
 	Method ClearOprt()
 		bmx_muparser_parserbase_clearoprt(parserPtr)
-
 	End Method
 
 	Rem
@@ -239,7 +236,6 @@ Type TmuParserBase
 	bbdoc: Defines a parser function with 5 arguments.
 	End Rem
 	Method DefineFun5(name:String, callback:Double(val1:Double, val2:Double, val3:Double, val4:Double, val5:Double), allowOpt:Int = True)
-
 		bmx_muparser_parserbase_definefun5(parserPtr, name, callback, allowOpt)
 	End Method
 
@@ -247,7 +243,6 @@ Type TmuParserBase
 	bbdoc: Defines a parser function with variable argument list.
 	End Rem
 	Method DefineMultFun(name:String, callback:Double(val:Double Ptr, size:Int), allowOpt:Int = True)
-
 		bmx_muparser_parserbase_definemultfun(parserPtr, name, callback, allowOpt)
 	End Method
 	
@@ -276,6 +271,19 @@ Type TmuParserBase
 	Method DefineInfixOprt(name:String, callback:Double(val:Double), precidence:Int = prINFIX, allowOpt:Int = False)
 		bmx_muparser_parserbase_defineinfixoprt(parserPtr, name, callback, precidence, allowOpt)
 	End Method
+	
+	Rem
+	bbdoc: Sets a function that can create a variable pointer for unknown expression variables.
+	End Rem
+	Method SetVarFactory(callback:Double Ptr(name:String, userData:Object), userData:Object)
+		varFactoryCallback = callback
+		vfUserData = userData
+		bmx_muparser_parserbase_setvarfactory(parserPtr, _vfCallback, Self)
+	End Method
+	
+	Function _vfCallback:Double Ptr(name:Byte Ptr, userData:Object)
+		Return TmuParserBase(userData).varFactoryCallback(String.FromCString(name), TmuParserBase(userData).vfUserData)
+	End Function
 	
 End Type
 

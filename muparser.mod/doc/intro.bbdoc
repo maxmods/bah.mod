@@ -11,9 +11,7 @@ But extending the parser may not be necessary at all since it comes with a power
 implementation. Here is the (incomplete) list of features:
 </p>
 
-
 <h3><a name="idFeatureOverview">Overview</a></h3>
-
 
 <ul>
   <li><b>Easy to use</b></li>
@@ -94,13 +92,9 @@ arguments and a brief description.
 <blockquote>
 <small>
 <table border="1">
-<thead>
 <tr>
-  <td><b>Name</b></td>  <td><b>Argc.</b></td>  <td><b>Explanation</b></td>
+  <th><b>Name</b></th>  <th><b>Argc.</b></th>  <th><b>Explanation</b></th>
 </tr>
-</thead>
-
-<tbody>
 <tr><td><code>sin</code></td>   <td align="center">1</td>     <td>sine function</td></tr>
 <tr><td><code>cos</code></td>   <td align="center">1</td>     <td>cosine function</td></tr>
 <tr><td><code>tan</code></td>   <td align="center">1</td>     <td>tangens function</td></tr>
@@ -127,8 +121,6 @@ arguments and a brief description.
 <tr><td><code>max</code></td>   <td align="center">var.</td>  <td>max of all arguments</td></tr>
 <tr><td><code>sum</code></td>   <td align="center">var.</td>  <td>sum of all arguments</td></tr>
 <tr><td><code>avg</code></td>   <td align="center">var.</td>  <td>mean value of all arguments</td></tr>
-</tbody>
-
 </table>
 </small>
 </blockquote>
@@ -141,12 +133,7 @@ The following table lists the default binary operators supported by the parser.
 
 <blockquote>
 <table border="1">
-
-<thead>
-<tr><td><b>Operator</b></td>     <td><b>Meaning</b></td>             <td><b>Priority</b></td></tr>
-</thead>
-
-<tbody>
+<tr><th><b>Operator</b></th>     <th><b>Meaning</b></th>             <td><b>Priority</b></th></tr>
 <tr><td><code>=</code></td>      <td>assignement*</td>                <td>-1</td></tr>
 <tr><td><code>and</code></td>    <td>logical and</td>                <td>1</td></tr>
 <tr><td><code>or</code></td>     <td>logical or</td>                 <td>1</td></tr>
@@ -162,9 +149,281 @@ The following table lists the default binary operators supported by the parser.
 <tr><td><code>*</code></td>      <td>multiplication</td>             <td>4</td></tr>
 <tr><td><code>/</code></td>      <td>division</td>                   <td>4</td></tr>
 <tr><td><code>^</code></td>      <td>raise x to the power of y</td>  <td>5</td></tr>
-</tbody>
-
 </table>
 <small>*The assignment operator is special since it changes one of its
        arguments and can only by applied to variables.</small>
+</blockquote>
+</p>
+
+<h2>The muParser Interface</h2>
+<p>
+The following section gives an overview of the parser interface.
+</p>
+<h3>Parser initialization</h3>
+<p>
+Code for creating a new parser object.
+<pre>
+Local parser:TmuParser = New TmuParser
+</pre>
+</p>
+<h3>Setting the expression</h3>
+<p>
+Setting the expression using the parser requires a String containing the expression as the only parameter.
+<pre>
+parser.SetExpr(line)
+</pre>
+</p>
+<h3>Evaluating an expression</h3>
+<p>
+Expression evaluation is done by calling the Eval() method of a parser object.
+When evaluating an expression for the first time the parser evaluates the expression string
+directly and creates a bytecode during this first time evaluation. Every sucessive call to Eval() will evaluate
+the bytecode directly unless you call a method that will silently reset the parser to string parse mode. Some
+methods invalidate the bytecode due to possible changes in callback function pointers or variable addresses.
+In this way they effectively cause a recreation of the bytecode during the next call to Eval().
+</p>
+<p>
+Internally there are different evaluation functions. One for parsing from a string, the other for parsing from
+bytecode (and a third one used only if the expression can be simplified to a constant). Initially, Eval() will
+call the string parsing function which is slow due to all the necessary syntax checking, variable lookup, and
+bytecode creation. Once this function succeeds, Eval() will change its internal parse function pointer to either
+the bytecode parsing function or the const result function which are significantly (approx. 1000 times) faster.
+You don't have to worry about this, it's done automatically, just keep in mind that the first time evaluation of
+a new formula is significantly slower than any successive call to Eval(). 
+</p>
+<pre>
+Local fVal:Double
+Try
+  fVal = parser.Eval()
+Catch e:TmuParserException
+  Print e.message
+End Try
+</pre>
+
+<h3>Defining parser variables</h3>
+<p>
+</p>
+
+<h3>Defining parser variables</h3>
+<p>
+Custom variables can be defined either explicit in the code by using the DefineVar function or implicit by the
+parser. Implicit declaration will call a variable factory function provided by the user. The parser is never the
+owner of its variables. So you must take care of their destruction in case of dynamic allocation. The general
+idea is to bind every parser variable to a BlitzMax variable. For this reason, you have to make sure the BlitzMax variable
+stays valid as long as you process a formula that needs it. Only variables of type Double are supported. 
+</p>
+<h3>Explicitly defining variables</h3>
+<p>
+Explicitly in this context means you have to add the variables manually it in your application code.
+So you must know in advance which variables you intend to use. If this is not the case have a look at the
+section on Implicit creation of new variables.
+</p>
+<p>
+<b>Note : </b>Defining new Variables will reset the parser bytecode. Do not use this method just for
+changing the values of variables! It would dramatically reduce the parser performance! Once the parser knows
+the address of the variable there is no need to explicitly call a function for changing the value. Since
+the parser knows the address it knows the value too so simply change the BlitzMax variable in your code directly!
+</p>
+<p>
+The first parameter is the variable name and the second a pointer to the associated BlitzMax variable.
+<pre>
+Local fVal:Double = 0
+parser.DefineVar("a", fVal)
+</pre>
+</p>
+<h3>Implicit creation of new variables</h3>
+<p>
+Implicit declaration of new variables is only possible by setting a factory function. Implicit creation means
+that every time the parser finds an unknown token at a position where a variable could be located it creates a
+new variable with that name automatically. The necessary factory function must be of type: 
+<pre>
+	allback:Double Ptr(name:String, userData:Object)
+</pre>
+</p>
+<p>
+The first argument to a factory function is the name of the variable found by the parser. The second is a
+reference to user defined data. This reference can be used to provide a type that implements the
+actual factory. By doing this it is possible to use custom factory types depending on the variable name.
+</p>
+<p>
+<b>Note : </b>Be aware of name conflicts! Please notice that recognizing the name of an undefined variable is
+the last step during parser token detection. If the potential variable name starts with identifiers that could
+be interpreted as a function or operator it will be detected as such most likely resulting in an syntax error.
+</p>
+<p>
+The following code is an example of a factory function. The example does not use dynamic allocation for the
+new variables although this would be possible too. But when using dynamic allocation you must keep track of
+the variables allocated implicitely in order to free them later on. 
+</p>
+<pre>
+Function AddVariable:Double Ptr(name:String, userData:Object)
+
+	Global variables:Double[] = New Double[100]
+	Global iVal:Int = 0
+	
+	If iVal < 100
+		Print "Generating new variable '" + name + "' (slots left: " + (99 - iVal) + ")"
+	
+		Return Double Ptr(variables) + iVal
+		iVal:+ 1
+	Else
+		Throw "No more available variables."
+	End If
+	
+End Function
+</pre>
+<p>
+In order to add a variable factory use the SetVarFactory method. The first parameter is a pointer to the 
+factory function, the second parameter is optional and represents a reference to user defined data. Without a
+variable factory each undefined variable will cause an undefined token error. Factory functions can be used to
+query the values of newly created variables directly from a database.
+</p>
+<pre>
+parser.SetVarFactory(AddVariable, pUserData)
+</pre>
+
+<h3>Defining parser constants</h3>
+<p>
+Parser constants can either be values of type Double or String. Constness refers to the bytecode.
+Constants will be stored by their value in the bytecode, not by a reference to their address. Thus accessing
+them is faster. They may be optimized away if this is possible. Defining new constants or changing old ones
+will reset the parser to string parsing mode thus resetting the bytecode.
+</p>
+<p>
+The Names of user defined constants may contain only the following characters: <tt>0-9, a-z, A-Z, _</tt>, and they may
+not start with a number. Violating this rule will raise a parser error. 
+</p>
+<pre>
+' Define value constant _pi
+parser.DefineConst("_pi", Pi)
+
+' Define a string constant named strBuf
+parser.DefineStrConst("strBuf", "hello world")
+</pre>
+
+<h3>Defining parser functions</h3>
+<p>
+The parser allows the user to define a variety of different callback functions. Functions with a fixed number
+of up to five numeric arguments and functions with a variable number of numeric arguments. In order to define
+a parser function you need to specify its name, a pointer to a static callback function and an optional flag
+indicating if the function is volatile. Volatile functions are functions that can not be optimized.
+</p>
+<p>
+The callback functions must be one of the following types: 
+</p>
+<pre>
+	' For fixed number of arguments
+	callback:Double(val:Double)
+	callback:Double(val1:Double, val2:Double)
+	callback:Double(val1:Double, val2:Double, val3:Double)
+	callback:Double(val1:Double, val2:Double, val3:Double, val4:Double)
+	callback:Double(val1:Double, val2:Double, val3:Double, val4:Double, val5:Double)
+	
+	' for a variable number of arguments
+	'   first arg:   pointer to the arguments
+	'  second arg:   number of arguments
+	callback:Double(val:Double Ptr, size:Int)
+</pre>
+<p>
+Defining callback functions by using the parser, you call one of the associated methods :
+<pre>
+	Method DefineFun1(name:String, callback:Double(val:Double), allowOpt:Int = True)
+	Method DefineFun2(name:String, callback:Double(val1:Double, val2:Double), allowOpt:Int = True)
+	Method DefineFun3(name:String, callback:Double(val1:Double, val2:Double, val3:Double), allowOpt:Int = True)
+	Method DefineFun4(name:String, callback:Double(val1:Double, val2:Double, val3:Double, val4:Double), allowOpt:Int = True)
+	Method DefineFun5(name:String, callback:Double(val1:Double, val2:Double, val3:Double, val4:Double, val5:Double), allowOpt:Int = True)
+
+	Method DefineMultFun(name:String, callback:Double(val:Double Ptr, size:Int), allowOpt:Int = True)
+</pre> 
+</p>
+
+<h3>Defining parser operators</h3>
+<p>
+The parser is extensible with different kinds of operators: prefix operators, infix operators and binary
+operators. Operators can be applied to numerical values only (not to string constants).
+<ul>
+<li>Postfix operators are operators that succeed values. For instance the factorial operator <tt>(a! = a*(a-1)...*2*1)</tt>.
+Another application for postfix operators is their use as multipliers that can be used for implementing units.</li>
+<li>Infix operators are operators like the unary minus which serves as a sign or the logical not <tt>"!(a&lt;9)"</tt>.</li>
+<li>Binary operators can be defined in order to supplement or replace the built in binary operators they require an
+additional parameter, the operator priority.</li>
+</ul>
+</p>
+<h4>Unary operators</h4>
+<p>
+Both postfix and infix operators take callback functions using a single parameter like the following:
+<pre>
+Function MyCallback:Double(fVal:Double)
+	Return fVal / 1000.0
+End Function
+</pre>
+</p>
+<p>
+For defining postfix operators and infix operators you need a valid parser instance, an identifier string,
+and an optional third parameter marking the operator as volatile (non optimizable). 
+<pre>
+' Define an infix operator
+parser.DefineInfixOprt("!", MyCallback)
+
+' Define a postfix operators
+parser.DefinePostfixOprt("m", MyCallback)
+
+</pre>
+</p>
+
+<h4>Binary operators</h4>
+<p>
+This parser has 15 Built in binary operators. Sometimes it might be necessary to add additional custom binary
+operators. Examples are <tt>shl</tt> or <tt>shr</tt>, the "shift left" and "shift right" operators for integer numbers. In order
+to add user defined operators you need to assign a name, a callback function with two parameters and a priority
+for each new binary operator. You are not allowed to overload built in operators, this would result in an error
+being raised! For instance lets consider the following callback function which should be assigned to a binary
+operator:
+<pre>
+Function pMyAddFun:Double(v1:Double, v2:Double) 
+	Return v1 + v2
+End Function
+</pre>
+For the definintion of binary operators you need at least 4 parameters. The first is a valid parser handle,
+the second is the identifier of the operator, the third is the operator callback function, the fourth is the
+operator priority and the optional fifth parameter is a flag of type Int marking the operator as volatile.
+(The examples below omit the last flag.) Having defined a proper operator callback function you can add the
+binary operator with the following code: 
+<pre>
+parser.DefineOprt("add", pMyAddFun, 0)
+</pre>
+</p>
+<p>
+The priority value must be greater or equal than zero (lowest possible priority). It controls the operator
+precedence in the formula. For instance if you want to calculate the formula <tt>1+2*3^4</tt> in a mathemetically correct
+sense you have to make sure that Addition has a lower priority than multiplication which in turn has a lower
+priority than the power operator. The most likely cases are that you assign an operator with a low priority of 0
+(like <tt>and</tt>, <tt>or</tt>, <tt>xor</tt>) or a high priority that is larger than 6. (The priority of the
+power operator (^).) By assigning Priority values already used by built in operators you might introduce unwanted
+side effects. To avoid this and make the order of calculation clear you must use brackets in these cases.
+Otherwise the order will be determined by the Formula parsing direction which is from left to right.
+</p>
+<p>
+Example A: Priority of <tt>shl</tt> equals priority of an addition; The order of the execution is from left to right. 
+<pre>
+1 + 2 shl 1 => (1 + 2) shl 1
+2 shl 1 + 1 => (s shl 1) + 1
+</pre>
+Example B: Priority of <tt>shl</tt> is higher than the one of the addition; <tt>shl</tt> is executed first. 
+<pre>
+1 + 2 shl 1 => 1 + (2 shl 1)
+2 shl 1 + 1 => (2 shl 1) + 1
+</pre>
+</p>
+<p>
+If you encounter such conflicts or simply dont need the built in operators these can easily be deactivated using
+the EnableBuiltInOprt(bool) function. If you call this function you must add binary operators manually. After all
+without any operators you won't be able to parse anything useful. User defined operators come with approximately
+10% decrease in parsing speed compared to built in operators. There is no way to avoid that. They cause an overhead
+when calling theeir callback functions. (This is the reason why there are built in operators).
+<pre>
+' disable all built in operators
+parser.EnableBuiltInOprt(False)
+</pre>
+</p>
 

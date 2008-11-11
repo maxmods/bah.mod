@@ -67,6 +67,8 @@ extern "C" {
 	void bmx_muparser_parserbase_defineconst(mu::ParserBase * par, BBString * name, double value);
 	void bmx_muparser_parserbase_definestrconst(mu::ParserBase * par, BBString * name, BBString * value);
 
+	void bmx_muparser_parserbase_setvarfactory(mu::ParserBase * par, mu::facfun_type func, void * userData);
+
 }
 
 mu::string_type bbStringToStringType(BBString * s) {
@@ -355,3 +357,12 @@ void bmx_muparser_parserbase_defineinfixoprt(mu::ParserBase * par, BBString * na
 	}
 }
 
+void bmx_muparser_parserbase_setvarfactory(mu::ParserBase * par, mu::facfun_type func, void * userData) {
+	try {
+	
+		par->SetVarFactory(func, userData);
+
+	} catch (mu::Parser::exception_type &e) {
+		bmx_muparser_throw(e);
+	}
+}

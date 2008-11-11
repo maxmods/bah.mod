@@ -79,6 +79,8 @@ Extern
 	Function bmx_muparser_parserbase_defineconst(handle:Byte Ptr, name:String, value:Double)
 	Function bmx_muparser_parserbase_definestrconst(handle:Byte Ptr, name:String, value:String)
 
+	Function bmx_muparser_parserbase_setvarfactory(handle:Byte Ptr, callback:Double Ptr(name:Byte Ptr, userData:Object), userData:Object)
+
 End Extern
 
 Const prLOGIC:Int = 1  ' logic operators
