@@ -20,13 +20,13 @@
 ' 
 SuperStrict
 
+Framework maxgui.maxgui
 ?Linux
-'Framework BaH.QtMaxGUI
-Framework BaH.GTKMaxGUI
+Import BaH.GTKMaxGUI
 ?Win32
-Framework BRL.Win32MaxGUI
+Import MaxGUI.Win32MaxGUI
 ?MacOs
-Framework BRL.CocoaMaxGUI
+Import MaxGUI.CocoaMaxGUI
 ?
 
 Import BaH.Locale
@@ -115,7 +115,7 @@ Type TBLFBuilder
 	
 	Field pnlLang:TGadget = CreatePanel(220, 10, 270, 200, window, PANEL_GROUP, GetLocaleText("languages"))
 	Field lblDefault:TGadget = CreateLabel(GetLocaleText("default"), 10, 10, 100, 28, pnlLang)
-	Field cmbDefault:TGadget = CreateComboBox(120, 10, 140, 28, pnlLang)
+	Field cmbDefault:TGadget = CreateComboBox(120, 10, 140, 27, pnlLang)
 	Field lstLanguages:TGadget = CreateListBox(10, 50, 150, 120, pnlLang)
 	Field btnLangAdd:TGadget = CreateButton(GetLocaleText("add"), 170, 110, 90, 28, pnlLang)
 	Field btnLangDel:TGadget = CreateButton(GetLocaleText("delete"), 170, 140, 90, 28, pnlLang)
