@@ -26,6 +26,8 @@ Import BRL.Blitz
 Import "-locilib"
 ?win32
 Import "-locilibm"
+?linux
+Import "-locilib"
 ?
 
 Import "include/*.h"

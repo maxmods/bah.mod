@@ -43,6 +43,8 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/macos/"
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32/"
 ModuleInfo "CC_OPTS: -DOCI_API=__cdecl"
+?linux
+ModuleInfo "LD_OPTS: -L%PWD%/lib/linux/"
 ?
 
 Import BaH.Database
