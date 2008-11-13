@@ -1,8 +1,12 @@
 /*
    +----------------------------------------------------------------------+   
-   |                 OCILIB - C Wrapper for Oracle OCI                    |
+   |                                                                      |
+   |                     OCILIB - C Driver for Oracle                     |
+   |                                                                      |
+   |                      (C Wrapper for Oracle OCI)                      |
+   |                                                                      |
    +----------------------------------------------------------------------+
-   |              Website : http://orclib.sourceforge.net                 |
+   |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
    |               Copyright (c) 2007-2008 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
@@ -43,7 +47,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_types.h, v 2.5.1 00:21 24/07/2008 Vince $
+ * $Id: oci_types.h, v 3.0.1 2008/10/17 21:50 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_TYPES_H_INCLUDED 
@@ -317,5 +321,5 @@ typedef unsigned short  utext;
 #define utext  unsigned short
 #endif
 
-#endif    /* OCILIB_OCI_TYPES_H_INCLUDED  */
+#endif /* OCILIB_OCI_TYPES_H_INCLUDED */
 

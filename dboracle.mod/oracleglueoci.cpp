@@ -52,6 +52,8 @@ extern "C" {
 	OCI_Resultset * bmx_ora_statement_getResultSet(OCI_Statement * stmt);
 	int bmx_ora_statement_getUpdateCount(OCI_Statement * stmt);
 	bool bmx_ora_statement_free(OCI_Statement * stmt);
+	bool bmx_ora_statement_prepare(OCI_Statement * stmt, BBString * statement);
+	int bmx_ora_statement_executeprepared(OCI_Statement * stmt);
 
 	int bmx_ora_resultset_getColCount(OCI_Resultset * rs);
 	BBString * bmx_ora_resultset_getColInfo(OCI_Resultset * rs, int index, int * dataType, int * columnSize,
@@ -63,6 +65,10 @@ extern "C" {
 	double bmx_ora_resultset_getDouble(OCI_Resultset * rs, unsigned int index);
 	BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index);
 
+	bool bmx_ora_bind_int(OCI_Statement * stmt, BBString * name, int * value);
+	bool bmx_ora_bind_double(OCI_Statement * stmt, BBString * name, double * value);
+	bool bmx_ora_bind_string(OCI_Statement * stmt, BBString * name, char * str, int length);
+	bool bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index);
 
 }
 
@@ -191,6 +197,11 @@ void * bmx_ora_environment_createEnvironment() {
 		if (!oci_initialized) {
 			
 			if (!OCI_Initialize(ocilib_error_handler, NULL, OCI_ENV_DEFAULT)) {
+			
+				if (lastErrorCode) {
+					throw MaxSQLException(lastErrorCode, lastErrorMessage);
+				}
+
 				throw MaxSQLException(-1, "Error initializing OCI.");
 			}
 		
@@ -477,6 +488,53 @@ bool bmx_ora_statement_free(OCI_Statement * stmt) {
 	return res;
 }
 
+bool bmx_ora_statement_prepare(OCI_Statement * stmt, BBString * statement) {
+	ocilib_error_reset();
+
+	bool res = false;
+	char *sql = bbStringToCString( statement );
+	
+	try {
+		res = OCI_Prepare(stmt, sql);
+
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+
+	} catch (MaxSQLException sqlEx) {
+		bbMemFree( sql );
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+	
+	bbMemFree( sql );
+
+	return res;
+}
+
+int bmx_ora_statement_executeprepared(OCI_Statement * stmt) {
+	ocilib_error_reset();
+
+	int res = 0;
+
+	try {
+		OCI_Execute(stmt);
+
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+		if (OCI_GetAffectedRows(stmt) > 0) {
+			res = STATEMENT_UPDATE_COUNT_AVAILABLE;
+		} else if (OCI_GetResultset(stmt)) {
+			res = STATEMENT_RESULT_SET_AVAILABLE;
+		}
+
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+	
+	return res;
+}
 
 // ****************************************************
 
@@ -658,4 +716,90 @@ BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index) {
 }
 
 
+// ****************************************************
+
+bool bmx_ora_bind_int(OCI_Statement * stmt, BBString * name, int * value) {
+	ocilib_error_reset();
+
+	bool ret = false;
+	char *n = bbStringToCString( name );
+
+	try {
+		ret = OCI_BindInt(stmt, n, value);
+		
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbMemFree( n );
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+
+	bbMemFree( n );
+	return ret;
+}
+
+bool bmx_ora_bind_double(OCI_Statement * stmt, BBString * name, double * value) {
+	ocilib_error_reset();
+
+	bool ret = false;
+	char *n = bbStringToCString( name );
+
+	try {
+		ret = OCI_BindDouble(stmt, n, value);
+		
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbMemFree( n );
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+
+	bbMemFree( n );
+	return ret;
+}
+
+bool bmx_ora_bind_string(OCI_Statement * stmt, BBString * name, char * str, int length) {
+	ocilib_error_reset();
+
+	bool ret = false;
+	char *n = bbStringToCString( name );
+
+	try {
+		ret = OCI_BindString(stmt, n, str, length);
+		
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbMemFree( n );
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+
+	bbMemFree( n );
+	return ret;
+}
+
+bool bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	try {
+		ret = OCI_SetNull(stmt, index);
+		
+		if (lastErrorCode) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), bmx_stringToBBString(sqlEx.getMessage())));
+	}
+
+	return ret;
+}
 

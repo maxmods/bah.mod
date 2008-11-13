@@ -16,7 +16,7 @@
 
 # TODO
 	else
-		docopy("libocilib.2.dylib")
+		docopy("libocilib.dylib")
 	end
 
 @end

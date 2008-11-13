@@ -1,8 +1,12 @@
 /*
    +----------------------------------------------------------------------+   
-   |                 OCILIB - C Wrapper for Oracle OCI                    |
+   |                                                                      |
+   |                     OCILIB - C Driver for Oracle                     |
+   |                                                                      |
+   |                      (C Wrapper for Oracle OCI)                      |
+   |                                                                      |
    +----------------------------------------------------------------------+
-   |              Website : http://orclib.sourceforge.net                 |
+   |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
    |               Copyright (c) 2007-2008 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
@@ -25,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_import.h, v 2.5.1 09:05 24/07/2008 Vince $
+ * $Id: oci_import.h, v 3.0.1 2008/10/17 21:50 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_IMPORT_H_INCLUDED 
@@ -49,15 +53,13 @@ extern "C" {
 }
 #endif
 
-#ifdef _WINDOWS
+#ifdef _MSC_VER
 #pragma comment(lib, "oci.lib") 
 #endif
 
 #else
 
 #include "oci_loader.h"
-#include "oci_types.h"
-#include "oci_def.h"
 #include "oci_api.h"
 
 #ifndef OCI_DL
@@ -81,187 +83,170 @@ extern "C" {
 #define OCI_DL_CVT(l) OCI_DL_GET(l)
 #define OCI_DL_NAME   OCI_DL_CVT(OCI_DL)
 
+extern OCIENVCREATE                 OCIEnvCreate;
+extern OCISERVERATTACH              OCIServerAttach;
+extern OCISERVERDETACH              OCIServerDetach;
+extern OCIHANDLEALLOC               OCIHandleAlloc;
+extern OCIHANDLEFREE                OCIHandleFree;
+extern OCIDESCRIPTORALLOC           OCIDescriptorAlloc; 
+extern OCIDESCRIPTORFREE            OCIDescriptorFree;
+extern OCISESSIONBEGIN              OCISessionBegin;
+extern OCISESSIONEND                OCISessionEnd; 
+extern OCIPASSWORDCHANGE            OCIPasswordChange; 
+extern OCIBINDBYPOS                 OCIBindByPos; 
+extern OCIBINDBYNAME                OCIBindByName; 
+extern OCIBINDDYNAMIC               OCIBindDynamic;
+extern OCIBINDOBJECT                OCIBindObject;
+extern OCIDEFINEBYPOS               OCIDefineByPos;
+extern OCIDEFINEOBJECT              OCIDefineObject;
+extern OCISTMTPREPARE               OCIStmtPrepare;
+extern OCISTMTEXECUTE               OCIStmtExecute;
+extern OCISTMTFETCH                 OCIStmtFetch;
+extern OCISTMTFETCH2                OCIStmtFetch2;
+extern OCISTMTGETPIECEINFO          OCIStmtGetPieceInfo;
+extern OCISTMTSETPIECEINFO          OCIStmtSetPieceInfo;
+extern OCIPARAMGET                  OCIParamGet;
+extern OCIPARAMSET                  OCIParamSet;
+extern OCITRANSSTART                OCITransStart;
+extern OCITRANSDETACH               OCITransDetach;
+extern OCITRANSPREPARE              OCITransPrepare;
+extern OCITRANSFORGET               OCITransForget;
+extern OCITRANSCOMMIT               OCITransCommit; 
+extern OCITRANSROLLBACK             OCITransRollback;
+extern OCIERRORGET                  OCIErrorGet;
+extern OCILOBCREATETEMPORARY        OCILobCreateTemporary;
+extern OCILOBFREETEMPORARY          OCILobFreeTemporary;
+extern OCILOBISTEMPORARY            OCILobIsTemporary;
+extern OCILOBAPPEND                 OCILobAppend;
+extern OCILOBCOPY                   OCILobCopy;
+extern OCILOBGETLENGTH              OCILobGetLength;
+extern OCILOBREAD                   OCILobRead;
+extern OCILOBWRITE                  OCILobWrite;
+extern OCILOBTRIM                   OCILobTrim;
+extern OCILOBERASE                  OCILobErase;
+extern OCILOBOPEN                   OCILobOpen;
+extern OCILOBCLOSE                  OCILobClose;
+extern OCILOBLOCATORASSIGN          OCILobLocatorAssign;
+extern OCILOBASSIGN                 OCILobAssign;
+extern OCILOBISEQUAL                OCILobIsEqual;
+extern OCILOBFILEOPEN               OCILobFileOpen;
+extern OCILOBFILECLOSE              OCILobFileClose;
+extern OCILOBFILECLOSEALL           OCILobFileCloseAll;
+extern OCILOBFILEISOPEN             OCILobFileIsOpen;
+extern OCILOBFILEEXISTS             OCILobFileExists;
+extern OCILOBFIELGETNAME            OCILobFileGetName;
+extern OCILOBFILESETNAME            OCILobFileSetName;
+extern OCILOBLOADFROMFILE           OCILobLoadFromFile;
+extern OCILOBWRITEAPPEND            OCILobWriteAppend;
+extern OCISERVERVERSION             OCIServerVersion;
+extern OCIBREAK                     OCIBreak;
+extern OCIATTRGET                   OCIAttrGet;
+extern OCIATTRSET                   OCIAttrSet;
+extern OCIDATEASSIGN                OCIDateAssign;
+extern OCIDATETOTEXT                OCIDateToText;
+extern OCIDATEFROMTEXT              OCIDateFromText;
+extern OCIDATECOMPARE               OCIDateCompare;
+extern OCIDATEADDMONTHS             OCIDateAddMonths;
+extern OCIDATEADDDAYS               OCIDateAddDays;
+extern OCIDATELASTDAY               OCIDateLastDay;
+extern OCIDATEDAYSBETWEEN           OCIDateDaysBetween;
+extern OCIDATEZONETOZONE            OCIDateZoneToZone;
+extern OCIDATENEXTDAY               OCIDateNextDay;
+extern OCIDATECHECK                 OCIDateCheck;
+extern OCIDATESYSDATE               OCIDateSysDate;
+extern OCIDESCRIBEANY               OCIDescribeAny;
+extern OCIINTERVALASSIGN            OCIIntervalAssign;
+extern OCIINTERVALCHECK             OCIIntervalCheck;
+extern OCIINTERVALCOMPARE           OCIIntervalCompare;
+extern OCIINTERVALFROMTEXT          OCIIntervalFromText;
+extern OCIINTERVALTOTEXT            OCIIntervalToText;
+extern OCIINTERVALFROMTZ            OCIIntervalFromTZ;
+extern OCIINTERVALGETDAYSECOND      OCIIntervalGetDaySecond;
+extern OCIINTERVALGETYEARMONTH      OCIIntervalGetYearMonth;
+extern OCIINTERVALSETDAYSECOND      OCIIntervalSetDaySecond;
+extern OCIINTERVALSETYEARMONTH      OCIIntervalSetYearMonth;
+extern OCIINTERVALSUBTRACT          OCIIntervalSubtract;
+extern OCIINTERVALADD               OCIIntervalAdd;
+extern OCIDATETIMEASSIGN            OCIDateTimeAssign;
+extern OCIDATETIMECHECK             OCIDateTimeCheck;
+extern OCIDATETIMECOMPARE           OCIDateTimeCompare;
+extern OCIDATETIMECONSTRUCT         OCIDateTimeConstruct;
+extern OCIDATETIMECONVERT           OCIDateTimeConvert;
+extern OCIDATETIMEFROMARRAY         OCIDateTimeFromArray;
+extern OCIDATETIMETOARRAY           OCIDateTimeToArray;
+extern OCIDATETIMEFROMTEXT          OCIDateTimeFromText;
+extern OCIDATETIMETOTEXT            OCIDateTimeToText;
+extern OCIDATETIMEGETDATE           OCIDateTimeGetDate;
+extern OCIDATETIMEGETTIME           OCIDateTimeGetTime;
+extern OCIDATETIMEGETTIMEZONENAME   OCIDateTimeGetTimeZoneName;
+extern OCIDATETIMEGETTIMEZONEOFFSET OCIDateTimeGetTimeZoneOffset;
+extern OCIDATETIMEINTERVALADD       OCIDateTimeIntervalAdd;
+extern OCIDATETIMEINTERVALSUB       OCIDateTimeIntervalSub;
+extern OCIDATETIMESUBTRACT          OCIDateTimeSubtract;
+extern OCIDATETIMESYSTIMESTAMP      OCIDateTimeSysTimeStamp;
+extern OCIARRAYDESCRIPTORFREE       OCIArrayDescriptorFree;
+extern OCICLIENTVERSION             OCIClientVersion;;
+extern OCITYPEBYNAME                OCITypeByName;
+extern OCINUMBERTOINT               OCINumberToInt;
+extern OCINUMBERFROMINT             OCINumberFromInt;
+extern OCINUMBERTOREAL              OCINumberToReal; 
+extern OCINUMBERFROMREAL            OCINumberFromReal;
+extern OCINUMBERTOTEXT              OCINumberToText; 
+extern OCINUMBERFROMTEXT            OCINumberFromText; 
+extern OCISTRINGPTR                 OCIStringPtr; 
+extern OCISTRINGASSIGNTEXT          OCIStringAssignText; 
+extern OCIRAWPTR                    OCIRawPtr; 
+extern OCIRAWASSIGNBYTES            OCIRawAssignBytes; 
+extern OCIRAWALLOCSIZE              OCIRawAllocSize; 
+extern OCIOBJECTNEW                 OCIObjectNew; 
+extern OCIOBJECTFREE                OCIObjectFree; 
+extern OCIOBJECTSETATTR             OCIObjectSetAttr; 
+extern OCIOBJECTGETATTR             OCIObjectGetAttr; 
+extern OCITHREADPROCESSINIT         OCIThreadProcessInit; 
+extern OCITHREADINIT                OCIThreadInit; 
+extern OCITHREADTERM                OCIThreadTerm;
+extern OCITHREADIDINIT              OCIThreadIdInit; 
+extern OCITHREADIDDESTROY           OCIThreadIdDestroy; 
+extern OCITHREADHNDINIT             OCIThreadHndInit; 
+extern OCITHREADHNDDESTROY          OCIThreadHndDestroy; 
+extern OCITHREADCREATE              OCIThreadCreate; 
+extern OCITHREADJOIN                OCIThreadJoin; 
+extern OCITHREADCLOSE               OCIThreadClose; 
+extern OCITHREADMUTEXINIT           OCIThreadMutexInit; 
+extern OCITHREADMUTEXDESTROY        OCIThreadMutexDestroy; 
+extern OCITHREADMUTEXACQUIRE        OCIThreadMutexAcquire; 
+extern OCITHREADMUTEXRELEASE        OCIThreadMutexRelease; 
+extern OCITHREADKEYINIT             OCIThreadKeyInit; 
+extern OCITHREADKEYDESTROY          OCIThreadKeyDestroy; 
+extern OCITHREADKEYSET              OCIThreadKeySet; 
+extern OCITHREADKEYGET              OCIThreadKeyGet; 
+extern OCICONNECTIONPOOLCREATE      OCIConnectionPoolCreate; 
+extern OCICONNECTIONPOOLDESTROY     OCIConnectionPoolDestroy; 
+extern OCICOLLSIZE                  OCICollSize; 
+extern OCICOLLMAX                   OCICollMax; 
+extern OCICOLLGETITEM               OCICollGetElem; 
+extern OCICOLLASSIGNELEM            OCICollAssignElem; 
+extern OCICOLLASSIGN                OCICollAssign; 
+extern OCICOLLAPPEND                OCICollAppend; 
+extern OCICOLLTRIM                  OCICollTrim; 
+extern OCIITERCREATE                OCIIterCreate; 
+extern OCIITERDELETE                OCIIterDelete; 
+extern OCIITERINIT                  OCIIterInit; 
+extern OCIITERNEXT                  OCIIterNext; 
+extern OCIITERPREV                  OCIIterPrev; 
 
-static OCIENVCREATE                 OCIEnvCreate                 = NULL;
+#ifdef ORAXB8_DEFINED
 
-static OCISERVERATTACH              OCIServerAttach              = NULL;
-static OCISERVERDETACH              OCIServerDetach              = NULL;
+extern OCILOBCOPY2                  OCILobCopy2;
+extern OCILOBERASE2                 OCILobErase2;
+extern OCILOBGETLENGTH2             OCILobGetLength2;
+extern OCILOBLOADFROMFILE2          OCILobLoadFromFile2;
+extern OCILOBREAD2                  OCILobRead2;
+extern OCILOBTRIM2                  OCILobTrim2;
+extern OCILOBWRITE2                 OCILobWrite2;
+extern OCILOBWRITEAPPEND2           OCILobWriteAppend2;
 
-static OCIHANDLEALLOC               OCIHandleAlloc               = NULL;
-static OCIHANDLEFREE                OCIHandleFree                = NULL;
-
-static OCIDESCRIPTORALLOC           OCIDescriptorAlloc           = NULL;
-static OCIDESCRIPTORFREE            OCIDescriptorFree            = NULL;
-
-static OCISESSIONBEGIN              OCISessionBegin              = NULL;
-static OCISESSIONEND                OCISessionEnd                = NULL;
-
-static OCIPASSWORDCHANGE            OCIPasswordChange            = NULL;
-
-static OCIBINDBYPOS                 OCIBindByPos                 = NULL;
-static OCIBINDBYNAME                OCIBindByName                = NULL;
-static OCIBINDDYNAMIC               OCIBindDynamic               = NULL;
-static OCIBINDOBJECT                OCIBindObject                = NULL;
-
-static OCIDEFINEBYPOS               OCIDefineByPos               = NULL;
-static OCIDEFINEOBJECT              OCIDefineObject              = NULL;
-
-static OCISTMTPREPARE               OCIStmtPrepare               = NULL;
-static OCISTMTEXECUTE               OCIStmtExecute               = NULL;
-static OCISTMTFETCH                 OCIStmtFetch                 = NULL;
-
-static OCISTMTGETPIECEINFO          OCIStmtGetPieceInfo          = NULL;
-static OCISTMTSETPIECEINFO          OCIStmtSetPieceInfo          = NULL;
-
-static OCIPARAMGET                  OCIParamGet                  = NULL;
-static OCIPARAMSET                  OCIParamSet                  = NULL;
-
-static OCITRANSSTART                OCITransStart                = NULL;
-static OCITRANSDETACH               OCITransDetach               = NULL;
-static OCITRANSPREPARE              OCITransPrepare              = NULL;
-static OCITRANSFORGET               OCITransForget               = NULL;
-
-static OCITRANSCOMMIT               OCITransCommit               = NULL;
-static OCITRANSROLLBACK             OCITransRollback             = NULL;
-
-static OCIERRORGET                  OCIErrorGet                  = NULL;
-
-static OCILOBCREATETEMPORARY        OCILobCreateTemporary        = NULL;
-static OCILOBFREETEMPORARY          OCILobFreeTemporary          = NULL;
-static OCILOBISTEMPORARY            OCILobIsTemporary            = NULL;
-static OCILOBAPPEND                 OCILobAppend                 = NULL;
-static OCILOBCOPY                   OCILobCopy                   = NULL;
-static OCILOBGETLENGTH              OCILobGetLength              = NULL;
-static OCILOBREAD                   OCILobRead                   = NULL;
-static OCILOBWRITE                  OCILobWrite                  = NULL;
-static OCILOBTRIM                   OCILobTrim                   = NULL;
-static OCILOBERASE                  OCILobErase                  = NULL;
-static OCILOBOPEN                   OCILobOpen                   = NULL;
-static OCILOBCLOSE                  OCILobClose                  = NULL;
-static OCILOBLOCATORASSIGN          OCILobLocatorAssign          = NULL;
-static OCILOBASSIGN                 OCILobAssign                 = NULL;
-static OCILOBISEQUAL                OCILobIsEqual                = NULL;
-
-static OCILOBFILEOPEN               OCILobFileOpen               = NULL;
-static OCILOBFILECLOSE              OCILobFileClose              = NULL;
-static OCILOBFILECLOSEALL           OCILobFileCloseAll           = NULL;
-static OCILOBFILEISOPEN             OCILobFileIsOpen             = NULL;
-static OCILOBFILEEXISTS             OCILobFileExists             = NULL;
-static OCILOBFIELGETNAME            OCILobFileGetName            = NULL;
-static OCILOBFILESETNAME            OCILobFileSetName            = NULL;
-static OCILOBLOADFROMFILE           OCILobLoadFromFile           = NULL;
-static OCILOBWRITEAPPEND            OCILobWriteAppend            = NULL;
-
-static OCILOBCOPY2                  OCILobCopy2                  = NULL;
-static OCILOBERASE2                 OCILobErase2                 = NULL;
-static OCILOBGETLENGTH2             OCILobGetLength2             = NULL;
-static OCILOBLOADFROMFILE2          OCILobLoadFromFile2          = NULL;
-static OCILOBREAD2                  OCILobRead2                  = NULL;
-static OCILOBTRIM2                  OCILobTrim2                  = NULL;
-static OCILOBWRITE2                 OCILobWrite2                 = NULL;
-static OCILOBWRITEAPPEND2           OCILobWriteAppend2           = NULL;
-
-static OCISERVERVERSION             OCIServerVersion             = NULL;
-static OCIBREAK                     OCIBreak                     = NULL;
-
-static OCIATTRGET                   OCIAttrGet                   = NULL;
-static OCIATTRSET                   OCIAttrSet                   = NULL;
-
-static OCIDATEASSIGN                OCIDateAssign                = NULL;
-static OCIDATETOTEXT                OCIDateToText                = NULL;
-static OCIDATEFROMTEXT              OCIDateFromText              = NULL;
-static OCIDATECOMPARE               OCIDateCompare               = NULL;
-static OCIDATEADDMONTHS             OCIDateAddMonths             = NULL;
-static OCIDATEADDDAYS               OCIDateAddDays               = NULL;
-static OCIDATELASTDAY               OCIDateLastDay               = NULL;
-static OCIDATEDAYSBETWEEN           OCIDateDaysBetween           = NULL;
-static OCIDATEZONETOZONE            OCIDateZoneToZone            = NULL;
-static OCIDATENEXTDAY               OCIDateNextDay               = NULL;
-static OCIDATECHECK                 OCIDateCheck                 = NULL;
-static OCIDATESYSDATE               OCIDateSysDate               = NULL;
-
-static OCIDESCRIBEANY               OCIDescribeAny               = NULL;
-
-static OCIINTERVALASSIGN            OCIIntervalAssign            = NULL;  
-static OCIINTERVALCHECK             OCIIntervalCheck             = NULL;
-static OCIINTERVALCOMPARE           OCIIntervalCompare           = NULL;
-static OCIINTERVALFROMTEXT          OCIIntervalFromText          = NULL;
-static OCIINTERVALTOTEXT            OCIIntervalToText            = NULL;
-static OCIINTERVALFROMTZ            OCIIntervalFromTZ            = NULL;
-static OCIINTERVALGETDAYSECOND      OCIIntervalGetDaySecond      = NULL;
-static OCIINTERVALGETYEARMONTH      OCIIntervalGetYearMonth      = NULL;
-static OCIINTERVALSETDAYSECOND      OCIIntervalSetDaySecond      = NULL;
-static OCIINTERVALSETYEARMONTH      OCIIntervalSetYearMonth      = NULL;
-static OCIINTERVALSUBTRACT          OCIIntervalSubtract          = NULL;
-static OCIINTERVALADD               OCIIntervalAdd               = NULL;
-
-static OCIDATETIMEASSIGN            OCIDateTimeAssign            = NULL;  
-static OCIDATETIMECHECK             OCIDateTimeCheck             = NULL;
-static OCIDATETIMECOMPARE           OCIDateTimeCompare           = NULL;
-static OCIDATETIMECONSTRUCT         OCIDateTimeConstruct         = NULL;
-static OCIDATETIMECONVERT           OCIDateTimeConvert           = NULL;
-static OCIDATETIMEFROMARRAY         OCIDateTimeFromArray         = NULL;
-static OCIDATETIMETOARRAY           OCIDateTimeToArray           = NULL;
-static OCIDATETIMEFROMTEXT          OCIDateTimeFromText          = NULL;
-static OCIDATETIMETOTEXT            OCIDateTimeToText            = NULL;
-static OCIDATETIMEGETDATE           OCIDateTimeGetDate           = NULL;
-static OCIDATETIMEGETTIME           OCIDateTimeGetTime           = NULL;
-static OCIDATETIMEGETTIMEZONENAME   OCIDateTimeGetTimeZoneName   = NULL;
-static OCIDATETIMEGETTIMEZONEOFFSET OCIDateTimeGetTimeZoneOffset = NULL;
-static OCIDATETIMEINTERVALADD       OCIDateTimeIntervalAdd       = NULL;
-static OCIDATETIMEINTERVALSUB       OCIDateTimeIntervalSub       = NULL;
-static OCIDATETIMESUBTRACT          OCIDateTimeSubtract          = NULL;
-static OCIDATETIMESYSTIMESTAMP      OCIDateTimeSysTimeStamp      = NULL;
-
-static OCIARRAYDESCRIPTORFREE       OCIArrayDescriptorFree       = NULL;
-static OCICLIENTVERSION             OCIClientVersion             = NULL;
-
-static OCITYPEBYNAME                OCITypeByName                = NULL;
-
-static OCINUMBERTOINT               OCINumberToInt               = NULL;
-static OCINUMBERFROMINT             OCINumberFromInt             = NULL;
-
-static OCINUMBERTOREAL              OCINumberToReal              = NULL;
-static OCINUMBERFROMREAL            OCINumberFromReal            = NULL;
-
-static OCINUMBERTOTEXT              OCINumberToText              = NULL;
-
-static OCISTRINGPTR                 OCIStringPtr                 = NULL;
-static OCISTRINGASSIGNTEXT          OCIStringAssignText          = NULL;
-	
-static OCIRAWPTR                    OCIRawPtr                    = NULL;
-static OCIRAWASSIGNBYTES            OCIRawAssignBytes            = NULL;
-static OCIRAWALLOCSIZE              OCIRawAllocSize              = NULL;
-	
-static OCIOBJECTNEW                 OCIObjectNew                 = NULL;
-static OCIOBJECTFREE                OCIObjectFree                = NULL;
-static OCIOBJECTSETATTR             OCIObjectSetAttr             = NULL;
-static OCIOBJECTGETATTR             OCIObjectGetAttr             = NULL;
-
-static OCITHREADPROCESSINIT         OCIThreadProcessInit         = NULL;
-static OCITHREADINIT                OCIThreadInit                = NULL;
-static OCITHREADTERM                OCIThreadTerm                = NULL;
-
-static OCITHREADIDINIT              OCIThreadIdInit              = NULL;
-static OCITHREADIDDESTROY           OCIThreadIdDestroy           = NULL;
-static OCITHREADHNDINIT             OCIThreadHndInit             = NULL;
-static OCITHREADHNDDESTROY          OCIThreadHndDestroy          = NULL;
-static OCITHREADCREATE              OCIThreadCreate              = NULL;
-static OCITHREADJOIN                OCIThreadJoin                = NULL;
-static OCITHREADCLOSE               OCIThreadClose               = NULL;
-
-static OCITHREADMUTEXINIT           OCIThreadMutexInit           = NULL;
-static OCITHREADMUTEXDESTROY        OCIThreadMutexDestroy        = NULL;
-static OCITHREADMUTEXACQUIRE        OCIThreadMutexAcquire        = NULL;
-static OCITHREADMUTEXRELEASE        OCIThreadMutexRelease        = NULL;
-
-static OCITHREADKEYINIT             OCIThreadKeyInit             = NULL;
-static OCITHREADKEYDESTROY          OCIThreadKeyDestroy          = NULL;
-static OCITHREADKEYSET              OCIThreadKeySet              = NULL;
-static OCITHREADKEYGET              OCIThreadKeyGet              = NULL;
-
-static OCICONNECTIONPOOLCREATE      OCIConnectionPoolCreate      = NULL;
-static OCICONNECTIONPOOLDESTROY     OCIConnectionPoolDestroy     = NULL;
+#endif
 
 #define OCIDateGetTime(date, hour, min, sec) \
   { \

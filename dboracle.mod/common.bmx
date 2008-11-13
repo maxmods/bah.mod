@@ -51,6 +51,8 @@ Extern
 	Function bmx_ora_statement_getUpdateCount:Int(stmtHandle:Byte Ptr)
 	Function bmx_ora_statement_getResultSet:Byte Ptr(stmtHandle:Byte Ptr)
 	Function bmx_ora_statement_free:Int(stmtHandle:Byte Ptr)
+	Function bmx_ora_statement_prepare:Int(stmtHandle:Byte Ptr, statement:String)
+	Function bmx_ora_statement_executeprepared:Int(stmtHandle:Byte Ptr)
 
 	Function bmx_ora_resultset_getColCount:Int(resultSetHandle:Byte Ptr)
 	Function bmx_ora_resultset_getColInfo:String(resultSetHandle:Byte Ptr, index:Int, dataType:Int Ptr, columnSize:Int Ptr, ..
@@ -62,6 +64,11 @@ Extern
 	Function bmx_ora_resultset_getDouble:Double(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getString:String(resultSetHandle:Byte Ptr, index:Int)
 
+	Function bmx_ora_bind_int:Int(stmtHandle:Byte Ptr, name:String, value:Int Ptr)
+	Function bmx_ora_bind_double:Int(stmtHandle:Byte Ptr, name:String, value:Double Ptr)
+	Function bmx_ora_bind_string:Int(stmtHandle:Byte Ptr, name:String, str:Byte Ptr, length:Int)
+	Function bmx_ora_bind_setnull:Int(stmtHandle:Byte Ptr, index:Int)
+	
 End Extern
 
 

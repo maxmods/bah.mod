@@ -1,8 +1,12 @@
 /*
    +----------------------------------------------------------------------+   
-   |                 OCILIB - C Wrapper for Oracle OCI                    |
+   |                                                                      |
+   |                     OCILIB - C Driver for Oracle                     |
+   |                                                                      |
+   |                      (C Wrapper for Oracle OCI)                      |
+   |                                                                      |
    +----------------------------------------------------------------------+
-   |              Website : http://orclib.sourceforge.net                 |
+   |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
    |               Copyright (c) 2007-2008 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
@@ -22,18 +26,38 @@
    +----------------------------------------------------------------------+
    |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
    +----------------------------------------------------------------------+ 
+
+   +----------------------------------------------------------------------+   
+   |                          IMPORTANT NOTICE                            |
+   +----------------------------------------------------------------------+
+   |                                                                      |
+   | THIS FILE CONTAINS CONSTANTS AND STRUCTURES DECLARATIONS THAT WERE   |
+   | PICKED UP FROM ORACLE PUBLIC HEADER FILES 'OCI.H' AND 'ORO.H'.       |
+   |                                                                      |
+   | SO THE CONTENT OF THIS FILE IS UNDER ORACLE COPYRIGHT AND THE        |
+   | DECLARATIONS REPRODUCED HERE ARE ORIGINALLY WRITTEN BY ORACLE        | 
+   | CORPORATION.                                                         |
+   |                                                                      |
+   | THE AUTHOR OF OCILIB LIBRARY HAS NOT WRITTEN THE CONTENT OF THIS     |
+   | FILE AND HAS PARTIALLY INTEGRATED SOME ORACLE OCI DEFINITONS TO      |
+   | ALLOW COMPILATION OF THIS OPEN SOURCE LIBRARY WITHOUT HAVING         |
+   | ORACLE PRODUCTS INSTALLED ON DEVELOPMENT ENVIRONMENTS                |
+   |                                                                      |
+   +----------------------------------------------------------------------+
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_api.h, v 2.5.1 09:05 24/07/2008 Vince $
+ * $Id: oci_api.h, v 3.0.1 2008/10/17 21:50 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_API_H_INCLUDED 
 #define OCILIB_OCI_API_H_INCLUDED 
 
-#include "oci_def.h"
+#include "oci_defs.h"
 
-/* oci api protoptypes */
+/* ************************************************************************ *
+ *                         PUBLIC OCI API PROTOTYPES
+ * ************************************************************************ */
 
 typedef sword (*OCIENVCREATE) 
 (
@@ -271,6 +295,16 @@ typedef sword (*OCISTMTFETCH )
     ub4 mode
 );
 
+typedef sword (*OCISTMTFETCH2 ) 
+(
+    OCIStmt *stmtp, 
+    OCIError *errhp,
+    ub4 nrows, 
+    ub2 orientation, 
+    sb4 fetchOffset,
+    ub4 mode
+);
+
 typedef sword (*OCIPARAMGET)
 (
     const void *hndlp,
@@ -477,6 +511,8 @@ typedef sword (*OCILOBASSIGN)
     OCILobLocator **dst_locpp
 );
 
+#ifdef ORAXB8_DEFINED
+
 typedef sword (*OCILOBCOPY2)
 (
     OCISvcCtx *svchp, 
@@ -576,6 +612,8 @@ typedef sword (*OCILOBWRITEAPPEND2)
     ub2 csid, 
     ub1 csfrm
 );
+
+#endif
 
 typedef sword (*OCILOBFILEOPEN) 
 (
@@ -1243,6 +1281,18 @@ typedef sword (*OCINUMBERTOTEXT)
     text *buf  
 );
 
+typedef sword (*OCINUMBERFROMTEXT)  
+(
+    OCIError *err, 
+    CONST oratext *str, 
+    ub4 str_length, 
+    CONST oratext *fmt, 
+    ub4 fmt_length,
+    CONST oratext *nls_params, 
+    ub4 nls_p_length, 
+    OCINumber *number    
+);
+
 typedef oratext * (*OCISTRINGPTR)
 (    
     OCIEnv *env, 
@@ -1432,6 +1482,108 @@ typedef sword (*OCICONNECTIONPOOLDESTROY)
     ub4 mode
 );
 
+typedef sword (*OCICOLLSIZE)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIColl *coll, 
+    sb4 *size 
+);
 
-#endif    /* OCILIB_OCI_API_H_INCLUDED */
+typedef sb4 (*OCICOLLMAX)
+(
+    OCIEnv *env, 
+    CONST OCIColl *coll
+);
+
+typedef sword (*OCICOLLGETITEM)
+(    
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIColl *coll, 
+    sb4 index, 
+    boolean *exists, 
+    dvoid **elem, 
+    dvoid **elemind    
+);
+
+typedef sword (*OCICOLLASSIGNELEM)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    sb4 index, 
+    CONST dvoid *elem, 
+    CONST dvoid *elemind, 
+    OCIColl *coll    
+);
+
+typedef sword (*OCICOLLASSIGN)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIColl *rhs, 
+    OCIColl *lhs    
+);
+
+typedef sword (*OCICOLLAPPEND)
+(    
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST dvoid *elem, 
+    CONST dvoid *elemind, 
+    OCIColl *coll    
+);
+
+typedef sword (*OCICOLLTRIM)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    sb4 trim_num, 
+    OCIColl *coll    
+);
+
+typedef sword (*OCIITERCREATE)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIColl *coll, 
+    OCIIter **itr    
+);
+
+typedef sword (*OCIITERDELETE)
+(    
+    OCIEnv *env, 
+    OCIError *err, 
+    OCIIter **itr    
+);
+
+typedef sword (*OCIITERINIT)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIColl *coll, 
+    OCIIter *itr    
+);
+
+typedef sword (*OCIITERNEXT)
+(    
+    OCIEnv *env, 
+    OCIError *err, 
+    OCIIter *itr, 
+    void **elem, 
+    dvoid **elemind, 
+    boolean *eoc    
+);
+
+typedef sword (*OCIITERPREV)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    OCIIter *itr, 
+    dvoid **elem, 
+    dvoid **elemind, 
+    boolean *boc    
+);
+
+#endif /* OCILIB_OCI_API_H_INCLUDED */
 

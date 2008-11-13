@@ -105,6 +105,34 @@ Type TDBOracle Extends TDBConnection
 	End Method
 	
 	Method getTables:String[]()
+		Local list:String[]
+
+		If Not _isOpen Then
+			Return list
+		End If
+
+		Local tables:TList = New TList
+		
+		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
+		
+		Local sql:String = "SELECT table_name FROM user_tables"
+			
+		If query.execute(sql) Then
+			While query.nextRow()
+				tables.addLast(query.value(0).getString())
+			Wend
+		End If
+
+		If tables.count() > 0 Then
+			list = New String[tables.count()]
+			Local i:Int = 0
+			For Local s:String = EachIn tables
+				list[i] = s
+				i:+ 1
+			Next
+		End If
+		
+		Return list
 	End Method
 	
 	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
@@ -367,9 +395,230 @@ Type TOracleResultSet Extends TQueryResultSet
 	End Method
 	
 	Method prepare:Int(statement:String)
+		_isActive = False
+		index = SQL_BeforeFirstRow
+		
+		rec.clear()
+		
+		If stmtHandle Then
+		
+			Try
+				bmx_ora_statement_free(stmtHandle)
+			Catch err:TOracleSQLException
+				conn.setError("Error freeing statement handle", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+				Return False
+			End Try 
+			
+			stmtHandle = Null
+
+		End If
+		
+		' allocate a new statement handle
+		Try
+			stmtHandle = bmx_ora_connection_createStatement(conn.handle)
+		Catch err:TOracleSQLException
+			conn.setError("Error creating statement", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+			Return False
+		End Try 
+		
+		' prepare the query
+		Try
+			bmx_ora_statement_prepare(stmtHandle, statement)
+		Catch err:TOracleSQLException
+			conn.setError("Error preparing statement", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+			Return False
+		End Try 
+		
+		Return True
 	End Method
 
 	Method execute:Int()
+
+		_isActive = False
+		index = SQL_BeforeFirstRow
+		
+		If Not stmtHandle Then
+			Return False
+		End If
+		
+		Local result:Int = 0
+
+
+		' BIND stuff
+		Local values:TDBType[] = boundValues
+
+		If values Then
+			Local paramCount:Int = bindCount
+
+			Local strings:Byte Ptr[] = New Byte Ptr[paramCount]
+			
+			Try
+				For Local i:Int = 0 Until paramCount
+	
+					If Not values[i] Or values[i].isNull() Then
+						bmx_ora_bind_setnull(stmtHandle, i + 1)
+						Continue
+					End If
+	
+					Select values[i].kind()
+						Case DBTYPE_INT
+							result = bmx_ora_bind_int(stmtHandle, ":" + (i + 1), Varptr TDBInt(values[i]).value)
+						Case DBTYPE_FLOAT
+							' convert float to a Double
+							If TDBFloat(values[i]) Then
+								Local d:TDBDouble = New TDBDouble
+								d.setDouble(Double(TDBFloat(values[i]).value))
+								values[i].clear()
+								values[i] = d
+							End If
+							result = bmx_ora_bind_double(stmtHandle, ":" + (i + 1), Varptr TDBDouble(values[i]).value)
+						Case DBTYPE_DOUBLE
+							result = bmx_ora_bind_double(stmtHandle, ":" + (i + 1), Varptr TDBDouble(values[i]).value)
+						Case DBTYPE_LONG
+							' TODO
+						Case DBTYPE_STRING
+	
+							Local s:String = values[i].getString()
+							strings[i] = s.toCString()
+	
+							result = bmx_ora_bind_string(stmtHandle, ":" + (i + 1), strings[i], s.length)
+							
+						Case DBTYPE_BLOB
+							' TODO
+						Case DBTYPE_DATE
+							' TODO
+						Case DBTYPE_DATETIME
+							' TODO
+						Case DBTYPE_TIME
+							' TODO
+					End Select
+	
+					If Not result Then
+						conn.setError("Error binding parameters", "", TDatabaseError.ERROR_STATEMENT, -1)
+	
+						' free up the strings
+						For Local i:Int = 0 Until paramCount
+							If strings[i] Then
+								MemFree(strings[i])
+							End If
+						Next
+			
+						Return False
+					End If
+	
+				Next
+
+			Catch err:TOracleSQLException
+				conn.setError("Error binding parameters", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+
+				' free up the strings
+				For Local i:Int = 0 Until paramCount
+					If strings[i] Then
+						MemFree(strings[i])
+					End If
+				Next
+
+				Return False
+			End Try 
+			
+			' free up the strings
+			For Local i:Int = 0 Until paramCount
+				If strings[i] Then
+					MemFree(strings[i])
+				End If
+			Next
+			
+		End If
+		
+		' execute the query
+		Try
+			result = bmx_ora_statement_executeprepared(stmtHandle)
+
+		Catch err:TOracleSQLException
+			conn.setError("Error executing statement", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+			Return False
+		End Try
+
+		Select result
+			Case STATEMENT_RESULT_SET_AVAILABLE
+	
+				Try
+					resultSetHandle = bmx_ora_statement_getResultSet(stmtHandle)
+					
+				Catch err:TOracleSQLException
+					conn.setError("Error getting result set", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+					Return False
+				End Try
+
+
+				Local fieldCount:Int
+				
+				Try
+					fieldCount = bmx_ora_resultset_getColCount(resultSetHandle)
+				Catch err:TOracleSQLException
+					conn.setError("Error getting column count", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+					Return False
+				End Try
+
+				initRecord(fieldCount)
+
+				' we can now populate the fields with information (column name, size, etc)
+				If fieldCount Then
+				
+					Local columnName:String
+					Local nameLength:Int
+					Local dataType:Int
+					Local columnSize:Int
+					Local precision:Int
+					Local scale:Int
+					Local nullable:Int
+				
+					For Local i:Int = 0 Until fieldCount
+
+						' get the column/field description
+						columnName = bmx_ora_resultset_getColInfo(resultSetHandle, i + 1, Varptr dataType, Varptr columnSize, ..
+							Varptr precision, Varptr scale, Varptr nullable)
+
+						Local qf:TQueryField = TQueryField.Create(columnName, dbTypeFromNative(Null, dataType, scale))
+						If columnSize = 0 Then
+							qf.length = -1 ' not specified
+						Else
+							qf.length = columnSize
+						End If
+						If precision = 0 Then
+							qf.precision = -1 ' not specified
+						Else
+							qf.precision = precision
+						End If
+						qf.nullable = nullable
+							
+						rec.setField(i, qf)
+							
+					Next
+				End If
+
+				_isActive = True
+
+			Case STATEMENT_UPDATE_COUNT_AVAILABLE
+				' not active, as there are no rows to process
+				_isActive = False
+	
+				Try			
+					_rowsAffected = bmx_ora_statement_getUpdateCount(stmtHandle)
+				Catch err:TOracleSQLException
+					conn.setError("Error getting update count", err.message, TDatabaseError.ERROR_STATEMENT, err.errorCode)
+					Return False
+				End Try
+				
+				If TDBOracle(conn).autoCommit Then
+					' auto commit..
+					conn.commit()
+				End If
+				
+		End Select
+
+
+		Return True
 	End Method
 	
 	Method firstRow:Int()
