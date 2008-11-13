@@ -1,0 +1,2 @@
+Easiest way to extract functions from DLL is to open with the Dependency Walker, then save in the def.
+Then run the batch file to generate the .a
