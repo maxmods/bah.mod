@@ -51,6 +51,10 @@ MaxConnection * MaxCEEventCallback::subscribeEvent(CEGUI::Window * handle, const
 	return new MaxConnection(handle->subscribeEvent(name, CEGUI::Event::Subscriber(&MaxCEEventCallback::EventCallback, this)));
 }
 
+MaxConnection * MaxCEEventCallback::subscribeEvent(CEGUI::GlobalEventSet * handle, const CEGUI::utf8 * name) {
+	return new MaxConnection(handle->subscribeEvent(name, CEGUI::Event::Subscriber(&MaxCEEventCallback::EventCallback, this)));
+}
+
 MaxLogger::MaxLogger(BBObject * handle)
 	: maxHandle(handle)
 {
@@ -129,6 +133,31 @@ MaxRawDataContainer::MaxRawDataContainer(CEGUI::RawDataContainer & container)
 CEGUI::RawDataContainer & MaxRawDataContainer::Container() {
 	return container;
 }
+
+
+// *************************************************
+
+MaxWindowFactory::MaxWindowFactory(BBObject * handle, const CEGUI::utf8 * typeName)
+	: maxHandle(handle), CEGUI::WindowFactory(typeName)
+{
+}
+
+MaxWindowFactory::~MaxWindowFactory()
+{
+}
+
+CEGUI::Window * MaxWindowFactory::createWindow(const CEGUI::String &name) {
+	return _bah_cegui_TCEWindowFactory__createWindow(maxHandle, name.data());
+}
+
+void MaxWindowFactory::destroyWindow(CEGUI::Window *window) {
+	_bah_cegui_TCEWindowFactory__destroyWindow(maxHandle, newObjectForWindow(window));
+}
+
+const CEGUI::String & MaxWindowFactory::getTypeName() {
+	return _bah_cegui_TCEWindowFactory__getTypeName(maxHandle);
+}
+
 
 // *************************************************
 
@@ -607,6 +636,282 @@ const CEGUI::utf8 * bmx_cegui_window_gettype(CEGUI::Window * window) {
 void bmx_cegui_window_activate(CEGUI::Window * window) {
 	window->activate();
 }
+
+const CEGUI::utf8 * bmx_cegui_window_getname(CEGUI::Window * window) {
+	return window->getName().data();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getprefix(CEGUI::Window * window) {
+	return window->getPrefix().data();
+}
+
+bool bmx_cegui_window_isdestroyedbyparent(CEGUI::Window * window) {
+	return window->isDestroyedByParent();
+}
+
+bool bmx_cegui_window_isalwaysontop(CEGUI::Window * window) {
+	return window->isAlwaysOnTop();
+}
+
+bool bmx_cegui_window_isdisabled(CEGUI::Window * window, bool localOnly) {
+	return window->isDisabled(localOnly);
+}
+
+bool bmx_cegui_window_isvisible(CEGUI::Window * window, bool localOnly) {
+	return window->isVisible(localOnly);
+}
+
+bool bmx_cegui_window_isactive(CEGUI::Window * window) {
+	return window->isActive();
+}
+
+bool bmx_cegui_window_isclippedbyparent(CEGUI::Window * window) {
+	return window->isClippedByParent();
+}
+
+CEGUI::uint bmx_cegui_window_getid(CEGUI::Window * window) {
+	return window->getID();
+}
+
+int bmx_cegui_window_getchildcount(CEGUI::Window * window) {
+	return window->getChildCount();
+}
+
+bool bmx_cegui_window_ischild(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->isChild(name);
+}
+
+bool bmx_cegui_window_ischildid(CEGUI::Window * window, CEGUI::uint ID) {
+	return window->isChild(ID);
+}
+
+bool bmx_cegui_window_ischildrecursive(CEGUI::Window * window, CEGUI::uint ID) {
+	return window->isChildRecursive(ID);
+}
+
+bool bmx_cegui_window_ischildwindow(CEGUI::Window * window, CEGUI::Window * win) {
+	return window->isChild(win);
+}
+
+BBObject * bmx_cegui_window_getchild(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return newObjectForWindow(window->getChild(name));
+}
+
+BBObject * bmx_cegui_window_recursivechildsearch(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return newObjectForWindow(window->recursiveChildSearch(name));
+}
+
+BBObject * bmx_cegui_window_getchildid(CEGUI::Window * window, CEGUI::uint ID) {
+	return newObjectForWindow(window->getChild(ID));
+}
+
+BBObject * bmx_cegui_window_getchildrecursive(CEGUI::Window * window, CEGUI::uint ID) {
+	return newObjectForWindow(window->getChildRecursive(ID));
+}
+
+BBObject * bmx_cegui_window_getchildatidx(CEGUI::Window * window, int idx) {
+	return newObjectForWindow(window->getChildAtIdx(idx));
+}
+
+BBObject * bmx_cegui_window_getactivechild(CEGUI::Window * window) {
+	return newObjectForWindow(window->getActiveChild());
+}
+
+bool bmx_cegui_window_isancestor(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->isAncestor(name);
+}
+
+bool bmx_cegui_window_isancestorid(CEGUI::Window * window, CEGUI::uint ID) {
+	return window->isAncestor(ID);
+}
+
+bool bmx_cegui_window_isancestorwindow(CEGUI::Window * window, CEGUI::Window * win) {
+	return window->isAncestor(win);
+}
+
+const CEGUI::utf8 * bmx_cegui_window_gettext(CEGUI::Window * window) {
+	return window->getText().data();
+}
+
+bool bmx_cegui_window_inheritsalpha(CEGUI::Window * window) {
+	return window->inheritsAlpha();
+}
+
+float bmx_cegui_window_getalpha(CEGUI::Window * window) {
+	return window->getAlpha();
+}
+
+float bmx_cegui_window_geteffectivealpha(CEGUI::Window * window) {
+	return window->getEffectiveAlpha();
+}
+
+void bmx_cegui_window_getpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = window->getPixelRect();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_window_getinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = window->getInnerRect();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_window_getunclippedpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = window->getUnclippedPixelRect();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_window_getunclippedinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = window->getUnclippedInnerRect();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+bool bmx_cegui_window_iscapturedbythis(CEGUI::Window * window) {
+	return window->isCapturedByThis();
+}
+
+bool bmx_cegui_window_iscapturedbyancestor(CEGUI::Window * window) {
+	return window->isCapturedByAncestor();
+}
+
+bool bmx_cegui_window_iscapturedbychild(CEGUI::Window * window) {
+	return window->isCapturedByChild();
+}
+
+bool bmx_cegui_window_ishit(CEGUI::Window * window, float x, float y) {
+	return window->isHit(CEGUI::Vector2(x, y));
+}
+
+BBObject * bmx_cegui_window_getchildatposition(CEGUI::Window * window, float x, float y) {
+	return newObjectForWindow(window->getChildAtPosition(CEGUI::Vector2(x, y)));
+}
+
+BBObject * bmx_cegui_window_gettargetchildatposition(CEGUI::Window * window, float x, float y) {
+	return newObjectForWindow(window->getTargetChildAtPosition(CEGUI::Vector2(x, y)));
+}
+
+BBObject * bmx_cegui_window_getparent(CEGUI::Window * window) {
+	return newObjectForWindow(window->getParent());
+}
+
+void bmx_cegui_window_getpixelsize(CEGUI::Window * window, float * width, float * height) {
+	CEGUI::Size s = window->getPixelSize();
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
+bool bmx_cegui_window_restoresoldcapture(CEGUI::Window * window) {
+	return window->restoresOldCapture();
+}
+
+bool bmx_cegui_window_iszorderingenabled(CEGUI::Window * window) {
+	return window->isZOrderingEnabled();
+}
+
+bool bmx_cegui_window_wantsmulticlickevents(CEGUI::Window * window) {
+	return window->wantsMultiClickEvents();
+}
+
+bool bmx_cegui_window_ismouseautorepeatenabled(CEGUI::Window * window) {
+	return window->isMouseAutoRepeatEnabled();
+}
+
+float bmx_cegui_window_getautorepeatdelay(CEGUI::Window * window) {
+	return window->getAutoRepeatDelay();
+}
+
+float bmx_cegui_window_getautorepeatrate(CEGUI::Window * window) {
+	return window->getAutoRepeatRate();
+}
+
+bool bmx_cegui_window_distributescapturedinputs(CEGUI::Window * window) {
+	return window->distributesCapturedInputs();
+}
+
+bool bmx_cegui_window_isusingdefaulttooltip(CEGUI::Window * window) {
+	return window->isUsingDefaultTooltip();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_gettooltiptype(CEGUI::Window * window) {
+	return window->getTooltipType().data();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_gettooltiptext(CEGUI::Window * window) {
+	return window->getTooltipText().data();
+}
+
+bool bmx_cegui_window_inheritstooltiptext(CEGUI::Window * window) {
+	return window->inheritsTooltipText();
+}
+
+bool bmx_cegui_window_isriseonclickenabled(CEGUI::Window * window) {
+	return window->isRiseOnClickEnabled();
+}
+
+bool bmx_cegui_window_testclassname(CEGUI::Window * window, const CEGUI::utf8 * className) {
+	return window->testClassName(className);
+}
+
+CEGUI::VerticalAlignment bmx_cegui_window_getverticalalignment(CEGUI::Window * window) {
+	return window->getVerticalAlignment();
+}
+
+CEGUI::HorizontalAlignment bmx_cegui_window_gethorizontalalignment(CEGUI::Window * window) {
+	return window->getHorizontalAlignment();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getlooknfeel(CEGUI::Window * window) {
+	return window->getLookNFeel().data();
+}
+
+bool bmx_cegui_window_getmodalstate(CEGUI::Window * window) {
+	return window->getModalState();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getuserstring(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->getUserString(name).data();
+}
+
+bool bmx_cegui_window_isuserstringdefined(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->isUserStringDefined(name);
+}
+
+float bmx_cegui_window_getparentpixelwidth(CEGUI::Window * window) {
+	return window->getParentPixelWidth();
+}
+
+float bmx_cegui_window_getparentpixelheight(CEGUI::Window * window) {
+	return window->getParentPixelHeight();
+}
+
+bool bmx_cegui_window_ismousepassthroughenabled(CEGUI::Window * window) {
+	return window->isMousePassThroughEnabled();
+}
+
+bool bmx_cegui_window_isautowindow(CEGUI::Window * window) {
+	return window->isAutoWindow();
+}
+
+bool bmx_cegui_window_iswritingxmlallowed(CEGUI::Window * window) {
+	return window->isWritingXMLAllowed();
+}
+
+bool bmx_cegui_window_isdragdroptarget(CEGUI::Window * window) {
+	return window->isDragDropTarget();
+}
+
+
 
 // *************************************************
 
@@ -3074,4 +3379,19 @@ void bmx_cegui_itemlistbase_sortlist(CEGUI::ItemListBase * lb, bool relayout) {
 }
 
 
+// *************************************************
+
+CEGUI::GlobalEventSet * bmx_cegui_globaleventset_getinstance() {
+	return &CEGUI::GlobalEventSet::getSingleton();
+}
+
+MaxConnection * bmx_cegui_globaleventset_subscribeevent(CEGUI::GlobalEventSet * handle, const CEGUI::utf8 * name, MaxCEEventCallback * cb) {
+	return cb->subscribeEvent(handle, name);
+}
+
+// *************************************************
+
+MaxWindowFactory * bmx_cegui_windowfactory_create(BBObject * handle, const CEGUI::utf8 * type) {
+	return new MaxWindowFactory(handle, type);
+}
 

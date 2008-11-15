@@ -315,6 +315,39 @@ Type TCEEventSet
 End Type
 
 Rem
+bbdoc: The GlobalEventSet singleton allows you to subscribe to an event for all instances of a type.
+about: The GlobalEventSet effectively supports "late binding" to events; which means you can subscribe to some
+event that does not actually exist (yet).
+End Rem
+Type TCEGlobalEventSet Extends TCEEventSet
+
+	Global globalInstance:TCEGlobalEventSet
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function getInstance:TCEGlobalEventSet()
+		If Not globalInstance Then
+			globalInstance = New TCEGlobalEventSet
+			globalInstance.objectPtr = bmx_cegui_globaleventset_getinstance()
+		End If
+		Return globalInstance
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method subscribeEvent:TCEConnection(name:String, callback:Int(args:TCEEventArgs))
+		' subscribe to the event
+		Local cb:TCEEventCallback = ce_event_handler.AddCallback(Self, name, callback)
+		Return TCEConnection._create(bmx_cegui_globaleventset_subscribeevent(objectPtr, _convertMaxToUTF8(name), cb.callbackPtr))
+	End Method
+	
+
+End Type
+
+
+Rem
 bbdoc: 
 End Rem
 Type TCESystem Extends TCEEventSet
@@ -786,159 +819,378 @@ Type TCEWindow Extends TCEEventSet
 		destructCB = Null
 	End Method
 	
+	Rem
+	bbdoc: Returns the type name for this Window.
+	End Rem
 	Method getType:String()
 		Return _convertUTF8ToMax(bmx_cegui_window_gettype(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the name of this Window.
+	End Rem
 	Method getName:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_getname(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the window prefix.
+	End Rem
 	Method getPrefix:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_getprefix(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether or not this Window is set to be destroyed when its parent window is destroyed.
+	End Rem
 	Method isDestroyedByParent:Int()
+		Return bmx_cegui_window_isdestroyedbyparent(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether or not this Window is an always on top Window. Also known as a top-most window.
+	End Rem
 	Method isAlwaysOnTop:Int()
+		Return bmx_cegui_window_isalwaysontop(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the Window is currently disabled.
+	End Rem
 	Method isDisabled:Int(localOnly:Int = False)
+		Return bmx_cegui_window_isdisabled(objectPtr, localOnly)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the Window is currently visible.
+	about: When true is returned from this method, it does not mean that the window is not completely obscured by other
+	windows, just that the window will be processed when rendering, and is not explicitly marked as hidden.
+	End Rem
 	Method isVisible:Int(localOnly:Int = False)
+		Return bmx_cegui_window_isvisible(objectPtr, localOnly	)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if this is the active Window.
+	about: An active window is a window that may receive user inputs.
+	<p>
+	Mouse events are always sent to the window containing the mouse cursor regardless of what this method
+	reports (unless a window has captured inputs). The active state mainly determines where send other, for
+	example keyboard, inputs.
+	</p>
+	End Rem
 	Method isActive:Int()
+		Return bmx_cegui_window_isactive(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if this Window is clipped so that its rendering will not pass outside of its parent Window area.
+	End Rem
 	Method isClippedByParent:Int()
+		Return bmx_cegui_window_isclippedbyparent(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the ID code currently assigned to this Window by client code.
+	End Rem
 	Method getID:Int()
+		Return bmx_cegui_window_getid(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the number of child Window objects currently attached to this Window.
+	End Rem
 	Method getChildCount:Int()
+		Return bmx_cegui_window_getchildcount(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether a Window with the specified name is currently attached to this Window as a child.
+	End Rem
 	Method isChild:Int(name:String)
+		Return bmx_cegui_window_ischild(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether at least one window with the given ID code is attached to this Window as a child.
+	End Rem
 	Method isChildID:Int(ID:Int)
+		Return bmx_cegui_window_ischildid(objectPtr, ID)
 	End Method
 	 
+	Rem
+	bbdoc: returns whether at least one window with the given ID code is attached to this Window or any of it's children as a child.
+	about: Note: ID codes are client assigned and may or may not be unique, and as such, the return from this method
+	will only have meaning to the client code.
+	<p>
+	WARNING! This method can be very expensive and should only be used when you have no other option available.
+	If you decide to use it anyway, make sure the window hierarchy from the entry point is small.
+	</p>
+	End Rem
 	Method isChildRecursive:Int(ID:Int)
+		Return bmx_cegui_window_ischildrecursive(objectPtr, ID)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the given Window is a child of this window.
+	End Rem
 	Method isChildWindow:Int(window:TCEWindow)
+		Return bmx_cegui_window_ischildwindow(objectPtr, window.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the child window with the specified name.
+	End Rem
 	Method GetChild:TCEWindow(name:String)
+		Return TCEWindow(bmx_cegui_window_getchild(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	 
+	Rem
+	bbdoc: 
+	End Rem
 	Method recursiveChildSearch:TCEWindow(name:String)
+		Return TCEWindow(bmx_cegui_window_recursivechildsearch(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	
+	Rem
+	bbdoc: Returns the first attached child window with the specified ID value.
+	End Rem
 	Method GetChildID:TCEWindow(ID:Int)
+		Return TCEWindow(bmx_cegui_window_getchildid(objectPtr, ID))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the first attached child window with the specified ID value. Children are traversed recursively.
+	about: Contrary to the non recursive version of this method, this one will not throw an exception, but return 0 in case no child was found.
+	<p>
+	Note:
+	WARNING! This method can be very expensive and should only be used when you have no other option available. If
+	you decide to use it anyway, make sure the window hierarchy from the entry point is small.
+	</p>
+	End Rem
 	Method getChildRecursive:TCEWindow(ID:Int)
+		Return TCEWindow(bmx_cegui_window_getchildrecursive(objectPtr, ID))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the child window that is attached to 'this' at the given index.
+	End Rem
 	Method getChildAtIdx:TCEWindow(idx:Int)
+		Return TCEWindow(bmx_cegui_window_getchildatidx(objectPtr, idx))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the Window that currently has input focus starting with this Window.
+	End Rem
 	Method getActiveChild:TCEWindow()
+		Return TCEWindow(bmx_cegui_window_getactivechild(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the specified Window is some ancestor of this Window.
+	End Rem
 	Method isAncestor:Int(name:String)
+		Return bmx_cegui_window_isancestor(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if any Window with the given ID is some ancestor of this Window.
+	End Rem
 	Method isAncestorID:Int(ID:Int)
+		Return bmx_cegui_window_isancestorid(objectPtr, ID)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the specified Window is some ancestor of this Window.
+	End Rem
 	Method isAncestorWindow:Int(window:TCEWindow)
+		Return bmx_cegui_window_isancestorwindow(objectPtr, window.objectPtr)
 	End Method
 
 	
 	Method getFont:TCEFont(useDefault:Int = True)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current text for the Window
+	End Rem
 	Method getText:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_gettext(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the Window inherits alpha from its parent(s).
+	End Rem
 	Method inheritsAlpha:Int()
+		Return bmx_cegui_window_inheritsalpha(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current alpha value set for this Window.
+	about: The alpha value set for any given window may or may not be the final alpha value that is used when
+	rendering. All window objects, by default, inherit alpha from thier parent window(s) - this will blend
+	child windows, relatively, down the line of inheritance. This behaviour can be overridden via the
+	setInheritsAlpha() method. To return the true alpha value that will be applied when rendering, use the
+	getEffectiveAlpha() method.
+	End Rem
 	Method GetAlpha:Float()
+		Return bmx_cegui_window_getalpha(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the effective alpha value that will be used when rendering this window, taking into account inheritance of parent window(s) alpha.
+	End Rem
 	Method getEffectiveAlpha:Float()
+		Return bmx_cegui_window_geteffectivealpha(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns a Rect describing the Window area in screen space.
+	End Rem
 	Method getPixelRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_window_getpixelrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	 
+	Rem
+	bbdoc: Returns a Rect describing the clipped inner area for this window.
+	End Rem
 	Method getInnerRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_window_getinnerrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	 
+	Rem
+	bbdoc: Returns a Rect describing the Window area unclipped, in screen space.
+	End Rem
 	Method getUnclippedPixelRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_window_getunclippedpixelrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	 
+	Rem
+	bbdoc: Returns a Rect that describes, unclipped, the inner rectangle for this window.
+	about: The inner rectangle is typically an area that excludes some frame or other rendering that should not be
+	touched by subsequent rendering.
+	End Rem
 	Method getUnclippedInnerRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_window_getunclippedinnerrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if this Window has input captured.
+	End Rem
 	Method isCapturedByThis:Int()
+		Return bmx_cegui_window_iscapturedbythis(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if an ancestor window has captured inputs.
+	End Rem
 	Method isCapturedByAncestor:Int()
+		Return bmx_cegui_window_iscapturedbyancestor(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if a child window has captured inputs.
+	End Rem
 	Method isCapturedByChild:Int()
+		Return bmx_cegui_window_iscapturedbychild(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Checks if the given pixel position would hit this window.
+	End Rem
 	Method isHit:Int(x:Float, y:Float)
+		Return bmx_cegui_window_ishit(objectPtr, x, y)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the child Window that is hit by the given pixel position
+	End Rem
 	Method getChildAtPosition:TCEWindow(x:Float, y:Float)
+		Return TCEWindow(bmx_cegui_window_getchildatposition(objectPtr, x, y))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the child Window that is 'hit' by the given position, and is allowed to handle mouse events.
+	End Rem
 	Method getTargetChildAtPosition:TCEWindow(x:Float, y:Float)
+		Return TCEWindow(bmx_cegui_window_gettargetchildatposition(objectPtr, x, y))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the parent of this Window.
+	End Rem
 	Method GetParent:TCEWindow()
+		Return TCEWindow(bmx_cegui_window_getparent(objectPtr))
 	End Method
 	 
 	Method getMouseCursor:TCEImage(useDefault:Int = True)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the window size in pixels.
+	End Rem
 	Method getPixelSize(width:Float Var, height:Float Var)
+		bmx_cegui_window_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 	 
 	Method getUserData:Object()
 	End Method
 	 
+	Rem
+	bbdoc: Return whether this window is set to restore old input capture when it loses input capture.
+	about: This is only really useful for certain sub-components for widget writers.
+	End Rem
 	Method restoresOldCapture:Int()
+		Return bmx_cegui_window_restoresoldcapture(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether z-order changes are enabled or disabled for this Window.
+	End Rem
 	Method isZOrderingEnabled:Int()
+		Return bmx_cegui_window_iszorderingenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether this window will receive multi-click events or multiple 'down' events instead.
+	End Rem
 	Method wantsMultiClickEvents:Int()
+		Return bmx_cegui_window_wantsmulticlickevents(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether mouse button down event autorepeat is enabled for this window.
+	End Rem
 	Method isMouseAutoRepeatEnabled:Int()
+		Return bmx_cegui_window_ismouseautorepeatenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current auto-repeat delay setting for this window.
+	End Rem
 	Method getAutoRepeatDelay:Float()
+		Return bmx_cegui_window_getautorepeatdelay(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current auto-repeat rate setting for this window.
+	End Rem
 	Method getAutoRepeatRate:Float()
+		Return bmx_cegui_window_getautorepeatrate(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the window wants inputs passed to its attached child windows when the window has inputs captured.
+	End Rem
 	Method distributesCapturedInputs:Int()
+		Return bmx_cegui_window_distributescapturedinputs(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether this Window is using the system default Tooltip for its Tooltip window.
+	End Rem
 	Method isUsingDefaultTooltip:Int()
+		Return bmx_cegui_window_isusingdefaulttooltip(objectPtr)
 	End Method
 	
 	Rem
@@ -1198,37 +1450,83 @@ Type TCEWindow Extends TCEEventSet
 	Method getTooltip:TCETooltip()
 	End Method
 	
+	Rem
+	bbdoc: Returns the custom tooltip type.
+	End Rem
 	Method getTooltipType:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_gettooltiptype(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the current tooltip text set for this Window.
+	End Rem
 	Method getTooltipText:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_gettooltiptext(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window inherits Tooltip text from its parent when its own tooltip text is not set.
+	End Rem
 	Method inheritsTooltipText:Int()
+		Return bmx_cegui_window_inheritstooltiptext(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window will rise to the top of the z-order when clicked with the left mouse button.
+	End Rem
 	Method isRiseOnClickEnabled:Int()
+		Return bmx_cegui_window_isriseonclickenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window was inherited from the given class name at some point in the inheritance hierarchy.
+	End Rem
 	Method testClassName:Int(className:String)
+		Return bmx_cegui_window_testclassname(objectPtr, _convertMaxToUTF8(className))
 	End Method
 	
+	Rem
+	bbdoc: Gets the vertical alignment.
+	returns: The vertical alignment for the window. This setting affects how the windows position is interpreted relative to its parent.
+	End Rem
 	Method getVerticalAlignment:Int()
+		Return bmx_cegui_window_getverticalalignment(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the horizontal alignment.
+	returns: the horizontal alignment for the window. This setting affects how the windows position is interpreted relative to its parent.
+	End Rem
 	Method getHorizontalAlignment:Int()
+		Return bmx_cegui_window_gethorizontalalignment(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the name of the LookNFeel assigned to this window.
+	End Rem
 	Method getLookNFeel:String()
+		Return _convertUTF8ToMax(bmx_cegui_window_getlooknfeel(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Gets whether or not this Window is the modal target.
+	End Rem
 	Method getModalState:Int()
+		Return bmx_cegui_window_getmodalstate(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns a named user string.
+	End Rem
 	Method getUserString:String(name:String)
+		Return _convertUTF8ToMax(bmx_cegui_window_getuserstring(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	
-	Method isUserStringDefined(name:String)
+	Rem
+	bbdoc: Returns whether a user string with the specified name exists.
+	End Rem
+	Method isUserStringDefined:Int(name:String)
+		Return bmx_cegui_window_isuserstringdefined(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
 	Method getActiveSibling:TCEWindow()
@@ -1237,22 +1535,48 @@ Type TCEWindow Extends TCEEventSet
 	Method getParentPixelSize(width:Float Var, height:Float Var)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel Width of the parent element.
+	End Rem
 	Method getParentPixelWidth:Float()
+		Return bmx_cegui_window_getparentpixelwidth(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel Height of the parent element.
+	End Rem
 	Method getParentPixelHeight:Float()
+		Return bmx_cegui_window_getparentpixelheight(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window should ignore mouse event and pass them through to and other windows behind it.
+	about: In effect making the window transparent to the mouse.
+	End Rem
 	Method isMousePassThroughEnabled:Int()
+		Return bmx_cegui_window_ismousepassthroughenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window is an auto-child window.
+	about: All auto-child windows have "__auto_" in their name, but this is faster. 
+	End Rem
 	Method isAutoWindow:Int()
+		Return bmx_cegui_window_isautowindow(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this window is allowed to write XML. 
+	End Rem
 	Method isWritingXMLAllowed:Int()
+		Return bmx_cegui_window_iswritingxmlallowed(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this Window object will receive events generated by the drag and drop support in the system.
+	End Rem
 	Method isDragDropTarget:Int()
+		Return bmx_cegui_window_isdragdroptarget(objectPtr)
 	End Method
 	
 	Method rename(newName:String)
@@ -2675,6 +2999,58 @@ Type TCEDragContainer Extends TCEWindow
 	Method getCurrentDropTarget:TCEWindow() 
 		Return TCEWindow(bmx_cegui_dragcontainer_getcurrentdroptarget(objectPtr))
 	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEWindowFactory
+
+	Field objectPtr:Byte Ptr
+	
+	Method Create:TCEWindowFactory()
+		objectPtr = bmx_cegui_windowfactory_create(Self, _convertMaxToUTF8(getTypeName()))
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method createWindow:TCEWindow(name:String)
+	End Method
+	
+	Function _createWindow:Byte Ptr(factory:TCEWindowFactory, name:String)
+		Return factory.createWindow(name).objectPtr
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method destroyWindow(window:TCEWindow)
+	End Method
+	
+	Function _destroyWindow(factory:TCEWindowFactory, window:TCEWindow)
+		factory.destroyWindow(window)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getTypeName:String()
+	End Method
+	
+	Function _getTypeName:String(factory:TCEWindowFactory)
+		Return factory.getTypeName()
+	End Function
+	
+End Type
+
+
+Rem
+bbdoc: 
+End Rem
+Type TCEWindowFactoryManager
 
 End Type
 

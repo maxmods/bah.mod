@@ -34,6 +34,7 @@ class MaxCEColour;
 class MaxCEColourRect;
 class MaxResourceProvider;
 class MaxRawDataContainer;
+class MaxWindowFactory;
 
 extern "C" {
 
@@ -101,6 +102,10 @@ extern "C" {
 	
 	void _bah_cegui_TCEResourceProvider__loadRawDataContainer(BBObject * handle, const CEGUI::utf8 * filename, MaxRawDataContainer * container, const CEGUI::utf8 * resourceGroup);
 	void _bah_cegui_TCEResourceProvider__unloadRawDataContainer(BBObject * handle, MaxRawDataContainer * data);
+	
+	CEGUI::Window * _bah_cegui_TCEWindowFactory__createWindow(BBObject * handle, const CEGUI::utf8 * name);
+	void _bah_cegui_TCEWindowFactory__destroyWindow(BBObject * handle, BBObject * window);
+	const CEGUI::utf8 * _bah_cegui_TCEWindowFactory__getTypeName(BBObject * handle);
 	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
@@ -172,7 +177,71 @@ extern "C" {
 	void bmx_cegui_window_show(CEGUI::Window * window);
 	const CEGUI::utf8 * bmx_cegui_window_gettype(CEGUI::Window * window);
 	void bmx_cegui_window_activate(CEGUI::Window * window);
-
+	const CEGUI::utf8 * bmx_cegui_window_getname(CEGUI::Window * window);
+	const CEGUI::utf8 * bmx_cegui_window_getprefix(CEGUI::Window * window);
+	bool bmx_cegui_window_isdestroyedbyparent(CEGUI::Window * window);
+	bool bmx_cegui_window_isalwaysontop(CEGUI::Window * window);
+	bool bmx_cegui_window_isdisabled(CEGUI::Window * window, bool localOnly);
+	bool bmx_cegui_window_isvisible(CEGUI::Window * window, bool localOnly);
+	bool bmx_cegui_window_isactive(CEGUI::Window * window);
+	bool bmx_cegui_window_isclippedbyparent(CEGUI::Window * window);
+	CEGUI::uint bmx_cegui_window_getid(CEGUI::Window * window);
+	int bmx_cegui_window_getchildcount(CEGUI::Window * window);
+	bool bmx_cegui_window_ischild(CEGUI::Window * window, const CEGUI::utf8 * name);
+	bool bmx_cegui_window_ischildid(CEGUI::Window * window, CEGUI::uint ID);
+	bool bmx_cegui_window_ischildrecursive(CEGUI::Window * window, CEGUI::uint ID);
+	bool bmx_cegui_window_ischildwindow(CEGUI::Window * window, CEGUI::Window * win);
+	BBObject * bmx_cegui_window_getchild(CEGUI::Window * window, const CEGUI::utf8 * name);
+	BBObject * bmx_cegui_window_recursivechildsearch(CEGUI::Window * window, const CEGUI::utf8 * name);
+	BBObject * bmx_cegui_window_getchildid(CEGUI::Window * window, CEGUI::uint ID);
+	BBObject * bmx_cegui_window_getchildrecursive(CEGUI::Window * window, CEGUI::uint ID);
+	BBObject * bmx_cegui_window_getchildatidx(CEGUI::Window * window, int idx);
+	BBObject * bmx_cegui_window_getactivechild(CEGUI::Window * window);
+	bool bmx_cegui_window_isancestor(CEGUI::Window * window, const CEGUI::utf8 * name);
+	bool bmx_cegui_window_isancestorid(CEGUI::Window * window, CEGUI::uint ID);
+	bool bmx_cegui_window_isancestorwindow(CEGUI::Window * window, CEGUI::Window * win);
+	const CEGUI::utf8 * bmx_cegui_window_gettext(CEGUI::Window * window);
+	bool bmx_cegui_window_inheritsalpha(CEGUI::Window * window);
+	float bmx_cegui_window_getalpha(CEGUI::Window * window);
+	float bmx_cegui_window_geteffectivealpha(CEGUI::Window * window);
+	void bmx_cegui_window_getpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h);
+	void bmx_cegui_window_getinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h);
+	void bmx_cegui_window_getunclippedpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h);
+	void bmx_cegui_window_getunclippedinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h);
+	bool bmx_cegui_window_iscapturedbythis(CEGUI::Window * window);
+	bool bmx_cegui_window_iscapturedbyancestor(CEGUI::Window * window);
+	bool bmx_cegui_window_iscapturedbychild(CEGUI::Window * window);
+	bool bmx_cegui_window_ishit(CEGUI::Window * window, float x, float y);
+	BBObject * bmx_cegui_window_getchildatposition(CEGUI::Window * window, float x, float y);
+	BBObject * bmx_cegui_window_gettargetchildatposition(CEGUI::Window * window, float x, float y);
+	BBObject * bmx_cegui_window_getparent(CEGUI::Window * window);
+	void bmx_cegui_window_getpixelsize(CEGUI::Window * window, float * width, float * height);
+	bool bmx_cegui_window_restoresoldcapture(CEGUI::Window * window);
+	bool bmx_cegui_window_iszorderingenabled(CEGUI::Window * window);
+	bool bmx_cegui_window_wantsmulticlickevents(CEGUI::Window * window);
+	bool bmx_cegui_window_ismouseautorepeatenabled(CEGUI::Window * window);
+	float bmx_cegui_window_getautorepeatdelay(CEGUI::Window * window);
+	float bmx_cegui_window_getautorepeatrate(CEGUI::Window * window);
+	bool bmx_cegui_window_distributescapturedinputs(CEGUI::Window * window);
+	bool bmx_cegui_window_isusingdefaulttooltip(CEGUI::Window * window);
+	const CEGUI::utf8 * bmx_cegui_window_gettooltiptype(CEGUI::Window * window);
+	const CEGUI::utf8 * bmx_cegui_window_gettooltiptext(CEGUI::Window * window);
+	bool bmx_cegui_window_inheritstooltiptext(CEGUI::Window * window);
+	bool bmx_cegui_window_isriseonclickenabled(CEGUI::Window * window);
+	bool bmx_cegui_window_testclassname(CEGUI::Window * window, const CEGUI::utf8 * className);
+	CEGUI::VerticalAlignment bmx_cegui_window_getverticalalignment(CEGUI::Window * window);
+	CEGUI::HorizontalAlignment bmx_cegui_window_gethorizontalalignment(CEGUI::Window * window);
+	const CEGUI::utf8 * bmx_cegui_window_getlooknfeel(CEGUI::Window * window);
+	bool bmx_cegui_window_getmodalstate(CEGUI::Window * window);
+	const CEGUI::utf8 * bmx_cegui_window_getuserstring(CEGUI::Window * window, const CEGUI::utf8 * name);
+	bool bmx_cegui_window_isuserstringdefined(CEGUI::Window * window, const CEGUI::utf8 * name);
+	float bmx_cegui_window_getparentpixelwidth(CEGUI::Window * window);
+	float bmx_cegui_window_getparentpixelheight(CEGUI::Window * window);
+	bool bmx_cegui_window_ismousepassthroughenabled(CEGUI::Window * window);
+	bool bmx_cegui_window_isautowindow(CEGUI::Window * window);
+	bool bmx_cegui_window_iswritingxmlallowed(CEGUI::Window * window);
+	bool bmx_cegui_window_isdragdroptarget(CEGUI::Window * window);
+	
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	
 	void bmx_cegui_connection_delete(MaxConnection * conn);
@@ -768,6 +837,12 @@ extern "C" {
 	void bmx_cegui_itemlistbase_setsortenabled(CEGUI::ItemListBase * lb, bool setting);
 	void bmx_cegui_itemlistbase_setsortmode(CEGUI::ItemListBase * lb, CEGUI::ItemListBase::SortMode mode);
 	void bmx_cegui_itemlistbase_sortlist(CEGUI::ItemListBase * lb, bool relayout);
+
+	CEGUI::GlobalEventSet * bmx_cegui_globaleventset_getinstance();
+	MaxConnection * bmx_cegui_globaleventset_subscribeevent(CEGUI::GlobalEventSet * handle, const CEGUI::utf8 * name, MaxCEEventCallback * cb);
+
+	MaxWindowFactory * bmx_cegui_windowfactory_create(BBObject * handle, const CEGUI::utf8 * type);
+
 }
 
 class MaxConnection
@@ -798,6 +873,7 @@ public:
 
 	bool EventCallback(const CEGUI::EventArgs& args);
 	MaxConnection * subscribeEvent(CEGUI::Window * handle, const CEGUI::utf8 * name);
+	MaxConnection * subscribeEvent(CEGUI::GlobalEventSet * handle, const CEGUI::utf8 * name);
 
 private:
 	BBObject *callbackHandle;
@@ -862,6 +938,20 @@ public:
 
 private:
 	CEGUI::RawDataContainer & container;
+};
+
+class MaxWindowFactory : public CEGUI::WindowFactory
+{
+public:
+	MaxWindowFactory(BBObject * handle, const CEGUI::utf8 * typeName);
+	~MaxWindowFactory();
+
+	virtual CEGUI::Window * createWindow(const CEGUI::String &name);
+	virtual void destroyWindow(CEGUI::Window *window);
+	const CEGUI::String & getTypeName();
+
+private:
+	BBObject * maxHandle;
 };
 
 
