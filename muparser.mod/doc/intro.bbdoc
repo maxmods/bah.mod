@@ -16,7 +16,7 @@ implementation. Here is the (incomplete) list of features:
 <ul>
   <li><b>Easy to use</b></li>
   <ul>
-    <li>You need only a <a href="mup_version.html#idExample">few lines of code</a> to evaluate en expression</li>
+    <li>You need only a few lines of code to evaluate en expression</li>
   </ul> 
   <li><b>Extremely fast</b></li>
   <ul>
@@ -374,7 +374,7 @@ parser.DefinePostfixOprt("m", MyCallback)
 <h4>Binary operators</h4>
 <p>
 This parser has 15 Built in binary operators. Sometimes it might be necessary to add additional custom binary
-operators. Examples are <tt>shl</tt> or <tt>shr</tt>, the "shift left" and "shift right" operators for integer numbers. In order
+operators. Examples are <tt>shl</tt> or <tt>shr</tt>, the <b>"shift left"</b> and <b>"shift right"</b> operators for integer numbers. In order
 to add user defined operators you need to assign a name, a callback function with two parameters and a priority
 for each new binary operator. You are not allowed to overload built in operators, this would result in an error
 being raised! For instance lets consider the following callback function which should be assigned to a binary
@@ -417,13 +417,69 @@ Example B: Priority of <tt>shl</tt> is higher than the one of the addition; <tt>
 </p>
 <p>
 If you encounter such conflicts or simply dont need the built in operators these can easily be deactivated using
-the EnableBuiltInOprt(bool) function. If you call this function you must add binary operators manually. After all
+the EnableBuiltInOprt(Int) method. If you call this method you must add binary operators manually. After all
 without any operators you won't be able to parse anything useful. User defined operators come with approximately
 10% decrease in parsing speed compared to built in operators. There is no way to avoid that. They cause an overhead
-when calling theeir callback functions. (This is the reason why there are built in operators).
+when calling their callback functions. (This is the reason why there are built in operators).
 <pre>
 ' disable all built in operators
 parser.EnableBuiltInOprt(False)
 </pre>
 </p>
+<h3>Querying parser variables</h3>
+<p>
+Keeping track of all variables can be a difficult task. For simplification the parser allows the user to query the variables defined in the parser. There are two different sets of variables that can be accessed:
+<ul>
+<li>Varaiables defined in the parser</li>
+<li>Variables used in the current expression</li>
+</ul>
+Since the usage of the necessary commands is similar the following example shows querying the parser variables only.
+</p>
+<p>
+For querying the expression variables exchange parser.GetVar() with parser.GetUsedVar() in the following example.
+</p>
+<pre>
+' Get the array of variables
+Local variables:TmuParserVariable[] = parser.GetVar()
+Print "Number : " + variables.length
 
+' Query the variables
+For Local variable:TmuParserVariable = EachIn variables
+	Print "Name: " + variable.name +  " Value: " + variable.variable[0]
+Next
+</pre>
+<h3>Querying parser constants</h3>
+<p>
+Querying parser constants is similar to querying variables and expression variables.
+</p>
+<p>
+The parser class provides you with the GetConst() method that returns an array with all defined constants. The following code snippet shows how to use it:
+</p>
+<pre>
+Local consts:TmuParserConstant[] = parser.GetConst()
+
+For Local constant:TmuParserConstant = EachIn consts
+    Print "  " + constant.name + " =  " + constant.value
+Next
+</pre>
+<h3>Removing variables or constants</h3>
+<p>
+Removing variables and constants can be done all at once using <tt>ClearVar</tt> and <tt>ClearConst</tt>. Additionally variables can be removed by name using <tt>RemoveVar</tt>. Since the parser never owns the variables you must take care of their release yourself if they were dynamically allocated. If you need to browse all the variables for that purpose have a look at the section explaining how to query parser variables.
+</p>
+<pre>
+' Remove all constants
+parser.ClearConst()
+
+' remove all variables
+parser.ClearVar()
+
+' remove a single variable by name
+parser.RemoveVar("a")
+</pre>
+<h3>Error handling</h3>
+<p>
+In case of an error, a TmuParserException will be thrown. From that you can query the error code, message, expression and position in the expression where the error occured.
+</p>
+
+
+</p>

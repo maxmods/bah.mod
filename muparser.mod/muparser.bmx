@@ -285,6 +285,96 @@ Type TmuParserBase
 		Return TmuParserBase(userData).varFactoryCallback(String.FromCString(name), TmuParserBase(userData).vfUserData)
 	End Function
 	
+	Rem
+	bbdoc: Returns an array of all variables.
+	End Rem
+	Method GetVar:TmuParserVariable[]()
+		Return bmx_muparser_parserbase_getvar(parserPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns an array of only used variables.
+	End Rem
+	Method GetUsedVar:TmuParserVariable[]()
+		Return bmx_muparser_parserbase_getusedvar(parserPtr)
+	End Method
+	
+	Function _newVarArray:TmuParserVariable[](size:Int)
+		Return New TmuParserVariable[size]
+	End Function
+	
+	Function _setVarArray(vars:TmuParserVariable[], index:Int, name:String, variable:Double Ptr)
+		vars[index] = TmuParserVariable._create(name, variable)
+	End Function
+
+	Rem
+	bbdoc: Returns an array of all constants.
+	End Rem
+	Method GetConst:TmuParserConstant[]()
+		Return bmx_muparser_parserbase_getconst(parserPtr)
+	End Method
+
+	Function _newConstArray:TmuParserConstant[](size:Int)
+		Return New TmuParserConstant[size]
+	End Function
+	
+	Function _setConstArray(consts:TmuParserConstant[], index:Int, name:String, value:Double)
+		consts[index] = TmuParserConstant._create(name, value)
+	End Function
+
+End Type
+
+Extern
+	Function bmx_muparser_parserbase_getvar:TmuParserVariable[](handle:Byte Ptr)
+	Function bmx_muparser_parserbase_getusedvar:TmuParserVariable[](handle:Byte Ptr)
+	Function bmx_muparser_parserbase_getconst:TmuParserConstant[](handle:Byte Ptr)
+End Extern
+
+Rem
+bbdoc: A variable, as returned by GetVar() and GetUsedVar().
+End Rem
+Type TmuParserVariable
+
+	Rem
+	bbdoc: The variable name.
+	End Rem
+	Field name:String
+	Rem
+	bbdoc: The variable address
+	about: Retrieve the current value with variable[0].
+	End Rem
+	Field variable:Double Ptr
+	
+	Function _create:TmuParserVariable(name:String, variable:Double Ptr)
+		Local this:TmuParserVariable = New TmuParserVariable
+		this.name = name
+		this.variable = variable
+		Return this
+	End Function
+
+End Type
+
+Rem
+bbdoc: A constant, as returned by GetConst()
+End Rem
+Type TmuParserConstant
+
+	Rem
+	bbdoc: The constant name.
+	End Rem
+	Field name:String
+	Rem
+	bbdoc: The constant value
+	End Rem
+	Field value:Double
+	
+	Function _create:TmuParserConstant(name:String, value:Double)
+		Local this:TmuParserConstant = New TmuParserConstant
+		this.name = name
+		this.value = value
+		Return this
+	End Function
+
 End Type
 
 Rem

@@ -45,17 +45,11 @@ Extern
 	Function bmx_muparser_parserbase_eval:Double(handle:Byte Ptr)
 	Function bmx_muparser_parserbase_setexpr(handle:Byte Ptr, expr:String)
 	Function bmx_muparser_parserbase_definevar(handle:Byte Ptr, name:String, value:Double Ptr)
-
 	Function bmx_muparser_parserbase_clearvar(handle:Byte Ptr)
-
 	Function bmx_muparser_parserbase_clearfun(handle:Byte Ptr)
-
 	Function bmx_muparser_parserbase_clearconst(handle:Byte Ptr)
-
 	Function bmx_muparser_parserbase_clearinfixoprt(handle:Byte Ptr)
-
 	Function bmx_muparser_parserbase_clearpostfixoprt(handle:Byte Ptr)
-
 	Function bmx_muparser_parserbase_clearoprt(handle:Byte Ptr)
 
 

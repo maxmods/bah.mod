@@ -26,6 +26,10 @@ extern "C" {
 #include "blitz.h"
 
 	BBObject * _bah_muparser_TmuParserException__create(mu::EErrorCodes code, BBString * msg, BBString * expr, int pos);
+	BBArray * _bah_muparser_TmuParserBase__newVarArray(int size);
+	void _bah_muparser_TmuParserBase__setVarArray(BBArray * vars, int index, BBString * name, double * variable);
+	BBArray * _bah_muparser_TmuParserBase__newConstArray(int size);
+	void _bah_muparser_TmuParserBase__setConstArray(BBArray * consts, int index, BBString * name, double value);
 
 	mu::Parser * bmx_muparser_parser_new();
 	void bmx_muparser_parser_delete(mu::Parser * par);
@@ -33,19 +37,12 @@ extern "C" {
 	double bmx_muparser_parserbase_eval(mu::ParserBase * par);
 	void bmx_muparser_parserbase_setexpr(mu::ParserBase * par, BBString * expr);
 	void bmx_muparser_parserbase_definevar(mu::ParserBase * par, BBString * name, double * value);
-
 	void bmx_muparser_parserbase_clearvar(mu::ParserBase * par);
-
 	void bmx_muparser_parserbase_clearfun(mu::ParserBase * par);
-
 	void bmx_muparser_parserbase_clearconst(mu::ParserBase * par);
-
 	void bmx_muparser_parserbase_clearinfixoprt(mu::ParserBase * par);
-
 	void bmx_muparser_parserbase_clearpostfixoprt(mu::ParserBase * par);
-
 	void bmx_muparser_parserbase_clearoprt(mu::ParserBase * par);
-
 
 	void bmx_muparser_parserbase_definefun0(mu::ParserBase * par, BBString * name, mu::fun_type0 func, bool allowOpt);
 	void bmx_muparser_parserbase_definefun1(mu::ParserBase * par, BBString * name, mu::fun_type1 func, bool allowOpt);
@@ -68,6 +65,9 @@ extern "C" {
 	void bmx_muparser_parserbase_definestrconst(mu::ParserBase * par, BBString * name, BBString * value);
 
 	void bmx_muparser_parserbase_setvarfactory(mu::ParserBase * par, mu::facfun_type func, void * userData);
+	BBArray * bmx_muparser_parserbase_getvar(mu::ParserBase * par);
+	BBArray * bmx_muparser_parserbase_getusedvar(mu::ParserBase * par);
+	BBArray * bmx_muparser_parserbase_getconst(mu::ParserBase * par);
 
 }
 
@@ -366,3 +366,63 @@ void bmx_muparser_parserbase_setvarfactory(mu::ParserBase * par, mu::facfun_type
 		bmx_muparser_throw(e);
 	}
 }
+
+BBArray * bmx_muparser_getvariables(const mu::varmap_type & variables) {
+	int size = (int)variables.size();
+	
+	BBArray * varArray = _bah_muparser_TmuParserBase__newVarArray(size);
+	
+	mu::varmap_type::const_iterator var = variables.begin();
+	int index = 0;
+
+	for (; var != variables.end(); ++var) {
+		_bah_muparser_TmuParserBase__setVarArray(varArray, index++, bbStringFromCString(var->first.c_str()), var->second);
+	}
+	
+	return varArray;
+}
+
+BBArray * bmx_muparser_parserbase_getvar(mu::ParserBase * par) {
+	try {
+	
+		mu::varmap_type variables = par->GetVar();
+		return bmx_muparser_getvariables(variables);
+		
+	} catch (mu::Parser::exception_type &e) {
+		bmx_muparser_throw(e);
+	}
+}
+
+BBArray * bmx_muparser_parserbase_getusedvar(mu::ParserBase * par) {
+	try {
+	
+		mu::varmap_type variables = par->GetUsedVar();
+		return bmx_muparser_getvariables(variables);
+		
+	} catch (mu::Parser::exception_type &e) {
+		bmx_muparser_throw(e);
+	}
+}
+
+BBArray * bmx_muparser_parserbase_getconst(mu::ParserBase * par) {
+	try {
+	
+		mu::valmap_type consts = par->GetConst();
+		int size = (int)consts.size();
+		
+		BBArray * constArray = _bah_muparser_TmuParserBase__newConstArray(size);
+		
+		mu::valmap_type::const_iterator var = consts.begin();
+		int index = 0;
+	
+		for (; var != consts.end(); ++var) {
+			_bah_muparser_TmuParserBase__setConstArray(constArray, index++, bbStringFromCString(var->first.c_str()), var->second);
+		}
+		
+		return constArray;
+		
+	} catch (mu::Parser::exception_type &e) {
+		bmx_muparser_throw(e);
+	}
+}
+
