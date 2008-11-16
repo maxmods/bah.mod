@@ -587,7 +587,7 @@ Type TCEWindowManager
 	bbdoc: Creates a new Window object of the specified type, and gives it the specified unique name.
 	returns: The newly created Window object.
 	End Rem
-	Function CreateWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
+	Function createWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
 		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
 	End Function
 	
@@ -1209,133 +1209,321 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_deactivate(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Sets whether this Window will be clipped by its parent window(s).
+	End Rem
 	Method setClippedByParent(setting:Int)
+		bmx_cegui_window_setclippedbyparent(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Set the current ID for the Window.
+	End Rem
 	Method setID(ID:Int)
+		bmx_cegui_window_setid(objectPtr, ID)
 	End Method
 	
+	Rem
+	bbdoc: Sets the unique prefix for this window.
+	End Rem
 	Method setPrefix(prefix:String)
+		bmx_cegui_window_setprefix(objectPtr, _convertMaxToUTF8(prefix))
 	End Method
 	
-	Method insertText(text:String, position:String)
+	Rem
+	bbdoc: Inserts the text string text into the current text string for the Window object at the position specified by position.
+	End Rem
+	Method insertText(text:String, position:Int)
+		bmx_cegui_window_inserttext(objectPtr, _convertMaxToUTF8(text), position)
 	End Method
 	
+	Rem
+	bbdoc: Appends the string @text to the currect text string for the Window object.
+	End Rem
 	Method appendText(text:String)
+		bmx_cegui_window_appendtext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	
-	Method setFont(font:TCEFont)
-	End Method
-	
-	Method setFontByName(name:String)
-	End Method
-	
-	Method removeChildWindow(window:Object)
-		If TCEWindow(window) Then
-		ElseIf String(window) Then
+	Rem
+	bbdoc: Sets the font used by this Window.
+	about: Accepts either a TCEFont object, or font name.
+	End Rem
+	Method setFont(font:Object)
+		If TCEFont(font) Then
+			bmx_cegui_window_setfont(objectPtr, TCEFont(Font).objectPtr)
+		Else If String(font) Then
+			bmx_cegui_window_setfontbyname(objectPtr, _convertMaxToUTF8(String(font)))
 		End If
 	End Method
 	
+	Rem
+	bbdoc: Removes the named Window from this windows child list.
+	about: Accepts either a TCEWindow object, or window name.
+	End Rem
+	Method removeChildWindow(window:Object)
+		If TCEWindow(window) Then
+			bmx_cegui_window_removechildwindow(objectPtr, TCEWindow(window).objectPtr)
+		ElseIf String(window) Then
+			bmx_cegui_window_removechildwindowname(objectPtr, _convertMaxToUTF8(String(window)))
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Removes the first child Window with the specified ID.
+	about: If there is more than one attached Window objects with the specified ID, only the fist one encountered will be removed.
+	End Rem
 	Method removeChildWindowForID(ID:Int)
+		bmx_cegui_window_removechildwindowforid(objectPtr, ID)
 	End Method
 	
+	Rem
+	bbdoc: Moves the Window to the top of the z order.
+	about: If the Window is a non always-on-top window it is moved the the top of all other non always-on-top sibling
+	windows, and the process repeated for all ancestors.
+	<p>
+	If the Window is an always-on-top window it is moved to the of of all sibling Windows, and the process repeated
+	for all ancestors.
+	</p>
+	End Rem
 	Method moveToFront()
+		bmx_cegui_window_movetofront(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Moves the Window to the bottom of the Z order.
+	about: If the window is non always-on-top the Window is sent to the very bottom of its sibling windows and the
+	process repeated for all ancestors.
+	<p>
+	If the window is always-on-top, the Window is sent to the bottom of all sibling always-on-top windows and the process
+	repeated for all ancestors.
+	</p>
+	End Rem
 	Method moveToBack()
+		bmx_cegui_window_movetoback(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Captures input to this window.
+	End Rem
 	Method captureInput:Int()
+		Return bmx_cegui_window_captureinput(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Releases input capture from this Window.
+	about: If this Window does not have inputs captured, nothing happens.
+	End Rem
 	Method releaseInput()
+		bmx_cegui_window_releaseinput(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window will remember and restore the previous window that had inputs captured.
+	End Rem
 	Method setRestoreCapture(setting:Int)
+		bmx_cegui_window_setrestorecapture(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current alpha value for this window.
+	about: The alpha value set for any given window may or may not be the final alpha value that is used when
+	rendering. All window objects, by default, inherit alpha from thier parent window(s) - this will blend
+	child windows, relatively, down the line of inheritance. This behaviour can be overridden via the
+	setInheritsAlpha() method. To return the true alpha value that will be applied when rendering, use the
+	getEffectiveAlpha() method.
+	End Rem
 	Method SetAlpha(alpha:Float)
+		bmx_cegui_window_setalpha(objectPtr, alpha)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this Window will inherit alpha from its parent windows.
+	End Rem
 	Method setInheritsAlpha(setting:Int)
+		bmx_cegui_window_setinheritsalpha(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Signals the System object to redraw (at least) this Window on the next render cycle.
+	End Rem
 	Method requestRedraw()
+		bmx_cegui_window_requestredraw(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the mouse cursor image to be used when the mouse enters this window.
+	End Rem
 	Method setMouseCursor(image:TCEImage)
+		bmx_cegui_window_setmousecursor(objectPtr, image.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the mouse cursor image to be used when the mouse enters this window.
+	End Rem
 	Method setMouseCursorMode(image:Int)
+		bmx_cegui_window_setmousecursormode(objectPtr, image)
 	End Method
 	
+	Rem
+	bbdoc: Sets the mouse cursor image to be used when the mouse enters this window.
+	End Rem
 	Method setMouseCursorByName(imageset:String, imageName:String)
+		bmx_cegui_window_setmousecursorbyname(objectPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(imageName))
 	End Method
 	
 	'method setUserData(void *user_data)
 	'end method
 	
+	Rem
+	bbdoc: Sets whether z-order changes are enabled or disabled for this Window.
+	End Rem
 	Method setZOrderingEnabled(setting:Int)
+		bmx_cegui_window_setzorderingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window will receive multi-click events or multiple 'down' events instead.
+	End Rem
 	Method setWantsMultiClickEvents(setting:Int)
+		bmx_cegui_window_setwantsmulticlickevents(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether mouse button down event autorepeat is enabled for this window.
+	End Rem
 	Method setMouseAutoRepeatEnabled(setting:Int)
+		bmx_cegui_window_setmouseautorepeateenabled(objectPtr, setting)
 	End Method
 	
-	Method setAutoRepeatDelay(Delay:Float)
+	Rem
+	bbdoc: Sets the current auto-repeat delay setting for this window.
+	End Rem
+	Method setAutoRepeatDelay(_delay:Float)
+		bmx_cegui_window_setautorepeatdelay(objectPtr, _delay)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current auto-repeat rate setting for this window.
+	End Rem
 	Method setAutoRepeatRate(rate:Float)
+		bmx_cegui_window_setautorepeatrate(objectPtr, rate)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the window wants inputs passed to its attached child windows when the window has inputs captured.
+	End Rem
 	Method setDistributesCapturedInputs(setting:Int)
+		bmx_cegui_window_setdistributescapturedinputs(objectPtr, setting)
 	End Method
 	
+	' not usually called by client code
 	Method notifyDragDropItemEnters(item:TCEDragContainer)
+		bmx_cegui_window_notifydragdropitementers(objectPtr, item.objectPtr)
 	End Method
 	
+	' not usually called by client code
 	Method notifyDragDropItemLeaves(item:TCEDragContainer)
+		bmx_cegui_window_notifydragdropitemleaves(objectPtr, item.objectPtr)
 	End Method
 	
+	' not usually called by client code
 	Method notifyDragDropItemDropped(item:TCEDragContainer)
+		bmx_cegui_window_notifydragdropitemdropped(objectPtr, item.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Internal destroy method which actually just adds the window and any parent destructed child windows to the dead pool.
+	End Rem
 	Method destroy()
+		bmx_cegui_window_destroy(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the custom Tooltip object for this Window.
+	about: This value may be 0 to indicate that the Window should use the system default Tooltip object.
+	End Rem
 	Method setTooltip(tooltip:TCETooltip)
+		bmx_cegui_window_settooltip(objectPtr, tooltip.objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the custom Tooltip to be used by this Window by specifying a Window type.
+	about: The Window will internally attempt to create an instance of the specified window type (which must be
+	derived from the base Tooltip class). If the Tooltip creation fails, the error is logged and the Window will
+	revert to using either the existing custom Tooltip or the system default Tooltip.
+	End Rem
 	Method setTooltipType(tooltipType:String)
+		bmx_cegui_window_settooltiptype(objectPtr, _convertMaxToUTF8(tooltipType))
 	End Method
 	
+	Rem
+	bbdoc: Sets the tooltip text for this window.
+	End Rem
 	Method setTooltipText(tip:String)
+		bmx_cegui_window_settooltiptext(objectPtr, _convertMaxToUTF8(tip))
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window inherits Tooltip text from its parent when its own tooltip text is not set.
+	End Rem
 	Method setInheritsTooltipText(setting:Int)
+		bmx_cegui_window_setinheritstooltiptext(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window will rise to the top of the z-order when clicked with the left mouse button.
+	End Rem
 	Method setRiseOnClickEnabled(setting:Int)
+		bmx_cegui_window_setriseonclickenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the vertical alignment.
+	about: Modifies the vertical alignment for the window. This setting affects how the windows position is
+	interpreted relative to its parent.
+	End Rem
 	Method setVerticalAlignment(alignment:Int)
+		bmx_cegui_window_setverticalaligmnent(objectPtr, alignment)
 	End Method
 	
+	Rem
+	bbdoc: Sets the horizontal alignment.
+	about: Modifies the horizontal alignment for the window. This setting affects how the windows position is
+	interpreted relative to its parent.
+	End Rem
 	Method setHorizontalAlignment(alignment:Int)
+		bmx_cegui_window_sethorizontalalignment(objectPtr, alignment)
 	End Method
 	
+	Rem
+	bbdoc: Sets the LookNFeel that shoule be used for this window.
+	about: Once a look'n'feel has been assigned it is locked - as in cannot be changed.
+	End Rem
 	Method setLookNFeel(look:String)
+		bmx_cegui_window_setlooknfeel(objectPtr, _convertMaxToUTF8(look))
 	End Method
 	
+	Rem
+	bbdoc: Sets the modal state for this Window.
+	End Rem
 	Method setModalState(state:Int)
+		bmx_cegui_window_setmodalstate(objectPtr, state)
 	End Method
 	
+	Rem
+	bbdoc: Performs extended laying out of attached child windows.
+	about: The system may call this at various times (like when it is resized for example), and it may be invoked
+	directly where required.
+	End Rem
 	Method performChildWindowLayout()
+		bmx_cegui_window_performchildwindowlayout(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the value a named user string, creating it as required.
+	End Rem
 	Method setUserString(name:String, value:String)
+		bmx_cegui_window_setuserstring(objectPtr, _convertMaxToUTF8(name), _convertMaxToUTF8(value))
 	End Method
 	
 	'method setArea(const UDim &xpos, UDim &ypos, UDim &width, UDim &height)

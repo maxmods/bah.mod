@@ -911,6 +911,173 @@ bool bmx_cegui_window_isdragdroptarget(CEGUI::Window * window) {
 	return window->isDragDropTarget();
 }
 
+void bmx_cegui_window_setclippedbyparent(CEGUI::Window * window, bool setting) {
+	window->setClippedByParent(setting);
+}
+
+void bmx_cegui_window_setid(CEGUI::Window * window, CEGUI::uint ID) {
+	window->setID(ID);
+}
+
+void bmx_cegui_window_setprefix(CEGUI::Window * window, const CEGUI::utf8 * prefix) {
+	window->setPrefix(prefix);
+}
+
+void bmx_cegui_window_inserttext(CEGUI::Window * window, const CEGUI::utf8 * text, int position) {
+	window->insertText(text, position);
+}
+
+void bmx_cegui_window_appendtext(CEGUI::Window * window, const CEGUI::utf8 * text) {
+	window->appendText(text);
+}
+
+void bmx_cegui_window_setfont(CEGUI::Window * window, CEGUI::Font * font) {
+	window->setFont(font);
+}
+
+void bmx_cegui_window_setfontbyname(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	window->setFont(name);
+}
+
+void bmx_cegui_window_removechildwindow(CEGUI::Window * window, CEGUI::Window * win) {
+	window->removeChildWindow(win);
+}
+
+void bmx_cegui_window_removechildwindowname(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	window->removeChildWindow(name);
+}
+
+void bmx_cegui_window_removechildwindowforid(CEGUI::Window * window, CEGUI::uint ID) {
+	window->removeChildWindow(ID);
+}
+
+void bmx_cegui_window_movetofront(CEGUI::Window * window) {
+	window->moveToFront();
+}
+
+void bmx_cegui_window_movetoback(CEGUI::Window * window) {
+	window->moveToBack();
+}
+
+bool bmx_cegui_window_captureinput(CEGUI::Window * window) {
+	return window->captureInput();
+}
+
+void bmx_cegui_window_releaseinput(CEGUI::Window * window) {
+	window->releaseInput();
+}
+
+void bmx_cegui_window_setrestorecapture(CEGUI::Window * window, bool setting) {
+	window->setRestoreCapture(setting);
+}
+
+void bmx_cegui_window_setalpha(CEGUI::Window * window, float alpha) {
+	window->setAlpha(alpha);
+}
+
+void bmx_cegui_window_setinheritsalpha(CEGUI::Window * window, bool setting) {
+	window->setInheritsAlpha(setting);
+}
+
+void bmx_cegui_window_requestredraw(CEGUI::Window * window) {
+	window->requestRedraw();
+}
+
+void bmx_cegui_window_setmousecursor(CEGUI::Window * window, CEGUI::Image * image) {
+	window->setMouseCursor(image);
+}
+
+void bmx_cegui_window_setmousecursormode(CEGUI::Window * window, CEGUI::MouseCursorImage image) {
+	window->setMouseCursor(image);
+}
+
+void bmx_cegui_window_setmousecursorbyname(CEGUI::Window * window, const CEGUI::utf8 * imageset, const CEGUI::utf8 * imageName) {
+	window->setMouseCursor(imageset, imageName);
+}
+
+void bmx_cegui_window_setzorderingenabled(CEGUI::Window * window, bool setting) {
+	window->setZOrderingEnabled(setting);
+}
+
+void bmx_cegui_window_setwantsmulticlickevents(CEGUI::Window * window, bool setting) {
+	window->setWantsMultiClickEvents(setting);
+}
+
+void bmx_cegui_window_setmouseautorepeateenabled(CEGUI::Window * window, bool setting) {
+	window->setMouseAutoRepeatEnabled(setting);
+}
+
+void bmx_cegui_window_setautorepeatdelay(CEGUI::Window * window, float delay) {
+	window->setAutoRepeatDelay(delay);
+}
+
+void bmx_cegui_window_setautorepeatrate(CEGUI::Window * window, float rate) {
+	window->setAutoRepeatRate(rate);
+}
+
+void bmx_cegui_window_setdistributescapturedinputs(CEGUI::Window * window, bool setting) {
+	window->setDistributesCapturedInputs(setting);
+}
+
+void bmx_cegui_window_notifydragdropitementers(CEGUI::Window * window, CEGUI::DragContainer * item) {
+	window->notifyDragDropItemEnters(item);
+}
+
+void bmx_cegui_window_notifydragdropitemleaves(CEGUI::Window * window, CEGUI::DragContainer * item) {
+	window->notifyDragDropItemLeaves(item);
+}
+
+void bmx_cegui_window_notifydragdropitemdropped(CEGUI::Window * window, CEGUI::DragContainer * item) {
+	window->notifyDragDropItemDropped(item);
+}
+
+void bmx_cegui_window_destroy(CEGUI::Window * window) {
+	window->destroy();
+}
+
+void bmx_cegui_window_settooltip(CEGUI::Window * window, CEGUI::Tooltip * tooltip) {
+	window->setTooltip(tooltip);
+}
+
+void bmx_cegui_window_settooltiptype(CEGUI::Window * window, const CEGUI::utf8 * tooltipType) {
+	window->setTooltipType(tooltipType);
+}
+
+void bmx_cegui_window_settooltiptext(CEGUI::Window * window, const CEGUI::utf8 * tip) {
+	window->setTooltipText(tip);
+}
+
+void bmx_cegui_window_setinheritstooltiptext(CEGUI::Window * window, bool setting) {
+	window->setInheritsTooltipText(setting);
+}
+
+void bmx_cegui_window_setriseonclickenabled(CEGUI::Window * window, bool setting) {
+	window->setRiseOnClickEnabled(setting);
+}
+
+void bmx_cegui_window_setverticalaligmnent(CEGUI::Window * window, CEGUI::VerticalAlignment alignment) {
+	window->setVerticalAlignment(alignment);
+}
+
+void bmx_cegui_window_sethorizontalalignment(CEGUI::Window * window, CEGUI::HorizontalAlignment alignment) {
+	window->setHorizontalAlignment(alignment);
+}
+
+void bmx_cegui_window_setlooknfeel(CEGUI::Window * window, const CEGUI::utf8 * look) {
+	window->setLookNFeel(look);
+}
+
+void bmx_cegui_window_setmodalstate(CEGUI::Window * window, bool state) {
+	window->setModalState(state);
+}
+
+void bmx_cegui_window_performchildwindowlayout(CEGUI::Window * window) {
+	window->performChildWindowLayout();
+}
+
+void bmx_cegui_window_setuserstring(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value) {
+	window->setUserString(name, value);
+}
 
 
 // *************************************************
