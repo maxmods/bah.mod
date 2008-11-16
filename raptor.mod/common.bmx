@@ -1,0 +1,5 @@
+SuperStrict
+
+
+Import "source.bmx"
+
