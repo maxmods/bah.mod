@@ -12,7 +12,8 @@ fc.SetAPIKey("xxxxxxxxxxxx")
 fc.SetSharedSecret("xxxxxxxxxx")
 fc.SetAuthToken(fc.GetFullToken("xxxxxxxxxxx")) ' frob
 
-Local photo:TFCPhoto = fc.GetPhotoInfo("123456789") ' photo ID
+
+Local photo:TFCPhoto = fc.GetPhotoInfo("983570868") ' photo ID
 
 If photo Then
 
@@ -28,30 +29,37 @@ If photo Then
 		End If
 	Next
 	
-	Print photo.GetURI()
+	For Local i:Int = 0 Until photo.GetTagCount()
+		Local tag:TFCTag = photo.GetTag(i)
+		
+		Local s:String = i + ") " 
+		
+		If tag.GetMachineTag() Then
+			s:+ "machine"
+		Else
+			S:+ "regular"
+		End If
+		
+		s :+ " tag: id " + tag.GetID() + " author ID " + tag.GetAuthor() + " name "
+		
+		If tag.GetAuthorName() Then
+			s:+ tag.GetAuthorName()
+		Else
+			s:+ "(Unknown)"
+		End If
+		
+		s :+ "~n~t~traw '" + tag.GetRaw() + "' cooked '" + tag.GetCooked() + "' count " + tag.GetCount()
+
+		Print s		
 	
-	OpenURL("http://www.flickr.com/photos/thaggards/123456789/")
+	Next	
 	
-	Rem
-	  For(i=0; i < photo->tags_count; i++) {
-	    flickcurl_tag* tag=photo->tags[i];
-	    fprintf(stderr,
-	            "%d) %s tag: id %s author ID %s name %s raw '%s' cooked '%s' count %d\n",
-	            i, (tag->machine_tag ? "machine" : "regular"),
-	            tag->id, tag->author, 
-	            (tag->authorname ? tag->authorname : "(Unknown)"), 
-	            tag->raw, tag->cooked,
-	            tag->count);
-	  }
+	OpenURL(photo.GetSourceURI(FCIMAGE_MEDIUM))
 	
-	  flickcurl_free_photo(photo);
-	  flickcurl_free(fc);
-	  flickcurl_finish(); /* optional static free of resources */
-	
-	End Rem
-	
-	'photo.Free()
+	photo.Free()
 	
 End If
+
 fc.Free()
 FinishFlickcurl
+

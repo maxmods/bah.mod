@@ -1,3 +1,17 @@
+' Copyright 2008 Bruce A Henderson
+'
+' Licensed under the Apache License, Version 2.0 (the "License");
+' you may not use this file except in compliance with the License.
+' You may obtain a copy of the License at
+'
+'     http://www.apache.org/licenses/LICENSE-2.0
+'
+' Unless required by applicable law or agreed to in writing, software
+' distributed under the License is distributed on an "AS IS" BASIS,
+' WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+' See the License for the specific language governing permissions and
+' limitations under the License.
+'
 SuperStrict
 
 Import "source.bmx"
@@ -18,6 +32,9 @@ Extern
 	Function bmx_flickcurl_photo_geturi:String(handle:Byte Ptr)
 	Function bmx_flickcurl_photo_getsourceuri:String(handle:Byte Ptr, size:Int)
 	Function bmx_flickcurl_photo_free(handle:Byte Ptr)
+	Function bmx_flickcurl_photo_getplace:Byte Ptr(handle:Byte Ptr)
+	Function bmx_flickcurl_photo_gettag:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_photo_gettagcount:Int(handle:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -25,11 +42,63 @@ Extern
 	Function bmx_flickcurl_getfrob:String(handle:Byte Ptr)
 	Function bmx_flickcurl_getfulltoken:String(handle:Byte Ptr, frob:String)
 
+	Function bmx_flickcurl_resolveplaceid:Byte Ptr(handle:Byte Ptr, placeID:String)
+	Function bmx_flickcurl_resolveplaceurl:Byte Ptr(handle:Byte Ptr, url:String)
+	Function bmx_flickcurl_findplacebylatlon:Byte Ptr(handle:Byte Ptr, lat:Double, lon:Double, accuracy:Int)
 
+	Function bmx_flickcurl_place_gettypelabel:String(placeType:Int)
+	Function bmx_flickcurl_place_getname:String(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_place_getid:String(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_place_geturl:String(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_place_gettype:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_place_getwoeid:String(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_place_getlocation:Object(handle:Byte Ptr)
+	Function bmx_flickcurl_place_getcount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_place_free(handle:Byte Ptr)
 
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
 
+	Function bmx_flickcurl_searchparams_new:Byte Ptr()
+	Function bmx_flickcurl_searchparams_setuserid(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_settags(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_settagmode(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_settext(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setminuploaddate(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setmaxuploaddate(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setmintakendate(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setmaxtakendate(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setlicense(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setsort(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setprivacyfilter(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setbbox(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setaccuracy(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setsafesearch(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setcontenttype(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setmachinetags(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setmachinetagmode(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setgroupid(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setextras(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setperpage(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setpage(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setplaceid(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setmedia(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_sethasgeo(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_searchparams_setlat(handle:Byte Ptr, value:Double)
+	Function bmx_flickcurl_searchparams_setlon(handle:Byte Ptr, value:Double)
+	Function bmx_flickcurl_searchparams_setradius(handle:Byte Ptr, value:Double)
+	Function bmx_flickcurl_searchparams_setradiusunits(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_setcontacts(handle:Byte Ptr, value:String)
+	Function bmx_flickcurl_searchparams_delete(handle:Byte Ptr)
+
+	Function bmx_flickcurl_tag_getphoto:Byte Ptr(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getid:String(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getauthor:String(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getauthorname:String(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getraw:String(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getcooked:String(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getmachinetag:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_getcount:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -113,4 +182,13 @@ Const VALUE_TYPE_URI:Int = 9
 Const VALUE_TYPE_PERSON_ID:Int = 10
 Const VALUE_TYPE_MEDIA_TYPE:Int = 11
 Const VALUE_TYPE_LAST:Int = VALUE_TYPE_MEDIA_TYPE
+
+Const FLICKCURL_PLACE_LOCATION:Int = 0
+Const FLICKCURL_PLACE_NEIGHBOURHOOD:Int = 1
+Const FLICKCURL_PLACE_NEIGHBORHOOD:Int = FLICKCURL_PLACE_NEIGHBOURHOOD
+Const FLICKCURL_PLACE_LOCALITY:Int = 2
+Const FLICKCURL_PLACE_COUNTY:Int = 3
+Const FLICKCURL_PLACE_REGION:Int = 4
+Const FLICKCURL_PLACE_COUNTRY:Int = 5
+Const FLICKCURL_PLACE_LAST:Int = FLICKCURL_PLACE_COUNTRY
 
