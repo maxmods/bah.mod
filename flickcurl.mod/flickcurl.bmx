@@ -260,6 +260,37 @@ Type TFCPhoto
 	Method GetMediaType:String()
 	End Method
 	
+	Rem
+	bbdoc: Get a photo's image source URI.
+	about: Size should be one of :
+	<table>
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td> FCIMAGE_SQUARE </td><td>small square 75x75</td></tr>
+	<tr><td> FCIMAGE_THUMB </td><td> thumbnail, 100 on longest side </td></tr>
+	<tr><td> FCIMAGE_SMALL </td><td> small, 240 on longest side </td></tr>
+	<tr><td> FCIMAGE_MEDIUM </td><td> medium, 500 on longest side </td></tr>
+	<tr><td> FCIMAGE_LARGE </td><td> large, 1024 on longest side (only exists for very large original images) </td></tr>
+	<tr><td> FCIMAGE_ORIGINAL </td><td> original image, either a jpg, gif or png, depending on source format </td></tr>
+	</table>
+	End Rem
+	Method GetSourceURI:String(size:Int = FCIMAGE_SMALL)
+		Return bmx_flickcurl_photo_getsourceuri(photoPtr, size)
+	End Method
+	
+	Rem
+	bbdoc: Destructor for photo object.
+	End Rem
+	Method Free()
+		If photoPtr Then
+			bmx_flickcurl_photo_free(photoPtr)
+			photoPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Type TFCTag
@@ -295,3 +326,13 @@ End Type
 
 Type TFCVideo
 End Type
+
+Type TFCLocation
+End Type
+
+Type TFCPermissions
+End Type
+
+Type TFCSize
+End Type
+

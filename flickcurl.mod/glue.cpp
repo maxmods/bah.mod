@@ -21,6 +21,8 @@ extern "C" {
 
 	BBObject * bmx_flickcurl_photo_getfield(flickcurl_photo * photo, int index);
 	BBString * bmx_flickcurl_photo_geturi(flickcurl_photo * photo);
+	BBString * bmx_flickcurl_photo_getsourceuri(flickcurl_photo * photo, int size);
+	void bmx_flickcurl_photo_free(flickcurl_photo * photo);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -82,6 +84,37 @@ BBObject * bmx_flickcurl_photo_getfield(flickcurl_photo * photo, int index) {
 BBString * bmx_flickcurl_photo_geturi(flickcurl_photo * photo) {
 	return bbStringFromCString(photo->uri);
 }
+
+BBString * bmx_flickcurl_photo_getsourceuri(flickcurl_photo * photo, int size) {
+	char type = 'm';
+	switch (size) {
+		case 1:
+			type = 's';
+			break;
+		case 2:
+			type = 't';
+			break;
+		case 3:
+			type = 'm';
+			break;
+		case 4:
+			type = '-';
+			break;
+		case 5:
+			type = 'b';
+			break;
+		case 6:
+			type = 'o';
+			break;
+	}
+	return bbStringFromCString(flickcurl_photo_as_source_uri(photo, type));
+}
+
+void bmx_flickcurl_photo_free(flickcurl_photo * photo) {
+	flickcurl_free_photo(photo);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType) {
 	return bbStringFromCString(flickcurl_get_photo_field_label(fieldType));

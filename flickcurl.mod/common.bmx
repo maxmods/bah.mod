@@ -16,6 +16,8 @@ Extern
 
 	Function bmx_flickcurl_photo_getfield:Object(handle:Byte Ptr, index:Int)
 	Function bmx_flickcurl_photo_geturi:String(handle:Byte Ptr)
+	Function bmx_flickcurl_photo_getsourceuri:String(handle:Byte Ptr, size:Int)
+	Function bmx_flickcurl_photo_free(handle:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -32,7 +34,12 @@ Extern
 End Extern
 
 
-
+Const FCIMAGE_SQUARE:Int = 1
+Const FCIMAGE_THUMB:Int = 2
+Const FCIMAGE_SMALL:Int = 3
+Const FCIMAGE_MEDIUM:Int = 4
+Const FCIMAGE_LARGE:Int = 5
+Const FCIMAGE_ORIGINAL:Int = 6
 
 Const PHOTO_FIELD_none:Int = 0
 Const PHOTO_FIELD_dateuploaded:Int = 1
