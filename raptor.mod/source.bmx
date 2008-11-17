@@ -1,10 +1,11 @@
 SuperStrict
 
-Import BaH.Libxml
+Import BaH.Libxslt
 Import BaH.libcurl
 
 Import "../libcurlssl.mod/src/include/*.h"
 Import "../libxml.mod/src/*.h"
+Import "../libxslt.mod/src/*.h"
 
 
 Import "src/*.h"

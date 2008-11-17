@@ -10,7 +10,7 @@ ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: "
 ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
 
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC"
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
 
 Import "common.bmx"
 
