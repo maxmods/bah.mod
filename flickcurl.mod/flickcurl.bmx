@@ -93,7 +93,7 @@ Type TFlickcurl
 	bbdoc: 
 	End Rem
 	Method GetPhotoInfo:TFCPhoto(photoID:String)
-		Return TFCPhoto._create(bmx_flickcurl_photosgetinfo(fcPtr, photoID))
+		Return TFCPhoto._create(bmx_flickcurl_photosgetinfo(fcPtr, photoID), fcPtr)
 	End Method
 	
 	
@@ -127,6 +127,44 @@ Type TFlickcurl
 	End Rem
 	Method FindPlaceByLatLon:TFCPlace(lat:Double, lon:Double, accuracy:Int = 16)
 		Return TFCPlace._create(bmx_flickcurl_findplacebylatlon(fcPtr, lat, lon, accuracy))
+	End Method
+	
+	Rem
+	bbdoc: Returns the default content type preference for the user.
+	End Rem
+	Method GetPrefsContentType:Int()
+		Return bmx_flickcurl_getprefscontenttype(fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the default privacy level for geographic information attached to the user's photos.
+	about: Possible values are: 0: no default, 1: public, 2: contacts only, 3: friends and family only,
+	4: friends only, 5: family only, 6: private.
+	End Rem
+	Method GetPrefsGeoPerms:Int()
+		Return bmx_flickcurl_getprefsgeoperms(fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the default hidden preference for the user.
+	End Rem
+	Method GetPrefsHidden:Int()
+		Return bmx_flickcurl_getprefshidden(fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the default privacy level preference for the user.
+	about: Possible values are: Public (1), Friends only (2), Family only (3) Friends and Family (4) and Private (5)
+	End Rem
+	Method GetPrefsPrivacy:Int()
+		Return bmx_flickcurl_getprefsprivacy(fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the default safety level preference for the user.
+	End Rem
+	Method GetPrefsSafetyLevel:Int()
+		Return bmx_flickcurl_getprefssafetylevel(fcPtr)
 	End Method
 	
 	
@@ -233,81 +271,167 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: A photo comment.
 End Rem
 Type TFCComment
 
-	Field commentPtr:Byte Ptr
+	Field id:String
+	Field author:String
+	Field authorname:String
+	Field datecreate:Int
+	Field permalink:String
+	Field text:String
 	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCComment(id:String, author:String, authorname:String, datecreate:Int, permalink:String, text:String, fcPtr:Byte Ptr)
+		Local this:TFCComment = New TFCComment
+		this.id = id
+		this.author = author
+		this.authorname = authorname
+		this.datecreate = datecreate
+		this.permalink = permalink
+		this.text = text
+		this.fcPtr = fcPtr
+		Return this
+	End Function
+	
+	Rem
+	bbdoc: Gets the comment ID.
+	End Rem
 	Method GetID:String()
+		Return id
 	End Method
 	
+	Rem
+	bbdoc: Gets the author ID.
+	End Rem
 	Method GetAuthor:String()
+		Return author
 	End Method
 	
+	Rem
+	bbdoc: Gets the author name.
+	End Rem
 	Method GetAuthorName:String()
+		Return authorname
 	End Method
 	
+	Rem
+	bbdoc: Gets the date of creation.
+	End Rem
 	Method GetDateCreated:Int()
+		Return datecreate
 	End Method
 	
+	Rem
+	bbdoc: Gets the permanent link of comment.
+	End Rem
 	Method GetPermalink:String()
+		Return permalink
 	End Method
 	
+	Rem
+	bbdoc: Gets the comment text.
+	End Rem
 	Method GetText:String()
+		Return text
+	End Method
+	
+	Rem
+	bbdoc: Delete a comment as the currently authenticated user.
+	End Rem
+	Method DeleteComment:Int()
+		Return bmx_flickcurl_comment_deletecomment(fcPtr, id)
+	End Method
+	
+	Rem
+	bbdoc: Edit the text of a comment as the currently authenticated user.
+	End Rem
+	Method EditComment:Int(commentText:String)
+		Return bmx_flickcurl_comment_editcomment(fcPtr, id, commentText)
 	End Method
 
 End Type
 
 
 Rem
-bbdoc: 
+bbdoc: A photo or video.
 End Rem
 Type TFCPhoto
 
 	Field photoPtr:Byte Ptr
 	Field owner:Int
 	
-	Function _create:TFCPhoto(photoPtr:Byte Ptr, owner:Int = True)
+	Field fcPtr:Byte Ptr
+	
+	Function _create:TFCPhoto(photoPtr:Byte Ptr, fcPtr:Byte Ptr, owner:Int = True)
 		If photoPtr Then
 			Local this:TFCPhoto = New TFCPhoto
 			this.photoPtr = photoPtr
+			this.fcPtr = fcPtr
 			this.owner = owner
 			Return this
 		End If
 	End Function
 	
+	Rem
+	bbdoc: The photo/video ID.
+	End Rem
 	Method GetID:String()
+		Return bmx_flickcurl_photo_getid(photoPtr)
 	End Method
 	
+	Rem
+	bbdoc: The photo/video page URI.
+	End Rem
 	Method GetURI:String()
 		Return bmx_flickcurl_photo_geturi(photoPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the tag at @index.
+	End Rem
 	Method GetTag:TFCTag(index:Int)
-		Return TFCTag._create(bmx_flickcurl_photo_gettag(photoPtr, index), False)
+		Return TFCTag._create(bmx_flickcurl_photo_gettag(photoPtr, index), fcPtr, False)
 	End Method
 	
+	Rem
+	bbdoc: Returns the tag count for the photo.
+	End Rem
 	Method GetTagCount:Int()
 		Return bmx_flickcurl_photo_gettagcount(photoPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the field at @index.
+	about: Valid @index in range 0 - PHOTO_FIELD_LAST
+	End Rem
 	Method GetField:TFCPhotoField(index:Int)
 		Return TFCPhotoField(bmx_flickcurl_photo_getfield(photoPtr, index))
 	End Method
 	
+	Rem
+	bbdoc: Returns the place for the photo.
+	End Rem
 	Method GetPlace:TFCPlace()
 		Return TFCPlace._create(bmx_flickcurl_photo_getplace(photoPtr), False)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetVideo:TFCVideo()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetMediaType:String()
 	End Method
 	
 	Rem
-	bbdoc: Get a photo's image source URI.
+	bbdoc: Get the photo's image source URI.
 	about: Size should be one of :
 	<table>
 	<tr><th>Constant</th><th>Description</th></tr>
@@ -322,6 +446,31 @@ Type TFCPhoto
 	Method GetSourceURI:String(size:Int = FCIMAGE_SMALL)
 		Return bmx_flickcurl_photo_getsourceuri(photoPtr, size)
 	End Method
+	
+	Rem
+	bbdoc: Add tags to the photo.
+	about: @tags to add as a space-separated list.
+	End Rem
+	Method AddTags:Int(tags:String)
+		Return bmx_flickcurl_photo_addtags(fcPtr, photoPtr, tags)
+	End Method
+	
+	Rem
+	bbdoc: Add comment to a photo as the currently authenticated user.
+	returns: A TFCComment, or Null on failure.
+	End Rem
+	Method AddComment:TFCComment(comment:String)
+		Return TFCComment(bmx_flickcurl_photo_addcomment(fcPtr, photoPtr, comment))
+	End Method
+	
+	Rem
+	bbdoc: Returns the comments for the photo.
+	End Rem
+	Method GetCommentList:TFCCommentList()
+		Return TFCCommentList._create(bmx_flickcurl_photo_getcommentlist(fcPtr, photoPtr), fcPtr)
+	End Method
+	
+	
 	
 	Rem
 	bbdoc: Destructor for photo object.
@@ -346,18 +495,21 @@ Type TFCTag
 
 	Field tagPtr:Byte Ptr
 	Field owner:Int
+	
+	Field fcPtr:Byte Ptr
 
-	Function _create:TFCTag(tagPtr:Byte Ptr, owner:Int = True)
+	Function _create:TFCTag(tagPtr:Byte Ptr, fcPtr:Byte Ptr, owner:Int = True)
 		If tagPtr Then
 			Local this:TFCTag = New TFCTag
 			this.tagPtr = tagPtr
+			this.fcPtr = fcPtr
 			this.owner = owner
 			Return this
 		End If
 	End Function
 	
 	Method GetPhoto:TFCPhoto()
-		Return TFCPhoto._create(bmx_flickcurl_tag_getphoto(tagPtr), False)
+		Return TFCPhoto._create(bmx_flickcurl_tag_getphoto(tagPtr), fcPtr, False)
 	End Method
 	
 	Method GetID:String()
@@ -411,6 +563,38 @@ Type TFCTagList
 		Free()
 	End Method
 
+End Type
+
+Type TFCCommentList
+
+	Field commentListPtr:Byte Ptr
+	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCCommentList(commentListPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If commentListPtr Then
+			Local this:TFCCommentList = New TFCCommentList
+			this.commentListPtr = commentListPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetComment:TFCComment(index:Int)
+		Return TFCComment(bmx_flickcurl_commentlist_getcomment(commentListPtr, index, fcPtr))
+	End Method
+	
+	Method Free()
+		If commentListPtr Then
+			flickcurl_free_comments(commentListPtr)
+			commentListPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+		
 End Type
 
 Rem

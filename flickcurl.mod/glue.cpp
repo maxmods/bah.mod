@@ -22,6 +22,7 @@ extern "C" {
 
 	BBObject * _bah_flickcurl_TFCPhotoField__create(BBString * svalue, flickcurl_photo_field_type value, flickcurl_field_value_type type);
 	BBObject * _bah_flickcurl_TFCLocation__create(double latitude, double longitude, int accuracy);
+	BBObject * _bah_flickcurl_TFCComment__create(BBString * id, BBString * author, BBString * authorname, int datecreate, BBString * permalink, BBString * text, flickcurl * fc);
 
 	flickcurl * bmx_flickcurl_new();
 	void bmx_flickcurl_free(flickcurl * fc);
@@ -35,6 +36,7 @@ extern "C" {
 
 	flickcurl_photo * bmx_flickcurl_photosgetinfo(flickcurl * fc, BBString * photoID);
 
+	BBString * bmx_flickcurl_photo_getid(flickcurl_photo * photo);
 	BBObject * bmx_flickcurl_photo_getfield(flickcurl_photo * photo, int index);
 	BBString * bmx_flickcurl_photo_geturi(flickcurl_photo * photo);
 	BBString * bmx_flickcurl_photo_getsourceuri(flickcurl_photo * photo, int size);
@@ -42,6 +44,9 @@ extern "C" {
 	flickcurl_place * bmx_flickcurl_photo_getplace(flickcurl_photo * photo);
 	flickcurl_tag * bmx_flickcurl_photo_gettag(flickcurl_photo * photo, int index);
 	int bmx_flickcurl_photo_gettagcount(flickcurl_photo * photo);
+	int bmx_flickcurl_photo_addtags(flickcurl * fc, flickcurl_photo * photo, BBString * tags);
+	BBObject * bmx_flickcurl_photo_addcomment(flickcurl * fc, flickcurl_photo * photo, BBString * comment);
+	flickcurl_comment ** bmx_flickcurl_photo_getcommentlist(flickcurl * fc, flickcurl_photo * photo);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -100,6 +105,17 @@ extern "C" {
 	BBString * bmx_flickcurl_tag_getcooked(flickcurl_tag * tag);
 	int bmx_flickcurl_tag_getmachinetag(flickcurl_tag * tag);
 	int bmx_flickcurl_tag_getcount(flickcurl_tag * tag);
+
+	int bmx_flickcurl_getprefscontenttype(flickcurl * fc);
+	int bmx_flickcurl_getprefsgeoperms(flickcurl * fc);
+	int bmx_flickcurl_getprefshidden(flickcurl * fc);
+	int bmx_flickcurl_getprefsprivacy(flickcurl * fc);
+	int bmx_flickcurl_getprefssafetylevel(flickcurl * fc);
+
+	BBObject * bmx_flickcurl_commentlist_getcomment(flickcurl_comment ** comments, int index, flickcurl * fc);
+
+	int bmx_flickcurl_comment_deletecomment(flickcurl * fc, BBString * id);
+	int bmx_flickcurl_comment_editcomment(flickcurl * fc, BBString * id, BBString * commentText);
 
 }
 
@@ -166,6 +182,26 @@ flickcurl_place * bmx_flickcurl_findplacebylatlon(flickcurl * fc, double lat, do
 	return flickcurl_places_findByLatLon(fc, lat, lon, accuracy);
 }
 
+int bmx_flickcurl_getprefscontenttype(flickcurl * fc) {
+	return flickcurl_prefs_getContentType(fc);
+}
+
+int bmx_flickcurl_getprefsgeoperms(flickcurl * fc) {
+	return flickcurl_prefs_getGeoPerms(fc);
+}
+
+int bmx_flickcurl_getprefshidden(flickcurl * fc) {
+	return flickcurl_prefs_getHidden(fc);
+}
+
+int bmx_flickcurl_getprefsprivacy(flickcurl * fc) {
+	return flickcurl_prefs_getPrivacy(fc);
+}
+
+int bmx_flickcurl_getprefssafetylevel(flickcurl * fc) {
+	return flickcurl_prefs_getSafetyLevel(fc);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 BBObject * bmx_flickcurl_photo_getfield(flickcurl_photo * photo, int index) {
@@ -216,6 +252,54 @@ flickcurl_tag * bmx_flickcurl_photo_gettag(flickcurl_photo * photo, int index) {
 
 int bmx_flickcurl_photo_gettagcount(flickcurl_photo * photo) {
 	return photo->tags_count;
+}
+
+int bmx_flickcurl_photo_addtags(flickcurl * fc, flickcurl_photo * photo, BBString * tags) {
+	char *p=bbStringToCString( tags );
+	int res = flickcurl_photos_addTags(fc, photo->id, p);
+	bbMemFree( p );
+	return res;
+}
+
+BBObject * bmx_flickcurl_photo_addcomment(flickcurl * fc, flickcurl_photo * photo, BBString * comment) {
+	char *p=bbStringToCString( comment );
+	char * comment_id = flickcurl_photos_comments_addComment(fc, photo->id, p);
+	bbMemFree( p );
+	
+	if (comment_id) {
+		
+		flickcurl_comment ** comments = flickcurl_photos_comments_getList(fc, photo->id);
+		flickcurl_comment * cmt = *comments;
+		
+		while (cmt) {
+			
+			if (strcmp(comment_id, cmt->id) == 0) {
+				
+				BBObject * bbcomment = _bah_flickcurl_TFCComment__create(bbStringFromCString(cmt->id), bbStringFromCString(cmt->author), 
+					bbStringFromCString(cmt->authorname), cmt->datecreate, bbStringFromCString(cmt->permalink),
+					bbStringFromCString(cmt->text), fc);
+					
+				flickcurl_free_comments(comments);
+					
+				return bbcomment;
+			}
+			
+			cmt++;
+		}
+		
+		flickcurl_free_comments(comments);
+		
+	}
+
+	return &bbNullObject;
+}
+
+flickcurl_comment ** bmx_flickcurl_photo_getcommentlist(flickcurl * fc, flickcurl_photo * photo) {
+	return flickcurl_photos_comments_getList(fc, photo->id);
+}
+
+BBString * bmx_flickcurl_photo_getid(flickcurl_photo * photo) {
+	return bbStringFromCString(photo->id);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -556,5 +640,41 @@ int bmx_flickcurl_tag_getmachinetag(flickcurl_tag * tag) {
 
 int bmx_flickcurl_tag_getcount(flickcurl_tag * tag) {
 	return tag->count;
+}
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBObject * bmx_flickcurl_commentlist_getcomment(flickcurl_comment ** comments, int index, flickcurl * fc) {
+
+	flickcurl_comment * cmt = comments[index];
+	
+	if (cmt) {
+
+		return _bah_flickcurl_TFCComment__create(bbStringFromCString(cmt->id), bbStringFromCString(cmt->author), 
+			bbStringFromCString(cmt->authorname), cmt->datecreate, bbStringFromCString(cmt->permalink),
+			bbStringFromCString(cmt->text), fc);
+	}
+
+	return &bbNullObject;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_comment_deletecomment(flickcurl * fc, BBString * id) {
+	char *p=bbStringToCString( id );
+	int res = flickcurl_photos_comments_deleteComment(fc, p);
+	bbMemFree(p);
+}
+
+int bmx_flickcurl_comment_editcomment(flickcurl * fc, BBString * id, BBString * commentText) {
+	char *i=bbStringToCString( id );
+	char *c=bbStringToCString( commentText );
+	
+	int res = flickcurl_photos_comments_editComment(fc, i, c);
+	
+	bbMemFree(i);
+	bbMemFree(c);
+	return res;
 }
 

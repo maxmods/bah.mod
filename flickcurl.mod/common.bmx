@@ -28,6 +28,7 @@ Extern
 
 	Function bmx_flickcurl_photosgetinfo:Byte Ptr(handle:Byte Ptr, photoID:String)
 
+	Function bmx_flickcurl_photo_getid:String(handle:Byte Ptr)
 	Function bmx_flickcurl_photo_getfield:Object(handle:Byte Ptr, index:Int)
 	Function bmx_flickcurl_photo_geturi:String(handle:Byte Ptr)
 	Function bmx_flickcurl_photo_getsourceuri:String(handle:Byte Ptr, size:Int)
@@ -35,6 +36,9 @@ Extern
 	Function bmx_flickcurl_photo_getplace:Byte Ptr(handle:Byte Ptr)
 	Function bmx_flickcurl_photo_gettag:Byte Ptr(handle:Byte Ptr, index:Int)
 	Function bmx_flickcurl_photo_gettagcount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_photo_addtags:Int(handle:Byte Ptr, photo:Byte Ptr, tags:String)
+	Function bmx_flickcurl_photo_addcomment:Object(handle:Byte Ptr, photo:Byte Ptr, comment:String)
+	Function bmx_flickcurl_photo_getcommentlist:Byte Ptr(handle:Byte Ptr, photo:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -46,6 +50,12 @@ Extern
 	Function bmx_flickcurl_resolveplaceurl:Byte Ptr(handle:Byte Ptr, url:String)
 	Function bmx_flickcurl_findplacebylatlon:Byte Ptr(handle:Byte Ptr, lat:Double, lon:Double, accuracy:Int)
 
+	Function bmx_flickcurl_getprefscontenttype:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_getprefsgeoperms:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_getprefshidden:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_getprefsprivacy:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_getprefssafetylevel:Int(handle:Byte Ptr)
+
 	Function bmx_flickcurl_place_gettypelabel:String(placeType:Int)
 	Function bmx_flickcurl_place_getname:String(handle:Byte Ptr, index:Int)
 	Function bmx_flickcurl_place_getid:String(handle:Byte Ptr, index:Int)
@@ -55,9 +65,6 @@ Extern
 	Function bmx_flickcurl_place_getlocation:Object(handle:Byte Ptr)
 	Function bmx_flickcurl_place_getcount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_place_free(handle:Byte Ptr)
-
-	Function flickcurl_init:Int()
-	Function flickcurl_finish()
 
 	Function bmx_flickcurl_searchparams_new:Byte Ptr()
 	Function bmx_flickcurl_searchparams_setuserid(handle:Byte Ptr, value:String)
@@ -100,6 +107,16 @@ Extern
 	Function bmx_flickcurl_tag_getmachinetag:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_tag_getcount:Int(handle:Byte Ptr)
 
+	Function bmx_flickcurl_commentlist_getcomment:Object(handle:Byte Ptr, index:Int, fc:Byte Ptr)
+	
+	Function bmx_flickcurl_comment_deletecomment:Int(handle:Byte Ptr, id:String)
+	Function bmx_flickcurl_comment_editcomment:Int(handle:Byte Ptr, id:String, commentText:String)
+
+	' API direct functions
+	Function flickcurl_init:Int()
+	Function flickcurl_finish()
+	Function flickcurl_free_comments(handle:Byte Ptr)
+	
 End Extern
 
 
