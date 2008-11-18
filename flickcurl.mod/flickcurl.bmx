@@ -21,7 +21,7 @@ Module BaH.Flickcurl
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: "
+ModuleInfo "Copyright: Flickurl - 2007-2008, David Beckett http://www.dajobe.org/"
 ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
