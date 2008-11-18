@@ -205,10 +205,10 @@ Extern
 	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_window_clearproperties(handle:Byte Ptr)
 	Function bmx_cegui_window_ispropertypresent:Int(handle:Byte Ptr, name:Byte Ptr)
-	Function bmx_cegui_window_getpropertyhelp:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
-	Function bmx_cegui_window_getproperty:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getpropertyhelp:String(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getproperty:String(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_window_ispropertydefault:Int(handle:Byte Ptr, name:Byte Ptr)
-	Function bmx_cegui_window_getpropertydefault:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getpropertydefault:String(handle:Byte Ptr, name:Byte Ptr)
 
 	Function bmx_cegui_connection_delete(handle:Byte Ptr)
 
@@ -838,7 +838,6 @@ Function _convertUTF8ToMax:String(s:Byte Ptr)
 				Continue
 			End If
 		Next
-	
 		Return String.fromshorts(b, bc + 1)
 	End If
 	

@@ -633,20 +633,20 @@ bool bmx_cegui_window_ispropertypresent(CEGUI::Window * window, const CEGUI::utf
 	return window->isPropertyPresent(name);
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name) {
-	return window->getPropertyHelp(name).data();
+BBString * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return bah_cegui__convertUTF8ToMax(window->getPropertyHelp(name).data());
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name) {
-	return window->getProperty(name).data();
+BBString * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return bah_cegui__convertUTF8ToMax(window->getProperty(name).data());
 }
 
 bool bmx_cegui_window_ispropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name) {
 	return window->isPropertyDefault(name);
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name) {
-	return window->getPropertyDefault(name).data();
+BBString * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return bah_cegui__convertUTF8ToMax(window->getPropertyDefault(name).data());
 }
 
 void bmx_cegui_window_hide(CEGUI::Window * window) {

@@ -44,6 +44,8 @@ extern "C" {
 	bool _bah_cegui_TCEEventCallback__callback(BBObject * cb, BBObject * args);
 	void _bah_cegui_TCECustomLogger__logEvent(BBObject * handle, const CEGUI::utf8 * message, CEGUI::LoggingLevel level);
 
+	BBString * bah_cegui__convertUTF8ToMax(const CEGUI::utf8 * text);
+
 	BBObject * _bah_cegui_TCEEditbox__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEFrameWindow__create(CEGUI::Window * window);
 	BBObject * _bah_cegui_TCEGUISheet__create(CEGUI::Window * window);
@@ -289,10 +291,10 @@ extern "C" {
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
 	void bmx_cegui_window_clearproperties(CEGUI::Window * window);
 	bool bmx_cegui_window_ispropertypresent(CEGUI::Window * window, const CEGUI::utf8 * name);
-	const CEGUI::utf8 * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name);
-	const CEGUI::utf8 * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
 	bool bmx_cegui_window_ispropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name);
-	const CEGUI::utf8 * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name);
 
 	void bmx_cegui_connection_delete(MaxConnection * conn);
 

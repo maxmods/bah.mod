@@ -1881,14 +1881,14 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns the help text for the specified Property. 
 	End Rem
 	Method getPropertyHelp:String(name:String)
-		Return _convertUTF8ToMax(bmx_cegui_window_getpropertyhelp(objectPtr, _convertMaxToUTF8(name)))
+		Return bmx_cegui_window_getpropertyhelp(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
 	Rem
 	bbdoc: Gets the current value of the specified Property. 
 	End Rem
 	Method getProperty:String(name:String)
-		Return _convertUTF8ToMax(bmx_cegui_window_getproperty(objectPtr, _convertMaxToUTF8(name)))
+		Return bmx_cegui_window_getproperty(objectPtr, _convertMaxToUTF8(name))
 	End Method
 
 	Rem
@@ -1909,7 +1909,7 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns the default value of a Property as a String. 
 	End Rem
 	Method getPropertyDefault:String(name:String)
-		Return _convertUTF8ToMax(bmx_cegui_window_getpropertydefault(objectPtr, _convertMaxToUTF8(name)))
+		Return bmx_cegui_window_getpropertydefault(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
 
