@@ -286,7 +286,14 @@ extern "C" {
 	
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
-	
+	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
+	void bmx_cegui_window_clearproperties(CEGUI::Window * window);
+	bool bmx_cegui_window_ispropertypresent(CEGUI::Window * window, const CEGUI::utf8 * name);
+	const CEGUI::utf8 * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name);
+	const CEGUI::utf8 * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
+	bool bmx_cegui_window_ispropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name);
+	const CEGUI::utf8 * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name);
+
 	void bmx_cegui_connection_delete(MaxConnection * conn);
 
 	bool bmx_cegui_checkbox_isselected(CEGUI::Checkbox * cb);

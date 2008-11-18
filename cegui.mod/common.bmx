@@ -202,6 +202,13 @@ Extern
 	Function bmx_cegui_window_setuserstring(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
 
 	Function bmx_cegui_window_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
+	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_clearproperties(handle:Byte Ptr)
+	Function bmx_cegui_window_ispropertypresent:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getpropertyhelp:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getproperty:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_ispropertydefault:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_window_getpropertydefault:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
 
 	Function bmx_cegui_connection_delete(handle:Byte Ptr)
 

@@ -621,6 +621,34 @@ void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * na
 	window->setProperty(name, value);
 }
 
+void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	window->removeProperty(name);
+}
+
+void bmx_cegui_window_clearproperties(CEGUI::Window * window) {
+	window->clearProperties();
+}
+
+bool bmx_cegui_window_ispropertypresent(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->isPropertyPresent(name);
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getpropertyhelp(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->getPropertyHelp(name).data();
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getproperty(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->getProperty(name).data();
+}
+
+bool bmx_cegui_window_ispropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->isPropertyDefault(name);
+}
+
+const CEGUI::utf8 * bmx_cegui_window_getpropertydefault(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return window->getPropertyDefault(name).data();
+}
+
 void bmx_cegui_window_hide(CEGUI::Window * window) {
 	window->hide();
 }

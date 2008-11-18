@@ -1856,32 +1856,60 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	' properties
+	Rem
+	bbdoc: Removes a Property from the PropertySet.
+	End Rem
 	Method removeProperty(name:String)
+		bmx_cegui_window_removeproperty(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Removes all Property objects from the PropertySet. 
+	End Rem
 	Method clearProperties()
+		bmx_cegui_window_clearproperties(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Checks to see if a Property with the given name is in the PropertySet. 
+	End Rem
 	Method isPropertyPresent:Int(name:String)
+		Return bmx_cegui_window_ispropertypresent(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the help text for the specified Property. 
+	End Rem
 	Method getPropertyHelp:String(name:String)
+		Return _convertUTF8ToMax(bmx_cegui_window_getpropertyhelp(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	
+	Rem
+	bbdoc: Gets the current value of the specified Property. 
+	End Rem
 	Method getProperty:String(name:String)
+		Return _convertUTF8ToMax(bmx_cegui_window_getproperty(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the current value of a Property. 
 	End Rem
 	Method setProperty(name:String, value:String)
 		bmx_cegui_window_setproperty(objectPtr, _convertMaxToUTF8(name), _convertMaxToUTF8(value))
 	End Method
 	
+	Rem
+	bbdoc: Returns whether a Property is at it's default value. 
+	End Rem
 	Method isPropertyDefault:Int(name:String)
+		Return bmx_cegui_window_ispropertydefault(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the default value of a Property as a String. 
+	End Rem
 	Method getPropertyDefault:String(name:String)
+		Return _convertUTF8ToMax(bmx_cegui_window_getpropertydefault(objectPtr, _convertMaxToUTF8(name)))
 	End Method
 	
 
