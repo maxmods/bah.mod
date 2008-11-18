@@ -657,20 +657,20 @@ void bmx_cegui_window_show(CEGUI::Window * window) {
 	window->show();
 }
 
-const CEGUI::utf8 * bmx_cegui_window_gettype(CEGUI::Window * window) {
-	return window->getType().data();
+BBString * bmx_cegui_window_gettype(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getType().data());
 }
 
 void bmx_cegui_window_activate(CEGUI::Window * window) {
 	window->activate();
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getname(CEGUI::Window * window) {
-	return window->getName().data();
+BBString * bmx_cegui_window_getname(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getName().data());
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getprefix(CEGUI::Window * window) {
-	return window->getPrefix().data();
+BBString * bmx_cegui_window_getprefix(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getPrefix().data());
 }
 
 bool bmx_cegui_window_isdestroyedbyparent(CEGUI::Window * window) {
@@ -757,8 +757,8 @@ bool bmx_cegui_window_isancestorwindow(CEGUI::Window * window, CEGUI::Window * w
 	return window->isAncestor(win);
 }
 
-const CEGUI::utf8 * bmx_cegui_window_gettext(CEGUI::Window * window) {
-	return window->getText().data();
+BBString * bmx_cegui_window_gettext(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getText().data());
 }
 
 bool bmx_cegui_window_inheritsalpha(CEGUI::Window * window) {
@@ -871,12 +871,12 @@ bool bmx_cegui_window_isusingdefaulttooltip(CEGUI::Window * window) {
 	return window->isUsingDefaultTooltip();
 }
 
-const CEGUI::utf8 * bmx_cegui_window_gettooltiptype(CEGUI::Window * window) {
-	return window->getTooltipType().data();
+BBString * bmx_cegui_window_gettooltiptype(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getTooltipType().data());
 }
 
-const CEGUI::utf8 * bmx_cegui_window_gettooltiptext(CEGUI::Window * window) {
-	return window->getTooltipText().data();
+BBString * bmx_cegui_window_gettooltiptext(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getTooltipText().data());
 }
 
 bool bmx_cegui_window_inheritstooltiptext(CEGUI::Window * window) {
@@ -899,16 +899,16 @@ CEGUI::HorizontalAlignment bmx_cegui_window_gethorizontalalignment(CEGUI::Window
 	return window->getHorizontalAlignment();
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getlooknfeel(CEGUI::Window * window) {
-	return window->getLookNFeel().data();
+BBString * bmx_cegui_window_getlooknfeel(CEGUI::Window * window) {
+	return bah_cegui__convertUTF8ToMax(window->getLookNFeel().data());
 }
 
 bool bmx_cegui_window_getmodalstate(CEGUI::Window * window) {
 	return window->getModalState();
 }
 
-const CEGUI::utf8 * bmx_cegui_window_getuserstring(CEGUI::Window * window, const CEGUI::utf8 * name) {
-	return window->getUserString(name).data();
+BBString * bmx_cegui_window_getuserstring(CEGUI::Window * window, const CEGUI::utf8 * name) {
+	return bah_cegui__convertUTF8ToMax(window->getUserString(name).data());
 }
 
 bool bmx_cegui_window_isuserstringdefined(CEGUI::Window * window, const CEGUI::utf8 * name) {
@@ -1285,8 +1285,8 @@ bool bmx_cegui_editbox_istextvalid(CEGUI::Editbox * eb) {
 	return eb->isTextValid();
 }
 
-const CEGUI::utf8 * bmx_cegui_editbox_getvalidationstring(CEGUI::Editbox * eb) {
-	return eb->getValidationString().data();
+BBString * bmx_cegui_editbox_getvalidationstring(CEGUI::Editbox * eb) {
+	return bah_cegui__convertUTF8ToMax(eb->getValidationString().data());
 }
 
 int bmx_cegui_editbox_getcaratindex(CEGUI::Editbox * eb) {
@@ -2042,8 +2042,8 @@ float bmx_cegui_renderer_getzlayer(CEGUI::Renderer * rend, CEGUI::uint layer) {
 	return rend->getZLayer(layer);
 }
 
-const CEGUI::utf8 * bmx_cegui_renderer_getidentifierstring(CEGUI::Renderer * rend) {
-	return rend->getIdentifierString().data();
+BBString * bmx_cegui_renderer_getidentifierstring(CEGUI::Renderer * rend) {
+	return bah_cegui__convertUTF8ToMax(rend->getIdentifierString().data());
 }
 
 // *************************************************
@@ -2096,18 +2096,18 @@ bool bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme) {
 	return scheme->resourcesLoaded();
 }
 
-const CEGUI::utf8 * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme) {
-	return scheme->getName().data();
+BBString * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme) {
+	return bah_cegui__convertUTF8ToMax(scheme->getName().data());
 }
 
 // *************************************************
 
-const CEGUI::utf8 * bmx_cegui_listboxitem_gettext(CEGUI::ListboxItem * item) {
-	return item->getText().data();
+BBString * bmx_cegui_listboxitem_gettext(CEGUI::ListboxItem * item) {
+	return bah_cegui__convertUTF8ToMax(item->getText().data());
 }
 
-const CEGUI::utf8 * bmx_cegui_listboxitem_gettooltiptext(CEGUI::ListboxItem * item) {
-	return item->getTooltipText().data();
+BBString * bmx_cegui_listboxitem_gettooltiptext(CEGUI::ListboxItem * item) {
+	return bah_cegui__convertUTF8ToMax(item->getTooltipText().data());
 }
 
 CEGUI::uint bmx_cegui_listboxitem_getid(CEGUI::ListboxItem * item) {
@@ -2866,12 +2866,12 @@ void bmx_cegui_treeitem_settextcoloursforcolour(CEGUI::TreeItem * ti, MaxCEColou
 	ti->setTextColours(col->Colour());
 }
 
-const CEGUI::utf8 * bmx_cegui_treeitem_gettext(CEGUI::TreeItem * ti) {
-	return ti->getText().data();
+BBString * bmx_cegui_treeitem_gettext(CEGUI::TreeItem * ti) {
+	return bah_cegui__convertUTF8ToMax(ti->getText().data());
 }
 
-const CEGUI::utf8 * bmx_cegui_treeitem_gettooltiptext(CEGUI::TreeItem * ti) {
-	return ti->getTooltipText().data();
+BBString * bmx_cegui_treeitem_gettooltiptext(CEGUI::TreeItem * ti) {
+	return bah_cegui__convertUTF8ToMax(ti->getTooltipText().data());
 }
 
 CEGUI::uint bmx_cegui_treeitem_getid(CEGUI::TreeItem * ti) {

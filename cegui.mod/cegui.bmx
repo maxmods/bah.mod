@@ -966,14 +966,14 @@ Type TCEListboxItem
 	since it is used for sorting list box items.
 	End Rem
 	Method getText:String()
-		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettext(objectPtr))
+		Return bmx_cegui_listboxitem_gettext(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the tooltip text.
 	End Rem
 	Method getTooltipText:String()
-		Return _convertUTF8ToMax(bmx_cegui_listboxitem_gettooltiptext(objectPtr))
+		Return bmx_cegui_listboxitem_gettooltiptext(objectPtr)
 	End Method
 	
 	Rem
@@ -3545,14 +3545,14 @@ Type TCETreeItem
 	sorting list box items.
 	End Rem
 	Method getText:String()
-		Return _convertUTF8ToMax(bmx_cegui_treeitem_gettext(objectPtr))
+		Return bmx_cegui_treeitem_gettext(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the tooltip text.
 	End Rem
 	Method getTooltipText:String()
-		Return _convertUTF8ToMax(bmx_cegui_treeitem_gettooltiptext(objectPtr))
+		Return bmx_cegui_treeitem_gettooltiptext(objectPtr)
 	End Method
 	
 	Rem
@@ -4664,7 +4664,7 @@ Type TCEEditbox Extends TCEWindow
 	bbdoc: Returns the currently set validation string
 	End Rem
 	Method getValidationString:String()
-		Return _convertUTF8ToMax(bmx_cegui_editbox_getvalidationstring(objectPtr))
+		Return bmx_cegui_editbox_getvalidationstring(objectPtr)
 	End Method
 	
 	Rem

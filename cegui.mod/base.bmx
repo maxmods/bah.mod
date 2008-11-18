@@ -513,7 +513,7 @@ Type TCEScheme
 	bbdoc: Returns the name of this Scheme. 
 	End Rem
 	Method getName:String()
-		Return _convertUTF8ToMax(bmx_cegui_scheme_getname(schemePtr))
+		Return bmx_cegui_scheme_getname(schemePtr)
 	End Method
 
 End Type
@@ -823,21 +823,21 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns the type name for this Window.
 	End Rem
 	Method getType:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_gettype(objectPtr))
+		Return bmx_cegui_window_gettype(objectPtr)
 	End Method
 	 
 	Rem
 	bbdoc: Returns the name of this Window.
 	End Rem
 	Method getName:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_getname(objectPtr))
+		Return bmx_cegui_window_getname(objectPtr)
 	End Method
 	 
 	Rem
 	bbdoc: Returns the window prefix.
 	End Rem
 	Method getPrefix:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_getprefix(objectPtr))
+		Return bmx_cegui_window_getprefix(objectPtr)
 	End Method
 	
 	Rem
@@ -1015,7 +1015,7 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns the current text for the Window
 	End Rem
 	Method getText:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_gettext(objectPtr))
+		Return bmx_cegui_window_gettext(objectPtr)
 	End Method
 	 
 	Rem
@@ -1642,14 +1642,14 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns the custom tooltip type.
 	End Rem
 	Method getTooltipType:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_gettooltiptype(objectPtr))
+		Return bmx_cegui_window_gettooltiptype(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the current tooltip text set for this Window.
 	End Rem
 	Method getTooltipText:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_gettooltiptext(objectPtr))
+		Return bmx_cegui_window_gettooltiptext(objectPtr)
 	End Method
 	
 	Rem
@@ -1693,7 +1693,7 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Gets the name of the LookNFeel assigned to this window.
 	End Rem
 	Method getLookNFeel:String()
-		Return _convertUTF8ToMax(bmx_cegui_window_getlooknfeel(objectPtr))
+		Return bmx_cegui_window_getlooknfeel(objectPtr)
 	End Method
 	
 	Rem
@@ -1707,7 +1707,7 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: Returns a named user string.
 	End Rem
 	Method getUserString:String(name:String)
-		Return _convertUTF8ToMax(bmx_cegui_window_getuserstring(objectPtr, _convertMaxToUTF8(name)))
+		Return bmx_cegui_window_getuserstring(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
 	Rem
@@ -2953,7 +2953,7 @@ Type TCERenderer
 	of "Unknown renderer" will be returned.
 	End Rem
 	Method getIdentifierString:String()
-		Return _convertUTF8ToMax(bmx_cegui_renderer_getidentifierstring(objectPtr))
+		Return bmx_cegui_renderer_getidentifierstring(objectPtr)
 	End Method
 
 End Type
