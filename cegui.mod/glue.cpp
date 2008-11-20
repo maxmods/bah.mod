@@ -3590,3 +3590,170 @@ MaxWindowFactory * bmx_cegui_windowfactory_create(BBObject * handle, const CEGUI
 	return new MaxWindowFactory(handle, type);
 }
 
+bool bmx_cegui_scrolledcontainer_iscontentpaneautosized(CEGUI::ScrolledContainer * sc) {
+	return sc->isContentPaneAutoSized();
+}
+
+void bmx_cegui_scrolledcontainer_setcontentpaneautosized(CEGUI::ScrolledContainer * sc, bool setting) {
+	sc->setContentPaneAutoSized(setting);
+}
+
+void bmx_cegui_scrolledcontainer_getcontentarea(CEGUI::ScrolledContainer * sc, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = sc->getContentArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_scrolledcontainer_setcontentarea(CEGUI::ScrolledContainer * sc, float x, float y, float w, float h) {
+	sc->setContentArea(CEGUI::Rect(x, y, w, h));
+}
+
+void bmx_cegui_scrolledcontainer_getchildextentsarea(CEGUI::ScrolledContainer * sc, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = sc->getChildExtentsArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+// *************************************************
+
+void bmx_cegui_clippedcontainer_getcliparea(CEGUI::ClippedContainer * cc, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = cc->getClipArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+BBObject * bmx_cegui_clippedcontainer_getclipperwindow(CEGUI::ClippedContainer * cc) {
+	return newObjectForWindow(cc->getClipperWindow());
+}
+
+void bmx_cegui_clippedcontainer_setcliparea(CEGUI::ClippedContainer * cc, float x, float y, float w, float h) {
+	cc->setClipArea(CEGUI::Rect(x, y, w, h));
+}
+
+void bmx_cegui_clippedcontainer_setclipperwindow(CEGUI::ClippedContainer * cc, CEGUI::Window * w) {
+	cc->setClipperWindow(w);
+}
+
+// *************************************************
+
+CEGUI::MouseCursor * bmx_cegui_mousecursor_getinstance() {
+	return CEGUI::MouseCursor::getSingletonPtr();
+}
+
+void bmx_cegui_mousecursor_setimagewithname(CEGUI::MouseCursor * mc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * imageName) {
+	mc->setImage(imageset, imageName);
+}
+
+void bmx_cegui_mousecursor_setimage(CEGUI::MouseCursor * mc, CEGUI::Image * image) {
+	mc->setImage(image);
+}
+
+BBObject * bmx_cegui_mousecursor_getimage(CEGUI::MouseCursor * mc) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image*>(mc->getImage()));
+}
+
+void bmx_cegui_mousecursor_draw(CEGUI::MouseCursor * mc) {
+	mc->draw();
+}
+
+void bmx_cegui_mousecursor_setposition(CEGUI::MouseCursor * mc, float x, float y) {
+	mc->setPosition(CEGUI::Point(x, y));
+}
+
+void bmx_cegui_mousecursor_offsetPosition(CEGUI::MouseCursor * mc, float x, float y) {
+	mc->offsetPosition(CEGUI::Point(x, y));
+}
+
+void bmx_cegui_mousecursor_setconstraintarea(CEGUI::MouseCursor * mc, float x, float y, float w, float h) {
+	CEGUI::Rect r(x, y, w, h);
+	mc->setConstraintArea(&r);
+}
+
+void bmx_cegui_mousecursor_hide(CEGUI::MouseCursor * mc) {
+	mc->hide();
+}
+
+void bmx_cegui_mousecursor_show(CEGUI::MouseCursor * mc) {
+	mc->show();
+}
+
+void bmx_cegui_mousecursor_setvisible(CEGUI::MouseCursor * mc, bool visible) {
+	mc->setVisible(visible);
+}
+
+bool bmx_cegui_mousecursor_isvisible(CEGUI::MouseCursor * mc) {
+	return mc->isVisible();
+}
+
+void bmx_cegui_mousecursor_getposition(CEGUI::MouseCursor * mc, float * x, float * y) {
+	CEGUI::Point p = mc->getPosition();
+	*x = p.d_x;
+	*y = p.d_y;
+}
+
+void bmx_cegui_mousecursor_getconstraintarea(CEGUI::MouseCursor * mc, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r = mc->getConstraintArea();
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+void bmx_cegui_mousecursor_getdisplayindependentposition(CEGUI::MouseCursor * mc, float * x, float * y) {
+	CEGUI::Point p = mc->getDisplayIndependantPosition();
+	*x = p.d_x;
+	*y = p.d_y;
+}
+
+// *************************************************
+
+float bmx_cegui_coordconverter_windowtoscreenx(CEGUI::Window * window, float x) {
+	return CEGUI::CoordConverter::windowToScreenX(*window, x);
+}
+
+float bmx_cegui_coordconverter_windowtoscreeny(CEGUI::Window * window, float y) {
+	return CEGUI::CoordConverter::windowToScreenY(*window, y);
+}
+
+void bmx_cegui_coordconverter_windowtoscreen(CEGUI::Window * window, float x, float y, float * toX, float * toY) {
+	CEGUI::Vector2 v = CEGUI::CoordConverter::windowToScreen(*window, CEGUI::UVector2(guessUDim(x), guessUDim(y)));
+	*toX = v.d_x;
+	*toY = v.d_y;
+}
+
+void bmx_cegui_coordconverter_windowtoscreenrect(CEGUI::Window * window, float x, float y, float w, float h, float * toX, float * toY, float * toW, float * toH) {
+	CEGUI::Rect r = CEGUI::CoordConverter::windowToScreen(*window, CEGUI::Rect(x, y, w, h));
+	*toX = r.d_left;
+	*toY = r.d_top;
+	*toW = r.getWidth();
+	*toH = r.getHeight();
+}
+
+float bmx_cegui_coordconverter_screentowindowx(CEGUI::Window * window, float x) {
+	return CEGUI::CoordConverter::screenToWindowX(*window, x);
+}
+
+float bmx_cegui_coordconverter_screentowindowy(CEGUI::Window * window, float y) {
+	return CEGUI::CoordConverter::screenToWindowY(*window, y);
+}
+
+void bmx_cegui_coordconverter_screentowindow(CEGUI::Window * window, float x, float y, float * toX, float * toY) {
+	CEGUI::Vector2 v = CEGUI::CoordConverter::screenToWindow(*window, CEGUI::UVector2(guessUDim(x), guessUDim(y)));
+	*toX = v.d_x;
+	*toY = v.d_y;
+}
+
+void bmx_cegui_coordconverter_screentowindowrect(CEGUI::Window * window, float x, float y, float w, float h, float * toX, float * toY, float * toW, float * toH) {
+	CEGUI::Rect r = CEGUI::CoordConverter::screenToWindow(*window, CEGUI::Rect(x, y, w, h));
+	*toX = r.d_left;
+	*toY = r.d_top;
+	*toW = r.getWidth();
+	*toH = r.getHeight();
+}
+

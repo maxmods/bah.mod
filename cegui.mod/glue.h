@@ -895,6 +895,42 @@ extern "C" {
 
 	MaxWindowFactory * bmx_cegui_windowfactory_create(BBObject * handle, const CEGUI::utf8 * type);
 
+	bool bmx_cegui_scrolledcontainer_iscontentpaneautosized(CEGUI::ScrolledContainer * sc);
+	void bmx_cegui_scrolledcontainer_setcontentpaneautosized(CEGUI::ScrolledContainer * sc, bool setting);
+	void bmx_cegui_scrolledcontainer_getcontentarea(CEGUI::ScrolledContainer * sc, float * x, float * y, float * w, float * h);
+	void bmx_cegui_scrolledcontainer_setcontentarea(CEGUI::ScrolledContainer * sc, float x, float y, float w, float h);
+	void bmx_cegui_scrolledcontainer_getchildextentsarea(CEGUI::ScrolledContainer * sc, float * x, float * y, float * w, float * h);
+	
+	void bmx_cegui_clippedcontainer_getcliparea(CEGUI::ClippedContainer * cc, float * x, float * y, float * w, float * h);
+	BBObject * bmx_cegui_clippedcontainer_getclipperwindow(CEGUI::ClippedContainer * cc);
+	void bmx_cegui_clippedcontainer_setcliparea(CEGUI::ClippedContainer * cc, float x, float y, float w, float h);
+	void bmx_cegui_clippedcontainer_setclipperwindow(CEGUI::ClippedContainer * cc, CEGUI::Window * w);
+	
+	CEGUI::MouseCursor * bmx_cegui_mousecursor_getinstance();
+	void bmx_cegui_mousecursor_setimagewithname(CEGUI::MouseCursor * mc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * imageName);
+	void bmx_cegui_mousecursor_setimage(CEGUI::MouseCursor * mc, CEGUI::Image * image);
+	BBObject * bmx_cegui_mousecursor_getimage(CEGUI::MouseCursor * mc);
+	void bmx_cegui_mousecursor_draw(CEGUI::MouseCursor * mc);
+	void bmx_cegui_mousecursor_setposition(CEGUI::MouseCursor * mc, float x, float y);
+	void bmx_cegui_mousecursor_offsetPosition(CEGUI::MouseCursor * mc, float x, float y);
+	void bmx_cegui_mousecursor_setconstraintarea(CEGUI::MouseCursor * mc, float x, float y, float w, float h);
+	void bmx_cegui_mousecursor_hide(CEGUI::MouseCursor * mc);
+	void bmx_cegui_mousecursor_show(CEGUI::MouseCursor * mc);
+	void bmx_cegui_mousecursor_setvisible(CEGUI::MouseCursor * mc, bool visible);
+	bool bmx_cegui_mousecursor_isvisible(CEGUI::MouseCursor * mc);
+	void bmx_cegui_mousecursor_getposition(CEGUI::MouseCursor * mc, float * x, float * y);
+	void bmx_cegui_mousecursor_getconstraintarea(CEGUI::MouseCursor * mc, float * x, float * y, float * w, float * h);
+	void bmx_cegui_mousecursor_getdisplayindependentposition(CEGUI::MouseCursor * mc, float * x, float * y);
+	
+	float bmx_cegui_coordconverter_windowtoscreenx(CEGUI::Window * window, float x);
+	float bmx_cegui_coordconverter_windowtoscreeny(CEGUI::Window * window, float y);
+	void bmx_cegui_coordconverter_windowtoscreen(CEGUI::Window * window, float x, float y, float * toX, float * toY);
+	void bmx_cegui_coordconverter_windowtoscreenrect(CEGUI::Window * window, float x, float y, float w, float h, float * toX, float * toY, float * toW, float * toH);
+	float bmx_cegui_coordconverter_screentowindowx(CEGUI::Window * window, float x);
+	float bmx_cegui_coordconverter_screentowindowy(CEGUI::Window * window, float y);
+	void bmx_cegui_coordconverter_screentowindow(CEGUI::Window * window, float x, float y, float * toX, float * toY);
+	void bmx_cegui_coordconverter_screentowindowrect(CEGUI::Window * window, float x, float y, float w, float h, float * toX, float * toY, float * toW, float * toH);
+
 }
 
 class MaxConnection

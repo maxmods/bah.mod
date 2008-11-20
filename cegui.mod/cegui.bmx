@@ -2393,16 +2393,32 @@ Type TCEClippedContainer Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the current clipping rectangle. 
+	End Rem
 	Method getClipArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_clippedcontainer_getcliparea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Returns the reference window used for converting the clipper rect to screen space. 
+	End Rem
 	Method getClipperWindow:TCEWindow()
+		Return TCEWindow(bmx_cegui_clippedcontainer_getclipperwindow(objectPtr))
 	End Method
 	
-	Method setClipArea(rx:Float Var, y:Float Var, w:Float Var, h:Float Var)
+	Rem
+	bbdoc: Sets the clipper reference window. 
+	End Rem
+	Method setClipArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_clippedcontainer_setcliparea(objectPtr, x, y, w, h)
 	End Method
 	
+	Rem
+	bbdoc: Sets the clipper reference window. 
+	End Rem
 	Method setClipperWindow(w:TCEWindow)
+		bmx_cegui_clippedcontainer_setclipperwindow(objectPtr, w.objectPtr)
 	End Method
 
 End Type
@@ -2421,31 +2437,48 @@ Type TCEScrolledContainer Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
-	End Rem
-	Const EventNamespace:String = "ScrolledContainer"
-	Rem
-	bbdoc: 
+	bbdoc: Event fired whenever some child changes. 
 	End Rem
 	Const EventContentChanged:String = "ContentChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the autosize setting changes. 
 	End Rem
 	Const EventAutoSizeSettingChanged:String = "AutoSizeSettingChanged"
 
+	Rem
+	bbdoc: Returns whether the content pane is auto sized. 
+	End Rem
 	Method isContentPaneAutoSized:Int()
+		Return bmx_cegui_scrolledcontainer_iscontentpaneautosized(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the content pane should be auto-sized. 
+	End Rem
 	Method setContentPaneAutoSized(setting:Int)
+		bmx_cegui_scrolledcontainer_setcontentpaneautosized(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current content pane area for the ScrolledContainer. 
+	End Rem
 	Method getContentArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_scrolledcontainer_getcontentarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Return the current content pane area for the ScrolledContainer. 
+	about: If the ScrolledContainer is configured to auto-size the content pane this call will have no effect.
+	End Rem
 	Method setContentArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_scrolledcontainer_setcontentarea(objectPtr, x, y, w, h)
 	End Method
 	
+	Rem
+	bbdoc: Return the current extents of the attached content. 
+	End Rem
 	Method getChildExtentsArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var) 
+		bmx_cegui_scrolledcontainer_getchildextentsarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
 End Type

@@ -3264,9 +3264,196 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc:
 End Rem
 Type TCEWindowFactoryManager
 
 End Type
+
+Rem
+bbdoc: Allows access to the GUI system mouse cursor.
+about: The MouseCursor provides functionality to access the position and imagery of the mouse cursor / pointer .
+End Rem
+Type TCEMouseCursor
+
+	Global globalcursor:TCEMouseCursor
+	
+	Field objectPtr:Byte Ptr
+
+	Rem
+	bbdoc: Returns the global MouseCursor object. 
+	End Rem
+	Function getInstance:TCEMouseCursor()
+		If Not globalCursor Then
+			Local this:TCEMouseCursor = New TCEMouseCursor
+			this.objectPtr = bmx_cegui_mousecursor_getinstance()
+			globalCursor = this
+		End If
+		Return globalCursor
+	End Function
+
+	Rem
+	bbdoc: Sets the current mouse cursor image. 
+	End Rem
+	Method setImageWithName(imageset:String, imageName:String)
+		bmx_cegui_mousecursor_setimagewithname(objectPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(imageName))
+	End Method
+	
+	Rem
+	bbdoc: Sets the current mouse cursor image. 
+	End Rem
+	Method setImage(image:TCEImage)
+		bmx_cegui_mousecursor_setimage(objectPtr, image.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the current mouse cursor image. 
+	End Rem
+	Method getImage:TCEImage()
+		Return TCEImage(bmx_cegui_mousecursor_getimage(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Makes the cursor draw itself. 
+	End Rem
+	Method draw()
+		bmx_cegui_mousecursor_draw(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the current mouse cursor position. 
+	End Rem
+	Method setPosition(x:Float, y:Float)
+		bmx_cegui_mousecursor_setposition(objectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Offsets the mouse cursor position by the deltas specified in offset. 
+	End Rem
+	Method offsetPosition(x:Float, y:Float)
+		bmx_cegui_mousecursor_offsetPosition(objectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Sets the area that the mouse cursor is constrained to. 
+	End Rem
+	Method setConstraintArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_mousecursor_setconstraintarea(objectPtr, x, y, w, h)
+	End Method
+	
+	Rem
+	bbdoc: Hides the mouse cursor. 
+	End Rem
+	Method hide()
+		bmx_cegui_mousecursor_hide(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Shows the mouse cursor. 
+	End Rem
+	Method show()
+		bmx_cegui_mousecursor_show(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the visibility of the mouse cursor. 
+	End Rem
+	Method setVisible(visible:Int)
+		bmx_cegui_mousecursor_setvisible(objectPtr, visible)
+	End Method
+	
+	Rem
+	bbdoc: Returns whether the mouse cursor is visible. 
+	End Rem
+	Method isVisible:Int()
+		Return bmx_cegui_mousecursor_isvisible(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the current mouse cursor position as a pixel offset from the top-left corner of the display. 
+	End Rem
+	Method getPosition(x:Float Var, y:Float Var)
+		bmx_cegui_mousecursor_getposition(objectPtr, Varptr x, Varptr y)
+	End Method
+	
+	Rem
+	bbdoc: Returns the current constraint area of the mouse cursor. 
+	End Rem
+	Method getConstraintArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_mousecursor_getconstraintarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
+	End Method
+	
+	Rem
+	bbdoc: Returns the current mouse cursor position as display resolution independant values. 
+	End Rem
+	Method getDisplayIndependentPosition(x:Float Var, y:Float Var)
+		bmx_cegui_mousecursor_getdisplayindependentposition(objectPtr, Varptr x, Varptr y)
+	End Method
+
+End Type
+
+Rem
+bbdoc: Utility type that helps in converting various types of co-ordinate between absolute screen positions and positions offset from the top-left corner of a given Window object. 
+End Rem
+Type TCECoordConverter
+
+	Rem
+	bbdoc: Converts a window pixel co-ordinate value, specified as a float, to a screen pixel co-ordinate. 
+	End Rem
+	Function windowToScreenX:Float(window:TCEWindow, x:Float)
+		Return bmx_cegui_coordconverter_windowtoscreenx(window.objectPtr, x)
+	End Function
+	
+	Rem
+	bbdoc: Converts a window pixel co-ordinate value, specified as a float, to a screen pixel co-ordinate. 
+	End Rem
+	Function windowToScreenY:Float(window:TCEWindow, y:Float)
+		Return bmx_cegui_coordconverter_windowtoscreeny(window.objectPtr, y)
+	End Function
+	
+	Rem
+	bbdoc: Converts a window pixel co-ordinate point, specified as an x,y vector, to a screen pixel co-ordinate point. 
+	End Rem
+	Function windowToScreen(window:TCEWindow, x:Float, y:Float, toX:Float Var, toY:Float Var)
+		bmx_cegui_coordconverter_windowtoscreen(window.objectPtr, x, y, Varptr toX, Varptr toY)
+	End Function
+	
+	Rem
+	bbdoc: Converts a pixel window area, specified as a Rect, to a screen area. 
+	End Rem
+	Function windowToScreenRect(window:TCEWindow, x:Float, y:Float, w:Float, h:Float, toX:Float Var, toY:Float Var, toW:Float Var, toH:Float Var)
+		bmx_cegui_coordconverter_windowtoscreenrect(window.objectPtr, x, y, w, h, Varptr toX, Varptr toY, Varptr toW, Varptr toH)
+	End Function
+	
+	Rem
+	bbdoc: Converts a screen pixel co-ordinate value to a window co-ordinate value, specified in pixels. 
+	End Rem
+	Function screenToWindowX:Float(window:TCEWindow, x:Float)
+		Return bmx_cegui_coordconverter_screentowindowx(window.objectPtr, x)
+	End Function
+	
+	Rem
+	bbdoc: Converts a screen pixel co-ordinate value to a window co-ordinate value, specified in pixels. 
+	End Rem
+	Function screenToWindowY:Float(window:TCEWindow, y:Float)
+		Return bmx_cegui_coordconverter_screentowindowy(window.objectPtr, y)
+	End Function
+	
+	Rem
+	bbdoc: Converts a screen x,y vector pixel point to a window co-ordinate point, specified in pixels. 
+	End Rem
+	Function screenToWindow(window:TCEWindow, x:Float, y:Float, toX:Float Var, toY:Float Var)
+		bmx_cegui_coordconverter_screentowindow(window.objectPtr, x, y, Varptr x, Varptr y)
+	End Function
+	
+	Rem
+	bbdoc: Converts a Rect screen pixel area to a window area, specified in pixels. 
+	End Rem
+	Function screenToWindowRect(window:TCEWindow, x:Float, y:Float, w:Float, h:Float, toX:Float Var, toY:Float Var, toW:Float Var, toH:Float Var)
+		bmx_cegui_coordconverter_screentowindowrect(window.objectPtr, x, y, w, h, Varptr toX, Varptr toY, Varptr toW, Varptr toH)
+	End Function
+
+End Type
+
+
 

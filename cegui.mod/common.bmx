@@ -806,6 +806,42 @@ Extern
 
 	Function bmx_cegui_windowfactory_create:Byte Ptr(handle:Object, typeName:Byte Ptr)
 
+	Function bmx_cegui_scrolledcontainer_iscontentpaneautosized:Int(handle:Byte Ptr)
+	Function bmx_cegui_scrolledcontainer_setcontentpaneautosized(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_scrolledcontainer_getcontentarea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+	Function bmx_cegui_scrolledcontainer_setcontentarea(handle:Byte Ptr, x:Float, y:Float, w:Float, h:Float)
+	Function bmx_cegui_scrolledcontainer_getchildextentsarea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+
+	Function bmx_cegui_clippedcontainer_getcliparea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+	Function bmx_cegui_clippedcontainer_getclipperwindow:Object(handle:Byte Ptr)
+	Function bmx_cegui_clippedcontainer_setcliparea(handle:Byte Ptr, x:Float, y:Float, w:Float, h:Float)
+	Function bmx_cegui_clippedcontainer_setclipperwindow(handle:Byte Ptr, w:Byte Ptr)
+
+	Function bmx_cegui_mousecursor_getinstance:Byte Ptr()
+	Function bmx_cegui_mousecursor_setimagewithname(handle:Byte Ptr, imageset:Byte Ptr, imageName:Byte Ptr)
+	Function bmx_cegui_mousecursor_setimage(handle:Byte Ptr, image:Byte Ptr)
+	Function bmx_cegui_mousecursor_getimage:Object(handle:Byte Ptr)
+	Function bmx_cegui_mousecursor_draw(handle:Byte Ptr)
+	Function bmx_cegui_mousecursor_setposition(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_mousecursor_offsetPosition(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_mousecursor_setconstraintarea(handle:Byte Ptr, x:Float, y:Float, w:Float, h:Float)
+	Function bmx_cegui_mousecursor_hide(handle:Byte Ptr)
+	Function bmx_cegui_mousecursor_show(handle:Byte Ptr)
+	Function bmx_cegui_mousecursor_setvisible(handle:Byte Ptr, visible:Int)
+	Function bmx_cegui_mousecursor_isvisible:Int(handle:Byte Ptr)
+	Function bmx_cegui_mousecursor_getposition(handle:Byte Ptr, x:Float Ptr, y:Float Ptr)
+	Function bmx_cegui_mousecursor_getconstraintarea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+	Function bmx_cegui_mousecursor_getdisplayindependentposition(handle:Byte Ptr, x:Float Ptr, y:Float Ptr)
+
+	Function bmx_cegui_coordconverter_windowtoscreenx:Float(window:Byte Ptr, x:Float)
+	Function bmx_cegui_coordconverter_windowtoscreeny:Float(window:Byte Ptr, y:Float)
+	Function bmx_cegui_coordconverter_windowtoscreen(window:Byte Ptr, x:Float, y:Float, toX:Float Ptr, toY:Float Ptr)
+	Function bmx_cegui_coordconverter_windowtoscreenrect(window:Byte Ptr, x:Float, y:Float, w:Float, h:Float, toX:Float Ptr, toY:Float Ptr, toW:Float Ptr, toH:Float Ptr)
+	Function bmx_cegui_coordconverter_screentowindowx:Float(window:Byte Ptr, x:Float)
+	Function bmx_cegui_coordconverter_screentowindowy:Float(window:Byte Ptr, y:Float)
+	Function bmx_cegui_coordconverter_screentowindow(window:Byte Ptr, x:Float, y:Float, toX:Float Ptr, toY:Float Ptr)
+	Function bmx_cegui_coordconverter_screentowindowrect(window:Byte Ptr, x:Float, y:Float, w:Float, h:Float, toX:Float Ptr, toY:Float Ptr, toW:Float Ptr, toH:Float Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters
