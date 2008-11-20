@@ -39,6 +39,9 @@ Extern
 	Function bmx_flickcurl_photo_addtags:Int(handle:Byte Ptr, photo:Byte Ptr, tags:String)
 	Function bmx_flickcurl_photo_addcomment:Object(handle:Byte Ptr, photo:Byte Ptr, comment:String)
 	Function bmx_flickcurl_photo_getcommentlist:Byte Ptr(handle:Byte Ptr, photo:Byte Ptr)
+	Function bmx_flickcurl_photo_setsafetylevel:Int(handle:Byte Ptr, photo:Byte Ptr, safetyLevel:Int, hidden:Int)
+	Function bmx_flickcurl_photo_settags:Int(handle:Byte Ptr, photo:Byte Ptr, tags:String)
+	Function bmx_flickcurl_photo_transformrotate:Int(handle:Byte Ptr, photo:Byte Ptr, degrees:Int)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -112,11 +115,22 @@ Extern
 	Function bmx_flickcurl_comment_deletecomment:Int(handle:Byte Ptr, id:String)
 	Function bmx_flickcurl_comment_editcomment:Int(handle:Byte Ptr, id:String, commentText:String)
 
+	Function bmx_flickcurl_photolist_getformat:String(handle:Byte Ptr)
+	Function bmx_flickcurl_photolist_getphotocount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_photolist_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_photolist_getcontent:String(handle:Byte Ptr)
+
 	' API direct functions
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
 	Function flickcurl_free_comments(handle:Byte Ptr)
-	
+	Function flickcurl_free_photos_list(handle:Byte Ptr)
+	Function flickcurl_free_photos(handle:Byte Ptr)
+
+	Function bmx_flickcurl_searchphotos:Byte Ptr(handle:Byte Ptr, params:Byte Ptr)
+	Function bmx_flickcurl_listofphotos_getphotocount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofphotos_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
+
 End Extern
 
 

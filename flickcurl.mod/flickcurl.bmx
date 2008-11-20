@@ -167,6 +167,13 @@ Type TFlickcurl
 		Return bmx_flickcurl_getprefssafetylevel(fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SearchPhotos:TFCPhotoList(params:TFCSearchParams)
+		Return TFCListOfPhotos._create(bmx_flickcurl_searchphotos(fcPtr, params.paramsPtr), fcPtr)
+	End Method
+	
 	
 	Method Delete()
 		Free()
@@ -470,6 +477,30 @@ Type TFCPhoto
 		Return TFCCommentList._create(bmx_flickcurl_photo_getcommentlist(fcPtr, photoPtr), fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: Set the safety level of a photo.
+	returns: Non-zero on failure.
+	End Rem
+	Method SetSafetyLevel:Int(safetyLevel:Int, hidden:Int)
+		Return bmx_flickcurl_photo_setsafetylevel(fcPtr, photoPtr, safetyLevel, hidden)
+	End Method
+	
+	Rem
+	bbdoc: Set the tags for a photo.
+	returns: Non-zero on failure.
+	about: Note that this replaces all existing tags with the @tags here.
+	End Rem
+	Method SetTags:Int(tags:String)
+		Return bmx_flickcurl_photo_settags(fcPtr, photoPtr, tags)
+	End Method
+	
+	Rem
+	bbdoc: Rotate a photo.
+	about: Valid values are 90, 180 and 270.
+	End Rem
+	Method TransformRotate:Int(degrees:Int)
+		Return bmx_flickcurl_photo_transformrotate(fcPtr, photoPtr, degrees)
+	End Method
 	
 	
 	Rem
@@ -479,6 +510,109 @@ Type TFCPhoto
 		If photoPtr And owner Then
 			bmx_flickcurl_photo_free(photoPtr)
 			photoPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+Type TFCListOfPhotos Extends TFCPhotoList
+
+	Function _create:TFCListOfPhotos(photoListPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If photoListPtr Then
+			Local this:TFCListOfPhotos = New TFCListOfPhotos
+			this.photoListPtr = photoListPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetFormat:String()
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of photos.
+	End Rem
+	Method GetPhotoCount:Int()
+		Return bmx_flickcurl_listofphotos_getphotocount(photoListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the photo at the given @index.
+	End Rem
+	Method GetPhoto:TFCPhoto(index:Int)
+		Return TFCPhoto._create(bmx_flickcurl_listofphotos_getphoto(photoListPtr, index), fcPtr, False)
+	End Method
+	
+	Method GetContent:String()
+	End Method
+
+	Method Free()
+		If photoListPtr Then
+			flickcurl_free_photos(photoListPtr)
+			photoListPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Photos List.
+End Rem
+Type TFCPhotoList
+
+	Field photoListPtr:Byte Ptr
+	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCPhotoList(photoListPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If photoListPtr Then
+			Local this:TFCPhotoList = New TFCPhotoList
+			this.photoListPtr = photoListPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the requested content format or NULL if a list of photos was wanted.
+	about: On the result from API calls this is set to the requested feed format or "xml" if none was given.
+	End Rem
+	Method GetFormat:String()
+		Return bmx_flickcurl_photolist_getformat(photoListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of photos.
+	End Rem
+	Method GetPhotoCount:Int()
+		Return bmx_flickcurl_photolist_getphotocount(photoListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the photo at the given @index.
+	End Rem
+	Method GetPhoto:TFCPhoto(index:Int)
+		Return TFCPhoto._create(bmx_flickcurl_photolist_getphoto(photoListPtr, index), fcPtr, False)
+	End Method
+	
+	Rem
+	bbdoc: Returns the raw content if format is not null.
+	End Rem
+	Method GetContent:String()
+		Return bmx_flickcurl_photolist_getcontent(photoListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Destructor for photos list.
+	End Rem
+	Method Free()
+		If photoListPtr Then
+			flickcurl_free_photos_list(photoListPtr)
+			photoListPtr = Null
 		End If
 	End Method
 	

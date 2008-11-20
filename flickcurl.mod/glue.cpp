@@ -47,6 +47,9 @@ extern "C" {
 	int bmx_flickcurl_photo_addtags(flickcurl * fc, flickcurl_photo * photo, BBString * tags);
 	BBObject * bmx_flickcurl_photo_addcomment(flickcurl * fc, flickcurl_photo * photo, BBString * comment);
 	flickcurl_comment ** bmx_flickcurl_photo_getcommentlist(flickcurl * fc, flickcurl_photo * photo);
+	int bmx_flickcurl_photo_setsafetylevel(flickcurl * fc, flickcurl_photo * photo, int safetyLevel, int hidden);
+	int bmx_flickcurl_photo_settags(flickcurl * fc, flickcurl_photo * photo, BBString * tags);
+	int bmx_flickcurl_photo_transformrotate(flickcurl * fc, flickcurl_photo * photo, int degrees);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -116,6 +119,15 @@ extern "C" {
 
 	int bmx_flickcurl_comment_deletecomment(flickcurl * fc, BBString * id);
 	int bmx_flickcurl_comment_editcomment(flickcurl * fc, BBString * id, BBString * commentText);
+
+	BBString * bmx_flickcurl_photolist_getformat(flickcurl_photos_list * list);
+	int bmx_flickcurl_photolist_getphotocount(flickcurl_photos_list * list);
+	flickcurl_photo * bmx_flickcurl_photolist_getphoto(flickcurl_photos_list * list, int index);
+	BBString * bmx_flickcurl_photolist_getcontent(flickcurl_photos_list * list);
+
+	flickcurl_photo** bmx_flickcurl_searchphotos(flickcurl * fc, flickcurl_search_params *params);
+	int bmx_flickcurl_listofphotos_getphotocount(flickcurl_photo** list);
+	flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, int index);
 
 }
 
@@ -269,9 +281,10 @@ BBObject * bmx_flickcurl_photo_addcomment(flickcurl * fc, flickcurl_photo * phot
 	if (comment_id) {
 		
 		flickcurl_comment ** comments = flickcurl_photos_comments_getList(fc, photo->id);
-		flickcurl_comment * cmt = *comments;
 		
-		while (cmt) {
+		for (int i = 0; comments[i]; i++) {
+		
+			flickcurl_comment * cmt = comments[i];
 			
 			if (strcmp(comment_id, cmt->id) == 0) {
 				
@@ -300,6 +313,21 @@ flickcurl_comment ** bmx_flickcurl_photo_getcommentlist(flickcurl * fc, flickcur
 
 BBString * bmx_flickcurl_photo_getid(flickcurl_photo * photo) {
 	return bbStringFromCString(photo->id);
+}
+
+int bmx_flickcurl_photo_setsafetylevel(flickcurl * fc, flickcurl_photo * photo, int safetyLevel, int hidden) {
+	return flickcurl_photos_setSafetyLevel(fc, photo->id, safetyLevel, hidden);
+}
+
+int bmx_flickcurl_photo_settags(flickcurl * fc, flickcurl_photo * photo, BBString * tags) {
+	char *p=bbStringToCString( tags );
+	int res = flickcurl_photos_setTags(fc, photo->id, p);
+	bbMemFree( p );
+	return res;	
+}
+
+int bmx_flickcurl_photo_transformrotate(flickcurl * fc, flickcurl_photo * photo, int degrees) {
+	return flickcurl_photos_transform_rotate(fc, photo->id, degrees);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -677,4 +705,43 @@ int bmx_flickcurl_comment_editcomment(flickcurl * fc, BBString * id, BBString * 
 	bbMemFree(c);
 	return res;
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_photolist_getformat(flickcurl_photos_list * list) {
+	return bbStringFromCString(list->format);
+}
+
+int bmx_flickcurl_photolist_getphotocount(flickcurl_photos_list * list) {
+	return list->photos_count;
+}
+
+flickcurl_photo * bmx_flickcurl_photolist_getphoto(flickcurl_photos_list * list, int index) {
+	return list->photos[index];
+}
+
+BBString * bmx_flickcurl_photolist_getcontent(flickcurl_photos_list * list) {
+	return bbStringFromCString(list->content);	
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_photo** bmx_flickcurl_searchphotos(flickcurl * fc, flickcurl_search_params *params) {
+	return flickcurl_photos_search(fc, params);
+}
+
+int bmx_flickcurl_listofphotos_getphotocount(flickcurl_photo** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, int index) {
+	return list[index];
+}
+
 
