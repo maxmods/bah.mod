@@ -47,6 +47,7 @@ If list Then
 	
 	While count < total And y < gh And Not KeyHit(key_escape)
 	
+		
 		Local photo:TFCPhoto = list.GetPhoto(count)
 
 		Local uri:String = photo.GetSourceURI(FCIMAGE_THUMB).Replace("http://", "http::")
@@ -62,6 +63,7 @@ If list Then
 			maxHeight = 0
 		End If
 		
+		Flip
 		DrawPixmap pixmap, x, y
 		
 		x:+ w + 2
@@ -69,7 +71,7 @@ If list Then
 			maxHeight = h
 		End If
 	
-		Flip	
+		Flip
 	
 		Delay(10)
 		count:+ 1
