@@ -203,6 +203,12 @@ Extern
 	Function bmx_cegui_window_setmodalstate(handle:Byte Ptr, state:Int)
 	Function bmx_cegui_window_performchildwindowlayout(handle:Byte Ptr)
 	Function bmx_cegui_window_setuserstring(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
+	Function bmx_cegui_window_setpositionu(handle:Byte Ptr, x:Byte Ptr, y:Byte Ptr)
+	Function bmx_cegui_window_setxpositionu(handle:Byte Ptr, x:Byte Ptr)
+	Function bmx_cegui_window_setypositionu(handle:Byte Ptr, y:Byte Ptr)
+	Function bmx_cegui_window_setsizeu(handle:Byte Ptr, width:Byte Ptr, height:Byte Ptr)
+	Function bmx_cegui_window_setwidthu(handle:Byte Ptr, width:Byte Ptr)
+	Function bmx_cegui_window_setheightu(handle:Byte Ptr, height:Byte Ptr)
 
 	Function bmx_cegui_window_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
 	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)
@@ -241,6 +247,7 @@ Extern
 	Function bmx_cegui_editbox_setcaratindex(handle:Byte Ptr, caratPos:Int)
 	Function bmx_cegui_editbox_setselection(handle:Byte Ptr, startPos:Int, endPos:Int)
 	Function bmx_cegui_editbox_setmaxtextlength(handle:Byte Ptr, maxLen:Int)
+	Function bmx_cegui_editbox_setmaskcodepoint(handle:Byte Ptr, codePoint:Int)
 
 	Function bmx_cegui_logger_setlogginglevel(level:Int)
 	Function bmx_cegui_logger_setlogfilename(filename:Byte Ptr, append:Int)
@@ -407,6 +414,7 @@ Extern
 	Function bmx_cegui_tabcontrol_addtab(handle:Byte Ptr, wnd:Byte Ptr)
 	Function bmx_cegui_tabcontrol_removetab(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_tabcontrol_removetabforid(handle:Byte Ptr, ID:Int)
+	Function bmx_cegui_tabcontrol_settabheightu(handle:Byte Ptr, height:Byte Ptr)
 
 	Function bmx_cegui_renderer_createtexture:Object(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_renderer_createtexturewithsize:Object(handle:Byte Ptr, size:Float)
@@ -507,7 +515,9 @@ Extern
 	Function bmx_cegui_multicolumnlist_gethighestrowitemheight:Float(handle:Byte Ptr, rowIdx:Int)
 	Function bmx_cegui_multicolumnlist_resetlist(handle:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_addcolumn(handle:Byte Ptr, text:Byte Ptr, colId:Int, width:Float)
+	Function bmx_cegui_multicolumnlist_addcolumnu(handle:Byte Ptr, text:Byte Ptr, colId:Int, width:Byte Ptr)
 	Function bmx_cegui_multicolumnlist_insertcolumn(handle:Byte Ptr, text:Byte Ptr, colId:Int, width:Float, position:Int)
+	Function bmx_cegui_multicolumnlist_insertcolumnu(handle:Byte Ptr, text:Byte Ptr, colId:Int, width:Byte Ptr, position:Int)
 	Function bmx_cegui_multicolumnlist_removecolumn(handle:Byte Ptr, colIdx:Int)
 	Function bmx_cegui_multicolumnlist_removecolumnwithid(handle:Byte Ptr, colId:Int)
 	Function bmx_cegui_multicolumnlist_movecolumn(handle:Byte Ptr, colIdx:Int, position:Int)
@@ -672,6 +682,8 @@ Extern
 	Function bmx_cegui_listboxtextitem_settextcoloursforcorner(handle:Byte Ptr, topLeftColour:Byte Ptr, topRightColour:Byte Ptr, bottomLeftColour:Byte Ptr, bottomRightColour:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_settextcoloursforcolour(handle:Byte Ptr, col:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_getpixelsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_listboxtextitem_new:Byte Ptr(text:Byte Ptr, itemId:Int, disabled:Int, autoDelete:Int)
+	Function bmx_cegui_listboxtextitem_delete(handle:Byte Ptr)
 
 	Function bmx_cegui_scrollablepane_getcontentpane:Object(handle:Byte Ptr)
 	Function bmx_cegui_scrollablepane_isvertscrollbaralwaysshown:Int(handle:Byte Ptr)
@@ -890,6 +902,9 @@ Extern
 	Function bmx_cegui_combobox_setitemselectstate(handle:Byte Ptr, item:Byte Ptr, state:Int)
 	Function bmx_cegui_combobox_setitemselectstateindex(handle:Byte Ptr, itemIndex:Int, state:Int)
 	Function bmx_cegui_combobox_handleupdatedlistitemdata(handle:Byte Ptr)
+
+	Function bmx_cegui_udim_create:Byte Ptr(scale:Float, offset:Float)
+	Function bmx_cegui_udim_delete(handle:Byte Ptr)
 
 End Extern
 

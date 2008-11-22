@@ -287,7 +287,12 @@ extern "C" {
 	void bmx_cegui_window_setmodalstate(CEGUI::Window * window, bool state);
 	void bmx_cegui_window_performchildwindowlayout(CEGUI::Window * window);
 	void bmx_cegui_window_setuserstring(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
-	
+	void bmx_cegui_window_setpositionu(CEGUI::Window * window, const CEGUI::UDim * x, const CEGUI::UDim * y);
+	void bmx_cegui_window_setxpositionu(CEGUI::Window * window, const CEGUI::UDim * x);
+	void bmx_cegui_window_setypositionu(CEGUI::Window * window, const CEGUI::UDim * y);
+	void bmx_cegui_window_setsizeu(CEGUI::Window * window, const CEGUI::UDim * width, const CEGUI::UDim * height);
+	void bmx_cegui_window_setwidthu(CEGUI::Window * window, const CEGUI::UDim * width);
+	void bmx_cegui_window_setheightu(CEGUI::Window * window, const CEGUI::UDim * height);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
@@ -326,6 +331,7 @@ extern "C" {
 	void bmx_cegui_editbox_setcaratindex(CEGUI::Editbox * eb, int caratPos);
 	void bmx_cegui_editbox_setselection(CEGUI::Editbox * eb, int startPos, int endPos);
 	void bmx_cegui_editbox_setmaxtextlength(CEGUI::Editbox * eb, int maxLen);
+	void bmx_cegui_editbox_setmaskcodepoint(CEGUI::Editbox * eb, CEGUI::utf32 codePoint);
 
 	void bmx_cegui_logger_setlogginglevel(CEGUI::LoggingLevel level);
 	void bmx_cegui_logger_setlogfilename(const CEGUI::utf8 * filename, bool append);
@@ -495,6 +501,7 @@ extern "C" {
 	void bmx_cegui_tabcontrol_addtab(CEGUI::TabControl * tc, CEGUI::Window * wnd);
 	void bmx_cegui_tabcontrol_removetab(CEGUI::TabControl * tc, const CEGUI::utf8 * name);
 	void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID);
+	void bmx_cegui_tabcontrol_settabheightu(CEGUI::TabControl * tc, const CEGUI::UDim * height);
 
 	BBObject * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
 	BBObject * bmx_cegui_renderer_createtexturewithsize(CEGUI::Renderer * rend, float size);
@@ -596,7 +603,9 @@ extern "C" {
 	float bmx_cegui_multicolumnlist_gethighestrowitemheight(CEGUI::MultiColumnList * mc, CEGUI::uint rowIdx);
 	void bmx_cegui_multicolumnlist_resetlist(CEGUI::MultiColumnList * mc);
 	void bmx_cegui_multicolumnlist_addcolumn(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, float width);
+	void bmx_cegui_multicolumnlist_addcolumnu(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, const CEGUI::UDim * width);
 	void bmx_cegui_multicolumnlist_insertcolumn(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, float width, CEGUI::uint position);
+	void bmx_cegui_multicolumnlist_insertcolumnu(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, const CEGUI::UDim * width, CEGUI::uint position);
 	void bmx_cegui_multicolumnlist_removecolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx);
 	void bmx_cegui_multicolumnlist_removecolumnwithid(CEGUI::MultiColumnList * mc, CEGUI::uint colId);
 	void bmx_cegui_multicolumnlist_movecolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx, CEGUI::uint position);
@@ -760,6 +769,8 @@ extern "C" {
 	void bmx_cegui_listboxtextitem_settextcoloursforcorner(CEGUI::ListboxTextItem * item, MaxCEColour * topLeftColour, MaxCEColour * topRightColour, MaxCEColour * bottomLeftColour, MaxCEColour * bottomRightColour);
 	void bmx_cegui_listboxtextitem_settextcoloursforcolour(CEGUI::ListboxTextItem * item, MaxCEColour * col);
 	void bmx_cegui_listboxtextitem_getpixelsize(CEGUI::ListboxTextItem * item, float * width, float * height);
+	CEGUI::ListboxTextItem * bmx_cegui_listboxtextitem_new(const CEGUI::utf8 * text, CEGUI::uint itemId, bool disabled, bool autoDelete);
+	void bmx_cegui_listboxtextitem_delete(CEGUI::ListboxTextItem * item);
 
 	BBObject * bmx_cegui_scrollablepane_getcontentpane(CEGUI::ScrollablePane * sp);
 	bool bmx_cegui_scrollablepane_isvertscrollbaralwaysshown(CEGUI::ScrollablePane * sp);
@@ -978,6 +989,9 @@ extern "C" {
 	void bmx_cegui_combobox_setitemselectstate(CEGUI::Combobox * cb, CEGUI::ListboxItem * item, bool state);
 	void bmx_cegui_combobox_setitemselectstateindex(CEGUI::Combobox * cb, int itemIndex, bool state);
 	void bmx_cegui_combobox_handleupdatedlistitemdata(CEGUI::Combobox * cb);
+
+	CEGUI::UDim * bmx_cegui_udim_create(float scale, float offset);
+	void bmx_cegui_udim_delete(CEGUI::UDim * udim);
 
 }
 

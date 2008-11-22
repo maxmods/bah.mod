@@ -1118,6 +1118,31 @@ void bmx_cegui_window_setuserstring(CEGUI::Window * window, const CEGUI::utf8 * 
 	window->setUserString(name, value);
 }
 
+void bmx_cegui_window_setpositionu(CEGUI::Window * window, const CEGUI::UDim * x, const CEGUI::UDim * y) {
+	window->setPosition(CEGUI::UVector2(*x, *y));
+}
+
+void bmx_cegui_window_setxpositionu(CEGUI::Window * window, const CEGUI::UDim * x) {
+	window->setXPosition(*x);
+}
+
+void bmx_cegui_window_setypositionu(CEGUI::Window * window, const CEGUI::UDim * y) {
+	window->setYPosition(*y);
+}
+
+void bmx_cegui_window_setsizeu(CEGUI::Window * window, const CEGUI::UDim * width, const CEGUI::UDim * height) {
+	window->setSize(CEGUI::UVector2(*width, *height));
+}
+
+void bmx_cegui_window_setwidthu(CEGUI::Window * window, const CEGUI::UDim * width) {
+	window->setWidth(*width);
+}
+
+void bmx_cegui_window_setheightu(CEGUI::Window * window, const CEGUI::UDim * height) {
+	window->setHeight(*height);
+}
+
+
 
 // *************************************************
 
@@ -1342,6 +1367,10 @@ void bmx_cegui_editbox_setselection(CEGUI::Editbox * eb, int startPos, int endPo
 
 void bmx_cegui_editbox_setmaxtextlength(CEGUI::Editbox * eb, int maxLen) {
 	eb->setMaxTextLength(maxLen);
+}
+
+void bmx_cegui_editbox_setmaskcodepoint(CEGUI::Editbox * eb, CEGUI::utf32 codePoint) {
+	eb->setMaskCodePoint(codePoint);
 }
 
 // *************************************************
@@ -1988,6 +2017,10 @@ void bmx_cegui_tabcontrol_removetabforid(CEGUI::TabControl * tc, CEGUI::uint ID)
 	tc->removeTab(ID);
 }
 
+void bmx_cegui_tabcontrol_settabheightu(CEGUI::TabControl * tc, const CEGUI::UDim * height) {
+	tc->setTabHeight(*height);
+}
+
 // *************************************************
 
 
@@ -2395,8 +2428,16 @@ void bmx_cegui_multicolumnlist_addcolumn(CEGUI::MultiColumnList * mc, const CEGU
 	mc->addColumn(text, colId, guessUDim(width));
 }
 
+void bmx_cegui_multicolumnlist_addcolumnu(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, const CEGUI::UDim * width) {
+	mc->addColumn(text, colId, *width);
+}
+
 void bmx_cegui_multicolumnlist_insertcolumn(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, float width, CEGUI::uint position) {
 	mc->insertColumn(text, colId, guessUDim(width), position);
+}
+
+void bmx_cegui_multicolumnlist_insertcolumnu(CEGUI::MultiColumnList * mc, const CEGUI::utf8 * text, CEGUI::uint colId, const CEGUI::UDim * width, CEGUI::uint position) {
+	mc->insertColumn(text, colId, *width, position);
 }
 
 void bmx_cegui_multicolumnlist_removecolumn(CEGUI::MultiColumnList * mc, CEGUI::uint colIdx) {
@@ -3054,6 +3095,13 @@ void bmx_cegui_listboxtextitem_getpixelsize(CEGUI::ListboxTextItem * item, float
 	*height = s.d_height;
 }
 
+CEGUI::ListboxTextItem * bmx_cegui_listboxtextitem_new(const CEGUI::utf8 * text, CEGUI::uint itemId, bool disabled, bool autoDelete) {
+	return new CEGUI::ListboxTextItem(text, itemId, 0, disabled, autoDelete);
+}
+
+void bmx_cegui_listboxtextitem_delete(CEGUI::ListboxTextItem * item) {
+	delete item;
+}
 
 // *************************************************
 
@@ -3949,6 +3997,16 @@ void bmx_cegui_combobox_setitemselectstateindex(CEGUI::Combobox * cb, int itemIn
 
 void bmx_cegui_combobox_handleupdatedlistitemdata(CEGUI::Combobox * cb) {
 	cb->handleUpdatedListItemData();
+}
+
+// *************************************************
+
+CEGUI::UDim * bmx_cegui_udim_create(float scale, float offset) {
+	return new CEGUI::UDim(scale, offset);
+}
+
+void bmx_cegui_udim_delete(CEGUI::UDim * udim) {
+	delete udim;
 }
 
 

@@ -1596,6 +1596,16 @@ Type TCEWindow Extends TCEEventSet
 	Method setPosition(x:Float, y:Float)
 		bmx_cegui_window_setposition(objectPtr, x, y)
 	End Method
+
+	Rem
+	bbdoc: Set the window's position.
+	about: Sets the position of the area occupied by this window. The position is offset from the top-left corner
+	of this windows parent window or from the top-left corner of the display if this window has no parent
+	(i.e. it is the root window).
+	End Rem
+	Method setPositionU(x:TCEUDim, y:TCEUDim)
+		bmx_cegui_window_setpositionu(objectPtr, x.objectPtr, y.objectPtr)
+	End Method
 	
 	Rem
 	bbdoc: Set the window's X position.
@@ -1605,6 +1615,16 @@ Type TCEWindow Extends TCEEventSet
 	End Rem
 	Method setXPosition(x:Float)
 		bmx_cegui_window_setxposition(objectPtr, x)
+	End Method
+
+	Rem
+	bbdoc: Set the window's X position.
+	about: Sets the x position (left edge) of the area occupied by this window. The position is offset from
+	the left edge of this windows parent window or from the left edge of the display if this window has no parent
+	(i.e. it is the root window).
+	End Rem
+	Method setXPositionU(x:TCEUDim)
+		bmx_cegui_window_setxpositionu(objectPtr, x.objectPtr)
 	End Method
 	 
 	Rem
@@ -1616,6 +1636,16 @@ Type TCEWindow Extends TCEEventSet
 	Method setYPosition(y:Float)
 		bmx_cegui_window_setyposition(objectPtr, y)
 	End Method
+
+	Rem
+	bbdoc: Set the window's Y position.
+	about: Sets the y position (top edge) of the area occupied by this window. The position is offset from
+	the top edge of this windows parent window or from the top edge of the display if this window has no parent
+	(i.e. it is the root window).
+	End Rem
+	Method setYPositionU(y:TCEUDim)
+		bmx_cegui_window_setypositionu(objectPtr, y.objectPtr)
+	End Method
 	 
 	Rem
 	bbdoc: Set the window's size.
@@ -1623,6 +1653,14 @@ Type TCEWindow Extends TCEEventSet
 	End Rem
 	Method setSize(width:Float, height:Float)
 		bmx_cegui_window_setsize(objectPtr, width, height)
+	End Method
+
+	Rem
+	bbdoc: Set the window's size.
+	about: Sets the size of the area occupied by this window.
+	End Rem
+	Method setSizeU(width:TCEUDim, height:TCEUDim)
+		bmx_cegui_window_setsizeu(objectPtr, width.objectPtr, height.objectPtr)
 	End Method
 	 
 	Rem
@@ -1632,6 +1670,14 @@ Type TCEWindow Extends TCEEventSet
 	Method setWidth(width:Float)
 		bmx_cegui_window_setwidth(objectPtr, width)
 	End Method
+
+	Rem
+	bbdoc: Set the window's width.
+	about: Sets the width of the area occupied by this window.
+	End Rem
+	Method setWidthU(width:TCEUDim)
+		bmx_cegui_window_setwidthu(objectPtr, width.objectPtr)
+	End Method
 	 
 	Rem
 	bbdoc: Set the window's height.
@@ -1639,6 +1685,14 @@ Type TCEWindow Extends TCEEventSet
 	End Rem
 	Method setHeight(height:Float)
 		bmx_cegui_window_setheight(objectPtr, height)
+	End Method
+
+	Rem
+	bbdoc: Set the window's height.
+	about: Sets the height of the area occupied by this window.
+	End Rem
+	Method setHeightU(height:TCEUDim)
+		bmx_cegui_window_setheightu(objectPtr, height.objectPtr)
 	End Method
 	 
 	Rem
@@ -3493,5 +3547,29 @@ Type TCECoordConverter
 
 End Type
 
+Rem
+bbdoc: A 
+End Rem
+Function UDim:TCEUDim(scale:Float = 0.0, offset:Float = 0.0)
+	Return TCEUDim._create(scale, offset) 
+End Function
 
+Type TCEUDim
+
+	Field objectPtr:Byte Ptr
+	
+	Function _create:TCEUDim(scale:Float = 0.0, offset:Float = 0.0)
+		Local this:TCEUDim = New TCEUDim
+		this.objectPtr = bmx_cegui_udim_create(scale, offset)
+		Return this
+	End Function
+
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_udim_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+End Type
 

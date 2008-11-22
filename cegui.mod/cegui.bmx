@@ -754,6 +754,7 @@ Type TCEListbox Extends TCEWindow
 	bbdoc: Adds the given ListboxItem to the list. 
 	End Rem
 	Method addItem(item:TCEListboxItem)
+		item.owner = False
 		bmx_cegui_listbox_additem(objectPtr, item.objectPtr)
 	End Method
 	 
@@ -762,6 +763,7 @@ Type TCEListbox Extends TCEWindow
 	about: Note that if the list is sorted, the item may not end up in the requested position.
 	End Rem
 	Method insertItem(item:TCEListboxItem, position:TCEListboxItem)
+		item.owner = False
 		bmx_cegui_listbox_insertitem(objectPtr, item.objectPtr, position.objectPtr)
 	End Method
 	 
@@ -951,6 +953,7 @@ End Rem
 Type TCEListboxItem
 
 	Field objectPtr:Byte Ptr
+	Field owner:Int
 
 	Function _create:TCEListboxItem(objectPtr:Byte Ptr)
 		If objectPtr Then
@@ -1155,6 +1158,15 @@ Type TCEListboxTextItem Extends TCEListboxItem
 	End Function
 
 	Rem
+	bbdoc: 
+	End Rem	
+	Method Create:TCEListboxTextItem(text:String, itemId:Int = 0, disabled:Int = False, autoDelete:Int = True)
+		objectPtr = bmx_cegui_listboxtextitem_new(_convertMaxToUTF8(text), itemId, disabled, autoDelete)
+		owner = True
+		Return Self
+	End Method
+
+	Rem
 	bbdoc: Returns a reference to the font being used by this ListboxTextItem.
 	about: This method will try a number of places to find a font to be used. If no font can be found, NULL is
 	returned.
@@ -1212,6 +1224,13 @@ Type TCEListboxTextItem Extends TCEListboxItem
 		bmx_cegui_listboxtextitem_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 
+	Method Delete()
+		If objectPtr And owner Then
+			bmx_cegui_listboxtextitem_delete(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem
@@ -1638,6 +1657,7 @@ Type TCECombobox Extends TCEWindow
 	End Rem
 	Method addItem(item:TCEListboxItem)
 		bmx_cegui_combobox_additem(objectPtr, item.objectPtr)
+		item.owner = False
 	End Method
 	 
 	Rem
@@ -1646,6 +1666,7 @@ Type TCECombobox Extends TCEWindow
 	End Rem
 	Method insertItem(item:TCEListboxItem, position:TCEListboxItem)
 		bmx_cegui_combobox_insertitem(objectPtr, item.objectPtr, position.objectPtr)
+		item.owner = False
 	End Method
 	 
 	Rem
@@ -3378,6 +3399,13 @@ Type TCETabControl Extends TCEWindow
 	Method setTabHeight(height:Float)
 		bmx_cegui_tabcontrol_settabheight(objectPtr, height)
 	End Method
+
+	Rem
+	bbdoc: Sets the height of the tabs. 
+	End Rem
+	Method setTabHeightU(height:TCEUDim)
+		bmx_cegui_tabcontrol_settabheightu(objectPtr, height.objectPtr)
+	End Method
 	
 	Rem
 	bbdoc: Sets the amount of padding to add either side of the text in the tab. 
@@ -4023,6 +4051,17 @@ Type TCEMultiColumnList Extends TCEWindow
 			Return this
 		End If
 	End Function
+	
+	Const SELECT_ROWSINGLE:Int = 0
+	Const SELECT_ROWMULTIPLE:Int = 1
+	Const SELECT_CELLSINGLE:Int = 2
+	Const SELECT_CELLMULTIPLE:Int = 3
+	Const SELECT_NOMINATEDCOLUMNSINGLE:Int = 4
+	Const SELECT_NOMINATEDCOLUMNMULTIPLE:Int = 5
+	Const SELECT_COLUMNSINGLE:Int = 6
+	Const SELECT_COLUMNMULTIPLE:Int = 7
+	Const SELECT_NOMINATEDROWSINGLE:Int = 8
+	Const SELECT_NOMINATEDROWMULTIPLE:Int = 9
 
 	Rem
 	bbdoc: Event fired when the selection mode for the list box changes. 
@@ -4379,6 +4418,13 @@ Type TCEMultiColumnList Extends TCEWindow
 	Method addColumn(text:String, colId:Int, width:Float)
 		bmx_cegui_multicolumnlist_addcolumn(objectPtr, _convertMaxToUTF8(text), colId, width)
 	End Method
+
+	Rem
+	bbdoc: Add a column to the list box.
+	End Rem
+	Method addColumnU(text:String, colId:Int, width:TCEUDim)
+		bmx_cegui_multicolumnlist_addcolumnu(objectPtr, _convertMaxToUTF8(text), colId, width.objectPtr)
+	End Method
 	
 	Rem
 	bbdoc: Insert a new column in the list.
@@ -4387,6 +4433,13 @@ Type TCEMultiColumnList Extends TCEWindow
 		bmx_cegui_multicolumnlist_insertcolumn(objectPtr, _convertMaxToUTF8(text), colId, width, position)
 	End Method
 	
+	Rem
+	bbdoc: Insert a new column in the list.
+	End Rem
+	Method insertColumnU(text:String, colId:Int, width:TCEUDim, position:Int)
+		bmx_cegui_multicolumnlist_insertcolumnu(objectPtr, _convertMaxToUTF8(text), colId, width.objectPtr, position)
+	End Method
+
 	Rem
 	bbdoc: Removes a column from the list box.
 	about: This will cause any ListboxItem using the autoDelete option in the column to be deleted.
@@ -4434,6 +4487,7 @@ Type TCEMultiColumnList Extends TCEWindow
 	at the bottom of the list.
 	End Rem
 	Method addRowItem:Int(item:TCEListboxItem, colId:Int, rowId:Int = 0)
+		item.owner = False
 		Return bmx_cegui_multicolumnlist_addrowitem(objectPtr, item.objectPtr, colId, rowId)
 	End Method
 	
@@ -4451,6 +4505,7 @@ Type TCEMultiColumnList Extends TCEWindow
 	bbdoc: Inserts a row into the list box, and set the item in the column with ID @colId to @item.
 	End Rem
 	Method insertRowItem:Int(item:TCEListboxItem, colId:Int, rowIdx:Int, rowId:Int = 0)
+		item.owner = False
 		Return bmx_cegui_multicolumnlist_insertrowitem(objectPtr, item.objectPtr, colId, rowIdx, rowId)
 	End Method
 	
@@ -4466,6 +4521,7 @@ Type TCEMultiColumnList Extends TCEWindow
 	bbdoc: Sets the ListboxItem for grid reference position.
 	End Rem
 	Method setItemForGridRef(item:TCEListboxItem, row:Int, col:Int)
+		item.owner = False
 		bmx_cegui_multicolumnlist_setitemforgridref(objectPtr, item.objectPtr, row, col)
 	End Method
 	
@@ -4473,6 +4529,7 @@ Type TCEMultiColumnList Extends TCEWindow
 	bbdoc: Sets the ListboxItem for the column with ID @colId in row @rowIdx.
 	End Rem
 	Method setItem(item:TCEListboxItem, colId:Int, rowIdx:Int)
+		item.owner = False
 		bmx_cegui_multicolumnlist_setitem(objectPtr, item.objectPtr, colId, rowIdx)
 	End Method
 	
@@ -4985,6 +5042,13 @@ Type TCEEditbox Extends TCEWindow
 	End Rem
 	Method setMaxTextLength(maxLen:Int)
 		bmx_cegui_editbox_setmaxtextlength(objectPtr, maxLen)
+	End Method
+	
+	Rem
+	bbdoc: Sets the utf32 code point used when rendering masked text.
+	End Rem
+	Method setMaskCodePoint(codePoint:Int)
+		bmx_cegui_editbox_setmaskcodepoint(objectPtr, codePoint)
 	End Method
 
 End Type
