@@ -143,7 +143,9 @@ extern "C" {
 	void bmx_cegui_system_setsingleclicktimeout(CEGUI::System * sys, double timeout);
 	void bmx_cegui_system_setmulticlicktimeout(CEGUI::System * sys, double timeout);
 	void bmx_cegui_system_setmulticlicktoleranceareasize(CEGUI::System * sys, float width, float height);
-
+	void bmx_cegui_system_setdefaulttooltip(CEGUI::System * sys, CEGUI::Tooltip * tooltip);
+	void bmx_cegui_system_setdefaulttooltiptext(CEGUI::System * sys, CEGUI::utf8 * tooltip);
+	BBObject * bmx_cegui_system_getdefaulttooltip(CEGUI::System * sys);
 
 	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
@@ -906,7 +908,7 @@ extern "C" {
 	void bmx_cegui_clippedcontainer_setcliparea(CEGUI::ClippedContainer * cc, float x, float y, float w, float h);
 	void bmx_cegui_clippedcontainer_setclipperwindow(CEGUI::ClippedContainer * cc, CEGUI::Window * w);
 	
-	CEGUI::MouseCursor * bmx_cegui_mousecursor_getinstance();
+	CEGUI::MouseCursor * bmx_cegui_mousecursor_getsingleton();
 	void bmx_cegui_mousecursor_setimagewithname(CEGUI::MouseCursor * mc, const CEGUI::utf8 * imageset, const CEGUI::utf8 * imageName);
 	void bmx_cegui_mousecursor_setimage(CEGUI::MouseCursor * mc, CEGUI::Image * image);
 	BBObject * bmx_cegui_mousecursor_getimage(CEGUI::MouseCursor * mc);
@@ -930,6 +932,52 @@ extern "C" {
 	float bmx_cegui_coordconverter_screentowindowy(CEGUI::Window * window, float y);
 	void bmx_cegui_coordconverter_screentowindow(CEGUI::Window * window, float x, float y, float * toX, float * toY);
 	void bmx_cegui_coordconverter_screentowindowrect(CEGUI::Window * window, float x, float y, float w, float h, float * toX, float * toY, float * toW, float * toH);
+
+	bool bmx_cegui_combobox_ishit(CEGUI::Combobox * cb, float x, float y);
+	bool bmx_cegui_combobox_getsingleclickenabled(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_isdropdownlistvisible(CEGUI::Combobox * cb);
+	BBObject * bmx_cegui_combobox_geteditbox(CEGUI::Combobox * cb);
+	BBObject * bmx_cegui_combobox_getpushbutton(CEGUI::Combobox * cb);
+	BBObject * bmx_cegui_combobox_getdroplist(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_hasinputfocus(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_isreadonly(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_istextvalid(CEGUI::Combobox * cb);
+	BBString * bmx_cegui_combobox_getvalidationstring(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getcaratindex(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getselectionstartindex(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getselectionendindex(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getselectionlength(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getmaxtextlength(CEGUI::Combobox * cb);
+	int bmx_cegui_combobox_getitemcount(CEGUI::Combobox * cb);
+	BBObject * bmx_cegui_combobox_getselecteditem(CEGUI::Combobox * cb);
+	BBObject * bmx_cegui_combobox_getlistboxitemfromindex(CEGUI::Combobox * cb, int index);
+	int bmx_cegui_combobox_getitemindex(CEGUI::Combobox * cb, CEGUI::ListboxItem * item);
+	bool bmx_cegui_combobox_issortenabled(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_isitemselected(CEGUI::Combobox * cb, int index);
+	BBObject * bmx_cegui_combobox_finditemwithtext(CEGUI::Combobox * cb, const CEGUI::utf8 * text, CEGUI::ListboxItem * startItem);
+	bool bmx_cegui_combobox_islistboxiteminlist(CEGUI::Combobox * cb, CEGUI::ListboxItem * item);
+	bool bmx_cegui_combobox_isvertscrollbaralwaysshown(CEGUI::Combobox * cb);
+	bool bmx_cegui_combobox_ishorzscrollbaralwaysshown(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_showdroplist(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_hidedroplist(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_setsingleclickenabled(CEGUI::Combobox * cb, bool setting);
+	void bmx_cegui_combobox_setreadonly(CEGUI::Combobox * cb, bool setting);
+	void bmx_cegui_combobox_setvalidationstring(CEGUI::Combobox * cb, const CEGUI::utf8 * validationString);
+	void bmx_cegui_combobox_setcaratindex(CEGUI::Combobox * cb, int caratPos);
+	void bmx_cegui_combobox_setselection(CEGUI::Combobox * cb, int startPos, int endPos);
+	void bmx_cegui_combobox_setmaxtextlength(CEGUI::Combobox * cb, int maxLen);
+	void bmx_cegui_combobox_activateeditbox(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_resetlist(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_additem(CEGUI::Combobox * cb, CEGUI::ListboxItem * item);
+	void bmx_cegui_combobox_insertitem(CEGUI::Combobox * cb, CEGUI::ListboxItem * item, CEGUI::ListboxItem * position);
+	void bmx_cegui_combobox_removeitem(CEGUI::Combobox * cb, CEGUI::ListboxItem * item);
+	void bmx_cegui_combobox_clearallselections(CEGUI::Combobox * cb);
+	void bmx_cegui_combobox_setsortingenabled(CEGUI::Combobox * cb, bool setting);
+	void bmx_cegui_combobox_setshowvertscrollbar(CEGUI::Combobox * cb, bool setting);
+	void bmx_cegui_combobox_setshowhorzscrollbar(CEGUI::Combobox * cb, bool setting);
+	void bmx_cegui_combobox_setitemselectstate(CEGUI::Combobox * cb, CEGUI::ListboxItem * item, bool state);
+	void bmx_cegui_combobox_setitemselectstateindex(CEGUI::Combobox * cb, int itemIndex, bool state);
+	void bmx_cegui_combobox_handleupdatedlistitemdata(CEGUI::Combobox * cb);
 
 }
 

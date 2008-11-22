@@ -1371,145 +1371,348 @@ Type TCECombobox Extends TCEWindow
 	End Rem
 	Const EventListSelectionAccepted:String = "ListSelectionAccepted"
 	
+	Rem
+	bbdoc: Checks if the given position would hit this window.
+	End Rem
 	Method isHit:Int(x:Float, y:Float)
+		Return bmx_cegui_combobox_ishit(objectPtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: Returns the mode of operation for the combo box.
+	End Rem
 	Method getSingleClickEnabled:Int()
+		Return bmx_cegui_combobox_getsingleclickenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the drop down list is visible.
+	End Rem
 	Method isDropDownListVisible:Int()
+		Return bmx_cegui_combobox_isdropdownlistvisible(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the Editbox component widget for this Combobox.
+	End Rem
 	Method getEditbox:TCEEditbox()
+		Return TCEEditbox(bmx_cegui_combobox_geteditbox(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the PushButton component widget for this Combobox.
+	End Rem
 	Method getPushButton:TCEPushButton()
+		Return TCEPushButton(bmx_cegui_combobox_getpushbutton(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the ComboDropList component widget for this Combobox.
+	End Rem
 	Method getDropList:TCEComboDropList()
+		Return TCEComboDropList(bmx_cegui_combobox_getdroplist(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the Editbox has input focus.
+	End Rem
 	Method hasInputFocus:Int()
+		Return bmx_cegui_combobox_hasinputfocus(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the Editbox is read-only.
+	End Rem
 	Method isReadOnly:Int()
+		Return bmx_cegui_combobox_isreadonly(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns true if the Editbox text is valid given the currently set validation string.
+	about: It is possible to programmatically set 'invalid' text for the Editbox by calling setText. This has
+	certain implications since if invalid text is set, whatever the user types into the box will be rejected
+	when the input is validated.
+	<p>
+	Validation is performed by means of a regular expression. If the text matches the regex, the text is said
+	to have passed validation. If the text does not match with the regex then the text fails validation.
+	</p>
+	End Rem
 	Method isTextValid:Int()
+		Return bmx_cegui_combobox_istextvalid(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the currently set validation string
+	about: Validation is performed by means of a regular expression. If the text matches the regex, the text
+	is said to have passed validation. If the text does not match with the regex then the text fails validation.
+	End Rem
 	Method getValidationString:String()
+		Return bmx_cegui_combobox_getvalidationstring(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current position of the carat.
+	End Rem
 	Method getCaratIndex:Int()
+		Return bmx_cegui_combobox_getcaratindex(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current selection start point.
+	End Rem
 	Method getSelectionStartIndex:Int()
+		Return bmx_cegui_combobox_getselectionstartindex(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current selection end point.
+	End Rem
 	Method getSelectionEndIndex:Int()
+		Return bmx_cegui_combobox_getselectionendindex(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the length of the current selection (in code points / characters).
+	End Rem
 	Method getSelectionLength:Int()
+		Return bmx_cegui_combobox_getselectionlength(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the maximum text length set for this Editbox.
+	about: Depending on the validation string set, the actual length of text that can be entered may be less
+	than the value returned here (it will never be more).
+	End Rem
 	Method getMaxTextLength:Int()
+		Return bmx_cegui_combobox_getmaxtextlength(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns number of items attached to the list box.
+	End Rem
 	Method getItemCount:Int()
+		Return bmx_cegui_combobox_getitemcount(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the currently selected item.
+	End Rem
 	Method getSelectedItem:TCEListboxItem()
+		Return TCEListboxItem(bmx_cegui_combobox_getselecteditem(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the item at index position @index.
+	End Rem
 	Method getListboxItemFromIndex:TCEListboxItem(index:Int)
+		Return TCEListboxItem(bmx_cegui_combobox_getlistboxitemfromindex(objectPtr, index))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the index of ListboxItem @item.
+	End Rem
 	Method getItemIndex:Int(item:TCEListboxItem)
+		Return bmx_cegui_combobox_getitemindex(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether list sorting is enabled.
+	End Rem
 	Method isSortEnabled:Int()
+		Return bmx_cegui_combobox_issortenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the string at index position @index is selected.
+	End Rem
 	Method isItemSelected:Int(index:Int)
+		Return bmx_cegui_combobox_isitemselected(objectPtr, index)
 	End Method
 	 
+	Rem
+	bbdoc: Searches the list for an item with the specified text.
+	End Rem
 	Method findItemWithText:TCEListboxItem(text:String, startItem:TCEListboxItem)
+		Return TCEListboxItem(bmx_cegui_combobox_finditemwithtext(objectPtr, _convertMaxToUTF8(text), startItem.objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the specified ListboxItem is in the List.
+	End Rem
 	Method isListboxItemInList:Int(item:TCEListboxItem)
+		Return bmx_cegui_combobox_islistboxiteminlist(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the vertical scroll bar is always shown.
+	End Rem
 	Method isVertScrollbarAlwaysShown:Int()
+		Return bmx_cegui_combobox_isvertscrollbaralwaysshown(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the horizontal scroll bar is always shown.
+	End Rem
 	Method isHorzScrollbarAlwaysShown:Int()
+		Return bmx_cegui_combobox_ishorzscrollbaralwaysshown(objectPtr)
 	End Method
 	 
-	Method initialiseComponents()
-	End Method
-	 
+	Rem
+	bbdoc: Shows the drop-down list.
+	End Rem
 	Method showDropList()
+		bmx_cegui_combobox_showdroplist(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Hides the drop-down list.
+	End Rem
 	Method hideDropList()
+		bmx_cegui_combobox_hidedroplist(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the mode of operation for the combo box.
+	End Rem
 	Method setSingleClickEnabled(setting:Int)
+		bmx_cegui_combobox_setsingleclickenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Specifes whether the Editbox is read-only.
+	End Rem
 	Method setReadOnly(setting:Int)
+		bmx_cegui_combobox_setreadonly(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the text validation string.
+	about: Validation is performed by means of a regular expression. If the text matches the regex, the
+	text is said to have passed validation. If the text does not match with the regex then the text fails
+	validation.
+	End Rem
 	Method setValidationString(validationString:String)
+		bmx_cegui_combobox_setvalidationstring(objectPtr, _convertMaxToUTF8(validationString))
 	End Method
 	 
+	Rem
+	bbdoc: Sets the current position of the carat.
+	End Rem
 	Method setCaratIndex(caratPos:Int)
+		bmx_cegui_combobox_setcaratindex(objectPtr, caratPos)
 	End Method
 	 
+	Rem
+	bbdoc: Defines the current selection for the Editbox.
+	End Rem
 	Method setSelection(startPos:Int, endPos:Int)
+		bmx_cegui_combobox_setselection(objectPtr, startPos, endPos)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the maximum text length for this Editbox.
+	about: Depending on the validation string set, the actual length of text that can be entered may
+	be less than the value set here (it will never be more).
+	End Rem
 	Method setMaxTextLength(maxLen:Int)
+		bmx_cegui_combobox_setmaxtextlength(objectPtr, maxLen)
 	End Method
 	 
+	Rem
+	bbdoc: Activates the edit box component of the Combobox.
+	End Rem
 	Method activateEditbox()
+		bmx_cegui_combobox_activateeditbox(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Removes all items from the list.
+	about: Note that this will cause 'AutoDelete' items to be deleted.
+	End Rem
 	Method resetList()
+		bmx_cegui_combobox_resetlist(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Adds the given ListboxItem to the list.
+	End Rem
 	Method addItem(item:TCEListboxItem)
+		bmx_cegui_combobox_additem(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Inserts an item into the list box after a specified item already in the list.
+	about: Note that if the list is sorted, the item may not end up in the requested position.
+	End Rem
 	Method insertItem(item:TCEListboxItem, position:TCEListboxItem)
+		bmx_cegui_combobox_insertitem(objectPtr, item.objectPtr, position.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Removes the given item from the list box.
+	End Rem
 	Method removeItem(item:TCEListboxItem)
+		bmx_cegui_combobox_removeitem(objectPtr, item.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Clears the selected state for all items.
+	End Rem
 	Method clearAllSelections()
+		bmx_cegui_combobox_clearallselections(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the list should be sorted.
+	End Rem
 	Method setSortingEnabled(setting:Int)
+		bmx_cegui_combobox_setsortingenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the vertical scroll bar should always be shown.
+	End Rem
 	Method setShowVertScrollbar(setting:Int)
+		bmx_cegui_combobox_setshowvertscrollbar(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether the horizontal scroll bar should always be shown.
+	End Rem
 	Method setShowHorzScrollbar(setting:Int)
+		bmx_cegui_combobox_setshowhorzscrollbar(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the select state of an attached ListboxItem.
+	about: This is the recommended way of selecting and deselecting items attached to a list box as it
+	respects the multi-select mode setting. It is possible to modify the setting on ListboxItems directly,
+	but that approach does not respect the settings of the list box.
+	End Rem
 	Method setItemSelectState(item:TCEListboxItem, state:Int)
+		bmx_cegui_combobox_setitemselectstate(objectPtr, item.objectPtr, state)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the select state of an attached ListboxItem.
+	about: This is the recommended way of selecting and deselecting items attached to a list box as it respects
+	the multi-select mode setting. It is possible to modify the setting on ListboxItems directly, but that
+	approach does not respect the settings of the list box.
+	End Rem
 	Method setItemSelectStateIndex(itemIndex:Int, state:Int)
+		bmx_cegui_combobox_setitemselectstateindex(objectPtr, itemIndex, state)
 	End Method
 	 
+	Rem
+	bbdoc: Causes the list box to update it's internal state after changes have been made to one or more attached ListboxItem objects.
+	about: Client code must call this whenever it has made any changes to ListboxItem objects already attached
+	to the list box. If you are just adding items, or removed items to update them prior to re-adding them,
+	there is no need to call this method.
+	End Rem
 	Method handleUpdatedListItemData()
+		bmx_cegui_combobox_handleupdatedlistitemdata(objectPtr)
 	End Method
 	 
-
 End Type
 
 Rem

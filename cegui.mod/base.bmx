@@ -54,6 +54,7 @@ Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null)
 			End If
 			
 			TCEWindowManager.windowManagerPtr = bmx_cegui_windowmanager_getsingleton()
+			TCEMouseCursor.mouseCursorPtr = bmx_cegui_mousecursor_getsingleton()
 		End If
 
 		' TODO : there are probably better ways to do this
@@ -381,38 +382,65 @@ Type TCESystem Extends TCEEventSet
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method getDefaultFont:TCEFont()
 		Return TCEFont._create(bmx_cegui_system_getDefaultFont(cegui_systemPtr))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method signalRedraw()
 		bmx_cegui_system_signalredraw(cegui_systemPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method isRedrawRequested:Int()
 		Return bmx_cegui_system_isredrawrequested(cegui_systemPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getSingleClickTimeout:Double()
 		Return bmx_cegui_system_getsingleclicktimeout(cegui_systemPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getMultiClickTimeout:Double()
 		Return bmx_cegui_system_getmulticlicktimeout(cegui_systemPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getMultiClickToleranceAreaSize(width:Float Var, height:Float Var)
 		bmx_cegui_system_getmulticlicktoleranceareasize(cegui_systemPtr, Varptr width, Varptr height)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setSingleClickTimeout(timeout:Double)
 		bmx_cegui_system_setsingleclicktimeout(cegui_systemPtr, timeout)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setMultiClickTimeout(timeout:Double)
 		bmx_cegui_system_setmulticlicktimeout(cegui_systemPtr, timeout)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setMultiClickToleranceAreaSize(width:Float, height:Float)
 		bmx_cegui_system_setmulticlicktoleranceareasize(cegui_systemPtr, width, height)
 	End Method
@@ -467,6 +495,30 @@ Type TCESystem Extends TCEEventSet
 		Return bmx_cegui_system_injectchar(cegui_systemPtr, key)
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Function setDefaultTooltip(tooltip:Object)
+		If TCETooltip(tooltip) Then
+			bmx_cegui_system_setdefaulttooltip(cegui_systemPtr, TCETooltip(tooltip).objectPtr)
+		Else If String(tooltip) Then
+			bmx_cegui_system_setdefaulttooltiptext(cegui_systemPtr, _convertMaxToUTF8(String(tooltip)))
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function getDefaultTooltip:TCETooltip()
+		Return TCETooltip(bmx_cegui_system_getdefaulttooltip(cegui_systemPtr))
+	End Function
+	
+	Function getMouseMoveScaling:Float()
+	End Function
+	
+	Function setMouseMoveScaling(scaling:Float)
+	End Function
+	
 End Type
 
 Rem
@@ -3276,119 +3328,105 @@ about: The MouseCursor provides functionality to access the position and imagery
 End Rem
 Type TCEMouseCursor
 
-	Global globalcursor:TCEMouseCursor
-	
-	Field objectPtr:Byte Ptr
+	Global mouseCursorPtr:Byte Ptr
 
 	Rem
-	bbdoc: Returns the global MouseCursor object. 
+	bbdoc: Sets the current mouse cursor image. 
 	End Rem
-	Function getInstance:TCEMouseCursor()
-		If Not globalCursor Then
-			Local this:TCEMouseCursor = New TCEMouseCursor
-			this.objectPtr = bmx_cegui_mousecursor_getinstance()
-			globalCursor = this
-		End If
-		Return globalCursor
+	Function setImageWithName(imageset:String, imageName:String)
+		bmx_cegui_mousecursor_setimagewithname(mouseCursorPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(imageName))
 	End Function
-
-	Rem
-	bbdoc: Sets the current mouse cursor image. 
-	End Rem
-	Method setImageWithName(imageset:String, imageName:String)
-		bmx_cegui_mousecursor_setimagewithname(objectPtr, _convertMaxToUTF8(imageset), _convertMaxToUTF8(imageName))
-	End Method
 	
 	Rem
 	bbdoc: Sets the current mouse cursor image. 
 	End Rem
-	Method setImage(image:TCEImage)
-		bmx_cegui_mousecursor_setimage(objectPtr, image.objectPtr)
-	End Method
+	Function setImage(image:TCEImage)
+		bmx_cegui_mousecursor_setimage(mouseCursorPtr, image.objectPtr)
+	End Function
 	
 	Rem
 	bbdoc: Gets the current mouse cursor image. 
 	End Rem
-	Method getImage:TCEImage()
-		Return TCEImage(bmx_cegui_mousecursor_getimage(objectPtr))
-	End Method
+	Function getImage:TCEImage()
+		Return TCEImage(bmx_cegui_mousecursor_getimage(mouseCursorPtr))
+	End Function
 	
 	Rem
 	bbdoc: Makes the cursor draw itself. 
 	End Rem
-	Method draw()
-		bmx_cegui_mousecursor_draw(objectPtr)
-	End Method
+	Function draw()
+		bmx_cegui_mousecursor_draw(mouseCursorPtr)
+	End Function
 	
 	Rem
 	bbdoc: Sets the current mouse cursor position. 
 	End Rem
-	Method setPosition(x:Float, y:Float)
-		bmx_cegui_mousecursor_setposition(objectPtr, x, y)
-	End Method
+	Function setPosition(x:Float, y:Float)
+		bmx_cegui_mousecursor_setposition(mouseCursorPtr, x, y)
+	End Function
 	
 	Rem
 	bbdoc: Offsets the mouse cursor position by the deltas specified in offset. 
 	End Rem
-	Method offsetPosition(x:Float, y:Float)
-		bmx_cegui_mousecursor_offsetPosition(objectPtr, x, y)
-	End Method
+	Function offsetPosition(x:Float, y:Float)
+		bmx_cegui_mousecursor_offsetPosition(mouseCursorPtr, x, y)
+	End Function
 	
 	Rem
 	bbdoc: Sets the area that the mouse cursor is constrained to. 
 	End Rem
-	Method setConstraintArea(x:Float, y:Float, w:Float, h:Float)
-		bmx_cegui_mousecursor_setconstraintarea(objectPtr, x, y, w, h)
-	End Method
+	Function setConstraintArea(x:Float, y:Float, w:Float, h:Float)
+		bmx_cegui_mousecursor_setconstraintarea(mouseCursorPtr, x, y, w, h)
+	End Function
 	
 	Rem
 	bbdoc: Hides the mouse cursor. 
 	End Rem
-	Method hide()
-		bmx_cegui_mousecursor_hide(objectPtr)
-	End Method
+	Function hide()
+		bmx_cegui_mousecursor_hide(mouseCursorPtr)
+	End Function
 	
 	Rem
 	bbdoc: Shows the mouse cursor. 
 	End Rem
-	Method show()
-		bmx_cegui_mousecursor_show(objectPtr)
-	End Method
+	Function show()
+		bmx_cegui_mousecursor_show(mouseCursorPtr)
+	End Function
 	
 	Rem
 	bbdoc: Sets the visibility of the mouse cursor. 
 	End Rem
-	Method setVisible(visible:Int)
-		bmx_cegui_mousecursor_setvisible(objectPtr, visible)
-	End Method
+	Function setVisible(visible:Int)
+		bmx_cegui_mousecursor_setvisible(mouseCursorPtr, visible)
+	End Function
 	
 	Rem
 	bbdoc: Returns whether the mouse cursor is visible. 
 	End Rem
-	Method isVisible:Int()
-		Return bmx_cegui_mousecursor_isvisible(objectPtr)
-	End Method
+	Function isVisible:Int()
+		Return bmx_cegui_mousecursor_isvisible(mouseCursorPtr)
+	End Function
 	
 	Rem
 	bbdoc: Returns the current mouse cursor position as a pixel offset from the top-left corner of the display. 
 	End Rem
-	Method getPosition(x:Float Var, y:Float Var)
-		bmx_cegui_mousecursor_getposition(objectPtr, Varptr x, Varptr y)
-	End Method
+	Function getPosition(x:Float Var, y:Float Var)
+		bmx_cegui_mousecursor_getposition(mouseCursorPtr, Varptr x, Varptr y)
+	End Function
 	
 	Rem
 	bbdoc: Returns the current constraint area of the mouse cursor. 
 	End Rem
-	Method getConstraintArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
-		bmx_cegui_mousecursor_getconstraintarea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
-	End Method
+	Function getConstraintArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_mousecursor_getconstraintarea(mouseCursorPtr, Varptr x, Varptr y, Varptr w, Varptr h)
+	End Function
 	
 	Rem
 	bbdoc: Returns the current mouse cursor position as display resolution independant values. 
 	End Rem
-	Method getDisplayIndependentPosition(x:Float Var, y:Float Var)
-		bmx_cegui_mousecursor_getdisplayindependentposition(objectPtr, Varptr x, Varptr y)
-	End Method
+	Function getDisplayIndependentPosition(x:Float Var, y:Float Var)
+		bmx_cegui_mousecursor_getdisplayindependentposition(mouseCursorPtr, Varptr x, Varptr y)
+	End Function
 
 End Type
 
