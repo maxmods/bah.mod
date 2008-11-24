@@ -906,6 +906,22 @@ Extern
 	Function bmx_cegui_udim_create:Byte Ptr(scale:Float, offset:Float)
 	Function bmx_cegui_udim_delete(handle:Byte Ptr)
 
+	Function bmx_cegui_image_getsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_image_getwidth:Float(handle:Byte Ptr)
+	Function bmx_cegui_image_getheight:Float(handle:Byte Ptr)
+	Function bmx_cegui_image_getoffsets(handle:Byte Ptr, x:Float Ptr, y:Float Ptr)
+	Function bmx_cegui_image_getoffsetx:Float(handle:Byte Ptr)
+	Function bmx_cegui_image_getoffsety:Float(handle:Byte Ptr)
+	Function bmx_cegui_image_getname:String(handle:Byte Ptr)
+	Function bmx_cegui_image_getimagesetname:String(handle:Byte Ptr)
+	Function bmx_cegui_image_getimageset:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_image_getsourcetexturearea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
+
+	Function bmx_cegui_font_iscodepointavailable:Int(handle:Byte Ptr, cp:Int)
+	Function bmx_cegui_font_getlinespacing:Float(handle:Byte Ptr, yScale:Float)
+	Function bmx_cegui_font_getfontheight:Float(handle:Byte Ptr, yScale:Float)
+	Function bmx_cegui_font_getbaseline:Float(handle:Byte Ptr, yScale:Float)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

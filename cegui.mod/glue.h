@@ -993,6 +993,22 @@ extern "C" {
 	CEGUI::UDim * bmx_cegui_udim_create(float scale, float offset);
 	void bmx_cegui_udim_delete(CEGUI::UDim * udim);
 
+	void bmx_cegui_image_getsize(CEGUI::Image * image, float * width, float * height);
+	float bmx_cegui_image_getwidth(CEGUI::Image * image);
+	float bmx_cegui_image_getheight(CEGUI::Image * image);
+	void bmx_cegui_image_getoffsets(CEGUI::Image * image, float * x, float * y);
+	float bmx_cegui_image_getoffsetx(CEGUI::Image * image);
+	float bmx_cegui_image_getoffsety(CEGUI::Image * image);
+	BBString * bmx_cegui_image_getname(CEGUI::Image * image);
+	BBString * bmx_cegui_image_getimagesetname(CEGUI::Image * image);
+	const CEGUI::Imageset * bmx_cegui_image_getimageset(CEGUI::Image * image);
+	void bmx_cegui_image_getsourcetexturearea(CEGUI::Image * image, float * x, float * y, float * w, float * h);
+
+	bool bmx_cegui_font_iscodepointavailable(CEGUI::Font * font, CEGUI::utf32 cp);
+	float bmx_cegui_font_getlinespacing(CEGUI::Font * font, float yScale);
+	float bmx_cegui_font_getfontheight(CEGUI::Font * font, float yScale);
+	float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale);
+
 }
 
 class MaxConnection

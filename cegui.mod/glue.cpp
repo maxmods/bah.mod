@@ -4009,4 +4009,73 @@ void bmx_cegui_udim_delete(CEGUI::UDim * udim) {
 	delete udim;
 }
 
+// *************************************************
+
+
+void bmx_cegui_image_getsize(CEGUI::Image * image, float * width, float * height) {
+	CEGUI::Size s(image->getSize());
+	*width = s.d_width;
+	*height = s.d_height;
+}
+
+float bmx_cegui_image_getwidth(CEGUI::Image * image) {
+	return image->getWidth();
+}
+
+float bmx_cegui_image_getheight(CEGUI::Image * image) {
+	return image->getHeight();
+}
+
+void bmx_cegui_image_getoffsets(CEGUI::Image * image, float * x, float * y) {
+	CEGUI::Point p(image->getOffsets());
+	*x = p.d_x;
+	*y = p.d_y;
+}
+
+float bmx_cegui_image_getoffsetx(CEGUI::Image * image) {
+	return image->getOffsetX();
+}
+
+float bmx_cegui_image_getoffsety(CEGUI::Image * image) {
+	return image->getOffsetY();
+}
+
+BBString * bmx_cegui_image_getname(CEGUI::Image * image) {
+	return bah_cegui__convertUTF8ToMax(image->getName().data());
+}
+
+BBString * bmx_cegui_image_getimagesetname(CEGUI::Image * image) {
+	return bah_cegui__convertUTF8ToMax(image->getImagesetName().data());
+}
+
+const CEGUI::Imageset * bmx_cegui_image_getimageset(CEGUI::Image * image) {
+	return image->getImageset();
+}
+
+void bmx_cegui_image_getsourcetexturearea(CEGUI::Image * image, float * x, float * y, float * w, float * h) {
+	CEGUI::Rect r(image->getSourceTextureArea());
+	*x = r.d_left;
+	*y = r.d_top;
+	*w = r.getWidth();
+	*h = r.getHeight();
+}
+
+// *************************************************
+
+
+bool bmx_cegui_font_iscodepointavailable(CEGUI::Font * font, CEGUI::utf32 cp) {
+	return font->isCodepointAvailable(cp);
+}
+
+float bmx_cegui_font_getlinespacing(CEGUI::Font * font, float yScale) {
+	return font->getLineSpacing(yScale);
+}
+
+float bmx_cegui_font_getfontheight(CEGUI::Font * font, float yScale) {
+	return font->getFontHeight(yScale);
+}
+
+float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale) {
+	return font->getBaseline(yScale);
+}
 

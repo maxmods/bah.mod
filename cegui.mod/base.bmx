@@ -2634,22 +2634,38 @@ Type TCEFont
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns whether this Font can draw the specified code-point. 
+	End Rem
 	Method isCodepointAvailable:Int(cp:Int)
+		Return bmx_cegui_font_iscodepointavailable(objectPtr, cp)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel line spacing value for. 
+	End Rem
 	Method getLineSpacing:Float(yScale:Float = 1.0)
+		Return bmx_cegui_font_getlinespacing(objectPtr, yScale)
 	End Method
 
+	Rem
+	bbdoc: Returns the exact pixel height of the font. 
+	End Rem
 	Method getFontHeight:Float(yScale:Float = 1.0)
+		Return bmx_cegui_font_getfontheight(objectPtr, yScale)
 	End Method
 
+	Rem
+	bbdoc: Returns the number of pixels from the top of the highest glyph to the baseline. 
+	End Rem
 	Method getBaseline:Float(yScale:Float = 1.0)
+		Return bmx_cegui_font_getbaseline(objectPtr, yScale)
 	End Method
 	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Represents a single Image of an Imageset. 
 End Rem
 Type TCEImage
 
@@ -2663,31 +2679,74 @@ Type TCEImage
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the dimensions of the Image. 
+	End Rem
 	Method getSize(width:Float Var, height:Float Var)
+		bmx_cegui_image_getsize(objectPtr, Varptr width, Varptr height)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel width of the image. 
+	End Rem
 	Method getWidth:Float()
+		Return bmx_cegui_image_getwidth(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel height of the image. 
+	End Rem
 	Method getHeight:Float()
+		Return bmx_cegui_image_getheight(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the offset applied when rendering this Image. 
+	End Rem
 	Method getOffsets(x:Float Var, y:Float Var)
+		bmx_cegui_image_getoffsets(objectPtr, Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: Returns the X rendering offset. 
+	End Rem
 	Method getOffsetX:Float()
+		Return bmx_cegui_image_getoffsetx(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the Y rendering offset. 
+	End Rem
 	Method getOffsetY:Float()
+		Return bmx_cegui_image_getoffsety(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the name of this Image object. 
+	End Rem
 	Method getName:String()
+		Return bmx_cegui_image_getname(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the name of the Imageset that contains this Image. 
+	End Rem
 	Method getImagesetName:String()
+		Return bmx_cegui_image_getimagesetname(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the parent Imageset object that contains this Image. 
+	End Rem
 	Method getImageset:TCEImageset()
+		Return TCEImageset._create(bmx_cegui_image_getimageset(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns Rect describing the source texture area used by this Image. 
+	End Rem
+	Method getSourceTextureArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		bmx_cegui_image_getsourcetexturearea(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
 	End Method
 	
 End Type
