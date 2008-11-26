@@ -23,6 +23,7 @@ extern "C" {
 	BBObject * _bah_flickcurl_TFCPhotoField__create(BBString * svalue, flickcurl_photo_field_type value, flickcurl_field_value_type type);
 	BBObject * _bah_flickcurl_TFCLocation__create(double latitude, double longitude, int accuracy);
 	BBObject * _bah_flickcurl_TFCComment__create(BBString * id, BBString * author, BBString * authorname, int datecreate, BBString * permalink, BBString * text, flickcurl * fc);
+	BBObject * _bah_flickcurl_TFCPersonField__create(BBString * svalue, flickcurl_person_field_type value, flickcurl_field_value_type type);
 
 	flickcurl * bmx_flickcurl_new();
 	void bmx_flickcurl_free(flickcurl * fc);
@@ -33,6 +34,7 @@ extern "C" {
 
 	BBString * bmx_flickcurl_getfrob(flickcurl * fc);
 	BBString * bmx_flickcurl_getfulltoken(flickcurl * fc, BBString * frob);
+	BBString * bmx_flickcurl_getToken(flickcurl * fc, BBString * frob);
 
 	flickcurl_photo * bmx_flickcurl_photosgetinfo(flickcurl * fc, BBString * photoID);
 
@@ -131,8 +133,8 @@ extern "C" {
 	int bmx_flickcurl_listofphotos_getphotocount(flickcurl_photo** list);
 	flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, int index);
 
-	flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page);
-	flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page);
+	flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, flickcurl_person * person, BBString * extras, int perPage, int page);
+	flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, flickcurl_person * person, BBString * extras, int perPage, int page);
 
 	BBString * bmx_flickcurl_size_getlabel(flickcurl_size * size);
 	int bmx_flickcurl_size_getwidth(flickcurl_size * size);
@@ -145,6 +147,11 @@ extern "C" {
 	flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int index);
 
 	flickcurl_photo** bmx_flickcurl_getinterestingnesslist(flickcurl * fc, BBString * date, BBString * extras, int perPage, int page);
+
+	BBString * bmx_flickcurl_personfield_getlabel(flickcurl_person_field_type fieldType);
+
+	BBString * bmx_flickcurl_person_getuserid(flickcurl_person * person);
+	BBObject * bmx_flickcurl_person_getfield(flickcurl_person * person, int index);
 
 }
 
@@ -182,6 +189,13 @@ BBString * bmx_flickcurl_getfrob(flickcurl * fc) {
 BBString * bmx_flickcurl_getfulltoken(flickcurl * fc, BBString * frob) {
 	char *p=bbStringToCString( frob );
 	BBString * tok = bbStringFromCString(flickcurl_auth_getFullToken(fc, p));
+	bbMemFree( p );
+	return tok;
+}
+
+BBString * bmx_flickcurl_getToken(flickcurl * fc, BBString * frob) {
+	char *p=bbStringToCString( frob );
+	BBString * tok = bbStringFromCString(flickcurl_auth_getToken(fc, p));
 	bbMemFree( p );
 	return tok;
 }
@@ -772,20 +786,16 @@ flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, in
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page) {
-	char *u=bbStringToCString( userId );
+flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, flickcurl_person * person, BBString * extras, int perPage, int page) {
 	char *e=bbStringToCString( extras );
-	flickcurl_photo** list = flickcurl_favorites_getList(fc, u, e, perPage, page);
-	bbMemFree(u);
+	flickcurl_photo** list = flickcurl_favorites_getList(fc, person->nsid, e, perPage, page);
 	bbMemFree(e);
 	return list;
 }
 
-flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page) {
-	char *u=bbStringToCString( userId );
+flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, flickcurl_person * person, BBString * extras, int perPage, int page) {
 	char *e=bbStringToCString( extras );
-	flickcurl_photo** list = flickcurl_favorites_getPublicList(fc, u, e, perPage, page);
-	bbMemFree(u);
+	flickcurl_photo** list = flickcurl_favorites_getPublicList(fc, person->nsid, e, perPage, page);
 	bbMemFree(e);
 	return list;
 }
@@ -843,4 +853,20 @@ flickcurl_photo** bmx_flickcurl_getinterestingnesslist(flickcurl * fc, BBString 
 	return list;
 }
 
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_personfield_getlabel(flickcurl_person_field_type fieldType) {
+	return bbStringFromCString(flickcurl_get_person_field_label(fieldType));
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_person_getuserid(flickcurl_person * person) {
+	return bbStringFromCString(person->nsid);
+}
+
+BBObject * bmx_flickcurl_person_getfield(flickcurl_person * person, int index) {
+	flickcurl_person_field field = person->fields[index];
+	return _bah_flickcurl_TFCPersonField__create(bbStringFromCString(field.string), field.integer, field.type);
+}
 

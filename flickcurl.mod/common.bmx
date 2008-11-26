@@ -50,6 +50,7 @@ Extern
 
 	Function bmx_flickcurl_getfrob:String(handle:Byte Ptr)
 	Function bmx_flickcurl_getfulltoken:String(handle:Byte Ptr, frob:String)
+	Function bmx_flickcurl_getToken:String(handle:Byte Ptr, frob:String)
 
 	Function bmx_flickcurl_resolveplaceid:Byte Ptr(handle:Byte Ptr, placeID:String)
 	Function bmx_flickcurl_resolveplaceurl:Byte Ptr(handle:Byte Ptr, url:String)
@@ -126,8 +127,8 @@ Extern
 	Function bmx_flickcurl_listofphotos_getphotocount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_listofphotos_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
 
-	Function bmx_flickcurl_getfavoriteslist:Byte Ptr(handle:Byte Ptr, userId:String, extras:String, perPage:Int, page:Int)
-	Function bmx_flickcurl_getpublicfavoriteslist:Byte Ptr(handle:Byte Ptr, userId:String, extras:String, perPage:Int, page:Int)
+	Function bmx_flickcurl_getfavoriteslist:Byte Ptr(handle:Byte Ptr, person:Byte Ptr, extras:String, perPage:Int, page:Int)
+	Function bmx_flickcurl_getpublicfavoriteslist:Byte Ptr(handle:Byte Ptr, person:Byte Ptr, extras:String, perPage:Int, page:Int)
 
 	Function bmx_flickcurl_size_getlabel:String(handle:Byte Ptr)
 	Function bmx_flickcurl_size_getwidth:Int(handle:Byte Ptr)
@@ -141,6 +142,9 @@ Extern
 
 	Function bmx_flickcurl_getinterestingnesslist:Byte Ptr(handle:Byte Ptr, date:String, extras:String, perPage:Int, page:Int)
 
+	Function bmx_flickcurl_personfield_getlabel:String(fieldType:Int)
+	Function bmx_flickcurl_person_getuserid:String(handle:Byte Ptr)
+	Function bmx_flickcurl_person_getfield:Object(handle:Byte Ptr, index:Int)
 
 
 	' API direct functions
@@ -243,4 +247,25 @@ Const FLICKCURL_PLACE_COUNTY:Int = 3
 Const FLICKCURL_PLACE_REGION:Int = 4
 Const FLICKCURL_PLACE_COUNTRY:Int = 5
 Const FLICKCURL_PLACE_LAST:Int = FLICKCURL_PLACE_COUNTRY
+
+Const PERSON_FIELD_none:Int = 0
+Const PERSON_FIELD_isadmin:Int = 1
+Const PERSON_FIELD_ispro:Int = 2
+Const PERSON_FIELD_iconserver:Int = 3
+Const PERSON_FIELD_iconfarm:Int = 4
+Const PERSON_FIELD_username:Int = 5
+Const PERSON_FIELD_realname:Int = 6
+Const PERSON_FIELD_mbox_sha1sum:Int = 7
+Const PERSON_FIELD_location:Int = 8
+Const PERSON_FIELD_photosurl:Int = 9
+Const PERSON_FIELD_profileurl:Int = 10
+Const PERSON_FIELD_mobileurl:Int = 11
+Const PERSON_FIELD_photos_firstdate:Int = 12
+Const PERSON_FIELD_photos_firstdatetaken:Int = 13
+Const PERSON_FIELD_photos_count:Int = 14
+Const PERSON_FIELD_photos_views:Int = 15
+Const PERSON_FIELD_favedate:Int = 16
+Const PERSON_FIELD_FIRST:Int = PERSON_FIELD_isadmin
+Const PERSON_FIELD_LAST:Int = PERSON_FIELD_favedate
+
 

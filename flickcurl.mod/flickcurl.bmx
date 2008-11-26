@@ -96,13 +96,25 @@ Type TFlickcurl
 		Return TFCPhoto._create(bmx_flickcurl_photosgetinfo(fcPtr, photoID), fcPtr)
 	End Method
 	
-	
+	Rem
+	bbdoc: Get a frob to be used during authentication.
+	End Rem
 	Method GetFrob:String()
 		Return bmx_flickcurl_getfrob(fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: Turn a frob into an authToken.
+	End Rem
 	Method GetFullToken:String(frob:String)
 		Return bmx_flickcurl_getfulltoken(fcPtr, frob)
+	End Method
+
+	Rem
+	bbdoc: Get the auth token for the given frob, if one has been attached.
+	End Rem	
+	Method GetToken:String(frob:String)
+		Return bmx_flickcurl_gettoken(fcPtr, frob)
 	End Method
 	
 	Rem
@@ -173,34 +185,19 @@ Type TFlickcurl
 	Method SearchPhotos:TFCPhotoList(params:TFCSearchParams)
 		Return TFCListOfPhotos._create(bmx_flickcurl_searchphotos(fcPtr, params.paramsPtr), fcPtr)
 	End Method
-	
-	Rem
-	bbdoc: Returns a list of the user's favorite photos. 
-	End Rem
-	Method GetFavoritesList:TFCPhotoList(userId:String, extras:String, perPage:Int, page:Int)
-		Return TFCListOfPhotos._create(bmx_flickcurl_getfavoriteslist(fcPtr, userId, extras, perPage, page), fcPtr)
-	End Method
-	
-'	Method GetFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
-'	End Method
 
-	Rem
-	bbdoc: Returns a list of favorite public photos for the given user. 
-	End Rem
-	Method GetPublicFavoritesList:TFCPhotoList(userId:String, extras:String, perPage:Int, page:Int)
-		Return TFCListOfPhotos._create(bmx_flickcurl_getpublicfavoriteslist(fcPtr, userId, extras, perPage, page), fcPtr)
-	End Method
-	
-'	Method GetPublicFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
-'	End Method
-	
 	Rem
 	bbdoc: Returns the list of interesting photos for the most recent day or a user-specified date.
 	End Rem
 	Method GetInterestingnessList:TFCPhotoList(date:String, extras:String, perPage:Int, page:Int)
 		Return TFCListOfPhotos._create(bmx_flickcurl_getinterestingnesslist(fcPtr, date, extras, perPage, page), fcPtr)
 	End Method
+		
+	Method FindPeopleByEmail:TFCPerson(email:String)
+	End Method
 	
+	Method FindPeopleByUsername:TFCPerson(username:String)
+	End Method
 	
 	Method Delete()
 		Free()
@@ -439,7 +436,67 @@ Type TFCPhoto
 	
 	Rem
 	bbdoc: Returns the field at @index.
-	about: Valid @index in range 0 - PHOTO_FIELD_LAST
+	about: Valid @index. One of :
+<table>
+<tr><th>Constant</th><th>Description</th></tr>
+<tr><td>PHOTO_FIELD_none</td><td> internal</td></tr>
+<tr><td>PHOTO_FIELD_dateuploaded</td><td> date uploaded</td></tr>
+<tr><td>PHOTO_FIELD_farm</td><td> farm number</td></tr>
+<tr><td>PHOTO_FIELD_isfavorite</td><td> is favorite boolean</td></tr>
+<tr><td>PHOTO_FIELD_license</td><td> license</td></tr>
+<tr><td>PHOTO_FIELD_originalformat</td><td> original format</td></tr>
+<tr><td>PHOTO_FIELD_rotation</td><td> rotation</td></tr>
+<tr><td>PHOTO_FIELD_server</td><td> server</td></tr>
+<tr><td>PHOTO_FIELD_dates_lastupdate</td><td> last update date</td></tr>
+<tr><td>PHOTO_FIELD_dates_posted</td><td> posted date</td></tr>
+<tr><td>PHOTO_FIELD_dates_taken</td><td> taken date</td></tr>
+<tr><td>PHOTO_FIELD_dates_takengranularity</td><td> taken granularity</td></tr>
+<tr><td>PHOTO_FIELD_description</td><td> description</td></tr>
+<tr><td>PHOTO_FIELD_editability_canaddmeta</td><td> can add metadata boolean</td></tr>
+<tr><td>PHOTO_FIELD_editability_cancomment</td><td> can comment boolean</td></tr>
+<tr><td>PHOTO_FIELD_geoperms_iscontact</td><td> geo perms are for contacts</td></tr>
+<tr><td>PHOTO_FIELD_geoperms_isfamily</td><td> geo perms are for family</td></tr>
+<tr><td>PHOTO_FIELD_geoperms_isfriend</td><td> geo perms are for frind</td></tr>
+<tr><td>PHOTO_FIELD_geoperms_ispublic</td><td> geo perms are for public</td></tr>
+<tr><td>PHOTO_FIELD_location_accuracy</td><td> location accuracy</td></tr>
+<tr><td>PHOTO_FIELD_location_latitude</td><td> location latitude</td></tr>
+<tr><td>PHOTO_FIELD_location_longitude</td><td> location longitude</td></tr>
+<tr><td>PHOTO_FIELD_owner_location</td><td> owner location</td></tr>
+<tr><td>PHOTO_FIELD_owner_nsid</td><td> owner NSID</td></tr>
+<tr><td>PHOTO_FIELD_owner_realname</td><td> owner real name</td></tr>
+<tr><td>PHOTO_FIELD_owner_username</td><td> owner user name</td></tr>
+<tr><td>PHOTO_FIELD_title</td><td> title</td></tr>
+<tr><td>PHOTO_FIELD_visibility_isfamily</td><td> visibility is for family</td></tr>
+<tr><td>PHOTO_FIELD_visibility_isfriend</td><td> visibility is for friend</td></tr>
+<tr><td>PHOTO_FIELD_visibility_ispublic</td><td> visibility is for public</td></tr>
+<tr><td>PHOTO_FIELD_secret</td><td> photo secret</td></tr>
+<tr><td>PHOTO_FIELD_originalsecret</td><td> photo original secret</td></tr>
+<tr><td>PHOTO_FIELD_location_neighbourhood</td><td> location neighbourhood</td></tr>
+<tr><td>PHOTO_FIELD_location_neighborhood</td><td> deprecated</td></tr>
+<tr><td>PHOTO_FIELD_location_locality</td><td> location locality</td></tr>
+<tr><td>PHOTO_FIELD_location_county</td><td> location county</td></tr>
+<tr><td>PHOTO_FIELD_location_region</td><td> location region</td></tr>
+<tr><td>PHOTO_FIELD_location_country</td><td> location country</td></tr>
+<tr><td>PHOTO_FIELD_location_placeid</td><td> location place ID</td></tr>
+<tr><td>PHOTO_FIELD_neighbourhood_placeid</td><td> neighborhood place ID</td></tr>
+<tr><td>PHOTO_FIELD_neighborhood_placeid</td><td> dprecated</td></tr>
+<tr><td>PHOTO_FIELD_locality_placeid</td><td> locality place ID</td></tr>
+<tr><td>PHOTO_FIELD_county_placeid</td><td> county place ID</td></tr>
+<tr><td>PHOTO_FIELD_region_placeid</td><td> region place ID</td></tr>
+<tr><td>PHOTO_FIELD_country_placeid</td><td> country place ID</td></tr>
+<tr><td>PHOTO_FIELD_location_woeid</td><td> location WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_neighbourhood_woeid</td><td> neighborhood WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_neighborhood_woeid</td><td> deprecated</td></tr>
+<tr><td>PHOTO_FIELD_locality_woeid</td><td> locality WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_county_woeid</td><td> county WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_region_woeid</td><td> region WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_country_woeid</td><td> country WOE ID</td></tr>
+<tr><td>PHOTO_FIELD_usage_candownload</td><td> can download</td></tr>
+<tr><td>PHOTO_FIELD_usage_canblog</td><td> can blog</td></tr>
+<tr><td>PHOTO_FIELD_usage_canprint</td><td> can print</td></tr>
+<tr><td>PHOTO_FIELD_FIRST</td><td> internal offset to first in enum list</td></tr>
+<tr><td>PHOTO_FIELD_LAST</td><td> internal offset to last in enum list</td></tr>
+</table>
 	End Rem
 	Method GetField:TFCPhotoField(index:Int)
 		Return TFCPhotoField(bmx_flickcurl_photo_getfield(photoPtr, index))
@@ -774,7 +831,34 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TFCPhotoField
+Type TFCField
+
+	Rem
+	bbdoc: 
+	End Rem
+	Field svalue:String
+	Rem
+	bbdoc: 
+	End Rem
+	Field ivalue:Int
+	Rem
+	bbdoc: 
+	End Rem
+	Field valueType:Int
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function GetValueTypeLabel:String(valueType:Int)
+		Return bmx_flickcurl_photofield_getvaluetypelabel(valueType)
+	End Function
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TFCPhotoField Extends TFCField
 
 	Function _create:TFCPhotoField(svalue:String, ivalue:Int, valueType:Int)
 		Local this:TFCPhotoField = New TFCPhotoField
@@ -784,19 +868,10 @@ Type TFCPhotoField
 		Return this
 	End Function
 
-	Field svalue:String
-	Field ivalue:Int
-	Field valueType:Int
-	
 	Function GetLabel:String(fieldType:Int)
 		Return bmx_flickcurl_photofield_getlabel(fieldType)
 	End Function
-	
-	Function GetValueTypeLabel:String(valueType:Int)
-		Return bmx_flickcurl_photofield_getvaluetypelabel(valueType)
-	End Function
-	
-	
+
 End Type
 
 Rem
@@ -1319,6 +1394,73 @@ Type TFCPerson
 
 	Field personPtr:Byte Ptr
 	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCPerson(personPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If personPtr Then
+			Local this:TFCPerson = New TFCPerson
+			this.personPtr = personPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: The person's userID.
+	End Rem
+	Method GetUserID:String()
+		Return bmx_flickcurl_person_getuserid(personPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the field at @index.
+	about: Valid @index. One of :
+<table>
+<tr><th>Constant</th><th>Description</th></tr>
+<tr><td>PERSON_FIELD_none</td><td> internal</td></tr>
+<tr><td>PERSON_FIELD_isadmin</td><td> is admin field boolean</td></tr>
+<tr><td>PERSON_FIELD_ispro</td><td>  is pro field boolean</td></tr>
+<tr><td>PERSON_FIELD_iconserver</td><td> icon server integer</td></tr>
+<tr><td>PERSON_FIELD_iconfarm</td><td> icon farm integer</td></tr>
+<tr><td>PERSON_FIELD_username</td><td> username</td></tr>
+<tr><td>PERSON_FIELD_realname</td><td> real name</td></tr>
+<tr><td>PERSON_FIELD_mbox_sha1sum</td><td> Email SHA1 sum</td></tr>
+<tr><td>PERSON_FIELD_location</td><td> location</td></tr>
+<tr><td>PERSON_FIELD_photosurl</td><td> photos URL</td></tr>
+<tr><td>PERSON_FIELD_profileurl</td><td> profile URL</td></tr>
+<tr><td>PERSON_FIELD_mobileurl</td><td> mobile URL</td></tr>
+<tr><td>PERSON_FIELD_photos_firstdate</td><td> photos first date</td></tr>
+<tr><td>PERSON_FIELD_photos_firstdatetaken</td><td> photos first date taken</td></tr>
+<tr><td>PERSON_FIELD_photos_count</td><td> photos count</td></tr>
+<tr><td>PERSON_FIELD_photos_views</td><td> photos views</td></tr>
+<tr><td>PERSON_FIELD_favedate</td><td> favorite date</td></tr>
+<tr><td>PERSON_FIELD_FIRST</td><td> internal offset to first field</td></tr>
+<tr><td>PERSON_FIELD_LAST</td><td> internal offset to last field</td></tr>
+</table>	End Rem
+	Method GetField:TFCPersonField(index:Int)
+		Return TFCPersonField(bmx_flickcurl_person_getfield(personPtr, index))
+	End Method
+
+
+	Rem
+	bbdoc: Returns a list of the user's favorite photos. 
+	End Rem
+	Method GetFavoritesList:TFCPhotoList(extras:String, perPage:Int, page:Int)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getfavoriteslist(fcPtr, personPtr, extras, perPage, page), fcPtr)
+	End Method
+	
+'	Method GetFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
+'	End Method
+
+	Rem
+	bbdoc: Returns a list of favorite public photos for the given user. 
+	End Rem
+	Method GetPublicFavoritesList:TFCPhotoList(extras:String, perPage:Int, page:Int)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getpublicfavoriteslist(fcPtr, personPtr, extras, perPage, page), fcPtr)
+	End Method
+	
+'	Method GetPublicFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
+'	End Method
 	
 
 End Type
@@ -1326,11 +1468,22 @@ End Type
 Rem
 bbdoc: Person details.
 End Rem
-Type TFCPersonField
+Type TFCPersonField Extends TFCField
 
-	Field pfPtr:Byte Ptr
-	
-	
+	Function _create:TFCPersonField(svalue:String, ivalue:Int, valueType:Int)
+		Local this:TFCPersonField = New TFCPersonField
+		this.svalue = svalue
+		this.ivalue = ivalue
+		this.valueType = valueType
+		Return this
+	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
+	Function GetLabel:String(fieldType:Int)
+		Return bmx_flickcurl_personfield_getlabel(fieldType)
+	End Function
+	
 End Type
 
