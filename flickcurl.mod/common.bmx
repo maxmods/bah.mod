@@ -139,6 +139,8 @@ Extern
 	Function bmx_flickcurl_listofsizes_getsizecount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_listofsizes_getsize:Byte Ptr(handle:Byte Ptr, index:Int)
 
+	Function bmx_flickcurl_getinterestingnesslist:Byte Ptr(handle:Byte Ptr, date:String, extras:String, perPage:Int, page:Int)
+
 
 
 	' API direct functions

@@ -68,21 +68,21 @@ Type TFlickcurl
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets application API Key for flickcurl requests.
 	End Rem
 	Method SetAPIKey(apiKey:String)
 		bmx_flickcurl_setapikey(fcPtr, apiKey)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets Auth Token for flickcurl requests.
 	End Rem
 	Method SetAuthToken(authToken:String)
 		bmx_flickcurl_setauthtoken(fcPtr, authToken)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets Shared Secret for flickcurl requests.
 	End Rem
 	Method SetSharedSecret(sharedSecret:String)
 		bmx_flickcurl_setsharedsecret(fcPtr, sharedSecret)
@@ -193,6 +193,13 @@ Type TFlickcurl
 	
 '	Method GetPublicFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
 '	End Method
+	
+	Rem
+	bbdoc: Returns the list of interesting photos for the most recent day or a user-specified date.
+	End Rem
+	Method GetInterestingnessList:TFCPhotoList(date:String, extras:String, perPage:Int, page:Int)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getinterestingnesslist(fcPtr, date, extras, perPage, page), fcPtr)
+	End Method
 	
 	
 	Method Delete()

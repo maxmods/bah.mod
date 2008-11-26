@@ -144,6 +144,8 @@ extern "C" {
 	int bmx_flickcurl_listofsizes_getsizecount(flickcurl_size ** list);
 	flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int index);
 
+	flickcurl_photo** bmx_flickcurl_getinterestingnesslist(flickcurl * fc, BBString * date, BBString * extras, int perPage, int page);
+
 }
 
 
@@ -829,4 +831,16 @@ int bmx_flickcurl_listofsizes_getsizecount(flickcurl_size ** list) {
 flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int index) {
 	return list[index];
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_photo** bmx_flickcurl_getinterestingnesslist(flickcurl * fc, BBString * date, BBString * extras, int perPage, int page) {
+	char *d=bbStringToCString( date );
+	char *e=bbStringToCString( extras );
+	flickcurl_photo** list = flickcurl_interestingness_getList(fc, d, e, perPage, page);
+	bbMemFree(d);
+	bbMemFree(e);
+	return list;
+}
+
 
