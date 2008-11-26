@@ -42,6 +42,8 @@ Extern
 	Function bmx_flickcurl_photo_setsafetylevel:Int(handle:Byte Ptr, photo:Byte Ptr, safetyLevel:Int, hidden:Int)
 	Function bmx_flickcurl_photo_settags:Int(handle:Byte Ptr, photo:Byte Ptr, tags:String)
 	Function bmx_flickcurl_photo_transformrotate:Int(handle:Byte Ptr, photo:Byte Ptr, degrees:Int)
+	Function bmx_flickcurl_photo_removefavorite:Int(handle:Byte Ptr, photo:Byte Ptr)
+	Function bmx_flickcurl_photo_addfavorite:Int(handle:Byte Ptr, photo:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -120,16 +122,33 @@ Extern
 	Function bmx_flickcurl_photolist_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
 	Function bmx_flickcurl_photolist_getcontent:String(handle:Byte Ptr)
 
+	Function bmx_flickcurl_searchphotos:Byte Ptr(handle:Byte Ptr, params:Byte Ptr)
+	Function bmx_flickcurl_listofphotos_getphotocount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofphotos_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
+
+	Function bmx_flickcurl_getfavoriteslist:Byte Ptr(handle:Byte Ptr, userId:String, extras:String, perPage:Int, page:Int)
+	Function bmx_flickcurl_getpublicfavoriteslist:Byte Ptr(handle:Byte Ptr, userId:String, extras:String, perPage:Int, page:Int)
+
+	Function bmx_flickcurl_size_getlabel:String(handle:Byte Ptr)
+	Function bmx_flickcurl_size_getwidth:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_size_getheight:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_size_getsource:String(handle:Byte Ptr)
+	Function bmx_flickcurl_size_geturl:String(handle:Byte Ptr)
+	Function bmx_flickcurl_size_getmedia:String(handle:Byte Ptr)
+
+	Function bmx_flickcurl_listofsizes_getsizecount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofsizes_getsize:Byte Ptr(handle:Byte Ptr, index:Int)
+
+
+
 	' API direct functions
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
 	Function flickcurl_free_comments(handle:Byte Ptr)
 	Function flickcurl_free_photos_list(handle:Byte Ptr)
 	Function flickcurl_free_photos(handle:Byte Ptr)
-
-	Function bmx_flickcurl_searchphotos:Byte Ptr(handle:Byte Ptr, params:Byte Ptr)
-	Function bmx_flickcurl_listofphotos_getphotocount:Int(handle:Byte Ptr)
-	Function bmx_flickcurl_listofphotos_getphoto:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function flickcurl_free_size(handle:Byte Ptr)
+	Function flickcurl_free_sizes(handle:Byte Ptr)
 
 End Extern
 

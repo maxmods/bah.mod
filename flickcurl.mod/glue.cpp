@@ -50,6 +50,8 @@ extern "C" {
 	int bmx_flickcurl_photo_setsafetylevel(flickcurl * fc, flickcurl_photo * photo, int safetyLevel, int hidden);
 	int bmx_flickcurl_photo_settags(flickcurl * fc, flickcurl_photo * photo, BBString * tags);
 	int bmx_flickcurl_photo_transformrotate(flickcurl * fc, flickcurl_photo * photo, int degrees);
+	int bmx_flickcurl_photo_removefavorite(flickcurl * fc, flickcurl_photo * photo);
+	int bmx_flickcurl_photo_addfavorite(flickcurl * fc, flickcurl_photo * photo);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -128,6 +130,19 @@ extern "C" {
 	flickcurl_photo** bmx_flickcurl_searchphotos(flickcurl * fc, flickcurl_search_params *params);
 	int bmx_flickcurl_listofphotos_getphotocount(flickcurl_photo** list);
 	flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, int index);
+
+	flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page);
+	flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page);
+
+	BBString * bmx_flickcurl_size_getlabel(flickcurl_size * size);
+	int bmx_flickcurl_size_getwidth(flickcurl_size * size);
+	int bmx_flickcurl_size_getheight(flickcurl_size * size);
+	BBString * bmx_flickcurl_size_getsource(flickcurl_size * size);
+	BBString * bmx_flickcurl_size_geturl(flickcurl_size * size);
+	BBString * bmx_flickcurl_size_getmedia(flickcurl_size * size);
+
+	int bmx_flickcurl_listofsizes_getsizecount(flickcurl_size ** list);
+	flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int index);
 
 }
 
@@ -328,6 +343,14 @@ int bmx_flickcurl_photo_settags(flickcurl * fc, flickcurl_photo * photo, BBStrin
 
 int bmx_flickcurl_photo_transformrotate(flickcurl * fc, flickcurl_photo * photo, int degrees) {
 	return flickcurl_photos_transform_rotate(fc, photo->id, degrees);
+}
+
+int bmx_flickcurl_photo_removefavorite(flickcurl * fc, flickcurl_photo * photo) {
+	return flickcurl_favorites_remove(fc, photo->id);
+}
+
+int bmx_flickcurl_photo_addfavorite(flickcurl * fc, flickcurl_photo * photo) {
+	return flickcurl_favorites_add(fc, photo->id);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -744,4 +767,66 @@ flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, in
 	return list[index];
 }
 
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_photo** bmx_flickcurl_getfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page) {
+	char *u=bbStringToCString( userId );
+	char *e=bbStringToCString( extras );
+	flickcurl_photo** list = flickcurl_favorites_getList(fc, u, e, perPage, page);
+	bbMemFree(u);
+	bbMemFree(e);
+	return list;
+}
+
+flickcurl_photo** bmx_flickcurl_getpublicfavoriteslist(flickcurl * fc, BBString * userId, BBString * extras, int perPage, int page) {
+	char *u=bbStringToCString( userId );
+	char *e=bbStringToCString( extras );
+	flickcurl_photo** list = flickcurl_favorites_getPublicList(fc, u, e, perPage, page);
+	bbMemFree(u);
+	bbMemFree(e);
+	return list;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_size_getlabel(flickcurl_size * size) {
+	return bbStringFromCString(size->label);
+}
+
+int bmx_flickcurl_size_getwidth(flickcurl_size * size) {
+	return size->width;
+}
+
+int bmx_flickcurl_size_getheight(flickcurl_size * size) {
+	return size->width;
+}
+
+BBString * bmx_flickcurl_size_getsource(flickcurl_size * size) {
+	return bbStringFromCString(size->source);
+}
+
+BBString * bmx_flickcurl_size_geturl(flickcurl_size * size) {
+	return bbStringFromCString(size->url);
+}
+
+BBString * bmx_flickcurl_size_getmedia(flickcurl_size * size) {
+	return bbStringFromCString(size->media);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_listofsizes_getsizecount(flickcurl_size ** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int index) {
+	return list[index];
+}
 

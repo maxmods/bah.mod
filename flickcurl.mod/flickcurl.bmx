@@ -174,6 +174,26 @@ Type TFlickcurl
 		Return TFCListOfPhotos._create(bmx_flickcurl_searchphotos(fcPtr, params.paramsPtr), fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns a list of the user's favorite photos. 
+	End Rem
+	Method GetFavoritesList:TFCPhotoList(userId:String, extras:String, perPage:Int, page:Int)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getfavoriteslist(fcPtr, userId, extras, perPage, page), fcPtr)
+	End Method
+	
+'	Method GetFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
+'	End Method
+
+	Rem
+	bbdoc: Returns a list of favorite public photos for the given user. 
+	End Rem
+	Method GetPublicFavoritesList:TFCPhotoList(userId:String, extras:String, perPage:Int, page:Int)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getpublicfavoriteslist(fcPtr, userId, extras, perPage, page), fcPtr)
+	End Method
+	
+'	Method GetPublicFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
+'	End Method
+	
 	
 	Method Delete()
 		Free()
@@ -502,6 +522,19 @@ Type TFCPhoto
 		Return bmx_flickcurl_photo_transformrotate(fcPtr, photoPtr, degrees)
 	End Method
 	
+	Rem
+	bbdoc: Adds the photo to a user's favorites list. 
+	End Rem
+	Method AddFavorite:Int()
+		Return bmx_flickcurl_photo_addfavorite(fcPtr, photoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Removes the photo from a user's favorites list. 
+	End Rem
+	Method RemoveFavorite:Int()
+		Return bmx_flickcurl_photo_removefavorite(fcPtr, photoPtr)
+	End Method
 	
 	Rem
 	bbdoc: Destructor for photo object.
@@ -904,9 +937,127 @@ Type TFCPermissions
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A Photo size.
 End Rem
 Type TFCSize
+
+	Field sizePtr:Byte Ptr
+	Field owner:Int
+	
+	Function _create:TFCSize(sizePtr:Byte Ptr, owner:Int = True)
+		If sizePtr Then
+			Local this:TFCSize = New TFCSize
+			this.sizePtr = sizePtr
+			this.owner = owner
+			Return this
+		End If
+	End Function
+	
+	
+	Rem
+	bbdoc: The label.
+	End Rem
+	Method GetLabel:String()
+		Return bmx_flickcurl_size_getlabel(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: The width in pixels.
+	End Rem
+	Method GetWidth:Int()
+		Return bmx_flickcurl_size_getwidth(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: The height in pixels.
+	End Rem
+	Method GetHeight:Int()
+		Return bmx_flickcurl_size_getheight(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: The raw image source URL.
+	End Rem
+	Method GetSource:String()
+		Return bmx_flickcurl_size_getsource(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: The url of photo page.
+	End Rem
+	Method GetURL:String()
+		Return bmx_flickcurl_size_geturl(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns 'photo' or 'video'.
+	End Rem
+	Method GetMedia:String()
+		Return bmx_flickcurl_size_getmedia(sizePtr)
+	End Method
+	
+	Rem
+	bbdoc: Destructor for size object.
+	End Rem
+	Method Free()
+		If sizePtr And owner Then
+			flickcurl_free_size(sizePtr)
+			sizePtr = Null
+		End If
+	End Method
+
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TFCSizeList
+
+	Field slPtr:Byte Ptr
+	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCSizeList(slPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If slPtr Then
+			Local this:TFCSizeList = New TFCSizeList
+			this.slPtr = slPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of sizes.
+	End Rem
+	Method GetSizeCount:Int()
+		Return bmx_flickcurl_listofsizes_getsizecount(slPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size at the given @index.
+	End Rem
+	Method GetSize:TFCSize(index:Int)
+		Return TFCSize._create(bmx_flickcurl_listofsizes_getsize(slPtr, index), False)
+	End Method
+
+	Rem
+	bbdoc: Destructor for List object.
+	End Rem
+	Method Free()
+		If slPtr Then
+			flickcurl_free_sizes(slPtr)
+			slPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Rem
@@ -1153,4 +1304,26 @@ Type TFCSearchParams
 
 End Type
 
+
+Rem
+bbdoc: A user.
+End Rem
+Type TFCPerson
+
+	Field personPtr:Byte Ptr
+	
+	
+
+End Type
+
+Rem
+bbdoc: Person details.
+End Rem
+Type TFCPersonField
+
+	Field pfPtr:Byte Ptr
+	
+	
+
+End Type
 
