@@ -192,11 +192,19 @@ Type TFlickcurl
 	Method GetInterestingnessList:TFCPhotoList(date:String, extras:String, perPage:Int, page:Int)
 		Return TFCListOfPhotos._create(bmx_flickcurl_getinterestingnesslist(fcPtr, date, extras, perPage, page), fcPtr)
 	End Method
-		
+	
+	Rem
+	bbdoc: Get a user, given their email address.
+	End Rem
 	Method FindPeopleByEmail:TFCPerson(email:String)
+		Return TFCPerson._create(bmx_flickcurl_findpeoplebyemail(fcPtr, email), fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: Get a user, given their username.
+	End Rem
 	Method FindPeopleByUsername:TFCPerson(username:String)
+		Return TFCPerson._create(bmx_flickcurl_findpeoplebyusername(fcPtr, username), fcPtr)
 	End Method
 	
 	Method Delete()
@@ -739,34 +747,58 @@ Type TFCTag
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Associated photo object if any.
+	End Rem
 	Method GetPhoto:TFCPhoto()
 		Return TFCPhoto._create(bmx_flickcurl_tag_getphoto(tagPtr), fcPtr, False)
 	End Method
 	
+	Rem
+	bbdoc: Tag identifier.
+	End Rem
 	Method GetID:String()
 		Return bmx_flickcurl_tag_getid(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: Author (may be NULL) 
+	End Rem
 	Method GetAuthor:String()
 		Return bmx_flickcurl_tag_getauthor(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: Author real name (may be NULL) 
+	End Rem
 	Method GetAuthorName:String()
 		Return bmx_flickcurl_tag_getauthorname(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: Raw tag as user typed it (may be NULL, but if so cooked must be not NULL) 
+	End Rem
 	Method GetRaw:String()
 		Return bmx_flickcurl_tag_getraw(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: Cooked tag (may be NULL, but if so raw must not be NULL) 
+	End Rem
 	Method GetCooked:String()
 		Return bmx_flickcurl_tag_getcooked(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: Boolean (non-0 true) if tag is a Machine Tag.
+	End Rem
 	Method GetMachineTag:Int()
 		Return bmx_flickcurl_tag_getmachinetag(tagPtr)
 	End Method
 	
+	Rem
+	bbdoc: The tag count in a histogram (or 0).
+	End Rem
 	Method GetCount:Int()
 		Return bmx_flickcurl_tag_getcount(tagPtr)
 	End Method
@@ -780,6 +812,9 @@ Type TFCTag
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TFCTagList
 
 	Field tagListPtr:Byte Ptr
@@ -796,6 +831,9 @@ Type TFCTagList
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TFCCommentList
 
 	Field commentListPtr:Byte Ptr
@@ -811,10 +849,16 @@ Type TFCCommentList
 		End If
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetComment:TFCComment(index:Int)
 		Return TFCComment(bmx_flickcurl_commentlist_getcomment(commentListPtr, index, fcPtr))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Free()
 		If commentListPtr Then
 			flickcurl_free_comments(commentListPtr)
@@ -1436,7 +1480,8 @@ Type TFCPerson
 <tr><td>PERSON_FIELD_favedate</td><td> favorite date</td></tr>
 <tr><td>PERSON_FIELD_FIRST</td><td> internal offset to first field</td></tr>
 <tr><td>PERSON_FIELD_LAST</td><td> internal offset to last field</td></tr>
-</table>	End Rem
+</table>
+End Rem
 	Method GetField:TFCPersonField(index:Int)
 		Return TFCPersonField(bmx_flickcurl_person_getfield(personPtr, index))
 	End Method
@@ -1486,4 +1531,189 @@ Type TFCPersonField Extends TFCField
 	End Function
 	
 End Type
+
+Rem
+bbdoc: A group.
+End Rem
+Type TFCGroup
+
+	Field groupPtr:Byte Ptr
+	
+	Field owner:Int
+	
+	Field fcPtr:Byte Ptr
+	
+	Function _create:TFCGroup(groupPtr:Byte Ptr, fcPtr:Byte Ptr, owner:Int = True)
+		If groupPtr Then
+			Local this:TFCGroup = New TFCGroup
+			this.groupPtr = groupPtr
+			this.fcPtr = fcPtr
+			this.owner = owner
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: The group's NSID.
+	End Rem
+	Method GetGroupID:String()
+		Return bmx_flickcurl_group_getgroupid(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: Group name.
+	End Rem
+	Method GetName:String()
+		Return bmx_flickcurl_group_getname(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: Description.
+	End Rem
+	Method GetDescription:String()
+		Return bmx_flickcurl_group_getdescription(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: Language.
+	End Rem
+	Method GetLang:String()
+		Return bmx_flickcurl_group_getlang(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: is admin flag
+	End Rem
+	Method IsAdmin:Int()
+		Return bmx_flickcurl_group_isadmin(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: is the pool moderated
+	End Rem
+	Method IsPoolModerated:Int()
+		Return bmx_flickcurl_group_ispoolmoderated(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: 18+ group
+	End Rem
+	Method IsEighteenPlus:Int()
+		Return bmx_flickcurl_group_iseighteenplus(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: privacy level
+	End Rem
+	Method GetPrivacy:Int()
+		Return bmx_flickcurl_group_getprivacy(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: photos in group count
+	End Rem
+	Method GetPhotos:Int()
+		Return bmx_flickcurl_group_getphotos(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: icon server ID
+	End Rem
+	Method GetIconServer:Int()
+		Return bmx_flickcurl_group_geticonserver(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: member count 
+	End Rem
+	Method GetMembers:Int()
+		Return bmx_flickcurl_group_getmembers(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: throttle mode (day, ...)
+	End Rem
+	Method GetThrottleMode:String()
+		Return bmx_flickcurl_group_getthrottlemode(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: throttle count
+	End Rem
+	Method GetThrottleCount:Int()
+		Return bmx_flickcurl_group_getthrottlecount(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: throttle remaining
+	End Rem
+	Method GetThrottleRemaining:Int()
+		Return bmx_flickcurl_group_getthrottleremaining(groupPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If groupPtr And owner Then
+			flickcurl_free_group(groupPtr)
+			groupPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TFCGroupList
+
+	Field glPtr:Byte Ptr
+	
+	Field fcPtr:Byte Ptr
+
+	Function _create:TFCGroupList(glPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If glPtr Then
+			Local this:TFCGroupList = New TFCGroupList
+			this.glPtr = glPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of groups.
+	End Rem
+	Method GetGroupCount:Int()
+		Return bmx_flickcurl_listofgroups_getgroupcount(glPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the group at the given @index.
+	End Rem
+	Method GetGroup:TFCGroup(index:Int)
+		Return TFCGroup._create(bmx_flickcurl_listofgroups_getgroup(glPtr, index), fcPtr, False)
+	End Method
+
+	Rem
+	bbdoc: Destructor for List object.
+	End Rem
+	Method Free()
+		If glPtr Then
+			flickcurl_free_groups(glPtr)
+			glPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
+
+
 

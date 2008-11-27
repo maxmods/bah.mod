@@ -153,6 +153,27 @@ extern "C" {
 	BBString * bmx_flickcurl_person_getuserid(flickcurl_person * person);
 	BBObject * bmx_flickcurl_person_getfield(flickcurl_person * person, int index);
 
+	flickcurl_person * bmx_flickcurl_findpeoplebyemail(flickcurl * fc, BBString * email);
+	flickcurl_person * bmx_flickcurl_findpeoplebyusername(flickcurl * fc, BBString * username);
+
+	BBString * bmx_flickcurl_group_getgroupid(flickcurl_group * group);
+	BBString * bmx_flickcurl_group_getname(flickcurl_group * group);
+	BBString * bmx_flickcurl_group_getdescription(flickcurl_group * group);
+	BBString * bmx_flickcurl_group_getlang(flickcurl_group * group);
+	int bmx_flickcurl_group_isadmin(flickcurl_group * group);
+	int bmx_flickcurl_group_ispoolmoderated(flickcurl_group * group);
+	int bmx_flickcurl_group_iseighteenplus(flickcurl_group * group);
+	int bmx_flickcurl_group_getprivacy(flickcurl_group * group);
+	int bmx_flickcurl_group_getphotos(flickcurl_group * group);
+	int bmx_flickcurl_group_geticonserver(flickcurl_group * group);
+	int bmx_flickcurl_group_getmembers(flickcurl_group * group);
+	BBString * bmx_flickcurl_group_getthrottlemode(flickcurl_group * group);
+	int bmx_flickcurl_group_getthrottlecount(flickcurl_group * group);
+	int bmx_flickcurl_group_getthrottleremaining(flickcurl_group * group);
+
+	int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list);
+	flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index);
+
 }
 
 
@@ -868,5 +889,101 @@ BBString * bmx_flickcurl_person_getuserid(flickcurl_person * person) {
 BBObject * bmx_flickcurl_person_getfield(flickcurl_person * person, int index) {
 	flickcurl_person_field field = person->fields[index];
 	return _bah_flickcurl_TFCPersonField__create(bbStringFromCString(field.string), field.integer, field.type);
+}
+
+flickcurl_person * bmx_flickcurl_findpeoplebyemail(flickcurl * fc, BBString * email) {
+	flickcurl_person * person = 0;
+	char *e=bbStringToCString( email );
+	char * nsid = flickcurl_people_findByEmail(fc, e);
+	if (nsid) {
+		person = flickcurl_people_getInfo(fc, nsid);
+	}
+	bbMemFree(e);
+	return person;
+}
+
+flickcurl_person * bmx_flickcurl_findpeoplebyusername(flickcurl * fc, BBString * username) {
+	flickcurl_person * person = 0;
+	char *u=bbStringToCString( username );
+	char * nsid = flickcurl_people_findByUsername(fc, u);
+	if (nsid) {
+		person = flickcurl_people_getInfo(fc, nsid);
+	}
+	bbMemFree(u);
+	return person;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_group_getgroupid(flickcurl_group * group) {
+	return bbStringFromCString(group->nsid);
+}
+
+BBString * bmx_flickcurl_group_getname(flickcurl_group * group) {
+	return bbStringFromCString(group->name);
+}
+
+BBString * bmx_flickcurl_group_getdescription(flickcurl_group * group) {
+	return bbStringFromCString(group->description);
+}
+
+BBString * bmx_flickcurl_group_getlang(flickcurl_group * group) {
+	return bbStringFromCString(group->lang);
+}
+
+int bmx_flickcurl_group_isadmin(flickcurl_group * group) {
+	return group->is_admin;
+}
+
+int bmx_flickcurl_group_ispoolmoderated(flickcurl_group * group) {
+	return group->is_pool_moderated;
+}
+
+int bmx_flickcurl_group_iseighteenplus(flickcurl_group * group) {
+	return group->is_eighteenplus;
+}
+
+int bmx_flickcurl_group_getprivacy(flickcurl_group * group) {
+	return group->privacy;
+}
+
+int bmx_flickcurl_group_getphotos(flickcurl_group * group) {
+	return group->photos;
+}
+
+int bmx_flickcurl_group_geticonserver(flickcurl_group * group) {
+	return group->iconserver;
+}
+
+int bmx_flickcurl_group_getmembers(flickcurl_group * group) {
+	return group->members;
+}
+
+BBString * bmx_flickcurl_group_getthrottlemode(flickcurl_group * group) {
+	return bbStringFromCString(group->throttle_mode);
+}
+
+int bmx_flickcurl_group_getthrottlecount(flickcurl_group * group) {
+	return group->throttle_count;
+}
+
+int bmx_flickcurl_group_getthrottleremaining(flickcurl_group * group) {
+	return group->throttle_remaining;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index) {
+	return list[index];
 }
 
