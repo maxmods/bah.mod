@@ -1142,6 +1142,57 @@ void bmx_cegui_window_setheightu(CEGUI::Window * window, const CEGUI::UDim * hei
 	window->setHeight(*height);
 }
 
+BBObject * bmx_cegui_window_getmousecursor(CEGUI::Window * window, bool useDefault) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image*>(window->getMouseCursor(useDefault)));
+}
+
+void bmx_cegui_window_rename(CEGUI::Window * window, const CEGUI::utf8 * newName) {
+	window->rename(newName);
+}
+
+void bmx_cegui_window_setdestroyedbyparent(CEGUI::Window * window, bool setting) {
+	window->setDestroyedByParent(setting);
+}
+
+void bmx_cegui_window_setalwaysontop(CEGUI::Window * window, bool setting) {
+	window->setAlwaysOnTop(setting);
+}
+
+void bmx_cegui_window_setenabled(CEGUI::Window * window, bool setting) {
+	window->setEnabled(setting);
+}
+
+void bmx_cegui_window_enable(CEGUI::Window * window) {
+	window->enable();
+}
+
+void bmx_cegui_window_disable(CEGUI::Window * window) {
+	window->disable();
+}
+
+void bmx_cegui_window_setvisible(CEGUI::Window * window, bool setting) {
+	window->setVisible(setting);
+}
+
+float bmx_cegui_window_getxposition(CEGUI::Window * window) {
+	return window->getXPosition().d_offset;
+}
+
+float bmx_cegui_window_getyposition(CEGUI::Window * window) {
+	return window->getYPosition().d_offset;
+}
+
+float bmx_cegui_window_getwidth(CEGUI::Window * window) {
+	return window->getWidth().d_offset;
+}
+
+float bmx_cegui_window_getheight(CEGUI::Window * window) {
+	return window->getHeight().d_offset;
+}
+
+void bmx_cegui_window_render(CEGUI::Window * window) {
+	window->render();
+}
 
 
 // *************************************************
@@ -2239,6 +2290,15 @@ void bmx_cegui_listboxitem_getpixelsize(CEGUI::ListboxItem * item, float * width
 	CEGUI::Size s = item->getPixelSize();
 	*width = s.d_width;
 	*height = s.d_height;
+}
+
+BBObject * bmx_cegui_listboxitem_getuserdata(CEGUI::ListboxItem * item) {
+	void * data = item->getUserData();
+	if (data) {
+		return (BBObject*)data;
+	} else {
+		return &bbNullObject;
+	}
 }
 
 

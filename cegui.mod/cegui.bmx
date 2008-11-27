@@ -989,9 +989,10 @@ Type TCEListboxItem
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the client assigned user data attached to this lis box item, if set. 
 	End Rem
 	Method getUserData:Object()
+		Return bmx_cegui_listboxitem_getuserdata(objectPtr)
 	End Method
 	
 	Rem
@@ -1066,6 +1067,10 @@ Type TCEListboxItem
 	bbdoc: Sets the client assigned user data attached to this lis box item.
 	about: Note that the system does not make use of this data, client code can assign any meaning it
 	wishes to the attached data.
+	<p>
+	Also note that you will need to ensure you keep a reference to the object yourself, as otherwise the GC
+	may collect it. (The system does not reference count this object for you!)
+	</p>
 	End Rem
 	Method setUserData(itemData:Object)
 		bmx_cegui_listboxitem_setuserdata(objectPtr, itemData)

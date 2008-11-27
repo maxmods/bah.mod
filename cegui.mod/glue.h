@@ -293,6 +293,19 @@ extern "C" {
 	void bmx_cegui_window_setsizeu(CEGUI::Window * window, const CEGUI::UDim * width, const CEGUI::UDim * height);
 	void bmx_cegui_window_setwidthu(CEGUI::Window * window, const CEGUI::UDim * width);
 	void bmx_cegui_window_setheightu(CEGUI::Window * window, const CEGUI::UDim * height);
+	BBObject * bmx_cegui_window_getmousecursor(CEGUI::Window * window, bool useDefault);
+	void bmx_cegui_window_rename(CEGUI::Window * window, const CEGUI::utf8 * newName);
+	void bmx_cegui_window_setdestroyedbyparent(CEGUI::Window * window, bool setting);
+	void bmx_cegui_window_setalwaysontop(CEGUI::Window * window, bool setting);
+	void bmx_cegui_window_setenabled(CEGUI::Window * window, bool setting);
+	void bmx_cegui_window_enable(CEGUI::Window * window);
+	void bmx_cegui_window_disable(CEGUI::Window * window);
+	void bmx_cegui_window_setvisible(CEGUI::Window * window, bool setting);
+	float bmx_cegui_window_getxposition(CEGUI::Window * window);
+	float bmx_cegui_window_getyposition(CEGUI::Window * window);
+	float bmx_cegui_window_getwidth(CEGUI::Window * window);
+	float bmx_cegui_window_getheight(CEGUI::Window * window);
+	void bmx_cegui_window_render(CEGUI::Window * window);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
@@ -558,6 +571,7 @@ extern "C" {
 	void bmx_cegui_listboxitem_setselectionbrushimage(CEGUI::ListboxItem * item, CEGUI::Image * image);
 	void bmx_cegui_listboxitem_setselectionbrushimagebyname(CEGUI::ListboxItem * item, const CEGUI::utf8 * imageset, const CEGUI::utf8 * image);
 	void bmx_cegui_listboxitem_getpixelsize(CEGUI::ListboxItem * item, float * width, float * height);
+	BBObject * bmx_cegui_listboxitem_getuserdata(CEGUI::ListboxItem * item);
 
 	bool bmx_cegui_multicolumnlist_isusersortcontrolenabled(CEGUI::MultiColumnList * mc);
 	bool bmx_cegui_multicolumnlist_isusercolumnsizingenabled(CEGUI::MultiColumnList * mc);

@@ -1174,8 +1174,12 @@ Type TCEWindow Extends TCEEventSet
 	Method GetParent:TCEWindow()
 		Return TCEWindow(bmx_cegui_window_getparent(objectPtr))
 	End Method
-	 
+	
+	Rem
+	bbdoc: Returns the mouse cursor image to use when the mouse cursor is within this window's area.
+	End Rem
 	Method getMouseCursor:TCEImage(useDefault:Int = True)
+		Return TCEImage(bmx_cegui_window_getmousecursor(objectPtr, useDefault))
 	End Method
 	 
 	Rem
@@ -1184,7 +1188,8 @@ Type TCEWindow Extends TCEEventSet
 	Method getPixelSize(width:Float Var, height:Float Var)
 		bmx_cegui_window_getpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
-	 
+
+	' TODO
 	Method getUserData:Object()
 	End Method
 	 
@@ -1741,6 +1746,7 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_show(objectPtr)
 	End Method
 	
+	' TODO
 	Method getTooltip:TCETooltip()
 	End Method
 	
@@ -1873,32 +1879,61 @@ Type TCEWindow Extends TCEEventSet
 		Return bmx_cegui_window_isdragdroptarget(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Renames the window.
+	End Rem
 	Method rename(newName:String)
+		bmx_cegui_window_rename(objectPtr, _convertMaxToUTF8(newName))
 	End Method
 	
-	Method initialiseComponents()
-	End Method
-	
+	Rem
+	bbdoc: Sets whether or not this Window will automatically be destroyed when its parent Window is destroyed.
+	End Rem
 	Method setDestroyedByParent(setting:Int)
+		bmx_cegui_window_setdestroyedbyparent(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window is always on top, or not.
+	End Rem
 	Method setAlwaysOnTop(setting:Int)
+		bmx_cegui_window_setalwaysontop(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window is enabled or disabled.
+	about: A disabled window normally can not be interacted with, and may have different rendering.
+	End Rem
 	Method setEnabled(setting:Int)
+		bmx_cegui_window_setenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Enables the Window to allow interaction.
+	End Rem
 	Method enable()
+		bmx_cegui_window_enable(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Disables the Window to prevent interaction.
+	End Rem
 	Method disable()
+		bmx_cegui_window_disable(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the Window is visible or hidden.
+	about: Hiding the active window will cause that window to become deactivated. Showing a window does not,
+	however, automatically cause that window to become the active window (call Window::activate after
+	making the window visible to activate it).
+	End Rem
 	Method setVisible(setting:Int)
+		bmx_cegui_window_setvisible(objectPtr, setting)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the current text string for the Window.
 	End Rem
 	Method setText(text:String)
 		bmx_cegui_window_settext(objectPtr, _convertMaxToUTF8(text))
@@ -1910,19 +1945,43 @@ Type TCEWindow Extends TCEEventSet
 	Method getPosition(x:Float Var, y:Float Var)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's X position.
+	about: Gets the x position (left edge) of the area occupied by this window. The position is offset from the
+	left edge of this windows parent window or from the left edge of the display if this window has no
+	parent (i.e. it is the root window).
+	End Rem
 	Method getXPosition:Float()
+		Return bmx_cegui_window_getxposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's Y position.
+	about: Gets the y position (top edge) of the area occupied by this window. The position is offset from the
+	top edge of this windows parent window or from the top edge of the display if this window has no parent
+	(i.e. it is the root window).
+	End Rem
 	Method getYPosition:Float()
+		Return bmx_cegui_window_getyposition(objectPtr)
 	End Method
 	
 	Method getSize(w:Float Var, h:Float Var)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's width.
+	about: Gets the width of the area occupied by this window.
+	End Rem
 	Method getWidth:Float()
+		Return bmx_cegui_window_getwidth(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's height.
+	about: Gets the height of the area occupied by this window.
+	End Rem
 	Method getHeight:Float()
+		Return bmx_cegui_window_getheight(objectPtr)
 	End Method
 	
 	Method getMaxSize(w:Float Var, h:Float Var)
@@ -1931,13 +1990,11 @@ Type TCEWindow Extends TCEEventSet
 	Method getMinSize(w:Float Var, h:Float Var)
 	End Method
 	
+	Rem
+	bbdoc: Causes the Window object to render itself and all of it's attached children.
+	End Rem
 	Method render()
-	End Method
-	
-	Method beginInitialisation()
-	End Method
-	
-	Method endInitialisation()
+		bmx_cegui_window_render(objectPtr)
 	End Method
 	
 	Method setMousePassThroughEnabled(setting:Int)
