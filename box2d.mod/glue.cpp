@@ -120,6 +120,8 @@ extern "C" {
 	void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow);
 	bool bmx_b2bodydef_getallowsleep(b2BodyDef * def);
 	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
+	float32 bmx_b2bodydef_getangle(b2BodyDef * def);
+	bool bmx_b2bodydef_isbullet(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations);
@@ -131,6 +133,9 @@ extern "C" {
 	MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def);
 	void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor);
 	bool bmx_b2shapedef_issensor(b2ShapeDef * def);
+	float32 bmx_b2shapedef_getfriction(b2ShapeDef * def);
+	float32 bmx_b2shapedef_getrestitution(b2ShapeDef * def);
+	float32 bmx_b2shapedef_getdensity(b2ShapeDef * def);
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
@@ -898,7 +903,7 @@ void bmx_b2bodydef_setposition(b2BodyDef * def, b2Vec2 * position) {
 }
 
 void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle) {
-	def->angle = angle / 57.2957795f;
+	def->angle = angle * 0.0174533f;
 }
 
 void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data) {
@@ -957,6 +962,15 @@ void bmx_b2bodydef_setpositionxy(b2BodyDef * def, float32 x, float32 y) {
 	def->position = b2Vec2(x, y);
 }
 
+float32 bmx_b2bodydef_getangle(b2BodyDef * def) {
+	return def->angle * 57.2957795f;
+}
+
+bool bmx_b2bodydef_isbullet(b2BodyDef * def) {
+	return def->isBullet;
+}
+
+
 // *****************************************************
 
 b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep) {
@@ -997,6 +1011,19 @@ void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor) {
 bool bmx_b2shapedef_issensor(b2ShapeDef * def) {
 	return def->isSensor;
 }
+
+float32 bmx_b2shapedef_getfriction(b2ShapeDef * def) {
+	return def->friction;
+}
+
+float32 bmx_b2shapedef_getrestitution(b2ShapeDef * def) {
+	return def->restitution;
+}
+
+float32 bmx_b2shapedef_getdensity(b2ShapeDef * def) {
+	return def->density;
+}
+
 
 // *****************************************************
 

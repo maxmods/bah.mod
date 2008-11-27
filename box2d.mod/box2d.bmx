@@ -1703,6 +1703,13 @@ Type b2BodyDef
 	End Method
 	
 	Rem
+	bbdoc: Returns the application specific body data, if any.
+	End Rem
+	Method GetUserData:Object()
+		Return userData
+	End Method
+	
+	Rem
 	bbdoc: The world position of the body.
 	about: Avoid creating bodies at the origin since this can lead to many overlapping shapes.
 	End Rem
@@ -1730,6 +1737,13 @@ Type b2BodyDef
 	End Rem
 	Method SetAngle(angle:Float)
 		bmx_b2bodydef_setangle(b2ObjectPtr, angle)
+	End Method
+	
+	Rem
+	bbdoc: Returns the world angle of the body in degrees
+	End Rem
+	Method GetAngle:Float()
+		Return bmx_b2bodydef_getangle(b2ObjectPtr)
 	End Method
 	
 	Rem
@@ -1816,6 +1830,13 @@ Type b2BodyDef
 	End Rem
 	Method SetIsBullet(bullet:Int)
 		bmx_b2bodydef_setisbullet(b2ObjectPtr, bullet)
+	End Method
+	
+	Rem
+	bbdoc: Returns whether this is a bullet type body.
+	End Rem
+	Method GetIsBullet:Int()
+		Return bmx_b2bodydef_isbullet(b2ObjectPtr)
 	End Method
 	
 	Method Delete()
@@ -1984,6 +2005,13 @@ Type b2ShapeDef
 	End Method
 	
 	Rem
+	bbdoc: Gets the shape's friction coefficient, usually in the range [0,1].
+	End Rem
+	Method GetFriction:Float()
+		Return bmx_b2shapedef_getfriction(b2ObjectPtr)
+	End Method
+	
+	Rem
 	bbdoc: Sets the shape's restitution (elasticity) usually in the range [0,1]. 
 	End Rem
 	Method SetRestitution(restitution:Float)
@@ -1991,10 +2019,24 @@ Type b2ShapeDef
 	End Method
 	
 	Rem
+	bbdoc: Gets the shape's restitution (elasticity) usually in the range [0,1]. 
+	End Rem
+	Method GetRestitution:Float()
+		Return bmx_b2shapedef_getrestitution(b2ObjectPtr)
+	End Method
+	
+	Rem
 	bbdoc: Sets the shape's density, usually in kg/m^2. 
 	End Rem
 	Method SetDensity(density:Float)
 		bmx_b2shapedef_setdensity(b2ObjectPtr, density)
+	End Method
+	
+	Rem
+	bbdoc: Gets the shape's density, usually in kg/m^2. 
+	End Rem
+	Method GetDensity:Float()
+		Return bmx_b2shapedef_getdensity(b2ObjectPtr)
 	End Method
 	
 	Rem
@@ -2130,6 +2172,8 @@ about: Vertices must be in CCW order.
 End Rem
 Type b2PolygonDef Extends b2ShapeDef
 
+	Field _vertices:b2Vec2[]
+
 	Method New()
 		b2ObjectPtr = bmx_b2polygondef_create()
 	End Method
@@ -2164,11 +2208,20 @@ Type b2PolygonDef Extends b2ShapeDef
 	bbdoc: Sets the polygon vertices in local coordinates.
 	End Rem
 	Method SetVertices(vertices:b2Vec2[])
+		_vertices = vertices
 		bmx_b2polygondef_setvertices(b2ObjectPtr, vertices)
+	End Method
+	
+	Rem
+	bbdoc: Gets the polygon vertices in local coordinates.
+	End Rem
+	Method GetVertices:b2Vec2[]()
+		Return _vertices
 	End Method
 
 	Method Delete()
 		If b2ObjectPtr Then
+			_vertices = Null
 			bmx_b2polygondef_delete(b2ObjectPtr)
 			b2ObjectPtr = Null
 		End If

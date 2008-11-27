@@ -90,6 +90,8 @@ Extern
 	Function bmx_b2bodydef_setallowsleep(handle:Byte Ptr, allow:Int)
 	Function bmx_b2bodydef_getallowsleep:Int(handle:Byte Ptr)
 	Function bmx_b2bodydef_getposition:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2bodydef_getangle:Float(handle:Byte Ptr)
+	Function bmx_b2bodydef_isbullet:Int(handle:Byte Ptr)
 
 	Function bmx_b2world_create:Byte Ptr(worldAABB:Byte Ptr, gravity:Byte Ptr, doSleep:Int)
 	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, velocityIterations:Int, positionIterations:Int)
@@ -101,6 +103,9 @@ Extern
 	Function bmx_b2shapedef_getfilter:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shapedef_setissensor(handle:Byte Ptr, sensor:Int)
 	Function bmx_b2shapedef_issensor:Int(handle:Byte Ptr)
+	Function bmx_b2shapedef_getfriction:Float(handle:Byte Ptr)
+	Function bmx_b2shapedef_getrestitution:Float(handle:Byte Ptr)
+	Function bmx_b2shapedef_getdensity:Float(handle:Byte Ptr)
 
 	Function bmx_b2polygondef_create:Byte Ptr()
 	Function bmx_b2polygondef_setasbox(handle:Byte Ptr, hx:Float, hy:Float)
