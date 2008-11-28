@@ -1023,6 +1023,21 @@ extern "C" {
 	float bmx_cegui_font_getfontheight(CEGUI::Font * font, float yScale);
 	float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale);
 
+	BBObject * bmx_cegui_dragdropeventargs_getdragdropitem(CEGUI::DragDropEventArgs * args);
+	BBObject * bmx_cegui_mousecursoreventargs_getimage(CEGUI::MouseCursorEventArgs * args);
+	CEGUI::utf32 bmx_cegui_keyeventargs_getcodepoint(CEGUI::KeyEventArgs * args);
+	CEGUI::Key::Scan bmx_cegui_keyeventargs_getscancode(CEGUI::KeyEventArgs * args);
+	CEGUI::uint bmx_cegui_keyeventargs_getsyskeys(CEGUI::KeyEventArgs * args);
+	void bmx_cegui_mouseeventargs_getposition(CEGUI::MouseEventArgs * args, float * x, float * y);
+	void bmx_cegui_mouseeventargs_getmovedelta(CEGUI::MouseEventArgs * args, float * x, float * y);
+	CEGUI::MouseButton bmx_cegui_mouseeventargs_getbutton(CEGUI::MouseEventArgs * args);
+	CEGUI::uint bmx_cegui_mouseeventargs_getsyskeys(CEGUI::MouseEventArgs * args);
+	float bmx_cegui_mouseeventargs_getwheelchange(CEGUI::MouseEventArgs * args);
+	CEGUI::uint bmx_cegui_mouseeventargs_getclickcount(CEGUI::MouseEventArgs * args);
+	CEGUI::uint bmx_cegui_headersequenceeventargs_getoldindex(CEGUI::HeaderSequenceEventArgs * args);
+	CEGUI::uint bmx_cegui_headersequenceeventargs_getnewindex(CEGUI::HeaderSequenceEventArgs * args);
+	BBObject * bmx_cegui_treeeventargs_gettreeitem(CEGUI::TreeEventArgs * args);
+
 }
 
 class MaxConnection

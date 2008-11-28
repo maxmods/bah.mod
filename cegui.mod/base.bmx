@@ -383,84 +383,102 @@ Type TCESystem Extends TCEEventSet
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the default Font for the GUI system.
 	End Rem
 	Method getDefaultFont:TCEFont()
 		Return TCEFont._create(bmx_cegui_system_getDefaultFont(cegui_systemPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Causes a full re-draw next time renderGUI() is called.
 	End Rem
 	Method signalRedraw()
 		bmx_cegui_system_signalredraw(cegui_systemPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns a boolean value to indicate whether a full re-draw is requested next time renderGUI() is called.
 	End Rem
 	Method isRedrawRequested:Int()
 		Return bmx_cegui_system_isredrawrequested(cegui_systemPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current timeout for generation of single-click events.
+	about: A single-click is defined here as a button being pressed and then released.
 	End Rem
 	Method getSingleClickTimeout:Double()
 		Return bmx_cegui_system_getsingleclicktimeout(cegui_systemPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current timeout for generation of multi-click events.
+	about: A multi-click event is a double-click, or a triple-click. The value returned here is the maximum
+	allowable time between mouse button down events for which a multi-click event will be generated.
 	End Rem
 	Method getMultiClickTimeout:Double()
 		Return bmx_cegui_system_getmulticlicktimeout(cegui_systemPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the size of the allowable mouse movement tolerance used when generating multi-click events.
+	about: This size defines an area with the mouse at the centre. The mouse must stay within the tolerance
+	defined for a multi-click (double click, or triple click) event to be generated.
 	End Rem
 	Method getMultiClickToleranceAreaSize(width:Float Var, height:Float Var)
 		bmx_cegui_system_getmulticlicktoleranceareasize(cegui_systemPtr, Varptr width, Varptr height)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the timeout used for generation of single-click events.
+	about: A single-click is defined here as a button being pressed and then released.
+	<p>
+	A timeout value of 0 indicates infinity and so no timeout occurrs; as long as the mouse is in
+	the prescribed area, a mouse button 'clicked' event will therefore always be raised.
+	</p>
 	End Rem
 	Method setSingleClickTimeout(timeout:Double)
 		bmx_cegui_system_setsingleclicktimeout(cegui_systemPtr, timeout)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the timeout to be used for the generation of multi-click events.
+	about: A multi-click event is a double-click, or a triple-click. The value returned here is the
+	maximum allowable time between mouse button down events for which a multi-click event will be generated.
+	<p>
+	A timeout value of 0 indicates infinity and so no timeout occurrs; as long as the mouse is in the
+	prescribed area, an appropriate mouse button event will therefore always be raised.
+	</p>
 	End Rem
 	Method setMultiClickTimeout(timeout:Double)
 		bmx_cegui_system_setmulticlicktimeout(cegui_systemPtr, timeout)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the size of the allowable mouse movement tolerance used when generating multi-click events.
+	about: This size defines an area with the mouse at the centre. The mouse must stay within the tolerance
+	defined for a multi-click (double click, or triple click) event to be generated.
 	End Rem
 	Method setMultiClickToleranceAreaSize(width:Float, height:Float)
 		bmx_cegui_system_setmulticlicktoleranceareasize(cegui_systemPtr, width, height)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the image to be used as the default mouse cursor.
 	End Rem
 	Function setDefaultMouseCursor(a:String, b:String)
 		bmx_cegui_system_setDefaultMouseCursor(cegui_systemPtr, _convertMaxToUTF8(a), _convertMaxToUTF8(b))
 	End Function
 	
 	Rem
-	bbdoc: Set the active GUI sheet (root) window.
+	bbdoc: Sets the active GUI sheet (root) window.
 	End Rem
 	Function setGUISheet(window:TCEWindow)
 		bmx_cegui_system_setGUISheet(cegui_systemPtr, window.objectPtr)
 	End Function
 	
 	Rem
-	bbdoc: Inject time pulses into the system.
+	bbdoc: Injects time pulses into the system.
 	about: Accepts a value indicating the amount of time passed, in seconds, since the last time this method was called.
 	End Rem 
 	Function injectTimePulse(time:Float)
@@ -496,18 +514,24 @@ Type TCESystem Extends TCEEventSet
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the system default Tooltip object.
+	about: This value may be NULL to indicate that no default Tooltip will be available.
 	End Rem
 	Function setDefaultTooltip(tooltip:Object)
-		If TCETooltip(tooltip) Then
-			bmx_cegui_system_setdefaulttooltip(cegui_systemPtr, TCETooltip(tooltip).objectPtr)
+		If TCETooltip(tooltip) Or Not tooltip Then
+			If tooltip Then
+				bmx_cegui_system_setdefaulttooltip(cegui_systemPtr, TCETooltip(tooltip).objectPtr)
+			Else
+				bmx_cegui_system_setdefaulttooltip(cegui_systemPtr, Null)
+			End If
 		Else If String(tooltip) Then
 			bmx_cegui_system_setdefaulttooltiptext(cegui_systemPtr, _convertMaxToUTF8(String(tooltip)))
 		End If
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the system default tooltip.
+	about: May return Null.
 	End Rem
 	Function getDefaultTooltip:TCETooltip()
 		Return TCETooltip(bmx_cegui_system_getdefaulttooltip(cegui_systemPtr))

@@ -4139,3 +4139,64 @@ float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale) {
 	return font->getBaseline(yScale);
 }
 
+// *************************************************
+
+BBObject * bmx_cegui_dragdropeventargs_getdragdropitem(CEGUI::DragDropEventArgs * args) {
+	return _bah_cegui_TCEDragContainer__create(args->dragDropItem);
+}
+
+BBObject * bmx_cegui_mousecursoreventargs_getimage(CEGUI::MouseCursorEventArgs * args) {
+	return _bah_cegui_TCEImage__create(const_cast<CEGUI::Image*>(args->image));
+}
+
+CEGUI::utf32 bmx_cegui_keyeventargs_getcodepoint(CEGUI::KeyEventArgs * args) {
+	return args->codepoint;
+}
+
+CEGUI::Key::Scan bmx_cegui_keyeventargs_getscancode(CEGUI::KeyEventArgs * args) {
+	return args->scancode;
+}
+
+CEGUI::uint bmx_cegui_keyeventargs_getsyskeys(CEGUI::KeyEventArgs * args) {
+	return args->sysKeys;
+}
+
+void bmx_cegui_mouseeventargs_getposition(CEGUI::MouseEventArgs * args, float * x, float * y) {
+	*x = args->position.d_x;
+	*y = args->position.d_y;
+}
+
+void bmx_cegui_mouseeventargs_getmovedelta(CEGUI::MouseEventArgs * args, float * x, float * y) {
+	*x = args->moveDelta.d_x;
+	*y = args->moveDelta.d_y;
+}
+
+CEGUI::MouseButton bmx_cegui_mouseeventargs_getbutton(CEGUI::MouseEventArgs * args) {
+	return args->button;
+}
+
+CEGUI::uint bmx_cegui_mouseeventargs_getsyskeys(CEGUI::MouseEventArgs * args) {
+	return args->sysKeys;
+}
+
+float bmx_cegui_mouseeventargs_getwheelchange(CEGUI::MouseEventArgs * args) {
+	return args->wheelChange;
+}
+
+CEGUI::uint bmx_cegui_mouseeventargs_getclickcount(CEGUI::MouseEventArgs * args) {
+	return args->clickCount;
+}
+
+CEGUI::uint bmx_cegui_headersequenceeventargs_getoldindex(CEGUI::HeaderSequenceEventArgs * args) {
+	return args->d_oldIdx;
+}
+
+CEGUI::uint bmx_cegui_headersequenceeventargs_getnewindex(CEGUI::HeaderSequenceEventArgs * args) {
+	return args->d_newIdx;
+}
+
+BBObject * bmx_cegui_treeeventargs_gettreeitem(CEGUI::TreeEventArgs * args) {
+	return _bah_cegui_TCETreeItem__create(args->treeItem);
+}
+
+

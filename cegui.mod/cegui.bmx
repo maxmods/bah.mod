@@ -59,7 +59,7 @@ Import "base.bmx"
 '
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for objects passed to input event handlers concerning mouse cursor events.
 End Rem
 Type TCEMouseCursorEventArgs Extends TCEEventArgs
 
@@ -71,10 +71,17 @@ Type TCEMouseCursorEventArgs Extends TCEEventArgs
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Returns the Image object of relevance to the event. 
+	End Rem
+	Method getImage:TCEImage()
+		Return TCEImage(bmx_cegui_mousecursoreventargs_getimage(eventArgsPtr))
+	End Method
+	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for objects passed to handlers triggered for events concerning some Window object.
 End Rem
 Type TCEWindowEventArgs Extends TCEEventArgs
 
@@ -96,7 +103,7 @@ Type TCEWindowEventArgs Extends TCEEventArgs
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for Activated and Deactivated window events.
 End Rem
 Type TCEActivationEventArgs Extends TCEWindowEventArgs
 
@@ -118,7 +125,7 @@ Type TCEActivationEventArgs Extends TCEWindowEventArgs
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type used for certain drag/drop notifications.
 End Rem
 Type TCEDragDropEventArgs Extends TCEWindowEventArgs
 
@@ -131,9 +138,10 @@ Type TCEDragDropEventArgs Extends TCEWindowEventArgs
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the drag container.
 	End Rem
 	Method getDragDropItem:TCEDragContainer()
+		Return TCEDragContainer(bmx_cegui_dragdropeventargs_getdragdropitem(eventArgsPtr))
 	End Method
 	
 End Type
@@ -151,16 +159,24 @@ Type TCEHeaderSequenceEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: The original column index of the segment that has moved. 
+	End Rem
 	Method getOldIndex:Int()
+		Return bmx_cegui_headersequenceeventargs_getoldindex(eventArgsPtr)
 	End Method
 	
+	Rem
+	bbdoc: The new column index of the segment that has moved. 
+	End Rem
 	Method getNewIndex:Int()
+		Return bmx_cegui_headersequenceeventargs_getnewindex(eventArgsPtr)
 	End Method
 	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for objects passed to input event handlers concerning keyboard input.
 End Rem
 Type TCEKeyEventArgs Extends TCEWindowEventArgs
 
@@ -172,10 +188,31 @@ Type TCEKeyEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: utf32 codepoint for the key (only used for Character inputs). 
+	End Rem
+	Method getCodepoint:Int()
+		Return bmx_cegui_keyeventargs_getcodepoint(eventArgsPtr)
+	End Method
+	
+	Rem
+	bbdoc: Scan code of key that caused event (only used for key up & down inputs.)
+	End Rem
+	Method getScancode:Int()
+		Return bmx_cegui_keyeventargs_getscancode(eventArgsPtr)
+	End Method
+	
+	Rem
+	bbdoc: Current state of the system keys and mouse buttons. 
+	End Rem
+	Method getSysKeys:Int()
+		Return bmx_cegui_keyeventargs_getsyskeys(eventArgsPtr)
+	End Method
+	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for objects passed to input event handlers concerning mouse input.
 End Rem
 Type TCEMouseEventArgs Extends TCEWindowEventArgs
 
@@ -187,10 +224,52 @@ Type TCEMouseEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: holds current mouse position. 
+	End Rem
+	Method getPosition(x:Float Var, y:Float Var)
+		bmx_cegui_mouseeventargs_getposition(eventArgsPtr, Varptr x, Varptr y)
+	End Method
+	
+	Rem
+	bbdoc: holds variation of mouse position from last mouse input 
+	End Rem
+	Method getMoveDelta(x:Float Var, y:Float Var)
+		bmx_cegui_mouseeventargs_getmovedelta(eventArgsPtr, Varptr x, Varptr y)
+	End Method
+	
+	Rem
+	bbdoc: one of the MouseButton enumerated values describing the mouse button causing the event (for button inputs only) 
+	End Rem
+	Method getButton:Int()
+		Return bmx_cegui_mouseeventargs_getbutton(eventArgsPtr)
+	End Method
+	
+	Rem
+	bbdoc: current state of the system keys and mouse buttons. 
+	End Rem
+	Method getSysKeys:Int()
+		Return bmx_cegui_mouseeventargs_getsyskeys(eventArgsPtr)
+	End Method
+	
+	Rem
+	bbdoc: Holds the amount the scroll wheel has changed. 
+	End Rem
+	Method getWheelChange:Float()
+		Return bmx_cegui_mouseeventargs_getwheelchange(eventArgsPtr)
+	End Method
+	
+	Rem
+	bbdoc: Holds number of mouse button down events currently counted in a multi-click sequence (for button inputs only). 
+	End Rem
+	Method getClickCount:Int()
+		Return bmx_cegui_mouseeventargs_getclickcount(eventArgsPtr)
+	End Method
+	
 End Type
 
 Rem
-bbdoc: 
+bbdoc: EventArgs based type that is used for objects passed to input event handlers concerning Tree events.
 End Rem
 Type TCETreeEventArgs Extends TCEWindowEventArgs
 
@@ -202,7 +281,11 @@ Type TCETreeEventArgs Extends TCEWindowEventArgs
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the tree item involved in the event.
+	End Rem
 	Method getTreeItem:TCETreeItem()
+		Return TCETreeItem(bmx_cegui_treeeventargs_gettreeitem(eventArgsPtr))
 	End Method
 	
 End Type

@@ -936,6 +936,21 @@ Extern
 	Function bmx_cegui_font_getfontheight:Float(handle:Byte Ptr, yScale:Float)
 	Function bmx_cegui_font_getbaseline:Float(handle:Byte Ptr, yScale:Float)
 
+	Function bmx_cegui_dragdropeventargs_getdragdropitem:Object(handle:Byte Ptr)
+	Function bmx_cegui_mousecursoreventargs_getimage:Object(handle:Byte Ptr)
+	Function bmx_cegui_keyeventargs_getcodepoint:Int(handle:Byte Ptr)
+	Function bmx_cegui_keyeventargs_getscancode:Int(handle:Byte Ptr)
+	Function bmx_cegui_keyeventargs_getsyskeys:Int(handle:Byte Ptr)
+	Function bmx_cegui_mouseeventargs_getposition(handle:Byte Ptr, x:Float Ptr, y:Float Ptr)
+	Function bmx_cegui_mouseeventargs_getmovedelta(handle:Byte Ptr, x:Float Ptr, y:Float Ptr)
+	Function bmx_cegui_mouseeventargs_getbutton:Int(handle:Byte Ptr)
+	Function bmx_cegui_mouseeventargs_getsyskeys:Int(handle:Byte Ptr)
+	Function bmx_cegui_mouseeventargs_getwheelchange:Float(handle:Byte Ptr)
+	Function bmx_cegui_mouseeventargs_getclickcount:Int(handle:Byte Ptr)
+	Function bmx_cegui_headersequenceeventargs_getoldindex:Int(handle:Byte Ptr)
+	Function bmx_cegui_headersequenceeventargs_getnewindex:Int(handle:Byte Ptr)
+	Function bmx_cegui_treeeventargs_gettreeitem:Object(handle:Byte Ptr)
+
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters
