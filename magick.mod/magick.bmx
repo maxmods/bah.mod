@@ -129,6 +129,9 @@ Type TMImage
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateFromFile:TMImage(imageSpec:String)
 		If Not _magick_initialized Then
 			_init_magick()
@@ -136,6 +139,9 @@ Type TMImage
 		Return TMImage._create(bmx_magick_createfromspec(imageSpec))
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateFromBlob:TMImage(blob:TMBlob)
 		Local this:TMImage = New TMImage
 		this.imagePtr = bmx_magick_image_createfromblob(blob.blobPtr)
@@ -143,6 +149,9 @@ Type TMImage
 		Return this
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateFromStream:TMImage(stream:TStream)
 		
 		Local size:Int = stream.Size()
@@ -187,6 +196,9 @@ Type TMImage
 		_invertalpha()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetPixmap:TPixmap()
 	
 		If imageChanged Then
@@ -218,7 +230,10 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Add noise to an image channel with the specified noise type.
+	about: The @channel parameter specifies the channel to add noise to.  The @noiseType parameter
+	specifies the type of noise. One of, NOISE_UNIFORMNOISE, NOISE_GAUSSIANNOISE, NOISE_MULTIPLICATIVEGAUSSIANNOISE, NOISE_IMPULSENOISE,
+	NOISE_LAPLACIANNOISE or NOISE_POISSONNOISE.
 	End Rem
 	Method addNoiseChannel(channel:Int, noiseType:Int)
 		bmx_magick_image_addnoisechannel(imagePtr, channel, noiseType)
@@ -228,7 +243,7 @@ Type TMImage
 	'End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Annotate using specified @text, and placement @location.
 	End Rem
 	Method annotate(text:String, location:TMGeometry )
 		bmx_magick_image_annotate(imagePtr, text, location.geometryPtr)
@@ -239,26 +254,32 @@ Type TMImage
 	about: The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
 	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels.
 	End Rem
-	Method blur(radius:Double, sigma:Double)
+	Method blur(radius:Double = 1.0, sigma:Double = 0.5)
 		bmx_magick_image_blur(imagePtr, radius, sigma)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Blur an image channel.
+	about: The @channel parameter specifies the channel to blur. The @radius parameter specifies the radius
+	of the Gaussian, in pixels, not counting the center pixel.  The @sigma parameter specifies the standard
+	deviation of the Laplacian, in pixels.
 	End Rem
-	Method blurChannel(channel:Int, radius:Double, sigma:Double )
+	Method blurChannel(channel:Int, radius:Double = 0.0, sigma:Double = 1.0 )
 		bmx_magick_image_blurchannel(imagePtr, channel, radius, sigma)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Border image (add border to image). 
+	about: The color of the border is specified by setting borderColor().
 	End Rem
 	Method border(geometry:TMGeometry)
 		bmx_magick_image_border(imagePtr, geometry.geometryPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Extract channel from image.
+	about: Use this option to extract a particular channel from  the image.
+	MatteChannel for example, is useful for extracting the opacity values from an image.
 	End Rem
 	Method channel(channel:Int)
 		bmx_magick_image_channel(imagePtr, channel)
@@ -320,22 +341,14 @@ Type TMImage
 	Rem
 	bbdoc: 
 	End Rem
-	Method compose(compose:Int)
-		bmx_magick_image_compose(imagePtr, compose)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method getComposite:Int()
-		Return bmx_magick_image_getcomposite(imagePtr)
-	End Method
-	
 	Method Flip()
 		bmx_magick_image_flip(imagePtr)
 		imageChanged = True
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method flop()
 		bmx_magick_image_flop(imagePtr)
 		imageChanged = True
@@ -348,15 +361,24 @@ Type TMImage
 		bmx_magick_image_oilpaint(imagePtr, radius)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method opacity(value:Int)
 		bmx_magick_image_opacity(imagePtr, value)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method rotate(degrees:Double)
 		bmx_magick_image_rotate(imagePtr, degrees)
 	End Method
 	
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method WriteFile(imageSpec:String)
 		bmx_magick_image_writefile(imagePtr, imageSpec)
 	End Method
@@ -498,7 +520,93 @@ Type TMImage
 	Method getComment:String()
 	End Method
 
-
+	Rem
+	bbdoc: 
+	End Rem
+	Method compose(compose:Int)
+		bmx_magick_image_compose(imagePtr, compose)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getComposite:Int()
+		Return bmx_magick_image_getcomposite(imagePtr)
+	End Method
+	
+	Method pixelColor(x:Int, y:Int, color:TMColor)
+	End Method
+	
+	Method getPixelColor:TMColor(x:Int, y:Int)
+	End Method
+	
+	Method quality(value:Int)
+	End Method
+	
+	Method getQuality:Int()
+	End Method
+	
+	Method quantizeColors(colors:Int)
+	End Method
+	
+	Method quantizeColorSpace(colorSpace:Int)
+	End Method
+	
+	Method quantizeDither(flag:Int)
+	End Method
+	
+	Method quantizeTreeDepth(treeDepth:Int)
+	End Method
+	
+	
+	
+	Method strokeColor(color:TMColor)
+	End Method
+	
+	Method getStrokeColor:TMColor()
+	End Method
+	
+	Method strokeDashOffset(offset:Double)
+	End Method
+	
+	Method getStrokeDashOffset:Double()
+	End Method
+	
+	'Method strokeDashArray()
+	'End Method
+	
+	Method strokeLineCap(lineCap:Int)
+	End Method
+	
+	Method getStrokeLineCap:Int()
+	End Method
+	
+	Method strokeLineJoin(lineJoin:Int)
+	End Method
+	
+	Method getStrokeLineJoin:Int()
+	End Method
+	
+	Method strokeMiterLimit(miterLimit:Int)
+	End Method
+	
+	Method getStrokeMiterLimit:Int()
+	End Method
+	
+	Method strokeWidth(width:Double)
+	End Method
+	
+	Method getStrokeWidth:Double()
+	End Method
+	
+	Method strokePattern(pattern:TMImage)
+	End Method
+	
+	Method getStrokePattern:TMImage()
+	End Method
+	
+	
+	
 End Type
 
 Type TMGeometry

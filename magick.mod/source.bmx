@@ -32,6 +32,9 @@ Import "../../pub.mod/zlib.mod/*.h"
 Import "../../bah.mod/libxml.mod/src/*.h"
 Import "src/*.h"
 
+Import "src/delegates/jasper/include/*.h"
+Import "src/delegates/jasper/*.h"
+
 'Import "src/magick/animate.c"
 Import "src/magick/annotate.c"
 Import "src/magick/attribute.c"
@@ -224,6 +227,70 @@ Import "src/Magick++/Pixels.cpp"
 Import "src/Magick++/STL.cpp"
 Import "src/Magick++/Thread.cpp"
 
+
+
+' jasper
+Import "src/delegates/jasper/base/jas_cm.c"
+Import "src/delegates/jasper/base/jas_version.c"
+Import "src/delegates/jasper/base/jas_debug.c"
+Import "src/delegates/jasper/base/jas_getopt.c"
+Import "src/delegates/jasper/base/jas_icc.c"
+Import "src/delegates/jasper/base/jas_iccdata.c"
+Import "src/delegates/jasper/base/jas_image.c"
+Import "src/delegates/jasper/base/jas_init.c"
+Import "src/delegates/jasper/base/jas_malloc.c"
+Import "src/delegates/jasper/base/jas_seq.c"
+Import "src/delegates/jasper/base/jas_stream.c"
+Import "src/delegates/jasper/base/jas_string.c"
+Import "src/delegates/jasper/base/jas_tmr.c"
+Import "src/delegates/jasper/base/jas_tvp.c"
+
+Import "src/delegates/jasper/bmp/bmp_cod.c"
+Import "src/delegates/jasper/bmp/bmp_dec.c"
+Import "src/delegates/jasper/bmp/bmp_enc.c"
+
+Import "src/delegates/jasper/jp2/jp2_cod.c"
+Import "src/delegates/jasper/jp2/jp2_dec.c"
+Import "src/delegates/jasper/jp2/jp2_enc.c"
+
+Import "src/delegates/jasper/jpc/jpc_bs.c"
+Import "src/delegates/jasper/jpc/jpc_util.c"
+Import "src/delegates/jasper/jpc/jpc_cs.c"
+Import "src/delegates/jasper/jpc/jpc_dec.c"
+Import "src/delegates/jasper/jpc/jpc_enc.c"
+Import "src/delegates/jasper/jpc/jpc_math.c"
+Import "src/delegates/jasper/jpc/jpc_mct.c"
+Import "src/delegates/jasper/jpc/jpc_mqcod.c"
+Import "src/delegates/jasper/jpc/jpc_mqdec.c"
+Import "src/delegates/jasper/jpc/jpc_mqenc.c"
+Import "src/delegates/jasper/jpc/jpc_qmfb.c"
+Import "src/delegates/jasper/jpc/jpc_t1cod.c"
+Import "src/delegates/jasper/jpc/jpc_t1dec.c"
+Import "src/delegates/jasper/jpc/jpc_t1enc.c"
+Import "src/delegates/jasper/jpc/jpc_t2cod.c"
+Import "src/delegates/jasper/jpc/jpc_t2dec.c"
+Import "src/delegates/jasper/jpc/jpc_t2enc.c"
+Import "src/delegates/jasper/jpc/jpc_tagtree.c"
+Import "src/delegates/jasper/jpc/jpc_tsfb.c"
+
+Import "src/delegates/jasper/jpg/jpg_dec.c"
+Import "src/delegates/jasper/jpg/jpg_dummy.c"
+Import "src/delegates/jasper/jpg/jpg_enc.c"
+Import "src/delegates/jasper/jpg/jpg_val.c"
+
+Import "src/delegates/jasper/mif/mif_cod.c"
+
+Import "src/delegates/jasper/pgx/pgx_cod.c"
+Import "src/delegates/jasper/pgx/pgx_dec.c"
+Import "src/delegates/jasper/pgx/pgx_enc.c"
+
+Import "src/delegates/jasper/pnm/pnm_cod.c"
+Import "src/delegates/jasper/pnm/pnm_dec.c"
+Import "src/delegates/jasper/pnm/pnm_enc.c"
+
+Import "src/delegates/jasper/ras/ras_cod.c"
+Import "src/delegates/jasper/ras/ras_dec.c"
+Import "src/delegates/jasper/ras/ras_enc.c"
 
 
 Import "glue.cpp"

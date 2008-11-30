@@ -404,7 +404,7 @@
 #undef HasJBIG
 
 /* Define if you have JPEG version 2 "Jasper" library */
-#undef HasJP2
+#define HasJP2 1
 
 /* Define if you have JPEG library */
 #define HasJPEG 1
