@@ -34,7 +34,7 @@ ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
-ModuleInfo "CC_OPTS: -fexceptions"
+ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
 
 Import BRL.Pixmap
 Import BRL.Stream
@@ -130,6 +130,9 @@ Type TMImage
 	End Function
 
 	Function CreateFromFile:TMImage(imageSpec:String)
+		If Not _magick_initialized Then
+			_init_magick()
+		End If
 		Return TMImage._create(bmx_magick_createfromspec(imageSpec))
 	End Function
 	

@@ -28,6 +28,7 @@ Import BaH.libxml
 
 Import "../../pub.mod/freetype.mod/include/*.h"
 Import "../../pub.mod/libjpeg.mod/*.h"
+Import "../../pub.mod/zlib.mod/*.h"
 Import "../../bah.mod/libxml.mod/src/*.h"
 Import "src/*.h"
 
@@ -93,6 +94,10 @@ Import "src/magick/version.c"
 Import "src/magick/omp_data_view.c"
 'Import "src/magick/widget.c"
 'Import "src/magick/xwindow.c"
+?win32
+Import "src/magick/nt_base.c"
+Import "src/magick/nt_feature.c"
+?
 
 ' coders
 Import "src/coders/art.c"

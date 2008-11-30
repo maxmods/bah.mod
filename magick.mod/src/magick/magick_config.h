@@ -357,7 +357,9 @@
 #undef HAVE_TIFFSWABARRAYOFTRIPLES
 
 /* Define to 1 if you have the `times' function. */
+#if !defined(WIN32)
 #define HAVE_TIMES 1
+#endif
 
 /* Define to 1 if you have the `ulltostr' function. */
 /* #undef HAVE_ULLTOSTR */
