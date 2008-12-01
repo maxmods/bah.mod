@@ -89,6 +89,9 @@ Function LoadMagickImage:TMImage( url:Object )
 
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Type TMImage
 
 	Field imagePtr:Byte Ptr
@@ -129,6 +132,16 @@ Type TMImage
 			this.imagePtr = imagePtr
 			Return this
 		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function Create:TMImage()
+		If Not _magick_initialized Then
+			_init_magick()
+		End If
+		Return TMImage._create(bmx_magick_create())
 	End Function
 
 	Rem
@@ -247,8 +260,11 @@ Type TMImage
 	Rem
 	bbdoc: Annotate using specified @text, and placement @location.
 	End Rem
-	Method annotate(text:String, location:TMGeometry )
-		bmx_magick_image_annotate(imagePtr, text, location.geometryPtr)
+	Method annotate(text:String, location:Object )
+		If TMGeometry(location) Then
+			bmx_magick_image_annotate(imagePtr, text, TMGeometry(location).geometryPtr)
+		Else If String(location) Then
+		End If
 	End Method
 	
 	Rem
@@ -274,8 +290,12 @@ Type TMImage
 	bbdoc: Border image (add border to image). 
 	about: The color of the border is specified by setting borderColor().
 	End Rem
-	Method border(geometry:TMGeometry)
-		bmx_magick_image_border(imagePtr, geometry.geometryPtr)
+	Method border(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_border(imagePtr, TMGeometry(geometry).geometryPtr)
+		Else If String(geometry) Then
+		
+		End If
 	End Method
 	
 	Rem
@@ -312,9 +332,14 @@ Type TMImage
 	Rem
 	bbdoc: 
 	End Rem
-	Method chop(geometry:TMGeometry)
-		bmx_magick_image_chop(imagePtr, geometry.geometryPtr)
-		imageChanged = True
+	Method chop(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_chop(imagePtr, TMGeometry(geometry).geometryPtr)
+			imageChanged = True
+		Else If String(geometry) Then
+		
+			imageChanged = True
+		End If
 	End Method
 	
 	Rem
@@ -361,6 +386,7 @@ Type TMImage
 	End Rem
 	Method oilPaint(radius:Double = 3.0)
 		bmx_magick_image_oilpaint(imagePtr, radius)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -368,7 +394,24 @@ Type TMImage
 	End Rem
 	Method opacity(value:Int)
 		bmx_magick_image_opacity(imagePtr, value)
+		imageChanged = True
 	End Method
+	
+	Method read(imageSpec:String)
+		bmx_magick_image_read(imagePtr, imageSpec)
+		imageChanged = True
+	End Method
+	
+	Method readGeom(geometry:Object, imageSpec:String)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_readgeom(imagePtr, TMGeometry(geometry).geometryPtr, imageSpec)
+			imageChanged = True
+		Else If String(geometry) Then
+			bmx_magick_image_readgeomtxt(imagePtr, String(geometry), imageSpec)
+			imageChanged = True
+		End If
+	End Method
+	
 	
 	Rem
 	bbdoc: 
@@ -607,16 +650,32 @@ Type TMImage
 	Method getStrokePattern:TMImage()
 	End Method
 	
-	
+	Rem
+	bbdoc: Width and height of a raw image (an image which does not support width and height information).
+	about: Size may also be used to affect the image size read from a multi-resolution format (e.g. Photo CD, JBIG, or JPEG.)
+	End Rem
+	Method size(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_size(imagePtr, TMGeometry(geometry).geometryPtr)
+		Else If String(geometry) Then
+			bmx_magick_image_sizetxt(imagePtr, String(geometry))
+		End If
+	End Method
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TMGeometry
 
 	Field geometryPtr:Byte Ptr
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TMColor
 
 	Field colorPtr:Byte Ptr
@@ -624,12 +683,18 @@ Type TMColor
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TMDrawable
 
 	Field drawablePtr:Byte Ptr
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TMDrawableAffine Extends TMDrawable
 
 	Method Create:TMDrawableAffine(sx:Double = 1.0, sy:Double = 1.0, rx:Double = 0, ry:Double = 0, tx:Double = 0, ty:Double = 0)
@@ -639,7 +704,9 @@ Type TMDrawableAffine Extends TMDrawable
 
 End Type
 
-
+Rem
+bbdoc: 
+End Rem
 Type TMBlob
 
 	Field blobPtr:Byte Ptr
@@ -656,6 +723,78 @@ Type TMBlob
 		Return this
 	End Function
 
+End Type
+
+Rem
+bbdoc: Obtains information about the image formats supported by GraphicsMagick.
+End Rem
+Function coderInfoList:TList(isReadable:Int = TMCoderInfo.AnyMatch, isWritable:Int = TMCoderInfo.AnyMatch, isMultiFrame:Int = TMCoderInfo.AnyMatch)
+	Local list:TList = New TList
+	bmx_magick_coderinfolist(list, isReadable, isWritable, isMultiFrame)
+	Return list
+End Function
+
+Rem
+bbdoc: The TMCoderInfo type provides the means to provide information regarding GraphicsMagick support for an image format (designated by a magick string).
+about: It may be used to provide support for a specific named format (provided as an argument to the
+constructor), or as an element of a TList when format support is queried using the coderInfoList() function.
+End Rem
+Type TMCoderInfo
+
+	Rem
+	bbdoc: match any coder
+	End Rem
+	Const AnyMatch:Int = 0
+	Rem
+	bbdoc: match coder if true
+	End Rem
+	Const TrueMatch:Int = 1
+	Rem
+	bbdoc: match coder if false
+	End Rem
+	Const FalseMatch:Int = 2
+
+	Rem
+	bbdoc: Format name (e.g. "GIF").
+	End Rem
+	Field name:String
+	Rem
+	bbdoc: Format description (e.g. "CompuServe graphics interchange format").
+	End Rem
+	Field description:String
+	Rem
+	bbdoc: Format is readable.
+	End Rem
+	Field isReadable:Int
+	Rem
+	bbdoc: Format is writeable.
+	End Rem
+	Field isWritable:Int
+	Rem
+	bbdoc: Format supports multiple frames.
+	End Rem
+	Field isMultiFrame:Int
+	
+	Function _create:TMCoderInfo(name:String, description:String, isReadable:Int, isWritable:Int, isMultiFrame:Int)
+		Local this:TMCoderInfo = New TMCoderInfo
+		this.name = name
+		this.description = description
+		this.isReadable = isReadable
+		this.isWritable = isWritable
+		this.isMultiFrame = isMultiFrame
+		Return this
+	End Function
+	
+	Function _addToList(list:TList, coderInfo:TMCoderInfo)
+		list.AddLast(coderInfo)
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function info:TMCoderInfo(format:String)
+	End Function
+	
 End Type
 
 

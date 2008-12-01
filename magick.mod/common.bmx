@@ -27,6 +27,7 @@ Extern
 
 	Function bmx_magick_createfromspec:Byte Ptr(imageSpec:String)
 	Function bmx_magick_image_createfromblob:Byte Ptr(blob:Byte Ptr)
+	Function bmx_magick_create:Byte Ptr()
 
 	Function bmx_magick_image_adaptivethreshold(handle:Byte Ptr, width:Int, height:Int, offset:Int)
 	Function bmx_magick_image_addnoise(handle:Byte Ptr, noiseType:Int)
@@ -57,9 +58,16 @@ Extern
 	Function bmx_magick_image_getdepth:Int(handle:Byte Ptr)
 	Function bmx_magick_image_writedata(handle:Byte Ptr, x:Int, y:Int, width:Int, height:Int, map:String, _type:Int, pixels:Byte Ptr)
 	Function bmx_magick_image_opacity(handle:Byte Ptr, value:Int)
+	Function bmx_magick_image_size(handle:Byte Ptr, geometry:Byte Ptr)
+	Function bmx_magick_image_sizetxt(handle:Byte Ptr, geometry:String)
+	Function bmx_magick_image_read(handle:Byte Ptr, imageSpec:String)
+	Function bmx_magick_image_readgeom(handle:Byte Ptr, geometry:Byte Ptr, imageSpec:String)
+	Function bmx_magick_image_readgeomtxt(handle:Byte Ptr, geometry:String, imageSpec:String)
 
 	Function bmx_magick_blob_createfromdata:Byte Ptr(data:Byte Ptr, size:Int)
 	
+	Function bmx_magick_coderinfolist(list:Object, isReadable:Int, isWritable:Int, isMultiFrame:Int)
+
 End Extern
 
 

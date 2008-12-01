@@ -20,6 +20,7 @@
  THE SOFTWARE.
 */
 
+#include <list>
 #include <Magick++.h>
 
 class MaxMImage;
@@ -32,8 +33,12 @@ extern "C" {
 
 #include "blitz.h"
 
+	BBObject * _bah_magick_TMCoderInfo__create(BBString * name, BBString * description, bool isReadable, bool isWritable, bool isMultiFrame);
+	void _bah_magick_TMCoderInfo__addToList(BBObject * tlist, BBObject * info);
+
 	MaxMImage * bmx_magick_createfromspec(BBString * imageSpec);
 	MaxMImage * bmx_magick_image_createfromblob(Blob * blob);
+	MaxMImage * bmx_magick_create();
 
 	void bmx_magick_image_adaptivethreshold(MaxMImage * image, const unsigned int width, const unsigned int height, unsigned offset);
 	void bmx_magick_image_addnoise(MaxMImage * image, const NoiseType noiseType);
@@ -70,8 +75,15 @@ extern "C" {
 	unsigned int bmx_magick_image_getdepth(MaxMImage * image);
 	void bmx_magick_image_writedata(MaxMImage * image, const int x, const int y, const unsigned int columns, const unsigned int rows, BBString * map, const StorageType type, void *pixels);
 	void bmx_magick_image_opacity(MaxMImage * image, unsigned int value);
+	void bmx_magick_image_size(MaxMImage * image, MaxMGeometry * geometry);
+	void bmx_magick_image_sizetxt(MaxMImage * image, BBString * geometry);
+	void bmx_magick_image_read(MaxMImage * image, BBString * imageSpec);
+	void bmx_magick_image_readgeom(MaxMImage * image, MaxMGeometry * geometry, BBString * imageSpec);
+	void bmx_magick_image_readgeomtxt(MaxMImage * image, BBString * geometry, BBString * imageSpec);
 
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
+
+	void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable, CoderInfo::MatchType isWritable, CoderInfo::MatchType isMultiFrame);
 
 }
 
@@ -167,6 +179,10 @@ MaxMImage * bmx_magick_createfromspec(BBString * imageSpec) {
 MaxMImage * bmx_magick_image_createfromblob(Blob * blob) {
 	Image image(*blob);
 	return new MaxMImage(image);
+}
+
+MaxMImage * bmx_magick_create() {
+	return new MaxMImage();
 }
 
 void bmx_magick_image_adaptivethreshold(MaxMImage * image, const unsigned int width, const unsigned int height, unsigned offset ) {
@@ -314,6 +330,37 @@ void bmx_magick_image_rotate(MaxMImage * image, double degrees) {
 	image->image().rotate(degrees);
 }
 
+void bmx_magick_image_size(MaxMImage * image, MaxMGeometry * geometry) {
+	image->image().size(geometry->geometry());
+}
+
+void bmx_magick_image_sizetxt(MaxMImage * image, BBString * geometry) {
+	char *p = bbStringToCString( geometry );
+	image->image().size(p);
+	bbMemFree(p);
+}
+
+void bmx_magick_image_read(MaxMImage * image, BBString * imageSpec) {
+	char *p = bbStringToCString( imageSpec );
+	image->image().read(p);
+	bbMemFree(p);
+}
+
+void bmx_magick_image_readgeom(MaxMImage * image, MaxMGeometry * geometry, BBString * imageSpec) {
+	char *p = bbStringToCString( imageSpec );
+	image->image().read(geometry->geometry(), p);
+	bbMemFree(p);
+}
+
+void bmx_magick_image_readgeomtxt(MaxMImage * image, BBString * geometry, BBString * imageSpec) {
+	char *g = bbStringToCString( geometry );
+	char *i = bbStringToCString( imageSpec );
+	image->image().read(g, i);
+	bbMemFree(g);
+	bbMemFree(i);
+}
+
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Blob * bmx_magick_blob_createfromdata(void * data, int size) {
@@ -322,4 +369,17 @@ Blob * bmx_magick_blob_createfromdata(void * data, int size) {
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable, CoderInfo::MatchType isWritable, CoderInfo::MatchType isMultiFrame) {
+	std::list<CoderInfo> coderList; 
+	coderInfoList(&coderList, isReadable, isWritable, isMultiFrame);
+	
+	std::list<CoderInfo>::iterator entry = coderList.begin(); 
+	while( entry != coderList.end() ) {
+		BBObject * info = _bah_magick_TMCoderInfo__create(
+				bbStringFromCString(entry->name().c_str()), bbStringFromCString(entry->description().c_str()),
+				entry->isReadable(), entry->isWritable(), entry->isMultiFrame());
+		_bah_magick_TMCoderInfo__addToList(tlist, info);
+		entry++;
+	}
+}
 
