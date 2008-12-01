@@ -44,7 +44,7 @@ Import "common.bmx"
 ' NOTES:
 '
 ' Renamed coders/locale.c and map.c with prefix bmx_
-'
+' Renamed delegates/bzip2/compress.c with prefix bmx_
 '
 ' Be careful not to overwrite magick_config.h !!
 '

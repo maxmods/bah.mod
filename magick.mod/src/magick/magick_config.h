@@ -389,7 +389,7 @@
 #undef HAVE__POPEN
 
 /* Define if you have the bzip2 library */
-#undef HasBZLIB
+#define HasBZLIB 1
 
 /* Define if you have Display Postscript */
 #undef HasDPS

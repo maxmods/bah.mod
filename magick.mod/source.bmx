@@ -294,5 +294,22 @@ Import "src/delegates/jasper/ras/ras_cod.c"
 Import "src/delegates/jasper/ras/ras_dec.c"
 Import "src/delegates/jasper/ras/ras_enc.c"
 
+' bzip2
+Import "src/delegates/bzip2/*.h"
+
+Import "src/delegates/bzip2/blocksort.c"
+Import "src/delegates/bzip2/unzcrash.c"
+Import "src/delegates/bzip2/bzip2.c"
+Import "src/delegates/bzip2/bzip2recover.c"
+Import "src/delegates/bzip2/bzlib.c"
+Import "src/delegates/bzip2/bmx_compress.c"
+Import "src/delegates/bzip2/crctable.c"
+Import "src/delegates/bzip2/decompress.c"
+Import "src/delegates/bzip2/huffman.c"
+Import "src/delegates/bzip2/mk251.c"
+Import "src/delegates/bzip2/randtable.c"
+Import "src/delegates/bzip2/spewG.c"
+
+
 
 Import "glue.cpp"
