@@ -35,6 +35,8 @@ Import "src/*.h"
 Import "src/delegates/jasper/include/*.h"
 Import "src/delegates/jasper/*.h"
 
+Import "src/delegates/bzip2/*.h"
+
 'Import "src/magick/animate.c"
 Import "src/magick/annotate.c"
 Import "src/magick/attribute.c"
