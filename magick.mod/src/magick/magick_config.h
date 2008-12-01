@@ -336,25 +336,25 @@
 #define HAVE_TEMPNAM 1
 
 /* Define to 1 if you have the <tiffconf.h> header file. */
-#undef HAVE_TIFFCONF_H
+#define HAVE_TIFFCONF_H 1
 
 /* Define to 1 if you have the `TIFFIsCODECConfigured' function. */
-#undef HAVE_TIFFISCODECCONFIGURED
+#define HAVE_TIFFISCODECCONFIGURED 1
 
 /* Define to 1 if you have the `TIFFMergeFieldInfo' function. */
-#undef HAVE_TIFFMERGEFIELDINFO
+#define HAVE_TIFFMERGEFIELDINFO 1
 
 /* Define to 1 if you have the `TIFFSetErrorHandlerExt' function. */
-#undef HAVE_TIFFSETERRORHANDLEREXT
+#define HAVE_TIFFSETERRORHANDLEREXT 1
 
 /* Define to 1 if you have the `TIFFSetTagExtender' function. */
-#undef HAVE_TIFFSETTAGEXTENDER
+#define HAVE_TIFFSETTAGEXTENDER 1
 
 /* Define to 1 if you have the `TIFFSetWarningHandlerExt' function. */
-#undef HAVE_TIFFSETWARNINGHANDLEREXT
+#define HAVE_TIFFSETWARNINGHANDLEREXT 1
 
 /* Define to 1 if you have the `TIFFSwabArrayOfTriples' function. */
-#undef HAVE_TIFFSWABARRAYOFTRIPLES
+#define HAVE_TIFFSWABARRAYOFTRIPLES 1
 
 /* Define to 1 if you have the `times' function. */
 #if !defined(WIN32)
@@ -425,7 +425,7 @@
 #undef HasSharedMemory
 
 /* Define if you have TIFF library */
-#undef HasTIFF
+#define HasTIFF 1
 
 /* Define if you have TRIO vsnprintf replacement library */
 #undef HasTRIO

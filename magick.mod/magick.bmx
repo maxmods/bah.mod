@@ -48,6 +48,8 @@ Import "common.bmx"
 '
 ' Be careful not to overwrite magick_config.h !!
 '
+' Added windows.h include to tif_win32.c
+'
 
 
 Global _magick_initialized:Int = False

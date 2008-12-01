@@ -9,7 +9,7 @@ Import brl.glmax2d
 
 
 ' Load the image
-Local img:TMImage = LoadMagickImage("hippo.jpg")
+Local img:TMImage = LoadMagickImage("eastcoast.tif")
 
 ' did the image load?
 If img Then
