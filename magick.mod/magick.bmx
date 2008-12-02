@@ -118,7 +118,7 @@ Type TMImage
 	End Rem
 	Field pitch:Int
 	
-	Field imageChanged:Int
+	Field imageChanged:Int = True
 	
 	Method New()
 		If Not _magick_initialized Then
@@ -130,6 +130,7 @@ Type TMImage
 		If imagePtr Then
 			Local this:TMImage = New TMImage
 			this.imagePtr = imagePtr
+			this._calc()
 			Return this
 		End If
 	End Function
@@ -160,7 +161,7 @@ Type TMImage
 	Function CreateFromBlob:TMImage(blob:TMBlob)
 		Local this:TMImage = New TMImage
 		this.imagePtr = bmx_magick_image_createfromblob(blob.blobPtr)
-		this._updatePixmap()
+		this._calc()
 		Return this
 	End Function
 
@@ -180,6 +181,13 @@ Type TMImage
 		MemFree(buffer)
 		
 		Return image
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateFromPixmap:TMImage(pixmap:TPixmap)
+	
 	End Function
 
 	Method _calc()
@@ -214,7 +222,7 @@ Type TMImage
 	Rem
 	bbdoc: 
 	End Rem
-	Method GetPixmap:TPixmap()
+	Method getPixmap:TPixmap()
 	
 		If imageChanged Then
 			_updatePixmap()
@@ -233,6 +241,7 @@ Type TMImage
 	End Rem
 	Method adaptiveThreshold(width:Int, height:Int, offset:Int = 0)
 		bmx_magick_image_adaptivethreshold(imagePtr, width, height, offset)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -242,6 +251,7 @@ Type TMImage
 	End Rem
 	Method addNoise(noiseType:Int)
 		bmx_magick_image_addnoise(imagePtr, noiseType)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -252,6 +262,7 @@ Type TMImage
 	End Rem
 	Method addNoiseChannel(channel:Int, noiseType:Int)
 		bmx_magick_image_addnoisechannel(imagePtr, channel, noiseType)
+		imageChanged = True
 	End Method
 	
 	'method bmx_magick_image_affinetransform(, const DrawableAffine &affine )
@@ -264,6 +275,7 @@ Type TMImage
 		If TMGeometry(location) Then
 			bmx_magick_image_annotate(imagePtr, text, TMGeometry(location).geometryPtr)
 		Else If String(location) Then
+			bmx_magick_image_annotatetxt(imagePtr, text, String(location))
 		End If
 	End Method
 	
@@ -274,6 +286,7 @@ Type TMImage
 	End Rem
 	Method blur(radius:Double = 1.0, sigma:Double = 0.5)
 		bmx_magick_image_blur(imagePtr, radius, sigma)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -284,6 +297,7 @@ Type TMImage
 	End Rem
 	Method blurChannel(channel:Int, radius:Double = 0.0, sigma:Double = 1.0 )
 		bmx_magick_image_blurchannel(imagePtr, channel, radius, sigma)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -294,7 +308,7 @@ Type TMImage
 		If TMGeometry(geometry) Then
 			bmx_magick_image_border(imagePtr, TMGeometry(geometry).geometryPtr)
 		Else If String(geometry) Then
-		
+			bmx_magick_image_bordertxt(imagePtr, String(geometry))
 		End If
 	End Method
 	
@@ -308,36 +322,44 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Channel modulus depth.
+	about: The channel modulus depth represents the minimum number of bits required to support the channel
+	without loss. Setting the channel's modulus depth modifies the channel (i.e. discards resolution) if the
+	requested modulus depth is less than the current modulus depth, otherwise the channel is not altered.
+	There is no attribute associated with the modulus depth so the current modulus depth is obtained by
+	inspecting the pixels. As a result, the depth returned may be less than the most recently set channel
+	depth. Subsequent image processing may result in increasing the channel depth.
 	End Rem
 	Method channelDepth(channel:Int, depth:Int)
 		bmx_magick_image_channeldepth(imagePtr, channel, depth)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the channel modulus depth.
 	End Rem
 	Method getChannelDepth:Int(channel:Int)
 		Return bmx_magick_image_getchanneldepth(imagePtr, channel)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Charcoal effect image (looks like charcoal sketch).
+	about: The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
+	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels.
 	End Rem
-	Method charcoal(radius:Double, sigma:Double)
+	Method charcoal(radius:Double = 1.0, sigma:Double = 0.5)
 		bmx_magick_image_charcoal(imagePtr, radius, sigma)
 		imageChanged = True
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Chop image (remove vertical or horizontal subregion of image)
 	End Rem
 	Method chop(geometry:Object)
 		If TMGeometry(geometry) Then
 			bmx_magick_image_chop(imagePtr, TMGeometry(geometry).geometryPtr)
 			imageChanged = True
 		Else If String(geometry) Then
-		
+			bmx_magick_image_choptxt(imagePtr, String(geometry))
 			imageChanged = True
 		End If
 	End Method
@@ -345,28 +367,138 @@ Type TMImage
 	Rem
 	bbdoc: 
 	End Rem
-	Method colorize(opacityRed:Int, opacityGreen:Int, opacityBlue:Int, penColor:TMColor)
-		bmx_magick_image_colorize(imagePtr, opacityRed, opacityGreen, opacityBlue, penColor.colorPtr)
-		imageChanged = True
+	Method colorize(opacityRed:Int, opacityGreen:Int, opacityBlue:Int, penColor:Object)
+		If TMColor(penColor) Then
+			bmx_magick_image_colorize(imagePtr, opacityRed, opacityGreen, opacityBlue, TMColor(penColor).colorPtr)
+			imageChanged = True
+		ElseIf String(penColor)
+			bmx_magick_image_colorizetxt(imagePtr, opacityRed, opacityGreen, opacityBlue, String(penColor))
+			imageChanged = True
+		EndIf
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method colorizeColor(opacity:Int, penColor:TMColor)
-		bmx_magick_image_colorizecolor(imagePtr, opacity, penColor.colorPtr)
-		imageChanged = True
+	Method colorizeColor(opacity:Int, penColor:Object)
+		If TMColor(penColor) Then
+			bmx_magick_image_colorizecolor(imagePtr, opacity, TMColor(penColor).colorPtr)
+			imageChanged = True
+		ElseIf String(penColor)
+			bmx_magick_image_colorizecolortxt(imagePtr, opacity, String(penColor))
+			imageChanged = True
+		End If
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Comment image (add comment string to image).
+	about: By default, each image is commented with its file name. Use  this  method to  assign a specific comment
+	to the image.  Optionally you can include the image filename, type, width, height, or other
+	image  attributes by embedding special format characters.
 	End Rem
 	Method comment(comment:String)
 		bmx_magick_image_comment(imagePtr, comment)
 	End Method
 	
 	Rem
+	bbdoc: Returns a copy of the image.
+	End Rem
+	Method copy:TMImage()
+		Return TMImage._create(bmx_magick_image_copy(imagePtr))
+	End Method
+	
+	Rem
 	bbdoc: 
+	End Rem
+	Method contrast(sharpen:Int)
+	End Method
+	
+	'Method convolve(order:Int, kernel:Double[])
+	'End Method
+	
+	Rem
+	bbdoc: Crop image (subregion of original image)
+	End Rem
+	Method crop(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_crop(imagePtr, TMGeometry(geometry).geometryPtr)
+		ElseIf String(geometry) Then
+			bmx_magick_image_croptxt(imagePtr, String(geometry))
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Cycle image colormap.
+	End Rem
+	Method cycleColormap(amount:Int)
+		bmx_magick_image_cyclecolormap(imagePtr, amount)
+	End Method
+	
+	Rem
+	bbdoc: Despeckle image (reduce speckle noise).
+	End Rem
+	Method despeckle()
+		bmx_magick_image_despeckle(imagePtr)
+		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method draw(drawable:TMDrawable)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method drawList(drawables:TList)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method edge(radius:Double = 0.0)
+		bmx_magick_image_edge(imagePtr, radius)
+		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: Emboss image (hilight edges with 3D effect).
+	about: The $radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
+	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels.
+	End Rem
+	Method emboss(radius:Double = 1.0, sigma:Double = 0.5)
+		bmx_magick_image_emboss(imagePtr, radius, sigma)
+		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: Enhance image (minimize noise).
+	End Rem
+	Method enhance()
+		bmx_magick_image_enhance(imagePtr)
+		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: Equalize image (histogram equalization).
+	End Rem
+	Method equalize()
+		bmx_magick_image_equalize(imagePtr)
+		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: Set all image pixels to the current background color.
+	End Rem
+	Method erase()
+		bmx_magick_image_erase(imagePtr)
+		imageChanged = True
+	End Method
+	
+	
+	Rem
+	bbdoc: Flip image (reflect each scanline in the vertical direction).
 	End Rem
 	Method Flip()
 		bmx_magick_image_flip(imagePtr)
@@ -374,7 +506,7 @@ Type TMImage
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Flop image (reflect each scanline in the horizontal direction).
 	End Rem
 	Method flop()
 		bmx_magick_image_flop(imagePtr)
@@ -390,18 +522,28 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set or attenuate the opacity channel in the image.
+	about: If the image pixels are opaque then they are set to the specified opacity value, otherwise
+	they are blended with the supplied opacity value.  The value of @opacity ranges from 0
+	(completely opaque) to MaxRGB . The defines OpaqueOpacity and TransparentOpacity are available
+	to specify completely opaque or completely transparent, respectively.
 	End Rem
 	Method opacity(value:Int)
 		bmx_magick_image_opacity(imagePtr, value)
 		imageChanged = True
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method read(imageSpec:String)
 		bmx_magick_image_read(imagePtr, imageSpec)
 		imageChanged = True
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method readGeom(geometry:Object, imageSpec:String)
 		If TMGeometry(geometry) Then
 			bmx_magick_image_readgeom(imagePtr, TMGeometry(geometry).geometryPtr, imageSpec)
@@ -414,10 +556,11 @@ Type TMImage
 	
 	
 	Rem
-	bbdoc: 
+	bbdoc: Rotate image counter-clockwise by specified number of degrees.
 	End Rem
 	Method rotate(degrees:Double)
 		bmx_magick_image_rotate(imagePtr, degrees)
+		imageChanged = True
 	End Method
 	
 	
@@ -426,6 +569,19 @@ Type TMImage
 	End Rem
 	Method WriteFile(imageSpec:String)
 		bmx_magick_image_writefile(imagePtr, imageSpec)
+	End Method
+
+	Rem
+	bbdoc: Zoom image to specified size.
+	End Rem
+	Method zoom(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_zoom(imagePtr, TMGeometry(geometry).geometryPtr)
+			imageChanged = True
+		ElseIf String(geometry) Then
+			bmx_magick_image_zoomtxt(imagePtr, String(geometry))
+			imageChanged = True
+		End If
 	End Method
 
 ' attributes
@@ -459,7 +615,15 @@ Type TMImage
 	Method getAttribute:String(name:String)
 	End Method
 	
-	Method backgroundColor(color:TMColor )
+	Rem
+	bbdoc: 
+	End Rem
+	Method backgroundColor(color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_backgroundcolor(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color)
+			bmx_magick_image_backgroundcolortxt(imagePtr, String(color))
+		End If
 	End Method
 	
 	Method getBackgroundColor:TMColor()
@@ -480,7 +644,15 @@ Type TMImage
 	Method getBaseRows:Int()
 	End Method
 	
-	Method borderColor(color:TMColor)
+	Rem
+	bbdoc: 
+	End Rem
+	Method borderColor(color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_bordercolor(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color)
+			bmx_magick_image_bordercolortxt(imagePtr, String(color))
+		End If
 	End Method
 	
 	Method getBorderColor:TMColor()
@@ -489,7 +661,13 @@ Type TMImage
 	Method getBoundingBox:TMGeometry()
 	End Method
 	
-	Method boxColor(boxColor:TMColor)
+	Rem
+	bbdoc: 
+	End Rem
+	Method boxColor(boxColor:Object)
+		If TMColor(boxColor) Then
+		ElseIf String(boxColor)
+		End If
 	End Method
 	
 	Method getBoxColor:TMColor()
@@ -541,7 +719,15 @@ Type TMImage
 	Method getColorFuzz:Double()
 	End Method
 	
-	Method colorMap(index:Int, color:TMColor)
+	Rem
+	bbdoc: 
+	End Rem
+	Method colorMap(index:Int, color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_colormap(imagePtr, index, TMColor(color).colorPtr)
+		ElseIf String(color)
+			bmx_magick_image_colormaptxt(imagePtr, index, String(color))
+		End If
 	End Method
 	
 	Method getColorMap:TMColor(index:Int)
@@ -579,7 +765,15 @@ Type TMImage
 		Return bmx_magick_image_getcomposite(imagePtr)
 	End Method
 	
-	Method pixelColor(x:Int, y:Int, color:TMColor)
+	Rem
+	bbdoc: 
+	End Rem
+	Method pixelColor(x:Int, y:Int, color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_pixelcolor(imagePtr, x, y, TMColor(color).colorPtr)
+		ElseIf String(color) Then
+			bmx_magick_image_pixelcolortxt(imagePtr, x, y, String(color))
+		End If
 	End Method
 	
 	Method getPixelColor:TMColor(x:Int, y:Int)
@@ -605,7 +799,12 @@ Type TMImage
 	
 	
 	
-	Method strokeColor(color:TMColor)
+	Method strokeColor(color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_strokecolor(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color) Then
+			bmx_magick_image_strokecolortxt(imagePtr, String(color))
+		End If
 	End Method
 	
 	Method getStrokeColor:TMColor()
@@ -700,8 +899,167 @@ Type TMDrawableAffine Extends TMDrawable
 	Method Create:TMDrawableAffine(sx:Double = 1.0, sy:Double = 1.0, rx:Double = 0, ry:Double = 0, tx:Double = 0, ty:Double = 0)
 	End Method
 	
-		
+End Type
 
+Type TMDrawableAngle Extends TMDrawable
+
+	Method Create:TMDrawableAngle(angle:Double)
+	End Method
+	
+End Type
+
+Type TMDrawableArc Extends TMDrawable
+
+	Method Create:TMDrawableArc(startX:Double, startY:Double, endX:Double, endY:Double, startDegrees:Double, endDegrees:Double)
+	End Method
+	
+End Type
+
+Type TMDrawableBezier Extends TMDrawable
+
+	Method Create:TMDrawableBezier()
+	End Method
+	
+End Type
+
+Type TMDrawableClipPath Extends TMDrawable
+
+	Method Create:TMDrawableClipPath(id:String)
+	End Method
+	
+End Type
+
+Type TMDrawableCircle Extends TMDrawable
+
+	Method Create:TMDrawableCircle(originX:Double, originY:Double, perimX:Double, perimY:Double)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Color image according to paintMethod.
+about: The point method recolors the target pixel.  The replace method recolors any pixel that matches
+the color of the target pixel.  Floodfill recolors any pixel that matches the color of the target pixel
+and is a neighbor,  whereas filltoborder recolors any neighbor pixel that is not the border color. Finally,
+reset recolors all pixels.
+End Rem
+Type TMDrawableColor Extends TMDrawable
+
+	Method Create:TMDrawableColor(x:Double, y:Double, paintMethod:Int)
+	End Method
+	
+End Type
+
+Type TMDrawableCompositeImage Extends TMDrawable
+
+	Method Create:TMDrawableCompositeImage()
+	End Method
+	
+End Type
+
+Type TMDrawableDashArray Extends TMDrawable
+
+	Method Create:TMDrawableDashArray()
+	End Method
+	
+End Type
+
+Type TMDrawableDashOffset Extends TMDrawable
+
+	Method Create:TMDrawableDashOffset()
+	End Method
+	
+End Type
+
+Type TMDrawableEllipse Extends TMDrawable
+
+	Method Create:TMDrawableEllipse(originX:Double, originY:Double, radiusX:Double, radiusY:Double, arcStart:Double, arcEnd:Double)
+	End Method
+	
+End Type
+
+Type TMDrawableFillColor Extends TMDrawable
+
+	Method Create:TMDrawableFillColor(color:TMColor)
+	End Method
+	
+End Type
+
+Type TMDrawableFillRule Extends TMDrawable
+
+	Method Create:TMDrawableFillRule(fillRule:Int)
+	End Method
+	
+End Type
+
+Type TMDrawableFillOpacity Extends TMDrawable
+
+	Method Create:TMDrawableFillOpacity(opacity:Double)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMDrawableFont Extends TMDrawable
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TMDrawableFont(font:String)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateWithAttributes:TMDrawableFont(family:String, style:Int, weight:Int, stretch:Int)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMDrawableGravity Extends TMDrawable
+
+	Method Create:TMDrawableGravity(gravity:Int)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMDrawableLine Extends TMDrawable
+
+	Method Create:TMDrawableLine(startX:Double, startY:Double, endX:Double, endY:Double)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMDrawableMatte Extends TMDrawable
+
+	Method Create:TMDrawableMatte(x:Double, y:Double, paintMethod:Int)
+	End Method
+	
+End Type
+
+Type TMDrawableMiterLimit Extends TMDrawable
+
+	Method Create:TMDrawableMiterLimit(miterLimit:Int)
+	End Method
+	
+End Type
+
+Type TMDrawablePath Extends TMDrawable
+
+	Method Create:TMDrawablePath()
+	End Method
+	
 End Type
 
 Rem
