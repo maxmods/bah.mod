@@ -278,7 +278,7 @@ Import "src/delegates/jasper/jpc/jpc_tagtree.c"
 Import "src/delegates/jasper/jpc/jpc_tsfb.c"
 
 Import "src/delegates/jasper/jpg/jpg_dec.c"
-?Not win32
+?macos
 Import "src/delegates/jasper/jpg/jpg_dummy.c"
 ?
 Import "src/delegates/jasper/jpg/jpg_enc.c"
