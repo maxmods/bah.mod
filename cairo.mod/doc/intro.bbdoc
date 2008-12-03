@@ -1,0 +1,130 @@
+<img src="cairo.png" align="right" />
+<p>
+Cairo is a 2D graphics library with support for multiple output devices.<br>
+Currently, the BlitzMax implementation supports Image, PDF and Postscript output.
+</p>
+
+<p>
+The cairo API provides operations similar to the drawing operators of PostScript and PDF.
+Operations in cairo including stroking and filling cubic Bézier splines, transforming and compositing
+translucent images, and antialiased text rendering. All drawing operations can be transformed by any
+affine transformation (scale, rotation, shear, etc.)
+</p>
+<p>
+The base type you will use is #TCairo.<br>
+This is what is know as the drawing context. With it you can draw to any of the supported output devices, using the same commands regardless of the device in question. For example, you might preview a diagram on-screen, before creating a PDF containing it.
+</p>
+<p>
+To create and initial a #TCairo context, you need to create it with a #TCairoSurface object.<br>
+There are three suface types you can currently use:
+<ul>
+<li> #TCairoImageSurface - draws to an in-memory image.</li>
+<li> #TCairoPDFSurface - creates a PDF representation of the image(s).</li>
+<li> #TCairoPSSurface - creates a Postscript representation of the image(s).</li>
+</ul>
+To create a TCairo object for drawing onto a pixmap you could do the following :
+<pre>
+Local surface:TCairoImageSurface = TCairoImageSurface.CreateForPixmap(256,256)
+Local cairo:TCairo = TCairo.Create(surface)
+</pre>
+which would create a <b>new</b> pixmap for the surface, and tell cairo to draw on it.<br>
+Also, you could use #CreateForImage, which uses an existing TImage object to draw onto :
+<pre>
+Local image:TImage = CreateImage(256, 256, 1, DYNAMICIMAGE)
+Local surface:TCairoImageSurface = TCairoImageSurface.CreateForImage(image)
+Local cairo:TCairo = TCairo.Create(surface)
+</pre>
+(There are other operations for using pre-existing pixmaps, and even PNG files.)
+</p>
+<p>
+On creation, a cairo context is already created for you, but whenever #Destroy is called you will have
+to create a new context using #CreateContext before you can use it again.
+</p>
+<p>
+In normal usage you would perform the following operations during the life of a context:
+</p>
+<pre>
+CreateContext()
+...draw stuff on the context
+Destroy()
+</pre>
+<p>
+To re-use a context, you can also #Clear it with a given color, and subsequently perform drawing operations
+on what is essentially a clean sheet.
+</p>
+<p>
+The following simple example draws a circle filled yellow with a black outline :
+</p>
+<pre>
+SuperStrict
+
+Import BaH.Cairo
+
+Local cairo:TCairo = TCairo.Create(TCairoImageSurface.CreateForPixmap(256,256))
+
+' set the line width
+cairo.SetLineWidth(5)
+
+' draw an arc of 360 degrees (a circle) with radius 125.
+cairo.arc(128, 128, 125, 0, 360)
+
+' set draw color to yellow
+cairo.SetSourceRGB(1, 1, 0)
+' fix fill color to current
+cairo.FillPreserve()
+' set draw color to black
+cairo.SetSourceRGB(0, 0, 0)
+' draw it
+cairo.Stroke()
+
+' destroy context and resources
+cairo.Destroy()
+
+' Retrieve the image data from the pixmap
+Local image:TImage = LoadImage(TCairoImageSurface(cairo.getTarget()).pixmap())
+
+Graphics 256, 256,0
+
+SetBlend ALPHABLEND
+
+SetClsColor 255,255,255
+
+Repeat
+	Cls
+	DrawImage image, 0, 0
+	Flip
+Until KeyHit(key_escape)
+
+End
+</pre>
+<p>For information on creating Surfaces
+<h2>Examples</h2>
+<p>
+The following is a list of examples that you can run:
+</p>
+<ul>
+<li><a href="../examples/arc.bmx">arc.bmx</a></li>
+<li><a href="../examples/arc_image.bmx">arc_image.bmx</a> - The arc example using a TImage.</li>
+<li><a href="../examples/arc_negative.bmx">arc_negative.bmx</a></li>
+<li><a href="../examples/clip.bmx">clip.bmx</a></li>
+<li><a href="../examples/clip_image.bmx">clip_image.bmx</a></li>
+<li><a href="../examples/curve_rectangle.bmx">curve_rectangle.bmx</a></li>
+<li><a href="../examples/curve_to.bmx">curve_to.bmx</a></li>
+<li><a href="../examples/fill_and_stroke.bmx">fill_and_stroke.bmx</a></li>
+<li><a href="../examples/fill_and_stroke2.bmx">fill_and_stroke2.bmx</a></li>
+<li><a href="../examples/fill_and_stroke3.bmx">fill_and_stroke3.bmx</a> - Shows #SetDash usage.</li>
+<li><a href="../examples/gradient.bmx">gradient.bmx</a></li>
+<li><a href="../examples/image_pattern.bmx">image_pattern.bmx</a></li>
+<li><a href="../examples/path.bmx">path.bmx</a></li>
+<li><a href="../examples/pattern_fill.bmx">pattern_fill.bmx</a></li>
+<li><a href="../examples/set_line_cap.bmx">set_line_cap.bmx</a></li>
+<li><a href="../examples/set_line_join.bmx">set_line_join.bmx</a></li>
+<li><a href="../examples/text.bmx">text.bmx</a></li>
+<li><a href="../examples/text_align_center.bmx">text_align_center.bmx</a></li>
+<li><a href="../examples/text_extents.bmx">text_extents.bmx</a></li>
+<li><a href="../examples/xxx_long_lines.bmx">xxx_long_lines.bmx</a></li>
+<li><a href="../examples/clock.bmx">clock.bmx</a> - a more advanced example of an analogue clock.</li>
+<li><a href="../examples/clock_image.bmx">clock_image.bmx</a> - The analogue clock example using a TImage.</li>
+<li><a href="../examples/clock_gtk_panel_pixmap.bmx">clock_gtk_panel_pixmap.bmx</a> - The analogue clock example drawing on a panel pixmap. Resize the window and watch it tile!!</li>
+<li><a href="../examples/pdf_output_1.bmx">pdf_output_1.bmx</a> - a small example showing creation of a PDF.</li>
+</ul>
