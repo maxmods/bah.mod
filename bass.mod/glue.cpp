@@ -22,6 +22,8 @@
 
 #include "bass.h"
 
+class MaxSyncData;
+
 extern "C" {
 
 #include "blitz.h"
@@ -122,7 +124,20 @@ extern "C" {
 
 	BASS_INFO * bmx_bass_getinfo();
 
+	void bmx_bass_setsync(DWORD handle, DWORD stype, QWORD param, MaxSyncData * syncData, DWORD * channel, DWORD * data, int * set);
+	MaxSyncData * bmx_bass_syncdata_new();
+
 }
+
+class MaxSyncData
+{
+public:
+	HSYNC handle;
+	DWORD * channel;
+	DWORD * data;
+	int * set;
+private:
+};
 
 typedef struct {
     char id[3];
@@ -616,4 +631,23 @@ BASS_INFO * bmx_bass_getinfo() {
 	return info;
 }
 
+// *************************************************
+
+void CALLBACK bmx_sync_callback(HSYNC handle, DWORD channel, DWORD data, void *user) {
+	MaxSyncData * sync = (MaxSyncData*)user;
+	*sync->channel = channel;
+	*sync->data = data;
+	*sync->set = 1;
+}
+
+void bmx_bass_setsync(DWORD handle, DWORD stype, QWORD param, MaxSyncData * syncData, DWORD * channel, DWORD * data, int * set) {
+	syncData->channel = channel;
+	syncData->data = data;
+	syncData->set = set;
+	syncData->handle = BASS_ChannelSetSync(handle, stype, param, bmx_sync_callback, syncData);
+}
+
+MaxSyncData * bmx_bass_syncdata_new() {
+	return new MaxSyncData();
+}
 

@@ -21,10 +21,16 @@ Local isMod:Int = False
 
 ' rocking!
 Local url:String = "http://www.sky.fm/mp3/soundtracks.pls"
+'Local url:String = "http://194.158.114.68:5000"
+
+Local syncData:TBassSyncData = New TBassSyncData
 
 Local channel:TBassChannel = New TBassStream.StreamCreateURL(url, 0, BASS_SAMPLE_FLOAT|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE, Null, Null)
 
 If channel Then
+
+	channel.SetSync(BASS_SYNC_META, 0, syncData)
+
 	Local length:Long = channel.GetLength(BASS_POS_BYTE)
 
 	If Not channel.Play(False) Then
@@ -36,6 +42,7 @@ If channel Then
 		For Local s:String = EachIn tags
 			DebugLog s
 		Next
+
 	
 	Graphics 640, 480, 0
 
@@ -44,7 +51,14 @@ If channel Then
 	While active And Not KeyDown(key_escape)
 	
 		Cls
-		
+
+		' lets check for new meta data!		
+		If syncData.IsSet() Then
+			tags = channel.getTags(BASS_TAG_META)
+			For Local s:String = EachIn tags
+				DebugLog "meta : " + s
+			Next
+		End If
 
 		' display some stuff And wait a bit
 		Local _left:Int, _right:Int

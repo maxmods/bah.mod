@@ -121,6 +121,9 @@ Extern
 	Function bmx_channelinfo_delete(channelinfoPtr:Byte Ptr)
 
 	Function bmx_bass_getinfo:Byte Ptr()
+
+	Function bmx_bass_setsync(handle:Int, stype:Int, param:Long, syncData:Byte Ptr, channel:Int Ptr, data:Int Ptr, set:Int Ptr)
+	Function bmx_bass_syncdata_new:Byte Ptr()
 	
 End Extern
 

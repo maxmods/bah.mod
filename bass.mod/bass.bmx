@@ -891,8 +891,11 @@ Type TBassChannel
 		Return bytes
 	End Method
 	
-	' TODO
-	Method SetSync()
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetSync(stype:Int, param:Long, syncData:TBassSyncData)
+		bmx_bass_setsync(handle, stype, param, syncData.dataPtr, Varptr syncData.channel, Varptr syncData.data, Varptr syncData.set)
 	End Method
 	
 	Rem
@@ -924,6 +927,30 @@ Type TBassChannel
 		Return BASS_ChannelSetPosition(handle, pos, mode)
 	End Method
 	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TBassSyncData
+
+	Field dataPtr:Byte Ptr
+	Field channel:Int
+	Field data:Int
+	Field set:Int
+	Field user:Object
+	
+	Method New()
+		dataPtr = bmx_bass_syncdata_new()
+	End Method
+	
+	Method isSet:Int()
+		If set Then
+			set = False
+			Return True
+		End If
+	End Method
+
 End Type
 
 Rem
