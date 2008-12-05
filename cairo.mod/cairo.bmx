@@ -15,6 +15,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.21"
 ModuleInfo "History: Cairo upgrade to 1.8.4"
 ModuleInfo "History: Removal of fontconfig dependency on Win32 and Mac."
+ModuleInfo "History: Removed Stroke() call from ShowText()."
 ModuleInfo "History: 1.20"
 ModuleInfo "History: Fixed Text issues with UTF-8."
 ModuleInfo "History: 1.19"
@@ -1481,7 +1482,6 @@ Close_path()
 	Method ShowText(text:String)
 		NoContextError()
 		cairo_show_text(contextPtr, _cairo_ISO8859toUTF8(text))
-		Stroke()   ' added for 1.11 - a bug with PDF surface?
 	End Method	
 	
 	Rem
