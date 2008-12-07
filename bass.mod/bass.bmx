@@ -2114,6 +2114,16 @@ Type TBass
 		Return TBassInfo._create(bmx_bass_getinfo())
 	End Function
 	
+	Rem
+	bbdoc: Plugs an "add-on" into the standard stream and sample creation functions.
+	End Rem
+	Function PluginLoad:Int(file:String, flags:Int)
+		Local s:Byte Ptr = file.ToCString()
+		Local handle:Int = BASS_PluginLoad(s, flags)
+		MemFree(s)
+		Return handle
+	End Function
+	
 End Type
 
 Rem

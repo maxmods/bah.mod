@@ -206,6 +206,9 @@ Extern
 	Function BASS_RecordGetInputName:Byte Ptr(inp:Int)
 	Function BASS_RecordStart:Int(freq:Int, chans:Int, flags:Int, proc:Int(handle:Int, buffer:Byte Ptr, length:Int, user:Object), user:Object)
 
+	Function BASS_PluginLoad:Int(file:Byte Ptr, flags:Int)
+	Function BASS_PluginFree:Int(handle:Int)
+	
 End Extern
 
 
