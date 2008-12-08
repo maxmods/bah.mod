@@ -465,6 +465,14 @@ public:
     */
     Window* getChild(const String& name) const;
 
+    /*!
+    \brief
+        This is / was intended for internal use only (should have had protected
+        visibility).  This function is deprecated - do not use this function at
+        all, ever.  The only reason this function is still here is to maintain
+        ABI compatibility for the 0.6.x series of releases.  This function will
+        be gone in 0.7.0.
+    */
 	Window* recursiveChildSearch(const String& name) const;
 
     /*!
@@ -489,6 +497,31 @@ public:
         thrown if no window with the ID code \a ID is attached to this Window.
     */
     Window* getChild(uint ID) const;
+
+    /*!
+    \brief
+        return a pointer to the first attached child window with the specified
+        name. Children are traversed recursively.
+
+        Contrary to the non recursive version of this function, this one will
+        not throw an exception, but return 0 in case no child was found.
+
+    \note
+        WARNING! This function can be very expensive and should only be used
+        when you have no other option available. If you decide to use it anyway,
+        make sure the window hierarchy from the entry point is small.
+
+    \param name
+        String object holding the name of the child window for which a pointer
+        is to be returned.
+
+    \return
+        Pointer to the Window object attached to this window that has the name
+        \a name.
+
+        If no child is found with the name \a name, 0 is returned.
+    */
+    Window* getChildRecursive(const String& name) const;
 
     /*!
     \brief
@@ -882,6 +915,15 @@ public:
     \brief
         Return whether z-order changes are enabled or disabled for this Window.
 
+    \note
+        This is distinguished from the is/setRiseOnClickEnabled setting in that
+        if rise on click is disabled it only affects the users ability to affect
+        the z order of the Window by clicking the mouse; is still possible to
+        programatically alter the Window z-order by calling the moveToFront or
+        moveToBack member functions.  Whereas if z ordering is disabled the
+        functions moveToFront and moveToBack are also precluded from affecting
+        the Window z position.
+
     \return
         - true if z-order changes are enabled for this window.
           moveToFront/moveToBack work normally as expected.
@@ -1005,6 +1047,15 @@ public:
     \brief
         Return whether this window will rise to the top of the z-order when
         clicked with the left mouse button.
+
+    \note
+        This is distinguished from the is/setZOrderingEnabled setting in that
+        if rise on click is disabled it only affects the users ability to affect
+        the z order of the Window by clicking the mouse; is still possible to
+        programatically alter the Window z-order by calling the moveToFront or
+        moveToBack member functions.  Whereas if z ordering is disabled the
+        functions moveToFront and moveToBack are also precluded from affecting
+        the Window z position.
 
     \return
         - true if the window will come to the top of other windows when the left
@@ -1447,28 +1498,28 @@ public:
     \brief
         Insert the text string \a text into the current text string for the
         Window object at the position specified by \a position.
-     
+
     \param text
         String object holding the text that is to be inserted into the Window
         object's current text string.
-     
+
     \param position
         The characted index position where the string \a text should be
         inserted.
     */
     void insertText(const String& text, const String::size_type position);
-    
+
     /*!
     \brief
         Append the string \a text to the currect text string for the Window
         object.
-     
+
     \param text
         String object holding the text that is to be appended to the Window
         object's current text string.
     */
     void appendText(const String& text);
-    
+
     /*!
     \brief
         Set the font used by this Window.
@@ -1761,6 +1812,15 @@ public:
     \brief
         Set whether z-order changes are enabled or disabled for this Window.
 
+    \note
+        This is distinguished from the is/setRiseOnClickEnabled setting in that
+        if rise on click is disabled it only affects the users ability to affect
+        the z order of the Window by clicking the mouse; is still possible to
+        programatically alter the Window z-order by calling the moveToFront or
+        moveToBack member functions.  Whereas if z ordering is disabled the
+        functions moveToFront and moveToBack are also precluded from affecting
+        the Window z position.
+
     \param setting
         - true if z-order changes are enabled for this window.
           moveToFront/moveToBack work normally as expected.
@@ -1945,6 +2005,15 @@ public:
     \brief
         Set whether this window will rise to the top of the z-order when clicked
         with the left mouse button.
+
+    \note
+        This is distinguished from the is/setZOrderingEnabled setting in that
+        if rise on click is disabled it only affects the users ability to affect
+        the z order of the Window by clicking the mouse; is still possible to
+        programatically alter the Window z-order by calling the moveToFront or
+        moveToBack member functions.  Whereas if z ordering is disabled the
+        functions moveToFront and moveToBack are also precluded from affecting
+        the Window z position.
 
     \param setting
         - true if the window should come to the top of other windows when the
@@ -3472,6 +3541,11 @@ protected:
     /*!
     \brief
         Implementation of rise on click functionality.
+
+    \deprecated
+        This function is redundant and will be removed for the 0.7.0 release.
+        To achieve what this function was supposed to do - but never actually
+        did - call Window::moveToFront_impl passing true as the parameter.
 
     \return
         true if we did something, false if there was nothing to do.

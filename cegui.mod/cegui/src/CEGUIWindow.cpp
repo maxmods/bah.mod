@@ -297,18 +297,22 @@ bool Window::isActive(void) const
 *************************************************************************/
 bool Window::isChild(const String& name) const
 {
-	size_t child_count = getChildCount();
+    size_t child_count = getChildCount();
 
-	for (size_t i = 0; i < child_count; ++i)
-	{
-		if (d_children[i]->getName() == name)
-		{
-			return true;
-		}
+    for (size_t i = 0; i < child_count; ++i)
+    {
+        const String childName(d_children[i]->getName());
 
-	}
+        if (childName == name ||
+            childName == d_children[i]->d_windowPrefix + name)
 
-	return false;
+        {
+            return true;
+        }
+
+    }
+
+    return false;
 }
 
 /*************************************************************************
@@ -377,27 +381,18 @@ bool Window::isChild(const Window* window) const
 *************************************************************************/
 Window* Window::getChild(const String& name) const
 {
-	size_t child_count = getChildCount();
+    size_t child_count = getChildCount();
 
-	for (size_t i = 0; i < child_count; ++i)
-	{
-		String childName = d_children[i]->getName();
-		//We need to check if the current name is available or if the name + prefix is available.. Hopefully not both
-		if(childName == name || childName == d_windowPrefix + name)
-		{
-			return d_children[i];
-		}
+    for (size_t i = 0; i < child_count; ++i)
+    {
+        const String childName = d_children[i]->getName();
+        // check if 'name' or 'prefix + name' is attached.
+        if (childName == name || childName == d_children[i]->d_windowPrefix + name)
+            return d_children[i];
+    }
 
-	} // for (size_t i = 0; i < child_count; ++i)
-
-	for(size_t i=0;i<child_count;i++)
-	{
-		Window* temp = d_children[i]->recursiveChildSearch(name);
-		if(temp)
-			return temp;
-	} // for(size_t i=0;i<child_count;i++)
-
-	throw UnknownObjectException("Window::getChild - The Window object named '" + name +"' is not attached to Window '" + d_name + "'.");
+    throw UnknownObjectException("Window::getChild - The Window object named '"
+        + name +"' is not attached to Window '" + d_name + "'.");
 }
 
 /***********************************************************************
@@ -414,7 +409,7 @@ Window* Window::recursiveChildSearch( const String& name ) const
 	{
 		String childName = d_children[i]->getName();
 		//We need to check if the current name is available or if the name + prefix is available.. Hopefully not both
-		if(childName == name || childName == d_windowPrefix + name)
+		if(childName == name || childName == d_children[i]->d_windowPrefix + name)
 		{
 			return d_children[i];
 		}
@@ -455,6 +450,25 @@ Window* Window::getChild(uint ID) const
 	throw UnknownObjectException("Window::getChild - The Window with ID: '" + std::string(strbuf) + "' is not attached to Window '" + d_name + "'.");
 }
 
+//----------------------------------------------------------------------------//
+Window* Window::getChildRecursive(const String& name) const
+{
+    size_t child_count = getChildCount();
+
+    for (size_t i = 0; i < child_count; ++i)
+    {
+        const String childName = d_children[i]->getName();
+        // check if 'name' or 'prefix + name' is attached
+        if (childName == name || childName == d_children[i]->d_windowPrefix + name)
+            return d_children[i];
+
+        Window* tmp = d_children[i]->getChildRecursive(name);
+        if (tmp)
+            return tmp;
+    }
+
+    return 0;
+}
 
 /*************************************************************************
 	return a pointer to the first attached child window with the
@@ -856,6 +870,8 @@ void Window::setEnabled(bool setting)
         {
             onDisabled(args);
         }
+
+        System::getSingleton().updateWindowContainingMouse();
     }
 }
 
@@ -871,6 +887,8 @@ void Window::setVisible(bool setting)
 		d_visible = setting;
         WindowEventArgs args(this);
 		d_visible ? onShown(args) : onHidden(args);
+
+        System::getSingleton().updateWindowContainingMouse();
 	}
 
 }
@@ -1116,7 +1134,9 @@ bool Window::moveToFront_impl(bool wasClicked)
     }
 
     // bring us to the front of our siblings
-    if ((d_zOrderingEnabled) && !isTopOfZOrder())
+    if (d_zOrderingEnabled &&
+        (!wasClicked || d_riseOnClick) &&
+        !isTopOfZOrder())
     {
         took_action = true;
 
@@ -1502,6 +1522,7 @@ void Window::onZChange_impl(void)
 
 	}
 
+    System::getSingleton().updateWindowContainingMouse();
 }
 
 
@@ -1797,17 +1818,12 @@ void Window::update(float elapsed)
 	// perform update for 'this' Window
 	updateSelf(elapsed);
 
-	// update child windows
-	size_t child_count = getChildCount();
-
 	UpdateEventArgs e(this,elapsed);
 	fireEvent(EventWindowUpdated,e,EventNamespace);
 
-	for (size_t i = 0; i < child_count; ++i)
-	{
+	// update child windows
+	for (size_t i = 0; i < getChildCount(); ++i)
 		d_children[i]->update(elapsed);
-	}
-
 }
 
 
@@ -2028,17 +2044,7 @@ void Window::setInheritsTooltipText(bool setting)
 
 bool Window::doRiseOnClick(void)
 {
-    // does this window rise on click?
-    if (d_riseOnClick)
-    {
-        return moveToFront_impl(true);
-    }
-    else if (d_parent)
-    {
-        return d_parent->doRiseOnClick();
-    }
-
-    return false;
+    return moveToFront_impl(true);
 }
 
 void Window::setArea_impl(const UVector2& pos, const UVector2& size, bool topLeftSizing, bool fireEvents)
@@ -2102,6 +2108,9 @@ void Window::setArea_impl(const UVector2& pos, const UVector2& size, bool topLef
             onSized(args);
         }
     }
+
+    if (moved || sized)
+        System::getSingleton().updateWindowContainingMouse();
 }
 
 void Window::setArea(const UDim& xpos, const UDim& ypos, const UDim& width, const UDim& height)
@@ -3291,7 +3300,7 @@ void Window::insertText(const String& text, const String::size_type position)
     WindowEventArgs args(this);
     onTextChanged(args);
 }
-    
+
 //----------------------------------------------------------------------------//
 void Window::appendText(const String& text)
 {

@@ -2,7 +2,7 @@
 	filename: 	CEGUIWindowManager.h
 	created:	21/2/2004
 	author:		Paul D Turner
-	
+
 	purpose:	Defines the interface for the WindowManager object
 *************************************************************************/
 /***************************************************************************
@@ -87,7 +87,7 @@ public:
 		- false if the property should not be set,
 	*/
 	typedef bool PropertyCallback(Window* window, String& propname, String& propvalue, void* userdata);
-	
+
 	/*************************************************************************
 		Construction and Destruction
 	*************************************************************************/
@@ -129,6 +129,8 @@ public:
 	\return
 		Pointer to the newly created Window object.
 
+    \exception  InvalidRequestException WindowManager is locked and no Windows
+                                        may be created.
 	\exception	AlreadyExistsException		A Window object with the name \a name already exists.
 	\exception	UnknownObjectException		No WindowFactory is registered for \a type Window objects.
 	\exception	GenericException			Some other error occurred (Exception message has details).
@@ -208,7 +210,22 @@ public:
 
 	/*!
 	\brief
-		Creates a set of windows (a Gui layout) from the information in the specified XML file.	
+		Creates a set of windows (a Gui layout) from the information in the specified XML file.
+
+    \warning
+        When using a C string literal as the value for the second argument
+        \a name_prefix, currently (0.6.x releases) it is likely that the
+        incorrect overload of loadWindowLayout will be invoked (possibly without
+        immediate error or warning).  To avoid the possibility of invoking the
+        incorrect overload by mistake, it is recommended that you explicity use
+        the CEGUI::String type when passing \a name_prefix.
+        \par
+        For example, instead of this:
+        \code winMgr.loadWindowLayout("MyLayout.layout", "aPrefix/"); \endcode
+        \par
+        Do this:
+        \code winMgr.loadWindowLayout("MyLayout.layout", CEGUI::String("aPrefix/"));
+        \endcode
 
 	\param filename
 		String object holding the filename of the XML file to be processed.
@@ -237,7 +254,7 @@ public:
 	\exception InvalidRequestException	thrown if \a filename appears to be invalid.
 	*/
 	Window*	loadWindowLayout(const String& filename, const String& name_prefix = "", const String& resourceGroup = "", PropertyCallback* callback = 0, void* userdata = 0);
-	
+
 	Window*	loadWindowLayout(const String& filename, bool generateRandomPrefix);
 
     /*!
@@ -358,6 +375,54 @@ public:
     static void setDefaultResourceGroup(const String& resourceGroup)
         { d_defaultResourceGroup = resourceGroup; }
 
+    /*!
+    \brief
+        Put WindowManager into the locked state.
+
+        While WindowManager is in the locked state all attempts to create a
+        Window of any type will fail with an InvalidRequestException being
+        thrown.  Calls to lock/unlock are recursive; if multiple calls to lock
+        are made, WindowManager is only unlocked after a matching number of
+        calls to unlock.
+
+    \note
+        This is primarily intended for internal use within the system.
+    */
+    void lock();
+
+    /*!
+    \brief
+        Put WindowManager into the unlocked state.
+
+        While WindowManager is in the locked state all attempts to create a
+        Window of any type will fail with an InvalidRequestException being
+        thrown.  Calls to lock/unlock are recursive; if multiple calls to lock
+        are made, WindowManager is only unlocked after a matching number of
+        calls to unlock.
+
+    \note
+        This is primarily intended for internal use within the system.
+    */
+    void unlock();
+
+    /*!
+    \brief
+        Returns whether WindowManager is currently in the locked state.
+
+        While WindowManager is in the locked state all attempts to create a
+        Window of any type will fail with an InvalidRequestException being
+        thrown.  Calls to lock/unlock are recursive; if multiple calls to lock
+        are made, WindowManager is only unlocked after a matching number of
+        calls to unlock.
+
+    \return
+        - true to indicate WindowManager is locked and that any attempt to
+        create Window objects will fail.
+        - false to indicate WindowManager is unlocked and that Window objects
+        may be created as normal.
+    */
+    bool isLocked() const;
+
 private:
     /*************************************************************************
         Implementation Methods
@@ -387,6 +452,8 @@ private:
 
     unsigned long   d_uid_counter;  //!< Counter used to generate unique window names.
     static String d_defaultResourceGroup;   //!< holds default resource group
+    //! count of times WM is locked against new window creation.
+    uint    d_lockCount;
 
 public:
 	/*************************************************************************
@@ -410,7 +477,7 @@ public:
     \return
     Nothing.
     */
-    void DEBUG_dumpWindowNames(String zone);    
+    void DEBUG_dumpWindowNames(String zone);
 };
 
 } // End of  CEGUI namespace section
