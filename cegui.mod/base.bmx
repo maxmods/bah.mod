@@ -3013,58 +3013,128 @@ Type TCEImageset
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the name of the Imageset.
+	End Rem
 	Method getName:String()
+		Return bmx_cegui_imageset_getname(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns number of images defined for this Imageset.
+	End Rem
 	Method getImageCount:Int()
+		Return bmx_cegui_imageset_getimagecount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns True if an Image with the specified name exists.
+	End Rem
 	Method isImageDefined:Int(name:String)
+		Return bmx_cegui_imageset_isimagedefined(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
 	'method getImage:TCEImage(name:String)
 	'End method
 	
+	Rem
+	bbdoc: Removes the definition for the Image with the specified name.
+	about: If no such Image exists, nothing happens.
+	End Rem
 	Method undefineImage(name:String)
+		bmx_cegui_imageset_undefineimage(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Removes the definitions for all Image objects currently defined in the Imageset.
+	End Rem
 	Method undefinAllImages()
+		bmx_cegui_imageset_undefineallimages(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the dimensions of the named image.
+	End Rem
 	Method getImageSize(name:String, width:Float Var, height:Float Var)
+		bmx_cegui_imageset_getimagesize(objectPtr, _convertMaxToUTF8(name), Varptr width, Varptr height)
 	End Method
 	
+	Rem
+	bbdoc: Returns the width of the named image.
+	End Rem
 	Method getImageWidth:Float(name:String)
+		Return bmx_cegui_imageset_getimagewidth(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the height of the named image.
+	End Rem
 	Method getImageHeight:Float(name:String)
+		Return bmx_cegui_imageset_getimageheight(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the rendering offsets applied to the named image.
+	End Rem
 	Method getImageOffset(name:String, x:Float Var, y:Float Var)
+		bmx_cegui_imageset_getimageoffset(objectPtr, _convertMaxToUTF8(name), Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: Returns the x rendering offset for the named image.
+	End Rem
 	Method getImageOffsetX:Float(name:String)
+		Return bmx_cegui_imageset_getimageoffsetx(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the y rendering offset for the named image.
+	End Rem
 	Method getImageOffsetY:Float(name:String)
+		Return bmx_cegui_imageset_getimageoffsety(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Defines a new Image for this Imageset.
+	End Rem
 	Method defineImage(name:String, x:Float, y:Float, width:Float, height:Float, renderOffsetX:Float, renderOffsetY:Float)
+		bmx_cegui_imageset_defineimage(objectPtr, _convertMaxToUTF8(name), x, y, width, height, renderOffsetX, renderOffsetY)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether this Imageset is auto-scaled.
+	End Rem
 	Method isAutoScaled:Int()
+		Return bmx_cegui_imageset_isautoscaled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the native display size for this Imageset.
+	about: This is only relevant if the Imageset is being auto-scaled.
+	End Rem
 	Method getNativeResolution(width:Float Var, height:Float Var)
+		bmx_cegui_imageset_getnativeresoultion(objectPtr, Varptr width, Varptr height)
 	End Method
 	
+	Rem
+	bbdoc: Enables or disables auto-scaling for this Imageset.
+	End Rem
 	Method setAutoScalingEnabled(setting:Int)
+		bmx_cegui_imageset_setautoscalingenabled(objectPtr, setting)
 	End Method
 
+	Rem
+	bbdoc: Sets the native resolution for this Imageset.
+	End Rem
 	Method setNativeResolution(width:Float, height:Float)
+		bmx_cegui_imageset_setnativeresolution(objectPtr, width, height)
 	End Method
 	
+	Rem
+	bbdoc: Notifies the Imageset of the current (usually new) display resolution.
+	End Rem
 	Method notifyScreenResolution(width:Float, height:Float)
+		bmx_cegui_imageset_notifyscreenresolution(objectPtr, width, height)
 	End Method
 	
 End Type

@@ -951,6 +951,25 @@ Extern
 	Function bmx_cegui_headersequenceeventargs_getnewindex:Int(handle:Byte Ptr)
 	Function bmx_cegui_treeeventargs_gettreeitem:Object(handle:Byte Ptr)
 
+	Function bmx_cegui_imageset_getname:String(handle:Byte Ptr)
+	Function bmx_cegui_imageset_getimagecount:Int(handle:Byte Ptr)
+	Function bmx_cegui_imageset_isimagedefined:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_undefineimage(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_undefineallimages(handle:Byte Ptr)
+	Function bmx_cegui_imageset_getimagesize(handle:Byte Ptr, name:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_imageset_getimagewidth:Float(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_getimageheight:Float(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_getimageoffset(handle:Byte Ptr, name:Byte Ptr, x:Float Ptr, y:Float Ptr)
+	Function bmx_cegui_imageset_getimageoffsetx:Float(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_getimageoffsety:Float(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_imageset_defineimage(handle:Byte Ptr, name:Byte Ptr, x:Float, y:Float, width:Float, height:Float, renderOffsetX:Float, renderOffsetY:Float)
+	Function bmx_cegui_imageset_isautoscaled:Int(handle:Byte Ptr)
+	Function bmx_cegui_imageset_getnativeresoultion(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_imageset_setautoscalingenabled(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_imageset_setnativeresolution(handle:Byte Ptr, width:Float, height:Float)
+	Function bmx_cegui_imageset_notifyscreenresolution(handle:Byte Ptr, width:Float, height:Float)
+
+	
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters

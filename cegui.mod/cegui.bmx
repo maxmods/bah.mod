@@ -58,6 +58,14 @@ Import "base.bmx"
 '  Fixed endian colour issue on Mac.
 '
 
+'
+' CODING NOTES :
+'
+' Remember that glue should return BBString, and not utf*, because there are issues where the returned utf8* might
+' be GC'd before the BBString is created on the BlitzMax side...
+'
+
+
 Rem
 bbdoc: EventArgs based type that is used for objects passed to input event handlers concerning mouse cursor events.
 End Rem

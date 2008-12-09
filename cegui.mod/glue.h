@@ -1050,6 +1050,25 @@ extern "C" {
 	CEGUI::uint bmx_cegui_headersequenceeventargs_getnewindex(CEGUI::HeaderSequenceEventArgs * args);
 	BBObject * bmx_cegui_treeeventargs_gettreeitem(CEGUI::TreeEventArgs * args);
 
+	BBString * bmx_cegui_imageset_getname(CEGUI::Imageset * is);
+	CEGUI::uint bmx_cegui_imageset_getimagecount(CEGUI::Imageset * is);
+	bool bmx_cegui_imageset_isimagedefined(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	void bmx_cegui_imageset_undefineimage(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	void bmx_cegui_imageset_undefineallimages(CEGUI::Imageset * is);
+	void bmx_cegui_imageset_getimagesize(CEGUI::Imageset * is, const CEGUI::utf8 * name, float * width, float * height);
+	float bmx_cegui_imageset_getimagewidth(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	float bmx_cegui_imageset_getimageheight(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	void bmx_cegui_imageset_getimageoffset(CEGUI::Imageset * is, const CEGUI::utf8 * name, float * x, float * y);
+	float bmx_cegui_imageset_getimageoffsetx(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	float bmx_cegui_imageset_getimageoffsety(CEGUI::Imageset * is, const CEGUI::utf8 * name);
+	void bmx_cegui_imageset_defineimage(CEGUI::Imageset * is, const CEGUI::utf8 * name, float x, float y, float width, float height, float renderOffsetX, float renderOffsetY);
+	bool bmx_cegui_imageset_isautoscaled(CEGUI::Imageset * is);
+	void bmx_cegui_imageset_getnativeresoultion(CEGUI::Imageset * is, float * width, float * height);
+	void bmx_cegui_imageset_setautoscalingenabled(CEGUI::Imageset * is, bool setting);
+	void bmx_cegui_imageset_setnativeresolution(CEGUI::Imageset * is, float width, float height);
+	void bmx_cegui_imageset_notifyscreenresolution(CEGUI::Imageset * is, float width, float height);
+
+
 }
 
 class MaxConnection
