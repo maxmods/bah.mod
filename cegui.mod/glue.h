@@ -109,6 +109,18 @@ extern "C" {
 	void _bah_cegui_TCEWindowFactory__destroyWindow(BBObject * handle, BBObject * window);
 	const CEGUI::utf8 * _bah_cegui_TCEWindowFactory__getTypeName(BBObject * handle);
 	
+	BBObject * _bah_cegui_TCEAlreadyExistsException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEFileIOException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEGenericException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEInvalidRequestException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEMemoryException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCENullObjectException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEObjectInUseException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCERendererException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEScriptException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEUnknownObjectException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	BBObject * _bah_cegui_TCEException__create(BBString * message, BBString * name, BBString * fileName, int line);
+	
 	BBObject * newObjectForEventArgs(CEGUI::EventArgs * args, MaxEventArgs * maxArgs);
 	
 	CEGUI::Renderer * bmx_cegui_new_oglrenderer();

@@ -22,7 +22,84 @@
 
 #include "glue.h"
 
-	
+void bmx_cegui_throw_exception(CEGUI::Exception &e) {
+	bbExThrow(_bah_cegui_TCEException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_alreadyexistsexception(CEGUI::AlreadyExistsException &e) {
+	bbExThrow(_bah_cegui_TCEAlreadyExistsException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_fileioexception(CEGUI::FileIOException &e) {
+	bbExThrow(_bah_cegui_TCEFileIOException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_genericexception(CEGUI::GenericException &e) {
+	bbExThrow(_bah_cegui_TCEGenericException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_invalidrequestexception(CEGUI::InvalidRequestException &e) {
+	bbExThrow(_bah_cegui_TCEInvalidRequestException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_memoryexception(CEGUI::MemoryException &e) {
+	bbExThrow(_bah_cegui_TCEMemoryException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_nullobjectexception(CEGUI::NullObjectException &e) {
+	bbExThrow(_bah_cegui_TCENullObjectException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_objectinuseexception(CEGUI::ObjectInUseException &e) {
+	bbExThrow(_bah_cegui_TCEObjectInUseException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_rendererexception(CEGUI::RendererException &e) {
+	bbExThrow(_bah_cegui_TCERendererException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_scriptexception(CEGUI::ScriptException &e) {
+	bbExThrow(_bah_cegui_TCEScriptException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+void bmx_cegui_throw_unknownobjectexception(CEGUI::UnknownObjectException &e) {
+	bbExThrow(_bah_cegui_TCEUnknownObjectException__create(bah_cegui__convertUTF8ToMax(e.getMessage().data()),
+		bah_cegui__convertUTF8ToMax(e.getName().data()),
+		bah_cegui__convertUTF8ToMax(e.getFileName().data()),
+		e.getLine()));
+}
+
+
 MaxConnection::MaxConnection(CEGUI::Event::Connection conn)
 	: conn(conn)
 {
@@ -1771,15 +1848,42 @@ void bmx_cegui_itemlistbox_selectallitems(CEGUI::ItemListbox * lb) {
 // *************************************************
 
 CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
-	return CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile(name, filename, resourceGroup);
+	try {
+		return CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile(name, filename, resourceGroup);
+
+	} catch (CEGUI::FileIOException &e) {
+		bmx_cegui_throw_fileioexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 CEGUI::Imageset * bmx_cegui_imagesetmanager_createimageset(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
-	return CEGUI::ImagesetManager::getSingleton().createImageset(filename, resourceGroup);
+	try {
+		return CEGUI::ImagesetManager::getSingleton().createImageset(filename, resourceGroup);
+		
+	} catch (CEGUI::FileIOException &e) {
+		bmx_cegui_throw_fileioexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture) {
-	return CEGUI::ImagesetManager::getSingleton().createImageset(name, texture);
+	try {
+		return CEGUI::ImagesetManager::getSingleton().createImageset(name, texture);
+		
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_imagesetmanager_destroyimageset(CEGUI::Imageset * imageset) {
@@ -1795,7 +1899,11 @@ void bmx_cegui_imagesetmanager_destroyallimagesets() {
 }
 
 CEGUI::Imageset * bmx_cegui_imagesetmanager_getimageset(const CEGUI::utf8 * name) {
-	return CEGUI::ImagesetManager::getSingleton().getImageset(name);
+	try {
+		return CEGUI::ImagesetManager::getSingleton().getImageset(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	}
 }
 
 bool bmx_cegui_imagesetmanager_isimagesetpresent(const CEGUI::utf8 * name) {
@@ -1806,11 +1914,27 @@ void bmx_cegui_imagesetmanager_notifyscreenresolution(float width, float height)
 	CEGUI::ImagesetManager::getSingleton().notifyScreenResolution(CEGUI::Size(width, height));
 }
 
-
 // *************************************************
 
 CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
-	return CEGUI::FontManager::getSingleton().createFont(filename, resourceGroup);
+	try {
+		return CEGUI::FontManager::getSingleton().createFont(filename, resourceGroup);
+		
+	} catch (CEGUI::FileIOException &e) {
+		bmx_cegui_throw_fileioexception(e);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::GenericException &e) {
+		bmx_cegui_throw_genericexception(e);
+	} catch (CEGUI::RendererException &e) {
+		bmx_cegui_throw_rendererexception(e);
+	} catch (CEGUI::MemoryException &e) {
+		bmx_cegui_throw_memoryexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name) {

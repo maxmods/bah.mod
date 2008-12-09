@@ -1059,4 +1059,129 @@ about: Mostly everything gets logged (use For heavy tracing only, Log WILL be bi
 End Rem
 Const LOG_INSANE:Int = 4
 
+Rem
+bbdoc: 
+End Rem
+Type TCEException Extends TRuntimeException
+	Field message:String
+	Field name:String
+	Field fileName:String
+	Field line:Int
+	
+	Field fullDetails:Int
+	
+	Method CreateException:TCEException(message:String, name:String, fileName:String, line:Int)
+		Self.message = message
+		Self.name = name
+		Self.fileName = fileName
+		Self.line = line
+		Return Self
+	End Method
+
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Local e:TCEException = New TCEException.CreateException(message, name + " (Warning: Unhandled Exception. Inform Brucey!)", ..
+			fileName, line)
+		e.fullDetails = True
+		Return e
+	End Function
+	
+	Method ToString:String()
+		Local s:String = name + " : " + message
+		If fullDetails Then
+			s:+ " : " + fileName + " (" + line + ")"
+		End If
+		Return s
+	End Method
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEAlreadyExistsException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEAlreadyExistsException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: Exception used when a file handling problem occurs. 
+End Rem
+Type TCEFileIOException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEFileIOException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEGenericException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEGenericException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEInvalidRequestException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEInvalidRequestException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEMemoryException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEMemoryException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCENullObjectException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCENullObjectException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEObjectInUseException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEObjectInUseException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCERendererException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCERendererException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEScriptException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEScriptException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCEUnknownObjectException Extends TCEException
+	Function _create:TCEException(message:String, name:String, fileName:String, line:Int)
+		Return New TCEUnknownObjectException.CreateException(message, name, fileName, line)
+	End Function
+End Type
+
 
