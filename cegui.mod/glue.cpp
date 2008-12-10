@@ -4346,35 +4346,77 @@ void bmx_cegui_imageset_undefineallimages(CEGUI::Imageset * is) {
 }
 
 void bmx_cegui_imageset_getimagesize(CEGUI::Imageset * is, const CEGUI::utf8 * name, float * width, float * height) {
-	CEGUI::Size s(is->getImageSize(name));
-	*width = s.d_width;
-	*height = s.d_height;
+	try {
+		CEGUI::Size s(is->getImageSize(name));
+		*width = s.d_width;
+		*height = s.d_height;
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 float bmx_cegui_imageset_getimagewidth(CEGUI::Imageset * is, const CEGUI::utf8 * name) {
-	return is->getImageWidth(name);
+	try {
+		return is->getImageWidth(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 float bmx_cegui_imageset_getimageheight(CEGUI::Imageset * is, const CEGUI::utf8 * name) {
-	return is->getImageHeight(name);
+	try {
+		return is->getImageHeight(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_imageset_getimageoffset(CEGUI::Imageset * is, const CEGUI::utf8 * name, float * x, float * y) {
-	CEGUI::Point p(is->getImageOffset(name));
-	*x = p.d_x;
-	*y = p.d_y;
+	try {
+		CEGUI::Point p(is->getImageOffset(name));
+		*x = p.d_x;
+		*y = p.d_y;
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 float bmx_cegui_imageset_getimageoffsetx(CEGUI::Imageset * is, const CEGUI::utf8 * name) {
-	return is->getImageOffsetX(name);
+	try {
+		return is->getImageOffsetX(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 float bmx_cegui_imageset_getimageoffsety(CEGUI::Imageset * is, const CEGUI::utf8 * name) {
-	return is->getImageOffsetY(name);
+	try {
+		return is->getImageOffsetY(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_imageset_defineimage(CEGUI::Imageset * is, const CEGUI::utf8 * name, float x, float y, float width, float height, float renderOffsetX, float renderOffsetY) {
-	is->defineImage(name, CEGUI::Point(x, y), CEGUI::Size(width, height), CEGUI::Point(renderOffsetX, renderOffsetY));
+	try {
+		is->defineImage(name, CEGUI::Point(x, y), CEGUI::Size(width, height), CEGUI::Point(renderOffsetX, renderOffsetY));
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 bool bmx_cegui_imageset_isautoscaled(CEGUI::Imageset * is) {
