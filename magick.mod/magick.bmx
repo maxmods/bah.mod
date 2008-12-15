@@ -585,38 +585,83 @@ Type TMImage
 	End Method
 
 ' attributes
+	Rem
+	bbdoc: Sets whether to join images into a single multi-image file.
+	End Rem
 	Method adjoin(flag:Int)
-	End Method
-	
-	Method getAdjoin:Int()
-	End Method
-	
-	Method AntiAlias(flag:Int)
-	End Method
-	
-	Method getAntiAlias:Int()
-	End Method
-	
-	Method animationDelay(Delay:Int)
-	End Method
-	
-	Method getAnimationDelay:Int() 
-	End Method
-	
-	Method animationIterations(iterations:Int)
-	End Method
-	
-	Method getAnimationIterations()
-	End Method
-	
-	Method attribute(name:String, value:String)
-	End Method
-	
-	Method getAttribute:String(name:String)
+		bmx_magick_image_adjoin(imagePtr, flag)
 	End Method
 	
 	Rem
 	bbdoc: 
+	End Rem
+	Method getAdjoin:Int()
+		Return bmx_magick_image_getadjoin(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Controls antialiasing of rendered Postscript and Postscript or TrueType fonts.
+	about: Enabled by default.
+	End Rem
+	Method AntiAlias(flag:Int)
+		bmx_magick_image_antialias(imagePtr, flag)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getAntiAlias:Int()
+		Return bmx_magick_image_getantialias(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the time in 1/100ths of a second (0 to 65535) which must expire before displaying the next image in an animated sequence.
+	about: This option is useful for regulating the animation of a sequence  of GIF images within Netscape.
+	End Rem
+	Method animationDelay(_delay:Int)
+		bmx_magick_image_animationdelay(imagePtr, _delay)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getAnimationDelay:Int() 
+		Return bmx_magick_image_getanimationdelay(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of iterations to loop an animation (e.g. Netscape loop extension) for.
+	End Rem
+	Method animationIterations(iterations:Int)
+		bmx_magick_image_animationiterations(imagePtr, iterations)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getAnimationIterations:Int()
+		Return bmx_magick_image_getanimationiterations(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets an arbitrary named image attribute. Any number of named attributes may be attached to the image.
+	about: For example, the image comment is a named image attribute with the name "comment". EXIF tags are
+	attached to the image as named attributes. Use the syntax "EXIF:<tag>" to request an EXIF tag similar
+	to "EXIF:DateTime".
+	End Rem
+	Method attribute(name:String, value:String)
+		bmx_magick_image_attribute(imagePtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method getAttribute:String(name:String)
+		Return bmx_magick_image_getattribute(imagePtr, name)
+	End Method
+	
+	Rem
+	bbdoc: Sets the image background color.
 	End Rem
 	Method backgroundColor(color:Object)
 		If TMColor(color) Then
@@ -627,21 +672,43 @@ Type TMImage
 	End Method
 	
 	Method getBackgroundColor:TMColor()
+		' TODO
 	End Method
 	
+	Rem
+	bbdoc: Sets the image file name to use as the background texture.
+	about: Does not modify image pixels.
+	End Rem
 	Method backgroundTexture(backgroundTexture:String)
+		bmx_magick_image_backgroundtexture(imagePtr, backgroundTexture)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getBackgroundTexture:String()
+		Return bmx_magick_image_getbackgroundtexture(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the base image width (before transformations).
+	End Rem
 	Method getBaseColumns:Int()
+		Return bmx_magick_image_getbasecolumns(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the base image filename (before transformations).
+	End Rem
 	Method getBaseFilename:String()
+		Return bmx_magick_image_getbasefilename(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the base image height (before transformations).
+	End Rem
 	Method getBaseRows:Int()
+		Return bmx_magick_image_getbaserows(imagePtr)
 	End Method
 	
 	Rem
@@ -673,35 +740,74 @@ Type TMImage
 	Method getBoxColor:TMColor()
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function cacheThreshold(threshold:Int)
+		bmx_magick_image_cachethreshold(threshold)
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method chromaBluePrimary(x:Double, y:Double)
+		bmx_magick_image_chromablueprimary(imagePtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getChromaBluePrimary(x:Double Var, y:Double Var)
+		bmx_magick_image_getchromablueprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method chromaGreenPrimary(x:Double, y:Double)
+		bmx_magick_image_chromagreenprimary(imagePtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getChromaGreenPrimary(x:Double Var, y:Double Var)
+		bmx_magick_image_getchromagreenprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method chromaRedPrimary(x:Double, y:Double)
+		bmx_magick_image_chromaredprimary(imagePtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getChromaRedPrimary(x:Double Var, y:Double Var)
+		bmx_magick_image_getchromaredprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method chromaWhitePoint(x:Double, y:Double)
+		bmx_magick_image_chromawhitepoint(imagePtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getChromaWhitePoint(x:Double Var, y:Double Var)
+		bmx_magick_image_getchromawhitepoint(imagePtr, Varptr x, Varptr y)
 	End Method
 
-
+	Rem
+	bbdoc: 
+	End Rem
 	Method classType(class:Int)
+		bmx_magick_image_classtype(imagePtr, class)
 	End Method
 	
 	Method getClassType:Int()
@@ -714,6 +820,7 @@ Type TMImage
 	End Method
 	
 	Method colorFuzz(fuzz:Double)
+		bmx_magick_image_colorfuzz(imagePtr, fuzz)
 	End Method
 	
 	Method getColorFuzz:Double()

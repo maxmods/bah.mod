@@ -107,6 +107,32 @@ extern "C" {
 	void bmx_magick_image_enhance(MaxMImage * image);
 	void bmx_magick_image_equalize(MaxMImage * image);
 	void bmx_magick_image_erase(MaxMImage * image);
+	void bmx_magick_image_adjoin(MaxMImage * image, bool flag);
+	bool bmx_magick_image_getadjoin(MaxMImage * image);
+	void bmx_magick_image_antialias(MaxMImage * image, bool flag);
+	bool bmx_magick_image_getantialias(MaxMImage * image);
+	void bmx_magick_image_animationdelay(MaxMImage * image, unsigned int delay);
+	unsigned int bmx_magick_image_getanimationdelay(MaxMImage * image);
+	void bmx_magick_image_animationiterations(MaxMImage * image, unsigned int iterations);
+	unsigned int bmx_magick_image_getanimationiterations(MaxMImage * image);
+	void bmx_magick_image_attribute(MaxMImage * image, BBString * name, BBString * value);
+	BBString * bmx_magick_image_getattribute(MaxMImage * image, BBString * name);
+	void bmx_magick_image_backgroundtexture(MaxMImage * image, BBString * backgroundTexture);
+	BBString * bmx_magick_image_getbackgroundtexture(MaxMImage * image);
+	unsigned int bmx_magick_image_getbasecolumns(MaxMImage * image);
+	BBString * bmx_magick_image_getbasefilename(MaxMImage * image);
+	unsigned int bmx_magick_image_getbaserows(MaxMImage * image);
+	void bmx_magick_image_cachethreshold(int threshold);
+	void bmx_magick_image_chromablueprimary(MaxMImage * image, double x, double y);
+	void bmx_magick_image_getchromablueprimary(MaxMImage * image, double * x, double * y);
+	void bmx_magick_image_chromagreenprimary(MaxMImage * image, double x, double y);
+	void bmx_magick_image_getchromagreenprimary(MaxMImage * image, double * x, double * y);
+	void bmx_magick_image_chromaredprimary(MaxMImage * image, double x, double y);
+	void bmx_magick_image_getchromaredprimary(MaxMImage * image, double * x, double * y);
+	void bmx_magick_image_chromawhitepoint(MaxMImage * image, double x, double y);
+	void bmx_magick_image_getchromawhitepoint(MaxMImage * image, double * x, double * y);
+	void bmx_magick_image_classtype(MaxMImage * image, ClassType classType);
+	void bmx_magick_image_colorfuzz(MaxMImage * image, double fuzz);
 
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
 
@@ -524,7 +550,118 @@ void bmx_magick_image_erase(MaxMImage * image) {
 	image->image().erase();
 }
 
+void bmx_magick_image_adjoin(MaxMImage * image, bool flag) {
+	image->image().adjoin(flag);
+}
 
+bool bmx_magick_image_getadjoin(MaxMImage * image) {
+	return image->image().adjoin();
+}
+
+void bmx_magick_image_antialias(MaxMImage * image, bool flag) {
+	image->image().antiAlias(flag);
+}
+
+bool bmx_magick_image_getantialias(MaxMImage * image) {
+	return image->image().antiAlias();
+}
+
+void bmx_magick_image_animationdelay(MaxMImage * image, unsigned int delay) {
+	image->image().animationDelay(delay);
+}
+
+unsigned int bmx_magick_image_getanimationdelay(MaxMImage * image) {
+	return image->image().animationDelay();
+}
+
+void bmx_magick_image_animationiterations(MaxMImage * image, unsigned int iterations) {
+	image->image().animationIterations(iterations);
+}
+
+unsigned int bmx_magick_image_getanimationiterations(MaxMImage * image) {
+	return image->image().animationIterations();
+}
+
+void bmx_magick_image_attribute(MaxMImage * image, BBString * name, BBString * value) {
+	char *n = bbStringToCString( name );
+	char *v = bbStringToCString( value );
+	image->image().attribute(n, v);
+	bbMemFree(n);
+	bbMemFree(v);
+}
+
+BBString * bmx_magick_image_getattribute(MaxMImage * image, BBString * name) {
+	char *n = bbStringToCString( name );
+	BBString * att = bbStringFromCString(image->image().attribute(n).c_str());
+	bbMemFree(n);
+	return att;
+}
+
+void bmx_magick_image_backgroundtexture(MaxMImage * image, BBString * backgroundTexture) {
+	char *b = bbStringToCString( backgroundTexture );
+	image->image().backgroundTexture(b);
+	bbMemFree(b);
+}
+
+BBString * bmx_magick_image_getbackgroundtexture(MaxMImage * image) {
+	return bbStringFromCString(image->image().backgroundTexture().c_str());
+}
+
+unsigned int bmx_magick_image_getbasecolumns(MaxMImage * image) {
+	return image->image().baseColumns();
+}
+
+BBString * bmx_magick_image_getbasefilename(MaxMImage * image) {
+
+}
+
+unsigned int bmx_magick_image_getbaserows(MaxMImage * image) {
+	return image->image().baseRows();
+}
+
+void bmx_magick_image_cachethreshold(int threshold) {
+	Image::cacheThreshold(threshold);
+}
+
+void bmx_magick_image_chromablueprimary(MaxMImage * image, double x, double y) {
+	image->image().chromaBluePrimary(x, y);
+}
+
+void bmx_magick_image_getchromablueprimary(MaxMImage * image, double * x, double * y) {
+	image->image().chromaBluePrimary(x, y);
+}
+
+void bmx_magick_image_chromagreenprimary(MaxMImage * image, double x, double y) {
+	image->image().chromaGreenPrimary(x, y);
+}
+
+void bmx_magick_image_getchromagreenprimary(MaxMImage * image, double * x, double * y) {
+	image->image().chromaGreenPrimary(x, y);
+}
+
+void bmx_magick_image_chromaredprimary(MaxMImage * image, double x, double y) {
+	image->image().chromaRedPrimary(x, y);
+}
+
+void bmx_magick_image_getchromaredprimary(MaxMImage * image, double * x, double * y) {
+	image->image().chromaRedPrimary(x, y);
+}
+
+void bmx_magick_image_chromawhitepoint(MaxMImage * image, double x, double y) {
+	image->image().chromaWhitePoint(x, y);
+}
+
+void bmx_magick_image_getchromawhitepoint(MaxMImage * image, double * x, double * y) {
+	image->image().chromaWhitePoint(x, y);
+}
+
+void bmx_magick_image_classtype(MaxMImage * image, ClassType classType) {
+	image->image().classType(classType);
+}
+
+void bmx_magick_image_colorfuzz(MaxMImage * image, double fuzz) {
+	image->image().colorFuzz(fuzz);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
