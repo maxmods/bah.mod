@@ -1059,7 +1059,21 @@ b2Shape * bmx_b2body_createshape(b2Body * body, b2ShapeDef * def) {
 	BBObject * shape  = _bah_box2d_b2Body__createShape(def->type);
 	def->userData = shape;
 	BBRETAIN(shape);
-	return body->CreateShape(def);
+	b2Shape * theShape = body->CreateShape(def);
+	
+	// if we are edges... we need to add lots of shapes (one per edge)
+	if (def->type == e_edgeShape) {
+		b2EdgeShape * edge = ((b2EdgeShape*)theShape)->GetNextEdge();
+		while ((edge != theShape) && (edge != NULL)) {
+			shape = _bah_box2d_b2Body__createShape(def->type);
+			edge->SetUserData(shape);
+			BBRETAIN(shape);
+			
+			edge = edge->GetNextEdge();
+		}
+	}
+	
+	return theShape;
 }
 
 void bmx_b2body_destroyshape(b2Body * body, b2Shape * shape) {
