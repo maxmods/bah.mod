@@ -53,7 +53,14 @@ Import "common.bmx"
 '
 
 Rem
-bbdoc: 
+bbdoc: The Tesseract OCR engine.
+about: Steps for success:
+<ol>
+<li>Call Init(datapath) to intialise the engine.</li>
+<li>Call Rect(pixmap) to process an image and retrieve the text as String.</li>
+<li>Optionally call Clear() between docs.</li>
+<li>Optionally call EndTess() when you are finished using the engine.</li>
+</ol>
 End Rem
 Type Tess
 
@@ -75,12 +82,15 @@ Type Tess
 	Rem
 	bbdoc: Sets the value of an internal "variable" (of either old or new types).
 	returns: False if the name lookup failed.
-	about: Supply the name of the variable and the value as a string.
-	<p>
-	For most variables, it is wise to set them before calling Init().
-	</p>
+	about: For most variables, it is wise to set them before calling Init().
 	<p>
 	eg. Tess.SetVariable("tessedit_char_blacklist", "xyz")
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>variable</b> : Name of the variable to set.</li>
+	<li><b>value</b> : New value for the variable.</li>
+	</ul>
 	</p>
 	End Rem
 	Function SetVariable:Int(variable:String, value:String)
@@ -95,11 +105,11 @@ Type Tess
 	</p>
 	<p>Parameters:
 	<ul>
-	<li><b>pixmap</b> : </li>
-	<li><b>x</b> : XXXXXXXXXXXX</li>
-	<li><b>y</b> : XXXXXXXXXXXX</li>
-	<li><b>width</b> : XXXXXXXXXXXX</li>
-	<li><b>height</b> : XXXXXXXXXXXX</li>
+	<li><b>pixmap</b> : The pixmap to process. Will be converted up to 24bit if required.</li>
+	<li><b>x</b> : X coordinate of process rectangle.</li>
+	<li><b>y</b> : Y coordinate of process rectangle.</li>
+	<li><b>width</b> : Width of rectangle.</li>
+	<li><b>height</b> : Height of rectangle.</li>
 	</ul>
 	</p>
 	End Rem
@@ -132,7 +142,22 @@ Type Tess
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Recognizes a rectangle from raw pixel data and returns the result as a string.
+	about: May be called many times for a single Init.
+	<p>
+	Currently has no error checking.
+	</p>
+	<p>Parameters:
+	<ul>
+	<li><b>imagedata</b> : Byte Ptr to the raw image data</li>
+	<li><b>bytesPerPixel</b> : Number of bytes per pixel. eg. 4 for RGBA8888</li>
+	<li><b>bytesPerLine</b> : The 'pitch' for the image.</li>
+	<li><b>x</b> : X coordinate of process rectangle.</li>
+	<li><b>y</b> : Y coordinate of process rectangle.</li>
+	<li><b>width</b> : Width of rectangle.</li>
+	<li><b>height</b> : Height of rectangle.</li>
+	</ul>
+	</p>
 	End Rem
 	Function RectRaw:String(imagedata:Byte Ptr, bytesPerPixel:Int, bytesPerLine:Int, x:Int, y:Int, width:Int, height:Int)
 		Return bmx_tess_rect(imagedata, bytesPerPixel, bytesPerLine, x, y, width, height)
@@ -157,6 +182,10 @@ Type Tess
 	Rem
 	bbdoc: Checks whether a word is valid according to Tesseract's language model.
 	returns: 0 if the string is invalid, non-zero if valid.
+	about: Parameters:
+	<ul>
+	<li><b>word</b> : The word to test for validity.</li>
+	</ul>
 	End Rem
 	Function IsValidWord:Int(word:String)
 		Return bmx_tess_isvalidword(word)
