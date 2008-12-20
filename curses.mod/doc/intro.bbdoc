@@ -1,0 +1,27 @@
+
+<h3>How to use Colors</h3>
+<p>The module has the capability to display colors in nearly every string displayed in a <a href="#TCursesWidget">TCursesWidget</a>. 
+Colors are always used in pairs (referred to as color-pairs).
+A color-pair consists of a foreground color (for characters) and a background color (for the blank field on which the characters are displayed).<br>
+There are 64 colour pairs available for use. Normally the color pairs are accessed via the <a href="#COLOR_PAIR">COLOR_PAIR</a> function. You can still do this, but creating a string with multiple colors gets very complicated.
+Instead, you set the color directly in the string and when the widget is created or activated, the string is converted to take advantage of any color commands in the string. To turn on a color pair insert &lt;/XX&gt; into the string; where XX is a numeric value from 0 to 64. Color pair 0 is the standard default color pair for the screen. To turn off a color pair use the format command &lt;!XX&gt; where XX is a numeric value from 0 to 64.
+</p>
+<h3>Using Different Character Attributes</h3>
+<p>
+The Curses module also provides attribute commands which allow different character attributes to be displayed in a <a href="#TCursesWidget">TCursesWidget</a>. To use a character attribute the format command is &lt;/X&gt; where X is one of several command characters. To turn a attribute off use the command &lt;!X&gt;. The following table outlines the command characters and what they mean.
+</p>
+<table align="center" width="90%">
+<tr><th>Command</th><th>Attribute</th></tr>
+<tr><td>B</td><td>Bold</td></tr>
+<tr><td>U</td><td>Underline</td></tr>
+<tr><td>K</td><td>Blink</td></tr>
+<tr><td>R</td><td>Reverse</td></tr>
+<tr><td>S</td><td>Standout</td></tr>
+<tr><td>D</td><td>Dim</td></tr>
+<tr><td>N</td><td>Normal </td></tr>
+</table>
+
+<h3>Justifying Strings</h3>
+
+<h3>Using Special Drawing Characters</h3>
+
