@@ -4758,14 +4758,20 @@ Type b2Controller
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Applies a force every frame
 End Rem
 Type b2ConstantAccelController Extends b2Controller
 
+	Rem
+	bbdoc: Returns the force to apply.
+	End Rem
 	Method GetForce:b2Vec2()
 		Return b2Vec2._create(bmx_b2constantaccelcontroller_getforce(b2ObjectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets the force to apply.
+	End Rem
 	Method SetForce(force:b2Vec2)
 		bmx_b2constantaccelcontroller_setforce(b2ObjectPtr, force.b2ObjectPtr)
 	End Method
@@ -4773,7 +4779,7 @@ Type b2ConstantAccelController Extends b2Controller
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Calculates buoyancy forces for fluids in the form of a half plane.
 End Rem
 Type b2BuoyancyController Extends b2Controller
 
@@ -4927,7 +4933,7 @@ Type b2ConstantForceController Extends b2Controller
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Applies simplified gravity between every pair of bodies.
 End Rem
 Type b2GravityController Extends b2Controller
 
@@ -4962,7 +4968,8 @@ Type b2GravityController Extends b2Controller
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Applies top down linear damping to the controlled bodies
+about: The damping is calculated by multiplying velocity by a matrix in local co-ordinates.
 End Rem
 Type b2TensorDampingController Extends b2Controller
 
