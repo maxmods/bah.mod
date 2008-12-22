@@ -34,6 +34,8 @@ class b2Joint;
 class b2Shape;
 class b2Contact;
 class b2BroadPhase;
+class b2Controller;
+class b2ControllerDef;
 
 struct b2TimeStep
 {
@@ -98,6 +100,12 @@ public:
 	/// @warning This function is locked during callbacks.
 	void DestroyJoint(b2Joint* joint);
 
+	/// Add a controller to the world.
+	b2Controller* CreateController(b2ControllerDef* def);
+
+	/// Removes a controller from the world.
+	void DestroyController(b2Controller* controller);
+
 	/// The world provides a single static ground body with no collision shapes.
 	/// You can use this to simplify the creation of joints and static shapes.
 	b2Body* GetGroundBody();
@@ -154,6 +162,11 @@ public:
 	/// @return the head of the world joint list.
 	b2Joint* GetJointList();
 
+	/// Get the world controller list. With the returned controller, use b2Controller::GetNext to get
+	/// the next controller in the world list. A NULL controller indicates the end of the list.
+	/// @return the head of the world controller list.
+	b2Controller* GetControllerList();
+
 	/// Re-filter a shape. This re-runs contact filtering on a shape.
 	void Refilter(b2Shape* shape);
 
@@ -175,11 +188,14 @@ public:
 	/// Get the number of bodies.
 	int32 GetBodyCount() const;
 
-	/// Get the number joints.
+	/// Get the number of joints.
 	int32 GetJointCount() const;
 
 	/// Get the number of contacts (each may have 0 or more contact points).
 	int32 GetContactCount() const;
+
+	/// Get the number of controllers.
+	int32 GetControllerCount() const;
 
 	/// Change the global gravity vector.
 	void SetGravity(const b2Vec2& gravity);
@@ -191,6 +207,7 @@ private:
 
 	friend class b2Body;
 	friend class b2ContactManager;
+	friend class b2Controller;
 
 	void Solve(const b2TimeStep& step);
 	void SolveTOI(const b2TimeStep& step);
@@ -212,6 +229,7 @@ private:
 
 	b2Body* m_bodyList;
 	b2Joint* m_jointList;
+	b2Controller* m_controllerList;
 
 	b2Vec2 m_raycastNormal;
 	void* m_raycastUserData;
@@ -225,6 +243,7 @@ private:
 	int32 m_bodyCount;
 	int32 m_contactCount;
 	int32 m_jointCount;
+	int32 m_controllerCount;
 
 	b2Vec2 m_gravity;
 	bool m_allowSleep;
@@ -263,6 +282,11 @@ inline b2Joint* b2World::GetJointList()
 	return m_jointList;
 }
 
+inline b2Controller* b2World::GetControllerList()
+{
+	return m_controllerList;
+}
+
 inline int32 b2World::GetBodyCount() const
 {
 	return m_bodyCount;
@@ -276,6 +300,11 @@ inline int32 b2World::GetJointCount() const
 inline int32 b2World::GetContactCount() const
 {
 	return m_contactCount;
+}
+
+inline int32 b2World::GetControllerCount() const
+{
+	return m_controllerCount;
 }
 
 inline void b2World::SetGravity(const b2Vec2& gravity)

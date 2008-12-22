@@ -45,6 +45,7 @@ inline Fixed b2Clamp(Fixed a, Fixed low, Fixed high)
 
 inline bool b2IsValid(Fixed x)
 {
+	B2_NOT_USED(x);
 	return true;
 }
 

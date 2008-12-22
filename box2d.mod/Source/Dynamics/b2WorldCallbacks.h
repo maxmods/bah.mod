@@ -135,6 +135,7 @@ public:
 		e_obbBit				= 0x0010, ///< draw oriented bounding boxes
 		e_pairBit				= 0x0020, ///< draw broad-phase pairs
 		e_centerOfMassBit		= 0x0040, ///< draw center of mass frame
+		e_controllerBit			= 0x0080, ///< draw controllers
 	};
 
 	/// Set the drawing flags.

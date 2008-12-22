@@ -277,7 +277,7 @@ void b2PolyAndEdgeContact::b2CollidePolyAndEdge(b2Manifold* manifold,
 			manifold->pointCount = 1;
 			manifold->normal = b2Mul(xf1.R, normals[separationIndex]);
 			manifold->points[0].separation = separationMax;
-			manifold->points[0].id.features.incidentEdge = separationIndex;
+			manifold->points[0].id.features.incidentEdge = (uint8)separationIndex;
 			manifold->points[0].id.features.incidentVertex = b2_nullFeature;
 			manifold->points[0].id.features.referenceEdge = 0;
 			manifold->points[0].id.features.flip = 0;
@@ -298,7 +298,7 @@ void b2PolyAndEdgeContact::b2CollidePolyAndEdge(b2Manifold* manifold,
 	// Check whether we only need one contact point.
 	if (enterEndIndex == exitStartIndex) {
 		manifold->pointCount = 1;
-		manifold->points[0].id.features.incidentEdge = enterEndIndex;
+		manifold->points[0].id.features.incidentEdge = (uint8)enterEndIndex;
 		manifold->points[0].id.features.incidentVertex = b2_nullFeature;
 		manifold->points[0].id.features.referenceEdge = 0;
 		manifold->points[0].id.features.flip = 0;
@@ -327,7 +327,7 @@ void b2PolyAndEdgeContact::b2CollidePolyAndEdge(b2Manifold* manifold,
 	}
 	dirProj2 = b2Dot(dirLocal, vertices[exitStartIndex] - v1Local);
 	
-	manifold->points[0].id.features.incidentEdge = enterEndIndex;
+	manifold->points[0].id.features.incidentEdge = (uint8)enterEndIndex;
 	manifold->points[0].id.features.incidentVertex = b2_nullFeature;
 	manifold->points[0].id.features.referenceEdge = 0;
 	manifold->points[0].id.features.flip = 0;
@@ -347,7 +347,7 @@ void b2PolyAndEdgeContact::b2CollidePolyAndEdge(b2Manifold* manifold,
 		manifold->points[0].separation = enterSepN;
 	}
 		
-	manifold->points[1].id.features.incidentEdge = exitStartIndex;
+	manifold->points[1].id.features.incidentEdge = (uint8)exitStartIndex;
 	manifold->points[1].id.features.incidentVertex = b2_nullFeature;
 	manifold->points[1].id.features.referenceEdge = 0;
 	manifold->points[1].id.features.flip = 0;

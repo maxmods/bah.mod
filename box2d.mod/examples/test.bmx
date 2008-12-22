@@ -137,6 +137,7 @@ Type Test
 		flags :+ settings.drawShapes			* b2DebugDraw.e_shapeBit
 		flags :+ settings.drawJoints			* b2DebugDraw.e_jointBit
 		flags :+ settings.drawCoreShapes		* b2DebugDraw.e_coreShapeBit
+		flags :+ settings.drawControllers	* b2DebugDraw.e_controllerBit
 		flags :+ settings.drawAABBs			* b2DebugDraw.e_aabbBit
 		flags :+ settings.drawOBBs				* b2DebugDraw.e_obbBit
 		flags :+ settings.drawPairs			* b2DebugDraw.e_pairBit
@@ -317,6 +318,7 @@ Type TSettings
 	Field positionIterations:Int = 8
 	Field drawShapes:Int = 1
 	Field drawJoints:Int = 1
+	Field drawControllers:Int = 1
 	Field drawCoreShapes:Int
 	Field drawAABBs:Int
 	Field drawOBBs:Int

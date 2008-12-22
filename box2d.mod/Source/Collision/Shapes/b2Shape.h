@@ -189,6 +189,17 @@ public:
 	/// @param massData returns the mass data for this shape.
 	virtual void ComputeMass(b2MassData* massData) const = 0;
 
+	/// Compute the volume and centroid of this shape intersected with a half plane
+	/// @param normal the surface normal
+	/// @param offset the surface offset along normal
+	/// @param xf the shape transform
+	/// @param c returns the centroid
+	/// @return the total volume less than offset along normal
+	virtual float32 ComputeSubmergedArea(	const b2Vec2& normal,
+											float32 offset,
+											const b2XForm& xf, 
+											b2Vec2* c) const = 0;
+
 	/// Get the maximum radius about the parent body's center of mass.
 	float32 GetSweepRadius() const;
 
@@ -203,6 +214,12 @@ public:
 
 	/// Set the coefficient of restitution.
 	void SetRestitution(float32 restitution);
+
+	/// Get the density of the shape.
+	float32 GetDensity() const;
+
+	/// Set the density of the shape.
+	void SetDensity(float32 density);
 
 protected:
 
@@ -304,6 +321,17 @@ inline float32 b2Shape::GetRestitution() const
 inline void b2Shape::SetRestitution(float32 restitution)
 {
 	m_restitution = restitution;
+}
+
+
+inline float32 b2Shape::GetDensity() const
+{
+	return m_density;
+}
+
+inline void b2Shape::SetDensity(float32 density)
+{
+	m_density = density;
 }
 
 #endif

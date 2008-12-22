@@ -22,14 +22,17 @@
 #include "../Common/b2Math.h"
 #include "../Collision/Shapes/b2Shape.h"
 #include "Joints/b2Joint.h"
+#include "Controllers/b2Controller.h"
 
 #include <memory>
 
 class b2Joint;
 class b2Contact;
+class b2Controller;
 class b2World;
 struct b2JointEdge;
 struct b2ContactEdge;
+struct b2ControllerEdge;
 
 /// A body definition holds all the data needed to construct a rigid body.
 /// You can safely re-use body definitions.
@@ -256,6 +259,9 @@ public:
 	/// Get the list of all joints attached to this body.
 	b2JointEdge* GetJointList();
 
+	/// Get the list of all controllers attached to this body.
+	b2ControllerEdge* GetControllerList();
+
 	/// Get the next body in the world's body list.
 	b2Body* GetNext();
 
@@ -282,6 +288,8 @@ private:
 	friend class b2PrismaticJoint;
 	friend class b2PulleyJoint;
 	friend class b2RevoluteJoint;
+
+	friend class b2Controller;
 
 	// m_flags
 	enum
@@ -338,6 +346,8 @@ private:
 
 	b2JointEdge* m_jointList;
 	b2ContactEdge* m_contactList;
+
+	b2ControllerEdge* m_controllerList;
 
 	float32 m_mass, m_invMass;
 	float32 m_I, m_invI;
@@ -509,6 +519,11 @@ inline b2Shape* b2Body::GetShapeList()
 inline b2JointEdge* b2Body::GetJointList()
 {
 	return m_jointList;
+}
+
+inline b2ControllerEdge* b2Body::GetControllerList()
+{
+	return m_controllerList;
 }
 
 inline b2Body* b2Body::GetNext()

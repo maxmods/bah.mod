@@ -31,6 +31,15 @@ class MaxFilterData;
 class MaxDestructionListener;
 class Maxb2EdgeChainDef;
 
+enum b2ControllerType
+{
+	e_buoyancyController,
+	e_constantAccelController,
+	e_tensorDampingController,
+	e_gravityController,
+	e_constantForceController
+};
+
 extern "C" {
 
 	BBArray * _bah_box2d_b2Vec2__newVecArray(int count);
@@ -49,6 +58,8 @@ extern "C" {
 	void _bah_box2d_b2ContactListener__Remove(BBObject * maxHandle, const b2ContactPoint* point);
 	void _bah_box2d_b2ContactListener__Result(BBObject * maxHandle, const b2ContactResult* result);
 	void _bah_box2d_b2BoundaryListener__Violation(BBObject * maxHandle, b2Body * body);
+
+	BBObject * _bah_box2d_b2World___createController(b2ControllerType type);
 
 	void _bah_box2d_b2DestructionListener__SayGoodbyeJoint(BBObject * maxHandle, b2Joint * joint);
 	void _bah_box2d_b2DestructionListener__SayGoodbyeShape(BBObject * maxHandle, b2Shape * shape);
@@ -101,6 +112,8 @@ extern "C" {
 	int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, bool solidShapes);
 	b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, bool solidShapes);
 	bool bmx_b2world_inrange(b2World * world, b2AABB * aabb);
+	b2Controller * bmx_b2world_createcontroller(b2World * world, b2ControllerDef * def, b2ControllerType type);
+	void bmx_b2world_destroycontroller(b2World * world, b2Controller * controller);
 
 	b2BodyDef * bmx_b2bodydef_create();
 	void bmx_b2bodydef_delete(b2BodyDef * def);
@@ -208,6 +221,8 @@ extern "C" {
 	void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data);
 	void bmx_b2shape_setfriction(b2Shape * shape, float32 friction);
 	void bmx_b2shape_setrestitution(b2Shape * shape, float32 restitution);
+	float32 bmx_b2shape_getdensity(b2Shape * shape);
+	void bmx_b2shape_setdensity(b2Shape * shape, float32 density);
 
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
@@ -555,6 +570,102 @@ extern "C" {
 	b2EdgeShape * bmx_b2edgeshape_getnextedge(b2EdgeShape * shape);
 	b2EdgeShape * bmx_b2edgeshape_getprevedge(b2EdgeShape * shape);
 
+	b2BuoyancyControllerDef * bmx_b2buoyancycontrollerdef_create();
+	b2Vec2 * bmx_b2buoyancycontrollerdef_getnormal(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setnormal(b2BuoyancyControllerDef * def, b2Vec2 * normal);
+	float32 bmx_b2buoyancycontrollerdef_getoffset(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setoffset(b2BuoyancyControllerDef * def, float32 offset);
+	float32 bmx_b2buoyancycontrollerdef_getdensity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setdensity(b2BuoyancyControllerDef * def, float32 density);
+	b2Vec2 * bmx_b2buoyancycontrollerdef_getvelocity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setvelocity(b2BuoyancyControllerDef * def, b2Vec2 * velocity);
+	float32 bmx_b2buoyancycontrollerdef_getlineardrag(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setlineardrag(b2BuoyancyControllerDef * def, float32 drag);
+	float32 bmx_b2buoyancycontrollerdef_getangulardrag(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setangulardrag(b2BuoyancyControllerDef * def, float32 drag);
+	bool bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, bool value);
+	bool bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, bool value);
+	b2Vec2 * bmx_b2buoyancycontrollerdef_getgravity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setgravity(b2BuoyancyControllerDef * def, b2Vec2 * gravity);
+	void bmx_b2buoyancycontrollerdef_delete(b2BuoyancyControllerDef * def);
+
+	b2Vec2 * bmx_b2buoyancycontroller_getnormal(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setnormal(b2BuoyancyController * c, b2Vec2 * normal);
+	float32 bmx_b2buoyancycontroller_getoffset(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setoffset(b2BuoyancyController * c, float32 offset);
+	float32 bmx_b2buoyancycontroller_getdensity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setdensity(b2BuoyancyController * c, float32 density);
+	b2Vec2 * bmx_b2buoyancycontroller_getvelocity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setvelocity(b2BuoyancyController * c, b2Vec2 * velocity);
+	float32 bmx_b2buoyancycontroller_getlineardrag(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setlineardrag(b2BuoyancyController * c, float32 drag);
+	float32 bmx_b2buoyancycontroller_getangulardrag(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setangulardrag(b2BuoyancyController * c, float32 drag);
+	bool bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, bool value);
+	bool bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, bool value);
+	b2Vec2 * bmx_b2buoyancycontroller_getgravity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setgravity(b2BuoyancyController * c, b2Vec2 * gravity);
+
+	b2TensorDampingControllerDef * bmx_b2tensordampingcontrollerdef_create();
+	void bmx_b2tensordampingcontrollerdef_delete(b2TensorDampingControllerDef * def);
+	b2Mat22 * bmx_b2tensordampingcontrollerdef_gettensor(b2TensorDampingControllerDef * def);
+	void bmx_b2tensordampingcontrollerdef_settensor(b2TensorDampingControllerDef * def, b2Mat22 * tensor);
+	float32 bmx_b2tensordampingcontrollerdef_getmaxtimestep(b2TensorDampingControllerDef * def);
+	void bmx_b2tensordampingcontrollerdef_setmaxtimestep(b2TensorDampingControllerDef * def, float32 timestep);
+	void bmx_b2tensordampingcontrollerdef_setaxisaligned(b2TensorDampingControllerDef * def, float32 xDamping, float32 yDamping);
+
+	b2Mat22 * bmx_b2tensordampingcontroller_gettensor(b2TensorDampingController * c);
+	void bmx_b2tensordampingcontroller_settensor(b2TensorDampingController * c, b2Mat22 * tensor);
+	float32 bmx_b2tensordampingcontroller_getmaxtimestep(b2TensorDampingController * c);
+	void bmx_b2tensordampingcontroller_setmaxtimestep(b2TensorDampingController * c, float32 timestep);
+
+	b2GravityControllerDef * bmx_b2gravitycontrollerdef_create();
+	void bmx_b2gravitycontrollerdef_delete(b2GravityControllerDef * def);
+	float32 bmx_b2gravitycontrollerdef_getforce(b2GravityControllerDef * def);
+	void bmx_b2gravitycontrollerdef_setforce(b2GravityControllerDef * def, float32 force);
+	bool bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def);
+	void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, bool value);
+
+	float32 bmx_b2gravitycontroller_getforce(b2GravityController * c);
+	void bmx_b2gravitycontroller_setforce(b2GravityController * c, float32 force);
+	bool bmx_b2gravitycontroller_isinvsqr(b2GravityController * c);
+	void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, bool value);
+
+	b2ConstantForceControllerDef * bmx_b2constantforcecontrollerdef_create();
+	void bmx_b2constantforcecontrollerdef_delete(b2ConstantForceControllerDef * def);
+	b2Vec2 * bmx_b2constantforcecontrollerdef_getforce(b2ConstantForceControllerDef * def);
+	void bmx_b2constantforcecontrollerdef_setforce(b2ConstantForceControllerDef * def, b2Vec2 * force);
+
+	b2Vec2 * bmx_b2constantforcecontroller_getforce(b2ConstantForceController * c);
+	void bmx_b2constantforcecontroller_setforce(b2ConstantForceController * c, b2Vec2 * force);
+
+	b2ConstantAccelControllerDef * bmx_b2constantaccelcontrollerdef_create();
+	b2Vec2 * bmx_b2constantaccelcontrollerdef_getforce(b2ConstantAccelControllerDef * def);
+	void bmx_b2constantaccelcontrollerdef_setforce(b2ConstantAccelControllerDef * def, b2Vec2 * force);
+	void bmx_b2constantaccelcontrollerdef_delete(b2ConstantAccelControllerDef * def);
+
+	b2Vec2 * bmx_b2constantaccelcontroller_getforce(b2ConstantAccelController * c);
+	void bmx_b2constantaccelcontroller_setforce(b2ConstantAccelController * c, b2Vec2 * force);
+
+	b2Controller * bmx_b2controlleredge_getcontroller(b2ControllerEdge * edge);
+	b2Body * bmx_b2controlleredge_getbody(b2ControllerEdge * edge);
+	b2ControllerEdge * bmx_b2controlleredge_getprevbody(b2ControllerEdge * edge);
+	b2ControllerEdge * bmx_b2controlleredge_getnextbody(b2ControllerEdge * edge);
+	b2ControllerEdge * bmx_b2controlleredge_getprevcontroller(b2ControllerEdge * edge);
+	b2ControllerEdge * bmx_b2controlleredge_getnextcontroller(b2ControllerEdge * edge);
+
+	BBObject * bmx_b2controller_getmaxcontroller(b2Controller * c);
+	void bmx_b2controller_addbody(b2Controller * c, b2Body * body);
+	void bmx_b2controller_removebody(b2Controller * c, b2Body * body);
+	void bmx_b2controller_clear(b2Controller * c);
+	b2Controller * bmx_b2controller_getnext(b2Controller * c);
+	b2World * bmx_b2controller_getworld(b2Controller * c);
+	b2ControllerEdge * bmx_b2controller_getbodylist(b2Controller * c);
+
 }
 
 class MaxFilterData
@@ -887,6 +998,24 @@ b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 *
 bool bmx_b2world_inrange(b2World * world, b2AABB * aabb) {
 	return world->InRange(*aabb);
 }
+
+b2Controller * bmx_b2world_createcontroller(b2World * world, b2ControllerDef * def, b2ControllerType type) {
+	BBObject * bbController = _bah_box2d_b2World___createController(type);
+	BBRETAIN(bbController);
+
+	b2Controller * controller =  world->CreateController(def);
+	controller->SetUserData((void*)bbController);
+	return controller;
+}
+
+void bmx_b2world_destroycontroller(b2World * world, b2Controller * controller) {
+	void * data = controller->GetUserData();
+	if (data && data != &bbNullObject) {
+		BBRELEASE((BBObject*)data);
+	}
+	world->DestroyController(controller);
+}
+
 
 // *****************************************************
 
@@ -1396,6 +1525,15 @@ void bmx_b2shape_setfriction(b2Shape * shape, float32 friction) {
 void bmx_b2shape_setrestitution(b2Shape * shape, float32 restitution) {
 	shape->SetRestitution(restitution);
 }
+
+float32 bmx_b2shape_getdensity(b2Shape * shape) {
+	return shape->GetDensity();
+}
+
+void bmx_b2shape_setdensity(b2Shape * shape, float32 density) {
+	shape->SetDensity(density);
+}
+
 
 // *****************************************************
 
@@ -2822,4 +2960,374 @@ b2EdgeShape * bmx_b2edgeshape_getprevedge(b2EdgeShape * shape) {
 	return shape->GetPrevEdge();
 }
 
+// *****************************************************
 
+
+b2BuoyancyControllerDef * bmx_b2buoyancycontrollerdef_create() {
+	return new b2BuoyancyControllerDef;
+}
+
+b2Vec2 * bmx_b2buoyancycontrollerdef_getnormal(b2BuoyancyControllerDef * def) {
+	return bmx_b2vec2_new(def->normal);
+}
+
+void bmx_b2buoyancycontrollerdef_setnormal(b2BuoyancyControllerDef * def, b2Vec2 * normal) {
+	def->normal = *normal;
+}
+
+float32 bmx_b2buoyancycontrollerdef_getoffset(b2BuoyancyControllerDef * def) {
+	return def->offset;
+}
+
+void bmx_b2buoyancycontrollerdef_setoffset(b2BuoyancyControllerDef * def, float32 offset) {
+	def->offset = offset;
+}
+
+float32 bmx_b2buoyancycontrollerdef_getdensity(b2BuoyancyControllerDef * def) {
+	return def->density;
+}
+
+void bmx_b2buoyancycontrollerdef_setdensity(b2BuoyancyControllerDef * def, float32 density) {
+	def->density = density;
+}
+
+b2Vec2 * bmx_b2buoyancycontrollerdef_getvelocity(b2BuoyancyControllerDef * def) {
+	return bmx_b2vec2_new(def->velocity);
+}
+
+void bmx_b2buoyancycontrollerdef_setvelocity(b2BuoyancyControllerDef * def, b2Vec2 * velocity) {
+	def->velocity = *velocity;
+}
+
+float32 bmx_b2buoyancycontrollerdef_getlineardrag(b2BuoyancyControllerDef * def) {
+	return def->linearDrag;
+}
+
+void bmx_b2buoyancycontrollerdef_setlineardrag(b2BuoyancyControllerDef * def, float32 drag) {
+	def->linearDrag = drag;
+}
+
+float32 bmx_b2buoyancycontrollerdef_getangulardrag(b2BuoyancyControllerDef * def) {
+	return def->angularDrag;
+}
+
+void bmx_b2buoyancycontrollerdef_setangulardrag(b2BuoyancyControllerDef * def, float32 drag) {
+	def->angularDrag = drag;
+}
+
+bool bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def) {
+	return def->useDensity;
+}
+
+void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, bool value) {
+	def->useDensity = value;
+}
+
+bool bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def) {
+	return def->useWorldGravity;
+}
+
+void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, bool value) {
+	def->useWorldGravity = value;
+}
+
+b2Vec2 * bmx_b2buoyancycontrollerdef_getgravity(b2BuoyancyControllerDef * def) {
+	return bmx_b2vec2_new(def->gravity);
+}
+
+void bmx_b2buoyancycontrollerdef_setgravity(b2BuoyancyControllerDef * def, b2Vec2 * gravity) {
+	def->gravity = *gravity;
+}
+
+void bmx_b2buoyancycontrollerdef_delete(b2BuoyancyControllerDef * def) {
+	delete def;
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2buoyancycontroller_getnormal(b2BuoyancyController * c) {
+	return bmx_b2vec2_new(c->normal);
+}
+
+void bmx_b2buoyancycontroller_setnormal(b2BuoyancyController * c, b2Vec2 * normal) {
+	c->normal = *normal;
+}
+
+float32 bmx_b2buoyancycontroller_getoffset(b2BuoyancyController * c) {
+	return c->offset;
+}
+
+void bmx_b2buoyancycontroller_setoffset(b2BuoyancyController * c, float32 offset) {
+	c->offset = offset;
+}
+
+float32 bmx_b2buoyancycontroller_getdensity(b2BuoyancyController * c) {
+	return c->density;
+}
+
+void bmx_b2buoyancycontroller_setdensity(b2BuoyancyController * c, float32 density) {
+	c->density = density;
+}
+
+b2Vec2 * bmx_b2buoyancycontroller_getvelocity(b2BuoyancyController * c) {
+	return bmx_b2vec2_new(c->velocity);
+}
+
+void bmx_b2buoyancycontroller_setvelocity(b2BuoyancyController * c, b2Vec2 * velocity) {
+	c->velocity = *velocity;
+}
+
+float32 bmx_b2buoyancycontroller_getlineardrag(b2BuoyancyController * c) {
+	return c->linearDrag;
+}
+
+void bmx_b2buoyancycontroller_setlineardrag(b2BuoyancyController * c, float32 drag) {
+	c->linearDrag = drag;
+}
+
+float32 bmx_b2buoyancycontroller_getangulardrag(b2BuoyancyController * c) {
+	return c->angularDrag;
+}
+
+void bmx_b2buoyancycontroller_setangulardrag(b2BuoyancyController * c, float32 drag) {
+	c->angularDrag = drag;
+}
+
+bool bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c) {
+	return c->useDensity;
+}
+
+void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, bool value) {
+	c->useDensity = value;
+}
+
+bool bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c) {
+	return c->useWorldGravity;
+}
+
+void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, bool value) {
+	c->useWorldGravity = value;
+}
+
+b2Vec2 * bmx_b2buoyancycontroller_getgravity(b2BuoyancyController * c) {
+	return bmx_b2vec2_new(c->gravity);
+}
+
+void bmx_b2buoyancycontroller_setgravity(b2BuoyancyController * c, b2Vec2 * gravity) {
+	c->gravity = *gravity;
+}
+
+// *****************************************************
+
+b2TensorDampingControllerDef * bmx_b2tensordampingcontrollerdef_create() {
+	return new b2TensorDampingControllerDef;
+}
+
+void bmx_b2tensordampingcontrollerdef_delete(b2TensorDampingControllerDef * def) {
+	delete def;
+}
+
+b2Mat22 * bmx_b2tensordampingcontrollerdef_gettensor(b2TensorDampingControllerDef * def) {
+	b2Mat22 * m = new b2Mat22;
+	m->col1 = def->T.col1;
+	m->col2 = def->T.col2;
+	return m;
+}
+
+void bmx_b2tensordampingcontrollerdef_settensor(b2TensorDampingControllerDef * def, b2Mat22 * tensor) {
+	def->T = *tensor;
+}
+
+float32 bmx_b2tensordampingcontrollerdef_getmaxtimestep(b2TensorDampingControllerDef * def) {
+	return def->maxTimestep;
+}
+
+void bmx_b2tensordampingcontrollerdef_setmaxtimestep(b2TensorDampingControllerDef * def, float32 timestep) {
+	def->maxTimestep = timestep;
+}
+
+void bmx_b2tensordampingcontrollerdef_setaxisaligned(b2TensorDampingControllerDef * def, float32 xDamping, float32 yDamping) {
+	def->SetAxisAligned(xDamping, yDamping);
+}
+
+// *****************************************************
+
+b2Mat22 * bmx_b2tensordampingcontroller_gettensor(b2TensorDampingController * c) {
+	b2Mat22 * m = new b2Mat22;
+	m->col1 = c->T.col1;
+	m->col2 = c->T.col2;
+	return m;
+}
+
+void bmx_b2tensordampingcontroller_settensor(b2TensorDampingController * c, b2Mat22 * tensor) {
+	c->T.col1 = tensor->col1;
+	c->T.col2 = tensor->col2;
+}
+
+float32 bmx_b2tensordampingcontroller_getmaxtimestep(b2TensorDampingController * c) {
+	return c->maxTimestep;
+}
+
+void bmx_b2tensordampingcontroller_setmaxtimestep(b2TensorDampingController * c, float32 timestep) {
+	c->maxTimestep = timestep;
+}
+
+// *****************************************************
+
+b2GravityControllerDef * bmx_b2gravitycontrollerdef_create() {
+	return new b2GravityControllerDef;
+}
+
+void bmx_b2gravitycontrollerdef_delete(b2GravityControllerDef * def) {
+	delete def;
+}
+
+float32 bmx_b2gravitycontrollerdef_getforce(b2GravityControllerDef * def) {
+	return def->G;
+}
+
+void bmx_b2gravitycontrollerdef_setforce(b2GravityControllerDef * def, float32 force) {
+	def->G = force;
+}
+
+bool bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def) {
+	return def->invSqr;
+}
+
+void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, bool value) {
+	def->invSqr = value;
+}
+
+// *****************************************************
+
+float32 bmx_b2gravitycontroller_getforce(b2GravityController * c) {
+	return c->G;
+}
+
+void bmx_b2gravitycontroller_setforce(b2GravityController * c, float32 force) {
+	c->G = force;
+}
+
+bool bmx_b2gravitycontroller_isinvsqr(b2GravityController * c) {
+	return c->invSqr;
+}
+
+void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, bool value) {
+	c->invSqr = value;
+}
+
+// *****************************************************
+
+b2ConstantForceControllerDef * bmx_b2constantforcecontrollerdef_create() {
+	return new b2ConstantForceControllerDef;
+}
+
+void bmx_b2constantforcecontrollerdef_delete(b2ConstantForceControllerDef * def) {
+	delete def;
+}
+
+b2Vec2 * bmx_b2constantforcecontrollerdef_getforce(b2ConstantForceControllerDef * def) {
+	return bmx_b2vec2_new(def->F);
+}
+
+void bmx_b2constantforcecontrollerdef_setforce(b2ConstantForceControllerDef * def, b2Vec2 * force) {
+	def->F = *force;
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2constantforcecontroller_getforce(b2ConstantForceController * c) {
+	return bmx_b2vec2_new(c->F);
+}
+
+void bmx_b2constantforcecontroller_setforce(b2ConstantForceController * c, b2Vec2 * force) {
+	c->F = *force;
+}
+
+// *****************************************************
+
+b2ConstantAccelControllerDef * bmx_b2constantaccelcontrollerdef_create() {
+	return new b2ConstantAccelControllerDef;
+}
+
+b2Vec2 * bmx_b2constantaccelcontrollerdef_getforce(b2ConstantAccelControllerDef * def) {
+	return bmx_b2vec2_new(def->A);
+}
+
+void bmx_b2constantaccelcontrollerdef_setforce(b2ConstantAccelControllerDef * def, b2Vec2 * force) {
+	def->A = *force;
+}
+
+void bmx_b2constantaccelcontrollerdef_delete(b2ConstantAccelControllerDef * def) {
+	delete def;
+}
+
+// *****************************************************
+
+b2Vec2 * bmx_b2constantaccelcontroller_getforce(b2ConstantAccelController * c) {
+	return bmx_b2vec2_new(c->A);
+}
+
+void bmx_b2constantaccelcontroller_setforce(b2ConstantAccelController * c, b2Vec2 * force) {
+	c->A = *force;
+}
+
+// *****************************************************
+
+b2Controller * bmx_b2controlleredge_getcontroller(b2ControllerEdge * edge) {
+	return edge->controller;
+}
+
+b2Body * bmx_b2controlleredge_getbody(b2ControllerEdge * edge) {
+	return edge->body;
+}
+
+b2ControllerEdge * bmx_b2controlleredge_getprevbody(b2ControllerEdge * edge) {
+	return edge->prevBody;
+}
+
+b2ControllerEdge * bmx_b2controlleredge_getnextbody(b2ControllerEdge * edge) {
+	return edge->nextBody;
+}
+
+b2ControllerEdge * bmx_b2controlleredge_getprevcontroller(b2ControllerEdge * edge) {
+	return edge->prevController;
+}
+
+b2ControllerEdge * bmx_b2controlleredge_getnextcontroller(b2ControllerEdge * edge) {
+	return edge->nextController;
+}
+
+// *****************************************************
+
+BBObject * bmx_b2controller_getmaxcontroller(b2Controller * c) {
+	void * obj = c->GetUserData();
+	if (obj) {
+		return (BBObject *)obj;
+	}
+	return &bbNullObject;
+}
+
+void bmx_b2controller_addbody(b2Controller * c, b2Body * body) {
+	c->AddBody(body);
+}
+
+void bmx_b2controller_removebody(b2Controller * c, b2Body * body) {
+	c->RemoveBody(body);
+}
+
+void bmx_b2controller_clear(b2Controller * c) {
+	c->Clear();
+}
+
+b2Controller * bmx_b2controller_getnext(b2Controller * c) {
+	return c->GetNext();
+}
+
+b2World * bmx_b2controller_getworld(b2Controller * c) {
+	return c->GetWorld();
+}
+
+b2ControllerEdge * bmx_b2controller_getbodylist(b2Controller * c) {
+	return c->GetBodyList();
+}

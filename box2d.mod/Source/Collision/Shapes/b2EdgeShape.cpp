@@ -55,6 +55,8 @@ void b2EdgeShape::UpdateSweepRadius(const b2Vec2& center)
 
 bool b2EdgeShape::TestPoint(const b2XForm& transform, const b2Vec2& p) const
 {
+	B2_NOT_USED(transform);
+	B2_NOT_USED(p);
 	return false;
 }
 
@@ -66,7 +68,7 @@ b2SegmentCollide b2EdgeShape::TestSegment(const b2XForm& transform,
 {
 	b2Vec2 r = segment.p2 - segment.p1;
 	b2Vec2 v1 = b2Mul(transform, m_v1);
-	b2Vec2 d = b2Mul(transform, m_v2); - v1;
+	b2Vec2 d = b2Mul(transform, m_v2) - v1;
 	b2Vec2 n = b2Cross(d, 1.0f);
 
 	const float32 k_slop = 100.0f * B2_FLT_EPSILON;
@@ -146,4 +148,55 @@ void b2EdgeShape::SetNextEdge(b2EdgeShape* edge, const b2Vec2& core, const b2Vec
 	m_coreV2 = core;
 	m_cornerDir2 = cornerDir;
 	m_cornerConvex2 = convex;
+}
+
+float32 b2EdgeShape::ComputeSubmergedArea(	const b2Vec2& normal,
+												float32 offset,
+												const b2XForm& xf, 
+												b2Vec2* c) const
+{
+	//Note that v0 is independant of any details of the specific edge
+	//We are relying on v0 being consistent between multiple edges of the same body
+	b2Vec2 v0 = offset * normal;
+	//b2Vec2 v0 = xf.position + (offset - b2Dot(normal, xf.position)) * normal;
+
+	b2Vec2 v1 = b2Mul(xf, m_v1);
+	b2Vec2 v2 = b2Mul(xf, m_v2);
+
+	float32 d1 = b2Dot(normal, v1) - offset;
+	float32 d2 = b2Dot(normal, v2) - offset;
+
+	if(d1>0)
+	{
+		if(d2>0)
+		{
+			return 0;
+		}
+		else
+		{
+			v1 = -d2 / (d1 - d2) * v1 + d1 / (d1 - d2) * v2;
+		}
+	}
+	else
+	{
+		if(d2>0)
+		{
+			v2 = -d2 / (d1 - d2) * v1 + d1 / (d1 - d2) * v2;
+		}
+		else
+		{
+			//Nothing
+		}
+	}
+
+	// v0,v1,v2 represents a fully submerged triangle
+	float32 k_inv3 = 1.0f / 3.0f;
+
+	// Area weighted centroid
+	*c = k_inv3 * (v0 + v1 + v2);
+
+	b2Vec2 e1 = v1 - v0;
+	b2Vec2 e2 = v2 - v0;
+
+	return 0.5f * b2Cross(e1, e2);
 }

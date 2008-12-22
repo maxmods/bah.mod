@@ -769,7 +769,7 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 				if(xIndex<0)
 					break;
 			}
-			xProgress = (m_bounds[0][xIndex].value-p1x)/dx;
+			xProgress = ((float32)m_bounds[0][xIndex].value-p1x)/dx;
 		}
 		if(sy!=0)
 		{
@@ -786,7 +786,7 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 				if(yIndex<0)
 					break;
 			}
-			yProgress = (m_bounds[1][yIndex].value-p1y)/dy;
+			yProgress = ((float32)m_bounds[1][yIndex].value-p1y)/dy;
 		}
 		for(;;)
 		{
@@ -851,7 +851,7 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 					if(xIndex<0)
 						break;
 				}
-				xProgress = (m_bounds[0][xIndex].value - p1x) / dx;
+				xProgress = ((float32)m_bounds[0][xIndex].value - p1x) / dx;
 			}
 			else
 			{
@@ -914,7 +914,7 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 					if(yIndex<0)
 						break;
 				}
-				yProgress = (m_bounds[1][yIndex].value - p1y) / dy;
+				yProgress = ((float32)m_bounds[1][yIndex].value - p1y) / dy;
 			}
 		}
 

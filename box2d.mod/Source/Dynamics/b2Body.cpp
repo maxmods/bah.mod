@@ -57,6 +57,7 @@ b2Body::b2Body(const b2BodyDef* bd, b2World* world)
 
 	m_jointList = NULL;
 	m_contactList = NULL;
+	m_controllerList = NULL;
 	m_prev = NULL;
 	m_next = NULL;
 
@@ -183,7 +184,7 @@ b2Shape* b2Body::CreateShape(b2ShapeDef* def)
 	}
 	
 	b2Shape* s = b2Shape::Create(def, &m_world->m_blockAllocator);
-	
+
 	s->m_next = m_shapeList;
 	m_shapeList = s;
 	++m_shapeCount;

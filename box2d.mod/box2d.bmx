@@ -31,7 +31,7 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
-ModuleInfo "History: Updated to box2d svn (rev 179)"
+ModuleInfo "History: Updated to box2d svn (rev 185)"
 ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."
@@ -39,7 +39,8 @@ ModuleInfo "History: Added b2Mat22 Create... methods, and others."
 ModuleInfo "History: Added shape SetFriction() and SetRestitution() methods."
 ModuleInfo "History: Fixed contact filter example and docs."
 ModuleInfo "History: Added b2EdgeShape type."
-ModuleInfo "History: Added staticedges, dynamicedges and pyramidstaticedges examples."
+ModuleInfo "History: Added staticedges, dynamicedges, pyramidstaticedges and buoyancy examples."
+ModuleInfo "History: Added buoyancy types + methods."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -65,6 +66,10 @@ ModuleInfo "History: 1.00 Initial Release"
 
 
 Import "common.bmx"
+
+' NOTES :
+'  b2Controller.h - Added userData fields/methods.
+'
 
 Rem
 bbdoc: The world type manages all physics entities, dynamic simulation, and asynchronous queries. 
@@ -240,6 +245,42 @@ Type b2World
 	End Method
 
 	Rem
+	bbdoc: Add a controller to the world.
+	End Rem
+	Method CreateController:b2Controller(def:b2ControllerDef)
+		Local controller:b2Controller = b2Controller._create(bmx_b2world_createcontroller(b2ObjectPtr, def.b2ObjectPtr, def._type))
+		controller.userData = def.userData ' copy the userData
+		Return controller
+	End Method
+	' 
+	Function __createController:b2Controller(controllerType:Int)
+		Local controller:b2Controller
+		Select controllerType
+			Case e_buoyancyController
+				controller = New b2BuoyancyController
+			Case e_constantAccelController
+				controller = New b2ConstantAccelController
+			Case e_tensorDampingController
+				controller = New b2TensorDampingController
+			Case e_gravityController
+				controller = New b2GravityController
+			Case e_constantForceController
+				controller = New b2ConstantForceController
+			Default
+				DebugLog "Warning, controller type '" + controllerType + "' is not defined in module."
+				controller = New b2Controller
+		End Select
+		Return controller
+	End Function
+
+	Rem
+	bbdoc: Removes a controller from the world.
+	End Rem
+	Method DestroyController(controller:b2Controller)
+		bmx_b2world_destroycontroller(b2ObjectPtr, controller.b2ObjectPtr)
+	End Method
+
+	Rem
 	bbdoc: The world provides a single static ground body with no collision shapes.
 	about: You can use this to simplify the creation of joints and static shapes.
 	End Rem
@@ -383,6 +424,7 @@ Type b2World
 	End Function
 	
 End Type
+
 
 Rem
 bbdoc: An axis aligned bounding box.
@@ -1569,7 +1611,8 @@ Type b2DebugDraw
 	Const e_obbBit:Int = $0010          ' draw oriented bounding boxes
 	Const e_pairBit:Int = $0020         ' draw broad-phase pairs
 	Const e_centerOfMassBit:Int = $0040 ' draw center of mass frame
-
+	Const e_controllerBit:Int = $0080
+	
 	Method New()
 		b2ObjectPtr = bmx_b2debugdraw_create(Self)
 	End Method
@@ -4245,6 +4288,722 @@ Type b2Segment
 		End If
 	End Method
 	
+End Type
+
+Rem
+bbdoc: A controller edge is used to connect bodies and controllers together in a bipartite graph.
+End Rem
+Type b2ControllerEdge
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Function _create:b2ControllerEdge(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2ControllerEdge = New b2ControllerEdge
+			this.b2ObjectPtr = b2ObjectPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Provides quick access to other end of this edge.
+	End Rem
+	Method GetController:b2Controller()
+		Return b2Controller._create(bmx_b2controlleredge_getcontroller(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the body.
+	End Rem
+	Method GetBody:b2Body()
+		Return b2Body._create(bmx_b2controlleredge_getbody(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the previous controller edge in the controllers's joint list.
+	End Rem
+	Method GetPrevBody:b2ControllerEdge()
+		Return b2ControllerEdge._create(bmx_b2controlleredge_getprevbody(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the next controller edge in the controllers's joint list.
+	End Rem
+	Method GetNexBody:b2ControllerEdge()
+		Return b2ControllerEdge._create(bmx_b2controlleredge_getnextbody(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the previous controller edge in the body's joint list.
+	End Rem
+	Method GetPrevController:b2ControllerEdge()
+		Return b2ControllerEdge._create(bmx_b2controlleredge_getprevcontroller(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the next controller edge in the body's joint list.
+	End Rem
+	Method GetNextController:b2ControllerEdge()
+		Return b2ControllerEdge._create(bmx_b2controlleredge_getnextcontroller(b2ObjectPtr))
+	End Method
+	
+End Type
+
+Type b2ControllerDef
+
+	Field b2ObjectPtr:Byte Ptr
+
+	Field userData:Object
+	
+	Field _type:Int
+
+End Type
+
+Rem
+bbdoc: Used to build buoyancy controllers
+End Rem
+Type b2BuoyancyControllerDef Extends b2ControllerDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2buoyancycontrollerdef_create()
+		_type = e_buoyancyController
+	End Method
+	
+	Rem
+	bbdoc: Returns the outer surface normal.
+	End Rem
+	Method GetNormal:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontrollerdef_getnormal(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the outer surface normal.
+	End Rem
+	Method SetNormal(normal:b2Vec2)
+		bmx_b2buoyancycontrollerdef_setnormal(b2ObjectPtr, normal.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the height of the fluid surface along the normal.
+	End Rem
+	Method GetOffset:Float()
+		Return bmx_b2buoyancycontrollerdef_getoffset(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the height of the fluid surface along the normal.
+	End Rem
+	Method SetOffset(offset:Float)
+		bmx_b2buoyancycontrollerdef_setoffset(b2ObjectPtr, offset)
+	End Method
+	
+	Rem
+	bbdoc: Returns the fluid density.
+	End Rem
+	Method GetDensity:Float()
+		Return bmx_b2buoyancycontrollerdef_getdensity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the fluid density.
+	End Rem
+	Method SetDensity(density:Float)
+		bmx_b2buoyancycontrollerdef_setdensity(b2ObjectPtr, density)
+	End Method
+	
+	Rem
+	bbdoc: Returns the fluid velocity, for drag calculations.
+	End Rem
+	Method GetVelocity:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontrollerdef_getvelocity(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the fluid velocity, for drag calculations.
+	End Rem
+	Method SetVelocity(velocity:b2Vec2)
+		bmx_b2buoyancycontrollerdef_setvelocity(b2ObjectPtr, velocity.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the linear drag co-efficient.
+	End Rem
+	Method GetLinearDrag:Float()
+		Return bmx_b2buoyancycontrollerdef_getlineardrag(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the linear drag co-efficient.
+	End Rem
+	Method SetLinearDrag(drag:Float)
+		bmx_b2buoyancycontrollerdef_setlineardrag(b2ObjectPtr, drag)
+	End Method
+	
+	Rem
+	bbdoc: Returns the angular drag co-efficient.
+	End Rem
+	Method GetAngularDrag:Float()
+		Return bmx_b2buoyancycontrollerdef_getangulardrag(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the angular drag co-efficient.
+	End Rem
+	Method SetAngularDrag(drag:Float)
+		bmx_b2buoyancycontrollerdef_setangulardrag(b2ObjectPtr, drag)
+	End Method
+	
+	Rem
+	bbdoc: Returns False if bodies are assumed to be uniformly dense, otherwise use the shapes densities.
+	End Rem
+	Method UsesDensity:Int()
+		Return bmx_b2buoyancycontrollerdef_usesdensity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set to False, if bodies are assumed to be uniformly dense, otherwise use the shapes densities.
+	End Rem
+	Method SetUsesDensity(value:Int)
+		bmx_b2buoyancycontrollerdef_setusesdensity(b2ObjectPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns True, if gravity is taken from the world instead of the gravity parameter.
+	End Rem
+	Method UsesWorldGravity:Int()
+		Return bmx_b2buoyancycontrollerdef_usesworldgravity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set to True, if gravity is to be taken from the world instead of the gravity parameter.
+	End Rem
+	Method SetUsesWorldGravity(value:Int)
+		bmx_b2buoyancycontrollerdef_setusesworldgravity(b2ObjectPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns the gravity vector, if the world's gravity is not used.
+	End Rem
+	Method GetGravity:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontrollerdef_getgravity(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the gravity vector, if the world's gravity is not used.
+	End Rem
+	Method SetGravity(gravity:b2Vec2)
+		bmx_b2buoyancycontrollerdef_setgravity(b2ObjectPtr, gravity.b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2buoyancycontrollerdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Used to build tensor damping controllers.
+End Rem
+Type b2TensorDampingControllerDef Extends b2ControllerDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2tensordampingcontrollerdef_create()
+		_type = e_tensorDampingController
+	End Method
+	
+	Rem
+	bbdoc: Returns the tensor to use in damping model.
+	End Rem
+	Method GetTensor:b2Mat22()
+		Return b2Mat22._create(bmx_b2tensordampingcontrollerdef_gettensor(b2ObjectPtr), True)
+	End Method
+	
+	Rem
+	bbdoc: Sets the tensor to use in damping model.
+	about: Some examples (matrixes in format (row1; row2) )
+	<table>
+	<th><td>Matrix</td><td>Description</td></th>
+	<tr><td>(-a 0;0 -a)</td><td>Standard isotropic damping with strength a</td></tr>
+	<tr><td>(0 a;-a 0)</td><td>Electron in fixed field - a force at right angles to velocity with proportional magnitude</td></tr>
+	<tr><td>(-a 0;0 -b)</td><td>Differing x and y damping. Useful e.g. for top-down wheels.</td></tr>
+	</table>
+	<p>
+	By the way, tensor in this case just means matrix, don't let the terminology get you down.
+	</p>
+	End Rem
+	Method SetTensor(tensor:b2Mat22)
+		bmx_b2tensordampingcontrollerdef_settensor(b2ObjectPtr, tensor.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the maximum amount of damping.
+	End Rem
+	Method GetMaxTimestep:Float()
+		Return bmx_b2tensordampingcontrollerdef_getmaxtimestep(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set this to a positive number to clamp the maximum amount of damping done.
+	End Rem
+	Method SetMaxTimestep(timestep:Float)
+		bmx_b2tensordampingcontrollerdef_setmaxtimestep(b2ObjectPtr, timestep)
+	End Method
+	
+	Rem
+	bbdoc: Sets damping independently along the x and y axes.
+	End Rem
+	Method SetAxisAligned(xDamping:Float, yDamping:Float)
+		bmx_b2tensordampingcontrollerdef_setaxisaligned(b2ObjectPtr, xDamping, yDamping)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2tensordampingcontrollerdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Used to build gravity controllers.
+End Rem
+Type b2GravityControllerDef Extends b2ControllerDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2gravitycontrollerdef_create()
+		_type = e_gravityController
+	End Method
+	
+	Rem
+	bbdoc: Returns the strength of the gravitiation force.
+	End Rem
+	Method GetForce:Float()
+		Return bmx_b2gravitycontrollerdef_getforce(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the strength of the gravitiation force.
+	End Rem
+	Method SetForce(force:Float)
+		bmx_b2gravitycontrollerdef_setforce(b2ObjectPtr, force)
+	End Method
+	
+	Rem
+	bbdoc: Returns whether gravity is proportional to r^-2 (True), otherwise r^-1 (False).
+	End Rem
+	Method IsInvSqr:Int()
+		Return bmx_b2gravitycontrollerdef_isinvsqr(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets whether gravity is proportional to r^-2 (True), otherwise r^-1 (False).
+	End Rem
+	Method SetIsInvSqr(value:Int)
+		bmx_b2gravitycontrollerdef_setisinvsqr(b2ObjectPtr, value)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2gravitycontrollerdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Used to build constant force controllers.
+End Rem
+Type b2ConstantForceControllerDef Extends b2ControllerDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2constantforcecontrollerdef_create()
+		_type = e_constantForceController
+	End Method
+
+	Rem
+	bbdoc: Returns the force to apply.
+	End Rem
+	Method GetForce:b2Vec2()
+		Return b2Vec2._create(bmx_b2constantforcecontrollerdef_getforce(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the force to apply.
+	End Rem
+	Method SetForce(force:b2Vec2)
+		bmx_b2constantforcecontrollerdef_setforce(b2ObjectPtr, force.b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2constantforcecontrollerdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Used to build constant acceleration controllers.
+End Rem
+Type b2ConstantAccelControllerDef Extends b2ControllerDef
+
+	Method New()
+		b2ObjectPtr = bmx_b2constantaccelcontrollerdef_create()
+		_type = e_constantAccelController
+	End Method
+	
+	Rem
+	bbdoc: Returns the force to apply.
+	End Rem
+	Method GetForce:b2Vec2()
+		Return b2Vec2._create(bmx_b2constantaccelcontrollerdef_getforce(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the force to apply.
+	End Rem
+	Method SetForce(force:b2Vec2)
+		bmx_b2constantaccelcontrollerdef_setforce(b2ObjectPtr, force.b2ObjectPtr)
+	End Method
+
+	Method Delete()
+		If b2ObjectPtr Then
+			bmx_b2constantaccelcontrollerdef_delete(b2ObjectPtr)
+			b2ObjectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Base type for controllers.
+about: Controllers are a convience for encapsulating common per-step functionality.
+End Rem
+Type b2Controller
+	
+	Field b2ObjectPtr:Byte Ptr
+	
+	Field userData:Object
+
+	Function _create:b2Controller(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local controller:b2Controller = b2Controller(bmx_b2controller_getmaxcontroller(b2ObjectPtr))
+			If Not controller Then
+				controller = New b2Controller
+				controller.b2ObjectPtr = b2ObjectPtr
+			Else
+				If Not controller.b2ObjectPtr Then
+					controller.b2ObjectPtr = b2ObjectPtr
+				EndIf
+			End If
+			Return controller
+		End If
+	End Function
+
+	Rem
+	bbdoc: Adds a body to the controller list.
+	End Rem
+	Method AddBody(body:b2Body)
+		bmx_b2controller_addbody(b2ObjectPtr, body.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Removes a body from the controller list.
+	End Rem
+	Method RemoveBody(body:b2Body)
+		bmx_b2controller_removebody(b2ObjectPtr, body.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Removes all bodies from the controller list.
+	End Rem
+	Method Clear()
+		bmx_b2controller_clear(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get the next controller in the world's body list.
+	End Rem
+	Method GetNext:b2Controller()
+		Return b2Controller._create(bmx_b2controller_getnext(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the parent world of this body.
+	End Rem
+	Method GetWorld:b2World()
+		Return b2World._create(bmx_b2controller_getworld(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the attached body list.
+	End Rem
+	Method GetBodyList:b2ControllerEdge()
+		Return b2ControllerEdge._create(bmx_b2controller_getbodylist(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Get the user data that was provided in the controller definition.
+	End Rem
+	Method GetUserData:Object()
+		Return userData
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2ConstantAccelController Extends b2Controller
+
+	Method GetForce:b2Vec2()
+		Return b2Vec2._create(bmx_b2constantaccelcontroller_getforce(b2ObjectPtr))
+	End Method
+	
+	Method SetForce(force:b2Vec2)
+		bmx_b2constantaccelcontroller_setforce(b2ObjectPtr, force.b2ObjectPtr)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2BuoyancyController Extends b2Controller
+
+	Rem
+	bbdoc: Returns the outer surface normal.
+	End Rem
+	Method GetNormal:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontroller_getnormal(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the outer surface normal.
+	End Rem
+	Method SetNormal(normal:b2Vec2)
+		bmx_b2buoyancycontroller_setnormal(b2ObjectPtr, normal.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the height of the fluid surface along the normal.
+	End Rem
+	Method GetOffset:Float()
+		Return bmx_b2buoyancycontroller_getoffset(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the height of the fluid surface along the normal.
+	End Rem
+	Method SetOffset(offset:Float)
+		bmx_b2buoyancycontroller_setoffset(b2ObjectPtr, offset)
+	End Method
+	
+	Rem
+	bbdoc: Returns the fluid density.
+	End Rem
+	Method GetDensity:Float()
+		Return bmx_b2buoyancycontroller_getdensity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the fluid density.
+	End Rem
+	Method SetDensity(density:Float)
+		bmx_b2buoyancycontroller_setdensity(b2ObjectPtr, density)
+	End Method
+	
+	Rem
+	bbdoc: Returns the fluid velocity, for drag calculations.
+	End Rem
+	Method GetVelocity:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontroller_getvelocity(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the fluid velocity, for drag calculations.
+	End Rem
+	Method SetVelocity(velocity:b2Vec2)
+		bmx_b2buoyancycontroller_setvelocity(b2ObjectPtr, velocity.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the linear drag co-efficient.
+	End Rem
+	Method GetLinearDrag:Float()
+		Return bmx_b2buoyancycontroller_getlineardrag(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the linear drag co-efficient.
+	End Rem
+	Method SetLinearDrag(drag:Float)
+		bmx_b2buoyancycontroller_setlineardrag(b2ObjectPtr, drag)
+	End Method
+	
+	Rem
+	bbdoc: Returns the angular drag co-efficient.
+	End Rem
+	Method GetAngularDrag:Float()
+		Return bmx_b2buoyancycontroller_getangulardrag(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the angular drag co-efficient.
+	End Rem
+	Method SetAngularDrag(drag:Float)
+		bmx_b2buoyancycontroller_setangulardrag(b2ObjectPtr, drag)
+	End Method
+	
+	Rem
+	bbdoc: Returns False if bodies are assumed to be uniformly dense, otherwise use the shapes densities.
+	End Rem
+	Method UsesDensity:Int()
+		Return bmx_b2buoyancycontroller_usesdensity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set to False, if bodies are assumed to be uniformly dense, otherwise use the shapes densities.
+	End Rem
+	Method SetUsesDensity(value:Int)
+		bmx_b2buoyancycontroller_setusesdensity(b2ObjectPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns True, if gravity is taken from the world instead of the gravity parameter.
+	End Rem
+	Method UsesWorldGravity:Int()
+		Return bmx_b2buoyancycontroller_usesworldgravity(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set to True, if gravity is to be taken from the world instead of the gravity parameter.
+	End Rem
+	Method SetUsesWorldGravity(value:Int)
+		bmx_b2buoyancycontroller_setusesworldgravity(b2ObjectPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns the gravity vector, if the world's gravity is not used.
+	End Rem
+	Method GetGravity:b2Vec2()
+		Return b2Vec2._create(bmx_b2buoyancycontroller_getgravity(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the gravity vector, if the world's gravity is not used.
+	End Rem
+	Method SetGravity(gravity:b2Vec2)
+		bmx_b2buoyancycontroller_setgravity(b2ObjectPtr, gravity.b2ObjectPtr)
+	End Method
+
+End Type
+
+Rem
+bbdoc: Applies a force every frame.
+End Rem
+Type b2ConstantForceController Extends b2Controller
+
+	Rem
+	bbdoc: Returns the force to apply.
+	End Rem
+	Method GetForce:b2Vec2()
+		Return b2Vec2._create(bmx_b2constantaccelcontroller_getforce(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the force to apply.
+	End Rem
+	Method SetForce(force:b2Vec2)
+		bmx_b2constantaccelcontroller_setforce(b2ObjectPtr, force.b2ObjectPtr)
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2GravityController Extends b2Controller
+
+	Rem
+	bbdoc: Returns the strength of the gravitiation force.
+	End Rem
+	Method GetForce:Float()
+		Return bmx_b2gravitycontroller_getforce(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the strength of the gravitiation force.
+	End Rem
+	Method SetForce(force:Float)
+		bmx_b2gravitycontroller_setforce(b2ObjectPtr, force)
+	End Method
+	
+	Rem
+	bbdoc: Returns whether gravity is proportional to r^-2 (True), otherwise r^-1 (False).
+	End Rem
+	Method IsInvSqr:Int()
+		Return bmx_b2gravitycontroller_isinvsqr(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets whether gravity is proportional to r^-2 (True), otherwise r^-1 (False).
+	End Rem
+	Method SetIsInvSqr(value:Int)
+		bmx_b2gravitycontroller_setisinvsqr(b2ObjectPtr, value)
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type b2TensorDampingController Extends b2Controller
+
+	Rem
+	bbdoc: Returns the tensor to use in damping model.
+	End Rem
+	Method GetTensor:b2Mat22()
+		Return b2Mat22._create(bmx_b2tensordampingcontroller_gettensor(b2ObjectPtr))
+	End Method
+	
+	Rem
+	bbdoc: Sets the tensor to use in damping model.
+	about: Some examples (matrixes in format (row1; row2) )
+	<table>
+	<th><td>Matrix</td><td>Description</td></th>
+	<tr><td>(-a 0;0 -a)</td><td>Standard isotropic damping with strength a</td></tr>
+	<tr><td>(0 a;-a 0)</td><td>Electron in fixed field - a force at right angles to velocity with proportional magnitude</td></tr>
+	<tr><td>(-a 0;0 -b)</td><td>Differing x and y damping. Useful e.g. for top-down wheels.</td></tr>
+	</table>
+	<p>
+	By the way, tensor in this case just means matrix, don't let the terminology get you down.
+	</p>
+	End Rem
+	Method SetTensor(tensor:b2Mat22)
+		bmx_b2tensordampingcontroller_settensor(b2ObjectPtr, tensor.b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the maximum amount of damping.
+	End Rem
+	Method GetMaxTimestep:Float()
+		Return bmx_b2tensordampingcontroller_getmaxtimestep(b2ObjectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Set this to a positive number to clamp the maximum amount of damping done.
+	End Rem
+	Method SetMaxTimestep(timestep:Float)
+		bmx_b2tensordampingcontroller_setmaxtimestep(b2ObjectPtr, timestep)
+	End Method
+
 End Type
 
 Rem

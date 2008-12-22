@@ -51,4 +51,10 @@ For discussion please visit http://www.box2d.org/forum
 #include "../Source/Dynamics/Joints/b2PulleyJoint.h"
 #include "../Source/Dynamics/Joints/b2RevoluteJoint.h"
 
+#include "../Source/Dynamics/Controllers/b2BuoyancyController.h"
+#include "../Source/Dynamics/Controllers/b2ConstantForceController.h"
+#include "../Source/Dynamics/Controllers/b2ConstantAccelController.h"
+#include "../Source/Dynamics/Controllers/b2GravityController.h"
+#include "../Source/Dynamics/Controllers/b2TensorDampingController.h"
+
 #endif

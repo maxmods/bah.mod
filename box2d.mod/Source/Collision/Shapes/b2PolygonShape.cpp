@@ -434,6 +434,116 @@ void b2PolygonShape::ComputeMass(b2MassData* massData) const
 	massData->I = m_density * I;
 }
 
+
+float32 b2PolygonShape::ComputeSubmergedArea(	const b2Vec2& normal,
+												float32 offset,
+												const b2XForm& xf, 
+												b2Vec2* c) const
+{
+	//Transform plane into shape co-ordinates
+	b2Vec2 normalL = b2MulT(xf.R,normal);
+	float32 offsetL = offset - b2Dot(normal,xf.position);
+	
+	float32 depths[b2_maxPolygonVertices];
+	int32 diveCount = 0;
+	int32 intoIndex = -1;
+	int32 outoIndex = -1;
+	
+	bool lastSubmerged = false;
+	int32 i;
+	for(i=0;i<m_vertexCount;i++){
+		depths[i] = b2Dot(normalL,m_vertices[i]) - offsetL;
+		bool isSubmerged = depths[i]<-B2_FLT_EPSILON;
+		if(i>0){
+			if(isSubmerged){
+				if(!lastSubmerged){
+					intoIndex = i-1;
+					diveCount++;
+				}
+			}else{
+				if(lastSubmerged){
+					outoIndex = i-1;
+					diveCount++;
+				}
+			}
+		}
+		lastSubmerged = isSubmerged;
+	}
+	switch(diveCount){
+		case 0:
+			if(lastSubmerged){
+				//Completely submerged
+				b2MassData md;
+				ComputeMass(&md);
+				*c = b2Mul(xf,md.center);
+				return md.mass/m_density;
+			}else{
+				//Completely dry
+				return 0;
+			}
+			break;
+		case 1:
+			if(intoIndex==-1){
+				intoIndex = m_vertexCount-1;
+			}else{
+				outoIndex = m_vertexCount-1;
+			}
+			break;
+	}
+	int32 intoIndex2 = (intoIndex+1)%m_vertexCount;
+	int32 outoIndex2 = (outoIndex+1)%m_vertexCount;
+	
+	float32 intoLambda = (0 - depths[intoIndex]) / (depths[intoIndex2] - depths[intoIndex]);
+	float32 outoLambda = (0 - depths[outoIndex]) / (depths[outoIndex2] - depths[outoIndex]);
+	
+	b2Vec2 intoVec(	m_vertices[intoIndex].x*(1-intoLambda)+m_vertices[intoIndex2].x*intoLambda,
+					m_vertices[intoIndex].y*(1-intoLambda)+m_vertices[intoIndex2].y*intoLambda);
+	b2Vec2 outoVec(	m_vertices[outoIndex].x*(1-outoLambda)+m_vertices[outoIndex2].x*outoLambda,
+					m_vertices[outoIndex].y*(1-outoLambda)+m_vertices[outoIndex2].y*outoLambda);
+	
+	//Initialize accumulator
+	float32 area = 0;
+	b2Vec2 center(0,0);
+	b2Vec2 p2 = m_vertices[intoIndex2];
+	b2Vec2 p3;
+	
+	float32 k_inv3 = 1.0f / 3.0f;
+	
+	//An awkward loop from intoIndex2+1 to outIndex2
+	i = intoIndex2;
+	while(i!=outoIndex2){
+		i=(i+1)%m_vertexCount;
+		if(i==outoIndex2)
+			p3 = outoVec;
+		else
+			p3 = m_vertices[i];
+		//Add the triangle formed by intoVec,p2,p3
+		{
+			b2Vec2 e1 = p2 - intoVec;
+			b2Vec2 e2 = p3 - intoVec;
+			
+			float32 D = b2Cross(e1, e2);
+			
+			float32 triangleArea = 0.5f * D;
+
+			area += triangleArea;
+			
+			// Area weighted centroid
+			center += triangleArea * k_inv3 * (intoVec + p2 + p3);
+
+		}
+		//
+		p2=p3;
+	}
+	
+	//Normalize and transform centroid
+	center *= 1.0f/area;
+	
+	*c = b2Mul(xf,center);
+	
+	return area;
+}
+
 b2Vec2 b2PolygonShape::Centroid(const b2XForm& xf) const
 {
 	return b2Mul(xf, m_centroid);

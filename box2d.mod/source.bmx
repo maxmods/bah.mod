@@ -49,6 +49,13 @@ Import "Source/Dynamics/Joints/b2PrismaticJoint.cpp"
 Import "Source/Dynamics/Joints/b2PulleyJoint.cpp"
 Import "Source/Dynamics/Joints/b2LineJoint.cpp"
 
+Import "Source/Dynamics/Controllers/b2BuoyancyController.cpp"
+Import "Source/Dynamics/Controllers/b2ConstantAccelController.cpp"
+Import "Source/Dynamics/Controllers/b2ConstantForceController.cpp"
+Import "Source/Dynamics/Controllers/b2Controller.cpp"
+Import "Source/Dynamics/Controllers/b2GravityController.cpp"
+Import "Source/Dynamics/Controllers/b2TensorDampingController.cpp"
+
 Import "Source/Collision/b2BroadPhase.cpp"
 Import "Source/Collision/b2TimeOfImpact.cpp"
 Import "Source/Collision/b2CollideCircle.cpp"
@@ -66,4 +73,5 @@ Import "Source/Common/b2BlockAllocator.cpp"
 Import "Source/Common/b2StackAllocator.cpp"
 Import "Source/Common/b2Math.cpp"
 Import "Source/Common/b2Settings.cpp"
+
 

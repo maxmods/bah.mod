@@ -70,6 +70,8 @@ Extern
 	Function bmx_b2world_refilter(handle:Byte Ptr, shape:Byte Ptr)
 	Function bmx_b2world_raycastone:Byte Ptr(handle:Byte Ptr, segment:Byte Ptr, lambda:Float Ptr, normal:Byte Ptr, solidShapes:Int)
 	Function bmx_b2world_inrange:Int(handle:Byte Ptr, aabb:Byte Ptr)
+	Function bmx_b2world_createcontroller:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, _type:Int)
+	Function bmx_b2world_destroycontroller(handle:Byte Ptr, controller:Byte Ptr)
 
 	Function bmx_b2bodydef_create:Byte Ptr()
 	Function bmx_b2bodydef_delete(handle:Byte Ptr)
@@ -177,6 +179,8 @@ Extern
 	Function bmx_b2shape_setfilterdata(handle:Byte Ptr, data:Byte Ptr)
 	Function bmx_b2shape_setfriction(handle:Byte Ptr, friction:Float)
 	Function bmx_b2shape_setrestitution(handle:Byte Ptr, restitution:Float)
+	Function bmx_b2shape_getdensity:Float(handle:Byte Ptr)
+	Function bmx_b2shape_setdensity(handle:Byte Ptr, density:Float)
 
 	Function bmx_b2jointdef_setcollideconnected(handle:Byte Ptr, collideConnected:Int)
 	Function bmx_b2jointdef_getcollideconnected:Int(handle:Byte Ptr)
@@ -517,6 +521,102 @@ Extern
 	Function bmx_b2edgeshape_getnextedge:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2edgeshape_getprevedge:Byte Ptr(handle:Byte Ptr)
 
+	Function bmx_b2buoyancycontrollerdef_create:Byte Ptr()
+	Function bmx_b2buoyancycontrollerdef_getnormal:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setnormal(handle:Byte Ptr, normal:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_getoffset:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setoffset(handle:Byte Ptr, offset:Float)
+	Function bmx_b2buoyancycontrollerdef_getdensity:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setdensity(handle:Byte Ptr, density:Float)
+	Function bmx_b2buoyancycontrollerdef_getvelocity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setvelocity(handle:Byte Ptr, velocity:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_getlineardrag:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setlineardrag(handle:Byte Ptr, drag:Float)
+	Function bmx_b2buoyancycontrollerdef_getangulardrag:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setangulardrag(handle:Byte Ptr, drag:Float)
+	Function bmx_b2buoyancycontrollerdef_usesdensity:Int(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setusesdensity(handle:Byte Ptr, value:Int)
+	Function bmx_b2buoyancycontrollerdef_usesworldgravity:Int(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setusesworldgravity(handle:Byte Ptr, value:Int)
+	Function bmx_b2buoyancycontrollerdef_getgravity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_setgravity(handle:Byte Ptr, gravity:Byte Ptr)
+	Function bmx_b2buoyancycontrollerdef_delete(handle:Byte Ptr)
+
+	Function bmx_b2buoyancycontroller_getnormal:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setnormal(handle:Byte Ptr, normal:Byte Ptr)
+	Function bmx_b2buoyancycontroller_getoffset:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setoffset(handle:Byte Ptr, offset:Float)
+	Function bmx_b2buoyancycontroller_getdensity:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setdensity(handle:Byte Ptr, density:Float)
+	Function bmx_b2buoyancycontroller_getvelocity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setvelocity(handle:Byte Ptr, velocity:Byte Ptr)
+	Function bmx_b2buoyancycontroller_getlineardrag:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setlineardrag(handle:Byte Ptr, drag:Float)
+	Function bmx_b2buoyancycontroller_getangulardrag:Float(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setangulardrag(handle:Byte Ptr, drag:Float)
+	Function bmx_b2buoyancycontroller_usesdensity:Int(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setusesdensity(handle:Byte Ptr, value:Int)
+	Function bmx_b2buoyancycontroller_usesworldgravity:Int(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setusesworldgravity(handle:Byte Ptr, value:Int)
+	Function bmx_b2buoyancycontroller_getgravity:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2buoyancycontroller_setgravity(handle:Byte Ptr, gravity:Byte Ptr)
+
+	Function bmx_b2tensordampingcontrollerdef_create:Byte Ptr()
+	Function bmx_b2tensordampingcontrollerdef_delete(handle:Byte Ptr)
+	Function bmx_b2tensordampingcontrollerdef_gettensor:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2tensordampingcontrollerdef_settensor(handle:Byte Ptr, tensor:Byte Ptr)
+	Function bmx_b2tensordampingcontrollerdef_getmaxtimestep:Float(handle:Byte Ptr)
+	Function bmx_b2tensordampingcontrollerdef_setmaxtimestep(handle:Byte Ptr, timestep:Float)
+	Function bmx_b2tensordampingcontrollerdef_setaxisaligned(handle:Byte Ptr, xDamping:Float, yDamping:Float)
+
+	Function bmx_b2tensordampingcontroller_gettensor:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2tensordampingcontroller_settensor(handle:Byte Ptr, tensor:Byte Ptr)
+	Function bmx_b2tensordampingcontroller_getmaxtimestep:Float(handle:Byte Ptr)
+	Function bmx_b2tensordampingcontroller_setmaxtimestep(handle:Byte Ptr, timestep:Float)
+
+	Function bmx_b2gravitycontrollerdef_create:Byte Ptr()
+	Function bmx_b2gravitycontrollerdef_delete(handle:Byte Ptr)
+	Function bmx_b2gravitycontrollerdef_getforce:Float(handle:Byte Ptr)
+	Function bmx_b2gravitycontrollerdef_setforce(handle:Byte Ptr, force:Float)
+	Function bmx_b2gravitycontrollerdef_isinvsqr:Int(handle:Byte Ptr)
+	Function bmx_b2gravitycontrollerdef_setisinvsqr(handle:Byte Ptr, value:Int)
+
+	Function bmx_b2gravitycontroller_getforce:Float(handle:Byte Ptr)
+	Function bmx_b2gravitycontroller_setforce(handle:Byte Ptr, force:Float)
+	Function bmx_b2gravitycontroller_isinvsqr:Int(handle:Byte Ptr)
+	Function bmx_b2gravitycontroller_setisinvsqr(handle:Byte Ptr, value:Int)
+
+	Function bmx_b2constantforcecontrollerdef_create:Byte Ptr()
+	Function bmx_b2constantforcecontrollerdef_delete(handle:Byte Ptr)
+	Function bmx_b2constantforcecontrollerdef_getforce:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2constantforcecontrollerdef_setforce(handle:Byte Ptr, force:Byte Ptr)
+
+	Function bmx_b2constantforcecontroller_getforce:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2constantforcecontroller_setforce(handle:Byte Ptr, force:Byte Ptr)
+
+	Function bmx_b2constantaccelcontrollerdef_create:Byte Ptr()
+	Function bmx_b2constantaccelcontrollerdef_getforce:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2constantaccelcontrollerdef_setforce(handle:Byte Ptr, force:Byte Ptr)
+	Function bmx_b2constantaccelcontrollerdef_delete(handle:Byte Ptr)
+
+	Function bmx_b2constantaccelcontroller_getforce:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2constantaccelcontroller_setforce(handle:Byte Ptr, force:Byte Ptr)
+
+	Function bmx_b2controlleredge_getcontroller:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controlleredge_getbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controlleredge_getprevbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controlleredge_getnextbody:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controlleredge_getprevcontroller:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controlleredge_getnextcontroller:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_b2controller_getmaxcontroller:Object(handle:Byte Ptr)
+	Function bmx_b2controller_addbody(handle:Byte Ptr, body:Byte Ptr)
+	Function bmx_b2controller_removebody(handle:Byte Ptr, body:Byte Ptr)
+	Function bmx_b2controller_clear(handle:Byte Ptr)
+	Function bmx_b2controller_getnext:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controller_getworld:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2controller_getbodylist:Byte Ptr(handle:Byte Ptr)
+
 End Extern
 
 Const e_unknownJoint:Int = 0
@@ -533,4 +633,9 @@ Const e_circleShape:Int = 0
 Const e_polygonShape:Int = 1
 Const e_edgeShape:Int = 2
 
+Const e_buoyancyController:Int = 1
+Const e_constantAccelController:Int = 2
+Const e_tensorDampingController:Int = 3
+Const e_gravityController:Int = 4
+Const e_constantForceController:Int = 5
 

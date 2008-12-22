@@ -39,10 +39,12 @@ b2World::b2World(const b2AABB& worldAABB, const b2Vec2& gravity, bool doSleep)
 	m_bodyList = NULL;
 	m_contactList = NULL;
 	m_jointList = NULL;
+	m_controllerList = NULL;
 
 	m_bodyCount = 0;
 	m_contactCount = 0;
 	m_jointCount = 0;
+	m_controllerCount = 0;
 
 	m_warmStarting = true;
 	m_continuousPhysics = true;
@@ -140,6 +142,16 @@ void b2World::DestroyBody(b2Body* b)
 		}
 
 		DestroyJoint(jn0->joint);
+	}
+
+	//Detach controllers attached to this body
+	b2ControllerEdge* ce = b->m_controllerList;
+	while(ce)
+	{
+		b2ControllerEdge* ce0 = ce;
+		ce = ce->nextController;
+
+		ce0->controller->RemoveBody(b);
 	}
 
 	// Delete the attached shapes. This destroys broad-phase
@@ -310,6 +322,35 @@ void b2World::DestroyJoint(b2Joint* j)
 	}
 }
 
+b2Controller* b2World::CreateController(b2ControllerDef* def)
+{
+	b2Controller* controller = def->Create(&m_blockAllocator);
+	controller->m_next = m_controllerList;
+	controller->m_prev = NULL;
+	if(m_controllerList)
+		m_controllerList->m_prev = controller;
+	m_controllerList = controller;
+	++m_controllerCount;
+
+	controller->m_world = this;
+
+	return controller;
+}
+
+void b2World::DestroyController(b2Controller* controller)
+{
+	b2Assert(m_controllerCount>0);
+	if(controller->m_next)
+		controller->m_next->m_prev = controller->m_prev;
+	if(controller->m_prev)
+		controller->m_prev->m_next = controller->m_next;
+	if(controller == m_controllerList)
+		m_controllerList = controller->m_next;
+	--m_controllerCount;
+
+	b2Controller::Destroy(controller, &m_blockAllocator);
+}
+
 void b2World::Refilter(b2Shape* shape)
 {
 	b2Assert(m_lock == false);
@@ -320,6 +361,12 @@ void b2World::Refilter(b2Shape* shape)
 // Find islands, integrate and solve constraints, solve position constraints
 void b2World::Solve(const b2TimeStep& step)
 {
+	// Step all controlls
+	for(b2Controller* controller = m_controllerList;controller;controller=controller->m_next)
+	{
+		controller->Step(step);
+	}
+
 	// Size the island for the worst case.
 	b2Island island(m_bodyCount, m_contactCount, m_jointCount, &m_stackAllocator, m_contactListener);
 
@@ -1040,6 +1087,14 @@ void b2World::DrawDebugData()
 			{
 				DrawJoint(j);
 			}
+		}
+	}
+
+	if (flags & b2DebugDraw::e_controllerBit)
+	{
+		for (b2Controller* c = m_controllerList; c; c= c->GetNext())
+		{
+			c->Draw(m_debugDraw);
 		}
 	}
 
