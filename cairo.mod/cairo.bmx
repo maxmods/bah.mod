@@ -16,6 +16,7 @@ ModuleInfo "History: 1.21"
 ModuleInfo "History: Cairo upgrade to 1.8.4"
 ModuleInfo "History: Removal of fontconfig dependency on Win32 and Mac."
 ModuleInfo "History: Removed Stroke() call from ShowText()."
+ModuleInfo "History: Added fill rule consts."
 ModuleInfo "History: 1.20"
 ModuleInfo "History: Fixed Text issues with UTF-8."
 ModuleInfo "History: 1.19"
@@ -208,6 +209,9 @@ Const CAIRO_SURFACE_TYPE_WIN32:Int = 7
 Const CAIRO_SURFACE_TYPE_BEOS:Int = 8
 Const CAIRO_SURFACE_TYPE_DIRECTFB:Int = 9
 Const CAIRO_SURFACE_TYPE_SVG:Int = 10
+
+Const CAIRO_FILL_RULE_WINDING:Int = 0
+Const CAIRO_FILL_RULE_EVEN_ODD:Int = 1
 
 Rem
 bbdoc: The Cairo context wrapper type
