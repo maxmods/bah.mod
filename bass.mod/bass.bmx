@@ -46,9 +46,9 @@ Private
 Global fx_factories:TBassFXFactory
 Public
 
-
+' for documenting :
 Rem
-Parameters: 
+	<p>Parameters: 
 	<ul>
 	<li><b>XXXXXXXXXX</b> : xxxxxxxxxxxxxxxxx</li>
 	</ul>
@@ -251,7 +251,28 @@ Type TBassChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the playback length of a channel. 
+	returns: If successful, then the channel's length is returned, else -1 is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: The exact length of a stream will be returned once the whole file has been streamed, until then it's not always
+	possible to 100% accurately estimate the length of a stream. The length is always exact for MP3/MP2/MP1 files when the
+	BASS_STREAM_PRESCAN flag is used in the BASS_StreamCreateFile call. When the BASS_STREAM_PRESCAN flag is not used, the
+	length is an (usually accurate) estimation based on the file size, until the whole file has been streamed. The length
+	returned for OGG files will usually be exact (assuming the file is not corrupt), but for OGG files streamed from the
+	internet (or "buffered" user file stream) it can be a very rough estimation until the whole file has been downloaded. 
+	<p>
+	Retrieving the byte length of a MOD music requires that the BASS_MUSIC_PRESCAN flag was used in the BASS_MusicLoad call. 
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b>mode</b> : How to retrieve the length. One of the following.
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_POS_BYTE</td><td>Get the length in bytes.</td></tr>
+	<tr><td>BASS_POS_MUSIC_ORDER</td><td>Get the length in orders. (HMUSIC only) </td></tr>
+	</table>
+	</li>
+	</ul>
+	<p>
 	End Rem
 	Method GetLength:Long(mode:Int)
 		Local length:Long
@@ -718,7 +739,7 @@ Type TBassChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the 3D position of a sample, stream, or MOD music channel with 3D functionality. 
 	End Rem
 	Method Get3DPosition:Int(pos:TBass3DVector = Null, orient:TBass3DVector = Null, vel:TBass3DVector = Null)
 		If pos Then
@@ -1275,7 +1296,7 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: An audio sample.
 End Rem
 Type TBassSample
 
@@ -1291,7 +1312,21 @@ Type TBassSample
 
 	Rem
 	bbdoc: Creates a new sample.
-	about: 
+	about: The sample's initial content is undefined. SetData() should be used to set the sample's data. 
+	<p>
+	Unless the BASS_SAMPLE_SOFTWARE flag is used, the sample will use hardware mixing if hardware resources are available.
+	Use BASS_GetInfo to see if there are hardware mixing resources available, and which sample formats are supported by
+	the hardware. The BASS_SAMPLE_VAM flag allows a sample to be played by both hardware and software, with the decision
+	made when the sample is played rather than when it's loaded. A sample's VAM options are set via SetInfo(). 
+	</p>
+	<p>
+	To play a sample, first a channel must be obtained using GetChannel(), which can then be played using
+	TBassChannel::Play. 
+	</p>
+	<p>
+	If you want to play a large or one-off sample, then it would probably be better to stream it instead with
+	TBassStream::Create. 
+	</p>
 	End Rem
 	Function SampleCreate:TBassSample(length:Int, freq:Int, channels:Int, maxPlaybacks:Int, flags:Int)
 		Return New TBassSample.Create(length, freq, channels, maxPlaybacks, flags)
@@ -1351,7 +1386,31 @@ Type TBassSample
 	End Method
 	
 	Rem
-	bbdoc: Creates/initializes a playback channel for a sample. 
+	bbdoc: Creates/initializes a playback channel for a sample.
+	returns: If successful, the the new channel is returned, else Null is returned. Use TBass.ErrorGetCode() to get the error code. 
+	about: Use GetInfo() and SetInfo() to set a sample's default attributes, which are used when creating
+	a channel. After creation, a channel's attributes can be changed via TBassChannel::SetAttribute,
+	TBassChannel::Set3DAttributes and TBassChannel::Set3DPosition. TBass.Apply3D should be called before starting playback of
+	a 3D sample, even if you just want to use the default settings. 
+	<p>
+	A sample channel is automatically freed when it's overridden by a new channel, or when stopped by TBassChannel::Stop,
+	TBassSample::Stop or TBass::Stop. If you wish to stop a channel and re-use it, TBassChannel::Pause should be used to pause
+	it instead. Determining whether a channel still exists can be done by trying to use the handle in a function call. A
+	list of all the sample's existing channels can also be retrieved via TBassSample::GetChannels. 
+	</p>
+	<p>
+	The new channel will have an initial state of being paused (BASS_ACTIVE_PAUSED). This prevents the channel being claimed
+	by another call of this function before it has been played, unless it gets overridden due to a lack of free channels. 
+	</p>
+	<p>
+	All of a sample's channels share the same sample data, and just have their own individual playback state information
+	(volume/position/etc). 
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b>onlyNew</b> : Do not recycle/override one of the sample's existing channels?</li>
+	</ul>
+	<p>
 	End Rem
 	Method GetChannel:TBassChannel(onlyNew:Int)
 		Return TBassChannel._create(BASS_SampleGetChannel(handle, onlyNew))
@@ -1375,7 +1434,29 @@ Type TBassSample
 	End Method
 	
 	Rem
+	bbdoc: Sets a sample's default attributes. 
+	returns: If successful, True is returned, else False is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: Use this method and GetInfo() to edit a sample's default attributes. Changing a sample's default attributes does
+	not affect any existing channels, it only affects channels subsequently created via GetChannel(). The exception
+	is the VAM settings, changes to that apply to all the sample's channels at their next playback (TBassChannel::Play). Use
+	TBassChannel::SetAttribute and TBassChannel::Set3DAttributes to change the attributes of an existing sample channel. 
+	<p>
+	The length, max, origres and chans members of TBassSampleInfo can't be modified; any changes are ignored. The
+	BASS_SAMPLE_8BITS, BASS_SAMPLE_MONO, BASS_SAMPLE_3D, BASS_SAMPLE_MUTEMAX, BASS_SAMPLE_SOFTWARE and BASS_SAMPLE_VAM flags
+	also can't be changed. 
+	</p>
+	End Rem
+	Method SetInfo:Int(info:TBassSampleInfo)
+		Return bmx_bass_setsampleinfo(handle, info.sampleinfoPtr)
+	End Method
+	
+	Rem
 	bbdoc: Retrieves a copy of a sample's data. 
+	about: Parameters: 
+	<ul>
+	<li><b>buffer</b> : Pointer to a buffer to receive the data. The buffer must be big enough to receive the sample's data,
+	the size of which can be retrieved via GetInfo(). </li>
+	</ul>
 	End Rem
 	Method GetData:Int(buffer:Byte Ptr)
 		Return BASS_SampleGetData(handle, buffer)
@@ -1383,21 +1464,32 @@ Type TBassSample
 	
 	Rem
 	bbdoc: Sets a sample's data. 
+	returns: If successful, True is returned, else False is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: The required length and format of the data can be retrieved via GetInfo(). 
+	<p>
+	A sample's data can be set at any time, including during playback. 
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b>buffer</b> : Pointer to a buffer to receive the data.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SetData:Int(buffer:Byte Ptr)
 		Return BASS_SampleSetData(handle, buffer)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: TODO
 	End Rem
 	Method GetChannels:TBassSample[]()
+		' TODO
 	End Method
 
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Used with TBassSample::GetInfo and TBassSample::SetInfo to retrieve and set the default playback attributes of a sample. 
 End Rem
 Type TBassSampleInfo
 
@@ -1419,10 +1511,24 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
+	bbdoc: Default sample rate. 
+	End Rem
+	Method SetFreq(value:Int)
+		bmx_sampleinfo_setfreq(sampleinfoPtr, value)
+	End Method
+	
+	Rem
 	bbdoc: Default volume... 0 (silent) to 1 (full).
 	End Rem
 	Method GetVolume:Float()
 	   Return bmx_sampleinfo_getvolume(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Default volume... 0 (silent) to 1 (full). 
+	End Rem
+	Method SetVolume(value:Float)
+		bmx_sampleinfo_setvolume(sampleinfoPtr, value)
 	End Method
 	
 	Rem
@@ -1433,10 +1539,52 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Default panning position... -1 (full left) to +1 (full right), 0 = centre. 
+	End Rem
+	Method SetPan(value:Float)
+		bmx_sampleinfo_setpan(sampleinfoPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: A combination of these flags.
+	about:
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_SAMPLE_8BITS</td><td>8-bit resolution. If neither this or the BASS_SAMPLE_FLOAT flags are present, then the sample is 16-bit. </td></tr>
+	<tr><td>BASS_SAMPLE_FLOAT</td><td>32-bit floating-point. </td></tr>
+	<tr><td>BASS_SAMPLE_LOOP</td><td>Looped? </td></tr>
+	<tr><td>BASS_SAMPLE_3D</td><td>The sample has 3D functionality enabled. </td></tr>
+	<tr><td>BASS_SAMPLE_MUTEMAX</td><td>Mute the sample when it is at (or beyond) its max distance (3D samples only). </td></tr>
+	<tr><td>BASS_SAMPLE_SOFTWARE</td><td>The sample is not using hardware mixing... it is being mixed in software by DirectSound. </td></tr>
+	<tr><td>BASS_SAMPLE_VAM</td><td>DX7 voice allocation and management features are enabled (see VAM). </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_VOL</td><td>Override: the channel with the lowest volume is overridden. </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_POS</td><td>Override: the longest playing channel is overridden. </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_DIST</td><td>Override: the channel furthest away (from the listener) is overridden (3D samples only). </td></tr>
+	</table>
 	End Rem
 	Method GetFlags:Int()
 	   Return bmx_sampleinfo_getflags(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: A combination of these flags.
+	about:
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_SAMPLE_8BITS</td><td>8-bit resolution. If neither this or the BASS_SAMPLE_FLOAT flags are present, then the sample is 16-bit. </td></tr>
+	<tr><td>BASS_SAMPLE_FLOAT</td><td>32-bit floating-point. </td></tr>
+	<tr><td>BASS_SAMPLE_LOOP</td><td>Looped? </td></tr>
+	<tr><td>BASS_SAMPLE_3D</td><td>The sample has 3D functionality enabled. </td></tr>
+	<tr><td>BASS_SAMPLE_MUTEMAX</td><td>Mute the sample when it is at (or beyond) its max distance (3D samples only). </td></tr>
+	<tr><td>BASS_SAMPLE_SOFTWARE</td><td>The sample is not using hardware mixing... it is being mixed in software by DirectSound. </td></tr>
+	<tr><td>BASS_SAMPLE_VAM</td><td>DX7 voice allocation and management features are enabled (see VAM). </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_VOL</td><td>Override: the channel with the lowest volume is overridden. </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_POS</td><td>Override: the longest playing channel is overridden. </td></tr>
+	<tr><td>BASS_SAMPLE_OVER_DIST</td><td>Override: the channel furthest away (from the listener) is overridden (3D samples only). </td></tr>
+	</table>
+	End Rem
+	Method SetFlags(flags:Int)
+		bmx_sampleinfo_setflags(sampleinfoPtr, flags)
 	End Method
 	
 	Rem
@@ -1477,10 +1625,44 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Minimum time gap in milliseconds between creating channels using TBassSample.GetChannel.
+	about: This can be used to prevent flanging effects caused by playing a sample multiple times very close to
+	each other. The default setting, after loading/creating a sample, is 0 (disabled).
+	End Rem
+	Method SetMinGap(value:Int)
+		bmx_sampleinfo_setmingap(sampleinfoPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: The 3D processing mode... one of these flags. 
+	about: 
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_3DMODE_NORMAL</td><td>Normal 3D processing.</td></tr>
+	<tr><td>BASS_3DMODE_RELATIVE</td><td>The sample's 3D position (position/velocity/orientation) is relative to the
+	listener. When the listener's position/velocity/orientation is changed with BASS_Set3DPosition, the sample's
+	position relative to the listener does not change. </td></tr>
+	<tr><td>BASS_3DMODE_OFF</td><td>Turn off 3D processing on the sample, the sound will be played in the center.</td></tr>
+	</table>
 	End Rem
 	Method GetMode3D:Int()
 	   Return bmx_sampleinfo_getmode3d(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The 3D processing mode... one of these flags. 
+	about: 
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_3DMODE_NORMAL</td><td>Normal 3D processing.</td></tr>
+	<tr><td>BASS_3DMODE_RELATIVE</td><td>The sample's 3D position (position/velocity/orientation) is relative to the
+	listener. When the listener's position/velocity/orientation is changed with BASS_Set3DPosition, the sample's
+	position relative to the listener does not change. </td></tr>
+	<tr><td>BASS_3DMODE_OFF</td><td>Turn off 3D processing on the sample, the sound will be played in the center.</td></tr>
+	</table>
+	End Rem
+	Method SetMode3D(value:Int)
+		bmx_sampleinfo_setmode3d(sampleinfoPtr, value)
 	End Method
 	
 	Rem
@@ -1492,11 +1674,27 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
+	bbdoc: The minimum distance.
+	about: The sample's volume is at maximum when the listener is within this distance.
+	End Rem
+	Method SetMinDist(value:Float)
+		bmx_sampleinfo_setmindist(sampleinfoPtr, value)
+	End Method
+	
+	Rem
 	bbdoc: The maximum distance.
 	about: The sample's volume stops decreasing when the listener is beyond this distance. 
 	End Rem
 	Method GetMaxDist:Float()
 	   Return bmx_sampleinfo_getmaxdist(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The maximum distance.
+	about: The sample's volume stops decreasing when the listener is beyond this distance. 
+	End Rem
+	Method SetMaxDist(value:Float)
+		bmx_sampleinfo_setmaxdist(sampleinfoPtr, value)
 	End Method
 	
 	Rem
@@ -1507,10 +1705,24 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
+	bbdoc: The angle of the inside projection cone in degrees... 0 (no cone) to 360 (sphere). 
+	End Rem
+	Method SetIAngle(value:Int)
+		bmx_sampleinfo_setiangle(sampleinfoPtr, value)
+	End Method
+	
+	Rem
 	bbdoc: The angle of the outside projection cone in degrees... 0 (no cone) to 360 (sphere). 
 	End Rem
 	Method GetOAngle:Int()
 	   Return bmx_sampleinfo_getoangle(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The angle of the outside projection cone in degrees... 0 (no cone) to 360 (sphere). 
+	End Rem
+	Method SetOAngle(value:Int)
+		bmx_sampleinfo_setoangle(sampleinfoPtr, value)
 	End Method
 	
 	Rem
@@ -1521,10 +1733,66 @@ Type TBassSampleInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The delta-volume outside the outer projection cone... 0 (silent) to 1 (full). 
+	End Rem
+	Method SetOutVol(value:Float)
+		bmx_sampleinfo_setoutvol(sampleinfoPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Voice allocation/management flags... a combination of these
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_VAM_HARDWARE</td><td>Play the sample in hardware. If no hardware voices are available then the play call
+	will fail. </td></tr>
+	<tr><td>BASS_VAM_SOFTWARE</td><td>Play the sample in software (ie. non-accelerated). No other VAM flags may be used
+	together with this flag.</td></tr>
+	<tr><td>BASS_VAM_TERM_TIME</td><td>If there are no free hardware voices, the buffer to be terminated will be the one
+	with the least time left to play. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	<tr><td>BASS_VAM_TERM_DIST</td><td>If there are no free hardware voices, the buffer to be terminated will be one that
+	was loaded/created with the BASS_SAMPLE_MUTEMAX flag and is beyond its max distance (maxdist). If there are no buffers
+	that match this criteria, then the play call will fail. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	<tr><td>BASS_VAM_TERM_PRIO</td><td>If there are no free hardware voices, the buffer to be terminated will be the one
+	with the lowest priority. This flag may be used with the TERM_TIME or TERM_DIST flag, if multiple voices have the same
+	priority then the time or distance is used to decide which to terminate. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	</table>
 	End Rem
 	Method GetVAM:Int()
 	   Return bmx_sampleinfo_getvam(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Voice allocation/management flags... a combination of these
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_VAM_HARDWARE</td><td>Play the sample in hardware. If no hardware voices are available then the play call
+	will fail. </td></tr>
+	<tr><td>BASS_VAM_SOFTWARE</td><td>Play the sample in software (ie. non-accelerated). No other VAM flags may be used
+	together with this flag.</td></tr>
+	<tr><td>BASS_VAM_TERM_TIME</td><td>If there are no free hardware voices, the buffer to be terminated will be the one
+	with the least time left to play. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	<tr><td>BASS_VAM_TERM_DIST</td><td>If there are no free hardware voices, the buffer to be terminated will be one that
+	was loaded/created with the BASS_SAMPLE_MUTEMAX flag and is beyond its max distance (maxdist). If there are no buffers
+	that match this criteria, then the play call will fail. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	<tr><td>BASS_VAM_TERM_PRIO</td><td>If there are no free hardware voices, the buffer to be terminated will be the one
+	with the lowest priority. This flag may be used with the TERM_TIME or TERM_DIST flag, if multiple voices have the same
+	priority then the time or distance is used to decide which to terminate. (<i>Note: This flag enables hardware resource stealing... if the hardware has no
+	available voices, a currently playing buffer will be stopped to make room for the new buffer. Only samples with
+	VAM enabled are considered for termination.</i>)</td></tr>
+	</table>
+	End Rem
+	Method SetVAM(value:Int)
+		bmx_sampleinfo_setvam(sampleinfoPtr, value)
 	End Method
 	
 	Rem
@@ -1532,6 +1800,13 @@ Type TBassSampleInfo
 	End Rem
 	Method GetPriority:Int()
 	   Return bmx_sampleinfo_getpriority(sampleinfoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Priority, used with the BASS_VAM_TERM_PRIO flag... 0 (min) to $FFFFFFFF (max). 
+	End Rem
+	Method SetPriority(value:Int)
+		bmx_sampleinfo_setpriority(sampleinfoPtr, value)
 	End Method
 	
 	Method Delete()
@@ -1668,7 +1943,17 @@ Type TBassMusic Extends TBassChannel
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Used with TBassChannel.GetInfo to retrieve information on a channel.
+about: The BASS_SAMPLE_SOFTWARE flag indicates whether or not the channel's sample data is being mixed into the final
+output by the hardware. It does not indicate (in the case of a stream or MOD music) whether the processing required to
+generate the sample data is being done by the hardware, this processing is always done in software. 
+<p>
+With a recording channel, the BASS_STREAM_DECODE flag indicates that it's not using a RECORDPROC callback function. 
+</p>
+<p>
+BASS supports 8/16/32-bit sample data, so if a WAV file, for example, uses another sample resolution, it'll have to be
+converted by BASS. The origres member can be used to check what the resolution originally was. 
+</p>
 End Rem
 Type TBassChannelInfo
 
@@ -1683,49 +1968,99 @@ Type TBassChannelInfo
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Default playback rate. 
 	End Rem
 	Method GetFreq:Int()
 	   Return bmx_channelinfo_getfreq(channelinfoPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Number of channels... 1=mono, 2=stereo, etc... 
 	End Rem
 	Method GetChannels:Int()
 	   Return bmx_channelinfo_getchannels(channelinfoPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: A combination of these flags.
+	about: 
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_SAMPLE_8BITS</td><td>The channel's resolution is 8-bit. If neither this or the BASS_SAMPLE_FLOAT flags are present, then the channel's resolution is 16-bit.</td></tr>
+	<tr><td>BASS_SAMPLE_FLOAT</td><td>The channel's resolution is 32-bit floating-point. </td></tr>
+	<tr><td>BASS_SAMPLE_LOOP</td><td>The channel is looped. </td></tr>
+	<tr><td>BASS_SAMPLE_3D</td><td>The channel has 3D functionality enabled.</td></tr>
+	<tr><td>BASS_SAMPLE_SOFTWARE</td><td>The channel is NOT using hardware mixing. </td></tr>
+	<tr><td>BASS_SAMPLE_VAM</td><td>The channel is using the DX7 voice allocation and management features. (HCHANNEL only) </td></tr>
+	<tr><td>BASS_SAMPLE_MUTEMAX</td><td>The channel is muted when at (or beyond) its max distance. (HCHANNEL)</td></tr>
+	<tr><td>BASS_SAMPLE_FX</td><td>The channel has the "with FX flag" DX8 effect implementation enabled. (HSTREAM/HMUSIC) </td></tr>
+	<tr><td>BASS_STREAM_RESTRATE</td><td>The internet file download rate is restricted. (HSTREAM) </td></tr>
+	<tr><td>BASS_STREAM_BLOCK</td><td>The internet file (or "buffered" user file) is streamed in small blocks. (HSTREAM) </td></tr>
+	<tr><td>BASS_STREAM_AUTOFREE</td><td>The channel will automatically be freed when it ends. (HSTREAM/HMUSIC) </td></tr>
+	<tr><td>BASS_STREAM_DECODE</td><td>The channel is a "decoding channel". (HSTREAM/HMUSIC/HRECORD) </td></tr>
+	<tr><td>BASS_MUSIC_RAMP</td><td>The MOD music is using "normal" ramping. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_RAMPS</td><td>The MOD music is using "sensitive" ramping. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_SURROUND</td><td>The MOD music is using surround sound. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_SURROUND2</td><td>The MOD music is using surround sound mode 2. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_NONINTER</td><td>The MOD music is using non-interpolated mixing. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_FT2MOD</td><td>The MOD music is using FastTracker 2 .MOD playback. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_PT1MOD</td><td>The MOD music is using ProTracker 1 .MOD playback. (HMUSIC) </td></tr>
+	<tr><td>BASS_MUSIC_STOPBACK</td><td>The MOD music will be stopped when a backward jump effect is played. (HMUSIC) </td></tr>
+	<tr><td>BASS_SPEAKER_xxx</td><td>Speaker assignment flags. (HSTREAM/HMUSIC) </td></tr>
+	<tr><td>BASS_UNICODE</td><td><i>filename</i> is a Unicode (UTF-16) filename. </td></tr>
+	</table>
 	End Rem
 	Method GetFlags:Int()
 	   Return bmx_channelinfo_getflags(channelinfoPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: The type of channel it is, which can be one of the following.
+	about: 
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>BASS_CTYPE_SAMPLE</td><td>Sample channel. (HCHANNEL) </td></tr>
+	<tr><td>BASS_CTYPE_STREAM</td><td>User sample stream. This can also be used as a flag to test if the channel is any kind
+	of HSTREAM.</td></tr>
+	<tr><td>BASS_CTYPE_STREAM_OGG</td><td>Ogg Vorbis format stream.</td></tr>
+	<tr><td>BASS_CTYPE_STREAM_MP1</td><td>MPEG layer 1 format stream.</td></tr>
+	<tr><td>BASS_CTYPE_STREAM_MP2</td><td>MPEG layer 2 format stream.</td></tr>
+	<tr><td>BASS_CTYPE_STREAM_MP3</td><td>MPEG layer 3 format stream. </td></tr>
+	<tr><td>BASS_CTYPE_STREAM_AIFF</td><td>Audio IFF format stream. </td></tr>
+	<tr><td>BASS_CTYPE_STREAM_WAV_PCM</td><td>Integer PCM WAVE format stream. </td></tr>
+	<tr><td>BASS_CTYPE_STREAM_WAV_FLOAT</td><td>Floating-point PCM WAVE format stream.</td></tr>
+	<tr><td>BASS_CTYPE_STREAM_WAV</td><td>WAVE format flag. This can be used to test if the channel is any kind of WAVE
+	format. The codec (the file's "wFormatTag") is specified in the LOWORD. </td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_MOD</td><td>Generic MOD format music. This can also be used as a flag to test if the 
+	channel is any kind of HMUSIC.</td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_MTM</td><td>MultiTracker format music. </td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_S3M</td><td>ScreamTracker 3 format music.</td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_XM</td><td>FastTracker 2 format music. </td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_IT</td><td>Impulse Tracker format music. </td></tr>
+	<tr><td>BASS_CTYPE_MUSIC_MO3</td><td>MO3 format flag, used in combination with one of the BASS_CTYPE_MUSIC types. </td></tr>
+	<tr><td>BASS_CTYPE_RECORD</td><td>Recording channel. (HRECORD) </td></tr>
+	</table>
 	End Rem
 	Method GetCType:Int()
 	   Return bmx_channelinfo_getctype(channelinfoPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: The original resolution (bits per sample)... 0 = undefined. 
 	End Rem
 	Method GetOrigRes:Int()
 	   Return bmx_channelinfo_getorigres(channelinfoPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: The sample that is playing on the channel. (HCHANNEL only) 
 	End Rem
 	Method GetSample:TBassSample()
 	   Return TBassSample._create(bmx_channelinfo_getsample(channelinfoPtr))
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: The filename associated with the channel. (HSTREAM only) 
 	End Rem
 	Method GetFilename:String()
 	   Return String.FromCString(bmx_channelinfo_getfilename(channelinfoPtr))
@@ -1754,7 +2089,7 @@ Type TBass
 
 	Rem
 	bbdoc: Initializes an output device. 
-	returns: If the device was successfully initialized, TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code.
+	returns: If the device was successfully initialized, True is returned, else False is returned. Use TBass.ErrorGetCode to get the error code.
 	about: This function must be successfully called before using any sample, stream or MOD music functions. The
 	recording functions may be used without having called this function. 
 	<p>
@@ -1806,7 +2141,7 @@ Type TBass
 	
 	Rem
 	bbdoc: Retrieves the current master volume level.
-	returns: If successful, the volume level is returned, else -1 is returned. Use #BASS_ErrorGetCode to get the error code. 
+	returns: If successful, the volume level is returned, else -1 is returned. Use TBass.ErrorGetCode to get the error code. 
 	End Rem
 	Function GetVolume:Float()
 		Return BASS_GetVolume()
@@ -1833,17 +2168,25 @@ Type TBass
 	End Function
 	
 	Rem
+	bbdoc: Starts (or resumes) the output. 
+	returns: If successful, then True is returned, else False is returned. Use TBass.ErrorGetCode to get the error code. 
+	about: The output is automatically started by TBass.Init, so there is no need to use this function unless you've
+	stopped or paused the output. 
+	<p>
+	When using multiple devices, the current thread's device setting (as set with TBass.SetDevice) determines which
+	device this function call applies to. 
+	</p>
+	End Rem
+	Function Start:Int()
+		Return BASS_Start()
+	End Function
+	
+	Rem
 	bbdoc: Sets the device to use for subsequent calls.
 	returns: If successful, then TRUE is returned, else FALSE is returned. Use #BASS_ErrorGetCode to get the error code. 
-	about: Parameters: 
-	<ul>
-	<li><b>device</b> : The device to use... 0 = no sound, 1 = first real output device.</li>
-	</ul>
-	<p>
-	Simultaneously using multiple devices is supported in the BASS API via a context switching system;
+	about: Simultaneously using multiple devices is supported in the BASS API via a context switching system;
 	instead of there being an extra "device" parameter in the function calls, the device to be used is set
 	prior to calling the functions.
-	<p>
 	</p>
 	The functions that use the device selection are the following: #Free, #GetDSoundObject,
 	#GetInfo, #Start, #Stop, #Pause, #SetVolume, #GetVolume, #Set3DFactors,
@@ -1858,6 +2201,11 @@ Type TBass
 	there is no need to use this function; BASS will automatically use the device that's initialized. Even
 	if you free the device, and initialize another, BASS will automatically switch to the one that is
 	initialized.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b>device</b> : The device to use... 0 = no sound, 1 = first real output device.</li>
+	</ul>
 	</p>
 	End Rem
 	Function SetDevice:Int(device:Int)

@@ -62,6 +62,7 @@ Extern
 	Function bmx_bass_streamcreateurl:Int(url:Byte Ptr, offset:Int, flags:Int, user:Object)
 
 	Function bmx_bass_getsampleinfo:Byte Ptr(handle:Int)
+	Function bmx_bass_setsampleinfo:Int(handle:Int, info:Byte Ptr)
 	
 	Function bmx_sampleinfo_getfreq:Int(handle:Byte Ptr)
 	Function bmx_sampleinfo_getvolume:Float(handle:Byte Ptr)
@@ -81,6 +82,19 @@ Extern
 	Function bmx_sampleinfo_getvam:Int(handle:Byte Ptr)
 	Function bmx_sampleinfo_getpriority:Int(handle:Byte Ptr)
 	Function bmx_sampleinfo_delete(handle:Byte Ptr)
+	Function bmx_sampleinfo_setfreq(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setvolume(handle:Byte Ptr, value:Float)
+	Function bmx_sampleinfo_setpan(handle:Byte Ptr, value:Float)
+	Function bmx_sampleinfo_setflags(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setmingap(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setmode3d(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setmindist(handle:Byte Ptr, value:Float)
+	Function bmx_sampleinfo_setmaxdist(handle:Byte Ptr, value:Float)
+	Function bmx_sampleinfo_setiangle(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setoangle(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setoutvol(handle:Byte Ptr, value:Float)
+	Function bmx_sampleinfo_setvam(handle:Byte Ptr, value:Int)
+	Function bmx_sampleinfo_setpriority(handle:Byte Ptr, value:Int)
 
 	Function bmx_bass_getdeviceinfo:Byte Ptr(device:Int)
 	Function bmx_deviceinfo_getname:Byte Ptr(handle:Byte Ptr)
@@ -140,6 +154,7 @@ Extern
 	Function BASS_GetDevice:Int()
 	Function BASS_GetCPU:Float()
 	Function BASS_Apply3D()
+	Function BASS_Start:Int()
 ?win32
 	Function BASS_GetEAXParameters:Int(env:Int Ptr, vol:Float Ptr, decay:Float Ptr, damp:Float Ptr)
 	Function BASS_SetEAXParameters:Int(env:Int, vol:Float, decay:Float, damp:Float)

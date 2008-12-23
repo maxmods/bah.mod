@@ -65,6 +65,7 @@ extern "C" {
 	HSTREAM bmx_bass_streamcreateurl( char *url, DWORD offset, DWORD flags, void *user);
 
 	BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle);
+	BOOL bmx_bass_setsampleinfo(HSAMPLE handle, BASS_SAMPLE * info);
 
 	DWORD bmx_sampleinfo_getfreq(BASS_SAMPLE * info);
 	float bmx_sampleinfo_getvolume(BASS_SAMPLE * info);
@@ -84,6 +85,19 @@ extern "C" {
 	DWORD bmx_sampleinfo_getvam(BASS_SAMPLE * info);
 	DWORD bmx_sampleinfo_getpriority(BASS_SAMPLE * info);
 	void bmx_sampleinfo_delete(BASS_SAMPLE * info);
+	void bmx_sampleinfo_setfreq(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setvolume(BASS_SAMPLE * info, float value);
+	void bmx_sampleinfo_setpan(BASS_SAMPLE * info, float value);
+	void bmx_sampleinfo_setflags(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setmingap(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setmode3d(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setmindist(BASS_SAMPLE * info, float value);
+	void bmx_sampleinfo_setmaxdist(BASS_SAMPLE * info, float value);
+	void bmx_sampleinfo_setiangle(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setoangle(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setoutvol(BASS_SAMPLE * info, float value);
+	void bmx_sampleinfo_setvam(BASS_SAMPLE * info, DWORD value);
+	void bmx_sampleinfo_setpriority(BASS_SAMPLE * info, DWORD value);
 
 	BASS_DEVICEINFO * bmx_bass_getdeviceinfo(int device);
 	const char * bmx_deviceinfo_getname(BASS_DEVICEINFO * info);
@@ -387,6 +401,10 @@ BASS_SAMPLE * bmx_bass_getsampleinfo(HSAMPLE handle) {
 	return info;
 }
 
+BOOL bmx_bass_setsampleinfo(HSAMPLE handle, BASS_SAMPLE * info) {
+	return BASS_SampleSetInfo(handle, info);
+}
+
 DWORD bmx_sampleinfo_getfreq(BASS_SAMPLE * info) {
     return info->freq;
 }
@@ -458,6 +476,59 @@ DWORD bmx_sampleinfo_getpriority(BASS_SAMPLE * info) {
 void bmx_sampleinfo_delete(BASS_SAMPLE * info) {
 	delete info;
 }
+
+void bmx_sampleinfo_setfreq(BASS_SAMPLE * info, DWORD value) {
+	info->freq = value;
+}
+
+void bmx_sampleinfo_setvolume(BASS_SAMPLE * info, float value) {
+	info->volume = value;
+}
+
+void bmx_sampleinfo_setpan(BASS_SAMPLE * info, float value) {
+	info->pan = value;
+}
+
+void bmx_sampleinfo_setflags(BASS_SAMPLE * info, DWORD value) {
+	info->flags = value;
+}
+
+void bmx_sampleinfo_setmingap(BASS_SAMPLE * info, DWORD value) {
+	info->mingap = value;
+}
+
+void bmx_sampleinfo_setmode3d(BASS_SAMPLE * info, DWORD value) {
+	info->mode3d = value;
+}
+
+void bmx_sampleinfo_setmindist(BASS_SAMPLE * info, float value) {
+	info->mindist = value;
+}
+
+void bmx_sampleinfo_setmaxdist(BASS_SAMPLE * info, float value) {
+	info->maxdist = value;
+}
+
+void bmx_sampleinfo_setiangle(BASS_SAMPLE * info, DWORD value) {
+	info->iangle = value;
+}
+
+void bmx_sampleinfo_setoangle(BASS_SAMPLE * info, DWORD value) {
+	info->oangle = value;
+}
+
+void bmx_sampleinfo_setoutvol(BASS_SAMPLE * info, float value) {
+	info->outvol = value;
+}
+
+void bmx_sampleinfo_setvam(BASS_SAMPLE * info, DWORD value) {
+	info->vam = value;
+}
+
+void bmx_sampleinfo_setpriority(BASS_SAMPLE * info, DWORD value) {
+	info->priority = value;
+}
+
 
 // *************************************************
 
