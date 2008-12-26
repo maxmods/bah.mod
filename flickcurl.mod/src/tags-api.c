@@ -53,6 +53,8 @@
  * Returns the first 24 photos for a given tag cluster
  *
  * Implements flickr.tags.getClusterPhotos (1.7)
+ *
+ * Added to API (not announced) some time between 2008-09-04 and 2008-09-19
  * 
  * Return value: non-0 on failure
  **/
@@ -67,7 +69,7 @@ flickcurl_tags_getClusterPhotos(flickcurl* fc, const char* tag,
   const char* format=NULL;
   
   if(!tag || !cluster_id)
-    return 1;
+    return NULL;
 
   parameters[count][0]  = "tag";
   parameters[count++][1]= tag;
