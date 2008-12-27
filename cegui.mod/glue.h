@@ -102,10 +102,10 @@ extern "C" {
 	BBObject * _bah_cegui_TCEImage__create(CEGUI::Image * image);
 	BBObject * _bah_cegui_TCETreeItem__create(CEGUI::TreeItem * item);
 	
-	void _bah_cegui_TCEResourceProvider__loadRawDataContainer(BBObject * handle, const CEGUI::utf8 * filename, MaxRawDataContainer * container, const CEGUI::utf8 * resourceGroup);
+	void _bah_cegui_TCEResourceProvider__loadRawDataContainer(BBObject * handle, BBString * filename, MaxRawDataContainer * container, BBString * resourceGroup);
 	void _bah_cegui_TCEResourceProvider__unloadRawDataContainer(BBObject * handle, MaxRawDataContainer * data);
 	
-	CEGUI::Window * _bah_cegui_TCEWindowFactory__createWindow(BBObject * handle, const CEGUI::utf8 * name);
+	CEGUI::Window * _bah_cegui_TCEWindowFactory__createWindow(BBObject * handle, BBString * name);
 	void _bah_cegui_TCEWindowFactory__destroyWindow(BBObject * handle, BBObject * window);
 	const CEGUI::utf8 * _bah_cegui_TCEWindowFactory__getTypeName(BBObject * handle);
 	
@@ -1136,7 +1136,7 @@ extern "C" {
 	void bmx_cegui_listheader_movecolumnatsegment(CEGUI::ListHeader * head, CEGUI::uint column, CEGUI::ListHeaderSegment * position);
 	void bmx_cegui_listheader_movesegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment, CEGUI::uint position);
 	void bmx_cegui_listheader_movesegmentatsegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment, CEGUI::ListHeaderSegment * position);
-	void bmx_cegui_listheader_setsgementoffset(CEGUI::ListHeader * head, float offset);
+	void bmx_cegui_listheader_setsegmentoffset(CEGUI::ListHeader * head, float offset);
 	void bmx_cegui_listheader_setcolumnwidth(CEGUI::ListHeader * head, CEGUI::uint column, float width);
 
 

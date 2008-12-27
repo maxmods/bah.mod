@@ -103,13 +103,13 @@ Type TCEResourceProvider
 	Method loadRawDataContainer(filename:String, dataContainer:TCERawDataContainer, resourceGroup:String)
 	End Method
 	
-	Function _loadRawDataContainer(provider:TCEResourceProvider, filename:Byte Ptr, container:Byte Ptr, resourceGroup:Byte Ptr)
-		provider.loadRawDataContainer(_convertUTF8ToMax(filename), TCERawDataContainer._create(container), _convertUTF8ToMax(resourceGroup))
+	Function _loadRawDataContainer(provider:TCEResourceProvider, filename:String, container:Byte Ptr, resourceGroup:String)
+		provider.loadRawDataContainer(filename, TCERawDataContainer._create(container), resourceGroup)
 	End Function
 
 	Rem
 	bbdoc: Unload raw binary data.
-	about: This gives the resource provider a change to unload the data in its own way before the data
+	about: This gives the resource provider a chance to unload the data in its own way before the data
 	container object is destroyed. If it does nothing, then the object will release its memory. 
 	End Rem	
 	Method unloadRawDataContainer(dataContainer:TCERawDataContainer)

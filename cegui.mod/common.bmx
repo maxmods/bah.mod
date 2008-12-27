@@ -1036,7 +1036,7 @@ Extern
 	Function bmx_cegui_listheader_movecolumnatsegment(handle:Byte Ptr, column:Int, position:Byte Ptr)
 	Function bmx_cegui_listheader_movesegment(handle:Byte Ptr, segment:Byte Ptr, position:Int)
 	Function bmx_cegui_listheader_movesegmentatsegment(handle:Byte Ptr, segment:Byte Ptr, position:Byte Ptr)
-	Function bmx_cegui_listheader_setsgementoffset(handle:Byte Ptr, offset:Float)
+	Function bmx_cegui_listheader_setsegmentoffset(handle:Byte Ptr, offset:Float)
 	Function bmx_cegui_listheader_setcolumnwidth(handle:Byte Ptr, column:Int, width:Float)
 
 End Extern

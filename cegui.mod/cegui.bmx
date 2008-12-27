@@ -3296,7 +3296,7 @@ Type TCEListHeader Extends TCEWindow
 	about: This implements scrolling of the header segments within the header area.
 	End Rem
 	Method setSegmentOffset(offset:Float)
-		bmx_cegui_listheader_setsgementoffset(objectPtr, offset)
+		bmx_cegui_listheader_setsegmentoffset(objectPtr, offset)
 	End Method
 	 
 	Rem

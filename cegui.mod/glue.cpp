@@ -193,7 +193,7 @@ MaxResourceProvider::~MaxResourceProvider(void)
 }
 
 void MaxResourceProvider::loadRawDataContainer(const CEGUI::String &filename, CEGUI::RawDataContainer &output, const CEGUI::String &resourceGroup) {
-	_bah_cegui_TCEResourceProvider__loadRawDataContainer(maxHandle, filename.data(), new MaxRawDataContainer(output), resourceGroup.data());
+	_bah_cegui_TCEResourceProvider__loadRawDataContainer(maxHandle, bah_cegui__convertUTF8ToMax(filename.data()), new MaxRawDataContainer(output), bah_cegui__convertUTF8ToMax(resourceGroup.data()));
 }
 
 void MaxResourceProvider::unloadRawDataContainer(CEGUI::RawDataContainer &data) {
@@ -224,7 +224,7 @@ MaxWindowFactory::~MaxWindowFactory()
 }
 
 CEGUI::Window * MaxWindowFactory::createWindow(const CEGUI::String &name) {
-	return _bah_cegui_TCEWindowFactory__createWindow(maxHandle, name.data());
+	return _bah_cegui_TCEWindowFactory__createWindow(maxHandle, bah_cegui__convertUTF8ToMax(name.data()));
 }
 
 void MaxWindowFactory::destroyWindow(CEGUI::Window *window) {
@@ -4806,7 +4806,7 @@ void bmx_cegui_listheader_movesegmentatsegment(CEGUI::ListHeader * head, CEGUI::
 	head->moveSegment(*segment, *position);
 }
 
-void bmx_cegui_listheader_setsegementoffset(CEGUI::ListHeader * head, float offset) {
+void bmx_cegui_listheader_setsegmentoffset(CEGUI::ListHeader * head, float offset) {
 	head->setSegmentOffset(offset);
 }
 
