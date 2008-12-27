@@ -1254,7 +1254,7 @@ Type TCEListboxTextItem Extends TCEListboxItem
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new TCEListboxTextItem object.
 	End Rem	
 	Method Create:TCEListboxTextItem(text:String, itemId:Int = 0, disabled:Int = False, autoDelete:Int = True)
 		objectPtr = bmx_cegui_listboxtextitem_new(_convertMaxToUTF8(text), itemId, disabled, autoDelete)
@@ -1400,7 +1400,7 @@ Type TCEProgressBar Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Base type for the Combobox widget.
 End Rem
 Type TCECombobox Extends TCEWindow
 
@@ -1862,6 +1862,13 @@ Type TCEGroupBox Extends TCEWindow
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the content pane held by this GroupBox.
+	End Rem
+	Method getContentPane:TCEWindow()
+		Return TCEWindow(bmx_cegui_groupbox_getcontentpane(objectPtr))
+	End Method
+	
 End Type
 
 Rem
@@ -2817,105 +2824,173 @@ Type TCEListHeaderSegment Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the segment is clicked. 
+	End Rem
 	Const EventSegmentClicked:String = "SegmentClicked"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the sizer/splitter is double-clicked.
+	End Rem
 	Const EventSplitterDoubleClicked:String = "SplitterDoubleClicked"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the sizing setting changes. 
+	End Rem
 	Const EventSizingSettingChanged:String = "SizingSettingChanged"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the sort direction value changes.
+	End Rem
 	Const EventSortDirectionChanged:String = "SortDirectionChanged"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the movable setting changes. 
+	End Rem
 	Const EventMovableSettingChanged:String = "MovableSettingChanged"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the segment has started to be dragged. 
+	End Rem
 	Const EventSegmentDragStart:String = "SegmentDragStart"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when segment dragging has stopped (via mouse release). 
+	End Rem
 	Const EventSegmentDragStop:String = "SegmentDragStop"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the segment drag position has changed. 
+	End Rem
 	Const EventSegmentDragPositionChanged:String = "SegmentDragPositionChanged"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the segment is sized. 
+	End Rem
 	Const EventSegmentSized:String = "SegmentSized"
 	Rem
-	bbdoc: 
-	end rem
+	bbdoc: Event fired when the clickable state of the segment changes. 
+	End Rem
 	Const EventClickableSettingChanged:String = "ClickableSettingChanged"
 
 	Rem
-	bbdoc: 
+	bbdoc: Items under this segment should not be sorted.
 	End Rem
 	Const SORT_NONE:Int = 0
 	Rem
-	bbdoc: 
+	bbdoc: Items under this segment should be sorted in ascending order.
 	End Rem
 	Const SORT_ASCENDING:Int = 1
 	Rem
-	bbdoc: 
+	bbdoc: Items under this segment should be sorted in descending order.
 	End Rem
 	Const SORT_DESCENDING:Int = 2
 
+	Rem
+	bbdoc: Returns whether this segment can be sized. 
+	End Rem
 	Method isSizingEnabled:Int()
+		Return bmx_cegui_listheadersegment_issizingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current sort direction set for this segment. 
+	about: Note that this has no impact on the way the segment functions (aside from the possibility of varied rendering).
+	This is intended as a 'helper setting' to classes that make use of the ListHeaderSegment objects.
+	End Rem
 	Method getSortDirection:Int()
+		Return bmx_cegui_listheadersegment_getsortdirection(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether drag moving is enabled for this segment. 
+	End Rem
 	Method isDragMovingEnabled:Int()
+		Return bmx_cegui_listheadersegment_isdragmovingenabled(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the current drag move position offset (in pixels relative to the top-left corner of the segment). 
+	End Rem
 	Method getDragMoveOffset(x:Float Var, y:Float Var)
+		bmx_cegui_listheadersegment_getdragmoveoffset(objectPtr, Varptr x, Varptr y)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the segment is clickable.
+	End Rem
 	Method isClickable:Int()
+		Return bmx_cegui_listheadersegment_isclickable(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the segment is currently in its hovering state. 
+	End Rem
 	Method isSegmentHovering:Int()
+		Return bmx_cegui_listheadersegment_issegmenthovering(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the segment is currently in its pushed state. 
+	End Rem
 	Method isSegmentPushed:Int()
+		Return bmx_cegui_listheadersegment_issegmentpushed(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the splitter is currently in its hovering state. 
+	End Rem
 	Method isSplitterHovering:Int()
+		Return bmx_cegui_listheadersegment_issplitterhovering(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the segment is currently being drag-moved. 
+	End Rem
 	Method isBeingDragMoved:Int()
+		Return bmx_cegui_listheadersegment_isbeingdragmoved(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Return whether the segment is currently being drag-moved. 
+	End Rem
 	Method isBeingDragSized:Int()
+		Return bmx_cegui_listheadersegment_isbeingdragsized(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image used when sizing.
+	End Rem
 	Method getSizingCursorImage:TCEImage()
+		Return TCEImage(bmx_cegui_listheadersegment_getsizingcursorimage(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the image used when moving.
+	End Rem
 	Method getMovingCursorImage:TCEImage()
+		Return TCEImage(bmx_cegui_listheadersegment_getmovingcursorimage(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this segment can be sized. 
+	End Rem
 	Method setSizingEnabled(setting:Int)
+		bmx_cegui_listheadersegment_setsizingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets the current sort direction set for this segment. 
+	about: Note that this has no impact on the way the segment functions (aside from the possibility of varied rendering).
+	This is intended as a 'helper setting' to classes that make use of the ListHeaderSegment objects.
+	End Rem
 	Method setSortDirection(sortDir:Int)
+		bmx_cegui_listheadersegment_setsortdirection(objectPtr, sortDir)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether drag moving is allowed for this segment.
+	End Rem
 	Method setDragMovingEnabled(setting:Int)
+		bmx_cegui_listheadersegment_setdragmovingenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the segment is clickable. 
+	End Rem
 	Method setClickable(setting:Int)
+		bmx_cegui_listheadersegment_setclickable(objectPtr, setting)
 	End Method
 
 End Type
@@ -2934,158 +3009,301 @@ Type TCEListHeader Extends TCEWindow
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the current sort column changes. 
 	End Rem
 	Const EventSortColumnChanged:String = "SortColumnChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the sort direction changes. 
 	End Rem
 	Const EventSortDirectionChanged:String = "SortDirectionChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when a segment has been sized by the user (e.window is the segment).
 	End Rem
 	Const EventSegmentSized:String = "SegmentSized"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when a segment has been clicked by the user (e.window is the segment). 
 	End Rem
 	Const EventSegmentClicked:String = "SegmentClicked"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when a segment splitter has been double-clicked. (e.window is the segment). 
 	End Rem
 	Const EventSplitterDoubleClicked:String = "SplitterDoubleClicked"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the order of the segments has changed. ('e' is a HeaderSequenceEventArgs). 
 	End Rem
 	Const EventSegmentSequenceChanged:String = "SegmentSequenceChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when a segment is added to the header. 
 	End Rem
 	Const EventSegmentAdded:String = "SegmentAdded"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when a segment is removed from the header.
 	End Rem
 	Const EventSegmentRemoved:String = "SegmentRemoved"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when setting that controls user modification to sort configuration changes. 
 	End Rem
 	Const EventSortSettingChanged:String = "SortSettingChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when setting that controls user drag & drop of segments changes. 
 	End Rem
 	Const EventDragMoveSettingChanged:String = "DragMoveSettingChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when setting that controls user sizing of segments changes. 
 	End Rem
 	Const EventDragSizeSettingChanged:String = "DragSizeSettingChanged"
 	Rem
-	bbdoc: 
+	bbdoc: Event fired when the rendering offset for the segments changes. 
 	End Rem
 	Const EventSegmentRenderOffsetChanged:String = "SegmentOffsetChanged"
 
-
+	Rem
+	bbdoc: Returns the number of columns or segments attached to the header.
+	End Rem
 	Method getColumnCount:Int()
+		Return bmx_cegui_listheader_getcolumncount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the ListHeaderSegment object for the specified column.
+	End Rem
 	Method getSegmentFromColumn:TCEListHeaderSegment(column:Int)
+		Return TCEListHeaderSegment(bmx_cegui_listheader_getsegmentfromcolumn(objectPtr, column))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the ListHeaderSegment object with the specified ID.
+	End Rem
 	Method getSegmentFromID:TCEListHeaderSegment(id:Int)
+		Return TCEListHeaderSegment(bmx_cegui_listheader_getsegmentfromid(objectPtr, id))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the ListHeaderSegment that is marked as being the 'sort key' segment.
+	about: There must be at least one segment to successfully call this method.
+	End Rem
 	Method getSortSegment:TCEListHeaderSegment()
+		Return TCEListHeaderSegment(bmx_cegui_listheader_getsortsegment(objectPtr))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the zero based column index of the specified segment.
+	End Rem
 	Method getColumnFromSegment:Int(segment:TCEListHeaderSegment)
+		Return bmx_cegui_listheader_getcolumnfromsegment(objectPtr, segment.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the zero based column index of the segment with the specified ID.
+	End Rem
 	Method getColumnFromID:Int(id:Int)
+		Return bmx_cegui_listheader_getcolumnfromid(objectPtr, id)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the zero based index of the current sort column.
+	about: There must be at least one segment/column to successfully call this method.
+	End Rem
 	Method getSortColumn:Int()
+		Return bmx_cegui_listheader_getsortcolumn(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the zero based column index of the segment with the specified text.
+	End Rem
 	Method getColumnWithText:Int(text:String)
+		Return bmx_cegui_listheader_getcolumnwithtext(objectPtr, _convertMaxToUTF8(text))
 	End Method
 	 
+	Rem
+	bbdoc: Returns the pixel offset to the given ListHeaderSegment.
+	End Rem
 	Method getPixelOffsetToSegment:Float(segment:TCEListHeaderSegment)
+		Return bmx_cegui_listheader_getpixeloffsettosegment(objectPtr, segment.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the pixel offset to the ListHeaderSegment at the given zero based column index.
+	End Rem
 	Method getPixelOffsetToColumn:Float(column:Int)
+		Return bmx_cegui_listheader_getpixeloffsettocolumn(objectPtr, column)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the total pixel width of all attached segments.
+	End Rem
 	Method getTotalSegmentsPixelExtent:Float()
+		Return bmx_cegui_listheader_gettotalsegmentspixelextent(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the width of the specified column.
+	End Rem
 	Method getColumnWidth:Float(column:Int)
+		Return bmx_cegui_listheader_getcolumnwidth(objectPtr, column)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the currently set sort direction.
+	End Rem
 	Method getSortDirection:Int()
+		Return bmx_cegui_listheader_getsortdirection(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether user manipulation of the sort column & direction are enabled.
+	End Rem
 	Method isSortingEnabled:Int()
+		Return bmx_cegui_listheader_issortingenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the user may size column segments.
+	End Rem
 	Method isColumnSizingEnabled:Int()
+		Return bmx_cegui_listheader_iscolumnsizingenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns whether the user may modify the order of the segments.
+	End Rem
 	Method isColumnDraggingEnabled:Int()
+		Return bmx_cegui_listheader_iscolumndraggingenabled(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Returns the current segment offset value.
+	about: This value is used to implement scrolling of the header segments within the ListHeader area.
+	End Rem
 	Method getSegmentOffset:Float()
+		Return bmx_cegui_listheader_getsegmentoffset(objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether user manipulation of the sort column and direction is enabled.
+	End Rem
 	Method setSortingEnabled(setting:Int)
+		bmx_cegui_listheader_setsortingenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the current sort direction.
+	End Rem
 	Method setSortDirection(direction:Int)
+		bmx_cegui_listheader_setsortdirection(objectPtr, direction)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the column segment to be used as the sort column.
+	End Rem
 	Method setSortSegment(segment:TCEListHeaderSegment)
+		bmx_cegui_listheader_setsortsegment(objectPtr, segment.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the column to be used as the sort column.
+	End Rem
 	Method setSortColumn(column:Int)
+		bmx_cegui_listheader_setsortcolumn(objectPtr, column)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the column to to be used for sorting via its ID code.
+	End Rem
 	Method setSortColumnFromID(id:Int)
+		bmx_cegui_listheader_setsortcolumnfromid(objectPtr, id)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether columns may be sized by the user.
+	End Rem
 	Method setColumnSizingEnabled(setting:Int)
+		bmx_cegui_listheader_setcolumnsizingenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Sets whether columns may be reordered by the user via drag and drop.
+	End Rem
 	Method setColumnDraggingEnabled(setting:Int)
+		bmx_cegui_listheader_setcolumndraggingenabled(objectPtr, setting)
 	End Method
 	 
+	Rem
+	bbdoc: Adds a new column segment to the end of the header.
+	End Rem
 	Method addColumn(text:String, id:Int, width:Float)
+		bmx_cegui_listheader_addcolumn(objectPtr, _convertMaxToUTF8(text), id, width)
 	End Method
 	 
+	Rem
+	bbdoc: Inserts a new column segment at the specified position.
+	End Rem
 	Method insertColumn(text:String, id:Int, width:Float, position:Int)
+		bmx_cegui_listheader_insertcolumn(objectPtr, _convertMaxToUTF8(text), id, width, position)
 	End Method
 	 
+	Rem
+	bbdoc: Inserts a new column segment at the specified position.
+	End Rem
 	Method insertColumnAtSegment(text:String, id:Int, width:Float, position:TCEListHeaderSegment)
+		bmx_cegui_listheader_insertcolumnatsegment(objectPtr, _convertMaxToUTF8(text), id, width, position.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Removes a column segment from the ListHeader.
+	End Rem
 	Method removeColumn(column:Int)
+		bmx_cegui_listheader_removecolumn(objectPtr, column)
 	End Method
 	 
+	Rem
+	bbdoc: Removes the specified segment from the ListHeader.
+	End Rem
 	Method removeSegment(segment:TCEListHeaderSegment)
+		bmx_cegui_listheader_removesegment(objectPtr, segment.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Moves a column segment into a new position.
+	End Rem
 	Method moveColumn(column:Int, position:Int)
+		bmx_cegui_listheader_movecolumn(objectPtr, column, position)
 	End Method
 	 
+	Rem
+	bbdoc: Moves a column segment to a new position.
+	End Rem
 	Method moveColumnAtSegment(column:Int, position:TCEListHeaderSegment)
+		bmx_cegui_listheader_movecolumnatsegment(objectPtr, column, position.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Moves a segment into a new position.
+	End Rem
 	Method moveSegment(segment:TCEListHeaderSegment, position:Int)
+		bmx_cegui_listheader_movesegment(objectPtr, segment.objectPtr, position)
 	End Method
 	 
+	Rem
+	bbdoc: Moves a segment to a new position.
+	End Rem
 	Method moveSegmentAtSegment(segment:TCEListHeaderSegment, position:TCEListHeaderSegment)
+		bmx_cegui_listheader_movesegmentatsegment(objectPtr, segment.objectPtr, position.objectPtr)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the current base segment offset.
+	about: This implements scrolling of the header segments within the header area.
+	End Rem
 	Method setSegmentOffset(offset:Float)
+		bmx_cegui_listheader_setsgementoffset(objectPtr, offset)
 	End Method
 	 
+	Rem
+	bbdoc: Sets the width of the specified column.
+	End Rem
 	Method setColumnWidth(column:Int, width:Float)
+		bmx_cegui_listheader_setcolumnwidth(objectPtr, column, width)
 	End Method
 		
 End Type

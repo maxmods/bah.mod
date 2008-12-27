@@ -1,3 +1,23 @@
+' Copyright (c) 2008 Bruce A Henderson
+' 
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+' 
+' The above copyright notice and this permission notice shall be included in
+' all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+' THE SOFTWARE.
+' 
 SuperStrict
 
 Import Pub.FreeType
@@ -1022,13 +1042,6 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: 
-	End Rem
-	Method recursiveChildSearch:TCEWindow(name:String)
-		Return TCEWindow(bmx_cegui_window_recursivechildsearch(objectPtr, _convertMaxToUTF8(name)))
-	End Method
-	
-	Rem
 	bbdoc: Returns the first attached child window with the specified ID value.
 	End Rem
 	Method GetChildID:TCEWindow(ID:Int)
@@ -1083,8 +1096,11 @@ Type TCEWindow Extends TCEEventSet
 		Return bmx_cegui_window_isancestorwindow(objectPtr, window.objectPtr)
 	End Method
 
-	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getFont:TCEFont(useDefault:Int = True)
+		' TODO
 	End Method
 	
 	Rem
@@ -1215,6 +1231,7 @@ Type TCEWindow Extends TCEEventSet
 
 	' TODO
 	Method getUserData:Object()
+		' TODO
 	End Method
 	 
 	Rem
@@ -1453,6 +1470,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	'method setUserData(void *user_data)
+		' TODO
 	'end method
 	
 	Rem
@@ -1617,7 +1635,7 @@ Type TCEWindow Extends TCEEventSet
 	'end method
 
 	Rem
-	bbdoc: Set the window's position.
+	bbdoc: Sets the window's position.
 	about: Sets the position of the area occupied by this window. The position is offset from the top-left corner
 	of this windows parent window or from the top-left corner of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1627,7 +1645,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's position.
+	bbdoc: Sets the window's position.
 	about: Sets the position of the area occupied by this window. The position is offset from the top-left corner
 	of this windows parent window or from the top-left corner of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1637,7 +1655,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: Set the window's X position.
+	bbdoc: Sets the window's X position.
 	about: Sets the x position (left edge) of the area occupied by this window. The position is offset from
 	the left edge of this windows parent window or from the left edge of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1647,7 +1665,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's X position.
+	bbdoc: Sets the window's X position.
 	about: Sets the x position (left edge) of the area occupied by this window. The position is offset from
 	the left edge of this windows parent window or from the left edge of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1657,7 +1675,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's Y position.
+	bbdoc: Sets the window's Y position.
 	about: Sets the y position (top edge) of the area occupied by this window. The position is offset from
 	the top edge of this windows parent window or from the top edge of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1667,7 +1685,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's Y position.
+	bbdoc: Sets the window's Y position.
 	about: Sets the y position (top edge) of the area occupied by this window. The position is offset from
 	the top edge of this windows parent window or from the top edge of the display if this window has no parent
 	(i.e. it is the root window).
@@ -1677,7 +1695,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's size.
+	bbdoc: Sets the window's size.
 	about: Sets the size of the area occupied by this window.
 	End Rem
 	Method setSize(width:Float, height:Float)
@@ -1685,7 +1703,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's size.
+	bbdoc: Sets the window's size.
 	about: Sets the size of the area occupied by this window.
 	End Rem
 	Method setSizeU(width:TCEUDim, height:TCEUDim)
@@ -1693,7 +1711,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's width.
+	bbdoc: Sets the window's width.
 	about: Sets the width of the area occupied by this window.
 	End Rem
 	Method setWidth(width:Float)
@@ -1701,7 +1719,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's width.
+	bbdoc: Sets the window's width.
 	about: Sets the width of the area occupied by this window.
 	End Rem
 	Method setWidthU(width:TCEUDim)
@@ -1709,7 +1727,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's height.
+	bbdoc: Sets the window's height.
 	about: Sets the height of the area occupied by this window.
 	End Rem
 	Method setHeight(height:Float)
@@ -1717,7 +1735,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: Set the window's height.
+	bbdoc: Sets the window's height.
 	about: Sets the height of the area occupied by this window.
 	End Rem
 	Method setHeightU(height:TCEUDim)
@@ -1725,7 +1743,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's maximum size.
+	bbdoc: Sets the window's maximum size.
 	about: Sets the maximum size that this windows area may occupy (whether size changes occur by user interaction,
 	general system operation, or by direct setting by client code).
 	End Rem
@@ -1734,7 +1752,7 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Set the window's minimum size.
+	bbdoc: Sets the window's minimum size.
 	about: Sets the minimum size that this windows area may occupy (whether size changes occur by user interaction,
 	general system operation, or by direct setting by client code).
 	End Rem
@@ -1743,7 +1761,8 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adds the specified Window as a child of this Window.
+	about: If the Window window is already attached to a Window, it is detached before being added to this Window.
 	End Rem
 	Method addChildWindow(window:Object)
 		If TCEWindow(window) Then
@@ -1772,6 +1791,7 @@ Type TCEWindow Extends TCEEventSet
 	
 	' TODO
 	Method getTooltip:TCETooltip()
+		' TODO
 	End Method
 	
 	Rem
@@ -1854,9 +1874,11 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Method getActiveSibling:TCEWindow()
+		' TODO
 	End Method
 	
 	Method getParentPixelSize(width:Float Var, height:Float Var)
+		' TODO
 	End Method
 	
 	Rem
@@ -1964,9 +1986,11 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Method getArea(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
+		' TODO
 	End Method
 	
 	Method getPosition(x:Float Var, y:Float Var)
+		' TODO
 	End Method
 	
 	Rem
@@ -1989,7 +2013,12 @@ Type TCEWindow Extends TCEEventSet
 		Return bmx_cegui_window_getyposition(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's size.
+	about: Gets the size of the area occupied by this window.
+	End Rem
 	Method getSize(w:Float Var, h:Float Var)
+		bmx_cegui_window_getsize(objectPtr, Varptr w, Varptr h)
 	End Method
 	
 	Rem
@@ -2008,10 +2037,22 @@ Type TCEWindow Extends TCEEventSet
 		Return bmx_cegui_window_getheight(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's maximum size.
+	about: Gets the maximum size that this windows area may occupy (whether size changes occur by user interaction,
+	general system operation, or by direct setting by client code).
+	End Rem
 	Method getMaxSize(w:Float Var, h:Float Var)
+		bmx_cegui_window_getmaxsize(objectPtr, Varptr w, Varptr h)
 	End Method
 	
+	Rem
+	bbdoc: Gets the window's minimum size.
+	about: Gets the minimum size that this windows area may occupy (whether size changes occur by user interaction,
+	general system operation, or by direct setting by client code).
+	End Rem
 	Method getMinSize(w:Float Var, h:Float Var)
+		bmx_cegui_window_getminsize(objectPtr, Varptr w, Varptr h)
 	End Method
 	
 	Rem
@@ -2021,25 +2062,55 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_render(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window should ignore mouse events and pass them through to any windows behind it.
+	about: In effect making the window transparent to the mouse.
+	End Rem
 	Method setMousePassThroughEnabled(setting:Int)
+		bmx_cegui_window_setmousepassthroughenabled(objectPtr, setting)
 	End Method
 	
+	Rem
+	bbdoc: Assigns the WindowRenderer to specify the Look'N'Feel specification to be used.
+	about: Once a window renderer has been assigned it is locked - as in cannot be changed.
+	End Rem
 	Method setWindowRenderer(name:String)
+		bmx_cegui_window_setwindowrenderer(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Gets the factory name of the currently assigned WindowRenderer. (Look'N'Feel specification).
+	End Rem
 	Method getWindowRendererName:String()
+		Return bmx_cegui_window_getwindowrenderername(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether this window is allowed to write XML. 
+	End Rem
 	Method setWritingXMLAllowed(allow:Int)
+		bmx_cegui_window_setwritingxmlallowed(objectPtr, allow)
 	End Method
 	
+	Rem
+	bbdoc: Recursively informs all children that the screen area has changed, and needs to be re-cached. 
+	End Rem
 	Method notifyScreenAreaChanged()
+		bmx_cegui_window_notifyscreenareachanged(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Changes the widget's falagard type, thus changing its look'n'feel and optionally its renderer in the process.
+	End Rem
 	Method setFalagardType(_type:String, rendererType:String = "")
+		bmx_cegui_window_setfalagardtype(objectPtr, _convertMaxToUTF8(_type), _convertMaxToUTF8(rendererType))
 	End Method
 	
+	Rem
+	bbdoc: Specifies whether this Window object will receive events generated by the drag and drop support in the system. 
+	End Rem
 	Method setDragDropTarget(setting:Int)
+		bmx_cegui_window_setdragdroptarget(objectPtr, setting)
 	End Method
 
 	' properties
@@ -2217,7 +2288,7 @@ Type TCELogger
 	End Function
 	
 	Rem
-	bbdoc: Set the level of logging information that will get out to the log file.
+	bbdoc: Sets the level of logging information that will get out to the log file.
 	about: One of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE or LOG_INSANE.
 	End Rem
 	Method setLoggingLevel(level:Int)
@@ -2225,7 +2296,7 @@ Type TCELogger
 	End Method
 	
 	Rem
-	bbdoc: Set the name of the log file where all subsequent log entries should be written.
+	bbdoc: Sets the name of the log file where all subsequent log entries should be written.
 	End Rem
 	Method setLogFilename(filename:String, append:Int = False)
 		bmx_cegui_logger_setlogfilename(_convertMaxToUTF8(filename), append)
@@ -2239,6 +2310,10 @@ Type TCELogger
 		Return bmx_cegui_logger_getlogginglevel()
 	End Method
 
+	Rem
+	bbdoc: Adds an event to the log. 
+	about: Where @level is one of LOG_ERRORS, LOG_WARNINGS, LOG_STANDARD, LOG_INFORMATIVE or LOG_INSANE.
+	End Rem
 	Method logEvent(message:String, level:Int = LOG_STANDARD)	
 		bmx_cegui_logger_logevent(_convertMaxToUTF8(message), level)
 	End Method
@@ -2305,14 +2380,14 @@ Type TCEColourRect
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new ColourRect using the provided colour.
 	End Rem
 	Function CreateColourRect:TCEColourRect(colour:TCEColour)
 		Return New TCEColourRect.Create(colour)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new ColourRect using the provided colour.
 	End Rem
 	Method Create:TCEColourRect(colour:TCEColour)
 		bmx_cegui_colourrect_create(colour.objectPtr)
@@ -2471,14 +2546,14 @@ Type TCEColour
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a colour from red, green, blue and alpha components.
 	End Rem
 	Function CreateColour:TCEColour(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
 		Return New TCEColour.Create(red, green, blue, alpha)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a colour from red, green, blue and alpha components.
 	End Rem
 	Method Create:TCEColour(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
 		objectPtr = bmx_cegui_colour_create(red, green, blue, alpha)
@@ -2486,126 +2561,126 @@ Type TCEColour
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the 32 bit ARGB representation of the colour. 
 	End Rem
 	Method getARGB:Int()
 		Return bmx_cegui_colour_getargb(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the alpha component.
 	End Rem
 	Method GetAlpha:Float()
 		Return bmx_cegui_colour_getalpha(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the red component.
 	End Rem
 	Method getRed:Float()
 		Return bmx_cegui_colour_getred(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the green component.
 	End Rem
 	Method getGreen:Float()
 		Return bmx_cegui_colour_getgreen(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the blue component.
 	End Rem
 	Method getBlue:Float()
 		Return bmx_cegui_colour_getblue(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the hue level for this colour.
 	End Rem
 	Method getHue:Float()
 		Return bmx_cegui_colour_gethue(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the saturation level for this colour.
 	End Rem
 	Method getSaturation:Float()
 		Return bmx_cegui_colour_getsaturation(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the lumination level for this colour.
 	End Rem
 	Method getLumination:Float()
 		Return bmx_cegui_colour_getlumination(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the colour using a 32 bit RGBA represention.
 	End Rem
 	Method setARGB(argb:Int)
 		bmx_cegui_colour_setargb(objectPtr, argb)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the alpha component.
 	End Rem
 	Method SetAlpha(alpha:Float)
 		bmx_cegui_colour_setalpha(objectPtr, alpha)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the red component.
 	End Rem
 	Method setRed(red:Float)
 		bmx_cegui_colour_setred(objectPtr, red)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the green component.
 	End Rem
 	Method setGreen(green:Float)
 		bmx_cegui_colour_setgreen(objectPtr, green)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the blue component.
 	End Rem
 	Method setBlue(blue:Float)
 		bmx_cegui_colour_setblue(objectPtr, blue)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the colour components.
 	End Rem
 	Method set(red:Float, green:Float, blue:Float, alpha:Float = 1.0)
 		bmx_cegui_colour_set(objectPtr, red, green, blue, alpha)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the RGB components.
 	End Rem
 	Method setRGB(red:Float, green:Float, blue:Float)
 		bmx_cegui_colour_setrgb(objectPtr, red, green, blue)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the hue, saturation and luminance components.
 	End Rem
 	Method setHSL(hue:Float, saturation:Float, luminance:Float, alpha:Float = 1.0)
 		bmx_cegui_colour_sethsl(objectPtr, hue, saturation, luminance, alpha)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Inverts the colour.
 	End Rem
 	Method invertColour()
 		bmx_cegui_colour_inverColour(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Inverts the colour, including the alpha component.
 	End Rem
 	Method invertColourWithAlpha()
 		bmx_cegui_colour_invertColourWithAlpha(objectPtr)
@@ -2628,30 +2703,58 @@ those Font objects can be accessed, via a unique name, by any interested party w
 End Rem
 Type TCEFontManager
 
+	Rem
+	bbdoc: Creates a new font from a font definition file, and returns the new Font object.
+	End Rem
 	Function createFont:TCEFont(filename:String, resourceGroup:String = "")
 		Return TCEFont._create(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
 	End Function
 	
-	Function createFontType:TCEFont(fontType:String, name:String, FontName:String, resourceGroup:String = "")
+	Rem
+	bbdoc: Creates a new Font based on a true-type font, and returns the new Font object.
+	End Rem
+	Function createFontType:TCEFont(fontType:String, name:String, fontName:String, resourceGroup:String = "")
+		Return TCEFont._create(bmx_cegui_fontmanager_createfonttype(_convertMaxToUTF8(fontType), ..
+				_convertMaxToUTF8(name), _convertMaxToUTF8(fontName), _convertMaxToUTF8(resourceGroup)))
 	End Function
 	
+	Rem
+	bbdoc: Destroys the given Font object.
+	End Rem
 	Function destroyFont(font:Object)
 		If TCEFont(font) Then
+			bmx_cegui_fontmanager_destroyfont(TCEFont(font).objectPtr)
 		ElseIf String(font) Then
+			bmx_cegui_fontmanager_destroyfonttxt(_convertMaxToUTF8(String(font)))
 		End If
 	End Function
 	
+	Rem
+	bbdoc: Destroys all Font objects registered in the system.
+	End Rem
 	Function destroyAllFonts()
+		bmx_cegui_fontmanager_destroyAllFonts()
 	End Function
 	
+	Rem
+	bbdoc: Checks the existence of a given font.
+	End Rem
 	Function isFontPresent:Int(name:String)
 		Return bmx_cegui_fontmanager_isfontpresent(_convertMaxToUTF8(name))
 	End Function
 	
+	Rem
+	bbdoc: Returns the font object with the specified name.
+	End Rem
 	Function getFont:TCEFont(name:String)
+		Return TCEFont._create(bmx_cegui_fontmanager_getfont(_convertMaxToUTF8(name)))
 	End Function
 	
+	Rem
+	bbdoc: Notifies the FontManager of the current (usually new) display resolution.
+	End Rem
 	Function notifyScreenResolution(width:Float, height:Float)
+		bmx_cegui_fontmanager_notifyscreenresolution(width, height)
 	End Function
 
 End Type
@@ -3391,7 +3494,7 @@ Type TCETooltip Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Generic drag and drop enabled window.
 End Rem
 Type TCEDragContainer Extends TCEWindow
 
@@ -3535,19 +3638,25 @@ Type TCEDragContainer Extends TCEWindow
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Defines the required interface for all WindowFactory objects.
+abotu: A WindowFactory is used to create and destroy windows of a specific type. For every type of Window object wihin
+the system (widgets, dialogs, movable windows etc) there must be an associated WindowFactory registered with the
+WindowManager so that the system knows how to create and destroy those types of Window base object.
 End Rem
 Type TCEWindowFactory
 
 	Field objectPtr:Byte Ptr
 	
+	Rem
+	bbdoc: Creates a new TCEWindowFactory instance.
+	End Rem
 	Method Create:TCEWindowFactory()
 		objectPtr = bmx_cegui_windowfactory_create(Self, _convertMaxToUTF8(getTypeName()))
 		Return Self
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new Window object of whatever type this WindowFactory produces.
 	End Rem
 	Method createWindow:TCEWindow(name:String)
 	End Method
@@ -3557,7 +3666,7 @@ Type TCEWindowFactory
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Destroys the given Window object.
 	End Rem
 	Method destroyWindow(window:TCEWindow)
 	End Method
@@ -3567,7 +3676,7 @@ Type TCEWindowFactory
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets the string that describes the type of Window object this WindowFactory produces.
 	End Rem
 	Method getTypeName:String()
 	End Method
@@ -3764,6 +3873,9 @@ Function UDim:TCEUDim(scale:Float = 0.0, offset:Float = 0.0)
 	Return TCEUDim._create(scale, offset) 
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Type TCEUDim
 
 	Field objectPtr:Byte Ptr

@@ -208,7 +208,6 @@ extern "C" {
 	bool bmx_cegui_window_ischildrecursive(CEGUI::Window * window, CEGUI::uint ID);
 	bool bmx_cegui_window_ischildwindow(CEGUI::Window * window, CEGUI::Window * win);
 	BBObject * bmx_cegui_window_getchild(CEGUI::Window * window, const CEGUI::utf8 * name);
-	BBObject * bmx_cegui_window_recursivechildsearch(CEGUI::Window * window, const CEGUI::utf8 * name);
 	BBObject * bmx_cegui_window_getchildid(CEGUI::Window * window, CEGUI::uint ID);
 	BBObject * bmx_cegui_window_getchildrecursive(CEGUI::Window * window, CEGUI::uint ID);
 	BBObject * bmx_cegui_window_getchildatidx(CEGUI::Window * window, int idx);
@@ -318,6 +317,16 @@ extern "C" {
 	float bmx_cegui_window_getwidth(CEGUI::Window * window);
 	float bmx_cegui_window_getheight(CEGUI::Window * window);
 	void bmx_cegui_window_render(CEGUI::Window * window);
+	void bmx_cegui_window_getsize(CEGUI::Window * window, float * w, float * h);
+	void bmx_cegui_window_getmaxsize(CEGUI::Window * window, float * w, float * h);
+	void bmx_cegui_window_getminsize(CEGUI::Window * window, float * w, float * h);
+	void bmx_cegui_window_setmousepassthroughenabled(CEGUI::Window * window, bool setting);
+	void bmx_cegui_window_setwindowrenderer(CEGUI::Window * window, CEGUI::utf8 * name);
+	BBString * bmx_cegui_window_getwindowrenderername(CEGUI::Window * window);
+	void bmx_cegui_window_setwritingxmlallowed(CEGUI::Window * window, bool allow);
+	void bmx_cegui_window_notifyscreenareachanged(CEGUI::Window * window);
+	void bmx_cegui_window_setfalagardtype(CEGUI::Window * window, CEGUI::utf8 * type, CEGUI::utf8 * rendererType);
+	void bmx_cegui_window_setdragdroptarget(CEGUI::Window * window, bool setting);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
@@ -462,6 +471,12 @@ extern "C" {
 	
 	CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup);
 	bool bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name);
+	CEGUI::Font * bmx_cegui_fontmanager_createfonttype(const CEGUI::utf8 * fontType, const CEGUI::utf8 * name, const CEGUI::utf8 * fontName, const CEGUI::utf8 * resourceGroup);
+	void bmx_cegui_fontmanager_destroyfont(CEGUI::Font * font);
+	void bmx_cegui_fontmanager_destroyfonttxt(const CEGUI::utf8 * font);
+	void bmx_cegui_fontmanager_destroyAllFonts();
+	CEGUI::Font * bmx_cegui_fontmanager_getfont(const CEGUI::utf8 * name);
+	void bmx_cegui_fontmanager_notifyscreenresolution(float width, float height);
 
 	float bmx_cegui_spinner_getcurrentvalue(CEGUI::Spinner * spinner);
 	float bmx_cegui_spinner_getstepsize(CEGUI::Spinner * spinner);
@@ -1067,6 +1082,62 @@ extern "C" {
 	void bmx_cegui_imageset_setautoscalingenabled(CEGUI::Imageset * is, bool setting);
 	void bmx_cegui_imageset_setnativeresolution(CEGUI::Imageset * is, float width, float height);
 	void bmx_cegui_imageset_notifyscreenresolution(CEGUI::Imageset * is, float width, float height);
+
+	BBObject * bmx_cegui_groupbox_getcontentpane(CEGUI::GroupBox * box);
+
+	bool bmx_cegui_listheadersegment_issizingenabled(CEGUI::ListHeaderSegment * seg);
+	CEGUI::ListHeaderSegment::SortDirection bmx_cegui_listheadersegment_getsortdirection(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_isdragmovingenabled(CEGUI::ListHeaderSegment * seg);
+	void bmx_cegui_listheadersegment_getdragmoveoffset(CEGUI::ListHeaderSegment * seg, float * x, float * y);
+	bool bmx_cegui_listheadersegment_isclickable(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_issegmenthovering(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_issegmentpushed(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_issplitterhovering(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_isbeingdragmoved(CEGUI::ListHeaderSegment * seg);
+	bool bmx_cegui_listheadersegment_isbeingdragsized(CEGUI::ListHeaderSegment * seg);
+	BBObject * bmx_cegui_listheadersegment_getsizingcursorimage(CEGUI::ListHeaderSegment * seg);
+	BBObject * bmx_cegui_listheadersegment_getmovingcursorimage(CEGUI::ListHeaderSegment * seg);
+	void bmx_cegui_listheadersegment_setsizingenabled(CEGUI::ListHeaderSegment * seg, bool setting);
+	void bmx_cegui_listheadersegment_setsortdirection(CEGUI::ListHeaderSegment * seg, CEGUI::ListHeaderSegment::SortDirection sortDir);
+	void bmx_cegui_listheadersegment_setdragmovingenabled(CEGUI::ListHeaderSegment * seg, bool setting);
+	void bmx_cegui_listheadersegment_setclickable(CEGUI::ListHeaderSegment * seg, bool setting);
+
+
+	CEGUI::uint bmx_cegui_listheader_getcolumncount(CEGUI::ListHeader * head);
+	BBObject * bmx_cegui_listheader_getsegmentfromcolumn(CEGUI::ListHeader * head, CEGUI::uint column);
+	BBObject * bmx_cegui_listheader_getsegmentfromid(CEGUI::ListHeader * head, CEGUI::uint id);
+	BBObject * bmx_cegui_listheader_getsortsegment(CEGUI::ListHeader * head);
+	CEGUI::uint bmx_cegui_listheader_getcolumnfromsegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment);
+	CEGUI::uint bmx_cegui_listheader_getcolumnfromid(CEGUI::ListHeader * head, CEGUI::uint id);
+	CEGUI::uint bmx_cegui_listheader_getsortcolumn(CEGUI::ListHeader * head);
+	CEGUI::uint bmx_cegui_listheader_getcolumnwithtext(CEGUI::ListHeader * head, const CEGUI::utf8 * text);
+	float bmx_cegui_listheader_getpixeloffsettosegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment);
+	float bmx_cegui_listheader_getpixeloffsettocolumn(CEGUI::ListHeader * head, CEGUI::uint column);
+	float bmx_cegui_listheader_gettotalsegmentspixelextent(CEGUI::ListHeader * head);
+	float bmx_cegui_listheader_getcolumnwidth(CEGUI::ListHeader * head, CEGUI::uint column);
+	CEGUI::ListHeaderSegment::SortDirection bmx_cegui_listheader_getsortdirection(CEGUI::ListHeader * head);
+	bool bmx_cegui_listheader_issortingenabled(CEGUI::ListHeader * head);
+	bool bmx_cegui_listheader_iscolumnsizingenabled(CEGUI::ListHeader * head);
+	bool bmx_cegui_listheader_iscolumndraggingenabled(CEGUI::ListHeader * head);
+	float bmx_cegui_listheader_getsegmentoffset(CEGUI::ListHeader * head);
+	void bmx_cegui_listheader_setsortingenabled(CEGUI::ListHeader * head, bool setting);
+	void bmx_cegui_listheader_setsortdirection(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment::SortDirection direction);
+	void bmx_cegui_listheader_setsortsegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment);
+	void bmx_cegui_listheader_setsortcolumn(CEGUI::ListHeader * head, CEGUI::uint column);
+	void bmx_cegui_listheader_setsortcolumnfromid(CEGUI::ListHeader * head, CEGUI::uint id);
+	void bmx_cegui_listheader_setcolumnsizingenabled(CEGUI::ListHeader * head, bool setting);
+	void bmx_cegui_listheader_setcolumndraggingenabled(CEGUI::ListHeader * head, bool setting);
+	void bmx_cegui_listheader_addcolumn(CEGUI::ListHeader * head, const CEGUI::utf8 * text, CEGUI::uint id, float width);
+	void bmx_cegui_listheader_insertcolumn(CEGUI::ListHeader * head, const CEGUI::utf8 * text, CEGUI::uint id, float width, CEGUI::uint position);
+	void bmx_cegui_listheader_insertcolumnatsegment(CEGUI::ListHeader * head, const CEGUI::utf8 * text, CEGUI::uint id, float width, CEGUI::ListHeaderSegment * position);
+	void bmx_cegui_listheader_removecolumn(CEGUI::ListHeader * head, CEGUI::uint column);
+	void bmx_cegui_listheader_removesegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment);
+	void bmx_cegui_listheader_movecolumn(CEGUI::ListHeader * head, CEGUI::uint column, CEGUI::uint position);
+	void bmx_cegui_listheader_movecolumnatsegment(CEGUI::ListHeader * head, CEGUI::uint column, CEGUI::ListHeaderSegment * position);
+	void bmx_cegui_listheader_movesegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment, CEGUI::uint position);
+	void bmx_cegui_listheader_movesegmentatsegment(CEGUI::ListHeader * head, CEGUI::ListHeaderSegment * segment, CEGUI::ListHeaderSegment * position);
+	void bmx_cegui_listheader_setsgementoffset(CEGUI::ListHeader * head, float offset);
+	void bmx_cegui_listheader_setcolumnwidth(CEGUI::ListHeader * head, CEGUI::uint column, float width);
 
 
 }
