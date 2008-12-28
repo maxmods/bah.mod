@@ -36,10 +36,11 @@ Extern
 	Function bmx_cegui_schememanager_getscheme:Byte Ptr(name:Byte Ptr)
 	Function bmx_cegui_schememanager_unloadallschemes()
 	
-	Function bmx_cegui_system_setDefaultFont(handle:Byte Ptr, font:Byte Ptr)
+	Function bmx_cegui_system_setdefaultfont(handle:Byte Ptr, font:Byte Ptr)
+	Function bmx_cegui_system_setdefaultfonttxt(handle:Byte Ptr, font:Byte Ptr)
 	Function bmx_cegui_system_setDefaultMouseCursor(handle:Byte Ptr, look:Byte Ptr, kind:Byte Ptr)
 	Function bmx_cegui_system_renderGUI(handle:Byte Ptr)
-	Function bmx_cegui_system_setGUISheet(handle:Byte Ptr, window:Byte Ptr)
+	Function bmx_cegui_system_setGUISheet:Object(handle:Byte Ptr, window:Byte Ptr)
 	Function bmx_cegui_system_injectTimePulse:Int(handle:Byte Ptr, time:Float)
 	Function bmx_cegui_system_injectMousePosition:Int(handle:Byte Ptr, x:Int, y:Int)
 	Function bmx_cegui_system_injectMouseButtonUp:Int(handle:Byte Ptr, button:Int)
@@ -60,6 +61,8 @@ Extern
 	Function bmx_cegui_system_setdefaulttooltip(handle:Byte Ptr, tooltip:Byte Ptr)
 	Function bmx_cegui_system_setdefaulttooltiptext(handle:Byte Ptr, tooltip:Byte Ptr)
 	Function bmx_cegui_system_getdefaulttooltip:Object(handle:Byte Ptr)
+	Function bmx_cegui_system_getmousemovescaling:Float(handle:Byte Ptr)
+	Function bmx_cegui_system_setmousemovescaling(handle:Byte Ptr, scaling:Float)
 
 	Function bmx_cegui_windowmanager_getsingleton:Byte Ptr()
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(handle:Byte Ptr, filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
@@ -231,6 +234,10 @@ Extern
 	Function bmx_cegui_window_notifyscreenareachanged(handle:Byte Ptr)
 	Function bmx_cegui_window_setfalagardtype(handle:Byte Ptr, _type:Byte Ptr, rendererType:Byte Ptr)
 	Function bmx_cegui_window_setdragdroptarget(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_window_getfont:Byte Ptr(handle:Byte Ptr, useDefault:Int)
+	Function bmx_cegui_window_gettooltip:Object(handle:Byte Ptr)
+	Function bmx_cegui_window_getactivesibling:Object(handle:Byte Ptr)
+	Function bmx_cegui_window_getparentpixelsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
 
 	Function bmx_cegui_window_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
 	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)

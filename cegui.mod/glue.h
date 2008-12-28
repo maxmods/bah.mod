@@ -133,10 +133,11 @@ extern "C" {
 	CEGUI::Scheme * bmx_cegui_schememanager_getscheme(const CEGUI::utf8 * name);
 	void bmx_cegui_schememanager_unloadallschemes();
 	
-	void bmx_cegui_system_setDefaultFont(CEGUI::System * sys, const CEGUI::utf8 * font);
+	void bmx_cegui_system_setdefaultfont(CEGUI::System * sys, CEGUI::Font * font);
+	void bmx_cegui_system_setdefaultfonttxt(CEGUI::System * sys, const CEGUI::utf8 * font);
 	void bmx_cegui_system_setDefaultMouseCursor(CEGUI::System * sys, const CEGUI::utf8 * l, const CEGUI::utf8 * kind);
 	void bmx_cegui_system_renderGUI(CEGUI::System * sys);
-	void bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window);
+	BBObject * bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window);
 	bool bmx_cegui_system_injectTimePulse(CEGUI::System * sys, float t);
 	bool bmx_cegui_system_injectMousePosition(CEGUI::System * sys, int x, int y);
 	bool bmx_cegui_system_injectMouseButtonDown(CEGUI::System * sys, int button);
@@ -158,6 +159,8 @@ extern "C" {
 	void bmx_cegui_system_setdefaulttooltip(CEGUI::System * sys, CEGUI::Tooltip * tooltip);
 	void bmx_cegui_system_setdefaulttooltiptext(CEGUI::System * sys, CEGUI::utf8 * tooltip);
 	BBObject * bmx_cegui_system_getdefaulttooltip(CEGUI::System * sys);
+	float bmx_cegui_system_getmousemovescaling(CEGUI::System * sys);
+	void bmx_cegui_system_setmousemovescaling(CEGUI::System * sys, float scaling);
 
 	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
@@ -327,6 +330,10 @@ extern "C" {
 	void bmx_cegui_window_notifyscreenareachanged(CEGUI::Window * window);
 	void bmx_cegui_window_setfalagardtype(CEGUI::Window * window, CEGUI::utf8 * type, CEGUI::utf8 * rendererType);
 	void bmx_cegui_window_setdragdroptarget(CEGUI::Window * window, bool setting);
+	CEGUI::Font * bmx_cegui_window_getfont(CEGUI::Window * window, bool useDefault);
+	BBObject * bmx_cegui_window_gettooltip(CEGUI::Window * window);
+	BBObject * bmx_cegui_window_getactivesibling(CEGUI::Window * window);
+	void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, float * height);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);

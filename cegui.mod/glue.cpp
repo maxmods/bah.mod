@@ -483,7 +483,11 @@ void bmx_cegui_schememanager_unloadallschemes() {
 
 // *************************************************
 
-void bmx_cegui_system_setDefaultFont(CEGUI::System * sys, const CEGUI::utf8 * font) {
+void bmx_cegui_system_setdefaultfont(CEGUI::System * sys, CEGUI::Font * font) {
+	sys->setDefaultFont(font);
+}
+
+void bmx_cegui_system_setdefaultfonttxt(CEGUI::System * sys, const CEGUI::utf8 * font) {
 	sys->setDefaultFont(font);
 }
 
@@ -495,8 +499,8 @@ void bmx_cegui_system_renderGUI(CEGUI::System * sys) {
 	sys->renderGUI();
 }
 
-void bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window) {
-	sys->setGUISheet(window);
+BBObject * bmx_cegui_system_setGUISheet(CEGUI::System * sys, CEGUI::Window * window) {
+	return newObjectForWindow(sys->setGUISheet(window));
 }
 
 CEGUI::Font * bmx_cegui_system_getDefaultFont(CEGUI::System * sys) {
@@ -547,6 +551,14 @@ void bmx_cegui_system_setdefaulttooltiptext(CEGUI::System * sys, CEGUI::utf8 * t
 
 BBObject * bmx_cegui_system_getdefaulttooltip(CEGUI::System * sys) {
 	return _bah_cegui_TCETooltip__create(sys->getDefaultTooltip());
+}
+
+float bmx_cegui_system_getmousemovescaling(CEGUI::System * sys) {
+	return sys->getMouseMoveScaling();
+}
+
+void bmx_cegui_system_setmousemovescaling(CEGUI::System * sys, float scaling) {
+	sys->setMouseMoveScaling(scaling);
 }
 
 // *************************************************
@@ -1383,6 +1395,23 @@ void bmx_cegui_window_setdragdroptarget(CEGUI::Window * window, bool setting) {
 	window->setDragDropTarget(setting);
 }
 
+CEGUI::Font * bmx_cegui_window_getfont(CEGUI::Window * window, bool useDefault) {
+	return window->getFont(useDefault);
+}
+
+BBObject * bmx_cegui_window_gettooltip(CEGUI::Window * window) {
+	return _bah_cegui_TCETooltip__create(window->getTooltip());
+}
+
+BBObject * bmx_cegui_window_getactivesibling(CEGUI::Window * window) {
+	return newObjectForWindow(window->getActiveSibling());
+}
+
+void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, float * height) {
+	CEGUI::Size s(window->getParentPixelSize());
+	*width = s.d_width;
+	*height = s.d_height;
+}
 
 // *************************************************
 

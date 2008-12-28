@@ -38,7 +38,9 @@ Global ce_event_handler:TCEEventHandler = New TCEEventHandler
 ' TODO : not sure if this gets called?
 OnEnd cegui_cleanup
 
-
+Rem
+bbdoc: 
+End Rem
 Function cegui_cleanup()
 
 	' remove the event hook!
@@ -58,10 +60,11 @@ End Function
 
 Rem
 bbdoc: Initializes CEGUI
+about: Optionally, pass in a custom Resource Provider.
 End Rem
 Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null)
 	If Not cegui_rendererPtr Then
-		' creates a new opengle renderer
+		' creates a new opengl renderer
 		cegui_rendererPtr = bmx_cegui_new_oglrenderer()
 
 		If cegui_rendererPtr Then
@@ -98,7 +101,8 @@ Type TCEResourceProvider
 	End Method
 	
 	Rem
-	bbdoc: Load XML data using InputSource objects. 
+	bbdoc: Load data, populating dataContainer. 
+	about: <i>This method should be overriden.</i>
 	End Rem	
 	Method loadRawDataContainer(filename:String, dataContainer:TCERawDataContainer, resourceGroup:String)
 	End Method
@@ -111,6 +115,9 @@ Type TCEResourceProvider
 	bbdoc: Unload raw binary data.
 	about: This gives the resource provider a chance to unload the data in its own way before the data
 	container object is destroyed. If it does nothing, then the object will release its memory. 
+	<p>
+	<i>This method should be overriden.</i>
+	</p>
 	End Rem	
 	Method unloadRawDataContainer(dataContainer:TCERawDataContainer)
 	End Method
@@ -369,19 +376,18 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: The System type is the CEGUI type that provides access to all other elements in this system.
+about: A global instance of TCESystem is created when Init_CEGUI() is called.
 End Rem
 Type TCESystem Extends TCEEventSet
 
 	Global cegui_systemPtr:Byte Ptr
 
 	Global resourceProvider:TCEResourceProvider
-	
-	Rem
-	bbdoc: 
-	End Rem
+
+	' nothing to see here	
 	Function getRenderer:TCERenderer()
-		
+		' maybe one day we'll handle renderers....
 	End Function
 	
 	Rem
@@ -392,13 +398,13 @@ Type TCESystem Extends TCEEventSet
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set the default font to be used by the system.
 	End Rem
 	Function setDefaultFont(font:Object)
 		If TCEFont(font) Then
-			
+			bmx_cegui_system_setdefaultfont(cegui_systemPtr, TCEFont(font).objectPtr)
 		ElseIf String(font) Then
-			bmx_cegui_system_setDefaultFont(cegui_systemPtr, _convertMaxToUTF8(String(font)))
+			bmx_cegui_system_setdefaultfonttxt(cegui_systemPtr, _convertMaxToUTF8(String(font)))
 		End If
 	End Function
 
@@ -492,9 +498,10 @@ Type TCESystem Extends TCEEventSet
 	
 	Rem
 	bbdoc: Sets the active GUI sheet (root) window.
+	returns: The window that was previously set as the GUI root.
 	End Rem
-	Function setGUISheet(window:TCEWindow)
-		bmx_cegui_system_setGUISheet(cegui_systemPtr, window.objectPtr)
+	Function setGUISheet:TCEWindow(window:TCEWindow)
+		Return TCEWindow(bmx_cegui_system_setGUISheet(cegui_systemPtr, window.objectPtr))
 	End Function
 	
 	Rem
@@ -557,10 +564,18 @@ Type TCESystem Extends TCEEventSet
 		Return TCETooltip(bmx_cegui_system_getdefaulttooltip(cegui_systemPtr))
 	End Function
 	
+	Rem
+	bbdoc: Returns the current mouse movement scaling factor.
+	End Rem
 	Function getMouseMoveScaling:Float()
+		Return bmx_cegui_system_getmousemovescaling(cegui_systemPtr)
 	End Function
 	
+	Rem
+	bbdoc: Sets the current mouse movement scaling factor.
+	End Rem
 	Function setMouseMoveScaling(scaling:Float)
+		bmx_cegui_system_setmousemovescaling(cegui_systemPtr, scaling)
 	End Function
 	
 End Type
@@ -889,7 +904,9 @@ Type TCEWindow Extends TCEEventSet
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Subscribes a handler to the named Event.
+	returns: Connection object that can be used to check the status of the Event connection and to disconnect (unsubscribe) from the Event.
+	about: If the named Event is not yet present in the EventSet, it is created and added.
 	End Rem
 	Method subscribeEvent:TCEConnection(name:String, callback:Int(args:TCEEventArgs))', handler:TCEEventHandler)
 	
@@ -1097,10 +1114,10 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the active Font object for the Window.
 	End Rem
 	Method getFont:TCEFont(useDefault:Int = True)
-		' TODO
+		Return TCEFont._create(bmx_cegui_window_getfont(objectPtr, useDefault))
 	End Method
 	
 	Rem
@@ -1789,9 +1806,12 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_show(objectPtr)
 	End Method
 	
-	' TODO
+	Rem
+	bbdoc: Returns the Tooltip object used by this Window.
+	about: The value returned may point to the system default Tooltip, a custom Window specific Tooltip, or be NULL.
+	End Rem
 	Method getTooltip:TCETooltip()
-		' TODO
+		Return TCETooltip(bmx_cegui_window_gettooltip(objectPtr))
 	End Method
 	
 	Rem
@@ -1873,12 +1893,22 @@ Type TCEWindow Extends TCEEventSet
 		Return bmx_cegui_window_isuserstringdefined(objectPtr, _convertMaxToUTF8(name))
 	End Method
 	
+	Rem
+	bbdoc: Returns the active sibling window.
+	about: This searches the immediate children of this window's parent, and returns the active window. The method will
+	return this if we are the immediate child of our parent that is active. If our parent is not active, or if no
+	immediate child of our parent is active then Null is returned. If this window has no parent, and this window is not
+	active then Null is returned, else this is returned.
+	End Rem
 	Method getActiveSibling:TCEWindow()
-		' TODO
+		Return TCEWindow(bmx_cegui_window_getactivesibling(objectPtr))
 	End Method
 	
+	Rem
+	bbdoc: Returns the pixel size of the parent element.
+	End Rem
 	Method getParentPixelSize(width:Float Var, height:Float Var)
-		' TODO
+		bmx_cegui_window_getparentpixelsize(objectPtr, Varptr width, Varptr height)
 	End Method
 	
 	Rem
