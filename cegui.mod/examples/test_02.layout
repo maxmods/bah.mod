@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<GUILayout>
+    <Window Type="DefaultWindow" Name="root">
+        <Window Type="TaharezLook/FrameWindow" Name="HelloWorldWindow">
+            <!--<Property Name="Position" Value="x:0.25 y:0.25" />
+            <Property Name="Size" Value="w:0.5 h:0.5" />-->
+			<Property Name="UnifiedPosition" Value="{{0.25,0},{0.25,0}}" />
+            <Property Name="UnifiedSize" Value="{{0.5,0},{0.5,0}}" />
+			<Property Name="Alpha" Value="0.75" />
+            <Property Name="Text" Value="Hello world!" />
+        </Window>
+    </Window>
+</GUILayout>

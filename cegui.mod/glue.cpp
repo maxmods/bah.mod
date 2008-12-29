@@ -473,7 +473,13 @@ bool bmx_cegui_schememanager_isschemepresent(const CEGUI::utf8 * scheme) {
 }
 
 CEGUI::Scheme * bmx_cegui_schememanager_getscheme(const CEGUI::utf8 * name) {
-	return CEGUI::SchemeManager::getSingleton().getScheme(name);
+	try {
+		return CEGUI::SchemeManager::getSingleton().getScheme(name);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_schememanager_unloadallschemes() {
@@ -488,11 +494,23 @@ void bmx_cegui_system_setdefaultfont(CEGUI::System * sys, CEGUI::Font * font) {
 }
 
 void bmx_cegui_system_setdefaultfonttxt(CEGUI::System * sys, const CEGUI::utf8 * font) {
-	sys->setDefaultFont(font);
+	try {
+		sys->setDefaultFont(font);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_system_setDefaultMouseCursor(CEGUI::System * sys, const CEGUI::utf8 * l, const CEGUI::utf8 * kind) {
-	sys->setDefaultMouseCursor(l, kind);
+	try {
+		sys->setDefaultMouseCursor(l, kind);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_system_renderGUI(CEGUI::System * sys) {
@@ -568,15 +586,41 @@ CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton() {
 }
 
 BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * layout, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup) {
-	return newObjectForWindow(mgr->loadWindowLayout(layout, namePrefix, resourceGroup));
+	try {
+		return newObjectForWindow(mgr->loadWindowLayout(layout, namePrefix, resourceGroup));
+	} catch (CEGUI::FileIOException &e) {
+		bmx_cegui_throw_fileioexception(e);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 BBObject * bmx_cegui_windowmanager_getwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name) {
-	return newObjectForWindow(mgr->getWindow(name));
+	try {
+		return newObjectForWindow(mgr->getWindow(name));
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 BBObject * bmx_cegui_windowmanager_createwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix) {
-	return newObjectForWindow(mgr->createWindow(windowType, name, prefix));
+	try {
+		return newObjectForWindow(mgr->createWindow(windowType, name, prefix));
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::GenericException &e) {
+		bmx_cegui_throw_genericexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 bool bmx_cegui_windowmanager_iswindowpresent(CEGUI::WindowManager * mgr, const CEGUI::utf8 * name) {
@@ -584,23 +628,55 @@ bool bmx_cegui_windowmanager_iswindowpresent(CEGUI::WindowManager * mgr, const C
 }
 
 void bmx_cegui_windowmanager_destroyallwindows(CEGUI::WindowManager * mgr) {
-	mgr->destroyAllWindows();
+	try {
+		mgr->destroyAllWindows();
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_windowmanager_destroywindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window) {
-	mgr->destroyWindow(window);
+	try {
+		mgr->destroyWindow(window);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_windowmanager_destroywindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window) {
-	mgr->destroyWindow(window);
+	try {
+		mgr->destroyWindow(window);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window, const CEGUI::utf8 * newName) {
-	mgr->renameWindow(window, newName);
+	try {
+		mgr->renameWindow(window, newName);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_windowmanager_renamewindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window, const CEGUI::utf8 * newName) {
-	mgr->renameWindow(window, newName);
+	try {
+		mgr->renameWindow(window, newName);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 
