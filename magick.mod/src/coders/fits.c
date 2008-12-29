@@ -54,13 +54,23 @@ static unsigned int
   WriteFITSImage(const ImageInfo *,Image *);
 
 
-static void FixSignedMSBValues(unsigned char *data, int size, unsigned step)
+#define FITS_BLOCK_SIZE 2880
+#define FITS_ROW_SIZE 80
+
+
+/* Convert signed values to unsigned - and reverse. */
+static void FixSignedValues(unsigned char *data, int size, unsigned step, unsigned endian)
 {
+  if(endian != MSBEndian)
+  {
+    data += step - 1;  //LSB has most signifficant byte at the end
+  }		       //MSB has most signifficant byte first
+
   while(size-->0)
   {
-    *data ^= 0x80;
+    *data ^= 0x80;	
     data += step;
-  }
+  }     
 }
 
 /*
@@ -140,6 +150,7 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
 {
   typedef struct _FITSInfo
   {
+    char extensions_exist;
     int
       simple,
       bits_per_pixel,
@@ -156,8 +167,8 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   } FITSInfo;
 
   char
-    keyword[MaxTextExtent],
-    value[MaxTextExtent];  
+    keyword[FITS_ROW_SIZE+1],
+    value[FITS_ROW_SIZE+1];  
 
   FITSInfo
     fits_info;
@@ -212,7 +223,7 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   fits_info.max_data=0.0;
   fits_info.zero=0.0;
   fits_info.scale=1.0;
-
+  fits_info.extensions_exist=0;
 
   ImportPixelAreaOptionsInit(&import_options);
   import_options.endian = MSBEndian;
@@ -222,6 +233,8 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   */
   if ((c=ReadBlobByte(image)) == EOF)
     ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
+
+ReadExtension:
   for ( ; ; )
   {
     if (!isalnum((int) c))
@@ -237,7 +250,7 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
         p=keyword;
         do
         {
-          if ((p-keyword) < (MaxTextExtent-1))
+          if ((p-keyword) < (FITS_ROW_SIZE-1))
             *p++=c;
           if ((c=ReadBlobByte(image)) == EOF)
             ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
@@ -261,7 +274,7 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
 
         while (isalnum(c) || (c == '-') || (c == '+') || (c == '.'))
         {
-          if ((p-value) < (MaxTextExtent-1))
+          if ((p-value) < (FITS_ROW_SIZE-1))
             *p++=c;
           if ((c=ReadBlobByte(image)) == EOF)
             ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
@@ -271,7 +284,9 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
           Assign a value to the specified keyword.
         */
         if (LocaleCompare(keyword,"SIMPLE") == 0)
-          fits_info.simple=(*value == 'T') || (*value == 't');
+          fits_info.simple = (*value=='T') || (*value=='t');
+        if (LocaleCompare(keyword,"EXTEND") == 0)
+          fits_info.extensions_exist = (*value== 'T') || (*value=='t');
         if (LocaleCompare(keyword,"BITPIX") == 0)
         {
           fits_info.bits_per_pixel=atoi(value);
@@ -310,24 +325,46 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
     if ((c=ReadBlobByte(image)) == EOF)
       ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
   }
-  while ((TellBlob(image) % 2880) != 0)
+
+  while ((TellBlob(image) % FITS_BLOCK_SIZE) != 0)		/* Read till the rest of a block. */
     if ((c=ReadBlobByte(image)) == EOF)
       ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
+
   /*
     Verify that required image information is defined.
   */
-  number_pixels=fits_info.columns*fits_info.rows;
+  number_pixels = fits_info.columns*fits_info.rows;
   if ((!fits_info.simple) || (fits_info.number_axes < 1) ||
       (fits_info.number_axes > 4) || (number_pixels == 0))
-    ThrowReaderException(CorruptImageError,ImageTypeNotSupported,image);  
-
-  for (scene=0; scene < (long) fits_info.number_scenes; scene++)
   {
+    if(!fits_info.extensions_exist)	/* when extensions exists, process further */
+      ThrowReaderException(CorruptImageError,ImageTypeNotSupported,image);
+  }
+  else
+   for (scene=0; scene < (long) fits_info.number_scenes; scene++)
+   {
+      if(image->rows!=0 && image->columns!=0)
+      {
+        /*
+          Allocate next image structure.
+        */
+        AllocateNextImage(image_info,image);
+        if (image->next == (Image *) NULL)
+          {
+            DestroyImageList(image);
+            return((Image *) NULL);
+          }
+        image=SyncNextImageInList(image);
+        if (!MagickMonitorFormatted(TellBlob(image),GetBlobSize(image),exception,
+                                    LoadImagesText,image->filename))
+          break;
+      }
+
     /*
       Create linear colormap.
     */
-    image->columns=fits_info.columns;
-    image->rows=fits_info.rows;
+    image->columns = fits_info.columns;
+    image->rows = fits_info.rows;
     if(fits_info.bits_per_pixel>=0)
       image->depth = Min(QuantumDepth,fits_info.bits_per_pixel);
     else
@@ -398,8 +435,15 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
 	break; /* goto ExitLoop; */
       }
 
-      if(fits_info.bits_per_pixel==16) FixSignedMSBValues(fits_pixels, image->columns, 2);
-      if(fits_info.bits_per_pixel==32) FixSignedMSBValues(fits_pixels, image->columns, 4);
+      switch(fits_info.bits_per_pixel)
+      {
+        case 16: FixSignedValues(fits_pixels, image->columns, 2, import_options.endian);
+		 break;
+        case 32: FixSignedValues(fits_pixels, image->columns, 4, import_options.endian);
+		 break;
+	case 64: FixSignedValues(fits_pixels, image->columns, 8, import_options.endian);
+		 break;
+      }
 
       if(ImportImagePixelArea(image, GrayQuantum, packet_size*8, fits_pixels, &import_options,0) == MagickFail)
       {
@@ -419,8 +463,7 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
     MagickFreeMemory(fits_pixels);
     if (EOFBlob(image))
       {
-        ThrowException(exception,CorruptImageError,UnexpectedEndOfFile,
-          image->filename);
+        ThrowException(exception,CorruptImageError,UnexpectedEndOfFile, image->filename);
         break;
       }
 
@@ -429,26 +472,24 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
     */
     if (image_info->subrange != 0)
       if (image->scene >= (image_info->subimage+image_info->subrange-1))
-        break;
-    if (scene < (long) (fits_info.number_scenes-1))
-      {
-        /*
-          Allocate next image structure.
-        */
-        AllocateNextImage(image_info,image);
-        if (image->next == (Image *) NULL)
-          {
-            DestroyImageList(image);
-            return((Image *) NULL);
-          }
-        image=SyncNextImageInList(image);
-        if (!MagickMonitorFormatted(TellBlob(image),GetBlobSize(image),exception,
-                                    LoadImagesText,image->filename))
-          break;
-      }
+        break;    
   }
+
+  if(fits_info.extensions_exist)
+  {
+    while ((TellBlob(image) % FITS_BLOCK_SIZE) != 0) /* Read till the rest of a block. */
+      if ((c=ReadBlobByte(image)) == EOF)
+        break;
+    if(!EOFBlob(image))
+    {						/* Try to read a next extension block header. */
+      if ((c=ReadBlobByte(image)) != EOF)
+	goto ReadExtension;
+    }
+  }
+
   while (image->previous != (Image *) NULL)
     image=image->previous;
+
   CloseBlob(image);
   return(image);
 }
@@ -534,7 +575,7 @@ int InsertRowHDU(char *buffer, const char *data, int offset)
   len = strlen(data);
   len = Min(len,80); /* Each card image is 80 bytes max */
 
-  if (len > 2880-offset) len = 2880-offset;
+  if (len > FITS_BLOCK_SIZE-offset) len = FITS_BLOCK_SIZE-offset;
 
   (void) strncpy(buffer+offset,data,len);
   return offset +80;
@@ -573,7 +614,7 @@ int InsertRowHDU(char *buffer, const char *data, int offset)
 static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
 {
   char
-    buffer[MaxTextExtent],
+    buffer[FITS_BLOCK_SIZE],
     *fits_info;
 
   long
@@ -627,7 +668,7 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
     Allocate image memory.
   */  
   packet_size=quantum_size/8;
-  fits_info=MagickAllocateMemory(char *,2880);
+  fits_info=MagickAllocateMemory(char *,FITS_BLOCK_SIZE);
   pixels=MagickAllocateMemory(unsigned char *,packet_size*image->columns);
   if ((fits_info == (char *) NULL) || (pixels == (unsigned char *) NULL))
     ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
@@ -635,7 +676,7 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
   /*
     Initialize image header.
   */  
-  memset(fits_info,' ',2880);
+  memset(fits_info,' ',FITS_BLOCK_SIZE);
   y = 0;
   y = InsertRowHDU(fits_info, "SIMPLE  =                    T", y);
   FormatString(buffer,        "BITPIX  =                    %u",quantum_size);
@@ -658,7 +699,7 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
   (void) FormatString(buffer, "HISTORY Created by %.60s.",MagickPackageName " " MagickLibVersionText);
   y = InsertRowHDU(fits_info, buffer, y);
   y = InsertRowHDU(fits_info, "END", y);        
-  (void) WriteBlob(image,2880,(char *) fits_info);
+  (void) WriteBlob(image, FITS_BLOCK_SIZE, (char *)fits_info);
   
   /*
     Convert image to fits scale PseudoColor class.
@@ -669,8 +710,8 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
     if (p == (const PixelPacket *) NULL)
       break;
     (void) ExportImagePixelArea(image,GrayQuantum,quantum_size,pixels,&export_options,0);
-    if(quantum_size==16) FixSignedMSBValues(pixels, image->columns, 2);
-    if(quantum_size==32) FixSignedMSBValues(pixels, image->columns, 4);
+    if(quantum_size==16) FixSignedValues(pixels, image->columns, 2, export_options.endian);
+    if(quantum_size==32) FixSignedValues(pixels, image->columns, 4, export_options.endian);
     (void) WriteBlob(image,packet_size*image->columns,pixels);
     if (QuantumTick(image->rows-y-1,image->rows))
       {
@@ -683,7 +724,7 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
   }
   
 	/* Calculate of padding */
-  y = 2880 - (image->columns * image->rows * packet_size) % 2880;
+  y = FITS_BLOCK_SIZE - (image->columns * image->rows * packet_size) % FITS_BLOCK_SIZE;
   if(y>0)
   {
     memset(fits_info, 0, y);    

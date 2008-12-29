@@ -786,6 +786,10 @@ static MagickPassFail InitializeImageColormap(Image *image, TIFF *tiff)
   
   if (image->colors > 0)
     {
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                            "Allocating colormap with %u colors",
+                            image->colors);
+
       /*
         Allocate colormap.
       */
@@ -1623,15 +1627,9 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
         (void) SetImageAttribute(image,"kodak-36867",text);
 #endif
 
-      /*
-        Quit if in "ping" mode and we are outside of requested range.
-      */
-      if (image_info->ping && (image_info->subrange != 0))
-        if (image->scene >= (image_info->subimage+image_info->subrange-1))
-          break;
-
       if ((photometric == PHOTOMETRIC_PALETTE) ||
-          ((PHOTOMETRIC_MINISWHITE || PHOTOMETRIC_MINISBLACK) && (1 == bits_per_sample)))
+          ((photometric == PHOTOMETRIC_MINISWHITE ||
+            photometric == PHOTOMETRIC_MINISBLACK) && (1 == bits_per_sample)))
         {
           /*
             Palette image
@@ -1647,6 +1645,19 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
                 (void) LiberateTemporaryFile(filename);
               ThrowReaderException(CoderError,ColormapTooLarge,image);
             }
+        }
+
+      /*
+        Quit if in "ping" mode and we are outside of requested range,
+        otherwise continue to next frame.
+      */
+      if (image_info->ping)
+        {
+          if (image_info->subrange != 0)
+            if (image->scene >= (image_info->subimage+image_info->subrange-1))
+              break;
+
+          goto read_next_frame;
         }
       /*
         Determine which method to use for reading pixels.
@@ -2607,6 +2618,7 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
           }
         }
 
+    read_next_frame:
       if (status == MagickPass)
         {
           if (image->depth > QuantumDepth)
@@ -3635,16 +3647,20 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
                   If floating point is selected, ensure that valid
                   bits-per-sample values are specified.
                 */
-                
-                if ((bits_per_sample != 32) && (bits_per_sample != 64))
+                if ((bits_per_sample != 16) &&
+                    (bits_per_sample != 24) &&
+                    (bits_per_sample != 32) &&
+                    (bits_per_sample != 64))
                   bits_per_sample=32;
               }
             else
               {
                 /* Clamp maximum unsigned bits per sample to 32 bits */
-                bits_per_sample=Min(bits_per_sample,sizeof(unsigned int)*8);
+                if ((bits_per_sample < 1) ||
+                    ((bits_per_sample > 32) && (bits_per_sample != 64)))
+                bits_per_sample=old_value;
               }
-            if (logging)
+            if ((logging) && (old_value != bits_per_sample))
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                     "User override (bits-per-sample): %u bits per sample (was %u)",
                                     (unsigned int) bits_per_sample, old_value);

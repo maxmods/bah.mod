@@ -1389,30 +1389,8 @@ MagickExport int NTGhostscriptUnLoadDLL(void)
 */
 MagickExport MagickBool NTKernelAPISupported(const char *name)
 {
-  HMODULE 
-    handle = 0;
-
-  MagickBool
-    status = MagickFalse;
-
-  // Presumably LoadLibrary is reference counted.
-  handle=LoadLibrary("kernel32.dll");
-  if (handle == NULL)
-    {
-      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
-                            "Failed to load \"kernel32.dll\" using LoadLibrary()");
-    }
-  else
-    {
-      // If we can resolve the symbol, then it is supported.
-      if (GetProcAddress(handle,name))
-        status = MagickTrue;
-
-      // FreeLibrary is reference counted.
-      FreeLibrary(handle);
-    }
-
-  return (status);
+  return (GetProcAddress(GetModuleHandle("kernel32.dll"),name) == NULL ?
+          MagickFalse : MagickTrue);
 }
 
 /*

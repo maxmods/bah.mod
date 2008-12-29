@@ -420,11 +420,24 @@ extern int vsnprintf(char *s, size_t n, const char *format, va_list ap);
 */
 #if defined(MSWINDOWS) && !defined(Windows95) && !defined(__BORLANDC__)
   /* Windows '95 and Borland C do not support _lseeki64 */
-#  define MagickSeek(file,offset,whence)  _lseeki64(file,offset,whence)
-#  define MagickTell(file) _telli64(file)
+#  define MagickSeek(fildes,offset,whence)  _lseeki64(fildes,/* __int64 */ offset,whence)
+#  define MagickTell(fildes) /* __int64 */ _telli64(fildes)
 #else
-#  define MagickSeek(file,offset,whence)  lseek(file,offset,whence)
-#  define MagickTell(file) tell(file)
+#  define MagickSeek(fildes,offset,whence)  lseek(fildes,offset,whence)
+#  define MagickTell(fildes) tell(filedes)
+#endif
+
+#if defined(MSWINDOWS) && !defined(Windows95) && !defined(__BORLANDC__) && !(defined(__MINGW32__) && __MSVCRT_VERSION__ < 0x800)
+  /* Windows '95 and Borland C do not support _lseeki64 */
+#  define MagickFseek(stream,offset,whence) _fseeki64(stream,/* __int64 */ offset,whence)
+#  define MagickFstat(fildes,stat_buff) _fstati64(fildes,/* struct _stati64 */ stat_buff)
+#  define MagickFtell(stream) /* __int64 */ _ftelli64(stream)
+#  define MagickStatStruct_t struct _stati64
+#else
+#  define MagickFseek(stream,offset,whence) fseek(stream,offset,whence)
+#  define MagickFstat(fildes,stat_buff) fstat(fildes,stat_buff)
+#  define MagickFtell(stream) ftell(stream)
+#  define MagickStatStruct_t struct stat
 #endif
 
 #if !defined(HAVE_POPEN) && defined(HAVE__POPEN)

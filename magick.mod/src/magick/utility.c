@@ -862,7 +862,7 @@ MagickExport void ExpandFilename(char *filename)
 %      elements in the argument vector.
 %
 %    o argv: Specifies a pointer to a text array containing the command line
-%      arguments.
+%      arguments.  The existing argument list is replaced.
 %
 %
 */
@@ -889,10 +889,6 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
   */
   assert(argc != (int *) NULL);
   assert(argv != (char ***) NULL);
-  for (i=1; i < *argc; i++)
-    if (strlen((*argv)[i]) > (MaxTextExtent/2-1))
-      MagickFatalError2(ResourceLimitFatalError,"Token length exceeds limit",
-        (*argv)[i]);
   vector=MagickAllocateMemory(char **,(*argc+MaxTextExtent)*sizeof(char *));
   if (vector == (char **) NULL)
     return(MagickFail);
@@ -912,7 +908,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
 
     option=(*argv)[i];
     /* Never throw options away, so copy here, then perhaps modify later */
-    vector[count++]=AllocateString(option);
+    vector[count++]=AcquireString(option);
     first=True;
 
     /*
@@ -923,18 +919,20 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
       continue;
 
     /*
-      Skip the argument to +profile and +define since it
-      can be glob specifications, and we don't want it interpreted
-      as a file.
+      Skip the argument to +profile and +define since it can be glob
+      specifications, and we don't want it interpreted as a file.
+      Also skip the argument to -convolve since it may be very large
+      and is not a filename.
     */
-    if ((LocaleNCompare("+profile",option,8) == 0) ||
-        (LocaleNCompare("+define",option,7) == 0))
+    if ((LocaleNCompare("+define",option,7) == 0) ||
+        (LocaleNCompare("+profile",option,8) == 0) ||
+        (LocaleNCompare("-convolve",option,9) == 0))
       {
         i++;
         if (i == *argc)
             continue;
         option=(*argv)[i];
-        vector[count++]=AllocateString(option);
+        vector[count++]=AcquireString(option);
         continue;
       }
 
@@ -960,7 +958,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
 
     /* GetPathComponent throws away the colon */
     if (*magick != '\0')
-      (void) strcat(magick,":");
+      (void) strlcat(magick,":",sizeof(magick));
     ExpandFilename(path);
 
     /* Get the list of matching file names. */
@@ -1007,10 +1005,21 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
           filename_buffer[MaxTextExtent];
 
         *filename_buffer='\0';
-        (void) strcat(filename_buffer,path);
+        if (strlcat(filename_buffer,path,sizeof(filename_buffer))
+            >= sizeof(filename_buffer))
+          MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                            filename_buffer);
         if (*path != '\0')
-          (void) strcat(filename_buffer,DirectorySeparator);
-        (void) strcat(filename_buffer,filelist[j]);
+          {
+            if (strlcat(filename_buffer,DirectorySeparator,sizeof(filename_buffer))
+                >= sizeof(filename_buffer))
+              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                                filename_buffer);
+          }
+        if (strlcat(filename_buffer,filelist[j],sizeof(filename_buffer))
+            >= sizeof(filename_buffer))
+          MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                            filename_buffer);
         /* If it's a filename (not a directory) ... */
         if (IsDirectory(filename_buffer) == 0) 
           {
@@ -1018,10 +1027,18 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
               formatted_buffer[MaxTextExtent];
 
             *formatted_buffer='\0';
-            (void) strcat(formatted_buffer,magick);
-            (void) strcat(formatted_buffer,filename_buffer);
-            (void) strcat(formatted_buffer,subimage);
-
+            if (strlcat(formatted_buffer,magick,sizeof(filename_buffer))
+                >= sizeof(filename_buffer))
+              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                                formatted_buffer);
+            if (strlcat(formatted_buffer,filename_buffer,sizeof(filename_buffer))
+                >= sizeof(filename_buffer))
+              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                                formatted_buffer);
+            if (strlcat(formatted_buffer,subimage,sizeof(filename_buffer))
+                >= sizeof(filename_buffer))
+              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                                formatted_buffer);
             if (first)
               {
                 /* Deallocate original option assigned above */
@@ -1029,7 +1046,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
                 MagickFreeMemory(vector[count]);
                 first=False;
               }
-            vector[count++]=AllocateString(formatted_buffer);
+            vector[count++]=AcquireString(formatted_buffer);
           }
         MagickFreeMemory(filelist[j]);
       }
@@ -2215,7 +2232,9 @@ MagickExport void GetPathComponent(const char *path,PathType type,
   */
   assert(path != (const char *) NULL);
   assert(component != (const char *) NULL);
-  (void) strlcpy(component,path,MaxTextExtent);
+  if (strlcpy(component,path,MaxTextExtent) >= MaxTextExtent)
+    MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+                      path);
   if (*path == '\0')
     return;
   subimage[0]=magick[0]='\0';
@@ -3127,8 +3146,8 @@ MagickExport char **ListFiles(const char *directory,const char *pattern,
   /*
     Allocate filelist.
   */
-  max_entries=2048;
-  filelist=MagickAllocateMemory(char **,max_entries*sizeof(char *));
+  max_entries=2048U;
+  filelist=MagickAllocateArray(char **,max_entries,sizeof(char *));
   if (filelist == (char **) NULL)
     {
       (void) closedir(current_directory);
@@ -3158,16 +3177,32 @@ MagickExport char **ListFiles(const char *directory,const char *pattern,
             if (filelist == (char **) NULL)
               {
                 (void) closedir(current_directory);
-                return((char **) NULL);
+                /*
+                  We simply bail here since our memory reallocator has
+                  just leaked lots of memory and returning does not
+                  solve the problem.
+                */
+                MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
+                                  UnableToAllocateString);
               }
           }
-        filelist[*number_entries]=MagickAllocateMemory(char *,
-          strlen(entry->d_name)+MaxTextExtent);
-        if (filelist[*number_entries] == (char *) NULL)
-          break;
-        (void) strlcpy(filelist[*number_entries],entry->d_name,MaxTextExtent);
-        if (IsDirectory(entry->d_name) > 0)
-          (void) strcat(filelist[*number_entries],DirectorySeparator);
+        {
+          size_t
+            entry_length;
+
+          entry_length=strlen(entry->d_name)+1;
+          if (IsDirectory(entry->d_name) > 0)
+            entry_length+=strlen(DirectorySeparator);
+
+          filelist[*number_entries]=MagickAllocateMemory(char *,entry_length);
+          if (filelist[*number_entries] == (char *) NULL)
+            {
+              break;
+            }
+          (void) strlcpy(filelist[*number_entries],entry->d_name,entry_length);
+          if (IsDirectory(entry->d_name) > 0)
+            (void) strlcat(filelist[*number_entries],DirectorySeparator,entry_length);
+        }
         (*number_entries)++;
       }
     entry=readdir(current_directory);
@@ -5173,7 +5208,8 @@ MagickExport char *TranslateTextEx(const ImageInfo *image_info,
     i;
 
   size_t
-    length;
+    length,
+    offset;
 
   assert(image != (Image *) NULL);
   if ((formatted_text == (const char *) NULL) || (*formatted_text == '\0'))
@@ -5245,7 +5281,22 @@ MagickExport char *TranslateTextEx(const ImageInfo *image_info,
         /* Comment */
         attribute=GetImageAttribute(image,"comment");
         if (attribute != (ImageAttribute *) NULL)
-          q+=(translate)(q,attribute->value,MaxTextExtent);
+          {
+            /* Comments may be larger than MaxTextExtent so make sure
+               there is sufficient memory allocated. Make sure that
+               there is at least MaxTextExtent left available after we
+               have concatenated our part. */
+            offset=q-translated_text;
+            if ((size_t) (offset+attribute->length+1+MaxTextExtent) >= length)
+              {
+                length += (attribute->length+1+2*MaxTextExtent);
+                MagickReallocMemory(char *,translated_text,length);
+                if (translated_text == (char *) NULL)
+                  break;
+                q=translated_text+offset;
+              }
+            q+=(translate)(q,attribute->value,attribute->length+1+MaxTextExtent);
+          }
         break;
       }
       case 'd':
@@ -5459,23 +5510,20 @@ MagickExport char *TranslateTextEx(const ImageInfo *image_info,
 
         if (attribute != (const ImageAttribute *) NULL)
           {
-            /* Attributes may be larger than MaxTextExtent so make sure
-               there is sufficient memory allocated. Make sure that there
-               is at least MaxTextExtent left available after we have
-               concatenated our part. */
-            size_t
-              attribute_size;
-
-            attribute_size=strlen(attribute->value)+1;
-            if ((size_t) (q-translated_text+attribute_size+MaxTextExtent) >= length)
+            /* Attributes may be larger than MaxTextExtent so make
+               sure there is sufficient memory allocated. Make sure
+               that there is at least MaxTextExtent left available
+               after we have concatenated our part. */
+            offset=q-translated_text;
+            if ((size_t) (offset+attribute->length+1+MaxTextExtent) >= length)
               {
-                length+=(attribute_size+2*MaxTextExtent);
+                length += (attribute->length+1+2*MaxTextExtent);
                 MagickReallocMemory(char *,translated_text,length);
                 if (translated_text == (char *) NULL)
                   break;
-                q=translated_text+strlen(translated_text);
+                q=translated_text+offset;
               }
-            q+=(translate)(q,attribute->value,attribute_size+MaxTextExtent);
+            q+=(translate)(q,attribute->value,attribute->length+1+MaxTextExtent);
           }
         break;
       }

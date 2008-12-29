@@ -118,6 +118,47 @@ Extern
 	Function bmx_magick_image_classtype(handle:Byte Ptr, class:Int)
 	Function bmx_magick_image_colorfuzz(handle:Byte Ptr, fuzz:Double)
 
+	Function bmx_magick_image_contrast(handle:Byte Ptr, sharpen:Int)
+	Function bmx_magick_image_floodfillcolorcc(handle:Byte Ptr, x:Int, y:Int, fillColor:Byte Ptr, borderColor:Byte Ptr)
+	Function bmx_magick_image_floodfillcolorsc(handle:Byte Ptr, x:Int, y:Int, fillColor:String, borderColor:Byte Ptr)
+	Function bmx_magick_image_floodfillcolorcs(handle:Byte Ptr, x:Int, y:Int, fillColor:Byte Ptr, borderColor:String)
+	Function bmx_magick_image_floodfillcolorss(handle:Byte Ptr, x:Int, y:Int, fillColor:String, borderColor:String)
+	Function bmx_magick_image_frame(handle:Byte Ptr, geometry:Byte Ptr)
+	Function bmx_magick_image_frametxt(handle:Byte Ptr, geometry:String)
+	Function bmx_magick_image_framebevel(handle:Byte Ptr, width:Int, height:Int, innerBevel:Int, outerBevel:Int)
+	Function bmx_magick_image_gamma(handle:Byte Ptr, g:Double)
+	Function bmx_magick_image_gammargb(handle:Byte Ptr, r:Double, g:Double, b:Double)
+	Function bmx_magick_image_gaussianblur(handle:Byte Ptr, width:Double, sigma:Double)
+	Function bmx_magick_image_gaussianblurchannel(handle:Byte Ptr, channel:Int, radius:Double, sigma:Double)
+	Function bmx_magick_image_implode(handle:Byte Ptr, factor:Double)
+	Function bmx_magick_image_label(handle:Byte Ptr, text:String)
+	Function bmx_magick_image_level(handle:Byte Ptr, blackPoint:Double, whitePoint:Double, midPoint:Double)
+	Function bmx_magick_image_levelchannel(handle:Byte Ptr, channel:Int, blackPoint:Double, whitePoint:Double, midPoint:Double)
+	Function bmx_magick_image_magnify(handle:Byte Ptr)
+	Function bmx_magick_image_medianfilter(handle:Byte Ptr, radius:Double)
+	Function bmx_magick_image_minify(handle:Byte Ptr)
+	Function bmx_magick_image_modifyImage(handle:Byte Ptr)
+	Function bmx_magick_image_modulate(handle:Byte Ptr, brightness:Double, saturation:Double, hue:Double)
+	Function bmx_magick_image_motionblur(handle:Byte Ptr, radius:Double, sigma:Double, angle:Double)
+	Function bmx_magick_image_negate(handle:Byte Ptr, grayscale:Int)
+	Function bmx_magick_image_normalize(handle:Byte Ptr)
+	Function bmx_magick_image_ping(handle:Byte Ptr, imageSpec:String)
+	Function bmx_magick_image_quantize(handle:Byte Ptr, measureError:Int)
+	Function bmx_magick_image_reducenoise(handle:Byte Ptr, order:Double)
+	Function bmx_magick_image_roll(handle:Byte Ptr, columns:Int, rows:Int)
+	Function bmx_magick_image_shade(handle:Byte Ptr, azimuth:Double, elevation:Double, colorShading:Int)
+	Function bmx_magick_image_sharpen(handle:Byte Ptr, radius:Double, sigma:Double)
+	Function bmx_magick_image_sharpenchannel(handle:Byte Ptr, channel:Int, radius:Double, sigma:Double)
+	Function bmx_magick_image_shear(handle:Byte Ptr, xShearAngle:Double, yShearAngle:Double)
+	Function bmx_magick_image_solarize(handle:Byte Ptr, factor:Double)
+	Function bmx_magick_image_spread(handle:Byte Ptr, amount:Int)
+	Function bmx_magick_image_swirl(handle:Byte Ptr, degrees:Double)
+	Function bmx_magick_image_threshold(handle:Byte Ptr, value:Double)
+	Function bmx_magick_image_trim(handle:Byte Ptr)
+	Function bmx_magick_image_unsharpmask(handle:Byte Ptr, radius:Double, sigma:Double, amount:Double, threshold:Double)
+	Function bmx_magick_image_unsharpmaskchannel(handle:Byte Ptr, channel:Int, radius:Double, sigma:Double, amount:Double, threshold:Double)
+	Function bmx_magick_image_wave(handle:Byte Ptr, amplitude:Double, wavelength:Double)
+
 	Function bmx_magick_blob_createfromdata:Byte Ptr(data:Byte Ptr, size:Int)
 	
 	Function bmx_magick_coderinfolist(list:Object, isReadable:Int, isWritable:Int, isMultiFrame:Int)
@@ -150,42 +191,173 @@ Const COMPLIANCE_X11COMPLIANCE:Int = $0002
 Const COMPLIANCE_XPMCOMPLIANCE:Int = $0004
 Const COMPLIANCE_ALLCOMPLIANCE:Int = $FFFF
 
+Rem
+bbdoc: Unset value.
+End Rem
 Const COMPOSITE_UNDEFINEDCOMPOSITEOP:Int = 0
+Rem
+bbdoc: The result is the union of the the two image shapes with the composite image obscuring image in the region of overlap.
+End Rem
 Const COMPOSITE_OVERCOMPOSITEOP:Int = 1
+Rem
+bbdoc: The result is a simply composite image cut by the shape of image. None of the image data of image is included in the result.
+End Rem
 Const COMPOSITE_INCOMPOSITEOP:Int = 2
+Rem
+bbdoc: The resulting image is composite image with the shape of image cut out.
+End Rem
 Const COMPOSITE_OUTCOMPOSITEOP:Int = 3
+Rem
+bbdoc: The result is the same shape as image @image, with composite image obscuring image there the image shapes overlap.
+about: Note that this differs from COMPOSITE_OVERCOMPOSITEOP because the portion of composite image outside of image's shape does
+not appear in the result.
+End Rem
 Const COMPOSITE_ATOPCOMPOSITEOP:Int = 4
+Rem
+bbdoc: The result is the image data from both composite image and image that is outside the overlap region.
+about: The overlap region will be blank.
+End Rem
 Const COMPOSITE_XORCOMPOSITEOP:Int = 5
+Rem
+bbdoc: The result is just the sum of the  image data.
+about: Output values are cropped to 255 (no overflow). This operation is independent of the matte channels.
+End Rem
 Const COMPOSITE_PLUSCOMPOSITEOP:Int = 6
+Rem
+bbdoc: The result of composite image - image, with overflow cropped to zero.
+about: The matte chanel is ignored (set to 255, full coverage).
+End Rem
 Const COMPOSITE_MINUSCOMPOSITEOP:Int = 7
+Rem
+bbdoc: The result of composite image + image, with overflow wrapping around (mod 256).
+End Rem
 Const COMPOSITE_ADDCOMPOSITEOP:Int = 8
+Rem
+bbdoc: The result of composite image - image, with underflow wrapping around (mod 256).
+about: The add and subtract operators can be used to perform reverible transformations.
+End Rem
 Const COMPOSITE_SUBTRACTCOMPOSITEOP:Int = 9
+Rem
+bbdoc: The result of abs(composite image - image).
+about: This is useful for comparing two very similar images.
+End Rem
 Const COMPOSITE_DIFFERENCECOMPOSITEOP:Int = 10
+Rem
+bbdoc: The result of change-image * base-image.
+about: This is useful for the creation of drop-shadows.
+End Rem
 Const COMPOSITE_MULTIPLYCOMPOSITEOP:Int = 11
+Rem
+bbdoc: The result image shaded by composite image.
+End Rem
 Const COMPOSITE_BUMPMAPCOMPOSITEOP:Int = 12
+Rem
+bbdoc: The resulting image is image replaced with composite image.
+about: Here the matte information is ignored.
+End Rem
 Const COMPOSITE_COPYCOMPOSITEOP:Int = 13
+Rem
+bbdoc: The resulting image is the red layer in image replaced with the red layer in composite image.
+about: The other layers are copied untouched.
+End Rem
 Const COMPOSITE_COPYREDCOMPOSITEOP:Int = 14
+Rem
+bbdoc: The resulting image is the green layer in image replaced with the green layer in composite image.
+about: The other layers are copied untouched.
+End Rem
 Const COMPOSITE_COPYGREENCOMPOSITEOP:Int = 15
+Rem
+bbdoc: The resulting image is the blue layer in image replaced with the blue layer in composite image.
+about: The other layers are copied untouched.
+End Rem
 Const COMPOSITE_COPYBLUECOMPOSITEOP:Int = 16
+Rem
+bbdoc: The resulting image is the matte layer in image replaced with the matte layer in composite image.
+about: The other layers are copied untouched.
+<p>
+The image compositor requires a matte, or alpha channel in the image for some operations. This extra channel usually
+defines a mask which represents a sort of a cookie-cutter for the image. This is the case when matte is 255 (full coverage)
+for pixels inside the shape, zero outside, and between zero and 255 on the boundary.  For certain operations, if image does
+not have a matte channel, it is initialized with 0 for any pixel matching in color to pixel location (0,0), otherwise 255
+(to work properly borderWidth must be 0).
+</p>
+End Rem
 Const COMPOSITE_COPYOPACITYCOMPOSITEOP:Int = 17
+Rem
+bbdoc: Opacity channels are set to transparent.
+End Rem
 Const COMPOSITE_CLEARCOMPOSITEOP:Int = 18
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_DISSOLVECOMPOSITEOP:Int = 19
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_DISPLACECOMPOSITEOP:Int = 20
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_MODULATECOMPOSITEOP:Int = 21
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_THRESHOLDCOMPOSITEOP:Int = 22
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_NOCOMPOSITEOP:Int = 23
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_DARKENCOMPOSITEOP:Int = 24
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_LIGHTENCOMPOSITEOP:Int = 25
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_HUECOMPOSITEOP:Int = 26
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_SATURATECOMPOSITEOP:Int = 27
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_COLORIZECOMPOSITEOP:Int = 28
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_LUMINIZECOMPOSITEOP:Int = 29
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_SCREENCOMPOSITEOP:Int = 30 ' NOT YET IMPLEMENTED */
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_OVERLAYCOMPOSITEOP:Int = 31  ' NOT YET IMPLEMENTED */
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_COPYCYANCOMPOSITEOP:Int = 32
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_COPYMAGENTACOMPOSITEOP:Int = 33
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_COPYYELLOWCOMPOSITEOP:Int = 34
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_COPYBLACKCOMPOSITEOP:Int = 35
+Rem
+bbdoc: 
+End Rem
 Const COMPOSITE_DIVIDECOMPOSITEOP:Int = 36
 
 Const COMPRESSION_UNDEFINEDCOMPRESSION:Int = 0

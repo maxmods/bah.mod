@@ -1840,9 +1840,9 @@ GetCacheNexus(Image *image,const long x,const long y,
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   /*
-    SetCacheNexus() invokes SetCacheNexus() which may replace the
-    current image cache due to calling ModifyCache() so we obtain the
-    cache *after* invoking SetCacheNexus().
+    SetCacheNexus() invokes ModifyCache() which may replace the
+    current image cache so we obtain the cache *after* invoking
+    SetCacheNexus().
   */
   pixels=SetCacheNexus(image,x,y,columns,rows,nexus_info,exception);
   if (pixels == (PixelPacket *) NULL)
@@ -2748,6 +2748,13 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
         }
     }
 
+  /*
+    Indexes are valid if the image storage class is PseudoClass or the
+    colorspace is CMYK.
+  */
+  cache_info->indexes_valid=((image->storage_class == PseudoClass) ||
+                             (image->colorspace == CMYKColorspace));
+
   if (image->ping)
     {
       cache_info->storage_class=image->storage_class;
@@ -2771,12 +2778,6 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
       return MagickFail;
     }
 
-  /*
-    Indexes are valid if the image storage class is PseudoClass or the
-    colorspace is CMYK.
-  */
-  cache_info->indexes_valid=((image->storage_class == PseudoClass) ||
-                             (image->colorspace == CMYKColorspace));
 
   /*
     Compute storage sizes.  Make sure that sizes fit within our

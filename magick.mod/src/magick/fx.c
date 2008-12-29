@@ -362,8 +362,8 @@ MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
         Log convolution matrix.
       */
       char
-        cell_text[13],
-        row_text[65];
+        cell_text[MaxTextExtent],
+        row_text[MaxTextExtent];
 
       const double
         *k;
@@ -379,7 +379,7 @@ MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
           for (u=0; u < width; u++)
             {
               FormatString(cell_text,"%#12.4g",*k++);
-              (void) strlcat(row_text,cell_text,sizeof(cell_text));
+              (void) strlcat(row_text,cell_text,sizeof(row_text));
               if (u%5 == 4)
                 {
                   (void) LogMagickEvent(TransformEvent,GetMagickModule(),
@@ -391,7 +391,7 @@ MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
             (void) strlcat(row_text,"\n",sizeof(row_text));
           if (row_text[0] != '\0')
             (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                                  "   %.64s", row_text);
+                                  "   %s", row_text);
         }
     }
 

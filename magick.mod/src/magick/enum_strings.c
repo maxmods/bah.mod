@@ -997,39 +997,50 @@ MagickExport QuantumOperator StringToQuantumOperator(const char *option)
     quantum_operator=AddQuantumOp;
   else if (LocaleCompare("and",option) == 0)
     quantum_operator=AndQuantumOp;
-  else if (LocaleCompare("assign",option) == 0)
+  else if ((LocaleCompare("assign",option) == 0) ||
+           (LocaleCompare("Set",option) == 0))
     quantum_operator=AssignQuantumOp;
   else if (LocaleCompare("divide",option) == 0)
     quantum_operator=DivideQuantumOp;
-  else if (LocaleCompare("lshift",option) == 0)
+  else if ((LocaleCompare("lshift",option) == 0) ||
+           (LocaleCompare("LeftShift",option) == 0))
     quantum_operator=LShiftQuantumOp;
   else if (LocaleCompare("multiply",option) == 0)
     quantum_operator=MultiplyQuantumOp;
   else if (LocaleCompare("or",option) == 0)
     quantum_operator=OrQuantumOp;
-  else if (LocaleCompare("rshift",option) == 0)
+  else if ((LocaleCompare("rshift",option) == 0) ||
+           (LocaleCompare("RightShift",option) == 0))
     quantum_operator=RShiftQuantumOp;
   else if (LocaleCompare("subtract",option) == 0)
     quantum_operator=SubtractQuantumOp;
   else if (LocaleCompare("threshold",option) == 0)
     quantum_operator=ThresholdQuantumOp;
-  else if (LocaleCompare("threshold-black",option) == 0)
+  else if ((LocaleCompare("threshold-black",option) == 0) ||
+           (LocaleCompare("ThresholdBlack",option) == 0))
     quantum_operator=ThresholdBlackQuantumOp;
-  else if (LocaleCompare("threshold-white",option) == 0)
+  else if ((LocaleCompare("threshold-white",option) == 0) ||
+           (LocaleCompare("ThresholdWhite",option) == 0))
     quantum_operator=ThresholdWhiteQuantumOp;
   else if (LocaleCompare("xor",option) == 0)
     quantum_operator=XorQuantumOp;
-  else if (LocaleCompare("noise-gaussian",option) == 0)
+  else if ((LocaleCompare("noise-gaussian",option) == 0) ||
+           (LocaleCompare("GaussianNoise",option) == 0))
     quantum_operator=NoiseGaussianQuantumOp;
-  else if (LocaleCompare("noise-impulse",option) == 0)
+  else if ((LocaleCompare("noise-impulse",option) == 0) ||
+           (LocaleCompare("ImpulseNoise",option) == 0))
     quantum_operator=NoiseImpulseQuantumOp;
-  else if (LocaleCompare("noise-laplacian",option) == 0)
+  else if ((LocaleCompare("noise-laplacian",option) == 0) ||
+           (LocaleCompare("LaplacianNoise",option) == 0))
     quantum_operator=NoiseLaplacianQuantumOp;
-  else if (LocaleCompare("noise-multiplicative",option) == 0)
+  else if ((LocaleCompare("noise-multiplicative",option) == 0) ||
+           (LocaleCompare("MultiplicativeNoise",option) == 0))
     quantum_operator=NoiseMultiplicativeQuantumOp;
-  else if (LocaleCompare("noise-poisson",option) == 0)
+  else if ((LocaleCompare("noise-poisson",option) == 0) ||
+           (LocaleCompare("PoissonNoise",option) == 0))
     quantum_operator=NoisePoissonQuantumOp;
-  else if (LocaleCompare("noise-uniform",option) == 0)
+  else if ((LocaleCompare("noise-uniform",option) == 0) ||
+           (LocaleCompare("UniformNoise",option) == 0))
     quantum_operator=NoiseUniformQuantumOp;
   else if (LocaleCompare("negate",option) == 0)
     quantum_operator=NegateQuantumOp;
@@ -1037,6 +1048,14 @@ MagickExport QuantumOperator StringToQuantumOperator(const char *option)
     quantum_operator=GammaQuantumOp;
   else if (LocaleCompare("depth",option) == 0)
     quantum_operator=DepthQuantumOp;
+  else if (LocaleCompare("log",option) == 0)
+    quantum_operator=LogQuantumOp;
+  else if (LocaleCompare("max",option) == 0)
+    quantum_operator=MaxQuantumOp;
+  else if (LocaleCompare("min",option) == 0)
+    quantum_operator=MinQuantumOp;
+  else if (LocaleCompare("pow",option) == 0)
+    quantum_operator=PowQuantumOp;
 
   return quantum_operator;
 }
@@ -1114,6 +1133,18 @@ MagickExport const char *QuantumOperatorToString(const QuantumOperator quantum_o
       break;
     case DepthQuantumOp:
       operator_text="depth";
+      break;
+    case LogQuantumOp:
+      operator_text="log";
+      break;
+    case MaxQuantumOp:
+      operator_text="max";
+      break;
+    case MinQuantumOp:
+      operator_text="min";
+      break;
+    case PowQuantumOp:
+      operator_text="pow";
       break;
     }
 

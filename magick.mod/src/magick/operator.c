@@ -887,6 +887,119 @@ QuantumNegateCB(void *mutable_data,
 
   return (MagickPass);
 }
+/* log(quantum*value+1)/log(value+1) */
+#if MaxRGB > MaxMap
+#  define LogAdjustQuantum(quantum) \
+  ((MaxRGBDouble*log((quantum/MaxRGBDouble)*immutable_context->double_value+1.0)/ \
+    log(immutable_context->double_value+1.0))+0.5)
+#else
+#  define LogAdjustQuantum(quantum) (mutable_context->channel_lut[ScaleQuantumToMap(quantum)])
+#endif
+static MagickPassFail
+QuantumLogCB(void *mutable_data,
+             const void *immutable_data,
+             Image *image,
+             PixelPacket *pixels,
+             IndexPacket *indexes,
+             const long npixels,
+             ExceptionInfo *exception)
+{
+  QuantumMutableContext
+    *mutable_context=(QuantumMutableContext *) mutable_data;
+
+  const QuantumImmutableContext
+    *immutable_context=(const QuantumImmutableContext *) immutable_data;
+  
+  register long
+    i;
+
+  MagickPassFail
+    status=MagickPass;
+  
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  /*
+    Build LUT for Q8 and Q16 builds
+  */
+#if MaxRGB <= MaxMap
+#  if defined(HAVE_OPENMP)
+#    pragma omp critical
+#  endif
+  if (mutable_context->channel_lut == (Quantum *) NULL)
+    {
+      mutable_context->channel_lut=MagickAllocateArray(Quantum *, MaxMap+1,sizeof(Quantum));
+      if (mutable_context->channel_lut == (Quantum *) NULL)
+        status=MagickFail;
+      
+      if (mutable_context->channel_lut != (Quantum *) NULL)
+        {
+          for (i=0; i <= (long) MaxMap; i++)
+            {
+              double
+                value;
+
+              value=MaxRGBDouble*(log((ScaleMapToQuantum(i)/MaxRGBDouble)*
+                                     immutable_context->double_value+1.0)/
+                                  log(immutable_context->double_value+1.0));
+              mutable_context->channel_lut[i] = RoundDoubleToQuantum(value);
+            }
+        }
+    }
+#else
+  ARG_NOT_USED(*mutable_context);
+#endif
+  if (MagickFail == status)
+    return status;
+
+  switch (immutable_context->channel)
+    {
+    case RedChannel:
+    case CyanChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].red=LogAdjustQuantum(pixels[i].red);
+      break;
+    case GreenChannel:
+    case MagentaChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].green=LogAdjustQuantum(pixels[i].green);
+      break;
+    case BlueChannel:
+    case YellowChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].blue=LogAdjustQuantum(pixels[i].blue);
+      break;
+    case BlackChannel:
+    case MatteChannel:
+    case OpacityChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].opacity=LogAdjustQuantum(pixels[i].opacity);
+      break;
+    case UndefinedChannel:
+    case AllChannels:
+      for (i=0; i < npixels; i++)
+        {
+          pixels[i].red=LogAdjustQuantum(pixels[i].red);
+          pixels[i].green=LogAdjustQuantum(pixels[i].green);
+          pixels[i].blue=LogAdjustQuantum(pixels[i].blue);
+        }
+      break;
+    case GrayChannel:
+      for (i=0; i < npixels; i++)
+        {
+          Quantum
+            intensity;
+
+          intensity = PixelIntensity(&pixels[i]);
+          intensity = LogAdjustQuantum(intensity);
+          pixels[i].red = pixels[i].green = pixels[i].blue = intensity;
+        }
+      break;
+    }
+
+  return status;
+}
 static MagickPassFail
 QuantumLShiftCB(void *mutable_data,
                 const void *immutable_data,
@@ -947,6 +1060,156 @@ QuantumLShiftCB(void *mutable_data,
 
           intensity = PixelIntensity(&pixels[i]);
           intensity <<= context->quantum_value;
+          pixels[i].red = pixels[i].green = pixels[i].blue = intensity;
+        }
+      break;
+    }
+
+  return (MagickPass);
+}
+static MagickPassFail
+QuantumMaxCB(void *mutable_data,
+             const void *immutable_data,
+             Image *image,
+             PixelPacket *pixels,
+             IndexPacket *indexes,
+             const long npixels,
+             ExceptionInfo *exception)
+{
+  const QuantumImmutableContext
+    *context=(const QuantumImmutableContext *) immutable_data;
+
+  register long
+    i;
+
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  switch (context->channel)
+    {
+    case RedChannel:
+    case CyanChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value > pixels[i].red)
+          pixels[i].red = context->quantum_value;
+      break;
+    case GreenChannel:
+    case MagentaChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value > pixels[i].green)
+          pixels[i].green = context->quantum_value;
+      break;
+    case BlueChannel:
+    case YellowChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value > pixels[i].blue)
+          pixels[i].blue = context->quantum_value;
+      break;
+    case BlackChannel:
+    case MatteChannel:
+    case OpacityChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value > pixels[i].opacity)
+          pixels[i].opacity = context->quantum_value;
+      break;
+    case UndefinedChannel:
+    case AllChannels:
+      for (i=0; i < npixels; i++)
+        {
+          if (context->quantum_value > pixels[i].red)
+            pixels[i].red = context->quantum_value;
+          if (context->quantum_value > pixels[i].green)
+            pixels[i].green = context->quantum_value;
+          if (context->quantum_value > pixels[i].blue)
+            pixels[i].blue = context->quantum_value;
+        }
+      break;
+    case GrayChannel:
+      for (i=0; i < npixels; i++)
+        {
+          Quantum
+            intensity;
+
+          intensity = PixelIntensity(&pixels[i]);
+          if (context->quantum_value > intensity)
+            intensity = context->quantum_value;
+          pixels[i].red = pixels[i].green = pixels[i].blue = intensity;
+        }
+      break;
+    }
+
+  return (MagickPass);
+}
+static MagickPassFail
+QuantumMinCB(void *mutable_data,
+             const void *immutable_data,
+             Image *image,
+             PixelPacket *pixels,
+             IndexPacket *indexes,
+             const long npixels,
+             ExceptionInfo *exception)
+{
+  const QuantumImmutableContext
+    *context=(const QuantumImmutableContext *) immutable_data;
+
+  register long
+    i;
+
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  switch (context->channel)
+    {
+    case RedChannel:
+    case CyanChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value < pixels[i].red)
+          pixels[i].red = context->quantum_value;
+      break;
+    case GreenChannel:
+    case MagentaChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value < pixels[i].green)
+          pixels[i].green = context->quantum_value;
+      break;
+    case BlueChannel:
+    case YellowChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value < pixels[i].blue)
+          pixels[i].blue = context->quantum_value;
+      break;
+    case BlackChannel:
+    case MatteChannel:
+    case OpacityChannel:
+      for (i=0; i < npixels; i++)
+        if (context->quantum_value < pixels[i].opacity)
+          pixels[i].opacity = context->quantum_value;
+      break;
+    case UndefinedChannel:
+    case AllChannels:
+      for (i=0; i < npixels; i++)
+        {
+          if (context->quantum_value < pixels[i].red)
+            pixels[i].red = context->quantum_value;
+          if (context->quantum_value < pixels[i].green)
+            pixels[i].green = context->quantum_value;
+          if (context->quantum_value < pixels[i].blue)
+            pixels[i].blue = context->quantum_value;
+        }
+      break;
+    case GrayChannel:
+      for (i=0; i < npixels; i++)
+        {
+          Quantum
+            intensity;
+
+          intensity = PixelIntensity(&pixels[i]);
+          if (context->quantum_value < intensity)
+            intensity = context->quantum_value;
           pixels[i].red = pixels[i].green = pixels[i].blue = intensity;
         }
       break;
@@ -1251,6 +1514,110 @@ QuantumOrCB(void *mutable_data,
     }
 
   return (MagickPass);
+}
+#if MaxRGB > MaxMap
+#  define PowAdjustQuantum(quantum) (MaxRGBDouble*pow(quantum/MaxRGBDouble,immutable_context->double_value)+0.5)
+#else
+#  define PowAdjustQuantum(quantum) (mutable_context->channel_lut[ScaleQuantumToMap(quantum)])
+#endif
+static MagickPassFail
+QuantumPowCB(void *mutable_data,
+             const void *immutable_data,
+             Image *image,
+             PixelPacket *pixels,
+             IndexPacket *indexes,
+             const long npixels,
+             ExceptionInfo *exception)
+{
+  QuantumMutableContext
+    *mutable_context=(QuantumMutableContext *) mutable_data;
+
+  const QuantumImmutableContext
+    *immutable_context=(const QuantumImmutableContext *) immutable_data;
+  
+  register long
+    i;
+
+  MagickPassFail
+    status=MagickPass;
+  
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  /*
+    Build LUT for Q8 and Q16 builds
+  */
+#if MaxRGB <= MaxMap
+#  if defined(HAVE_OPENMP)
+#    pragma omp critical
+#  endif
+  if (mutable_context->channel_lut == (Quantum *) NULL)
+    {
+      mutable_context->channel_lut=MagickAllocateArray(Quantum *, MaxMap+1,sizeof(Quantum));
+      if (mutable_context->channel_lut == (Quantum *) NULL)
+        status=MagickFail;
+      
+      if (mutable_context->channel_lut != (Quantum *) NULL)
+        {
+          for (i=0; i <= (long) MaxMap; i++)
+            mutable_context->channel_lut[i] =
+              ScaleMapToQuantum(MaxMap*pow((double) i/MaxMap,
+                                           immutable_context->double_value));
+        }
+    }
+#else
+  ARG_NOT_USED(*mutable_context);
+#endif
+  if (MagickFail == status)
+    return status;
+
+  switch (immutable_context->channel)
+    {
+    case RedChannel:
+    case CyanChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].red=PowAdjustQuantum(pixels[i].red);
+      break;
+    case GreenChannel:
+    case MagentaChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].green=PowAdjustQuantum(pixels[i].green);
+      break;
+    case BlueChannel:
+    case YellowChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].blue=PowAdjustQuantum(pixels[i].blue);
+      break;
+    case BlackChannel:
+    case MatteChannel:
+    case OpacityChannel:
+      for (i=0; i < npixels; i++)
+        pixels[i].opacity=PowAdjustQuantum(pixels[i].opacity);
+      break;
+    case UndefinedChannel:
+    case AllChannels:
+      for (i=0; i < npixels; i++)
+        {
+          pixels[i].red=PowAdjustQuantum(pixels[i].red);
+          pixels[i].green=PowAdjustQuantum(pixels[i].green);
+          pixels[i].blue=PowAdjustQuantum(pixels[i].blue);
+        }
+      break;
+    case GrayChannel:
+      for (i=0; i < npixels; i++)
+        {
+          Quantum
+            intensity;
+
+          intensity = PixelIntensity(&pixels[i]);
+          intensity = PowAdjustQuantum(intensity);
+          pixels[i].red = pixels[i].green = pixels[i].blue = intensity;
+        }
+      break;
+    }
+
+  return status;
 }
 static MagickPassFail
 QuantumRShiftCB(void *mutable_data,
@@ -1812,6 +2179,18 @@ QuantumOperatorRegionImage(Image *image,
       break;
     case DepthQuantumOp:
       call_back=QuantumDepthCB;
+      break;
+    case LogQuantumOp:
+      call_back=QuantumLogCB;
+      break;
+    case MaxQuantumOp:
+      call_back=QuantumMaxCB;
+      break;
+    case MinQuantumOp:
+      call_back=QuantumMinCB;
+      break;
+    case PowQuantumOp:
+      call_back=QuantumPowCB;
       break;
     }
 

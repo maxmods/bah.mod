@@ -345,6 +345,10 @@ namespace Magick
   using MagickLib::NegateQuantumOp;
   using MagickLib::GammaQuantumOp;
   using MagickLib::DepthQuantumOp;
+  using MagickLib::LogQuantumOp;
+  using MagickLib::MaxQuantumOp;
+  using MagickLib::MinQuantumOp;
+  using MagickLib::PowQuantumOp;
   using MagickLib::QuantumOperator;
 
   // Preview types.  Not currently used by Magick++

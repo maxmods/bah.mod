@@ -350,21 +350,21 @@ MagickExport void InitializeMagickResources(void)
 
 #  if  defined(HAVE_SYSCONF) && defined(_SC_PHYS_PAGES)
     {
-    long
-      pagesize=-1,
-      pages=-1;
-    /*
-      Compute total physical memory based on number of memory pages,
-      and page size.
-    */
-    pages=sysconf(_SC_PHYS_PAGES);
-    pagesize = MagickGetMMUPageSize();
+      long
+        pagesize=-1,
+        pages=-1;
+      /*
+        Compute total physical memory based on number of memory pages,
+        and page size.
+      */
+      pages=sysconf(_SC_PHYS_PAGES);
+      pagesize = MagickGetMMUPageSize();
 
-    if (pages > 0 && pagesize > 0)
-      total_memory=((pages+512)/1024)*((pagesize+512)/1024);
-    (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
-      "Total physical memory %ld MB (%ld pages and %ld bytes per page)",
-        total_memory, pages, pagesize);
+      if (pages > 0 && pagesize > 0)
+        total_memory=((pages+512)/1024)*((pagesize+512)/1024);
+      (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
+                            "Total physical memory %ld MB (%ld pages and %ld bytes per page)",
+                            total_memory, pages, pagesize);
     }
 #  elif defined(MAGICK_PHYSICAL_MEMORY_COMMAND) && defined(HAVE_POPEN)
     {
@@ -385,7 +385,7 @@ MagickExport void InitializeMagickResources(void)
             total_memory=(bytes/(1024*1024));
           (void) pclose(command);
           (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
-            "Total physical memory %ld MB",total_memory);
+                                "Total physical memory %ld MB",total_memory);
         }
     }
 #  endif
@@ -435,32 +435,47 @@ MagickExport void InitializeMagickResources(void)
         MEMORYSTATUSEX
           stat_ex;
 
+        (void) memset(&stat_ex,0,sizeof(stat_ex));
+        stat_ex.dwLength=sizeof(stat_ex);
         if (GlobalMemoryStatusEx(&stat_ex))
           {
             total_physical_memory=(long)(stat_ex.ullTotalPhys/1048576UL);
             total_virtual_memory=(long)(stat_ex.ullTotalVirtual/1048576UL);
           }
+        else
+          {
+            (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
+                                  "GlobalMemoryStatusEx() call failed! (error %ld)",GetLastError());
+          }
       }
 #endif
 
     if (total_physical_memory == 0)
-    {
-      MEMORYSTATUS
-        stat;
+      {
+        MEMORYSTATUS
+          stat;
 
-      GlobalMemoryStatus(&stat);
-      total_physical_memory=stat.dwTotalPhys/1048576;
-      total_virtual_memory=stat.dwTotalVirtual/1048576;
-    }
-
-    if (total_virtual_memory > 3*total_physical_memory)
-      max_memory=2*total_physical_memory;
-    else
-      max_memory=(long)(0.7*total_virtual_memory);
-    max_map=(long)(8*total_physical_memory);
+        GlobalMemoryStatus(&stat);
+        total_physical_memory=stat.dwTotalPhys/1048576;
+        total_virtual_memory=stat.dwTotalVirtual/1048576;
+      }
     (void) LogMagickEvent(ResourceEvent,GetMagickModule(),
-      "Total physical memory %ld MB, Total virtual memory %ld MB",
-        total_physical_memory, total_virtual_memory);
+                          "Total physical memory %ld MB, Total virtual memory %ld MB",
+                          total_physical_memory, total_virtual_memory);
+
+    max_memory=Min(total_physical_memory,total_virtual_memory);
+    /*
+      We will default to using at most 80% of available memory for image data.
+    */
+    max_memory=(long)(0.8*max_memory);
+    /*
+      Use the maximum memory as our default memory map limit.  Memory
+      mapping files larger than available RAM can cause VM thrashing.
+      This implies that memory mapping won't get used much.  However,
+      it is possible for heap memory allocations to fail (due to heap
+      fragmentation) whereas memory mapping still succeeds.
+    */
+    max_map=max_memory;
 
     /*
       Windows lowio level supports up to 2048 open files.

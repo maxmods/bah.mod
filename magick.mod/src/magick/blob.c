@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2008 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -1359,9 +1359,6 @@ MagickExport void GetBlobInfo(BlobInfo *blob_info)
 */
 MagickExport magick_off_t GetBlobSize(const Image *image)
 {
-  struct stat
-    attributes;
-
   magick_off_t
     offset;
 
@@ -1377,7 +1374,10 @@ MagickExport magick_off_t GetBlobSize(const Image *image)
       break;
     case FileStream:
     {
-      offset=fstat(fileno(image->blob->file),&attributes) < 0 ? 0 :
+      MagickStatStruct_t
+        attributes;
+
+      offset=MagickFstat(fileno(image->blob->file),&attributes) < 0 ? 0 :
         attributes.st_size;
       break;
     }
@@ -1387,6 +1387,9 @@ MagickExport magick_off_t GetBlobSize(const Image *image)
     case ZipStream:
     {
 #if defined(HasZLIB)
+      struct stat
+        attributes;
+
       offset=stat(image->filename,&attributes) < 0 ? 0 : attributes.st_size;
 #endif
       break;
@@ -1394,6 +1397,9 @@ MagickExport magick_off_t GetBlobSize(const Image *image)
     case BZipStream:
     {
 #if defined(HasBZLIB)
+      struct stat
+        attributes;
+
       offset=stat(image->filename,&attributes) < 0 ? 0 : attributes.st_size;
 #endif
       break;
@@ -1782,11 +1788,11 @@ MagickExport void *GetConfigureBlob(const char *filename,char *path,
             (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
               "Found: %.1024s",test_path);
           (void) strcpy(path,test_path);
-          (void) fseek(file,0L,SEEK_END);
-          *length=ftell(file); /* FIXME: ftell returns long, but size_t may be unsigned */
+          (void) MagickFseek(file,0L,SEEK_END);
+          *length=MagickFtell(file); /* FIXME: ftell returns long, but size_t may be unsigned */
           if (*length > 0)
             {
-              (void) fseek(file,0L,SEEK_SET);
+              (void) MagickFseek(file,0L,SEEK_SET);
               blob=MagickAllocateMemory(unsigned char *,(*length)+1);
               if (blob)
                 {
@@ -2605,14 +2611,14 @@ MagickExport MagickPassFail OpenBlob(const ImageInfo *image_info,Image *image,
                     const MagickInfo
                       *magick_info;
                 
-                    struct stat
+                    MagickStatStruct_t
                       attributes;
 
                     magick_info=GetMagickInfo(image_info->magick,&image->exception);
                     if ((magick_info != (const MagickInfo *) NULL) &&
                         magick_info->blob_support)
                       {
-                        if ((fstat(fileno(image->blob->file),&attributes) >= 0) &&
+                        if ((MagickFstat(fileno(image->blob->file),&attributes) >= 0) &&
                             (attributes.st_size > MinBlobExtent) &&
                             (attributes.st_size == (off_t) ((size_t) attributes.st_size)))
                           {
@@ -3843,7 +3849,7 @@ MagickExport magick_off_t SeekBlob(Image *image,const magick_off_t offset,
       break;
     case FileStream:
     {
-      if (fseek(image->blob->file,(off_t) offset,whence) < 0)
+      if (MagickFseek(image->blob->file,offset,whence) < 0)
         return(-1);
       image->blob->offset=TellBlob(image);
       break;
@@ -4097,7 +4103,7 @@ MagickExport magick_off_t TellBlob(const Image *image)
       break;
     case FileStream:
     {
-      offset=ftell(image->blob->file);
+      offset=MagickFtell(image->blob->file);
       break;
     }
     case StandardStream:
@@ -4341,7 +4347,7 @@ MagickExport MagickPassFail WriteBlobFile(Image *image,const char *filename)
   int
     file;
   
-  struct stat
+  MagickStatStruct_t
     attributes;
   
   unsigned char
@@ -4367,7 +4373,7 @@ MagickExport MagickPassFail WriteBlobFile(Image *image,const char *filename)
   if (file != -1)
     {
       /* st_size has type off_t */
-      if ((fstat(file,&attributes) == 0) &&
+      if ((MagickFstat(file,&attributes) == 0) &&
           (attributes.st_size == (off_t) ((size_t) attributes.st_size)) &&
           (attributes.st_size > (off_t) ((size_t) 0)))
         {

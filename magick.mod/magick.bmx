@@ -90,12 +90,13 @@ Function LoadMagickImage:TMImage( url:Object )
 End Function
 
 Rem
-bbdoc: 
+bbdoc: TMImage is the primary object in Magick and represents a single image frame.
 End Rem
 Type TMImage
 
 	Field imagePtr:Byte Ptr
 	
+	' this is PRIVATE.... you should use getPixmap() to retrieve it!!!!
 	Field pixmap:TPixmap
 
 	Rem
@@ -190,12 +191,14 @@ Type TMImage
 	
 	End Function
 
+	'internal method
 	Method _calc()
 		bmx_magick_image_getsize(imagePtr, Varptr width, Varptr height)
 		bitsPerPixel = bmx_magick_image_getdepth(imagePtr)
 		pitch = width * (bitsPerPixel / 8)
 	End Method
 	
+	'internal method
 	Method _invertalpha()
 		Local offset:Byte Ptr = pixmap.pixels + 3
 		For Local i:Int = 0 Until width * height
@@ -204,6 +207,7 @@ Type TMImage
 		Next
 	End Method
 	
+	'internal method
 	Method _updatePixmap()
 		' (re)calculate image size
 		_calc()
@@ -220,7 +224,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns a pixmap representation of the image.
 	End Rem
 	Method getPixmap:TPixmap()
 	
@@ -266,10 +270,11 @@ Type TMImage
 	End Method
 	
 	'method bmx_magick_image_affinetransform(, const DrawableAffine &affine )
+	' TODO
 	'End Method
 	
 	Rem
-	bbdoc: Annotate using specified @text, and placement @location.
+	bbdoc: Annotates using specified @text, and placement @location.
 	End Rem
 	Method annotate(text:String, location:Object )
 		If TMGeometry(location) Then
@@ -313,7 +318,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: Extract channel from image.
+	bbdoc: Extracts channel from image.
 	about: Use this option to extract a particular channel from  the image.
 	MatteChannel for example, is useful for extracting the opacity values from an image.
 	End Rem
@@ -322,27 +327,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: Channel modulus depth.
-	about: The channel modulus depth represents the minimum number of bits required to support the channel
-	without loss. Setting the channel's modulus depth modifies the channel (i.e. discards resolution) if the
-	requested modulus depth is less than the current modulus depth, otherwise the channel is not altered.
-	There is no attribute associated with the modulus depth so the current modulus depth is obtained by
-	inspecting the pixels. As a result, the depth returned may be less than the most recently set channel
-	depth. Subsequent image processing may result in increasing the channel depth.
-	End Rem
-	Method channelDepth(channel:Int, depth:Int)
-		bmx_magick_image_channeldepth(imagePtr, channel, depth)
-	End Method
-	
-	Rem
-	bbdoc: Returns the channel modulus depth.
-	End Rem
-	Method getChannelDepth:Int(channel:Int)
-		Return bmx_magick_image_getchanneldepth(imagePtr, channel)
-	End Method
-	
-	Rem
-	bbdoc: Charcoal effect image (looks like charcoal sketch).
+	bbdoc: Charcoal effects image (looks like charcoal sketch).
 	about: The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
 	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels.
 	End Rem
@@ -352,7 +337,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: Chop image (remove vertical or horizontal subregion of image)
+	bbdoc: Chops image (remove vertical or horizontal subregion of image)
 	End Rem
 	Method chop(geometry:Object)
 		If TMGeometry(geometry) Then
@@ -365,7 +350,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Colorize image with pen color, using specified percent opacity for red, green, and blue quantums.
 	End Rem
 	Method colorize(opacityRed:Int, opacityGreen:Int, opacityBlue:Int, penColor:Object)
 		If TMColor(penColor) Then
@@ -378,7 +363,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Colorize image with pen color, using specified percent opacity.
 	End Rem
 	Method colorizeColor(opacity:Int, penColor:Object)
 		If TMColor(penColor) Then
@@ -401,6 +386,28 @@ Type TMImage
 	End Method
 	
 	Rem
+	bbdoc: Compare current image with another image.
+	about: Sets meanErrorPerPixel , normalizedMaxError , and normalizedMeanError in the current image. False
+	is returned if the images are identical. An ErrorOption exception is thrown if the reference image columns, rows,
+	colorspace, or matte differ from the current image.
+	End Rem
+	Method compareImage:Int(image:TMImage)
+	' TODO
+	End Method
+	
+	Method composite(compositeImage:TMImage, xOffset:Int, yOffset:Int, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	'TODO
+	End Method
+
+	Method compositeGeometry(compositeImage:TMImage, geometry:Object, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	'TODO
+	End Method
+
+	Method compositeGravity(compositeImage:TMImage, gravity:Int, operator:Int = COMPOSITE_INCOMPOSITEOP)
+	'TODO
+	End Method
+	
+	Rem
 	bbdoc: Returns a copy of the image.
 	End Rem
 	Method copy:TMImage()
@@ -408,13 +415,18 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Contrast image (enhance intensity differences in image)
 	End Rem
 	Method contrast(sharpen:Int)
+		bmx_magick_image_contrast(imagePtr, sharpen)
 	End Method
 	
-	'Method convolve(order:Int, kernel:Double[])
-	'End Method
+	Rem
+	bbdoc: 
+	End Rem
+	Method convolve(order:Int, kernel:Double[])
+	'TODO
+	End Method
 	
 	Rem
 	bbdoc: Crop image (subregion of original image)
@@ -422,8 +434,10 @@ Type TMImage
 	Method crop(geometry:Object)
 		If TMGeometry(geometry) Then
 			bmx_magick_image_crop(imagePtr, TMGeometry(geometry).geometryPtr)
+			imageChanged = True
 		ElseIf String(geometry) Then
 			bmx_magick_image_croptxt(imagePtr, String(geometry))
+			imageChanged = True
 		End If
 	End Method
 	
@@ -446,16 +460,19 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Method draw(drawable:TMDrawable)
+	'TODO
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method drawList(drawables:TList)
+	'TODO
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Edges image (hilight edges in image).
+	about: The radius is the radius of the pixel neighborhood.. Specify a radius of zero for automatic radius selection.
 	End Rem
 	Method edge(radius:Double = 0.0)
 		bmx_magick_image_edge(imagePtr, radius)
@@ -504,13 +521,228 @@ Type TMImage
 		bmx_magick_image_flip(imagePtr)
 		imageChanged = True
 	End Method
+	
+	Rem
+	bbdoc: Flood-fill color across pixels that match the color of the target pixel and are neighbors of the target pixel and optionally stopping at pixels matching specified border color.
+	about: Uses current fuzz setting when determining color match
+	End Rem
+	Method floodFillColor(x:Int, y:Int, fillColor:Object, borderColor:Object = Null)
+		If borderColor Then
+			If TMColor(borderColor) Then
+				If TMColor(fillColor) Then
+					bmx_magick_image_floodfillcolorcc(imagePtr, x, y, TMColor(fillColor).colorPtr, TMColor(borderColor).colorPtr)
+				ElseIf String(fillColor) Then
+					bmx_magick_image_floodfillcolorsc(imagePtr, x, y, String(fillColor), TMColor(borderColor).colorPtr)
+				End If
+			ElseIf String(borderColor) Then
+				If TMColor(fillColor) Then
+					bmx_magick_image_floodfillcolorcs(imagePtr, x, y, TMColor(fillColor).colorPtr, String(borderColor))
+				ElseIf String(fillColor) Then
+					bmx_magick_image_floodfillcolorss(imagePtr, x, y, String(fillColor), String(borderColor))
+				End If
+			End If
+		Else
+			If TMColor(fillColor) Then
+				bmx_magick_image_floodfillcolorcc(imagePtr, x, y, TMColor(fillColor).colorPtr, Null)
+			ElseIf String(fillColor) Then
+				bmx_magick_image_floodfillcolorsc(imagePtr, x, y, String(fillColor), Null)
+			End If
+		End If
+	End Method
+	
+	Method floodFillColorGeom(point:Object, fillColor:Object, borderColor:Object = Null)
+	'TODO
+	End Method
 
+	Method floodFillOpacity(x:Int, y:Int, opacity:Int, paintMethod:Int)
+	'TODO
+	End Method
+	
+	Method floodFillTexture(x:Int, y:Int, texture:TMImage, borderColor:Object = Null)
+	'TODO
+	End Method
+	
+	Method floodFillTextureGeom(point:Object, texture:TMImage, borderColor:Object = Null)
+	'TODO
+	End Method
+	
 	Rem
 	bbdoc: Flop image (reflect each scanline in the horizontal direction).
 	End Rem
 	Method flop()
 		bmx_magick_image_flop(imagePtr)
 		imageChanged = True
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method frame(geometry:Object)
+		If TMGeometry(geometry) Then
+			bmx_magick_image_frame(imagePtr, TMGeometry(geometry).geometryPtr)
+		ElseIf String(geometry)
+			bmx_magick_image_frametxt(imagePtr, String(geometry))
+		End If
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method frameBevel(width:Int, height:Int, innerBevel:Int = 6, outerBevel:Int = 6)
+		bmx_magick_image_framebevel(imagePtr, width, height, innerBevel, outerBevel)
+	End Method
+	
+	Rem
+	bbdoc: Gamma correct image (uniform red, green, and blue correction).
+	End Rem
+	Method gamma(g:Double)
+		bmx_magick_image_gamma(imagePtr, g)
+	End Method
+	
+	Rem
+	bbdoc: Gamma correct red, green, and blue channels of image.
+	End Rem
+	Method gammaRGB(r:Double, g:Double, b:Double)
+		bmx_magick_image_gammargb(imagePtr, r, g, b)
+	End Method
+
+	Rem
+	bbdoc: Gaussian blur image.
+	about: The number of neighbor pixels to be included in the convolution mask is specified by @width.
+	For example, a width of one gives a (standard) 3x3 convolution mask. The standard deviation of the gaussian bell curve
+	is specified by @sigma.
+	End Rem
+	Method gaussianBlur(width:Double, sigma:Double)
+		bmx_magick_image_gaussianblur(imagePtr, width, sigma)
+	End Method
+	
+	Rem
+	bbdoc: Gaussian blur an image channel.
+	about: The @channel parameter specifies the channel to blur. The number of neighbor pixels to be included in the
+	convolution mask is specified by @width.  For example, a width of one gives a (standard) 3x3 convolution mask. The
+	standard deviation of the gaussian bell curve is specified by @sigma.
+	End Rem
+	Method gaussianBlurChannel(channel:Int, width:Double = 0.0, sigma:Double = 1.0)
+		bmx_magick_image_gaussianblurchannel(imagePtr, channel, width, sigma)
+	End Method
+	
+	Rem
+	bbdoc: Implodes image (special effect).
+	End Rem
+	Method implode(factor:Double)
+		bmx_magick_image_implode(imagePtr, factor)
+	End Method
+	
+	Rem
+	bbdoc: Assigns a label to an image.
+	about: Use this option to  assign  a  specific label to the image. Optionally you can include the image filename, type,
+	width, height, or scene number in the label by embedding  special format characters. If the first character of
+	string is @, the image label is read from a file titled by the remaining characters in the string. When converting to
+	Postscript, use this  option to specify a header string to print above the image.
+	End Rem
+	Method label(text:String)
+		bmx_magick_image_label(imagePtr, text)
+	End Method
+	
+	Rem
+	bbdoc: Levels image.
+	about: Adjusts the levels of the image by scaling the colors falling between specified white and black points to the full
+	available quantum range. The parameters provided represent the black, mid (gamma), and white points.  The black point
+	specifies the darkest color in the image. Colors darker than the black point are set to zero. Mid point (gamma) specifies
+	a gamma correction to apply to the image. White point specifies the lightest color in the image.  Colors brighter than
+	the white point are set to the maximum quantum value. The black and white point have the valid range 0 to MaxRGB while
+	mid (gamma) has a useful range of 0 to ten.
+	End Rem
+	Method level(blackPoint:Double, whitePoint:Double, midPoint:Double = 1.0)
+		bmx_magick_image_level(imagePtr, blackPoint, whitePoint, midPoint)
+	End Method
+	
+	Rem
+	bbdoc: Levels image channel.
+	about: Adjust the levels of the image channel by scaling the values falling between specified white and black points
+	to the full available quantum range. The parameters provided represent the black, mid (gamma), and white points. The
+	black point specifies the darkest color in the image. Colors darker than the black point are set to zero. Mid point
+	(gamma) specifies a gamma correction to apply to the image. White point specifies the lightest color in the image.
+	Colors brighter than the white point are set to the maximum quantum value. The black and white point have the valid
+	range 0 to MaxRGB while mid (gamma) has a useful range of 0 to ten.
+	End Rem
+	Method levelChannel(channel:Int, blackPoint:Double, whitePoint:Double, midPoint:Double = 1.0)
+		bmx_magick_image_levelchannel(imagePtr, channel, blackPoint, whitePoint, midPoint)
+	End Method
+	
+	Rem
+	bbdoc: Magnifies image by integral size.
+	End Rem
+	Method magnify()
+		bmx_magick_image_magnify(imagePtr)
+	End Method
+	
+	Method map(mapImage:TMImage, dither:Int = False)
+	'TODO
+	End Method
+	
+	Method matteFloodfill(target:Object, opacity:Int, x:Int, y:Int, paintMethod:Int)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Filters image by replacing each pixel component with the median color in a circular neighborhood.
+	End Rem
+	Method medianFilter(radius:Double = 0.0)
+		bmx_magick_image_medianfilter(imagePtr, radius)
+	End Method
+	
+	Rem
+	bbdoc: Reduces image by integral size.
+	End Rem
+	Method minify()
+		bmx_magick_image_minify(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Prepares to update image.
+	about: Ensures that there is only one reference to the underlying image so that the underlying image may be
+	safely modified without effecting previous generations of the image. Copies the underlying image to a new image
+	if necessary.
+	End Rem
+	Method modifyImage()
+		bmx_magick_image_modifyImage(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Modulates percent hue, saturation, and brightness of an image.
+	about: Modulation of saturation and brightness is as a ratio of the current value (1.0 for no change). Modulation of
+	hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument
+	range of 0 to 2.0 (1.0 for no change).
+	End Rem
+	Method modulate(brightness:Double, saturation:Double, hue:Double)
+		bmx_magick_image_modulate(imagePtr, brightness, saturation, hue)
+	End Method
+	
+	Rem
+	bbdoc: Motion blurs image with specified blur factor.
+	The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
+	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels. The @angle parameter specifies
+	the angle the object appears to be comming from (zero degrees is from the right).
+	End Rem
+	Method motionBlur(radius:Double, sigma:Double, angle:Double)
+		bmx_magick_image_motionblur(imagePtr, radius, sigma, angle)
+	End Method
+	
+	Rem
+	bbdoc: Negates colors in image.
+	about: Replaces every pixel with its complementary color (white becomes black, yellow becomes blue, etc.).  Set
+	grayscale to only negate grayscale values in image.
+	End Rem
+	Method negate(grayscale:Int = False)
+		bmx_magick_image_negate(imagePtr, grayscale)
+	End Method
+	
+	Rem
+	bbdoc: Normalizes image (increase contrast by normalizing the pixel values to span the full range of color values).
+	End Rem
+	Method normalize()
+		bmx_magick_image_normalize(imagePtr)
 	End Method
 	
 	Rem
@@ -531,6 +763,31 @@ Type TMImage
 	Method opacity(value:Int)
 		bmx_magick_image_opacity(imagePtr, value)
 		imageChanged = True
+	End Method
+	
+	Method opaque(opaqueColor:Object, penColor:Object)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Ping is similar to read except only enough of the image is read to determine the image columns, rows, and filesize.
+	about: The columns , rows , and fileSize attributes are valid after invoking ping.  The image data is not valid after
+	calling ping.
+	End Rem
+	Method ping(imageSpec:String)
+		bmx_magick_image_ping(imagePtr, imageSpec)
+	End Method
+	
+	Rem
+	bbdoc: Quantizes image (reduce number of colors).
+	about: Set @measureError to true in order to calculate error attributes.
+	End Rem
+	Method quantize(measureError:Int = False)
+		bmx_magick_image_quantize(imagePtr, measureError)
+	End Method
+	
+	Method raise(geometry:Object)
+	'TODO
 	End Method
 	
 	Rem
@@ -554,6 +811,27 @@ Type TMImage
 		End If
 	End Method
 	
+	Rem
+	bbdoc: Reduces noise in image using a noise peak elimination filter.
+	End Rem
+	Method reduceNoise(order:Double = 3.0)
+		bmx_magick_image_reducenoise(imagePtr, order)
+	End Method
+	
+	Method randomThreshold(thresholds:Object)
+	'TODO
+	End Method
+	
+	Method randomThresholdChannel(thresholds:Object, channel:Int)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Rolls image (rolls image vertically and horizontally by specified number of columnms and rows).
+	End Rem
+	Method roll(columns:Int, rows:Int)
+		bmx_magick_image_roll(imagePtr, columns, rows)
+	End Method
 	
 	Rem
 	bbdoc: Rotate image counter-clockwise by specified number of degrees.
@@ -563,6 +841,146 @@ Type TMImage
 		imageChanged = True
 	End Method
 	
+	Method sample(geometry:Object)
+	'TODO
+	End Method
+	
+	Method scale(geometry:Object)
+	'TODO
+	End Method
+	
+	Method segment(clusterThreshold:Double = 1.0, smoothingThreshold:Double = 1.5)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Shades image using distant light source.
+	about: Specify @azimuth and @elevation as the  position  of  the light source. By default, the shading results as a
+	grayscale image. Set @colorShading to true to shade the red, green, and blue components of the image.
+	End Rem
+	Method shade(azimuth:Double = 30, elevation:Double = 30, colorShading:Int = False)
+		bmx_magick_image_shade(imagePtr, azimuth, elevation, colorShading)
+	End Method
+	
+	Rem
+	bbdoc: Sharpens pixels in image.
+	about: The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
+	The @sigma parameter specifies the standard deviation of the Laplacian, in pixels.
+	End Rem
+	Method sharpen(radius:Double = 1.0, sigma:Double = 0.5)
+		bmx_magick_image_sharpen(imagePtr, radius, sigma)
+	End Method
+	
+	Rem
+	bbdoc: Sharpens pixel quantums in an image channel
+	about: The @channel parameter specifies the channel to sharpen. The @radius parameter specifies the radius of the
+	Gaussian, in pixels, not counting the center pixel. The @sigma parameter specifies the standard deviation of the
+	Laplacian, in pixels.
+	End Rem
+	Method sharpenChannel(channel:Int, radius:Double = 0.0, sigma:Double = 1.0)
+		bmx_magick_image_sharpenchannel(imagePtr, channel, radius, sigma)
+	End Method
+	
+	Method shave(geometry:Object)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Shears image (creates parallelogram by sliding image by X or Y axis). 
+	about: Shearing slides one edge of an image along the X  or  Y axis,  creating  a parallelogram.  An
+	X direction shear slides an edge along the X axis, while  a  Y  direction shear  slides  an edge along the Y axis.
+	The amount of the shear is controlled by a shear angle.  For X direction  shears,  x  degrees is measured relative to
+	the Y axis, and similarly, for Y direction shears  y  degrees is measured relative to the X axis. Empty triangles
+	left over from shearing the  image  are filled  with  the  color  defined as borderColor. 
+	End Rem
+	Method shear(xShearAngle:Double, yShearAngle:Double)
+		bmx_magick_image_shear(imagePtr, xShearAngle, yShearAngle)
+	End Method
+	
+	Rem
+	bbdoc: Solarizes image (similar to effect seen when exposing a photographic film to light during the development process).
+	End Rem
+	Method solarize(factor:Double = 50.0)
+		bmx_magick_image_solarize(imagePtr, factor)
+	End Method
+	
+	Rem
+	bbdoc: Spreads pixels randomly within image by specified amount.
+	End Rem
+	Method spread(amount:Int = 3)
+		bmx_magick_image_spread(imagePtr, amount)
+	End Method
+	
+	Method stegano(watermark:TMImage)
+	'TODO
+	End Method
+	
+	Method stereo(rightImage:TMImage)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Swirls image (image pixels are rotated by degrees).
+	End Rem
+	Method swirl(degrees:Double)
+		bmx_magick_image_swirl(imagePtr, degrees)
+	End Method
+	
+	Method texture(txt:TMImage)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Threshold image
+	End Rem
+	Method threshold(value:Double)
+		bmx_magick_image_threshold(imagePtr, value)
+	End Method
+	
+	Method transform(imageGeometry:Object, cropGeometry:Object = Null)
+	'TODO
+	End Method
+	
+	Method transparent(color:Object)
+	'TODO
+	End Method
+	
+	Rem
+	bbdoc: Trims edges that are the background color from the image.
+	End Rem
+	Method Trim()
+		bmx_magick_image_trim(imagePtr)
+	End Method
+	
+	Rem
+	bbdoc: Sharpens the image using the unsharp mask algorithm.
+	about: The @radius parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel.
+	The @sigma parameter specifies the standard deviation of the Gaussian, in pixels. The @amount parameter specifies
+	the percentage of the difference between the original and the blur image that is added back into the original. The
+	@threshold parameter specifies the threshold in pixels needed to apply the diffence amount.
+	End Rem
+	Method unsharpmask(radius:Double, sigma:Double, amount:Double, threshold:Double)
+		bmx_magick_image_unsharpmask(imagePtr, radius, sigma, amount, threshold)
+	End Method
+	
+	Rem
+	bbdoc: Sharpens an image channel using the unsharp mask algorithm.
+	about: The @channel parameter specifies the channel to sharpen. The @radius parameter specifies the radius
+	of the Gaussian, in pixels, not counting the center pixel. The @sigma parameter specifies the standard deviation
+	of the Gaussian, in pixels. The @amount parameter specifies the percentage of the difference between the original
+	and the blur image that is added back into the original. The @threshold parameter specifies the threshold in pixels
+	needed to apply the diffence amount.
+	End Rem
+	Method unsharpmaskChannel(channel:Int, radius:Double, sigma:Double, amount:Double, threshold:Double)
+		bmx_magick_image_unsharpmaskchannel(imagePtr, channel, radius, sigma, amount, threshold)
+	End Method
+	
+	Rem
+	bbdoc: Alters an image along a sine wave.
+	End Rem
+	Method wave(amplitude:Double = 25.0, wavelength:Double = 150.0)
+		bmx_magick_image_wave(imagePtr, amplitude, wavelength)
+	End Method
 	
 	Rem
 	bbdoc: 
@@ -572,7 +990,7 @@ Type TMImage
 	End Method
 
 	Rem
-	bbdoc: Zoom image to specified size.
+	bbdoc: Zooms image to specified size.
 	End Rem
 	Method zoom(geometry:Object)
 		If TMGeometry(geometry) Then
@@ -723,9 +1141,11 @@ Type TMImage
 	End Method
 	
 	Method getBorderColor:TMColor()
+	' TODO
 	End Method
 
 	Method getBoundingBox:TMGeometry()
+	' TODO
 	End Method
 	
 	Rem
@@ -733,11 +1153,14 @@ Type TMImage
 	End Rem
 	Method boxColor(boxColor:Object)
 		If TMColor(boxColor) Then
+	' TODO
 		ElseIf String(boxColor)
+	' TODO
 		End If
 	End Method
 	
 	Method getBoxColor:TMColor()
+	' TODO
 	End Method
 	
 	Rem
@@ -746,6 +1169,26 @@ Type TMImage
 	Function cacheThreshold(threshold:Int)
 		bmx_magick_image_cachethreshold(threshold)
 	End Function
+	
+	Rem
+	bbdoc: Channel modulus depth.
+	about: The channel modulus depth represents the minimum number of bits required to support the channel
+	without loss. Setting the channel's modulus depth modifies the channel (i.e. discards resolution) if the
+	requested modulus depth is less than the current modulus depth, otherwise the channel is not altered.
+	There is no attribute associated with the modulus depth so the current modulus depth is obtained by
+	inspecting the pixels. As a result, the depth returned may be less than the most recently set channel
+	depth. Subsequent image processing may result in increasing the channel depth.
+	End Rem
+	Method channelDepth(channel:Int, depth:Int)
+		bmx_magick_image_channeldepth(imagePtr, channel, depth)
+	End Method
+	
+	Rem
+	bbdoc: Returns the channel modulus depth.
+	End Rem
+	Method getChannelDepth:Int(channel:Int)
+		Return bmx_magick_image_getchanneldepth(imagePtr, channel)
+	End Method
 	
 	Rem
 	bbdoc: 
@@ -811,12 +1254,15 @@ Type TMImage
 	End Method
 	
 	Method getClassType:Int()
+	' TODO
 	End Method
 	
 	Method clipMask(clipMask:TMImage)
+	' TODO
 	End Method
 	
 	Method getClipMask:TMImage()
+	' TODO
 	End Method
 	
 	Method colorFuzz(fuzz:Double)
@@ -824,6 +1270,7 @@ Type TMImage
 	End Method
 	
 	Method getColorFuzz:Double()
+	' TODO
 	End Method
 	
 	Rem
@@ -838,24 +1285,31 @@ Type TMImage
 	End Method
 	
 	Method getColorMap:TMColor(index:Int)
+	' TODO
 	End Method
 	
 	Method colorMapSize(entries:Int)
+	' TODO
 	End Method
 	
 	Method getColorMapSize:Int()
+	' TODO
 	End Method
 	
 	Method colorSpace(colorSpace:Int)
+	' TODO
 	End Method
 	
 	Method getColorSpace:Int()
+	' TODO
 	End Method
 	
 	Method getColumns:Int()
+	' TODO
 	End Method
 	
 	Method getComment:String()
+	' TODO
 	End Method
 
 	Rem
@@ -872,6 +1326,270 @@ Type TMImage
 		Return bmx_magick_image_getcomposite(imagePtr)
 	End Method
 	
+	Method compressType(_type:Int)
+	' TODO
+	End Method
+	
+	Method getCompressType:Int()
+	' TODO
+	End Method
+	
+	Method defineValue(magick:String, key:String, value:String)
+	' TODO
+	End Method
+	
+	Method getDefinedValue:String(magick:String, key:String)
+	' TODO
+	End Method
+	
+	Method defineSet(magick:String, key:String, flag:Int)
+	' TODO
+	End Method
+	
+	Method getDefinedSet:Int(magick:String, key:String)
+	' TODO
+	End Method
+	
+	Method density(geometry:Object)
+	' TODO
+	End Method
+	
+	Method getDensity:TMGeometry()
+	' TODO
+	End Method
+	
+	Method depth(depth:Int)
+	' TODO
+	End Method
+	
+	Method getDepth:Int()
+	' TODO
+	End Method
+	
+	Method directory:String()
+	' TODO
+	End Method
+	
+	Method endian(endian:Int)
+	' TODO
+	End Method
+	
+	Method getEndian:Int()
+	' TODO
+	End Method
+	
+	Method filename(filename:String)
+	' TODO
+	End Method
+	
+	Method getFilename:String()
+	' TODO
+	End Method
+	
+	Method FileSize:Int()
+	' TODO
+	End Method
+	
+	Method fillColor(color:Object)
+	' TODO
+	End Method
+	
+	Method getFillColor:TMColor()
+	' TODO
+	End Method
+	
+	Method fillRule(rule:Int)
+	' TODO
+	End Method
+	
+	Method getFillRule:Int()
+	' TODO
+	End Method
+	
+	Method fillPattern(pattern:TMImage)
+	' TODO
+	End Method
+	
+	Method getFillPattern:TMImage()
+	' TODO
+	End Method
+	
+	Method filterType(filterType:Int)
+	' TODO
+	End Method
+	
+	Method getFilterType:Int()
+	' TODO
+	End Method
+	
+	Method font(font:String)
+	' TODO
+	End Method
+	
+	Method getFont:String()
+	' TODO
+	End Method
+	
+	Method fontPointSize(pointSize:Double)
+	' TODO
+	End Method
+	
+	Method getFontPointSize:Double()
+	' TODO
+	End Method
+	
+	'Method fontTypeMetrics(text:String, metrics...)
+	' TODO
+	'End Method
+	
+	Method getFormat:String()
+	' TODO
+	End Method
+	
+	Method getGamma:Double()
+	' TODO
+	End Method
+	
+	Method getGeometry:TMGeometry()
+	' TODO
+	End Method
+	
+	Method gifDisposeMethod(disposeMethod:Int)
+	' TODO
+	End Method
+	
+	Method getGifDisposeMethod:Int()
+	' TODO
+	End Method
+	
+	Method iccColorProfile(profile:TMBlob)
+	' TODO
+	End Method
+	
+	Method getIccColorProfile:TMBlob()
+	' TODO
+	End Method
+	
+	Method interlaceType(interlace:Int)
+	' TODO
+	End Method
+	
+	Method getInterlaceType:Int()
+	' TODO
+	End Method
+	
+	Method iptcProfile(profile:TMBlob)
+	' TODO
+	End Method
+	
+	Method getIptcProfile:TMBlob()
+	' TODO
+	End Method
+	
+	Method isValid(isValid:Int)
+	' TODO
+	End Method
+	
+	Method getIsValid:Int()
+	' TODO
+	End Method
+	
+	Method getLabel:String()
+	' TODO
+	End Method
+	
+	Method lineWidth(width:Double)
+	' TODO
+	End Method
+	
+	Method GetLineWidth:Double()
+	' TODO
+	End Method
+	
+	Method magick(magick:String)
+	' TODO
+	End Method
+	
+	Method getMagick:String()
+	' TODO
+	End Method
+	
+	Method matte(matteFlag:Int)
+	' TODO
+	End Method
+	
+	Method getMatte:Int()
+	' TODO
+	End Method
+	
+	Method matteColor(color:Object)
+	' TODO
+	End Method
+	
+	Method getMatteColor:TMColor()
+	' TODO
+	End Method
+	
+	Method getMeanErrorPerPixel:Double()
+	' TODO
+	End Method
+	
+	Method modulusDepth(depth:Int)
+	' TODO
+	End Method
+	
+	Method getModulusDepth:Int()
+	' TODO
+	End Method
+
+	Method monochrome(flag:Int)
+	' TODO
+	End Method
+	
+	Method getMonochrome:Int()
+	' TODO
+	End Method
+	
+	Method getNormalizedMaxError:Double()
+	' TODO
+	End Method
+	
+	Method getNormalizedMeanError:Double()
+	' TODO
+	End Method
+	
+	Method orientation(orientation:Int)
+	' TODO
+	End Method
+	
+	Method getOrientation:Int()
+	' TODO
+	End Method
+	
+	Method page(pageSize:Object)
+	' TODO
+	End Method
+	
+	Method getPage:TMGeometry()
+	' TODO
+	End Method
+	
+	Method penColor(color:Object)
+	' TODO
+	End Method
+	
+	Method getPenColor:TMColor()
+	' TODO
+	End Method
+	
+	Method penTexture(texture:TMImage)
+	' TODO
+	End Method
+	
+	Method getPenTexture:TMImage()
+	' TODO
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -884,76 +1602,87 @@ Type TMImage
 	End Method
 	
 	Method getPixelColor:TMColor(x:Int, y:Int)
+	' TODO
+	End Method
+	
+	Method profile(name:String, colorProfile:TMBlob)
+	' TODO
+	End Method
+	
+	Method getProfile:TMBlob(name:String)
+	' TODO
 	End Method
 	
 	Method quality(value:Int)
+	' TODO
 	End Method
 	
 	Method getQuality:Int()
+	' TODO
 	End Method
 	
 	Method quantizeColors(colors:Int)
+	' TODO
+	End Method
+
+	Method getQuantizeColors:Int()
+	' TODO
 	End Method
 	
 	Method quantizeColorSpace(colorSpace:Int)
+	' TODO
+	End Method
+
+	Method getQuantizeColorSpace:Int()
+	' TODO
 	End Method
 	
 	Method quantizeDither(flag:Int)
+	' TODO
+	End Method
+
+	Method getQuantizeDither:Int()
+	' TODO
 	End Method
 	
 	Method quantizeTreeDepth(treeDepth:Int)
+	' TODO
+	End Method
+
+	Method getQuantizeTreeDepth:Int()
+	' TODO
 	End Method
 	
-	
-	
-	Method strokeColor(color:Object)
-		If TMColor(color) Then
-			bmx_magick_image_strokecolor(imagePtr, TMColor(color).colorPtr)
-		ElseIf String(color) Then
-			bmx_magick_image_strokecolortxt(imagePtr, String(color))
-		End If
+	Method renderingIntent(intent:Int)
+	' TODO
 	End Method
 	
-	Method getStrokeColor:TMColor()
+	Method getRenderingIntent:Int()
+	' TODO
 	End Method
 	
-	Method strokeDashOffset(offset:Double)
+	Method resolutionUnits(units:Int)
+	' TODO
 	End Method
 	
-	Method getStrokeDashOffset:Double()
+	Method getResolutionUnits:Int()
+	' TODO
 	End Method
 	
-	'Method strokeDashArray()
-	'End Method
-	
-	Method strokeLineCap(lineCap:Int)
+	Method getRows:Int()
+	' TODO
 	End Method
 	
-	Method getStrokeLineCap:Int()
+	Method scene(scene:Int)
+	' TODO
 	End Method
 	
-	Method strokeLineJoin(lineJoin:Int)
+	Method getScene:Int()
+	' TODO
 	End Method
 	
-	Method getStrokeLineJoin:Int()
-	End Method
-	
-	Method strokeMiterLimit(miterLimit:Int)
-	End Method
-	
-	Method getStrokeMiterLimit:Int()
-	End Method
-	
-	Method strokeWidth(width:Double)
-	End Method
-	
-	Method getStrokeWidth:Double()
-	End Method
-	
-	Method strokePattern(pattern:TMImage)
-	End Method
-	
-	Method getStrokePattern:TMImage()
+	Method getSignature:String(force:Int = False)
+	' TODO
 	End Method
 	
 	Rem
@@ -968,6 +1697,154 @@ Type TMImage
 		End If
 	End Method
 	
+	Method strokeAntiAlias(flag:Int)
+	' TODO
+	End Method
+	
+	Method getStrokeAntiAlias:Int()
+	' TODO
+	End Method
+	
+	Method strokeColor(color:Object)
+		If TMColor(color) Then
+			bmx_magick_image_strokecolor(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color) Then
+			bmx_magick_image_strokecolortxt(imagePtr, String(color))
+		End If
+	End Method
+	
+	Method getStrokeColor:TMColor()
+	' TODO
+	End Method
+	
+	Method strokeDashArray(array:Double[])
+	' TODO
+	End Method
+	
+	Method getStrokeDashArray:Double[]()
+	' TODO
+	End Method
+	
+	Method strokeDashOffset(offset:Double)
+	' TODO
+	End Method
+	
+	Method getStrokeDashOffset:Double()
+	' TODO
+	End Method
+	
+	Method strokeLineCap(lineCap:Int)
+	' TODO
+	End Method
+	
+	Method getStrokeLineCap:Int()
+	' TODO
+	End Method
+	
+	Method strokeLineJoin(lineJoin:Int)
+	' TODO
+	End Method
+	
+	Method getStrokeLineJoin:Int()
+	' TODO
+	End Method
+	
+	Method strokeMiterLimit(miterLimit:Int)
+	' TODO
+	End Method
+	
+	Method getStrokeMiterLimit:Int()
+	' TODO
+	End Method
+	
+	Method strokePattern(pattern:TMImage)
+	' TODO
+	End Method
+	
+	Method getStrokePattern:TMImage()
+	' TODO
+	End Method
+	
+	Method strokeWidth(width:Double)
+	' TODO
+	End Method
+	
+	Method getStrokeWidth:Double()
+	' TODO
+	End Method
+	
+	Method subImage(subImage:Int)
+	' TODO
+	End Method
+	
+	Method getSubImage:Int()
+	' TODO
+	End Method
+	
+	Method subRange(subRange:Int)
+	' TODO
+	End Method
+	
+	Method getSubRange:Int()
+	' TODO
+	End Method
+	
+	Method textEncoding(encoding:String)
+	' TODO
+	End Method
+	
+	Method getTextEncoding:String()
+	' TODO
+	End Method
+
+	Method tileName(name:String)
+	' TODO
+	End Method
+	
+	Method getTileName:String()
+	' TODO
+	End Method
+	
+	Method getTotalColors:Int()
+	' TODO
+	End Method
+	
+	Method transformOrigin(x:Double, y:Double)
+	' TODO
+	End Method
+	
+	Method transformRotation(angle:Double)
+	' TODO
+	End Method
+	
+	Method transformReset()
+	' TODO
+	End Method
+	
+	Method transformScale(sx:Double, sy:Double)
+	' TODO
+	End Method
+	
+	Method transformSkewX(skew:Double)
+	' TODO
+	End Method
+	
+	Method transformSkewY(skew:Double)
+	' TODO
+	End Method
+	
+	Method getType:Int()
+	' TODO
+	End Method
+	
+	Method getXResolution:Double()
+	' TODO
+	End Method
+	
+	Method getYResolution:Double()
+	' TODO
+	End Method
+	
 End Type
 
 Rem
@@ -976,7 +1853,118 @@ End Rem
 Type TMGeometry
 
 	Field geometryPtr:Byte Ptr
+	
+	Function _create:TMGeometry(geometryPtr:Byte Ptr)
+		If geometryPtr Then
+			Local this:TMGeometry = New TMGeometry
+			this.geometryPtr = geometryPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TMGeometry(geometry:String)
+	' TODO
+	End Method
+	
+	Method CreateAttr:TMGeometry(width:Int, height:Int, xOffset:Int = 0, yOffset:Int = 0, xNegative:Int = False, yNegative:Int = False)
+	' TODO
+	End Method
+	
+	Method setWidth(width:Int)
+	' TODO
+	End Method
+	
+	Method getWidth:Int()
+	' TODO
+	End Method
+	
+	Method setHeight(height:Int)
+	' TODO
+	End Method
+	
+	Method getHeight:Int()
+	' TODO
+	End Method
+	
+	Method setXOffset(offset:Int)
+	' TODO
+	End Method
+	
+	Method getXOffset:Int()
+	' TODO
+	End Method
+	
+	Method setYOffset(offset:Int)
+	' TODO
+	End Method
+	
+	Method getYOffset:Int()
+	' TODO
+	End Method
+	
+	Method setXNegative(value:Int)
+	' TODO
+	End Method
+	
+	Method isXNegative:Int()
+	' TODO
+	End Method
+	
+	Method setYNegative(value:Int)
+	' TODO
+	End Method
+	
+	Method isYNegative:Int()
+	' TODO
+	End Method
+	
+	Method setPercent(value:Int)
+	' TODO
+	End Method
+	
+	Method getPercent:Int()
+	' TODO
+	End Method
+	
+	Method setAspect(value:Int)
+	' TODO
+	End Method
+	
+	Method getAspect:Int()
+	' TODO
+	End Method
+	
+	Method setGreater(value:Int)
+	' TODO
+	End Method
+	
+	Method getGreater:Int()
+	' TODO
+	End Method
+	
+	Method setLess(value:Int)
+	' TODO
+	End Method
+	
+	Method getLess:Int()
+	' TODO
+	End Method
+	
+	Method setIsValid(value:Int)
+	' TODO
+	End Method
+	
+	Method isValid:Int()
+	' TODO
+	End Method
 
+	Method toString:String()
+	' TODO
+	End Method
+	
 End Type
 
 Rem
@@ -1263,7 +2251,7 @@ Type TMCoderInfo
 End Type
 
 
-
+' our pixmap loader :-)
 Type TPixmapLoaderM Extends TPixmapLoader
 
 	Method New()
@@ -1273,9 +2261,8 @@ Type TPixmapLoaderM Extends TPixmapLoader
 
 		Local image:TMImage = TMImage.CreateFromStream(stream)
 
-		If image And image.pixmap Then
-			' copy the pixmap, since image is going to be GC'd at some point
-			Return image.pixmap
+		If image Then
+			Return image.GetPixmap()
 		End If
 
 		Return Null

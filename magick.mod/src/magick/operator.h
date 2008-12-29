@@ -43,7 +43,12 @@ typedef enum
   NoiseUniformQuantumOp,          /* Uniform noise */
   NegateQuantumOp,                /* Negate channel, ignore value */
   GammaQuantumOp,                 /* Adjust image gamma */
-  DepthQuantumOp                  /* Adjust image depth */
+  DepthQuantumOp,                 /* Adjust image depth */
+  /* Below added on 2008-12-13 */
+  LogQuantumOp,                   /* log(quantum*value+1)/log(value+1) */
+  MaxQuantumOp,                   /* Assign value if > quantum */
+  MinQuantumOp,                   /* Assign value if < quantum */
+  PowQuantumOp                    /* Power function: pow(quantum,value) */
  } QuantumOperator;
 
 extern MagickExport MagickPassFail

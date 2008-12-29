@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003 - 2008 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -78,6 +78,8 @@
 */
 
 #include "magick/studio.h"
+#include "magick/color.h"
+#include "magick/log.h"
 #include "magick/monitor.h"
 #include "magick/pixel_cache.h"
 #include "magick/quantize.h"
@@ -87,9 +89,21 @@
   Define declarations.
 */
 #define MaxDimension  3
-#define DeltaTau  0.5
-#define Tau  5.2
-#define WeightingExponent  2
+#define DeltaTau  0.5f
+#define Tau  5.2f
+
+/*
+  Set SquaredClassify to 1 to shortcut use of expensive pow() in the
+  classification code.
+*/
+#define SquaredClassify 1
+
+/* 2 is optimum performance, 2.5 may be better quality */
+#if SquaredClassify
+#  define WeightingExponent  2
+#else
+#  define WeightingExponent  2.5
+#endif
 
 
 /*
@@ -97,7 +111,7 @@
 */
 typedef struct _ExtentPacket
 {
-  long
+  double
     center;
 
   int
@@ -154,6 +168,39 @@ static void
   ScaleSpace(const long *,const double,double *),
   ZeroCrossHistogram(double *,const double,short *);
 
+#if 0
+static void
+DumpDerivativeArray(FILE *stream,const unsigned int entries,
+                    const double *derivative)
+{
+  unsigned int
+    i;
+
+  for (i=0; i < entries; i++)
+    fprintf(stream,"  %03u: %g\n", i, derivative[i]);
+}
+#endif
+static void
+DumpExtremaArray(FILE *stream,const unsigned int entries,
+                 const short *extrema)
+{
+  unsigned int
+    i;
+
+  for (i=0; i < entries; i++)
+    fprintf(stream,"  %03u: %d\n", i, (int) extrema[i]);
+}
+static void
+DumpHistogramArray(FILE *stream,const unsigned int entries,
+                   const long *histogram)
+{
+  unsigned int
+    i;
+
+  for (i=0; i < entries; i++)
+    fprintf(stream,"  %03u: %ld\n", i, histogram[i]);
+}
+
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
@@ -172,9 +219,10 @@ static void
 %
 %  The format of the Classify method is:
 %
-%      unsigned int SegmentImage(Image *image,const ColorspaceType colorspace,
-%        const unsigned int verbose,const double cluster_threshold,
-%        const double smoothing_threshold)
+%      MagickPassFail Classify(Image *image,short **extrema,
+%                              const double cluster_threshold,
+%                              const double weighting_exponent,
+%                              const unsigned int verbose)
 %
 %  A description of each parameter follows.
 %
@@ -185,9 +233,10 @@ static void
 %      represent the peaks and valleys of the histogram for each color
 %      component.
 %
-%    o cluster_threshold:  This double represents the minimum number of pixels
-%      contained in a hexahedra before it can be considered valid (expressed
-%      as a percentage).
+%    o cluster_threshold:  The minimum number of total pixels contained
+%      in a hexahedra before it can be considered valid (expressed as a
+%      percentage of total pixels).  This is used to eliminate seldom
+%      used colors.
 %
 %    o weighting_exponent: Specifies the membership weighting exponent.
 %
@@ -198,52 +247,50 @@ static void
 */
 #define SegmentImageText  "[%s] Segmenting image..."
 
-static MagickPassFail Classify(Image *image,short **extrema,
-  const double cluster_threshold,const double ARGUNUSED(weighting_exponent),
-  const unsigned int verbose)
+typedef struct _Cluster
 {
-  typedef struct _Cluster
-  {
-    struct _Cluster
-      *next;
+  struct _Cluster
+    *next;
+  
+  ExtentPacket
+    red,
+    green,
+    blue;
+  
+  magick_int64_t
+    count;
+  
+  short
+    id;
+} Cluster;
 
-    ExtentPacket
-      red,
-      green,
-      blue;
-
-    long
-      count;
-
-    short
-      id;
-  } Cluster;
-
+static MagickPassFail
+Classify(Image *image,short **extrema,
+         const double cluster_threshold,
+         const double weighting_exponent,
+         const unsigned int verbose)
+{
   Cluster
     *cluster,
+    **cluster_array,
     *head,
     *last_cluster,
     *next_cluster;
 
   double
-    distance_squared,
     *free_squares,
-    local_minima,
-    numerator,
-    ratio_squared,
-    sum;
+    threshold,
+    total_vectors;
 
   ExtentPacket
     blue,
     green,
     red;
 
-  int
+  unsigned long
     count;
 
   long
-    j,
-    k,
     y;
 
   PixelPacket
@@ -268,6 +315,9 @@ static MagickPassFail Classify(Image *image,short **extrema,
   unsigned long
     number_clusters;
 
+  unsigned long
+    row_count=0;
+
   MagickPassFail
     status=MagickPass;
 
@@ -278,40 +328,41 @@ static MagickPassFail Classify(Image *image,short **extrema,
   head=(Cluster *) NULL;
   red.index=0;
   while (DefineRegion(extrema[Red],&red))
-  {
-    green.index=0;
-    while (DefineRegion(extrema[Green],&green))
     {
-      blue.index=0;
-      while (DefineRegion(extrema[Blue],&blue))
-      {
-        /*
-          Allocate a new class.
-        */
-        if (head != (Cluster *) NULL)
-          {
-            cluster->next=MagickAllocateMemory(Cluster *,sizeof(Cluster));
-            cluster=cluster->next;
-          }
-        else
-          {
-            cluster=MagickAllocateMemory(Cluster *,sizeof(Cluster));
-            head=cluster;
-          }
-        if (cluster == (Cluster *) NULL)
-          ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
-            image->filename);
-        /*
-          Initialize a new class.
-        */
-        cluster->count=0;
-        cluster->red=red;
-        cluster->green=green;
-        cluster->blue=blue;
-        cluster->next=(Cluster *) NULL;
-      }
+      green.index=0;
+      while (DefineRegion(extrema[Green],&green))
+        {
+          blue.index=0;
+          while (DefineRegion(extrema[Blue],&blue))
+            {
+              /*
+                Allocate a new class.
+              */
+              if (head != (Cluster *) NULL)
+                {
+                  cluster->next=MagickAllocateMemory(Cluster *,sizeof(Cluster));
+                  cluster=cluster->next;
+                }
+              else
+                {
+                  cluster=MagickAllocateMemory(Cluster *,sizeof(Cluster));
+                  head=cluster;
+                }
+              if (cluster == (Cluster *) NULL)
+                ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
+                                     image->filename);
+              /*
+                Initialize a new class.
+              */
+              (void) memset(cluster,0,sizeof(Cluster));
+              cluster->count=0;
+              cluster->red=red;
+              cluster->green=green;
+              cluster->blue=blue;
+              cluster->next=(Cluster *) NULL;
+            }
+        }
     }
-  }
   if (head == (Cluster *) NULL)
     {
       /*
@@ -320,10 +371,11 @@ static MagickPassFail Classify(Image *image,short **extrema,
       cluster=MagickAllocateMemory(Cluster *,sizeof(Cluster));
       if (cluster == (Cluster *) NULL)
         ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
-          image->filename);
+                             image->filename);
       /*
         Initialize a new class.
       */
+      (void) memset(cluster,0,sizeof(Cluster));
       cluster->count=0;
       cluster->red=red;
       cluster->green=green;
@@ -332,130 +384,176 @@ static MagickPassFail Classify(Image *image,short **extrema,
       head=cluster;
     }
   /*
+    Build an array representation of the clusters.
+  */
+  number_clusters=0;
+  for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
+    number_clusters++;
+  cluster_array=MagickAllocateArray(Cluster **,number_clusters,sizeof(Cluster *));
+  number_clusters=0;
+  for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
+    cluster_array[number_clusters++]=cluster;
+  /*
     Count the pixels for each cluster.
   */
-  count=0;
   for (y=0; y < (long) image->rows; y++)
-  {
-    p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
-    if (p == (const PixelPacket *) NULL)
-      {
-        status=MagickFail;
-        break;
-      }
-    for (x=0; x < (long) image->columns; x++)
     {
-      for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-        if (((long) ScaleQuantumToChar(p->red) >= (cluster->red.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(p->red) <= (cluster->red.right+SafeMargin)) &&
-            ((long) ScaleQuantumToChar(p->green) >= (cluster->green.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(p->green) <= (cluster->green.right+SafeMargin)) &&
-            ((long) ScaleQuantumToChar(p->blue) >= (cluster->blue.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(p->blue) <= (cluster->blue.right+SafeMargin)))
-          {
-            /*
-              Count this pixel.
-            */
-            count++;
-            cluster->count++;
-            cluster->red.center+=ScaleQuantumToChar(p->red);
-            cluster->green.center+=ScaleQuantumToChar(p->green);
-            cluster->blue.center+=ScaleQuantumToChar(p->blue);
-            break;
-          }
-      p++;
-    }
-    if (QuantumTick(y,image->rows))
-      if (!MagickMonitorFormatted(y,image->rows << 1,&image->exception,
-                                  SegmentImageText,image->filename))
+      p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+      if (p == (const PixelPacket *) NULL)
         {
           status=MagickFail;
           break;
         }
-  }
+      for (x=(long) image->columns; x != 0; x--)
+        {
+          double
+            r,
+            g,
+            b;
+
+          r=(double) ScaleQuantumToChar(p->red);
+          g=(double) ScaleQuantumToChar(p->green);
+          b=(double) ScaleQuantumToChar(p->blue);
+
+          for (count=0 ; count < number_clusters; count++)
+            {
+              if ((r >= (cluster_array[count]->red.left-SafeMargin)) &&
+                  (r <= (cluster_array[count]->red.right+SafeMargin)) &&
+                  (g >= (cluster_array[count]->green.left-SafeMargin)) &&
+                  (g <= (cluster_array[count]->green.right+SafeMargin)) &&
+                  (b >= (cluster_array[count]->blue.left-SafeMargin)) &&
+                  (b <= (cluster_array[count]->blue.right+SafeMargin)))
+                {
+                  /*
+                    Count this pixel.
+                  */
+                  cluster_array[count]->count++;
+                  cluster_array[count]->red.center+=r;
+                  cluster_array[count]->green.center+=g;
+                  cluster_array[count]->blue.center+=b;
+
+                  if ((count > 0) &&
+                      (cluster_array[count]->count > cluster_array[count-1]->count))
+                    {
+                      Cluster
+                        *tmp_cluster;
+
+                      tmp_cluster=cluster_array[count-1];
+                      cluster_array[count-1]=cluster_array[count];
+                      cluster_array[count]=tmp_cluster;
+                    }
+                  break;
+                }
+            }
+          p++;
+        }
+      if (QuantumTick(y,image->rows))
+        if (!MagickMonitorFormatted(y,image->rows << 1,&image->exception,
+                                    SegmentImageText,image->filename))
+          {
+            status=MagickFail;
+            break;
+          }
+    }
+
   /*
     Remove clusters that do not meet minimum cluster threshold.
   */
+  total_vectors=0.0;
+  for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
+    total_vectors+=(double) cluster->count;
+  threshold=cluster_threshold*0.01*total_vectors;
   count=0;
   last_cluster=head;
   next_cluster=head;
   for (cluster=head; cluster != (Cluster *) NULL; cluster=next_cluster)
-  {
-    next_cluster=cluster->next;
-    if ((cluster->count > 0) &&
-        ((double) cluster->count >= (cluster_threshold*count*0.01)))
-      {
-        /*
-          Initialize cluster.
-        */
-        cluster->id=count;
-        cluster->red.center=
-          (cluster->red.center+(cluster->count >> 1))/cluster->count;
-        cluster->green.center=
-          (cluster->green.center+(cluster->count >> 1))/cluster->count;
-        cluster->blue.center=
-          (cluster->blue.center+(cluster->count >> 1))/cluster->count;
-        count++;
-        last_cluster=cluster;
-      }
-    else
-      {
-        /*
-          Delete cluster.
-        */
-        if (cluster == head)
-          head=next_cluster;
-        else
-          last_cluster->next=next_cluster;
-        MagickFreeMemory(cluster);
-      }
-  }
+    {
+      next_cluster=cluster->next;
+      if ((cluster->count > 0) &&
+          ((double) cluster->count >= threshold))
+        {
+          /*
+            Initialize cluster.
+          */
+          cluster->id=count;
+          cluster->red.center=(cluster->red.center/((double) cluster->count));
+          cluster->green.center=(cluster->green.center/((double) cluster->count));
+          cluster->blue.center=(cluster->blue.center/((double) cluster->count));
+          count++;
+          last_cluster=cluster;
+        }
+      else
+        {
+          /*
+            Delete cluster.
+          */
+          if (cluster == head)
+            head=next_cluster;
+          else
+            last_cluster->next=next_cluster;
+
+          if (image->logging)
+            (void) LogMagickEvent
+              (TransformEvent,GetMagickModule(),
+               "Removing Cluster (usage count %lu, %.5f%%) %d-%d  %d-%d  %d-%d",
+               (unsigned long) cluster->count,
+               (((double) cluster->count/total_vectors) * 100.0),
+               cluster->red.left,cluster->red.right,
+               cluster->green.left,cluster->green.right,
+               cluster->blue.left,cluster->blue.right);
+          MagickFreeMemory(cluster);
+        }
+    }
   number_clusters=count;
-  if (verbose)
+  if (verbose && (head != (Cluster *) NULL))
     {
       /*
         Print cluster statistics.
       */
-      (void) fprintf(stdout,"Fuzzy c-Means Statistics\n");
-      (void) fprintf(stdout,"===================\n\n");
-      (void) fprintf(stdout,"\tTotal Number of Clusters = %lu\n\n",
-        number_clusters);
+      (void) fprintf(stdout,"===============================================\n");
+      (void) fprintf(stdout,"           Fuzzy c-Means Statistics\n");
+      (void) fprintf(stdout,"===============================================\n");
+      (void) fprintf(stdout,"Cluster Threshold        = %g%%\n", cluster_threshold);
+      (void) fprintf(stdout,"Weighting Exponent       = %g\n", weighting_exponent);
+      (void) fprintf(stdout,"Total Number of Clusters = %lu\n",
+                     number_clusters);
+      (void) fprintf(stdout,"Total Number of Vectors  = %g\n",
+                     total_vectors);
+      (void) fprintf(stdout,"Cluster Threshold        = %g vectors\n\n",
+                     threshold);
       /*
         Print the total number of points per cluster.
       */
-      (void) fprintf(stdout,"\n\nNumber of Vectors Per Cluster\n");
-      (void) fprintf(stdout,"=============================\n\n");
+      (void) fprintf(stdout,"Cluster          Usage                 Extents                  Center\n");
+      (void) fprintf(stdout,"=======  ====================  =======================  =====================\n");
       for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-        (void) fprintf(stdout,"Cluster #%d = %ld\n",cluster->id,cluster->count);
-      /*
-        Print the cluster extents.
-      */
-      (void) fprintf(stdout,
-        "\n\n\nCluster Extents:        (Vector Size: %d)\n",MaxDimension);
-      (void) fprintf(stdout,"================");
-      for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-      {
-        (void) fprintf(stdout,"\n\nCluster #%d\n\n",cluster->id);
-        (void) fprintf(stdout,"%d-%d  %d-%d  %d-%d\n",
-          cluster->red.left,cluster->red.right,
-          cluster->green.left,cluster->green.right,
-          cluster->blue.left,cluster->blue.right);
-      }
-      /*
-        Print the cluster center values.
-      */
-      (void) fprintf(stdout,
-        "\n\n\nCluster Center Values:        (Vector Size: %d)\n",MaxDimension);
-      (void) fprintf(stdout,"=====================");
-      for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-      {
-        (void) fprintf(stdout,"\n\nCluster #%d\n\n",cluster->id);
-        (void) fprintf(stdout,"%ld  %ld  %ld\n",cluster->red.center,
-          cluster->green.center,cluster->blue.center);
-      }
-      (void) fprintf(stdout,"\n");
+        {
+          PixelPacket
+            color;
+
+          char
+            tuple[MaxTextExtent];
+
+          color.red=ScaleCharToQuantum((unsigned int) (cluster->red.center + 0.5));
+          color.green=ScaleCharToQuantum((unsigned int) (cluster->green.center + 0.5));
+          color.blue=ScaleCharToQuantum((unsigned int) (cluster->blue.center + 0.5));
+          color.opacity=OpaqueOpacity;
+          /* (void) QueryColorname(image,&color,X11Compliance,colorname,&image->exception); */
+          GetColorTuple(&color,8,MagickFalse,MagickTrue,tuple);
+          (void) fprintf(stdout,"  %3d    %10lu (%6.3f%%)  %03d-%03d %03d-%03d %03d-%03d  %03.0f %03.0f %03.0f (%s)\n",
+                         cluster->id,
+                         (unsigned long) cluster->count,
+                         (((double) cluster->count/total_vectors) * 100.0),
+                         cluster->red.left,cluster->red.right,
+                         cluster->green.left,cluster->green.right,
+                         cluster->blue.left,cluster->blue.right,
+                         cluster->red.center,
+                         cluster->green.center,
+                         cluster->blue.center,
+                         tuple);
+        }
     }
-  if (number_clusters > 256)
+  if ((number_clusters > 256) || (number_clusters == 0))
     ThrowBinaryException3(ImageError,UnableToSegmentImage,TooManyClusters);
   /*
     Speed up distance calculations.
@@ -463,8 +561,11 @@ static MagickPassFail Classify(Image *image,short **extrema,
   squares=MagickAllocateMemory(double *,513*sizeof(double));
   if (squares == (double *) NULL)
     ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
-      image->filename);
+                         image->filename);
   squares+=255;
+#if defined(HAVE_OPENMP)
+#  pragma omp parallel for
+#endif
   for (i=(-255); i <= 255; i++)
     squares[i]=i*i;
   /*
@@ -473,7 +574,7 @@ static MagickPassFail Classify(Image *image,short **extrema,
   colormap=MagickAllocateMemory(PixelPacket *,number_clusters*sizeof(PixelPacket));
   if (colormap == (PixelPacket *) NULL)
     ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
-      image->filename);
+                         image->filename);
   image->matte=False;
   image->storage_class=PseudoClass;
   if (image->colormap != (PixelPacket *) NULL)
@@ -482,108 +583,173 @@ static MagickPassFail Classify(Image *image,short **extrema,
   image->colors=number_clusters;
   i=0;
   for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-  {
-    image->colormap[i].red=ScaleCharToQuantum(cluster->red.center);
-    image->colormap[i].green=ScaleCharToQuantum(cluster->green.center);
-    image->colormap[i].blue=ScaleCharToQuantum(cluster->blue.center);
-    i++;
-  }
+    {
+      image->colormap[i].red=ScaleCharToQuantum((unsigned int) (cluster->red.center + 0.5));
+      image->colormap[i].green=ScaleCharToQuantum((unsigned int) (cluster->green.center + 0.5));
+      image->colormap[i].blue=ScaleCharToQuantum((unsigned int) (cluster->blue.center + 0.5));
+      image->colormap[i].opacity=OpaqueOpacity;
+      i++;
+    }
+  /*
+    Rebuild cluster array.
+  */
+  number_clusters=0;
+  for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
+    cluster_array[number_clusters++]=cluster;
   /*
     Do course grain storage_class.
   */
-  for (y=0; y < (long) image->rows; y++)
-  {
-    q=GetImagePixels(image,0,y,image->columns,1);
-    if (q == (PixelPacket *) NULL)
-      {
-        status=MagickFail;
-        break;
-      }
-    indexes=AccessMutableIndexes(image);
-    for (x=0; x < (long) image->columns; x++)
-    {
-      for (cluster=head; cluster != (Cluster *) NULL; cluster=cluster->next)
-        if (((long) ScaleQuantumToChar(q->red) >= (cluster->red.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(q->red) <= (cluster->red.right+SafeMargin)) &&
-            ((long) ScaleQuantumToChar(q->green) >= (cluster->green.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(q->green) <= (cluster->green.right+SafeMargin)) &&
-            ((long) ScaleQuantumToChar(q->blue) >= (cluster->blue.left-SafeMargin)) &&
-            ((long) ScaleQuantumToChar(q->blue) <= (cluster->blue.right+SafeMargin)))
-          {
-            /*
-              Classify this pixel.
-            */
-            indexes[x]=cluster->id;
-            break;
-          }
-      if (cluster == (Cluster *) NULL)
-        {
-          /*
-            Compute fuzzy membership.
-          */
-          local_minima=0.0;
-          for (j=0; j < (long) image->colors; j++)
-          {
-            sum=0.0;
-            p=image->colormap+j;
-            distance_squared=
-              squares[ScaleQuantumToChar(q->red)-(long) ScaleQuantumToChar(p->red)]+
-              squares[ScaleQuantumToChar(q->green)-(long) ScaleQuantumToChar(p->green)]+
-              squares[ScaleQuantumToChar(q->blue)-(long) ScaleQuantumToChar(p->blue)];
-            numerator=distance_squared;
-            for (k=0; k < (long) image->colors; k++)
-            {
-              p=image->colormap+k;
-              distance_squared=
-                squares[ScaleQuantumToChar(q->red)-(long) ScaleQuantumToChar(p->red)]+
-                squares[ScaleQuantumToChar(q->green)-(long) ScaleQuantumToChar(p->green)]+
-                squares[ScaleQuantumToChar(q->blue)-(long) ScaleQuantumToChar(p->blue)];
-              ratio_squared=numerator/distance_squared;;
-#if (WeightingExponent == 2)
-              /*
-                Since WeightingExponent is currently defined to be 2, this is the
-                normally active code
-              */
-              sum+=ratio_squared;
-#else
-              sum+=pow(ratio_squared,((double) (1.0/(weighting_exponent-1.0))));
+  row_count=0;
+#if defined(HAVE_OPENMP)
+#  pragma omp parallel for schedule(dynamic,8) shared(row_count, status) private(count,indexes,p,q,x)
 #endif
-            }
-            if (sum && ((1.0/sum) > local_minima))
-              {
-                /*
-                  Classify this pixel.
-                */
-                local_minima=1.0/sum;
-                indexes[x]=(Quantum) j;
-              }
-          }
-        }
-      q++;
-    }
-    if (!SyncImagePixels(image))
-      {
-        status=MagickFail;
-        break;
-      }
-    if (QuantumTick(y,image->rows))
-      if (!MagickMonitorFormatted(y+image->rows,image->rows << 1,
-                                  &image->exception,
-                                  SegmentImageText,image->filename))
+  for (y=0; y < (long) image->rows; y++)
+    {
+      MagickBool
+        thread_status;
+      
+      thread_status=status;
+      if (thread_status == MagickFail)
+        continue;
+
+      q=GetImagePixelsEx(image,0,y,image->columns,1,&image->exception);
+      if (q == (PixelPacket *) NULL)
+        thread_status=MagickFail;
+
+      if (thread_status != MagickFail)
         {
-          status=MagickFail;
-          break;
+          indexes=AccessMutableIndexes(image);
+          for (x=0; x < (long) image->columns; x++)
+            {
+              MagickBool
+                classified=MagickFalse;
+
+              long
+                r,
+                g,
+                b;
+
+              r=(long) ScaleQuantumToChar(q[x].red);
+              g=(long) ScaleQuantumToChar(q[x].green);
+              b=(long) ScaleQuantumToChar(q[x].blue);
+
+              for (count=0; count < number_clusters; count++)
+                if ((r >= (cluster_array[count]->red.left-SafeMargin)) &&
+                    (r <= (cluster_array[count]->red.right+SafeMargin)) &&
+                    (g >= (cluster_array[count]->green.left-SafeMargin)) &&
+                    (g <= (cluster_array[count]->green.right+SafeMargin)) &&
+                    (b >= (cluster_array[count]->blue.left-SafeMargin)) &&
+                    (b <= (cluster_array[count]->blue.right+SafeMargin)))
+                  {
+                    /*
+                      Classify this pixel.
+                    */
+                    indexes[x]=(IndexPacket) cluster_array[count]->id;
+                    q[x]=image->colormap[indexes[x]];
+                    classified=MagickTrue;
+
+                    if ((count > 0) &&
+                        (cluster_array[count]->count > cluster_array[count-1]->count))
+                      {
+                        Cluster
+                          *tmp_cluster;
+
+                        tmp_cluster=cluster_array[count-1];
+                        cluster_array[count-1]=cluster_array[count];
+                        cluster_array[count]=tmp_cluster;
+                      }
+
+                    break;
+                  }
+              if (classified == MagickFalse)
+                {
+                  double
+                    local_minima,
+                    sum;
+
+                  long
+                    j,
+                    k;
+
+                  /*
+                    Compute fuzzy membership.
+                  */
+                  local_minima=0.0;
+                  for (j=0; j < (long) image->colors; j++)
+                    {
+                      double
+                        distance_squared,
+                        numerator,
+                        ratio_squared;
+
+                      sum=0.0;
+                      p=image->colormap+j;
+                      distance_squared=
+                        squares[r-(long) ScaleQuantumToChar(p->red)]+
+                        squares[g-(long) ScaleQuantumToChar(p->green)]+
+                        squares[b-(long) ScaleQuantumToChar(p->blue)];
+                      numerator=distance_squared;
+                      for (k=0; k < (long) image->colors; k++)
+                        {
+                          p=image->colormap+k;
+                          distance_squared=
+                            squares[r-(long) ScaleQuantumToChar(p->red)]+
+                            squares[g-(long) ScaleQuantumToChar(p->green)]+
+                            squares[b-(long) ScaleQuantumToChar(p->blue)];
+                          ratio_squared=numerator/distance_squared;;
+#if SquaredClassify
+                          /*
+                            Since SquaredClassify (using a weighting
+                            exponent of 2.0) is normally defined to be
+                            true, this is the normally active code.
+                            Otherwise execution is even slower since
+                            pow() is excruciatingly slow.
+                          */
+                          sum+=ratio_squared;
+#else
+                          sum+=pow(ratio_squared,((double) (1.0/(weighting_exponent-1.0))));
+#endif
+                        }
+                      if ((sum != 0.0) && ((1.0/sum) > local_minima))
+                        {
+                          /*
+                            Classify this pixel.
+                          */
+                          local_minima=1.0/sum;
+                          indexes[x]=(IndexPacket) j;
+                          q[x]=image->colormap[indexes[x]];
+                        }
+                    }
+                }
+            }
+          if (!SyncImagePixelsEx(image,&image->exception))
+            thread_status=MagickFail;
         }
-  }
-  status &= SyncImage(image);
+#if defined(HAVE_OPENMP)
+#  pragma omp critical
+#endif
+      {
+        row_count++;
+        if (QuantumTick(row_count,image->rows))
+          if (!MagickMonitorFormatted(row_count+image->rows,image->rows << 1,
+                                      &image->exception,
+                                      SegmentImageText,image->filename))
+            thread_status=MagickFail;
+
+        if (thread_status == MagickFail)
+          status=MagickFail;
+      }
+    }
   /*
     Free memory.
   */
   for (cluster=head; cluster != (Cluster *) NULL; cluster=next_cluster)
-  {
-    next_cluster=cluster->next;
-    MagickFreeMemory(cluster);
-  }
+    {
+      next_cluster=cluster->next;
+      MagickFreeMemory(cluster);
+      head=(Cluster *) NULL;
+    }
+  MagickFreeMemory(cluster_array);
   squares-=255;
   free_squares=squares;
   MagickFreeMemory(free_squares);
@@ -618,8 +784,9 @@ static MagickPassFail Classify(Image *image,short **extrema,
 %
 %
 */
-static void ConsolidateCrossings(ZeroCrossing *zero_crossing,
-  const unsigned int number_crossings)
+static void
+ConsolidateCrossings(ZeroCrossing *zero_crossing,
+                     const unsigned int number_crossings)
 {
   int
     center,
@@ -639,76 +806,76 @@ static void ConsolidateCrossings(ZeroCrossing *zero_crossing,
   */
   for (i=(long) number_crossings-1; i >= 0; i--)
     for (j=0; j <= 255; j++)
-    {
-      if (zero_crossing[i].crossings[j] == 0)
-        continue;
-      /*
-        Find the entry that is closest to j and still preserves the
-        property that there are an even number of crossings between
-        intervals.
-      */
-      for (k=j-1; k > 0; k--)
-        if (zero_crossing[i+1].crossings[k] != 0)
-          break;
-      left=Max(k,0);
-      center=j;
-      for (k=j+1; k < 255; k++)
-        if (zero_crossing[i+1].crossings[k] != 0)
-          break;
-      right=Min(k,255);
-      /*
-        K is the zero crossing just left of j.
-      */
-      for (k=j-1; k > 0; k--)
-        if (zero_crossing[i].crossings[k] != 0)
-          break;
-      if (k < 0)
-        k=0;
-      /*
-        Check center for an even number of crossings between k and j.
-      */
-      correct=(-1);
-      if (zero_crossing[i+1].crossings[j] != 0)
-        {
-          count=0;
-          for (l=k+1; l < center; l++)
-            if (zero_crossing[i+1].crossings[l] != 0)
-              count++;
-          if ((count % 2) == 0)
-            if (center != k)
-              correct=center;
-        }
-      /*
-        Check left for an even number of crossings between k and j.
-      */
-      if (correct == -1)
-        {
-          count=0;
-          for (l=k+1; l < left; l++)
-            if (zero_crossing[i+1].crossings[l] != 0)
-              count++;
-          if ((count % 2) == 0)
-            if (left != k)
-              correct=left;
-        }
-      /*
-        Check right for an even number of crossings between k and j.
-      */
-      if (correct == -1)
-        {
-          count=0;
-          for (l=k+1; l < right; l++)
-            if (zero_crossing[i+1].crossings[l] != 0)
-              count++;
-          if ((count % 2) == 0)
-            if (right != k)
-              correct=right;
-        }
-      l=zero_crossing[i].crossings[j];
-      zero_crossing[i].crossings[j]=0;
-      if (correct != -1)
-        zero_crossing[i].crossings[correct]=(short) l;
-    }
+      {
+        if (zero_crossing[i].crossings[j] == 0)
+          continue;
+        /*
+          Find the entry that is closest to j and still preserves the
+          property that there are an even number of crossings between
+          intervals.
+        */
+        for (k=j-1; k > 0; k--)
+          if (zero_crossing[i+1].crossings[k] != 0)
+            break;
+        left=Max(k,0);
+        center=j;
+        for (k=j+1; k < 255; k++)
+          if (zero_crossing[i+1].crossings[k] != 0)
+            break;
+        right=Min(k,255);
+        /*
+          K is the zero crossing just left of j.
+        */
+        for (k=j-1; k > 0; k--)
+          if (zero_crossing[i].crossings[k] != 0)
+            break;
+        if (k < 0)
+          k=0;
+        /*
+          Check center for an even number of crossings between k and j.
+        */
+        correct=(-1);
+        if (zero_crossing[i+1].crossings[j] != 0)
+          {
+            count=0;
+            for (l=k+1; l < center; l++)
+              if (zero_crossing[i+1].crossings[l] != 0)
+                count++;
+            if ((count % 2) == 0)
+              if (center != k)
+                correct=center;
+          }
+        /*
+          Check left for an even number of crossings between k and j.
+        */
+        if (correct == -1)
+          {
+            count=0;
+            for (l=k+1; l < left; l++)
+              if (zero_crossing[i+1].crossings[l] != 0)
+                count++;
+            if ((count % 2) == 0)
+              if (left != k)
+                correct=left;
+          }
+        /*
+          Check right for an even number of crossings between k and j.
+        */
+        if (correct == -1)
+          {
+            count=0;
+            for (l=k+1; l < right; l++)
+              if (zero_crossing[i+1].crossings[l] != 0)
+                count++;
+            if ((count % 2) == 0)
+              if (right != k)
+                correct=right;
+          }
+        l=zero_crossing[i].crossings[j];
+        zero_crossing[i].crossings[j]=0;
+        if (correct != -1)
+          zero_crossing[i].crossings[correct]=(short) l;
+      }
 }
 
 /*
@@ -741,7 +908,8 @@ static void ConsolidateCrossings(ZeroCrossing *zero_crossing,
 %
 %
 */
-static int DefineRegion(const short *extrema,ExtentPacket *extents)
+static int
+DefineRegion(const short *extrema,ExtentPacket *extents)
 {
   /*
     Initialize to default values.
@@ -797,7 +965,8 @@ static int DefineRegion(const short *extrema,ExtentPacket *extents)
 %
 %
 */
-static void DerivativeHistogram(const double *histogram,double *derivative)
+static void
+DerivativeHistogram(const double *histogram,double *derivative)
 {
   register long
     i,
@@ -813,7 +982,7 @@ static void DerivativeHistogram(const double *histogram,double *derivative)
     Compute derivative using central differencing.
   */
   for (i=1; i < n; i++)
-    derivative[i]=(histogram[i+1]-histogram[i-1])/2;
+    derivative[i]=((double) histogram[i+1]-histogram[i-1])/2.0;
   return;
 }
 
@@ -844,7 +1013,8 @@ static void DerivativeHistogram(const double *histogram,double *derivative)
 %
 %
 */
-static void InitializeHistogram(Image *image,long **histogram)
+static void
+InitializeHistogram(Image *image,long **histogram)
 {
   long
     y;
@@ -860,24 +1030,24 @@ static void InitializeHistogram(Image *image,long **histogram)
     Initialize histogram.
   */
   for (i=0; i <= 255; i++)
-  {
-    histogram[Red][i]=0;
-    histogram[Green][i]=0;
-    histogram[Blue][i]=0;
-  }
-  for (y=0; y < (long) image->rows; y++)
-  {
-    p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
-    if (p == (const PixelPacket *) NULL)
-      break;
-    for (x=0; x < (long) image->columns; x++)
     {
-      histogram[Red][ScaleQuantumToChar(p->red)]++;
-      histogram[Green][ScaleQuantumToChar(p->green)]++;
-      histogram[Blue][ScaleQuantumToChar(p->blue)]++;
-      p++;
+      histogram[Red][i]=0;
+      histogram[Green][i]=0;
+      histogram[Blue][i]=0;
     }
-  }
+  for (y=0; y < (long) image->rows; y++)
+    {
+      p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+      if (p == (const PixelPacket *) NULL)
+        break;
+      for (x=0; x < (long) image->columns; x++)
+        {
+          histogram[Red][ScaleQuantumToChar(p->red)]++;
+          histogram[Green][ScaleQuantumToChar(p->green)]++;
+          histogram[Blue][ScaleQuantumToChar(p->blue)]++;
+          p++;
+        }
+    }
 }
 
 /*
@@ -897,8 +1067,8 @@ static void InitializeHistogram(Image *image,long **histogram)
 %
 %  The format of the InitializeIntervalTree method is:
 %
-%      InitializeIntervalTree(IntervalTree **list,int *number_nodes,
-%        IntervalTree *node
+%      InitializeIntervalTree(const ZeroCrossing *zero_crossing,
+%                             const unsigned int number_crossings)
 %
 %  A description of each parameter follows.
 %
@@ -910,8 +1080,8 @@ static void InitializeHistogram(Image *image,long **histogram)
 %
 */
 
-static void InitializeList(IntervalTree **list,int *number_nodes,
-  IntervalTree *node)
+static void
+InitializeList(IntervalTree **list,int *number_nodes,IntervalTree *node)
 {
   if (node == (IntervalTree *) NULL)
     return;
@@ -921,7 +1091,8 @@ static void InitializeList(IntervalTree **list,int *number_nodes,
   InitializeList(list,number_nodes,node->child);
 }
 
-static void MeanStability(register IntervalTree *node)
+static void
+MeanStability(register IntervalTree *node)
 {
   register IntervalTree
     *child;
@@ -941,10 +1112,10 @@ static void MeanStability(register IntervalTree *node)
       sum=0.0;
       count=0;
       for ( ; child != (IntervalTree *) NULL; child=child->sibling)
-      {
-        sum+=child->stability;
-        count++;
-      }
+        {
+          sum+=child->stability;
+          count++;
+        }
       node->mean_stability=sum/count;
     }
   MeanStability(node->sibling);
@@ -963,8 +1134,9 @@ static void Stability(register IntervalTree *node)
   Stability(node->child);
 }
 
-static IntervalTree *InitializeIntervalTree(const ZeroCrossing *zero_crossing,
-  const unsigned int number_crossings)
+static IntervalTree *
+InitializeIntervalTree(const ZeroCrossing *zero_crossing,
+                       const unsigned int number_crossings)
 {
   int
     left,
@@ -997,55 +1169,55 @@ static IntervalTree *InitializeIntervalTree(const ZeroCrossing *zero_crossing,
   root->left=0;
   root->right=255;
   for (i=(-1); i < (long) number_crossings; i++)
-  {
-    /*
-      Initialize list with all nodes with no children.
-    */
-    number_nodes=0;
-    InitializeList(list,&number_nodes,root);
-    /*
-      Split list.
-    */
-    for (j=0; j < number_nodes; j++)
     {
-      head=list[j];
-      left=head->left;
-      node=head;
-      for (k=head->left+1; k < head->right; k++)
-      {
-        if (zero_crossing[i+1].crossings[k] != 0)
-          {
-            if (node == head)
-              {
-                node->child=MagickAllocateMemory(IntervalTree *,
-                  sizeof(IntervalTree));
-                node=node->child;
-              }
-            else
-              {
-                node->sibling=MagickAllocateMemory(IntervalTree *,
-                  sizeof(IntervalTree));
-                node=node->sibling;
-              }
-            node->tau=zero_crossing[i+1].tau;
-            node->child=(IntervalTree *) NULL;
-            node->sibling=(IntervalTree *) NULL;
-            node->left=left;
-            node->right=k;
-            left=k;
-          }
+      /*
+        Initialize list with all nodes with no children.
+      */
+      number_nodes=0;
+      InitializeList(list,&number_nodes,root);
+      /*
+        Split list.
+      */
+      for (j=0; j < number_nodes; j++)
+        {
+          head=list[j];
+          left=head->left;
+          node=head;
+          for (k=head->left+1; k < head->right; k++)
+            {
+              if (zero_crossing[i+1].crossings[k] != 0)
+                {
+                  if (node == head)
+                    {
+                      node->child=MagickAllocateMemory(IntervalTree *,
+                                                       sizeof(IntervalTree));
+                      node=node->child;
+                    }
+                  else
+                    {
+                      node->sibling=MagickAllocateMemory(IntervalTree *,
+                                                         sizeof(IntervalTree));
+                      node=node->sibling;
+                    }
+                  node->tau=zero_crossing[i+1].tau;
+                  node->child=(IntervalTree *) NULL;
+                  node->sibling=(IntervalTree *) NULL;
+                  node->left=left;
+                  node->right=k;
+                  left=k;
+                }
+            }
+          if (left != head->left)
+            {
+              node->sibling=MagickAllocateMemory(IntervalTree *,sizeof(IntervalTree));
+              node=node->sibling;
+              node->tau=zero_crossing[i+1].tau;
+              node->child=(IntervalTree *) NULL;
+              node->sibling=(IntervalTree *) NULL;
+              node->left=left;
+              node->right=head->right;
+            }
         }
-        if (left != head->left)
-          {
-            node->sibling=MagickAllocateMemory(IntervalTree *,sizeof(IntervalTree));
-            node=node->sibling;
-            node->tau=zero_crossing[i+1].tau;
-            node->child=(IntervalTree *) NULL;
-            node->sibling=(IntervalTree *) NULL;
-            node->left=left;
-            node->right=head->right;
-          }
-      }
     }
   /*
     Determine the stability: difference between a nodes tau and its child.
@@ -1073,13 +1245,25 @@ static IntervalTree *InitializeIntervalTree(const ZeroCrossing *zero_crossing,
 %  The format of the OptimalTau method is:
 %
 %    double OptimalTau(const long *histogram,const double max_tau,
-%      const double min_tau,const double delta_tau,
-%      const double smoothing_threshold,short *extrema)
+%                      const double min_tau,const double delta_tau,
+%                      const double smoothing_threshold,
+%                      short *extrema)
 %
 %  A description of each parameter follows.
 %
 %    o histogram: Specifies an array of integers representing the number
 %      of pixels for each intensity of a particular color component.
+%
+%    o max_tau: (current 5.2f)
+%
+%    o min_tau: (current 0.2)
+%
+%    o delta_tau: (current 0.5f)
+%
+%    o smoothing_threshold: If the absolute value of a second derivative
+%       point is less than smoothing_threshold then that derivative point
+%       is ignored (i.e. set to 0) while evaluating zero crossings.  This
+%       causes small variations (could be noise) to be ignored.
 %
 %    o extrema:  Specifies a pointer to an array of integers.  They
 %      represent the peaks and valleys of the histogram for each color
@@ -1088,8 +1272,8 @@ static IntervalTree *InitializeIntervalTree(const ZeroCrossing *zero_crossing,
 %
 */
 
-static void ActiveNodes(IntervalTree **list,int *number_nodes,
-  IntervalTree *node)
+static void
+ActiveNodes(IntervalTree **list,int *number_nodes,IntervalTree *node)
 {
   if (node == (IntervalTree *) NULL)
     return;
@@ -1105,7 +1289,8 @@ static void ActiveNodes(IntervalTree **list,int *number_nodes,
     }
 }
 
-static void FreeNodes(IntervalTree *node)
+static void
+FreeNodes(IntervalTree *node)
 {
   if (node == (IntervalTree *) NULL)
     return;
@@ -1114,9 +1299,11 @@ static void FreeNodes(IntervalTree *node)
   MagickFreeMemory(node);
 }
 
-static double OptimalTau(const long *histogram,const double max_tau,
-  const double min_tau,const double delta_tau,const double smoothing_threshold,
-  short *extrema)
+static double
+OptimalTau(const long *histogram,const double max_tau,
+           const double min_tau,const double delta_tau,
+           const double smoothing_threshold,
+           short *extrema)
 {
   double
     average_tau,
@@ -1170,18 +1357,18 @@ static double OptimalTau(const long *histogram,const double max_tau,
   second_derivative=MagickAllocateMemory(double *,256*sizeof(double));
   if ((derivative == (double *) NULL) || (second_derivative == (double *) NULL))
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-      UnableToAllocateDerivatives);
+                      UnableToAllocateDerivatives);
   i=0;
   for (tau=max_tau; tau >= min_tau; tau-=delta_tau)
-  {
-    zero_crossing[i].tau=tau;
-    ScaleSpace(histogram,tau,zero_crossing[i].histogram);
-    DerivativeHistogram(zero_crossing[i].histogram,derivative);
-    DerivativeHistogram(derivative,second_derivative);
-    ZeroCrossHistogram(second_derivative,smoothing_threshold,
-      zero_crossing[i].crossings);
-    i++;
-  }
+    {
+      zero_crossing[i].tau=tau;
+      ScaleSpace(histogram,tau,zero_crossing[i].histogram);
+      DerivativeHistogram(zero_crossing[i].histogram,derivative);
+      DerivativeHistogram(derivative,second_derivative);
+      ZeroCrossHistogram(second_derivative,smoothing_threshold,
+                         zero_crossing[i].crossings);
+      i++;
+    }
   /*
     Add an entry for the original histogram.
   */
@@ -1191,7 +1378,7 @@ static double OptimalTau(const long *histogram,const double max_tau,
   DerivativeHistogram(zero_crossing[i].histogram,derivative);
   DerivativeHistogram(derivative,second_derivative);
   ZeroCrossHistogram(second_derivative,smoothing_threshold,
-    zero_crossing[i].crossings);
+                     zero_crossing[i].crossings);
   number_crossings=i;
   MagickFreeMemory(derivative);
   MagickFreeMemory(second_derivative);
@@ -1203,17 +1390,17 @@ static double OptimalTau(const long *histogram,const double max_tau,
     Force endpoints to be included in the interval.
   */
   for (i=0; i <= (long) number_crossings; i++)
-  {
-    for (j=0; j < 255; j++)
-      if (zero_crossing[i].crossings[j] != 0)
-        break;
-    zero_crossing[i].crossings[0]=(-zero_crossing[i].crossings[j]);
-    for (j=255; j > 0; j--)
-      if (zero_crossing[i].crossings[j] != 0)
-        break;
-    zero_crossing[i].crossings[255]=
-      (-zero_crossing[i].crossings[j]);
-  }
+    {
+      for (j=0; j < 255; j++)
+        if (zero_crossing[i].crossings[j] != 0)
+          break;
+      zero_crossing[i].crossings[0]=(-zero_crossing[i].crossings[j]);
+      for (j=255; j > 0; j--)
+        if (zero_crossing[i].crossings[j] != 0)
+          break;
+      zero_crossing[i].crossings[255]=
+        (-zero_crossing[i].crossings[j]);
+    }
   /*
     Initialize interval tree.
   */
@@ -1232,48 +1419,48 @@ static double OptimalTau(const long *histogram,const double max_tau,
   for (i=0; i <= 255; i++)
     extrema[i]=0;
   for (i=0; i < number_nodes; i++)
-  {
-    /*
-      Find this tau in zero crossings list.
-    */
-    k=0;
-    node=list[i];
-    for (j=0; j <= (long) number_crossings; j++)
-      if (zero_crossing[j].tau == node->tau)
-        k=j;
-    /*
-      Find the value of the peak.
-    */
-    peak=zero_crossing[k].crossings[node->right] == -1;
-    index=node->left;
-    value=zero_crossing[k].histogram[index];
-    for (x=node->left; x <= node->right; x++)
     {
-      if (peak)
+      /*
+        Find this tau in zero crossings list.
+      */
+      k=0;
+      node=list[i];
+      for (j=0; j <= (long) number_crossings; j++)
+        if (zero_crossing[j].tau == node->tau)
+          k=j;
+      /*
+        Find the value of the peak.
+      */
+      peak=zero_crossing[k].crossings[node->right] == -1;
+      index=node->left;
+      value=zero_crossing[k].histogram[index];
+      for (x=node->left; x <= node->right; x++)
         {
-          if (zero_crossing[k].histogram[x] > value)
+          if (peak)
             {
-              value=zero_crossing[k].histogram[x];
-              index=x;
+              if (zero_crossing[k].histogram[x] > value)
+                {
+                  value=zero_crossing[k].histogram[x];
+                  index=x;
+                }
             }
+          else
+            if (zero_crossing[k].histogram[x] < value)
+              {
+                value=zero_crossing[k].histogram[x];
+                index=x;
+              }
         }
-      else
-        if (zero_crossing[k].histogram[x] < value)
-          {
-            value=zero_crossing[k].histogram[x];
-            index=x;
-          }
+      for (x=node->left; x <= node->right; x++)
+        {
+          if (index == 0)
+            index=256;
+          if (peak)
+            extrema[x]=index;
+          else
+            extrema[x]=(-index);
+        }
     }
-    for (x=node->left; x <= node->right; x++)
-    {
-      if (index == 0)
-        index=256;
-      if (peak)
-        extrema[x]=index;
-      else
-        extrema[x]=(-index);
-    }
-  }
   /*
     Determine the average tau.
   */
@@ -1307,17 +1494,20 @@ static double OptimalTau(const long *histogram,const double max_tau,
 %  The format of the ScaleSpace method is:
 %
 %      ScaleSpace(const long *histogram,const double tau,
-%        double *scaled_histogram)
+%                 double *scaled_histogram)
 %
 %  A description of each parameter follows.
 %
 %    o histogram: Specifies an array of doubles representing the number of
 %      pixels for each intensity of a particular color component.
 %
+%    o tau:
+%
+%    o scaled_histogram:
 %
 */
-static void ScaleSpace(const long *histogram,const double tau,
-  double *scaled_histogram)
+static void
+ScaleSpace(const long *histogram,const double tau,double *scaled_histogram)
 {
   double
     alpha,
@@ -1332,24 +1522,24 @@ static void ScaleSpace(const long *histogram,const double tau,
   gamma=MagickAllocateMemory(double *,256*sizeof(double));
   if (gamma == (double *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-      UnableToAllocateGammaMap);
+                      UnableToAllocateGammaMap);
   alpha=1.0/(tau*sqrt(2.0*MagickPI));
   beta=(-1.0/(2.0*tau*tau));
   for (x=0; x <= 255; x++)
     gamma[x]=0.0;
   for (x=0; x <= 255; x++)
-  {
-    gamma[x]=exp(beta*x*x);
-    if (gamma[x] < MagickEpsilon)
-      break;
-  }
+    {
+      gamma[x]=exp(beta*x*x);
+      if (gamma[x] < MagickEpsilon)
+        break;
+    }
   for (x=0; x <= 255; x++)
-  {
-    sum=0.0;
-    for (u=0; u <= 255; u++)
-      sum+=(double) histogram[u]*gamma[AbsoluteValue(x-u)];
-    scaled_histogram[x]=alpha*sum;
-  }
+    {
+      sum=0.0;
+      for (u=0; u <= 255; u++)
+        sum+=(double) histogram[u]*gamma[AbsoluteValue(x-u)];
+      scaled_histogram[x]=alpha*sum;
+    }
   MagickFreeMemory(gamma);
 }
 
@@ -1379,14 +1569,20 @@ static void ScaleSpace(const long *histogram,const double tau,
 %    o second_derivative: Specifies an array of doubles representing the
 %      second derivative of the histogram of a particular color component.
 %
+%    o smoothing_threshold: If the absolute value of a second derivative
+%       point is less than smoothing_threshold then that derivative point
+%       is ignored (i.e. set to 0) while evaluating zero crossings.  This
+%       causes small variations (could be noise) to be ignored.
+%
 %    o crossings:  This array of integers is initialized with
 %      -1, 0, or 1 representing the slope of the first derivative of the
 %      of a particular color component.
 %
 %
 */
-static void ZeroCrossHistogram(double *second_derivative,
-  const double smoothing_threshold,short *crossings)
+static void
+ZeroCrossHistogram(double *second_derivative,const double smoothing_threshold,
+                   short *crossings)
 {
   int
     parity;
@@ -1406,22 +1602,22 @@ static void ZeroCrossHistogram(double *second_derivative,
   */
   parity=0;
   for (i=0; i <= 255; i++)
-  {
-    crossings[i]=0;
-    if (second_derivative[i] < 0.0)
-      {
-        if (parity > 0)
-          crossings[i]=(-1);
-        parity=1;
-      }
-    else
-      if (second_derivative[i] > 0.0)
+    {
+      crossings[i]=0;
+      if (second_derivative[i] < 0.0)
         {
-          if (parity < 0)
-            crossings[i]=1;
-          parity=(-1);
+          if (parity > 0)
+            crossings[i]=(-1);
+          parity=1;
         }
-  }
+      else
+        if (second_derivative[i] > 0.0)
+          {
+            if (parity < 0)
+              crossings[i]=1;
+            parity=(-1);
+          }
+    }
 }
 
 /*
@@ -1453,10 +1649,6 @@ static void ZeroCrossHistogram(double *second_derivative,
 %
 %  A description of each parameter follows.
 %
-%    o colors: The SegmentImage function returns this integer
-%      value.  It is the actual number of colors allocated in the
-%      colormap.
-%
 %    o image: Specifies a pointer to an Image structure;  returned from
 %      ReadImage.
 %
@@ -1469,11 +1661,23 @@ static void ZeroCrossHistogram(double *second_derivative,
 %    o verbose:  A value greater than zero prints detailed information about
 %      the identified classes.
 %
+%    o cluster_threshold: The minimum number of total pixels contained
+%      in a hexahedra before it can be considered valid (expressed as a
+%      percentage of total pixels).  This is used to eliminate seldom
+%      used colors.
+%
+%    o smoothing_threshold: If the absolute value of a second derivative
+%       point is less than smoothing_threshold then that derivative point
+%       is ignored (i.e. set to 0) while evaluating zero crossings.  This
+%       causes small variations (could be noise) to be ignored.
 %
 */
-MagickExport MagickPassFail SegmentImage(Image *image,
-  const ColorspaceType colorspace,const unsigned int verbose,
-  const double cluster_threshold,const double smoothing_threshold)
+MagickExport MagickPassFail
+SegmentImage(Image *image,
+             const ColorspaceType colorspace,
+             const unsigned int verbose,
+             const double cluster_threshold,
+             const double smoothing_threshold)
 {
 
   long
@@ -1494,31 +1698,52 @@ MagickExport MagickPassFail SegmentImage(Image *image,
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   for (i=0; i < MaxDimension; i++)
-  {
-    histogram[i]=MagickAllocateMemory(long *,256*sizeof(long));
-    extrema[i]=MagickAllocateMemory(short *,256*sizeof(short));
-    if ((histogram[i] == (long *) NULL) || (extrema[i] == (short *) NULL))
-      {
-        for (i-- ; i >= 0; i--)
+    {
+      histogram[i]=MagickAllocateMemory(long *,256*sizeof(long));
+      extrema[i]=MagickAllocateMemory(short *,256*sizeof(short));
+      if ((histogram[i] == (long *) NULL) || (extrema[i] == (short *) NULL))
         {
-          MagickFreeMemory(extrema[i]);
-          MagickFreeMemory(histogram[i]);
+          for (i-- ; i >= 0; i--)
+            {
+              MagickFreeMemory(extrema[i]);
+              MagickFreeMemory(histogram[i]);
+            }
+          ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
+                               image->filename);
         }
-        ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
-          image->filename)
-      }
-  }
+    }
   (void) TransformColorspace(image,colorspace);
   /*
     Initialize histogram.
   */
   InitializeHistogram(image,histogram);
   (void) OptimalTau(histogram[Red],Tau,0.2,DeltaTau,smoothing_threshold,
-    extrema[Red]);
+                    extrema[Red]);
   (void) OptimalTau(histogram[Green],Tau,0.2,DeltaTau,smoothing_threshold,
-    extrema[Green]);
+                    extrema[Green]);
   (void) OptimalTau(histogram[Blue],Tau,0.2,DeltaTau,smoothing_threshold,
-    extrema[Blue]);
+                    extrema[Blue]);
+  if (verbose > 1)
+    {
+      FILE
+        *stream;
+
+      stream=stdout;
+
+      fprintf(stream,"Red Histogram:\n");
+      DumpHistogramArray(stream,256,histogram[Red]);
+      fprintf(stream,"Green Histogram:\n");
+      DumpHistogramArray(stream,256,histogram[Green]);
+      fprintf(stream,"Blue Histogram:\n");
+      DumpHistogramArray(stream,256,histogram[Blue]);
+
+      fprintf(stream,"Red Extrema:\n");
+      DumpExtremaArray(stream,256,extrema[Red]);
+      fprintf(stream,"Green Extrema:\n");
+      DumpExtremaArray(stream,256,extrema[Green]);
+      fprintf(stream,"Blue Extrema:\n");
+      DumpExtremaArray(stream,256,extrema[Blue]);
+    }
   /*
     Classify using the fuzzy c-Means technique.
   */
@@ -1528,9 +1753,9 @@ MagickExport MagickPassFail SegmentImage(Image *image,
     Free memory.
   */
   for (i=0; i < MaxDimension; i++)
-  {
-    MagickFreeMemory(extrema[i]);
-    MagickFreeMemory(histogram[i]);
-  }
+    {
+      MagickFreeMemory(extrema[i]);
+      MagickFreeMemory(histogram[i]);
+    }
   return(status);
 }

@@ -133,7 +133,42 @@ extern "C" {
 	void bmx_magick_image_getchromawhitepoint(MaxMImage * image, double * x, double * y);
 	void bmx_magick_image_classtype(MaxMImage * image, ClassType classType);
 	void bmx_magick_image_colorfuzz(MaxMImage * image, double fuzz);
+	void bmx_magick_image_contrast(MaxMImage * image, unsigned int sharpen);
+	void bmx_magick_image_floodfillcolorcc(MaxMImage * image, const unsigned int x, const unsigned int y, MaxMColor * fillColor, MaxMColor * borderColor);
+	void bmx_magick_image_floodfillcolorsc(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, MaxMColor * borderColor);
+	void bmx_magick_image_floodfillcolorcs(MaxMImage * image, const unsigned int x, const unsigned int y, MaxMColor * fillColor, BBString * borderColor);
+	void bmx_magick_image_floodfillcolorss(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, BBString * borderColor);
+	void bmx_magick_image_frame(MaxMImage * image, MaxMGeometry * geometry);
+	void bmx_magick_image_frametxt(MaxMImage * image, BBString * geometry);
+	void bmx_magick_image_framebevel(MaxMImage * image, const unsigned int width, const unsigned int height, const int innerBevel, const int outerBevel);
+	void bmx_magick_image_gamma(MaxMImage * image, const double g);
+	void bmx_magick_image_gammargb(MaxMImage * image, const double r, const double g, const double b);
+	void bmx_magick_image_gaussianblur(MaxMImage * image, const double width, const double sigma);
+	void bmx_magick_image_gaussianblurchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma);
+	void bmx_magick_image_implode(MaxMImage * image, const double factor);
+	void bmx_magick_image_label(MaxMImage * image, BBString * text);
+	void bmx_magick_image_level(MaxMImage * image, const double blackPoint, const double whitePoint, const double midPoint);
+	void bmx_magick_image_levelchannel(MaxMImage * image, const ChannelType channel, const double blackPoint, const double whitePoint, const double midPoint);
+	void bmx_magick_image_magnify(MaxMImage * image);
+	void bmx_magick_image_modifyImage(MaxMImage * image);
+	void bmx_magick_image_ping(MaxMImage * image, BBString * imageSpec);
+	void bmx_magick_image_quantize(MaxMImage * image, const bool measureError);
+	void bmx_magick_image_reducenoise(MaxMImage * image, const double order);
+	void bmx_magick_image_roll(MaxMImage * image, const int columns, const int rows);
+	void bmx_magick_image_shade(MaxMImage * image, const double azimuth, const double elevation, const bool colorShading);
+	void bmx_magick_image_sharpen(MaxMImage * image, const double radius, const double sigma);
+	void bmx_magick_image_sharpenchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma);
+	void bmx_magick_image_shear(MaxMImage * image, const double xShearAngle, const double yShearAngle);
+	void bmx_magick_image_solarize(MaxMImage * image, const double factor);
+	void bmx_magick_image_spread(MaxMImage * image, const unsigned int amount);
+	void bmx_magick_image_swirl(MaxMImage * image, const double degrees);
+	void bmx_magick_image_threshold(MaxMImage * image, const double value);
+	void bmx_magick_image_trim(MaxMImage * image);
+	void bmx_magick_image_unsharpmask(MaxMImage * image, const double radius, const double sigma, const double amount, const double threshold);
+	void bmx_magick_image_unsharpmaskchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma, const double amount, const double threshold);
+	void bmx_magick_image_wave(MaxMImage * image, const double amplitude, double const wavelength);
 
+	
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
 
 	void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable, CoderInfo::MatchType isWritable, CoderInfo::MatchType isMultiFrame);
@@ -612,7 +647,7 @@ unsigned int bmx_magick_image_getbasecolumns(MaxMImage * image) {
 }
 
 BBString * bmx_magick_image_getbasefilename(MaxMImage * image) {
-
+	return bbStringFromCString(image->image().baseFilename().c_str());
 }
 
 unsigned int bmx_magick_image_getbaserows(MaxMImage * image) {
@@ -662,6 +697,167 @@ void bmx_magick_image_classtype(MaxMImage * image, ClassType classType) {
 void bmx_magick_image_colorfuzz(MaxMImage * image, double fuzz) {
 	image->image().colorFuzz(fuzz);
 }
+
+void bmx_magick_image_contrast(MaxMImage * image, const unsigned int sharpen) {
+	image->image().contrast(sharpen);
+}
+
+void bmx_magick_image_floodfillcolorcc(MaxMImage * image, const unsigned int x, const unsigned int y, MaxMColor * fillColor, MaxMColor * borderColor) {
+	if (borderColor) {
+		image->image().floodFillColor(x, y, fillColor->color(), borderColor->color());
+	} else {
+		image->image().floodFillColor(x, y, fillColor->color());
+	}
+}
+
+void bmx_magick_image_floodfillcolorsc(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, MaxMColor * borderColor) {
+	char *t = bbStringToCString( fillColor );
+	if (borderColor) {
+		image->image().floodFillColor(x, y, t, borderColor->color());
+	} else {
+		image->image().floodFillColor(x, y, t);
+	}
+	bbMemFree(t);
+}
+
+void bmx_magick_image_floodfillcolorcs(MaxMImage * image, const unsigned int x, const unsigned int y, MaxMColor * fillColor, BBString * borderColor) {
+	char *t = bbStringToCString( borderColor );
+	image->image().floodFillColor(x, y, fillColor->color(), t);
+	bbMemFree(t);
+}
+
+void bmx_magick_image_floodfillcolorss(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, BBString * borderColor) {
+	char *f = bbStringToCString( fillColor );
+	char *b = bbStringToCString( borderColor );
+
+	image->image().floodFillColor(x, y, f, b);
+	
+	bbMemFree(f);
+	bbMemFree(b);
+}
+
+void bmx_magick_image_frame(MaxMImage * image, MaxMGeometry * geometry) {
+	image->image().frame(geometry->geometry());
+}
+
+void bmx_magick_image_frametxt(MaxMImage * image, BBString * geometry) {
+	char *t = bbStringToCString( geometry );
+	image->image().frame(t);
+	bbMemFree(t);
+}
+
+void bmx_magick_image_framebevel(MaxMImage * image, const unsigned int width, const unsigned int height, const int innerBevel, const int outerBevel) {
+	image->image().frame(width, height, innerBevel, outerBevel);
+}
+
+void bmx_magick_image_gamma(MaxMImage * image, const double g) {
+	image->image().gamma(g);
+}
+
+void bmx_magick_image_gammargb(MaxMImage * image, const double r, const double g, const double b) {
+	image->image().gamma(r, g, b);
+}
+
+void bmx_magick_image_gaussianblur(MaxMImage * image, const double width, const double sigma) {
+	image->image().gaussianBlur(width, sigma);
+}
+
+void bmx_magick_image_gaussianblurchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma) {
+	image->image().gaussianBlurChannel(channel, radius, sigma);
+}
+
+void bmx_magick_image_implode(MaxMImage * image, const double factor) {
+	image->image().implode(factor);
+}
+
+void bmx_magick_image_label(MaxMImage * image, BBString * text) {
+	char *t = bbStringToCString( text );
+	image->image().label(t);
+	bbMemFree(t);
+}
+
+void bmx_magick_image_level(MaxMImage * image, const double blackPoint, const double whitePoint, const double midPoint) {
+	image->image().level(blackPoint, whitePoint, midPoint);
+}
+
+void bmx_magick_image_levelchannel(MaxMImage * image, const ChannelType channel, const double blackPoint, const double whitePoint, const double midPoint) {
+	image->image().levelChannel(channel, blackPoint, whitePoint, midPoint);
+}
+
+void bmx_magick_image_magnify(MaxMImage * image) {
+	image->image().magnify();
+}
+
+void bmx_magick_image_modifyImage(MaxMImage * image) {
+	image->image().modifyImage();
+}
+
+void bmx_magick_image_ping(MaxMImage * image, BBString * imageSpec) {
+	char *t = bbStringToCString( imageSpec );
+	image->image().ping(t);
+	bbMemFree(t);
+}
+
+void bmx_magick_image_quantize(MaxMImage * image, const bool measureError) {
+	image->image().quantize(measureError);
+}
+
+void bmx_magick_image_reducenoise(MaxMImage * image, const double order) {
+	image->image().reduceNoise(order);
+}
+
+void bmx_magick_image_roll(MaxMImage * image, const int columns, const int rows) {
+	image->image().roll(columns, rows);
+}
+
+void bmx_magick_image_shade(MaxMImage * image, const double azimuth, const double elevation, const bool colorShading) {
+	image->image().shade(azimuth, elevation, colorShading);
+}
+
+void bmx_magick_image_sharpen(MaxMImage * image, const double radius, double const sigma) {
+	image->image().sharpen(radius, sigma);
+}
+
+void bmx_magick_image_sharpenchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma) {
+	image->image().sharpenChannel(channel, radius, sigma);
+}
+
+void bmx_magick_image_shear(MaxMImage * image, const double xShearAngle, const double yShearAngle) {
+	image->image().shear(xShearAngle, yShearAngle);
+}
+
+void bmx_magick_image_solarize(MaxMImage * image, const double factor) {
+	image->image().solarize(factor);
+}
+
+void bmx_magick_image_spread(MaxMImage * image, const unsigned int amount) {
+	image->image().spread(amount);
+}
+
+void bmx_magick_image_swirl(MaxMImage * image, const double degrees) {
+	image->image().swirl(degrees);
+}
+
+void bmx_magick_image_threshold(MaxMImage * image, const double value) {
+	image->image().threshold(value);
+}
+
+void bmx_magick_image_trim(MaxMImage * image) {
+	image->image().trim();
+}
+
+void bmx_magick_image_unsharpmask(MaxMImage * image, const double radius, const double sigma, const double amount, const double threshold) {
+	image->image().unsharpmask(radius, sigma, amount, threshold);
+}
+
+void bmx_magick_image_unsharpmaskchannel(MaxMImage * image, const ChannelType channel, const double radius, const double sigma, const double amount, const double threshold) {
+	image->image().unsharpmaskChannel(channel, radius, sigma, amount, threshold);
+}
+
+void bmx_magick_image_wave(MaxMImage * image, const double amplitude, const double wavelength) {
+	image->image().wave(amplitude, wavelength);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
