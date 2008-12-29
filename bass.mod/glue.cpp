@@ -153,16 +153,6 @@ public:
 private:
 };
 
-typedef struct {
-    char id[3];
-    char title[30];
-    char artist[30];
-    char album[30];
-    char year[4];
-    char comment[30];
-    BYTE genre;
-} TAG_ID3;
-
 DWORD bmx_bassinfo_getflags(BASS_INFO * info) {
     return info->flags;
 }

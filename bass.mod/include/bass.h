@@ -545,7 +545,7 @@ RETURN : TRUE = continue recording, FALSE = stop */
 #define BASS_DATA_FFT_NOWINDOW	0x20	// FFT flag: no Hanning window
 
 // BASS_ChannelGetTags types : what's returned
-#define BASS_TAG_ID3		0	// ID3v1 tags : 128 byte block
+#define BASS_TAG_ID3		0	// ID3v1 tags : TAG_ID3 structure
 #define BASS_TAG_ID3V2		1	// ID3v2 tags : variable length block
 #define BASS_TAG_OGG		2	// OGG comments : series of null-terminated UTF-8 strings
 #define BASS_TAG_HTTP		3	// HTTP headers : series of null-terminated ANSI strings
@@ -553,11 +553,52 @@ RETURN : TRUE = continue recording, FALSE = stop */
 #define BASS_TAG_META		5	// ICY metadata : ANSI string
 #define BASS_TAG_VENDOR		9	// OGG encoder : UTF-8 string
 #define BASS_TAG_LYRICS3	10	// Lyric3v2 tag : ASCII string
-#define BASS_TAG_RIFF_INFO	0x100 // RIFF/WAVE tags : series of null-terminated ANSI strings
+#define BASS_TAG_RIFF_INFO	0x100 // RIFF "INFO" tags : series of null-terminated ANSI strings
+#define BASS_TAG_RIFF_BEXT	0x101 // RIFF/BWF Broadcast Audio Extension tags : TAG_BEXT structure
 #define BASS_TAG_MUSIC_NAME		0x10000	// MOD music name : ANSI string
 #define BASS_TAG_MUSIC_MESSAGE	0x10001	// MOD message : ANSI string
 #define BASS_TAG_MUSIC_INST		0x10100	// + instrument #, MOD instrument name : ANSI string
 #define BASS_TAG_MUSIC_SAMPLE	0x10300	// + sample #, MOD sample name : ANSI string
+
+// ID3v1 tag structure
+typedef struct {
+	char id[3];
+	char title[30];
+	char artist[30];
+	char album[30];
+	char year[4];
+	char comment[30];
+	BYTE genre;
+} TAG_ID3;
+
+// BWF Broadcast Audio Extension tag structure
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4200)
+#endif
+#pragma pack(push,1)
+typedef struct {
+	char Description[256];			// description
+	char Originator[32];			// name of the originator
+	char OriginatorReference[32];	// reference of the originator
+	char OriginationDate[10];		// date of creation (yyyy-mm-dd)
+	char OriginationTime[8];		// time of creation (hh-mm-ss)
+	QWORD TimeReference;			// first sample count since midnight (little-endian)
+	WORD Version;					// BWF version (little-endian)
+	BYTE UMID[64];					// SMPTE UMID
+	BYTE Reserved[190];
+#if defined(__GNUC__) && __GNUC__<3
+	char CodingHistory[0];			// history
+#elif 1 // change to 0 if compiler fails the following line
+	char CodingHistory[];			// history
+#else
+	char CodingHistory[1];			// history
+#endif
+} TAG_BEXT;
+#pragma pack(pop)
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 // BASS_ChannelGetLength/GetPosition/SetPosition modes
 #define BASS_POS_BYTE			0		// byte position

@@ -31,6 +31,8 @@ ModuleInfo "License: BASS - see http://www.un4seen.com/bass.html#license"
 ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
 ModuleInfo "Copyright: BASS - 1999-2008 Un4seen Developments Ltd."
 
+ModuleInfo "History: 1.00 Initial Release"
+
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ?macos
