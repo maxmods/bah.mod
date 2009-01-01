@@ -1,11 +1,12 @@
 //  Boost string_algo library regex.hpp header file  ---------------------------//
 
-//  Copyright Pavol Droba 2002-2003. Use, modification and
-//  distribution is subject to the Boost Software License, Version
-//  1.0. (See accompanying file LICENSE_1_0.txt or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
+//  Copyright Pavol Droba 2002-2003.
+//
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
-//  See http://www.boost.org for updates, documentation, and revision history.
+//  See http://www.boost.org/ for updates, documentation, and revision history.
 
 #ifndef BOOST_STRING_REGEX_HPP
 #define BOOST_STRING_REGEX_HPP
@@ -16,7 +17,8 @@
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
-#include <boost/range/result_iterator.hpp>
+#include <boost/range/iterator.hpp>
+#include <boost/range/as_literal.hpp>
 
 #include <boost/algorithm/string/find_format.hpp>
 #include <boost/algorithm/string/regex_find_format.hpp>
@@ -52,14 +54,16 @@ namespace boost {
             typename CharT, 
             typename RegexTraitsT>
         inline iterator_range< 
-            BOOST_STRING_TYPENAME range_result_iterator<RangeT>::type >
+            BOOST_STRING_TYPENAME range_iterator<RangeT>::type >
         find_regex( 
             RangeT& Input, 
             const basic_regex<CharT, RegexTraitsT>& Rx,
             match_flag_type Flags=match_default )
         {
+            iterator_range<BOOST_STRING_TYPENAME range_iterator<RangeT>::type> lit_input(as_literal(Input));
+
             return regex_finder(Rx,Flags)(
-                begin(Input), end(Input) );
+                ::boost::begin(lit_input), ::boost::end(lit_input) );
         }
 
 //  replace_regex --------------------------------------------------------------------//
@@ -502,7 +506,7 @@ namespace boost {
         inline typename range_value<SequenceSequenceT>::type 
         join_if(
             const SequenceSequenceT& Input,
-            Range1T& Separator,
+            const Range1T& Separator,
             const basic_regex<CharT, RegexTraitsT>& Rx,
             match_flag_type Flags=match_default )
         {
@@ -511,8 +515,8 @@ namespace boost {
             typedef typename range_const_iterator<SequenceSequenceT>::type InputIteratorT;
 
             // Parse input
-            InputIteratorT itBegin=begin(Input);
-            InputIteratorT itEnd=end(Input);
+            InputIteratorT itBegin=::boost::begin(Input);
+            InputIteratorT itEnd=::boost::end(Input);
 
             // Construct container to hold the result
             ResultT Result;
@@ -521,23 +525,23 @@ namespace boost {
             // Roll to the first element that will be added
             while(
                 itBegin!=itEnd && 
-                !regex_match(begin(*itBegin), end(*itBegin), Rx, Flags)) ++itBegin;
+                !regex_match(::boost::begin(*itBegin), ::boost::end(*itBegin), Rx, Flags)) ++itBegin;
 
             // Add this element
             if(itBegin!=itEnd)
             {
-                detail::insert(Result, end(Result), *itBegin);
+                detail::insert(Result, ::boost::end(Result), *itBegin);
                 ++itBegin;
             }
 
             for(;itBegin!=itEnd; ++itBegin)
             {
-                if(regex_match(begin(*itBegin), end(*itBegin), Rx, Flags))
+                if(regex_match(::boost::begin(*itBegin), ::boost::end(*itBegin), Rx, Flags))
                 {
                     // Add separator
-                    detail::insert(Result, end(Result), Separator);
+                    detail::insert(Result, ::boost::end(Result), as_literal(Separator));
                     // Add element
-                    detail::insert(Result, end(Result), *itBegin);
+                    detail::insert(Result, ::boost::end(Result), *itBegin);
                 }
             }
 
@@ -570,7 +574,7 @@ namespace boost {
         inline typename range_value<SequenceSequenceT>::type 
         join_if_regex(
             const SequenceSequenceT& Input,
-            Range1T& Separator,
+            const Range1T& Separator,
             const basic_regex<CharT, RegexTraitsT>& Rx,
             match_flag_type Flags=match_default )
         {
@@ -579,33 +583,33 @@ namespace boost {
             typedef typename range_const_iterator<SequenceSequenceT>::type InputIteratorT;
 
             // Parse input
-            InputIteratorT itBegin=begin(Input);
-            InputIteratorT itEnd=end(Input);
+            InputIteratorT itBegin=::boost::begin(Input);
+            InputIteratorT itEnd=::boost::end(Input);
 
             // Construct container to hold the result
             ResultT Result;
-                               
+
 
             // Roll to the first element that will be added
             while(
                 itBegin!=itEnd && 
-                !regex_match(begin(*itBegin), end(*itBegin), Rx, Flags)) ++itBegin;
+                !regex_match(::boost::begin(*itBegin), ::boost::end(*itBegin), Rx, Flags)) ++itBegin;
 
             // Add this element
             if(itBegin!=itEnd)
             {
-                detail::insert(Result, end(Result), *itBegin);
+                detail::insert(Result, ::boost::end(Result), *itBegin);
                 ++itBegin;
             }
 
             for(;itBegin!=itEnd; ++itBegin)
             {
-                if(regex_match(begin(*itBegin), end(*itBegin), Rx, Flags))
+                if(regex_match(::boost::begin(*itBegin), ::boost::end(*itBegin), Rx, Flags))
                 {
                     // Add separator
-                    detail::insert(Result, end(Result), Separator);
+                    detail::insert(Result, ::boost::end(Result), as_literal(Separator));
                     // Add element
-                    detail::insert(Result, end(Result), *itBegin);
+                    detail::insert(Result, ::boost::end(Result), *itBegin);
                 }
             }
 
@@ -635,8 +639,6 @@ namespace boost {
 #else  // BOOST_NO_FUNCTION_TEMPLATE_ORDERING
     using algorithm::join_if_regex;
 #endif // BOOST_NO_FUNCTION_TEMPLATE_ORDERING
-
-
 
 } // namespace boost
 

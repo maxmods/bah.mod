@@ -1,4 +1,5 @@
-// (C) Copyright Jonathan Turkanis 2005.
+// (C) Copyright 2008 CodeRage, LLC (turkanis at coderage dot com)
+// (C) Copyright 2005-2007 Jonathan Turkanis
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
 
@@ -127,7 +128,7 @@ struct read_write_if_impl<output> {
 template<>
 struct seek_if_impl<random_access> {
     template<typename T>
-    static stream_offset 
+    static std::streampos 
     seek( T& t, stream_offset off, BOOST_IOS::seekdir way, 
           BOOST_IOS::openmode which )
     { return iostreams::seek(t, off, way, which); }
@@ -136,7 +137,7 @@ struct seek_if_impl<random_access> {
 template<>
 struct seek_if_impl<any_tag> {
     template<typename T>
-    static stream_offset 
+    static std::streampos 
     seek(T&, stream_offset, BOOST_IOS::seekdir, BOOST_IOS::openmode)
     { throw cant_seek(); }
 };

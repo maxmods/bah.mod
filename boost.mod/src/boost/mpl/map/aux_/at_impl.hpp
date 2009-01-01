@@ -11,9 +11,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Source: /cvsroot/boost/boost/boost/mpl/map/aux_/at_impl.hpp,v $
-// $Date: 2005/12/05 17:59:21 $
-// $Revision: 1.7 $
+// $Source$
+// $Date: 2005-12-05 12:59:21 -0500 (Mon, 05 Dec 2005) $
+// $Revision: 31919 $
 
 #include <boost/mpl/at_fwd.hpp>
 #include <boost/mpl/long.hpp>

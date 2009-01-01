@@ -5,9 +5,9 @@
 /* Copyright (c) 2004-2005 CrystalClear Software, Inc.
  * Use, modification and distribution is subject to the 
  * Boost Software License, Version 1.0. (See accompanying
- * file LICENSE-1.0 or http://www.boost.org/LICENSE-1.0)
+ * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author:  Martin Andrian, Jeff Garland, Bart Garst
- * $Date: 2006/02/18 20:58:01 $
+ * $Date: 2008-02-27 15:00:24 -0500 (Wed, 27 Feb 2008) $
  */
 
 #include "boost/date_time/date_facet.hpp"
@@ -197,7 +197,7 @@ namespace date_time {
 #endif
 
     //! sets default formats for ptime, local_date_time, and time_duration
-    explicit time_facet(::size_t a_ref = 0) 
+    explicit time_facet(::size_t /* a_ref */ = 0) 
       //: base_type(standard_format),
       : base_type(default_time_format), 
         m_time_duration_format(string_type(duration_sign_negative_only) + default_time_duration_format)

@@ -1,4 +1,5 @@
-// (C) Copyright Jonathan Turkanis 2003.
+// (C) Copyright 2008 CodeRage, LLC (turkanis at coderage dot com)
+// (C) Copyright 2003-2007 Jonathan Turkanis
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
 
@@ -62,7 +63,7 @@ public:
     range_adapter(iterator first, iterator last);
     std::streamsize read(char_type* s, std::streamsize n);
     std::streamsize write(const char_type* s, std::streamsize n);
-    stream_offset seek(stream_offset off, BOOST_IOS::seekdir way);
+    std::streampos seek(stream_offset off, BOOST_IOS::seekdir way);
 private:
     iterator first_, cur_, last_;
 };
@@ -89,11 +90,11 @@ inline std::streamsize range_adapter<Mode, Range>::write
 
 
 template<typename Mode, typename Range>
-stream_offset range_adapter<Mode, Range>::seek
+std::streampos range_adapter<Mode, Range>::seek
     (stream_offset off, BOOST_IOS::seekdir way)
 { 
     impl::seek(first_, cur_, last_, off, way); 
-    return static_cast<stream_offset>(cur_ - first_);
+    return offset_to_position(cur_ - first_);
 }
 
 //------------------Implementation of range_adapter_impl----------------------//
@@ -155,18 +156,18 @@ struct range_adapter_impl<std::random_access_iterator_tag> {
         using namespace std;
         switch (way) {
         case BOOST_IOS::beg:
-            if (off > last - first || off < 0) bad_seek();
+            if (off > last - first || off < 0) throw bad_seek();
             cur = first + off;
             break;
         case BOOST_IOS::cur:
             {
                 std::ptrdiff_t newoff = cur - first + off;
-                if (newoff > last - first || newoff < 0) bad_seek();
+                if (newoff > last - first || newoff < 0) throw bad_seek();
                 cur += off;
                 break;
             }
         case BOOST_IOS::end:
-            if (last - first + off < 0 || off > 0) bad_seek();
+            if (last - first + off < 0 || off > 0) throw bad_seek();
             cur = last + off;
             break;
         default:

@@ -1,4 +1,5 @@
-// (C) Copyright Jonathan Turkanis 2003.
+// (C) Copyright 2008 CodeRage, LLC (turkanis at coderage dot com)
+// (C) Copyright 2003-2007 Jonathan Turkanis
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
 
@@ -14,16 +15,19 @@
 #include <cassert>
 #include <cstddef>
 #include <typeinfo>
-#include <utility>                              // pair.
-#include <boost/config.hpp>                     // BOOST_DEDUCED_TYPENAME.
-#include <boost/iostreams/detail/char_traits.hpp>
+#include <utility>                                 // pair.
+#include <boost/config.hpp>                        // BOOST_DEDUCED_TYPENAME, 
+#include <boost/iostreams/detail/char_traits.hpp>  // member template friends.
 #include <boost/iostreams/detail/config/wide_streams.hpp>
+#include <boost/iostreams/detail/error.hpp>
+#include <boost/iostreams/detail/execute.hpp>
+#include <boost/iostreams/detail/functional.hpp>
 #include <boost/iostreams/detail/ios.hpp>
 #include <boost/iostreams/detail/optional.hpp>
 #include <boost/iostreams/detail/streambuf.hpp>
 #include <boost/iostreams/detail/streambuf/linked_streambuf.hpp>
-#include <boost/iostreams/detail/error.hpp>
 #include <boost/iostreams/operations.hpp>
+#include <boost/iostreams/positioning.hpp>
 #include <boost/iostreams/traits.hpp>
 
 // Must come last.
@@ -52,7 +56,7 @@ private:
             )                                             streambuf_type;
 public: // stream needs access.
     void open(const T& t, int buffer_size, int pback_size);
-    bool is_open();
+    bool is_open() const;
     void close();
     bool auto_close() const { return auto_close_; }
     void set_auto_close(bool close) { auto_close_ = close; }
@@ -69,10 +73,9 @@ protected:
     //--------------Virtual functions-----------------------------------------//
 
     // Declared in linked_streambuf.
-    void close(BOOST_IOS::openmode m);
+    void close_impl(BOOST_IOS::openmode m);
     const std::type_info& component_type() const { return typeid(T); }
     void* component_impl() { return component(); } 
-
 #ifdef BOOST_IOSTREAMS_NO_STREAM_TEMPLATES
     public:
 #endif
@@ -85,7 +88,7 @@ protected:
                       BOOST_IOS::openmode which );
     pos_type seekpos(pos_type sp, BOOST_IOS::openmode which);
 private:
-    pos_type seek_impl( off_type off, BOOST_IOS::seekdir way,
+    pos_type seek_impl( stream_offset off, BOOST_IOS::seekdir way,
                         BOOST_IOS::openmode which );
     void init_input(any_tag) { }
     void init_input(input);
@@ -118,15 +121,16 @@ void direct_streambuf<T, Tr>::open(const T& t, int, int)
 }
 
 template<typename T, typename Tr>
-bool direct_streambuf<T, Tr>::is_open() { return ibeg_ != 0 && !obeg_ != 0; }
+bool direct_streambuf<T, Tr>::is_open() const 
+{ return ibeg_ != 0 || obeg_ != 0; }
 
 template<typename T, typename Tr>
 void direct_streambuf<T, Tr>::close() 
 { 
-    using namespace std;
-    try { close(BOOST_IOS::in); } catch (std::exception&) { }
-    try { close(BOOST_IOS::out); } catch (std::exception&) { }
-    storage_.reset();
+    base_type* self = this;
+    detail::execute_all( detail::call_member_close(*self, BOOST_IOS::in),
+                         detail::call_member_close(*self, BOOST_IOS::out),
+                         detail::call_reset(storage_) );
 }
 
 template<typename T, typename Tr>
@@ -184,11 +188,13 @@ direct_streambuf<T, Tr>::seekoff
 template<typename T, typename Tr>
 inline typename direct_streambuf<T, Tr>::pos_type
 direct_streambuf<T, Tr>::seekpos
-    (pos_type sp, BOOST_IOS::openmode)
-{ return seek_impl(sp, BOOST_IOS::beg, BOOST_IOS::in | BOOST_IOS::out); }
+    (pos_type sp, BOOST_IOS::openmode which)
+{ 
+    return seek_impl(position_to_offset(sp), BOOST_IOS::beg, which);
+}
 
 template<typename T, typename Tr>
-void direct_streambuf<T, Tr>::close(BOOST_IOS::openmode which)
+void direct_streambuf<T, Tr>::close_impl(BOOST_IOS::openmode which)
 {
     if (which == BOOST_IOS::in && ibeg_ != 0) {
         setg(0, 0, 0);
@@ -204,13 +210,13 @@ void direct_streambuf<T, Tr>::close(BOOST_IOS::openmode which)
 
 template<typename T, typename Tr>
 typename direct_streambuf<T, Tr>::pos_type direct_streambuf<T, Tr>::seek_impl
-    (off_type off, BOOST_IOS::seekdir way, BOOST_IOS::openmode which)
+    (stream_offset off, BOOST_IOS::seekdir way, BOOST_IOS::openmode which)
 {
     using namespace std;
     BOOST_IOS::openmode both = BOOST_IOS::in | BOOST_IOS::out;
     if (two_head() && (which & both) == both)
         throw bad_seek();
-    off_type result = -1;
+    stream_offset result = -1;
     bool one = one_head();
     if (one && (pptr() != 0 || gptr()== 0))
         init_get_area(); // Switch to input mode, for code reuse.
@@ -242,7 +248,7 @@ typename direct_streambuf<T, Tr>::pos_type direct_streambuf<T, Tr>::seek_impl
         pbump(static_cast<int>(next - (pptr() - obeg_)));
         result = next;
     }
-    return result;
+    return offset_to_position(result);
 }
 
 template<typename T, typename Tr>

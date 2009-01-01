@@ -4,10 +4,12 @@
 /* Copyright (c) 2006 CrystalClear Software, Inc.
  * Use, modification and distribution is subject to the 
  * Boost Software License, Version 1.0. (See accompanying
- * file LICENSE-1.0 or http://www.boost.org/LICENSE-1.0)
+ * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author: Jeff Garland
- * $Date: 2006/10/27 23:18:29 $
+ * $Date: 2008-02-27 15:00:24 -0500 (Wed, 27 Feb 2008) $
  */
+ 
+ //  See www.boost.org/libs/date_time for documentation.
 
 //gregorian and posix time included by indirectly
 #include "boost/date_time/local_time/local_time.hpp"

@@ -1,4 +1,5 @@
-// (C) Copyright Jonathan Turkanis 2003.
+// (C) Copyright 2008 CodeRage, LLC (turkanis at coderage dot com)
+// (C) Copyright 2003-2007 Jonathan Turkanis
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
 
@@ -48,11 +49,12 @@ public:
 
     std::streamsize read(char_type* s, std::streamsize n);
     std::streamsize write(const char_type* s, std::streamsize n);
-    stream_offset seek( stream_offset off, BOOST_IOS::seekdir way,
-                        BOOST_IOS::openmode which = 
-                            BOOST_IOS::in | BOOST_IOS::out );
+    std::streampos seek( stream_offset off, BOOST_IOS::seekdir way,
+                         BOOST_IOS::openmode which = 
+                             BOOST_IOS::in | BOOST_IOS::out );
 #if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
-    void close(BOOST_IOS::openmode which = BOOST_IOS::in | BOOST_IOS::out);
+    void close();
+    void close(BOOST_IOS::openmode which);
 #endif
 
         // Filter member functions.
@@ -66,17 +68,17 @@ public:
     { return iostreams::write(t_, snk, s, n); }
 
     template<typename Device>
-    stream_offset seek(Device& dev, stream_offset off, BOOST_IOS::seekdir way)
+    std::streampos seek(Device& dev, stream_offset off, BOOST_IOS::seekdir way)
     { return iostreams::seek(t_, dev, off, way); }
 
     template<typename Device>
-    stream_offset seek( Device& dev, stream_offset off, 
-                        BOOST_IOS::seekdir way, BOOST_IOS::openmode which  )
+    std::streampos seek( Device& dev, stream_offset off, 
+                         BOOST_IOS::seekdir way, BOOST_IOS::openmode which  )
     { return iostreams::seek(t_, dev, off, way, which); }
 
     template<typename Device>
     void close(Device& dev)
-    { iostreams::close(t_, dev); }
+    { detail::close_all(t_, dev); }
 
     template<typename Device>
     void close(Device& dev, BOOST_IOS::openmode which)
@@ -102,11 +104,15 @@ std::streamsize mode_adapter<Mode, T>::write
 { return boost::iostreams::write(t_, s, n); }
 
 template<typename Mode, typename T>
-stream_offset mode_adapter<Mode, T>::seek
+std::streampos mode_adapter<Mode, T>::seek
     (stream_offset off, BOOST_IOS::seekdir way, BOOST_IOS::openmode which)
 { return boost::iostreams::seek(t_, off, way, which); }
 
 #if !BOOST_WORKAROUND(BOOST_MSVC, < 1300)
+    template<typename Mode, typename T>
+    void mode_adapter<Mode, T>::close() 
+    { detail::close_all(t_); }
+
     template<typename Mode, typename T>
     void mode_adapter<Mode, T>::close(BOOST_IOS::openmode which) 
     { iostreams::close(t_, which); }

@@ -9,9 +9,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Source: /cvsroot/boost/boost/boost/mpl/set/aux_/include_preprocessed.hpp,v $
-// $Date: 2006/11/09 01:44:00 $
-// $Revision: 1.2.14.1 $
+// $Source$
+// $Date: 2006-11-08 20:44:00 -0500 (Wed, 08 Nov 2006) $
+// $Revision: 35938 $
 
 #include <boost/mpl/aux_/config/preprocessor.hpp>
 #include <boost/mpl/aux_/config/workaround.hpp>

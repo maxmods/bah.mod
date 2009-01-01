@@ -4,9 +4,9 @@
 /* Copyright (c) 2004-2005 CrystalClear Software, Inc.
  * Use, modification and distribution is subject to the 
  * Boost Software License, Version 1.0. (See accompanying
- * file LICENSE-1.0 or http://www.boost.org/LICENSE-1.0)
+ * file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt)
  * Author:  Martin Andrian, Jeff Garland, Bart Garst
- * $Date: 2005/09/05 21:10:50 $
+ * $Date: 2008-02-27 15:00:24 -0500 (Wed, 27 Feb 2008) $
  */
 
 
@@ -429,7 +429,7 @@ namespace boost { namespace date_time {
     typedef std::basic_string<CharT> string_type;
     typedef CharT                    char_type;
     typedef boost::date_time::period_parser<date_type, CharT>  period_parser_type;
-    typedef special_values_parser<date_type,CharT> special_values_parser_type; 
+    typedef boost::date_time::special_values_parser<date_type,CharT> special_values_parser_type; 
     typedef std::vector<std::basic_string<CharT> > input_collection_type;
     typedef format_date_parser<date_type, CharT> format_date_parser_type;
     // date_generators stuff goes here

@@ -1,4 +1,5 @@
-// (C) Copyright Jonathan Turkanis 2003.
+// (C) Copyright 2008 CodeRage, LLC (turkanis at coderage dot com)
+// (C) Copyright 2003-2007 Jonathan Turkanis
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
 
@@ -31,7 +32,9 @@
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/bool.hpp> // true_.
 #include <boost/mpl/if.hpp>
-#include <boost/range/iterator_range.hpp>
+#if !BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
+# include <boost/range/iterator_range.hpp>
+#endif // #if BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
 #include <boost/type_traits/is_array.hpp>
 
 // Must come last.
@@ -47,10 +50,7 @@ template<typename Mode, typename Ch, typename T>
 struct resolve_traits {
     typedef typename 
             mpl::if_<
-                mpl::and_<
-                    boost::detail::is_incrementable<T>, // Must come first
-                    is_dereferenceable<T>               // for CW 9.[0-4]
-                >,
+                boost::detail::is_incrementable<T>,
                 output_iterator_adapter<Mode, Ch, T>,
                 const T&
             >::type type;
@@ -101,10 +101,12 @@ template<typename Mode, typename Ch, std::size_t N>
 array_adapter<Mode, Ch> resolve(Ch (&array)[N])
 { return array_adapter<Mode, Ch>(array); }
 
-template<typename Mode, typename Ch, typename Iter>
-range_adapter< Mode, boost::iterator_range<Iter> > 
-resolve(const boost::iterator_range<Iter>& rng)
-{ return range_adapter< Mode, boost::iterator_range<Iter> >(rng); }
+#  if !BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
+    template<typename Mode, typename Ch, typename Iter>
+    range_adapter< Mode, boost::iterator_range<Iter> > 
+    resolve(const boost::iterator_range<Iter>& rng)
+    { return range_adapter< Mode, boost::iterator_range<Iter> >(rng); }
+#  endif // #if BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
 
 # else // # ifndef BOOST_IOSTREAMS_NO_STREAM_TEMPLATES //---------------------//
 
@@ -163,10 +165,7 @@ struct resolve_traits {
                 mode_adapter<Mode, T>,
                 is_iterator_range<T>,
                 range_adapter<Mode, T>,
-                mpl::and_<
-                    is_dereferenceable<T>,
-                    boost::detail::is_incrementable<T>
-                >,
+                is_dereferenceable<T>,
                 output_iterator_adapter<Mode, Ch, T>,
                 is_array<T>,
                 array_adapter<Mode, T>,

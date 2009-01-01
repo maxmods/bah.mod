@@ -10,9 +10,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Source: /cvsroot/boost/boost/boost/mpl/aux_/test.hpp,v $
-// $Date: 2006/02/28 22:56:33 $
-// $Revision: 1.4 $
+// $Source$
+// $Date: 2006-02-28 17:56:33 -0500 (Tue, 28 Feb 2006) $
+// $Revision: 33181 $
 
 #include <boost/mpl/aux_/test/test_case.hpp>
 #include <boost/mpl/aux_/test/data.hpp>
