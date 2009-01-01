@@ -1,5 +1,5 @@
 /*
-  Copyright 2008 Bruce A Henderson
+  Copyright 2008,2009 Bruce A Henderson
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ extern "C" {
 	BBObject * _bah_flickcurl_TFCLocation__create(double latitude, double longitude, int accuracy);
 	BBObject * _bah_flickcurl_TFCComment__create(BBString * id, BBString * author, BBString * authorname, int datecreate, BBString * permalink, BBString * text, flickcurl * fc);
 	BBObject * _bah_flickcurl_TFCPersonField__create(BBString * svalue, flickcurl_person_field_type value, flickcurl_field_value_type type);
+
+	BBArray * _bah_flickcurl_TFCTagCluster__createClusterArray(int size);
+	BBObject * _bah_flickcurl_TFCTagCluster__setCluster(BBArray * array, int index, int size);
+	void _bah_flickcurl_TFCTagCluster__setTag(BBObject * cluster, int index, BBString * tag);
 
 	flickcurl * bmx_flickcurl_new();
 	void bmx_flickcurl_free(flickcurl * fc);
@@ -112,6 +116,7 @@ extern "C" {
 	BBString * bmx_flickcurl_tag_getcooked(flickcurl_tag * tag);
 	int bmx_flickcurl_tag_getmachinetag(flickcurl_tag * tag);
 	int bmx_flickcurl_tag_getcount(flickcurl_tag * tag);
+	BBArray * bmx_flickcurl_tags_getclusters(flickcurl * fc, BBString * tag);
 
 	int bmx_flickcurl_getprefscontenttype(flickcurl * fc);
 	int bmx_flickcurl_getprefsgeoperms(flickcurl * fc);
@@ -730,6 +735,43 @@ int bmx_flickcurl_tag_getcount(flickcurl_tag * tag) {
 	return tag->count;
 }
 
+BBArray * bmx_flickcurl_tags_getclusters(flickcurl * fc, BBString * tag) {
+
+	BBArray * cls = &bbEmptyArray;
+
+	char *p=bbStringToCString( tag );
+	
+	flickcurl_tag_clusters * clusters = flickcurl_tags_getClusters(fc, p);
+	
+	bbMemFree(p);
+
+	if (clusters) {
+		
+		if (clusters->count > 0) {
+		
+			cls = _bah_flickcurl_TFCTagCluster__createClusterArray(clusters->count);
+		
+			for (int i = 0; i < clusters->count; i++) {
+				
+				flickcurl_tag_cluster * cluster = clusters->clusters[i];
+				
+				BBObject * bbCluster = _bah_flickcurl_TFCTagCluster__setCluster(cls, i, cluster->count);
+				
+				for (int n = 0; n < cluster->count; n++) {
+					_bah_flickcurl_TFCTagCluster__setTag(bbCluster, n, bbStringFromCString(cluster->tags[n]));
+				}
+				
+			}
+			
+		}	
+		
+		flickcurl_free_tag_clusters(clusters);
+	
+	}
+	
+	return cls;
+	
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

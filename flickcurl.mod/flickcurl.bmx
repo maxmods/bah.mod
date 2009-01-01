@@ -1,4 +1,4 @@
-' Copyright 2008 Bruce A Henderson
+' Copyright 2008,2009 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -22,11 +22,17 @@ Module BaH.Flickcurl
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Flickurl - 2007-2008, David Beckett http://www.dajobe.org/"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
 
 Import "common.bmx"
+
+
+'
+' Notes :
+' flickcurl.h - added "_" suffix to "namespace" parameters
+'
 
 
 Rem
@@ -207,6 +213,13 @@ Type TFlickcurl
 		Return TFCPerson._create(bmx_flickcurl_findpeoplebyusername(fcPtr, username), fcPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns an array of tag clusters for a tag.
+	End Rem
+	Method GetClusters:TFCTagCluster[](tag:String)
+		Return bmx_flickcurl_tags_getclusters(fcPtr, tag)
+	End Method
+	
 	Method Delete()
 		Free()
 	End Method
@@ -288,21 +301,26 @@ Type TFCActivityEvent
 	Field eventPtr:Byte Ptr
 	
 	Method GetType:String()
+	' TODO
 	End Method
 	
 	Method GetID:String()
+	' TODO
 	End Method
 	
 	Method GetUser:String()
+	' TODO
 	End Method
 	
 	Method GetUsername:String()
 	End Method
 	
+	' TODO
 	Method GetValue:String()
 	End Method
 	
 	Method GetDateAdded:Int()
+	' TODO
 	End Method
 
 End Type
@@ -521,12 +539,14 @@ Type TFCPhoto
 	bbdoc: 
 	End Rem
 	Method GetVideo:TFCVideo()
+	' TODO
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetMediaType:String()
+	' TODO
 	End Method
 	
 	Rem
@@ -636,6 +656,7 @@ Type TFCListOfPhotos Extends TFCPhotoList
 	End Function
 	
 	Method GetFormat:String()
+	' TODO
 	End Method
 	
 	Rem
@@ -653,6 +674,7 @@ Type TFCListOfPhotos Extends TFCPhotoList
 	End Method
 	
 	Method GetContent:String()
+	' TODO
 	End Method
 
 	Method Free()
@@ -728,7 +750,8 @@ Type TFCPhotoList
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A tag OR a posting of a tag about a photo by a user OR a tag in a histogram.
+about: Most of these fields may be Null, 0 for numbers but not all. Either raw or cooked MUST appear.
 End Rem
 Type TFCTag
 
@@ -809,6 +832,42 @@ Type TFCTag
 	Method Delete()
 		Free()
 	End Method
+	
+End Type
+
+Extern
+	Function bmx_flickcurl_tags_getclusters:TFCTagCluster[](handle:Byte Ptr, tag:String)
+End Extern
+
+Rem
+bbdoc: A cluster (set) of tag names
+End Rem
+Type TFCTagCluster
+
+	Rem
+	bbdoc: Tags in this cluster.
+	End Rem
+	Field tags:String[]
+	
+	Function _createClusterArray:TFCTagCluster[](size:Int)
+		Return New TFCTagCluster[size]
+	End Function
+	
+	Function _setCluster:TFCTagCluster(array:TFCTagCluster[], index:Int, size:Int)
+		Local cluster:TFCTagCluster = TFCTagCluster._create(size)
+		array[index] = cluster
+		Return cluster
+	End Function
+	
+	Function _create:TFCTagCluster(size:Int)
+		Local this:TFCTagCluster = New TFCTagCluster
+		this.tags = New String[size]
+		Return this
+	End Function
+	
+	Function _setTag(cluster:TFCTagCluster, index:Int, tag:String)
+		cluster.tags[index] = tag
+	End Function
 	
 End Type
 
