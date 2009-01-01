@@ -183,7 +183,7 @@ Type TGTKSystemDriver Extends TSystemDriver
 		End If
 
 		Local current:String = CurrentDir()
-		gtk_file_chooser_set_current_folder(req, current)
+		gtk_file_chooser_set_current_folder(req, gtkCheckAndConvert(current))
 
 		' set the path if there was one.
 		If file <> Null And file.length > 0 Then
