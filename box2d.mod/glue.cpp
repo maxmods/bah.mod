@@ -247,7 +247,6 @@ extern "C" {
 	void bmx_b2revolutejointdef_setreferenceangle(b2RevoluteJointDef * def, float32 angle);
 
 	BBObject * bmx_b2joint_getmaxjoint(b2Joint * joint);
-	void bmx_b2joint_attachobject(b2Joint * joint, BBObject *joint);
 	b2Body * bmx_b2joint_getbody1(b2Joint * joint);
 	b2Body * bmx_b2joint_getbody2(b2Joint * joint);
 	b2Joint * bmx_b2joint_getnext(b2Joint * joint);
@@ -1690,12 +1689,12 @@ b2JointEdge * bmx_b2jointedge_getnext(b2JointEdge * joint) {
 class MaxContactFilter : public b2ContactFilter
 {
 public:
-	MaxContactFilter::MaxContactFilter(BBObject * handle)
+	MaxContactFilter(BBObject * handle)
 		: maxHandle(handle)
 	{
 	}
 	
-	bool MaxContactFilter::ShouldCollide(b2Shape* shape1, b2Shape* shape2) {
+	bool ShouldCollide(b2Shape* shape1, b2Shape* shape2) {
 		return _bah_box2d_b2ContactFilter__ShouldCollide(maxHandle, shape1, shape2);
 	}
 
@@ -1718,24 +1717,24 @@ void bmx_b2contactfilter_delete(MaxContactFilter * filter) {
 class MaxContactListener : public b2ContactListener
 {
 public:
-	MaxContactListener::MaxContactListener(BBObject * handle)
+	MaxContactListener(BBObject * handle)
 		: maxHandle(handle)
 	{
 	}
 	
-	void MaxContactListener::Add(const b2ContactPoint* point) {
+	void Add(const b2ContactPoint* point) {
 		_bah_box2d_b2ContactListener__Add(maxHandle, point);
 	}
 
-	void MaxContactListener::Persist(const b2ContactPoint* point) {
+	void Persist(const b2ContactPoint* point) {
 		_bah_box2d_b2ContactListener__Persist(maxHandle, point);
 	}
 
-	void MaxContactListener::Remove(const b2ContactPoint* point) {
+	void Remove(const b2ContactPoint* point) {
 		_bah_box2d_b2ContactListener__Remove(maxHandle, point);
 	}
 
-	void MaxContactListener::Result(const b2ContactResult* result) {
+	void Result(const b2ContactResult* result) {
 		_bah_box2d_b2ContactListener__Result(maxHandle, result);
 	}
 
@@ -1756,12 +1755,12 @@ void bmx_b2contactlistener_delete(MaxContactListener * listener) {
 class MaxBoundaryListener : public b2BoundaryListener
 {
 public:
-	MaxBoundaryListener::MaxBoundaryListener(BBObject * handle)
+	MaxBoundaryListener(BBObject * handle)
 		: maxHandle(handle)
 	{
 	}
 	
-	void MaxBoundaryListener::Violation(b2Body* body) {
+	void Violation(b2Body* body) {
 		_bah_box2d_b2BoundaryListener__Violation(maxHandle, body);
 	}
 	
@@ -2570,12 +2569,12 @@ void bmx_b2pulleyjointdef_delete(b2PulleyJointDef * def) {
 class MaxDestructionListener : public b2DestructionListener
 {
 public:
-	MaxDestructionListener::MaxDestructionListener(BBObject * handle)
+	MaxDestructionListener(BBObject * handle)
 		: maxHandle(handle)
 	{
 	}
 	
-	void MaxDestructionListener::SayGoodbye(b2Joint * joint) {
+	void SayGoodbye(b2Joint * joint) {
 		_bah_box2d_b2DestructionListener__SayGoodbyeJoint(maxHandle, joint);
 		void * data = joint->GetUserData();
 		if (data && data != &bbNullObject) {
@@ -2584,7 +2583,7 @@ public:
 		}
 	}
 
-	void MaxDestructionListener::SayGoodbye(b2Shape * shape) {
+	void SayGoodbye(b2Shape * shape) {
 		_bah_box2d_b2DestructionListener__SayGoodbyeShape(maxHandle, shape);
 		void * data = shape->GetUserData();
 		if (data && data != &bbNullObject) {
