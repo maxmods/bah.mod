@@ -9,6 +9,11 @@ If AppArgs.length > 1 And AppArgs[1] = "-v" Then
 	verbose = 1
 End If
 
+?win32
+' Needs to be run once... at some point, to install the service.
+USBInstallService()
+?
+
 USBInit()
 
 USBRescan()
@@ -96,7 +101,7 @@ End Function
 Function indent:String(level:Int)
 	Local txt:String
 	For Local i:Int = 0 Until level * 2
-		txt:+ "                    "
+		txt:+ "      "
 	Next
 	Return txt
 End Function

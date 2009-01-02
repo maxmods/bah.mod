@@ -39,6 +39,23 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 Import "common.bmx"
 
 
+?win32
+Rem
+bbdoc: Installs Filter service, required on Win32.
+about: libusb uses this to gain access to usb devices connected to the PC.
+End Rem
+Function USBInstallService:Int()
+	Return usb_install_service_np()
+End Function
+
+Rem
+bbdoc: Uninstalls Filter service.
+End Rem
+Function USBUninstallService:Int()
+	Return usb_uninstall_service_np()
+End Function
+?
+
 Rem
 bbdoc: Initialize libusb
 about: Just like the name implies, #USBInit sets up some internal structures. #USBInit <b>must</b> be called before any

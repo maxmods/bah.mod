@@ -36,6 +36,10 @@ Extern
 	Function usb_find_busses:Int()
 	Function usb_find_devices:Int()
 	Function usb_close:Int(handle:Byte Ptr)
+?win32
+	Function usb_install_service_np:Int()
+	Function usb_uninstall_service_np:Int()
+?
 	
 	Function bmx_usb_open:Byte Ptr(device:Byte Ptr)
 	Function bmx_usb_busses:Byte Ptr()
