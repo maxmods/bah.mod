@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,9 @@ Const kCurrentUserFolderType:Int = Asc("c") Shl 24 | Asc("u") Shl 16 | Asc( "s")
 Const kApplicationSupportFolderType:Int = Asc("a") Shl 24 | Asc("s") Shl 16 | Asc( "u") Shl 8 | Asc("p")
 Const kDocumentsFolderType:Int = Asc("d") Shl 24 | Asc("o") Shl 16 | Asc( "c") Shl 8 | Asc("s")
 Const kSharedUserDataFolderType:Int = Asc("s") Shl 24 | Asc("d") Shl 16 | Asc( "a") Shl 8 | Asc("t")
+Const kPictureDocumentsFolderType:Int = Asc("p") Shl 24 | Asc("d") Shl 16 | Asc( "o") Shl 8 | Asc("c")
+Const kMusicDocumentsFolderType:Int = $B5646F63
+Const kMovieDocumentsFolderType:Int = Asc("m") Shl 24 | Asc("d") Shl 16 | Asc( "o") Shl 8 | Asc("c")
 
 Type Tstatfs
 	Const f_otype:Int = 0    ' Type of file system (reserved: zero) */
@@ -106,15 +109,15 @@ Type Tstatfs
 	End Method
 	
 	Method mountedFileSystem:String()
-		Return String.fromCString(bank.lock() + f_mntfromname)
+		Return bbStringFromUTF8String(bank.lock() + f_mntfromname)
 	End Method
 	
 	Method dirOfMount:String()
-		Return String.fromCString(bank.lock() + f_mntonname)
+		Return bbStringFromUTF8String(bank.lock() + f_mntonname)
 	End Method
 
 	Method fileSystemType:String()
-		Return String.fromCString(bank.lock() + f_fstypename)
+		Return bbStringFromUTF8String(bank.lock() + f_fstypename)
 	End Method
 	
 End Type
@@ -247,7 +250,7 @@ Type TMacVolume Extends TVolume
 		If FSFindFolder( kUserDomain, folderType, False, ref ) Return Null
 		If FSRefMakePath( ref,buf,1024 ) Return Null
 		
-		Return String.FromCString( buf )
+		Return bbStringFromUTF8String( buf )
 	End Method
 
 	Method GetUserHomeDir:String()
@@ -271,6 +274,12 @@ Type TMacVolume Extends TVolume
 		Select dirType
 			Case DT_SHAREDUSERDATA
 				Return getPath(kSharedUserDataFolderType)
+			Case DT_USERPICTURES
+				Return getPath(kPictureDocumentsFolderType)
+			Case DT_USERMUSIC
+				Return getPath(kMusicDocumentsFolderType)
+			Case DT_USERMOVIES
+				Return getPath(kMovieDocumentsFolderType)
 		End Select
 		
 		Return Null

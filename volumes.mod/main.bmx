@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -90,7 +90,7 @@ bbdoc: Returns a list of volumes on the system.
 End Rem
 Function ListVolumes:TList()
 
-	Return volume_driver.listVolumes()
+	Return volume_driver.ListVolumes()
 
 End Function
 
@@ -103,7 +103,7 @@ about: Parameters:
 End Rem
 Function GetVolumeFreeSpace:Long(vol:String)
 
-	Return volume_driver.getVolumeFreeSpace(vol)
+	Return volume_driver.GetVolumeFreeSpace(vol)
 
 End Function
 
@@ -116,7 +116,7 @@ about: Parameters:
 End Rem
 Function GetVolumeSize:Long(vol:String)
 
-	Return volume_driver.getVolumeSize(vol)
+	Return volume_driver.GetVolumeSize(vol)
 
 End Function
 
@@ -129,7 +129,7 @@ about: Parameters:
 End Rem
 Function GetVolumeInfo:TVolume(vol:String)
 
-	Return volume_driver.getVolumeInfo(vol)
+	Return volume_driver.GetVolumeInfo(vol)
 
 End Function
 
@@ -195,6 +195,9 @@ about: The following table lists valid @dirType -
 <table align="center">
 <tr><th>Platform</th><th>dirType</th><th>Description</th></tr>
 <tr><td>Mac</td><td>DT_SHAREDUSERDATA</td><td>The Shared documents folder.</td></tr>
+<tr><td>Mac, Windows</td><td>DT_USERPICTURES</td><td>The &quot;Pictures&quot; or &quot;My Pictures&quot; folder of the user.</td></tr>
+<tr><td>Mac, Windows</td><td>DT_USERMUSIC</td><td>The &quot;Music&quot; or &quot;My Music&quot; folder of the user.</td></tr>
+<tr><td>Mac, Windows</td><td>DT_USERMOVIES</td><td>The &quot;Movies&quot; or &quot;My Videos&quot; folder of the user.</td></tr>
 </table>
 <p>Returns Null if @dirType is not valid for the platform.</p>
 End Rem
@@ -205,3 +208,42 @@ End Function
 ' custom dir types
 
 Const DT_SHAREDUSERDATA:Int = $0001
+Const DT_USERPICTURES:Int = $0002
+Const DT_USERMUSIC:Int = $0003
+Const DT_USERMOVIES:Int = $0004
+
+
+'
+' NOTE : temporary home until we get official support for this function
+'
+Function bbStringFromUTF8String:String(s:Byte Ptr)
+	If s Then
+		Local l:Int = strlen_(s)
+		Local b:Short[] = New Short[l]
+		Local bc:Int = -1, c:Int, d:Int, e:Int
+		For Local i:Int = 0 Until l
+			bc:+1
+			c = s[i]
+			If c<128 
+				b[bc] = c
+				Continue
+			End If
+			i:+1
+			d=s[i]
+			If c<224 
+				b[bc] = (c-192)*64+(d-128)
+				Continue
+			End If
+			i:+1
+			e = s[i]
+			If c < 240 
+				b[bc] = (c-224)*4096+(d-128)*64+(e-128)
+				Continue
+			End If
+		Next
+		Return String.fromshorts(b, bc + 1)
+	End If
+	
+	Return ""
+	
+End Function

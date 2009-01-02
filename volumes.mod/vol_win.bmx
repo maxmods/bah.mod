@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,9 @@ Import "-lkernel32"
 Import "-lshell32"
 
 Extern "win32"
-	Function GetDiskFreeSpaceEx:Int(lpDirectoryName:Byte Ptr, lpFreeBytesAvailableToCaller:Long Var, lpTotalNumberOfBytes:Long Var, lpTotalNumberOfFreeBytes:Long Var) = "GetDiskFreeSpaceExA@16"
-	Function GetVolumeInformation:Int(lpRootPathName:Byte Ptr, lpVolumeNameBuffer:Byte Ptr, nVolumeNameSize:Int, ..
-		lpVolumeSerialNumber:Int Var, lpMaximumComponentLength:Int Var, lpFileSystemFlags:Int Var, lpFileSystemNameBuffer:Byte Ptr, nFileSystemNameSize:Int) = "GetVolumeInformationA@32"
+	Function GetDiskFreeSpaceEx:Int(lpDirectoryName:Short Ptr, lpFreeBytesAvailableToCaller:Long Var, lpTotalNumberOfBytes:Long Var, lpTotalNumberOfFreeBytes:Long Var) = "GetDiskFreeSpaceExW@16"
+	Function GetVolumeInformation:Int(lpRootPathName:Short Ptr, lpVolumeNameBuffer:Byte Ptr, nVolumeNameSize:Int, ..
+		lpVolumeSerialNumber:Int Var, lpMaximumComponentLength:Int Var, lpFileSystemFlags:Int Var, lpFileSystemNameBuffer:Byte Ptr, nFileSystemNameSize:Int) = "GetVolumeInformationW@32"
 	Function GetLogicalDrives:Int() = "GetLogicalDrives@0"
 	Function SetErrorMode:Int(mode:Int) = "SetErrorMode@4"
 	
@@ -43,6 +43,9 @@ Const CSIDL_APPDATA:Int = $001A
 Const CSIDL_DESKTOPDIRECTORY:Int = $0010
 Const CSIDL_PERSONAL:Int = $0005
 Const CSIDL_PROFILE:Int = $0028
+Const CSIDL_MYPICTURES:Int = $0027
+Const CSIDL_MYMUSIC:Int = $000D
+Const CSIDL_MYVIDEO:Int = $000E
 
 Const SHGFP_TYPE_CURRENT:Int = 0
 
@@ -162,39 +165,40 @@ Type TWinVolume Extends TVolume
 	End Method
 
 	Method GetUserHomeDir:String()
-		Local b:Short[] = New Short[MAX_PATH]
-		
-		Local ret:Int = SHGetFolderPath(Null, CSIDL_PROFILE, Null, SHGFP_TYPE_CURRENT, b)
-		
-		Return String.fromWString(b)
+		Return _getFolderPath(CSIDL_PROFILE)
 	End Method
 	
 	Method GetUserDesktopDir:String()
-		Local b:Short[] = New Short[MAX_PATH]
-		
-		Local ret:Int = SHGetFolderPath(Null, CSIDL_DESKTOPDIRECTORY, Null, SHGFP_TYPE_CURRENT, b)
-		
-		Return String.fromWString(b)
+		Return _getFolderPath(CSIDL_DESKTOPDIRECTORY)
 	End Method
 	
 	Method GetUserAppDir:String()
-		Local b:Short[] = New Short[MAX_PATH]
-		
-		Local ret:Int = SHGetFolderPath(Null, CSIDL_APPDATA, Null, SHGFP_TYPE_CURRENT, b)
-		
-		Return String.fromWString(b)
+		Return _getFolderPath(CSIDL_APPDATA)
 	End Method
 	
 	Method GetUserDocumentsDir:String()
-		Local b:Short[] = New Short[MAX_PATH]
-		
-		Local ret:Int = SHGetFolderPath(Null, CSIDL_PERSONAL, Null, SHGFP_TYPE_CURRENT, b)
-		
-		Return String.fromWString(b)
+		Return _getFolderPath(CSIDL_PERSONAL)
 	End Method
 
 	Method GetCustomDir:String(dirType:Int)
+		Select dirType
+			Case DT_USERPICTURES
+				Return _getFolderPath(CSIDL_MYPICTURES)
+			Case DT_USERMUSIC
+				Return _getFolderPath(CSIDL_MYMUSIC)
+			Case DT_USERMOVIES
+				Return _getFolderPath(CSIDL_MYVIDEO)
+		End Select
+		
 		Return Null
+	End Method
+	
+	Method _getFolderPath:String(kind:Int)
+		Local b:Short[] = New Short[MAX_PATH]
+		
+		Local ret:Int = SHGetFolderPath(Null, kind, Null, SHGFP_TYPE_CURRENT, b)
+		
+		Return String.fromWString(b)
 	End Method
 	
 End Type
@@ -209,7 +213,7 @@ Type TVolSpace
 	Function GetDiskSpace:TVolSpace(vol:String)
 		Local this:TVolSpace = New TVolSpace
 		
-		Local dir:Byte Ptr = vol.toCString()
+		Local dir:Short Ptr = vol.toWString()
 
 		Local ret:Int = GetDiskFreeSpaceEx(dir, this.fbc, this.tb, this.fb)
 		
@@ -223,7 +227,7 @@ Type TVolSpace
 	Method refresh:Int()
 		Local mode:Int = SetErrorMode(SEM_FAILCRITICALERRORS)
 		
-		Local dir:Byte Ptr = vol.toCString()
+		Local dir:Short Ptr = vol.toWString()
 
 		Local ret:Int = GetDiskFreeSpaceEx(dir, fbc, tb, fb)
 		
