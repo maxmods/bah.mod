@@ -1,4 +1,4 @@
-' Copyright 2008 Bruce A Henderson
+' Copyright 2008,2009 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ Module BaH.tesseract
 
 ModuleInfo "Version: 1.0"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr201)"
+ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr205)"
 
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"

@@ -1,0 +1,44 @@
+<p><a href="http://code.google.com/p/tesseract-ocr/">Tesseract</a> is an Optical Character Recognition
+(OCR) library, possibly one of the most accurate in the open source arena. It can read read binary,
+grey or color images, and output text.
+</p>
+<p>
+This module presents Tesseract with a very simple API, and allows you to use your preferred TPixmap
+loader. The examples use BaH.FreeImage.
+</p>
+<h3>Getting Started</h3>
+<p>
+In the examples folder, you will find a folder called 'tessdata'. This contains all configuration
+information, character definitions and dictionaries, which Tesseract requires in order to
+function correctly.
+</p>
+<p>
+Included in the distribution are language files for English (eng), German (deu), French (fra), 
+Italian (ita), Dutch (nld), and Spanish (spa). You might only wish to package the languages
+specific to your needs.
+</p>
+<p>
+To interact with the Tesseract engine, you use the Tess type and its functions.
+</p>
+<p>
+Before you can start processing images, you need to initialise the engine. The Init() function
+takes 3 parameters. The first is the location of the data directory (for example, 'tessdata').
+The second, optional parameter, is the language you wish to load. By default this is 'eng', but
+you may wish to use another. The third parameter, if enabled, will cause the engine to read only
+numbers and roman digits.
+</p>
+<h3>Processing an Image</h3>
+<p>
+Images of between 200dpi and 300dpi give the best results for character recognition.
+</p>
+<p>
+The Rect() function will process a TPixmap and return a String result. Optionally, you can specify
+a smaller rectangular area within the pixmap to examine.
+</p>
+<p>
+Between pages, you can optionally call the Clear() function, which can free up some resources.
+</p>
+<p>
+Finally, when you are finished with the engine, call the EndTess() function. If you need to start
+using Tesseract after this, you should start by calling Init().
+</p>
