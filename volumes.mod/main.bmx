@@ -216,6 +216,10 @@ Const DT_USERMOVIES:Int = $0004
 '
 ' NOTE : temporary home until we get official support for this function
 '
+Extern "c"
+	Function strlen_( str:Byte Ptr )="strlen"
+End Extern
+
 Function bbStringFromUTF8String:String(s:Byte Ptr)
 	If s Then
 		Local l:Int = strlen_(s)
