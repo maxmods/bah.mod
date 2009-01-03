@@ -11,7 +11,9 @@ End If
 
 ?win32
 ' Needs to be run once... at some point, to install the service.
-USBInstallService()
+' But should not have devices connected when doing so.
+' Perhaps use this in a separate app, during installation.
+' USBInstallService()
 ?
 
 USBInit()
