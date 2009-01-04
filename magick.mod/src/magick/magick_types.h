@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2007 GraphicsMagick Group
+  Copyright (C) 2003, 2007, 2009 GraphicsMagick Group
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -61,18 +61,25 @@ extern "C" {
   typedef unsigned short magick_uint16_t;
 
   typedef signed int  magick_int32_t;
+#define MAGICK_INT32_F ""
   typedef unsigned int magick_uint32_t;
+#define MAGICK_UINT32_F ""
 
   typedef signed long long  magick_int64_t;
+#define MAGICK_INT64_F "ll"
   typedef unsigned long long magick_uint64_t;
+#define MAGICK_UINT64_F "ll"
 
   typedef unsigned long long magick_uintmax_t;
+#define MAGICK_UINTMAX_F "ll"
   typedef unsigned long magick_uintptr_t;
+#define MAGICK_UINTPTR_F "l"
 
 #endif
 
   /* 64-bit file and blob offset type */
   typedef magick_int64_t magick_off_t;
+#define MAGICK_OFF_F MAGICK_INT64_F
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

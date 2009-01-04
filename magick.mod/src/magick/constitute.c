@@ -8898,7 +8898,7 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
       (clone_info->page == (char *) NULL) && !IsTaintImage(image))
     {
       delegate_info=GetDelegateInfo(image->magick,clone_info->magick,
-        &image->exception);
+				    &image->exception);
       if ((delegate_info != (const DelegateInfo *) NULL) &&
           (delegate_info->mode == 0) && IsAccessible(image->magick_filename))
         {
@@ -8906,13 +8906,13 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
             Let our bi-modal delegate process the image.
           */
           (void) strlcpy(image->filename,image->magick_filename,
-            MaxTextExtent);
+			 MaxTextExtent);
           status=InvokeDelegate(clone_info,image,image->magick,
-            clone_info->magick,&image->exception);
+				clone_info->magick,&image->exception);
           DestroyImageInfo(clone_info);
           return(!status);
         }
-      }
+    }
 #endif
   /*
     Call appropriate image writer based on image type.
@@ -8922,10 +8922,39 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
   if ((magick_info != (const MagickInfo *) NULL) &&
       (magick_info->encoder != NULL))
     {
+      char
+	tempfile[MaxTextExtent];
+
+      tempfile[0]='\0';
+
+      if (magick_info->seekable_stream == MagickTrue)
+	{
+	  /*
+	    Divert output to temporary file if coder requires a
+	    seekable stream and output is not seekable.
+	  */
+	  if (OpenBlob(clone_info,image,WriteBinaryBlobMode,&image->exception))
+	    {
+	      if (!BlobIsSeekable(image))
+		{
+		  if(!AcquireTemporaryFileName(tempfile))
+		    {
+		      ThrowException(&image->exception,FileOpenError,
+				     UnableToCreateTemporaryFile,image->filename);
+		      DestroyImageInfo(clone_info);
+		      return(False);
+		    }
+		  (void) strlcpy(image->filename,tempfile,sizeof(tempfile));
+		}
+	      CloseBlob(image);
+	    }
+	}
+
       if (!magick_info->thread_support)
         AcquireSemaphoreInfo(&constitute_semaphore);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Invoking \"%.1024s\" encoder (%.1024s): monochrome=%s grayscale=%s class=%s colorspace=%s",
+			    "Invoking \"%.1024s\" encoder (%.1024s): "
+			    "monochrome=%s grayscale=%s class=%s colorspace=%s",
                             magick_info->name,
                             magick_info->description,
                             MagickBoolToString(image->is_monochrome),
@@ -8934,14 +8963,29 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
                             ColorspaceTypeToString(image->colorspace));
       status=(magick_info->encoder)(clone_info,image);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Returned from \"%.1024s\" encoder",magick_info->name);
+			    "Returned from \"%.1024s\" encoder",magick_info->name);
       if (!magick_info->thread_support)
         LiberateSemaphoreInfo(&constitute_semaphore);
+
+      if (tempfile[0] != '\0')
+	{
+	  /*
+	    Send temporary file to stream.
+	  */
+	  (void) strlcpy(image->filename,clone_info->filename,MaxTextExtent);	  
+	  if ((status &= OpenBlob(clone_info,image,WriteBinaryBlobMode,
+				  &image->exception)))
+	    {
+	      status &= WriteBlobFile(image,tempfile);
+	      CloseBlob(image);
+	    }
+	  LiberateTemporaryFile(tempfile);
+	}
     }
   else
     {
       delegate_info=GetDelegateInfo((char *) NULL,clone_info->magick,
-        &image->exception);
+				    &image->exception);
       if (delegate_info != (DelegateInfo *) NULL)
         {
           /*
@@ -8949,12 +8993,13 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
           */
           if(!AcquireTemporaryFileName(image->filename))
             {
-              ThrowException(&image->exception,FileOpenError,UnableToCreateTemporaryFile,image->filename);
+              ThrowException(&image->exception,FileOpenError,
+			     UnableToCreateTemporaryFile,image->filename);
               DestroyImageInfo(clone_info);
               return(False);
             }
           status=InvokeDelegate(clone_info,image,(char *) NULL,
-            clone_info->magick,&image->exception);
+				clone_info->magick,&image->exception);
           (void) LiberateTemporaryFile(image->filename);
           DestroyImageInfo(clone_info);
           return(!status);
@@ -8967,8 +9012,10 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
           (magick_info->encoder == NULL))
         {
           DestroyImageInfo(clone_info);
-          ThrowBinaryException(MissingDelegateError,NoEncodeDelegateForThisImageFormat,image->filename)
-        }
+          ThrowBinaryException(MissingDelegateError,
+			       NoEncodeDelegateForThisImageFormat,
+			       image->filename)
+	    }
       if (!magick_info->thread_support)
         AcquireSemaphoreInfo(&constitute_semaphore);
       status=(magick_info->encoder)(clone_info,image);
@@ -8979,7 +9026,7 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
   DestroyImageInfo(clone_info);
   if (GetBlobStatus(image))
     ThrowBinaryException(CorruptImageError,AnErrorHasOccurredWritingToFile,
-      image->filename);
+			 image->filename);
   return(status);
 }
 

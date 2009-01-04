@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2007 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -427,8 +427,14 @@ extern int vsnprintf(char *s, size_t n, const char *format, va_list ap);
 #  define MagickTell(fildes) tell(filedes)
 #endif
 
-#if defined(MSWINDOWS) && !defined(Windows95) && !defined(__BORLANDC__) && !(defined(__MINGW32__) && __MSVCRT_VERSION__ < 0x800)
-  /* Windows '95 and Borland C do not support _lseeki64 */
+#if defined(MSWINDOWS) && !defined(Windows95) && !defined(__BORLANDC__) && \
+  !(defined(_MSC_VER) && _MSC_VER < 1400) && \
+  !(defined(__MINGW32__) && __MSVCRT_VERSION__ < 0x800)
+  /*
+    Windows '95 and Borland C do not support _lseeki64
+    Visual Studio does not support _fseeki64 and _ftelli64 until the 2005 release.
+    Without these interfaces, files over 2GB in size are not supported for Windows.
+  */
 #  define MagickFseek(stream,offset,whence) _fseeki64(stream,/* __int64 */ offset,whence)
 #  define MagickFstat(fildes,stat_buff) _fstati64(fildes,/* struct _stati64 */ stat_buff)
 #  define MagickFtell(stream) /* __int64 */ _ftelli64(stream)

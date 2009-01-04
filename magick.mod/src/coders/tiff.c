@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004, 2005 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -26,7 +26,7 @@
 %                                 July 1992                                   %
 %                     Re-Written For GraphicsMagick                           %
 %                             Bob Friesenhahn                                 %
-%                                2002-2007                                    %
+%                                2002-2009                                    %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -553,13 +553,17 @@ extern "C" {
 #endif
 
 /* Close BLOB */
-static int TIFFCloseBlob(thandle_t image)
+static int TIFFCloseBlob(thandle_t image_handle)
 {
+  Image
+    *image = (Image *) image_handle;
 #if LOG_BLOB_IO
-  if (((Image *) image)->logging)
+  if (image->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),"TIFF close blob");
 #endif /* LOG_BLOB_IO */
-  CloseBlob((Image *) image);
+  while (image->previous != (Image *) NULL)
+    image=image->previous;
+  CloseBlob(image);
   return(0);
 }
 
@@ -591,10 +595,11 @@ static int TIFFMapBlob(thandle_t image,tdata_t *base,toff_t *size)
 
   if (*base)
     {
-#if 0
+#if LOG_BLOB_IO
       if (((Image *) image)->logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "TIFF mapped blob: base=%p size=%ld",*base, *size);
+			      "TIFF mapped blob: base=0x%p size=%" MAGICK_OFF_F
+			      "d",*base, (magick_off_t) *size);
 #endif
       return 1;
     }
@@ -607,7 +612,7 @@ static tsize_t TIFFReadBlob(thandle_t image,tdata_t data,tsize_t size)
 #if LOG_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                          "TIFF read blob: data=%p size=%ld", data, size);
+                          "TIFF read blob: data=0x%p size=%ld", data, size);
 #endif /* LOG_BLOB_IO */
   return((tsize_t) ReadBlob((Image *) image,(size_t) size,data));
 }
@@ -618,8 +623,8 @@ static toff_t TIFFSeekBlob(thandle_t image,toff_t offset,int whence)
 #if LOG_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                          "TIFF seek blob: offset=%lu whence=%d (%s)",
-                          (unsigned long) offset, whence,
+                          "TIFF seek blob: offset=%" MAGICK_OFF_F "u whence=%d (%s)",
+                          (magick_off_t) offset, whence,
                           (whence == SEEK_SET ? "SET" :
                            (whence == SEEK_CUR ? "CUR" :
                             (whence == SEEK_END ? "END" : "unknown"))));
@@ -646,7 +651,8 @@ static void TIFFUnmapBlob(thandle_t ARGUNUSED(image),
 #if LOG_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-      "TIFF unmap blob: base=%p size=%ld", base, size);
+			  "TIFF unmap blob: base=%p size=%" MAGICK_OFF_F "d",
+			  base,(magick_off_t) size);
 #endif  /* LOG_BLOB_IO */
 }
 
@@ -678,7 +684,8 @@ static tsize_t TIFFWriteBlob(thandle_t image,tdata_t data,tsize_t size)
 #if LOG_BLOB_IO
   if (((Image *) image)->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-      "TIFF write blob: data=%p size=%u", data, (unsigned int) size);
+			  "TIFF write blob: data=%p size=%" MAGICK_OFF_F "u",
+			  data, (magick_off_t) size);
 #endif  /* LOG_BLOB_IO */
   return((tsize_t) WriteBlob((Image *) image,(size_t) size,data));
 }
@@ -1177,7 +1184,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
   ExceptionInfo *exception)
 {
   char
-    filename[MaxTextExtent],
     *text;
 
   const char *
@@ -1238,7 +1244,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
     alpha_type=UnspecifiedAlpha;
 
   MagickBool
-    filename_is_temporary=False,
     logging,
     more_frames;
 
@@ -1261,35 +1266,12 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
   (void) MagickTsdSetSpecific(tsd_key,(void *) exception);
   (void) TIFFSetErrorHandler((TIFFErrorHandler) TIFFErrors);
   (void) TIFFSetWarningHandler((TIFFErrorHandler) TIFFWarnings);
-  if (BlobIsSeekable(image))
-    tiff=TIFFClientOpen(image->filename,"rb",(thandle_t) image,TIFFReadBlob,
-                        TIFFWriteBlob,TIFFSeekBlob,TIFFCloseBlob,
-                        TIFFGetBlobSize,TIFFMapBlob,TIFFUnmapBlob);
-  else
-    {
-      filename_is_temporary=True;
-      if(!AcquireTemporaryFileName(filename))
-        ThrowReaderTemporaryFileException(filename);
-      (void) ImageToFile(image,filename,exception);
-      /*
-        Open TIFF file
-
-        'r'          open for read
-        'B'          read/write information using MSB2LSB bit order
-        'M'          enable use of memory-mapped files when supported
-        'C'          enable strip chopping support when reading
-      */
-      tiff=TIFFOpen(filename,"rBMC");
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Open temporary file %.1024s",filename);
-    }
+  tiff=TIFFClientOpen(image->filename,"rb",(thandle_t) image,TIFFReadBlob,
+		      TIFFWriteBlob,TIFFSeekBlob,TIFFCloseBlob,
+		      TIFFGetBlobSize,TIFFMapBlob,TIFFUnmapBlob);
   if (tiff == (TIFF *) NULL)
-    {
-      if (filename_is_temporary)
-        (void) LiberateTemporaryFile(filename);
-      ThrowReaderException(FileOpenError,UnableToOpenFile,image);
-    }
+    ThrowReaderException(FileOpenError,UnableToOpenFile,image);
+
   if (image_info->subrange != 0)
     while (image->scene < image_info->subimage)
       {
@@ -1301,8 +1283,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
         if (status == False)
           {
             TIFFClose(tiff);
-            if (filename_is_temporary)
-              (void) LiberateTemporaryFile(filename);
             ThrowReaderException(CorruptImageError,UnableToReadSubImageData,
                                  image);
           }
@@ -1387,8 +1367,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
           image->colorspace=LABColorspace;
 #else
           TIFFClose(tiff);
-          if (filename_is_temporary)
-            (void) LiberateTemporaryFile(filename);
           ThrowReaderException(CoderError,UnableToReadCIELABImages,image);
 #endif
         }
@@ -1641,8 +1619,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
           else
             {
               TIFFClose(tiff);
-              if (filename_is_temporary)
-                (void) LiberateTemporaryFile(filename);
               ThrowReaderException(CoderError,ColormapTooLarge,image);
             }
         }
@@ -1777,8 +1753,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
             if (scanline == (unsigned char *) NULL)
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                      image);
               }
@@ -1922,8 +1896,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
             if (strip == (unsigned char *) NULL)
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                      image);
               }
@@ -2087,8 +2059,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
                !TIFFGetField(tiff,TIFFTAG_TILELENGTH,&tile_rows))
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(CoderError,ImageIsNotTiled,image);
               }
             /*
@@ -2119,8 +2089,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
             if (tile == (unsigned char *) NULL)
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                      image);
               }
@@ -2386,8 +2354,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
                 !TIFFGetField(tiff,TIFFTAG_TILELENGTH,&tile_rows))
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(CoderError,ImageIsNotTiled,image);
               }
             tile_total_pixels=tile_columns*tile_rows;
@@ -2406,8 +2372,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
             if (tile_pixels == (uint32 *) NULL)
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                      image);
               }
@@ -2543,8 +2507,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
             if (pixels == (uint32 *) NULL)
               {
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
                                      image);
               }
@@ -2554,8 +2516,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
               {
                 MagickFreeMemory(pixels);
                 TIFFClose(tiff);
-                if (filename_is_temporary)
-                  (void) LiberateTemporaryFile(filename);
                 return ((Image *) NULL);
               }
             /*
@@ -2659,8 +2619,6 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
 
     } while ((status == MagickPass) && (more_frames));
   TIFFClose(tiff);
-  if (filename_is_temporary)
-    (void) LiberateTemporaryFile(filename);
   if (status == MagickFail)
       DeleteImageFromList(&image);
   return GetFirstImageInList(image);
@@ -2724,10 +2682,10 @@ ModuleExport void RegisterTIFFImage(void)
   */
 #if defined(HasBigTIFF)
   entry=SetMagickInfo("BIGTIFF");
-  entry->thread_support=False; /* libtiff uses libjpeg which is not thread safe */
+  entry->thread_support=MagickFalse; /* libtiff uses libjpeg which is not thread safe */
   entry->decoder=(DecoderHandler) ReadTIFFImage;
   entry->encoder=(EncoderHandler) WriteTIFFImage;
-  entry->adjoin=False;
+  entry->seekable_stream=MagickTrue;
   entry->description=BIGTIFFDescription;
   entry->module="TIFF";
   entry->coder_class=PrimaryCoderClass;
@@ -2738,10 +2696,10 @@ ModuleExport void RegisterTIFFImage(void)
     Pyramid TIFF (sequence of successively smaller versions of the same image)
   */
   entry=SetMagickInfo("PTIF");
-  entry->thread_support=False; /* libtiff uses libjpeg which is not thread safe */
+  entry->thread_support=MagickFalse; /* libtiff uses libjpeg which is not thread safe */
   entry->decoder=(DecoderHandler) ReadTIFFImage;
   entry->encoder=(EncoderHandler) WritePTIFImage;
-  entry->adjoin=False;
+  entry->seekable_stream=MagickTrue;
   entry->description=PTIFDescription;
   entry->module="TIFF";
   (void) RegisterMagickInfo(entry);
@@ -2750,9 +2708,10 @@ ModuleExport void RegisterTIFFImage(void)
     Another name for 32-bit TIFF
   */
   entry=SetMagickInfo("TIF");
-  entry->thread_support=False; /* libtiff uses libjpeg which is not thread safe */
+  entry->thread_support=MagickFalse; /* libtiff uses libjpeg which is not thread safe */
   entry->decoder=(DecoderHandler) ReadTIFFImage;
   entry->encoder=(EncoderHandler) WriteTIFFImage;
+  entry->seekable_stream=MagickTrue;
   entry->description=TIFFDescription;
   if (*version != '\0')
     entry->version=version;
@@ -2765,10 +2724,11 @@ ModuleExport void RegisterTIFFImage(void)
     Traditional 32-bit TIFF
   */
   entry=SetMagickInfo("TIFF");
-  entry->thread_support=False; /* libtiff uses libjpeg which is not thread safe */
+  entry->thread_support=MagickFalse; /* libtiff uses libjpeg which is not thread safe */
   entry->decoder=(DecoderHandler) ReadTIFFImage;
   entry->encoder=(EncoderHandler) WriteTIFFImage;
   entry->magick=(MagickHandler) IsTIFF;
+  entry->seekable_stream=MagickTrue;
   entry->description=TIFFDescription;
   if (*version != '\0')
     entry->version=version;
@@ -3082,7 +3042,6 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
     export_info;
 
   MagickBool
-    filename_is_temporary=MagickFalse,
     logging=MagickFalse;
 
   MagickPassFail
@@ -3107,21 +3066,6 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
   (void) TIFFSetErrorHandler((TIFFErrorHandler) TIFFErrors);
   (void) TIFFSetWarningHandler((TIFFErrorHandler) TIFFWarnings);
   (void) strlcpy(filename,image->filename,MaxTextExtent);
-  if (!(GetBlobFileHandle(image)) || !(BlobIsSeekable(image)))
-    {
-      /*
-        If output is not to a stdio file descriptor or not seekable,
-        then use a temporary file for the output so that it is.
-      */
-      filename_is_temporary=MagickTrue;
-      if(!AcquireTemporaryFileName(filename))
-        ThrowWriterTemporaryFileException(filename);
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Using temporary file \"%s\"",filename);
-    }
-  else
-    CloseBlob(image);
   /*
     Open TIFF file
 
@@ -3171,11 +3115,12 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                           "Opening TIFF file \"%s\" using open flags \"%s\".",
                           filename,open_flags);
-  tiff=TIFFOpen(filename,open_flags);
+  tiff=TIFFClientOpen(filename,open_flags,(thandle_t) image,TIFFReadBlob,
+		      TIFFWriteBlob,TIFFSeekBlob,TIFFCloseBlob,
+		      TIFFGetBlobSize,TIFFMapBlob,TIFFUnmapBlob);
   if (tiff == (TIFF *) NULL)
     {
-      if (filename_is_temporary)
-        (void) LiberateTemporaryFile(filename);
+      /* CloseBlob(image); */
       return(MagickFail);
     }
   scene=0;
@@ -3229,7 +3174,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
             compression=NoCompression;
             if (logging)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                    "%s compression not supported.  Compression request removed",
+                                    "%s compression not supported.  "
+				    "Compression request removed",
                                     compression_name);
           }
       }
@@ -3308,7 +3254,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
         }
 
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                            "Image characteristics: cmyk=%c, gray=%c, mono=%c, opaque=%c, palette=%c",
+                            "Image characteristics: cmyk=%c, gray=%c, mono=%c,"
+			    " opaque=%c, palette=%c",
                             (characteristics.cmyk ? 'y' : 'n'),
                             (characteristics.grayscale ? 'y' : 'n'),
                             (characteristics.monochrome ? 'y' : 'n'),
@@ -3350,21 +3297,24 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
           photometric=PHOTOMETRIC_RGB;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Using RGB photometric due to request for JPEG compression.");
+                                  "Using RGB photometric due to request for"
+				  " JPEG compression.");
         }
       else if (compress_tag == COMPRESSION_CCITTFAX3)
         {
           photometric=PHOTOMETRIC_MINISWHITE;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Using MINISWHITE photometric due to request for Group3 FAX compression.");
+                                  "Using MINISWHITE photometric due to request"
+				  " for Group3 FAX compression.");
         }
       else if (compress_tag == COMPRESSION_CCITTFAX4)
         {
           photometric=PHOTOMETRIC_MINISWHITE;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Using MINISWHITE photometric due to request for Group4 FAX compression.");
+                                  "Using MINISWHITE photometric due to request"
+				  " for Group4 FAX compression.");
         }
 
       /*
@@ -3444,7 +3394,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
           compress_tag=COMPRESSION_NONE;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Ignoring request for JPEG compression due to incompatible photometric.");
+                                  "Ignoring request for JPEG compression due "
+				  "to incompatible photometric.");
         }
       else if ((compress_tag == COMPRESSION_CCITTFAX3) &&
                (photometric != PHOTOMETRIC_MINISWHITE))
@@ -3453,7 +3404,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
           fill_order=FILLORDER_MSB2LSB;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Ignoring request for Group3 FAX compression due to incompatible photometric.");
+                                  "Ignoring request for Group3 FAX compression"
+				  " due to incompatible photometric.");
         }
       else if ((compress_tag == COMPRESSION_CCITTFAX4) &&
                (photometric != PHOTOMETRIC_MINISWHITE))
@@ -3462,7 +3414,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
           fill_order=FILLORDER_MSB2LSB;
           if (logging)
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Ignoring request for Group4 FAX compression due to incompatible photometric.");
+                                  "Ignoring request for Group4 FAX compression"
+				  " due to incompatible photometric.");
         }
 
       /*
@@ -3658,11 +3611,12 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
                 /* Clamp maximum unsigned bits per sample to 32 bits */
                 if ((bits_per_sample < 1) ||
                     ((bits_per_sample > 32) && (bits_per_sample != 64)))
-                bits_per_sample=old_value;
+		  bits_per_sample=old_value;
               }
             if ((logging) && (old_value != bits_per_sample))
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                    "User override (bits-per-sample): %u bits per sample (was %u)",
+                                    "User override (bits-per-sample): %u bits "
+				    "per sample (was %u)",
                                     (unsigned int) bits_per_sample, old_value);
           }
 
@@ -3676,14 +3630,16 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
             samples_per_pixel=atoi(value);
             if (logging)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                    "User override (samples-per-pixel): %u samples per pixel (was %u)",
+                                    "User override (samples-per-pixel): %u "
+				    "samples per pixel (was %u)",
                                     (unsigned int) samples_per_pixel, old_value);
           }
       }
 
       if (logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Using %s photometric, %u samples per pixel, %u bits per sample, format %s",
+                              "Using %s photometric, %u samples per pixel, "
+			      "%u bits per sample, format %s",
                               PhotometricTagToString(photometric),
                               (unsigned int) samples_per_pixel,
                               (unsigned int) bits_per_sample,
@@ -3855,7 +3811,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
               rows_per_strip=atoi(value);
               if (logging)
                 (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                      "User override (rows_per_strip): %u rows per strip (was %u)",
+                                      "User override (rows_per_strip): %u rows"
+				      " per strip (was %u)",
                                       (unsigned int) rows_per_strip, old_value);
             }
           value=AccessDefinition(image_info,"tiff","strip-per-page");
@@ -3867,14 +3824,16 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
                   
                   if (logging)
                     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                          "User requested a single strip per page (strip-per-page)");
+                                          "User requested a single strip per "
+					  "page (strip-per-page)");
                 }
             }
         }
 
       if (logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Using %s compression", CompressionTagToString(compress_tag));
+                              "Using %s compression",
+			      CompressionTagToString(compress_tag));
       if (logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                               "Image depth %lu bits",depth);
@@ -3982,13 +3941,15 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
             /* Photoshop profile (with embedded IPTC profile). */
             profile_tag=TIFFTAG_PHOTOSHOP;
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "Photoshop embedded profile with length %lu bytes",
+                                  "Photoshop embedded profile with length %lu"
+				  " bytes",
                                   (unsigned long) profile_length);
 #else
             /* IPTC TAG from RichTIFF specifications */
             profile_tag=TIFFTAG_RICHTIFFIPTC;
             (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                  "IPTC Newsphoto embedded profile with length %lu bytes",
+                                  "IPTC Newsphoto embedded profile with length"
+				  " %lu bytes",
                                   (unsigned long) profile_length);
 
 #endif /* defined(PHOTOSHOP_SUPPORT) */
@@ -3998,7 +3959,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
       {
         /*
           Page and Page number tags.  Page is the current page number
-          (0 based) and pages is the total number of pages.*/
+          (0 based) and pages is the total number of pages.
+	*/
 
         uint16
           page,
@@ -4009,7 +3971,10 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
 
         if (image_info->adjoin && pages > 1)
           {
-            /* SubFileType = 2. LONG. The value 2 identifies a single page of a multi-page image. */
+            /*
+	      SubFileType = 2. LONG. The value 2 identifies a single
+	      page of a multi-page image.
+	    */
             (void) TIFFSetField(tiff,TIFFTAG_SUBFILETYPE,FILETYPE_PAGE);
           }
 
@@ -4161,8 +4126,10 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
 
             if (logging)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                    "Using scanline %s write method with %u bits per sample (%lu bytes/scanline)",
-                                    PhotometricTagToString(photometric),bits_per_sample, (unsigned long) scanline_size);
+                                    "Using scanline %s write method with %u "
+				    "bits per sample (%lu bytes/scanline)",
+                                    PhotometricTagToString(photometric),
+				    bits_per_sample, (unsigned long) scanline_size);
 
             scanline=MagickAllocateMemory(unsigned char *,(size_t) scanline_size);
             if (scanline == (unsigned char *) NULL)
@@ -4278,8 +4245,10 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
         
             if (logging)
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                    "Using tiled %s write method with %u bits per sample",
-                                    PhotometricTagToString(photometric),bits_per_sample);
+                                    "Using tiled %s write method with %u bits "
+				    "per sample",
+                                    PhotometricTagToString(photometric),
+				    bits_per_sample);
 
             /*
               Determine tile size
@@ -4353,7 +4322,7 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
             */
             tile=MagickAllocateMemory(unsigned char *, (size_t) tile_size_max);
             if (tile == (unsigned char *) NULL)
-              ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);            
+              ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
             /*
               Prepare for separate/contiguous retrieval.
             */
@@ -4422,7 +4391,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
                             if ((image->matte) && (alpha_type == AssociatedAlpha))
                               p=GetImagePixels(image,x,yy,tile_set_columns,1);
                             else
-                              p=AcquireImagePixels(image,x,yy,tile_set_columns,1,&image->exception);
+                              p=AcquireImagePixels(image,x,yy,tile_set_columns,
+						   1,&image->exception);
                             if (p == (const PixelPacket *) NULL)
                               {
                                 status=MagickFail;
@@ -4475,7 +4445,8 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
                 */
                 if (image->previous == (Image *) NULL)
                   if (MagickMonitorFormatted(y,image->rows,&image->exception,
-                                             SaveImageText,image->filename) == MagickFail)
+                                             SaveImageText,image->filename)
+		      == MagickFail)
                     status=MagickFail;
                 
                 if (status == MagickFail)
@@ -4510,42 +4481,17 @@ static MagickPassFail WriteTIFFImage(const ImageInfo *image_info,Image *image)
     } while (image_info->adjoin);
   while (image->previous != (Image *) NULL)
     image=image->previous;
-  TIFFClose(tiff);
+  TIFFClose(tiff); /* Should implicity invoke CloseBlob(image) */
 
   if (status == MagickFail)
     {
       /*
-        Handle Failure
+        Handle write failure.
       */
-      while (image->previous != (Image *) NULL)
-        image=image->previous;
-      if (filename_is_temporary)
-        LiberateTemporaryFile(filename);
-      else
-        (void) unlink(filename);
-      CloseBlob(image);
+      (void) unlink(filename);
       return (MagickFail);
     }
-  
-  if (filename_is_temporary)
-    {
-      /*
-        Copy temporary file to image blob.
-      */
-      if (logging)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Copying temporary file %s to blob",filename);
-      if (!WriteBlobFile(image,filename))
-        ThrowWriterException(FileOpenError,UnableToOpenFile,image);
-      (void) LiberateTemporaryFile(filename);
-      /*
-        We do CloseBlob() here because libtiff normally uses our
-        registered callback to close the blob.  But when we are using
-        a temporary file, the blob to the output is left open and must
-        now be closed.
-      */
-      CloseBlob(image);
-    }
+
   return(MagickPass);
 }
 #endif

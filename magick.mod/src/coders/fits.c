@@ -179,6 +179,8 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   int
     c;   
 
+  int logging;
+
   long
     packet_size,
     scene,
@@ -206,24 +208,19 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   assert(image_info->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
+
+  logging = LogMagickEvent(CoderEvent,GetMagickModule(),"enter"); 
+
   image=AllocateImage(image_info);
   status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == False)
     ThrowReaderException(FileOpenError,UnableToOpenFile,image);
+
   /*
-    Initialize image header.
+    Initialize common part of image header.
   */
-  fits_info.simple=False;
-  fits_info.bits_per_pixel=8;
-  fits_info.columns=1;
-  fits_info.rows=1;
-  fits_info.number_axes=0;
-  fits_info.number_scenes=1;
-  fits_info.min_data=0.0;
-  fits_info.max_data=0.0;
-  fits_info.zero=0.0;
-  fits_info.scale=1.0;
   fits_info.extensions_exist=0;
+  fits_info.simple=False;
 
   ImportPixelAreaOptionsInit(&import_options);
   import_options.endian = MSBEndian;
@@ -235,6 +232,22 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
     ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
 
 ReadExtension:
+  if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+          "Reading FITS HDU at position: %Xh", (unsigned)TellBlob(image) );
+
+  /*
+    Initialize image header for all subheaders.
+  */
+  fits_info.bits_per_pixel=8;
+  fits_info.columns=1;
+  fits_info.rows=1;
+  fits_info.number_axes=0;
+  fits_info.number_scenes=1;
+  fits_info.min_data=0.0;
+  fits_info.max_data=0.0;
+  fits_info.zero=0.0;
+  fits_info.scale=1.0;
+
   for ( ; ; )
   {
     if (!isalnum((int) c))
@@ -334,6 +347,11 @@ ReadExtension:
     Verify that required image information is defined.
   */
   number_pixels = fits_info.columns*fits_info.rows;
+
+  if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+          "HDU read finished at %Xh, number of pixel is: %d (%d*%d*%d)", (unsigned)TellBlob(image), (unsigned)number_pixels,
+          (unsigned)fits_info.columns, (unsigned)fits_info.rows, (unsigned)fits_info.number_scenes);
+
   if ((!fits_info.simple) || (fits_info.number_axes < 1) ||
       (fits_info.number_axes > 4) || (number_pixels == 0))
   {
@@ -430,8 +448,8 @@ ReadExtension:
 
       if(ReadBlob(image, packet_size*image->columns, fits_pixels) != (size_t)packet_size*image->columns)
       {
-/* 	if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(), */
-/*           "  fits cannot read scanrow %u from a file.", (unsigned)(MATLAB_HDR.SizeY-i-1)); */
+ 	if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+           "  fits cannot read scanrow %u from a file.", (unsigned)y );
 	break; /* goto ExitLoop; */
       }
 
@@ -447,10 +465,9 @@ ReadExtension:
 
       if(ImportImagePixelArea(image, GrayQuantum, packet_size*8, fits_pixels, &import_options,0) == MagickFail)
       {
-/* ImportImagePixelAreaFailed: */
-/*      if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(), */
-/*               "  fits failed to ImportImagePixelArea for a row %u", (unsigned)y); */
-	    break;
+        if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+               "  fits failed to ImportImagePixelArea for a row %u", (unsigned)y);
+	break;
       }
 
       if (!SyncImagePixels(image))
@@ -487,10 +504,14 @@ ReadExtension:
     }
   }
 
-  while (image->previous != (Image *) NULL)
-    image=image->previous;
-
   CloseBlob(image);
+
+  while (image->previous != (Image *) NULL)
+    image=image->previous;  
+
+  if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),"return");  
+  if(image==NULL)
+    ThrowReaderException(CorruptImageError,ImageFileDoesNotContainAnyImageData,image);
   return(image);
 }
 
