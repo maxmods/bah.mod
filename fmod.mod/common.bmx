@@ -30,6 +30,7 @@ Import "glue.cpp"
 
 Extern
 	Function bmx_fmod_getversion:Int()
+	Function bmx_FMOD_ErrorString:Byte Ptr(result:Int)
 
 	Function bmx_FMOD_System_Create:Byte Ptr(result:Int Ptr)
 	Function bmx_FMOD_System_CreateSound:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, mode:Int, exInfo:Byte Ptr, ret:Int Ptr)

@@ -20,7 +20,7 @@
   THE SOFTWARE.
 */ 
 
-#include "fmod.h"
+#include "fmod_errors.h"
 #include "blitz.h"
 
 class MAX_FMOD_CHANNEL;
@@ -28,6 +28,8 @@ class MAX_FMOD_CHANNEL;
 extern "C" {
 
 	unsigned int bmx_fmod_getversion();
+	const char * bmx_FMOD_ErrorString(FMOD_RESULT errcode);
+
 
 	FMOD_SYSTEM  * bmx_FMOD_System_Create(FMOD_RESULT * result);
 	FMOD_SOUND * bmx_FMOD_System_CreateSound(FMOD_SYSTEM *system, const char * filename, FMOD_MODE mode,
@@ -139,6 +141,9 @@ unsigned int bmx_fmod_getversion() {
 	return FMOD_VERSION;
 }
 
+const char * bmx_FMOD_ErrorString(FMOD_RESULT errcode) {
+	return FMOD_ErrorString(errcode);
+}
 
 
 FMOD_SYSTEM  * bmx_FMOD_System_Create(FMOD_RESULT * result) {

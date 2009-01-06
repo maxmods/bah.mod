@@ -64,6 +64,13 @@ End Rem
 Global FMOD_VERSION:Int = bmx_fmod_getversion()
 
 Rem
+bbdoc: Returns a string representation of the error code.
+End Rem
+Function FMOD_ErrorString:String(result:Int)
+	Return String.FromCString(bmx_FMOD_ErrorString(result))
+End Function
+
+Rem
 bbdoc: The FMOD System object.
 End Rem
 Type TFMODSystem
