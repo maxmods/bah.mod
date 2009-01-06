@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008,2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.FMOD
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 ModuleInfo "Copyright: FMOD - 2004-2008 Firelight Technologies, Pty, Ltd"
 
 
@@ -42,6 +42,21 @@ ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
 ?
 
 Import "common.bmx"
+
+' for documenting :
+Rem
+	<p>Parameters: 
+	<ul>
+	<li><b>XXXXXXXXXX</b> : xxxxxxxxxxxxxxxxx</li>
+	</ul>
+	<p>
+
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>XXXXXXXXXXXXX</td><td>xxxxxxxxxxxxxxxxxxx</td></tr>
+	</table>
+
+End Rem
 
 Rem
 bbdoc: 
@@ -59,13 +74,13 @@ Type TFMODSystem
 	bbdoc: Creates an instance of an FMOD system object.
 	End Rem
 	Function CreateSystem:TFMODSystem()
-		Return New TFMODSystem.create()
+		Return New TFMODSystem.Create()
 	End Function
 
 	Rem
 	bbdoc: Creates an instance of an FMOD system object.
 	End Rem
-	Method create:TFMODSystem()
+	Method Create:TFMODSystem()
 		Local res:Int
 		systemPtr = bmx_FMOD_System_Create(Varptr res)
 		If res Then
@@ -354,7 +369,7 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: This retrieves the position, velocity and orientation of the specified 3D sound listener.  
 	End Rem
 	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector = Null, vel:TFMODVector = Null, ..
 			forward:TFMODVector = Null, up:TFMODVector = Null)
@@ -362,21 +377,21 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the number of 3D listeners.  
 	End Rem
 	Method Get3DNumListeners:Int(listeners:Int Var)
 		Return FMOD_System_Get3DNumListeners(systemPtr, Varptr listeners)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the global doppler scale, distance factor and rolloff scale for all 3D sound in FMOD.  
 	End Rem
 	Method Get3DSettings:Int(dopplerScale:Float Var, distanceFactor:Float Var, rollOffScale:Float Var)
 		Return FMOD_System_Get3DSettings(systemPtr, Varptr dopplerScale, Varptr distanceFactor, Varptr rollOffScale)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the current speaker position information for the selected speaker.  
 	End Rem
 	Method Get3DSpeakerPosition:Int(speaker:Int, x:Float Var, y:Float Var, active:Int Var)
 		Return FMOD_System_Get3DSpeakerPosition(systemPtr, speaker, Varptr x, Varptr y, Varptr active)
@@ -392,77 +407,112 @@ Type TFMODSystem
 	?
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves in percent of CPU time - the amount of cpu usage that FMOD is taking for streaming/mixing and System::Update combined.
 	End Rem
 	Method GetCPUUsage:Int(dsp:Float Var, stream:Float Var, update:Float Var, total:Float Var)
 		Return FMOD_System_GetCPUUsage(systemPtr, Varptr dsp, Varptr stream, Varptr update, Varptr total)
 	End Method
 
 	Rem
-	bbdoc:
+	bbdoc: Retrieves a handle to a channel by ID.  
 	End Rem
 	Method GetChannel:TFMODChannel(channelId:Int)
 		Return TFMODChannel._create(bmx_FMOD_System_GetChannel(systemPtr, channelId))
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the number of currently playing channels.  
 	End Rem
 	Method GetChannelsPlaying:Int(channels:Int Var)
 		Return FMOD_System_GetChannelsPlaying(systemPtr, Varptr channels)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the buffer size settings for the FMOD software mixing engine.  
+	End Rem
+	Method GetDSPBufferSize:Int(bufferLength:Int Var, numBuffers:Int Var)
+		Return FMOD_System_GetDSPBufferSize(systemPtr, Varptr bufferLength, Varptr numBuffers)
+	End Method
+	
+	Rem
+	bbdoc: Return the current 64bit DSP clock value which counts up by the number of samples per second in the software mixer, every second.
+	about: ie. if the default sample rate is 48khz, the DSP clock increments by 48000 per second.  
+	End Rem
+	Method GetDSPClock:Int(hi:Int Var, lo:Int Var)
+		Return FMOD_System_GetDSPClock(systemPtr, Varptr hi, Varptr lo)
+	End Method
+	
+	Rem
+	bbdoc: Returns the currently selected driver number.
+	about: Drivers are enumerated when selecting a driver with System::setDriver or other driver related functions such as
+	System::getNumDrivers or System::getDriverInfo  
+	End Rem
+	Method GetDriver:Int(driver:Int Var)
+		Return FMOD_System_GetDriver(systemPtr, Varptr driver)
+	End Method
+	
+	Rem
+	bbdoc: Returns information on capabilities of the current output mode for the selected sound device.
+	End Rem
+	Method GetDriverCaps:Int(id:Int, caps:Int Var, minFrequency:Int Var, maxFrequency:Int Var, controlPanelSpeakerMode:Int Var)
+		Return FMOD_System_GetDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency, Varptr controlPanelSpeakerMode)
+	End Method
+	
+	'Method GetDriverInfo()
+	'End Method
+	
+	Rem
+	bbdoc: Retrieves the maximum world size for the geometry engine.
+	End Rem
+	Method GetGeometrySettings:Int(maxWorldSize:Float Var)
+		Return FMOD_System_GetGeometrySettings(systemPtr, Varptr maxWorldSize)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of available hardware mixed 2d and 3d channels.  
 	End Rem
 	Method GetHardwareChannels:Int(num2D:Int Var, num3D:Int Var, total:Int Var)
 		Return FMOD_System_GetHardwareChannels(systemPtr, Varptr num2D, Varptr num3D, Varptr total)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the number of available CDROM drives on the user's machine.  
 	End Rem
 	Method GetNumCDROMDrives:Int(numDrives:Int Var)
 		Return FMOD_System_GetNumCDROMDrives(systemPtr, Varptr numDrives)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the amount of dedicated sound ram available if the platform supports it.
+	about: Currently only support on GameCube.  Most platforms use main ram to store audio data, so this function usually isn't necessary.  
 	End Rem
 	Method GetSoundRAM:Int(currentAlloced:Int Var, maxAlloced:Int Var, total:Int Var)
 		Return FMOD_System_GetSoundRAM(systemPtr, Varptr currentAlloced, Varptr maxAlloced, Varptr total)
 	End Method
 	
 	Rem
-	bbdoc:
-	End Rem
-	Method GetVersion:Int(version:Int Var)
-		Return FMOD_System_GetVersion(systemPtr, Varptr version)
-	End Method
-
-	Rem
-	bbdoc:
+	bbdoc: Retrieves the spectrum from the currently playing output signal.  
 	End Rem
 	Method GetSpectrum:Int(spectrumArray:Float[], channelOffset:Int, windowType:Int)
 		Return bmx_FMOD_System_GetSpectrum(systemPtr, spectrumArray, channelOffset, windowType)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the current speaker mode.  
 	End Rem
 	Method GetSpeakerMode:Int(speakerMode:Int Var)
 		Return FMOD_System_GetSpeakerMode(systemPtr, Varptr speakerMode)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Returns the current internal buffersize settings for streamable sounds.
 	End Rem
 	Method GetStreamBufferSize:Int(fileBufferSize:Int Var, fileBufferSizeType:Int Var)
 		Return FMOD_System_GetStreamBufferSize(systemPtr, Varptr fileBufferSize, Varptr fileBufferSizeType)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the output format for the software mixer.  
 	End Rem
 	Method GetSoftwareFormat:Int(sampleRate:Int Var, format:Int Var, numOutputChannels:Int Var, ..
 			maxInputChannels:Int Var, resampleMethod:Int Var, bits:Int Var)
@@ -471,45 +521,237 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the maximum number of software mixed channels possible.
+	about: Software mixed voices are used by sounds loaded with FMOD_SOFTWARE.  
 	End Rem
 	Method GetSoftwareChannels:Int(numSoftwareChannels:Int Var)
 		Return FMOD_System_GetSoftwareChannels(systemPtr, Varptr numSoftwareChannels)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the currently selected recording driver, usually set with System::setRecordDriver.  
 	End Rem
 	Method GetRecordDriver:Int(driver:Int Var)
 		Return FMOD_System_GetRecordDriver(systemPtr, Varptr driver)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Returns information on capabilities of the current output mode for the selected recording sound device.
 	End Rem
 	Method GetRecordDriverCaps:Int(id:Int, caps:Int Var, minFrequency:Int Var, maxFrequency:Int Var)
 		Return FMOD_System_GetRecordDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency)
 	End Method
 	
-	Rem
-	bbdoc: Retrieves identification information about a sound device specified by its index, and specific to the output mode set with System::setOutput.
-	End Rem
-	Method GetRecordDriverInfo:String(id:Int, guid:Int Var)
+	'Rem
+	'bbdoc: Retrieves identification information about a sound device specified by its index, And specific To the output mode set with System::setOutput.
+	'End Rem
+	'Method GetRecordDriverInfo:String(id:Int, guid:Int Var)
 		' TODO
-	End Method
+	'End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the number of recording devices available for this output mode.
+	about: Use this to enumerate all recording devices possible so that the user can select one. 
 	End Rem
 	Method GetRecordNumDrivers:Int(numDrivers:Int Var)
 		Return FMOD_System_GetRecordNumDrivers(systemPtr, Varptr numDrivers)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Retrieves the current recording position of the record buffer in PCM samples. 
 	End Rem
 	Method GetRecordPosition:Int(position:Int Var)
 		Return FMOD_System_GetRecordPosition(systemPtr, Varptr position)
+	End Method
+	
+	Rem
+	bbdoc: Returns the current version of FMOD Ex being used.  
+	End Rem
+	Method GetVersion:Int(version:Int Var)
+		Return FMOD_System_GetVersion(systemPtr, Varptr version)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves a pointer to a block of PCM data that represents the currently playing audio mix.
+	about: This method is useful for a very easy way to plot an oscilliscope.
+	End Rem
+	Method GetWaveData:Int(waveArray:Float Ptr, numValues:Int, channelOffset:Int)
+		Return FMOD_System_GetWaveData(systemPtr, waveArray, numValues, channelOffset)
+	End Method
+	
+	Rem
+	bbdoc: Retrieves the state of the FMOD recording API, ie if it is currently recording or not.  
+	End Rem
+	Method IsRecording:Int(recording:Int Var)
+		Return FMOD_System_IsRecording(systemPtr, Varptr recording)
+	End Method
+	
+	Rem
+	bbdoc:
+	End Rem
+	Method RecordStart:Int(sound:TFMODSound, loop:Int)
+	' TODO
+	End Method
+	
+	Rem
+	bbdoc: Stops the recording engine from recording to the specified recording sound.  
+	End Rem
+	Method RecordStop:Int()
+		Return FMOD_System_RecordStop(systemPtr)
+	End Method
+	
+	Rem
+	bbdoc: This updates the position, velocity and orientation of the specified 3D sound listener.  
+	End Rem
+	Method Set3DListenerAttributes:Int(listener:Int, pos:TFMODVector = Null, vel:TFMODVector = Null, forward:TFMODVector = Null, up:TFMODVector = Null)
+		Return FMOD_System_Set3DListenerAttributes(systemPtr, listener, pos, vel, forward, up)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of 3D 'listeners' in the 3D sound scene.
+	about: This method is useful mainly for split-screen game purposes.
+	End Rem
+	Method Set3DNumListeners:Int(numListeners:Int)
+		Return FMOD_System_Set3DNumListeners(systemPtr, numListeners)
+	End Method
+	
+	Rem
+	bbdoc: Sets the global doppler scale, distance factor and log rolloff scale for all 3D sound in FMOD. 
+	End Rem
+	Method Set3DSettings:Int(dopplerScale:Float, distanceFactor:Float, rolloffScale:Float)
+		Return FMOD_System_Set3DSettings(systemPtr, dopplerScale, distanceFactor, rolloffScale)
+	End Method
+	
+	Rem
+	bbdoc: Allows the user to specify the position of their actual physical speaker to account for non standard setups.
+	about: It also allows the user to disable speakers from 3D consideration in a game.
+	<p>
+	The method is for describing the 'real world' speaker placement to provide a more natural panning solution for 3d sound. Graphical
+	configuration screens in an application could draw icons for speaker placement that the user could position at their will.  
+	</p>
+	End Rem
+	Method Set3DSpeakerPosition:Int(speaker:Int, x:Float, y:Float, active:Int)
+		Return FMOD_System_Set3DSpeakerPosition(systemPtr, speaker, x, y, active)
+	End Method
+	
+	'Method SetAdvancedSettings()
+	'End Method
+	
+	Rem
+	bbdoc: Sets the FMOD internal mixing buffer size.
+	about: This method is used if you need to control mixer latency or granularity.  Smaller buffersizes lead to smaller latency,
+	but can lead to stuttering/skipping/instable sound on slower machines or soundcards with bad drivers.  
+	End Rem
+	Method SetDSPBufferSize:Int(bufferLength:Int, numBuffers:Int)
+		Return FMOD_System_SetDSPBufferSize(systemPtr, bufferLength, numBuffers)
+	End Method
+	
+	Rem
+	bbdoc: Selects a soundcard driver.
+	about: This method is used when an output mode has enumerated more than one output device, and you need to select between them.  
+	End Rem
+	Method SetDriver:Int(driver:Int)
+		Return FMOD_System_SetDriver(systemPtr, driver)
+	End Method
+	
+	Rem
+	bbdoc: Sets the maximum world size for the geometry engine for performance / precision reasons.  
+	End Rem
+	Method SetGeometrySettings:Int(maxWorldSize:Float)
+		Return FMOD_System_SetGeometrySettings(systemPtr, maxWorldSize)
+	End Method
+	
+	Rem
+	bbdoc: Allows the user to request a minimum number of hardware voices to be present on the soundcard to allow hardware 3D sound acceleration, or clamp the number of hardware 3D voices to a maximum value.
+	End Rem
+	Method SetHardwareChannels:Int(min2d:Int, max2d:Int, min3d:Int, max3d:Int)
+		Return FMOD_System_SetHardwareChannels(systemPtr, min2d, max2d, min3d, max3d)
+	End Method
+	
+	Rem
+	bbdoc: Sets a proxy server to use for all subsequent internet connections.  
+	End Rem
+	Method SetNetworkProxy:Int(proxy:String)
+		Local s:Byte Ptr = proxy.ToCString()
+		Local res:Int = FMOD_System_SetNetworkProxy(systemPtr, s)
+		MemFree(s)
+		Return res
+	End Method
+	
+	Rem
+	bbdoc: Sets the timeout for network streams.  
+	End Rem
+	Method SetNetworkTimeout:Int(timeout:Int)
+		Return FMOD_System_SetNetworkTimeout(systemPtr, timeout)
+	End Method
+	
+	Rem
+	bbdoc: Selects the output mode for the platform.
+	about: This is for selecting different OS specific API's which might have different features. 
+	End Rem
+	Method SetOutput:Int(output:Int)
+		Return FMOD_System_SetOutput(systemPtr, output)
+	End Method
+	
+	Rem
+	bbdoc: Specify a base search path for plugins so they can be placed somewhere else than the directory of the main executable.  
+	End Rem
+	Method SetPluginPath:Int(path:String)
+		Local s:Byte Ptr = path.ToCString()
+		Local res:Int = FMOD_System_SetPluginPath(systemPtr, s)
+		MemFree(s)
+		Return res
+	End Method
+	
+	Rem
+	bbdoc: Selects a recording driver.
+	about: This method is used when an output mode has enumerated more than one record device, and you need to select between them.
+	End Rem
+	Method SetRecordDriver:Int(driver:Int)
+		Return FMOD_System_SetRecordDriver(systemPtr, driver)
+	End Method
+	
+	'Method SetReverbAmbientProperties:Int()
+	'End Method
+	
+	'Method SetReverbProperties:Int()
+	'End Method
+	
+	Rem
+	bbdoc: Sets the maximum number of software mixed channels possible.
+	about: Software mixed voices are used by sounds loaded with FMOD_SOFTWARE.
+	End Rem
+	Method SetSoftwareChannels:Int(numSoftwareChannels:Int)
+		Return FMOD_System_SetSoftwareChannels(systemPtr, numSoftwareChannels)
+	End Method
+	
+	Rem
+	bbdoc: Sets the output format for the software mixer.
+	about: This includes the bitdepth, sample rate and number of output channels.
+	<p>
+	Do not call this unless you explicity want to change something. Calling this could have adverse impact on the performance
+	and panning behaviour. 
+	</p>
+	End Rem
+	Method SetSoftwareFormat:Int(samplerate:Int, format:Int, numOutputChannels:Int, maxInputChannels:Int, resampleMethod:Int)
+		Return FMOD_System_SetSoftwareFormat(systemPtr, samplerate, format, numOutputChannels, maxInputChannels, resampleMethod)
+	End Method
+	
+	Rem
+	bbdoc: Sets the speaker mode in the hardware and FMOD software mixing engine.  
+	End Rem
+	Method SetSpeakerMode:Int(mode:Int)
+		Return FMOD_System_SetSpeakerMode(systemPtr, mode)
+	End Method
+	
+	Rem
+	bbdoc: Sets the internal buffersize for streams opened after this call.
+	about: Larger values will consume more memory (see remarks), whereas smaller values may cause buffer under-run/starvation/stuttering
+	caused by large delays in disk access (ie CDROM or netstream), or cpu usage in slow machines, or by trying to play too many
+	streams at once.
+	End Rem
+	Method SetStreamBufferSize:Int(fileBufferSize:Int, fileBufferSizeType:Int)
+		Return FMOD_System_SetStreamBufferSize(systemPtr, fileBufferSize, fileBufferSizeType)
 	End Method
 
 	Rem

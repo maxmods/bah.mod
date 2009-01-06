@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008,2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -144,6 +144,31 @@ Extern
 	Function FMOD_System_GetRecordDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, minFrequency:Int Ptr, maxFrequency:Int Ptr)
 	Function FMOD_System_GetRecordNumDrivers:Int(handle:Byte Ptr, numDrivers:Int Ptr)
 	Function FMOD_System_GetRecordPosition:Int(handle:Byte Ptr, position:Int Ptr)
+	Function FMOD_System_GetWaveData:Int(handle:Byte Ptr, waveArray:Float Ptr, numValues:Int, channelOffset:Int)
+	Function FMOD_System_IsRecording:Int(handle:Byte Ptr, recording:Int Ptr)
+	Function FMOD_System_RecordStop:Int(handle:Byte Ptr)
+	Function FMOD_System_Set3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:Byte Ptr, vel:Byte Ptr, forward:Byte Ptr, up:Byte Ptr)
+	Function FMOD_System_Set3DNumListeners:Int(handle:Byte Ptr, numListeners:Int)
+	Function FMOD_System_Set3DSettings:Int(handle:Byte Ptr, dopplerScale:Float, distanceFactor:Float, rolloffScale:Float)
+	Function FMOD_System_Set3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float, y:Float, active:Int)
+	Function FMOD_System_GetDSPBufferSize:Int(handle:Byte Ptr, bufferLength:Int Ptr, numBuffers:Int Ptr)
+	Function FMOD_System_GetDSPClock:Int(handle:Byte Ptr, hi:Int Ptr, lo:Int Ptr)
+	Function FMOD_System_GetDriver:Int(handle:Byte Ptr, driver:Int Ptr)
+	Function FMOD_System_GetDriverCaps:Int(handle:Byte Ptr, id:Int, caps:Int Ptr, minFrequency:Int Ptr, maxFrequency:Int Ptr, controlPanelSpeakerMode:Int Ptr)
+	Function FMOD_System_GetGeometrySettings:Int(handle:Byte Ptr, maxWorldSize:Float Ptr)
+	Function FMOD_System_SetDSPBufferSize:Int(handle:Byte Ptr, bufferLength:Int, numBuffers:Int)
+	Function FMOD_System_SetDriver:Int(handle:Byte Ptr, driver:Int)
+	Function FMOD_System_SetGeometrySettings:Int(handle:Byte Ptr, maxWorldSize:Float)
+	Function FMOD_System_SetHardwareChannels:Int(handle:Byte Ptr, min2d:Int, max2d:Int, min3d:Int, max3d:Int)
+	Function FMOD_System_SetNetworkProxy:Int(handle:Byte Ptr, s:Byte Ptr)
+	Function FMOD_System_SetNetworkTimeout:Int(handle:Byte Ptr, timeout:Int)
+	Function FMOD_System_SetOutput:Int(handle:Byte Ptr, output:Int)
+	Function FMOD_System_SetPluginPath:Int(handle:Byte Ptr, s:Byte Ptr)
+	Function FMOD_System_SetRecordDriver:Int(handle:Byte Ptr, driver:Int)
+	Function FMOD_System_SetSoftwareChannels:Int(handle:Byte Ptr, numSoftwareChannels:Int)
+	Function FMOD_System_SetSoftwareFormat:Int(handle:Byte Ptr, samplerate:Int, format:Int, numOutputChannels:Int, maxInputChannels:Int, resampleMethod:Int)
+	Function FMOD_System_SetSpeakerMode:Int(handle:Byte Ptr, mode:Int)
+	Function FMOD_System_SetStreamBufferSize:Int(handle:Byte Ptr, fileBufferSize:Int, fileBufferSizeType:Int)
 
 
 	Function FMOD_Sound_SetMode:Int(handle:Byte Ptr, mode:Int)
