@@ -750,44 +750,18 @@ int32 b2BroadPhase::QuerySegment(const b2Segment& segment, void** userData, int3
 	{
 		float32 xProgress = 0;
 		float32 yProgress = 0;
+		//Move on to the next bound
+		xIndex += sx>=0?1:-1;
 		if(xIndex<0||xIndex>=m_proxyCount*2)
 			break;
+		if(sx!=0)
+			xProgress = ((float32)m_bounds[0][xIndex].value-p1x)/dx;
+		//Move on to the next bound
+		yIndex += sy>=0?1:-1;
 		if(yIndex<0||yIndex>=m_proxyCount*2)
 			break;
-		if(sx!=0)
-		{
-			//Move on to the next bound
-			if(sx>0)
-			{
-				xIndex++;
-				if(xIndex==m_proxyCount*2)
-					break;
-			}
-			else
-			{
-				xIndex--;
-				if(xIndex<0)
-					break;
-			}
-			xProgress = ((float32)m_bounds[0][xIndex].value-p1x)/dx;
-		}
 		if(sy!=0)
-		{
-			//Move on to the next bound
-			if(sy>0)
-			{
-				yIndex++;
-				if(yIndex==m_proxyCount*2)
-					break;
-			}
-			else
-			{
-				yIndex--;
-				if(yIndex<0)
-					break;
-			}
 			yProgress = ((float32)m_bounds[1][yIndex].value-p1y)/dy;
-		}
 		for(;;)
 		{
 			if(sy==0||(sx!=0&&xProgress<yProgress))
