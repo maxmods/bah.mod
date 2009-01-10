@@ -771,7 +771,7 @@ Type EVP_MD
 		this.digestPtr = EVP_dss1()
 		Return this
 	End Function
-
+?Not win32
 	Rem
 	bbdoc: A method to construct hash functions with 128 bit output from block ciphers.
 	about: These functions are an implementation of MDC2 with DES.
@@ -781,7 +781,7 @@ Type EVP_MD
 		this.digestPtr = EVP_mdc2()
 		Return this
 	End Function
-
+?
 	Rem
 	bbdoc: A cryptographic hash function with a 160 bit output.
 	End Rem
