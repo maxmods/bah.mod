@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ Import "glue.cpp"
 Extern
 
 	Function bmx_EVP_CIPHER_CTX_create:Byte Ptr()
+	Function bmx_EVP_CIPHER_CTX_delete(ctxPtr:Byte Ptr)
 	Function bmx_EVP_EncryptInit_ex:Int(ctxPtr:Byte Ptr, cipherType:Byte Ptr, impl:Byte Ptr, key:Byte Ptr, kLen:Int, iv:Byte Ptr, vLen:Int)
 	Function EVP_EncryptUpdate:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr, in:Byte Ptr, inl:Int)
 	Function EVP_EncryptFinal_ex:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr)
@@ -118,12 +119,28 @@ End Rem
 ?
 	Function EVP_cast5_ofb:Byte Ptr()
 	
-?Not win32
+?MacOS
 	Function EVP_rc5_32_12_16_cbc:Byte Ptr()
 	Function EVP_rc5_32_12_16_ecb:Byte Ptr()
 	Function EVP_rc5_32_12_16_cfb:Byte Ptr()
 	Function EVP_rc5_32_12_16_ofb:Byte Ptr()
 ?
+
+	Function EVP_DigestInit_ex:Int(handle:Byte Ptr, md:Byte Ptr, eng:Byte Ptr)
+	Function EVP_DigestFinal_ex:Int(handle:Byte Ptr, out:Byte Ptr, outl:Int Ptr)
+	Function EVP_MD_CTX_create:Byte Ptr()
+	Function EVP_MD_CTX_destroy(ctxPtr:Byte Ptr)
+	Function EVP_DigestUpdate:Int(ctxPtr:Byte Ptr, data:Byte Ptr, length:Int)
+	Function EVP_MD_CTX_cleanup:Int(ctxPtr:Byte Ptr)
+
+	Function EVP_md2:Byte Ptr()
+	Function EVP_md5:Byte Ptr()
+	Function EVP_sha:Byte Ptr()
+	Function EVP_sha1:Byte Ptr()
+	Function EVP_dss:Byte Ptr()
+	Function EVP_dss1:Byte Ptr()
+	Function EVP_mdc2:Byte Ptr()
+	Function EVP_ripemd160:Byte Ptr()
 	
 End Extern
 
@@ -149,6 +166,33 @@ Function StringToByteArray:Byte[](text:String)
 	Next
 	Return arr
 End Function
+
+Rem
+bbdoc: Helper function to convert bytes to String.
+End Rem
+Function BytesToHex:String( data:Byte Ptr, length:Int )
+
+	Local s:String
+	Local buf:Short[2]
+	
+	For Local i:Int = 0 Until length
+	
+		Local val:Int = data[i]
+
+		For Local k:Int = 1 To 0 Step -1
+			Local n:Int = (val&15) + 48
+			If n > 57 Then
+				n:+ 7
+			End If
+			buf[k]=n
+			val:Shr 4
+		Next
+		s:+ String.FromShorts( buf,2 )
+	Next
+	
+	Return s
+End Function
+
 
 Const EVP_CTRL_INIT:Int = 0
 Const EVP_CTRL_SET_KEY_LENGTH:Int = 1

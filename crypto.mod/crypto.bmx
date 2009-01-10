@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Added digest functions."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
 
@@ -228,6 +230,9 @@ Type EVP_CIPHER_CTX
 		Return EVP_CIPHER_CTX_ctrl(ctxPtr, paramType, 0, Varptr arg)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method CipherInit:Int(cipherType:EVP_CIPHER = Null, impl:ENGINE = Null, key:Byte[] = Null, iv:Byte[] = Null, enc:Int)
 		Local kLen:Int, vLen:Int
 		If key Then
@@ -268,6 +273,13 @@ Type EVP_CIPHER_CTX
 		Return EVP_CipherFinal_ex(ctxPtr, outm, Varptr outl)
 	End Method
 
+	Method Delete()
+		If ctxPtr Then
+			bmx_EVP_CIPHER_CTX_delete(ctxPtr)
+			ctxPtr = Null
+		End If
+	End Method
+	
 End Type
 
 Rem
@@ -567,7 +579,7 @@ End Rem
 		Return this
 	End Function
 
-?Not win32
+?MacOS
 	Rem
 	bbdoc: RC5 encryption algorithm, using CBC (Cipher-block chaining) mode.
 	about: This is a variable key length cipher with an
@@ -627,3 +639,156 @@ Type ENGINE
 
 End Type
 
+Rem
+bbdoc: A message digest context.
+End Rem
+Type EVP_MD_CTX
+
+	Field ctxPtr:Byte Ptr
+
+	Rem
+	bbdoc: Creates and initializes a Message Digest Context.
+	End Rem
+	Function CreateContext:EVP_MD_CTX()
+		Return New EVP_MD_CTX.Create()
+	End Function
+	
+	Rem
+	bbdoc: Creates and initializes a Message Digest Context.
+	End Rem
+	Method Create:EVP_MD_CTX()
+		ctxPtr = EVP_MD_CTX_create()
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Sets up digest context ctx to use a digest type from ENGINE impl.
+	about: If @impl is NULL then the default implementation of digest type is used.
+	End Rem
+	Method DigestInit:Int(digestType:EVP_MD, impl:ENGINE = Null)
+		If impl Then
+			Return EVP_DigestInit_ex(ctxPtr, digestType.digestPtr, impl.enginePtr)
+		Else
+			Return EVP_DigestInit_ex(ctxPtr, digestType.digestPtr, Null)
+		End If
+	End Method
+
+	Rem
+	bbdoc: Hashes @length bytes of @data into the digest context.
+	about: This method can be called several times to hash additional data.
+	End Rem
+	Method DigestUpdate:Int(data:Byte Ptr, length:Int)
+		Return EVP_DigestUpdate(ctxPtr, data, length)
+	End Method
+
+	Rem
+	bbdoc: Retrieves the digest value from the context and places it in @out.
+	about: The number of bytes of data written (i.e. the length of the digest) will be written to the integer @outl, at most
+	EVP_MAX_MD_SIZE bytes will be written. After calling #DigestFinal no additional calls to #DigestUpdate can be made, but
+	#DigestInit can be called to initialize a new digest operation.
+	End Rem
+	Method DigestFinal:Int(out:Byte Ptr, outl:Int Var)
+		Return EVP_DigestFinal_ex(ctxPtr, out, Varptr outl)
+	End Method
+	
+	Rem
+	bbdoc: Clears all information from a cipher context and free up any allocated memory associate with it.
+	returns: True for success and False for failure.
+	about: It should be called
+       after all operations using a cipher are complete so sensitive
+       information does not remain in memory.
+	End Rem
+	Method Cleanup:Int()
+		Return EVP_MD_CTX_cleanup(ctxPtr)
+	End Method
+	
+	Method Delete()
+		If ctxPtr Then
+			EVP_MD_CTX_destroy(ctxPtr)
+			ctxPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Message Digests
+End Rem
+Type EVP_MD
+
+	Field digestPtr:Byte Ptr
+
+	Rem
+	bbdoc: A cryptographic hash function with a 128 bit output.
+	End Rem
+	Function md2:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_md2()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: A cryptographic hash function with a 128 bit output.
+	End Rem
+	Function md5:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_md5()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: A cryptographic hash function with a 160 bit output.
+	End Rem
+	Function sha:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_sha()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: A cryptographic hash function with a 160 bit output.
+	End Rem
+	Function sha1:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_sha1()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: An SHA hash function, but using DSS (DSA) for the signature algorithm.
+	End Rem
+	Function dss:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_dss()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: An SHA1 hash function, but using DSS (DSA) for the signature algorithm.
+	End Rem
+	Function dss1:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_dss1()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: A method to construct hash functions with 128 bit output from block ciphers.
+	about: These functions are an implementation of MDC2 with DES.
+	End Rem
+	Function mdc2:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_mdc2()
+		Return this
+	End Function
+
+	Rem
+	bbdoc: A cryptographic hash function with a 160 bit output.
+	End Rem
+	Function ripemd160:EVP_MD()
+		Local this:EVP_MD = New EVP_MD
+		this.digestPtr = EVP_ripemd160()
+		Return this
+	End Function
+
+End Type
