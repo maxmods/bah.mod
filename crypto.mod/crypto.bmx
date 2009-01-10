@@ -792,3 +792,82 @@ Type EVP_MD
 	End Function
 
 End Type
+
+Rem
+bbdoc: Creates an MD2 hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function MD2:String(text:String)
+	Return _processDigest(EVP_MD.md2(), text)
+End Function
+
+Rem
+bbdoc: Creates an MD5 hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function MD5:String(text:String)
+	Return _processDigest(EVP_MD.md5(), text)
+End Function
+
+Rem
+bbdoc: Creates an SHA hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function SHA:String(text:String)
+	Return _processDigest(EVP_MD.sha(), text)
+End Function
+
+Rem
+bbdoc: Creates an SHA1 hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function SHA1:String(text:String)
+	Return _processDigest(EVP_MD.sha1(), text)
+End Function
+
+Rem
+bbdoc: Creates a DSS hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function DSS:String(text:String)
+	Return _processDigest(EVP_MD.dss(), text)
+End Function
+
+Rem
+bbdoc: Creates a DSS1 hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function DSS1:String(text:String)
+	Return _processDigest(EVP_MD.dss1(), text)
+End Function
+?Not win32
+Rem
+bbdoc: Creates an MDC2 hash for @text.
+returns: The hashed text or Null on error.
+End Rem
+Function MDC2:String(text:String)
+	Return _processDigest(EVP_MD.mdc2(), text)
+End Function
+?
+Rem
+bbdoc: Creates an RIPEMD-160 hash on @text.
+returns: The hashed text or Null on error.
+End Rem
+Function RIPEMD160:String(text:String)
+	Return _processDigest(EVP_MD.ripemd160(), text)
+End Function
+
+Function _processDigest:String(digestType:EVP_MD, text:String)
+	Local ctx:EVP_MD_CTX = New EVP_MD_CTX.Create()
+	ctx.DigestInit(digestType)
+	If Not ctx.DigestUpdate(text, text.length) Then
+		Return Null
+	End If
+	Local buf:Byte[EVP_MAX_MD_SIZE]
+	Local length:Int
+	If Not ctx.DigestFinal(buf, length) Then
+		Return Null
+	End If
+	ctx.Cleanup()
+	Return BytesToHex(buf, length)
+End Function

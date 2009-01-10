@@ -1,7 +1,14 @@
+'
+' Two ways to generate a hash.
+'
 SuperStrict
 
 Framework BaH.Crypto
 Import BRL.StandardIO
+
+'
+' Using the Message Digest API with complete control over each stage....
+'
 
 ' create a new message digest context
 Local ctx:EVP_MD_CTX = New EVP_MD_CTX.Create()
@@ -41,3 +48,9 @@ Print BytesToHex(buf, length)
 ' house cleaning :-)
 ctx.Cleanup()
 
+
+
+
+' and with the EASY API .....
+
+Print SHA1(mess1 + mess2)
