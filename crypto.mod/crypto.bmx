@@ -771,7 +771,7 @@ Type EVP_MD
 		this.digestPtr = EVP_dss1()
 		Return this
 	End Function
-?Not win32
+?MacOS
 	Rem
 	bbdoc: A method to construct hash functions with 128 bit output from block ciphers.
 	about: These functions are an implementation of MDC2 with DES.
@@ -840,7 +840,7 @@ End Rem
 Function DSS1:String(text:String)
 	Return _processDigest(EVP_MD.dss1(), text)
 End Function
-?Not win32
+?MacOS
 Rem
 bbdoc: Creates an MDC2 hash for @text.
 returns: The hashed text or Null on error.

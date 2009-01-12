@@ -139,7 +139,7 @@ End Rem
 	Function EVP_sha1:Byte Ptr()
 	Function EVP_dss:Byte Ptr()
 	Function EVP_dss1:Byte Ptr()
-?Not win32
+?MacOS
 	Function EVP_mdc2:Byte Ptr()
 ?
 	Function EVP_ripemd160:Byte Ptr()
