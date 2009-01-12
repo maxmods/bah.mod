@@ -22,6 +22,20 @@ libfmodex.dylib:
 @executable_path/libfmodex.dylib
 
 
+... It's also possible that the following error may occur on older PPC versions :
+
+	...lib/macos/libfmodex.dylib load command 4 unknown cmd field	
+
+
+If this happens, the following command should fix it :
+
+	strip -S -arch ppc -no_uuid libfmodex.dylib
+
+
+However, you do need at least XCode 2.5, but we'll try to make sure the version included with BaH.FMOD is fixed already.
+
+
+
 The dylib can now be used inside your application bundle.
 
 

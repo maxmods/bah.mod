@@ -790,14 +790,14 @@ Type TFMODSound
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a sound's default attributes for when it is played on a channel with System::playSound.  
 	End Rem
 	Method GetDefaults:Int(frequency:Float Var, volume:Float Var, pan:Float Var, priority:Int Var)
 		Return FMOD_Sound_GetDefaults(soundPtr, Varptr frequency, Varptr volume, Varptr pan, Varptr priority)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets a sounds's default attributes, so when it is played it uses these values without having to specify them later for each channel each time the sound is played.
 	End Rem
 	Method SetDefaults:Int(frequency:Float, volume:Float, pan:Float, priority:Int)
 		Return FMOD_Sound_SetDefaults(soundPtr, frequency, volume, pan, priority)
@@ -952,21 +952,34 @@ Type TFMODSound
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the number of subsounds stored within a sound. 
 	End Rem
 	Method GetNumSubSounds:Int(numSubSounds:Int Var)
 		Return FMOD_Sound_GetNumSubSounds(soundPtr, Varptr numSubSounds)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the number of tags belonging to a sound.  
 	End Rem
 	Method GetNumTags:Int(numTags:Int Var, numTagsUpdated:Int Var)
 		Return FMOD_Sound_GetNumTags(soundPtr, Varptr numTags, Varptr numTagsUpdated)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the state a sound is in after FMOD_NONBLOCKING has been used to open it, or the state of the streaming buffer.  
+	about: When a sound is opened with FMOD_NONBLOCKING, it is opened and prepared in the background, or asynchronously.
+	<p>
+	This allows the main application to execute without stalling on audio loads.
+	</p>
+	<p>
+	This method will describe the state of the asynchronous load routine i.e. whether it has succeeded, failed or is still in progress.
+	</p>
+	<p>
+	If 'starving' is true, then you will most likely hear a stuttering/repeating sound as the decode buffer loops on itself and replays old
+	data.
+	Now that this variable exists, you can detect buffer underrun and use something like Channel::setMute to keep it quiet until it is not
+	starving any more. 
+	</p>
 	End Rem
 	Method GetOpenState:Int(openState:Int Var, percentBuffered:Int Var, starving:Int Var)
 		Return FMOD_Sound_GetOpenState(soundPtr, Varptr openState, Varptr percentBuffered, Varptr starving)
@@ -984,84 +997,107 @@ Type TFMODSound
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current loop count value for the specified sound. 
 	End Rem
 	Method GetLoopCount:Int(loopCount:Int Var)
 		Return FMOD_Sound_GetLoopCount(soundPtr, Varptr loopCount)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets a sound, by default, to loop a specified number of times before stopping if its mode is set to FMOD_LOOP_NORMAL or FMOD_LOOP_BIDI.  
 	End Rem
 	Method SetLoopCount:Int(loopCount:Int)
 		Return FMOD_Sound_SetLoopCount(soundPtr, loopCount)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the loop points for a sound.  
 	End Rem
 	Method GetLoopPoints:Int(loopStart:Int Var, loopStartType:Int Var, loopEnd:Int Var, loopEndType:Int Var)
 		Return FMOD_Sound_GetLoopPoints(soundPtr, Varptr loopStart, Varptr loopStartType, Varptr loopEnd, Varptr loopEndType)
 	End Method
 		
 	Rem
-	bbdoc: 
+	bbdoc: Sets the loop points within a sound.  
 	End Rem
 	Method SetLoopPoints:Int(loopStart:Int, loopStartType:Int, loopEnd:Int, loopEndType:Int)
 		Return FMOD_Sound_SetLoopPoints(soundPtr, loopStart, loopStartType, loopEnd, loopEndType)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the inside and outside angles of the sound projection cone.
 	End Rem
 	Method Get3DConeSettings:Int(insideConeAngle:Float Var, outsideConeAngle:Float Var, outsideVolume:Float Var)
 		Return FMOD_Sound_Get3DConeSettings(soundPtr, Varptr insideConeAngle, Varptr outsideConeAngle, Varptr outsideVolume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the inside and outside angles of the sound projection cone, as well as the volume of the sound outside the outside angle of the sound projection cone.  
 	End Rem
 	Method Set3DConeSettings:Int(insideConeAngle:Float, outsideConeAngle:Float, outsideVolume:Float)
 		Return FMOD_Sound_Set3DConeSettings(soundPtr, insideConeAngle, outsideConeAngle, outsideVolume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieve the minimum and maximum audible distance for a sound.
 	End Rem
 	Method Get3DMinMaxDistance:Int(minDist:Float Var, maxDist:Float Var)
 		Return FMOD_Sound_Get3DMinMaxDistance(soundPtr, Varptr minDist, Varptr maxDist)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the minimum and maximum audible distance for a sound.
+	about:  MinDistance is the minimum distance that the sound emitter will cease to continue growing louder at (as it approaches the listener).
+	<p>
+	Within the mindistance it stays at the constant loudest volume possible. Outside of this mindistance it begins to attenuate.
+	</p>
+	<p>
+  	MaxDistance is the distance a sound stops attenuating at. Beyond this point it will stay at the volume it would be at maxdistance
+	units from the listener and will not attenuate any more.
+	</p>
+	<p>
+  	MinDistance is useful to give the impression that the sound is loud or soft in 3d space. An example of this is a small quiet object,
+	such as a bumblebee, which you could set a mindistance of to 0.1 for example, which would cause it to attenuate quickly and dissapear when
+	only a few meters away from the listener.
+	</p>
+	<p>
+  	Another example is a jumbo jet, which you could set to a mindistance of 100.0, which would keep the sound volume at max until the
+	listener was 100 meters away, then it would be hundreds of meters more before it would fade out.
+	</p>
+	<p>
+  	In summary, increase the mindistance of a sound to make it 'louder' in a 3d world, and decrease it to make it 'quieter' in a 3d world.
+  	Maxdistance is effectively obsolete unless you need the sound to stop fading out at a certain point. Do not adjust this from the default
+	if you dont need to.
+  	Some people have the confusion that maxdistance is the point the sound will fade out to, this is not the case.
+	</p>
 	End Rem
 	Method Set3DMinMaxDistance:Int(minDist:Float, maxDist:Float)
 		Return FMOD_Sound_Set3DMinMaxDistance(soundPtr, minDist, maxDist)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets the number of music channels inside a MOD/S3M/XM/IT/MIDI file.  
 	End Rem
 	Method GetMusicNumChannels:Int(numChannels:Int Var)
 		Return FMOD_Sound_GetMusicNumChannels:Int(soundPtr, Varptr numChannels)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the volume of a MOD/S3M/XM/IT/MIDI music channel volume.
 	End Rem
 	Method GetMusicChannelVolume:Int(channel:Int, volume:Int Var)
 		Return FMOD_Sound_GetMusicChannelVolume(soundPtr, channel, Varptr volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the volume of a MOD/S3M/XM/IT/MIDI music channel volume.  
 	End Rem
 	Method SetMusicChannelVolume:Int(channel:Int, volume:Int)
 		Return FMOD_Sound_SetMusicChannelVolume(soundPtr, channel, volume)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a descriptive tag stored by the sound, to describe things like the song name, author etc.
 	End Rem
 	Method GetTag:TFMODTag(name:String, index:Int)
 		Local tag:TFMODTag
@@ -1076,42 +1112,45 @@ Type TFMODSound
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current playback behaviour variations of a sound.  
 	End Rem
 	Method GetVariations:Int(frequencyVar:Float Var, volumeVar:Float Var, panVar:Float Var)
 		Return FMOD_Sound_GetVariations(soundPtr, Varptr frequencyVar, Varptr volumeVar, Varptr panVar)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Changes the playback behaviour of a sound by allowing random variations to playback parameters to be set.  
 	End Rem
 	Method SetVariations:Int(frequencyVar:Float, volumeVar:Float, panVar:Float)
 		Return FMOD_Sound_SetVariations(soundPtr, frequencyVar, volumeVar, panVar)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Assigns a sound as a 'subsound' of another sound. A sound can contain other sounds.
+	about: The sound object that is issuing the command will be the 'parent' sound.  
 	End Rem
 	Method SetSubSound:Int(index:Int, subsound:TFMODSound)
 		Return FMOD_Sound_SetSubSound(soundPtr, index, subsound.soundPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: For any sound that has subsounds, this function will determine the order of playback of these subsounds, and it will play / stitch together the subsounds without gaps.
+	about: This is a very useful feature for those users wanting to do seamless / gapless stream playback. (ie sports commentary,
+	gapless playback media players etc).  
 	End Rem
 	Method SetSubSoundSentence:Int(soundList:Int[])
 		Return bmx_FMOD_Sound_SetSubSoundSentence(soundPtr, soundList)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves a handle to a Sound object that is contained within the parent sound.  
 	End Rem
 	Method GetSubSound:TFMODSound(index:Int)
 		Return TFMODSound._create(bmx_FMOD_Sound_GetSubSound(soundPtr, index))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees a sound object.  
 	End Rem
 	Method SoundRelease:Int()
 		If soundPtr Then
@@ -1527,35 +1566,35 @@ Type TFMODChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current mode bit flags for the current channel.  
 	End Rem
 	Method GetMode:Int(mode:Int Var)
 		Return bmx_FMOD_Channel_GetMode(channelPtr, Varptr mode)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current mute status of the channel. 
 	End Rem
 	Method GetMute:Int(mute:Int Var)
 		Return bmx_FMOD_Channel_GetMute(channelPtr, Varptr mute)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current priority for this channel.
 	End Rem
 	Method GetPriority:Int(priority:Int Var)
 		Return bmx_FMOD_Channel_GetPriority(channelPtr, Varptr priority)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current reverb properties for this channel.
 	End Rem
 	Method GetReverbProperties:Int(properties:TFMODReverbChannelProperties)
 		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Sets the channel specific reverb properties, including things like wet/dry mix.  
 	End Rem
 	Method SetReverbProperties:Int(properties:TFMODReverbChannelProperties)
 		Return bmx_FMOD_Channel_GetReverbProperties(channelPtr, Varptr properties)
@@ -1568,11 +1607,15 @@ Type TFMODChannel
 	End Method	
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets the channel's speaker volume levels for each speaker individually.
 	End Rem
 	Method GetSpeakerMix:Int(frontleft:Float Var, frontright:Float Var, center:Float Var, ..
 			lfe:Float Var, backleft:Float Var, backright:Float Var, sideleft:Float Var, sideright:Float Var)
 	End Method
+	
+	'Method GetWaveData:Int()
+	' TODO
+	'End Method
 	
 	Method Delete()
 		If channelPtr Then
