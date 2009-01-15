@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007,2008 Bruce A Henderson
+  Copyright (c) 2007-2009 Bruce A Henderson
   All rights reserved.
  
   Redistribution and use in source and binary forms, with or without
@@ -207,7 +207,6 @@ unsigned long bmx_mysql_getLength(unsigned long * lengths, int index) {
 char * bmx_mysql_rowField_chars(MYSQL_ROW row, int index) {
 	return row[index];
 }
-
 
 void bmx_mysql_inbind(MYSQL_BIND* bindings, int index, MYSQL_FIELD * field, char * dataValue, long unsigned * dataLength, my_bool * isNull) {
 

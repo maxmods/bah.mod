@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,13 @@ Module BaH.DBMySQL
 ModuleInfo "Version: 1.06"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."
+ModuleInfo "History: Added date/time support."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed lastInsertId() issue."
 ModuleInfo "History: Win32 now uses local static lib. No copying required!"
@@ -563,6 +564,8 @@ Type TMySQLResultSet Extends TQueryResultSet
 	
 							'result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
 						Case DBTYPE_DATE
+						Case DBTYPE_DATETIME
+						Case DBTYPE_TIME
 							'result = sqlite3_bind_int(stmtHandle, i + 1, values[i].getDate())
 					End Select
 				End If
@@ -688,7 +691,11 @@ Type TMySQLResultSet Extends TQueryResultSet
 							values[i] = New TDBDouble
 							values[i].setDouble(String.fromBytes(mySQLFields[i].dataValue, fieldLength).toDouble())
 						Case DBTYPE_DATE
-							' TODO
+							values[i] = TDBDate.SetFromString(String.fromBytes(mySQLFields[i].dataValue, fieldLength))
+						Case DBTYPE_DATETIME
+							values[i] = TDBDateTime.SetFromString(String.fromBytes(mySQLFields[i].dataValue, fieldLength))
+						Case DBTYPE_TIME
+							values[i] = TDBTime.SetFromString(String.fromBytes(mySQLFields[i].dataValue, fieldLength))
 						Case DBTYPE_BLOB
 							' TODO
 						Default
@@ -719,7 +726,11 @@ Type TMySQLResultSet Extends TQueryResultSet
 							values[i] = New TDBDouble
 							values[i].setDouble(String.fromBytes(bmx_mysql_rowField_chars(row, i), fieldLength).toDouble())
 						Case DBTYPE_DATE
-							' TODO
+							values[i] = TDBDate.SetFromString(String.fromBytes(bmx_mysql_rowField_chars(row, i), fieldLength))
+						Case DBTYPE_DATETIME
+							values[i] = TDBDateTime.SetFromString(String.fromBytes(bmx_mysql_rowField_chars(row, i), fieldLength))
+						Case DBTYPE_TIME
+							values[i] = TDBTime.SetFromString(String.fromBytes(bmx_mysql_rowField_chars(row, i), fieldLength))
 						Case DBTYPE_BLOB
 							' TODO
 						Default
@@ -777,9 +788,9 @@ Type TMySQLResultSet Extends TQueryResultSet
 			Case MYSQL_TYPE_DATE
 				dbType = DBTYPE_DATE
 			Case MYSQL_TYPE_TIME
-				dbType = DBTYPE_DATE ' TODO
+				dbType = DBTYPE_TIME
 			Case MYSQL_TYPE_DATETIME, MYSQL_TYPE_TIMESTAMP
-				dbType = DBTYPE_DATE ' TODO
+				dbType = DBTYPE_DATETIME
 			Case MYSQL_TYPE_BLOB, MYSQL_TYPE_TINY_BLOB, MYSQL_TYPE_MEDIUM_BLOB, MYSQL_TYPE_LONG_BLOB
 				If _flags & 128 Then ' binary !
 					dbType = DBTYPE_BLOB
