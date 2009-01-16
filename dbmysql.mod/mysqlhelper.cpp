@@ -98,19 +98,14 @@ void bmx_mysql_deleteBindings(MYSQL_BIND * bindings) {
 }
 
 MYSQL_TIME * bmx_mysql_makeTime() {
-	MYSQL_TIME * time = new MYSQL_TIME;
+	MYSQL_TIME * time = (MYSQL_TIME *)malloc(sizeof(MYSQL_TIME));
 	memset(time, 0, sizeof(MYSQL_TIME));
 	return time;
 }
 
 void bmx_mysql_deleteTime(MYSQL_TIME * time) {
-	delete time;
+	free(time);
 }
-
-
-//my_bool * bmx_mysql_makeBools(int size) {
-//	return new my_bool[size];
-//}
 
 void bmx_mysql_deleteBools(my_bool * bools) {
 	delete[] bools;
@@ -195,43 +190,54 @@ void bmx_mysql_bind_string(MYSQL_BIND* bindings, int index, char * value, int si
 	bind->is_unsigned = 0;
 }
 
-void bmx_mysql_bind_date(MYSQL_BIND* bindings, int index, MYSQL_TIME * date) {
+void bmx_mysql_bind_date(MYSQL_BIND* bindings, int index, MYSQL_TIME * date, unsigned int year, unsigned int month, unsigned int day) {
+
+	date->year = year;
+	date->month = month;
+	date->day = day;
 
 	MYSQL_BIND* bind = &bindings[index];
 	bind->is_null = (my_bool*)0;
 	bind->length = 0;
 
 	bind->buffer_type = MYSQL_TYPE_DATE;
-	bind->buffer = date;
-	bind->buffer_length = 0;
+	bind->buffer = (char *)date;
+	bind->buffer_length = sizeof(MYSQL_TIME);
 
-	bind->is_unsigned = 0;
 }
 
-void bmx_mysql_bind_time(MYSQL_BIND* bindings, int index, MYSQL_TIME * time) {
+void bmx_mysql_bind_time(MYSQL_BIND* bindings, int index, MYSQL_TIME * time, unsigned int hour, unsigned int minute, unsigned int second) {
+
+	time->hour = hour;
+	time->minute = minute;
+	time->second = second;
 
 	MYSQL_BIND* bind = &bindings[index];
 	bind->is_null = (my_bool*)0;
 	bind->length = 0;
 
 	bind->buffer_type = MYSQL_TYPE_TIME;
-	bind->buffer = time;
-	bind->buffer_length = 0;
-
-	bind->is_unsigned = 0;
+	bind->buffer = (char *)time;
+	bind->buffer_length = sizeof(MYSQL_TIME);
 }
 
-void bmx_mysql_bind_datetime(MYSQL_BIND* bindings, int index, MYSQL_TIME * datetime) {
+void bmx_mysql_bind_datetime(MYSQL_BIND* bindings, int index, MYSQL_TIME  * datetime,
+		unsigned int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute, unsigned int second) {
+
+	datetime->year = year;
+	datetime->month = month;
+	datetime->day = day;
+	datetime->hour = hour;
+	datetime->minute = minute;
+	datetime->second = second;
 
 	MYSQL_BIND* bind = &bindings[index];
 	bind->is_null = (my_bool*)0;
 	bind->length = 0;
 
 	bind->buffer_type = MYSQL_TYPE_DATETIME;
-	bind->buffer = datetime;
-	bind->buffer_length = 0;
-
-	bind->is_unsigned = 0;
+	bind->buffer = (char *)datetime;
+	bind->buffer_length = sizeof(MYSQL_TIME);
 }
 
 void examine_bindings(MYSQL_BIND* bindings, int size, MYSQL_STMT *stmt) {

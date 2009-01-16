@@ -565,14 +565,17 @@ Type TMySQLResultSet Extends TQueryResultSet
 	
 							'result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
 						Case DBTYPE_DATE
+							Local date:TDBDate = TDBDate(values[i])
 							times[i] = bmx_mysql_makeTime()
-							bmx_mysql_bind_date(parameterBindings, i, times[i])
+							bmx_mysql_bind_date(parameterBindings, i, times[i], date.getYear(), date.getMonth(), date.getDay())
 						Case DBTYPE_DATETIME
+							Local date:TDBDateTime = TDBDateTime(values[i])
 							times[i] = bmx_mysql_makeTime()
-							bmx_mysql_bind_datetime(parameterBindings, i, times[i])
+							bmx_mysql_bind_datetime(parameterBindings, i, times[i], date.getYear(), date.getMonth(), date.getDay(), date.getHour(), date.getMinute(), date.getSecond())
 						Case DBTYPE_TIME
+							Local date:TDBTime = TDBTime(values[i])
 							times[i] = bmx_mysql_makeTime()
-							bmx_mysql_bind_time(parameterBindings, i, times[i])
+							bmx_mysql_bind_time(parameterBindings, i, times[i], date.getHour(), date.getMinute(), date.getSecond())
 					End Select
 				End If
 
