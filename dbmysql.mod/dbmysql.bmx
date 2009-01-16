@@ -538,6 +538,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 		If paramCount = bindCount Then
 
 			Local strings:Byte Ptr[] = New Byte Ptr[paramCount]
+			Local times:Byte Ptr[] = New Byte Ptr[paramCount]
 		
 			For Local i:Int = 0 Until paramCount
 
@@ -564,9 +565,14 @@ Type TMySQLResultSet Extends TQueryResultSet
 	
 							'result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
 						Case DBTYPE_DATE
+							times[i] = bmx_mysql_makeTime()
+							bmx_mysql_bind_date(parameterBindings, i, times[i])
 						Case DBTYPE_DATETIME
+							times[i] = bmx_mysql_makeTime()
+							bmx_mysql_bind_datetime(parameterBindings, i, times[i])
 						Case DBTYPE_TIME
-							'result = sqlite3_bind_int(stmtHandle, i + 1, values[i].getDate())
+							times[i] = bmx_mysql_makeTime()
+							bmx_mysql_bind_time(parameterBindings, i, times[i])
 					End Select
 				End If
 
@@ -579,6 +585,10 @@ Type TMySQLResultSet Extends TQueryResultSet
 			For Local i:Int = 0 Until paramCount
 				If strings[i] Then
 					MemFree(strings[i])
+				End If
+				
+				If times[i] Then
+					bmx_mysql_deleteTime(times[i])
 				End If
 			Next
 			

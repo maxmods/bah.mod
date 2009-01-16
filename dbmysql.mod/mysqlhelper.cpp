@@ -97,6 +97,17 @@ void bmx_mysql_deleteBindings(MYSQL_BIND * bindings) {
 	delete[] bindings;
 }
 
+MYSQL_TIME * bmx_mysql_makeTime() {
+	MYSQL_TIME * time = new MYSQL_TIME;
+	memset(time, 0, sizeof(MYSQL_TIME));
+	return time;
+}
+
+void bmx_mysql_deleteTime(MYSQL_TIME * time) {
+	delete time;
+}
+
+
 //my_bool * bmx_mysql_makeBools(int size) {
 //	return new my_bool[size];
 //}
@@ -180,6 +191,45 @@ void bmx_mysql_bind_string(MYSQL_BIND* bindings, int index, char * value, int si
 	bind->buffer_type = MYSQL_TYPE_STRING;
 	bind->buffer = value;
 	bind->buffer_length = size;
+
+	bind->is_unsigned = 0;
+}
+
+void bmx_mysql_bind_date(MYSQL_BIND* bindings, int index, MYSQL_TIME * date) {
+
+	MYSQL_BIND* bind = &bindings[index];
+	bind->is_null = (my_bool*)0;
+	bind->length = 0;
+
+	bind->buffer_type = MYSQL_TYPE_DATE;
+	bind->buffer = date;
+	bind->buffer_length = 0;
+
+	bind->is_unsigned = 0;
+}
+
+void bmx_mysql_bind_time(MYSQL_BIND* bindings, int index, MYSQL_TIME * time) {
+
+	MYSQL_BIND* bind = &bindings[index];
+	bind->is_null = (my_bool*)0;
+	bind->length = 0;
+
+	bind->buffer_type = MYSQL_TYPE_TIME;
+	bind->buffer = time;
+	bind->buffer_length = 0;
+
+	bind->is_unsigned = 0;
+}
+
+void bmx_mysql_bind_datetime(MYSQL_BIND* bindings, int index, MYSQL_TIME * datetime) {
+
+	MYSQL_BIND* bind = &bindings[index];
+	bind->is_null = (my_bool*)0;
+	bind->length = 0;
+
+	bind->buffer_type = MYSQL_TYPE_DATETIME;
+	bind->buffer = datetime;
+	bind->buffer_length = 0;
 
 	bind->is_unsigned = 0;
 }
