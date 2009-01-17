@@ -158,7 +158,7 @@ namespace boost {
       typedef typename time_zone_type::base_type time_zone_base_type;
       typedef typename time_zone_type::time_duration_type time_duration_type;
       typedef time_zone_names_base<char_type> time_zone_names;
-      typedef dst_adjustment_offsets<time_duration_type> dst_adjustment_offsets;
+      typedef boost::date_time::dst_adjustment_offsets<time_duration_type> dst_adjustment_offsets;
       typedef std::basic_string<char_type> string_type;
 
       //! Constructs an empty database
