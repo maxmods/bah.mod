@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,14 @@ bbdoc: Libxslt
 End Rem
 Module BaH.Libxslt
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Libxslt - 1998-2007 Daniel Veillard"
-ModuleInfo "Copyright: Wrapper - 2006-2008 Bruce A Henderson"
+ModuleInfo "Copyright: Libxslt - 1998-2008 Daniel Veillard"
+ModuleInfo "Copyright: Wrapper - 2006-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated to Libxslt 1.1.24"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to Libxslt 1.1.20"
 ModuleInfo "History: 1.00 Initial Release (Libxslt 1.1.16)"

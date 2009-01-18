@@ -12,7 +12,12 @@
 #define IN_LIBXSLT
 #include "libxslt.h"
 
+#ifndef	XSLT_NEED_TRIO
 #include <stdio.h>
+#else
+#include <trio.h>
+#endif
+
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -46,11 +51,6 @@
 #define XSLT_WIN32_PERFORMANCE_COUNTER
 #endif /* _MS_VER */
 #endif /* WIN32 */
-
-#ifdef XSLT_NEED_TRIO
-#include "trio.h"
-#define vsnprintf trio_vsnprintf
-#endif
 
 /************************************************************************
  * 									*
@@ -425,11 +425,18 @@ xsltPointerListClear(xsltPointerListPtr list)
  */
 void
 xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
+    xmlGenericErrorFunc error = xsltGenericError;
+    void *errctx = xsltGenericErrorContext;
     xmlChar *prop, *message;
     int terminate = 0;
 
     if ((ctxt == NULL) || (inst == NULL))
 	return;
+
+    if (ctxt->error != NULL) {
+	error = ctxt->error;
+	errctx = ctxt->errctx;
+    }
 
     prop = xmlGetNsProp(inst, (const xmlChar *)"terminate", NULL);
     if (prop != NULL) {
@@ -438,7 +445,7 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
 	} else if (xmlStrEqual(prop, (const xmlChar *)"no")) {
 	    terminate = 0;
 	} else {
-	    xsltGenericError(xsltGenericErrorContext,
+	    error(errctx,
 		"xsl:message : terminate expecting 'yes' or 'no'\n");
 	    ctxt->state = XSLT_STATE_ERROR;
 	}
@@ -448,10 +455,9 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
     if (message != NULL) {
 	int len = xmlStrlen(message);
 
-	xsltGenericError(xsltGenericErrorContext, "%s",
-		         (const char *)message);
+	error(errctx, "%s", (const char *)message);
 	if ((len > 0) && (message[len - 1] != '\n'))
-	    xsltGenericError(xsltGenericErrorContext, "\n");
+	    error(errctx, "\n");
 	xmlFree(message);
     }
     if (terminate)
@@ -476,7 +482,7 @@ xsltMessage(xsltTransformContextPtr ctxt, xmlNodePtr node, xmlNodePtr inst) {
 								\
     size = 150;							\
 								\
-    while (1) {							\
+    while (size < 64000) {					\
 	va_start(ap, msg);					\
   	chars = vsnprintf(str, size, msg, ap);			\
 	va_end(ap);						\
@@ -2098,13 +2104,17 @@ xsltXPathCompile(xsltStylesheetPtr style, const xmlChar *str) {
 	    xpathCtxt = XSLT_CCTXT(style)->xpathCtxt;
 	    xpathCtxt->doc = style->doc;
 	} else
-	    xpathCtxt = xmlXPathNewContext(style->doc);	
+	    xpathCtxt = xmlXPathNewContext(style->doc);
 #else
 	xpathCtxt = xmlXPathNewContext(style->doc);
 #endif
+	if (xpathCtxt == NULL)
+	    return NULL;
 	xpathCtxt->dict = style->dict;
     } else {
 	xpathCtxt = xmlXPathNewContext(NULL);
+	if (xpathCtxt == NULL)
+	    return NULL;
     }
     /*
     * Compile the expression.

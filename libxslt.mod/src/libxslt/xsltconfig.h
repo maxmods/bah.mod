@@ -20,28 +20,28 @@ extern "C" {
  *
  * the version string like "1.2.3"
  */
-#define LIBXSLT_DOTTED_VERSION "1.1.20"
+#define LIBXSLT_DOTTED_VERSION "1.1.24"
 
 /**
  * LIBXSLT_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBXSLT_VERSION 10120
+#define LIBXSLT_VERSION 10124
 
 /**
  * LIBXSLT_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBXSLT_VERSION_STRING "10120"
+#define LIBXSLT_VERSION_STRING "10124"
 
 /**
  * LIBXSLT_VERSION_EXTRA:
  *
  * extra version information, used to show a CVS compilation
  */
-#define	LIBXSLT_VERSION_EXTRA "-SVN1417"
+#define	LIBXSLT_VERSION_EXTRA "-CVS1070"
 
 /**
  * WITH_XSLT_DEBUG:
@@ -54,7 +54,7 @@ extern "C" {
 #define WITH_XSLT_DEBUG
 #endif
 
-#if 0
+#if 1
 /**
  * DEBUG_MEMORY:
  *
@@ -77,7 +77,7 @@ extern "C" {
 /**
  * XSLT_NEED_TRIO:
  *
- * should be activated in the existing libc library lacks some of the
+ * should be activated if the existing libc library lacks some of the
  * string formatting function, in that case reuse the Trio ones already
  * compiled in the libxml2 library.
  */
@@ -91,6 +91,10 @@ extern "C" {
 #ifndef XSLT_NEED_TRIO
 #define XSLT_NEED_TRIO
 #endif
+#endif
+
+#ifdef	XSLT_NEED_TRIO
+#define	TRIO_REPLACE_STDIO
 #endif
 
 /**
@@ -112,7 +116,7 @@ extern "C" {
  * Whether module support is configured into libxslt
  * Note: no default module path for win32 platforms
  */
-#if 0
+#if 1
 #ifndef WITH_MODULES
 #define WITH_MODULES
 #endif

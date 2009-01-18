@@ -60,6 +60,7 @@ extern "C" {
  * XSLT_REFACTORED_KEYCOMP:
  *
  * Internal define to enable on-demand xsl:key computation.
+ * That's the only mode now but the define is kept for compatibility
  */
 #define XSLT_REFACTORED_KEYCOMP
 
@@ -1766,8 +1767,8 @@ struct _xsltTransformContext {
      */
     int internalized;
     int nbKeys;
-    int hasTemplKeyPatterns;    
-    xsltTemplatePtr currentTemplateRule; /* the Current Template Rule */    
+    int hasTemplKeyPatterns;
+    xsltTemplatePtr currentTemplateRule; /* the Current Template Rule */
     xmlNodePtr initialContextNode;
     xmlDocPtr initialContextDoc;
     xsltTransformCachePtr cache;
@@ -1775,7 +1776,8 @@ struct _xsltTransformContext {
     xmlDocPtr localRVT; /* list of local tree fragments; will be freed when
 			   the instruction which created the fragment
                            exits */
-    xmlDocPtr localRVTBase;    
+    xmlDocPtr localRVTBase;
+    int keyInitLevel;   /* Needed to catch recursive keys issues */
 };
 
 /**
@@ -1958,7 +1960,8 @@ XSLTPUBFUN int XSLTCALL
 			xsltInitCtxtKey		(xsltTransformContextPtr ctxt,
 						 xsltDocumentPtr doc,
 						 xsltKeyDefPtr keyd);
-
+XSLTPUBFUN int XSLTCALL
+			xsltInitAllDocKeys	(xsltTransformContextPtr ctxt);
 #ifdef __cplusplus
 }
 #endif
