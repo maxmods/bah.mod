@@ -6495,6 +6495,8 @@ xmlRelaxNGParseGrammar(xmlRelaxNGParserCtxtPtr ctxt, xmlNodePtr nodes)
                     ctxt);
     }
 
+    /* @@@@ */
+
     ctxt->grammar = old;
     return (ret);
 }
@@ -8812,6 +8814,8 @@ xmlRelaxNGValidateValue(xmlRelaxNGValidCtxtPtr ctxt,
             }
         case XML_RELAXNG_REF:
         case XML_RELAXNG_PARENTREF:
+	    if (define->content == NULL) {
+	    }
             ret = xmlRelaxNGValidateValue(ctxt, define->content);
             break;
         default:
@@ -9828,7 +9832,8 @@ xmlRelaxNGValidateState(xmlRelaxNGValidCtxtPtr ctxt,
                         ret = -1;
                 } else {
                     state = ctxt->state;
-                    ctxt->state->seq = nseq;
+		    if (ctxt->state != NULL)
+			ctxt->state->seq = nseq;
                     if (ret == 0)
                         ret = xmlRelaxNGValidateElementEnd(ctxt, 1);
                     xmlRelaxNGFreeValidState(ctxt, state);

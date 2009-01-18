@@ -60,6 +60,7 @@ void xmlCleanupGlobals(void)
 	xmlFreeMutex(xmlThrDefMutex);
 	xmlThrDefMutex = NULL;
     }
+    __xmlGlobalInitMutexDestroy();
 }
 
 /************************************************************************
@@ -160,7 +161,7 @@ xmlStrdupFunc xmlMemStrdup = (xmlStrdupFunc) xmlStrdup;
 #undef	xmlSubstituteEntitiesDefaultValue
 #undef	xmlRegisterNodeDefaultValue
 #undef	xmlDeregisterNodeDefaultValue
-#undef	xmlLastError1
+#undef	xmlLastError
 
 #undef  xmlParserInputBufferCreateFilenameValue
 #undef  xmlOutputBufferCreateFilenameValue
@@ -313,7 +314,7 @@ static xmlStructuredErrorFunc xmlStructuredErrorThrDef = NULL;
  */
 void *xmlGenericErrorContext = NULL;
 static void *xmlGenericErrorContextThrDef = NULL;
-xmlError xmlLastError1;
+xmlError xmlLastError;
 
 /*
  * output defaults
@@ -549,7 +550,7 @@ xmlInitializeGlobalState(xmlGlobalStatePtr gs)
 
 	gs->xmlParserInputBufferCreateFilenameValue = xmlParserInputBufferCreateFilenameValueThrDef;
 	gs->xmlOutputBufferCreateFilenameValue = xmlOutputBufferCreateFilenameValueThrDef;
-    memset(&gs->xmlLastError1, 0, sizeof(xmlError));
+    memset(&gs->xmlLastError, 0, sizeof(xmlError));
 
     xmlMutexUnlock(xmlThrDefMutex);
 }
@@ -700,13 +701,13 @@ __htmlDefaultSAXHandler(void) {
 }
 #endif
 
-#undef xmlLastError1
+#undef xmlLastError
 xmlError *
-__xmlLastError1(void) {
+__xmlLastError(void) {
     if (IS_MAIN_THREAD)
-	return (&xmlLastError1);
+	return (&xmlLastError);
     else
-	return (&xmlGetGlobalState()->xmlLastError1);
+	return (&xmlGetGlobalState()->xmlLastError);
 }
 
 /*

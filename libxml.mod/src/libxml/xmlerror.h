@@ -61,7 +61,8 @@ typedef enum {
     XML_FROM_CHECK,	/* The error checking module */
     XML_FROM_WRITER,	/* The xmlwriter module */
     XML_FROM_MODULE,	/* The dynamically loaded module module*/
-    XML_FROM_I18N 	/* The module handling character conversion */
+    XML_FROM_I18N, 	/* The module handling character conversion */
+    XML_FROM_SCHEMATRONV	/* The Schematron validator module */
 } xmlErrorDomain;
 
 /**
@@ -202,11 +203,14 @@ typedef enum {
     XML_ERR_NOTATION_PROCESSING, /* 105 */
     XML_WAR_NS_COLUMN, /* 106 */
     XML_WAR_ENTITY_REDEFINED, /* 107 */
+    XML_ERR_UNKNOWN_VERSION, /* 108 */
+    XML_ERR_VERSION_MISMATCH, /* 109 */
     XML_NS_ERR_XML_NAMESPACE = 200,
     XML_NS_ERR_UNDEFINED_NAMESPACE, /* 201 */
     XML_NS_ERR_QNAME, /* 202 */
     XML_NS_ERR_ATTRIBUTE_REDEFINED, /* 203 */
     XML_NS_ERR_EMPTY, /* 204 */
+    XML_NS_ERR_COLON, /* 205 */
     XML_DTD_ATTRIBUTE_DEFAULT = 500,
     XML_DTD_ATTRIBUTE_REDEFINED, /* 501 */
     XML_DTD_ATTRIBUTE_VALUE, /* 502 */
@@ -248,6 +252,7 @@ typedef enum {
     XML_DTD_STANDALONE_DEFAULTED, /* 538 */
     XML_DTD_XMLID_VALUE, /* 539 */
     XML_DTD_XMLID_TYPE, /* 540 */
+    XML_DTD_DUP_TOKEN, /* 541 */
     XML_HTML_STRUCURE_ERROR = 800,
     XML_HTML_UNKNOWN_TAG, /* 801 */
     XML_RNGP_ANYNAME_ATTR_ANCESTOR = 1000,
@@ -398,6 +403,7 @@ typedef enum {
     XML_TREE_INVALID_HEX = 1300,
     XML_TREE_INVALID_DEC, /* 1301 */
     XML_TREE_UNTERMINATED_ENTITY, /* 1302 */
+    XML_TREE_NOT_UTF8, /* 1303 */
     XML_SAVE_NOT_UTF8 = 1400,
     XML_SAVE_CHAR_INVALID, /* 1401 */
     XML_SAVE_NO_DOCTYPE, /* 1402 */
@@ -773,6 +779,8 @@ typedef enum {
     XML_SCHEMAP_AU_PROPS_CORRECT, /* 3088 */
     XML_SCHEMAP_A_PROPS_CORRECT_3, /* 3089 */
     XML_SCHEMAP_COS_ALL_LIMITED, /* 3090 */
+    XML_SCHEMATRONV_ASSERT = 4000, /* 4000 */
+    XML_SCHEMATRONV_REPORT,
     XML_MODULE_OPEN = 4900, /* 4900 */
     XML_MODULE_CLOSE, /* 4901 */
     XML_CHECK_FOUND_ELEMENT = 5000,

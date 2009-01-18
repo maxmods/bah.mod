@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- * $Id: triostr.c,v 1.3 2003/04/03 15:28:28 veillard Exp $
+ * $Id: triostr.c 3600 2007-04-17 12:44:58Z veillard $
  *
  * Copyright (C) 2001 Bjorn Reese and Daniel Stenberg.
  *
@@ -73,7 +73,11 @@
 # endif
 #elif defined(TRIO_PLATFORM_WIN32)
 # define USE_STRCASECMP
-# define strcasecmp(x,y) strcmpi(x,y)
+# if defined(_WIN32_WCE)
+#  define strcasecmp(x,y) _stricmp(x,y)
+# else
+#  define strcasecmp(x,y) strcmpi(x,y)
+# endif
 #endif
 
 #if !(defined(TRIO_PLATFORM_SUNOS))
@@ -97,7 +101,7 @@ struct _trio_string_t
  */
 
 #if !defined(TRIO_MINIMAL)
-static TRIO_CONST char rcsid[] = "@(#)$Id: triostr.c,v 1.3 2003/04/03 15:28:28 veillard Exp $";
+static TRIO_CONST char rcsid[] = "@(#)$Id: triostr.c 3600 2007-04-17 12:44:58Z veillard $";
 #endif
 
 /*************************************************************************
@@ -574,7 +578,7 @@ TRIO_ARGS1((error_number),
 }
 
 
-#if !defined(TRIO_MINIMAL)
+#if !defined(TRIO_MINIMAL) && !defined(_WIN32_WCE)
 /**
    Format the date/time according to @p format.
 
@@ -1887,7 +1891,7 @@ TRIO_ARGS3((self, max, other),
 #endif /* !defined(TRIO_MINIMAL) */
 
 
-#if !defined(TRIO_MINIMAL)
+#if !defined(TRIO_MINIMAL) && !defined(_WIN32_WCE)
 /*
  * trio_string_format_data_max
  */

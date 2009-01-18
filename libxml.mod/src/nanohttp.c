@@ -74,8 +74,7 @@
 #define SOCKET int
 #endif
 
-
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_WIN32_WCE)
 #define _WINSOCKAPI_
 #include <wsockcompat.h>
 #include <winsock2.h>
@@ -96,7 +95,7 @@
  * A couple portability macros
  */
 #ifndef _WINSOCKAPI_
-#ifndef __BEOS__
+#if !defined(__BEOS__) || defined(__HAIKU__)
 #define closesocket(s) close(s)
 #endif
 #define SOCKET int
@@ -845,7 +844,7 @@ xmlNanoHTTPConnectAttempt(struct sockaddr *addr)
 	status = ioctl(s, FIONBIO, &enable);
     }
 #else /* VMS */
-#if defined(__BEOS__)
+#if defined(__BEOS__) && !defined(__HAIKU__)
 	{
 		bool noblock = true;
 		status = setsockopt(s, SOL_SOCKET, SO_NONBLOCK, &noblock, sizeof(noblock));
@@ -1204,16 +1203,19 @@ xmlNanoHTTPRead(void *ctx, void *dest, int len) {
  
         ctxt->strm->next_out = dest;
         ctxt->strm->avail_out = len;
+	ctxt->strm->avail_in = ctxt->inptr - ctxt->inrptr;
 
-        do {
-            orig_avail_in = ctxt->strm->avail_in = ctxt->inptr - ctxt->inrptr - bytes_read;
+        while (ctxt->strm->avail_out > 0 &&
+	       (ctxt->strm->avail_in > 0 || xmlNanoHTTPRecv(ctxt) > 0)) {
+            orig_avail_in = ctxt->strm->avail_in =
+			    ctxt->inptr - ctxt->inrptr - bytes_read;
             ctxt->strm->next_in = BAD_CAST (ctxt->inrptr + bytes_read);
 
             z_ret = inflate(ctxt->strm, Z_NO_FLUSH);
             bytes_read += orig_avail_in - ctxt->strm->avail_in;
 
             if (z_ret != Z_OK) break;
-        } while (ctxt->strm->avail_out > 0 && xmlNanoHTTPRecv(ctxt) > 0);
+	}
 
         ctxt->inrptr += bytes_read;
         return(len - ctxt->strm->avail_out);
@@ -1330,13 +1332,23 @@ retry:
     if (headers != NULL)
 	blen += strlen(headers) + 2;
     if (contentType && *contentType)
+	/* reserve for string plus 'Content-Type: \r\n" */
 	blen += strlen(*contentType) + 16;
     if (ctxt->query != NULL)
+	/* 1 for '?' */
 	blen += strlen(ctxt->query) + 1;
     blen += strlen(method) + strlen(ctxt->path) + 24;
 #ifdef HAVE_ZLIB_H
+    /* reserve for possible 'Accept-Encoding: gzip' string */
     blen += 23;
 #endif
+    if (ctxt->port != 80) {
+	/* reserve space for ':xxxxx', incl. potential proxy */
+	if (proxy)
+	    blen += 12;
+	else
+	    blen += 6;
+    }
     bp = (char*)xmlMallocAtomic(blen);
     if ( bp == NULL ) {
         xmlNanoHTTPFreeCtxt( ctxt );
@@ -1362,8 +1374,13 @@ retry:
     if (ctxt->query != NULL)
 	p += snprintf( p, blen - (p - bp), "?%s", ctxt->query);
 
-    p += snprintf( p, blen - (p - bp), " HTTP/1.0\r\nHost: %s\r\n", 
+    if (ctxt->port == 80) {
+        p += snprintf( p, blen - (p - bp), " HTTP/1.0\r\nHost: %s\r\n", 
 		    ctxt->hostname);
+    } else {
+        p += snprintf( p, blen - (p - bp), " HTTP/1.0\r\nHost: %s:%d\r\n",
+		    ctxt->hostname, ctxt->port);
+    }
 
 #ifdef HAVE_ZLIB_H
     p += snprintf(p, blen - (p - bp), "Accept-Encoding: gzip\r\n");
@@ -1583,7 +1600,7 @@ xmlNanoHTTPSave(void *ctxt, const char *filename) {
     if (!strcmp(filename, "-")) 
         fd = 0;
     else {
-        fd = open(filename, O_CREAT | O_WRONLY, 00644);
+        fd = open(filename, O_CREAT | O_WRONLY, 0666);
 	if (fd < 0) {
 	    xmlNanoHTTPClose(ctxt);
 	    return(-1);

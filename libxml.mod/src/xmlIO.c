@@ -36,8 +36,12 @@
 #include <zlib.h>
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
+#endif
+
+#if defined(_WIN32_WCE)
+#include <winnls.h> /* for CP_UTF8 */
 #endif
 
 /* Figure a portable way to know if a file is a directory. */
@@ -131,6 +135,9 @@ typedef struct _xmlOutputCallback {
 static xmlOutputCallback xmlOutputCallbackTable[MAX_OUTPUT_CALLBACK];
 static int xmlOutputCallbackNr = 0;
 static int xmlOutputCallbackInitialized = 0;
+
+xmlOutputBufferPtr
+xmlAllocOutputBufferInternal(xmlCharEncodingHandlerPtr encoder);
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 /************************************************************************
@@ -840,17 +847,24 @@ xmlFileOpen_real (const char *filename) {
 	return((void *) fd);
     }
 
-    if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file://localhost/", 17))
+    if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file://localhost/", 17)) {
 #if defined (_WIN32) || defined (__DJGPP__) && !defined(__CYGWIN__)
 	path = &filename[17];
 #else
 	path = &filename[16];
 #endif
-    else if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file:///", 8)) {
+    } else if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file:///", 8)) {
 #if defined (_WIN32) || defined (__DJGPP__) && !defined(__CYGWIN__)
 	path = &filename[8];
 #else
 	path = &filename[7];
+#endif
+    } else if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file:/", 6)) {
+        /* lots of generators seems to lazy to read RFC 1738 */
+#if defined (_WIN32) || defined (__DJGPP__) && !defined(__CYGWIN__)
+	path = &filename[6];
+#else
+	path = &filename[5];
 #endif
     } else 
 	path = filename;
@@ -883,13 +897,15 @@ xmlFileOpen (const char *filename) {
     char *unescaped;
     void *retval;
 
-    unescaped = xmlURIUnescapeString(filename, 0, NULL);
-    if (unescaped != NULL) {
-	retval = xmlFileOpen_real(unescaped);
-	xmlFree(unescaped);
-    } else {
-	retval = xmlFileOpen_real(filename);
+    retval = xmlFileOpen_real(filename);
+    if (retval == NULL) {
+	unescaped = xmlURIUnescapeString(filename, 0, NULL);
+	if (unescaped != NULL) {
+	    retval = xmlFileOpen_real(unescaped);
+	    xmlFree(unescaped);
+	}
     }
+
     return retval;
 }
 
@@ -1707,7 +1723,7 @@ xmlIOHTTPOpenW(const char *post_uri, int compression)
     {
         /*  Any character conversions should have been done before this  */
 
-        ctxt->doc_buff = xmlAllocOutputBuffer(NULL);
+        ctxt->doc_buff = xmlAllocOutputBufferInternal(NULL);
     }
 
     if (ctxt->doc_buff == NULL) {
@@ -1718,7 +1734,7 @@ xmlIOHTTPOpenW(const char *post_uri, int compression)
     return (ctxt);
 }
 #endif /* LIBXML_OUTPUT_ENABLED */
-				
+
 #ifdef LIBXML_OUTPUT_ENABLED
 /**
  * xmlIOHTTPDfltOpenW
@@ -2261,10 +2277,15 @@ xmlAllocOutputBuffer(xmlCharEncodingHandlerPtr encoder) {
         xmlFree(ret);
 	return(NULL);
     }
-    ret->buffer->alloc = XML_BUFFER_ALLOC_DOUBLEIT;
+
     ret->encoder = encoder;
     if (encoder != NULL) {
         ret->conv = xmlBufferCreateSize(4000);
+	if (ret->conv == NULL) {
+	    xmlFree(ret);
+	    return(NULL);
+	}
+
 	/*
 	 * This call is designed to initiate the encoder state
 	 */
@@ -2278,6 +2299,62 @@ xmlAllocOutputBuffer(xmlCharEncodingHandlerPtr encoder) {
 
     return(ret);
 }
+
+/**
+ * xmlAllocOutputBufferInternal:
+ * @encoder:  the encoding converter or NULL
+ *
+ * Create a buffered parser output
+ *
+ * Returns the new parser output or NULL
+ */
+xmlOutputBufferPtr
+xmlAllocOutputBufferInternal(xmlCharEncodingHandlerPtr encoder) {
+    xmlOutputBufferPtr ret;
+
+    ret = (xmlOutputBufferPtr) xmlMalloc(sizeof(xmlOutputBuffer));
+    if (ret == NULL) {
+	xmlIOErrMemory("creating output buffer");
+	return(NULL);
+    }
+    memset(ret, 0, (size_t) sizeof(xmlOutputBuffer));
+    ret->buffer = xmlBufferCreate();
+    if (ret->buffer == NULL) {
+        xmlFree(ret);
+	return(NULL);
+    }
+
+
+    /*
+     * For conversion buffers we use the special IO handling
+     * We don't do that from the exported API to avoid confusing
+     * user's code.
+     */
+    ret->buffer->alloc = XML_BUFFER_ALLOC_IO;
+    ret->buffer->contentIO = ret->buffer->content;
+
+    ret->encoder = encoder;
+    if (encoder != NULL) {
+        ret->conv = xmlBufferCreateSize(4000);
+	if (ret->conv == NULL) {
+	    xmlFree(ret);
+	    return(NULL);
+	}
+
+	/*
+	 * This call is designed to initiate the encoder state
+	 */
+	xmlCharEncOutFunc(encoder, ret->conv, NULL); 
+    } else
+        ret->conv = NULL;
+    ret->writecallback = NULL;
+    ret->closecallback = NULL;
+    ret->context = NULL;
+    ret->written = 0;
+
+    return(ret);
+}
+
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 /**
@@ -2478,7 +2555,7 @@ __xmlOutputBufferCreateFilename(const char *URI,
 	if ((compression > 0) && (compression <= 9) && (is_file_uri == 1)) {
 	    context = xmlGzfileOpenW(unescaped, compression);
 	    if (context != NULL) {
-		ret = xmlAllocOutputBuffer(encoder);
+		ret = xmlAllocOutputBufferInternal(encoder);
 		if (ret != NULL) {
 		    ret->context = context;
 		    ret->writecallback = xmlGzfileWrite;
@@ -2515,7 +2592,7 @@ __xmlOutputBufferCreateFilename(const char *URI,
 	if ((compression > 0) && (compression <= 9) && (is_file_uri == 1)) {
 	    context = xmlGzfileOpenW(URI, compression);
 	    if (context != NULL) {
-		ret = xmlAllocOutputBuffer(encoder);
+		ret = xmlAllocOutputBufferInternal(encoder);
 		if (ret != NULL) {
 		    ret->context = context;
 		    ret->writecallback = xmlGzfileWrite;
@@ -2548,7 +2625,7 @@ __xmlOutputBufferCreateFilename(const char *URI,
     /*
      * Allocate the Output buffer front-end.
      */
-    ret = xmlAllocOutputBuffer(encoder);
+    ret = xmlAllocOutputBufferInternal(encoder);
     if (ret != NULL) {
 	ret->context = context;
 	ret->writecallback = xmlOutputCallbackTable[i].writecallback;
@@ -2632,7 +2709,7 @@ xmlOutputBufferCreateFile(FILE *file, xmlCharEncodingHandlerPtr encoder) {
 
     if (file == NULL) return(NULL);
 
-    ret = xmlAllocOutputBuffer(encoder);
+    ret = xmlAllocOutputBufferInternal(encoder);
     if (ret != NULL) {
         ret->context = file;
 	ret->writecallback = xmlFileWrite;
@@ -2790,7 +2867,7 @@ xmlOutputBufferCreateFd(int fd, xmlCharEncodingHandlerPtr encoder) {
 
     if (fd < 0) return(NULL);
 
-    ret = xmlAllocOutputBuffer(encoder);
+    ret = xmlAllocOutputBufferInternal(encoder);
     if (ret != NULL) {
         ret->context = (void *) (long) fd;
 	ret->writecallback = xmlFdWrite;
@@ -2851,7 +2928,7 @@ xmlOutputBufferCreateIO(xmlOutputWriteCallback   iowrite,
 
     if (iowrite == NULL) return(NULL);
 
-    ret = xmlAllocOutputBuffer(encoder);
+    ret = xmlAllocOutputBufferInternal(encoder);
     if (ret != NULL) {
         ret->context = (void *) ioctx;
 	ret->writecallback = iowrite;
@@ -3302,6 +3379,17 @@ xmlOutputBufferWriteEscape(xmlOutputBufferPtr out, const xmlChar *str,
 	cons = len;
 	chunk = (out->buffer->size - out->buffer->use) - 1;
 
+        /*
+	 * make sure we have enough room to save first, if this is
+	 * not the case force a flush, but make sure we stay in the loop
+	 */
+	if (chunk < 40) {
+	    if (xmlBufferGrow(out->buffer, out->buffer->size + 100) < 0)
+	        return(-1);
+            oldwritten = -1;
+	    continue;
+	}
+
 	/*
 	 * first handle encoding stuff.
 	 */
@@ -3480,7 +3568,6 @@ xmlParserGetDirectory(const char *filename) {
     char *ret = NULL;
     char dir[1024];
     char *cur;
-    char sep = '/';
 
 #ifdef _WIN32_WCE  /* easy way by now ... wince does not have dirs! */
     return NULL;
@@ -3490,18 +3577,21 @@ xmlParserGetDirectory(const char *filename) {
 	xmlRegisterDefaultInputCallbacks();
 
     if (filename == NULL) return(NULL);
+
 #if defined(WIN32) && !defined(__CYGWIN__)
-    sep = '\\';
+#   define IS_XMLPGD_SEP(ch) ((ch=='/')||(ch=='\\'))
+#else
+#   define IS_XMLPGD_SEP(ch) (ch=='/')
 #endif
 
     strncpy(dir, filename, 1023);
     dir[1023] = 0;
     cur = &dir[strlen(dir)];
     while (cur > dir) {
-         if (*cur == sep) break;
+         if (IS_XMLPGD_SEP(*cur)) break;
 	 cur --;
     }
-    if (*cur == sep) {
+    if (IS_XMLPGD_SEP(*cur)) {
         if (cur == dir) dir[1] = 0;
 	else *cur = 0;
 	ret = xmlMemStrdup(dir);
@@ -3512,6 +3602,7 @@ xmlParserGetDirectory(const char *filename) {
 	}
     }
     return(ret);
+#undef IS_XMLPGD_SEP
 }
 
 /****************************************************************
@@ -3632,7 +3723,7 @@ static int xmlNoNetExists(const char *URL) {
  *
  * Returns a new allocated URL, or NULL.
  */
-xmlChar *
+static xmlChar *
 xmlResolveResourceFromCatalog(const char *URL, const char *ID,
                               xmlParserCtxtPtr ctxt) {
     xmlChar *resource = NULL;

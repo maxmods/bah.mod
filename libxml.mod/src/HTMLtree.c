@@ -316,6 +316,11 @@ htmlIsBooleanAttr(const xmlChar *name)
 }
 
 #ifdef LIBXML_OUTPUT_ENABLED
+/*
+ * private routine exported from xmlIO.c
+ */
+xmlOutputBufferPtr
+xmlAllocOutputBufferInternal(xmlCharEncodingHandlerPtr encoder);
 /************************************************************************
  *									*
  * 			Output error handlers				*
@@ -566,7 +571,7 @@ htmlDocDumpMemoryFormat(xmlDocPtr cur, xmlChar**mem, int *size, int format) {
     if (handler == NULL)
 	handler = xmlFindCharEncodingHandler("ascii");
 
-    buf = xmlAllocOutputBuffer(handler);
+    buf = xmlAllocOutputBufferInternal(handler);
     if (buf == NULL) {
 	*mem = NULL;
 	*size = 0;
@@ -778,6 +783,10 @@ htmlNodeDumpFormatOutput(xmlOutputBufferPtr buf, xmlDocPtr doc,
     if ((cur->type == XML_HTML_DOCUMENT_NODE) ||
         (cur->type == XML_DOCUMENT_NODE)){
 	htmlDocContentDumpOutput(buf, (xmlDocPtr) cur, encoding);
+	return;
+    }
+    if (cur->type == XML_ATTRIBUTE_NODE) {
+        htmlAttrDumpOutput(buf, doc, (xmlAttrPtr) cur, encoding);
 	return;
     }
     if (cur->type == HTML_TEXT_NODE) {

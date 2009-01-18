@@ -31,7 +31,7 @@ void XMLCDECL xmlGenericErrorDefaultFunc	(void *ctx ATTRIBUTE_UNUSED,
 								\
     size = 150;							\
 								\
-    while (1) {							\
+    while (size < 64000) {					\
 	va_start(ap, msg);					\
   	chars = vsnprintf(str, size, msg, ap);			\
 	va_end(ap);						\
@@ -449,7 +449,7 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
     xmlNodePtr node = (xmlNodePtr) nod;
     char *str = NULL;
     xmlParserInputPtr input = NULL;
-    xmlErrorPtr to = &xmlLastError1;
+    xmlErrorPtr to = &xmlLastError;
     xmlNodePtr baseptr = NULL;
 
     if ((xmlGetWarningsDefaultValue == 0) && (level == XML_ERR_WARNING))
@@ -587,8 +587,8 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
     to->node = node;
     to->ctxt = ctx;
 
-    if (to != &xmlLastError1)
-        xmlCopyError(to,&xmlLastError1);
+    if (to != &xmlLastError)
+        xmlCopyError(to,&xmlLastError);
 
     /*
      * Find the callback channel if channel param is NULL
@@ -847,9 +847,9 @@ xmlParserValidityWarning(void *ctx, const char *msg, ...)
 xmlErrorPtr
 xmlGetLastError(void)
 {
-    if (xmlLastError1.code == XML_ERR_OK)
+    if (xmlLastError.code == XML_ERR_OK)
         return (NULL);
-    return (&xmlLastError1);
+    return (&xmlLastError);
 }
 
 /**
@@ -888,9 +888,9 @@ xmlResetError(xmlErrorPtr err)
 void
 xmlResetLastError(void)
 {
-    if (xmlLastError1.code == XML_ERR_OK)
+    if (xmlLastError.code == XML_ERR_OK)
         return;
-    xmlResetError(&xmlLastError1);
+    xmlResetError(&xmlLastError);
 }
 
 /**

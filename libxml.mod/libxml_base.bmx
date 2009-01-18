@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,62 +28,52 @@ Import "../../pub.mod/zlib.mod/*.h"
 Import "src/libxml/*.h"
 Import "src/*.h"
 
-Import "src/SAX.c"
-Import "src/entities.c"
+Import "src/c14n.c"
+Import "src/xpointer.c"
+Import "src/catalog.c"
+Import "src/chvalid.c"
+Import "src/debugXML.c"
+Import "src/dict.c"
+'Import "src/DOCBparser.c"
 Import "src/encoding.c"
+Import "src/entities.c"
 Import "src/error.c"
-Import "src/parserInternals.c"
-Import "src/parser.c"
-Import "src/tree.c"
+Import "src/globals.c"
 Import "src/hash.c"
-Import "src/list.c"
-Import "src/xmlIO.c"
-Import "src/xmlmemory.c"
-Import "src/uri.c"
-Import "src/valid.c"
-Import "src/xlink.c"
 Import "src/HTMLparser.c"
 Import "src/HTMLtree.c"
-Import "src/debugXML.c"
-Import "src/xpath.c"
-Import "src/xpointer.c"
-Import "src/xinclude.c"
-Import "src/nanohttp.c"
+Import "src/legacy.c"
+Import "src/list.c"
 Import "src/nanoftp.c"
-'Import "src/DOCBparser.c"
-Import "src/catalog.c"
-Import "src/globals.c"
+Import "src/nanohttp.c"
+Import "src/parser.c"
+Import "src/parserInternals.c"
+Import "src/pattern.c"
+Import "src/relaxng.c"
+Import "src/SAX.c"
+Import "src/SAX2.c"
+Import "src/schematron.c"
 Import "src/threads.c"
-Import "src/c14n.c"
-Import "src/xmlstring.c"
+Import "src/tree.c"
+Import "src/uri.c"
+Import "src/valid.c"
+Import "src/xinclude.c"
+Import "src/xlink.c"
+Import "src/xmlcatalog.c"
+Import "src/xmlIO.c"
+Import "src/xmllint.c"
+Import "src/xmlmemory.c"
+Import "src/xmlmodule.c"
+Import "src/xmlreader.c"
 Import "src/xmlregexp.c"
+Import "src/xmlsave.c"
 Import "src/xmlschemas.c"
 Import "src/xmlschemastypes.c"
+Import "src/xmlstring.c"
 Import "src/xmlunicode.c"
-Import "src/xmlreader.c"
-Import "src/relaxng.c"
-Import "src/dict.c"
-Import "src/SAX2.c"
 Import "src/xmlwriter.c"
-Import "src/legacy.c"
-Import "src/chvalid.c"
-Import "src/pattern.c"
-Import "src/xmlsave.c"
-Import "src/schematron.c"
+Import "src/xpath.c"
 
-' NOTES :
-' Issue - Cannot use unless DEBUG is enabled... otherwise lots of memory errors.
-' However, we disable the debug output.
-' Seems that memory stuff works properly when DEBUG flag is set.
-'
-' xmlmemory.h has :
-' #define DEBUG 1
-'
-' xmlmemory.c has xmlGenericError within DEBUG_MEMORY sections commented out.
-
-' errror.c - changed xmllasterror to xmllasterror1
-' globals.c - changed xmllasterror to xmllasterror1
-' globals.h - changed xmllasterror to xmllasterror1
 
 Extern
 	Function _strlen:Int(s:Byte Ptr) = "strlen"

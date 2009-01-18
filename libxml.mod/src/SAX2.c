@@ -580,7 +580,8 @@ xmlSAX2GetEntity(void *ctx, const xmlChar *name)
 	    return(NULL);
 	}
 	ret->owner = 1;
-	ret->checked = 1;
+	if (ret->checked == 0)
+	    ret->checked = 1;
     }
     return(ret);
 }
@@ -957,6 +958,8 @@ xmlSAX2StartDocument(void *ctx)
 #ifdef LIBXML_HTML_ENABLED
 	if (ctxt->myDoc == NULL)
 	    ctxt->myDoc = htmlNewDocNoDtD(NULL, NULL);
+	ctxt->myDoc->properties = XML_DOC_HTML;
+	ctxt->myDoc->parseFlags = ctxt->options;
 	if (ctxt->myDoc == NULL) {
 	    xmlSAX2ErrMemory(ctxt, "xmlSAX2StartDocument");
 	    return;
@@ -972,6 +975,10 @@ xmlSAX2StartDocument(void *ctx)
     } else {
 	doc = ctxt->myDoc = xmlNewDoc(ctxt->version);
 	if (doc != NULL) {
+	    doc->properties = 0;
+	    if (ctxt->options & XML_PARSE_OLD10)
+	        doc->properties |= XML_DOC_OLD10;
+	    doc->parseFlags = ctxt->options;
 	    if (ctxt->encoding != NULL)
 		doc->encoding = xmlStrdup(ctxt->encoding);
 	    else
@@ -1059,25 +1066,31 @@ xmlSAX2AttributeInternal(void *ctx, const xmlChar *fullname,
     xmlChar *nval;
     xmlNsPtr namespace;
 
-    /*
-     * Split the full name into a namespace prefix and the tag name
-     */
-    name = xmlSplitQName(ctxt, fullname, &ns);
-    if ((name != NULL) && (name[0] == 0)) {
-        if (xmlStrEqual(ns, BAD_CAST "xmlns")) {
-	    xmlNsErrMsg(ctxt, XML_ERR_NS_DECL_ERROR,
-			"invalid namespace declaration '%s'\n",
-		        fullname, NULL);
-	} else {
-	    xmlNsWarnMsg(ctxt, XML_WAR_NS_COLUMN,
-		         "Avoid attribute ending with ':' like '%s'\n",
-			 fullname, NULL);
-	}
-	if (ns != NULL)
-	    xmlFree(ns);
-	ns = NULL;
-	xmlFree(name);
+    if (ctxt->html) {
 	name = xmlStrdup(fullname);
+	ns = NULL;
+	namespace = NULL;
+    } else {
+	/*
+	 * Split the full name into a namespace prefix and the tag name
+	 */
+	name = xmlSplitQName(ctxt, fullname, &ns);
+	if ((name != NULL) && (name[0] == 0)) {
+	    if (xmlStrEqual(ns, BAD_CAST "xmlns")) {
+		xmlNsErrMsg(ctxt, XML_ERR_NS_DECL_ERROR,
+			    "invalid namespace declaration '%s'\n",
+			    fullname, NULL);
+	    } else {
+		xmlNsWarnMsg(ctxt, XML_WAR_NS_COLUMN,
+			     "Avoid attribute ending with ':' like '%s'\n",
+			     fullname, NULL);
+	    }
+	    if (ns != NULL)
+		xmlFree(ns);
+	    ns = NULL;
+	    xmlFree(name);
+	    name = xmlStrdup(fullname);
+	}
     }
     if (name == NULL) {
         xmlSAX2ErrMemory(ctxt, "xmlSAX2StartElement");
@@ -1831,6 +1844,9 @@ skip:
     } else
 	ret->content = (xmlChar *) intern;
 
+    if (ctxt->input != NULL)
+        ret->line = ctxt->input->line;
+
     if ((__xmlRegisterCallbacks) && (xmlRegisterNodeDefaultValue))
 	xmlRegisterNodeDefaultValue(ret);
     return(ret);
@@ -2360,7 +2376,9 @@ xmlSAX2Reference(void *ctx, const xmlChar *name)
     xmlGenericError(xmlGenericErrorContext,
 	    "add xmlSAX2Reference %s to %s \n", name, ctxt->node->name);
 #endif
-    xmlAddChild(ctxt->node, ret);
+    if (xmlAddChild(ctxt->node, ret) == NULL) {
+        xmlFreeNode(ret);
+    }
 }
 
 /**

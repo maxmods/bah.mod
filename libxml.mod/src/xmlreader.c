@@ -44,6 +44,27 @@
 #include <libxml/pattern.h>
 #endif
 
+#define MAX_ERR_MSG_SIZE 64000
+
+/*
+ * The following VA_COPY was coded following an example in
+ * the Samba project.  It may not be sufficient for some
+ * esoteric implementations of va_list (i.e. it may need
+ * something involving a memcpy) but (hopefully) will be
+ * sufficient for libxml2.
+ */
+#ifndef VA_COPY
+  #ifdef HAVE_VA_COPY
+    #define VA_COPY(dest, src) va_copy(dest, src)
+  #else
+    #ifdef HAVE___VA_COPY
+      #define VA_COPY(dest,src) __va_copy(dest, src)
+    #else
+      #define VA_COPY(dest,src) (dest) = (src)
+    #endif
+  #endif
+#endif
+
 /* #define DEBUG_CALLBACKS */
 /* #define DEBUG_READER */
 
@@ -234,8 +255,6 @@ xmlTextReaderRemoveID(xmlDocPtr doc, xmlAttrPtr attr) {
     if (table == NULL) 
         return(-1);
 
-    if (attr == NULL)
-	return(-1);
     ID = xmlNodeListGetString(doc, attr->children, 1);
     if (ID == NULL)
 	return(-1);
@@ -869,13 +888,13 @@ xmlTextReaderPushData(xmlTextReaderPtr reader) {
      * parser.
      */
     else if (reader->mode == XML_TEXTREADER_MODE_EOF) {
-	if (reader->mode != XML_TEXTREADER_DONE) {
+	if (reader->state != XML_TEXTREADER_DONE) {
 	    s = inbuf->use - reader->cur;
 	    val = xmlParseChunk(reader->ctxt,
 		    (const char *) &inbuf->content[reader->cur], 
 		    s, 1);
 	    reader->cur = inbuf->use;
-	    reader->mode = XML_TEXTREADER_DONE;
+	    reader->state  = XML_TEXTREADER_DONE;
 	    if ((val != 0) || (reader->ctxt->wellFormed == 0))
 	        return(-1);
 	}
@@ -1169,8 +1188,10 @@ xmlTextReaderDoExpand(xmlTextReaderPtr reader) {
 	if (reader->mode == XML_TEXTREADER_MODE_EOF)
 	    return(1);
 	val = xmlTextReaderPushData(reader);
-	if (val < 0)
+	if (val < 0){
+	    reader->mode = XML_TEXTREADER_MODE_ERROR;
 	    return(-1);
+	}
     } while(reader->mode != XML_TEXTREADER_MODE_EOF);
     return(1);
 }
@@ -1257,17 +1278,23 @@ xmlTextReaderRead(xmlTextReaderPtr reader) {
 	 */
 	do {
 	    val = xmlTextReaderPushData(reader);
-	    if (val < 0)
+		if (val < 0){
+			reader->mode = XML_TEXTREADER_MODE_ERROR;
+			reader->state = XML_TEXTREADER_ERROR;
 		return(-1);
+		}
 	} while ((reader->ctxt->node == NULL) &&
 		 ((reader->mode != XML_TEXTREADER_MODE_EOF) &&
-		  (reader->mode != XML_TEXTREADER_DONE)));
+		  (reader->state != XML_TEXTREADER_DONE)));
 	if (reader->ctxt->node == NULL) {
 	    if (reader->ctxt->myDoc != NULL) {
 		reader->node = reader->ctxt->myDoc->children;
 	    }
-	    if (reader->node == NULL)
+	    if (reader->node == NULL){
+			reader->mode = XML_TEXTREADER_MODE_ERROR;
+			reader->state = XML_TEXTREADER_ERROR;
 		return(-1);
+		}
 	    reader->state = XML_TEXTREADER_ELEMENT;
 	} else {
 	    if (reader->ctxt->myDoc != NULL) {
@@ -1287,7 +1314,7 @@ xmlTextReaderRead(xmlTextReaderPtr reader) {
 
 get_next_node:
     if (reader->node == NULL) {
-	if (reader->mode == XML_TEXTREADER_DONE)
+	if (reader->mode == XML_TEXTREADER_MODE_EOF)
 	    return(0);
 	else
 	    return(-1);
@@ -1314,8 +1341,11 @@ get_next_node:
 	    (reader->ctxt->node == reader->node->parent)) &&
 	   (reader->ctxt->instate != XML_PARSER_EOF)) {
 	val = xmlTextReaderPushData(reader);
-	if (val < 0)
+	if (val < 0){
+		reader->mode = XML_TEXTREADER_MODE_ERROR;
+		reader->state = XML_TEXTREADER_ERROR;
 	    return(-1);
+	}
 	if (reader->node == NULL)
 	    goto node_end;
     }
@@ -1394,9 +1424,9 @@ get_next_node:
 	(reader->node->type == XML_DOCB_DOCUMENT_NODE) ||
 #endif
 	(reader->node->type == XML_HTML_DOCUMENT_NODE)) {
-	if (reader->mode != XML_TEXTREADER_DONE) {
+	if (reader->mode != XML_TEXTREADER_MODE_EOF) {
 	    val = xmlParseChunk(reader->ctxt, "", 0, 1);
-	    reader->mode = XML_TEXTREADER_DONE;
+	    reader->state = XML_TEXTREADER_DONE;
 	    if (val != 0)
 	        return(-1);
 	}
@@ -1550,7 +1580,7 @@ node_found:
 #endif /* LIBXML_PATTERN_ENABLED */
     return(1);
 node_end:
-    reader->mode = XML_TEXTREADER_DONE;
+    reader->state = XML_TEXTREADER_DONE;
     return(0);
 }
 
@@ -1838,17 +1868,22 @@ xmlTextReaderNextTree(xmlTextReaderPtr reader)
     }
 
     if (reader->state != XML_TEXTREADER_BACKTRACK) {
-        if (reader->node->children != 0) {
-            reader->node = reader->node->children;
-            reader->depth++;
+	/* Here removed traversal to child, because we want to skip the subtree,
+	replace with traversal to sibling to skip subtree */
+        if (reader->node->next != 0) {
+	    /* Move to sibling if present,skipping sub-tree */
+            reader->node = reader->node->next;
             reader->state = XML_TEXTREADER_START;
             return(1);
         }
 
+	/* if reader->node->next is NULL mean no subtree for current node,
+	so need to move to sibling of parent node if present */
         if ((reader->node->type == XML_ELEMENT_NODE) ||
             (reader->node->type == XML_ATTRIBUTE_NODE)) {
             reader->state = XML_TEXTREADER_BACKTRACK;
-            return(1);
+	    /* This will move to parent if present */
+            xmlTextReaderRead(reader);
         }
     }
 
@@ -1867,7 +1902,8 @@ xmlTextReaderNextTree(xmlTextReaderPtr reader)
         reader->node = reader->node->parent;
         reader->depth--;
         reader->state = XML_TEXTREADER_BACKTRACK;
-        return(1);
+	/* Repeat process to move to sibling of parent node if present */
+        xmlTextReaderNextTree(reader);
     }
 
     reader->state = XML_TEXTREADER_END;
@@ -2925,7 +2961,7 @@ xmlTextReaderAttributeCount(xmlTextReaderPtr reader) {
  *
  * Get the node type of the current node
  * Reference:
- * http://dotgnu.org/pnetlib-doc/System/Xml/XmlNodeType.html
+ * http://www.gnu.org/software/dotgnu/pnetlib-doc/System/Xml/XmlNodeType.html
  *
  * Returns the xmlNodeType of the current node or -1 in case of error
  */
@@ -3949,8 +3985,7 @@ xmlTextReaderCurrentDoc(xmlTextReaderPtr reader) {
 	return(NULL);
     if (reader->doc != NULL)
         return(reader->doc);
-    if ((reader == NULL) || (reader->ctxt == NULL) ||
-        (reader->ctxt->myDoc == NULL))
+    if ((reader->ctxt == NULL) || (reader->ctxt->myDoc == NULL))
 	return(NULL);
     
     reader->preserve = 1;
@@ -4167,9 +4202,9 @@ xmlTextReaderSetSchema(xmlTextReaderPtr reader, xmlSchemaPtr schema) {
  *
  * Use RelaxNG to validate the document as it is processed.
  * Activation is only possible before the first Read().
- * if @rng is NULL, then RelaxNG validation is desactivated.
+ * if @rng is NULL, then RelaxNG validation is deactivated.
  *
- * Returns 0 in case the RelaxNG validation could be (des)activated and
+ * Returns 0 in case the RelaxNG validation could be (de)activated and
  *         -1 in case of error.
  */
 int
@@ -4207,8 +4242,8 @@ xmlTextReaderRelaxNGValidate(xmlTextReaderPtr reader, const char *rng) {
 			 xmlTextReaderValidityWarningRelay,
 			 reader);
     }
-	if (reader->sErrorFunc != NULL) {
-		xmlRelaxNGSetValidStructuredErrors(reader->rngValidCtxt, 
+    if (reader->sErrorFunc != NULL) {
+	xmlRelaxNGSetValidStructuredErrors(reader->rngValidCtxt, 
 			xmlTextReaderValidityStructuredRelay,
 			reader);
     }
@@ -4486,30 +4521,32 @@ xmlTextReaderStandalone(xmlTextReaderPtr reader) {
 /* helper to build a xmlMalloc'ed string from a format and va_list */
 static char *
 xmlTextReaderBuildMessage(const char *msg, va_list ap) {
-    int size;
+    int size = 0;
     int chars;
     char *larger;
-    char *str;
-
-    str = (char *) xmlMallocAtomic(150);
-    if (str == NULL) {
-	xmlGenericError(xmlGenericErrorContext, "xmlMalloc failed !\n");
-        return NULL;
-    }
-
-    size = 150;
+    char *str = NULL;
+    va_list aq;
 
     while (1) {
-        chars = vsnprintf(str, size, msg, ap);
-        if ((chars > -1) && (chars < size))
+        VA_COPY(aq, ap);
+        chars = vsnprintf(str, size, msg, aq);
+        va_end(aq);
+        if (chars < 0) {
+	    xmlGenericError(xmlGenericErrorContext, "vsnprintf failed !\n");
+	    if (str) 
+	    	xmlFree(str);
+	    return NULL;  
+	}
+	if ((chars < size) || (size == MAX_ERR_MSG_SIZE))
             break;
-        if (chars > -1)
-            size += chars + 1;
-        else
-            size += 100;
+        if (chars < MAX_ERR_MSG_SIZE)
+        	size = chars + 1;
+	else
+		size = MAX_ERR_MSG_SIZE;
         if ((larger = (char *) xmlRealloc(str, size)) == NULL) {
 	    xmlGenericError(xmlGenericErrorContext, "xmlRealloc failed !\n");
-            xmlFree(str);
+	    if (str)
+            	xmlFree(str);
             return NULL;
         }
         str = larger;
@@ -4846,22 +4883,26 @@ xmlTextReaderGetErrorHandler(xmlTextReaderPtr reader,
 /**
  * xmlTextReaderSetup:
  * @reader:  an XML reader
+ * @input: xmlParserInputBufferPtr used to feed the reader, will
+ *         be destroyed with it.
  * @URL:  the base URL to use for the document
  * @encoding:  the document encoding, or NULL
  * @options:  a combination of xmlParserOption
- * @reuse:  keep the context for reuse
  *
  * Setup an XML reader with new options
  * 
  * Returns 0 in case of success and -1 in case of error.
  */
-static int
+int
 xmlTextReaderSetup(xmlTextReaderPtr reader,
                    xmlParserInputBufferPtr input, const char *URL,
                    const char *encoding, int options)
 {
-    if (reader == NULL)
+    if (reader == NULL) {
+        if (input != NULL)
+	    xmlFreeParserInputBuffer(input);
         return (-1);
+    }
 
     /*
      * we force the generation of compact text nodes on the reader

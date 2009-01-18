@@ -44,6 +44,12 @@
 #define MAX_DELEGATE	50
 #define MAX_CATAL_DEPTH	50
 
+#ifdef _WIN32
+# define PATH_SEAPARATOR ';'
+#else
+# define PATH_SEAPARATOR ':'
+#endif
+
 /**
  * TODO:
  *
@@ -71,8 +77,14 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 #undef XML_XML_DEFAULT_CATALOG
 static char XML_XML_DEFAULT_CATALOG[256] = "file:///etc/xml/catalog";
+#if defined(_WIN32_WCE)
+/* Windows CE don't have a A variant */
+#define GetModuleHandleA GetModuleHandle
+#define GetModuleFileNameA GetModuleFileName
+#else
 void* __stdcall GetModuleHandleA(const char*);
 unsigned long __stdcall GetModuleFileNameA(void*, char*, unsigned long);
+#endif
 #endif
 
 static xmlChar *xmlCatalogNormalizePublic(const xmlChar *pubID);
@@ -1816,6 +1828,8 @@ xmlCatalogXMLResolve(xmlCatalogEntryPtr catal, const xmlChar *pubID,
 		    if (ret != NULL) {
 			catal->depth--;
 			return(ret);
+		    } else if (catal->depth > MAX_CATAL_DEPTH) {
+		        return(NULL);
 		    }
 		}
 	    }
@@ -1855,6 +1869,13 @@ xmlCatalogXMLResolveURI(xmlCatalogEntryPtr catal, const xmlChar *URI) {
 
     if (URI == NULL)
 	return(NULL);
+
+    if (catal->depth > MAX_CATAL_DEPTH) {
+	xmlCatalogErr(catal, NULL, XML_CATALOG_RECURSION,
+		      "Detected recursion in catalog %s\n",
+		      catal->name, NULL, NULL);
+	return(NULL);
+    }
 
     /*
      * First tries steps 2/ 3/ 4/ if a system ID is provided.
@@ -2041,16 +2062,18 @@ xmlCatalogListXMLResolve(xmlCatalogEntryPtr catal, const xmlChar *pubID,
 	    if (catal->children != NULL) {
 		ret = xmlCatalogXMLResolve(catal->children, pubID, sysID);
 		if (ret != NULL) {
-                    if (normid != NULL)
-                        xmlFree(normid);
-		    return(ret);
-                }
+		    break;
+                } else if ((catal->children != NULL) &&
+		           (catal->children->depth > MAX_CATAL_DEPTH)) {
+	            ret = NULL;
+		    break;
+	        }
 	    }
 	}
 	catal = catal->next;
     }
-	if (normid != NULL)
-	    xmlFree(normid);
+    if (normid != NULL)
+	xmlFree(normid);
     return(ret);
 }
 
@@ -2593,6 +2616,8 @@ xmlCatalogSGMLResolve(xmlCatalogPtr catal, const xmlChar *pubID,
 	return(ret);
     if (sysID != NULL)
 	ret = xmlCatalogGetSGMLSystem(catal->sgml, sysID);
+    if (ret != NULL)
+	return(ret);
     return(NULL);
 }
 
@@ -2889,7 +2914,7 @@ xmlACatalogResolveURI(xmlCatalogPtr catal, const xmlChar *URI) {
 
 	sgml = xmlCatalogSGMLResolve(catal, NULL, URI);
 	if (sgml != NULL)
-            sgml = xmlStrdup(sgml);
+            ret = xmlStrdup(sgml);
     }
     return(ret);
 }
@@ -3209,6 +3234,9 @@ xmlLoadCatalogs(const char *pathss) {
     const char *cur;
     const char *paths;
     xmlChar *path;
+#ifdef _WIN32
+    int i, iLen;
+#endif
 
     if (pathss == NULL)
 	return;
@@ -3218,15 +3246,23 @@ xmlLoadCatalogs(const char *pathss) {
 	while (xmlIsBlank_ch(*cur)) cur++;
 	if (*cur != 0) {
 	    paths = cur;
-	    while ((*cur != 0) && (*cur != ':') && (!xmlIsBlank_ch(*cur)))
+	    while ((*cur != 0) && (*cur != PATH_SEAPARATOR) && (!xmlIsBlank_ch(*cur)))
 		cur++;
 	    path = xmlStrndup((const xmlChar *)paths, cur - paths);
+#ifdef _WIN32
+        iLen = strlen(path);
+        for(i = 0; i < iLen; i++) {
+            if(path[i] == '\\') {
+                path[i] = '/';
+            }
+        }
+#endif
 	    if (path != NULL) {
 		xmlLoadCatalog((const char *) path);
 		xmlFree(path);
 	    }
 	}
-	while (*cur == ':')
+	while (*cur == PATH_SEAPARATOR)
 	    cur++;
     }
 }
