@@ -629,6 +629,52 @@ Type TFCPhoto
 	End Method
 	
 	Rem
+	bbdoc: Set the content type of a photo.
+	End Rem
+	Method SetContentType:Int(contentType:Int)
+		Return bmx_flickcurl_photo_setcontenttype(fcPtr, photoPtr, contentType)
+	End Method
+	
+	Rem
+	bbdoc: Set one or both of the dates for a photo.
+	End Rem
+	Method SetDates:Int(datePosted:Int = -1, dateTaken:Int = -1, dateTakenGranularity:Int = -1)
+		Return bmx_flickcurl_photo_setdates(fcPtr, photoPtr, datePosted, dateTaken, dateTakenGranularity)
+	End Method
+	
+	Rem
+	bbdoc: Set the meta information for a photo.
+	End Rem
+	Method SetMeta:Int(title:String, description:String)
+		Return bmx_flickcurl_photo_setmeta(fcPtr, photoPtr, title, description)
+	End Method
+	
+	Method DeletePhoto:Int()
+	' TODO
+	End Method
+	
+	Method GetGeoLocation:TFCLocation()
+	' TODO
+	End Method
+	
+	Method GetGeoPerms:TFCPermissions()
+	' TODO
+	End Method
+	
+	Method RemoveDeoLocation:Int()
+	' TODO
+	End Method
+	
+	Method SetGeoLocation:Int(location:TFCLocation)
+	' TODO
+	End Method
+	
+	Method SetGeoPerms(permissions:TFCPermissions)
+	' TODO
+	End Method
+	
+	
+	Rem
 	bbdoc: Destructor for photo object.
 	End Rem
 	Method Free()
@@ -1116,9 +1162,124 @@ Type TFCLocation
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A Photo permission.
+about: Permissions as used by TFCPhoto.GetPerms() and TFCPhoto.SetPerms() which use public, friend, family, permComment and permAddMeta.
+TFCPhoto.SetGeoPerms() uses public, contact, friend and family.
 End Rem
 Type TFCPermissions
+
+	Field permsPtr:Byte Ptr
+	Field owner:Int
+
+	Function _create:TFCPermissions(permsPtr:Byte Ptr, owner:Int = True)
+		If permsPtr Then
+			Local this:TFCPermissions = New TFCPermissions
+			this.permsPtr = permsPtr
+			this.owner = owner
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsPublic:Int()
+		Return bmx_flickcurl_perms_ispublic(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPublic(value:Int)
+		bmx_flickcurl_perms_setpublic(permsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsContact:Int()
+		Return bmx_flickcurl_perms_iscontact(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetContact(value:Int)
+		bmx_flickcurl_perms_setcontact(permsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsFriend:Int()
+		Return bmx_flickcurl_perms_isfriend(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFriend(value:Int)
+		bmx_flickcurl_perms_setfriend(permsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method IsFamily:Int()
+		Return bmx_flickcurl_perms_isfamily(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetFamily(value:Int)
+		bmx_flickcurl_perms_setfamily(permsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPermComment:Int()
+		Return bmx_flickcurl_perms_getpermcomment(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPermComment(value:Int)
+		bmx_flickcurl_perms_setpermcomment(permsPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPermAddMeta:Int()
+		Return bmx_flickcurl_perms_getpermaddmeta(permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPermAddMeta(value:Int)
+		bmx_flickcurl_perms_setpermaddmeta(permsPtr, value)
+	End Method
+	
+	
+	Method Free()
+		If permsPtr Then
+			If owner Then
+' TODO				
+			Else
+				flickcurl_free_perms(permsPtr)
+			End If
+			permsPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
 End Type
 
 Rem

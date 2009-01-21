@@ -58,6 +58,9 @@ extern "C" {
 	int bmx_flickcurl_photo_transformrotate(flickcurl * fc, flickcurl_photo * photo, int degrees);
 	int bmx_flickcurl_photo_removefavorite(flickcurl * fc, flickcurl_photo * photo);
 	int bmx_flickcurl_photo_addfavorite(flickcurl * fc, flickcurl_photo * photo);
+	int bmx_flickcurl_photo_setcontenttype(flickcurl * fc, flickcurl_photo * photo, int contentType);
+	int bmx_flickcurl_photo_setdates(flickcurl * fc, flickcurl_photo * photo, int datePosted, int dateTaken, int dateTakenGranularity);
+	int bmx_flickcurl_photo_setmeta(flickcurl * fc, flickcurl_photo * photo, BBString * title, BBString * description);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -178,6 +181,19 @@ extern "C" {
 
 	int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list);
 	flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index);
+
+	int bmx_flickcurl_perms_ispublic(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setpublic(flickcurl_perms * perms, int value);
+	int bmx_flickcurl_perms_iscontact(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setcontact(flickcurl_perms * perms, int value);
+	int bmx_flickcurl_perms_isfriend(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setfriend(flickcurl_perms * perms, int value);
+	int bmx_flickcurl_perms_isfamily(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setfamily(flickcurl_perms * perms, int value);
+	int bmx_flickcurl_perms_getpermcomment(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setpermcomment(flickcurl_perms * perms, int value);
+	int bmx_flickcurl_perms_getpermaddmeta(flickcurl_perms * perms);
+	void bmx_flickcurl_perms_setpermaddmeta(flickcurl_perms * perms, int value);
 
 }
 
@@ -393,6 +409,23 @@ int bmx_flickcurl_photo_removefavorite(flickcurl * fc, flickcurl_photo * photo) 
 
 int bmx_flickcurl_photo_addfavorite(flickcurl * fc, flickcurl_photo * photo) {
 	return flickcurl_favorites_add(fc, photo->id);
+}
+
+int bmx_flickcurl_photo_setcontenttype(flickcurl * fc, flickcurl_photo * photo, int contentType) {
+	return flickcurl_photos_setContentType(fc, photo->id, contentType);
+}
+
+int bmx_flickcurl_photo_setdates(flickcurl * fc, flickcurl_photo * photo, int datePosted, int dateTaken, int dateTakenGranularity) {
+	return flickcurl_photos_setDates(fc, photo->id, datePosted, dateTaken, dateTakenGranularity);
+}
+
+int bmx_flickcurl_photo_setmeta(flickcurl * fc, flickcurl_photo * photo, BBString * title, BBString * description) {
+	char *t=bbStringToCString( title );
+	char *d=bbStringToCString( description );
+	int res = flickcurl_photos_setMeta(fc, photo->id, t, d);
+	bbMemFree(t);
+	bbMemFree(d);
+	return res;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1028,4 +1061,56 @@ int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list) {
 flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index) {
 	return list[index];
 }
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_perms_ispublic(flickcurl_perms * perms) {
+	return perms->is_public;
+}
+
+void bmx_flickcurl_perms_setpublic(flickcurl_perms * perms, int value) {
+	perms->is_public = value;
+}
+
+int bmx_flickcurl_perms_iscontact(flickcurl_perms * perms) {
+	return perms->is_contact;
+}
+
+void bmx_flickcurl_perms_setcontact(flickcurl_perms * perms, int value) {
+	perms->is_contact = value;
+}
+
+int bmx_flickcurl_perms_isfriend(flickcurl_perms * perms) {
+	return perms->is_friend;
+}
+
+void bmx_flickcurl_perms_setfriend(flickcurl_perms * perms, int value) {
+	perms->is_friend = value;
+}
+
+int bmx_flickcurl_perms_isfamily(flickcurl_perms * perms) {
+	return perms->is_family;
+}
+
+void bmx_flickcurl_perms_setfamily(flickcurl_perms * perms, int value) {
+	perms->is_family = value;
+}
+
+int bmx_flickcurl_perms_getpermcomment(flickcurl_perms * perms) {
+	return perms->perm_comment;
+}
+
+void bmx_flickcurl_perms_setpermcomment(flickcurl_perms * perms, int value) {
+	perms->perm_comment = value;
+}
+
+int bmx_flickcurl_perms_getpermaddmeta(flickcurl_perms * perms) {
+	return perms->perm_addmeta;
+}
+
+void bmx_flickcurl_perms_setpermaddmeta(flickcurl_perms * perms, int value) {
+	perms->perm_addmeta = value;
+}
+
 

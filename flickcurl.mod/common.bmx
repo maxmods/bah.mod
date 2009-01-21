@@ -44,6 +44,9 @@ Extern
 	Function bmx_flickcurl_photo_transformrotate:Int(handle:Byte Ptr, photo:Byte Ptr, degrees:Int)
 	Function bmx_flickcurl_photo_removefavorite:Int(handle:Byte Ptr, photo:Byte Ptr)
 	Function bmx_flickcurl_photo_addfavorite:Int(handle:Byte Ptr, photo:Byte Ptr)
+	Function bmx_flickcurl_photo_setcontenttype:Int(handle:Byte Ptr, photo:Byte Ptr, contentType:Int)
+	Function bmx_flickcurl_photo_setdates:Int(handle:Byte Ptr, photo:Byte Ptr, datePosted:Int, dateTaken:Int, dateTakenGranularity:Int)
+	Function bmx_flickcurl_photo_setmeta:Int(handle:Byte Ptr, photo:Byte Ptr, title:String, description:String)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -167,6 +170,19 @@ Extern
 	Function bmx_flickcurl_listofgroups_getgroupcount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_listofgroups_getgroup:Byte Ptr(handle:Byte Ptr, index:Int)
 
+	Function bmx_flickcurl_perms_ispublic:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setpublic(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_perms_iscontact:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setcontact(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_perms_isfriend:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setfriend(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_perms_isfamily:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setfamily(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_perms_getpermcomment:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setpermcomment(handle:Byte Ptr, value:Int)
+	Function bmx_flickcurl_perms_getpermaddmeta:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_perms_setpermaddmeta(handle:Byte Ptr, value:Int)
+
 	' API direct functions
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
@@ -177,6 +193,7 @@ Extern
 	Function flickcurl_free_sizes(handle:Byte Ptr)
 	Function flickcurl_free_group(handle:Byte Ptr)
 	Function flickcurl_free_groups(handle:Byte Ptr)
+	Function flickcurl_free_perms(handle:Byte Ptr)
 
 End Extern
 
