@@ -34,6 +34,20 @@ Import "common.bmx"
 ' flickcurl.h - added "_" suffix to "namespace" parameters
 '
 
+Rem
+Parameters: 
+	<ul>
+	<li><b>XXXXXXXXXX</b> : xxxxxxxxxxxxxxxxx</li>
+	</ul>
+	<p>
+
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td>XXXXXXXXXXXXX</td><td>xxxxxxxxxxxxxxxxxxx</td></tr>
+	</table>
+
+End Rem
+
 
 Rem
 bbdoc: Library initialization.
@@ -64,7 +78,7 @@ Type TFlickcurl
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees the TFlickcurl object.
 	End Rem
 	Method Free()
 		If fcPtr Then
@@ -75,6 +89,10 @@ Type TFlickcurl
 	
 	Rem
 	bbdoc: Sets application API Key for flickcurl requests.
+	about: Parameters: 
+	<ul>
+	<li><b>apiKey</b> : API Key</li>
+	</ul>
 	End Rem
 	Method SetAPIKey(apiKey:String)
 		bmx_flickcurl_setapikey(fcPtr, apiKey)
@@ -82,6 +100,10 @@ Type TFlickcurl
 	
 	Rem
 	bbdoc: Sets Auth Token for flickcurl requests.
+	about: Parameters: 
+	<ul>
+	<li><b>authToken</b> : auth token</li>
+	</ul>
 	End Rem
 	Method SetAuthToken(authToken:String)
 		bmx_flickcurl_setauthtoken(fcPtr, authToken)
@@ -89,6 +111,10 @@ Type TFlickcurl
 	
 	Rem
 	bbdoc: Sets Shared Secret for flickcurl requests.
+	about: Parameters: 
+	<ul>
+	<li><b>sharedSecret</b> : shared secret</li>
+	</ul>
 	End Rem
 	Method SetSharedSecret(sharedSecret:String)
 		bmx_flickcurl_setsharedsecret(fcPtr, sharedSecret)
@@ -96,52 +122,87 @@ Type TFlickcurl
 	
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets information about a photo.
+	returns: A TFCPhoto object or Null on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>photoID</b> : photo ID</li>
+	</ul>
 	End Rem
 	Method GetPhotoInfo:TFCPhoto(photoID:String)
 		Return TFCPhoto._create(bmx_flickcurl_photosgetinfo(fcPtr, photoID), fcPtr)
 	End Method
 	
 	Rem
-	bbdoc: Get a frob to be used during authentication.
+	bbdoc: Gets a frob to be used during authentication.
+	returns: Frob string or Null on failure.
 	End Rem
 	Method GetFrob:String()
 		Return bmx_flickcurl_getfrob(fcPtr)
 	End Method
 	
 	Rem
-	bbdoc: Turn a frob into an authToken.
+	bbdoc: Turns a frob into an authToken.
+	returns: Token string or Null on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>frob</b> : frob string</li>
+	</ul>
 	End Rem
 	Method GetFullToken:String(frob:String)
 		Return bmx_flickcurl_getfulltoken(fcPtr, frob)
 	End Method
 
 	Rem
-	bbdoc: Get the auth token for the given frob, if one has been attached.
+	bbdoc: Gets the auth token for the given frob, if one has been attached.
+	returns: Token string or Null on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>frob</b> : frob string</li>
+	</ul>
 	End Rem	
 	Method GetToken:String(frob:String)
 		Return bmx_flickcurl_gettoken(fcPtr, frob)
 	End Method
 	
 	Rem
-	bbdoc: Find Flickr Places information by Place Id.
+	bbdoc: Finds Flickr Places information by Place Id.
+	returns: A TFCPlace object or Null on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>placeID</b> : A Flickr Places ID</li>
+	</ul>
 	End Rem
 	Method ResolvePlaceId:TFCPlace(placeID:String)
 		Return TFCPlace._create(bmx_flickcurl_resolveplaceid(fcPtr, placeID))
 	End Method
 	
 	Rem
-	bbdoc: Find Flickr Places information by Place URL.
+	bbdoc: Finds Flickr Places information by Place URL.
+	returns: A TFCPlace object or Null on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>url</b> : A Flickr Places URL. Flickr Place URLs are of the form /country/region/city</li>
+	</ul>
 	End Rem
 	Method ResolvePlaceURL:TFCPlace(url:String)
 		Return TFCPlace._create(bmx_flickcurl_resolveplaceurl(fcPtr, url))
 	End Method
 	
 	Rem
-	bbdoc: Return a place ID for a latitude, longitude and accuracy triple.
+	bbdoc: Returns a place ID for a latitude, longitude and accuracy triple.
+	returns: A TFCPlace object or Null on failure.
 	about: The flickr.places.findByLatLon method is not meant to be a (reverse) geocoder in the traditional sense.
 	It is designed to allow users to find photos for "places" and will round up to the nearest place type
 	to which corresponding place IDs apply. 
+	<p>Parameters: 
+	<ul>
+	<li><b>lat</b> : The latitude whose valid range is -90 to 90. Anything more than 4 decimal places will betruncated.</li>
+	<li><b>lon</b> : The longitude whose valid range is -180 to 180. Anything more than 4 decimal places will be truncated</li>
+	<li><b>accuracy</b> : Recorded accuracy level of the location information. World level is 1, Country is ~3,
+	Region ~6, City ~11, Street ~16. Current range is 1-16. The default is 16.</li>
+	</ul>
+	</p>
 	End Rem
 	Method FindPlaceByLatLon:TFCPlace(lat:Double, lon:Double, accuracy:Int = 16)
 		Return TFCPlace._create(bmx_flickcurl_findplacebylatlon(fcPtr, lat, lon, accuracy))
@@ -186,7 +247,15 @@ Type TFlickcurl
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns a TFCPhotoList object of photos matching some criteria.
+	about: Only photos visible to the calling user will be returned. To return private or semi-private photos,
+	the caller must be authenticated with 'read' permissions, and have permission to view the photos.
+	Unauthenticated calls will only return public photos. 
+	<p>Parameters: 
+	<ul>
+	<li><b>params</b> : search parameters</li>
+	</ul>
+	</p>
 	End Rem
 	Method SearchPhotos:TFCPhotoList(params:TFCSearchParams)
 		Return TFCListOfPhotos._create(bmx_flickcurl_searchphotos(fcPtr, params.paramsPtr), fcPtr)
@@ -194,13 +263,27 @@ Type TFlickcurl
 
 	Rem
 	bbdoc: Returns the list of interesting photos for the most recent day or a user-specified date.
+	about: Parameters: 
+	<ul>
+	<li><b>date</b> : A specific date, formatted as YYYY-MM-DD, to return interesting photos for. (or NULL)</li>
+	<li><b>extras</b> : A comma-delimited list of extra information to fetch for each returned record (or Null).
+	Currently supported fields are: license, date_upload, date_taken, owner_name, icon_server, original_format,
+	last_update, geo, tags, machine_tags. 'media will return an extra media=VALUE for VALUE "photo" or "video".
+	</li>
+	<li><b>perPage</b> : Number of photos to return per page default 100, max 500</li>
+	<li><b>page</b> : The page of results to return, default 1</li>
+	</ul>
 	End Rem
-	Method GetInterestingnessList:TFCPhotoList(date:String, extras:String, perPage:Int, page:Int)
+	Method GetInterestingnessList:TFCPhotoList(date:String, extras:String, perPage:Int = 100, page:Int = 1)
 		Return TFCListOfPhotos._create(bmx_flickcurl_getinterestingnesslist(fcPtr, date, extras, perPage, page), fcPtr)
 	End Method
 	
 	Rem
 	bbdoc: Get a user, given their email address.
+	about: Parameters: 
+	<ul>
+	<li><b>email</b> : user email address</li>
+	</ul>
 	End Rem
 	Method FindPeopleByEmail:TFCPerson(email:String)
 		Return TFCPerson._create(bmx_flickcurl_findpeoplebyemail(fcPtr, email), fcPtr)
@@ -208,6 +291,10 @@ Type TFlickcurl
 	
 	Rem
 	bbdoc: Get a user, given their username.
+	about: Parameters: 
+	<ul>
+	<li><b>username</b> : username</li>
+	</ul>
 	End Rem
 	Method FindPeopleByUsername:TFCPerson(username:String)
 		Return TFCPerson._create(bmx_flickcurl_findpeoplebyusername(fcPtr, username), fcPtr)
@@ -215,6 +302,10 @@ Type TFlickcurl
 	
 	Rem
 	bbdoc: Returns an array of tag clusters for a tag.
+	about: Parameters: 
+	<ul>
+	<li><b>tag</b> : The tag to fetch clusters for</li>
+	</ul>
 	End Rem
 	Method GetClusters:TFCTagCluster[](tag:String)
 		Return bmx_flickcurl_tags_getclusters(fcPtr, tag)
@@ -1959,6 +2050,34 @@ Type TFCGroupList
 	Method Delete()
 		Free()
 	End Method
+
+End Type
+
+Rem
+bbdoc: A photo license.
+End Rem
+Type TFCLicense
+
+	Rem
+	bbdoc: License ID.
+	End Rem
+	Field id:Int
+	Rem
+	bbdoc: License URL.
+	End Rem
+	Field url:String
+	Rem
+	bbdoc: License short name.
+	End Rem
+	Field name:String
+
+	Function _create:TFCLicense(id:Int, url:String, name:String)
+		Local this:TFCLicense = New TFCLicense
+		this.id = id
+		this.url = url
+		this.name = name
+		Return this
+	End Function
 
 End Type
 

@@ -964,11 +964,11 @@ flickcurl_size * bmx_flickcurl_listofsizes_getsize(flickcurl_size ** list, int i
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 flickcurl_photo** bmx_flickcurl_getinterestingnesslist(flickcurl * fc, BBString * date, BBString * extras, int perPage, int page) {
-	char *d=bbStringToCString( date );
-	char *e=bbStringToCString( extras );
+	char *d=(date != &bbEmptyString) ? bbStringToCString( date ) : 0;
+	char *e=(extras != &bbEmptyString) ? bbStringToCString( extras ) : 0;
 	flickcurl_photo** list = flickcurl_interestingness_getList(fc, d, e, perPage, page);
-	bbMemFree(d);
-	bbMemFree(e);
+	if (d) bbMemFree(d);
+	if (e) bbMemFree(e);
 	return list;
 }
 
