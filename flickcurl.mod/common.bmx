@@ -47,6 +47,10 @@ Extern
 	Function bmx_flickcurl_photo_setcontenttype:Int(handle:Byte Ptr, photo:Byte Ptr, contentType:Int)
 	Function bmx_flickcurl_photo_setdates:Int(handle:Byte Ptr, photo:Byte Ptr, datePosted:Int, dateTaken:Int, dateTakenGranularity:Int)
 	Function bmx_flickcurl_photo_setmeta:Int(handle:Byte Ptr, photo:Byte Ptr, title:String, description:String)
+	Function bmx_flickcurl_photo_getperms:Byte Ptr(handle:Byte Ptr, photo:Byte Ptr)
+	Function bmx_flickcurl_photo_getgeoperms:Byte Ptr(handle:Byte Ptr, photo:Byte Ptr)
+	Function bmx_flickcurl_photo_setgeoperms:Int(handle:Byte Ptr, photo:Byte Ptr, permissions:Byte Ptr)
+	Function bmx_flickcurl_photo_setperms:Int(handle:Byte Ptr, photo:Byte Ptr, permissions:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -182,6 +186,9 @@ Extern
 	Function bmx_flickcurl_perms_setpermcomment(handle:Byte Ptr, value:Int)
 	Function bmx_flickcurl_perms_getpermaddmeta:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_perms_setpermaddmeta(handle:Byte Ptr, value:Int)
+	
+	Function bmx_flickcurl_perms_create:Byte Ptr()
+	Function bmx_flickcurl_perms_delete(handle:Byte Ptr)
 
 	' API direct functions
 	Function flickcurl_init:Int()

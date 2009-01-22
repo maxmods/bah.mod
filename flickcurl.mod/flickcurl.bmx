@@ -657,8 +657,11 @@ Type TFCPhoto
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Get permissions for who may view geo data for a photo.
+	End Rem
 	Method GetGeoPerms:TFCPermissions()
-	' TODO
+		Return TFCPermissions._create(bmx_flickcurl_photo_getgeoperms(fcPtr, photoPtr), False)
 	End Method
 	
 	Method RemoveDeoLocation:Int()
@@ -669,10 +672,26 @@ Type TFCPhoto
 	' TODO
 	End Method
 	
-	Method SetGeoPerms(permissions:TFCPermissions)
-	' TODO
+	Rem
+	bbdoc: Set the permission for who may view the geo data associated with a photo.
+	End Rem
+	Method SetGeoPerms:Int(permissions:TFCPermissions)
+		Return bmx_flickcurl_photo_setgeoperms(fcPtr, photoPtr, permissions.permsPtr)
 	End Method
 	
+	Rem
+	bbdoc: Get permissions for a photo.
+	End Rem
+	Method GetPerms:TFCPermissions()
+		Return TFCPermissions._create(bmx_flickcurl_photo_getperms(fcPtr, photoPtr), False)
+	End Method
+	
+	Rem
+	bbdoc: Set permissions for a photo.
+	End Rem
+	Method SetPerms:Int(permissions:TFCPermissions)
+		Return bmx_flickcurl_photo_setperms(fcPtr, photoPtr, permissions.permsPtr)
+	End Method
 	
 	Rem
 	bbdoc: Destructor for photo object.
@@ -1181,6 +1200,13 @@ Type TFCPermissions
 	End Function
 	
 	Rem
+	bbdoc: Creates a new TFCPermissions object.
+	End Rem
+	Method Create:TFCPermissions()
+		Return TFCPermissions._create(bmx_flickcurl_perms_create())
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method IsPublic:Int()
@@ -1268,7 +1294,8 @@ Type TFCPermissions
 	Method Free()
 		If permsPtr Then
 			If owner Then
-' TODO				
+				' delete our own instance (made with Create())
+				bmx_flickcurl_perms_delete(permsPtr)
 			Else
 				flickcurl_free_perms(permsPtr)
 			End If
