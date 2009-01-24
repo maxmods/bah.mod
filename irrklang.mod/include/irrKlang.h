@@ -1,6 +1,6 @@
 /* irrKlang.h -- interface of the 'irrKlang' library
 
-  Copyright (C) 2002-2007 Nikolaus Gebhardt
+  Copyright (C) 2002-2009 Nikolaus Gebhardt
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,9 +33,9 @@
 #include "ik_IAudioRecorder.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.0.4"
+#define IRR_KLANG_VERSION "1.1.3"
 
-/*! \mainpage irrKlang 1.0.4 API documentation
+/*! \mainpage irrKlang 1.1.3 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 

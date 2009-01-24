@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Nikolaus Gebhardt
+// Copyright (C) 2002-2009 Nikolaus Gebhardt
 // This file is part of the "irrKlang" library.
 // For conditions of distribution and use, see copyright notice in irrKlang.h
 
@@ -146,7 +146,19 @@ namespace irrklang
 		//! Returns the threshold size where irrKlang decides to force streaming a file independent of the user specified setting.
 		/**  The value is specified in uncompressed bytes and its default value is 
 		about one Megabyte. See setForcedStreamingThreshold() for details. */
-		virtual ik_s32 getForcedStreamingForceThreshold() = 0;
+		virtual ik_s32 getForcedStreamingThreshold() = 0;
+
+		//! Returns a pointer to the loaded and decoded sample data.
+		/** \return Returns a pointer to the sample data. The data is provided in decoded PCM data. The
+		exact format can be retrieved using getAudioFormat(). Use getAudioFormat().getSampleDataSize()
+		for getting the amount of bytes. The returned pointer will only be valid as long as the sound
+		source exists.
+		This function will only return a pointer to the data if the 
+		audio file is not streamed, namely ESM_NO_STREAMING. Otherwise this function will return 0.
+		Note: If the sound never has been played before, the sound engine will have to open
+		the file and decode audio data from there, so this call could take a bit depending
+		on the type of the file.*/
+		virtual void* getSampleData() = 0;
 	};
 
 } // end namespace irrklang

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Nikolaus Gebhardt
+// Copyright (C) 2002-2009 Nikolaus Gebhardt
 // This file is part of the "irrKlang" library.
 // For conditions of distribution and use, see copyright notice in irrKlang.h
 
@@ -16,6 +16,7 @@
 namespace irrklang
 {
 	class IAudioStreamLoader;
+	struct SInternalAudioInterface;
 
 	//! Interface to the sound engine, for playing 3d and 2d sound and music.
 	/** This is the main interface of irrKlang. You usually would create this using
@@ -199,7 +200,7 @@ namespace irrklang
 		file format it is and might be able to start playback faster.
 		\param copyMemory If set to true which is default, the memory block is copied 
 		and stored in the engine, after	calling addSoundSourceFromMemory() the memory pointer can be deleted
-		savely. If set to true, the memory is not copied and the user takes the responsibility that 
+		savely. If set to false, the memory is not copied and the user takes the responsibility that 
 		the memory block pointed to remains there as long as the sound engine or at least this sound
 		source exists.
 		\return Returns the pointer to the added sound source or 0 if not sucessful because for
@@ -386,7 +387,34 @@ namespace irrklang
 		\return returns true if sucessful or fals if not, for example because the path could 
 		not be found. */
 		virtual bool loadPlugins(const ik_c8* path) = 0;
+
+		//! Returns a pointer to internal sound engine pointers, like the DirectSound interface.
+		/** Use this with caution. This is only exposed to make it possible for other libraries
+		such as Video playback packages to extend or use the sound driver irrklang uses. */
+		virtual const SInternalAudioInterface& getInternalAudioInterface() = 0;		
 	};
+
+
+	//! structure for returning pointers to the internal audio interface. 
+	/** Use ISoundEngine::getInternalAudioInterface() to get this. */
+	struct SInternalAudioInterface
+	{
+		//! IDirectSound interface, this is not null when using the ESOD_DIRECT_SOUND audio driver
+		void* pIDirectSound;
+
+		//! IDirectSound8 interface, this is not null when using the ESOD_DIRECT_SOUND8 audio driver
+		void* pIDirectSound8;
+
+		//! HWaveout interface, this is not null when using the ESOD_WIN_MM audio driver
+		void* pWinMM_HWaveOut;
+
+		//! ALSA PCM Handle interface, this is not null when using the ESOD_ALSA audio driver
+		void* pALSA_SND_PCM;
+
+		//! AudioDeviceID handle, this is not null when using the ESOD_CORE_AUDIO audio driver
+		ik_u32 pCoreAudioDeciceID;
+	};
+
 
 
 } // end namespace irrklang

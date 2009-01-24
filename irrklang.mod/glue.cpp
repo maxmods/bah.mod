@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2008 Bruce A Henderson
+ Copyright (c) 2008-2009 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -514,7 +514,7 @@ void bmx_soundsource_setforcedstreamingthreshold(irrklang::ISoundSource * source
 }
 
 irrklang::ik_s32 bmx_soundsource_getforcedstreamingthreshold(irrklang::ISoundSource * source) {
-	return source->getForcedStreamingForceThreshold ();
+	return source->getForcedStreamingThreshold ();
 }
 
 // *****************************************************
