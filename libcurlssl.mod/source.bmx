@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,13 @@
 
 SuperStrict
 
+Import BaH.libssh2
+
 ?win32
 Import "ssl/include/*.h"
 ?
+
+Import "../libssh2.mod/include_all/*.h"
 
 Import "src/ares/*.h"
 

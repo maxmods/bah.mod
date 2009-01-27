@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,16 @@ bbdoc: libcurlSSL
 End Rem
 Module BaH.libcurlSSL
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1998 - 2007, Daniel Stenberg"
 ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
-ModuleInfo "Copyright: (Wrapper) 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: (Wrapper) 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"

@@ -261,10 +261,10 @@
 /* #undef HAVE_LIBSOCKET */
 
 /* Define to 1 if you have the `ssh2' library (-lssh2). */
-/* #undef HAVE_LIBSSH2 */
+#define HAVE_LIBSSH2 1
 
 /* Define to 1 if you have the <libssh2.h> header file. */
-/* #define HAVE_LIBSSH2_H 1 */
+#define HAVE_LIBSSH2_H 1
 
 /* Define to 1 if you have the `ssl' library (-lssl). */
 #define HAVE_LIBSSL 1

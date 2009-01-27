@@ -406,7 +406,7 @@
 #define PACKAGE "curl"
 
 /* Define to 1 if you have the <libssh2.h> header file. */
-/* #define HAVE_LIBSSH2_H 1 */
+#define HAVE_LIBSSH2_H 1
 
 /* Define to 1 if you have the <openssl/crypto.h> header file. */
 #define HAVE_OPENSSL_CRYPTO_H 1
@@ -433,7 +433,7 @@
 #define HAVE_OPENSSL_X509_H 1
 
 /* if libSSH2 is in use */
-/* #define USE_LIBSSH2 1 */
+#define USE_LIBSSH2 1
 
 /* if OpenSSL is in use */
 #define USE_OPENSSL 1
