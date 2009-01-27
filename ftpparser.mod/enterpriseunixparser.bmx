@@ -1,4 +1,4 @@
-'   Copyright 2007 Bruce A Henderson
+'   Copyright 2007-2009 Bruce A Henderson
 '
 '   Licensed under the Apache License, Version 2.0 (the "License");
 '   you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ Type TEnterpriseUnixFTPParser Extends TRegexFTPParser
 			
 			End If
 			
-			dateTime.month = Month + 1
+			dateTime.Month = Month + 1
 			dateTime.day = da.toInt()
 			
 			file.attributes.modified = dateTime
