@@ -99,7 +99,7 @@ Type TFTPParserFactory
 		Local split:String = "~n"
 		
 		' try and find the correct newline...
-		If list.find("~r~n") Then
+		If list.find("~r~n") >= 0 Then
 			split = "~r~n"
 		Else If list.find("~n") < 0 Then
 			split = "~r"
