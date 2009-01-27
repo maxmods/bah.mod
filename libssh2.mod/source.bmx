@@ -27,9 +27,8 @@ SuperStrict
 
 Import Pub.zlib
 
-Import "../libcurlssl.mod/ssl/include/*.h"
-
 ?win32
+Import "../libcurlssl.mod/ssl/include/*.h"
 Import "include_win32/*.h"
 ?Not win32
 Import "include_unix/*.h"
