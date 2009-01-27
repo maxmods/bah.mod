@@ -134,6 +134,9 @@ Extern
 	Function gtk_button_set_use_stock(button:Byte Ptr, bool:Int)
 	Function gtk_button_set_use_underline(button:Byte Ptr, bool:Int)
 	Function gtk_button_set_image(button:Byte Ptr, image:Byte Ptr)
+	Function gtk_button_set_image_position(button:Byte Ptr, pos:Int)
+	Function gtk_button_set_alignment(button:Byte Ptr, xalign:Float, yalign:Float)
+	Function gtk_button_get_alignment(button:Byte Ptr, xalign:Float Ptr, yalign:Float Ptr)
 
 	Function gtk_fixed_new:Byte Ptr()
 	Function gtk_fixed_put(container:Byte Ptr, widget:Byte Ptr, x:Int, y:Int)
@@ -159,6 +162,7 @@ Extern
 
 	Function gtk_misc_set_alignment(widgetPtr:Byte Ptr, x:Float, y:Float)
 	Function gtk_misc_get_padding(widgetPrt:Byte Ptr, xpad:Int Ptr, ypad:Int Ptr)
+	Function gtk_misc_set_padding(widgetPrt:Byte Ptr, xpad:Int, ypad:Int)
 	
 	Function gtk_bin_get_child:Byte Ptr(widgetPtr:Byte Ptr)
 	Function gtk_vbox_new:Byte Ptr(homogeneous:Int, spacing:Int)
@@ -762,7 +766,6 @@ Function gtkCheckAndConvert:String(text:String)
 	If l = 0 Then
 		Return ""
 	End If
-Local ss:Byte[] = New Byte[100]
 	Local count:Int = 0
 	Local s:Byte[] = New Byte[l * 3]
 	
@@ -1347,6 +1350,11 @@ Const GDK_SCROLL_UP:Int = 0
 Const GDK_SCROLL_DOWN:Int = 1
 Const GDK_SCROLL_LEFT:Int = 2
 Const GDK_SCROLL_RIGHT:Int = 3
+
+Const GTK_POS_LEFT:Int = 0
+Const GTK_POS_RIGHT:Int = 1
+Const GTK_POS_TOP:Int = 2
+Const GTK_POS_BOTTOM:Int = 3
 
 
 Const _OFFSET_GTK_FLAGS:Int = 12

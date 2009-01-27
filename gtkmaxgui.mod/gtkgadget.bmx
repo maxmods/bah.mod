@@ -1321,6 +1321,7 @@ Type TGTKButtonPush Extends TGTKButton
 						pixmap.width, pixmap.height, pixmap.Pitch, Null, Null))
 			If image Then
 				gtk_button_set_image(handle, image)
+				gtk_button_set_image_position(handle, GTK_POS_LEFT)
 			End If
 		End If
 	End Method
@@ -1495,7 +1496,7 @@ Type TGTKLabel Extends TGTKGadget
 		End If
 
 		If Not isSeparator Then
-			handle = gtk_label_new(label)
+			handle = gtk_label_new(gtkCheckAndConvert(label))
 
 			If style & LABEL_RIGHT Then
 				gtk_misc_set_alignment(handle, 1, 0.5)
@@ -3395,7 +3396,7 @@ Type TGTKPanel Extends TGTKContainer
 			If visualpixbuf Then
 				g_object_unref(visualpixbuf)
 			End If
-			Select pixmapMode
+			Select pixmapMode & (PANELPIXMAP_TILE | PANELPIXMAP_CENTER | PANELPIXMAP_FIT | PANELPIXMAP_FIT2 | PANELPIXMAP_STRETCH)
 				Case PANELPIXMAP_TILE
 
 					pbx = 0
