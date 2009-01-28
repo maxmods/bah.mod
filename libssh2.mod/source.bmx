@@ -25,6 +25,7 @@
 '
 SuperStrict
 
+Import BRL.Blitz
 Import Pub.zlib
 
 ?win32
@@ -52,3 +53,4 @@ Import "src/userauth.c"
 Import "src/transport.c"
 Import "src/openssl.c"
 
+Import "glue.cpp"
