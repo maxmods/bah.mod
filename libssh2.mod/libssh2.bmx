@@ -35,6 +35,9 @@ ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
 
+?win32
+ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"
+?
 
 Import "common.bmx"
 

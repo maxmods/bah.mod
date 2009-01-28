@@ -133,12 +133,14 @@ static inline int writev(int sock, struct iovec *iov, int nvecs)
 #define inline __inline
 #endif
 
+#ifndef HAVE_UNISTD_H
 /* not really usleep, but safe for the way we use it in this lib */
 static inline int usleep(int udelay)
 {
 	Sleep(udelay / 1000);
 	return 0;
 }
+#endif
 
 #endif
 
