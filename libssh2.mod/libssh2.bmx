@@ -77,15 +77,14 @@ Type TSSHSession
 	returns: 0 on success or negative on failure. 
 	End Rem
 	Method Disconnect:Int(description:String)
-	' TODO
+		Return bmx_libssh2_session_disconnect(sessionPtr, description)
 	End Method
 	
 	Rem
 	bbdoc: Allocates a new channel for exchanging data with the server.
 	End Rem
 	Method OpenChannel:TSSHCHannel()
-	' TODO
-		'Return TSSHChannel._create(bmx_libssh2_channel_open(sessionPtr))
+		Return TSSHChannel._create(bmx_libssh2_channel_open(sessionPtr))
 	End Method
 
 	Rem
@@ -158,7 +157,96 @@ Type TSSHChannel
 		End If
 	End Function
 
+	Rem
+	bbdoc: Sets an environment variable in the remote channel's process space.
+	about: Note that this does not make sense for all channel types and may be ignored by the server despite returning success.
+	End Rem
+	Method SetEnv:Int(name:String, value:String)
+		Return bmx_libssh2_channel_setenv(channelPtr, name, value)
+	End Method
 	
+	Rem
+	bbdoc: Requests a PTY on an established channel.
+	about: Note that this does not make sense for all channel types and may be ignored by the server despite returning success.
+	End Rem
+	Method RequestPty:Int(term:String)
+		Return bmx_libssh2_channel_requestpty(channelPtr, term)
+	End Method
+	
+	Rem
+	bbdoc: Initiates a shell request.
+	End Rem
+	Method Shell:Int()
+		Return bmx_libssh2_channel_shell(channelPtr)
+	End Method
+	
+	Rem
+	bbdoc: Initiates an exec request.
+	End Rem
+	Method Exec:Int(message:String)
+		Return bmx_libssh2_channel_exec(channelPtr, message)
+	End Method
+	
+	Rem
+	bbdoc: Initiates a subsystem request.
+	End Rem
+	Method Subsystem:Int(message:String)
+		Return bmx_libssh2_channel_subsystem(channelPtr, message)
+	End Method
+	
+	Rem
+	bbdoc: Initiates a request on the channel.
+	about: The SSH2 protocol currently defines shell, exec, and subsystem as standard process services.
+	End Rem
+	Method ProcessStartup:String(request:String, message:String)
+		Return bmx_libssh2_channel_processstartup(channelPtr, request, message)
+	End Method
+	
+	Rem
+	bbdoc: Attempts to read data from an active channel stream.
+	returns: Actual number of bytes read or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	End Rem
+	Method Read:Int(buffer:Byte Ptr, size:Int)
+		Return bmx_libssh2_channel_read(channelPtr, buffer, size)
+	End Method
+	
+	Rem
+	bbdoc: Attempts to read data from the stderr substream.
+	returns: Actual number of bytes read or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	End Rem
+	Method ReadStderr:Int(buffer:Byte Ptr, size:Int)
+		Return bmx_libssh2_channel_read_stderr(channelPtr, buffer, size)
+	End Method
+	
+	Rem
+	bbdoc: Writes data to a channel stream.
+	returns: Actual number of bytes written or negative on failure. LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	End Rem
+	Method Write:Int(buffer:Byte Ptr, size:Int)
+		Return bmx_libssh2_channel_write(channelPtr, buffer, size)
+	End Method
+	
+	Rem
+	bbdoc: Writes data to the stderr substream.
+	returns: Actual number of bytes written or negative on failure. LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	End Rem
+	Method WriteStderr:Int(buffer:Byte Ptr, size:Int)
+		Return bmx_libssh2_channel_write_stderr(channelPtr, buffer, size)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If channelPtr Then
+			bmx_libssh2_channel_free(channelPtr)
+			channelPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
 	
 End Type
 

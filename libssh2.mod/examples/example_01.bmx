@@ -38,8 +38,68 @@ Else
 	Print "Authentication by keyboard-interactive succeeded."
 End If
 
+Local channel:TSSHChannel = session.OpenChannel()
+
+If Not channel Then
+	Print "Unable to open a session"
+	End
+End If
+
+' Some environment variables may be set,
+' It's up to the server which ones it'll allow though
+
+channel.SetEnv("FOO", "bar")
+
+' Request a terminal with 'vanilla' terminal emulation
+' See /etc/termcap for more options
+
+If channel.RequestPty("vanilla") Then
+	Print "Failed requesting pty"
+	End
+End If
+
+' Open a SHELL on that pty
+
+If channel.Shell() Then
+	Print "Unable to request shell on allocated pty"
+	End
+End If
 
 
+'
+' The following is by no means the correct way to interact with a shell..
+'
+Local buffer:Byte[2048]
+Local count:Int = channel.Read(buffer, 2048)
+
+While count > 0
+	WriteStdout String.FromBytes(buffer, count)
+	
+	Local read:Int = socket._socket
+	If select_( 1,Varptr read,0,Null,0,Null,1000 ) <= 0 Then
+		Exit
+	End If
+	
+	count = channel.Read(buffer, 2048)
+Wend
+
+' get a directory listing...
+Local b:Byte Ptr = "ls~n".ToCString()
+count = channel.Write(b, 3)
+MemFree(b)
+
+' ... read until output is finished.
+count = channel.Read(buffer, 2048)
+While count > 0
+	WriteStdout String.FromBytes(buffer, count)
+	
+	Local read:Int = socket._socket
+	If select_( 1,Varptr read,0,Null,0,Null,1000 ) <= 0 Then
+		Exit
+	End If
+	
+	count = channel.Read(buffer, 2048)
+Wend
 
 
 ' callback function to handle Keyboard Interactive Auth.

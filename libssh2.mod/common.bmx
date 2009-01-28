@@ -46,13 +46,27 @@ Extern
 	Function bmx_libssh2_session_create:Byte Ptr(handle:Object)
 	Function bmx_libssh2_session_startup:Int(handle:Byte Ptr, socket:Int)
 	Function bmx_libssh2_session_free:Int(handle:Byte Ptr)
-	
+	Function bmx_libssh2_session_disconnect:Int(handle:Byte Ptr, description:String)
+
 	Function bmx_libssh2_userauth_keyboard_interactive:Int(handle:Byte Ptr, username:String)
 
 	Function bmx_libssh2_kbdint_prompt_gettext:String(handle:Byte Ptr)
 	Function bmx_libssh2_kbdint_prompt_echo:Int(handle:Byte Ptr)
 	
 	Function bmx_libssh2_kbdint_response_settext(handle:Byte Ptr, text:String)
+
+	Function bmx_libssh2_channel_open:Byte Ptr(handle:Byte Ptr)
+	Function bmx_libssh2_channel_setenv:Int(handle:Byte Ptr, name:String, value:String)
+	Function bmx_libssh2_channel_requestpty:Int(handle:Byte Ptr, term:String)
+	Function bmx_libssh2_channel_shell:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_exec:Int(handle:Byte Ptr, message:String)
+	Function bmx_libssh2_channel_subsystem:Int(handle:Byte Ptr, message:String)
+	Function bmx_libssh2_channel_processstartup:Int(handle:Byte Ptr, request:String, message:String)
+	Function bmx_libssh2_channel_free(handle:Byte Ptr)
+	Function bmx_libssh2_channel_read:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
+	Function bmx_libssh2_channel_read_stderr:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
+	Function bmx_libssh2_channel_write:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
+	Function bmx_libssh2_channel_write_stderr:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
 
 End Extern
 
