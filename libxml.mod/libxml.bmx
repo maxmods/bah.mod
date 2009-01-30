@@ -37,6 +37,7 @@ ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finis
 ModuleInfo "History: Added xmlParserMaxDepth global variable."
 ModuleInfo "History: Added utf-8 BOM detection/strip for doc string parsing."
 ModuleInfo "History: Fixed Win32 saving issue when compression was set."
+ModuleInfo "History: Added TStream support to saveFile() and saveFormatFile()."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -822,20 +823,36 @@ Type TxmlDoc Extends TxmlBase
 	about: Will use compression if set. If @filename is "-" the standard out (console) is used.
 	<p>Parameters:
 	<ul>
-	<li><b>filename</b> : the filename (or URL)</li>
+	<li><b>file</b> : either the filename or URL (String), or stream (TStream).</li>
+	<li><b>autoClose</b> : for streams only. When True, will automatically Close the stream. (default)</li>
 	</ul>
 	</p>
 	End Rem
-	Method saveFile:Int(filename:String)
-		Assert filename, XML_ERROR_PARAM
+	Method saveFile:Int(file:Object, autoClose:Int = True)
+		Assert file, XML_ERROR_PARAM
+		Local ret:Int
 		
+		If String(file) Then
+			Local filename:String = String(file)
+			
 ?win32
-		filename = filename.Replace("/","\") ' compression requires Windows backslashes
+			filename = filename.Replace("/","\") ' compression requires Windows backslashes
 ?
 		
-		Local cStr:Byte Ptr = filename.toCString()
-		Local ret:Int = xmlSaveFile(cStr, _xmlDocPtr)
-		MemFree cStr
+			Local cStr:Byte Ptr = filename.toCString()
+			ret = xmlSaveFile(cStr, _xmlDocPtr)
+			MemFree cStr
+			
+		Else If TStream(file) Then
+			Local stream:TStream = TStream(file)
+			
+			TxmlOutputStreamHandler.stream = stream
+			TxmlOutputStreamHandler.autoClose = autoClose
+			
+			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
+			ret = xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, True)
+		End If
+		
 		Return ret
 	End Method
 	
@@ -846,21 +863,37 @@ Type TxmlDoc Extends TxmlBase
 	is used. If @format is set to true then the document will be indented on output.
 	<p>Parameters:
 	<ul>
-	<li><b>filename</b> : the filename (or URL)</li>
+	<li><b>file</b> : either the filename or URL (String), or stream (TStream).</li>
 	<li><b>format</b> : should formatting spaces been added</li>
+	<li><b>autoClose</b> : for streams only. When True, will automatically Close the stream. (default)</li>
 	</ul>
 	</p>
 	End Rem
-	Method saveFormatFile:Int(filename:String, format:Int)
-		Assert filename, XML_ERROR_PARAM
+	Method saveFormatFile:Int(file:Object, format:Int, autoClose:Int = True)
+		Assert file, XML_ERROR_PARAM
+		Local ret:Int
+
+		If String(file) Then
+			Local filename:String = String(file)
 
 ?win32
-		filename = filename.Replace("/","\") ' compression requires Windows backslashes
+			filename = filename.Replace("/","\") ' compression requires Windows backslashes
 ?
 		
-		Local cStr:Byte Ptr = filename.toCString()
-		Local ret:Int = xmlSaveFormatFile(cStr, _xmlDocPtr, format)
-		MemFree cStr
+			Local cStr:Byte Ptr = filename.toCString()
+			ret = xmlSaveFormatFile(cStr, _xmlDocPtr, format)
+			MemFree cStr
+	
+		Else If TStream(file) Then
+			Local stream:TStream = TStream(file)
+			
+			TxmlOutputStreamHandler.stream = stream
+			TxmlOutputStreamHandler.autoClose = autoClose
+			
+			Local outputBuffer:TxmlOutputBuffer = TxmlOutputBuffer.createIO()
+			ret = xmlSaveFormatFileTo(outputBuffer._xmlOutputBufferPtr, _xmlDocPtr, Null, format)
+		End If
+
 		Return ret
 	End Method
 	
@@ -2502,6 +2535,11 @@ Type TxmlOutputBuffer
 		Return TxmlOutputBuffer._create(xmlOutputBufferCreateBuffer(buffer._xmlBufferPtr, Null))
 	End Function
 
+	Function createIO:TxmlOutputBuffer()
+		Return TxmlOutputBuffer._create(xmlOutputBufferCreateIO(TxmlOutputStreamHandler.writeCallback, ..
+				TxmlOutputStreamHandler.closeCallback, Null, Null))
+	End Function
+	
 End Type
 
 Rem

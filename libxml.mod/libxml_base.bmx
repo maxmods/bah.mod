@@ -22,6 +22,7 @@ SuperStrict
 
 Import Pub.zlib
 Import BRL.LinkedList
+Import BRL.Stream
 
 Import "../../pub.mod/zlib.mod/*.h"
 
@@ -377,7 +378,8 @@ Extern
 	
 	Function xmlOutputBufferCreateBuffer:Byte Ptr(buffer:Byte Ptr, encoder:Byte Ptr)
 	Function xmlSaveFormatFileTo:Int(outputBuffer:Byte Ptr, doc:Byte Ptr, encoder:Byte Ptr, format:Int)
-
+	Function xmlOutputBufferCreateIO:Byte Ptr(writeCallback:Int(context:TStream, buffer:Byte Ptr, length:Int), ..
+		closeCallback:Int(context:TStream), context:TStream, encoder:Byte Ptr)
 End Extern
 
 Const XML_SGML_DEFAULT_CATALOG:String = "file:///etc/sgml/catalog"
@@ -571,3 +573,32 @@ Const XML_ERR_FATAL:Int = 3
 ' BOM - UTF-8
 Const BOM_UTF8:String = Chr(239) + Chr(187) + Chr(191)
 
+
+Type TxmlOutputStreamHandler
+
+	Global stream:TStream
+	Global autoClose:Int
+	
+	Function writeCallback:Int(context:TStream, buffer:Byte Ptr, length:Int)
+		If Not stream Then
+			Return -1
+		End If
+	
+		Local count:Int = stream.WriteBytes(buffer, length)
+	End Function
+
+	Function closeCallback:Int(context:TStream)
+		If Not stream Then
+			Return -1
+		End If
+		
+		If autoClose Then
+			stream.Close()
+		End If
+		
+		stream = Null
+		Return 0
+	End Function
+
+
+End Type
