@@ -36,6 +36,7 @@ ModuleInfo "History: Updated to Libxml 2.7.2."
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
 ModuleInfo "History: Added xmlParserMaxDepth global variable."
 ModuleInfo "History: Added utf-8 BOM detection/strip for doc string parsing."
+ModuleInfo "History: Fixed Win32 saving issue when compression was set."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -828,6 +829,10 @@ Type TxmlDoc Extends TxmlBase
 	Method saveFile:Int(filename:String)
 		Assert filename, XML_ERROR_PARAM
 		
+?win32
+		filename = filename.Replace("/","\") ' compression requires Windows backslashes
+?
+		
 		Local cStr:Byte Ptr = filename.toCString()
 		Local ret:Int = xmlSaveFile(cStr, _xmlDocPtr)
 		MemFree cStr
@@ -848,6 +853,10 @@ Type TxmlDoc Extends TxmlBase
 	End Rem
 	Method saveFormatFile:Int(filename:String, format:Int)
 		Assert filename, XML_ERROR_PARAM
+
+?win32
+		filename = filename.Replace("/","\") ' compression requires Windows backslashes
+?
 		
 		Local cStr:Byte Ptr = filename.toCString()
 		Local ret:Int = xmlSaveFormatFile(cStr, _xmlDocPtr, format)
