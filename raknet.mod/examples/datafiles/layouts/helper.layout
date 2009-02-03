@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<GUILayout>
+    <Window Type="DefaultWindow" Name="root">
+        <Window Type="WindowsLook/FrameWindow" Name="HelperWindow">
+            <!--<Property Name="Position" Value="x:0.25 y:0.25" />
+            <Property Name="Size" Value="w:0.5 h:0.5" />-->
+			<Property Name="UnifiedPosition" Value="{{0.25,0},{0.5,0}}" />
+            <Property Name="UnifiedSize" Value="{{0.5,0},{0.17,0}}" />
+            <Property Name="UnifiedMaxSize" Value="{{0.5,0},{0.17,0}}" />
+            <Property Name="UnifiedMinSize" Value="{{0.5,0},{0.17,0}}" />
+			<Property Name="Alpha" Value="0.85" />
+            <Property Name="Text" Value="Info" />
+
+            <Window Type="WindowsLook/StaticText" Name="Helper/label">
+                <Property Name="BackgroundEnabled" Value="False" />
+                <Property Name="FrameEnabled" Value="False" />
+                <Property Name="VerticalAlignment" Value="Top" />
+                <Property Name="UnifiedMaxSize" Value="{{1.0,0},{1.0,0}}" />
+                <Property Name="UnifiedPosition" Value="{{0,7},{0,20}}" />
+                <Property Name="UnifiedSize" Value="{{1.0,0},{0,45}}" />
+                <Property Name="Text" Value="asdasdasdasd" />
+            </Window>
+
+			<Window Type="WindowsLook/Button" Name="Helper/Submit">
+				<Property Name="ID" Value="1" />
+				<Property Name="VerticalAlignment" Value="Bottom" />
+				<Property Name="HorizontalAlignment" Value="Right" />
+				<Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+				<Property Name="UnifiedPosition" Value="{{0,-7},{0,-7}}" />
+				<Property Name="UnifiedSize" Value="{{0.25,0},{0,30}}" />
+				<Property Name="Text" Value="Submit" />
+			</Window>
+	
+			<Window Type="WindowsLook/Editbox" Name="Helper/Editbox">
+				<Property Name="ID" Value="2" />
+				<Property Name="VerticalAlignment" Value="Bottom" />
+				<Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+				<Property Name="UnifiedPosition" Value="{{0,7},{0,-7}}" />
+				<Property Name="UnifiedSize" Value="{{0.75,-21},{0,30}}" />
+				<Property Name="Text" Value="" />
+			</Window>
+        </Window>
+    </Window>
+</GUILayout>
