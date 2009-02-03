@@ -103,6 +103,7 @@ Extern
 	Function bmx_RakPeer_DetachPlugin(handle:Byte Ptr, plugin:Byte Ptr)
 	Function bmx_RakPeer_Send:Int(handle:Byte Ptr, data:Byte Ptr, length:Int, priority:Int, reliability:Int, orderingChannel:Int, systemAddress:Byte Ptr, broadcast:Int)
 	Function bmx_RakPeer_GetLocalIP:String(handle:Byte Ptr, index:Int)
+	Function bmx_RakPeer_IsLocalIP:Int(handle:Byte Ptr, ip:String)
 	Function bmx_RakPeer_GetGuidFromSystemAddress:Byte Ptr(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_RakPeer_GetStatistics:Byte Ptr(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_RakPeer_GetInternalID:Byte Ptr(handle:Byte Ptr, systemAddress:Byte Ptr)

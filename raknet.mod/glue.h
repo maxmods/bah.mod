@@ -108,6 +108,7 @@ extern "C" {
 	bool bmx_RakPeer_Send(RakPeerInterface * peer, const char * data, const int length, PacketPriority priority, 
 		PacketReliability reliability, int orderingChannel, MaxSystemAddress * addr, bool broadcast);
 	BBString * bmx_RakPeer_GetLocalIP(RakPeerInterface * peer, int index);
+	bool bmx_RakPeer_IsLocalIP(RakPeerInterface * peer, BBString * ip);
 	RakNetGUID * bmx_RakPeer_GetGuidFromSystemAddress(RakPeerInterface * peer, MaxSystemAddress * systemAddress);
 	RakNetStatistics * bmx_RakPeer_GetStatistics(RakPeerInterface * peer, MaxSystemAddress * systemAddress);
 	MaxSystemAddress * bmx_RakPeer_GetInternalID(RakPeerInterface * peer, MaxSystemAddress * systemAddress);

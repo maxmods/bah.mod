@@ -494,6 +494,13 @@ BBString * bmx_RakPeer_GetLocalIP(RakPeerInterface * peer, int index) {
 	return bbStringFromCString(peer->GetLocalIP(index));
 }
 
+bool bmx_RakPeer_IsLocalIP(RakPeerInterface * peer, BBString * ip) {
+	char * p = bbStringToCString(ip);
+	bool ret = peer->IsLocalIP(p);
+	bbMemFree(p);
+	return ret;
+}
+
 RakNetGUID * bmx_RakPeer_GetGuidFromSystemAddress(RakPeerInterface * peer, MaxSystemAddress * systemAddress) {
 	return new RakNetGUID(peer->GetGuidFromSystemAddress(systemAddress->Address()));
 }

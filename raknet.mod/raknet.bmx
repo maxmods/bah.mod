@@ -231,6 +231,7 @@ Type TRKRakPeerInterface
 	Method GetMTUSize:Int(target:TRKSystemAddress) Abstract
 	Method GetNumberOfAddresses:Int() Abstract
 	Method GetLocalIP:String(index:Int) Abstract
+	Method IsLocalIP:Int(ip:String) Abstract
 	Method AllowConnectionResponseIPMigration(allow:Int) Abstract
 	Method AdvertiseSystem:Int(host:String, remotePort:Int, data:Byte Ptr, dataLength:Int, connectionSocketIndex:Int = 0) Abstract
 	Method SetSplitMessageProgressInterval(interval:Int) Abstract
@@ -543,7 +544,9 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 	</ul>
 	End Rem
 	Method DeallocatePacket(packet:TRKPacket)
-		bmx_RakPeer_DeallocatePacket(rakPeerPtr, packet.packetPtr)
+		If packet Then ' handle null - for the lazy folks :-p
+			bmx_RakPeer_DeallocatePacket(rakPeerPtr, packet.packetPtr)
+		End If
 	End Method
 	
 	Rem
@@ -1109,7 +1112,19 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 	Method GetLocalIP:String(index:Int)
 		Return bmx_RakPeer_GetLocalIP(rakPeerPtr, index)
 	End Method
-	
+
+	Rem
+	bbdoc: Is this a local IP?
+	returns: True if this is one of the IP addresses returned by GetLocalIP.
+	about: Parameters: 
+	<ul>
+	<li><b>ip</b> : An IP address to check, excluding the port</li>
+	</ul>
+	End Rem
+	Method IsLocalIP:Int(ip:String)
+		Return bmx_RakPeer_IsLocalIP(rakPeerPtr, ip)
+	End Method
+
 	Rem
 	bbdoc: Allow or disallow connection responses from any IP.
 	about: Normally this should be false, but may be necessary when connecting to servers with multiple IP addresses.
