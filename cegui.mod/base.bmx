@@ -698,7 +698,7 @@ Type TCEWindowManager
 	bbdoc: Creates a new Window object of the specified type, and gives it the specified unique name.
 	returns: The newly created Window object.
 	End Rem
-	Function createWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
+	Function CreateWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
 		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
 	End Function
 	
@@ -2282,6 +2282,8 @@ Type TCEEvent
 		If Not ev Return data
 		
 		Select ev.id
+			Case EVENT_KEYREPEAT
+				TCESystem.injectKeyDown(ev.data)
 			Case EVENT_KEYDOWN
 				TCESystem.injectKeyDown(ev.data)
 			Case EVENT_KEYUP
@@ -2743,9 +2745,9 @@ Type TCEFontManager
 	Rem
 	bbdoc: Creates a new Font based on a true-type font, and returns the new Font object.
 	End Rem
-	Function createFontType:TCEFont(fontType:String, name:String, fontName:String, resourceGroup:String = "")
+	Function createFontType:TCEFont(fontType:String, name:String, FontName:String, resourceGroup:String = "")
 		Return TCEFont._create(bmx_cegui_fontmanager_createfonttype(_convertMaxToUTF8(fontType), ..
-				_convertMaxToUTF8(name), _convertMaxToUTF8(fontName), _convertMaxToUTF8(resourceGroup)))
+				_convertMaxToUTF8(name), _convertMaxToUTF8(FontName), _convertMaxToUTF8(resourceGroup)))
 	End Function
 	
 	Rem
@@ -3688,11 +3690,11 @@ Type TCEWindowFactory
 	Rem
 	bbdoc: Creates a new Window object of whatever type this WindowFactory produces.
 	End Rem
-	Method createWindow:TCEWindow(name:String)
+	Method CreateWindow:TCEWindow(name:String)
 	End Method
 	
 	Function _createWindow:Byte Ptr(factory:TCEWindowFactory, name:String)
-		Return factory.createWindow(name).objectPtr
+		Return factory.CreateWindow(name).objectPtr
 	End Function
 	
 	Rem

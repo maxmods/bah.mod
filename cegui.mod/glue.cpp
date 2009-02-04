@@ -465,7 +465,13 @@ void bmx_cegui_delete_renderer(CEGUI::Renderer * r) {
 // *************************************************
 
 CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup) {
-	return CEGUI::SchemeManager::getSingleton().loadScheme(scheme, resourceGroup);
+	try {
+		return CEGUI::SchemeManager::getSingleton().loadScheme(scheme, resourceGroup);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 bool bmx_cegui_schememanager_isschemepresent(const CEGUI::utf8 * scheme) {
