@@ -170,7 +170,7 @@ Type ChatServer Extends TExampleHelper
 					Case "stat"
 					
 						rss = server.GetStatistics(server.GetSystemAddressFromIndex(0))
-						Local s:String = rss.ToStringLevel(2)
+						Local s:String = rss.ToVerboseString(2)
 						s = s.Replace("~t", "    ")
 						
 						Local lines:String[] = s.Split("~n")
