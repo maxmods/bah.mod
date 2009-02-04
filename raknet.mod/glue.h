@@ -229,6 +229,10 @@ extern "C" {
 	void bmx_BitStream_WriteDouble(RakNet::BitStream * stream, double * value);
 	void bmx_BitStream_WriteLong(RakNet::BitStream * stream, BBInt64 * value);
 	void bmx_BitStream_WriteTime(RakNet::BitStream * stream, BBInt64 * value);
+	void bmx_BitStream_AssertStreamEmpty(RakNet::BitStream * stream);
+	void bmx_BitStream_IgnoreBits(RakNet::BitStream * stream, int numberOfBits);
+	void bmx_BitStream_IgnoreBytes(RakNet::BitStream * stream, int numberOfBytes);
+	void bmx_BitStream_SetWriteOffset(RakNet::BitStream * stream, int offset);
 
 	RSACrypt * bmx_RSACrypt_new();
 	void bmx_RSACrypt_delete(RSACrypt * rsa);

@@ -992,6 +992,21 @@ void bmx_BitStream_WriteTime(RakNet::BitStream * stream, BBInt64 * value) {
 #endif
 }
 
+void bmx_BitStream_AssertStreamEmpty(RakNet::BitStream * stream) {
+	stream->AssertStreamEmpty();
+}
+
+void bmx_BitStream_IgnoreBits(RakNet::BitStream * stream, int numberOfBits) {
+	stream->IgnoreBits(numberOfBits);
+}
+
+void bmx_BitStream_IgnoreBytes(RakNet::BitStream * stream, int numberOfBytes) {
+	stream->IgnoreBytes(numberOfBytes);
+}
+
+void bmx_BitStream_SetWriteOffset(RakNet::BitStream * stream, int offset) {
+	stream->SetWriteOffset(offset);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

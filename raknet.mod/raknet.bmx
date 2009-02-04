@@ -1731,6 +1731,22 @@ Type TRKBitStream
 	Method WriteTime(value:Long Var)
 		bmx_BitStream_WriteTime(bitStreamPtr, Varptr value)
 	End Method
+	
+	Method AssertStreamEmpty()
+		bmx_BitStream_AssertStreamEmpty(bitStreamPtr)
+	End Method
+	
+	Method IgnoreBits(numberOfBits:Int)
+		bmx_BitStream_IgnoreBits(bitStreamPtr, numberOfBits)
+	End Method
+	
+	Method IgnoreBytes(numberOfBytes:Int)
+		bmx_BitStream_IgnoreBytes(bitStreamPtr, numberOfBytes)
+	End Method
+	
+	Method SetWriteOffset(offset:Int)
+		bmx_BitStream_SetWriteOffset(bitStreamPtr, offset)
+	End Method
 
 	Method Delete()
 		If bitStreamPtr And owner Then

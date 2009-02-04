@@ -219,6 +219,10 @@ Extern
 	Function bmx_BitStream_ReadDeltaBool:Int(handle:Byte Ptr, value:Int Ptr)
 	Function bmx_BitStream_ReadCompressedBool:Int(handle:Byte Ptr, value:Int Ptr)
 	Function bmx_BitStream_ReadCompressedDeltaBool:Int(handle:Byte Ptr, value:Int Ptr)
+	Function bmx_BitStream_AssertStreamEmpty(handle:Byte Ptr)
+	Function bmx_BitStream_IgnoreBits(handle:Byte Ptr, numberOfBits:Int)
+	Function bmx_BitStream_IgnoreBytes(handle:Byte Ptr, numberOfBytes:Int)
+	Function bmx_BitStream_SetWriteOffset(handle:Byte Ptr, offset:Int)
 
 	Function bmx_RSACrypt_new:Byte Ptr()
 	Function bmx_RSACrypt_delete(handle:Byte Ptr)
