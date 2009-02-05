@@ -105,11 +105,7 @@ Type TExampleHelper
 	Method Render()
 		Cls
 		
-		Local i:Int = 0
-		For Local s:String = EachIn messages
-			DrawText s, 10, i * 14
-			i:+ 1
-		Next
+		DrawMessages()
 		
 		DrawText "ESC to Quit", 700, 580
 		
@@ -117,6 +113,14 @@ Type TExampleHelper
 		
 		TCESystem.renderGUI()
 		Flip
+	End Method
+	
+	Method DrawMessages()
+		Local i:Int = 0
+		For Local s:String = EachIn messages
+			DrawText s, 10, i * 14
+			i:+ 1
+		Next
 	End Method
 
 	Method RequestValue(title:String, label:String)

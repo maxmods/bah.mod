@@ -2145,7 +2145,9 @@ Type TRKRakNetworkFactory
 	bbdoc: Deletes the TRKRakPeerInterface instance.
 	End Rem
 	Function DestroyRakPeerInterface( p:TRKRakPeerInterface )
-		bmx_RakNetworkFactory_DestroyRakPeerInterface(p.rakPeerPtr)
+		If p Then
+			bmx_RakNetworkFactory_DestroyRakPeerInterface(p.rakPeerPtr)
+		End If
 	End Function
 
 	Function DestroyConsoleServer( s:TRKConsoleServer)
