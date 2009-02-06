@@ -71,7 +71,7 @@
 /* #undef HAVE_SYS_AUDIOIO_H */
 
 /* Define to 1 if you have the <sys/soundcard.h> header file. */
-/* #undef HAVE_SYS_SOUNDCARD_H */
+#define HAVE_SYS_SOUNDCARD_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -150,7 +150,7 @@
 /* #undef WORDS_BIGENDIAN */
 
 /* Enable SSE support */
-#define _USE_SSE 
+/* #undef _USE_SSE */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
