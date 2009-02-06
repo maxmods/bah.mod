@@ -772,7 +772,17 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Send a ping to the specified unconnected system.
+	about: The remote system, if it is Initialized, will respond with ID_PONG followed by SizeofRakNetTime containing the system
+	time the ping was sent.
+	<p>Parameters: 
+	<ul>
+	<li><b>host</b> : Either a dotted IP address or a domain name. Can be 255.255.255.255 for LAN broadcast. </li>
+	<li><b>remotePort</b> : Which port to connect to on the remote machine. </li>
+	<li><b>onlyReplyOnAcceptingConnections</b> : Only request a reply if the remote system is accepting connections </li>
+	<li><b>connectionSocketIndex</b> : Index into the array of socket descriptors passed to socketDescriptors in TRKRakPeer::Startup() to send on.</li>
+	</ul>
+	</p>
 	End Rem
 	Method PingHost(host:String, remotePort:Int, onlyReplyOnAcceptingConnections:Int, connectionSocketIndex:Int = 0)
 		bmx_RakPeer_PingHost(rakPeerPtr, host, remotePort, onlyReplyOnAcceptingConnections, connectionSocketIndex)
@@ -1774,6 +1784,14 @@ Type TRKSystemAddress
 	End Function
 	
 	Rem
+	bbdoc: Creates a new TRKSystemAddress object.
+	End Rem
+	Method Create:TRKSystemAddress()
+		systemAddressPtr = bmx_SystemAddress_create()
+		Return Self
+	End Method
+	
+	Rem
 	bbdoc: The peer address from inet_addr.
 	End Rem
 	Method GetBinaryAddress:Int()
@@ -1781,10 +1799,24 @@ Type TRKSystemAddress
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method SetBinaryAddress(address:String)
+		bmx_SystemAddress_SetBinaryAddress(systemAddressPtr, address)
+	End Method
+	
+	Rem
 	bbdoc: The port number
 	End Rem
 	Method GetPort:Int()
 		Return bmx_SystemAddress_GetPort(systemAddressPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the port number.
+	End Rem
+	Method SetPort(port:Int)
+		bmx_SystemAddress_SetPort(systemAddressPtr, port)
 	End Method
 	
 	Rem
@@ -3344,64 +3376,249 @@ waiting for all other systems, in which case the event is considered complete, a
 End Rem
 Type TRKReadyEvent Extends TRKPluginInterface
 
+	Method New()
+		pluginPtr = bmx_ReadyEvent_new()
+	End Method
+
+	Rem
+	bbdoc: Sets or updates the initial ready state for our local system.
+	returns: True on success. False (failure) on unknown eventId.
+	about: If @eventId is an unknown event the event is created. If @eventId was previously used and you want to reuse it, call
+	DeleteEvent first, or else you will keep the same event signals from before Systems previously or later added through
+	AddToWaitList() with the same @eventId when isReady=true will get ID_READY_EVENT_SET Systems previously added through
+	AddToWaitList with the same eventId will get ID_READY_EVENT_UNSET For both ID_READY_EVENT_SET and ID_READY_EVENT_UNSET, eventId
+	is encoded in bytes 1 through 5.
+	<p>Parameters: 
+	<ul>
+	<li><b>_eventId</b> : A user-defined identifier to wait on. This can be a sequence counter, an event identifier, or anything else you want.</li>
+	<li><b> isReady </b> : True to signal we are ready to proceed with this event, false to unsignal </li>
+	</ul>
+	</p>
+	End Rem
 	Method SetEvent:Int(_eventId:Int, isReady:Int)
-	' TODO
+		Return bmx_ReadyEvent_SetEvent(pluginPtr, _eventId, isReady)
 	End Method
 	
+	Rem
+	bbdoc: When systems can call SetEvent() with isReady==false, it is possible for one system to return true from IsEventCompleted() while the other systems return false.
+	about: This can occur if a system SetEvent() with isReady==false while the completion message is still being transmitted.
+	<p>
+	If your game has the situation where some action should be taken on all systems when IsEventCompleted() is true for any system,
+	then call ForceCompletion() when the action begins.
+	</p>
+	<p>
+	This will force all systems to return true from IsEventCompleted().
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	</ul>
+	</p>
+	End Rem
+	Method ForceCompletion:Int(_eventId:Int)
+		Return bmx_ReadyEvent_ForceCompletion(pluginPtr, _eventId)
+	End Method
+	
+	Rem
+	bbdoc: Deletes an event.
+	returns: True on success. False (failure) on unknown eventId.
+	about: We will no longer wait for this event, and any systems that we know have set the event will be forgotten. Call this to
+	clear memory when events are completed and you know you will never need them again.
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	</ul>
+	</p>
+	End Rem
 	Method DeleteEvent:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_DeleteEvent(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns what was passed to SetEvent().
+	returns: The value of isReady passed to SetEvent(). Also returns false on unknown event.
+	about: Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	</ul>
+	End Rem
 	Method IsEventSet:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_IsEventSet(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns if the event is about to be ready and we are negotiating the final packets.
+	returns: True if any other system has completed processing. Will always be true if IsEventCompleted() is true.
+	about: This will usually only be true for a very short time, after which IsEventCompleted should return true. While this is
+	true you cannot add to the wait list, or SetEvent() isReady to false anymore.
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	</ul>
+	</p>
+	End Rem
 	Method IsEventCompletionProcessing:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_IsEventCompletionProcessing(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns if the wait list is a subset of the completion list.
+	returns: True on completion. False (failure) on unknown eventId, or the set is not completed.
+	about: Call this after all systems you want to wait for have been added with AddToWaitList
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier</li>
+	</ul>
+	</p>
+	End Rem
 	Method IsEventCompleted:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_IsEventCompleted(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns if this is a known event.
+	returns: True if we have this event, false otherwise.
+	about: Events may be known even if we never ourselves referenced them with SetEvent, because other systems created
+	them via ID_READY_EVENT_SET.
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	</ul>
+	</p>
+	End Rem
 	Method HasEvent:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_HasEvent(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns the total number of events stored in the system.
+	returns: The total number of events stored in the system.
+	End Rem
 	Method GetEventListSize:Int()
-	' TODO
+		Return bmx_ReadyEvent_GetEventListSize(pluginPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the event ID stored at a particular index.
+	returns: The event ID stored at a particular index
+	about: EventIDs are stored sorted from least to greatest.
+	<p>Parameters: 
+	<ul>
+	<li><b> index </b> : Index into the array, from 0 to GetEventListSize()</li>
+	</ul>
+	</p>
+	End Rem
 	Method GetEventAtIndex:Int(index:Int)
-	' TODO
+		Return bmx_ReadyEvent_GetEventAtIndex(pluginPtr, index)
 	End Method
 	
+	Rem
+	bbdoc: Adds a system to wait for to signal an event before considering the event complete and returning ID_READY_EVENT_ALL_SET.
+	returns: True on success, false on unknown eventId (this should be considered an error), or if the completion process has already started.
+	about: As we add systems, if this event was previously set to true with SetEvent, these systems will get ID_READY_EVENT_SET. As
+	these systems disconnect (directly or indirectly through the router) they are removed.
+	<p>
+	If the event completion process has already started, you cannot add more systems, as this would cause the completion process to fail.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined number previously passed to SetEvent that has not yet completed </li>
+	<li><b> address </b> : An address to wait for event replies from. Pass UNASSIGNED_SYSTEM_ADDRESS for all currently connected systems.
+	Until all systems in this list have called SetEvent with this ID and true, and have this system in the list, we won't get
+	ID_READY_EVENT_COMPLETE </li>
+	</ul>
+	</p>
+	End Rem
 	Method AddToWaitList:Int(_eventId:Int, address:TRKSystemAddress)
-	' TODO
+		Return bmx_ReadyEvent_AddToWaitList(pluginPtr, _eventId, address.systemAddressPtr)
 	End Method
 	
+	Rem
+	bbdoc: Removes systems from the wait list, which should have been previously added with AddToWaitList.
+	returns: True on success, false on unknown eventId (this should be considered an error).
+	about: Systems that directly or indirectly disconnect from us are automatically removed from the wait list.
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> :  A user-defined identifier </li>
+	<li><b>address</b> : The system to remove from the wait list. Pass UNASSIGNED_SYSTEM_ADDRESS for all currently connected systems. </li>
+	</ul>
+	</p>
+	End Rem
 	Method RemoveFromWaitList:Int(_eventId:Int, address:TRKSystemAddress)
-	' TODO
+		Return bmx_ReadyEvent_RemoveFromWaitList(pluginPtr, _eventId, address.systemAddressPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns if a particular system is waiting on a particular event.
+	returns: True if this system is waiting on this event, false otherwise.
+	<p>Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	<li><b> address </b> : The address of the system we are checking up on </li>
+	</ul>
+	</p>
+	End Rem
 	Method IsInWaitList:Int (_eventId:Int, address:TRKSystemAddress)
-	' TODO
+		Return bmx_ReadyEvent_IsInWaitList(pluginPtr, _eventId, address.systemAddressPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the total number of systems we are waiting on for this event.
+	returns: The total number of systems we are waiting on for this event.
+	about: Does not include yourself.
+	<p>Parameters: 
+	<ul>
+	<li><b>_eventId</b> : A user-defined identifier </li>
+	</ul>
+	</p>
+	End Rem
 	Method GetRemoteWaitListSize:Int(_eventId:Int)
-	' TODO
+		Return bmx_ReadyEvent_GetRemoteWaitListSize(pluginPtr, _eventId)
 	End Method
 	
+	Rem
+	bbdoc: Returns the system address of a system at a particular index, for this event.
+	returns: The system address of a system at a particular index, for this event.
+	about: Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	<li><b> index </b> : Index into the array, from 0 to GetWaitListSize() </li>
+	</ul>
+	End Rem
 	Method GetFromWaitListAtIndex:TRKSystemAddress(_eventId:Int, index:Int)
-	' TODO
+		Return TRKSystemAddress._create(bmx_ReadyEvent_GetFromWaitListAtIndex(pluginPtr, _eventId, index))
 	End Method
 	
+	Rem
+	bbdoc: For a remote system, find out what their ready status is (waiting, signaled, complete).
+	returns: The status of this system, for this particular event. One of RES_NOT_WAITING, RES_WAITING, RES_READY, RES_ALL_READY, RES_READY_NOT_WAITING, RES_ALL_READY_NOT_WAITING or RES_UNKNOWN_EVENT.
+	about: Parameters: 
+	<ul>
+	<li><b> _eventId </b> : A user-defined identifier </li>
+	<li><b> address </b> : Which system we are checking up on </li>
+	</ul>
+	End Rem
 	Method GetReadyStatus:Int(_eventId:Int, address:TRKSystemAddress)
-	' TODO
+		Return bmx_ReadyEvent_GetReadyStatus(pluginPtr, _eventId, address.systemAddressPtr)
 	End Method
 	
+	Rem
+	bbdoc: This channel will be used for all TRKRakPeer::Send calls
+	<p>Parameters: 
+	<ul>
+	<li><b>channel</b> : The channel to use for internal RakPeer::Send calls from this system. Defaults to 0.</li>
+	</ul>
+	</p>
+	End Rem
 	Method SetSendChannel(newChannel:Int)
-	' TODO
+		bmx_ReadyEvent_SetSendChannel(pluginPtr, newChannel)
+	End Method
+
+	Method Delete()
+		If pluginPtr Then
+			bmx_ReadyEvent_delete(pluginPtr)
+			pluginPtr = Null
+		End If
 	End Method
 	
 End Type

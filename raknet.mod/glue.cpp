@@ -54,6 +54,10 @@ NetworkID & MaxNetworkID::ID() {
 	return networkID;
 }
 
+MaxSystemAddress::MaxSystemAddress()
+{
+}
+
 MaxSystemAddress::MaxSystemAddress(const SystemAddress & a)
 	: systemAddress(a)
 {
@@ -698,6 +702,20 @@ int bmx_SystemAddress_GetBinaryAddress(MaxSystemAddress * address) {
 
 int bmx_SystemAddress_GetPort(MaxSystemAddress * address) {
 	return static_cast<int>(address->Address().port);
+}
+
+MaxSystemAddress * bmx_SystemAddress_create() {
+	return new MaxSystemAddress();
+}
+
+void bmx_SystemAddress_SetBinaryAddress(MaxSystemAddress * address, BBString * addr) {
+	char * p = bbStringToCString(addr);
+	address->Address().SetBinaryAddress(p);
+	bbMemFree(p);
+}
+
+void bmx_SystemAddress_SetPort(MaxSystemAddress * address, int port) {
+	address->Address().port = static_cast<unsigned short>(port);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1413,4 +1431,81 @@ FileListNodeContext * bmx_FileListNodeContext_new() {
 void bmx_FileListNodeContext_delete(FileListNodeContext * context) {
 	delete context;
 }
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ReadyEvent * bmx_ReadyEvent_new() {
+	return new ReadyEvent();
+}
+
+bool bmx_ReadyEvent_SetEvent(ReadyEvent * readyEvent, int eventId, bool isReady) {
+	return readyEvent->SetEvent(eventId, isReady);
+}
+
+bool bmx_ReadyEvent_DeleteEvent(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->DeleteEvent(eventId);
+}
+
+bool bmx_ReadyEvent_IsEventSet(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->IsEventSet(eventId);
+}
+
+bool bmx_ReadyEvent_IsEventCompletionProcessing(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->IsEventCompletionProcessing(eventId);
+}
+
+bool bmx_ReadyEvent_IsEventCompleted(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->IsEventCompleted(eventId);
+}
+
+bool bmx_ReadyEvent_HasEvent(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->HasEvent(eventId);
+}
+
+int bmx_ReadyEvent_GetEventListSize(ReadyEvent * readyEvent) {
+	return static_cast<int>(readyEvent->GetEventListSize());
+}
+
+int bmx_ReadyEvent_GetEventAtIndex(ReadyEvent * readyEvent, int index) {
+	return readyEvent->GetEventAtIndex(static_cast<unsigned>(index));
+}
+
+bool bmx_ReadyEvent_AddToWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address) {
+	return readyEvent->AddToWaitList(eventId, address->Address());
+}
+
+bool bmx_ReadyEvent_RemoveFromWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address) {
+	return readyEvent->RemoveFromWaitList(eventId, address->Address());
+}
+
+bool bmx_ReadyEvent_IsInWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address) {
+	return readyEvent->IsInWaitList(eventId, address->Address());
+}
+
+int bmx_ReadyEvent_GetRemoteWaitListSize(ReadyEvent * readyEvent, int eventId) {
+	return static_cast<int>(readyEvent->GetRemoteWaitListSize(eventId));
+}
+
+MaxSystemAddress * bmx_ReadyEvent_GetFromWaitListAtIndex(ReadyEvent * readyEvent, int eventId, int index) {
+	return new MaxSystemAddress(readyEvent->GetFromWaitListAtIndex(eventId, static_cast<unsigned>(index)));
+}
+
+ReadyEventSystemStatus bmx_ReadyEvent_GetReadyStatus(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address) {
+	return readyEvent->GetReadyStatus(eventId, address->Address());
+}
+
+void bmx_ReadyEvent_SetSendChannel(ReadyEvent * readyEvent, int newChannel) {
+	readyEvent->SetSendChannel(static_cast< unsigned char >(newChannel));
+}
+
+void bmx_ReadyEvent_delete(ReadyEvent * readyEvent) {
+	delete readyEvent;
+}
+
+bool bmx_ReadyEvent_ForceCompletion(ReadyEvent * readyEvent, int eventId) {
+	return readyEvent->ForceCompletion(eventId);
+}
+
+
 

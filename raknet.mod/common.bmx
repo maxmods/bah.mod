@@ -149,6 +149,9 @@ Extern
 	Function bmx_SystemAddress_ToString:String(handle:Byte Ptr)
 	Function bmx_SystemAddress_GetBinaryAddress:Int(handle:Byte Ptr)
 	Function bmx_SystemAddress_GetPort:Int(handle:Byte Ptr)
+	Function bmx_SystemAddress_create:Byte Ptr()
+	Function bmx_SystemAddress_SetBinaryAddress(handle:Byte Ptr, address:String)
+	Function bmx_SystemAddress_SetPort(handle:Byte Ptr, port:Int)
 
 	Function bmx_BitStream_Create:Byte Ptr()
 	Function bmx_BitStream_CreateFromData:Byte Ptr(data:Byte Ptr, size:Int, copy:Int)
@@ -317,6 +320,25 @@ Extern
 
 	Function bmx_FileListNodeContext_new:Byte Ptr()
 	Function bmx_FileListNodeContext_delete(handle:Byte Ptr)
+
+	Function bmx_ReadyEvent_new:Byte Ptr()
+	Function bmx_ReadyEvent_SetEvent:Int(handle:Byte Ptr, _eventId:Int, isReady:Int)
+	Function bmx_ReadyEvent_DeleteEvent:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_IsEventSet:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_IsEventCompletionProcessing:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_IsEventCompleted:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_HasEvent:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_GetEventListSize:Int(handle:Byte Ptr)
+	Function bmx_ReadyEvent_GetEventAtIndex:Int(handle:Byte Ptr, index:Int)
+	Function bmx_ReadyEvent_AddToWaitList:Int(handle:Byte Ptr, _eventId:Int, address:Byte Ptr)
+	Function bmx_ReadyEvent_RemoveFromWaitList:Int(handle:Byte Ptr, _eventId:Int, address:Byte Ptr)
+	Function bmx_ReadyEvent_IsInWaitList:Int(handle:Byte Ptr, _eventId:Int, address:Byte Ptr)
+	Function bmx_ReadyEvent_GetRemoteWaitListSize:Int(handle:Byte Ptr, _eventId:Int)
+	Function bmx_ReadyEvent_GetFromWaitListAtIndex:Byte Ptr(handle:Byte Ptr, _eventId:Int, index:Int)
+	Function bmx_ReadyEvent_GetReadyStatus:Int(handle:Byte Ptr, _eventId:Int, address:Byte Ptr)
+	Function bmx_ReadyEvent_SetSendChannel(handle:Byte Ptr, newChannel:Int)
+	Function bmx_ReadyEvent_delete(handle:Byte Ptr)
+	Function bmx_ReadyEvent_ForceCompletion:Int(handle:Byte Ptr, _eventId:Int)
 
 End Extern
 
@@ -755,6 +777,30 @@ Const UNRELIABLE_SEQUENCED:Int = 1
 Const RELIABLE:Int = 2
 Const RELIABLE_ORDERED:Int = 3
 Const RELIABLE_SEQUENCED:Int = 4
+
+
+Rem
+bbdoc: The remote system is not in the wait list, and we have never gotten a ready or complete message from it.
+about: This is the default state for valid events
+End Rem
+Const RES_NOT_WAITING:Int = 0
+Rem
+bbdoc: We are waiting for this remote system to call SetEvent(thisEvent,true).
+End Rem
+Const RES_WAITING:Int = 1
+Rem
+bbdoc: The remote system called SetEvent(thisEvent,true), but it still waiting for other systems before completing the ReadyEvent.
+End Rem
+Const RES_READY:Int = 2
+Rem
+bbdoc: The remote system called SetEvent(thisEvent,true), and is no longer waiting for any other systems.
+about: This remote system has completed the ReadyEvent
+End Rem
+Const RES_ALL_READY:Int = 3
+Rem
+bbdoc: Error code, we couldn't look up the system because the event was unknown
+End Rem
+Const RES_UNKNOWN_EVENT:Int = 4
 
 
 

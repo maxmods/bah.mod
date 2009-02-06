@@ -31,6 +31,7 @@
 #include "FileListTransfer.h"
 #include "MessageFilter.h"
 #include "RakNetStatistics.h"
+#include "ReadyEvent.h"
 
 class MaxSocketDescriptor;
 class MaxNetworkID;
@@ -155,6 +156,9 @@ extern "C" {
 	BBString * bmx_SystemAddress_ToString(MaxSystemAddress * address);
 	int bmx_SystemAddress_GetBinaryAddress(MaxSystemAddress * address);
 	int bmx_SystemAddress_GetPort(MaxSystemAddress * address);
+	MaxSystemAddress * bmx_SystemAddress_create();
+	void bmx_SystemAddress_SetBinaryAddress(MaxSystemAddress * address, BBString * addr);
+	void bmx_SystemAddress_SetPort(MaxSystemAddress * address, int port);
 
 	RakNet::BitStream * bmx_BitStream_Create();
 	RakNet::BitStream * bmx_BitStream_CreateFromData(unsigned char * data, unsigned int size, bool copy);
@@ -336,6 +340,25 @@ extern "C" {
 	FileListNodeContext * bmx_FileListNodeContext_new();
 	void bmx_FileListNodeContext_delete(FileListNodeContext * context);
 
+	ReadyEvent * bmx_ReadyEvent_new();
+	bool bmx_ReadyEvent_SetEvent(ReadyEvent * readyEvent, int eventId, bool isReady);
+	bool bmx_ReadyEvent_DeleteEvent(ReadyEvent * readyEvent, int eventId);
+	bool bmx_ReadyEvent_IsEventSet(ReadyEvent * readyEvent, int eventId);
+	bool bmx_ReadyEvent_IsEventCompletionProcessing(ReadyEvent * readyEvent, int eventId);
+	bool bmx_ReadyEvent_IsEventCompleted(ReadyEvent * readyEvent, int eventId);
+	bool bmx_ReadyEvent_HasEvent(ReadyEvent * readyEvent, int eventId);
+	int bmx_ReadyEvent_GetEventListSize(ReadyEvent * readyEvent);
+	int bmx_ReadyEvent_GetEventAtIndex(ReadyEvent * readyEvent, int index);
+	bool bmx_ReadyEvent_AddToWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address);
+	bool bmx_ReadyEvent_RemoveFromWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address);
+	bool bmx_ReadyEvent_IsInWaitList(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address);
+	int bmx_ReadyEvent_GetRemoteWaitListSize(ReadyEvent * readyEvent, int eventId);
+	MaxSystemAddress * bmx_ReadyEvent_GetFromWaitListAtIndex(ReadyEvent * readyEvent, int eventId, int index);
+	ReadyEventSystemStatus bmx_ReadyEvent_GetReadyStatus(ReadyEvent * readyEvent, int eventId, MaxSystemAddress * address);
+	void bmx_ReadyEvent_SetSendChannel(ReadyEvent * readyEvent, int newChannel);
+	void bmx_ReadyEvent_delete(ReadyEvent * readyEvent);
+	bool bmx_ReadyEvent_ForceCompletion(ReadyEvent * readyEvent, int eventId);
+
 }
 
 
@@ -370,6 +393,7 @@ class MaxSystemAddress
 {
 public:
 	MaxSystemAddress(const SystemAddress & a);
+	MaxSystemAddress();
 	~ MaxSystemAddress();
 	SystemAddress & Address();
 
