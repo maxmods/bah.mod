@@ -8,15 +8,9 @@
 #include "fmod_errors.h"
 
 
-/// To test sending to myself
-//#define _TEST_LOOPBACK
-
-
 // Number of RakVoice frames in the fmod sound
 #define FRAMES_IN_SOUND 4
 
-
-//FMODVoiceAdapter FMODVoiceAdapter::instance;
 
 FMODVoiceAdapter::FMODVoiceAdapter(){
 	rakVoice=0;
@@ -26,10 +20,6 @@ FMODVoiceAdapter::FMODVoiceAdapter(){
 	channel=0;
 	mute=false;
 }
-
-//FMODVoiceAdapter* FMODVoiceAdapter::Instance(){
-//	return &instance;
-//}
 
 bool FMODVoiceAdapter::SetupAdapter(FMOD_SYSTEM *fmodSystem, RakVoice *rakVoice)
 {
@@ -206,7 +196,6 @@ void FMODVoiceAdapter::UpdateSound(bool isRec)
 
 void FMODVoiceAdapter::BroadcastFrame(void *ptr)
 {
-#ifndef _TEST_LOOPBACK
 	unsigned i;
 
 	unsigned int numPeers = rakVoice->GetRakPeerInterface()->GetMaximumNumberOfPeers();
@@ -214,8 +203,4 @@ void FMODVoiceAdapter::BroadcastFrame(void *ptr)
 	{
 		rakVoice->SendFrame(rakVoice->GetRakPeerInterface()->GetSystemAddressFromIndex(i), ptr);
 	}
-#else
-	rakVoice->SendFrame(UNASSIGNED_SYSTEM_ADDRESS, ptr);
-#endif
-
 }
