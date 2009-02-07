@@ -1,0 +1,44 @@
+
+CPPFLAGS = -Imingw -Icharset -I.
+CFLAGS = -Imingw -Icharset -I. -I../config/win32
+
+DEFS = -DHAVE_CONFIG_H
+
+
+CC = gcc
+CXX = g++
+CXXFLAGS = -O2
+CCFLAGS = -O2
+CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
+CCOMPILE = $(CC) $(DEFS) $(INCLUDES) $(CFLAGS) $(CCFLAGS)
+CXXLD = $(CXX)
+LDFLAGS = -shared -Wl,--out-implib,libfribidi.a
+CXXLINK = $(CXXLD) $(CXXFLAGS) $(LDFLAGS) -o $@
+
+CONFIG_HEADER = config.h
+LIBRARIES =  $(lib_LIBRARIES)
+
+libfribidi_a_OBJECTS = fribidi.o fribidi-arabic.o \
+	fribidi-bidi.o fribidi-bidi-types.o fribidi-deprecated.o \
+	fribidi-joining.o fribidi-joining-types.o fribidi-mem.o \
+	fribidi-mirroring.o fribidi-run.o fribidi-shape.o
+
+LIBS = -lmingwex -lmingw32 -lgcc -lmoldname -lmsvcrt -luser32 -lkernel32
+
+all: libfribidi.dll
+
+libfribidi.dll:$(libfribidi_a_OBJECTS)
+	if exist $@ del $@
+	$(CXXLINK) $(LDFLAGS) $(libfribidi_a_OBJECTS) $(libfribidi_LDADD) $(LIBS)
+
+libfribidi_s.a: $(libfribidi_a_OBJECTS)
+	if exist $@ del $@
+	ar cru $@ $(libfribidi_a_OBJECTS)
+	ranlib $@
+
+.cc.o:
+	$(CXXCOMPILE) -c $< -o $@
+.cpp.o:
+	$(CXXCOMPILE) -c $< -o $@
+.c.o:
+	$(CCOMPILE) -c $< -o $@
