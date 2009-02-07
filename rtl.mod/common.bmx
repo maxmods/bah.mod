@@ -28,6 +28,8 @@ Import "-lfribidi"
 Import "config/macos/*.h"
 ?win32
 Import "config/win32/*.h"
+?linux
+Import "config/linux/*.h"
 ?
 
 Import "include/*.h"
