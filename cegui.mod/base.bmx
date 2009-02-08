@@ -61,8 +61,11 @@ End Function
 Rem
 bbdoc: Initializes CEGUI
 about: Optionally, pass in a custom Resource Provider.
+<p>
+You may also provide your own customEventHandler, and not use the default Blitz event hook system. 
+</p>
 End Rem
-Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null)
+Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null, customEventHandler:Int = False)
 	If Not cegui_rendererPtr Then
 		' creates a new opengl renderer
 		cegui_rendererPtr = bmx_cegui_new_oglrenderer()
@@ -83,7 +86,9 @@ Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null)
 		' TODO : there are probably better ways to do this
 		cegui_startTime = MilliSecs()
 		
-		AddHook EmitEventHook,TCEEvent.Keyhook,Null,0
+		If Not customEventHandler Then
+			AddHook EmitEventHook,TCEEvent.Keyhook,Null,0
+		End If
 	End If
 End Function
 
