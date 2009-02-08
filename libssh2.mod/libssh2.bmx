@@ -56,6 +56,24 @@ Type TSSHSession
 	End Method
 	
 	Rem
+	bbdoc: Indicates whether or not the named session has been successfully authenticated.
+	returns: True if authenticated and False if not.
+	End Rem
+	Method Authenticated:Int()
+		Return bmx_libssh2_userauth_authenticated(sessionPtr)
+	End Method
+	
+	Rem
+	bbdoc: Tunnels a TCP/IP connection through the SSH transport via the remote host to a third party.
+	returns: A newly allocated LIBSSH2_CHANNEL instance, or NULL on errors.
+	about: Communication from the client to the SSH server remains encrypted, communication from the server to the 3rd party host
+	travels in cleartext.
+	End Rem
+	Method DirectTCPIP:TSSHChannel(host:String, port:Int, shost:String = Null, sport:Int = 0)
+		Return TSSHChannel._create(bmx_libssh2_channel_directtcpip(sessionPtr, host, port, shost, sport))
+	End Method
+	
+	Rem
 	bbdoc: Begins transport layer protocol negotiation with the connected host. 
 	returns: 0 on success, negative on failure. 
 	End Rem
@@ -83,15 +101,18 @@ Type TSSHSession
 	Rem
 	bbdoc: Allocates a new channel for exchanging data with the server.
 	End Rem
-	Method OpenChannel:TSSHCHannel()
+	Method OpenChannel:TSSHChannel()
 		Return TSSHChannel._create(bmx_libssh2_channel_open(sessionPtr))
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Attempts basic password authentication.
+	returns: 0 on success or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	about: Note that many SSH servers which appear to support ordinary password authentication actually have it disabled and use
+	Keyboard Interactive authentication (routed via PAM or another authentication backed) instead.
 	End Rem
 	Method UserAuthPassword:Int(username:String, password:String)
-	' TODO
+		Return bmx_libssh2_userauth_password(sessionPtr, username, password)
 	End Method
 	
 	Rem
@@ -181,6 +202,13 @@ Type TSSHChannel
 	End Method
 	
 	Rem
+	bbdoc: Checks if the remote host has sent an EOF status for the selected stream.
+	End Rem
+	Method Eof:Int()
+		Return bmx_libssh2_channel_eof(channelPtr)
+	End Method
+	
+	Rem
 	bbdoc: Initiates an exec request.
 	End Rem
 	Method Exec:Int(message:String)
@@ -188,10 +216,28 @@ Type TSSHChannel
 	End Method
 	
 	Rem
+	bbdoc: Returns the exit code raised by the process running on the remote host at the other end of the named channel.
+	returns: 0 on failure, otherwise the Exit Status reported by remote host.
+	about: Note that the exit status may not be available if the remote end has not yet set its status to closed.
+	End Rem
+	Method GetExitStatus:Int()
+		Return bmx_libssh2_channel_getexitstatus(channelPtr)
+	End Method
+	
+	Rem
 	bbdoc: Initiates a subsystem request.
 	End Rem
 	Method Subsystem:Int(message:String)
 		Return bmx_libssh2_channel_subsystem(channelPtr, message)
+	End Method
+	
+	Rem
+	bbdoc: Checks to see if data is available in the channel's read buffer.
+	returns: True when data is available and False otherwise.
+	about: No attempt is made with this method to see if packets are available to be processed.
+	End Rem
+	Method PollRead:Int(extended:Int)
+		Return bmx_libssh2_channel_pollread(channelPtr, extended)
 	End Method
 	
 	Rem
@@ -216,6 +262,40 @@ Type TSSHChannel
 	End Rem
 	Method ReadStderr:Int(buffer:Byte Ptr, size:Int)
 		Return bmx_libssh2_channel_read_stderr(channelPtr, buffer, size)
+	End Method
+	
+	Rem
+	bbdoc: Tells the remote host that no further data will be sent on the specified channel.
+	returns: 0 on success or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	about: Processes typically interpret this as a closed stdin descriptor.
+	End Rem
+	Method SendEof:Int()
+		Return bmx_libssh2_channel_sendeof(channelPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets or clears blocking mode on channel.
+	about: Currently this is just a short cut call to TSSHSession::SetBlocking() and therefore will affect the session and all channels.
+	End Rem
+	Method SetBlocking(blocking:Int)
+		bmx_libssh2_channel_set_blocking(channelPtr, blocking)
+	End Method
+	
+	Rem
+	bbdoc: Enters a temporary blocking state until the remote host closes the named channel.
+	returns: 0 on success or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	about: Typically sent after TSSHChannel.Close() in order to examine the exit status.
+	End Rem
+	Method WaitClosed:Int()
+		Return bmx_libssh2_channel_waitclosed(channelPtr)
+	End Method
+	
+	Rem
+	bbdoc: Waits for the remote end to acknowledge an EOF request.
+	returns: 0 on success or negative on failure. It returns LIBSSH2_ERROR_EAGAIN when it would otherwise block. While LIBSSH2_ERROR_EAGAIN is a negative number, it isn't really a failure per se.
+	End Rem
+	Method WaitEof:Int()
+		Return bmx_libssh2_channel_waiteof(channelPtr)
 	End Method
 	
 	Rem

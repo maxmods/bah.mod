@@ -49,6 +49,8 @@ Extern
 	Function bmx_libssh2_session_disconnect:Int(handle:Byte Ptr, description:String)
 
 	Function bmx_libssh2_userauth_keyboard_interactive:Int(handle:Byte Ptr, username:String)
+	Function bmx_libssh2_userauth_password:Int(handle:Byte Ptr, username:String, password:String)
+	Function bmx_libssh2_userauth_authenticated:Int(handle:Byte Ptr)
 
 	Function bmx_libssh2_kbdint_prompt_gettext:String(handle:Byte Ptr)
 	Function bmx_libssh2_kbdint_prompt_echo:Int(handle:Byte Ptr)
@@ -67,6 +69,14 @@ Extern
 	Function bmx_libssh2_channel_read_stderr:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
 	Function bmx_libssh2_channel_write:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
 	Function bmx_libssh2_channel_write_stderr:Int(handle:Byte Ptr, buffer:Byte Ptr, size:Int)
+	Function bmx_libssh2_channel_eof:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_set_blocking(handle:Byte Ptr, blocking:Int)
+	Function bmx_libssh2_channel_pollread:Int(handle:Byte Ptr, extended:Int)
+	Function bmx_libssh2_channel_sendeof:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_waitclosed:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_waiteof:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_getexitstatus:Int(handle:Byte Ptr)
+	Function bmx_libssh2_channel_directtcpip:Byte Ptr(handle:Byte Ptr, host:String, port:Int, shost:String, sport:Int)
 
 End Extern
 

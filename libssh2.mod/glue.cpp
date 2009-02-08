@@ -22,6 +22,8 @@ extern "C" {
 	LIBSSH2_CHANNEL * bmx_libssh2_channel_open(MaxSSHSession * session);
 	
 	int bmx_libssh2_userauth_keyboard_interactive(MaxSSHSession * session, BBString * username);
+	int bmx_libssh2_userauth_password(MaxSSHSession * session, BBString * username, BBString * password);
+	int bmx_libssh2_userauth_authenticated(MaxSSHSession * session);
 
 	BBString * bmx_libssh2_kbdint_prompt_gettext(LIBSSH2_USERAUTH_KBDINT_PROMPT * prompt);
 	int bmx_libssh2_kbdint_prompt_echo(LIBSSH2_USERAUTH_KBDINT_PROMPT * prompt);
@@ -39,6 +41,14 @@ extern "C" {
 	int bmx_libssh2_channel_read_stderr(LIBSSH2_CHANNEL * channel, char * buffer, int size);
 	int bmx_libssh2_channel_write(LIBSSH2_CHANNEL * channel, char * buffer, int size);
 	int bmx_libssh2_channel_write_stderr(LIBSSH2_CHANNEL * channel, char * buffer, int size);
+	int bmx_libssh2_channel_eof(LIBSSH2_CHANNEL * channel);
+	void bmx_libssh2_channel_set_blocking(LIBSSH2_CHANNEL * channel, int blocking);
+	int bmx_libssh2_channel_pollread(LIBSSH2_CHANNEL * channel, int extended);
+	int bmx_libssh2_channel_sendeof(LIBSSH2_CHANNEL * channel);
+	int bmx_libssh2_channel_waitclosed(LIBSSH2_CHANNEL * channel);
+	int bmx_libssh2_channel_waiteof(LIBSSH2_CHANNEL * channel);
+	int bmx_libssh2_channel_getexitstatus(LIBSSH2_CHANNEL * channel);
+	LIBSSH2_CHANNEL * bmx_libssh2_channel_directtcpip(MaxSSHSession * session, BBString * host, int port, BBString * shost, int sport);
 
 }
 
@@ -124,6 +134,21 @@ int bmx_libssh2_session_disconnect(MaxSSHSession * session, BBString * descripti
 	return ret;
 }
 
+int bmx_libssh2_userauth_password(MaxSSHSession * session, BBString * username, BBString * password) {
+	char *u = bbStringToCString( username );
+	char *p = bbStringToCString( password );
+
+	int ret = libssh2_userauth_password(session->Session(), u, p);
+
+	bbMemFree( u );
+	bbMemFree( p );
+	return ret;
+}
+
+int bmx_libssh2_userauth_authenticated(MaxSSHSession * session) {
+	return libssh2_userauth_authenticated(session->Session());
+}
+
 // ***************************************************
 
 BBString * bmx_libssh2_kbdint_prompt_gettext(LIBSSH2_USERAUTH_KBDINT_PROMPT * prompt) {
@@ -207,6 +232,56 @@ int bmx_libssh2_channel_write(LIBSSH2_CHANNEL * channel, char * buffer, int size
 
 int bmx_libssh2_channel_write_stderr(LIBSSH2_CHANNEL * channel, char * buffer, int size) {
 	return static_cast<int>(libssh2_channel_write_stderr(channel, buffer, static_cast<size_t>(size)));
+}
+
+int bmx_libssh2_channel_eof(LIBSSH2_CHANNEL * channel) {
+	return libssh2_channel_eof(channel);
+}
+
+void bmx_libssh2_channel_set_blocking(LIBSSH2_CHANNEL * channel, int blocking) {
+	libssh2_channel_set_blocking(channel, blocking);
+}
+
+int bmx_libssh2_channel_pollread(LIBSSH2_CHANNEL * channel, int extended) {
+	return libssh2_poll_channel_read(channel, extended);
+}
+
+int bmx_libssh2_channel_sendeof(LIBSSH2_CHANNEL * channel) {
+	return libssh2_channel_send_eof(channel);
+}
+
+int bmx_libssh2_channel_waitclosed(LIBSSH2_CHANNEL * channel) {
+	return libssh2_channel_wait_closed(channel);
+}
+
+int bmx_libssh2_channel_waiteof(LIBSSH2_CHANNEL * channel) {
+	return libssh2_channel_wait_eof(channel);
+}
+
+int bmx_libssh2_channel_getexitstatus(LIBSSH2_CHANNEL * channel) {
+	return libssh2_channel_get_exit_status(channel);
+}
+
+LIBSSH2_CHANNEL * bmx_libssh2_channel_directtcpip(MaxSSHSession * session, BBString * host, int port, BBString * shost, int sport) {
+
+	LIBSSH2_CHANNEL * channel;
+	
+	char *h = bbStringToCString( host );
+	char * sh = 0;
+	if (shost != &bbEmptyString) {
+		sh = bbStringToCString( shost );
+	}
+	
+	if (sh) {
+		channel = libssh2_channel_direct_tcpip_ex(session->Session(), h, port, sh, sport);
+	} else {
+		channel = libssh2_channel_direct_tcpip(session->Session(), h, port);
+	}
+	
+	bbMemFree(h);
+	if (sh) bbMemFree(sh);
+	
+	return channel;
 }
 
 
