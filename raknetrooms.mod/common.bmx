@@ -5,6 +5,18 @@ Import BaH.Raknet
 Import "source.bmx"
 
 
+Extern
+
+	Function bmx_raknetroomsplugin_new:Byte Ptr()
+	Function bmx_raknetroomsplugin_SetOrderingChannel(handle:Byte Ptr, oc:Int)
+	Function bmx_raknetroomsplugin_SetSendPriority(handle:Byte Ptr, pp:Int)
+	Function bmx_raknetroomsplugin_ClearRoomMembers(handle:Byte Ptr)
+	Function bmx_raknetroomsplugin_ClearLoginServerAdddresses(handle:Byte Ptr)
+
+End Extern
+
+
+
 Const RPO_CREATE_ROOM:Int = 0
 Const RPO_ENTER_ROOM:Int = 1
 Const RPO_JOIN_BY_FILTER:Int = 2

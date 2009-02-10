@@ -88,30 +88,35 @@ End Rem
 Type TRKRoomsPlugin Extends TRKPluginInterface
 
 	Method New()
+		pluginPtr = bmx_raknetroomsplugin_new()
 	End Method
 
 	Rem
 	bbdoc: Ordering channel to send messages on
 	end rem
 	Method SetOrderingChannel(oc:Int)
+		bmx_raknetroomsplugin_SetOrderingChannel(pluginPtr, oc)
 	End Method
 	
 	Rem
 	bbdoc: Send priority to send messages on
 	end rem
 	Method SetSendPriority(pp:Int)
+		bmx_raknetroomsplugin_SetSendPriority(pluginPtr, pp)
 	End Method
 	
 	Rem
 	bbdoc: Set the callback to get notification and ExecuteFunc() results
 	end rem
 	Method SetRoomsCallback(roomsCallback:TRKRoomsCallback)
+	' TODO
 	End Method
 	
 	Rem
 	bbdoc: Execute a function, either using the system address passed to SetServerAddress(), or the one specified.
 	end rem
 	Method ExecuteFunc(func:TRKRoomsPluginFunc, remoteAddress:TRKSystemAddress = Null)
+	' TODO
 	End Method
 	
 	Rem
@@ -119,6 +124,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] systemAddress The remote system, which should be connected while calling client functions
 	end rem
 	Method SetServerAddress(systemAddress:TRKSystemAddress)
+	' TODO
 	End Method
 	
 	Rem
@@ -129,6 +135,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] loginServerAddress The server adding this user. Use UNASSIGNED_SYSTEM_ADDRESS for not applicable. Otherwise, the address must previously have been added using AddLoginServerAddress() or the function will fail.
 	end rem
 	Method LoginRoomsParticipant:Int(userName:String, roomsParticipantAddress:TRKSystemAddress, loginServerAddress:TRKSystemAddress)
+	' TODO
 	End Method
 	
 	Rem
@@ -137,15 +144,18 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] loginServerAddress The server removing. Use UNASSIGNED_SYSTEM_ADDRESS for not applicable. Otherwise, the address must previously have been added using AddLoginServerAddress() or the function will fail.
 	end rem
 	Method LogoffRoomsParticipant:Int(userName:String, loginServerAddress:TRKSystemAddress)
+	' TODO
 	End Method
 	
 	Rem
 	bbdoc: Clear all users
 	end rem
 	Method ClearRoomMembers()
+		bmx_raknetroomsplugin_ClearRoomMembers(pluginPtr)
 	End Method
 	
 	Method ChangeHandle(oldHandle:String, newHandle:String)
+	' TODO
 	End Method
 	
 	Rem
@@ -153,6 +163,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] systemAddress The address to add
 	end rem
 	Method AddLoginServerAddress(systemAddress:TRKSystemAddress)
+	' TODO
 	End Method
 	
 	Rem
@@ -160,12 +171,14 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] systemAddress The address to remove
 	end rem
 	Method RemoveLoginServerAddress(systemAddress:TRKSystemAddress)
+	' TODO
 	End Method
 	
 	Rem
 	bbdoc: Remove all addresses added with AddLoginServerAddress()
 	end rem
 	Method ClearLoginServerAdddresses()
+		bmx_raknetroomsplugin_ClearLoginServerAdddresses(pluginPtr)
 	End Method
 	
 	Rem
@@ -175,12 +188,15 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] pf An instance of a profanity filter
 	end rem
 	'Method SetProfanityFilter(pf:TRKProfanityFilter)
+	' TODO
 	'End Method
 
 	
 End Type
 
-
+Rem
+bbdoc: 
+End Rem
 Type TRKRoomsCallback
 
 	Field roomsCallbackPtr:Byte Ptr
@@ -546,6 +562,9 @@ Type TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKCreateRoomFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKCreateRoomFunc(funcPtr:Byte Ptr)
@@ -558,6 +577,9 @@ Type TRKCreateRoomFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKEnterRoomFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKEnterRoomFunc(funcPtr:Byte Ptr)
@@ -570,6 +592,9 @@ Type TRKEnterRoomFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKJoinByFilterFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKJoinByFilterFunc(funcPtr:Byte Ptr)
@@ -582,6 +607,9 @@ Type TRKJoinByFilterFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKLeaveRoomFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKLeaveRoomFunc(funcPtr:Byte Ptr)
@@ -594,6 +622,9 @@ Type TRKLeaveRoomFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKGetInvitesToParticipantFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKGetInvitesToParticipantFunc(funcPtr:Byte Ptr)
@@ -606,6 +637,9 @@ Type TRKGetInvitesToParticipantFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSendInviteFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSendInviteFunc(funcPtr:Byte Ptr)
@@ -618,6 +652,9 @@ Type TRKSendInviteFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKAcceptInviteFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKAcceptInviteFunc(funcPtr:Byte Ptr)
@@ -630,6 +667,9 @@ Type TRKAcceptInviteFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKStartSpectatingFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKStartSpectatingFunc(funcPtr:Byte Ptr)
@@ -642,6 +682,9 @@ Type TRKStartSpectatingFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKStopSpectatingFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKStopSpectatingFunc(funcPtr:Byte Ptr)
@@ -654,6 +697,9 @@ Type TRKStopSpectatingFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKGrantModeratorFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKGrantModeratorFunc(funcPtr:Byte Ptr)
@@ -666,6 +712,9 @@ Type TRKGrantModeratorFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKChangeSlotCountsFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKChangeSlotCountsFunc(funcPtr:Byte Ptr)
@@ -678,6 +727,9 @@ Type TRKChangeSlotCountsFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSetCustomRoomPropertiesFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSetCustomRoomPropertiesFunc(funcPtr:Byte Ptr)
@@ -690,6 +742,9 @@ Type TRKSetCustomRoomPropertiesFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKChangeRoomNameFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKChangeRoomNameFunc(funcPtr:Byte Ptr)
@@ -702,6 +757,9 @@ Type TRKChangeRoomNameFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSetHiddenFromSearchesFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSetHiddenFromSearchesFunc(funcPtr:Byte Ptr)
@@ -714,6 +772,9 @@ Type TRKSetHiddenFromSearchesFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSetDestroyOnModeratorLeaveFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSetDestroyOnModeratorLeaveFunc(funcPtr:Byte Ptr)
@@ -726,6 +787,9 @@ Type TRKSetDestroyOnModeratorLeaveFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSetReadyStatusFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSetReadyStatusFunc(funcPtr:Byte Ptr)
@@ -738,6 +802,9 @@ Type TRKSetReadyStatusFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKGetReadyStatusFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKGetReadyStatusFunc(funcPtr:Byte Ptr)
@@ -750,6 +817,9 @@ Type TRKGetReadyStatusFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSetRoomLockStateFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSetRoomLockStateFunc(funcPtr:Byte Ptr)
@@ -762,6 +832,9 @@ Type TRKSetRoomLockStateFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKGetRoomLockStateFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKGetRoomLockStateFunc(funcPtr:Byte Ptr)
@@ -774,6 +847,9 @@ Type TRKGetRoomLockStateFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKAreAllMembersReadyFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKAreAllMembersReadyFunc(funcPtr:Byte Ptr)
@@ -786,6 +862,9 @@ Type TRKAreAllMembersReadyFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKKickMemberFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKKickMemberFunc(funcPtr:Byte Ptr)
@@ -798,6 +877,9 @@ Type TRKKickMemberFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKUnbanMemberFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKUnbanMemberFunc(funcPtr:Byte Ptr)
@@ -810,6 +892,9 @@ Type TRKUnbanMemberFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKGetBanReasonFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKGetBanReasonFunc(funcPtr:Byte Ptr)
@@ -822,6 +907,9 @@ Type TRKGetBanReasonFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKAddUserToQuickJoinFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKAddUserToQuickJoinFunc(funcPtr:Byte Ptr)
@@ -834,6 +922,9 @@ Type TRKAddUserToQuickJoinFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKRemoveUserFromQuickJoinFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKRemoveUserFromQuickJoinFunc(funcPtr:Byte Ptr)
@@ -846,6 +937,9 @@ Type TRKRemoveUserFromQuickJoinFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKIsInQuickJoinFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKIsInQuickJoinFunc(funcPtr:Byte Ptr)
@@ -858,6 +952,9 @@ Type TRKIsInQuickJoinFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKSearchByFilterFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKSearchByFilterFunc(funcPtr:Byte Ptr)
@@ -870,6 +967,9 @@ Type TRKSearchByFilterFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKChangeHandleFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKChangeHandleFunc(funcPtr:Byte Ptr)
@@ -882,6 +982,9 @@ Type TRKChangeHandleFunc Extends TRKRoomsPluginFunc
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TRKRoomChatFunc Extends TRKRoomsPluginFunc
 
 	Function _create:TRKRoomChatFunc(funcPtr:Byte Ptr)
