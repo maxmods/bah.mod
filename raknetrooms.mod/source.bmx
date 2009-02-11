@@ -1,5 +1,7 @@
 SuperStrict
 
+Import BRL.Blitz
+
 ' raknet.mod imports
 ?win32
 Import "../raknet.mod/include/*.h"

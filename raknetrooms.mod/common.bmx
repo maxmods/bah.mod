@@ -12,7 +12,10 @@ Extern
 	Function bmx_raknetroomsplugin_SetSendPriority(handle:Byte Ptr, pp:Int)
 	Function bmx_raknetroomsplugin_ClearRoomMembers(handle:Byte Ptr)
 	Function bmx_raknetroomsplugin_ClearLoginServerAdddresses(handle:Byte Ptr)
+	Function bmx_raknetroomsplugin_SetRoomsCallback(handle:Byte Ptr, roomsCallback:Byte Ptr)
 
+	Function bmx_raknetroomscallback_new:Byte Ptr(handle:Object)
+	
 End Extern
 
 

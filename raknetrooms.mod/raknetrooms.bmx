@@ -87,6 +87,8 @@ To use as a server:
 End Rem
 Type TRKRoomsPlugin Extends TRKPluginInterface
 
+	Field _roomsCallback:TRKRoomsCallback
+
 	Method New()
 		pluginPtr = bmx_raknetroomsplugin_new()
 	End Method
@@ -109,7 +111,8 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	bbdoc: Set the callback to get notification and ExecuteFunc() results
 	end rem
 	Method SetRoomsCallback(roomsCallback:TRKRoomsCallback)
-	' TODO
+		_roomsCallback = roomsCallback
+		bmx_raknetroomsplugin_SetRoomsCallback(pluginPtr, roomsCallback.roomsCallbackPtr)
 	End Method
 	
 	Rem
@@ -202,6 +205,7 @@ Type TRKRoomsCallback
 	Field roomsCallbackPtr:Byte Ptr
 	
 	Method New()
+		roomsCallbackPtr = bmx_raknetroomscallback_new(Self)
 	End Method
 	
 	Method CreateRoom_Callback( senderAddress:TRKSystemAddress, callResult:TRKCreateRoomFunc)
