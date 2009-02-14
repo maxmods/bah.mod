@@ -3,7 +3,7 @@
 #include "RakAssert.h"
 #include "RakMemoryOverride.h"
 
-#ifdef __APPLE__
+#ifndef WIN32
 #include <ctype.h>
 extern "C" {
 char *strlwr(char *st)
