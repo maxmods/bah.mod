@@ -17,6 +17,8 @@
 */
 #include <fileref.h>
 #include <tag.h>
+#include <mpegheader.h>
+#include <mpegfile.h>
 
 extern "C" {
 
@@ -54,13 +56,36 @@ extern "C" {
 	int bmx_taglib_audoproperties_samplerate(TagLib::AudioProperties * prop);
 	int bmx_taglib_audoproperties_channels(TagLib::AudioProperties * prop);
 
+	TagLib::MPEG::Header::Version bmx_taglib_mpegproperties_version(TagLib::MPEG::Header * header);
+	int bmx_taglib_mpegproperties_layer(TagLib::MPEG::Header * header);
+	bool bmx_taglib_mpegproperties_protectionenabled(TagLib::MPEG::Header * header);
+	TagLib::MPEG::Header::ChannelMode bmx_taglib_mpegproperties_channelmode(TagLib::MPEG::Header * header);
+	bool bmx_taglib_mpegproperties_iscopyrighted(TagLib::MPEG::Header * header);
+	bool bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header);
+
+	TagLib::MPEG::Properties * bmx_taglib_mpegfile_audioproperties(TagLib::MPEG::File * file);
+	bool bmx_taglib_mpegfile_save(TagLib::MPEG::File * file);
+	bool bmx_taglib_mpegfile_savetags(TagLib::MPEG::File * file, int tags, bool stripOthers);
+	TagLib::ID3v2::Tag * bmx_taglib_mpegfile_id3v2tag(TagLib::MPEG::File * file, bool create);
+	TagLib::ID3v1::Tag * bmx_taglib_mpegfile_id3v1tag(TagLib::MPEG::File * file , bool create);
+	TagLib::APE::Tag * bmx_taglib_mpegfile_apetag(TagLib::MPEG::File * file , bool create);
+	bool bmx_taglib_mpegfile_strip(TagLib::MPEG::File * file, int tags, bool freeMemory);
+	long bmx_taglib_mpegfile_firstframeoffset(TagLib::MPEG::File * file);
+	long bmx_taglib_mpegfile_nextframeoffset(TagLib::MPEG::File * file, long position);
+	long bmx_taglib_mpegfile_previousframeoffset(TagLib::MPEG::File * file, long position);
+	long bmx_taglib_mpegfile_lastframeoffset(TagLib::MPEG::File * file);
+
 }
 
 // ****************************************
 
 TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, bool readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle) {
 
-	char * f = bbStringToCString(filename);
+#ifdef WIN32
+	wchar_t * f = bbStringToWString(filename);
+#else
+	char * f = bbStringToCString(brl_blitz_bbStringToUTF8String(filename));
+#endif
 	TagLib::FileRef * ref = new TagLib::FileRef(f, readAudioProperties, audioPropertiesStyle);
 	bbMemFree(f);
 	
@@ -194,4 +219,76 @@ int bmx_taglib_audoproperties_channels(TagLib::AudioProperties * prop) {
 }
 
 
+// ****************************************
+
+TagLib::MPEG::Header::Version bmx_taglib_mpegproperties_version(TagLib::MPEG::Header * header) {
+	return header->version();
+}
+
+int bmx_taglib_mpegproperties_layer(TagLib::MPEG::Header * header) {
+	return header->layer();
+}
+
+bool bmx_taglib_mpegproperties_protectionenabled(TagLib::MPEG::Header * header) {
+	return header->protectionEnabled();
+}
+
+TagLib::MPEG::Header::ChannelMode bmx_taglib_mpegproperties_channelmode(TagLib::MPEG::Header * header) {
+	return header->channelMode();
+}
+
+bool bmx_taglib_mpegproperties_iscopyrighted(TagLib::MPEG::Header * header) {
+	return header->isCopyrighted();
+}
+
+bool bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header) {
+	return header->isOriginal();
+}
+
+
+// ****************************************
+
+TagLib::MPEG::Properties * bmx_taglib_mpegfile_audioproperties(TagLib::MPEG::File * file) {
+	return file->audioProperties();
+}
+
+bool bmx_taglib_mpegfile_save(TagLib::MPEG::File * file) {
+	return file->save();
+}
+
+bool bmx_taglib_mpegfile_savetags(TagLib::MPEG::File * file, int tags, bool stripOthers) {
+	return file->save(tags, stripOthers);
+}
+
+TagLib::ID3v2::Tag * bmx_taglib_mpegfile_id3v2tag(TagLib::MPEG::File * file, bool create) {
+	return file->ID3v2Tag(create);
+}
+
+TagLib::ID3v1::Tag * bmx_taglib_mpegfile_id3v1tag(TagLib::MPEG::File * file , bool create) {
+	return file->ID3v1Tag(create);
+}
+
+TagLib::APE::Tag * bmx_taglib_mpegfile_apetag(TagLib::MPEG::File * file , bool create) {
+	return file->APETag(create);
+}
+
+bool bmx_taglib_mpegfile_strip(TagLib::MPEG::File * file, int tags, bool freeMemory) {
+	return file->strip(tags, freeMemory);
+}
+
+long bmx_taglib_mpegfile_firstframeoffset(TagLib::MPEG::File * file) {
+	return file->firstFrameOffset();
+}
+
+long bmx_taglib_mpegfile_nextframeoffset(TagLib::MPEG::File * file, long position) {
+	return file->nextFrameOffset(position);
+}
+
+long bmx_taglib_mpegfile_previousframeoffset(TagLib::MPEG::File * file, long position) {
+	return file->previousFrameOffset(position);
+}
+
+long bmx_taglib_mpegfile_lastframeoffset(TagLib::MPEG::File * file) {
+	return file->lastFrameOffset();
+}
 

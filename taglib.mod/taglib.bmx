@@ -64,7 +64,7 @@ Type TTLFileRef
 	bbdoc: 
 	End Rem
 	Method Create:TTLFileRef(filename:String, readAudioProperties:Int = True, audioPropertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
-		fileRefPtr = bmx_taglib_fileref_create(bbStringToUTF8String(filename), readAudioProperties, audioPropertiesStyle)
+		fileRefPtr = bmx_taglib_fileref_create(filename, readAudioProperties, audioPropertiesStyle)
 		Return Self
 	End Method
 
@@ -316,4 +316,415 @@ Type TTLAudioProperties
 	End Method
 
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLFile
+
+	Field filePtr:Byte Ptr
+
+	Method name:String()
+	End Method
+	
+	Method audioProperties:TTLAudioProperties()
+	End Method
+	
+	Method save:Int()
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMPEGFile Extends TTLFile
+
+	Const TAGTYPE_NOTAGS:Int = 0
+	Const TAGTYPE_ID3V1:Int = 1
+	Const TAGTYPE_ID3v2:Int = 2
+	Const TAGTYPE_APE:Int = 3
+	Const TAGTYPE_ALLTAGS:Int = 4
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method audioProperties:TTLAudioProperties()
+		Return TTLMPEGProperties._create(bmx_taglib_mpegfile_audioproperties(filePtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method save:Int()
+		Return bmx_taglib_mpegfile_save(filePtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method saveTags:Int(tags:Int, stripOthers:Int = False)
+		Return bmx_taglib_mpegfile_savetags(filePtr, tags, stripOthers)
+	End Method
+
+	Rem
+	bbdoc: Returns the ID3v2 tag of the file.
+	about: If @_create is false (the default) this will return Null if there is no valid ID3v2 tag. If @_create is true it will create
+	an ID3v2 tag if one does not exist.
+	End Rem
+	Method ID3v2Tag:TTLID3v2Tag(_create:Int = False)
+		Return TTLID3v2Tag._create(bmx_taglib_mpegfile_id3v2tag(filePtr, _create))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ID3v1Tag:TTLID3v1Tag(_create:Int = False)
+		Return TTLID3v1Tag._create(bmx_taglib_mpegfile_id3v1tag(filePtr, _create))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method APETag:TTLAPETag(_create:Int = False)
+		Return TTLAPETag._create(bmx_taglib_mpegfile_apetag(filePtr, _create))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method strip:Int(tags:Int = TAGTYPE_ALLTAGS, freeMemory:Int = True)
+		Return bmx_taglib_mpegfile_strip(filePtr, tags, freeMemory)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method firstFrameOffset:Int()
+		Return bmx_taglib_mpegfile_firstframeoffset(filePtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method nextFrameOffset:Int(position:Int)
+		Return bmx_taglib_mpegfile_nextframeoffset(filePtr, position)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method previousFrameOffset:Int(position:Int)
+		Return bmx_taglib_mpegfile_previousframeoffset(filePtr, position)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method lastFrameOffset:Int()
+		Return bmx_taglib_mpegfile_lastframeoffset(filePtr)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: An implementation of audio property reading for MP3.
+about: This reads the data from an MPEG Layer III stream found in the AudioProperties API.
+End Rem
+Type TTLMPEGProperties Extends TTLAudioProperties
+
+	Function _create:TTLMPEGProperties(apPtr:Byte Ptr)
+		If apPtr Then
+			Local this:TTLMPEGProperties = New TTLMPEGProperties
+			this.apPtr = apPtr
+			Return this
+		End If
+	End Function
+
+	Method xingHeader:TTLMPEGXingHeader()
+	' TODO
+	End Method
+	
+	Rem
+	bbdoc: Returns the MPEG Version of the file.
+	End Rem
+	Method version:Int()
+		Return bmx_taglib_mpegproperties_version(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the layer version.
+	about: This will be between the values 1-3.
+	End Rem
+	Method layer:Int()
+		Return bmx_taglib_mpegproperties_layer(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if the MPEG protection bit is enabled.
+	End Rem
+	Method protectionEnabled:Int()
+		Return bmx_taglib_mpegproperties_protectionenabled(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the channel mode for this frame.
+	End Rem
+	Method channelMode:Int()
+		Return bmx_taglib_mpegproperties_channelmode(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if the copyrighted bit is set.
+	End Rem
+	Method isCopyrighted:Int()
+		Return bmx_taglib_mpegproperties_iscopyrighted(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if the "original" bit is set.
+	End Rem
+	Method isOriginal:Int()
+		Return bmx_taglib_mpegproperties_isoriginal(apPtr)
+	End Method
+	
+End Type
+
+Type TTLMPEGXingHeader
+
+End Type
+
+Type TTLFLACFile Extends TTLFile
+End Type
+
+Type TTLMPCFile Extends TTLFile
+End Type
+
+Type TTLOggFile Extends TTLFile
+End Type
+
+Type TTLOggFLACFile Extends TTLOggFile
+End Type
+
+Type TTLOggSpeexFile Extends TTLOggFile
+End Type
+
+Type TTLOggVorbisFile Extends TTLOggFile
+End Type
+
+Type TTLTrueAudioFile Extends TTLFile
+End Type
+
+Type TTLWavPackFile Extends TTLFile
+End Type
+
+Rem
+bbdoc: The main type in the ID3v2 implementation.
+about: ID3v2 tags have several parts, TagLib attempts to provide an interface for them all.
+header(), footer() and extendedHeader() corespond to those data structures in the ID3v2 standard and the APIs for the types that they
+return attempt to reflect this.
+<p>
+Also ID3v2 tags are built up from a list of frames, which are in turn have a header and a list of fields. TagLib provides two ways of
+accessing the list of frames that are in a given ID3v2 tag. The first is simply via the frameList() method. This is just a list of references
+to the frames. The second is a map from the frame type -- i.e. "COMM" for comments -- and a list of frames of that type. (In some cases
+ID3v2 allows for multiple frames of the same type, hence this being a map to a list rather than just a map to an individual frame.)
+<p>
+More information on the structure of frames can be found in the #TTLID3v2Frame type.
+</p>
+End Rem
+Type TTLID3v2Tag Extends TTLTag
+
+	Function _create:TTLID3v2Tag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TTLID3v2Tag = New TTLID3v2Tag
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
+
+	Method header:TTLID3v2Header()
+	End Method
+	
+	Method extendedHeader:TTLID3v2ExtendedHeader()
+	End Method
+	
+	Method footer:TTLID3v2Footer()
+	End Method
+	
+End Type
+
+Type TTLID3V1Tag Extends TTLTag
+
+	Function _create:TTLID3v1Tag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TTLID3v1Tag = New TTLID3v1Tag
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
+
+End Type
+
+Type TTLAPETag Extends TTLTag
+
+	Function _create:TTLAPETag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TTLAPETag = New TTLAPETag
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
+
+End Type
+
+Type TTLID3v2Header
+
+End Type
+
+Type TTLID3v2ExtendedHeader
+
+End Type
+
+Type TTLID3v2Footer
+
+End Type
+
+Type TTLID3v2Frame Extends TTLID3v2Header
+
+End Type
+
+Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
+
+	Rem
+	bbdoc: A type not enumerated below.
+	End Rem
+	Const TYPE_OTHER:Int = $00
+	Rem
+	bbdoc: 32x32 PNG image that should be used as the file icon
+	End Rem
+	Const TYPE_FILEICON:Int = $01
+	Rem
+	bbdoc: File icon of a different size or format.
+	End Rem
+	Const TYPE_OTHERFILEICON:Int = $02
+	Rem
+	bbdoc: Front cover image of the album.
+	End Rem
+	Const TYPE_FRONTCOVER:Int = $03
+	Rem
+	bbdoc: Back cover image of the album.
+	End Rem
+	Const TYPE_BACKCOVER:Int = $04
+	Rem
+	bbdoc: Inside leaflet page of the album.
+	End Rem
+	Const TYPE_LEAFLETPAGE:Int = $05
+	Rem
+	bbdoc: Image from the album itself.
+	End Rem
+	Const TYPE_MEDIA:Int = $06
+	Rem
+	bbdoc: Picture of the lead artist or soloist.
+	End Rem
+	Const TYPE_LEADARTIST:Int = $07
+	Rem
+	bbdoc: Picture of the artist or performer.
+	End Rem
+	Const TYPE_ARTIST:Int = $08
+	Rem
+	bbdoc: Picture of the conductor.
+	End Rem
+	Const TYPE_CONDUCTOR:Int = $09
+	Rem
+	bbdoc: Picture of the band or orchestra.
+	End Rem
+	Const TYPE_BAND:Int = $0A
+	Rem
+	bbdoc: Picture of the composer.
+	End Rem
+	Const TYPE_COMPOSER:Int = $0B
+	Rem
+	bbdoc: Picture of the lyricist or text writer.
+	End Rem
+	Const TYPE_LYRICIST:Int = $0C
+	Rem
+	bbdoc: Picture of the recording location or studio.
+	End Rem
+	Const TYPE_RECORDINGLOCATION:Int = $0D
+	Rem
+	bbdoc: Picture of the artists during recording.
+	End Rem
+	Const TYPE_DURINGRECORDING:Int = $0E
+	Rem
+	bbdoc: Picture of the artists during performance.
+	End Rem
+	Const TYPE_DURINGPERFORMANCE:Int = $0F
+	Rem
+	bbdoc: Picture from a movie or video related to the track.
+	End Rem
+	Const TYPE_MOVIESCREENCAPTURE:Int = $10
+	Rem
+	bbdoc: Picture of a large, coloured fish.
+	End Rem
+	Const TYPE_COLOUREDFISH:Int = $11
+	Rem
+	bbdoc: Illustration related to the track.
+	End Rem
+	Const TYPE_ILLUSTRATION:Int = $12
+	Rem
+	bbdoc: Logo of the band or performer.
+	End Rem
+	Const TYPE_BANDLOGO:Int = $13
+	Rem
+	bbdoc: Logo of the publisher (record company).
+	End Rem
+	Const TYPE_PUBLISHERLOGO:Int = $14
+
+	
+End Type
+
+Type TTLID3v2CommentsFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2GeneralEncapsulatedObjectFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2RelativeVolumeFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2TextIdentificationFrame Extends TTLID3v2Frame
+
+End Type
+
+Type UserTextIdentificationFrame Extends TTLID3v2TextIdentificationFrame
+
+End Type
+
+Type TTLID3v2UniqueFileIdentifierFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2UnknownFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2UnsynchronizedLyricsFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2UrlLinkFrame Extends TTLID3v2Frame
+
+End Type
+
+Type TTLID3v2UserUrlLinkFrame Extends TTLID3v2UrlLinkFrame
+
+End Type
+
+
+
+
+
 

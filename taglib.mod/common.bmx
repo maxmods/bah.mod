@@ -48,4 +48,23 @@ Extern
 	Function bmx_taglib_audoproperties_samplerate:Int(handle:Byte Ptr)
 	Function bmx_taglib_audoproperties_channels:Int(handle:Byte Ptr)
 
+	Function bmx_taglib_mpegproperties_version:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegproperties_layer:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegproperties_protectionenabled:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegproperties_channelmode:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegproperties_iscopyrighted:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegproperties_isoriginal:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_mpegfile_audioproperties:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_save:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_savetags:Int(handle:Byte Ptr, tags:Int, stripOthers:Int)
+	Function bmx_taglib_mpegfile_id3v2tag:Byte Ptr(handle:Byte Ptr, _create:Int)
+	Function bmx_taglib_mpegfile_id3v1tag:Byte Ptr(handle:Byte Ptr , _create:Int)
+	Function bmx_taglib_mpegfile_apetag:Byte Ptr(handle:Byte Ptr , _create:Int)
+	Function bmx_taglib_mpegfile_strip:Int(handle:Byte Ptr, tags:Int, freeMemory:Int)
+	Function bmx_taglib_mpegfile_firstframeoffset:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_nextframeoffset:Int(handle:Byte Ptr, position:Int)
+	Function bmx_taglib_mpegfile_previousframeoffset:Int(handle:Byte Ptr, position:Int)
+	Function bmx_taglib_mpegfile_lastframeoffset:Int(handle:Byte Ptr)
+
 End Extern
