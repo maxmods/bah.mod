@@ -1294,220 +1294,647 @@ Type TRKBitStream
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize of a Byte to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeByte:Int(writeToBitstream:Int, value:Byte Var)
 		Return bmx_BitStream_SerializeByte(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize of a Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeShort:Int(writeToBitstream:Int, value:Short Var)
 		Return bmx_BitStream_SerializeShort(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize of an Unsigned Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	End Rem
+	Method SerializeUShort:Int(writeToBitstream:Int, value:Short Var)
+		Return bmx_BitStream_SerializeUShort(bitStreamPtr, writeToBitstream, Varptr value)
+	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize of an Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeInt:Int(writeToBitstream:Int, value:Int Var)
 		Return bmx_BitStream_SerializeInt(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize of an Unsigned Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	End Rem
+	Method SerializeUInt:Int(writeToBitstream:Int, value:Int Var)
+		Return bmx_BitStream_SerializeUInt(bitStreamPtr, writeToBitstream, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize of a Float to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeFloat:Int(writeToBitstream:Int, value:Float Var)
 		Return bmx_BitStream_SerializeFloat(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize of a Double to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDouble:Int(writeToBitstream:Int, value:Double Var)
 		Return bmx_BitStream_SerializeDouble(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Byte to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeDeltaLastByte:Int(writeToBitstream:Int, currentValue:Byte Var, lastValue:Byte)
 		Return bmx_BitStream_SerializeDeltaLastByte(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeDeltaLastShort:Int(writeToBitstream:Int, currentValue:Short Var, lastValue:Short)
 		Return bmx_BitStream_SerializeDeltaLastShort(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeDeltaLastUShort:Int(writeToBitstream:Int, currentValue:Short Var, lastValue:Short)
+		Return bmx_BitStream_SerializeDeltaLastUShort(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize an Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeDeltaLastInt:Int(writeToBitstream:Int, currentValue:Int Var, lastValue:Int)
 		Return bmx_BitStream_SerializeDeltaLastInt(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeDeltaLastUInt:Int(writeToBitstream:Int, currentValue:Int Var, lastValue:Int)
+		Return bmx_BitStream_SerializeDeltaLastUInt(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize a Float to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeDeltaLastFloat:Int(writeToBitstream:Int, currentValue:Float Var, lastValue:Float)
 		Return bmx_BitStream_SerializeDeltaLastFloat(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Double to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeDeltaLastDouble:Int(writeToBitstream:Int, currentValue:Double Var, lastValue:Double)
 		Return bmx_BitStream_SerializeDeltaLastDouble(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeDeltaLastByte when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDeltaByte:Int(writeToBitstream:Int, currentValue:Byte Var)
 		Return bmx_BitStream_SerializeDeltaByte(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeDeltaLastShort when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDeltaShort:Int(writeToBitstream:Int, currentValue:Short Var)
 		Return bmx_BitStream_SerializeDeltaShort(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeDeltaLastUShort when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	End Rem
+	Method SerializeDeltaUShort:Int(writeToBitstream:Int, currentValue:Short Var)
+		Return bmx_BitStream_SerializeDeltaUShort(bitStreamPtr, writeToBitstream, Varptr currentValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional version of #SerializeDeltaLastInt when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDeltaInt:Int(writeToBitstream:Int, currentValue:Int Var)
 		Return bmx_BitStream_SerializeDeltaInt(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeDeltaLastUInt when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	End Rem
+	Method SerializeDeltaUInt:Int(writeToBitstream:Int, currentValue:Int Var)
+		Return bmx_BitStream_SerializeDeltaUInt(bitStreamPtr, writeToBitstream, Varptr currentValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional version of #SerializeDeltaLastFloat when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDeltaFloat:Int(writeToBitstream:Int, currentValue:Float Var)
 		Return bmx_BitStream_SerializeDeltaFloat(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeDeltaLastDouble when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
 	End Rem
 	Method SerializeDeltaDouble:Int(writeToBitstream:Int, currentValue:Double Var)
 		Return bmx_BitStream_SerializeDeltaDouble(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Byte to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Byte.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedByte:Int(writeToBitstream:Int, value:Byte Var)
 		Return bmx_BitStream_SerializeCompressedByte(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Short to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Short.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedShort:Int(writeToBitstream:Int, value:Short Var)
 		Return bmx_BitStream_SerializeCompressedShort(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Short to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Unsigned Short.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedUShort:Int(writeToBitstream:Int, value:Short Var)
+		Return bmx_BitStream_SerializeCompressedUShort(bitStreamPtr, writeToBitstream, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize an Int to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Int.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedInt:Int(writeToBitstream:Int, value:Int Var)
 		Return bmx_BitStream_SerializeCompressedInt(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Int to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Unsigned Int.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedUInt:Int(writeToBitstream:Int, value:Int Var)
+		Return bmx_BitStream_SerializeCompressedUInt(bitStreamPtr, writeToBitstream, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize a Float to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossy, using 2 bytes for the Float. The range must be between -1 and +1.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedFloat:Int(writeToBitstream:Int, value:Float Var)
 		Return bmx_BitStream_SerializeCompressedFloat(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Double to/from a bitstream, using compression.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossy, using 4 bytes for the Double. The range must be between -1 and +1.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> value </b> : The value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDouble:Int(writeToBitstream:Int, value:Double Var)
 		Return bmx_BitStream_SerializeCompressedDouble(bitStreamPtr, writeToBitstream, Varptr value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Byte to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossless, but only has benefit if you use less than half the range of the Byte.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaLastByte:Int(writeToBitstream:Int, currentValue:Byte Var, lastValue:Byte)
 		Return bmx_BitStream_SerializeCompressedDeltaLastByte(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossless, but only has benefit if you use less than half the range of the Short.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaLastShort:Int(writeToBitstream:Int, currentValue:Short Var, lastValue:Short)
 		Return bmx_BitStream_SerializeCompressedDeltaLastShort(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Short to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossless, but only has benefit if you use less than half the range of the Unsigned Short.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedDeltaLastUShort:Int(writeToBitstream:Int, currentValue:Short Var, lastValue:Short)
+		Return bmx_BitStream_SerializeCompressedDeltaLastUShort(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize an Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossless, but only has benefit if you use less than half the range of the Int.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaLastInt:Int(writeToBitstream:Int, currentValue:Int Var, lastValue:Int)
 		Return bmx_BitStream_SerializeCompressedDeltaLastInt(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize an Unsigned Int to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossless, but only has benefit if you use less than half the range of the Unsigned Int.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedDeltaLastUInt:Int(writeToBitstream:Int, currentValue:Int Var, lastValue:Int)
+		Return bmx_BitStream_SerializeCompressedDeltaLastUInt(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional serialize/deserialize a Float to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossy, using 2 bytes for the Float. The range must be between -1 and +1.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaLastFloat:Int(writeToBitstream:Int, currentValue:Float Var, lastValue:Float)
 		Return bmx_BitStream_SerializeCompressedDeltaLastFloat(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional serialize/deserialize a Double to/from a bitstream.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: If the current value is different from the last value the current value will be written. Otherwise, a single bit will be written.
+	<p>
+	This is lossy, using 4 bytes for the Double. The range must be between -1 and +1.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	<li><b> lastValue </b> : The last value to compare against. Only used if @writeToBitstream is True.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaLastDouble:Int(writeToBitstream:Int, currentValue:Double Var, lastValue:Double)
 		Return bmx_BitStream_SerializeCompressedDeltaLastDouble(bitStreamPtr, writeToBitstream, Varptr currentValue, lastValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastByte when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Byte.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaByte:Int(writeToBitstream:Int, currentValue:Byte Var)
 		Return bmx_BitStream_SerializeCompressedDeltaByte(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastShort when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Short.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaShort:Int(writeToBitstream:Int, currentValue:Short Var)
 		Return bmx_BitStream_SerializeCompressedDeltaShort(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastUShort when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Unsigned Short.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedDeltaUShort:Int(writeToBitstream:Int, currentValue:Short Var)
+		Return bmx_BitStream_SerializeCompressedDeltaUShort(bitStreamPtr, writeToBitstream, Varptr currentValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastInt when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Int.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaInt:Int(writeToBitstream:Int, currentValue:Int Var)
 		Return bmx_BitStream_SerializeCompressedDeltaInt(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastUInt when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossless, but only has benefit if you use less than half the range of the Unsigned Int.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
+	End Rem
+	Method SerializeCompressedDeltaUInt:Int(writeToBitstream:Int, currentValue:Int Var)
+		Return bmx_BitStream_SerializeCompressedDeltaUInt(bitStreamPtr, writeToBitstream, Varptr currentValue)
+	End Method
+
+	Rem
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastFloat when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossy, using 2 bytes for the Float. The range must be between -1 and +1.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaFloat:Int(writeToBitstream:Int, currentValue:Float Var)
 		Return bmx_BitStream_SerializeCompressedDeltaFloat(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Bidirectional version of #SerializeCompressedDeltaLastDouble when you don't know what the last value is, or there is no last value.
+	returns: True if @writeToBitstream is True. True if @writeToBitstream is False and the read was successful. False if @writeToBitstream is False and the read was not successful.
+	about: This is lossy, using 4 bytes for the Double. The range must be between -1 and +1.
+	<p>Parameters: 
+	<ul>
+	<li><b> writeToBitstream </b> : True to write from your data to this bitstream. False to read from this bitstream and write to your data.</li>
+	<li><b> currentValue </b> : The current value to write.</li>
+	</ul>
+	</p>
 	End Rem
 	Method SerializeCompressedDeltaDouble:Int(writeToBitstream:Int, currentValue:Double Var)
 		Return bmx_BitStream_SerializeCompressedDeltaDouble(bitStreamPtr, writeToBitstream, Varptr currentValue)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Reads 1 bit and returns True if that bit is 1 and False if it is 0.
 	End Rem
-	Method ReadBool:Int(value:Int Var)
-		Return bmx_BitStream_ReadBool(bitStreamPtr, Varptr value)
+	Method ReadBit:Int()
+		Return bmx_BitStream_ReadBit(bitStreamPtr)
 	End Method
 
 	Rem
@@ -1527,8 +1954,22 @@ Type TRKBitStream
 	Rem
 	bbdoc: 
 	End Rem
+	Method ReadUShort:Int(value:Short Var)
+		Return bmx_BitStream_ReadUShort(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method ReadInt:Int(value:Int Var)
 		Return bmx_BitStream_ReadInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method ReadUInt:Int(value:Int Var)
+		Return bmx_BitStream_ReadUInt(bitStreamPtr, Varptr value)
 	End Method
 
 	Rem
@@ -1590,8 +2031,22 @@ Type TRKBitStream
 	Rem
 	bbdoc: 
 	End Rem
+	Method ReadDeltaUShort:Int(value:Short Var)
+		Return bmx_BitStream_ReadDeltaUShort(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method ReadDeltaInt:Int(value:Int Var)
 		Return bmx_BitStream_ReadDeltaInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method ReadDeltaUInt:Int(value:Int Var)
+		Return bmx_BitStream_ReadDeltaUInt(bitStreamPtr, Varptr value)
 	End Method
 
 	Rem
@@ -1625,8 +2080,22 @@ Type TRKBitStream
 	Rem
 	bbdoc: 
 	End Rem
+	Method ReadCompressedUShort:Int(value:Short Var)
+		Return bmx_BitStream_ReadCompressedUShort(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method ReadCompressedInt:Int(value:Int Var)
 		Return bmx_BitStream_ReadCompressedInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method ReadCompressedUInt:Int(value:Int Var)
+		Return bmx_BitStream_ReadCompressedUInt(bitStreamPtr, Varptr value)
 	End Method
 
 	Rem
@@ -1667,8 +2136,22 @@ Type TRKBitStream
 	Rem
 	bbdoc: 
 	End Rem
+	Method ReadCompressedDeltaUShort:Int(value:Short Var)
+		Return bmx_BitStream_ReadCompressedDeltaUShort(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
 	Method ReadCompressedDeltaInt:Int(value:Int Var)
 		Return bmx_BitStream_ReadCompressedDeltaInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method ReadCompressedDeltaUInt:Int(value:Int Var)
+		Return bmx_BitStream_ReadCompressedDeltaUInt(bitStreamPtr, Varptr value)
 	End Method
 
 	Rem
@@ -1691,6 +2174,31 @@ Type TRKBitStream
 	Method ReadCompressedDeltaDouble:Int(value:Double Var)
 		Return bmx_BitStream_ReadCompressedDeltaDouble(bitStreamPtr, Varptr value)
 	End Method
+	
+	Rem
+	bbdoc: Write a 0. 
+	End Rem
+	Method Write0()
+		bmx_BitStream_Write0(bitStreamPtr)
+	End Method
+	
+	Rem
+	bbdoc: Write a 1. 
+	End Rem
+	Method Write1()
+		bmx_BitStream_Write1(bitStreamPtr)
+	End Method
+
+	Rem
+	bbdoc: Writes a 1 if True, 0 if False.
+	End Rem
+	Method WriteBool(value:Int)
+		If value Then
+			Write1()
+		Else
+			Write0()
+		End If
+	End Method
 
 	Rem
 	bbdoc: 
@@ -1706,12 +2214,26 @@ Type TRKBitStream
 	Method WriteShort(value:Short Var)
 		bmx_BitStream_WriteShort(bitStreamPtr, Varptr value)
 	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteUShort(value:Short Var)
+		bmx_BitStream_WriteUShort(bitStreamPtr, Varptr value)
+	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method WriteInt(value:Int Var)
 		bmx_BitStream_WriteInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteUInt(value:Int Var)
+		bmx_BitStream_WriteUInt(bitStreamPtr, Varptr value)
 	End Method
 
 	Rem
@@ -1742,18 +2264,38 @@ Type TRKBitStream
 		bmx_BitStream_WriteTime(bitStreamPtr, Varptr value)
 	End Method
 	
+	Rem
+	bbdoc: This is good to call when you are done with the stream to make sure you don't have any data left over.
+	End Rem
 	Method AssertStreamEmpty()
 		bmx_BitStream_AssertStreamEmpty(bitStreamPtr)
 	End Method
 	
+	Rem
+	bbdoc: Ignore data we don't intend to read.
+	about: Parameters: 
+	<ul>
+	<li><b> numberOfBits </b> : The number of bits to ignore </li>
+	</ul>
+	End Rem
 	Method IgnoreBits(numberOfBits:Int)
 		bmx_BitStream_IgnoreBits(bitStreamPtr, numberOfBits)
 	End Method
 	
+	Rem
+	bbdoc: Ignore data we don't intend to read.
+	about: Parameters: 
+	<ul>
+	<li><b> numberOfBytes </b> : The number of bytes to ignore </li>
+	</ul>
+	End Rem
 	Method IgnoreBytes(numberOfBytes:Int)
 		bmx_BitStream_IgnoreBytes(bitStreamPtr, numberOfBytes)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetWriteOffset(offset:Int)
 		bmx_BitStream_SetWriteOffset(bitStreamPtr, offset)
 	End Method

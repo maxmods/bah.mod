@@ -748,6 +748,14 @@ bool bmx_BitStream_SerializeInt(RakNet::BitStream * stream, bool writeToBitstrea
 	return stream->Serialize(writeToBitstream, value);
 }
 
+bool bmx_BitStream_SerializeUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * value) {
+	return stream->Serialize(writeToBitstream, value);
+}
+
+bool bmx_BitStream_SerializeUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * value) {
+	return stream->Serialize(writeToBitstream, value);
+}
+
 bool bmx_BitStream_SerializeFloat(RakNet::BitStream * stream, bool writeToBitstream, float * value) {
 	return stream->Serialize(writeToBitstream, value);
 }
@@ -765,6 +773,14 @@ bool bmx_BitStream_SerializeDeltaLastShort(RakNet::BitStream * stream, bool writ
 }
 
 bool bmx_BitStream_SerializeDeltaLastInt(RakNet::BitStream * stream, bool writeToBitstream, int * currentValue, int lastValue) {
+	return stream->SerializeDelta(writeToBitstream, *currentValue, lastValue);
+}
+
+bool bmx_BitStream_SerializeDeltaLastUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * currentValue, unsigned short lastValue) {
+	return stream->SerializeDelta(writeToBitstream, *currentValue, lastValue);
+}
+
+bool bmx_BitStream_SerializeDeltaLastUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * currentValue, unsigned int lastValue) {
 	return stream->SerializeDelta(writeToBitstream, *currentValue, lastValue);
 }
 
@@ -788,6 +804,14 @@ bool bmx_BitStream_SerializeDeltaInt(RakNet::BitStream * stream, bool writeToBit
 	return stream->SerializeDelta(writeToBitstream, value);
 }
 
+bool bmx_BitStream_SerializeDeltaUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * value) {
+	return stream->SerializeDelta(writeToBitstream, value);
+}
+
+bool bmx_BitStream_SerializeDeltaUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * value) {
+	return stream->SerializeDelta(writeToBitstream, value);
+}
+
 bool bmx_BitStream_SerializeDeltaFloat(RakNet::BitStream * stream, bool writeToBitstream, float * value) {
 	return stream->SerializeDelta(writeToBitstream, value);
 }
@@ -805,6 +829,14 @@ bool bmx_BitStream_SerializeCompressedShort(RakNet::BitStream * stream, bool wri
 }
 
 bool bmx_BitStream_SerializeCompressedInt(RakNet::BitStream * stream, bool writeToBitstream, int * value) {
+	return stream->SerializeCompressed(writeToBitstream, value);
+}
+
+bool bmx_BitStream_SerializeCompressedUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * value) {
+	return stream->SerializeCompressed(writeToBitstream, value);
+}
+
+bool bmx_BitStream_SerializeCompressedUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * value) {
 	return stream->SerializeCompressed(writeToBitstream, value);
 }
 
@@ -828,6 +860,14 @@ bool bmx_BitStream_SerializeCompressedDeltaLastInt(RakNet::BitStream * stream, b
 	return stream->SerializeCompressedDelta(writeToBitstream, *currentValue, lastValue);
 }
 
+bool bmx_BitStream_SerializeCompressedDeltaLastUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * currentValue, unsigned short lastValue) {
+	return stream->SerializeCompressedDelta(writeToBitstream, *currentValue, lastValue);
+}
+
+bool bmx_BitStream_SerializeCompressedDeltaLastUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * currentValue, unsigned int lastValue) {
+	return stream->SerializeCompressedDelta(writeToBitstream, *currentValue, lastValue);
+}
+
 bool bmx_BitStream_SerializeCompressedDeltaLastFloat(RakNet::BitStream * stream, bool writeToBitstream, float * currentValue, float lastValue) {
 	return stream->SerializeCompressedDelta(writeToBitstream, *currentValue, lastValue);
 }
@@ -848,6 +888,14 @@ bool bmx_BitStream_SerializeCompressedDeltaInt(RakNet::BitStream * stream, bool 
 	return stream->SerializeCompressedDelta(writeToBitstream, currentValue);
 }
 
+bool bmx_BitStream_SerializeCompressedDeltaUShort(RakNet::BitStream * stream, bool writeToBitstream, unsigned short * currentValue) {
+	return stream->SerializeCompressedDelta(writeToBitstream, currentValue);
+}
+
+bool bmx_BitStream_SerializeCompressedDeltaUInt(RakNet::BitStream * stream, bool writeToBitstream, unsigned int * currentValue) {
+	return stream->SerializeCompressedDelta(writeToBitstream, currentValue);
+}
+
 bool bmx_BitStream_SerializeCompressedDeltaFloat(RakNet::BitStream * stream, bool writeToBitstream, float * currentValue) {
 	return stream->SerializeCompressedDelta(writeToBitstream, currentValue);
 }
@@ -865,6 +913,14 @@ bool bmx_BitStream_ReadShort(RakNet::BitStream * stream, short * value) {
 }
 
 bool bmx_BitStream_ReadInt(RakNet::BitStream * stream, int * value) {
+	return stream->Read(value);
+}
+
+bool bmx_BitStream_ReadUShort(RakNet::BitStream * stream, unsigned short * value) {
+	return stream->Read(value);
+}
+
+bool bmx_BitStream_ReadUInt(RakNet::BitStream * stream, unsigned int * value) {
 	return stream->Read(value);
 }
 
@@ -892,12 +948,12 @@ bool bmx_BitStream_ReadTime(RakNet::BitStream * stream, BBInt64 * value) {
 }
 
 BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream, int length) {
-	char * data;
-	bool ret = stream->Read(data, length);
+	char data[length];
+	bool ret = stream->Read(&data[0], length);
 	if (!ret) {
 		return &bbEmptyString;
 	} else {
-		return bbStringFromCString(data);
+		return bbStringFromCString(&data[0]);
 	}
 }
 
@@ -910,6 +966,14 @@ bool bmx_BitStream_ReadDeltaShort(RakNet::BitStream * stream, short * value) {
 }
 
 bool bmx_BitStream_ReadDeltaInt(RakNet::BitStream * stream, int * value) {
+	return stream->ReadDelta(value);
+}
+
+bool bmx_BitStream_ReadDeltaUShort(RakNet::BitStream * stream, unsigned short * value) {
+	return stream->ReadDelta(value);
+}
+
+bool bmx_BitStream_ReadDeltaUInt(RakNet::BitStream * stream, unsigned int * value) {
 	return stream->ReadDelta(value);
 }
 
@@ -933,6 +997,14 @@ bool bmx_BitStream_ReadCompressedInt(RakNet::BitStream * stream, int * value) {
 	return stream->ReadCompressed(value);
 }
 
+bool bmx_BitStream_ReadCompressedUShort(RakNet::BitStream * stream, unsigned short * value) {
+	return stream->ReadCompressed(value);
+}
+
+bool bmx_BitStream_ReadCompressedUInt(RakNet::BitStream * stream, unsigned int * value) {
+	return stream->ReadCompressed(value);
+}
+
 bool bmx_BitStream_ReadCompressedFloat(RakNet::BitStream * stream, float * value) {
 	return stream->ReadCompressed(value);
 }
@@ -953,6 +1025,14 @@ bool bmx_BitStream_ReadCompressedDeltaInt(RakNet::BitStream * stream, int * valu
 	return stream->ReadCompressedDelta(value);
 }
 
+bool bmx_BitStream_ReadCompressedDeltaUShort(RakNet::BitStream * stream, unsigned short * value) {
+	return stream->ReadCompressedDelta(value);
+}
+
+bool bmx_BitStream_ReadCompressedDeltaUInt(RakNet::BitStream * stream, unsigned int * value) {
+	return stream->ReadCompressedDelta(value);
+}
+
 bool bmx_BitStream_ReadCompressedDeltaFloat(RakNet::BitStream * stream, float * value) {
 	return stream->ReadCompressedDelta(value);
 }
@@ -961,8 +1041,8 @@ bool bmx_BitStream_ReadCompressedDeltaDouble(RakNet::BitStream * stream, double 
 	return stream->ReadCompressedDelta(value);
 }
 
-bool bmx_BitStream_ReadBool(RakNet::BitStream * stream, bool * value) {
-	return stream->Read(value);
+bool bmx_BitStream_ReadBit(RakNet::BitStream * stream) {
+	return stream->ReadBit();
 }
 
 bool bmx_BitStream_ReadDeltaBool(RakNet::BitStream * stream, bool * value) {
@@ -1009,6 +1089,23 @@ void bmx_BitStream_WriteTime(RakNet::BitStream * stream, BBInt64 * value) {
 	stream->Write(static_cast<RakNetTime>(*value));
 #endif
 }
+
+void bmx_BitStream_Write0(RakNet::BitStream * stream) {
+	stream->Write0();
+}
+
+void bmx_BitStream_Write1(RakNet::BitStream * stream) {
+	stream->Write1();
+}
+	
+void bmx_BitStream_WriteUShort(RakNet::BitStream * stream, unsigned short * value) {
+	stream->Write(*value);
+}
+
+void bmx_BitStream_WriteUInt(RakNet::BitStream * stream, unsigned int * value) {
+	stream->Write(*value);
+}
+
 
 void bmx_BitStream_AssertStreamEmpty(RakNet::BitStream * stream) {
 	stream->AssertStreamEmpty();
