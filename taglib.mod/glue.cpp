@@ -82,7 +82,7 @@ extern "C" {
 TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, bool readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle) {
 
 #ifdef WIN32
-	wchar_t * f = bbStringToWString(filename);
+	wchar_t * f = (wchar_t*)bbStringToWString(filename);
 #else
 	char * f = bbStringToCString(brl_blitz_bbStringToUTF8String(filename));
 #endif
