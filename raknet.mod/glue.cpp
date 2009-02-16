@@ -1083,7 +1083,6 @@ void bmx_BitStream_WriteLong(RakNet::BitStream * stream, BBInt64 * value) {
 
 void bmx_BitStream_WriteTime(RakNet::BitStream * stream, BBInt64 * value) {
 #ifdef __GET_TIME_64BIT
-
 	stream->Write(*value);
 #else
 	stream->Write(static_cast<RakNetTime>(*value));
@@ -1122,6 +1121,131 @@ void bmx_BitStream_IgnoreBytes(RakNet::BitStream * stream, int numberOfBytes) {
 void bmx_BitStream_SetWriteOffset(RakNet::BitStream * stream, int offset) {
 	stream->SetWriteOffset(offset);
 }
+
+int bmx_BitStream_GetNumberOfBitsUsed(RakNet::BitStream * stream) {
+	return static_cast<int>(stream->GetNumberOfBitsUsed());
+}
+
+int bmx_BitStream_GetWriteOffset(RakNet::BitStream * stream) {
+	return static_cast<int>(stream->GetWriteOffset());
+}
+
+int bmx_BitStream_GetNumberOfBytesUsed(RakNet::BitStream * stream) {
+	return static_cast<int>(stream->GetNumberOfBytesUsed());
+}
+
+int bmx_BitStream_GetReadOffset(RakNet::BitStream * stream) {
+	return static_cast<int>(stream->GetReadOffset());
+}
+
+void bmx_BitStream_SetReadOffset(RakNet::BitStream * stream, int offset) {
+	stream->SetReadOffset(static_cast<BitSize_t>(offset));
+}
+
+int bmx_BitStream_GetNumberOfUnreadBits(RakNet::BitStream * stream) {
+	return static_cast<int>(stream->GetNumberOfUnreadBits());
+}
+
+void bmx_BitStream_WriteBits(RakNet::BitStream * stream, const unsigned char * data, int numberOfBitsToWrite, int rightAlignedBits) {
+	stream->WriteBits(data, static_cast<int>(numberOfBitsToWrite), static_cast<int>(rightAlignedBits));
+}
+
+void bmx_BitStream_WriteCompressedByte(RakNet::BitStream * stream, char * b) {
+	stream->WriteCompressed(*b);
+}
+
+void bmx_BitStream_WriteCompressedShort(RakNet::BitStream * stream, short * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedUShort(RakNet::BitStream * stream, short * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedInt(RakNet::BitStream * stream, int * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedUInt(RakNet::BitStream * stream, int * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedFloat(RakNet::BitStream * stream, float * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedDouble(RakNet::BitStream * stream, double * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteCompressedLong(RakNet::BitStream * stream, BBInt64 * value) {
+	stream->WriteCompressed(*value);
+}
+
+void bmx_BitStream_WriteDeltaByte(RakNet::BitStream * stream, char * b, char lastValue) {
+	stream->WriteDelta(*b, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaShort(RakNet::BitStream * stream, short * currentValue, short lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaUShort(RakNet::BitStream * stream, short * currentValue, short lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaInt(RakNet::BitStream * stream, int * currentValue, int lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaUInt(RakNet::BitStream * stream, int * currentValue, int lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaFloat(RakNet::BitStream * stream, float * currentValue, float lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaDouble(RakNet::BitStream * stream, double * currentValue, double lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue) {
+	stream->WriteDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaByte(RakNet::BitStream * stream, char * b, char lastValue) {
+	stream->WriteCompressedDelta(*b, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaShort(RakNet::BitStream * stream, short * currentValue, short lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaUShort(RakNet::BitStream * stream, short * currentValue, short lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaInt(RakNet::BitStream * stream, int * currentValue, int lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaUInt(RakNet::BitStream * stream, int * currentValue, int lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaFloat(RakNet::BitStream * stream, float * currentValue, float lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaDouble(RakNet::BitStream * stream, double * currentValue, double lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue) {
+	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

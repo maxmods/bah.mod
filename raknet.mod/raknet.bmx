@@ -2264,6 +2264,181 @@ Type TRKBitStream
 		bmx_BitStream_WriteTime(bitStreamPtr, Varptr value)
 	End Method
 	
+	Method WriteBits(data:Byte Ptr, numberOfBitsToWrite:Int, rightAlignedBits:Int = True)
+		bmx_BitStream_WriteBits(bitStreamPtr, data, numberOfBitsToWrite, rightAlignedBits)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedByte(value:Byte)
+		Local b:Byte = value
+		bmx_BitStream_WriteCompressedByte(bitStreamPtr, Varptr b)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedShort(value:Short Var)
+		bmx_BitStream_WriteCompressedShort(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedUShort(value:Short Var)
+		bmx_BitStream_WriteCompressedUShort(bitStreamPtr, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedInt(value:Int Var)
+		bmx_BitStream_WriteCompressedInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedUInt(value:Int Var)
+		bmx_BitStream_WriteCompressedUInt(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedFloat(value:Float Var)
+		bmx_BitStream_WriteCompressedFloat(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDouble(value:Double Var)
+		bmx_BitStream_WriteCompressedDouble(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedLong(value:Long Var)
+		bmx_BitStream_WriteCompressedLong(bitStreamPtr, Varptr value)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaByte(currentValue:Byte, lastValue:Byte)
+		Local b:Byte = currentValue
+		bmx_BitStream_WriteDeltaByte(bitStreamPtr, Varptr b, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaShort(currentValue:Short Var, lastValue:Short)
+		bmx_BitStream_WriteDeltaShort(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaUShort(currentValue:Short Var, lastValue:Short)
+		bmx_BitStream_WriteDeltaUShort(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaInt(currentValue:Int Var, lastValue:Int)
+		bmx_BitStream_WriteDeltaInt(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaUInt(currentValue:Int Var, lastValue:Int)
+		bmx_BitStream_WriteDeltaUInt(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaFloat(currentValue:Float Var, lastValue:Float)
+		bmx_BitStream_WriteDeltaFloat(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaDouble(currentValue:Double Var, lastValue:Double)
+		bmx_BitStream_WriteDeltaDouble(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteDeltaLong(currentValue:Long Var, lastValue:Long)
+		bmx_BitStream_WriteDeltaLong(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaByte(currentValue:Byte, lastValue:Byte)
+		Local b:Byte = currentValue
+		bmx_BitStream_WriteCompressedDeltaByte(bitStreamPtr, Varptr b, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaShort(currentValue:Short Var, lastValue:Short)
+		bmx_BitStream_WriteCompressedDeltaShort(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaUShort(currentValue:Short Var, lastValue:Short)
+		bmx_BitStream_WriteCompressedDeltaUShort(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaInt(currentValue:Int Var, lastValue:Int)
+		bmx_BitStream_WriteCompressedDeltaInt(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaUInt(currentValue:Int Var, lastValue:Int)
+		bmx_BitStream_WriteCompressedDeltaUInt(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaFloat(currentValue:Float Var, lastValue:Float)
+		bmx_BitStream_WriteCompressedDeltaFloat(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaDouble(currentValue:Double Var, lastValue:Double)
+		bmx_BitStream_WriteCompressedDeltaDouble(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method WriteCompressedDeltaLong(currentValue:Long Var, lastValue:Long)
+		bmx_BitStream_WriteCompressedDeltaLong(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+
 	Rem
 	bbdoc: This is good to call when you are done with the stream to make sure you don't have any data left over.
 	End Rem
@@ -2298,6 +2473,48 @@ Type TRKBitStream
 	End Rem
 	Method SetWriteOffset(offset:Int)
 		bmx_BitStream_SetWriteOffset(bitStreamPtr, offset)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNumberOfBitsUsed:Int()
+		Return bmx_BitStream_GetNumberOfBitsUsed(bitStreamPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetWriteOffset:Int()
+		Return bmx_BitStream_GetWriteOffset(bitStreamPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNumberOfBytesUsed:Int()
+		Return bmx_BitStream_GetNumberOfBytesUsed(bitStreamPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetReadOffset:Int()
+		Return bmx_BitStream_GetReadOffset(bitStreamPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetReadOffset(offset:Int)
+		bmx_BitStream_SetReadOffset(bitStreamPtr, offset)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetNumberOfUnreadBits:Int()
+		Return bmx_BitStream_GetNumberOfUnreadBits(bitStreamPtr)
 	End Method
 
 	Method Delete()

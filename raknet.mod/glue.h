@@ -262,6 +262,39 @@ extern "C" {
 	void bmx_BitStream_WriteUShort(RakNet::BitStream * stream, unsigned short * value);
 	void bmx_BitStream_WriteUInt(RakNet::BitStream * stream, unsigned int * value);
 
+	int bmx_BitStream_GetNumberOfBitsUsed(RakNet::BitStream * stream);
+	int bmx_BitStream_GetWriteOffset(RakNet::BitStream * stream);
+	int bmx_BitStream_GetNumberOfBytesUsed(RakNet::BitStream * stream);
+	int bmx_BitStream_GetReadOffset(RakNet::BitStream * stream);
+	void bmx_BitStream_SetReadOffset(RakNet::BitStream * stream, int offset);
+	int bmx_BitStream_GetNumberOfUnreadBits(RakNet::BitStream * stream);
+	void bmx_BitStream_WriteBits(RakNet::BitStream * stream, const unsigned char * data, int numberOfBitsToWrite, int rightAlignedBits);
+	void bmx_BitStream_WriteCompressedByte(RakNet::BitStream * stream, char * b);
+	void bmx_BitStream_WriteCompressedShort(RakNet::BitStream * stream, short * value);
+	void bmx_BitStream_WriteCompressedUShort(RakNet::BitStream * stream, short * value);
+	void bmx_BitStream_WriteCompressedInt(RakNet::BitStream * stream, int * value);
+	void bmx_BitStream_WriteCompressedUInt(RakNet::BitStream * stream, int * value);
+	void bmx_BitStream_WriteCompressedFloat(RakNet::BitStream * stream, float * value);
+	void bmx_BitStream_WriteCompressedDouble(RakNet::BitStream * stream, double * value);
+	void bmx_BitStream_WriteCompressedLong(RakNet::BitStream * stream, BBInt64 * value);
+	void bmx_BitStream_WriteDeltaByte(RakNet::BitStream * stream, char * b, char lastValue);
+	void bmx_BitStream_WriteDeltaShort(RakNet::BitStream * stream, short * currentValue, short lastValue);
+	void bmx_BitStream_WriteDeltaUShort(RakNet::BitStream * stream, short * currentValue, short lastValue);
+	void bmx_BitStream_WriteDeltaInt(RakNet::BitStream * stream, int * currentValue, int lastValue);
+	void bmx_BitStream_WriteDeltaUInt(RakNet::BitStream * stream, int * currentValue, int lastValue);
+	void bmx_BitStream_WriteDeltaFloat(RakNet::BitStream * stream, float * currentValue, float lastValue);
+	void bmx_BitStream_WriteDeltaDouble(RakNet::BitStream * stream, double * currentValue, double lastValue);
+	void bmx_BitStream_WriteDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue);
+	void bmx_BitStream_WriteCompressedDeltaByte(RakNet::BitStream * stream, char * b, char lastValue);
+	void bmx_BitStream_WriteCompressedDeltaShort(RakNet::BitStream * stream, short * currentValue, short lastValue);
+	void bmx_BitStream_WriteCompressedDeltaUShort(RakNet::BitStream * stream, short * currentValue, short lastValue);
+	void bmx_BitStream_WriteCompressedDeltaInt(RakNet::BitStream * stream, int * currentValue, int lastValue);
+	void bmx_BitStream_WriteCompressedDeltaUInt(RakNet::BitStream * stream, int * currentValue, int lastValue);
+	void bmx_BitStream_WriteCompressedDeltaFloat(RakNet::BitStream * stream, float * currentValue, float lastValue);
+	void bmx_BitStream_WriteCompressedDeltaDouble(RakNet::BitStream * stream, double * currentValue, double lastValue);
+	void bmx_BitStream_WriteCompressedDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue);
+
+	
 	RSACrypt * bmx_RSACrypt_new();
 	void bmx_RSACrypt_delete(RSACrypt * rsa);
 	bool bmx_RSACrypt_generatePrivateKey(RSACrypt * rsa, uint32_t limbs);
