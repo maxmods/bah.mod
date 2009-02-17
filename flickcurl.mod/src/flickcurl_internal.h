@@ -166,6 +166,10 @@ flickcurl_exif** flickcurl_build_exifs(flickcurl* fc, xmlXPathContextPtr xpathCt
 /* group.c */
 flickcurl_group** flickcurl_build_groups(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* group_count_p);
 
+/* institution.c */
+flickcurl_institution** flickcurl_build_institutions(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* institution_count_p);
+flickcurl_institution* flickcurl_build_institution(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr);
+
 /* location.c */
 flickcurl_location* flickcurl_build_location(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr);
 
@@ -203,6 +207,10 @@ flickcurl_photoset* flickcurl_build_photoset(flickcurl* fc, xmlXPathContextPtr x
 flickcurl_place** flickcurl_build_places(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* place_count_p);
 flickcurl_place* flickcurl_build_place(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr);
 flickcurl_place_type_info** flickcurl_build_place_types(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* place_type_count_p);
+
+/* shape.c */
+flickcurl_shapedata** flickcurl_build_shapes(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* shape_count_p);
+flickcurl_shapedata* flickcurl_build_shape(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr);
 
 /* size.c */
 flickcurl_size** flickcurl_build_sizes(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* size_count_p);

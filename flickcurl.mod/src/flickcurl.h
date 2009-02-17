@@ -242,7 +242,8 @@ typedef struct flickcurl_s flickcurl;
 /* Forward structure references */
 struct flickcurl_s;
 struct flickcurl_photo_s;
-
+struct flickcurl_shapedata_s;
+  
 
 /**
  * flickcurl_arg:
@@ -449,6 +450,43 @@ typedef struct {
   
 
 /**
+ * flickcurl_institution:
+ * @nsid: NSID
+ * @date_launch: Date launched in unix timestamp format
+ * @name: Institution name
+ * @urls: Array of related urls.
+ *
+ * Flickr Commons institution
+ *
+ */
+typedef struct {
+  char *nsid;
+  int date_launch;
+  char *name;
+  char **urls;
+} flickcurl_institution;
+
+
+/**
+ * flickcurl_institution_url_type:
+ * @FLICKCURL_INSTITUTION_URL_NONE: internal
+ * @FLICKCURL_INSTITUTION_URL_SITE: site URL
+ * @FLICKCURL_INSTITUTION_URL_LICENSE: license URL
+ * @FLICKCURL_INSTITUTION_URL_FLICKR: flickr photos page URL
+ * @FLICKCURL_INSTITUTION_URL_LAST: internal offset to last in enum list
+ *
+ * Institution URL type
+*/
+typedef enum {
+  FLICKCURL_INSTITUTION_URL_NONE = 0,
+  FLICKCURL_INSTITUTION_URL_SITE,
+  FLICKCURL_INSTITUTION_URL_LICENSE,
+  FLICKCURL_INSTITUTION_URL_FLICKR,
+  FLICKCURL_INSTITUTION_URL_LAST = FLICKCURL_INSTITUTION_URL_FLICKR
+} flickcurl_institution_url_type;
+
+
+/**
  * flickcurl_location:
  * @latitude: The latitude from -90 to 90
  * @longitude: The longitude from -180 to 180
@@ -517,10 +555,11 @@ typedef struct {
  * @woe_ids: Array of WOE IDs
  * @location: location for this place
  * @count: count of photos (when used for flickcurl_places_placesForUser() )
- * @shapedata: XML string of &lt;shapedata&gt; element and content elements when present (or NULL)
- * @shapedata_length: size of @shapedate string
- * @shapefile_urls: NULL-terminated array of pointers to shapefile URLs when present (or NULL)
- * @shapefile_urls_count: number of entries in @shapefile_urls array
+ * @shapedata: DEPRECATED for @shape->data: XML string of &lt;shapedata&gt; element and content elements when present (or NULL)
+ * @shapedata_length: DEPRECATED for @shape->data_length: size of @shapedate string
+ * @shapefile_urls: DEPRECATED for @shape->file_urls: NULL-terminated array of pointers to shapefile URLs when present (or NULL)
+ * @shapefile_urls_count: DEPRECATED for @shape->file_urls_count: number of entries in @shapefile_urls array
+ * @shape: shapefile data (inline data and shapefile urls)
  *
  * A Place.
  *
@@ -537,13 +576,41 @@ typedef struct {
   flickcurl_location location;
   int count;
 
-  /* shapefile fields */
+  /* DEPRECATED shapefile fields; now are pointers into @shape */
   char* shapedata;
   size_t shapedata_length;
   char** shapefile_urls;
   int shapefile_urls_count;
+
+  struct flickcurl_shapedata_s* shape;
 } flickcurl_place;
   
+
+/**
+ * flickcurl_shapedata:
+ * @created: creation date as a UNIX timestamp
+ * @alpha: Alpha value
+ * @points: Number of points
+ * @edges: Number of edges
+ * @data: XML string of &lt;shapedata&gt; element and content elements when present (or NULL)
+ * @data_length: size of @shapedate string
+ * @file_urls: NULL-terminated array of pointers to shapefile URLs when present (or NULL)
+ * @file_urls_count: number of entries in @shapefile_urls array
+ *
+ * Shape data for a place.
+ *
+ **/
+typedef struct flickcurl_shapedata_s {
+  int created;
+  double alpha;
+  int points;
+  int edges;
+  char* data;
+  size_t data_length;
+  char** file_urls;
+  int file_urls_count;
+} flickcurl_shapedata;
+
 
 /**
  * flickcurl_tag: 
@@ -696,6 +763,7 @@ typedef struct {
  * @is_friend: is friend boolean
  * @is_family: is family boolean
  * @ignored: ignored
+ * @uploaded: count of number of photos uploaded (for flickcurl_contacts_getListRecentlyUploaded() )
  *
  * A contact.
  */
@@ -707,6 +775,7 @@ typedef struct flickcurl_contact_s {
   int is_friend;
   int is_family;
   int ignored;
+  int uploaded;
 } flickcurl_contact;
 
 
@@ -1360,6 +1429,10 @@ void flickcurl_free_context(flickcurl_context *context);
 FLICKCURL_API
 void flickcurl_free_contexts(flickcurl_context** contexts);
 FLICKCURL_API
+void flickcurl_free_institution(flickcurl_institution *institution);
+FLICKCURL_API
+void flickcurl_free_institutions(flickcurl_institution **institutions_object);
+FLICKCURL_API
 void flickcurl_free_perms(flickcurl_perms *perms);
 FLICKCURL_API
 void flickcurl_free_location(flickcurl_location *location);
@@ -1379,6 +1452,10 @@ FLICKCURL_API
 void flickcurl_free_places(flickcurl_place** places_object);
 FLICKCURL_API
 void flickcurl_free_place_type_infos(flickcurl_place_type_info **ptis_object);
+FLICKCURL_API
+void flickcurl_free_shape(flickcurl_shapedata *shape);
+FLICKCURL_API
+void flickcurl_free_shapes(flickcurl_shapedata **shapes_object);
 FLICKCURL_API
 void flickcurl_free_video(flickcurl_video *video);
 FLICKCURL_API
@@ -1459,6 +1536,11 @@ FLICKCURL_API
 int flickcurl_blogs_postPhoto(flickcurl* fc, const char* blog_id, const char* photo_id, const char* title, const char* description, const char* blog_password);
 FLICKCURL_API
 void flickcurl_free_blogs(flickcurl_blog **blogs_object);
+
+/* flickr.commons */
+FLICKCURL_API
+flickcurl_institution** flickcurl_commons_getInstitutions(flickcurl* fc);
+const char* flickcurl_get_institution_url_type_label(flickcurl_institution_url_type url_type);
 
 /* flickr.favorites */
 FLICKCURL_API
@@ -1639,6 +1721,8 @@ flickcurl_place_type flickcurl_get_place_type_by_label(const char* place_label);
 FLICKCURL_API
 flickcurl_place_type_info** flickcurl_places_getPlaceTypes(flickcurl* fc);
 FLICKCURL_API
+flickcurl_shapedata** flickcurl_places_getShapeHistory(flickcurl* fc, const char* place_id, int woe_id);
+FLICKCURL_API
 flickcurl_place** flickcurl_places_placesForBoundingBox(flickcurl* fc, flickcurl_place_type place_type, double minimum_longitude, double minimum_latitude, double maximum_longitude, double maximum_latitude);
 FLICKCURL_API
 flickcurl_place** flickcurl_places_placesForContacts(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, int threshold, const char* contacts, int min_upload_date, int max_upload_date, int min_taken_date, int max_taken_date);
@@ -1648,6 +1732,8 @@ FLICKCURL_API
 flickcurl_place** flickcurl_places_placesForUser(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, int threshold);
 FLICKCURL_API FLICKCURL_DEPRECATED
 flickcurl_place** flickcurl_places_forUser(flickcurl* fc, flickcurl_place_type place_type, int woe_id, const char* place_id, int threshold);
+FLICKCURL_API
+flickcurl_tag** flickcurl_places_tagsForPlace(flickcurl* fc, int woe_id, const char* place_id, int min_upload_date, int max_upload_date, int min_taken_date, int max_taken_date);
 int flickcurl_place_type_to_id(flickcurl_place_type place_type);
 flickcurl_place_type flickcurl_place_id_to_type(int place_type_id);
 
@@ -1658,6 +1744,8 @@ FLICKCURL_API
 void flickcurl_free_contacts(flickcurl_contact **contacts_object);
 FLICKCURL_API
 flickcurl_contact** flickcurl_contacts_getList(flickcurl* fc, const char* filter, int page, int per_page);
+FLICKCURL_API
+flickcurl_contact** flickcurl_contacts_getListRecentlyUploaded(flickcurl* fc, int date_lastupload, const char* filter);
 FLICKCURL_API
 flickcurl_contact** flickcurl_contacts_getPublicList(flickcurl* fc, const char* user_id, int page, int per_page);
 
@@ -1874,6 +1962,12 @@ void flickcurl_array_free(char *array[]);
  * flickcurl_serializer_s:
  *
  * flickcurl_serializer_s
+ */
+
+/**
+ * flickcurl_shapedata_s:
+ *
+ * flickcurl_shapedata_s
  */
 
 #ifdef __cplusplus

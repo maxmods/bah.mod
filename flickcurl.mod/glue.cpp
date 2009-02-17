@@ -65,6 +65,9 @@ extern "C" {
 	flickcurl_perms * bmx_flickcurl_photo_getgeoperms(flickcurl * fc, flickcurl_photo * photo);
 	int bmx_flickcurl_photo_setgeoperms(flickcurl * fc, flickcurl_photo * photo, flickcurl_perms * permissions);
 	int bmx_flickcurl_photo_setperms(flickcurl * fc, flickcurl_photo * photo, flickcurl_perms * permissions);
+	int bmx_flickcurl_photo_setlicense(flickcurl * fc, flickcurl_photo * photo, int licenseId);
+	BBString * bmx_flickcurl_photo_addnote(flickcurl * fc, flickcurl_photo * photo, int x, int y, int w, int h, BBString * text);
+	int bmx_flickcurl_photo_delete(flickcurl * fc, flickcurl_photo * photo);
 
 	BBString * bmx_flickcurl_photofield_getlabel(flickcurl_photo_field_type fieldType);
 	BBString * bmx_flickcurl_photofield_getvaluetypelabel(flickcurl_field_value_type valueType);
@@ -124,6 +127,8 @@ extern "C" {
 	int bmx_flickcurl_tag_getmachinetag(flickcurl_tag * tag);
 	int bmx_flickcurl_tag_getcount(flickcurl_tag * tag);
 	BBArray * bmx_flickcurl_tags_getclusters(flickcurl * fc, BBString * tag);
+	int bmx_flickcurl_tag_remove(flickcurl * fc, flickcurl_tag * tag);
+	int bmx_flickcurl_tag_removetxt(flickcurl * fc, BBString * tag);
 
 	int bmx_flickcurl_getprefscontenttype(flickcurl * fc);
 	int bmx_flickcurl_getprefsgeoperms(flickcurl * fc);
@@ -201,6 +206,9 @@ extern "C" {
 
 	flickcurl_perms * bmx_flickcurl_perms_create();
 	void bmx_flickcurl_perms_delete(flickcurl_perms * perms);
+
+	int bmx_flickcurl_notes_deletenote(flickcurl * fc, BBString * noteID);
+	int bmx_flickcurl_notes_editnote(flickcurl * fc, BBString * noteID, int x, int y, int w, int h, BBString * text);
 
 }
 
@@ -449,6 +457,25 @@ int bmx_flickcurl_photo_setgeoperms(flickcurl * fc, flickcurl_photo * photo, fli
 
 int bmx_flickcurl_photo_setperms(flickcurl * fc, flickcurl_photo * photo, flickcurl_perms * permissions) {
 	return flickcurl_photos_setPerms(fc, photo->id, permissions);
+}
+
+int bmx_flickcurl_photo_setlicense(flickcurl * fc, flickcurl_photo * photo, int licenseId) {
+	return flickcurl_photos_licenses_setLicense(fc, photo->id, licenseId);
+}
+
+BBString * bmx_flickcurl_photo_addnote(flickcurl * fc, flickcurl_photo * photo, int x, int y, int w, int h, BBString * text) {
+	char *p=bbStringToCString( text );
+	char * res = flickcurl_photos_notes_add(fc, photo->id, x, y, w, h, p);
+	bbMemFree( p );
+	if (res) {
+		return bbStringFromCString(res);
+	} else {
+		return &bbEmptyString;
+	}
+}
+
+int bmx_flickcurl_photo_delete(flickcurl * fc, flickcurl_photo * photo) {
+	return flickcurl_photos_delete(fc, photo->id);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -829,6 +856,17 @@ BBArray * bmx_flickcurl_tags_getclusters(flickcurl * fc, BBString * tag) {
 	
 }
 
+int bmx_flickcurl_tag_remove(flickcurl * fc, flickcurl_tag * tag) {
+	return flickcurl_photos_removeTag(fc, tag->id);
+}
+
+int bmx_flickcurl_tag_removetxt(flickcurl * fc, BBString * tag) {
+	char *t=bbStringToCString( tag );
+	int res = flickcurl_photos_removeTag(fc, t);
+	bbMemFree(t);
+	return res;
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 BBObject * bmx_flickcurl_commentlist_getcomment(flickcurl_comment ** comments, int index, flickcurl * fc) {
@@ -1146,3 +1184,23 @@ flickcurl_perms * bmx_flickcurl_perms_create() {
 void bmx_flickcurl_perms_delete(flickcurl_perms * perms) {
 	delete perms;
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_notes_deletenote(flickcurl * fc, BBString * noteID) {
+	char *n=bbStringToCString( noteID );
+	int res = flickcurl_photos_notes_delete(fc, n);
+	bbMemFree(n);
+	return res;
+}
+
+int bmx_flickcurl_notes_editnote(flickcurl * fc, BBString * noteID, int x, int y, int w, int h, BBString * text) {
+	char *n=bbStringToCString( noteID );
+	char *t=bbStringToCString( text );
+	int res = flickcurl_photos_notes_edit(fc, n, x, y, w, h, t);
+	bbMemFree(n);
+	bbMemFree(t);
+	return res;
+}
+
+

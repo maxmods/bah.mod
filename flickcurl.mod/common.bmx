@@ -51,6 +51,9 @@ Extern
 	Function bmx_flickcurl_photo_getgeoperms:Byte Ptr(handle:Byte Ptr, photo:Byte Ptr)
 	Function bmx_flickcurl_photo_setgeoperms:Int(handle:Byte Ptr, photo:Byte Ptr, permissions:Byte Ptr)
 	Function bmx_flickcurl_photo_setperms:Int(handle:Byte Ptr, photo:Byte Ptr, permissions:Byte Ptr)
+	Function bmx_flickcurl_photo_setlicense:Int(handle:Byte Ptr, photo:Byte Ptr, licenseId:Int)
+	Function bmx_flickcurl_photo_addnote:String(handle:Byte Ptr, photo:Byte Ptr, x:Int, y:Int, w:Int, h:Int, text:String)
+	Function bmx_flickcurl_photo_delete:Int(handle:Byte Ptr, photo:Byte Ptr)
 
 	Function bmx_flickcurl_photofield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_photofield_getvaluetypelabel:String(valueType:Int)
@@ -119,6 +122,8 @@ Extern
 	Function bmx_flickcurl_tag_getcooked:String(handle:Byte Ptr)
 	Function bmx_flickcurl_tag_getmachinetag:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_tag_getcount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_tag_remove:Int(handle:Byte Ptr, tag:Byte Ptr)
+	Function bmx_flickcurl_tag_removetxt:Int(handle:Byte Ptr, tag:String)
 
 	Function bmx_flickcurl_commentlist_getcomment:Object(handle:Byte Ptr, index:Int, fc:Byte Ptr)
 	
@@ -189,6 +194,9 @@ Extern
 	
 	Function bmx_flickcurl_perms_create:Byte Ptr()
 	Function bmx_flickcurl_perms_delete(handle:Byte Ptr)
+
+	Function bmx_flickcurl_notes_deletenote:Int(handle:Byte Ptr, noteID:String)
+	Function bmx_flickcurl_notes_editnote:Int(handle:Byte Ptr, noteID:String, x:Int, y:Int, w:Int, h:Int, text:String)
 
 	' API direct functions
 	Function flickcurl_init:Int()
@@ -314,4 +322,8 @@ Const PERSON_FIELD_favedate:Int = 16
 Const PERSON_FIELD_FIRST:Int = PERSON_FIELD_isadmin
 Const PERSON_FIELD_LAST:Int = PERSON_FIELD_favedate
 
+Const FLICKCURL_INSTITUTION_URL_NONE:Int = 0
+Const FLICKCURL_INSTITUTION_URL_SITE:Int = 1
+Const FLICKCURL_INSTITUTION_URL_LICENSE:Int = 2
+Const FLICKCURL_INSTITUTION_URL_FLICKR:Int = 3
 

@@ -35,11 +35,11 @@ Import "common.bmx"
 '
 
 Rem
-Parameters: 
+	<p>Parameters: 
 	<ul>
 	<li><b>XXXXXXXXXX</b> : xxxxxxxxxxxxxxxxx</li>
 	</ul>
-	<p>
+	</p>
 
 	<table width="100%">
 	<tr><th>Constant</th><th>Description</th></tr>
@@ -309,6 +309,51 @@ Type TFlickcurl
 	End Rem
 	Method GetClusters:TFCTagCluster[](tag:String)
 		Return bmx_flickcurl_tags_getclusters(fcPtr, tag)
+	End Method
+	
+	Rem
+	bbdoc: Deletes a note from a photo.
+	returns: Non zero on failure.
+	about: Parameters: 
+	<ul>
+	<li><b>ntoeID</b> : The id of the note to delete </li>
+	</ul>
+	End Rem
+	Method DeleteNote:Int(noteID:String)
+		Return bmx_flickcurl_notes_deletenote(fcPtr, noteID)
+	End Method
+	
+	Rem
+	bbdoc: Edits a note on a photo.
+	about: Coordinates and sizes are in pixels, based on the 500px image size shown on individual photo pages.
+	<p>Parameters: 
+	<ul>
+	<li><b> noteID </b> : The id of the note to edit </li>
+	<li><b>x</b> : The left coordinate of the note</li>
+	<li><b>y</b> : The top coordinate of the note </li>
+	<li><b>w</b> : The width of the note </li>
+	<li><b>h</b> : The height of the note </li>
+	<li><b> text </b> : The description of the note </li>
+	</ul>
+	</p>
+	End Rem
+	Method EditNote:Int(noteID:String, x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_flickcurl_notes_editnote(fcPtr, noteID, x, y, w, h, text)
+	End Method
+	
+	Rem
+	bbdoc: Remove a tag from a photo.
+	about: Parameters: 
+	<ul>
+	<li><b>tag</b> : The tagID (String), or a TFCTag object.</li>
+	</ul>
+	End Rem
+	Method RemoveTag:Int(tag:Object)
+		If TFCTag(tag) Then
+			Return bmx_flickcurl_tag_remove(fcPtr, TFCTag(tag).tagPtr)
+		Else If String(tag) Then
+			Return bmx_flickcurl_tag_removetxt(fcPtr, String(tag))
+		End If
 	End Method
 	
 	Method Delete()
@@ -740,8 +785,11 @@ Type TFCPhoto
 		Return bmx_flickcurl_photo_setmeta(fcPtr, photoPtr, title, description)
 	End Method
 	
+	Rem
+	bbdoc: Deletes a photo.
+	End Rem
 	Method DeletePhoto:Int()
-	' TODO
+		Return bmx_flickcurl_photo_delete(fcPtr, photoPtr)
 	End Method
 	
 	Method GetGeoLocation:TFCLocation()
@@ -755,7 +803,7 @@ Type TFCPhoto
 		Return TFCPermissions._create(bmx_flickcurl_photo_getgeoperms(fcPtr, photoPtr), False)
 	End Method
 	
-	Method RemoveDeoLocation:Int()
+	Method RemoveGeoLocation:Int()
 	' TODO
 	End Method
 	
@@ -782,6 +830,22 @@ Type TFCPhoto
 	End Rem
 	Method SetPerms:Int(permissions:TFCPermissions)
 		Return bmx_flickcurl_photo_setperms(fcPtr, photoPtr, permissions.permsPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the license for a photo.
+	End Rem
+	Method SetLicense:Int(licenseId:Int)
+		Return bmx_flickcurl_photo_setlicense(fcPtr, photoPtr, licenseId)
+	End Method
+	
+	Rem
+	bbdoc: Adds a note to a photo.
+	returns: The note ID, or Null on failure.
+	about: Coordinates and sizes are in pixels, based on the 500px image size shown on individual photo pages.
+	End Rem
+	Method AddNote:String(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_flickcurl_photo_addnote(fcPtr, photoPtr, x, y, w, h, text)
 	End Method
 	
 	Rem
@@ -1047,7 +1111,7 @@ Type TFCTagList
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A list of comments.
 End Rem
 Type TFCCommentList
 
@@ -1065,14 +1129,14 @@ Type TFCCommentList
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the comment at the given @index.
 	End Rem
 	Method GetComment:TFCComment(index:Int)
 		Return TFCComment(bmx_flickcurl_commentlist_getcomment(commentListPtr, index, fcPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees the comments list.
 	End Rem
 	Method Free()
 		If commentListPtr Then
@@ -1293,95 +1357,108 @@ Type TFCPermissions
 	Rem
 	bbdoc: Creates a new TFCPermissions object.
 	End Rem
+	Function CreatePermissions:TFCPermissions()
+		Return New TFCPermissions.Create()
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TFCPermissions object.
+	End Rem
 	Method Create:TFCPermissions()
 		Return TFCPermissions._create(bmx_flickcurl_perms_create())
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: True if public, otherwise private.
 	End Rem
 	Method IsPublic:Int()
 		Return bmx_flickcurl_perms_ispublic(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set to True for public, False for private.
 	End Rem
 	Method SetPublic(value:Int)
 		bmx_flickcurl_perms_setpublic(permsPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: If True, photo is visible to contacts when private.
 	End Rem
 	Method IsContact:Int()
 		Return bmx_flickcurl_perms_iscontact(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set to True to make photo visible to contacts when private.
 	End Rem
 	Method SetContact(value:Int)
 		bmx_flickcurl_perms_setcontact(permsPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: If True, photo is visible to friends when private.
 	End Rem
 	Method IsFriend:Int()
 		Return bmx_flickcurl_perms_isfriend(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set to True to make photo visible to friends when private.
 	End Rem
 	Method SetFriend(value:Int)
 		bmx_flickcurl_perms_setfriend(permsPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: If True, photo is visible to family when private.
 	End Rem
 	Method IsFamily:Int()
 		Return bmx_flickcurl_perms_isfamily(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Set to True to make photo visible to family when private.
 	End Rem
 	Method SetFamily(value:Int)
 		bmx_flickcurl_perms_setfamily(permsPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Who can add comments to the photo and its notes.
+	about: One of: 0 nobody, 1 friends and family, 2 contacts, 3 everybody.
 	End Rem
 	Method GetPermComment:Int()
 		Return bmx_flickcurl_perms_getpermcomment(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets who can add comments to the photo and its notes.
+	about: One of: 0 nobody, 1 friends and family, 2 contacts, 3 everybody.
 	End Rem
 	Method SetPermComment(value:Int)
 		bmx_flickcurl_perms_setpermcomment(permsPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Who can add notes and tags to the photo.
+	about: One of: 0 nobody / just the owner, 1 friends and family, 2 contacts, 3 everybody.
 	End Rem
 	Method GetPermAddMeta:Int()
 		Return bmx_flickcurl_perms_getpermaddmeta(permsPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets who can add notes and tags to the photo.
+	about: One of: 0 nobody / just the owner, 1 friends and family, 2 contacts, 3 everybody.
 	End Rem
 	Method SetPermAddMeta(value:Int)
 		bmx_flickcurl_perms_setpermaddmeta(permsPtr, value)
 	End Method
 	
-	
+	Rem
+	bbdoc: Destructor for permissions object.
+	End Rem
 	Method Free()
 		If permsPtr Then
 			If owner Then

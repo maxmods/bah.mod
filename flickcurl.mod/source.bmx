@@ -77,6 +77,9 @@ Import "src/upload-api.c"
 Import "src/urls-api.c"
 Import "src/user_upload_status.c"
 Import "src/video.c"
+Import "src/shape.c"
+Import "src/commons-api.c"
+Import "src/institution.c"
 
 Import "glue.cpp"
 
