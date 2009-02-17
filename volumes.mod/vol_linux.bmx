@@ -21,6 +21,7 @@
 SuperStrict
 
 Import brl.LinkedList
+Import Pub.Stdc
 
 Import "main.bmx"
 
