@@ -32,8 +32,10 @@ void b2GravityController::Step(const b2TimeStep& step)
 			b2Body* body1 = i->body;
 			for(b2ControllerEdge *j=m_bodyList;j!=i;j=j->nextBody){
 				b2Body* body2 = j->body;
-				b2Vec2 d = body1->GetWorldCenter() - body1->GetWorldCenter();
+				b2Vec2 d = body2->GetWorldCenter() - body1->GetWorldCenter();
 				float32 r2 = d.LengthSquared();
+				if(r2 < B2_FLT_EPSILON)
+					continue;
 				b2Vec2 f = G / r2 / sqrt(r2) * body1->GetMass() * body2->GetMass() * d;
 				body1->ApplyForce(f      , body1->GetWorldCenter());
 				body2->ApplyForce(-1.0f*f, body2->GetWorldCenter());
@@ -44,8 +46,10 @@ void b2GravityController::Step(const b2TimeStep& step)
 			b2Body* body1 = i->body;
 			for(b2ControllerEdge *j=m_bodyList;j!=i;j=j->nextBody){
 				b2Body* body2 = j->body;
-				b2Vec2 d = body1->GetWorldCenter() - body1->GetWorldCenter();
+				b2Vec2 d = body2->GetWorldCenter() - body1->GetWorldCenter();
 				float32 r2 = d.LengthSquared();
+				if(r2 < B2_FLT_EPSILON)
+					continue;
 				b2Vec2 f = G / r2 * body1->GetMass() * body2->GetMass() * d;
 				body1->ApplyForce(f      , body1->GetWorldCenter());
 				body2->ApplyForce(-1.0f*f, body2->GetWorldCenter());

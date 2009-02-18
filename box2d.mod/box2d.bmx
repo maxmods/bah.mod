@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ Module BaH.Box2D
 ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
-ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax port - 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
-ModuleInfo "History: Updated to box2d svn (rev 185)"
+ModuleInfo "History: Updated to box2d svn (rev 197)"
 ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."

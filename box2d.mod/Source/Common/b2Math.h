@@ -20,7 +20,15 @@
 #define B2_MATH_H
 
 #include "b2Settings.h"
+
+#ifdef TARGET_OS_IPHONE
+#include "math.h"
+#else
 #include <cmath>
+#endif
+
+
+
 #include <cfloat>
 #include <cstdlib>
 
@@ -61,7 +69,14 @@ inline bool b2IsValid(float32 x)
 #ifdef _MSC_VER
 	return _finite(x) != 0;
 #else
+	
+#ifdef TARGET_OS_IPHONE
+	return isfinite(x);
+#else
 	return finite(x) != 0;
+#endif
+	
+	
 #endif
 }
 
@@ -505,54 +520,45 @@ inline float32 b2Cross(const b2Vec2& a, const b2Vec2& b)
 /// a vector.
 inline b2Vec2 b2Cross(const b2Vec2& a, float32 s)
 {
-	b2Vec2 v; v.Set(s * a.y, -s * a.x);
-	return v;
+	return b2Vec2(s * a.y, -s * a.x);
 }
 
 /// Perform the cross product on a scalar and a vector. In 2D this produces
 /// a vector.
 inline b2Vec2 b2Cross(float32 s, const b2Vec2& a)
 {
-	b2Vec2 v; v.Set(-s * a.y, s * a.x);
-	return v;
+	return b2Vec2(-s * a.y, s * a.x);
 }
 
 /// Multiply a matrix times a vector. If a rotation matrix is provided,
 /// then this transforms the vector from one frame to another.
 inline b2Vec2 b2Mul(const b2Mat22& A, const b2Vec2& v)
 {
-	b2Vec2 u;
-	u.Set(A.col1.x * v.x + A.col2.x * v.y, A.col1.y * v.x + A.col2.y * v.y);
-	return u;
+	return b2Vec2(A.col1.x * v.x + A.col2.x * v.y, A.col1.y * v.x + A.col2.y * v.y);
 }
 
 /// Multiply a matrix transpose times a vector. If a rotation matrix is provided,
 /// then this transforms the vector from one frame to another (inverse transform).
 inline b2Vec2 b2MulT(const b2Mat22& A, const b2Vec2& v)
 {
-	b2Vec2 u;
-	u.Set(b2Dot(v, A.col1), b2Dot(v, A.col2));
-	return u;
+	return b2Vec2(b2Dot(v, A.col1), b2Dot(v, A.col2));
 }
 
 /// Add two vectors component-wise.
 inline b2Vec2 operator + (const b2Vec2& a, const b2Vec2& b)
 {
-	b2Vec2 v; v.Set(a.x + b.x, a.y + b.y);
-	return v;
+	return b2Vec2(a.x + b.x, a.y + b.y);
 }
 
 /// Subtract two vectors component-wise.
 inline b2Vec2 operator - (const b2Vec2& a, const b2Vec2& b)
 {
-	b2Vec2 v; v.Set(a.x - b.x, a.y - b.y);
-	return v;
+	return b2Vec2(a.x - b.x, a.y - b.y);
 }
 
 inline b2Vec2 operator * (float32 s, const b2Vec2& a)
 {
-	b2Vec2 v; v.Set(s * a.x, s * a.y);
-	return v;
+	return b2Vec2(s * a.x, s * a.y);
 }
 
 inline bool operator == (const b2Vec2& a, const b2Vec2& b)
@@ -574,25 +580,20 @@ inline float32 b2DistanceSquared(const b2Vec2& a, const b2Vec2& b)
 
 inline b2Vec3 operator * (float32 s, const b2Vec3& a)
 {
-	b2Vec3 v(s * a.x, s * a.y, s * a.z);
-	return v;
+	return b2Vec3(s * a.x, s * a.y, s * a.z);
 }
 
 /// Add two vectors component-wise.
 inline b2Vec3 operator + (const b2Vec3& a, const b2Vec3& b)
 {
-	b2Vec3 v(a.x + b.x, a.y + b.y, a.z + b.z);
-	return v;
+	return b2Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
 /// Subtract two vectors component-wise.
 inline b2Vec3 operator - (const b2Vec3& a, const b2Vec3& b)
 {
-	b2Vec3 v; v.Set(a.x - b.x, a.y - b.y, a.z - b.z);
-	return v;
+	return b2Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
-
-
 
 /// Perform the dot product on two vectors.
 inline float32 b2Dot(const b2Vec3& a, const b2Vec3& b)
@@ -608,34 +609,27 @@ inline b2Vec3 b2Cross(const b2Vec3& a, const b2Vec3& b)
 
 inline b2Mat22 operator + (const b2Mat22& A, const b2Mat22& B)
 {
-	b2Mat22 C;
-	C.Set(A.col1 + B.col1, A.col2 + B.col2);
-	return C;
+	return b2Mat22(A.col1 + B.col1, A.col2 + B.col2);
 }
 
 // A * B
 inline b2Mat22 b2Mul(const b2Mat22& A, const b2Mat22& B)
 {
-	b2Mat22 C;
-	C.Set(b2Mul(A, B.col1), b2Mul(A, B.col2));
-	return C;
+	return b2Mat22(b2Mul(A, B.col1), b2Mul(A, B.col2));
 }
 
 // A^T * B
 inline b2Mat22 b2MulT(const b2Mat22& A, const b2Mat22& B)
 {
-	b2Vec2 c1; c1.Set(b2Dot(A.col1, B.col1), b2Dot(A.col2, B.col1));
-	b2Vec2 c2; c2.Set(b2Dot(A.col1, B.col2), b2Dot(A.col2, B.col2));
-	b2Mat22 C;
-	C.Set(c1, c2);
-	return C;
+	b2Vec2 c1(b2Dot(A.col1, B.col1), b2Dot(A.col2, B.col1));
+	b2Vec2 c2(b2Dot(A.col1, B.col2), b2Dot(A.col2, B.col2));
+	return b2Mat22(c1, c2);
 }
 
 /// Multiply a matrix times a vector.
 inline b2Vec3 b2Mul(const b2Mat33& A, const b2Vec3& v)
 {
-	b2Vec3 u = v.x * A.col1 + v.y * A.col2 + v.z * A.col3;
-	return u;
+	return v.x * A.col1 + v.y * A.col2 + v.z * A.col3;
 }
 
 inline b2Vec2 b2Mul(const b2XForm& T, const b2Vec2& v)
@@ -650,15 +644,12 @@ inline b2Vec2 b2MulT(const b2XForm& T, const b2Vec2& v)
 
 inline b2Vec2 b2Abs(const b2Vec2& a)
 {
-	b2Vec2 b; b.Set(b2Abs(a.x), b2Abs(a.y));
-	return b;
+	return b2Vec2(b2Abs(a.x), b2Abs(a.y));
 }
 
 inline b2Mat22 b2Abs(const b2Mat22& A)
 {
-	b2Mat22 B;
-	B.Set(b2Abs(A.col1), b2Abs(A.col2));
-	return B;
+	return b2Mat22(b2Abs(A.col1), b2Abs(A.col2));
 }
 
 template <typename T>
@@ -669,10 +660,7 @@ inline T b2Min(T a, T b)
 
 inline b2Vec2 b2Min(const b2Vec2& a, const b2Vec2& b)
 {
-	b2Vec2 c;
-	c.x = b2Min(a.x, b.x);
-	c.y = b2Min(a.y, b.y);
-	return c;
+	return b2Vec2(b2Min(a.x, b.x), b2Min(a.y, b.y));
 }
 
 template <typename T>
@@ -683,10 +671,7 @@ inline T b2Max(T a, T b)
 
 inline b2Vec2 b2Max(const b2Vec2& a, const b2Vec2& b)
 {
-	b2Vec2 c;
-	c.x = b2Max(a.x, b.x);
-	c.y = b2Max(a.y, b.y);
-	return c;
+	return b2Vec2(b2Max(a.x, b.x), b2Max(a.y, b.y));
 }
 
 template <typename T>
@@ -705,26 +690,6 @@ template<typename T> inline void b2Swap(T& a, T& b)
 	T tmp = a;
 	a = b;
 	b = tmp;
-}
-
-#define	RAND_LIMIT	32767
-
-// Random number in range [-1,1]
-inline float32 b2Random()
-{
-	float32 r = (float32)(rand() & (RAND_LIMIT));
-	r /= RAND_LIMIT;
-	r = 2.0f * r - 1.0f;
-	return r;
-}
-
-/// Random floating point number in range [lo, hi]
-inline float32 b2Random(float32 lo, float32 hi)
-{
-	float32 r = (float32)(rand() & (RAND_LIMIT));
-	r /= RAND_LIMIT;
-	r = (hi - lo) * r + lo;
-	return r;
 }
 
 /// "Next Largest Power of 2

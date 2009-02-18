@@ -87,11 +87,11 @@ protected:
 	int32 m_bodyCount;
 
 	b2Controller(const b2ControllerDef* def):
+		m_world(NULL),
+		m_bodyList(NULL),
+		m_bodyCount(0),
 		m_prev(NULL),
 		m_next(NULL),
-		m_bodyCount(0),
-		m_bodyList(NULL),
-		m_world(NULL),
 		m_userData(NULL)
 		{
 			B2_NOT_USED(def);
@@ -116,7 +116,8 @@ protected:
 	}
 
 public:
-
+	virtual ~b2ControllerDef() {};
+	
 	/// Use this to store application specific controller data.
 	void* userData;
 
