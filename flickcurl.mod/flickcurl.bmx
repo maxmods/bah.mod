@@ -279,7 +279,7 @@ Type TFlickcurl
 	End Method
 	
 	Rem
-	bbdoc: Get a user, given their email address.
+	bbdoc: Gets a user, given their email address.
 	about: Parameters: 
 	<ul>
 	<li><b>email</b> : user email address</li>
@@ -290,7 +290,7 @@ Type TFlickcurl
 	End Method
 	
 	Rem
-	bbdoc: Get a user, given their username.
+	bbdoc: Gets a user, given their username.
 	about: Parameters: 
 	<ul>
 	<li><b>username</b> : username</li>
@@ -298,6 +298,28 @@ Type TFlickcurl
 	End Rem
 	Method FindPeopleByUsername:TFCPerson(username:String)
 		Return TFCPerson._create(bmx_flickcurl_findpeoplebyusername(fcPtr, username), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets information about a person.
+	about: Parameters: 
+	<ul>
+	<li><b>userID</b> : user NSID</li>
+	</ul>
+	End Rem
+	Method GetPerson:TFCPerson(userID:String)
+		Return TFCPerson._create(bmx_flickcurl_people_getinfo(fcPtr, userID), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Get a user, given the url to a user's photos or profile.
+	about: Parameters: 
+	<ul>
+	<li><b>url</b> : URL of user's photo or user's profile</li>
+	</ul>
+	End Rem
+	Method LookupUser:TFCPerson(url:String)
+		Return TFCPerson._create(bmx_flickcurl_url_lookupuser(fcPtr, url), fcPtr)
 	End Method
 	
 	Rem
@@ -1921,7 +1943,20 @@ End Rem
 	
 '	Method GetPublicFavoritesListParams:TFCPhotoList(userId:String, params:TFCPhotoListParams)
 '	End Method
+
+	Rem
+	bbdoc: Gets the url to the user's photos.
+	End Rem
+	Method GetPhotosURL:String()
+		Return bmx_flickcurl_person_getphotosurl(fcPtr, personPtr)
+	End Method
 	
+	Rem
+	bbdoc: Gets the url to the user's profile. 
+	End Rem
+	Method GetProfileURL:String()
+		Return bmx_flickcurl_person_getprofileurl(fcPtr, personPtr)
+	End Method
 
 End Type
 
@@ -2064,6 +2099,13 @@ Type TFCGroup
 	End Rem
 	Method GetThrottleRemaining:Int()
 		Return bmx_flickcurl_group_getthrottleremaining(groupPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the url to the group's page.
+	End Rem
+	Method GetURL:String()
+		Return bmx_flickcurl_group_geturl(fcPtr, groupPtr)
 	End Method
 
 	Rem

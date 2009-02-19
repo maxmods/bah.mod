@@ -169,9 +169,13 @@ extern "C" {
 
 	BBString * bmx_flickcurl_person_getuserid(flickcurl_person * person);
 	BBObject * bmx_flickcurl_person_getfield(flickcurl_person * person, int index);
+	BBString * bmx_flickcurl_person_getphotosurl(flickcurl * fc, flickcurl_person * person);
+	BBString * bmx_flickcurl_person_getprofileurl(flickcurl * fc, flickcurl_person * person);
 
 	flickcurl_person * bmx_flickcurl_findpeoplebyemail(flickcurl * fc, BBString * email);
 	flickcurl_person * bmx_flickcurl_findpeoplebyusername(flickcurl * fc, BBString * username);
+	flickcurl_person * bmx_flickcurl_people_getinfo(flickcurl * fc, BBString * userID);
+	flickcurl_person * bmx_flickcurl_url_lookupuser(flickcurl * fc, BBString * url);
 
 	BBString * bmx_flickcurl_group_getgroupid(flickcurl_group * group);
 	BBString * bmx_flickcurl_group_getname(flickcurl_group * group);
@@ -187,6 +191,7 @@ extern "C" {
 	BBString * bmx_flickcurl_group_getthrottlemode(flickcurl_group * group);
 	int bmx_flickcurl_group_getthrottlecount(flickcurl_group * group);
 	int bmx_flickcurl_group_getthrottleremaining(flickcurl_group * group);
+	BBString * bmx_flickcurl_group_geturl(flickcurl * fc, flickcurl_group * group);
 
 	int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list);
 	flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index);
@@ -1049,6 +1054,32 @@ flickcurl_person * bmx_flickcurl_findpeoplebyusername(flickcurl * fc, BBString *
 	return person;
 }
 
+BBString * bmx_flickcurl_person_getphotosurl(flickcurl * fc, flickcurl_person * person) {
+	return bbStringFromCString(flickcurl_urls_getUserPhotos(fc, person->nsid));
+}
+
+BBString * bmx_flickcurl_person_getprofileurl(flickcurl * fc, flickcurl_person * person) {
+	return bbStringFromCString(flickcurl_urls_getUserProfile(fc, person->nsid));
+}
+
+flickcurl_person * bmx_flickcurl_people_getinfo(flickcurl * fc, BBString * userID) {
+	char *e=bbStringToCString( userID );
+	flickcurl_person * person = flickcurl_people_getInfo(fc, e);
+	bbMemFree(e);
+	return person;	
+}
+
+flickcurl_person * bmx_flickcurl_url_lookupuser(flickcurl * fc, BBString * url) {
+	flickcurl_person * person = 0;
+	char *u=bbStringToCString( url );
+	char * nsid = bmx_flickcurl_url_lookupuser(fc, u);
+	if (nsid) {
+		person = flickcurl_people_getInfo(fc, nsid);
+	}
+	bbMemFree(u);
+	return person;
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 BBString * bmx_flickcurl_group_getgroupid(flickcurl_group * group) {
@@ -1105,6 +1136,10 @@ int bmx_flickcurl_group_getthrottlecount(flickcurl_group * group) {
 
 int bmx_flickcurl_group_getthrottleremaining(flickcurl_group * group) {
 	return group->throttle_remaining;
+}
+
+BBString * bmx_flickcurl_group_geturl(flickcurl * fc, flickcurl_group * group) {
+	return bbStringFromCString(flickcurl_urls_getGroup(fc, group->nsid));
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++

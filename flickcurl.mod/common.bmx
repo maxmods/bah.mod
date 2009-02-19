@@ -157,9 +157,13 @@ Extern
 	Function bmx_flickcurl_personfield_getlabel:String(fieldType:Int)
 	Function bmx_flickcurl_person_getuserid:String(handle:Byte Ptr)
 	Function bmx_flickcurl_person_getfield:Object(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_person_getphotosurl:String(handle:Byte Ptr, person:Byte Ptr)
+	Function bmx_flickcurl_person_getprofileurl:String(handle:Byte Ptr, person:Byte Ptr)
 
 	Function bmx_flickcurl_findpeoplebyemail:Byte Ptr(handle:Byte Ptr, email:String)
 	Function bmx_flickcurl_findpeoplebyusername:Byte Ptr(handle:Byte Ptr, username:String)
+	Function bmx_flickcurl_people_getinfo:Byte Ptr(handle:Byte Ptr, userID:String)
+	Function bmx_flickcurl_url_lookupuser:Byte Ptr(handle:Byte Ptr, url:String)
 
 	Function bmx_flickcurl_group_getgroupid:String(handle:Byte Ptr)
 	Function bmx_flickcurl_group_getname:String(handle:Byte Ptr)
@@ -175,6 +179,7 @@ Extern
 	Function bmx_flickcurl_group_getthrottlemode:String(handle:Byte Ptr)
 	Function bmx_flickcurl_group_getthrottlecount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_group_getthrottleremaining:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_group_geturl:String(handle:Byte Ptr, group:Byte Ptr)
 
 	Function bmx_flickcurl_listofgroups_getgroupcount:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_listofgroups_getgroup:Byte Ptr(handle:Byte Ptr, index:Int)
