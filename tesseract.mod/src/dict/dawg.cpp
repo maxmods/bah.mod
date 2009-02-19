@@ -30,7 +30,7 @@
 #include <windows.h>
 #endif
 #else
-#include <netinet/in.h>
+#include <arpa/inet.h>
 #endif
 #include "dawg.h"
 #include "cutil.h"

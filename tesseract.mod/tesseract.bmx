@@ -21,10 +21,12 @@ End Rem
 Module BaH.tesseract
 
 
-ModuleInfo "Version: 1.0"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
 ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Update to SVN rev 217."
 ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr205)"
 
 
@@ -42,7 +44,7 @@ Import "common.bmx"
 '
 ' NOTES:
 '
-' For all changes, seek BaH in code
+' Changes to support compilation under MinGW on Win32.
 '
 ' platform.h   - Win32 __GNUC__ changes
 ' dawg.h       - Win32 __GNUC__ changes

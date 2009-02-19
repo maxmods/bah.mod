@@ -1,7 +1,6 @@
 // Place holder
 #define DLLSYM
 #ifdef __MSW32__
-// BaH
 #ifdef __GNUC__
 #define ultoa _ultoa
 typedef struct _BLOB {

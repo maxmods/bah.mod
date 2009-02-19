@@ -29,7 +29,6 @@
 
 #include          <time.h>
 #ifdef __MSW32__
-// BaH
 #ifndef __GNUC__
 #include <windows.h>
 #endif

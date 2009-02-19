@@ -31,12 +31,11 @@
 ----------------------------------------------------------------------
 */
 #ifdef __MSW32__
-// BaH
 #ifndef __GNUC__
 #include <windows.h>
 #endif
 #else
-#include <netinet/in.h>
+#include <arpa/inet.h>
 #endif
 
 #include "makedawg.h"
