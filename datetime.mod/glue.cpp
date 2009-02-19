@@ -373,7 +373,11 @@ date * bmx_datetime_fromstring(const char * d) {
 }
 
 date * bmx_datetime_fromundelimitedstring(const char * d) {
-	return new date(from_undelimited_string(std::string(d)));
+	try {
+		return new date(from_undelimited_string(std::string(d)));
+	} catch (...) {
+		return 0;
+	}
 }
 
 int bmx_datetime_day_of_week(date * d) {

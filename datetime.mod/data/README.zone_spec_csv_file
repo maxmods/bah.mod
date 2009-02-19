@@ -1,6 +1,6 @@
 
 The csv file containing the zone_specs used by the 
-timezone database is intended to be customized by the 
+boost::local_time::tz_database is intended to be customized by the 
 library user. When customizing this file (or creating your own) the 
 file must follow a specific format.
 

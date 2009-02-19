@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009, Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Updated to boost 1.36"
+ModuleInfo "History: Updated to boost 1.38"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
