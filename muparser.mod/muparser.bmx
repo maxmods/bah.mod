@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,13 @@ bbdoc: Mathematical expressions parser.
 End Rem
 Module BaH.muParser
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
-ModuleInfo "Copyright: muParser - 2004-2008 Ingo Berg"
+ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
+ModuleInfo "Copyright: muParser - 2004-2009 Ingo Berg"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Updated to latest in SVN (rev 223)."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release (muparser 1.30 svn 20081110)"
 
@@ -43,6 +45,9 @@ Import "common.bmx"
 ' Modified muParser.cpp
 '   Added Degree/Radian conversions for trig functions.
 '   Changed constant _pi to pi.
+'
+' muParserBytecode.h
+'   Defined m_iMaxStackSize as std::size_t.
 '
 
 Rem

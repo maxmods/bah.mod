@@ -160,7 +160,7 @@ API_EXPORT(const muChar_t*) mupGetErrorMsg(muParserHandle_t a_hParser);
 API_EXPORT(muInt_t) mupGetErrorCode(muParserHandle_t a_hParser);
 API_EXPORT(muInt_t) mupGetErrorPos(muParserHandle_t a_hParser);
 API_EXPORT(const muChar_t*) mupGetErrorToken(muParserHandle_t a_hParser);
-API_EXPORT(const muChar_t*) mupGetErrorExpr(muParserHandle_t a_hParser);
+//API_EXPORT(const muChar_t*) mupGetErrorExpr(muParserHandle_t a_hParser);
 
 // This is used for .NET only. It creates a new variable allowing the dll to
 // manage the variable rather than the .NET garbage collector.

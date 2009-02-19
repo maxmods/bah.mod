@@ -684,6 +684,8 @@ namespace mu
     if (m_iSynFlags & noVAR)
       Error(ecUNEXPECTED_VAR, m_iPos, strTok);
 
+    m_pParser->OnDetectVar(&m_strFormula, m_iPos, iEnd);
+
     m_iPos = iEnd;
     a_Tok.SetVar(item->second, strTok);
     m_UsedVar[item->first] = item->second;  // Add variable to used-var-list

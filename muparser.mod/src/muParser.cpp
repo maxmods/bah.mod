@@ -327,6 +327,26 @@ namespace mu
     DefineInfixOprt(_T("-"), UnaryMinus);
   }
 
+  //---------------------------------------------------------------------------
+  void Parser::OnDetectVar(std::string *pExpr, int &nStart, int &nEnd)
+  {
+    /*
+    string sVar(pExpr->begin()+nStart, pExpr->begin()+nEnd);
+    string sRepl = std::string("_") + sVar + "_";
+  
+    int nOrigVarEnd = nEnd;
+    cout << "variable detected!\n";
+    cout << "  Expr: " << *pExpr << "\n";
+    cout << "  Start: " << nStart << "\n";
+    cout << "  End: " << nEnd << "\n";
+    cout << "  Var: \"" << sVar << "\"\n";
+    cout << "  Repl: \"" << sRepl << "\"\n";
+    nEnd = nStart + sRepl.length();
+    cout << "  End: " << nEnd << "\n";
+    pExpr->replace(pExpr->begin()+nStart, pExpr->begin()+nOrigVarEnd, sRepl);
+    cout << "  New expr: " << *pExpr << "\n";
+    */
+  }
 
   //---------------------------------------------------------------------------
   /** \brief Numerically differentiate with regard to a variable. 

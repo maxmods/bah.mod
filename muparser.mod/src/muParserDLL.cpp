@@ -67,6 +67,7 @@ class ParserTag
 public:
   ParserTag()
     :pParser(new mu::Parser())
+    ,exc()
     ,errHandler(NULL)
     ,bError(false)
   {}
@@ -85,6 +86,8 @@ private:
   ParserTag(const ParserTag &ref);
   ParserTag& operator=(const ParserTag &ref);
 };
+
+static muChar_t s_tmpOutBuf[2048];
 
 //---------------------------------------------------------------------------
 // private types
@@ -407,7 +410,14 @@ API_EXPORT(const muChar_t*) mupGetExpr(muParserHandle_t a_hParser)
 {
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
-    return p->GetExpr().c_str();
+//    return p->GetExpr().c_str();
+
+    // C# explodes when pMsg is returned directly. For some reason it can't access
+    // the memory where the message lies directly.
+//    static char szBuf[1024];
+    sprintf(s_tmpOutBuf, "%s", p->GetExpr().c_str());
+    return s_tmpOutBuf;
+  
   MU_CATCH
 
   return "";
@@ -614,22 +624,28 @@ API_EXPORT(int) mupGetConstNum(muParserHandle_t a_hParser)
 //-----------------------------------------------------------------------------------------------------
 API_EXPORT(void) mupSetArgSep(muParserHandle_t a_hParser, const muChar_t cArgSep)
 {
-  muParser_t* const p(AsParser(a_hParser));
-  p->SetArgSep(cArgSep);
+  MU_TRY
+    muParser_t* const p(AsParser(a_hParser));
+    p->SetArgSep(cArgSep);
+  MU_CATCH
 }
 
 //-----------------------------------------------------------------------------------------------------
 API_EXPORT(void) mupSetDecSep(muParserHandle_t a_hParser, const muChar_t cDecSep)
 {
-  muParser_t* const p(AsParser(a_hParser));
-  p->SetDecSep(cDecSep);
+  MU_TRY
+    muParser_t* const p(AsParser(a_hParser));
+    p->SetDecSep(cDecSep);
+  MU_CATCH
 }
 
 //-----------------------------------------------------------------------------------------------------
 API_EXPORT(void) mupSetThousandsSep(muParserHandle_t a_hParser, const muChar_t cThousandsSep)
 {
-  muParser_t* const p(AsParser(a_hParser));
-  p->SetThousandsSep(cThousandsSep);
+  MU_TRY
+    muParser_t* const p(AsParser(a_hParser));
+    p->SetThousandsSep(cThousandsSep);
+  MU_CATCH
 }
 
 //---------------------------------------------------------------------------
@@ -720,17 +736,31 @@ API_EXPORT(void) mupSetErrorHandler(muParserHandle_t a_hParser, muErrorHandler_t
 //---------------------------------------------------------------------------
 /** \brief Return the message associated with the last error.
 */
-API_EXPORT(const char*) mupGetErrorMsg(muParserHandle_t a_hParser)
+API_EXPORT(const muChar_t*) mupGetErrorMsg(muParserHandle_t a_hParser)
 {
-  return AsParserTag(a_hParser)->exc.GetMsg().c_str();
+  ParserTag* const p(AsParserTag(a_hParser));
+  const char *pMsg = p->exc.GetMsg().c_str();
+
+  // C# explodes when pMsg is returned directly. For some reason it can't access
+  // the memory where the message lies directly.
+//  static char szBuf[1024];
+  sprintf(s_tmpOutBuf, "%s", pMsg);
+  return s_tmpOutBuf;
 }
 
 //---------------------------------------------------------------------------
 /** \brief Return the message associated with the last error.
 */
-API_EXPORT(const char*) mupGetErrorToken(muParserHandle_t a_hParser)
+API_EXPORT(const muChar_t*) mupGetErrorToken(muParserHandle_t a_hParser)
 {
-  return AsParserTag(a_hParser)->exc.GetToken().c_str();
+  ParserTag* const p(AsParserTag(a_hParser));
+  const char *pToken = p->exc.GetToken().c_str();
+
+  // C# explodes when pMsg is returned directly. For some reason it can't access
+  // the memory where the message lies directly.
+//  static char szBuf[1024];
+  sprintf(s_tmpOutBuf, "%s", pToken);
+  return s_tmpOutBuf;
 }
 
 //---------------------------------------------------------------------------
@@ -748,11 +778,11 @@ API_EXPORT(int) mupGetErrorPos(muParserHandle_t a_hParser)
   return (int)AsParserTag(a_hParser)->exc.GetPos();
 }
 
-//-----------------------------------------------------------------------------------------------------
-API_EXPORT(const muChar_t*) mupGetErrorExpr(muParserHandle_t a_hParser)
-{
-  return AsParserTag(a_hParser)->exc.GetExpr().c_str();
-}
+////-----------------------------------------------------------------------------------------------------
+//API_EXPORT(const muChar_t*) mupGetErrorExpr(muParserHandle_t a_hParser)
+//{
+//  return AsParserTag(a_hParser)->exc.GetExpr().c_str();
+//}
 
 //-----------------------------------------------------------------------------------------------------
 API_EXPORT(muFloat_t*) mupCreateVar()
@@ -765,6 +795,5 @@ API_EXPORT(void) mupReleaseVar(muFloat_t *ptr)
 {
   delete ptr;
 }
-
 
 #endif      // MUPARSER_DLL

@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2008 Ingo Berg
+  Copyright (C) 2004-2009 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -82,6 +82,7 @@ namespace mu
     ,m_sNameChars()
     ,m_sOprtChars()
     ,m_sInfixOprtChars()
+    ,m_vStackBuffer()
   {
     InitTokenReader();
   }
@@ -195,6 +196,11 @@ namespace mu
     m_vStringBuf.clear();
     m_vByteCode.clear();
     m_pTokenReader->ReInit();
+  }
+
+  //---------------------------------------------------------------------------
+  void ParserBase::OnDetectVar(std::string *pExpr, int &nStart, int &nEnd)
+  {
   }
 
   //---------------------------------------------------------------------------
@@ -494,7 +500,7 @@ namespace mu
     {
     // built in operators
     case cmEND:      return -5;
-	  case cmARG_SEP:    return -4;
+	  case cmARG_SEP:  return -4;
     case cmBO :	
     case cmBC :      return -2;
     case cmASSIGN:   return -1;               
@@ -904,7 +910,8 @@ namespace mu
     #pragma warning( disable : 4312 )
   #endif
 
-    value_type Stack[99];
+    value_type *Stack = &m_vStackBuffer[0];
+//    value_type Stack[99];
     ECmdCode iCode;
     bytecode_type idx(0);
     int i(0);
@@ -915,10 +922,12 @@ namespace mu
     iCode = (ECmdCode)m_pCmdCode[i+1];
     i += 2;
 
-  #ifdef _DEBUG
-    if (idx>=99)
+#ifdef _DEBUG
+    // Die Formelendkennung ist Wert 26 dreimal hintereinander geschrieben
+    // Ich muß für den Test das Formelende filtern.
+    if (idx>=(int)m_vStackBuffer.size() && iCode!=cmEND)
       throw exception_type(ecGENERIC, _T(""), m_pTokenReader->GetFormula(), -1);
-  #endif
+#endif
 
     switch (iCode)
     {
@@ -1246,6 +1255,7 @@ namespace mu
       m_pParseFormula = (m_pCmdCode[1]==cmVAL && checkEnd<m_vByteCode.GetBufSize() && m_pCmdCode[checkEnd]==cmEND) ? 
                               &ParserBase::ParseValue :
                               &ParserBase::ParseCmdCode;
+      m_vStackBuffer.resize(m_vByteCode.GetMaxStackSize());
     }
 
     return fVal;

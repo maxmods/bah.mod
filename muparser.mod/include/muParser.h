@@ -59,6 +59,7 @@ namespace mu
     virtual void InitFun();
     virtual void InitConst();
     virtual void InitOprt();
+    virtual void OnDetectVar(std::string *pExpr, int &nStart, int &nEnd);
 
     void SetDecSep(char_type cDecSep);
     void SetThousandsSep(char_type cThousandsSep);
