@@ -98,11 +98,18 @@ Type TTLFileRef
 		Return bmx_taglib_fileref_isnull(fileRefPtr)
 	End Method
 	
-	Method Delete()
+	Rem
+	bbdoc: Frees and closes the FileRef.
+	End Rem
+	Method Free()
 		If fileRefPtr Then
 			bmx_taglib_fileref_delete(fileRefPtr)
 			fileRefPtr = Null
 		End If
+	End Method
+	
+	Method Delete()
+		Free()
 	End Method
 	
 End Type

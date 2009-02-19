@@ -46,7 +46,7 @@ Function ShowFileDetails(filename:String)
 			Print "comment - ~q" + tag.comment() + "~q"
 			Print "track   - ~q" + tag.track()   + "~q"
 			Print "genre   - ~q" + tag.genre()   + "~q"
-		
+
 		End If
 	
 		Local properties:TTLAudioProperties = file.audioProperties()
@@ -69,6 +69,9 @@ Function ShowFileDetails(filename:String)
 		End If
 	
 		Print "~n"
+		
+		' free the file
+		file.Free()
 	End If
 
 End Function
