@@ -54,6 +54,7 @@
 #include <utility>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <boost/interprocess/containers/detail/tree.hpp>
 #include <boost/type_traits/has_trivial_destructor.hpp>
 #include <boost/interprocess/detail/mpl.hpp>
@@ -164,8 +165,8 @@ class map
    //! <b>Complexity</b>: Construct.
    //! 
    //! <b>Postcondition</b>: x is emptied.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   map(const detail::moved_object<map<Key,T,Pred,Alloc> >& x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   map(detail::moved_object<map<Key,T,Pred,Alloc> > x) 
       : m_tree(detail::move_impl(x.get().m_tree))
    {}
    #else
@@ -183,8 +184,8 @@ class map
    //! <b>Effects</b>: this->swap(x.get()).
    //! 
    //! <b>Complexity</b>: Constant.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   map<Key,T,Pred,Alloc>& operator=(const detail::moved_object<map<Key,T,Pred,Alloc> >& x)
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   map<Key,T,Pred,Alloc>& operator=(detail::moved_object<map<Key,T,Pred,Alloc> > x)
    {  m_tree = detail::move_impl(x.get().m_tree);   return *this;  }
    #else
    map<Key,T,Pred,Alloc>& operator=(map<Key,T,Pred,Alloc> &&x)
@@ -334,8 +335,8 @@ class map
    //! Returns: A reference to the mapped_type corresponding to x in *this.
    //! 
    //! Complexity: Logarithmic.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   T& operator[](const detail::moved_object<key_type>& mk) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   T& operator[](detail::moved_object<key_type> mk)
    {
       key_type &k = mk.get();
       //we can optimize this
@@ -362,34 +363,29 @@ class map
    }
    #endif
 
-/*
-   //! Effects: If there is no key equivalent to x in the map, inserts 
-   //! value_type(detail::move_impl(x), T()) into the map (the key is move-constructed)
-   //! 
-   //! Returns: A reference to the mapped_type corresponding to x in *this.
-   //! 
-   //! Complexity: Logarithmic.
-   T& at(const key_type& x)
+   //! Returns: A reference to the element whose key is equivalent to x.
+   //! Throws: An exception object of type out_of_range if no such element is present.
+   //! Complexity: logarithmic.
+   T& at(const key_type& k)
    {
-      if(this->find(x) == this->end()){
-         
+      iterator i = this->find(k);
+      if(i == this->end()){
+         throw std::out_of_range("key not found");
       }
-      key_type &k = mk.get();
-      //we can optimize this
-      iterator i = lower_bound(k);
-      // i->first is greater than or equivalent to k.
-      if (i == end() || key_comp()(k, (*i).first)){
-         value_type val(k, detail::move_impl(T()));
-         i = insert(i, detail::move_impl(val));
-      }
-      return (*i).second;
+      return i->second;
    }
 
-//;
-//const T& at(const key_type& x) const;
-//4 Returns: A reference to the element whose key is equivalent to x.
-//5 Throws: An exception object of type out_of_range if no such element is present.
-*/
+   //! Returns: A reference to the element whose key is equivalent to x.
+   //! Throws: An exception object of type out_of_range if no such element is present.
+   //! Complexity: logarithmic.
+   const T& at(const key_type& k) const
+   {
+      const_iterator i = this->find(k);
+      if(i == this->end()){
+         throw std::out_of_range("key not found");
+      }
+      return i->second;
+   }
 
    //! <b>Effects</b>: Swaps the contents of *this and x.
    //!   If this->allocator_type() != x.allocator_type() allocators are also swapped.
@@ -397,22 +393,14 @@ class map
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   void swap(map<Key,T,Pred,Alloc>& x) 
-   { m_tree.swap(x.m_tree); }
-
-   //! <b>Effects</b>: Swaps the contents of *this and x.
-   //!   If this->allocator_type() != x.allocator_type() allocators are also swapped.
-   //!
-   //! <b>Throws</b>: Nothing.
-   //!
-   //! <b>Complexity</b>: Constant.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   void swap(const detail::moved_object<map<Key,T,Pred,Alloc> >& x) 
-   { m_tree.swap(x.get().m_tree); }
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   void swap(detail::moved_object<map> x)
+   {  this->swap(x.get()); }
+   void swap(map& x)
    #else
-   void swap(map<Key,T,Pred,Alloc> &&x) 
-   { m_tree.swap(x.m_tree); }
+   void swap(map &&x)
    #endif
+   { m_tree.swap(x.m_tree); }
 
    //! <b>Effects</b>: Inserts x if and only if there is no element in the container 
    //!   with key equivalent to the key of x.
@@ -444,8 +432,8 @@ class map
    //!   points to the element with key equivalent to the key of x.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   std::pair<iterator,bool> insert(const detail::moved_object<std::pair<key_type, mapped_type> > &x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   std::pair<iterator,bool> insert(detail::moved_object<std::pair<key_type, mapped_type> > x) 
    { return m_tree.insert_unique(x); }
    #else
    std::pair<iterator,bool> insert(std::pair<key_type, mapped_type> &&x) 
@@ -460,8 +448,8 @@ class map
    //!   points to the element with key equivalent to the key of x.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   std::pair<iterator,bool> insert(const detail::moved_object<value_type>& x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   std::pair<iterator,bool> insert(detail::moved_object<value_type> x) 
    { return m_tree.insert_unique(x); }
    #else
    std::pair<iterator,bool> insert(value_type &&x) 
@@ -489,8 +477,8 @@ class map
    //!
    //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
    //!   is inserted right before p.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   iterator insert(iterator position, const detail::moved_object<std::pair<key_type, mapped_type> > &x)
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   iterator insert(iterator position, detail::moved_object<std::pair<key_type, mapped_type> > x)
    { return m_tree.insert_unique(position, x); }
    #else
    iterator insert(iterator position, std::pair<key_type, mapped_type> &&x)
@@ -512,8 +500,8 @@ class map
    //! <b>Returns</b>: An iterator pointing to the element with key equivalent to the key of x.
    //!
    //! <b>Complexity</b>: Logarithmic.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   iterator insert(iterator position, const detail::moved_object<value_type>& x)
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   iterator insert(iterator position, detail::moved_object<value_type> x)
    { return m_tree.insert_unique(position, x); }
    #else
    iterator insert(iterator position, value_type &&x)
@@ -529,6 +517,58 @@ class map
    template <class InputIterator>
    void insert(InputIterator first, InputIterator last) 
    {  m_tree.insert_unique(first, last);  }
+
+   #ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
+
+   //! <b>Effects</b>: Inserts an object of type T constructed with
+   //!   std::forward<Args>(args)... in the container if and only if there is 
+   //!   no element in the container with an equivalent key.
+   //!   p is a hint pointing to where the insert should start to search.
+   //!
+   //! <b>Returns</b>: An iterator pointing to the element with key equivalent
+   //!   to the key of x.
+   //!
+   //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
+   //!   is inserted right before p.
+   template <class... Args>
+   iterator emplace(Args&&... args)
+   {  return m_tree.emplace_unique(detail::forward_impl<Args>(args)...); }
+
+   //! <b>Effects</b>: Inserts an object of type T constructed with
+   //!   std::forward<Args>(args)... in the container if and only if there is 
+   //!   no element in the container with an equivalent key.
+   //!   p is a hint pointing to where the insert should start to search.
+   //!
+   //! <b>Returns</b>: An iterator pointing to the element with key equivalent
+   //!   to the key of x.
+   //!
+   //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
+   //!   is inserted right before p.
+   template <class... Args>
+   iterator emplace_hint(const_iterator hint, Args&&... args)
+   {  return m_tree.emplace_hint_unique(hint, detail::forward_impl<Args>(args)...); }
+
+   #else //#ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
+
+   iterator emplace()
+   {  return m_tree.emplace_unique(); }
+
+   iterator emplace_hint(const_iterator hint)
+   {  return m_tree.emplace_hint_unique(hint); }
+
+   #define BOOST_PP_LOCAL_MACRO(n)                                                                       \
+   template<BOOST_PP_ENUM_PARAMS(n, class P)>                                                            \
+   iterator emplace(BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_LIST, _))                               \
+   {  return m_tree.emplace_unique(BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_FORWARD, _)); }          \
+                                                                                                         \
+   template<BOOST_PP_ENUM_PARAMS(n, class P)>                                                            \
+   iterator emplace_hint(const_iterator hint, BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_LIST, _))     \
+   {  return m_tree.emplace_hint_unique(hint, BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_FORWARD, _));}\
+   //!
+   #define BOOST_PP_LOCAL_LIMITS (1, BOOST_INTERPROCESS_MAX_CONSTRUCTOR_PARAMETERS)
+   #include BOOST_PP_LOCAL_ITERATE()
+
+   #endif   //#ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
 
    //! <b>Effects</b>: Erases the element pointed to by position.
    //!
@@ -664,25 +704,21 @@ inline bool operator>=(const map<Key,T,Pred,Alloc>& x,
                        const map<Key,T,Pred,Alloc>& y) 
    {  return !(x < y);  }
 
-#ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
+#if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(map<Key,T,Pred,Alloc>& x, 
-                 map<Key,T,Pred,Alloc>& y) 
+inline void swap(map<Key,T,Pred,Alloc>& x, map<Key,T,Pred,Alloc>& y) 
    {  x.swap(y);  }
 
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(const detail::moved_object<map<Key,T,Pred,Alloc> >& x, 
-                 map<Key,T,Pred,Alloc>& y) 
+inline void swap(detail::moved_object<map<Key,T,Pred,Alloc> > x, map<Key,T,Pred,Alloc>& y) 
    {  x.get().swap(y);  }
 
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(map<Key,T,Pred,Alloc>& x, 
-                 const detail::moved_object<map<Key,T,Pred,Alloc> >& y) 
+inline void swap(map<Key,T,Pred,Alloc>& x, detail::moved_object<map<Key,T,Pred,Alloc> > y) 
    {  x.swap(y.get());  }
 #else
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(map<Key,T,Pred,Alloc>&&x, 
-                 map<Key,T,Pred,Alloc>&&y) 
+inline void swap(map<Key,T,Pred,Alloc>&&x, map<Key,T,Pred,Alloc>&&y) 
    {  x.swap(y);  }
 #endif
 
@@ -811,8 +847,8 @@ class multimap
    //! <b>Complexity</b>: Construct.
    //! 
    //! <b>Postcondition</b>: x is emptied.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   multimap(const detail::moved_object<multimap<Key,T,Pred,Alloc> >& x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   multimap(detail::moved_object<multimap<Key,T,Pred,Alloc> > x) 
       : m_tree(detail::move_impl(x.get().m_tree))
    {}
    #else
@@ -831,13 +867,11 @@ class multimap
    //! <b>Effects</b>: this->swap(x.get()).
    //! 
    //! <b>Complexity</b>: Constant.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   multimap<Key,T,Pred,Alloc>&
-   operator=(const detail::moved_object<multimap<Key,T,Pred,Alloc> >& x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   multimap<Key,T,Pred,Alloc>& operator=(detail::moved_object<multimap<Key,T,Pred,Alloc> > x) 
    {  m_tree = detail::move_impl(x.get().m_tree);   return *this;  }
    #else
-   multimap<Key,T,Pred,Alloc>&
-   operator=(multimap<Key,T,Pred,Alloc> && x) 
+   multimap<Key,T,Pred,Alloc>& operator=(multimap<Key,T,Pred,Alloc> && x) 
    {  m_tree = detail::move_impl(x.m_tree);   return *this;  }
    #endif
 
@@ -966,22 +1000,14 @@ class multimap
    //! <b>Throws</b>: Nothing.
    //!
    //! <b>Complexity</b>: Constant.
-   void swap(multimap<Key,T,Pred,Alloc>& x) 
-   { m_tree.swap(x.m_tree); }
-
-   //! <b>Effects</b>: Swaps the contents of *this and x.
-   //!   If this->allocator_type() != x.allocator_type() allocators are also swapped.
-   //!
-   //! <b>Throws</b>: Nothing.
-   //!
-   //! <b>Complexity</b>: Constant.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   void swap(const detail::moved_object<multimap<Key,T,Pred,Alloc> >& x) 
-   { m_tree.swap(x.get().m_tree); }
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   void swap(detail::moved_object<multimap> x)
+   {  this->swap(x.get()); }
+   void swap(multimap& x)
    #else
-   void swap(multimap<Key,T,Pred,Alloc> && x) 
-   { m_tree.swap(x.m_tree); }
+   void swap(multimap &&x)
    #endif
+   { m_tree.swap(x.m_tree); }
 
    //! <b>Effects</b>: Inserts x and returns the iterator pointing to the
    //!   newly inserted element. 
@@ -1001,8 +1027,8 @@ class multimap
    //!   the iterator pointing to the newly inserted element. 
    //!
    //! <b>Complexity</b>: Logarithmic.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   iterator insert(const detail::moved_object<std::pair<key_type, mapped_type> >& x) 
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   iterator insert(detail::moved_object<std::pair<key_type, mapped_type> > x) 
    { return m_tree.insert_equal(x); }
    #else
    iterator insert(std::pair<key_type, mapped_type> && x) 
@@ -1039,8 +1065,8 @@ class multimap
    //!
    //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
    //!   is inserted right before p.
-   #ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
-   iterator insert(iterator position, const detail::moved_object<std::pair<key_type, mapped_type> >& x)
+   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
+   iterator insert(iterator position, detail::moved_object<std::pair<key_type, mapped_type> > x)
    { return m_tree.insert_equal(position, x); }
    #else
    iterator insert(iterator position, std::pair<key_type, mapped_type> && x)
@@ -1055,6 +1081,56 @@ class multimap
    template <class InputIterator>
    void insert(InputIterator first, InputIterator last) 
    {  m_tree.insert_equal(first, last); }
+
+   #ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
+
+   //! <b>Effects</b>: Inserts an object of type T constructed with
+   //!   std::forward<Args>(args)... in the container.
+   //!   p is a hint pointing to where the insert should start to search.
+   //!
+   //! <b>Returns</b>: An iterator pointing to the element with key equivalent
+   //!   to the key of x.
+   //!
+   //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
+   //!   is inserted right before p.
+   template <class... Args>
+   iterator emplace(Args&&... args)
+   {  return m_tree.emplace_equal(detail::forward_impl<Args>(args)...); }
+
+   //! <b>Effects</b>: Inserts an object of type T constructed with
+   //!   std::forward<Args>(args)... in the container.
+   //!   p is a hint pointing to where the insert should start to search.
+   //!
+   //! <b>Returns</b>: An iterator pointing to the element with key equivalent
+   //!   to the key of x.
+   //!
+   //! <b>Complexity</b>: Logarithmic in general, but amortized constant if t
+   //!   is inserted right before p.
+   template <class... Args>
+   iterator emplace_hint(const_iterator hint, Args&&... args)
+   {  return m_tree.emplace_hint_equal(hint, detail::forward_impl<Args>(args)...); }
+
+   #else //#ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
+
+   iterator emplace()
+   {  return m_tree.emplace_equal(); }
+
+   iterator emplace_hint(const_iterator hint)
+   {  return m_tree.emplace_hint_equal(hint); }
+
+   #define BOOST_PP_LOCAL_MACRO(n)                                                                       \
+   template<BOOST_PP_ENUM_PARAMS(n, class P)>                                                            \
+   iterator emplace(BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_LIST, _))                               \
+   {  return m_tree.emplace_equal(BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_FORWARD, _)); }           \
+                                                                                                         \
+   template<BOOST_PP_ENUM_PARAMS(n, class P)>                                                            \
+   iterator emplace_hint(const_iterator hint, BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_LIST, _))     \
+   {  return m_tree.emplace_hint_equal(hint, BOOST_PP_ENUM(n, BOOST_INTERPROCESS_PP_PARAM_FORWARD, _)); }\
+   //!
+   #define BOOST_PP_LOCAL_LIMITS (1, BOOST_INTERPROCESS_MAX_CONSTRUCTOR_PARAMETERS)
+   #include BOOST_PP_LOCAL_ITERATE()
+
+   #endif   //#ifdef BOOST_INTERPROCESS_PERFECT_FORWARDING
 
    //! <b>Effects</b>: Erases the element pointed to by position.
    //!
@@ -1193,25 +1269,21 @@ inline bool operator>=(const multimap<Key,T,Pred,Alloc>& x,
 {  return !(x < y);  }
 
 
-#ifndef BOOST_INTERPROCESS_RVALUE_REFERENCE
+#if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(multimap<Key,T,Pred,Alloc>& x, 
-                 multimap<Key,T,Pred,Alloc>& y) 
+inline void swap(multimap<Key,T,Pred,Alloc>& x, multimap<Key,T,Pred,Alloc>& y) 
 {  x.swap(y);  }
 
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(const detail::moved_object<multimap<Key,T,Pred,Alloc> >& x, 
-                 multimap<Key,T,Pred,Alloc>& y) 
+inline void swap(detail::moved_object<multimap<Key,T,Pred,Alloc> > x, multimap<Key,T,Pred,Alloc>& y) 
 {  x.get().swap(y);  }
 
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(multimap<Key,T,Pred,Alloc>& x, 
-                 const detail::moved_object<multimap<Key,T,Pred,Alloc> >& y) 
+inline void swap(multimap<Key,T,Pred,Alloc>& x, detail::moved_object<multimap<Key,T,Pred,Alloc> > y) 
 {  x.swap(y.get());  }
 #else
 template <class Key, class T, class Pred, class Alloc>
-inline void swap(multimap<Key,T,Pred,Alloc>&&x, 
-                 multimap<Key,T,Pred,Alloc>&&y) 
+inline void swap(multimap<Key,T,Pred,Alloc>&&x, multimap<Key,T,Pred,Alloc>&&y) 
 {  x.swap(y);  }
 #endif
 

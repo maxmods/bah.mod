@@ -97,8 +97,9 @@ namespace boost
       { BOOST_STATIC_CONSTANT( bool, value = true ); };
 # endif
 
-    // these only have to be specialized if Path::string_type::value_type
-    // is not convertible from char
+    // These only have to be specialized if Path::string_type::value_type
+    // is not convertible from char, although specializations may eliminate
+    // compiler warnings. See ticket 2543.
     template<class Path> struct slash
       { BOOST_STATIC_CONSTANT( char, value = '/' ); };
 
@@ -108,9 +109,22 @@ namespace boost
     template<class Path> struct colon
       { BOOST_STATIC_CONSTANT( char, value = ':' ); };
 
+# ifndef BOOST_FILESYSTEM_NARROW_ONLY
+    template<> struct slash<wpath>
+      { BOOST_STATIC_CONSTANT( wchar_t, value = L'/' ); };
+    template<> struct dot<wpath>
+      { BOOST_STATIC_CONSTANT( wchar_t, value = L'.' ); };
+    template<> struct colon<wpath>
+      { BOOST_STATIC_CONSTANT( wchar_t, value = L':' ); };
+# endif
+
 # ifdef BOOST_WINDOWS_PATH
     template<class Path> struct path_alt_separator
       { BOOST_STATIC_CONSTANT( char, value = '\\' ); };
+#   ifndef BOOST_FILESYSTEM_NARROW_ONLY
+    template<> struct path_alt_separator<wpath>
+      { BOOST_STATIC_CONSTANT( wchar_t, value = L'\\' ); };
+#   endif
 # endif
 
     //  workaround for VC++ 7.0 and earlier issues with nested classes
@@ -203,7 +217,7 @@ namespace boost
       }
 
       basic_path & remove_filename();
-      basic_path & replace_extension( const string_type & new_extension = "" );
+      basic_path & replace_extension( const string_type & new_extension = string_type() );
 
 # ifndef BOOST_FILESYSTEM_NO_DEPRECATED
       basic_path & remove_leaf() { return remove_filename(); }
@@ -227,8 +241,10 @@ namespace boost
       string_type  extension() const;
 
 # ifndef BOOST_FILESYSTEM_NO_DEPRECATED
-      string_type  leaf() const { return filename(); }
-      basic_path   branch_path() const { return parent_path(); }
+      string_type  leaf() const            { return filename(); }
+      basic_path   branch_path() const     { return parent_path(); }
+      bool         has_leaf() const        { return !m_path.empty(); }
+      bool         has_branch_path() const { return !parent_path().empty(); }
 # endif
 
       bool empty() const               { return m_path.empty(); } // name consistent with std containers
@@ -237,7 +253,7 @@ namespace boost
       bool has_root_name() const;
       bool has_root_directory() const;
       bool has_relative_path() const   { return !relative_path().empty(); }
-      bool has_filename() const            { return !m_path.empty(); }
+      bool has_filename() const        { return !m_path.empty(); }
       bool has_parent_path() const     { return !parent_path().empty(); }
 
       // iterators
@@ -531,7 +547,7 @@ namespace boost
     //  inserters and extractors  --------------------------------------------//
 
 // bypass VC++ 7.0 and earlier, and broken Borland compilers
-# if !BOOST_WORKAROUND(BOOST_MSVC, <= 1300) && !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+# if !BOOST_WORKAROUND(BOOST_MSVC, <= 1300) && !BOOST_WORKAROUND(__BORLANDC__, < 0x610)
     template< class Path >
     std::basic_ostream< typename Path::string_type::value_type,
       typename Path::string_type::traits_type > &
@@ -594,23 +610,23 @@ namespace boost
       // BOOST_FILESYSTEM_DECL version works for VC++ but not GCC. Go figure!
       inline
       const char * what( const char * sys_err_what,
-        const path & path1, const path & path2, std::string & target )
+        const path & path1_arg, const path & path2_arg, std::string & target )
       {
         try
         {
           if ( target.empty() )
           {
             target = sys_err_what;
-            if ( !path1.empty() )
+            if ( !path1_arg.empty() )
             {
               target += ": \"";
-              target += path1.file_string();
+              target += path1_arg.file_string();
               target += "\"";
             }
-            if ( !path2.empty() )
+            if ( !path2_arg.empty() )
             {
               target += ", \"";
-              target += path2.file_string();
+              target += path2_arg.file_string();
               target += "\"";
             }
           }
@@ -624,7 +640,7 @@ namespace boost
 
       template<class Path>
       const char * what( const char * sys_err_what,
-        const Path & /*path1*/, const Path & /*path2*/, std::string & /*target*/ )
+        const Path & /*path1_arg*/, const Path & /*path2_arg*/, std::string & /*target*/ )
       {
         return sys_err_what;
       }
