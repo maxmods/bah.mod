@@ -323,6 +323,30 @@ Type TFlickcurl
 	End Method
 	
 	Rem
+	bbdoc: Get a group, given the url to a group's page or photo pool.
+	about: Parameters: 
+	<ul>
+	<li><b>url</b> : URL of group's page or photo pool </li>
+	<li><b>lang</b> : Optional group language. One of de-de, en-us, es-us, fr-fr, it-it, ko-kr, pt-br or zh-hk </li>
+	</ul>
+	End Rem
+	Method LookupGroup:TFCGroup(url:String, lang:String = "en-us")
+		Return TFCGroup._create(bmx_flickcurl_url_lookupgroup(fcPtr, url, lang), fcPtr, True)
+	End Method
+	
+	Rem
+	bbdoc: Gets information about a group.
+	about: Parameters: 
+	<ul>
+	<li><b>groupID</b> : The NSID of the group to fetch information for.</li>
+	<li><b>lang</b> : The language of the group name and description to fetch. If the language is not found, the primary language of the group will be returned.</li>
+	</ul>
+	End Rem
+	Method GetGroup:TFCGroup(groupID:String, lang:String = "en-us")
+		Return TFCGroup._create(bmx_flickcurl_groups_getinfo(fcPtr, groupID, lang), fcPtr, True)
+	End Method
+	
+	Rem
 	bbdoc: Returns an array of tag clusters for a tag.
 	about: Parameters: 
 	<ul>
@@ -2108,6 +2132,17 @@ Type TFCGroup
 		Return bmx_flickcurl_group_geturl(fcPtr, groupPtr)
 	End Method
 
+	Rem
+	bbdoc: Adds a photo to the group's pool. 
+	about: Parameters: 
+	<ul>
+	<li><b>photo</b> : the photo to add to the group pool.</li>
+	</ul>
+	End Rem
+	Method AddPhoto:Int(photo:TFCPhoto)
+		Return bmx_flickcurl_group_pools_add(fcPtr, groupPtr, photo.photoPtr)
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem

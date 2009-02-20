@@ -192,9 +192,12 @@ extern "C" {
 	int bmx_flickcurl_group_getthrottlecount(flickcurl_group * group);
 	int bmx_flickcurl_group_getthrottleremaining(flickcurl_group * group);
 	BBString * bmx_flickcurl_group_geturl(flickcurl * fc, flickcurl_group * group);
+	int bmx_flickcurl_group_pools_add(flickcurl * fc, flickcurl_group * group, flickcurl_photo * photo);
 
 	int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list);
 	flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, int index);
+	flickcurl_group * bmx_flickcurl_url_lookupgroup(flickcurl * fc, BBString * url, BBString * lang);
+	flickcurl_group * bmx_flickcurl_groups_getinfo(flickcurl * fc, BBString * groupID, BBString * lang);
 
 	int bmx_flickcurl_perms_ispublic(flickcurl_perms * perms);
 	void bmx_flickcurl_perms_setpublic(flickcurl_perms * perms, int value);
@@ -1072,7 +1075,7 @@ flickcurl_person * bmx_flickcurl_people_getinfo(flickcurl * fc, BBString * userI
 flickcurl_person * bmx_flickcurl_url_lookupuser(flickcurl * fc, BBString * url) {
 	flickcurl_person * person = 0;
 	char *u=bbStringToCString( url );
-	char * nsid = bmx_flickcurl_url_lookupuser(fc, u);
+	char * nsid = flickcurl_urls_lookupUser(fc, u);
 	if (nsid) {
 		person = flickcurl_people_getInfo(fc, nsid);
 	}
@@ -1142,6 +1145,10 @@ BBString * bmx_flickcurl_group_geturl(flickcurl * fc, flickcurl_group * group) {
 	return bbStringFromCString(flickcurl_urls_getGroup(fc, group->nsid));
 }
 
+int bmx_flickcurl_group_pools_add(flickcurl * fc, flickcurl_group * group, flickcurl_photo * photo) {
+	return flickcurl_groups_pools_add(fc, photo->id, group->nsid);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 int bmx_flickcurl_listofgroups_getgroupcount(flickcurl_group ** list) {
@@ -1158,6 +1165,27 @@ flickcurl_group * bmx_flickcurl_listofgroups_getgroup(flickcurl_group ** list, i
 	return list[index];
 }
 
+flickcurl_group * bmx_flickcurl_url_lookupgroup(flickcurl * fc, BBString * url, BBString * lang) {
+	flickcurl_group * group = 0;
+	char *u=bbStringToCString( url );
+	char *l=bbStringToCString( lang );
+	char * nsid = flickcurl_urls_lookupGroup(fc, u);
+	if (nsid) {
+		group = flickcurl_groups_getInfo(fc, nsid, l);
+	}
+	bbMemFree(u);
+	bbMemFree(l);
+	return group;
+}
+
+flickcurl_group * bmx_flickcurl_groups_getinfo(flickcurl * fc, BBString * groupID, BBString * lang) {
+	char *g=bbStringToCString( groupID );
+	char *l=bbStringToCString( lang );
+	flickcurl_group * group = flickcurl_groups_getInfo(fc, g, l);
+	bbMemFree(g);
+	bbMemFree(l);
+	return group;
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
