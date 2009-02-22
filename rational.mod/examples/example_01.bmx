@@ -10,7 +10,7 @@ Local two:TRational = Rational(2)
 
 ' Some basic checks
 AssertTrue half.Numerator() = 1
-AssertTrue half.denominator() = 2
+AssertTrue half.Denominator() = 2
 AssertTrue half.ToDouble() = 0.5
 
 ' Arithmetic

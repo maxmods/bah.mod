@@ -28,6 +28,7 @@ SuperStrict
 
 Import BaH.Boost
 
+Import "../boost.mod/src/*.hpp"
 Import "glue.cpp"
 
 
