@@ -106,7 +106,10 @@ BBString * bmx_sharedmemoryobject_getname(shared_memory_object * shm) {
 }
 
 bool bmx_sharedmemoryobject_getsize(shared_memory_object * shm, BBInt64 * size) {
-	return shm->get_size(*size);
+	offset_t s;
+	bool res = shm->get_size(s);
+	*size = static_cast<BBInt64>(s);
+	return res;
 }
 
 boost::interprocess::mode_t bmx_sharedmemoryobject_getmode(shared_memory_object * shm) {

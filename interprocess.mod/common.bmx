@@ -28,6 +28,9 @@ SuperStrict
 
 Import BaH.Boost
 Import BRL.Blitz
+?linux
+Import "-lrt"
+?
 
 Import "../boost.mod/src/*.hpp"
 
