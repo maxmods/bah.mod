@@ -29,7 +29,6 @@ Import BRL.Blitz
 Import Pub.StdC
 
 Import "../boost.mod/src/*.hpp"
-Import "src/*.hpp"
 
 Import "lib/src/gregorian/*.hpp"
 
