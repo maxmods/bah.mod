@@ -197,11 +197,11 @@ bool bmx_rational_greaterthan(boost::rational<int> * rat, int value) {
 	return *rat > value;
 }
 
-bool bmx_rational_lessthan(boost::rational<int> * rat, boost::rational<int> * value) {
+bool bmx_rational_lessthanr(boost::rational<int> * rat, boost::rational<int> * value) {
 	return *rat < *value;
 }
 
-bool bmx_rational_greaterthan(boost::rational<int> * rat, boost::rational<int> * value) {
+bool bmx_rational_greaterthanr(boost::rational<int> * rat, boost::rational<int> * value) {
 	return *rat > *value;
 }
 
