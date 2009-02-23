@@ -60,6 +60,19 @@ End Extern
 Rem
 bbdoc: 
 End Rem
+Const CREATE_ONLY:Int = 0
+Rem
+bbdoc: 
+End Rem
+Const OPEN_OR_CREATE:Int = 1
+Rem
+bbdoc: 
+End Rem
+Const OPEN_ONLY:Int = 2
+
+Rem
+bbdoc: 
+End Rem
 ?Not win32
 Const MODE_RO:Int = 0
 ?win32

@@ -6,7 +6,7 @@ Import BRL.StandardIO
 Try
 
 	' Open already created shared memory object.
-	Local shm:TSHMO = New TSHMO.Create(TSHMO.OPEN_ONLY, "shared_memory", MODE_RO)
+	Local shm:TSHMO = New TSHMO.Create(OPEN_ONLY, "shared_memory", MODE_RO)
 	
 	' Map the whole shared memory in this process
 	Local region:TMappedRegion = New TMappedRegion.Create(shm, MODE_RO)

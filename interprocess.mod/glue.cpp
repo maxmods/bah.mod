@@ -28,6 +28,11 @@
 #include <boost/interprocess/mapped_region.hpp>
 
 
+#define CREATE_ONLY    0
+#define OPEN_OR_CREATE 1
+#define OPEN_ONLY      2
+
+
 using namespace boost::interprocess;
 
 
@@ -66,13 +71,13 @@ shared_memory_object * bmx_sharedmemoryobject_create(int access, BBString * name
 	try{
 	
 		switch(access) {
-			case 0:
+			case CREATE_ONLY:
 				shm = new shared_memory_object(create_only, p, mode);
 				break;
-			case 1:
+			case OPEN_OR_CREATE:
 				shm = new shared_memory_object(open_or_create, p, mode);
 				break;
-			case 2:
+			case OPEN_ONLY:
 				shm = new shared_memory_object(open_only, p, mode);
 				break;
 		}

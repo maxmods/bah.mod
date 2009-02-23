@@ -10,7 +10,7 @@ Try
 	
 	
 	' Create a shared memory object.
-	Local shm:TSHMO = New TSHMO.Create(TSHMO.CREATE_ONLY, "shared_memory", MODE_RW)
+	Local shm:TSHMO = New TSHMO.Create(CREATE_ONLY, "shared_memory", MODE_RW)
 	
 	' Set size
 	shm.Truncate(1000)

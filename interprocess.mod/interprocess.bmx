@@ -55,10 +55,6 @@ bbdoc: A shared memory object.
 End Rem
 Type TSHMO Extends TMemoryMappable
 
-	Const CREATE_ONLY:Int = 0
-	Const OPEN_OR_CREATE:Int = 1
-	Const OPEN_ONLY:Int = 2
-	
 	Rem
 	bbdoc: 
 	End Rem
@@ -136,10 +132,16 @@ Type TMappedRegion
 	
 	Field objectPtr:Byte Ptr
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Function CreateMappedRegion:TMappedRegion(mapping:TMemoryMappable, mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
 		Return New TMappedRegion.Create(mapping, mode, offset, size, address)
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TMappedRegion(mapping:TMemoryMappable, mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
 		If TSHMO(mapping) Then
 			If address Then
@@ -151,28 +153,46 @@ Type TMappedRegion
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetSize:Int()
 		Return bmx_mapped_region_getsize(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetAddress:Byte Ptr()
 		Return bmx_mapped_region_getaddress(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetOffset:Long()
 		Local v:Long
 		bmx_mapped_region_getoffset(objectPtr, Varptr v)
 		Return v
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method GetMode:Int()
 		Return bmx_mapped_region_getmode(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Flush:Int(mappingOffset:Int = 0, numBytes:Int = 0)
 		Return bmx_mapped_region_flush(objectPtr, mappingOffset, numBytes)
 	End Method
 		
+	Rem
+	bbdoc: 
+	End Rem
 	Method Free()
 		If objectPtr Then
 			bmx_mapped_region_free(objectPtr)
@@ -185,5 +205,115 @@ Type TMappedRegion
 	End Method
 	
 End Type
+
+Rem
+bbdoc: A mutex with a global name, so it can be found from different processes.
+End Rem
+Type TNamedMutex
+
+	Field objectPtr:Byte Ptr
+	
+	Method Unlock()
+	End Method
+	
+	Method Lock()
+	End Method
+	
+	Method TryLock:Int()
+	End Method
+	
+	Method TimedLock:Int(time:Int)
+	End Method
+	
+	Function Remove:Int(name:String)
+	End Function
+	
+	Method Free()
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
+
+Rem
+bbdoc: A global condition variable that can be created by name.
+End Rem
+Type TNamedCondition
+
+	Field objectPtr:Byte Ptr
+	
+	Method NotifyOne()
+	End Method
+	
+	Method NotifyAll()
+	End Method
+	
+	Method Wait(mutex:TNamedMutex)
+	End Method
+	
+	Method TimedWait:Int(mutex:TNamedMutex, time:Int)
+	End Method
+	
+	Function Remove:Int(name:String)
+	End Function
+
+End Type
+
+Rem
+bbdoc: A semaphore with a global name, so it can be found from different processes.
+about: Allows several resource sharing patterns and efficient acknowledgment mechanisms.
+End Rem
+Type TNamedSempahore
+
+	Field objectPtr:Byte Ptr
+	
+	Rem
+	bbdoc: Increments the semaphore count.
+	about: If there are processes/threads blocked waiting for the semaphore, then one of these
+	processes will return successfully from its wait function. If there is an error a
+	TInterprocessException is thrown.
+	End Rem
+	Method Post()
+	End Method
+	
+	Rem
+	bbdoc: Decrements the semaphore.
+	about: If the semaphore value is not greater than zero, then the calling process/thread blocks
+	until it can decrement the counter. If there is an error a TInterprocessException is thrown.
+	End Rem
+	Method Wait()
+	End Method
+	
+	Rem
+	bbdoc: Decrements the semaphore if the semaphore's value is greater than zero and returns true.
+	about: If the value is not greater than zero returns false. If there is an error a
+	TInterprocessException is thrown.
+	End Rem
+	Method TryWait:Int()
+	End Method
+	
+	Rem
+	bbdoc: Decrements the semaphore if the semaphore's value is greater than zero and returns true.
+	about: Otherwise, waits for the semaphore to the posted or the timeout expires. If the timeout
+	expires, the method returns false. If the semaphore is posted the function returns true.
+	If there is an error throws TSemException
+	End Rem
+	Method TimedWait:Int(time:Int)
+	End Method
+
+	Function Remove:Int(name:String)
+	End Function
+
+	Method Free()
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
 
 
