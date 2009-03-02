@@ -37,6 +37,8 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to boost 1.38"
+ModuleInfo "History: Improved exception handling."
+ModuleInfo "History: Fixed format() method for iterators."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -1081,7 +1083,11 @@ Type TDateIterator Extends TDate Abstract
 	Method toISOExtendedString:String()
 		Return convertUTF8toISO8859(bmx_datetime_iter_to_iso_extended_string(datePtr))
 	End Method
-	
+
+	Method format:String(f:String)
+		Return convertUTF8toISO8859(bmx_datetime_iter_asformat(datePtr, f))
+	End Method
+
 	Method Delete()
 		If datePtr Then
 			bmx_datetime_iter_delete(datePtr)

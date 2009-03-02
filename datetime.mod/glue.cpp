@@ -121,6 +121,7 @@ extern "C" {
 	BBString * bmx_datetime_iter_to_iso_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_iso_extended_string(date_iterator * d);
 	BBString * bmx_datetime_iter_to_string(date_iterator * d);
+	BBString * bmx_datetime_iter_asformat(date_iterator * d, const char * format);
 	
 	time_duration * bmx_time_duration(int hours, int minutes, int seconds, int fraction);
 	void bmx_time_duration_delete(time_duration * d);
@@ -316,7 +317,11 @@ char * bmx_cstr_from_stream() {
 
 
 date * bmx_datetime_newdate(int year, int month, int day) {
-	return new date(year, month, day);
+	try {
+		return new date(year, month, day);
+	} catch (...) {
+		return 0;
+	}
 }
 
 void bmx_datetime_delete(date * d) {
@@ -631,6 +636,11 @@ BBString * bmx_datetime_iter_to_string(date_iterator * d) {
 	return bmx_BBString_from_stream();
 }
 
+BBString * bmx_datetime_iter_asformat(date_iterator * d, const char * format) {
+	currentDateFacet->format(format);
+	outputStringStream << **d;
+	return bmx_BBString_from_stream();
+}
 
 
 time_duration * bmx_time_duration(int hours, int minutes, int seconds, int fraction) {

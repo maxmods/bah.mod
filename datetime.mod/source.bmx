@@ -124,6 +124,7 @@ Extern
 	Function bmx_datetime_iter_to_iso_string:String(date:Byte Ptr)
 	Function bmx_datetime_iter_to_iso_extended_string:String(date:Byte Ptr)
 	Function bmx_datetime_iter_to_string:String(date:Byte Ptr)
+	Function bmx_datetime_iter_asformat:String(date:Byte Ptr, f:Byte Ptr)
 
 	Function bmx_time_duration:Byte Ptr(hours:Int, minutes:Int, seconds:Int, fraction:Int)
 	Function bmx_time_duration_delete(duration:Byte Ptr)
