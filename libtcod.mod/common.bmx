@@ -145,6 +145,9 @@ Extern
 	Function bmx_tcodconsole_rendercredits:Int(x:Int, y:Int, alpha:Int)
 	Function bmx_tcodconsole_setfullscreen(fullscreen:Int)
 	Function bmx_tcodconsole_getchar:Int(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_tcodconsole_getheightleftrect:Int(handle:Byte Ptr, x:Int, y:Int, w:Int, h:Int, text:String)
+	Function bmx_tcodconsole_getheightcenterrect:Int(handle:Byte Ptr, x:Int, y:Int, w:Int, h:Int, text:String)
+	Function bmx_tcodconsole_getheightrightrect:Int(handle:Byte Ptr, x:Int, y:Int, w:Int, h:Int, text:String)
 
 	Function bmx_tcodsystem_getelapsedmilli:Int()
 	Function bmx_tcodsystem_getelapsedseconds:Float()

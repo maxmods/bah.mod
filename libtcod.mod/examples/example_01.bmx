@@ -4,7 +4,8 @@ SuperStrict
 Framework BaH.libtcod
 Import BRL.pngloader
 
-'DebugStop
+' Force the driver to use OpenGL...
+' On Windows, comment out this line, and it will probably use DirectX
 SetGraphicsDriver(GLMax2DDriver())
 
 ' sample screen size
@@ -21,8 +22,7 @@ Global sampleConsole:TCODConsole = New TCODConsole.Create(SAMPLE_SCREEN_WIDTH,SA
 Local keyColor:TCODColor = TCODColor.Black
 Local key:TCODKey
 
-Local font:String = "fonts/test.png"
-'Local font:String = "fonts/terminal8x8_gs_ro.png"
+Local font:String = "fonts/terminal8x8_gs_as.png"
 Local charWidth:Int = 8
 Local charHeight:Int = 8
 Local nbCharH:Int =16

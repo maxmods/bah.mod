@@ -122,6 +122,9 @@ extern "C" {
 	bool bmx_tcodconsole_rendercredits(int x, int y, bool alpha);
 	void bmx_tcodconsole_setfullscreen(bool fullscreen);
 	int bmx_tcodconsole_getchar(MaxTCODConsole * console, int x, int y);
+	int bmx_tcodconsole_getheightleftrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text);
+	int bmx_tcodconsole_getheightcenterrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text);
+	int bmx_tcodconsole_getheightrightrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text);
 
 	uint32 bmx_tcodsystem_getelapsedmilli();
 	float bmx_tcodsystem_getelapsedseconds();

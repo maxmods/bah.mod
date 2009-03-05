@@ -70,7 +70,8 @@ Type TCODConsole
 	Field consolePtr:Byte Ptr
 
 	Rem
-	bbdoc: 
+	bbdoc: This will either create a new window in your desktop or switch to full screen.
+	about: Once this function has been called, you access the root console with TCODConsole.root.
 	End Rem
 	Function InitRoot:TCODConsole(w:Int, h:Int, title:String, fullscreen:Int = False)
 		' TODO : what to do if we already exist?
@@ -86,14 +87,18 @@ Type TCODConsole
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates an off-screen console.
+	about: You can create as many off-screen consoles as you want. You can draw on them as you would do with the root console, but you
+	cannot flush them to the screen. But you can blit them on other consoles, including the root console. See Blit().
 	End Rem
 	Function CreateConsole:TCODConsole(width:Int, height:Int)
 		Return New TCODConsole.Create(width, height)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates an off-screen console.
+	about: You can create as many off-screen consoles as you want. You can draw on them as you would do with the root console, but you
+	cannot flush them to the screen. But you can blit them on other consoles, including the root console. See Blit().
 	End Rem
 	Method Create:TCODConsole(width:Int, height:Int)
 		consolePtr = bmx_tcodconsole_create(Self, width, height)
@@ -101,7 +106,8 @@ Type TCODConsole
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Allows you to use a bitmap font (png, bmp, etc) with custom character size or layout.
+	about: It should be called before initializing the root console with initRoot.
 	End Rem
 	Function SetCustomFont(fontFile:String, flags:Int = TCOD_FONT_LAYOUT_ASCII_INCOL, nbCharHoriz:Int = 0, nbCharVertic:Int = 0)
 		bmx_tcodconsole_setcustomfont(fontFile, flags, nbCharHoriz, nbCharVertic)
@@ -115,7 +121,8 @@ Type TCODConsole
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Applies the console updates to the screen.
+	about: This only works for the root console.
 	End Rem
 	Function Flush()
 		bmx_tcodconsole_flush()
@@ -130,14 +137,15 @@ Type TCODConsole
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if the current mode is fullscreen.
 	End Rem
 	Function IsFullscreen:Int()
 		Return bmx_tcodconsole_isfullscreen()
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Destroys the offscreen console and releases any resources allocated.
+	about: Don't use it on the root console.
 	End Rem
 	Method Free()
 		If consolePtr Then
@@ -196,7 +204,7 @@ Type TCODConsole
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current foreground color of a cell.
 	End Rem
 	Method GetFore:TCODColor(x:Int, y:Int)
 		Return TCODColor._create(bmx_tcodconsole_getfore(consolePtr, x, y))
@@ -210,7 +218,7 @@ Type TCODConsole
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current background color of a cell.
 	End Rem
 	Method GetBack:TCODColor(x:Int, y:Int)
 		Return TCODColor._create(bmx_tcodconsole_getback(consolePtr, x, y))
@@ -241,24 +249,62 @@ Type TCODConsole
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Draws a right aligned string in a rectangle inside the console, using default foreground and background colors.
+	returns: The height (number of console lines) of the printed string.
+	about: If the string reaches the left border of the rectangle, carriage returns are inserted.
+	<p>
+	If h > 0 and the bottom of the rectangle is reached, the string is truncated. If h = 0, the string is only truncated if it
+	reaches the bottom of the console.
+	</p>
 	End Rem
 	Method PrintRightRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
 		Return bmx_tcodconsole_printrightrect(consolePtr, x, y, w, h, flag, text)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Gets the expected height without actually printing the string.
+	End Rem
+	Method GetHeightRightRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_getheightrightrect(consolePtr, x, y, w, h, text)
+	End Method
+
+	Rem
+	bbdoc: Draws a left aligned string in a rectangle inside the console, using default foreground and background colors.
+	returns: The height (number of console lines) of the printed string.
+	about: If the string reaches the right border of the rectangle, carriage returns are inserted.
+	<p>
+	If h > 0 and the bottom of the rectangle is reached, the string is truncated. If h = 0, the string is only truncated if
+	it reaches the bottom of the console.
+	</p>
 	End Rem
 	Method PrintLeftRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
 		Return bmx_tcodconsole_printleftrect(consolePtr, x, y, w, h, flag, text)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Gets the expected height without actually printing the string.
+	End Rem
+	Method GetHeightLeftRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_getheightleftrect(consolePtr, x, y, w, h, text)
+	End Method
+	
+	Rem
+	bbdoc: Draws a centered string in a rectangle inside the console, using default foreground and background colors.
+	returns: the height (number of console lines) of the printed string.
+	about: If the string reaches the borders of the rectangle, carriage returns are inserted.
+	<p>
+	If h > 0 and the bottom of the rectangle is reached, the string is truncated. If h = 0, the string is only truncated if it reaches the bottom of the console.
+	</p>
 	End Rem
 	Method PrintCenterRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
 		Return bmx_tcodconsole_printcenterrect(consolePtr, x, y, w, h, flag, text)
+	End Method
+
+	Rem
+	bbdoc: Gets the expected height without actually printing the string.
+	End Rem
+	Method GetHeightCenterRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_getheightcenterrect(consolePtr, x, y, w, h, text)
 	End Method
 
 	Rem
@@ -286,7 +332,8 @@ Type TCODConsole
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Allows you to blit a rectangular area of the source console at a specific position on a destination console.
+	about: It can also simulate alpha transparency with the fade parameter.
 	End Rem
 	Function Blit(source:TCODConsole, x:Int, y:Int, width:Int, height:Int, dest:TCODConsole, posX:Int, posY:Int, fade:Int = 255)
 		bmx_tcodconsole_blit(source.consolePtr, x, y, width, height, dest.consolePtr, posX, posY, fade)
@@ -319,28 +366,32 @@ Type TCODConsole
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Calls Rect using the TCOD_BKGND_SET flag, then draws a rectangle with the console's default foreground color.
+	about: If fmt is not NULL, it is printed on the top of the rectangle, using inverted colors.
 	End Rem
 	Method PrintFrame(x:Int, y:Int, w:Int, h:Int, clear:Int, fmt:String)
 		bmx_tcodconsole_printframe(consolePtr, x, y, w, h, clear, fmt)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: You can print a "Powered by libtcod x.y.z" screen during your game startup simply by calling this function after initRoot.
+	about: The credits screen can be skipped by pressing any key.
 	End Rem
 	Function Credits()
 		bmx_tcodconsole_credits()
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: You can print the credits on one of your game screens (your main menu for example) by calling this function in your main loop.
+	about: Returns true when the credits screen is finished, indicating that you no longer need to call it.
 	End Rem
 	Function RenderCredits:Int(x:Int, y:Int, alpha:Int)
 		Return bmx_tcodconsole_rendercredits(x, y, alpha)
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Switches the root console to fullscreen or windowed mode.
+	about: Note that there is no predefined key combination to switch to/from fullscreen. You have to do this in your own code.
 	End Rem	
 	Function SetFullscreen(fullscreen:Int)
 		bmx_tcodconsole_setfullscreen(fullscreen)

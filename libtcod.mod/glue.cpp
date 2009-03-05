@@ -463,20 +463,23 @@ void bmx_tcodconsole_printcenter(MaxTCODConsole * console, int x, int y, TCOD_bk
 
 int bmx_tcodconsole_printrightrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printRightRect(x, y, w, h, flag, t);
+	int res = console->Console()->printRightRect(x, y, w, h, flag, t);
 	bbMemFree(t);
+	return res;
 }
 
 int bmx_tcodconsole_printleftrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printLeftRect(x, y, w, h, flag, t);
+	int res = console->Console()->printLeftRect(x, y, w, h, flag, t);
 	bbMemFree(t);
+	return res;
 }
 
 int bmx_tcodconsole_printcenterrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printCenterRect(x, y, w, h, flag, t);
+	int res = console->Console()->printCenterRect(x, y, w, h, flag, t);
 	bbMemFree(t);
+	return res;
 }
 
 void bmx_tcodconsole_putchar(MaxTCODConsole * console, int x, int y, int c, TCOD_bkgnd_flag_t flag) {
@@ -527,6 +530,27 @@ void bmx_tcodconsole_setfullscreen(bool fullscreen) {
 
 int bmx_tcodconsole_getchar(MaxTCODConsole * console, int x, int y) {
 	return console->Console()->getChar(x, y);
+}
+
+int bmx_tcodconsole_getheightleftrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
+	char * t = bbStringToCString(text);
+	int res = console->Console()->getHeightLeftRect(x, y, w, h, t);
+	bbMemFree(t);
+	return res;
+}
+
+int bmx_tcodconsole_getheightcenterrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
+	char * t = bbStringToCString(text);
+	int res = console->Console()->getHeightCenterRect(x, y, w, h, t);
+	bbMemFree(t);
+	return res;
+}
+
+int bmx_tcodconsole_getheightrightrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
+	char * t = bbStringToCString(text);
+	int res = console->Console()->getHeightRightRect(x, y, w, h, t);
+	bbMemFree(t);
+	return res;
 }
 
 // ******************************************************************
