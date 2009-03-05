@@ -204,7 +204,7 @@ class MaxTCODColor
 public:
 	MaxTCODColor(const TCODColor &c);
 	MaxTCODColor(int r, int g, int b);
-	TCODColor Color();
+	TCODColor & Color();
 
 private:
 	TCODColor color;

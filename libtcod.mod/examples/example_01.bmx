@@ -215,15 +215,10 @@ Function render_colors(_first:Int, key:TCODKey)
 	textColor.SetR(255 - textColor.r)
 	textColor.SetG(255 - textColor.g)
 	textColor.SetB(255 - textColor.b)
-	sampleConsole.SetForegroundColor(textColor)
-	' the background behind the text is slightly darkened using the BKGND_MULTIPLY flag
-	sampleConsole.SetBackgroundColor(TCODColor.grey)
-	sampleConsole.PrintCenterRect(SAMPLE_SCREEN_WIDTH/2,5,SAMPLE_SCREEN_WIDTH-2,SAMPLE_SCREEN_HEIGHT-1,TCOD_BKGND_MULTIPLY, ..
-		"The Doryen library uses 24 bits colors, for both background and foreground.")
 		
 	' put random text (for performance tests)
 	For Local x:Int= 0 Until SAMPLE_SCREEN_WIDTH
-		For Local y:Int = 12 Until SAMPLE_SCREEN_HEIGHT
+		For Local y:Int = 0 Until SAMPLE_SCREEN_HEIGHT
 			Local col:TCODColor = sampleConsole.GetBack(x,y)
 			col = TCODColor.Lerp(col, TCODColor.black, 0.5)
 			Local c:Int = TCODRandom.GetInstance().getInt(97, 122)
@@ -231,6 +226,12 @@ Function render_colors(_first:Int, key:TCODKey)
 			sampleConsole.PutChar(x, y, c, TCOD_BKGND_NONE)
 		Next
 	Next
+
+	sampleConsole.SetForegroundColor(textColor)
+	' the background behind the text is slightly darkened using the BKGND_MULTIPLY flag
+	sampleConsole.SetBackgroundColor(TCODColor.grey)
+	sampleConsole.PrintCenterRect(SAMPLE_SCREEN_WIDTH/2,5,SAMPLE_SCREEN_WIDTH-2,SAMPLE_SCREEN_HEIGHT-1,TCOD_BKGND_MULTIPLY, ..
+		"The Doryen library uses 24 bits colors, for both background and foreground.")
 End Function
 
 Function render_offscreen(_first:Int, key:TCODKey)
@@ -343,9 +344,9 @@ Function render_lines(_first:Int, key:TCODKey)
 		col.SetR(x*255 / SAMPLE_SCREEN_WIDTH)
 		col.SetG(x*255 / SAMPLE_SCREEN_WIDTH)
 		col.SetB(x*255 / SAMPLE_SCREEN_WIDTH)
-		sampleConsole.setBack(x,recty,col, bkFlag)
-		sampleConsole.setBack(x,recty+1,col, bkFlag)
-		sampleConsole.setBack(x,recty+2,col, bkFlag)
+		sampleConsole.SetBack(x,recty,col, bkFlag)
+		sampleConsole.SetBack(x,recty+1,col, bkFlag)
+		sampleConsole.SetBack(x,recty+2,col, bkFlag)
 	Next
 	' calculate the segment ends
 	Local angle:Float = TCODSystem.GetElapsedSeconds() * 2.0 * 57.2957795

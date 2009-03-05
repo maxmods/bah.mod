@@ -38,7 +38,7 @@ MaxTCODColor::MaxTCODColor(int r, int g, int b)
 {
 }
 
-TCODColor MaxTCODColor::Color() {
+TCODColor & MaxTCODColor::Color() {
 	return color;
 }
 
