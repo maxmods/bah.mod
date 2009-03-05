@@ -785,6 +785,60 @@ void bmx_tcodimage_blitrect(TCODImage * image, MaxTCODConsole * console, int x, 
 	image->blitRect(console->Console(), x, y, w, h, backgroundFlag);
 }
 
+void bmx_tcodimage_clear(TCODImage * image, MaxTCODColor * col) {
+	image->clear(col->Color());
+}
+
+void bmx_tcodimage_getsize(TCODImage * image, int * w, int * h) {
+	image->getSize(w, h);
+}
+
+MaxTCODColor * bmx_tcodimage_getpixel(TCODImage * image, int x, int y) {
+	return new MaxTCODColor(image->getPixel(x, y));
+}
+
+int bmx_tcodimage_getalpha(TCODImage * image, int x, int y) {
+	return image->getAlpha(x, y);
+}
+
+bool bmx_tcodimage_ispixeltransparent(TCODImage * image, int x, int y) {
+	return image->isPixelTransparent(x, y);
+}
+
+MaxTCODColor * bmx_tcodimage_getmipmappixel(TCODImage * image, float x0, float y0, float x1, float y1) {
+	return new MaxTCODColor(image->getMipmapPixel(x0, y0, x1, y1));
+}
+
+void bmx_tcodimage_putpixel(TCODImage * image, int x, int y, MaxTCODColor * col) {
+	image->putPixel(x, y, col->Color());
+}
+
+void bmx_tcodimage_scale(TCODImage * image, int newW, int newH) {
+	image->scale(newW, newH);
+}
+
+void bmx_tcodimage_hflip(TCODImage * image) {
+	image->hflip();
+}
+
+void bmx_tcodimage_vflip(TCODImage * image) {
+	image->vflip();
+}
+
+void bmx_tcodimage_invert(TCODImage * image) {
+	image->invert();
+}
+
+void bmx_tcodimage_free(TCODImage * image) {
+	delete image;
+}
+
+TCODImage * bmx_tcodimage_create(int width, int height) {
+	return new TCODImage(width, height);
+}
+
+
+
 
 
 

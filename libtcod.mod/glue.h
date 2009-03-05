@@ -180,6 +180,19 @@ extern "C" {
 	void bmx_tcodimage_setkeycolor(TCODImage * image, MaxTCODColor * keyColor);
 	void bmx_tcodimage_blit(TCODImage * image, MaxTCODConsole * console, float x, float y, TCOD_bkgnd_flag_t backgroundFlag, float scalex, float scaley, float angle);
 	void bmx_tcodimage_blitrect(TCODImage * image, MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t backgroundFlag);
+	void bmx_tcodimage_clear(TCODImage * image, MaxTCODColor * col);
+	void bmx_tcodimage_getsize(TCODImage * image, int * w, int * h);
+	MaxTCODColor * bmx_tcodimage_getpixel(TCODImage * image, int x, int y);
+	int bmx_tcodimage_getalpha(TCODImage * image, int x, int y);
+	bool bmx_tcodimage_ispixeltransparent(TCODImage * image, int x, int y);
+	MaxTCODColor * bmx_tcodimage_getmipmappixel(TCODImage * image, float x0, float y0, float x1, float y1);
+	void bmx_tcodimage_putpixel(TCODImage * image, int x, int y, MaxTCODColor * col);
+	void bmx_tcodimage_scale(TCODImage * image, int newW, int newH);
+	void bmx_tcodimage_hflip(TCODImage * image);
+	void bmx_tcodimage_vflip(TCODImage * image);
+	void bmx_tcodimage_invert(TCODImage * image);
+	void bmx_tcodimage_free(TCODImage * image);
+	TCODImage * bmx_tcodimage_create(int width, int height);
 
 }
 

@@ -210,7 +210,20 @@ Extern
 	Function bmx_tcodimage_setkeycolor(handle:Byte Ptr, keyColor:Byte Ptr)
 	Function bmx_tcodimage_blit(handle:Byte Ptr, console:Byte Ptr, x:Float, y:Float, backgroundFlag:Int, scalex:Float, scaley:Float, angle:Float)
 	Function bmx_tcodimage_blitrect(handle:Byte Ptr, console:Byte Ptr, x:Int, y:Int, w:Int, h:Int, backgroundFlag:Int)
-	
+	Function bmx_tcodimage_clear(handle:Byte Ptr, color:Byte Ptr)
+	Function bmx_tcodimage_getsize(handle:Byte Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_tcodimage_getpixel:Byte Ptr(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_tcodimage_getalpha:Int(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_tcodimage_ispixeltransparent:Int(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_tcodimage_getmipmappixel:Byte Ptr(handle:Byte Ptr, x0:Float, y0:Float, x1:Float, y1:Float)
+	Function bmx_tcodimage_putpixel(handle:Byte Ptr, x:Int, y:Int, col:Byte Ptr)
+	Function bmx_tcodimage_scale(handle:Byte Ptr, newW:Int, newH:Int)
+	Function bmx_tcodimage_hflip(handle:Byte Ptr)
+	Function bmx_tcodimage_vflip(handle:Byte Ptr)
+	Function bmx_tcodimage_invert(handle:Byte Ptr)
+	Function bmx_tcodimage_free(handle:Byte Ptr)
+	Function bmx_tcodimage_create:Byte Ptr(width:Int, height:Int)
+
 End Extern
 
 Const TCOD_CHAR_HLINE:Int = 196

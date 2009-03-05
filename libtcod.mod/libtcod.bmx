@@ -1059,7 +1059,7 @@ Type TCODImage
 	bbdoc: 
 	End Rem
 	Method Create:TCODImage(width:Int, height:Int)
-		
+		objectPtr = bmx_tcodimage_create(width, height)
 		Return Self
 	End Method
 	
@@ -1075,25 +1075,121 @@ Type TCODImage
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Defines a key color that will be ignored by the blitting function.
+	about: This makes it possible to blit non rectangular images or images with transparent pixels
 	End Rem
 	Method SetKeyColor(keyColor:TCODColor)
 		bmx_tcodimage_setkeycolor(objectPtr, keyColor.colorPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Allows you to specify the floating point coordinates of the center of the image, and its scale and rotation angle.
+	about: The image will be rendered with sub-cell accuracy (no to be confused with sub-cell resolution, which is not yet implemented).
+	For example, if you increase x by 0.01 per frame, you will achieve a smooth scrolling effect.
 	End Rem
 	Method Blit(console:TCODConsole, x:Float, y:Float, backgroundFlag:Int = TCOD_BKGND_SET, scalex:Float = 1.0, scaley:Float = 1.0, angle:Float = 0.0)
 		bmx_tcodimage_blit(objectPtr, console.consolePtr, x, y, backgroundFlag, scalex, scaley, angle)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Allows you to easily map an image to a specific part of a console, by specifying a rectangular part of the console (upper-left corner and size).
 	End Rem
 	Method BlitRect(console:TCODConsole, x:Int, y:Int, w:Int = -1, h:Int = -1, backgroundFlag:Int = TCOD_BKGND_SET)
 		bmx_tcodimage_blitrect(objectPtr, console.consolePtr, x, y, w, h, backgroundFlag)
 	End Method
-		
+	
+	Rem
+	bbdoc: Fills the whole image with the specified color.
+	End Rem
+	Method Clear(color:TCODColor)
+		bmx_tcodimage_clear(objectPtr, color.colorPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the image in pixels.
+	End Rem
+	Method GetSize(w:Int Var, h:Int Var)
+		bmx_tcodimage_getsize(objectPtr, Varptr w, Varptr h)
+	End Method
+	
+	Rem
+	bbdoc: Returns the color of the pixel at the specified location.
+	End Rem
+	Method GetPixel:TCODColor(x:Int, y:Int)
+		Return TCODColor._create(bmx_tcodimage_getpixel(objectPtr, x, y))
+	End Method
+	
+	Rem
+	bbdoc: Returns the transparency level of the pixel at the specified location.
+	End Rem
+	Method GetAlpha:Int(x:Int, y:Int)
+		Return bmx_tcodimage_getalpha(objectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Returns true if this pixel is completely transparent.
+	End Rem
+	Method IsPixelTransparent:Int(x:Int, y:Int)
+		Return bmx_tcodimage_ispixeltransparent(objectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Uses mipmaps to get the average color of an arbitrary rectangular region of the image.
+	about: It can be used to draw a scaled-down version of the image. It's used by libtcod's blitting functions.
+	End Rem
+	Method GetMipmapPixel:TCODColor(x0:Float, y0:Float, x1:Float, y1:Float)
+		Return TCODColor._create(bmx_tcodimage_getmipmappixel(objectPtr, x0, y0, x1, y1))
+	End Method
+	
+	Rem
+	bbdoc: Modifies the color of a pixel.
+	End Rem
+	Method PutPixel(x:Int, y:Int, col:TCODColor)
+		bmx_tcodimage_putpixel(objectPtr, x, y, col.colorPtr)
+	End Method
+	
+	Rem
+	bbdoc: Resizes the image, scaling its content.
+	about: If neww < oldw or newh < oldh, supersampling is used to scale down the image, otherwise the image is scaled up using nearest neightbor.
+	End Rem
+	Method Scale(newW:Int, newH:Int)
+		bmx_tcodimage_scale(objectPtr, newW, newH)
+	End Method
+	
+	Rem
+	bbdoc: Flips the image horizontally.
+	End Rem
+	Method HFlip()
+		bmx_tcodimage_hflip(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Flips the image vertically.
+	End Rem
+	Method VFlip()
+		bmx_tcodimage_vflip(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Inverts the colors of the image.
+	End Rem
+	Method Invert()
+		bmx_tcodimage_invert(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Destroys an image and release used resources.
+	End Rem
+	Method Free()
+		If objectPtr Then
+			bmx_tcodimage_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
