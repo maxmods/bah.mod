@@ -86,7 +86,12 @@ extern "C" {
 	void _bah_libtcod_TCODSystem__ImageSize(BBObject * image, int * w, int * h);
 	void _bah_libtcod_TCODSystem__ImagePixel(BBObject * image, int x, int y, uint8 * r, uint8 * g, uint8 * b);
 	void _bah_libtcod_TCODSystem__SetFullscreen(bool fullscreen);
-	
+	void _bah_libtcod_TCODSystem__ShowCursor(bool visible);
+	bool _bah_libtcod_TCODSystem__CursorVisible();
+	void _bah_libtcod_TCODSystem__MoveMouse(int x, int y);
+	void _bah_libtcod_TCODMouse__Status(int * x, int * y, int * _dx, int * _dy, int * mb1, int * mb2, int * mb3, int * wheel, int * fsx, int * fsy);
+
+
 static void alloc_ascii_tables() {
 	if ( ascii_to_tcod ) free(ascii_to_tcod);
 	if ( ascii_updated ) free(ascii_updated);
@@ -259,6 +264,47 @@ void TCOD_sys_update_char(int asciiCode, int fontx, int fonty, TCOD_image_t img,
 
 printf("TCOD_sys_update_char\n");fflush(stdout);
 }
+
+TCOD_mouse_t TCOD_mouse_get_status() {
+	TCOD_mouse_t ms;
+	int charWidth, charHeight;
+	int wheel, mb1, mb2, mb3, fsx, fsy;
+	
+	_bah_libtcod_TCODMouse__Status(&ms.x, &ms.y, &ms.dx, &ms.dy, &mb1, &mb2, &mb3, &wheel, &fsx, &fsy);
+
+	ms.lbutton = (mb1) ? true : false;
+	ms.rbutton = (mb2) ? true : false;
+	ms.mbutton = (mb3) ? true : false;
+	ms.wheel_up = (wheel > 0) ?  1 : 0;
+	ms.wheel_down = (wheel < 0) ? 1 : 0;
+	
+	// FIXME : implement this properly....
+	ms.lbutton_pressed = false;
+	ms.rbutton_pressed = false;
+	ms.mbutton_pressed = false;
+
+	TCOD_sys_get_char_size(&charWidth,&charHeight);
+	ms.cx = (ms.x - fsx) / charWidth;
+	ms.cy = (ms.y - fsy) / charHeight;
+	ms.dcx = ms.dx / charWidth;
+	ms.dcy = ms.dy / charHeight;
+	return ms;
+}
+
+void TCOD_mouse_show_cursor(bool visible) {
+	_bah_libtcod_TCODSystem__ShowCursor(visible);
+}
+
+bool TCOD_mouse_is_cursor_visible() {
+	return _bah_libtcod_TCODSystem__CursorVisible();
+}
+
+void TCOD_mouse_move(int x, int y) {
+	_bah_libtcod_TCODSystem__MoveMouse(x, y);
+}
+
+
+
 
 }
 

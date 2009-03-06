@@ -42,7 +42,6 @@ TCODColor & MaxTCODColor::Color() {
 	return color;
 }
 
-
 // ******************************************************************
 
 
@@ -837,7 +836,38 @@ TCODImage * bmx_tcodimage_create(int width, int height) {
 	return new TCODImage(width, height);
 }
 
+// ******************************************************************
 
+BBObject * bmx_tcodmouse_getstatus() {
+	TCOD_mouse_t ms = TCODMouse::getStatus();
+	return _bah_libtcod_TCODMouse__create(ms.x, ms.y, ms.dx, ms.dy, ms.cx, ms.cy, ms.dcx, ms.dcy, ms.lbutton, ms.rbutton, ms.mbutton, 
+			ms.lbutton_pressed, ms.rbutton_pressed, ms.mbutton_pressed, ms.wheel_up, ms.wheel_down);
+}
+
+void bmx_tcodmouse_move(int x, int y) {
+	TCODMouse::move(x, y);
+}
+
+void bmx_tcodmouse_showcursor(bool visible) {
+	TCODMouse::showCursor(visible);
+}
+
+// ******************************************************************
+// ******************************************************************
+
+void bmx_tcodwidget_callback(Widget *w, void *userData) {
+	_bah_libtcod_TCODWidget__callback((BBObject*)userData);
+}
+
+MaxTCODButton * bmx_tcodbutton_create(BBObject * handle, BBString * label, BBString * tip, int x, int y, int w, int h) {
+	BBRETAIN(handle);
+	char * l = bbStringToCString(label);
+	char * t = bbStringToCString(tip);
+	MaxTCODButton * button = new MaxTCODButton(x, y, w, h, l, t, bmx_tcodwidget_callback, handle);
+	bbMemFree(l);
+	bbMemFree(t);
+	return button;
+}
 
 
 

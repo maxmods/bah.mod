@@ -224,6 +224,12 @@ Extern
 	Function bmx_tcodimage_free(handle:Byte Ptr)
 	Function bmx_tcodimage_create:Byte Ptr(width:Int, height:Int)
 
+	Function bmx_tcodmouse_getstatus:Object()
+	Function bmx_tcodmouse_move(x:Int, y:Int)
+	Function bmx_tcodmouse_showcursor(visible:Int)
+
+	Function bmx_tcodbutton_create:Byte Ptr(handle:Object, label:String, tip:String, x:Int, y:Int, w:Int, h:Int)
+
 End Extern
 
 Const TCOD_CHAR_HLINE:Int = 196

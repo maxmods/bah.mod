@@ -770,8 +770,9 @@ Function render_path(_first:Int, key:TCODKey)
 	Global busy:Float
 	Global oldChar:Int = 32
 	
-	'TCOD_mouse_t mouse
+	Local mouse:TCODMouse
 	Local mx:Int, my:Int
+
 	If Not map Then
 		' initialize the map for the fov toolkit
 		map = New TCODMap.Create(SAMPLE_SCREEN_WIDTH, SAMPLE_SCREEN_HEIGHT)
@@ -879,18 +880,19 @@ Function render_path(_first:Int, key:TCODKey)
 			recalculatePath = True
 		End If
 	End If
-'	mouse=TCODMouse::getStatus()
-'	mx = mouse.cx-SAMPLE_SCREEN_X
-'	my = mouse.cy-SAMPLE_SCREEN_Y
-'	If ( mx >= 0 And mx < SAMPLE_SCREEN_WIDTH And my >= 0 And my < SAMPLE_SCREEN_HEIGHT And ( dx != mx || dy != my ) Then
-'		sampleConsole.putChar(dx,dy,oldChar,TCOD_BKGND_NONE)
-'		dx=mxdy=my
-'		oldChar=sampleConsole.GetChar(dx,dy)
-'		sampleConsole.putChar(dx,dy,'+',TCOD_BKGND_NONE)
-'		If ( smap[dy][dx] == ' ' then
-'			recalculatePath=True
-'		End If
-'	End If
+	mouse = TCODMouse.GetStatus()
+	mx = mouse.cx - SAMPLE_SCREEN_X
+	my = mouse.cy - SAMPLE_SCREEN_Y
+	If mx >= 0 And mx < SAMPLE_SCREEN_WIDTH And my >= 0 And my < SAMPLE_SCREEN_HEIGHT And ( dx <> mx Or dy <> my ) Then
+		sampleConsole.PutChar(dx, dy, oldChar, TCOD_BKGND_NONE)
+		dx = mx
+		dy = my
+		oldChar = sampleConsole.GetChar(dx,dy)
+		sampleConsole.PutChar(dx,dy, Asc("+"), TCOD_BKGND_NONE)
+		If smap[dy][dx] = 32 Then
+			recalculatePath = True
+		End If
+	End If
 End Function
 
 Function render_bsp(_first:Int, key:TCODKey)
@@ -940,8 +942,61 @@ Function render_image(_first:Int, key:TCODKey)
 End Function
 
 Function render_mouse(_first:Int, key:TCODKey)
+ 	Local mouse:TCODMouse
+	Global lbut:Int = False, rbut:Int = False, mbut:Int = False
+	
+	If _first Then
+		TCODSystem.SetFps(30) ' fps limited to 30
+		sampleConsole.SetBackgroundColor(TCODColor.grey)
+		sampleConsole.SetForegroundColor(TCODColor.lightYellow)
+		TCODMouse.Move(320,200)
+		TCODMouse.ShowCursor(True)
+	End If
+	
+	sampleConsole.Clear()
+	mouse = TCODMouse.GetStatus()
+	If mouse.lbuttonPressed Then
+		lbut = Not lbut
+	End If
+	If mouse.rbuttonPressed Then
+		rbut = Not rbut
+	End If
+	If mouse.mbuttonPressed Then
+		mbut = Not mbut
+	End If
+	
+	Local s:String = "Mouse position : " + PadString(mouse.x, 4) + "x" + PadString(mouse.y, 4) + "~n" + ..
+		"Mouse cell     : " + PadString(mouse.cx, 4) + "x" + PadString(mouse.cy, 4) + "~n" + ..
+		"Mouse movement : " + PadString(mouse.dx, 4) + "x" + PadString(mouse.dy, 4) + "~n" + ..
+		"Left button    : " + mbutton(mouse.lbutton, lbut) + ..
+		"Right button   : " + mbutton(mouse.rbutton, lbut) + ..
+		"Middle button  : " + mbutton(mouse.mbutton, lbut)
+	
+	sampleConsole.PrintLeft(1, 1, TCOD_BKGND_NONE, s)
+
+	sampleConsole.printLeft(1, 10, TCOD_BKGND_NONE, "1 : Hide cursor~n2 : Show cursor")
+	If key.c = Asc("1") Then
+		TCODMouse.ShowCursor(False)
+	Else If key.c = Asc("2") Then
+		TCODMouse.ShowCursor(True)
+	End If
+	
 End Function
 
+Function mbutton:String(button:Int, but:Int)
+	Local s:String
+	If button Then
+		s:+ " ON (toggle "
+	Else
+		s:+ "OFF (toggle "
+	End If
+	If but Then
+		s:+ " ON)~n"
+	Else
+		s:+ "OFF)~n"
+	End If
+	Return s
+End Function
 
 Type TSample
 

@@ -48,6 +48,7 @@ Import "line.bmx"
 Import "map.bmx"
 Import "heightmap.bmx"
 Import "text.bmx"
+Import "gui.bmx"
 Import "common.bmx"
 
 
@@ -414,6 +415,9 @@ Type TCODSystem
 	Global fullscreen_width:Int
 	Global fullscreen_height:Int
 	
+	Global fullscreen_offsetx:Int
+	Global fullscreen_offsety:Int
+	
 	' size of a character in the bitmap font
 	Global fontWidth:Int = 8
 	Global fontHeight:Int = 8
@@ -439,6 +443,8 @@ Type TCODSystem
 	
 	Global charmap:TCODFont
 	Global charBlank:Int
+	
+	Global mouseVisible:Int = True
 	
 
 	Function _Init:Int(w:Int, h:Int, buf:Byte Ptr, oldbuf:Byte Ptr, fullscreen:Int)
@@ -487,8 +493,15 @@ Type TCODSystem
 				fullscreen_width, fullscreen_height, actual_fullscreen_width, actual_fullscreen_height)
 				
 			Graphics actual_fullscreen_width, actual_fullscreen_height, 32
+			
+			fullscreen_offsetx = (actual_fullscreen_width - consoleWidth * fontWidth) / 2
+			fullscreen_offsety = (actual_fullscreen_height - consoleHeight * fontHeight) / 2
+
 		Else
 			Graphics consoleWidth * fontWidth, consoleHeight * fontHeight, 0
+			
+			fullscreen_offsetx = 0
+			fullscreen_offsety = 0
 		End If
 		SetBlend alphablend
 		TCOD_REFRESH_IMAGE = True
@@ -785,6 +798,25 @@ Type TCODSystem
 		bmx_tcodsystem_getcurrentresolution(Varptr w, Varptr h)
 	End Function
 
+	Function _ShowCursor(visible:Int)
+		mouseVisible = visible
+		If visible Then
+			ShowMouse()
+		Else
+			HideMouse()
+		End If
+	End Function
+	
+
+	Function _CursorVisible:Int()
+		Return mouseVisible
+	End Function
+
+	
+	Function _MoveMouse(x:Int, y:Int)
+		MoveMouse(x, y)
+	End Function
+	
 
 End Type
 
@@ -842,6 +874,8 @@ Type TCODKey
 		If TCOD_NATIVE_KEY_EVENTS Then
 			AddHook EmitEventHook, Hook, Null, 0
 		End If
+		
+		TCODMouse.Init()
 	End Function
 	
 	' adds a key onto the stack
@@ -900,7 +934,7 @@ Type TCODKey
 			queue[lastTail].c = ev.data
 		End Select
 	
-		Return data
+		Return TCODMouse.Hook(id, data, context)
 	
 	End Function
 	
@@ -1038,6 +1072,130 @@ Type TCODKey
 
 		Return TCODK_CHAR
 	End Function
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCODMouse
+
+	Field x:Int
+	Field y:Int
+	Field dx:Int
+	Field dy:Int
+	Field cx:Int
+	Field cy:Int
+	Field dcx:Int
+	Field dcy:Int
+	Field lbutton:Int
+	Field rbutton:Int
+	Field mbutton:Int
+	Field lbuttonPressed:Int
+	Field rbuttonPressed:Int
+	Field mbuttonPressed:Int
+	Field wheelUp:Int
+	Field wheelDown:Int
+
+	Global mx:Int, my:Int, mwheel:Int
+	Global mb:Int[3], ox:Int, oy:Int
+	Global _dx:Int, _dy:Int
+	
+	Global mouse:TCODMouse
+	
+	Function Init()
+		mouse = New TCODMouse
+	
+		For Local i:Int = 0 Until 3
+			If MouseDown(i + 1) Then
+				mb[i] = True
+			End If
+		Next
+		mx = MouseX()
+		my = MouseY()
+	End Function
+
+	Function Hook:Object( id:Int, data:Object, context:Object )
+
+		Local ev:TEvent=TEvent(data)
+		If Not ev Return data
+		
+		Select ev.id
+		Case EVENT_MOUSEDOWN
+			mb[ev.data - 1] = True
+		Case EVENT_MOUSEUP
+			mb[ev.data - 1] = False
+		Case EVENT_MOUSEMOVE
+			mx = ev.x
+			my = ev.y
+		Case EVENT_MOUSEWHEEL
+			mwheel = ev.data
+		End Select
+	
+		Return data
+	End Function
+	
+	Function _Status(x:Int Var, y:Int Var, dxx:Int Var, dyy:Int Var, mb1:Int Var, mb2:Int Var, mb3:Int Var, wheel:Int Var, fsx:Int Var, fsy:Int Var)
+		_dx = mx - ox
+		_dy = my - oy
+		ox = mx
+		oy = my
+		
+		x = mx
+		y = my
+		dxx = _dx
+		dyy = _dy
+		mb1 = mb[0]
+		mb2 = mb[1]
+		mb3 = mb[2]
+		wheel = mwheel
+		fsx = TCODSystem.fullscreen_offsetx
+		fsy = TCODSystem.fullscreen_offsety
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function GetStatus:TCODMouse()
+		Return TCODMouse(bmx_tcodmouse_getstatus())
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function Move(x:Int, y:Int)
+		bmx_tcodmouse_move(x, y)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function ShowCursor(visible:Int)
+		bmx_tcodmouse_showcursor(visible)
+	End Function
+	
+	Function _create:TCODMouse(	x:Int, y:Int, dx:Int, dy:Int, cx:Int, cy:Int, dcx:Int, dcy:Int, lbutton:Int, rbutton:Int, mbutton:Int, ..
+			lbuttonPressed:Int, rbuttonPressed:Int, mbuttonPressed:Int, wheelUp:Int, wheelDown:Int)
+		Local this:TCODMouse = New TCODMouse
+		this.x = x
+		this.y = y
+		this.dx = dx
+		this.dy = dy
+		this.cx = cx
+		this.cy = cy
+		this.dcx = dcx
+		this.dcy = dcy
+		this.lbutton = lbutton
+		this.rbutton = rbutton
+		this.mbutton = mbutton
+		this.lbuttonPressed = lbuttonPressed
+		this.rbuttonPressed = rbuttonPressed
+		this.mbuttonPressed = mbuttonPressed
+		this.wheelUp = wheelUp
+		this.wheelDown = wheelDown
+		Return this
+	End Function
+
 
 End Type
 

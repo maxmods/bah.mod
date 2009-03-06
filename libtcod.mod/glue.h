@@ -1,14 +1,21 @@
 
 #include "libtcod.hpp"
 #include "libtcod_int.h"
+#include "gui/gui.hpp"
 
 class MaxTCODColor;
 class MaxTCODConsole;
 class MaxTCODKey;
 
+class MaxTCODButton;
+
 extern "C" {
 
 	#include "blitz.h"
+	
+	void _bah_libtcod_TCODWidget__callback(BBObject * userData);
+	BBObject * _bah_libtcod_TCODMouse__create(int x, int y, int dx, int dy, int cx, int cy, int dcx, int dcy, int lbutton, int rbutton, int mbutton, 
+		int lbutton_pressed, int rbutton_pressed, int mbutton_pressed, int wheel_up, int wheel_down);
 
 	MaxTCODColor * bmx_tcodcolor_create(int r, int g, int b);
 	void bmx_tcodcolor_delete(MaxTCODColor * color);
@@ -194,6 +201,13 @@ extern "C" {
 	void bmx_tcodimage_free(TCODImage * image);
 	TCODImage * bmx_tcodimage_create(int width, int height);
 
+	BBObject * bmx_tcodmouse_getstatus();
+	void bmx_tcodmouse_move(int x, int y);
+	void bmx_tcodmouse_showcursor(bool visible);
+
+	void bmx_tcodwidget_callback(Widget *w, void *userData);
+	MaxTCODButton * bmx_tcodbutton_create(BBObject * handle, BBString * label, BBString * tip, int x, int y, int w, int h);
+
 }
 
 
@@ -230,6 +244,18 @@ private:
 	TCOD_key_t key;
 };
 
+
+class MaxTCODButton: public Button
+{
+public:
+	MaxTCODButton(int x, int y, int width, int height, const char *label, const char *tip, widget_callback_t cbk, void *userData)
+		: Button(x, y, width, height, label, tip, cbk, userData)
+	{}
+
+	~MaxTCODButton() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
 
 
 
