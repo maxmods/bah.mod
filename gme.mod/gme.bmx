@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,10 @@ Module BaH.GME
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: GME - LGPL"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
 ModuleInfo "Copyright: GME - Shay Green, http://www.fly.net/~~ant/libs/audio.html"
+
+ModuleInfo "History: 1.00 Initial Release"
 
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
@@ -49,19 +51,23 @@ Global _driver:TGMEDriver ,_drivers:TGMEDriver
 
 Public
 
+Rem
+bbdoc: Returns the TGMEPlayer instance.
+End Rem
 Function GetGMEPlayer:TGMEPlayer()
 	Return _driver.GetPlayer()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: The GME engine.
+about: This provides low-level access to GME. Usually not required, since you have access to most control via the player.
 End Rem
 Type TMusicEmu
 
 	Field emuPtr:Byte Ptr
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates an instance of TMusicEmu for the provided audio file, to playback at the given @sampleRate.
 	End Rem
 	Function Create:TMusicEmu(file:String, sampleRate:Int)
 		Local this:TMusicEmu = New TMusicEmu
@@ -98,7 +104,7 @@ Type TMusicEmu
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates an instance of TMusicEmu for the audio file in memory, to playback at the given @sampleRate.
 	End Rem
 	Function CreateForData:TMusicEmu(data:Byte Ptr, size:Int, sampleRate:Int)
 		Local this:TMusicEmu = New TMusicEmu
@@ -167,35 +173,38 @@ Type TMusicEmu
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Adjusts stereo echo depth, where 0.0 = off and 1.0 = maximum.
+	about: Has no effect for GYM, SPC, and Sega Genesis VGM music
 	End Rem
 	Method SetStereoDepth(depth:Double)
 		bmx_gme_set_stereo_depth(emuPtr, depth)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Disables automatic end-of-track detection and skipping of silence at beginning if ignore is true
 	End Rem
 	Method IgnoreSilence(ignore:Int)
 		bmx_gme_ignore_silence(emuPtr, ignore)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adjusts song tempo, where 1.0 = normal, 0.5 = half speed, 2.0 = double speed.
+	about: Track length as returned by track_info() assumes a tempo of 1.0.
 	End Rem
 	Method SetTempo(tempo:Double)
 		bmx_gme_set_tempo(emuPtr, tempo)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Mute/unmute voice @index, where voice 0 is first voice.
 	End Rem
 	Method MuteVoice(index:Int, mute:Int)
 		bmx_gme_mute_voice(emuPtr, index, mute)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets muting state of all voices at once.
+	about: Uses a bit mask, where -1 mutes all voices, 0 unmutes them all, $1 mutes just the first voice, etc.
 	End Rem
 	Method MuteVoices(mutingMask:Int)
 		bmx_gme_mute_voices(emuPtr, mutingMask)
@@ -211,21 +220,22 @@ Type TMusicEmu
 End Type
 
 Rem
-bbdoc: 
+bbdoc: The GME Player.
+about: Loads and plays GME supported audio.
 End Rem
 Type TGMEPlayer
 
 	Field emu:TMusicEmu
 
 	Rem
-	bbdoc: 
+	bbdoc: Loads the specific audio file, to play back at the given @sampleRate.
 	End Rem
 	Method LoadFile(path:String, sampleRate:Int)
 		emu = TMusicEmu.Create(path, sampleRate)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Loads the specific audio data from memory, to play back at the given @sampleRate.
 	End Rem
 	Method LoadData(data:Byte Ptr, size:Int, sampleRate:Int)
 		emu = TMusicEmu.CreateForData(data, size, sampleRate)
