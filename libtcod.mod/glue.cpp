@@ -859,17 +859,151 @@ void bmx_tcodwidget_callback(Widget *w, void *userData) {
 	_bah_libtcod_TCODWidget__callback((BBObject*)userData);
 }
 
-MaxTCODButton * bmx_tcodbutton_create(BBObject * handle, BBString * label, BBString * tip, int x, int y, int w, int h) {
-	BBRETAIN(handle);
-	char * l = bbStringToCString(label);
+void bmx_tcodwidget_setbackgroundcolor(MaxTCODColor  * col, MaxTCODColor * colFocus) {
+	Widget::setBackgroundColor(col->Color(), colFocus->Color());
+}
+
+void bmx_tcodwidget_setforegroundcolor(MaxTCODColor  * col, MaxTCODColor * colFocus) {
+	Widget::setForegroundColor(col->Color(), colFocus->Color());
+}
+
+void bmx_tcodwidget_setconsole(MaxTCODConsole * console) {
+	Widget::setConsole(console->Console());
+}
+
+void bmx_tcodwidget_updatewidgets(TCOD_keycode_t vk, int c, int pressed, int lalt, int lctrl, int ralt, int rctrl, int shift) {
+	TCOD_key_t key;
+	key.vk = vk;
+	key.c = static_cast<int>(c);
+	key.pressed = pressed;
+	key.lalt = lalt;
+	key.lctrl = lctrl;
+	key.ralt = ralt;
+	key.rctrl = rctrl;
+	key.shift = shift;
+	Widget::updateWidgets(key);
+}
+
+void bmx_tcodwidget_renderwidgets() {
+	Widget::renderWidgets();
+}
+
+void bmx_tcodwidget_move(Widget * widget, int x, int y) {
+	widget->move(x, y);
+}
+
+void bmx_tcodwidget_settip(Widget * widget, BBString * tip) {
 	char * t = bbStringToCString(tip);
-	MaxTCODButton * button = new MaxTCODButton(x, y, w, h, l, t, bmx_tcodwidget_callback, handle);
-	bbMemFree(l);
+	widget->setTip(t);
 	bbMemFree(t);
-	return button;
+}
+
+void bmx_tcodwidget_setvisible(Widget * widget, bool visible) {
+
+}
+
+bool bmx_tcodwidget_isvisible(Widget * widget) {
+	return widget->isVisible();
+}
+
+BBObject * bmx_tcodwidget_focus() {
+	Widget * f = Widget::focus;
+	if (f) {
+		return (BBObject*)f->userData;
+	} else {
+		return &bbNullObject;
+	}
 }
 
 
+
+// ******************************************************************
+
+MaxTCODButton * bmx_tcodbutton_create(BBObject * handle, BBString * label, BBString * tip, int x, int y, int w, int h) {
+	char * l = bbStringToCString(label);
+	char * t = 0;
+	if (tip != &bbEmptyString) {
+		t = bbStringToCString(tip);
+	}
+	MaxTCODButton * button = new MaxTCODButton(x, y, w, h, l, t, bmx_tcodwidget_callback, handle);
+	bbMemFree(l);
+	if (t) bbMemFree(t);
+	return button;
+}
+
+// ******************************************************************
+
+MaxTCODStatusBar * bmx_tcodstatusbar_create(BBObject * handle, int x, int y, int w, int h) {
+	return new MaxTCODStatusBar(x, y, w, h, handle);
+}
+
+// ******************************************************************
+
+MaxTCODLabel * bmx_tcodlabel_create(BBObject * handle, int x, int y, BBString * label, BBString * tip) {
+	char * l = bbStringToCString(label);
+	char * t = 0;
+	if (tip != &bbEmptyString) {
+		t = bbStringToCString(tip);
+	}
+	MaxTCODLabel * lbl = new MaxTCODLabel(x, y, l, t, (void*)handle);
+	bbMemFree(l);
+	if (t) bbMemFree(t);
+	return lbl;
+}
+
+void bmx_tcodlabel_setvalue(Label * widget, BBString * label) {
+	char * l = bbStringToCString(label);
+	widget->setValue(l);
+	bbMemFree(l);
+}
+
+// ******************************************************************
+
+MaxTCODVBox * bmx_tcodvbox_create(BBObject * handle, int x, int y, int padding) {
+	return new MaxTCODVBox(x, y, padding, handle);
+}
+
+
+// ******************************************************************
+
+void bmx_tcodcontainer_addwidget(Container * cont, Widget * wid) {
+	cont->addWidget(wid);
+}
+
+void bmx_tcodcontainer_removewidget(Container * cont, Widget * wid) {
+	cont->removeWidget(wid);
+}
+
+// ******************************************************************
+
+MaxTCODToolBar * bmx_tcodtoolbar_create(BBObject * handle, int x, int y, BBString * name, BBString * tip) {
+	char * l = bbStringToCString(name);
+	char * t = 0;
+	if (tip != &bbEmptyString) {
+		t = bbStringToCString(tip);
+	}
+	MaxTCODToolBar * tb = new MaxTCODToolBar(x, y, l, t, (void*)handle);
+	bbMemFree(l);
+	if (t) bbMemFree(t);
+	return tb;
+}
+
+void bmx_tcodtoolbar_setname(ToolBar * tb, BBString * name) {
+	char * n = bbStringToCString(name);
+	tb->setName(n);
+	bbMemFree(n);
+}
+
+void bmx_tcodtoolbar_addseparator(ToolBar * tb, BBString * txt, BBString * tip) {
+	char * l = bbStringToCString(txt);
+	char * t = 0;
+	if (tip != &bbEmptyString) {
+		t = bbStringToCString(tip);
+	}
+	tb->addSeparator(l, t);
+	bbMemFree(l);
+	if (t) bbMemFree(t);
+}
 
 
 

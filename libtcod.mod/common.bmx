@@ -228,7 +228,30 @@ Extern
 	Function bmx_tcodmouse_move(x:Int, y:Int)
 	Function bmx_tcodmouse_showcursor(visible:Int)
 
+	Function bmx_tcodwidget_setbackgroundcolor(col:Byte Ptr, colFocus:Byte Ptr)
+	Function bmx_tcodwidget_setforegroundcolor(col:Byte Ptr, colFocus:Byte Ptr)
+	Function bmx_tcodwidget_setconsole(con:Byte Ptr)
+	Function bmx_tcodwidget_updatewidgets(vk:Int, c:Int, pressed:Int, lalt:Int, lctrl:Int, ralt:Int, rctrl:Int, shift:Int)
+	Function bmx_tcodwidget_renderwidgets()
+	Function bmx_tcodwidget_move(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_tcodwidget_settip(handle:Byte Ptr, tip:String)
+	Function bmx_tcodwidget_setvisible(handle:Byte Ptr, visible:Int)
+	Function bmx_tcodwidget_isvisible:Int(handle:Byte Ptr)
+	Function bmx_tcodwidget_focus:Object()
+
 	Function bmx_tcodbutton_create:Byte Ptr(handle:Object, label:String, tip:String, x:Int, y:Int, w:Int, h:Int)
+	Function bmx_tcodstatusbar_create:Byte Ptr(handle:Object, x:Int, y:Int, w:Int, h:Int)
+	Function bmx_tcodvbox_create:Byte Ptr(handle:Object, x:Int, y:Int, padding:Int)
+
+	Function bmx_tcodlabel_create:Byte Ptr(handle:Object, x:Int, y:Int, label:String, tip:String)
+	Function bmx_tcodlabel_setvalue(handle:Byte Ptr, label:String)
+
+	Function bmx_tcodcontainer_addwidget(handle:Byte Ptr, wid:Byte Ptr)
+	Function bmx_tcodcontainer_removewidget(handle:Byte Ptr, wid:Byte Ptr)
+
+	Function bmx_tcodtoolbar_create:Byte Ptr(handle:Object, x:Int, y:Int, name:String, tip:String)
+	Function bmx_tcodtoolbar_setname(handle:Byte Ptr, name:String)
+	Function bmx_tcodtoolbar_addseparator(handle:Byte Ptr, txt:String, tip:String)
 
 End Extern
 

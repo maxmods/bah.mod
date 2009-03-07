@@ -8,6 +8,11 @@ class MaxTCODConsole;
 class MaxTCODKey;
 
 class MaxTCODButton;
+class MaxTCODHBox;
+class MaxTCODVBox;
+class MaxTCODToolBar;
+class MaxTCODStatusBar;
+class MaxTCODLabel;
 
 extern "C" {
 
@@ -206,7 +211,31 @@ extern "C" {
 	void bmx_tcodmouse_showcursor(bool visible);
 
 	void bmx_tcodwidget_callback(Widget *w, void *userData);
+
 	MaxTCODButton * bmx_tcodbutton_create(BBObject * handle, BBString * label, BBString * tip, int x, int y, int w, int h);
+	MaxTCODStatusBar * bmx_tcodstatusbar_create(BBObject * handle, int x, int y, int w, int h);
+	MaxTCODVBox * bmx_tcodvbox_create(BBObject * handle, int x, int y, int padding);
+
+	void bmx_tcodwidget_setbackgroundcolor(MaxTCODColor  * col, MaxTCODColor * colFocus);
+	void bmx_tcodwidget_setforegroundcolor(MaxTCODColor  * col, MaxTCODColor * colFocus);
+	void bmx_tcodwidget_setconsole(MaxTCODConsole * console);
+	void bmx_tcodwidget_updatewidgets(TCOD_keycode_t vk, int c, int pressed, int lalt, int lctrl, int ralt, int rctrl, int shift);
+	void bmx_tcodwidget_renderwidgets();
+	void bmx_tcodwidget_move(Widget * widget, int x, int y);
+	void bmx_tcodwidget_settip(Widget * widget, BBString * tip);
+	void bmx_tcodwidget_setvisible(Widget * widget, bool visible);
+	bool bmx_tcodwidget_isvisible(Widget * widget);
+	BBObject * bmx_tcodwidget_focus();
+
+	MaxTCODLabel * bmx_tcodlabel_create(BBObject * handle, int x, int y, BBString * label, BBString * tip);
+	void bmx_tcodlabel_setvalue(Label * widget, BBString * label);
+
+	void bmx_tcodcontainer_addwidget(Container * cont, Widget * wid);
+	void bmx_tcodcontainer_removewidget(Container * cont, Widget * wid);
+
+	MaxTCODToolBar * bmx_tcodtoolbar_create(BBObject * handle, int x, int y, BBString * name, BBString * tip);
+	void bmx_tcodtoolbar_setname(ToolBar * tb, BBString * name);
+	void bmx_tcodtoolbar_addseparator(ToolBar * tb, BBString * txt, BBString * tip);
 
 }
 
@@ -244,15 +273,91 @@ private:
 	TCOD_key_t key;
 };
 
-
 class MaxTCODButton: public Button
 {
 public:
 	MaxTCODButton(int x, int y, int width, int height, const char *label, const char *tip, widget_callback_t cbk, void *userData)
 		: Button(x, y, width, height, label, tip, cbk, userData)
-	{}
+	{
+		BBRETAIN((BBObject*)userData);
+	}
 
 	~MaxTCODButton() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
+
+class MaxTCODHBox: public HBox
+{
+public:
+	MaxTCODHBox(int x, int y, int padding, void *ud)
+		: HBox(x, y, padding)
+	{
+		userData = ud;
+		BBRETAIN((BBObject*)userData);
+	}
+
+	~MaxTCODHBox() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
+
+class MaxTCODVBox: public VBox
+{
+public:
+	MaxTCODVBox(int x, int y, int padding, void *ud)
+		: VBox(x, y, padding)
+	{
+		userData = ud;
+		BBRETAIN((BBObject*)userData);
+	}
+
+	~MaxTCODVBox() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
+
+class MaxTCODToolBar: public ToolBar
+{
+public:
+	MaxTCODToolBar(int x, int y, const char *name, const char *tip, void *ud)
+		: ToolBar(x, y, name, tip)
+	{
+		userData = ud;
+		BBRETAIN((BBObject*)userData);
+	}
+
+	~MaxTCODToolBar() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
+
+class MaxTCODStatusBar: public StatusBar
+{
+public:
+	MaxTCODStatusBar(int x, int y, int width, int height, void *ud)
+		: StatusBar(x, y, width, height)
+	{
+		userData = ud;
+		BBRETAIN((BBObject*)userData);
+	}
+
+	~MaxTCODStatusBar() {
+		BBRELEASE((BBObject*)userData);
+	}
+};
+
+class MaxTCODLabel: public Label
+{
+public:
+	MaxTCODLabel(int x, int y, const char *label, const char *tip, void *ud)
+		: Label(x, y, label, tip)
+	{
+		userData = ud;
+		BBRETAIN((BBObject*)userData);
+	}
+
+	~MaxTCODLabel() {
 		BBRELEASE((BBObject*)userData);
 	}
 };
