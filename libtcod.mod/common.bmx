@@ -253,6 +253,26 @@ Extern
 	Function bmx_tcodtoolbar_setname(handle:Byte Ptr, name:String)
 	Function bmx_tcodtoolbar_addseparator(handle:Byte Ptr, txt:String, tip:String)
 
+	Function bmx_tcodbsp_create:Byte Ptr(x:Int, y:Int, w:Int, h:Int)
+	Function bmx_tcodbsp_splitonce(handle:Byte Ptr, horizontal:Int, position:Int)
+	Function bmx_tcodbsp_splitrecursive(handle:Byte Ptr, randomizer:Byte Ptr, nb:Int, minHSize:Int, maxHRatio:Int, minVSize:Int, maxVRatio:Int)
+	Function bmx_tcodbsp_resize(handle:Byte Ptr, x:Int, y:Int, w:Int, h:Int)
+	Function bmx_tcodbsp_removechildren(handle:Byte Ptr)
+	Function bmx_tcodbsp_free(handle:Byte Ptr)
+	Function bmx_tcodbsp_update(handle:Byte Ptr, x:Int Ptr, y:Int Ptr, w:Int Ptr, h:Int Ptr, position:Int Ptr, horizontal:Int Ptr, level:Int Ptr)
+	Function bmx_tcodbsp_getleft:Object(handle:Byte Ptr)
+	Function bmx_tcodbsp_getright:Object(handle:Byte Ptr)
+	Function bmx_tcodbsp_getparent:Object(handle:Byte Ptr)
+	Function bmx_tcodbsp_isleaf:Int(handle:Byte Ptr)
+	Function bmx_tcodbsp_contains:Int(handle:Byte Ptr, cx:Int, cy:Int)
+	Function bmx_tcodbsp_findnode:Object(handle:Byte Ptr, cx:Int, cy:Int)
+	Function bmx_tcodbsp_traversepreorder:Int(handle:Byte Ptr)
+	Function bmx_tcodbsp_traverseinorder:Int(handle:Byte Ptr)
+	Function bmx_tcodbsp_traversepostorder:Int(handle:Byte Ptr)
+	Function bmx_tcodbsp_traverselevelorder:Int(handle:Byte Ptr)
+	Function bmx_tcodbsp_traverseinvertedlevelorder:Int(handle:Byte Ptr)
+
+
 End Extern
 
 Const TCOD_CHAR_HLINE:Int = 196

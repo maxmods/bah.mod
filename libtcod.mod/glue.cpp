@@ -1005,6 +1005,128 @@ void bmx_tcodtoolbar_addseparator(ToolBar * tb, BBString * txt, BBString * tip) 
 	if (t) bbMemFree(t);
 }
 
+// ******************************************************************
+
+TCODBsp * bmx_tcodbsp_create(int x, int y, int w, int h) {
+	return new TCODBsp(x, y, w, h);
+}
+
+void bmx_tcodbsp_splitonce(TCODBsp * bsp, bool horizontal, int position) {
+	bsp->splitOnce(horizontal, position);
+}
+
+void bmx_tcodbsp_splitrecursive(TCODBsp * bsp, TCODRandom * randomizer, int nb, int minHSize, int maxHRatio, int minVSize, int maxVRatio) {
+	bsp->splitRecursive(randomizer, nb, minHSize, maxHRatio, minVSize, maxVRatio);
+}
+
+void bmx_tcodbsp_resize(TCODBsp * bsp, int x, int y, int w, int h) {
+	bsp->resize(x, y, w, h);
+}
+
+void bmx_tcodbsp_removechildren(TCODBsp * bsp) {
+	bsp->removeSons();
+}
+
+void bmx_tcodbsp_free(TCODBsp * bsp) {
+	delete bsp;
+}
+
+void bmx_tcodbsp_update(TCODBsp * bsp, int * x, int * y, int * w, int * h, int * position, bool * horizontal, int * level) {
+	*x = bsp->x;
+	*y = bsp->y;
+	*w = bsp->w;
+	*h = bsp->h;
+	*position = bsp->position;
+	*x = bsp->x;
+}
+
+BBObject * bmx_tcodbsp_getleft(TCODBsp * bsp) {
+	TCODBsp * b = bsp->getLeft();
+	if (b) {
+		return _bah_libtcod_TCODBsp__create(b, b->x, b->y, b->w, b->h, b->position, b->horizontal, b->level);
+	} else {
+		return &bbNullObject;
+	}
+}
+
+BBObject * bmx_tcodbsp_getright(TCODBsp * bsp) {
+	TCODBsp * b = bsp->getRight();
+	if (b) {
+		return _bah_libtcod_TCODBsp__create(b, b->x, b->y, b->w, b->h, b->position, b->horizontal, b->level);
+	} else {
+		return &bbNullObject;
+	}
+}
+
+BBObject * bmx_tcodbsp_getparent(TCODBsp * bsp) {
+	TCODBsp * b = bsp->getFather();
+	if (b) {
+		return _bah_libtcod_TCODBsp__create(b, b->x, b->y, b->w, b->h, b->position, b->horizontal, b->level);
+	} else {
+		return &bbNullObject;
+	}
+}
+
+bool bmx_tcodbsp_isleaf(TCODBsp * bsp) {
+	return bsp->isLeaf();
+}
+
+bool bmx_tcodbsp_contains(TCODBsp * bsp, int cx, int cy) {
+	return bsp->contains(cx, cy);
+}
+
+BBObject * bmx_tcodbsp_findnode(TCODBsp * bsp, int cx, int cy) {
+	TCODBsp * b = bsp->findNode(cx, cy);
+	if (b) {
+		return _bah_libtcod_TCODBsp__create(b, b->x, b->y, b->w, b->h, b->position, b->horizontal, b->level);
+	} else {
+		return &bbNullObject;
+	}
+}
+
+class MaxBspCallback : public ITCODBspCallback
+{
+public :
+	bool visitNode(TCODBsp *b, void *userData) {
+		return _bah_libtcod_TCODBsp__Callback(_bah_libtcod_TCODBsp__create(b, b->x, b->y, b->w, b->h, b->position, b->horizontal, b->level));
+	}
+};
+
+bool bmx_tcodbsp_traversepreorder(TCODBsp * bsp) {
+	MaxBspCallback *cb = new MaxBspCallback();
+	bool res = bsp->traversePreOrder(cb, NULL);
+	delete cb;
+	return res;
+}
+
+bool bmx_tcodbsp_traverseinorder(TCODBsp * bsp) {
+	MaxBspCallback *cb = new MaxBspCallback();
+	bool res = bsp->traverseInOrder(cb, NULL);
+	delete cb;
+	return res;
+}
+
+bool bmx_tcodbsp_traversepostorder(TCODBsp * bsp) {
+	MaxBspCallback *cb = new MaxBspCallback();
+	bool res = bsp->traversePostOrder(cb, NULL);
+	delete cb;
+	return res;
+}
+
+bool bmx_tcodbsp_traverselevelorder(TCODBsp * bsp) {
+	MaxBspCallback *cb = new MaxBspCallback();
+	bool res = bsp->traverseLevelOrder(cb, NULL);
+	delete cb;
+	return res;
+}
+
+bool bmx_tcodbsp_traverseinvertedlevelorder(TCODBsp * bsp) {
+	MaxBspCallback *cb = new MaxBspCallback();
+	bool res = bsp->traverseInvertedLevelOrder(cb, NULL);
+	delete cb;
+	return res;
+}
+
 
 
 

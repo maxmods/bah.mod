@@ -21,6 +21,8 @@ extern "C" {
 	void _bah_libtcod_TCODWidget__callback(BBObject * userData);
 	BBObject * _bah_libtcod_TCODMouse__create(int x, int y, int dx, int dy, int cx, int cy, int dcx, int dcy, int lbutton, int rbutton, int mbutton, 
 		int lbutton_pressed, int rbutton_pressed, int mbutton_pressed, int wheel_up, int wheel_down);
+	BBObject * _bah_libtcod_TCODBsp__create(TCODBsp * bsp, int x, int y, int w, int h, int position, bool horizontal, int level);
+	bool _bah_libtcod_TCODBsp__Callback(BBObject * userData);
 
 	MaxTCODColor * bmx_tcodcolor_create(int r, int g, int b);
 	void bmx_tcodcolor_delete(MaxTCODColor * color);
@@ -236,6 +238,26 @@ extern "C" {
 	MaxTCODToolBar * bmx_tcodtoolbar_create(BBObject * handle, int x, int y, BBString * name, BBString * tip);
 	void bmx_tcodtoolbar_setname(ToolBar * tb, BBString * name);
 	void bmx_tcodtoolbar_addseparator(ToolBar * tb, BBString * txt, BBString * tip);
+
+
+	TCODBsp * bmx_tcodbsp_create(int x, int y, int w, int h);
+	void bmx_tcodbsp_splitonce(TCODBsp * bsp, bool horizontal, int position);
+	void bmx_tcodbsp_splitrecursive(TCODBsp * bsp, TCODRandom * randomizer, int nb, int minHSize, int maxHRatio, int minVSize, int maxVRatio);
+	void bmx_tcodbsp_resize(TCODBsp * bsp, int x, int y, int w, int h);
+	void bmx_tcodbsp_removechildren(TCODBsp * bsp);
+	void bmx_tcodbsp_free(TCODBsp * bsp);
+	void bmx_tcodbsp_update(TCODBsp * bsp, int * x, int * y, int * w, int * h, int * position, bool * horizontal, int * level);
+	BBObject * bmx_tcodbsp_getleft(TCODBsp * bsp);
+	BBObject * bmx_tcodbsp_getright(TCODBsp * bsp);
+	BBObject * bmx_tcodbsp_getparent(TCODBsp * bsp);
+	bool bmx_tcodbsp_isleaf(TCODBsp * bsp);
+	bool bmx_tcodbsp_contains(TCODBsp * bsp, int cx, int cy);
+	BBObject * bmx_tcodbsp_findnode(TCODBsp * bsp, int cx, int cy);
+	bool bmx_tcodbsp_traversepreorder(TCODBsp * bsp);
+	bool bmx_tcodbsp_traverseinorder(TCODBsp * bsp);
+	bool bmx_tcodbsp_traversepostorder(TCODBsp * bsp);
+	bool bmx_tcodbsp_traverselevelorder(TCODBsp * bsp);
+	bool bmx_tcodbsp_traverseinvertedlevelorder(TCODBsp * bsp);
 
 }
 

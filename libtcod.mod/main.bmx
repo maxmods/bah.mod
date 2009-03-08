@@ -31,6 +31,7 @@ Import "line.bmx"
 Import "map.bmx"
 Import "heightmap.bmx"
 Import "text.bmx"
+Import "bsp.bmx"
 Import "common.bmx"
 
 Rem

@@ -36,14 +36,14 @@ Type TCODMap
 	Field objectPtr:Byte Ptr
 
 	Rem
-	bbdoc: 
+	bbdoc: Allocates a map of the same size as your dungeon.
 	End Rem
 	Function CreateMap:TCODMap(width:Int, height:Int)
 		Return New TCODMap.Create(width, height)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Allocates a map of the same size as your dungeon.
 	End Rem
 	Method Create:TCODMap(width:Int, height:Int)
 		objectPtr = bmx_tcodmap_create(width, height)
@@ -51,56 +51,56 @@ Type TCODMap
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Defines which cells let the light pass (by default, all cells block the light) and which cells are walkable (by default, all cells are not-walkable).
 	End Rem
 	Method SetProperties(x:Int, y:Int, isTransparent:Int, isWalkable:Int)
 		bmx_tcodmap_setproperties(objectPtr, x, y, isTransparent, isWalkable)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Clears an existing map (setting all cells as 'blocking').
 	End Rem
 	Method Clear()
 		bmx_tcodmap_clear(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Copies an existing map into this one.
 	End Rem
 	Method Copy(source:TCODMap)
 		bmx_tcodmap_copy(objectPtr, source.objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Calculates the field of view.
 	End Rem
 	Method ComputeFov(playerX:Int, playerY:Int, maxRadius:Int = 0, lightWalls:Int = True, algo:Int = FOV_BASIC)
 		bmx_tcodmap_computefov(objectPtr, playerX, playerY, maxRadius, lightWalls, algo)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Determines if the specified cell is visible.
 	End Rem
 	Method IsInFov:Int(x:Int, y:Int)
 		Return bmx_tcodmap_isinfov(objectPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the specified cell is transparent.
 	End Rem
 	Method IsTransparent:Int(x:Int, y:Int)
 		Return bmx_tcodmap_istransparent(objectPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the specified cell is walkable.
 	End Rem
 	Method IsWalkable:Int(x:Int, y:Int)
 		Return bmx_tcodmap_iswalkable(objectPtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Releasea the resources used by a map.
 	End Rem
 	Method Free()
 		If objectPtr Then
@@ -116,21 +116,21 @@ Type TCODMap
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Allows to easily calculate the optimal path between two points in your dungeon by using the A* algorithm.
 End Rem
 Type TCODPath
 
 	Field objectPtr:Byte Ptr
 	
 	Rem
-	bbdoc: 
+	bbdoc: Allocates a path using a TCODMap.
 	End Rem
 	Function CreatePath:TCODPath(map:TCODMap, diagonalCost:Float = 1.41)
 		Return New TCODPath.Create(map, diagonalCost)
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Allocates a path using a TCODMap.
 	End Rem
 	Method Create:TCODPath(map:TCODMap, diagonalCost:Float = 1.41)
 		objectPtr = bmx_tcodpath_create(map.objectPtr, diagonalCost)
@@ -138,56 +138,59 @@ Type TCODPath
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Computes the path between two points.
+	returns: False if there is no possible path.
+	about: Both points should be inside the map, and at a walkable position. 
 	End Rem
 	Method Compute:Int(ox:Int, oy:Int, dx:Int, dy:Int)
 		Return bmx_tcodpath_compute(objectPtr, ox, oy, dx, dy)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets the origin location.
+	about: Note that when you walk the path, the origin changes at each step.
 	End Rem
 	Method GetOrigin(x:Int Var, y:Int Var)
 		bmx_tcodpath_getorigin(objectPtr, Varptr x, Varptr y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Gets the destination location.
 	End Rem
 	Method GetDestination(x:Int Var, y:Int Var)
 		bmx_tcodpath_getdestination(objectPtr, Varptr x, Varptr y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the number of steps needed to reach the destination.
 	End Rem
 	Method Size:Int()
 		Return bmx_tcodpath_size(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the coordinates of each point along the path.
 	End Rem
 	Method Get(index:Int, x:Int Var, y:Int Var)
 		bmx_tcodpath_get(objectPtr, index, Varptr x, Varptr y)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns True when the destination is reached (by walking the path).
 	End Rem
 	Method IsEmpty:Int()
 		Return bmx_tcodpath_isempty(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Walks the path and goes to the next step.
 	End Rem
 	Method Walk:Int(x:Int Var, y:Int Var, recalculateWhenNeeded:Int)
 		Return bmx_tcodpath_walk(objectPtr, Varptr x, Varptr y, recalculateWhenNeeded)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Releases the resources used by a path.
 	End Rem
 	Method Free()
 		If objectPtr Then
