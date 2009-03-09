@@ -28,7 +28,7 @@ SuperStrict
 Import "common.bmx"
 
 Rem
-bbdoc: 
+bbdoc: An implementation of a fast and very high quality random number generator using the Mersenne twister algorithm.
 End Rem
 Type TCODRandom
 
@@ -37,7 +37,9 @@ Type TCODRandom
 	Global random:TCODRandom
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a generator with a specific seed, or using a default random seed.
+	about: This allows you to get a reproducible set of random numbers. You can for example save a dungeon in a file by saving only
+	the seed used for its generation (provided you have a determinist generation algorithm).
 	End Rem
 	Method Create:TCODRandom(seed:Int = -1)
 		If seed < 0 Then
@@ -49,7 +51,7 @@ Type TCODRandom
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the default random number generator.
 	End Rem
 	Function GetInstance:TCODRandom()
 		If Not random Then

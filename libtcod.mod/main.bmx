@@ -93,7 +93,7 @@ Type TCODConsole
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the window has been closed.
 	End Rem
 	Function IsWindowClosed:Int()
 		Return bmx_tcodconsole_iswindowclosed()
@@ -108,7 +108,28 @@ Type TCODConsole
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Waits for the user to press a key.
+	about: If the flush parameter is True, every pending keypress event is discarded, then waits for a new keypress.
+	</p>
+	If flush is False, the function waits only if there are no pending keypress events, else it returns the first event in the keyboard buffer.
+	</p>
+	End Rem
+	Function WaitForKeypress:TCODKey(flush:Int)
+		If flush Then
+			FlushKeys()
+			TCODKey.Flush()
+		Else
+			Local key:TCODKey = TCODKey.PopKey()
+			If key <> TCODKey.noKey Then
+				Return key
+			End If
+		End If
+		WaitSystem
+		Return TCODKey.PopKey()
+	End Function
+
+	Rem
+	bbdoc: Polls the system for a keypress.
 	End Rem
 	Function CheckForKeypress:TCODKey()
 		PollSystem
@@ -799,7 +820,7 @@ Type TCODSystem
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Used when returning keyboard input from the user.
 End Rem
 Type TCODKey
 
@@ -812,35 +833,36 @@ Type TCODKey
 	Global noKey:TCODKey = New TCODKey
 
 	Rem
-	bbdoc: 
+	bbdoc: An arbitrary value representing the physical key on the keyboard.
+	about: If no key was pressed, the value is TCODK_NONE.
 	End Rem
 	Field vk:Int
 	Rem
-	bbdoc: 
+	bbdoc: If the key correspond to a printable character, the character is stored in this field, other this field contains 0.
 	End Rem
 	Field c:Int
 	Rem
-	bbdoc: 
+	bbdoc: 1 if the event is a key pressed, or 0 for a key released.
 	End Rem
 	Field pressed:Int
 	Rem
-	bbdoc: 
+	bbdoc:Represents the status of the left Alt key : 1 => pressed, 0 => released.
 	End Rem
 	Field lalt:Int
 	Rem
-	bbdoc: 
+	bbdoc: Represents the status of the left Control key : 1 => pressed, 0 => released.
 	End Rem
 	Field lctrl:Int
 	Rem
-	bbdoc: 
+	bbdoc: Represents the status of the right Alt key : 1 => pressed, 0 => released.
 	End Rem
 	Field ralt:Int
 	Rem
-	bbdoc: 
+	bbdoc: Represents the status of the right Control key : 1 => pressed, 0 => released.
 	End Rem
 	Field rctrl:Int
 	Rem
-	bbdoc: 
+	bbdoc: Represents the status of the shift key : 1 => pressed, 0 => released.
 	End Rem
 	Field shift:Int
 	

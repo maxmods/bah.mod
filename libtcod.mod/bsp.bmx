@@ -30,7 +30,8 @@ Import "common.bmx"
 
 
 Rem
-bbdoc: 
+bbdoc: A 2D Binary Space Partition tree.
+about: It can be used to split a rectangular region into non overlapping sub-regions.
 End Rem
 Type TCODBsp
 
@@ -54,15 +55,15 @@ Type TCODBsp
 	End Rem
 	Field h:Int
 	Rem
-	bbdoc: 
+	bbdoc: The position of splitting.
 	End Rem
 	Field position:Int
 	Rem
-	bbdoc: 
+	bbdoc: True if has horizontal splitting.
 	End Rem
 	Field horizontal:Int
 	Rem
-	bbdoc: 
+	bbdoc: The level in the tree.
 	End Rem
 	Field level:Int
 	
@@ -85,14 +86,16 @@ Type TCODBsp
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates the root node of the tree.
+	about: This node encompasses the whole rectangular region.
 	End Rem
 	Function CreateBsp:TCODBsp(x:Int, y:Int, w:Int, h:Int)
 		Return New TCODBsp.Create(x, y, w, h)
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates the root node of the tree.
+	about: This node encompasses the whole rectangular region.
 	End Rem
 	Method Create:TCODBsp(x:Int, y:Int, w:Int, h:Int)
 		objectPtr = bmx_tcodbsp_create(x, y, w, h)
@@ -105,70 +108,85 @@ Type TCODBsp
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Splits the node into two smaller non-overlapping nodes.
 	End Rem
 	Method SplitOnce(horizontal:Int, position:Int)
 		bmx_tcodbsp_splitonce(objectPtr, horizontal, position)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Recursively splits the bsp.
+	about: At each step, a random orientation (horizontal/vertical) and position are choosen
 	End Rem
 	Method SplitRecursive(randomizer:TCODRandom, nb:Int, minHSize:Int, maxHRatio:Int, minVSize:Int, maxVRatio:Int)
 		bmx_tcodbsp_splitrecursive(objectPtr, randomizer.randomPtr, nb, minHSize, maxHRatio, minVSize, maxVRatio)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Resets the size of the tree nodes without changing the splitting data (orientation/position).
+	about: It should be called with the initial region size or a bigger size, else some splitting position may be out of the region.
+	<p>
+	You can use it if you changed the nodes size and position while using the BSP tree, which happens typically when you use the
+	tree to build a dungeon. You create rooms inside the tree leafs, then shrink the leaf to fit the room size. Calling resize on
+	the root node with the original region size allows you to reset all nodes to their original size.
+	</p>
 	End Rem
 	Method Resize(x:Int, y:Int, w:Int, h:Int)
 		bmx_tcodbsp_resize(objectPtr, x, y, w, h)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Navigates from the node to its left-child.
+	about: Returns Null if the corresponding node does not exist.
 	End Rem
 	Method GetLeft:TCODBsp()
 		Return TCODBsp(bmx_tcodbsp_getleft(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Navigates from the node to its right-child.
+	about: Returns Null if the corresponding node does not exist.
 	End Rem
 	Method GetRight:TCODBsp()
 		Return TCODBsp(bmx_tcodbsp_getright(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Navigates from the node to its parent node.
+	about: Returns Null if the corresponding node does not exist.
 	End Rem
 	Method GetParent:TCODBsp()
 		Return TCODBsp(bmx_tcodbsp_getparent(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the node is split, False otherwise.
 	End Rem
 	Method IsLeaf:Int()
 		Return bmx_tcodbsp_isleaf(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the specified cell is inside the node.
 	End Rem
 	Method Contains:Int(cx:Int, cy:Int)
 		Return bmx_tcodbsp_contains(objectPtr, cx, cy)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Searches the tree for the smallest node containing the map cell.
+	about: If the cell is outside the tree, the function returns Null.
 	End Rem
 	Method FindNode:TCODBsp(cx:Int, cy:Int)
 		Return TCODBsp(bmx_tcodbsp_findnode(objectPtr, cx, cy))
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Traverses the tree in pre order.
+	about: The callback is called for the current node, then for the left child, then for the right child.
+	<p>
+	The traversal returns False if the traversal has been interrupted (a callback returned false).
+	</p>
 	End Rem
 	Method TraversePreOrder:Int(nodeCallback:Int(node:TCODBsp, userData:Object), userData:Object)
 		cb = nodeCallback
@@ -177,7 +195,11 @@ Type TCODBsp
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Traverses the tree in order.
+	about: The callback is called for the left child, then for current node, then for the right child.
+	<p>
+	The traversal returns False if the traversal has been interrupted (a callback returned false).
+	</p>
 	End Rem
 	Method TraverseInOrder:Int(nodeCallback:Int(node:TCODBsp, userData:Object), userData:Object)
 		cb = nodeCallback
@@ -186,7 +208,11 @@ Type TCODBsp
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Traverses the tree in post order.
+	about: The callback is called for the left child, then for the right child, then for the current node.
+	<p>
+	The traversal returns False if the traversal has been interrupted (a callback returned false).
+	</p>
 	End Rem
 	Method TraversePostOrder:Int(nodeCallback:Int(node:TCODBsp, userData:Object), userData:Object)
 		cb = nodeCallback
@@ -195,7 +221,11 @@ Type TCODBsp
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Traverses the tree in level order.
+	about: The callback is called for the nodes level by level, from left to right.
+	<p>
+	The traversal returns False if the traversal has been interrupted (a callback returned false).
+	</p>
 	End Rem
 	Method TraverseLevelOrder:Int(nodeCallback:Int(node:TCODBsp, userData:Object), userData:Object)
 		cb = nodeCallback
@@ -204,7 +234,11 @@ Type TCODBsp
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Traverses the tree in inverted level order.
+	about: The callback is called in the exact inverse order as Level-order.
+	<p>
+	The traversal returns False if the traversal has been interrupted (a callback returned false).
+	</p>
 	End Rem
 	Method TraverseInvertedLevelOrder:Int(nodeCallback:Int(node:TCODBsp, userData:Object), userData:Object)
 		cb = nodeCallback
@@ -217,14 +251,14 @@ Type TCODBsp
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Deletes a part of the tree, releasing resources for all sub nodes.
 	End Rem
 	Method RemoveChildren()
 		bmx_tcodbsp_removechildren(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Frees the tree, and all its resources.
 	End Rem
 	Method Free()
 		If objectPtr Then

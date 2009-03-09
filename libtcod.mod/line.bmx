@@ -49,7 +49,8 @@ Type TCODLine
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Draws a line, using a callback function to step through each cell.
+	returns: False if the line has been interrupted by the callback (it returned false before the last point).
 	End Rem
 	Function Line:Int(xFrom:Int, yFrom:Int, xTo:Int, yTo:Int, listener:Int(x:Int, y:Int))
 		Return TCOD_line(xFrom, yFrom, xTo, yTo, listener)
