@@ -1563,6 +1563,7 @@ Type TFMODChannel
 	bbdoc: 
 	End Rem
 	Method GetInputChannelMix:Int(levels:Float[])
+	' TODO
 	End Method
 	
 	Rem
@@ -1587,6 +1588,14 @@ Type TFMODChannel
 	End Method
 	
 	Rem
+	bbdoc: Sets the priority for a channel after it has been played.
+	about: A sound with a higher priority than another sound will not be stolen or made virtual by that sound. 
+	End Rem
+	Method SetPriority:Int(priority:Int)
+		Return bmx_FMOD_Channel_SetPriority(channelPtr, priority)
+	End Method
+	
+	Rem
 	bbdoc: Retrieves the current reverb properties for this channel.
 	End Rem
 	Method GetReverbProperties:Int(properties:TFMODReverbChannelProperties)
@@ -1601,9 +1610,14 @@ Type TFMODChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the current level settings from TFMODChannel::SetSpeakerLevels
+	about: @levels should be a pre-created array, which will be populated by this method.
+	<p>
+	This method does not return level values reflecting TFMODChannel::SetPan or TFMODChannel::SetVolume.
+	</p>
 	End Rem
 	Method GetSpeakerLevels:Int(speaker:Int, levels:Float[])
+		Return bmx_FMOD_Channel_GetSpeakerLevels(channelPtr, speaker, levels)
 	End Method	
 	
 	Rem
@@ -1611,11 +1625,104 @@ Type TFMODChannel
 	End Rem
 	Method GetSpeakerMix:Int(frontleft:Float Var, frontright:Float Var, center:Float Var, ..
 			lfe:Float Var, backleft:Float Var, backright:Float Var, sideleft:Float Var, sideright:Float Var)
+		Return bmx_FMOD_Channel_GetSpeakerMix(channelPtr, Varptr frontleft, Varptr frontright, Varptr center, ..
+			Varptr lfe, Varptr backleft, Varptr backright, Varptr sideleft, Varptr sideright)
+	End Method
+
+	Rem
+	bbdoc: Retrieves the gain of the dry signal when lowpass filtering is applied.
+	End Rem	
+	Method GetLowPassGain:Int(gain:Float Var)
+		Return bmx_FMOD_Channel_GetLowPassGain(channelPtr, Varptr gain)
 	End Method
 	
-	'Method GetWaveData:Int()
-	' TODO
-	'End Method
+	Rem
+	bbdoc: Retrieves a block of PCM data that represents the currently playing waveform on this channel.
+	about: This method is useful for a very easy way to plot an oscilliscope.
+	<p>
+	This is the actual resampled pcm data window at the time the method is called.
+	</p>
+	<p>
+	Do not use this method to try and display the whole waveform of the sound, as this is more of a 'snapshot' of the current waveform
+	at the time it is called, and could return the same data if it is called very quickly in succession.
+	</p>
+	<p>
+	See the DSP API to capture a continual stream of wave data as it plays, or see Sound::lock / Sound::unlock if you want to simply
+	display the waveform of a sound.
+	</p>
+	<p>
+	This method allows retrieval of left and right data for a stereo sound individually. To combine them into one signal, simply add
+	the entries of each seperate buffer together and then divide them by 2. 
+	</p>
+	<p>
+	Note: This method only displays data for sounds playing that were created with FMOD_SOFTWARE. FMOD_HARDWARE based sounds are played
+	using the sound card driver and are not accessable.
+	</p>
+	End Rem
+	Method GetWaveData:Int(waveArray:Float[], channelOffset:Int)
+		Return bmx_FMOD_Channel_GetWaveData(channelPtr, waveArray, channelOffset)
+	End Method
+	
+	Rem
+	bbdoc: Sets an end delay for a sound (so that dsp can continue to process the finished sound).
+	about: Set the start of the sound according to the global DSP clock value which represents the time in the mixer timeline. 
+	End Rem
+	Method SetDelay:Int(delayType:Int, delayHi:Int, delayLo:Int)
+		Return bmx_FMOD_Channel_SetDelay(channelPtr, delayType, delayHi, delayLo)
+	End Method
+	
+	Rem
+	bbdoc: Sets the incoming levels in a sound.
+	about: This means if you have a multichannel sound you can turn channels on and off.
+	<p>
+	A mono sound has 1 input channel, a stereo has 2, etc. It depends on what type of sound is playing on the channel at the time. 
+	</p>
+	End Rem
+	Method SetInputChannelMix:Int(levels:Float[])
+		Return bmx_FMOD_Channel_SetInputChannelMix(channelPtr, levels)
+	End Method
+	
+	Rem
+	bbdoc: Sets a channel to loop a specified number of times before stopping. 
+	End Rem
+	Method SetLoopCount:Int(loopCount:Int)
+		Return bmx_FMOD_Channel_SetLoopCount(channelPtr, loopCount)
+	End Method
+
+	Rem
+	bbdoc: Sets the loop points within a channel.
+	End Rem
+	Method SetLoopPoints:Int(loopStart:Int, loopStartType:Int, loopEnd:Int, loopEndType:Int)
+		Return bmx_FMOD_Channel_SetLoopPoints(channelPtr, loopStart, loopStartType, loopEnd, loopEndType)
+	End Method
+
+	Rem
+	bbdoc: Sets the gain of the dry signal when lowpass filtering is applied. 
+	End Rem
+	Method SetLowPassGain:Int(gain:Float)
+		Return bmx_FMOD_Channel_SetLowPassGain(channelPtr, gain)
+	End Method
+
+	Rem
+	bbdoc: Changes some attributes for a channel based on the mode passed in. 
+	End Rem
+	Method SetMode:Int(mode:Int)
+		Return bmx_FMOD_Channel_SetMode(channelPtr, mode)
+	End Method
+
+	Rem
+	bbdoc: Mutes / un-mutes a channel, effectively silencing it or returning it to its normal volume. 
+	End Rem
+	Method SetMute:Int(mute:Int)
+		Return bmx_FMOD_Channel_SetMute(channelPtr, mute)
+	End Method
+
+	Rem
+	bbdoc: Sets the current playback position for the currently playing sound to the specified PCM offset. 
+	End Rem
+	Method SetPosition:Int(position:Int, postype:Int)
+		Return bmx_FMOD_Channel_SetPosition(channelPtr, position, postype)
+	End Method
 	
 	Method Delete()
 		If channelPtr Then

@@ -80,6 +80,20 @@ Extern
 	Function bmx_FMOD_Channel_GetPriority:Int(handle:Byte Ptr, priority:Int Ptr)
 	Function bmx_FMOD_Channel_GetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
 	Function bmx_FMOD_Channel_SetReverbProperties:Int(handle:Byte Ptr, properties:Byte Ptr)
+	Function bmx_FMOD_Channel_SetPriority:Int(handle:Byte Ptr, priority:Int)
+	Function bmx_FMOD_Channel_GetLowPassGain:Int(handle:Byte Ptr, gain:Float Ptr)
+	Function bmx_FMOD_Channel_GetSpeakerLevels:Int(handle:Byte Ptr, speaker:Int, levels:Float[])
+	Function bmx_FMOD_Channel_GetSpeakerMix:Int(handle:Byte Ptr, frontleft:Float Ptr, frontright:Float Ptr, center:Float Ptr, ..
+			lfe:Float Ptr, backleft:Float Ptr, backright:Float Ptr, sideleft:Float Ptr, sideright:Float Ptr)
+	Function bmx_FMOD_Channel_GetWaveData:Int(handle:Byte Ptr, waveArray:Float[], channelOffset:Int)
+	Function bmx_FMOD_Channel_SetDelay:Int(handle:Byte Ptr, delayType:Int, delayHi:Int, delayLo:Int)
+	Function bmx_FMOD_Channel_SetInputChannelMix:Int(handle:Byte Ptr, levels:Float[])
+	Function bmx_FMOD_Channel_SetLoopCount:Int(handle:Byte Ptr, loopCount:Int)
+	Function bmx_FMOD_Channel_SetLoopPoints:Int(handle:Byte Ptr, loopStart:Int, loopStartType:Int, loopEnd:Int, loopEndType:Int)
+	Function bmx_FMOD_Channel_SetLowPassGain:Int(handle:Byte Ptr, gain:Float)
+	Function bmx_FMOD_Channel_SetMode:Int(handle:Byte Ptr, mode:Int)
+	Function bmx_FMOD_Channel_SetMute:Int(handle:Byte Ptr, mute:Int)
+	Function bmx_FMOD_Channel_SetPosition:Int(handle:Byte Ptr, position:Int, postype:Int)
 
 	Function bmx_soundexinfo_create:Byte Ptr()
 	Function bmx_soundexinfo_setlength(handle:Byte Ptr, length:Int)	Function bmx_soundexinfo_delete(handle:Byte Ptr)
@@ -824,3 +838,9 @@ Const FMOD_TAGTYPE_MIDI:Int = 7
 Const FMOD_TAGTYPE_PLAYLIST:Int = 8
 Const FMOD_TAGTYPE_FMOD:Int = 9
 Const FMOD_TAGTYPE_USER:Int = 10
+
+Const FMOD_DELAYTYPE_END_MS:Int = 0
+Const FMOD_DELAYTYPE_DSPCLOCK_START:Int = 1
+Const FMOD_DELAYTYPE_DSPCLOCK_END:Int = 2
+Const FMOD_DELAYTYPE_DSPCLOCK_PAUSE:Int = 3
+

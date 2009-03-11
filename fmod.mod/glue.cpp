@@ -86,6 +86,18 @@ extern "C" {
 	FMOD_RESULT bmx_FMOD_Channel_GetPriority(MAX_FMOD_CHANNEL *channel, int * priority);
 	FMOD_RESULT bmx_FMOD_Channel_GetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties);
 	FMOD_RESULT bmx_FMOD_Channel_SetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties);
+	FMOD_RESULT bmx_FMOD_Channel_SetPriority(MAX_FMOD_CHANNEL *channel, int priority);
+	FMOD_RESULT bmx_FMOD_Channel_GetLowPassGain(MAX_FMOD_CHANNEL *channel, float * gain);
+	FMOD_RESULT bmx_FMOD_Channel_GetSpeakerLevels(MAX_FMOD_CHANNEL *channel, FMOD_SPEAKER speaker, BBArray * levels);
+	FMOD_RESULT bmx_FMOD_Channel_GetSpeakerMix(MAX_FMOD_CHANNEL *channel, float * frontleft, float * frontright, float * center,
+		float * lfe, float * backleft, float * backright, float * sideleft, float * sideright);
+	FMOD_RESULT bmx_FMOD_Channel_GetWaveData(MAX_FMOD_CHANNEL *channel, BBArray * waveArray, int channelOffset);
+	FMOD_RESULT bmx_FMOD_Channel_SetDelay(MAX_FMOD_CHANNEL *channel, FMOD_DELAYTYPE delayType, unsigned int delayHi, unsigned int delayLo);
+	FMOD_RESULT bmx_FMOD_Channel_SetInputChannelMix(MAX_FMOD_CHANNEL *channel, BBArray * levels);
+	FMOD_RESULT bmx_FMOD_Channel_SetLowPassGain(MAX_FMOD_CHANNEL *channel, float gain);
+	FMOD_RESULT bmx_FMOD_Channel_SetMode(MAX_FMOD_CHANNEL *channel, FMOD_MODE mode);
+	FMOD_RESULT bmx_FMOD_Channel_SetMute(MAX_FMOD_CHANNEL *channel, bool mute);
+	FMOD_RESULT bmx_FMOD_Channel_SetPosition(MAX_FMOD_CHANNEL *channel, unsigned int position, FMOD_TIMEUNIT postype);
 
 	FMOD_CREATESOUNDEXINFO * bmx_soundexinfo_create();
 	void bmx_soundexinfo_setlength(FMOD_CREATESOUNDEXINFO * info, int length);	
@@ -481,6 +493,58 @@ FMOD_RESULT bmx_FMOD_Channel_GetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD
 FMOD_RESULT bmx_FMOD_Channel_SetReverbProperties(MAX_FMOD_CHANNEL *channel, FMOD_REVERB_CHANNELPROPERTIES * properties) {
 	return FMOD_Channel_SetReverbProperties(channel->channel, properties);
 }
+
+FMOD_RESULT bmx_FMOD_Channel_SetPriority(MAX_FMOD_CHANNEL *channel, int priority) {
+	return FMOD_Channel_SetPriority(channel->channel, priority);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetLowPassGain(MAX_FMOD_CHANNEL *channel, float * gain) {
+	return FMOD_Channel_GetLowPassGain(channel->channel, gain);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetSpeakerLevels(MAX_FMOD_CHANNEL *channel, FMOD_SPEAKER speaker, BBArray * levels) {
+	int n = levels->scales[0];
+	float *f=(float*)BBARRAYDATA( levels,levels->dims );
+	return FMOD_Channel_GetSpeakerLevels(channel->channel, speaker, f, n);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetSpeakerMix(MAX_FMOD_CHANNEL *channel, float * frontleft, float * frontright, float * center,
+		float * lfe, float * backleft, float * backright, float * sideleft, float * sideright) {
+	return FMOD_Channel_GetSpeakerMix(channel->channel, frontleft, frontright, center, lfe, backleft, backright, sideleft, sideright);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_GetWaveData(MAX_FMOD_CHANNEL *channel, BBArray * waveArray, int channelOffset) {
+	int n = waveArray->scales[0];
+	float *f=(float*)BBARRAYDATA( waveArray, waveArray->dims );
+	return FMOD_Channel_GetWaveData(channel->channel, f, n, channelOffset);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetDelay(MAX_FMOD_CHANNEL *channel, FMOD_DELAYTYPE delayType, unsigned int delayHi, unsigned int delayLo) {
+	return FMOD_Channel_SetDelay(channel->channel, delayType, delayHi, delayLo);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetInputChannelMix(MAX_FMOD_CHANNEL *channel, BBArray * levels) {
+	int n = levels->scales[0];
+	float *f=(float*)BBARRAYDATA( levels, levels->dims );
+	return FMOD_Channel_SetInputChannelMix(channel->channel, f, n);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetLowPassGain(MAX_FMOD_CHANNEL *channel, float gain) {
+	return FMOD_Channel_SetLowPassGain(channel->channel, gain);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetMode(MAX_FMOD_CHANNEL *channel, FMOD_MODE mode) {
+	return FMOD_Channel_SetMode(channel->channel, mode);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetMute(MAX_FMOD_CHANNEL *channel, bool mute) {
+	return FMOD_Channel_SetMute(channel->channel, mute);
+}
+
+FMOD_RESULT bmx_FMOD_Channel_SetPosition(MAX_FMOD_CHANNEL *channel, unsigned int position, FMOD_TIMEUNIT postype) {
+	return FMOD_Channel_SetPosition(channel->channel, position, postype);
+}
+
 
 // ++++++++++++++++++++++++++++++++
 
