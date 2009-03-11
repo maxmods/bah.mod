@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ Module BaH.irrKlangAudio
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Fixed StartSound not returning a TChannel object."
+ModuleInfo "History: Fixed StartSound not handling TChannel properly."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -99,14 +99,18 @@ Type TISoundSourceSound Extends TSound
 	End Method
 	
 	Method StartSound:TChannel(alloced_channel:TChannel=Null, pause:Int = False)
+		Local channel:TISound
+		If is3D Then
+			channel = _driver._engine.Play3DSource(_sound, TIVec3D.Zero(), isLooped, pause, True)
+		Else
+			channel = _driver._engine.Play2DSource(_sound, isLooped, pause, True)
+		End If
+		
 		If Not alloced_channel Then
-			Local channel:TISound
-			If is3D Then
-				channel = _driver._engine.Play3DSource(_sound, TIVec3D.Zero(), isLooped, pause, True)
-			Else
-				channel = _driver._engine.Play2DSource(_sound, isLooped, pause, True)
-			End If
 			Return New TTISoundChannel.Create(channel)
+		Else
+			TTISoundChannel(alloced_channel)._channel = channel
+			Return alloced_channel
 		End If
 	End Method
 	
