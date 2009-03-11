@@ -200,7 +200,9 @@ Type TTISoundChannel Extends TChannel
 	End Method
 
 	Method Stop()
-		_channel.Stop()
+		If _channel Then
+			_channel.Stop()
+		End If
 	End Method
 
 	Method SetPaused( paused:Int )
@@ -244,7 +246,11 @@ Type TTISoundChannel Extends TChannel
 	End Method
 
 	Method Playing:Int()
-		Return Not _channel.IsFinished()
+		If _channel Then
+			Return Not _channel.IsFinished()
+		Else
+			Return False
+		End If
 	End Method
 
 End Type
