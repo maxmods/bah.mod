@@ -32,6 +32,7 @@ ModuleInfo "Copyright: 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed StartSound not handling TChannel properly."
+ModuleInfo "History: Fixed issue where pre-Alloc'd channel could not be modified (volume, rate, etc)."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -109,7 +110,7 @@ Type TISoundSourceSound Extends TSound
 		If Not alloced_channel Then
 			Return New TTISoundChannel.Create(channel)
 		Else
-			TTISoundChannel(alloced_channel)._channel = channel
+			TTISoundChannel(alloced_channel).Set(channel)
 			Return alloced_channel
 		End If
 	End Method
@@ -159,9 +160,43 @@ Type TTISoundChannel Extends TChannel
 
 	Field _channel:TISound
 	
+	' since we can "alloc" a channel, it won't yet have a _channel object.. which will be added later.
+	' so, any settings changed need to be cached and applied when initialized
+	Field prePaused:Int
+	Field preVolume:Float
+	Field prePan:Float
+	Field preRate:Float
+	Field preflags:Int
+	
+	Field APPLY_PAUSED:Int = 1
+	Field APPLY_VOLUME:Int = 2
+	Field APPLY_PAN:Int = 4
+	Field APPLY_RATE:Int = 8
+	
 	Method Create:TTISoundChannel(channel:TISound)
 		_channel = channel
 		Return Self
+	End Method
+
+	' sets _channel with channel - usually applied if this object was created with AllocChannel()
+	Method Set(channel:TISound)
+		_channel = channel
+		
+		If preflags & APPLY_PAUSED Then
+			SetPaused(prePaused)
+		End If
+
+		If preflags & APPLY_VOLUME Then
+			SetVolume(preVolume)
+		End If
+
+		If preflags & APPLY_PAN Then
+			SetPan(prePan)
+		End If
+
+		If preflags & APPLY_RATE Then
+			SetRate(preRate)
+		End If
 	End Method
 
 	Method Stop()
@@ -169,15 +204,30 @@ Type TTISoundChannel Extends TChannel
 	End Method
 
 	Method SetPaused( paused:Int )
-		_channel.SetPaused(paused)
+		If _channel Then
+			_channel.SetPaused(paused)
+		Else
+			preflags:| APPLY_PAUSED
+			prePaused = paused
+		End If
 	End Method
 
 	Method SetVolume( volume:Float )
-		_channel.SetVolume(volume)
+		If _channel Then
+			_channel.SetVolume(volume)
+		Else
+			preflags:| APPLY_VOLUME
+			preVolume = volume
+		End If
 	End Method
 
 	Method SetPan( pan:Float ) 
-		_channel.SetPan(pan)
+		If _channel Then
+			_channel.SetPan(pan)
+		Else
+			preflags:| APPLY_PAN
+			prePan = pan
+		End If
 	End Method
 
 	Method SetDepth( depth:Float )
@@ -185,7 +235,12 @@ Type TTISoundChannel Extends TChannel
 	End Method
 
 	Method SetRate( rate:Float )
-		_channel.SetPlaybackSpeed(rate)
+		If _channel Then
+			_channel.SetPlaybackSpeed(rate)
+		Else
+			preflags:| APPLY_RATE
+			preRate = rate
+		End If
 	End Method
 
 	Method Playing:Int()
