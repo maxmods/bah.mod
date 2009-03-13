@@ -190,6 +190,19 @@ void bmx_mysql_bind_string(MYSQL_BIND* bindings, int index, char * value, int si
 	bind->is_unsigned = 0;
 }
 
+void bmx_mysql_bind_blob(MYSQL_BIND* bindings, int index, char * value, int size) {
+
+	MYSQL_BIND* bind = &bindings[index];
+	bind->is_null = (my_bool*)0;
+	bind->length = 0;
+
+	bind->buffer_type = MYSQL_TYPE_BLOB;
+	bind->buffer = value;
+	bind->buffer_length = size;
+
+	bind->is_unsigned = 0;
+}
+
 void bmx_mysql_bind_date(MYSQL_BIND* bindings, int index, MYSQL_TIME * date, unsigned int year, unsigned int month, unsigned int day) {
 
 	date->year = year;

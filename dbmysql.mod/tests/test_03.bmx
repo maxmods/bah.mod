@@ -98,9 +98,9 @@ If db.isOpen() Then
 		DebugLog(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
 			" : " + pstuff[i].dataFloat + " : " + pstuff[i].dataDouble + " : " + pstuff[i].dataLong)
 		
-		DebugLog(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
-			" : " + record.value(3).getInt() + " : " + record.value(4).getFloat() + ..
-			" : " + record.value(5).getDouble() + " : " + record.value(6).getLong() )
+		DebugLog(" OUT - " + record.getString(1) + " : " + record.getString(2) + ..
+			" : " + record.getInt(3) + " : " + record.getFloat(4) + ..
+			" : " + record.getDouble(5) + " : " + record.getLong(6) )
 '	Wend
 	Next
 			

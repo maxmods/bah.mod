@@ -3,7 +3,7 @@ SuperStrict
 Framework BaH.DBMySQL
 Import BRL.filesystem
 
-Local db:TDBConnection = LoadDatabase("MYSQL", "maxtest", "192.168.0.31", 0, "brucey", "brucey")
+Local db:TDBConnection = LoadDatabase("MYSQL", "maxtest", Null, 0, "brucey", "brucey")
 
 If Not db Then
 	DebugLog("Didn't work...")

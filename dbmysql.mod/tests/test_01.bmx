@@ -26,16 +26,16 @@ If db.isOpen() Then
 	
 	Local s:String = "CREATE TABLE if not exists person (id integer primary key AUTO_INCREMENT, " + ..
 	  " forename varchar(30)," + ..
-	  " surname varchar(30) )"
+	  " surname varchar(30), stamp datetime )"
 
 	db.executeQuery(s)
 
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
-'DebugStop
+
 	For Local i:Int = 0 Until names.length
-		Local query:TDatabaseQuery = db.executeQuery("INSERT INTO person values (NULL, '" + names[i][0] + "', '" + names[i][1] + "')")
+		Local query:TDatabaseQuery = db.executeQuery("INSERT INTO person values (NULL, '" + names[i][0] + "', '" + names[i][1] + "', now())")
 
 		DebugLog "LastInserted id = " + query.lastInsertedId()
 		
@@ -43,16 +43,17 @@ If db.isOpen() Then
 			errorAndClose(db)
 		End If
 	Next
-'DebugStop		
+
 	Local query:TDatabaseQuery = db.executeQuery("SELECT * from person")
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
-'DebugStop
+
 	While query.nextRow()
 		Local record:TQueryRecord = query.rowRecord()
 		
-		DebugLog(TDBInt(record.value(0)).value + ". Name = " + TDBString(record.value(1)).value + " " + TDBString(record.value(2)).value)
+		DebugLog(record.getInt(0) + ". Name = " + record.getString(1) + " " + record.getString(2))
+		DebugLog TDBDateTime(record.value(3)).format()
 	Wend
 	
 			

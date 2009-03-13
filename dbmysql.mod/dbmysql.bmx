@@ -35,12 +35,12 @@ ModuleInfo "Version: 1.06"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
-ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: Added date/time support."
+ModuleInfo "History: Added blob support."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed lastInsertId() issue."
 ModuleInfo "History: Win32 now uses local static lib. No copying required!"
@@ -562,8 +562,8 @@ Type TMySQLResultSet Extends TQueryResultSet
 							bmx_mysql_bind_string(parameterBindings, i, strings[i], s.length)
 							
 						Case DBTYPE_BLOB
-	
-							'result = sqlite3_bind_blob(stmtHandle, i + 1, values[i].getBlob(), values[i].size(), 0)
+							bmx_mysql_bind_blob(parameterBindings, i, TDBBlob(values[i]).value, TDBBlob(values[i])._size)
+
 						Case DBTYPE_DATE
 							Local date:TDBDate = TDBDate(values[i])
 							times[i] = bmx_mysql_makeTime()
@@ -710,7 +710,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 						Case DBTYPE_TIME
 							values[i] = TDBTime.SetFromString(String.fromBytes(mySQLFields[i].dataValue, fieldLength))
 						Case DBTYPE_BLOB
-							' TODO
+							values[i] = TDBBlob.Set(mySQLFields[i].dataValue, fieldLength)
 						Default
 							values[i] = New TDBString
 							values[i].setString(sizedUTF8toISO8859(mySQLFields[i].dataValue, fieldLength))
@@ -745,7 +745,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 						Case DBTYPE_TIME
 							values[i] = TDBTime.SetFromString(String.fromBytes(bmx_mysql_rowField_chars(row, i), fieldLength))
 						Case DBTYPE_BLOB
-							' TODO
+							values[i] = TDBBlob.Set(bmx_mysql_rowField_chars(row, i), fieldLength)
 						Default
 							values[i] = New TDBString
 							values[i].setString(sizedUTF8toISO8859(bmx_mysql_rowField_chars(row, i), fieldLength))

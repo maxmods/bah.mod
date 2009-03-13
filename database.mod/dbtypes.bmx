@@ -125,7 +125,7 @@ Type TDBType
 		Assert 0, "setDate not supported on this TDBType"
 	End Method
 	
-	Method setBlob(v:Byte Ptr, size:Int)
+	Method setBlob(v:Byte Ptr, s:Int, copy:Int = True)
 		Assert 0, "setBlob not supported on this TDBType"
 	End Method
 	
@@ -487,10 +487,15 @@ End Rem
 Type TDBBlob Extends TDBType
 	Field value:Byte Ptr
 	Field _size:Int
+	Field _owner:Int
 
-	Function Set:TDBBlob(value:Byte Ptr, size:Int)
+	Rem
+	bbdoc: Creates an instance of TDBBlob with binary data of the specified @size.
+	about: Note: If @copy is True, creates a <b>COPY</b> of the data (using MemAlloc/MemCopy).
+	End Rem
+	Function Set:TDBBlob(value:Byte Ptr, size:Int, copy:Int = True)
 		Local this:TDBBlob = New TDBBlob
-		this.setBlob(value, size)
+		this.setBlob(value, size, copy)
 		Return this
 	End Function
 
@@ -498,16 +503,25 @@ Type TDBBlob Extends TDBType
 		Return value
 	End Method
 
-	Method setBlob(v:Byte Ptr, _size:Int)
+	Rem
+	bbdoc: 
+	about: Note: If @copy is True, creates a <b>COPY</b> of the data (using MemAlloc/MemCopy).
+	End Rem
+	Method setBlob(v:Byte Ptr, s:Int, copy:Int = True)
 		If value Then
 			' clear first, or we have memory lying about!
 			clear()
 		End If
-		
-		If _size > 0 Then
+
+		_size = s
+		If copy And _size > 0 Then
+			_owner = True
 			value = MemAlloc(_size)
 			MemCopy(value, v, _size)
+		Else
+			value = v
 		End If
+		
 		_isNull = False
 	End Method
 
@@ -517,7 +531,9 @@ Type TDBBlob Extends TDBType
 
 	Method clear()
 		If value Then
-			MemFree(value)
+			If _owner Then
+				MemFree(value)
+			End If
 			value = Null
 			_isNull = True
 		End If

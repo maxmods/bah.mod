@@ -147,7 +147,8 @@ Extern
 	Function bmx_mysql_bind_string(params:Byte Ptr, index:Int, value:Byte Ptr, size:Int)
 	Function bmx_mysql_bind_date(params:Byte Ptr, index:Int, value:Byte Ptr, _year:Int, _month:Int, _day:Int)
 	Function bmx_mysql_bind_time(params:Byte Ptr, index:Int, value:Byte Ptr, _hour:Int, _min:Int, _sec:Int)
-	Function bmx_mysql_bind_datetime(params:Byte Ptr, index:Int, value:Byte Ptr, _year:Int, _month:Int, _day:Int, _hour:Int, _min:Int, _sec:int)
+	Function bmx_mysql_bind_datetime(params:Byte Ptr, index:Int, value:Byte Ptr, _year:Int, _month:Int, _day:Int, _hour:Int, _min:Int, _sec:Int)
+	Function bmx_mysql_bind_blob(params:Byte Ptr, index:Int, value:Byte Ptr, size:Int)
 	
 	Function bmx_mysql_makeVals:Byte Ptr(size:Int)
 	Function bmx_mysql_deleteVals(vals:Byte Ptr)
