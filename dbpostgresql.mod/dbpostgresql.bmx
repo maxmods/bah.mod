@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Module BaH.DBPostgreSQL
 ModuleInfo "Version: 1.03"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
@@ -43,6 +43,8 @@ ModuleInfo "History: Sets active to false when all rows read."
 ModuleInfo "History: Resultset cleanup improvements."
 ModuleInfo "History: Fixed prepared statement dealloc case issue."
 ModuleInfo "History: Added getTableInfo() support."
+ModuleInfo "History: Fixed invalid definition for float/double."
+ModuleInfo "History: Added blob support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -429,7 +431,11 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		cleanup()
 
 		Local params:Byte Ptr
+		Local lengths:Int Ptr
+		Local formats:Int Ptr
 		Local paramCount:Int
+		Local length:Int
+		Local s:String
 		Local strings:Byte Ptr[]
 		
 		' BIND stuff
@@ -461,6 +467,8 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 			
 			strings = New Byte Ptr[paramCount]
 			params = bmx_pgsql_createParamValues(paramCount)
+			lengths = bmx_pgsql_createParamInts(paramCount)
+			formats = bmx_pgsql_createParamInts(paramCount)
 			
 			For Local i:Int = 0 Until paramCount
 			
@@ -470,26 +478,35 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 					
 					Select values[i].kind()
 						Case DBTYPE_INT
-							strings[i] = String.fromInt(TDBInt(values[i]).value).toCString()
-							bmx_pgsql_setParam(params, i, strings[i])
+							s = String.fromInt(TDBInt(values[i]).value)
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_LONG
-							strings[i] = String.fromLong(TDBLong(values[i]).value).toCString()
-							bmx_pgsql_setParam(params, i, strings[i])
+							s = String.fromLong(TDBLong(values[i]).value)
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_FLOAT
-							strings[i] = String.fromFloat(TDBFloat(values[i]).value).toCString()
-							bmx_pgsql_setParam(params, i, strings[i])
+							s = String.fromFloat(TDBFloat(values[i]).value)
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_DOUBLE
-							strings[i] = String.fromDouble(TDBDouble(values[i]).value).toCString()
-							bmx_pgsql_setParam(params, i, strings[i])
+							s = String.fromDouble(TDBDouble(values[i]).value)
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_BLOB
-							' TODO
+							Local b:TDBBlob = TDBBlob(values[i])
+							bmx_pgsql_setParamBinary(params, lengths, formats, i, b.value, b._size)
 						Case DBTYPE_DATE
+							' TODO
+						Case DBTYPE_DATETIME
+							' TODO
+						Case DBTYPE_TIME
 							' TODO
 						Default
 							Local s:String = convertISO8859toUTF8(values[i].getString())
 							strings[i] = s.toCString()
 							
-							bmx_pgsql_setParam(params, i, strings[i])
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 					End Select
 					
 					
@@ -505,10 +522,10 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 
 		If params Then
 			pgResult = bmx_pgsql_PQexecPrepared(conn.handle, _preparedStatementName, ..
-				paramCount, params)
+				paramCount, params, lengths, formats)
 		Else
 			pgResult = bmx_pgsql_PQexecPrepared(conn.handle, _preparedStatementName, ..
-				paramCount, Null)
+				paramCount, Null, Null, Null)
 		End If
 		
 		' free up the strings
@@ -520,6 +537,8 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 		
 		If params Then
 			bmx_pgsql_deleteParamValues(params)
+			bmx_pgsql_deleteParamInts(lengths)
+			bmx_pgsql_deleteParamInts(formats)
 		End If
 		
 		If Not pgResult Then
@@ -633,8 +652,18 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 						values[i].setDouble(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toDouble())
 					Case DBTYPE_DATE
 						' TODO
-					Case DBTYPE_BLOB
+					Case DBTYPE_DATETIME
 						' TODO
+					Case DBTYPE_TIME
+						' TODO
+					Case DBTYPE_BLOB
+						' get the escaped data
+						Local b:Byte Ptr = bmx_pgsql_PQgetvalue(pgResult, index + 1, i)
+						' now... unescape!
+						Local c:Byte Ptr = bmx_pgsql_PQunescapeBytea(b, Varptr fieldLength)
+						values[i] = TDBBlob.Set(c, fieldLength)
+						' free :-)
+						bmx_pgsql_PQfreemem(c)
 					Default
 						values[i] = New TDBString
 						values[i].setString(sizedUTF8toISO8859(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength))
@@ -678,12 +707,12 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 				dbType = DBTYPE_FLOAT
 			Case NUMERICOID, FLOAT8OID
 				dbType = DBTYPE_DOUBLE
-			Case ABSTIMEOID, RELTIMEOID, DATEOID
+			Case DATEOID
 				dbType = DBTYPE_DATE
 			Case TIMEOID, TIMETZOID
-				dbType = DBTYPE_DATE ' TODO
-			Case TIMESTAMPOID, TIMESTAMPTZOID
-				dbType = DBTYPE_DATE ' TODO
+				dbType = DBTYPE_TIME
+			Case TIMESTAMPOID, TIMESTAMPTZOID, ABSTIMEOID, RELTIMEOID
+				dbType = DBTYPE_DATETIME
 			Case BYTEAOID
 				dbType = DBTYPE_BLOB
 			Default

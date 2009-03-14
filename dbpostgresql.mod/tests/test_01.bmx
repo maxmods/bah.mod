@@ -1,12 +1,12 @@
 SuperStrict
 
 Framework BaH.DBPostgreSQL
-Import BRL.filesystem
+Import BRL.StandardIO
 
 Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "192.168.2.31", 0, "brucey", "brucey")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print "Didn't work..."
 	End
 End If
 
@@ -38,7 +38,7 @@ If db.isOpen() Then
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
-'DebugStop
+
 	For Local i:Int = 0 Until names.length
 		' don't use id field - it sets itself!
 		db.executeQuery("INSERT INTO person (forename, surname) values ('" + names[i][0] + "', '" + names[i][1] + "')")
@@ -46,16 +46,16 @@ If db.isOpen() Then
 			errorAndClose(db)
 		End If
 	Next
-'DebugStop		
+
 	Local query:TDatabaseQuery = db.executeQuery("SELECT * from person")
 	If db.hasError() Then
 		errorAndClose(db)
 	End If
-'DebugStop
+
 	While query.nextRow()
 		Local record:TQueryRecord = query.rowRecord()
 		
-		DebugLog(TDBInt(record.value(0)).value + ". Name = " + TDBString(record.value(1)).value + " " + TDBString(record.value(2)).value)
+		Print record.getInt(0) + ". Name = " + record.getString(1) + " " + record.getString(2)
 	Wend
 	
 			
@@ -64,7 +64,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print db.error().toString()
 	db.close()
 	End
 End Function

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -65,8 +65,8 @@ Const REGPROCOID:Int = 24                 ' registered procedure
 Const XIDOID:Int = 28                     ' transaction id
 Const CIDOID:Int = 29                     ' command identifier type
 Const INT8OID:Int = 20                    ' ~18 digit integer
-Const FLOAT4OID:Int = 701                 ' single-precision floating point number
-Const FLOAT8OID:Int = 702                 ' double-precision floating point number
+Const FLOAT4OID:Int = 700                 ' single-precision floating point number
+Const FLOAT8OID:Int = 701                 ' double-precision floating point number
 Const NUMERICOID:Int = 1700               ' numeric(precision, decimal)
 Const ABSTIMEOID:Int = 702                ' 
 Const RELTIMEOID:Int = 703                ' 
@@ -104,12 +104,17 @@ Extern
 	Function bmx_pgsql_PQdescribePrepared:Byte Ptr(result:Byte Ptr, name:Byte Ptr)
 	Function bmx_pgsql_PQnparams:Int(result:Byte Ptr)
 	Function bmx_pgsql_createParamValues:Byte Ptr(size:Int)
+	Function bmx_pgsql_createParamInts:Int Ptr(size:Int)
 	Function bmx_pgsql_deleteParamValues(params:Byte Ptr)
+	Function bmx_pgsql_deleteParamInts(params:Int Ptr)
 	
 	Function bmx_pgsql_setNullParam(params:Byte Ptr, index:Int)
-	Function bmx_pgsql_setParam(params:Byte Ptr, index:Int, text:Byte Ptr)
-	Function bmx_pgsql_PQexecPrepared:Byte Ptr(handle:Byte Ptr, stmtName:Byte Ptr, size:Int, params:Byte Ptr)
-	
+	Function bmx_pgsql_setParam(params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr, index:Int, text:Byte Ptr, length:Int)
+	Function bmx_pgsql_setParamBinary(params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr, index:Int, data:Byte Ptr, length:Int)
+	Function bmx_pgsql_PQexecPrepared:Byte Ptr(handle:Byte Ptr, stmtName:Byte Ptr, size:Int, params:Byte Ptr, lengths:Int Ptr, formats:Int Ptr)
+	Function bmx_pgsql_PQunescapeBytea:Byte Ptr(data:Byte Ptr, length:Int Ptr)
+	Function bmx_pgsql_PQfreemem(data:Byte Ptr)
+
 	Function bmx_pgqsl_PQoidValue:Int(result:Byte Ptr)
 	
 End Extern

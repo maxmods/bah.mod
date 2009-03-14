@@ -17,13 +17,16 @@ End If
 
 If db.isOpen() Then
 
-	' get a list of tables in the database
-	Local list:String[] = db.getTables()
+	Local table:TDBTable = db.getTableInfo("person", True)
 	
-	If list Then
-		For Local i:Int = 0 Until list.length
-			Print "   " + (i + 1) + ".   " + list[i]
+	If table Then
+		Print "name = " + table.name
+		For Local i:Int = 0 Until table.columns.length
+			Print i + " : " + table.columns[i].name
 		Next
+		Print "DDL : ~n" + table.ddl
+	Else
+		Print "oops..."
 	End If
 
 	db.close()
@@ -35,4 +38,5 @@ Function errorAndClose(db:TDBConnection)
 	db.close()
 	End
 End Function
+
 

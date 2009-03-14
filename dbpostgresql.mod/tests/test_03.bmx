@@ -2,6 +2,7 @@ SuperStrict
 
 Framework BaH.DBPostgreSQL
 Import BRL.Random
+Import BRL.StandardIO
 
 Type TPersonStuff
 	Field forename:String
@@ -16,7 +17,7 @@ End Type
 Local db:TDBConnection = LoadDatabase("POSTGRESQL", "maxtest", "192.168.2.31", 0, "brucey", "brucey")
 
 If Not db Then
-	DebugLog("Didn't work...")
+	Print "Didn't work..."
 	End
 End If
 
@@ -54,7 +55,7 @@ If db.isOpen() Then
 
 	' Create a new table
 	Local s:String = "CREATE TABLE person (id integer primary key DEFAULT NEXTVAL('person_id'), " + ..
-	  " forename varchar(30), surname varchar(30), dataint integer, datafloat float, datadouble float8, datalong bigint )"
+	  " forename varchar(30), surname varchar(30), dataint integer, datafloat real, datadouble double precision, datalong bigint )"
 
 	db.executeQuery(s)
 
@@ -100,12 +101,12 @@ If db.isOpen() Then
 	For Local record:TQueryRecord = EachIn query
 		
 		Local i:Int = record.value(0).getInt() - 1
-		DebugLog(" IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
-			" : " + pstuff[i].dataFloat + " : " + pstuff[i].dataDouble + " : " + pstuff[i].dataLong)
+		Print " IN  - " + pstuff[i].forename + " : " + pstuff[i].surname + " : " + pstuff[i].dataInt + ..
+			" : " + pstuff[i].dataFloat + " : " + pstuff[i].dataDouble + " : " + pstuff[i].dataLong
 		
-		DebugLog(" OUT - " + record.value(1).getString() + " : " + record.value(2).getString() + ..
-			" : " + record.value(3).getInt() + " : " + record.value(4).getFloat() + ..
-			" : " + record.value(5).getDouble() + " : " + record.value(6).getLong() )
+		Print " OUT - " + record.getString(1) + " : " + record.getString(2) + ..
+			" : " + record.getInt(3) + " : " + record.getFloat(4) + ..
+			" : " + record.getDouble(5) + " : " + record.getLong(6) 
 
 	Next
 			
@@ -114,7 +115,7 @@ If db.isOpen() Then
 End If
 
 Function errorAndClose(db:TDBConnection)
-	DebugLog(db.error().toString())
+	Print db.error().toString()
 	db.close()
 	End
 End Function
