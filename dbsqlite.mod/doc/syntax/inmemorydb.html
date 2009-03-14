@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>In-Memory Databases</title>
+<style type="text/css">
+body {
+    margin: auto;
+    font-family: "Verdana" "sans-serif";
+    padding: 8px 1%;
+}
+
+a { color: #45735f }
+a:visited { color: #734559 }
+
+.logo { position:absolute; margin:3px; }
+.tagline {
+  float:right;
+  text-align:right;
+  font-style:italic;
+  width:240px;
+  margin:12px;
+  margin-top:58px;
+}
+
+.toolbar {
+  font-variant: small-caps;
+  text-align: center;
+  line-height: 1.6em;
+  margin: 0;
+  padding:1px 8px;
+}
+.toolbar a { color: white; text-decoration: none; padding: 6px 12px; }
+.toolbar a:visited { color: white; }
+.toolbar a:hover { color: #80a796; background: white; }
+
+.content    { margin: 5%; }
+.content dt { font-weight:bold; }
+.content dd { margin-bottom: 25px; margin-left:20%; }
+.content ul { padding:0px; padding-left: 15px; margin:0px; }
+
+/* rounded corners */
+.se  { background: url(images/se.png) 100% 100% no-repeat #80a796}
+.sw  { background: url(images/sw.png) 0% 100% no-repeat }
+.ne  { background: url(images/ne.png) 100% 0% no-repeat }
+.nw  { background: url(images/nw.png) 0% 0% no-repeat }
+
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  
+</head>
+<body>
+<div><!-- container div to satisfy validator -->
+
+
+<h1 align="center">In-Memory Databases</h1>
+
+<p>An SQLite database is normally stored in a single ordinary disk
+file. However, in certain circumstances, the database might be stored in
+memory.</p>
+
+<p>The most common way to force an SQLite database to exist purely 
+in memory is to open the database using the special filename
+"<b>:memory:</b>".  In other words, instead of passing the name of
+a real disk file into the LoadDatase function, pass in the string ":memory:".  For
+example:</p>
+
+<blockquote><pre>
+rc = sqlite3_open(":memory:", &db);
+</pre></blockquote>
+
+<p>When this is done, no disk file is opened.  
+Instead, a new database is created
+purely in memory.  The database ceases to exist as soon as the database
+connection is closed.  Every :memory: database is distinct from every
+other.  So, opening two database connections each with the filename
+":memory:" will create two independent in-memory databases.</p>
+
+<p>The special filename ":memory:" can be used anywhere that a database
+filename is permitted.  For example, it can be used as the
+<i>filename</i> in an <a href="lang_attach.html">ATTACH</a> command:</p>
+
+<blockquote>
+<b>ATTACH DATABASE ':memory:' AS aux1;</b>
+</blockquote>
+
+<p>Note that in order for the special ":memory:" name to apply and to
+create a pure in-memory database, there must be no additional text in the
+filename.  Thus, a disk-based database can be created in a file by prepending
+a pathname, like this:  "./:memory:".</p>
+
+<a name="temp_db"></a>
+
+<h2>Temporary Databases</h2>
+
+<p>When the name of the database file handed to LoadDatabase() or to
+<a href="lang_attach.html">ATTACH</a> is an empty string, then a new temporary file is created to hold
+the database.</p>
+
+<blockquote><pre>
+rc = sqlite3_open("", &db);
+</pre></blockquote>
+
+<blockquote><b>
+ATTACH DATABASE '' AS aux2;
+</b></blockquote>
+
+<p>A different temporary file is created each time, so that just like as
+with the special ":memory:" string, two database connections to temporary
+databases each have their own private database.  Temporary databases are
+automatically deleted when the connection that created them closes.</p>
+
+<p>Even though a disk file is allocated for each temporary database, in
+practice the temporary database usually resides in the in-memory pager
+cache and hence is very little difference between a pure in-memory database
+created by ":memory:" and a temporary database created by an empty filename.
+The sole difference is that a ":memory:" database must remain in memory
+at all times whereas parts of a temporary database might be flushed to
+disk if database becomes large or if SQLite comes under memory pressure.</p>
+
+<p>The previous paragraphs describe the behavior of temporary databases
+under the default SQLite configuration.  
+</p>
+<hr><small><i>
+This page last modified 2009/02/05 02:02:44 UTC
+</i></small></div></body></html>

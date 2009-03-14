@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>SQLite Query Language: ALTER TABLE</title>
+<style type="text/css">
+body {
+    margin: auto;
+    font-family: "Verdana" "sans-serif";
+    padding: 8px 1%;
+}
+
+a { color: #45735f }
+a:visited { color: #734559 }
+
+.logo { position:absolute; margin:3px; }
+.tagline {
+  float:right;
+  text-align:right;
+  font-style:italic;
+  width:240px;
+  margin:12px;
+  margin-top:58px;
+}
+
+.toolbar {
+  font-variant: small-caps;
+  text-align: center;
+  line-height: 1.6em;
+  margin: 0;
+  padding:1px 8px;
+}
+.toolbar a { color: white; text-decoration: none; padding: 6px 12px; }
+.toolbar a:visited { color: white; }
+.toolbar a:hover { color: #80a796; background: white; }
+
+.content    { margin: 5%; }
+.content dt { font-weight:bold; }
+.content dd { margin-bottom: 25px; margin-left:20%; }
+.content ul { padding:0px; padding-left: 15px; margin:0px; }
+
+/* rounded corners */
+.se  { background: url(images/se.png) 100% 100% no-repeat #80a796}
+.sw  { background: url(images/sw.png) 0% 100% no-repeat }
+.ne  { background: url(images/ne.png) 100% 0% no-repeat }
+.nw  { background: url(images/nw.png) 0% 0% no-repeat }
+
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  
+</head>
+<body>
+<div><!-- container div to satisfy validator -->
+
+<a href="lang.html">
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>ALTER TABLE</h1><h4><a href="syntaxdiagrams.html#alter-table-stmt">alter-table-stmt:</a></h4><blockquote> <img src="images/syntax/alter-table-stmt.gif"></img> </blockquote>
+
+
+<p>SQLite supports a limited subset of ALTER TABLE.
+The ALTER TABLE command in SQLite allows the user to rename a table
+or to add a new column to an existing table. It is not possible
+to rename a colum, remove a column, or add or remove constraints from a table.
+</p>
+
+<p>The RENAME TO syntax is used to rename the table identified by 
+<i>&#91;database-name.&#93;table-name</i> to <i>new-table-name</i>.
+This command 
+cannot be used to move a table between attached databases, only to rename 
+a table within the same database.</p>
+
+<p>If the table being renamed has triggers or indices, then these remain
+attached to the table after it has been renamed. However, if there are
+any view definitions, or statements executed by triggers that refer to
+the table being renamed, these are not automatically modified to use the new
+table name. If this is required, the triggers or view definitions must be
+dropped and recreated to use the new table name by hand.
+</p>
+
+<p>The ADD COLUMN syntax
+is used to add a new column to an existing table.
+The new column is always appended to the end of the list of existing columns.
+The <a href="syntaxdiagrams.html#column-def">column-def</a> rule defines the characteristics of the new column.
+The new column may take any of the forms permissable in a <a href="lang_createtable.html">CREATE TABLE</a>
+statement, with the following restrictions:
+<ul>
+<li>The column may not have a PRIMARY KEY or UNIQUE constraint.</li>
+<li>The column may not have a default value of CURRENT_TIME, CURRENT_DATE 
+    or CURRENT_TIMESTAMP.</li>
+<li>If a NOT NULL constraint is specified, then the column must have a
+    default value other than NULL.
+</ul>
+
+<p>Note also that when adding a CHECK constraint, the CHECK constraint
+is not tested against preexisting rows of the table.
+This can result in a table that contains data that
+is in violation of the CHECK constraint.  Future versions of SQLite might
+change to validate CHECK constraints as they are added.</p>
+
+<p>The execution time of the ALTER TABLE command is independent of
+the amount of data in the table.  The ALTER TABLE command runs as quickly
+on a table with 10 million rows as it does on a table with 1 row.
+</p>
+
+<p>After ADD COLUMN has been run on a database, that database will not
+be readable by SQLite version 3.1.3 and earlier.</p>
+
+<hr><small><i>
+This page last modified 2009/02/14 18:02:23 UTC
+</i></small></div></body></html>

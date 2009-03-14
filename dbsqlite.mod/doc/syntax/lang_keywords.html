@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>SQLite Query Language: SQLite Keywords</title>
+<style type="text/css">
+body {
+    margin: auto;
+    font-family: "Verdana" "sans-serif";
+    padding: 8px 1%;
+}
+
+a { color: #45735f }
+a:visited { color: #734559 }
+
+.logo { position:absolute; margin:3px; }
+.tagline {
+  float:right;
+  text-align:right;
+  font-style:italic;
+  width:240px;
+  margin:12px;
+  margin-top:58px;
+}
+
+.toolbar {
+  font-variant: small-caps;
+  text-align: center;
+  line-height: 1.6em;
+  margin: 0;
+  padding:1px 8px;
+}
+.toolbar a { color: white; text-decoration: none; padding: 6px 12px; }
+.toolbar a:visited { color: white; }
+.toolbar a:hover { color: #80a796; background: white; }
+
+.content    { margin: 5%; }
+.content dt { font-weight:bold; }
+.content dd { margin-bottom: 25px; margin-left:20%; }
+.content ul { padding:0px; padding-left: 15px; margin:0px; }
+
+/* rounded corners */
+.se  { background: url(images/se.png) 100% 100% no-repeat #80a796}
+.sw  { background: url(images/sw.png) 0% 100% no-repeat }
+.ne  { background: url(images/ne.png) 100% 0% no-repeat }
+.nw  { background: url(images/nw.png) 0% 0% no-repeat }
+
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  
+</head>
+<body>
+<div><!-- container div to satisfy validator -->
+
+<a href="lang.html">
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>SQLite Keywords</h1></DIV>
+
+<p>The SQL standard specifies a huge number of keywords which may not
+be used as the names of tables, indices, columns, databases, user-defined
+functions, collations, virtual table modules, or any other named object.
+The list of keywords is so long that few people can remember them all.
+For most SQL code, your safest bet is to never use any English language
+word as the name of a user-defined object.</p>
+
+<p>If you want to use a keyword as a name, you need to quote it.  There
+are three ways of quoting keywords in SQLite:</p>
+
+<p>
+<blockquote>
+<table>
+<tr>	<td valign="top"><b>'keyword'</b></td><td width="20"></td>
+	<td>A keyword in single quotes is a string literal.</td></tr>
+
+<tr>	<td valign="top"><b>"keyword"</b></td><td></td>
+	<td>A keyword in double-quotes is an identifier</td></tr>
+
+<tr>	<td valign="top"><b>&#91;keyword&#93;</b></td><td></td>
+	<td>A keyword enclosed in square brackets is 
+        an identifier.  This is not standard SQL.  This quoting mechanism
+        is used by MS Access and SQL Server and is included in SQLite for
+        compatibility.</td></tr>
+
+<tr>	<td valign="top"><b>&#96;keyword&#96;</b></td><td></td>
+	<td>A keyword enclosed in grave accents (ASCII code 96) is 
+        an identifier.  This is not standard SQL.  This quoting mechanism
+        is used by MySQL and is included in SQLite for
+        compatibility.</td></tr>
+</table>
+</blockquote>
+</p>
+
+<p>For resilience when confronted with historical SQL statements, SQLite
+will sometimes bend the quoting rules above:</p>
+
+<ul>
+<li><p>If a keyword in single
+quotes (ex: <b>'key'</b> or <b>'glob'</b>) is used in a context where
+an identifier is allowed but where a string literal is not allowed, then
+the token is understood to be an identifier instead of a string literal.
+</p></li>
+
+<li><p>If a keyword in double
+quotes (ex: <b>"key"</b> or <b>"glob"</b>) is used in a context where
+it cannot be resolved to an indentifier but where a string literal
+is allowed, then the token is understood to be a string literal instead
+of an identifer.</p></li>
+</ul>
+
+<p>Programmers are cautioned not to use the two exceptions described in
+the previous bullets.  We emphasize that they exist only so that old
+and ill-formed SQL statements will run correctly.  Future versions of
+SQLite might change to raise errors instead of accepting the malformed
+statements covered by the exceptions above.</p>
+
+<p>SQLite is extended to allow many keywords to be used unquoted
+as the names of databases, tables, indices, triggers, views, columns,
+user-defined functions, collations, attached databases, and virtual
+function modules.
+In the list of keywords that follows, those that can be used as identifiers
+are shown in an italic font.  Keywords that must be quoted in order to be
+used as identifiers are shown in bold.</p>
+
+<p>
+SQLite adds new keywords from time to time when it takes on new features.
+So to prevent your code from being broken by future enhancements, you should
+normally quote any indentifier that is an English language word, even if
+you do not have to.
+</p>
+
+<p>
+The following are the keywords currently recognized by SQLite:
+</p>
+
+<blockquote>
+<table width="100%" class="pdf_keywords">
+<tr>
+<td align="left" valign="top" width="20%">
+
+<i>ABORT</i><br><b>ADD</b><br><i>AFTER</i><br><b>ALL</b><br><b>ALTER</b><br><i>ANALYZE</i><br><b>AND</b><br><b>AS</b><br><i>ASC</i><br><i>ATTACH</i><br><b>AUTOINCREMENT</b><br><i>BEFORE</i><br><i>BEGIN</i><br><b>BETWEEN</b><br><i>BY</i><br><i>CASCADE</i><br><b>CASE</b><br><i>CAST</i><br><b>CHECK</b><br><b>COLLATE</b><br><i>COLUMN</i><br><b>COMMIT</b><br><i>CONFLICT</i><br><b>CONSTRAINT</b><br></td><td valign="top" align="left" width="20%"><b>CREATE</b><br><b>CROSS</b><br><i>CURRENT_DATE</i><br><i>CURRENT_TIME</i><br><i>CURRENT_TIMESTAMP</i><br><i>DATABASE</i><br><b>DEFAULT</b><br><b>DEFERRABLE</b><br><i>DEFERRED</i><br><b>DELETE</b><br><i>DESC</i><br><i>DETACH</i><br><b>DISTINCT</b><br><b>DROP</b><br><i>EACH</i><br><b>ELSE</b><br><i>END</i><br><b>ESCAPE</b><br><b>EXCEPT</b><br><i>EXCLUSIVE</i><br><b>EXISTS</b><br><i>EXPLAIN</i><br><i>FAIL</i><br><i>FOR</i><br></td><td valign="top" align="left" width="20%"><b>FOREIGN</b><br><b>FROM</b><br><b>FULL</b><br><i>GLOB</i><br><b>GROUP</b><br><b>HAVING</b><br><i>IF</i><br><i>IGNORE</i><br><i>IMMEDIATE</i><br><b>IN</b><br><b>INDEX</b><br><b>INDEXED</b><br><i>INITIALLY</i><br><b>INNER</b><br><b>INSERT</b><br><i>INSTEAD</i><br><b>INTERSECT</b><br><b>INTO</b><br><b>IS</b><br><b>ISNULL</b><br><b>JOIN</b><br><i>KEY</i><br><b>LEFT</b><br><i>LIKE</i><br></td><td valign="top" align="left" width="20%"><b>LIMIT</b><br><i>MATCH</i><br><b>NATURAL</b><br><b>NOT</b><br><b>NOTNULL</b><br><b>NULL</b><br><i>OF</i><br><i>OFFSET</i><br><b>ON</b><br><b>OR</b><br><b>ORDER</b><br><b>OUTER</b><br><i>PLAN</i><br><i>PRAGMA</i><br><b>PRIMARY</b><br><i>QUERY</i><br><i>RAISE</i><br><b>REFERENCES</b><br><i>REGEXP</i><br><i>REINDEX</i><br><i>RELEASE</i><br><i>RENAME</i><br><i>REPLACE</i><br><i>RESTRICT</i><br></td><td valign="top" align="left" width="20%"><b>RIGHT</b><br><b>ROLLBACK</b><br><i>ROW</i><br><i>SAVEPOINT</i><br><b>SELECT</b><br><b>SET</b><br><b>TABLE</b><br><i>TEMP</i><br><i>TEMPORARY</i><br><b>THEN</b><br><b>TO</b><br><b>TRANSACTION</b><br><i>TRIGGER</i><br><b>UNION</b><br><b>UNIQUE</b><br><b>UPDATE</b><br><b>USING</b><br><i>VACUUM</i><br><b>VALUES</b><br><i>VIEW</i><br><i>VIRTUAL</i><br><b>WHEN</b><br><b>WHERE</b><br>
+</td></tr></table></blockquote>
+
+<h2>Special names</h2>
+
+<p>The following are not keywords in SQLite, but are used as names of 
+system objects.  They can be used as an identifier for a different 
+type of object.</p>
+
+<blockquote class="pdf_keywords"><b>
+  _ROWID_<br>
+  MAIN<br>
+  OID<br>
+  ROWID<br>
+  SQLITE_MASTER<br>
+  SQLITE_SEQUENCE<br>
+  SQLITE_TEMP_MASTER<br>
+  TEMP<br>
+</b></blockquote>
+<hr><small><i>
+This page last modified 2009/02/14 18:02:23 UTC
+</i></small></div></body></html>

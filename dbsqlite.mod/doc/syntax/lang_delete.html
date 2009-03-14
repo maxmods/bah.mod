@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>SQLite Query Language: DELETE</title>
+<style type="text/css">
+body {
+    margin: auto;
+    font-family: "Verdana" "sans-serif";
+    padding: 8px 1%;
+}
+
+a { color: #45735f }
+a:visited { color: #734559 }
+
+.logo { position:absolute; margin:3px; }
+.tagline {
+  float:right;
+  text-align:right;
+  font-style:italic;
+  width:240px;
+  margin:12px;
+  margin-top:58px;
+}
+
+.toolbar {
+  font-variant: small-caps;
+  text-align: center;
+  line-height: 1.6em;
+  margin: 0;
+  padding:1px 8px;
+}
+.toolbar a { color: white; text-decoration: none; padding: 6px 12px; }
+.toolbar a:visited { color: white; }
+.toolbar a:hover { color: #80a796; background: white; }
+
+.content    { margin: 5%; }
+.content dt { font-weight:bold; }
+.content dd { margin-bottom: 25px; margin-left:20%; }
+.content ul { padding:0px; padding-left: 15px; margin:0px; }
+
+/* rounded corners */
+.se  { background: url(images/se.png) 100% 100% no-repeat #80a796}
+.sw  { background: url(images/sw.png) 0% 100% no-repeat }
+.ne  { background: url(images/ne.png) 100% 0% no-repeat }
+.nw  { background: url(images/nw.png) 0% 0% no-repeat }
+
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  
+</head>
+<body>
+<div><!-- container div to satisfy validator -->
+
+<a href="lang.html">
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>DELETE</h1><h4><a href="syntaxdiagrams.html#delete-stmt">delete-stmt:</a></h4><blockquote> <img src="images/syntax/delete-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img src="images/syntax/qualified-table-name.gif"></img> </blockquote>
+
+
+<p>The DELETE command is used to remove records from a table.
+The command consists of the "DELETE FROM" keywords followed by
+the name of the table from which records are to be removed.
+</p>
+
+<p>Without a WHERE clause, all rows of the table are removed.
+If a WHERE clause is supplied, then only those rows that match
+the expression are removed.</p>
+
+<a name="trucateopt"></a>
+
+<p>When the WHERE is omitted from a DELETE statement and the table
+being deleted has no triggers,
+SQLite uses an optimization to erase the entire table content
+without having to visit each row of the table individual.
+This "truncate" optimization makes the delete run much faster.
+Prior to SQLite version 3.6.5, the truncate optimization
+also meant that the sqlite3_changes() and
+sqlite3_total_changes() interfaces
+and the <a href="pragma.html#pragma_count_changes">count_changes pragma</a>
+will not actually return the number of deleted rows.  
+That problem has been fixed as of version 3.6.5.
+
+<p>The truncate optimization can be disabled for all queries by recompiling
+SQLite with the <a href="compile.html#omit_truncate_optimization">SQLITE_OMIT_TRUNCATE_OPTIMIZATION</a> compile-time switch.</p>
+
+<p>If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT
+compile-time option, then the syntax of the DELETE statement is
+extended by the addition of optional ORDER BY and LIMIT clauses:</p>
+
+<h4><a href="syntaxdiagrams.html#delete-stmt-limited">delete-stmt-limited:</a></h4><blockquote> <img src="images/syntax/delete-stmt-limited.gif"></img> </blockquote>
+
+
+<p>The optional LIMIT clause can be used to limit the number of
+rows deleted, and thereby limit the size of the transaction.
+The ORDER BY clause is used only to determine which rows fall
+within the LIMIT.  The order in which rows are deleted is arbitrary
+and is not determined by the ORDER BY clause.</p>
+
+<p>The presence of a LIMIT clause defeats the truncate optimization
+causing all rows being deleted to be visited.</p>
+
+<hr><small><i>
+This page last modified 2009/02/14 18:02:23 UTC
+</i></small></div></body></html>

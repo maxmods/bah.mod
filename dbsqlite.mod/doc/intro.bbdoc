@@ -21,6 +21,5 @@ Note that in-memory databases last only as long as the connection is open.
 <p>SQLite can have placeholders of the form "?" or "?nnn" or ":aaa" where "nnn" is an integer and "aaa" is an identifier. Each placeholder has an associated number which is its sequence in the query or the "nnn" in the case of a "?nnn" form. It is allowed for the same valued-placeholder to occur more than once in the same SQL, in which case all instances of that placeholder will be filled in with the same value. 
 </p>
 <h2>SQL with SQLite</h2>
-<p>For a complete guide to SQLite's support of SQL92, you can browse SQLite's online documentation
-<a href="http://www.sqlite.org/lang.html">here</a>.
+<p>For a complete guide to SQLite's support of SQL92, we have provided the <a href="syntax/lang.html">SQL reference documentation</a>.
 </p>

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>SQLite Query Language: comment</title>
+<style type="text/css">
+body {
+    margin: auto;
+    font-family: "Verdana" "sans-serif";
+    padding: 8px 1%;
+}
+
+a { color: #45735f }
+a:visited { color: #734559 }
+
+.logo { position:absolute; margin:3px; }
+.tagline {
+  float:right;
+  text-align:right;
+  font-style:italic;
+  width:240px;
+  margin:12px;
+  margin-top:58px;
+}
+
+.toolbar {
+  font-variant: small-caps;
+  text-align: center;
+  line-height: 1.6em;
+  margin: 0;
+  padding:1px 8px;
+}
+.toolbar a { color: white; text-decoration: none; padding: 6px 12px; }
+.toolbar a:visited { color: white; }
+.toolbar a:hover { color: #80a796; background: white; }
+
+.content    { margin: 5%; }
+.content dt { font-weight:bold; }
+.content dd { margin-bottom: 25px; margin-left:20%; }
+.content ul { padding:0px; padding-left: 15px; margin:0px; }
+
+/* rounded corners */
+.se  { background: url(images/se.png) 100% 100% no-repeat #80a796}
+.sw  { background: url(images/sw.png) 0% 100% no-repeat }
+.ne  { background: url(images/ne.png) 100% 0% no-repeat }
+.nw  { background: url(images/nw.png) 0% 0% no-repeat }
+
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  
+</head>
+<body>
+<div><!-- container div to satisfy validator -->
+
+<a href="lang.html">
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>comment</h1><h4><a href="syntaxdiagrams.html#comment-syntax">comment-syntax:</a></h4><blockquote> <img src="images/syntax/comment-syntax.gif"></img> </blockquote>
+
+
+<p>Comments aren't SQL commands, but can occur within the text of
+SQL queries.
+Comments are 
+treated as whitespace by the parser.  They can begin anywhere whitespace 
+can be found, including inside expressions that span multiple lines.
+</p>
+
+<p> SQL comments begin with two consecutive "-" characters (ASCII 0x2d)
+and extend up to and including the next newline character (ASCII 0x0a)
+or until the end of input, whichever comes first.</p>
+
+<p> C comments can span any number of lines.  C-style comments begin
+with "/*" and extend up to and including the next "*/" character pair
+or until the end of input, whichever comes first.  C-style comments
+can span multiple lines. </p>
+
+<p> Comments can appear anywhere whitespace can occur,
+including inside expressions and in the middle of other SQL statements.
+Comments do not nest.
+</p>
+
+
+<hr><small><i>
+This page last modified 2009/02/14 18:02:23 UTC
+</i></small></div></body></html>
