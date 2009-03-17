@@ -26,7 +26,11 @@
 */
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-
+#include <boost/interprocess/sync/named_semaphore.hpp>
+#include <boost/interprocess/sync/named_condition.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #define CREATE_ONLY    0
 #define OPEN_OR_CREATE 1
@@ -34,7 +38,10 @@
 
 
 using namespace boost::interprocess;
+using namespace boost::posix_time;
 
+class MaxScopedLock;
+class MaxNamedMutex;
 
 extern "C" {
 
@@ -58,7 +65,88 @@ extern "C" {
 	bool bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, std::size_t numBytes);
 	void bmx_mapped_region_free(mapped_region * region);
 
+	named_semaphore * bmx_named_semphore_create(int access, BBString * name, int initialCount);
+	void bmx_named_semaphore_post(named_semaphore * semaphore);
+	void bmx_named_semaphore_wait(named_semaphore * semaphore);
+	bool bmx_named_semaphore_trywait(named_semaphore * semaphore);
+	bool bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time);
+	bool bmx_named_semaphore_remove(BBString * name);
+	void bmx_named_semaphore_free(named_semaphore * semaphore);
+
+	named_condition * bmx_named_condition_create(int access, BBString * name);
+	void bmx_named_condition_notifyone(named_condition * cond);
+	void bmx_named_condition_notifyall(named_condition * cond);
+	void bmx_named_condition_wait(named_condition * cond, MaxScopedLock * lock);
+	bool bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time);
+	bool bmx_named_condition_remove(BBString * name);
+	void bmx_named_condition_free(named_condition * cond);
+
+	MaxScopedLock * bmx_scoped_lock_create(MaxNamedMutex * mutex);
+	void bmx_scoped_lock_free(MaxScopedLock * lock);
+	void bmx_scoped_lock_lock(MaxScopedLock * lock);
+	bool bmx_scoped_lock_trylock(MaxScopedLock * lock);
+	bool bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time);
+	void bmx_scoped_lock_unlock(MaxScopedLock * lock);
+
+	MaxNamedMutex * bmx_named_mutex_create(int access, BBString * name);
+	void bmx_named_mutex_unlock(MaxNamedMutex * mutex);
+	void bmx_named_mutex_lock(MaxNamedMutex * mutex);
+	bool bmx_named_mutex_trylock(MaxNamedMutex * mutex);
+	bool bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time);
+	bool bmx_named_mutex_remove(BBString * name);
+	void bmx_named_mutex_free(MaxNamedMutex * mutex);
+
 }
+
+class MaxNamedMutex
+{
+public:
+	MaxNamedMutex(create_only_t c, const char *name)
+		: mutex(c, name)
+	{}
+
+	MaxNamedMutex(open_or_create_t c, const char *name)
+		: mutex(c, name)
+	{}
+
+	MaxNamedMutex(open_only_t c, const char *name)
+		: mutex(c, name)
+	{}
+	
+	named_mutex & GetMutex() {
+		return mutex;
+	}
+
+private:
+	named_mutex mutex;
+};
+
+class MaxScopedLock
+{
+public:
+	MaxScopedLock(named_mutex & mutex)
+	{
+		_lock = new scoped_lock<named_mutex>(mutex);
+	}
+	
+	~MaxScopedLock()
+	{
+		delete _lock;
+	}
+	
+	scoped_lock<named_mutex> * GetLock() {
+		return _lock;
+	}
+	
+	void lock() {
+		_lock->lock();
+	}
+
+private:
+	scoped_lock<named_mutex> * _lock;
+};
+
+// ********************************************
 
 void bmx_throw_interprocess_exception(interprocess_exception &e) {
 	bbExThrow(_bah_interprocess_TInterprocessException__create(bbStringFromCString(e.what()), e.get_error_code(), 		e.get_native_error()));
@@ -154,6 +242,205 @@ bool bmx_mapped_region_flush(mapped_region * region, std::size_t mappingOffset, 
 
 void bmx_mapped_region_free(mapped_region * region) {
 	delete region;
+}
+
+
+// ********************************************
+
+named_semaphore * bmx_named_semphore_create(int access, BBString * name, int initialCount) {
+	char * p = bbStringToCString(name);
+	named_semaphore * sem = 0;
+	
+	try{
+	
+		switch(access) {
+			case CREATE_ONLY:
+				sem = new named_semaphore(create_only, p, initialCount);
+				break;
+			case OPEN_OR_CREATE:
+				sem = new named_semaphore(open_or_create, p, initialCount);
+				break;
+			case OPEN_ONLY:
+				sem = new named_semaphore(open_only, p);
+				break;
+		}
+		
+	} catch(interprocess_exception &e){
+		bbMemFree(p);
+		bmx_throw_interprocess_exception(e);
+	}
+	
+	bbMemFree(p);
+	return sem;
+}
+
+void bmx_named_semaphore_post(named_semaphore * semaphore) {
+	semaphore->post();
+}
+
+void bmx_named_semaphore_wait(named_semaphore * semaphore) {
+	semaphore->wait();
+}
+
+bool bmx_named_semaphore_trywait(named_semaphore * semaphore) {
+	return semaphore->try_wait();
+}
+
+bool bmx_named_semaphore_timedwait(named_semaphore * semaphore, int time) {
+	std::time_t tt(time);
+	return semaphore->timed_wait(from_time_t(tt));
+}
+
+bool bmx_named_semaphore_remove(BBString * name) {
+	char * p = bbStringToCString(name);
+	bool res = named_semaphore::remove(p);
+	bbMemFree(p);
+	return res;
+}
+
+void bmx_named_semaphore_free(named_semaphore * semaphore) {
+	delete semaphore;
+}
+
+// ********************************************
+
+named_condition * bmx_named_condition_create(int access, BBString * name) {
+	char * p = bbStringToCString(name);
+	named_condition * cond = 0;
+	
+	try{
+	
+		switch(access) {
+			case CREATE_ONLY:
+				cond = new named_condition(create_only, p);
+				break;
+			case OPEN_OR_CREATE:
+				cond = new named_condition(open_or_create, p);
+				break;
+			case OPEN_ONLY:
+				cond = new named_condition(open_only, p);
+				break;
+		}
+		
+	} catch(interprocess_exception &e){
+		bbMemFree(p);
+		bmx_throw_interprocess_exception(e);
+	}
+	
+	bbMemFree(p);
+	return cond;
+}
+
+void bmx_named_condition_notifyone(named_condition * cond) {
+	cond->notify_one();
+}
+
+void bmx_named_condition_notifyall(named_condition * cond) {
+	cond->notify_all();
+}
+
+void bmx_named_condition_wait(named_condition * cond, MaxScopedLock * lock) {
+	cond->wait(*lock->GetLock());
+}
+
+bool bmx_named_condition_timedwait(named_condition * cond, MaxScopedLock * lock, int time) {
+	std::time_t tt(time);
+	return cond->timed_wait(*lock->GetLock(), from_time_t(tt));
+}
+
+bool bmx_named_condition_remove(BBString * name) {
+	char * p = bbStringToCString(name);
+	bool res = named_condition::remove(p);
+	bbMemFree(p);
+	return res;
+}
+
+void bmx_named_condition_free(named_condition * cond) {
+	delete cond;
+}
+
+
+// ********************************************
+
+MaxScopedLock * bmx_scoped_lock_create(MaxNamedMutex * mutex) {
+	return new MaxScopedLock(mutex->GetMutex());
+}
+
+void bmx_scoped_lock_free(MaxScopedLock * lock) {
+	delete lock;
+}
+
+void bmx_scoped_lock_lock(MaxScopedLock * lock) {
+	lock->GetLock()->lock();
+}
+
+bool bmx_scoped_lock_trylock(MaxScopedLock * lock) {
+	return lock->GetLock()->try_lock();
+}
+
+bool bmx_scoped_lock_timedlock(MaxScopedLock * lock, int time) {
+	std::time_t tt(time);
+	return lock->GetLock()->timed_lock(from_time_t(tt));
+}
+
+void bmx_scoped_lock_unlock(MaxScopedLock * lock) {
+	lock->GetLock()->unlock();
+}
+
+// ********************************************
+
+MaxNamedMutex * bmx_named_mutex_create(int access, BBString * name) {
+	char * p = bbStringToCString(name);
+	MaxNamedMutex * mutex = 0;
+	try{
+	
+		switch(access) {
+			case CREATE_ONLY:
+				mutex = new MaxNamedMutex(create_only, p);
+				break;
+			case OPEN_OR_CREATE:
+				mutex = new MaxNamedMutex(open_or_create, p);
+				break;
+			case OPEN_ONLY:
+				mutex = new MaxNamedMutex(open_only, p);
+				break;
+		}
+		
+	} catch(interprocess_exception &e){
+		bbMemFree(p);
+		bmx_throw_interprocess_exception(e);
+	}
+
+	bbMemFree(p);
+	return mutex;
+}
+
+void bmx_named_mutex_unlock(MaxNamedMutex * mutex) {
+	mutex->GetMutex().unlock();
+}
+
+void bmx_named_mutex_lock(MaxNamedMutex * mutex) {
+	mutex->GetMutex().lock();
+}
+
+bool bmx_named_mutex_trylock(MaxNamedMutex * mutex) {
+	return mutex->GetMutex().try_lock();
+}
+
+bool bmx_named_mutex_timedlock(MaxNamedMutex * mutex, int time) {
+	std::time_t tt(time);
+	return mutex->GetMutex().timed_lock(from_time_t(tt));
+}
+
+bool bmx_named_mutex_remove(BBString * name) {
+	char * p = bbStringToCString(name);
+	bool res = named_mutex::remove(p);
+	bbMemFree(p);
+	return res;
+}
+
+void bmx_named_mutex_free(MaxNamedMutex * mutex) {
+	delete mutex;
 }
 
 

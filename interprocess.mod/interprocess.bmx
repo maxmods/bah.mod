@@ -213,22 +213,64 @@ Type TNamedMutex
 
 	Field objectPtr:Byte Ptr
 	
-	Method Unlock()
-	End Method
-	
-	Method Lock()
-	End Method
-	
-	Method TryLock:Int()
-	End Method
-	
-	Method TimedLock:Int(time:Int)
-	End Method
-	
-	Function Remove:Int(name:String)
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateNamedMutex:TNamedMutex(access:Int, name:String)
+		Return New TNamedMutex.Create(access, name)
 	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TNamedMutex(access:Int, name:String)
+		objectPtr = bmx_named_mutex_create(access, name)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Unlock()
+		bmx_named_mutex_unlock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Lock()
+		bmx_named_mutex_lock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TryLock:Int()
+		Return bmx_named_mutex_trylock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TimedLock:Int(time:Int)
+		Return bmx_named_mutex_timedlock(objectPtr, time)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function Remove:Int(name:String)
+		Return bmx_named_mutex_remove(name)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Free()
+		If objectPtr Then
+			bmx_named_mutex_free(objectPtr)
+			objectPtr = Null
+		End If
 	End Method
 	
 	Method Delete()
@@ -244,20 +286,69 @@ Type TNamedCondition
 
 	Field objectPtr:Byte Ptr
 	
-	Method NotifyOne()
-	End Method
-	
-	Method NotifyAll()
-	End Method
-	
-	Method Wait(mutex:TNamedMutex)
-	End Method
-	
-	Method TimedWait:Int(mutex:TNamedMutex, time:Int)
-	End Method
-	
-	Function Remove:Int(name:String)
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateNamedSemaphore:TNamedCondition(access:Int, name:String)
+		Return New TNamedCondition.Create(access, name)
 	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TNamedCondition(access:Int, name:String)
+		objectPtr = bmx_named_condition_create(access, name)
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method NotifyOne()
+		bmx_named_condition_notifyone(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method NotifyAll()
+		bmx_named_condition_notifyall(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Wait(lock:TScopedLock)
+		bmx_named_condition_wait(objectPtr, lock.objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TimedWait:Int(lock:TScopedLock, time:Int)
+		Return bmx_named_condition_timedwait(objectPtr, lock.objectPtr, time)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function Remove:Int(name:String)
+		Return bmx_named_condition_remove(name)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If objectPtr Then
+			bmx_named_condition_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
 
 End Type
 
@@ -268,7 +359,22 @@ End Rem
 Type TNamedSempahore
 
 	Field objectPtr:Byte Ptr
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateNamedSemaphore:TNamedSempahore(access:Int, name:String, initialCount:Int = 1)
+		Return New TNamedSempahore.Create(access, name, initialCount)
+	End Function
 	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TNamedSempahore(access:Int, name:String, initialCount:Int = 1)
+		objectPtr = bmx_named_semphore_create(access, name, initialCount)
+		Return Self
+	End Method
+
 	Rem
 	bbdoc: Increments the semaphore count.
 	about: If there are processes/threads blocked waiting for the semaphore, then one of these
@@ -276,6 +382,7 @@ Type TNamedSempahore
 	TInterprocessException is thrown.
 	End Rem
 	Method Post()
+		bmx_named_semaphore_post(objectPtr)
 	End Method
 	
 	Rem
@@ -284,6 +391,7 @@ Type TNamedSempahore
 	until it can decrement the counter. If there is an error a TInterprocessException is thrown.
 	End Rem
 	Method Wait()
+		bmx_named_semaphore_wait(objectPtr)
 	End Method
 	
 	Rem
@@ -292,6 +400,7 @@ Type TNamedSempahore
 	TInterprocessException is thrown.
 	End Rem
 	Method TryWait:Int()
+		Return bmx_named_semaphore_trywait(objectPtr)
 	End Method
 	
 	Rem
@@ -301,18 +410,98 @@ Type TNamedSempahore
 	If there is an error throws TSemException
 	End Rem
 	Method TimedWait:Int(time:Int)
+		Return bmx_named_semaphore_timedwait(objectPtr, time)
 	End Method
 
+	Rem
+	bbdoc: Erases a named semaphore from the system.
+	returns: False on error.
+	End Rem
 	Function Remove:Int(name:String)
+		Return bmx_named_semaphore_remove(name)
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method Free()
+		If objectPtr Then
+			bmx_named_semaphore_free(objectPtr)
+			objectPtr = Null
+		End If
 	End Method
 	
 	Method Delete()
 		Free()
 	End Method
 	
+End Type
+
+Rem
+bbdoc: A scoped llock is meant to carry out the tasks for locking, unlocking, try-locking and timed-locking (recursive or not) for the Mutex.
+about: 
+End Rem
+Type TScopedLock
+
+	Field objectPtr:Byte Ptr
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateLock:TScopedLock(mutex:TNamedMutex)
+		Return New TScopedLock.Create(mutex)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TScopedLock(mutex:TNamedMutex)
+		objectPtr = bmx_scoped_lock_create(mutex.objectPtr)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Lock()
+		bmx_scoped_lock_lock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TryLock:Int()
+		Return bmx_scoped_lock_trylock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TimedLock:Int(time:Int)
+		Return bmx_scoped_lock_timedlock(objectPtr, time)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Unlock()
+		bmx_scoped_lock_unlock(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If objectPtr Then
+			bmx_scoped_lock_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
 End Type
 
 

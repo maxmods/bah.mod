@@ -55,6 +55,37 @@ Extern
 	Function bmx_mapped_region_flush:Int(handle:Byte Ptr, mappingOffset:Int, numBytes:Int)
 	Function bmx_mapped_region_free(handle:Byte Ptr)
 
+	Function bmx_named_semphore_create:Byte Ptr(access:Int, name:String, initialCount:Int)
+	Function bmx_named_semaphore_post(handle:Byte Ptr)
+	Function bmx_named_semaphore_wait(handle:Byte Ptr)
+	Function bmx_named_semaphore_trywait:Int(handle:Byte Ptr)
+	Function bmx_named_semaphore_timedwait:Int(handle:Byte Ptr, time:Int)
+	Function bmx_named_semaphore_remove:Int(name:String)
+	Function bmx_named_semaphore_free(handle:Byte Ptr)
+
+	Function bmx_named_condition_create:Byte Ptr(access:Int, name:String)
+	Function bmx_named_condition_notifyone(handle:Byte Ptr)
+	Function bmx_named_condition_notifyall(handle:Byte Ptr)
+	Function bmx_named_condition_wait(handle:Byte Ptr, mutex:Byte Ptr)
+	Function bmx_named_condition_timedwait:Int(handle:Byte Ptr, mutex:Byte Ptr, time:Int)
+	Function bmx_named_condition_remove:Int(name:String)
+	Function bmx_named_condition_free(handle:Byte Ptr)
+
+	Function bmx_scoped_lock_create:Byte Ptr(mutex:Byte Ptr)
+	Function bmx_scoped_lock_free(handle:Byte Ptr)
+	Function bmx_scoped_lock_lock(handle:Byte Ptr)
+	Function bmx_scoped_lock_trylock:Int(handle:Byte Ptr)
+	Function bmx_scoped_lock_timedlock:Int(handle:Byte Ptr, time:Int)
+	Function bmx_scoped_lock_unlock(handle:Byte Ptr)
+
+	Function bmx_named_mutex_create:Byte Ptr(access:Int, name:String)
+	Function bmx_named_mutex_unlock(handle:Byte Ptr)
+	Function bmx_named_mutex_lock(handle:Byte Ptr)
+	Function bmx_named_mutex_trylock:Int(handle:Byte Ptr)
+	Function bmx_named_mutex_timedlock:Int(handle:Byte Ptr, time:Int)
+	Function bmx_named_mutex_remove:Int(name:String)
+	Function bmx_named_mutex_free(handle:Byte Ptr)
+
 End Extern
 
 Rem
