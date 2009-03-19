@@ -36,6 +36,7 @@ extern "C" {
 #include "blitz.h"
 
 	BBObject * _bah_mathtoolkit_TOverflowException__create();
+	BBObject * _bah_mathtoolkit_TDomainException__create();
 
 
 	double bmx_boost_math_factorial(unsigned int i);
@@ -64,6 +65,10 @@ extern "C" {
 
 void bmx_throw_overflow_exception() {
 	bbExThrow(_bah_mathtoolkit_TOverflowException__create());
+}
+
+void bmx_throw_domain_exception() {
+	bbExThrow(_bah_mathtoolkit_TDomainException__create());
 }
 
 
@@ -131,7 +136,11 @@ double bmx_boost_math_hypot(double x, double y) {
 // ************************************************
 
 boost::math::binomial_distribution<double> * bmx_boost_math_binomial_distribution_create(int n, double p) {
-	return new boost::math::binomial_distribution<double>(n, p);
+	try {
+		return new boost::math::binomial_distribution<double>(n, p);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
 }
 
 double bmx_boost_math_binomial_distribution_successfraction(boost::math::binomial_distribution<double> * dist) {

@@ -76,3 +76,19 @@ Type TOverflowException Extends TRuntimeException
 	End Method
 	
 End Type
+
+Type TDomainException Extends TRuntimeException
+	
+	Method CreateException:TDomainException()
+		Return Self
+	End Method
+
+	Function _create:TDomainException()
+		Return New TDomainException.CreateException()
+	End Function
+	
+	Method ToString:String()
+		Return "Domain Exception"
+	End Method
+	
+End Type

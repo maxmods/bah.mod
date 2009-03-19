@@ -1,3 +1,20 @@
+Rem
+An example of a Bernoulli process is coin flipping. (see http://en.wikipedia.org/wiki/Bernoulli_process)
+A variable in such a sequence may be called a Bernoulli variable.
+
+This example shows using the Binomial distribution to predict the probability of heads and
+tails when throwing a coin.
+
+The number of correct answers (say heads), X, is distributed as a binomial random variable
+with binomial distribution parameters number of trials (flips) n = 10 and probability
+(successFraction) of getting a head p = 0.5 (a 'fair' coin).
+
+(Our coin is assumed fair, but we could easily change the successFraction parameter p
+from 0.5 to some other value to simulate an unfair coin,
+say 0.6 for one with chewing gum on the tail,
+so it is more likely to fall tails down and heads up).
+
+End Rem
 SuperStrict
 
 Framework BaH.MathToolkit
@@ -51,7 +68,7 @@ Try
 
 	' Note that using
 	
-	Print "Probability of getting 9 or 10 heads is " + nice(1.0 - cdf(coinFlip, 8))
+	Print "Probability of getting 9 or 10 heads is " + nice(1.0 - Cdf(coinFlip, 8))
 	
 	' is less accurate than using the complement
 	
@@ -66,17 +83,17 @@ Try
 	' To get the probability for a range of heads, we can either add the pdfs for each number of heads
 	
 	Print "Probability of between 4 and 6 heads (4 or 5 or 6) is " + ..
-		nice(pdf(coinFlip, 4) + pdf(coinFlip, 5) + pdf(coinFlip, 6))
+		nice(Pdf(coinFlip, 4) + Pdf(coinFlip, 5) + Pdf(coinFlip, 6))
 	
 	' But this is probably less efficient than using the cdf
 	
 	Print "Probability of between 4 and 6 heads (4 or 5 or 6) is " + ..
-		nice(cdf(coinFlip, 6) - cdf(coinFlip, 3))
+		nice(Cdf(coinFlip, 6) - Cdf(coinFlip, 3))
 	
 	' Certainly for a bigger range like, 3 to 7
 	
 	Print "Probability of between 3 and 7 heads (3, 4, 5, 6 or 7) is " + ..
-		nice(cdf(coinFlip, 7) - cdf(coinFlip, 2))
+		nice(Cdf(coinFlip, 7) - Cdf(coinFlip, 2))
 	Print ""
 	
 	' Finally, print two tables of probability for the /exactly/ and /at least/ a number of heads.
@@ -85,7 +102,7 @@ Try
 	Print "Probability of getting exactly (==) heads"
 	For Local successes:Int = 0 To flips
 		' Say success means getting a head (or equally success means getting a tail).
-		Local probability:Double = pdf(coinFlip, successes)
+		Local probability:Double = Pdf(coinFlip, successes)
 		Print successes + "     " + nice(probability) + " or 1 in " + nice(1 / probability) + ..
 			", or " + nice(probability * 100.0) + "%"
 	Next
@@ -96,7 +113,7 @@ Try
 	For Local successes:Int = 0 To flips
 		' Say success means getting a head
 		' (equally success could mean getting a tail).
-		Local probability:Double = cdf(coinFlip, successes) ' P(X <= heads)
+		Local probability:Double = Cdf(coinFlip, successes) ' P(X <= heads)
 		Print successes + "        " + nice(probability) + " or 1 in " + nice(1.0 / probability) + ", or " + ..
 			nice(probability * 100.0) + "%"
 	Next

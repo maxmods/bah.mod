@@ -155,7 +155,7 @@ The following graph illustrates the behaviour of cbrt:
 <img src="cbrt.png" align="center">
 </p>
 End Rem
-Function CubedRoot:Double(x:Double)
+Function Cbrt:Double(x:Double)
 	Return bmx_boost_math_cbrt(x)
 End Function
 
@@ -245,23 +245,105 @@ Type TDistribution
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Represents a <a href="http://mathworld.wolfram.com/BinomialDistribution.html">binomial distribution</a>.
+about: It is used when there are exactly two mutually exclusive outcomes of a trial. These outcomes are
+labelled "success" and "failure". The binomial distribution is used to obtain the probability of observing @k
+successes in @N trials, with the probability of success on a single trial denoted by p. The binomial
+distribution assumes that p is fixed for all trials.
+          </p>
+<table border="0" summary="Note">
+<tr>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+The random variable for the binomial distribution is the number of
+successes, (the number of trials is a fixed property of the distribution)
+whereas for the negative binomial, the random variable is the number
+of trials, for a fixed number of successes.
+</p>
+</td></tr>
+</table>
+<p>
+The PDF for the binomial distribution is given by:
+</p>
+<p>
+<img src="binomial_ref2.png">
+</p>
+<p>
+The following two graphs illustrate how the PDF changes depending upon
+the distributions parameters, first we'll keep the success fraction
+<em>p</em> fixed at 0.5, and vary the sample size:
+</p>
+<p>
+<img src="binomial_pdf_1.png" align="middle">
+</p>
+<p>
+Alternatively, we can keep the sample size fixed at N=20 and vary the
+success fraction <em>p</em>:
+</p>
+<p>
+<img src="binomial_pdf_2.png" align="middle">
+</p>
+<table border="0" summary="Caution">
+<tr>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+The Binomial distribution is a discrete distribution: internally functions like the <tt>cdf</tt> and
+<tt>pdf</tt> are treated "as if" they are continuous functions, but in reality the
+results returned from these functions only have meaning if an integer
+value is provided for the random variate argument.
+</p>
+<p>
+The quantile function will by default return an integer result that
+has been <em>rounded outwards</em>. That is to say lower
+quantiles (where the probability is less than 0.5) are rounded downward,
+and upper quantiles (where the probability is greater than 0.5) are
+rounded upwards. This behaviour ensures that if an X% quantile is
+requested, then <em>at least</em> the requested coverage
+will be present in the central region, and <em>no more than</em>
+the requested coverage will be present in the tails.
+</p>
+</td></tr>
+</table>
 End Rem
 Type TBinomial Extends TDistribution
 
+	Rem
+	bbdoc: Creates a new TBinomial instance.
+	about: n is the total number of trials, p  is the probability of success of a single trial.
+	<p>
+	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
+	</p>
+	End Rem
 	Function CreateBinomial:TBinomial(n:Int, p:Double)
 		Return New TBinomial.Create(n, p)
 	End Function
 	
+	Rem
+	bbdoc: Creates a new TBinomial instance.
+	about: n is the total number of trials, p  is the probability of success of a single trial.
+	<p>
+	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
+	</p>
+	End Rem
 	Method Create:TBinomial(n:Int, p:Double)
 		objectPtr = bmx_boost_math_binomial_distribution_create(n, p)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SuccessFraction:Double()
 		Return bmx_boost_math_binomial_distribution_successfraction(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Trials:Int()
 		Return bmx_boost_math_binomial_distribution_trials(objectPtr)
 	End Method
