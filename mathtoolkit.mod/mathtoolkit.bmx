@@ -186,42 +186,48 @@ End Function
 
 
 Rem
-bbdoc: 
+bbdoc: Calculate the mean of @dist.
 End Rem
 Function Mean:Double(dist:TDistribution)
 	Return dist.Mean()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Calculate the mode of @dist.
+about: The mode is the value that occurs the most frequently in a data set or a probability distribution.
 End Rem
 Function Mode:Double(dist:TDistribution)
 	Return dist.Mode()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Calculate the standard deviation of @dist.
+about: Standard deviation is a simple measure of the variability or dispersion of a data set.
 End Rem
 Function StandardDeviation:Double(dist:TDistribution)
 	Return dist.StandardDeviation()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Determine skewness on @dist.
+about: Skewness is a measure of the asymmetry of the probability distribution of a real-valued random variable.
 End Rem
 Function Skewness:Double(dist:TDistribution)
 	Return dist.Skewness()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Perform a probability density function on @dist.
+about: A probability density function (pdf) is a function that represents a probability distribution in terms of integrals.
 End Rem
 Function Pdf:Double(dist:TDistribution, k:Double)
 	Return dist.Pdf(k)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Perform a cumulative distribution function on @dist.
+about: The cumulative distribution function (CDF) or just distribution function, completely describes the probability
+distribution of a real-valued random variable.
 End Rem
 Function Cdf:Double(dist:TDistribution, k:Double)
 	Return dist.Cdf(k)
@@ -309,27 +315,27 @@ the requested coverage will be present in the tails.
 </td></tr>
 </table>
 End Rem
-Type TBinomial Extends TDistribution
+Type TBinomialDistribution Extends TDistribution
 
 	Rem
-	bbdoc: Creates a new TBinomial instance.
+	bbdoc: Creates a new TBinomialDistribution instance.
 	about: n is the total number of trials, p  is the probability of success of a single trial.
 	<p>
 	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
 	</p>
 	End Rem
-	Function CreateBinomial:TBinomial(n:Int, p:Double)
-		Return New TBinomial.Create(n, p)
+	Function CreateBinomial:TBinomialDistribution(n:Int, p:Double)
+		Return New TBinomialDistribution.Create(n, p)
 	End Function
 	
 	Rem
-	bbdoc: Creates a new TBinomial instance.
+	bbdoc: Creates a new TBinomialDistribution instance.
 	about: n is the total number of trials, p  is the probability of success of a single trial.
 	<p>
 	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
 	</p>
 	End Rem
-	Method Create:TBinomial(n:Int, p:Double)
+	Method Create:TBinomialDistribution(n:Int, p:Double)
 		objectPtr = bmx_boost_math_binomial_distribution_create(n, p)
 		Return Self
 	End Method
@@ -371,9 +377,198 @@ Type TBinomial Extends TDistribution
 	Method Cdf:Double(k:Double)
 		Return bmx_boost_math_binomial_distribution_cdf(objectPtr, k)
 	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_binomial_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
 
 End Type
 
+Rem
+bbdoc: The Bernoulli distribution is a discrete distribution of the outcome of a single trial with only two results, 0 (failure) or 1 (success), with a probability of success p.
+about: The Bernoulli distribution is the simplest building block on which other discrete distributions of sequences of
+independent Bernoulli trials can be based.
+<p>
+The Bernoulli is the binomial distribution (k = 1, p) with only one trial.
+</p>
+<p>
+The following graph illustrates how the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability
+density function pdf</a> varies with the outcome of the single trial:
+</p>
+<p>
+<img src="bernoulli_pdf.png" align="middle">
+</p>
+<p>
+and the <a href="http://en.wikipedia.org/wiki/Cumulative_Distribution_Function" >Cumulative
+distribution function</a>
+</p>
+<p>
+<img src="bernoulli_cdf.png" align="middle">
+</p>
+End Rem
+Type TBernoulliDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TBernoulliDistribution instance.
+	End Rem
+	Function CreateBernoulli:TBernoulliDistribution(p:Double)
+		Return New TBernoulliDistribution.Create(p)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TBernoulliDistribution instance.
+	End Rem
+	Method Create:TBernoulliDistribution(p:Double)
+		objectPtr = bmx_boost_math_bernoulli_distribution_create(p)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SuccessFraction:Double()
+		Return bmx_boost_math_bernoulli_distribution_successfraction(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_bernoulli_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_bernoulli_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_bernoulli_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_bernoulli_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_bernoulli_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_bernoulli_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_bernoulli_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Represents a beta probability distribution function.
+about: The beta distribution is used as a prior distribution for binomial proportions in Bayesian analysis.
+<p>
+The <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability
+density function PDF</a> for the <a href="http://en.wikipedia.org/wiki/Beta_distribution" >beta
+distribution</a> defined on the interval [0,1] is given by:
+</p>
+<p>
+f(x;&#945;,&#946;) = x<sup>&#945; - 1</sup> (1 - x)<sup>&#946; -1</sup> / B(&#945;, &#946;)
+</p>
+<p>
+where B(&#945;, &#946;) is the <a href="http://en.wikipedia.org/wiki/Beta_function">beta
+function</a>, implemented in this library as Beta().
+Division by the beta function ensures that the pdf is normalized to the
+range zero to unity.
+</p>
+<p>
+The following graph illustrates examples of the pdf for various values
+of the shape parameters. Note the &#945; = &#946; = 2 (blue line) is dome-shaped, and
+might be approximated by a symmetrical triangular distribution.
+</p>
+<p>
+<img src="beta_pdf.png" align="middle">
+</p>
+<p>
+If &#945; = &#946; = 1, then it is a &#8203;
+<a href="http://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29" >uniform
+distribution</a>, equal to unity in the entire interval x = 0 to
+1. If &#945; &#8203; and &#946; &#8203; are &lt; 1, then the pdf is U-shaped. If &#945; != &#946;, then the shape
+is asymmetric and could be approximated by a triangle whose apex is away
+from the centre (where x = half).
+</p>
+End Rem
+Type TBetaDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TBetaDistribution instance with shape parameters @alpha and @beta.
+	about: Requires @alpha, @beta > 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
+	for alpha,beta >= 0, but it's not clear whether any program can actually make use of that latitude or how many of
+	the non-member functions can be usefully defined in that case. Therefore for now, we regard it as an error if @alpha or @beta is zero.
+	End Rem
+	Function CreateBeta:TBetaDistribution(a:Double, b:Double)
+		Return New TBetaDistribution.Create(a, b)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TBetaDistribution instance with shape parameters @alpha and @beta.
+	about: Requires @alpha, @beta > 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
+	for alpha,beta >= 0, but it's not clear whether any program can actually make use of that latitude or how many of
+	the non-member functions can be usefully defined in that case. Therefore for now, we regard it as an error if @alpha or @beta is zero.
+	End Rem
+	Method Create:TBetaDistribution(a:Double, b:Double)
+		objectPtr = bmx_boost_math_beta_distribution_create(a, b)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @alpha from which this distribution was constructed.
+	End Rem
+	Method Alpha:Double()
+		Return bmx_boost_math_beta_distribution_alpha(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the parameter @beta from which this distribution was constructed.
+	End Rem
+	Method Beta:Double()
+		Return bmx_boost_math_beta_distribution_beta(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_beta_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_beta_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_beta_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_beta_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_beta_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_beta_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_beta_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
 
 
 

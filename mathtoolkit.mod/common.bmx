@@ -57,6 +57,28 @@ Extern
 	Function bmx_boost_math_binomial_distribution_skewness:Double(handle:Byte Ptr)
 	Function bmx_boost_math_binomial_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_binomial_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_binomial_distribution_free(handle:Byte Ptr)
+
+	Function bmx_boost_math_bernoulli_distribution_create:Byte Ptr(p:Double)
+	Function bmx_boost_math_bernoulli_distribution_successfraction:Double(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_bernoulli_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_bernoulli_distribution_free(handle:Byte Ptr)
+
+	Function bmx_boost_math_beta_distribution_create:Byte Ptr(a:Double, b:Double)
+	Function bmx_boost_math_beta_distribution_alpha:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_beta:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_beta_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_beta_distribution_free(handle:Byte Ptr)
 
 End Extern
 

@@ -30,6 +30,8 @@
 #include <boost/math/special_functions/hypot.hpp>
 #include <boost/math/concepts/distributions.hpp>
 #include <boost/math/distributions/binomial.hpp>
+#include <boost/math/distributions/bernoulli.hpp>
+#include <boost/math/distributions/beta.hpp>
 
 extern "C" {
 
@@ -59,6 +61,28 @@ extern "C" {
 	double bmx_boost_math_binomial_distribution_skewness(boost::math::binomial_distribution<double> * dist);
 	double bmx_boost_math_binomial_distribution_pdf(boost::math::binomial_distribution<double> * dist, double k);
 	double bmx_boost_math_binomial_distribution_cdf(boost::math::binomial_distribution<double> * dist, double k);
+	void bmx_boost_math_binomial_distribution_free(boost::math::binomial_distribution<double> * dist);
+
+	boost::math::bernoulli_distribution<double> * bmx_boost_math_bernoulli_distribution_create(double p);
+	double bmx_boost_math_bernoulli_distribution_successfraction(boost::math::bernoulli_distribution<double> * dist);
+	double bmx_boost_math_bernoulli_distribution_mean(boost::math::bernoulli_distribution<double> * dist);
+	double bmx_boost_math_bernoulli_distribution_mode(boost::math::bernoulli_distribution<double> * dist);
+	double bmx_boost_math_bernoulli_distribution_standarddeviation(boost::math::bernoulli_distribution<double> * dist);
+	double bmx_boost_math_bernoulli_distribution_skewness(boost::math::bernoulli_distribution<double> * dist);
+	double bmx_boost_math_bernoulli_distribution_pdf(boost::math::bernoulli_distribution<double> * dist, double k);
+	double bmx_boost_math_bernoulli_distribution_cdf(boost::math::bernoulli_distribution<double> * dist, double k);
+	void bmx_boost_math_bernoulli_distribution_free(boost::math::bernoulli_distribution<double> * dist);
+
+	boost::math::beta_distribution<double> * bmx_boost_math_beta_distribution_create(double a, double p);
+	double bmx_boost_math_beta_distribution_alpha(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_beta(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_mean(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_mode(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_standarddeviation(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_skewness(boost::math::beta_distribution<double> * dist);
+	double bmx_boost_math_beta_distribution_pdf(boost::math::beta_distribution<double> * dist, double k);
+	double bmx_boost_math_beta_distribution_cdf(boost::math::beta_distribution<double> * dist, double k);
+	void bmx_boost_math_beta_distribution_free(boost::math::beta_distribution<double> * dist);
 
 }
 
@@ -175,3 +199,91 @@ double bmx_boost_math_binomial_distribution_cdf(boost::math::binomial_distributi
 	return cdf(*dist, k);
 }
 
+void bmx_boost_math_binomial_distribution_free(boost::math::binomial_distribution<double> * dist) {
+	delete dist;
+}
+
+// ************************************************
+
+boost::math::bernoulli_distribution<double> * bmx_boost_math_bernoulli_distribution_create(double p) {
+	return new boost::math::bernoulli_distribution<double>(p);
+}
+
+double bmx_boost_math_bernoulli_distribution_successfraction(boost::math::bernoulli_distribution<double> * dist) {
+	return dist->success_fraction();
+}
+
+double bmx_boost_math_bernoulli_distribution_mean(boost::math::bernoulli_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_bernoulli_distribution_mode(boost::math::bernoulli_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_bernoulli_distribution_standarddeviation(boost::math::bernoulli_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_bernoulli_distribution_skewness(boost::math::bernoulli_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_bernoulli_distribution_pdf(boost::math::bernoulli_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_bernoulli_distribution_cdf(boost::math::bernoulli_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_bernoulli_distribution_free(boost::math::bernoulli_distribution<double> * dist) {
+	delete dist;
+}
+
+
+// ************************************************
+
+boost::math::beta_distribution<double> * bmx_boost_math_beta_distribution_create(double a, double b) {
+	try {
+		return new boost::math::beta_distribution<double>(a, b);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_beta_distribution_alpha(boost::math::beta_distribution<double> * dist) {
+	return dist->alpha();
+}
+
+double bmx_boost_math_beta_distribution_beta(boost::math::beta_distribution<double> * dist) {
+	return dist->beta();
+}
+
+double bmx_boost_math_beta_distribution_mean(boost::math::beta_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_beta_distribution_mode(boost::math::beta_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_beta_distribution_standarddeviation(boost::math::beta_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_beta_distribution_skewness(boost::math::beta_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_beta_distribution_pdf(boost::math::beta_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_beta_distribution_cdf(boost::math::beta_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_beta_distribution_free(boost::math::beta_distribution<double> * dist) {
+	delete dist;
+}

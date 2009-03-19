@@ -32,7 +32,7 @@ Try
 
 	Const successFraction:Double = 0.5 ' = 50% = 1/2 for a 'fair' coin.
 	Local flips:Int = 10
-	Local coinFlip:TBinomial = New TBinomial.Create(flips, successFraction)
+	Local coinFlip:TBinomialDistribution = New TBinomialDistribution.Create(flips, successFraction)
 	
 	' Then some examples of using Binomial moments (and echoing the parameters).
 
