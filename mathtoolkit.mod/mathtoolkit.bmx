@@ -28,7 +28,7 @@ SuperStrict
 Rem
 bbdoc: Math Toolkit
 End Rem
-Module BaH.Math
+Module BaH.MathToolkit
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
@@ -185,23 +185,109 @@ Function Powm1:Double(x:Double, y:Double)
 End Function
 
 
-Type TBinomial
+Rem
+bbdoc: 
+End Rem
+Function Mean:Double(dist:TDistribution)
+	Return dist.Mean()
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function Mode:Double(dist:TDistribution)
+	Return dist.Mode()
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function StandardDeviation:Double(dist:TDistribution)
+	Return dist.StandardDeviation()
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function Skewness:Double(dist:TDistribution)
+	Return dist.Skewness()
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function Pdf:Double(dist:TDistribution, k:Double)
+	Return dist.Pdf(k)
+End Function
+
+Rem
+bbdoc: 
+End Rem
+Function Cdf:Double(dist:TDistribution, k:Double)
+	Return dist.Cdf(k)
+End Function
+
+
+Rem
+bbdoc: 
+End Rem
+Type TDistribution
 
 	Field objectPtr:Byte Ptr
 	
+	Method Mean:Double() Abstract
+	Method Mode:Double() Abstract
+	Method StandardDeviation:Double() Abstract
+	Method Skewness:Double() Abstract
+	Method Pdf:Double(k:Double) Abstract
+	Method Cdf:Double(k:Double) Abstract
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TBinomial Extends TDistribution
+
 	Function CreateBinomial:TBinomial(n:Int, p:Double)
 		Return New TBinomial.Create(n, p)
 	End Function
 	
 	Method Create:TBinomial(n:Int, p:Double)
-		'objectPtr = ...
+		objectPtr = bmx_boost_math_binomial_distribution_create(n, p)
 		Return Self
 	End Method
 	
 	Method SuccessFraction:Double()
+		Return bmx_boost_math_binomial_distribution_successfraction(objectPtr)
 	End Method
 	
 	Method Trials:Int()
+		Return bmx_boost_math_binomial_distribution_trials(objectPtr)
+	End Method
+	
+	Method Mean:Double()
+		Return bmx_boost_math_binomial_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_binomial_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_binomial_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_binomial_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_binomial_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_binomial_distribution_cdf(objectPtr, k)
 	End Method
 
 End Type

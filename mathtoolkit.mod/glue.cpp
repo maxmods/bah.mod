@@ -28,12 +28,14 @@
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/special_functions/cbrt.hpp>
 #include <boost/math/special_functions/hypot.hpp>
+#include <boost/math/concepts/distributions.hpp>
+#include <boost/math/distributions/binomial.hpp>
 
 extern "C" {
 
 #include "blitz.h"
 
-	BBObject * _bah_math_TOverflowException__create();
+	BBObject * _bah_mathtoolkit_TOverflowException__create();
 
 
 	double bmx_boost_math_factorial(unsigned int i);
@@ -47,11 +49,21 @@ extern "C" {
 	double bmx_boost_math_cbrt(double x);
 	double bmx_boost_math_hypot(double x, double y);
 
+	boost::math::binomial_distribution<double> * bmx_boost_math_binomial_distribution_create(int n, double p);
+	double bmx_boost_math_binomial_distribution_successfraction(boost::math::binomial_distribution<double> * dist);
+	int bmx_boost_math_binomial_distribution_trials(boost::math::binomial_distribution<double> * dist);
+	double bmx_boost_math_binomial_distribution_mean(boost::math::binomial_distribution<double> * dist);
+	double bmx_boost_math_binomial_distribution_mode(boost::math::binomial_distribution<double> * dist);
+	double bmx_boost_math_binomial_distribution_standarddeviation(boost::math::binomial_distribution<double> * dist);
+	double bmx_boost_math_binomial_distribution_skewness(boost::math::binomial_distribution<double> * dist);
+	double bmx_boost_math_binomial_distribution_pdf(boost::math::binomial_distribution<double> * dist, double k);
+	double bmx_boost_math_binomial_distribution_cdf(boost::math::binomial_distribution<double> * dist, double k);
+
 }
 
 
 void bmx_throw_overflow_exception() {
-	bbExThrow(_bah_math_TOverflowException__create());
+	bbExThrow(_bah_mathtoolkit_TOverflowException__create());
 }
 
 
@@ -114,5 +126,43 @@ double bmx_boost_math_cbrt(double x) {
 
 double bmx_boost_math_hypot(double x, double y) {
 	return boost::math::hypot<double>(x, y);
+}
+
+// ************************************************
+
+boost::math::binomial_distribution<double> * bmx_boost_math_binomial_distribution_create(int n, double p) {
+	return new boost::math::binomial_distribution<double>(n, p);
+}
+
+double bmx_boost_math_binomial_distribution_successfraction(boost::math::binomial_distribution<double> * dist) {
+	return dist->success_fraction();
+}
+
+int bmx_boost_math_binomial_distribution_trials(boost::math::binomial_distribution<double> * dist) {
+	return dist->trials();
+}
+
+double bmx_boost_math_binomial_distribution_mean(boost::math::binomial_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_binomial_distribution_mode(boost::math::binomial_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_binomial_distribution_standarddeviation(boost::math::binomial_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_binomial_distribution_skewness(boost::math::binomial_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_binomial_distribution_pdf(boost::math::binomial_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_binomial_distribution_cdf(boost::math::binomial_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
 }
 

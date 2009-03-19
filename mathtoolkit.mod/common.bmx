@@ -48,6 +48,16 @@ Extern
 	Function bmx_boost_math_cbrt:Double(x:Double)
 	Function bmx_boost_math_hypot:Double(x:Double, y:Double)
 
+	Function bmx_boost_math_binomial_distribution_create:Byte Ptr(n:Int, p:Double)
+	Function bmx_boost_math_binomial_distribution_successfraction:Double(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_trials:Int(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_binomial_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+
 End Extern
 
 

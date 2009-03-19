@@ -1,6 +1,6 @@
 SuperStrict
 
-Framework BaH.Math
+Framework BaH.MathToolkit
 Import BRL.StandardIO
 
 Print "Factorial"
