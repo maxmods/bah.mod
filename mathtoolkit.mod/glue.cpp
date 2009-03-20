@@ -32,6 +32,10 @@
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/bernoulli.hpp>
 #include <boost/math/distributions/beta.hpp>
+#include <boost/math/distributions/cauchy.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
+#include <boost/math/distributions/exponential.hpp>
+#include <boost/math/distributions/extreme_value.hpp>
 
 extern "C" {
 
@@ -83,6 +87,48 @@ extern "C" {
 	double bmx_boost_math_beta_distribution_pdf(boost::math::beta_distribution<double> * dist, double k);
 	double bmx_boost_math_beta_distribution_cdf(boost::math::beta_distribution<double> * dist, double k);
 	void bmx_boost_math_beta_distribution_free(boost::math::beta_distribution<double> * dist);
+
+	boost::math::cauchy_distribution<double> * bmx_boost_math_cauchy_distribution_create(double location, double scale);
+	double bmx_boost_math_cauchy_distribution_location(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_scale(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_mean(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_mode(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_standarddeviation(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_skewness(boost::math::cauchy_distribution<double> * dist);
+	double bmx_boost_math_cauchy_distribution_pdf(boost::math::cauchy_distribution<double> * dist, double k);
+	double bmx_boost_math_cauchy_distribution_cdf(boost::math::cauchy_distribution<double> * dist, double k);
+	void bmx_boost_math_cauchy_distribution_free(boost::math::cauchy_distribution<double> * dist);
+
+	boost::math::chi_squared_distribution<double> * bmx_boost_math_chi_squared_distribution_create(double i);
+	double bmx_boost_math_chi_squared_distribution_degreesoffreedom(boost::math::chi_squared_distribution<double> * dist);
+	double bmx_boost_math_chi_squared_distribution_mean(boost::math::chi_squared_distribution<double> * dist);
+	double bmx_boost_math_chi_squared_distribution_mode(boost::math::chi_squared_distribution<double> * dist);
+	double bmx_boost_math_chi_squared_distribution_standarddeviation(boost::math::chi_squared_distribution<double> * dist);
+	double bmx_boost_math_chi_squared_distribution_skewness(boost::math::chi_squared_distribution<double> * dist);
+	double bmx_boost_math_chi_squared_distribution_pdf(boost::math::chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_chi_squared_distribution_cdf(boost::math::chi_squared_distribution<double> * dist, double k);
+	void bmx_boost_math_chi_squared_distribution_free(boost::math::chi_squared_distribution<double> * dist);
+
+	boost::math::exponential_distribution<double> * bmx_boost_math_exponential_distribution_create(double lambda);
+	double bmx_boost_math_exponential_distribution_lambda(boost::math::exponential_distribution<double> * dist);
+	double bmx_boost_math_exponential_distribution_mean(boost::math::exponential_distribution<double> * dist);
+	double bmx_boost_math_exponential_distribution_mode(boost::math::exponential_distribution<double> * dist);
+	double bmx_boost_math_exponential_distribution_standarddeviation(boost::math::exponential_distribution<double> * dist);
+	double bmx_boost_math_exponential_distribution_skewness(boost::math::exponential_distribution<double> * dist);
+	double bmx_boost_math_exponential_distribution_pdf(boost::math::exponential_distribution<double> * dist, double k);
+	double bmx_boost_math_exponential_distribution_cdf(boost::math::exponential_distribution<double> * dist, double k);
+	void bmx_boost_math_exponential_distribution_free(boost::math::exponential_distribution<double> * dist);
+
+	boost::math::extreme_value_distribution<double> * bmx_boost_math_extreme_value_distribution_create(double location, double scale);
+	double bmx_boost_math_extreme_value_distribution_location(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_scale(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_mean(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_mode(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_standarddeviation(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_skewness(boost::math::extreme_value_distribution<double> * dist);
+	double bmx_boost_math_extreme_value_distribution_pdf(boost::math::extreme_value_distribution<double> * dist, double k);
+	double bmx_boost_math_extreme_value_distribution_cdf(boost::math::extreme_value_distribution<double> * dist, double k);
+	void bmx_boost_math_extreme_value_distribution_free(boost::math::extreme_value_distribution<double> * dist);
 
 }
 
@@ -285,5 +331,181 @@ double bmx_boost_math_beta_distribution_cdf(boost::math::beta_distribution<doubl
 }
 
 void bmx_boost_math_beta_distribution_free(boost::math::beta_distribution<double> * dist) {
+	delete dist;
+}
+
+// ************************************************
+
+boost::math::cauchy_distribution<double> * bmx_boost_math_cauchy_distribution_create(double location, double scale) {
+	try {
+		return new boost::math::cauchy_distribution<double>(location, scale);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_cauchy_distribution_location(boost::math::cauchy_distribution<double> * dist) {
+	return dist->location();
+}
+
+double bmx_boost_math_cauchy_distribution_scale(boost::math::cauchy_distribution<double> * dist) {
+	return dist->scale();
+}
+
+double bmx_boost_math_cauchy_distribution_mean(boost::math::cauchy_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_cauchy_distribution_mode(boost::math::cauchy_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_cauchy_distribution_standarddeviation(boost::math::cauchy_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_cauchy_distribution_skewness(boost::math::cauchy_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_cauchy_distribution_pdf(boost::math::cauchy_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_cauchy_distribution_cdf(boost::math::cauchy_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_cauchy_distribution_free(boost::math::cauchy_distribution<double> * dist) {
+	delete dist;
+}
+
+// ************************************************
+
+boost::math::chi_squared_distribution<double> * bmx_boost_math_chi_squared_distribution_create(double i) {
+	try {
+		return new boost::math::chi_squared_distribution<double>(i);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_chi_squared_distribution_degreesoffreedom(boost::math::chi_squared_distribution<double> * dist) {
+	return dist->degrees_of_freedom();
+}
+
+double bmx_boost_math_chi_squared_distribution_mean(boost::math::chi_squared_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_chi_squared_distribution_mode(boost::math::chi_squared_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_chi_squared_distribution_standarddeviation(boost::math::chi_squared_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_chi_squared_distribution_skewness(boost::math::chi_squared_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_chi_squared_distribution_pdf(boost::math::chi_squared_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_chi_squared_distribution_cdf(boost::math::chi_squared_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_chi_squared_distribution_free(boost::math::chi_squared_distribution<double> * dist) {
+	delete dist;
+}
+
+// ************************************************
+
+boost::math::exponential_distribution<double> * bmx_boost_math_exponential_distribution_create(double lambda) {
+	try {
+		return new boost::math::exponential_distribution<double>(lambda);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_exponential_distribution_lambda(boost::math::exponential_distribution<double> * dist) {
+	return dist->lambda();
+}
+
+double bmx_boost_math_exponential_distribution_mean(boost::math::exponential_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_exponential_distribution_mode(boost::math::exponential_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_exponential_distribution_standarddeviation(boost::math::exponential_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_exponential_distribution_skewness(boost::math::exponential_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_exponential_distribution_pdf(boost::math::exponential_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_exponential_distribution_cdf(boost::math::exponential_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_exponential_distribution_free(boost::math::exponential_distribution<double> * dist) {
+	delete dist;
+}
+
+// ************************************************
+
+boost::math::extreme_value_distribution<double> * bmx_boost_math_extreme_value_distribution_create(double location, double scale) {
+	try {
+		return new boost::math::extreme_value_distribution<double>(location, scale);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_extreme_value_distribution_location(boost::math::extreme_value_distribution<double> * dist) {
+	return dist->location();
+}
+
+double bmx_boost_math_extreme_value_distribution_scale(boost::math::extreme_value_distribution<double> * dist) {
+	return dist->scale();
+}
+
+double bmx_boost_math_extreme_value_distribution_mean(boost::math::extreme_value_distribution<double> * dist) {
+	return mean(*dist);
+}
+
+double bmx_boost_math_extreme_value_distribution_mode(boost::math::extreme_value_distribution<double> * dist) {
+	return mode(*dist);
+}
+
+double bmx_boost_math_extreme_value_distribution_standarddeviation(boost::math::extreme_value_distribution<double> * dist) {
+	return standard_deviation(*dist);
+}
+
+double bmx_boost_math_extreme_value_distribution_skewness(boost::math::extreme_value_distribution<double> * dist) {
+	return skewness(*dist);
+}
+
+double bmx_boost_math_extreme_value_distribution_pdf(boost::math::extreme_value_distribution<double> * dist, double k) {
+	return pdf(*dist, k);
+}
+
+double bmx_boost_math_extreme_value_distribution_cdf(boost::math::extreme_value_distribution<double> * dist, double k) {
+	return cdf(*dist, k);
+}
+
+void bmx_boost_math_extreme_value_distribution_free(boost::math::extreme_value_distribution<double> * dist) {
 	delete dist;
 }

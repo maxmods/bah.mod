@@ -570,6 +570,369 @@ Type TBetaDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The Cauchy-Lorentz distribution is a <a href="http://en.wikipedia.org/wiki/Probability_distribution">continuous probability distribution</a>.
+about: It has a <a href="http://en.wikipedia.org/wiki/Probability_distribution">probability
+distribution function PDF</a> given by:
+<p>
+<img src="cauchy_ref1.png">
+</p>
+<p>
+The location parameter x<sub>0</sub> is the location of the peak of the distribution
+(the mode of the distribution), while the scale parameter &#947; specifies half
+the width of the PDF at half the maximum height. If the location is zero,
+and the scale 1, then the result is a standard Cauchy distribution.
+</p>
+<p>
+The distribution is important in physics as it is the solution to the
+differential equation describing forced resonance, while in spectroscopy
+it is the description of the line shape of spectral lines.
+</p>
+<p>
+The following graph shows how the distributions moves as the location
+parameter changes:
+</p>
+<p>
+<img src="cauchy_pdf1.png" align="middle">
+</p>
+<p>
+While the following graph shows how the shape (scale) parameter alters
+the distribution:
+</p>
+<p>
+<img src="cauchy_pdf2.png" align="middle">
+</p>
+<p>
+Note : The functions mean, standardDeviation, variance, skewness, kurtosis  and kurtosisExcess  will
+all throw a TDomainException if called.
+</p>
+End Rem
+Type TCauchyDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TCauchyDistribution instance.
+	End Rem
+	Function CreateCauchy:TCauchyDistribution(location:Double = 0, scale:Double = 1)
+		Return New TCauchyDistribution.Create(location, scale)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TCauchyDistribution instance.
+	End Rem
+	Method Create:TCauchyDistribution(location:Double = 0, scale:Double = 1)
+		objectPtr = bmx_boost_math_cauchy_distribution_create(location, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the @location parameter of the distribution. 
+	End Rem
+	Method Location:Double()
+		Return bmx_boost_math_cauchy_distribution_location(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the @scale parameter of the distribution. 
+	End Rem
+	Method Scale:Double()
+		Return bmx_boost_math_cauchy_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_cauchy_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_cauchy_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_cauchy_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_cauchy_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_cauchy_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_cauchy_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_cauchy_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: The Chi-Squared distribution is one of the most widely used distributions in statistical tests.
+about: If &#967;<sub>i</sub> are &#957; independent, normally distributed random
+variables with means &#956;<sub>i</sub> and variances &#963;<sub>i</sub><sup>2</sup>, then the random variable:
+<p>
+<img src="chi_squ_ref1.png">
+</p>
+<p>
+is distributed according to the Chi-Squared distribution.
+</p>
+<p>
+The Chi-Squared distribution is a special case of the gamma distribution
+and has a single parameter &#957; that specifies the number of degrees of freedom.
+The following graph illustrates how the distribution changes for different
+values of &#957;:
+</p>
+<p>
+<img src="chi_squared_pdf.png" align="middle">
+</p>
+End Rem
+Type TChiSquaredDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
+	about: Requires @v > 0, otherwise throws TDomainException. 
+	End Rem
+	Function CreateChiSquared:TChiSquaredDistribution(v:Double)
+		Return New TChiSquaredDistribution.Create(v)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom. .
+	about: Requires @v > 0, otherwise throws TDomainException. 
+	End Rem
+	Method Create:TChiSquaredDistribution(v:Double)
+		objectPtr = bmx_boost_math_chi_squared_distribution_create(v)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @v from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom:Double()
+		Return bmx_boost_math_chi_squared_distribution_degreesoffreedom(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_chi_squared_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_chi_squared_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_chi_squared_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_chi_squared_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_chi_squared_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_chi_squared_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_chi_squared_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Exponential_distribution">exponential distribution</a>.
+about: It is a <a href="http://en.wikipedia.org/wiki/Probability_distribution">continuous
+probability distribution</a> with PDF:
+<p>
+<img src="exponential_dist_ref1.png">
+</p>
+<p>
+It is often used to model the time between independent events that happen at a constant average rate.
+</p>
+<p>
+The following graph shows how the distribution changes for different values of the rate parameter lambda:
+</p>
+<p>
+<img src="exponential_pdf.png" align="middle">
+</p>
+End Rem
+Type TExponentialDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TExponentialDistribution instance.
+	End Rem
+	Function CreateExponential:TExponentialDistribution(lambda:Double = 1)
+		Return New TExponentialDistribution.Create(lambda)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TExponentialDistribution instance.
+	End Rem
+	Method Create:TExponentialDistribution(lambda:Double = 1)
+		objectPtr = bmx_boost_math_exponential_distribution_create(lambda)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Accessor function returns the @lambda parameter of the distribution.
+	End Rem
+	Method Lambda:Double()
+		Return bmx_boost_math_exponential_distribution_lambda(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_exponential_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_exponential_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_exponential_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_exponential_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_exponential_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_exponential_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_exponential_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Extreme value theory is important for assessing risk for highly unusual events, such as 100-year floods.
+about: There are various <a href="http://mathworld.wolfram.com/ExtremeValueDistribution.html">extreme
+value distributions</a> : this implementation represents the maximum
+case, and is variously known as a Fisher-Tippett distribution, a log-Weibull
+distribution or a Gumbel distribution.
+</p>
+<p>
+More information can be found on the <a href="http://www.itl.nist.gov/div898/handbook/eda/section3/eda366g.htm">NIST</a>,
+<a href="http://en.wikipedia.org/wiki/Extreme_value_distribution">Wikipedia</a>,
+<a href="http://mathworld.wolfram.com/ExtremeValueDistribution.html">Mathworld</a>,
+and <a href="http://en.wikipedia.org/wiki/Extreme_value_theory">Extreme
+value theory</a> websites.
+</p>
+<p>
+The relationship of the types of extreme value distributions, of which
+this is but one, is discussed by <a href="http://www.worldscibooks.com/mathematics/p191.html">Extreme
+Value Distributions, Theory and Applications Samuel Kotz &amp; Saralees
+Nadarajah</a>.
+</p>
+<p>
+The distribution has a PDF given by:
+</p>
+<p>
+f(x) = (1/scale) e<sup>-(x-location)/scale</sup> e<sup>-e<sup>-(x-location)/scale</sup></sup>
+</p>
+<p>
+Which in the standard case (scale = 1, location = 0) reduces to:
+</p>
+<p>
+f(x) = e<sup>-x</sup>e<sup>-e<sup>-x</sup></sup>
+</p>
+<p>
+The following graph illustrates how the PDF varies with the location
+parameter:
+</p>
+<p>
+<img src="extreme_value_pdf1.png" align="middle">
+</p>
+<p>
+And this graph illustrates how the PDF varies with the shape parameter:
+</p>
+<p>
+<img src="extreme_value_pdf2.png" align="middle">
+</p>
+End Rem
+Type TExtremeValueDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a new TExtremeValueDistribution instance with the specified @location and @scale parameters.
+	about: Requires scale >  0, otherwise throws TDomainException.
+	End Rem
+	Function CreateExtremeValue:TExtremeValueDistribution(location:Double = 0, scale:Double = 1)
+		Return New TExtremeValueDistribution.Create(location, scale)
+	End Function
+	
+	Rem
+	bbdoc: Creates a new TExtremeValueDistribution instance with the specified @location and @scale parameters.
+	about: Requires scale >  0, otherwise throws TDomainException.
+	End Rem
+	Method Create:TExtremeValueDistribution(location:Double = 0, scale:Double = 1)
+		objectPtr = bmx_boost_math_extreme_value_distribution_create(location, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Location:Double()
+		Return bmx_boost_math_extreme_value_distribution_location(objectPtr)
+	End Method
+
+	Method Scale:Double()
+		Return bmx_boost_math_extreme_value_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_extreme_value_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_extreme_value_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_extreme_value_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_extreme_value_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_extreme_value_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_extreme_value_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_extreme_value_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
 
 
 

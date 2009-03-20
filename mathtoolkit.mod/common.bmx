@@ -80,6 +80,48 @@ Extern
 	Function bmx_boost_math_beta_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_beta_distribution_free(handle:Byte Ptr)
 
+	Function bmx_boost_math_cauchy_distribution_create:Byte Ptr(location:Double, scale:Double)
+	Function bmx_boost_math_cauchy_distribution_location:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_scale:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_cauchy_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_cauchy_distribution_free(handle:Byte Ptr)
+
+	Function bmx_boost_math_chi_squared_distribution_create:Byte Ptr(i:Double)
+	Function bmx_boost_math_chi_squared_distribution_degreesoffreedom:Double(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_chi_squared_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_chi_squared_distribution_free(handle:Byte Ptr)
+
+	Function bmx_boost_math_exponential_distribution_create:Byte Ptr(lambda:Double)
+	Function bmx_boost_math_exponential_distribution_lambda:Double(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_exponential_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_exponential_distribution_free(handle:Byte Ptr)
+
+	Function bmx_boost_math_extreme_value_distribution_create:Byte Ptr(location:Double, scale:Double)
+	Function bmx_boost_math_extreme_value_distribution_location:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_scale:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_extreme_value_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_extreme_value_distribution_free(handle:Byte Ptr)
+
 End Extern
 
 
