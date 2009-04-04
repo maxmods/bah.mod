@@ -41,6 +41,8 @@ ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: Added date/time support."
 ModuleInfo "History: Added blob support."
+ModuleInfo "History: isOpen() now checks the connection status."
+ModuleInfo "History: Added LoadDatabase() options support."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed lastInsertId() issue."
 ModuleInfo "History: Win32 now uses local static lib. No copying required!"
@@ -98,7 +100,19 @@ Type TDBMySQL Extends TDBConnection
 			_isOpen = False
 		End If
 	End Method
-	
+
+	Method isOpen:Int()
+		If _isOpen Then
+			' really check that the database is open
+			If mysql_ping(handle) Then
+				setError("Connection has closed", Null, TDatabaseError.ERROR_CONNECTION, mysql_errno(handle))
+				_isOpen = False
+			End If
+		End If
+		
+		Return _isOpen
+	End Method
+		
 	Method commit:Int()
 		If Not _isOpen Then
 			Return False
@@ -250,22 +264,22 @@ Type TDBMySQL Extends TDBConnection
 			If _host Then
 				If _user Then
 					If _password
-						ret = mysql_real_connect(handle, _host, _user, _password, _dbname, _port, Null, 0)
+						ret = mysql_real_connect(handle, _host, _user, _password, _dbname, _port, Null, _options.ToInt())
 					Else
-						ret = mysql_real_connect(handle, _host, _user, Null, _dbname, _port, Null, 0)
+						ret = mysql_real_connect(handle, _host, _user, Null, _dbname, _port, Null, _options.ToInt())
 					End If
 				Else
-					ret = mysql_real_connect(handle, _host, Null, Null, _dbname, _port, Null, 0)
+					ret = mysql_real_connect(handle, _host, Null, Null, _dbname, _port, Null, _options.ToInt())
 				End If
 			Else
 				If _user Then
 					If _password
-						ret = mysql_real_connect(handle, Null, _user, _password, _dbname, _port, Null, 0)
+						ret = mysql_real_connect(handle, Null, _user, _password, _dbname, _port, Null, _options.ToInt())
 					Else
-						ret = mysql_real_connect(handle, Null, _user, Null, _dbname, _port, Null, 0)
+						ret = mysql_real_connect(handle, Null, _user, Null, _dbname, _port, Null, _options.ToInt())
 					End If
 				Else
-					ret = mysql_real_connect(handle, Null, Null, Null, _dbname, _port, Null, 0)
+					ret = mysql_real_connect(handle, Null, Null, Null, _dbname, _port, Null, _options.ToInt())
 				End If
 			End If
 			

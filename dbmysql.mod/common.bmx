@@ -80,6 +80,7 @@ Extern
 Extern
 ?
 	Function mysql_close(handle:Byte Ptr)
+	Function mysql_ping:Int(handle:Byte Ptr)
 	Function mysql_query:Int(handle:Byte Ptr, query:Byte Ptr)
 	Function mysql_errno:Int(handle:Byte Ptr)
 	Function mysql_error:Byte Ptr(handle:Byte Ptr)
@@ -173,5 +174,18 @@ Extern
 	Function bmx_mysql_deleteTime(handle:Byte Ptr)
 	
 End Extern
+
+
+Const CLIENT_FOUND_ROWS:Int = 2
+Const CLIENT_NO_SCHEMA:Int = 16
+Const CLIENT_COMPRESS:Int = 32
+Const CLIENT_LOCAL_FILES:Int = 128
+Const CLIENT_IGNORE_SPACE:Int = 256
+Const CLIENT_INTERACTIVE:Int = 1024
+Const CLIENT_SSL:Int = 2048
+Const CLIENT_IGNORE_SIGPIPE:Int = 4096
+Const CLIENT_MULTI_STATEMENTS:Int = 1 Shl 16
+Const CLIENT_MULTI_RESULTS:Int = 1 Shl 17
+Const CLIENT_REMEMBER_OPTIONS:Int = 1 Shl 31
 
 
