@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,12 @@ Module BaH.FreeImage
 ModuleInfo "Version: 1.05"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
-ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed conversion issue with 4-bit paletted images."
+ModuleInfo "History: Fixed GC problem when loading large anim images."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fixed problem with TIFF images not loading if there are more than 1 alpha channel in the image. (fredborg)"
 ModuleInfo "History: Added GetBitmap(), GetScanLine() and ConvertToRGBF() methods. (fredborg)"
@@ -383,7 +384,7 @@ Type TMultiFreeImage
 		
 		For Local i:Int = 1 Until count
 			img = lockPage(i)
-			t.setPixmap(i, img.getPixmap())
+			t.setPixmap(i, img.getPixmap().Copy())
 			unlockPage(img)
 		Next
 		
