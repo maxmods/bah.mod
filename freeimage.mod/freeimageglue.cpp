@@ -779,7 +779,9 @@ BOOL MaxMultiFreeImage::movePage(int source, int target) {
 }
 
 BOOL MaxMultiFreeImage::close() {
-	return FreeImage_CloseMultiBitmap(bitmap, 0);
+	BOOL res = FreeImage_CloseMultiBitmap(bitmap, 0);
+	bitmap = 0;
+	return res;
 }
 
 

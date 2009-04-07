@@ -33,7 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed conversion issue with 4-bit paletted images."
-ModuleInfo "History: Fixed GC problem when loading large anim images."
+ModuleInfo "History: Fixed GC problems when loading large anim images."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fixed problem with TIFF images not loading if there are more than 1 alpha channel in the image. (fredborg)"
 ModuleInfo "History: Added GetBitmap(), GetScanLine() and ConvertToRGBF() methods. (fredborg)"
@@ -136,6 +136,7 @@ Function LoadAnimFreeImage:TImage(filename:String, flags:Int = -1, rMask:Int = 0
 	If mf Then
 		Local image:TImage = mf.toAnimImage(flags, rMask, gMask, bMask)
 		mf.close()
+		mf.Free()
 		Return image
 	End If
 	
@@ -379,25 +380,34 @@ Type TMultiFreeImage
 		
 		Local t:TImage = TImage.Create(pix.width, pix.height, count, flags, rMask, gMask, bMask)
 
-		t.SetPixmap 0,pix
+		t.SetPixmap 0,pix.Copy()
 		unlockPage(img)
+		img.Free()
 		
 		For Local i:Int = 1 Until count
 			img = lockPage(i)
 			t.setPixmap(i, img.getPixmap().Copy())
 			unlockPage(img)
+			img.Free()
 		Next
 		
 		Return t
 	End Method
-
-	Method Delete()
+	
+	Method Free()
 		If currentImage Then
 			unlockPage(currentImage)
 			currentImage = Null
 		End If
 		
-		bmx_multifreeimage_delete(freeImagePtr)
+		If freeImagePtr Then
+			bmx_multifreeimage_delete(freeImagePtr)
+			freeImagePtr = Null
+		End If
+	End Method
+
+	Method Delete()
+		Free()
 	End Method
 	
 End Type
@@ -554,17 +564,24 @@ Type TFreeImage
 		Return freeImagePtr
 	End Function
 	
-	' tidy up our memory
-	Method Delete()
+	Method Free()
+		stream = Null
+		pixmap = Null
 	
 		If displayImagePtr And (displayImagePtr <> freeImagePtr) Then
 			bmx_freeimage_delete(displayImagePtr)
+			displayImagePtr = Null
 		End If
 
 		If freeImagePtr Then
 			bmx_freeimage_delete(freeImagePtr)
+			freeImagePtr = Null
 		End If
-
+	End Method
+	
+	' tidy up our memory
+	Method Delete()
+		Free()
 	End Method
 	
 	
