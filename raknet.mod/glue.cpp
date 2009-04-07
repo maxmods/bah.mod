@@ -905,35 +905,35 @@ bool bmx_BitStream_SerializeCompressedDeltaDouble(RakNet::BitStream * stream, bo
 }
 
 bool bmx_BitStream_ReadByte(RakNet::BitStream * stream, unsigned char * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadShort(RakNet::BitStream * stream, short * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadInt(RakNet::BitStream * stream, int * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadUShort(RakNet::BitStream * stream, unsigned short * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadUInt(RakNet::BitStream * stream, unsigned int * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadFloat(RakNet::BitStream * stream, float * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadDouble(RakNet::BitStream * stream, double * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadLong(RakNet::BitStream * stream, BBInt64 * value) {
-	return stream->Read(value);
+	return stream->Read(*value);
 }
 
 bool bmx_BitStream_ReadTime(RakNet::BitStream * stream, BBInt64 * value) {
@@ -958,87 +958,87 @@ BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream, int length) {
 }
 
 bool bmx_BitStream_ReadDeltaByte(RakNet::BitStream * stream, unsigned char * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaShort(RakNet::BitStream * stream, short * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaInt(RakNet::BitStream * stream, int * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaUShort(RakNet::BitStream * stream, unsigned short * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaUInt(RakNet::BitStream * stream, unsigned int * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaFloat(RakNet::BitStream * stream, float * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadDeltaDouble(RakNet::BitStream * stream, double * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedByte(RakNet::BitStream * stream, unsigned char * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedShort(RakNet::BitStream * stream, short * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedInt(RakNet::BitStream * stream, int * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedUShort(RakNet::BitStream * stream, unsigned short * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedUInt(RakNet::BitStream * stream, unsigned int * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedFloat(RakNet::BitStream * stream, float * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDouble(RakNet::BitStream * stream, double * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaByte(RakNet::BitStream * stream, unsigned char * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaShort(RakNet::BitStream * stream, short * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaInt(RakNet::BitStream * stream, int * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaUShort(RakNet::BitStream * stream, unsigned short * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaUInt(RakNet::BitStream * stream, unsigned int * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaFloat(RakNet::BitStream * stream, float * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaDouble(RakNet::BitStream * stream, double * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 bool bmx_BitStream_ReadBit(RakNet::BitStream * stream) {
@@ -1046,15 +1046,15 @@ bool bmx_BitStream_ReadBit(RakNet::BitStream * stream) {
 }
 
 bool bmx_BitStream_ReadDeltaBool(RakNet::BitStream * stream, bool * value) {
-	return stream->ReadDelta(value);
+	return stream->ReadDelta(*value);
 }
 
 bool bmx_BitStream_ReadCompressedBool(RakNet::BitStream * stream, bool * value) {
-	return stream->ReadCompressed(value);
+	return stream->ReadCompressed(*value);
 }
 
 bool bmx_BitStream_ReadCompressedDeltaBool(RakNet::BitStream * stream, bool * value) {
-	return stream->ReadCompressedDelta(value);
+	return stream->ReadCompressedDelta(*value);
 }
 
 void bmx_BitStream_WriteByte(RakNet::BitStream * stream, unsigned char * value) {
