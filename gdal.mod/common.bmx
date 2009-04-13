@@ -25,10 +25,14 @@ Import "source.bmx"
 Extern
 
 	Function bmx_gdal_GDALOpen:Byte Ptr(filename:String, access:Int)
+	Function bmx_gdal_GDALOpenShared:Byte Ptr(filename:String, access:Int)
 	Function bmx_gdal_GDALAllRegister()
 
 	Function bmx_gdal_GDALMajorObject_GetDescription:String(handle:Byte Ptr)
 	Function bmx_gdal_GDALMajorObject_GetMetadataItem:String(handle:Byte Ptr, name:String, domain:String)
+	Function bmx_gdal_GDALMajorObject_GetMetadata:String[](handle:Byte Ptr, domain:String)
+	Function bmx_gdal_GDALMajorObject_SetMetadataItem:Int(handle:Byte Ptr, name:String, value:String, domain:String)
+	Function bmx_gdal_GDALMajorObject_SetMetadata:Int(handle:Byte Ptr, metadata:String[], domain:String)
 
 	Function bmx_gdal_GDALDataset_GetDriver:Byte Ptr(handle:Byte Ptr)
 	Function bmx_gdal_GDALDataset_GetRasterXSize:Int(handle:Byte Ptr)
@@ -38,6 +42,30 @@ Extern
 	Function bmx_gdal_GDALDataset_GetProjectionRef:String(handle:Byte Ptr)
 	Function bmx_gdal_GDALDataset_GetRasterBand:Byte Ptr(handle:Byte Ptr, index:Int)
 	Function bmx_gdal_GDALDataset_Close(handle:Byte Ptr)
+	Function bmx_gdal_GDALDataset_SetProjection:Int(handle:Byte Ptr, projection:String)
+	Function bmx_gdal_GDALDataset_SetGeoTransform:Int(handle:Byte Ptr, transform:Double[])
+	Function bmx_gdal_GDALDataset_GetGCPCount:Int(handle:Byte Ptr)
+
+	Function bmx_gdal_GDALDriverManager_GetDriverCount:Int()
+	Function bmx_gdal_GDALDriverManager_GetDriver:Byte Ptr(index:Int)
+	Function bmx_gdal_GDALDriverManager_GetDriverByName:Byte Ptr(name:String)
+
+	Function bmx_gdal_GDALDriver_GetShortName:String(handle:Byte Ptr)
+	Function bmx_gdal_GDALDriver_GetLongName:String(handle:Byte Ptr)
+	Function bmx_gdal_GDALDriver_CreateCopy:Byte Ptr(handle:Byte Ptr, filename:String, sourceDataset:Byte Ptr, _strict:Int, options:String[])
+
+	Function bmx_gdal_GDALRasterBand_GenerateContour:Int(handle:Byte Ptr, contourInterval:Double, contourBase:Double, fixedLevels:Double[], ..
+		useNoData:Int, noDataValue:Double, layer:Byte Ptr, idField:Int, elevField:Int)
+	Function bmx_gdal_GDALRasterBand_GetXSize:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetYSize:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetBand:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetColorInterpretation:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetMaskFlags:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetRasterDataType:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetMaximum:Double(handle:Byte Ptr, success:Int Ptr)
+	Function bmx_gdal_GDALRasterBand_GetMinimum:Double(handle:Byte Ptr, success:Int Ptr)
+	Function bmx_gdal_GDALRasterBand_GetNoDataValue:Double(handle:Byte Ptr, success:Int Ptr)
+	Function bmx_gdal_GDALRasterBand_GetOffset:Double(handle:Byte Ptr, success:Int Ptr)
 
 	Function bmx_gdal_OGRRegisterAll()
 	Function bmx_gdal_OGRCleanupAll()
@@ -48,14 +76,16 @@ Extern
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriverCount:Int()
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriver:Byte Ptr(index:Int)
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriverByName:Byte Ptr(name:String)
+	Function bmx_gdal_OGRSFDriverRegistrar_GetOpenDSCount:Int()
 
 	Function bmx_gdal_OGRSFDriver_CreateDataSource:Byte Ptr(handle:Byte Ptr, name:String, options:String[])
 
 	Function bmx_gdal_OGRDataSource_CreateLayer:Byte Ptr(handle:Byte Ptr, name:String, spatialRef:Byte Ptr, gType:Int, options:String[])
 	Function bmx_gdal_OGRDataSource_free(handle:Byte Ptr)
-
-	Function bmx_gdal_GDALRasterBand_GenerateContour:Int(handle:Byte Ptr, contourInterval:Double, contourBase:Double, fixedLevels:Double[], ..
-		useNoData:Int, noDataValue:Double, layer:Byte Ptr, idField:Int, elevField:Int)
+	Function bmx_gdal_OGRDataSource_GetName:String(handle:Byte Ptr)
+	Function bmx_gdal_OGRDataSource_GetLayerCount:Int(handle:Byte Ptr)
+	Function bmx_gdal_OGRDataSource_GetLayer:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_gdal_OGRDataSource_GetLayerByName:Byte Ptr(handle:Byte Ptr, name:String)
 
 	Function bmx_gdal_OGRFieldDefn_create:Byte Ptr(name:String, fieldType:Int)
 	Function bmx_gdal_OGRFieldDefn_free(handle:Byte Ptr)
@@ -64,6 +94,13 @@ Extern
 
 	Function bmx_gdal_OGRLayer_CreateField:Int(handle:Byte Ptr, fld:Byte Ptr, approxOK:Int)
 
+	Function bmx_gdal_VRTDataset_create:Byte Ptr(width:Int, height:Int)
+	Function bmx_gdal_VRTDataset_AddBand:Int(handle:Byte Ptr, dataType:Int, options:String[])
+	
+	Function bmx_gdal_VRTRasterBand_CopyCommonInfoFrom:Int(handle:Byte Ptr, source:Byte Ptr)
+
+	Function bmx_gdal_VRTSourcedRasterBand_AddSimpleSource:Int(handle:Byte Ptr, srcBand:Byte Ptr, srcXOff:Int, srcYOff:Int, srcXSize:Int, srcYSize:Int, ..
+			dstXOff:Int, dstYOff:Int, dstXSize:Int, dstYSize:Int, resampling:String, noDataValue:Double)
 
 End Extern
 
@@ -96,13 +133,6 @@ Const GMF_ALL_VALID:Int = $01
 Const GMF_PER_DATASET:Int = $02
 Const GMF_ALPHA:Int = $04
 Const GMF_NODATA:Int = $08
-
-
-Const CE_None:Int = 0
-Const CE_Debug:Int = 1
-Const CE_Warning:Int = 2
-Const CE_Failure:Int = 3
-Const CE_Fatal:Int = 4
 
 Rem
 bbdoc: unknown type, non-standard
@@ -222,6 +252,80 @@ Rem
 bbdoc: Date and Time
 end rem
 Const OFTDateTime:Int = 11
+
+Rem
+bbdoc: 
+End Rem
+Const GDT_Unknown:Int = 0
+Rem
+bbdoc: Eight bit unsigned integer
+End Rem
+Const GDT_Byte:Int = 1
+Rem
+bbdoc: Sixteen bit unsigned integer
+end rem
+Const GDT_UInt16:Int = 2
+Rem
+bbdoc: Sixteen bit signed integer
+end rem
+Const GDT_Int16:Int = 3
+Rem
+bbdoc: Thirty two bit unsigned integer
+end rem
+Const GDT_UInt32:Int = 4
+Rem
+bbdoc: Thirty two bit signed integer
+end rem
+Const GDT_Int32:Int = 5
+Rem
+bbdoc: Thirty two bit floating point
+end rem
+Const GDT_Float32:Int = 6
+Rem
+bbdoc: Sixty four bit floating point
+end rem
+Const GDT_Float64:Int = 7
+Rem
+bbdoc: Complex Int16
+end rem
+Const GDT_CInt16:Int = 8
+Rem
+bbdoc: Complex Int32
+end rem
+Const GDT_CInt32:Int = 9
+Rem
+bbdoc: Complex Float32
+end rem
+Const GDT_CFloat32:Int = 10
+Rem
+bbdoc: Complex Float64
+end rem
+Const GDT_CFloat64:Int = 11
+
+
+Const GCI_Undefined:Int = 0
+Const GCI_GrayIndex:Int = 1
+Const GCI_PaletteIndex:Int = 2
+Const GCI_RedBand:Int = 3
+Const GCI_GreenBand:Int = 4
+Const GCI_BlueBand:Int = 5
+Const GCI_AlphaBand:Int = 6
+Const GCI_HueBand:Int = 7
+Const GCI_SaturationBand:Int = 8
+Const GCI_LightnessBand:Int = 9
+Const GCI_CyanBand:Int = 10
+Const GCI_MagentaBand:Int = 11
+Const GCI_YellowBand:Int = 12
+Const GCI_BlackBand:Int = 13
+Const GCI_YCbCr_YBand:Int = 14
+Const GCI_YCbCr_CbBand:Int = 15
+Const GCI_YCbCr_CrBand:Int = 16
+
+Const CE_None:Int = 0
+Const CE_Debug:Int = 1
+Const CE_Warning:Int = 2
+Const CE_Failure:Int = 3
+Const CE_Fatal:Int = 4
 
 
 

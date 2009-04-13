@@ -552,6 +552,11 @@ Import "gdal/frmts/idrisi/IdrisiDataset.cpp"
 Import "gdal/frmts/xpm/*.h"
 Import "gdal/frmts/xpm/xpmdataset.cpp"
 
+' jpeg
+Import "gdal/frmts/jpeg/*.h"
+Import "gdal/frmts/jpeg/jpgdataset.cpp"
+Import "gdal/frmts/jpeg/vsidataio.cpp"
+
 ' OGR
 Import "gdal/ogr/*.h"
 Import "gdal/ogr/ogrsf_frmts/*.h"
