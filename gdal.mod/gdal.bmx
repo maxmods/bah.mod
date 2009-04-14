@@ -134,6 +134,18 @@ Type GDALMajorObject
 	End Method
 	
 	Rem
+	bbdoc: Sets object description.
+	about: The semantics of the description are specific to the derived type. For GDALDatasets it
+	is the dataset name. For GDALRasterBands it is actually a description (if supported) or "".
+	<p>
+	Normally application code should not set the "description" for GDALDatasets. It is handled internally.
+	</p>
+	End Rem
+	Method SetDescription(description:String)
+		bmx_gdal_GDALMajorObject_SetDescription(objectPtr, description)
+	End Method
+	
+	Rem
 	bbdoc: Fetches single metadata item.
 	End Rem
 	Method GetMetadataItem:String(name:String, domain:String = "")
@@ -164,9 +176,9 @@ Type GDALMajorObject
 	
 End Type
 
-
 Rem
-bbdoc: 
+bbdoc: A set of associated raster bands, usually from one file.
+about: A dataset encapsulating one or more raster bands.
 End Rem
 Type GDALDataset Extends GDALMajorObject
 
@@ -179,42 +191,53 @@ Type GDALDataset Extends GDALMajorObject
 	End Function
 	
 	Rem
-	bbdoc: 
-	End Rem
-	Method GetDriver:GDALDriver()
-		Return GDALDriver._create(bmx_gdal_GDALDataset_GetDriver(objectPtr))
-	End Method
-
-	Rem
-	bbdoc: 
+	bbdoc: Fetches raster width in pixels.
 	End Rem
 	Method GetRasterXSize:Int()
 		Return bmx_gdal_GDALDataset_GetRasterXSize(objectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Fetches raster height in pixels.
 	End Rem
 	Method GetRasterYSize:Int()
 		Return bmx_gdal_GDALDataset_GetRasterYSize(objectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Fetches the number of raster bands on this dataset.
 	End Rem
 	Method GetRasterCount:Int()
 		Return bmx_gdal_GDALDataset_GetRasterCount(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Fetches a band object for a dataset.
 	End Rem
-	Method GetGeoTransform:Int(transform:Double[])
-		Return bmx_gdal_GDALDataset_GetGeoTransform(objectPtr, transform)
+	Method GetRasterBand:GDALRasterBand(index:Int)
+		Return GDALRasterBand._create(bmx_gdal_GDALDataset_GetRasterBand(objectPtr, index))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Flushes all write cached data to disk.
+	about: Any raster (or other GDAL) data written via GDAL calls, but buffered internally will be
+	written to disk.
+	<p>
+	Using this method does not prevent use from calling GDALClose() to properly close a dataset
+	and ensure that important data not addressed by FlushCache() is written in the file.
+	</p>
+	End Rem
+	Method FlushCache()
+		bmx_gdal_GDALDataset_FlushCache(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Fetches the projection definition string for this dataset.
+	about: The returned string defines the projection coordinate system of the image in OpenGIS WKT
+	format. It should be suitable for use with the OGRSpatialReference class.
+	<p>
+	When a projection definition is not available an empty string is returned.
+	</p>
 	End Rem
 	Method GetProjectionRef:String()
 		Return bmx_gdal_GDALDataset_GetProjectionRef(objectPtr)
@@ -231,23 +254,60 @@ Type GDALDataset Extends GDALMajorObject
 	End Method
 
 	Rem
-	bbdoc: 
-	End Rem	
+	bbdoc: Fetches the affine transformation coefficients.
+	about: Fetches the coefficients for transforming between pixel/line (P,L) raster space, and projection
+	coordinates (Xp,Yp) space.
+	<pre>
+   Xp = transform[0] + P * transform[1] + L * transform[2]
+   Yp = transform[3] + P * transform[4] + L * transform[5]
+	</pre>
+	<p>
+	In a north up image, padfTransform[1] is the pixel width, and padfTransform[5] is the pixel height.
+	The upper left corner of the upper left pixel is at position (padfTransform[0],padfTransform[3]).
+	</p>
+	<p>
+	The default transform is (0,1,0,0,0,1) and should be returned even when a CE_Failure error is returned,
+	such as for formats that don't support transformation to projection coordinates.
+	</p>
+	<p>
+	NOTE: GetGeoTransform() isn't expressive enough to handle the variety of OGC Grid Coverages pixel/line
+	to projection transformation schemes. Eventually this method will be depreciated in favour of a more
+	general scheme.
+	</p>
+	End Rem
+	Method GetGeoTransform:Int(transform:Double[])
+		Return bmx_gdal_GDALDataset_GetGeoTransform(objectPtr, transform)
+	End Method
+
+	Rem
+	bbdoc: Set the affine transformation coefficients.
+	aboout: See GetGeoTransform() for details on the meaning of the @transform coefficients.
+	End Rem
 	Method SetGeoTransform:Int(transform:Double[])
 		Return bmx_gdal_GDALDataset_SetGeoTransform(objectPtr, transform)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Adds a band to a dataset.
+	about: This method will add a new band to the dataset if the underlying format supports this action.
+	Most formats do not.
+	<p>
+	Note that the new GDALRasterBand is not returned. It may be fetched after successful completion of
+	the method by calling GetRasterBand(GetRasterCount()-1) as the newest band will always be the last band.
+	</p>
 	End Rem
-	Method GetRasterBand:GDALRasterBand(index:Int)
-		Return GDALRasterBand._create(bmx_gdal_GDALDataset_GetRasterBand(objectPtr, index))
+	Method AddBand:Int(dataType:Int, options:String[] = Null)
+		Return bmx_gdal_GDALDataset_AddBand(objectPtr, dataType, options)
 	End Method
-	
+
 	Rem
-	bbdoc: 
+	bbdoc: Fetches the driver to which this dataset relates.
 	End Rem
-	Method FlushCache()
+	Method GetDriver:GDALDriver()
+		Return GDALDriver._create(bmx_gdal_GDALDataset_GetDriver(objectPtr))
+	End Method
+
+	Method GetFileList:String[]()
 	' TODO
 	End Method
 	
@@ -256,6 +316,40 @@ Type GDALDataset Extends GDALMajorObject
 	End Rem
 	Method GetGCPCount:Int()
 		Return bmx_gdal_GDALDataset_GetGCPCount(objectPtr)
+	End Method
+	
+	Method GetGCPProjection:String()
+	' TODO
+	End Method
+	
+	Method GetGCPs:GDAL_GCP[]()
+	' TODO
+	End Method
+	
+	Method SetGCPs(gcps:GDAL_GCP[], projection:String)
+	' TODO
+	End Method
+	
+	Method AdviseRead:Int(xOff:Int, yOff:Int, xSize:Int, ySize:Int, bufXSize:Int, bufYSize:Int, ..
+			eDT:Int, bandMap:Int[], options:String[])
+	' TODO
+	End Method
+	
+	Method CreateMaskBand:Int()
+	' TODO
+	End Method
+	
+	Method RasterIO:Int(eRWFlag:Int, xOff:Int, yOff:Int, xSize:Int, ySize:Int, data:Byte Ptr, ..
+			bufXSize:Int, bufYSize:Int, bufType:Int, bandMap:Int[], pixelSpace:Int, lineSpace:Int, bandSpace:Int)
+	' TODO
+	End Method
+
+	Method GetShared:Int()
+	' TODO
+	End Method
+	
+	Method MarkAsShared()
+	' TODO
 	End Method
 
 	Rem
@@ -267,10 +361,13 @@ Type GDALDataset Extends GDALMajorObject
 	
 End Type
 
-
-
 Rem
-bbdoc: 
+bbdoc: Format specific driver.
+about: An instance of this type is created for each supported format, and manages information about the format.
+<p>
+This roughly corresponds to a file format, though some drivers may be gateways to many formats through a
+secondary multi-library. 
+</p>
 End Rem
 Type GDALDriver Extends GDALMajorObject
 
@@ -285,19 +382,86 @@ Type GDALDriver Extends GDALMajorObject
 	Rem
 	bbdoc: 
 	End Rem
+	Method CreateDataset:GDALDataset(filename:String, xSize:Int, ySize:Int, bands:Int, dataType:Int, paramList:String[])
+	End Method
+	
+	Rem
+	bbdoc: Deletes the named dataset.
+	about: The driver will attempt to delete the named dataset in a driver specific fashion. Full featured
+	drivers will delete all associated files, database objects, or whatever is appropriate. The default
+	behaviour when no driver specific behaviour is provided is to attempt to delete the passed name as a
+	single file.
+	<p>
+	It is unwise to have open dataset handles on this dataset when it is deleted.
+	</p>
+	End Rem
+	Method DeleteDataset:Int(filename:String)
+		Return bmx_gdal_GDALDriver_DeleteDataset(objectPtr, filename)
+	End Method
+	
+	Rem
+	bbdoc: Renames a dataset.
+	about: This may including moving the dataset to a new directory or even a new filesystem.
+	<p>
+	It is unwise to have open dataset handles on this dataset when it is being renamed.
+	</p>
+	End Rem
+	Method RenameDataset:Int(newName:String, oldName:String)
+		Return bmx_gdal_GDALDriver_RenameDataset(objectPtr, newName, oldName)
+	End Method
+	
+	Rem
+	bbdoc: Copies the files of a dataset.
+	about: Copy all the files associated with a dataset.
+	End Rem
+	Method CopyFiles:Int(newName:String, oldName:String)
+		Return bmx_gdal_GDALDriver_CopyFiles(objectPtr, newName, oldName)
+	End Method
+	
+	Rem
+	bbdoc: Returns the short name of driver.
+	about: This is the string that can be passed to GetDriverByName()
+	<p>
+	For the GeoTIFF driver, this is "GTiff"
+	</p>
+	End Rem
 	Method GetShortName:String()
 		Return bmx_gdal_GDALDriver_GetShortName(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the long name of a driver.
+	about: For the GeoTIFF driver, this is "GeoTIFF"
 	End Rem
 	Method GetLongName:String()
 		Return bmx_gdal_GDALDriver_GetLongName(objectPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a copy of a dataset.
+	about: This method will attempt to create a copy of a raster dataset with the indicated filename,
+	and in this drivers format. Band number, size, type, projection, geotransform and so forth are all
+	to be copied from the provided template dataset.
+	<p>
+	Note that many sequential write once formats (such as JPEG and PNG) don't implement the CreateDataset() method
+	but do implement this CreateCopy() method. If the driver doesn't implement CreateCopy(), but does
+	implement CreateDataset() then the default CreateCopy() mechanism built on calling CreateDataset() will be used.
+	</p>
+	<p>
+	It is intended that CreateCopy() will often be used with a source dataset which is a virtual dataset
+	allowing configuration of band types, and other information without actually duplicating raster data
+	(see the VRT driver). This is what is done by the gdal_translate utility for example.
+	</p>
+	<p>
+	That function will try to validate the creation option list passed to the driver with the
+	GDALValidateCreationOptions() method. This check can be disabled by defining the configuration
+	option GDAL_VALIDATE_CREATION_OPTIONS=NO.
+	</p>
+	<p>
+	After you have finished working with the returned dataset, it is required to close it with Close().
+	This does not only close the file handle, but also ensures that all the data and metadata has been
+	written to the dataset (GDALFlushCache() is not sufficient for that purpose).
+	</p>
 	End Rem
 	Method CreateCopy:GDALDataset(filename:String, sourceDataset:GDALDataset, _strict:Int, options:String[] = Null)
 		Return GDALDataset._create(bmx_gdal_GDALDriver_CreateCopy(objectPtr, filename, sourceDataset.objectPtr, _strict, options))
@@ -349,6 +513,84 @@ Type GDALRasterBand Extends GDALMajorObject
 	End Method
 	
 	Rem
+	bbdoc: 
+	End Rem
+	Method GetDataset:GDALDataset()
+	' TODO
+	End Method
+	
+	Rem
+	bbdoc: Fetch the pixel data type for this band.
+	End Rem
+	Method GetRasterDataType:Int()
+		Return bmx_gdal_GDALRasterBand_GetRasterDataType(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetAccess:Int()
+	' TODO
+	End Method
+	
+	Method FlushCache:Int()
+	' TODO
+	End Method
+	
+	Method GetCategoryNames:String[]()
+	' TODO
+	End Method
+	
+	Rem
+	bbdoc: Fetches the no data value for this band.
+	about: If there is no out of data value, an out of range value will generally be returned. The no data value for a band
+	is generally a special marker value used to mark pixels that are not valid data. Such pixels should generally not be
+	displayed, nor contribute to analysis operations.
+	End Rem
+	Method GetNoDataValue:Double(success:Int Var)
+		Return bmx_gdal_GDALRasterBand_GetNoDataValue(objectPtr, Varptr success)
+	End Method
+	
+	Rem
+	bbdoc: Fetches the minimum value for this band.
+	about: For file formats that don't know this intrinsically, the minimum supported value for the data type will generally be returned.
+	End Rem
+	Method GetMinimum:Double(success:Int Var)
+		Return bmx_gdal_GDALRasterBand_GetMinimum(objectPtr, Varptr success)
+	End Method
+	
+	Rem
+	bbdoc: Fetches the maximum value for this band.
+	about: For file formats that don't know this intrinsically, the maximum supported value for the data type will generally be returned.
+	End Rem
+	Method GetMaximum:Double(success:Int Var)
+		Return bmx_gdal_GDALRasterBand_GetMaximum(objectPtr, Varptr success)
+	End Method
+	
+	Rem
+	bbdoc: Fetches the raster value offset.
+	about: This value (in combination with the GetScale() value) is used to transform raw pixel values into the units returned by
+	GetUnits(). For example this might be used to store elevations in GUInt16 bands with a precision of 0.1, and starting from -100.
+	<p>
+	Units value = (raw value * scale) + offset
+	</p>
+	<p>
+	For file formats that don't know this intrinsically a value of zero is returned.
+	</p>
+	End Rem
+	Method GetOffset:Double(success:Int Var)
+		Return bmx_gdal_GDALRasterBand_GetOffset(objectPtr, Varptr success)
+	End Method
+	
+	Method GetScale:Double(success:Int Var)
+	' TODO
+	End Method
+	
+	Method GetUnitType:String()
+	' TODO
+	End Method
+	
+	Rem
 	bbdoc: How should this band be interpreted as color?
 	about: GCI_Undefined is returned when the format doesn't know anything about the color interpretation, otherwise one of
 	GCI_GrayIndex, GCI_PaletteIndex, GCI_RedBand, GCI_GreenBand, GCI_BlueBand, GCI_AlphaBand, GCI_HueBand, GCI_SaturationBand, 
@@ -357,6 +599,66 @@ Type GDALRasterBand Extends GDALMajorObject
 	End Rem
 	Method GetColorInterpretation:Int()
 		Return bmx_gdal_GDALRasterBand_GetColorInterpretation(objectPtr)
+	End Method
+	
+	Method GetColorTable:GDALColorTable()
+	' TODO
+	End Method
+	
+	Method Fill:Int(realValue:Double, imaginaryValue:Double = 0)
+	' TODO
+	End Method
+	
+	Method SetCategoryNames:Int(names:String[])
+	' TODO
+	End Method
+	
+	Method SetNoDataValue:Int(value:Double)
+	' TODO
+	End Method
+	
+	Method SetColorTable:Int(table:GDALColorTable)
+	' TODO
+	End Method
+	
+	Method SetColorInterpretation:Int(interp:Int)
+	' TODO
+	End Method
+	
+	Method SetOffset:Int(offset:Double)
+	' TODO
+	End Method
+	
+	Method SetScale:Int(scale:Double)
+	' TODO
+	End Method
+	
+	Method SetUnitType:Int(unitType:String)
+	' TODO
+	End Method
+	
+	Method GetStatistics:Int(approxOK:Int, force:Int, _min:Double Var, _max:Double Var, _mean:Double Var, _stddev:Double Var)
+	' TODO
+	End Method
+	
+	Method SetStatistics:Int(_min:Double, _max:Double, _mean:Double, _stddev:Double)
+	' TODO
+	End Method
+	
+	Method HasArbitraryOverviews:Int()
+	' TODO
+	End Method
+	
+	Method GetOverviewCount:Int()
+	' TODO
+	End Method
+	
+	Method GetOverview:GDALRasterBand(index:Int)
+	' TODO
+	End Method
+	
+	Method GetRasterSampleOverview:GDALRasterBand(index:Int)
+	' TODO
 	End Method
 
 	Rem
@@ -386,54 +688,6 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_GetMaskFlags(objectPtr)
 	End Method
 	
-	Rem
-	bbdoc: Fetches the maximum value for this band.
-	about: For file formats that don't know this intrinsically, the maximum supported value for the data type will generally be returned.
-	End Rem
-	Method GetMaximum:Double(success:Int Var)
-		Return bmx_gdal_GDALRasterBand_GetMaximum(objectPtr, Varptr success)
-	End Method
-	
-	Rem
-	bbdoc: Fetches the minimum value for this band.
-	about: For file formats that don't know this intrinsically, the minimum supported value for the data type will generally be returned.
-	End Rem
-	Method GetMinimum:Double(success:Int Var)
-		Return bmx_gdal_GDALRasterBand_GetMinimum(objectPtr, Varptr success)
-	End Method
-	
-	Rem
-	bbdoc: Fetches the no data value for this band.
-	about: If there is no out of data value, an out of range value will generally be returned. The no data value for a band
-	is generally a special marker value used to mark pixels that are not valid data. Such pixels should generally not be
-	displayed, nor contribute to analysis operations.
-	End Rem
-	Method GetNoDataValue:Double(success:Int Var)
-		Return bmx_gdal_GDALRasterBand_GetNoDataValue(objectPtr, Varptr success)
-	End Method
-	
-	Rem
-	bbdoc: Fetches the raster value offset.
-	about: This value (in combination with the GetScale() value) is used to transform raw pixel values into the units returned by
-	GetUnits(). For example this might be used to store elevations in GUInt16 bands with a precision of 0.1, and starting from -100.
-	<p>
-	Units value = (raw value * scale) + offset
-	</p>
-	<p>
-	For file formats that don't know this intrinsically a value of zero is returned.
-	</p>
-	End Rem
-	Method GetOffset:Double(success:Int Var)
-		Return bmx_gdal_GDALRasterBand_GetOffset(objectPtr, Varptr success)
-	End Method
-	
-	Rem
-	bbdoc: Fetch the pixel data type for this band.
-	End Rem
-	Method GetRasterDataType:Int()
-		Return bmx_gdal_GDALRasterBand_GetRasterDataType(objectPtr)
-	End Method
-
 	Rem
 	bbdoc: Creates vector contours from raster DEM.
 	about: This algorithm will generate contours vectors for the input raster band on the requested set of contour levels.
@@ -524,26 +778,26 @@ or:
 End Type
 
 Rem
-bbdoc: Type for managing the registration of file format drivers.
+bbdoc: Manages the registration of file format drivers.
 End Rem
 Type GDALDriverManager Extends GDALMajorObject
 
 	Rem
-	bbdoc: 
+	bbdoc: Fetches the number of registered drivers.
 	End Rem
 	Function GetDriverCount:Int()
 		Return bmx_gdal_GDALDriverManager_GetDriverCount()
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Fetches driver by index. 
 	End Rem
 	Function GetDriver:GDALDriver(index:Int)
 		Return GDALDriver._create(bmx_gdal_GDALDriverManager_GetDriver(index))
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Fetches a driver based on the short name. 
 	End Rem
 	Function GetDriverByName:GDALDriver(name:String)
 		Return GDALDriver._create(bmx_gdal_GDALDriverManager_GetDriverByName(name))
@@ -551,6 +805,17 @@ Type GDALDriverManager Extends GDALMajorObject
 
 End Type
 
+Rem
+bbdoc: Ground Control Point.
+End Rem
+Type GDAL_GCP
+
+' TODO
+
+End Type
+
+Type GDALColorTable
+End Type
 
 Rem
 bbdoc: Registers all drivers. 

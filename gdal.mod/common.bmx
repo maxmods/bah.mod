@@ -33,6 +33,7 @@ Extern
 	Function bmx_gdal_GDALMajorObject_GetMetadata:String[](handle:Byte Ptr, domain:String)
 	Function bmx_gdal_GDALMajorObject_SetMetadataItem:Int(handle:Byte Ptr, name:String, value:String, domain:String)
 	Function bmx_gdal_GDALMajorObject_SetMetadata:Int(handle:Byte Ptr, metadata:String[], domain:String)
+	Function bmx_gdal_GDALMajorObject_SetDescription(handle:Byte Ptr, description:String)
 
 	Function bmx_gdal_GDALDataset_GetDriver:Byte Ptr(handle:Byte Ptr)
 	Function bmx_gdal_GDALDataset_GetRasterXSize:Int(handle:Byte Ptr)
@@ -45,6 +46,8 @@ Extern
 	Function bmx_gdal_GDALDataset_SetProjection:Int(handle:Byte Ptr, projection:String)
 	Function bmx_gdal_GDALDataset_SetGeoTransform:Int(handle:Byte Ptr, transform:Double[])
 	Function bmx_gdal_GDALDataset_GetGCPCount:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALDataset_FlushCache(handle:Byte Ptr)
+	Function bmx_gdal_GDALDataset_AddBand:Int(handle:Byte Ptr, dataType:Int, options:String[])
 
 	Function bmx_gdal_GDALDriverManager_GetDriverCount:Int()
 	Function bmx_gdal_GDALDriverManager_GetDriver:Byte Ptr(index:Int)
@@ -53,6 +56,9 @@ Extern
 	Function bmx_gdal_GDALDriver_GetShortName:String(handle:Byte Ptr)
 	Function bmx_gdal_GDALDriver_GetLongName:String(handle:Byte Ptr)
 	Function bmx_gdal_GDALDriver_CreateCopy:Byte Ptr(handle:Byte Ptr, filename:String, sourceDataset:Byte Ptr, _strict:Int, options:String[])
+	Function bmx_gdal_GDALDriver_DeleteDataset:Int(handle:Byte Ptr, filename:String)
+	Function bmx_gdal_GDALDriver_RenameDataset:Int(handle:Byte Ptr, newName:String, oldName:String)
+	Function bmx_gdal_GDALDriver_CopyFiles:Int(handle:Byte Ptr, newName:String, oldName:String)
 
 	Function bmx_gdal_GDALRasterBand_GenerateContour:Int(handle:Byte Ptr, contourInterval:Double, contourBase:Double, fixedLevels:Double[], ..
 		useNoData:Int, noDataValue:Double, layer:Byte Ptr, idField:Int, elevField:Int)

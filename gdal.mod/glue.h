@@ -39,8 +39,9 @@ extern "C" {
 	BBString * bmx_gdal_GDALMajorObject_GetDescription(GDALMajorObject * handle);
 	BBString * bmx_gdal_GDALMajorObject_GetMetadataItem(GDALMajorObject * handle, BBString * name, BBString * domain);
 	BBArray * bmx_gdal_GDALMajorObject_GetMetadata(GDALMajorObject * handle, BBString * domain);
-	CPLErr bmx_gdal_GDALMajorObject_SetMetadataItem(GDALDataset * handle, BBString * name, BBString * value, BBString * domain);
-	CPLErr bmx_gdal_GDALMajorObject_SetMetadata(GDALDataset * handle, BBArray * metadata, BBString * domain);
+	CPLErr bmx_gdal_GDALMajorObject_SetMetadataItem(GDALMajorObject * handle, BBString * name, BBString * value, BBString * domain);
+	CPLErr bmx_gdal_GDALMajorObject_SetMetadata(GDALMajorObject * handle, BBArray * metadata, BBString * domain);
+	void bmx_gdal_GDALMajorObject_SetDescription(GDALMajorObject * handle, BBString * description);
 
 	GDALDriver * bmx_gdal_GDALDataset_GetDriver(GDALDataset * handle);
 	int bmx_gdal_GDALDataset_GetRasterXSize(GDALDataset * handle);
@@ -53,6 +54,8 @@ extern "C" {
 	CPLErr bmx_gdal_GDALDataset_SetProjection(GDALDataset * handle, BBString * projection);
 	CPLErr bmx_gdal_GDALDataset_SetGeoTransform(GDALDataset * handle, BBArray * transform);
 	int bmx_gdal_GDALDataset_GetGCPCount(GDALDataset * handle);
+	void bmx_gdal_GDALDataset_FlushCache(GDALDataset * handle);
+	CPLErr bmx_gdal_GDALDataset_AddBand(GDALDataset * handle, GDALDataType dataType, BBArray * options);
 
 	CPLErr bmx_gdal_GDALRasterBand_GenerateContour(GDALRasterBand * handle, double contourInterval, double contourBase, BBArray * fixedLevels,
 		int useNoData, double noDataValue, OGRLayer * layer, int idField, int elevField);
@@ -74,6 +77,9 @@ extern "C" {
 	BBString * bmx_gdal_GDALDriver_GetShortName(GDALDriver * handle);
 	BBString * bmx_gdal_GDALDriver_GetLongName(GDALDriver * handle);
 	GDALDataset * bmx_gdal_GDALDriver_CreateCopy(GDALDriver * handle, BBString * filename, GDALDataset * sourceDataset, int strict, BBArray * options);
+	CPLErr bmx_gdal_GDALDriver_DeleteDataset(GDALDriver * handle, BBString * filename);
+	CPLErr bmx_gdal_GDALDriver_RenameDataset(GDALDriver * handle, BBString * newName, BBString * oldName);
+	CPLErr bmx_gdal_GDALDriver_CopyFiles(GDALDriver * handle, BBString * newName, BBString * oldName);
 
 	OGRSpatialReference * bmx_gdal_OGRSpatialReference_create(BBString * ref);
 	void bmx_gdal_OGRSpatialReference_free(OGRSpatialReference * handle);

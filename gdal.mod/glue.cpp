@@ -122,7 +122,7 @@ BBArray * bmx_gdal_GDALMajorObject_GetMetadata(GDALMajorObject * handle, BBStrin
 	return p;
 }
 
-CPLErr bmx_gdal_GDALMajorObject_SetMetadataItem(GDALDataset * handle, BBString * name, BBString * value, BBString * domain) {
+CPLErr bmx_gdal_GDALMajorObject_SetMetadataItem(GDALMajorObject * handle, BBString * name, BBString * value, BBString * domain) {
 	char *n = bbStringToCString( name );
 	char *v = bbStringToCString( value );
 	char *d = bbStringToCString( domain );
@@ -135,7 +135,7 @@ CPLErr bmx_gdal_GDALMajorObject_SetMetadataItem(GDALDataset * handle, BBString *
 	return res;
 }
 
-CPLErr bmx_gdal_GDALMajorObject_SetMetadata(GDALDataset * handle, BBArray * metadata, BBString * domain) {
+CPLErr bmx_gdal_GDALMajorObject_SetMetadata(GDALMajorObject * handle, BBArray * metadata, BBString * domain) {
 
 	char *d = bbStringToCString( domain );
 	char** list = bmx_bbStringArrayToStringList(metadata);
@@ -150,6 +150,12 @@ CPLErr bmx_gdal_GDALMajorObject_SetMetadata(GDALDataset * handle, BBArray * meta
 
 	return res;
 
+}
+
+void bmx_gdal_GDALMajorObject_SetDescription(GDALMajorObject * handle, BBString * description) {
+	char *d = bbStringToCString( description );
+	handle->SetDescription(d);
+	bbMemFree(d);
 }
 
 // *****************************************************
@@ -208,6 +214,22 @@ int bmx_gdal_GDALDataset_GetGCPCount(GDALDataset * handle) {
 	return handle->GetGCPCount();
 }
 
+void bmx_gdal_GDALDataset_FlushCache(GDALDataset * handle) {
+	handle->FlushCache();
+}
+
+CPLErr bmx_gdal_GDALDataset_AddBand(GDALDataset * handle, GDALDataType dataType, BBArray * options) {
+	CPLErr res = CE_None;
+	if (options && (options->scales[0] > 0)) {
+		char** list = bmx_bbStringArrayToStringList(options);
+		res = handle->AddBand(dataType, list);
+		bmx_StringListFree(list);
+	} else {
+		res = handle->AddBand(dataType, NULL);
+	}
+	
+	return res;
+}
 
 // *****************************************************
 
@@ -308,6 +330,30 @@ GDALDataset * bmx_gdal_GDALDriver_CreateCopy(GDALDriver * handle, BBString * fil
 	return dataset;
 }
 
+CPLErr bmx_gdal_GDALDriver_DeleteDataset(GDALDriver * handle, BBString * filename) {
+	char *f = bbStringToCString( filename );
+	CPLErr res = handle->Delete(f);
+	bbMemFree(f);
+	return res;
+}
+
+CPLErr bmx_gdal_GDALDriver_RenameDataset(GDALDriver * handle, BBString * newName, BBString * oldName) {
+	char *n = bbStringToCString( newName );
+	char *o = bbStringToCString( oldName );
+	CPLErr res = handle->Rename(n, o);
+	bbMemFree(n);
+	bbMemFree(o);
+	return res;
+}
+
+CPLErr bmx_gdal_GDALDriver_CopyFiles(GDALDriver * handle, BBString * newName, BBString * oldName) {
+	char *n = bbStringToCString( newName );
+	char *o = bbStringToCString( oldName );
+	CPLErr res = handle->CopyFiles(n, o);
+	bbMemFree(n);
+	bbMemFree(o);
+	return res;
+}
 
 // *****************************************************
 
