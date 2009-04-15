@@ -61,6 +61,23 @@ void bmx_StringListFree(char** list) {
     }
 }
 
+BBArray * bbStringArrayFromStringList(char** list) {
+	int count = CSLCount(list);
+	BBArray *p = 0;
+	
+	if (count > 0) {
+		p = bbArrayNew1D( "$",count );
+		BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
+		for( int i = 0 ; i < count ; ++i ){
+			s[i] = bbStringFromCString( list[i] );
+			BBRETAIN( s[i] );
+		}
+	} else {
+		p = &bbEmptyArray;
+	}
+
+	return p;
+}
 
 // *****************************************************
 
@@ -231,6 +248,40 @@ CPLErr bmx_gdal_GDALDataset_AddBand(GDALDataset * handle, GDALDataType dataType,
 	return res;
 }
 
+BBArray * bmx_gdal_GDALDataset_GetFileList(GDALDataset * handle) {
+	char ** list = handle->GetFileList();
+	BBArray * p = bbStringArrayFromStringList(list);
+	CSLDestroy(list);	
+	return p;
+}
+
+BBString * bmx_gdal_GDALDataset_GetGCPProjection(GDALDataset * handle) {
+	return bbStringFromCString(handle->GetGCPProjection());
+}
+
+CPLErr bmx_gdal_GDALDataset_CreateMaskBand(GDALDataset * handle, int flags) {
+	return handle->CreateMaskBand(flags);
+}
+
+int bmx_gdal_GDALDataset_GetShared(GDALDataset * handle) {
+	return handle->GetShared();
+}
+
+void bmx_gdal_GDALDataset_MarkAsShared(GDALDataset * handle) {
+	handle->MarkAsShared();
+}
+
+void bmx_gdal_GDALDataset_GetGCPs(GDALDataset * handle, BBArray * gcps) {
+	int n = gcps->scales[0];
+	
+	const GDAL_GCP * list = handle->GetGCPs();
+	
+	for (int i = 0; i < n; i++) {
+		_bah_gdal_GDALDataset__setGCP(gcps, i, list);
+		list++;
+	}
+}
+
 // *****************************************************
 
 CPLErr bmx_gdal_GDALRasterBand_GenerateContour(GDALRasterBand * handle, double contourInterval, double contourBase, BBArray * fixedLevels,
@@ -282,6 +333,33 @@ double bmx_gdal_GDALRasterBand_GetNoDataValue(GDALRasterBand * handle, int * suc
 
 double bmx_gdal_GDALRasterBand_GetOffset(GDALRasterBand * handle, int * success) {
 	return handle->GetOffset(success);
+}
+
+void bmx_gdal_GDALRasterBand_GetBlockSize(GDALRasterBand * handle, int * xSize, int * ySize) {
+	handle->GetBlockSize(xSize, ySize);
+}
+
+GDALAccess bmx_gdal_GDALRasterBand_GetAccess(GDALRasterBand * handle) {
+	return handle->GetAccess();
+}
+
+CPLErr bmx_gdal_GDALRasterBand_FlushCache(GDALRasterBand * handle) {
+	return handle->FlushCache();
+}
+
+BBArray * bmx_gdal_GDALRasterBand_GetCategoryNames(GDALRasterBand * handle) {
+	char ** list = handle->GetCategoryNames();
+	BBArray * p = bbStringArrayFromStringList(list);
+	CSLDestroy(list);	
+	return p;
+}
+
+double bmx_gdal_GDALRasterBand_GetScale(GDALRasterBand * handle, int * success) {
+	return handle->GetScale(success);
+}
+
+BBString * bmx_gdal_GDALRasterBand_GetUnitType(GDALRasterBand * handle) {
+	return bbStringFromCString(handle->GetUnitType());
 }
 
 
@@ -354,6 +432,85 @@ CPLErr bmx_gdal_GDALDriver_CopyFiles(GDALDriver * handle, BBString * newName, BB
 	bbMemFree(o);
 	return res;
 }
+
+// *****************************************************
+
+GDAL_GCP * bmx_gdal_GDAL_GCP_create(BBString * id, BBString * info, double pixel, double line, double x, double y, double z) {
+	// TODO
+}
+
+BBString * bmx_gdal_GDAL_GCP_GetID(GDAL_GCP * handle) {
+	return bbStringFromCString(handle->pszId);
+}
+
+void bmx_gdal_GDAL_GCP_SetId(GDAL_GCP * handle, BBString * id) {
+	CPLFree( handle->pszId );
+	char *n = bbStringToCString( id );
+	handle->pszId = CPLStrdup(n);
+	bbMemFree(n);
+}
+
+BBString * bmx_gdal_GDAL_GCP_GetInfo(GDAL_GCP * handle) {
+	return bbStringFromCString(handle->pszInfo);
+}
+
+void bmx_gdal_GDAL_GCP_SetInfo(GDAL_GCP * handle, BBString * info) {
+	CPLFree( handle->pszInfo );
+	char *n = bbStringToCString( info );
+	handle->pszInfo = CPLStrdup(n);
+	bbMemFree(n);
+}
+
+double bmx_gdal_GDAL_GCP_GetPixel(GDAL_GCP * handle) {
+	return handle->dfGCPPixel;
+}
+
+void bmx_gdal_GDAL_GCP_SetPixel(GDAL_GCP * handle, double pixel) {
+	handle->dfGCPPixel = pixel;
+}
+
+double bmx_gdal_GDAL_GCP_GetLine(GDAL_GCP * handle) {
+	return handle->dfGCPLine;
+}
+
+void bmx_gdal_GDAL_GCP_SetLine(GDAL_GCP * handle, double line) {
+	handle->dfGCPLine = line;
+}
+
+double bmx_gdal_GDAL_GCP_GetX(GDAL_GCP * handle) {
+	return handle->dfGCPX;
+}
+
+void bmx_gdal_GDAL_GCP_SetX(GDAL_GCP * handle, double x) {
+	handle->dfGCPX = x;
+}
+
+double bmx_gdal_GDAL_GCP_GetY(GDAL_GCP * handle) {
+	return handle->dfGCPY;
+}
+
+void bmx_gdal_GDAL_GCP_SetY(GDAL_GCP * handle, double y) {
+	handle->dfGCPY = y;
+}
+
+double bmx_gdal_GDAL_GCP_GetZ(GDAL_GCP * handle) {
+	return handle->dfGCPZ;
+}
+
+void bmx_gdal_GDAL_GCP_SetZ(GDAL_GCP * handle, double z) {
+	handle->dfGCPZ = z;
+}
+
+void bmx_gdal_GDAL_GCP_free(GDAL_GCP * handle) {
+	if (handle->pszId != NULL) {
+		CPLFree( handle->pszId );
+	}
+	if (handle->pszInfo != NULL) {
+		CPLFree( handle->pszInfo );
+	}
+	CPLFree(handle);
+}
+
 
 // *****************************************************
 

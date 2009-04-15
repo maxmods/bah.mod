@@ -22,7 +22,10 @@ SuperStrict
 
 Rem
 bbdoc: GDAL
-about: Translator library for raster geospatial data formats.
+about: Geospatial Data Abstraction Library.
+<p>
+A translator library for raster geospatial data formats.
+</p>
 End Rem
 Module BaH.GDAL
 
@@ -307,25 +310,48 @@ Type GDALDataset Extends GDALMajorObject
 		Return GDALDriver._create(bmx_gdal_GDALDataset_GetDriver(objectPtr))
 	End Method
 
+	Rem
+	bbdoc: Fetches files forming dataset.
+	about: Returns a list of files believed to be part of this dataset. If it returns an empty list
+	of files it means there is believed to be no local file system files associated with the dataset
+	(for instance a virtual dataset).
+	<p>
+	The returned filenames will normally be relative or absolute paths depending on the path used to
+	originally open the dataset.
+	</p>
+	End Rem
 	Method GetFileList:String[]()
-	' TODO
+		Return bmx_gdal_GDALDataset_GetFileList(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: Get number of GCPs.
+	bbdoc: Gets number of GCPs.
 	End Rem
 	Method GetGCPCount:Int()
 		Return bmx_gdal_GDALDataset_GetGCPCount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Gets output projection for GCPs.
+	End Rem
 	Method GetGCPProjection:String()
-	' TODO
+		Return bmx_gdal_GDALDataset_GetGCPProjection(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Fetches the list of GCPs.
+	about: It should not be modified, and may change on the next GDAL call.
+	End Rem
 	Method GetGCPs:GDAL_GCP[]()
-	' TODO
+		Local gcps:GDAL_GCP[] = New GDAL_GCP[GetGCPCount()]
+		bmx_gdal_GDALDataset_GetGCPs(objectPtr, gcps)
+		Return gcps
 	End Method
 	
+	Function _setGCP(gcps:GDAL_GCP[], index:Int, gcp:Byte Ptr)
+		gcps[index] = GDAL_GCP._create(gcp)
+	End Function
+		
 	Method SetGCPs(gcps:GDAL_GCP[], projection:String)
 	' TODO
 	End Method
@@ -335,8 +361,15 @@ Type GDALDataset Extends GDALMajorObject
 	' TODO
 	End Method
 	
-	Method CreateMaskBand:Int()
-	' TODO
+	Rem
+	bbdoc: Adds a mask band to the dataset.
+	about: The default implementation is based on similar rules to the .ovr handling implemented using
+	the GDALDefaultOverviews object. A TIFF file with the extension .msk will be created with the same
+	basename as the original file, and it will have one band. The mask images will be deflate compressed
+	tiled images with the same block size as the original image if possible.
+	End Rem
+	Method CreateMaskBand:Int(flags:Int)
+		Return bmx_gdal_GDALDataset_CreateMaskBand(objectPtr, flags)
 	End Method
 	
 	Method RasterIO:Int(eRWFlag:Int, xOff:Int, yOff:Int, xSize:Int, ySize:Int, data:Byte Ptr, ..
@@ -344,12 +377,19 @@ Type GDALDataset Extends GDALMajorObject
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Returns shared flag.
+	returns: TRUE if the GDALDataset is available for sharing, or FALSE if not. 
+	End Rem
 	Method GetShared:Int()
-	' TODO
+		Return bmx_gdal_GDALDataset_GetShared(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Marks this dataset as available for sharing. 
+	End Rem
 	Method MarkAsShared()
-	' TODO
+		bmx_gdal_GDALDataset_MarkAsShared(objectPtr)
 	End Method
 
 	Rem
@@ -360,6 +400,10 @@ Type GDALDataset Extends GDALMajorObject
 	End Method
 	
 End Type
+
+Extern
+	Function bmx_gdal_GDALDataset_GetGCPs(handle:Byte Ptr, gcps:GDAL_GCP[])
+End Extern
 
 Rem
 bbdoc: Format specific driver.
@@ -383,6 +427,7 @@ Type GDALDriver Extends GDALMajorObject
 	bbdoc: 
 	End Rem
 	Method CreateDataset:GDALDataset(filename:String, xSize:Int, ySize:Int, bands:Int, dataType:Int, paramList:String[])
+	' TODO
 	End Method
 	
 	Rem
@@ -506,10 +551,22 @@ Type GDALRasterBand Extends GDALMajorObject
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Fetches the "natural" block size of this band.
+	about: GDAL contains a concept of the natural block size of rasters so that applications can organized
+	data access efficiently for some file formats. The natural block size is the block size that is most
+	efficient for accessing the format. For many formats this is simple a whole scanline in which case
+	xSize is set to GetXSize(), and ySize is set to 1.
+	<p>
+	However, for tiled images this will typically be the tile size.
+	</p>
+	<p>
+	Note that the X and Y block sizes don't have to divide the image size evenly, meaning that right
+	and bottom edge blocks may be incomplete. See ReadBlock() for an example of code dealing with these
+	issues.
+	</p>
 	End Rem
-	Method GetBlockSize(pnXSize:Int Var, pnYSize:Int Var)
-	' TODO
+	Method GetBlockSize(xSize:Int Var, ySize:Int Var)
+		bmx_gdal_GDALRasterBand_GetBlockSize(objectPtr, Varptr xSize, Varptr ySize)
 	End Method
 	
 	Rem
@@ -520,25 +577,35 @@ Type GDALRasterBand Extends GDALMajorObject
 	End Method
 	
 	Rem
-	bbdoc: Fetch the pixel data type for this band.
+	bbdoc: Fetches the pixel data type for this band.
 	End Rem
 	Method GetRasterDataType:Int()
 		Return bmx_gdal_GDALRasterBand_GetRasterDataType(objectPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Finds out if we have update permission for this band.
 	End Rem
 	Method GetAccess:Int()
-	' TODO
+		bmx_gdal_GDALRasterBand_GetAccess(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Flushes raster data cache.
+	about: This call will recover memory used to cache data blocks for this raster band, and ensure
+	that new requests are referred to the underlying driver.
+	End Rem
 	Method FlushCache:Int()
-	' TODO
+		Return bmx_gdal_GDALRasterBand_FlushCache(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Fetches the list of category names for this raster.
+	about: Raster values without associated names will have an empty string
+	in the returned list. The first entry in the list is for raster values of zero, and so on.
+	End Rem
 	Method GetCategoryNames:String[]()
-	' TODO
+		Return bmx_gdal_GDALRasterBand_GetCategoryNames(objectPtr)
 	End Method
 	
 	Rem
@@ -582,12 +649,30 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_GetOffset(objectPtr, Varptr success)
 	End Method
 	
+	Rem
+	bbdoc: Fetches the raster value scale.
+	about: This value (in combination with the GetOffset() value) is used to transform raw pixel values
+	into the units returned by GetUnits(). For example this might be used to store elevations in GUInt16
+	bands with a precision of 0.1, and starting from -100.
+	<p>
+	Units value = (raw value * scale) + offset
+	</p>
+	<p>
+	For file formats that don't know this intrinsically a value of one is returned.
+	</p>
+	End Rem
 	Method GetScale:Double(success:Int Var)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_GetScale(objectPtr, Varptr success)
 	End Method
 	
+	Rem
+	bbdoc: Returns raster unit type.
+	about: Returns a name for the units of this raster's values. For instance, it might be "m" for an
+	elevation model in meters, or "ft" for feet. If no units are available, a value of "" will be
+	returned. The returned string should not be modified, nor freed by the calling application.
+	End Rem
 	Method GetUnitType:String()
-	' TODO
+		Return bmx_gdal_GDALRasterBand_GetUnitType(objectPtr)
 	End Method
 	
 	Rem
@@ -810,8 +895,141 @@ bbdoc: Ground Control Point.
 End Rem
 Type GDAL_GCP
 
-' TODO
+	Field objectPtr:Byte Ptr
+	Field owner:Int
+	
+	Function _create:GDAL_GCP(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:GDAL_GCP = New GDAL_GCP
+			this.objectPtr = objectPtr
+			this.owner = False
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:GDAL_GCP(id:String, info:String, pixel:Double, line:Double, x:Double, y:Double, z:Double)
+		objectPtr = bmx_gdal_GDAL_GCP_create(id, info, pixel, line, x, y, z)
+		owner = True
+		Return Self
+	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetId:String()
+		Return bmx_gdal_GDAL_GCP_GetID(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetId(id:String)
+		bmx_gdal_GDAL_GCP_SetId(objectPtr, id)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetInfo:String()
+		Return bmx_gdal_GDAL_GCP_GetInfo(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetInfo(info:String)
+		bmx_gdal_GDAL_GCP_SetInfo(objectPtr, info)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetPixel:Double()
+		Return bmx_gdal_GDAL_GCP_GetPixel(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetPixel(pixel:Double)
+		bmx_gdal_GDAL_GCP_SetPixel(objectPtr, pixel)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetLine:Double()
+		Return bmx_gdal_GDAL_GCP_GetLine(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetLine(line:Double)
+		bmx_gdal_GDAL_GCP_SetLine(objectPtr, line)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetX:Double()
+		Return bmx_gdal_GDAL_GCP_GetX(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetX(x:Double)
+		bmx_gdal_GDAL_GCP_SetX(objectPtr, x)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetY:Double()
+		Return bmx_gdal_GDAL_GCP_GetY(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetY(y:Double)
+		bmx_gdal_GDAL_GCP_SetY(objectPtr, y)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetZ:Double()
+		Return bmx_gdal_GDAL_GCP_GetZ(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SetZ(z:Double)
+		bmx_gdal_GDAL_GCP_SetZ(objectPtr, z)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If objectPtr Then
+			If owner Then
+				bmx_gdal_GDAL_GCP_free(objectPtr)
+			End If
+			objectPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
 End Type
 
 Type GDALColorTable
