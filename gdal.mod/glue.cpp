@@ -362,6 +362,40 @@ BBString * bmx_gdal_GDALRasterBand_GetUnitType(GDALRasterBand * handle) {
 	return bbStringFromCString(handle->GetUnitType());
 }
 
+CPLErr bmx_gdal_GDALRasterBand_Fill(GDALRasterBand * handle, double realValue, double imaginaryValue) {
+	return handle->Fill(realValue, imaginaryValue);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetNoDataValue(GDALRasterBand * handle, double value) {
+	return handle->SetNoDataValue(value);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetColorInterpretation(GDALRasterBand * handle, GDALColorInterp interp) {
+	return handle->SetColorInterpretation(interp);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetOffset(GDALRasterBand * handle, double offset) {
+	return handle->SetOffset(offset);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetScale(GDALRasterBand * handle, double scale) {
+	return handle->SetScale(scale);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetUnitType(GDALRasterBand * handle, BBString * unitType) {
+	char *t = bbStringToCString( unitType );
+	CPLErr res = handle->SetUnitType(t);
+	bbMemFree(t);
+	return res;
+}
+
+int bmx_gdal_GDALRasterBand_HasArbitraryOverviews(GDALRasterBand * handle) {
+	return handle->HasArbitraryOverviews();
+}
+
+int bmx_gdal_GDALRasterBand_GetOverviewCount(GDALRasterBand * handle) {
+	return handle->GetOverviewCount();
+}
 
 // *****************************************************
 
@@ -431,6 +465,23 @@ CPLErr bmx_gdal_GDALDriver_CopyFiles(GDALDriver * handle, BBString * newName, BB
 	bbMemFree(n);
 	bbMemFree(o);
 	return res;
+}
+
+GDALDataset * bmx_gdal_GDALDriver_CreateDataset(GDALDriver * handle, BBString * filename, int xSize, int ySize, int bands, GDALDataType dataType, BBArray * paramList) {
+	char *n = bbStringToCString( filename );
+	
+	GDALDataset * dataset = 0;
+	
+	if (paramList && (paramList->scales[0] > 0)) {
+		char** list = bmx_bbStringArrayToStringList(paramList);
+		dataset = handle->Create(n, xSize, ySize, bands, dataType, list);
+		bmx_StringListFree(list);
+	} else {
+		dataset = handle->Create(n, xSize, ySize, bands, dataType, NULL);
+	}
+	
+	bbMemFree(n);
+	return dataset;
 }
 
 // *****************************************************
@@ -557,6 +608,9 @@ int bmx_gdal_OGRSFDriverRegistrar_GetOpenDSCount() {
 	return OGRSFDriverRegistrar::GetRegistrar()->GetOpenDSCount();
 }
 
+OGRDataSource * bmx_gdal_OGRSFDriverRegistrar_GetOpenDS(int ids) {
+	return OGRSFDriverRegistrar::GetRegistrar()->GetOpenDS(ids);
+}
 
 // *****************************************************
 
@@ -575,6 +629,31 @@ OGRDataSource * bmx_gdal_OGRSFDriver_CreateDataSource(OGRSFDriver * handle, BBSt
 	
 	bbMemFree(n);
 	return source;
+}
+
+OGRDataSource * bmx_gdal_OGRSFDriver_Open(OGRSFDriver * handle, BBString * name, int update) {
+	char *n = bbStringToCString( name );
+	OGRDataSource * source = handle->Open(n, update);
+	bbMemFree(n);
+	return source;
+}
+
+int bmx_gdal_OGRSFDriver_TestCapability(OGRSFDriver * handle, BBString * capability) {
+	char *c = bbStringToCString( capability );
+	int res = handle->TestCapability(c);
+	bbMemFree(c);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSFDriver_DeleteDataSource(OGRSFDriver * handle, BBString * datasource) {
+	char *n = bbStringToCString( datasource );
+	OGRErr res = handle->DeleteDataSource(n);
+	bbMemFree(n);
+	return res;
+}
+
+BBString * bmx_gdal_OGRSFDriver_GetName(OGRSFDriver * handle) {
+	return bbStringFromCString(handle->GetName());
 }
 
 
@@ -621,6 +700,16 @@ OGRLayer * bmx_gdal_OGRDataSource_GetLayerByName(OGRDataSource * handle, BBStrin
 	return layer;
 }
 
+OGRErr bmx_gdal_OGRDataSource_DeleteLayer(OGRDataSource * handle, int layer) {
+	return handle->DeleteLayer(layer);
+}
+
+int bmx_gdal_OGRDataSource_TestCapability(OGRDataSource * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	int res = handle->TestCapability(n);
+	bbMemFree(n);
+	return res;
+}
 
 // *****************************************************
 

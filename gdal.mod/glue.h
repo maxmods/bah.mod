@@ -64,7 +64,7 @@ extern "C" {
 	CPLErr bmx_gdal_GDALDataset_CreateMaskBand(GDALDataset * handle, int flags);
 	int bmx_gdal_GDALDataset_GetShared(GDALDataset * handle);
 	void bmx_gdal_GDALDataset_MarkAsShared(GDALDataset * handle);
-	BBArray * bmx_gdal_GDALDataset_GetGCPs(GDALDataset * handle);
+	void bmx_gdal_GDALDataset_GetGCPs(GDALDataset * handle, BBArray * gcps);
 
 	CPLErr bmx_gdal_GDALRasterBand_GenerateContour(GDALRasterBand * handle, double contourInterval, double contourBase, BBArray * fixedLevels,
 		int useNoData, double noDataValue, OGRLayer * layer, int idField, int elevField);
@@ -84,6 +84,14 @@ extern "C" {
 	BBArray * bmx_gdal_GDALRasterBand_GetCategoryNames(GDALRasterBand * handle);
 	double bmx_gdal_GDALRasterBand_GetScale(GDALRasterBand * handle, int * success);
 	BBString * bmx_gdal_GDALRasterBand_GetUnitType(GDALRasterBand * handle);
+	CPLErr bmx_gdal_GDALRasterBand_Fill(GDALRasterBand * handle, double realValue, double imaginaryValue);
+	CPLErr bmx_gdal_GDALRasterBand_SetNoDataValue(GDALRasterBand * handle, double value);
+	CPLErr bmx_gdal_GDALRasterBand_SetColorInterpretation(GDALRasterBand * handle, GDALColorInterp interp);
+	CPLErr bmx_gdal_GDALRasterBand_SetOffset(GDALRasterBand * handle, double offset);
+	CPLErr bmx_gdal_GDALRasterBand_SetScale(GDALRasterBand * handle, double scale);
+	CPLErr bmx_gdal_GDALRasterBand_SetUnitType(GDALRasterBand * handle, BBString * unitType);
+	int bmx_gdal_GDALRasterBand_HasArbitraryOverviews(GDALRasterBand * handle);
+	int bmx_gdal_GDALRasterBand_GetOverviewCount(GDALRasterBand * handle);
 
 	int bmx_gdal_GDALDriverManager_GetDriverCount();
 	GDALDriver * bmx_gdal_GDALDriverManager_GetDriver(int index);
@@ -95,6 +103,7 @@ extern "C" {
 	CPLErr bmx_gdal_GDALDriver_DeleteDataset(GDALDriver * handle, BBString * filename);
 	CPLErr bmx_gdal_GDALDriver_RenameDataset(GDALDriver * handle, BBString * newName, BBString * oldName);
 	CPLErr bmx_gdal_GDALDriver_CopyFiles(GDALDriver * handle, BBString * newName, BBString * oldName);
+	GDALDataset * bmx_gdal_GDALDriver_CreateDataset(GDALDriver * handle, BBString * filename, int xSize, int ySize, int bands, GDALDataType dataType, BBArray * paramList);
 
 	GDAL_GCP * bmx_gdal_GDAL_GCP_create(BBString * id, BBString * info, double pixel, double line, double x, double y, double z);
 	BBString * bmx_gdal_GDAL_GCP_GetID(GDAL_GCP * handle);
@@ -123,8 +132,13 @@ extern "C" {
 	OGRSFDriver * bmx_gdal_OGRSFDriverRegistrar_GetDriver(int index);
 	OGRSFDriver * bmx_gdal_OGRSFDriverRegistrar_GetDriverByName(BBString * name);
 	int bmx_gdal_OGRSFDriverRegistrar_GetOpenDSCount();
+	OGRDataSource * bmx_gdal_OGRSFDriverRegistrar_GetOpenDS(int ids);
 
 	OGRDataSource * bmx_gdal_OGRSFDriver_CreateDataSource(OGRSFDriver * handle, BBString * name, BBArray * options);
+	OGRDataSource * bmx_gdal_OGRSFDriver_Open(OGRSFDriver * handle, BBString * name, int update);
+	int bmx_gdal_OGRSFDriver_TestCapability(OGRSFDriver * handle, BBString * capability);
+	OGRErr bmx_gdal_OGRSFDriver_DeleteDataSource(OGRSFDriver * handle, BBString * datasource);
+	BBString * bmx_gdal_OGRSFDriver_GetName(OGRSFDriver * handle);
 
 	OGRLayer * bmx_gdal_OGRDataSource_CreateLayer(OGRDataSource * handle, BBString * name, OGRSpatialReference * spatialRef, OGRwkbGeometryType gType, BBArray * options);
 	void bmx_gdal_OGRDataSource_free(OGRDataSource * handle);
@@ -132,6 +146,8 @@ extern "C" {
 	int bmx_gdal_OGRDataSource_GetLayerCount(OGRDataSource * handle);
 	OGRLayer * bmx_gdal_OGRDataSource_GetLayer(OGRDataSource * handle, int index);
 	OGRLayer * bmx_gdal_OGRDataSource_GetLayerByName(OGRDataSource * handle, BBString * name);
+	OGRErr bmx_gdal_OGRDataSource_DeleteLayer(OGRDataSource * handle, int layer);
+	int bmx_gdal_OGRDataSource_TestCapability(OGRDataSource * handle, BBString * name);
 
 	OGRFieldDefn * bmx_gdal_OGRFieldDefn_create(BBString * name, OGRFieldType fieldType);
 	void bmx_gdal_OGRFieldDefn_free(OGRFieldDefn * handle);

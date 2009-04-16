@@ -64,6 +64,7 @@ Extern
 	Function bmx_gdal_GDALDriver_DeleteDataset:Int(handle:Byte Ptr, filename:String)
 	Function bmx_gdal_GDALDriver_RenameDataset:Int(handle:Byte Ptr, newName:String, oldName:String)
 	Function bmx_gdal_GDALDriver_CopyFiles:Int(handle:Byte Ptr, newName:String, oldName:String)
+	Function bmx_gdal_GDALDriver_CreateDataset:Byte Ptr(handle:Byte Ptr, filename:String, xSize:Int, ySize:Int, bands:Int, dataType:Int, paramList:String[])
 
 	Function bmx_gdal_GDALRasterBand_GenerateContour:Int(handle:Byte Ptr, contourInterval:Double, contourBase:Double, fixedLevels:Double[], ..
 		useNoData:Int, noDataValue:Double, layer:Byte Ptr, idField:Int, elevField:Int)
@@ -83,6 +84,14 @@ Extern
 	Function bmx_gdal_GDALRasterBand_GetCategoryNames:String[](handle:Byte Ptr)
 	Function bmx_gdal_GDALRasterBand_GetScale:Double(handle:Byte Ptr, success:Int Ptr)
 	Function bmx_gdal_GDALRasterBand_GetUnitType:String(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_Fill:Int(handle:Byte Ptr, realValue:Double, imaginaryValue:Double )
+	Function bmx_gdal_GDALRasterBand_SetNoDataValue:Int(handle:Byte Ptr, value:Double)
+	Function bmx_gdal_GDALRasterBand_SetColorInterpretation:Int(handle:Byte Ptr, interp:Int)
+	Function bmx_gdal_GDALRasterBand_SetOffset:Int(handle:Byte Ptr, offset:Double)
+	Function bmx_gdal_GDALRasterBand_SetScale:Int(handle:Byte Ptr, scale:Double)
+	Function bmx_gdal_GDALRasterBand_SetUnitType:Int(handle:Byte Ptr, unitType:String)
+	Function bmx_gdal_GDALRasterBand_HasArbitraryOverviews:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetOverviewCount:Int(handle:Byte Ptr)
 
 	Function bmx_gdal_GDAL_GCP_create:Byte Ptr(id:String, info:String, pixel:Double, line:Double, x:Double, y:Double, z:Double)
 	Function bmx_gdal_GDAL_GCP_GetID:String(handle:Byte Ptr)
@@ -111,8 +120,13 @@ Extern
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriver:Byte Ptr(index:Int)
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriverByName:Byte Ptr(name:String)
 	Function bmx_gdal_OGRSFDriverRegistrar_GetOpenDSCount:Int()
+	Function bmx_gdal_OGRSFDriverRegistrar_GetOpenDS:Byte Ptr(ids:Int)
 
 	Function bmx_gdal_OGRSFDriver_CreateDataSource:Byte Ptr(handle:Byte Ptr, name:String, options:String[])
+	Function bmx_gdal_OGRSFDriver_Open:Byte Ptr(handle:Byte Ptr, name:String, update:Int)
+	Function bmx_gdal_OGRSFDriver_TestCapability:Int(handle:Byte Ptr, capability:String)
+	Function bmx_gdal_OGRSFDriver_DeleteDataSource:Int(handle:Byte Ptr, datasource:String)
+	Function bmx_gdal_OGRSFDriver_GetName:String(handle:Byte Ptr)
 
 	Function bmx_gdal_OGRDataSource_CreateLayer:Byte Ptr(handle:Byte Ptr, name:String, spatialRef:Byte Ptr, gType:Int, options:String[])
 	Function bmx_gdal_OGRDataSource_free(handle:Byte Ptr)
@@ -120,6 +134,8 @@ Extern
 	Function bmx_gdal_OGRDataSource_GetLayerCount:Int(handle:Byte Ptr)
 	Function bmx_gdal_OGRDataSource_GetLayer:Byte Ptr(handle:Byte Ptr, index:Int)
 	Function bmx_gdal_OGRDataSource_GetLayerByName:Byte Ptr(handle:Byte Ptr, name:String)
+	Function bmx_gdal_OGRDataSource_DeleteLayer:Int(handle:Byte Ptr, layer:Int)
+	Function bmx_gdal_OGRDataSource_TestCapability:Int(handle:Byte Ptr, name:String)
 
 	Function bmx_gdal_OGRFieldDefn_create:Byte Ptr(name:String, fieldType:Int)
 	Function bmx_gdal_OGRFieldDefn_free(handle:Byte Ptr)
@@ -203,39 +219,39 @@ Const wkbGeometryCollection:Int = 7
 Rem
 bbdoc: non-standard, for pure attribute records
 end rem
-Const wkbNone:Int = 8
+Const wkbNone:Int = 100
 Rem
 bbdoc: non-standard, just for createGeometry()
 end rem
-Const wkbLinearRing:Int = 9
+Const wkbLinearRing:Int = 101
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbPoint25D:Int = 10
+Const wkbPoint25D:Int = $80000001
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbLineString25D:Int = 11
+Const wkbLineString25D:Int = $80000002
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbPolygon25D:Int = 12
+Const wkbPolygon25D:Int = $80000003
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbMultiPoint25D:Int = 13
+Const wkbMultiPoint25D:Int = $80000004
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbMultiLineString25D:Int = 14
+Const wkbMultiLineString25D:Int = $80000005
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbMultiPolygon25D:Int = 15
+Const wkbMultiPolygon25D:Int = $80000006
 Rem
 bbdoc: 2.5D extension as per 99-402
 end rem
-Const wkbGeometryCollection25D:Int = 16
+Const wkbGeometryCollection25D:Int = $80000007
 
 
 Rem
@@ -361,5 +377,90 @@ Const CE_Warning:Int = 2
 Const CE_Failure:Int = 3
 Const CE_Fatal:Int = 4
 
+Const OJUndefined:Int = 0
+Const OJLeft:Int = 1
+Const OJRight:Int = 2
 
+Const OLCRandomRead:String = "RandomRead"
+Const OLCSequentialWrite:String = "SequentialWrite"
+Const OLCRandomWrite:String = "RandomWrite"
+Const OLCFastSpatialFilter:String = "FastSpatialFilter"
+Const OLCFastFeatureCount:String = "FastFeatureCount"
+Const OLCFastGetExtent:String = "FastGetExtent"
+Const OLCCreateField:String = "CreateField"
+Const OLCTransactions:String = "Transactions"
+Const OLCDeleteFeature:String = "DeleteFeature"
+Const OLCFastSetNextByIndex:String = "FastSetNextByIndex"
+Const OLCStringsAsUTF8:String = "StringsAsUTF8"
+Const ODsCCreateLayer:String = "CreateLayer"
+Const ODsCDeleteLayer:String = "DeleteLayer"
+Const ODrCCreateDataSource:String = "CreateDataSource"
+Const ODrCDeleteDataSource:String = "DeleteDataSource"
 
+Const OGRSTCNone:Int = 0
+Const OGRSTCPen:Int = 1
+Const OGRSTCBrush:Int = 2
+Const OGRSTCSymbol:Int = 3
+Const OGRSTCLabel:Int = 4
+Const OGRSTCVector:Int = 5
+
+Const OGRSTUGround:Int = 0
+Const OGRSTUPixel:Int = 1
+Const OGRSTUPoints:Int = 2
+Const OGRSTUMM:Int = 3
+Const OGRSTUCM:Int = 4
+Const OGRSTUInches:Int = 5
+
+Const OGRSTPenColor:Int = 0
+Const OGRSTPenWidth:Int = 1
+Const OGRSTPenPattern:Int = 2
+Const OGRSTPenId:Int = 3
+Const OGRSTPenPerOffset:Int = 4
+Const OGRSTPenCap:Int = 5
+Const OGRSTPenJoin:Int = 6
+Const OGRSTPenPriority:Int = 7
+ 
+Const OGRSTBrushFColor:Int = 0
+Const OGRSTBrushBColor:Int = 1
+Const OGRSTBrushId:Int = 2
+Const OGRSTBrushAngle:Int = 3
+Const OGRSTBrushSize:Int = 4
+Const OGRSTBrushDx:Int = 5
+Const OGRSTBrushDy:Int = 6
+Const OGRSTBrushPriority:Int = 7
+  
+Const OGRSTSymbolId:Int = 0
+Const OGRSTSymbolAngle:Int = 1
+Const OGRSTSymbolColor:Int = 2
+Const OGRSTSymbolSize:Int = 3
+Const OGRSTSymbolDx:Int = 4
+Const OGRSTSymbolDy:Int = 5
+Const OGRSTSymbolStep:Int = 6
+Const OGRSTSymbolPerp:Int = 7
+Const OGRSTSymbolOffset:Int = 8
+Const OGRSTSymbolPriority:Int = 9
+Const OGRSTSymbolFontName:Int = 10
+Const OGRSTSymbolOColor:Int = 11
+
+Const OGRSTLabelFontName:Int = 0
+Const OGRSTLabelSize:Int = 1
+Const OGRSTLabelTextString:Int = 2
+Const OGRSTLabelAngle:Int = 3
+Const OGRSTLabelFColor:Int = 4
+Const OGRSTLabelBColor:Int = 5
+Const OGRSTLabelPlacement:Int = 6
+Const OGRSTLabelAnchor:Int = 7
+Const OGRSTLabelDx:Int = 8
+Const OGRSTLabelDy:Int = 9
+Const OGRSTLabelPerp:Int = 10
+Const OGRSTLabelBold:Int = 11
+Const OGRSTLabelItalic:Int = 12
+Const OGRSTLabelUnderline:Int = 13
+Const OGRSTLabelPriority:Int = 14
+Const OGRSTLabelStrikeout:Int = 15
+Const OGRSTLabelStretch:Int = 16
+Const OGRSTLabelAdjHor:Int = 17
+Const OGRSTLabelAdjVert:Int = 18
+Const OGRSTLabelHColor:Int = 19
+Const OGRSTLabelOColor:Int = 20
+Const OGRSTLabelLast:Int = 21

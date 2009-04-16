@@ -424,10 +424,22 @@ Type GDALDriver Extends GDALMajorObject
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new dataset with this driver.
+	about: What argument values are legal for particular drivers is driver specific, and there is no way
+	to query in advance to establish legal values.
+	<p>
+	That method will try to validate the creation option list passed to the driver with the
+	GDALValidateCreationOptions() method. This check can be disabled by defining the configuration option
+	GDAL_VALIDATE_CREATION_OPTIONS=NO.
+	</p>
+	<p>
+	After you have finished working with the returned dataset, it is required to close it with Close().
+	This does not only close the file handle, but also ensures that all the data and metadata has been
+	written to the dataset (FlushCache() is not sufficient for that purpose).
+	</p>
 	End Rem
-	Method CreateDataset:GDALDataset(filename:String, xSize:Int, ySize:Int, bands:Int, dataType:Int, paramList:String[])
-	' TODO
+	Method CreateDataset:GDALDataset(filename:String, xSize:Int, ySize:Int, bands:Int, dataType:Int, paramList:String[] = Null)
+		Return GDALDataset._create(bmx_gdal_GDALDriver_CreateDataset(objectPtr, filename, xSize, ySize, bands, dataType, paramList))
 	End Method
 	
 	Rem
@@ -690,36 +702,66 @@ Type GDALRasterBand Extends GDALMajorObject
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Fills this band with a constant value.
+	about: GDAL makes no guarantees about what values pixels in newly created files are set to, so this
+	method can be used to clear a band to a specified "default" value. The fill value is passed in as a
+	double but this will be converted to the underlying type before writing to the file. An optional second
+	argument allows the imaginary component of a complex constant value to be specified.
+	End Rem
 	Method Fill:Int(realValue:Double, imaginaryValue:Double = 0)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_Fill(objectPtr, realValue, imaginaryValue)
 	End Method
 	
 	Method SetCategoryNames:Int(names:String[])
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Sets the no data value for this band.
+	about: To clear the nodata value, just set it with an "out of range" value. Complex band no data values
+	must have an imagery component of zero.
+	End Rem
 	Method SetNoDataValue:Int(value:Double)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetNoDataValue(objectPtr, value)
 	End Method
 	
 	Method SetColorTable:Int(table:GDALColorTable)
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Sets color interpretation of a band.
+	End Rem
 	Method SetColorInterpretation:Int(interp:Int)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetColorInterpretation(objectPtr, interp)
 	End Method
 	
+	Rem
+	bbdoc: Sets scaling offset.
+	about: Very few formats implement this method. When not implemented it will issue a CPLE_NotSupported
+	error and return CE_Failure.
+	End Rem
 	Method SetOffset:Int(offset:Double)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetOffset(objectPtr, offset)
 	End Method
 	
+	Rem
+	bbdoc: Sets scaling ratio.
+	about: Very few formats implement this method. When not implemented it will issue a CPLE_NotSupported
+	error and return CE_Failure.
+	End Rem
 	Method SetScale:Int(scale:Double)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetScale(objectPtr, scale)
 	End Method
 	
+	Rem
+	bbdoc: Sets unit type.
+	about: Set the unit type for a raster band. Values should be one of "" (the default indicating it is
+	unknown), "m" indicating meters, or "ft" indicating feet, though other nonstandard values are allowed.
+	End Rem
 	Method SetUnitType:Int(unitType:String)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetUnitType(objectPtr, unitType)
 	End Method
 	
 	Method GetStatistics:Int(approxOK:Int, force:Int, _min:Double Var, _max:Double Var, _mean:Double Var, _stddev:Double Var)
@@ -730,12 +772,22 @@ Type GDALRasterBand Extends GDALMajorObject
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Checks for arbitrary overviews.
+	about: This returns TRUE if the underlying datastore can compute arbitrary overviews efficiently,
+	such as is the case with OGDI over a network. Datastores with arbitrary overviews don't generally
+	have any fixed overviews, but the RasterIO() method can be used in downsampling mode to get overview
+	data efficiently.
+	End Rem
 	Method HasArbitraryOverviews:Int()
-	' TODO
+		Return bmx_gdal_GDALRasterBand_HasArbitraryOverviews(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of overview layers available. 
+	End Rem
 	Method GetOverviewCount:Int()
-	' TODO
+		Return bmx_gdal_GDALRasterBand_GetOverviewCount(objectPtr)
 	End Method
 	
 	Method GetOverview:GDALRasterBand(index:Int)
@@ -1053,7 +1105,9 @@ Function OGRCleanupAll()
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Manager for OGRSFDriver instances that will be used to try and open datasources.
+about: Normally the registrar is populated with standard drivers using the OGRRegisterAll() function.
+The driver registrar and all registered drivers may be cleaned up on shutdown using OGRCleanupAll(). 
 End Rem
 Type OGRSFDriverRegistrar
 
@@ -1088,22 +1142,20 @@ Type OGRSFDriverRegistrar
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Return the ids th datasource opened. 
 	End Rem
 	Function GetOpenDS:OGRDataSource(ids:Int)
+		Return OGRDataSource._create(bmx_gdal_OGRSFDriverRegistrar_GetOpenDS(ids))
 	End Function
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Function AutoLoadDrivers()
-	End Function
-
 End Type
 
 
 Rem
-bbdoc: 
+bbdoc: Represents an operational format driver.
+about: One OGRSFDriver derived type will normally exist for each file format registered for use,
+regardless of whether a file has or will be opened. The list of available drivers is normally managed
+by the OGRSFDriverRegistrar. 
 End Rem
 Type OGRSFDriver
 
@@ -1118,19 +1170,30 @@ Type OGRSFDriver
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Attempts to open file with this driver.
+	about: This method is what OGRSFDriverRegistrar uses to implement its Open() method. See it for more
+	details.
+	<p>
+	Note, drivers do not normally set their own (internal) m_poDriver value, so a direct call to this
+	method (instead of indirectly via OGRSFDriverRegistrar) will usually result in a datasource that
+	does not know what driver it relates to if GetDriver() is called on the datasource. The application
+	may directly call SetDriver() after opening with this method to avoid this problem.
 	End Rem
 	Method Open:OGRDataSource(name:String, update:Int = False)
+		Return OGRDataSource._create(bmx_gdal_OGRSFDriver_Open(objectPtr, name, update))
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method TestCapability:Int(capability:String)
+		Return bmx_gdal_OGRSFDriver_TestCapability(objectPtr, capability)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Attempts to create a new data source based on the passed driver.
+	about: The @options argument can be used to control driver specific creation options.
+	These options are normally documented in the format specific documentation.
 	End Rem
 	Method CreateDataSource:OGRDataSource(name:String, options:String[] = Null)
 		If options Then
@@ -1141,25 +1204,27 @@ Type OGRSFDriver
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Destroys a datasource.
+	about: Destroy the named datasource. Normally it would be safest if the datasource was not open at the time.
+	<p>
+	Whether this is a supported operation on this driver case be tested using TestCapability() on
+	ODrCDeleteDataSource.
+	</p>
 	End Rem
 	Method DeleteDataSource:Int(datasource:String)
+		Return bmx_gdal_OGRSFDriver_DeleteDataSource(objectPtr, datasource)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Fetches name of driver (file format).
+	about: This name should be relatively short (10-40 characters), and should reflect the underlying file
+	format. For instance "ESRI Shapefile".
 	End Rem
 	Method GetName:String()
+		Return bmx_gdal_OGRSFDriver_GetName(objectPtr)
 	End Method
 	
 End Type
-
-Rem
-bbdoc: Destroys a datasource.
-End Rem
-Function DestroyDataSource(source:OGRDataSource)
-' TODO
-End Function
 
 Rem
 bbdoc: A data source.
@@ -1214,19 +1279,30 @@ Type OGRDataSource
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Deletes the indicated layer from the datasource.
+	about: If this method is supported the ODsCDeleteLayer capability will test TRUE on the OGRDataSource.
 	End Rem
-	Method DeleteLayer:Int(index:Int)
+	Method DeleteLayer:Int(layer:Int)
+		Return bmx_gdal_OGRDataSource_DeleteLayer(objectPtr, layer)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Tests if capability is available.
+	about: One of the following data source capability names can be passed into this method, and a
+	TRUE or FALSE value will be returned indicating whether or not the capability is available
+	for this object.
+	<ul>
+	<li>ODsCCreateLayer: True if this datasource can create new layers.</li>
+	</ul>
 	End Rem
 	Method TestCapability:Int(name:String)
+		Return bmx_gdal_OGRDataSource_TestCapability(objectPtr, name)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Attempts to create a new layer on the data source with the indicated name, coordinate system, geometry type.
+	about: The @options argument can be used to control driver specific creation options. These options are
+	normally documented in the format specific documentation.
 	End Rem
 	Method CreateLayer:OGRLayer(name:String, spatialRef:	OGRSpatialReference = Null, gType:Int = wkbUnknown, options:String[] = Null)
 		If spatialRef Then
@@ -1245,7 +1321,7 @@ Type OGRDataSource
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Destroys the datasource and frees its resources.
 	End Rem
 	Method Free()
 		If objectPtr Then
@@ -1331,19 +1407,31 @@ Type OGRFieldDefn
 
 	Field objectPtr:Byte Ptr
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:OGRFieldDefn(name:String, fieldType:Int)
 		objectPtr = bmx_gdal_OGRFieldDefn_create(name, fieldType)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetWidth(width:Int)
 		bmx_gdal_OGRFieldDefn_SetWidth(objectPtr, width)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method SetPrecision(precision:Int)
 		bmx_gdal_OGRFieldDefn_SetPrecision(objectPtr, precision)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Free()
 		If objectPtr Then
 			bmx_gdal_OGRFieldDefn_free(objectPtr)
@@ -1377,6 +1465,9 @@ Type VRTDataset Extends GDALDataset
 		Return VRTSourcedRasterBand._create(bmx_gdal_GDALDataset_GetRasterBand(objectPtr, index))
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method AddBand:Int(dataType:Int, options:String[] = Null)
 		Return bmx_gdal_VRTDataset_AddBand(objectPtr, dataType, options)
 	End Method
@@ -1410,6 +1501,9 @@ Type VRTSourcedRasterBand Extends VRTRasterBand
 		End If
 	End Function
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method AddSimpleSource:Int( srcBand:GDALRasterBand, srcXOff:Int = -1, srcYOff:Int =-1, ..
 			srcXSize:Int =-1, srcYSize:Int =-1, dstXOff:Int =-1, dstYOff:Int =-1, dstXSize:Int =-1, dstYSize:Int =-1, ..
 			resampling:String = "near", noDataValue:Double = -1234.56)
