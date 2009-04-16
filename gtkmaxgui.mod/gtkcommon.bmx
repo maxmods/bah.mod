@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -142,7 +142,7 @@ Extern
 	Function gtk_fixed_put(container:Byte Ptr, widget:Byte Ptr, x:Int, y:Int)
 	Function gtk_fixed_move(container:Byte Ptr, widget:Byte Ptr, x:Int, y:Int)
 	Function gtk_container_add(container:Byte Ptr, widget:Byte Ptr)
-	Function gtk_container_set_resize_mode(container:Byte Ptr, mode:Int)
+	Function gtk_container_set_resize_mode(container:Byte Ptr, Mode:Int)
 	Function gtk_container_remove(container:Byte Ptr, widget:Byte Ptr)
 	Function gtk_container_get_border_width:Int(container:Byte Ptr)
 	Function gtk_container_get_resize_mode:Int(container:Byte Ptr)
@@ -257,7 +257,7 @@ Extern
  	Function gtk_text_buffer_new:Byte Ptr(tagtable:Byte Ptr)
 	Function gtk_text_view_new_with_buffer:Byte Ptr(buffer:Byte Ptr)
 	Function gtk_text_buffer_set_text(buffer:Byte Ptr, text:Byte Ptr, textlen:Int)
-	Function gtk_text_view_set_wrap_mode(handle:Byte Ptr, mode:Int)
+	Function gtk_text_view_set_wrap_mode(handle:Byte Ptr, Mode:Int)
 	Function gtk_text_view_set_editable(handle:Byte Ptr, bool:Int)
 	Function gtk_text_buffer_get_selection_bounds:Int(buffer:Byte Ptr, iterstart:Byte Ptr, iterend:Byte Ptr)
 	Function gtk_text_iter_get_line:Int(iter:Byte Ptr)
@@ -398,7 +398,7 @@ Extern
 	Function gtk_tree_view_get_selection:Byte Ptr(view:Byte Ptr)
 	Function gtk_tree_selection_select_iter(sel:Byte Ptr, iter:Byte Ptr)
 	Function gtk_tree_selection_unselect_iter(sel:Byte Ptr, iter:Byte Ptr)
-	Function gtk_tree_selection_set_mode(sel:Byte Ptr, mode:Int)
+	Function gtk_tree_selection_set_mode(sel:Byte Ptr, Mode:Int)
 	Function gtk_tree_selection_iter_is_selected:Int(sel:Byte Ptr, iter:Byte Ptr)
 	Function gtk_tree_selection_get_selected:Int(sel:Byte Ptr, model:Byte Ptr Ptr, iter:Byte Ptr)
 	Function gtk_tree_model_get_string_from_iter:Byte Ptr(sel:Byte Ptr, iter:Byte Ptr)
@@ -483,7 +483,10 @@ Extern
 	Function gtk_accel_map_add_entry(path:Byte Ptr, key:Int, modifier:Int)
 	Function gtk_accel_map_change_entry:Int(path:Byte Ptr, key:Int, modifier:Int, rep:Int)
 	Function gtk_accelerator_name:Byte Ptr(keycode:Int, modifier:Int)
-	
+	Function gtk_accelerator_parse(accelString:Byte Ptr, accelKey:Int Ptr, modKey:Int Ptr)
+	'Function gtk_widget_add_accelerator(handle:Byte Ptr, action:Byte Ptr, accelGroup:Byte Ptr, accelKey:Int, modKey:Int, flags:Int)
+	Function gtk_widget_remove_accelerator(handle:Byte Ptr, accelGroup:Byte Ptr, accelKey:Int, modKey:Int)
+
 	' types
 	Function gnome_canvas_group_get_type:Int()
 	Function gnome_canvas_widget_get_type:Int()

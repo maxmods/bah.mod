@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -493,6 +493,148 @@ Type TGTKKeyMap
 		Return gtkmap
 	End Function
 
+	Function accelToString:String(key:Int, modifier:Int)
+		Local accel:String
+		
+		If modifier & MODIFIER_SHIFT Then    'shift key
+			accel:+ "<shift>"
+		End If
+
+		If modifier & MODIFIER_CONTROL Then  'ctrl key
+			accel:+ "<control>"
+		End If
+
+		If modifier & MODIFIER_OPTION Then   'alt or menu key
+			accel:+ "<alt>"
+		End If
+		
+		Global map:String[]
+
+		If Not map Then
+			map = New String[255]
+
+			map[KEY_BACKSPACE] = "BackSpace"
+			map[KEY_TAB] = "Tab"
+			map[KEY_CLEAR] = "Clear"
+			map[KEY_RETURN] = "Return"
+			map[KEY_ENTER] = "Linefeed"
+			map[KEY_ESCAPE] = "Escape"
+			map[KEY_SPACE] = "space"
+			map[KEY_PAGEUP] = "Page_Up"
+			map[KEY_PAGEDOWN] = "Page_Down"
+			map[KEY_END] = "End"
+			map[KEY_HOME] = "Begin"
+			
+			map[KEY_LEFT] = "Left"
+			map[KEY_UP] = "Up"
+			map[KEY_RIGHT] = "Right"
+			map[KEY_DOWN] = "Down"
+			
+			map[KEY_SELECT] = "Select"
+			map[KEY_PRINT] = "Print"
+			map[KEY_EXECUTE] = "Execute"
+			map[KEY_SCREEN] =  "Sys_Reqv"
+			map[KEY_INSERT] = "Insert"
+			map[KEY_DELETE] = "Delete"
+
+
+			map[KEY_0] = "0"
+			map[KEY_1] = "1"
+			map[KEY_2] = "2"
+			map[KEY_3] = "3"
+			map[KEY_4] = "4"
+			map[KEY_5] = "5"
+			map[KEY_6] = "6"
+			map[KEY_7] = "7"
+			map[KEY_8] = "8"
+			map[KEY_9] = "9"
+			map[KEY_A] = "a"
+			map[KEY_B] = "b"
+			map[KEY_C] = "c"
+			map[KEY_D] = "d"
+			map[KEY_E] = "e"
+			map[KEY_F] = "f"
+			map[KEY_G] = "g"
+			map[KEY_H] = "h"
+			map[KEY_I] = "i"
+			map[KEY_J] = "j"
+			map[KEY_K] = "k"
+			map[KEY_L] = "l"
+			map[KEY_M] = "m"
+			map[KEY_N] = "n"
+			map[KEY_O] = "o"
+			map[KEY_P] = "p"
+			map[KEY_Q] = "q"
+			map[KEY_R] = "r"
+			map[KEY_S] = "s"
+			map[KEY_T] = "t"
+			map[KEY_U] = "u"
+			map[KEY_V] = "v"
+			map[KEY_W] = "w"
+			map[KEY_X] = "x"
+			map[KEY_Y] = "y"
+			map[KEY_Z] = "z"
+
+			map[KEY_NUM0] = "KP_0"
+			map[KEY_NUM1] = "KP_1"
+			map[KEY_NUM2] = "KP_2"
+			map[KEY_NUM3] = "KP_3"
+			map[KEY_NUM4] = "KP_4"
+			map[KEY_NUM5] = "KP_5"
+			map[KEY_NUM6] = "KP_6"
+			map[KEY_NUM7] = "KP_7"
+			map[KEY_NUM8] = "KP_8"
+			map[KEY_NUM9] = "KP_9"
+			
+			map[KEY_NUMMULTIPLY] = "KP_Multiply"
+			map[KEY_NUMADD] = "KP_Add"
+			map[KEY_NUMSUBTRACT] = "KP_Subtract"
+			map[KEY_NUMDECIMAL] = "KP_Decimal"
+			map[KEY_NUMDIVIDE] = "KP_Divide"
+			
+			map[KEY_F1] = "F1"
+			map[KEY_F2] = "F2"
+			map[KEY_F3] = "F3"
+			map[KEY_F4] = "F4"
+			map[KEY_F5] = "F5"
+			map[KEY_F6] = "F6"
+			map[KEY_F7] = "F7"
+			map[KEY_F8] = "F8"
+			map[KEY_F9] = "F9"
+			map[KEY_F10] = "F10"
+			map[KEY_F11] = "F11"
+			map[KEY_F12] = "F12"
+			
+			map[KEY_TILDE] = "quotedbl"
+			map[KEY_MINUS] = "minus"
+			map[KEY_EQUALS] = "plus"
+			
+			map[KEY_OPENBRACKET] = "bracketleft"
+			map[KEY_CLOSEBRACKET] = "bracketright"
+			map[KEY_BACKSLASH] = "backslash"
+			
+			map[KEY_SEMICOLON] = "semicolon"
+			map[KEY_QUOTES] = "at"
+			
+			map[KEY_COMMA] = "comma"
+			map[KEY_PERIOD] = "period"
+			map[KEY_SLASH] = "slash"
+			
+			map[KEY_LSHIFT] = "Shift_L"
+			map[KEY_RSHIFT] = "Shift_R"
+			map[KEY_LCONTROL] = "Control_L"
+			map[KEY_RCONTROL] = "Control_R"
+			map[KEY_LALT] = "Alt_L"
+			map[KEY_RALT] = "Alt_R"
+			map[KEY_LSYS] = "Meta_L"
+			map[KEY_RSYS] = "Meta_R"
+
+		End If
+		
+		Return accel + map[key]
+
+	End Function
+	
 End Type
 
 

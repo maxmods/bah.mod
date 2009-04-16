@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,7 @@ Type TGTKGadget Extends TGadget
 
 	' a unique identifier for this gadget
 	Field accelMapId:String
+	Field accelString:String
 	
 	' the class id of this gadget in MaxGUI terms.
 	Field maxguiClass:Int
@@ -108,15 +109,30 @@ Type TGTKGadget Extends TGadget
 	End Method
 	
 	Method setAccelEntry:String(keycode:Int, modifier:Int)
-		Local path:String = gtkCheckAndConvert(getAccelPath())
-
-		If Not gtk_accel_map_lookup_entry(path) Then
-			 gtk_accel_map_add_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier))
-		Else
-			gtk_accel_map_change_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier), True)
+		Local accelKey:Int
+		Local modKey:Int
+		
+		If accelString Then
+			gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
+			If accelKey <> 0 Then
+				gtk_widget_remove_accelerator(handle, getWindow().accelGroup, accelKey, modKey)
+			End If
 		End If
+	
+		accelString = TGTKKeyMap.accelToString(keycode, modifier)
+		gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
+		
+		gtk_widget_add_accelerator(handle, "activate", getWindow().accelGroup, accelKey, modKey, GTK_ACCEL_VISIBLE)
 
-		Return path
+		'Local path:String = gtkCheckAndConvert(getAccelPath())
+
+		'If Not gtk_accel_map_lookup_entry(path) Then
+		'	 gtk_accel_map_add_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier))
+		'Else
+		'	gtk_accel_map_change_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier), True)
+		'End If
+
+		'Return path
 	End Method
 	
 	Method setAccelMapId(id:String)
@@ -1254,12 +1270,13 @@ Type TGTKButton Extends TGTKGadget
 	bbdoc: Sets a hot key for the button.
 	End Rem
 	Method SetHotKey(keycode:Int, modifier:Int)
-		Local path:String = setAccelEntry(keycode, modifier)
-		If keycode = 0 Then
-			gtk_widget_set_accel_path(handle, Null, getWindow().accelGroup)
-		Else
-			gtk_widget_set_accel_path(handle, path, getWindow().accelGroup)
-		End If
+		'Local path:String = 
+		setAccelEntry(keycode, modifier)
+		'If keycode = 0 Then
+		'	gtk_widget_set_accel_path(handle, Null, getWindow().accelGroup)
+		'Else
+		'	gtk_widget_set_accel_path(handle, path, getWindow().accelGroup)
+		'End If
 	End Method
 
 	Method toString:String()
@@ -1867,12 +1884,13 @@ Type TGTKMenuItem Extends TGTKGadget
 		myKeycode = keycode
 		myModifier = modifier
 		
-		Local path:String = setAccelEntry(keycode, modifier)
-		If keycode = 0 Then
-			gtk_menu_item_set_accel_path(handle, Null)
-		Else
-			gtk_menu_item_set_accel_path(handle, path)
-		End If
+		'Local path:String = 
+		setAccelEntry(keycode, modifier)
+		'If keycode = 0 Then
+		'	gtk_menu_item_set_accel_path(handle, Null)
+		'Else
+		'	gtk_menu_item_set_accel_path(handle, path)
+		'End If
 		
 		' override F10 menu access?
 		If keycode = KEY_F10 And modifier = 0 Then
@@ -5093,7 +5111,7 @@ End Rem
 Type TGTKCanvas Extends TGTKGadget
 
 	Field canvas:TGraphics
-	Field mode:Int
+	Field Mode:Int
 	
 
 	Function CreateCanvas:TGTKCanvas(x:Int, y:Int, w:Int, h:Int, label:String, group:TGadget, style:Int)
@@ -5146,12 +5164,12 @@ Type TGTKCanvas Extends TGTKGadget
 	End Function
 	
 	Method AttachGraphics:TGraphics( flags:Int )
-		mode = flags
+		Mode = flags
 	End Method
 
 	Method CanvasGraphics:TGraphics()
 		If Not canvas Then
-			canvas = BRL.Graphics.AttachGraphics(gdk_x11_drawable_get_xid(Byte Ptr(Int Ptr(handle + _OFFSET_GTK_WINDOW)[0])), mode)
+			canvas = BRL.Graphics.AttachGraphics(gdk_x11_drawable_get_xid(Byte Ptr(Int Ptr(handle + _OFFSET_GTK_WINDOW)[0])), Mode)
 		End If
 
 		Return canvas

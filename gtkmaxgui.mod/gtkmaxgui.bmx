@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2008 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,6 @@ ModuleInfo "History: Changed to use new Maxgui namespace."
 ModuleInfo "History: Removed pixmap field from TGTKIconStrip."
 ModuleInfo "History: Fixed window activate showing window if not visible."
 ModuleInfo "History: Added support for PANELPIXMAP_FIT2."
-ModuleInfo "History: Made driver Poll span more potential iterations."
 ModuleInfo "History: Fixed generation of radio button 'clicks' when calling SetGadgetState."
 ModuleInfo "History: Modified number of action emits when radio button changed."
 ModuleInfo "History: Added support for GetClass()."
@@ -44,6 +43,8 @@ ModuleInfo "History: Added basic sensitivity support."
 ModuleInfo "History: Added SetPixmap support for menu items."
 ModuleInfo "History: Added GetTooltip support."
 ModuleInfo "History: Added LoadFontWithDouble support."
+ModuleInfo "History: Fixed slowdown issues with BlitzMax 1.32."
+ModuleInfo "History: Improved hotkey/menu item support."
 ModuleInfo "History: 1.19"
 ModuleInfo "History: Fixed x,y coords returned by Panel MouseMove events. Now calculated relative to parent widget."
 ModuleInfo "History: 1.18"
