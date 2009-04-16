@@ -30,17 +30,13 @@ Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 	Field	gui:TGTKGUIDriver
 	
 	Method Poll()
-		Local count:Int = 25
-		While gtk_events_pending() And count
+		While gtk_events_pending()
 			gtk_main_iteration_do(False)
-			count:- 1
 		Wend
-		Super.Poll()
 	End Method
 		
 	Method Wait()
 		gtk_main_iteration_do(True)
-		Super.Wait()
 	End Method
 			
 	Function Create:TGTKGuiSystemDriver(host:TGTKGUIDriver)
@@ -182,8 +178,8 @@ Type TGTKSystemDriver Extends TSystemDriver
 				reqButton, GTK_RESPONSE_ACCEPT, Null)
 		End If
 
-		Local current:String = CurrentDir()
-		gtk_file_chooser_set_current_folder(req, gtkCheckAndConvert(current))
+		Local Current:String = CurrentDir()
+		gtk_file_chooser_set_current_folder(req, gtkCheckAndConvert(Current))
 
 		' set the path if there was one.
 		If file <> Null And file.length > 0 Then
