@@ -2361,7 +2361,7 @@ Type TGTKTextArea Extends TGTKEditable
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
-			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
+			' ignore this...  see MouseUp for menu event!
 			Return True
 		End If
 
@@ -2377,7 +2377,7 @@ Type TGTKTextArea Extends TGTKEditable
 		Local button:Int = Int Ptr(event + 40)[0]
 
 		If button = 3 Then ' right mouse button
-			' do nothing... we already raised a menu event when the button was pressed.
+			PostGuiEvent(EVENT_GADGETMENU, TGadget(obj),,,x,y)
 			Return True
 		End If
 
@@ -2411,6 +2411,7 @@ Type TGTKTextArea Extends TGTKEditable
 
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
 		gtk_text_view_scroll_to_iter(handle, _end, 0, False, 0, 0)
+		gtk_widget_queue_draw(handle)
 	End Method
 
 	Rem
@@ -4736,9 +4737,15 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	End Function
 
 	Method refreshPath(index:Int)
-		_path = TGTKTreeViewNode(parent)._path
-		If TGTKTreeViewNode(parent)._path.length > 0 Then
-			_path:+ ":"
+		Assert myIter, "Null Iterator!"
+	
+		If parent Then
+			_path = TGTKTreeViewNode(parent)._path
+			If TGTKTreeViewNode(parent)._path.length > 0 Then
+				_path:+ ":"
+			End If
+		Else
+			_path = ""
 		End If
 		_path:+ index
 
@@ -4829,6 +4836,11 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 	bbdoc: Changes the tree node text and icon
 	End Rem
 	Method ModifyNode(text:String, icon:Int)
+		' not allowed to modify the root node... quietly ignore the request.
+		If isRoot Then
+			Return
+		End If
+
 		_text = text
 		populateListRow(-1, text, Null, icon, myIter)
 	End Method
@@ -4872,9 +4884,13 @@ Type TGTKTreeViewNode Extends TGTKListWithScrollWindow
 			scrollWindow = Null
 			handle = Null
 		Else
-			gtk_tree_store_remove(_store, myIter)
-			myIter = Null
-			TGTKTreeViewNode(parent).refreshChildPaths()
+			' this should always be true... if not, we really want to throw an assertion.
+			' Assert myIter, "Trying to Free() a node twice?"
+			If myIter Then
+				gtk_tree_store_remove(_store, myIter)
+				myIter = Null
+				TGTKTreeViewNode(parent).refreshChildPaths()
+			End If
 		End If
 		
 	End Method
