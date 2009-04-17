@@ -124,6 +124,9 @@ extern "C" {
 
 	OGRSpatialReference * bmx_gdal_OGRSpatialReference_create(BBString * ref);
 	void bmx_gdal_OGRSpatialReference_free(OGRSpatialReference * handle);
+	OGRSpatialReference * bmx_gdal_OGRSpatialReference_Clone(OGRSpatialReference * handle);
+	OGRSpatialReference * bmx_gdal_OGRSpatialReference_CloneGeogCS(OGRSpatialReference * handle);
+	BBString * bmx_gdal_OGRSpatialReference_ExportToWkt(OGRSpatialReference * handle, OGRErr * result);
 
 	void bmx_gdal_OGRRegisterAll();
 	void bmx_gdal_OGRCleanupAll();

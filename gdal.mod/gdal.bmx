@@ -1375,15 +1375,230 @@ End Rem
 Type OGRSpatialReference
 
 	Field objectPtr:Byte Ptr
-	
+
+	Function _create:OGRSpatialReference(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:OGRSpatialReference = New OGRSpatialReference
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new OGRSpatialReference object.
+	about: Takes an optional string argument which if passed should be a WKT representation of an SRS.
+	Passing this is equivalent to not passing it, and then calling ImportFromWkt() with the WKT string.
 	End Rem
 	Method Create:OGRSpatialReference(ref:String)
 		objectPtr = bmx_gdal_OGRSpatialReference_create(ref)
 		Return Self
 	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Clone:OGRSpatialReference()
+		Return OGRSpatialReference._create(bmx_gdal_OGRSpatialReference_Clone(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method CloneGeogCS:OGRSpatialReference()
+		Return OGRSpatialReference._create(bmx_gdal_OGRSpatialReference_CloneGeogCS(objectPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method ExportToWkt:Int(result:String Var)
+		Local res:Int
+		result = bmx_gdal_OGRSpatialReference_ExportToWkt(objectPtr, Varptr res)
+		Return res
+	End Method
+	
+	Method ExportToPrettyWkt:Int(result:String Var, simplify:Int = False)
+	' TODO
+	End Method
+	
+	Method morphToESRI:Int()
+	' TODO
+	End Method
+	
+	Method morphFromESRI:Int()
+	' TODO
+	End Method
+	
+	Method Validate:Int()
+	' TODO
+	End Method
+	
+	Method StripCTParms:Int(node:OGR_SRSNode = Null)
+	' TODO
+	End Method
+	
+	Method FixupOrdering:Int()
+	' TODO
+	End Method
+	
+	Method Fixup:Int()
+	' TODO
+	End Method
+	
+	Method EPSGTreatsAsLatLong:Int()
+	' TODO
+	End Method
 
+	Method SetLinearUnitsAndUpdateParameters:Int(name:String, inMeters:Double)
+	' TODO
+	End Method
+
+	Method SetLinearUnits:Int(name:String, inMeters:Double)
+	' TODO
+	End Method
+
+	Method GetLinearUnits:Double(name:String Var)
+	' TODO
+	End Method
+
+	Method SetAngularUnits:Int(name:String, inRadians:Double)
+	' TODO
+	End Method
+
+	Method GetAngularUnits:Double(name:String Var)
+	' TODO
+	End Method
+
+	Method GetPrimeMeridian:Double(name:String Var)
+	' TODO
+	End Method
+
+	Method IsGeographic:Int()
+	' TODO
+	End Method
+
+	Method IsProjected:Int()
+	' TODO
+	End Method
+
+	Method IsLocal:Int()
+	' TODO
+	End Method
+
+	Method IsSameGeogCS:Int(ref:OGRSpatialReference)
+	' TODO
+	End Method
+
+	Method IsSame:Int(ref:OGRSpatialReference)
+	' TODO
+	End Method
+
+	Method Clear()
+	' TODO
+	End Method
+
+	Method SetLocalCS:Int(name:String)
+	' TODO
+	End Method
+
+	Method SetProjCS:Int(name:String)
+	' TODO
+	End Method
+
+	Method SetProjection:Int(name:String)
+	' TODO
+	End Method
+
+	Method SetGeogCS:Int(geogName:String, datumName:String, ellipsoidName:String, semiMajor:Double, ..
+			invFlattening:Double, pmName:String = Null, pmOffset:Double = 0.0, units:String = Null, ..
+			convertToRadians:Double = 0.0)
+	' TODO
+	End Method
+
+	Method SetWellKnownGeogCS:Int(name:String)
+	' TODO
+	End Method
+
+	Method CopyGeogCSFrom:Int(srcSRS:OGRSpatialReference)
+	' TODO
+	End Method
+
+	Method SetFromUserInput:Int(definition:String)
+	' TODO
+	End Method
+
+	Method SetTOWGS84:Int(dfDX:Double, dy:Double, dz:Double, ex:Double = 0.0, ey:Double = 0.0, ez:Double = 0.0, ppm:Double = 0.0)
+	' TODO
+	End Method
+
+	Method GetTOWGS84:Int(padfCoef:Double[])
+	' TODO
+	End Method
+
+	Method GetSemiMajor:Int(semiMajor:Double Var)
+	' TODO
+	End Method
+
+	Method GetSemiMinor:Int(semiMinor:Double Var)
+	' TODO
+	End Method
+
+	Method GetInvFlattening:Int(invFlattening:Double Var)
+	' TODO
+	End Method
+
+	Method SetAuthority:Int(targetKey:String, authority:String, code:Int)
+	' TODO
+	End Method
+
+	Method AutoIdentifyEPSG:Int()
+	' TODO
+	End Method
+
+	Method GetAuthorityCode:String(targetKey:String)
+	' TODO
+	End Method
+
+	Method GetAuthorityName:String(targetKey:String)
+	' TODO
+	End Method
+
+	Method GetExtension:String(targetKey:String, name:String, defaultValue:String = Null)
+	' TODO
+	End Method
+
+	Method SetExtension:Int(targetKey:String, name:String, value:String)
+	' TODO
+	End Method
+
+	Method FindProjParm:Int(parameter:String, PROJCS:OGR_SRSNode = Null)
+	' TODO
+	End Method
+
+	Method SetProjParm:Int(name:String, value:Double)
+	' TODO
+	End Method
+
+	Method GetProjParm:Int(name:String, result:Double Var, defauleValue:Double = 0.0)
+	' TODO
+	End Method
+
+	Method SetNormProjParm:Int(name:String, value:Double)
+	' TODO
+	End Method
+
+	Method GetNormProjParm:Int(name:String, result:Double Var, defaultValue:Double = 0.0)
+	' TODO
+	End Method
+
+	Method SetUTM:Int(zone:Int, north:Int = True)
+	' TODO
+	End Method
+	
+	Method GetUTMZone:Int(north:Int Var)
+	' TODO
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem
@@ -1444,6 +1659,11 @@ Type OGRFieldDefn
 	End Method
 
 End Type
+
+
+Type OGR_SRSNode
+End Type
+
 
 Rem
 bbdoc: 
@@ -1517,6 +1737,4 @@ End Type
 
 Type VRTDriver Extends GDALDriver
 End Type
-
-
 

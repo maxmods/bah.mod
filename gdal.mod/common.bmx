@@ -115,6 +115,9 @@ Extern
 
 	Function bmx_gdal_OGRSpatialReference_create:Byte Ptr(ref:String)
 	Function bmx_gdal_OGRSpatialReference_free(handle:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_Clone:Byte Ptr(handle:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_CloneGeogCS:Byte Ptr(handle:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_ExportToWkt:String(handle:Byte Ptr, result:Int Ptr)
 
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriverCount:Int()
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriver:Byte Ptr(index:Int)
@@ -464,3 +467,109 @@ Const OGRSTLabelAdjVert:Int = 18
 Const OGRSTLabelHColor:Int = 19
 Const OGRSTLabelOColor:Int = 20
 Const OGRSTLabelLast:Int = 21
+
+Const SRS_PT_ALBERS_CONIC_EQUAL_AREA:String = "Albers_Conic_Equal_Area"
+Const SRS_PT_AZIMUTHAL_EQUIDISTANT:String = "Azimuthal_Equidistant"
+Const SRS_PT_CASSINI_SOLDNER:String = "Cassini_Soldner"
+Const SRS_PT_CYLINDRICAL_EQUAL_AREA:String = "Cylindrical_Equal_Area"
+Const SRS_PT_BONNE:String = "Bonne"
+Const SRS_PT_ECKERT_I:String = "Eckert_I"
+Const SRS_PT_ECKERT_II:String = "Eckert_II"
+Const SRS_PT_ECKERT_III:String = "Eckert_III"
+Const SRS_PT_ECKERT_IV:String = "Eckert_IV"
+Const SRS_PT_ECKERT_V:String = "Eckert_V"
+Const SRS_PT_ECKERT_VI:String = "Eckert_VI"
+Const SRS_PT_EQUIDISTANT_CONIC:String = "Equidistant_Conic"
+Const SRS_PT_EQUIRECTANGULAR:String = "Equirectangular"
+Const SRS_PT_GALL_STEREOGRAPHIC:String = "Gall_Stereographic"
+Const SRS_PT_GAUSSSCHREIBERTMERCATOR:String = "Gauss_Schreiber_Transverse_Mercator"
+Const SRS_PT_GEOSTATIONARY_SATELLITE:String = "Geostationary_Satellite"
+Const SRS_PT_GOODE_HOMOLOSINE:String = "Goode_Homolosine"
+Const SRS_PT_GNOMONIC:String = "Gnomonic"
+Const SRS_PT_HOTINE_OBLIQUE_MERCATOR:String = "Hotine_Oblique_Mercator"
+Const SRS_PT_HOTINE_OBLIQUE_MERCATOR_TWO_POINT_NATURAL_ORIGIN:String = "Hotine_Oblique_Mercator_Two_Point_Natural_Origin"
+Const SRS_PT_LABORDE_OBLIQUE_MERCATOR:String = "Laborde_Oblique_Mercator"
+Const SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP:String = "Lambert_Conformal_Conic_1SP"
+Const SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP:String = "Lambert_Conformal_Conic_2SP"
+Const SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP_BELGIUM:String = "Lambert_Conformal_Conic_2SP_Belgium"
+Const SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA:String = "Lambert_Azimuthal_Equal_Area"
+Const SRS_PT_MERCATOR_1SP:String = "Mercator_1SP"
+Const SRS_PT_MERCATOR_2SP:String = "Mercator_2SP"
+Const SRS_PT_MILLER_CYLINDRICAL:String = "Miller_Cylindrical"
+Const SRS_PT_MOLLWEIDE:String = "Mollweide"
+Const SRS_PT_NEW_ZEALAND_MAP_GRID:String = "New_Zealand_Map_Grid"
+Const SRS_PT_OBLIQUE_STEREOGRAPHIC:String = "Oblique_Stereographic"
+Const SRS_PT_ORTHOGRAPHIC:String = "Orthographic"
+Const SRS_PT_POLAR_STEREOGRAPHIC:String = "Polar_Stereographic"
+Const SRS_PT_POLYCONIC:String = "Polyconic"
+Const SRS_PT_ROBINSON:String = "Robinson"
+Const SRS_PT_SINUSOIDAL:String = "Sinusoidal"
+Const SRS_PT_STEREOGRAPHIC:String = "Stereographic"
+Const SRS_PT_SWISS_OBLIQUE_CYLINDRICAL:String = "Swiss_Oblique_Cylindrical"
+Const SRS_PT_TRANSVERSE_MERCATOR:String = "Transverse_Mercator"
+Const SRS_PT_TRANSVERSE_MERCATOR_SOUTH_ORIENTED:String = "Transverse_Mercator_South_Orientated"
+ 
+' special mapinfo variants on Transverse Mercator
+Const SRS_PT_TRANSVERSE_MERCATOR_MI_21:String = "Transverse_Mercator_MapInfo_21"
+Const SRS_PT_TRANSVERSE_MERCATOR_MI_22:String = "Transverse_Mercator_MapInfo_22"
+Const SRS_PT_TRANSVERSE_MERCATOR_MI_23:String = "Transverse_Mercator_MapInfo_23"
+Const SRS_PT_TRANSVERSE_MERCATOR_MI_24:String = "Transverse_Mercator_MapInfo_24"
+Const SRS_PT_TRANSVERSE_MERCATOR_MI_25:String = "Transverse_Mercator_MapInfo_25"
+
+Const SRS_PT_TUNISIA_MINING_GRID:String = "Tunisia_Mining_Grid"
+Const SRS_PT_TWO_POINT_EQUIDISTANT:String = "Two_Point_Equidistant"
+Const SRS_PT_VANDERGRINTEN:String = "VanDerGrinten"
+Const SRS_PT_KROVAK:String = "Krovak"
+Const SRS_PT_IMW_POLYCONIC:String = "International_Map_of_the_World_Polyconic"
+Const SRS_PT_WAGNER_I:String = "Wagner_I"
+Const SRS_PT_WAGNER_II:String = "Wagner_II"
+Const SRS_PT_WAGNER_III:String = "Wagner_III"
+Const SRS_PT_WAGNER_IV:String = "Wagner_IV"
+Const SRS_PT_WAGNER_V:String = "Wagner_V"
+Const SRS_PT_WAGNER_VI:String = "Wagner_VI"
+Const SRS_PT_WAGNER_VII:String = "Wagner_VII"
+
+Const SRS_PP_CENTRAL_MERIDIAN:String = "central_meridian"
+Const SRS_PP_SCALE_FACTOR:String = "scale_factor"
+Const SRS_PP_STANDARD_PARALLEL_1:String = "standard_parallel_1"
+Const SRS_PP_STANDARD_PARALLEL_2:String = "standard_parallel_2"
+Const SRS_PP_PSEUDO_STD_PARALLEL_1:String = "pseudo_standard_parallel_1"
+Const SRS_PP_LONGITUDE_OF_CENTER:String = "longitude_of_center"
+Const SRS_PP_LATITUDE_OF_CENTER:String = "latitude_of_center"
+Const SRS_PP_LONGITUDE_OF_ORIGIN:String = "longitude_of_origin"
+Const SRS_PP_LATITUDE_OF_ORIGIN:String = "latitude_of_origin"
+Const SRS_PP_FALSE_EASTING:String = "false_easting"
+Const SRS_PP_FALSE_NORTHING:String = "false_northing"
+Const SRS_PP_AZIMUTH:String = "azimuth"
+Const SRS_PP_LONGITUDE_OF_POINT_1:String = "longitude_of_point_1"
+Const SRS_PP_LATITUDE_OF_POINT_1:String = "latitude_of_point_1"
+Const SRS_PP_LONGITUDE_OF_POINT_2:String = "longitude_of_point_2"
+Const SRS_PP_LATITUDE_OF_POINT_2:String = "latitude_of_point_2"
+Const SRS_PP_LONGITUDE_OF_POINT_3:String = "longitude_of_point_3"
+Const SRS_PP_LATITUDE_OF_POINT_3:String = "latitude_of_point_3"
+Const SRS_PP_RECTIFIED_GRID_ANGLE:String = "rectified_grid_angle"
+Const SRS_PP_LANDSAT_NUMBER:String = "landsat_number"
+Const SRS_PP_PATH_NUMBER:String = "path_number"
+Const SRS_PP_PERSPECTIVE_POINT_HEIGHT:String = "perspective_point_height"
+Const SRS_PP_SATELLITE_HEIGHT:String = "satellite_height"
+Const SRS_PP_FIPSZONE:String = "fipszone"
+Const SRS_PP_ZONE:String = "zone"
+Const SRS_PP_LATITUDE_OF_1ST_POINT:String = "Latitude_Of_1st_Point"
+Const SRS_PP_LONGITUDE_OF_1ST_POINT:String = "Longitude_Of_1st_Point"
+Const SRS_PP_LATITUDE_OF_2ND_POINT:String = "Latitude_Of_2nd_Point"
+Const SRS_PP_LONGITUDE_OF_2ND_POINT:String = "Longitude_Of_2nd_Point"
+
+Const SRS_UL_METER:String = "Meter"
+Const SRS_UL_FOOT:String = "Foot (International)" 
+Const SRS_UL_FOOT_CONV:String = "0.3048"
+Const SRS_UL_US_FOOT:String = "Foot_US" 
+Const SRS_UL_US_FOOT_CONV:String = "0.3048006096012192"
+Const SRS_UL_NAUTICAL_MILE:String = "Nautical Mile"
+Const SRS_UL_NAUTICAL_MILE_CONV:String = "1852.0"
+Const SRS_UL_LINK:String = "Link"          ' Based on US Foot
+Const SRS_UL_LINK_CONV:String = "0.20116684023368047"
+Const SRS_UL_CHAIN:String = "Chain"         ' based on US Foot
+Const SRS_UL_CHAIN_CONV:String = "20.116684023368047"
+Const SRS_UL_ROD:String = "Rod"           ' based on US Foot
+Const SRS_UL_ROD_CONV:String = "5.02921005842012"
+

@@ -586,6 +586,21 @@ void bmx_gdal_OGRSpatialReference_free(OGRSpatialReference * handle) {
 	delete handle;
 }
 
+OGRSpatialReference * bmx_gdal_OGRSpatialReference_Clone(OGRSpatialReference * handle) {
+	return handle->Clone();
+}
+
+OGRSpatialReference * bmx_gdal_OGRSpatialReference_CloneGeogCS(OGRSpatialReference * handle) {
+	return handle->CloneGeogCS();
+}
+
+BBString * bmx_gdal_OGRSpatialReference_ExportToWkt(OGRSpatialReference * handle, OGRErr * result) {
+	char *r = NULL;
+	*result = handle->exportToWkt(&r);
+	BBString * res = bbStringFromCString(r);
+	CPLFree(r);
+	return res;
+}
 
 // *****************************************************
 
