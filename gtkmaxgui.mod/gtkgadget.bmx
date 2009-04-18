@@ -1972,13 +1972,15 @@ Type TGTKMenuItem Extends TGTKGadget
 	bbdoc: Returns menu state - checked or unchecked
 	End Rem
 	Method State:Int()
+		Local _state:Int = Super.State()
+	
 		If isCheckable Then
 			If gtk_check_menu_item_get_active(handle) Then
-				Return STATE_SELECTED
+				_state :| STATE_SELECTED
 			End If
 		End If
 
-		Return 0
+		Return _state
 	End Method
 
 	Rem
