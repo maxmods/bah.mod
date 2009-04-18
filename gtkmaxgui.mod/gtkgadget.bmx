@@ -55,6 +55,7 @@ Type TGTKGadget Extends TGadget
 	' a unique identifier for this gadget
 	Field accelMapId:String
 	Field accelString:String
+	Field hasAccel:Int
 	
 	' the class id of this gadget in MaxGUI terms.
 	Field maxguiClass:Int
@@ -108,31 +109,25 @@ Type TGTKGadget Extends TGadget
 		Return "<" + StripAll(AppArgs[0]) + "-" + accelMapId + ">"
 	End Method
 	
-	Method setAccelEntry:String(keycode:Int, modifier:Int)
+	Method setAccelEntry(keycode:Int, modifier:Int)
 		Local accelKey:Int
 		Local modKey:Int
 		
-		If accelString Then
+		If accelString And hasAccel Then
 			gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
 			If accelKey <> 0 Then
 				gtk_widget_remove_accelerator(handle, getWindow().accelGroup, accelKey, modKey)
+				hasAccel = False
 			End If
 		End If
-	
-		accelString = TGTKKeyMap.accelToString(keycode, modifier)
-		gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
-		
-		gtk_widget_add_accelerator(handle, "activate", getWindow().accelGroup, accelKey, modKey, GTK_ACCEL_VISIBLE)
 
-		'Local path:String = gtkCheckAndConvert(getAccelPath())
-
-		'If Not gtk_accel_map_lookup_entry(path) Then
-		'	 gtk_accel_map_add_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier))
-		'Else
-		'	gtk_accel_map_change_entry(path, TGTKKeyMap.mapKey(keycode), TGTKKeyMap.mapModifier(modifier), True)
-		'End If
-
-		'Return path
+		' enabling accelerator?	
+		If keycode Then
+			accelString = TGTKKeyMap.accelToString(keycode, modifier)
+			gtk_accelerator_parse(gtkCheckAndConvert(accelString), Varptr accelKey, Varptr modKey)
+			gtk_widget_add_accelerator(handle, "activate", getWindow().accelGroup, accelKey, modKey, GTK_ACCEL_VISIBLE)
+			hasAccel = True
+		End If
 	End Method
 	
 	Method setAccelMapId(id:String)
@@ -1270,13 +1265,7 @@ Type TGTKButton Extends TGTKGadget
 	bbdoc: Sets a hot key for the button.
 	End Rem
 	Method SetHotKey(keycode:Int, modifier:Int)
-		'Local path:String = 
 		setAccelEntry(keycode, modifier)
-		'If keycode = 0 Then
-		'	gtk_widget_set_accel_path(handle, Null, getWindow().accelGroup)
-		'Else
-		'	gtk_widget_set_accel_path(handle, path, getWindow().accelGroup)
-		'End If
 	End Method
 
 	Method toString:String()
@@ -1884,13 +1873,7 @@ Type TGTKMenuItem Extends TGTKGadget
 		myKeycode = keycode
 		myModifier = modifier
 		
-		'Local path:String = 
 		setAccelEntry(keycode, modifier)
-		'If keycode = 0 Then
-		'	gtk_menu_item_set_accel_path(handle, Null)
-		'Else
-		'	gtk_menu_item_set_accel_path(handle, path)
-		'End If
 		
 		' override F10 menu access?
 		If keycode = KEY_F10 And modifier = 0 Then
