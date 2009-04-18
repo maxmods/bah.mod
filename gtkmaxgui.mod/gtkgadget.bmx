@@ -1914,6 +1914,7 @@ Type TGTKMenuItem Extends TGTKGadget
 	End Function
 
 	Method SetSelected(bool:Int)
+
 		' Don't do anything if we are already set...
 		If (checked = bool) And isCheckable Then
 			Return
@@ -1926,6 +1927,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			' remove the current menu
 			If handle Then
 				gtk_widget_destroy(handle)
+				hasAccel = False
 			End If
 
 			If hasMnemonic Then
@@ -1935,7 +1937,7 @@ Type TGTKMenuItem Extends TGTKGadget
 			End If
 			gtk_widget_show(handle)
 
-			' if we originally gave this a keycode / modifier, we need to re-istablish it.
+			' if we originally gave this a keycode / modifier, we need to re-establish it.
 			If myKeycode <> 0 Then
 				SetHotKey(myKeycode, myModifier)
 			End If
@@ -2072,6 +2074,10 @@ Type TGTKMenuItem Extends TGTKGadget
 
 	Method toString:String()
 		Return "TGTKMenuItem"
+	End Method
+
+	Method SetEnabled(bool:Int)
+		gtk_widget_set_sensitive(handle, bool)
 	End Method
 
 End Type

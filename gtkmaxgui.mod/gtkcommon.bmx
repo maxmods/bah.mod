@@ -120,6 +120,8 @@ Extern
 	Function gtk_widget_get_parent_window:Byte Ptr(widget:Byte Ptr)
 	Function gdk_window_get_position(window:Byte Ptr, x:Int Var, y:Int Var)
 	Function gtk_widget_set_accel_path(window:Byte Ptr, path:Byte Ptr, accelGroup:Byte Ptr)
+	Function gtk_widget_unparent(window:Byte Ptr)
+	Function gtk_widget_reparent(widget:Byte Ptr, newParent:Byte Ptr)
 
 	Function gtk_button_new:Byte Ptr()
 	Function gtk_button_new_with_label:Byte Ptr(label:Byte Ptr)
@@ -200,6 +202,7 @@ Extern
 	Function g_object_unref(handle:Byte Ptr)
 	Function g_object_set_int(handle:Byte Ptr, property:Byte Ptr, value:Int, _null:Byte Ptr=Null) = "g_object_set"
 	Function g_object_set_double(handle:Byte Ptr, property:Byte Ptr, value:Double, _null:Byte Ptr=Null) = "g_object_set"
+	Function g_object_ref:Byte Ptr(handle:Byte Ptr)
 
 	Function gtk_entry_new:Byte Ptr()
 	Function gtk_entry_set_visibility(handle:Byte Ptr, bool:Int)
@@ -221,6 +224,7 @@ Extern
 	Function gtk_notebook_remove_page:Int(handle:Byte Ptr, index:Int)
 	Function gtk_notebook_set_current_page(handle:Byte Ptr, index:Int)
 	Function gtk_notebook_set_scrollable(handle:Byte Ptr, bool:Int)
+	Function gtk_notebook_get_n_pages:Int(handle:Byte Ptr)
 	
 	Function gtk_drawing_area_new:Byte Ptr()
 
