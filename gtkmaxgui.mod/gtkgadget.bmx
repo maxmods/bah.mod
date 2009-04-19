@@ -2857,7 +2857,7 @@ Type TGTKTabber Extends TGTKContainer
 	End Method
 
 	Function OnTabChanged(widget:Byte Ptr, a:Byte Ptr, index:Int, obj:Object)
-		PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), index)
+		PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), index,,,,TGadget(obj).ItemExtra(index))
 	End Function
 
 	Rem
@@ -3577,11 +3577,7 @@ Type TGTKComboBox Extends TGTKList
 	End Rem
 	Function OnSelectionChanged(widget:Byte Ptr, obj:Object)
 		Local row:Int = TGTKComboBox(obj).SelectedItem()
-		If row >= 0 Then
-			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), row,,,,TGTKComboBox(obj).items[row].extra)
-		Else
-			PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), row)
-		End If
+		PostGuiEvent(EVENT_GADGETACTION, TGadget(obj), row,,,,TGadget(obj).ItemExtra(row))
 	End Function
 
 	Function OnMouseDown:Int(widget:Byte Ptr, event:Byte Ptr, obj:Object)
@@ -4594,11 +4590,7 @@ Type TGTKListbox Extends TGTKListWithScrollWindow
 			TGTKListbox(obj).currentSelection = row
 			
 			If Not TGTKList(obj).ignoreListChangeEvent Then
-				If row >= 0 Then
-					PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj), row,,,,TGTKList(obj).items[row].extra)
-				Else
-					PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj), row)
-				End If
+				PostGuiEvent(EVENT_GADGETSELECT, TGadget(obj), row,,,,TGadget(obj).ItemExtra(row))
 			End If
 		End If
 		TGTKList(obj).ignoreListChangeEvent = False
