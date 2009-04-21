@@ -94,6 +94,7 @@ Extern
 	Function bmx_b2bodydef_getposition:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2bodydef_getangle:Float(handle:Byte Ptr)
 	Function bmx_b2bodydef_isbullet:Int(handle:Byte Ptr)
+	Function bmx_b2bodydef_getmassdata:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_b2world_create:Byte Ptr(worldAABB:Byte Ptr, gravity:Byte Ptr, doSleep:Int)
 	Function bmx_b2world_dostep(handle:Byte Ptr, timeStep:Float, velocityIterations:Int, positionIterations:Int)
@@ -150,6 +151,7 @@ Extern
 	Function bmx_b2body_getxform:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_setxform:Int(handle:Byte Ptr, position:Byte Ptr, angle:Float)
 	Function bmx_b2body_getworld:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2body_setmass(handle:Byte Ptr, massData:Byte Ptr)
 
 	Function bmx_b2debugdraw_create:Byte Ptr(handle:Object)
 	Function bmx_b2debugdraw_setflags(handle:Byte Ptr, flags:Int)

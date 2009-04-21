@@ -41,6 +41,8 @@ ModuleInfo "History: Fixed contact filter example and docs."
 ModuleInfo "History: Added b2EdgeShape type."
 ModuleInfo "History: Added staticedges, dynamicedges, pyramidstaticedges and buoyancy examples."
 ModuleInfo "History: Added buoyancy types + methods."
+ModuleInfo "History: Added b2Body SetMass() method."
+ModuleInfo "History: Added b2BodyDef GetMassData() method."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -1443,6 +1445,20 @@ Type b2Body
 	Method GetWorld:b2World()
 		Return b2World._create(bmx_b2body_getworld(b2ObjectPtr))
 	End Method
+
+	Rem
+	bbdoc: Set the mass properties.
+	about: Note that this changes the center of mass position.
+	<p>
+	If you are not sure how to compute mass properties, use SetMassFromShapes.
+	</p>
+	<p>
+	The inertia tensor is assumed to be relative to the center of mass.
+	</p>
+	End Rem
+	Method SetMass(massData:b2MassData)
+		bmx_b2body_setmass(b2ObjectPtr, massData.b2ObjectPtr)
+	End Method
 	
 End Type
 
@@ -1728,15 +1744,19 @@ Type b2BodyDef
 	End Method
 	
 	Rem
-	bbdoc: You can use this to initialized the mass properties of the body.
+	bbdoc: You can use this to initialize the mass properties of the body.
 	about: If you prefer, you can set the mass properties after the shapes have been added using b2Body.SetMassFromShapes.
 	End Rem
 	Method SetMassData(data:b2MassData)
 		bmx_b2bodydef_setmassdata(b2ObjectPtr, data.b2ObjectPtr)
 	End Method
 	
-	'Method GetMassData:b2MassData()
-	'End Method
+	Rem
+	bbdoc: Returns mass property data.
+	End Rem
+	Method GetMassData:b2MassData()
+		Return b2MassData._create(bmx_b2bodydef_getmassdata(b2ObjectPtr))
+	End Method
 
 	Rem
 	bbdoc: Use this to store application specific body data.
@@ -1996,14 +2016,28 @@ End Rem
 Type b2MassData
 
 	Field b2ObjectPtr:Byte Ptr
+	Field owner:Int
+	
+	Function _create:b2MassData(b2ObjectPtr:Byte Ptr)
+		If b2ObjectPtr Then
+			Local this:b2MassData = New b2MassData
+			bmx_b2massdata_delete(this.b2ObjectPtr)
+			this.b2ObjectPtr = b2ObjectPtr
+			this.owner = False
+			Return this
+		End If
+	End Function
 
 	Method New()
 		b2ObjectPtr = bmx_b2massdata_new()
+		owner = True
 	End Method
 	
 	Method Delete()
 		If b2ObjectPtr Then
-			bmx_b2massdata_delete(b2ObjectPtr)
+			If owner Then
+				bmx_b2massdata_delete(b2ObjectPtr)
+			End If
 			b2ObjectPtr = Null
 		End If
 	End Method

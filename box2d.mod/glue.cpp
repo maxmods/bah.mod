@@ -135,6 +135,7 @@ extern "C" {
 	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
 	float32 bmx_b2bodydef_getangle(b2BodyDef * def);
 	bool bmx_b2bodydef_isbullet(b2BodyDef * def);
+	b2MassData * bmx_b2bodydef_getmassdata(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations);
@@ -192,6 +193,7 @@ extern "C" {
 	const b2XForm * bmx_b2body_getxform(b2Body * body);
 	bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle);
 	b2World * bmx_b2body_getworld(b2Body * body);
+	void bmx_b2body_setmass(b2Body * body, b2MassData * massData);
 
 	MaxDebugDraw * bmx_b2debugdraw_create(BBObject * handle);
 	void bmx_b2debugdraw_setflags(MaxDebugDraw * dbg, uint32 flags);
@@ -1098,6 +1100,9 @@ bool bmx_b2bodydef_isbullet(b2BodyDef * def) {
 	return def->isBullet;
 }
 
+b2MassData * bmx_b2bodydef_getmassdata(b2BodyDef * def) {
+	return &def->massData;
+}
 
 // *****************************************************
 
@@ -1350,6 +1355,10 @@ bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle) {
 
 b2World * bmx_b2body_getworld(b2Body * body) {
 	return body->GetWorld();
+}
+
+void bmx_b2body_setmass(b2Body * body, b2MassData * massData) {
+	body->SetMass(massData);
 }
 
 // *****************************************************
