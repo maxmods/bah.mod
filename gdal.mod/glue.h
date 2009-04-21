@@ -92,6 +92,13 @@ extern "C" {
 	CPLErr bmx_gdal_GDALRasterBand_SetUnitType(GDALRasterBand * handle, BBString * unitType);
 	int bmx_gdal_GDALRasterBand_HasArbitraryOverviews(GDALRasterBand * handle);
 	int bmx_gdal_GDALRasterBand_GetOverviewCount(GDALRasterBand * handle);
+	GDALDataset * bmx_gdal_GDALRasterBand_GetDataset(GDALRasterBand * handle);
+	CPLErr bmx_gdal_GDALRasterBand_SetCategoryNames(GDALRasterBand * handle, BBArray * names);
+	CPLErr bmx_gdal_GDALRasterBand_GetStatistics(GDALRasterBand * handle, int approxOK, int force, double * _min, double * _max, double * _mean, double * _stddev);
+	CPLErr bmx_gdal_GDALRasterBand_SetStatistics(GDALRasterBand * handle, double _min, double _max, double _mean, double _stddev);
+	GDALRasterBand * bmx_gdal_GDALRasterBand_GetOverview(GDALRasterBand * handle, int index);
+	GDALRasterBand * bmx_gdal_GDALRasterBand_GetRasterSampleOverview(GDALRasterBand * handle, int desiredSamples);
+	CPLErr bmx_gdal_GDALRasterBand_CreateMaskBand(GDALRasterBand * handle, int flags);
 
 	int bmx_gdal_GDALDriverManager_GetDriverCount();
 	GDALDriver * bmx_gdal_GDALDriverManager_GetDriver(int index);
@@ -156,6 +163,15 @@ extern "C" {
 	void bmx_gdal_OGRFieldDefn_free(OGRFieldDefn * handle);
 	void bmx_gdal_OGRFieldDefn_SetWidth(OGRFieldDefn * handle, int width);
 	void bmx_gdal_OGRFieldDefn_SetPrecision(OGRFieldDefn * handle, int precision);
+	void bmx_gdal_OGRFieldDefn_SetName(OGRFieldDefn * handle, BBString * name);
+	BBString * bmx_gdal_OGRFieldDefn_GetNameRef(OGRFieldDefn * handle);
+	OGRFieldType bmx_gdal_OGRFieldDefn_GetType(OGRFieldDefn * handle);
+	void bmx_gdal_OGRFieldDefn_SetType(OGRFieldDefn * handle, OGRFieldType fieldType);
+	OGRJustification bmx_gdal_OGRFieldDefn_GetJustify(OGRFieldDefn * handle);
+	void bmx_gdal_OGRFieldDefn_SetJustify(OGRFieldDefn * handle, OGRJustification justify);
+	int bmx_gdal_OGRFieldDefn_GetWidth(OGRFieldDefn * handle);
+	int bmx_gdal_OGRFieldDefn_GetPrecision(OGRFieldDefn * handle);
+	void bmx_gdal_OGRFieldDefn_Set(OGRFieldDefn * handle, BBString * name, OGRFieldType fieldType, int width, int precision, OGRJustification justify);
 
 	OGRErr bmx_gdal_OGRLayer_CreateField(OGRLayer * handle, OGRFieldDefn * fld, int approxOK);
 

@@ -582,10 +582,12 @@ Type GDALRasterBand Extends GDALMajorObject
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Fetches the owning dataset handle.
+	about: Note that some GDALRasterBands are not considered to be a part of a dataset, such as
+	overviews or other "freestanding" bands.
 	End Rem
 	Method GetDataset:GDALDataset()
-	' TODO
+		Return GDALDataset._create(bmx_gdal_GDALRasterBand_GetDataset(objectPtr))
 	End Method
 	
 	Rem
@@ -713,8 +715,12 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_Fill(objectPtr, realValue, imaginaryValue)
 	End Method
 	
+	Rem
+	bbdoc: Sets the category names for this band.
+	about: See the GetCategoryNames() method for more on the interpretation of category names.
+	End Rem
 	Method SetCategoryNames:Int(names:String[])
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetCategoryNames(objectPtr, names)
 	End Method
 	
 	Rem
@@ -764,12 +770,37 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_SetUnitType(objectPtr, unitType)
 	End Method
 	
+	Rem
+	bbdoc: Fetches image statistics.
+	about: Returns the minimum, maximum, mean and standard deviation of all pixel values in this band.
+	If approximate statistics are sufficient, the bApproxOK flag can be set to true in which case overviews,
+	or a subset of image tiles may be used in computing the statistics.
+	<p>
+	If @force is FALSE results will only be returned if it can be done quickly (ie. without scanning
+	the data). If @force is FALSE and results cannot be returned efficiently, the method will return
+	CE_Warning but no warning will have been issued. This is a non-standard use of the CE_Warning return
+	value to indicate "nothing done".
+	</p>
+	<p>
+	Note that file formats using PAM (Persistent Auxilary Metadata) services will generally cache
+	statistics in the .pam file allowing fast fetch after the first request.
+	</p>
+	End Rem
 	Method GetStatistics:Int(approxOK:Int, force:Int, _min:Double Var, _max:Double Var, _mean:Double Var, _stddev:Double Var)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_GetStatistics(objectPtr, approxOK, force, Varptr _min, Varptr _max, Varptr _mean, Varptr _stddev)
 	End Method
 	
+	Rem
+	bbdoc: Sets statistics on band.
+	about: This method can be used to store min/max/mean/standard deviation statistics on a raster band.
+	<p>
+	The default implementation stores them as metadata, and will only work on formats that can save
+	arbitrary metadata. This method cannot detect whether metadata will be properly saved and so may
+	return CE_None even if the statistics will never be saved.
+	</p>
+	End Rem
 	Method SetStatistics:Int(_min:Double, _max:Double, _mean:Double, _stddev:Double)
-	' TODO
+		Return bmx_gdal_GDALRasterBand_SetStatistics(objectPtr, _min, _max, _mean, _stddev)
 	End Method
 	
 	Rem
@@ -790,12 +821,22 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_GetOverviewCount(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Fetches overview raster band object. 
+	End Rem
 	Method GetOverview:GDALRasterBand(index:Int)
-	' TODO
+		Return GDALRasterBand._create(bmx_gdal_GDALRasterBand_GetOverview(objectPtr, index))
 	End Method
 	
-	Method GetRasterSampleOverview:GDALRasterBand(index:Int)
-	' TODO
+	Rem
+	bbdoc: Fetches best sampling overview.
+	about: Returns the most reduced overview of the given band that still satisfies the desired number
+	of samples. This method can be used with zero as the number of desired samples to fetch the most
+	reduced overview. The same band as was passed in will be returned if it has not overviews, or if none
+	of the overviews have enough samples.
+	End Rem
+	Method GetRasterSampleOverview:GDALRasterBand(desiredSamples:Int)
+		Return GDALRasterBand._create(bmx_gdal_GDALRasterBand_GetRasterSampleOverview(objectPtr, desiredSamples))
 	End Method
 
 	Rem
@@ -910,6 +951,18 @@ or:
 			layer:OGRLayer, idField:Int, elevField:Int)
 		Return bmx_gdal_GDALRasterBand_GenerateContour(objectPtr, contourInterval, contourBase, fixedLevels, useNoData, noDataValue, ..
 			layer.objectPtr, idField, elevField)
+	End Method
+	
+	Rem
+	bbdoc: Adds a mask band to the current band.
+	about: The default implementation of the CreateMaskBand() method is implemented based on similar
+	rules to the .ovr handling implemented using the GDALDefaultOverviews object. A TIFF file with the
+	extension .msk will be created with the same basename as the original file, and it will have as
+	many bands as the original image (or just one for GMF_PER_DATASET). The mask images will be deflate
+	compressed tiled images with the same block size as the original image if possible.
+	End Rem
+	Method CreateMaskBand:Int(flags:Int)
+		Return bmx_gdal_GDALRasterBand_CreateMaskBand(objectPtr, flags)
 	End Method
 	
 End Type
@@ -1084,7 +1137,13 @@ Type GDAL_GCP
 	
 End Type
 
+Rem
+bbdoc: A color table / palette. 
+End Rem
 Type GDALColorTable
+
+	Field objectPtr:Byte Ptr
+	
 End Type
 
 Rem
@@ -1616,14 +1675,14 @@ Type OGRSpatialReference
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Definition of an attribute of an OGRFeatureDefn.
 End Rem
 Type OGRFieldDefn
 
 	Field objectPtr:Byte Ptr
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new OGRFieldDefn object.
 	End Rem
 	Method Create:OGRFieldDefn(name:String, fieldType:Int)
 		objectPtr = bmx_gdal_OGRFieldDefn_create(name, fieldType)
@@ -1631,17 +1690,91 @@ Type OGRFieldDefn
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Resets the name of this field.
+	End Rem
+	Method SetName(name:String)
+		bmx_gdal_OGRFieldDefn_SetName(objectPtr, name)
+	End Method
+	
+	Rem
+	bbdoc: Fetches name of this field.
+	End Rem
+	Method GetNameRef:String()
+		Return bmx_gdal_OGRFieldDefn_GetNameRef(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Fetches type of this field.
+	about: One of OFTInteger, OFTIntegerList, OFTReal, OFTRealList, OFTString, OFTStringList,
+	OFTBinary, OFTDate, OFTTime or OFTDateTime.
+	End Rem
+	Method GetType:Int()
+		Return bmx_gdal_OGRFieldDefn_GetType(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the type of this field.
+	about: This should never be done to an OGRFieldDefn that is already part of an OGRFeatureDefn.
+	<p>
+	One of OFTInteger, OFTIntegerList, OFTReal, OFTRealList, OFTString, OFTStringList,
+	OFTBinary, OFTDate, OFTTime or OFTDateTime.
+	</p>
+	End Rem
+	Method SetType(fieldType:Int)
+		bmx_gdal_OGRFieldDefn_SetType(objectPtr, fieldType)
+	End Method
+	
+	Rem
+	bbdoc: Gets the justification for this field.
+	about: One of OJUndefined, OJLeft or OJRight.
+	End Rem
+	Method GetJustify:Int()
+		Return bmx_gdal_OGRFieldDefn_GetJustify(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the justification for this field.
+	about: One of OJUndefined, OJLeft or OJRight.
+	End Rem
+	Method SetJustify(justify:Int)
+		bmx_gdal_OGRFieldDefn_SetJustify(objectPtr, justify)
+	End Method
+	
+	Rem
+	bbdoc: Gets the formatting width for this field.
+	End Rem
+	Method GetWidth:Int()
+		Return bmx_gdal_OGRFieldDefn_GetWidth(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the formatting width for this field in characters.
 	End Rem
 	Method SetWidth(width:Int)
 		bmx_gdal_OGRFieldDefn_SetWidth(objectPtr, width)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Get the formatting precision for this field.
+	about: This should normally be zero for fields of types other than OFTReal. 
+	End Rem
+	Method GetPrecision:Int()
+		Return bmx_gdal_OGRFieldDefn_GetPrecision(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the formatting precision for this field in characters.
+	about: This should normally be zero for fields of types other than OFTReal.
 	End Rem
 	Method SetPrecision(precision:Int)
 		bmx_gdal_OGRFieldDefn_SetPrecision(objectPtr, precision)
+	End Method
+	
+	Rem
+	bbdoc: Sets defining parameters for a field in one call.
+	End Rem
+	Method Set(name:String, fieldType:Int, width:Int = 0, precision:Int = 0, justify:Int = OJUndefined)
+		bmx_gdal_OGRFieldDefn_Set(objectPtr, name, fieldType, width, precision, justify)
 	End Method
 	
 	Rem

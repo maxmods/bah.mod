@@ -397,6 +397,37 @@ int bmx_gdal_GDALRasterBand_GetOverviewCount(GDALRasterBand * handle) {
 	return handle->GetOverviewCount();
 }
 
+GDALDataset * bmx_gdal_GDALRasterBand_GetDataset(GDALRasterBand * handle) {
+	return handle->GetDataset();
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetCategoryNames(GDALRasterBand * handle, BBArray * names) {
+	char** list = bmx_bbStringArrayToStringList(names);
+	CPLErr res = handle->SetCategoryNames(list);
+	bmx_StringListFree(list);
+	return res;
+}
+
+CPLErr bmx_gdal_GDALRasterBand_GetStatistics(GDALRasterBand * handle, int approxOK, int force, double * _min, double * _max, double * _mean, double * _stddev) {
+	return handle->GetStatistics(approxOK, force, _min, _max, _mean, _stddev);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_SetStatistics(GDALRasterBand * handle, double _min, double _max, double _mean, double _stddev) {
+	return handle->SetStatistics(_min, _max, _mean, _stddev);
+}
+
+GDALRasterBand * bmx_gdal_GDALRasterBand_GetOverview(GDALRasterBand * handle, int index) {
+	return handle->GetOverview(index);
+}
+
+GDALRasterBand * bmx_gdal_GDALRasterBand_GetRasterSampleOverview(GDALRasterBand * handle, int desiredSamples) {
+	return handle->GetRasterSampleOverview(desiredSamples);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_CreateMaskBand(GDALRasterBand * handle, int flags) {
+	return handle->CreateMaskBand(flags);
+}
+
 // *****************************************************
 
 int bmx_gdal_GDALDriverManager_GetDriverCount() {
@@ -748,6 +779,46 @@ void bmx_gdal_OGRFieldDefn_SetWidth(OGRFieldDefn * handle, int width) {
 
 void bmx_gdal_OGRFieldDefn_SetPrecision(OGRFieldDefn * handle, int precision) {
 	handle->SetPrecision(precision);
+}
+
+void bmx_gdal_OGRFieldDefn_SetName(OGRFieldDefn * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	handle->SetName(n);
+	bbMemFree(n);
+}
+
+BBString * bmx_gdal_OGRFieldDefn_GetNameRef(OGRFieldDefn * handle) {
+	return bbStringFromCString(handle->GetNameRef());
+}
+
+OGRFieldType bmx_gdal_OGRFieldDefn_GetType(OGRFieldDefn * handle) {
+	return handle->GetType();
+}
+
+void bmx_gdal_OGRFieldDefn_SetType(OGRFieldDefn * handle, OGRFieldType fieldType) {
+	handle->SetType(fieldType);
+}
+
+OGRJustification bmx_gdal_OGRFieldDefn_GetJustify(OGRFieldDefn * handle) {
+	return handle->GetJustify();
+}
+
+void bmx_gdal_OGRFieldDefn_SetJustify(OGRFieldDefn * handle, OGRJustification justify) {
+	handle->SetJustify(justify);
+}
+
+int bmx_gdal_OGRFieldDefn_GetWidth(OGRFieldDefn * handle) {
+	return handle->GetWidth();
+}
+
+int bmx_gdal_OGRFieldDefn_GetPrecision(OGRFieldDefn * handle) {
+	return handle->GetPrecision();
+}
+
+void bmx_gdal_OGRFieldDefn_Set(OGRFieldDefn * handle, BBString * name, OGRFieldType fieldType, int width, int precision, OGRJustification justify) {
+	char *n = bbStringToCString( name );
+	handle->Set(n, fieldType, width, precision, justify);
+	bbMemFree(n);
 }
 
 // *****************************************************
