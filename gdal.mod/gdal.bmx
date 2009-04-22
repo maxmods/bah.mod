@@ -1454,21 +1454,21 @@ Type OGRSpatialReference
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Makes a duplicate of this OGRSpatialReference.
 	End Rem
 	Method Clone:OGRSpatialReference()
 		Return OGRSpatialReference._create(bmx_gdal_OGRSpatialReference_Clone(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Makes a duplicate of the GEOGCS node of this OGRSpatialReference object.
 	End Rem
 	Method CloneGeogCS:OGRSpatialReference()
 		Return OGRSpatialReference._create(bmx_gdal_OGRSpatialReference_CloneGeogCS(objectPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Converts this SRS into WKT format.
 	End Rem
 	Method ExportToWkt:Int(result:String Var)
 		Local res:Int
@@ -1480,68 +1480,160 @@ Type OGRSpatialReference
 	' TODO
 	End Method
 	
-	Method morphToESRI:Int()
-	' TODO
+	Rem
+	bbdoc: Converts in place to ESRI WKT format.
+	about: The value nodes of this coordinate system are modified in various manners more closely map onto
+	the ESRI concept of WKT format. This includes renaming a variety of projections and arguments, and stripping
+	out nodes note recognised by ESRI (like AUTHORITY and AXIS).
+	End Rem
+	Method MorphToESRI:Int()
+		Return bmx_gdal_OGRSpatialReference_morphToESRI(objectPtr)
 	End Method
 	
-	Method morphFromESRI:Int()
-	' TODO
+	Rem
+	bbdoc: Converts in place from ESRI WKT format.
+	about: The value notes of this coordinate system are modified in various manners to adhere more closely to
+	the WKT standard. This mostly involves translating a variety of ESRI names for projections, arguments and
+	datums to "standard" names, as defined by Adam Gawne-Cain's reference translation of EPSG to WKT for the
+	CT specification.
+	End Rem
+	Method MorphFromESRI:Int()
+		Return bmx_gdal_OGRSpatialReference_morphFromESRI(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Validates SRS tokens.
+	about: This method attempts to verify that the spatial reference system is well formed, and consists of known tokens.
+	The validation is not comprehensive.
+	End Rem
 	Method Validate:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_Validate(objectPtr)
 	End Method
 	
 	Method StripCTParms:Int(node:OGR_SRSNode = Null)
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Corrects parameter ordering to match CT Specification.
+	about: Some mechanisms to create WKT using OGRSpatialReference, and some imported WKT fail to maintain the
+	order of parameters required according to the BNF definitions in the OpenGIS SF-SQL and CT Specifications.
+	This method attempts to massage things back into the required order.
+	End Rem
 	Method FixupOrdering:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_FixupOrdering(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Fixup as needed.
+	about: Some mechanisms to create WKT using OGRSpatialReference, and some imported WKT, are not valid according
+	to the OGC CT specification. This method attempts to fill in any missing defaults that are required, and fixup
+	ordering problems (using OSRFixupOrdering()) so that the resulting WKT is valid.
+	<p>
+	This method should be expected to evolve over time to as problems are discovered. The following are amoung the
+	fixup actions this method will take:
+	<ul>
+	<li>Fixup the ordering of nodes to match the BNF WKT ordering, using the FixupOrdering() method.</li>
+	<li>Add missing linear or angular units nodes.</li>
+	</ul>
+	</p>
+	End Rem
 	Method Fixup:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_Fixup(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns TRUE if EPSG feels this geographic coordinate system should be treated as having lat/long coordinate ordering.
+	about: Currently this returns TRUE for all geographic coordinate systems with an EPSG code set, and AXIS
+	values set defining it as lat, long. Note that coordinate systems with an EPSG code and no axis settings
+	will be assumed to not be lat/long.
+	<p>
+	FALSE will be returned for all coordinate systems that are not geographic, or that do not have an EPSG code set.
+	</p>
+	End Rem
 	Method EPSGTreatsAsLatLong:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_EPSGTreatsAsLatLong(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Sets the linear units for the projection.
+	about: This method creates a UNITS subnode with the specified values as a child of the PROJCS or LOCAL_CS node.
+	It works the same as the SetLinearUnits() method, but it also updates all existing linear projection parameter
+	values from the old units to the new units.
+	End Rem
 	Method SetLinearUnitsAndUpdateParameters:Int(name:String, inMeters:Double)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetLinearUnitsAndUpdateParameters(objectPtr, name, inMeters)
 	End Method
 
+	Rem
+	bbdoc: Sets the linear units for the projection.
+	about: This method creates a UNITS subnode with the specified values as a child of the PROJCS or LOCAL_CS node.
+	End Rem
 	Method SetLinearUnits:Int(name:String, inMeters:Double)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetLinearUnits(objectPtr, name, inMeters)
 	End Method
 
+	Rem
+	bbdoc: Fetches linear projection units.
+	about: If no units are available, a value of "Meters" and 1.0 will be assumed. This method only checks directly
+	under the PROJCS or LOCAL_CS node for units.
+	End Rem
 	Method GetLinearUnits:Double(name:String Var)
-	' TODO
+		Local units:Double
+		name = bmx_gdal_OGRSpatialReference_GetLinearUnits(objectPtr, Varptr units)
+		Return units
 	End Method
 
-	Method SetAngularUnits:Int(name:String, inRadians:Double)
-	' TODO
+	Rem
+	bbdoc: Sets the angular units for the geographic coordinate system.
+	about: This method creates a UNITS subnode with the specified values as a child of the GEOGCS node.
+	End Rem
+	Method SetAngularUnits:Int(name:String, inDegrees:Double)
+		Return bmx_gdal_OGRSpatialReference_SetAngularUnits(objectPtr, name, inDegrees)
 	End Method
 
+	Rem
+	bbdoc: Fetches angular geographic coordinate system units.
+	about: If no units are available, a value of "degree" and SRS_UA_DEGREE_CONV will be assumed. This method only
+	checks directly under the GEOGCS node for units.
+	End Rem
 	Method GetAngularUnits:Double(name:String Var)
-	' TODO
+		Local units:Double
+		name = bmx_gdal_OGRSpatialReference_GetAngularUnits(objectPtr, Varptr units)
+		Return units
 	End Method
 
+	Rem
+	bbdoc: Fetches prime meridian info.
+	about: Returns the offset of the prime meridian from greenwich in degrees, and the prime meridian name
+	(if requested). If no PRIMEM value exists in the coordinate system definition a value of "Greenwich" and an
+	offset of 0.0 is assumed.
+	End Rem
 	Method GetPrimeMeridian:Double(name:String Var)
-	' TODO
+		Local meridian:Double
+		name = bmx_gdal_OGRSpatialReference_GetPrimeMeridian(objectPtr, Varptr meridian)
+		Return meridian
 	End Method
 
+	Rem
+	bbdoc: Checks if geographic coordinate system.
+	End Rem
 	Method IsGeographic:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_IsGeographic(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Checks if projected coordinate system. 
+	End Rem
 	Method IsProjected:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_IsProjected(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Checks if local coordinate system.
+	End Rem
 	Method IsLocal:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_IsLocal(objectPtr)
 	End Method
 
 	Method IsSameGeogCS:Int(ref:OGRSpatialReference)
@@ -1552,20 +1644,38 @@ Type OGRSpatialReference
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Wipes current definition.
+	about: Returns OGRSpatialReference to a state with no definition, as it exists when first created. It does
+	not affect reference counts. 
+	End Rem
 	Method Clear()
-	' TODO
+		bmx_gdal_OGRSpatialReference_Clear(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Sets the user visible LOCAL_CS name.
+	about: This method is will ensure a LOCAL_CS node is created as the root, and set the provided name on it.
+	It must be used before SetLinearUnits().
+	End Rem
 	Method SetLocalCS:Int(name:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetLocalCS(objectPtr, name)
 	End Method
 
+	Rem
+	bbdoc: Sets the user visible PROJCS name.
+	about: This method is will ensure a PROJCS node is created as the root, and set the provided name on it.
+	If used on a GEOGCS coordinate system, the GEOGCS node will be demoted to be a child of the new PROJCS root.
+	End Rem
 	Method SetProjCS:Int(name:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetProjCS(objectPtr, name)
 	End Method
 
+	Rem
+	bbdoc: Sets a projection name. 
+	End Rem
 	Method SetProjection:Int(name:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetProjection(objectPtr, name)
 	End Method
 
 	Method SetGeogCS:Int(geogName:String, datumName:String, ellipsoidName:String, semiMajor:Double, ..
@@ -1574,16 +1684,58 @@ Type OGRSpatialReference
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Sets a GeogCS based on well known name.
+	about: This may be called on an empty OGRSpatialReference to make a geographic coordinate system, or on
+	something with an existing PROJCS node to set the underlying geographic coordinate system of a projected
+	coordinate system.
+	<p>
+	The following well known text values are currently supported:
+	<ul>
+	<li>"WGS84": same as "EPSG:4326" but has no dependence on EPSG data files.</li>
+	<li>"WGS72": same as "EPSG:4322" but has no dependence on EPSG data files.</li>
+	<li>"NAD27": same as "EPSG:4267" but has no dependence on EPSG data files.</li>
+	<li>"NAD83": same as "EPSG:4269" but has no dependence on EPSG data files.</li>
+	<li>"EPSG:n": same as doing an ImportFromEPSG(n).</li>
+	</ul>
+	</p>
+	End Rem
 	Method SetWellKnownGeogCS:Int(name:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetWellKnownGeogCS(objectPtr, name)
 	End Method
 
 	Method CopyGeogCSFrom:Int(srcSRS:OGRSpatialReference)
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Sets spatial reference from various text formats.
+	about: This method will examine the provided input, and try to deduce the format, and then use it to
+	initialize the spatial reference system. It may take the following forms:
+	<ol>
+	<li>Well Known Text definition - passed on to ImportFromWkt().
+	<li>"EPSG:n" - number passed on to ImportFromEPSG().
+	<li>"EPSGA:n" - number passed on to ImportFromEPSGA().
+	<li>"AUTO:proj_id,unit_id,lon0,lat0" - WMS auto projections.
+	<li>"urn:ogc:def:crs:EPSG::n" - ogc urns
+	<li>PROJ.4 definitions - passed on to ImportFromProj4().
+	<li>filename - file read for WKT, XML or PROJ.4 definition.
+	<li>well known name accepted by SetWellKnownGeogCS(), such as NAD27, NAD83, WGS84 or WGS72.
+	<li>WKT (directly or in a file) in ESRI format should be prefixed with ESRI:: to trigger an automatic
+	KorphFromESRI().
+	</ul>
+	<p>
+	It is expected that this method will be extended in the future to support XML and perhaps a simplified
+	"minilanguage" for indicating common UTM and State Plane definitions.
+	</p>
+	<p>
+	This method is intended to be flexible, but by it's nature it is imprecise as it must guess information
+	about the format intended. When possible applications should call the specific method appropriate if the
+	input is known to be in a particular format.
+	</p>
+	End Rem
 	Method SetFromUserInput:Int(definition:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetFromUserInput(objectPtr, definition)
 	End Method
 
 	Method SetTOWGS84:Int(dfDX:Double, dy:Double, dz:Double, ex:Double = 0.0, ey:Double = 0.0, ez:Double = 0.0, ppm:Double = 0.0)
@@ -1594,68 +1746,150 @@ Type OGRSpatialReference
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Gets spheroid semi major axis.
+	End Rem
 	Method GetSemiMajor:Int(semiMajor:Double Var)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetSemiMajor(objectPtr, Varptr semiMajor)
 	End Method
 
+	Rem
+	bbdoc: Gets spheroid semi minor axis.
+	End Rem
 	Method GetSemiMinor:Int(semiMinor:Double Var)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetSemiMinor(objectPtr, Varptr semiMinor)
 	End Method
 
+	Rem
+	bbdoc: Gets spheroid inverse flattening.
+	End Rem
 	Method GetInvFlattening:Int(invFlattening:Double Var)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetInvFlattening(objectPtr, Varptr invFlattening)
 	End Method
 
+	Rem
+	bbdoc: Sets the authority for a node.
+	End Rem
 	Method SetAuthority:Int(targetKey:String, authority:String, code:Int)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetAuthority(objectPtr, targetKey, authority, code)
 	End Method
 
+	Rem
+	bbdoc: Sets EPSG authority info if possible.
+	about: This method inspects a WKT definition, and adds EPSG authority nodes where an aspect of the coordinate
+	system can be easily and safely corresponded with an EPSG identifier. In practice, this method will evolve over
+	time. In theory it can add authority nodes for any object (ie. spheroid, datum, GEOGCS, units, and PROJCS) that
+	could have an authority node. Mostly this is useful to inserting appropriate PROJCS codes for common
+	formulations (like UTM n WGS84).
+	<p>
+	If it successful the OGRSpatialReference is updated in place, and the method return OGRERR_NONE. If the method
+	fails to identify the general coordinate system OGRERR_UNSUPPORTED_SRS is returned but no error message is
+	posted via CPLError().
+	</p>
+	End Rem
 	Method AutoIdentifyEPSG:Int()
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_AutoIdentifyEPSG(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Gets the authority code for a node.
+	about: This method is used to query an AUTHORITY[] node from within the WKT tree, and fetch the code value.
+	<p>
+	While in theory values may be non-numeric, for the EPSG authority all code values should be integral.
+	</p>
+	End Rem
 	Method GetAuthorityCode:String(targetKey:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetAuthorityCode(objectPtr, targetKey)
 	End Method
 
+	Rem
+	bbdoc: Gets the authority name for a node.
+	about: This method is used to query an AUTHORITY[] node from within the WKT tree, and fetch the authority name value.
+	<p>
+	The most common authority is "EPSG".
+	</p>
+	End Rem
 	Method GetAuthorityName:String(targetKey:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetAuthorityName(objectPtr, targetKey)
 	End Method
 
+	Rem
+	bbdoc: Fetches extension value.
+	about: Fetches the value of the named EXTENSION item for the identified target node.
+	End Rem
 	Method GetExtension:String(targetKey:String, name:String, defaultValue:String = Null)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetExtension(objectPtr, targetKey, name, defaultValue)
 	End Method
 
+	Rem
+	bbdoc: Sets extension value.
+	about: Sets the value of the named EXTENSION item for the identified target node.
+	End Rem
 	Method SetExtension:Int(targetKey:String, name:String, value:String)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetExtension(objectPtr, targetKey, name, value)
 	End Method
 
 	Method FindProjParm:Int(parameter:String, PROJCS:OGR_SRSNode = Null)
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Sets a projection parameter value.
+	about: Adds a new PARAMETER under the PROJCS with the indicated name and value.
+	<p>
+	Please check http://www.remotesensing.org/geotiff/proj_list pages for legal parameter names for specific projections.
+	</p>
+	End Rem
 	Method SetProjParm:Int(name:String, value:Double)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetProjParm(objectPtr, name, value)
 	End Method
 
-	Method GetProjParm:Int(name:String, result:Double Var, defauleValue:Double = 0.0)
-	' TODO
+	Rem
+	bbdoc: Fetches a projection parameter value.
+	about: NOTE: This code should be modified to translate non degree angles into degrees based on the GEOGCS unit.
+	This has not yet been done.
+	End Rem
+	Method GetProjParm:Int(name:String, result:Double Var, defaultValue:Double = 0.0)
+		Return bmx_gdal_OGRSpatialReference_GetProjParm(objectPtr, name, Varptr result, defaultValue)
 	End Method
 
+	Rem
+	bbdoc: Sets a projection parameter with a normalized value.
+	about: This method is the same as SetProjParm() except that the value of the parameter passed in is assumed
+	to be in "normalized" form (decimal degrees for angular values, meters for linear values. The values are
+	converted in a form suitable for the GEOGCS and linear units in effect.
+	End Rem
 	Method SetNormProjParm:Int(name:String, value:Double)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetNormProjParm(objectPtr, name, value)
 	End Method
 
+	Rem
+	bbdoc: Fetches a normalized projection parameter value.
+	about: This method is the same as GetProjParm() except that the value of the parameter is "normalized"
+	into degrees or meters depending on whether it is linear or angular.
+	End Rem
 	Method GetNormProjParm:Int(name:String, result:Double Var, defaultValue:Double = 0.0)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetNormProjParm(objectPtr, name, Varptr result, defaultValue)
 	End Method
 
+	Rem
+	bbdoc: Sets UTM projection definition.
+	about: Universal Transverse Mercator
+	<p>
+	This will generate a projection definition with the full set of transverse mercator projection parameters
+	for the given UTM zone. If no PROJCS[] description is set yet, one will be set to look like "UTM Zone %d,
+	{Northern, Southern} Hemisphere".
+	</p>
+	End Rem
 	Method SetUTM:Int(zone:Int, north:Int = True)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetUTM(objectPtr, zone, north)
 	End Method
 	
+	Rem
+	bbdoc: Gets utm zone information.
+	End Rem
 	Method GetUTMZone:Int(north:Int Var)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_GetUTMZone(objectPtr, Varptr north)
 	End Method
 	
 	Rem

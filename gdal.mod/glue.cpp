@@ -633,6 +633,226 @@ BBString * bmx_gdal_OGRSpatialReference_ExportToWkt(OGRSpatialReference * handle
 	return res;
 }
 
+OGRErr bmx_gdal_OGRSpatialReference_morphToESRI(OGRSpatialReference * handle) {
+	return handle->morphToESRI();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_morphFromESRI(OGRSpatialReference * handle) {
+	return handle->morphFromESRI();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_Validate(OGRSpatialReference * handle) {
+	return handle->Validate();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_FixupOrdering(OGRSpatialReference * handle) {
+	return handle->FixupOrdering();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_Fixup(OGRSpatialReference * handle) {
+	return handle->Fixup();
+}
+
+int bmx_gdal_OGRSpatialReference_EPSGTreatsAsLatLong(OGRSpatialReference * handle) {
+	return handle->EPSGTreatsAsLatLong();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetLinearUnitsAndUpdateParameters(OGRSpatialReference * handle, BBString * name, double inMeters) {
+	char *n = bbStringToCString( name );
+	int res = handle->SetLinearUnitsAndUpdateParameters(n, inMeters);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetLinearUnits(OGRSpatialReference * handle, BBString * name, double inMeters) {
+	char *n = bbStringToCString( name );
+	int res = handle->SetLinearUnits(n, inMeters);
+	bbMemFree(n);
+	return res;
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetLinearUnits(OGRSpatialReference * handle, double * units) {
+	char* str;
+	*units = handle->GetLinearUnits(&str);
+	return bbStringFromCString(str);
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetAngularUnits(OGRSpatialReference * handle, BBString * name, double inDegrees) {
+	char *n = bbStringToCString( name );
+	int res = handle->SetAngularUnits(n, inDegrees * 0.0174533f);
+	bbMemFree(n);
+	return res;
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetAngularUnits(OGRSpatialReference * handle, double * units) {
+	char* str;
+	*units = handle->GetAngularUnits(&str);
+	return bbStringFromCString(str);
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetPrimeMeridian(OGRSpatialReference * handle, double * meridian) {
+	char* str;
+	*meridian = handle->GetPrimeMeridian(&str);
+	return bbStringFromCString(str);
+}
+
+int bmx_gdal_OGRSpatialReference_IsGeographic(OGRSpatialReference * handle) {
+	return handle->IsGeographic();
+}
+
+int bmx_gdal_OGRSpatialReference_IsProjected(OGRSpatialReference * handle) {
+	return handle->IsProjected();
+}
+
+int bmx_gdal_OGRSpatialReference_IsLocal(OGRSpatialReference * handle) {
+	return handle->IsLocal();
+}
+
+void bmx_gdal_OGRSpatialReference_Clear(OGRSpatialReference * handle) {
+	handle->Clear();
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetLocalCS(OGRSpatialReference * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetLocalCS(n);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetProjCS(OGRSpatialReference * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetProjCS(n);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetProjection(OGRSpatialReference * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetProjection(n);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetWellKnownGeogCS(OGRSpatialReference * handle, BBString * name) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetWellKnownGeogCS(n);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetFromUserInput(OGRSpatialReference * handle, BBString * definition) {
+	char *n = bbStringToCString( definition );
+	OGRErr res = handle->SetFromUserInput(n);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetSemiMajor(OGRSpatialReference * handle, double * semiMajor) {
+	OGRErr res;
+	*semiMajor = handle->GetSemiMajor(&res);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetSemiMinor(OGRSpatialReference * handle, double * semiMinor) {
+	OGRErr res;
+	*semiMinor = handle->GetSemiMinor(&res);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetInvFlattening(OGRSpatialReference * handle, double * invFlattening) {
+	OGRErr res;
+	*invFlattening = handle->GetInvFlattening(&res);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetAuthority(OGRSpatialReference * handle, BBString * targetKey, BBString * authority, int code) {
+	char *t = bbStringToCString( targetKey );
+	char *a = bbStringToCString( authority );
+	OGRErr res = handle->SetAuthority(t, a, code);
+	bbMemFree(t);
+	bbMemFree(a);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_AutoIdentifyEPSG(OGRSpatialReference * handle) {
+	return handle->AutoIdentifyEPSG();
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetAuthorityCode(OGRSpatialReference * handle, BBString * targetKey) {
+	char *t = bbStringToCString( targetKey );
+	BBString * s = bbStringFromCString(handle->GetAuthorityCode(t));
+	bbMemFree(t);
+	return s;
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetAuthorityName(OGRSpatialReference * handle, BBString * targetKey) {
+	char *t = bbStringToCString( targetKey );
+	BBString * s = bbStringFromCString(handle->GetAuthorityName(t));
+	bbMemFree(t);
+	return s;
+}
+
+BBString * bmx_gdal_OGRSpatialReference_GetExtension(OGRSpatialReference * handle, BBString * targetKey, BBString * name, BBString * defaultValue) {
+	char *t = bbStringToCString( targetKey );
+	char *n = bbStringToCString( name );
+	char *d = bbStringToCString( defaultValue );
+	BBString * s = bbStringFromCString(handle->GetExtension(t, n, d));
+	bbMemFree(t);
+	bbMemFree(n);
+	bbMemFree(d);
+	return s;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetExtension(OGRSpatialReference * handle, BBString * targetKey, BBString * name, BBString * value) {
+	char *t = bbStringToCString( targetKey );
+	char *n = bbStringToCString( name );
+	char *v = bbStringToCString( value );
+	OGRErr res = handle->SetExtension(t, n, v);
+	bbMemFree(t);
+	bbMemFree(n);
+	bbMemFree(v);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetProjParm(OGRSpatialReference * handle, BBString * name, double value) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetProjParm(n, value);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetProjParm(OGRSpatialReference * handle, BBString * name, double * result, double defaultValue) {
+	OGRErr res;
+	char *n = bbStringToCString( name );
+	*result = handle->GetProjParm(n, defaultValue, &res);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetNormProjParm(OGRSpatialReference * handle, BBString * name, double value) {
+	char *n = bbStringToCString( name );
+	OGRErr res = handle->SetNormProjParm(n, value);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetNormProjParm(OGRSpatialReference * handle, BBString * name, double * result, double defaultValue) {
+	OGRErr res;
+	char *n = bbStringToCString( name );
+	*result = handle->GetNormProjParm(n, defaultValue, &res);
+	bbMemFree(n);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetUTM(OGRSpatialReference * handle, int zone, int north) {
+	return handle->SetUTM(zone, north);
+}
+
+int bmx_gdal_OGRSpatialReference_GetUTMZone(OGRSpatialReference * handle, int * north) {
+	return handle->GetUTMZone(north);
+}
+
+
 // *****************************************************
 
 int bmx_gdal_OGRSFDriverRegistrar_GetDriverCount() {
