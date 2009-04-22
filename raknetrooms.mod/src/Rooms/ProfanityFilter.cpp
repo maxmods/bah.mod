@@ -1,8 +1,14 @@
 #include "ProfanityFilter.h"
 #include "Rand.h"
 #include "RakAssert.h"
-#include "RakMemoryOverride.h"
+#include "LinuxStrings.h"
 
+#if defined(_WIN32)
+#include <malloc.h> // alloca
+#elif (defined(__GNUC__)  || defined(__GCCXML__))
+#include <alloca.h>
+#else
+#endif
 #ifndef WIN32
 #include <ctype.h>
 extern "C" {

@@ -2,7 +2,7 @@
 #include "TransportInterface.h"
 #include "RakPeerInterface.h"
 #include "BitStream.h"
-#include <assert.h>
+#include "RakAssert.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -135,7 +135,11 @@ bool RakNetCommandParser::OnCommand(const char *command, unsigned numParameters,
 			{
 				transport->Send(systemAddress, "GetConnectionList() returned:\r\n");
 				for (i=0; i < count; i++)
-					transport->Send(systemAddress, "%i %s %i:%i\r\n", i, remoteSystems[i].ToString(false), remoteSystems[i].binaryAddress, remoteSystems[i].port);
+				{
+					char str1[64];
+					remoteSystems[i].ToString(false, str1);
+					transport->Send(systemAddress, "%i %s %i:%i\r\n", i, str1, remoteSystems[i].binaryAddress, remoteSystems[i].port);
+				}
 			}
 		}
 		else

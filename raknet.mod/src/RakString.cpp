@@ -17,6 +17,17 @@ RakString::SharedString RakString::emptyString={0,0,0,"",""};
 //unsigned int RakString::sharedStringFreeListAllocationCount=0;
 DataStructures::List<RakString::SharedString*> RakString::freeList;
 
+class RakStringCleanup
+{
+public:
+	~RakStringCleanup()
+	{
+		RakNet::RakString::FreeMemoryNoMutex();
+	}
+};
+
+static RakStringCleanup cleanup;
+
 static SimpleMutex poolMutex;
 
 int RakString::RakStringComp( RakString const &key, RakString const &data )
@@ -108,13 +119,13 @@ void RakString::Realloc(SharedString *sharedString, size_t bytes)
 	newBytes = GetSizeToAllocate(bytes);
 	if (oldBytes <=(size_t) smallStringSize && newBytes > (size_t) smallStringSize)
 	{
-		sharedString->bigString=(char*) rakMalloc(newBytes);
+		sharedString->bigString=(char*) rakMalloc_Ex(newBytes, __FILE__, __LINE__);
 		strcpy(sharedString->bigString, sharedString->smallString);
 		sharedString->c_str=sharedString->bigString;
 	}
 	else if (oldBytes > smallStringSize)
 	{
-		sharedString->bigString=(char*) rakRealloc(sharedString->bigString,newBytes);
+		sharedString->bigString=(char*) rakRealloc_Ex(sharedString->bigString,newBytes, __FILE__, __LINE__);
 		sharedString->c_str=sharedString->bigString;
 	}
 	sharedString->bytesUsed=newBytes;
@@ -228,12 +239,12 @@ const RakNet::RakString operator+(const RakNet::RakString &lhs, const RakNet::Ra
 	// sharedString = RakString::pool.Allocate();
 	if (RakString::freeList.Size()==0)
 	{
-		//RakString::sharedStringFreeList=(RakString::SharedString*) rakRealloc(RakString::sharedStringFreeList,(RakString::sharedStringFreeListAllocationCount+1024)*sizeof(RakString::SharedString));
+		//RakString::sharedStringFreeList=(RakString::SharedString*) rakRealloc_Ex(RakString::sharedStringFreeList,(RakString::sharedStringFreeListAllocationCount+1024)*sizeof(RakString::SharedString), __FILE__, __LINE__);
 		unsigned i;
 		for (i=0; i < 1024; i++)
 		{
 		//	RakString::freeList.Insert(RakString::sharedStringFreeList+i+RakString::sharedStringFreeListAllocationCount);
-			RakString::freeList.Insert((RakString::SharedString*)rakMalloc(sizeof(RakString::SharedString)));
+			RakString::freeList.Insert((RakString::SharedString*)rakMalloc_Ex(sizeof(RakString::SharedString), __FILE__, __LINE__), __FILE__, __LINE__);
 
 		}
 		//RakString::sharedStringFreeListAllocationCount+=1024;
@@ -251,7 +262,7 @@ const RakNet::RakString operator+(const RakNet::RakString &lhs, const RakNet::Ra
 	}
 	else
 	{
-		sharedString->bigString=(char*)rakMalloc(sharedString->bytesUsed);
+		sharedString->bigString=(char*)rakMalloc_Ex(sharedString->bytesUsed, __FILE__, __LINE__);
 		sharedString->c_str=sharedString->bigString;
 	}
 
@@ -504,10 +515,14 @@ void RakString::URLEncode(void)
 void RakString::FreeMemory(void)
 {
 	LockMutex();
-	for (unsigned int i=0; i < freeList.Size(); i++)
-		RakNet::OP_DELETE(freeList[i]);
-	freeList.Clear();
+	FreeMemoryNoMutex();
 	UnlockMutex();
+}
+void RakString::FreeMemoryNoMutex(void)
+{
+	for (unsigned int i=0; i < freeList.Size(); i++)
+		rakFree_Ex(freeList[i], __FILE__, __LINE__ );
+	freeList.Clear();
 }
 void RakString::Serialize(BitStream *bs)
 {
@@ -619,12 +634,12 @@ void RakString::Allocate(size_t len)
 	// sharedString = RakString::pool.Allocate();
 	if (RakString::freeList.Size()==0)
 	{
-		//RakString::sharedStringFreeList=(RakString::SharedString*) rakRealloc(RakString::sharedStringFreeList,(RakString::sharedStringFreeListAllocationCount+1024)*sizeof(RakString::SharedString));
+		//RakString::sharedStringFreeList=(RakString::SharedString*) rakRealloc_Ex(RakString::sharedStringFreeList,(RakString::sharedStringFreeListAllocationCount+1024)*sizeof(RakString::SharedString), __FILE__, __LINE__);
 		unsigned i;
 		for (i=0; i < 1024; i++)
 		{
 			//	RakString::freeList.Insert(RakString::sharedStringFreeList+i+RakString::sharedStringFreeListAllocationCount);
-			RakString::freeList.Insert((RakString::SharedString*)rakMalloc(sizeof(RakString::SharedString)));
+			RakString::freeList.Insert((RakString::SharedString*)rakMalloc_Ex(sizeof(RakString::SharedString), __FILE__, __LINE__), __FILE__, __LINE__);
 
 		}
 		//RakString::sharedStringFreeListAllocationCount+=1024;
@@ -643,7 +658,7 @@ void RakString::Allocate(size_t len)
 	else
 	{
 		sharedString->bytesUsed=len<<1;
-		sharedString->bigString=(char*)rakMalloc(sharedString->bytesUsed);
+		sharedString->bigString=(char*)rakMalloc_Ex(sharedString->bytesUsed, __FILE__, __LINE__);
 		sharedString->c_str=sharedString->bigString;
 	}
 }
@@ -678,7 +693,7 @@ void RakString::Free(void)
 	{
 		const size_t smallStringSize = 128-sizeof(unsigned int)-sizeof(size_t)-sizeof(char*)*2;
 		if (sharedString->bytesUsed>smallStringSize)
-			rakFree(sharedString->bigString);
+			rakFree_Ex(sharedString->bigString, __FILE__, __LINE__ );
 		/*
 		poolMutex->Lock();
 		pool.Release(sharedString);
@@ -686,7 +701,7 @@ void RakString::Free(void)
 		*/
 
 		RakString::LockMutex();
-		RakString::freeList.Insert(sharedString);
+		RakString::freeList.Insert(sharedString, __FILE__, __LINE__);
 		RakString::UnlockMutex();
 
 		sharedString=&emptyString;
@@ -767,7 +782,7 @@ int main(void)
 		beforeReferenceList=RakNet::GetTime();
 		for (i=0; i < repeatCount; i++)
 		{
-			c = RakNet::OP_NEW<char >(56);
+			c = RakNet::OP_NEW<char >(56, __FILE__, __LINE__ );
 			strcpy(c, "Aalsdkj alsdjf laksdjf ;lasdfj ;lasjfd");
 			referenceStringList.Insert(c);
 		}
@@ -784,7 +799,7 @@ int main(void)
 		beforeReferenceList=RakNet::GetTime();
 		for (i=0; i < repeatCount; i++)
 		{
-			RakNet::OP_DELETE(referenceStringList[0]);
+			RakNet::OP_DELETE(referenceStringList[0], __FILE__, __LINE__);
 			referenceStringList.RemoveAtIndex(0);
 		}
 		beforeRakString=RakNet::GetTime();
@@ -799,7 +814,7 @@ int main(void)
 		beforeReferenceList=RakNet::GetTime();
 		for (i=0; i < repeatCount; i++)
 		{
-			c = RakNet::OP_NEW<char >(56);
+			c = RakNet::OP_NEW<char >(56, __FILE__, __LINE__ );
 			strcpy(c, "Aalsdkj alsdjf laksdjf ;lasdfj ;lasjfd");
 			referenceStringList.Insert(0);
 		}
@@ -815,7 +830,7 @@ int main(void)
 		beforeReferenceList=RakNet::GetTime();
 		for (i=0; i < repeatCount; i++)
 		{
-			RakNet::OP_DELETE_ARRAY(referenceStringList[referenceStringList.Size()-1]);
+			RakNet::OP_DELETE_ARRAY(referenceStringList[referenceStringList.Size()-1], __FILE__, __LINE__);
 			referenceStringList.RemoveAtIndex(referenceStringList.Size()-1);
 		}
 		beforeRakString=RakNet::GetTime();

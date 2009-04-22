@@ -1,18 +1,9 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 // No longer used as I no longer support IO Completion ports
 /*
@@ -24,7 +15,7 @@
 #include <process.h>
 #include "ExtendedOverlappedPool.h"
 #include <stdio.h>
-#include <assert.h>
+#include "RakAssert.h"
 
 // All these are used for the Read callback.  For general Asynch file IO you would change these
 #include "RakNetTypes.h"
@@ -267,10 +258,10 @@ HANDLE_ERROR:
 			// This socket is no longer used
 
 			if ( lpOverlapped )
-				RakNet::OP_DELETE(lpOverlapped);
+				RakNet::OP_DELETE(lpOverlapped, __FILE__, __LINE__);
 
 			if ( lpClientContext )
-				RakNet::OP_DELETE(lpClientContext);
+				RakNet::OP_DELETE(lpClientContext, __FILE__, __LINE__);
 
 			// If we are killing the threads, then we keep posting fake completion statuses until we get a fake one through the queue (i.e. lpOverlapped==0 as above)
 			// This way we delete all the data from the real calls before exiting the thread

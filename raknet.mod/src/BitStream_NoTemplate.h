@@ -1,19 +1,10 @@
 /// \file
 /// \brief This class allows you to write and read native types as a string of bits.  BitStream is used extensively throughout RakNet and is designed to be used by users as well.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #if defined(_MSC_VER) && _MSC_VER < 1299 // VC6 doesn't support template specialization
 
@@ -24,8 +15,8 @@
 #include "RakNetDefines.h"
 #include "Export.h"
 #include "RakNetTypes.h"
-#include <assert.h>
-#if defined(_PS3)
+#include "RakAssert.h"
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 #include <math.h>
 #else
 #include <cmath>
@@ -337,9 +328,9 @@ namespace RakNet
 		void WriteCompressed(long var) {if (DoEndianSwap()) {unsigned char output[sizeof(long)]; ReverseBytes((unsigned char*)&var, output, sizeof(long)); WriteCompressed( ( unsigned char* ) output, sizeof(long) * 8, true );} else WriteCompressed( ( unsigned char* ) & var, sizeof(long) * 8, true );}
 		void WriteCompressed(long long var) {if (DoEndianSwap()) {unsigned char output[sizeof(long long)]; ReverseBytes((unsigned char*)&var, output, sizeof(long long)); WriteCompressed( ( unsigned char* ) output, sizeof(long long) * 8, true );} else WriteCompressed( ( unsigned char* ) & var, sizeof(long long) * 8, true );}
 		void WriteCompressed(unsigned long long var) {if (DoEndianSwap()) {	unsigned char output[sizeof(unsigned long long)]; ReverseBytes((unsigned char*)&var, output, sizeof(unsigned long long)); WriteCompressed( ( unsigned char* ) output, sizeof(unsigned long long) * 8, true );} else WriteCompressed( ( unsigned char* ) & var, sizeof(unsigned long long) * 8, true );}
-		void WriteCompressed(float var) {assert(var > -1.01f && var < 1.01f); if (var < -1.0f) var=-1.0f; if (var > 1.0f) var=1.0f; Write((unsigned short)((var+1.0f)*32767.5f));}
-		void WriteCompressed(double var) {assert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
-		void WriteCompressed(long double var) {assert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
+		void WriteCompressed(float var) {RakAssert(var > -1.01f && var < 1.01f); if (var < -1.0f) var=-1.0f; if (var > 1.0f) var=1.0f; Write((unsigned short)((var+1.0f)*32767.5f));}
+		void WriteCompressed(double var) {RakAssert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
+		void WriteCompressed(long double var) {RakAssert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
 
 		/// Write any integral type to a bitstream.  If the current value is different from the last value
 		/// the current value will be written.  Otherwise, a single bit will be written

@@ -2,8 +2,10 @@
 #define __RAK_THREAD_H
 
 #if defined(_WIN32_WCE)
-#include <windows.h>
+#include "WindowsIncludes.h"
 #endif
+
+#include "Export.h"
 
 namespace RakNet
 {
@@ -17,7 +19,7 @@ namespace RakNet
 #define RAK_THREAD_DECLARATION(functionName) void* functionName( void* arguments )
 #endif
 
-class RakThread
+class RAK_DLL_EXPORT RakThread
 {
 public:
 

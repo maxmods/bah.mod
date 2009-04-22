@@ -29,7 +29,7 @@ void InlineFunctorProcessor::YieldOnFunctor(InlineFunctor *inlineFunctor)
 	inlineFunctor->callDepth=GetCallDepth();
 	inlineFunctor->ifp=this;
 	functionThread.Push(inlineFunctor);
-	completedThreads.Push(false);
+	completedThreads.Push(false, __FILE__, __LINE__);
 }
 bool InlineFunctorProcessor::UpdateIFP(void)
 {

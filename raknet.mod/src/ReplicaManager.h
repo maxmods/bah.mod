@@ -1,19 +1,10 @@
 /// \file
 /// \brief Contains class ReplicaManager.  This system provides management for your game objects and players to make serialization, scoping, and object creation and destruction easier.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __REPLICA_MANAGER_H
 #define __REPLICA_MANAGER_H
@@ -21,7 +12,7 @@
 #include "Export.h"
 #include "RakNetTypes.h"
 #include "DS_OrderedList.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "NetworkIDObject.h"
 #include "DS_Queue.h"
 #include "ReplicaEnums.h"
@@ -115,7 +106,7 @@ public:
 /// \brief A management system for your game objects and players to make serialization, scoping, and object creation and destruction easier.
 /// \pre You must call RakPeer::SetNetworkIDManager to use this plugin.
 /// \ingroup REPLICA_MANAGER_GROUP
-class RAK_DLL_EXPORT ReplicaManager : public PluginInterface
+class RAK_DLL_EXPORT ReplicaManager : public PluginInterface2
 {
 public:
 	/// Constructor
@@ -262,7 +253,7 @@ public:
 	/// Depending on where you call RakPeerInterface::Receive you may also wish to call this manually for better responsiveness.
 	/// For example, if you call RakPeerInterface::Receive at the start of each game tick, this means you would have to wait a render cycle, causing
 	/// \param[in] peer Pointer to a valid instance of RakPeerInterface used to perform sends
-	void Update(RakPeerInterface *peer);
+	void Update(void);
 
 	/// Lets you enable calling any or all of the interface functions in an instance of Replica
 	/// This setting is the same for all participants for this object, so if you want per-participant permissions you will need to handle that inside your implementation
@@ -429,10 +420,10 @@ protected:
 	unsigned GetCommandListReplicaIndex(const DataStructures::List<ReplicaManager::CommandStruct> &commandList, Replica *replica, bool *objectExists) const;
 
 	// Plugin interface functions
-	void OnAttach(RakPeerInterface *peer);
-	PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
-	void OnShutdown(RakPeerInterface *peer);
+	PluginReceiveResult OnReceive(Packet *packet);
+	void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
+	void OnShutdown(void);
+	void OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming);
 
 	/// List of objects replicated in the Replicate function.
 	/// Used to make sure queued actions happen on valid pointers, since objects are removed from the list in Dereplicate
@@ -467,8 +458,6 @@ protected:
 	bool defaultScope;
 	bool autoConstructToNewParticipants;
 	unsigned int nextReferenceIndex;
-
-	RakPeerInterface *rakPeer;
 
 #ifdef _DEBUG
 	// Check for and assert on recursive calls to update

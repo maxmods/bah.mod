@@ -5,7 +5,7 @@ Release date: ?
 This code is public domain (no copyright).
 You can do whatever you want with it.
 *****************************************************************************/
-#if !defined(linux)
+#if !defined(linux) && !defined(__GNUC__) && !defined(__GCCXML__)
 #include <conio.h> /* kbhit(), getch() */
 
 #else

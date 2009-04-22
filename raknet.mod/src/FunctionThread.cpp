@@ -103,7 +103,7 @@ FunctionThreadDependentClass::FunctionThreadDependentClass()
 FunctionThreadDependentClass::~FunctionThreadDependentClass()
 {
 	if (functionThreadWasAllocated)
-		RakNet::OP_DELETE(functionThread);
+		RakNet::OP_DELETE(functionThread, __FILE__, __LINE__);
 }
 
 void FunctionThreadDependentClass::AssignFunctionThread(FunctionThread *ft)
@@ -111,7 +111,7 @@ void FunctionThreadDependentClass::AssignFunctionThread(FunctionThread *ft)
 	if (functionThread && functionThreadWasAllocated)
 	{
 		functionThread->StopThreads(true);
-		RakNet::OP_DELETE(functionThread);
+		RakNet::OP_DELETE(functionThread, __FILE__, __LINE__);
 	}
 
 	functionThread=ft;
@@ -122,7 +122,7 @@ void FunctionThreadDependentClass::StartFunctionThread(void)
 {
 	if (functionThread==0)
 	{
-		functionThread = RakNet::OP_NEW<FunctionThread>();
+		functionThread = RakNet::OP_NEW<FunctionThread>( __FILE__, __LINE__ );
 		functionThreadWasAllocated=true;
 	}
 

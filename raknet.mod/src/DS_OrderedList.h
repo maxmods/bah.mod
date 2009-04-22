@@ -1,19 +1,10 @@
 /// \file
 /// \brief \b [Internal] Quicksort ordered list.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "DS_List.h"
 #include "RakMemoryOverride.h"
@@ -105,7 +96,7 @@ namespace DataStructures
 		bool objectExists;
 		unsigned index;
 		index = GetIndexFromKey(key, &objectExists, cf);
-		assert(objectExists);
+		RakAssert(objectExists);
 		return orderedList[index];
 	}
 	template <class key_type, class data_type, int (*default_comparison_function)(const key_type&, const data_type&)>
@@ -167,6 +158,7 @@ namespace DataStructures
 	template <class key_type, class data_type, int (*default_comparison_function)(const key_type&, const data_type&)>
 	unsigned OrderedList<key_type, data_type, default_comparison_function>::Insert(const key_type &key, const data_type &data, bool assertOnDuplicate, int (*cf)(const key_type&, const data_type&))
 	{
+		(void) assertOnDuplicate;
 		bool objectExists;
 		unsigned index;
 		index = GetIndexFromKey(key, &objectExists, cf);
@@ -175,18 +167,18 @@ namespace DataStructures
 		if (objectExists)
 		{
 			// This is usually a bug!  Use InsertAllowDuplicate if you want duplicates
-			assert(assertOnDuplicate==false);
+			RakAssert(assertOnDuplicate==false);
 			return (unsigned)-1;
 		}
 
 		if (index>=orderedList.Size())
 		{
-			orderedList.Insert(data);
+			orderedList.Insert(data, __FILE__, __LINE__);
 			return orderedList.Size()-1;
 		}
 		else
 		{
-			orderedList.Insert(data,index);
+			orderedList.Insert(data,index, __FILE__, __LINE__);
 			return index;
 		}		
 	}
@@ -199,10 +191,10 @@ namespace DataStructures
 		index = GetIndexFromKey(key, &objectExists, cf);
 
 		// Can't find the element to remove if this assert hits
-	//	assert(objectExists==true);
+	//	RakAssert(objectExists==true);
 		if (objectExists==false)
 		{
-			assert(objectExists==true);
+			RakAssert(objectExists==true);
 			return 0;
 		}
 
@@ -234,13 +226,13 @@ namespace DataStructures
 	template <class key_type, class data_type, int (*default_comparison_function)(const key_type&, const data_type&)>
 		void OrderedList<key_type, data_type, default_comparison_function>::InsertAtIndex(const data_type &data, const unsigned index)
 	{
-		orderedList.Insert(data, index);
+		orderedList.Insert(data, index, __FILE__, __LINE__);
 	}
 
 	template <class key_type, class data_type, int (*default_comparison_function)(const key_type&, const data_type&)>
 		void OrderedList<key_type, data_type, default_comparison_function>::InsertAtEnd(const data_type &data)
 	{
-		orderedList.Insert(data);
+		orderedList.Insert(data, __FILE__, __LINE__);
 	}
 
 	template <class key_type, class data_type, int (*default_comparison_function)(const key_type&, const data_type&)>

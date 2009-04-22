@@ -1,7 +1,7 @@
 #include "CommandParserInterface.h"
 #include "TransportInterface.h"
 #include <string.h>
-#include <assert.h>
+#include "RakAssert.h"
 #include <stdio.h>
 #if defined(_XBOX) || defined(X360)
 #include "XBOX360Includes.h"
@@ -62,7 +62,7 @@ void CommandParserInterface::ParseConsoleString(char *str, const char delineator
 		{
 			parameterList[parameterListIndex]=str+strIndex;
 			parameterListIndex++;
-			assert(parameterListIndex < parameterListLength);
+			RakAssert(parameterListIndex < parameterListLength);
 			if (parameterListIndex >= parameterListLength)
 				break;
 

@@ -1,6 +1,6 @@
 #include "LogCommandParser.h"
 #include "TransportInterface.h"
-#ifndef _PS3
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 #include <memory.h>
 #endif
 #include <stdio.h>
@@ -95,7 +95,7 @@ void LogCommandParser::AddChannel(const char *channelName)
 	unsigned channelIndex;
 	channelIndex = GetChannelIndexFromName(channelName);
 	// Each channel can only be added once.
-	assert(channelIndex==(unsigned)-1);
+	RakAssert(channelIndex==(unsigned)-1);
 
 	unsigned i;
 	for (i=0; i < 32; i++)
@@ -109,7 +109,7 @@ void LogCommandParser::AddChannel(const char *channelName)
 	}
 
 	// No more available channels - max 32 with this implementation where I save subscribed channels with bit operations
-	assert(0);
+	RakAssert(0);
 }
 void LogCommandParser::WriteLog(const char *channelName, const char *format, ...)
 {
@@ -242,7 +242,7 @@ unsigned LogCommandParser::Subscribe(SystemAddress systemAddress, const char *ch
 		newUser.channels=1<<channelIndex;
 	else
 		newUser.channels=0xFFFF;
-	remoteUsers.Insert(newUser);
+	remoteUsers.Insert(newUser, __FILE__, __LINE__);
 	return channelIndex;
 }
 unsigned LogCommandParser::GetChannelIndexFromName(const char *channelName)

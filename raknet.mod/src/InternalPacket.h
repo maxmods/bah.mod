@@ -1,7 +1,7 @@
 /// \file
 /// \brief \b [Internal] A class which stores a user message, and all information associated with sending and receiving that message.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
 /// Creative Commons Licensees are subject to the
@@ -75,11 +75,11 @@ struct InternalPacket//<InternalPacket>
 	///The size of the array of subsplit packets
 	SplitPacketIndexType splitPacketCount;
 	///When this packet was created
-	RakNetTimeNS creationTime;
+	RakNetTimeUS creationTime;
 	///The next time to take action on this packet
-	RakNetTimeNS nextActionTime;
+	RakNetTimeUS nextActionTime;
 	// If this was a reliable packet, it included the ping time, to be sent back in an ack
-	//RakNetTimeNS remoteSystemTime;
+	//RakNetTimeUS remoteSystemTime;
 	//RemoteSystemTimeType remoteSystemTime;
 	///How many bits the data is
 	BitSize_t dataBitLength;

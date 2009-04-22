@@ -1,19 +1,10 @@
 /// \file
 /// \brief Contains the second iteration of the ReplicaManager class.  This system automatically creates and destroys objects, downloads the world to new players, manages players, and automatically serializes as needed.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __REPLICA_MANAGER_2_H
 #define __REPLICA_MANAGER_2_H
@@ -21,7 +12,7 @@
 #include "Export.h"
 #include "RakNetTypes.h"
 #include "DS_Map.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "NetworkIDObject.h"
 #include "PacketPriority.h"
 #include "GetTime.h"
@@ -127,9 +118,9 @@ enum
 /// \pre Call RakPeer::SetNetworkIDManager()
 /// \pre This system is a server or peer: Call NetworkIDManager::SetIsNetworkIDAuthority(true).
 /// \pre This system is a client:  Call NetworkIDManager::SetIsNetworkIDAuthority(false).
-/// \pre If peer to peer, set NetworkID::peerToPeerMode=true, and comment out NETWORK_ID_USE_PTR_TABLE in NetworkIDManager.h
+/// \pre If peer to peer, NETWORK_ID_SUPPORTS_PEER_TO_PEER should be defined in RakNetDefines.h
 /// \ingroup REPLICA_MANAGER_2_GROUP
-class RAK_DLL_EXPORT ReplicaManager2 : public PluginInterface
+class RAK_DLL_EXPORT ReplicaManager2 : public PluginInterface2
 {
 public:
 	/// Constructor
@@ -187,7 +178,7 @@ public:
 	/// Sends a construction command to one or more systems, which will be relayed throughout the network.
 	/// Recipient(s) will allocate the connection via Connection_RM2Factory::AllocConnection() if it does not already exist.
 	/// Will trigger a call on the remote system(s) to Connection_RM2::Construct()
-	/// \note If using peer-to-peer, don't forget to set NetworkID::peerToPeerMode=true and comment out NETWORK_ID_USE_PTR_TABLE in NetworkIDManager.h.
+	/// \note If using peer-to-peer, NETWORK_ID_SUPPORTS_PEER_TO_PEER should be defined in RakNetDefines.h.
 	/// \note This is a low level function. Beginners may wish to use Replica2::SendConstruction() or Replica2::BroadcastConstruction(). You can also override Replica2::QueryConstruction()
 	/// \param[in] replica The class to construct remotely
 	/// \param[in] replicaData User-defined serialized data representing how to construct the class. Could be the name of the class, a unique identifier, or other methods
@@ -337,11 +328,12 @@ public:
 
 protected:
 	// Plugin interface functions
-	void OnAttach(RakPeerInterface *peer);
-	PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
-	void OnShutdown(RakPeerInterface *peer);
-	void Update(RakPeerInterface *peer);
+	void OnAttach(void);
+	PluginReceiveResult OnReceive(Packet *packet);
+	void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
+	void OnShutdown(void);
+	void Update(void);
+	virtual void OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming);
 
 	PluginReceiveResult OnDownloadComplete(unsigned char *packetData, int packetDataLength, SystemAddress sender, RakNetTime timestamp);
 	PluginReceiveResult OnDownloadStarted(unsigned char *packetData, int packetDataLength, SystemAddress sender, RakNetTime timestamp);
@@ -372,7 +364,6 @@ protected:
 	friend class Connection_RM2;
 	friend class Replica2;
 
-	RakPeerInterface *rakPeer;
 	Connection_RM2Factory *connectionFactoryInterface;
 	bool autoUpdateConstruction, autoUpdateVisibility;
 
@@ -471,7 +462,7 @@ public:
 
 	/// Construct this object on other systems
 	/// Triggers a call to SerializeConstruction()
-	/// \note If using peer-to-peer, don't forget to set NetworkID::peerToPeerMode=true and comment out NETWORK_ID_USE_PTR_TABLE in NetworkIDManager.h
+	/// \note If using peer-to-peer, NETWORK_ID_SUPPORTS_PEER_TO_PEER should be defined in RakNetDefines.h
 	/// \param[in] recipientAddress Which system to send to
 	/// \param[in] serializationType What type of command this is. Use UNDEFINED_REASON to have a type chosen automatically
 	virtual void SendConstruction(SystemAddress recipientAddress, SerializationType serializationType=UNDEFINED_REASON);
@@ -570,6 +561,7 @@ public:
 	/// For a given connection, should this object exist?
 	/// Checked every Update cycle if ReplicaManager2::SetAutoUpdateScope() parameter \a construction is true
 	/// Defaults to BQR_ALWAYS
+	/// \note This query is NOT used for ReplicaManager2::BroadcastConstruction() or SendConstruction(), which forces the operation to occur. If you DO want to use the query, use ReplicaManager2::Reference() and the next time RakPeer::Receive() is called it will occur.
 	/// \param[in] connection Which connection we are referring to. 0 means unknown, in which case the system is checking for BQR_ALWAYS or BQR_NEVER as an optimization.
 	/// \return BQR_NO and the object will be destroyed. BQR_YES and the object will be created. BQR_ALWAYS is YES for all connections, and is optimized to only be checked once.
 	virtual BooleanQueryResult QueryConstruction(Connection_RM2 *connection);
@@ -578,6 +570,7 @@ public:
 	/// For a given connection, should this object be visible (updatable?)
 	/// Checked every Update cycle if ReplicaManager2::SetAutoUpdateScope() parameter \a serializationVisiblity is true
 	/// Defaults to BQR_ALWAYS
+	/// \note This query is NOT used for ReplicaManager2::BroadcastVisibility() or SendVisibility(), which forces the operation to occur. If you DO want to use the query, use ReplicaManager2::Reference() and the next time RakPeer::Receive() is called it will occur.
 	/// \param[in] connection Which connection we are referring to. 0 means unknown, in which case the system is checking for BQR_ALWAYS or BQR_NEVER as an optimization.
 	/// \return BQR_NO or BQR_YES and as this value changes per connection, you will get a call to DeserializeVisibility().
 	virtual BooleanQueryResult QueryVisibility(Connection_RM2 *connection);
@@ -626,6 +619,7 @@ public:
 	/// Use CancelAutoSerializeTimer() or ClearAutoSerializeTimers() to stop the timer.
 	/// If this timer already exists, it will simply override the existing countdown
 	/// This timer will automatically repeat every \a countdown milliseconds
+	/// \note The same data is sent to all participants when the autoserialize timer completes. If the data sent depends on the system to be sent to, do not use autoserialize. This is an optimization to save memory.
 	/// \param[in] interval Time in milliseconds between autoserialize ticks. Use 0 to process immediately, and every tick
 	/// \param[in] serializationType User-defined identifier for what type of serialization operation to perform. Returned in Deserialize() as the \a serializationType parameter.
 	/// \param[in] countdown Amount of time before doing the next autoserialize. Defaults to interval
@@ -672,7 +666,6 @@ public:
 	/// \param[in] timestamp timestamp sent with Replica2::SerializeConstruction(), 0 for none.
 	/// \param[in] networkId NetworkID that will be assigned automatically to the new object after this function returns
 	/// \param[in] networkIDCollision True if the network ID that should be assigned to this object is already in use. Usuallly this is because the object already exists, and you should just read your data and return 0.
-	/// \return Return 0 to signal that construction failed or was refused for this object. Otherwise return the object that was created. A reference will be held to this object, and SetNetworkID() and SetReplicaManager() will be called automatically.
 	virtual void OnConstructionComplete(RakNet::BitStream *replicaData, SystemAddress sender, SerializationType type, ReplicaManager2 *replicaManager, RakNetTime timestamp, NetworkID networkId, bool networkIDCollision);
 
 protected:
@@ -682,6 +675,7 @@ protected:
 	virtual void DeleteOnReceiveDestruction(SystemAddress sender, RakNet::BitStream *serializedObject, SerializationType serializationType, RakNetTime timestamp, DataStructures::OrderedList<SystemAddress,SystemAddress> &exclusionList );
 	virtual void ReceiveVisibility(SystemAddress sender, RakNet::BitStream *serializedObject, SerializationType serializationType, RakNetTime timestamp, DataStructures::OrderedList<SystemAddress,SystemAddress> &exclusionList);
 	virtual Replica2 * ReceiveConstructionReply(SystemAddress sender, BitStream *replicaData, bool constructionAllowed);
+	void DereferenceFromDestruction(void);
 
 	friend class ReplicaManager2;
 	friend class Connection_RM2;
@@ -824,6 +818,11 @@ public:
 	/// Get the system address associated with this class instance.
 	SystemAddress GetSystemAddress(void) const;
 
+	/// Set the guid to use with this class instance. This is set internally when the object is created
+	void SetGuid(RakNetGUID guid);
+
+	/// Get the guid associated with this class instance.
+	RakNetGUID GetGuid(void) const;
 	
 protected:
 	void Deref(Replica2* replica);
@@ -842,6 +841,7 @@ protected:
 
 	// Address of this participant
 	SystemAddress systemAddress;
+	RakNetGUID rakNetGuid;
 
 	DataStructures::OrderedList<Replica2*, Replica2*, ReplicaManager2::Replica2ObjectComp> lastConstructionList;
 	DataStructures::OrderedList<Replica2*, Replica2*, ReplicaManager2::Replica2ObjectComp> lastSerializationList;

@@ -96,8 +96,8 @@ void bmx_raknet_gettime(BBInt64 * v) {
 #endif
 }
 
-void bmx_raknet_gettimens(RakNetTimeNS * v) {
-	*v = RakNet::GetTimeNS();
+void bmx_raknet_gettimens(RakNetTimeUS * v) {
+	*v = RakNet::GetTimeUS();
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -470,11 +470,11 @@ void bmx_RakPeer_SetCompileFrequencyTable(RakPeerInterface * peer, bool doCompil
 	peer->SetCompileFrequencyTable(doCompile);
 }
 
-void bmx_RakPeer_AttachPlugin(RakPeerInterface * peer, PluginInterface * 	plugin	) {
+void bmx_RakPeer_AttachPlugin(RakPeerInterface * peer, PluginInterface2 * 	plugin	) {
 	peer->AttachPlugin(plugin);
 }
 
-void bmx_RakPeer_DetachPlugin(RakPeerInterface * peer, PluginInterface * 	plugin	) {
+void bmx_RakPeer_DetachPlugin(RakPeerInterface * peer, PluginInterface2 * 	plugin	) {
 	peer->DetachPlugin(plugin);
 }
 
@@ -1618,9 +1618,11 @@ void bmx_FileList_WriteDataToDisk(FileList * list, BBString * applicationDirecto
 	bbMemFree(p);
 }
 
-void bmx_FileList_AddFileMemory(FileList * list,BBString *  filename, const char * data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext * context, bool isAReference) {
-	char * p = bbStringToCString(filename);
-	list->AddFile(p, data, dataLength, fileLength, (context)?*context : FileListNodeContext(0,0), isAReference);
+void bmx_FileList_AddFileMemory(FileList * list,BBString *  filename, BBString * fullpathToFile, const char * data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext * context, bool isAReference) {
+	char * f = bbStringToCString(filename);
+	char * p = bbStringToCString(fullpathToFile);
+	list->AddFile(f, p, data, dataLength, fileLength, (context)?*context : FileListNodeContext(0,0), isAReference);
+	bbMemFree(f);
 	bbMemFree(p);
 }
 

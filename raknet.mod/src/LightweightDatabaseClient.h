@@ -1,25 +1,16 @@
 /// \file
 /// \brief Contains the client interface to the simple database included with RakNet, useful for a server browser or a lobby server.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __LIGHTWEIGHT_DATABASE_CLIENT_H
 #define __LIGHTWEIGHT_DATABASE_CLIENT_H
 
 #include "Export.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "LightweightDatabaseCommon.h"
 
 class RakPeerInterface;
@@ -30,7 +21,7 @@ struct Packet;
 
 /// \brief The client interface to the simple database included with RakNet, useful for a server browser or a lobby server.
 /// \ingroup SIMPLE_DATABSE_GROUP
-class RAK_DLL_EXPORT LightweightDatabaseClient : public PluginInterface
+class RAK_DLL_EXPORT LightweightDatabaseClient : public PluginInterface2
 {
 public:
 
@@ -77,12 +68,7 @@ public:
 	/// \param[in] broadcast Broadcast or not.  Same as the parameter in RakPeer::Send
 	void RemoveRow(const char *tableName, const char *removePassword, unsigned rowId, SystemAddress systemAddress, bool broadcast);
 
-	/// \internal For plugin handling
-	void OnAttach(RakPeerInterface *peer);
-	/// \internal For plugin handling
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
 protected:
-	RakPeerInterface *rakPeer;
 };
 
 #endif

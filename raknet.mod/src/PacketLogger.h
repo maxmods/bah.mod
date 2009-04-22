@@ -1,26 +1,17 @@
 /// \file
 /// \brief This will write all incoming and outgoing network messages to the local console screen.  See derived functions for other outputs
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __PACKET_LOGGER_H
 #define __PACKET_LOGGER_H
 
 class RakPeerInterface;
 #include "RakNetTypes.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "Export.h"
 
 /// \defgroup PACKETLOGGER_GROUP PacketLogger
@@ -29,15 +20,11 @@ class RakPeerInterface;
 /// \brief Writes incoming and outgoing messages to the screen.
 /// This will write all incoming and outgoing messages to the console window, or to a file if you override it and give it this functionality.
 /// \ingroup PACKETLOGGER_GROUP
-class RAK_DLL_EXPORT PacketLogger : public PluginInterface
+class RAK_DLL_EXPORT PacketLogger : public PluginInterface2
 {
 public:
 	PacketLogger();
 	virtual ~PacketLogger();
-
-	virtual void OnAttach(RakPeerInterface *peer);
-
-	virtual void Update(RakPeerInterface *peer);
 
 	// Translate the supplied parameters into an output line - overloaded version that takes a MessageIdentifier
 	// and translates it into a string (numeric or textual representation based on printId); this calls the
@@ -53,12 +40,18 @@ public:
 	virtual void OnDirectSocketSend(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress);
 	virtual void OnDirectSocketReceive(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress);
 	virtual void OnInternalPacket(InternalPacket *internalPacket, unsigned frameNumber, SystemAddress remoteSystemAddress, RakNetTime time, bool isSend);
+	virtual void OnAck(unsigned int messageNumber, SystemAddress remoteSystemAddress, RakNetTime time);
+	virtual void OnPushBackPacket(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress);
 
 	/// Logs out a header for all the data
 	virtual void LogHeader(void);
 
 	/// Override this to log strings to wherever.  Log should be threadsafe
 	virtual void WriteLog(const char *str);
+
+	// Write informational messages
+	virtual void WriteMiscellaneous(const char *type, const char *msg);
+
 
 	// Set to true to print ID_* instead of numbers
 	virtual void SetPrintID(bool print);
@@ -77,7 +70,6 @@ protected:
 	// Users should override this
 	virtual const char* UserIDTOString(unsigned char Id);
 
-	RakPeerInterface *rakPeer;
 	bool printId, printAcks;
 	char prefix[256];
 	char suffix[256];

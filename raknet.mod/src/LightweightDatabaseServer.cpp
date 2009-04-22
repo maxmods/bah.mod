@@ -15,32 +15,38 @@ static const int DROP_SERVER_INTERVAL=75000;
 #pragma warning( push )
 #endif
 
-int LightweightDatabaseServer::DatabaseTableComp( char* const &key1, char* const &key2 )
-	{
+int LightweightDatabaseServer::DatabaseTableComp( const char* const &key1, const char* const &key2 )
+{
 	return strcmp(key1, key2);
-	}
+}
 
 LightweightDatabaseServer::LightweightDatabaseServer()
-	{
+{
 
-	}
+}
 LightweightDatabaseServer::~LightweightDatabaseServer()
-	{
+{
 	Clear();
-	}
-DataStructures::Table *LightweightDatabaseServer::GetTable(char *tableName)
+}
+DataStructures::Table *LightweightDatabaseServer::GetTable(const char *tableName)
+{
+	if (tableName==0)
 	{
+		if (database.Size()>0)
+			return &(database[0]->table);
+		return 0;
+	}
 	if (database.Has(tableName))
 		return &(database.Get(tableName)->table);
 	return 0;
-	}
-DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *LightweightDatabaseServer::GetTableRows(char *tableName)
-	{
+}
+DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *LightweightDatabaseServer::GetTableRows(const char *tableName)
+{
 	if (database.Has(tableName))
 		database.Get(tableName)->table.GetRows().GetListHead();
 	return 0;
-	}
-DataStructures::Table* LightweightDatabaseServer::AddTable(char *tableName,
+}
+DataStructures::Table* LightweightDatabaseServer::AddTable(const char *tableName,
 																			  bool allowRemoteQuery,
 																			  bool allowRemoteUpdate,
 																			  bool allowRemoteRemove,
@@ -52,57 +58,57 @@ DataStructures::Table* LightweightDatabaseServer::AddTable(char *tableName,
 																			  bool removeRowOnPingFailure,
 																			  bool removeRowOnDisconnect,
 																			  bool autogenerateRowIDs)
-	{
+{
 	if (tableName==0 || tableName[0]==0)
 		return 0;
 	if (database.Has(tableName))
 		return 0;
-	DatabaseTable *databaseTable = RakNet::OP_NEW<DatabaseTable>();
+	DatabaseTable *databaseTable = RakNet::OP_NEW<DatabaseTable>( __FILE__, __LINE__ );
 
 	strncpy(databaseTable->tableName, tableName, _SIMPLE_DATABASE_TABLE_NAME_LENGTH-1);
 	databaseTable->tableName[_SIMPLE_DATABASE_TABLE_NAME_LENGTH-1]=0;
 
 	if (allowRemoteUpdate)
-		{
+	{
 		strncpy(databaseTable->updatePassword, updatePassword, _SIMPLE_DATABASE_PASSWORD_LENGTH-1);
 		databaseTable->updatePassword[_SIMPLE_DATABASE_PASSWORD_LENGTH-1]=0;
-		}
+	}
 	else
 		databaseTable->updatePassword[0]=0;
 
 	if (allowRemoteQuery)
-		{
+	{
 		strncpy(databaseTable->queryPassword, queryPassword, _SIMPLE_DATABASE_PASSWORD_LENGTH-1);
 		databaseTable->queryPassword[_SIMPLE_DATABASE_PASSWORD_LENGTH-1]=0;
-		}
+	}
 	else
 		databaseTable->queryPassword[0]=0;	
 
 	if (allowRemoteRemove)
-		{
+	{
 		strncpy(databaseTable->removePassword, removePassword, _SIMPLE_DATABASE_PASSWORD_LENGTH-1);
 		databaseTable->removePassword[_SIMPLE_DATABASE_PASSWORD_LENGTH-1]=0;
-		}
+	}
 	else
 		databaseTable->removePassword[0]=0;
 
 	if (allowRemoteUpdate)
-		{
+	{
 		databaseTable->allowRemoteUpdate=true;
 		databaseTable->oneRowPerSystemAddress=oneRowPerSystemAddress;
 		databaseTable->onlyUpdateOwnRows=onlyUpdateOwnRows;
 		databaseTable->removeRowOnPingFailure=removeRowOnPingFailure;
 		databaseTable->removeRowOnDisconnect=removeRowOnDisconnect;
-		}
+	}
 	else
-		{
+	{
 		// All these parameters are related to IP tracking, which is not done if remote updates are not allowed
 		databaseTable->allowRemoteUpdate=true;
 		databaseTable->oneRowPerSystemAddress=false;
 		databaseTable->onlyUpdateOwnRows=false;
 		databaseTable->removeRowOnPingFailure=false;
 		databaseTable->removeRowOnDisconnect=false;
-		}
+	}
 
 	databaseTable->nextRowId=0;
 	databaseTable->nextRowPingCheck=0;
@@ -114,30 +120,30 @@ DataStructures::Table* LightweightDatabaseServer::AddTable(char *tableName,
 	database.SetNew(databaseTable->tableName, databaseTable);
 
 	if ( oneRowPerSystemAddress || onlyUpdateOwnRows || removeRowOnPingFailure || removeRowOnDisconnect)
-		{
+	{
 		databaseTable->SystemAddressColumnIndex=databaseTable->table.AddColumn(SYSTEM_ID_COLUMN_NAME, DataStructures::Table::BINARY);
 		databaseTable->SystemGuidColumnIndex=databaseTable->table.AddColumn(SYSTEM_GUID_COLUMN_NAME, DataStructures::Table::BINARY);
-		}
+	}
 	else
-		{
+	{
 		databaseTable->SystemAddressColumnIndex=(unsigned) -1;
 		databaseTable->SystemGuidColumnIndex=(unsigned) -1;
-		}
+	}
 	if (databaseTable->removeRowOnPingFailure)
-		{
+	{
 		databaseTable->lastPingResponseColumnIndex=databaseTable->table.AddColumn(LAST_PING_RESPONSE_COLUMN_NAME, DataStructures::Table::NUMERIC);
 		databaseTable->nextPingSendColumnIndex=databaseTable->table.AddColumn(NEXT_PING_SEND_COLUMN_NAME, DataStructures::Table::NUMERIC);
-		}
+	}
 	else
-		{
+	{
 		databaseTable->lastPingResponseColumnIndex=(unsigned) -1;
 		databaseTable->nextPingSendColumnIndex=(unsigned) -1;
-		}
+	}
 
 	return &(databaseTable->table);
-	}
-bool LightweightDatabaseServer::RemoveTable(char *tableName)
-	{
+}
+bool LightweightDatabaseServer::RemoveTable(const char *tableName)
+{
 	LightweightDatabaseServer::DatabaseTable *databaseTable;
 	databaseTable = database.Get(tableName);
 	if (databaseTable==0)
@@ -145,9 +151,9 @@ bool LightweightDatabaseServer::RemoveTable(char *tableName)
 	// Be sure to call Delete on database before I do the actual pointer deletion since the key won't be valid after that time.
 	database.Delete(tableName);
 	databaseTable->table.Clear();
-	RakNet::OP_DELETE(databaseTable);
+	RakNet::OP_DELETE(databaseTable, __FILE__, __LINE__);
 	return true;
-	}
+}
 void LightweightDatabaseServer::Clear(void)
 	{
 	unsigned i;
@@ -155,12 +161,12 @@ void LightweightDatabaseServer::Clear(void)
 	for (i=0; i < database.Size(); i++)
 		{
 		database[i]->table.Clear();
-		RakNet::OP_DELETE(database[i]);
+		RakNet::OP_DELETE(database[i], __FILE__, __LINE__);
 		}
 
 	database.Clear();
 	}
-unsigned LightweightDatabaseServer::GetAndIncrementRowID(char *tableName)
+unsigned LightweightDatabaseServer::GetAndIncrementRowID(const char *tableName)
 	{
 	LightweightDatabaseServer::DatabaseTable *databaseTable;
 	databaseTable = database.Get(tableName);
@@ -169,12 +175,8 @@ unsigned LightweightDatabaseServer::GetAndIncrementRowID(char *tableName)
 	return ++(databaseTable->nextRowId) - 1;
 	}
 
-void LightweightDatabaseServer::OnAttach(RakPeerInterface *peer)
-	{
-	(void) peer;
-	}
-void LightweightDatabaseServer::Update(RakPeerInterface *peer)
-	{
+void LightweightDatabaseServer::Update(void)
+{
 	RakNetTime time=0;
 	DatabaseTable *databaseTable;
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur;
@@ -185,102 +187,88 @@ void LightweightDatabaseServer::Update(RakPeerInterface *peer)
 
 	// periodic ping if removing system that do not respond to pings.
 	for (i=0; i < database.Size(); i++)
-		{
+	{
 		databaseTable=database[i];
 
 		if (databaseTable->removeRowOnPingFailure)
-			{
+		{
 			// Reading the time is slow - only do it once if necessary.
 			if (time==0)
 				time = RakNet::GetTime();
 
 			if (databaseTable->nextRowPingCheck < time)
-				{
+			{
 				databaseTable->nextRowPingCheck=time+1000+(randomMT()%1000);
-				DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
+				const DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
 				cur = rows.GetListHead();
 				while (cur)
-					{
+				{
 					// Mark dropped entities
 					for (j=0; j < (unsigned)cur->size; j++)
-						{
+					{
 						row = cur->data[j];
-						if (time - (unsigned int) row->cells[databaseTable->lastPingResponseColumnIndex]->i > (unsigned int) DROP_SERVER_INTERVAL)
-							removeList.Insert(cur->keys[j]);
+						row->cells[databaseTable->SystemAddressColumnIndex]->Get((char*)&systemAddress, 0);
+						if (rakPeerInterface->IsConnected(systemAddress)==false)
+						{
+							if (time > time - (unsigned int) row->cells[databaseTable->lastPingResponseColumnIndex]->i && 
+								time - (unsigned int) row->cells[databaseTable->lastPingResponseColumnIndex]->i > (unsigned int) DROP_SERVER_INTERVAL)
+							{
+								removeList.Insert(cur->keys[j], __FILE__, __LINE__);
+							}
+							else
+							{
+								if (row->cells[databaseTable->nextPingSendColumnIndex]->i < (int) time)
+								{
+									char str1[64];
+									systemAddress.ToString(false, str1);
+									rakPeerInterface->Ping(str1, systemAddress.port, false);
+									row->cells[databaseTable->nextPingSendColumnIndex]->i=time+SEND_PING_INTERVAL+(randomMT()%1000);
+								}
+							}
 						}
-					cur=cur->next;
 					}
+					cur=cur->next;
+				}
 
 				// Remove dropped entities
 				for (j=0; j < removeList.Size(); j++)
 					databaseTable->table.RemoveRow(removeList[i]);
 				removeList.Clear(true);
 
-				cur = rows.GetListHead();
-				// Ping remaining entities if they are not connected.  If they are connected just increase the ping interval.
-				while (cur)
-					{
-					for (j=0; j < (unsigned)cur->size; j++)
-						{
-						row = cur->data[j];
-						if (row->cells[databaseTable->nextPingSendColumnIndex]->i < (int) time)
-							{
-							row->cells[databaseTable->SystemAddressColumnIndex]->Get((char*)&systemAddress, 0);
-							if (peer->IsConnected(systemAddress)==false)
-								{
-								peer->Ping(systemAddress.ToString(false), systemAddress.port, false);
-								}
-							else
-								{
-								// Consider the fact that they are connected to be a ping response
-								row->cells[databaseTable->lastPingResponseColumnIndex]->i=time;
-								}
-
-							row->cells[databaseTable->nextPingSendColumnIndex]->i=time+SEND_PING_INTERVAL+(randomMT()%1000);
-							}
-						}
-					cur=cur->next;
-					}
-				}
 			}
 		}
 	}
-PluginReceiveResult LightweightDatabaseServer::OnReceive(RakPeerInterface *peer, Packet *packet)
+}
+PluginReceiveResult LightweightDatabaseServer::OnReceive(Packet *packet)
 	{
 	switch (packet->data[0]) 
 		{
 		case ID_DATABASE_QUERY_REQUEST:
-			OnQueryRequest(peer, packet);
+			OnQueryRequest(packet);
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
 		case ID_DATABASE_UPDATE_ROW:
-			OnUpdateRow(peer, packet);
+			OnUpdateRow(packet);
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
 		case ID_DATABASE_REMOVE_ROW:
-			OnRemoveRow(peer, packet);
+			OnRemoveRow(packet);
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
-		case ID_DISCONNECTION_NOTIFICATION:
-		case ID_CONNECTION_LOST:
-			RemoveRowsFromIP(packet->systemAddress);
-			return RR_CONTINUE_PROCESSING;
 		case ID_PONG:
-			OnPong(peer, packet);
+			OnPong(packet);
 			return RR_CONTINUE_PROCESSING;
 		}
 	return RR_CONTINUE_PROCESSING;
 	}
-void LightweightDatabaseServer::OnShutdown(RakPeerInterface *peer)
-	{
-	(void) peer;
-	}
-void LightweightDatabaseServer::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
-	{
-	(void) peer;
+void LightweightDatabaseServer::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
+{
+	(void) rakNetGUID;
+	(void) lostConnectionReason;
+
 	RemoveRowsFromIP(systemAddress);
-	}
-void LightweightDatabaseServer::OnQueryRequest(RakPeerInterface *peer, Packet *packet)
-	{
+}
+void LightweightDatabaseServer::OnQueryRequest(Packet *packet)
+{
 	RakNet::BitStream inBitstream(packet->data, packet->length, false);
-	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, peer, packet, 0);
+	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, rakPeerInterface, packet, 0);
 	if (databaseTable==0)
 		return;
 	if (databaseTable->allowRemoteQuery==false)
@@ -336,13 +324,12 @@ void LightweightDatabaseServer::OnQueryRequest(RakPeerInterface *peer, Packet *p
 	databaseTable->table.QueryTable(columnIndicesSubset, columnIndicesCount, tableFilters, numTableFilters, rowIds, numRowIDs, &queryResult);
 	outBitstream.Write((MessageID)ID_DATABASE_QUERY_REPLY);
 	TableSerializer::SerializeTable(&queryResult, &outBitstream);
-	peer->Send(&outBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);			
-
-	}
-void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *packet)
+	SendUnified(&outBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);			
+}
+void LightweightDatabaseServer::OnUpdateRow(Packet *packet)
 	{
 	RakNet::BitStream inBitstream(packet->data, packet->length, false);
-	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, peer, packet, 1);
+	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, rakPeerInterface, packet, 1);
 	if (databaseTable==0)
 		{
 		printf("ERROR: LightweightDatabaseServer::OnUpdateRow databaseTable==0\n");
@@ -379,29 +366,29 @@ void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *pack
 		}
 
 	if ((RowUpdateMode)updateMode==RUM_UPDATE_EXISTING_ROW)
-		{
+	{
 		if (hasRowId==false)
-			{
+		{
 			unsigned rowKey;
 			row = GetRowFromIP(databaseTable, packet->systemAddress, &rowKey);
 			if (row==0)
 				printf("ERROR: LightweightDatabaseServer::OnUpdateRow updateMode==RUM_UPDATE_EXISTING_ROW hasRowId==false");
-			}
+		}
 		else
-			{
+		{
 
 			row = databaseTable->table.GetRowByID(rowId);
 			if (row==0 || (databaseTable->onlyUpdateOwnRows && RowHasIP(row, packet->systemAddress, databaseTable->SystemAddressColumnIndex)==false))
-				{
+			{
 				if (row==0)
 					printf("ERROR: LightweightDatabaseServer::OnUpdateRow row = databaseTable->table.GetRowByID(rowId); row==0\n");
 				else
 					printf("ERROR: LightweightDatabaseServer::OnUpdateRow row = databaseTable->table.GetRowByID(rowId); databaseTable->onlyUpdateOwnRows && RowHasIP\n");
 
 				return; // You can't update some other system's row
-				}
 			}
 		}
+	}
 	else if ((RowUpdateMode)updateMode==RUM_UPDATE_OR_ADD_ROW)
 		{
 		if (hasRowId)
@@ -429,8 +416,11 @@ void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *pack
 				SystemAddress sysAddr;
 				memcpy(&sysAddr, row->cells[databaseTable->SystemAddressColumnIndex]->c, sizeof(SystemAddress));
 
+				char str1[64], str2[64];
+				packet->systemAddress.ToString(true, str1);
+				sysAddr.ToString(true, str2);
 				printf("ERROR: LightweightDatabaseServer::OnUpdateRow updateMode==RUM_UPDATE_OR_ADD_ROW; databaseTable->onlyUpdateOwnRows && RowHasIP. packet->systemAddress=%s sysAddr=%s\n",
-					packet->systemAddress.ToString(true), sysAddr.ToString(true));
+					str1, str2);
 
 				return; // You can't update some other system's row
 				}
@@ -453,7 +443,12 @@ void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *pack
 		{
 		columnIndex=databaseTable->table.ColumnIndex(cellUpdates[i].columnName);
 		RakAssert(columnIndex!=(unsigned)-1); // Unknown column name
-		if (columnIndex!=(unsigned)-1 && columnIndex!=databaseTable->lastPingResponseColumnIndex && columnIndex!=databaseTable->nextPingSendColumnIndex && columnIndex!=databaseTable->SystemAddressColumnIndex && columnIndex!=databaseTable->SystemGuidColumnIndex)
+		if (columnIndex!=(unsigned)-1 &&
+			(databaseTable->onlyUpdateOwnRows==false ||
+			(columnIndex!=databaseTable->lastPingResponseColumnIndex &&
+			columnIndex!=databaseTable->nextPingSendColumnIndex &&
+			columnIndex!=databaseTable->SystemAddressColumnIndex &&
+			columnIndex!=databaseTable->SystemGuidColumnIndex)))
 			{
 			if (cellUpdates[i].cellValue.isEmpty)
 				row->cells[columnIndex]->Clear();
@@ -465,7 +460,7 @@ void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *pack
 					}
 				else if (cellUpdates[i].columnType==DataStructures::Table::BINARY)
 					{
-					row->UpdateCell(columnIndex, cellUpdates[i].cellValue.i, cellUpdates[i].cellValue.c);
+					row->UpdateCell(columnIndex, (int) cellUpdates[i].cellValue.i, cellUpdates[i].cellValue.c);
 					}
 				else
 					{
@@ -476,10 +471,10 @@ void LightweightDatabaseServer::OnUpdateRow(RakPeerInterface *peer, Packet *pack
 			}
 		}
 	}
-void LightweightDatabaseServer::OnRemoveRow(RakPeerInterface *peer, Packet *packet)
+void LightweightDatabaseServer::OnRemoveRow(Packet *packet)
 	{
 	RakNet::BitStream inBitstream(packet->data, packet->length, false);
-	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, peer, packet, 0);
+	LightweightDatabaseServer::DatabaseTable *databaseTable = DeserializeClientHeader(&inBitstream, rakPeerInterface, packet, 0);
 	if (databaseTable==0)
 		return;
 	if (databaseTable->allowRemoteRemove==false)
@@ -488,10 +483,8 @@ void LightweightDatabaseServer::OnRemoveRow(RakPeerInterface *peer, Packet *pack
 	inBitstream.Read(rowId);
 	databaseTable->table.RemoveRow(rowId);
 	}
-void LightweightDatabaseServer::OnPong(RakPeerInterface *peer, Packet *packet)
-	{
-	(void) peer;
-
+void LightweightDatabaseServer::OnPong(Packet *packet)
+{
 	unsigned databaseIndex;
 	DatabaseTable *databaseTable;
 	unsigned curIndex;
@@ -505,7 +498,7 @@ void LightweightDatabaseServer::OnPong(RakPeerInterface *peer, Packet *packet)
 			if (time==0)
 				time=RakNet::GetTime();
 
-			DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
+			const DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
 			DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = rows.GetListHead();
 
 			while (cur)
@@ -515,7 +508,7 @@ void LightweightDatabaseServer::OnPong(RakPeerInterface *peer, Packet *packet)
 					cur->data[curIndex]->cells[databaseTable->SystemAddressColumnIndex]->Get((char*)&systemAddress,0);
 					if (systemAddress==packet->systemAddress)
 						{
-						cur->data[curIndex]->cells[databaseTable->lastPingResponseColumnIndex]->i=time;
+						cur->data[curIndex]->cells[databaseTable->lastPingResponseColumnIndex]->i=(int)time;
 						}
 					}
 				cur=cur->next;
@@ -552,15 +545,17 @@ LightweightDatabaseServer::DatabaseTable * LightweightDatabaseServer::Deserializ
 		{
 		if (stringCompressor->DecodeString(password, _SIMPLE_DATABASE_PASSWORD_LENGTH, inBitstream)==false)
 			return 0;
-		if (databaseTable->queryPassword[0] && strcmp(password, dbPass)!=0)
+			if (databaseTable->queryPassword[0] && strcmp(password, dbPass)!=0)
 			{
-			outBitstream.Write((MessageID)ID_DATABASE_INCORRECT_PASSWORD);
-			peer->Send(&outBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
-			// Short ban to prevent brute force password attempts
-			peer->AddToBanList(packet->systemAddress.ToString(false), 1000);
-			// Don't send a disconnection notification so it closes the connection right away.
-			peer->CloseConnection(packet->systemAddress, false, 0);			
-			return 0;
+				outBitstream.Write((MessageID)ID_DATABASE_INCORRECT_PASSWORD);
+				peer->Send(&outBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, packet->systemAddress, false);
+				// Short ban to prevent brute force password attempts
+				char str1[64];
+				packet->systemAddress.ToString(false, str1);
+				peer->AddToBanList(str1, 1000);
+				// Don't send a disconnection notification so it closes the connection right away.
+				peer->CloseConnection(packet->systemAddress, false, 0);			
+				return 0;
 			}
 		}
 	else if (dbPass[0])
@@ -575,7 +570,7 @@ LightweightDatabaseServer::DatabaseTable * LightweightDatabaseServer::Deserializ
 
 DataStructures::Table::Row * LightweightDatabaseServer::GetRowFromIP(DatabaseTable *databaseTable, SystemAddress systemAddress, unsigned *rowKey)
 	{
-	DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
+	const DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = rows.GetListHead();
 	DataStructures::Table::Row* row;
 	unsigned i;
@@ -637,8 +632,8 @@ DataStructures::Table::Row * LightweightDatabaseServer::AddRow(LightweightDataba
 	if (databaseTable->removeRowOnPingFailure)
 		{
 		RakNetTime time = RakNet::GetTime();
-		row->cells[databaseTable->lastPingResponseColumnIndex]->Set(time);
-		row->cells[databaseTable->nextPingSendColumnIndex]->Set(time+SEND_PING_INTERVAL);
+		row->cells[databaseTable->lastPingResponseColumnIndex]->Set((int) time);
+		row->cells[databaseTable->nextPingSendColumnIndex]->Set((int) time+SEND_PING_INTERVAL);
 		}
 
 	return row;
@@ -648,31 +643,39 @@ void LightweightDatabaseServer::RemoveRowsFromIP(SystemAddress systemAddress)
 	// Remove rows for tables that do so on a system disconnect
 	DatabaseTable *databaseTable;
 	DataStructures::List<unsigned> removeList;
+	DataStructures::Table::Row* row;
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur;
 	unsigned i,j;
 	for (i=0; i < database.Size(); i++)
 		{
-		databaseTable=database[i];
-		if (databaseTable->removeRowOnDisconnect)
-			{
-			DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
+			databaseTable=database[i];
+			const DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
 			cur = rows.GetListHead();
 			while (cur)
-				{
+			{
 				// Mark dropped entities
 				for (j=0; j < (unsigned)cur->size; j++)
-					{
+				{
 					if (RowHasIP(cur->data[j], systemAddress, databaseTable->SystemAddressColumnIndex))
-						removeList.Insert(cur->keys[j]);
+					{
+						if (databaseTable->removeRowOnDisconnect)
+						{
+							removeList.Insert(cur->keys[j], __FILE__, __LINE__);
+						}
+						else if (databaseTable->removeRowOnPingFailure)
+						{
+							row = cur->data[j];
+							row->cells[databaseTable->nextPingSendColumnIndex]->i=RakNet::GetTime()+SEND_PING_INTERVAL+(randomMT()%1000);
+						}
 					}
-				cur=cur->next;
 				}
+				cur=cur->next;
+			}
 
 			for (j=0; j < removeList.Size(); j++)
 				databaseTable->table.RemoveRow(removeList[j]);
 			removeList.Clear(true);
-			}
-		}	
+			}	
 	}
 #ifdef _MSC_VER
 #pragma warning( pop )

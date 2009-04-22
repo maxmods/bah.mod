@@ -32,7 +32,6 @@ int ReadyEvent::ReadyEventNodeComp( const int &key, ReadyEvent::ReadyEventNode *
 ReadyEvent::ReadyEvent()
 {
 	channel=0;
-	rakPeer=0;
 }
 
 ReadyEvent::~ReadyEvent()
@@ -79,7 +78,7 @@ bool ReadyEvent::DeleteEvent(int eventId)
 	unsigned eventIndex = readyEventNodeList.GetIndexFromKey(eventId, &objectExists);
 	if (objectExists)
 	{
-		RakNet::OP_DELETE(readyEventNodeList[eventIndex]);
+		RakNet::OP_DELETE(readyEventNodeList[eventIndex], __FILE__, __LINE__);
 		readyEventNodeList.RemoveAtIndex(eventIndex);
 		return true;
 	}
@@ -158,9 +157,9 @@ bool ReadyEvent::AddToWaitList(int eventId, SystemAddress address)
 	unsigned numAdded=0;
 	if (address==UNASSIGNED_SYSTEM_ADDRESS)
 	{
-		for (i=0; i < rakPeer->GetMaximumNumberOfPeers(); i++)
+		for (i=0; i < rakPeerInterface->GetMaximumNumberOfPeers(); i++)
 		{
-			SystemAddress internalAddress = rakPeer->GetSystemAddressFromIndex(i);
+			SystemAddress internalAddress = rakPeerInterface->GetSystemAddressFromIndex(i);
 			if (internalAddress!=UNASSIGNED_SYSTEM_ADDRESS)
 			{
 				numAdded+=AddToWaitListInternal(eventIndex, internalAddress);
@@ -265,36 +264,28 @@ void ReadyEvent::SetSendChannel(unsigned char newChannel)
 {
 	channel=newChannel;
 }
-void ReadyEvent::OnAttach(RakPeerInterface *peer)
-{
-	rakPeer=peer;
-}
-PluginReceiveResult ReadyEvent::OnReceive(RakPeerInterface *peer, Packet *packet)
+PluginReceiveResult ReadyEvent::OnReceive(Packet *packet)
 {
 	unsigned char packetIdentifier;
 	packetIdentifier = ( unsigned char ) packet->data[ 0 ];
 
-//	bool doPrint = packet->systemAddress.port==60002 || rakPeer->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002;
+//	bool doPrint = packet->systemAddress.port==60002 || rakPeerInterface->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002;
 
 	switch (packetIdentifier)
 	{
 	case ID_READY_EVENT_UNSET:
 	case ID_READY_EVENT_SET:
 	case ID_READY_EVENT_ALL_SET:
-//		if (doPrint) {if (packet->systemAddress.port==60002)	RAKNET_DEBUG_PRINTF("FROM 60002: "); else if (rakPeer->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002)	RAKNET_DEBUG_PRINTF("TO 60002: "); RAKNET_DEBUG_PRINTF("ID_READY_EVENT_SET\n");}
-		OnReadyEventPacketUpdate(peer, packet);
+//		if (doPrint) {if (packet->systemAddress.port==60002)	RAKNET_DEBUG_PRINTF("FROM 60002: "); else if (rakPeerInterface->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002)	RAKNET_DEBUG_PRINTF("TO 60002: "); RAKNET_DEBUG_PRINTF("ID_READY_EVENT_SET\n");}
+		OnReadyEventPacketUpdate(packet);
 		return RR_CONTINUE_PROCESSING;
 	case ID_READY_EVENT_FORCE_ALL_SET:
-		OnReadyEventForceAllSet(peer, packet);
+		OnReadyEventForceAllSet(packet);
 		return RR_CONTINUE_PROCESSING;
 	case ID_READY_EVENT_QUERY:
-//		if (doPrint) {if (packet->systemAddress.port==60002)	RAKNET_DEBUG_PRINTF("FROM 60002: "); else if (rakPeer->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002)	RAKNET_DEBUG_PRINTF("TO 60002: "); RAKNET_DEBUG_PRINTF("ID_READY_EVENT_QUERY\n");}
-		OnReadyEventQuery(peer, packet);
+//		if (doPrint) {if (packet->systemAddress.port==60002)	RAKNET_DEBUG_PRINTF("FROM 60002: "); else if (rakPeerInterface->GetInternalID(UNASSIGNED_SYSTEM_ADDRESS).port==60002)	RAKNET_DEBUG_PRINTF("TO 60002: "); RAKNET_DEBUG_PRINTF("ID_READY_EVENT_QUERY\n");}
+		OnReadyEventQuery(packet);
 		return RR_STOP_PROCESSING_AND_DEALLOCATE;
-	case ID_DISCONNECTION_NOTIFICATION:
-	case ID_CONNECTION_LOST:
-		OnCloseConnection(peer, packet->systemAddress);
-		return RR_CONTINUE_PROCESSING;	
 	}
 
 	return RR_CONTINUE_PROCESSING;
@@ -317,10 +308,8 @@ bool ReadyEvent::AddToWaitListInternal(unsigned eventIndex, SystemAddress addres
 	}
 	return false;
 }
-void ReadyEvent::OnReadyEventForceAllSet(RakPeerInterface *peer, Packet *packet)
+void ReadyEvent::OnReadyEventForceAllSet(Packet *packet)
 {
-	(void) peer;
-
 	RakNet::BitStream incomingBitStream(packet->data, packet->length, false);
 	incomingBitStream.IgnoreBits(8);
 	int eventId;
@@ -337,10 +326,8 @@ void ReadyEvent::OnReadyEventForceAllSet(RakPeerInterface *peer, Packet *packet)
 		}
 	}
 }
-void ReadyEvent::OnReadyEventPacketUpdate(RakPeerInterface *peer, Packet *packet)
+void ReadyEvent::OnReadyEventPacketUpdate(Packet *packet)
 {
-	(void) peer;
-
 	RakNet::BitStream incomingBitStream(packet->data, packet->length, false);
 	incomingBitStream.IgnoreBits(8);
 	int eventId;
@@ -369,10 +356,8 @@ void ReadyEvent::OnReadyEventPacketUpdate(RakPeerInterface *peer, Packet *packet
 		}
 	}
 }
-void ReadyEvent::OnReadyEventQuery(RakPeerInterface *peer, Packet *packet)
+void ReadyEvent::OnReadyEventQuery(Packet *packet)
 {
-	(void) peer;
-
 	RakNet::BitStream incomingBitStream(packet->data, packet->length, false);
 	incomingBitStream.IgnoreBits(8);
 	int eventId;
@@ -387,16 +372,16 @@ void ReadyEvent::OnReadyEventQuery(RakPeerInterface *peer, Packet *packet)
 			SendReadyUpdate(readyIndex, systemIndex, true);
 	}
 }
-void ReadyEvent::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
+void ReadyEvent::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
-	(void) peer;
 	(void) systemAddress;
+	(void) rakNetGUID;
+	(void) lostConnectionReason;
 
 	RemoveFromAllLists(systemAddress);
 }
-void ReadyEvent::OnShutdown(RakPeerInterface *peer)
+void ReadyEvent::OnShutdown(void)
 {
-	(void) peer;
 	Clear();
 }
 
@@ -445,14 +430,14 @@ void ReadyEvent::Clear(void)
 	unsigned i;
 	for (i=0; i < readyEventNodeList.Size(); i++)
 	{
-		RakNet::OP_DELETE(readyEventNodeList[i]);
+		RakNet::OP_DELETE(readyEventNodeList[i], __FILE__, __LINE__);
 	}
 	readyEventNodeList.Clear();
 }
 
 unsigned ReadyEvent::CreateEvent(int eventId, bool isReady)
 {
-	ReadyEventNode *ren = RakNet::OP_NEW<ReadyEventNode>();
+	ReadyEventNode *ren = RakNet::OP_NEW<ReadyEventNode>( __FILE__, __LINE__ );
 	ren->eventId=eventId;
 	if (isReady==false)
 		ren->eventStatus=ID_READY_EVENT_UNSET;
@@ -511,7 +496,7 @@ void ReadyEvent::SendReadyUpdate(unsigned eventIndex, unsigned systemIndex, bool
 	{
 		bs.Write(ren->eventStatus);
 		bs.Write(ren->eventId);
-		rakPeer->Send(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, channel, ren->systemList[systemIndex].systemAddress, false);
+		SendUnified(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, channel, ren->systemList[systemIndex].systemAddress, false);
 
 		ren->systemList[systemIndex].lastSentStatus=ren->eventStatus;
 	}
@@ -531,7 +516,7 @@ void ReadyEvent::SendReadyStateQuery(unsigned eventId, SystemAddress address)
 	RakNet::BitStream bs;
 	bs.Write((MessageID)ID_READY_EVENT_QUERY);
 	bs.Write(eventId);
-	rakPeer->Send(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, channel, address, false);
+	SendUnified(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, channel, address, false);
 }
 void ReadyEvent::RemoveFromAllLists(SystemAddress address)
 {
@@ -558,12 +543,12 @@ void ReadyEvent::PushCompletionPacket(unsigned eventId)
 	// Not necessary
 	/*
 	// Pass a packet to the user that we are now completed, as setting ourselves to signaled was the last thing being waited on
-	Packet *p = rakPeer->AllocatePacket(sizeof(MessageID)+sizeof(int));
+	Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID)+sizeof(int));
 	RakNet::BitStream bs(p->data, sizeof(MessageID)+sizeof(int), false);
 	bs.SetWriteOffset(0);
 	bs.Write((MessageID)ID_READY_EVENT_ALL_SET);
 	bs.Write(eventId);
-	rakPeer->PushBackPacket(p, false);
+	rakPeerInterface->PushBackPacket(p, false);
 	*/
 }
 #ifdef _MSC_VER

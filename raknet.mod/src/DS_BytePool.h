@@ -5,7 +5,7 @@
 #include "DS_MemoryPool.h"
 #include "Export.h"
 #include "SimpleMutex.h"
-#include <assert.h>
+#include "RakAssert.h"
 
 // #define _DISABLE_BYTE_POOL
 // #define _THREADSAFE_BYTE_POOL

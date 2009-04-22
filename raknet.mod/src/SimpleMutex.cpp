@@ -1,21 +1,12 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "SimpleMutex.h"
-#include <assert.h>
+#include "RakAssert.h"
 
 SimpleMutex::SimpleMutex() : isInitialized(false)
 {
@@ -73,14 +64,14 @@ void SimpleMutex::Lock(void)
 
 	}
 
-	assert(d==WAIT_OBJECT_0);
+	RakAssert(d==WAIT_OBJECT_0);
 	*/
 	EnterCriticalSection(&criticalSection);
 
 #else
 	int error = pthread_mutex_lock(&hMutex);
 	(void) error;
-	assert(error==0);
+	RakAssert(error==0);
 #endif
 }
 
@@ -94,7 +85,7 @@ void SimpleMutex::Unlock(void)
 #else
 	int error = pthread_mutex_unlock(&hMutex);
 	(void) error;
-	assert(error==0);
+	RakAssert(error==0);
 #endif
 }
 
@@ -102,12 +93,12 @@ void SimpleMutex::Init(void)
 {
 #ifdef _WIN32
 	//	hMutex = CreateMutex(NULL, FALSE, 0);
-	//	assert(hMutex);
+	//	RakAssert(hMutex);
 	InitializeCriticalSection(&criticalSection);
 #else
 	int error = pthread_mutex_init(&hMutex, 0);
 	(void) error;
-	assert(error==0);
+	RakAssert(error==0);
 #endif
 	isInitialized=true;
 }

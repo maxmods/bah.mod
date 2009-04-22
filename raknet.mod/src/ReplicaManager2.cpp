@@ -415,10 +415,8 @@ void ReplicaManager2::Dereference(Replica2 *replica)
 	variableConstructReplicaOrderedList.RemoveIfExists(replica);
 	variableSerializeReplicaOrderedList.RemoveIfExists(replica);
 }
-void ReplicaManager2::Update(RakPeerInterface *peer)
+void ReplicaManager2::Update(void)
 {
-	(void) peer;
-
 	unsigned i;
 
 	if (autoUpdateConstruction || autoUpdateVisibility)
@@ -566,7 +564,7 @@ void ReplicaManager2::GetConnectionsWithSerializeVisibility(Replica2 *replica, D
 }
 RakPeerInterface *ReplicaManager2::GetRakPeer(void) const
 {
-	return rakPeer;
+	return rakPeerInterface;
 }
 Connection_RM2* ReplicaManager2::AutoCreateConnection(SystemAddress systemAddress, bool *newConnection)
 {
@@ -593,6 +591,7 @@ Connection_RM2* ReplicaManager2::CreateConnectionIfDoesNotExist(SystemAddress sy
 		// If it crashes here, you need to call SetConnection_RM2Factory
 		Connection_RM2 *connection = connectionFactoryInterface->AllocConnection();
 		connection->SetSystemAddress(systemAddress);
+		connection->SetGuid(rakPeerInterface->GetGuidFromSystemAddress(systemAddress));
 		connectionList.Insert(systemAddress, connection, false);
 		*newConnection=true;
 		return connection;
@@ -632,7 +631,7 @@ void ReplicaManager2::Reference(Replica2* replica, bool *newReference)
 	unsigned index = fullReplicaOrderedList.GetIndexFromKey(replica,&objectExists);
 	if (objectExists==false)
 	{
-		fullReplicaUnorderedList.Insert(replica);
+		fullReplicaUnorderedList.Insert(replica, __FILE__, __LINE__);
 		fullReplicaOrderedList.InsertAtIndex(replica, index);
 
 		BooleanQueryResult queryResult;
@@ -679,23 +678,32 @@ void ReplicaManager2::WriteHeader(RakNet::BitStream *bs, MessageID type, RakNetT
 	}
 	bs->Write(type);
 }
-void ReplicaManager2::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
+void ReplicaManager2::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
-	(void) peer;
+	(void) systemAddress;
+	(void) rakNetGUID;
+	(void) lostConnectionReason;
 
 	RemoveConnection(systemAddress);
 }
-void ReplicaManager2::OnShutdown(RakPeerInterface *peer)
+void ReplicaManager2::OnShutdown(void)
 {
-	(void) peer;
 	Clear();
 }
-void ReplicaManager2::OnAttach(RakPeerInterface *peer)
+void ReplicaManager2::OnAttach(void)
 {
-	rakPeer=peer;
 	lastUpdateTime=RakNet::GetTime();
 }
-PluginReceiveResult ReplicaManager2::OnReceive(RakPeerInterface *peer, Packet *packet)
+void ReplicaManager2::OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming)
+{
+	(void) systemAddress;
+	(void) rakNetGUID;
+	(void) isIncoming;
+
+	if (autoAddNewConnections)
+		AddNewConnection(systemAddress);
+}
+PluginReceiveResult ReplicaManager2::OnReceive(Packet *packet)
 {
 	RakNetTime timestamp=0;
 	unsigned char packetIdentifier, packetDataOffset;
@@ -720,15 +728,6 @@ PluginReceiveResult ReplicaManager2::OnReceive(RakPeerInterface *peer, Packet *p
 
 	switch (packetIdentifier)
 	{
-	case ID_NEW_INCOMING_CONNECTION:
-	case ID_CONNECTION_REQUEST_ACCEPTED:
-		if (autoAddNewConnections)
-			AddNewConnection(packet->systemAddress);
-		return RR_CONTINUE_PROCESSING;
-	case ID_DISCONNECTION_NOTIFICATION:
-	case ID_CONNECTION_LOST:
-		OnCloseConnection(peer, packet->systemAddress);
-		return RR_CONTINUE_PROCESSING;
 	case ID_REPLICA_MANAGER_DOWNLOAD_STARTED:
 		return OnDownloadStarted(packet->data+packetDataOffset, packet->length-packetDataOffset, packet->systemAddress, timestamp);
 	case ID_REPLICA_MANAGER_DOWNLOAD_COMPLETE:
@@ -830,7 +829,7 @@ PluginReceiveResult ReplicaManager2::OnDestruction(unsigned char *packetData, in
 	DataStructures::OrderedList<SystemAddress,SystemAddress> exclusionList;
 	ReadExclusionList(&incomingBitstream, exclusionList);
 	exclusionList.Insert(sender,sender, false);
-	Replica2 * replica = rakPeer->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2*>( networkId );
+	Replica2 * replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2*>( networkId );
 	if (replica)
 	{
 		// Verify that this is a registered object, so it actually is a Replica2
@@ -867,7 +866,7 @@ PluginReceiveResult ReplicaManager2::OnVisibilityChange(unsigned char *packetDat
 	ReadExclusionList(&incomingBitstream, exclusionList);
 	exclusionList.Insert(sender,sender, false);
 	
-	Replica2 *replica = rakPeer->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
+	Replica2 *replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
 	if (replica)
 	{
 		// Verify that this is a registered object, so it actually is a Replica2
@@ -910,7 +909,7 @@ PluginReceiveResult ReplicaManager2::OnSerialize(unsigned char *packetData, int 
 	ReadExclusionList(&incomingBitstream, exclusionList);
 	exclusionList.Insert(sender,sender, false);
 
-	Replica2 *replica = rakPeer->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
+	Replica2 *replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
 	if (replica)
 	{
 		// Verify that this is a registered object, so it actually is a Replica2
@@ -988,7 +987,7 @@ void ReplicaManager2::Send(RakNet::BitStream *bs, SystemAddress recipient, Packe
 		reliability=defaultPacketReliablity;
 	if (orderingChannel==-1)
 		orderingChannel=defaultOrderingChannel;
-	rakPeer->Send(bs, priority,reliability,orderingChannel,recipient,false);
+	SendUnified(bs, priority,reliability,orderingChannel,recipient,false);
 }
 void ReplicaManager2::Clear(void)
 {
@@ -1024,6 +1023,7 @@ void ReplicaManager2::DownloadToNewConnection(Connection_RM2* connection, RakNet
 	Send(&bs, connection->GetSystemAddress(), priority, reliability, orderingChannel);
 
 	DataStructures::List<Replica2*> initialDownloadList;
+	DataStructures::List<Replica2*> culledDownloadList;
 	connection->SortInitialDownload(fullReplicaUnorderedList, initialDownloadList);
 
 	// Construct all objects before serializing them. This way the recipient will have valid NetworkID references.
@@ -1034,35 +1034,38 @@ void ReplicaManager2::DownloadToNewConnection(Connection_RM2* connection, RakNet
 		{
 			bqr=initialDownloadList[i]->QueryConstruction(connection);
 			if (bqr==BQR_ALWAYS || bqr==BQR_YES)
+			{
 				initialDownloadList[i]->SendConstruction(systemAddress, SEND_CONSTRUCTION_SERIALIZATION_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
+				culledDownloadList.Insert(initialDownloadList[i]);
+			}
 			// Remember for this particular connection that we already sent this update to this system
 			if (bqr==BQR_YES)
 				AddConstructionReference(connection, initialDownloadList[i]);
-		}			
+		}
 	}
 
 	bool notVisible;
 
 	// Send all objects that are always visible
-	for (i=0; i < initialDownloadList.Size(); i++)
+	for (i=0; i < culledDownloadList.Size(); i++)
 	{
 		notVisible=false;
-		if (initialDownloadList[i]->QueryIsVisibilityAuthority())
+		if (culledDownloadList[i]->QueryIsVisibilityAuthority())
 		{
-			bqr=initialDownloadList[i]->QueryVisibility(connection);
+			bqr=culledDownloadList[i]->QueryVisibility(connection);
 			if (bqr==BQR_ALWAYS || bqr==BQR_YES)
 			{
-				initialDownloadList[i]->SendVisibility(systemAddress, SEND_VISIBILITY_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
+				culledDownloadList[i]->SendVisibility(systemAddress, SEND_VISIBILITY_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
 				// Remember for this particular connection that we already sent this update to this system
 				if (bqr==BQR_YES)
-					AddVisibilityReference(connection, initialDownloadList[i]);
+					AddVisibilityReference(connection, culledDownloadList[i]);
 			}
 			else
 				notVisible=true;
 		}
 
-		if (initialDownloadList[i]->QueryIsSerializationAuthority() && notVisible==false)
-			initialDownloadList[i]->SendSerialize(systemAddress, SEND_DATA_SERIALIZATION_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
+		if (culledDownloadList[i]->QueryIsSerializationAuthority() && notVisible==false)
+			culledDownloadList[i]->SendSerialize(systemAddress, SEND_DATA_SERIALIZATION_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
 	}
 
 	bs.Reset();
@@ -1083,11 +1086,7 @@ Replica2::Replica2()
 }
 Replica2::~Replica2()
 {
-	if (rm2)
-		rm2->Dereference(this);
-	if (hasClientID)
-		clientPtrArray[clientID]=0;
-	ClearAutoSerializeTimers();
+	DereferenceFromDestruction();
 }
 
 void Replica2::SetReplicaManager(ReplicaManager2* rm)
@@ -1164,7 +1163,10 @@ void Replica2::SendConstruction(SystemAddress recipientAddress, SerializationTyp
 
 	unsigned char localId;
 	if (QueryIsConstructionAuthority()==false)
+	{
+		clientPtrArray[Replica2::clientSharedID]=this; 
 		localId=Replica2::clientSharedID++;
+	}
 	else
 		localId=0;
 
@@ -1347,21 +1349,18 @@ void Replica2::BroadcastConstruction(SerializationContext *serializationContext)
 		rm2->SendConstruction(this,&bs,usedContext->recipientAddress,usedContext->timestamp,true,exclusionList, localId, usedContext->serializationType);
 	}
 
-	// If this is a new object, then after sending construction we should send visibility and serialization if it is always visible or serialized
-	if (newReference)
-	{
-		bool notVisible=false;
-		BooleanQueryResult bqr;
-		bqr=QueryVisibility(0);
 
-		if (bqr==BQR_ALWAYS)
-			BroadcastVisibility(true);
-		else if (bqr==BQR_NEVER)
-			notVisible=true;
+	bool notVisible=false;
+	BooleanQueryResult bqr;
+	bqr=QueryVisibility(0);
 
-		if (notVisible==false)
-			BroadcastSerialize();
-	}
+	if (bqr==BQR_ALWAYS)
+		BroadcastVisibility(true);
+	else if (bqr==BQR_NEVER)
+		notVisible=true;
+
+	if (notVisible==false)
+		BroadcastSerialize();
 }
 Replica2 * Replica2::ReceiveConstructionReply(SystemAddress sender, BitStream *replicaData, bool constructionAllowed)
 {
@@ -1370,14 +1369,21 @@ Replica2 * Replica2::ReceiveConstructionReply(SystemAddress sender, BitStream *r
 
 	if (constructionAllowed==false)
 	{
-		//RakNet::OP_DELETE(this);
+		//RakNet::OP_DELETE(this, __FILE__, __LINE__);
 		delete this;
 		return 0;
 	}
 
 	return this;
 }
-
+void Replica2::DereferenceFromDestruction(void)
+{
+	if (rm2)
+		rm2->Dereference(this);
+	if (hasClientID)
+		clientPtrArray[clientID]=0;
+	ClearAutoSerializeTimers();
+}
 void Replica2::BroadcastDestruction(SerializationContext *serializationContext)
 {
 	RakNet::BitStream bs;
@@ -1509,7 +1515,7 @@ void Replica2::DeleteOnReceiveDestruction(SystemAddress sender, RakNet::BitStrea
 	(void) serializationType;
 	(void) timestamp;
 	(void) exclusionList;
-	//RakNet::OP_DELETE(this);
+	//RakNet::OP_DELETE(this, __FILE__, __LINE__);
 	delete this;
 }
 void Replica2::ReceiveVisibility(SystemAddress sender, RakNet::BitStream *serializedObject, SerializationType serializationType, RakNetTime timestamp, DataStructures::OrderedList<SystemAddress,SystemAddress> &exclusionList)
@@ -1695,7 +1701,7 @@ void Replica2::AddAutoSerializeTimer(RakNetTime interval, SerializationType seri
 	}
 	else
 	{		
-		AutoSerializeEvent *ase = RakNet::OP_NEW<AutoSerializeEvent>();
+		AutoSerializeEvent *ase = RakNet::OP_NEW<AutoSerializeEvent>( __FILE__, __LINE__ );
 		ase->serializationType=serializationType;
 		ase->initialCountdown=interval;
 		ase->remainingCountdown=countdown;
@@ -1727,7 +1733,7 @@ void Replica2::CancelAutoSerializeTimer(SerializationType serializationType)
 	{
 		if (autoSerializeTimers[i]->serializationType==serializationType)
 		{
-			RakNet::OP_DELETE(autoSerializeTimers[i]);
+			RakNet::OP_DELETE(autoSerializeTimers[i], __FILE__, __LINE__);
 			autoSerializeTimers.RemoveAtIndex(i);
 		}
 		else
@@ -1738,11 +1744,13 @@ void Replica2::ClearAutoSerializeTimers(void)
 {
 	unsigned i;
 	for (i=0; i < autoSerializeTimers.Size(); i++)
-		RakNet::OP_DELETE(autoSerializeTimers[i]);
+		RakNet::OP_DELETE(autoSerializeTimers[i], __FILE__, __LINE__);
 	autoSerializeTimers.Clear();
 }
 Connection_RM2::Connection_RM2()
 {
+	rakNetGuid=UNASSIGNED_RAKNET_GUID;
+	systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 }
 Connection_RM2::~Connection_RM2()
 {
@@ -1858,7 +1866,7 @@ void Connection_RM2::SetConstructionByReplicaQuery(ReplicaManager2 *replicaManag
 		if (replicaManager->variableConstructReplicaOrderedList[i]->QueryIsConstructionAuthority())
 		{
 			res = replicaManager->variableConstructReplicaOrderedList[i]->QueryConstruction(this);
-			if (res==BQR_YES)
+			if (res==BQR_YES || res==BQR_ALWAYS) // TODO - optimize ALWAYS here
 				constructedObjects.InsertAtEnd(replicaManager->variableConstructReplicaOrderedList[i]);
 		}
 	}
@@ -1876,7 +1884,7 @@ void Connection_RM2::SetVisibilityByReplicaQuery(ReplicaManager2 *replicaManager
 		if (replicaManager->variableSerializeReplicaOrderedList[i]->QueryIsVisibilityAuthority())
 		{
 			res = replicaManager->variableSerializeReplicaOrderedList[i]->QueryVisibility(this);
-			if (res==BQR_YES)
+			if (res==BQR_YES || res==BQR_ALWAYS) // TODO - optimize ALWAYS here
 				currentVisibility.InsertAtEnd(replicaManager->variableSerializeReplicaOrderedList[i]);
 		}
 	}
@@ -1946,7 +1954,7 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 	}
 	else
 	{
-		// Create locally, relay, send back reply
+		// Create locally send back reply
 		bool collision = replicaManager->GetRakPeer()->GetNetworkIDManager()->GET_OBJECT_FROM_ID<NetworkIDObject*>( networkId )!=0;
 		replicaData->AlignReadToByteBoundary();
 		obj = Construct(replicaData, sender, type, replicaManager, timestamp, networkId, collision);
@@ -1958,7 +1966,7 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 			{
 				if (type==SEND_CONSTRUCTION_REQUEST_TO_SERVER)
 					obj->SendConstruction(sender, SEND_CONSTRUCTION_REPLY_DENIED_TO_CLIENT);
-				//RakNet::OP_DELETE(obj);
+				//RakNet::OP_DELETE(obj, __FILE__, __LINE__);
 				delete obj;
 				obj=0;
 			}
@@ -1967,6 +1975,7 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 				if (networkId!=UNASSIGNED_NETWORK_ID)
 					obj->SetNetworkID(networkId);
 
+				RakNet::BitStream bs;
 				SerializationContext serializationContext;
 				serializationContext.relaySourceAddress=sender;
 				serializationContext.recipientAddress=UNASSIGNED_SYSTEM_ADDRESS;
@@ -1977,7 +1986,6 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 					serializationContext.serializationType=BROADCAST_CONSTRUCTION_GENERIC_TO_SYSTEM;
 				exclusionList.Insert(sender,sender,false);
 
-				RakNet::BitStream bs;
 				unsigned exclusionListIndex=0;
 				for (unsigned i=0; i < replicaManager->connectionList.Size(); i++)
 				{
@@ -1991,15 +1999,21 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 						continue;
 					}
 
-					bs.Reset();
-					if (obj->SerializeConstruction(&bs, &serializationContext)==false)
-						continue;
-					unsigned char localId;
-					if (obj->QueryIsConstructionAuthority()==false)
-						localId=Replica2::clientSharedID++;
-					else
-						localId=0;
-					replicaManager->SendConstruction(obj,&bs,serializationContext.recipientAddress,serializationContext.timestamp,true,exclusionList, localId, serializationContext.serializationType);
+					BooleanQueryResult queryConstruction = obj->QueryConstruction(0);
+					if ( (queryConstruction==BQR_ALWAYS || queryConstruction==BQR_NEVER) &&
+						replicaManager->autoUpdateConstruction )
+					{
+						// Relay autoUpdateConstruction is on, and the construction is not variable
+						bs.Reset();
+						if (obj->SerializeConstruction(&bs, &serializationContext)==false)
+							continue;
+						unsigned char localId;
+						if (obj->QueryIsConstructionAuthority()==false)
+							localId=Replica2::clientSharedID++;
+						else
+							localId=0;
+						replicaManager->SendConstruction(obj,&bs,serializationContext.recipientAddress,serializationContext.timestamp,true,exclusionList, localId, serializationContext.serializationType);
+					}
 				}
 
 				if (type==SEND_CONSTRUCTION_REQUEST_TO_SERVER)
@@ -2037,7 +2051,14 @@ SystemAddress Connection_RM2::GetSystemAddress(void) const
 {
 	return systemAddress;
 }
-
+void Connection_RM2::SetGuid(RakNetGUID guid)
+{
+	rakNetGuid=guid;
+}
+RakNetGUID Connection_RM2::GetGuid(void) const
+{
+	return rakNetGuid;
+}
 void Connection_RM2::Deref(Replica2* replica)
 {
 	lastConstructionList.RemoveIfExists(replica);

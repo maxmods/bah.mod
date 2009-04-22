@@ -126,6 +126,8 @@ public:
 	/// RakString uses a freeList of old no-longer used strings
 	/// Call this function to clear this memory on shutdown
 	static void FreeMemory(void);
+	/// \internal
+	static void FreeMemoryNoMutex(void);
 
 	/// Serialize to a bitstream, uncompressed (slightly faster)
 	/// \param[out] bs Bitstream to serialize to

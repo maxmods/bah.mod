@@ -1,19 +1,10 @@
 /// \file
 /// \brief This class allows you to write and read native types as a string of bits.  BitStream is used extensively throughout RakNet and is designed to be used by users as well.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 
 #if defined(_MSC_VER) && _MSC_VER < 1299 // VC6 doesn't support template specialization
@@ -28,7 +19,7 @@
 #include "Export.h"
 #include "RakNetTypes.h"
 #include "RakString.h"
-#include <assert.h>
+#include "RakAssert.h"
 #include <math.h>
 #include <float.h>
 
@@ -369,6 +360,8 @@ namespace RakNet
 		/// RAKNET_DEBUG_PRINTF the bits in the stream.  Great for debugging.
 		void PrintBits( char *out ) const;
 		void PrintBits( void ) const;
+		void PrintHex( char *out ) const;
+		void PrintHex( void ) const;
 
 		/// Ignore data we don't intend to read
 		/// \param[in] numberOfBits The number of bits to ignore
@@ -691,7 +684,7 @@ namespace RakNet
 
 		BitStream( const BitStream &invalid) {
 			(void) invalid;
-			assert(0);
+			RakAssert(0);
 		}
 
 		/// Assume the input source points to a native type, compress and write it.
@@ -900,8 +893,10 @@ namespace RakNet
 	template <>
 		inline void BitStream::Write(SystemAddress var)
 	{
-	//	Write(var.binaryAddress);
-		Write(var.binaryAddress);
+		// Hide the address so routers don't modify it
+		var.binaryAddress=~var.binaryAddress;
+		// Don't endian swap the address
+		WriteBits((unsigned char*)&var.binaryAddress, sizeof(var.binaryAddress)*8, true);
 		Write(var.port);
 	}
 
@@ -917,7 +912,9 @@ namespace RakNet
 	template <>
 		inline void BitStream::Write(NetworkID var)
 	{
-		if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
+#if defined (NETWORK_ID_SUPPORTS_PEER_TO_PEER)
+		RakAssert(NetworkID::IsPeerToPeerMode());
+//		if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
 		{
 			if (var.guid!=UNASSIGNED_RAKNET_GUID)
 			{
@@ -934,6 +931,7 @@ namespace RakNet
 			else
 				Write(false);
 		}
+#endif
 		/*
 		Write(var.guid);
 		Write(var.systemAddress);
@@ -1117,7 +1115,7 @@ namespace RakNet
 	template <>
 		inline void BitStream::WriteCompressed(float var)
 	{
-		assert(var > -1.01f && var < 1.01f);
+		RakAssert(var > -1.01f && var < 1.01f);
 		if (var < -1.0f)
 			var=-1.0f;
 		if (var > 1.0f)
@@ -1129,13 +1127,13 @@ namespace RakNet
 	template <>
 		inline void BitStream::WriteCompressed(double var)
 	{
-		assert(var > -1.01 && var < 1.01);
+		RakAssert(var > -1.01 && var < 1.01);
 		if (var < -1.0f)
 			var=-1.0f;
 		if (var > 1.0f)
 			var=1.0f;
 #ifdef _DEBUG
-		assert(sizeof(unsigned long)==4);
+		RakAssert(sizeof(unsigned long)==4);
 #endif
 		Write((unsigned long)((var+1.0)*2147483648.0));
 	}
@@ -1300,8 +1298,11 @@ namespace RakNet
 	template <>
 		inline bool BitStream::Read(SystemAddress &var)
 	{
-		// Read(var.binaryAddress);
+		//Read(var.binaryAddress);
+		// Don't endian swap the address
 		ReadBits( ( unsigned char* ) & var.binaryAddress, sizeof(var.binaryAddress) * 8, true );
+		// Unhide the IP address, done to prevent routers from changing it
+		var.binaryAddress=~var.binaryAddress;
 		return Read(var.port);
 	}
 
@@ -1319,7 +1320,9 @@ namespace RakNet
 	template <>
 		inline bool BitStream::Read(NetworkID &var)
 	{
-		if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
+#if defined (NETWORK_ID_SUPPORTS_PEER_TO_PEER)
+		RakAssert(NetworkID::IsPeerToPeerMode());
+		//if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
 		{
 			bool hasGuid, hasSystemAddress;
 			Read(hasGuid);
@@ -1333,6 +1336,7 @@ namespace RakNet
 			else
 				var.systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 		}
+#endif
 		/*
 		Read(var.guid);
 		Read(var.systemAddress);
@@ -1512,7 +1516,7 @@ namespace RakNet
 		void BitStream::WriteNormVector( templateType x, templateType y, templateType z )
 	{
 #ifdef _DEBUG
-		assert(x <= 1.01 && y <= 1.01 && z <= 1.01 && x >= -1.01 && y >= -1.01 && z >= -1.01);
+		RakAssert(x <= 1.01 && y <= 1.01 && z <= 1.01 && x >= -1.01 && y >= -1.01 && z >= -1.01);
 #endif
 		if (x>1.0)
 			x=1.0;
@@ -1771,7 +1775,7 @@ namespace RakNet
 	BitStream& operator>>(BitStream& in, templateType& c)
 	{
 		bool success = in.Read(c);
-		assert(success);
+		RakAssert(success);
 		return in;
 	}
 

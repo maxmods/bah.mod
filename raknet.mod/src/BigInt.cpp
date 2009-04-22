@@ -1,11 +1,10 @@
+#if !defined(_XBOX) && !defined(X360)
+
 #include "BigInt.h"
 #include <ctype.h>
-#include <memory.h>
-#if (defined(__GNUC__)  || defined(__GCCXML__))
-#include <alloca.h>
-#else
-#include <malloc.h> // alloca
-#endif
+#include <string.h>
+
+#include "RakAlloca.h"
 #include "RakMemoryOverride.h"
 
 namespace big
@@ -63,7 +62,7 @@ namespace big
 		--limb_degree;
 
 		uint32_t msl_degree = n[limb_degree];
-		
+
 		return msl_degree + limb_degree*32;
 	}
 
@@ -119,7 +118,7 @@ namespace big
 			do if (lhs[--lhs_limbs] != 0) return false; while (lhs_limbs > rhs_limbs);
 		else if (lhs_limbs < rhs_limbs)
 			do if (rhs[--rhs_limbs] != 0) return true; while (lhs_limbs < rhs_limbs);
-	
+
 		while (lhs_limbs--) if (lhs[lhs_limbs] != rhs[lhs_limbs]) return lhs[lhs_limbs] < rhs[lhs_limbs];
 		return false; // equal
 	}
@@ -129,7 +128,7 @@ namespace big
 			do if (lhs[--lhs_limbs] != 0) return true; while (lhs_limbs > rhs_limbs);
 		else if (lhs_limbs < rhs_limbs)
 			do if (rhs[--rhs_limbs] != 0) return false; while (lhs_limbs < rhs_limbs);
-	
+
 		while (lhs_limbs--) if (lhs[lhs_limbs] != rhs[lhs_limbs]) return lhs[lhs_limbs] > rhs[lhs_limbs];
 		return false; // equal
 	}
@@ -185,7 +184,7 @@ namespace big
 			Set(result, result_limbs, lhs, lhs_limbs);
 			return;
 		}
-		
+
 		uint32_t Carrie = 0;
 		int ii = 0;
 
@@ -579,8 +578,8 @@ loop_done:
 
 	/*
 	 * Multiply two large numbers using the Schoolbook method
-	 * Only produces the low y_limbs of the result 
-	 * 
+	 * Only produces the low y_limbs of the result
+	 *
 	 * The product buffer may not be pointed to by x or y
 	 */
 	void HalfSchoolbookMultiply(
@@ -619,20 +618,20 @@ loop_done:
 		{
 			uint64_t low = high;
 			high >>= 32;
-	
+
 			for (int jj = 0; jj <= ii; ++jj)
 			{
 				low = (uint64_t)x[jj] * y[ii-jj] + (uint32_t)low;
 				high += low >> 32;
 			}
-	
+
 			product[ii] = (uint32_t)low;
 		}
 	}
 
 	/*
 	 * Multiply two large numbers using the Schoolbook method
-	 * 
+	 *
 	 * The product buffer may not be pointed to by x or y
 	 */
 	void SchoolbookMultiply(
@@ -672,13 +671,13 @@ loop_done:
 		{
 			uint64_t low = high;
 			high >>= 32;
-	
+
 			for (int jj = 0; jj <= ii; ++jj)
 			{
 				low = (uint64_t)x[jj] * y[ii-jj] + (uint32_t)low;
 				high += low >> 32;
 			}
-	
+
 			product[ii] = (uint32_t)low;
 		}
 
@@ -702,7 +701,7 @@ loop_done:
 				low = (uint64_t)x[ii-jj] * y[jj] + (uint32_t)low;
 				high += low >> 32;
 			}
-	
+
 			product[ii] = (uint32_t)low;
 		}
 
@@ -720,7 +719,7 @@ loop_done:
 		{
 			uint64_t low = high;
 			high >>= 32;
-	
+
 			for (int jj = 0; jj <= kk; ++jj)
 			{
 				low = (uint64_t)x[x_limbs-1-jj] * y[y_limbs-1-kk+jj] + (uint32_t)low;
@@ -775,7 +774,7 @@ loop_done:
 		Multiply(limbs/2, cross_product, xsum, ysum);
 
 		// Subtract out the high and low products
-		int32_t cross_carry = Subtract(cross_product, limbs, product, limbs); 
+		int32_t cross_carry = Subtract(cross_product, limbs, product, limbs);
 		cross_carry += Subtract(cross_product, limbs, product + limbs, limbs);
 
 		// Fix the extra high carry bits of the result
@@ -829,27 +828,27 @@ loop_done:
 		const uint32_t *a, *b;
 		uint32_t *a1 = (uint32_t*)alloca(limbs*4);
 		uint32_t *b1 = (uint32_t*)alloca(limbs*4);
-	
+
 		uint32_t a_high = a0[limbs-1] & 0x80000000;
-	
+
 		if (a_high) {
 			Set(a1, limbs, a0, limbs);
 			Negate(a1, limbs);
 			a = a1;
 		} else
 			a = a0;
-	
+
 		uint32_t b_high = b0[limbs-1] & 0x80000000;
-	
+
 		if (b_high) {
 			Set(b1, limbs, b0, limbs);
 			Negate(b1, limbs);
 			b = b1;
 		} else
 			b = b0;
-	
+
 		Multiply(limbs, result, a, b);
-	
+
 		if (a_high ^ b_high)
 			Negate(result, limbs);
 	}
@@ -862,9 +861,9 @@ loop_done:
 	{
 		uint32_t remainder = N[limbs-1] < divisor ? N[limbs-1] : 0;
 		uint32_t counter = N[limbs-1] < divisor ? limbs-1 : limbs;
-	
+
 		while (counter--) remainder = (uint32_t)((((uint64_t)remainder << 32) | N[counter]) % divisor);
-	
+
 		return remainder;
 	}
 
@@ -872,7 +871,7 @@ loop_done:
 	/*
 	 * 'A' is overwritten with the quotient of the operation
 	 * Returns the remainder of 'A' / divisor for a 32-bit divisor
-	 * 
+	 *
 	 * Does not check for divide-by-zero
 	 */
     uint32_t Divide32(
@@ -887,7 +886,7 @@ loop_done:
 			A[ii] = (uint32_t)(n / divisor);
 			r = n % divisor;
 		}
-	
+
 		return (uint32_t)r;
 	}
 
@@ -930,9 +929,9 @@ loop_done:
 
 	/*
 	 * Schoolbook division algorithm
-	 * 
+	 *
 	 * Returns true on success and false on failure (like divide by 0)
-	 * 
+	 *
 	 * Quotient and Remainder pointers can be the same as any other
 	*/
 	bool SchoolbookDivide(
@@ -1002,7 +1001,7 @@ loop_done:
 		// If they are the same bitlength or dividend length < divisor length, quotient = 1 or 0
 		if (sd_used <= divisor_used)
 		{
-			// if dividend < divisor, shifted_quotient = 0 and shifted_dividend = shifted_dividend 
+			// if dividend < divisor, shifted_quotient = 0 and shifted_dividend = shifted_dividend
 			// if dividend >= divisor,
 			if (GreaterOrEqual(shifted_dividend, sd_used, shifted_divisor, divisor_used))
 			{
@@ -1151,7 +1150,7 @@ loop_done:
 
 	/*
 	 * Computes: result = GCD(a, b)  (greatest common divisor)
-	 * 
+	 *
 	 * Length of result is the length of the smallest argument
 	 */
 	void GCD(
@@ -1203,7 +1202,7 @@ loop_done:
 	 * Computes: result = (n ^ -1) (Mod modulus)
 	 * Such that: result * n (Mod modulus) = 1
 	 * Using Extended Euclid's Algorithm (GCDe)
-	 * 
+	 *
 	 * This is not always possible, so it will return false iff not possible.
 	 */
 	bool InvMod(
@@ -1238,7 +1237,7 @@ loop_done:
 
 			// p = q * u1
 			Multiply(limbs, p, q, u1);
-			
+
 			// q = p (Mod modulus)
 			SchoolbookDivide(p, limbs*2, modulus, limbs, p/*ignore*/, q);
 
@@ -1257,7 +1256,7 @@ loop_done:
 
 			// p = q * u
 			Multiply(limbs, p, q, u);
-			
+
 			// q = p (Mod modulus)
 			SchoolbookDivide(p, limbs*2, modulus, limbs, p/*ignore*/, q);
 
@@ -1466,7 +1465,7 @@ loop_done:
 		// precomputed window starts with 000001, 000011, 000101, 000111, ...
 		uint32_t k = (1 << (window_bits - 1));
 
-		uint32_t *window = RakNet::OP_NEW_ARRAY<uint32_t>(limbs * k);
+		uint32_t *window = RakNet::OP_NEW_ARRAY<uint32_t>(limbs * k, __FILE__, __LINE__ );
 
 		uint32_t *cw = window;
 		Set(window, limbs, base);
@@ -1637,7 +1636,7 @@ loop_done:
 			//e_bits = 0;
 		}
 
-		RakNet::OP_DELETE_ARRAY(window);
+		RakNet::OP_DELETE_ARRAY(window, __FILE__, __LINE__);
 	}
 
 	// Computes: result = base ^ exponent (Mod modulus)
@@ -1722,3 +1721,5 @@ loop_done:
 		Add(result, mod_limbs*2, p, mod_limbs);
 	}
 }
+
+#endif

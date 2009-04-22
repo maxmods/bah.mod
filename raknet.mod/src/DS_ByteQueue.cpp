@@ -28,7 +28,7 @@ void ByteQueue::WriteBytes(const char *in, unsigned length)
 		if (newAmountToAllocate<256)
 			newAmountToAllocate=256;
 		lengthAllocated=lengthAllocated + newAmountToAllocate;
-		data=(char*)rakRealloc(data, lengthAllocated);
+		data=(char*)rakRealloc_Ex(data, lengthAllocated, __FILE__, __LINE__);
 		if (writeOffset < readOffset)
 		{
 			if (writeOffset <= newAmountToAllocate)
@@ -55,29 +55,39 @@ void ByteQueue::WriteBytes(const char *in, unsigned length)
 	}
 	writeOffset=(writeOffset+length) % lengthAllocated;
 }
-bool ByteQueue::ReadBytes(char *out, unsigned length, bool peek)
+bool ByteQueue::ReadBytes(char *out, unsigned maxLengthToRead, bool peek)
 {
-	if (GetBytesWritten() < length)
+	unsigned bytesWritten = GetBytesWritten();
+	unsigned bytesToRead = bytesWritten < maxLengthToRead ? bytesWritten : maxLengthToRead;
+	if (bytesToRead==0)
 		return false;
-
-	if (length <= lengthAllocated-readOffset)
-		memcpy(out, data+readOffset, length);
+	if (writeOffset>=readOffset)
+	{
+		memcpy(out, data+readOffset, bytesToRead);
+	}
 	else
 	{
-		// Wrap
-		memcpy(out, data+readOffset, lengthAllocated-readOffset);
-		memcpy(out+(lengthAllocated-readOffset), data, length-(lengthAllocated-readOffset));
+		unsigned availableUntilWrap = lengthAllocated-readOffset;
+		if (bytesToRead <= availableUntilWrap)
+		{
+			memcpy(out, data+readOffset, bytesToRead);
+		}
+		else
+		{
+			memcpy(out, data+readOffset, availableUntilWrap);
+			memcpy(out+availableUntilWrap, data, bytesToRead-availableUntilWrap);
+		}
 	}
 
 	if (peek==false)
-		IncrementReadOffset(length);
+		IncrementReadOffset(bytesToRead);
 		
 	return true;
 }
 void ByteQueue::Clear(void)
 {
 	if (lengthAllocated)
-		rakFree(data);
+		rakFree_Ex(data, __FILE__, __LINE__ );
 	readOffset=writeOffset=lengthAllocated=0;
 	data=0;
 }
@@ -86,7 +96,7 @@ unsigned ByteQueue::GetBytesWritten(void) const
 	if (writeOffset>=readOffset)
 		return writeOffset-readOffset;
 	else
-		return (writeOffset-1)+(lengthAllocated-readOffset);
+		return writeOffset+(lengthAllocated-readOffset);
 }
 void ByteQueue::IncrementReadOffset(unsigned length)
 {

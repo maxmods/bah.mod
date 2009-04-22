@@ -1,24 +1,15 @@
 /// \file
 /// \brief \b [Internal] Passes queued data between threads using a circular buffer with read and write pointers
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __SINGLE_PRODUCER_CONSUMER_H
 #define __SINGLE_PRODUCER_CONSUMER_H
 
-#include <assert.h>
+#include "RakAssert.h"
 
 static const int MINIMUM_LIST_SIZE=8;
 
@@ -101,17 +92,17 @@ namespace DataStructures
 		SingleProducerConsumer<SingleProducerConsumerType>::SingleProducerConsumer()
 	{
 		// Preallocate
-		readPointer = RakNet::OP_NEW<DataPlusPtr>();
+		readPointer = RakNet::OP_NEW<DataPlusPtr>( __FILE__, __LINE__ );
 		writePointer=readPointer;
-		readPointer->next = RakNet::OP_NEW<DataPlusPtr>();
+		readPointer->next = RakNet::OP_NEW<DataPlusPtr>( __FILE__, __LINE__ );
 		int listSize;
 #ifdef _DEBUG
-		assert(MINIMUM_LIST_SIZE>=3);
+		RakAssert(MINIMUM_LIST_SIZE>=3);
 #endif
 		for (listSize=2; listSize < MINIMUM_LIST_SIZE; listSize++)
 		{
 			readPointer=readPointer->next;
-			readPointer->next = RakNet::OP_NEW<DataPlusPtr>();
+			readPointer->next = RakNet::OP_NEW<DataPlusPtr>( __FILE__, __LINE__ );
 		}
 		readPointer->next->next=writePointer; // last to next = start
 		readPointer=writePointer;
@@ -128,10 +119,10 @@ namespace DataStructures
 		while (readPointer!=writeAheadPointer)
 		{
 			next=readPointer->next;
-			RakNet::OP_DELETE((char*) readPointer);
+			RakNet::OP_DELETE((char*) readPointer, __FILE__, __LINE__);
 			readPointer=next;
 		}
-		RakNet::OP_DELETE((char*) readPointer);
+		RakNet::OP_DELETE((char*) readPointer, __FILE__, __LINE__);
 	}
 
 	template <class SingleProducerConsumerType>
@@ -142,7 +133,7 @@ namespace DataStructures
 		{
 			volatile DataPlusPtr *originalNext=writeAheadPointer->next;
 			writeAheadPointer->next=new DataPlusPtr;
-			assert(writeAheadPointer->next);
+			RakAssert(writeAheadPointer->next);
 			writeAheadPointer->next->next=originalNext;
 		}
 
@@ -165,8 +156,8 @@ namespace DataStructures
 		//	DataPlusPtr *dataContainer = (DataPlusPtr *)structure;
 
 #ifdef _DEBUG
-		assert(writePointer->next!=readPointer);
-		assert(writePointer!=writeAheadPointer);
+		RakAssert(writePointer->next!=readPointer);
+		RakAssert(writePointer!=writeAheadPointer);
 #endif
 
 		writeCount++;
@@ -194,7 +185,7 @@ namespace DataStructures
 		void SingleProducerConsumer<SingleProducerConsumerType>::CancelReadLock( SingleProducerConsumerType* cancelToLocation )
 	{
 #ifdef _DEBUG
-		assert(readPointer!=writePointer);
+		RakAssert(readPointer!=writePointer);
 #endif
 		readAheadPointer=(DataPlusPtr *)cancelToLocation;
 	}
@@ -203,8 +194,8 @@ namespace DataStructures
 		void SingleProducerConsumer<SingleProducerConsumerType>::ReadUnlock( void )
 	{
 #ifdef _DEBUG
-		assert(readAheadPointer!=readPointer); // If hits, then called ReadUnlock before ReadLock
-		assert(readPointer!=writePointer); // If hits, then called ReadUnlock when Read returns 0
+		RakAssert(readAheadPointer!=readPointer); // If hits, then called ReadUnlock before ReadLock
+		RakAssert(readPointer!=writePointer); // If hits, then called ReadUnlock when Read returns 0
 #endif
 		readCount++;
 
@@ -232,9 +223,9 @@ namespace DataStructures
 		{
 			next=writePointer->next;
 #ifdef _DEBUG
-			assert(writePointer!=readPointer);
+			RakAssert(writePointer!=readPointer);
 #endif
-			RakNet::OP_DELETE((char*) writePointer);
+			RakNet::OP_DELETE((char*) writePointer, __FILE__, __LINE__);
 			writePointer=next;
 		}
 
@@ -270,10 +261,10 @@ namespace DataStructures
 /*
 #include "SingleProducerConsumer.h"
 #include <process.h>
-#include <assert.h>
+#include "RakAssert.h"
 #include <stdio.h>
-#include <windows.h>
-#if defined(_PS3)
+#include "WindowsIncludes.h"
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 #include <math.h>
 #else
 #include <cmath>
@@ -316,7 +307,7 @@ if (*readBlock!=readCount)
 {
 RAKNET_DEBUG_PRINTF("Test failed! Expected %i got %i!\n", readCount, *readBlock);
 readCount = READ_COUNT_ITERATIONS;
-assert(0);
+RakAssert(0);
 }
 spc.ReadUnlock();
 readCount++;

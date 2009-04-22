@@ -31,7 +31,7 @@ ModuleInfo "License: Raknet - The Creative Commons Attribution - NonCommercial 2
 ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Version(Raknet 3.3)"
+ModuleInfo "History: Initial Version(Raknet 3.51)"
 
 
 Import "common.bmx"
@@ -3833,11 +3833,11 @@ Type TRKFileList
 	Rem
 	bbdoc: 
 	End Rem
-	Method AddFileMemory(filename:String, data:Byte Ptr, dataLength:Int, fileLength:Int, context:TRKFileListNodeContext = Null, isAReference:Int = False)
+	Method AddFileMemory(filename:String, fullpathToFile:String, data:Byte Ptr, dataLength:Int, fileLength:Int, context:TRKFileListNodeContext = Null, isAReference:Int = False)
 		If context Then
-			bmx_FileList_AddFileMemory(fileListPtr, filename, data, dataLength, fileLength, context.nodeContextPtr, isAReference)
+			bmx_FileList_AddFileMemory(fileListPtr, filename, fullpathToFile, data, dataLength, fileLength, context.nodeContextPtr, isAReference)
 		Else
-			bmx_FileList_AddFileMemory(fileListPtr, filename, data, dataLength, fileLength, Null, isAReference)
+			bmx_FileList_AddFileMemory(fileListPtr, filename, fullpathToFile, data, dataLength, fileLength, Null, isAReference)
 		End If
 	End Method
 	

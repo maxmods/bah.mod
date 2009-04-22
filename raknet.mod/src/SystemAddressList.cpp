@@ -10,11 +10,11 @@ SystemAddressList::SystemAddressList()
 }
 SystemAddressList::SystemAddressList(SystemAddress system)
 {
-	systemList.Insert(system);
+	systemList.Insert(system, __FILE__, __LINE__);
 }
 void SystemAddressList::AddSystem(SystemAddress system)
 {
-	systemList.Insert(system);
+	systemList.Insert(system, __FILE__, __LINE__);
 }
 void SystemAddressList::RandomizeOrder(void)
 {
@@ -58,7 +58,7 @@ bool SystemAddressList::Deserialize(RakNet::BitStream *in)
 			systemList.Clear();
 			return false;
 		}
-		systemList.Insert(systemAddress);
+		systemList.Insert(systemAddress, __FILE__, __LINE__);
 
 	}
 	return true;
@@ -108,13 +108,13 @@ bool SystemAddressList::Load(const char *filename)
 		fclose(fp);
 		return false;
 	}
-	unsigned char *filedata = (unsigned char*) rakMalloc( fileSize );
+	unsigned char *filedata = (unsigned char*) rakMalloc_Ex( fileSize, __FILE__, __LINE__ );
 	fread(filedata, fileSize, 1, fp);
 	fclose(fp);
 
 	RakNet::BitStream bs(filedata, fileSize, false);
 	Deserialize(&bs);
-	rakFree(filedata);
+	rakFree_Ex(filedata, __FILE__, __LINE__ );
 	return true;
 }
 unsigned SystemAddressList::Size(void) const

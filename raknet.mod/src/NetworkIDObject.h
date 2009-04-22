@@ -1,19 +1,10 @@
 /// \file
 /// \brief A class you can derive from to make it easier to represent every networked object with an integer.  This way you can refer to objects over the network.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #if !defined(__NETWORK_ID_GENERATOR)
 #define      __NETWORK_ID_GENERATOR
@@ -73,7 +64,7 @@ public:
 	virtual bool RequiresSetParent(void) const;
 
 	/// Used so I can compare pointers in the ReplicaManager
-	unsigned int GetAllocationNumber(void) const;
+	uint32_t GetAllocationNumber(void) const;
 
 protected:
 	/// The  network ID of this object
@@ -83,8 +74,8 @@ protected:
 	void *parent;
 
 	/// Used so I can compare pointers in the ReplicaManager
-	static unsigned int nextAllocationNumber;
-	unsigned int allocationNumber;
+	static uint32_t nextAllocationNumber;
+	uint32_t allocationNumber;
 	
 	/// Internal function to generate an ID when needed.  This is deferred until needed and is not called from the constructor.
 	void GenerateID(void);

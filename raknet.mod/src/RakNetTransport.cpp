@@ -133,7 +133,7 @@ Packet* RakNetTransport::Receive( void )
 
 	return 0;
 }
-SystemAddress RakNetTransport::HasNewConnection(void)
+SystemAddress RakNetTransport::HasNewIncomingConnection(void)
 {
 	if (newConnections.Size())
 		return newConnections.Pop();

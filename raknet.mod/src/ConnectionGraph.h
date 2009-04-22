@@ -1,19 +1,10 @@
 /// \file
 /// \brief Connection graph plugin.  This maintains a graph of connections for the entire network, so every peer knows about every other peer.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __CONNECTION_GRAPH_H
 #define __CONNECTION_GRAPH_H
@@ -21,7 +12,7 @@
 class RakPeerInterface;
 #include "RakMemoryOverride.h"
 #include "RakNetTypes.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "DS_List.h"
 #include "DS_WeightedGraph.h"
 #include "GetTime.h"
@@ -35,7 +26,7 @@ typedef unsigned char ConnectionGraphGroupID;
 
 /// \ingroup CONNECTION_GRAPH_GROUP
 /// \brief A connection graph.  Each peer will know about all other peers.
-class RAK_DLL_EXPORT ConnectionGraph : public PluginInterface
+class RAK_DLL_EXPORT ConnectionGraph : public PluginInterface2
 {
 public:
 	ConnectionGraph();
@@ -80,9 +71,8 @@ public:
 	/// Requests the connection graph from another system
 	/// Only necessary to call if SetAutoAddNewConnections(false) is called.
 	/// You should call this sometime after getting ID_CONNECTION_REQUEST_ACCEPTED and \a systemAddress is or should be a node on the connection graph
-	/// \param[in] peer The instance of RakPeer to send through
 	/// \param[in] systemAddress The system to send to
-	void RequestConnectionGraph(RakPeerInterface *peer, SystemAddress systemAddress);
+	void RequestConnectionGraph(SystemAddress systemAddress);
 
 	/// Adds a new connection to the connection graph from this system to the specified system.  Also assigns a group identifier for that system
 	/// Only used and valid when SetAutoAddNewConnections(false) is called.
@@ -116,27 +106,28 @@ public:
 	// Packet handling functions
 	// --------------------------------------------------------------------------------------------
 	/// \internal
-	virtual void OnShutdown(RakPeerInterface *peer);
+	virtual void OnShutdown(void);
 	/// \internal
-	virtual void Update(RakPeerInterface *peer);
+	virtual void Update(void);
 	/// \internal
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
+	virtual PluginReceiveResult OnReceive(Packet *packet);
 	/// \internal
-	virtual void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
+	virtual void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
+	/// \internal
+	virtual void OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming);
 
 protected:
 	void HandleDroppedConnection(RakPeerInterface *peer, SystemAddress systemAddress, unsigned char packetId);
 	void DeleteFromPeerList(SystemAddress systemAddress);
 
-	void OnNewIncomingConnection(RakPeerInterface *peer, Packet *packet);
-	void OnConnectionRequestAccepted(RakPeerInterface *peer, Packet *packet);
-	void OnConnectionGraphRequest(RakPeerInterface *peer, Packet *packet);
-	void OnConnectionGraphReply(RakPeerInterface *peer, Packet *packet);
-	void OnConnectionGraphUpdate(RakPeerInterface *peer, Packet *packet);
-	void OnNewConnection(RakPeerInterface *peer, Packet *packet);
-	bool OnConnectionLost(RakPeerInterface *peer, Packet *packet, unsigned char packetId);
-	void OnConnectionAddition(RakPeerInterface *peer, Packet *packet);
-	void OnConnectionRemoval(RakPeerInterface *peer, Packet *packet);
+	void OnNewIncomingConnection(Packet *packet);
+	void OnConnectionGraphRequest(Packet *packet);
+	void OnConnectionGraphReply(Packet *packet);
+	void OnConnectionGraphUpdate(Packet *packet);
+	void OnNewConnectionInternal(Packet *packet);
+	bool OnConnectionLostInternal(Packet *packet, unsigned char packetId);
+	void OnConnectionAddition(Packet *packet);
+	void OnConnectionRemoval(Packet *packet);
 	void SendConnectionGraph(SystemAddress target, unsigned char packetId, RakPeerInterface *peer);
 	void SerializeWeightedGraph(RakNet::BitStream *out, const DataStructures::WeightedGraph<ConnectionGraph::SystemAddressAndGroupId, unsigned short, false> &g) const;
 	bool DeserializeWeightedGraph(RakNet::BitStream *inBitstream, RakPeerInterface *peer);

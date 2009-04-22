@@ -1,7 +1,7 @@
 /// \file
 /// \brief \b [Internal] Datagram reliable, ordered, unordered and sequenced sends.  Flow control.  Message splitting, reassembly, and coalescence.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
 /// Creative Commons Licensees are subject to the
@@ -35,7 +35,8 @@
 #include "DS_BPlusTree.h"
 #include "DS_MemoryPool.h"
 
-class PluginInterface;
+class PluginInterface2;
+class RakNetRandom;
 
 /// Sizeof an UDP header in byte
 #define UDP_HEADER_SIZE 28
@@ -45,12 +46,15 @@ class PluginInterface;
 
 #define RESEND_TREE_ORDER 32
 
+#define ACK_PING_SAMPLES_SIZE 256
+#define ACK_PING_SAMPLES_BITS 8
+
 #include "BitStream.h"
 
 int SplitPacketIndexComp( SplitPacketIndexType const &key, InternalPacket* const &data );
 struct SplitPacketChannel//<SplitPacketChannel>
 {
-	RakNetTimeNS lastUpdateTime;
+	RakNetTimeUS lastUpdateTime;
 	DataStructures::OrderedList<SplitPacketIndexType, InternalPacket*, SplitPacketIndexComp> splitPacketList;
 };
 int RAK_DLL_EXPORT SplitPacketChannelComp( SplitPacketIdType const &key, SplitPacketChannel* const &data );
@@ -91,7 +95,7 @@ public:
 	/// \param[in] MTUSize maximum datagram size
 	/// \retval true Success
 	/// \retval false Modified packet
-	bool HandleSocketReceiveFromConnectedPlayer( const char *buffer, unsigned int length, SystemAddress systemAddress, DataStructures::List<PluginInterface*> &messageHandlerList, int MTUSize );
+	bool HandleSocketReceiveFromConnectedPlayer( const char *buffer, unsigned int length, SystemAddress systemAddress, DataStructures::List<PluginInterface2*> &messageHandlerList, int MTUSize );
 
 	/// This allocates bytes and writes a user-level message to those bytes.
 	/// \param[out] data The message
@@ -108,7 +112,7 @@ public:
 	/// \param[in] MTUSize maximum datagram size
 	/// \param[in] currentTime Current time, as per RakNet::GetTime()
 	/// \return True or false for success or failure.
-	bool Send( char *data, BitSize_t numberOfBitsToSend, PacketPriority priority, PacketReliability reliability, unsigned char orderingChannel, bool makeDataCopy, int MTUSize, RakNetTimeNS currentTime );
+	bool Send( char *data, BitSize_t numberOfBitsToSend, PacketPriority priority, PacketReliability reliability, unsigned char orderingChannel, bool makeDataCopy, int MTUSize, RakNetTimeUS currentTime );
 
 	/// Call once per game cycle.  Handles internal lists and actually does the send.
 	/// \param[in] s the communication  end point
@@ -117,7 +121,7 @@ public:
 	/// \param[in] time current system time
 	/// \param[in] maxBitsPerSecond if non-zero, enforces that outgoing bandwidth does not exceed this amount
 	/// \param[in] messageHandlerList A list of registered plugins
-	void Update(  SOCKET s, SystemAddress systemAddress, int MTUSize, RakNetTimeNS time, unsigned maxBitsPerSecond, DataStructures::List<PluginInterface*> &messageHandlerList );
+	void Update(  SOCKET s, SystemAddress systemAddress, int MTUSize, RakNetTimeUS time, unsigned maxBitsPerSecond, DataStructures::List<PluginInterface2*> &messageHandlerList, RakNetRandom *rnr, bool isPS3LobbySocket );
 
 	/// If Read returns -1 and this returns true then a modified packetwas detected
 	/// \return true when a modified packet is detected
@@ -132,7 +136,7 @@ public:
 
 	/// Get Statistics
 	/// \return A pointer to a static struct, filled out with current statistical information.
-	RakNetStatistics * const GetStatistics( void );
+	RakNetStatistics * const GetStatistics( RakNetStatistics *rns );
 
 	///Are we waiting for any data to be sent out or be processed by the player?
 	bool IsOutgoingDataWaiting(void);
@@ -149,12 +153,12 @@ public:
 	void SetSplitMessageProgressInterval(int interval);
 	void SetUnreliableTimeout(RakNetTime timeoutMS);
 	/// Has a lot of time passed since the last ack
-	bool AckTimeout(RakNetTimeNS curTime);
-	RakNetTimeNS GetNextSendTime(void) const;
-	RakNetTimeNS GetTimeBetweenPackets(void) const;
-	RakNetTimeNS GetLastTimeBetweenPacketsDecrease(void) const;
-	RakNetTimeNS GetLastTimeBetweenPacketsIncrease(void) const;
-	RakNetTimeNS GetAckPing(void) const;
+	bool AckTimeout(RakNetTimeUS curTime);
+	RakNetTimeUS GetNextSendTime(void) const;
+	RakNetTimeUS GetTimeBetweenPackets(void) const;
+	RakNetTimeUS GetLastTimeBetweenPacketsDecrease(void) const;
+	RakNetTimeUS GetLastTimeBetweenPacketsIncrease(void) const;
+	RakNetTimeUS GetAckPing(void) const;
 
 	// If true, will update time between packets quickly based on ping calculations
 	//void SetDoFastThroughputReactions(bool fast);
@@ -172,35 +176,35 @@ private:
 	/// \param[in] systemAddress Who we are sending to
 	/// \param[in] messageHandlerList A list of registered plugins
 	/// \return If any data was sent
-	bool GenerateDatagram( RakNet::BitStream *output, int MTUSize, bool *reliableDataSent, RakNetTimeNS time, SystemAddress systemAddress, bool *hitMTUCap, DataStructures::List<PluginInterface*> &messageHandlerList );
+	bool GenerateDatagram( RakNet::BitStream *output, int MTUSize, bool *reliableDataSent, RakNetTimeUS time, SystemAddress systemAddress, bool *hitMTUCap, DataStructures::List<PluginInterface2*> &messageHandlerList );
 
 	/// Send the contents of a bitstream to the socket
 	/// \param[in] s The socket used for sending data
 	/// \param[in] systemAddress The address and port to send to
 	/// \param[in] bitStream The data to send.
-	void SendBitStream( SOCKET s, SystemAddress systemAddress, RakNet::BitStream *bitStream );
+	void SendBitStream( SOCKET s, SystemAddress systemAddress, RakNet::BitStream *bitStream, RakNetRandom *rnr, bool isPS3LobbySocket);
 
 	///Parse an internalPacket and create a bitstream to represent this data
 	/// \return Returns number of bits used
-	BitSize_t WriteToBitStreamFromInternalPacket( RakNet::BitStream *bitStream, const InternalPacket *const internalPacket, RakNetTimeNS curTime );
+	BitSize_t WriteToBitStreamFromInternalPacket( RakNet::BitStream *bitStream, const InternalPacket *const internalPacket, RakNetTimeUS curTime );
 
 	/// Parse a bitstream and create an internal packet to represent this data
-	InternalPacket* CreateInternalPacketFromBitStream( RakNet::BitStream *bitStream, RakNetTimeNS time );
+	InternalPacket* CreateInternalPacketFromBitStream( RakNet::BitStream *bitStream, RakNetTimeUS time );
 
 	/// Does what the function name says
-	unsigned RemovePacketFromResendListAndDeleteOlderReliableSequenced( const MessageNumberType messageNumber, RakNetTimeNS time );
+	unsigned RemovePacketFromResendListAndDeleteOlderReliableSequenced( const MessageNumberType messageNumber, RakNetTimeUS time );
 
 	/// Acknowledge receipt of the packet with the specified messageNumber
-	void SendAcknowledgementPacket( const MessageNumberType messageNumber, RakNetTimeNS time );
+	void SendAcknowledgementPacket( const MessageNumberType messageNumber, RakNetTimeUS time );
 
 	/// This will return true if we should not send at this time
 	bool IsSendThrottled( int MTUSize );
 
 	/// We lost a packet
-	void UpdateWindowFromPacketloss( RakNetTimeNS time );
+	void UpdateWindowFromPacketloss( RakNetTimeUS time );
 
 	/// Increase the window size
-	void UpdateWindowFromAck( RakNetTimeNS time );
+	void UpdateWindowFromAck( RakNetTimeUS time );
 
 	/// Parse an internalPacket and figure out how many header bits would be written.  Returns that number
 	int GetBitStreamHeaderLength( const InternalPacket *const internalPacket );
@@ -224,17 +228,17 @@ private:
 	void SplitPacket( InternalPacket *internalPacket, int MTUSize );
 
 	/// Insert a packet into the split packet list
-	void InsertIntoSplitPacketList( InternalPacket * internalPacket, RakNetTimeNS time );
+	void InsertIntoSplitPacketList( InternalPacket * internalPacket, RakNetTimeUS time );
 
 	/// Take all split chunks with the specified splitPacketId and try to reconstruct a packet. If we can, allocate and return it.  Otherwise return 0
-	InternalPacket * BuildPacketFromSplitPacketList( SplitPacketIdType splitPacketId, RakNetTimeNS time );
+	InternalPacket * BuildPacketFromSplitPacketList( SplitPacketIdType splitPacketId, RakNetTimeUS time );
 
 	/// Delete any unreliable split packets that have long since expired
-	void DeleteOldUnreliableSplitPackets( RakNetTimeNS time );
+	void DeleteOldUnreliableSplitPackets( RakNetTimeUS time );
 
 	/// Creates a copy of the specified internal packet with data copied from the original starting at dataByteOffset for dataByteLength bytes.
 	/// Does not copy any split data parameters as that information is always generated does not have any reason to be copied
-	InternalPacket * CreateInternalPacketCopy( InternalPacket *original, int dataByteOffset, int dataByteLength, RakNetTimeNS time );
+	InternalPacket * CreateInternalPacketCopy( InternalPacket *original, int dataByteOffset, int dataByteLength, RakNetTimeUS time );
 
 	/// Get the specified ordering list
 	DataStructures::LinkedList<InternalPacket*> *GetOrderingListAtOrderingStream( unsigned char orderingChannel );
@@ -243,7 +247,7 @@ private:
 	void AddToOrderingList( InternalPacket * internalPacket );
 
 	/// Inserts a packet into the resend list in order
-	void InsertPacketIntoResendList( InternalPacket *internalPacket, RakNetTimeNS time, bool makeCopyOfInternalPacket, bool firstResend );
+	void InsertPacketIntoResendList( InternalPacket *internalPacket, RakNetTimeUS time, bool makeCopyOfInternalPacket, bool firstResend );
 
 	/// Memory handling
 	void FreeMemory( bool freeAllImmediately );
@@ -258,7 +262,7 @@ private:
 	void InitializeVariables( void );
 
 	/// Given the current time, is this time so old that we should consider it a timeout?
-	bool IsExpiredTime(unsigned int input, RakNetTimeNS currentTime) const;
+	bool IsExpiredTime(unsigned int input, RakNetTimeUS currentTime) const;
 
 	// Make it so we don't do resends within a minimum threshold of time
 	void UpdateNextActionTime(void);
@@ -283,7 +287,7 @@ private:
 	DataStructures::Queue<InternalPacket*> outputQueue;
 	DataStructures::RangeList<MessageNumberType> acknowlegements;
 	int splitMessageProgressInterval;
-	RakNetTimeNS unreliableTimeout;
+	RakNetTimeUS unreliableTimeout;
 	
 	// Resend list is a tree of packets we need to resend
 	DataStructures::BPlusTree<MessageNumberType, InternalPacket*, RESEND_TREE_ORDER> resendList;
@@ -294,7 +298,7 @@ private:
     DataStructures::OrderedList<SplitPacketIdType, SplitPacketChannel*, SplitPacketChannelComp> splitPacketChannelList;
 	MessageNumberType sendMessageNumberIndex, internalOrderIndex;
 	//unsigned int windowSize;
-	RakNetTimeNS lastAckTime;
+	RakNetTimeUS lastAckTime;
 	RakNet::BitStream updateBitStream;
 	OrderingIndexType waitingForOrderedPacketWriteIndex[ NUMBER_OF_ORDERED_STREAMS ], waitingForSequencedPacketWriteIndex[ NUMBER_OF_ORDERED_STREAMS ];
 	
@@ -310,7 +314,7 @@ private:
 	unsigned int blockWindowIncreaseUntilTime;
 	RakNetStatistics statistics;
 
-	RakNetTimeNS histogramStart;
+	RakNetTimeUS histogramStart;
 	unsigned histogramBitsSent;
 
 
@@ -322,22 +326,22 @@ private:
 	/// If 0, we got got that packet.  Otherwise, the time to give up waiting for that packet.
 	/// If we get a packet number where (receivedPacketsBaseIndex-packetNumber) is less than half the range of receivedPacketsBaseIndex then it is a duplicate
 	/// Otherwise, it is a duplicate packet (and ignore it).
-	DataStructures::Queue<RakNetTimeNS> hasReceivedPacketQueue;
+	DataStructures::Queue<RakNetTimeUS> hasReceivedPacketQueue;
 	MessageNumberType receivedPacketsBaseIndex;
 	bool resetReceivedPackets;
 
-	RakNetTimeNS lastUpdateTime;
-	RakNetTimeNS timeBetweenPackets, nextSendTime, ackPing;
-	RakNetTimeNS ackPingSamples[256]; // Must be range of unsigned char to wrap ackPingIndex properly
-	RakNetTimeNS ackPingSum;
+	RakNetTimeUS lastUpdateTime;
+	RakNetTimeUS timeBetweenPackets, nextSendTime, ackPing;
+	RakNetTimeUS ackPingSamples[ACK_PING_SAMPLES_SIZE]; // Must be range of unsigned char to wrap ackPingIndex properly
+	RakNetTimeUS ackPingSum;
 	unsigned char ackPingIndex;
-	//RakNetTimeNS nextLowestPingReset;
+	//RakNetTimeUS nextLowestPingReset;
 	RemoteSystemTimeType remoteSystemTime;
 	bool continuousSend;
-	RakNetTimeNS lastTimeBetweenPacketsIncrease,lastTimeBetweenPacketsDecrease;
+	RakNetTimeUS lastTimeBetweenPacketsIncrease,lastTimeBetweenPacketsDecrease;
 	// Limit changes in throughput to once per ping - otherwise even if lag starts we don't know about it
 	// In the meantime the connection is flooded and overrun.
-	RakNetTimeNS nextAllowedThroughputSample;
+	RakNetTimeUS nextAllowedThroughputSample;
 
 	// If Update::maxBitsPerSecond > 0, then throughputCapCountdown is used as a timer to prevent sends for some amount of time after each send, depending on
 	// the amount of data sent
@@ -350,8 +354,10 @@ private:
 	bool freeThreadedMemoryOnNextUpdate;
 
 	// If we backoff due to packetloss, don't remeasure until all waiting resends have gone out or else we overcount
-	bool packetlossThisSample, backoffThisSample;
+	bool packetlossThisSample;
+	int backoffThisSample;
 	unsigned packetlossThisSampleResendCount;
+	RakNetTimeUS lastPacketlossTime;
 
 	//long double timeBetweenPacketsIncreaseMultiplier, timeBetweenPacketsDecreaseMultiplier;
 
@@ -360,7 +366,7 @@ private:
 	{
 		char data[ MAXIMUM_MTU_SIZE ];
 		unsigned int length;
-		RakNetTimeNS sendTime;
+		RakNetTimeUS sendTime;
 	};
 	DataStructures::List<DataAndTime*> delayList;
 

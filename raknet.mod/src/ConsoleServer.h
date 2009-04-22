@@ -1,19 +1,10 @@
 /// \file
 /// \brief Contains ConsoleServer , used to plugin to your game to accept remote console-based connections
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __CONSOLE_SERVER_H
 #define __CONSOLE_SERVER_H
@@ -53,11 +44,20 @@ public:
 	/// Call update to read packet sent from your TransportInterface.
 	/// You should do this fairly frequently.
 	void Update(void);
+
+	/// Sets a prompt to show when waiting for user input
+	/// Pass an empty string to clear the prompt
+	/// Defaults to no prompt
+	/// \param[in] _prompt Null-terminated string of the prompt to use. If you want a newline, be sure to use /r/n
+	void SetPrompt(const char *_prompt);
+
 protected:
 	void ListParsers(SystemAddress systemAddress);
+	void ShowPrompt(SystemAddress systemAddress);
 	TransportInterface *transport;
 	DataStructures::List<CommandParserInterface *> commandParserList;
 	char* password[256];
+	char *prompt;
 };
 
 #endif

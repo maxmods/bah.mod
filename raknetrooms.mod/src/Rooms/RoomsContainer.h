@@ -37,11 +37,17 @@ public:
 	// Name is used for persistent invites and bans. Name should be unique among all participants or else the invites and bans will be applied to the wrong players
 	RakNet::RakString GetName(void) const {return name;}
 	void SetName(const char *str) {name = str;}
+	void SetSystemAddress(SystemAddress sa) {systemAddress=sa;}
+	SystemAddress GetSystemAddress(void) const {return systemAddress;}
+	void SetGUID(RakNetGUID g) {guid=g;}
+	RakNetGUID GetGUID(void) const {return guid;}
 
 	PerGameRoomsContainer *GetPerGameRoomsContainer(void) const {return perGameRoomsContainer;}
 	bool GetInQuickJoin(void) const {return inQuickJoin;}
 protected:
 	RakNet::RakString name;
+	SystemAddress systemAddress;
+	RakNetGUID guid;
 	Room *room;
 	bool inQuickJoin;
 	PerGameRoomsContainer *perGameRoomsContainer;
@@ -87,6 +93,7 @@ struct InvitedUser
 	Room *room;
 	RoomID roomId;
 	RakNet::RakString invitorName;
+	SystemAddress invitorSystemAddress;
 	RakNet::RakString target;
 	RakNet::RakString subject;
 	RakNet::RakString body;
@@ -107,9 +114,12 @@ struct RemoveUserResult
 	RemoveUserResult();
 	~RemoveUserResult();
 
-	RoomsParticipant *removedUser;
+	// Why return a deleted pointer?
+//	RoomsParticipant *removedUser;
 	bool removedFromQuickJoin;
 	bool removedFromRoom;
+	SystemAddress removedUserAddress;
+	RakNet::RakString removedUserName;
 
 	// Following members only apply if removedFromRoom==true
 	Room *room;
@@ -128,6 +138,9 @@ struct RoomMemberDescriptor
 	RakNet::RakString name;
 	RoomMemberMode roomMemberMode;
 	bool isReady;
+	// Filled externally
+	SystemAddress systemAddress;
+	RakNetGUID guid;
 
 	void FromRoomMember(RoomMember *roomMember);
 	void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
@@ -168,20 +181,37 @@ struct RoomDescriptor
 	NetworkedRoomCreationParameters::SendInvitePermission inviteToSpectatorSlotPermission;
 	DataStructures::Table roomProperties;
 
+	DataStructures::Table::Cell *GetProperty(const char* columnName)
+	{
+		return roomProperties.GetRowByIndex(0,0)->cells[(int)DefaultRoomColumns::GetColumnIndex(columnName)];
+	}
+	DataStructures::Table::Cell *GetProperty(int index)
+	{
+		return roomProperties.GetRowByIndex(0,0)->cells[index];
+	}
+	
+	void Clear(void)
+	{
+		roomMemberList.Clear();
+		banList.Clear();
+		roomProperties.Clear();
+	}
 	void FromRoom(Room *room, AllGamesRoomsContainer *agrc);
 	void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 
 struct JoinedRoomResult
 {
-	JoinedRoomResult() {roomOutput=0; acceptedInvitor=0; agrc=0;}
+	JoinedRoomResult() {roomOutput=0; acceptedInvitor=0; agrc=0; joiningMember=0;}
 	~JoinedRoomResult() {}
 	Room* roomOutput;
 	RoomDescriptor roomDescriptor;
 	RoomsParticipant* acceptedInvitor;
 	RakNet::RakString acceptedInvitorName;
+	SystemAddress acceptedInvitorAddress;
 	RoomsParticipant* joiningMember;
 	RakNet::RakString joiningMemberName;
+	SystemAddress joiningMemberAddress;
 
 	// Needed to serialize
 	AllGamesRoomsContainer *agrc;
@@ -231,17 +261,32 @@ struct KickedUser
 
 struct RoomQuery
 {
-	RoomQuery() {queries=0; numQueries=0; queriesAllocated=false;}
-	~RoomQuery() {}
+	RoomQuery();
+	~RoomQuery();
 
 	DataStructures::Table::FilterQuery *queries;
 	unsigned int numQueries;
 	bool queriesAllocated;
 
+	// Helper functions
+	// Easier to use, but not threadsafe
+	void AddQuery_NUMERIC(const char *columnName, double numericValue, DataStructures::Table::FilterQueryType op=DataStructures::Table::QF_EQUAL);
+	void AddQuery_STRING(const char *columnName, const char *charValue, DataStructures::Table::FilterQueryType op=DataStructures::Table::QF_EQUAL);
+	void AddQuery_BINARY(const char *columnName, const char *input, int inputLength, DataStructures::Table::FilterQueryType op=DataStructures::Table::QF_EQUAL);
+	void AddQuery_POINTER(const char *columnName, void *ptr, DataStructures::Table::FilterQueryType op=DataStructures::Table::QF_EQUAL);
 	RoomsErrorCode Validate(void);
 
 	void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
+
+	/// \internal
+	void SetQueriesToStatic(void);
+
+private:
+	static DataStructures::Table::FilterQuery fq[32];
+	static DataStructures::Table::Cell cells[32];
+	void SetupNextQuery(const char *columnName,DataStructures::Table::FilterQueryType op);
 };
+
 
 struct NetworkedQuickJoinUser
 {
@@ -391,11 +436,11 @@ class AllGamesRoomsContainer
 	unsigned int GetPropertyIndex(RoomID lobbyRoomId, const char *propertyName) const;
 
 	DataStructures::Map<GameIdentifier, PerGameRoomsContainer*> perGamesRoomsContainers;
-protected:
 
 	Room * GetRoomByLobbyRoomID(RoomID lobbyRoomID);
 	Room * GetRoomByName(RakNet::RakString roomName);
 
+protected:
 	RoomID nextRoomId;
 };
 
@@ -497,12 +542,12 @@ class Room
 		//  Gets the roomOutput ID
 		RoomID GetID(void) const;
 
-		int GetNumericProperty(RoomID lobbyRoomId, const char *propertyName) const;
+		double GetNumericProperty(RoomID lobbyRoomId, const char *propertyName) const;
 		const char *GetStringProperty(RoomID lobbyRoomId, const char *propertyName) const;
 
-		int GetNumericProperty(int index) const;
+		double GetNumericProperty(int index) const;
 		const char *GetStringProperty(int index) const;
-		void SetNumericProperty(int index, int value);
+		void SetNumericProperty(int index, double value);
 		void SetStringProperty(int index, const char *value);
 				
 		// Public for easy access
@@ -546,8 +591,10 @@ protected:
 		void SetTotalSlots(Slots *totalSlots);
 		Slots GetUsedSlots(void) const;
 		
+
 		RoomLockState roomLockState;
-			
+		
+		friend struct RoomDescriptor;
 		friend class PerGameRoomsContainer;
 		friend class AllGamesRoomsContainer;
 

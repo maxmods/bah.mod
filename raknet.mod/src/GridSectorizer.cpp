@@ -10,13 +10,13 @@ GridSectorizer::GridSectorizer()
 GridSectorizer::~GridSectorizer()
 {
 	if (grid)
-		RakNet::OP_DELETE_ARRAY(grid);
+		RakNet::OP_DELETE_ARRAY(grid, __FILE__, __LINE__);
 }
 void GridSectorizer::Init(const float _maxCellWidth, const float _maxCellHeight, const float minX, const float minY, const float maxX, const float maxY)
 {
 	RakAssert(_maxCellWidth > 0.0f && _maxCellHeight > 0.0f);
 	if (grid)
-		RakNet::OP_DELETE_ARRAY(grid);
+		RakNet::OP_DELETE_ARRAY(grid, __FILE__, __LINE__);
 
 	cellOriginX=minX;
 	cellOriginY=minY;
@@ -31,10 +31,10 @@ void GridSectorizer::Init(const float _maxCellWidth, const float _maxCellHeight,
 	invCellHeight = 1.0f / cellHeight;
 
 #ifdef _USE_ORDERED_LIST
-	grid = RakNet::OP_NEW<DataStructures::OrderedList<void*, void*>>(gridCellWidthCount*gridCellHeightCount);
+	grid = RakNet::OP_NEW<DataStructures::OrderedList<void*, void*>>(gridCellWidthCount*gridCellHeightCount, __FILE__, __LINE__ );
 	DataStructures::OrderedList<void*,void*>::IMPLEMENT_DEFAULT_COMPARISON();
 #else
-	grid = RakNet::OP_NEW_ARRAY<DataStructures::List<void*> >(gridCellWidthCount*gridCellHeightCount);
+	grid = RakNet::OP_NEW_ARRAY<DataStructures::List<void*> >(gridCellWidthCount*gridCellHeightCount, __FILE__, __LINE__ );
 #endif
 }
 void GridSectorizer::AddEntry(void *entry, const float minX, const float minY, const float maxX, const float maxY)
@@ -55,7 +55,7 @@ void GridSectorizer::AddEntry(void *entry, const float minX, const float minY, c
 #ifdef _USE_ORDERED_LIST
 			grid[yCur*gridCellWidthCount+xCur].Insert(entry,entry, true);
 #else
-			grid[yCur*gridCellWidthCount+xCur].Insert(entry);
+			grid[yCur*gridCellWidthCount+xCur].Insert(entry, __FILE__, __LINE__);
 #endif
 		}
 	}
@@ -152,7 +152,7 @@ void GridSectorizer::GetEntries(DataStructures::List<void*>& intersectionList, c
 		{
 			cell = grid+yCur*gridCellWidthCount+xCur;
 			for (index=0; index < cell->Size(); ++index)
-				intersectionList.Insert(cell->operator [](index));
+				intersectionList.Insert(cell->operator [](index), __FILE__, __LINE__);
 		}
 	}
 }

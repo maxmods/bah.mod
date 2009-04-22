@@ -1,21 +1,12 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #if defined(_WIN32) && !defined(_XBOX) && !defined(X360)
-#include <windows.h>
+#include "WindowsIncludes.h"
 #endif
 
 #include "GetTime.h"
@@ -27,8 +18,8 @@ DWORD mProcMask;
 DWORD mSysMask;
 HANDLE mThread;
 static LARGE_INTEGER yo;
-#elif defined(_PS3)
-#include "Console2Includes.h"
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+#include "PS3Includes.h"
 #include <sys/sys_time.h> // GetTime.cpp
 #include <stdint.h> // GetTime.cpp
 #include <sys/time_util.h> // GetTime.cpp
@@ -38,7 +29,7 @@ uint64_t initialTime;
 #include <sys/time.h>
 #include <unistd.h>
 static timeval tp;
-RakNetTimeNS initialTime;
+RakNetTimeUS initialTime;
 #endif
 
 static bool initialized=false;
@@ -48,9 +39,9 @@ RakNetTime RakNet::GetTime( void )
 {
 	return (RakNetTime)(GetTimeNS()/1000);
 }
-RakNetTimeNS RakNet::GetTimeNS( void )
+RakNetTimeUS RakNet::GetTimeNS( void )
 {
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 	uint64_t curTime;
 	if ( initialized == false)
 	{
@@ -60,7 +51,7 @@ RakNetTimeNS RakNet::GetTimeNS( void )
 		uint64_t quotient, remainder;
 		quotient=(curTime / ticksPerSecond);
 		remainder=(curTime % ticksPerSecond);
-		initialTime = (RakNetTimeNS) quotient*(RakNetTimeNS)1000000 + (remainder*(RakNetTimeNS)1000000 / ticksPerSecond);
+		initialTime = (RakNetTimeUS) quotient*(RakNetTimeUS)1000000 + (remainder*(RakNetTimeUS)1000000 / ticksPerSecond);
 		initialized = true;
 	}
 #elif defined(_WIN32)
@@ -108,23 +99,23 @@ RakNetTimeNS RakNet::GetTimeNS( void )
 		gettimeofday( &tp, 0 );
 		initialized=true;
 		// I do this because otherwise RakNetTime in milliseconds won't work as it will underflow when dividing by 1000 to do the conversion
-		initialTime = ( tp.tv_sec ) * (RakNetTimeNS) 1000000 + ( tp.tv_usec );
+		initialTime = ( tp.tv_sec ) * (RakNetTimeUS) 1000000 + ( tp.tv_usec );
 	}
 #endif
 
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 	// Use the function to get elapsed ticks, this is a macro.
 	_PS3_GetElapsedTicks(curTime);
 	uint64_t quotient, remainder;
 	quotient=(curTime / ticksPerSecond);
 	remainder=(curTime % ticksPerSecond);
-	curTime = (RakNetTimeNS) quotient*(RakNetTimeNS)1000000 + (remainder*(RakNetTimeNS)1000000 / ticksPerSecond);
+	curTime = (RakNetTimeUS) quotient*(RakNetTimeUS)1000000 + (remainder*(RakNetTimeUS)1000000 / ticksPerSecond);
 	// Subtract from initialTime so the millisecond conversion does not underflow
 	return curTime - initialTime;
 #elif defined(_WIN32)
 
-	RakNetTimeNS curTime;
-	static RakNetTimeNS lastQueryVal=(RakNetTimeNS)0;
+	RakNetTimeUS curTime;
+	static RakNetTimeUS lastQueryVal=(RakNetTimeUS)0;
 //	static unsigned long lastTickCountVal = GetTickCount();
 
 	LARGE_INTEGER PerfVal;
@@ -147,7 +138,7 @@ RakNetTimeNS RakNet::GetTimeNS( void )
 	__int64 quotient, remainder;
 	quotient=((PerfVal.QuadPart) / yo.QuadPart);
 	remainder=((PerfVal.QuadPart) % yo.QuadPart);
-	curTime = (RakNetTimeNS) quotient*(RakNetTimeNS)1000000 + (remainder*(RakNetTimeNS)1000000 / yo.QuadPart);
+	curTime = (RakNetTimeUS) quotient*(RakNetTimeUS)1000000 + (remainder*(RakNetTimeUS)1000000 / yo.QuadPart);
 
 	// 08/26/08 - With the below workaround, the time seems to jump forward regardless.
 	// Just make sure the time doesn't go backwards
@@ -167,10 +158,10 @@ RakNetTimeNS RakNet::GetTimeNS( void )
 	// To workaround http://support.microsoft.com/kb/274323 where the timer can sometimes jump forward by hours or days
 	unsigned long curTickCount = GetTickCount();
 	unsigned long elapsedTickCount = curTickCount - lastTickCountVal;
-	RakNetTimeNS elapsedQueryVal = curTime - lastQueryVal;
+	RakNetTimeUS elapsedQueryVal = curTime - lastQueryVal;
 	if (elapsedQueryVal/1000 > elapsedTickCount+100)
 	{
-		curTime=(RakNetTimeNS)lastQueryVal+(RakNetTimeNS)elapsedTickCount*(RakNetTimeNS)1000;
+		curTime=(RakNetTimeUS)lastQueryVal+(RakNetTimeUS)elapsedTickCount*(RakNetTimeUS)1000;
 	}
 
 	lastTickCountVal=curTickCount;
@@ -182,10 +173,10 @@ RakNetTimeNS RakNet::GetTimeNS( void )
 
 #elif (defined(__GNUC__)  || defined(__GCCXML__))
 	// GCC
-	RakNetTimeNS curTime;
+	RakNetTimeUS curTime;
 	gettimeofday( &tp, 0 );
 
-	curTime = ( tp.tv_sec ) * (RakNetTimeNS) 1000000 + ( tp.tv_usec );
+	curTime = ( tp.tv_sec ) * (RakNetTimeUS) 1000000 + ( tp.tv_usec );
 	// Subtract from initialTime so the millisecond conversion does not underflow
 	return curTime - initialTime;
 #endif

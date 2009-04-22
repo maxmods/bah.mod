@@ -1,25 +1,16 @@
 /// \file
 /// \brief A simple flat database included with RakNet, useful for a server browser or a lobby server.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __LIGHTWEIGHT_DATABASE_SERVER_H
 #define __LIGHTWEIGHT_DATABASE_SERVER_H
 
 #include "Export.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "LightweightDatabaseCommon.h"
 #include "DS_Map.h"
 
@@ -30,7 +21,7 @@ struct Packet;
 /// A flat database interface.  Adds the ability to track IPs of row updaters and passwords for table read and write operations,
 /// Best used for data in which queries which do not need to be updated in real-time
 /// \ingroup SIMPLE_DATABSE_GROUP
-class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface
+class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface2
 	{
 	public:
 		/// Constructor
@@ -43,7 +34,7 @@ class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface
 		/// It is valid to read and write to the returned pointer.
 		/// \param[in] tableName The name of the table that was passed to AddTable
 		/// \return The requested table, or 0 if \a tableName cannot be found.
-		DataStructures::Table *GetTable(char *tableName);
+		DataStructures::Table *GetTable(const char *tableName);
 
 		/// Adds a new table
 		/// It is valid to read and write to the returned pointer.
@@ -60,7 +51,7 @@ class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface
 		/// \param[in] removeRowOnDisconnect Only used if allowRemoteUpdate==true. This removes rows created by a system when that system disconnects.
 		/// \param[in] autogenerateRowIDs true to automatically generate row IDs.  Rows are stored in order by row ID.  If false, the clients must specify a unique row ID when adding rows. If they specify a row that already exists the addition is ignored.
 		/// \return The newly created table, or 0 on failure.
-		DataStructures::Table* AddTable(char *tableName,
+		DataStructures::Table* AddTable(const char *tableName,
 			bool allowRemoteQuery,
 			bool allowRemoteUpdate,
 			bool allowRemoteRemove,
@@ -76,31 +67,27 @@ class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface
 		/// Removes a table by name.
 		/// \param[in] tableName The name of the table that was passed to AddTable
 		/// \return true on success, false on failure.
-		bool RemoveTable(char *tableName);
+		bool RemoveTable(const char *tableName);
 
 		/// Clears all memory.
 		void Clear(void);
 
 		// Gets the next valid auto-generated rowId for a table and increments it.
-		unsigned GetAndIncrementRowID(char *tableName);
+		unsigned GetAndIncrementRowID(const char *tableName);
 
 		/// Returns a linked list of ordered lists containing the rows of a table, by name.
 		/// The returned structure is internal to the BPlus tree.  See DS_BPlusTree
 		/// This is a convenience accessor, as you can also get this from the table returned from GetTable()
 		/// \param[in] tableName The name of the table that was passed to AddTable
 		/// \return The requested rows, or 0 if \a tableName cannot be found.
-		DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *GetTableRows(char *tableName);
+		DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *GetTableRows(const char *tableName);
 
 		/// \internal For plugin handling
-		virtual void OnAttach(RakPeerInterface *peer);
+		virtual void Update(void);
 		/// \internal For plugin handling
-		virtual void Update(RakPeerInterface *peer);
+		virtual PluginReceiveResult OnReceive(Packet *packet);
 		/// \internal For plugin handling
-		virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-		/// \internal For plugin handling
-		virtual void OnShutdown(RakPeerInterface *peer);
-		/// \internal For plugin handling
-		virtual void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
+		virtual void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
 
 		struct DatabaseTable
 			{
@@ -129,14 +116,14 @@ class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface
 			DataStructures::Table table;
 			};
 
-		static int DatabaseTableComp( char* const &key1, char* const &key2 );
+		static int DatabaseTableComp( const char* const &key1, const char* const &key2 );
 
 	protected:
-		DataStructures::Map<char *, LightweightDatabaseServer::DatabaseTable*, LightweightDatabaseServer::DatabaseTableComp> database;
-		void OnQueryRequest(RakPeerInterface *peer, Packet *packet);
-		void OnUpdateRow(RakPeerInterface *peer, Packet *packet);
-		void OnRemoveRow(RakPeerInterface *peer, Packet *packet);
-		void OnPong(RakPeerInterface *peer, Packet *packet);
+		DataStructures::Map<const char *, LightweightDatabaseServer::DatabaseTable*, LightweightDatabaseServer::DatabaseTableComp> database;
+		void OnQueryRequest(Packet *packet);
+		void OnUpdateRow(Packet *packet);
+		void OnRemoveRow(Packet *packet);
+		void OnPong(Packet *packet);
 		// mode 0 = query, mode 1 = update, mode 2 = remove
 		DatabaseTable * DeserializeClientHeader(RakNet::BitStream *inBitstream, RakPeerInterface *peer, Packet *packet, int mode);
 		DataStructures::Table::Row * GetRowFromIP(DatabaseTable *databaseTable, SystemAddress systemAddress, unsigned *rowId);

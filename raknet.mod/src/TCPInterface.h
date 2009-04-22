@@ -1,39 +1,13 @@
 /// \file
 /// \brief A simple TCP based server allowing sends and receives.  Can be connected by any TCP client, including telnet.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __SIMPLE_TCP_SERVER
 #define __SIMPLE_TCP_SERVER
-
-#if defined(_XBOX) || defined(X360)
-#elif defined(_WIN32)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h> // fd_set
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <pthread.h>
-/// Unix/Linux uses ints for sockets
-typedef unsigned int SOCKET;
-#endif
 
 #include "RakMemoryOverride.h"
 #include "DS_List.h"
@@ -44,6 +18,7 @@ typedef unsigned int SOCKET;
 #include "DS_Queue.h"
 #include "SimpleMutex.h"
 #include "RakNetDefines.h"
+#include "SocketIncludes.h"
 
 struct RemoteClient;
 
@@ -61,7 +36,7 @@ class RAK_DLL_EXPORT TCPInterface
 {
 public:
 	TCPInterface();
-	~TCPInterface();
+	virtual ~TCPInterface();
 
 	/// Starts the TCP server on the indicated port
 	bool Start(unsigned short port, unsigned short maxIncomingConnections);
@@ -81,7 +56,10 @@ public:
 #endif
 
 	/// Sends a byte stream
-	void Send( const char *data, unsigned length, SystemAddress systemAddress );
+	void Send( const char *data, unsigned length, SystemAddress systemAddress, bool broadcast );
+
+	// Sends a concatenated list of byte streams
+	bool SendList( char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast );
 
 	/// Returns data received
 	Packet* Receive( void );
@@ -92,31 +70,48 @@ public:
 	/// Deallocates a packet returned by Receive
 	void DeallocatePacket( Packet *packet );
 
-	/// Has a previous call to connect succeeded? Only used if block==false in the call to Connect
+	/// Has a previous call to connect succeeded?
 	/// \return UNASSIGNED_SYSTEM_ADDRESS = no. Anything else means yes.
 	SystemAddress HasCompletedConnectionAttempt(void);
 
-	/// Has a previous call to connect failed? Only used if block==false in the call to Connect
+	/// Has a previous call to connect failed?
 	/// \return UNASSIGNED_SYSTEM_ADDRESS = no. Anything else means yes.
 	SystemAddress HasFailedConnectionAttempt(void);
 
-	/// Queued events of new connections
-	SystemAddress HasNewConnection(void);
+	/// Queued events of new incoming connections
+	SystemAddress HasNewIncomingConnection(void);
 
 	/// Queued events of lost connections
 	SystemAddress HasLostConnection(void);
+
+	/// Return an allocated but empty packet, for custom use
+	Packet* AllocatePacket(unsigned dataSize);
+
+	// Push a packet back to the queue
+	virtual void PushBackPacket( Packet *packet, bool pushAtHead );
 protected:
+	virtual RemoteClient* AllocRemoteClient(const char *file, unsigned int line) const;
 
 	bool isStarted, threadRunning;
 	SOCKET listenSocket;
+
+	DataStructures::Queue<Packet*> headPush, tailPush;
 
 	// Assuming remoteClients is only used by one thread!
 	DataStructures::List<RemoteClient*> remoteClients;
 	// Use this thread-safe queue to add to remoteClients
 	DataStructures::Queue<RemoteClient*> remoteClientsInsertionQueue;
 	SimpleMutex remoteClientsInsertionQueueMutex;
-	DataStructures::SingleProducerConsumer<Packet> outgoingMessages, incomingMessages;
-	DataStructures::SingleProducerConsumer<SystemAddress> newConnections, lostConnections, requestedCloseConnections;
+	struct OutgoingMessage
+	{
+		unsigned char* data;
+		SystemAddress systemAddress;
+		bool broadcast;
+		unsigned int length;
+	};
+	DataStructures::SingleProducerConsumer<OutgoingMessage> outgoingMessages;
+	DataStructures::SingleProducerConsumer<Packet> incomingMessages;
+	DataStructures::SingleProducerConsumer<SystemAddress> newIncomingConnections, lostConnections, requestedCloseConnections;
 	DataStructures::SingleProducerConsumer<RemoteClient*> newRemoteClients;
 	SimpleMutex completedConnectionAttemptMutex, failedConnectionAttemptMutex;
 	DataStructures::Queue<SystemAddress> completedConnectionAttempts, failedConnectionAttempts;

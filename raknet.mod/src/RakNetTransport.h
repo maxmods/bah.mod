@@ -1,19 +1,10 @@
 /// \file
 /// \brief Contains RakNetTransportCommandParser and RakNetTransport used to provide a secure console connection.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __RAKNET_TRANSPORT
 #define __RAKNET_TRANSPORT
@@ -101,7 +92,7 @@ public:
 
 	/// If a new system connects to you, you should queue that event and return the systemAddress/address of that player in this function.
 	/// \return The SystemAddress/address of the system
-	SystemAddress HasNewConnection(void);
+	SystemAddress HasNewIncomingConnection(void);
 
 	/// If a system loses the connection, you should queue that event and return the systemAddress/address of that player in this function.
 	/// \return The SystemAddress/address of the system

@@ -22,6 +22,9 @@ struct FileListNode
 	/// Name of the file
 	char *filename;
 
+	/// Full path to the file, which may be different than filename
+	char *fullPathToFile;
+
 	/// File data (may be null if not ready)
 	char *data;
 
@@ -69,6 +72,23 @@ public:
 		(void) dir;
 		(void) fileName;
 		(void) fileSize;
+	}
+
+	/// This function is called when we are sending a file to a remote system
+	/// \param[in] fileName The name of the file being sent
+	/// \param[in] fileLengthBytes How long the file is
+	/// \param[in] offset The offset in bytes into the file that we are sending
+	/// \param[in] bytesBeingSent How many bytes we are sending this push
+	/// \param[in] done If this file is now done with this push
+	/// \param[in] targetSystem Who we are sending to
+	virtual void OnFilePush(const char *fileName, unsigned int fileLengthBytes, unsigned int offset, unsigned int bytesBeingSent, bool done, SystemAddress targetSystem)
+	{
+		(void) fileName;
+		(void) fileLengthBytes;
+		(void) offset;
+		(void) bytesBeingSent;
+		(void) done;
+		(void) targetSystem;
 	}
 };
 
@@ -134,18 +154,23 @@ public:
 	/// \param[in] removeUnknownFiles If a file does not exist on disk but is in the file list, remove it from the file list?
 	void PopulateDataFromDisk(const char *applicationDirectory, bool writeFileData, bool writeFileHash, bool removeUnknownFiles);
 
+	/// By default, GetDeltaToCurrent tags files as non-references, meaning they are assumed to be populated later
+	/// This tags all files as references, required for IncrementalReadInterface to process them incrementally
+	void FlagFilesAsReferences(void);
+
 	/// Write all files to disk, prefixing the paths with applicationDirectory
 	/// \param[in] applicationDirectory path prefix
 	void WriteDataToDisk(const char *applicationDirectory);
 
 	/// Add a file, given data already in memory
 	/// \param[in] filename Name of a file, optionally prefixed with a partial or complete path. Use \ as the path delineator.
+	/// \param[in] fullPathToFile Full path to the file on disk
 	/// \param[in] data Contents to write
 	/// \param[in] dataLength length of the data, which may be greater than fileLength should you prefix extra data, such as the hash
 	/// \param[in] fileLength Length of the file
 	/// \param[in] context User defined byte to store with each file. Use for whatever you want.
 	/// \param[in] isAReference Means that this is just a reference to a file elsewhere - does not actually have any data
-	void AddFile(const char *filename, const char *data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext context, bool isAReference=false);
+	void AddFile(const char *filename, const char *fullPathToFile, const char *data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext context, bool isAReference=false);
 
 	/// Add a file, reading it from disk
 	/// \param[in] filepath Complete path to the file, including the filename itself

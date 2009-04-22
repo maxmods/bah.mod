@@ -1,19 +1,10 @@
 /// \file
 /// \brief \b [Internal] A binary search tree, and an AVL balanced BST derivation.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __BINARY_SEARCH_TREE_H
 #define __BINARY_SEARCH_TREE_H
@@ -69,7 +60,7 @@ namespace DataStructures
 	 * A.Add(10);
 	 * A.Add(15);
 	 * A.Add(5);
-	 * int* array = RakNet::OP_NEW<int >(A.Size());
+	 * int* array = RakNet::OP_NEW<int >(A.Size(), __FILE__, __LINE__ );
 	 * A.DisplayInorder(array);
 	 * array[0]; // returns 5
 	 * array[1]; // returns 10
@@ -574,8 +565,8 @@ namespace DataStructures
 					parent->right = 0;
 			}
 			
-			RakNet::OP_DELETE(node_to_delete->item);
-			RakNet::OP_DELETE(node_to_delete);
+			RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
+			RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
 			BinarySearchTree_size--;
 			return parent;
 		}
@@ -594,9 +585,9 @@ namespace DataStructures
 				else
 					root = current->right; // Without a parent this must be the root node
 					
-				RakNet::OP_DELETE(node_to_delete->item);
+				RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
 				
-				RakNet::OP_DELETE(node_to_delete);
+				RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
 				
 				BinarySearchTree_size--;
 				
@@ -617,9 +608,9 @@ namespace DataStructures
 					else
 						root = current->left; // Without a parent this must be the root node
 						
-					RakNet::OP_DELETE(node_to_delete->item);
+					RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
 					
-					RakNet::OP_DELETE(node_to_delete);
+					RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
 					
 					BinarySearchTree_size--;
 					
@@ -638,7 +629,7 @@ namespace DataStructures
 						current = current->left;
 					}
 					
-					// Replace the value held by the node to RakNet::OP_DELETE(with the value pointed to by current);
+					// Replace the value held by the node to RakNet::OP_DELETE(with the value pointed to by current, __FILE__, __LINE__);
 					*( node_to_delete->item ) = *( current->item );
 					
 					// Delete current.
@@ -650,9 +641,9 @@ namespace DataStructures
 						else
 							parent->left = 0;
 							
-						RakNet::OP_DELETE(current->item);
+						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
 						
-						RakNet::OP_DELETE(current);
+						RakNet::OP_DELETE(current, __FILE__, __LINE__);
 						
 						BinarySearchTree_size--;
 						
@@ -668,9 +659,9 @@ namespace DataStructures
 						else
 							parent->left = current->right;
 							
-						RakNet::OP_DELETE(current->item);
+						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
 						
-						RakNet::OP_DELETE(current);
+						RakNet::OP_DELETE(current, __FILE__, __LINE__);
 						
 						BinarySearchTree_size--;
 						
@@ -692,8 +683,8 @@ namespace DataStructures
 		if ( BinarySearchTree_size == 0 )
 		{
 			BinarySearchTree_size = 1;
-			root = RakNet::OP_NEW<typename BinarySearchTree::node>();
-			root->item = RakNet::OP_NEW<BinarySearchTreeType>();
+			root = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
+			root->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
 			*( root->item ) = input;
 			root->left = 0;
 			root->right = 0;
@@ -716,8 +707,8 @@ namespace DataStructures
 				{
 					if ( current->left == 0 )
 					{
-						current->left = RakNet::OP_NEW<typename BinarySearchTree::node>();
-						current->left->item = RakNet::OP_NEW<BinarySearchTreeType>();
+						current->left = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
+						current->left->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
 						current = current->left;
 						current->left = 0;
 						current->right = 0;
@@ -739,8 +730,8 @@ namespace DataStructures
 					{
 						if ( current->right == 0 )
 						{
-							current->right = RakNet::OP_NEW<typename BinarySearchTree::node>();
-							current->right->item = RakNet::OP_NEW<BinarySearchTreeType>();
+							current->right = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
+							current->right->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
 							current = current->right;
 							current->left = 0;
 							current->right = 0;
@@ -1094,8 +1085,8 @@ namespace DataStructures
 		{
 			if ( BinarySearchTree_size == 1 )
 			{
-				RakNet::OP_DELETE(root->item);
-				RakNet::OP_DELETE(root);
+				RakNet::OP_DELETE(root->item, __FILE__, __LINE__);
+				RakNet::OP_DELETE(root, __FILE__, __LINE__);
 				root = 0;
 				BinarySearchTree_size = 0;
 			}
@@ -1123,9 +1114,9 @@ namespace DataStructures
 						else
 							parent->right = 0;
 							
-						RakNet::OP_DELETE(current->item);
+						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
 						
-						RakNet::OP_DELETE(current);
+						RakNet::OP_DELETE(current, __FILE__, __LINE__);
 						
 						current = parent;
 						

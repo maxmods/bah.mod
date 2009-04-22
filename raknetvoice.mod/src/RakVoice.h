@@ -1,26 +1,17 @@
 /// \file
 /// \brief Voice compression and transmission interface
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __RAK_VOICE_H
 #define __RAK_VOICE_H
 
 class RakPeerInterface;
 #include "RakNetTypes.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "DS_OrderedList.h"
 
 // How many frames large to make the circular buffers in the VoiceChannel structure
@@ -34,7 +25,7 @@ struct VoiceChannel
 	void *enc_state;
 	void *dec_state;
 	void *pre_state;
-	unsigned short remoteSampleRate;
+	unsigned int remoteSampleRate;
 	
 	// Circular buffer of unencoded sound data read from the user.
 	char *outgoingBuffer;
@@ -61,7 +52,7 @@ int VoiceChannelComp( const SystemAddress &key, VoiceChannel * const &data );
 /// \brief Encodes, decodes, and transmits voice data.
 /// Voice compression and transmission interface
 /// \addtogroup Plugins
-class RakVoice : public PluginInterface
+class RakVoice : public PluginInterface2
 {
 public:
 	RakVoice();
@@ -182,23 +173,21 @@ public:
 	// --------------------------------------------------------------------------------------------
 	// Message handling functions
 	// --------------------------------------------------------------------------------------------
-	virtual void OnAttach(RakPeerInterface *peer);
-	virtual void OnShutdown(RakPeerInterface *peer);
-	virtual void Update(RakPeerInterface *peer);
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	virtual void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
+	virtual void OnShutdown(void);
+	virtual void Update(void);
+	virtual PluginReceiveResult OnReceive(Packet *packet);
+	virtual void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
 protected:
-	void OnOpenChannelRequest(RakPeerInterface *peer, Packet *packet);
-	void OnOpenChannelReply(RakPeerInterface *peer, Packet *packet);
-	void OnVoiceData(RakPeerInterface *peer, Packet *packet);
-	void OpenChannel(RakPeerInterface *peer, Packet *packet);
+	void OnOpenChannelRequest(Packet *packet);
+	void OnOpenChannelReply(Packet *packet);
+	void OnVoiceData(Packet *packet);
+	void OpenChannel(Packet *packet);
 	void FreeChannelMemory(SystemAddress recipient);
 	void FreeChannelMemory(unsigned index, bool removeIndex);
 	void WriteOutputToChannel(VoiceChannel *channel, char *dataToWrite);
 	void SetEncoderParameter(void* enc_state, int vartype, int val);
 	void SetPreprocessorParameter(void* pre_state, int vartype, int val);
 	
-	RakPeerInterface *rakPeer;
 	DataStructures::OrderedList<SystemAddress, VoiceChannel*, VoiceChannelComp> voiceChannels;
 	int sampleRate;
 	unsigned bufferSizeBytes;

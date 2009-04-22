@@ -1,18 +1,9 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #if defined(_MSC_VER) && _MSC_VER < 1299 // VC6 doesn't support template specialization
 
@@ -28,7 +19,7 @@
 #elif defined(_WIN32)
 #include <winsock2.h> // htonl
 #elif defined(_CONSOLE_2)
-#include "Console2Includes.h"
+#include "PS3Includes.h"
 #else
 #include <arpa/inet.h>
 #endif
@@ -52,11 +43,11 @@ BitStream::BitStream()
 	//numberOfBitsAllocated = 32 * 8;
 	numberOfBitsAllocated = BITSTREAM_STACK_ALLOCATION_SIZE * 8;
 	readOffset = 0;
-	//data = ( unsigned char* ) rakMalloc( 32 );
+	//data = ( unsigned char* ) rakMalloc_Ex( 32, __FILE__, __LINE__ );
 	data = ( unsigned char* ) stackData;
 
 #ifdef _DEBUG
-//	assert( data );
+//	RakAssert( data );
 #endif
 	//memset(data, 0, 32);
 	copyData = true;
@@ -73,11 +64,11 @@ BitStream::BitStream( int initialBytesToAllocate )
 	}
 	else
 	{
-		data = ( unsigned char* ) rakMalloc( initialBytesToAllocate );
+		data = ( unsigned char* ) rakMalloc_Ex( initialBytesToAllocate, __FILE__, __LINE__ );
 		numberOfBitsAllocated = initialBytesToAllocate << 3;
 	}
 #ifdef _DEBUG
-	assert( data );
+	RakAssert( data );
 #endif
 	// memset(data, 0, initialBytesToAllocate);
 	copyData = true;
@@ -101,10 +92,10 @@ BitStream::BitStream( unsigned char* _data, unsigned int lengthInBytes, bool _co
 			}
 			else
 			{
-				data = ( unsigned char* ) rakMalloc( lengthInBytes );
+				data = ( unsigned char* ) rakMalloc_Ex( lengthInBytes, __FILE__, __LINE__ );
 			}
 #ifdef _DEBUG
-			assert( data );
+			RakAssert( data );
 #endif
 			memcpy( data, _data, lengthInBytes );
 		}
@@ -119,7 +110,7 @@ BitStream::BitStream( unsigned char* _data, unsigned int lengthInBytes, bool _co
 void BitStream::SetNumberOfBitsAllocated( const unsigned int lengthInBits )
 {
 #ifdef _DEBUG
-	assert( lengthInBits >= ( unsigned int ) numberOfBitsAllocated );
+	RakAssert( lengthInBits >= ( unsigned int ) numberOfBitsAllocated );
 #endif
 	numberOfBitsAllocated = lengthInBits;
 }
@@ -127,7 +118,7 @@ void BitStream::SetNumberOfBitsAllocated( const unsigned int lengthInBits )
 BitStream::~BitStream()
 {
 	if ( copyData && numberOfBitsAllocated > (BITSTREAM_STACK_ALLOCATION_SIZE << 3))
-		rakFree( data );  // Use realloc and free so we are more efficient than delete and new for resizing
+		rakFree_Ex( data , __FILE__, __LINE__ );  // Use realloc and free so we are more efficient than delete and new for resizing
 }
 
 void BitStream::Reset( void )
@@ -148,7 +139,7 @@ void BitStream::Reset( void )
 	//numberOfBitsAllocated=8;
 	readOffset = 0;
 
-	//data=(unsigned char*)rakMalloc(1);
+	//data=(unsigned char*)rakMalloc_Ex(1, __FILE__, __LINE__);
 	// if (numberOfBitsAllocated>0)
 	//  memset(data, 0, BITS_TO_BYTES(numberOfBitsAllocated));
 }
@@ -291,7 +282,7 @@ void BitStream::WriteAlignedBytes( void* input, const int numberOfBytesToWrite )
 #ifdef _DEBUG
 	if (numberOfBytesToWrite<=0)
 	{
-		assert( numberOfBytesToWrite > 0 );
+		RakAssert( numberOfBytesToWrite > 0 );
 	}
 #endif
 
@@ -317,7 +308,7 @@ void BitStream::WriteAlignedBytesSafe( void *input, const int inputLength, const
 bool BitStream::ReadAlignedBytes( void* output, const int numberOfBytesToRead )
 {
 #ifdef _DEBUG
-	assert( numberOfBytesToRead > 0 );
+	RakAssert( numberOfBytesToRead > 0 );
 #endif
 
 	if ( numberOfBytesToRead <= 0 )
@@ -348,7 +339,7 @@ bool BitStream::ReadAlignedBytesSafe( void *input, int &inputLength, const int m
 }
 bool BitStream::ReadAlignedBytesSafeAlloc( char **input, int &inputLength, const int maxBytesToRead )
 {
-	rakFree(*input);
+	rakFree_Ex(*input, __FILE__, __LINE__ );
 	*input=0;
 	if (ReadCompressed(inputLength)==false)
 		return false;
@@ -356,7 +347,7 @@ bool BitStream::ReadAlignedBytesSafeAlloc( char **input, int &inputLength, const
 		inputLength=maxBytesToRead;
 	if (inputLength==0)
 		return true;
-	*input = (char*) rakMalloc( BITS_TO_BYTES( inputLength ) );
+	*input = (char*) rakMalloc_Ex( BITS_TO_BYTES( inputLength ), __FILE__, __LINE__ );
 	return ReadAlignedBytes((unsigned char*) *input, inputLength);
 }
 // Align the next write and/or read to a byte boundary.  This can be used to 'waste' bits to byte align for efficiency reasons
@@ -494,7 +485,7 @@ void BitStream::WriteCompressed( const unsigned char* input,
 bool BitStream::ReadBits( unsigned char* output, int numberOfBitsToRead, const bool alignBitsToRight )
 {
 #ifdef _DEBUG
-//	assert( numberOfBitsToRead > 0 );
+//	RakAssert( numberOfBitsToRead > 0 );
 #endif
 	if (numberOfBitsToRead<=0)
 	  return false;
@@ -591,7 +582,7 @@ bool BitStream::ReadCompressed( unsigned char* output,
 
 	// All but the first bytes are byteMatch.  If the upper half of the last byte is a 0 (positive) or 16 (negative) then what we read will be a 1 and the remaining 4 bits.
 	// Otherwise we read a 0 and the 8 bytes
-	//assert(readOffset+1 <=numberOfBitsUsed); // If this assert is hit the stream wasn't long enough to read from
+	//RakAssert(readOffset+1 <=numberOfBitsUsed); // If this assert is hit the stream wasn't long enough to read from
 	if ( readOffset + 1 > numberOfBitsUsed )
 		return false;
 
@@ -630,7 +621,7 @@ void BitStream::AddBitsAndReallocate( const int numberOfBitsToWrite )
 #ifdef _DEBUG
 		// If this assert hits then we need to specify true for the third parameter in the constructor
 		// It needs to reallocate to hold all the data and can't do it unless we allocated to begin with
-		assert( copyData == true );
+		RakAssert( copyData == true );
 #endif
 
 		// Less memory efficient but saves on news and deletes
@@ -642,7 +633,7 @@ void BitStream::AddBitsAndReallocate( const int numberOfBitsToWrite )
 		{
 			 if (amountToAllocate > BITSTREAM_STACK_ALLOCATION_SIZE)
 			 {
-				 data = ( unsigned char* ) rakMalloc( amountToAllocate );
+				 data = ( unsigned char* ) rakMalloc_Ex( amountToAllocate, __FILE__, __LINE__ );
 
 				 // need to copy the stack data over to our new memory area too
 				 memcpy ((void *)data, (void *)stackData, BITS_TO_BYTES( numberOfBitsAllocated ));
@@ -650,11 +641,11 @@ void BitStream::AddBitsAndReallocate( const int numberOfBitsToWrite )
 		}
 		else
 		{
-			data = ( unsigned char* ) rakRealloc( data, amountToAllocate );
+			data = ( unsigned char* ) rakRealloc_Ex( data, amountToAllocate, __FILE__, __LINE__ );
 		}
 
 #ifdef _DEBUG
-		assert( data ); // Make sure realloc succeeded
+		RakAssert( data ); // Make sure realloc succeeded
 #endif
 		//  memset(data+newByteOffset, 0,  ((newNumberOfBitsAllocated-1)>>3) - ((numberOfBitsAllocated-1)>>3)); // Set the new data block to 0
 	}
@@ -670,7 +661,7 @@ unsigned int BitStream::GetNumberOfBitsAllocated(void) const
 // Should hit if reads didn't match writes
 void BitStream::AssertStreamEmpty( void )
 {
-	assert( readOffset == numberOfBitsUsed );
+	RakAssert( readOffset == numberOfBitsUsed );
 }
 
 void BitStream::PrintBits( void ) const
@@ -710,10 +701,10 @@ void BitStream::PrintBits( void ) const
 int BitStream::CopyData( unsigned char** _data ) const
 {
 #ifdef _DEBUG
-	assert( numberOfBitsUsed > 0 );
+	RakAssert( numberOfBitsUsed > 0 );
 #endif
 
-	*_data = (unsigned char*) rakMalloc( BITS_TO_BYTES( numberOfBitsUsed ) );
+	*_data = (unsigned char*) rakMalloc_Ex( BITS_TO_BYTES( numberOfBitsUsed ), __FILE__, __LINE__ );
 	memcpy( *_data, data, sizeof(unsigned char) * ( BITS_TO_BYTES( numberOfBitsUsed ) ) );
 	return numberOfBitsUsed;
 }
@@ -787,10 +778,10 @@ void BitStream::AssertCopyData( void )
 
 		if ( numberOfBitsAllocated > 0 )
 		{
-			unsigned char * newdata = ( unsigned char* ) rakMalloc( BITS_TO_BYTES( numberOfBitsAllocated ) );
+			unsigned char * newdata = ( unsigned char* ) rakMalloc_Ex( BITS_TO_BYTES( numberOfBitsAllocated ), __FILE__, __LINE__ );
 #ifdef _DEBUG
 
-			assert( data );
+			RakAssert( data );
 #endif
 
 			memcpy( newdata, data, BITS_TO_BYTES( numberOfBitsAllocated ) );
@@ -836,7 +827,7 @@ bool BitStream::IsNetworkOrder(void)
 }
 void BitStream::WriteNormVector( float x, float y, float z ){
 #ifdef _DEBUG
-	assert(x <= 1.01 && y <= 1.01 && z <= 1.01 && x >= -1.01 && y >= -1.01 && z >= -1.01);
+	RakAssert(x <= 1.01 && y <= 1.01 && z <= 1.01 && x >= -1.01 && y >= -1.01 && z >= -1.01);
 #endif
 	if (x>1.0)
 		x=1.0;

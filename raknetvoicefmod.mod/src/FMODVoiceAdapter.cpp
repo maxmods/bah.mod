@@ -6,7 +6,7 @@
 #include "RakNetworkFactory.h"
 #include "FMODVoiceAdapter.h"
 #include "fmod_errors.h"
-
+#include <assert.h>
 
 // Number of RakVoice frames in the fmod sound
 #define FRAMES_IN_SOUND 4

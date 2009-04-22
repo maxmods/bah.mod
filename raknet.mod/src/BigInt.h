@@ -1,3 +1,5 @@
+#if !defined(_XBOX) && !defined(X360)
+
 /*
  * BigInts are stored as 32-bit integer arrays.
  * Each integer in the array is referred to as a limb ala GMP.
@@ -351,3 +353,5 @@ namespace big
 }
 
 #endif // include guard
+
+#endif

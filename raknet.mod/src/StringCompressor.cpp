@@ -1,30 +1,21 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "StringCompressor.h"
 #include "DS_HuffmanEncodingTree.h"
 #include "BitStream.h"
 #include "RakString.h"
-#include <assert.h>
+#include "RakAssert.h"
 #include <string.h>
-#ifndef _PS3
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 #include <memory.h>
 #endif
-#if defined(_PS3)
-#include "Console2Includes.h"
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+#include "PS3Includes.h"
 #endif
 
 using namespace RakNet;
@@ -36,18 +27,18 @@ void StringCompressor::AddReference(void)
 {
 	if (++referenceCount==1)
 	{
-		instance = RakNet::OP_NEW<StringCompressor>();
+		instance = RakNet::OP_NEW<StringCompressor>( __FILE__, __LINE__ );
 	}
 }
 void StringCompressor::RemoveReference(void)
 {
-	assert(referenceCount > 0);
+	RakAssert(referenceCount > 0);
 
 	if (referenceCount > 0)
 	{
 		if (--referenceCount==0)
 		{
-			RakNet::OP_DELETE(instance);
+			RakNet::OP_DELETE(instance, __FILE__, __LINE__);
 			instance=0;
 		}
 	}
@@ -323,7 +314,7 @@ StringCompressor::StringCompressor()
 	DataStructures::Map<int, HuffmanEncodingTree *>::IMPLEMENT_DEFAULT_COMPARISON();
 
 	// Make a default tree immediately, since this is used for RPC possibly from multiple threads at the same time
-	HuffmanEncodingTree *huffmanEncodingTree = RakNet::OP_NEW<HuffmanEncodingTree>();
+	HuffmanEncodingTree *huffmanEncodingTree = RakNet::OP_NEW<HuffmanEncodingTree>( __FILE__, __LINE__ );
 	huffmanEncodingTree->GenerateFromFrequencyTable( englishCharacterFrequencies );
 
 	huffmanEncodingTrees.Set(0, huffmanEncodingTree);
@@ -334,7 +325,7 @@ void StringCompressor::GenerateTreeFromStrings( unsigned char *input, unsigned i
 	if (huffmanEncodingTrees.Has(languageID))
 	{
 		huffmanEncodingTree = huffmanEncodingTrees.Get(languageID);
-		RakNet::OP_DELETE(huffmanEncodingTree);
+		RakNet::OP_DELETE(huffmanEncodingTree, __FILE__, __LINE__);
 	}
 
 	unsigned index;
@@ -351,7 +342,7 @@ void StringCompressor::GenerateTreeFromStrings( unsigned char *input, unsigned i
 		frequencyTable[ input[ index ] ] ++;
 
 	// Build the tree
-	huffmanEncodingTree = RakNet::OP_NEW<HuffmanEncodingTree>();
+	huffmanEncodingTree = RakNet::OP_NEW<HuffmanEncodingTree>( __FILE__, __LINE__ );
 	huffmanEncodingTree->GenerateFromFrequencyTable( frequencyTable );
 	huffmanEncodingTrees.Set(languageID, huffmanEncodingTree);
 }
@@ -359,7 +350,7 @@ void StringCompressor::GenerateTreeFromStrings( unsigned char *input, unsigned i
 StringCompressor::~StringCompressor()
 {
 	for (unsigned i=0; i < huffmanEncodingTrees.Size(); i++)
-		RakNet::OP_DELETE(huffmanEncodingTrees[i]);
+		RakNet::OP_DELETE(huffmanEncodingTrees[i], __FILE__, __LINE__);
 }
 
 void StringCompressor::EncodeString( const char *input, int maxCharsToWrite, RakNet::BitStream *output, int languageID )
@@ -464,10 +455,10 @@ bool StringCompressor::DecodeString( std::string *output, int maxCharsToWrite, R
 	else
 #endif
 	{
-		destinationBlock = (char*) rakMalloc( maxCharsToWrite );
+		destinationBlock = (char*) rakMalloc_Ex( maxCharsToWrite, __FILE__, __LINE__ );
 		out=DecodeString(destinationBlock, maxCharsToWrite, input, languageID);
 		*output=destinationBlock;
-		rakFree(destinationBlock);
+		rakFree_Ex(destinationBlock, __FILE__, __LINE__ );
 	}
 
 	return out;
@@ -498,10 +489,10 @@ bool StringCompressor::DecodeString( RakString *output, int maxCharsToWrite, Rak
 	else
 #endif
 	{
-		destinationBlock = (char*) rakMalloc( maxCharsToWrite );
+		destinationBlock = (char*) rakMalloc_Ex( maxCharsToWrite, __FILE__, __LINE__ );
 		out=DecodeString(destinationBlock, maxCharsToWrite, input, languageID);
 		*output=destinationBlock;
-		rakFree(destinationBlock);
+		rakFree_Ex(destinationBlock, __FILE__, __LINE__ );
 	}
 
 	return out;

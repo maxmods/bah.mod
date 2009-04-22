@@ -31,7 +31,7 @@ bool WriteFileWithDirectories( const char *path, char *data, unsigned dataLength
 	if ( path == 0 || path[ 0 ] == 0 )
 		return false;
 
-	pathCopy = (char*) rakMalloc( strlen( path ) + 1 );
+	pathCopy = (char*) rakMalloc_Ex( strlen( path ) + 1, __FILE__, __LINE__ );
 
 	strcpy( pathCopy, path );
 
@@ -54,7 +54,7 @@ bool WriteFileWithDirectories( const char *path, char *data, unsigned dataLength
 	#endif
 				if (res<0 && errno!=EEXIST)
 				{
-					rakFree(pathCopy);
+					rakFree_Ex(pathCopy, __FILE__, __LINE__ );
 					return false;
 				}
 	
@@ -71,7 +71,7 @@ bool WriteFileWithDirectories( const char *path, char *data, unsigned dataLength
 
 		if ( fp == 0 )
 		{
-			rakFree(pathCopy);
+			rakFree_Ex(pathCopy, __FILE__, __LINE__ );
 			return false;
 		}
 
@@ -90,12 +90,12 @@ bool WriteFileWithDirectories( const char *path, char *data, unsigned dataLength
 
 		if (res<0 && errno!=EEXIST)
 		{
-			rakFree(pathCopy);
+			rakFree_Ex(pathCopy, __FILE__, __LINE__ );
 			return false;
 		}
 	}
 
-	rakFree(pathCopy);
+	rakFree_Ex(pathCopy, __FILE__, __LINE__ );
 
 	return true;
 }

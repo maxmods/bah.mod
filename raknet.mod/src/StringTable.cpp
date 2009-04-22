@@ -1,6 +1,6 @@
 #include "StringTable.h"
 #include <string.h>
-#include <assert.h>
+#include "RakAssert.h"
 #include <stdio.h>
 #include "BitStream.h"
 #include "StringCompressor.h"
@@ -26,7 +26,7 @@ StringTable::~StringTable()
 	for (i=0; i < orderedStringList.Size(); i++)
 	{
 		if (orderedStringList[i].b)
-			rakFree(orderedStringList[i].str);
+			rakFree_Ex(orderedStringList[i].str, __FILE__, __LINE__ );
 	}
 }
 
@@ -34,18 +34,18 @@ void StringTable::AddReference(void)
 {
 	if (++referenceCount==1)
 	{
-		instance = RakNet::OP_NEW<StringTable>();
+		instance = RakNet::OP_NEW<StringTable>( __FILE__, __LINE__ );
 	}
 }
 void StringTable::RemoveReference(void)
 {
-	assert(referenceCount > 0);
+	RakAssert(referenceCount > 0);
 
 	if (referenceCount > 0)
 	{
 		if (--referenceCount==0)
 		{
-			RakNet::OP_DELETE(instance);
+			RakNet::OP_DELETE(instance, __FILE__, __LINE__);
 			instance=0;
 		}
 	}
@@ -62,7 +62,7 @@ void StringTable::AddString(const char *str, bool copyString)
 	sab.b=copyString;
 	if (copyString)
 	{
-		sab.str = (char*) rakMalloc( strlen(str)+1 );
+		sab.str = (char*) rakMalloc_Ex( strlen(str)+1, __FILE__, __LINE__ );
 		strcpy(sab.str, str);
 	}
 	else
@@ -74,11 +74,11 @@ void StringTable::AddString(const char *str, bool copyString)
 	if (orderedStringList.Insert(sab.str,sab, true)!=(unsigned)-1)
 	{
 		if (copyString)
-			RakNet::OP_DELETE(sab.str);
+			RakNet::OP_DELETE(sab.str, __FILE__, __LINE__);
 	}
 
 	// If this assert hits you need to increase the range of StringTableType
-	assert(orderedStringList.Size() < (StringTableType)-1);	
+	RakAssert(orderedStringList.Size() < (StringTableType)-1);	
 	
 }
 void StringTable::EncodeString( const char *input, int maxCharsToWrite, RakNet::BitStream *output )
@@ -103,7 +103,7 @@ void StringTable::EncodeString( const char *input, int maxCharsToWrite, RakNet::
 bool StringTable::DecodeString( char *output, int maxCharsToWrite, RakNet::BitStream *input )
 {
 	bool hasIndex;
-	assert(maxCharsToWrite>0);
+	RakAssert(maxCharsToWrite>0);
 
 	if (maxCharsToWrite==0)
 		return false;
@@ -123,7 +123,7 @@ bool StringTable::DecodeString( char *output, int maxCharsToWrite, RakNet::BitSt
 #ifdef _DEBUG
 			// Critical error - got a string index out of range, which means AddString was called more times on the remote system than on this system.
 			// All systems must call AddString the same number of types, with the same strings in the same order.
-			assert(0);
+			RakAssert(0);
 #endif
 			return false;
 		}

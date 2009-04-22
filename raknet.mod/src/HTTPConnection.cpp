@@ -101,7 +101,7 @@ void HTTPConnection::Update(void)
 			contentType.C_String(),
 			(unsigned) outgoing.GetLength(),
 			outgoing.C_String());
-		tcp.Send(request, (unsigned int) strlen(request), server);
+		tcp.Send(request, (unsigned int) strlen(request), server,false);
 
 		state = RAK_HTTP_REQUEST_SENT;
 	}
@@ -138,7 +138,7 @@ bool HTTPConnection::ProcessFinalTCPPacket(Packet *packet)
 		}
 		incoming += (char *)packet->data; // safe because TCPInterface Null-terminates
 
-		assert(strlen((char *)packet->data) == packet->length); // otherwise it contains Null bytes
+		RakAssert(strlen((char *)packet->data) == packet->length); // otherwise it contains Null bytes
 
 
 		const char *start_of_body = strstr(incoming, "\r\n\r\n");

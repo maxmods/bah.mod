@@ -6,6 +6,13 @@
 
 #include "RakNetTypes.h"
 
+#ifdef _WIN32_WCE //makslane
+#	define _byteswap_ushort(s) ((s >> 8) | (s << 8))
+#	define _byteswap_ulong(s) (byteswap_ushort(s&0xffff)<<16) | (byteswap_ushort(s>>16))
+#	define byteswap_ushort _byteswap_ushort
+#	define byteswap_ulong _byteswap_ulong
+#endif
+
 #if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
 # if defined(__sparc) || defined(__sparc__) || defined(__powerpc__) || \
 	defined(__ppc__) || defined(__hppa) || defined(_MIPSEB) || defined(_POWER) || \

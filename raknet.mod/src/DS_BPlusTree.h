@@ -113,7 +113,7 @@ namespace DataStructures
 	template<class KeyType, class DataType, int order>
 		BPlusTree<KeyType, DataType, order>::BPlusTree ()
 	{
-		assert(order>1);
+		RakAssert(order>1);
 		root=0;
 		leftmostLeaf=0;
 	}
@@ -194,7 +194,7 @@ namespace DataStructures
 		else if (FindDeleteRebalance(key, root, &underflow,root->keys[0], &returnAction, out)==false)
 			return false;
 
-//		assert(returnAction.action==ReturnAction::NO_ACTION);
+//		RakAssert(returnAction.action==ReturnAction::NO_ACTION);
 
 		if (underflow && root->size==0)
 		{
@@ -624,7 +624,7 @@ namespace DataStructures
 				{
 					bool b = GetIndexOf(key, cur, &insertionIndex);
 					(void) b;
-					assert(b==false);
+					RakAssert(b==false);
 				}
 				else
 					insertionIndex=0;
@@ -787,7 +787,7 @@ namespace DataStructures
 			{
 				if (newPage->isLeaf==false)
 				{
-					assert(returnAction->action==ReturnAction::PUSH_KEY_TO_PARENT);
+					RakAssert(returnAction->action==ReturnAction::PUSH_KEY_TO_PARENT);
 					newPage->size--; 
 					return InsertIntoNode(returnAction->key1, data, branchIndex, newPage, cur, returnAction);
 				}
@@ -841,7 +841,7 @@ namespace DataStructures
 				if (newPage->isLeaf==false)
 				{
 					// One key is pushed up through the stack.  I store that at keys[0] but it has to be removed for the page to be correct
-					assert(returnAction.action==ReturnAction::PUSH_KEY_TO_PARENT);
+					RakAssert(returnAction.action==ReturnAction::PUSH_KEY_TO_PARENT);
 					newKey=returnAction.key1;
 					newPage->size--;
 				}
@@ -898,7 +898,7 @@ namespace DataStructures
 	template<class KeyType, class DataType, int order>
 		bool BPlusTree<KeyType, DataType, order>::GetIndexOf(const KeyType key, Page<KeyType, DataType, order> *page, int *out) const
 	{
-		assert(page->size>0);
+		RakAssert(page->size>0);
 		int index, upperBound, lowerBound;
 		upperBound=page->size-1;
 		lowerBound=0;
@@ -1001,13 +1001,13 @@ namespace DataStructures
 		DataStructures::Page<KeyType, DataType, order> *cur = GetListHead();
 		while (cur)
 		{
-			assert(cur->size>0);
+			RakAssert(cur->size>0);
 			for (i=0; i < cur->size; i++)
 			{
-				assert(cur->data[i]==cur->keys[i]);
+				RakAssert(cur->data[i]==cur->keys[i]);
 				if (last!=-9999)
 				{
-					assert(cur->data[i]>last);
+					RakAssert(cur->data[i]>last);
 				}
 				last=cur->data[i];
 			}
@@ -1019,14 +1019,14 @@ namespace DataStructures
 	template<class KeyType, class DataType, int order>
 	void BPlusTree<KeyType, DataType, order>::ValidateTreeRecursive(Page<KeyType, DataType, order> *cur)
 	{
-		assert(cur==root || cur->size>=order/2);
+		RakAssert(cur==root || cur->size>=order/2);
 
 		if (cur->children[0]->isLeaf)
 		{
-			assert(cur->children[0]->keys[0] < cur->keys[0]);
+			RakAssert(cur->children[0]->keys[0] < cur->keys[0]);
 			for (int i=0; i < cur->size; i++)
 			{
-				assert(cur->children[i+1]->keys[0]==cur->keys[i]);
+				RakAssert(cur->children[i+1]->keys[0]==cur->keys[i]);
 			}
 		}
 		else
@@ -1139,15 +1139,15 @@ void main(void)
 			for (j=0; j < removedList.Size(); j++)
 			{
 				b=btree.Get(removedList[j], temp);
-				assert(b==false);
+				RakAssert(b==false);
 			}
 			for (j=0; j < haveList.Size(); j++)
 			{
 				b=btree.Get(haveList[j], temp);
-				assert(b==true);
-				assert(haveList[j]==temp);
+				RakAssert(b==true);
+				RakAssert(haveList[j]==temp);
 			}
-			assert(btree.Size()==haveList.Size());
+			RakAssert(btree.Size()==haveList.Size());
 			btree.ValidateTree();
 		}
 		btree.Clear();

@@ -49,11 +49,14 @@ namespace DataStructures
 		{
 			Cell();
 			~Cell();
-			Cell(int intValue, char *charValue, void *ptr, ColumnType type);
+			Cell(double numericValue, char *charValue, void *ptr, ColumnType type);
+			void SetByType(double numericValue, char *charValue, void *ptr, ColumnType type);
 			void Clear(void);
 			
 			/// Numeric
 			void Set(int input);
+			void Set(unsigned int input);
+			void Set(double input);
 
 			/// String
 			void Set(const char *input);
@@ -66,6 +69,7 @@ namespace DataStructures
 
 			/// Numeric
 			void Get(int *output);
+			void Get(double *output);
 
 			/// String
 			void Get(char *output);
@@ -82,7 +86,7 @@ namespace DataStructures
 			ColumnType EstimateColumnType(void) const;
 
 			bool isEmpty;
-			int i;
+			double i;
 			char *c;
 			void *ptr;
 		};
@@ -106,7 +110,7 @@ namespace DataStructures
 			DataStructures::List<Cell*> cells;
 
 			/// Numeric
-			void UpdateCell(unsigned columnIndex, int value);
+			void UpdateCell(unsigned columnIndex, double value);
 
 			/// String
 			void UpdateCell(unsigned columnIndex, const char *str);
@@ -185,12 +189,12 @@ namespace DataStructures
 		/// \brief Gives the string name of the column at a certain index
 		/// \param[in] index The index of the column
 		/// \return The name of the column, or 0 if an invalid index
-		char* ColumnName(unsigned index);
+		char* ColumnName(unsigned index) const;
 
 		/// \brief Returns the type of a column, referenced by index
 		/// \param[in] index The index of the column
 		/// \return The type of the column
-		ColumnType GetColumnType(unsigned index);
+		ColumnType GetColumnType(unsigned index) const;
 
 		/// Returns the number of columns
 		/// \return The number of columns in the table
@@ -294,7 +298,7 @@ namespace DataStructures
 		DataStructures::List<ColumnDescriptor>& GetColumns(void);
 
 		/// Direct access to make things easier
-		DataStructures::BPlusTree<unsigned, Row*, _TABLE_BPLUS_TREE_ORDER>& GetRows(void);
+		const DataStructures::BPlusTree<unsigned, Row*, _TABLE_BPLUS_TREE_ORDER>& GetRows(void) const;
 
 		/// Get the head of a linked list containing all the row data
 		DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> * GetListHead(void);
@@ -302,6 +306,8 @@ namespace DataStructures
 		/// Get the first free row id.
 		/// This could be made more efficient.
 		unsigned GetAvailableRowId(void) const;
+
+		Table& operator = ( const Table& input );
 
 	protected:
 		Table::Row* AddRowColumns(unsigned rowId, Row *row, DataStructures::List<unsigned> columnIndices);

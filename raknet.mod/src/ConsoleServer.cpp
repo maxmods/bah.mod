@@ -13,9 +13,12 @@ ConsoleServer::ConsoleServer()
 {
 	transport=0;
 	password[0]=0;
+	prompt=0;
 }
 ConsoleServer::~ConsoleServer()
 {
+	if (prompt)
+		rakFree_Ex(prompt, __FILE__, __LINE__);
 }
 void ConsoleServer::SetTransportProvider(TransportInterface *transportInterface, unsigned short port)
 {
@@ -53,12 +56,12 @@ void ConsoleServer::AddCommandParser(CommandParserInterface *commandParserInterf
         if (_stricmp(commandParserList[i]->GetName(), commandParserInterface->GetName())==0)
 		{
 			// Naming conflict between two command parsers
-			assert(0);
+			RakAssert(0);
 			return;
 		}
 	}
 
-	commandParserList.Insert(commandParserInterface);
+	commandParserList.Insert(commandParserInterface, __FILE__, __LINE__);
 	if (transport)
 		commandParserInterface->OnTransportChange(transport);
 }
@@ -89,7 +92,7 @@ void ConsoleServer::Update(void)
 	RegisteredCommand rc;
 
 	p = transport->Receive();
-	newOrLostConnectionId=transport->HasNewConnection();
+	newOrLostConnectionId=transport->HasNewIncomingConnection();
 
 	if (newOrLostConnectionId!=UNASSIGNED_SYSTEM_ADDRESS)
 	{
@@ -100,6 +103,7 @@ void ConsoleServer::Update(void)
 
 		transport->Send(newOrLostConnectionId, "Connected to remote command console.\r\nType 'help' for help.\r\n");
 		ListParsers(newOrLostConnectionId);
+		ShowPrompt(newOrLostConnectionId);
 	}
 
 	newOrLostConnectionId=transport->HasLostConnection();
@@ -140,6 +144,7 @@ void ConsoleServer::Update(void)
 				transport->Send(p->systemAddress, "[<ParserName>]   <Command> [<Parameters>]   Execute a command\r\n");
 				transport->Send(p->systemAddress, "[<ParserNumber>] <Command> [<Parameters>]   Execute a command\r\n");
 				ListParsers(p->systemAddress);
+				ShowPrompt(p->systemAddress);
 			}
 			else // numParameters == 2, including the help tag
 			{
@@ -179,6 +184,7 @@ void ConsoleServer::Update(void)
 					// Don't know what to do
 					transport->Send(p->systemAddress, "Unknown help topic: %s.\r\n", parameterList[1]);
 				}
+				ShowPrompt(p->systemAddress);
 			}
 		}
 		else if (_stricmp(*parameterList, "quit")==0 && numParameters==1)
@@ -258,6 +264,8 @@ void ConsoleServer::Update(void)
 			{
 				transport->Send(p->systemAddress, "Unknown command:  Type 'help' for help.\r\n");
 			}
+
+			ShowPrompt(p->systemAddress);
 		}
 
 
@@ -274,4 +282,21 @@ void ConsoleServer::ListParsers(SystemAddress systemAddress)
 	{
         transport->Send(systemAddress, "%i. %s\r\n", i+1, commandParserList[i]->GetName());
 	}
+}
+void ConsoleServer::ShowPrompt(SystemAddress systemAddress)
+{
+	 transport->Send(systemAddress, prompt);
+}
+void ConsoleServer::SetPrompt(const char *_prompt)
+{
+	if (prompt)
+		rakFree_Ex(prompt,__FILE__,__LINE__);
+	if (_prompt && _prompt[0])
+	{
+		size_t len = strlen(_prompt);
+		prompt = (char*) rakMalloc_Ex(len+1,__FILE__,__LINE__);
+		strcpy(prompt,_prompt);
+	}
+	else
+		prompt=0;
 }

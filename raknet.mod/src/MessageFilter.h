@@ -1,26 +1,17 @@
 /// \file
 /// \brief Message filter plugin. Assigns systems to FilterSets.  Each FilterSet limits what messages are allowed.  This is a security related plugin.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __MESSAGE_FILTER_PLUGIN_H
 #define __MESSAGE_FILTER_PLUGIN_H
 
 class RakPeerInterface;
 #include "RakNetTypes.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "DS_OrderedList.h"
 #include "Export.h"
 
@@ -74,7 +65,7 @@ int RAK_DLL_EXPORT FilteredSystemComp( const SystemAddress &key, const FilteredS
 /// Each system is a member of either zero or one filters.
 /// Add this plugin before any plugin you wish to filter (most likely just add this plugin before any other).
 /// \ingroup MESSAGEFILTER_GROUP
-class RAK_DLL_EXPORT MessageFilter : public PluginInterface
+class RAK_DLL_EXPORT MessageFilter : public PluginInterface2
 {
 public:
 	MessageFilter();
@@ -170,19 +161,17 @@ public:
 	// --------------------------------------------------------------------------------------------
 	// Packet handling functions
 	// --------------------------------------------------------------------------------------------
-	virtual void OnAttach(RakPeerInterface *peer);
-	virtual void OnDetach(RakPeerInterface *peer);
-	virtual void OnShutdown(RakPeerInterface *peer);
-	virtual void Update(RakPeerInterface *peer);
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	virtual void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
+	virtual void Update(void);
+	virtual PluginReceiveResult OnReceive(Packet *packet);
+	virtual void OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming);
+	virtual void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
 
 protected:
 
 	void Clear(void);
 	void DeallocateFilterSet(FilterSet *filterSet);
 	FilterSet* GetFilterSetByID(int filterSetID);
-	void OnInvalidMessage(RakPeerInterface *peer, FilterSet *filterSet, SystemAddress systemAddress, unsigned char messageID);
+	void OnInvalidMessage(FilterSet *filterSet, SystemAddress systemAddress, unsigned char messageID);
 
 	DataStructures::OrderedList<int, FilterSet*, FilterSetComp> filterList;
 	DataStructures::OrderedList<SystemAddress, FilteredSystem, FilteredSystemComp> systemList;

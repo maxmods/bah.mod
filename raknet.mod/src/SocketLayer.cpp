@@ -1,27 +1,17 @@
 /// \file
 /// \brief SocketLayer class implementation
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "SocketLayer.h"
-#include <assert.h>
+#include "RakAssert.h"
 #include "MTUSize.h"
 
 #ifdef _WIN32
-typedef int socklen_t;
-#elif !defined(_PS3)
+#elif !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 #include <string.h> // memcpy
 #include <unistd.h>
 #include <fcntl.h>
@@ -30,15 +20,13 @@ typedef int socklen_t;
 #include <stdio.h> // RAKNET_DEBUG_PRINTF
 #endif
 
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 #include "np/common.h"
 #include <netdb.h>
 #include <string.h>
-#if defined (_PS3_LOBBY)
 // OK this is lame but you need to know the app port when sending to the external IP.
 // I'm just assuming it's the same as our own because it would break the interfaces to pass it to SendTo directly.
 static unsigned short HACK_APP_PORT;
-#endif
 #endif
 
 #if defined(_XBOX) || defined(X360)
@@ -46,7 +34,7 @@ static unsigned short HACK_APP_PORT;
 #elif defined(_WIN32)
 #include "WSAStartupSingleton.h"
 #include <ws2tcpip.h> // 'IP_DONTFRAGMENT' 'IP_TTL'
-#elif defined(_PS3)
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 #define closesocket socketclose
 #else
 #define closesocket close
@@ -87,7 +75,7 @@ SocketLayer::~SocketLayer()
 
 SOCKET SocketLayer::Connect( SOCKET writeSocket, unsigned int binaryAddress, unsigned short port )
 {
-	assert( writeSocket != (SOCKET) -1 );
+	RakAssert( writeSocket != (SOCKET) -1 );
 	sockaddr_in connectSocketAddress;
 
 	connectSocketAddress.sin_family = AF_INET;
@@ -157,7 +145,7 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 	sock_opt=0;
 	setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, ( char * ) & sock_opt, sizeof ( sock_opt ) );
 
-#ifndef _PS3
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 	// This doesn't make much difference: 10% maybe
 	// Not supported on console 2
 	sock_opt=1024*16;
@@ -167,7 +155,7 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 #ifdef _WIN32
 	unsigned long nonblocking = 1;
 	ioctlsocket( listenSocket, FIONBIO, &nonblocking );
-#elif defined(_PS3)
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 	sock_opt=1;
 	setsockopt(listenSocket, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
 #else
@@ -176,7 +164,7 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 
 #if defined(_WIN32) && !defined(_XBOX) && defined(_DEBUG) && !defined(X360)
 	// If this assert hit you improperly linked against WSock32.h
-	assert(IP_DONTFRAGMENT==14);
+	RakAssert(IP_DONTFRAGMENT==14);
 #endif
 
 	// TODO - I need someone on dialup to test this with :(
@@ -219,13 +207,17 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 
 		}
 }
-SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket, const char *forceHostAddress )
+SOCKET SocketLayer::CreateBoundSocket_PS3Lobby( unsigned short port, bool blockingSocket, const char *forceHostAddress )
 {
+	(void) port;
+	(void) blockingSocket;
+	(void) forceHostAddress;
+
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 	(void) blockingSocket;
 
 	int ret;
 	SOCKET listenSocket;
-#if defined(_PS3) && defined (_PS3_LOBBY)
 	sockaddr_in_p2p listenerSocketAddress;
 	memset(&listenerSocketAddress, 0, sizeof(listenerSocketAddress));
 
@@ -236,16 +228,73 @@ SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket,
 	listenSocket = socket( AF_INET, SOCK_DGRAM_P2P, 0 );
 
 	// Normal version as below
+
+	if ( listenSocket == (SOCKET) -1 )
+	{
+		return (SOCKET) -1;
+	}
+
+	SetSocketOptions(listenSocket);
+
+	// Fill in the rest of the address structure
+	listenerSocketAddress.sin_family = AF_INET;
+
+	if (forceHostAddress && forceHostAddress[0])
+	{
+		listenerSocketAddress.sin_addr.s_addr = inet_addr( forceHostAddress );
+	}
+	else
+	{
+		listenerSocketAddress.sin_addr.s_addr = INADDR_ANY;
+	}
+
+	// bind our name to the socket
+	ret = bind( listenSocket, ( struct sockaddr * ) & listenerSocketAddress, sizeof( listenerSocketAddress ) );
+
+	if ( ret <= -1 )
+	{
+	switch (ret)
+		{
+		case EBADF:
+			RAKNET_DEBUG_PRINTF("bind(): sockfd is not a valid descriptor.\n"); break;
+		case EINVAL:
+			RAKNET_DEBUG_PRINTF("bind(): The addrlen is wrong, or the socket was not in the AF_UNIX family.\n"); break;
+		case EROFS:
+			RAKNET_DEBUG_PRINTF("bind(): The socket inode would reside on a read-only file system.\n"); break;
+		case EFAULT:
+			RAKNET_DEBUG_PRINTF("bind(): my_addr points outside the user's accessible address space.\n"); break;
+		case ENAMETOOLONG:
+			RAKNET_DEBUG_PRINTF("bind(): my_addr is too long.\n"); break;
+		case ENOENT:
+			RAKNET_DEBUG_PRINTF("bind(): The file does not exist.\n"); break;
+		case ENOMEM:
+			RAKNET_DEBUG_PRINTF("bind(): Insufficient kernel memory was available.\n"); break;
+		case ENOTDIR:
+			RAKNET_DEBUG_PRINTF("bind(): A component of the path prefix is not a directory.\n"); break;
+		case EACCES:
+			RAKNET_DEBUG_PRINTF("bind(): Search permission is denied on a component of the path prefix.\n"); break;
+		default:
+			RAKNET_DEBUG_PRINTF("Unknown bind() error %i.\n", ret); break;
+		}
+
+		return (SOCKET) -1;
+	}
+
+	return listenSocket;
 #else
+	return 0;
+#endif
+}
+SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket, const char *forceHostAddress )
+{
+	(void) blockingSocket;
+
+	int ret;
+	SOCKET listenSocket;
 	sockaddr_in listenerSocketAddress;
 	// Listen on our designated Port#
 	listenerSocketAddress.sin_port = htons( port );
-	#if 0 // defined(_WIN32)
-	listenSocket = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0, 0);
-	#else
 	listenSocket = socket( AF_INET, SOCK_DGRAM, 0 );
-	#endif
-#endif
 
 	if ( listenSocket == (SOCKET) -1 )
 	{
@@ -320,12 +369,12 @@ SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket,
 		RAKNET_DEBUG_PRINTF( "bind(...) failed:Error code - %d\n%s", (unsigned int) dwIOError, (char*) messageBuffer );
 		//Free the buffer.
 		LocalFree( messageBuffer );
-#elif (defined(__GNUC__)  || defined(__GCCXML__) || defined(_PS3)) && !defined(__WIN32)
+#elif (defined(__GNUC__)  || defined(__GCCXML__) || defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)) && !defined(__WIN32)
 		switch (ret)
 		{
 		case EBADF:
 			RAKNET_DEBUG_PRINTF("bind(): sockfd is not a valid descriptor.\n"); break;
-#ifndef _PS3
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 		case ENOTSOCK:
 			RAKNET_DEBUG_PRINTF("bind(): Argument is a descriptor for a file, not a socket.\n"); break;
 #endif
@@ -345,7 +394,7 @@ SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket,
 			RAKNET_DEBUG_PRINTF("bind(): A component of the path prefix is not a directory.\n"); break;
 		case EACCES:
 			RAKNET_DEBUG_PRINTF("bind(): Search permission is denied on a component of the path prefix.\n"); break;
-#ifndef _PS3
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 		case ELOOP:
 			RAKNET_DEBUG_PRINTF("bind(): Too many symbolic links were encountered in resolving my_addr.\n"); break;
 #endif
@@ -384,38 +433,23 @@ const char* SocketLayer::DomainNameToIP( const char *domainName )
 void SocketLayer::Write( const SOCKET writeSocket, const char* data, const int length )
 {
 #ifdef _DEBUG
-	assert( writeSocket != (SOCKET) -1 );
+	RakAssert( writeSocket != (SOCKET) -1 );
 #endif
 
 	send( writeSocket, data, length, 0 );
 }
-
-int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, unsigned connectionSocketIndex )
+// REMOVEME
+//#include "BitStream.h"
+int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, unsigned connectionSocketIndex, bool isPs3LobbySocket )
 {
-	int len;
-	char data[ MAXIMUM_MTU_SIZE ];
-
-#if defined(_PS3) && defined (_PS3_LOBBY)
-	sockaddr_in_p2p sa;
-#else
-	sockaddr_in sa;
-#endif
-
-
-	socklen_t len2 = sizeof( sa );
-	sa.sin_family = AF_INET;
-
-#ifdef _DEBUG
-	data[ 0 ] = 0;
-	len = 0;
-	sa.sin_addr.s_addr = 0;
-#endif
-
 	if ( s == (SOCKET) -1 )
 	{
 		*errorCode = -1;
 		return -1;
 	}
+
+	int len=0;
+	char data[ MAXIMUM_MTU_SIZE ];
 
 #if defined (_WIN32) || !defined(MSG_DONTWAIT)
 	const int flag=0;
@@ -423,33 +457,56 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, uns
 	const int flag=MSG_DONTWAIT;
 #endif
 
-	len = recvfrom( s, data, MAXIMUM_MTU_SIZE, flag, ( sockaddr* ) & sa, ( socklen_t* ) & len2 );
-
-	// if (len>0)
-	//  RAKNET_DEBUG_PRINTF("Got packet on port %i\n",ntohs(sa.sin_port));
+	sockaddr_in sa;
+	socklen_t len2;
+	unsigned short portnum=0;
+	if (isPs3LobbySocket)
+	{
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+		sockaddr_in_p2p sap2p;
+		len2 = sizeof( sap2p );
+		sap2p.sin_family = AF_INET;
+		len = recvfrom( s, data, MAXIMUM_MTU_SIZE, flag, ( sockaddr* ) & sap2p, ( socklen_t* ) & len2 );
+		portnum = ntohs( sap2p.sin_port );
+		sa.sin_addr.s_addr = sap2p.sin_addr.s_addr;
+#endif
+	}
+	else
+	{
+		len2 = sizeof( sa );
+		sa.sin_family = AF_INET;
+		len = recvfrom( s, data, MAXIMUM_MTU_SIZE, flag, ( sockaddr* ) & sa, ( socklen_t* ) & len2 );
+		portnum = ntohs( sa.sin_port );
+	}
 
 	if ( len == 0 )
 	{
 #ifdef _DEBUG
-		RAKNET_DEBUG_PRINTF( "Error: recvfrom returned 0 on a connectionless blocking call\non port %i.  This is a bug with Zone Alarm.  Please turn off Zone Alarm.\n", ntohs( sa.sin_port ) );
-		assert( 0 );
+		RAKNET_DEBUG_PRINTF( "Error: recvfrom returned 0 on a connectionless blocking call\non port %i.  This is a bug with Zone Alarm.  Please turn off Zone Alarm.\n", portnum );
+		RakAssert( 0 );
 #endif
 
-		*errorCode = -1;
-		return -1;
+		// 4/13/09 Changed from returning -1 to 0, to prevent attackers from sending 0 byte messages to shutdown the server
+		*errorCode = 0;
+		return 0;
 	}
 
 	if ( len > 0 )
-	// if ( len != SOCKET_ERROR )
 	{
-		unsigned short portnum;
-//#if defined(_PS3) && defined (_PS3_LOBBY)
-//		portnum = ntohs( sa.sin_vport );
-//#else
-		portnum = ntohs( sa.sin_port );
-//#endif
-		//strcpy(ip, inet_ntoa(sa.sin_addr));
-		//if (strcmp(ip, "0.0.0.0")==0)
+
+		// REMOVEME
+//		char ip[256];
+	//	strcpy(ip, inet_ntoa(sa.sin_addr));
+	//	if (strcmp(ip, "69.129.39.163")==0)
+//		if (len>=30 && len <= 36)
+//		{
+//			strcpy(ip, inet_ntoa(sa.sin_addr));
+//			RakNet::BitStream bs((unsigned char*) data,len,false);
+//			printf("%s: ", ip);
+//			bs.PrintHex();
+//			printf("\n");
+//		}
+
 		// strcpy(ip, "127.0.0.1");
 		ProcessNetworkPacket( sa.sin_addr.s_addr, portnum, data, len, rakPeer, connectionSocketIndex );
 
@@ -506,69 +563,50 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, uns
 #ifdef _MSC_VER
 #pragma warning( disable : 4702 ) // warning C4702: unreachable code
 #endif
-int SocketLayer::SendTo( SOCKET s, const char *data, int length, unsigned int binaryAddress, unsigned short port )
+int SocketLayer::SendTo( SOCKET s, const char *data, int length, unsigned int binaryAddress, unsigned short port, bool isPs3LobbySocket )
 {
 	if ( s == (SOCKET) -1 )
 	{
 		return -1;
 	}
 
-	int len;
+	int len=0;
 
-#if defined(_PS3) && defined (_PS3_LOBBY)
-	sockaddr_in_p2p sa;
-	memset(&sa, 0, sizeof(sa));
-	// LAME!!!! You have to know the behind-nat port on the recipient! Just guessing it is the same as our own
-	sa.sin_vport = htons(HACK_APP_PORT);
-	sa.sin_port = htons(port); // Port returned from signaling
-#else
-	sockaddr_in sa;
-	sa.sin_port = htons( port ); // User port
-#endif
-
-	sa.sin_addr.s_addr = binaryAddress;
-	sa.sin_family = AF_INET;
-
-#if 1 // !defined(_WIN32)
-	do
+	if (isPs3LobbySocket)
 	{
-		len = sendto( s, data, length, 0, ( const sockaddr* ) & sa, sizeof( sa ) );
-	}
-	while ( len == 0 );
-#else
-	WSABUF DataBuf;
-	DataBuf.len = length;
-	DataBuf.buf = (char*) data;
-	DWORD bytesSent;
-	int WSASendToResult = WSASendTo(s,
-		&DataBuf,
-		1,
-		&bytesSent,
-		0,
-		(SOCKADDR*) &sa,
-		 sizeof( sa ),
-		0,
-		NULL);
-	len=bytesSent;
-	if (WSASendToResult!=0)
-	{
-		DWORD dwIOError = WSAGetLastError();
-		LPVOID messageBuffer;
-		FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, dwIOError, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),  // Default language
-			( LPTSTR ) & messageBuffer, 0, NULL );
-		// something has gone wrong here...
-		RAKNET_DEBUG_PRINTF( "sendto failed:Error code - %d\n%s", dwIOError, messageBuffer );
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+		sockaddr_in_p2p sa;
+		memset(&sa, 0, sizeof(sa));
+		// LAME!!!! You have to know the behind-nat port on the recipient! Just guessing it is the same as our own
+		sa.sin_vport = htons(HACK_APP_PORT);
+		sa.sin_port = htons(port); // Port returned from signaling
+		sa.sin_addr.s_addr = binaryAddress;
+		sa.sin_family = AF_INET;
+		do
+		{
+			len = sendto( s, data, length, 0, ( const sockaddr* ) & sa, sizeof( sa ) );
+		}
+		while ( len == 0 );
 
-		//Free the buffer.
-		LocalFree( messageBuffer );
-	}
 #endif
+	}
+	else
+	{
+		sockaddr_in sa;
+		sa.sin_port = htons( port ); // User port
+		sa.sin_addr.s_addr = binaryAddress;
+		sa.sin_family = AF_INET;
+		do
+		{
+			len = sendto( s, data, length, 0, ( const sockaddr* ) & sa, sizeof( sa ) );
+		}
+		while ( len == 0 );
+	}
 
 	if ( len != -1 )
 		return 0;
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 
 	DWORD dwIOError = WSAGetLastError();
 
@@ -601,11 +639,11 @@ int SocketLayer::SendTo( SOCKET s, const char *data, int length, unsigned int bi
 	return 1; // error
 }
 
-int SocketLayer::SendTo( SOCKET s, const char *data, int length, const char ip[ 16 ], unsigned short port )
+int SocketLayer::SendTo( SOCKET s, const char *data, int length, const char ip[ 16 ], unsigned short port, bool isPs3LobbySocket )
 {
 	unsigned int binaryAddress;
 	binaryAddress = inet_addr( ip );
-	return SendTo( s, data, length, binaryAddress, port );
+	return SendTo( s, data, length, binaryAddress, port,isPs3LobbySocket );
 }
 int SocketLayer::SendToTTL( SOCKET s, const char *data, int length, const char ip[ 16 ], unsigned short port, int ttl )
 {
@@ -647,7 +685,7 @@ int SocketLayer::SendToTTL( SOCKET s, const char *data, int length, const char i
 	}
 
 	// Send
-	int res = SendTo(s,data,length,ip,port);
+	int res = SendTo(s,data,length,ip,port,false);
 
 	// Restore the old TTL
 	setsockopt(s, IPPROTO_IP, IP_TTL, ( char * ) & oldTTL, opLen );
@@ -659,9 +697,9 @@ int SocketLayer::SendToTTL( SOCKET s, const char *data, int length, const char i
 }
 
 #if !defined(_XBOX) && !defined(X360)
-void SocketLayer::GetMyIP( char ipList[ 10 ][ 16 ] )
+void SocketLayer::GetMyIP( char ipList[ MAXIMUM_NUMBER_OF_INTERNAL_IDS ][ 16 ] )
 {
-#if !defined(_PS3)
+#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 	char ac[ 80 ];
 	if ( gethostname( ac, sizeof( ac ) ) == -1 )
 	{
@@ -701,14 +739,23 @@ void SocketLayer::GetMyIP( char ipList[ 10 ][ 16 ] )
 		return ;
 	}
 
-	for ( int i = 0; phe->h_addr_list[ i ] != 0 && i < 10; ++i )
+	int idx;
+	for ( idx = 0; idx < MAXIMUM_NUMBER_OF_INTERNAL_IDS; ++idx )
 	{
+		if (phe->h_addr_list[ idx ] == 0)
+			break;
 
 		struct in_addr addr;
 
-		memcpy( &addr, phe->h_addr_list[ i ], sizeof( struct in_addr ) );
+		memcpy( &addr, phe->h_addr_list[ idx ], sizeof( struct in_addr ) );
 		//cout << "Address " << i << ": " << inet_ntoa(addr) << endl;
-		strcpy( ipList[ i ], inet_ntoa( addr ) );
+		strcpy( ipList[ idx ], inet_ntoa( addr ) );
+		
+	}
+
+	for ( ; idx < MAXIMUM_NUMBER_OF_INTERNAL_IDS; ++idx )
+	{
+		ipList[idx][0]=0;
 	}
 #else
 	union CellNetCtlInfo info;

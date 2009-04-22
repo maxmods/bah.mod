@@ -5,7 +5,7 @@
 #include "XBOX360Includes.h"
 #include <process.h>
 #elif defined(_WIN32)
-#include <windows.h>
+#include "WindowsIncludes.h"
 #include <stdio.h>
 	#if !defined(_WIN32_WCE)
 	#include <process.h>

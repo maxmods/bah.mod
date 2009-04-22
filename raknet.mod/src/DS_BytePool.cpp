@@ -1,5 +1,5 @@
 #include "DS_BytePool.h"
-#include <assert.h>
+#include "RakAssert.h"
 #ifndef __APPLE__
 // Use stdlib and not malloc for compatibility
 #include <stdlib.h>
@@ -27,7 +27,7 @@ void BytePool::SetPageSize(int size)
 unsigned char *BytePool::Allocate(int bytesWanted)
 {
 #ifdef _DISABLE_BYTE_POOL
-	return rakMalloc(bytesWanted);
+	return rakMalloc_Ex(bytesWanted, __FILE__, __LINE__);
 #endif
 	unsigned char *out;
 	if (bytesWanted <= 127)
@@ -79,14 +79,14 @@ unsigned char *BytePool::Allocate(int bytesWanted)
 		return ((unsigned char*) out)+1;
 	}
 
-	out = (unsigned char*) rakMalloc(bytesWanted+1);
+	out = (unsigned char*) rakMalloc_Ex(bytesWanted+1, __FILE__, __LINE__);
 	out[0]=(unsigned char)255;
 	return out+1;
 }
 void BytePool::Release(unsigned char *data)
 {
 #ifdef _DISABLE_BYTE_POOL
-	_rakFree(data);
+	_rakFree_Ex(data, __FILE__, __LINE__ );
 #endif
 	unsigned char *realData = data-1;
 	switch (realData[0])
@@ -128,10 +128,10 @@ void BytePool::Release(unsigned char *data)
 		#endif
 		break;
 	case 255:
-		rakFree(realData);
+		rakFree_Ex(realData, __FILE__, __LINE__ );
 		break;
 	default:
-		assert(0);
+		RakAssert(0);
 		break;
 	}
 }

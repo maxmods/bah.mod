@@ -1,19 +1,10 @@
 /// \file
 /// \brief Types used by RakNet, most of which involve user code.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __NETWORK_TYPES_H
 #define __NETWORK_TYPES_H
@@ -46,7 +37,7 @@ const int UNDEFINED_RPC_INDEX=((RPCIndex)-1);
 /// First byte of a network message
 typedef unsigned char MessageID;
 
-typedef unsigned int BitSize_t;
+typedef uint32_t BitSize_t;
 
 #if defined(_MSC_VER) && _MSC_VER > 0
 #define PRINTF_TIME_MODIFIER "I64"
@@ -65,14 +56,27 @@ struct RAK_DLL_EXPORT SocketDescriptor
 
 	/// The local network card address to bind to, such as "127.0.0.1".  Pass an empty string to use INADDR_ANY.
 	char hostAddress[32];
-};
 
+	enum SocketType
+	{
+		UDP,
+		PS3_LOBBY_UDP,
+		NONE // Socket is not created, must be set with UseUserSocket to do anything
+	};
+
+	// Type of the socket. Defaults to UDP.
+	SocketType socketType;
+};
 /// \brief Network address for a system
 /// Corresponds to a network address
 /// This is not necessarily a unique identifier. For example, if a system has both LAN and internet connections, the system may be identified by either one, depending on who is communicating
 /// Use RakNetGUID for a unique per-instance of RakPeer to identify systems
 struct RAK_DLL_EXPORT SystemAddress
 {
+	SystemAddress();
+	explicit SystemAddress(const char *a, unsigned short b);
+	explicit SystemAddress(unsigned int a, unsigned short b);
+
 	///The peer address from inet_addr.
 	unsigned int binaryAddress;
 	///The port number
@@ -142,7 +146,7 @@ struct RPCParameters
 /// Use RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTSEM_ADDRESS) to get your own GUID
 struct RAK_DLL_EXPORT RakNetGUID
 {
-	unsigned int g[4];
+	uint32_t g[4];
 
 	// Return the GUID as a string
 	// Returns a static string
@@ -153,6 +157,8 @@ struct RAK_DLL_EXPORT RakNetGUID
 	// dest must be large enough to hold the output
 	// THREADSAFE
 	void ToString(char *dest) const;
+
+	bool FromString(const char *source);
 
 	RakNetGUID& operator = ( const RakNetGUID& input )
 	{
@@ -169,23 +175,44 @@ struct RAK_DLL_EXPORT RakNetGUID
 	bool operator < ( const RakNetGUID& right ) const;
 };
 
+/// Index of an invalid SystemAddress
+//const SystemAddress UNASSIGNED_SYSTEM_ADDRESS =
+//{
+//	0xFFFFFFFF, 0xFFFF
+//};
+const SystemAddress UNASSIGNED_SYSTEM_ADDRESS(0xFFFFFFFF, 0xFFFF);
+const RakNetGUID UNASSIGNED_RAKNET_GUID = 
+{
+	{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF}
+};
+
 struct RAK_DLL_EXPORT NetworkID
 {
-	NetworkID();
-	~NetworkID();
+	NetworkID()
+	{
+#if defined NETWORK_ID_SUPPORTS_PEER_TO_PEER
+		guid = UNASSIGNED_RAKNET_GUID;
+		systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+#endif
+		localSystemAddress=65535;
+	}
+	~NetworkID() {}
 
+	/// \depreciated. Use NETWORK_ID_SUPPORTS_PEER_TO_PEER in RakNetDefines.h
 	// Set this to true to use peer to peer mode for NetworkIDs.
 	// Obviously the value of this must match on all systems.
 	// True, and this will write the systemAddress portion with network sends.  Takes more bandwidth, but NetworkIDs can be locally generated
 	// False, and only localSystemAddress is used.
-	static bool peerToPeerMode;
+//	static bool peerToPeerMode;
 
+#if defined NETWORK_ID_SUPPORTS_PEER_TO_PEER
 	// Depreciated: Use guid instead
 	// In peer to peer, we use both systemAddress and localSystemAddress
 	// In client / server, we only use localSystemAddress
 	SystemAddress systemAddress;
 
 	RakNetGUID guid;
+#endif
 	unsigned short localSystemAddress;
 
 	NetworkID& operator = ( const NetworkID& input );
@@ -227,19 +254,8 @@ struct Packet
 	bool deleteData;
 };
 
-const RakNetGUID UNASSIGNED_RAKNET_GUID = 
-{
-	0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF
-};
-
 ///  Index of an unassigned player
 const SystemIndex UNASSIGNED_PLAYER_INDEX = 65535;
-
-/// Index of an invalid SystemAddress
-const SystemAddress UNASSIGNED_SYSTEM_ADDRESS =
-{
-	0xFFFFFFFF, 0xFFFF
-};
 
 /// Unassigned object ID
 const NetworkID UNASSIGNED_NETWORK_ID;

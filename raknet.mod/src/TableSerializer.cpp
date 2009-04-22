@@ -90,8 +90,11 @@ void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyI
 {
 	unsigned cellIndex;
 	out->Write(keyIn);
+	unsigned int columnsSize = columns.Size();
+	out->Write(columnsSize);
 	for (cellIndex=0; cellIndex<columns.Size(); cellIndex++)
 	{
+		out->Write(cellIndex);
 		SerializeCell(out, in->cells[cellIndex], columns[cellIndex].columnType);
 	}
 }
@@ -99,10 +102,21 @@ void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyI
 {
 	unsigned cellIndex;
 	out->Write(keyIn);
+	unsigned int numEntries=0;
 	for (cellIndex=0; cellIndex<columns.Size(); cellIndex++)
 	{
 		if (skipColumnIndices.GetIndexOf(cellIndex)==(unsigned)-1)
 		{
+			numEntries++;
+		}
+	}
+	out->Write(numEntries);
+
+	for (cellIndex=0; cellIndex<columns.Size(); cellIndex++)
+	{
+		if (skipColumnIndices.GetIndexOf(cellIndex)==(unsigned)-1)
+		{
+			out->Write(cellIndex);
 			SerializeCell(out, in->cells[cellIndex], columns[cellIndex].columnType);
 		}
 	}
@@ -110,14 +124,18 @@ void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyI
 bool TableSerializer::DeserializeRow(RakNet::BitStream *in, DataStructures::Table *out)
 {
 	DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=out->GetColumns();
-	unsigned cellIndex;
+	unsigned numEntries;
 	DataStructures::Table::Row *row;
 	unsigned key;
 	if (in->Read(key)==false)
 		return false;
 	row=out->AddRow(key);
-	for (cellIndex=0; cellIndex<columns.Size(); cellIndex++)
+	unsigned int cnt;
+	in->Read(numEntries);
+	for (cnt=0; cnt<numEntries; cnt++)
 	{
+		unsigned cellIndex;
+		in->Read(cellIndex);
 		if (DeserializeCell(in, row->cells[cellIndex], columns[cellIndex].columnType)==false)
 		{
 			out->RemoveRow(key);
@@ -146,17 +164,19 @@ void TableSerializer::SerializeCell(RakNet::BitStream *out, DataStructures::Tabl
 		else
 		{
 			// Binary
-			assert(columnType==DataStructures::Table::BINARY);
+			RakAssert(columnType==DataStructures::Table::BINARY);
 			RakAssert(cell->i>0);
-			out->Write((unsigned)cell->i);
-			out->WriteAlignedBytes((const unsigned char*) cell->c, cell->i);
+			unsigned binaryLength;
+			binaryLength=(unsigned)cell->i;
+			out->Write(binaryLength);
+			out->WriteAlignedBytes((const unsigned char*) cell->c, (const unsigned int) cell->i);
 		}
 	}
 }
 bool TableSerializer::DeserializeCell(RakNet::BitStream *in, DataStructures::Table::Cell *cell, DataStructures::Table::ColumnType columnType)
 {
 	bool isEmpty;
-	int value;
+	double value;
 	void *ptr;
 	char tempString[65535];
 	cell->Clear();
@@ -185,15 +205,16 @@ bool TableSerializer::DeserializeCell(RakNet::BitStream *in, DataStructures::Tab
 		}
 		else
 		{
+			unsigned binaryLength;
 			// Binary
-			assert(columnType==DataStructures::Table::BINARY);
-			if (in->Read(value)==false || value > 10000000)
+			RakAssert(columnType==DataStructures::Table::BINARY);
+			if (in->Read(binaryLength)==false || binaryLength > 10000000)
 				return false; // Sanity check to max binary cell of 10 megabytes
 			in->AlignReadToByteBoundary();
-			if (BITS_TO_BYTES(in->GetNumberOfUnreadBits())<(BitSize_t)value)
+			if (BITS_TO_BYTES(in->GetNumberOfUnreadBits())<(BitSize_t)binaryLength)
 				return false;
-			cell->Set((char*) in->GetData()+BITS_TO_BYTES(in->GetReadOffset()), value);
-			in->IgnoreBits(BYTES_TO_BITS(value));
+			cell->Set((char*) in->GetData()+BITS_TO_BYTES(in->GetReadOffset()), (int) binaryLength);
+			in->IgnoreBits(BYTES_TO_BITS((int) binaryLength));
 		}
 	}
 	return true;
@@ -206,8 +227,8 @@ void TableSerializer::SerializeFilterQuery(RakNet::BitStream *in, DataStructures
 	in->Write(query->cellValue->isEmpty);
 	if (query->cellValue->isEmpty==false)
 	{
-		in->WriteAlignedBytesSafe((const char*)query->cellValue->c,query->cellValue->i,10000000); // Sanity check to max binary cell of 10 megabytes
 		in->Write(query->cellValue->i);
+		in->WriteAlignedBytesSafe((const char*)query->cellValue->c,(const unsigned int)query->cellValue->i,10000000); // Sanity check to max binary cell of 10 megabytes
 		in->Write(query->cellValue->ptr);
 
 	}
@@ -226,19 +247,18 @@ bool TableSerializer::DeserializeFilterQuery(RakNet::BitStream *out, DataStructu
 	if (query->cellValue->isEmpty==false)
 	{
 		// HACK - cellValue->i is used for integer, character, and binary data. However, for character and binary c will be 0. So use that to determine if the data was integer or not.
-		BitSize_t inputLength;
+		out->Read(query->cellValue->i);
+		unsigned int inputLength;
 		out->ReadAlignedBytesSafeAlloc(&query->cellValue->c,inputLength,10000000); // Sanity check to max binary cell of 10 megabytes
-		query->cellValue->i=(int) inputLength;
-		if (query->cellValue->c==0)
-			out->Read(query->cellValue->i);
-		else
-			out->IgnoreBytes(sizeof(query->cellValue->i));
+		if (query->cellValue->c)
+			query->cellValue->i=inputLength;
 		b=out->Read(query->cellValue->ptr);
 	}
 	return b;
 }
 void TableSerializer::SerializeFilterQueryList(RakNet::BitStream *in, DataStructures::Table::FilterQuery *query, unsigned int numQueries, unsigned int maxQueries)
 {
+	(void) maxQueries;
 	in->Write((bool)(query && numQueries>0));
 	if (query==0 || numQueries<=0)
 		return;
@@ -293,6 +313,6 @@ void TableSerializer::DeallocateQueryList(DataStructures::Table::FilterQuery *qu
 
 	unsigned i;
 	for (i=0; i < numQueries; i++)
-		RakNet::OP_DELETE(query[i].cellValue);
-	RakNet::OP_DELETE_ARRAY(query);
+		RakNet::OP_DELETE(query[i].cellValue, __FILE__, __LINE__);
+	RakNet::OP_DELETE_ARRAY(query, __FILE__, __LINE__);
 }

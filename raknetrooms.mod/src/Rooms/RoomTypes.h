@@ -47,6 +47,7 @@ struct DefaultRoomColumns
 	DataStructures::Table::ColumnType columnType;
 
 	static const char *GetColumnName(int columnId);
+	static int GetColumnIndex(const char *columnName);
 	static DataStructures::Table::ColumnType GetColumnType(int columnId);
 	static bool HasColumnName(const char *columnName);
 	static void AddDefaultColumnsToTable(DataStructures::Table *table);

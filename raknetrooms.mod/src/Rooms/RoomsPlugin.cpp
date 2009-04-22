@@ -30,6 +30,7 @@ void CreateRoom_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bit
 {
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
+	bitStream->Serialize( writeToBitstream, roomId );
 }
 
 void EnterRoom_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
@@ -46,7 +47,9 @@ void EnterRoom_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitS
 {
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
+	bitStream->Serialize( writeToBitstream, createdRoom );
 	joinedRoomResult.Serialize(writeToBitstream, bitStream);
+	bitStream->Serialize( writeToBitstream, roomId );
 }
 
 void JoinByFilter_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
@@ -199,8 +202,21 @@ void SetCustomRoomProperties_Func::SerializeOut(bool writeToBitstream, RakNet::B
 {
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
-}
 
+}
+void GetRoomProperties_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
+{
+	MessageID messageId = RPO_GET_ROOM_PROPERTIES;
+	bitStream->Serialize(writeToBitstream, messageId);
+	bitStream->Serialize(writeToBitstream, userName);
+	bitStream->Serialize(writeToBitstream, roomName);
+}
+void GetRoomProperties_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream)
+{
+	SerializeIn( writeToBitstream, bitStream );
+	bitStream->Serialize( writeToBitstream, resultCode );
+	roomDescriptor.Serialize(writeToBitstream,bitStream);
+}
 void ChangeRoomName_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
 	MessageID messageId = RPO_CHANGE_ROOM_NAME;
@@ -251,6 +267,41 @@ void SetReadyStatus_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream 
 {
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
+
+	unsigned int listSize;
+	unsigned int i;
+	RakNet::RakString name;
+	listSize=readyUsers.Size();
+	bitStream->Serialize(writeToBitstream, listSize);
+	if (writeToBitstream)
+	{
+		for (i=0; i < listSize; i++)
+			bitStream->Serialize(writeToBitstream, readyUsers[i]);
+	}
+	else
+	{
+		for (i=0; i < listSize; i++)
+		{
+			bitStream->Serialize(writeToBitstream, name);
+			readyUsers.Insert(name);
+		}
+	}
+
+	listSize=unreadyUsers.Size();
+	bitStream->Serialize(writeToBitstream, listSize);
+	if (writeToBitstream)
+	{
+		for (i=0; i < listSize; i++)
+			bitStream->Serialize(writeToBitstream, unreadyUsers[i]);
+	}
+	else
+	{
+		for (i=0; i < listSize; i++)
+		{
+			bitStream->Serialize(writeToBitstream, name);
+			unreadyUsers.Insert(name);
+		}
+	}
 }
 
 void GetReadyStatus_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
@@ -417,7 +468,11 @@ void IsInQuickJoin_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
 }
-
+SearchByFilter_Func::~SearchByFilter_Func()
+{
+	for (unsigned int i=0; i < roomsOutput.Size(); i++)
+		RakNet::OP_DELETE(roomsOutput[i], __FILE__, __LINE__);
+}
 void SearchByFilter_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
 	MessageID messageId = RPO_SEARCH_BY_FILTER;
@@ -425,7 +480,7 @@ void SearchByFilter_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *
 	bitStream->Serialize(writeToBitstream, userName);
 	bitStream->Serialize(writeToBitstream, gameIdentifier);
 	bitStream->Serialize(writeToBitstream, onlyJoinable);
-	bitStream->Serialize(writeToBitstream, roomQuery);
+	roomQuery.Serialize(writeToBitstream, bitStream);
 }
 void SearchByFilter_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
@@ -441,7 +496,7 @@ void SearchByFilter_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream 
 			roomsOutput[i]->Serialize(true,bitStream);
 		else
 		{
-			RoomDescriptor *desc = new RoomDescriptor;;
+			RoomDescriptor *desc = RakNet::OP_NEW<RoomDescriptor>( __FILE__, __LINE__ );
 			desc->Serialize(false,bitStream);
 			roomsOutput.Insert(desc);
 		}
@@ -460,15 +515,16 @@ void ChangeHandle_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *b
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
 }
-void RoomChat_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
+void Chat_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
-	MessageID messageId = RPO_ROOM_CHAT;
+	MessageID messageId = RPO_CHAT;
 	bitStream->Serialize(writeToBitstream, messageId);
 	bitStream->Serialize(writeToBitstream, userName);
 	bitStream->Serialize(writeToBitstream, chatMessage);
 	bitStream->Serialize(writeToBitstream, privateMessageRecipient);
+	bitStream->Serialize(writeToBitstream, chatDirectedToRoom);
 }
-void RoomChat_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream)
+void Chat_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
@@ -563,6 +619,41 @@ void RoomMemberReadyStatusSet_Notification::Serialize(bool writeToBitstream, Rak
 	bitStream->Serialize(writeToBitstream, roomId);
 	bitStream->Serialize(writeToBitstream, isReady);
 	bitStream->Serialize(writeToBitstream, roomMember);
+
+	unsigned int listSize;
+	unsigned int i;
+	RakNet::RakString name;
+	listSize=readyUsers.Size();
+	bitStream->Serialize(writeToBitstream, listSize);
+	if (writeToBitstream)
+	{
+		for (i=0; i < listSize; i++)
+			bitStream->Serialize(writeToBitstream, readyUsers[i]);
+	}
+	else
+	{
+		for (i=0; i < listSize; i++)
+		{
+			bitStream->Serialize(writeToBitstream, name);
+			readyUsers.Insert(name);
+		}
+	}
+
+	listSize=unreadyUsers.Size();
+	bitStream->Serialize(writeToBitstream, listSize);
+	if (writeToBitstream)
+	{
+		for (i=0; i < listSize; i++)
+			bitStream->Serialize(writeToBitstream, unreadyUsers[i]);
+	}
+	else
+	{
+		for (i=0; i < listSize; i++)
+		{
+			bitStream->Serialize(writeToBitstream, name);
+			unreadyUsers.Insert(name);
+		}
+	}
 }
 void RoomLockStateSet_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
@@ -605,7 +696,9 @@ void RoomMemberJoinedRoom_Notification::Serialize(bool writeToBitstream, RakNet:
 	bitStream->Serialize(writeToBitstream, messageId);
 	bitStream->Serialize(writeToBitstream, recipient);
 	bitStream->Serialize(writeToBitstream, roomId);
-	joinedRoomResult.Serialize(writeToBitstream, bitStream);
+	if (joinedRoomResult==0 && writeToBitstream==false)
+		joinedRoomResult = RakNet::OP_NEW<JoinedRoomResult>( __FILE__, __LINE__ );
+	joinedRoomResult->Serialize(writeToBitstream, bitStream);
 }
 void RoomInvitationSent_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
@@ -635,9 +728,9 @@ void RoomDestroyedOnModeratorLeft_Notification::Serialize(bool writeToBitstream,
 	bitStream->Serialize(writeToBitstream, oldModerator);
 	roomDescriptor.Serialize(writeToBitstream, bitStream);
 }
-void RoomChat_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
+void Chat_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
-	MessageID messageId = RPN_ROOM_CHAT_NOTIFICATION;
+	MessageID messageId = RPN_CHAT_NOTIFICATION;
 	bitStream->Serialize(writeToBitstream, messageId);
 	bitStream->Serialize(writeToBitstream, recipient);
 	bitStream->Serialize(writeToBitstream, sender);
@@ -648,7 +741,6 @@ void RoomChat_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *
 RoomsPlugin::RoomsPlugin()
 {
 	lastUpdateTime=0;
-	rakPeer=0;
 	orderingChannel=0;
 	profanityFilter=0;
 	packetPriority=HIGH_PRIORITY;
@@ -684,7 +776,7 @@ void RoomsPlugin::ExecuteFunc(RoomsPluginFunc *func, SystemAddress remoteAddress
 		func->SerializeOut(true, &bs);
 	else
 		func->SerializeIn(true, &bs);
-	rakPeer->Send(&bs, packetPriority, RELIABLE_ORDERED, orderingChannel, remoteAddress, false);
+	SendUnified(&bs, packetPriority, RELIABLE_ORDERED, orderingChannel, remoteAddress, false);
 }
 
 void RoomsPlugin::ExecuteNotification(RoomsPluginNotification *func, RoomsPluginParticipant *recipient)
@@ -693,23 +785,24 @@ void RoomsPlugin::ExecuteNotification(RoomsPluginNotification *func, RoomsPlugin
 	bs.Write((MessageID)ID_ROOMS_EXECUTE_FUNC);
 	func->recipient=recipient->GetName();
 	func->Serialize(true, &bs);
-	rakPeer->Send(&bs, packetPriority, RELIABLE_ORDERED, orderingChannel, recipient->systemAddress, false);
+	SendUnified(&bs, packetPriority, RELIABLE_ORDERED, orderingChannel, recipient->GetSystemAddress(), false);
 }
 void RoomsPlugin::SetServerAddress( SystemAddress systemAddress )
 {
 	serverAddress=systemAddress;
 }
-bool RoomsPlugin::LoginRoomsParticipant(RakNet::RakString userName, SystemAddress roomsParticipantAddress, SystemAddress loginServerAddress)
+bool RoomsPlugin::LoginRoomsParticipant(RakNet::RakString userName, SystemAddress roomsParticipantAddress, RakNetGUID guid, SystemAddress loginServerAddress)
 {
-	if (loginServerAddress!=UNASSIGNED_SYSTEM_ADDRESS && loginServers.GetIndexOf(loginServerAddress)==-1)
+	if (loginServerAddress!=UNASSIGNED_SYSTEM_ADDRESS && loginServers.GetIndexOf(loginServerAddress)==(unsigned int) -1)
 		return false;
 	bool objectExists;
 	unsigned int index;
 	index=roomsParticipants.GetIndexFromKey(userName, &objectExists);
 	if (objectExists==false)
 	{
-		RoomsPluginParticipant *rpp = new RoomsPluginParticipant;
-		rpp->systemAddress=roomsParticipantAddress;
+		RoomsPluginParticipant *rpp = RakNet::OP_NEW<RoomsPluginParticipant>( __FILE__, __LINE__ );
+		rpp->SetSystemAddress(roomsParticipantAddress);
+		rpp->SetGUID(guid);
 		rpp->SetName(userName);
 		roomsParticipants.InsertAtIndex(rpp, index);
 		return true;
@@ -718,7 +811,7 @@ bool RoomsPlugin::LoginRoomsParticipant(RakNet::RakString userName, SystemAddres
 }
 bool RoomsPlugin::LogoffRoomsParticipant(RakNet::RakString userName, SystemAddress loginServerAddress)
 {
-	if (loginServerAddress!=UNASSIGNED_SYSTEM_ADDRESS && loginServers.GetIndexOf(loginServerAddress)==-1)
+	if (loginServerAddress!=UNASSIGNED_SYSTEM_ADDRESS && loginServers.GetIndexOf(loginServerAddress)==(unsigned int) -1)
 		return false;
 	bool objectExists;
 	unsigned int index;
@@ -728,7 +821,7 @@ bool RoomsPlugin::LogoffRoomsParticipant(RakNet::RakString userName, SystemAddre
 		RemoveUserResult removeUserResult;
 		roomsContainer.RemoveUser(roomsParticipants[index], &removeUserResult);
 		ProcessRemoveUserResult(&removeUserResult);
-		delete roomsParticipants[index];
+		RakNet::OP_DELETE(roomsParticipants[index], __FILE__, __LINE__);
 		roomsParticipants.RemoveAtIndex(index);
 		return true;
 	}
@@ -738,15 +831,16 @@ void RoomsPlugin::ClearRoomMembers(void)
 {
 	unsigned int i;
 	for (i=0; i < roomsParticipants.Size(); i++)
-		delete roomsParticipants[i];
+		RakNet::OP_DELETE(roomsParticipants[i], __FILE__, __LINE__);
 	roomsParticipants.Clear();
 }
-void RoomsPlugin::SerializeLogin(RakNet::RakString userName, SystemAddress userAddress, RakNet::BitStream *bs)
+void RoomsPlugin::SerializeLogin(RakNet::RakString userName, SystemAddress userAddress, RakNetGUID guid, RakNet::BitStream *bs)
 {
 	bs->Write((MessageID)ID_ROOMS_LOGON_STATUS);
 	bs->Write(userName);
 	bs->Write(true);
 	bs->Write(userAddress);
+	bs->Write(guid);
 }
 void RoomsPlugin::SerializeLogoff(RakNet::RakString userName, RakNet::BitStream *bs)
 {
@@ -776,13 +870,13 @@ void RoomsPlugin::ChangeHandle(RakNet::RakString oldHandle, RakNet::RakString ne
 void RoomsPlugin::AddLoginServerAddress(SystemAddress systemAddress)
 {
 	unsigned int index = loginServers.GetIndexOf(systemAddress);
-	if (index==-1)
+	if (index==(unsigned int) -1)
 		loginServers.Push(systemAddress);
 }
 void RoomsPlugin::RemoveLoginServerAddress(SystemAddress systemAddress)
 {
 	unsigned int index = loginServers.GetIndexOf(systemAddress);
-	if (index!=-1)
+	if (index!=(unsigned int) -1)
 		loginServers.RemoveAtIndexFast(index);
 }
 void RoomsPlugin::ClearLoginServerAdddresses(void)
@@ -793,19 +887,15 @@ void RoomsPlugin::SetProfanityFilter(ProfanityFilter *pf)
 {
 	profanityFilter=pf;
 }
-void RoomsPlugin::OnAttach(RakPeerInterface *peer)
-{
-	rakPeer=peer;
-}
-void RoomsPlugin::OnDetach(RakPeerInterface *peer)
+void RoomsPlugin::OnDetach(void)
 {
 	Clear();
 }
-void RoomsPlugin::OnShutdown(RakPeerInterface *peer)
+void RoomsPlugin::OnShutdown(void)
 {
 	Clear();
 }
-void RoomsPlugin::Update(RakPeerInterface *peer)
+void RoomsPlugin::Update(void)
 {
 	if (IsServer()==false)
 		return;
@@ -839,18 +929,19 @@ void RoomsPlugin::Update(RakPeerInterface *peer)
 		for (i=0; i < joinedRoomMembers.Size(); i++)
 		{
 			RoomMemberJoinedRoom_Notification notificationToRoom;
-			notificationToRoom.joinedRoomResult=joinedRoomMembers[i];
-			notificationToRoom.joinedRoomResult.agrc=&roomsContainer;
+			notificationToRoom.joinedRoomResult=&joinedRoomMembers[i];
+			notificationToRoom.joinedRoomResult->agrc=&roomsContainer;
 			ExecuteNotificationToOtherRoomMembers(joinedRoomMembers[i].joiningMember->GetRoom(), (RoomsPluginParticipant*)joinedRoomMembers[i].joiningMember, &notificationToRoom);
+			notificationToRoom.joinedRoomResult=0;
 		}
 
 		for (i=0; i < dereferencedPointers.Size(); i++)
-			delete dereferencedPointers[i];
+			RakNet::OP_DELETE(dereferencedPointers[i], __FILE__, __LINE__);
 	}
 
 	lastUpdateTime=curTime;
 }
-PluginReceiveResult RoomsPlugin::OnReceive(RakPeerInterface *peer, Packet *packet)
+PluginReceiveResult RoomsPlugin::OnReceive(Packet *packet)
 {
 	switch (packet->data[0]) 
 	{
@@ -862,10 +953,6 @@ PluginReceiveResult RoomsPlugin::OnReceive(RakPeerInterface *peer, Packet *packe
 		break;
 	case ID_ROOMS_HANDLE_CHANGE:
 		OnHandleChange(packet);
-		break;
-	case ID_DISCONNECTION_NOTIFICATION:
-	case ID_CONNECTION_LOST:
-		OnCloseConnection(peer, packet->systemAddress);
 		break;
 	}
 
@@ -885,10 +972,12 @@ void RoomsPlugin::OnLoginStatus(Packet *packet)
 			bool loggedOn;
 			bs.Read(loggedOn);
 			SystemAddress userAddress;
+			RakNetGUID guid;
 			if (loggedOn)
 			{
-				bs.Read(userAddress);			
-				LoginRoomsParticipant(name, userAddress, packet->systemAddress);
+				bs.Read(userAddress);	
+				bs.Read(guid);
+				LoginRoomsParticipant(name, userAddress, guid, packet->systemAddress);
 			}
 			else
 			{
@@ -1055,6 +1144,17 @@ void RoomsPlugin::OnRoomsExecuteFunc(Packet *packet)
 			else
 				func.SerializeIn(false,&bs);
 			roomsCallback->SetCustomRoomProperties_Callback(packet->systemAddress,&func);
+		}
+		break;
+
+	case RPO_GET_ROOM_PROPERTIES:
+		{
+			GetRoomProperties_Func func;
+			if (IsServer()==false)
+				func.SerializeOut(false,&bs);
+			else
+				func.SerializeIn(false,&bs);
+			roomsCallback->GetRoomProperties_Callback(packet->systemAddress,&func);
 		}
 		break;
 
@@ -1233,14 +1333,14 @@ void RoomsPlugin::OnRoomsExecuteFunc(Packet *packet)
 			roomsCallback->ChangeHandle_Callback(packet->systemAddress,&func);
 		}
 		break;
-	case RPO_ROOM_CHAT:
+	case RPO_CHAT:
 		{
-			RoomChat_Func func;
+			Chat_Func func;
 			if (IsServer()==false)
 				func.SerializeOut(false,&bs);
 			else
 				func.SerializeIn(false,&bs);
-			roomsCallback->RoomChat_Callback(packet->systemAddress,&func);
+			roomsCallback->Chat_Callback(packet->systemAddress,&func);
 		}
 		break;
 	case RPN_QUICK_JOIN_EXPIRED:
@@ -1369,30 +1469,30 @@ void RoomsPlugin::OnRoomsExecuteFunc(Packet *packet)
 			roomsCallback->RoomDestroyedOnModeratorLeft_Callback(packet->systemAddress,&func);
 		}
 		break;
-	case RPN_ROOM_CHAT_NOTIFICATION:
+	case RPN_CHAT_NOTIFICATION:
 		{
-			RoomChat_Notification func;
+			Chat_Notification func;
 			func.Serialize(IsServer(),&bs);
 			// When the filtered chat message is empty, that means the original chat message didn't have profanity anyway.
 			if (func.filteredChatMessage.IsEmpty())
 				func.filteredChatMessage=func.chatMessage;
-			roomsCallback->RoomChat_Callback(packet->systemAddress,&func);
+			roomsCallback->Chat_Callback(packet->systemAddress,&func);
 		}
 		break;
 	}
 }
-void RoomsPlugin::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
+void RoomsPlugin::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
 	RemoveUserResult removeUserResult;
 	unsigned i;
 	i=0;
 	while (i < roomsParticipants.Size())
 	{
-		if (roomsParticipants[i]->systemAddress==systemAddress)
+		if (roomsParticipants[i]->GetSystemAddress()==systemAddress)
 		{
 			roomsContainer.RemoveUser(roomsParticipants[i], &removeUserResult);
 			ProcessRemoveUserResult(&removeUserResult);
-			delete roomsParticipants[i];
+			RakNet::OP_DELETE(roomsParticipants[i], __FILE__, __LINE__);
 			roomsParticipants.RemoveAtIndex(i);
 		}
 		else
@@ -1419,7 +1519,7 @@ RoomsPlugin::RoomsPluginParticipant* RoomsPlugin::GetParticipantByHandle(RakNet:
 		RakAssert(IsServer());
 		if (senderAddress==UNASSIGNED_SYSTEM_ADDRESS || senderAddress==serverAddress)
 			return rp;
-		if (rp->systemAddress!=senderAddress)
+		if (rp->GetSystemAddress()!=senderAddress)
 			return 0;
 		return rp;
 	}
@@ -1447,7 +1547,10 @@ void RoomsPlugin::CreateRoom_Callback( SystemAddress senderAddress, CreateRoom_F
 		
 	callResult->resultCode=roomsContainer.CreateRoom(&rcp, profanityFilter);
 	if (callResult->resultCode==REC_SUCCESS)
+	{
 		roomsPluginParticipant->lastRoomJoined=roomsPluginParticipant->GetRoom()->GetID();
+		callResult->roomId=roomsPluginParticipant->lastRoomJoined;
+	}
 	ExecuteFunc(callResult, senderAddress);
 }
 void RoomsPlugin::EnterRoom_Callback( SystemAddress senderAddress, EnterRoom_Func *callResult)
@@ -1461,15 +1564,18 @@ void RoomsPlugin::EnterRoom_Callback( SystemAddress senderAddress, EnterRoom_Fun
 	rcp.firstUser=roomsPluginParticipant;
 
 	callResult->resultCode=roomsContainer.EnterRoom(&rcp, callResult->roomMemberMode, profanityFilter, &callResult->query, &callResult->joinedRoomResult);
+	callResult->createdRoom=rcp.createdRoom;
 	if (callResult->resultCode==REC_SUCCESS)
 	{
 		roomsPluginParticipant->lastRoomJoined=roomsPluginParticipant->GetRoom()->GetID();
+		callResult->roomId=roomsPluginParticipant->lastRoomJoined;
 
 		if (callResult->joinedRoomResult.roomOutput)
 		{
 			RoomMemberJoinedRoom_Notification notificationToRoom;
-			notificationToRoom.joinedRoomResult=callResult->joinedRoomResult;
+			notificationToRoom.joinedRoomResult=&callResult->joinedRoomResult;
 			ExecuteNotificationToOtherRoomMembers(callResult->joinedRoomResult.roomOutput, roomsPluginParticipant, &notificationToRoom);
+			notificationToRoom.joinedRoomResult=0;
 		}
 	}
 	ExecuteFunc(callResult, senderAddress);
@@ -1482,11 +1588,14 @@ void RoomsPlugin::JoinByFilter_Callback( SystemAddress senderAddress, JoinByFilt
 	callResult->resultCode=roomsContainer.JoinByFilter(callResult->gameIdentifier, callResult->roomMemberMode, roomsPluginParticipant, roomsPluginParticipant->lastRoomJoined, &callResult->query, &callResult->joinedRoomResult );
 	if (callResult->resultCode==REC_SUCCESS)
 	{
+		RakAssert(callResult->joinedRoomResult.roomOutput->GetNumericProperty(DefaultRoomColumns::TC_USED_SLOTS)==callResult->joinedRoomResult.roomOutput->roomMemberList.Size()-1);
+
 		roomsPluginParticipant->lastRoomJoined=roomsPluginParticipant->GetRoom()->GetID();
 
 		RoomMemberJoinedRoom_Notification notificationToRoom;
-		notificationToRoom.joinedRoomResult=callResult->joinedRoomResult;
+		notificationToRoom.joinedRoomResult=&callResult->joinedRoomResult;
 		ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notificationToRoom);
+		notificationToRoom.joinedRoomResult=0;
 	}
 	ExecuteFunc(callResult, senderAddress);
 }
@@ -1546,13 +1655,14 @@ void RoomsPlugin::AcceptInvite_Callback( SystemAddress senderAddress, AcceptInvi
 	if (callResult->resultCode==REC_SUCCESS)
 	{
 		RoomMemberJoinedRoom_Notification notificationToRoom;
-		notificationToRoom.joinedRoomResult.acceptedInvitor=0;
-		notificationToRoom.joinedRoomResult.acceptedInvitorName=callResult->inviteSender;
-		notificationToRoom.joinedRoomResult.joiningMember=roomsPluginParticipant;
-		notificationToRoom.joinedRoomResult.joiningMemberName=roomsPluginParticipant->GetName();
-		notificationToRoom.joinedRoomResult.roomDescriptor.FromRoom(roomsPluginParticipant->GetRoom(), &roomsContainer);
-		notificationToRoom.joinedRoomResult.roomOutput=roomsPluginParticipant->GetRoom();
-		notificationToRoom.joinedRoomResult.agrc=&roomsContainer;
+		notificationToRoom.joinedRoomResult=RakNet::OP_NEW<JoinedRoomResult>( __FILE__, __LINE__ );
+		notificationToRoom.joinedRoomResult->acceptedInvitor=0;
+		notificationToRoom.joinedRoomResult->acceptedInvitorName=callResult->inviteSender;
+		notificationToRoom.joinedRoomResult->joiningMember=roomsPluginParticipant;
+		notificationToRoom.joinedRoomResult->joiningMemberName=roomsPluginParticipant->GetName();
+		notificationToRoom.joinedRoomResult->roomDescriptor.FromRoom(roomsPluginParticipant->GetRoom(), &roomsContainer);
+		notificationToRoom.joinedRoomResult->roomOutput=roomsPluginParticipant->GetRoom();
+		notificationToRoom.joinedRoomResult->agrc=&roomsContainer;
 		ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notificationToRoom);
 	}
 	ExecuteFunc(callResult, senderAddress);
@@ -1613,7 +1723,7 @@ void RoomsPlugin::GrantModerator_Callback( SystemAddress senderAddress, GrantMod
 
 		for (unsigned int i=0; i < clearedInvites.Size(); i++)
 		{
-			Room *room = newModerator->GetRoom();
+//			Room *room = newModerator->GetRoom();
 			RoomInvitationWithdrawn_Notification notification;
 			notification.invitedUser=clearedInvites[i];
 			ExecuteNotification(&notification,  GetParticipantByHandle(clearedInvites[i].target, UNASSIGNED_SYSTEM_ADDRESS));
@@ -1651,6 +1761,32 @@ void RoomsPlugin::SetCustomRoomProperties_Callback( SystemAddress senderAddress,
 		notification.tablePtr=&callResult->table;
 		ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notification);
 	}
+	ExecuteFunc(callResult, senderAddress);
+}
+void RoomsPlugin::GetRoomProperties_Callback( SystemAddress senderAddress, GetRoomProperties_Func *callResult)
+{
+	RoomsPluginParticipant* roomsPluginParticipant = ValidateUserHandle(callResult, senderAddress);
+	if (roomsPluginParticipant==0)
+		return;
+	Room *room;
+	if (callResult->roomName.IsEmpty())
+	{
+		callResult->resultCode=REC_GET_ROOM_PROPERTIES_EMPTY_ROOM_NAME;
+	}
+	else
+	{
+		room = roomsContainer.GetRoomByName(callResult->roomName);
+		if (room==0)
+		{
+			callResult->resultCode=REC_GET_ROOM_PROPERTIES_UNKNOWN_ROOM_NAME;
+		}
+		else
+		{
+			callResult->roomDescriptor.FromRoom(room, &roomsContainer);
+			callResult->resultCode=REC_SUCCESS;
+		}
+	}
+
 	ExecuteFunc(callResult, senderAddress);
 }
 void RoomsPlugin::ChangeRoomName_Callback( SystemAddress senderAddress, ChangeRoomName_Func *callResult)
@@ -1699,14 +1835,32 @@ void RoomsPlugin::SetReadyStatus_Callback( SystemAddress senderAddress, SetReady
 	if (roomsPluginParticipant==0)
 		return;
 	callResult->resultCode=roomsContainer.SetReadyStatus( roomsPluginParticipant, callResult->isReady );
+
+	DataStructures::List<RoomsParticipant*> readyUsers;
+	DataStructures::List<RoomsParticipant*> unreadyUsers;
+	unsigned int i;
+	roomsPluginParticipant->GetRoom()->GetReadyStatus(readyUsers, unreadyUsers);
+
 	if (callResult->resultCode==REC_SUCCESS)
 	{
 		RoomMemberReadyStatusSet_Notification notification;	
 		notification.roomId=roomsPluginParticipant->GetRoom()->GetID();
 		notification.isReady=callResult->isReady;
 		notification.roomMember=roomsPluginParticipant->GetName();
+
+		for (i=0; i < readyUsers.Size(); i++)
+			notification.readyUsers.Insert(readyUsers[i]->GetName());
+		for (i=0; i < unreadyUsers.Size(); i++)
+			notification.unreadyUsers.Insert(unreadyUsers[i]->GetName());
+
 		ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notification);
 	}
+
+	for (i=0; i < readyUsers.Size(); i++)
+		callResult->readyUsers.Insert(readyUsers[i]->GetName());
+	for (i=0; i < unreadyUsers.Size(); i++)
+		callResult->unreadyUsers.Insert(unreadyUsers[i]->GetName());
+
 	ExecuteFunc(callResult, senderAddress);
 }
 void RoomsPlugin::GetReadyStatus_Callback( SystemAddress senderAddress, GetReadyStatus_Func *callResult)
@@ -1729,7 +1883,7 @@ void RoomsPlugin::GetReadyStatus_Callback( SystemAddress senderAddress, GetReady
 	for (i=0; i < readyUsers.Size(); i++)
 		callResult->readyUsers.Insert(readyUsers[i]->GetName());
 	for (i=0; i < unreadyUsers.Size(); i++)
-		callResult->unreadyUsers.Insert(readyUsers[i]->GetName());
+		callResult->unreadyUsers.Insert(unreadyUsers[i]->GetName());
 	ExecuteFunc(callResult, senderAddress);
 }
 void RoomsPlugin::SetRoomLockState_Callback( SystemAddress senderAddress, SetRoomLockState_Func *callResult)
@@ -1828,7 +1982,7 @@ void RoomsPlugin::AddUserToQuickJoin_Callback( SystemAddress senderAddress, AddU
 	RoomsPluginParticipant* roomsPluginParticipant = ValidateUserHandle(callResult, senderAddress);
 	if (roomsPluginParticipant==0)
 		return;
-	QuickJoinUser *qju = new QuickJoinUser;
+	QuickJoinUser *qju = RakNet::OP_NEW<QuickJoinUser>( __FILE__, __LINE__ );
 	qju->networkedQuickJoinUser=callResult->networkedQuickJoinUser;
 	qju->roomsParticipant=roomsPluginParticipant;
 	callResult->resultCode=roomsContainer.AddUserToQuickJoin( callResult->gameIdentifier, qju );
@@ -1842,7 +1996,7 @@ void RoomsPlugin::RemoveUserFromQuickJoin_Callback( SystemAddress senderAddress,
 	QuickJoinUser *qju;
 	callResult->resultCode=roomsContainer.RemoveUserFromQuickJoin( roomsPluginParticipant, &qju );
 	if (qju)
-		delete qju;
+		RakNet::OP_DELETE(qju, __FILE__, __LINE__);
 	ExecuteFunc(callResult, senderAddress);
 }
 void RoomsPlugin::IsInQuickJoin_Callback( SystemAddress senderAddress, IsInQuickJoin_Func *callResult)
@@ -1863,9 +2017,10 @@ void RoomsPlugin::SearchByFilter_Callback( SystemAddress senderAddress, SearchBy
 	DataStructures::OrderedList<Room*, Room*, AllGamesRoomsContainer::RoomsSortByName> roomsOutput;
 	callResult->resultCode=roomsContainer.SearchByFilter( callResult->gameIdentifier, roomsPluginParticipant, &callResult->roomQuery, roomsOutput, callResult->onlyJoinable);
 	unsigned i;
-	RoomDescriptor *desc = new RoomDescriptor;
+	RoomDescriptor *desc;
 	for (i=0; i < roomsOutput.Size(); i++)
 	{
+		desc = RakNet::OP_NEW<RoomDescriptor>( __FILE__, __LINE__ );
 		desc->FromRoom(roomsOutput[i], &roomsContainer);
 		callResult->roomsOutput.Insert(desc);
 	}
@@ -1903,18 +2058,18 @@ void RoomsPlugin::ChangeHandle_Callback( SystemAddress senderAddress, ChangeHand
 	ExecuteFunc(callResult, senderAddress);
 
 }
-void RoomsPlugin::RoomChat_Callback( SystemAddress senderAddress, RoomChat_Func *callResult)
+void RoomsPlugin::Chat_Callback( SystemAddress senderAddress, Chat_Func *callResult)
 {
 	RoomsPluginParticipant* roomsPluginParticipant = ValidateUserHandle(callResult, senderAddress);
 	if (roomsPluginParticipant==0)
 		return;
-	if (roomsPluginParticipant->GetRoom()==0)
+	if (roomsPluginParticipant->GetRoom()==0 && callResult->chatDirectedToRoom)
 	{
-		callResult->resultCode=REC_ROOM_CHAT_USER_NOT_IN_ROOM;
+		callResult->resultCode=REC_CHAT_USER_NOT_IN_ROOM;
 		ExecuteFunc(callResult, senderAddress);
 		return;
 	}
-	RoomChat_Notification notification;
+	Chat_Notification notification;
 	notification.sender=roomsPluginParticipant->GetName();
 	notification.privateMessageRecipient=callResult->privateMessageRecipient;
 	notification.chatMessage=callResult->chatMessage;
@@ -1927,28 +2082,42 @@ void RoomsPlugin::RoomChat_Callback( SystemAddress senderAddress, RoomChat_Func 
 		RoomsPluginParticipant* recipient = GetParticipantByHandle(callResult->privateMessageRecipient, UNASSIGNED_SYSTEM_ADDRESS);
 		if (recipient==0)
 		{
-			callResult->resultCode=REC_ROOM_CHAT_RECIPIENT_NOT_ONLINE;
-			ExecuteFunc(callResult, senderAddress);
-			return;
-		}
-		if (recipient->GetRoom()==0)
-		{
-			callResult->resultCode=REC_ROOM_CHAT_RECIPIENT_NOT_IN_ANY_ROOM;
+			callResult->resultCode=REC_CHAT_RECIPIENT_NOT_ONLINE;
 			ExecuteFunc(callResult, senderAddress);
 			return;
 		}
 
-		if (recipient->GetRoom()!=roomsPluginParticipant->GetRoom())
+		if (callResult->chatDirectedToRoom)
 		{
-			callResult->resultCode=REC_ROOM_CHAT_RECIPIENT_NOT_IN_YOUR_ROOM;
-			ExecuteFunc(callResult, senderAddress);
-			return;
+			if (recipient->GetRoom()==0)
+			{
+				callResult->resultCode=REC_CHAT_RECIPIENT_NOT_IN_ANY_ROOM;
+				ExecuteFunc(callResult, senderAddress);
+				return;
+			}
+
+			if (recipient->GetRoom()!=roomsPluginParticipant->GetRoom())
+			{
+				callResult->resultCode=REC_CHAT_RECIPIENT_NOT_IN_YOUR_ROOM;
+				ExecuteFunc(callResult, senderAddress);
+				return;
+			}
 		}
 
 		callResult->resultCode=REC_SUCCESS;
 		ExecuteNotification(&notification, recipient);
 		ExecuteFunc(callResult, senderAddress);
 		return;
+	}
+	else
+	{
+		if (callResult->chatDirectedToRoom==false)
+		{
+			// Chat not directed to room, and no recipients.
+			callResult->resultCode=REC_CHAT_RECIPIENT_NOT_ONLINE;
+			ExecuteFunc(callResult, senderAddress);
+			return;
+		}
 	}
 
 	callResult->resultCode=REC_SUCCESS;
@@ -1977,30 +2146,30 @@ void RoomsPlugin::ProcessRemoveUserResult(RemoveUserResult *removeUserResult)
 				if (removeUserResult->gotNewModerator)
 				{
 					ModeratorChanged_Notification notification;
-					notification.oldModerator=removeUserResult->removedUser->GetName();
+					notification.oldModerator=removeUserResult->removedUserName;
 					notification.newModerator=removeUserResult->room->GetModerator()->GetName();
-					ExecuteNotificationToOtherRoomMembers(removeUserResult->room, (RoomsPluginParticipant*) removeUserResult->removedUser, &notification);
+					ExecuteNotificationToOtherRoomMembers(removeUserResult->room, 0, &notification);
 				}
 
 				RoomMemberLeftRoom_Notification notification;
 				notification.roomId=removeUserResult->room->GetID();
-				notification.roomMember=removeUserResult->removedUser->GetName();
-				ExecuteNotificationToOtherRoomMembers(removeUserResult->room, (RoomsPluginParticipant*)removeUserResult->removedUser, &notification);
+				notification.roomMember=removeUserResult->removedUserName;
+				ExecuteNotificationToOtherRoomMembers(removeUserResult->room, 0, &notification);
 			}
 			else
 			{
 				RoomDestroyedOnModeratorLeft_Notification notification;
-				notification.oldModerator=removeUserResult->removedUser->GetName();
+				notification.oldModerator=removeUserResult->removedUserName;
 				notification.roomId=removeUserResult->room->GetID();
 				notification.roomDescriptor.FromRoom(removeUserResult->room, &roomsContainer);
-				ExecuteNotificationToOtherRoomMembers(removeUserResult->room, (RoomsPluginParticipant*)removeUserResult->removedUser, &notification);
+				ExecuteNotificationToOtherRoomMembers(removeUserResult->room, 0, &notification);
 			}
 		}
 	}
 	if (removeUserResult->removedFromQuickJoin)
 	{
 		if (removeUserResult->qju)
-			delete removeUserResult->qju;
+			RakNet::OP_DELETE(removeUserResult->qju, __FILE__, __LINE__);
 	}
 	roomsContainer.DestroyRoomIfDead(removeUserResult->room);
 }

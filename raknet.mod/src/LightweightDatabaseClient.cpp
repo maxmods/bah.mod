@@ -12,7 +12,6 @@
 
 LightweightDatabaseClient::LightweightDatabaseClient()
 {
-	rakPeer=0;
 }
 LightweightDatabaseClient::~LightweightDatabaseClient()
 {
@@ -22,7 +21,7 @@ void LightweightDatabaseClient::QueryTable(const char *tableName, const char *qu
 {
 	if (tableName==0 || tableName[0]==0)
 		return;
-	if (rakPeer==0)
+	if (rakPeerInterface==0)
 		return;
 
 	RakNet::BitStream out;
@@ -56,13 +55,13 @@ void LightweightDatabaseClient::QueryTable(const char *tableName, const char *qu
 	for (i=0; i < numRowIDs; i++)
 		out.Write(rowIds[i]);
 
-	rakPeer->Send(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
+	SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
 }
 void LightweightDatabaseClient::RemoveRow(const char *tableName, const char *removePassword, unsigned rowId, SystemAddress systemAddress, bool broadcast)
 {
 	if (tableName==0 || tableName[0]==0)
 		return;
-	if (rakPeer==0)
+	if (rakPeerInterface==0)
 		return;
 
 	RakNet::BitStream out;
@@ -80,13 +79,13 @@ void LightweightDatabaseClient::RemoveRow(const char *tableName, const char *rem
 
 	out.Write(rowId);
 
-	rakPeer->Send(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
+	SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
 }
 void LightweightDatabaseClient::UpdateRow(const char *tableName, const char *updatePassword, RowUpdateMode updateMode, bool hasRowId, unsigned rowId, DatabaseCellUpdate *cellUpdates, unsigned char numCellUpdates, SystemAddress systemAddress, bool broadcast)
 {
 	if (tableName==0 || tableName[0]==0)
 		return;
-	if (rakPeer==0)
+	if (rakPeerInterface==0)
 		return;
 	if (cellUpdates==0 || numCellUpdates==0)
 		return;
@@ -113,19 +112,7 @@ void LightweightDatabaseClient::UpdateRow(const char *tableName, const char *upd
 	for (i=0; i < numCellUpdates; i++)
 		cellUpdates[i].Serialize(&out);
 
-	rakPeer->Send(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
-}
-
-PluginReceiveResult LightweightDatabaseClient::OnReceive(RakPeerInterface *peer, Packet *packet)
-{
-	(void) packet;
-	(void) peer;
-
-	return RR_CONTINUE_PROCESSING;
-}
-void LightweightDatabaseClient::OnAttach(RakPeerInterface *peer)
-{
-	rakPeer=peer;
+	SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,systemAddress, broadcast);
 }
 
 #ifdef _MSC_VER

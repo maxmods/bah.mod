@@ -18,7 +18,6 @@ Router::Router()
 {
 	graph=0;
 	restrictByType=false;
-	rakPeer=0;
 	DataStructures::OrderedList<unsigned char,unsigned char>::IMPLEMENT_DEFAULT_COMPARISON();
 }
 Router::~Router()
@@ -68,13 +67,13 @@ bool Router::Send( char *data, BitSize_t bitLength, PacketPriority priority, Pac
 		return false;
 	DataStructures::Tree<ConnectionGraph::SystemAddressAndGroupId> tree;
 	SystemAddress root;
-	root = rakPeer->GetExternalID(rakPeer->GetSystemAddressFromIndex(0));
+	root = rakPeerInterface->GetExternalID(rakPeerInterface->GetSystemAddressFromIndex(0));
 	if (root==UNASSIGNED_SYSTEM_ADDRESS)
 		return false;
 	DataStructures::List<ConnectionGraph::SystemAddressAndGroupId> recipientList;
 	unsigned i;
 	for (i=0; i < recipients->Size(); i++)
-		recipientList.Insert(ConnectionGraph::SystemAddressAndGroupId(recipients->GetList()->operator [](i),0, UNASSIGNED_RAKNET_GUID));
+		recipientList.Insert(ConnectionGraph::SystemAddressAndGroupId(recipients->GetList()->operator [](i),0, UNASSIGNED_RAKNET_GUID), __FILE__, __LINE__);
 	if (graph->GetSpanningTree(tree, &recipientList, ConnectionGraph::SystemAddressAndGroupId(root,0,UNASSIGNED_RAKNET_GUID), 65535)==false)
 		return false;
 
@@ -128,22 +127,20 @@ void Router::SendTree(PacketPriority priority, PacketReliability reliability, ch
 		out->SetWriteOffset(outputOffset);
 
 		// Write our external IP to designate the sender
-		out->Write(rakPeer->GetExternalID(tree->children[i]->data.systemAddress));
+		out->Write(rakPeerInterface->GetExternalID(tree->children[i]->data.systemAddress));
 
 		// Serialize the tree
 		SerializePreorder(tree->children[i], out, recipients);
 
 		// Send to the first hop
 #ifdef _DO_PRINTF
-		RAKNET_DEBUG_PRINTF("%i sending to %i\n", rakPeer->GetExternalID(tree->children[i]->data.systemAddress).port, tree->children[i]->data.systemAddress.port);
+		RAKNET_DEBUG_PRINTF("%i sending to %i\n", rakPeerInterface->GetExternalID(tree->children[i]->data.systemAddress).port, tree->children[i]->data.systemAddress.port);
 #endif
-		rakPeer->Send(out, priority, reliability, orderingChannel, tree->children[i]->data.systemAddress, false);
+		SendUnified(out, priority, reliability, orderingChannel, tree->children[i]->data.systemAddress, false);
 	}
 }
-PluginReceiveResult Router::OnReceive(RakPeerInterface *peer, Packet *packet)
+PluginReceiveResult Router::OnReceive(Packet *packet)
 {
-	(void) peer;
-
 	if (packet->data[0]==ID_ROUTE_AND_MULTICAST ||
 		(packet->length>5 && packet->data[0]==ID_TIMESTAMP && packet->data[5]==ID_ROUTE_AND_MULTICAST))
 	{
@@ -211,7 +208,7 @@ PluginReceiveResult Router::OnReceive(RakPeerInterface *peer, Packet *packet)
 		if (incomingBitstream.ReadCompressed(numberOfChildren)==false)
 		{
 #ifdef _DEBUG
-			assert(0);
+			RakAssert(0);
 #endif
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
 		}
@@ -250,7 +247,7 @@ PluginReceiveResult Router::OnReceive(RakPeerInterface *peer, Packet *packet)
 #endif
 
 			// Send what we got so far
-			rakPeer->Send(&out, priority, reliability, orderingChannel, immediateRecipient, false);
+			SendUnified(&out, priority, reliability, orderingChannel, immediateRecipient, false);
 
 			// Restart writing the per recipient data
 			out.SetWriteOffset(outStartingOffset);
@@ -292,27 +289,13 @@ PluginReceiveResult Router::OnReceive(RakPeerInterface *peer, Packet *packet)
 
 	return RR_CONTINUE_PROCESSING;
 }
-void Router::OnAttach(RakPeerInterface *peer)
+void Router::OnAttach(void)
 {
-    rakPeer=peer;
-	peer->SetRouterInterface(this);
+	rakPeerInterface->SetRouterInterface(this);
 }
-void Router::OnDetach(RakPeerInterface *peer)
+void Router::OnDetach(void)
 {
-	peer->RemoveRouterInterface(this);
-}
-void Router::OnShutdown(RakPeerInterface *peer)
-{
-	(void) peer;
-}
-void Router::Update(RakPeerInterface *peer)
-{
-	(void) peer;
-}
-void Router::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
-{
-	(void) peer;
-	(void) systemAddress;
+	rakPeerInterface->RemoveRouterInterface(this);
 }
 void Router::SerializePreorder(DataStructures::Tree<ConnectionGraph::SystemAddressAndGroupId> *tree, RakNet::BitStream *out, SystemAddressList *recipients) const
 {

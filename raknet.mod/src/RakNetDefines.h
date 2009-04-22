@@ -15,9 +15,9 @@
 /// Define __BITSTREAM_NATIVE_END to NOT support endian swapping in the BitStream class.  This is faster and is what you should use
 /// unless you actually plan to have different endianness systems connect to each other
 /// Enabled by default.
-#define __BITSTREAM_NATIVE_END
+// #define __BITSTREAM_NATIVE_END
 
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 #undef __BITSTREAM_NATIVE_END
 #endif
 
@@ -27,11 +27,13 @@
 // Use WaitForSingleObject instead of sleep.
 // Defining it plays nicer with other systems, and uses less CPU, but gives worse RakNet performance
 // Undefining it uses more CPU time, but is more responsive and faster.
+#ifndef _WIN32_WCE
 #define USE_WAIT_FOR_MULTIPLE_EVENTS
+#endif
 
 /// Uncomment to use RakMemoryOverride for custom memory tracking
 /// See RakMemoryOverride.h. 
-//#define _USE_RAK_MEMORY_OVERRIDE
+#define _USE_RAK_MEMORY_OVERRIDE
 
 /// If defined, RakNet will automatically try to determine available bandwidth and buffer accordingly (recommended)
 /// If commented out, you will probably not be able to send large files and will get increased packetloss. However, responsiveness for the first 10 seconds or so will be improved.
@@ -53,4 +55,22 @@
 // 16 * 4 * 8 = 512 bit. Used for InitializeSecurity()
 #define RAKNET_RSA_FACTOR_LIMBS 16
 
+// Enable to support peer to peer with NetworkIDs. Disable to save memory if doing client/server only
+#define NETWORK_ID_SUPPORTS_PEER_TO_PEER
+
+// O(1) instead of O(log2n) but takes more memory if less than 1/3 of the mappings are used.
+// Only supported if NETWORK_ID_SUPPORTS_PEER_TO_PEER is commented out
+// #define NETWORK_ID_USE_PTR_TABLE
+
+// Maximum number of local IP addresses supported
+#define MAXIMUM_NUMBER_OF_INTERNAL_IDS 10
+
+// #define _DISABLE_RAKNET_ASSERTS
+#if defined(_DEBUG) && !defined(_XBOX) && !defined(_DISABLE_RAKNET_ASSERTS)
+	#include <assert.h>
+	#define RakAssert(x) assert(x);
+#else
+	#define RakAssert(x) 
 #endif
+
+#endif // __RAKNET_DEFINES_H

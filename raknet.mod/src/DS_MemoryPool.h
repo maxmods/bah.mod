@@ -5,7 +5,7 @@
 // Use stdlib and not malloc for compatibility
 #include <stdlib.h>
 #endif
-#include <assert.h>
+#include "RakAssert.h"
 #include "Export.h"
 
 #include "RakMemoryOverride.h"
@@ -102,7 +102,7 @@ namespace DataStructures
 			{
 				--availablePagesSize;
 				availablePages=curPage->next;
-				assert(availablePagesSize==0 || availablePages->availableStackSize>0);
+				RakAssert(availablePagesSize==0 || availablePages->availableStackSize>0);
 				curPage->next->prev=curPage->prev;
 				curPage->prev->next=curPage->next;
 
@@ -121,24 +121,24 @@ namespace DataStructures
 				}			
 			}
 
-			assert(availablePagesSize==0 || availablePages->availableStackSize>0);
+			RakAssert(availablePagesSize==0 || availablePages->availableStackSize>0);
 			return retVal;
 		}
 
-		availablePages = (Page *) rakMalloc(sizeof(Page));
+		availablePages = (Page *) rakMalloc_Ex(sizeof(Page), __FILE__, __LINE__);
 		if (availablePages==0)
 			return 0;
 		availablePagesSize=1;
 		if (InitPage(availablePages, availablePages)==false)
 			return 0;
-		assert(availablePages->availableStackSize>1);
+		RakAssert(availablePages->availableStackSize>1);
 		return (MemoryBlockType *) availablePages->availableStack[--availablePages->availableStackSize];
 	}
 	template<class MemoryBlockType>
 	void MemoryPool<MemoryBlockType>::Release(MemoryBlockType *m)
 	{
 #ifdef _DISABLE_MEMORY_POOL
-		RakNet::OP_DELETE(m);
+		RakNet::OP_DELETE(m, __FILE__, __LINE__);
 		return;
 #endif
 
@@ -185,14 +185,14 @@ namespace DataStructures
 				if (curPage==availablePages)
 				{
 					availablePages=curPage->next;
-					assert(availablePages->availableStackSize>0);
+					RakAssert(availablePages->availableStackSize>0);
 				}
 				curPage->prev->next=curPage->next;
 				curPage->next->prev=curPage->prev;
 				availablePagesSize--;
-				rakFree(curPage->availableStack);
-				rakFree(curPage->block);
-				rakFree(curPage);
+				rakFree_Ex(curPage->availableStack, __FILE__, __LINE__ );
+				rakFree_Ex(curPage->block, __FILE__, __LINE__ );
+				rakFree_Ex(curPage, __FILE__, __LINE__ );
 			}
 		}
 	}
@@ -213,16 +213,16 @@ namespace DataStructures
 			while (true) 
 			// do
 			{
-				rakFree(cur->availableStack);
-				rakFree(cur->block);
+				rakFree_Ex(cur->availableStack, __FILE__, __LINE__ );
+				rakFree_Ex(cur->block, __FILE__, __LINE__ );
 				freed=cur;
 				cur=cur->next;
 				if (cur==availablePages)
 				{
-					rakFree(freed);
+					rakFree_Ex(freed, __FILE__, __LINE__ );
 					break;
 				}
-				rakFree(freed);
+				rakFree_Ex(freed, __FILE__, __LINE__ );
 			}// while(cur!=availablePages);
 		}
 		
@@ -232,16 +232,16 @@ namespace DataStructures
 			while (1)
 			//do 
 			{
-				rakFree(cur->availableStack);
-				rakFree(cur->block);
+				rakFree_Ex(cur->availableStack, __FILE__, __LINE__ );
+				rakFree_Ex(cur->block, __FILE__, __LINE__ );
 				freed=cur;
 				cur=cur->next;
 				if (cur==unavailablePages)
 				{
-					rakFree(freed);
+					rakFree_Ex(freed, __FILE__, __LINE__ );
 					break;
 				}
-				rakFree(freed);
+				rakFree_Ex(freed, __FILE__, __LINE__ );
 			} // while(cur!=unavailablePages);
 		}
 
@@ -258,13 +258,13 @@ namespace DataStructures
 	{
 		int i=0;
 		const int bpp = BlocksPerPage();
-		page->block=(MemoryWithPage*) rakMalloc(memoryPoolPageSize);
+		page->block=(MemoryWithPage*) rakMalloc_Ex(memoryPoolPageSize, __FILE__, __LINE__);
 		if (page->block==0)
 			return false;
-		page->availableStack=(MemoryWithPage**)rakMalloc(sizeof(MemoryWithPage*)*bpp);
+		page->availableStack=(MemoryWithPage**)rakMalloc_Ex(sizeof(MemoryWithPage*)*bpp, __FILE__, __LINE__);
 		if (page->availableStack==0)
 		{
-			rakFree(page->block);
+			rakFree_Ex(page->block, __FILE__, __LINE__ );
 			return false;
 		}
 		MemoryWithPage *curBlock = page->block;

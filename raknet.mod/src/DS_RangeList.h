@@ -4,7 +4,7 @@
 #include "DS_OrderedList.h"
 #include "BitStream.h"
 #include "RakMemoryOverride.h"
-#include <assert.h>
+#include "RakAssert.h"
 
 namespace DataStructures
 {
@@ -48,7 +48,7 @@ namespace DataStructures
 	template <class range_type>
 	BitSize_t RangeList<range_type>::Serialize(RakNet::BitStream *in, BitSize_t maxBits, bool clearSerialized)
 	{
-		assert(ranges.Size() < (unsigned short)-1);
+		RakAssert(ranges.Size() < (unsigned short)-1);
 		RakNet::BitStream tempBS;
 		BitSize_t bitsWritten;
 		unsigned short countWritten;

@@ -1,26 +1,17 @@
 /// \file
 /// \brief Router plugin.  Allows you to send to systems you are not directly connected to, and to route those messages
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __ROUTER_PLUGIN_H
 #define __ROUTER_PLUGIN_H
 
 class RakPeerInterface;
 #include "RakNetTypes.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "DS_OrderedList.h"
 #include "DS_WeightedGraph.h"
 #include "PacketPriority.h"
@@ -34,7 +25,7 @@ class RakPeerInterface;
 
 /// \ingroup ROUTER_GROUP
 /// \brief Used to route messages between peers
-class RAK_DLL_EXPORT Router : public PluginInterface , public RouterInterface
+class RAK_DLL_EXPORT Router : public PluginInterface2 , public RouterInterface
 {
 public:
 	Router();
@@ -79,19 +70,15 @@ public:
 	// --------------------------------------------------------------------------------------------
 	// Packet handling functions
 	// --------------------------------------------------------------------------------------------
-	virtual void OnAttach(RakPeerInterface *peer);
-	virtual void OnDetach(RakPeerInterface *peer);
-	virtual void OnShutdown(RakPeerInterface *peer);
-	virtual void Update(RakPeerInterface *peer);
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	virtual void OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress);
+	virtual void OnAttach(void);
+	virtual void OnDetach(void);
+	virtual PluginReceiveResult OnReceive(Packet *packet);
 protected:
 	void SendTree(PacketPriority priority, PacketReliability reliability, char orderingChannel, DataStructures::Tree<ConnectionGraph::SystemAddressAndGroupId> *tree, const char *data, BitSize_t bitLength, RakNet::BitStream *out, SystemAddressList *recipients);
 	void SerializePreorder(DataStructures::Tree<ConnectionGraph::SystemAddressAndGroupId> *tree, RakNet::BitStream *out, SystemAddressList *recipients) const;
 	DataStructures::WeightedGraph<ConnectionGraph::SystemAddressAndGroupId, unsigned short, false> *graph;
 	bool restrictByType;
 	DataStructures::OrderedList<unsigned char,unsigned char> allowedTypes;
-	RakPeerInterface *rakPeer;
 };
 
 #endif

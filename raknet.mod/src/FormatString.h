@@ -6,6 +6,10 @@
 extern "C" {
 char * FormatString(const char *format, ...);
 }
+// Threadsafe
+extern "C" {
+char * FormatStringTS(char *output, const char *format, ...);
+}
 
 
 #endif

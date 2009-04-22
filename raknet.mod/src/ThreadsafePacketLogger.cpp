@@ -10,24 +10,22 @@ ThreadsafePacketLogger::~ThreadsafePacketLogger()
 	char **msg;
 	while ((msg = logMessages.ReadLock()) != 0)
 	{
-		rakFree((*msg));
+		rakFree_Ex((*msg), __FILE__, __LINE__ );
 	}
 }
-void ThreadsafePacketLogger::Update(RakPeerInterface *peer)
+void ThreadsafePacketLogger::Update(void)
 {
-	(void) peer;
-
 	char **msg;
 	while ((msg = logMessages.ReadLock()) != 0)
 	{
 		WriteLog(*msg);
-		rakFree((*msg));
+		rakFree_Ex((*msg), __FILE__, __LINE__ );
 	}
 }
 void ThreadsafePacketLogger::AddToLog(const char *str)
 {
 	char **msg = logMessages.WriteLock();
-	*msg = (char*) rakMalloc( strlen(str)+1 );
+	*msg = (char*) rakMalloc_Ex( strlen(str)+1, __FILE__, __LINE__ );
 	strcpy(*msg, str);
 	logMessages.WriteUnlock();
 }

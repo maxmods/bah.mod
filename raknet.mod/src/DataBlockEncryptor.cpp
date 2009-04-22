@@ -1,24 +1,15 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "DataBlockEncryptor.h"
 #include "CheckSum.h"
 #include "GetTime.h"
 #include "Rand.h"
-#include <assert.h>
+#include "RakAssert.h"
 #include <string.h>
 #include "Rijndael.h"
 //#include "Types.h"
@@ -50,7 +41,7 @@ void DataBlockEncryptor::UnsetKey( void )
 	keySet = false;
 }
 
-void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength, unsigned char *output, unsigned int *outputLength )
+void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength, unsigned char *output, unsigned int *outputLength, RakNetRandom *rnr )
 {
 	unsigned index, byteIndex, lastBlock;
 	unsigned int checkSum;
@@ -61,14 +52,14 @@ void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength
 
 #ifdef _DEBUG
 
-	assert( keySet );
+	RakAssert( keySet );
 #endif
 
-	assert( input && inputLength );
+	RakAssert( input && inputLength );
 
 
 	// randomChar will randomize the data so the same data sent twice will not look the same
-	randomChar = (unsigned char) randomMT();
+	randomChar = (unsigned char) rnr->RandomMT();
 
 	// 16-(((x-1) % 16)+1)
 
@@ -76,7 +67,7 @@ void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength
 	paddingBytes = (unsigned char) ( 16 - ( ( ( inputLength + sizeof( randomChar ) + sizeof( checkSum ) + sizeof( encodedPad ) - 1 ) % 16 ) + 1 ) );
 
 	// Randomize the pad size variable
-	encodedPad = (unsigned char) randomMT();
+	encodedPad = (unsigned char) rnr->RandomMT();
 	encodedPad <<= 4;
 	encodedPad |= paddingBytes;
 
@@ -97,7 +88,7 @@ void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength
 
 	// Write the padding
 	for ( index = 0; index < paddingBytes; index++ )
-		*( output + sizeof( checkSum ) + sizeof( randomChar ) + sizeof( encodedPad ) + index ) = (unsigned char) randomMT();
+		*( output + sizeof( checkSum ) + sizeof( randomChar ) + sizeof( encodedPad ) + index ) = (unsigned char) rnr->RandomMT();
 
 	// Calculate the checksum on the data
 	checkSumCalculator.Add( output + sizeof( checkSum ), inputLength + sizeof( randomChar ) + sizeof( encodedPad ) + paddingBytes );
@@ -143,7 +134,7 @@ bool DataBlockEncryptor::Decrypt( unsigned char *input, unsigned int inputLength
 	CheckSum checkSumCalculator;
 #ifdef _DEBUG
 
-	assert( keySet );
+	RakAssert( keySet );
 #endif
 
 	if ( input == 0 || inputLength < 16 || ( inputLength % 16 ) != 0 )

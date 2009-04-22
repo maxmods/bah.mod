@@ -36,7 +36,7 @@ extern "C" {
 	void _bah_raknetrooms_TRKRoomsCallback__IsInQuickJoin_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::IsInQuickJoin_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__SearchByFilter_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::SearchByFilter_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__ChangeHandle_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::ChangeHandle_Func * callResult);
-	void _bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Func * callResult);
+//	void _bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__QuickJoinExpired_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::QuickJoinExpired_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__QuickJoinEnteredRoom_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::QuickJoinEnteredRoom_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomMemberStartedSpectating_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomMemberStartedSpectating_Notification * notification);
@@ -55,7 +55,7 @@ extern "C" {
 	void _bah_raknetrooms_TRKRoomsCallback__RoomInvitationSent_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomInvitationSent_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomInvitationWithdrawn_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomInvitationWithdrawn_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomDestroyedOnModeratorLeft_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomDestroyedOnModeratorLeft_Notification * notification);
-	void _bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Notification * notification);
+//	void _bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Notification * notification);
 
 
 	RakNet::RoomsPlugin * bmx_raknetroomsplugin_new();
@@ -193,9 +193,9 @@ struct MaxRoomsCallback: public RakNet::RoomsCallback
 		_bah_raknetrooms_TRKRoomsCallback__ChangeHandle_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
 	}
 	
-	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Func *callResult) {
-		_bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
-	}
+//	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Func *callResult) {
+//		_bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
+//	}
 	
 	// Notifications due to other room members
 	virtual void QuickJoinExpired_Callback( SystemAddress senderAddress, RakNet::QuickJoinExpired_Notification *notification) {
@@ -270,9 +270,9 @@ struct MaxRoomsCallback: public RakNet::RoomsCallback
 		_bah_raknetrooms_TRKRoomsCallback__RoomDestroyedOnModeratorLeft_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
 	}
 	
-	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Notification *notification) {
-		_bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
-	}
+//	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Notification *notification) {
+//		_bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
+//	}
 	
 };
 

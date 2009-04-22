@@ -36,6 +36,14 @@ bool DefaultRoomColumns::HasColumnName(const char *columnName)
 			return true;
 	return false;
 }
+int DefaultRoomColumns::GetColumnIndex(const char *columnName)
+{
+	unsigned i;
+	for (i=0; i < TC_TABLE_COLUMNS_COUNT; i++)
+		if (strcmp(columnName,GetColumnName(i))==0)
+			return i;
+	return -1;
+}
 void DefaultRoomColumns::AddDefaultColumnsToTable(DataStructures::Table *table)
 {
 	unsigned i;

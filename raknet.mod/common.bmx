@@ -369,7 +369,7 @@ Extern
 	Function bmx_FileList_GetDeltaToCurrent(handle:Byte Ptr, inputList:Byte Ptr, outputList:Byte Ptr, dirSubset:String, remoteSubdir:String)
 	Function bmx_FileList_PopulateDataFromDisk(handle:Byte Ptr, applicationDirectory:String, writeFileData:Int, writeFileHash:Int, removeUnknownFiles:Int)
 	Function bmx_FileList_WriteDataToDisk(handle:Byte Ptr, applicationDirectory:String)
-	Function bmx_FileList_AddFileMemory(handle:Byte Ptr, filename:String, data:Byte Ptr, dataLength:Int, fileLength:Int, context:Byte Ptr, isAReference:Int)
+	Function bmx_FileList_AddFileMemory(handle:Byte Ptr, filename:String, fullpathToFile:String, data:Byte Ptr, dataLength:Int, fileLength:Int, context:Byte Ptr, isAReference:Int)
 	Function bmx_FileList_AddFile(handle:Byte Ptr, filepath:String, filename:String, context:Byte Ptr)
 	Function bmx_FileList_DeleteFiles(handle:Byte Ptr, applicationDirectory:String)
 	Function bmx_FileList_delete(handle:Byte Ptr)

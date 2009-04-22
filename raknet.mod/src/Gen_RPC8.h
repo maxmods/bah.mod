@@ -8,7 +8,7 @@
 #if defined(_XBOX) || defined(X360)
 #include <XBOX360Includes.h>
 #elif defined (_WIN32)
-#include <windows.h>
+#include "WindowsIncludes.h"
 #endif
 #include <stddef.h>
 //#define ASSEMBLY_BLOCK asm
@@ -175,7 +175,7 @@ typedef double        HardwareReal;
 typedef unsigned long long NaturalWord;
 typedef double         HardwareReal;  // could be changed to __float128 on AMD64/nonwin
 
-#elif defined ( _PS3 )
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 typedef double HardwareReal;
 typedef unsigned long long NaturalWord;
 #define AUTO_RPC_AUTORPC_WORD 64

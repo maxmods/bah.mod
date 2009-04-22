@@ -1,19 +1,10 @@
 /// \file
 /// \brief The main class used for data transmission and most of RakNet's functionality.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __RAK_PEER_H
 #define __RAK_PEER_H
@@ -32,7 +23,7 @@
 #include "RakThread.h"
 
 class HuffmanEncodingTree;
-class PluginInterface;
+class PluginInterface2;
 
 // Sucks but this struct has to be outside the class.  Inside and DevCPP won't let you refer to the struct as RakPeer::SystemAddressAndIndex while GCC
 // forces you to do RakPeer::SystemAddressAndIndex
@@ -132,8 +123,10 @@ public:
 	/// \param[in] passwordData A data block that must match the data block on the server passed to SetIncomingPassword.  This can be a string or can be a stream of data.  Use 0 for no password.
 	/// \param[in] passwordDataLength The length in bytes of passwordData
 	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
+	/// \param[in] sendConnectionAttemptCount How many datagrams to send to the other system to try to connect.
+	/// \param[in] timeBetweenSendConnectionAttemptsMS How often to send datagrams to the other system to try to connect. After this many times, ID_CONNECTION_ATTEMPT_FAILED is returned
 	/// \return True on successful initiation. False on incorrect parameters, internal error, or too many existing peers.  Returning true does not mean you connected!
-	bool Connect( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex=0 );
+	bool Connect( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex=0, unsigned sendConnectionAttemptCount=7, unsigned timeBetweenSendConnectionAttemptsMS=500 );
 
 	/// \brief Connect to the specified network ID (Platform specific console function)
 	/// Does built-in NAT traversal
@@ -226,12 +219,14 @@ public:
 	unsigned short GetMaximumNumberOfPeers( void ) const;
 
 	// --------------------------------------------------------------------------------------------Remote Procedure Call Functions - Functions to initialize and perform RPC--------------------------------------------------------------------------------------------
+	/// \depreciated
 	/// \ingroup RAKNET_RPC
 	/// Register a C or static member function as available for calling as a remote procedure call
 	/// \param[in] uniqueID A null-terminated unique string to identify this procedure.  See RegisterClassMemberRPC() for class member functions.
 	/// \param[in] functionPointer(...) The name of the function to be used as a function pointer. This can be called whether active or not, and registered functions stay registered unless unregistered
 	void RegisterAsRemoteProcedureCall( const char* uniqueID, void ( *functionPointer ) ( RPCParameters *rpcParms ) );
 
+	/// \depreciated
 	/// \ingroup RAKNET_RPC
 	/// Register a C++ member function as available for calling as a remote procedure call.
 	/// \param[in] uniqueID A null terminated string to identify this procedure. Recommended you use the macro REGISTER_CLASS_MEMBER_RPC to create the string.  Use RegisterAsRemoteProcedureCall() for static functions.
@@ -239,6 +234,7 @@ public:
 	/// \sa The sample ObjectMemberRPC.cpp
 	void RegisterClassMemberRPC( const char* uniqueID, void *functionPointer );
 
+	/// \depreciated
 	/// \ingroup RAKNET_RPC
 	/// Unregisters a C function as available for calling as a remote procedure call that was formerly registered with RegisterAsRemoteProcedureCall. Only call offline.
 	/// \param[in] uniqueID A string of only letters to identify this procedure.  Recommended you use the macro CLASS_MEMBER_ID for class member functions.
@@ -253,6 +249,7 @@ public:
 	/// \return Returns the value passed to SetNetworkIDManager or 0 if never called.
 	NetworkIDManager *GetNetworkIDManager(void) const;
 
+	/// \depreciated
 	/// \ingroup RAKNET_RPC
 	/// Calls a C function on the remote system that was already registered using RegisterAsRemoteProcedureCall().
 	/// \pre To use object member RPC (networkID!=UNASSIGNED_OBJECT_ID), The recipient must have called SetNetworkIDManager so the system can handle the object lookups
@@ -270,6 +267,7 @@ public:
 	/// \return True on a successful packet send (this does not indicate the recipient performed the call), false on failure
 	bool RPC( const char* uniqueID, const char *data, BitSize_t bitLength, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, RakNetTime *includedTimestamp, NetworkID networkID, RakNet::BitStream *replyFromTarget );
 
+	/// \depreciated
 	/// \ingroup RAKNET_RPC
 	/// Calls a C function on the remote system that was already registered using RegisterAsRemoteProcedureCall.
 	/// If you want that function to return data you should call RPC from that system in the same wayReturns true on a successful packet
@@ -295,6 +293,11 @@ public:
 	/// \param[in] sendDisconnectionNotification True to send ID_DISCONNECTION_NOTIFICATION to the recipient.  False to close it silently.
 	/// \param[in] channel Which ordering channel to send the disconnection notification on, if any
 	void CloseConnection( const SystemAddress target, bool sendDisconnectionNotification, unsigned char orderingChannel=0 );
+
+	/// Cancel a pending connection attempt
+	/// If we are already connected, the connection stays open
+	/// \param[in] target Which system to cancel
+	void CancelConnectionAttempt( const SystemAddress target );
 
 	/// Returns if a particular systemAddress is connected to us (this also returns true if we are in the process of connecting)
 	/// \param[in] systemAddress The SystemAddress we are referring to
@@ -382,8 +385,9 @@ public:
 	//--------------------------------------------------------------------------------------------Network Functions - Functions dealing with the network in general--------------------------------------------------------------------------------------------
 	/// Return the unique address identifier that represents you or another system on the the network and is based on your local IP / port.
 	/// \param[in] systemAddress Use UNASSIGNED_SYSTEM_ADDRESS to get your behind-LAN address. Use a connected system to get their behind-LAN address
+	/// \param[in] index When you have multiple internal IDs, which index to return? Currently limited to MAXIMUM_NUMBER_OF_INTERNAL_IDS (so the maximum value of this variable is MAXIMUM_NUMBER_OF_INTERNAL_IDS-1)
 	/// \return the identifier of your system internally, which may not be how other systems see if you if you are behind a NAT or proxy
-	SystemAddress GetInternalID( const SystemAddress systemAddress=UNASSIGNED_SYSTEM_ADDRESS ) const;
+	SystemAddress GetInternalID( const SystemAddress systemAddress=UNASSIGNED_SYSTEM_ADDRESS, const int index=0 ) const;
 
 	/// Return the unique address identifier that represents you on the the network and is based on your externalIP / port
 	/// (the IP / port the specified player uses to communicate with you)
@@ -525,11 +529,11 @@ public:
 	/// Attatches a Plugin interface to run code automatically on message receipt in the Receive call
 	/// \note If plugins have dependencies on each other then the order does matter - for example the router plugin should go first because it might route messages for other plugins
 	/// \param[in] messageHandler Pointer to a plugin to attach
-	void AttachPlugin( PluginInterface *plugin );
+	void AttachPlugin( PluginInterface2 *plugin );
 
 	/// Detaches a Plugin interface to run code automatically on message receipt
 	/// \param[in] messageHandler Pointer to a plugin to detach
-	void DetachPlugin( PluginInterface *messageHandler );
+	void DetachPlugin( PluginInterface2 *messageHandler );
 
 	// --------------------------------------------------------------------------------------------Miscellaneous Functions--------------------------------------------------------------------------------------------
 	/// Put a message back at the end of the receive queue in case you don't want to deal with it immediately
@@ -545,7 +549,7 @@ public:
 	// \param[in] routerInterface The router to use to route messages to systems not directly connected to this system.
 	void RemoveRouterInterface( RouterInterface *routerInterface );
 
-	/// \Returns a packet for you to write to if you want to create a Packet for some reason.
+	/// \returns a packet for you to write to if you want to create a Packet for some reason.
 	/// You can add it to the receive buffer with PushBackPacket
 	/// \param[in] dataSize How many bytes to allocate for the buffer
 	/// \return A packet you can write to
@@ -571,14 +575,30 @@ public:
 	/// \return If you previously called ApplyNetworkSimulator
 	bool IsNetworkSimulatorActive( void );
 
+	// -------------------------------------------------------------------------------------------- Socket Functions--------------------------------------------------------------------------------------------
+	/// Have RakNet use a socket you created yourself
+	/// The socket should not be in use - it is up to you to either shutdown or close the connections using it. Otherwise existing connections on that socket will eventually disconnect
+	/// This socket will be forgotten after calling Shutdown(), so rebind again if you need to.
+	/// \param[in] s The socket to rebind.
+	/// \param[in] haveRakNetCloseSocket If true, RakNet will call closeSocket on shutdown for this socket.
+	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
+	void UseUserSocket( int socket, bool haveRakNetCloseSocket, unsigned connectionSocketIndex);
+	
+	/// Have RakNet recreate a socket using a different port.
+	/// The socket should not be in use - it is up to you to either shutdown or close the connections using it. Otherwise existing connections on that socket will eventually disconnect
+	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
+	/// \param[in] sd Address to bind on
+	void RebindSocketAddress(unsigned connectionSocketIndex, SocketDescriptor &sd);
+
 	// --------------------------------------------------------------------------------------------Statistical Functions - Functions dealing with API performance--------------------------------------------------------------------------------------------
 
 	/// Returns a structure containing a large set of network statistics for the specified system.
 	/// You can map this data to a string using the C style StatisticsToString() function
 	/// \param[in] systemAddress: Which connected system to get statistics for
+	/// \param[in] rns If you supply this structure, it will be written to it. Otherwise it will use a static struct, which is not threadsafe
 	/// \return 0 on can't find the specified system.  A pointer to a set of data otherwise.
 	/// \sa RakNetStatistics.h
-	RakNetStatistics * const GetStatistics( const SystemAddress systemAddress );
+	RakNetStatistics * const GetStatistics( const SystemAddress systemAddress, RakNetStatistics *rns=0 );
 
 	// --------------------------------------------------------------------------------------------EVERYTHING AFTER THIS COMMENT IS FOR INTERNAL USE ONLY--------------------------------------------------------------------------------------------
 	/// \internal
@@ -602,7 +622,7 @@ public:
 		bool isActive; // Is this structure in use?
 		SystemAddress systemAddress;  /// Their external IP on the internet
 		SystemAddress myExternalSystemAddress;  /// Your external IP on the internet, from their perspective
-		SystemAddress theirInternalSystemAddress;  /// Their internal IP, behind the LAN
+		SystemAddress theirInternalSystemAddress[MAXIMUM_NUMBER_OF_INTERNAL_IDS];  /// Their internal IP, behind the LAN
 		ReliabilityLayer reliabilityLayer;  /// The reliability layer associated with this player
 		bool weInitiatedTheConnection; /// True if we started this connection via Connect.  False if someone else connected to us.
 		PingAndClockDifferential pingAndClockDifferential[ PING_TIMES_ARRAY_SIZE ];  /// last x ping times and calculated clock differentials with it
@@ -617,10 +637,7 @@ public:
 		RPCMap rpcMap; /// Mapping of RPC calls to single byte integers to save transmission bandwidth.
 		RakNetGUID guid;
 		int MTUSize;
-#if defined(_PS3)
-//		void *onlineServiceId;
-//		unsigned int connectionId;
-#endif
+
 		enum ConnectMode {NO_ACTION, DISCONNECT_ASAP, DISCONNECT_ASAP_SILENTLY, DISCONNECT_ON_NO_ACK, REQUESTED_CONNECTION, HANDLING_CONNECTION_REQUEST, UNVERIFIED_SENDER, SET_ENCRYPTION_ON_MULTIPLE_16_BYTE_PACKET, CONNECTED} connectMode;
 	};
 
@@ -651,7 +668,7 @@ protected:
 	int GetIndexFromSystemAddress( const SystemAddress systemAddress, bool calledFromNetworkThread );
 
 	//void RemoveFromRequestedConnectionsList( const SystemAddress systemAddress );
-	bool SendConnectionRequest( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex, unsigned int extraData );
+	bool SendConnectionRequest( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex, unsigned int extraData, unsigned sendConnectionAttemptCount, unsigned timeBetweenSendConnectionAttemptsMS );
 	///Get the reliability layer associated with a systemAddress.  
 	/// \param[in] systemAddress The player identifier 
 	/// \return 0 if none
@@ -666,7 +683,7 @@ protected:
 	///Returns how many remote systems initiated a connection to us
 	unsigned short GetNumberOfRemoteInitiatedConnections( void ) const;
 	///Get a free remote system from the list and assign our systemAddress to it.  Should only be called from the update thread - not the user thread
-	RemoteSystemStruct * AssignSystemAddressToRemoteSystemList( const SystemAddress systemAddress, RemoteSystemStruct::ConnectMode connectionMode, unsigned connectionSocketIndex );
+	RemoteSystemStruct * AssignSystemAddressToRemoteSystemList( const SystemAddress systemAddress, RemoteSystemStruct::ConnectMode connectionMode, unsigned connectionSocketIndex, bool *thisIPConnectedRecently );
 	///An incoming packet has a timestamp, so adjust it to be relative to this system
 	void ShiftIncomingTimestamp( unsigned char *data, SystemAddress systemAddress ) const;
 	///Get the most probably accurate clock differential for a certain player
@@ -686,6 +703,9 @@ protected:
 	/// \param[in] systemAddress The sender of the packet 
 	void HandleRPCReplyPacket( const char *data, int length, SystemAddress systemAddress );
 
+	bool IsLoopbackAddress(SystemAddress sa) const;
+	SystemAddress GetLoopbackAddress(void) const;
+
 	///Set this to true to terminate the Peer thread execution 
 	volatile bool endThreads;
 	///true if the peer thread is active. 
@@ -700,7 +720,7 @@ protected:
 	unsigned short maximumIncomingConnections;
 	RakNet::BitStream offlinePingResponse;
 	///Local Player ID
-	SystemAddress mySystemAddress;
+	SystemAddress mySystemAddress[MAXIMUM_NUMBER_OF_INTERNAL_IDS];
 	char incomingPassword[256];
 	unsigned char incomingPasswordLength;
 
@@ -771,12 +791,14 @@ protected:
 		unsigned char outgoingPasswordLength;
 		unsigned socketIndex;
 		unsigned int extraData;
+		unsigned sendConnectionAttemptCount;
+		unsigned timeBetweenSendConnectionAttemptsMS;
 		enum {CONNECT=1, /*PING=2, PING_OPEN_CONNECTIONS=4,*/ /*ADVERTISE_SYSTEM=2*/} actionToTake;
 	};
 
 	//DataStructures::List<DataStructures::List<MemoryBlock>* > automaticVariableSynchronizationList;
 	DataStructures::List<BanStruct*> banList;
-	DataStructures::List<PluginInterface*> messageHandlerList;
+	DataStructures::List<PluginInterface2*> messageHandlerList;
 	// DataStructures::SingleProducerConsumer<RequestedConnectionStruct> requestedConnectionList;
 
 	DataStructures::Queue<RequestedConnectionStruct*> requestedConnectionQueue;
@@ -806,7 +828,12 @@ protected:
 		NetworkID networkID;
 		bool blockingCommand; // Only used for RPC
 		char *data;
-		enum {BCS_SEND, BCS_CLOSE_CONNECTION, BCS_CANCEL_CONNECTION_ATTEMPT, /*BCS_RPC, BCS_RPC_SHIFT,*/ BCS_DO_NOTHING} command;
+		bool haveRakNetCloseSocket;
+		unsigned connectionSocketIndex;
+		SocketDescriptor::SocketType socketType;
+		SOCKET socket;
+		unsigned short port;
+		enum {BCS_SEND, BCS_CLOSE_CONNECTION, BCS_USE_USER_SOCKET, BCS_REBIND_SOCKET_ADDRESS, /*BCS_RPC, BCS_RPC_SHIFT,*/ BCS_DO_NOTHING} command;
 	};
 
 	// Single producer single consumer queue using a linked list
@@ -821,11 +848,12 @@ protected:
 	void CloseConnectionInternal( const SystemAddress target, bool sendDisconnectionNotification, bool performImmediate, unsigned char orderingChannel );
 	void SendBuffered( const char *data, BitSize_t numberOfBitsToSend, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, RemoteSystemStruct::ConnectMode connectionMode );
 	void SendBufferedList( char **data, const int *lengths, const int numParameters, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, RemoteSystemStruct::ConnectMode connectionMode );
-	bool SendImmediate( char *data, BitSize_t numberOfBitsToSend, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, bool useCallerDataAllocation, RakNetTimeNS currentTime );
+	bool SendImmediate( char *data, BitSize_t numberOfBitsToSend, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, bool useCallerDataAllocation, RakNetTimeUS currentTime );
 	//bool HandleBufferedRPC(BufferedCommandStruct *bcs, RakNetTime time);
 	void ClearBufferedCommands(void);
 	void ClearRequestedConnectionList(void);
 	void AddPacketToProducer(Packet *p);
+	unsigned int GenerateSeedFromGuid(void);
 	SimpleMutex securityExceptionMutex;
 
 	//DataStructures::AVLBalancedBinarySearchTree<RPCNode> rpcTree;
@@ -834,7 +862,15 @@ protected:
 	bool trackFrequencyTable;
 	int threadSleepTimer;
 
-	SOCKET *connectionSockets;
+	struct RakNetSocket
+	{
+		SOCKET s;
+		bool haveRakNetCloseSocket;
+		SocketDescriptor::SocketType socketType;
+	} *connectionSockets;
+
+//	SOCKET *connectionSockets;
+//	bool *haveRakNetCloseSocket; // array of bools, to dealloc connectionSockets into the same index
 	unsigned connectionSocketsLength;
 
 #if defined (_WIN32) && defined(USE_WAIT_FOR_MULTIPLE_EVENTS)
@@ -897,7 +933,7 @@ protected:
 	SystemAddress firstExternalID;
 	int splitMessageProgressInterval;
 	RakNetTime unreliableTimeout;
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 //	unsigned int console2ContextId;
 #endif
 

@@ -1,19 +1,10 @@
 /// \file
 /// \brief A simple TCP based server allowing sends and receives.  Can be connected to by a telnet client.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "TCPInterface.h"
 #ifdef _WIN32
@@ -24,21 +15,18 @@ typedef int socklen_t;
 #include <pthread.h>
 #endif
 #include <string.h>
-#include <assert.h>
+#include "RakAssert.h"
 #include <stdio.h>
 #include "RakAssert.h"
 #include "RakSleep.h"
+#include "StringCompressor.h"
+#include "StringTable.h"
 
 #ifdef _DO_PRINTF
 #endif
 
 #ifdef _WIN32
 #include "WSAStartupSingleton.h"
-#elif defined(_PS3)
-#define closesocket socketclose
-#else
-#define closesocket close
-#include <unistd.h>
 #endif
 
 RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop);
@@ -53,6 +41,9 @@ TCPInterface::TCPInterface()
 	isStarted=false;
 	threadRunning=false;
 	listenSocket=(SOCKET) -1;
+
+	StringCompressor::AddReference();
+	RakNet::StringTable::AddReference();
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	ctx=0;
@@ -69,6 +60,9 @@ TCPInterface::~TCPInterface()
 #ifdef _WIN32
 	WSAStartupSingleton::Deref();
 #endif
+
+	StringCompressor::RemoveReference();
+	RakNet::StringTable::RemoveReference();
 }
 bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnections)
 {
@@ -146,26 +140,32 @@ void TCPInterface::Stop(void)
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 		remoteClients[i]->FreeSSL();
 #endif
-		RakNet::OP_DELETE(remoteClients[i]);
+		RakNet::OP_DELETE(remoteClients[i], __FILE__, __LINE__);
 	}
 	remoteClients.Clear();
 
 	for (i=0; i < remoteClientsInsertionQueue.Size(); i++)
 	{
 		closesocket(remoteClientsInsertionQueue[i]->socket);
-		RakNet::OP_DELETE(remoteClientsInsertionQueue[i]);
+		RakNet::OP_DELETE(remoteClientsInsertionQueue[i], __FILE__, __LINE__);
 	}
 	remoteClientsInsertionQueue.Clear();
 
 	outgoingMessages.Clear();
 	incomingMessages.Clear();
-	newConnections.Clear();
+	newIncomingConnections.Clear();
 	newRemoteClients.Clear();
 	lostConnections.Clear();
 	requestedCloseConnections.Clear();
 	failedConnectionAttempts.Clear();
 	completedConnectionAttempts.Clear();
 	failedConnectionAttempts.Clear();
+	for (i=0; i < headPush.Size(); i++)
+		DeallocatePacket(headPush[i]);
+	headPush.Clear();
+	for (i=0; i < tailPush.Size(); i++)
+		DeallocatePacket(tailPush[i]);
+	tailPush.Clear();
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	SSL_CTX_free (ctx);
@@ -177,21 +177,35 @@ SystemAddress TCPInterface::Connect(const char* host, unsigned short remotePort,
 {
 	if (block)
 	{
+		SystemAddress systemAddress;
+		systemAddress.binaryAddress=inet_addr(host);
+		systemAddress.port=remotePort;
+
 		SOCKET sockfd = SocketConnect(host, remotePort);
 		if (sockfd==(SOCKET)-1)
+		{	
+			failedConnectionAttemptMutex.Lock();
+			failedConnectionAttempts.Push(systemAddress);
+			failedConnectionAttemptMutex.Unlock();
+
 			return UNASSIGNED_SYSTEM_ADDRESS;
+		}
 
 		RemoteClient *remoteClient;
-		remoteClient = RakNet::OP_NEW<RemoteClient>();
+		remoteClient = AllocRemoteClient( __FILE__, __LINE__ );
 		remoteClient->socket=sockfd;
-		remoteClient->systemAddress.binaryAddress=inet_addr(host);
-		remoteClient->systemAddress.port=remotePort;
+		remoteClient->systemAddress=systemAddress;
 		InsertRemoteClient(remoteClient);
+
+		completedConnectionAttemptMutex.Lock();
+		completedConnectionAttempts.Push(remoteClient->systemAddress);
+		completedConnectionAttemptMutex.Unlock();
+
 		return remoteClient->systemAddress;
 	}
 	else
 	{
-		ThisPtrPlusSysAddr *s = RakNet::OP_NEW<ThisPtrPlusSysAddr>();
+		ThisPtrPlusSysAddr *s = RakNet::OP_NEW<ThisPtrPlusSysAddr>( __FILE__, __LINE__ );
 		s->systemAddress.SetBinaryAddress(host);
 		s->systemAddress.port=remotePort;
 		s->tcpInterface=this;
@@ -200,7 +214,7 @@ SystemAddress TCPInterface::Connect(const char* host, unsigned short remotePort,
 		int errorCode = RakNet::RakThread::Create(ConnectionAttemptLoop, s);
 		if (errorCode!=0)
 		{
-			RakNet::OP_DELETE(s);
+			RakNet::OP_DELETE(s, __FILE__, __LINE__);
 			failedConnectionAttempts.Push(s->systemAddress);
 		}
 		return UNASSIGNED_SYSTEM_ADDRESS;
@@ -230,7 +244,7 @@ bool TCPInterface::IsSSLActive(SystemAddress systemAddress)
 	return activeSSLConnections.GetIndexOf(systemAddress)!=-1;
 }
 #endif
-void TCPInterface::Send( const char *data, unsigned length, SystemAddress systemAddress )
+void TCPInterface::Send( const char *data, unsigned length, SystemAddress systemAddress, bool broadcast )
 {
 	if (isStarted==false)
 		return;
@@ -238,18 +252,70 @@ void TCPInterface::Send( const char *data, unsigned length, SystemAddress system
 		return;
 	if (data==0)
 		return;
-	Packet *p=outgoingMessages.WriteLock();
-	p->length=length;
-	p->data = (unsigned char*) rakMalloc( p->length );
-	memcpy(p->data, data, p->length);
+	if (systemAddress==UNASSIGNED_SYSTEM_ADDRESS && broadcast==false)
+		return;
+	OutgoingMessage *p;
+	if (broadcast==false)
+	{
+		p=outgoingMessages.WriteLock();
+		p->length=length;
+		p->data = (unsigned char*) rakMalloc_Ex( p->length, __FILE__, __LINE__ );
+		memcpy(p->data, data, p->length);
+		p->systemAddress=systemAddress;
+		p->broadcast=broadcast;
+		outgoingMessages.WriteUnlock();
+	}
+}
+bool TCPInterface::SendList( char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast )
+{
+	if (isStarted==false)
+		return false;
+	if (remoteClients.Size()==0)
+		return false;
+	if (data==0)
+		return false;
+	if (systemAddress==UNASSIGNED_SYSTEM_ADDRESS && broadcast==false)
+		return false;
+	unsigned int totalLength=0;
+	unsigned int lengthOffset;
+	int i;
+	for (i=0; i < numParameters; i++)
+	{
+		if (lengths[i]>0)
+			totalLength+=lengths[i];
+	}
+	if (totalLength==0)
+		return false;
+	OutgoingMessage *p;
+	p=outgoingMessages.WriteLock();
+	p->length=totalLength;
+	p->data = (unsigned char*) rakMalloc_Ex( totalLength, __FILE__, __LINE__ );
+	for (i=0, lengthOffset=0; i < numParameters; i++)
+	{
+		if (lengths[i]>0)
+		{
+			memcpy(p->data+lengthOffset, data[i], lengths[i]);
+			lengthOffset+=lengths[i];
+		}
+	}
 	p->systemAddress=systemAddress;
+	p->broadcast=broadcast;
 	outgoingMessages.WriteUnlock();
+
+	return true;
 }
 Packet* TCPInterface::Receive( void )
 {
 	if (isStarted==false)
 		return 0;
-	return incomingMessages.ReadLock();
+	if (headPush.IsEmpty()==false)
+		return headPush.Pop();
+	Packet *p = incomingMessages.ReadLock();
+	if (p)
+		return p;
+	if (tailPush.IsEmpty()==false)
+		return tailPush.Pop();
+	return 0;
 }
 void TCPInterface::CloseConnection( SystemAddress systemAddress )
 {
@@ -271,9 +337,37 @@ void TCPInterface::DeallocatePacket( Packet *packet )
 {
 	if (packet==0)
 		return;
-	assert(incomingMessages.CheckReadUnlockOrder(packet));
-	rakFree(packet->data);
-	incomingMessages.ReadUnlock();
+	if (packet->deleteData)
+	{
+		RakAssert(incomingMessages.CheckReadUnlockOrder(packet));
+		rakFree_Ex(packet->data, __FILE__, __LINE__ );
+		incomingMessages.ReadUnlock();
+	}
+	else
+	{
+		// Came from userspace AllocatePacket
+		rakFree_Ex(packet->data, __FILE__, __LINE__ );
+		RakNet::OP_DELETE(packet, __FILE__, __LINE__);
+	}
+}
+Packet* TCPInterface::AllocatePacket(unsigned dataSize)
+{
+	Packet*p = RakNet::OP_NEW<Packet>(__FILE__,__LINE__);
+	p->data=(unsigned char*) rakMalloc_Ex(dataSize,__FILE__,__LINE__);
+	p->length=dataSize;
+	p->bitSize=BYTES_TO_BITS(dataSize);
+	p->deleteData=false;
+	p->guid=UNASSIGNED_RAKNET_GUID;
+	p->systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+	p->systemIndex=(SystemIndex)-1;
+	return p;
+}
+void TCPInterface::PushBackPacket( Packet *packet, bool pushAtHead )
+{
+	if (pushAtHead)
+		headPush.Push(packet);
+	else
+		tailPush.Push(packet);
 }
 SystemAddress TCPInterface::HasCompletedConnectionAttempt(void)
 {
@@ -293,13 +387,13 @@ SystemAddress TCPInterface::HasFailedConnectionAttempt(void)
 	failedConnectionAttemptMutex.Unlock();
 	return sysAddr;
 }
-SystemAddress TCPInterface::HasNewConnection(void)
+SystemAddress TCPInterface::HasNewIncomingConnection(void)
 {
 	SystemAddress *out;
-	out = newConnections.ReadLock();
+	out = newIncomingConnections.ReadLock();
 	if (out)
 	{
-		newConnections.ReadUnlock();
+		newIncomingConnections.ReadUnlock();
 		return *out;
 	}
 	else
@@ -331,7 +425,7 @@ void TCPInterface::DeleteRemoteClient(RemoteClient *remoteClient, fd_set *except
 //	FD_CLR(remoteClient->socket, exceptionFD);
 	closesocket(remoteClient->socket);
 	//shutdown(remoteClient->socket, SD_SEND);
-	RakNet::OP_DELETE(remoteClient);
+	RakNet::OP_DELETE(remoteClient, __FILE__, __LINE__);
 }
 
 void TCPInterface::InsertRemoteClient(RemoteClient* remoteClient)
@@ -340,7 +434,10 @@ void TCPInterface::InsertRemoteClient(RemoteClient* remoteClient)
 	remoteClientsInsertionQueue.Push(remoteClient);
 	remoteClientsInsertionQueueMutex.Unlock();
 }
-
+RemoteClient* TCPInterface::AllocRemoteClient(const char *file, unsigned int line) const
+{
+	return RakNet::OP_NEW<RemoteClient>(file, line);
+}
 SOCKET TCPInterface::SocketConnect(const char* host, unsigned short remotePort)
 {
 	sockaddr_in serverAddress;
@@ -368,7 +465,7 @@ SOCKET TCPInterface::SocketConnect(const char* host, unsigned short remotePort)
 #endif
 
 	blockingSocketListMutex.Lock();
-	blockingSocketList.Insert(sockfd);
+	blockingSocketList.Insert(sockfd, __FILE__, __LINE__);
 	blockingSocketListMutex.Unlock();
 
 	// This is blocking
@@ -394,9 +491,11 @@ RAK_THREAD_DECLARATION(ConnectionAttemptLoop)
 	TCPInterface::ThisPtrPlusSysAddr *s = (TCPInterface::ThisPtrPlusSysAddr *) arguments;
 	SystemAddress systemAddress = s->systemAddress;
 	TCPInterface *tcpInterface = s->tcpInterface;
-	RakNet::OP_DELETE(s);
+	RakNet::OP_DELETE(s, __FILE__, __LINE__);
 
-	SOCKET sockfd = tcpInterface->SocketConnect(systemAddress.ToString(false), systemAddress.port);
+	char str1[64];
+	systemAddress.ToString(false, str1);
+	SOCKET sockfd = tcpInterface->SocketConnect(str1, systemAddress.port);
 	if (sockfd==(SOCKET)-1)
 	{
 		tcpInterface->failedConnectionAttemptMutex.Lock();
@@ -406,7 +505,7 @@ RAK_THREAD_DECLARATION(ConnectionAttemptLoop)
 	}
 
 	RemoteClient *remoteClient;
-	remoteClient = RakNet::OP_NEW<RemoteClient>();
+	remoteClient = tcpInterface->AllocRemoteClient( __FILE__, __LINE__ );
 	remoteClient->socket=sockfd;
 	remoteClient->systemAddress=systemAddress;
 	tcpInterface->InsertRemoteClient(remoteClient);
@@ -436,9 +535,12 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 {
 	TCPInterface * sts = ( TCPInterface * ) arguments;
 	RemoteClient *remoteClient;
-	const int BUFF_SIZE=8096;
-	char data[ BUFF_SIZE ];
-	Packet *p;
+//	const int BUFF_SIZE=8096;
+	const int BUFF_SIZE=1048576;
+	//char data[ BUFF_SIZE ];
+	char * data = (char*) rakMalloc_Ex(BUFF_SIZE,__FILE__,__LINE__);
+	TCPInterface::OutgoingMessage *outgoingMessage;
+	Packet *incomingMessage;
 	SystemAddress *systemAddress;
 	fd_set      readFD, exceptionFD;
 	sts->threadRunning=true;
@@ -472,33 +574,36 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 		}
 #endif
 
-		p=sts->outgoingMessages.ReadLock();
-		while (p)
+		outgoingMessage=sts->outgoingMessages.ReadLock();
+		while (outgoingMessage)
 		{
-			if (p->systemAddress==UNASSIGNED_SYSTEM_ADDRESS)
+			if (outgoingMessage->broadcast)
 			{
-				// Send to all
+				// Send to all, possible exception system
 				for (i=0; i < sts->remoteClients.Size(); i++)
-					sts->remoteClients[i]->Send((const char*)p->data, p->length);
+				{
+					if (sts->remoteClients[i]->systemAddress!=outgoingMessage->systemAddress)
+						sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
+				}
 			}
 			else
 			{
 				// Send to this player
 				for (i=0; i < sts->remoteClients.Size(); i++)
-					if (sts->remoteClients[i]->systemAddress==p->systemAddress )
-						sts->remoteClients[i]->Send((const char*)p->data, p->length);
+					if (sts->remoteClients[i]->systemAddress==outgoingMessage->systemAddress )
+						sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
 			}
 
-			rakFree(p->data);
+			rakFree_Ex(outgoingMessage->data, __FILE__, __LINE__ );
 			sts->outgoingMessages.ReadUnlock();
-			p=sts->outgoingMessages.ReadLock();
+			outgoingMessage=sts->outgoingMessages.ReadLock();
 		}
 
 		if (sts->remoteClientsInsertionQueue.IsEmpty()==false)
 		{
 			sts->remoteClientsInsertionQueueMutex.Lock();
 			if (sts->remoteClientsInsertionQueue.IsEmpty()==false)
-				sts->remoteClients.Insert(sts->remoteClientsInsertionQueue.Pop());
+				sts->remoteClients.Insert(sts->remoteClientsInsertionQueue.Pop(), __FILE__, __LINE__);
 			sts->remoteClientsInsertionQueueMutex.Unlock();
 		}
 
@@ -561,7 +666,7 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 #ifdef _MSC_VER
 #pragma warning( disable : 4244 ) // warning C4127: conditional expression is constant
 #endif
-#if defined(_PS3)
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
 		selectResult=socketselect(largestDescriptor+1, &readFD, 0, &exceptionFD, &tv);
 #else
 		selectResult=(int) select(largestDescriptor+1, &readFD, 0, &exceptionFD, &tv);		
@@ -578,14 +683,14 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 
 				if (newSock != (SOCKET) -1)
 				{
-					remoteClient = RakNet::OP_NEW<RemoteClient>();
+					remoteClient = sts->AllocRemoteClient( __FILE__, __LINE__ );
 					remoteClient->socket=newSock;
 					remoteClient->systemAddress.binaryAddress=sockAddr.sin_addr.s_addr;
 					remoteClient->systemAddress.port=ntohs( sockAddr.sin_port);
-					sts->remoteClients.Insert(remoteClient);
-					systemAddress=sts->newConnections.WriteLock();
+					sts->remoteClients.Insert(remoteClient, __FILE__, __LINE__);
+					systemAddress=sts->newIncomingConnections.WriteLock();
 					*systemAddress=remoteClient->systemAddress;
-					sts->newConnections.WriteUnlock();
+					sts->newIncomingConnections.WriteUnlock();
 
 					FD_SET(newSock, &readFD);
 					FD_SET(newSock, &exceptionFD);
@@ -640,12 +745,13 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 							len = sts->remoteClients[i]->Recv(data,BUFF_SIZE);
 							if (len>0)
 							{
-								p=sts->incomingMessages.WriteLock();
-								p->data = (unsigned char*) rakMalloc( len+1 );
-								memcpy(p->data, data, len);
-								p->data[len]=0; // Null terminate this so we can print it out as regular strings.  This is different from RakNet which does not do this.
-								p->length=len;
-								p->systemAddress=sts->remoteClients[i]->systemAddress;
+								incomingMessage=sts->incomingMessages.WriteLock();
+								incomingMessage->data = (unsigned char*) rakMalloc_Ex( len+1, __FILE__, __LINE__ );
+								memcpy(incomingMessage->data, data, len);
+								incomingMessage->data[len]=0; // Null terminate this so we can print it out as regular strings.  This is different from RakNet which does not do this.
+								incomingMessage->length=len;
+								incomingMessage->deleteData=true; // actually means came from SPSC, rather than AllocatePacket
+								incomingMessage->systemAddress=sts->remoteClients[i]->systemAddress;
 								sts->incomingMessages.WriteUnlock();
 								i++; // Nothing deleted so increment the index
 							}
@@ -684,6 +790,8 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 
 	}
 	sts->threadRunning=false;
+
+	rakFree_Ex(data,__FILE__,__LINE__);
 
 	return 0;
 }

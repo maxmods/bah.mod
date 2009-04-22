@@ -104,8 +104,8 @@ extern "C" {
 	void bmx_RakPeer_SetOfflinePingResponse(RakPeerInterface * peer, BBString * data);
 	BBString * bmx_RakPeer_GetOfflinePingResponse(RakPeerInterface * peer);
 	void bmx_RakPeer_SetCompileFrequencyTable(RakPeerInterface * peer, bool doCompile);
-	void bmx_RakPeer_AttachPlugin(RakPeerInterface * peer, PluginInterface * 	plugin	);
-	void bmx_RakPeer_DetachPlugin(RakPeerInterface * peer, PluginInterface * 	plugin	);
+	void bmx_RakPeer_AttachPlugin(RakPeerInterface * peer, PluginInterface2 * 	plugin	);
+	void bmx_RakPeer_DetachPlugin(RakPeerInterface * peer, PluginInterface2 * 	plugin	);
 	bool bmx_RakPeer_Send(RakPeerInterface * peer, const char * data, const int length, PacketPriority priority, 
 		PacketReliability reliability, int orderingChannel, MaxSystemAddress * addr, bool broadcast);
 	BBString * bmx_RakPeer_GetLocalIP(RakPeerInterface * peer, int index);
@@ -307,7 +307,7 @@ extern "C" {
 
 	void bmx_raknet_seedMT(unsigned int seed);
 	void bmx_raknet_gettime(BBInt64 * v);
-	void bmx_raknet_gettimens(RakNetTimeNS * v);
+	void bmx_raknet_gettimens(RakNetTimeUS * v);
 	unsigned int bmx_raknet_randomMT();
 	float bmx_raknet_frandomMT();
 	void bmx_raknet_fillBufferMT(void * buffer, unsigned int size);
@@ -389,7 +389,7 @@ extern "C" {
 	void bmx_FileList_GetDeltaToCurrent(FileList * list, FileList * inputList, FileList * outputList, BBString * dirSubset, BBString * remoteSubdir);
 	void bmx_FileList_PopulateDataFromDisk(FileList * list, BBString * applicationDirectory, bool writeFileData, bool writeFileHash, bool removeUnknownFiles);
 	void bmx_FileList_WriteDataToDisk(FileList * list, BBString * applicationDirectory);
-	void bmx_FileList_AddFileMemory(FileList * list,BBString *  filename, const char * data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext * context, bool isAReference);
+	void bmx_FileList_AddFileMemory(FileList * list,BBString *  filename, BBString * fullpathToFile, const char * data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext * context, bool isAReference);
 	void bmx_FileList_AddFile(FileList * list, BBString * filepath, BBString * filename, FileListNodeContext * context);
 	void bmx_FileList_DeleteFiles(FileList * list, BBString * applicationDirectory);
 	void bmx_FileList_delete(FileList * list);

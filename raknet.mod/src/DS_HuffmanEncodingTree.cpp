@@ -1,23 +1,14 @@
 /// \file
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #include "DS_HuffmanEncodingTree.h"
 #include "DS_Queue.h"
 #include "BitStream.h"
-#include <assert.h> 
+#include "RakAssert.h" 
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -55,12 +46,12 @@ void HuffmanEncodingTree::FreeMemory( void )
 		if ( node->right )
 			nodeQueue.Push( node->right );
 
-		RakNet::OP_DELETE(node);
+		RakNet::OP_DELETE(node, __FILE__, __LINE__);
 	}
 
 	// Delete the encoding table
 	for ( int i = 0; i < 256; i++ )
-		rakFree(encodingTable[ i ].encoding);
+		rakFree_Ex(encodingTable[ i ].encoding, __FILE__, __LINE__ );
 
 	root = 0;
 }
@@ -81,7 +72,7 @@ void HuffmanEncodingTree::GenerateFromFrequencyTable( unsigned int frequencyTabl
 
 	for ( counter = 0; counter < 256; counter++ )
 	{
-		node = RakNet::OP_NEW<HuffmanEncodingTreeNode>();
+		node = RakNet::OP_NEW<HuffmanEncodingTreeNode>( __FILE__, __LINE__ );
 		node->left = 0;
 		node->right = 0;
 		node->value = (unsigned char) counter;
@@ -107,7 +98,7 @@ void HuffmanEncodingTree::GenerateFromFrequencyTable( unsigned int frequencyTabl
 		HuffmanEncodingTreeNode *lesser, *greater;
 		lesser = huffmanEncodingTreeNodeList.Pop();
 		greater = huffmanEncodingTreeNodeList.Pop();
-		node = RakNet::OP_NEW<HuffmanEncodingTreeNode>();
+		node = RakNet::OP_NEW<HuffmanEncodingTreeNode>( __FILE__, __LINE__ );
 		node->left = lesser;
 		node->right = greater;
 		node->weight = lesser->weight + greater->weight;
@@ -196,7 +187,7 @@ void HuffmanEncodingTree::EncodeArray( unsigned char *input, size_t sizeInBytes,
 			}
 
 #ifdef _DEBUG
-			assert( counter != 256 );  // Given 256 elements, we should always be able to find an input that would be >= 7 bits
+			RakAssert( counter != 256 );  // Given 256 elements, we should always be able to find an input that would be >= 7 bits
 
 #endif
 

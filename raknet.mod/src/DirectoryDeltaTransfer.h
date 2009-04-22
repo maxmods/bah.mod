@@ -1,19 +1,10 @@
 /// \file
 /// \brief Simple class to send changes between directories.  In essence, a simple autopatcher that can be used for transmitting levels, skins, etc.
 ///
-/// This file is part of RakNet Copyright 2003 Kevin Jenkins.
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
 /// Usage of RakNet is subject to the appropriate license agreement.
-/// Creative Commons Licensees are subject to the
-/// license found at
-/// http://creativecommons.org/licenses/by-nc/2.5/
-/// Single application licensees are subject to the license found at
-/// http://www.jenkinssoftware.com/SingleApplicationLicense.html
-/// Custom license users are subject to the terms therein.
-/// GPL license users are subject to the GNU General Public
-/// License as published by the Free
-/// Software Foundation; either version 2 of the License, or (at your
-/// option) any later version.
+
 
 #ifndef __DIRECTORY_DELTA_TRANSFER_H
 #define __DIRECTORY_DELTA_TRANSFER_H
@@ -21,7 +12,7 @@
 #include "RakMemoryOverride.h"
 #include "RakNetTypes.h"
 #include "Export.h"
-#include "PluginInterface.h"
+#include "PluginInterface2.h"
 #include "DS_Map.h"
 #include "PacketPriority.h"
 
@@ -33,6 +24,7 @@ struct DownloadRequest;
 class FileListTransfer;
 class FileListTransferCBInterface;
 class FileListProgress;
+class IncrementalReadInterface;
 
 /// \defgroup DIRECTORY_DELTA_TRANSFER_GROUP DirectoryDeltaTransfer
 /// \ingroup PLUGINS_GROUP
@@ -51,7 +43,7 @@ class FileListProgress;
 /// It would NOT allow downloads from C:/Games/MyRPG/Levels, nor would it allow downloads from C:/Windows
 /// While pathToApplication can be anything you want, applicationSubdirectory must match either partially or fully between systems.
 /// \ingroup DIRECTORY_DELTA_TRANSFER_GROUP
-class RAK_DLL_EXPORT DirectoryDeltaTransfer : public PluginInterface
+class RAK_DLL_EXPORT DirectoryDeltaTransfer : public PluginInterface2
 {
 public:
 	/// Constructor
@@ -111,24 +103,25 @@ public:
 	/// \param[in] compress True to compress, false to not.
 	void SetCompressOutgoingSends(bool compress);
 
+	/// Normally, if a remote system requests files, those files are all loaded into memory and sent immediately.
+	/// This function allows the files to be read in incremental chunks, saving memory
+	/// \param[in] _incrementalReadInterface If a file in \a fileList has no data, filePullInterface will be used to read the file in chunks of size \a chunkSize
+	/// \param[in] _chunkSize How large of a block of a file to send at once
+	void SetDownloadRequestIncrementalReadInterface(IncrementalReadInterface *_incrementalReadInterface, unsigned int _chunkSize);
+	
 	/// \internal For plugin handling
-	virtual void OnAttach(RakPeerInterface *peer);
-	/// \internal For plugin handling
-	virtual void Update(RakPeerInterface *peer);
-	/// \internal For plugin handling
-	virtual PluginReceiveResult OnReceive(RakPeerInterface *peer, Packet *packet);
-	/// \internal For plugin handling
-	virtual void OnShutdown(RakPeerInterface *peer);
+	virtual PluginReceiveResult OnReceive(Packet *packet);
 protected:
-	void OnDownloadRequest(RakPeerInterface *peer, Packet *packet);
+	void OnDownloadRequest(Packet *packet);
 
 	char applicationDirectory[512];
 	FileListTransfer *fileListTransfer;
 	FileList *availableUploads;
-	RakPeerInterface *rakPeer;
 	PacketPriority priority;
 	char orderingChannel;
 	bool compressOutgoingSends;
+	IncrementalReadInterface *incrementalReadInterface;
+	unsigned int chunkSize;
 };
 
 #endif

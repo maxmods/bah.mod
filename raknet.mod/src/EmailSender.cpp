@@ -47,7 +47,7 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	if (packet==0)
 		return "Timeout while waiting for initial data from server.";
 	
-	tcpInterface.Send("EHLO\r\n", 6, emailServer);
+	tcpInterface.Send("EHLO\r\n", 6, emailServer,false);
 	const char *response;
 	bool authenticate=false;
 #ifdef _MSC_VER
@@ -75,14 +75,14 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	if (authenticate)
 	{
 		sprintf(query, "EHLO %s\r\n", sender);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 		response=GetResponse(&tcpInterface, emailServer, doPrintf);
 		if (response!=0)
 			return response;
 
 		if (password==0)
 			return "Password needed";
-		char *outputData = RakNet::OP_NEW_ARRAY<char >((const int) (strlen(sender)+strlen(password)+2)*3);
+		char *outputData = RakNet::OP_NEW_ARRAY<char >((const int) (strlen(sender)+strlen(password)+2)*3, __FILE__, __LINE__ );
 		RakNet::BitStream bs;
 		char zero=0;
 		bs.Write(&zero,1);
@@ -94,7 +94,7 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 		//bs.Write("not.my.real.password",(const unsigned int)strlen("not.my.real.password"));
 		Base64Encoding((const char*)bs.GetData(), bs.GetNumberOfBytesUsed(), outputData, base64Map);
 		sprintf(query, "AUTH PLAIN %s", outputData);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 		response=GetResponse(&tcpInterface, emailServer, doPrintf);
 		if (response!=0)
 			return response;
@@ -105,7 +105,7 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 		sprintf(query, "MAIL From: <%s>\r\n", sender);
 	else
 		sprintf(query, "MAIL From: <>\r\n");
-	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	response=GetResponse(&tcpInterface, emailServer, doPrintf);
 	if (response!=0)
 		return response;
@@ -114,12 +114,12 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 		sprintf(query, "RCPT TO: <%s>\r\n", recipient);
 	else
 		sprintf(query, "RCPT TO: <>\r\n");
-	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	response=GetResponse(&tcpInterface, emailServer, doPrintf);
 	if (response!=0)
 		return response;
 
-	tcpInterface.Send("DATA\r\n", (unsigned int)strlen("DATA\r\n"), emailServer);
+	tcpInterface.Send("DATA\r\n", (unsigned int)strlen("DATA\r\n"), emailServer,false);
 
 	// Wait for 354...
 
@@ -130,17 +130,17 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	if (subject)
 	{
 		sprintf(query, "Subject: %s\r\n", subject);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	}
 	if (senderName)
 	{
 		sprintf(query, "From: %s\r\n", senderName);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	}
 	if (recipientName)
 	{
 		sprintf(query, "To: %s\r\n", recipientName);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	}
 
 	const int boundarySize=60;
@@ -156,25 +156,25 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	}
 
 	sprintf(query, "MIME-version: 1.0\r\n");
-	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
 	if (attachedFiles && attachedFiles->fileList.Size())
 	{
 		sprintf(query, "Content-type: multipart/mixed; BOUNDARY=\"%s\"\r\n\r\n", boundary);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
 		sprintf(query, "This is a multi-part message in MIME format.\r\n\r\n--%s\r\n", boundary);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	}
 	
 	sprintf(query, "Content-Type: text/plain; charset=\"US-ASCII\"\r\n\r\n");
-	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
 	// Write the body of the email, doing some lame shitty shit where I have to make periods at the start of a newline have a second period.
 	char *newBody;
 	int bodyLength;
 	bodyLength=(int)strlen(body);
-	newBody = (char*) rakMalloc( bodyLength*3 );
+	newBody = (char*) rakMalloc_Ex( bodyLength*3, __FILE__, __LINE__ );
 	if (bodyLength>0)
 		newBody[0]=body[0];
 	for (i=1, j=1; i < bodyLength; i++)
@@ -241,9 +241,9 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	
 	newBody[j++]='\r';
 	newBody[j++]='\n';
-	tcpInterface.Send(newBody, j, emailServer);
+	tcpInterface.Send(newBody, j, emailServer,false);
 
-	rakFree(newBody);
+	rakFree_Ex(newBody, __FILE__, __LINE__ );
 	int outputOffset;
 
 	// What a pain in the rear.  I have to map the binary to printable characters using 6 bits per character.
@@ -253,34 +253,34 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 		{
 			// Write boundary
 			sprintf(query, "\r\n--%s\r\n", boundary);
-			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
 			sprintf(query, "Content-Type: APPLICATION/Octet-Stream; SizeOnDisk=%i; name=\"%s\"\r\nContent-Transfer-Encoding: BASE64\r\nContent-Description: %s\r\n\r\n", attachedFiles->fileList[i].dataLengthBytes, attachedFiles->fileList[i].filename, attachedFiles->fileList[i].filename);
-			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
-			newBody = (char*) rakMalloc( (size_t) (attachedFiles->fileList[i].dataLengthBytes*3)/2 );
+			newBody = (char*) rakMalloc_Ex( (size_t) (attachedFiles->fileList[i].dataLengthBytes*3)/2, __FILE__, __LINE__ );
 
 			outputOffset=Base64Encoding(attachedFiles->fileList[i].data, (int) attachedFiles->fileList[i].dataLengthBytes, newBody, base64Map);
 
 			// Send the base64 mapped file.
-			tcpInterface.Send(newBody, outputOffset, emailServer);
-			rakFree(newBody);
+			tcpInterface.Send(newBody, outputOffset, emailServer,false);
+			rakFree_Ex(newBody, __FILE__, __LINE__ );
 
 		}
 
 		// Write last boundary
 		sprintf(query, "\r\n--%s--\r\n", boundary);
-		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+		tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	}
 
 
 	sprintf(query, "\r\n.\r\n");
-	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer);
+	tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 	response=GetResponse(&tcpInterface, emailServer, doPrintf);
 	if (response!=0)
 		return response;
 
-	tcpInterface.Send("QUIT\r\n", (unsigned int)strlen("QUIT\r\n"), emailServer);
+	tcpInterface.Send("QUIT\r\n", (unsigned int)strlen("QUIT\r\n"), emailServer,false);
 
 	RakSleep(30);
 	if (doPrintf)

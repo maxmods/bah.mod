@@ -10,7 +10,7 @@ void DatabaseFilter::Serialize(RakNet::BitStream *out)
 	out->Write((unsigned char)operation);
 	if (operation!=DataStructures::Table::QF_IS_EMPTY && operation!=DataStructures::Table::QF_NOT_EMPTY)
 	{
-		assert(cellValue.isEmpty==false);
+		RakAssert(cellValue.isEmpty==false);
 		TableSerializer::SerializeCell(out, &cellValue, columnType);
 	}
 }

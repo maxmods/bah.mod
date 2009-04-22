@@ -1,3 +1,5 @@
+#if !defined(_XBOX) && !defined(X360)
+
 #ifndef RSA_CRYPT_HPP
 #define RSA_CRYPT_HPP
 
@@ -22,7 +24,7 @@ public:
 	~RSACrypt();
 
 public:
-	bool setPrivateKey(const uint32_t *p, const uint32_t *q, int factor_limbs);
+	bool setPrivateKey(const uint32_t *p, const uint32_t *q, int halfFactorLimbs);
 	bool setPublicKey(const uint32_t *modulus, int mod_limbs, uint32_t e);
 
 public:
@@ -45,3 +47,5 @@ public:
 };
 
 #endif // RSA_CRYPT_HPP
+
+#endif

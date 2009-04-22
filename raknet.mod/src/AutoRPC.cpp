@@ -28,7 +28,6 @@ int AutoRPC::RemoteRPCFunctionComp( const RPCIdentifier &key, const RemoteRPCFun
 AutoRPC::AutoRPC()
 {
 	currentExecution[0]=0;
-	rakPeer=0;
 	networkIdManager=0;
 	outgoingTimestamp=0;
 	outgoingPriority=HIGH_PRIORITY;
@@ -74,10 +73,10 @@ bool AutoRPC::RegisterFunction(const char *uniqueIdentifier, void *functionPtr, 
 		LocalRPCFunction func;
 		func.functionPtr=functionPtr;
 		func.identifier.isObjectMember=isObjectMember;
-		func.identifier.uniqueIdentifier = (char*) rakMalloc(strlen(uniqueIdentifier)+1);
+		func.identifier.uniqueIdentifier = (char*) rakMalloc_Ex(strlen(uniqueIdentifier)+1, __FILE__, __LINE__);
 		func.parameterCount=parameterCount;
 		strcpy(func.identifier.uniqueIdentifier, uniqueIdentifier);
-		localFunctions.Insert(func);
+		localFunctions.Insert(func, __FILE__, __LINE__);
 	}
 	return true;
 }
@@ -133,7 +132,7 @@ SystemAddress AutoRPC::GetLastSenderAddress(void) const
 }
 RakPeerInterface *AutoRPC::GetRakPeer(void) const
 {
-	return rakPeer;
+	return rakPeerInterface;
 }
 const char *AutoRPC::GetCurrentExecution(void) const
 {
@@ -189,9 +188,9 @@ bool AutoRPC::SendCall(const char *uniqueIdentifier, const char *stack, unsigned
 	if (outgoingBroadcast)
 	{
 		unsigned systemIndex;
-		for (systemIndex=0; systemIndex < rakPeer->GetMaximumNumberOfPeers(); systemIndex++)
+		for (systemIndex=0; systemIndex < rakPeerInterface->GetMaximumNumberOfPeers(); systemIndex++)
 		{
-			systemAddr=rakPeer->GetSystemAddressFromIndex(systemIndex);
+			systemAddr=rakPeerInterface->GetSystemAddressFromIndex(systemIndex);
 			if (systemAddr!=UNASSIGNED_SYSTEM_ADDRESS && systemAddr!=outgoingSystemAddress)
 			{
 				if (GetRemoteFunctionIndex(systemAddr, identifier, &outerIndex, &innerIndex))
@@ -208,7 +207,7 @@ bool AutoRPC::SendCall(const char *uniqueIdentifier, const char *stack, unsigned
 
 				bs.WriteCompressed(bytesOnStack);
 				bs.WriteAlignedBytes((const unsigned char*) stack, bytesOnStack);
-				rakPeer->Send(&bs, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddr, false);
+				SendUnified(&bs, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddr, false);
 
 				// Start writing again after ID_AUTO_RPC_CALL
 				bs.SetWriteOffset(writeOffset);
@@ -234,22 +233,21 @@ bool AutoRPC::SendCall(const char *uniqueIdentifier, const char *stack, unsigned
 
 			bs.WriteCompressed(bytesOnStack);
 			bs.WriteAlignedBytes((const unsigned char*) stack, bytesOnStack);
-			rakPeer->Send(&bs, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddr, false);
+			SendUnified(&bs, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddr, false);
 		}
 		else
 			return false;
 	}
 	return true;
 }
-void AutoRPC::OnAttach(RakPeerInterface *peer)
+void AutoRPC::OnAttach(void)
 {
-	rakPeer=peer;
 	outgoingSystemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 	outgoingNetworkID=UNASSIGNED_NETWORK_ID;
 	incomingSystemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 
 }
-PluginReceiveResult AutoRPC::OnReceive(RakPeerInterface *peer, Packet *packet)
+PluginReceiveResult AutoRPC::OnReceive(Packet *packet)
 {
 	RakNetTime timestamp=0;
 	unsigned char packetIdentifier, packetDataOffset;
@@ -274,10 +272,6 @@ PluginReceiveResult AutoRPC::OnReceive(RakPeerInterface *peer, Packet *packet)
 
 	switch (packetIdentifier)
 	{
-	case ID_DISCONNECTION_NOTIFICATION:
-	case ID_CONNECTION_LOST:
-		OnCloseConnection(peer, packet->systemAddress);
-		return RR_CONTINUE_PROCESSING;
 	case ID_AUTO_RPC_CALL:
 		incomingTimeStamp=timestamp;
 		incomingSystemAddress=packet->systemAddress;
@@ -293,9 +287,11 @@ PluginReceiveResult AutoRPC::OnReceive(RakPeerInterface *peer, Packet *packet)
 
 	return RR_CONTINUE_PROCESSING;
 }
-void AutoRPC::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddress)
+void AutoRPC::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
-	(void) peer;
+	(void) rakNetGUID;
+	(void) lostConnectionReason;
+
 	if (remoteFunctions.Has(systemAddress))
 	{
 		DataStructures::OrderedList<RPCIdentifier, RemoteRPCFunction, AutoRPC::RemoteRPCFunctionComp> *theList = remoteFunctions.Get(systemAddress);
@@ -303,9 +299,9 @@ void AutoRPC::OnCloseConnection(RakPeerInterface *peer, SystemAddress systemAddr
 		for (i=0; i < theList->Size(); i++)
 		{
 			if (theList->operator [](i).identifier.uniqueIdentifier)
-				rakFree(theList->operator [](i).identifier.uniqueIdentifier);
+				rakFree_Ex(theList->operator [](i).identifier.uniqueIdentifier, __FILE__, __LINE__ );
 		}
-		RakNet::OP_DELETE(theList);
+		RakNet::OP_DELETE(theList, __FILE__, __LINE__);
 		remoteFunctions.Delete(systemAddress);
 	}
 }
@@ -344,7 +340,7 @@ void AutoRPC::OnAutoRPCCall(SystemAddress systemAddress, unsigned char *data, un
 	if (hasNetworkId)
 	{
 		bs.Read(networkId);
-		if (networkIdManager==0 && (networkIdManager=rakPeer->GetNetworkIDManager())==0)
+		if (networkIdManager==0 && (networkIdManager=rakPeerInterface->GetNetworkIDManager())==0)
 		{
 			// Failed - Tried to call object member, however, networkIDManager system was never registered
 			SendError(systemAddress, RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE, "");
@@ -408,7 +404,7 @@ void AutoRPC::OnAutoRPCCall(SystemAddress systemAddress, unsigned char *data, un
 				out.Write(networkId);
 			out.WriteCompressed(bytesOnStack);
 			out.WriteAlignedBytes((const unsigned char*) inputStack, bytesOnStack);
-			rakPeer->Send(&out, HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemAddress, false);
+			SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemAddress, false);
 			
 			return;
 		}
@@ -428,7 +424,7 @@ void AutoRPC::OnAutoRPCCall(SystemAddress systemAddress, unsigned char *data, un
 				outgoingBitstream.Write(hasNetworkId);
 				outgoingBitstream.WriteCompressed(functionIndex);
 				stringCompressor->EncodeString(strIdentifier,512,&outgoingBitstream,0);
-				rakPeer->Send(&outgoingBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemAddress, false);
+				SendUnified(&outgoingBitstream, HIGH_PRIORITY, RELIABLE_ORDERED, 0, systemAddress, false);
 				break;
 			}
 		}
@@ -535,18 +531,18 @@ void AutoRPC::OnRPCRemoteIndex(SystemAddress systemAddress, unsigned char *data,
 		{
 			newRemoteFunction.functionIndex=remoteIndex;
 			newRemoteFunction.identifier.isObjectMember=identifier.isObjectMember;
-			newRemoteFunction.identifier.uniqueIdentifier = (char*) rakMalloc(strlen(strIdentifier)+1);
+			newRemoteFunction.identifier.uniqueIdentifier = (char*) rakMalloc_Ex(strlen(strIdentifier)+1, __FILE__, __LINE__);
 			strcpy(newRemoteFunction.identifier.uniqueIdentifier, strIdentifier);
 			theList->InsertAtIndex(newRemoteFunction, insertionIndex);
 		}
 	}
 	else
 	{
-		theList = RakNet::OP_NEW<DataStructures::OrderedList<RPCIdentifier, RemoteRPCFunction, AutoRPC::RemoteRPCFunctionComp> >();
+		theList = RakNet::OP_NEW<DataStructures::OrderedList<RPCIdentifier, RemoteRPCFunction, AutoRPC::RemoteRPCFunctionComp> >( __FILE__, __LINE__ );
 
 		newRemoteFunction.functionIndex=remoteIndex;
 		newRemoteFunction.identifier.isObjectMember=identifier.isObjectMember;
-		newRemoteFunction.identifier.uniqueIdentifier = (char*) rakMalloc(strlen(strIdentifier)+1);
+		newRemoteFunction.identifier.uniqueIdentifier = (char*) rakMalloc_Ex(strlen(strIdentifier)+1, __FILE__, __LINE__);
 		strcpy(newRemoteFunction.identifier.uniqueIdentifier, strIdentifier);
 		theList->InsertAtEnd(newRemoteFunction);
 
@@ -617,21 +613,21 @@ void AutoRPC::OnRPCUnknownRemoteIndex(SystemAddress systemAddress, unsigned char
 				stringCompressor->EncodeString(theList->operator [](i).identifier.uniqueIdentifier, 512, &out, 0);
 				out.WriteCompressed(bytesOnStack);
 				out.WriteAlignedBytes((const unsigned char*) inputStack, bytesOnStack);
-				rakPeer->Send(&out, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddress, false);
+				SendUnified(&out, outgoingPriority, outgoingReliability, outgoingOrderingChannel, systemAddress, false);
 				return;
 			}
 		}
 	}
 
 	// Failed to recover, inform the user
-	Packet *p = rakPeer->AllocatePacket(sizeof(MessageID)+sizeof(unsigned char));
+	Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID)+sizeof(unsigned char));
 	RakNet::BitStream bs2(p->data, sizeof(MessageID)+sizeof(unsigned char), false);
 	bs2.SetWriteOffset(0);
 	bs2.Write((MessageID)ID_RPC_REMOTE_ERROR);
 	bs2.Write((unsigned char)RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED);
 	stringCompressor->EncodeString("",256,&bs,0);
 	p->systemAddress=systemAddress;
-	rakPeer->PushBackPacket(p, false);
+	rakPeerInterface->PushBackPacket(p, false);
 
 }
 void AutoRPC::SendError(SystemAddress target, unsigned char errorCode, const char *functionName)
@@ -640,11 +636,10 @@ void AutoRPC::SendError(SystemAddress target, unsigned char errorCode, const cha
 	bs.Write((MessageID)ID_RPC_REMOTE_ERROR);
 	bs.Write(errorCode);
 	stringCompressor->EncodeString(functionName,256,&bs,0);
-	rakPeer->Send(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, target, false);
+	SendUnified(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, target, false);
 }
-void AutoRPC::OnShutdown(RakPeerInterface *peer)
+void AutoRPC::OnShutdown(void)
 {
-	(void) peer;
 	Clear();
 }
 void AutoRPC::Clear(void)
@@ -656,14 +651,14 @@ void AutoRPC::Clear(void)
 		for (i=0; i < theList->Size(); i++)
 		{
 			if (theList->operator [](i).identifier.uniqueIdentifier)
-				rakFree(theList->operator [](i).identifier.uniqueIdentifier);
+				rakFree_Ex(theList->operator [](i).identifier.uniqueIdentifier, __FILE__, __LINE__ );
 		}
-		RakNet::OP_DELETE(theList);
+		RakNet::OP_DELETE(theList, __FILE__, __LINE__);
 	}
 	for (i=0; i < localFunctions.Size(); i++)
 	{
 		if (localFunctions[i].identifier.uniqueIdentifier)
-			rakFree(localFunctions[i].identifier.uniqueIdentifier);
+			rakFree_Ex(localFunctions[i].identifier.uniqueIdentifier, __FILE__, __LINE__ );
 	}
 	localFunctions.Clear();
 	remoteFunctions.Clear();
