@@ -32,6 +32,7 @@ Module BaH.GDAL
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: GDAL - Copyright (c) 2000, Frank Warmerdam"
+ModuleInfo "License: PROJ.4 - Copyright (c) 2000, Frank Warmerdam"
 ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
 
 ModuleInfo "CC_OPTS: -DCPL_DISABLE_DLL -DCPL_DISABLE_STDCALL -DCURL_STATICLIB"
@@ -45,6 +46,7 @@ ModuleInfo "CC_OPTS: -DFRMT_airsar -DFRMT_rs2 -DFRMT_ilwis -DFRMT_rmf -DFRMT_lev
 ModuleInfo "CC_OPTS: -DFRMT_gsg -DFRMT_ingr -DFRMT_ers -DFRMT_jaxapalsar -DFRMT_dimap -DFRMT_gff -DFRMT_cosar -DFRMT_pds"
 ModuleInfo "CC_OPTS: -DFRMT_adrg -DFRMT_coasp -DFRMT_tsx -DFRMT_terragen -DFRMT_blx -DFRMT_msgn -DFRMT_wcs -DFRMT_wms"
 ModuleInfo "CC_OPTS: -DFRMT_bsb -DFRMT_gif -DFRMT_png -DFRMT_pcraster -DFRMT_jpeg"
+ModuleInfo "CC_OPTS: -DHAVE_LIBPROJ -DPROJ_STATIC"
 
 ModuleInfo "CC_OPTS: -DSHAPE_ENABLED -DTAB_ENABLED -DNTF_ENABLED -DSDTS_ENABLED -DTIGER_ENABLED -DS57_ENABLED -DDGN_ENABLED"
 ModuleInfo "CC_OPTS: -DVRT_ENABLED -DREC_ENABLED -DMEM_ENABLED -DBNA_ENABLED -DCSV_ENABLED -DGML_ENABLED"
