@@ -45,13 +45,15 @@ ModuleInfo "CC_OPTS: -DFRMT_elas -DFRMT_fit -DFRMT_vrt -DFRMT_usgsdem -DFRMT_l1b
 ModuleInfo "CC_OPTS: -DFRMT_airsar -DFRMT_rs2 -DFRMT_ilwis -DFRMT_rmf -DFRMT_leveller -DFRMT_sgi -DFRMT_srtmhgt -DFRMT_idrisi"
 ModuleInfo "CC_OPTS: -DFRMT_gsg -DFRMT_ingr -DFRMT_ers -DFRMT_jaxapalsar -DFRMT_dimap -DFRMT_gff -DFRMT_cosar -DFRMT_pds"
 ModuleInfo "CC_OPTS: -DFRMT_adrg -DFRMT_coasp -DFRMT_tsx -DFRMT_terragen -DFRMT_blx -DFRMT_msgn -DFRMT_wcs -DFRMT_wms"
-ModuleInfo "CC_OPTS: -DFRMT_bsb -DFRMT_gif -DFRMT_png -DFRMT_pcraster -DFRMT_jpeg"
-ModuleInfo "CC_OPTS: -DHAVE_LIBPROJ -DPROJ_STATIC"
+ModuleInfo "CC_OPTS: -DFRMT_bsb -DFRMT_gif -DFRMT_png -DFRMT_pcraster -DFRMT_jpeg -DFRMT_rik -DFRMT_grib -DFRMT_jpeg2000"
+ModuleInfo "CC_OPTS: -DHAVE_LIBPROJ -DPROJ_STATIC -DHAVE_JASPER"
 
 ModuleInfo "CC_OPTS: -DSHAPE_ENABLED -DTAB_ENABLED -DNTF_ENABLED -DSDTS_ENABLED -DTIGER_ENABLED -DS57_ENABLED -DDGN_ENABLED"
 ModuleInfo "CC_OPTS: -DVRT_ENABLED -DREC_ENABLED -DMEM_ENABLED -DBNA_ENABLED -DCSV_ENABLED -DGML_ENABLED"
 ModuleInfo "CC_OPTS: -DGPX_ENABLED -DKML_ENABLED -DGEOJSON_ENABLED -DGMT_ENABLED"
 ModuleInfo "CC_OPTS: -DXPLANE_ENABLED -DAVCBIN_ENABLED -DGEOCONCEPT_ENABLED "
+
+ModuleInfo "CC_OPTS: -fexceptions"
 
 Import "common.bmx"
 
@@ -965,6 +967,48 @@ or:
 	End Rem
 	Method CreateMaskBand:Int(flags:Int)
 		Return bmx_gdal_GDALRasterBand_CreateMaskBand(objectPtr, flags)
+	End Method
+	
+	Rem
+	bbdoc: Reads/writes a region of image data for this band.
+	about: This method allows reading a region of a GDALRasterBand into a buffer, or writing data from a buffer into a region of
+	a GDALRasterBand. It automatically takes care of data type translation if the data type (@bufType) of the buffer is different
+	than that of the GDALRasterBand. The method also takes care of image decimation / replication if the buffer size (@bufXSize x
+	@bufYSize) is different than the size of the region being accessed (@xSize x @ySize).
+	<p>
+	The @pixelSpace and nLineSpace parameters allow reading into or writing from unusually organized buffers. This is primarily used
+	for buffers containing more than one bands raster data in interleaved format.
+	</p>
+	<p>
+	Some formats may efficiently implement decimation into a buffer by reading from lower resolution overview images.
+	</p>
+	<p>
+	For highest performance full resolution data access, read and write on "block boundaries" as returned by GetBlockSize(), or use
+	the ReadBlock() and WriteBlock() methods.
+	</p>
+	End Rem
+	Method RasterIO:Int(rwFlag:Int, xOff:Int, yOff:Int, xSize:Int, ySize:Int, data:Byte Ptr, bufXSize:Int, bufYSize:Int, ..
+			bufType:Int, pixelSpace:Int, lineSpace:Int)
+		Return bmx_gdal_GDALRasterBand_RasterIO(objectPtr, rwFlag, xOff, yOff, xSize, ySize, data, bufXSize, bufYSize, ..
+			bufType, pixelSpace, lineSpace)
+	End Method
+	
+	Rem
+	bbdoc: Reads a block of image data efficiently.
+	about: This method accesses a "natural" block from the raster band without resampling, or data type conversion. For a more
+	generalized, but potentially less efficient access use RasterIO().
+	End Rem
+	Method ReadBlock:Int(xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
+		Return bmx_gdal_GDALRasterBand_ReadBlock(objectPtr, xBlockOff, yBlockOff, image)
+	End Method
+	
+	Rem
+	bbdoc: Writes a block of image data efficiently.
+	about: This method accesses a "natural" block from the raster band without resampling, or data type conversion. For a more
+	generalized, but potentially less efficient access use RasterIO().
+	End Rem
+	Method WriteBlock:Int(xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
+		Return bmx_gdal_GDALRasterBand_WriteBlock(objectPtr, xBlockOff, yBlockOff, image)
 	End Method
 	
 End Type

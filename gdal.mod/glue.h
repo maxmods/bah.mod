@@ -99,6 +99,10 @@ extern "C" {
 	GDALRasterBand * bmx_gdal_GDALRasterBand_GetOverview(GDALRasterBand * handle, int index);
 	GDALRasterBand * bmx_gdal_GDALRasterBand_GetRasterSampleOverview(GDALRasterBand * handle, int desiredSamples);
 	CPLErr bmx_gdal_GDALRasterBand_CreateMaskBand(GDALRasterBand * handle, int flags);
+	CPLErr bmx_gdal_GDALRasterBand_RasterIO(GDALRasterBand * handle, GDALRWFlag rwFlag, int xOff, int yOff, int xSize, int ySize, void * data, int bufXSize, int bufYSize,
+			GDALDataType bufType, int pixelSpace, int lineSpace);
+	CPLErr bmx_gdal_GDALRasterBand_ReadBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image);
+	CPLErr bmx_gdal_GDALRasterBand_WriteBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image);
 
 	int bmx_gdal_GDALDriverManager_GetDriverCount();
 	GDALDriver * bmx_gdal_GDALDriverManager_GetDriver(int index);

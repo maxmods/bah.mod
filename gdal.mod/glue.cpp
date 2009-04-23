@@ -428,6 +428,20 @@ CPLErr bmx_gdal_GDALRasterBand_CreateMaskBand(GDALRasterBand * handle, int flags
 	return handle->CreateMaskBand(flags);
 }
 
+CPLErr bmx_gdal_GDALRasterBand_RasterIO(GDALRasterBand * handle, GDALRWFlag rwFlag, int xOff, int yOff, int xSize, int ySize, void * data, int bufXSize, int bufYSize,
+			GDALDataType bufType, int pixelSpace, int lineSpace) {
+	return handle->RasterIO(rwFlag, xOff, yOff, xSize, ySize, data, bufXSize, bufYSize, bufType, pixelSpace, lineSpace);
+}
+		
+CPLErr bmx_gdal_GDALRasterBand_ReadBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image) {
+	return handle->ReadBlock(xBlockOff, yBlockOff, image);
+}
+
+CPLErr bmx_gdal_GDALRasterBand_WriteBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image) {
+	return handle->WriteBlock(xBlockOff, yBlockOff, image);
+}
+
+
 // *****************************************************
 
 int bmx_gdal_GDALDriverManager_GetDriverCount() {

@@ -99,6 +99,10 @@ Extern
 	Function bmx_gdal_GDALRasterBand_GetOverview:Byte Ptr(handle:Byte Ptr, index:Int)
 	Function bmx_gdal_GDALRasterBand_GetRasterSampleOverview:Byte Ptr(handle:Byte Ptr, desiredSamples:Int)
 	Function bmx_gdal_GDALRasterBand_CreateMaskBand:Int(handle:Byte Ptr, flags:Int)
+	Function bmx_gdal_GDALRasterBand_RasterIO:Int(handle:Byte Ptr, rwFlag:Int, xOff:Int, yOff:Int, xSize:Int, ySize:Int, data:Byte Ptr, bufXSize:Int, bufYSize:Int, ..
+			bufType:Int, pixelSpace:Int, lineSpace:Int)
+	Function bmx_gdal_GDALRasterBand_ReadBlock:Int(handle:Byte Ptr, xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_WriteBlock:Int(handle:Byte Ptr, xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
 
 	Function bmx_gdal_GDAL_GCP_create:Byte Ptr(id:String, info:String, pixel:Double, line:Double, x:Double, y:Double, z:Double)
 	Function bmx_gdal_GDAL_GCP_GetID:String(handle:Byte Ptr)
