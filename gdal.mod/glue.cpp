@@ -866,6 +866,47 @@ int bmx_gdal_OGRSpatialReference_GetUTMZone(OGRSpatialReference * handle, int * 
 	return handle->GetUTMZone(north);
 }
 
+int bmx_gdal_OGRSpatialReference_IsSameGeogCS(OGRSpatialReference * handle, const OGRSpatialReference * ref) {
+	return handle->IsSameGeogCS(ref);
+}
+
+int bmx_gdal_OGRSpatialReference_IsSame(OGRSpatialReference * handle, const OGRSpatialReference * ref) {
+	return handle->IsSame(ref);
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetGeogCS(OGRSpatialReference * handle, BBString * geogName, BBString * datumName, BBString * ellipsoidName, double semiMajor, 
+		double invFlattening, BBString * pmName, double pmOffset, BBString * units, double convertToRadians) {
+	OGRErr res;
+	char *g = bbStringToCString( geogName );
+	char *d = bbStringToCString( datumName );
+	char *e = bbStringToCString( ellipsoidName );
+	char *p = bbStringToCString( pmName );
+	char *u = NULL;
+	if (units->length > 0) {
+		u = bbStringToCString( units );
+	}
+	res = handle->SetGeogCS(g, d, e, semiMajor , invFlattening, p, pmOffset, u, convertToRadians);
+	bbMemFree(g);
+	bbMemFree(d);
+	bbMemFree(e);
+	bbMemFree(p);
+	if (u) bbMemFree(u);
+	return res;
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_CopyGeogCSFrom(OGRSpatialReference * handle, OGRSpatialReference * srcSRS) {
+	return handle->CopyGeogCSFrom(srcSRS);
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_SetTOWGS84(OGRSpatialReference * handle, double dx, double dy, double dz, double ex, double ey, double ez, double ppm) {
+	return handle->SetTOWGS84(dx, dy, dz, ex, ey, ez, ppm);
+}
+
+OGRErr bmx_gdal_OGRSpatialReference_GetTOWGS84(OGRSpatialReference * handle, BBArray * coef) {
+	int n = coef->scales[0];
+	double *s=(double*)BBARRAYDATA( coef,coef->dims );
+	return handle->GetTOWGS84(s, n);
+}
 
 // *****************************************************
 

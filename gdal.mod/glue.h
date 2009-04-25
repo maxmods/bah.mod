@@ -174,6 +174,13 @@ extern "C" {
 	OGRErr bmx_gdal_OGRSpatialReference_GetNormProjParm(OGRSpatialReference * handle, BBString * name, double * result, double defaultValue);
 	OGRErr bmx_gdal_OGRSpatialReference_SetUTM(OGRSpatialReference * handle, int zone, int north);
 	int bmx_gdal_OGRSpatialReference_GetUTMZone(OGRSpatialReference * handle, int * north);
+	int bmx_gdal_OGRSpatialReference_IsSameGeogCS(OGRSpatialReference * handle, const OGRSpatialReference * ref);
+	int bmx_gdal_OGRSpatialReference_IsSame(OGRSpatialReference * handle, const OGRSpatialReference * ref);
+	OGRErr bmx_gdal_OGRSpatialReference_SetGeogCS(OGRSpatialReference * handle, BBString * geogName, BBString * datumName, BBString * ellipsoidName, double semiMajor, 
+			double invFlattening, BBString * pmName, double pmOffset, BBString * units, double convertToRadians);
+	OGRErr bmx_gdal_OGRSpatialReference_CopyGeogCSFrom(OGRSpatialReference * handle, OGRSpatialReference * srcSRS);
+	OGRErr bmx_gdal_OGRSpatialReference_SetTOWGS84(OGRSpatialReference * handle, double dx, double dy, double dz, double ex, double ey, double ez, double ppm);
+	OGRErr bmx_gdal_OGRSpatialReference_GetTOWGS84(OGRSpatialReference * handle, BBArray * coef);
 
 	void bmx_gdal_OGRRegisterAll();
 	void bmx_gdal_OGRCleanupAll();

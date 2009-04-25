@@ -165,6 +165,13 @@ Extern
 	Function bmx_gdal_OGRSpatialReference_GetNormProjParm:Int(handle:Byte Ptr, name:String, result:Double Ptr, defaultValue:Double)
 	Function bmx_gdal_OGRSpatialReference_SetUTM:Int(handle:Byte Ptr, zone:Int, north:Int)
 	Function bmx_gdal_OGRSpatialReference_GetUTMZone:Int(handle:Byte Ptr, north:Int Ptr)
+	Function bmx_gdal_OGRSpatialReference_IsSameGeogCS:Int(handle:Byte Ptr, ref:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_IsSame:Int(handle:Byte Ptr, ref:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_SetGeogCS:Int(handle:Byte Ptr, geogName:String, datumName:String, ellipsoidName:String, semiMajor:Double, ..
+			invFlattening:Double, pmName:String, pmOffset:Double, units:String, convertToRadians:Double)
+	Function bmx_gdal_OGRSpatialReference_CopyGeogCSFrom:Int(handle:Byte Ptr, srcSRS:Byte Ptr)
+	Function bmx_gdal_OGRSpatialReference_SetTOWGS84:Int(handle:Byte Ptr, dx:Double, dy:Double, dz:Double, ex:Double, ey:Double, ez:Double, ppm:Double)
+	Function bmx_gdal_OGRSpatialReference_GetTOWGS84:Int(handle:Byte Ptr, coef:Double[])
 
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriverCount:Int()
 	Function bmx_gdal_OGRSFDriverRegistrar_GetDriver:Byte Ptr(index:Int)

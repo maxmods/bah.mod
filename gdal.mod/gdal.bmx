@@ -23,9 +23,6 @@ SuperStrict
 Rem
 bbdoc: GDAL
 about: Geospatial Data Abstraction Library.
-<p>
-A translator library for raster geospatial data formats.
-</p>
 End Rem
 Module BaH.GDAL
 
@@ -1724,12 +1721,18 @@ Type OGRSpatialReference
 		Return bmx_gdal_OGRSpatialReference_IsLocal(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Do the GeogCS'es match?
+	End Rem
 	Method IsSameGeogCS:Int(ref:OGRSpatialReference)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_IsSameGeogCS(objectPtr, ref.objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Do these two spatial references describe the same system ?
+	End Rem
 	Method IsSame:Int(ref:OGRSpatialReference)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_IsSame(objectPtr, ref.objectPtr)
 	End Method
 
 	Rem
@@ -1766,10 +1769,17 @@ Type OGRSpatialReference
 		Return bmx_gdal_OGRSpatialReference_SetProjection(objectPtr, name)
 	End Method
 
+	Rem
+	bbdoc: Sets geographic coordinate system.
+	about: This method is used to set the datum, ellipsoid, prime meridian and angular units for a geographic coordinate system. It can
+	be used on it's own to establish a geographic spatial reference, or applied to a projected coordinate system to establish the
+	underlying geographic coordinate system.
+	End Rem
 	Method SetGeogCS:Int(geogName:String, datumName:String, ellipsoidName:String, semiMajor:Double, ..
 			invFlattening:Double, pmName:String = Null, pmOffset:Double = 0.0, units:String = Null, ..
 			convertToRadians:Double = 0.0)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_SetGeogCS(objectPtr, geogName, datumName, ellipsoidName, semiMajor, ..
+			invFlattening, pmName, pmOffset, units, convertToRadians)
 	End Method
 
 	Rem
@@ -1792,8 +1802,13 @@ Type OGRSpatialReference
 		Return bmx_gdal_OGRSpatialReference_SetWellKnownGeogCS(objectPtr, name)
 	End Method
 
+	Rem
+	bbdoc: Copies GEOGCS from another OGRSpatialReference.
+	about: The GEOGCS information is copied into this OGRSpatialReference from another. If this object has a PROJCS root already,
+	the GEOGCS is installed within it, otherwise it is installed as the root.
+	End Rem
 	Method CopyGeogCSFrom:Int(srcSRS:OGRSpatialReference)
-	' TODO
+		Return bmx_gdal_OGRSpatialReference_CopyGeogCSFrom(objectPtr, srcSRS.objectPtr)
 	End Method
 
 	Rem
@@ -1826,12 +1841,26 @@ Type OGRSpatialReference
 		Return bmx_gdal_OGRSpatialReference_SetFromUserInput(objectPtr, definition)
 	End Method
 
-	Method SetTOWGS84:Int(dfDX:Double, dy:Double, dz:Double, ex:Double = 0.0, ey:Double = 0.0, ez:Double = 0.0, ppm:Double = 0.0)
-	' TODO
+	Rem
+	bbdoc: Sets the Bursa-Wolf conversion to WGS84.
+	about: This will create the TOWGS84 node as a child of the DATUM. It will fail if there is no existing DATUM node. Unlike most
+	OGRSpatialReference methods it will insert itself in the appropriate order, and will replace an existing TOWGS84 node if there is one.
+	<p>
+	The parameters have the same meaning as EPSG transformation 9606 (Position Vector 7-param. transformation).
+	</p>
+	End Rem
+	Method SetTOWGS84:Int(dx:Double, dy:Double, dz:Double, ex:Double = 0.0, ey:Double = 0.0, ez:Double = 0.0, ppm:Double = 0.0)
+		Return bmx_gdal_OGRSpatialReference_SetTOWGS84(objectPtr, dx, dy, dz, ex, ey, ez, ppm)
 	End Method
 
-	Method GetTOWGS84:Int(padfCoef:Double[])
-	' TODO
+	Rem
+	bbdoc: Fetches TOWGS84 parameters, if available.
+	about: @coef should be between 1 and 7 (maximum) in size.
+	End Rem
+	Method GetTOWGS84:Int(coef:Double[])
+		Assert coef, "coef cannot be Null"
+		Assert coef.length > 0 And coef.length < 8, "coef size should be between 1 and 7"
+		Return bmx_gdal_OGRSpatialReference_GetTOWGS84(objectPtr, coef)
 	End Method
 
 	Rem
@@ -2115,7 +2144,7 @@ Type OGRFieldDefn
 
 End Type
 
-
+' TODO
 Type OGR_SRSNode
 End Type
 
