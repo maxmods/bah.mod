@@ -64,38 +64,6 @@ Import "common.bmx"
 '    Modified for WIN32 compile options
 '
 
-
-Rem
-bbdoc: Opens a raster file as a GDALDataset.
-about: This function will try to open the passed file, or virtual dataset name by invoking the Open method of each
-registered GDALDriver in turn. The first successful open will result in a returned dataset. If all drivers fail then NULL is returned.
-<p>
-Several recommendations :
-<ul>
-<li>If you open a dataset object with GA_Update access, it is not recommanded to open a new dataset on the same underlying file.</li>
-<li>The returned dataset should only be accessed by one thread at a time. If you want to use it from different threads, you must
-add all necessary code (mutexes, etc.) to avoid concurrent use of the object. (Some drivers, such as GeoTIFF, maintain internal state
-variables that are updated each time a new block is read, thus preventing concurrent use.)</li>
-</ul>
-</p>
-End Rem
-Function GDALOpen:GDALDataset(filename:String, access:Int)
-	Return GDALDataset._create(bmx_gdal_GDALOpen(filename, access))
-End Function
-
-Rem
-bbdoc: Opens a raster file as a GDALDataset.
-about: This function works the same as GDALOpen(), but allows the sharing of GDALDataset handles for a dataset with other callers
-to GDALOpenShared().
-<p>
-In particular, GDALOpenShared() will first consult it's list of currently open and shared GDALDataset's, and if the
-GetDescription() name for one exactly matches the filename passed to GDALOpenShared() it will be referenced and returned.
-</p>
-End Rem
-Function GDALOpenShared:GDALDataset(filename:String, access:Int)
-	Return GDALDataset._create(bmx_gdal_GDALOpenShared(filename, access))
-End Function
-
 Rem
 bbdoc: Register all known configured GDAL drivers. 
 about: Drives any of the following that are configured into GDAL. Many others as well haven't been updated in this
@@ -196,6 +164,77 @@ Type GDALDataset Extends GDALMajorObject
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: Opens a raster file as a GDALDataset.
+	about: This function will try to open the passed file, or virtual dataset name by invoking the Open method of each
+	registered GDALDriver in turn. The first successful open will result in a returned dataset. If all drivers fail then NULL is returned.
+	<p>
+	Several recommendations :
+	<ul>
+	<li>If you open a dataset object with GA_Update access, it is not recommanded to open a new dataset on the same underlying file.</li>
+	<li>The returned dataset should only be accessed by one thread at a time. If you want to use it from different threads, you must
+	add all necessary code (mutexes, etc.) to avoid concurrent use of the object. (Some drivers, such as GeoTIFF, maintain internal state
+	variables that are updated each time a new block is read, thus preventing concurrent use.)</li>
+	</ul>
+	</p>
+	End Rem
+	Function OpenDataset:GDALDataset(filename:String, access:Int)
+		Return New GDALDataset.Open(filename, access)
+	End Function
+	
+	Rem
+	bbdoc: Opens a raster file as a GDALDataset.
+	about: This method will try to open the passed file, or virtual dataset name by invoking the Open method of each
+	registered GDALDriver in turn. The first successful open will result in a returned dataset. If all drivers fail then NULL is returned.
+	<p>
+	Several recommendations :
+	<ul>
+	<li>If you open a dataset object with GA_Update access, it is not recommanded to open a new dataset on the same underlying file.</li>
+	<li>The returned dataset should only be accessed by one thread at a time. If you want to use it from different threads, you must
+	add all necessary code (mutexes, etc.) to avoid concurrent use of the object. (Some drivers, such as GeoTIFF, maintain internal state
+	variables that are updated each time a new block is read, thus preventing concurrent use.)</li>
+	</ul>
+	</p>
+	End Rem
+	Method Open:GDALDataset(filename:String, access:Int)
+		objectPtr = bmx_gdal_GDALOpen(filename, access)
+		If Not objectPtr Then
+			Return Null
+		End If
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Opens a raster file as a GDALDataset.
+	about: This function works the same as OpenDataset(), but allows the sharing of GDALDataset handles for a dataset with other callers
+	to OpenSharedDataset().
+	<p>
+	In particular, OpenSharedDataset() will first consult it's list of currently open and shared GDALDataset's, and if the
+	GetDescription() name for one exactly matches the filename passed to OpenSharedDataset() it will be referenced and returned.
+	</p>
+	End Rem
+	Function GDALOpenSharedDataset:GDALDataset(filename:String, access:Int)
+		Return New GDALDataset.OpenShared(filename, access)
+	End Function
+
+	Rem
+	bbdoc: Opens a raster file as a GDALDataset.
+	about: This method works the same as Open(), but allows the sharing of GDALDataset handles for a dataset with other callers
+	to OpenShared().
+	<p>
+	In particular, OpenShared() will first consult it's list of currently open and shared GDALDataset's, and if the
+	GetDescription() name for one exactly matches the filename passed to OpenShared() it will be referenced and returned.
+	</p>
+	End Rem
+	Method OpenShared:GDALDataset(filename:String, access:Int)
+		objectPtr = bmx_gdal_GDALOpenShared(filename, access)
+		If Not objectPtr Then
+			Return Null
+		End If
+		Return Self
+	End Method
+	
 	
 	Rem
 	bbdoc: Fetches raster width in pixels.

@@ -629,3 +629,12 @@ Const SRS_UL_CHAIN_CONV:String = "20.116684023368047"
 Const SRS_UL_ROD:String = "Rod"           ' based on US Foot
 Const SRS_UL_ROD_CONV:String = "5.02921005842012"
 
+Rem
+bbdoc: Read data.
+End Rem
+Const GF_Read:Int = 0
+Rem
+bbdoc: Write data
+End Rem
+Const GF_Write:Int = 1
+

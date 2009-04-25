@@ -5,9 +5,9 @@ Import BRL.StandardIO
 
 GDALAllRegister()
 
-Local poDataset:GDALDataset = GDALOpen("N57W003.hgt", GA_ReadOnly)
+Local poDataset:GDALDataset = New GDALDataset.Open("N57W003.hgt", GA_ReadOnly)
 
-If poDataset = Null Then
+If Not poDataset Then
 
 	Print "Could not open file"
 	End

@@ -12,7 +12,7 @@ OGRRegisterAll()
 
 ' Open source raster file.
 
-Local dataset:GDALDataset = GDALOpen(srcFilename, GA_ReadOnly)
+Local dataset:GDALDataset = New GDALDataset.Open(srcFilename, GA_ReadOnly)
 
 If Not dataset Then
 
