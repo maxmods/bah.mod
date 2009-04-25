@@ -63,6 +63,9 @@ Import "common.bmx"
 ' port/cpl_config.h
 '    Modified for WIN32 compile options
 '
+' jasper/libjasper/base/jas_stream.c
+'    swapped tmpnam for mkstemp to remove warning on Linux.
+'
 
 Rem
 bbdoc: Register all known configured GDAL drivers. 
