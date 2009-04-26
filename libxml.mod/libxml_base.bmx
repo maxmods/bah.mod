@@ -60,9 +60,9 @@ Import "src/uri.c"
 Import "src/valid.c"
 Import "src/xinclude.c"
 Import "src/xlink.c"
-Import "src/xmlcatalog.c"
+'Import "src/xmlcatalog.c" ' is an app
 Import "src/xmlIO.c"
-Import "src/xmllint.c"
+'Import "src/xmllint.c" ' is an app
 Import "src/xmlmemory.c"
 Import "src/xmlmodule.c"
 Import "src/xmlreader.c"
@@ -102,7 +102,7 @@ Extern
 	Function xmlCopyDoc:Byte Ptr(doc:Byte Ptr, recursive:Int)
 	Function xmlGetIntSubset:Byte Ptr(doc:Byte Ptr)
 	
-	Function xmlSetDocCompressMode(doc:Byte Ptr, mode:Int)
+	Function xmlSetDocCompressMode(doc:Byte Ptr, Mode:Int)
 	Function xmlGetDocCompressMode:Int(doc:Byte Ptr)
 	
 	Function xmlNewNode:Byte Ptr(ns:Byte Ptr, name:Byte Ptr)

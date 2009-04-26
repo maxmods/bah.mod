@@ -38,6 +38,7 @@ ModuleInfo "History: Added xmlParserMaxDepth global variable."
 ModuleInfo "History: Added utf-8 BOM detection/strip for doc string parsing."
 ModuleInfo "History: Fixed Win32 saving issue when compression was set."
 ModuleInfo "History: Added TStream support to saveFile() and saveFormatFile()."
+ModuleInfo "History: Removed some source files which were not part of the library."
 ModuleInfo "History: 1.13"
 ModuleInfo "History: Fixed getLineNumber() returning wrong type."
 ModuleInfo "History: Added TxmlDoc ToString() and ToStringFormat() methods."
@@ -803,10 +804,10 @@ Type TxmlDoc Extends TxmlBase
 	<li><b>mode</b> : the compression ratio</li>
 	</ul>
 	End Rem
-	Method setCompressMode(mode:Int)
+	Method setCompressMode(Mode:Int)
 		' make sure it's in the valid range, 0-9
-		mode = Max(Min(mode, 9), 0)
-		xmlSetDocCompressMode(_xmlDocPtr, mode)
+		Mode = Max(Min(Mode, 9), 0)
+		xmlSetDocCompressMode(_xmlDocPtr, Mode)
 	End Method
 	
 	Rem
