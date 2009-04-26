@@ -184,6 +184,51 @@ Function Powm1:Double(x:Double, y:Double)
 ' TODO
 End Function
 
+Rem
+bbdoc: Returns the result of the Spherical Bessel functions of the first kind.
+about: sph_bessel(v, x) = j<sub>v</sub>(x)
+<p>
+where:
+</p>
+<p>
+<img src="sbessel.png">
+</p>
+<p>
+The function throws TDomainException whenever the result is undefined or complex: this occurs when <tt>x &lt; 0</tt>.
+</p>
+<p>
+The j<sub>v</sub> function is cyclic like J<sub>v</sub> but differs in its behaviour at the origin:
+</p>
+<p>
+<img src="sph_bessel.png" align="middle">
+</p>
+End Rem
+Function SphBessel:Double(v:Int, x:Double)
+	Return bmx_boost_math_sphbessel(v, x)
+End Function
+
+Rem
+bbdoc: Returns the result of the Spherical Bessel functions of the second kind.
+about: sph_neumann(v, x) = y<sub>v</sub>(x) = n<sub>v</sub>(x)
+<p>
+where:
+</p>
+<p>
+<img src="sneumann.png">
+</p>
+<p>
+The function throws TDomainException whenever the result is undefined or complex: this occurs when <tt>x &lt; 0</tt>.
+</p>
+<p>
+The j<sub>v</sub> function is cyclic like J<sub>v</sub> but differs in its behaviour at the origin:
+</p>
+<p>
+<img src="sph_neumann.png" align="middle">
+</p>
+End Rem
+Function SphNeumann:Double(v:Int, x:Double)
+	Return bmx_boost_math_sphneumann(v, x)
+End Function
 
 Rem
 bbdoc: Calculate the mean of @dist.
@@ -233,6 +278,42 @@ Function Cdf:Double(dist:TDistribution, k:Double)
 	Return dist.Cdf(k)
 End Function
 
+Rem
+bbdoc: Calculate the quantile of @dist, for @p.
+End Rem
+Function Quantile:Double(dist:TDistribution, p:Double)
+	Return dist.Quantile(p)
+End Function
+
+Function Hazard:Double(dist:TDistribution, x:Double)
+' TODO
+End Function
+
+Function Chf:Double(dist:TDistribution, x:Double)
+' TODO
+End Function
+
+Function Median:Double(dist:TDistribution)
+' TODO
+End Function
+
+Function Range(dist:TDistribution, rangeStart:Double Var, rangeEnd:Double Var)
+' TODO
+End Function
+
+Function Variance:Double(dist:TDistribution)
+' TODO
+End Function
+
+Function Kurtosis:Double(dist:TDistribution)
+' TODO
+End Function
+
+Function KurtosisExcess:Double(dist:TDistribution)
+' TODO
+End Function
+
+
 
 Rem
 bbdoc: 
@@ -247,6 +328,7 @@ Type TDistribution
 	Method Skewness:Double() Abstract
 	Method Pdf:Double(k:Double) Abstract
 	Method Cdf:Double(k:Double) Abstract
+	Method Quantile:Double(p:Double) Abstract
 
 End Type
 
@@ -378,6 +460,10 @@ Type TBinomialDistribution Extends TDistribution
 		Return bmx_boost_math_binomial_distribution_cdf(objectPtr, k)
 	End Method
 	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_binomial_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_binomial_distribution_free(objectPtr)
@@ -457,6 +543,10 @@ Type TBernoulliDistribution Extends TDistribution
 		Return bmx_boost_math_bernoulli_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_bernoulli_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_bernoulli_distribution_free(objectPtr)
@@ -504,8 +594,8 @@ Type TBetaDistribution Extends TDistribution
 
 	Rem
 	bbdoc: Creates a new TBetaDistribution instance with shape parameters @alpha and @beta.
-	about: Requires @alpha, @beta > 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
-	for alpha,beta >= 0, but it's not clear whether any program can actually make use of that latitude or how many of
+	about: Requires @alpha, @beta &gt; 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
+	for alpha,beta &gt;= 0, but it's not clear whether any program can actually make use of that latitude or how many of
 	the non-member functions can be usefully defined in that case. Therefore for now, we regard it as an error if @alpha or @beta is zero.
 	End Rem
 	Function CreateBeta:TBetaDistribution(a:Double, b:Double)
@@ -514,8 +604,8 @@ Type TBetaDistribution Extends TDistribution
 	
 	Rem
 	bbdoc: Creates a new TBetaDistribution instance with shape parameters @alpha and @beta.
-	about: Requires @alpha, @beta > 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
-	for alpha,beta >= 0, but it's not clear whether any program can actually make use of that latitude or how many of
+	about: Requires @alpha, @beta &gt; 0, otherwise TDomainException is thrown. Note that technically the beta distribution is defined
+	for alpha,beta &gt;= 0, but it's not clear whether any program can actually make use of that latitude or how many of
 	the non-member functions can be usefully defined in that case. Therefore for now, we regard it as an error if @alpha or @beta is zero.
 	End Rem
 	Method Create:TBetaDistribution(a:Double, b:Double)
@@ -561,6 +651,10 @@ Type TBetaDistribution Extends TDistribution
 		Return bmx_boost_math_beta_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_beta_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_beta_distribution_free(objectPtr)
@@ -662,6 +756,10 @@ Type TCauchyDistribution Extends TDistribution
 		Return bmx_boost_math_cauchy_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_cauchy_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_cauchy_distribution_free(objectPtr)
@@ -695,7 +793,7 @@ Type TChiSquaredDistribution Extends TDistribution
 
 	Rem
 	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom.
-	about: Requires @v > 0, otherwise throws TDomainException. 
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
 	End Rem
 	Function CreateChiSquared:TChiSquaredDistribution(v:Double)
 		Return New TChiSquaredDistribution.Create(v)
@@ -703,7 +801,7 @@ Type TChiSquaredDistribution Extends TDistribution
 	
 	Rem
 	bbdoc: Creates a new TChiSquaredDistribution instance, with @v degrees of freedom. .
-	about: Requires @v > 0, otherwise throws TDomainException. 
+	about: Requires @v &gt; 0, otherwise throws TDomainException. 
 	End Rem
 	Method Create:TChiSquaredDistribution(v:Double)
 		objectPtr = bmx_boost_math_chi_squared_distribution_create(v)
@@ -741,6 +839,10 @@ Type TChiSquaredDistribution Extends TDistribution
 		Return bmx_boost_math_chi_squared_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_chi_squared_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_chi_squared_distribution_free(objectPtr)
@@ -815,6 +917,10 @@ Type TExponentialDistribution Extends TDistribution
 		Return bmx_boost_math_exponential_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_exponential_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_exponential_distribution_free(objectPtr)
@@ -874,7 +980,7 @@ Type TExtremeValueDistribution Extends TDistribution
 
 	Rem
 	bbdoc: Creates a new TExtremeValueDistribution instance with the specified @location and @scale parameters.
-	about: Requires scale >  0, otherwise throws TDomainException.
+	about: Requires scale &gt; 0, otherwise throws TDomainException.
 	End Rem
 	Function CreateExtremeValue:TExtremeValueDistribution(location:Double = 0, scale:Double = 1)
 		Return New TExtremeValueDistribution.Create(location, scale)
@@ -882,7 +988,7 @@ Type TExtremeValueDistribution Extends TDistribution
 	
 	Rem
 	bbdoc: Creates a new TExtremeValueDistribution instance with the specified @location and @scale parameters.
-	about: Requires scale >  0, otherwise throws TDomainException.
+	about: Requires scale &gt; 0, otherwise throws TDomainException.
 	End Rem
 	Method Create:TExtremeValueDistribution(location:Double = 0, scale:Double = 1)
 		objectPtr = bmx_boost_math_extreme_value_distribution_create(location, scale)
@@ -896,6 +1002,9 @@ Type TExtremeValueDistribution Extends TDistribution
 		Return bmx_boost_math_extreme_value_distribution_location(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method Scale:Double()
 		Return bmx_boost_math_extreme_value_distribution_scale(objectPtr)
 	End Method
@@ -924,9 +1033,297 @@ Type TExtremeValueDistribution Extends TDistribution
 		Return bmx_boost_math_extreme_value_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_extreme_value_distribution_quantile(objectPtr, p)
+	End Method
+	
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_extreme_value_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: The normal distribution is probably the most well known statistical distribution
+about: It is also known as the Gaussian Distribution. A normal distribution with mean zero and standard deviation one is known as
+the <em>Standard Normal Distribution</em>.
+<p>
+Given mean &#956; and standard deviation &#963; it has the PDF:
+</p>
+<p>
+<img src="normal_ref1.png">
+</p>
+<p>
+The variation the PDF with its parameters is illustrated in the following graph:
+</p>
+<p>
+<img src="normal_pdf.png" align="middle">
+</p>
+End Rem
+Type TNormalDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a TNormalDistribution with mean @_mean and standard deviation @sd.
+	about: Requires @sd &gt; 0, otherwise throws TDomainException.
+	End Rem
+	Function CreateNormal:TNormalDistribution(_mean:Double = 0, sd:Double = 1)
+		Return New TNormalDistribution.Create(_mean, sd)
+	End Function
+	
+	Rem
+	bbdoc: Creates a TNormalDistribution with mean @_mean and standard deviation @sd.
+	about: Requires @sd &gt; 0, otherwise throws TDomainException.
+	End Rem
+	Method Create:TNormalDistribution(_mean:Double = 0, sd:Double = 1)
+		objectPtr = bmx_boost_math_normal_distribution_create(_mean, sd)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the location parameter of this distribution.
+	End Rem
+	Method Location:Double()
+		Return bmx_boost_math_normal_distribution_location(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Scale:Double()
+		Return bmx_boost_math_normal_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_normal_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_normal_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_normal_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_normal_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_normal_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_normal_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_normal_distribution_quantile(objectPtr, p)
+	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_normal_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/pareto_distribution">Pareto distribution</a> is a continuous distribution.
+about: It has the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function (pdf) :
+<p>
+f(x; &#945;, &#946;) = &#945;&#946;<sup>&#945;</sup> / x<sup>&#945;+ 1</sup>
+</p>
+<p>
+For shape parameter &#945; &gt; 0, and location parameter &#946; &gt; 0, and &#945; &gt; 0.
+</p>
+<p>
+The <a href="http://mathworld.wolfram.com/paretoDistribution.html">Pareto distribution</a> often describes the larger compared to the smaller.
+A classic example is that 80% of the wealth is owned by 20% of the population.
+</p>
+<p>
+The following graph illustrates how the PDF varies with the location parameter &#946;:
+</p>
+<p>
+<img src="pareto_pdf1.png" align="middle">
+</p>
+<p>
+And this graph illustrates how the PDF varies with the shape parameter &#945;:
+</p>
+<p>
+<img src="pareto_pdf2.png" align="middle">
+</p>
+End Rem
+Type TParetoDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a TParetoDistribution with location @location and scale @scale.
+	about: Requires that the @location and @scale parameters are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Function CreatePareto:TParetoDistribution(location:Double = 1, shape:Double = 1)
+		Return New TParetoDistribution.Create(location, shape)
+	End Function
+	
+	Rem
+	bbdoc: Creates a TParetoDistribution with shape @location and scale @scale.
+	about: Requires that the @location and @scale parameters are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Method Create:TParetoDistribution(location:Double = 1, shape:Double = 1)
+		objectPtr = bmx_boost_math_pareto_distribution_create(location, shape)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the location parameter of this distribution.
+	End Rem
+	Method Location:Double()
+		Return bmx_boost_math_pareto_distribution_location(objectPtr)
+	End Method
+
+	Rem
+	bdoc: Returns the shape parameter of this distribution.
+	End Rem
+	Method Shape:Double()
+		Return bmx_boost_math_pareto_distribution_shape(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_pareto_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_pareto_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_pareto_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_pareto_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_pareto_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_pareto_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_pareto_distribution_quantile(objectPtr, p)
+	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_pareto_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Weibull_distribution">Weibull distribution</a> is a continuous distribution.
+about: It has the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function</a>:
+<p>
+f(x; &#945;, &#946;) = (&#945;/&#946;) * (x / &#946;)<sup>&#945; - 1</sup> * e<sup>-(x/&#946;)<sup>&#945;</sup></sup>
+</p>
+<p>
+For shape parameter &#945; &gt; 0, and scale parameter &#946; &gt; 0, and x &gt; 0.
+</p>
+<p>
+The Weibull distribution is often used in the field of failure analysis; in particular it can mimic distributions where the failure rate varies
+over time. If the failure rate is:
+</p>
+<ul type="disc">
+<li>constant over time, then &#945; = 1, suggests that items are failing from random events.</li>
+<li>decreases over time, then &#945; &lt; 1, suggesting "infant mortality".</li>
+<li>increases over time, then &#945; &gt; 1, suggesting "wear out" - more likely to fail as time goes by.</li>
+</ul>
+<p>
+The following graph illustrates how the PDF varies with the shape parameter &#945;:
+</p>
+<p>
+<img src="weibull_pdf1.png" align="middle">
+</p>
+<p>
+While this graph illustrates how the PDF varies with the scale parameter &#946;:
+</p>
+<p>
+<img src="weibull_pdf2.png" align="middle">
+</p>
+End Rem
+Type TWeibullDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a TWeibullDistribution with shape @shape and scale @scale.
+	about: Requires that the @shape and @scale parameters are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Function CreateWeibull:TWeibullDistribution(shape:Double, scale:Double = 1)
+		Return New TWeibullDistribution.Create(shape, scale)
+	End Function
+	
+	Rem
+	bbdoc: Creates a TWeibullDistribution with shape @shape and scale @scale.
+	about: Requires that the @shape and @scale parameters are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Method Create:TWeibullDistribution(shape:Double, scale:Double = 1)
+		objectPtr = bmx_boost_math_weibull_distribution_create(shape, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the shape parameter of this distribution.
+	End Rem
+	Method Shape:Double()
+		Return bmx_boost_math_weibull_distribution_shape(objectPtr)
+	End Method
+
+	Rem
+	bdoc: Returns the scale parameter of this distribution.
+	End Rem
+	Method Scale:Double()
+		Return bmx_boost_math_weibull_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_weibull_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_weibull_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_weibull_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_weibull_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_weibull_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_weibull_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_weibull_distribution_quantile(objectPtr, p)
+	End Method
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_weibull_distribution_free(objectPtr)
 			objectPtr = Null
 		End If
 	End Method

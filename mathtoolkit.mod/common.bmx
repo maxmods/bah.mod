@@ -48,6 +48,9 @@ Extern
 	Function bmx_boost_math_cbrt:Double(x:Double)
 	Function bmx_boost_math_hypot:Double(x:Double, y:Double)
 
+	Function bmx_boost_math_sphbessel:Double(v:Int, x:Double)
+	Function bmx_boost_math_sphneumann:Double(v:Int, x:Double)
+
 	Function bmx_boost_math_binomial_distribution_create:Byte Ptr(n:Int, p:Double)
 	Function bmx_boost_math_binomial_distribution_successfraction:Double(handle:Byte Ptr)
 	Function bmx_boost_math_binomial_distribution_trials:Int(handle:Byte Ptr)
@@ -58,6 +61,7 @@ Extern
 	Function bmx_boost_math_binomial_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_binomial_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_binomial_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_binomial_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_bernoulli_distribution_create:Byte Ptr(p:Double)
 	Function bmx_boost_math_bernoulli_distribution_successfraction:Double(handle:Byte Ptr)
@@ -68,6 +72,7 @@ Extern
 	Function bmx_boost_math_bernoulli_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_bernoulli_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_bernoulli_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_bernoulli_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_beta_distribution_create:Byte Ptr(a:Double, b:Double)
 	Function bmx_boost_math_beta_distribution_alpha:Double(handle:Byte Ptr)
@@ -79,6 +84,7 @@ Extern
 	Function bmx_boost_math_beta_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_beta_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_beta_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_beta_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_cauchy_distribution_create:Byte Ptr(location:Double, scale:Double)
 	Function bmx_boost_math_cauchy_distribution_location:Double(handle:Byte Ptr)
@@ -90,6 +96,7 @@ Extern
 	Function bmx_boost_math_cauchy_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_cauchy_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_cauchy_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_cauchy_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_chi_squared_distribution_create:Byte Ptr(i:Double)
 	Function bmx_boost_math_chi_squared_distribution_degreesoffreedom:Double(handle:Byte Ptr)
@@ -100,6 +107,7 @@ Extern
 	Function bmx_boost_math_chi_squared_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_chi_squared_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_chi_squared_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_chi_squared_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_exponential_distribution_create:Byte Ptr(lambda:Double)
 	Function bmx_boost_math_exponential_distribution_lambda:Double(handle:Byte Ptr)
@@ -110,6 +118,7 @@ Extern
 	Function bmx_boost_math_exponential_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_exponential_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_exponential_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_exponential_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 	Function bmx_boost_math_extreme_value_distribution_create:Byte Ptr(location:Double, scale:Double)
 	Function bmx_boost_math_extreme_value_distribution_location:Double(handle:Byte Ptr)
@@ -121,6 +130,43 @@ Extern
 	Function bmx_boost_math_extreme_value_distribution_pdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_extreme_value_distribution_cdf:Double(handle:Byte Ptr, k:Double)
 	Function bmx_boost_math_extreme_value_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_extreme_value_distribution_quantile:Double(handle:Byte Ptr, p:Double)
+
+	Function bmx_boost_math_normal_distribution_create:Byte Ptr(_mean:Double, sd:Double)
+	Function bmx_boost_math_normal_distribution_location:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_scale:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_normal_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_normal_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_normal_distribution_quantile:Double(handle:Byte Ptr, p:Double)
+
+	Function bmx_boost_math_pareto_distribution_create:Byte Ptr(location:Double, shape:Double)
+	Function bmx_boost_math_pareto_distribution_location:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_shape:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_pareto_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_pareto_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_quantile:Double(handle:Byte Ptr, p:Double)
+
+	Function bmx_boost_math_weibull_distribution_create:Byte Ptr(shape:Double, scale:Double)
+	Function bmx_boost_math_weibull_distribution_shape:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_scale:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_mean:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_mode:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_standarddeviation:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_skewness:Double(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_pdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_weibull_distribution_cdf:Double(handle:Byte Ptr, k:Double)
+	Function bmx_boost_math_weibull_distribution_free(handle:Byte Ptr)
+	Function bmx_boost_math_weibull_distribution_quantile:Double(handle:Byte Ptr, p:Double)
 
 End Extern
 
