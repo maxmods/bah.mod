@@ -21,6 +21,9 @@ Framework BaH.MathToolkit
 Import BRL.StandardIO
 Import BRL.Math
 
+Import "example_helper.bmx"
+
+SetPrecision(4)
 
 Print "~nUsing Binomial distribution to predict how many heads and tails."
 
@@ -72,12 +75,11 @@ Try
 	
 	' is less accurate than using the complement
 	
-' FIXME
-	'Print "Probability of getting 9 or 10 heads is " + cdf(complement(coinFlip, 8))
+	Print "Probability of getting 9 or 10 heads is " + nice(CdfComplement(coinFlip, 8))
 	
 	' Since the subtraction may involve
 	' http://docs.sun.com/source/806-3568/ncg_goldberg.html cancellation error,
-	' where as `cdf(complement(coinFlip, 8))`
+	' where as `CdfComplement(coinFlip, 8)`
 	' does not use such a subtraction internally, and so does not exhibit the problem.
 	
 	' To get the probability for a range of heads, we can either add the pdfs for each number of heads
@@ -124,35 +126,4 @@ Catch e:Object
 	
 End Try
 
-
-' prettify Double output
-Function nice:String(value:Double, prec:Int = 4)
-
-	Local v:String = String.FromDouble(value)
-	Local i:Int = v.Find(".")
-	Local s:String = v[..i]
-	Local p:String = ".", count:Int
-
-	i:+ 1
-	While i < v.length
-		Local c:Int = v[i]
-		If c > 48 And c < 58 Or count > 0 Then
-			count:+ 1
-		End If
-
-		p:+ Chr(c)
-		
-		If count = prec Then
-			Exit
-		End If
-	
-		i:+ 1
-	Wend
-	
-	If count = 0 Then
-		p = ""
-	End If
-
-	Return s + p
-End Function
 

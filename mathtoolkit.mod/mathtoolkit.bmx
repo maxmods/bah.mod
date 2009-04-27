@@ -278,6 +278,10 @@ Function Cdf:Double(dist:TDistribution, k:Double)
 	Return dist.Cdf(k)
 End Function
 
+Function CdfComplement:Double(dist:TDistribution, k:Double)
+	Return dist.CdfComplement(k)
+End Function
+
 Rem
 bbdoc: Calculate the quantile of @dist, for @p.
 End Rem
@@ -346,6 +350,10 @@ Type TDistribution
 	bbdoc: 
 	End Rem
 	Method Cdf:Double(k:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
+	Method CdfComplement:Double(k:Double) Abstract
 	Rem
 	bbdoc: 
 	End Rem
@@ -480,6 +488,10 @@ Type TBinomialDistribution Extends TDistribution
 	Method Cdf:Double(k:Double)
 		Return bmx_boost_math_binomial_distribution_cdf(objectPtr, k)
 	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_binomial_distribution_cdfcomplement(objectPtr, k)
+	End Method
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_binomial_distribution_quantile(objectPtr, p)
@@ -564,6 +576,10 @@ Type TBernoulliDistribution Extends TDistribution
 		Return bmx_boost_math_bernoulli_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_bernoulli_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_bernoulli_distribution_quantile(objectPtr, p)
 	End Method
@@ -672,6 +688,10 @@ Type TBetaDistribution Extends TDistribution
 		Return bmx_boost_math_beta_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_beta_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_beta_distribution_quantile(objectPtr, p)
 	End Method
@@ -777,6 +797,10 @@ Type TCauchyDistribution Extends TDistribution
 		Return bmx_boost_math_cauchy_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_cauchy_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_cauchy_distribution_quantile(objectPtr, p)
 	End Method
@@ -860,6 +884,10 @@ Type TChiSquaredDistribution Extends TDistribution
 		Return bmx_boost_math_chi_squared_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_chi_squared_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_chi_squared_distribution_quantile(objectPtr, p)
 	End Method
@@ -938,6 +966,10 @@ Type TExponentialDistribution Extends TDistribution
 		Return bmx_boost_math_exponential_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_exponential_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_exponential_distribution_quantile(objectPtr, p)
 	End Method
@@ -1054,6 +1086,10 @@ Type TExtremeValueDistribution Extends TDistribution
 		Return bmx_boost_math_extreme_value_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_extreme_value_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_extreme_value_distribution_quantile(objectPtr, p)
 	End Method
@@ -1141,6 +1177,10 @@ Type TNormalDistribution Extends TDistribution
 		Return bmx_boost_math_normal_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_normal_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_normal_distribution_quantile(objectPtr, p)
 	End Method
@@ -1237,6 +1277,10 @@ Type TParetoDistribution Extends TDistribution
 		Return bmx_boost_math_pareto_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_pareto_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_pareto_distribution_quantile(objectPtr, p)
 	End Method
@@ -1338,6 +1382,10 @@ Type TWeibullDistribution Extends TDistribution
 		Return bmx_boost_math_weibull_distribution_cdf(objectPtr, k)
 	End Method
 
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_weibull_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_weibull_distribution_quantile(objectPtr, p)
 	End Method
