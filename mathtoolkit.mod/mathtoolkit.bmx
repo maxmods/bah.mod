@@ -316,18 +316,39 @@ End Function
 
 
 Rem
-bbdoc: 
+bbdoc: Base type for Distributions.
 End Rem
 Type TDistribution
 
 	Field objectPtr:Byte Ptr
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Mean:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Mode:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method StandardDeviation:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Skewness:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Pdf:Double(k:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Cdf:Double(k:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Quantile:Double(p:Double) Abstract
 
 End Type
@@ -1135,7 +1156,7 @@ End Type
 
 Rem
 bbdoc: The <a href="http://en.wikipedia.org/wiki/pareto_distribution">Pareto distribution</a> is a continuous distribution.
-about: It has the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function (pdf) :
+about: It has the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function</a> (pdf) :
 <p>
 f(x; &#945;, &#946;) = &#945;&#946;<sup>&#945;</sup> / x<sup>&#945;+ 1</sup>
 </p>
