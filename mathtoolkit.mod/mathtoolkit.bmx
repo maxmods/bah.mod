@@ -232,6 +232,7 @@ End Function
 
 Rem
 bbdoc: Calculate the mean of @dist.
+about: This function may throw a TDomainException if the distribution does not have a defined mean (for example the Cauchy distribution).
 End Rem
 Function Mean:Double(dist:TDistribution)
 	Return dist.Mean()
@@ -240,6 +241,9 @@ End Function
 Rem
 bbdoc: Calculate the mode of @dist.
 about: The mode is the value that occurs the most frequently in a data set or a probability distribution.
+<p>
+This function may throw a TDomainException if the distribution does not have a defined mode.
+</p>
 End Rem
 Function Mode:Double(dist:TDistribution)
 	Return dist.Mode()
@@ -248,6 +252,9 @@ End Function
 Rem
 bbdoc: Calculate the standard deviation of @dist.
 about: Standard deviation is a simple measure of the variability or dispersion of a data set.
+<p>
+This function may throw a TDomainException if the distribution does not have a defined standard deviation.
+</p>
 End Rem
 Function StandardDeviation:Double(dist:TDistribution)
 	Return dist.StandardDeviation()
@@ -256,6 +263,9 @@ End Function
 Rem
 bbdoc: Determine skewness on @dist.
 about: Skewness is a measure of the asymmetry of the probability distribution of a real-valued random variable.
+<p>
+This function may throw a TDomainException if the distribution does not have a defined skewness.
+</p>
 End Rem
 Function Skewness:Double(dist:TDistribution)
 	Return dist.Skewness()
@@ -263,7 +273,21 @@ End Function
 
 Rem
 bbdoc: Perform a probability density function on @dist.
-about: A probability density function (pdf) is a function that represents a probability distribution in terms of integrals.
+about: For a continuous function, the probability density function (pdf) returns the probability that the variate has the value @x.
+Since for continuous distributions the probability at a single point is actually zero, the probability is better expressed as the
+integral of the pdf between two points: see the Cumulative Distribution Function (Cdf).
+<p>
+For a discrete distribution, the pdf is the probability that the variate takes the value x.
+</p>
+<p>
+This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
+</p>
+<p>
+For example for a standard normal distribution the pdf looks like this:
+</p>
+<p>
+<img src="pdf.png" align="middle">
+</p>
 End Rem
 Function Pdf:Double(dist:TDistribution, k:Double)
 	Return dist.Pdf(k)
@@ -271,50 +295,187 @@ End Function
 
 Rem
 bbdoc: Perform a cumulative distribution function on @dist.
-about: The cumulative distribution function (CDF) or just distribution function, completely describes the probability
-distribution of a real-valued random variable.
+about: The Cumulative Distribution Function is the probability that the variable takes a value less than or equal to @x. It is
+equivalent to the integral from -infinity to x of the Probability Density Function.
+<p>
+This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
+</p>
+<p>
+For example the following graph shows the cdf for the normal distribution:
+</p>
+<p>
+<img src="cdf.png" align="middle">
+</p>
 End Rem
 Function Cdf:Double(dist:TDistribution, k:Double)
 	Return dist.Cdf(k)
 End Function
 
+Rem
+bbdoc: Calculate the complement of the cumulative distribution function on @dist.
+about: The complement of the Cumulative Distribution Function is the probability that the variable takes a value greater than @x.
+It is equivalent to the integral from x to infinity of the Probability Density Function, or 1 minus the Cumulative Distribution Function of @x.
+<p>
+This is also known as the survival function.
+</p>
+<p>
+This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
+</p>
+<p>
+For example the following graph shows the complement of the cdf for the normal distribution:
+</p>
+<p>
+<img src="survival.png" align="middle">
+</p>
+End Rem
 Function CdfComplement:Double(dist:TDistribution, k:Double)
 	Return dist.CdfComplement(k)
 End Function
 
 Rem
 bbdoc: Calculate the quantile of @dist, for @p.
+about: The quantile is best viewed as the inverse of the Cumulative Distribution Function, it returns a value x such that cdf(dist, x) == p.
+<p>
+This is also known as the percent point function, or a percentile, it is also the same as calculating the lower critical value of a
+distribution.
+</p>
+<p>
+This function throws a TDomainException if the probability lies outside [0,1]. The function may return an overflow_error if there is no
+finite value that has the specified probability.
+</p>
+<p>
+The following graph shows the quantile function for a standard normal distribution:
+</p>
+<p>
+<img src="quantile.png" align="middle">
+</p>
 End Rem
 Function Quantile:Double(dist:TDistribution, p:Double)
 	Return dist.Quantile(p)
 End Function
 
+Rem
+bbdoc: Returns the Hazard Function of @x and distribution @dist.
+about: This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
+<p>
+<img src="hazard.png">
+</p>
+<table border="0">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Some authors refer to this as the conditional failure density function
+            rather than the hazard function.
+          </p></td></tr>
+</table>
+End Rem
 Function Hazard:Double(dist:TDistribution, x:Double)
-' TODO
+	Return dist.Hazard(x)
 End Function
 
+Rem
+bbdoc: Returns the Cumulative Hazard Function of @x and distibution @dist.
+about: This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
+<p>
+<img src="chf.png">
+</p>
+<table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Some authors refer to this as simply the "Hazard Function".
+          </p></td></tr>
+</table>
+End Rem
 Function Chf:Double(dist:TDistribution, x:Double)
-' TODO
+	Return dist.Chf(x)
 End Function
 
+Rem
+bbdoc: Returns the median of the distribution @dist.
+End Rem
 Function Median:Double(dist:TDistribution)
-' TODO
+	Return dist.Median()
 End Function
 
+Rem
+bbdoc: Returns the valid range of the random variable over distribution @dist.
+End Rem
 Function Range(dist:TDistribution, rangeStart:Double Var, rangeEnd:Double Var)
-' TODO
+	dist.Range(rangeStart, rangeEnd)
 End Function
 
+Rem
+bbdoc: Returns the variance of the distribution @dist.
+about: This function may throw a TDomainException if the distribution does not have a defined variance.
+End Rem
 Function Variance:Double(dist:TDistribution)
-' TODO
+	Return dist.Variance()
 End Function
 
+Rem
+bbdoc: Returns the 'proper' kurtosis (normalized fourth moment) of the distribution @dist.
+about: kertosis = &#946;<sub>2</sub>= &#956;<sub>4</sub> / &#956;<sub>2</sub><sup>2</sup>
+<p>
+Where &#956;<sub>i</sub> is the i'th central moment of the distribution, and in particular
+&#956;<sub>2</sub> is the variance of the distribution.
+</p>
+<p>
+The kurtosis is a measure of the "peakedness" of a distribution.
+</p>
+<p>
+Note that the literature definition of kurtosis is confusing. The definition used here is that used by for example 
+<a href="http://mathworld.wolfram.com/Kurtosis.html">Wolfram MathWorld</a> (that includes a table of formulae for kurtosis excess
+for various distributions) but NOT the definition of <a href="http://en.wikipedia.org/wiki/Kurtosis">kurtosis used by Wikipedia</a> which
+treats "kurtosis" and "kurtosis excess" as the same quantity.
+</p>
+<pre>kurtosis_excess = 'proper' kurtosis - 3
+</pre>
+<p>
+This subtraction of 3 is convenient so that the <em>kurtosis excess</em> of a normal distribution is zero.
+</p>
+<p>
+This function may throw a TDomainException if the distribution does not have a defined kurtosis.
+</p>
+<p>
+'Proper' kurtosis can have a value from zero to + infinity.
+</p>
+End Rem
 Function Kurtosis:Double(dist:TDistribution)
-' TODO
+	Return dist.Kurtosis()
 End Function
 
+Rem
+bbdoc: Returns the kurtosis excess of the distribution @dist.
+<p>
+kurtosis excess = &#947;<sub>2</sub>= &#956;<sub>4</sub> / &#956;<sub>2</sub><sup>2</sup>- 3 = kurtosis - 3
+</p>
+<p>
+Where &#956;<sub>i</sub> is the i'th central moment of the distribution, and in particular
+&#956;<sub>2</sub> is the variance of the distribution.
+</p>
+<p>
+The kurtosis excess is a measure of the "peakedness" of a distribution, and is more widely used than the "kurtosis proper". It is defined
+so that the kurtosis excess of a normal distribution is zero.
+</p>
+<p>
+This function may throw a TDomainException if the distribution does not have a defined kurtosis excess.
+</p>
+<p>
+Kurtosis excess can have a value from -2 to + infinity.
+</p>
+<pre>kurtosis = kurtosis_excess + 3
+</pre>
+<p>
+The kurtosis excess of a normal distribution is zero.
+</p>
+End Rem
 Function KurtosisExcess:Double(dist:TDistribution)
-' TODO
+	Return dist.KurtosisExcess()
 End Function
 
 
@@ -358,6 +519,13 @@ Type TDistribution
 	bbdoc: 
 	End Rem
 	Method Quantile:Double(p:Double) Abstract
+	Method Hazard:Double(x:Double) Abstract
+	Method Chf:Double(x:Double) Abstract
+	Method Median:Double() Abstract
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var) Abstract
+	Method Variance:Double() Abstract
+	Method Kurtosis:Double() Abstract
+	Method KurtosisExcess:Double() Abstract
 
 End Type
 
@@ -496,7 +664,35 @@ Type TBinomialDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_binomial_distribution_quantile(objectPtr, p)
 	End Method
-	
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_binomial_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_binomial_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_binomial_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_binomial_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_binomial_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_binomial_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_binomial_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_binomial_distribution_free(objectPtr)
@@ -583,6 +779,35 @@ Type TBernoulliDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_bernoulli_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_bernoulli_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_bernoulli_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_bernoulli_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_bernoulli_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_bernoulli_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_bernoulli_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_bernoulli_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -695,6 +920,35 @@ Type TBetaDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_beta_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_beta_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_beta_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_beta_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_beta_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_beta_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_beta_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_beta_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -804,6 +1058,35 @@ Type TCauchyDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_cauchy_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_cauchy_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_cauchy_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_cauchy_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_cauchy_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_cauchy_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_cauchy_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_cauchy_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -891,6 +1174,35 @@ Type TChiSquaredDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_chi_squared_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_chi_squared_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_chi_squared_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_chi_squared_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_chi_squared_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_chi_squared_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_chi_squared_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_chi_squared_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -973,6 +1285,35 @@ Type TExponentialDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_exponential_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_exponential_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_exponential_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_exponential_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_exponential_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_exponential_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_exponential_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_exponential_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -1093,6 +1434,35 @@ Type TExtremeValueDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_extreme_value_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_extreme_value_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_extreme_value_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_extreme_value_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_extreme_value_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_extreme_value_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_extreme_value_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_extreme_value_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -1184,6 +1554,35 @@ Type TNormalDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_normal_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_normal_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_normal_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_normal_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_normal_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_normal_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_normal_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_normal_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -1284,6 +1683,35 @@ Type TParetoDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_pareto_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_pareto_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_pareto_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_pareto_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_pareto_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_pareto_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_pareto_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_pareto_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -1389,6 +1817,35 @@ Type TWeibullDistribution Extends TDistribution
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_weibull_distribution_quantile(objectPtr, p)
 	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_weibull_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_weibull_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_weibull_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_weibull_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_weibull_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_weibull_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_weibull_distribution_kurtosisexcess(objectPtr)
+	End Method
+
 	
 	Method Delete()
 		If objectPtr Then
@@ -1398,6 +1855,491 @@ Type TWeibullDistribution Extends TDistribution
 	End Method
 
 End Type
+
+Rem
+bbdoc: The F distribution is a continuous distribution.
+about: It arises when testing whether two samples have the same variance. If &#967;<sup>2</sup><sub>m</sub> and
+&#967;<sup>2</sup><sub>n</sub> are independent variates each distributed as Chi-Squared with <em>m</em>
+and <em>n</em> degrees of freedom, then the test statistic:
+</p>
+<p>
+F<sub>n,m</sub> = (&#967;<sup>2</sup><sub>n</sub> / n) / (&#967;<sup>2</sup><sub>m</sub> / m)
+</p>
+<p>
+Is distributed over the range [0, &#8734;] with an F distribution, and has the
+PDF:
+</p>
+<p>
+<img src="fisher_pdf.png">
+</p>
+<p>
+The following graph illustrates how the PDF varies depending on the two degrees of freedom parameters.
+</p>
+<p>
+<img src="fisher_f_pdf.png" align="middle">
+</p>
+End Rem
+Type TFisherFDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a TFisherFDistribution with numerator degrees of freedom @i and denominator degrees of freedom @j.
+	about: Requires that @i and @j are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Function Createfisherf:TFisherFDistribution(i:Double, j:Double)
+		Return New TFisherFDistribution.Create(i, j)
+	End Function
+	
+	Rem
+	bbdoc: Creates a TFisherFDistribution with numerator degrees of freedom @i and denominator degrees of freedom @j.
+	about: Requires that @i and @j are both greater than zero, otherwise throws TDomainException.
+	End Rem
+	Method Create:TFisherFDistribution(i:Double, j:Double)
+		objectPtr = bmx_boost_math_fisher_f_distribution_create(i, j)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the numerator degrees of freedom parameter of the distribution.
+	End Rem
+	Method DegreesOfFreedom1:Double()
+		Return bmx_boost_math_fisher_f_distribution_degreesoffreedom1(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the denominator degrees of freedom parameter of the distribution.
+	End Rem
+	Method DegreesOfFreedom2:Double()
+		Return bmx_boost_math_fisher_f_distribution_degreesoffreedom2(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_fisher_f_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_fisher_f_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_fisher_f_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_fisher_f_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_fisher_f_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_fisher_f_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_fisher_f_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_fisher_f_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_fisher_f_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_fisher_f_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_fisher_f_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_fisher_f_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_fisher_f_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_fisher_f_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_fisher_f_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_fisher_f_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+
+Rem
+bbdoc: The lognormal distribution is the distribution that arises when the logarithm of the random variable is normally distributed.
+about: A lognormal distribution results when the variable is the product of a large number of independent, identically-distributed variables.
+<p>
+For location and scale parameters <em>m</em> and <em>s</em> it is defined by the probability density function:
+</p>
+<p>
+<img src="lognormal_ref.png">
+</p>
+<p>
+The location and scale parameters are equivalent to the mean and standard deviation of the logarithm of the random variable.
+</p>
+<p>
+The following graph illustrates the effect of the location parameter on the PDF, note that the range of the random variable remains [0,+&#8734;]
+irrespective of the value of the location parameter:
+</p>
+<p>
+<img src="lognormal_pdf1.png" align="middle">
+</p>
+<p>
+The next graph illustrates the effect of the scale parameter on the PDF:
+</p>
+<p>
+<img src="lognormal_pdf2.png" align="middle">
+</p>
+End Rem
+Type TLogNormalDistribution Extends TDistribution
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateLogNormal:TLogNormalDistribution(location:Double = 0, scale:Double = 1)
+		Return New TLogNormalDistribution.Create(location, scale)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TLogNormalDistribution(location:Double = 0, scale:Double = 1)
+		objectPtr = bmx_boost_math_lognormal_distribution_create(location, scale)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Location:Double()
+		Return bmx_boost_math_lognormal_distribution_location(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Scale:Double()
+		Return bmx_boost_math_lognormal_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_lognormal_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_lognormal_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_lognormal_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_lognormal_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_lognormal_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_lognormal_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_lognormal_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_lognormal_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_lognormal_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_lognormal_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_lognormal_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_lognormal_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_lognormal_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_lognormal_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_lognormal_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_lognormal_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Rem
+bbdoc: Represents a <a href="http://en.wikipedia.org/wiki/Negative_binomial_distribution">negative_binomial distribution</a>.
+about: It is used when there are exactly two mutually exclusive outcomes of a <a href="http://en.wikipedia.org/wiki/Bernoulli_trial">Bernoulli
+trial</a>: these outcomes are labelled "success" and "failure".
+<p>
+For k + r Bernoulli trials each with success fraction p, the negative_binomial distribution gives the probability of observing k failures
+and r successes with success on the last trial. The negative_binomial distribution assumes that success_fraction p is fixed for
+all (k + r) trials.
+</p>
+<table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+The random variable for the negative binomial distribution is the number of trials, (the number of successes is a fixed property of
+the distribution) whereas for the binomial, the random variable is the number of successes, for a fixed number of trials.
+</p></td></tr>
+</table>
+<p>
+It has the PDF:
+</p>
+<p>
+<img src="neg_binomial_ref.png">
+</p>
+<p>
+The following graph illustrate how the PDF varies as the success fraction <em>p</em> changes:
+</p>
+<p>
+<img src="negative_binomial_pdf_1.png" align="middle">
+</p>
+<p>
+Alternatively, this graph shows how the shape of the PDF varies as the number of successes changes:
+</p>
+<p>
+<img src="negative_binomial_pdf_2.png" align="middle">
+</p>
+<h5>Related Distributions</h5>
+<p>
+The name negative binomial distribution is reserved by some to the case
+where the successes parameter r is an integer. This integer version is
+also called the <a class="external" href="http://mathworld.wolfram.com/PascalDistribution.html" target="_top">Pascal
+distribution</a>.
+</p>
+<p>
+This implementation uses real numbers for the computation throughout (because it uses the <strong>real-valued</strong> incomplete
+beta function family of functions). This real-valued version is also called the Polya Distribution.
+</p>
+<p>
+The Poisson distribution is a generalization of the Pascal distribution, where the success parameter r is an integer: to obtain the
+Pascal distribution you must ensure that an integer value is provided for r, and take integer values (floor or ceiling) from functions
+that return a number of successes.
+</p>
+<p>
+For large values of r (successes), the negative binomial distribution converges to the Poisson distribution.
+</p>
+<p>
+The geometric distribution is a special case where the successes parameter r = 1, so only a first and only success is required.
+geometric(p) = negative_binomial(1,
+p).
+</p>
+<p>
+The Poisson distribution is a special case for large successes
+</p>
+<p>
+poisson(&#955;) = lim <sub>r &#8594; &#8734;</sub>  negative_binomial(r, r / (&#955; + r)))
+</p>
+<p>
+</p>
+<table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+The Negative Binomial distribution is a discrete distribution: internally functions like the cdf
+and pdf are treated "as if" they are continuous functions, but in reality the results returned from these functions only have meaning
+if an integer value is provided for the random variate argument.
+</p>
+<p>
+The quantile function will by default return an integer result that has been <em>rounded outwards</em>. That is to say lower
+quantiles (where the probability is less than 0.5) are rounded downward, and upper quantiles (where the probability is greater than 0.5) are
+rounded upwards. This behaviour ensures that if an X% quantile is requested, then <em>at least</em> the requested coverage
+will be present in the central region, and <em>no more than</em> the requested coverage will be present in the tails.
+</p>
+</td></tr>
+</table>
+End Rem
+Type TNegativeBinomialDistribution Extends TDistribution
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateNegativeBinomial:TNegativeBinomialDistribution(r:Int, p:Double)
+		Return New TNegativeBinomialDistribution.Create(r, p)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TNegativeBinomialDistribution(r:Int, p:Double)
+		objectPtr = bmx_boost_math_negative_binomial_distribution_create(r, p)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method SuccessFraction:Double()
+		Return bmx_boost_math_negative_binomial_distribution_successfraction(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method Successes:Int()
+		Return bmx_boost_math_negative_binomial_distribution_successes(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function FindLowerBoundOnP:Double(trials:Int, successes:Int, probability:Double)
+		Return bmx_boost_math_negative_binomial_distribution_findlowerboundonp(trials, successes, probability)
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function FindUpperBoundOnP:Double(trials:Int, successes:Int, probability:Double)
+		Return bmx_boost_math_negative_binomial_distribution_findupperboundonp(trials, successes, probability)
+	End Function
+
+	Rem
+	bbdoc: Estimates the number of trials required to achieve a certain probability that more than k failures will be observed.
+	about: Parameters:
+	<ul>
+	<li><b>k</b> : The target number of failures to be observed. </li>
+	<li><b>p</b> : The probability of success for each trial.</li>
+	<li><b>probability</b> : The maximum acceptable risk that only k failures or fewer will be observed.</li>
+	</ul>
+	For example:
+	<pre>
+	TNegativeBinomialDistribution.FindMinimumNumberOfTrials(10, 0.5, 0.05)
+	</pre>
+	Returns the smallest number of trials we must conduct to be 95% sure of seeing 10 failures that occur with frequency one half.
+	<p>
+	This function uses numeric inversion of the negative binomial distribution to obtain the result: another interpretation of the
+	result, is that it finds the number of trials (success+failures) that will lead to an alpha probability of observing k failures or fewer.
+	</p>
+	End Rem
+	Function FindMinimumNumberOfTrials:Double(k:Int, p:Double, probability:Double)
+		Return bmx_boost_math_negative_binomial_distribution_findminimumnumberoftrials(k, p, probability)
+	End Function
+ 
+	Rem
+	bbdoc: 
+	End Rem
+ 	Function FindMaximumNumberOfTrials:Double(k:Int, p:Double, probability:Double)
+		Return bmx_boost_math_negative_binomial_distribution_findmaximumnumberoftrials(k, p, probability)
+	End Function
+
+	Method Mean:Double()
+		Return bmx_boost_math_negative_binomial_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_negative_binomial_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_negative_binomial_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_negative_binomial_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_negative_binomial_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_negative_binomial_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_negative_binomial_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_negative_binomial_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_negative_binomial_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_negative_binomial_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_negative_binomial_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_negative_binomial_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_negative_binomial_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_negative_binomial_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_negative_binomial_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_negative_binomial_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
 
 
 
