@@ -169,31 +169,90 @@ Function Hypot:Double(x:Double, y:Double)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Returns the natural logarithm of x+1.
+about: There are many situations where it is desirable to compute <code>log(x+1)</code>. However, for small <code>x</code>
+then <code>x+1</code> suffers from catastrophic cancellation errors so that <code>x+1 == 1</code>
+and <code>log(x+1) == 0</code>, when in fact for very small x, the best approximation to <code>log(x+1)</code> would be
+ <code>x</code>. <code>log1p</code> calculates the best approximation to <code>log(1+x)</code> using a Taylor series expansion for accuracy
+(less than 2&#603;). Alternatively note that there are faster methods available, for example using the equivalence:
+<pre>log(1+x) == (log(1+x) * x) / ((1-x) - 1)
+</pre>
+<p>
+However, experience has shown that these methods tend to fail quite spectacularly once the compiler's optimizations are turned on,
+consequently they are used only when known not to break with a particular compiler. In contrast, the series expansion method seems to
+be reasonably immune to optimizer-induced
+errors.
+</p>
+<p>
+The following graph illustrates the behaviour of log1p:
+</p>
+<p>
+<img src="log1p.png" align="middle">
+</p>
 End Rem
 Function Log1p:Double(x:Double)
 	Return bmx_boost_math_log1p(x)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Returns e<sup>x</sup> - 1.
+about: For small x, then <code>e<sup>x</sup></code> is very close to 1, as a result calculating <code>e<sup>x</sup> - 1</code> results in
+catastrophic cancellation errors when x is small. <code>expm1</code> calculates <code>e<sup>x</sup> - 1</code> using rational approximations
+(for up to 128-bit long doubles), otherwise via a series expansion when x is small (giving an accuracy of less than 2&#603;).
+<p>
+The following graph illustrates the behaviour of expm1:
+</p>
+<p>
+<img src="expm1.png" align="middle">
+</p>
 End Rem
 Function Expm1:Double(x:Double)
 	Return bmx_boost_math_expm1(x)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Returns sqrt(1+x) - 1.
+about: This function is useful when you need the difference between sqrt(x) and 1, when x is itself close to 1.
+<p>
+Implemented in terms of <code>log1p</code> and <code>expm1</code>.
+</p>
+<p>
+The following graph illustrates the behaviour of sqrt1pm1:
+</p>
+<p>
+<img src="sqrt1pm1.png" align="middle">
+</p>
 End Rem
 Function Sqrt1pm1:Double(x:Double)
 	Return bmx_boost_math_sqrt1pm1(x)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Returns x<sup>y </sup> - 1.
+about: There are two domains where this is useful: when y is very small, or when x is close to 1.
+<p>
+Implemented in terms of <code>expm1</code>.
+</p>
+<p>
+The following graph illustrates the behaviour of powm1:
+</p>
+<p>
+<img src="powm1.png" align="middle">
+</p>
 End Rem
 Function Powm1:Double(x:Double, y:Double)
 	Return bmx_boost_math_powm1(x, y)
+End Function
+
+Rem
+bbdoc: Returns the <a href="http://mathworld.wolfram.com/RiemannZetaFunction.html">zeta function</a> of z: <img src="zeta1.png">
+about: <img src="zeta1.png" align="middle">
+<p>
+<img src="zeta2.png" align="middle">
+</p>
+End Rem
+Function Zeta:Double(z:Double)
+	Return bmx_boost_math_zeta(z)
 End Function
 
 Rem
@@ -345,7 +404,7 @@ Function CdfComplement:Double(dist:TDistribution, k:Double)
 End Function
 
 Rem
-bbdoc: Calculate the quantile of @dist, for @p.
+bbdoc: Calculates the quantile of @dist, for @p.
 about: The quantile is best viewed as the inverse of the Cumulative Distribution Function, it returns a value x such that cdf(dist, x) == p.
 <p>
 This is also known as the percent point function, or a percentile, it is also the same as calculating the lower critical value of a
@@ -367,7 +426,23 @@ Function Quantile:Double(dist:TDistribution, p:Double)
 End Function
 
 Rem
-bbdoc: 
+bbdoc: Calculates the inverse of the Complement of the Cumulative Distribution Function.
+about: The function computes a value <em>x</em> such that <code>CdfComplement(dist, x)) == q</code> where <em>q</em> is complement of the
+probability.
+<p>
+This function is also called the inverse survival function, and is the same as calculating the <em>upper critical value</em> of a
+distribution.
+</p>
+<p>
+This function throws a TDomainException if the probablity lies outside [0,1]. The function may throw a TOverflowException
+if there is no finite value that has the specified probability.
+</p>
+<p>
+The following graph show the inverse survival function for the normal distribution:
+</p>
+<p>
+<img src="survival_inv.png" alt="survival_inv">
+</p>
 End Rem
 Function QuantileComplement:Double(dist:TDistribution, k:Double)
 	Return dist.QuantileComplement(k)
@@ -644,7 +719,7 @@ Type TBinomialDistribution Extends TDistribution
 	bbdoc: Creates a new TBinomialDistribution instance.
 	about: n is the total number of trials, p  is the probability of success of a single trial.
 	<p>
-	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
+	Requires 0 &lt;= p &lt;= 1, and n &gt;= 0, otherwise throws TDomainException. 
 	</p>
 	End Rem
 	Function CreateBinomial:TBinomialDistribution(n:Int, p:Double)
@@ -655,7 +730,7 @@ Type TBinomialDistribution Extends TDistribution
 	bbdoc: Creates a new TBinomialDistribution instance.
 	about: n is the total number of trials, p  is the probability of success of a single trial.
 	<p>
-	Requires 0 <= p <= 1, and n >= 0, otherwise throws TDomainException. 
+	Requires 0 &lt;= p &lt;= 1, and n &gt;= 0, otherwise throws TDomainException. 
 	</p>
 	End Rem
 	Method Create:TBinomialDistribution(n:Int, p:Double)
@@ -2435,6 +2510,560 @@ Type TNegativeBinomialDistribution Extends TDistribution
 	End Method
 
 End Type
+
+Rem
+bbdoc: The noncentral beta distribution is a generalization of the Beta Distribution.
+about: It is defined as the ratio X = &#967;<sub>m</sub><sup>2</sup>(&#955;) / (&#967;<sub>m</sub><sup>2</sup>(&#955;) + &#967;<sub>n</sub><sup>2</sup>) where &#967;<sub>m</sub><sup>2</sup>(&#955;) is a noncentral
+&#967;<sup>2</sup> random variable with <em>m</em> degrees of freedom, and &#967;<sub>n</sub><sup>2</sup> is a central
+&#967;<sup>2</sup> random variable with <em>n</em> degrees of freedom.
+<p>
+This gives a PDF that can be expressed as a Poisson mixture of beta distribution PDFs:
+</p>
+<p>
+<img src="nc_beta_ref1.png">
+</p>
+<p>
+where P(i;&#955;/2) is the discrete Poisson probablity at <em>i</em>, with mean &#955;/2, and I<sub>x</sub><sup>'</sup>(&#945;, &#946;) is
+the derivative of the incomplete beta function. This leads to the usual form of the CDF as:
+</p>
+<p>
+<img src="nc_beta_ref2.png">
+</p>
+<p>
+The following graph illustrates how the distribution changes for different values of &#955;:
+</p>
+<p>
+<img src="nc_beta_pdf.png" align="middle">
+</p>
+End Rem
+Type TNonCentralBetaDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a noncentral beta distribution with shape parameters @alpha and @beta and non-centrality parameter @lambda.
+	about: Requires a &gt; 0, b &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException.
+	End Rem
+	Function CreateNonCentralBeta:TNonCentralBetaDistribution(alpha:Double, beta:Double, lambda:Double)
+		Return New TNonCentralBetaDistribution.Create(alpha, beta, lambda)
+	End Function
+	
+	Rem
+	bbdoc: Creates a noncentral beta distribution with shape parameters @alpha and @beta and non-centrality parameter @lambda.
+	about: Requires a &gt; 0, b &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException.
+	End Rem
+	Method Create:TNonCentralBetaDistribution(alpha:Double, beta:Double, lambda:Double)
+		objectPtr = bmx_boost_math_non_central_beta_distribution_create(alpha, beta, lambda)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @alpha from which this object was constructed.
+	End Rem
+	Method Alpha:Double()
+		Return bmx_boost_math_non_central_beta_distribution_alpha(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the parameter @beta from which this object was constructed.
+	End Rem
+	Method Beta:Double()
+		Return bmx_boost_math_non_central_beta_distribution_beta(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the parameter @lambda from which this object was constructed.
+	End Rem
+	Method NonCentrality:Double()
+		Return bmx_boost_math_non_central_beta_distribution_noncentrality(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_non_central_beta_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_non_central_beta_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_non_central_beta_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_non_central_beta_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_non_central_beta_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_non_central_beta_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_non_central_beta_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_non_central_beta_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_non_central_beta_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_non_central_beta_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_non_central_beta_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_non_central_beta_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_non_central_beta_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_non_central_beta_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_non_central_beta_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_non_central_beta_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_non_central_beta_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+
+Rem
+bbdoc: The noncentral chi-squared distribution is a generalization of the Chi Squared Distribution.
+about: If X<sub>i</sub> are &#957; independent, normally distributed random variables with means &#956;<sub>i</sub> and variances
+&#963;<sub>i</sub><sup>2</sup>, then the random variable
+<p>
+<img src="nc_chi_squ_ref1.png">
+</p>
+<p>
+is distributed according to the noncentral chi-squared distribution.
+</p>
+<p>
+The noncentral chi-squared distribution has two parameters: &#957; which specifies the number of degrees of freedom (i.e. the number
+of X<sub>i</sub>), and &#955; which is related to the mean of the random variables X<sub>i</sub> by:
+</p>
+<p>
+<img src="nc_chi_squ_ref2.png">
+</p>
+<p>
+(Note that some references define &#955; as one half of the above sum).
+</p>
+<p>
+This leads to a PDF of:
+</p>
+<p>
+<img src="nc_chi_squ_ref3.png">
+</p>
+<p>
+where <em>f(x;k)</em> is the central chi-squared distribution PDF, and <em>I<sub>v</sub>(x)</em> is a modified Bessel function of
+the first kind.
+</p>
+<p>
+The following graph illustrates how the distribution changes for different values of &#955;:
+</p>
+<p>
+<img src="nccs_pdf.png" align="middle">
+</p>
+End Rem
+Type TNonCentralChiSquaredDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a Chi-Squared distribution with @v degrees of freedom and non-centrality parameter @lambda.
+	about: Requires v &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException
+	End Rem
+	Function CreateNonCentralChiSquared:TNonCentralChiSquaredDistribution(v:Double, lambda:Double)
+		Return New TNonCentralChiSquaredDistribution.Create(v, lambda)
+	End Function
+	
+	Rem
+	bbdoc: Creates a Chi-Squared distribution with @v degrees of freedom and non-centrality parameter @lambda.
+	about: Requires v &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException
+	End Rem
+	Method Create:TNonCentralChiSquaredDistribution(v:Double, lambda:Double)
+		objectPtr = bmx_boost_math_non_central_chi_squared_distribution_create(v, lambda)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @v from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_degreesoffreedom(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the parameter @lambda from which this object was constructed.
+	End Rem
+	Method NonCentrality:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_noncentrality(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_non_central_chi_squared_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_non_central_chi_squared_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_non_central_chi_squared_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_non_central_chi_squared_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+
+Rem
+bbdoc: The noncentral F distribution is a generalization of the Fisher F Distribution.
+about: It is defined as the ratio 
+<pre>F = (X/v1) / (Y/v2)
+</pre>
+<p>
+where X is a noncentral &#967;<sup>2</sup> random variable with <em>v1</em> degrees of freedom and non-centrality parameter
+&#955;, and Y is a central &#967;<sup>2</sup> random variable with <em>v2</em> degrees of freedom.
+</p>
+<p>
+This gives the following PDF:
+</p>
+<p>
+<img src="nc_f_ref1.png">
+</p>
+<p>
+where L<sub>a</sub><sup>b</sup>(c) is a generalised Laguerre polynomial and B(a,b) is the beta function, or
+</p>
+<p>
+<img src="nc_f_ref2.png">
+</p>
+<p>
+The following graph illustrates how the distribution changes for different values of &#955;:
+</p>
+<p>
+<img src="nc_f_pdf.png" align="middle">
+</p>
+End Rem
+Type TNonCentralFDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a non-central beta distribution with parameters @v1 and @v2 and non-centrality parameter @lambda.
+	about: Requires v1 &gt; 0, v2 &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException.
+	End Rem
+	Function CreateNonCentralF:TNonCentralFDistribution(v1:Double, v2:Double, lambda:Double)
+		Return New TNonCentralFDistribution.Create(v1, v2, lambda)
+	End Function
+	
+	Rem
+	bbdoc: Creates a non-central beta distribution with parameters @v1 and @v2 and non-centrality parameter @lambda.
+	about: Requires v1 &gt; 0, v2 &gt; 0 and lambda &gt;= 0, otherwise throws TDomainException.
+	End Rem
+	Method Create:TNonCentralFDistribution(v1:Double, v2:Double, lambda:Double)
+		objectPtr = bmx_boost_math_non_central_f_distribution_create(v1, v2, lambda)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @v1 from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom1:Double()
+		Return bmx_boost_math_non_central_f_distribution_degreesoffreedom1(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the parameter @v2 from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom2:Double()
+		Return bmx_boost_math_non_central_f_distribution_degreesoffreedom2(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the non-centrality parameter @lambda from which this object was constructed.
+	End Rem
+	Method NonCentrality:Double()
+		Return bmx_boost_math_non_central_f_distribution_noncentrality(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_non_central_f_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_non_central_f_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_non_central_f_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_non_central_f_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_non_central_f_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_non_central_f_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_non_central_f_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_non_central_f_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_non_central_f_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_non_central_f_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_non_central_f_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_non_central_f_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_non_central_f_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_non_central_f_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_non_central_f_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_non_central_f_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_non_central_f_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+
+Rem
+bbdoc: The noncentral T distribution is a generalization of the Students t Distribution</a>.
+about: Let X have a normal distribution with mean &#948; and variance 1, and let &#957; S<sup>2</sup> have a chi-squared distribution
+with degrees of freedom &#957;. Assume that X and S<sup>2</sup> are independent. The distribution of t<sub>&#957;</sub>(&#948;)=X/S
+is called a noncentral t distribution with degrees of freedom &#957; and noncentrality parameter &#948;.
+</p>
+<p>
+This gives the following PDF:
+</p>
+<p>
+<img src="nc_t_ref1.png">
+</p>
+<p>
+where <sub>1</sub>F<sub>1</sub>(a;b;x) is a confluent hypergeometric function.
+</p>
+<p>
+The following graph illustrates how the distribution changes for different values of &#948;:
+</p>
+<p>
+<img src="nc_t_pdf.png" align="middle">
+</p>
+End Rem
+Type TNonCentralTDistribution Extends TDistribution
+
+	Rem
+	bbdoc: Creates a non-central t distribution with degrees of freedom parameter @v and non-centrality parameter @delta.
+	about: Requires v &gt; 0 and finite delta, otherwise throws TDomainException.
+	End Rem
+	Function CreateNonCentralT:TNonCentralTDistribution(v:Double, delta:Double)
+		Return New TNonCentralTDistribution.Create(v, delta)
+	End Function
+	
+	Rem
+	bbdoc: Creates a non-central t distribution with degrees of freedom parameter @v and non-centrality parameter @delta.
+	about: Requires v &gt; 0 and finite delta, otherwise throws TDomainException.
+	End Rem
+	Method Create:TNonCentralTDistribution(v:Double, delta:Double)
+		objectPtr = bmx_boost_math_non_central_t_distribution_create(v, delta)
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Returns the parameter @v from which this object was constructed.
+	End Rem
+	Method DegreesOfFreedom:Double()
+		Return bmx_boost_math_non_central_t_distribution_degreesoffreedom(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the non-centrality parameter @delta from which this object was constructed.
+	End Rem
+	Method NonCentrality:Double()
+		Return bmx_boost_math_non_central_t_distribution_noncentrality(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_non_central_t_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_non_central_t_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_non_central_t_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_non_central_t_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_non_central_t_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_non_central_t_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_non_central_t_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_non_central_t_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_non_central_t_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_non_central_t_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_non_central_t_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_non_central_t_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_non_central_t_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_non_central_t_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_non_central_t_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_non_central_t_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_non_central_t_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
 
 
 

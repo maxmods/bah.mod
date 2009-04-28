@@ -29,6 +29,7 @@
 #include <boost/math/special_functions/cbrt.hpp>
 #include <boost/math/special_functions/hypot.hpp>
 #include <boost/math/special_functions/bessel.hpp>
+#include <boost/math/special_functions/zeta.hpp>
 #include <boost/math/concepts/distributions.hpp>
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/bernoulli.hpp>
@@ -43,6 +44,10 @@
 #include <boost/math/distributions/fisher_f.hpp>
 #include <boost/math/distributions/lognormal.hpp>
 #include <boost/math/distributions/negative_binomial.hpp>
+#include <boost/math/distributions/non_central_beta.hpp>
+#include <boost/math/distributions/non_central_chi_squared.hpp>
+#include <boost/math/distributions/non_central_f.hpp>
+#include <boost/math/distributions/non_central_t.hpp>
 
 extern "C" {
 
@@ -66,6 +71,7 @@ extern "C" {
 	double bmx_boost_math_expm1(double x);
 	double bmx_boost_math_sqrt1pm1(double x);
 	double bmx_boost_math_powm1(double x, double y);
+	double bmx_boost_math_zeta(double z);
 
 	double bmx_boost_math_sphbessel(unsigned int v, double x);
 	double bmx_boost_math_sphneumann(unsigned int v, double x);
@@ -352,6 +358,96 @@ extern "C" {
 	double bmx_boost_math_negative_binomial_distribution_variance(boost::math::negative_binomial_distribution<double> * dist);
 	double bmx_boost_math_negative_binomial_distribution_kurtosis(boost::math::negative_binomial_distribution<double> * dist);
 	double bmx_boost_math_negative_binomial_distribution_kurtosisexcess(boost::math::negative_binomial_distribution<double> * dist);
+
+	boost::math::non_central_beta_distribution<double> * bmx_boost_math_non_central_beta_distribution_create(double alpha, double beta, double lambda);
+	double bmx_boost_math_non_central_beta_distribution_alpha(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_beta(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_noncentrality(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_mean(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_mode(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_standarddeviation(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_skewness(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_pdf(boost::math::non_central_beta_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_beta_distribution_cdf(boost::math::non_central_beta_distribution<double> * dist, double k);
+	void bmx_boost_math_non_central_beta_distribution_free(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_quantile(boost::math::non_central_beta_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_beta_distribution_cdfcomplement(boost::math::non_central_beta_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_beta_distribution_quantilecomplement(boost::math::non_central_beta_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_beta_distribution_hazard(boost::math::non_central_beta_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_beta_distribution_chf(boost::math::non_central_beta_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_beta_distribution_median(boost::math::non_central_beta_distribution<double> * dist);
+	void bmx_boost_math_non_central_beta_distribution_range(boost::math::non_central_beta_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_non_central_beta_distribution_variance(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_kurtosis(boost::math::non_central_beta_distribution<double> * dist);
+	double bmx_boost_math_non_central_beta_distribution_kurtosisexcess(boost::math::non_central_beta_distribution<double> * dist);
+
+
+	boost::math::non_central_chi_squared_distribution<double> * bmx_boost_math_non_central_chi_squared_distribution_create(double v, double lambda);
+	double bmx_boost_math_non_central_chi_squared_distribution_degreesoffreedom(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_noncentrality(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_mean(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_mode(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_standarddeviation(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_skewness(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_pdf(boost::math::non_central_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_chi_squared_distribution_cdf(boost::math::non_central_chi_squared_distribution<double> * dist, double k);
+	void bmx_boost_math_non_central_chi_squared_distribution_free(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_quantile(boost::math::non_central_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_chi_squared_distribution_cdfcomplement(boost::math::non_central_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_chi_squared_distribution_quantilecomplement(boost::math::non_central_chi_squared_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_chi_squared_distribution_hazard(boost::math::non_central_chi_squared_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_chi_squared_distribution_chf(boost::math::non_central_chi_squared_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_chi_squared_distribution_median(boost::math::non_central_chi_squared_distribution<double> * dist);
+	void bmx_boost_math_non_central_chi_squared_distribution_range(boost::math::non_central_chi_squared_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_non_central_chi_squared_distribution_variance(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_kurtosis(boost::math::non_central_chi_squared_distribution<double> * dist);
+	double bmx_boost_math_non_central_chi_squared_distribution_kurtosisexcess(boost::math::non_central_chi_squared_distribution<double> * dist);
+
+
+	boost::math::non_central_f_distribution<double> * bmx_boost_math_non_central_f_distribution_create(double v1, double v2, double lambda);
+	double bmx_boost_math_non_central_f_distribution_degreesoffreedom1(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_degreesoffreedom2(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_noncentrality(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_mean(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_mode(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_standarddeviation(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_skewness(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_pdf(boost::math::non_central_f_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_f_distribution_cdf(boost::math::non_central_f_distribution<double> * dist, double k);
+	void bmx_boost_math_non_central_f_distribution_free(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_quantile(boost::math::non_central_f_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_f_distribution_cdfcomplement(boost::math::non_central_f_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_f_distribution_quantilecomplement(boost::math::non_central_f_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_f_distribution_hazard(boost::math::non_central_f_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_f_distribution_chf(boost::math::non_central_f_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_f_distribution_median(boost::math::non_central_f_distribution<double> * dist);
+	void bmx_boost_math_non_central_f_distribution_range(boost::math::non_central_f_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_non_central_f_distribution_variance(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_kurtosis(boost::math::non_central_f_distribution<double> * dist);
+	double bmx_boost_math_non_central_f_distribution_kurtosisexcess(boost::math::non_central_f_distribution<double> * dist);
+
+
+	boost::math::non_central_t_distribution<double> * bmx_boost_math_non_central_t_distribution_create(double v, double delta);
+	double bmx_boost_math_non_central_t_distribution_degreesoffreedom(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_noncentrality(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_mean(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_mode(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_standarddeviation(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_skewness(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_pdf(boost::math::non_central_t_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_t_distribution_cdf(boost::math::non_central_t_distribution<double> * dist, double k);
+	void bmx_boost_math_non_central_t_distribution_free(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_quantile(boost::math::non_central_t_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_t_distribution_cdfcomplement(boost::math::non_central_t_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_t_distribution_quantilecomplement(boost::math::non_central_t_distribution<double> * dist, double k);
+	double bmx_boost_math_non_central_t_distribution_hazard(boost::math::non_central_t_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_t_distribution_chf(boost::math::non_central_t_distribution<double> * dist, double x);
+	double bmx_boost_math_non_central_t_distribution_median(boost::math::non_central_t_distribution<double> * dist);
+	void bmx_boost_math_non_central_t_distribution_range(boost::math::non_central_t_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_non_central_t_distribution_variance(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_kurtosis(boost::math::non_central_t_distribution<double> * dist);
+	double bmx_boost_math_non_central_t_distribution_kurtosisexcess(boost::math::non_central_t_distribution<double> * dist);
+
 	
 }
 
@@ -450,6 +546,10 @@ double bmx_boost_math_powm1(double x, double y) {
 	return boost::math::powm1<double>(x, y);
 }
 
+double bmx_boost_math_zeta(double z) {
+	return boost::math::zeta<double>(z);
+}
+
 // ************************************************
 
 boost::math::binomial_distribution<double> * bmx_boost_math_binomial_distribution_create(int n, double p) {
@@ -539,6 +639,8 @@ double bmx_boost_math_binomial_distribution_cdfcomplement(boost::math::binomial_
 double bmx_boost_math_binomial_distribution_quantilecomplement(boost::math::binomial_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -680,6 +782,8 @@ double bmx_boost_math_bernoulli_distribution_cdfcomplement(boost::math::bernoull
 double bmx_boost_math_bernoulli_distribution_quantilecomplement(boost::math::bernoulli_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -829,6 +933,8 @@ double bmx_boost_math_beta_distribution_cdfcomplement(boost::math::beta_distribu
 double bmx_boost_math_beta_distribution_quantilecomplement(boost::math::beta_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -966,6 +1072,8 @@ double bmx_boost_math_cauchy_distribution_cdfcomplement(boost::math::cauchy_dist
 double bmx_boost_math_cauchy_distribution_quantilecomplement(boost::math::cauchy_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1099,6 +1207,8 @@ double bmx_boost_math_chi_squared_distribution_cdfcomplement(boost::math::chi_sq
 double bmx_boost_math_chi_squared_distribution_quantilecomplement(boost::math::chi_squared_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1244,6 +1354,8 @@ double bmx_boost_math_exponential_distribution_cdfcomplement(boost::math::expone
 double bmx_boost_math_exponential_distribution_quantilecomplement(boost::math::exponential_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1393,6 +1505,8 @@ double bmx_boost_math_extreme_value_distribution_cdfcomplement(boost::math::extr
 double bmx_boost_math_extreme_value_distribution_quantilecomplement(boost::math::extreme_value_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1542,6 +1656,8 @@ double bmx_boost_math_normal_distribution_cdfcomplement(boost::math::normal_dist
 double bmx_boost_math_normal_distribution_quantilecomplement(boost::math::normal_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1691,6 +1807,8 @@ double bmx_boost_math_pareto_distribution_cdfcomplement(boost::math::pareto_dist
 double bmx_boost_math_pareto_distribution_quantilecomplement(boost::math::pareto_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1840,6 +1958,8 @@ double bmx_boost_math_weibull_distribution_cdfcomplement(boost::math::weibull_di
 double bmx_boost_math_weibull_distribution_quantilecomplement(boost::math::weibull_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -1989,6 +2109,8 @@ double bmx_boost_math_fisher_f_distribution_cdfcomplement(boost::math::fisher_f_
 double bmx_boost_math_fisher_f_distribution_quantilecomplement(boost::math::fisher_f_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -2139,6 +2261,8 @@ double bmx_boost_math_lognormal_distribution_cdfcomplement(boost::math::lognorma
 double bmx_boost_math_lognormal_distribution_quantilecomplement(boost::math::lognormal_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -2306,6 +2430,8 @@ double bmx_boost_math_negative_binomial_distribution_cdfcomplement(boost::math::
 double bmx_boost_math_negative_binomial_distribution_quantilecomplement(boost::math::negative_binomial_distribution<double> * dist, double k) {
 	try {
 		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
 	} catch(...) {
 		bmx_throw_domain_exception();
 	}
@@ -2367,6 +2493,606 @@ double bmx_boost_math_negative_binomial_distribution_kurtosisexcess(boost::math:
 
 
 // ************************************************
+
+boost::math::non_central_beta_distribution<double> * bmx_boost_math_non_central_beta_distribution_create(double alpha, double beta, double lambda) {
+	try {
+		return new boost::math::non_central_beta_distribution<double>(alpha, beta, lambda);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_alpha(boost::math::non_central_beta_distribution<double> * dist) {
+	return dist->alpha();
+}
+
+double bmx_boost_math_non_central_beta_distribution_beta(boost::math::non_central_beta_distribution<double> * dist) {
+	return dist->beta();
+}
+
+double bmx_boost_math_non_central_beta_distribution_noncentrality(boost::math::non_central_beta_distribution<double> * dist) {
+	return dist->non_centrality();
+}
+
+double bmx_boost_math_non_central_beta_distribution_mean(boost::math::non_central_beta_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_non_central_beta_distribution_mode(boost::math::non_central_beta_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_standarddeviation(boost::math::non_central_beta_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_skewness(boost::math::non_central_beta_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_non_central_beta_distribution_pdf(boost::math::non_central_beta_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_cdf(boost::math::non_central_beta_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_beta_distribution_free(boost::math::non_central_beta_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_non_central_beta_distribution_quantile(boost::math::non_central_beta_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_cdfcomplement(boost::math::non_central_beta_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_quantilecomplement(boost::math::non_central_beta_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_hazard(boost::math::non_central_beta_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_chf(boost::math::non_central_beta_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_median(boost::math::non_central_beta_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_beta_distribution_range(boost::math::non_central_beta_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_non_central_beta_distribution_variance(boost::math::non_central_beta_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_beta_distribution_kurtosis(boost::math::non_central_beta_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+double bmx_boost_math_non_central_beta_distribution_kurtosisexcess(boost::math::non_central_beta_distribution<double> * dist) {
+	bmx_throw_domain_exception();
+}
+
+
+// ************************************************
+
+
+boost::math::non_central_chi_squared_distribution<double> * bmx_boost_math_non_central_chi_squared_distribution_create(double v, double lambda) {
+	try {
+		return new boost::math::non_central_chi_squared_distribution<double>(v, lambda);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_degreesoffreedom(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	return dist->degrees_of_freedom();
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_noncentrality(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	return dist->non_centrality();
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_mean(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_mode(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_standarddeviation(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_skewness(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_pdf(boost::math::non_central_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_cdf(boost::math::non_central_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_chi_squared_distribution_free(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_quantile(boost::math::non_central_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_cdfcomplement(boost::math::non_central_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_quantilecomplement(boost::math::non_central_chi_squared_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_hazard(boost::math::non_central_chi_squared_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_chf(boost::math::non_central_chi_squared_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_median(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_chi_squared_distribution_range(boost::math::non_central_chi_squared_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_variance(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_kurtosis(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_chi_squared_distribution_kurtosisexcess(boost::math::non_central_chi_squared_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+boost::math::non_central_f_distribution<double> * bmx_boost_math_non_central_f_distribution_create(double v1, double v2, double lambda) {
+	try {
+		return new boost::math::non_central_f_distribution<double>(v1, v2, lambda);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_degreesoffreedom1(boost::math::non_central_f_distribution<double> * dist) {
+	return dist->degrees_of_freedom1();
+}
+
+double bmx_boost_math_non_central_f_distribution_degreesoffreedom2(boost::math::non_central_f_distribution<double> * dist) {
+	return dist->degrees_of_freedom2();
+}
+
+double bmx_boost_math_non_central_f_distribution_noncentrality(boost::math::non_central_f_distribution<double> * dist) {
+	return dist->non_centrality();
+}
+
+double bmx_boost_math_non_central_f_distribution_mean(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_mode(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_standarddeviation(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_skewness(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_pdf(boost::math::non_central_f_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_cdf(boost::math::non_central_f_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_f_distribution_free(boost::math::non_central_f_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_non_central_f_distribution_quantile(boost::math::non_central_f_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_cdfcomplement(boost::math::non_central_f_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_quantilecomplement(boost::math::non_central_f_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_hazard(boost::math::non_central_f_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_chf(boost::math::non_central_f_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_median(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_f_distribution_range(boost::math::non_central_f_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_non_central_f_distribution_variance(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_kurtosis(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_f_distribution_kurtosisexcess(boost::math::non_central_f_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+boost::math::non_central_t_distribution<double> * bmx_boost_math_non_central_t_distribution_create(double v, double delta) {
+	try {
+		return new boost::math::non_central_t_distribution<double>(v, delta);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_degreesoffreedom(boost::math::non_central_t_distribution<double> * dist) {
+	return dist->degrees_of_freedom();
+}
+
+double bmx_boost_math_non_central_t_distribution_noncentrality(boost::math::non_central_t_distribution<double> * dist) {
+	return dist->non_centrality();
+}
+
+double bmx_boost_math_non_central_t_distribution_mean(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_mode(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_standarddeviation(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_skewness(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_pdf(boost::math::non_central_t_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_cdf(boost::math::non_central_t_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_t_distribution_free(boost::math::non_central_t_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_non_central_t_distribution_quantile(boost::math::non_central_t_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_cdfcomplement(boost::math::non_central_t_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_quantilecomplement(boost::math::non_central_t_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_hazard(boost::math::non_central_t_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_chf(boost::math::non_central_t_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_median(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_non_central_t_distribution_range(boost::math::non_central_t_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_non_central_t_distribution_variance(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_kurtosis(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_non_central_t_distribution_kurtosisexcess(boost::math::non_central_t_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
 
 
 
