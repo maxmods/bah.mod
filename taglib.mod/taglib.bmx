@@ -27,7 +27,7 @@ ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
 ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (TagLib 1.5 SVN rev 925226)"
+ModuleInfo "History: 1.00 Initial Release (TagLib 1.5 SVN rev 960714)"
 
 ModuleInfo "CC_OPTS: -DHAVE_ZLIB -DWITH_MP4 -DWITH_ASF"
 
