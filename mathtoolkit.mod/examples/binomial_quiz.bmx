@@ -246,10 +246,45 @@ Try
 	Print "Probability of getting between " + low + " and " + high + " answers right by guessing is " + ..
 		nice(Cdf(quiz, high) - Cdf(quiz, low - 1)) ' 4 <= x 4 P = 0.22520
 	
-
-
-
-
+	' > Probability of getting between 1 and 6 answers right by guessing is 0.9104
+	' > Probability of getting between 1 and 8 answers right by guessing is 0.9825
+	' > Probability of getting between 4 and 4 answers right by guessing is 0.2252
+	' 
+	' Using moments of the distribution, we can say more about the spread of results from guessing.
+	
+	Print "By guessing, on average, one can expect to get " + nice(Mean(quiz)) + " correct answers."
+	Print "Standard deviation is " + nice(StandardDeviation(quiz))
+	Print "So about 2/3 will lie within 1 standard deviation and get between " + ..
+		Ceil(Mean(quiz) - StandardDeviation(quiz))  + " and " + ..
+		Floor(Mean(quiz) + StandardDeviation(quiz)) + " correct."
+	Print "Mode (the most frequent) is " + nice(Mode(quiz))
+	Print "Skewness is " + nice(Skewness(quiz))
+	
+	' > By guessing, on average, one can expect to get 4 correct answers.
+	' > Standard deviation is 1.732
+	' > So about 2/3 will lie within 1 standard deviation and get between 3 and 5 correct.
+	' > Mode (the most frequent) is 4
+	' > Skewness is 0.2887
+	'
+	' The quantiles (percentiles or percentage points) for a few probability levels:
+	
+	Print "Quartiles " + nice(Quantile(quiz, 0.25)) + " to " + nice(QuantileComplement(quiz, 0.25)) ' Quartiles 
+	Print "1 standard deviation " + nice(Quantile(quiz, 0.33)) + " to " + nice(Quantile(quiz, 0.67)) ' 1 sd 
+	Print "Deciles " + nice(Quantile(quiz, 0.1))  + " to " + nice(QuantileComplement(quiz, 0.1)) ' Deciles 
+	Print "5 to 95% " + nice(Quantile(quiz, 0.05))  + " to " + nice(QuantileComplement(quiz, 0.05)) ' 5 to 95%
+	Print "2.5 to 97.5% " + nice(Quantile(quiz, 0.025)) + " to " +  nice(QuantileComplement(quiz, 0.025)) ' 2.5 to 97.5% 
+	Print "2 to 98% " + nice(Quantile(quiz, 0.02))  + " to " + nice(QuantileComplement(quiz, 0.02)) '  2 to 98%
+	
+	Print "If guessing then percentiles 1 to 99% will get " + nice(Quantile(quiz, 0.01)) + " to " + nice(QuantileComplement(quiz, 0.01)) + " right."
+	
+	' Notice that these output integral values because the default policy is `integer_round_outwards`.
+	
+	' > Quartiles 2 to 5
+	' > 1 standard deviation 2 to 5
+	' > Deciles 1 to 6
+	' > 5 to 95% 0 to 7
+	' > 2.5 to 97.5% 0 to 8
+	' > 2 to 98% 0 to 8
 
 
 Catch e:Object
