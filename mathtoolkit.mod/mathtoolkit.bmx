@@ -168,20 +168,32 @@ Function Hypot:Double(x:Double, y:Double)
 	Return bmx_boost_math_hypot(x, y)
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Function Log1p:Double(x:Double)
-' TODO
+	Return bmx_boost_math_log1p(x)
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Function Expm1:Double(x:Double)
-' TODO
+	Return bmx_boost_math_expm1(x)
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Function Sqrt1pm1:Double(x:Double)
-' TODO
+	Return bmx_boost_math_sqrt1pm1(x)
 End Function
 
+Rem
+bbdoc: 
+End Rem
 Function Powm1:Double(x:Double, y:Double)
-' TODO
+	Return bmx_boost_math_powm1(x, y)
 End Function
 
 Rem
@@ -355,6 +367,13 @@ Function Quantile:Double(dist:TDistribution, p:Double)
 End Function
 
 Rem
+bbdoc: 
+End Rem
+Function QuantileComplement:Double(dist:TDistribution, k:Double)
+	Return dist.QuantileComplement(k)
+End Function
+
+Rem
 bbdoc: Returns the Hazard Function of @x and distribution @dist.
 about: This function may throw a TDomainException if the random variable is outside the defined range for the distribution.
 <p>
@@ -519,12 +538,37 @@ Type TDistribution
 	bbdoc: 
 	End Rem
 	Method Quantile:Double(p:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
+	Method QuantileComplement:Double(p:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Hazard:Double(x:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Chf:Double(x:Double) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Median:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Range(rangeStart:Double Var, rangeEnd:Double Var) Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Variance:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method Kurtosis:Double() Abstract
+	Rem
+	bbdoc: 
+	End Rem
 	Method KurtosisExcess:Double() Abstract
 
 End Type
@@ -665,6 +709,10 @@ Type TBinomialDistribution Extends TDistribution
 		Return bmx_boost_math_binomial_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_binomial_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_binomial_distribution_hazard(objectPtr, x)
 	End Method
@@ -778,6 +826,10 @@ Type TBernoulliDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_bernoulli_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_bernoulli_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -921,6 +973,10 @@ Type TBetaDistribution Extends TDistribution
 		Return bmx_boost_math_beta_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_beta_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_beta_distribution_hazard(objectPtr, x)
 	End Method
@@ -1059,6 +1115,10 @@ Type TCauchyDistribution Extends TDistribution
 		Return bmx_boost_math_cauchy_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_cauchy_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_cauchy_distribution_hazard(objectPtr, x)
 	End Method
@@ -1175,6 +1235,10 @@ Type TChiSquaredDistribution Extends TDistribution
 		Return bmx_boost_math_chi_squared_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_chi_squared_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_chi_squared_distribution_hazard(objectPtr, x)
 	End Method
@@ -1284,6 +1348,10 @@ Type TExponentialDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_exponential_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_exponential_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -1435,6 +1503,10 @@ Type TExtremeValueDistribution Extends TDistribution
 		Return bmx_boost_math_extreme_value_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_extreme_value_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_extreme_value_distribution_hazard(objectPtr, x)
 	End Method
@@ -1553,6 +1625,10 @@ Type TNormalDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_normal_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_normal_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -1682,6 +1758,10 @@ Type TParetoDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_pareto_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_pareto_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -1818,6 +1898,10 @@ Type TWeibullDistribution Extends TDistribution
 		Return bmx_boost_math_weibull_distribution_quantile(objectPtr, p)
 	End Method
 
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_weibull_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
 	Method Hazard:Double(x:Double)
 		Return bmx_boost_math_weibull_distribution_hazard(objectPtr, x)
 	End Method
@@ -1942,6 +2026,10 @@ Type TFisherFDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_fisher_f_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_fisher_f_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -2069,6 +2157,10 @@ Type TLogNormalDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_lognormal_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_lognormal_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
@@ -2301,6 +2393,10 @@ Type TNegativeBinomialDistribution Extends TDistribution
 	
 	Method Quantile:Double(p:Double)
 		Return bmx_boost_math_negative_binomial_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_negative_binomial_distribution_quantilecomplement(objectPtr, p)
 	End Method
 
 	Method Hazard:Double(x:Double)
