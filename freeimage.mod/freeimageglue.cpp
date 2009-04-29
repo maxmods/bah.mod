@@ -111,7 +111,7 @@ extern "C" {
 	
 
 	void _bah_freeimage_TMultiFreeImage_error(int format, const char * message);
-	MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly);
+	MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly, BOOL createNew);
 	int bmx_MultiFreeImage_GetFileType(MaxMultiFreeImage * freeimage);
 	void bmx_multifreeimage_loadImage(MaxMultiFreeImage * freeimage);
 	void bmx_multifreeimage_newImage(MaxMultiFreeImage * freeimage, int format);
@@ -698,7 +698,7 @@ FIBITMAP * bmx_freeimage_TmoReinhard05(MaxFreeImage * freeimage, double intensit
 class MaxMultiFreeImage
 {
 public:
-	MaxMultiFreeImage(void * handle, char * fname, BOOL ro);
+	MaxMultiFreeImage(void * handle, char * fname, BOOL ro, BOOL cn);
 	
 	int GetFileType();
 	void loadImage();
@@ -728,10 +728,11 @@ private:
 	FIMULTIBITMAP * bitmap;
 	char *  filename;
 	BOOL readOnly;
+	BOOL createNew;
 };
 
-MaxMultiFreeImage::MaxMultiFreeImage(void * handle, char * fname, BOOL ro)
-	: maxHandle(handle), filename(fname), readOnly(ro), bitmap(0)
+MaxMultiFreeImage::MaxMultiFreeImage(void * handle, char * fname, BOOL ro, BOOL cn)
+	: maxHandle(handle), filename(fname), readOnly(ro), bitmap(0), createNew(cn)
 {
 	FreeImage_SetOutputMessage(FreeImageErrorHandler);
 }
@@ -747,7 +748,7 @@ void MaxMultiFreeImage::loadImage() {
 
 void MaxMultiFreeImage::newImage(int f) {
 	format = (FREE_IMAGE_FORMAT)f;
-	bitmap = FreeImage_OpenMultiBitmap(format, filename, FALSE, readOnly, TRUE, 0);
+	bitmap = FreeImage_OpenMultiBitmap(format, filename, createNew, readOnly, TRUE, 0);
 }
 
 int MaxMultiFreeImage::pageCount() {
@@ -786,9 +787,9 @@ BOOL MaxMultiFreeImage::close() {
 
 
 
-MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly) {
+MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly, BOOL createNew) {
 	char *p = bbStringToCString( filename );
-	return new MaxMultiFreeImage(handle, p, readOnly);
+	return new MaxMultiFreeImage(handle, p, readOnly, createNew);
 }
 
 int bmx_MultiFreeImage_GetFileType(MaxMultiFreeImage * freeimage) {

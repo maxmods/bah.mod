@@ -34,6 +34,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed conversion issue with 4-bit paletted images."
 ModuleInfo "History: Fixed GC problems when loading large anim images."
+ModuleInfo "History: Fixed problem with creation of new multi-page images."
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Fixed problem with TIFF images not loading if there are more than 1 alpha channel in the image. (fredborg)"
 ModuleInfo "History: Added GetBitmap(), GetScanLine() and ConvertToRGBF() methods. (fredborg)"
@@ -177,7 +178,7 @@ Type TMultiFreeImage
 		Local this:TMultiFreeImage = New TMultiFreeImage
 		
 		this.filename = filename
-		this.freeImagePtr = bmx_multifreeimage_new(this, filename, readOnly)
+		this.freeImagePtr = bmx_multifreeimage_new(this, filename, readOnly, False)
 		
 		If Not this.isValidImage()
 			Return Null
@@ -198,7 +199,7 @@ Type TMultiFreeImage
 		Local this:TMultiFreeImage = New TMultiFreeImage
 		
 		this.filename = filename
-		this.freeImagePtr = bmx_multifreeimage_new(this, filename, False)
+		this.freeImagePtr = bmx_multifreeimage_new(this, filename, False, True)
 		
 		If Not this.newImage(format) Then
 			Return Null
@@ -565,7 +566,6 @@ Type TFreeImage
 	End Function
 	
 	Method Free()
-		stream = Null
 		pixmap = Null
 	
 		If displayImagePtr And (displayImagePtr <> freeImagePtr) Then

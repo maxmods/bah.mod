@@ -106,7 +106,7 @@ Extern
 	Function bmx_freeimage_TmoReinhard05:Byte Ptr(handle:Byte Ptr, intensity:Double, contrast:Double)
 	
 	
-	Function bmx_multifreeimage_new:Byte Ptr(handle:Object, filename:String, readOnly:Int)
+	Function bmx_multifreeimage_new:Byte Ptr(handle:Object, filename:String, readOnly:Int, createNew:Int)
 	Function bmx_MultiFreeImage_GetFileType:Int(handle:Byte Ptr)
 	Function bmx_multifreeimage_loadImage(handle:Byte Ptr)
 	Function bmx_multifreeimage_newImage(handle:Byte Ptr, format:Int)
