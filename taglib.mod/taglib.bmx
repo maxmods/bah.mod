@@ -343,7 +343,9 @@ Type TTLFile
 End Type
 
 Rem
-bbdoc: 
+bbdoc: An MPEG file type with some useful methods specific to MPEG.
+about: This implements the generic TTLFile API and additionally provides access to properties that
+are distinct to MPEG files, notably access to the different ID3 tags.
 End Rem
 Type TTLMPEGFile Extends TTLFile
 
@@ -354,21 +356,39 @@ Type TTLMPEGFile Extends TTLFile
 	Const TAGTYPE_ALLTAGS:Int = 4
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns the TTLMPEGProperties for this file.
+	about: If no audio properties were read then this will return Null.
 	End Rem
 	Method audioProperties:TTLAudioProperties()
 		Return TTLMPEGProperties._create(bmx_taglib_mpegfile_audioproperties(filePtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Saves the file.
+	about: If at least one tag -- ID3v1 or ID3v2 -- exists this will duplicate its content into the other tag.
+	This returns true if saving was successful.
+	<p>
+	If neither exists or if both tags are empty, this will strip the tags from the file.
+	</p>
+	<p>
+	This is the same as calling save(AllTags);
+	</p>
+	<p>
+	If you would like more granular control over the content of the tags, with the concession of generality, use paramaterized saveTags call.
+	</p>
 	End Rem
 	Method save:Int()
 		Return bmx_taglib_mpegfile_save(filePtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Saves the file.
+	about: This will attempt to save all of the tag types that are specified by OR-ing together TagTypes values.
+	The save() method above uses AllTags. This returns true if saving was successful.
+	<p>
+	If stripOthers is true this strips all tags not included in the mask, but does not modify them in memory,
+	so later calls to saveTags() which make use of these tags will remain valid. This also strips empty tags. 
+	</p>
 	End Rem
 	Method saveTags:Int(tags:Int, stripOthers:Int = False)
 		Return bmx_taglib_mpegfile_savetags(filePtr, tags, stripOthers)
@@ -376,8 +396,8 @@ Type TTLMPEGFile Extends TTLFile
 
 	Rem
 	bbdoc: Returns the ID3v2 tag of the file.
-	about: If @_create is false (the default) this will return Null if there is no valid ID3v2 tag. If @_create is true it will create
-	an ID3v2 tag if one does not exist.
+	about: If @_create is false (the default) this will return Null if there is no valid ID3v2 tag.
+	If @_create is true it will create an ID3v2 tag if one does not exist.
 	End Rem
 	Method ID3v2Tag:TTLID3v2Tag(_create:Int = False)
 		Return TTLID3v2Tag._create(bmx_taglib_mpegfile_id3v2tag(filePtr, _create))
@@ -398,35 +418,39 @@ Type TTLMPEGFile Extends TTLFile
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: This will strip the tags that match the OR-ed together TagTypes from the file.
+	about: By default it strips all tags. It returns true if the tags are successfully stripped.
+	<p>
+	If @freeMemory is true the ID3 and APE tags will be deleted and pointers to them will be invalidated. 
+	</p>
 	End Rem
 	Method strip:Int(tags:Int = TAGTYPE_ALLTAGS, freeMemory:Int = True)
 		Return bmx_taglib_mpegfile_strip(filePtr, tags, freeMemory)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the position in the file of the first MPEG frame.
 	End Rem
 	Method firstFrameOffset:Int()
 		Return bmx_taglib_mpegfile_firstframeoffset(filePtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the position in the file of the next MPEG frame, using the current position as start.
 	End Rem
 	Method nextFrameOffset:Int(position:Int)
 		Return bmx_taglib_mpegfile_nextframeoffset(filePtr, position)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the position in the file of the previous MPEG frame, using the current position as start.
 	End Rem
 	Method previousFrameOffset:Int(position:Int)
 		Return bmx_taglib_mpegfile_previousframeoffset(filePtr, position)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the position in the file of the last MPEG frame.
 	End Rem
 	Method lastFrameOffset:Int()
 		Return bmx_taglib_mpegfile_lastframeoffset(filePtr)
@@ -558,6 +582,18 @@ Type TTLID3v2Tag Extends TTLTag
 	Method footer:TTLID3v2Footer()
 	End Method
 	
+	Method frameListMap:TMap()
+	End Method
+	
+	Method frameList:TList()
+	End Method
+	
+	Method addFrame(frame:TTLID3v2Frame)
+	End Method
+	
+	Method removeFrame(frame:TTLID3v2Frame, del:Int = True)
+	End Method
+
 End Type
 
 Type TTLID3V1Tag Extends TTLTag
@@ -586,6 +622,49 @@ End Type
 
 Type TTLID3v2Header
 
+	Field headerPtr:Byte Ptr
+
+	Function _create:TTLID3v2Header(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2Header = New TTLID3v2Header
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
+	Method majorVersion:Int()
+	End Method
+	
+	Method setMajorVersion(version:Int)
+	End Method
+
+	Method revisionNumber:Int()
+	End Method
+
+	Method unsynchronisation:Int()
+	End Method
+
+	Method extendedHeader:Int()
+	End Method
+
+	Method experimentalIndicator:Int()
+	End Method
+
+	Method footerPresent:Int()
+	End Method
+
+	Method tagSize:Int()
+	End Method
+
+	Method completeTagSize:Int()
+	End Method
+
+	Method setTagSize(s:Int)
+	End Method
+
+	'Method setData(Const ByteVector &data)
+	'End Method
+
 End Type
 
 Type TTLID3v2ExtendedHeader
@@ -598,8 +677,23 @@ End Type
 
 Type TTLID3v2Frame Extends TTLID3v2Header
 
+	Function _create:TTLID3v2Frame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2Frame = New TTLID3v2Frame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
+
 End Type
 
+Rem
+bbdoc: An ID3v2 attached picture frame implementation.
+about: This is an implementation of ID3v2 attached pictures. Pictures may be included in tags, one per
+APIC frame (but there may be multiple APIC frames in a single tag). These pictures are usually in either
+JPEG or PNG format.
+End Rem
 Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
 
 	Rem
@@ -687,6 +781,35 @@ Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
 	End Rem
 	Const TYPE_PUBLISHERLOGO:Int = $14
 
+	Method textEncoding:String()
+	End Method
+	
+	Method setTextEncoding(encoding:String)
+	End Method
+	
+	Method mimeType:String()
+	End Method
+	
+	Method setMimeType(m:String)
+	End Method
+	
+	Method imageType:Int()
+	End Method
+	
+	Method setImageType(t:Int)
+	End Method
+	
+	Method description:String()
+	End Method
+	
+	Method setDescription(desc:String)
+	End Method
+	
+	Method picture:TTLByteVector()
+	End Method
+	
+	Method setPicture(data:TTLByteVector)
+	End Method
 	
 End Type
 
@@ -730,8 +853,46 @@ Type TTLID3v2UserUrlLinkFrame Extends TTLID3v2UrlLinkFrame
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TTLByteVector
 
+	Field bvPtr:Byte Ptr
+	
+	Function _create:TTLByteVector(bvPtr:Byte Ptr)
+		If bvPtr Then
+			Local this:TTLByteVector = New TTLByteVector
+			this.bvPtr = bvPtr
+			Return this
+		End If
+	End Function
+	
+	Function CreateByteVector:TTLByteVector(data:Byte Ptr, length:Int)
+		Return New TTLByteVector.Create(data, length)
+	End Function
+	
+	Method Create:TTLByteVector(data:Byte Ptr, length:Int)
+		'bvPtr = ...
+		Return Self
+	End Method
 
+	Method setData(data:Byte Ptr, length:Int)
+	End Method
+	
+	Method data:Byte Ptr()
+	End Method
+	
+	Method clear()
+	End Method
+	
+	Method size:Int()
+	End Method
+
+	Method isEmpty:Int()
+	End Method
+
+End Type
 
 
 
