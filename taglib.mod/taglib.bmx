@@ -193,7 +193,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setTitle(value:String)
-		bmx_taglib_tag_settitle(tagPtr, bbStringToUTF8String(value))
+		bmx_taglib_tag_settitle(tagPtr, stringToUTF8String(value))
 	End Method
 	
 	Rem
@@ -201,7 +201,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setArtist(value:String)
-		bmx_taglib_tag_setartist(tagPtr, bbStringToUTF8String(value))
+		bmx_taglib_tag_setartist(tagPtr, stringToUTF8String(value))
 	End Method
 	
 	Rem
@@ -209,7 +209,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setAlbum(value:String)
-		bmx_taglib_tag_setalbum(tagPtr, bbStringToUTF8String(value))
+		bmx_taglib_tag_setalbum(tagPtr, stringToUTF8String(value))
 	End Method
 	
 	Rem
@@ -217,7 +217,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setComment(value:String)
-		bmx_taglib_tag_setcomment(tagPtr, bbStringToUTF8String(value))
+		bmx_taglib_tag_setcomment(tagPtr, stringToUTF8String(value))
 	End Method
 	
 	Rem
@@ -225,7 +225,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setGenre(value:String)
-		bmx_taglib_tag_setgenre(tagPtr, bbStringToUTF8String(value))
+		bmx_taglib_tag_setgenre(tagPtr, stringToUTF8String(value))
 	End Method
 	
 	Rem

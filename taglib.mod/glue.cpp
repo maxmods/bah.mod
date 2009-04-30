@@ -24,8 +24,8 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBString * brl_blitz_bbStringFromUTF8String(const char *);
-	BBString * brl_blitz_bbStringToUTF8String(BBString *);
+	BBString * bah_taglib_stringFromUTF8String(const char *);
+	BBString * bah_taglib_stringToUTF8String(BBString *);
 
 
 	TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, bool readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle);
@@ -115,23 +115,23 @@ bool bmx_taglib_fileref_isnull(TagLib::FileRef * ref) {
 // ****************************************
 
 BBString * bmx_taglib_tag_title(TagLib::Tag * tag) {
-	return brl_blitz_bbStringFromUTF8String(tag->title().toCString(true));
+	return bah_taglib_stringFromUTF8String(tag->title().toCString(true));
 }
 
 BBString * bmx_taglib_tag_artist(TagLib::Tag * tag) {
-	return brl_blitz_bbStringFromUTF8String(tag->artist().toCString(true));
+	return bah_taglib_stringFromUTF8String(tag->artist().toCString(true));
 }
 
 BBString * bmx_taglib_tag_album(TagLib::Tag * tag) {
-	return brl_blitz_bbStringFromUTF8String(tag->album().toCString(true));
+	return bah_taglib_stringFromUTF8String(tag->album().toCString(true));
 }
 
 BBString * bmx_taglib_tag_comment(TagLib::Tag * tag) {
-	return brl_blitz_bbStringFromUTF8String(tag->comment().toCString(true));
+	return bah_taglib_stringFromUTF8String(tag->comment().toCString(true));
 }
 
 BBString * bmx_taglib_tag_genre(TagLib::Tag * tag) {
-	return brl_blitz_bbStringFromUTF8String(tag->genre().toCString(true));
+	return bah_taglib_stringFromUTF8String(tag->genre().toCString(true));
 }
 
 TagLib::uint bmx_taglib_tag_year(TagLib::Tag * tag) {
