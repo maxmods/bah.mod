@@ -3064,6 +3064,358 @@ Type TNonCentralTDistribution Extends TDistribution
 
 End Type
 
+Type TPoissonDistribution Extends TDistribution
+
+	Function CreatePoisson:TPoissonDistribution(_mean:Double = 1)
+		Return New TPoissonDistribution.Create(_mean)
+	End Function
+	
+	Method Create:TPoissonDistribution(_mean:Double = 1)
+		objectPtr = bmx_boost_math_poisson_distribution_create(_mean)
+		Return Self
+	End Method
+	
+	Method Mean:Double()
+		Return bmx_boost_math_poisson_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_poisson_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_poisson_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_poisson_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_poisson_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_poisson_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_poisson_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_poisson_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_poisson_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_poisson_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_poisson_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_poisson_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_poisson_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_poisson_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_poisson_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_poisson_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_poisson_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TRayleighDistribution Extends TDistribution
+
+	Function CreateRayleigh:TRayleighDistribution(sigma:Double = 1)
+		Return New TRayleighDistribution.Create(sigma)
+	End Function
+	
+	Method Create:TRayleighDistribution(sigma:Double = 1)
+		objectPtr = bmx_boost_math_rayleigh_distribution_create(sigma)
+		Return Self
+	End Method
+	
+	Method Sigma:Double()
+		Return bmx_boost_math_rayleigh_distribution_sigma(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_rayleigh_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_rayleigh_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_rayleigh_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_rayleigh_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_rayleigh_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_rayleigh_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_rayleigh_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_rayleigh_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_rayleigh_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_rayleigh_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_rayleigh_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_rayleigh_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_rayleigh_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_rayleigh_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_rayleigh_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_rayleigh_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_rayleigh_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TStudentsTDistribution Extends TDistribution
+
+	Function CreateStudentsT:TStudentsTDistribution(v:Double)
+		Return New TStudentsTDistribution.Create(v)
+	End Function
+	
+	Method Create:TStudentsTDistribution(v:Double)
+		objectPtr = bmx_boost_math_students_t_distribution_create(v)
+		Return Self
+	End Method
+	
+	Method DegreesOfFreedom:Double()
+		Return bmx_boost_math_students_t_distribution_degreesoffreedom(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_students_t_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_students_t_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_students_t_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_students_t_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_students_t_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_students_t_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_students_t_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_students_t_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_students_t_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_students_t_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_students_t_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_students_t_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_students_t_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_students_t_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_students_t_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_students_t_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_students_t_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TTriangularDistribution Extends TDistribution
+
+	Function CreateTriangular:TTriangularDistribution(_lower:Double = -1, _mode:Double = 0, _upper:Double = 1)
+		Return New TTriangularDistribution.Create(_lower, _mode, _upper)
+	End Function
+	
+	Method Create:TTriangularDistribution(_lower:Double = -1, _mode:Double = 0, _upper:Double = 1)
+		objectPtr = bmx_boost_math_triangular_distribution_create(_lower, _mode, _upper)
+		Return Self
+	End Method
+	
+	Method Lower:Double()
+		Return bmx_boost_math_triangular_distribution_lower(objectPtr)
+	End Method
+
+	Method Upper:Double()
+		Return bmx_boost_math_triangular_distribution_upper(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_triangular_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_triangular_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_triangular_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_triangular_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_triangular_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_triangular_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_triangular_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_triangular_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_triangular_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_triangular_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_triangular_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_triangular_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_triangular_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_triangular_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_triangular_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_triangular_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_triangular_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
 
 
 

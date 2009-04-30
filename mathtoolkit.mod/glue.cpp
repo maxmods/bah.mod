@@ -48,6 +48,10 @@
 #include <boost/math/distributions/non_central_chi_squared.hpp>
 #include <boost/math/distributions/non_central_f.hpp>
 #include <boost/math/distributions/non_central_t.hpp>
+#include <boost/math/distributions/poisson.hpp>
+#include <boost/math/distributions/rayleigh.hpp>
+#include <boost/math/distributions/students_t.hpp>
+#include <boost/math/distributions/triangular.hpp>
 
 extern "C" {
 
@@ -448,7 +452,86 @@ extern "C" {
 	double bmx_boost_math_non_central_t_distribution_kurtosis(boost::math::non_central_t_distribution<double> * dist);
 	double bmx_boost_math_non_central_t_distribution_kurtosisexcess(boost::math::non_central_t_distribution<double> * dist);
 
-	
+	boost::math::poisson_distribution<double> * bmx_boost_math_poisson_distribution_create(double mean);
+	double bmx_boost_math_poisson_distribution_mean(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_mode(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_standarddeviation(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_skewness(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_pdf(boost::math::poisson_distribution<double> * dist, double k);
+	double bmx_boost_math_poisson_distribution_cdf(boost::math::poisson_distribution<double> * dist, double k);
+	void bmx_boost_math_poisson_distribution_free(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_quantile(boost::math::poisson_distribution<double> * dist, double k);
+	double bmx_boost_math_poisson_distribution_cdfcomplement(boost::math::poisson_distribution<double> * dist, double k);
+	double bmx_boost_math_poisson_distribution_quantilecomplement(boost::math::poisson_distribution<double> * dist, double k);
+	double bmx_boost_math_poisson_distribution_hazard(boost::math::poisson_distribution<double> * dist, double x);
+	double bmx_boost_math_poisson_distribution_chf(boost::math::poisson_distribution<double> * dist, double x);
+	double bmx_boost_math_poisson_distribution_median(boost::math::poisson_distribution<double> * dist);
+	void bmx_boost_math_poisson_distribution_range(boost::math::poisson_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_poisson_distribution_variance(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_kurtosis(boost::math::poisson_distribution<double> * dist);
+	double bmx_boost_math_poisson_distribution_kurtosisexcess(boost::math::poisson_distribution<double> * dist);
+
+	boost::math::rayleigh_distribution<double> * bmx_boost_math_rayleigh_distribution_create(double sigma);
+	double bmx_boost_math_rayleigh_distribution_sigma(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_mean(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_mode(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_standarddeviation(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_skewness(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_pdf(boost::math::rayleigh_distribution<double> * dist, double k);
+	double bmx_boost_math_rayleigh_distribution_cdf(boost::math::rayleigh_distribution<double> * dist, double k);
+	void bmx_boost_math_rayleigh_distribution_free(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_quantile(boost::math::rayleigh_distribution<double> * dist, double k);
+	double bmx_boost_math_rayleigh_distribution_cdfcomplement(boost::math::rayleigh_distribution<double> * dist, double k);
+	double bmx_boost_math_rayleigh_distribution_quantilecomplement(boost::math::rayleigh_distribution<double> * dist, double k);
+	double bmx_boost_math_rayleigh_distribution_hazard(boost::math::rayleigh_distribution<double> * dist, double x);
+	double bmx_boost_math_rayleigh_distribution_chf(boost::math::rayleigh_distribution<double> * dist, double x);
+	double bmx_boost_math_rayleigh_distribution_median(boost::math::rayleigh_distribution<double> * dist);
+	void bmx_boost_math_rayleigh_distribution_range(boost::math::rayleigh_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_rayleigh_distribution_variance(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_kurtosis(boost::math::rayleigh_distribution<double> * dist);
+	double bmx_boost_math_rayleigh_distribution_kurtosisexcess(boost::math::rayleigh_distribution<double> * dist);
+
+	boost::math::students_t_distribution<double> * bmx_boost_math_students_t_distribution_create(double v);
+	double bmx_boost_math_students_t_distribution_degreeoffreedom(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_mean(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_mode(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_standarddeviation(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_skewness(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_pdf(boost::math::students_t_distribution<double> * dist, double k);
+	double bmx_boost_math_students_t_distribution_cdf(boost::math::students_t_distribution<double> * dist, double k);
+	void bmx_boost_math_students_t_distribution_free(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_quantile(boost::math::students_t_distribution<double> * dist, double k);
+	double bmx_boost_math_students_t_distribution_cdfcomplement(boost::math::students_t_distribution<double> * dist, double k);
+	double bmx_boost_math_students_t_distribution_quantilecomplement(boost::math::students_t_distribution<double> * dist, double k);
+	double bmx_boost_math_students_t_distribution_hazard(boost::math::students_t_distribution<double> * dist, double x);
+	double bmx_boost_math_students_t_distribution_chf(boost::math::students_t_distribution<double> * dist, double x);
+	double bmx_boost_math_students_t_distribution_median(boost::math::students_t_distribution<double> * dist);
+	void bmx_boost_math_students_t_distribution_range(boost::math::students_t_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_students_t_distribution_variance(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_kurtosis(boost::math::students_t_distribution<double> * dist);
+	double bmx_boost_math_students_t_distribution_kurtosisexcess(boost::math::students_t_distribution<double> * dist);
+
+	boost::math::triangular_distribution<double> * bmx_boost_math_triangular_distribution_create(double lower, double mode, double upper);
+	double bmx_boost_math_triangular_distribution_lower(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_upper(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_mean(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_mode(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_standarddeviation(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_skewness(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_pdf(boost::math::triangular_distribution<double> * dist, double k);
+	double bmx_boost_math_triangular_distribution_cdf(boost::math::triangular_distribution<double> * dist, double k);
+	void bmx_boost_math_triangular_distribution_free(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_quantile(boost::math::triangular_distribution<double> * dist, double k);
+	double bmx_boost_math_triangular_distribution_cdfcomplement(boost::math::triangular_distribution<double> * dist, double k);
+	double bmx_boost_math_triangular_distribution_quantilecomplement(boost::math::triangular_distribution<double> * dist, double k);
+	double bmx_boost_math_triangular_distribution_hazard(boost::math::triangular_distribution<double> * dist, double x);
+	double bmx_boost_math_triangular_distribution_chf(boost::math::triangular_distribution<double> * dist, double x);
+	double bmx_boost_math_triangular_distribution_median(boost::math::triangular_distribution<double> * dist);
+	void bmx_boost_math_triangular_distribution_range(boost::math::triangular_distribution<double> * dist, double * rangeStart, double * rangeEnd);
+	double bmx_boost_math_triangular_distribution_variance(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_kurtosis(boost::math::triangular_distribution<double> * dist);
+	double bmx_boost_math_triangular_distribution_kurtosisexcess(boost::math::triangular_distribution<double> * dist);
+
 }
 
 
@@ -3092,6 +3175,601 @@ double bmx_boost_math_non_central_t_distribution_kurtosisexcess(boost::math::non
 
 
 // ************************************************
+
+
+boost::math::poisson_distribution<double> * bmx_boost_math_poisson_distribution_create(double mean) {
+	try {
+		return new boost::math::poisson_distribution<double>(mean);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_mean(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_mode(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_standarddeviation(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_skewness(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_pdf(boost::math::poisson_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_cdf(boost::math::poisson_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_poisson_distribution_free(boost::math::poisson_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_poisson_distribution_quantile(boost::math::poisson_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_cdfcomplement(boost::math::poisson_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_quantilecomplement(boost::math::poisson_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_hazard(boost::math::poisson_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_chf(boost::math::poisson_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_median(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_poisson_distribution_range(boost::math::poisson_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_poisson_distribution_variance(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_kurtosis(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_poisson_distribution_kurtosisexcess(boost::math::poisson_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+
+boost::math::rayleigh_distribution<double> * bmx_boost_math_rayleigh_distribution_create(double sigma) {
+	try {
+		return new boost::math::rayleigh_distribution<double>(sigma);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_sigma(boost::math::rayleigh_distribution<double> * dist) {
+	return dist->sigma();
+}
+
+double bmx_boost_math_rayleigh_distribution_mean(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_mode(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_standarddeviation(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_skewness(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_pdf(boost::math::rayleigh_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_cdf(boost::math::rayleigh_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_rayleigh_distribution_free(boost::math::rayleigh_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_rayleigh_distribution_quantile(boost::math::rayleigh_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_cdfcomplement(boost::math::rayleigh_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_quantilecomplement(boost::math::rayleigh_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_hazard(boost::math::rayleigh_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_chf(boost::math::rayleigh_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_median(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_rayleigh_distribution_range(boost::math::rayleigh_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_rayleigh_distribution_variance(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_kurtosis(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_rayleigh_distribution_kurtosisexcess(boost::math::rayleigh_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+boost::math::students_t_distribution<double> * bmx_boost_math_students_t_distribution_create(double sigma) {
+	try {
+		return new boost::math::students_t_distribution<double>(sigma);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_degreesoffreedom(boost::math::students_t_distribution<double> * dist) {
+	return dist->degrees_of_freedom();
+}
+
+double bmx_boost_math_students_t_distribution_mean(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_mode(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_standarddeviation(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_skewness(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_pdf(boost::math::students_t_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_cdf(boost::math::students_t_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_students_t_distribution_free(boost::math::students_t_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_students_t_distribution_quantile(boost::math::students_t_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_cdfcomplement(boost::math::students_t_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_quantilecomplement(boost::math::students_t_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_hazard(boost::math::students_t_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_chf(boost::math::students_t_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_median(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_students_t_distribution_range(boost::math::students_t_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_students_t_distribution_variance(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_kurtosis(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_students_t_distribution_kurtosisexcess(boost::math::students_t_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
+boost::math::triangular_distribution<double> * bmx_boost_math_triangular_distribution_create(double lower, double mode, double upper) {
+	try {
+		return new boost::math::triangular_distribution<double>(lower, mode, upper);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_lower(boost::math::triangular_distribution<double> * dist) {
+	return dist->lower();
+}
+
+double bmx_boost_math_triangular_distribution_upper(boost::math::triangular_distribution<double> * dist) {
+	return dist->upper();
+}
+
+double bmx_boost_math_triangular_distribution_mean(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return mean(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_mode(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return mode(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_standarddeviation(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return standard_deviation(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_skewness(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return skewness(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_pdf(boost::math::triangular_distribution<double> * dist, double k) {
+	try {
+		return pdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_cdf(boost::math::triangular_distribution<double> * dist, double k) {
+	try {
+		return cdf(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_triangular_distribution_free(boost::math::triangular_distribution<double> * dist) {
+	delete dist;
+}
+
+double bmx_boost_math_triangular_distribution_quantile(boost::math::triangular_distribution<double> * dist, double k) {
+	try {
+		return quantile(*dist, k);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_cdfcomplement(boost::math::triangular_distribution<double> * dist, double k) {
+	try {
+		return cdf(complement(*dist, k));
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_quantilecomplement(boost::math::triangular_distribution<double> * dist, double k) {
+	try {
+		return quantile(complement(*dist, k));
+	} catch(std::overflow_error) {
+		bmx_throw_overflow_exception();
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_hazard(boost::math::triangular_distribution<double> * dist, double x) {
+	try {
+		return hazard(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_chf(boost::math::triangular_distribution<double> * dist, double x) {
+	try {
+		return chf(*dist, x);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_median(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return median(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+void bmx_boost_math_triangular_distribution_range(boost::math::triangular_distribution<double> * dist, double * rangeStart, double * rangeEnd) {
+	std::pair<double, double> result = range(*dist);
+	*rangeStart = result.first;
+	*rangeEnd = result.second;
+}
+
+double bmx_boost_math_triangular_distribution_variance(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return variance(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_kurtosis(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return kurtosis(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+double bmx_boost_math_triangular_distribution_kurtosisexcess(boost::math::triangular_distribution<double> * dist) {
+	try {
+		return kurtosis_excess(*dist);
+	} catch(...) {
+		bmx_throw_domain_exception();
+	}
+}
+
+
+// ************************************************
+
+
 
 
 
