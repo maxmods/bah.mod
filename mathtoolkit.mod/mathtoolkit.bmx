@@ -301,6 +301,62 @@ Function SphNeumann:Double(v:Int, x:Double)
 	Return bmx_boost_math_sphneumann(v, x)
 End Function
 
+Function Gamma:Double(z:Double)
+' TODO
+End Function
+
+Function Gamma1pm1:Double(z:Double)
+' TODO
+End Function
+
+Function LogGamma:Double(z:Double)
+' TODO
+End Function
+
+Function Digamma:Double(z:Double)
+' TODO
+End Function
+
+Function GammaRatio:Double(a:Double, b:Double)
+' TODO
+End Function
+
+Function GammaDeltaRatio:Double(a:Double, delta:Double)
+' TODO
+End Function
+
+Function GammaP:Double(a:Double, z:Double)
+' TODO
+End Function
+
+Function GammaQ:Double(a:Double, z:Double)
+' TODO
+End Function
+
+Function GammaLower:Double(a:Double, z:Double)
+' TODO
+End Function
+
+Function GammaPInv:Double(a:Double, p:Double)
+' TODO
+End Function
+
+Function GammaQInv:Double(a:Double, q:Double)
+' TODO
+End Function
+
+Function GammaPInvA:Double(a:Double, p:Double)
+' TODO
+End Function
+
+Function GammaQInvA:Double(a:Double, q:Double)
+' TODO
+End Function
+
+Function GammaPDerivative:Double(a:Double, x:Double)
+' TODO
+End Function
+
 Rem
 bbdoc: Calculate the mean of @dist.
 about: This function may throw a TDomainException if the distribution does not have a defined mean (for example the Cauchy distribution).
@@ -3410,6 +3466,190 @@ Type TTriangularDistribution Extends TDistribution
 	Method Delete()
 		If objectPtr Then
 			bmx_boost_math_triangular_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TUniformDistribution Extends TDistribution
+
+	Function CreateUniform:TUniformDistribution(_lower:Double = 0, _upper:Double = 1)
+		Return New TUniformDistribution.Create(_lower, _upper)
+	End Function
+	
+	Method Create:TUniformDistribution(_lower:Double = 0, _upper:Double = 1)
+		objectPtr = bmx_boost_math_uniform_distribution_create(_lower, _upper)
+		Return Self
+	End Method
+	
+	Method Lower:Double()
+		Return bmx_boost_math_uniform_distribution_lower(objectPtr)
+	End Method
+
+	Method Upper:Double()
+		Return bmx_boost_math_uniform_distribution_upper(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_uniform_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_uniform_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_uniform_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_uniform_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_uniform_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_uniform_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_uniform_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_uniform_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_uniform_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_uniform_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_uniform_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_uniform_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_uniform_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_uniform_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_uniform_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_uniform_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_uniform_distribution_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+
+End Type
+
+Type TGammaDistribution Extends TDistribution
+
+	Function CreateGamma:TGammaDistribution(shape:Double, scale:Double = 1)
+		Return New TGammaDistribution.Create(shape, scale)
+	End Function
+	
+	Method Create:TGammaDistribution(shape:Double, scale:Double = 1)
+		objectPtr = bmx_boost_math_gamma_distribution_create(shape, scale)
+		Return Self
+	End Method
+	
+	Method Shape:Double()
+		Return bmx_boost_math_gamma_distribution_shape(objectPtr)
+	End Method
+
+	Method Scale:Double()
+		Return bmx_boost_math_gamma_distribution_scale(objectPtr)
+	End Method
+
+	Method Mean:Double()
+		Return bmx_boost_math_gamma_distribution_mean(objectPtr)
+	End Method
+
+	Method Mode:Double()
+		Return bmx_boost_math_gamma_distribution_mode(objectPtr)
+	End Method
+	
+	Method StandardDeviation:Double()
+		Return bmx_boost_math_gamma_distribution_standarddeviation(objectPtr)
+	End Method
+
+	Method Skewness:Double()
+		Return bmx_boost_math_gamma_distribution_skewness(objectPtr)
+	End Method
+
+	Method Pdf:Double(k:Double)
+		Return bmx_boost_math_gamma_distribution_pdf(objectPtr, k)
+	End Method
+	
+	Method Cdf:Double(k:Double)
+		Return bmx_boost_math_gamma_distribution_cdf(objectPtr, k)
+	End Method
+
+	Method CdfComplement:Double(k:Double)
+		Return bmx_boost_math_gamma_distribution_cdfcomplement(objectPtr, k)
+	End Method
+	
+	Method Quantile:Double(p:Double)
+		Return bmx_boost_math_gamma_distribution_quantile(objectPtr, p)
+	End Method
+
+	Method QuantileComplement:Double(p:Double)
+		Return bmx_boost_math_gamma_distribution_quantilecomplement(objectPtr, p)
+	End Method
+
+	Method Hazard:Double(x:Double)
+		Return bmx_boost_math_gamma_distribution_hazard(objectPtr, x)
+	End Method
+
+	Method Chf:Double(x:Double)
+		Return bmx_boost_math_gamma_distribution_chf(objectPtr, x)
+	End Method
+
+	Method Median:Double()
+		Return bmx_boost_math_gamma_distribution_median(objectPtr)
+	End Method
+
+	Method Range(rangeStart:Double Var, rangeEnd:Double Var)
+		bmx_boost_math_gamma_distribution_range(objectPtr, Varptr rangeStart, Varptr rangeEnd)
+	End Method
+
+	Method Variance:Double()
+		Return bmx_boost_math_gamma_distribution_variance(objectPtr)
+	End Method
+
+	Method Kurtosis:Double()
+		Return bmx_boost_math_gamma_distribution_kurtosis(objectPtr)
+	End Method
+
+	Method KurtosisExcess:Double()
+		Return bmx_boost_math_gamma_distribution_kurtosisexcess(objectPtr)
+	End Method
+
+	Method Delete()
+		If objectPtr Then
+			bmx_boost_math_gamma_distribution_free(objectPtr)
 			objectPtr = Null
 		End If
 	End Method
