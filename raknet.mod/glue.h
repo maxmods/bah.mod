@@ -20,6 +20,7 @@
   THE SOFTWARE.
 */ 
 
+#include "assert.h"
 #include "MessageIdentifiers.h"
 #include "RakNetworkFactory.h"
 #include "RakPeerInterface.h"
