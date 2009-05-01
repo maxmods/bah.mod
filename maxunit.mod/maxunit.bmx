@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2006-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,14 @@ bbdoc: MaxUnit - Unit Testing
 End Rem
 Module BaH.MaxUnit
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Credit: Based loosely on the JUnit testing framework by Erich Gamma and Kent Beck. see junit.org"
-ModuleInfo "Copyright: (c) 2006,2007 Bruce A Henderson"
+ModuleInfo "Copyright: (c) 2006-2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Modified summary to count test runs, and tests."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Improved multiple test-types support."
 ModuleInfo "History: Changed tags to before/after and beforetype/aftertype"
@@ -127,6 +129,8 @@ Type TTestSuite Extends TAssert
 		_PrintLine("")
 		_Print("[0] ")
 		
+		Local subTestCount:Int = 0
+		
 		For Local testType:TTest = EachIn tests
 		
 			testType.startTime = MilliSecs()
@@ -143,6 +147,8 @@ Type TTestSuite Extends TAssert
 				If count = size - 1 Then
 					doAfter = True
 				End If
+				
+				subTestCount:+ 1
 				
 				performTest(t, doBefore, doAfter)
 			
@@ -205,7 +211,8 @@ Type TTestSuite Extends TAssert
 			_PrintLine("")
 			
 			_PrintLine("FAILURES!!!")
-			_PrintLine("Tests run: " + tests.count() + ",  Failures: " + f + ",  Errors: " + e )
+			_PrintLine("Test Runs: " + tests.count() + ", Tests: " + subTestCount + ..
+				",  Failures: " + f + ",  Errors: " + e )
 		Else
 			_Print("OK (" + tests.count() + " test")
 			If tests.count() <> 1 Then
