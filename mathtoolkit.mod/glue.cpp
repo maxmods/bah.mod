@@ -30,6 +30,8 @@
 #include <boost/math/special_functions/hypot.hpp>
 #include <boost/math/special_functions/bessel.hpp>
 #include <boost/math/special_functions/zeta.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 #include <boost/math/concepts/distributions.hpp>
 #include <boost/math/distributions/binomial.hpp>
 #include <boost/math/distributions/bernoulli.hpp>
@@ -81,6 +83,21 @@ extern "C" {
 
 	double bmx_boost_math_sphbessel(unsigned int v, double x);
 	double bmx_boost_math_sphneumann(unsigned int v, double x);
+	double bmx_boost_math_gamma(double z);
+	double bmx_boost_math_gamma1pm1(double z);
+	double bmx_boost_math_loggamma(double z);
+	double bmx_boost_math_digamma(double z);
+	double bmx_boost_math_gammaratio(double a, double b);
+	double bmx_boost_math_gammadeltaratio(double a, double delta);
+	double bmx_boost_math_gammap(double a, double z);
+	double bmx_boost_math_gammaq(double a, double z);
+	double bmx_boost_math_gammalower(double a, double z);
+	double bmx_boost_math_gammapinv(double a, double p);
+	double bmx_boost_math_gammaqinv(double a, double q);
+	double bmx_boost_math_gammapinva(double a, double p);
+	double bmx_boost_math_gammaqinva(double a, double q);
+	double bmx_boost_math_gammapderivative(double a, double x);
+
 
 	boost::math::binomial_distribution<double> * bmx_boost_math_binomial_distribution_create(int n, double p);
 	double bmx_boost_math_binomial_distribution_successfraction(boost::math::binomial_distribution<double> * dist);
@@ -676,6 +693,63 @@ double bmx_boost_math_powm1(double x, double y) {
 double bmx_boost_math_zeta(double z) {
 	return boost::math::zeta<double>(z);
 }
+
+double bmx_boost_math_gamma(double z) {
+	return boost::math::tgamma(z);
+}
+
+double bmx_boost_math_gamma1pm1(double z) {
+	return boost::math::tgamma1pm1(z);
+}
+
+double bmx_boost_math_loggamma(double z) {
+	return boost::math::lgamma(z);
+}
+
+double bmx_boost_math_digamma(double z) {
+	return boost::math::digamma(z);
+}
+
+double bmx_boost_math_gammaratio(double a, double b) {
+	return boost::math::tgamma_ratio(a, b);
+}
+
+double bmx_boost_math_gammadeltaratio(double a, double delta) {
+	return boost::math::tgamma_delta_ratio(a, delta);
+}
+
+double bmx_boost_math_gammap(double a, double z) {
+	return boost::math::gamma_p(a, z);
+}
+
+double bmx_boost_math_gammaq(double a, double z) {
+	return boost::math::gamma_q(a, z);
+}
+
+double bmx_boost_math_gammalower(double a, double z) {
+	return boost::math::tgamma_lower(a, z);
+}
+
+double bmx_boost_math_gammapinv(double a, double p) {
+	return boost::math::gamma_p_inv(a, p);
+}
+
+double bmx_boost_math_gammaqinv(double a, double q) {
+	return boost::math::gamma_q_inv(a, q);
+}
+
+double bmx_boost_math_gammapinva(double a, double p) {
+	return boost::math::gamma_p_inva(a, p);
+}
+
+double bmx_boost_math_gammaqinva(double a, double q) {
+	return boost::math::gamma_q_inva(a, q);
+}
+
+double bmx_boost_math_gammapderivative(double a, double x) {
+	return boost::math::gamma_p_derivative(a, x);
+}
+
 
 // ************************************************
 

@@ -301,60 +301,241 @@ Function SphNeumann:Double(v:Int, x:Double)
 	Return bmx_boost_math_sphneumann(v, x)
 End Function
 
+Rem
+bbdoc: Returns the "true gamma" of value z:
+about: <img src="gamm1.png">
+<p>
+<img src="tgamma.png" align="middle">
+</p>
+End Rem
 Function Gamma:Double(z:Double)
-' TODO
+	Return bmx_boost_math_gamma(z)
 End Function
 
+Rem
+bbdoc: Returns <code>Gamma(dz + 1) - 1. Internally the implementation does not make use of the addition and subtraction implied
+by the definition, leading to accurate results even for very small <code>dz</code>. However, the implementation is capped to
+either 35 digit accuracy.
+End Rem
 Function Gamma1pm1:Double(z:Double)
-' TODO
+	Return bmx_boost_math_gamma1pm1(z)
 End Function
 
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Gamma_function">LogGamma function</a>.
+about: It is defined by:
+<p>
+<img src="lgamm1.png">
+</p>
+<p>
+The second form of the function takes a pointer to an integer, which if non-null is set on output to the sign of tgamma(z).
+</p>
+<p>
+<img src="lgamma.png" align="middle">
+</p>
+End Rem
 Function LogGamma:Double(z:Double)
-' TODO
+	Return bmx_boost_math_loggamma(z)
 End Function
 
+Rem
+bbdoc: Returns the digamma or psi function of <em>x</em>.
+about: Digamma is defined as the logarithmic derivative of the gamma function:
+<p>
+<img src="digamma1.png">
+</p>
+<p>
+<img src="digamma.png" align="middle">
+</p>
+End Rem
 Function Digamma:Double(z:Double)
-' TODO
+	Return bmx_boost_math_digamma(z)
 End Function
 
+Rem
+bbdoc: Returns the ratio of gamma functions:
+about: <img src="gamma_ratio0.png">
+<p>
+Internally this just calls GammaDeltaRatio(a, b-a)
+</p>
+End Rem
 Function GammaRatio:Double(a:Double, b:Double)
-' TODO
+	Return bmx_boost_math_gammaratio(a, b)
 End Function
 
+Rem
+bbdoc: Returns the ratio of gamma functions:
+about: <img src="gamma_ratio1.png">
+<p>
+Note that the result is calculated accurately even when <em>delta</em> is small compared to <em>a</em>: indeed even if
+<em>a+delta ~ a</em>. The function is typically used when <em>a</em> is large and <em>delta</em> is very small.
+</p>
+<p>
+<img src="tgamma_delta_ratio.png" align="middle">
+</p>
+End Rem
 Function GammaDeltaRatio:Double(a:Double, delta:Double)
-' TODO
+	Return bmx_boost_math_gammadeltaratio(a, delta)
 End Function
 
+Rem
+bbdoc: Returns the normalised lower incomplete gamma function of a and z:
+about: <img src="igamma4.png">
+<p>
+This function changes rapidly from 0 to 1 around the point z == a:
+</p>
+<p>
+<img src="gamma_p.png" align="middle">
+</p>
+End Rem
 Function GammaP:Double(a:Double, z:Double)
-' TODO
+	Return bmx_boost_math_gammap(a, z)
 End Function
 
+Rem
+bbdoc: Returns the normalised upper incomplete gamma function of a and z:
+about: <img src="igamma3.png">
+<p>
+This function changes rapidly from 1 to 0 around the point z == a:
+</p>
+<p>
+<img src="gamma_q.png" align="middle">
+</p>
+End Rem
 Function GammaQ:Double(a:Double, z:Double)
-' TODO
+	Return bmx_boost_math_gammaq(a, z)
 End Function
 
+Rem
+bbdoc: Returns the full (non-normalised) lower incomplete gamma function of a and z:
+about: <img src="igamma2.png">
+End Rem
 Function GammaLower:Double(a:Double, z:Double)
-' TODO
+	Return bmx_boost_math_gammalower(a, z)
 End Function
 
+Rem
+bbdoc: Returns a value x such that: p = GammaP(a, x)
+about: Requires: <em>a &gt; 0</em> and <em>1 &gt;= p,q &gt;= 0</em>.
+<p>
+This is an <a href="http://mathworld.wolfram.com/IncompleteGammaFunction.html">incomplete gamma function</a> inverse which computes <em>x</em> given <em>a</em> and <em>p</em>.
+</p>
+<table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+When people normally talk about the inverse of the incomplete gamma function, they are talking about inverting on parameter <em>x</em>.
+These are implemented here as gamma_p_inv and gamma_q_inv, and are by far the most efficient of the inverses presented here.
+</p>
+<p>
+The inverse on the <em>a</em> parameter finds use in some statistical applications but has to be computed by rather brute force
+numerical techniques and is consequently several times slower. These are implemented here as GammaPInvA and GammeQInvA.
+</p>
+</td></tr>
+</table>
+
+End Rem
 Function GammaPInv:Double(a:Double, p:Double)
-' TODO
+	Return bmx_boost_math_gammapinv(a, p)
 End Function
 
+Rem
+bbdoc: Returns a value x such that: q = GammaQ(a, x)
+about: Requires: <em>a &gt; 0</em> and <em>1 &gt;= p,q &gt;= 0</em>.
+<p>
+This is an <a href="http://mathworld.wolfram.com/IncompleteGammaFunction.html">incomplete gamma function</a> inverse which computes <em>x</em> given <em>a</em> and <em>p</em>.
+</p>
+<table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+When people normally talk about the inverse of the incomplete gamma function, they are talking about inverting on parameter <em>x</em>.
+These are implemented here as gamma_p_inv and gamma_q_inv, and are by far the most efficient of the inverses presented here.
+</p>
+<p>
+The inverse on the <em>a</em> parameter finds use in some statistical applications but has to be computed by rather brute force
+numerical techniques and is consequently several times slower. These are implemented here as GammaPInvA and GammeQInvA.
+</p>
+</td></tr>
+</table>
+
+End Rem
 Function GammaQInv:Double(a:Double, q:Double)
-' TODO
+	Return bmx_boost_math_gammaqinv(a, q)
 End Function
 
+Rem
+bbdoc: Returns a value @a such that: p = GammaP(a, x)
+about: Requires: <em>a &gt; 0</em> and <em>1 &gt;= p,q &gt;= 0</em>.
+<p>
+This is an <a href="http://mathworld.wolfram.com/IncompleteGammaFunction.html">incomplete gamma function</a> inverse which computes <em>x</em> given <em>a</em> and <em>p</em>.
+</p>
+<table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+When people normally talk about the inverse of the incomplete gamma function, they are talking about inverting on parameter <em>x</em>.
+These are implemented here as gamma_p_inv and gamma_q_inv, and are by far the most efficient of the inverses presented here.
+</p>
+<p>
+The inverse on the <em>a</em> parameter finds use in some statistical applications but has to be computed by rather brute force
+numerical techniques and is consequently several times slower. These are implemented here as GammaPInvA and GammeQInvA.
+</p>
+</td></tr>
+</table>
+
+End Rem
 Function GammaPInvA:Double(a:Double, p:Double)
-' TODO
+	Return bmx_boost_math_gammapinva(a, p)
 End Function
 
+Rem
+bbdoc: Returns a value @a such that: q = GammaQ(a, x)
+about: Requires: <em>a &gt; 0</em> and <em>1 &gt;= p,q &gt;= 0</em>.
+<p>
+This is an <a href="http://mathworld.wolfram.com/IncompleteGammaFunction.html">incomplete gamma function</a> inverse which computes <em>x</em> given <em>a</em> and <em>p</em>.
+</p>
+<table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+When people normally talk about the inverse of the incomplete gamma function, they are talking about inverting on parameter <em>x</em>.
+These are implemented here as gamma_p_inv and gamma_q_inv, and are by far the most efficient of the inverses presented here.
+</p>
+<p>
+The inverse on the <em>a</em> parameter finds use in some statistical applications but has to be computed by rather brute force
+numerical techniques and is consequently several times slower. These are implemented here as GammaPInvA and GammeQInvA.
+</p>
+</td></tr>
+</table>
+
+End Rem
 Function GammaQInvA:Double(a:Double, q:Double)
-' TODO
+	Return bmx_boost_math_gammaqinva(a, q)
 End Function
 
+Rem
+bbdoc: This function find some uses in statistical distributions.
+about: It implements the partial derivative with respect to <em>x</em> of the incomplete gamma function.
+<img src="derivative1.png">
+<p>
+Note that the derivative of the function GammaQ</a> can be obtained by negating the result of this function.
+</p>
+End Rem
 Function GammaPDerivative:Double(a:Double, x:Double)
-' TODO
+	Return bmx_boost_math_gammapderivative(a, x)
 End Function
 
 Rem
@@ -3120,17 +3301,72 @@ Type TNonCentralTDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a> is a well-known statistical discrete distribution.
+about: It expresses the probability of a number of events (or failures, arrivals, occurrences ...) occurring in a fixed period of
+time, provided these events occur with a known mean rate &#955; (events/time), and are independent of the time since the last event.
+<p>
+The distribution was discovered by Simé on-Denis Poisson (1781 to 1840).
+</p>
+<p>
+It has the Probability Mass Function:
+</p>
+<p>
+<img src="poisson_ref1.png">
+</p>
+<p>
+for k events, with an expected number of events &#955;.
+</p>
+<p>
+The following graph illustrates how the PDF varies with the parameter &#955;:
+</p>
+<p>
+<img src="poisson_pdf_1.png" align="middle">
+</p>
+<p>
+</p>
+<table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+The Poisson distribution is a discrete distribution: internally functions
+like the <code>cdf</code> and <code>pdf</code> are treated "as
+if" they are continuous functions, but in reality the results
+returned from these functions only have meaning if an integer value
+is provided for the random variate argument.
+</p>
+<p>
+The quantile function will by default return an integer result that has been <em>rounded outwards</em>. That is to say lower
+quantiles (where the probability is less than 0.5) are rounded downward, and upper quantiles (where the probability is greater than 0.5) are
+rounded upwards. This behaviour ensures that if an X% quantile is requested, then <em>at least</em> the requested coverage
+will be present in the central region, and <em>no more than</em> the requested coverage will be present in the tails.
+</p>
+</td></tr>
+</table>
+End Rem
 Type TPoissonDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Creates a poisson distribution with mean @_mean.
+	End Rem
 	Function CreatePoisson:TPoissonDistribution(_mean:Double = 1)
 		Return New TPoissonDistribution.Create(_mean)
 	End Function
 	
+	Rem
+	bbdoc: Creates a poisson distribution with mean @_mean.
+	End Rem
 	Method Create:TPoissonDistribution(_mean:Double = 1)
 		objectPtr = bmx_boost_math_poisson_distribution_create(_mean)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the mean of this distribution.
+	End Rem
 	Method Mean:Double()
 		Return bmx_boost_math_poisson_distribution_mean(objectPtr)
 	End Method
@@ -3204,17 +3440,54 @@ Type TPoissonDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Rayleigh_distribution">Rayleigh distribution</a> is a continuous distribution.
+about: It has a <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function</a>:
+<p>
+f(x; sigma) = x * exp(-x<sup>2</sup>/2 &#963;<sup>2</sup>) / &#963;<sup>2</sup>
+</p>
+<p>
+For sigma parameter &#963; &gt; 0, and x &gt; 0.
+</p>
+<p>
+The Rayleigh distribution is often used where two orthogonal components have an absolute value, for example, wind velocity and direction may
+be combined to yield a wind speed, or real and imaginary components may have absolute values that are Rayleigh distributed.
+</p>
+<p>
+The following graph illustrates how the Probability density Function(pdf) varies with the shape parameter &#963;:
+</p>
+<p>
+<img src="rayleigh_pdf.png" align="middle">
+</p>
+<p>
+and the Cumulative Distribution Function (cdf)
+</p>
+<p>
+<img src="rayleigh_cdf.png" align="middle">
+</p>
+End Rem
 Type TRayleighDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Constructs a <a href="http://en.wikipedia.org/wiki/Rayleigh_distribution">Rayleigh distribution</a> with &#963; <em>sigma</em>.
+	about: Requires that the &#963; parameter is greater than zero, otherwise throws TDomainException.
+	End Rem
 	Function CreateRayleigh:TRayleighDistribution(sigma:Double = 1)
 		Return New TRayleighDistribution.Create(sigma)
 	End Function
 	
+	Rem
+	bbdoc: Constructs a <a href="http://en.wikipedia.org/wiki/Rayleigh_distribution">Rayleigh distribution</a> with &#963; <em>sigma</em>.
+	about: Requires that the &#963; parameter is greater than zero, otherwise throws TDomainException.
+	End Rem
 	Method Create:TRayleighDistribution(sigma:Double = 1)
 		objectPtr = bmx_boost_math_rayleigh_distribution_create(sigma)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the @sigma parameter of this distribution.
+	End Rem
 	Method Sigma:Double()
 		Return bmx_boost_math_rayleigh_distribution_sigma(objectPtr)
 	End Method
@@ -3292,17 +3565,58 @@ Type TRayleighDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: A statistical distribution.
+about: Published by William Gosset in 1908. His employer, Guinness Breweries, required him to publish under a pseudonym, so he
+chose "Student". Given N independent measurements, let
+<p>
+<img src="students_t_dist.png">
+</p>
+<p>
+where <em>M</em> is the population mean, <em>&#956;</em> is the sample mean, and <em>s</em> is the sample variance.
+</p>
+<p>
+Student's t-distribution is defined as the distribution of the random variable t which is - very loosely - the "best" that we can
+do not knowing the true standard deviation of the sample. It has the PDF:
+</p>
+<p>
+<img src="students_t_ref1.png">
+</p>
+<p>
+The Student's t-distribution takes a single parameter: the number of degrees of freedom of the sample. When the degrees of freedom
+is <em>one</em> then this distribution is the same as the Cauchy-distribution. As the number of degrees of freedom tends towards
+infinity, then this distribution approaches the normal-distribution. The following graph illustrates how the PDF varies with the degrees 
+of freedom &#957;:
+</p>
+<p>
+<img src="students_t_pdf.png" align="middle">
+</p>
+
+End Rem
 Type TStudentsTDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Creates a Student's t-distribution with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. Note that non-integral degrees of freedom are supported, and
+	meaningful under certain circumstances.
+	End Rem
 	Function CreateStudentsT:TStudentsTDistribution(v:Double)
 		Return New TStudentsTDistribution.Create(v)
 	End Function
 	
+	Rem
+	bbdoc: Creates a Student's t-distribution with @v degrees of freedom.
+	about: Requires @v &gt; 0, otherwise throws TDomainException. Note that non-integral degrees of freedom are supported, and
+	meaningful under certain circumstances.
+	End Rem
 	Method Create:TStudentsTDistribution(v:Double)
 		objectPtr = bmx_boost_math_students_t_distribution_create(v)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of degrees of freedom of this distribution.
+	End Rem
 	Method DegreesOfFreedom:Double()
 		Return bmx_boost_math_students_t_distribution_degreesoffreedom(objectPtr)
 	End Method
@@ -3380,21 +3694,85 @@ Type TStudentsTDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The <a href="http://en.wikipedia.org/wiki/Triangular_distribution">triangular distribution</a> is a <a href="http://en.wikipedia.org/wiki/Continuous_distribution">continuous</a> <a href="http://en.wikipedia.org/wiki/Probability_distribution">probability distribution</a> with a lower limit a, <a class="external" href="http://en.wikipedia.org/wiki/Mode_%28statistics%29">mode c</a>, and upper limit b.
+about: The triangular distribution is often used where the distribution is only vaguely known, but, like the 
+<a href="http://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29">uniform distribution</a>, upper and limits are 'known', but
+a 'best guess', the mode or center point, is also added. It has been recommended as a
+<a href="http://www.worldscibooks.com/mathematics/etextbook/5720/5720_chap1.pdf">proxy for the beta distribution.</a> The distribution
+is used in business decision making and project planning.
+<p>
+The <a href="http://en.wikipedia.org/wiki/Triangular_distribution">triangular distribution</a> is a distribution with the
+<a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function</a>:
+</p>
+<p>
+f(x) =
+</p>
+<ul type="disc">
+<li>2(x-a)/(b-a) (c-a) for a &lt;= x &lt;= c</li>
+<li>2(b-x)/(b-a)(b-c) for c &lt; x &lt;= b</li>
+</ul>
+<p>
+Parameter a (lower) can be any finite value. Parameter b (upper) can be any finite value &gt; a (lower). Parameter c (mode) a &lt;= c &lt;=
+b. This is the most probable value.
+</p>
+<p>
+The <a href="http://en.wikipedia.org/wiki/Random_variate">random variate</a> x must also be finite, and is supported lower &lt;= x &lt;= upper.
+</p>
+<p>
+The triangular distribution may be appropriate when an assumption of a normal distribution is unjustified because uncertainty is caused by
+rounding and quantization from analog to digital conversion. Upper and lower limits are known, and the most probable value lies midway.
+</p>
+<p>
+The distribution simplifies when the 'best guess' is either the lower or upper limit - a 90 degree angle triangle. The default chosen is the
+001 triangular distribution which expresses an estimate that the lowest value is the most likely; for example, you believe that the next-day
+quoted delivery date is most likely (knowing that a quicker delivery is impossible - the postman only comes once a day), and that longer delays
+are decreasingly likely, and delivery is assumed to never take more than your upper limit.
+</p>
+<p>
+The following graph illustrates how the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function PDF</a>
+varies with the various parameters:
+</p>
+<p>
+<img src="triangular_pdf.png" align="middle">
+</p>
+<p>
+and cumulative distribution function
+</p>
+<p>
+<img src="triangular_cdf.png" align="middle">
+</p>
+
+End Rem
 Type TTriangularDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Creates a triangular distribution with lower _lower and upper @_upper.
+	about: Requires that the @_lower, @_mode and @_upper parameters are all finite, otherwise throws TDomainException.
+	End Rem
 	Function CreateTriangular:TTriangularDistribution(_lower:Double = -1, _mode:Double = 0, _upper:Double = 1)
 		Return New TTriangularDistribution.Create(_lower, _mode, _upper)
 	End Function
 	
+	Rem
+	bbdoc: Creates a triangular distribution with lower _lower and upper @_upper.
+	about: Requires that the @_lower, @_mode and @_upper parameters are all finite, otherwise throws TDomainException.
+	End Rem
 	Method Create:TTriangularDistribution(_lower:Double = -1, _mode:Double = 0, _upper:Double = 1)
 		objectPtr = bmx_boost_math_triangular_distribution_create(_lower, _mode, _upper)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the lower parameter of this distribution (default -1).
+	End Rem
 	Method Lower:Double()
 		Return bmx_boost_math_triangular_distribution_lower(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the upper parameter of this distribution (default+1).
+	End Rem
 	Method Upper:Double()
 		Return bmx_boost_math_triangular_distribution_upper(objectPtr)
 	End Method
@@ -3403,6 +3781,9 @@ Type TTriangularDistribution Extends TDistribution
 		Return bmx_boost_math_triangular_distribution_mean(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the mode parameter of this distribution (default 0).
+	End Rem
 	Method Mode:Double()
 		Return bmx_boost_math_triangular_distribution_mode(objectPtr)
 	End Method
@@ -3472,21 +3853,85 @@ Type TTriangularDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The uniform distribution, also known as a rectangular distribution, is a probability distribution that has constant probability.
+about: The <a href="http://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29">continuous uniform distribution</a> is a
+distribution with the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function</a>:
+<p>
+f(x) =
+</p>
+<ul type="disc">
+<li>1 / (upper - lower) for lower &lt; x &lt; upper</li>
+<li>zero for x &lt; lower or x &gt; upper</li>
+</ul>
+<p>
+and in this implementation:
+</p>
+<ul type="disc">
+<li>1 / (upper - lower) for x = lower or x = upper</li>
+</ul>
+<p>
+The choice of x = lower or x = upper is made because statistical use of this distribution judged is most likely: the method of maximum
+likelihood uses this definition.
+</p>
+<p>
+There is also a <a href="http://en.wikipedia.org/wiki/Discrete_uniform_distribution"><strong>discrete</strong> uniform distribution</a>.
+</p>
+<p>
+Parameters lower and upper can be any finite value.
+</p>
+<p>
+The <a href="http://en.wikipedia.org/wiki/Random_variate">random variate</a> x must also be finite, and is supported lower &lt;= x &lt;= upper.
+</p>
+<p>
+The lower parameter is also called the <a href="http://www.itl.nist.gov/div898/handbook/eda/section3/eda364.htm">location parameter</a>,
+<a href="http://en.wikipedia.org/wiki/Location_parameter">that is where the origin of a plot will lie</a>, and (upper - lower) is
+also called the <a href="http://en.wikipedia.org/wiki/Scale_parameter">scale parameter</a>.
+</p>
+<p>
+The following graph illustrates how the <a href="http://en.wikipedia.org/wiki/Probability_density_function">probability density function
+PDF</a> varies with the shape parameter:
+</p>
+<p>
+<img src="uniform_pdf.png" align="middle">
+</p>
+<p>
+Likewise for the CDF:
+</p>
+<p>
+<img src="uniform_cdf.png" align="middle">
+</p>
+
+End Rem
 Type TUniformDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Creates a uniform distribution with lower @_lower and upper @_upper.
+	about: Requires that the lower and upper parameters are both finite; otherwise if infinity or NaN then throws TDomainException.
+	End Rem
 	Function CreateUniform:TUniformDistribution(_lower:Double = 0, _upper:Double = 1)
 		Return New TUniformDistribution.Create(_lower, _upper)
 	End Function
 	
+	Rem
+	bbdoc: Creates a uniform distribution with lower @_lower and upper @_upper.
+	about: Requires that the lower and upper parameters are both finite; otherwise if infinity or NaN then throws TDomainException.
+	End Rem
 	Method Create:TUniformDistribution(_lower:Double = 0, _upper:Double = 1)
 		objectPtr = bmx_boost_math_uniform_distribution_create(_lower, _upper)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the lower parameter of this distribution.
+	End Rem
 	Method Lower:Double()
 		Return bmx_boost_math_uniform_distribution_lower(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the upper parameter of this distribution.
+	End Rem
 	Method Upper:Double()
 		Return bmx_boost_math_uniform_distribution_upper(objectPtr)
 	End Method
@@ -3564,21 +4009,83 @@ Type TUniformDistribution Extends TDistribution
 
 End Type
 
+Rem
+bbdoc: The gamma distribution is a continuous probability distribution.
+about: When the shape parameter is an integer then it is known as the Erlang Distribution. It is also closely related to the Poisson and
+Chi Squared Distributions.
+<p>
+When the shape parameter has an integer value, the distribution is the <a href="http://en.wikipedia.org/wiki/Erlang_distribution">Erlang
+distribution</a>. Since this can be produced by ensuring that the shape parameter has an integer value &gt; 0, the Erlang distribution
+is not separately implemented.
+</p>
+<p>
+For shape parameter <em>k</em> and scale parameter &#952; it is defined by the probability density function:
+</p>
+<p>
+<img src="gamma_dist_ref1.png">
+</p>
+<p>
+Sometimes an alternative formulation is used: given parameters &#945;= k and &#946;= 1 / &#952;, then the distribution can be defined
+by the PDF:
+</p>
+<p>
+<img src="gamma_dist_ref2.png">
+</p>
+<p>
+In this form the inverse scale parameter is called a <em>rate parameter</em>.
+</p>
+<p>
+Both forms are in common usage: this library uses the first definition throughout. Therefore to construct a Gamma Distribution from
+a <em>rate parameter</em>, you should pass the reciprocal of the rate as the scale parameter.
+</p>
+<p>
+The following two graphs illustrate how the PDF of the gamma distribution varies as the parameters vary:
+</p>
+<p>
+<img src="gamma1_pdf.png" align="middle">
+</p>
+<p>
+<img src="gamma2_pdf.png" align="middle">
+</p>
+<p>
+The <strong>Erlang Distribution</strong> is the same as the Gamma, but with the shape parameter an integer. It is often expressed
+using a <em>rate</em> rather than a <em>scale</em> as the second parameter (remember that the rate is the reciprocal of the scale).
+</p>
+<p>
+Internally the functions used to implement the Gamma Distribution are already optimised for small-integer arguments, so in general there should
+be no great loss of performance from using a Gamma Distribution rather than a dedicated Erlang Distribution.
+</p>
+
+End Rem
 Type TGammaDistribution Extends TDistribution
 
+	Rem
+	bbdoc: Constructs a gamma distribution with shape @shape and scale @scale.
+	about: Requires that the shape and scale parameters are greater than zero, otherwise throws TDomainException.
+	End Rem
 	Function CreateGamma:TGammaDistribution(shape:Double, scale:Double = 1)
 		Return New TGammaDistribution.Create(shape, scale)
 	End Function
 	
+	Rem
+	bbdoc: Constructs a gamma distribution with shape @shape and scale @scale.
+	about: Requires that the shape and scale parameters are greater than zero, otherwise throws TDomainException.
+	End Rem
 	Method Create:TGammaDistribution(shape:Double, scale:Double = 1)
 		objectPtr = bmx_boost_math_gamma_distribution_create(shape, scale)
 		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Returns the @shape parameter of this distribution.
+	End Rem
 	Method Shape:Double()
 		Return bmx_boost_math_gamma_distribution_shape(objectPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the @scale parameter of this distribution.
+	End Rem
 	Method Scale:Double()
 		Return bmx_boost_math_gamma_distribution_scale(objectPtr)
 	End Method
