@@ -1948,7 +1948,9 @@ Type TGTKMenuItem Extends TGTKGadget
 					gtk_menu_shell_insert(TGTKWindow(parent).menubar, handle, index)
 				End If
 			Else If TGTKMenuItem(parent) Then
-				gtk_menu_shell_insert(TGTKMenuItem(parent).menu, handle, index)
+				If TGTKMenuItem(parent).menu Then
+					gtk_menu_shell_insert(TGTKMenuItem(parent).menu, handle, index)
+				End If
 			EndIf
 
 			' we need to catch toggles!
@@ -2401,8 +2403,8 @@ Type TGTKTextArea Extends TGTKEditable
 		gtk_text_buffer_insert(_textBuffer, _end, text, text.length)
 
 		gtk_text_buffer_get_end_iter(_textBuffer, _end)
+		brl.System.Driver.Poll() ' update events, before scrolling to the end...
 		gtk_text_view_scroll_to_iter(handle, _end, 0, False, 0, 0)
-		gtk_widget_queue_draw(handle)
 	End Method
 
 	Rem
@@ -2525,11 +2527,12 @@ Type TGTKTextArea Extends TGTKEditable
 		gtk_text_buffer_select_range(_textBuffer, _start, _end)
 
 		PostGuiEvent(EVENT_GADGETSELECT, Self)
-		
+
 		' scroll to the start of the selection
 		' NOTE: setting param4 to False causes it to scroll only as much as required to show the start
 		' Set to True to cause it to always display at the same point on the visible area.
-		'gtk_text_view_scroll_to_iter(handle, _start, 0, False, 0, 0.1)
+		gtk_text_view_scroll_to_iter(handle, _start, 0, False, 0, 0.1)
+DebugLog "SetSelection...."
 	End Method
 
 	Rem
@@ -2976,6 +2979,7 @@ Type TGTKTabber Extends TGTKContainer
 
 	Method SetListItemState(index:Int, state:Int)
 		If state & STATE_SELECTED Then
+			brl.System.Driver.Poll() ' update events
 			gtk_notebook_set_current_page(handle, index)
 		End If
 	End Method

@@ -26,12 +26,16 @@ Import "gtkgadget.bmx"
 
 Global GTKDriver:TGTKGUIDriver =New TGTKGUIDriver
 
+'AddHook(EmitEventHook,TGTKGuiSystemDriver.EventHook)
+
 Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 	Field	gui:TGTKGUIDriver
 	
 	Method Poll()
+DebugLog "Polling..."
 		While gtk_events_pending()
 			gtk_main_iteration_do(False)
+			bbSystemPoll()
 		Wend
 	End Method
 		
@@ -45,6 +49,12 @@ Type TGTKGuiSystemDriver Extends TGTKSystemDriver
 		guisystem.gui=host
 		Return guisystem
 	End Function
+	
+'	Function EventHook:Object(ID:Int,Data:Object,Context:Object)
+'		BRL.System.Driver.Poll()
+'		Return data
+'	End Function
+	
 End Type
 
 Type TGTKSystemDriver Extends TSystemDriver
