@@ -52,7 +52,7 @@ extern "C" {
 	void _bah_box2d_b2DebugDraw__DrawSegment(BBObject * maxHandle, b2Vec2 * p1, b2Vec2 * p2, int r, int g, int b);
 	void _bah_box2d_b2DebugDraw__DrawSolidCircle(BBObject * maxHandle, b2Vec2 * center, float32 radius, b2Vec2 * axis, int r, int g, int b);
 	BBObject * _bah_box2d_b2World__createJoint(b2JointType type);
-	bool _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
+	int _bah_box2d_b2ContactFilter__ShouldCollide(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
 	void _bah_box2d_b2ContactListener__Add(BBObject * maxHandle, const b2ContactPoint* point);
 	void _bah_box2d_b2ContactListener__Persist(BBObject * maxHandle, const b2ContactPoint* point);
 	void _bah_box2d_b2ContactListener__Remove(BBObject * maxHandle, const b2ContactPoint* point);
@@ -69,7 +69,7 @@ extern "C" {
 	void bmx_b2aabb_delete(b2AABB * aabb);
 	void bmx_b2abb_setlowerbound(b2AABB * aabb, b2Vec2 * lowerBound);
 	void bmx_b2abb_setupperbound(b2AABB * aabb, b2Vec2 * upperBound);
-	bool bmx_b2abb_isvalid(b2AABB * aabb);
+	int bmx_b2abb_isvalid(b2AABB * aabb);
 
 	b2Vec2 * bmx_b2vec2_create(float32 x, float32 y);
 	void bmx_b2vec2_delete(b2Vec2 * vec);
@@ -89,8 +89,8 @@ extern "C" {
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
 	b2Body * bmx_b2world_getgroundbody(b2World * world);
-	void bmx_b2world_setwarmstarting(b2World * world, bool flag);
-	void bmx_b2world_setcontinuousphysics(b2World * world, bool flag);
+	void bmx_b2world_setwarmstarting(b2World * world, int flag);
+	void bmx_b2world_setcontinuousphysics(b2World * world, int flag);
 	void bmx_b2world_validate(b2World * world);
 	void bmx_b2world_setdebugDraw(b2World * world, b2DebugDraw * debugDraw);
 	b2Joint * bmx_b2world_createjoint(b2World * world, b2JointDef * def);
@@ -109,9 +109,9 @@ extern "C" {
 	void bmx_b2world_free(b2World * world);
 	void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener);
 	void bmx_b2world_refilter(b2World * world, b2Shape * shape);
-	int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, bool solidShapes);
-	b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, bool solidShapes);
-	bool bmx_b2world_inrange(b2World * world, b2AABB * aabb);
+	int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, int solidShapes);
+	b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, int solidShapes);
+	int bmx_b2world_inrange(b2World * world, b2AABB * aabb);
 	b2Controller * bmx_b2world_createcontroller(b2World * world, b2ControllerDef * def, b2ControllerType type);
 	void bmx_b2world_destroycontroller(b2World * world, b2Controller * controller);
 
@@ -121,23 +121,22 @@ extern "C" {
 	void bmx_b2bodydef_setpositionxy(b2BodyDef * def, float32 x, float32 y);
 	void bmx_b2bodydef_setangle(b2BodyDef * def, float32 angle);
 	void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data);
-	bool bmx_b2bodydef_issleeping(b2BodyDef * def);
-	void bmx_b2bodydef_setissleeping(b2BodyDef * def, bool sleeping);
-	void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, bool fixed);
-	bool bmx_b2bodydef_getfixedrotation(b2BodyDef * def);
-	void bmx_b2bodydef_setisbullet(b2BodyDef * def, bool bullet);
+	int bmx_b2bodydef_issleeping(b2BodyDef * def);
+	void bmx_b2bodydef_setissleeping(b2BodyDef * def, int sleeping);
+	void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, int fixed);
+	int bmx_b2bodydef_getfixedrotation(b2BodyDef * def);
+	void bmx_b2bodydef_setisbullet(b2BodyDef * def, int bullet);
 	void bmx_b2bodydef_setlineardamping(b2BodyDef * def, float32 damping);
 	float32 bmx_b2bodydef_getlineardamping(b2BodyDef * def);
 	void bmx_b2bodydef_setangulardamping(b2BodyDef * def, float32 damping);
 	float32 bmx_b2bodydef_getangulardamping(b2BodyDef * def);
-	void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow);
-	bool bmx_b2bodydef_getallowsleep(b2BodyDef * def);
+	void bmx_b2bodydef_setallowsleep(b2BodyDef * def, int allow);
+	int bmx_b2bodydef_getallowsleep(b2BodyDef * def);
 	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
 	float32 bmx_b2bodydef_getangle(b2BodyDef * def);
-	bool bmx_b2bodydef_isbullet(b2BodyDef * def);
-	b2MassData * bmx_b2bodydef_getmassdata(b2BodyDef * def);
+	int bmx_b2bodydef_isbullet(b2BodyDef * def);
 
-	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep);
+	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, int doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations);
 
 	void bmx_b2shapedef_setfriction(b2ShapeDef * def, float32 friction);
@@ -145,8 +144,8 @@ extern "C" {
 	void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density);
 	void bmx_b2shapedef_setfilter(b2ShapeDef * def, MaxFilterData* filterData);
 	MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def);
-	void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor);
-	bool bmx_b2shapedef_issensor(b2ShapeDef * def);
+	void bmx_b2shapedef_setissensor(b2ShapeDef * def, int sensor);
+	int bmx_b2shapedef_issensor(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getfriction(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getrestitution(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getdensity(b2ShapeDef * def);
@@ -165,15 +164,15 @@ extern "C" {
 	BBObject * bmx_b2body_getmaxbody(b2Body * body);
 	b2Body * bmx_b2body_getnext(b2Body * body);
 	b2Shape * bmx_b2body_getshapelist(b2Body * body);
-	bool bmx_b2body_isstatic(b2Body * body);
-	bool bmx_b2body_isdynamic(b2Body * body);
-	bool bmx_b2body_isfrozen(b2Body * body);
-	bool bmx_b2body_issleeping(b2Body * body);
-	void bmx_b2body_allowsleeping(b2Body * body, bool flag);
+	int bmx_b2body_isstatic(b2Body * body);
+	int bmx_b2body_isdynamic(b2Body * body);
+	int bmx_b2body_isfrozen(b2Body * body);
+	int bmx_b2body_issleeping(b2Body * body);
+	void bmx_b2body_allowsleeping(b2Body * body, int flag);
 	void bmx_b2body_wakeup(b2Body * body);
 	void bmx_b2body_puttosleep(b2Body * body);
-	bool bmx_b2body_isbullet(b2Body * body);
-	void bmx_b2body_setbullet(b2Body * body, bool flag);
+	int bmx_b2body_isbullet(b2Body * body);
+	void bmx_b2body_setbullet(b2Body * body, int flag);
 	b2Vec2 * bmx_b2body_getworldcenter(b2Body * body);
 	b2Vec2 * bmx_b2body_getlocalcenter(b2Body * body);
 	void bmx_b2body_setlinearvelocity(b2Body * body, b2Vec2 * v);
@@ -191,7 +190,7 @@ extern "C" {
 	b2Vec2 * bmx_b2body_getlocalvector(b2Body * body, b2Vec2 * worldVector);
 	b2JointEdge * bmx_b2body_getjointlist(b2Body * body);
 	const b2XForm * bmx_b2body_getxform(b2Body * body);
-	bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle);
+	int bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle);
 	b2World * bmx_b2body_getworld(b2Body * body);
 	void bmx_b2body_setmass(b2Body * body, b2MassData * massData);
 
@@ -208,11 +207,11 @@ extern "C" {
 	float32 bmx_b2circledef_getradius(b2CircleDef * def);
 	b2Vec2 * bmx_b2circledef_getlocalposition(b2CircleDef * def);
 
-	bool bmx_b2shape_issensor(b2Shape * shape);
+	int bmx_b2shape_issensor(b2Shape * shape);
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
 	b2Shape * bmx_b2shape_getnext(b2Shape * shape);
-	bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p);
+	int bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p);
 	float32 bmx_b2shape_getsweepradius(b2Shape * shape);
 	float32 bmx_b2shape_getfriction(b2Shape * shape);
 	float32 bmx_b2shape_getrestitution(b2Shape * shape);
@@ -229,14 +228,14 @@ extern "C" {
 	b2RevoluteJointDef * bmx_b2revolutejointdef_create();
 	void bmx_b2revolutejointdef_initialize(b2RevoluteJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor);
 	void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def);
-	bool bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def);
-	void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, bool limit);
+	int bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, int limit);
 	float32 bmx_b2revolutejointdef_getlowerangle(b2RevoluteJointDef * def);
 	void bmx_b2revolutejointdef_setlowerangle(b2RevoluteJointDef * def, float32 angle);
 	float32 bmx_b2revolutejointdef_getupperangle(b2RevoluteJointDef * def);
 	void bmx_b2revolutejointdef_setupperangle(b2RevoluteJointDef * def, float32 angle);
-	bool bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def);
-	void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, bool value);
+	int bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def);
+	void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, int value);
 	float32 bmx_b2revolutejointdef_getmotorspeed(b2RevoluteJointDef * def);
 	void bmx_b2revolutejointdef_setmotorspeed(b2RevoluteJointDef * def, float32 speed);
 	float32 bmx_b2revolutejointdef_getmaxmotortorque(b2RevoluteJointDef * def);
@@ -273,8 +272,8 @@ extern "C" {
 	MaxBoundaryListener * bmx_b2boundarylistener_new(BBObject * handle);
 	void bmx_b2boundarylistener_delete(MaxBoundaryListener * filter);
 
-	void bmx_b2jointdef_setcollideconnected(b2JointDef * def, bool collideConnected);
-	bool bmx_b2jointdef_getcollideconnected(b2JointDef * def);
+	void bmx_b2jointdef_setcollideconnected(b2JointDef * def, int collideConnected);
+	int bmx_b2jointdef_getcollideconnected(b2JointDef * def);
 	void bmx_b2jointdef_setbody1(b2JointDef * def, b2Body * body);
 	b2Body * bmx_b2jointdef_getbody1(b2JointDef * def);
 	void bmx_b2jointdef_setbody2(b2JointDef * def, b2Body * body);
@@ -293,14 +292,14 @@ extern "C" {
 	void bmx_b2distancejointdef_initialize(b2DistanceJointDef * def, b2Body * body1, b2Body * body2, b2Vec2 * anchor1, b2Vec2 * anchor2);
 
 	b2PrismaticJointDef * bmx_b2prismaticjointdef_create();
-	void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, bool value);
-	bool bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, int value);
+	int bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def);
 	void bmx_b2prismaticjointdef_setlowertranslation(b2PrismaticJointDef * def, float32 translation);
 	float32 bmx_b2prismaticjointdef_getlowertranslation(b2PrismaticJointDef * def);
 	void bmx_b2prismaticjointdef_setuppertranslation(b2PrismaticJointDef * def, float32 translation);
 	float32 bmx_b2prismaticjointdef_getuppertranslation(b2PrismaticJointDef * def);
-	void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, bool value);
-	bool bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def);
+	void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, int value);
+	int bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def);
 	void bmx_b2prismaticjointdef_setmaxmotorforce(b2PrismaticJointDef * def, float32 force);
 	float32 bmx_b2prismaticjointdef_getmaxmotorforce(b2PrismaticJointDef * def);
 	void bmx_b2prismaticjointdef_setmotorspeed(b2PrismaticJointDef * def, float32 speed);
@@ -321,14 +320,14 @@ extern "C" {
 	float32 bmx_b2revolutejoint_getlowerlimit(b2RevoluteJoint * joint);
 	float32 bmx_b2revolutejoint_getupperlimit(b2RevoluteJoint * joint);
 	void bmx_b2revolutejoint_setlimits(b2RevoluteJoint * joint, float32 lowerLimit, float32 upperLimit);
-	bool bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint);
-	void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, bool flag);
+	int bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, int flag);
 	void bmx_b2revolutejoint_setmotorspeed(b2RevoluteJoint * joint, float32 speed);
 	float32 bmx_b2revolutejoint_getmotorspeed(b2RevoluteJoint * joint);
 	void bmx_b2revolutejoint_setmaxmotortorque(b2RevoluteJoint * joint, float32 torque);
 	float32 bmx_b2revolutejoint_getmotortorque(b2RevoluteJoint * joint);
-	bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint);
-	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag);
+	int bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint);
+	void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, int flag);
 	b2Vec2 * bmx_b2revolutejoint_getanchor1(b2RevoluteJoint * joint);
 	b2Vec2 * bmx_b2revolutejoint_getanchor2(b2RevoluteJoint * joint);
 	b2Vec2 * bmx_b2revolutejoint_getreactionforce(b2RevoluteJoint * joint, float32 inv_dt);
@@ -337,13 +336,13 @@ extern "C" {
 	float32 bmx_b2revolutejoint_getjointspeed(b2RevoluteJoint * joint);
 
 	float32 bmx_b2prismaticjoint_getjointspeed(b2PrismaticJoint * joint);
-	bool bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint);
-	void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, bool flag);
+	int bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, int flag);
 	float32 bmx_b2prismaticjoint_getlowerlimit(b2PrismaticJoint * joint);
 	float32 bmx_b2prismaticjoint_getupperlimit(b2PrismaticJoint * joint);
 	void bmx_b2prismaticjoint_setlimits(b2PrismaticJoint * joint, float32 lowerLimit, float32 upperLimit);
-	bool bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint);
-	void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, bool flag);
+	int bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint);
+	void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, int flag);
 	void bmx_b2prismaticjoint_setmotorspeed(b2PrismaticJoint * joint, float32 speed);
 	float32 bmx_b2prismaticjoint_getmotorspeed(b2PrismaticJoint * joint);
 	void bmx_b2prismaticjoint_setmaxmotorforce(b2PrismaticJoint * joint, float32 force);
@@ -382,7 +381,7 @@ extern "C" {
 	b2Shape * bmx_b2contact_getshape1(b2Contact * contact);
 	b2Shape * bmx_b2contact_getshape2(b2Contact * contact);
 	b2Contact * bmx_b2contact_getnext(b2Contact * contact);
-	bool bmx_b2contact_issolid(b2Contact * contact);
+	int bmx_b2contact_issolid(b2Contact * contact);
 	int32 bmx_b2contact_getmanifoldcount(b2Contact * contact);
 
 	b2Shape * bmx_b2contactresult_getshape1(b2ContactResult * contactResult);
@@ -516,14 +515,14 @@ extern "C" {
 	b2Vec2 * bmx_b2linejointdef_getlocalanchor2(b2LineJointDef * def);
 	void bmx_b2linejointdef_setlocalaxis1(b2LineJointDef * def, b2Vec2 * axis);
 	b2Vec2 * bmx_b2linejointdef_getlocalaxis1(b2LineJointDef * def);
-	void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, bool limit);
-	bool bmx_b2linejointdef_getlimit(b2LineJointDef * def);
+	void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, int limit);
+	int bmx_b2linejointdef_getlimit(b2LineJointDef * def);
 	void bmx_b2linejointdef_setlowertranslation(b2LineJointDef * def, float32 translation);
 	float32 bmx_b2linejointdef_getlowertranslation(b2LineJointDef * def);
 	void bmx_b2linejointdef_setuppertranslation(b2LineJointDef * def, float32 translation);
 	float32 bmx_b2linejointdef_getuppertranslation(b2LineJointDef * def);
-	void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, bool enable);
-	bool bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def);
+	void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, int enable);
+	int bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def);
 	void bmx_b2linejointdef_setmaxmotorforce(b2LineJointDef * def, float32 maxForce);
 	float32 bmx_b2linejointdef_getmaxmotorforce(b2LineJointDef * def);
 	void bmx_b2linejointdef_setmotorspeed(b2LineJointDef * def, float32 speed);
@@ -536,13 +535,13 @@ extern "C" {
 	float32 bmx_b2linejoint_getreactiontorque(b2LineJoint * joint, float32 inv_dt);
 	float32 bmx_b2linejoint_getjointtranslation(b2LineJoint * joint);
 	float32 bmx_b2linejoint_getjointspeed(b2LineJoint * joint);
-	bool bmx_b2linejoint_islimitenabled(b2LineJoint * joint);
-	void bmx_b2linejoint_enablelimit(b2LineJoint * joint, bool flag);
+	int bmx_b2linejoint_islimitenabled(b2LineJoint * joint);
+	void bmx_b2linejoint_enablelimit(b2LineJoint * joint, int flag);
 	float32 bmx_b2linejoint_getlowerlimit(b2LineJoint * joint);
 	float32 bmx_b2linejoint_getupperlimit(b2LineJoint * joint);
 	void bmx_b2linejoint_setlimits(b2LineJoint * joint, float32 _lower, float32 _upper);
-	bool bmx_b2linejoint_ismotorenabled(b2LineJoint * joint);
-	void bmx_b2linejoint_enablemotor(b2LineJoint * joint, bool flag);
+	int bmx_b2linejoint_ismotorenabled(b2LineJoint * joint);
+	void bmx_b2linejoint_enablemotor(b2LineJoint * joint, int flag);
 	void bmx_b2linejoint_setmotorspeed(b2LineJoint * joint, float32 speed);
 	float32 bmx_b2linejoint_getmotorspeed(b2LineJoint * joint);
 	void bmx_b2linejoint_setmaxmotorforce(b2LineJoint * joint, float32 force);
@@ -550,8 +549,8 @@ extern "C" {
 
 	Maxb2EdgeChainDef * bmx_b2edgechaindef_create();
 	b2EdgeChainDef * bmx_b2edgechaindef_getdef(Maxb2EdgeChainDef * def);
-	bool bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def);
-	void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, bool value);
+	int bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def);
+	void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, int value);
 	void bmx_b2edgechaindef_delete(Maxb2EdgeChainDef * def);
 	void bmx_b2edgechaindef_setvertices(Maxb2EdgeChainDef * def, BBArray * vertices);
 
@@ -564,8 +563,8 @@ extern "C" {
 	b2Vec2 * bmx_b2edgeshape_getdirectionvector(b2EdgeShape * shape);
 	b2Vec2 * bmx_b2edgeshape_getcorner1vector(b2EdgeShape * shape);
 	b2Vec2 * bmx_b2edgeshape_getcorner2vector(b2EdgeShape * shape);
-	bool bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape);
-	bool bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape);
+	int bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape);
+	int bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape);
 	b2Vec2 * bmx_b2edgeshape_getfirstvertex(b2EdgeShape * shape, b2XForm * xf);
 	b2Vec2 * bmx_b2edgeshape_support(b2EdgeShape * shape, b2XForm * xf, b2Vec2 * d);
 	b2EdgeShape * bmx_b2edgeshape_getnextedge(b2EdgeShape * shape);
@@ -584,10 +583,10 @@ extern "C" {
 	void bmx_b2buoyancycontrollerdef_setlineardrag(b2BuoyancyControllerDef * def, float32 drag);
 	float32 bmx_b2buoyancycontrollerdef_getangulardrag(b2BuoyancyControllerDef * def);
 	void bmx_b2buoyancycontrollerdef_setangulardrag(b2BuoyancyControllerDef * def, float32 drag);
-	bool bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def);
-	void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, bool value);
-	bool bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def);
-	void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, bool value);
+	int bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, int value);
+	int bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def);
+	void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, int value);
 	b2Vec2 * bmx_b2buoyancycontrollerdef_getgravity(b2BuoyancyControllerDef * def);
 	void bmx_b2buoyancycontrollerdef_setgravity(b2BuoyancyControllerDef * def, b2Vec2 * gravity);
 	void bmx_b2buoyancycontrollerdef_delete(b2BuoyancyControllerDef * def);
@@ -604,10 +603,10 @@ extern "C" {
 	void bmx_b2buoyancycontroller_setlineardrag(b2BuoyancyController * c, float32 drag);
 	float32 bmx_b2buoyancycontroller_getangulardrag(b2BuoyancyController * c);
 	void bmx_b2buoyancycontroller_setangulardrag(b2BuoyancyController * c, float32 drag);
-	bool bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c);
-	void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, bool value);
-	bool bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c);
-	void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, bool value);
+	int bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, int value);
+	int bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c);
+	void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, int value);
 	b2Vec2 * bmx_b2buoyancycontroller_getgravity(b2BuoyancyController * c);
 	void bmx_b2buoyancycontroller_setgravity(b2BuoyancyController * c, b2Vec2 * gravity);
 
@@ -628,13 +627,13 @@ extern "C" {
 	void bmx_b2gravitycontrollerdef_delete(b2GravityControllerDef * def);
 	float32 bmx_b2gravitycontrollerdef_getforce(b2GravityControllerDef * def);
 	void bmx_b2gravitycontrollerdef_setforce(b2GravityControllerDef * def, float32 force);
-	bool bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def);
-	void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, bool value);
+	int bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def);
+	void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, int value);
 
 	float32 bmx_b2gravitycontroller_getforce(b2GravityController * c);
 	void bmx_b2gravitycontroller_setforce(b2GravityController * c, float32 force);
-	bool bmx_b2gravitycontroller_isinvsqr(b2GravityController * c);
-	void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, bool value);
+	int bmx_b2gravitycontroller_isinvsqr(b2GravityController * c);
+	void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, int value);
 
 	b2ConstantForceControllerDef * bmx_b2constantforcecontrollerdef_create();
 	void bmx_b2constantforcecontrollerdef_delete(b2ConstantForceControllerDef * def);
@@ -719,7 +718,7 @@ public:
 	
 private:
 	b2FilterData * data;
-	bool owner;
+	int owner;
 };
 
 
@@ -783,7 +782,7 @@ void bmx_b2abb_setupperbound(b2AABB * aabb, b2Vec2 * upperBound) {
 	aabb->upperBound = *upperBound;
 }
 
-bool bmx_b2abb_isvalid(b2AABB * aabb) {
+int bmx_b2abb_isvalid(b2AABB * aabb) {
 	return aabb->IsValid();
 }
 
@@ -879,11 +878,11 @@ b2Body * bmx_b2world_getgroundbody(b2World * world) {
 	return world->GetGroundBody();
 }
 
-void bmx_b2world_setwarmstarting(b2World * world, bool flag) {
+void bmx_b2world_setwarmstarting(b2World * world, int flag) {
 	world->SetWarmStarting(flag);
 }
 
-void bmx_b2world_setcontinuousphysics(b2World * world, bool flag) {
+void bmx_b2world_setcontinuousphysics(b2World * world, int flag) {
 	world->SetContinuousPhysics(flag);
 }
 
@@ -977,7 +976,7 @@ void bmx_b2world_refilter(b2World * world, b2Shape * shape) {
 	world->Refilter(shape);
 }
 
-int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, bool solidShapes) {
+int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, int solidShapes) {
 	int32 n = shapes->scales[0];
 	b2Shape* _shapes[n];
 	
@@ -992,11 +991,11 @@ int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes
 	return ret;
 }
 
-b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, bool solidShapes) {
+b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, b2Vec2 * normal, int solidShapes) {
 	return world->RaycastOne(*segment, lambda, normal, solidShapes, NULL);
 }
 
-bool bmx_b2world_inrange(b2World * world, b2AABB * aabb) {
+int bmx_b2world_inrange(b2World * world, b2AABB * aabb) {
 	return world->InRange(*aabb);
 }
 
@@ -1040,23 +1039,23 @@ void bmx_b2bodydef_setmassdata(b2BodyDef * def, b2MassData * data) {
 	def->massData = *data;
 }
 
-bool bmx_b2bodydef_issleeping(b2BodyDef * def) {
+int bmx_b2bodydef_issleeping(b2BodyDef * def) {
 	return def->isSleeping;
 }
 
-void bmx_b2bodydef_setissleeping(b2BodyDef * def, bool sleeping) {
+void bmx_b2bodydef_setissleeping(b2BodyDef * def, int sleeping) {
 	def->isSleeping = sleeping;
 }
 
-void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, bool fixed) {
+void bmx_b2bodydef_setfixedrotation(b2BodyDef * def, int fixed) {
 	def->fixedRotation = fixed;
 }
 
-bool bmx_b2bodydef_getfixedrotation(b2BodyDef * def) {
+int bmx_b2bodydef_getfixedrotation(b2BodyDef * def) {
 	return def->fixedRotation;
 }
 
-void bmx_b2bodydef_setisbullet(b2BodyDef * def, bool bullet) {
+void bmx_b2bodydef_setisbullet(b2BodyDef * def, int bullet) {
 	def->isBullet = bullet;
 }
 
@@ -1076,11 +1075,11 @@ float32 bmx_b2bodydef_getangulardamping(b2BodyDef * def) {
 	return def->angularDamping;
 }
 
-void bmx_b2bodydef_setallowsleep(b2BodyDef * def, bool allow) {
+void bmx_b2bodydef_setallowsleep(b2BodyDef * def, int allow) {
 	def->allowSleep = allow;
 }
 
-bool bmx_b2bodydef_getallowsleep(b2BodyDef * def) {
+int bmx_b2bodydef_getallowsleep(b2BodyDef * def) {
 	return def->allowSleep;
 }
 
@@ -1096,7 +1095,7 @@ float32 bmx_b2bodydef_getangle(b2BodyDef * def) {
 	return def->angle * 57.2957795f;
 }
 
-bool bmx_b2bodydef_isbullet(b2BodyDef * def) {
+int bmx_b2bodydef_isbullet(b2BodyDef * def) {
 	return def->isBullet;
 }
 
@@ -1106,7 +1105,7 @@ b2MassData * bmx_b2bodydef_getmassdata(b2BodyDef * def) {
 
 // *****************************************************
 
-b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, bool doSleep) {
+b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, int doSleep) {
 	return new b2World(*worldAABB, *gravity, doSleep);
 }
 
@@ -1137,11 +1136,11 @@ MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def) {
 	return new MaxFilterData(def->filter);
 }
 
-void bmx_b2shapedef_setissensor(b2ShapeDef * def, bool sensor) {
+void bmx_b2shapedef_setissensor(b2ShapeDef * def, int sensor) {
 	def->isSensor = sensor;
 }
 
-bool bmx_b2shapedef_issensor(b2ShapeDef * def) {
+int bmx_b2shapedef_issensor(b2ShapeDef * def) {
 	return def->isSensor;
 }
 
@@ -1245,23 +1244,23 @@ b2Shape * bmx_b2body_getshapelist(b2Body * body) {
 	return body->GetShapeList();
 }
 
-bool bmx_b2body_isstatic(b2Body * body) {
+int bmx_b2body_isstatic(b2Body * body) {
 	return body->IsStatic();
 }
 
-bool bmx_b2body_isdynamic(b2Body * body) {
+int bmx_b2body_isdynamic(b2Body * body) {
 	return body->IsDynamic();
 }
 
-bool bmx_b2body_isfrozen(b2Body * body) {
+int bmx_b2body_isfrozen(b2Body * body) {
 	return body->IsFrozen();
 }
 
-bool bmx_b2body_issleeping(b2Body * body) {
+int bmx_b2body_issleeping(b2Body * body) {
 	return body->IsSleeping();
 }
 
-void bmx_b2body_allowsleeping(b2Body * body, bool flag) {
+void bmx_b2body_allowsleeping(b2Body * body, int flag) {
 	body->AllowSleeping(flag);
 }
 
@@ -1273,11 +1272,11 @@ void bmx_b2body_puttosleep(b2Body * body) {
 	body->PutToSleep();
 }
 
-bool bmx_b2body_isbullet(b2Body * body) {
+int bmx_b2body_isbullet(b2Body * body) {
 	return body->IsBullet();
 }
 
-void bmx_b2body_setbullet(b2Body * body, bool flag) {
+void bmx_b2body_setbullet(b2Body * body, int flag) {
 	body->SetBullet(flag);
 }
 
@@ -1349,7 +1348,7 @@ const b2XForm * bmx_b2body_getxform(b2Body * body) {
 	return &body->GetXForm();
 }
 
-bool bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle) {
+int bmx_b2body_setxform(b2Body * body, b2Vec2 * position, float32 angle) {
 	body->SetXForm(*position, angle * 0.0174533f);
 }
 
@@ -1470,7 +1469,7 @@ b2Vec2 * bmx_b2circledef_getlocalposition(b2CircleDef * def) {
 
 // *****************************************************
 
-bool bmx_b2shape_issensor(b2Shape * shape) {
+int bmx_b2shape_issensor(b2Shape * shape) {
 	return shape->IsSensor();
 }
 
@@ -1490,7 +1489,7 @@ b2Shape * bmx_b2shape_getnext(b2Shape * shape) {
 	return shape->GetNext();
 }
 
-bool bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p) {
+int bmx_b2shape_testpoint(b2Shape * shape, b2XForm * xf, b2Vec2 * p) {
 	return shape->TestPoint(*xf, *p);
 }
 
@@ -1557,11 +1556,11 @@ void bmx_b2revolutejointdef_delete(b2RevoluteJointDef * def) {
 	delete def;
 }
 
-bool bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def) {
+int bmx_b2revolutejointdef_islimitenabled(b2RevoluteJointDef * def) {
     return def->enableLimit;
 }
 
-void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, bool limit) {
+void bmx_b2revolutejointdef_enablelimit(b2RevoluteJointDef * def, int limit) {
     def->enableLimit = limit;
 }
 
@@ -1581,11 +1580,11 @@ void bmx_b2revolutejointdef_setupperangle(b2RevoluteJointDef * def, float32 angl
     def->upperAngle = angle * 0.0174533f;
 }
 
-bool bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def) {
+int bmx_b2revolutejointdef_ismotorenabled(b2RevoluteJointDef * def) {
     return def->enableMotor;
 }
 
-void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, bool value) {
+void bmx_b2revolutejointdef_enablemotor(b2RevoluteJointDef * def, int value) {
     def->enableMotor = value;
 }
 
@@ -1788,11 +1787,11 @@ void bmx_b2boundarylistener_delete(MaxBoundaryListener * listener) {
 
 // *****************************************************
 
-void bmx_b2jointdef_setcollideconnected(b2JointDef * def, bool collideConnected) {
+void bmx_b2jointdef_setcollideconnected(b2JointDef * def, int collideConnected) {
 	def->collideConnected = collideConnected;
 }
 
-bool bmx_b2jointdef_getcollideconnected(b2JointDef * def) {
+int bmx_b2jointdef_getcollideconnected(b2JointDef * def) {
 	return def->collideConnected;
 }
 
@@ -1865,11 +1864,11 @@ b2PrismaticJointDef * bmx_b2prismaticjointdef_create() {
     return new b2PrismaticJointDef;
 }
 
-void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, bool value) {
+void bmx_b2prismaticjointdef_enablelimit(b2PrismaticJointDef * def, int value) {
     def->enableLimit = value;
 }
 
-bool bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def) {
+int bmx_b2prismaticjointdef_islimitenabled(b2PrismaticJointDef * def) {
     return def->enableLimit;
 }
 
@@ -1889,11 +1888,11 @@ float32 bmx_b2prismaticjointdef_getuppertranslation(b2PrismaticJointDef * def) {
     return def->upperTranslation;
 }
 
-void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, bool value) {
+void bmx_b2prismaticjointdef_enablemotor(b2PrismaticJointDef * def, int value) {
     def->enableMotor = value;
 }
 
-bool bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def) {
+int bmx_b2prismaticjointdef_ismotorenabled(b2PrismaticJointDef * def) {
     return def->enableMotor;
 }
 
@@ -1969,11 +1968,11 @@ void bmx_b2revolutejoint_setlimits(b2RevoluteJoint * joint, float32 lowerLimit, 
     joint->SetLimits(lowerLimit * 0.0174533f, upperLimit * 0.0174533f);
 }
 
-bool bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint) {
+int bmx_b2revolutejoint_ismotorenabled(b2RevoluteJoint * joint) {
     return joint->IsMotorEnabled();
 }
 
-void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, bool flag) {
+void bmx_b2revolutejoint_enablemotor(b2RevoluteJoint * joint, int flag) {
     joint->EnableMotor(flag);
 }
 
@@ -1993,11 +1992,11 @@ float32 bmx_b2revolutejoint_getmotortorque(b2RevoluteJoint * joint) {
     return joint->GetMotorTorque();
 }
 
-bool bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint) {
+int bmx_b2revolutejoint_islimitenabled(b2RevoluteJoint * joint) {
 	return joint->IsLimitEnabled();
 }
 
-void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, bool flag) {
+void bmx_b2revolutejoint_enablelimit(b2RevoluteJoint * joint, int flag) {
 	joint->EnableLimit(flag);
 }
 
@@ -2032,11 +2031,11 @@ float32 bmx_b2prismaticjoint_getjointspeed(b2PrismaticJoint * joint) {
     return joint->GetJointSpeed();
 }
 
-bool bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint) {
+int bmx_b2prismaticjoint_islimitenabled(b2PrismaticJoint * joint) {
     return joint->IsLimitEnabled();
 }
 
-void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, bool flag) {
+void bmx_b2prismaticjoint_enablelimit(b2PrismaticJoint * joint, int flag) {
     joint->EnableLimit(flag);
 }
 
@@ -2052,11 +2051,11 @@ void bmx_b2prismaticjoint_setlimits(b2PrismaticJoint * joint, float32 lowerLimit
     joint->SetLimits(lowerLimit, upperLimit);
 }
 
-bool bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint) {
+int bmx_b2prismaticjoint_ismotorenabled(b2PrismaticJoint * joint) {
     return joint->IsMotorEnabled();
 }
 
-void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, bool flag) {
+void bmx_b2prismaticjoint_enablemotor(b2PrismaticJoint * joint, int flag) {
     joint->EnableMotor(flag);
 }
 
@@ -2210,7 +2209,7 @@ b2Contact * bmx_b2contact_getnext(b2Contact * contact) {
 	return contact->GetNext();
 }
 
-bool bmx_b2contact_issolid(b2Contact * contact) {
+int bmx_b2contact_issolid(b2Contact * contact) {
 	return contact->IsSolid();
 }
 
@@ -2749,11 +2748,11 @@ b2Vec2 * bmx_b2linejointdef_getlocalaxis1(b2LineJointDef * def) {
 	return bmx_b2vec2_new(def->localAxis1);
 }
 
-void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, bool limit) {
+void bmx_b2linejointdef_enablelimit(b2LineJointDef * def, int limit) {
 	def->enableLimit = limit;
 }
 
-bool bmx_b2linejointdef_getlimit(b2LineJointDef * def) {
+int bmx_b2linejointdef_getlimit(b2LineJointDef * def) {
 	return def->enableLimit;
 }
 
@@ -2773,11 +2772,11 @@ float32 bmx_b2linejointdef_getuppertranslation(b2LineJointDef * def) {
 	return def->upperTranslation;
 }
 
-void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, bool enable) {
+void bmx_b2linejointdef_enablemotor(b2LineJointDef * def, int enable) {
 	def->enableMotor = enable;
 }
 
-bool bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def) {
+int bmx_b2linejointdef_ismotorenabled(b2LineJointDef * def) {
 	return def->enableMotor;
 }
 
@@ -2827,11 +2826,11 @@ float32 bmx_b2linejoint_getjointspeed(b2LineJoint * joint) {
 	return joint->GetJointSpeed();
 }
 
-bool bmx_b2linejoint_islimitenabled(b2LineJoint * joint) {
+int bmx_b2linejoint_islimitenabled(b2LineJoint * joint) {
 	return joint->IsLimitEnabled();
 }
 
-void bmx_b2linejoint_enablelimit(b2LineJoint * joint, bool flag) {
+void bmx_b2linejoint_enablelimit(b2LineJoint * joint, int flag) {
 	return joint->EnableLimit(flag);
 }
 
@@ -2847,11 +2846,11 @@ void bmx_b2linejoint_setlimits(b2LineJoint * joint, float32 _lower, float32 _upp
 	joint->SetLimits(_lower, _upper);
 }
 
-bool bmx_b2linejoint_ismotorenabled(b2LineJoint * joint) {
+int bmx_b2linejoint_ismotorenabled(b2LineJoint * joint) {
 	return joint->IsMotorEnabled();
 }
 
-void bmx_b2linejoint_enablemotor(b2LineJoint * joint, bool flag) {
+void bmx_b2linejoint_enablemotor(b2LineJoint * joint, int flag) {
 	joint->EnableMotor(flag);
 }
 
@@ -2882,11 +2881,11 @@ b2EdgeChainDef * bmx_b2edgechaindef_getdef(Maxb2EdgeChainDef * def) {
 	return def->def;
 }
 
-bool bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def) {
+int bmx_b2edgechaindef_isaloop(Maxb2EdgeChainDef * def) {
 	return def->def->isALoop;
 }
 
-void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, bool value) {
+void bmx_b2edgechaindef_setisaloop(Maxb2EdgeChainDef * def, int value) {
 	def->def->isALoop = value;
 }
 
@@ -2944,11 +2943,11 @@ b2Vec2 * bmx_b2edgeshape_getcorner2vector(b2EdgeShape * shape) {
 	return bmx_b2vec2_new(shape->GetCorner2Vector());
 }
 
-bool bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape) {
+int bmx_b2edgeshape_corner1isconvex(b2EdgeShape * shape) {
 	return shape->Corner1IsConvex();
 }
 
-bool bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape) {
+int bmx_b2edgeshape_corner2isconvex(b2EdgeShape * shape) {
 	return shape->Corner2IsConvex();
 }
 
@@ -3023,19 +3022,19 @@ void bmx_b2buoyancycontrollerdef_setangulardrag(b2BuoyancyControllerDef * def, f
 	def->angularDrag = drag;
 }
 
-bool bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def) {
+int bmx_b2buoyancycontrollerdef_usesdensity(b2BuoyancyControllerDef * def) {
 	return def->useDensity;
 }
 
-void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, bool value) {
+void bmx_b2buoyancycontrollerdef_setusesdensity(b2BuoyancyControllerDef * def, int value) {
 	def->useDensity = value;
 }
 
-bool bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def) {
+int bmx_b2buoyancycontrollerdef_usesworldgravity(b2BuoyancyControllerDef * def) {
 	return def->useWorldGravity;
 }
 
-void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, bool value) {
+void bmx_b2buoyancycontrollerdef_setusesworldgravity(b2BuoyancyControllerDef * def, int value) {
 	def->useWorldGravity = value;
 }
 
@@ -3101,19 +3100,19 @@ void bmx_b2buoyancycontroller_setangulardrag(b2BuoyancyController * c, float32 d
 	c->angularDrag = drag;
 }
 
-bool bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c) {
+int bmx_b2buoyancycontroller_usesdensity(b2BuoyancyController * c) {
 	return c->useDensity;
 }
 
-void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, bool value) {
+void bmx_b2buoyancycontroller_setusesdensity(b2BuoyancyController * c, int value) {
 	c->useDensity = value;
 }
 
-bool bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c) {
+int bmx_b2buoyancycontroller_usesworldgravity(b2BuoyancyController * c) {
 	return c->useWorldGravity;
 }
 
-void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, bool value) {
+void bmx_b2buoyancycontroller_setusesworldgravity(b2BuoyancyController * c, int value) {
 	c->useWorldGravity = value;
 }
 
@@ -3198,11 +3197,11 @@ void bmx_b2gravitycontrollerdef_setforce(b2GravityControllerDef * def, float32 f
 	def->G = force;
 }
 
-bool bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def) {
+int bmx_b2gravitycontrollerdef_isinvsqr(b2GravityControllerDef * def) {
 	return def->invSqr;
 }
 
-void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, bool value) {
+void bmx_b2gravitycontrollerdef_setisinvsqr(b2GravityControllerDef * def, int value) {
 	def->invSqr = value;
 }
 
@@ -3216,11 +3215,11 @@ void bmx_b2gravitycontroller_setforce(b2GravityController * c, float32 force) {
 	c->G = force;
 }
 
-bool bmx_b2gravitycontroller_isinvsqr(b2GravityController * c) {
+int bmx_b2gravitycontroller_isinvsqr(b2GravityController * c) {
 	return c->invSqr;
 }
 
-void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, bool value) {
+void bmx_b2gravitycontroller_setisinvsqr(b2GravityController * c, int value) {
 	c->invSqr = value;
 }
 

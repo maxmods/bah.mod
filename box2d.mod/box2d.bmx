@@ -31,7 +31,7 @@ ModuleInfo "Copyright: Box2D (c) 2006-2008 Erin Catto http://www.gphysics.com"
 ModuleInfo "Copyright: BlitzMax port - 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
-ModuleInfo "History: Updated to box2d svn (rev 197)"
+ModuleInfo "History: Updated to box2d svn (rev 207)"
 ModuleInfo "History: Added b2LineJoint type."
 ModuleInfo "History: Added b2ShapeDef.SetUserData() method."
 ModuleInfo "History: Added b2Mat22.GetAngle() method."
@@ -43,6 +43,7 @@ ModuleInfo "History: Added staticedges, dynamicedges, pyramidstaticedges and buo
 ModuleInfo "History: Added buoyancy types + methods."
 ModuleInfo "History: Added b2Body SetMass() method."
 ModuleInfo "History: Added b2BodyDef GetMassData() method."
+ModuleInfo "History: Converted bool handling in glue to use ints instead."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -65,7 +66,6 @@ ModuleInfo "History: 1.01"
 ModuleInfo "History: Fixed filterdata problem. Fixed collisionfiltering example."
 ModuleInfo "History: Added Theo Jansen example."
 ModuleInfo "History: 1.00 Initial Release"
-
 
 Import "common.bmx"
 
@@ -1445,7 +1445,7 @@ Type b2Body
 	Method GetWorld:b2World()
 		Return b2World._create(bmx_b2body_getworld(b2ObjectPtr))
 	End Method
-
+	
 	Rem
 	bbdoc: Set the mass properties.
 	about: Note that this changes the center of mass position.
@@ -2017,7 +2017,7 @@ Type b2MassData
 
 	Field b2ObjectPtr:Byte Ptr
 	Field owner:Int
-	
+
 	Function _create:b2MassData(b2ObjectPtr:Byte Ptr)
 		If b2ObjectPtr Then
 			Local this:b2MassData = New b2MassData
@@ -2036,7 +2036,7 @@ Type b2MassData
 	Method Delete()
 		If b2ObjectPtr Then
 			If owner Then
-				bmx_b2massdata_delete(b2ObjectPtr)
+			bmx_b2massdata_delete(b2ObjectPtr)
 			End If
 			b2ObjectPtr = Null
 		End If
