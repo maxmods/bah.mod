@@ -135,6 +135,7 @@ extern "C" {
 	b2Vec2 * bmx_b2bodydef_getposition(b2BodyDef * def);
 	float32 bmx_b2bodydef_getangle(b2BodyDef * def);
 	int bmx_b2bodydef_isbullet(b2BodyDef * def);
+	b2MassData * bmx_b2bodydef_getmassdata(b2BodyDef * def);
 
 	b2World * bmx_b2world_create(b2AABB * worldAABB, b2Vec2 * gravity, int doSleep);
 	void bmx_b2world_dostep(b2World * world, float32 timeStep, int velocityIterations, int positionIterations);
