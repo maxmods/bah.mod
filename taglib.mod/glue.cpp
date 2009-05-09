@@ -84,7 +84,7 @@ TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, bool readAudioP
 #ifdef WIN32
 	wchar_t * f = (wchar_t*)bbStringToWString(filename);
 #else
-	char * f = bbStringToCString(brl_blitz_bbStringToUTF8String(filename));
+	char * f = bbStringToCString(bah_taglib_stringToUTF8String(filename));
 #endif
 	TagLib::FileRef * ref = new TagLib::FileRef(f, readAudioProperties, audioPropertiesStyle);
 	bbMemFree(f);
