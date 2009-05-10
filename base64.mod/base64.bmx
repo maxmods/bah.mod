@@ -5,11 +5,13 @@ bbdoc: Base64
 End Rem
 Module BaH.Base64
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Original - Robert Harder (http://iharder.sourceforge.net/current/java/base64/)"
 ModuleInfo "Copyright: BlitzMax port - 2008 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Fixed Encode() sometimes returning an extra null character."
 ModuleInfo "History: 1.00 Initial Release"
 
 Rem
@@ -123,8 +125,8 @@ Type TBase64
 			encode3to4( source, d + offset, Length - d, outBuff, e, options )
 			e :+ 4
 		End If
-		
-		Return String.FromBytes(outBuff, outBuff.length)
+
+		Return String.FromBytes(outBuff, e)
 	End Function
 	
 	Rem
