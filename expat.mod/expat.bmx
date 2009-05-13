@@ -61,16 +61,18 @@ Type TXMLParser
 	' callbacks
 	Field userStartElementHandler(userData:Object, name:String, attribs:String[])
 	Field userEndElementHandler(userData:Object, name:String)
+	Field userCharacterDataHandler(userData:Object, text:String)
+	Field userProcessingInstructionHandler(userData:Object, target:String, data:String)
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new parser with the specified @encoding.
 	End Rem
 	Function CreateParser:TXMLParser(encoding:String = "UTF-8")
 		Return New TXMLParser.Create(encoding)
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Creates a new parser with the specified @encoding.
 	End Rem
 	Method Create:TXMLParser(encoding:String = "UTF-8")
 		parserPtr = bmx_expat_XML_ParserCreate(encoding)
@@ -92,21 +94,83 @@ Type TXMLParser
 
 
 	Rem
-	bbdoc: 
+	bbdoc: Stops parsing, causing #Parse or #ParseBuffer to return.
+	about: Must be called from within a call-back handler, except when aborting (when resumable is False)
+	an already suspended parser. Some call-backs may still follow because they would otherwise get lost, including
+	<ul>
+	<li>the end element handler for empty elements when stopped in the start element handler,</li>
+	<li>the end namespace declaration handler when stopped in the end element handler,</li>
+	<li>the character data handler when stopped in the character data handler while making multiple
+	call-backs on a contiguous chunk of characters,</li>
+	</ul>
+	and possibly others. 
+	<p>
+	This can be called from most handlers, including DTD related call-backs, except when parsing an external parameter
+	entity and resumable is XML_TRUE. Returns XML_STATUS_OK when successful, XML_STATUS_ERROR otherwise. The
+	possible error codes are:
+	<dl>
+	<dt><code>XML_ERROR_SUSPENDED</code></dt>
+	<dd>when suspending an already suspended parser.</dd>
+	<dt><code>XML_ERROR_FINISHED</code></dt>
+	<dd>when the parser has already finished.</dd>
+	<dt><code>XML_ERROR_SUSPEND_PE</code></dt>
+	<dd>when suspending while parsing an external PE.</dd>
+	</dl>
+	</p>
+	<p>
+	Since the stop/resume feature requires application support in the outer parsing loop, it is an error to call this
+	method for a parser not being handled appropriately; see Temporarily Stopping Parsing for more information.
+	</p>
+	<p>
+	When resumable is XML_TRUE then parsing is suspended, that is, #Parse and #ParseBuffer return
+	XML_STATUS_SUSPENDED. Otherwise, parsing is aborted, that is, #Parse and #ParseBuffer return
+	XML_STATUS_ERROR with error code XML_ERROR_ABORTED.
+	</p>
+	<p>
+	Note: This will be applied to the current parser instance only, that is, if there is a parent parser then
+	it will continue parsing when the external entity reference handler returns. It is up to the implementation
+	of that handler to call #StopParser on the parent parser (recursively), if one wants to stop parsing
+	altogether.
+	</p>
+	<p>
+	When suspended, parsing can be resumed by calling #ResumeParser.
+	</p>
 	End Rem
 	Method StopParser:Int(resumable:Int)
 		Return XML_StopParser(parserPtr, resumable)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Resumes parsing after it has been suspended with #StopParser.
+	about: Must not be called from within a handler call-back.
+	Returns same status codes as #Parse or #ParseBuffer. An additional error code, XML_ERROR_NOT_SUSPENDED, will
+	be returned if the parser was not currently suspended.
+	<p>
+	Note: This must be called on the most deeply nested child parser instance first, and on its parent parser only
+	after the child parser has finished, to be applied recursively until the document entity's parser is restarted.
+	That is, the parent parser will not resume by itself and it is up to the application to call #ResumeParser on
+	it at the appropriate moment.
+	</p>
 	End Rem
 	Method ResumeParser:Int()
 		Return XML_ResumeParser(parserPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns status of parser with respect to being initialized, parsing, finished, or suspended, and whether the final buffer is being processed.
+	about: Possible return values for @parsing are : XML_INITIALIZED, XML_PARSING, XML_FINISHED or XML_SUSPENDED.
+	End Rem
+	Method GetParsingStatus(parsing:Int Var, finalBuffer:Int Var)
+		bmx_expat_XML_GetParsingStatus(parserPtr, Varptr parsing, Varptr finalBuffer)
+	End Method
+	
+	Rem
+	bbdoc: Sets handler for start (and empty) tags.
+	about: Each attribute seen in a start (or empty) tag occupies 2 consecutive places in the array: the attribute name
+	followed by the attribute value.
+	<p>
+	Note that an empty tag generates a call to both start and end handlers (in that order).
+	</p>
 	End Rem
 	Method SetStartElementHandler(handler(userData:Object, name:String, attribs:String[]))
 		userStartElementHandler = handler
@@ -121,7 +185,85 @@ Type TXMLParser
 	Function _StartElementHandler(parser:TXMLParser, name:String, attrs:String[])
 		parser.userStartElementHandler(parser.userData, name, attrs)
 	End Function
+	
+	Rem
+	bbdoc: Sets handler for end (and empty) tags.
+	about: As noted for #SetStartElementHandler, an empty tag generates a call to both start and end handlers.
+	End Rem
+	Method SetEndElementHandler(handler(userData:Object, name:String))
+		userEndElementHandler = handler
+		If handler Then
+			bmx_expat_XML_SetEndElementHandler(parserPtr)
+		Else
+			XML_SetEndElementHandler(parserPtr, Null)
+		End If
+	End Method
 
+	' internal callback
+	Function _EndElementHandler(parser:TXMLParser, name:String)
+		parser.userEndElementHandler(parser.userData, name)
+	End Function
+
+	Rem
+	bbdoc: Sets handlers for start and end tags with one call.
+	End Rem
+	Method SetElementHandler(starthandler(userData:Object, name:String, attribs:String[]), endhandler(userData:Object, name:String))
+		userStartElementHandler = starthandler
+		userEndElementHandler = endhandler
+		If starthandler Or endhandler Then
+			If starthandler Then
+				If endhandler
+					bmx_expat_XML_SetElementHandler(parserPtr, True, True)
+				Else
+					bmx_expat_XML_SetElementHandler(parserPtr, True, False)
+				End If
+			Else
+				bmx_expat_XML_SetElementHandler(parserPtr, False, True)
+			End If
+		Else
+			XML_SetElementHandler(parserPtr, Null, Null)
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Sets a text handler.
+	about: A single block of contiguous text free of markup may still result in a sequence of calls to this handler.
+	In other words, if you're searching for a pattern in the text, it may be split across calls to this handler.
+	End Rem
+	Method SetCharacterDataHandler(handler(userData:Object, text:String))
+		userCharacterDataHandler = handler
+		If handler Then
+			bmx_expat_XML_SetCharacterDataHandler(parserPtr)
+		Else
+			XML_SetCharacterDataHandler(parserPtr, Null)
+		End If
+	End Method
+
+	' internal callback
+	Function _CharacterDataHandler(parser:TXMLParser, text:String)
+		If parser.userCharacterDataHandler Then
+			parser.userCharacterDataHandler(parser.userData, text)
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Sets a handler for processing instructions.
+	about: The target is the first word in the processing instruction. The data is the rest of the characters
+	in it after skipping all whitespace after the initial word.
+	End Rem
+	Method SetProcessingInstructionHandler(handler(userData:Object, target:String, data:String))
+		userProcessingInstructionHandler = handler
+		If handler Then
+			bmx_expat_XML_SetProcessingInstructionHandler(parserPtr)
+		Else
+			XML_SetProcessingInstructionHandler(parserPtr, Null)
+		End If
+	End Method
+
+	' internal callback
+	Function _ProcessingInstructionHandler(parser:TXMLParser, target:String, data:String)
+		parser.userProcessingInstructionHandler(parser.userData, target, data)
+	End Function
 
 	Rem
 	bbdoc: Returns what type of error has occurred.
@@ -154,6 +296,115 @@ Type TXMLParser
 	End Method
 	
 	Rem
+	bbdoc: Sets the base to be used for resolving relative URIs in system identifiers.
+	about: The return value is XML_STATUS_ERROR if there's no memory to store base, otherwise
+	it's XML_STATUS_OK.
+	End Rem
+	Method SetBase:Int(base:String)
+		Return bmx_expat_XML_SetBase(parserPtr, base)
+	End Method
+	
+	Rem
+	bbdoc: Returns the base for resolving relative URIs. 
+	End Rem
+	Method GetBase:String()
+		Return bmx_expat_XML_GetBase(parserPtr)
+	End Method
+	
+	Rem
+	bbdoc: When attributes are reported to the start handler in the atts vector, attributes that were explicitly set in the element occur before any attributes that receive their value from default information in an ATTLIST declaration.
+	about: This function returns the number of attributes that were explicitly set times two,
+	thus giving the offset in the atts array passed to the start tag handler of the first attribute
+	set due to defaults. It supplies information for the last call to a start handler. If called
+	inside a start handler, then that means the current call. 
+	End Rem
+	Method GetSpecifiedAttributeCount:Int()
+		Return XML_GetSpecifiedAttributeCount(parserPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the index of the ID attribute passed in the atts array in the last call to #StartElementHandler, or -1 if there is no ID attribute.
+	about: If called inside a start handler, then that means the current call.
+	End Rem
+	Method GetIdAttributeIndex:Int()
+		Return XML_GetIdAttributeIndex(parserPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the encoding to be used by the parser.
+	returns: XML_STATUS_OK on success or XML_STATUS_ERROR on error.
+	about: It is equivalent to passing a non-null encoding argument to the parser creation functions. It must not be
+	called after #Parse or #ParseBuffer have been called on the parser. 
+	End Rem
+	Method SetEncoding:Int(encoding:String)
+		Return bmx_expat_XML_SetEncoding(parserPtr, encoding)
+	End Method
+	
+	Rem
+	bbdoc: This enables parsing of parameter entities, including the external parameter entity that is the external DTD subset, according to code.
+	about: The choices for code are:
+	<ul>
+	<li>XML_PARAM_ENTITY_PARSING_NEVER</li>
+	<li>XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE</li>
+	<li>XML_PARAM_ENTITY_PARSING_ALWAYS</li>
+	</ul>
+	End Rem
+	Method SetParamEntityParsing:Int(code:Int)
+		Return XML_SetParamEntityParsing(parserPtr, code)
+	End Method
+	
+	Rem
+	bbdoc: Allows an application to provide an external subset for the document type declaration for documents which do not specify an external subset of their own.
+	about: For documents which specify an external subset in their DOCTYPE declaration, the application-provided subset
+	will be ignored. If the document does not contain a DOCTYPE declaration at all and useDTD is true, the
+	application-provided subset will be parsed, but the StartDoctypeDeclHandler and EndDoctypeDeclHandler functions,
+	if set, will not be called. The setting of parameter entity parsing, controlled using #SetParamEntityParsing, will be
+	honored.
+	<p>
+	The application-provided external subset is read by calling the external entity reference handler set via
+	#SetExternalEntityRefHandler with both publicId and systemId set to NULL.
+	</p>
+	<p>
+	If this function is called after parsing has begun, it returns XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING and ignores
+	useDTD. If called when Expat has been compiled without DTD support, it returns XML_ERROR_FEATURE_REQUIRES_XML_DTD.
+	Otherwise, it returns XML_ERROR_NONE.
+	</p>
+	<p>
+	Note: For the purpose of checking WFC: Entity Declared, passing useDTD as True will make the parser behave as
+	if the document had a DTD with an external subset. This holds true even if the external entity reference handler
+	returns without action.
+	</p>
+	End Rem
+	Method UseForeignDTD:Int(useDTD:Int)
+		Return XML_UseForeignDTD(parserPtr, useDTD)
+	End Method
+	
+	Rem
+	bbdoc: Sets whether or not prefixes are returned with names qualified with a namespace prefix. 
+	about: This function only has an effect when using a parser created with XML_ParserCreateNS, i.e. when
+	namespace processing is in effect. If it is called with doNST non-zero, then afterwards namespace qualified
+	names (that is qualified with a prefix as opposed to belonging to a default namespace) are returned as a
+	triplet with the three parts separated by the namespace separator specified when the parser was created.
+	The order of returned parts is URI, local name, and prefix.
+	<p>
+	If doNST is zero, then namespaces are reported in the default manner, URI then local_name separated by the namespace separator.
+	</p>
+	End Rem
+	Method SetReturnNSTriplet(doNST:Int)
+		XML_SetReturnNSTriplet(parserPtr, doNST)
+	End Method
+	
+	Rem
+	bbdoc: This can be called within a handler for a start element, end element, processing instruction or character data.
+	about: It causes the corresponding markup to be passed to the default handler set by
+	#SetDefaultHandler or #SetDefaultHandlerExpand. It does nothing if there is not a default
+	handler.
+	End Rem
+	Method DefaultCurrent()
+		XML_DefaultCurrent(parserPtr)
+	End Method
+	
+	Rem
 	bbdoc: Frees memory used by the parser. 
 	End Rem
 	Method Free()
@@ -176,4 +427,19 @@ End Rem
 Function XMLErrorString:String(code:Int)
 	Return bmx_expat_XML_ErrorString(code)
 End Function
+
+Rem
+bbdoc: Returns the library version as a string (e.g. "expat_1.95.1"). 
+End Rem
+Function XMLExpatVersion:String()
+	Return bmx_expat_XML_ExpatVersion()
+End Function
+
+Rem
+bbdoc: Returns the library version information as a set of values. 
+End Rem
+Function XMLExpatVersinInfo(major:Int Var, minor:Int Var, micro:Int Var)
+	bmx_expat_XML_ExpatVersionInfo(Varptr major, Varptr minor, Varptr micro)
+End Function
+
 
