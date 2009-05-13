@@ -265,6 +265,91 @@ Type TXMLParser
 		parser.userProcessingInstructionHandler(parser.userData, target, data)
 	End Function
 
+	Method SetCommentHandler(handler(userData:Object, data:String))
+	' TODO
+	End Method
+	
+	Method SetStartCdataSectionHandler(handler(userData:Object))
+	' TODO
+	End Method
+	
+	Method SetEndCdataSectionHandler(handler(userData:Object))
+	' TODO
+	End Method
+	
+	Method SetCdataSectionHandler(starthandler(userData:Object), endhandler(userData:Object))
+	' TODO
+	End Method
+	
+	Method SetDefaultHandler(handler(userData:Object, text:String))
+	' TODO
+	End Method
+	
+	Method SetDefaultHandlerExpand(handler(userData:Object, text:String))
+	' TODO
+	End Method
+	
+	Method SetSkippedEntityHandler(handler(userData:Object, name:String, isParameterEntity:Int))
+	' TODO
+	End Method
+	
+	Method SetStartNamespaceDeclHandler(handler(userData:Object, prefix:String, uri:String))
+	' TODO
+	End Method
+	
+	Method SetEndNamespaceDeclHandler(handler(userData:Object, prefix:String))
+	' TODO
+	End Method
+	
+	Method SetNamespaceDeclHandler(starthandler(userData:Object, prefix:String), endhandler(userData:Object, prefix:String))
+	' TODO
+	End Method
+	
+	Method SetXmlDeclHandler(handler(userData:Object, version:String, encoding:String, standalone:Int))
+	' TODO
+	End Method
+	
+	Method SetStartDoctypeDeclHandler(handler(userData:Object, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int))
+	' TODO
+	End Method
+	
+	Method SetEndDoctypeDeclHandler(handler(userData:Object))
+	' TODO
+	End Method
+	
+	Method SetDoctypeDeclHandler(starthandler(userData:Object, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int), ..
+			endhandler(userData:Object))
+	' TODO
+	End Method
+
+	'Method SetElementDeclHandler(.....
+	' TODO
+	'End method
+	
+	Method SetAttlistDeclHandler(handler(userData:Object, elname:String, attname:String, attType:String, ..
+			dflt:String, isRequired:Int))
+	' TODO
+	End Method
+	
+	Method SetEntityDeclHandler(handler(userData:Object, _entityName:String, isParameterEntity:Int, value:String, ..
+			base:String, systemId:String, publicId:String, notationName:String))
+	' TODO
+	End Method
+	
+	Method SetUnparsedEntityDeclHandler(handler(userData:Object, _entityName:String, base:String, systemId:String, ..
+			publicId:String, notationName:String))
+	' TODO
+	End Method
+	
+	Method SetNotationDeclHandler(handler(userData:Object, notationName:String, base:String, systemId:String, ..
+			publicId:String))
+	' TODO
+	End Method
+	
+	Method SetNotStandaloneHandler(handler(userData:Object))
+	' TODO
+	End Method
+	
 	Rem
 	bbdoc: Returns what type of error has occurred.
 	End Rem
