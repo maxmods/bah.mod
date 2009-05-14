@@ -28,6 +28,7 @@
 
 class MaxFreeImage;
 class MaxMultiFreeImage;
+class MaxFreeImageTag;
 
 extern "C" {
 
@@ -109,6 +110,9 @@ extern "C" {
 	FIBITMAP * bmx_freeimage_TmoDrago03(MaxFreeImage * freeimage, double gamma, double exposure);
 	FIBITMAP * bmx_freeimage_TmoReinhard05(MaxFreeImage * freeimage, double intensity, double contrast);
 	
+	MaxFreeImageTag * bmx_freeimage_GetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model, BBString * tag);
+	unsigned bmx_freeimage_GetMetadataCount(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model);
+	BOOL bmx_freeimage_SetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model, BBString * key, MaxFreeImageTag * tag);
 
 	void _bah_freeimage_TMultiFreeImage_error(int format, const char * message);
 	MaxMultiFreeImage * bmx_multifreeimage_new(void * handle, BBString * filename, BOOL readOnly, BOOL createNew);
@@ -124,7 +128,30 @@ extern "C" {
 	BOOL bmx_multifreeimage_movePage(MaxMultiFreeImage * freeimage, int source, int target);
 	BOOL bmx_multifreeimage_close(MaxMultiFreeImage * freeimage);
 	void bmx_multifreeimage_delete(MaxMultiFreeImage * freeimage);
+
+	void bmx_freeimagetag_free(MaxFreeImageTag * tag);
+	BBString * bmx_freeimagetag_getkey(MaxFreeImageTag * tag);
+	BBString * bmx_freeimagetag_getdescription(MaxFreeImageTag * tag);
+	int bmx_freeimagetag_getid(MaxFreeImageTag * tag);
+	int bmx_freeimagetag_gettype(MaxFreeImageTag * tag);
+	int bmx_freeimagetag_getcount(MaxFreeImageTag * tag);
+	int bmx_freeimagetag_getlength(MaxFreeImageTag * tag);
+	const void * bmx_freeimagetag_getvalue(MaxFreeImageTag * tag);
+	BOOL bmx_freeimagetag_setkey(MaxFreeImageTag * tag, BBString * key);
+	BOOL bmx_freeimagetag_setdescription(MaxFreeImageTag * tag, BBString * description);
+	BOOL bmx_freeimagetag_setid(MaxFreeImageTag * tag, int id);
+	BOOL bmx_freeimagetag_settype(MaxFreeImageTag * tag, int tagType);
+	BOOL bmx_freeimagetag_setcount(MaxFreeImageTag * tag, int count);
+	BOOL bmx_freeimagetag_setlength(MaxFreeImageTag * tag, int length);
+	BOOL bmx_freeimagetag_setvalue(MaxFreeImageTag * tag, void * value);
+
+	MaxFreeImageTag * bmx_freeimagetag_create();
+	MaxFreeImageTag * bmx_freeimagetag_clone(MaxFreeImageTag * tag);
+	BBString * bmx_freeimagetag_tagtostring(MaxFreeImageTag * tag, FREE_IMAGE_MDMODEL model, BBString * make);
+
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++
 
 unsigned DLL_CALLCONV bmx_stream_read(void *buffer, unsigned size, unsigned count, fi_handle handle) {
 //printf("read = %d, %d\n", size, count);fflush(stdout);
@@ -176,6 +203,36 @@ void MultiFreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 	_bah_freeimage_TMultiFreeImage_error((int)fif, message);
 }
 
+// ++++++++++++++++++++++++++++++++++++++++++++
+
+class MaxFreeImageTag
+{
+public:
+	MaxFreeImageTag(bool newTag)
+		: ownsTag(newTag)
+	{
+		if (newTag) {
+			tag = FreeImage_CreateTag();
+		}
+	}
+	
+	~MaxFreeImageTag()
+	{
+		if (ownsTag) {
+			FreeImage_DeleteTag(tag);
+		}
+	}
+	
+	void SetOwner(bool owner) {
+		ownsTag = owner;
+	}
+	
+public:
+	FITAG * tag;
+
+private:
+	bool ownsTag;
+};
 
 class MaxFreeImage
 {
@@ -229,7 +286,10 @@ public:
 	FIBITMAP * TmoReinhard05(double intensity, double contrast);
 	void clearBitmap();
 	BOOL isFlipped();
-
+	BOOL GetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG **tag);
+	unsigned GetMetadataCount(FREE_IMAGE_MDMODEL model);
+	BOOL SetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG *tag);
+	
 	~MaxFreeImage()
 	{
 		if (bitmap) {
@@ -486,10 +546,21 @@ FIBITMAP * MaxFreeImage::TmoReinhard05(double intensity, double contrast) {
 	return FreeImage_TmoReinhard05(bitmap, intensity, contrast);
 }
 
+BOOL MaxFreeImage::GetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG **tag) {
+	return FreeImage_GetMetadata(model, bitmap, key, tag);
+}
+
+unsigned MaxFreeImage::GetMetadataCount(FREE_IMAGE_MDMODEL model) {
+	return FreeImage_GetMetadataCount(model, bitmap);
+}
+
+BOOL MaxFreeImage::SetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG *tag) {
+	return FreeImage_SetMetadata(model, bitmap, key, tag);
+}
 
 
 
-
+// ++++++++++++++++++++++++++++++++++++++++++
 
 
 MaxFreeImage * bmx_freeimage_new(void * handle) {
@@ -693,6 +764,46 @@ FIBITMAP * bmx_freeimage_TmoReinhard05(MaxFreeImage * freeimage, double intensit
 	return freeimage->TmoReinhard05(intensity, contrast);
 }
 
+MaxFreeImageTag * bmx_freeimage_GetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model, BBString * tag) {
+	MaxFreeImageTag * metatag = new MaxFreeImageTag(false);
+	
+	char * t = bbStringToCString(tag);
+	
+	BOOL res = freeimage->GetMetadata(model, t, &metatag->tag);
+	
+	bbMemFree(t);
+	
+	if (!res) {
+		delete metatag;
+		return NULL;
+	} else {
+		return metatag;
+	}
+}
+
+unsigned bmx_freeimage_GetMetadataCount(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model) {
+	return freeimage->GetMetadataCount(model);
+}
+
+BOOL bmx_freeimage_SetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL model, BBString * key, MaxFreeImageTag * tag) {
+	char * k = NULL;
+	if (key != &bbEmptyString) {
+		k = bbStringToCString(key);
+	}
+	
+	BOOL res;
+	
+	if (tag) {
+		res = freeimage->SetMetadata(model, k, tag-tag);
+	} else {
+		res = freeimage->SetMetadata(model, k, NULL);
+	}
+	
+	if (k) bbMemFree(k);
+	
+	return res;
+}
+
 // ***********************************
 
 class MaxMultiFreeImage
@@ -839,6 +950,116 @@ BOOL bmx_multifreeimage_close(MaxMultiFreeImage * freeimage) {
 
 void bmx_multifreeimage_delete(MaxMultiFreeImage * freeimage) {
 	delete freeimage;
+}
+
+// +++++++++++++++++++++++++++++++++++++++
+
+void bmx_freeimagetag_free(MaxFreeImageTag * tag) {
+	delete tag;
+}
+
+BBString * bmx_freeimagetag_getkey(MaxFreeImageTag * tag) {
+	return bbStringFromCString(FreeImage_GetTagKey(tag->tag));
+}
+
+BBString * bmx_freeimagetag_getdescription(MaxFreeImageTag * tag) {
+	const char * s = FreeImage_GetTagDescription(tag->tag);
+	if (s) {
+		return bbStringFromCString(s);
+	} else {
+		return &bbEmptyString;
+	}
+}
+
+int bmx_freeimagetag_getid(MaxFreeImageTag * tag) {
+	return static_cast<int>(FreeImage_GetTagID(tag->tag));
+}
+
+int bmx_freeimagetag_gettype(MaxFreeImageTag * tag) {
+	return static_cast<int>(FreeImage_GetTagType(tag->tag));
+}
+
+int bmx_freeimagetag_getcount(MaxFreeImageTag * tag) {
+	return static_cast<int>(FreeImage_GetTagCount(tag->tag));
+}
+
+int bmx_freeimagetag_getlength(MaxFreeImageTag * tag) {
+	return static_cast<int>(FreeImage_GetTagLength(tag->tag));
+}
+
+const void * bmx_freeimagetag_getvalue(MaxFreeImageTag * tag) {
+	return FreeImage_GetTagValue(tag->tag);
+}
+
+BOOL bmx_freeimagetag_setkey(MaxFreeImageTag * tag, BBString * key) {
+	char * k = bbStringToCString(key);
+	BOOL res = FreeImage_SetTagKey(tag->tag, k);
+	bbMemFree(k);
+	return res;
+}
+
+BOOL bmx_freeimagetag_setdescription(MaxFreeImageTag * tag, BBString * description) {
+	char * d = bbStringToCString(description);
+	BOOL res = FreeImage_SetTagDescription(tag->tag, d);
+	bbMemFree(d);
+	return res;
+}
+
+BOOL bmx_freeimagetag_setid(MaxFreeImageTag * tag, int id) {
+	return FreeImage_SetTagID(tag->tag, static_cast<WORD>(id));
+}
+
+BOOL bmx_freeimagetag_settype(MaxFreeImageTag * tag, int tagType) {
+	return FreeImage_SetTagType(tag->tag, static_cast<FREE_IMAGE_MDTYPE>(tagType));
+}
+
+BOOL bmx_freeimagetag_setcount(MaxFreeImageTag * tag, int count) {
+	return FreeImage_SetTagCount(tag->tag, static_cast<DWORD>(count));
+}
+
+BOOL bmx_freeimagetag_setlength(MaxFreeImageTag * tag, int length) {
+	return FreeImage_SetTagLength(tag->tag, static_cast<DWORD>(length));
+}
+
+BOOL bmx_freeimagetag_setvalue(MaxFreeImageTag * tag, void * value) {
+	return FreeImage_SetTagValue(tag->tag, value);
+}
+
+
+MaxFreeImageTag * bmx_freeimagetag_create() {
+	MaxFreeImageTag * metatag = new MaxFreeImageTag(true);
+	
+	if (metatag->tag) {
+		return metatag;
+	} else {
+		delete metatag;
+		return NULL;
+	}
+	
+}
+
+MaxFreeImageTag * bmx_freeimagetag_clone(MaxFreeImageTag * tag) {
+	MaxFreeImageTag * metatag = new MaxFreeImageTag(false);
+	
+	metatag->tag = FreeImage_CloneTag(tag->tag);
+	
+	if (! metatag->tag) {
+		delete metatag;
+		return NULL;
+	} else {
+		metatag->SetOwner(true);
+		return metatag;
+	}
+}
+
+BBString * bmx_freeimagetag_tagtostring(MaxFreeImageTag * tag, FREE_IMAGE_MDMODEL model, BBString * make) {
+	const char * s = FreeImage_TagToString(model, tag->tag);
+	
+	if (s) {
+		return bbStringFromCString(s);
+	} else {
+		return &bbEmptyString;
+	}
 }
 
 

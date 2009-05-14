@@ -81,7 +81,7 @@ Extern
 	Function bmx_freeimage_FlipHorizontal(handle:Byte Ptr)
 	Function bmx_freeimage_FlipVertical(handle:Byte Ptr)
 	
-	Function bmx_freeimage_AdjustGamma(handle:Byte Ptr, gamma:Double)
+	Function bmx_freeimage_AdjustGamma(handle:Byte Ptr, Gamma:Double)
 	Function bmx_freeimage_AdjustBrightness(handle:Byte Ptr, percentage:Double)
 	Function bmx_freeimage_AdjustContrast(handle:Byte Ptr, percentage:Double)
 	Function bmx_freeimage_Invert(handle:Byte Ptr)
@@ -102,10 +102,13 @@ Extern
 		bpp:Int, redMask:Int, greenMask:Int, blueMask:Int)
 	
 	Function bmx_freeimage_ToneMapping:Byte Ptr(handle:Byte Ptr, algorithm:Int, param1:Double, param2:Double)
-	Function bmx_freeimage_TmoDrago03:Byte Ptr(handle:Byte Ptr, gamma:Double, exposure:Double)
+	Function bmx_freeimage_TmoDrago03:Byte Ptr(handle:Byte Ptr, Gamma:Double, exposure:Double)
 	Function bmx_freeimage_TmoReinhard05:Byte Ptr(handle:Byte Ptr, intensity:Double, contrast:Double)
 	
-	
+	Function bmx_freeimage_GetMetadata:Byte Ptr(handle:Byte Ptr, model:Int, tag:String)
+	Function bmx_freeimage_GetMetadataCount:Int(handle:Byte Ptr, model:Int)
+	Function bmx_freeimage_SetMetadata:Int(handle:Byte Ptr, model:Int, key:String, tag:Byte Ptr)
+
 	Function bmx_multifreeimage_new:Byte Ptr(handle:Object, filename:String, readOnly:Int, createNew:Int)
 	Function bmx_MultiFreeImage_GetFileType:Int(handle:Byte Ptr)
 	Function bmx_multifreeimage_loadImage(handle:Byte Ptr)
@@ -120,6 +123,24 @@ Extern
 	Function bmx_multifreeimage_close:Int(handle:Byte Ptr)
 	Function bmx_multifreeimage_delete(handle:Byte Ptr)
 
+	Function bmx_freeimagetag_free(handle:Byte Ptr)
+	Function bmx_freeimagetag_getkey:String(handle:Byte Ptr)
+	Function bmx_freeimagetag_getdescription:String(handle:Byte Ptr)
+	Function bmx_freeimagetag_getid:Int(handle:Byte Ptr)
+	Function bmx_freeimagetag_gettype:Int(handle:Byte Ptr)
+	Function bmx_freeimagetag_getcount:Int(handle:Byte Ptr)
+	Function bmx_freeimagetag_getlength:Int(handle:Byte Ptr)
+	Function bmx_freeimagetag_getvalue:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimagetag_setkey:Int(handle:Byte Ptr, key:String)
+	Function bmx_freeimagetag_setdescription:Int(handle:Byte Ptr, description:String)
+	Function bmx_freeimagetag_setid:Int(handle:Byte Ptr, id:Int)
+	Function bmx_freeimagetag_settype:Int(handle:Byte Ptr, tagType:Int)
+	Function bmx_freeimagetag_setcount:Int(handle:Byte Ptr, count:Int)
+	Function bmx_freeimagetag_setlength:Int(handle:Byte Ptr, length:Int)
+	Function bmx_freeimagetag_setvalue:Int(handle:Byte Ptr, value:Byte Ptr)
+	Function bmx_freeimagetag_create:Byte Ptr()
+	Function bmx_freeimagetag_clone:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimagetag_tagtostring:String(handle:Byte Ptr, model:Int, make:String)
 
 	Function FreeImage_GetFIFCount:Int()
 	Function FreeImage_GetFIFExtensionList:Byte Ptr(fif:Int)
@@ -128,6 +149,7 @@ Extern
 	Function FreeImage_FIFSupportsWriting:Int(fif:Int)
 	Function FreeImage_GetFIFFromFilenameU:Int(filename:Short Ptr)
 	'Function FreeImage_SetPixelColor(dib:Byte Ptr, x:Int, y:Int, rgbquad:Byte Ptr)
+
 End Extern
 
 '?win32
@@ -254,5 +276,19 @@ Const FIQ_NNQUANT:Int = 1
 
 Const FITMO_DRAGO03:Int = 0
 Const FITMO_REINHARD05:Int = 1
+
+Const FIMD_NODATA:Int = -1
+Const FIMD_COMMENTS:Int = 0       ' single comment Or keywords
+Const FIMD_EXIF_MAIN:Int = 1      ' Exif-TIFF metadata
+Const FIMD_EXIF_EXIF:Int = 2      ' Exif-specific metadata
+Const FIMD_EXIF_GPS:Int = 3       ' Exif GPS metadata
+Const FIMD_EXIF_MAKERNOTE:Int = 4 ' Exif maker note metadata
+Const FIMD_EXIF_INTEROP:Int = 5   ' Exif interoperability metadata
+Const FIMD_IPTC:Int = 6           ' IPTC/NAA metadata
+Const FIMD_XMP:Int = 7            ' Abobe XMP metadata
+Const FIMD_GEOTIFF:Int = 8        ' GeoTIFF metadata
+Const FIMD_ANIMATION:Int = 9      ' Animation metadata
+Const FIMD_CUSTOM:Int = 10        ' Used To attach other metadata types To a dib
+
 
 

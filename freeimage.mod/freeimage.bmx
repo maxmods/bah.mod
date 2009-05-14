@@ -25,12 +25,14 @@ bbdoc: FreeImage Library
 End Rem
 Module BaH.FreeImage
 
-ModuleInfo "Version: 1.05"
+ModuleInfo "Version: 1.06"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FreeImage - FreeImage Public License (FIPL)"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Added Metadata tag support."
 ModuleInfo "History: 1.05"
 ModuleInfo "History: Fixed conversion issue with 4-bit paletted images."
 ModuleInfo "History: Fixed GC problems when loading large anim images."
@@ -888,8 +890,8 @@ Type TFreeImage
 	bbdoc: Performs a Gamma correction.
 	about: A @gamma value of 1, leaves the image alone, less than 1 darkens it, and greater than 1 lightens it.
 	End Rem
-	Method adjustGamma(gamma:Double)
-		bmx_freeimage_AdjustGamma(freeImagePtr, gamma)
+	Method adjustGamma(Gamma:Double)
+		bmx_freeimage_AdjustGamma(freeImagePtr, Gamma)
 		imageChanged = True
 	End Method
 	
@@ -1164,8 +1166,8 @@ Type TFreeImage
 	of the output image to their displaying conditions. The default value (0) means that no correction
 	is applied. Higher values will make the image lighter whereas lower values make the image darker.
 	End Rem
-	Method tmoDrago03:TFreeImage(gamma:Double = 2.2, exposure:Double = 0)
-		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoDrago03(freeImagePtr, gamma, exposure))
+	Method tmoDrago03:TFreeImage(Gamma:Double = 2.2, exposure:Double = 0)
+		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoDrago03(freeImagePtr, Gamma, exposure))
 	End Method
 
 	Rem
@@ -1180,10 +1182,243 @@ Type TFreeImage
 		Return TFreeImage.CreateFromBitmap(bmx_freeimage_TmoReinhard05(freeImagePtr, intensity, contrast))
 	End Method
 	
+	Rem
+
+	bbdoc: Retrieves a metadata attached to the image.
+	returns: A TFreeImageTag object on success, or Null if the searched tag doesn't exist.
+	about: Upon entry, @model is the metadata model to look for and @key is the metadata field name (unique inside a metadata model).
+	End Rem
+	Method getMetadata:TFreeImageTag(model:Int, key:String)
+		Return TFreeImageTag._create(bmx_freeimage_GetMetadata(freeImagePtr, model, key))
+	End Method
 	
+	Rem
+	bbdoc: Returns the number of tags contained in the model metadata model attached to the image.
+	End Rem
+	Method getMetadataCount:Int(model:Int)
+		Return bmx_freeimage_GetMetadataCount(freeImagePtr, model)
+	End Method
+	
+	Rem
+	bbdoc: Attaches a new FreeImage tag to a dib.
+	returns: TRUE on success and returns FALSE otherwise. 
+	about: Upon entry, @model is the metadata model used to store the tag, @key is the tag field name and @tag is the FreeImage tag to be 
+	attached. 
+	<p>
+	If tag is NULL then the metadata is deleted.
+	</p>
+	<p>
+	If both key and tag are NULL then the metadata model is deleted.
+	</p>
+	<p>
+	The tag field name (or tag key) used by FreeImage to index a tag is given by the metadata model specification (e.g. EXIF
+	specification or Adobe XMP specification).
+	</p>
+	End Rem
+	Method setMetadata:Int(model:Int, key:String, tag:TFreeImageTag)
+		If tag Then
+			Return bmx_freeimage_SetMetadata(freeImagePtr, model, key, tag.tagPtr)
+		Else
+			Return bmx_freeimage_SetMetadata(freeImagePtr, model, key, Null)
+		End If
+	End Method
 	
 End Type
 
+Rem
+bbdoc: Stores metadata information.
+about: The notion of tag originates from the TIFF specification and because of its universality, it is widely used to store 
+metadata information in a file.
+<p>
+FreeImage provides an enhanced version of the standard TIFF or Exif tag structure.
+</p>
+<p>
+Given a metadata model (e.g. Exif, Exif GPS, IPTC/NAA), the tag key (or tag field name) is 
+unique inside this data model. This uniqueness allows FreeImage to use this key to index the 
+tag inside a hash table, in order to speed up tag access. Whenever you store a tag inside a 
+metadata model, you thus need to provide a unique key with the tag to store.
+</p>
+<p>
+A FreeImage tag may be used to store any kind of data (e.g. strings, integers, doubles, 
+rational numbers, etc.). The complete list of data type supported by FreeImage is given in 
+Table 12. For example, when the tag data type indicates a double and the tag count is 8, then 
+the tag value is an array of 8 doubles. Its length should be 64 bytes (8 x sizeof(double)). If the 
+tag data type indicates a rational and the length is 48 bytes, then there are (48 bytes / (2 x 4-bytes)) = 6 rational values in the tag. 
+As for ASCII strings, the value of the count part of an ASCII tag entry includes the NULL.
+</p>
+End Rem
+Type TFreeImageTag
+
+	Field tagPtr:Byte Ptr
+	
+	Function _create:TFreeImageTag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TFreeImageTag = New TFreeImageTag
+			this.tagPtr = tagptr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Creates a new FreeImage tag.
+	about: Tag creation is only needed when you use the FreeImage::setMetadata method.
+	End Rem
+	Function CreateTag:TFreeImageTag()
+		Return New TFreeImageTag.Create()
+	End Function
+	
+	Rem
+	bbdoc: Creates a new FreeImage tag.
+	about: Tag creation is only needed when you use the FreeImage::setMetadata method.
+	End Rem
+	Method Create:TFreeImageTag()
+		tagPtr = bmx_freeimagetag_create()
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Creates and returns a copy of this tag.
+	End Rem
+	Method clone:TFreeImageTag()
+		Return TFreeImageTag._create(bmx_freeimagetag_clone(tagPtr))
+	End Method
+	
+	Rem
+	bbdoc: Returns the tag field name (unique inside a metadata model).
+	End Rem
+	Method getKey:String()
+		Return bmx_freeimagetag_getkey(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the tag description if available, returns NULL otherwise.
+	End Rem
+	Method getDescription:String()
+		Return bmx_freeimagetag_getdescription(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the tag ID if available, returns 0 otherwise.
+	End Rem
+	Method getID:Int()
+		Return bmx_freeimagetag_getid(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the tag data type.
+	about: One of :
+	End Rem
+	Method getType:Int()
+		Return bmx_freeimagetag_gettype(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the number of components in the tag (in tag type units).
+	about: For example, when the tag data type indicates a double (i.e. a FIDT_DOUBLE type) and the tag count is 8, then the tag 
+	value is an array of 8 doubles. 
+	End Rem
+	Method getCount:Int()
+		Return bmx_freeimagetag_getcount(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the length of the tag value in bytes.
+	End Rem
+	Method getLength:Int()
+		Return bmx_freeimagetag_getlength(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the tag value. 
+	about: It is up to you to interpret the returned pointer correctly, according to the results of #getType and #getCount.
+	End Rem
+	Method getValue:Byte Ptr()
+		Return bmx_freeimagetag_getvalue(tagPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the tag field name (always required, must be unique inside a metadata model).
+	returns: TRUE if successful and returns FALSE otherwise. 
+	End Rem
+	Method setKey:Int(key:String)
+		Return bmx_freeimagetag_setkey(tagPtr, key)
+	End Method
+	
+	Rem
+	bbdoc: Sets the (usually optional) tag description.
+	returns: TRUE if successful and returns FALSE otherwise. 
+	about: The tag description is never stored in a file. FreeImage maintains an internal table for 
+	all known tags, together with their description when available. Whenever you read a 
+	known tag, the library is able to give the tag description (provided that the tag is known 
+	by the library) using #getDescription. However, provide a tag description when storing a tag. 
+	End Rem
+	Method setDescription:Int(description:String)
+		Return bmx_freeimagetag_setdescription(tagPtr, description)
+	End Method
+	
+	Rem
+	bbdoc: Sets the (usually optional) tad ID.
+	returns: TRUE if successful and returns FALSE otherwise.
+	End Rem
+	Method setID:Int(id:Int)
+		Return bmx_freeimagetag_setid(tagPtr, id)
+	End Method
+	
+	Rem
+	bbdoc: Sets the tag data type (always required).
+	returns: TRUE if successful and returns FALSE otherwise.
+	End Rem
+	Method setType:Int(tagType:Int)
+		Return bmx_freeimagetag_settype(tagPtr, tagType)
+	End Method
+	
+	Rem
+	bbdoc: Sets the number of data in the tag (always required, expressed in tag type unit).
+	returns: TRUE if successful and returns FALSE otherwise.
+	End Rem
+	Method setCount:Int(count:Int)
+		Return bmx_freeimagetag_setcount(tagPtr, count)
+	End Method
+	
+	Rem
+	bbdoc: Sets the length of the tag value, in bytes (always required).
+	returns: TRUE if successful and returns FALSE otherwise.
+	End Rem
+	Method setLength:Int(length:Int)
+		Return bmx_freeimagetag_setlength(tagPtr, length)
+	End Method
+	
+	Rem
+	bbdoc: Sets the tag value (always required).
+	returns: TRUE if successful and returns FALSE otherwise.
+	about: This must be called after the tag data type, tag count and tag length have been filled. Otherwise, you will
+	be unable to successfully call FreeImage::setMetadata. 
+	End Rem
+	Method setValue:Int(value:Byte Ptr)
+		Return bmx_freeimagetag_setvalue(tagPtr, value)
+	End Method
+	
+	Rem
+	bbdoc: Converts the tag to a string that represents the interpreted tag value.
+	about: The tag value is interpreted according to the metadata model specification. For example, consider 
+	a tag extracted from the FIMD_EXIF_EXIF metadata model, whose ID is 0x9209 and whose 
+	key is "Flash". Then if the tag value is 0x0005, the function will return "Strobe return light not detected". 
+	Upon entry, model is the metadata model from which the tag was extracted, tag is the 
+	FreeImage tag to interpret and Make is the camera model. This last parameter is currently not 
+	used by the library but will be used in the future to interpret the camera maker notes (FIMD_EXIF_MAKERNOTE metadata model). 
+	End Rem
+	Method tagToString:String(model:Int, make:String = Null)
+		Return bmx_freeimagetag_tagtostring(tagPtr, model, make)
+	End Method
+	
+	Method Delete()
+		If tagPtr Then
+			bmx_freeimagetag_free(tagPtr)
+			tagPtr = Null
+		End If
+	End Method
+
+End Type
 
 Rem
 bbdoc: Returns the format type for the given filename
