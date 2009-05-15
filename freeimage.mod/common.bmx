@@ -150,6 +150,10 @@ Extern
 	Function FreeImage_GetFIFFromFilenameU:Int(filename:Short Ptr)
 	'Function FreeImage_SetPixelColor(dib:Byte Ptr, x:Int, y:Int, rgbquad:Byte Ptr)
 
+	Function bmx_freeimagemetadata_FindFirstMetadata:Byte Ptr(model:Int, image:Byte Ptr, tag:Byte Ptr)
+	Function bmx_freeimagemetadata_FindNextMetadata:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimagemetadata_free(handle:Byte Ptr)
+
 End Extern
 
 '?win32

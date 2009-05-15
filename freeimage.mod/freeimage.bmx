@@ -1222,7 +1222,55 @@ Type TFreeImage
 			Return bmx_freeimage_SetMetadata(freeImagePtr, model, key, Null)
 		End If
 	End Method
+
+	Rem
+	bbdoc: Returns a list enumerator for the metadata attached to this image.
+	about: You can use this returned object in a For ... Eachin loop.
+	End Rem
+	Method metadata:TMetadataEnumerator(model:Int)
+		Return New TMetadataEnumerator.Create(Self, model)
+	End Method
+
+End Type
+
+' metadata "eachin" support
+Type TMetadataEnumerator
+
+	Field metadataPtr:Byte Ptr
+
+	Method Create:TMetadataEnumerator(image:TFreeImage, model:Int)
+		tag = New TFreeImageTag.Create()
+		metadataPtr = bmx_freeimagemetadata_FindFirstMetadata(model, image.freeImagePtr, tag.tagPtr)
+		If Not metadataPtr Then
+			tag = Null
+		End If
+		Return Self
+	End Method
+
+	Method HasNext:Int()
+		If tag Then
+			Return True
+		End If
+	End Method
 	
+	Method NextObject:Object()
+		Local nextTag:TFreeImageTag = tag
+		
+		tag = TFreeImageTag._create(bmx_freeimagemetadata_FindNextMetadata(metadataPtr))
+		
+		Return nextTag
+	End Method
+	
+	Method Delete()
+		If metadataPtr Then
+			bmx_freeimagemetadata_free(metadataPtr)
+			metadataPtr = Null
+		End If
+	End Method
+
+	'***** PRIVATE *****
+		
+	Field tag:TFreeImageTag
 End Type
 
 Rem

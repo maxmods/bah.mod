@@ -149,6 +149,10 @@ extern "C" {
 	MaxFreeImageTag * bmx_freeimagetag_clone(MaxFreeImageTag * tag);
 	BBString * bmx_freeimagetag_tagtostring(MaxFreeImageTag * tag, FREE_IMAGE_MDMODEL model, BBString * make);
 
+	FIMETADATA * bmx_freeimagemetadata_FindFirstMetadata(FREE_IMAGE_MDMODEL model, MaxFreeImage * freeimage, MaxFreeImageTag * tag);
+	MaxFreeImageTag * bmx_freeimagemetadata_FindNextMetadata(FIMETADATA * handle);
+	void bmx_freeimagemetadata_free(FIMETADATA * handle);
+
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++
@@ -289,6 +293,7 @@ public:
 	BOOL GetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG **tag);
 	unsigned GetMetadataCount(FREE_IMAGE_MDMODEL model);
 	BOOL SetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG *tag);
+	FIMETADATA * FindFirstMetadata(FREE_IMAGE_MDMODEL model, FITAG **tag);
 	
 	~MaxFreeImage()
 	{
@@ -558,7 +563,9 @@ BOOL MaxFreeImage::SetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG 
 	return FreeImage_SetMetadata(model, bitmap, key, tag);
 }
 
-
+FIMETADATA * MaxFreeImage::FindFirstMetadata(FREE_IMAGE_MDMODEL model, FITAG **tag) {
+	return FreeImage_FindFirstMetadata(model, bitmap, tag);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++
 
@@ -1060,6 +1067,33 @@ BBString * bmx_freeimagetag_tagtostring(MaxFreeImageTag * tag, FREE_IMAGE_MDMODE
 	} else {
 		return &bbEmptyString;
 	}
+}
+
+// +++++++++++++++++++++++++++++++++++++++
+
+FIMETADATA * bmx_freeimagemetadata_FindFirstMetadata(FREE_IMAGE_MDMODEL model, MaxFreeImage * freeimage, MaxFreeImageTag * metatag) {
+	// delete our temporary tag
+	metatag->SetOwner(false);
+	FreeImage_DeleteTag(metatag->tag);
+	
+	return freeimage->FindFirstMetadata(model, &metatag->tag);
+}
+
+MaxFreeImageTag * bmx_freeimagemetadata_FindNextMetadata(FIMETADATA * handle) {
+	MaxFreeImageTag * metatag = new MaxFreeImageTag(false);
+
+	BOOL res = FreeImage_FindNextMetadata(handle, &metatag->tag);
+	
+	if (! metatag->tag) {
+		delete metatag;
+		return NULL;
+	} else {
+		return metatag;
+	}
+}
+
+void bmx_freeimagemetadata_free(FIMETADATA * handle) {
+	FreeImage_FindCloseMetadata(handle);
 }
 
 
