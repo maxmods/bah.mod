@@ -294,5 +294,20 @@ Const FIMD_GEOTIFF:Int = 8        ' GeoTIFF metadata
 Const FIMD_ANIMATION:Int = 9      ' Animation metadata
 Const FIMD_CUSTOM:Int = 10        ' Used To attach other metadata types To a dib
 
+Const FIDT_NOTYPE:Int = 0     ' placeholder 
+Const FIDT_BYTE:Int = 1       ' 8-bit unsigned integer 
+Const FIDT_ASCII:Int = 2      ' 8-bit bytes w/ last Byte Null 
+Const FIDT_SHORT:Int = 3      ' 16-bit unsigned short
+Const FIDT_INT:Int = 4       ' 32-bit unsigned integer 
+Const FIDT_RATIONAL:Int = 5   ' 64-bit unsigned fraction 
+Const FIDT_SBYTE:Int = 6      ' 8-bit signed byte 
+Const FIDT_UNDEFINED:Int = 7  ' 8-bit untyped data 
+Const FIDT_SSHORT:Int = 8     ' 16-bit signed short 
+Const FIDT_SINT:Int = 9      ' 32-bit signed integer 
+Const FIDT_SRATIONAL:Int = 10 ' 64-bit signed fraction 
+Const FIDT_FLOAT:Int = 11     ' 32-bit IEEE floating point 
+Const FIDT_DOUBLE:Int = 12    ' 64-bit IEEE floating point 
+Const FIDT_IFD:Int = 13       ' 32-bit unsigned integer (offset) 
+Const FIDT_PALETTE:int = 14   ' 32-bit RGBQUAD 
 
 

@@ -213,7 +213,7 @@ class MaxFreeImageTag
 {
 public:
 	MaxFreeImageTag(bool newTag)
-		: ownsTag(newTag)
+		: tag(0), ownsTag(newTag)
 	{
 		if (newTag) {
 			tag = FreeImage_CreateTag();
