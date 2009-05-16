@@ -1,4 +1,4 @@
-/* $Id: ares_gethostbyname.c,v 1.34 2007-11-15 09:16:48 sesse Exp $ */
+/* $Id: ares_gethostbyname.c,v 1.44 2008-11-25 16:26:58 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -17,30 +17,39 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#  include <arpa/inet.h>
+#endif
 #ifdef HAVE_ARPA_NAMESER_H
-#include <arpa/nameser.h>
+#  include <arpa/nameser.h>
+#else
+#  include "nameser.h"
 #endif
 #ifdef HAVE_ARPA_NAMESER_COMPAT_H
-#include <arpa/nameser_compat.h>
-#endif
+#  include <arpa/nameser_compat.h>
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 #include "ares.h"
-#include "ares_private.h"
 #include "inet_net_pton.h"
 #include "bitncmp.h"
+#include "ares_private.h"
 
 #ifdef WATT32
 #undef WIN32
@@ -138,7 +147,11 @@ static void next_lookup(struct host_query *hquery, int status_code)
         case 'f':
           /* Host file lookup */
           status = file_lookup(hquery->name, hquery->family, &host);
-          if (status != ARES_ENOTFOUND)
+
+          /* this status check below previously checked for !ARES_ENOTFOUND,
+             but we should not assume that this single error code is the one
+             that can occur, as that is in fact no longer the case */
+          if (status == ARES_SUCCESS)
             {
               end_hquery(hquery, status, host);
               return;
@@ -155,7 +168,7 @@ static void host_callback(void *arg, int status, int timeouts,
 {
   struct host_query *hquery = (struct host_query *) arg;
   ares_channel channel = hquery->channel;
-  struct hostent *host;
+  struct hostent *host = NULL;
 
   hquery->timeouts += timeouts;
   if (status == ARES_SUCCESS)
@@ -169,6 +182,15 @@ static void host_callback(void *arg, int status, int timeouts,
       else if (hquery->family == AF_INET6)
         {
           status = ares_parse_aaaa_reply(abuf, alen, &host, NULL, NULL);
+          if (status == ARES_ENODATA)
+            {
+              /* The query returned something (e.g. CNAME) but there were no
+                 AAAA records.  Try looking up A instead.  */
+              hquery->family = AF_INET;
+              ares_search(hquery->channel, hquery->name, C_IN, T_A, host_callback,
+                          hquery);
+              return;
+            }
           if (host && channel->nsort)
             sort6_addresses(host, channel->sortlist, channel->nsort);
         }
@@ -223,8 +245,8 @@ static int fake_hostent(const char *name, int family, ares_host_callback callbac
             numdots++;
           }
         }
-    
-      /* if we don't have 3 dots, it is illegal 
+
+      /* if we don't have 3 dots, it is illegal
        * (although inet_addr doesn't think so).
        */
       if (numdots != 3)
@@ -265,6 +287,33 @@ static int fake_hostent(const char *name, int family, ares_host_callback callbac
 
   free((char *)(hostent.h_name));
   return 1;
+}
+
+/* This is an API method */
+int ares_gethostbyname_file(ares_channel channel, const char *name,
+                            int family, struct hostent **host)
+{
+  int result;
+
+  /* We only take the channel to ensure that ares_init() been called. */
+  if(channel == NULL)
+    {
+      /* Anything will do, really.  This seems fine, and is consistent with
+         other error cases. */
+      *host = NULL;
+      return ARES_ENOTFOUND;
+    }
+
+  /* Just chain to the internal implementation we use here; it's exactly
+   * what we want.
+   */
+  result = file_lookup(name, family, host);
+  if(result != ARES_SUCCESS)
+    {
+      /* We guarantee a NULL hostent on failure. */
+      *host = NULL;
+    }
+  return result;
 }
 
 static int file_lookup(const char *name, int family, struct hostent **host)
@@ -383,13 +432,13 @@ static int get_address_index(struct in_addr *addr, struct apattern *sortlist,
         continue;
       if (sortlist[i].type == PATTERN_MASK)
         {
-          if ((addr->s_addr & sortlist[i].mask.addr.addr4.s_addr)
-              == sortlist[i].addr.addr4.s_addr)
+          if ((addr->s_addr & sortlist[i].mask.addr4.s_addr)
+              == sortlist[i].addrV4.s_addr)
             break;
         }
       else
         {
-          if (!ares_bitncmp(&addr->s_addr, &sortlist[i].addr.addr4.s_addr,
+          if (!ares_bitncmp(&addr->s_addr, &sortlist[i].addrV4.s_addr,
                             sortlist[i].mask.bits))
             break;
         }
@@ -436,7 +485,7 @@ static int get6_address_index(struct in6_addr *addr, struct apattern *sortlist,
     {
       if (sortlist[i].family != AF_INET6)
         continue;
-        if (!ares_bitncmp(&addr->s6_addr, &sortlist[i].addr.addr6.s6_addr, sortlist[i].mask.bits))
+        if (!ares_bitncmp(&addr->s6_addr, &sortlist[i].addrV6.s6_addr, sortlist[i].mask.bits))
           break;
     }
   return i;

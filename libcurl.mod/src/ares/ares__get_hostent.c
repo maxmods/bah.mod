@@ -1,4 +1,4 @@
-/* $Id: ares__get_hostent.c,v 1.14 2007-06-02 19:42:25 bagder Exp $ */
+/* $Id: ares__get_hostent.c,v 1.16 2008-09-15 17:14:29 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -18,10 +18,18 @@
 #include "setup.h"
 
 #if !defined(WIN32) || defined(WATT32)
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 #endif
 
 #include <stdio.h>
@@ -30,8 +38,8 @@
 #include <ctype.h>
 
 #include "ares.h"
-#include "ares_private.h"
 #include "inet_net_pton.h"
+#include "ares_private.h"
 
 int ares__get_hostent(FILE *fp, int family, struct hostent **host)
 {

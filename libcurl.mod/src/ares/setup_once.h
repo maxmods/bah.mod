@@ -1,9 +1,9 @@
 #ifndef __SETUP_ONCE_H
 #define __SETUP_ONCE_H
 
-/* $Id: setup_once.h,v 1.26 2007-10-24 14:39:07 yangtse Exp $ */
+/* $Id: setup_once.h,v 1.32 2008-08-27 00:25:03 yangtse Exp $ */
 
-/* Copyright (C) 2004 - 2007 by Daniel Stenberg et al
+/* Copyright (C) 2004 - 2008 by Daniel Stenberg et al
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
@@ -26,7 +26,6 @@
  *                                                                  *
  ********************************************************************/
 
-
 /*
  * Inclusion of common header files.
  */
@@ -39,7 +38,7 @@
 #include <errno.h>
 
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+//#include <sys/types.h>
 #endif
 
 #ifdef HAVE_SYS_STAT_H
@@ -100,11 +99,10 @@ struct timeval {
  * definition is present the other one also is available.
  */
 
-#if defined(WIN32) && !defined(HAVE_SOCKLEN_T)
+#if defined(WIN32) && !defined(HAVE_CONFIG_H)
 #  if ( defined(_MSC_VER) && !defined(INET_ADDRSTRLEN) ) || \
       (!defined(_MSC_VER) && !defined(HAVE_WS2TCPIP_H) )
 #    define socklen_t int
-#    define HAVE_SOCKLEN_T
 #  endif
 #endif
 
@@ -190,6 +188,46 @@ struct timeval {
   /* */
 #endif
 #endif /* HAVE_SEND */
+
+
+#if 0
+#if defined(HAVE_RECVFROM)
+/*
+ * Currently recvfrom is only used on udp sockets.
+ */
+#if !defined(RECVFROM_TYPE_ARG1) || \
+    !defined(RECVFROM_TYPE_ARG2) || \
+    !defined(RECVFROM_TYPE_ARG3) || \
+    !defined(RECVFROM_TYPE_ARG4) || \
+    !defined(RECVFROM_TYPE_ARG5) || \
+    !defined(RECVFROM_TYPE_ARG6) || \
+    !defined(RECVFROM_TYPE_RETV)
+  /* */
+  Error Missing_definition_of_return_and_arguments_types_of_recvfrom
+  /* */
+#else
+#define sreadfrom(s,b,bl,f,fl) (ssize_t)recvfrom((RECVFROM_TYPE_ARG1)  (s),  \
+                                                 (RECVFROM_TYPE_ARG2 *)(b),  \
+                                                 (RECVFROM_TYPE_ARG3)  (bl), \
+                                                 (RECVFROM_TYPE_ARG4)  (0),  \
+                                                 (RECVFROM_TYPE_ARG5 *)(f),  \
+                                                 (RECVFROM_TYPE_ARG6 *)(fl))
+#endif
+#else /* HAVE_RECVFROM */
+#ifndef sreadfrom
+  /* */
+  Error Missing_definition_of_macro_sreadfrom
+  /* */
+#endif
+#endif /* HAVE_RECVFROM */
+
+
+#ifdef RECVFROM_TYPE_ARG6_IS_VOID
+#  define RECVFROM_ARG6_T int
+#else
+#  define RECVFROM_ARG6_T RECVFROM_TYPE_ARG6
+#endif
+#endif /* if 0 */
 
 
 /*

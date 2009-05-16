@@ -1,6 +1,7 @@
-/* $Id: ares_process.c,v 1.61 2007-10-18 17:17:18 yangtse Exp $ */
+/* $Id: ares_process.c,v 1.73 2008-12-04 12:53:03 bagder Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
+ * Copyright (C) 2004-2008 by Daniel Stenberg
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -17,41 +18,45 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
-
-#else
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif
 #ifdef HAVE_SYS_UIO_H
-#include <sys/uio.h>
+#  include <sys/uio.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h> /* <netinet/tcp.h> may need it */
+#  include <netinet/in.h>
 #endif
 #ifdef HAVE_NETINET_TCP_H
-#include <netinet/tcp.h> /* for TCP_NODELAY */
+#  include <netinet/tcp.h>
 #endif
 #ifdef HAVE_NETDB_H
-#include <netdb.h>
+#  include <netdb.h>
 #endif
 #ifdef HAVE_ARPA_NAMESER_H
-#include <arpa/nameser.h>
+#  include <arpa/nameser.h>
+#else
+#  include "nameser.h"
 #endif
 #ifdef HAVE_ARPA_NAMESER_COMPAT_H
-#include <arpa/nameser_compat.h>
+#  include <arpa/nameser_compat.h>
 #endif
-#endif /* WIN32 && !WATT32 */
 
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#  include <strings.h>
+#endif
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 #ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
 #ifdef NETWARE
-#include <sys/filio.h>
+#  include <sys/filio.h>
 #endif
 
 #include <assert.h>
@@ -68,21 +73,25 @@
 
 static int try_again(int errnum);
 static void write_tcp_data(ares_channel channel, fd_set *write_fds,
-                           ares_socket_t write_fd, time_t now);
+                           ares_socket_t write_fd, struct timeval *now);
 static void read_tcp_data(ares_channel channel, fd_set *read_fds,
-                          ares_socket_t read_fd, time_t now);
+                          ares_socket_t read_fd, struct timeval *now);
 static void read_udp_packets(ares_channel channel, fd_set *read_fds,
-                             ares_socket_t read_fd, time_t now);
+                             ares_socket_t read_fd, struct timeval *now);
 static void advance_tcp_send_queue(ares_channel channel, int whichserver,
                                    ssize_t num_bytes);
-static void process_timeouts(ares_channel channel, time_t now);
-static void process_broken_connections(ares_channel channel, time_t now);
+static void process_timeouts(ares_channel channel, struct timeval *now);
+static void process_broken_connections(ares_channel channel,
+                                       struct timeval *now);
 static void process_answer(ares_channel channel, unsigned char *abuf,
-                           int alen, int whichserver, int tcp, time_t now);
-static void handle_error(ares_channel channel, int whichserver, time_t now);
+                           int alen, int whichserver, int tcp,
+                           struct timeval *now);
+static void handle_error(ares_channel channel, int whichserver,
+                         struct timeval *now);
 static void skip_server(ares_channel channel, struct query *query,
                         int whichserver);
-static void next_server(ares_channel channel, struct query *query, time_t now);
+static void next_server(ares_channel channel, struct query *query,
+                        struct timeval *now);
 static int configure_socket(int s, ares_channel channel);
 static int open_tcp_socket(ares_channel channel, struct server_state *server);
 static int open_udp_socket(ares_channel channel, struct server_state *server);
@@ -91,19 +100,57 @@ static int same_questions(const unsigned char *qbuf, int qlen,
 static void end_query(ares_channel channel, struct query *query, int status,
                       unsigned char *abuf, int alen);
 
+/* return true if now is exactly check time or later */
+int ares__timedout(struct timeval *now,
+                   struct timeval *check)
+{
+  int secs = (now->tv_sec - check->tv_sec);
+
+  if(secs > 0)
+    return 1; /* yes, timed out */
+  if(secs < 0)
+    return 0; /* nope, not timed out */
+
+  /* if the full seconds were identical, check the sub second parts */
+  return (now->tv_usec - check->tv_usec >= 0);
+}
+
+/* add the specific number of milliseconds to the time in the first argument */
+int ares__timeadd(struct timeval *now,
+                  int millisecs)
+{
+  now->tv_sec += millisecs/1000;
+  now->tv_usec += (millisecs%1000)*1000;
+
+  if(now->tv_usec >= 1000000) {
+    ++(now->tv_sec);
+    now->tv_usec -= 1000000;
+  }
+
+  return 0;
+}
+
+/* return time offset between now and (future) check, in milliseconds */
+long ares__timeoffset(struct timeval *now,
+                      struct timeval *check)
+{
+  return (check->tv_sec - now->tv_sec)*1000 +
+         (check->tv_usec - now->tv_usec)/1000;
+}
+
+
 /* Something interesting happened on the wire, or there was a timeout.
  * See what's up and respond accordingly.
  */
 void ares_process(ares_channel channel, fd_set *read_fds, fd_set *write_fds)
 {
-  time_t now;
+  struct timeval now = ares__tvnow();
 
-  time(&now);
-  write_tcp_data(channel, write_fds, ARES_SOCKET_BAD, now);
-  read_tcp_data(channel, read_fds, ARES_SOCKET_BAD, now);
-  read_udp_packets(channel, read_fds, ARES_SOCKET_BAD, now);
-  process_timeouts(channel, now);
-  process_broken_connections(channel, now);
+  write_tcp_data(channel, write_fds, ARES_SOCKET_BAD, &now);
+  read_tcp_data(channel, read_fds, ARES_SOCKET_BAD, &now);
+  read_udp_packets(channel, read_fds, ARES_SOCKET_BAD, &now);
+  process_timeouts(channel, &now);
+  process_broken_connections(channel, &now);
 }
 
 /* Something interesting happened on the wire, or there was a timeout.
@@ -114,13 +161,12 @@ void ares_process_fd(ares_channel channel,
                                                file descriptors */
                      ares_socket_t write_fd)
 {
-  time_t now;
+  struct timeval now = ares__tvnow();
 
-  time(&now);
-  write_tcp_data(channel, NULL, write_fd, now);
-  read_tcp_data(channel, NULL, read_fd, now);
-  read_udp_packets(channel, NULL, read_fd, now);
-  process_timeouts(channel, now);
+  write_tcp_data(channel, NULL, write_fd, &now);
+  read_tcp_data(channel, NULL, read_fd, &now);
+  read_udp_packets(channel, NULL, read_fd, &now);
+  process_timeouts(channel, &now);
 }
 
 
@@ -155,7 +201,7 @@ static int try_again(int errnum)
 static void write_tcp_data(ares_channel channel,
                            fd_set *write_fds,
                            ares_socket_t write_fd,
-                           time_t now)
+                           struct timeval *now)
 {
   struct server_state *server;
   struct send_request *sendreq;
@@ -174,7 +220,8 @@ static void write_tcp_data(ares_channel channel,
       /* Make sure server has data to send and is selected in write_fds or
          write_fd. */
       server = &channel->servers[i];
-      if (!server->qhead || server->tcp_socket == ARES_SOCKET_BAD || server->is_broken)
+      if (!server->qhead || server->tcp_socket == ARES_SOCKET_BAD ||
+          server->is_broken)
         continue;
 
       if(write_fds) {
@@ -278,7 +325,7 @@ static void advance_tcp_send_queue(ares_channel channel, int whichserver,
  * a packet if we finish reading one.
  */
 static void read_tcp_data(ares_channel channel, fd_set *read_fds,
-                          ares_socket_t read_fd, time_t now)
+                          ares_socket_t read_fd, struct timeval *now)
 {
   struct server_state *server;
   int i;
@@ -374,12 +421,16 @@ static void read_tcp_data(ares_channel channel, fd_set *read_fds,
 
 /* If any UDP sockets select true for reading, process them. */
 static void read_udp_packets(ares_channel channel, fd_set *read_fds,
-                             ares_socket_t read_fd, time_t now)
+                             ares_socket_t read_fd, struct timeval *now)
 {
   struct server_state *server;
   int i;
   ssize_t count;
   unsigned char buf[PACKETSZ + 1];
+#ifdef HAVE_RECVFROM
+  struct sockaddr_in from;
+  socklen_t fromlen;
+#endif
 
   if(!read_fds && (read_fd == ARES_SOCKET_BAD))
     /* no possible action */
@@ -413,11 +464,24 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
       /* To reduce event loop overhead, read and process as many
        * packets as we can. */
       do {
+#ifdef HAVE_RECVFROM
+        fromlen = sizeof(from);
+        count = (ssize_t)recvfrom(server->udp_socket, (void *)buf, sizeof(buf),
+                                  0, (struct sockaddr *)&from, &fromlen);
+#else
         count = sread(server->udp_socket, buf, sizeof(buf));
+#endif
         if (count == -1 && try_again(SOCKERRNO))
           continue;
         else if (count <= 0)
           handle_error(channel, i, now);
+#ifdef HAVE_RECVFROM
+        else if (from.sin_addr.s_addr != server->addr.s_addr)
+          /* Address response came from did not match the address
+           * we sent the request to.  Someone may be attempting
+           * to perform a cache poisoning attack */
+          break;
+#endif
         else
           process_answer(channel, buf, (int)count, i, 0, now);
        } while (count > 0);
@@ -425,7 +489,7 @@ static void read_udp_packets(ares_channel channel, fd_set *read_fds,
 }
 
 /* If any queries have timed out, note the timeout and move them on. */
-static void process_timeouts(ares_channel channel, time_t now)
+static void process_timeouts(ares_channel channel, struct timeval *now)
 {
   time_t t;  /* the time of the timeouts we're processing */
   struct query *query;
@@ -438,14 +502,14 @@ static void process_timeouts(ares_channel channel, time_t now)
    * only a handful of requests that fall into the "now" bucket, so
    * this should be quite quick.
    */
-  for (t = channel->last_timeout_processed; t <= now; t++)
+  for (t = channel->last_timeout_processed; t <= now->tv_sec; t++)
     {
       list_head = &(channel->queries_by_timeout[t % ARES_TIMEOUT_TABLE_SIZE]);
       for (list_node = list_head->next; list_node != list_head; )
         {
           query = list_node->data;
           list_node = list_node->next;  /* in case the query gets deleted */
-          if (query->timeout != 0 && now >= query->timeout)
+          if (query->timeout.tv_sec && ares__timedout(now, &query->timeout))
             {
               query->error_status = ARES_ETIMEOUT;
               ++query->timeouts;
@@ -453,12 +517,13 @@ static void process_timeouts(ares_channel channel, time_t now)
             }
         }
      }
-  channel->last_timeout_processed = now;
+  channel->last_timeout_processed = now->tv_sec;
 }
 
 /* Handle an answer from a server. */
 static void process_answer(ares_channel channel, unsigned char *abuf,
-                           int alen, int whichserver, int tcp, time_t now)
+                           int alen, int whichserver, int tcp,
+                           struct timeval *now)
 {
   int tc, rcode;
   unsigned short id;
@@ -536,7 +601,8 @@ static void process_answer(ares_channel channel, unsigned char *abuf,
 }
 
 /* Close all the connections that are no longer usable. */
-static void process_broken_connections(ares_channel channel, time_t now)
+static void process_broken_connections(ares_channel channel,
+                                       struct timeval *now)
 {
   int i;
   for (i = 0; i < channel->nservers; i++)
@@ -549,7 +615,8 @@ static void process_broken_connections(ares_channel channel, time_t now)
     }
 }
 
-static void handle_error(ares_channel channel, int whichserver, time_t now)
+static void handle_error(ares_channel channel, int whichserver,
+                         struct timeval *now)
 {
   struct server_state *server;
   struct query *query;
@@ -600,32 +667,36 @@ static void skip_server(ares_channel channel, struct query *query,
     }
 }
 
-static void next_server(ares_channel channel, struct query *query, time_t now)
+static void next_server(ares_channel channel, struct query *query,
+                        struct timeval *now)
 {
-  /* Advance to the next server or try. */
-  query->server++;
-  for (; query->try < channel->tries; query->try++)
+  /* We need to try each server channel->tries times. We have channel->nservers
+   * servers to try. In total, we need to do channel->nservers * channel->tries
+   * attempts. Use query->try to remember how many times we already attempted
+   * this query. Use modular arithmetic to find the next server to try. */
+  while (++(query->try) < (channel->nservers * channel->tries))
     {
-      for (; query->server < channel->nservers; query->server++)
+      struct server_state *server;
+
+      /* Move on to the next server. */
+      query->server = (query->server + 1) % channel->nservers;
+      server = &channel->servers[query->server];
+
+      /* We don't want to use this server if (1) we decided this
+       * connection is broken, and thus about to be closed, (2)
+       * we've decided to skip this server because of earlier
+       * errors we encountered, or (3) we already sent this query
+       * over this exact connection.
+       */
+      if (!server->is_broken &&
+           !query->server_info[query->server].skip_server &&
+           !(query->using_tcp &&
+             (query->server_info[query->server].tcp_connection_generation ==
+              server->tcp_connection_generation)))
         {
-          struct server_state *server = &channel->servers[query->server];
-          /* We don't want to use this server if (1) we decided this
-           * connection is broken, and thus about to be closed, (2)
-           * we've decided to skip this server because of earlier
-           * errors we encountered, or (3) we already sent this query
-           * over this exact connection.
-           */
-          if (!server->is_broken &&
-               !query->server_info[query->server].skip_server &&
-               !(query->using_tcp &&
-                 (query->server_info[query->server].tcp_connection_generation ==
-                  server->tcp_connection_generation)))
-            {
-               ares__send_query(channel, query, now);
-               return;
-            }
+           ares__send_query(channel, query, now);
+           return;
         }
-      query->server = 0;
 
       /* You might think that with TCP we only need one try. However,
        * even when using TCP, servers can time-out our connection just
@@ -634,10 +705,13 @@ static void next_server(ares_channel channel, struct query *query, time_t now)
        * tickle a bug that drops our request.
        */
     }
+
+  /* If we are here, all attempts to perform query failed. */
   end_query(channel, query, query->error_status, NULL, 0);
 }
 
-void ares__send_query(ares_channel channel, struct query *query, time_t now)
+void ares__send_query(ares_channel channel, struct query *query,
+                      struct timeval *now)
 {
   struct send_request *sendreq;
   struct server_state *server;
@@ -704,16 +778,16 @@ void ares__send_query(ares_channel channel, struct query *query, time_t now)
           return;
         }
     }
-    query->timeout = now
-        + ((query->try == 0) ? channel->timeout
-           : channel->timeout << query->try / channel->nservers);
+    query->timeout = *now;
+    ares__timeadd(&query->timeout,
+                  channel->timeout << (query->try / channel->nservers));
     /* Keep track of queries bucketed by timeout, so we can process
      * timeout events quickly.
      */
     ares__remove_from_list(&(query->queries_by_timeout));
     ares__insert_in_list(
         &(query->queries_by_timeout),
-        &(channel->queries_by_timeout[query->timeout %
+        &(channel->queries_by_timeout[query->timeout.tv_sec %
                                       ARES_TIMEOUT_TABLE_SIZE]));
 
     /* Keep track of queries bucketed by server, so we can process server
@@ -731,68 +805,51 @@ void ares__send_query(ares_channel channel, struct query *query, time_t now)
 static int setsocknonblock(ares_socket_t sockfd,    /* operate on this */
                     int nonblock   /* TRUE or FALSE */)
 {
-#undef SETBLOCK
-#define SETBLOCK 0
-#ifdef HAVE_O_NONBLOCK
+#if defined(USE_BLOCKING_SOCKETS)
+
+  return 0; /* returns success */
+
+#elif defined(HAVE_FCNTL_O_NONBLOCK)
+
   /* most recent unix versions */
   int flags;
-
   flags = fcntl(sockfd, F_GETFL, 0);
   if (FALSE != nonblock)
     return fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
   else
     return fcntl(sockfd, F_SETFL, flags & (~O_NONBLOCK));
-#undef SETBLOCK
-#define SETBLOCK 1
-#endif
 
-#if defined(HAVE_FIONBIO) && (SETBLOCK == 0)
+#elif defined(HAVE_IOCTL_FIONBIO)
+
   /* older unix versions */
   int flags;
-
   flags = nonblock;
   return ioctl(sockfd, FIONBIO, &flags);
-#undef SETBLOCK
-#define SETBLOCK 2
-#endif
 
-#if defined(HAVE_IOCTLSOCKET) && (SETBLOCK == 0)
+#elif defined(HAVE_IOCTLSOCKET_FIONBIO)
+
 #ifdef WATT32
   char flags;
 #else
-  /* Windows? */
+  /* Windows */
   unsigned long flags;
 #endif
   flags = nonblock;
-
   return ioctlsocket(sockfd, FIONBIO, &flags);
-#undef SETBLOCK
-#define SETBLOCK 3
-#endif
 
-#if defined(HAVE_IOCTLSOCKET_CASE) && (SETBLOCK == 0)
-  /* presumably for Amiga */
+#elif defined(HAVE_IOCTLSOCKET_CAMEL_FIONBIO)
+
+  /* Amiga */
   return IoctlSocket(sockfd, FIONBIO, (long)nonblock);
-#undef SETBLOCK
-#define SETBLOCK 4
-#endif
 
-#if defined(HAVE_SO_NONBLOCK) && (SETBLOCK == 0)
+#elif defined(HAVE_SETSOCKOPT_SO_NONBLOCK)
+
   /* BeOS */
   long b = nonblock ? 1 : 0;
   return setsockopt(sockfd, SOL_SOCKET, SO_NONBLOCK, &b, sizeof(b));
-#undef SETBLOCK
-#define SETBLOCK 5
-#endif
 
-#ifdef HAVE_DISABLED_NONBLOCKING
-  return 0; /* returns success */
-#undef SETBLOCK
-#define SETBLOCK 6
-#endif
-
-#if (SETBLOCK == 0)
-#error "no non-blocking method was found/used/set"
+#else
+#  error "no non-blocking method was found/used/set"
 #endif
 }
 
@@ -836,10 +893,11 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
   /* Configure it. */
   if (configure_socket(s, channel) < 0)
     {
-       close(s);
+       closesocket(s);
        return -1;
     }
 
+#ifdef TCP_NODELAY
   /*
    * Disable the Nagle algorithm (only relevant for TCP sockets, and thus not in
    * configure_socket). In general, in DNS lookups we're pretty much interested
@@ -850,23 +908,37 @@ static int open_tcp_socket(ares_channel channel, struct server_state *server)
   if (setsockopt(s, IPPROTO_TCP, TCP_NODELAY,
                  (void *)&opt, sizeof(opt)) == -1)
     {
-       close(s);
+       closesocket(s);
        return -1;
     }
+#endif
 
   /* Connect to the server. */
   memset(&sockin, 0, sizeof(sockin));
   sockin.sin_family = AF_INET;
   sockin.sin_addr = server->addr;
   sockin.sin_port = (unsigned short)(channel->tcp_port & 0xffff);
-  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1) {
-    int err = SOCKERRNO;
+  if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
+    {
+      int err = SOCKERRNO;
 
-    if (err != EINPROGRESS && err != EWOULDBLOCK) {
-      closesocket(s);
-      return -1;
+      if (err != EINPROGRESS && err != EWOULDBLOCK)
+        {
+          closesocket(s);
+          return -1;
+        }
     }
-  }
+
+  if (channel->sock_create_cb)
+    {
+      int err = channel->sock_create_cb(s, SOCK_STREAM,
+                                        channel->sock_create_cb_data);
+      if (err < 0)
+        {
+          closesocket(s);
+          return err;
+        }
+    }
 
   SOCK_STATE_CALLBACK(channel, s, 1, 0);
   server->tcp_buffer_pos = 0;
@@ -888,7 +960,7 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
   /* Set the socket non-blocking. */
   if (configure_socket(s, channel) < 0)
     {
-       close(s);
+       closesocket(s);
        return -1;
     }
 
@@ -899,8 +971,24 @@ static int open_udp_socket(ares_channel channel, struct server_state *server)
   sockin.sin_port = (unsigned short)(channel->udp_port & 0xffff);
   if (connect(s, (struct sockaddr *) &sockin, sizeof(sockin)) == -1)
     {
-      closesocket(s);
-      return -1;
+      int err = SOCKERRNO;
+
+      if (err != EINPROGRESS && err != EWOULDBLOCK)
+        {
+          closesocket(s);
+          return -1;
+        }
+    }
+
+  if (channel->sock_create_cb)
+    {
+      int err = channel->sock_create_cb(s, SOCK_DGRAM,
+                                        channel->sock_create_cb_data);
+      if (err < 0)
+        {
+          closesocket(s);
+          return err;
+        }
     }
 
   SOCK_STATE_CALLBACK(channel, s, 1, 0);

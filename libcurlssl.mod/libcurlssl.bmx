@@ -35,6 +35,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
+ModuleInfo "History: Update to c-ares 1.6.0"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"
@@ -56,6 +57,7 @@ ModuleInfo "CC_OPTS: -DCURL_STATICLIB"
 ' Renamed ares/inet_ntop.c to area/ares_inet_ntop.c because of name clash with libcurl
 '
 ' Added extra options to config_win32.h
+' Added __GNUC__ test to ares/setup.h - for GCC 4+ compilation
 '
 
 Import "curlmain.bmx"

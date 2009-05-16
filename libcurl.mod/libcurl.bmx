@@ -25,7 +25,7 @@ bbdoc: libcurl
 End Rem
 Module BaH.libcurl
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1998 - 2007, Daniel Stenberg"
@@ -33,6 +33,8 @@ ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
 ModuleInfo "Copyright: (Wrapper) 2007,2008 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Update to c-ares 1.6.0"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"
@@ -55,6 +57,7 @@ ModuleInfo "CC_OPTS: -DCURL_STATICLIB"
 ' Renamed ares/inet_ntop.c to area/ares_inet_ntop.c because of name clash with libcurl
 '
 ' Added extra options to config_win32.h
+' Added __GNUC__ test to ares/setup.h - for GCC 4+ compilation
 '
 
 Import "curlmain.bmx"

@@ -1,6 +1,6 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id: adig.c,v 1.25 2007-09-28 14:46:51 sesse Exp $
+ * $Id: adig.c,v 1.36 2008-10-17 19:04:53 yangtse Exp $
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -17,20 +17,35 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#  include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
 #else
+#  include "nameser.h"
+#endif
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
+#  include <arpa/nameser_compat.h>
+#endif
+
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <arpa/nameser.h>
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#  include <unistd.h>
 #endif
-#include <netdb.h>
+#ifdef HAVE_STRINGS_H
+#  include <strings.h>
 #endif
 
 #include <stdio.h>
@@ -42,7 +57,23 @@
 #include "ares.h"
 #include "ares_dns.h"
 #include "inet_ntop.h"
+#include "inet_net_pton.h"
 #include "ares_getopt.h"
+
+#ifndef HAVE_STRDUP
+#  include "ares_strdup.h"
+#  define strdup(ptr) ares_strdup(ptr)
+#endif
+
+#ifndef HAVE_STRCASECMP
+#  include "ares_strcasecmp.h"
+#  define strcasecmp(p1,p2) ares_strcasecmp(p1,p2)
+#endif
+
+#ifndef HAVE_STRNCASECMP
+#  include "ares_strcasecmp.h"
+#  define strncasecmp(p1,p2,n) ares_strncasecmp(p1,p2,n)
+#endif
 
 #ifdef WATT32
 #undef WIN32  /* Redefined in MingW headers */
@@ -110,6 +141,7 @@ static const struct nv types[] = {
   { "AXFR",     T_AXFR },
   { "MAILB",    T_MAILB },
   { "MAILA",    T_MAILA },
+  { "NAPTR",    T_NAPTR },
   { "ANY",      T_ANY }
 };
 static const int ntypes = sizeof(types) / sizeof(types[0]);
@@ -120,6 +152,7 @@ static const char *opcodes[] = {
   "UPDATEA", "UPDATED", "UPDATEDA", "UPDATEM", "UPDATEMA",
   "ZONEINIT", "ZONEREF"
 };
+  struct in_addr inaddr;
 
 static const char *rcodes[] = {
   "NOERROR", "FORMERR", "SERVFAIL", "NXDOMAIN", "NOTIMP", "REFUSED",
@@ -181,11 +214,15 @@ int main(int argc, char **argv)
 
         case 's':
           /* Add a server, and specify servers in the option mask. */
-          hostent = gethostbyname(optarg);
-          if (!hostent || hostent->h_addrtype != AF_INET)
+          if (ares_inet_pton(AF_INET, optarg, &inaddr) <= 0)
             {
-              fprintf(stderr, "adig: server %s not found.\n", optarg);
-              return 1;
+              hostent = gethostbyname(optarg);
+              if (!hostent || hostent->h_addrtype != AF_INET)
+                {
+                  fprintf(stderr, "adig: server %s not found.\n", optarg);
+                  return 1;
+                }
+              memcpy(&inaddr, hostent->h_addr, sizeof(struct in_addr));
             }
           options.servers = realloc(options.servers, (options.nservers + 1)
                                     * sizeof(struct in_addr));
@@ -194,7 +231,7 @@ int main(int argc, char **argv)
               fprintf(stderr, "Out of memory!\n");
               return 1;
             }
-          memcpy(&options.servers[options.nservers], hostent->h_addr,
+          memcpy(&options.servers[options.nservers], &inaddr,
                  sizeof(struct in_addr));
           options.nservers++;
           optmask |= ARES_OPT_SERVERS;
@@ -302,6 +339,8 @@ static void callback(void *arg, int status, int timeouts,
   int id, qr, opcode, aa, tc, rd, ra, rcode;
   unsigned int qdcount, ancount, nscount, arcount, i;
   const unsigned char *aptr;
+
+  (void) timeouts;
 
   /* Display the query name if given. */
   if (name)
@@ -427,13 +466,16 @@ static const unsigned char *display_rr(const unsigned char *aptr,
                                        const unsigned char *abuf, int alen)
 {
   const unsigned char *p;
-  char *name;
   int type, dnsclass, ttl, dlen, status;
   long len;
   char addr[46];
+  union {
+    unsigned char * as_uchar;
+             char * as_char;
+  } name;
 
   /* Parse the RR name. */
-  status = ares_expand_name(aptr, abuf, alen, &name, &len);
+  status = ares_expand_name(aptr, abuf, alen, &name.as_char, &len);
   if (status != ARES_SUCCESS)
     return NULL;
   aptr += len;
@@ -443,7 +485,7 @@ static const unsigned char *display_rr(const unsigned char *aptr,
    */
   if (aptr + RRFIXEDSZ > abuf + alen)
     {
-      ares_free_string(name);
+      ares_free_string(name.as_char);
       return NULL;
     }
 
@@ -456,16 +498,16 @@ static const unsigned char *display_rr(const unsigned char *aptr,
   aptr += RRFIXEDSZ;
   if (aptr + dlen > abuf + alen)
     {
-      ares_free_string(name);
+      ares_free_string(name.as_char);
       return NULL;
     }
 
   /* Display the RR name, class, and type. */
-  printf("\t%-15s.\t%d", name, ttl);
+  printf("\t%-15s.\t%d", name.as_char, ttl);
   if (dnsclass != C_IN)
     printf("\t%s", class_name(dnsclass));
   printf("\t%s", type_name(type));
-  ares_free_string(name);
+  ares_free_string(name.as_char);
 
   /* Display the RR data.  Don't touch aptr. */
   switch (type)
@@ -479,11 +521,11 @@ static const unsigned char *display_rr(const unsigned char *aptr,
     case T_NS:
     case T_PTR:
       /* For these types, the RR data is just a domain name. */
-      status = ares_expand_name(aptr, abuf, alen, &name, &len);
+      status = ares_expand_name(aptr, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.", name);
-      ares_free_string(name);
+      printf("\t%s.", name.as_char);
+      ares_free_string(name.as_char);
       break;
 
     case T_HINFO:
@@ -503,17 +545,17 @@ static const unsigned char *display_rr(const unsigned char *aptr,
     case T_MINFO:
       /* The RR data is two domain names. */
       p = aptr;
-      status = ares_expand_name(p, abuf, alen, &name, &len);
+      status = ares_expand_name(p, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.", name);
-      ares_free_string(name);
+      printf("\t%s.", name.as_char);
+      ares_free_string(name.as_char);
       p += len;
-      status = ares_expand_name(p, abuf, alen, &name, &len);
+      status = ares_expand_name(p, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.", name);
-      ares_free_string(name);
+      printf("\t%s.", name.as_char);
+      ares_free_string(name.as_char);
       break;
 
     case T_MX:
@@ -523,11 +565,11 @@ static const unsigned char *display_rr(const unsigned char *aptr,
       if (dlen < 2)
         return NULL;
       printf("\t%d", DNS__16BIT(aptr));
-      status = ares_expand_name(aptr + 2, abuf, alen, &name, &len);
+      status = ares_expand_name(aptr + 2, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.", name);
-      ares_free_string(name);
+      printf("\t%s.", name.as_char);
+      ares_free_string(name.as_char);
       break;
 
     case T_SOA:
@@ -535,17 +577,17 @@ static const unsigned char *display_rr(const unsigned char *aptr,
        * numbers giving the serial number and some timeouts.
        */
       p = aptr;
-      status = ares_expand_name(p, abuf, alen, &name, &len);
+      status = ares_expand_name(p, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.\n", name);
-      ares_free_string(name);
+      printf("\t%s.\n", name.as_char);
+      ares_free_string(name.as_char);
       p += len;
-      status = ares_expand_name(p, abuf, alen, &name, &len);
+      status = ares_expand_name(p, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t\t\t\t\t\t%s.\n", name);
-      ares_free_string(name);
+      printf("\t\t\t\t\t\t%s.\n", name.as_char);
+      ares_free_string(name.as_char);
       p += len;
       if (p + 20 > aptr + dlen)
         return NULL;
@@ -596,12 +638,47 @@ static const unsigned char *display_rr(const unsigned char *aptr,
       printf(" %d", DNS__16BIT(aptr + 2));
       printf(" %d", DNS__16BIT(aptr + 4));
 
-      status = ares_expand_name(aptr + 6, abuf, alen, &name, &len);
+      status = ares_expand_name(aptr + 6, abuf, alen, &name.as_char, &len);
       if (status != ARES_SUCCESS)
         return NULL;
-      printf("\t%s.", name);
-      ares_free_string(name);
+      printf("\t%s.", name.as_char);
+      ares_free_string(name.as_char);
       break;
+
+    case T_NAPTR:
+
+      printf("\t%d", DNS__16BIT(aptr)); /* order */
+      printf(" %d\n", DNS__16BIT(aptr + 2)); /* preference */
+
+      p = aptr + 4;
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t\t\t\t\t\t%s\n", name.as_char);
+      ares_free_string(name.as_char);
+      p += len;
+
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t\t\t\t\t\t%s\n", name.as_char);
+      ares_free_string(name.as_char);
+      p += len;
+
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t\t\t\t\t\t%s\n", name.as_char);
+      ares_free_string(name.as_char);
+      p += len;
+
+      status = ares_expand_string(p, abuf, alen, &name.as_uchar, &len);
+      if (status != ARES_SUCCESS)
+        return NULL;
+      printf("\t\t\t\t\t\t%s", name.as_char);
+      ares_free_string(name.as_char);
+      break;
+
 
     default:
       printf("\t[Unknown RR; cannot parse]");

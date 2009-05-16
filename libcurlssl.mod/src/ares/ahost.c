@@ -1,6 +1,6 @@
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
- * $Id: ahost.c,v 1.21 2007-11-15 19:44:01 yangtse Exp $
+ * $Id: ahost.c,v 1.24 2008-09-15 15:28:26 yangtse Exp $
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -29,6 +29,9 @@
 #include <unistd.h>
 #endif
 #endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +42,21 @@
 #include "inet_ntop.h"
 #include "inet_net_pton.h"
 #include "ares_getopt.h"
+
+#ifndef HAVE_STRDUP
+#  include "ares_strdup.h"
+#  define strdup(ptr) ares_strdup(ptr)
+#endif
+
+#ifndef HAVE_STRCASECMP
+#  include "ares_strcasecmp.h"
+#  define strcasecmp(p1,p2) ares_strcasecmp(p1,p2)
+#endif
+
+#ifndef HAVE_STRNCASECMP
+#  include "ares_strcasecmp.h"
+#  define strncasecmp(p1,p2,n) ares_strncasecmp(p1,p2,n)
+#endif
 
 static void callback(void *arg, int status, int timeouts, struct hostent *host);
 static void usage(void);
@@ -138,6 +156,8 @@ int main(int argc, char **argv)
 static void callback(void *arg, int status, int timeouts, struct hostent *host)
 {
   char **p;
+
+  (void)timeouts;
 
   if (status != ARES_SUCCESS)
     {

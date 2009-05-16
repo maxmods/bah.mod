@@ -1,4 +1,4 @@
-/* $Id: ares_expand_string.c,v 1.6 2007-02-26 04:33:19 giva Exp $ */
+/* $Id: ares_expand_string.c,v 1.9 2008-11-29 00:26:07 danf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -17,11 +17,16 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
 #else
-#include <netinet/in.h>
-#include <arpa/nameser.h>
+#  include "nameser.h"
 #endif
 
 #include <string.h>

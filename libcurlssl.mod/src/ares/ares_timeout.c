@@ -1,4 +1,4 @@
-/* $Id: ares_timeout.c,v 1.10 2007-09-29 18:18:47 sesse Exp $ */
+/* $Id: ares_timeout.c,v 1.12 2008-05-15 22:57:33 yangtse Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -37,16 +37,16 @@ struct timeval *ares_timeout(ares_channel channel, struct timeval *maxtv,
   struct query *query;
   struct list_node* list_head;
   struct list_node* list_node;
-  time_t now;
-  time_t offset, min_offset; /* these use time_t since some 32 bit systems
-                                still use 64 bit time_t! (like VS2005) */
+  struct timeval now;
+  struct timeval nextstop;
+  long offset, min_offset;
 
   /* No queries, no timeout (and no fetch of the current time). */
   if (ares__is_list_empty(&(channel->all_queries)))
     return maxtv;
 
   /* Find the minimum timeout for the current set of queries. */
-  time(&now);
+  now = ares__tvnow();
   min_offset = -1;
 
   list_head = &(channel->all_queries);
@@ -54,23 +54,26 @@ struct timeval *ares_timeout(ares_channel channel, struct timeval *maxtv,
        list_node = list_node->next)
     {
       query = list_node->data;
-      if (query->timeout == 0)
+      if (query->timeout.tv_sec == 0)
         continue;
-      offset = query->timeout - now;
+      offset = ares__timeoffset(&now, &query->timeout);
       if (offset < 0)
         offset = 0;
       if (min_offset == -1 || offset < min_offset)
         min_offset = offset;
     }
 
-  /* If we found a minimum timeout and it's sooner than the one
-   * specified in maxtv (if any), return it.  Otherwise go with
-   * maxtv.
+  if(min_offset != -1) {
+    nextstop.tv_sec = min_offset/1000;
+    nextstop.tv_usec = (min_offset%1000)*1000;
+  }
+
+  /* If we found a minimum timeout and it's sooner than the one specified in
+   * maxtv (if any), return it.  Otherwise go with maxtv.
    */
-  if (min_offset != -1 && (!maxtv || min_offset <= maxtv->tv_sec))
+  if (min_offset != -1 && (!maxtv || ares__timedout(maxtv, &nextstop)))
     {
-      tvbuf->tv_sec = (long)min_offset;
-      tvbuf->tv_usec = 0;
+      *tvbuf = nextstop;
       return tvbuf;
     }
   else

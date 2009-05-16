@@ -1,4 +1,4 @@
-/* $Id: inet_net_pton.c,v 1.13 2007-02-26 04:33:19 giva Exp $ */
+/* $Id: inet_net_pton.c,v 1.15 2008-09-24 19:13:02 yangtse Exp $ */
 
 /*
  * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
@@ -19,23 +19,22 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
-#else
-
 #ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
+#  include <sys/socket.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_ARPA_NAMESER_H
-#include <arpa/nameser.h>
+#  include <netinet/in.h>
 #endif
 #ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
+#  include <arpa/inet.h>
 #endif
-
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
+#else
+#  include "nameser.h"
+#endif
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
+#  include <arpa/nameser_compat.h>
 #endif
 
 #include <ctype.h>
@@ -47,8 +46,7 @@
 #include "ares_ipv6.h"
 #include "inet_net_pton.h"
 
-#if !defined(HAVE_INET_NET_PTON) || !defined(HAVE_INET_NET_PTON_IPV6) || \
-    !defined(HAVE_INET_PTON) || !defined(HAVE_INET_PTON_IPV6)
+#if !defined(HAVE_INET_NET_PTON) || !defined(HAVE_INET_NET_PTON_IPV6)
 
 /*
  * static int
@@ -425,7 +423,7 @@ ares_inet_net_pton(int af, const char *src, void *dst, size_t size)
 
 #endif
 
-#if !defined(HAVE_INET_PTON) || !defined(HAVE_INET_PTON_IPV6)
+#ifndef HAVE_INET_PTON
 int ares_inet_pton(int af, const char *src, void *dst)
 {
   int size, result;

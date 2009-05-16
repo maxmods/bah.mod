@@ -1,4 +1,4 @@
-/* $Id: ares_ipv6.h,v 1.7 2007-11-19 15:47:01 bagder Exp $ */
+/* $Id: ares_ipv6.h,v 1.8 2007-12-10 16:14:02 giva Exp $ */
 
 /* Copyright (C) 2005 by Dominick Meglio
  *
@@ -22,7 +22,7 @@
 #define PF_INET6 AF_INET6
 #endif
 
-#ifndef s6_addr
+#if !defined(HAVE_STRUCT_IN6_ADDR) && !defined(s6_addr)
 struct in6_addr {
   union {
     unsigned char _S6_u8[16];
@@ -43,7 +43,7 @@ struct sockaddr_in6
 #endif
 
 #ifndef HAVE_STRUCT_ADDRINFO
-struct addrinfo 
+struct addrinfo
 {
   int              ai_flags;
   int              ai_family;

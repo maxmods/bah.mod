@@ -1,4 +1,4 @@
-/* $Id: ares_parse_aaaa_reply.c,v 1.8 2007-11-16 09:36:00 sesse Exp $ */
+/* $Id: ares_parse_aaaa_reply.c,v 1.11 2008-09-17 01:02:57 yangtse Exp $ */
 
 /* Copyright 2005 Dominick Meglio
  *
@@ -17,19 +17,29 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#  include <arpa/inet.h>
+#endif
 #ifdef HAVE_ARPA_NAMESER_H
-#include <arpa/nameser.h>
+#  include <arpa/nameser.h>
+#else
+#  include "nameser.h"
 #endif
 #ifdef HAVE_ARPA_NAMESER_COMPAT_H
-#include <arpa/nameser_compat.h>
+#  include <arpa/nameser_compat.h>
 #endif
+
+#ifdef HAVE_STRINGS_H
+#  include <strings.h>
 #endif
 
 #include <stdlib.h>

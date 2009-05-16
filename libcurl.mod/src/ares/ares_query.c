@@ -1,4 +1,4 @@
-/* $Id: ares_query.c,v 1.15 2007-10-18 01:01:20 yangtse Exp $ */
+/* $Id: ares_query.c,v 1.20 2008-11-29 00:26:07 danf Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
  *
@@ -17,14 +17,19 @@
 
 #include "setup.h"
 
-#if defined(WIN32) && !defined(WATT32)
-#include "nameser.h"
-#else
-#include <netinet/in.h>
-#include <arpa/nameser.h>
-#ifdef HAVE_ARPA_NAMESER_COMPAT_H
-#include <arpa/nameser_compat.h>
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
 #endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
+#  include <arpa/nameser.h>
+#else
+#  include "nameser.h"
+#endif
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
+#  include <arpa/nameser_compat.h>
 #endif
 
 #include <stdlib.h>
@@ -65,7 +70,7 @@ void ares__rc4(rc4_key* key, unsigned char *buffer_ptr, int buffer_len)
   key->y = y;
 }
 
-static struct query* find_query_by_id(ares_channel channel, int id)
+static struct query* find_query_by_id(ares_channel channel, unsigned short id)
 {
   unsigned short qid;
   struct list_node* list_head;
@@ -90,15 +95,15 @@ static struct query* find_query_by_id(ares_channel channel, int id)
    performed per id generation. In practice this search should happen only
    once per newly generated id
 */
-static int generate_unique_id(ares_channel channel)
+static unsigned short generate_unique_id(ares_channel channel)
 {
-  int id;
+  unsigned short id;
 
   do {
-	id = ares__generate_new_id(&channel->id_key);
-  } while (find_query_by_id(channel,id));
+    id = ares__generate_new_id(&channel->id_key);
+  } while (find_query_by_id(channel, id));
 
-  return id;
+  return (unsigned short)id;
 }
 
 void ares_query(ares_channel channel, const char *name, int dnsclass,

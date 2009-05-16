@@ -1,9 +1,10 @@
 #ifndef __ARES_PRIVATE_H
 #define __ARES_PRIVATE_H
 
-/* $Id: ares_private.h,v 1.30 2007-11-08 18:13:54 yangtse Exp $ */
+/* $Id: ares_private.h,v 1.42 2008-12-04 12:53:03 bagder Exp $ */
 
 /* Copyright 1998 by the Massachusetts Institute of Technology.
+ * Copyright (C) 2004-2008 by Daniel Stenberg
  *
  * Permission to use, copy, modify, and distribute this
  * software and its documentation for any purpose and without
@@ -42,13 +43,14 @@
 #undef  closesocket
 #define closesocket(s)    close_s(s)
 #define writev(s,v,c)     writev_s(s,v,c)
+#define HAVE_WRITEV 1
 #endif
 
 #ifdef NETWARE
 #include <time.h>
 #endif
 
-#define DEFAULT_TIMEOUT         5
+#define DEFAULT_TIMEOUT         5000 /* milliseconds */
 #define DEFAULT_TRIES           4
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -92,6 +94,36 @@
 
 #include "ares_ipv6.h"
 #include "ares_llist.h"
+
+#ifndef HAVE_STRDUP
+#  include "ares_strdup.h"
+#  define strdup(ptr) ares_strdup(ptr)
+#endif
+
+#ifndef HAVE_STRCASECMP
+#  include "ares_strcasecmp.h"
+#  define strcasecmp(p1,p2) ares_strcasecmp(p1,p2)
+#endif
+
+#ifndef HAVE_STRNCASECMP
+#  include "ares_strcasecmp.h"
+#  define strncasecmp(p1,p2,n) ares_strncasecmp(p1,p2,n)
+#endif
+
+#ifndef HAVE_WRITEV
+#  include "ares_writev.h"
+#  define writev(s,ptr,cnt) ares_writev(s,ptr,cnt)
+#endif
+
+struct ares_addr {
+  int family;
+  union {
+    struct in_addr  addr4;
+    struct in6_addr addr6;
+  } addr;
+};
+#define addrV4 addr.addr4
+#define addrV6 addr.addr6
 
 struct query;
 
@@ -149,7 +181,7 @@ struct server_state {
 struct query {
   /* Query ID from qbuf, for faster lookup, and current timeout */
   unsigned short qid;
-  time_t timeout;
+  struct timeval timeout;
 
   /*
    * Links for the doubly-linked lists in which we insert a query.
@@ -173,8 +205,8 @@ struct query {
   void *arg;
 
   /* Query status */
-  int try;
-  int server;
+  int try; /* Number of times we tried this query already. */
+  int server; /* Server this query has last been sent to. */
   struct query_server_info *server_info;   /* per-server state */
   int using_tcp;
   int error_status;
@@ -191,17 +223,17 @@ struct query_server_info {
 #define PATTERN_MASK 0x1
 #define PATTERN_CIDR 0x2
 
-union ares_addr {
-  struct in_addr addr4;
-  struct in6_addr addr6;
-};
-
 struct apattern {
-  union ares_addr addr;
   union
   {
-    union ares_addr addr;
-    unsigned short bits;
+    struct in_addr  addr4;
+    struct in6_addr addr6;
+  } addr;
+  union
+  {
+    struct in_addr  addr4;
+    struct in6_addr addr6;
+    unsigned short  bits;
   } mask;
   int family;
   unsigned short type;
@@ -217,9 +249,10 @@ typedef struct rc4_key
 struct ares_channeldata {
   /* Configuration data */
   int flags;
-  int timeout;
+  int timeout; /* in milliseconds */
   int tries;
   int ndots;
+  int rotate; /* if true, all servers specified are used */
   int udp_port;
   int tcp_port;
   int socket_send_buffer_size;
@@ -229,6 +262,8 @@ struct ares_channeldata {
   struct apattern *sortlist;
   int nsort;
   char *lookups;
+
+  int optmask; /* the option bitfield passed in at init time */
 
   /* Server addresses and communications state */
   struct server_state *servers;
@@ -242,8 +277,12 @@ struct ares_channeldata {
   /* Generation number to use for the next TCP socket open/close */
   int tcp_connection_generation;
 
-  /* The time at which we last called process_timeouts() */
+  /* The time at which we last called process_timeouts(). Uses integer seconds
+     just to draw the line somewhere. */
   time_t last_timeout_processed;
+
+  /* Last server we sent a query to. */
+  int last_server;
 
   /* Circular, doubly-linked list of queries, bucketed various ways.... */
   /* All active queries in a single list: */
@@ -257,15 +296,32 @@ struct ares_channeldata {
 
   ares_sock_state_cb sock_state_cb;
   void *sock_state_cb_data;
+
+  ares_sock_create_callback sock_create_cb;
+  void *sock_create_cb_data;
 };
 
+/* return true if now is exactly check time or later */
+int ares__timedout(struct timeval *now,
+                   struct timeval *check);
+/* add the specific number of milliseconds to the time in the first argument */
+int ares__timeadd(struct timeval *now,
+                  int millisecs);
+/* return time offset between now and (future) check, in milliseconds */
+long ares__timeoffset(struct timeval *now,
+                      struct timeval *check);
 void ares__rc4(rc4_key* key,unsigned char *buffer_ptr, int buffer_len);
-void ares__send_query(ares_channel channel, struct query *query, time_t now);
+void ares__send_query(ares_channel channel, struct query *query,
+                      struct timeval *now);
 void ares__close_sockets(ares_channel channel, struct server_state *server);
 int ares__get_hostent(FILE *fp, int family, struct hostent **host);
 int ares__read_line(FILE *fp, char **buf, int *bufsize);
 void ares__free_query(struct query *query);
-short ares__generate_new_id(rc4_key* key);
+unsigned short ares__generate_new_id(rc4_key* key);
+struct timeval ares__tvnow(void);
+#if 0 /* Not used */
+long ares__tvdiff(struct timeval t1, struct timeval t2);
+#endif
 
 #define ARES_SWAP_BYTE(a,b) \
   { unsigned char swapByte = *(a);  *(a) = *(b);  *(b) = swapByte; }

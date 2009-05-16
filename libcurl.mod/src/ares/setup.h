@@ -1,9 +1,9 @@
 #ifndef __ARES_SETUP_H
 #define __ARES_SETUP_H
 
-/* $Id: setup.h,v 1.28 2007-11-08 18:13:54 yangtse Exp $ */
+/* $Id: setup.h,v 1.35 2008-11-28 23:12:11 danf Exp $ */
 
-/* Copyright (C) 2004 - 2007 by Daniel Stenberg et al
+/* Copyright (C) 2004 - 2008 by Daniel Stenberg et al
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose and without fee is hereby granted, provided
@@ -24,6 +24,13 @@
 #define WIN32
 #endif
 
+// BaH
+#ifdef WIN32
+#if __GNUC__ >= 4
+#define _SSIZE_T_
+#endif
+#endif
+
 /*
  * Include configuration script results or hand-crafted
  * configuration file for platforms which lack config tool.
@@ -38,6 +45,18 @@
 #endif
 
 #endif /* HAVE_CONFIG_H */
+
+/*
+ * Tru64 needs _REENTRANT set for a few function prototypes and
+ * things to appear in the system header files. Unixware needs it
+ * to build proper reentrant code. Others may also need it.
+ */
+
+#ifdef NEED_REENTRANT
+#  ifndef _REENTRANT
+#    define _REENTRANT
+#  endif
+#endif
 
 /*
  * Include header files for windows builds before redefining anything.
@@ -95,6 +114,18 @@
 #define ssize_t int
 #endif
 
+#if !defined(HAVE_SYS_TIME_H) && !defined(_MSC_VER) && !defined(__WATCOMC__)
+#define HAVE_SYS_TIME_H
+#endif
+
+#if !defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
+#define HAVE_UNISTD_H 1
+#endif
+
+#if !defined(HAVE_SYS_UIO_H) && !defined(WIN32) && !defined(MSDOS)
+#define HAVE_SYS_UIO_H
+#endif
+
 #endif /* HAVE_CONFIG_H */
 
 /*
@@ -110,40 +141,6 @@
 #undef PACKAGE_NAME
 #undef VERSION
 #undef PACKAGE
-
-/*
- * Assume a few thing unless they're set by configure
- */
-
-#if !defined(HAVE_SYS_TIME_H) && !defined(_MSC_VER) && !defined(__WATCOMC__)
-#define HAVE_SYS_TIME_H
-#endif
-
-#if !defined(HAVE_UNISTD_H) && !defined(_MSC_VER)
-#define HAVE_UNISTD_H 1
-#endif
-
-#if !defined(HAVE_SYS_UIO_H) && !defined(WIN32) && !defined(MSDOS)
-#define HAVE_SYS_UIO_H
-#endif
-
-#if (defined(WIN32) || defined(WATT32)) && \
-   !(defined(__MINGW32__) || defined(NETWARE) || defined(__DJGPP__))
-/* protos for the functions we provide in windows_port.c */
-int ares_strncasecmp(const char *s1, const char *s2, int n);
-int ares_strcasecmp(const char *s1, const char *s2);
-
-/* use this define magic to prevent us from adding symbol names to the library
-   that is a high-risk to collide with another libraries' attempts to do the
-   same */
-#define strncasecmp(a,b,c) ares_strncasecmp(a,b,c)
-#define strcasecmp(a,b) ares_strcasecmp(a,b)
-#ifdef _MSC_VER
-#  if _MSC_VER >= 1400
-#    define strdup(a) _strdup(a)
-#  endif
-#endif
-#endif
 
 /* IPv6 compatibility */
 #if !defined(HAVE_AF_INET6)

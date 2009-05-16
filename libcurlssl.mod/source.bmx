@@ -129,4 +129,10 @@ Import "src/ares/bitncmp.c"
 Import "src/ares/ares_inet_ntop.c" ' rename from inet_ntop.c
 Import "src/ares/ares_parse_ns_reply.c"
 Import "src/ares/ares_llist.c"
+Import "src/ares/ares_writev.c"
+Import "src/ares/ares_strdup.c"
+Import "src/ares/ares_strcasecmp.c"
+Import "src/ares/ares_getopt.c"
+Import "src/ares/ares__timeval.c"
+Import "src/ares/acountry.c"
 
