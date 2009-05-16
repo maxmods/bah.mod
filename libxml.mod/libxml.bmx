@@ -104,6 +104,13 @@ ModuleInfo "History: 1.00 Initial Release (Libxml 2.6.23)"
 
 Import "libxml_base.bmx"
 
+'
+' Build Notes :
+'
+' setup.h
+' WIN32 ansidecl.h test changed to also check GCC version
+'
+
 Extern
 	Rem
 	bbdoc: Global setting, asking the parser to print out debugging informations while handling entities.
