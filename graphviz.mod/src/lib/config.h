@@ -62,7 +62,7 @@
 #undef HAVE_BIND_TEXTDOMAIN_CODESET
 
 /* Define to 1 if compiler supports bool */
-#ifndef WIN32
+#if !defined(WIN32) || (defined(WIN32) && __GNUC__ > 3)
 #define HAVE_BOOL 1
 #endif
 
