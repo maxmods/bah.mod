@@ -13,11 +13,11 @@
 #endif
 
 /* Define to 1 if you have the <ansidecl.h> header file. */
-#if defined(__WIN32)
-#if __GNUC__ < 4
-# define HAVE_ANSIDECL_H 1
-#endif
-#endif
+//#if defined(__WIN32)
+//#if __GNUC__ < 4
+//# define HAVE_ANSIDECL_H 1
+//#endif
+//#endif
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #if !defined(_WIN32)
