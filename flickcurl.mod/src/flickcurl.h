@@ -2,7 +2,7 @@
  *
  * flickcurl.h - Flickcurl API
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -86,6 +86,7 @@ extern "C" {
  * @VALUE_TYPE_PHOTO_URI: internal
  * @VALUE_TYPE_MEDIA_TYPE: internal
  * @VALUE_TYPE_NONE: internal
+ * @VALUE_TYPE_TAG_STRING: internal
  * @VALUE_TYPE_LAST: internal offset to last in enum list
  * 
  * Field data types
@@ -103,7 +104,8 @@ typedef enum {
   VALUE_TYPE_URI,
   VALUE_TYPE_PERSON_ID, /* internal */
   VALUE_TYPE_MEDIA_TYPE, /* internal */
-  VALUE_TYPE_LAST = VALUE_TYPE_MEDIA_TYPE
+  VALUE_TYPE_TAG_STRING, /* internal */
+  VALUE_TYPE_LAST = VALUE_TYPE_TAG_STRING
 } flickcurl_field_value_type;
   
 
@@ -560,6 +562,7 @@ typedef struct {
  * @shapefile_urls: DEPRECATED for @shape->file_urls: NULL-terminated array of pointers to shapefile URLs when present (or NULL)
  * @shapefile_urls_count: DEPRECATED for @shape->file_urls_count: number of entries in @shapefile_urls array
  * @shape: shapefile data (inline data and shapefile urls)
+ * @timezone: timezone of location in 'zoneinfo' format such as “Europe/Paris”.
  *
  * A Place.
  *
@@ -583,6 +586,7 @@ typedef struct {
   int shapefile_urls_count;
 
   struct flickcurl_shapedata_s* shape;
+  char* timezone;
 } flickcurl_place;
   
 
@@ -596,6 +600,8 @@ typedef struct {
  * @data_length: size of @shapedate string
  * @file_urls: NULL-terminated array of pointers to shapefile URLs when present (or NULL)
  * @file_urls_count: number of entries in @shapefile_urls array
+ * @is_donuthole: non-0 if shape IS a donut (a hole)
+ * @has_donuthole: non-0 if shape HAS a donut inside it and it is worth calling places.getShapeHistory on it / flickcurl_places_getShapeHistory()
  *
  * Shape data for a place.
  *
@@ -609,6 +615,8 @@ typedef struct flickcurl_shapedata_s {
   size_t data_length;
   char** file_urls;
   int file_urls_count;
+  int is_donuthole;
+  int has_donuthole;
 } flickcurl_shapedata;
 
 
@@ -1109,7 +1117,7 @@ typedef struct {
  * @machine_tags: Machine tag search syntax 
  * @machine_tag_mode: Either 'any' for an OR combination of tags, or 'all' for an AND combination. Defaults to 'any' if not specified.
  * @group_id: The id of a group who's pool to search.  If specified, only matching photos posted to the group's pool will be returned. (or NULL)
- * @extras: A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: <code>license</code>, <code>date_upload</code>, <code>date_taken</code>, <code>owner_name</code>, <code>icon_server</code>, <code>original_format</code>, <code>last_update</code>, <code>geo</code>, <code>tags</code>, <code>machine_tags</code>. (or NULL)
+ * @extras: A comma-delimited list of extra information to fetch for each returned record. Currently supported fields are: <code>license</code>, <code>date_upload</code>, <code>date_taken</code>, <code>owner_name</code>, <code>icon_server</code>, <code>original_format</code>, <code>last_update</code>, <code>geo</code>, <code>tags</code>, <code>machine_tags</code>, <code>o_dims</code>, <code>views</code>, <code>media</code>. (or NULL)
  * @per_page: Number of photos to return per page. If this argument is omitted, it defaults to 100. The maximum allowed value is 500. (or NULL)
  * @page: The page of results to return. If this argument is omitted, it defaults to 1. (or NULL)
  * @place_id: A Flickr place id. (only used if bbox argument isn't present). Experimental.  Geo queries require some sort of limiting agent in order to prevent the database from crying. This is basically like the check against "parameterless searches" for queries without a geo component.   A tag, for instance, is considered a limiting agent as are user defined min_date_taken and min_date_upload parameters - If no limiting factor is passed we return only photos added in the last 12 hours (though we may extend the limit in the future) (or NULL)
@@ -1120,6 +1128,7 @@ typedef struct {
  * @radius: A valid radius used for geo queries, greater than zero and less than 20 miles (or 32 kilometers), for use with point-based geo queries. The default value is 5 (km) (or 0.0 for not used)
  * @radius_units: The unit of measure when doing radial geo queries. Valid options are "mi" (miles) and "km" (kilometers). The default is "km" (or NULL)
  * @contacts: (Experimental) Requires @user_id field be set and limits queries to photos beloing to that user's photos.  Valid arguments are 'all' or 'ff' for just friends and family.
+ * @woe_id: A 32-bit identifier that uniquely represents spatial entities. (not used if bbox argument is present).  Same restrictions as @place_id (or <0)
  *
  * Search parameters for flickcurl_photos_search()
  */
@@ -1153,6 +1162,7 @@ typedef struct {
   double radius;
   char* radius_units;
   char* contacts;
+  int woe_id;
 } flickcurl_search_params;
   
 
@@ -1313,6 +1323,24 @@ FLICKCURL_API
 int flickcurl_serialize_photo(flickcurl_serializer* fcs, flickcurl_photo* photo);
 
 
+/**
+ * flickcurl_member:
+ * @nsid: NSID
+ * @username: User name
+ * @iconserver: icon server
+ * @iconfarm: icon farm
+ * @member_type: member type - 1: narwhal, 2: member, 3: moderator 4: admin
+ *
+ * Member in a group
+ */
+typedef struct {
+  char *nsid;
+  char *username;
+  int iconserver;
+  int iconfarm;
+  int member_type;
+} flickcurl_member;
+
 
 /* callback handlers */
 
@@ -1347,6 +1375,13 @@ extern const char* const flickcurl_home_url_string;
 FLICKCURL_API
 extern const char* const flickcurl_version_string;
 
+FLICKCURL_API
+extern const char* const flickcurl_flickr_service_uri;
+FLICKCURL_API
+extern const char* const flickcurl_flickr_upload_service_uri;
+FLICKCURL_API
+extern const char* const flickcurl_flickr_replace_service_uri;
+
 
 /* library init - call once before creating anything */
 FLICKCURL_API
@@ -1365,6 +1400,12 @@ FLICKCURL_API
 void flickcurl_free(flickcurl *fc);
 
 /* flickcurl* object set methods */
+FLICKCURL_API
+void flickcurl_set_service_uri(flickcurl *fc, const char *uri);
+FLICKCURL_API
+void flickcurl_set_upload_service_uri(flickcurl *fc, const char *uri);
+FLICKCURL_API
+void flickcurl_set_replace_service_uri(flickcurl *fc, const char *uri);
 FLICKCURL_API
 void flickcurl_set_api_key(flickcurl* fc, const char *api_key);
 FLICKCURL_API
@@ -1568,6 +1609,15 @@ flickcurl_group* flickcurl_groups_getInfo(flickcurl* fc, const char* group_id, c
 FLICKCURL_API
 flickcurl_group** flickcurl_groups_search(flickcurl* fc, const char* text, int per_page, int page);
 
+/* flickr.groups.members */
+FLICKCURL_API
+void flickcurl_free_member(flickcurl_member *member_object);
+FLICKCURL_API
+void flickcurl_free_members(flickcurl_member **members_object);
+FLICKCURL_API
+flickcurl_member** flickcurl_groups_members_getList(flickcurl* fc, const char* group_id, const char* membertypes, int per_page, int page);
+
+
 /* flickr.groups.pools */
 FLICKCURL_API
 int flickcurl_groups_pools_add(flickcurl* fc, const char* photo_id, const char* group_id);
@@ -1596,11 +1646,17 @@ flickcurl_photos_list* flickcurl_interestingness_getList_params(flickcurl* fc, c
 FLICKCURL_API
 flickcurl_tag_namespace** flickcurl_machinetags_getNamespaces(flickcurl* fc, const char* predicate, int per_page, int page);
 FLICKCURL_API
-flickcurl_tag_predicate_value** flickcurl_machinetags_getPairs(flickcurl* fc, const char* namespace_, const char* predicate, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getPairs(flickcurl* fc, const char *nspace, const char* predicate, int per_page, int page);
 FLICKCURL_API
-flickcurl_tag_predicate_value** flickcurl_machinetags_getPredicates(flickcurl* fc, const char* namespace_, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getPredicates(flickcurl* fc, const char *nspace, int per_page, int page);
 FLICKCURL_API
-flickcurl_tag_predicate_value** flickcurl_machinetags_getValues(flickcurl* fc, const char* namespace_, const char* predicate, int per_page, int page);
+flickcurl_tag_predicate_value** flickcurl_machinetags_getValues(flickcurl* fc, const char *nspace, const char* predicate, int per_page, int page);
+
+/* flickr.panda */
+FLICKCURL_API
+char** flickcurl_panda_getList(flickcurl* fc);
+FLICKCURL_API
+flickcurl_photo** flickcurl_panda_getPhotos(flickcurl *fc, const char *panda_name);
 
 /* flickr.photo.getSizes */
 FLICKCURL_API

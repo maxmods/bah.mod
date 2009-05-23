@@ -2,7 +2,7 @@
  *
  * photos-api.c - Flickr flickr.photos.* API calls
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -1696,6 +1696,7 @@ flickcurl_photos_search_params(flickcurl* fc,
   char lat_s[32];
   char lon_s[32];
   char radius_s[32];
+  char woe_id_s[32];
   const char* format=NULL;
   
   FLICKCURL_ASSERT_OBJECT_POINTER_RETURN_VALUE(params, flickcurl_search_params, NULL);
@@ -1822,6 +1823,11 @@ flickcurl_photos_search_params(flickcurl* fc,
   if(params->contacts && params->user_id) {
     parameters[count][0]  = "contacts";
     parameters[count++][1]= params->contacts;
+  }
+  if(params->woe_id >= 0) {
+    sprintf(woe_id_s, "%d", params->woe_id);
+    parameters[count][0]  = "woe_id";
+    parameters[count++][1]= woe_id_s;
   }
 
   /* Photos List parameters */
@@ -1978,7 +1984,7 @@ flickcurl_photos_setDates(flickcurl* fc, const char* photo_id,
   xmlDocPtr doc=NULL;
   xmlXPathContextPtr xpathCtx=NULL; 
   int result=1;
-  char date_posted_str[10];
+  char date_posted_str[20];
   char* date_taken_str=NULL;
   char date_taken_granularity_str[3];
   

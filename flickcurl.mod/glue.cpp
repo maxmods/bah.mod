@@ -24,6 +24,7 @@ extern "C" {
 	BBObject * _bah_flickcurl_TFCLocation__create(double latitude, double longitude, int accuracy);
 	BBObject * _bah_flickcurl_TFCComment__create(BBString * id, BBString * author, BBString * authorname, int datecreate, BBString * permalink, BBString * text, flickcurl * fc);
 	BBObject * _bah_flickcurl_TFCPersonField__create(BBString * svalue, flickcurl_person_field_type value, flickcurl_field_value_type type);
+	BBObject * _bah_flickcurl_TFCLicense__create(int id, BBString * url, BBString * name);
 
 	BBArray * _bah_flickcurl_TFCTagCluster__createClusterArray(int size);
 	BBObject * _bah_flickcurl_TFCTagCluster__setCluster(BBArray * array, int index, int size);
@@ -41,6 +42,8 @@ extern "C" {
 	BBString * bmx_flickcurl_getToken(flickcurl * fc, BBString * frob);
 
 	flickcurl_photo * bmx_flickcurl_photosgetinfo(flickcurl * fc, BBString * photoID);
+	flickcurl_license ** bmx_flickcurl_photos_license_getinfo(flickcurl * fc);
+	BBObject * bmx_flickcurl_photos_license_getinfobyid(flickcurl * fc, int id);
 
 	BBString * bmx_flickcurl_photo_getid(flickcurl_photo * photo);
 	BBObject * bmx_flickcurl_photo_getfield(flickcurl_photo * photo, int index);
@@ -217,6 +220,36 @@ extern "C" {
 
 	int bmx_flickcurl_notes_deletenote(flickcurl * fc, BBString * noteID);
 	int bmx_flickcurl_notes_editnote(flickcurl * fc, BBString * noteID, int x, int y, int w, int h, BBString * text);
+
+	int bmx_flickcurl_listoflicenses_getlicensecount(flickcurl_license** list);
+	BBObject * bmx_flickcurl_listoflicenses_getlicense(flickcurl_license** list, int index);
+
+	BBArray * bmx_flickcurl_panda_getlist(flickcurl * fc);
+	flickcurl_photo** bmx_flickcurl_panda_getphotos(flickcurl * fc, BBString * pandaName);
+
+	int bmx_flickcurl_listofactivities_getactivitycount(flickcurl_activity** list);
+	flickcurl_activity* bmx_flickcurl_listofactivities_getactivity(flickcurl_activity** list, int index);
+	flickcurl_activity** bmx_flickcurl_activity_usercomments(flickcurl * fc, int perPage, int page);
+	flickcurl_activity** bmx_flickcurl_activity_userphotos(flickcurl * fc, BBString * timeFrame, int perPage, int page);
+
+	BBString * bmx_flickcurl_activity_gettype(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_getowner(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_getownername(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_getprimary(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_getid(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_getsecret(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getserver(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getfarm(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getoldcomments(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getnewcomments(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getoldnotes(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getnewnotes(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getviews(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getcomments(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getphotos(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getfaves(flickcurl_activity* ac);
+	int bmx_flickcurl_activity_getmore(flickcurl_activity* ac);
+	BBString * bmx_flickcurl_activity_gettitle(flickcurl_activity* ac);
 
 }
 
@@ -1266,4 +1299,183 @@ int bmx_flickcurl_notes_editnote(flickcurl * fc, BBString * noteID, int x, int y
 	return res;
 }
 
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_license** bmx_flickcurl_photos_license_getinfo(flickcurl * fc) {
+	return flickcurl_photos_licenses_getInfo(fc);
+}
+
+BBObject * bmx_flickcurl_photos_license_getinfobyid(flickcurl * fc, int id) {
+	flickcurl_license* lic = flickcurl_photos_licenses_getInfo_by_id(fc, id);
+	if (lic) {
+		return _bah_flickcurl_TFCLicense__create(lic->id, bbStringFromCString(lic->url), bbStringFromCString(lic->name));
+	}
+
+	return &bbNullObject;
+}
+
+int bmx_flickcurl_listoflicenses_getlicensecount(flickcurl_license** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+BBObject * bmx_flickcurl_listoflicenses_getlicense(flickcurl_license** list, int index) {
+	flickcurl_license* lic = list[index];
+	if (lic) {
+		return _bah_flickcurl_TFCLicense__create(lic->id, bbStringFromCString(lic->url), bbStringFromCString(lic->name));
+	}
+
+	return &bbNullObject;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBArray * bmx_flickcurl_panda_getlist(flickcurl * fc) {
+
+	int count = 0;
+	char** pandas = flickcurl_panda_getList(fc);
+	
+	BBArray * pa = &bbEmptyArray;
+	
+	for (int i = 0; pandas[i]; i++) {
+		count++;
+	}
+	
+	if (count > 0) {
+		pa = bbArrayNew1D( "$",count );
+		BBString **s=(BBString**)BBARRAYDATA( pa,pa->dims );
+		for( int i=0;i<count;++i ){
+			s[i]=bbStringFromCString( pandas[i] );
+			BBRETAIN( s[i] );
+		}
+	}
+	
+	flickcurl_array_free(pandas);
+
+	return pa;
+}
+
+flickcurl_photo** bmx_flickcurl_panda_getphotos(flickcurl * fc, BBString * pandaName) {
+	char *n=bbStringToCString( pandaName );
+	
+	flickcurl_photo** list = flickcurl_panda_getPhotos(fc, n);
+	
+	bbMemFree(n);
+	
+	return list;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int bmx_flickcurl_listofactivities_getactivitycount(flickcurl_activity** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+flickcurl_activity* bmx_flickcurl_listofactivities_getactivity(flickcurl_activity** list, int index) {
+	return list[index];
+}
+
+flickcurl_activity** bmx_flickcurl_activity_usercomments(flickcurl * fc, int perPage, int page) {
+	return flickcurl_activity_userComments(fc, perPage, page);
+}
+
+flickcurl_activity** bmx_flickcurl_activity_userphotos(flickcurl * fc, BBString * timeFrame, int perPage, int page) {
+	char *t = 0;
+	
+	if (timeFrame != &bbEmptyString) {
+		bbStringToCString( timeFrame );
+	}
+	
+	flickcurl_activity** list = flickcurl_activity_userPhotos(fc, t, perPage, page);
+	
+	if (t) bbMemFree(t);
+	
+	return list;
+}
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BBString * bmx_flickcurl_activity_gettype(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->type);
+}
+
+BBString * bmx_flickcurl_activity_getowner(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->owner);
+}
+
+BBString * bmx_flickcurl_activity_getownername(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->owner_name);
+}
+
+BBString * bmx_flickcurl_activity_getprimary(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->primary);
+}
+
+BBString * bmx_flickcurl_activity_getid(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->id);
+}
+
+BBString * bmx_flickcurl_activity_getsecret(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->secret);
+}
+
+int bmx_flickcurl_activity_getserver(flickcurl_activity* ac) {
+	return ac->server;
+}
+
+int bmx_flickcurl_activity_getfarm(flickcurl_activity* ac) {
+	return ac->farm;
+}
+
+int bmx_flickcurl_activity_getoldcomments(flickcurl_activity* ac) {
+	return ac->comments_old;
+}
+
+int bmx_flickcurl_activity_getnewcomments(flickcurl_activity* ac) {
+	return ac->comments_new;
+}
+
+int bmx_flickcurl_activity_getoldnotes(flickcurl_activity* ac) {
+	return ac->notes_old;
+}
+
+int bmx_flickcurl_activity_getnewnotes(flickcurl_activity* ac) {
+	return ac->notes_new;
+}
+
+int bmx_flickcurl_activity_getviews(flickcurl_activity* ac) {
+	return ac->views;
+}
+
+int bmx_flickcurl_activity_getcomments(flickcurl_activity* ac) {
+	return ac->comments;
+}
+
+int bmx_flickcurl_activity_getphotos(flickcurl_activity* ac) {
+	return ac->photos;
+}
+
+int bmx_flickcurl_activity_getfaves(flickcurl_activity* ac) {
+	return ac->faves;
+}
+
+int bmx_flickcurl_activity_getmore(flickcurl_activity* ac) {
+	return ac->more;
+}
+
+BBString * bmx_flickcurl_activity_gettitle(flickcurl_activity* ac) {
+	return bbStringFromCString(ac->title);
+}
 

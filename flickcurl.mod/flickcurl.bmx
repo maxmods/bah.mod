@@ -21,18 +21,13 @@ Module BaH.Flickcurl
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Flickurl - 2007-2008, David Beckett http://www.dajobe.org/"
+ModuleInfo "Copyright: Flickurl - 2007-2009, David Beckett http://www.dajobe.org/"
 ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DFLICKCURL_STATIC -DCURL_STATICLIB -DLIBXML_STATIC"
 
 Import "common.bmx"
 
-
-'
-' Notes :
-' flickcurl.h - added "_" suffix to "namespace" parameters
-'
 
 Rem
 	<p>Parameters: 
@@ -401,6 +396,69 @@ Type TFlickcurl
 			Return bmx_flickcurl_tag_removetxt(fcPtr, String(tag))
 		End If
 	End Method
+
+	Rem
+	bbdoc: Gets a list of available photo licenses for Flickr.
+	End Rem
+	Method GetLicenseList:TFCLicenseList()
+		Return TFCLicenseList._create(bmx_flickcurl_photos_license_getinfo(fcPtr), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets an individual photo license by ID.
+	about: Not part of the Flickr API.
+	End Rem
+	Method GetLicenseInfoById:TFCLicense(id:Int)
+		Return TFCLicense(bmx_flickcurl_photos_license_getinfobyid(fcPtr, id))
+	End Method
+	
+	Rem
+	bbdoc: Gets the current list of Flickr Pandas.
+	about: Can be used with #GetPandaPhotos to get photos for the given <a href="http://www.flickr.com/explore/panda">FLickr Panda</a>.
+	End Rem
+	Method GetPandaList:String[]()
+		Return bmx_flickcurl_panda_getlist(fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Asks the Flickr Pandas for a list of recent public (and "safe") photos.
+	about: Parameters: 
+	<ul>
+	<li><b>pandaName</b> : The name of the panda to ask for photos from.</li>
+	</ul>
+	End Rem
+	Method GetPandaPhotos:TFCPhotoList(pandaName:String)
+		Return TFCListOfPhotos._create(bmx_flickcurl_panda_getphotos(fcPtr, pandaName), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a list of recent activity on photos commented on by the calling user.
+	about: Parameters: 
+	<ul>
+	<li><b>perPage</b> : Number of items to return per page. If this argument is omitted, it defaults to 10. The maximum allowed value is 50.</li>
+	<li><b>page</b> : The page of results to return. If this argument is omitted, it defaults to 1.</li>
+	</ul>
+	End Rem
+	Method GetActivityUserComments:TFCActivityList(perPage:Int = 10, page:Int = 1)
+		Return TFCActivityList._create(bmx_flickcurl_activity_usercomments(fcPtr, perPage, page))
+	End Method
+	
+	Rem
+	bbdoc: Returns a list of recent activity on photos belonging to the calling user.
+	about: Do not poll this method more than once an hour.
+	<p>Parameters: 
+	<ul>
+	<li><b>timeFrame</b> : The timeframe in which to return updates for. This can be specified in days ('2d') or hours ('4h').
+	The default behavoir is to return changes since the beginning of the previous user session.</li>
+	<li><b>perPage</b> : Number of items to return per page. If this argument is omitted, it defaults to 10. The maximum
+	allowed value is 50.</li>
+	<li><b>page</b> : The page of results to return. If this argument is omitted, it defaults to 1.</li>
+	</ul>
+	</p>
+	End Rem
+	Method GetActivityUserPhotos:TFCActivityList(timeFrame:String = "", perPage:Int = 10, page:Int = 1)
+		Return TFCActivityList._create(bmx_flickcurl_activity_userphotos(fcPtr, timeFrame, perPage, page))
+	End Method
 	
 	Method Delete()
 		Free()
@@ -410,67 +468,149 @@ End Type
 
 
 Rem
-bbdoc: 
+bbdoc: Comments or photos item with activity.
 End Rem
 Type TFCActivity
 
 	Field activityPtr:Byte Ptr
 	
+	Function _create:TFCActivity(activityPtr:Byte Ptr)
+		If activityPtr Then
+			Local this:TFCActivity = New TFCActivity
+			this.activityPtr = activityPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the activity type.
+	about: photoset or photo.
+	End Rem
 	Method GetType:String()
+		Return bmx_flickcurl_activity_gettype(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the owner NSID.
+	End Rem
 	Method GetOwner:String()
+		Return bmx_flickcurl_activity_getowner(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the owner name.
+	End Rem
 	Method GetOwnerName:String()
+		Return bmx_flickcurl_activity_getownername(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the primary.
+	End Rem
 	Method GetPrimary:String()
+		Return bmx_flickcurl_activity_getprimary(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the photo id.
+	End Rem
 	Method GetID:String()
+		Return bmx_flickcurl_activity_getid(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the photo secret.
+	End Rem
 	Method GetSecret:String()
+		Return bmx_flickcurl_activity_getsecret(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the photo server.
+	End Rem
 	Method GetServer:Int()
+		Return bmx_flickcurl_activity_getserver(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the photo farm.
+	End Rem
 	Method GetFarm:Int()
+		Return bmx_flickcurl_activity_getfarm(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the old comments count.
+	End Rem
 	Method GetOldComments:Int()
+		Return bmx_flickcurl_activity_getoldcomments(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the new comments count.
+	End Rem
 	Method GetNewComments:Int()
+		Return bmx_flickcurl_activity_getnewcomments(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the old notes count.
+	End Rem
 	Method GetOldNotes:Int()
+		Return bmx_flickcurl_activity_getoldnotes(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the new notes count.
+	End Rem
 	Method GetNewNotes:Int()
+		Return bmx_flickcurl_activity_getnewnotes(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the views count.
+	End Rem
 	Method GetViews:Int()
+		Return bmx_flickcurl_activity_getviews(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the comments count.
+	End Rem
 	Method GetComments:Int()
+		Return bmx_flickcurl_activity_getcomments(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the photos count.
+	End Rem
 	Method GetPhotos:Int()
+		Return bmx_flickcurl_activity_getphotos(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the favourites count.
+	End Rem
 	Method GetFaves:Int()
+		Return bmx_flickcurl_activity_getfaves(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the state of the more boolean flag.
+	End Rem
 	Method GetMore:Int()
+		Return bmx_flickcurl_activity_getmore(activityPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the title of acitivty.
+	End Rem
 	Method GetTitle:String()
+		Return bmx_flickcurl_activity_gettitle(activityPtr)
 	End Method
 	
 	Method GetEvents:TFCActivityEvent[]()
+	' TODO
 	End Method
 
 End Type
@@ -495,10 +635,11 @@ Type TFCActivityEvent
 	End Method
 	
 	Method GetUsername:String()
+	' TODO
 	End Method
 	
-	' TODO
 	Method GetValue:String()
+	' TODO
 	End Method
 	
 	Method GetDateAdded:Int()
@@ -507,6 +648,50 @@ Type TFCActivityEvent
 
 End Type
 
+Rem
+bbdoc: A list of activities.
+End Rem
+Type TFCActivityList
+
+	Field activityListPtr:Byte Ptr
+
+	Function _create:TFCActivityList(activityListPtr:Byte Ptr)
+		If activityListPtr Then
+			Local this:TFCActivityList = New TFCActivityList
+			this.activityListPtr = activityListPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of activities.
+	End Rem
+	Method GetActivityCount:Int()
+		Return bmx_flickcurl_listofactivities_getactivitycount(activityListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the activity at the given @index.
+	End Rem
+	Method GetActivity:TFCActivity(index:Int)
+		Return TFCActivity._create(bmx_flickcurl_listofactivities_getactivity(activityListPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If activityListPtr Then
+			flickcurl_free_activities(activityListPtr)
+			activityListPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
 
 
 Rem
@@ -790,7 +975,11 @@ Type TFCPhoto
 	
 	Rem
 	bbdoc: Rotate a photo.
-	about: Valid values are 90, 180 and 270.
+	about: Parameters: 
+	<ul>
+	<li><b>degrees</b> : The amount of degrees by which to rotate the photo (clockwise) from its current orientation.
+	Valid values are 90, 180 and 270. </li>
+	</ul>
 	End Rem
 	Method TransformRotate:Int(degrees:Int)
 		Return bmx_flickcurl_photo_transformrotate(fcPtr, photoPtr, degrees)
@@ -2235,5 +2424,37 @@ Type TFCLicense
 
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TFCLicenseList
+
+	Field fcPtr:Byte Ptr
+	Field licenseListPtr:Byte Ptr ' pointer belongs to flickcurl - we don't free it ourselves
+
+	Function _create:TFCLicenseList(licenseListPtr:Byte Ptr, fcPtr:Byte Ptr)
+		If licenseListPtr Then
+			Local this:TFCLicenseList = New TFCLicenseList
+			this.licenseListPtr = licenseListPtr
+			this.fcPtr = fcPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of licenses.
+	End Rem
+	Method GetLicenseCount:Int()
+		Return bmx_flickcurl_listoflicenses_getlicensecount(licenseListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the license at the given @index.
+	End Rem
+	Method GetLicense:TFCLicense(index:Int)
+		Return TFCLicense(bmx_flickcurl_listoflicenses_getlicense(licenseListPtr, index))
+	End Method
+	
+End Type
 
 

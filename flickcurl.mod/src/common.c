@@ -2,7 +2,7 @@
  *
  * common.c - Flickcurl common functions
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -63,15 +63,19 @@
 
 #include <libxml/xmlsave.h>
 
-const char* const flickcurl_short_copyright_string = "Copyright 2007-2008 David Beckett.";
+const char* const flickcurl_short_copyright_string = "Copyright 2007-2009 David Beckett.";
 
-const char* const flickcurl_copyright_string = "Copyright (C) 2007-2008 David Beckett - http://www.dajobe.org/";
+const char* const flickcurl_copyright_string = "Copyright (C) 2007-2009 David Beckett - http://www.dajobe.org/";
 
 const char* const flickcurl_license_string = "LGPL 2.1 or newer, GPL 2 or newer, Apache 2.0 or newer.\nSee http://librdf.org/flickcurl/ for full terms.";
 
 const char* const flickcurl_home_url_string = "http://librdf.org/flickcurl/";
 const char* const flickcurl_version_string = VERSION;
 
+
+const char* const flickcurl_flickr_service_uri =  "http://www.flickr.com/services/rest/?";
+const char* const flickcurl_flickr_upload_service_uri =  "http://api.flickr.com/services/upload/";
+const char* const flickcurl_flickr_replace_service_uri =  "http://api.flickr.com/services/replace/";
 
 
 static void
@@ -192,6 +196,10 @@ flickcurl_new(void)
   if(!fc)
     return NULL;
 
+  fc->service_uri = strdup(flickcurl_flickr_service_uri);
+  fc->upload_service_uri = strdup(flickcurl_flickr_upload_service_uri);
+  fc->replace_service_uri = strdup(flickcurl_flickr_replace_service_uri);
+
   /* DEFAULT delay between requests is 1000ms i.e 1 request/second max */
   fc->request_delay=1000;
   
@@ -296,6 +304,13 @@ flickcurl_free(flickcurl *fc)
     free(fc->upload_field);
   if(fc->upload_value)
     free(fc->upload_value);
+
+  if(fc->service_uri)
+    free(fc->service_uri);
+  if(fc->upload_service_uri)
+    free(fc->upload_service_uri);
+  if(fc->replace_service_uri)
+    free(fc->replace_service_uri);
 
   free(fc);
 }
@@ -434,6 +449,80 @@ flickcurl_set_http_accept(flickcurl* fc, const char *value)
     strcpy(value_copy, value);
   }
 
+}
+
+
+/**
+ * flickcurl_set_service_uri:
+ * @fc: flickcurl object
+ * @uri: Service URI (or NULL)
+ *
+ * Set Web Service URI for flickcurl requests
+ *
+ * Sets the service to the default (Flickr API web service) if @uri is NULL.
+ */
+void
+flickcurl_set_service_uri(flickcurl *fc, const char *uri)
+{
+  if(!uri)
+    uri = flickcurl_flickr_service_uri;
+    
+#if FLICKCURL_DEBUG > 1
+    fprintf(stderr, "Service URI set to: '%s'\n", uri);
+#endif
+    if(fc->service_uri)
+      free(fc->service_uri);
+    fc->service_uri = strdup(uri);
+}
+
+
+/**
+ * flickcurl_set_upload_service_uri:
+ * @fc: flickcurl object
+ * @uri: Upload Service URI (or NULL)
+ *
+ * Set Web Upload Service URI for flickcurl requests
+ *
+ * Sets the upload service to the default (Flickr API web
+ * upload_service) if @uri is NULL.
+ */
+void
+flickcurl_set_upload_service_uri(flickcurl *fc, const char *uri)
+{
+  if(!uri)
+    uri = flickcurl_flickr_upload_service_uri;
+    
+#if FLICKCURL_DEBUG > 1
+    fprintf(stderr, "Upload Service URI set to: '%s'\n", uri);
+#endif
+    if(fc->upload_service_uri)
+      free(fc->upload_service_uri);
+    fc->upload_service_uri = strdup(uri);
+}
+
+
+/**
+ * flickcurl_set_replace_service_uri:
+ * @fc: flickcurl object
+ * @uri: Replace Service URI (or NULL)
+ *
+ * Set Web Replace Service URI for flickcurl requests
+ *
+ * Sets the replace service to the default (Flickr API web
+ * replace_service) if @uri is NULL.
+ */
+void
+flickcurl_set_replace_service_uri(flickcurl *fc, const char *uri)
+{
+  if(!uri)
+    uri = flickcurl_flickr_replace_service_uri;
+    
+#if FLICKCURL_DEBUG > 1
+    fprintf(stderr, "Replace Service URI set to: '%s'\n", uri);
+#endif
+    if(fc->replace_service_uri)
+      free(fc->replace_service_uri);
+    fc->replace_service_uri = strdup(uri);
 }
 
 
@@ -794,7 +883,7 @@ flickcurl_prepare_noauth(flickcurl *fc, const char* method,
   }
   
   return flickcurl_prepare_common(fc,
-                                  "http://www.flickr.com/services/rest/?",
+                                  fc->service_uri,
                                   method,
                                   NULL, NULL,
                                   parameters, count,
@@ -812,7 +901,7 @@ flickcurl_prepare(flickcurl *fc, const char* method,
   }
   
   return flickcurl_prepare_common(fc,
-                                  "http://www.flickr.com/services/rest/?",
+                                  fc->service_uri,
                                   method,
                                   NULL, NULL,
                                   parameters, count,
@@ -1122,19 +1211,29 @@ flickcurl_invoke_common(flickcurl *fc, char** content_p, size_t* size_p,
 
   fc->total_bytes=0;
 
-  if(fc->is_write)
-    curl_easy_setopt(fc->curl_handle, CURLOPT_POST, 1); /* Set POST */
-  else
-    curl_easy_setopt(fc->curl_handle, CURLOPT_POST, 0);  /* Set GET */
+  /* default: read with no data: GET */
+  curl_easy_setopt(fc->curl_handle, CURLOPT_NOBODY, 1);
+  curl_easy_setopt(fc->curl_handle, CURLOPT_HTTPGET, 1);
 
   if(fc->data) {
-    /* write is POST */
+    /* write with some data: POST */
+    /* CURLOPT_NOBODY=0 sets http request to HEAD - do it first to override */
+    curl_easy_setopt(fc->curl_handle, CURLOPT_NOBODY, 0);
+    /* this function only resets no-body flag for curl >= 7.14.1 */
+    curl_easy_setopt(fc->curl_handle, CURLOPT_POST, 1);
     curl_easy_setopt(fc->curl_handle, CURLOPT_POSTFIELDS, fc->data);
     curl_easy_setopt(fc->curl_handle, CURLOPT_POSTFIELDSIZE, fc->data_length);
     /* Replace default POST content type 'application/x-www-form-urlencoded' */
     slist=curl_slist_append(slist, (const char*)"Content-Type: application/xml");
     /* curl_easy_setopt(fc->curl_handle, CURLOPT_CUSTOMREQUEST, fc->verb); */
+  } else if(fc->is_write) {
+    /* write with no data: POST */
+    /* CURLOPT_NOBODY=0 sets http request to HEAD - do it first to override */
+    curl_easy_setopt(fc->curl_handle, CURLOPT_NOBODY, 0);
+    /* this function only resets no-body flag for curl >= 7.14.1 */
+    curl_easy_setopt(fc->curl_handle, CURLOPT_POST, 1);
   }
+
 
   if(slist)
     curl_easy_setopt(fc->curl_handle, CURLOPT_HTTPHEADER, slist);
@@ -1503,7 +1602,7 @@ flickcurl_xpath_eval_to_tree_string(flickcurl* fc,
   if(!value_len)
     goto tidy;
   
-  value = malloc(value_len+1);
+  value = (char*)malloc(value_len+1);
   if(!value)
     goto tidy;
   memcpy(value, xmlBufferContent(buffer), value_len+1);
@@ -1594,7 +1693,10 @@ static const char* flickcurl_field_value_type_label[VALUE_TYPE_LAST+1]={
   "float",
   "integer",
   "string",
-  "uri"
+  "uri",
+  "<internal>person ID",
+  "<internal>media type",
+  "<internal>tag string"
 };
 
 

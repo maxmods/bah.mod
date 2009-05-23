@@ -2,7 +2,7 @@
  *
  * place.c - Flickr place support calls
  *
- * Copyright (C) 2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -117,6 +117,9 @@ flickcurl_free_place(flickcurl_place *place)
   if(place->shape)
     flickcurl_free_shape(place->shape);
 
+  if(place->timezone)
+    free(place->timezone);
+
   free(place);
 }
 
@@ -143,6 +146,7 @@ flickcurl_free_places(flickcurl_place **places_object)
 
 /* flickcurl_place fields */
 typedef enum {
+  PLACE_NONE = 0,
   /* place->names[place_type] */
   PLACE_NAME,
   /* place->ids[place_type] */
@@ -162,7 +166,9 @@ typedef enum {
   /* place->shape: source of derived DEPRECATED fields:
    * shapedata, shapedata_length, shapfile_urls and shapefile_urls_count 
    */
-  PLACE_SHAPE
+  PLACE_SHAPE,
+  /* place->timezone */
+  PLACE_TIMEZONE
 } place_field_type;
 
 
@@ -198,6 +204,12 @@ static struct {
     (const xmlChar*)"./@woeid",
     FLICKCURL_PLACE_LOCATION,
     PLACE_WOE_ID
+  }
+  ,
+  {
+    (const xmlChar*)"./@timezone",
+    FLICKCURL_PLACE_LOCATION,
+    PLACE_TIMEZONE
   }
   ,
   {
@@ -377,7 +389,7 @@ static struct {
   { 
     NULL,
     (flickcurl_place_type)0,
-    (unsigned short)0
+    PLACE_NONE
   }
 };
 
@@ -508,9 +520,18 @@ flickcurl_build_places(flickcurl* fc, xmlXPathContextPtr xpathCtx,
           free(value); value=NULL;
           break;
 
+        case PLACE_TIMEZONE:
+          place->timezone = value;
+          break;
+
         case PLACE_SHAPE:
           /* handled above */
           break;
+
+        case PLACE_NONE:
+        default:
+          flickcurl_error(fc, "Unknown place type %d",  (int)place_field);
+          fc->failed=1;
       }
       
       if(fc->failed)

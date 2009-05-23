@@ -27,6 +27,8 @@ Extern
 	Function bmx_flickcurl_setsharedsecret(handle:Byte Ptr, sharedSecret:String)
 
 	Function bmx_flickcurl_photosgetinfo:Byte Ptr(handle:Byte Ptr, photoID:String)
+	Function bmx_flickcurl_photos_license_getinfo:Byte Ptr(handle:Byte Ptr)
+	Function bmx_flickcurl_photos_license_getinfobyid:Object(handle:Byte Ptr, id:Int)
 
 	Function bmx_flickcurl_photo_getid:String(handle:Byte Ptr)
 	Function bmx_flickcurl_photo_getfield:Object(handle:Byte Ptr, index:Int)
@@ -206,6 +208,36 @@ Extern
 	Function bmx_flickcurl_notes_deletenote:Int(handle:Byte Ptr, noteID:String)
 	Function bmx_flickcurl_notes_editnote:Int(handle:Byte Ptr, noteID:String, x:Int, y:Int, w:Int, h:Int, text:String)
 
+	Function bmx_flickcurl_listoflicenses_getlicensecount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listoflicenses_getlicense:Object(handle:Byte Ptr, index:Int)
+
+	Function bmx_flickcurl_panda_getlist:String[](handle:Byte Ptr)
+	Function bmx_flickcurl_panda_getphotos:Byte Ptr(handle:Byte Ptr, pandaName:String)
+
+	Function bmx_flickcurl_listofactivities_getactivitycount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofactivities_getactivity:Byte Ptr(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_activity_usercomments:Byte Ptr(handle:Byte Ptr, perPage:Int, page:Int)
+	Function bmx_flickcurl_activity_userphotos:Byte Ptr(handle:Byte Ptr, timeFrame:String, perPage:Int, page:Int)
+
+	Function bmx_flickcurl_activity_gettype:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getowner:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getownername:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getprimary:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getid:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getsecret:String(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getserver:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getfarm:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getoldcomments:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getnewcomments:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getoldnotes:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getnewnotes:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getviews:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getcomments:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getphotos:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getfaves:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_getmore:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_activity_gettitle:String(handle:Byte Ptr)
+
 	' API direct functions
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
@@ -217,6 +249,7 @@ Extern
 	Function flickcurl_free_group(handle:Byte Ptr)
 	Function flickcurl_free_groups(handle:Byte Ptr)
 	Function flickcurl_free_perms(handle:Byte Ptr)
+	Function flickcurl_free_activities(handle:Byte Ptr)
 
 End Extern
 

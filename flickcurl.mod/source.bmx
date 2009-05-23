@@ -80,6 +80,9 @@ Import "src/video.c"
 Import "src/shape.c"
 Import "src/commons-api.c"
 Import "src/institution.c"
+Import "src/panda-api.c"
+Import "src/config.c"
+Import "src/members.c"
 
 Import "glue.cpp"
 

@@ -4,7 +4,7 @@
  *
  * All API calls and defines here many change in any release.
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -184,6 +184,9 @@ flickcurl_user_upload_status* flickcurl_build_user_upload_status(flickcurl* fc, 
 /* md5.c - MD5 as hex string */
 extern char* MD5_string(char *string);
 
+/* members.c */
+flickcurl_member** flickcurl_build_members(flickcurl* fc,  xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* member_count_p);
+
 /* method.c */
 flickcurl_method* flickcurl_build_method(flickcurl* fc, xmlXPathContextPtr xpathCtx);
 
@@ -217,6 +220,7 @@ flickcurl_size** flickcurl_build_sizes(flickcurl* fc, xmlXPathContextPtr xpathCt
 
 /* tags.c  */
 flickcurl_tag** flickcurl_build_tags(flickcurl* fc, flickcurl_photo* photo, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr, int* tag_count_p);
+flickcurl_tag** flickcurl_build_tags_from_string(flickcurl* fc, flickcurl_photo* photo, const char *string, int *tag_count_p);
 flickcurl_tag_clusters* flickcurl_build_tag_clusters(flickcurl* fc, xmlXPathContextPtr xpathCtx, const xmlChar* xpathExpr);
 
 /* ticket.c */
@@ -333,6 +337,15 @@ struct flickcurl_s {
   flickcurl_chunk* chunks;
   /* count of chunks */
   int chunks_count;
+
+  /* Web Service URI that is called */
+  char *service_uri;
+
+  /* Upload Web Service URI that is called */
+  char *upload_service_uri;
+
+  /* Replace Web Service URI that is called */
+  char *replace_service_uri;
 };
 
 struct flickcurl_serializer_s

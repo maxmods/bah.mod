@@ -90,6 +90,7 @@ flickcurl_free_shapes(flickcurl_shapedata **shapes_object)
 
 /* flickcurl_shapedata fields */
 typedef enum {
+  SHAPE_NONE = 0,
   /* shape->created */
   SHAPE_CREATED,
   /* shape->alpha */
@@ -101,7 +102,11 @@ typedef enum {
   /* shape->data */
   SHAPE_DATA,
   /* shape->file_urls */
-  SHAPE_FILE_URL
+  SHAPE_FILE_URL,
+  /* shape->is_donuthole */
+  SHAPE_IS_DONUTHOLE,
+  /* shape->has_donuthole */
+  SHAPE_HAS_DONUTHOLE
 } shape_field_type;
 
 
@@ -135,6 +140,16 @@ static struct {
   }
   ,
   {
+    (const xmlChar*)"./@is_donuthole",
+    SHAPE_IS_DONUTHOLE
+  }
+  ,
+  {
+    (const xmlChar*)"./@has_donuthole",
+    SHAPE_HAS_DONUTHOLE
+  }
+  ,
+  {
     (const xmlChar*)"./polylines/.", /* special */
     SHAPE_DATA,
   }
@@ -146,7 +161,7 @@ static struct {
   ,
   { 
     NULL,
-    (unsigned short)0
+    SHAPE_NONE
   }
 };
 
@@ -237,6 +252,16 @@ flickcurl_build_shapes(flickcurl* fc, xmlXPathContextPtr xpathCtx,
           free(value); value=NULL;
           break;
 
+        case SHAPE_IS_DONUTHOLE:
+          shape->is_donuthole = atoi(value);
+          free(value); value=NULL;
+          break;
+
+        case SHAPE_HAS_DONUTHOLE:
+          shape->has_donuthole = atoi(value);
+          free(value); value=NULL;
+          break;
+
         case SHAPE_DATA:
           /* handled above */
           break;
@@ -264,6 +289,11 @@ flickcurl_build_shapes(flickcurl* fc, xmlXPathContextPtr xpathCtx,
             }
           }
           break;
+
+        case SHAPE_NONE:
+        default:
+          flickcurl_error(fc, "Unknown shape field %d",  shape_field);
+          fc->failed=1;
       }
       
       if(fc->failed)
