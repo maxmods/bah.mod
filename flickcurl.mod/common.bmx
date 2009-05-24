@@ -238,6 +238,23 @@ Extern
 	Function bmx_flickcurl_activity_getmore:Int(handle:Byte Ptr)
 	Function bmx_flickcurl_activity_gettitle:String(handle:Byte Ptr)
 
+	Function bmx_flickcurl_commons_getinstitutions:Byte Ptr(handle:Byte Ptr)
+	Function bmx_flickcurl_listofinstitutions_getinstitutioncount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofinstitutions_getinstitution:Object(handle:Byte Ptr, index:Int)
+	Function bmx_flickcurl_institution_url_type_label:String(urlType:Int)
+
+	Function bmx_flickcurl_contacts_getlist:Byte Ptr(handle:Byte Ptr, filter:String, page:Int, perPage:Int)
+	Function bmx_flickcurl_contacts_getlistrecentlyuploaded:Byte Ptr(handle:Byte Ptr, dateLastUpload:Int, filter:String)
+	Function bmx_flickcurl_contacts_getpubliclist:Byte Ptr(handle:Byte Ptr, user:String, page:Int, perPage:Int)
+	Function bmx_flickcurl_listofcontacts_getcontactcount:Int(handle:Byte Ptr)
+	Function bmx_flickcurl_listofcontacts_getcontact:Object(handle:Byte Ptr, index:Int)
+
+	Function bmx_flickcurl_getcontactsphotos:Byte Ptr(handle:Byte Ptr, contactCount:Int, justFriends:Int, singlePhoto:Int, ..
+			includeSelf:Int, extras:String)
+	Function bmx_flickcurl_getcontactspublicphotos:Byte Ptr(handle:Byte Ptr, user:String, photoCount:Int, justFriends:Int, ..
+			singlePhoto:Int, includeSelf:Int, extras:String)
+
+
 	' API direct functions
 	Function flickcurl_init:Int()
 	Function flickcurl_finish()
@@ -250,6 +267,8 @@ Extern
 	Function flickcurl_free_groups(handle:Byte Ptr)
 	Function flickcurl_free_perms(handle:Byte Ptr)
 	Function flickcurl_free_activities(handle:Byte Ptr)
+	Function flickcurl_free_institutions(handle:Byte Ptr)
+	Function flickcurl_free_contacts(handle:Byte Ptr)
 
 End Extern
 

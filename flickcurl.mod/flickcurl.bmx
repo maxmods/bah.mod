@@ -274,6 +274,49 @@ Type TFlickcurl
 	End Method
 	
 	Rem
+	bbdoc: Fetches a list of recent photos from the calling users' contacts.
+	about: Parameters: 
+	<ul>
+	<li><b>contactCount</b> : Number of photos to return (Default 10, maximum 50). </li>
+	<li><b>justFriends</b> : Set to True to only show photos from friends and family (excluding regular contacts). </li>
+	<li><b>singlePhoto</b> : Set to True to only fetch one photo (the latest) per contact, instead of all photos in chronological order.</li>
+	<li><b>includeSelf</b> : Set to True to include photos from the calling user.</li>
+	<li><b>extras</b> : A comma-delimited list of extra information to fetch for each returned record (or NULL).</li>
+	</ul>
+	End Rem
+	Method GetContactsPhotos:TFCPhotoList(contactCount:Int = 10, justFriends:Int = False, singlePhoto:Int = False, ..
+			includeSelf:Int = False, extras:String = Null)
+		Return TFCListOfPhotos._create(bmx_flickcurl_getcontactsphotos(fcPtr, contactCount, justFriends, singlePhoto, ..
+			includeSelf, extras), fcPtr)
+	End Method
+	
+	Rem
+	bbdoc: Fetches a list of recent public photos from a users' contacts.
+	about: Parameters: 
+	<ul>
+	<li><b>user</b> : Either the user Id (String), a TFCPerson, or a TFCContact.</li>
+	<li><b>photoCount</b> : Number of photos to return (Default 10, maximum 50).</li>
+	<li><b>justFriends</b> : Set to True to only show photos from friends and family (excluding regular contacts).</li>
+	<li><b>singlePhoto</b> : Set to True to only fetch one photo (the latest) per contact, instead of all photos in chronological order. </li>
+	<li><b>includeSelf</b> : Set to True to include photos from the user specified by @user. </li>
+	<li><b>extras</b> : A comma-delimited list of extra information to fetch for each returned record (or NULL).</li>
+	</ul>
+	End Rem
+	Method GetContactsPublicPhotos:TFCPhotoList(user:Object, photoCount:Int = 10, justFriends:Int = False, ..
+			singlePhoto:Int = False, includeSelf:Int = False, extras:String = Null)
+		If TFCPerson(user) Then
+			Return TFCListOfPhotos._create(bmx_flickcurl_getcontactspublicphotos(fcPtr, TFCPerson(user).GetUserID(), photoCount, ..
+				justFriends, singlePhoto, includeSelf, extras), fcPtr)
+		Else If TFCContact(user) Then
+			Return TFCListOfPhotos._create(bmx_flickcurl_getcontactspublicphotos(fcPtr, TFCContact(user).id, photoCount, ..
+				justFriends, singlePhoto, includeSelf, extras), fcPtr)
+		Else If String(user) Then
+			Return TFCListOfPhotos._create(bmx_flickcurl_getcontactspublicphotos(fcPtr, String(user), photoCount, ..
+				justFriends, singlePhoto, includeSelf, extras), fcPtr)
+		End If
+	End Method
+	
+	Rem
 	bbdoc: Gets a user, given their email address.
 	about: Parameters: 
 	<ul>
@@ -458,6 +501,38 @@ Type TFlickcurl
 	End Rem
 	Method GetActivityUserPhotos:TFCActivityList(timeFrame:String = "", perPage:Int = 10, page:Int = 1)
 		Return TFCActivityList._create(bmx_flickcurl_activity_userphotos(fcPtr, timeFrame, perPage, page))
+	End Method
+	
+	Rem
+	bbdoc: Retrieves a list of the current Commons institutions.
+	End Rem
+	Method GetInstitutions:TFCInstitutionList()
+		Return TFCInstitutionList._create(bmx_flickcurl_commons_getinstitutions(fcPtr))
+	End Method
+	
+	Rem
+	bbdoc: Gets a list of contacts for this user.
+	End Rem
+	Method GetContacts:TFCContactList(filter:String = Null, page:Int = 1, perPage:Int = 1000)
+		Return TFCContactList._create(bmx_flickcurl_contacts_getlist(fcPtr, filter, page, perPage))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetContactsRecentlyUploaded:TFCContactList(dateLastUpload:Int = -1, filter:String = "all")
+		Return TFCContactList._create(bmx_flickcurl_contacts_getlistrecentlyuploaded(fcPtr, dateLastUpload, filter))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method GetContactsPublic:TFCContactList(user:Object, page:Int = 1, perPage:Int = 1000)
+		If TFCPerson(user) Then
+			Return TFCContactList._create(bmx_flickcurl_contacts_getpubliclist(fcPtr, TFCPerson(user).GetUserID(), page, perPage))
+		Else If String(user) Then 
+			Return TFCContactList._create(bmx_flickcurl_contacts_getpubliclist(fcPtr, String(user), page, perPage))
+		End If
 	End Method
 	
 	Method Delete()
@@ -2064,7 +2139,7 @@ Type TFCSearchParams
 	End Method
 	
 	Rem
-	bbdoc: (Experimental) Requires userID field be set and limits queries to photos beloing to that user's photos.
+	bbdoc: (Experimental) Requires userID field be set and limits queries to photos belonging to that user's photos.
 	about: Valid arguments are 'all' or 'ff' for just friends and family.
 	End Rem
 	Method SetContacts(value:String)
@@ -2457,4 +2532,189 @@ Type TFCLicenseList
 	
 End Type
 
+Rem
+bbdoc: Flickr Commons institution.
+End Rem
+Type TFCInstitution
+
+	Rem
+	bbdoc: NSID
+	End Rem
+	Field id:String
+	Rem
+	bbdoc: Date launched in unix timestamp format.
+	End Rem
+	Field dateLaunch:Int
+	Rem
+	bbdoc: Institution name.
+	End Rem
+	Field name:String
+	Rem
+	bbdoc: Array of related urls.
+	End Rem
+	Field urls:String[]
+
+	Function _create:TFCInstitution(id:String, dateLaunch:Int, name:String, urls:String[])
+		Local this:TFCInstitution = New TFCInstitution
+		this.id = id
+		this.dateLaunch = dateLaunch
+		this.name = name
+		this.urls = urls
+		Return this
+	End Function
+	
+	Rem
+	bbdoc: Gets the label for institution url type.
+	about: @urlType can be one of FLICKCURL_INSTITUTION_URL_NONE, FLICKCURL_INSTITUTION_URL_SITE, 
+	FLICKCURL_INSTITUTION_URL_LICENSE or FLICKCURL_INSTITUTION_URL_FLICKR.
+	End Rem
+	Function GetLabelForURLType:String(urlType:Int)
+		Return bmx_flickcurl_institution_url_type_label(urlType)
+	End Function
+	
+End Type
+
+Rem
+bbdoc: A list of institutions.
+End Rem
+Type TFCInstitutionList
+
+	Field institutionListPtr:Byte Ptr
+
+	Function _create:TFCInstitutionList(institutionListPtr:Byte Ptr)
+		If institutionListPtr Then
+			Local this:TFCInstitutionList = New TFCInstitutionList
+			this.institutionListPtr = institutionListPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of licenses.
+	End Rem
+	Method GetInstitutionCount:Int()
+		Return bmx_flickcurl_listofinstitutions_getinstitutioncount(institutionListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the institution at the given @index.
+	End Rem
+	Method GetInstitution:TFCInstitution(index:Int)
+		Return TFCInstitution(bmx_flickcurl_listofinstitutions_getinstitution(institutionListPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If institutionListPtr Then
+			flickcurl_free_institutions(institutionListPtr)
+			institutionListPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
+
+Rem
+bbdoc: A contact of a user.
+End Rem
+Type TFCContact
+
+	Rem
+	bbdoc: NSID
+	End Rem
+	Field id:String
+	Rem
+	bbdoc: user name.
+	End Rem
+	Field username:String
+	Rem
+	bbdoc: icon server.
+	End Rem
+	Field iconServer:Int
+	Rem
+	bbdoc: real name.
+	End Rem
+	Field realName:String
+	Rem
+	bbdoc: is friend?
+	End Rem
+	Field isFriend:Int
+	Rem
+	bbdoc: is family?
+	End Rem
+	Field isFamily:Int
+	Rem
+	bbdoc: ignored
+	End Rem
+	Field ignored:Int
+	Rem
+	bbdoc: count of number of photos uploaded.
+	End Rem
+	Field uploaded:Int
+	
+	Function _create:TFCContact(id:String, username:String, iconServer:Int, realName:String, isFriend:Int, isFamily:Int, ..
+			ignored:Int, uploaded:Int)
+		Local this:TFCContact = New TFCContact
+		this.id = id
+		this.username = username
+		this.iconServer = iconServer
+		this.realName = realName
+		this.isFriend = isFriend
+		this.isFamily = isFamily
+		this.ignored = ignored
+		this.uploaded = uploaded
+		Return this
+	End Function
+	
+End Type
+
+Rem
+bbdoc: A list of contacts.
+End Rem
+Type TFCContactList
+
+	Field contactListPtr:Byte Ptr
+
+	Function _create:TFCContactList(contactListPtr:Byte Ptr)
+		If contactListPtr Then
+			Local this:TFCContactList = New TFCContactList
+			this.contactListPtr = contactListPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the number of contacts.
+	End Rem
+	Method GetContactCount:Int()
+		Return bmx_flickcurl_listofcontacts_getcontactcount(contactListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the contact at the given @index.
+	End Rem
+	Method GetContact:TFCContact(index:Int)
+		Return TFCContact(bmx_flickcurl_listofcontacts_getcontact(contactListPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Free()
+		If contactListPtr Then
+			flickcurl_free_contacts(contactListPtr)
+			contactListPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
 

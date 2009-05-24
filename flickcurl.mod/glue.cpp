@@ -25,6 +25,9 @@ extern "C" {
 	BBObject * _bah_flickcurl_TFCComment__create(BBString * id, BBString * author, BBString * authorname, int datecreate, BBString * permalink, BBString * text, flickcurl * fc);
 	BBObject * _bah_flickcurl_TFCPersonField__create(BBString * svalue, flickcurl_person_field_type value, flickcurl_field_value_type type);
 	BBObject * _bah_flickcurl_TFCLicense__create(int id, BBString * url, BBString * name);
+	BBObject * _bah_flickcurl_TFCInstitution__create(BBString * id, int date_launch, BBString * name, BBArray * pa);
+	BBObject * _bah_flickcurl_TFCContact__create(BBString * nsid, BBString * username, int iconserver, BBString * realname,
+		int is_friend, int is_family, int ignored, int uploaded);
 
 	BBArray * _bah_flickcurl_TFCTagCluster__createClusterArray(int size);
 	BBObject * _bah_flickcurl_TFCTagCluster__setCluster(BBArray * array, int index, int size);
@@ -250,6 +253,22 @@ extern "C" {
 	int bmx_flickcurl_activity_getfaves(flickcurl_activity* ac);
 	int bmx_flickcurl_activity_getmore(flickcurl_activity* ac);
 	BBString * bmx_flickcurl_activity_gettitle(flickcurl_activity* ac);
+
+	flickcurl_institution** bmx_flickcurl_commons_getinstitutions(flickcurl * fc);
+	int bmx_flickcurl_listofinstitutions_getinstitutioncount(flickcurl_institution** list);
+	BBObject * bmx_flickcurl_listofinstitutions_getinstitution(flickcurl_institution** list, int index);
+	BBString * bmx_flickcurl_institution_url_type_label(flickcurl_institution_url_type urlType);
+
+	flickcurl_contact** bmx_flickcurl_contacts_getlist(flickcurl * fc, BBString * filter, int page, int perPage);
+	flickcurl_contact** bmx_flickcurl_contacts_getlistrecentlyuploaded(flickcurl * fc, int dateLastUpload, BBString * filter);
+	flickcurl_contact** bmx_flickcurl_contacts_getpubliclist(flickcurl * fc, BBString * user, int page, int perPage);
+	int bmx_flickcurl_listofcontacts_getcontactcount(flickcurl_contact** list);
+	BBObject * bmx_flickcurl_listofcontacts_getcontact(flickcurl_contact** list, int index);
+
+	flickcurl_photo** bmx_flickcurl_getcontactsphotos(flickcurl * fc, int contactCount, int justFriends, int singlePhoto,
+			int includeSelf, BBString * extras);
+	flickcurl_photo** bmx_flickcurl_getcontactspublicphotos(flickcurl * fc, BBString * user, int photoCount, int justFriends,
+			int singlePhoto, int includeSelf, BBString * extras);
 
 }
 
@@ -981,6 +1000,40 @@ flickcurl_photo * bmx_flickcurl_listofphotos_getphoto(flickcurl_photo** list, in
 	return list[index];
 }
 
+flickcurl_photo** bmx_flickcurl_getcontactsphotos(flickcurl * fc, int contactCount, int justFriends, int singlePhoto,
+		int includeSelf, BBString * extras) {
+
+	char * e = 0;
+	
+	if (extras != &bbEmptyString) {
+		e = bbStringToCString(extras);
+	}
+	
+	flickcurl_photo** list = flickcurl_photos_getContactsPhotos(fc, contactCount, justFriends, singlePhoto, includeSelf, e);
+	
+	if (e) bbMemFree(e);
+	
+	return list;
+}
+
+flickcurl_photo** bmx_flickcurl_getcontactspublicphotos(flickcurl * fc, BBString * user, int photoCount, int justFriends,
+		int singlePhoto, int includeSelf, BBString * extras) {
+
+	char * e = 0;
+	char * u = bbStringToCString(user);
+	
+	if (extras != &bbEmptyString) {
+		e = bbStringToCString(extras);
+	}
+	
+	flickcurl_photo** list = flickcurl_photos_getContactsPublicPhotos(fc, u, photoCount, justFriends, singlePhoto, includeSelf, e);
+	
+	bbMemFree(u);
+	if (e) bbMemFree(e);
+	
+	return list;
+
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1477,5 +1530,114 @@ int bmx_flickcurl_activity_getmore(flickcurl_activity* ac) {
 
 BBString * bmx_flickcurl_activity_gettitle(flickcurl_activity* ac) {
 	return bbStringFromCString(ac->title);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_institution** bmx_flickcurl_commons_getinstitutions(flickcurl * fc) {
+	return flickcurl_commons_getInstitutions(fc);
+}
+
+int bmx_flickcurl_listofinstitutions_getinstitutioncount(flickcurl_institution** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+BBObject * bmx_flickcurl_listofinstitutions_getinstitution(flickcurl_institution** list, int index) {
+	flickcurl_institution* in = list[index];
+	
+	if (in) {
+
+		int count = 0;
+	
+		BBArray * pa = &bbEmptyArray;
+		
+		for (int i = 0; in->urls[i]; i++) {
+			count++;
+		}
+		
+		if (count > 0) {
+			pa = bbArrayNew1D( "$",count );
+			BBString **s=(BBString**)BBARRAYDATA( pa,pa->dims );
+			for( int i=0;i<count;++i ){
+				s[i]=bbStringFromCString( in->urls[i] );
+				BBRETAIN( s[i] );
+			}
+		}
+
+		return _bah_flickcurl_TFCInstitution__create(bbStringFromCString(in->nsid), in->date_launch, 
+			bbStringFromCString(in->name), pa);
+	}
+
+	return &bbNullObject;
+}
+
+BBString * bmx_flickcurl_institution_url_type_label(flickcurl_institution_url_type urlType) {
+	const char* name = flickcurl_get_institution_url_type_label(urlType);
+	if (name) {
+		return bbStringFromCString(name);
+	} else {
+		return &bbEmptyString;
+	}
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+flickcurl_contact** bmx_flickcurl_contacts_getlist(flickcurl * fc, BBString * filter, int page, int perPage) {
+	char * f = 0;
+	
+	if (filter != &bbEmptyString) {
+		f = bbStringToCString(filter);
+	}
+	
+	flickcurl_contact** list = flickcurl_contacts_getList(fc, f, page, perPage);
+	
+	if (f) bbMemFree(f);
+	
+	return list;
+}
+
+flickcurl_contact** bmx_flickcurl_contacts_getlistrecentlyuploaded(flickcurl * fc, int dateLastUpload, BBString * filter) {
+	char * f = 0;
+	
+	if (filter != &bbEmptyString) {
+		f = bbStringToCString(filter);
+	}
+	
+	flickcurl_contact** list = flickcurl_contacts_getListRecentlyUploaded(fc, dateLastUpload, f);
+	
+	if (f) bbMemFree(f);
+	
+	return list;
+}
+
+flickcurl_contact** bmx_flickcurl_contacts_getpubliclist(flickcurl * fc, BBString * user, int page, int perPage) {
+	char * u = bbStringToCString(user);
+	flickcurl_contact** list = flickcurl_contacts_getPublicList(fc, u, page, perPage);
+	bbMemFree(u);
+	return list;
+}
+
+int bmx_flickcurl_listofcontacts_getcontactcount(flickcurl_contact** list) {
+	int count = 0;
+	
+	for (int i = 0; list[i]; i++) {
+		count++;
+	}
+
+	return count;
+}
+
+BBObject * bmx_flickcurl_listofcontacts_getcontact(flickcurl_contact** list, int index) {
+	flickcurl_contact * c = list[index];
+
+	return _bah_flickcurl_TFCContact__create(bbStringFromCString(c->nsid), bbStringFromCString(c->username), 
+			c->iconserver, bbStringFromCString(c->realname), c->is_friend, c->is_family, c->ignored, c->uploaded);
+
 }
 
