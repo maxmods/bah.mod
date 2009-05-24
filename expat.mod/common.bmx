@@ -42,6 +42,24 @@ Extern
 	Function bmx_expat_XML_SetElementHandler(handle:Byte Ptr, hasStart:Int, hasEnd:Int)
 	Function bmx_expat_XML_SetCharacterDataHandler(handle:Byte Ptr)
 	Function bmx_expat_XML_SetProcessingInstructionHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetCommentHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetStartCdataSectionHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetEndCdataSectionHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetCdataSectionHandler(handle:Byte Ptr, hasStart:Int, hasEnd:Int)
+	Function bmx_expat_XML_SetDefaultHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetDefaultHandlerExpand(handle:Byte Ptr)
+	Function bmx_expat_XML_SetSkippedEntityHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetStartNamespaceDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetEndNamespaceDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetNamespaceDeclHandler(handle:Byte Ptr, hasStart:Int, hasEnd:Int)
+	Function bmx_expat_XML_SetXmlDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetStartDoctypeDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetEndDoctypeDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetDoctypeDeclHandler(handle:Byte Ptr, hasStart:Int, hasEnd:Int)
+	Function bmx_expat_XML_SetAttlistDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetEntityDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetNotationDeclHandler(handle:Byte Ptr)
+	Function bmx_expat_XML_SetNotStandaloneHandler(handle:Byte Ptr)
 
 	Function bmx_expat_XML_ErrorString:String(code:Int)
 	Function bmx_expat_XML_ExpatVersion:String()
@@ -55,12 +73,38 @@ Extern
 	Function XML_SetUserData(handle:Byte Ptr, data:Object)
 	Function XML_StopParser:Int(handle:Byte Ptr, resumable:Int)
 	Function XML_ResumeParser:Int(handle:Byte Ptr)
+	
 	Function XML_SetStartElementHandler(handle:Byte Ptr, cb(data:Byte Ptr, name:Byte Ptr, attr:Byte Ptr Ptr))
 	Function XML_SetEndElementHandler(handle:Byte Ptr, cb(data:Byte Ptr, name:Byte Ptr))
 	Function XML_SetElementHandler(handle:Byte Ptr, cb1(data:Byte Ptr, name:Byte Ptr, attr:Byte Ptr Ptr), ..
 			cb2(data:Byte Ptr, name:Byte Ptr))
 	Function XML_SetCharacterDataHandler(handle:Byte Ptr, cb(data:Byte Ptr, text:Byte Ptr))
 	Function XML_SetProcessingInstructionHandler(handle:Byte Ptr, cb(userdata:Byte Ptr, target:Byte Ptr, data:Byte Ptr))
+	Function XML_SetCommentHandler(handle:Byte Ptr, cb(userData:Byte Ptr, data:Byte Ptr))
+	Function XML_SetStartCdataSectionHandler(handle:Byte Ptr, cb(userData:Byte Ptr))
+	Function XML_SetEndCdataSectionHandler(handle:Byte Ptr, cb(userData:Byte Ptr))
+	Function XML_SetCdataSectionHandler(handle:Byte Ptr, cb1(userData:Byte Ptr), cb2(userData:Byte Ptr))
+	Function XML_SetDefaultHandler(handle:Byte Ptr, cb(userData:Byte Ptr, data:Byte Ptr, length:Int))
+	Function XML_SetDefaultHandlerExpand(handle:Byte Ptr, cb(userData:Byte Ptr, data:Byte Ptr, length:Int))
+	Function XML_SetSkippedEntityHandler(handle:Byte Ptr, cb(userData:Byte Ptr, name:Byte Ptr, isParamEntity:Int))
+	Function XML_SetStartNamespaceDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, prefix:Byte Ptr, uri:Byte Ptr))
+	Function XML_SetEndNamespaceDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, prefix:Byte Ptr))
+	Function XML_SetNamespaceDeclHandler(handle:Byte Ptr, cb1(userData:Byte Ptr, prefix:Byte Ptr, uri:Byte Ptr), ..
+		cb2(userData:Byte Ptr, prefix:Byte Ptr))
+	Function XML_SetXmlDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, version:Byte Ptr, encoding:Byte Ptr, standalone:Int))
+	Function XML_SetStartDoctypeDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, name:Byte Ptr, sysid:Byte Ptr, pubid:Byte Ptr, ..
+		hasInternalSubset:Int))
+	Function XML_SetEndDoctypeDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr))
+	Function XML_SetDoctypeDeclHandler(handle:Byte Ptr, cb1(userData:Byte Ptr, name:Byte Ptr, sysid:Byte Ptr, pubid:Byte Ptr, ..
+		hasInternalSubset:Int), cb2(userData:Byte Ptr))
+	Function XML_SetAttlistDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, elname:Byte Ptr, attname:Byte Ptr, attType:Byte Ptr, ..
+			dflt:Byte Ptr, isRequired:Int))
+	Function XML_SetEntityDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, _entityName:Byte Ptr, isParameterEntity:Int, value:Byte Ptr, ..
+			base:Byte Ptr, systemId:Byte Ptr, publicId:Byte Ptr, notationName:Byte Ptr))
+	Function XML_SetNotationDeclHandler(handle:Byte Ptr, cb(userData:Byte Ptr, notationName:Byte Ptr, base:Byte Ptr, systemId:Byte Ptr, ..
+			publicId:Byte Ptr))
+	Function XML_SetNotStandaloneHandler(handle:Byte Ptr, cb:Int(userData:Byte Ptr))
+	
 	Function XML_GetErrorCode:Int(handle:Byte Ptr)
 	Function XML_GetCurrentLineNumber:Int(handle:Byte Ptr)
 	Function XML_GetSpecifiedAttributeCount:Int(handle:Byte Ptr)

@@ -30,6 +30,25 @@ extern "C" {
 	void _bah_expat_TXMLParser__EndElementHandler(BBObject * handle, BBString * name);
 	void _bah_expat_TXMLParser__CharacterDataHandler(BBObject * handle, BBString * text);
 	void _bah_expat_TXMLParser__ProcessingInstructionHandler(BBObject * handle, BBString * target, BBString * data);
+	void _bah_expat_TXMLParser__CommentHandler(BBObject * handle, BBString *data);
+	void _bah_expat_TXMLParser__StartCdataSectionHandler(BBObject * handle);
+	void _bah_expat_TXMLParser__EndCdataSectionHandler(BBObject * handle);
+	void _bah_expat_TXMLParser__DefaultHandler(BBObject * handle, BBString *s);
+	void _bah_expat_TXMLParser__DefaultHandlerExpand(BBObject * handle, BBString *s);
+	void _bah_expat_TXMLParser__SkippedEntityHandler(BBObject * handle, BBString *entityName, int is_parameter_entity);
+	void _bah_expat_TXMLParser__StartNamespaceDeclHandler(BBObject * handle, BBString *prefix, BBString *uri);
+	void _bah_expat_TXMLParser__EndNamespaceDeclHandler(BBObject * handle, BBString *prefix);
+	void _bah_expat_TXMLParser__XmlDeclHandler(BBObject * handle, BBString *version, BBString *encoding, int standalone);
+	void _bah_expat_TXMLParser__StartDoctypeDeclHandler(BBObject * handle, BBString *doctypeName, BBString *sysid, BBString *pubid,
+		int has_internal_subset);
+	void _bah_expat_TXMLParser__EndDoctypeDeclHandler(BBObject * handle);
+	void _bah_expat_TXMLParser__AttlistDeclHandler(BBObject * handle, BBString *elname, BBString *attname, BBString *att_type,
+		BBString *dflt, int isrequired);
+	void _bah_expat_TXMLParser__EntityDeclHandler(BBObject * handle, BBString *entityName, int is_parameter_entity, BBString *value, BBString *base,
+		BBString *systemId, BBString *publicId, BBString *notationName);
+	void _bah_expat_TXMLParser__NotationDeclHandler(BBObject * handle, BBString *notationName, BBString *base, BBString *systemId,
+		BBString *publicId);
+	int _bah_expat_TXMLParser__NotStandaloneHandler(BBObject * handle);
 
 
 	XML_Parser bmx_expat_XML_ParserCreate(BBString * encoding);
@@ -40,7 +59,26 @@ extern "C" {
 	void bmx_expat_XML_SetElementHandler(XML_Parser parser, int hasStart, int hasEnd);
 	void bmx_expat_XML_SetCharacterDataHandler(XML_Parser parser);
 	void bmx_expat_XML_SetProcessingInstructionHandler(XML_Parser parser);
+	void bmx_expat_XML_SetCommentHandler(XML_Parser parser);
+	void bmx_expat_XML_SetStartCdataSectionHandler(XML_Parser parser);
+	void bmx_expat_XML_SetEndCdataSectionHandler(XML_Parser parser);
+	void bmx_expat_XML_SetCdataSectionHandler(XML_Parser parser, int hasStart, int hasEnd);
+	void bmx_expat_XML_SetDefaultHandler(XML_Parser parser);
+	void bmx_expat_XML_SetDefaultHandlerExpand(XML_Parser parser);
+	void bmx_expat_XML_SetSkippedEntityHandler(XML_Parser parser);
+	void bmx_expat_XML_SetStartNamespaceDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetEndNamespaceDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetNamespaceDeclHandler(XML_Parser parser, int hasStart, int hasEnd);
+	void bmx_expat_XML_SetXmlDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetStartDoctypeDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetEndDoctypeDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetDoctypeDeclHandler(XML_Parser parser, int hasStart, int hasEnd);
+	void bmx_expat_XML_SetAttlistDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetEntityDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetNotationDeclHandler(XML_Parser parser);
+	void bmx_expat_XML_SetNotStandaloneHandler(XML_Parser parser);
 
+	
 	BBString * bmx_expat_XML_ErrorString(enum XML_Error code);
 	BBString * bmx_expat_XML_ExpatVersion();
 	void bmx_expat_XML_ExpatVersionInfo(int * major, int * minor, int * micro);
@@ -52,6 +90,25 @@ extern "C" {
 	void XMLCALL bmx_expat_EndElementHandler(void *userData, const char *name);
 	void XMLCALL bmx_expat_CharacterDataHandler(void *userData, const char *text, int len);
 	void XMLCALL bmx_expat_ProcessingInstructionHandler(void *userData, const char *target, const char *data);
+	void XMLCALL bmx_expat_CommentHandler(void *userData, const char *data);
+	void XMLCALL bmx_expat_StartCdataSectionHandler(void *userData);
+	void XMLCALL bmx_expat_EndCdataSectionHandler(void *userData);
+	void XMLCALL bmx_expat_DefaultHandler(void *userData, const char *s, int len);
+	void XMLCALL bmx_expat_DefaultHandlerExpand(void *userData, const char *s, int len);
+	void XMLCALL bmx_expat_SkippedEntityHandler(void *userData, const char *entityName, int is_parameter_entity);
+	void XMLCALL bmx_expat_StartNamespaceDeclHandler(void *userData, const char *prefix, const char *uri);
+	void XMLCALL bmx_expat_EndNamespaceDeclHandler(void *userData, const char *prefix);
+	void XMLCALL bmx_expat_XmlDeclHandler(void *userData, const char *version, const char *encoding, int standalone);
+	void XMLCALL bmx_expat_StartDoctypeDeclHandler(void *userData, const char *doctypeName, const char *sysid, const char *pubid,
+		int has_internal_subset);
+	void XMLCALL bmx_expat_EndDoctypeDeclHandler(void *userData);
+	void XMLCALL bmx_expat_AttlistDeclHandler(void *userData, const char *elname, const char *attname, const char *att_type,
+		const char *dflt, int isrequired);
+	void XMLCALL bmx_expat_EntityDeclHandler(void *userData, const char *entityName, int is_parameter_entity, const char *value,
+		int value_length, const char *base, const char *systemId, const char *publicId, const char *notationName);
+	void XMLCALL bmx_expat_NotationDeclHandler(void *userData, const char *notationName, const char *base, const char *systemId,
+		const char *publicId);
+	int XMLCALL bmx_expat_NotStandaloneHandler(void *userData);
 
 }
 
@@ -194,6 +251,207 @@ void XMLCALL bmx_expat_ProcessingInstructionHandler(void *userData, const char *
 
 void bmx_expat_XML_SetProcessingInstructionHandler(XML_Parser parser) {
 	XML_SetProcessingInstructionHandler(parser, bmx_expat_ProcessingInstructionHandler);
+}
+
+void XMLCALL bmx_expat_CommentHandler(void *userData, const char *data) {
+	_bah_expat_TXMLParser__CommentHandler((BBObject *)userData, bbStringFromUTF8String(data));
+}
+
+void bmx_expat_XML_SetCommentHandler(XML_Parser parser) {
+	XML_SetCommentHandler(parser, bmx_expat_CommentHandler);
+}
+
+void XMLCALL bmx_expat_StartCdataSectionHandler(void *userData) {
+	_bah_expat_TXMLParser__StartCdataSectionHandler((BBObject *)userData);
+}
+
+void bmx_expat_XML_SetStartCdataSectionHandler(XML_Parser parser) {
+	XML_SetStartCdataSectionHandler(parser, bmx_expat_StartCdataSectionHandler);
+}
+
+void XMLCALL bmx_expat_EndCdataSectionHandler(void *userData) {
+	_bah_expat_TXMLParser__EndCdataSectionHandler((BBObject *)userData);
+}
+
+void bmx_expat_XML_SetEndCdataSectionHandler(XML_Parser parser) {
+	XML_SetEndCdataSectionHandler(parser, bmx_expat_EndCdataSectionHandler);
+}
+
+void bmx_expat_XML_SetCdataSectionHandler(XML_Parser parser, int hasStart, int hasEnd) {
+	if (hasStart) {
+		if (hasEnd) {
+			XML_SetCdataSectionHandler(parser, bmx_expat_StartCdataSectionHandler, bmx_expat_EndCdataSectionHandler);
+		} else {
+			XML_SetCdataSectionHandler(parser, bmx_expat_StartCdataSectionHandler, NULL);
+		}
+	} else {
+		if (hasEnd) {
+			XML_SetCdataSectionHandler(parser, NULL, bmx_expat_EndCdataSectionHandler);
+		} else {
+			XML_SetCdataSectionHandler(parser, NULL, NULL);
+		}
+	}
+}
+
+void XMLCALL bmx_expat_DefaultHandler(void *userData, const char *s, int len) {
+	char buf[len+1];
+	memcpy(&buf, s, len);
+	_bah_expat_TXMLParser__DefaultHandler((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
+}
+
+void bmx_expat_XML_SetDefaultHandler(XML_Parser parser) {
+	XML_SetDefaultHandler(parser, bmx_expat_DefaultHandler);
+}
+
+void XMLCALL bmx_expat_DefaultHandlerExpand(void *userData, const char *s, int len) {
+	char buf[len+1];
+	memcpy(&buf, s, len);
+	_bah_expat_TXMLParser__DefaultHandlerExpand((BBObject *)userData, bbStringFromUTF8String((char*)&buf));
+}
+
+void bmx_expat_XML_SetDefaultHandlerExpand(XML_Parser parser) {
+	XML_SetDefaultHandlerExpand(parser, bmx_expat_DefaultHandlerExpand);
+}
+
+void XMLCALL bmx_expat_SkippedEntityHandler(void *userData, const char *entityName, int is_parameter_entity) {
+	_bah_expat_TXMLParser__SkippedEntityHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity);
+}
+
+void bmx_expat_XML_SetSkippedEntityHandler(XML_Parser parser) {
+	XML_SetSkippedEntityHandler(parser, bmx_expat_SkippedEntityHandler);
+}
+
+void XMLCALL bmx_expat_StartNamespaceDeclHandler(void *userData, const char *prefix, const char *uri) {
+	_bah_expat_TXMLParser__StartNamespaceDeclHandler((BBObject *)userData, bbStringFromUTF8String(prefix), bbStringFromUTF8String(uri));
+}
+
+void bmx_expat_XML_SetStartNamespaceDeclHandler(XML_Parser parser) {
+	XML_SetStartNamespaceDeclHandler(parser, bmx_expat_StartNamespaceDeclHandler);
+}
+
+void XMLCALL bmx_expat_EndNamespaceDeclHandler(void *userData, const char *prefix) {
+	_bah_expat_TXMLParser__EndNamespaceDeclHandler((BBObject *)userData, bbStringFromUTF8String(prefix));
+}
+
+void bmx_expat_XML_SetEndNamespaceDeclHandler(XML_Parser parser) {
+	XML_SetEndNamespaceDeclHandler(parser, bmx_expat_EndNamespaceDeclHandler);
+}
+
+void bmx_expat_XML_SetNamespaceDeclHandler(XML_Parser parser, int hasStart, int hasEnd) {
+	if (hasStart) {
+		if (hasEnd) {
+			XML_SetNamespaceDeclHandler(parser, bmx_expat_StartNamespaceDeclHandler, bmx_expat_EndNamespaceDeclHandler);
+		} else {
+			XML_SetNamespaceDeclHandler(parser, bmx_expat_StartNamespaceDeclHandler, NULL);
+		}
+	} else {
+		if (hasEnd) {
+			XML_SetNamespaceDeclHandler(parser, NULL, bmx_expat_EndNamespaceDeclHandler);
+		} else {
+			XML_SetNamespaceDeclHandler(parser, NULL, NULL);
+		}
+	}
+}
+
+void XMLCALL bmx_expat_XmlDeclHandler(void *userData, const char *version, const char *encoding, int standalone) {
+	_bah_expat_TXMLParser__XmlDeclHandler((BBObject *)userData, bbStringFromUTF8String(version), bbStringFromUTF8String(encoding),
+		standalone);
+}
+
+void bmx_expat_XML_SetXmlDeclHandler(XML_Parser parser) {
+	XML_SetXmlDeclHandler(parser, bmx_expat_XmlDeclHandler);
+}
+
+void XMLCALL bmx_expat_StartDoctypeDeclHandler(void *userData, const char *doctypeName, const char *sysid, const char *pubid,
+		int has_internal_subset) {
+
+
+	_bah_expat_TXMLParser__StartDoctypeDeclHandler((BBObject *)userData, bbStringFromUTF8String(doctypeName),
+		bbStringFromUTF8String(sysid), bbStringFromUTF8String(pubid), has_internal_subset);
+
+}
+
+void bmx_expat_XML_SetStartDoctypeDeclHandler(XML_Parser parser) {
+	XML_SetStartDoctypeDeclHandler(parser, bmx_expat_StartDoctypeDeclHandler);
+}
+
+void XMLCALL bmx_expat_EndDoctypeDeclHandler(void *userData) {
+	_bah_expat_TXMLParser__EndDoctypeDeclHandler((BBObject *)userData);
+}
+
+void bmx_expat_XML_SetEndDoctypeDeclHandler(XML_Parser parser) {
+	XML_SetEndDoctypeDeclHandler(parser, bmx_expat_EndDoctypeDeclHandler);
+}
+
+void bmx_expat_XML_SetDoctypeDeclHandler(XML_Parser parser, int hasStart, int hasEnd) {
+	if (hasStart) {
+		if (hasEnd) {
+			XML_SetDoctypeDeclHandler(parser, bmx_expat_StartDoctypeDeclHandler, bmx_expat_EndDoctypeDeclHandler);
+		} else {
+			XML_SetDoctypeDeclHandler(parser, bmx_expat_StartDoctypeDeclHandler, NULL);
+		}
+	} else {
+		if (hasEnd) {
+			XML_SetDoctypeDeclHandler(parser, NULL, bmx_expat_EndDoctypeDeclHandler);
+		} else {
+			XML_SetDoctypeDeclHandler(parser, NULL, NULL);
+		}
+	}
+}
+
+void XMLCALL bmx_expat_AttlistDeclHandler(void *userData, const char *elname, const char *attname, const char *att_type,
+		const char *dflt, int isrequired) {
+
+	_bah_expat_TXMLParser__AttlistDeclHandler((BBObject *)userData, bbStringFromUTF8String(elname), bbStringFromUTF8String(attname),
+		bbStringFromUTF8String(att_type), bbStringFromUTF8String(dflt), isrequired);
+
+}
+
+void bmx_expat_XML_SetAttlistDeclHandler(XML_Parser parser) {
+	XML_SetAttlistDeclHandler(parser, bmx_expat_AttlistDeclHandler);
+}
+
+void XMLCALL bmx_expat_EntityDeclHandler(void *userData, const char *entityName, int is_parameter_entity, const char *value,
+		int value_length, const char *base, const char *systemId, const char *publicId, const char *notationName) {
+
+	if (value_length > 0) {
+		char buf[value_length +1];
+		memcpy(&buf, value, value_length);
+
+		_bah_expat_TXMLParser__EntityDeclHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
+			bbStringFromUTF8String((char*)&buf), bbStringFromUTF8String(base), bbStringFromUTF8String(systemId),
+			bbStringFromUTF8String(publicId), bbStringFromUTF8String(notationName));
+	} else {
+		_bah_expat_TXMLParser__EntityDeclHandler((BBObject *)userData, bbStringFromUTF8String(entityName), is_parameter_entity,
+			&bbEmptyString, bbStringFromUTF8String(base), bbStringFromUTF8String(systemId),
+			bbStringFromUTF8String(publicId), bbStringFromUTF8String(notationName));
+	}
+
+}
+
+void bmx_expat_XML_SetEntityDeclHandler(XML_Parser parser) {
+	XML_SetEntityDeclHandler(parser, bmx_expat_EntityDeclHandler);
+}
+
+void XMLCALL bmx_expat_NotationDeclHandler(void *userData, const char *notationName, const char *base, const char *systemId,
+		const char *publicId) {
+
+
+	_bah_expat_TXMLParser__NotationDeclHandler((BBObject *)userData, bbStringFromUTF8String(notationName),
+		bbStringFromUTF8String(base), bbStringFromUTF8String(systemId), bbStringFromUTF8String(publicId));
+
+}
+
+void bmx_expat_XML_SetNotationDeclHandler(XML_Parser parser) {
+	XML_SetNotationDeclHandler(parser, bmx_expat_NotationDeclHandler);
+}
+
+int XMLCALL bmx_expat_NotStandaloneHandler(void *userData) {
+	return _bah_expat_TXMLParser__NotStandaloneHandler((BBObject *)userData);
+}
+
+void bmx_expat_XML_SetNotStandaloneHandler(XML_Parser parser) {
+	XML_SetNotStandaloneHandler(parser, bmx_expat_NotStandaloneHandler);
 }
 
 

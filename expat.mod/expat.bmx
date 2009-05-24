@@ -63,6 +63,22 @@ Type TXMLParser
 	Field userEndElementHandler(userData:Object, name:String)
 	Field userCharacterDataHandler(userData:Object, text:String)
 	Field userProcessingInstructionHandler(userData:Object, target:String, data:String)
+	Field userCommentHandler(userData:Object, data:String)
+	Field userStartCdataSectionHandler(userData:Object)
+	Field userEndCdataSectionHandler(userData:Object)
+	Field userDefaultHandler(userData:Object, data:String)
+	Field userDefaultHandlerExpand(userData:Object, text:String)
+	Field userSkippedEntityHandler(userData:Object, name:String, isParameterEntity:Int)
+	Field userStartNamespaceDeclHandler(userData:Object, prefix:String, uri:String)
+	Field userEndNamespaceDeclHandler(userData:Object, prefix:String)
+	Field userXmlDeclHandler(userData:Object, version:String, encoding:String, standalone:Int)
+	Field userStartDoctypeDeclHandler(userData:Object, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int)
+	Field userEndDoctypeDeclHandler(userData:Object)
+	Field userAttlistDeclHandler(userData:Object, elname:String, attname:String, attType:String, dflt:String, isRequired:Int)
+	Field userEntityDeclHandler(userData:Object, _entityName:String, isParameterEntity:Int, value:String, base:String, systemId:String, ..
+		publicId:String, notationName:String)
+	Field userNotationDeclHandler(userData:Object, notationName:String, base:String, systemId:String, publicId:String)
+	Field userNotStandaloneHandler:Int(userData:Object)
 
 	Rem
 	bbdoc: Creates a new parser with the specified @encoding.
@@ -265,91 +281,383 @@ Type TXMLParser
 		parser.userProcessingInstructionHandler(parser.userData, target, data)
 	End Function
 
+	Rem
+	bbdoc: Sets a handler for comments.
+	about: The data is all text inside the comment delimiters.
+	End Rem
 	Method SetCommentHandler(handler(userData:Object, data:String))
-	' TODO
+		userCommentHandler = handler
+		If handler Then
+			bmx_expat_XML_SetCommentHandler(parserPtr)
+		Else
+			XML_SetCommentHandler(parserPtr, Null)
+		End If
 	End Method
 	
+	' internal callback
+	Function _CommentHandler(parser:TXMLParser, data:String)
+		parser.userCommentHandler(parser.userData, data)
+	End Function
+	
+	Rem
+	bbdoc: Sets a handler that gets called at the beginning of a CDATA section.
+	End Rem
 	Method SetStartCdataSectionHandler(handler(userData:Object))
-	' TODO
+		userStartCdataSectionHandler = handler
+		If handler Then
+			bmx_expat_XML_SetStartCdataSectionHandler(parserPtr)
+		Else
+			XML_SetStartCdataSectionHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _StartCdataSectionHandler(parser:TXMLParser)
+		parser.userStartCdataSectionHandler(parser.userData)
+	End Function
 	
+	Rem
+	bbdoc: Sets a handler that gets called at the end of a CDATA section.
+	End Rem
 	Method SetEndCdataSectionHandler(handler(userData:Object))
-	' TODO
+		userEndCdataSectionHandler = handler
+		If handler Then
+			bmx_expat_XML_SetEndCdataSectionHandler(parserPtr)
+		Else
+			XML_SetEndCdataSectionHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _EndCdataSectionHandler(parser:TXMLParser)
+		parser.userEndCdataSectionHandler(parser.userData)
+	End Function
 	
+	Rem
+	bbdoc: Sets both CDATA section handlers with one call.
+	End Rem
 	Method SetCdataSectionHandler(starthandler(userData:Object), endhandler(userData:Object))
-	' TODO
+		userStartCdataSectionHandler = starthandler
+		userEndCdataSectionHandler = endhandler
+		If starthandler Or endhandler Then
+			If starthandler Then
+				If endhandler
+					bmx_expat_XML_SetCdataSectionHandler(parserPtr, True, True)
+				Else
+					bmx_expat_XML_SetCdataSectionHandler(parserPtr, True, False)
+				End If
+			Else
+				bmx_expat_XML_SetCdataSectionHandler(parserPtr, False, True)
+			End If
+		Else
+			XML_SetCdataSectionHandler(parserPtr, Null, Null)
+		End If
 	End Method
 	
+	Rem
+	bbdoc: Sets a handler for any characters in the document which wouldn't otherwise be handled.
+	about: This includes both data for which no handlers can be set (like some kinds of DTD declarations) and data which
+	could be reported but which currently has no handler set. The characters are passed exactly as they were present in the
+	XML document except that they will be encoded in UTF-8. Line boundaries are not normalized. Note that a byte order mark
+	character is not passed to the default handler. There are no guarantees about how characters are divided between calls
+	to the default handler: for example, a comment might be split between multiple calls. Setting the handler with this call
+	has the side effect of turning off expansion of references to internally defined general entities. Instead these references
+	are passed to the default handler.
+	End Rem
 	Method SetDefaultHandler(handler(userData:Object, text:String))
-	' TODO
+		userDefaultHandler = handler
+		If handler Then
+			bmx_expat_XML_SetDefaultHandler(parserPtr)
+		Else
+			XML_SetDefaultHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _DefaultHandler(parser:TXMLParser, text:String)
+		parser.userDefaultHandler(parser.userData, text)
+	End Function
 	
+	Rem
+	bbdoc: Sets a default handler, but doesn't inhibit the expansion of internal entity references.
+	about: The entity reference will not be passed to the default handler.
+	End Rem
 	Method SetDefaultHandlerExpand(handler(userData:Object, text:String))
-	' TODO
+		userDefaultHandlerExpand = handler
+		If handler Then
+			bmx_expat_XML_SetDefaultHandlerExpand(parserPtr)
+		Else
+			XML_SetDefaultHandlerExpand(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _DefaultHandlerExpand(parser:TXMLParser, text:String)
+		parser.userDefaultHandlerExpand(parser.userData, text)
+	End Function
 	
+	Rem
+	bbdoc: Sets a skipped entity handler.
+	about: This is called in two situations:
+	<ol>
+	<li>An entity reference is encountered for which no declaration has been read and this is not an error.</li>
+	<li>An internal entity reference is read, but not expanded, because XML_SetDefaultHandler has been called.</li>
+	</ol>
+	The @isParameterEntity argument will be non-zero for a parameter entity and zero for a general entity.
+	<p>
+	Note: skipped parameter entities in declarations and skipped general entities in attribute values cannot be reported,
+	because the event would be out of sync with the reporting of the declarations or attribute values.
+	</p>
+	End Rem
 	Method SetSkippedEntityHandler(handler(userData:Object, name:String, isParameterEntity:Int))
-	' TODO
+		userSkippedEntityHandler = handler
+		If handler Then
+			bmx_expat_XML_SetSkippedEntityHandler(parserPtr)
+		Else
+			XML_SetSkippedEntityHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _SkippedEntityHandler(parser:TXMLParser, name:String, isParameterEntity:Int)
+		parser.userSkippedEntityHandler(parser.userData, name, isParameterEntity)
+	End Function
 	
+	Rem
+	bbdoc: Sets a handler to be called when a namespace is declared.
+	about: Namespace declarations occur inside start tags. But the namespace declaration start handler is called before the
+	start tag handler for each namespace declared in that start tag.
+	End Rem
 	Method SetStartNamespaceDeclHandler(handler(userData:Object, prefix:String, uri:String))
-	' TODO
+		userStartNamespaceDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetStartNamespaceDeclHandler(parserPtr)
+		Else
+			XML_SetStartNamespaceDeclHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _StartNamespaceDeclHandler(parser:TXMLParser, prefix:String, uri:String)
+		parser.userStartNamespaceDeclHandler(parser.userData, prefix, uri)
+	End Function
 	
+	Rem
+	bbdoc: Sets a handler to be called when leaving the scope of a namespace declaration.
+	about: This will be called, for each namespace declaration, after the handler for the end tag of the element in which
+	the namespace was declared.
+	End Rem
 	Method SetEndNamespaceDeclHandler(handler(userData:Object, prefix:String))
-	' TODO
+		userEndNamespaceDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetEndNamespaceDeclHandler(parserPtr)
+		Else
+			XML_SetEndNamespaceDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
-	Method SetNamespaceDeclHandler(starthandler(userData:Object, prefix:String), endhandler(userData:Object, prefix:String))
-	' TODO
+	' internal callback
+	Function _EndNamespaceDeclHandler(parser:TXMLParser, prefix:String)
+		parser.userEndNamespaceDeclHandler(parser.userData, prefix)
+	End Function
+	
+	Rem
+	bbdoc: Sets both namespace declaration handlers with a single call.
+	End Rem
+	Method SetNamespaceDeclHandler(starthandler(userData:Object, prefix:String, uri:String), endhandler(userData:Object, prefix:String))
+		userStartNamespaceDeclHandler = starthandler
+		userEndNamespaceDeclHandler = endhandler
+		If starthandler Or endhandler Then
+			If starthandler Then
+				If endhandler
+					bmx_expat_XML_SetNamespaceDeclHandler(parserPtr, True, True)
+				Else
+					bmx_expat_XML_SetNamespaceDeclHandler(parserPtr, True, False)
+				End If
+			Else
+				bmx_expat_XML_SetNamespaceDeclHandler(parserPtr, False, True)
+			End If
+		Else
+			XML_SetNamespaceDeclHandler(parserPtr, Null, Null)
+		End If
 	End Method
 	
+	Rem
+	bbdoc: Sets a handler that is called for XML declarations and also for text declarations discovered in external entities.
+	about: The way to distinguish is that the version parameter will be NULL for text declarations. The encoding parameter
+	may be NULL for an XML declaration. The standalone argument will contain -1, 0, or 1 indicating respectively that
+	there was no standalone parameter in the declaration, that it was given as no, or that it was given as yes.
+	End Rem
 	Method SetXmlDeclHandler(handler(userData:Object, version:String, encoding:String, standalone:Int))
-	' TODO
+		userXmlDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetXmlDeclHandler(parserPtr)
+		Else
+			XML_SetXmlDeclHandler(parserPtr, Null)
+		End If
 	End Method
+
+	' internal callback
+	Function _XmlDeclHandler(parser:TXMLParser, version:String, encoding:String, standalone:Int)
+		parser.userXmlDeclHandler(parser.userData, version, encoding, standalone)
+	End Function
 	
+	Rem
+	bbdoc: Sets a handler that is called at the start of a DOCTYPE declaration, before any external or internal subset is parsed.
+	about: Both sysid and pubid may be NULL. The has_internal_subset will be non-zero if the DOCTYPE declaration has an
+	internal subset.
+	End Rem
 	Method SetStartDoctypeDeclHandler(handler(userData:Object, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int))
-	' TODO
+		userStartDoctypeDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetStartDoctypeDeclHandler(parserPtr)
+		Else
+			XML_SetStartDoctypeDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
+	' internal callback
+	Function _StartDoctypeDeclHandler(parser:TXMLParser, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int)
+		parser.userStartDoctypeDeclHandler(parser.userData, docTypeName, sysid, pubid, hasInternalSubset)
+	End Function
+	
+	Rem
+	bbdoc: Sets a handler that is called at the end of a DOCTYPE declaration, after parsing any external subset.
+	End Rem
 	Method SetEndDoctypeDeclHandler(handler(userData:Object))
-	' TODO
+		userEndDoctypeDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetEndDoctypeDeclHandler(parserPtr)
+		Else
+			XML_SetEndDoctypeDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
+	' internal callback
+	Function _EndDoctypeDeclHandler(parser:TXMLParser)
+		parser.userEndDoctypeDeclHandler(parser.userData)
+	End Function
+
+	Rem
+	bbdoc: Sets both doctype handlers with one call.
+	End Rem
 	Method SetDoctypeDeclHandler(starthandler(userData:Object, docTypeName:String, sysid:String, pubid:String, hasInternalSubset:Int), ..
 			endhandler(userData:Object))
-	' TODO
+		userStartDoctypeDeclHandler = starthandler
+		userEndDoctypeDeclHandler = endhandler
+		If starthandler Or endhandler Then
+			If starthandler Then
+				If endhandler
+					bmx_expat_XML_SetDoctypeDeclHandler(parserPtr, True, True)
+				Else
+					bmx_expat_XML_SetDoctypeDeclHandler(parserPtr, True, False)
+				End If
+			Else
+				bmx_expat_XML_SetDoctypeDeclHandler(parserPtr, False, True)
+			End If
+		Else
+			XML_SetDoctypeDeclHandler(parserPtr, Null, Null)
+		End If
 	End Method
 
 	'Method SetElementDeclHandler(.....
 	' TODO
 	'End method
 	
+	Rem
+	bbdoc: Sets a handler for attlist declarations in the DTD.
+	about: This handler is called for each attribute. So a single attlist declaration with multiple attributes declared
+	will generate multiple calls to this handler. The @elname parameter returns the name of the element for which the attribute
+	is being declared. The attribute name is in the @attname parameter. The attribute type is in the @attType parameter. It
+	is the string representing the type in the declaration with whitespace removed.
+	<p>
+	The @dflt parameter holds the default value. It will be NULL in the case of "#IMPLIED" or "#REQUIRED" attributes. You can
+	distinguish these two cases by checking the @isRequired parameter, which will be true in the case of "#REQUIRED" attributes.
+	Attributes which are "#FIXED" will have also have a true isrequired, but they will have the non-NULL fixed value
+	in the @dflt parameter.
+	</p>
+	End Rem
 	Method SetAttlistDeclHandler(handler(userData:Object, elname:String, attname:String, attType:String, ..
 			dflt:String, isRequired:Int))
-	' TODO
+		userAttlistDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetAttlistDeclHandler(parserPtr)
+		Else
+			XML_SetAttlistDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
+	' internal callback
+	Function _AttlistDeclHandler(parser:TXMLParser, elname:String, attname:String, attType:String, ..
+			dflt:String, isRequired:Int)
+		parser.userAttlistDeclHandler(parser.userData, elname, attname, attType, dflt, isRequired)
+	End Function
+
+	Rem
+	bbdoc: Sets a handler that will be called for all entity declarations.
+	about: The @isParameterEntity argument will be non-zero in the case of parameter entities and zero otherwise.
+	<p>
+	For internal entities (&ltg;!ENTITY foo "bar"&gt;), @value will be non-NULL and @systemId, @publicId, and @notationName
+	will all be NULL.
+	</p>
+	<p>
+	The @notationName argument will have a non-NULL value only for unparsed entity declarations.
+	</p>
+	End Rem
 	Method SetEntityDeclHandler(handler(userData:Object, _entityName:String, isParameterEntity:Int, value:String, ..
 			base:String, systemId:String, publicId:String, notationName:String))
-	' TODO
+		userEntityDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetEntityDeclHandler(parserPtr)
+		Else
+			XML_SetEntityDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
-	Method SetUnparsedEntityDeclHandler(handler(userData:Object, _entityName:String, base:String, systemId:String, ..
-			publicId:String, notationName:String))
-	' TODO
-	End Method
-	
+	' internal callback
+	Function _EntityDeclHandler(parser:TXMLParser, _entityName:String, isParameterEntity:Int, value:String, ..
+			base:String, systemId:String, publicId:String, notationName:String)
+		parser.userEntityDeclHandler(parser.userData, _entityName, isParameterEntity, value, base, systemId, publicId, notationName)
+	End Function
+
+	Rem
+	bbdoc: Sets a handler that receives notation declarations.
+	End Rem
 	Method SetNotationDeclHandler(handler(userData:Object, notationName:String, base:String, systemId:String, ..
 			publicId:String))
-	' TODO
+		userNotationDeclHandler = handler
+		If handler Then
+			bmx_expat_XML_SetNotationDeclHandler(parserPtr)
+		Else
+			XML_SetNotationDeclHandler(parserPtr, Null)
+		End If
 	End Method
 	
-	Method SetNotStandaloneHandler(handler(userData:Object))
-	' TODO
+	' internal callback
+	Function _NotationDeclHandler(parser:TXMLParser, notationName:String, base:String, systemId:String, publicId:String)
+		parser.userNotationDeclHandler(parser.userData, notationName, base, systemId, publicId)
+	End Function
+
+	Rem
+	bbdoc: Sets a handler that is called if the document is not "standalone".
+	about: This happens when there is an external subset or a reference to a parameter entity, but does not have standalone
+	set to "yes" in an XML declaration. If this handler returns XML_STATUS_ERROR, then the parser will throw an
+	XML_ERROR_NOT_STANDALONE error.
+	End Rem
+	Method SetNotStandaloneHandler(handler:Int(userData:Object))
+		userNotStandaloneHandler = handler
+		If handler Then
+			bmx_expat_XML_SetNotStandaloneHandler(parserPtr)
+		Else
+			XML_SetNotStandaloneHandler(parserPtr, Null)
+		End If
 	End Method
 	
+	' internal callback
+	Function _NotStandaloneHandler:Int(parser:TXMLParser)
+		Return parser.userNotStandaloneHandler(parser.userData)
+	End Function
+
 	Rem
 	bbdoc: Returns what type of error has occurred.
 	End Rem
