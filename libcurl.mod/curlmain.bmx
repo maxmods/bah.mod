@@ -963,7 +963,7 @@ Type TCurlInfo
 	Method responseCode:Int()
 		Local value:Int
 		
-		error = bmx_curl_easy_getinfo_long(easyHandlePtr, CURLINFO_HTTP_CONNECTCODE, Varptr value)
+		error = bmx_curl_easy_getinfo_long(easyHandlePtr, CURLINFO_RESPONSE_CODE, Varptr value)
 		
 		Return value
 	End Method

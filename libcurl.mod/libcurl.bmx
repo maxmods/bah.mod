@@ -35,6 +35,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Update to c-ares 1.6.0"
+ModuleInfo "History: Fixed ResponseCode() not returning correct codes."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Update to libcurl 7.18.0"
 ModuleInfo "History: Update to c-ares 1.5.1"
