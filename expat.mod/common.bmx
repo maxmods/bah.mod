@@ -21,6 +21,7 @@
 SuperStrict
 
 Import BRL.Blitz
+Import BRL.Stream
 
 Import "src/*.h"
 
@@ -113,7 +114,9 @@ Extern
 	Function XML_UseForeignDTD:Int(handle:Byte Ptr, useDTD:Int)
 	Function XML_SetReturnNSTriplet(handle:Byte Ptr, doNST:Int)
 	Function XML_DefaultCurrent(handle:Byte Ptr)
-
+	Function XML_GetBuffer:Byte Ptr(handle:Byte Ptr, size:Int)
+	Function XML_ParseBuffer:Int(handle:Byte Ptr, bytesRead:Int, isFinal:Int)
+	
 End Extern
 
 

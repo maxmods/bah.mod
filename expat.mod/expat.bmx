@@ -99,15 +99,69 @@ Type TXMLParser
 
 	Rem
 	bbdoc: Parses some more of the document.
-	about: The string @text is a string containing part (or perhaps all) of the document.
+	about: @text is either a TStream object, or a String containing part (or perhaps all) of the document.
 	The @isFinal parameter informs the parser that this is the last piece of the document.
 	Frequently, the last piece is empty (i.e. len is zero.) If a parse error occurred, it
 	returns XML_STATUS_ERROR. Otherwise it returns XML_STATUS_OK value. 
 	End Rem
-	Method Parse:Int(text:String, isFinal:Int = True)
-		Return bmx_expat_XML_Parse(parserPtr, text, isFinal)
+	Method Parse:Int(text:Object, isFinal:Int = True)
+		If String(text) Then
+		
+			Return bmx_expat_XML_Parse(parserPtr, String(text), isFinal)
+			
+		Else If TStream(text) Then
+		
+			Local stream:TStream = TStream(text)
+			Local res:Int = XML_STATUS_OK
+		
+			While True
+			
+				Local buf:Byte Ptr = XML_GetBuffer(parserPtr, 1024)
+				
+				If Not buf Then
+					res = XML_STATUS_ERROR
+					Exit
+				End If
+				
+				Local read:Int = stream.Read(buf, 1024)
+				
+				If read < 0 Then
+					res = XML_STATUS_ERROR
+					Exit
+				End If
+				
+				If Not XML_ParseBuffer(parserPtr, read, read = 0) Then
+					res = XML_STATUS_ERROR
+					Exit
+				End If
+				
+				If read = 0 Then
+					Exit
+				End If
+			
+			Wend
+			
+			Return res
+		
+		End If
 	End Method
-
+	
+	Rem
+	bbdoc: Obtains a buffer of @size to read a piece of the document into.
+	about: A NULL value is returned if Expat can't allocate enough memory for this buffer. This has to be called prior to every
+	call to #ParseBuffer.
+	End Rem
+	Method GetBuffer:Byte Ptr(size:Int)
+		Return XML_GetBuffer(parserPtr, size)
+	End Method
+	
+	Rem
+	bbdoc: This is just like #Parse, except in this case Expat provides the buffer.
+	about: By obtaining the buffer from Expat with the #GetBuffer method, the application can avoid double copying of the input.
+	End Rem
+	Method ParseBuffer:Int(size:Int, isFinal:Int)
+		Return XML_ParseBuffer(parserPtr, size, isFinal)
+	End Method
 
 	Rem
 	bbdoc: Stops parsing, causing #Parse or #ParseBuffer to return.
