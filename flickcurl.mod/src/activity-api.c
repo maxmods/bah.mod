@@ -41,7 +41,6 @@
 #include <flickcurl.h>
 #include <flickcurl_internal.h>
 
-
 /**
  * flickcurl_activity_userComments:
  * @fc: flickcurl context

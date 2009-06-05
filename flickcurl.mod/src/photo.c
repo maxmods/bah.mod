@@ -2,7 +2,7 @@
  *
  * photo.c - Flickcurl photo functions
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This file is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -86,7 +86,12 @@ static const char* flickcurl_photo_field_label[PHOTO_FIELD_LAST+1]={
   "country_woeid",
   "usage_candownload",
   "usage_canblog",
-  "usage_canprint"
+  "usage_canprint",
+  "owner_iconserver",
+  "owner_iconfarm",
+  "original_width",
+  "original_height",
+  "views"
 };
 
 
@@ -158,7 +163,7 @@ flickcurl_free_photo(flickcurl_photo *photo)
  * @c can be s,m,t,b for sizes, o for original, otherwise default
  * http://www.flickr.com/services/api/misc.urls.html
  *
- * Return value: source URI or NULL on failure
+ * Return value: new source URI string or NULL on failure
  */
 char*
 flickcurl_photo_as_source_uri(flickcurl_photo *photo, const char c)
@@ -198,6 +203,90 @@ flickcurl_photo_as_source_uri(flickcurl_photo *photo, const char c)
 }
 
 
+/**
+ * flickcurl_photo_as_page_uri:
+ * @photo: photo object
+ *
+ * Get a photo's page URI
+ *
+ * Return value: new source URI string or NULL on failure
+ */
+char*
+flickcurl_photo_as_page_uri(flickcurl_photo *photo)
+{
+  char buf[1024];
+  char *result;
+  size_t len;
+  
+  /* http://www.flickr.com/photos/{owner}/{photo id}/ */
+  sprintf(buf, "http://www.flickr.com/photos/%s/%s", 
+          photo->fields[PHOTO_FIELD_owner_nsid].string, photo->id);
+
+  len = strlen(buf);
+  result = (char*)malloc(len+1);
+  strncpy(result, buf, len+1);
+  return result;
+}
+
+
+/**
+ * flickcurl_user_icon_uri:
+ * @farm: user icon farm
+ * @server: user icon server or 0
+ * @nsid: user nsid
+ *
+ * Get the user's icon URI
+ *
+ * The icon URI returned is always a 48x48 pixel JPEG.
+ *
+ * If @server is 0 (or the other fields are NULL), the default icon URI of
+ * http://www.flickr.com/images/buddyicon.jpg is returned.
+ *
+ * Defined by http://www.flickr.com/services/api/misc.buddyicons.html
+ *
+ * Return value: new icon URI string or NULL on failure
+ */
+char*
+flickcurl_user_icon_uri(int farm, int server, char *nsid)
+{
+  char buf[1024];
+  char *result;
+  size_t len;
+  
+  if(server && farm && nsid)
+  /* http://farm{icon-farm}.static.flickr.com/{icon-server}/buddyicons/{nsid}.jpg */
+    sprintf(buf, "http://farm%d.static.flickr.com/%d/buddicons/%s.jpg", 
+            farm, server, nsid);
+  else
+    strcpy(buf, "http://www.flickr.com/images/buddyicon.jpg");
+
+  len = strlen(buf);
+  result = (char*)malloc(len+1);
+  strncpy(result, buf, len+1);
+  return result;
+}
+
+
+/**
+ * flickcurl_photo_as_user_icon_uri:
+ * @photo: photo object
+ *
+ * Get the user's icon URI
+ *
+ * The icon URI returned is always a 48x48 pixel JPEG
+ *
+ * Return value: new icon URI string or NULL on failure
+ */
+char*
+flickcurl_photo_as_user_icon_uri(flickcurl_photo *photo)
+{
+  return flickcurl_user_icon_uri(
+            photo->fields[PHOTO_FIELD_owner_iconfarm].integer,
+            photo->fields[PHOTO_FIELD_owner_iconserver].integer,
+            photo->fields[PHOTO_FIELD_owner_nsid].string);
+}
+
+
 static struct {
   const xmlChar* xpath;
   flickcurl_photo_field_type field;
@@ -223,6 +312,12 @@ static struct {
   ,
   {
     (const xmlChar*)"./@dateuploaded",
+    PHOTO_FIELD_dateuploaded,
+    VALUE_TYPE_UNIXTIME
+  }
+  ,
+  {
+    (const xmlChar*)"./@dateupload",
     PHOTO_FIELD_dateuploaded,
     VALUE_TYPE_UNIXTIME
   }
@@ -267,6 +362,66 @@ static struct {
     (const xmlChar*)"./@tags",
     PHOTO_FIELD_none,
     VALUE_TYPE_TAG_STRING
+  }
+  ,
+  {
+    (const xmlChar*)"./@owner",
+    PHOTO_FIELD_owner_nsid,
+    VALUE_TYPE_STRING
+  }
+  ,
+  {
+    (const xmlChar*)"./@ownername",
+    PHOTO_FIELD_owner_realname,
+    VALUE_TYPE_STRING
+  }
+  ,
+  {
+    (const xmlChar*)"./@place_id",
+    PHOTO_FIELD_location_placeid,
+    VALUE_TYPE_STRING
+  }
+  ,
+  {
+    (const xmlChar*)"./@woeid",
+    PHOTO_FIELD_location_woeid,
+    VALUE_TYPE_STRING
+  }
+  ,
+  {
+    (const xmlChar*)"./@accuracy",
+    PHOTO_FIELD_location_accuracy,
+    VALUE_TYPE_INTEGER
+  }
+  ,
+  {
+    (const xmlChar*)"./@latitude",
+    PHOTO_FIELD_location_latitude,
+    VALUE_TYPE_FLOAT
+  }
+  ,
+  {
+    (const xmlChar*)"./@longitude",
+    PHOTO_FIELD_location_longitude,
+    VALUE_TYPE_FLOAT
+  }
+  ,
+  {
+    (const xmlChar*)"./@datetaken",
+    PHOTO_FIELD_dates_taken,
+    VALUE_TYPE_DATETIME
+  }
+  ,
+  {
+    (const xmlChar*)"./@lastupdate",
+    PHOTO_FIELD_dates_lastupdate,
+    VALUE_TYPE_UNIXTIME
+  }
+  ,
+  {
+    (const xmlChar*)"./@datetakengranularity",
+    PHOTO_FIELD_dates_takengranularity,
+    VALUE_TYPE_INTEGER
   }
   ,
   {
@@ -583,6 +738,36 @@ static struct {
     VALUE_TYPE_BOOLEAN
   }
   ,
+  {
+    (const xmlChar*)"./@iconserver",
+    PHOTO_FIELD_owner_iconserver,
+    VALUE_TYPE_INTEGER
+  }
+  ,
+  {
+    (const xmlChar*)"./@iconfarm",
+    PHOTO_FIELD_owner_iconfarm,
+    VALUE_TYPE_INTEGER
+  }
+  ,
+  {
+    (const xmlChar*)"./@o_width",
+    PHOTO_FIELD_original_width,
+    VALUE_TYPE_INTEGER
+  }
+  ,
+  {
+    (const xmlChar*)"./@o_height",
+    PHOTO_FIELD_original_height,
+    VALUE_TYPE_INTEGER
+  }
+  ,
+  {
+    (const xmlChar*)"./@views",
+    PHOTO_FIELD_views,
+    VALUE_TYPE_INTEGER
+  }
+  ,
   { 
     NULL,
     (flickcurl_photo_field_type)0,
@@ -726,6 +911,8 @@ flickcurl_build_photos(flickcurl* fc, xmlXPathContextPtr xpathCtx,
           break;
 
         case VALUE_TYPE_PERSON_ID:
+        case VALUE_TYPE_COLLECTION_ID:
+        case VALUE_TYPE_ICON_PHOTOS:
           abort();
       }
 
