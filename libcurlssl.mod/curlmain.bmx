@@ -414,7 +414,7 @@ Type TCurlEasy Extends TCurlHasLists
 
 	Function readStreamCallback:Int(buffer:Byte Ptr, size:Int, nmemb:Int, stream:Object)
 		Try
-			Return TStream(stream).readBytes(buffer, size * nmemb)
+			Return TStream(stream).read(buffer, size * nmemb)
 		Catch e:TStreamReadException
 			Return CURL_READFUNC_ABORT
 		End Try

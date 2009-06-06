@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -414,7 +414,7 @@ Type TCurlEasy Extends TCurlHasLists
 
 	Function readStreamCallback:Int(buffer:Byte Ptr, size:Int, nmemb:Int, stream:Object)
 		Try
-			Return TStream(stream).readBytes(buffer, size * nmemb)
+			Return TStream(stream).read(buffer, size * nmemb)
 		Catch e:TStreamReadException
 			Return CURL_READFUNC_ABORT
 		End Try
