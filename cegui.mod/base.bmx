@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -1601,7 +1601,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Sets the vertical alignment.
 	about: Modifies the vertical alignment for the window. This setting affects how the windows position is
-	interpreted relative to its parent.
+	interpreted relative to its parent. One of #VA_TOP, #VA_CENTRE, or #VA_BOTTOM.
 	End Rem
 	Method setVerticalAlignment(alignment:Int)
 		bmx_cegui_window_setverticalaligmnent(objectPtr, alignment)
@@ -1610,7 +1610,7 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Sets the horizontal alignment.
 	about: Modifies the horizontal alignment for the window. This setting affects how the windows position is
-	interpreted relative to its parent.
+	interpreted relative to its parent. One of #HA_LEFT, #HA_CENTRE or #HA_RIGHT.
 	End Rem
 	Method setHorizontalAlignment(alignment:Int)
 		bmx_cegui_window_sethorizontalalignment(objectPtr, alignment)

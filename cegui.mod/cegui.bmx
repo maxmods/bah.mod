@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.CEGUI
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: CEGUI - 2004 - 2006 Paul D Turner & The CEGUI Development Team"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (CEGUI 0.6.2)"
@@ -1288,8 +1288,8 @@ Type TCEListboxTextItem Extends TCEListboxItem
 	Rem
 	bbdoc: Sets the font to be used by this ListboxTextItem. 
 	End Rem
-	Method setFontByName(fontName:String)
-		bmx_cegui_listboxtextitem_setfontbyname(objectPtr, _convertMaxToUTF8(fontName))
+	Method setFontByName(FontName:String)
+		bmx_cegui_listboxtextitem_setfontbyname(objectPtr, _convertMaxToUTF8(FontName))
 	End Method
 	
 	Rem
@@ -1998,8 +1998,8 @@ Type TCESpinner Extends TCEWindow
 	Rem
 	bbdoc: Sets the spinner input / display mode.
 	End Rem
-	Method setTextInputMode(mode:Int)
-		bmx_cegui_spinner_settextinputmode(objectPtr, mode)
+	Method setTextInputMode(Mode:Int)
+		bmx_cegui_spinner_settextinputmode(objectPtr, Mode)
 	End Method
 
 	
@@ -2185,8 +2185,8 @@ Type TCEItemListBase Extends TCEWindow
 	Rem
 	bbdoc: Sets the mode to be used when sorting the list. 
 	End Rem
-	Method setSortMode(mode:Int)
-		bmx_cegui_itemlistbase_setsortmode(objectPtr, mode)
+	Method setSortMode(Mode:Int)
+		bmx_cegui_itemlistbase_setsortmode(objectPtr, Mode)
 	End Method
 	
 	'Method setSortCallback(SortCallback cb)
@@ -5420,15 +5420,15 @@ Type TCEScrolledItemListBase Extends TCEItemListBase
 	Rem
 	bbdoc: Sets whether the vertical scrollbar should be forced visible. Despite content size. 
 	End Rem
-	Method setShowVertScrollbar(mode:Int)
-		bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(objectPtr, mode)
+	Method setShowVertScrollbar(Mode:Int)
+		bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(objectPtr, Mode)
 	End Method
 	
 	Rem
 	bbdoc: Sets whether the horizontal scrollbar should be forced visible. Despite content size.
 	End Rem
-	Method setShowHorzScrollbar(mode:Int)
-		bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(objectPtr, mode)
+	Method setShowHorzScrollbar(Mode:Int)
+		bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(objectPtr, Mode)
 	End Method
 
 End Type

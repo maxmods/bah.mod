@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -352,8 +352,8 @@ Extern
 	Function bmx_cegui_scrolleditemlistbase_ishorzscrollbaralwaysshown:Int(handle:Byte Ptr)
 	Function bmx_cegui_scrolleditemlistbase_getvertscrollbar:Object(handle:Byte Ptr)
 	Function bmx_cegui_scrolleditemlistbase_gethorzscrollbar:Object(handle:Byte Ptr)
-	Function bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(handle:Byte Ptr, mode:Int)
-	Function bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(handle:Byte Ptr, mode:Int)
+	Function bmx_cegui_scrolleditemlistbase_setshowvertscrollbar(handle:Byte Ptr, Mode:Int)
+	Function bmx_cegui_scrolleditemlistbase_setshowhorzscrollbar(handle:Byte Ptr, Mode:Int)
 
 	Function bmx_cegui_itemlistbox_getselectedcount:Int(handle:Byte Ptr)
 	Function bmx_cegui_itemlistbox_getlastselecteditem:Object(handle:Byte Ptr)
@@ -379,7 +379,7 @@ Extern
 
 	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_fontmanager_isfontpresent:Int(name:Byte Ptr)
-	Function bmx_cegui_fontmanager_createfonttype:Byte Ptr(fontType:Byte Ptr, name:Byte Ptr, fontName:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_fontmanager_createfonttype:Byte Ptr(fontType:Byte Ptr, name:Byte Ptr, FontName:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_fontmanager_destroyfont(font:Byte Ptr)
 	Function bmx_cegui_fontmanager_destroyfonttxt(font:Byte Ptr)
 	Function bmx_cegui_fontmanager_destroyAllFonts()
@@ -395,7 +395,7 @@ Extern
 	Function bmx_cegui_spinner_setstepsize(handle:Byte Ptr, stepSize:Float)
 	Function bmx_cegui_spinner_setmaximumvalue(handle:Byte Ptr, maxValue:Float)
 	Function bmx_cegui_spinner_setminimumvalue(handle:Byte Ptr, minValue:Float)
-	Function bmx_cegui_spinner_settextinputmode(handle:Byte Ptr, mode:Int)
+	Function bmx_cegui_spinner_settextinputmode(handle:Byte Ptr, Mode:Int)
 
 	Function bmx_cegui_scrollbar_getdocumentsize:Float(handle:Byte Ptr)
 	Function bmx_cegui_scrollbar_getpagesize:Float(handle:Byte Ptr)
@@ -713,7 +713,7 @@ Extern
 	Function bmx_cegui_listboxtextitem_getfont:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_gettextcolours:Byte Ptr(handle:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_setfont(handle:Byte Ptr, font:Byte Ptr)
-	Function bmx_cegui_listboxtextitem_setfontbyname(handle:Byte Ptr, fontName:Byte Ptr)
+	Function bmx_cegui_listboxtextitem_setfontbyname(handle:Byte Ptr, FontName:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_settextcolours(handle:Byte Ptr, cols:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_settextcoloursforcorner(handle:Byte Ptr, topLeftColour:Byte Ptr, topRightColour:Byte Ptr, bottomLeftColour:Byte Ptr, bottomRightColour:Byte Ptr)
 	Function bmx_cegui_listboxtextitem_settextcoloursforcolour(handle:Byte Ptr, col:Byte Ptr)
@@ -849,7 +849,7 @@ Extern
 	Function bmx_cegui_itemlistbase_getitemrenderarea(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
 	Function bmx_cegui_itemlistbase_getcontentpane:Object(handle:Byte Ptr)
 	Function bmx_cegui_itemlistbase_setsortenabled(handle:Byte Ptr, setting:Int)
-	Function bmx_cegui_itemlistbase_setsortmode(handle:Byte Ptr, mode:Int)
+	Function bmx_cegui_itemlistbase_setsortmode(handle:Byte Ptr, Mode:Int)
 	Function bmx_cegui_itemlistbase_sortlist(handle:Byte Ptr, relayout:Int)
 
 	Function bmx_cegui_globaleventset_getinstance:Byte Ptr()
@@ -1278,5 +1278,197 @@ Type TCEUnknownObjectException Extends TCEException
 		Return New TCEUnknownObjectException.CreateException(message, name, fileName, line)
 	End Function
 End Type
+
+
+Rem
+bbdoc: Window's position specifies an offset of its top edge from the top edge of its parent.
+end rem
+const VA_TOP:int = 0
+rem
+about: Window's position specifies an offset of its vertical centre from the vertical centre of its parent.
+End Rem
+Const VA_CENTRE:Int = 1
+Rem
+about: Window's position specifies an offset of its bottom edge from the bottom edge of its parent.
+end rem
+const VA_BOTTOM:int = 2
+
+Rem
+bbdoc: Window's position specifies an offset of its left edge from the left edge of its parent.
+end rem
+const HA_LEFT:int = 0
+rem
+bbdoc: Window's position specifies an offset of its horizontal centre from the horizontal centre of its parent.
+end rem
+const HA_CENTRE:int = 1
+rem
+bbdoc: Window's position specifies an offset of its right edge from the right edge of its parent.
+end rem
+const HA_RIGHT:int = 2
+
+rem
+bbdoc: Top of Image should be aligned with the top of the destination area.
+end rem
+const VF_TOP_ALIGNED:int = 0
+rem
+bbdoc: Image should be vertically centred within the destination area.
+end rem
+const VF_CENTRE_ALIGNED:int = 1
+rem
+bbdoc: Bottom of Image should be aligned with the bottom of the destination area.
+end rem
+const VF_BOTTOM_ALIGNED:int = 2
+rem
+bbdoc: Image should be stretched vertically to fill the destination area.
+end rem
+const VF_STRETCHED:int = 3
+rem
+bbdoc: Image should be tiled vertically to fill the destination area (bottom-most tile may be clipped).
+end rem
+const VF_TILED:int = 4
+
+rem
+bbdoc: Left of Image should be aligned with the left of the destination area.
+end rem
+const HF_LEFT_ALIGNED:int = 0
+rem
+bbdoc: Image should be horizontally centred within the destination area.
+end rem
+const HF_CENTRE_ALIGNED:int = 1
+rem
+bbdoc: Right of Image should be aligned with the right of the destination area.
+end rem
+const HF_RIGHT_ALIGNED:int = 2
+rem
+bbdoc: Image should be stretched horizontally to fill the destination area.
+end rem
+const HF_STRETCHED:int = 3
+rem
+bbdoc: Image should be tiled horizontally to fill the destination area (right-most tile may be clipped).
+end rem
+const HF_TILED:int = 4
+
+rem
+bbdoc: Top of text should be aligned with the top of the destination area.
+end rem
+const VTF_TOP_ALIGNED:int = 0
+rem
+bbdoc: Text should be vertically centred within the destination area.
+end rem
+const VTF_CENTRE_ALIGNED:int = 1
+rem
+bbdoc: Bottom of text should be aligned with the bottom of the destination area.
+end rem
+const VTF_BOTTOM_ALIGNED:int = 2
+
+rem
+bbdoc: Left of text should be aligned with the left of the destination area (single line of text only).
+end rem
+const HTF_LEFT_ALIGNED:int = 0
+rem
+bbdoc: Right of text should be aligned with the right of the destination area  (single line of text only).
+end rem
+const HTF_RIGHT_ALIGNED:int = 1
+rem
+bbdoc: text should be horizontally centred within the destination area  (single line of text only).
+end rem
+const HTF_CENTRE_ALIGNED:int = 2
+rem
+bbdoc: text should be spaced so that it takes the full width of the destination area (single line of text only).
+end rem
+const HTF_JUSTIFIED:int = 3
+rem
+bbdoc: Left of text should be aligned with the left of the destination area (word wrapped to multiple lines as needed).
+end rem
+const HTF_WORDWRAP_LEFT_ALIGNED:int = 4
+rem
+bbdoc: Right of text should be aligned with the right of the destination area  (word wrapped to multiple lines as needed).
+end rem
+const HTF_WORDWRAP_RIGHT_ALIGNED:int = 5
+rem
+bbdoc: text should be horizontally centred within the destination area  (word wrapped to multiple lines as needed).
+end rem
+const HTF_WORDWRAP_CENTRE_ALIGNED:int = 6
+rem
+bbdoc: text should be spaced so that it takes the full width of the destination area (word wrapped to multiple lines as needed).
+end rem
+const HTF_WORDWRAP_JUSTIFIED:int = 7
+
+rem
+bbdoc: Vertical line spacing value for font.
+end rem
+const FMT_LINE_SPACING:int = 0
+rem
+bbdoc: Vertical baseline value for font.
+end rem
+const FMT_BASELINE:int = 1
+rem
+bbdoc: Horizontal extent of a string.
+end rem
+const FMT_HORZ_EXTENT:int = 2
+
+rem
+bbdoc: Do nothing operator.
+end rem
+const DOP_NOOP:int = 0
+rem
+bbdoc: Dims should be added.
+end rem
+const DOP_ADD:int = 1
+rem
+bbdoc: Dims should be subtracted.
+end rem
+const DOP_SUBTRACT:int = 2
+rem
+bbdoc: Dims should be multiplied.
+end rem
+const DOP_MULTIPLY:int = 3
+rem
+bbdoc: Dims should be divided.
+end rem
+const DOP_DIVIDE:int = 4
+
+rem
+bbdoc: References image used for the background.
+end rem
+const FIC_BACKGROUND:int = 0
+rem
+bbdoc: References image used for the top-left corner.
+end rem
+const FIC_TOP_LEFT_CORNER:int = 1
+rem
+bbdoc: References image used for the top-right corner.
+end rem
+const FIC_TOP_RIGHT_CORNER:int = 2
+rem
+bbdoc: References image used for the bottom-left corner.
+end rem
+const FIC_BOTTOM_LEFT_CORNER:int = 3
+rem
+bbdoc: References image used for the bottom-right corner.
+end rem
+const FIC_BOTTOM_RIGHT_CORNER:int = 4
+rem
+bbdoc: References image used for the left edge.
+end rem
+const FIC_LEFT_EDGE:int = 5
+rem
+bbdoc: References image used for the right edge.
+end rem
+const FIC_RIGHT_EDGE:int = 6
+rem
+bbdoc: References image used for the top edge.
+end rem
+const FIC_TOP_EDGE:int = 7
+rem
+bbdoc: References image used for the bottom edge.
+end rem
+const FIC_BOTTOM_EDGE:int = 8
+rem
+bbdoc: Max number of images for a frame.
+end rem
+const FIC_FRAME_IMAGE_COUNT:int = 9
+
+
 
 
