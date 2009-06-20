@@ -1,4 +1,4 @@
-' Copyright (c) 2007, Bruce A Henderson
+' Copyright (c) 2007-2009 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,16 @@ about: An ODBC database driver for #bah.database.Database
 End Rem
 Module BaH.DBODBC
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.05"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 ModuleInfo "Copyright: iODBC - OpenLink Software"
 ModuleInfo "Modserver: BRL"
 
-ModuleInfo "History: 1.04"
+ModuleInfo "History: 1.06"
+ModuleInfo "History: Core API updates."
+ModuleInfo "History: 1.05"
 ModuleInfo "History: Implemented Date, DateTime and Time types."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Fixed issue with mis-count of bound parameters."
