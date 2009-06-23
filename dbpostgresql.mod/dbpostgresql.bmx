@@ -42,9 +42,9 @@ ModuleInfo "History: isOpen() now checks the connection status."
 ModuleInfo "History: Sets active to false when all rows read."
 ModuleInfo "History: Resultset cleanup improvements."
 ModuleInfo "History: Fixed prepared statement dealloc case issue."
-ModuleInfo "History: Added getTableInfo() support."
 ModuleInfo "History: Fixed invalid definition for float/double."
 ModuleInfo "History: Added blob support."
+ModuleInfo "History: Added date/time support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added hasPrepareSupport() and hasTransactionSupport() methods."
 ModuleInfo "History: 1.01"
@@ -497,11 +497,17 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 							Local b:TDBBlob = TDBBlob(values[i])
 							bmx_pgsql_setParamBinary(params, lengths, formats, i, b.value, b._size)
 						Case DBTYPE_DATE
-							' TODO
+							s = TDBDate(values[i]).getString()
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_DATETIME
-							' TODO
+							s = TDBDateTime(values[i]).getString()
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Case DBTYPE_TIME
-							' TODO
+							s = TDBTime(values[i]).getString()
+							strings[i] = s.toCString()
+							bmx_pgsql_setParam(params, lengths, formats, i, strings[i], s.length)
 						Default
 							Local s:String = convertISO8859toUTF8(values[i].getString())
 							strings[i] = s.toCString()
@@ -651,11 +657,11 @@ Type TPostgreSQLResultSet Extends TQueryResultSet
 						values[i] = New TDBDouble
 						values[i].setDouble(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength).toDouble())
 					Case DBTYPE_DATE
-						' TODO
+							values[i] = TDBDate.SetFromString(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength))
 					Case DBTYPE_DATETIME
-						' TODO
+							values[i] = TDBDateTime.SetFromString(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength))
 					Case DBTYPE_TIME
-						' TODO
+							values[i] = TDBTime.SetFromString(String.fromBytes(bmx_pgsql_PQgetvalue(pgResult, index + 1, i), fieldLength))
 					Case DBTYPE_BLOB
 						' get the escaped data
 						Local b:Byte Ptr = bmx_pgsql_PQgetvalue(pgResult, index + 1, i)
