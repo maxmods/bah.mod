@@ -1,0 +1,191 @@
+<p>
+libnotify is Notification Library for the Linux platform. It enables your applications to notify the user about important events.
+</p>
+<h2>Notifications</h2>
+<p>
+Notifications consist of some summary text - a short message text - and optionally a more descriptive body text and icon image.
+</p>
+<p>
+A notification can be displayed for a fixed length of time, or as per the system default.
+</p>
+<h2>Markup</h2>
+<p> Body text may contain markup. The markup is XML-based, and consists
+  of a small subset of HTML along with a few additional tags.</p>
+<p> The following tags are generally supported by the notification server.</p>
+<table align="center">
+    <tr>
+      <td><code>&lt;b&gt;</code> ... <code>&lt;/b&gt;</code> </td>
+      <td>Bold</td>
+    </tr>
+    <tr>
+      <td><code>&lt;i&gt;</code> ... <code>&lt;/i&gt;</code> </td>
+      <td>Italic</td>
+    </tr>
+    <tr>
+      <td><code>&lt;u&gt;</code> ... <code>&lt;/u&gt;</code> </td>
+      <td>Underline</td>
+    </tr>
+    <tr>
+      <td><code>&lt;a href=&quot;...&quot;&gt;</code> ... <code>&lt;/a&gt;</code> </td>
+      <td>Hyperlink</td>
+    </tr>
+    <tr>
+      <td><code>&lt;img src=&quot;...&quot; alt=&quot;...&quot;/&gt;</code></td>
+      <td>Image</td>
+    </tr>
+</table>
+<h3>Images</h3>
+<p> Images may be placed in the notification, but this should be done with
+  caution. The image should never exceed 200x100, but this should be thought
+  of as a maximum size. Images should always have alternative text
+  provided through the <tt class="literal">alt=&quot;...&quot;</tt> attribute.</p>
+<p> Image data cannot be embedded in the message itself. Images referenced
+  must always be local files. </p>
+<p> Displaying of images my not be supported by your notification server. </p>
+
+<h2>Categories</h2>
+<p> Notifications can optionally have a type indicator, or category. </p>
+<p> Categories are in <tt class="literal"><tt class="replaceable"><i>class.specific</i></tt></tt> form. <tt class="literal">class</tt> specifies the generic type of notification, and <tt class="literal">specific</tt> specifies the more specific type of
+  notification. </p>
+<p> If a specific type of notification does not exist for your notification,
+  but the generic kind does, a notification of type <tt class="literal"><tt class="replaceable"><i>class</i></tt></tt> is acceptable. </p>
+<p> Third parties, when defining their own categories, should discuss
+  the possibility of standardizing on the hint with other parties, preferably
+  in a place such as the <a href="http://freedesktop.org/mailman/listinfo/xdg" target="_top">xdg</a> mailing list at <a href="http://freedesktop.org/" target="_top">freedesktop.org</a>. If it   warrants a standard, it will be added to the table above. If no   consensus is reached, the category should be in the form of
+  &quot;<tt class="literal">x-<tt class="replaceable"><i>vendor</i></tt>.<tt class="replaceable"><i>class</i></tt>.<tt class="replaceable"><i>name</i></tt></tt>.&quot; </p>
+<p> The following table lists standard notifications as defined by this spec.
+  More will be added in time. </p>
+<p><b>Categories</b></p>
+<table align="center" width="90%">
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;device&quot;</tt></td>
+      <td> A generic device-related notification that doesn't fit into
+        any other category. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;device.added&quot;</tt></td>
+      <td>A device, such as a USB device, was added to the system.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;device.error&quot;</tt></td>
+      <td>A device had some kind of error.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;device.removed&quot;</tt></td>
+      <td> A device, such as a USB device, was removed from the system. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;email&quot;</tt></td>
+      <td> A generic e-mail-related notification that doesn't fit into any
+        other category. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;email.arrived&quot;</tt></td>
+      <td>A new e-mail notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;email.bounced&quot;</tt></td>
+      <td>A notification stating that an e-mail has bounced.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;im&quot;</tt></td>
+      <td> A generic instant message-related notification that doesn't fit
+        into any other category. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;im.error&quot;</tt></td>
+      <td>An instant message error notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;im.received&quot;</tt></td>
+      <td>A received instant message notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;network&quot;</tt></td>
+      <td> A generic network notification that doesn't fit into any other
+        category. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;network.connected&quot;</tt></td>
+      <td> A network connection notification, such as successful sign-on to a
+        network service. This should not be confused with <tt class="literal">device.added</tt> for new network devices. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;network.disconnected&quot;</tt></td>
+      <td> A network disconnected notification. This should not be confused with <tt class="literal">device.removed</tt> for disconnected network devices. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;network.error&quot;</tt></td>
+      <td> A network-related or connection-related error. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;presence&quot;</tt></td>
+      <td> A generic presence change notification that doesn't fit into
+        any other category, such as going away or idle. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;presence.offline&quot;</tt></td>
+      <td>An offline presence change notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;presence.online&quot;</tt></td>
+      <td>An online presence change notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;transfer&quot;</tt></td>
+      <td> A generic file transfer or download notification that doesn't fit
+        into any other category. </td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;transfer.complete&quot;</tt></td>
+      <td>A file transfer or download complete notification.</td>
+    </tr>
+    <tr>
+      <td><tt class="literal">&quot;transfer.error&quot;</tt></td>
+      <td>A file transfer or download error.</td>
+    </tr>
+</table>
+
+<h2>Urgency Levels</h2>
+<p>   Notifications have an urgency level associated with them. This defines
+  the importance of the notification. For example, &quot;Joe Bob signed on&quot;
+  would be a low urgency. &quot;You have new mail&quot; or &quot;A USB device was unplugged&quot;
+  would be a normal urgency. &quot;Your computer is on fire&quot; would be a critical
+  urgency.</p>
+<p>Urgency levels are defined as follows:</p>
+
+  <p><b>Urgency Levels</b></p>
+  <table align="center">
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>0</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>Normal</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Critical</td>
+      </tr>
+  </table>
+<p>   Developers must use their own judgement when deciding the urgency of a
+  notification. Typically, if the majority of programs are using the same
+  level for a specific type of urgency, other applications should follow
+  them.</p>
+<p>   For low and normal urgencies, server implementations may display the
+  notifications how they choose. They should, however, have a sane
+  expiration timeout dependent on the urgency level.</p>
+<p>   Critical notifications should not automatically expire, as they are
+  things that the user will most likely want to know about. They should
+  only be closed when the user dismisses them, for example, by clicking on
+  the notification.</p>
+

@@ -32,13 +32,13 @@ Import "-lnotify"
 
 
 Extern
-	Function gtk_init(argc:Int, argv:Byte Ptr Ptr Ptr)
-
+	Function g_free(handle:Byte Ptr)
 
 	Function notify_init:Int(appname:Byte Ptr)
 	Function notify_is_initted:Int()
 	Function notify_uninit()
 	Function notify_get_app_name:Byte Ptr()
+	Function notify_get_server_info:Int(n:Byte Ptr, ven:Byte Ptr, ver:Byte Ptr, spec:Byte Ptr)
 	
 	Function notify_notification_new:Byte Ptr(summary:Byte Ptr, body:Byte Ptr, icon:Byte Ptr, attach:Byte Ptr)
 	Function notify_notification_show:Int(handle:Byte Ptr, err:Byte Ptr)

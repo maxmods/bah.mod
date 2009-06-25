@@ -36,7 +36,7 @@ ModuleInfo "History: 1.00 Initial Release"
 Import "common.bmx"
 
 Rem
-bbdoc: 
+bbdoc: Notification API
 End Rem
 Type TNotify
 
@@ -73,6 +73,27 @@ Type TNotify
 	End Rem
 	Function GetAppName:String()
 		Return String.FromUTF8String(notify_get_app_name())
+	End Function
+	
+	Rem
+	bbdoc: Queries the server for its information, specifically, the name, vendor, server version, and the version of the notifications specification that it is compliant with.
+	returns: TRUE if successful, and the variables passed will be set. FALSE  on failure.
+	End Rem
+	Function GetServerInfo:Int(name:String Var, vendor:String Var, version:String Var, specVersion:String Var)
+		Local n:Byte Ptr, ven:Byte Ptr, ver:Byte Ptr, spec:Byte Ptr
+		Local ret:Int = notify_get_server_info(Varptr n, Varptr ven, Varptr ver, Varptr spec)
+		
+		name = String.FromCString(n)
+		vendor = String.FromCString(ven)
+		version = String.FromCString(ver)
+		specVersion = String.FromCString(spec)
+		
+		g_free(n)
+		g_free(ven)
+		g_free(ver)
+		g_free(spec)
+		
+		Return ret
 	End Function
 
 End Type
