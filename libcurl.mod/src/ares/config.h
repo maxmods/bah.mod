@@ -100,11 +100,13 @@
 /* Define to 1 if you have the `if_indextoname' function. */
 #define HAVE_IF_INDEXTONAME 1
 
+#ifdef __APPLE__
 /* Define to 1 if you have the `inet_net_pton' function. */
 #define HAVE_INET_NET_PTON 1
 
 /* Define to 1 if inet_net_pton supports IPv6. */
 #define HAVE_INET_NET_PTON_IPV6 1
+#endif
 
 /* Define to 1 if you have a IPv6 capable working inet_ntop function. */
 #define HAVE_INET_NTOP 1
