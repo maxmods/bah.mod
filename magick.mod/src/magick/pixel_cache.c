@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -49,8 +49,6 @@
 /*
   Define declarations.
 */
-#define MaxCacheViews  (Max(Max(cache_info->columns,cache_info->rows),256)+3)
-
 #if defined(POSIX) && defined(S_IRUSR)
 #  define S_MODE     (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #elif defined (MSWINDOWS)
@@ -126,7 +124,7 @@ typedef struct _CacheInfo
   /* Image indexes if memory resident */
   IndexPacket *indexes;
 
-  /* Memory, Disk, Map */
+  /* Ping, Memory, Disk, Map */
   CacheType type;
 
   /* Image indexes are valid */
@@ -179,7 +177,7 @@ typedef struct _NexusInfo
   PixelPacket *staging;
 
   /* Allocation size (in bytes) of pixel staging area */
-  magick_off_t length;
+  size_t length;
 
   /* Selected region (width, height, x, y). */
   RectangleInfo region;
@@ -752,6 +750,8 @@ AcquireCacheNexus(const Image *image,const long x,const long y,
   region.width=columns;
   region.height=rows;
   pixels=SetNexus(image,&region,nexus_info,exception);
+  if (pixels == (PixelPacket *) NULL)
+    return((const PixelPacket *) NULL);
   offset=region.y*(magick_off_t) cache_info->columns+region.x;
   length=(region.height-1)*cache_info->columns+region.width-1;
   number_pixels=(magick_uint64_t) cache_info->columns*cache_info->rows;
@@ -1659,9 +1659,15 @@ DestroyCacheInfo(Cache cache_info)
       }
     }
   if (cache_info->file_semaphore != (SemaphoreInfo *) NULL)
-    DestroySemaphoreInfo(&cache_info->file_semaphore);
+    {
+      DestroySemaphoreInfo(&cache_info->file_semaphore);
+      cache_info->file_semaphore=(SemaphoreInfo *) NULL;
+    }
   if (cache_info->reference_semaphore != (SemaphoreInfo *) NULL)
-    DestroySemaphoreInfo(&cache_info->reference_semaphore);
+    {
+      DestroySemaphoreInfo(&cache_info->reference_semaphore);
+      cache_info->reference_semaphore=(SemaphoreInfo *) NULL;
+    }
   (void) LogMagickEvent(CacheEvent,GetMagickModule(),"destroy %.1024s",
                         cache_info->filename);
   cache_info->signature=0;
@@ -2275,7 +2281,8 @@ AllocateCacheNexus()
   NexusInfo
     *nexus_info;
 
-  nexus_info=MagickAllocateMemory(NexusInfo *,sizeof(NexusInfo));
+  nexus_info=MagickAllocateMemory(NexusInfo *,Max(sizeof(NexusInfo),
+						  MAGICK_CACHE_LINE_SIZE));
   if (nexus_info != ((NexusInfo *) NULL))
     {
       (void) memset(nexus_info,0,sizeof(NexusInfo));
@@ -2515,6 +2522,89 @@ GetPixelCachePresent(const Image *image)
 %                                                                             %
 %                                                                             %
 %                                                                             %
++   I n t e r p o l a t e C o l o r                                           %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InterpolateColor applies bi-linear interpolation between a pixel and
+%  it's neighbors.
+%
+%  The format of the InterpolateColor method is:
+%
+%      PixelPacket InterpolateColor(const Image *image,const double x_offset,
+%        const double y_offset,ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o x_offset,y_offset: A double representing the current (x,y) position of
+%      the pixel.
+%
+%
+*/
+MagickExport void
+InterpolateViewColor(const ViewInfo *view,
+                     PixelPacket *color,
+                     const double x_offset,
+                     const double y_offset,
+                     ExceptionInfo *exception)
+{
+  register const PixelPacket
+    *p;
+
+  p=AcquireCacheViewPixels(view,(long) x_offset,(long) y_offset,2,2,exception);
+  if (p == (const PixelPacket *) NULL)
+    {
+      (void) AcquireOneCacheViewPixel(view,color,(long) x_offset,
+                                      (long) y_offset,exception);
+    }
+  else
+    {
+      double
+        alpha,
+        beta,
+        one_minus_alpha,
+        one_minus_beta;
+
+      alpha=x_offset-floor(x_offset);
+      beta=y_offset-floor(y_offset);
+      one_minus_alpha=1.0-alpha;
+      one_minus_beta=1.0-beta;
+      color->red=(Quantum)
+        (one_minus_beta*(one_minus_alpha*p[0].red+alpha*p[1].red)+
+         beta*(one_minus_alpha*p[2].red+alpha*p[3].red)+0.5);
+      color->green=(Quantum)
+        (one_minus_beta*(one_minus_alpha*p[0].green+alpha*p[1].green)+
+         beta*(one_minus_alpha*p[2].green+alpha*p[3].green)+0.5);
+      color->blue=(Quantum)
+        (one_minus_beta*(one_minus_alpha*p[0].blue+alpha*p[1].blue)+
+         beta*(one_minus_alpha*p[2].blue+alpha*p[3].blue)+0.5);
+      color->opacity=(Quantum)
+        (one_minus_beta*(one_minus_alpha*p[0].opacity+alpha*p[1].opacity)+
+         beta*(one_minus_alpha*p[2].opacity+alpha*p[3].opacity)+0.5);
+    }
+}
+MagickExport PixelPacket InterpolateColor(const Image *image,
+  const double x_offset,const double y_offset,ExceptionInfo *exception)
+{
+  PixelPacket
+    color;
+
+  assert(image != (Image *) NULL);
+  assert(image->signature == MagickSignature);
+  InterpolateViewColor(AccessDefaultCacheView(image),&color,
+                       x_offset,y_offset,exception);
+  return color;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %   M o d i f y C a c h e                                                     %
 %                                                                             %
 %                                                                             %
@@ -2548,7 +2638,6 @@ ModifyCache(Image *image, ExceptionInfo *exception)
 
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
-  assert(image->cache != (Cache) NULL);
   status=MagickPass;
 
   /*
@@ -2558,6 +2647,7 @@ ModifyCache(Image *image, ExceptionInfo *exception)
   */
   LockSemaphoreInfo(image->semaphore);
   {
+    assert(image->cache != (Cache) NULL);
     cache_info=(CacheInfo *) image->cache;
 
     LockSemaphoreInfo(cache_info->reference_semaphore);
@@ -2593,12 +2683,21 @@ ModifyCache(Image *image, ExceptionInfo *exception)
     }
     UnlockSemaphoreInfo(cache_info->reference_semaphore);
 
-    /*
-      Make sure that pixel cache reflects key image parameters such as
-      storage class and colorspace.  Re-open cache if necessary.
-    */
     if (status != MagickFail)
       {
+	/*
+	  Indicate that image will be (possibly) modified, and unset
+	  grayscale/monocrome flags.
+	*/
+	image->taint=MagickTrue;
+	image->is_grayscale=MagickFalse;
+	image->is_monochrome=MagickFalse;
+
+	/*
+	  Make sure that pixel cache reflects key image parameters
+	  such as storage class and colorspace.  Re-open cache if
+	  necessary.
+	*/
         cache_info=(CacheInfo *) image->cache;
         status=(((image->storage_class == cache_info->storage_class) &&
                  (image->colorspace == cache_info->colorspace)) ||
@@ -2794,19 +2893,10 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
       return MagickFail;
     }
   cache_info->length=offset;
-
   /*
-    Assure that there is sufficient address space available to contain
-    the PseudoClass representation (PixelPacket array + colormap
-    indexes array), and assure that there are sufficient memory
-    resources remaining. Pre-allocate sufficient memory to store the
-    PseudoClass representation in order to reduce the chance of
-    running out of virtual memory while processing the image. If the
-    operating system does not reserve heap allocations then it is
-    still possible to run out of virtual memory (the process will be
-    killed) even after the memory has been allocated.
+    Attempt to create pixel cache in memory
   */
-  offset=number_pixels*(sizeof(PixelPacket)+sizeof(IndexPacket));
+  offset=number_pixels*(sizeof(PixelPacket)+sizeof(IndexPacket)); /* FIXME */
   if ((offset == (magick_off_t) ((size_t) offset)) &&
       ((cache_info->type == UndefinedCache) ||
        (cache_info->type == MemoryCache)) &&
@@ -3531,12 +3621,12 @@ SetCacheNexus(Image *image,const long x,const long y,
 
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
-  assert(image->cache != (Cache) NULL);
   if (ModifyCache(image,exception) == MagickFail)
     return((PixelPacket *) NULL);
   /*
     Validate pixel cache geometry.
   */
+  assert(image->cache != (Cache) NULL);
   cache_info=(CacheInfo *) image->cache;
   offset=y*(magick_off_t) cache_info->columns+x;
   if (offset < 0)
@@ -3782,8 +3872,8 @@ SetImageVirtualPixelMethod(const Image *image,
 %
 %  The format of the SetNexus() method is:
 %
-%      PixelPacket SetNexus(const Image *image,const RectangleInfo *region,
-%                           NexusInfo *nexus_info,ExceptionInfo *exception)
+%      PixelPacket *SetNexus(const Image *image,const RectangleInfo *region,
+%                            NexusInfo *nexus_info,ExceptionInfo *exception)
 %
 %  A description of each parameter follows:
 %
@@ -3815,7 +3905,8 @@ SetNexus(const Image *image,const RectangleInfo *region,
     offset;
 
   size_t
-    length;
+    length,
+    packet_size;
 
   ARG_NOT_USED(exception);
   assert(image != (Image *) NULL);
@@ -3849,37 +3940,42 @@ SetNexus(const Image *image,const RectangleInfo *region,
   */
   number_pixels=(magick_uint64_t)
     Max(nexus_info->region.width*nexus_info->region.height,cache_info->columns);
-  length=number_pixels*sizeof(PixelPacket);
+  packet_size=sizeof(PixelPacket);
   if (cache_info->indexes_valid)
-    length+=number_pixels*sizeof(IndexPacket);
-  if (nexus_info->staging == (PixelPacket *) NULL)
+    packet_size+=sizeof(IndexPacket);;
+  length=number_pixels*packet_size;
+  if ((length/packet_size == number_pixels) &&
+      ((nexus_info->staging == (PixelPacket *) NULL) ||
+       (nexus_info->length < length)))
     {
-      nexus_info->staging=MagickAllocateMemory(PixelPacket *,length);
-      nexus_info->length=length;
-      /*
-        Clear memory so valgrind is happy.
-      */
+      nexus_info->length=0;
+      MagickReallocMemory(PixelPacket *,nexus_info->staging,length);
       if (nexus_info->staging != (PixelPacket *) NULL)
-        (void) memset((void *) nexus_info->staging,0,nexus_info->length);
+	{
+	  nexus_info->length=length;
+	  (void) memset((void *) nexus_info->staging,0,nexus_info->length);
+	}
     }
-  else
-    if (nexus_info->length < (magick_off_t) length)
-      {
-        MagickReallocMemory(PixelPacket *,nexus_info->staging,length);
-        nexus_info->length=length;
-        /*
-          Clear memory so valgrind is happy.
-        */
-        if (nexus_info->staging != (PixelPacket *) NULL)
-          (void) memset((void *) nexus_info->staging,0,nexus_info->length);
-      }
-  if (nexus_info->staging == (PixelPacket *) NULL)
-    MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-                      UnableToAllocateCacheInfo);
   nexus_info->pixels=nexus_info->staging;
   nexus_info->indexes=(IndexPacket *) NULL;
-  if (cache_info->indexes_valid)
+  if ((cache_info->indexes_valid) &&
+      (nexus_info->pixels != (PixelPacket *) NULL))
     nexus_info->indexes=(IndexPacket *) (nexus_info->pixels+number_pixels);
+  if (nexus_info->pixels == (PixelPacket *) NULL)
+    {
+      (void) LogMagickEvent(CacheEvent,GetMagickModule(),
+			    "Failed to allocate %lu bytes for nexus staging "
+			    "(number pixels=%" MAGICK_OFF_F "u, region width=%lu, "
+			    "region height=%lu, cache columns=%lu)!",
+			    (unsigned long) length,
+			    number_pixels,
+			    nexus_info->region.width,
+			    nexus_info->region.height,
+			    cache_info->columns);
+      ThrowException(exception,ResourceLimitError,MemoryAllocationFailed,
+		     image->filename);
+    }
+
   return(nexus_info->pixels);
 }
 
@@ -3937,9 +4033,6 @@ SyncCacheNexus(Image *image,const NexusInfo *nexus_info,
       ThrowException(exception,CacheError,PixelCacheIsNotOpen,image->filename);
       return MagickFail;
     }
-  image->taint=MagickTrue;
-  image->is_grayscale=MagickFalse;
-  image->is_monochrome=MagickFalse;
   if (IsNexusInCore(cache_info,nexus_info))
     return(MagickPass);
   if (image->clip_mask != (Image *) NULL)

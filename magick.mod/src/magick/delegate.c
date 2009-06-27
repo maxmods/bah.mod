@@ -511,7 +511,7 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
         (encode && (delegate_info->decode != (char *) NULL)))
       {
         char
-          filename[MaxTextExtent],
+          decode_filename[MaxTextExtent],
           *magick;
 
         ImageInfo
@@ -558,7 +558,7 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
         (void) strlcpy((char *) clone_info->magick,magick,MaxTextExtent);
         (void) strlcpy(image->magick,magick,MaxTextExtent);
         MagickFreeMemory(magick);
-        (void) strlcpy(filename,image->filename,MaxTextExtent);
+        (void) strlcpy(decode_filename,image->filename,MaxTextExtent);
         FormatString(clone_info->filename,"%.1024s:",delegate_info->decode);
         (void) SetImageInfo(clone_info,True,exception);
         (void) strlcpy(clone_info->filename,image_info->filename,
@@ -566,7 +566,7 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
         for (p=image; p != (Image *) NULL; p=p->next)
         {
           FormatString(p->filename,"%.1024s:%.1024s",delegate_info->decode,
-            filename);
+            decode_filename);
           status=WriteImage(clone_info,p);
           if (status == False)
             {

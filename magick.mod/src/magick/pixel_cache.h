@@ -324,6 +324,19 @@ extern "C" {
   GetPixelCachePresent(const Image *image);
 
   /*
+    Obtain an interpolated pixel value via bi-linear interpolation.
+  */
+  extern MagickExport PixelPacket
+    InterpolateColor(const Image *image,const double x_offset,
+      const double y_offset,ExceptionInfo *exception)
+      __attribute__ ((deprecated));
+
+  extern MagickExport void
+    InterpolateViewColor(const ViewInfo *view,PixelPacket *color,
+       const double x_offset,const double y_offset,
+       ExceptionInfo *exception);
+
+  /*
     Modify cache ensures that there is only one reference to the
     pixel cache so that it may be safely modified.
   */

@@ -16,6 +16,12 @@ extern "C" {
 #endif
 
 /*
+  Allow configuration of cache line size.  If smaller than actual
+  cache line size, then performance may suffer.
+*/
+#define MAGICK_CACHE_LINE_SIZE 128
+
+/*
   Note that the WIN32 and WIN64 definitions are provided by the build
   configuration rather than the compiler.  Definitions available from
   the Windows compiler are _WIN32 and _WIN64.
@@ -230,6 +236,16 @@ extern "C" {
 #  define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
 #endif
 
+/*
+  Avoid shadowing system library globals and functions.
+*/
+#undef gamma
+#define gamma gamma_magick
+#undef swab
+#define swab swab_magick
+#undef y1
+#define y1 y1_magick
+
 #include "magick/magick_types.h"
 #include "magick/image.h"
 #include "magick/list.h"
@@ -241,7 +257,6 @@ extern "C" {
 #    include <sys/times.h>
 #  endif
 #endif
-
 
 #if defined(POSIX)
 # include "magick/unix_port.h"
@@ -439,11 +454,13 @@ extern int vsnprintf(char *s, size_t n, const char *format, va_list ap);
 #  define MagickFstat(fildes,stat_buff) _fstati64(fildes,/* struct _stati64 */ stat_buff)
 #  define MagickFtell(stream) /* __int64 */ _ftelli64(stream)
 #  define MagickStatStruct_t struct _stati64
+#  define MagickStat(path,stat_buff) _stati64(path,/* struct _stati64 */ stat_buff)
 #else
 #  define MagickFseek(stream,offset,whence) fseek(stream,offset,whence)
 #  define MagickFstat(fildes,stat_buff) fstat(fildes,stat_buff)
 #  define MagickFtell(stream) ftell(stream)
 #  define MagickStatStruct_t struct stat
+#  define MagickStat(path,stat_buff) stat(path,stat_buff)
 #endif
 
 #if !defined(HAVE_POPEN) && defined(HAVE__POPEN)

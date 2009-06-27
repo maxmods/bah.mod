@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003, 2004, 2009 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -12,6 +12,7 @@
 #include "magick/studio.h"
 #include "magick/error.h"
 #include "magick/log.h"
+#include "magick/random.h"
 #include "magick/semaphore.h"
 #include "magick/tempfile.h"
 #include "magick/utility.h"
@@ -82,12 +83,12 @@ static void AddTemporaryFileToList(const char *filename)
 
 /*
   Remove a temporary file from the list.
-  Return True if removed or False if not found
+  Return MagickPass if removed or MagickFail if not found
 */
-static unsigned int RemoveTemporaryFileFromList(const char *filename)
+static MagickPassFail RemoveTemporaryFileFromList(const char *filename)
 {
-  unsigned int
-    status=False;
+  MagickPassFail
+    status=MagickFail;
 
   (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
     "Deallocating temporary file \"%s\"",filename);
@@ -107,7 +108,7 @@ static unsigned int RemoveTemporaryFileFromList(const char *filename)
             else
               templist=current->next;
             MagickFreeMemory(current);
-            status=True;
+            status=MagickPass;
             break;
           }
         previous=current;
@@ -133,14 +134,7 @@ static void ComposeTemporaryFileName(char *name)
   for (c=name; *c; c++)
     {
       if (*c == 'X')
-        {
-          unsigned int
-            index;
-
-          index=(unsigned int) (((double) (sizeof(SafeChars)-1)*rand())/
-                                RAND_MAX+0.5);
-          *c=SafeChars[index];
-        }
+	*c=SafeChars[MagickRandomInteger() % (sizeof(SafeChars)-1)];
     }
 }
 
@@ -157,8 +151,8 @@ static void ComposeTemporaryFileName(char *name)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  AcquireTemporaryFileName replaces the contents of the string buffer pointed
-%  to by filename with a unique file name.  True is returned if a file name is
-%  allocated, or False is returned if there is a failure.
+%  to by filename with a unique file name.  MagickPass is returned if a file
+%  name is allocated, or MagickFail is returned if there is a failure.
 %  When the filename is allocated, a temporary file is created on disk with
 %  zero length, and read/write permission by the user.
 %  The allocated filename should be recovered via the LiberateTemporaryFile()
@@ -166,20 +160,20 @@ static void ComposeTemporaryFileName(char *name)
 %
 %  The format of the AcquireTemporaryFileName method is:
 %
-%      unsigned int AcquireTemporaryFileName(char *filename,
-%                                        ExceptionInfo *exception)
+%      MagickPassFail AcquireTemporaryFileName(char *filename,
+%                                              ExceptionInfo *exception)
 %
 %  A description of each parameter follows.
 %
-%   o status: True if a temporary file name is allocated and successfully
-%             created on disk.  False if the temporary file name or file
+%   o status: MagickPass if a temporary file name is allocated and successfully
+%             created on disk.  MagickFail if the temporary file name or file
 %             creation fails.
 %
 %   o filename: Specifies a pointer to an array of characters.  The unique
 %             file name is returned in this array.
 %
 */
-MagickExport unsigned int AcquireTemporaryFileName(char *filename)
+MagickExport MagickPassFail AcquireTemporaryFileName(char *filename)
 {
   int
     fd;
@@ -188,9 +182,9 @@ MagickExport unsigned int AcquireTemporaryFileName(char *filename)
   if ((fd=AcquireTemporaryFileDescriptor(filename)) != -1)
     {
       (void) close(fd);
-      return (True);
+      return (MagickPass);
     }
-  return (False);
+  return (MagickFail);
 }
 
 /*
@@ -213,7 +207,7 @@ MagickExport unsigned int AcquireTemporaryFileName(char *filename)
 %
 %  The format of the AcquireTemporaryFileDescriptor method is:
 %
-%      unsigned int AcquireTemporaryFileDescriptor(char *filename)
+%      int AcquireTemporaryFileDescriptor(char *filename)
 %
 %  A description of each parameter follows.
 %
@@ -265,7 +259,7 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
       int
         tries=0;
       
-      for (tries=0; tries < 15; tries++)
+      for (tries=0; tries < 256; tries++)
         {
           (void) strcpy(tempname,"gmXXXXXX");
           ComposeTemporaryFileName(tempname);
@@ -277,10 +271,9 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
           if (fd != -1)
             {
               AddTemporaryFileToList(filename);
-              break;
+              return (fd);
             }
         }
-      return (fd);
     }
 
 #if HAVE_MKSTEMP
@@ -298,8 +291,8 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
     if (fd != -1)
       {
         AddTemporaryFileToList(filename);
+	return (fd);
       }
-    return (fd);
   }
 
 
@@ -343,7 +336,8 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
 
         MagickFreeMemory(name);
       }
-    return (fd);
+    if (fd != -1)
+      return (fd);
   }
 
 #else
@@ -358,11 +352,12 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
         if (fd != -1)
           {
             AddTemporaryFileToList(filename);
+	    return (fd);
           }
       }
-    return (fd);
   }
 #endif
+  return fd;
 }
 
 /*
@@ -385,7 +380,7 @@ MagickExport int AcquireTemporaryFileDescriptor(char *filename)
 %
 %  The format of the AcquireTemporaryFile method is:
 %
-%      FILE *AcquireTemporaryFileStream(char *filename,unsigned int text_mode)
+%      FILE *AcquireTemporaryFileStream(char *filename,FileIOMode text_mode)
 %
 %  A description of each parameter follows.
 %
@@ -478,7 +473,7 @@ MagickExport void DestroyTemporaryFiles(void)
 %  If the name is not contained in the temporary file list, then it is left
 %  unmodified.
 %
-%      void LiberateTemporaryFile(char *filename)
+%      MagickPassFail LiberateTemporaryFile(char *filename)
 %
 %  A description of each parameter follows.
 %
@@ -486,15 +481,15 @@ MagickExport void DestroyTemporaryFiles(void)
 %               the temporary file to reclaim.
 %
 */
-MagickExport unsigned int LiberateTemporaryFile(char *filename)
+MagickExport MagickPassFail LiberateTemporaryFile(char *filename)
 {
-  unsigned int
-    status = False;
+  MagickPassFail
+    status = MagickFail;
 
   if (RemoveTemporaryFileFromList(filename))
     {
       if ((remove(filename)) == 0)
-        status=True;
+        status=MagickPass;
       else
         (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
            "Temporary file removal failed \"%s\"",filename);

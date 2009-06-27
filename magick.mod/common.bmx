@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008,2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -158,14 +158,274 @@ Extern
 	Function bmx_magick_image_unsharpmask(handle:Byte Ptr, radius:Double, sigma:Double, amount:Double, threshold:Double)
 	Function bmx_magick_image_unsharpmaskchannel(handle:Byte Ptr, channel:Int, radius:Double, sigma:Double, amount:Double, threshold:Double)
 	Function bmx_magick_image_wave(handle:Byte Ptr, amplitude:Double, wavelength:Double)
+	Function bmx_magick_image_draw(handle:Byte Ptr, drawable:Byte Ptr)
 
+	Function bmx_magick_image_compresstype(handle:Byte Ptr, _type:Int)
+	Function bmx_magick_image_getcompresstype:Int(handle:Byte Ptr)
+	Function bmx_magick_image_definevalue(handle:Byte Ptr, magick:String, key:String, value:String)
+	Function bmx_magick_image_getdefinedvalue:String(handle:Byte Ptr, magick:String, key:String)
+	Function bmx_magick_image_defineset(handle:Byte Ptr, magick:String, key:String, flag:Int)
+	Function bmx_magick_image_getdefinedset:Int(handle:Byte Ptr, magick:String, key:String)
+	Function bmx_magick_image_density(handle:Byte Ptr, geometry:Byte Ptr)
+	Function bmx_magick_image_densitytxt(handle:Byte Ptr, geometry:String)
+	Function bmx_magick_image_depth(handle:Byte Ptr, depth:Int)
+	Function bmx_magick_image_directory:String(handle:Byte Ptr)
+	Function bmx_magick_image_endian(handle:Byte Ptr, endian:Int)
+	Function bmx_magick_image_getendian:Int(handle:Byte Ptr)
+	Function bmx_magick_image_filename(handle:Byte Ptr, filename:String)
+	Function bmx_magick_image_getfilename:String(handle:Byte Ptr)
+	Function bmx_magick_image_filesize:Int(handle:Byte Ptr)
+	Function bmx_magick_image_fillcolor(handle:Byte Ptr, color:Byte Ptr)
+	Function bmx_magick_image_fillcolortxt(handle:Byte Ptr, color:String)
+	Function bmx_magick_image_fillrule(handle:Byte Ptr, rule:Int)
+	Function bmx_magick_image_getfillrule:Int(handle:Byte Ptr)
+	Function bmx_magick_image_filtertype(handle:Byte Ptr, filterType:Int)
+	Function bmx_magick_image_getfiltertype:Int(handle:Byte Ptr)
+	Function bmx_magick_image_font(handle:Byte Ptr, font:String)
+	Function bmx_magick_image_getfont:String(handle:Byte Ptr)
+	Function bmx_magick_image_fontpointsize(handle:Byte Ptr, pointSize:Double)
+	Function bmx_magick_image_getfontpointsize:Double(handle:Byte Ptr)
+	Function bmx_magick_image_getformat:String(handle:Byte Ptr)
+	Function bmx_magick_image_getgamma:Double(handle:Byte Ptr)
+	Function bmx_magick_image_gifdisposemethod(handle:Byte Ptr, disposeMethod:Int)
+	Function bmx_magick_image_getgifdisposemethod:Int(handle:Byte Ptr)
+	Function bmx_magick_image_interlacetype(handle:Byte Ptr, interlace:Int)
+	Function bmx_magick_image_getinterlacetype:Int(handle:Byte Ptr)
+	Function bmx_magick_image_isvalid(handle:Byte Ptr, isValid:Int)
+	Function bmx_magick_image_getisvalid:Int(handle:Byte Ptr)
+	Function bmx_magick_image_getlabel:String(handle:Byte Ptr)
+	Function bmx_magick_image_strokewidth(handle:Byte Ptr, width:Double)
+	Function bmx_magick_image_getstrokewidth:Double(handle:Byte Ptr)
+	Function bmx_magick_image_magick(handle:Byte Ptr, magick:String)
+	Function bmx_magick_image_getmagick:String(handle:Byte Ptr)
+	Function bmx_magick_image_matte(handle:Byte Ptr, matteFlag:Int)
+	Function bmx_magick_image_getmatte:Int(handle:Byte Ptr)
+
+	
 	Function bmx_magick_blob_createfromdata:Byte Ptr(data:Byte Ptr, size:Int)
 	
 	Function bmx_magick_coderinfolist(list:Object, isReadable:Int, isWritable:Int, isMultiFrame:Int)
+	Function bmx_magick_coderinfo_info:Object(format:String)
+
+	Function bmx_magick_drawable_drawabletext_create:Byte Ptr(x:Double, y:Double, text:String)
+	Function bmx_magick_drawable_drawabletext_delete(handle:Byte Ptr)
+
+	Function bmx_magick_drawable_drawabletextantialias_create:Byte Ptr(flag:Int)
+	Function bmx_magick_drawable_drawabletextantialias_delete(handle:Byte Ptr)
+
+	Function bmx_magick_drawable_drawablefont_create:Byte Ptr(font:String)
+	Function bmx_magick_drawable_drawablefont_delete(handle:Byte Ptr)
 
 End Extern
 
+Rem
+bbdoc: 
+End Rem
+Type TMException  Extends TRuntimeException
+	Field message:String
+	
+	Method CreateException:TMException(message:String)
+		Self.message = message
+		Return Self
+	End Method
 
+	Function _create:TMException(message:String)
+		Return New TMException.CreateException(message)
+	End Function
+
+	Method ToString:String()
+		Return message
+	End Method
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMWarning Extends TMException
+	Function _create:TMException(message:String)
+		Return New TMWarning.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMWarningUndefined Extends TMWarning
+	Function _create:TMException(message:String)
+		Return New TMWarningUndefined.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TMError Extends TMException
+	Function _create:TMException(message:String)
+		Return New TMError.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Unspecified error type.
+End Rem
+Type TMErrorUndefined Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorUndefined.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported by BLOB I/O subsystem.
+End Rem
+Type TMErrorBlob Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorBlob.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported by the pixel cache subsystem.
+End Rem
+Type TMErrorCache Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorCache.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported by coders (image format support).
+End Rem
+Type TMErrorCoder Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorCoder.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported while loading configuration files.
+End Rem
+Type TMErrorConfigure Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorConfigure.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported when the image file is corrupt.
+End Rem
+Type TMErrorCorruptImage Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorCorruptImage.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the delegate (interface to external programs) subsystem.
+End Rem
+Type TMErrorDelegate Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorDelegate.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported while drawing on image.
+End Rem
+Type TMErrorDraw Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorDraw.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported when the image file can not be opened.
+End Rem
+Type TMErrorFileOpen Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorFileOpen.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported while drawing.
+End Rem
+Type TMErrorImage Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorImage.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported when an add-on library or program is necessary in order to support the requested operation.
+End Rem
+Type TMErrorMissingDelegate Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorMissingDelegate.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the module loader subsystem.
+End Rem
+Type TMErrorModule Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorModule.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported when an option is malformed or out of range.
+End Rem
+Type TMErrorOption Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorOption.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the image/BLOB registry subsystem.
+End Rem
+Type TMErrorRegistry Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorRegistry.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Error reported when a program resource is exhausted (e.g. not enough memory).
+End Rem
+Type TMErrorResourceLimit Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorResourceLimit.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the pixel stream subsystem.
+End Rem
+Type TMErrorStream Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorStream.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the type (font) rendering subsystem.
+End Rem
+Type TMErrorType Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorType.CreateException(message)
+	End Function
+End Type
+
+Rem
+bbdoc: Errors reported by the X11 subsystem.
+End Rem
+Type TMErrorXServer Extends TMError
+	Function _create:TMException(message:String)
+		Return New TMErrorXServer.CreateException(message)
+	End Function
+End Type
 
 Const CHANNEL_UNDEFINEDCHANNEL:Int = 0
 Const CHANNEL_REDCHANNEL:Int = 1     ' RGB Red channel */
@@ -507,4 +767,9 @@ Const RENDERING_RELATIVEINTENT:Int = 4
 Const RESOLUTION_UNDEFINEDRESOLUTION:Int = 0
 Const RESOLUTION_PIXELSPERINCHRESOLUTION:Int = 1
 Const RESOLUTION_PIXELSPERCENTIMETERRESOLUTION:Int = 2
+
+Const FILLRULE_UNDEFINEDRULE:Int = 0
+
+Const FILLRULE_EVENODDRULE:Int = 1
+Const FILLRULE_NONZERORULE:Int = 2
 

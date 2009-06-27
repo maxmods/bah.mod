@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003, 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -38,6 +38,7 @@
 #include "magick/studio.h"
 #if defined(HasXML)
 #include "magick/blob.h"
+#include "magick/confirm_access.h"
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/tempfile.h"
@@ -127,7 +128,27 @@ static Image *ReadURLImage(const ImageInfo *image_info,ExceptionInfo *exception)
   void
     *context;
 
+  ConfirmAccessMode
+    access_mode=UndefinedConfirmAccessMode;
+
   image=(Image *) NULL;
+
+  if (LocaleCompare(image_info->magick,"ftp") == 0)
+    access_mode=URLGetFTPConfirmAccessMode;
+  else if (LocaleCompare(image_info->magick,"http") == 0)
+    access_mode=URLGetHTTPConfirmAccessMode;
+  else if (LocaleCompare(image_info->magick,"file") == 0)
+    access_mode=URLGetFileConfirmAccessMode;
+
+  (void) strlcpy(filename,image_info->magick,MaxTextExtent);
+  (void) strlcat(filename,":",MaxTextExtent);
+  LocaleLower(filename);
+  (void) strlcat(filename,image_info->filename,MaxTextExtent);
+
+  if (MagickConfirmAccess(access_mode,filename,exception)
+      == MagickFail)
+    return image;
+
   clone_info=CloneImageInfo(image_info);
   clone_info->blob=(void *) NULL;
   clone_info->length=0;
@@ -138,10 +159,6 @@ static Image *ReadURLImage(const ImageInfo *image_info,ExceptionInfo *exception)
       DestroyImageInfo(clone_info);
       ThrowReaderTemporaryFileException(filename)
     }
-  (void) strlcpy(filename,image_info->magick,MaxTextExtent);
-  (void) strlcat(filename,":",MaxTextExtent);
-  LocaleLower(filename);
-  (void) strlcat(filename,image_info->filename,MaxTextExtent);
   if (LocaleCompare(clone_info->magick,"ftp") != 0)
     {
       char

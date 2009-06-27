@@ -467,13 +467,22 @@ namespace Magick
     // Apply an arithmetic or bitwise operator to the image pixel quantums.
     void            quantumOperator ( const ChannelType channel_,
                                       const QuantumOperator operator_,
-                                      Quantum rvalue_);
+                                      Quantum rvalue_) __attribute__ ((deprecated));
+    void            quantumOperator ( const ChannelType channel_,
+                                      const QuantumOperator operator_,
+                                      double rvalue_);
     void            quantumOperator ( const int x_,const int y_,
                                       const unsigned int columns_,
                                       const unsigned int rows_,
                                       const ChannelType channel_,
                                       const QuantumOperator operator_,
-                                      const Quantum rvalue_);
+                                      const Quantum rvalue_) __attribute__ ((deprecated));
+    void            quantumOperator ( const int x_,const int y_,
+                                      const unsigned int columns_,
+                                      const unsigned int rows_,
+                                      const ChannelType channel_,
+                                      const QuantumOperator operator_,
+                                      const double rvalue_);
 
     // Execute a named process module using an argc/argv syntax similar to
     // that accepted by a C 'main' routine. An exception is thrown if the

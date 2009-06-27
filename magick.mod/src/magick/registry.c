@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -38,6 +38,30 @@
 #include "magick/registry.h"
 #include "magick/semaphore.h"
 #include "magick/utility.h"
+/*
+  Typedef declarations.
+*/
+typedef struct _RegistryInfo
+{
+  long
+    id;
+
+  RegistryType
+    type;
+
+  void
+    *blob;
+
+  size_t
+    length;
+
+  unsigned long
+    signature;
+
+  struct _RegistryInfo
+    *previous,
+    *next;
+} RegistryInfo;
 
 /*
   Global declarations.
@@ -46,7 +70,7 @@ static SemaphoreInfo
   *registry_semaphore = (SemaphoreInfo *) NULL;
 
 static long
-  id = 0;
+  current_id = 0;
 
 static RegistryInfo
   *registry_list = (RegistryInfo *) NULL;
@@ -62,13 +86,13 @@ static RegistryInfo
 %                                                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  DeleteMagickRegistry() deletes an entry in the registry as defined by the id.
-%  It returns True if the entry is deleted otherwise False if no entry is found
-%  in the registry that matches the id.
+%  DeleteMagickRegistry() deletes an entry in the registry as defined by the
+%  id.  It returns MagickPass if the entry is deleted otherwise MagickFail if
+%  no entry is found in the registry that matches the id.
 %
 %  The format of the DeleteMagickRegistry method is:
 %
-%      unsigned int DeleteMagickRegistry(const long id)
+%      MagickPassFail DeleteMagickRegistry(const long id)
 %
 %  A description of each parameter follows:
 %
@@ -76,7 +100,7 @@ static RegistryInfo
 %
 %
 */
-MagickExport unsigned int DeleteMagickRegistry(const long id)
+MagickExport MagickPassFail DeleteMagickRegistry(const long id)
 {
   register RegistryInfo
     *p;
@@ -119,7 +143,7 @@ MagickExport unsigned int DeleteMagickRegistry(const long id)
     break;
   }
   LiberateSemaphoreInfo(&registry_semaphore);
-  return(p != (RegistryInfo *) NULL);
+  return ((p != (RegistryInfo *) NULL) ? MagickPass : MagickFail);
 }
 
 /*
@@ -141,7 +165,7 @@ MagickExport unsigned int DeleteMagickRegistry(const long id)
 %
 %
 */
-MagickExport void DestroyMagickRegistry(void)
+void DestroyMagickRegistry(void)
 {
   register RegistryInfo
     *p;
@@ -175,6 +199,7 @@ MagickExport void DestroyMagickRegistry(void)
     MagickFreeMemory(registry_info);
   }
   registry_list=(RegistryInfo *) NULL;
+  current_id = 0;
   LiberateSemaphoreInfo(&registry_semaphore);
   DestroySemaphoreInfo(&registry_semaphore);
 }
@@ -234,7 +259,7 @@ MagickExport Image *GetImageFromMagickRegistry(const char *name,long *id,
   LiberateSemaphoreInfo(&registry_semaphore);
   if (image == (Image *) NULL)
     ThrowException(exception,RegistryError,UnableToLocateImage,name);
-  return(image);
+  return (image);
 }
 
 /*
@@ -344,6 +369,34 @@ MagickExport void *GetMagickRegistry(const long id,RegistryType *type,
 %                                                                             %
 %                                                                             %
 %                                                                             %
++   I n i t i a l i z e M a g i c k R e g i s t r y                           %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  InitializeMagickRegistry() ensures that the magick registry is ready for
+%  use.
+%
+%  The format of the InitializeMagickRegistry method is:
+%
+%       void InitializeMagickRegistry(void)
+%
+%
+*/
+void InitializeMagickRegistry(void)
+{
+  AcquireSemaphoreInfo(&registry_semaphore);
+  current_id = 0;
+  registry_list = (RegistryInfo *) NULL;
+  LiberateSemaphoreInfo(&registry_semaphore);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %   S e t M a g i c k R e g i s t r y                                         %
 %                                                                             %
 %                                                                             %
@@ -446,7 +499,7 @@ MagickExport long SetMagickRegistry(const RegistryType type,const void *blob,
   registry_info->length=length;
   registry_info->signature=MagickSignature;
   AcquireSemaphoreInfo(&registry_semaphore);
-  registry_info->id=id++;
+  registry_info->id=current_id++;
   if (registry_list == (RegistryInfo *) NULL)
     registry_list=registry_info;
   else
@@ -459,5 +512,5 @@ MagickExport long SetMagickRegistry(const RegistryType type,const void *blob,
       p->next=registry_info;
     }
   LiberateSemaphoreInfo(&registry_semaphore);
-  return(registry_info->id);
+  return (registry_info->id);
 }

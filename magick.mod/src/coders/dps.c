@@ -329,7 +329,7 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
     {
       register unsigned long
         color,
-        index;
+        index_val;
 
       unsigned long
         blue_mask,
@@ -376,12 +376,12 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
           for (x=0; x < (long) image->columns; x++)
           {
             pixel=XGetPixel(dps_image,x,y);
-            index=(pixel >> red_shift) & red_mask;
-            q->red=ScaleShortToQuantum(colors[index].red);
-            index=(pixel >> green_shift) & green_mask;
-            q->green=ScaleShortToQuantum(colors[index].green);
-            index=(pixel >> blue_shift) & blue_mask;
-            q->blue=ScaleShortToQuantum(colors[index].blue);
+            index_val=(pixel >> red_shift) & red_mask;
+            q->red=ScaleShortToQuantum(colors[index_val].red);
+            index_val=(pixel >> green_shift) & green_mask;
+            q->green=ScaleShortToQuantum(colors[index_val].green);
+            index_val=(pixel >> blue_shift) & blue_mask;
+            q->blue=ScaleShortToQuantum(colors[index_val].blue);
             q++;
           }
           if (!SyncImagePixels(image))

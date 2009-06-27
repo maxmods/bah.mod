@@ -25,7 +25,7 @@
 %                                John Cristy                                  %
 %                                 July 1992                                   %
 %                              Jaroslav Fojtik                                %
-%                                August 2008                                  %
+%                                2008 - 2009                                  %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -184,7 +184,8 @@ static Image *ReadFITSImage(const ImageInfo *image_info,
   long
     packet_size,
     scene,
-    y;
+    y,
+    ax_number;
 
   register PixelPacket
     *q;
@@ -247,6 +248,7 @@ ReadExtension:
   fits_info.max_data=0.0;
   fits_info.zero=0.0;
   fits_info.scale=1.0;
+  number_pixels = 0;
 
   for ( ; ; )
   {
@@ -308,14 +310,32 @@ ReadExtension:
 	  if(fits_info.bits_per_pixel<0)          
             import_options.sample_type = FloatQuantumSampleType;
         }
-        if (LocaleCompare(keyword,"NAXIS") == 0)
-          fits_info.number_axes=atoi(value);
-        if (LocaleCompare(keyword,"NAXIS1") == 0)
-          fits_info.columns= atoi(value);
-        if (LocaleCompare(keyword,"NAXIS2") == 0)
-          fits_info.rows= atoi(value);
-        if (LocaleCompare(keyword,"NAXIS3") == 0)
-          fits_info.number_scenes=atoi(value);
+	if(!LocaleNCompare(keyword,"NAXIS",5))
+        {
+          if (keyword[5] == 0) ax_number=-1;          
+          else
+	  {
+            if(isdigit(keyword[5]))
+              ax_number = atoi(keyword+5);
+            else ax_number=-2;			/*unsupported fits keyword*/
+          }
+          if(ax_number>=-1) y = atoi(value);
+          switch(ax_number)
+          {
+            case -1:fits_info.number_axes = y; break;
+            case 1: fits_info.columns = (y<=0) ? 1 : y; break;
+	    case 2: fits_info.rows = (y<=0) ? 1 : y; break;
+	    case 3: fits_info.number_scenes = (y<=0) ? 1 : y; break;
+          }
+          if(ax_number>0)
+          {
+            if(number_pixels == 0)
+              number_pixels = y;
+            else
+              number_pixels *= (y<=0) ? 1 : y;
+          }
+        }
+
         if (LocaleCompare(keyword,"DATAMAX") == 0)
           fits_info.max_data=atof(value);
         if (LocaleCompare(keyword,"DATAMIN") == 0)
@@ -345,9 +365,7 @@ ReadExtension:
 
   /*
     Verify that required image information is defined.
-  */
-  number_pixels = fits_info.columns*fits_info.rows;
-
+  */  
   if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
           "HDU read finished at %Xh, number of pixel is: %d (%d*%d*%d)", (unsigned)TellBlob(image), (unsigned)number_pixels,
           (unsigned)fits_info.columns, (unsigned)fits_info.rows, (unsigned)fits_info.number_scenes);
@@ -357,8 +375,14 @@ ReadExtension:
   {
     if(!fits_info.extensions_exist)	/* when extensions exists, process further */
       ThrowReaderException(CorruptImageError,ImageTypeNotSupported,image);
+
+    number_pixels = (number_pixels*fits_info.bits_per_pixel) / 8;
+    number_pixels = ((number_pixels+FITS_BLOCK_SIZE-1) / FITS_BLOCK_SIZE) * FITS_BLOCK_SIZE; /* raw data block size */
+    (void) SeekBlob(image,number_pixels,SEEK_CUR);    
   }
   else
+  {
+   number_pixels = fits_info.columns*fits_info.rows; 
    for (scene=0; scene < (long) fits_info.number_scenes; scene++)
    {
       if(image->rows!=0 && image->columns!=0)
@@ -490,6 +514,7 @@ ReadExtension:
     if (image_info->subrange != 0)
       if (image->scene >= (image_info->subimage+image_info->subrange-1))
         break;    
+    }
   }
 
   if(fits_info.extensions_exist)

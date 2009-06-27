@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -407,7 +407,7 @@ XorCompositePixels(void *mutable_data,                /* User provided mutable d
 
       source_alpha=(double) source.opacity/MaxRGBDouble;
       dest_alpha=(double) destination.opacity/MaxRGBDouble;
-          
+      
       gamma=(1.0-source_alpha)+(1.0-dest_alpha)-
         2.0*(1.0-source_alpha)*(1.0-dest_alpha);
           
@@ -1947,10 +1947,10 @@ CompositeImage(Image *canvas_image,
     *change_image;
 
   double
-    amount,
-    percent_brightness,
-    percent_saturation,
-    threshold;
+    amount=0.0,
+    percent_brightness=0.0,
+    percent_saturation=0.0,
+    threshold=0.0;
 
   long
     y;
@@ -2060,8 +2060,9 @@ CompositeImage(Image *canvas_image,
                 if (update_image->matte)
                   y_displace=(vertical_scale*(p->opacity-
                                               (((double) MaxRGB+1.0)/2)))/(((double) MaxRGB+1.0)/2);
-                *r=InterpolateColor(canvas_image,x_offset+x+x_displace,y_offset+y+y_displace,
-                                    &canvas_image->exception);
+		InterpolateViewColor(AccessDefaultCacheView(canvas_image),r,
+				     x_offset+x+x_displace,y_offset+y+y_displace,
+				     &canvas_image->exception);
                 p++;
                 q++;
                 r++;
@@ -2195,7 +2196,9 @@ CompositeImage(Image *canvas_image,
       canvas_y=0;
 
 #if 0
-    printf("canvas=%lux%lu composite=%lux%lu offset=%ldx%ld | canvas=%ldx%ld composite=%ldx%ld size=%ldx%ld\n",
+    fprintf(stderr,
+	    "Parameters: canvas=%lux%lu | composite=%lux%lu | offset x=%ld y=%ld\n"
+	    "Overlap:    canvas x=%ld y=%ld | composite x=%ld y=%ld | size=%ldx%ld\n",
            canvas_image->columns,canvas_image->rows,
            change_image->columns,change_image->rows,
            x_offset,y_offset,
@@ -2215,10 +2218,10 @@ CompositeImage(Image *canvas_image,
         MagickBool
           clear_pixels = MagickFalse;
 
-        if ((canvas_x + change_image->columns) > canvas_image->columns)
-          columns -= ((canvas_x + change_image->columns) - canvas_image->columns);
-        if ((canvas_y + change_image->rows) > canvas_image->rows)
-          rows -= ((canvas_y + change_image->rows) - canvas_image->rows);
+	columns = Min(canvas_image->columns - canvas_x,
+		      change_image->columns - composite_x);
+	rows = Min(canvas_image->rows - canvas_y,
+		   change_image->rows - composite_y);
 
         call_back=GetCompositionPixelIteratorCallback(compose,&clear_pixels);
         if (call_back != (PixelIteratorDualModifyCallback) NULL)

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2004, 2007 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
   Copyright 1991-1999 E. I. du Pont de Nemours and Company
  
@@ -120,11 +120,13 @@ extern "C" {
 #include "magick/image.h"
 #include "magick/channel.h"
 #include "magick/compare.h"
+#include "magick/confirm_access.h"
 #include "magick/list.h"
 #include "magick/paint.h"
 #include "magick/render.h"
 #include "magick/draw.h"
 #include "magick/gem.h"
+#include "magick/hclut.h"
 #include "magick/quantize.h"
 #include "magick/compress.h"
 #include "magick/attribute.h"
@@ -145,6 +147,7 @@ extern "C" {
 #include "magick/shear.h"
 #include "magick/transform.h"
 #include "magick/composite.h"
+#include "magick/random.h"
 #include "magick/registry.h"
 #include "magick/magick.h"
 #include "magick/magic.h"

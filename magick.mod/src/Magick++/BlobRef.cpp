@@ -6,6 +6,7 @@
 //
 
 #define MAGICK_IMPLEMENTATION
+#define MAGICK_PLUSPLUS_IMPLEMENTATION
 
 #include "Magick++/Include.h"
 #include "Magick++/Thread.h"

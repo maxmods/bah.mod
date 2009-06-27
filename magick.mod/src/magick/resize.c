@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -562,7 +562,7 @@ MagickExport Image *MinifyImage(const Image *image,ExceptionInfo *exception)
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_MinifyImage)
 #endif
         {
           row_count++;
@@ -840,7 +840,7 @@ HorizontalFilter(const Image *source,Image *destination,
         *p;
 
       register PixelPacket
-        *q;
+        *q = (PixelPacket *) NULL;
 
       const IndexPacket
         *source_indexes;
@@ -890,8 +890,12 @@ HorizontalFilter(const Image *source,Image *destination,
       p=AcquireImagePixels(source,contribution[0].pixel,0,
                            contribution[n-1].pixel-contribution[0].pixel+1,
                            source->rows,exception);
-      q=SetImagePixelsEx(destination,x,0,1,destination->rows,exception);
-      if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
+      if (p == (const PixelPacket *) NULL)
+	thread_status=MagickFail;
+
+      if (thread_status != MagickFail)
+	q=SetImagePixelsEx(destination,x,0,1,destination->rows,exception);
+      if (q == (PixelPacket *) NULL)
         thread_status=MagickFail;
 
       if (thread_status != MagickFail)
@@ -915,16 +919,27 @@ HorizontalFilter(const Image *source,Image *destination,
               pixel=zero;
               if ((destination->matte) || (destination->colorspace == CMYKColorspace))
                 {
+		  double
+		    transparency_coeff,
+		    normalize;
+
+		  normalize=0.0;
                   for (i=0; i < n; i++)
                     {
                       j=y*(contribution[n-1].pixel-contribution[0].pixel+1)+
                         (contribution[i].pixel-contribution[0].pixel);
                       weight=contribution[i].weight;
-                      pixel.red+=weight*p[j].red;
-                      pixel.green+=weight*p[j].green;
-                      pixel.blue+=weight*p[j].blue;
+                      transparency_coeff = weight * (1 - ((double) p[j].opacity/TransparentOpacity));
+                      pixel.red+=transparency_coeff*p[j].red;
+                      pixel.green+=transparency_coeff*p[j].green;
+                      pixel.blue+=transparency_coeff*p[j].blue;
                       pixel.opacity+=weight*p[j].opacity;
+                      normalize += transparency_coeff;
                     }
+                  normalize = 1.0 / (AbsoluteValue(normalize) <= MagickEpsilon ? 1.0 : normalize);
+		  pixel.red *= normalize;
+		  pixel.green *= normalize;
+		  pixel.blue *= normalize;
                   q[y].red=RoundDoubleToQuantum(pixel.red);
                   q[y].green=RoundDoubleToQuantum(pixel.green);
                   q[y].blue=RoundDoubleToQuantum(pixel.blue);
@@ -960,7 +975,7 @@ HorizontalFilter(const Image *source,Image *destination,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_HorizontalFilter)
 #endif
       {
         if (QuantumTick(*quantum,span))
@@ -977,9 +992,10 @@ HorizontalFilter(const Image *source,Image *destination,
 
   if (IsEventLogging())
     (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                          "Normal exit HorizontalFilter()");
+                          "%s exit HorizontalFilter()",
+			  (status == MagickFail ? "Error" : "Normal"));
 
-  return (status != MagickFail);
+  return (status);
 }
 
 static MagickPassFail
@@ -1040,7 +1056,7 @@ VerticalFilter(const Image *source,Image *destination,
         *p;
     
       register PixelPacket
-        *q;
+        *q = (PixelPacket *) NULL;
 
       const IndexPacket
         *source_indexes;
@@ -1089,9 +1105,14 @@ VerticalFilter(const Image *source,Image *destination,
       p=AcquireImagePixels(source,0,contribution[0].pixel,source->columns,
                            contribution[n-1].pixel-contribution[0].pixel+1,
                            exception);
-      q=SetImagePixelsEx(destination,0,y,destination->columns,1,exception);
-      if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
+      if (p == (const PixelPacket *) NULL)
+	thread_status=MagickFail;
+
+      if (thread_status != MagickFail)
+	q=SetImagePixelsEx(destination,0,y,destination->columns,1,exception);
+      if (q == (PixelPacket *) NULL)
         thread_status=MagickFail;
+
       if (thread_status != MagickFail)
         {
           source_indexes=AccessImmutableIndexes(source);
@@ -1113,16 +1134,28 @@ VerticalFilter(const Image *source,Image *destination,
               pixel=zero;
               if ((source->matte) || (source->colorspace == CMYKColorspace))
                 {
+		  double
+		    transparency_coeff,
+		    normalize;
+
+		  normalize=0.0;
                   for (i=0; i < n; i++)
                     {
                       j=(long) ((contribution[i].pixel-contribution[0].pixel)*
                                 source->columns+x);
                       weight=contribution[i].weight;
-                      pixel.red+=weight*p[j].red;
-                      pixel.green+=weight*p[j].green;
-                      pixel.blue+=weight*p[j].blue;
+                      transparency_coeff = weight * (1 - ((double) p[j].opacity/TransparentOpacity));
+                      pixel.red+=transparency_coeff*p[j].red;
+                      pixel.green+=transparency_coeff*p[j].green;
+                      pixel.blue+=transparency_coeff*p[j].blue;
                       pixel.opacity+=weight*p[j].opacity;
+                      normalize += transparency_coeff;
                     }
+
+                  normalize = 1.0 / (AbsoluteValue(normalize) <= MagickEpsilon ? 1.0 : normalize);
+		  pixel.red *= normalize;
+		  pixel.green *= normalize;
+		  pixel.blue *= normalize;
                   q[x].red=RoundDoubleToQuantum(pixel.red);
                   q[x].green=RoundDoubleToQuantum(pixel.green);
                   q[x].blue=RoundDoubleToQuantum(pixel.blue);
@@ -1158,7 +1191,7 @@ VerticalFilter(const Image *source,Image *destination,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_VerticalFilter)
 #endif
       {
         if (QuantumTick(*quantum,span))
@@ -1175,9 +1208,10 @@ VerticalFilter(const Image *source,Image *destination,
 
   if (IsEventLogging())
     (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                          "Normal exit VerticalFilter()");
+			  "%s exit VerticalFilter()",
+			  (status == MagickFail ? "Error" : "Normal"));
 
-  return (status != MagickFail);
+  return (status);
 }
 
 MagickExport Image *ResizeImage(const Image *image,const unsigned long columns,
@@ -1309,18 +1343,20 @@ MagickExport Image *ResizeImage(const Image *image,const unsigned long columns,
   if (order)
     {
       span=source_image->columns+resize_image->rows;
-      status &= HorizontalFilter(image,source_image,x_factor,&filters[i],blur,
-                                 view_data_set,span,&quantum,exception);
-      status &= VerticalFilter(source_image,resize_image,y_factor,&filters[i],
-                               blur,view_data_set,span,&quantum,exception);
+      status=HorizontalFilter(image,source_image,x_factor,&filters[i],blur,
+			      view_data_set,span,&quantum,exception);
+      if (status != MagickFail)
+	status=VerticalFilter(source_image,resize_image,y_factor,&filters[i],
+			      blur,view_data_set,span,&quantum,exception);
     }
   else
     {
       span=resize_image->columns+source_image->rows;
-      status &= VerticalFilter(image,source_image,y_factor,&filters[i],blur,
-                               view_data_set,span,&quantum,exception);
-      status &= HorizontalFilter(source_image,resize_image,x_factor,&filters[i],
-                                 blur,view_data_set,span,&quantum,exception);
+      status=VerticalFilter(image,source_image,y_factor,&filters[i],blur,
+			    view_data_set,span,&quantum,exception);
+      if (status != MagickFail)
+	status=HorizontalFilter(source_image,resize_image,x_factor,&filters[i],
+				blur,view_data_set,span,&quantum,exception);
     }
   /*
     Free allocated memory.

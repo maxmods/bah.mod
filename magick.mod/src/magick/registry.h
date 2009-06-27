@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003-2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -24,48 +24,32 @@ typedef enum
   ImageRegistryType,
   ImageInfoRegistryType
 } RegistryType;
-
-/*
-  Typedef declarations.
-*/
-typedef struct _RegistryInfo
-{
-  long
-    id;
-
-  RegistryType
-    type;
-
-  void
-    *blob;
-
-  size_t
-    length;
-
-  unsigned long
-    signature;
-
-  struct _RegistryInfo
-    *previous,
-    *next;
-} RegistryInfo;
 
 /*
   Magick registry methods.
 */
 extern MagickExport Image
-  *GetImageFromMagickRegistry(const char *,long *id,ExceptionInfo *);
+  *GetImageFromMagickRegistry(const char *name,long *id,
+     ExceptionInfo *exception);
 
 extern MagickExport long
-  SetMagickRegistry(const RegistryType,const void *,const size_t,
-    ExceptionInfo *);
+  SetMagickRegistry(const RegistryType type,const void *blob,
+    const size_t length,ExceptionInfo *exception);
 
-extern MagickExport unsigned int
-  DeleteMagickRegistry(const long);
+extern MagickExport MagickPassFail
+  DeleteMagickRegistry(const long id);
 
 extern MagickExport void
+  *GetMagickRegistry(const long id,RegistryType *type,size_t *length,
+     ExceptionInfo *exception);
+
+#if defined(MAGICK_IMPLEMENTATION)
+
+extern void
   DestroyMagickRegistry(void),
-  *GetMagickRegistry(const long,RegistryType *,size_t *,ExceptionInfo *);
+  InitializeMagickRegistry(void);
+
+#endif /* defined(MAGICK_IMPLEMENTATION) */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

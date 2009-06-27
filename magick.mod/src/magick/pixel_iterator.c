@@ -211,7 +211,7 @@ PixelIterateMonoRead(PixelIteratorMonoReadCallback call_back,
         thread_status=(call_back)(mutable_data,immutable_data,image,pixels,indexes,columns,exception);
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_PixelIterateMonoRead)
 #endif
       {
         row_count++;
@@ -346,7 +346,7 @@ PixelIterateMonoModify(PixelIteratorMonoModifyCallback call_back,
           thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_PixelIterateMonoModify)
 #endif
       {
         row_count++;
@@ -508,7 +508,7 @@ PixelIterateDualRead(PixelIteratorDualReadCallback call_back,
                                   columns, exception);
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_PixelIterateDualRead)
 #endif
       {
         row_count++;
@@ -684,7 +684,7 @@ PixelIterateDualImplementation(PixelIteratorDualModifyCallback call_back,
           thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_PixelIterateDualImplementation)
 #endif
       {
         row_count++;
@@ -1000,7 +1000,7 @@ PixelIterateTripleImplementation(PixelIteratorTripleModifyCallback call_back,
         thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_PixelIterateTripleImplementation)
 #endif
       {
         row_count++;

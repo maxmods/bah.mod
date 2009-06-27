@@ -1075,19 +1075,19 @@ static void CompactSamples( const unsigned long total_pixels,
         count,
         quantum_value;
 
-      BitStreamInitializeRead(&read_stream,samples);
-      BitStreamInitializeWrite(&write_stream,samples);
+      MagickBitStreamInitializeRead(&read_stream,samples);
+      MagickBitStreamInitializeWrite(&write_stream,samples);
 
       for (pixels = total_pixels; pixels != 0 ; pixels--)
         {
           for (count = quantum_samples; count != 0 ; count--)
             {
-              quantum_value=BitStreamMSBRead(&read_stream,bits_per_sample);
-              BitStreamMSBWrite(&write_stream,bits_per_sample,quantum_value);
+              quantum_value=MagickBitStreamMSBRead(&read_stream,bits_per_sample);
+              MagickBitStreamMSBWrite(&write_stream,bits_per_sample,quantum_value);
             }
           for (count = samples_per_pixel-quantum_samples; count != 0 ; count--)
             {
-              (void) BitStreamMSBRead(&read_stream,bits_per_sample);
+              (void) MagickBitStreamMSBRead(&read_stream,bits_per_sample);
             }
         }
     }
@@ -1607,7 +1607,11 @@ static Image *ReadTIFFImage(const ImageInfo *image_info,
 
       if ((photometric == PHOTOMETRIC_PALETTE) ||
           ((photometric == PHOTOMETRIC_MINISWHITE ||
-            photometric == PHOTOMETRIC_MINISBLACK) && (1 == bits_per_sample)))
+            photometric == PHOTOMETRIC_MINISBLACK) &&
+	   (1 == bits_per_sample) &&
+	   (image_info->type != TrueColorType) &&
+	   (image_info->type != TrueColorMatteType))
+	  )
         {
           /*
             Palette image

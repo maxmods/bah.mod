@@ -132,6 +132,7 @@ MagickExport void RegisterStaticModules(void)
   RegisterAVIImage();
   RegisterAVSImage();
   RegisterBMPImage();
+  RegisterCALSImage();
   RegisterCAPTIONImage();
   RegisterCINEONImage();
 #if defined(HasWINGDI32)
@@ -159,8 +160,10 @@ MagickExport void RegisterStaticModules(void)
   RegisterGRAYImage();
   RegisterGRADIENTImage();
   RegisterHISTOGRAMImage();
+  RegisterHRZImage();
   RegisterHTMLImage();
   RegisterICONImage();
+  RegisterIDENTITYImage();
 #if defined(HasJBIG)
   RegisterJBIGImage();
 #endif
@@ -277,6 +280,7 @@ MagickExport void UnregisterStaticModules(void)
   UnregisterAVIImage();
   UnregisterAVSImage();
   UnregisterBMPImage();
+  UnregisterCALSImage();
   UnregisterCAPTIONImage();
   UnregisterCINEONImage();
 #if defined(HasWINGDI32)
@@ -304,8 +308,10 @@ MagickExport void UnregisterStaticModules(void)
   UnregisterGRAYImage();
   UnregisterGRADIENTImage();
   UnregisterHISTOGRAMImage();
+  UnregisterHRZImage();
   UnregisterHTMLImage();
   UnregisterICONImage();
+  UnregisterIDENTITYImage();
 #if defined(HasJBIG)
   UnregisterJBIGImage();
 #endif

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2008 GraphicsMagick Group
+% Copyright (C) 2008 - 2009 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -17,6 +17,7 @@
 #include "magick/image.h"
 #include "magick/blob.h"
 #include "magick/compare.h"
+#include "magick/confirm_access.h"
 #include "magick/constitute.h"
 #include "magick/operator.h"
 #include "magick/pixel_cache.h"
@@ -48,8 +49,11 @@ extern "C" {
   extern MagickExport const char *ColorspaceTypeToString(const ColorspaceType colorspace);
   extern MagickExport const char *CompositeOperatorToString(const CompositeOperator composite_op);
   extern MagickExport const char *CompressionTypeToString(const CompressionType compression_type);
+  extern MagickExport const char *ConfirmAccessModeToString(const ConfirmAccessMode access_mode);
+  extern MagickExport const char *EndianTypeToString(const EndianType endian_type);
   extern MagickExport const char *HighlightStyleToString(const HighlightStyle difference_algorithm);
   extern MagickExport const char *ImageTypeToString(const ImageType image_type);
+  extern MagickExport const char *InterlaceTypeToString(const InterlaceType interlace_type);
   extern MagickExport const char *MapModeToString(MapMode map_mode);
   extern MagickExport const char *MetricTypeToString(MetricType metric);
   extern MagickExport const char *OrientationTypeToString(const OrientationType orientation_type);

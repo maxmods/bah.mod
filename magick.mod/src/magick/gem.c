@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -36,7 +36,6 @@
   Include declarations.
 */
 #include "magick/studio.h"
-#include "magick/pixel_cache.h"
 #include "magick/gem.h"
 #include "magick/utility.h"
 
@@ -152,7 +151,8 @@ MagickExport double ExpandAffine(const AffineMatrix *affine)
 %  The format of the GenerateDifferentialNoise method is:
 %
 %      double GenerateDifferentialNoise(const Quantum pixel,
-%                                       const NoiseType noise_type)
+%                                       const NoiseType noise_type,
+%                                       MagickRandomKernel *kernel)
 %
 %  A description of each parameter follows:
 %
@@ -161,10 +161,7 @@ MagickExport double ExpandAffine(const AffineMatrix *affine)
 %    o noise_type:  The type of noise: Uniform, gaussian,
 %      multiplicative Gaussian, impulse, laplacian, or Poisson.
 %
-%    o seed: Seed for random number generator.  Should be initialized
-%      with a semi-random value once (e.g. from time()) and then simply
-%      passed thereafter.   If 'seed' is NULL, then the global seed
-%      value is used.
+%    o kernel: Kernel for random number generator.
 %
 */
 #define NoiseEpsilon   1.0e-5
@@ -177,8 +174,8 @@ MagickExport double ExpandAffine(const AffineMatrix *affine)
 #define TauGaussian    20.0
 
 MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
-                                              const NoiseType noise_type,
-                                              unsigned int *seed)
+					      const NoiseType noise_type,
+					      MagickRandomKernel *kernel)
 {
   double
     alpha,
@@ -193,7 +190,7 @@ MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
   pixel /= MaxRGBDouble/255.0;
 #endif
 
-  alpha=(double) MagickRandReentrant(seed)/RAND_MAX;
+  alpha=MagickRandomRealInlined(kernel);
   if (alpha == 0.0)
     alpha=1.0;
   switch (noise_type)
@@ -209,7 +206,7 @@ MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
       double
         tau;
 
-      beta=(double) MagickRandReentrant(seed)/RAND_MAX;
+      beta=MagickRandomRealInlined(kernel);
       sigma=sqrt(-2.0*log(alpha))*cos(2.0*MagickPI*beta);
       tau=sqrt(-2.0*log(alpha))*sin(2.0*MagickPI*beta);
       value=sqrt((double) pixel)*SigmaGaussian*sigma+TauGaussian*tau;
@@ -221,7 +218,7 @@ MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
         sigma=255.0;
       else
         sigma=sqrt(-2.0*log(alpha));
-      beta=(double) MagickRandReentrant(seed)/RAND_MAX;
+      beta=MagickRandomRealInlined(kernel);
       value=pixel*SigmaMultiplicativeGaussian*sigma*cos(2.0*MagickPI*beta);
       break;
     }
@@ -264,7 +261,7 @@ MagickExport double GenerateDifferentialNoise(const Quantum quantum_pixel,
       limit=exp(-SigmaPoisson*(double) pixel);
       for (i=0; alpha > limit; i++)
       {
-        beta=(double) MagickRandReentrant(seed)/RAND_MAX;
+        beta=MagickRandomRealInlined(kernel);
         alpha=alpha*beta;
       }
       value=pixel-((double) i/SigmaPoisson);
@@ -311,7 +308,8 @@ MagickExport Quantum GenerateNoise(const Quantum pixel,
   double
     value;
 
-  value=(double) pixel+GenerateDifferentialNoise(pixel,noise_type,NULL);
+  value=(double) pixel+GenerateDifferentialNoise(pixel,noise_type,
+						 AcquireMagickRandomKernel());
   return (RoundDoubleToQuantum(value));
 }
 
@@ -750,89 +748,6 @@ MagickExport void IdentityAffine(AffineMatrix *affine)
   (void) memset(affine,0,sizeof(AffineMatrix));
   affine->sx=1.0;
   affine->sy=1.0;
-}
-
-/*
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                             %
-%                                                                             %
-%                                                                             %
-+   I n t e r p o l a t e C o l o r                                           %
-%                                                                             %
-%                                                                             %
-%                                                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Method InterpolateColor applies bi-linear interpolation between a pixel and
-%  it's neighbors.
-%
-%  The format of the InterpolateColor method is:
-%
-%      PixelPacket InterpolateColor(const Image *image,const double x_offset,
-%        const double y_offset,ExceptionInfo *exception)
-%
-%  A description of each parameter follows:
-%
-%    o image: The image.
-%
-%    o x_offset,y_offset: A double representing the current (x,y) position of
-%      the pixel.
-%
-%
-*/
-MagickExport void
-InterpolateViewColor(const ViewInfo *view,
-                     PixelPacket *color,
-                     const double x_offset,
-                     const double y_offset,
-                     ExceptionInfo *exception)
-{
-  register const PixelPacket
-    *p;
-
-  p=AcquireCacheViewPixels(view,(long) x_offset,(long) y_offset,2,2,exception);
-  if (p == (const PixelPacket *) NULL)
-    {
-      (void) AcquireOneCacheViewPixel(view,color,(long) x_offset,
-                                      (long) y_offset,exception);
-    }
-  else
-    {
-      double
-        alpha,
-        beta,
-        one_minus_alpha,
-        one_minus_beta;
-
-      alpha=x_offset-floor(x_offset);
-      beta=y_offset-floor(y_offset);
-      one_minus_alpha=1.0-alpha;
-      one_minus_beta=1.0-beta;
-      color->red=(Quantum)
-        (one_minus_beta*(one_minus_alpha*p[0].red+alpha*p[1].red)+
-         beta*(one_minus_alpha*p[2].red+alpha*p[3].red)+0.5);
-      color->green=(Quantum)
-        (one_minus_beta*(one_minus_alpha*p[0].green+alpha*p[1].green)+
-         beta*(one_minus_alpha*p[2].green+alpha*p[3].green)+0.5);
-      color->blue=(Quantum)
-        (one_minus_beta*(one_minus_alpha*p[0].blue+alpha*p[1].blue)+
-         beta*(one_minus_alpha*p[2].blue+alpha*p[3].blue)+0.5);
-      color->opacity=(Quantum)
-        (one_minus_beta*(one_minus_alpha*p[0].opacity+alpha*p[1].opacity)+
-         beta*(one_minus_alpha*p[2].opacity+alpha*p[3].opacity)+0.5);
-    }
-}
-MagickExport PixelPacket InterpolateColor(const Image *image,
-  const double x_offset,const double y_offset,ExceptionInfo *exception)
-{
-  PixelPacket
-    color;
-
-  assert(image != (Image *) NULL);
-  assert(image->signature == MagickSignature);
-  InterpolateViewColor(AccessDefaultCacheView(image),&color,
-                       x_offset,y_offset,exception);
-  return color;
 }
 
 /*

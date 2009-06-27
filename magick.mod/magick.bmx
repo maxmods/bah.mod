@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008,2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ Module BaH.Magick
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: GraphicsMagick - 2002-2008 GraphicsMagick Group"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: GraphicsMagick - 2002-2009 GraphicsMagick Group"
+ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
@@ -39,11 +39,12 @@ ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
 Import BRL.Pixmap
 Import BRL.Stream
 
-Import "common.bmx"
+Import "drawable.bmx"
 
 ' NOTES:
 '
 ' Renamed coders/locale.c and map.c with prefix bmx_
+' Renamed coders/map.c and map.c with prefix bmx_
 ' Renamed delegates/bzip2/compress.c with prefix bmx_
 '
 ' Be careful not to overwrite magick_config.h !!
@@ -460,7 +461,7 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Method draw(drawable:TMDrawable)
-	'TODO
+		bmx_magick_image_draw(imagePtr, drawable.drawablePtr)
 	End Method
 	
 	Rem
@@ -595,7 +596,7 @@ Type TMImage
 	Rem
 	bbdoc: Gamma correct image (uniform red, green, and blue correction).
 	End Rem
-	Method gamma(g:Double)
+	Method Gamma(g:Double)
 		bmx_magick_image_gamma(imagePtr, g)
 	End Method
 	
@@ -1265,6 +1266,9 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method colorFuzz(fuzz:Double)
 		bmx_magick_image_colorfuzz(imagePtr, fuzz)
 	End Method
@@ -1313,97 +1317,195 @@ Type TMImage
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Composition operator to be used when composition is implicitly used (such as for image flattening).
+	about: One of #COMPOSITE_UNDEFINEDCOMPOSITEOP, #COMPOSITE_OVERCOMPOSITEOP, #COMPOSITE_INCOMPOSITEOP, #COMPOSITE_OUTCOMPOSITEOP,
+	#COMPOSITE_ATOPCOMPOSITEOP, #COMPOSITE_XORCOMPOSITEOP, #COMPOSITE_PLUSCOMPOSITEOP, #COMPOSITE_MINUSCOMPOSITEOP,
+	#COMPOSITE_ADDCOMPOSITEOP, #COMPOSITE_SUBTRACTCOMPOSITEOP, #COMPOSITE_DIFFERENCECOMPOSITEOP, #COMPOSITE_MULTIPLYCOMPOSITEOP,
+	#COMPOSITE_BUMPMAPCOMPOSITEOP, #COMPOSITE_COPYCOMPOSITEOP, #COMPOSITE_COPYREDCOMPOSITEOP, #COMPOSITE_COPYGREENCOMPOSITEOP,
+	#COMPOSITE_COPYBLUECOMPOSITEOP, #COMPOSITE_COPYOPACITYCOMPOSITEOP, #COMPOSITE_CLEARCOMPOSITEOP, #COMPOSITE_DISSOLVECOMPOSITEOP,
+	#COMPOSITE_DISPLACECOMPOSITEOP, #COMPOSITE_MODULATECOMPOSITEOP, #COMPOSITE_THRESHOLDCOMPOSITEOP, #COMPOSITE_NOCOMPOSITEOP,
+	#COMPOSITE_DARKENCOMPOSITEOP, #COMPOSITE_LIGHTENCOMPOSITEOP, #COMPOSITE_HUECOMPOSITEOP, #COMPOSITE_SATURATECOMPOSITEOP,
+	#COMPOSITE_COLORIZECOMPOSITEOP, #COMPOSITE_LUMINIZECOMPOSITEOP, #COMPOSITE_SCREENCOMPOSITEOP, #COMPOSITE_OVERLAYCOMPOSITEOP,
+	#COMPOSITE_COPYCYANCOMPOSITEOP, #COMPOSITE_COPYMAGENTACOMPOSITEOP, #COMPOSITE_COPYYELLOWCOMPOSITEOP,
+	#COMPOSITE_COPYBLACKCOMPOSITEOP or #COMPOSITE_DIVIDECOMPOSITEOP.
 	End Rem
 	Method compose(compose:Int)
 		bmx_magick_image_compose(imagePtr, compose)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the composition operator to be used when composition is implicitly used (such as for image flattening).
+	about: One of #COMPOSITE_UNDEFINEDCOMPOSITEOP, #COMPOSITE_OVERCOMPOSITEOP, #COMPOSITE_INCOMPOSITEOP, #COMPOSITE_OUTCOMPOSITEOP,
+	#COMPOSITE_ATOPCOMPOSITEOP, #COMPOSITE_XORCOMPOSITEOP, #COMPOSITE_PLUSCOMPOSITEOP, #COMPOSITE_MINUSCOMPOSITEOP,
+	#COMPOSITE_ADDCOMPOSITEOP, #COMPOSITE_SUBTRACTCOMPOSITEOP, #COMPOSITE_DIFFERENCECOMPOSITEOP, #COMPOSITE_MULTIPLYCOMPOSITEOP,
+	#COMPOSITE_BUMPMAPCOMPOSITEOP, #COMPOSITE_COPYCOMPOSITEOP, #COMPOSITE_COPYREDCOMPOSITEOP, #COMPOSITE_COPYGREENCOMPOSITEOP,
+	#COMPOSITE_COPYBLUECOMPOSITEOP, #COMPOSITE_COPYOPACITYCOMPOSITEOP, #COMPOSITE_CLEARCOMPOSITEOP, #COMPOSITE_DISSOLVECOMPOSITEOP,
+	#COMPOSITE_DISPLACECOMPOSITEOP, #COMPOSITE_MODULATECOMPOSITEOP, #COMPOSITE_THRESHOLDCOMPOSITEOP, #COMPOSITE_NOCOMPOSITEOP,
+	#COMPOSITE_DARKENCOMPOSITEOP, #COMPOSITE_LIGHTENCOMPOSITEOP, #COMPOSITE_HUECOMPOSITEOP, #COMPOSITE_SATURATECOMPOSITEOP,
+	#COMPOSITE_COLORIZECOMPOSITEOP, #COMPOSITE_LUMINIZECOMPOSITEOP, #COMPOSITE_SCREENCOMPOSITEOP, #COMPOSITE_OVERLAYCOMPOSITEOP,
+	#COMPOSITE_COPYCYANCOMPOSITEOP, #COMPOSITE_COPYMAGENTACOMPOSITEOP, #COMPOSITE_COPYYELLOWCOMPOSITEOP,
+	#COMPOSITE_COPYBLACKCOMPOSITEOP or #COMPOSITE_DIVIDECOMPOSITEOP.
 	End Rem
 	Method getComposite:Int()
 		Return bmx_magick_image_getcomposite(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Compression type
+	about: One of COMPRESSION_UNDEFINEDCOMPRESSION, COMPRESSION_NOCOMPRESSION, COMPRESSION_BZIPCOMPRESSION,
+	COMPRESSION_FAXCOMPRESSION, COMPRESSION_GROUP4COMPRESSION, COMPRESSION_JPEGCOMPRESSION,
+	COMPRESSION_LOSSLESSJPEGCOMPRESSION, COMPRESSION_LZWCOMPRESSION, COMPRESSION_RLECOMPRESSION or COMPRESSION_ZIPCOMPRESSION.
+	End Rem
 	Method compressType(_type:Int)
-	' TODO
+		bmx_magick_image_compresstype(imagePtr, _type)
 	End Method
 	
+	Rem
+	bbdoc: Returns the compression type.
+	about: One of COMPRESSION_UNDEFINEDCOMPRESSION, COMPRESSION_NOCOMPRESSION, COMPRESSION_BZIPCOMPRESSION,
+	COMPRESSION_FAXCOMPRESSION, COMPRESSION_GROUP4COMPRESSION, COMPRESSION_JPEGCOMPRESSION,
+	COMPRESSION_LOSSLESSJPEGCOMPRESSION, COMPRESSION_LZWCOMPRESSION, COMPRESSION_RLECOMPRESSION or COMPRESSION_ZIPCOMPRESSION.
+	End Rem
 	Method getCompressType:Int()
-	' TODO
+		Return bmx_magick_image_getcompresstype(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Tagged image format define (set coder-specific option).
+	about: The @magick option specifies the coder the define applies to. The @key option provides the key specific to that coder.
+	The @value option provides the value to set (if any). See the defineSet() method if the key must be removed entirely.
+	End Rem
 	Method defineValue(magick:String, key:String, value:String)
-	' TODO
+		bmx_magick_image_definevalue(imagePtr, magick, key, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns the tagged image format define (access coder-specific option).
+	about: The @magick option specifies the coder the define applies to. The @key option provides the key specific to that coder.
+	End Rem
 	Method getDefinedValue:String(magick:String, key:String)
-	' TODO
+		Return bmx_magick_image_getdefinedvalue(imagePtr, magick, key)
 	End Method
 	
+	Rem
+	bbdoc: Tagged image format define.
+	about: Similar to the defineValue() method except that passing the @flag value True creates a value-less
+	define with that format and key. Passing the @flag value False removes any existing matching definition.
+	End Rem
 	Method defineSet(magick:String, key:String, flag:Int)
-	' TODO
+		bmx_magick_image_defineset(imagePtr, magick, key, flag)
 	End Method
 	
+	Rem
+	bbdoc: Returns the tagged image format define.
+	about: The method returns True if a matching key exists, and False if no matching key exists.
+	End Rem
 	Method getDefinedSet:Int(magick:String, key:String)
-	' TODO
+		Return bmx_magick_image_getdefinedset(imagePtr, magick, key)
 	End Method
 	
+	Rem
+	bbdoc: Vertical and horizontal resolution in pixels of the image.
+	End Rem
 	Method density(geometry:Object)
-	' TODO
+		If TMGeometry(geometry) Then
+			bmx_magick_image_density(imagePtr, TMGeometry(geometry).geometryPtr)
+		Else If String(geometry) Then
+			bmx_magick_image_densitytxt(imagePtr, String(geometry))
+		End If
 	End Method
 	
 	Method getDensity:TMGeometry()
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Image depth (bits allocated to red/green/blue components).
+	End Rem
 	Method depth(depth:Int)
-	' TODO
+		bmx_magick_image_depth(imagePtr, depth)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image depth (bits allocated to red/green/blue components).
+	End Rem
 	Method getDepth:Int()
-	' TODO
+		Return bmx_magick_image_getdepth(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the tile names from within an image montage.
+	End Rem
 	Method directory:String()
-	' TODO
+		Return bmx_magick_image_directory(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Endianness (little like Intel or big like SPARC) for image formats which support endian-specific options.
+	about: One of ENDIAN_UNDEFINEDENDIAN, ENDIAN_LSBENDIAN, ENDIAN_MSBENDIAN or ENDIAN_NATIVEENDIAN.
+	End Rem
 	Method endian(endian:Int)
-	' TODO
+		bmx_magick_image_endian(imagePtr, endian)
 	End Method
 	
+	Rem
+	bbdoc: Returns the endianness (little like Intel or big like SPARC) for image formats which support endian-specific options.
+	about: One of ENDIAN_UNDEFINEDENDIAN, ENDIAN_LSBENDIAN, ENDIAN_MSBENDIAN or ENDIAN_NATIVEENDIAN.
+	End Rem
 	Method getEndian:Int()
-	' TODO
+		Return bmx_magick_image_getendian(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Image file name.
+	End Rem
 	Method filename(filename:String)
-	' TODO
+		bmx_magick_image_filename(imagePtr, filename)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image file name.
+	End Rem
 	Method getFilename:String()
-	' TODO
+		Return bmx_magick_image_getfilename(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of bytes of the image on disk.
+	End Rem
 	Method FileSize:Int()
-	' TODO
+		Return bmx_magick_image_filesize(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Color to use when filling drawn objects.
+	End Rem
 	Method fillColor(color:Object)
-	' TODO
+		If TMColor(color) Then
+			bmx_magick_image_fillcolor(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color)
+			bmx_magick_image_fillcolortxt(imagePtr, String(color))
+		EndIf
 	End Method
 	
 	Method getFillColor:TMColor()
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Rule to use when filling drawn objects.
+	about: One of FILLRULE_UNDEFINEDRULE, FILLRULE_EVENODDRULE or FILLRULE_NONZERORULE.
+	End Rem
 	Method fillRule(rule:Int)
-	' TODO
+		bmx_magick_image_fillrule(imagePtr, rule)
 	End Method
 	
+	Rem
+	bbdoc: Returns the rule to use when filling drawn objects.
+	about: One of FILLRULE_UNDEFINEDRULE, FILLRULE_EVENODDRULE or FILLRULE_NONZERORULE.
+	End Rem
 	Method getFillRule:Int()
-	' TODO
+		Return bmx_magick_image_getfillrule(imagePtr)
 	End Method
 	
 	Method fillPattern(pattern:TMImage)
@@ -1414,52 +1516,90 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Filter to use when resizing image.
+	about: One of FILTER_UNDEFINEDFILTER, FILTER_POINTFILTER, FILTER_BOXFILTER, FILTER_TRIANGLEFILTER,
+	FILTER_HERMITEFILTER, FILTER_HANNINGFILTER, FILTER_HAMMINGFILTER, FILTER_BLACKMANFILTER, FILTER_GAUSSIANFILTER,
+	FILTER_QUADRATICFILTER, FILTER_CUBICFILTER, FILTER_CATROMFILTER, FILTER_MITCHELLFILTER, FILTER_LANCZOSFILTER,
+	FILTER_BESSELFILTER or FILTER_SINCFILTER
+	End Rem
 	Method filterType(filterType:Int)
-	' TODO
+		bmx_magick_image_filtertype(imagePtr, filterType)
 	End Method
 	
+	Rem
+	bbdoc: Returns the filter to use when resizing image.
+	about: One of FILTER_UNDEFINEDFILTER, FILTER_POINTFILTER, FILTER_BOXFILTER, FILTER_TRIANGLEFILTER,
+	FILTER_HERMITEFILTER, FILTER_HANNINGFILTER, FILTER_HAMMINGFILTER, FILTER_BLACKMANFILTER, FILTER_GAUSSIANFILTER,
+	FILTER_QUADRATICFILTER, FILTER_CUBICFILTER, FILTER_CATROMFILTER, FILTER_MITCHELLFILTER, FILTER_LANCZOSFILTER,
+	FILTER_BESSELFILTER or FILTER_SINCFILTER
+	End Rem
 	Method getFilterType:Int()
-	' TODO
+		Return bmx_magick_image_getfiltertype(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Text rendering font.
+	End Rem
 	Method font(font:String)
-	' TODO
+		bmx_magick_image_font(imagePtr, font)
 	End Method
 	
+	Rem
+	bbdoc: Returns the text rendering font.
+	End Rem
 	Method getFont:String()
-	' TODO
+		Return bmx_magick_image_getfont(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Font point size.
+	End Rem
 	Method fontPointSize(pointSize:Double)
-	' TODO
+		bmx_magick_image_fontpointsize(imagePtr, pointSize)
 	End Method
 	
+	Rem
+	bbdoc: Returns the font point size.
+	End Rem
 	Method getFontPointSize:Double()
-	' TODO
+		Return bmx_magick_image_getfontpointsize(imagePtr)
 	End Method
 	
 	'Method fontTypeMetrics(text:String, metrics...)
 	' TODO
 	'End Method
 	
+	Rem
+	bbdoc: Returns the long image format description.
+	End Rem
 	Method getFormat:String()
-	' TODO
+		Return bmx_magick_image_getformat(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the gamma level of the image.
+	End Rem
 	Method getGamma:Double()
-	' TODO
+		Return bmx_magick_image_getgamma(imagePtr)
 	End Method
 	
 	Method getGeometry:TMGeometry()
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: GIF disposal method.
+	End Rem
 	Method gifDisposeMethod(disposeMethod:Int)
-	' TODO
+		bmx_magick_image_gifdisposemethod(imagePtr, disposeMethod)
 	End Method
 	
+	Rem
+	bbdoc: Returns the GIF disposal method.
+	End Rem
 	Method getGifDisposeMethod:Int()
-	' TODO
+		Return bmx_magick_image_getgifdisposemethod(imagePtr)
 	End Method
 	
 	Method iccColorProfile(profile:TMBlob)
@@ -1470,12 +1610,22 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Type of interlacing to use.
+	about: One of INTERLACE_UNDEFINEDINTERLACE, INTERLACE_NOINTERLACE, INTERLACE_LINEINTERLACE, 
+	INTERLACE_PLANEINTERLACE or INTERLACE_PARTITIONINTERLACE.
+	End Rem
 	Method interlaceType(interlace:Int)
-	' TODO
+		bmx_magick_image_interlacetype(imagePtr, interlace)
 	End Method
 	
+	Rem
+	bbdoc: Return the type of interlacing used.
+	about: One of INTERLACE_UNDEFINEDINTERLACE, INTERLACE_NOINTERLACE, INTERLACE_LINEINTERLACE, 
+	INTERLACE_PLANEINTERLACE or INTERLACE_PARTITIONINTERLACE.
+	End Rem
 	Method getInterlaceType:Int()
-	' TODO
+		Return bmx_magick_image_getinterlacetype(imagePtr)
 	End Method
 	
 	Method iptcProfile(profile:TMBlob)
@@ -1486,40 +1636,67 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Does object contain valid image?
+	End Rem
 	Method isValid(isValid:Int)
-	' TODO
+		bmx_magick_image_isvalid(imagePtr, isValid)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the object contains valid image.
+	End Rem
 	Method getIsValid:Int()
-	' TODO
+		Return bmx_magick_image_getisvalid(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image label.
+	End Rem
 	Method getLabel:String()
-	' TODO
+		Return bmx_magick_image_getlabel(imagePtr)
 	End Method
 	
-	Method lineWidth(width:Double)
-	' TODO
+	Rem
+	bbdoc: Stroke width for drawing vector objects.
+	End Rem
+	Method strokeWidth(width:Double)
+		bmx_magick_image_strokewidth(imagePtr, width)
 	End Method
 	
-	Method GetLineWidth:Double()
-	' TODO
+	Rem
+	bbdoc: Returns the stroke width for drawing vector objects
+	End Rem
+	Method getStrokeWidth:Double()
+		Return bmx_magick_image_getstrokewidth(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: File type magick identifier (.e.g "GIF")
+	End Rem
 	Method magick(magick:String)
-	' TODO
+		bmx_magick_image_magick(imagePtr, magick)
 	End Method
 	
+	Rem
+	bbdoc: Returns the file type magick identifier (.e.g "GIF")
+	End Rem
 	Method getMagick:String()
-	' TODO
+		Return bmx_magick_image_getmagick(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method matte(matteFlag:Int)
-	' TODO
+		bmx_magick_image_matte(imagePtr, matteFlag)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getMatte:Int()
-	' TODO
+		Return bmx_magick_image_getmatte(imagePtr)
 	End Method
 	
 	Method matteColor(color:Object)
@@ -1765,14 +1942,6 @@ Type TMImage
 	' TODO
 	End Method
 	
-	Method strokeWidth(width:Double)
-	' TODO
-	End Method
-	
-	Method getStrokeWidth:Double()
-	' TODO
-	End Method
-	
 	Method subImage(subImage:Int)
 	' TODO
 	End Method
@@ -1970,196 +2139,6 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TMColor
-
-	Field colorPtr:Byte Ptr
-
-
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawable
-
-	Field drawablePtr:Byte Ptr
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawableAffine Extends TMDrawable
-
-	Method Create:TMDrawableAffine(sx:Double = 1.0, sy:Double = 1.0, rx:Double = 0, ry:Double = 0, tx:Double = 0, ty:Double = 0)
-	End Method
-	
-End Type
-
-Type TMDrawableAngle Extends TMDrawable
-
-	Method Create:TMDrawableAngle(angle:Double)
-	End Method
-	
-End Type
-
-Type TMDrawableArc Extends TMDrawable
-
-	Method Create:TMDrawableArc(startX:Double, startY:Double, endX:Double, endY:Double, startDegrees:Double, endDegrees:Double)
-	End Method
-	
-End Type
-
-Type TMDrawableBezier Extends TMDrawable
-
-	Method Create:TMDrawableBezier()
-	End Method
-	
-End Type
-
-Type TMDrawableClipPath Extends TMDrawable
-
-	Method Create:TMDrawableClipPath(id:String)
-	End Method
-	
-End Type
-
-Type TMDrawableCircle Extends TMDrawable
-
-	Method Create:TMDrawableCircle(originX:Double, originY:Double, perimX:Double, perimY:Double)
-	End Method
-	
-End Type
-
-Rem
-bbdoc: Color image according to paintMethod.
-about: The point method recolors the target pixel.  The replace method recolors any pixel that matches
-the color of the target pixel.  Floodfill recolors any pixel that matches the color of the target pixel
-and is a neighbor,  whereas filltoborder recolors any neighbor pixel that is not the border color. Finally,
-reset recolors all pixels.
-End Rem
-Type TMDrawableColor Extends TMDrawable
-
-	Method Create:TMDrawableColor(x:Double, y:Double, paintMethod:Int)
-	End Method
-	
-End Type
-
-Type TMDrawableCompositeImage Extends TMDrawable
-
-	Method Create:TMDrawableCompositeImage()
-	End Method
-	
-End Type
-
-Type TMDrawableDashArray Extends TMDrawable
-
-	Method Create:TMDrawableDashArray()
-	End Method
-	
-End Type
-
-Type TMDrawableDashOffset Extends TMDrawable
-
-	Method Create:TMDrawableDashOffset()
-	End Method
-	
-End Type
-
-Type TMDrawableEllipse Extends TMDrawable
-
-	Method Create:TMDrawableEllipse(originX:Double, originY:Double, radiusX:Double, radiusY:Double, arcStart:Double, arcEnd:Double)
-	End Method
-	
-End Type
-
-Type TMDrawableFillColor Extends TMDrawable
-
-	Method Create:TMDrawableFillColor(color:TMColor)
-	End Method
-	
-End Type
-
-Type TMDrawableFillRule Extends TMDrawable
-
-	Method Create:TMDrawableFillRule(fillRule:Int)
-	End Method
-	
-End Type
-
-Type TMDrawableFillOpacity Extends TMDrawable
-
-	Method Create:TMDrawableFillOpacity(opacity:Double)
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawableFont Extends TMDrawable
-
-	Rem
-	bbdoc: 
-	End Rem
-	Method Create:TMDrawableFont(font:String)
-	End Method
-	
-	Rem
-	bbdoc: 
-	End Rem
-	Method CreateWithAttributes:TMDrawableFont(family:String, style:Int, weight:Int, stretch:Int)
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawableGravity Extends TMDrawable
-
-	Method Create:TMDrawableGravity(gravity:Int)
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawableLine Extends TMDrawable
-
-	Method Create:TMDrawableLine(startX:Double, startY:Double, endX:Double, endY:Double)
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
-Type TMDrawableMatte Extends TMDrawable
-
-	Method Create:TMDrawableMatte(x:Double, y:Double, paintMethod:Int)
-	End Method
-	
-End Type
-
-Type TMDrawableMiterLimit Extends TMDrawable
-
-	Method Create:TMDrawableMiterLimit(miterLimit:Int)
-	End Method
-	
-End Type
-
-Type TMDrawablePath Extends TMDrawable
-
-	Method Create:TMDrawablePath()
-	End Method
-	
-End Type
-
-Rem
-bbdoc: 
-End Rem
 Type TMBlob
 
 	Field blobPtr:Byte Ptr
@@ -2220,7 +2199,7 @@ Type TMCoderInfo
 	End Rem
 	Field isReadable:Int
 	Rem
-	bbdoc: Format is writeable.
+	bbdoc: Format is writable.
 	End Rem
 	Field isWritable:Int
 	Rem
@@ -2243,9 +2222,10 @@ Type TMCoderInfo
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns a TMCoderInfo corresponding to the named format.
 	End Rem
 	Function info:TMCoderInfo(format:String)
+		Return TMCoderInfo(bmx_magick_coderinfo_info(format))
 	End Function
 	
 End Type

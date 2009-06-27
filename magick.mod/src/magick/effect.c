@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -49,6 +49,7 @@
 #include "magick/operator.h"
 #include "magick/pixel_cache.h"
 #include "magick/pixel_iterator.h"
+#include "magick/random.h"
 #include "magick/render.h"
 #include "magick/shear.h"
 #include "magick/utility.h"
@@ -209,7 +210,7 @@ MagickExport Image *AdaptiveThresholdImage(const Image *image,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_AdaptiveThresholdImage)
 #endif
         {
           row_count++;
@@ -661,7 +662,7 @@ static MagickPassFail BlurImageScanlines(Image *image,const double *kernel,
                 }
             }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_BlurImageScanlines)
 #endif
           {
             row_count++;
@@ -1207,7 +1208,7 @@ MagickExport Image *DespeckleImage(const Image *image,ExceptionInfo *exception)
               if (status == MagickFail)
                 continue;
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_DespeckleImage)
 #endif
               {
                 progress++;
@@ -1230,7 +1231,7 @@ MagickExport Image *DespeckleImage(const Image *image,ExceptionInfo *exception)
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_DespeckleImage)
 #endif
       if (thread_status != MagickFail)
         {
@@ -1288,7 +1289,7 @@ MagickExport Image *DespeckleImage(const Image *image,ExceptionInfo *exception)
       MagickFreeMemory(pixels);
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_DespeckleImage)
 #endif
       {
         if (thread_status == MagickFail)
@@ -1627,7 +1628,7 @@ MagickExport Image *EnhanceImage(const Image *image,ExceptionInfo *exception)
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_EnhanceImage)
 #endif
         {
           row_count++;
@@ -2026,7 +2027,8 @@ static MedianPixelList *AllocateMedianList(const long width)
   MedianPixelList
     *skiplist;
 
-  skiplist=MagickAllocateMemory(MedianPixelList *,sizeof(MedianPixelList));
+  skiplist=MagickAllocateMemory(MedianPixelList *,Max(sizeof(MedianPixelList),
+						      MAGICK_CACHE_LINE_SIZE));
   if (skiplist != (MedianPixelList *) NULL)
     {
       unsigned int
@@ -2177,7 +2179,7 @@ MagickExport Image *MedianFilterImage(const Image *image,const double radius,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_MedianFilterImage)
 #endif
         {
           row_count++;
@@ -2439,7 +2441,7 @@ MagickExport Image *MotionBlurImage(const Image *image,const double radius,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_MotionBlurImage)
 #endif
         {
           row_count++;
@@ -2655,8 +2657,8 @@ RandomChannelThresholdImage(Image *image,const char *channel,
         register unsigned long
           x;
 
-        unsigned int
-          seed;
+	MagickRandomKernel
+	  *random_kernel;
 
         MagickBool
           thread_status;
@@ -2665,7 +2667,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
         if (thread_status == MagickFail)
           continue;
 
-        seed=MagickRandNewSeed();
+	random_kernel=AcquireMagickRandomKernel();
         q=GetImagePixelsEx(image,0,y,image->columns,1,exception);
         if (q == (PixelPacket *) NULL)
           thread_status=MagickFail;
@@ -2687,8 +2689,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
                         else if (intensity > upper_threshold)
                           threshold=upper_threshold;
                         else
-                          threshold=(Quantum) (MaxRGBDouble*(MagickRandReentrant(&seed)
-                                                             /(double) RAND_MAX));
+                          threshold=(Quantum) (MaxRGBDouble*MagickRandomRealInlined(random_kernel));
                         index=intensity <= threshold ? 0U : 1U;
                         *indexes++=index;
                         q->red=q->green=q->blue=image->colormap[index].red;
@@ -2746,8 +2747,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
                           else if (q->opacity > upper_threshold)
                             threshold=upper_threshold;
                           else
-                            threshold=(Quantum) (MaxRGBDouble*(MagickRandReentrant(&seed)/
-                                                               (double) RAND_MAX));
+                            threshold=(Quantum) (MaxRGBDouble*MagickRandomRealInlined(random_kernel));
                           q->opacity=(q->opacity <= threshold ? 0U : MaxRGB);
                           q++;
                         }
@@ -2792,8 +2792,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
                         else if (q->red > upper_threshold)
                           threshold=upper_threshold;
                         else
-                          threshold=(Quantum) (MaxRGBDouble*(MagickRandReentrant(&seed)/
-                                                             (double) RAND_MAX));
+                          threshold=(Quantum) (MaxRGBDouble*MagickRandomRealInlined(random_kernel));
                         q->red=(q->red <= threshold ? 0U : MaxRGB);
                         q++;
                       }
@@ -2838,8 +2837,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
                         else if (q->green > upper_threshold)
                           threshold=upper_threshold;
                         else
-                          threshold=(Quantum) (MaxRGBDouble*(MagickRandReentrant(&seed)/
-                                                             (double) RAND_MAX));
+                          threshold=(Quantum) (MaxRGBDouble*MagickRandomRealInlined(random_kernel));
                         q->green=(q->green <= threshold ? 0U : MaxRGB);
                         q++;
                       }
@@ -2884,8 +2882,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
                         else if (q->blue > upper_threshold)
                           threshold=upper_threshold;
                         else
-                          threshold=(Quantum) (MaxRGBDouble*(MagickRandReentrant(&seed)/
-                                                             (double) RAND_MAX));
+                          threshold=(Quantum) (MaxRGBDouble*MagickRandomRealInlined(random_kernel));
                         q->blue=(q->blue <= threshold ? 0U : MaxRGB);
                         q++;
                       }
@@ -2921,7 +2918,7 @@ RandomChannelThresholdImage(Image *image,const char *channel,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_RandomChannelThresholdImage)
 #endif
         {
           row_count++;
@@ -3154,7 +3151,7 @@ MagickExport Image *ReduceNoiseImage(const Image *image,const double radius,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReduceNoiseImage)
 #endif
       {
         row_count++;
@@ -3342,7 +3339,7 @@ MagickExport Image *ShadeImage(const Image *image,const unsigned int gray,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ShadeImage)
 #endif
         {
           row_count++;
@@ -3553,11 +3550,13 @@ MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
     Initialize random offsets cache
   */
   {
+    MagickRandomKernel
+      *random_kernel;
+
     unsigned int
-      seed,
       x;
 
-    seed=MagickRandNewSeed();
+    random_kernel=AcquireMagickRandomKernel();
     offsets=MagickAllocateMemory(int *,OFFSETS_ENTRIES*sizeof(int));
     if (offsets == (int *) NULL)
       {
@@ -3566,8 +3565,8 @@ MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
       }
     for (x=0; x < OFFSETS_ENTRIES; x++)
       {
-        offsets[x]=((((2*(double) radius+1)*MagickRandReentrant(&seed))/
-                     RAND_MAX)-((int) radius));
+        offsets[x]=(((2*(double) radius+1)*MagickRandomRealInlined(random_kernel))
+		    -((int) radius));
       }
   }
 
@@ -3677,7 +3676,7 @@ MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_SpreadImage)
 #endif
         {
           row_count++;
@@ -3836,7 +3835,7 @@ MagickExport MagickPassFail ThresholdImage(Image *image,const double threshold)
                 thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ThresholdImage)
 #endif
         {
           row_count++;

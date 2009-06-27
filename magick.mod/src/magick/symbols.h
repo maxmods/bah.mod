@@ -572,6 +572,7 @@
 #define RegisterGRADIENTImage GmRegisterGRADIENTImage
 #define RegisterGRAYImage GmRegisterGRAYImage
 #define RegisterHISTOGRAMImage GmRegisterHISTOGRAMImage
+#define RegisterHRZImage GmRegisterHRZImage
 #define RegisterHTMLImage GmRegisterHTMLImage
 #define RegisterICONImage GmRegisterICONImage
 #define RegisterJBIGImage GmRegisterJBIGImage
@@ -758,6 +759,7 @@
 #define UnregisterGRADIENTImage GmUnregisterGRADIENTImage
 #define UnregisterGRAYImage GmUnregisterGRAYImage
 #define UnregisterHISTOGRAMImage GmUnregisterHISTOGRAMImage
+#define UnregisterHRZImage GmUnregisterHRZImage
 #define UnregisterHTMLImage GmUnregisterHTMLImage
 #define UnregisterICONImage GmUnregisterICONImage
 #define UnregisterJBIGImage GmUnregisterJBIGImage

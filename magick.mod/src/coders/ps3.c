@@ -1936,6 +1936,18 @@ static unsigned int WritePS3Image(const ImageInfo *image_info,Image *image)
 %
 %
 */
+
+static voidpf ZLIBAllocFunc(voidpf opaque, uInt items, uInt size)
+{
+  ARG_NOT_USED(opaque);
+  return MagickMallocCleared((size_t) items*size);
+}
+static void ZLIBFreeFunc(voidpf opaque, voidpf address)
+{
+  ARG_NOT_USED(opaque);
+  MagickFree(address);
+}
+
 static unsigned int ZLIBEncode2Image(Image *image,const size_t length,
   const unsigned long quality,unsigned char *pixels,WriteByteHook write_byte,
   void *info)
@@ -1966,8 +1978,8 @@ static unsigned int ZLIBEncode2Image(Image *image,const size_t length,
   stream.avail_in=(unsigned int) length;
   stream.next_out=compressed_pixels;
   stream.avail_out=(unsigned int) compressed_packets;
-  stream.zalloc=(alloc_func) NULL;
-  stream.zfree=(free_func) NULL;
+  stream.zalloc=ZLIBAllocFunc;
+  stream.zfree=ZLIBFreeFunc;
   stream.opaque=(voidpf) NULL;
   status=deflateInit(&stream,(int) Min(quality/10,9));
   if (status == Z_OK)

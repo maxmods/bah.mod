@@ -8,6 +8,7 @@
 //
 
 #define MAGICK_IMPLEMENTATION
+#define MAGICK_PLUSPLUS_IMPLEMENTATION
 
 #include "Magick++/ImageRef.h"
 #include "Magick++/Exception.h"

@@ -289,26 +289,27 @@ typedef enum
 typedef enum
 {
 #undef NoValue
-  NoValue = 0x0000,
+  NoValue      = 0x00000,
 #undef XValue
-  XValue = 0x0001,
+  XValue       = 0x00001,
 #undef YValue
-  YValue = 0x0002,
+  YValue       = 0x00002,
 #undef WidthValue
-  WidthValue = 0x0004,
+  WidthValue   = 0x00004,
 #undef HeightValue
-  HeightValue = 0x0008,
+  HeightValue  = 0x00008,
 #undef AllValues
-  AllValues = 0x000F,
+  AllValues    = 0x0000F,
 #undef XNegative
-  XNegative = 0x0010,
+  XNegative    = 0x00010,
 #undef YNegative
-  YNegative = 0x0020,
-  PercentValue = 0x1000,
-  AspectValue = 0x2000,
-  LessValue = 0x4000,
-  GreaterValue = 0x8000,
-  AreaValue = 0x10000
+  YNegative    = 0x00020,
+  PercentValue = 0x01000, /* % */
+  AspectValue  = 0x02000, /* ! */
+  LessValue    = 0x04000, /* < */
+  GreaterValue = 0x08000, /* > */
+  AreaValue    = 0x10000, /* @  */
+  MinimumValue = 0x20000  /* ^ */
 } GeometryFlags;
 
 typedef enum

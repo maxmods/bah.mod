@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -263,6 +263,280 @@ MagickExport Image *ColorizeImage(const Image *image,const char *opacity,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%     C o l o r M a t r i x I m a g e                                         %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  ColorMatrixImage() applies a color matrix to the image channels.  The
+%  user supplied matrix may be of order 1 to 5 (1x1 through 5x5) and is
+%  used to update the default identity matrix:
+%
+%    1 0 0 0 0
+%    0 1 0 0 0
+%    0 0 1 0 0
+%    0 0 0 1 0
+%    0 0 0 0 1
+%
+%  where the first four columns represent the ratio of the color (red,
+%  green, blue) and opacity components incorporated in the output summation.
+%  The first four rows represent the summations for red, green, blue, and
+%  opacity.  The last row is a dummy row and is not used.  The last column
+%  represents a constant value (expressed as a ratio of MaxRGB) to be
+%  added to the row summation.  The following is a summary of how the
+%  matrix is applied:
+%
+%    r' = r*m[0,0] + g*m[1,0] + b*m[2,0] + o*m[3,0] + MaxRGB*m[4,0]
+%    g' = r*m[0,1] + g*m[1,1] + b*m[2,1] + o*m[3,1] + MaxRGB*m[4,1]
+%    b' = r*m[0,2] + g*m[1,2] + b*m[2,2] + o*m[3,2] + MaxRGB*m[4,2]
+%    o' = r*m[0,3] + g*m[1,3] + b*m[2,3] + o*m[3,3] + MaxRGB*m[4,3]
+%
+%  The format of the ColorMatrixImage method is:
+%
+%      MagickPassFail ColorMatrixImage(Image *image,
+%                                      const unsigned int order,
+%                                      const double *color_matrix)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o order: The number of columns and rows in the filter kernel.
+%
+%    o matrix: An array of double representing the matrix
+%
+%
+*/
+typedef struct _ColorMatrixImageOptions_t
+{
+  const double
+    *matrix[5];
+
+} ColorMatrixImageOptions_t;
+
+static MagickPassFail
+ColorMatrixImagePixels(void *mutable_data,         /* User provided mutable data */
+                       const void *immutable_data, /* User provided immutable data */
+                       Image *image,               /* Modify image */
+                       PixelPacket *pixels,        /* Pixel row */
+                       IndexPacket *indexes,       /* Pixel row indexes */
+                       const long npixels,         /* Number of pixels in row */
+                       ExceptionInfo *exception)   /* Exception report */
+{
+  /*
+    Color matrix image pixels.
+  */
+  const ColorMatrixImageOptions_t
+    *options = (const ColorMatrixImageOptions_t *) immutable_data;
+
+  long
+    i;
+
+  double
+    column[5],
+    sums[4];
+
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  for (i=0; i < (long) (sizeof(sums)/sizeof(sums[0])); i++)
+    sums[i] = 0.0;
+
+  column[3] = MaxRGBDouble;
+  column[4] = MaxRGBDouble;
+
+  for (i=0; i < npixels; i++)
+    {
+      unsigned int
+	row;
+
+      /*
+	Accumulate float input pixel
+      */
+      column[0]=(double) pixels[i].red;
+      column[1]=(double) pixels[i].green;
+      column[2]=(double) pixels[i].blue;
+      if (image->matte)
+	column[3]=(MaxRGBDouble-(double) pixels[i].opacity);
+
+      /*
+	Compute row sums.
+      */
+      for (row=0; row < 4; row++)
+	{
+	  const double
+	    *m;
+
+	  if ((m = options->matrix[row]) != (const double *) NULL)
+	    sums[row]=m[0]*column[0] + m[1]*column[1] + m[2]*column[2] +
+	      m[3]*column[3] + m[4]*column[4];
+	}
+
+      /*
+	Assign results.
+      */
+      for (row=0; row < 4; row++)
+	{
+	  if (options->matrix[row] != (const double *) NULL)
+	    {
+	      switch (row)
+		{
+		case 0:
+		  pixels[i].red = RoundDoubleToQuantum(sums[row]);
+		  break;
+		case 1:
+		  pixels[i].green = RoundDoubleToQuantum(sums[row]);
+		  break;
+		case 2:
+		  pixels[i].blue = RoundDoubleToQuantum(sums[row]);
+		  break;
+		case 3:
+		  sums[row]=(MaxRGBDouble-sums[row]);
+		  pixels[i].opacity = RoundDoubleToQuantum(sums[row]);
+		  break;
+		}
+	    }
+	}
+    }
+
+  return MagickPass;
+}
+
+#define ColorMatrixImageText  "[%s] Color matrix image..."
+MagickExport MagickPassFail
+ColorMatrixImage(Image *image,const unsigned int order,const double *color_matrix)
+{
+  double
+    matrix[] =
+    {
+      1.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 1.0
+    };
+
+  unsigned int
+    i;
+
+  int
+    width = 5;
+
+  ColorMatrixImageOptions_t
+    options;
+
+  MagickPassFail
+    status = MagickPass;
+
+  if ((order < 1) || (order > 5))
+    ThrowBinaryException(OptionError,MatrixOrderOutOfRange,
+			 MagickMsg(OptionError,UnableToColorMatrixImage));
+
+  assert(color_matrix != (const double *) NULL);
+
+  for (i=0; i < sizeof(options.matrix)/sizeof(options.matrix[0]); i++)
+    options.matrix[i] = (double *) NULL;
+
+  {
+    double
+      *d;
+
+    const double
+      *u;
+
+    unsigned int
+      j;
+
+    u = color_matrix;
+    for (i=0; i < order; i++)
+      {
+	d = &matrix[i*5];
+	for (j=0; j < order; j++)
+	  {
+	    if (d[j] != *u)
+	      {
+		d[j]=*u;
+		options.matrix[i]=&matrix[i*5];
+	      }
+	    u++;
+	  }
+      }
+
+    if (!image->matte)
+      options.matrix[3] = (double *) NULL;
+  }
+
+  if (LogMagickEvent(TransformEvent,GetMagickModule(),
+                     "  ColorMatrix with %dx%d matrix:",width,width))
+    {
+      /*
+        Log matrix.
+      */
+      char
+        cell_text[MaxTextExtent],
+        row_text[MaxTextExtent];
+
+      const double
+        *k;
+
+      long
+        u,
+        v;
+
+      k=matrix;
+      for (v=0; v < width; v++)
+        {
+          *row_text='\0';
+          for (u=0; u < width; u++)
+            {
+              FormatString(cell_text,"%#12.4g",*k++);
+              (void) strlcat(row_text,cell_text,sizeof(row_text));
+              if (u%5 == 4)
+                {
+                  (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                        "   %.64s", row_text);
+                  *row_text='\0';
+                }
+            }
+          if (u > 5)
+            (void) strlcat(row_text,"\n",sizeof(row_text));
+          if (row_text[0] != '\0')
+            (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                  "   %s", row_text);
+        }
+    }
+
+  if ((options.matrix[0] != (double *) NULL) ||
+      (options.matrix[1] != (double *) NULL) ||
+      (options.matrix[2] != (double *) NULL) ||
+      (options.matrix[3] != (double *) NULL))
+    {
+      image->storage_class=DirectClass;
+      /*
+	We don't currently handle CMYK(A) colorspaces, although
+	manipulation in other alternate colorspaces may be useful.
+      */
+      if (image->colorspace == CMYKColorspace)
+	(void) TransformColorspace(image,RGBColorspace);
+      status=PixelIterateMonoModify(ColorMatrixImagePixels,
+				    NULL,
+				    ColorMatrixImageText,
+				    NULL,&options,
+				    0,0,image->columns,image->rows,
+				    image,
+				    &image->exception);
+    }
+
+  return status;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
 %     C o n v o l v e I m a g e                                               %
 %                                                                             %
 %                                                                             %
@@ -478,7 +752,7 @@ MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ConvolveImage)
 #endif
         {
           row_count++;
@@ -662,7 +936,7 @@ MagickExport Image *ImplodeImage(const Image *image,const double amount,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ImplodeImage)
 #endif
         {
           row_count++;
@@ -1034,7 +1308,7 @@ MagickExport Image *OilPaintImage(const Image *image,const double radius,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_OilPaintImage)
 #endif
       {
         row_count++;
@@ -1545,7 +1819,7 @@ MagickExport Image *SwirlImage(const Image *image,double degrees,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_SwirlImage)
 #endif
         {
           row_count++;
@@ -1706,7 +1980,7 @@ MagickExport Image *WaveImage(const Image *image,const double amplitude,
               thread_status=MagickFail;
           }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_WaveImage)
 #endif
         {
           row_count++;

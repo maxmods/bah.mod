@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003-2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -28,7 +28,8 @@ extern MagickExport Image
   *SwirlImage(const Image *,double,ExceptionInfo *),
   *WaveImage(const Image *,const double,const double,ExceptionInfo *);
 
-extern MagickExport unsigned int
+extern MagickExport MagickPassFail
+  ColorMatrixImage(Image *image,const unsigned int order,const double *matrix),
   SolarizeImage(Image *,const double);
 
 #if defined(__cplusplus) || defined(c_plusplus)

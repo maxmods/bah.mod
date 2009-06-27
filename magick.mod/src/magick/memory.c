@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -161,6 +161,48 @@ MagickExport void *MagickMallocArray(const size_t count,const size_t size)
   if (allocation_size)
     allocation = (MallocFunc)(allocation_size);
   return allocation;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   M a g i c k M a l l o c C l e a r e d                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  MagickMallocCleared() returns a pointer to a block of memory of at least
+%  size bytes suitably aligned for any use.  NULL is returned if insufficient
+%  memory is available or the requested size is zero.  This version differs
+%  from MagickMalloc in that the allocated bytes are cleared to zero.
+%
+%  The format of the  MagickMallocCleared method is:
+%
+%      void * MagickMallocCleared(const size_t size)
+%
+%  A description of each parameter follows:
+%
+%    o size: The size of the memory in bytes to allocate.
+%
+%
+*/
+MagickExport void * MagickMallocCleared(const size_t size)
+{
+  void
+    *p = (void *) NULL;
+
+  if (size != 0)
+    {
+      p=(MallocFunc)(size);
+
+      if (p != (void *) NULL)
+	(void) memset(p,0,size);
+    }
+
+  return p;
 }
 
 /*

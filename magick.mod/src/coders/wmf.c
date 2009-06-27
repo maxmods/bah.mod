@@ -2341,7 +2341,7 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
     wmf_options_flags = 0;
 
   wmf_error_t
-    wmf_error;
+    wmf_error_code;
 
   wmf_magick_t
     *ddata = 0;
@@ -2381,8 +2381,8 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
   /* Ignore non-fatal errors */
   wmf_options_flags |= WMF_OPT_IGNORE_NONFATAL;
 
-  wmf_error = wmf_api_create(&API, wmf_options_flags, &wmf_api_options);
-  if (wmf_error != wmf_E_None)
+  wmf_error_code = wmf_api_create(&API, wmf_options_flags, &wmf_api_options);
+  if (wmf_error_code != wmf_E_None)
     {
       if (API)
         (void) wmf_api_destroy(API);
@@ -2412,9 +2412,9 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
    * Open BLOB input via libwmf API
    *
    */
-  wmf_error = wmf_bbuf_input(API,ipa_blob_read,ipa_blob_seek,
+  wmf_error_code = wmf_bbuf_input(API,ipa_blob_read,ipa_blob_seek,
                              ipa_blob_tell,(void*)image);
-  if (wmf_error != wmf_E_None)
+  if (wmf_error_code != wmf_E_None)
     {
       (void) wmf_api_destroy(API);
       if(logging)
@@ -2431,13 +2431,13 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
    */
   if (logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  Scanning WMF to obtain bounding box");
-  wmf_error = wmf_scan(API, 0, &bbox);
-  if (wmf_error != wmf_E_None)
+  wmf_error_code = wmf_scan(API, 0, &bbox);
+  if (wmf_error_code != wmf_E_None)
     {
       (void) wmf_api_destroy(API);
       if (logging)
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  wmf_scan failed with wmf_error %d", wmf_error);
+          (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  wmf_scan failed with wmf_error_code %d", wmf_error_code);
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),"leave ReadWMFImage()");
         }
       ThrowReaderException(DelegateError,FailedToScanFile,image);
@@ -2468,13 +2468,13 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
     }
 
   /* Obtain output size expressed in metafile units */
-  wmf_error = wmf_size(API, &wmf_width, &wmf_height);
-  if (wmf_error != wmf_E_None)
+  wmf_error_code = wmf_size(API, &wmf_width, &wmf_height);
+  if (wmf_error_code != wmf_E_None)
     {
       (void) wmf_api_destroy(API);
       if (logging)
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  wmf_size failed with wmf_error %d", wmf_error);
+          (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  wmf_size failed with wmf_error_code %d", wmf_error_code);
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),"leave ReadWMFImage()");
         }
       ThrowReaderException(DelegateError,FailedToComputeOutputSize,image);
@@ -2646,13 +2646,14 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
   if (logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  Playing WMF to prepare vectors");
 
-  wmf_error = wmf_play(API, 0, &bbox);
-  if (wmf_error != wmf_E_None)
+  wmf_error_code = wmf_play(API, 0, &bbox);
+  if (wmf_error_code != wmf_E_None)
     {
       (void) wmf_api_destroy(API);
       if (logging)
         {
-          (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  Playing WMF failed with wmf_error %d", wmf_error);
+          (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+				"  Playing WMF failed with wmf_error_code %d", wmf_error_code);
           (void) LogMagickEvent(CoderEvent,GetMagickModule(),"leave ReadWMFImage()");
         }
       ThrowReaderException(DelegateError,FailedToRenderFile,image);

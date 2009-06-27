@@ -139,6 +139,15 @@
 #include "magick/version.h"
 
 /*
+  While OpenMP has been observed to provide considerable speed-ups
+  when repetitively reading a few files (which become cached), it is
+  observed to slow the bulk processing of many files (showing high
+  lock occupancy) so it is always disabled for the moment.
+*/
+#undef DisableSlowOpenMP
+#define DisableSlowOpenMP 1
+
+/*
   Define STATIC to nothing so that normally static functions are
   externally visible in the symbol table (for profiling).
 */
@@ -1531,9 +1540,9 @@ STATIC void ReadRowSamples(const unsigned char *scanline,
       read_func=ReadWordU32LE;
 
     read_state.words=scanline;
-    WordStreamInitializeRead(&read_stream,read_func, (void *) &read_state);
+    MagickWordStreamInitializeRead(&read_stream,read_func, (void *) &read_state);
       for (i=samples_per_row; i != 0; i--)
-        *sp++=WordStreamLSBRead(&read_stream,bits_per_sample);
+        *sp++=MagickWordStreamLSBRead(&read_stream,bits_per_sample);
   }
 }
 
@@ -1627,7 +1636,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
   MagickBool
     is_grayscale=MagickFalse,   /* image is grayscale ? */
     is_monochrome=MagickFalse,  /* image is monochrome ? */
-    swab=MagickFalse;           /* swap endian order */
+    swap_endian=MagickFalse;    /* swap endian order */
 
   DPXImageElementDescriptor
     element_descriptor;
@@ -1668,12 +1677,12 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
     Check for swapped endian order.
   */
   if (dpx_file_info.magic != 0x53445058U)
-    swab=MagickTrue;
+    swap_endian=MagickTrue;
 
 #if defined(WORDS_BIGENDIAN)
-  endian_type = (swab ? LSBEndian : MSBEndian);
+  endian_type = (swap_endian ? LSBEndian : MSBEndian);
 #else
-  endian_type = (swab ? MSBEndian : LSBEndian);
+  endian_type = (swap_endian ? MSBEndian : LSBEndian);
 #endif
   
   if (image->logging)
@@ -1681,7 +1690,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
                           "%s endian DPX format",
                           (endian_type == MSBEndian ? "Big" : "Little"));
 
-  if (swab)
+  if (swap_endian)
     SwabDPXFileInfo(&dpx_file_info);
 
   if (image->logging)
@@ -1744,7 +1753,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
   offset += ReadBlob(image,sizeof(dpx_image_info),&dpx_image_info);
   if (offset != (size_t) 1408L)
     ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
-  if (swab)
+  if (swap_endian)
     SwabDPXImageInfo(&dpx_image_info);
   image->columns=dpx_image_info.pixels_per_line;
   image->rows=dpx_image_info.lines_per_image_element;
@@ -1765,7 +1774,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       offset += ReadBlob(image,sizeof(dpx_source_info),&dpx_source_info);
       if (offset != (size_t) 1664L)
         ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
-      if (swab)
+      if (swap_endian)
         SwabDPXImageSourceInfo(&dpx_source_info);
 
       U32ToAttribute(image,"DPX:source.x-offset",dpx_source_info.x_offset);
@@ -1795,7 +1804,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       offset += ReadBlob(image,sizeof(dpx_mp_info),&dpx_mp_info);
       if (offset != (size_t) 1920L)
         ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image);
-      if (swab)
+      if (swap_endian)
         SwabDPXMPFilmInfo(&dpx_mp_info);
 
       if (dpx_file_info.industry_section_length != 0)
@@ -1823,7 +1832,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       offset += ReadBlob(image,sizeof(dpx_tv_info),&dpx_tv_info);
       if (offset != (size_t) 2048L)
         ThrowReaderException(CorruptImageError,UnexpectedEndOfFile,image); 
-      if (swab)
+      if (swap_endian)
         SwabDPXTVInfo(&dpx_tv_info);
 
       if (dpx_file_info.industry_section_length != 0)
@@ -1913,7 +1922,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       {
         if (element == 0)
           {
-            DPXColorimetric colorimetric=
+            colorimetric=
               (DPXColorimetric) dpx_image_info.element_info[element].colorimetric;
             DPXSetPrimaryChromaticities(colorimetric,&image->chromaticity);
           }
@@ -2329,7 +2338,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 
                 scanline_data=scanline;
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadDPXImage)
 #endif
                 {
                   if (ReadBlobZC(image,row_octets,&scanline_data) != row_octets)
@@ -2362,7 +2371,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
               if (thread_status == MagickFail)
                 {
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadDPXImage)
 #endif
                   status=thread_status;
                   continue;
@@ -2581,7 +2590,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
               */              
               if (thread_status == MagickFail)
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadDPXImage)
 #endif
                 status=MagickFail;
 #if 0
@@ -2891,7 +2900,7 @@ STATIC void WriteRowSamples(const sample_t *samples,
     sample;
 
   sp=scanline;
-  BitStreamInitializeWrite(&bit_stream,scanline);
+  MagickBitStreamInitializeWrite(&bit_stream,scanline);
 
   if ((packing_method != PackingMethodPacked) &&
       ((bits_per_sample == 10) || (bits_per_sample == 12)))
@@ -3137,12 +3146,12 @@ STATIC void WriteRowSamples(const sample_t *samples,
         write_func=WriteWordU32LE;
 
       write_state.words=scanline;
-      WordStreamInitializeWrite(&write_stream,write_func, (void *) &write_state);
+      MagickWordStreamInitializeWrite(&write_stream,write_func, (void *) &write_state);
 
       for (i=samples_per_row; i != 0; i--)
-        WordStreamLSBWrite(&write_stream,bits_per_sample,*samples++);
+        MagickWordStreamLSBWrite(&write_stream,bits_per_sample,*samples++);
 
-      WordStreamLSBWriteFlush(&write_stream);
+      MagickWordStreamLSBWriteFlush(&write_stream);
   }
 }
 
@@ -3328,7 +3337,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
     status;
 
   MagickBool
-    swab;
+    swap_endian;
 
   size_t
     element_size;
@@ -3364,17 +3373,17 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   */
   endian_type=MSBEndian;
 #if defined(WORDS_BIGENDIAN)
-  swab=MagickFalse;
+  swap_endian=MagickFalse;
   if (image_info->endian == LSBEndian)
     {
-      swab=MagickTrue;
+      swap_endian=MagickTrue;
       endian_type=LSBEndian;
     }
 #else
-  swab=MagickTrue;
+  swap_endian=MagickTrue;
   if (image_info->endian == LSBEndian)
     {
-      swab=MagickFalse;
+      swap_endian=MagickFalse;
       endian_type=LSBEndian;
     }
 #endif
@@ -3872,6 +3881,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   /*
     Motion-picture film information header.
   */
+  (void) memset(&dpx_mp_info,0,sizeof(dpx_mp_info));
   AttributeToString(image_info,image,"DPX:mp.film.manufacturer.id",dpx_mp_info.film_mfg_id_code);
   AttributeToString(image_info,image,"DPX:mp.film.type",dpx_mp_info.film_type);
   AttributeToString(image_info,image,"DPX:mp.perfs.offset",dpx_mp_info.perfs_offset);
@@ -3888,6 +3898,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   /*
     Television information header.
   */
+  (void) memset(&dpx_tv_info,0,sizeof(dpx_tv_info));
   AttributeBitsToU32(image_info,image,"DPX:tv.time.code",dpx_tv_info.time_code);
   AttributeBitsToU32(image_info,image,"DPX:tv.user.bits",dpx_tv_info.user_bits);
   AttributeToU8(image_info,image,"DPX:tv.interlace",dpx_tv_info.interlace);
@@ -3970,7 +3981,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   /*
     Write file headers.
   */
-  if (swab)
+  if (swap_endian)
     {
       /*
         Swap byte order.
@@ -3990,7 +4001,7 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
     {
       offset += WriteBlob(image,(size_t) user_data_length,user_data);
     }
-  if (swab)
+  if (swap_endian)
     {
       /*
         Swap byte order back to original.
@@ -4004,8 +4015,12 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   /*
     Fill to offset.
   */
-  for( ; offset < dpx_image_info.element_info[0].data_offset; offset++)
-    (void) WriteBlobByte(image,0x00);
+  while (offset < dpx_image_info.element_info[0].data_offset)
+    {
+      if (WriteBlobByte(image,0U) != 1)
+	break;
+      offset += 1;
+    }
   /*
     Allow user to over-ride pixel endianness.
   */
@@ -4373,6 +4388,11 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
   MagickFreeMemory(map_Y);
   MagickFreeMemory(samples);
   MagickFreeMemory(scanline);
-  CloseBlob(image);  
+  CloseBlob(image);
+  if (chroma_image != (Image *) NULL)
+    {
+      DestroyImage(chroma_image);
+      chroma_image = (Image *) NULL;
+    }
   return(status);
 }

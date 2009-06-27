@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -39,6 +39,7 @@
 #include "magick/blob.h"
 #include "magick/pixel_cache.h"
 #include "magick/constitute.h"
+#include "magick/enum_strings.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
 #include "magick/utility.h"
@@ -112,6 +113,9 @@ static Image *ReadGRAYImage(const ImageInfo *image_info,
     quantum_size,
     packet_size;
 
+  ImportPixelAreaOptions
+    import_options;
+
   /*
     Open image file.
   */
@@ -154,6 +158,20 @@ static Image *ReadGRAYImage(const ImageInfo *image_info,
   scanline=MagickAllocateMemory(unsigned char *,packet_size*image->tile_info.width);
   if (scanline == (unsigned char *) NULL)
     ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
+  /*
+    Initialize import options.
+  */
+  ImportPixelAreaOptionsInit(&import_options);
+  if (image_info->endian != UndefinedEndian)
+    import_options.endian=image_info->endian;
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			  "Depth %u bits, Endian %s",
+			  quantum_size,
+			  EndianTypeToString(import_options.endian));
+  /*
+    Support starting at intermediate image frame.
+  */
   if (image_info->subrange != 0)
     while (image->scene < image_info->subimage)
     {
@@ -182,7 +200,8 @@ static Image *ReadGRAYImage(const ImageInfo *image_info,
       q=SetImagePixels(image,0,y,image->columns,1);
       if (q == (PixelPacket *) NULL)
         break;
-      (void) ImportImagePixelArea(image,GrayQuantum,quantum_size,scanline+x,0,0);
+      (void) ImportImagePixelArea(image,GrayQuantum,quantum_size,scanline+x,
+				  &import_options,0);
       if (!SyncImagePixels(image))
         break;
       if (image->previous == (Image *) NULL)
@@ -421,6 +440,12 @@ static unsigned int WriteGRAYImage(const ImageInfo *image_info,Image *image)
     scene,
     status;
 
+  ExportPixelAreaOptions
+    export_options;
+
+  ExportPixelAreaInfo
+    export_info;
+
   /*
     Open output image file.
   */
@@ -461,6 +486,18 @@ static unsigned int WriteGRAYImage(const ImageInfo *image_info,Image *image)
     if (scanline == (unsigned char *) NULL)
       ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
     /*
+      Initialize export options.
+    */
+    ExportPixelAreaOptionsInit(&export_options);
+    if (image->endian != UndefinedEndian)
+      export_options.endian=image->endian;
+    else if (image_info->endian != UndefinedEndian)
+      export_options.endian=image_info->endian;
+    if (image->logging)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			    "Depth %u bits, Endian %s",quantum_size,
+			    EndianTypeToString(export_options.endian));
+    /*
       Convert MIFF to GRAY raster scanline.
     */
     for (y=0; y < (long) image->rows; y++)
@@ -468,8 +505,9 @@ static unsigned int WriteGRAYImage(const ImageInfo *image_info,Image *image)
       p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
       if (p == (const PixelPacket *) NULL)
         break;
-      (void) ExportImagePixelArea(image,GrayQuantum,quantum_size,scanline,0,0);
-      (void) WriteBlob(image,packet_size*image->columns,scanline);
+      (void) ExportImagePixelArea(image,GrayQuantum,quantum_size,scanline,
+				  &export_options,&export_info);
+      (void) WriteBlob(image,export_info.bytes_exported,scanline);
       if (image->previous == (Image *) NULL)
         if (QuantumTick(y,image->rows))
           if (!MagickMonitorFormatted(y,image->rows,&image->exception,

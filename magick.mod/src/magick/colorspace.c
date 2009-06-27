@@ -305,9 +305,9 @@ XYZTransformPackets(void *mutable_data,          /* User provided mutable data *
       g = g < 0.0f ? 0.0f : g > MaxMapFloat ? MaxMapFloat : (g + 0.5f);
       b = b < 0.0f ? 0.0f : b > MaxMapFloat ? MaxMapFloat : (b + 0.5f);
 
-      pixels[i].red   = ScaleMapToQuantum(r);
-      pixels[i].green = ScaleMapToQuantum(g);
-      pixels[i].blue  = ScaleMapToQuantum(b);
+      pixels[i].red   = ScaleMapToQuantum((Quantum) r);
+      pixels[i].green = ScaleMapToQuantum((Quantum) g);
+      pixels[i].blue  = ScaleMapToQuantum((Quantum) b);
     }
 
   return MagickPass;
@@ -1142,10 +1142,20 @@ CMYKToRGBTransform(void *mutable_data,          /* User provided mutable data */
 
   for (i=0; i < npixels; i++)
     {
-      pixels[i].red=(Quantum) (((double)(MaxRGB-pixels[i].red)*(MaxRGB-pixels[i].opacity))/MaxRGB+0.5);
-      pixels[i].green=(Quantum) (((double)(MaxRGB-pixels[i].green)*(MaxRGB-pixels[i].opacity))/MaxRGB+0.5);
-      pixels[i].blue=(Quantum) (((double)(MaxRGB-pixels[i].blue)*(MaxRGB-pixels[i].opacity))/MaxRGB+0.5);
-      pixels[i].opacity=image->matte ? indexes[i] : OpaqueOpacity;
+      double
+	black_factor;
+
+      black_factor=MaxRGBDouble-GetBlackSample(&pixels[i]);
+      SetRedSample(&pixels[i],
+		   (Quantum) (((MaxRGBDouble-GetCyanSample(&pixels[i]))*
+			       black_factor)/MaxRGBDouble+0.5));
+      SetGreenSample(&pixels[i],
+		     (Quantum) (((MaxRGBDouble-GetMagentaSample(&pixels[i]))*
+				 black_factor)/MaxRGBDouble+0.5));
+      SetBlueSample(&pixels[i],
+		    (Quantum) (((MaxRGBDouble-GetYellowSample(&pixels[i]))*
+				black_factor)/ MaxRGBDouble+0.5));
+      SetOpacitySample(&pixels[i],(image->matte ? indexes[i] : OpaqueOpacity));
     }
 
   return MagickPass;
@@ -1311,11 +1321,6 @@ RGBTransformPackets(void *mutable_data,         /* User provided mutable data */
 
       if ( xform->rgb_map != 0 )
         {
-          unsigned int
-            r_index,
-            g_index,
-            b_index;
-
           r_index = ScaleMapToChar(r);
           g_index = ScaleMapToChar(g);
           b_index = ScaleMapToChar(b);

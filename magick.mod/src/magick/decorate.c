@@ -334,7 +334,7 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_FrameImage)
 #endif
       {
         row_count++;
@@ -420,7 +420,7 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
 %  The format of the RaiseImage method is:
 %
 %      unsigned int RaiseImage(Image *image,const RectangleInfo *raise_info,
-%        const int raise)
+%        const int raise_flag)
 %
 %  A description of each parameter follows:
 %
@@ -428,20 +428,20 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
 %
 %    o raise_info: Define the width and height of the raise area.
 %
-%    o raise: A value other than zero creates a 3-D raise effect,
+%    o raise_flag: A value other than zero creates a 3-D raise effect,
 %      otherwise it has a lowered effect.
 %
 %
 */
-MagickExport MagickPassFail
-RaiseImage(Image *image,const RectangleInfo *raise_info,const int raise)
-{
 #define AccentuateFactor  (double) ScaleCharToQuantum(135)
 #define HighlightFactor  (double) ScaleCharToQuantum(190)
 #define ShadowFactor  (double) ScaleCharToQuantum(190)
 #define RaiseImageText  "[%s] Raise image..."
 #define TroughFactor  (double) ScaleCharToQuantum(135)
 
+MagickExport MagickPassFail
+RaiseImage(Image *image,const RectangleInfo *raise_info,const int raise_flag)
+{
   unsigned long
     row_count=0;
 
@@ -475,7 +475,7 @@ RaiseImage(Image *image,const RectangleInfo *raise_info,const int raise)
 
   foreground=MaxRGBDouble;
   background=0.0;
-  if (!raise)
+  if (!raise_flag)
     {
       foreground=0.0;
       background=MaxRGBDouble;
@@ -586,7 +586,7 @@ RaiseImage(Image *image,const RectangleInfo *raise_info,const int raise)
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_RaiseImage)
 #endif
       {
         row_count++;

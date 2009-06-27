@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2007 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (c) 2000 Markus Friedl.  All rights reserved.
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
@@ -40,6 +40,7 @@
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/color.h"
+#include "magick/confirm_access.h"
 #include "magick/enum_strings.h"
 #include "magick/log.h"
 #include "magick/magick.h"
@@ -461,7 +462,7 @@ MagickExport char *Base64Encode(const unsigned char *blob,
 
   size_t
     max_length,
-    remainder;
+    remaining;
 
   assert(blob != (const unsigned char *) NULL);
   assert(blob_length != 0);
@@ -479,8 +480,8 @@ MagickExport char *Base64Encode(const unsigned char *blob,
     encode[i++]=Base64[((*(p+1) & 0x0f) << 2)+(*(p+2) >> 6)];
     encode[i++]=Base64[*(p+2) & 0x3f];
   }
-  remainder=blob_length % 3;
-  if (remainder != 0)
+  remaining=blob_length % 3;
+  if (remaining != 0)
     {
       long
         j;
@@ -491,11 +492,11 @@ MagickExport char *Base64Encode(const unsigned char *blob,
       code[0]='\0';
       code[1]='\0';
       code[2]='\0';
-      for (j=0; j < (long) remainder; j++)
+      for (j=0; j < (long) remaining; j++)
         code[j]=(*p++);
       encode[i++]=Base64[code[0] >> 2];
       encode[i++]=Base64[((code[0] & 0x03) << 4)+(code[1] >> 4)];
-      if (remainder == 1)
+      if (remaining == 1)
         encode[i++]='=';
       else
         encode[i++]=Base64[((code[1] & 0x0f) << 2)+(code[2] >> 6)];
@@ -732,7 +733,7 @@ MagickExport char *EscapeString(const char *source,const char escape)
   register const char
     *p;
 
-  unsigned int
+  size_t
     length;
 
   assert(source != (const char *) NULL);
@@ -868,6 +869,9 @@ MagickExport void ExpandFilename(char *filename)
 */
 MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
 {
+  const
+    size_t prealloc_entries = 1024;
+
   char
     current_directory[MaxTextExtent],
     *option,
@@ -881,7 +885,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
     i,
     j;
 
-  unsigned int
+  MagickBool
     first;
 
   /*
@@ -889,7 +893,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
   */
   assert(argc != (int *) NULL);
   assert(argv != (char ***) NULL);
-  vector=MagickAllocateMemory(char **,(*argc+MaxTextExtent)*sizeof(char *));
+  vector=MagickAllocateMemory(char **,(*argc+prealloc_entries)*sizeof(char *));
   if (vector == (char **) NULL)
     return(MagickFail);
   /*
@@ -898,164 +902,211 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
   (void) getcwd(current_directory,MaxTextExtent-1);
   count=0;
   for (i=0; i < *argc; i++)
-  {
-    char
-      **filelist,
-      filename[MaxTextExtent],
-      magick[MaxTextExtent],
-      path[MaxTextExtent],
-      subimage[MaxTextExtent];
+    {
+      char
+	**filelist,
+	filename[MaxTextExtent],
+	magick[MaxTextExtent],
+	path[MaxTextExtent],
+	subimage[MaxTextExtent];
 
-    option=(*argv)[i];
-    /* Never throw options away, so copy here, then perhaps modify later */
-    vector[count++]=AcquireString(option);
-    first=True;
+      option=(*argv)[i];
+      /* Never throw options away, so copy here, then perhaps modify later */
+      vector[count++]=AcquireString(option);
 
-    /*
-      Don't expand or process any VID: argument since the VID coder
-      does its own expansion
-    */
-    if (LocaleNCompare("VID:",option,4) == 0)
-      continue;
+      /*
+	Don't expand or process any VID: argument since the VID coder
+	does its own expansion
+      */
+      if (LocaleNCompare("VID:",option,4) == 0)
+	continue;
 
-    /*
-      Skip the argument to +profile and +define since it can be glob
-      specifications, and we don't want it interpreted as a file.
-      Also skip the argument to -convolve since it may be very large
-      and is not a filename.
-    */
-    if ((LocaleNCompare("+define",option,7) == 0) ||
-        (LocaleNCompare("+profile",option,8) == 0) ||
-        (LocaleNCompare("-convolve",option,9) == 0))
-      {
-        i++;
-        if (i == *argc)
+      /*
+	Don't attempt to expand the argument to these options.
+      */
+      if ((LocaleNCompare("+define",option,7) == 0) ||
+	  (LocaleNCompare("+profile",option,8) == 0) ||
+	  (LocaleNCompare("-comment",option,8) == 0) ||
+	  (LocaleNCompare("-convolve",option,9) == 0) ||
+	  (LocaleNCompare("-draw",option,5) == 0) ||
+	  (LocaleNCompare("-font",option,5) == 0) ||
+	  (LocaleNCompare("-format",option,7) == 0) ||
+	  (LocaleNCompare("-label",option,6) == 0))
+	{
+	  i++;
+	  if (i == *argc)
             continue;
-        option=(*argv)[i];
-        vector[count++]=AcquireString(option);
-        continue;
-      }
+	  option=(*argv)[i];
+	  vector[count++]=AcquireString(option);
+	  continue;
+	}
 
-    /* Pass quotes through to the command-line parser */
-    if ((*option == '"') || (*option == '\''))
-      continue;
+      /* Pass quotes through to the command-line parser */
+      if ((*option == '"') || (*option == '\''))
+	continue;
 
-    /* 
-      Fast cycle options that are not expandable filename patterns.
-      ListFiles only expands patterns in the filename.  We also check
-      if the full option resolves to a file since ListFiles() obtains
-      a list of all the files in the directory and is thus very slow
-      if there are thousands of files.
-    */
-    GetPathComponent(option,TailPath,filename);
-    if ((!IsGlob(filename)) || IsAccessibleNoLogging(option))
-      continue;
+      /*
+	Expand @filename to a list of arguments.
+      */
+      if (option[0] == '@')
+	{
+	  FILE
+	    *file;
 
-    /* Chop the option to get its other filename components. */
-    GetPathComponent(option,MagickPath,magick);
-    GetPathComponent(option,HeadPath,path);
-    GetPathComponent(option,SubImagePath,subimage);
+	  file=fopen(option+1,"r");
+	  if (file != (FILE *) NULL)
+	    {
 
-    /* GetPathComponent throws away the colon */
-    if (*magick != '\0')
-      (void) strlcat(magick,":",sizeof(magick));
-    ExpandFilename(path);
+	      first=MagickTrue;
+	      number_files=0;
+	      while (fgets(filename,sizeof(filename),file) != (char *) NULL)
+		{
+		  for (j=0; filename[j] != '\0'; j++)
+		    if (filename[j] == '\n')
+		      filename[j] = '\0';
+	      
+		  if (filename[0] != '\0')
+		    {
+		      if ((number_files % prealloc_entries) == 0)
+			{
+			  MagickReallocMemory(char **,vector,
+					      (*argc+count+prealloc_entries)*
+					      sizeof(char *));
+			  if (vector == (char **) NULL)
+			    {
+			      fclose(file);
+			      return(MagickFail);
+			    }
+			}
 
-    /* Get the list of matching file names. */
-    filelist=ListFiles(*path=='\0' ? current_directory : path,
-      filename,&number_files);
-    if (filelist == 0)
-      continue;
+		      if (first)
+			{
+			  /* Deallocate original option assigned above */
+			  --count;
+			  MagickFreeMemory(vector[count]);
+			  first=MagickFalse;
+			}
+		      number_files++;
+		      vector[count++]=AcquireString(filename);
+		    }
+		}
 
-    /* 
-      Check that there's at least one real (non-directory), matching 
-      filename.
+	      fclose(file);
+	    }
+	}
 
-      ListFiles returns all sub-directories plus files matching the filename
-      pattern. Check if it found only directories, continue if it did.
-    */
-    for (j=0; j < number_files; j++)
-      if (IsDirectory(filelist[j]) <= 0)
-        break;
-    if (j == number_files)
-      {
-        /*
-          Bourne/Bash shells passes through unchanged any glob patterns
-          not matching anything (abc* and there's no file starting with
-          abc). Do the same for behaviour consistent with that.
-        */
-        for (j=0; j < number_files; j++)
-          MagickFreeMemory(filelist[j]);
-        MagickFreeMemory(filelist);
-        continue;
-      }
+      /* 
+	 Fast cycle options that are not expandable filename patterns.
+	 ListFiles only expands patterns in the filename.  We also check
+	 if the full option resolves to a file since ListFiles() obtains
+	 a list of all the files in the directory and is thus very slow
+	 if there are thousands of files.
+      */
+      GetPathComponent(option,TailPath,filename);
+      if ((!IsGlob(filename)) || IsAccessibleNoLogging(option))
+	continue;
 
-    /*
-      There's at least one matching filename.
-      Transfer file list to argument vector.
-    */
-    MagickReallocMemory(char **,vector,
-                        (*argc+count+number_files+MaxTextExtent)*sizeof(char *));
-    if (vector == (char **) NULL)
-      return(MagickFail);
+      /* Chop the option to get its other filename components. */
+      GetPathComponent(option,MagickPath,magick);
+      GetPathComponent(option,HeadPath,path);
+      GetPathComponent(option,SubImagePath,subimage);
 
-    for (j=0; j < number_files; j++)
-      {
-        char
-          filename_buffer[MaxTextExtent];
+      /* GetPathComponent throws away the colon */
+      if (*magick != '\0')
+	(void) strlcat(magick,":",sizeof(magick));
+      ExpandFilename(path);
 
-        *filename_buffer='\0';
-        if (strlcat(filename_buffer,path,sizeof(filename_buffer))
-            >= sizeof(filename_buffer))
-          MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                            filename_buffer);
-        if (*path != '\0')
-          {
-            if (strlcat(filename_buffer,DirectorySeparator,sizeof(filename_buffer))
-                >= sizeof(filename_buffer))
-              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                                filename_buffer);
-          }
-        if (strlcat(filename_buffer,filelist[j],sizeof(filename_buffer))
-            >= sizeof(filename_buffer))
-          MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                            filename_buffer);
-        /* If it's a filename (not a directory) ... */
-        if (IsDirectory(filename_buffer) == 0) 
-          {
-            char
-              formatted_buffer[MaxTextExtent];
+      /* Get the list of matching file names. */
+      filelist=ListFiles(*path=='\0' ? current_directory : path,
+			 filename,&number_files);
 
-            *formatted_buffer='\0';
-            if (strlcat(formatted_buffer,magick,sizeof(filename_buffer))
-                >= sizeof(filename_buffer))
-              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                                formatted_buffer);
-            if (strlcat(formatted_buffer,filename_buffer,sizeof(filename_buffer))
-                >= sizeof(filename_buffer))
-              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                                formatted_buffer);
-            if (strlcat(formatted_buffer,subimage,sizeof(filename_buffer))
-                >= sizeof(filename_buffer))
-              MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
-                                formatted_buffer);
-            if (first)
-              {
-                /* Deallocate original option assigned above */
-                --count;
-                MagickFreeMemory(vector[count]);
-                first=False;
-              }
-            vector[count++]=AcquireString(formatted_buffer);
-          }
-        MagickFreeMemory(filelist[j]);
-      }
-    MagickFreeMemory(filelist);
-  }
-  /*
-    ListFiles changes cd without restoring.
-  */
-  (void) chdir(current_directory);
+      if (filelist != (char **) NULL)
+	for (j=0; j < number_files; j++)
+	  if (IsDirectory(filelist[j]) <= 0)
+	    break;
+
+      /* ListFiles() changes current directory without restoring. */
+      (void) chdir(current_directory);
+
+      if (filelist == 0)
+	continue;
+
+      if (j == number_files)
+	{
+	  /*
+	    Bourne/Bash shells passes through unchanged any glob patterns
+	    not matching anything (abc* and there's no file starting with
+	    abc). Do the same for behaviour consistent with that.
+	  */
+	  for (j=0; j < number_files; j++)
+	    MagickFreeMemory(filelist[j]);
+	  MagickFreeMemory(filelist);
+	  continue;
+	}
+
+      /*
+	There's at least one matching filename.
+	Transfer file list to argument vector.
+      */
+      MagickReallocMemory(char **,vector,
+			  (*argc+count+number_files+prealloc_entries)*sizeof(char *));
+      if (vector == (char **) NULL)
+	return(MagickFail);
+
+      first=MagickTrue;
+      for (j=0; j < number_files; j++)
+	{
+	  char
+	    filename_buffer[MaxTextExtent];
+
+	  *filename_buffer='\0';
+	  if (strlcat(filename_buffer,path,sizeof(filename_buffer))
+	      >= sizeof(filename_buffer))
+	    MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+			      filename_buffer);
+	  if (*path != '\0')
+	    {
+	      if (strlcat(filename_buffer,DirectorySeparator,sizeof(filename_buffer))
+		  >= sizeof(filename_buffer))
+		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+				  filename_buffer);
+	    }
+	  if (strlcat(filename_buffer,filelist[j],sizeof(filename_buffer))
+	      >= sizeof(filename_buffer))
+	    MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+			      filename_buffer);
+	  /* If it's a filename (not a directory) ... */
+	  if (IsDirectory(filename_buffer) == 0) 
+	    {
+	      char
+		formatted_buffer[MaxTextExtent];
+
+	      *formatted_buffer='\0';
+	      if (strlcat(formatted_buffer,magick,sizeof(filename_buffer))
+		  >= sizeof(filename_buffer))
+		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+				  formatted_buffer);
+	      if (strlcat(formatted_buffer,filename_buffer,sizeof(filename_buffer))
+		  >= sizeof(filename_buffer))
+		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+				  formatted_buffer);
+	      if (strlcat(formatted_buffer,subimage,sizeof(filename_buffer))
+		  >= sizeof(filename_buffer))
+		MagickFatalError2(ResourceLimitFatalError,"Path buffer overflow",
+				  formatted_buffer);
+	      if (first)
+		{
+		  /* Deallocate original option assigned above */
+		  --count;
+		  MagickFreeMemory(vector[count]);
+		  first=MagickFalse;
+		}
+	      vector[count++]=AcquireString(formatted_buffer);
+	    }
+	  MagickFreeMemory(filelist[j]);
+	}
+      MagickFreeMemory(filelist);
+    }
   *argc=count;
   *argv=vector;
   return(MagickPass);
@@ -1445,7 +1496,7 @@ MagickExport MagickPassFail GetExecutionPathUsingName(char *path)
 %  height, x, and y values.  It also returns flags that indicates which
 %  of the four values (width, height, x, y) were located in the string, and
 %  whether the x and y values are negative.  In addition, there are flags to
-%  report any meta characters (%, !, <, and >).
+%  report any meta characters (%, !, <,  >, @, and ^).
 %
 %  The format of the GetGeometry method is:
 %
@@ -1540,6 +1591,11 @@ MagickExport int GetGeometry(const char *image_geometry,long *x,long *y,
           case '@':
             {
               flags|=AreaValue;
+              break;
+            }
+          case '^':
+            {
+              flags|=MinimumValue;
               break;
             }
           case '+':
@@ -1842,6 +1898,8 @@ GetMagickDimension(const char *str,double *width,double *height,
 %       are less than the geometry specification.
 %    >: Update the provided width and height parameters if its dimensions
 %       are greater than the geometry specification.
+%    ^: Width and height are increased as required to preserve aspect ratio
+%       while ensuring that width and height are no less than specified.
 %
 %  Any supplied offset parameters are used to adjust the image width,
 %  height, and x/y offset values as required to center the scaled image
@@ -1856,7 +1914,8 @@ GetMagickDimension(const char *str,double *width,double *height,
 %
 %    o flags:  Method GetMagickGeometry returns a bitmask that indicates
 %      which of the five values (PercentValue, AspectValue, LessValue,
-%      GreaterValue, AreaValue) were located in the geometry string.
+%      GreaterValue, AreaValue, MinimumValue) were located in the geometry
+%      string.
 %
 %    o image_geometry:  Specifies a character string representing the geometry
 %      specification.
@@ -1916,7 +1975,7 @@ MagickExport int GetMagickGeometry(const char *geometry,long *x,long *y,
       former_width=(*width);
       former_height=(*height);
     }
-  if (flags & AreaValue)
+  if (flags & AreaValue) /* @  */
     {
       double
         scale_factor,
@@ -1943,40 +2002,59 @@ MagickExport int GetMagickGeometry(const char *geometry,long *x,long *y,
       former_width=(*width);
       former_height=(*height);
     }
-  if (!(flags & AspectValue) &&
+  if (!(flags & AspectValue) && /* ! */
       ((*width != former_width) || (*height != former_height)))
     {
       double
         scale_factor;
 
       /*
-        Respect aspect ratio of the image.
+        Respect aspect ratio of the image but assure that it is no
+        larger than specified.
       */
       if ((former_width == 0) || (former_height == 0))
-        scale_factor=1.0;
+	{
+	  scale_factor=1.0;
+	}
       else
-        if (((flags & WidthValue) != 0) && (flags & HeightValue) != 0)
-          {
-            scale_factor=(double) *width/former_width;
-            if (scale_factor > ((double) *height/former_height))
-              scale_factor=(double) *height/former_height;
-          }
-        else
-          if ((flags & WidthValue) != 0)
-            scale_factor=(double) *width/former_width;
-          else
-            scale_factor=(double) *height/former_height;
+	{
+	  double
+	    scale_height=1.0,
+	    scale_width=1.0;
+
+	  if ((flags & HeightValue) != 0)
+	    scale_height=(double) *height/former_height;
+
+	  if ((flags & WidthValue) != 0)
+	    scale_width=(double) *width/former_width;
+	  else
+	    scale_width=scale_height;
+
+	  scale_factor=scale_width;
+	  if ((flags & MinimumValue) != 0)
+	    {
+	      /* Width and height are minimum values */
+	      if (scale_width < scale_height)
+		scale_factor=scale_height;
+	    }
+	  else
+	    {
+	      /* Width and height are maximum values */
+	      if (scale_width > scale_height)
+		scale_factor=scale_height;
+	    }
+	}
     *width=(unsigned long) floor(scale_factor*former_width+0.5);
     *height=(unsigned long) floor(scale_factor*former_height+0.5);
   }
-  if (flags & GreaterValue)
+  if (flags & GreaterValue) /* > */
     {
       if (former_width < *width)
         *width=former_width;
       if (former_height < *height)
         *height=former_height;
     }
-  if (flags & LessValue)
+  if (flags & LessValue) /* < */
     {
       if (former_width > *width)
         *width=former_width;
@@ -1984,63 +2062,6 @@ MagickExport int GetMagickGeometry(const char *geometry,long *x,long *y,
         *height=former_height;
     }
 
-#if 0  
-    {
-      RectangleInfo
-        media_info;
-
-      long
-        delta;
-
-      media_info.width=(*width);
-      media_info.height=(*height);
-      media_info.x=(*x);
-      media_info.y=(*y);
-      (void) GetGeometry(geometry,&media_info.x,&media_info.y,&media_info.width,
-                         &media_info.height);
-      if ((flags & XValue) == 0)
-        {
-          /*
-            Center image in the X direction.
-          */
-          delta=(long) (media_info.width-(*width));
-          if (delta >= 0)
-            *x=delta >> 1;
-        }
-      else
-        if ((flags & XNegative) != 0)
-          *x+=media_info.width-(*width);
-      if ((flags & YValue) == 0)
-        {
-          /*
-            Center image in the Y direction.
-          */
-          delta=(long) (media_info.height-(*height));
-          if (delta >= 0)
-            *y=delta >> 1;
-        }
-      else
-        if ((flags & YNegative) != 0)
-          *y+=media_info.height-(*height);
-      if (flags & GreaterValue)
-        {
-          if ((*width+((*x) << 1)) > media_info.width)
-            {
-              if ((long) *width > ((*x) << 1))
-                *width-=(*x) << 1;
-              if ((long) *height > ((*y) << 1))
-                *height-=(*y) << 1;
-            }
-          if ((*height+((*y) << 1)) > media_info.height)
-            {
-              if ((long) *width > ((*x) << 1))
-                *width-=(*x) << 1;
-              if ((long) *height > ((*y) << 1))
-                *height-=(*y) << 1;
-            }
-        }
-    }
-#endif
   return(flags);
 }
 
@@ -2869,12 +2890,12 @@ MagickExport MagickBool IsAccessibleAndNotEmpty(const char *path)
   int
     status;
 
-  struct stat
+  MagickStatStruct_t
     file_info;
 
   if ((path == (const char *) NULL) || (*path == '\0'))
     return(MagickFalse);
-  status=stat(path,&file_info);
+  status=MagickStat(path,&file_info);
 
   if ((status == 0) && S_ISREG(file_info.st_mode) && (file_info.st_size > 0))
     return (MagickTrue);
@@ -2912,13 +2933,13 @@ MagickExport MagickBool IsAccessibleAndNotEmpty(const char *path)
 */
 static int IsDirectory(const char *path)
 {
-  struct stat
+  MagickStatStruct_t
     file_info;
 
   if ((path == (const char *) NULL) || (*path == '\0'))
     return(False);
 
-  if ((stat(path,&file_info)) == 0)
+  if ((MagickStat(path,&file_info)) == 0)
     {
       if (S_ISREG(file_info.st_mode))
         return 0;
@@ -3469,15 +3490,21 @@ MagickExport unsigned int MagickRandNewSeed(void)
   unsigned int
     seed;
 
+  /*
+    Initial seed is based on time of day.
+  */
   seed=time(0);
-#if defined(HAVE_RAND_R)
+  /*
+    Multiple processes may be started within the same second so hash
+    with process ID as well.
+  */
+  seed ^= (unsigned int) getpid();
   /*
     It is quite likely that multiple threads will invoke this function
     during the same second so we also tap into the default random
     number generator to help produce a more random seed.
   */
   seed ^= (unsigned int) rand();
-#endif
   return seed;
 }
 
@@ -4413,7 +4440,7 @@ MagickExport char **StringToList(const char *text)
   register long
     i;
 
-  unsigned long
+  size_t
     lines;
 
   if (text == (char *) NULL)
@@ -4723,6 +4750,29 @@ MagickExport int SystemCommand(const unsigned int verbose,const char *command)
 
   const char
     *message_p = (const char *) NULL;
+
+  {
+    /*
+      Verify that we are allowed to run this program.
+    */
+    ExceptionInfo
+      exception;
+
+    char
+      *end,
+      program[MaxTextExtent];
+
+    GetExceptionInfo(&exception);
+    program[0]='\0';
+    GetToken(command,&end,program);
+    if (MagickConfirmAccess(FileExecuteConfirmAccessMode,program,&exception)
+	== MagickFail)
+      {
+	errno=EPERM;
+	DestroyExceptionInfo(&exception);
+	return -1;
+      }
+  }
 
   errno=0;
 #if defined(POSIX)
@@ -5408,14 +5458,14 @@ MagickExport char *TranslateTextEx(const ImageInfo *image_info,
       {
         /* Page number */
         register const Image
-          *p;
+          *frame;
 
         unsigned long
           page;
 
-        p=image;
-        for (page=1; p->previous != (Image *) NULL; page++)
-          p=p->previous;
+        frame=image;
+        for (page=1; frame->previous != (Image *) NULL; page++)
+          frame=frame->previous;
         FormatString(buffer,"%lu",page);
         q+=(translate)(q,buffer,MaxTextExtent);
         break;

@@ -663,7 +663,7 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
           scale_to_short=64;
           scandata=MagickAllocateMemory(unsigned char *,scandata_bytes);
           scanline=scandata;
-          BitStreamInitializeRead(&bit_stream,scanline);
+          MagickBitStreamInitializeRead(&bit_stream,scanline);
           for (y=0; y < (long) image->rows; y++)
             {
               q=SetImagePixels(image,0,y,image->columns,1);
@@ -682,11 +682,11 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
                       if (ReadBlobZC(image,scandata_bytes,&scanline) !=
                           scandata_bytes)
                         break;
-                      BitStreamInitializeRead(&bit_stream,scanline);
+                      MagickBitStreamInitializeRead(&bit_stream,scanline);
                       i=0;
                     }
                   q->red=q->green=q->blue=
-                    ScaleShortToQuantum(BitStreamMSBRead(&bit_stream,10)*scale_to_short);
+                    ScaleShortToQuantum(MagickBitStreamMSBRead(&bit_stream,10)*scale_to_short);
                   q->opacity=0U;
                   q++;
                 }
@@ -718,16 +718,16 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
               scanline=scandata;
               if (ReadBlobZC(image,scandata_bytes,&scanline) != scandata_bytes)
                 break;
-              BitStreamInitializeRead(&bit_stream,scanline);
+              MagickBitStreamInitializeRead(&bit_stream,scanline);
               for (x=0 ; x < (long) image->columns; x++)
                 {
                   /*
                     Packed 10 bit samples with 2 bit pad at end of 32-bit word.
                   */
-                  red   = BitStreamMSBRead(&bit_stream,10);
-                  green = BitStreamMSBRead(&bit_stream,10);
-                  blue  = BitStreamMSBRead(&bit_stream,10);
-                  (void) BitStreamMSBRead(&bit_stream,2);
+                  red   = MagickBitStreamMSBRead(&bit_stream,10);
+                  green = MagickBitStreamMSBRead(&bit_stream,10);
+                  blue  = MagickBitStreamMSBRead(&bit_stream,10);
+                  (void) MagickBitStreamMSBRead(&bit_stream,2);
 
                   q->red     = ScaleShortToQuantum(red*scale_to_short);
                   q->green   = ScaleShortToQuantum(green*scale_to_short);
@@ -1330,7 +1330,7 @@ static unsigned int WriteCINEONImage(const ImageInfo *image_info,Image *image)
         if (p == (const PixelPacket *) NULL)
           break;
         
-        BitStreamInitializeWrite(&bit_stream,scanline);
+        MagickBitStreamInitializeWrite(&bit_stream,scanline);
         
         for (x=0; x < (long) image->columns; x++)
           {
@@ -1341,10 +1341,10 @@ static unsigned int WriteCINEONImage(const ImageInfo *image_info,Image *image)
 /*             printf("o:%u,%u,%u --> %u,%u,%u\n",(unsigned int)p->red, (unsigned int) p->green, (unsigned int) p->blue, */
 /*                    red, green, blue); */
 
-            BitStreamMSBWrite(&bit_stream,10,red);
-            BitStreamMSBWrite(&bit_stream,10,green);
-            BitStreamMSBWrite(&bit_stream,10,blue);
-            BitStreamMSBWrite(&bit_stream,2,0);
+            MagickBitStreamMSBWrite(&bit_stream,10,red);
+            MagickBitStreamMSBWrite(&bit_stream,10,green);
+            MagickBitStreamMSBWrite(&bit_stream,10,blue);
+            MagickBitStreamMSBWrite(&bit_stream,2,0);
             p++;
           }
         written = WriteBlob(image,scanline_bytes,scanline);

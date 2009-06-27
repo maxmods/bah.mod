@@ -537,9 +537,6 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
           {
             ImportPixelAreaOptions
               import_options;
-        
-            ImportPixelAreaInfo
-              import_info;
 
             size_t
               bytes_per_row;
@@ -572,6 +569,9 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
 
                 unsigned long
                   thread_row_count;
+
+		ImportPixelAreaInfo
+		  import_info;
           
                 thread_status=status;
                 if (thread_status == MagickFail)
@@ -579,7 +579,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
 
                 pixels=AccessThreadViewData(scanline_set);
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                 {
                   if (ReadBlobZC(image,bytes_per_row,&pixels) != bytes_per_row)
@@ -612,7 +612,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (thread_status == MagickFail)
                   {
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                     status=MagickFail;
                   }
@@ -635,7 +635,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
               bytes_per_row;
 
             MagickBool
-              is_monochrome;
+              is_monochrome=MagickTrue;
 
             unsigned long
               row_count=0;
@@ -643,7 +643,6 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             ThreadViewDataSet
               *scanline_set;
 
-            is_monochrome=MagickTrue;
             packets=(raw_sample_bits+7)/8;
             bytes_per_row=packets*image->columns;
 
@@ -678,13 +677,14 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (thread_status == MagickFail)
                   continue;
 
-                thread_is_monochrome=is_monochrome;
                 pixels=AccessThreadViewData(scanline_set);
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                 {
+		  thread_is_monochrome=is_monochrome;
+
                   if (ReadBlobZC(image,bytes_per_row,&pixels) != bytes_per_row)
                     thread_status=MagickFail;
 
@@ -730,7 +730,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                 {
                   if (thread_status == MagickFail)
@@ -806,14 +806,15 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (thread_status == MagickFail)
                   continue;
             
-                thread_is_grayscale=is_grayscale;
-                thread_is_monochrome=is_monochrome;
                 pixels=AccessThreadViewData(scanline_set);
             
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                 {
+		  thread_is_grayscale=is_grayscale;
+		  thread_is_monochrome=is_monochrome;
+
                   if (ReadBlobZC(image,bytes_per_row,&pixels) != bytes_per_row)
                     thread_status=MagickFail;
               
@@ -858,7 +859,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ReadPNMImage)
 #endif
                 {
                   if (thread_status == MagickFail)
@@ -1178,16 +1179,16 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
     if (attribute != (const ImageAttribute *) NULL)
       {
         register char
-          *p;
+          *av;
 
         /*
           Write comments to file.
         */
         (void) WriteBlobByte(image,'#');
-        for (p=attribute->value; *p != '\0'; p++)
+        for (av=attribute->value; *av != '\0'; av++)
         {
-          (void) WriteBlobByte(image,*p);
-          if ((*p == '\n') && (*(p+1) != '\0'))
+          (void) WriteBlobByte(image,*av);
+          if ((*av == '\n') && (*(av+1) != '\0'))
             (void) WriteBlobByte(image,'#');
         }
         (void) WriteBlobByte(image,'\n');

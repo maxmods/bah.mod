@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 - 2008 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -23,6 +23,7 @@ extern MagickExport void
                         MagickReallocFunc realloc_func),
   *MagickMalloc(const size_t size),
   *MagickMallocArray(const size_t count,const size_t size),
+  *MagickMallocCleared(const size_t size),
   *MagickCloneMemory(void *destination,const void *source,const size_t size),
   *MagickRealloc(void *memory,const size_t size),
    MagickFree(void *memory);

@@ -337,7 +337,7 @@ ComputeAbsoluteError(void *mutable_data,
     }
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ComputeAbsoluteError)
 #endif
   {
     stats->red += lstats.red;
@@ -405,7 +405,7 @@ ComputePeakAbsoluteError(void *mutable_data,
     }
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ComputePeakAbsoluteError)
 #endif
   {
     if (lstats.red > stats->red)
@@ -473,7 +473,7 @@ ComputeSquaredError(void *mutable_data,
     }
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ComputeSquaredError)
 #endif
   {
     stats->red += lstats.red;
@@ -867,7 +867,7 @@ ComputePixelError(void *mutable_data,
     }
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_ComputePixelError)
 #endif
   {
     stats->total+=stats_total;

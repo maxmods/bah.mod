@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2007 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -396,7 +396,7 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                   thread_status=MagickFail;
               }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_IntegralRotateImage)
 #endif
             {
               row_count++;
@@ -556,7 +556,7 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                   }
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_IntegralRotateImage)
 #endif
                 {
                   tile++;
@@ -634,7 +634,7 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                   thread_status=MagickFail;
               }
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_IntegralRotateImage)
 #endif
             {
               row_count++;
@@ -797,7 +797,7 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                   }
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical
+#  pragma omp critical (GM_IntegralRotateImage)
 #endif
                 {
                   tile++;
@@ -981,7 +981,7 @@ static void XShearImage(Image *image,const double degrees,
             thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_XShearImage)
 #endif
           {
             row_count++;
@@ -1068,7 +1068,7 @@ static void XShearImage(Image *image,const double degrees,
       if (!SyncImagePixelsEx(image,&image->exception))
         thread_status=MagickFail;
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_XShearImage)
 #endif
       {
         row_count++;
@@ -1239,7 +1239,7 @@ static void YShearImage(Image *image,const double degrees,
             thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_YShearImage)
 #endif
           {
             row_count++;
@@ -1327,7 +1327,7 @@ static void YShearImage(Image *image,const double degrees,
         thread_status=MagickFail;
 
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_YShearImage)
 #endif
       {
         row_count++;

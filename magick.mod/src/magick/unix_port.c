@@ -34,6 +34,7 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/confirm_access.h"
 #if defined(POSIX)
 /* some of these may have already been included by studio.h */
 #include <stdio.h>
@@ -127,6 +128,23 @@ MagickExport int MagickSpawnVP(const unsigned int verbose,const char *file, char
   status = -1;
   message[0]='\0';
   errno=0;
+
+  {
+    /*
+      Verify that we are allowed to run this program.
+    */
+    ExceptionInfo
+      exception_info;
+    
+    GetExceptionInfo(&exception_info);
+    if (MagickConfirmAccess(FileExecuteConfirmAccessMode,argv[0],&exception_info)
+	== MagickFail)
+      {
+	errno=EPERM;
+	DestroyExceptionInfo(&exception_info);
+	return -1;
+      }
+  }
 
   child_pid = fork( );
   if ( (pid_t)-1 == child_pid)

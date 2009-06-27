@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -375,9 +375,11 @@ static boolean ReadGenericProfile(j_decompress_ptr jpeg_info)
   /*
     Detect EXIF and XMP profiles.
   */
-  if ((marker==1) && (length > 4) && (strncmp((char *) profile,"Exif",4) == 0))
+  if ((marker==1) && (length > 4) &&
+      (strncmp((char *) profile,"Exif",4) == 0))
     FormatString(profile_name,"EXIF");
-  else if (((marker==1) && length > 5) && (strncmp((char *) profile,"http:",5) == 0))
+  else if (((marker==1) && length > 5) &&
+	   (strncmp((char *) profile,"http:",5) == 0))
     FormatString((char *) profile,"XMP");
 
   /*
@@ -553,7 +555,8 @@ static boolean ReadIPTCProfile(j_decompress_ptr jpeg_info)
   /*
     Read the payload of this binary data.
   */
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Profile: IPTC, %ld bytes",
+  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			"Profile: IPTC, %ld bytes",
     length);
 
   for (i=0; i<length; i++)
@@ -608,8 +611,264 @@ static void JPEGSourceManager(j_decompress_ptr cinfo,Image *image)
   source->image=image;
 }
 
+/*
+  Estimate the IJG quality factor used when saving the file.
+*/
+static int
+EstimateJPEGQuality(const struct jpeg_decompress_struct *jpeg_info,
+		    Image *image)
+{
+  int
+    save_quality;
+
+  register long
+    i;
+
+  save_quality=0;
+#ifdef D_LOSSLESS_SUPPORTED
+  if (image->compression==LosslessJPEGCompression)
+    {
+      save_quality=100;
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			    "Quality: 100 (lossless)");
+    }
+  else
+#endif
+
+    {
+      int
+	hashval,
+	sum;
+
+      /*
+	Log the JPEG quality that was used for compression.
+      */
+      sum=0;
+      for (i=0; i < NUM_QUANT_TBLS; i++)
+	{
+	  int
+	    j;
+
+	  if (jpeg_info->quant_tbl_ptrs[i] != NULL)
+	    for (j=0; j < DCTSIZE2; j++)
+	      {
+		UINT16 *c;
+		c=jpeg_info->quant_tbl_ptrs[i]->quantval;
+		sum+=c[j];
+	      }
+	}
+      if ((jpeg_info->quant_tbl_ptrs[0] != NULL) &&
+	  (jpeg_info->quant_tbl_ptrs[1] != NULL))
+	{
+	  int
+	    hash[] =
+	    {
+	      1020, 1015,  932,  848,  780,  735,  702,  679,  660,  645,
+	      632,  623,  613,  607,  600,  594,  589,  585,  581,  571,
+	      555,  542,  529,  514,  494,  474,  457,  439,  424,  410,
+	      397,  386,  373,  364,  351,  341,  334,  324,  317,  309,
+	      299,  294,  287,  279,  274,  267,  262,  257,  251,  247,
+	      243,  237,  232,  227,  222,  217,  213,  207,  202,  198,
+	      192,  188,  183,  177,  173,  168,  163,  157,  153,  148,
+	      143,  139,  132,  128,  125,  119,  115,  108,  104,   99,
+	      94,   90,   84,   79,   74,   70,   64,   59,   55,   49,
+	      45,   40,   34,   30,   25,   20,   15,   11,    6,    4,
+	      0
+	    };
+
+	  int
+	    sums[] =
+	    {
+	      32640,32635,32266,31495,30665,29804,29146,28599,28104,27670,
+	      27225,26725,26210,25716,25240,24789,24373,23946,23572,22846,
+	      21801,20842,19949,19121,18386,17651,16998,16349,15800,15247,
+	      14783,14321,13859,13535,13081,12702,12423,12056,11779,11513,
+	      11135,10955,10676,10392,10208, 9928, 9747, 9564, 9369, 9193,
+	      9017, 8822, 8639, 8458, 8270, 8084, 7896, 7710, 7527, 7347,
+	      7156, 6977, 6788, 6607, 6422, 6236, 6054, 5867, 5684, 5495,
+	      5305, 5128, 4945, 4751, 4638, 4442, 4248, 4065, 3888, 3698,
+	      3509, 3326, 3139, 2957, 2775, 2586, 2405, 2216, 2037, 1846,
+	      1666, 1483, 1297, 1109,  927,  735,  554,  375,  201,  128,
+	      0
+	    };
+
+	  hashval=(jpeg_info->quant_tbl_ptrs[0]->quantval[2]+
+		   jpeg_info->quant_tbl_ptrs[0]->quantval[53]+
+		   jpeg_info->quant_tbl_ptrs[1]->quantval[0]+
+		   jpeg_info->quant_tbl_ptrs[1]->quantval[DCTSIZE2-1]);
+	  for (i=0; i < 100; i++)
+	    {
+	      if ((hashval >= hash[i]) || (sum >= sums[i]))
+		{
+		  save_quality=i+1;
+		  if (image->logging)
+		    {
+		      if ((hashval > hash[i]) || (sum > sums[i]))
+			(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+					      "Quality: %d (approximate)",
+					      save_quality);
+		      else
+			(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+					      "Quality: %d",save_quality);
+		    }
+		  break;
+		}
+	    }
+	}
+      else
+	if (jpeg_info->quant_tbl_ptrs[0] != NULL)
+	  {
+	    int
+	      bwhash[] =
+	      {
+		510,  505,  422,  380,  355,  338,  326,  318,  311,  305,
+		300,  297,  293,  291,  288,  286,  284,  283,  281,  280,
+		279,  278,  277,  273,  262,  251,  243,  233,  225,  218,
+		211,  205,  198,  193,  186,  181,  177,  172,  168,  164,
+		158,  156,  152,  148,  145,  142,  139,  136,  133,  131,
+		129,  126,  123,  120,  118,  115,  113,  110,  107,  105,
+		102,  100,   97,   94,   92,   89,   87,   83,   81,   79,
+		76,   74,   70,   68,   66,   63,   61,   57,   55,   52,
+		50,   48,   44,   42,   39,   37,   34,   31,   29,   26,
+		24,   21,   18,   16,   13,   11,    8,    6,    3,    2,
+		0
+	      };
+
+	    int
+	      bwsum[] =
+	      {
+		16320,16315,15946,15277,14655,14073,13623,13230,12859,12560,
+		12240,11861,11456,11081,10714,10360,10027, 9679, 9368, 9056,
+		8680, 8331, 7995, 7668, 7376, 7084, 6823, 6562, 6345, 6125,
+		5939, 5756, 5571, 5421, 5240, 5086, 4976, 4829, 4719, 4616, 
+		4463, 4393, 4280, 4166, 4092, 3980, 3909, 3835, 3755, 3688,
+		3621, 3541, 3467, 3396, 3323, 3247, 3170, 3096, 3021, 2952,
+		2874, 2804, 2727, 2657, 2583, 2509, 2437, 2362, 2290, 2211,
+		2136, 2068, 1996, 1915, 1858, 1773, 1692, 1620, 1552, 1477,
+		1398, 1326, 1251, 1179, 1109, 1031,  961,  884,  814,  736,
+		667,  592,  518,  441,  369,  292,  221,  151,   86,   64,
+		0
+	      };
+
+	    hashval=(jpeg_info->quant_tbl_ptrs[0]->quantval[2]+
+		     jpeg_info->quant_tbl_ptrs[0]->quantval[53]);
+	    for (i=0; i < 100; i++)
+	      {
+		if ((hashval >= bwhash[i]) || (sum >= bwsum[i]))
+		  {
+		    save_quality=i+1;
+		    if (image->logging)
+		      {
+			if ((hashval > bwhash[i]) || (sum > bwsum[i]))
+			  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+						"Quality: %ld (approximate)",
+						i+1);
+			else
+			  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+						"Quality: %ld",i+1);
+		      }
+		    break;
+		  }
+	      }
+	  }
+    }
+
+  return save_quality;
+}
+
+/*
+  Format JPEG color space to a string.
+*/
+static void
+FormatJPEGColorSpace(const J_COLOR_SPACE colorspace,
+		     char *colorspace_name)
+{
+  const char
+    *s = NULL;
+
+  switch (colorspace)
+    {
+    default:
+    case JCS_UNKNOWN:
+      s = "UNKNOWN";
+      break;
+    case JCS_GRAYSCALE:
+      s = "GRAYSCALE";
+      break;
+    case JCS_RGB:
+      s = "RGB";
+      break;
+    case JCS_YCbCr:
+      s = "YCbCr";
+      break;
+    case JCS_CMYK:
+      s = "CMYK";
+      break;
+    case JCS_YCCK:
+      s = "YCCK";
+      break;
+    }
+  (void) strlcpy(colorspace_name,s,MaxTextExtent);
+}
+
+/*
+  Format JPEG sampling factors to a string.
+*/
+static void
+FormatJPEGSamplingFactors(const struct jpeg_decompress_struct *jpeg_info,
+			  char *sampling_factors)
+{
+  switch (jpeg_info->out_color_space)
+    {
+    case JCS_CMYK:
+      {
+	(void) FormatString(sampling_factors,"%dx%d,%dx%d,%dx%d,%dx%d",
+			    jpeg_info->comp_info[0].h_samp_factor,
+			    jpeg_info->comp_info[0].v_samp_factor,
+			    jpeg_info->comp_info[1].h_samp_factor,
+			    jpeg_info->comp_info[1].v_samp_factor,
+			    jpeg_info->comp_info[2].h_samp_factor,
+			    jpeg_info->comp_info[2].v_samp_factor,
+			    jpeg_info->comp_info[3].h_samp_factor,
+			    jpeg_info->comp_info[3].v_samp_factor);
+        break;
+      }
+    case JCS_GRAYSCALE:
+      {
+	(void) FormatString(sampling_factors,"%dx%d",
+			    jpeg_info->comp_info[0].h_samp_factor,
+			    jpeg_info->comp_info[0].v_samp_factor);
+        break;
+      }
+    case JCS_RGB:
+      {
+	(void) FormatString(sampling_factors,"%dx%d,%dx%d,%dx%d",
+			    jpeg_info->comp_info[0].h_samp_factor,
+			    jpeg_info->comp_info[0].v_samp_factor,
+			    jpeg_info->comp_info[1].h_samp_factor,
+			    jpeg_info->comp_info[1].v_samp_factor,
+			    jpeg_info->comp_info[2].h_samp_factor,
+			    jpeg_info->comp_info[2].v_samp_factor);
+        break;
+      }
+    default:
+      {
+	(void) FormatString(sampling_factors,"%dx%d,%dx%d,%dx%d,%dx%d",
+			    jpeg_info->comp_info[0].h_samp_factor,
+			    jpeg_info->comp_info[0].v_samp_factor,
+			    jpeg_info->comp_info[1].h_samp_factor,
+			    jpeg_info->comp_info[1].v_samp_factor,
+			    jpeg_info->comp_info[2].h_samp_factor,
+			    jpeg_info->comp_info[2].v_samp_factor,
+			    jpeg_info->comp_info[3].h_samp_factor,
+			    jpeg_info->comp_info[3].v_samp_factor);
+	break;
+      }
+    }
+}
+
 static Image *ReadJPEGImage(const ImageInfo *image_info,
-  ExceptionInfo *exception)
+			    ExceptionInfo *exception)
 {
   ErrorManager
     error_manager;
@@ -620,12 +879,7 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   IndexPacket
     index;
 
-  char
-    s[128];
-
   long
-    save_quality,
-    x,
     y;
 
   JSAMPLE
@@ -633,9 +887,6 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 
   JSAMPROW
     scanline[1];
-
-  register IndexPacket
-    *indexes;
 
   register long
     i;
@@ -648,12 +899,6 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 
   register JSAMPLE
     *p;
-
-  register PixelPacket
-    *q;
-
-  MagickBool
-    logging;
 
   MagickPassFail
     status;
@@ -668,12 +913,11 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   assert(image_info->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
-  logging=LogMagickEvent(CoderEvent,GetMagickModule(),"enter");
   image=AllocateImage(image_info);
   if (image == (Image *) NULL)
     {
       ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,
-        image);
+			   image);
     }
   status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == MagickFail)
@@ -711,7 +955,7 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
       jpeg_set_marker_processor(&jpeg_info,JPEG_APP0+i,ReadGenericProfile);
   i=jpeg_read_header(&jpeg_info,True);
   if (jpeg_info.out_color_space == JCS_CMYK)
-      image->colorspace=CMYKColorspace;
+    image->colorspace=CMYKColorspace;
   if (jpeg_info.saw_JFIF_marker)
     {
       if ((jpeg_info.X_density != 1U) && (jpeg_info.Y_density != 1U))
@@ -744,8 +988,9 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
         scale_factor=(double) jpeg_info.output_height/image->rows;
       jpeg_info.scale_denom=(unsigned int) scale_factor;
       jpeg_calc_output_dimensions(&jpeg_info);
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Scale_factor: %ld",
-        (long) scale_factor);
+      if (image->logging)
+	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			      "Scale_factor: %ld",(long) scale_factor);
     }
   if (image_info->subrange != 0)
     {
@@ -760,7 +1005,8 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
     LosslessJPEGCompression : JPEGCompression;
   if (jpeg_info.data_precision > 8)
     MagickError2(OptionError,
-      "12-bit JPEG not supported. Reducing pixel data to 8 bits",(char *) NULL);
+		 "12-bit JPEG not supported. Reducing pixel data to 8 bits",
+		 (char *) NULL);
 #else
   image->interlace=jpeg_info.progressive_mode ? PlaneInterlace : NoInterlace;
   image->compression=JPEGCompression;
@@ -772,216 +1018,48 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   (void) jpeg_start_decompress(&jpeg_info);
   image->columns=jpeg_info.output_width;
   image->rows=jpeg_info.output_height;
-  if (logging)
+  if (image->logging)
     {
       if (image->interlace == PlaneInterlace)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Interlace: progressive");
+			      "Interlace: progressive");
       else
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Interlace: nonprogressive");
+			      "Interlace: nonprogressive");
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Data precision: %d",
-        (int) jpeg_info.data_precision);
+			    (int) jpeg_info.data_precision);
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Components: %d",
+			    (int) jpeg_info.output_components);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Geometry: %dx%d",
-        (int) jpeg_info.output_width,(int) jpeg_info.output_height);
+			    (int) jpeg_info.output_width,
+			    (int) jpeg_info.output_height);
     }
-  
-  save_quality=0;
-#ifdef D_LOSSLESS_SUPPORTED
-  if (image->compression==LosslessJPEGCompression)
-    {
-      save_quality=100;
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Quality: 100 (lossless)");
-    }
-  else
-#endif
+
   {
-    int
-      hashval,
-      sum;
+    char
+      attribute[MaxTextExtent];
 
     /*
-      Log the JPEG quality that was used for compression.
+      Estimate and retain JPEG properties as attributes.
     */
-    sum=0;
-    for (i=0; i < NUM_QUANT_TBLS; i++)
-    {
-      int
-        j;
+    FormatString(attribute,"%d",EstimateJPEGQuality(&jpeg_info,image));
+    (void) SetImageAttribute(image,"JPEG-Quality",attribute);
 
-      if (jpeg_info.quant_tbl_ptrs[i] != NULL)
-        for (j=0; j < DCTSIZE2; j++)
-        {
-          UINT16 *c;
-          c=jpeg_info.quant_tbl_ptrs[i]->quantval;
-          sum+=c[j];
-        }
-     }
-     if ((jpeg_info.quant_tbl_ptrs[0] != NULL) &&
-         (jpeg_info.quant_tbl_ptrs[1] != NULL))
-       {
-         int
-           hash[]=
-             {1020, 1015,  932,  848,  780,  735,  702,  679,  660,  645,
-               632,  623,  613,  607,  600,  594,  589,  585,  581,  571,
-               555,  542,  529,  514,  494,  474,  457,  439,  424,  410,
-               397,  386,  373,  364,  351,  341,  334,  324,  317,  309,
-               299,  294,  287,  279,  274,  267,  262,  257,  251,  247,
-               243,  237,  232,  227,  222,  217,  213,  207,  202,  198,
-               192,  188,  183,  177,  173,  168,  163,  157,  153,  148,
-               143,  139,  132,  128,  125,  119,  115,  108,  104,   99,
-                94,   90,   84,   79,   74,   70,   64,   59,   55,   49,
-                45,   40,   34,   30,   25,   20,   15,   11,    6,    4,
-                 0},
-           sums[]=
-             {32640,32635,32266,31495,30665,29804,29146,28599,28104,27670,
-              27225,26725,26210,25716,25240,24789,24373,23946,23572,22846,
-              21801,20842,19949,19121,18386,17651,16998,16349,15800,15247,
-              14783,14321,13859,13535,13081,12702,12423,12056,11779,11513,
-              11135,10955,10676,10392,10208, 9928, 9747, 9564, 9369, 9193,
-               9017, 8822, 8639, 8458, 8270, 8084, 7896, 7710, 7527, 7347,
-               7156, 6977, 6788, 6607, 6422, 6236, 6054, 5867, 5684, 5495,
-               5305, 5128, 4945, 4751, 4638, 4442, 4248, 4065, 3888, 3698,
-               3509, 3326, 3139, 2957, 2775, 2586, 2405, 2216, 2037, 1846,
-               1666, 1483, 1297, 1109,  927,  735,  554,  375,  201,  128,
-                  0};
+    FormatString(attribute,"%ld",(long)jpeg_info.out_color_space);
+    (void) SetImageAttribute(image,"JPEG-Colorspace",attribute);
 
-         hashval=(jpeg_info.quant_tbl_ptrs[0]->quantval[2]+
-           jpeg_info.quant_tbl_ptrs[0]->quantval[53]+
-           jpeg_info.quant_tbl_ptrs[1]->quantval[0]+
-           jpeg_info.quant_tbl_ptrs[1]->quantval[DCTSIZE2-1]);
-         for (i=0; i < 100; i++)
-         {
-           if ((hashval >= hash[i]) || (sum >= sums[i]))
-             {
-               save_quality=i+1;
-               if (logging)
-                 {
-                   if ((hashval > hash[i]) || (sum > sums[i]))
-                     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                       "Quality: %ld (approximate)",save_quality);
-                   else
-                     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                       "Quality: %ld",save_quality);
-                 }
-               break;
-             }
-         }
-       }
-     else
-       if (jpeg_info.quant_tbl_ptrs[0] != NULL)
-       {
-         int
-           bwhash[]=
-            { 510,  505,  422,  380,  355,  338,  326,  318,  311,  305,
-              300,  297,  293,  291,  288,  286,  284,  283,  281,  280,
-              279,  278,  277,  273,  262,  251,  243,  233,  225,  218,
-              211,  205,  198,  193,  186,  181,  177,  172,  168,  164,
-              158,  156,  152,  148,  145,  142,  139,  136,  133,  131,
-              129,  126,  123,  120,  118,  115,  113,  110,  107,  105,
-              102,  100,   97,   94,   92,   89,   87,   83,   81,   79,
-               76,   74,   70,   68,   66,   63,   61,   57,   55,   52,
-               50,   48,   44,   42,   39,   37,   34,   31,   29,   26,
-               24,   21,   18,   16,   13,   11,    8,    6,    3,    2,
-                0},
-           bwsum[]=
-             {16320,16315,15946,15277,14655,14073,13623,13230,12859,12560,
-              12240,11861,11456,11081,10714,10360,10027, 9679, 9368, 9056,
-               8680, 8331, 7995, 7668, 7376, 7084, 6823, 6562, 6345, 6125,
-               5939, 5756, 5571, 5421, 5240, 5086, 4976, 4829, 4719, 4616, 
-               4463, 4393, 4280, 4166, 4092, 3980, 3909, 3835, 3755, 3688,
-               3621, 3541, 3467, 3396, 3323, 3247, 3170, 3096, 3021, 2952,
-               2874, 2804, 2727, 2657, 2583, 2509, 2437, 2362, 2290, 2211,
-               2136, 2068, 1996, 1915, 1858, 1773, 1692, 1620, 1552, 1477,
-               1398, 1326, 1251, 1179, 1109, 1031,  961,  884,  814,  736,
-                667,  592,  518,  441,  369,  292,  221,  151,   86,   64,
-                  0};
-
-         hashval=(jpeg_info.quant_tbl_ptrs[0]->quantval[2]+
-           jpeg_info.quant_tbl_ptrs[0]->quantval[53]);
-         for (i=0; i < 100; i++)
-         {
-           if ((hashval >= bwhash[i]) || (sum >= bwsum[i]))
-             {
-               save_quality=i+1;
-               if (logging)
-                 {
-                   if ((hashval > bwhash[i]) || (sum > bwsum[i]))
-                     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                       "Quality: %ld (approximate)",i+1);
-                   else
-                     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                       "Quality: %ld",i+1);
-                 }
-               break;
-             }
-         }
-       }
-  }
-  (void) sprintf(s,"%ld",save_quality);
-  (void) SetImageAttribute(image,"JPEG-Quality",s);
-
-  (void) sprintf(s,"%ld",(long)jpeg_info.out_color_space);
-  (void) SetImageAttribute(image,"JPEG-Colorspace",s);
-
-  switch (jpeg_info.out_color_space)
-  {
-    case JCS_CMYK:
-    {
+    FormatJPEGColorSpace(jpeg_info.out_color_space,attribute);
+    (void) SetImageAttribute(image,"JPEG-Colorspace-Name",attribute);
+    if (image->logging)
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Colorspace: CMYK");
-      (void) sprintf(s,"%dx%d,%dx%d,%dx%d,%dx%d",
-        jpeg_info.comp_info[0].h_samp_factor,
-        jpeg_info.comp_info[0].v_samp_factor,
-        jpeg_info.comp_info[1].h_samp_factor,
-        jpeg_info.comp_info[1].v_samp_factor,
-        jpeg_info.comp_info[2].h_samp_factor,
-        jpeg_info.comp_info[2].v_samp_factor,
-        jpeg_info.comp_info[3].h_samp_factor,
-        jpeg_info.comp_info[3].v_samp_factor);
-        break;
-    }
-    case JCS_GRAYSCALE:
-    {
+			    "Colorspace: %s", attribute);
+
+    FormatJPEGSamplingFactors(&jpeg_info,attribute);
+    (void) SetImageAttribute(image,"JPEG-Sampling-factors",attribute);
+    if (image->logging)
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Colorspace: GRAYSCALE");
-      (void) sprintf(s,"%dx%d",
-        jpeg_info.comp_info[0].h_samp_factor,
-        jpeg_info.comp_info[0].v_samp_factor);
-        break;
-    }
-    case JCS_RGB:
-    {
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Colorspace: RGB");
-      (void) sprintf(s,"%dx%d,%dx%d,%dx%d",
-        jpeg_info.comp_info[0].h_samp_factor,
-        jpeg_info.comp_info[0].v_samp_factor,
-        jpeg_info.comp_info[1].h_samp_factor,
-        jpeg_info.comp_info[1].v_samp_factor,
-        jpeg_info.comp_info[2].h_samp_factor,
-        jpeg_info.comp_info[2].v_samp_factor);
-        break;
-    }
-    default:
-    {
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Colorspace: %d",
-        jpeg_info.out_color_space);
-      (void) sprintf(s,"%dx%d,%dx%d,%dx%d,%dx%d",
-        jpeg_info.comp_info[0].h_samp_factor,
-        jpeg_info.comp_info[0].v_samp_factor,
-        jpeg_info.comp_info[1].h_samp_factor,
-        jpeg_info.comp_info[1].v_samp_factor,
-        jpeg_info.comp_info[2].h_samp_factor,
-        jpeg_info.comp_info[2].v_samp_factor,
-        jpeg_info.comp_info[3].h_samp_factor,
-        jpeg_info.comp_info[3].v_samp_factor);
-      break;
-    }
+			    "Sampling Factors: %s", attribute);
   }
-  (void) SetImageAttribute(image,"JPEG-Sampling-factors",s);
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-      "Sampling Factors: %s", s);
   
   image->depth=Min(jpeg_info.data_precision,QuantumDepth);
   if (jpeg_info.out_color_space == JCS_GRAYSCALE)
@@ -993,8 +1071,9 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
       CloseBlob(image);
       return(image);
     }
-  jpeg_pixels=MagickAllocateMemory(JSAMPLE *,
-    jpeg_info.output_components*image->columns*sizeof(JSAMPLE));
+  jpeg_pixels=MagickAllocateArray(JSAMPLE *,
+				  jpeg_info.output_components,
+				  image->columns*sizeof(JSAMPLE));
   if (jpeg_pixels == (JSAMPLE *) NULL)
     ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
 
@@ -1021,103 +1100,98 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   */
   scanline[0]=(JSAMPROW) jpeg_pixels;
   for (y=0; y < (long) image->rows; y++)
-  {
-    q=SetImagePixels(image,0,y,image->columns,1);
-    if (q == (PixelPacket *) NULL)
-      {
-        status=MagickFail;
-        break;
-      }
-    indexes=AccessMutableIndexes(image);
-
-    /* FIXME .... */
-    if (jpeg_read_scanlines(&jpeg_info,scanline,1) != 1)
-      ThrowReaderException(CorruptImageError,CorruptImage,image);
-
-    p=jpeg_pixels;
-
-    if (jpeg_info.data_precision > 8) /* Should be == 12? */
-      {
-        if (jpeg_info.out_color_space == JCS_GRAYSCALE)
-          {
-            for (x=0; x < (long) image->columns; x++)
-            {
-              index=(IndexPacket) (GETJSAMPLE(*p++));
-              VerifyColormapIndex(image,index);
-              indexes[x]=index;
-              *q++=image->colormap[index];
-            }
-          }
-        else
-          {
-            for (x=0; x < (long) image->columns; x++)
-            {
-              q->red=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
-              q->green=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
-              q->blue=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
-              if (image->colorspace == CMYKColorspace)
-                q->opacity=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
-              q++;
-            }
-          }
-      }
-    else
-      if (jpeg_info.out_color_space == JCS_GRAYSCALE)
-        {
-          for (x=0; x < (long) image->columns; x++)
-          {
-            index=(IndexPacket) (GETJSAMPLE(*p++));
-            VerifyColormapIndex(image,index);
-            indexes[x]=index;
-            *q++=image->colormap[index];
-          }
-        }
-      else
-        {
-          for (x=0; x < (long) image->columns; x++)
-          {
-            q->red=ScaleCharToQuantum(GETJSAMPLE(*p++));
-            q->green=ScaleCharToQuantum(GETJSAMPLE(*p++));
-            q->blue=ScaleCharToQuantum(GETJSAMPLE(*p++));
-            if (image->colorspace == CMYKColorspace)
-              q->opacity=ScaleCharToQuantum(GETJSAMPLE(*p++));
-            q++;
-          }
-        }
-    if (!SyncImagePixels(image))
-      {
-        status=MagickFail;
-        break;
-      }
-    if (QuantumTick(y,image->rows))
-      if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
-        {
-          status=MagickFail;
-          break;
-        }
-  }
-  if ((status == MagickPass) && (image->colorspace == CMYKColorspace))
     {
-      /*
-        Correct CMYK levels.
-      */
-      for (y=0; y < (long) image->rows; y++)
-      {
-        q=GetImagePixels(image,0,y,image->columns,1);
-        if (q == (PixelPacket *) NULL)
-          break;
-        for (x=0; x < (long) image->columns; x++)
-        {
-          q->red=(Quantum) (MaxRGB-q->red);
-          q->green=(Quantum) (MaxRGB-q->green);
-          q->blue=(Quantum) (MaxRGB-q->blue);
-          q->opacity=(Quantum) (MaxRGB-q->opacity);
-          q++;
-        }
-        if (!SyncImagePixels(image))
-          break;
-      }
+      register IndexPacket
+	*indexes;
+
+      register long
+	x;
+
+      register PixelPacket
+	*q;
+
+      q=SetImagePixels(image,0,y,image->columns,1);
+      if (q == (PixelPacket *) NULL)
+	{
+	  status=MagickFail;
+	  break;
+	}
+      indexes=AccessMutableIndexes(image);
+
+      /* FIXME .... */
+      if (jpeg_read_scanlines(&jpeg_info,scanline,1) != 1)
+	ThrowReaderException(CorruptImageError,CorruptImage,image);
+
+      p=jpeg_pixels;
+
+      if (jpeg_info.output_components == 1)
+	{
+	  for (x=0; x < (long) image->columns; x++)
+	    {
+	      index=(IndexPacket) (GETJSAMPLE(*p++));
+	      VerifyColormapIndex(image,index);
+	      indexes[x]=index;
+	      *q++=image->colormap[index];
+	    }
+	}
+      else
+	{
+	  if (jpeg_info.data_precision > 8)
+	    {
+	      for (x=0; x < (long) image->columns; x++)
+		{
+		  q->red=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
+		  q->green=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
+		  q->blue=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
+		  if (jpeg_info.output_components > 3)
+		    q->opacity=ScaleShortToQuantum(16*GETJSAMPLE(*p++));
+		  else
+		    q->opacity=OpaqueOpacity;
+		  q++;
+		}
+	    }
+	  else
+	    {
+	      for (x=0; x < (long) image->columns; x++)
+		{
+		  q->red=ScaleCharToQuantum(GETJSAMPLE(*p++));
+		  q->green=ScaleCharToQuantum(GETJSAMPLE(*p++));
+		  q->blue=ScaleCharToQuantum(GETJSAMPLE(*p++));
+		  if (jpeg_info.output_components > 3)
+		    q->opacity=ScaleCharToQuantum(GETJSAMPLE(*p++));
+		  else
+		    q->opacity=OpaqueOpacity;
+		  q++;
+		}
+	    }
+	  if (image->colorspace == CMYKColorspace)
+	    {
+	      /*
+		CMYK pixels are inverted.
+	      */
+	      q=AccessMutablePixels(image);
+	      for (x=0; x < (long) image->columns; x++)
+		{
+		  q->red=MaxRGB-q->red;
+		  q->green=MaxRGB-q->green;
+		  q->blue=MaxRGB-q->blue;
+		  q->opacity=MaxRGB-q->opacity;
+		  q++;
+		}
+	    }
+	}
+      if (!SyncImagePixels(image))
+	{
+	  status=MagickFail;
+	  break;
+	}
+      if (QuantumTick(y,image->rows))
+	if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
+				    image->filename))
+	  {
+	    status=MagickFail;
+	    break;
+	  }
     }
   /*
     Free jpeg resources.
@@ -1127,7 +1201,33 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
   jpeg_destroy_decompress(&jpeg_info);
   MagickFreeMemory(jpeg_pixels);
   CloseBlob(image);
-  if (logging) 
+
+  /*
+    Retrieve image orientation from EXIF (if present) and store in
+    image.
+
+    EXIF orienation enumerations match TIFF enumerations, which happen
+    to match the enumeration values used by GraphicsMagick.
+  */
+  if (status == MagickPass)
+    {
+      const ImageAttribute
+	*attribute;
+
+      attribute = GetImageAttribute(image,"EXIF:Orientation");
+      if ((attribute != (const ImageAttribute *) NULL) &&
+	  (attribute->value != (char *) NULL))
+	{
+	  int
+	    orientation;
+
+	  orientation=atoi(attribute->value);
+	  if ((orientation > UndefinedOrientation) &&
+	      (orientation <= LeftBottomOrientation))
+	    image->orientation=(OrientationType) orientation;
+	}
+    }
+  if (image->logging) 
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),"return");
   GetImageException(image,exception);
   return(image);
@@ -1159,6 +1259,9 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 */
 ModuleExport void RegisterJPEGImage(void)
 {
+  static const char
+    *description="Joint Photographic Experts Group JFIF format";
+
   static char
     version[MaxTextExtent];
 
@@ -1166,8 +1269,8 @@ ModuleExport void RegisterJPEGImage(void)
     *entry;
 
   version[0]='\0';
-#if defined(JPEG_LIB_VERSION)
-  FormatString(version,"%d",JPEG_LIB_VERSION);
+#if defined(HasJPEG)
+  FormatString(version,"IJG JPEG %d",JPEG_LIB_VERSION);
 #endif
 
   entry=SetMagickInfo("JPEG");
@@ -1178,9 +1281,10 @@ ModuleExport void RegisterJPEGImage(void)
 #endif
   entry->magick=(MagickHandler) IsJPEG;
   entry->adjoin=False;
-  entry->description="Joint Photographic Experts Group JFIF format";
+  entry->description=description;
   if (version[0] != '\0')
-    entry->module="JPEG";
+    entry->version=version;
+  entry->module="JPEG";
   entry->coder_class=PrimaryCoderClass;
   (void) RegisterMagickInfo(entry);
 
@@ -1191,7 +1295,7 @@ ModuleExport void RegisterJPEGImage(void)
   entry->encoder=(EncoderHandler) WriteJPEGImage;
 #endif
   entry->adjoin=False;
-  entry->description="Joint Photographic Experts Group JFIF format";
+  entry->description=description;
   if (version[0] != '\0')
     entry->version=version;
   entry->module="JPEG";
@@ -1589,9 +1693,6 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
 
   if (preserve_settings)
     {
-      const ImageAttribute
-        *attribute;
-
       if (image->logging)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
             "  JPEG:preserve-settings flag is defined.");

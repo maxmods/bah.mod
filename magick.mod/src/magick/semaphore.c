@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003, 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -37,14 +37,23 @@
 */
 #include "magick/studio.h"
 #include "magick/utility.h"
+
 #if defined(HAVE_PTHREAD)
-#include <pthread.h>
+#  define USE_POSIX_THREADS 1
+#elif defined(MSWINDOWS)
+#  define USE_WIN32_THREADS 1
 #endif
-#if defined(MSWINDOWS)
-#include <windows.h>
-#define USE_SPINLOCKS
-#define SPINLOCK_DELAY_MILLI_SECS 10
+
+#if defined(USE_POSIX_THREADS)
+#  include <pthread.h>
 #endif
+
+#if defined(USE_WIN32_THREADS)
+#  include <windows.h>
+#  define USE_SPINLOCKS
+#  define SPINLOCK_DELAY_MILLI_SECS 10
+#endif
+
 #include "magick/semaphore.h"
 
 /*
@@ -52,11 +61,11 @@
 */
 struct _SemaphoreInfo
 {
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   pthread_mutex_t
     mutex;		/* POSIX thread mutex */
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
   CRITICAL_SECTION
     mutex;		/* Windows critical section */
 #endif
@@ -68,12 +77,12 @@ struct _SemaphoreInfo
 /*
   Static declaractions.
 */
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
 static pthread_mutex_t
   semaphore_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
 static CRITICAL_SECTION
   semaphore_mutex;
@@ -139,10 +148,10 @@ static void spinlock_release (LONG volatile *sl)
 MagickExport void AcquireSemaphoreInfo(SemaphoreInfo **semaphore_info)
 {
   assert(semaphore_info != (SemaphoreInfo **) NULL);
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_lock(&semaphore_mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   if (!active_semaphore)
     InitializeCriticalSection(&semaphore_mutex);
@@ -154,10 +163,10 @@ MagickExport void AcquireSemaphoreInfo(SemaphoreInfo **semaphore_info)
 #endif
   if (*semaphore_info == (SemaphoreInfo *) NULL)
     *semaphore_info=AllocateSemaphoreInfo();
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_unlock(&semaphore_mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   LeaveCriticalSection(&semaphore_mutex);
 #else
@@ -207,7 +216,7 @@ MagickExport SemaphoreInfo *AllocateSemaphoreInfo(void)
   /*
     Initialize the semaphore.
   */
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   {
     int
       status;
@@ -237,7 +246,7 @@ MagickExport SemaphoreInfo *AllocateSemaphoreInfo(void)
     (void) pthread_mutexattr_destroy(&mutexattr);
   }
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
   InitializeCriticalSection(&semaphore_info->mutex);
 #endif
   
@@ -266,10 +275,10 @@ MagickExport SemaphoreInfo *AllocateSemaphoreInfo(void)
 */
 MagickExport void DestroySemaphore(void)
 {
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_destroy(&semaphore_mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   if (active_semaphore)
     DeleteCriticalSection(&semaphore_mutex);
@@ -307,10 +316,10 @@ MagickExport void DestroySemaphoreInfo(SemaphoreInfo **semaphore_info)
   if (*semaphore_info == (SemaphoreInfo *) NULL)
     return;
   assert((*semaphore_info)->signature == MagickSignature);
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_lock(&semaphore_mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   if (!active_semaphore)
     InitializeCriticalSection(&semaphore_mutex);
@@ -320,17 +329,17 @@ MagickExport void DestroySemaphoreInfo(SemaphoreInfo **semaphore_info)
   spinlock_wait(&semaphore_mutex);
 #endif
 #endif
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_destroy(&(*semaphore_info)->mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
   DeleteCriticalSection(&(*semaphore_info)->mutex);
 #endif
   MagickFreeMemory((*semaphore_info));
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   (void) pthread_mutex_unlock(&semaphore_mutex);
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   LeaveCriticalSection(&semaphore_mutex);
 #else
@@ -360,11 +369,16 @@ MagickExport void DestroySemaphoreInfo(SemaphoreInfo **semaphore_info)
 */
 MagickExport void InitializeSemaphore(void)
 {
-#if defined(HAVE_PTHREAD)
-  (void) pthread_mutex_init(&semaphore_mutex,
-    (const pthread_mutexattr_t *) NULL);
+#if defined(USE_POSIX_THREADS)
+  /*
+    We use static pthread mutex initialization with
+    PTHREAD_MUTEX_INITIALIZER so explicit runtime initialization is
+    not required.
+  */
+/*   (void) pthread_mutex_init(&semaphore_mutex, */
+/*     (const pthread_mutexattr_t *) NULL); */
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
 #if !defined(USE_SPINLOCKS)
   if (!active_semaphore)
     InitializeCriticalSection(&semaphore_mutex);
@@ -439,7 +453,7 @@ MagickExport MagickPassFail LockSemaphoreInfo(SemaphoreInfo *semaphore_info)
 
   assert(semaphore_info != (SemaphoreInfo *) NULL);
 /*   assert(semaphore_info->signature == MagickSignature); */
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   {
     int
       err_status;
@@ -451,7 +465,7 @@ MagickExport MagickPassFail LockSemaphoreInfo(SemaphoreInfo *semaphore_info)
       }
   }
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
   EnterCriticalSection(&semaphore_info->mutex);
 #endif
   return(status);
@@ -491,11 +505,11 @@ MagickExport MagickPassFail UnlockSemaphoreInfo(SemaphoreInfo *semaphore_info)
   assert(semaphore_info != (SemaphoreInfo *) NULL);
   /* assert(semaphore_info->signature == MagickSignature); */
 
-#if defined(HAVE_PTHREAD)
+#if defined(USE_POSIX_THREADS)
   if (pthread_mutex_unlock(&semaphore_info->mutex))
     status=MagickFail;
 #endif
-#if defined(MSWINDOWS)
+#if defined(USE_WIN32_THREADS)
   LeaveCriticalSection(&semaphore_info->mutex);
 #endif
   return(status);

@@ -2731,7 +2731,7 @@ static Image *ReadDCMImage(const ImageInfo *image_info,ExceptionInfo *exception)
 
   unsigned short
     *graymap,
-    index;
+    index_val;
 
   /*
     Open image file.
@@ -3159,9 +3159,6 @@ static Image *ReadDCMImage(const ImageInfo *image_info,ExceptionInfo *exception)
           case 0x1202:
           case 0x1203:
           {
-            unsigned short
-              index;
-
             /*
               Initialize colormap.
             */
@@ -3171,13 +3168,13 @@ static Image *ReadDCMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             p=data;
             for (i=0; i < (long) image->colors; i++)
             {
-              index=(*p | *(p+1) << 8);
+              index_val=(*p | *(p+1) << 8);
               if (element == 0x1201)
-                image->colormap[i].red=ScaleShortToQuantum(index);
+                image->colormap[i].red=ScaleShortToQuantum(index_val);
               if (element == 0x1202)
-                image->colormap[i].green=ScaleShortToQuantum(index);
+                image->colormap[i].green=ScaleShortToQuantum(index_val);
               if (element == 0x1203)
-                image->colormap[i].blue=ScaleShortToQuantum(index);
+                image->colormap[i].blue=ScaleShortToQuantum(index_val);
               p+=2;
             }
             break;
@@ -3380,41 +3377,41 @@ static Image *ReadDCMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             if (samples_per_pixel == 1)
               {
                 if (bytes_per_pixel == 1)
-                  index=ReadBlobByte(image);
+                  index_val=ReadBlobByte(image);
                 else
                   if (bits_allocated != 12)
                     {
                       if (msb_first)
-                        index=ReadBlobMSBShort(image);
+                        index_val=ReadBlobMSBShort(image);
                       else
-                        index=ReadBlobLSBShort(image);
+                        index_val=ReadBlobLSBShort(image);
                     }
                   else
                     {
                       if (i & 0x01)
-                        index=(ReadBlobByte(image) << 8) | byte;
+                        index_val=(ReadBlobByte(image) << 8) | byte;
                       else
                         {
                           if (msb_first)
-                            index=ReadBlobMSBShort(image);
+                            index_val=ReadBlobMSBShort(image);
                           else
-                            index=ReadBlobLSBShort(image);
-                          byte=index & 0x0f;
-                          index>>=4;
+                            index_val=ReadBlobLSBShort(image);
+                          byte=index_val & 0x0f;
+                          index_val>>=4;
                         }
                       i++;
                     }
-                index&=mask;
-                if (index > max_value)
-                  index=(unsigned short) max_value;
+                index_val&=mask;
+                if (index_val > max_value)
+                  index_val=(unsigned short) max_value;
                 if (graymap != (unsigned short *) NULL)
-                  index=graymap[index];
-                index=(IndexPacket) (index);
-                VerifyColormapIndex(image,index);
-                indexes[x]=index;
-                red=image->colormap[index].red;
-                green=image->colormap[index].green;
-                blue=image->colormap[index].blue;
+                  index_val=graymap[index_val];
+                index_val=(IndexPacket) (index_val);
+                VerifyColormapIndex(image,index_val);
+                indexes[x]=index_val;
+                red=image->colormap[index_val].red;
+                green=image->colormap[index_val].green;
+                blue=image->colormap[index_val].blue;
               }
             else
               {

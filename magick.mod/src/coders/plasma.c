@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -41,6 +41,7 @@
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/random.h"
 #include "magick/utility.h"
 
 /*
@@ -83,9 +84,9 @@ static void PlasmaPixel(Image *image,double x,double y)
   q=GetImagePixels(image,(long) (x+0.5),(long) (y+0.5),1,1);
   if (q == (PixelPacket *) NULL)
     return;
-  q->red=(Quantum) ((double) MaxRGB*rand()/RAND_MAX+0.5);
-  q->green=(Quantum) ((double) MaxRGB*rand()/RAND_MAX+0.5);
-  q->blue=(Quantum) ((double) MaxRGB*rand()/RAND_MAX+0.5);
+  q->red=(Quantum) (MaxRGBDouble*MagickRandomReal()+0.5);
+  q->green=(Quantum) (MaxRGBDouble*MagickRandomReal()+0.5);
+  q->blue=(Quantum) (MaxRGBDouble*MagickRandomReal()+0.5);
   (void) SyncImagePixels(image);
 }
 

@@ -75,23 +75,23 @@ static inline void AlphaCompositePixel(PixelPacket *composite, const PixelPacket
   else
     {
       double
-        gamma,
+        delta,
         value;
 
-      gamma=1.0-(change_alpha/MaxRGBDouble)*(base_alpha/MaxRGBDouble);
+      delta=1.0-(change_alpha/MaxRGBDouble)*(base_alpha/MaxRGBDouble);
       
-      value=MaxRGBDouble*(1.0-gamma);
+      value=MaxRGBDouble*(1.0-delta);
       composite->opacity=RoundDoubleToQuantum(value);
       
-      gamma=1.0/(gamma <= MagickEpsilon ? 1.0 : gamma);
+      delta=1.0/(delta <= MagickEpsilon ? 1.0 : delta);
       
-      value=gamma*MagickAlphaCompositeQuantum(change->red,change_alpha,base->red,base_alpha);
+      value=delta*MagickAlphaCompositeQuantum(change->red,change_alpha,base->red,base_alpha);
       composite->red=RoundDoubleToQuantum(value);
       
-      value=gamma*MagickAlphaCompositeQuantum(change->green,change_alpha,base->green,base_alpha);
+      value=delta*MagickAlphaCompositeQuantum(change->green,change_alpha,base->green,base_alpha);
       composite->green=RoundDoubleToQuantum(value);
       
-      value=gamma*MagickAlphaCompositeQuantum(change->blue,change_alpha,base->blue,base_alpha);
+      value=delta*MagickAlphaCompositeQuantum(change->blue,change_alpha,base->blue,base_alpha);
       composite->blue=RoundDoubleToQuantum(value);
     }
 }

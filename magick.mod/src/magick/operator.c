@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2004 - 2008 GraphicsMagick Group
+% Copyright (C) 2004 - 2009 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -17,6 +17,7 @@
 #include "magick/enum_strings.h"
 #include "magick/gem.h"
 #include "magick/pixel_iterator.h"
+#include "magick/random.h"
 #include "magick/utility.h"
 #include "magick/operator.h"
 
@@ -571,7 +572,7 @@ QuantumDepthCB(void *mutable_data,
       */
 #if MaxRGB <= MaxMap
 #  if defined(HAVE_OPENMP)
-#    pragma omp critical
+#    pragma omp critical (GM_QuantumDepthCB)
 #  endif
       if (mutable_context->channel_lut == (Quantum *) NULL)
         {
@@ -751,7 +752,7 @@ QuantumGammaCB(void *mutable_data,
   */
 #if MaxRGB <= MaxMap
 #  if defined(HAVE_OPENMP)
-#    pragma omp critical
+#    pragma omp critical (GM_QuantumGammaCB)
 #  endif
   if (mutable_context->channel_lut == (Quantum *) NULL)
     {
@@ -925,7 +926,7 @@ QuantumLogCB(void *mutable_data,
   */
 #if MaxRGB <= MaxMap
 #  if defined(HAVE_OPENMP)
-#    pragma omp critical
+#    pragma omp critical (GM_QuantumLogCB)
 #  endif
   if (mutable_context->channel_lut == (Quantum *) NULL)
     {
@@ -1287,13 +1288,13 @@ QuantumMultiplyCB(void *mutable_data,
 
 static inline Quantum
 GenerateQuantumNoise(const Quantum quantum,const NoiseType noise_type,
-                     const double factor,unsigned int *seed)
+                     const double factor,MagickRandomKernel *kernel)
 {
   double
     value;
 
   value = (double) quantum+
-    factor*GenerateDifferentialNoise((double) quantum,noise_type,seed);
+    factor*GenerateDifferentialNoise((double) quantum,noise_type,kernel);
   return RoundDoubleToQuantum(value);
 }
 
@@ -1317,15 +1318,15 @@ QuantumNoiseCB(void *mutable_data,
   double
     factor;
 
-  unsigned int
-    seed;
+  MagickRandomKernel
+    *kernel;
 
   ARG_NOT_USED(mutable_data);
   ARG_NOT_USED(image);
   ARG_NOT_USED(indexes);
   ARG_NOT_USED(exception);
 
-  seed=MagickRandNewSeed();
+  kernel=AcquireMagickRandomKernel();
   factor=context->double_value/MaxRGBDouble;
 
   switch (context->channel)
@@ -1333,31 +1334,31 @@ QuantumNoiseCB(void *mutable_data,
     case RedChannel:
     case CyanChannel:
       for (i=0; i < npixels; i++)
-        pixels[i].red = GenerateQuantumNoise(pixels[i].red,noise_type,factor,&seed);
+        pixels[i].red = GenerateQuantumNoise(pixels[i].red,noise_type,factor,kernel);
       break;
     case GreenChannel:
     case MagentaChannel:
       for (i=0; i < npixels; i++)
-        pixels[i].green = GenerateQuantumNoise(pixels[i].green,noise_type,factor,&seed);
+        pixels[i].green = GenerateQuantumNoise(pixels[i].green,noise_type,factor,kernel);
       break;
     case BlueChannel:
     case YellowChannel:
       for (i=0; i < npixels; i++)
-        pixels[i].blue = GenerateQuantumNoise(pixels[i].blue,noise_type,factor,&seed);
+        pixels[i].blue = GenerateQuantumNoise(pixels[i].blue,noise_type,factor,kernel);
       break;
     case BlackChannel:
     case MatteChannel:
     case OpacityChannel:
       for (i=0; i < npixels; i++)
-        pixels[i].opacity = GenerateQuantumNoise(pixels[i].opacity,noise_type,factor,&seed);
+        pixels[i].opacity = GenerateQuantumNoise(pixels[i].opacity,noise_type,factor,kernel);
       break;
     case UndefinedChannel:
     case AllChannels:
       for (i=0; i < npixels; i++)
         {
-          pixels[i].red   = GenerateQuantumNoise(pixels[i].red,noise_type,factor,&seed);
-          pixels[i].green = GenerateQuantumNoise(pixels[i].green,noise_type,factor,&seed);
-          pixels[i].blue  = GenerateQuantumNoise(pixels[i].blue,noise_type,factor,&seed);
+          pixels[i].red   = GenerateQuantumNoise(pixels[i].red,noise_type,factor,kernel);
+          pixels[i].green = GenerateQuantumNoise(pixels[i].green,noise_type,factor,kernel);
+          pixels[i].blue  = GenerateQuantumNoise(pixels[i].blue,noise_type,factor,kernel);
         }
       break;
     case GrayChannel:
@@ -1368,7 +1369,7 @@ QuantumNoiseCB(void *mutable_data,
 
           intensity = PixelIntensity(&pixels[i]);
           pixels[i].red = pixels[i].green = pixels[i].blue =
-            GenerateQuantumNoise(intensity,noise_type,factor,&seed);
+            GenerateQuantumNoise(intensity,noise_type,factor,kernel);
         }
       break;
     }
@@ -1550,7 +1551,7 @@ QuantumPowCB(void *mutable_data,
   */
 #if MaxRGB <= MaxMap
 #  if defined(HAVE_OPENMP)
-#    pragma omp critical
+#    pragma omp critical (GM_QuantumPowCB)
 #  endif
   if (mutable_context->channel_lut == (Quantum *) NULL)
     {

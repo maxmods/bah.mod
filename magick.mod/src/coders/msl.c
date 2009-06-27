@@ -68,6 +68,11 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parserInternals.h>
 #include <libxml/xmlerror.h>
+
+/*
+  Avoid shadowing library globals and functions.
+*/
+#define attribute attribute_magick
 
 /*
   Typedef declaractions.

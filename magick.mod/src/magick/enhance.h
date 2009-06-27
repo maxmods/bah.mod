@@ -15,7 +15,7 @@
 extern "C" {
 #endif  /* defined(__cplusplus) || defined(c_plusplus) */
 
-extern MagickExport unsigned int
+extern MagickExport MagickPassFail
   ContrastImage(Image *,const unsigned int),
   EqualizeImage(Image *),
   GammaImage(Image *,const char *),

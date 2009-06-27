@@ -112,6 +112,7 @@ extern "C" {
     1300 MSVC 7.0 Visual C++ .NET 2002
     1310 Visual c++ .NET 2003
     1400 Visual C++ 2005
+    1500 Visual C++ 2008
 */
 #if defined(_VISUALC_) && (_MSC_VER >= 1300)
 #  define HAVE_GLOBALMEMORYSTATUSEX 1

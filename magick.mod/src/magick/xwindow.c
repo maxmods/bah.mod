@@ -3977,7 +3977,7 @@ static Image *MagickXGetWindowImage(Display *display,const Window window,
   } WindowInfo;
 
   IndexPacket
-    index;
+    index_packet;
 
   int
     display_height,
@@ -4314,7 +4314,7 @@ static Image *MagickXGetWindowImage(Display *display,const Window window,
           {
             register unsigned long
               color,
-              index;
+              colormap_index;
 
             unsigned long
               blue_mask,
@@ -4362,12 +4362,12 @@ static Image *MagickXGetWindowImage(Display *display,const Window window,
                 for (x=0; x < (long) composite_image->columns; x++)
                 {
                   pixel=XGetPixel(ximage,x,y);
-                  index=(pixel >> red_shift) & red_mask;
-                  q->red=ScaleShortToQuantum(colors[index].red);
-                  index=(pixel >> green_shift) & green_mask;
-                  q->green=ScaleShortToQuantum(colors[index].green);
-                  index=(pixel >> blue_shift) & blue_mask;
-                  q->blue=ScaleShortToQuantum(colors[index].blue);
+                  colormap_index=(pixel >> red_shift) & red_mask;
+                  q->red=ScaleShortToQuantum(colors[colormap_index].red);
+                  colormap_index=(pixel >> green_shift) & green_mask;
+                  q->green=ScaleShortToQuantum(colors[colormap_index].green);
+                  colormap_index=(pixel >> blue_shift) & blue_mask;
+                  q->blue=ScaleShortToQuantum(colors[colormap_index].blue);
                   q++;
                 }
                 if (!SyncImagePixels(composite_image))
@@ -4428,9 +4428,9 @@ static Image *MagickXGetWindowImage(Display *display,const Window window,
               indexes=AccessMutableIndexes(composite_image);
               for (x=0; x < (long) composite_image->columns; x++)
               {
-                index=(IndexPacket) XGetPixel(ximage,x,y);
-                indexes[x]=index;
-                *q++=composite_image->colormap[index];
+                index_packet=(IndexPacket) XGetPixel(ximage,x,y);
+                indexes[x]=index_packet;
+                *q++=composite_image->colormap[index_packet];
               }
               if (!SyncImagePixels(composite_image))
                 break;
@@ -7751,7 +7751,7 @@ MagickExport void MagickXMakeStandardColormap(Display *display,
             x;
 
           unsigned short
-            index;
+            colormap_index;
 
           XColor
             *server_colors;
@@ -7798,13 +7798,13 @@ MagickExport void MagickXMakeStandardColormap(Display *display,
           color.flags=DoRed | DoGreen | DoBlue;
           for (i=0; i < (long) image->colors; i++)
           {
-            index=diversity[i].index;
+            colormap_index=diversity[i].index;
             color.red=
-              ScaleQuantumToShort(MagickXRedGamma(image->colormap[index].red));
+              ScaleQuantumToShort(MagickXRedGamma(image->colormap[colormap_index].red));
             color.green=
-              ScaleQuantumToShort(MagickXGreenGamma(image->colormap[index].green));
+              ScaleQuantumToShort(MagickXGreenGamma(image->colormap[colormap_index].green));
             color.blue=
-              ScaleQuantumToShort(MagickXBlueGamma(image->colormap[index].blue));
+              ScaleQuantumToShort(MagickXBlueGamma(image->colormap[colormap_index].blue));
             if (visual_info->class != PseudoColor)
               {
                 gray_value=(unsigned short) PixelIntensity(&color);
@@ -7815,7 +7815,7 @@ MagickExport void MagickXMakeStandardColormap(Display *display,
             status=XAllocColor(display,colormap,&color);
             if (status == 0)
               break;
-            pixel->pixels[index]=color.pixel;
+            pixel->pixels[colormap_index]=color.pixel;
             *p++=color;
           }
           /*
@@ -7835,13 +7835,13 @@ MagickExport void MagickXMakeStandardColormap(Display *display,
           */
           for (; i < (long) image->colors; i++)
           {
-            index=diversity[i].index;
+            colormap_index=diversity[i].index;
             color.red=
-              ScaleQuantumToShort(MagickXRedGamma(image->colormap[index].red));
+              ScaleQuantumToShort(MagickXRedGamma(image->colormap[colormap_index].red));
             color.green=
-              ScaleQuantumToShort(MagickXGreenGamma(image->colormap[index].green));
+              ScaleQuantumToShort(MagickXGreenGamma(image->colormap[colormap_index].green));
             color.blue=
-              ScaleQuantumToShort(MagickXBlueGamma(image->colormap[index].blue));
+              ScaleQuantumToShort(MagickXBlueGamma(image->colormap[colormap_index].blue));
             if (visual_info->class != PseudoColor)
               {
                 gray_value=(unsigned short) PixelIntensity(&color);
@@ -7851,7 +7851,7 @@ MagickExport void MagickXMakeStandardColormap(Display *display,
               }
             MagickXBestPixel(display,colormap,server_colors,(unsigned int)
               visual_info->colormap_size,&color);
-            pixel->pixels[index]=color.pixel;
+            pixel->pixels[colormap_index]=color.pixel;
             *p++=color;
           }
           if ((int) image->colors < visual_info->colormap_size)

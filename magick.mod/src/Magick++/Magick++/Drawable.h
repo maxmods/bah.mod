@@ -7,6 +7,11 @@
 // The technique used for instantiating classes which derive from STL
 // templates is described in Microsoft MSDN Article ID: Q168958
 // "HOWTO: Exporting STL Components Inside & Outside of a Class".
+// "http://support.microsoft.com/kb/168958"
+//
+// Note that version 3.0 of this article says that that only STL
+// container template which supports DLL export is <vector> and we are
+// not using <vector> as part of the Drawable implementation.
 //
 
 #if !defined(Magick_Drawable_header)
@@ -22,12 +27,12 @@
 #include "Magick++/Geometry.h"
 
 #if defined(MagickDLLBuild)
-#  if defined(MAGICK_DRAWABLE_IMPLEMENTATION)
+#  if defined(MAGICK_PLUSPLUS_IMPLEMENTATION)
 #    define MagickDrawableExtern
 #  else
 #   pragma warning( disable: 4231 ) // Disable warning regarding using extern
 #    define MagickDrawableExtern extern
-#  endif // MAGICK_DRAWABLE_IMPLEMENTATION
+#  endif // MAGICK_PLUSPLUS_IMPLEMENTATION
 #else
 #  define MagickDrawableExtern
 #endif // MagickDLLBuild
@@ -82,8 +87,8 @@ namespace Magick
   MagickDrawableExtern template class MagickDLLDecl
   std::allocator<Magick::Coordinate>;
 
-  MagickDrawableExtern template class MagickDLLDecl
-  std::list<Magick::Coordinate, std::allocator<Magick::Coordinate> >;
+//   MagickDrawableExtern template class MagickDLLDecl
+//   std::list<Magick::Coordinate, std::allocator<Magick::Coordinate> >;
 
 #endif // MagickDLLBuild
 
@@ -176,8 +181,8 @@ namespace Magick
   MagickDrawableExtern template class MagickDLLDecl
   std::allocator<Magick::Drawable>;
 
-  MagickDrawableExtern template class MagickDLLDecl
-  std::list<Magick::Drawable, std::allocator<Magick::Drawable> >;
+//   MagickDrawableExtern template class MagickDLLDecl
+//   std::list<Magick::Drawable, std::allocator<Magick::Drawable> >;
 
 #endif // MagickDLLBuild
 
@@ -256,8 +261,8 @@ typedef std::list<Magick::VPath> VPathList;
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::VPath>;
 
-MagickDrawableExtern template class MagickDLLDecl
-std::list<Magick::VPath, std::allocator<Magick::VPath> >;
+// MagickDrawableExtern template class MagickDLLDecl
+// std::list<Magick::VPath, std::allocator<Magick::VPath> >;
 
 #endif // MagickDLLBuild
 
@@ -2219,8 +2224,8 @@ typedef std::list<Magick::PathArcArgs> PathArcArgsList;
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathArcArgs>;
 
-MagickDrawableExtern template class MagickDLLDecl
-std::list<Magick::PathArcArgs, std::allocator<Magick::PathArcArgs> >;
+// MagickDrawableExtern template class MagickDLLDecl
+// std::list<Magick::PathArcArgs, std::allocator<Magick::PathArcArgs> >;
 
 #endif // MagickDLLBuild
 
@@ -2393,8 +2398,8 @@ typedef std::list<Magick::PathCurvetoArgs> PathCurveToArgsList;
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathCurvetoArgs>;
 
-MagickDrawableExtern template class MagickDLLDecl
-std::list<Magick::PathCurvetoArgs, std::allocator<Magick::PathCurvetoArgs> >;
+// MagickDrawableExtern template class MagickDLLDecl
+// std::list<Magick::PathCurvetoArgs, std::allocator<Magick::PathCurvetoArgs> >;
 
 #endif // MagickDLLBuild
 
@@ -2574,8 +2579,8 @@ typedef std::list<Magick::PathQuadraticCurvetoArgs> PathQuadraticCurvetoArgsList
 MagickDrawableExtern template class MagickDLLDecl
 std::allocator<Magick::PathQuadraticCurvetoArgs>;
 
-MagickDrawableExtern template class MagickDLLDecl
-std::list<Magick::PathQuadraticCurvetoArgs, std::allocator<Magick::PathQuadraticCurvetoArgs> >;
+// MagickDrawableExtern template class MagickDLLDecl
+// std::list<Magick::PathQuadraticCurvetoArgs, std::allocator<Magick::PathQuadraticCurvetoArgs> >;
 
 #endif // MagickDLLBuild
 

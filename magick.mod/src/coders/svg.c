@@ -59,6 +59,10 @@
 #  include <libxml/parserInternals.h>
 #  include <libxml/xmlerror.h>
 #endif
+/*
+  Avoid shadowing library globals and functions.
+*/
+#define attribute attribute_magick
 
 #if defined(HasAUTOTRACE)
 #include "types.h"

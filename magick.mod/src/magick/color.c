@@ -1747,9 +1747,6 @@ MagickExport unsigned int QueryColorDatabase(const char *name,
   double
     scale;
 
-  DoublePixelPacket
-    pixel;
-
   register const ColorInfo
     *p;
 
@@ -1777,7 +1774,7 @@ MagickExport unsigned int QueryColorDatabase(const char *name,
       LongPixelPacket
         pixel;
 
-      (void) memset(&pixel,0,sizeof(LongPixelPacket));
+      (void) memset(&pixel,0,sizeof(pixel));
       name++;
       for (n=0; isxdigit((int) name[n]); n++);
       if ((n == 3) || (n == 6) || (n == 9) || (n == 12) || (n == 24))
@@ -1874,6 +1871,9 @@ MagickExport unsigned int QueryColorDatabase(const char *name,
     }
   if (LocaleNCompare(name,"rgb(",4) == 0)
     {
+      DoublePixelPacket
+	pixel;
+
       scale=strchr(name,'%') == (char *) NULL ? 1.0 :
         ScaleQuantumToChar(MaxRGB)/100.0;
       (void) sscanf(name,"%*[^(](%lf%*[%,]%lf%*[%,]%lf",
@@ -1886,6 +1886,9 @@ MagickExport unsigned int QueryColorDatabase(const char *name,
     }
   if (LocaleNCompare(name,"rgba(",5) == 0)
     {
+      DoublePixelPacket
+	pixel;
+
       scale=strchr(name,'%') == (char *) NULL ? 1.0 :
         ScaleQuantumToChar(MaxRGB)/100.0;
       (void) sscanf(name,"%*[^(](%lf%*[%,]%lf%*[%,]%lf%*[%,]%lf",

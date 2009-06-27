@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -42,6 +42,7 @@
 #include "magick/log.h"
 #include "magick/semaphore.h"
 #include "magick/utility.h"
+#include "magick/version.h"
 
 /*
   Define declarations.
@@ -615,7 +616,7 @@ MagickExport  unsigned int LogMagickEventList(const ExceptionType type,
         "%.1024s %ld:%02ld %0.3f %ld %.1024s %.1024s %lu %.1024s %.1024s %.1024s\n",
           timestamp, (long) (elapsed_time/60.0), (long) ceil(fmod(elapsed_time,60.0)),
             user_time, (long) getpid(), srcname, function, line, domain, severity, event);
-      hSource = RegisterEventSource(NULL, "GraphicsMagick");
+      hSource = RegisterEventSource(NULL, MagickPackageName);
       if (hSource != NULL)
         {
           szList[0]=buffer;
@@ -683,15 +684,15 @@ MagickExport  unsigned int LogMagickEventList(const ExceptionType type,
           case 'm':
           {
             register const char
-              *p;
+              *lp;
 
-            for (p=srcname+strlen(srcname)-1; p > srcname; p--)
-              if (*p == *DirectorySeparator)
+            for (lp=srcname+strlen(srcname)-1; lp > srcname; lp--)
+              if (*lp == *DirectorySeparator)
                 {
-                  p++;
+                  lp++;
                   break;
                 }
-            (void) fprintf(file,"%.1024s",p);
+            (void) fprintf(file,"%.1024s",lp);
             break;
           }
           case 'p':

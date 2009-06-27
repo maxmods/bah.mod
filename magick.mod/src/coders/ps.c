@@ -137,7 +137,6 @@ static Image *ReadPSImage(const ImageInfo *image_info,ExceptionInfo *exception)
     density[MaxTextExtent],
     filename[MaxTextExtent],
     geometry[MaxTextExtent],
-    options[MaxTextExtent],
     postscript_filename[MaxTextExtent],
     translate_geometry[MaxTextExtent];
 
@@ -311,21 +310,33 @@ static Image *ReadPSImage(const ImageInfo *image_info,ExceptionInfo *exception)
   /*
     Use Ghostscript to convert Postscript image.
   */
-  *options='\0';
-  if (image_info->subrange != 0)
-    FormatString(options,"-dFirstPage=%lu -dLastPage=%lu",
-      image_info->subimage+1,image_info->subimage+image_info->subrange);
-  (void) strlcpy(filename,image_info->filename,MaxTextExtent);
-  if (image_info->temporary)
-    (void) LiberateTemporaryFile((char *) image_info->filename);
-  if(!AcquireTemporaryFileName((char *) image_info->filename))
-    {
-      (void) LiberateTemporaryFile(postscript_filename);
-      ThrowReaderTemporaryFileException(image_info->filename);
-    }
-  FormatString(command,delegate_info->commands,antialias,
-    antialias,geometry,density,options,image_info->filename,
-    postscript_filename);
+  {
+    char
+      options[MaxTextExtent];
+    
+    options[0]='\0';
+    /*
+      Append subrange.
+    */
+    if (image_info->subrange != 0)
+      FormatString(options,"-dFirstPage=%lu -dLastPage=%lu",
+		   image_info->subimage+1,image_info->subimage+image_info->subrange);
+    /*
+      Append bounding box.
+    */
+    FormatString(options+strlen(options)," -g%s",geometry);
+    (void) strlcpy(filename,image_info->filename,MaxTextExtent);
+    if (image_info->temporary)
+      (void) LiberateTemporaryFile((char *) image_info->filename);
+    if(!AcquireTemporaryFileName((char *) image_info->filename))
+      {
+	(void) LiberateTemporaryFile(postscript_filename);
+	ThrowReaderTemporaryFileException(image_info->filename);
+      }
+    FormatString(command,delegate_info->commands,antialias,
+		 antialias,density,options,image_info->filename,
+		 postscript_filename);
+  }
   (void) MagickMonitorFormatted(0,8,&image->exception,RenderPostscriptText,
                                 image->filename);
   status=InvokePostscriptDelegate(image_info->verbose,command);
@@ -1029,12 +1040,6 @@ static unsigned int WritePSImage(const ImageInfo *image_info,Image *image)
             Image
               *preview_image;
 
-            long
-              y;
-
-            register long
-              x;
-
             /*
               Create preview image.
             */
@@ -1249,9 +1254,6 @@ static unsigned int WritePSImage(const ImageInfo *image_info,Image *image)
           }
         else
           {
-            int
-              y;
-
             /*
               Dump image as bitmap.
             */

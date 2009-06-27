@@ -196,7 +196,7 @@
 /*
   Typedef declarations.
 */
-#if QuantumDepth > 16 && defined(HAVE_LONG_DOUBLE)
+#if QuantumDepth > 16 && defined(HAVE_LONG_DOUBLE_WIDER)
   typedef long double ErrorSumType;
 #else
   typedef double ErrorSumType;

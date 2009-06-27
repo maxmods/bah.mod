@@ -8,6 +8,7 @@
 //
 
 #define MAGICK_IMPLEMENTATION
+#define MAGICK_PLUSPLUS_IMPLEMENTATION
 
 #include "Magick++/Include.h"
 #include <string>
@@ -490,7 +491,7 @@ void Magick::Options::strokeDashArray ( const double* strokeDashArray_ )
     {
       // Count elements in dash array
       unsigned int x;
-      for (x=0; strokeDashArray_[x]; x++);
+      for (x=0; strokeDashArray_[x]; x++) {};
       // Allocate elements
       _drawInfo->dash_pattern = MagickAllocateMemory(double*,(x+1)*sizeof(double));
       // Copy elements

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -607,11 +607,15 @@ Classify(Image *image,short **extrema,
     {
       MagickBool
         thread_status;
-      
+
+      int
+	num_threads;
+
       thread_status=status;
       if (thread_status == MagickFail)
         continue;
 
+      num_threads=omp_get_num_threads();
       q=GetImagePixelsEx(image,0,y,image->columns,1,&image->exception);
       if (q == (PixelPacket *) NULL)
         thread_status=MagickFail;
@@ -648,7 +652,14 @@ Classify(Image *image,short **extrema,
                     q[x]=image->colormap[indexes[x]];
                     classified=MagickTrue;
 
-                    if ((count > 0) &&
+		    /*
+		      Re-sort array so that most frequent occurs first.
+
+		      Updating cluster_array causes a multithread race
+		      condition so this chunk is only enabled in the
+		      case of one thread.
+		    */
+                    if ((num_threads == 1) && (count > 0) &&
                         (cluster_array[count]->count > cluster_array[count-1]->count))
                       {
                         Cluster
@@ -726,7 +737,7 @@ Classify(Image *image,short **extrema,
             thread_status=MagickFail;
         }
 #if defined(HAVE_OPENMP)
-#  pragma omp critical
+#  pragma omp critical (GM_Classify)
 #endif
       {
         row_count++;

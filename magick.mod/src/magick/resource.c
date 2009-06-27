@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2008 GraphicsMagick Group
+% Copyright (C) 2003, 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -704,6 +704,15 @@ MagickExport MagickPassFail ListMagickResourceInfo(FILE *file,
 
       fprintf(file,"%8s: %10s (MAGICK_LIMIT_%s)\n", heading, limit, environment);
     }
+#if defined(HAVE_OPENMP)
+  {
+    char
+      limit[MaxTextExtent];
+    
+    FormatString(limit,"%d",omp_get_max_threads());
+    fprintf(file,"%8s: %10s (OMP_NUM_THREADS)\n", "Threads", limit);
+  }
+#endif /* defined(HAVE_OPENMP) */
   (void) fflush(file);
 
   LiberateSemaphoreInfo(&resource_semaphore);

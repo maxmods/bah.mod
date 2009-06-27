@@ -49,6 +49,7 @@
 #include "magick/magick.h"
 #include "magick/module.h"
 #include "magick/pixel_cache.h"
+#include "magick/random.h"
 #include "magick/registry.h"
 #include "magick/resource.h"
 #include "magick/render.h"
@@ -121,6 +122,7 @@ MagickExport void DestroyMagick(void)
   DestroyConstitute();          /* Constitute semaphore */
   DestroyMagickRegistry();      /* Registered images */
   DestroyMagickResources();     /* Resource semaphore */
+  DestroyMagickRandomGenerator(); /* Random number generator */
   DestroyTemporaryFiles();      /* Temporary files */
 #if defined(MSWINDOWS)
   NTGhostscriptUnLoadDLL();     /* Ghostscript DLL */
@@ -507,6 +509,8 @@ MagickExport MagickInfo **GetMagickInfoArray(ExceptionInfo *exception)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  InitializeMagick() initializes the GraphicsMagick environment.
+%  InitializeMagick() MUST be invoked by the using program before making
+%  use of GraphicsMagick functions or else the library may be unstable.
 %
 %  The format of the InitializeMagick function is:
 %
@@ -861,13 +865,16 @@ MagickExport void InitializeMagick(const char *path)
   
   (void) setlocale(LC_ALL,"");
   (void) setlocale(LC_NUMERIC,"C");
-  
-  /* Seed the random number generator */
-  srand(time(0));
-  
+
   /* Initialize semaphores */
   InitializeSemaphore();
-  
+
+  /* Seed the random number generator */
+  srand(MagickRandNewSeed());
+
+  /* Initialize our random number generator */
+  InitializeMagickRandomGenerator();
+
   /*
     Set logging flags using the value of MAGICK_DEBUG if it is set in
     the environment.
@@ -906,6 +913,9 @@ MagickExport void InitializeMagick(const char *path)
      to the client is setup */
   InitializeMagickResources();
 
+  /* Initialize magick registry */
+  InitializeMagickRegistry();
+  
   /*
     Adjust minimum coder class if requested.
   */
@@ -1038,12 +1048,12 @@ MagickExport MagickPassFail ListMagickInfo(FILE *file,ExceptionInfo *exception)
         if (text != (char **) NULL)
           {
             register long
-              i;
+              j;
 
-            for (i=0; text[i] != (char *) NULL; i++)
+            for (j=0; text[j] != (char *) NULL; j++)
               {
-                (void) fprintf(file,"            %.1024s\n",text[i]);
-                MagickFreeMemory(text[i]);
+                (void) fprintf(file,"            %.1024s\n",text[j]);
+                MagickFreeMemory(text[j]);
               }
             MagickFreeMemory(text);
           }

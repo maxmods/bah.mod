@@ -24,7 +24,7 @@ typedef enum
 MagickExport void
   DestroyTemporaryFiles(void);
 
-MagickExport unsigned int
+MagickExport MagickPassFail
   AcquireTemporaryFileName(char *filename),
   LiberateTemporaryFile(char *filename);
 

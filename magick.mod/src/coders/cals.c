@@ -1,0 +1,386 @@
+/*
+% Copyright (C) 2009 GraphicsMagick Group
+%
+% This program is covered by multiple licenses, which are described in
+% Copyright.txt. You should have received a copy of Copyright.txt with this
+% package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%                          CCCC   AAA   L     SSSSS                           %
+%                         C      A   A  L     SS                              %
+%                         C      AAAAA  L       SSS                           %
+%                         C      A   A  L        SS                           %
+%                          CCCC  A   A  LLLLL SSSSS                           %
+%                                                                             %
+%                                                                             %
+%                      Read CALS (CALS type 1) format                         %
+%                                                                             %
+%                                                                             %
+%                              Software Design                                %
+%                               John Sergeant                                 %
+%                                  May 2009                                   %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+*/
+
+/*
+  Include declarations.
+*/
+#include "magick/studio.h"
+#include "magick/attribute.h"
+#include "magick/blob.h"
+#include "magick/constitute.h"
+#include "magick/magick.h"
+#include "magick/monitor.h"
+#include "magick/tempfile.h"
+#include "magick/utility.h"
+
+/* 
+   Write an unsigned long to file with Intel/LSB ordering
+*/
+static void CALS_WriteIntelULong(FILE *file,unsigned long ul)
+{
+  fputc((unsigned char)ul,file);
+  fputc((unsigned char)(ul >> 8),file);
+  fputc((unsigned char)(ul >> 16),file);
+  fputc((unsigned char)(ul >> 24),file);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   I s C A L S                                                               %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method IsCALS returns True if the image format type, identified by the
+%  magick string, is CAL.
+%
+%  The format of the IsCALS method is:
+%
+%      unsigned int IsCALS(const unsigned char *magick,const size_t length)
+%
+%  A description of each parameter follows:
+%
+%    o status:  Method IsCALS returns True if the image format type is CAL.
+%
+%    o magick: This string is generally the first few bytes of an image file
+%      or blob.
+%
+%    o length: Specifies the length of the magick string.
+%
+%
+*/
+static unsigned int IsCALS(const unsigned char *magick,const size_t length)
+{
+  if (length < 132)
+    return(False);
+  if (LocaleNCompare((char *) (magick),"version: MIL-STD-1840",21) == 0)
+    return(True);
+  if (LocaleNCompare((char *) (magick),"srcdocid:",9) == 0)
+    return(True);
+  if (LocaleNCompare((char *) (magick),"rorient:",8) == 0)
+    return(True);
+  return(False);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   R e a d C A L S I m a g e                                                 %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method ReadCALSImage reads a CALS type 1 image file and returns it. It
+%  allocates the memory necessary for the new Image structure and returns a
+%  pointer to the new image.
+%
+%  The format of the ReadCALSImage method is:
+%
+%      Image *ReadCALSImage(const ImageInfo *image_info,ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image:  Method ReadCALSImage returns a pointer to the image after
+%      reading.  A null image is returned if there is a memory shortage or
+%      if the image cannot be read.
+%
+%    o image_info: Specifies a pointer to a ImageInfo structure.
+%
+%    o exception: return any errors or warnings in this structure.
+%
+%
+*/
+static Image *ReadCALSImage(const ImageInfo *image_info,ExceptionInfo *exception)
+{
+  Image
+    *image;
+
+  long
+    y;
+	
+  char
+    record[129];  
+	
+  unsigned long
+    status,
+    width,
+    height,
+    rtype,
+    orient,
+    density;
+
+  char
+    filename[MaxTextExtent];
+
+  FILE
+    *file;
+
+  unsigned long
+    byte_count_pos,
+    strip_off_pos,
+    flen;
+		
+  int
+    c;
+
+  ImageInfo
+    *clone_info;
+
+  /*
+    Open image file.
+  */
+  assert(image_info != (const ImageInfo *) NULL);
+  assert(image_info->signature == MagickSignature);
+  assert(exception != (ExceptionInfo *) NULL);
+  assert(exception->signature == MagickSignature);
+  image=AllocateImage(image_info);
+  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
+  if (status == False)
+    ThrowReaderException(FileOpenError,UnableToOpenFile,image);
+
+  /*
+    Scan CAL header, record by record, looking for mandatory fields
+  */ 
+  rtype = 1;
+  width = height = 0;
+  orient = 1;
+  density = 200;
+  record[128]=0;
+  for (y = 0; y < 16; y++)
+    {
+      ReadBlob(image,128,(char *) record);
+      if (LocaleNCompare(record,"rtype:",6) == 0)
+	{ /* rtype */
+	  sscanf(record+6,"%ld",&rtype);
+	}
+      else
+	if (LocaleNCompare(record,"rorient:",8) == 0)
+	  { /* rorient */
+	    unsigned long
+	      pel_path_rot,
+	      line_rot;
+	  
+	    pel_path_rot = line_rot = 0;
+	    sscanf(record+8,"%ld,%ld",&pel_path_rot,&line_rot);
+	    switch (pel_path_rot)
+	      {
+	      case 90:
+		orient = 5;
+		break;
+	      case 180:
+		orient = 3;
+		break;
+	      case 270:
+		orient = 7;
+		break;
+	      default:
+		orient = 1;
+	      }
+	    if (line_rot == 90) orient++;
+	  }
+	else
+	  if (LocaleNCompare(record,"rpelcnt:",8) == 0)
+	    { /* replcnt */
+	      sscanf(record+8,"%ld,%ld",&width,&height);
+	    }
+	  else
+	    if (LocaleNCompare(record,"rdensty:",8) == 0)
+	      { /* rdensty */
+		sscanf(record+8,"%ld",&density);
+		if (!density) density = 200;
+	      }
+    }
+  if ((!width) || (!height) || (rtype != 1))
+    ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
+
+  /* Create TIFF wrapper to handle file data using TIFF library */
+  file=AcquireTemporaryFileStream(filename,BinaryFileIOMode);
+  if (file == (FILE *) NULL)
+    ThrowReaderTemporaryFileException(filename);
+	  
+  /* Intel TIFF with IFD at offset 8 - IFD has 14 records */
+  fwrite("\111\111\052\000\010\000\000\000\016\000",1,10,file);
+  /* New sub image - normal type */
+  fwrite("\376\000\003\000\001\000\000\000\000\000\000\000",1,12,file);
+  /* Image width */
+  fwrite("\000\001\004\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,width);
+  /* Image height */
+  fwrite("\001\001\004\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,height);
+  /* 1 bit per sample */
+  fwrite("\002\001\003\000\001\000\000\000\001\000\000\000",1,12,file);
+  /* CCITT Group 4 compression */
+  fwrite("\003\001\003\000\001\000\000\000\004\000\000\000",1,12,file);
+  /* Photometric interpretation MAX BLACK */
+  fwrite("\006\001\003\000\001\000\000\000\000\000\000\000",1,12,file);
+  /* Strip offset */
+  fwrite("\021\001\003\000\001\000\000\000",1,8,file);
+  strip_off_pos = 10 + (12 * 14) + 4 + 8;
+  CALS_WriteIntelULong(file,strip_off_pos);
+  /* Orientation */
+  fwrite("\022\001\003\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,orient);
+  /* 1 sample per pixel */
+  fwrite("\025\001\003\000\001\000\000\000\001\000\000\000",1,12,file);
+  /* Rows per strip (same as width) */
+  fwrite("\026\001\004\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,width);
+  /* Strip byte count */
+  fwrite("\027\001\004\000\001\000\000\000\000\000\000\000",1,12,file);
+  byte_count_pos = ftell(file)-4;
+  /* X resolution */
+  fwrite("\032\001\005\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,strip_off_pos-8);
+  /* Y resolution */
+  fwrite("\033\001\005\000\001\000\000\000",1,8,file);
+  CALS_WriteIntelULong(file,strip_off_pos-8);
+  /* Resolution unit is inch */
+  fwrite("\050\001\003\000\001\000\000\000\002\000\000\000",1,12,file);
+  /* Offset to next IFD ie end of images */
+  fwrite("\000\000\000\000",1,4,file);
+  /* Write X/Y resolution as rational data */
+  CALS_WriteIntelULong(file,density);
+  CALS_WriteIntelULong(file,1);
+	  
+  /* Copy image stream data */
+  flen = 0;
+  c=ReadBlobByte(image);
+  while (c != EOF)
+    {
+      flen++;
+      (void) fputc(c,file);
+      c=ReadBlobByte(image);
+    }
+      
+  /* Return to correct location and output strip byte count */
+  fseek(file,byte_count_pos,SEEK_SET);
+  CALS_WriteIntelULong(file,flen);
+
+  (void) fclose(file);
+  DestroyImage(image);
+  clone_info=CloneImageInfo(image_info);
+  clone_info->blob=(void *) NULL;
+  clone_info->length=0;
+  FormatString(clone_info->filename,"tiff:%.1024s",filename);
+  image=ReadImage(clone_info,exception);
+  (void) LiberateTemporaryFile(filename);
+  DestroyImageInfo(clone_info);
+  return(image);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   R e g i s t e r C A L S I m a g e                                         %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method RegisterCALSImage adds attributes for the CALS image format to
+%  the list of supported formats.  The attributes include the image format
+%  tag, a method to read and/or write the format, whether the format
+%  supports the saving of more than one frame to the same file or blob,
+%  whether the format supports native in-memory I/O, and a brief
+%  description of the format.
+%
+%  The format of the RegisterCALSImage method is:
+%
+%      RegisterCALSImage(void)
+%
+*/
+ModuleExport void RegisterCALSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  const char
+    *description = "Continuous Acquisition and Life-cycle Support Type 1 image",
+    *module      = "CALS",
+    *note        = "Specified in MIL-R-28002 and MIL-PRF-28002";
+
+  entry=SetMagickInfo("CAL");
+  entry->decoder=(DecoderHandler) ReadCALSImage;
+  entry->magick=(MagickHandler) IsCALS;
+  entry->adjoin=False;
+  entry->seekable_stream=True;
+  entry->description=description;
+  entry->note=note;
+  entry->module=module;
+  entry->stealth=MagickTrue;
+  (void) RegisterMagickInfo(entry);
+
+  entry=SetMagickInfo("CALS");
+  entry->decoder=(DecoderHandler) ReadCALSImage;
+  entry->magick=(MagickHandler) IsCALS;
+  entry->adjoin=False;
+  entry->seekable_stream=True;
+  entry->description=description;
+  entry->note=note;
+  entry->module=module;
+  (void) RegisterMagickInfo(entry);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%   U n r e g i s t e r C A L S I m a g e                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method UnregisterCALSImage removes format registrations made by the
+%  CAL module from the list of supported formats.
+%
+%  The format of the UnregisterCALSImage method is:
+%
+%      UnregisterCALSImage(void)
+%
+*/
+ModuleExport void UnregisterCALSImage(void)
+{
+  (void) UnregisterMagickInfo("CAL");
+  (void) UnregisterMagickInfo("CALS");
+}

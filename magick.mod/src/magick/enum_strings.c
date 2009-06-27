@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2008 GraphicsMagick Group
+% Copyright (C) 2008 - 2009 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -551,8 +551,67 @@ MagickExport CompressionType StringToCompressionType(const char *option)
 }
 
 /*
+  ConfirmAccessMode
+*/
+MagickExport const char *ConfirmAccessModeToString(const ConfirmAccessMode access_mode)
+{
+  const char
+    *mode_string="Undefined";
+
+  switch(access_mode)
+    {
+    case UndefinedConfirmAccessMode:
+      mode_string="Undefined";
+      break;
+    case FileExecuteConfirmAccessMode:
+      mode_string="Execute";
+      break;
+    case FileReadConfirmAccessMode:
+      mode_string="Read";
+      break;
+    case FileWriteConfirmAccessMode:
+      mode_string="Write";
+      break;
+    case URLGetFTPConfirmAccessMode:
+      mode_string="FTP Get";
+      break;
+    case URLGetFileConfirmAccessMode:
+      mode_string="FILE Get";
+      break;
+    case URLGetHTTPConfirmAccessMode:
+      mode_string="HTTP Get";
+      break;
+    }
+
+  return mode_string;
+}
+
+/*
   EndianType
 */
+MagickExport const char *EndianTypeToString(const EndianType endian_type)
+{
+  const char
+    *endian_string="Undefined";
+
+  switch (endian_type)
+    {
+    case UndefinedEndian:
+      endian_string="Undefined";
+      break;
+    case LSBEndian:
+      endian_string="LSB";
+      break;
+    case MSBEndian:
+      endian_string="MSB";
+      break;
+    case NativeEndian:
+      endian_string="Native";
+      break;
+    }
+
+  return endian_string;
+}
 MagickExport EndianType StringToEndianType(const char *option)
 {
   EndianType
@@ -775,6 +834,32 @@ MagickExport ImageType StringToImageType(const char *option)
 /*
   InterlaceType
 */
+MagickExport const char *InterlaceTypeToString(const InterlaceType interlace_type)
+{
+  const char
+    *interlace_string = "Undefined";
+
+  switch (interlace_type)
+    {
+    case UndefinedInterlace:
+      interlace_string = "Undefined";
+      break;
+    case NoInterlace:
+      interlace_string = "No";
+      break;
+    case LineInterlace:
+      interlace_string = "Line";
+      break;
+    case PlaneInterlace:
+      interlace_string = "Plane";
+      break;
+    case PartitionInterlace:
+      interlace_string = "Partition";
+      break;
+    }
+
+  return interlace_string;
+}
 MagickExport InterlaceType StringToInterlaceType(const char *option)
 {
   InterlaceType

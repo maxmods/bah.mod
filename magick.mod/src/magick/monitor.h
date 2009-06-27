@@ -7,7 +7,7 @@
   Copyright.txt. You should have received a copy of Copyright.txt with this
   package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
  
-  ImageMagick Progress Monitor Methods.
+  GraphicsMagick Progress Monitor Methods.
 */
 #ifndef _MAGICK_MONITOR_H
 #define _MAGICK_MONITOR_H
