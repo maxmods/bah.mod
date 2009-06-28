@@ -200,6 +200,10 @@ Extern
 	Function bmx_magick_image_getmagick:String(handle:Byte Ptr)
 	Function bmx_magick_image_matte(handle:Byte Ptr, matteFlag:Int)
 	Function bmx_magick_image_getmatte:Int(handle:Byte Ptr)
+	Function bmx_magick_image_opaquecc(handle:Byte Ptr, opaqueColor:Byte Ptr, penColor:Byte Ptr)
+	Function bmx_magick_image_opaquecs(handle:Byte Ptr, opaqueColor:Byte Ptr, penColor:String)
+	Function bmx_magick_image_opaquesc(handle:Byte Ptr, opaqueColor:String, penColor:Byte Ptr)
+	Function bmx_magick_image_opaquess(handle:Byte Ptr, opaqueColor:String, penColor:String)
 
 	
 	Function bmx_magick_blob_createfromdata:Byte Ptr(data:Byte Ptr, size:Int)
@@ -215,6 +219,34 @@ Extern
 
 	Function bmx_magick_drawable_drawablefont_create:Byte Ptr(font:String)
 	Function bmx_magick_drawable_drawablefont_delete(handle:Byte Ptr)
+
+	Function bmx_magick_geometry_create:Byte Ptr(geometry:String)
+	Function bmx_magick_geometry_createwithattributes:Byte Ptr(width:Int, height:Int, xOffset:Int, yOffset:Int, xNegative:Int, yNegative:Int)
+	Function bmx_magick_geometry_free(handle:Byte Ptr)
+	Function bmx_magick_geometry_setwidth(handle:Byte Ptr, width:Int)
+	Function bmx_magick_geometry_getwidth:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setheight(handle:Byte Ptr, height:Int)
+	Function bmx_magick_geometry_getheight:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setxoffset(handle:Byte Ptr, offset:Int)
+	Function bmx_magick_geometry_getxoffset:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setyoffset(handle:Byte Ptr, offset:Int)
+	Function bmx_magick_geometry_getyoffset:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setxnegative(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_isxnegative:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setynegative(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_isynegative:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setpercent(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_getpercent:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setaspect(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_getaspect:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setgreater(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_getgreater:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setless(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_getless:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_setisvalid(handle:Byte Ptr, value:Int)
+	Function bmx_magick_geometry_isvalid:Int(handle:Byte Ptr)
+	Function bmx_magick_geometry_tostring:String(handle:Byte Ptr)
+
 
 End Extern
 
@@ -773,3 +805,9 @@ Const FILLRULE_UNDEFINEDRULE:Int = 0
 Const FILLRULE_EVENODDRULE:Int = 1
 Const FILLRULE_NONZERORULE:Int = 2
 
+Const STORAGE_CHARPIXEL:Int = 0
+Const STORAGE_SHORTPIXEL:Int = 1
+Const STORAGE_INTEGERPIXEL:Int = 2
+Const STORAGE_LONGPIXEL:Int = 3
+Const STORAGE_FLOATPIXEL:Int = 4
+Const STORAGE_DOUBLEPIXEL:Int = 5

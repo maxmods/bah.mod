@@ -229,7 +229,12 @@ extern "C" {
 	BBString * bmx_magick_image_getmagick(MaxMImage * image);
 	void bmx_magick_image_matte(MaxMImage * image, int matteFlag);
 	int bmx_magick_image_getmatte(MaxMImage * image);
-	
+	void bmx_magick_image_opaquecc(MaxMImage * image, MaxMColor * opaqueColor, MaxMColor * penColor);
+	void bmx_magick_image_opaquecs(MaxMImage * image, MaxMColor * opaqueColor, BBString * penColor);
+	void bmx_magick_image_opaquesc(MaxMImage * image, BBString * opaqueColor, MaxMColor * penColor);
+	void bmx_magick_image_opaquess(MaxMImage * image, BBString * opaqueColor, BBString * penColor);
+
+
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
 
 	void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable, CoderInfo::MatchType isWritable, CoderInfo::MatchType isMultiFrame);
@@ -244,6 +249,35 @@ extern "C" {
 	DrawableFont * bmx_magick_drawable_drawablefont_create(BBString * font);
 	void bmx_magick_drawable_drawablefont_delete(DrawableFont * drawable);
 
+	MaxMGeometry * bmx_magick_geometry_create(BBString * geometry);
+	MaxMGeometry * bmx_magick_geometry_createwithattributes(unsigned int width, unsigned int height,
+		unsigned int xOffset, unsigned int yOffset, int xNegative, int yNegative);
+	void bmx_magick_geometry_free(MaxMGeometry * geom);
+	void bmx_magick_geometry_setwidth(MaxMGeometry * geom, unsigned int width);
+	unsigned int bmx_magick_geometry_getwidth(MaxMGeometry * geom);
+	void bmx_magick_geometry_setheight(MaxMGeometry * geom, unsigned int height);
+	unsigned int bmx_magick_geometry_getheight(MaxMGeometry * geom);
+	void bmx_magick_geometry_setxoffset(MaxMGeometry * geom, unsigned int offset);
+	unsigned int bmx_magick_geometry_getxoffset(MaxMGeometry * geom);
+	void bmx_magick_geometry_setyoffset(MaxMGeometry * geom, unsigned int offset);
+	unsigned int bmx_magick_geometry_getyoffset(MaxMGeometry * geom);
+	void bmx_magick_geometry_setxnegative(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_isxnegative(MaxMGeometry * geom);
+	void bmx_magick_geometry_setynegative(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_isynegative(MaxMGeometry * geom);
+	void bmx_magick_geometry_setpercent(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_getpercent(MaxMGeometry * geom);
+	void bmx_magick_geometry_setaspect(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_getaspect(MaxMGeometry * geom);
+	void bmx_magick_geometry_setgreater(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_getgreater(MaxMGeometry * geom);
+	void bmx_magick_geometry_setless(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_getless(MaxMGeometry * geom);
+	void bmx_magick_geometry_setisvalid(MaxMGeometry * geom, int value);
+	int bmx_magick_geometry_isvalid(MaxMGeometry * geom);
+	BBString * bmx_magick_geometry_tostring(MaxMGeometry * geom);
+
+	
 }
 
 
@@ -278,6 +312,17 @@ class MaxMGeometry
 public:
 	MaxMGeometry()
 		: magickGeometry()
+	{
+	}
+
+	MaxMGeometry(char * geom)
+		: magickGeometry(geom)
+	{
+	}
+
+	MaxMGeometry(unsigned int width, unsigned int height, unsigned int xOff, unsigned int yOff, 
+			int xNegative, int yNegative)
+		: magickGeometry(width, height, xOff, yOff, static_cast<bool>(xNegative), static_cast<bool>(yNegative))
 	{
 	}
 	
@@ -1855,6 +1900,46 @@ int bmx_magick_image_getmatte(MaxMImage * image) {
 	}
 }
 
+void bmx_magick_image_opaquecc(MaxMImage * image, MaxMColor * opaqueColor, MaxMColor * penColor) {
+	try {
+		image->image().opaque(opaqueColor->color(), penColor->color());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_opaquecs(MaxMImage * image, MaxMColor * opaqueColor, BBString * penColor) {
+	try {
+		char * p = bbStringToCString(penColor);
+		image->image().opaque(opaqueColor->color(), p);
+		bbMemFree(p);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_opaquesc(MaxMImage * image, BBString * opaqueColor, MaxMColor * penColor) {
+	try {
+		char * o = bbStringToCString(opaqueColor);
+		image->image().opaque(o, penColor->color());
+		bbMemFree(o);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_opaquess(MaxMImage * image, BBString * opaqueColor, BBString * penColor) {
+	try {
+		char * o = bbStringToCString(opaqueColor);
+		char * p = bbStringToCString(penColor);
+		image->image().opaque(o, p);
+		bbMemFree(o);
+		bbMemFree(p);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1946,6 +2031,118 @@ DrawableFont * bmx_magick_drawable_drawablefont_create(BBString * font) {
 
 void bmx_magick_drawable_drawablefont_delete(DrawableFont * drawable) {
 	delete drawable;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+void bmx_magick_geometry_setwidth(MaxMGeometry * geom, unsigned int width) {
+	geom->geometry().width(width);
+}
+
+unsigned int bmx_magick_geometry_getwidth(MaxMGeometry * geom) {
+	return geom->geometry().width();
+}
+
+void bmx_magick_geometry_setheight(MaxMGeometry * geom, unsigned int height) {
+	geom->geometry().height(height);
+}
+
+unsigned int bmx_magick_geometry_getheight(MaxMGeometry * geom) {
+	return geom->geometry().height();
+}
+
+void bmx_magick_geometry_setxoffset(MaxMGeometry * geom, unsigned int offset) {
+	geom->geometry().xOff(offset);
+}
+
+unsigned int bmx_magick_geometry_getxoffset(MaxMGeometry * geom) {
+	return geom->geometry().xOff();
+}
+
+void bmx_magick_geometry_setyoffset(MaxMGeometry * geom, unsigned int offset) {
+	geom->geometry().yOff(offset);
+}
+
+unsigned int bmx_magick_geometry_getyoffset(MaxMGeometry * geom) {
+	return geom->geometry().yOff();
+}
+
+void bmx_magick_geometry_setxnegative(MaxMGeometry * geom, int value) {
+	geom->geometry().xNegative(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_isxnegative(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().xNegative());
+}
+
+void bmx_magick_geometry_setynegative(MaxMGeometry * geom, int value) {
+	geom->geometry().yNegative(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_isynegative(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().yNegative());
+}
+
+void bmx_magick_geometry_setpercent(MaxMGeometry * geom, int value) {
+	geom->geometry().percent(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_getpercent(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().percent());
+}
+
+void bmx_magick_geometry_setaspect(MaxMGeometry * geom, int value) {
+	geom->geometry().aspect(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_getaspect(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().aspect());
+}
+
+void bmx_magick_geometry_setgreater(MaxMGeometry * geom, int value) {
+	geom->geometry().greater(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_getgreater(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().greater());
+}
+
+void bmx_magick_geometry_setless(MaxMGeometry * geom, int value) {
+	geom->geometry().less(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_getless(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().less());
+}
+
+void bmx_magick_geometry_setisvalid(MaxMGeometry * geom, int value) {
+	geom->geometry().isValid(static_cast<bool>(value));
+}
+
+int bmx_magick_geometry_isvalid(MaxMGeometry * geom) {
+	return static_cast<int>(geom->geometry().isValid());
+}
+
+BBString * bmx_magick_geometry_tostring(MaxMGeometry * geom) {
+	std::string s(geom->geometry());
+	return bbStringFromCString(s.c_str());
+}
+
+
+void bmx_magick_geometry_free(MaxMGeometry * geom) {
+	delete geom;
+}
+
+MaxMGeometry * bmx_magick_geometry_create(BBString * geometry) {
+	char * g = bbStringToCString(geometry);
+	MaxMGeometry * m = new MaxMGeometry(g);
+	bbMemFree(g);
+	return m;
+}
+
+MaxMGeometry * bmx_magick_geometry_createwithattributes(unsigned int width, unsigned int height,
+		unsigned int xOffset, unsigned int yOffset, int xNegative, int yNegative) {
+	return new MaxMGeometry(width, height, xOffset, yOffset, xNegative, yNegative);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

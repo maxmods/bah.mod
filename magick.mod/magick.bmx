@@ -189,7 +189,7 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Function CreateFromPixmap:TMImage(pixmap:TPixmap)
-	
+	' TODO
 	End Function
 
 	'internal method
@@ -280,8 +280,10 @@ Type TMImage
 	Method annotate(text:String, location:Object )
 		If TMGeometry(location) Then
 			bmx_magick_image_annotate(imagePtr, text, TMGeometry(location).geometryPtr)
+			imageChanged = True
 		Else If String(location) Then
 			bmx_magick_image_annotatetxt(imagePtr, text, String(location))
+			imageChanged = True
 		End If
 	End Method
 	
@@ -420,6 +422,7 @@ Type TMImage
 	End Rem
 	Method contrast(sharpen:Int)
 		bmx_magick_image_contrast(imagePtr, sharpen)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -447,6 +450,7 @@ Type TMImage
 	End Rem
 	Method cycleColormap(amount:Int)
 		bmx_magick_image_cyclecolormap(imagePtr, amount)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -458,10 +462,11 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Draw shape or text on image using a single drawable object.
 	End Rem
 	Method draw(drawable:TMDrawable)
 		bmx_magick_image_draw(imagePtr, drawable.drawablePtr)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -532,21 +537,27 @@ Type TMImage
 			If TMColor(borderColor) Then
 				If TMColor(fillColor) Then
 					bmx_magick_image_floodfillcolorcc(imagePtr, x, y, TMColor(fillColor).colorPtr, TMColor(borderColor).colorPtr)
+					imageChanged = True
 				ElseIf String(fillColor) Then
 					bmx_magick_image_floodfillcolorsc(imagePtr, x, y, String(fillColor), TMColor(borderColor).colorPtr)
+					imageChanged = True
 				End If
 			ElseIf String(borderColor) Then
 				If TMColor(fillColor) Then
 					bmx_magick_image_floodfillcolorcs(imagePtr, x, y, TMColor(fillColor).colorPtr, String(borderColor))
+					imageChanged = True
 				ElseIf String(fillColor) Then
 					bmx_magick_image_floodfillcolorss(imagePtr, x, y, String(fillColor), String(borderColor))
+					imageChanged = True
 				End If
 			End If
 		Else
 			If TMColor(fillColor) Then
 				bmx_magick_image_floodfillcolorcc(imagePtr, x, y, TMColor(fillColor).colorPtr, Null)
+				imageChanged = True
 			ElseIf String(fillColor) Then
 				bmx_magick_image_floodfillcolorsc(imagePtr, x, y, String(fillColor), Null)
+				imageChanged = True
 			End If
 		End If
 	End Method
@@ -576,21 +587,24 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Draw a decorative frame around the image.
 	End Rem
 	Method frame(geometry:Object)
 		If TMGeometry(geometry) Then
 			bmx_magick_image_frame(imagePtr, TMGeometry(geometry).geometryPtr)
+			imageChanged = True
 		ElseIf String(geometry)
 			bmx_magick_image_frametxt(imagePtr, String(geometry))
+			imageChanged = True
 		End If
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Draw a decorative frame with bevel around the image.
 	End Rem
 	Method frameBevel(width:Int, height:Int, innerBevel:Int = 6, outerBevel:Int = 6)
 		bmx_magick_image_framebevel(imagePtr, width, height, innerBevel, outerBevel)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -598,6 +612,7 @@ Type TMImage
 	End Rem
 	Method Gamma(g:Double)
 		bmx_magick_image_gamma(imagePtr, g)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -605,6 +620,7 @@ Type TMImage
 	End Rem
 	Method gammaRGB(r:Double, g:Double, b:Double)
 		bmx_magick_image_gammargb(imagePtr, r, g, b)
+		imageChanged = True
 	End Method
 
 	Rem
@@ -615,6 +631,7 @@ Type TMImage
 	End Rem
 	Method gaussianBlur(width:Double, sigma:Double)
 		bmx_magick_image_gaussianblur(imagePtr, width, sigma)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -625,6 +642,7 @@ Type TMImage
 	End Rem
 	Method gaussianBlurChannel(channel:Int, width:Double = 0.0, sigma:Double = 1.0)
 		bmx_magick_image_gaussianblurchannel(imagePtr, channel, width, sigma)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -632,6 +650,7 @@ Type TMImage
 	End Rem
 	Method implode(factor:Double)
 		bmx_magick_image_implode(imagePtr, factor)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -656,6 +675,7 @@ Type TMImage
 	End Rem
 	Method level(blackPoint:Double, whitePoint:Double, midPoint:Double = 1.0)
 		bmx_magick_image_level(imagePtr, blackPoint, whitePoint, midPoint)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -669,6 +689,7 @@ Type TMImage
 	End Rem
 	Method levelChannel(channel:Int, blackPoint:Double, whitePoint:Double, midPoint:Double = 1.0)
 		bmx_magick_image_levelchannel(imagePtr, channel, blackPoint, whitePoint, midPoint)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -676,6 +697,7 @@ Type TMImage
 	End Rem
 	Method magnify()
 		bmx_magick_image_magnify(imagePtr)
+		imageChanged = True
 	End Method
 	
 	Method map(mapImage:TMImage, dither:Int = False)
@@ -691,6 +713,7 @@ Type TMImage
 	End Rem
 	Method medianFilter(radius:Double = 0.0)
 		bmx_magick_image_medianfilter(imagePtr, radius)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -698,6 +721,7 @@ Type TMImage
 	End Rem
 	Method minify()
 		bmx_magick_image_minify(imagePtr)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -718,6 +742,7 @@ Type TMImage
 	End Rem
 	Method modulate(brightness:Double, saturation:Double, hue:Double)
 		bmx_magick_image_modulate(imagePtr, brightness, saturation, hue)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -728,6 +753,7 @@ Type TMImage
 	End Rem
 	Method motionBlur(radius:Double, sigma:Double, angle:Double)
 		bmx_magick_image_motionblur(imagePtr, radius, sigma, angle)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -737,6 +763,7 @@ Type TMImage
 	End Rem
 	Method negate(grayscale:Int = False)
 		bmx_magick_image_negate(imagePtr, grayscale)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -744,10 +771,11 @@ Type TMImage
 	End Rem
 	Method normalize()
 		bmx_magick_image_normalize(imagePtr)
+		imageChanged = True
 	End Method
 	
 	Rem
-	bbdoc: Oilpaint image (image looks like oil painting).
+	bbdoc: Oilpaints image (image looks like oil painting).
 	End Rem
 	Method oilPaint(radius:Double = 3.0)
 		bmx_magick_image_oilpaint(imagePtr, radius)
@@ -755,7 +783,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: Set or attenuate the opacity channel in the image.
+	bbdoc: Sets or attenuates the opacity channel in the image.
 	about: If the image pixels are opaque then they are set to the specified opacity value, otherwise
 	they are blended with the supplied opacity value.  The value of @opacity ranges from 0
 	(completely opaque) to MaxRGB . The defines OpaqueOpacity and TransparentOpacity are available
@@ -766,8 +794,23 @@ Type TMImage
 		imageChanged = True
 	End Method
 	
+	Rem
+	bbdoc: Changes color of specified opaque pixel to specified pen color
+	End Rem
 	Method opaque(opaqueColor:Object, penColor:Object)
-	'TODO
+		If TMColor(opaqueColor) Then
+			If TMColor(penColor) Then
+				bmx_magick_image_opaquecc(imagePtr, TMColor(opaqueColor).colorPtr, TMColor(penColor).colorPtr)
+			ElseIf String(penColor) Then
+				bmx_magick_image_opaquecs(imagePtr, TMColor(opaqueColor).colorPtr, String(penColor))
+			End If
+		ElseIf String(opaqueColor)
+			If TMColor(penColor) Then
+				bmx_magick_image_opaquesc(imagePtr, String(opaqueColor), TMColor(penColor).colorPtr)
+			ElseIf String(penColor) Then
+				bmx_magick_image_opaquess(imagePtr, String(opaqueColor), String(penColor))
+			End If
+		End If
 	End Method
 	
 	Rem
@@ -792,7 +835,8 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Reads single image frame into current object.
+	about: Use #ping instead if you want to obtain the basic attributes of the image without reading the whole file.
 	End Rem
 	Method read(imageSpec:String)
 		bmx_magick_image_read(imagePtr, imageSpec)
@@ -800,7 +844,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Reads single image frame of specified size into current object.
 	End Rem
 	Method readGeom(geometry:Object, imageSpec:String)
 		If TMGeometry(geometry) Then
@@ -811,12 +855,25 @@ Type TMImage
 			imageChanged = True
 		End If
 	End Method
+
+	Method readBlob(blob:TMBlob)
+	' TODO
+	End Method
+	
+	Method readBlobGeom(geometry:Object, blob:TMBlob)
+	' TODO
+	End Method
+	
+	Method readPixels(pixels:Byte Ptr, width:Int, height:Int, map:String, storageType:Int = STORAGE_CHARPIXEL)
+	' TODO
+	End Method
 	
 	Rem
 	bbdoc: Reduces noise in image using a noise peak elimination filter.
 	End Rem
 	Method reduceNoise(order:Double = 3.0)
 		bmx_magick_image_reducenoise(imagePtr, order)
+		imageChanged = True
 	End Method
 	
 	Method randomThreshold(thresholds:Object)
@@ -832,10 +889,11 @@ Type TMImage
 	End Rem
 	Method roll(columns:Int, rows:Int)
 		bmx_magick_image_roll(imagePtr, columns, rows)
+		imageChanged = True
 	End Method
 	
 	Rem
-	bbdoc: Rotate image counter-clockwise by specified number of degrees.
+	bbdoc: Rotates image counter-clockwise by specified number of degrees.
 	End Rem
 	Method rotate(degrees:Double)
 		bmx_magick_image_rotate(imagePtr, degrees)
@@ -861,6 +919,7 @@ Type TMImage
 	End Rem
 	Method shade(azimuth:Double = 30, elevation:Double = 30, colorShading:Int = False)
 		bmx_magick_image_shade(imagePtr, azimuth, elevation, colorShading)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -870,6 +929,7 @@ Type TMImage
 	End Rem
 	Method sharpen(radius:Double = 1.0, sigma:Double = 0.5)
 		bmx_magick_image_sharpen(imagePtr, radius, sigma)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -880,6 +940,7 @@ Type TMImage
 	End Rem
 	Method sharpenChannel(channel:Int, radius:Double = 0.0, sigma:Double = 1.0)
 		bmx_magick_image_sharpenchannel(imagePtr, channel, radius, sigma)
+		imageChanged = True
 	End Method
 	
 	Method shave(geometry:Object)
@@ -896,6 +957,7 @@ Type TMImage
 	End Rem
 	Method shear(xShearAngle:Double, yShearAngle:Double)
 		bmx_magick_image_shear(imagePtr, xShearAngle, yShearAngle)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -903,6 +965,7 @@ Type TMImage
 	End Rem
 	Method solarize(factor:Double = 50.0)
 		bmx_magick_image_solarize(imagePtr, factor)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -910,6 +973,7 @@ Type TMImage
 	End Rem
 	Method spread(amount:Int = 3)
 		bmx_magick_image_spread(imagePtr, amount)
+		imageChanged = True
 	End Method
 	
 	Method stegano(watermark:TMImage)
@@ -925,6 +989,7 @@ Type TMImage
 	End Rem
 	Method swirl(degrees:Double)
 		bmx_magick_image_swirl(imagePtr, degrees)
+		imageChanged = True
 	End Method
 	
 	Method texture(txt:TMImage)
@@ -936,6 +1001,7 @@ Type TMImage
 	End Rem
 	Method threshold(value:Double)
 		bmx_magick_image_threshold(imagePtr, value)
+		imageChanged = True
 	End Method
 	
 	Method transform(imageGeometry:Object, cropGeometry:Object = Null)
@@ -951,6 +1017,7 @@ Type TMImage
 	End Rem
 	Method Trim()
 		bmx_magick_image_trim(imagePtr)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -962,6 +1029,7 @@ Type TMImage
 	End Rem
 	Method unsharpmask(radius:Double, sigma:Double, amount:Double, threshold:Double)
 		bmx_magick_image_unsharpmask(imagePtr, radius, sigma, amount, threshold)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -974,6 +1042,7 @@ Type TMImage
 	End Rem
 	Method unsharpmaskChannel(channel:Int, radius:Double, sigma:Double, amount:Double, threshold:Double)
 		bmx_magick_image_unsharpmaskchannel(imagePtr, channel, radius, sigma, amount, threshold)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -981,6 +1050,7 @@ Type TMImage
 	End Rem
 	Method wave(amplitude:Double = 25.0, wavelength:Double = 150.0)
 		bmx_magick_image_wave(imagePtr, amplitude, wavelength)
+		imageChanged = True
 	End Method
 	
 	Rem
@@ -2017,7 +2087,8 @@ Type TMImage
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Geometry provides a convenient means to specify a geometry argument.
+about: 
 End Rem
 Type TMGeometry
 
@@ -2034,104 +2105,199 @@ Type TMGeometry
 	Rem
 	bbdoc: 
 	End Rem
+	Function CreateGeometry:TMGeometry(geometry:String)
+		Return New TMGeometry.Create(geometry)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
 	Method Create:TMGeometry(geometry:String)
-	' TODO
+		geometryPtr = bmx_magick_geometry_create(geometry)
+		Return Self
 	End Method
 	
-	Method CreateAttr:TMGeometry(width:Int, height:Int, xOffset:Int = 0, yOffset:Int = 0, xNegative:Int = False, yNegative:Int = False)
-	' TODO
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateGeometryWithAttributes:TMGeometry(width:Int, height:Int, xOffset:Int = 0, yOffset:Int = 0, xNegative:Int = False, yNegative:Int = False)
+		Return New TMGeometry.CreateWithAttributes(width, height, xOffset, yOffset, xNegative, yNegative)
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method CreateWithAttributes:TMGeometry(width:Int, height:Int, xOffset:Int = 0, yOffset:Int = 0, xNegative:Int = False, yNegative:Int = False)
+		geometryPtr = bmx_magick_geometry_createwithattributes(width, height, xOffset, yOffset, xNegative, yNegative)
+		Return Self
 	End Method
 	
+	Rem
+	bbdoc: Sets the geometry width.
+	End Rem
 	Method setWidth(width:Int)
-	' TODO
+		bmx_magick_geometry_setwidth(geometryPtr, width)
 	End Method
 	
+	Rem
+	bbdoc: Returns the geometry width.
+	End Rem
 	Method getWidth:Int()
-	' TODO
+		Return bmx_magick_geometry_getwidth(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the geometry height.
+	End Rem
 	Method setHeight(height:Int)
-	' TODO
+		bmx_magick_geometry_setheight(geometryPtr, height)
 	End Method
 	
+	Rem
+	bbdoc: Returns the geometry height.
+	End Rem
 	Method getHeight:Int()
-	' TODO
+		Return bmx_magick_geometry_getheight(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the X offset from origin.
+	End Rem
 	Method setXOffset(offset:Int)
-	' TODO
+		bmx_magick_geometry_setxoffset(geometryPtr, offset)
 	End Method
 	
+	Rem
+	bbdoc: Returns the X offset from origin.
+	End Rem
 	Method getXOffset:Int()
-	' TODO
+		Return bmx_magick_geometry_getxoffset(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets the Y offset from origin.
+	End Rem
 	Method setYOffset(offset:Int)
-	' TODO
+		bmx_magick_geometry_setyoffset(geometryPtr, offset)
 	End Method
 	
+	Rem
+	bbdoc: Returns the Y offset from origin.
+	End Rem
 	Method getYOffset:Int()
-	' TODO
+		Return bmx_magick_geometry_getyoffset(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether the sign of X offset negative. (X origin at right).
+	End Rem
 	Method setXNegative(value:Int)
-	' TODO
+		bmx_magick_geometry_setxnegative(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether the sign of X offset negative. (X origin at right).
+	End Rem
 	Method isXNegative:Int()
-	' TODO
+		Return bmx_magick_geometry_isxnegative(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether sign of Y offset negative. (Y origin at bottom).
+	End Rem
 	Method setYNegative(value:Int)
-	' TODO
+		bmx_magick_geometry_setynegative(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether sign of Y offset negative. (Y origin at bottom).
+	End Rem
 	Method isYNegative:Int()
-	' TODO
+		Return bmx_magick_geometry_isynegative(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether width and height are expressed as percentages.
+	End Rem
 	Method setPercent(value:Int)
-	' TODO
+		bmx_magick_geometry_setpercent(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether width and height are expressed as percentages.
+	End Rem
 	Method getPercent:Int()
-	' TODO
+		Return bmx_magick_geometry_getpercent(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether resize preserves aspect ratio.
+	End Rem
 	Method setAspect(value:Int)
-	' TODO
+		bmx_magick_geometry_setaspect(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether resize preserves aspect ratio.
+	End Rem
 	Method getAspect:Int()
-	' TODO
+		Return bmx_magick_geometry_getaspect(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether to resize if image is greater than size.
+	End Rem
 	Method setGreater(value:Int)
-	' TODO
+		bmx_magick_geometry_setgreater(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether to resize if image is greater than size.
+	End Rem
 	Method getGreater:Int()
-	' TODO
+		Return bmx_magick_geometry_getgreater(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: Sets whether to resize if image is less than size.
+	End Rem
 	Method setLess(value:Int)
-	' TODO
+		bmx_magick_geometry_setless(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether to resize if image is less than size.
+	End Rem
 	Method getLess:Int()
-	' TODO
+		Return bmx_magick_geometry_getless(geometryPtr)
 	End Method
 	
+	Rem
+	bbdoc: May be set to False in order to invalidate an existing geometry object.
+	End Rem
 	Method setIsValid(value:Int)
-	' TODO
+		bmx_magick_geometry_setisvalid(geometryPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Does object contain a valid geometry?
+	End Rem
 	Method isValid:Int()
-	' TODO
+		Return bmx_magick_geometry_isvalid(geometryPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns a String representation of the geometry.
+	End Rem
 	Method toString:String()
-	' TODO
+		Return bmx_magick_geometry_tostring(geometryPtr)
+	End Method
+	
+	Method Delete()
+		If geometryPtr Then
+			bmx_magick_geometry_free(geometryPtr)
+			geometryPtr = Null
+		End If
 	End Method
 	
 End Type
