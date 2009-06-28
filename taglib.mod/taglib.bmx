@@ -27,7 +27,7 @@ ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
 ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (TagLib 1.5 SVN rev 960714)"
+ModuleInfo "History: 1.00 Initial Release (TagLib 1.5 SVN rev 988793)"
 
 ModuleInfo "CC_OPTS: -DHAVE_ZLIB -DWITH_MP4 -DWITH_ASF"
 
@@ -37,6 +37,12 @@ Import "common.bmx"
 ' Build notes :
 '
 ' taglib_export.h - added  "&& !defined(__MINGW32__)" to ifdef.
+'
+' Passing Strings between BlitzMax and library :
+'   Strings should be converted to UTF-8 :
+'          TagLib::String(the_converted_bbstring_to_utf8, TagLib::String::UTF8)
+'
+'   String returning from library, should be converted from utf8.
 '
 
 Rem
@@ -54,14 +60,18 @@ Type TTLFileRef
 	Field fileRefPtr:Byte Ptr
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a TTLFileRef from @filename.
+	about: If @readAudioProperties is True then the audio properties will be read using @audioPropertiesStyle.
+	If @readAudioProperties is False then @audioPropertiesStyle will be ignored.
 	End Rem
 	Function CreateFileRef:TTLFileRef(filename:String, readAudioProperties:Int = True, audioPropertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
 		Return New TTLFileRef.Create(filename, readAudioProperties, audioPropertiesStyle)
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Creates a TTLFileRef from @filename.
+	about: If @readAudioProperties is True then the audio properties will be read using @audioPropertiesStyle.
+	If @readAudioProperties is False then @audioPropertiesStyle will be ignored.
 	End Rem
 	Method Create:TTLFileRef(filename:String, readAudioProperties:Int = True, audioPropertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
 		fileRefPtr = bmx_taglib_fileref_create(filename, readAudioProperties, audioPropertiesStyle)
@@ -193,7 +203,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setTitle(value:String)
-		bmx_taglib_tag_settitle(tagPtr, stringToUTF8String(value))
+		bmx_taglib_tag_settitle(tagPtr, value)
 	End Method
 	
 	Rem
@@ -201,7 +211,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setArtist(value:String)
-		bmx_taglib_tag_setartist(tagPtr, stringToUTF8String(value))
+		bmx_taglib_tag_setartist(tagPtr, value)
 	End Method
 	
 	Rem
@@ -209,7 +219,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setAlbum(value:String)
-		bmx_taglib_tag_setalbum(tagPtr, stringToUTF8String(value))
+		bmx_taglib_tag_setalbum(tagPtr, value)
 	End Method
 	
 	Rem
@@ -217,7 +227,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setComment(value:String)
-		bmx_taglib_tag_setcomment(tagPtr, stringToUTF8String(value))
+		bmx_taglib_tag_setcomment(tagPtr, value)
 	End Method
 	
 	Rem
@@ -225,7 +235,7 @@ Type TTLTag
 	about: If @value is Null then this value will be cleared.
 	End Rem
 	Method setGenre(value:String)
-		bmx_taglib_tag_setgenre(tagPtr, stringToUTF8String(value))
+		bmx_taglib_tag_setgenre(tagPtr, value)
 	End Method
 	
 	Rem
@@ -573,7 +583,11 @@ Type TTLID3v2Tag Extends TTLTag
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the tag's header.
+	End Rem
 	Method header:TTLID3v2Header()
+		Return TTLID3v2Header(bmx_taglib_id3v2tag_header(tagPtr))
 	End Method
 	
 	Method extendedHeader:TTLID3v2ExtendedHeader()
@@ -582,10 +596,10 @@ Type TTLID3v2Tag Extends TTLTag
 	Method footer:TTLID3v2Footer()
 	End Method
 	
-	Method frameListMap:TMap()
+	Method frameListMap:TTLID3v2FrameListMap()
 	End Method
 	
-	Method frameList:TList()
+	Method frameList:TTLID3v2FrameList()
 	End Method
 	
 	Method addFrame(frame:TTLID3v2Frame)
@@ -593,6 +607,21 @@ Type TTLID3v2Tag Extends TTLTag
 	
 	Method removeFrame(frame:TTLID3v2Frame, del:Int = True)
 	End Method
+
+End Type
+
+
+Type TTLID3v2FrameList
+
+	Field frameListPtr:Byte Ptr
+	
+	
+
+End Type
+
+Type TTLID3v2FrameListMap
+
+	Field listMapPtr:Byte Ptr
 
 End Type
 
@@ -620,6 +649,12 @@ Type TTLAPETag Extends TTLTag
 
 End Type
 
+Rem
+bbdoc: An implementation of ID3v2 headers.
+about: It attempts to follow, both semantically and programatically, the structure specified in the ID3v2 standard. The
+API is based on the properties of ID3v2 headers specified there. If any of the terms used in this documentation are unclear
+please check the specification in the linked section. (Structure, 3.1)
+End Rem
 Type TTLID3v2Header
 
 	Field headerPtr:Byte Ptr
@@ -632,34 +667,75 @@ Type TTLID3v2Header
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the major version number.
+	abotu: Note: This is the 4, not the 2 in ID3v2.4.0. The 2 is implied.
+	End Rem
 	Method majorVersion:Int()
+		Return bmx_taglib_id3v2header_majorversion(headerPtr)
 	End Method
 	
-	Method setMajorVersion(version:Int)
-	End Method
-
+	Rem
+	bbdoc: Returns the revision number.
+	about: Note: This is the 0, not the 4 in ID3v2.4.0. The 2 is implied.
+	End Rem
 	Method revisionNumber:Int()
+		Return bmx_taglib_id3v2header_revisionnumber(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns True if unsynchronisation has been applied to all frames.
+	End Rem
 	Method unsynchronisation:Int()
+		Return bmx_taglib_id3v2header_unsynchronisation(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns True if an extended header is present in the tag.
+	End Rem
 	Method extendedHeader:Int()
+		Return bmx_taglib_id3v2header_extendedheader(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns True if the experimental indicator flag is set.
+	End Rem
 	Method experimentalIndicator:Int()
+		Return bmx_taglib_id3v2header_experimentalindicator(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns True if a footer is present in the tag.
+	End Rem
 	Method footerPresent:Int()
+		Return bmx_taglib_id3v2header_footerpresent(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the tag size in bytes.
+	about: This is the size of the frame content. The size of the entire tag will be this plus the header size
+	(10 bytes) and, if present, the footer size (potentially another 10 bytes).
+	<p>
+	This is the value as read from the header to which TagLib attempts to provide an API to; it was not a design decision on
+	the part of TagLib to not include the mentioned portions of the tag in the size.
+	</p>
+	End Rem
 	Method tagSize:Int()
+		Return bmx_taglib_id3v2header_tagsize(headerPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns the tag size, including the header and, if present, the footer size.
+	End Rem
 	Method completeTagSize:Int()
+		Return bmx_taglib_id3v2header_completetagsize(headerPtr)
 	End Method
 
-	Method setTagSize(s:Int)
+	Rem
+	bbdoc: Sets the tag size to @size.
+	End Rem
+	Method setTagSize(size:Int)
+		bmx_taglib_id3v2header_settagsize(headerPtr, size)
 	End Method
 
 	'Method setData(Const ByteVector &data)
@@ -675,6 +751,12 @@ Type TTLID3v2Footer
 
 End Type
 
+Rem
+bbdoc: ID3v2 frame implementation.
+about: In ID3v2, a tag is split between a collection of frames (which are in turn split into fields (Structure, 4) (Frames). This type
+provides an API for gathering information about and modifying ID3v2 frames. Funtionallity specific to a given frame
+type is handed in one of the many subtypes.
+End Rem
 Type TTLID3v2Frame Extends TTLID3v2Header
 
 	Function _create:TTLID3v2Frame(headerPtr:Byte Ptr)
@@ -685,6 +767,65 @@ Type TTLID3v2Frame Extends TTLID3v2Header
 		End If
 	End Function
 
+	Method size:Int()
+	End Method
+	
+	Method setData(data:TTLByteVector)
+	End Method
+	
+	Method setText(text:String)
+	End Method
+	
+	Method toString:String()
+	End Method
+	
+	Method frameID:TTLByteVector()
+	End Method
+	
+	Method setFrameID(id:TTLByteVector)
+	End Method
+	
+	Method frameSize:Int()
+	End Method
+	
+	Method setFrameSize(size:Int)
+	End Method
+	
+	Method version:Int()
+	End Method
+	
+	Method tagAlterPreservation:Int()
+	End Method
+	
+	Method setTagAlterPreservation(discard:Int)
+	End Method
+	
+	Method fileAlterPreservation:Int()
+	End Method
+	
+	Method readOnly:Int()
+	End Method
+	
+	Method groupingIdentity:Int()
+	End Method
+	
+	Method compression:Int()
+	End Method
+	
+	Method encryption:Int()
+	End Method
+	
+	Method unsynchronisation:Int()
+	End Method
+	
+	Method dataLengthIndicator:Int()
+	End Method
+	
+	Method render:TTLByteVector()
+	End Method
+	
+	Method frameAlterPreservation:Int()
+	End Method
 
 End Type
 
@@ -695,6 +836,14 @@ APIC frame (but there may be multiple APIC frames in a single tag). These pictur
 JPEG or PNG format.
 End Rem
 Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
+
+	Function _create:TTLID3v2AttachedPictureFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2AttachedPictureFrame = New TTLID3v2AttachedPictureFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
 
 	Rem
 	bbdoc: A type not enumerated below.
@@ -815,41 +964,148 @@ End Type
 
 Type TTLID3v2CommentsFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2CommentsFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2CommentsFrame = New TTLID3v2CommentsFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
+	Method toString:String()
+	End Method
+	
+	Method language:TTLByteVector()
+	End Method
+	
+	Method description:String()
+	End Method
+	
+	Method text:String()
+	End Method
+	
+	Method setLanguage(languageCode:TTLByteVector)
+	End Method
+	
+	Method setDescription(description:String)
+	End Method
+	
+	Method setText(text:String)
+	End Method
+	
+	Method textEncoding:Int()
+	End Method
+	
+	Method setTextEncoding(encoding:Int)
+	End Method
+
 End Type
 
 Type TTLID3v2GeneralEncapsulatedObjectFrame Extends TTLID3v2Frame
+
+	Function _create:TTLID3v2GeneralEncapsulatedObjectFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2GeneralEncapsulatedObjectFrame = New TTLID3v2GeneralEncapsulatedObjectFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
 
 End Type
 
 Type TTLID3v2RelativeVolumeFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2RelativeVolumeFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2RelativeVolumeFrame = New TTLID3v2RelativeVolumeFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
 End Type
 
 Type TTLID3v2TextIdentificationFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2TextIdentificationFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2TextIdentificationFrame = New TTLID3v2TextIdentificationFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
 End Type
 
-Type UserTextIdentificationFrame Extends TTLID3v2TextIdentificationFrame
+Type TTLID3v2UserTextIdentificationFrame Extends TTLID3v2TextIdentificationFrame
+
+	Function _create:TTLID3v2UserTextIdentificationFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UserTextIdentificationFrame = New TTLID3v2UserTextIdentificationFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
 
 End Type
 
 Type TTLID3v2UniqueFileIdentifierFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2UniqueFileIdentifierFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UniqueFileIdentifierFrame = New TTLID3v2UniqueFileIdentifierFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
 End Type
 
 Type TTLID3v2UnknownFrame Extends TTLID3v2Frame
+
+	Function _create:TTLID3v2UnknownFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UnknownFrame = New TTLID3v2UnknownFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
 
 End Type
 
 Type TTLID3v2UnsynchronizedLyricsFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2UnsynchronizedLyricsFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UnsynchronizedLyricsFrame = New TTLID3v2UnsynchronizedLyricsFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
 End Type
 
 Type TTLID3v2UrlLinkFrame Extends TTLID3v2Frame
 
+	Function _create:TTLID3v2UrlLinkFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UrlLinkFrame = New TTLID3v2UrlLinkFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
+
 End Type
 
 Type TTLID3v2UserUrlLinkFrame Extends TTLID3v2UrlLinkFrame
+
+	Function _create:TTLID3v2UserUrlLinkFrame(headerPtr:Byte Ptr)
+		If headerPtr Then
+			Local this:TTLID3v2UserUrlLinkFrame = New TTLID3v2UserUrlLinkFrame
+			this.headerPtr = headerPtr
+			Return this
+		End If
+	End Function
 
 End Type
 
