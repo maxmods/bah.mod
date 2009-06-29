@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: ocilib_internal.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: ocilib_internal.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCILIB_INTERNAL_H_INCLUDED 
@@ -46,6 +46,15 @@ extern "C"
 /* ************************************************************************ *
                          PRIVATE FUNCTIONS PROTOTYPES
  * ************************************************************************ */
+
+/* ------------------------------------------------------------------------ *
+ * bind.c
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_BindFree
+(
+    OCI_Bind *bnd
+);
 
 /* ------------------------------------------------------------------------ *
  * callback.c
@@ -89,7 +98,7 @@ OCI_Coll * OCI_CollInit
     OCI_Connection *con,                           
     OCI_Coll **pcoll,
     void *handle, 
-    OCI_Schema *nty
+    OCI_TypeInfo *typeinf
 );
 
 /* ------------------------------------------------------------------------ *
@@ -243,7 +252,7 @@ OCI_Elem * OCI_ElemInit
     OCI_Elem **pelem,
     void *handle, 
     OCIInd *pind, 
-    OCI_Column *col
+    OCI_TypeInfo *typeinf
 );
 
 /* ------------------------------------------------------------------------ *
@@ -307,7 +316,7 @@ void OCI_ExceptionNullPointer
     int type
 );
 
-void OCI_ExceptionNotSupported
+void OCI_ExceptionDatatypeNotSupported
 (
     OCI_Connection *con, 
     OCI_Statement *stmt, 
@@ -339,9 +348,7 @@ void OCI_ExceptionNotMultithreaded(void);
 void OCI_ExceptionOutOfBounds
 (
     OCI_Connection *con, 
-    int value,
-    int lb, 
-    int ub
+    int value
 );
 
 void OCI_ExceptionUnfreedData
@@ -370,9 +377,7 @@ void OCI_ExceptionMinimumValue
 
 void OCI_ExceptionTypeNotCompatible
 (
-    OCI_Connection *con,
-    int type1,
-    int type2
+    OCI_Connection *con
 );
 
 void OCI_ExceptionStatementState
@@ -384,6 +389,33 @@ void OCI_ExceptionStatementState
 void OCI_ExceptionStatementNotScrollable
 (
     OCI_Statement *stmt
+);
+
+void OCI_ExceptionBindAlreadyUsed
+(
+    OCI_Statement *stmt,
+    const mtext * bind
+);
+
+void OCI_ExceptionBindArraySize
+(
+    OCI_Statement *stmt, 
+    unsigned int maxsize, 
+    unsigned int cursize, 
+    unsigned int newsize
+);
+
+void OCI_ExceptionDirPathColNotFound
+(
+    OCI_DirPath *dp, 
+    const mtext * column,
+    const mtext *table
+);
+
+void OCI_ExceptionDirPathState
+(
+    OCI_DirPath *dp, 
+    int state
 );
 
 /* ------------------------------------------------------------------------ *
@@ -579,7 +611,7 @@ sword OCI_DescriptorAlloc
 
 sword OCI_DescriptorFree
 (
-    void *descp, const ub4 type
+    void *descp, CONST ub4 type
 );
 
 sword OCI_ObjectNew
@@ -632,6 +664,16 @@ boolean OCI_NumberSet
     uword flag
 );
 
+boolean OCI_NumberConvertStr
+(
+    OCI_Connection *con, 
+    OCINumber *num, 
+    const dtext *str, 
+    int str_size, 
+    const mtext* fmt, 
+    ub4 fmt_size
+);
+
 boolean OCI_NumberGetFromStr
     (
     OCI_Connection *con, 
@@ -647,6 +689,11 @@ boolean OCI_NumberGetFromStr
 /* ------------------------------------------------------------------------ *
  * object.c
  * ------------------------------------------------------------------------ */
+
+void OCI_ObjectReset
+(
+    OCI_Object *obj
+);
 
 boolean OCI_ObjectGetAttr
 (
@@ -688,12 +735,43 @@ int OCI_ObjectGetIndex
     int type
 );
 
+ub2 OCI_GetIndTabIndex
+(
+    OCI_TypeInfo *typeinf, 
+    int index
+);
+
 OCI_Object * OCI_ObjectInit
 (
     OCI_Connection *con,
     OCI_Object **pobj,
     void *handle, 
-    OCI_Schema *schema
+    OCI_TypeInfo *typeinf,
+    sb2 *tab_ind,
+    int index,
+    boolean reset
+);
+
+/* ------------------------------------------------------------------------ *
+ * ref.c
+ * ------------------------------------------------------------------------ */
+
+OCI_Ref * OCI_RefInit
+(
+    OCI_Connection *con,
+    OCI_TypeInfo *typeinf, 
+    OCI_Ref **pref, 
+    void *handle
+);
+
+boolean OCI_RefPin
+(
+    OCI_Ref *ref
+);
+
+boolean OCI_RefUnpin
+(
+    OCI_Ref *ref
 );
 
 /* ------------------------------------------------------------------------ *
@@ -720,20 +798,16 @@ boolean OCI_FetchData
 (
     OCI_Resultset *rs,
     int mode, 
-    int offset
+    int offset,
+    boolean *err
 );
 
 boolean OCI_FetchCustom
 (
     OCI_Resultset *rs,
     int mode, 
-    int offset
-);
-
-boolean OCI_FetchIntoUserVariables
-(
-    OCI_Statement *stmt, 
-    va_list args
+    int offset,
+    boolean *err
 );
 
 #ifdef OCI_CHECK_DATASTRINGS 
@@ -744,15 +818,6 @@ boolean OCI_ResultsetExpandStrings
 );
 
 #endif  
-
-/* ------------------------------------------------------------------------ *
- * schema.c
- * ------------------------------------------------------------------------ */
-
-boolean OCI_SchemaClose
-(
-    OCI_Schema *schema
-);
 
 /* ------------------------------------------------------------------------ *
  * statement.c
@@ -783,10 +848,21 @@ boolean OCI_BindData
     unsigned int code, 
     unsigned int mode,
     unsigned int subtype,
-    void *extra,
+    OCI_TypeInfo *typinf,
     unsigned int nbelem
 );
 
+int OCI_BindGetIndex
+(
+    OCI_Statement *stmt, 
+    const mtext *name
+);
+
+boolean OCI_FetchIntoUserVariables
+(
+    OCI_Statement *stmt, 
+    va_list args
+);
 
 boolean OCI_StatementReset
 (
@@ -844,9 +920,18 @@ void OCI_GetOutputString
     int size_char_out
 );
 
-void OCI_ConvertString
+void OCI_MoveString
 (
     void *src,
+    void *dst,
+    int char_count, 
+    int size_char_in,
+    int size_char_out
+);
+        
+void OCI_ConvertString
+(
+    void *str,
     int char_count, 
     int size_char_in,
     int size_char_out
@@ -964,6 +1049,15 @@ OCI_Timestamp * OCI_TimestampInit
 boolean OCI_TransactionClose
 (
     OCI_Transaction * trans
+);
+
+/* ------------------------------------------------------------------------ *
+ * typeinf.c
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_TypeInfoClose
+(
+    OCI_TypeInfo *typeinf
 );
 
 

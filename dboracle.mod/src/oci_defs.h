@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -32,7 +32,7 @@
    +----------------------------------------------------------------------+
    |                                                                      |
    | THIS FILE CONTAINS CONSTANTS AND STRUCTURES DECLARATIONS THAT WERE   |
-   | PICKED UP FROM ORACLE PUBLIC HEADER FILES 'OCI.H' AND 'OCIDFN.H'.    |
+   | PICKED UP FROM ORACLE PUBLIC HEADER FILES.                           |
    |                                                                      |
    | SO THE CONTENT OF THIS FILE IS UNDER ORACLE COPYRIGHT AND THE        |
    | DECLARATIONS REPRODUCED HERE ARE ORIGINALLY WRITTEN BY ORACLE        | 
@@ -47,7 +47,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_defs.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: oci_defs.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_DEFS_H_INCLUDED 
@@ -142,9 +142,11 @@
 #define OCI_HTYPE_SERVER         8                          /* server handle */
 #define OCI_HTYPE_SESSION        9                  /* authentication handle */
 #define OCI_HTYPE_AUTHINFO      OCI_HTYPE_SESSION  /* SessionGet auth handle */
+#define OCI_HTYPE_DIRPATH_CTX   14                    /* direct path context */
+#define OCI_HTYPE_DIRPATH_COLUMN_ARRAY 15        /* direct path column array */
+#define OCI_HTYPE_DIRPATH_STREAM       16              /* direct path stream */
 #define OCI_HTYPE_TRANS         10                     /* transaction handle */
 #define OCI_HTYPE_CPOOL         26                 /* connection pool handle */
-
 
 /*-------------------------Descriptor Types----------------------------------*/
 
@@ -234,13 +236,21 @@
 #define OCI_ATTR_TYPECODE              216           /* object or collection */
 #define OCI_ATTR_COLLECTION_TYPECODE   217         /* varray or nested table */
 
-
 #define OCI_ATTR_COLLECTION_ELEMENT    227     /* has a collection attribute */
 #define OCI_ATTR_NUM_TYPE_ATTRS        228      /* number of attribute types */
 #define OCI_ATTR_LIST_TYPE_ATTRS       229        /* list of type attributes */
 
+#define OCI_ATTR_CLIENT_IDENTIFIER     278       /* value of client id to set*/
+
 #define OCI_ATTR_CHAR_USED             285          /* char length semantics */
 #define OCI_ATTR_CHAR_SIZE             286                    /* char length */
+
+#define OCI_ATTR_MODULE                366             /* module for tracing */
+#define OCI_ATTR_ACTION                367             /* action for tracing */
+#define OCI_ATTR_CLIENT_INFO           368                    /* client info */
+
+#define OCI_ATTR_DRIVER_NAME           424                    /* Driver Name */
+
 
 /*------- Temporary attribute value for UCS2/UTF16 character set ID -------- */ 
 
@@ -371,7 +381,9 @@
 #define OCI_ATTR_PRECISION      5                /* precision if number type */
 #define OCI_ATTR_SCALE          6                    /* scale if number type */
 #define OCI_ATTR_IS_NULL        7                            /* is it null ? */
-#define OCI_ATTR_TYPE_NAME      8
+#define OCI_ATTR_TYPE_NAME      8             /* name of the named data type */
+#define OCI_ATTR_SCHEMA_NAME    9                         /* the schema name */
+#define OCI_ATTR_SUB_NAME       10      /* type name if package private type */
 
 /*------------------------Other Constants------------------------------------*/
 
@@ -399,6 +411,11 @@ typedef struct OCISPool         OCISPool;             /* session pool handle */
 typedef struct OCIAuthInfo      OCIAuthInfo;                  /* auth handle */
 typedef struct OCIAdmin         OCIAdmin;                    /* admin handle */
 typedef struct OCIEvent         OCIEvent;                 /* HA event handle */
+
+
+typedef struct OCIDirPathCtx      OCIDirPathCtx;               /* DP context */
+typedef struct OCIDirPathColArray OCIDirPathColArray;     /* DP column array */
+typedef struct OCIDirPathStream   OCIDirPathStream;             /* DP stream */
 
 /*--------------------- OCI Thread Object Definitions------------------------*/
 
@@ -440,6 +457,8 @@ typedef struct OCILobLocator    OCILobLocator; /* OCI Lob Locator descriptor */
 typedef struct OCIParam         OCIParam;        /* OCI PARameter descriptor */
 typedef struct OCIDateTime      OCIDateTime;      /* OCI DateTime descriptor */
 typedef struct OCIInterval      OCIInterval;      /* OCI Interval descriptor */
+typedef struct OCIRowid         OCIRowid;            /* OCI ROWID descriptor */
+
 
 /*----------------------------- OBJECT FREE OPTION --------------------------*/
 
@@ -463,6 +482,7 @@ typedef struct OCIString        OCIString;
 typedef struct OCIRaw           OCIRaw;
 typedef struct OCIType          OCIType;
 typedef struct OCINumber        OCINumber;
+typedef struct OCIRef           OCIRef;   
 
 /*--------------------------- OBJECT INDICATOR ------------------------------*/
 
@@ -503,6 +523,40 @@ enum OCITypeGetOpt
   OCI_TYPEGET_ALL       /* load all attribute and method descriptors as well */
 };
 typedef enum OCITypeGetOpt OCITypeGetOpt;
+
+/*--------------------------- OBJECT PIN OPTION -----------------------------*/
+
+enum OCIPinOpt
+{
+  /* 0 = uninitialized */
+  OCI_PIN_DEFAULT = 1,                                 /* default pin option */
+  OCI_PIN_ANY = 3,                             /* pin any copy of the object */
+  OCI_PIN_RECENT = 4,                       /* pin recent copy of the object */
+  OCI_PIN_LATEST = 5                        /* pin latest copy of the object */
+};
+typedef enum OCIPinOpt OCIPinOpt;
+
+/*--------------------------- OBJECT LOCK OPTION ----------------------------*/
+
+enum OCILockOpt
+{
+  /* 0 = uninitialized */
+  OCI_LOCK_NONE = 1,                               /* null (same as no lock) */
+  OCI_LOCK_X = 2,                                          /* exclusive lock */
+  OCI_LOCK_X_NOWAIT = 3                      /* exclusive lock, do not wait  */
+};
+typedef enum OCILockOpt OCILockOpt;
+
+/*------------------------- OBJECT MODIFYING OPTION -------------------------*/
+
+enum OCIMarkOpt
+{
+  /* 0 = uninitialized */
+  OCI_MARK_DEFAULT = 1,               /* default (the same as OCI_MARK_NONE) */
+  OCI_MARK_NONE = OCI_MARK_DEFAULT,          /* object has not been modified */
+  OCI_MARK_UPDATE                                 /* object is to be updated */
+};
+typedef enum OCIMarkOpt OCIMarkOpt;
 
 /*------------------------------ TYPE CODE ----------------------------------*/
 
@@ -584,6 +638,64 @@ typedef ub2 OCIDuration;
 #define OCI_PARAM_IN 0x01                                    /* in parameter */
 #define OCI_PARAM_OUT 0x02                                  /* out parameter */
 
+/*----------------------- OBJECT PROPERTY ID -------------------------------*/
+
+typedef ub1 OCIObjectPropId;
+#define OCI_OBJECTPROP_LIFETIME 1       /* persistent or transient or value */
+#define OCI_OBJECTPROP_SCHEMA 2   /* schema name of table containing object */
+#define OCI_OBJECTPROP_TABLE 3     /* table name of table containing object */
+#define OCI_OBJECTPROP_PIN_DURATION 4             /* pin duartion of object */
+#define OCI_OBJECTPROP_ALLOC_DURATION 5         /* alloc duartion of object */
+#define OCI_OBJECTPROP_LOCK 6                      /* lock status of object */
+#define OCI_OBJECTPROP_MARKSTATUS 7                /* mark status of object */
+#define OCI_OBJECTPROP_VIEW 8            /* is object a view object or not? */
+
+/*----------------------- OBJECT LIFETIME ----------------------------------*/
+
+enum OCIObjectLifetime
+{
+   /* 0 = uninitialized */
+   OCI_OBJECT_PERSISTENT = 1,                          /* persistent object */
+   OCI_OBJECT_TRANSIENT,                                /* transient object */
+   OCI_OBJECT_VALUE                                         /* value object */
+};
+typedef enum OCIObjectLifetime OCIObjectLifetime;
+
+/*----------------------- OBJECT MARK STATUS -------------------------------*/
+
+typedef uword OCIObjectMarkStatus;
+#define OCI_OBJECT_NEW     0x0001                             /* new object */
+#define OCI_OBJECT_DELETED 0x0002                  /* object marked deleted */
+#define OCI_OBJECT_UPDATED 0x0004                  /* object marked updated */
+
+/* macros to test the object mark status */ 
+#define OCI_OBJECT_IS_UPDATED(flag) bit((flag), OCI_OBJECT_UPDATED)
+#define OCI_OBJECT_IS_DELETED(flag) bit((flag), OCI_OBJECT_DELETED)
+#define OCI_OBJECT_IS_NEW(flag) bit((flag), OCI_OBJECT_NEW)
+#define OCI_OBJECT_IS_DIRTY(flag) \
+  bit((flag), OCI_OBJECT_UPDATED|OCI_OBJECT_NEW|OCI_OBJECT_DELETED)
+
+/*----- values for cflg argument to OCIDirpathColArrayEntrySet --------------*/
+
+#define OCI_DIRPATH_COL_COMPLETE 0                /* column data is complete */
+#define OCI_DIRPATH_COL_NULL     1                         /* column is null */
+#define OCI_DIRPATH_COL_PARTIAL  2                 /* column data is partial */
+#define OCI_DIRPATH_COL_ERROR    3               /* column error, ignore row */
+
+/*----- values for action parameter to OCIDirPathDataSave -------------------*/
+#define OCI_DIRPATH_DATASAVE_SAVEONLY 0              /* data save point only */
+
+/*------------- Supported Values for Direct Path Date cache -----------------*/
+#define OCI_ATTR_DIRPATH_DCACHE_NUM         303        /* date cache entries */
+#define OCI_ATTR_DIRPATH_DCACHE_SIZE        304          /* date cache limit */
+#define OCI_ATTR_DIRPATH_DCACHE_MISSES      305         /* date cache misses */
+#define OCI_ATTR_DIRPATH_DCACHE_HITS        306           /* date cache hits */
+#define OCI_ATTR_DIRPATH_DCACHE_DISABLE     307 /* on set: disable datecache */
+
+/*------------- Supported Values for Direct Path Stream Version -------------*/
+
+#define OCI_ATTR_DIRPATH_NOLOG          79               /* nologging option */
+#define OCI_ATTR_DIRPATH_PARALLEL       80     /* parallel (temp seg) option */
 
 
 #endif /* OCILIB_OCI_DEFS_H_INCLUDED */

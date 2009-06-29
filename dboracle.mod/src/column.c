@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: column.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: column.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -53,7 +53,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
     ub4         htype    = 0;
     ub4         attrname = 0;
 
-    /* get descriptor  */
+    /* get descriptor */
 
     if (ptype == OCI_DESC_COLLECTION)
     {
@@ -110,7 +110,8 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
         res, con, stmt,
         
         OCIAttrGet((dvoid *) param, (ub4) OCI_DTYPE_PARAM, (dvoid *) &col->scale,
-                   (ub4 *) NULL, (ub4) OCI_ATTR_SCALE, con->err))
+                   (ub4 *) NULL, (ub4) OCI_ATTR_SCALE, con->err)
+    )
 
     /* precision */
 
@@ -138,7 +139,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     if ((OCILib.ver_runtime >= OCI_9) && (con->ver_maj >= OCI_9))
     {
-        /* char used - no error checking because the on Oracle 9.0, querying
+        /* char used - no error checking because on Oracle 9.0, querying
                        this param that is not char/varchar based will cause an 
                        error */
 
@@ -168,7 +169,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     if ((OCILib.ver_runtime >= OCI_9) && (con->ver_maj >= OCI_9))
     {
-        /* fractionnal time precision for timestamps */
+        /* fractional time precision for timestamps */
 
          if (col->ocode == SQLT_TIMESTAMP    ||
              col->ocode == SQLT_TIMESTAMP_TZ ||
@@ -184,7 +185,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
             )
         }
 
-        /* leading and fractionnal precision for interval */
+        /* leading and fractional precision for interval */
 
         if (col->ocode == SQLT_INTERVAL_DS ||
             col->ocode == SQLT_INTERVAL_YM)
@@ -258,7 +259,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     /* user type descriptor */
 
-    if (col->ocode == SQLT_NTY)
+    if (col->ocode == SQLT_NTY || col->ocode == SQLT_REF)
     {
         OCI_CALL1
         (
@@ -277,14 +278,19 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
             if (tmp != NULL)
             {
                OCI_CopyString(ostr, tmp, &osize, sizeof(omtext), sizeof(mtext));
-               col->nty = OCI_SchemaGet(con, tmp, OCI_SCHEMA_TYPE);
+               col->typinf = OCI_TypeInfoGet(con, tmp, OCI_SCHEMA_TYPE);
             }
 
-            res = (col->nty != NULL);
+            res = (col->typinf != NULL);
             
             OCI_FREE(tmp);
         }
-     }
+    }
+
+    if (param != NULL)
+    {
+        res = (OCI_SUCCESS == OCIDescriptorFree(param, OCI_DTYPE_PARAM));
+    }
 
     return res;
 }
@@ -379,14 +385,34 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->dtype    = OCI_HTYPE_STMT;
             break;
 
-        case SQLT_RDD:
         case SQLT_RID:
+        case SQLT_RDD:
 
             col->icode   = SQLT_STR;
             col->type    = OCI_CDT_TEXT;
-            col->bufsize = (OCI_SIZE_ROWID+1) * sizeof(dtext);
-            break;
 
+            if ((col->ocode == SQLT_RDD) || (col->size > sizeof(OCIRowid *)))
+            {
+                /* For Oracle 7 ROWIDs and regular ROWID descriptors, the 
+                   max size of the hex value is defined by the constant
+                   OCI_SIZE_ROWID 
+                */
+
+                col->bufsize = (OCI_SIZE_ROWID + 1) * sizeof(dtext);
+            }
+            else
+            {
+                /* For ROWID descriptor, if column size is bigger than the size
+                    of the descriptor, it means that an UROWID column and then 
+                    the column size is the maximum size needed for representing
+                    its value as an hex string
+                */
+
+                col->bufsize = (col->size + 1) * sizeof(dtext);
+            }
+
+            break;
+ 
         case SQLT_BIN:
 
             col->type    = OCI_CDT_RAW;
@@ -514,24 +540,24 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
 #endif
 
         case SQLT_NTY:
-        {
+
             col->icode   = SQLT_NTY;
             col->bufsize = sizeof(void *);
 
-            if (col->nty->tcode == SQLT_NCO)
+            if (col->typinf->tcode == SQLT_NCO)
                 col->type = OCI_CDT_COLLECTION;                    
             else
                 col->type = OCI_CDT_OBJECT;                    
 
             break;
-        }
+
         case SQLT_REF:
 
-            /* not supported datatypes */
+            col->icode   = SQLT_REF;
+            col->bufsize = sizeof(OCIRef *);
+            col->type    = OCI_CDT_REF;                    
 
-            OCI_ExceptionNotSupported(stmt->con, stmt, col->ocode);
-
-            res = FALSE;
+            break;
 
         case SQLT_CHR:
         case SQLT_STR:
@@ -611,7 +637,7 @@ unsigned int OCI_API OCI_ColumnGetSize(OCI_Column *col)
 
     /* Oracle 9i introduced CHAR attribute on string columns to indicate the 
        size of the column is not in bytes (default) but in chars
-       OCI_ColumnDescribe() already dealed with the Oracle compatibily
+       OCI_ColumnDescribe() already managed the Oracle compatibly
        version, so if col->charsize is zero it means :
        - the column is not a string column 
        - the size is not in char
@@ -653,10 +679,10 @@ int OCI_API OCI_ColumnGetPrecision(OCI_Column *col)
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ColumnGetFractionnalPrecision
+ * OCI_ColumnGetFractionalPrecision
  * ------------------------------------------------------------------------ */
 
-int OCI_API OCI_ColumnGetFractionnalPrecision(OCI_Column *col)
+int OCI_API OCI_ColumnGetFractionalPrecision(OCI_Column *col)
 {
     OCI_CHECK_PTR(OCI_IPC_COLUMN, col, 0);
 
@@ -859,8 +885,8 @@ const mtext * OCI_API OCI_ColumnGetSQLType(OCI_Column *col)
 
         case SQLT_NTY:
 
-            if (col->nty != NULL)
-                return col->nty->name;
+            if (col->typinf != NULL)
+                return col->typinf->name;
             else
                 return MT("NAMED TYPE");
 
@@ -889,7 +915,7 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
     /* ISO C functions are supposed to be "standard", but we still see specific
        implementations that make some usage not portable and worse not compatible.
        MS Windows is implementing string conversion characters (%s/%ls) of the 
-       printf/wprintf family diffently from unixes !
+       printf/wprintf family differently from unixes !
     */
 
     /* This function returns the same strings as Sql*Plus DESC command */
@@ -1069,8 +1095,8 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
 
         case SQLT_NTY:
  
-            if (col->nty != NULL)
-                len = mtsprintf(buffer, len, col->nty->name);
+            if (col->typinf != NULL)
+                len = mtsprintf(buffer, len, col->typinf->name);
             else
                 len = mtsprintf(buffer, len, MT("NAMED TYPE"));
             break;
@@ -1084,16 +1110,16 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
 }
     
 /* ------------------------------------------------------------------------ *
- * OCI_ColumnGetFullSQLType
+ * OCI_ColumnGetTypeInfo
  * ------------------------------------------------------------------------ */
 
-OCI_Schema * OCI_API OCI_ColumnGetSchema(OCI_Column *col)
+OCI_TypeInfo * OCI_API OCI_ColumnGetTypeInfo(OCI_Column *col)
 {
     OCI_CHECK_PTR(OCI_IPC_COLUMN, col, FALSE);
 
     OCI_RESULT(TRUE);
 
-    return col->nty;
+    return col->typinf;
 }
 
 /* ------------------------------------------------------------------------ *
@@ -1104,7 +1130,7 @@ unsigned int OCI_API OCI_ColumnGetSubType(OCI_Column *col)
 {
     unsigned int type = OCI_UNKNOWN;
 
-    OCI_CHECK_PTR(OCI_IPC_COLUMN, col, FALSE);
+    OCI_CHECK_PTR(OCI_IPC_COLUMN, col, OCI_UNKNOWN);
 
     OCI_RESULT(TRUE);
 
@@ -1119,4 +1145,3 @@ unsigned int OCI_API OCI_ColumnGetSubType(OCI_Column *col)
 
     return type;
 }
-

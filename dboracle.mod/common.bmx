@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ Import "-locilib"
 
 Import "include/*.h"
 
-'Import "oracleglue.cpp"
 Import "oracleglueoci.cpp"
 
 Extern
@@ -66,9 +65,9 @@ Extern
 	Function bmx_ora_resultset_getDouble:Double(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getString:String(resultSetHandle:Byte Ptr, index:Int)
 
-	Function bmx_ora_bind_int:Int(stmtHandle:Byte Ptr, name:String, value:Int Ptr)
-	Function bmx_ora_bind_double:Int(stmtHandle:Byte Ptr, name:String, value:Double Ptr)
-	Function bmx_ora_bind_string:Int(stmtHandle:Byte Ptr, name:String, str:Byte Ptr, length:Int)
+	Function bmx_ora_bind_int:Int(stmtHandle:Byte Ptr, name:Byte Ptr, value:Int Ptr)
+	Function bmx_ora_bind_double:Int(stmtHandle:Byte Ptr, name:Byte Ptr, value:Double Ptr)
+	Function bmx_ora_bind_string:Int(stmtHandle:Byte Ptr, name:Byte Ptr, str:Byte Ptr, length:Int)
 	Function bmx_ora_bind_setnull:Int(stmtHandle:Byte Ptr, index:Int)
 	
 End Extern

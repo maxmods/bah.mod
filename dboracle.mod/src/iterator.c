@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: iterator.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: iterator.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -51,7 +51,7 @@ OCI_Iter * OCI_API OCI_IterCreate(OCI_Coll *coll)
 
     OCI_CHECK_PTR(OCI_IPC_COLLECTION, coll, NULL);
 
-    /* allocate iterator structure  */
+    /* allocate iterator structure */
 
     iter = (OCI_Iter *) OCI_MemAlloc(OCI_IPC_ITERATOR, sizeof(*iter), 1, TRUE);
 
@@ -74,12 +74,14 @@ OCI_Iter * OCI_API OCI_IterCreate(OCI_Coll *coll)
         /* create data element accessor */
 
        if (res == TRUE)
-           iter->elem = OCI_ElemInit(coll->con, &iter->elem, NULL, NULL, 
-                                     coll->nty->cols);
+           iter->elem = OCI_ElemInit(coll->con, &iter->elem, NULL, 
+                                     (OCIInd *) NULL, coll->typinf);
     
        if (res == TRUE)
            res = (iter->elem != NULL);
     }
+    else
+        res = FALSE;
 
     /* check for success */
 
@@ -146,6 +148,8 @@ OCI_Elem * OCI_API OCI_IterGetNext(OCI_Iter *iter)
     
     OCI_CHECK(iter->eoc == TRUE, FALSE);
 
+    iter->elem->init = FALSE;
+
     OCI_CALL2
     (
         res, iter->coll->con,  
@@ -157,7 +161,7 @@ OCI_Elem * OCI_API OCI_IterGetNext(OCI_Iter *iter)
 
     if ((res == TRUE) && (iter->eoc == FALSE))
         elem = iter->elem;
-
+       
     OCI_RESULT(elem != NULL);
 
     return elem;
@@ -175,6 +179,8 @@ OCI_Elem * OCI_API OCI_IterGetPrev(OCI_Iter *iter)
     OCI_CHECK_PTR(OCI_IPC_ITERATOR, iter, FALSE);
     
     OCI_CHECK(iter->boc == TRUE, FALSE);
+
+    iter->elem->init = FALSE;
 
     OCI_CALL2
     (

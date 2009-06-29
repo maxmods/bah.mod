@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -47,7 +47,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_types.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: oci_types.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_TYPES_H_INCLUDED 

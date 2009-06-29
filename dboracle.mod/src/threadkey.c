@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: threadkey.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: threadkey.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -47,7 +47,7 @@ OCI_ThreadKey * OCI_ThreadKeyCreateInternal(POCI_THREADKEYDEST destfunc)
     boolean  res       = TRUE;
     OCI_ThreadKey *key = NULL;
 
-    /* allocate key structure  */
+    /* allocate key structure */
 
     key = (OCI_ThreadKey *) OCI_MemAlloc(OCI_IPC_THREADKEY, sizeof(*key), 1, TRUE);
 
@@ -60,7 +60,7 @@ OCI_ThreadKey * OCI_ThreadKeyCreateInternal(POCI_THREADKEYDEST destfunc)
                                               OCI_HTYPE_ERROR, 0,
                                               (dvoid **) NULL));
 
-        /* allocate mutex handle */
+        /* key initialization */
 
         OCI_CALL3
         (
@@ -69,6 +69,8 @@ OCI_ThreadKey * OCI_ThreadKeyCreateInternal(POCI_THREADKEYDEST destfunc)
             OCIThreadKeyInit(OCILib.env, key->err, &key->handle, destfunc)
         )
     }
+    else
+        res = FALSE;
 
     /* check errors */
 
@@ -166,7 +168,7 @@ boolean OCI_ThreadKeyGet(OCI_ThreadKey* key, void **value)
  * OCI_ThreadKeyCreate
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_ThreadKeyCreate(mtext *name, POCI_THREADKEYDEST destfunc)
+boolean OCI_API OCI_ThreadKeyCreate(const mtext *name, POCI_THREADKEYDEST destfunc)
 {
     OCI_ThreadKey *key = NULL;
     boolean res        = TRUE;
@@ -214,7 +216,7 @@ boolean OCI_API OCI_ThreadKeyCreate(mtext *name, POCI_THREADKEYDEST destfunc)
  * OCI_ThreadKeySetValue
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_ThreadKeySetValue(mtext *name, void *value)
+boolean OCI_API OCI_ThreadKeySetValue(const mtext *name, void *value)
 {
     boolean res        = TRUE;
     OCI_ThreadKey *key = NULL;
@@ -234,7 +236,7 @@ boolean OCI_API OCI_ThreadKeySetValue(mtext *name, void *value)
  * OCI_ThreadKeyGetValue
  * ------------------------------------------------------------------------ */
 
-void * OCI_API OCI_ThreadKeyGetValue(mtext *name)
+void * OCI_API OCI_ThreadKeyGetValue(const mtext *name)
 {
     boolean res        = TRUE;
     void * value       = NULL;

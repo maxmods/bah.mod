@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: long.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: long.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -57,10 +57,11 @@ OCI_Long * OCI_LongInit(OCI_Statement *stmt, OCI_Long **plg,
     {
         lg = *plg;
 
-        lg->size = 0;
-        lg->stmt = stmt;
-        lg->def  = def;
-        lg->type = type;
+        lg->size   = 0;
+        lg->stmt   = stmt;
+        lg->def    = def;
+        lg->type   = type;
+        lg->offset = 0;
 
         if (def != NULL)
             lg->hstate = OCI_OBJECT_FETCHED_CLEAN;

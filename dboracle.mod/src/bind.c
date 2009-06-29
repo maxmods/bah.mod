@@ -1,5 +1,5 @@
 /*
-   +----------------------------------------------------------------------+
+   +----------------------------------------------------------------------+   
    |                                                                      |
    |                     OCILIB - C Driver for Oracle                     |
    |                                                                      |
@@ -25,11 +25,11 @@
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
    |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
-   +----------------------------------------------------------------------+
+   +----------------------------------------------------------------------+ 
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: error.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: bind.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -39,144 +39,179 @@
  * ************************************************************************ */
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorCreate
+ * OCI_BindFree
  * ------------------------------------------------------------------------ */
 
-OCI_Error * OCI_ErrorCreate()
+boolean OCI_BindFree(OCI_Bind *bnd)
 {
-    OCI_Error *err = calloc(1, sizeof(*err));
+    if (bnd->alloc == TRUE)
+        OCI_FREE(bnd->buf.data);
 
-    return err;
-}
+    OCI_FREE(bnd->buf.inds);
+    OCI_FREE(bnd->buf.lens);
+    OCI_FREE(bnd->buf.temp);
 
-/* ------------------------------------------------------------------------ *
- * OCI_ErrorFree
- * ------------------------------------------------------------------------ */
+    OCI_FREE(bnd->plrcds);
 
-void OCI_ErrorFree(OCI_Error *err)
-{
-    OCI_FREE(err);
-}
+    OCI_FREE(bnd->name);
+    OCI_FREE(bnd);
 
-/* ------------------------------------------------------------------------ *
- * OCI_ErrorReset
- * ------------------------------------------------------------------------ */
-
-void OCI_ErrorReset(OCI_Error *err)
-{
-    if (err != NULL)
-    {
-        err->raise  = TRUE;
-        err->active = FALSE;
-        err->con    = NULL;
-        err->stmt   = NULL;
-        err->ocode  = 0;
-        err->icode  = 0;
-        err->type   = 0;
-        err->str[0] = 0;
-    }
-}
-
-/* ------------------------------------------------------------------------ *
- * OCI_ErrorGet
- * ------------------------------------------------------------------------ */
-
-OCI_Error * OCI_ErrorGet(boolean check)
-{
-    OCI_Error *err = NULL;
-
-    if (OCILib.loaded == TRUE)
-    {
-        if (OCI_ThreadKeyGet(OCILib.key_errs, ( void **) (dvoid *) &err) == TRUE)
-        {
-            if (err == NULL)
-            {
-                err = OCI_ErrorCreate();
-
-                if (err != NULL)
-                    OCI_ThreadKeySet(OCILib.key_errs, err);
-            }
-            else
-            {
-                if ((check == TRUE) && (err->active == TRUE))
-                    err = NULL;
-            }
-        }
-    }
-    else
-    {
-        err = &OCILib.lib_err;
-    }
-
-    return err;
+    return TRUE;
 }
 
 /* ************************************************************************ *
- *                             PUBLIC FUNCTIONS
+ *                            PUBLIC FUNCTIONS
  * ************************************************************************ */
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetString
+ * OCI_BindGetName
  * ------------------------------------------------------------------------ */
 
-const mtext * OCI_API OCI_ErrorGetString(OCI_Error *err)
+const mtext * OCI_API OCI_BindGetName(OCI_Bind *bnd)
 {
-    OCI_CHECK(err == NULL, NULL);
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, NULL);
 
-    return err->str;
+    OCI_RESULT(TRUE);
+
+    return (const mtext *) bnd->name; 
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetType
+ * OCI_BindGetType
  * ------------------------------------------------------------------------ */
 
-unsigned int OCI_API OCI_ErrorGetType(OCI_Error *err)
+unsigned int OCI_API OCI_BindGetType(OCI_Bind *bnd)
 {
-    OCI_CHECK(err == NULL, OCI_UNKNOWN);
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, OCI_UNKNOWN);
 
-    return err->type;
+    OCI_RESULT(TRUE);
+
+    return (unsigned int) bnd->type; 
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetOCICode
+ * OCI_BindGetSubtype
  * ------------------------------------------------------------------------ */
 
-int OCI_API OCI_ErrorGetOCICode(OCI_Error *err)
+unsigned int OCI_API OCI_BindGetSubtype(OCI_Bind *bnd)
 {
-    OCI_CHECK(err == NULL, OCI_UNKNOWN);
+    unsigned int type = OCI_UNKNOWN;
 
-    return (int) err->ocode;
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, OCI_UNKNOWN);
+
+    OCI_RESULT(TRUE);
+
+    if (bnd->type == OCI_CDT_LONG      || 
+        bnd->type == OCI_CDT_LOB       ||
+        bnd->type == OCI_CDT_FILE      ||
+        bnd->type == OCI_CDT_TIMESTAMP ||
+        bnd->type == OCI_CDT_INTERVAL)
+    {
+        type = bnd->subtype;
+    }
+
+    return type;
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetInternalCode
+ * OCI_BindGetDataCount
  * ------------------------------------------------------------------------ */
 
-int OCI_API OCI_ErrorGetInternalCode(OCI_Error *err)
+unsigned int OCI_API OCI_BindGetDataCount(OCI_Bind *bnd)
 {
-    OCI_CHECK_PTR(OCI_IPC_ERROR, err, 0);
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, 0);
 
-    return err->icode;
+    OCI_RESULT(TRUE);
+
+    return (unsigned int) bnd->buf.count; 
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetConnection
+ * OCI_BindGetData
  * ------------------------------------------------------------------------ */
 
-OCI_Connection * OCI_API OCI_ErrorGetConnection(OCI_Error *err)
+void * OCI_API OCI_BindGetData(OCI_Bind *bnd)
 {
-    OCI_CHECK(err == NULL, NULL);
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, NULL);
 
-    return err->con;
+    OCI_RESULT(TRUE);
+
+    return (void *) bnd->input; 
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_ErrorGetStatement
+ * OCI_BindGetStatement
  * ------------------------------------------------------------------------ */
 
-OCI_Statement * OCI_API OCI_ErrorGetStatement(OCI_Error *err)
+OCI_EXPORT OCI_Statement * OCI_API OCI_BindGetStatement(OCI_Bind *bnd)
 {
-    OCI_CHECK(err == NULL, NULL);
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, NULL);
 
-    return err->stmt;
+    OCI_RESULT(TRUE);
+
+    return bnd->stmt; 
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_BindSetDataSize
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_API OCI_BindSetDataSize(OCI_Bind *bnd, unsigned int size)
+{
+    return OCI_BindSetDataSizeAtPos(bnd, 1, size);
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_BindSetDataSizeAtPos
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_API OCI_BindSetDataSizeAtPos(OCI_Bind *bnd, unsigned int position, 
+                                         unsigned int size)
+{
+    boolean res   = FALSE;
+
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, FALSE);
+    OCI_CHECK_BOUND(bnd->stmt->con, position, 1, bnd->buf.count, FALSE);
+    OCI_CHECK_MIN(bnd->stmt->con, bnd->stmt, size, 1, FALSE);
+
+    if (bnd->buf.lens != NULL)
+    {
+        ((ub2 *) bnd->buf.lens)[position-1] = (ub2) size; 
+
+        res = TRUE;
+    }
+
+    OCI_RESULT(TRUE);
+
+    return res;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_BindGetDataSize
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_BindGetDataSize(OCI_Bind *bnd)
+{
+    return OCI_BindGetDataSizeAtPos(bnd, 1);
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_BindGetDataSizeAtPos
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_BindGetDataSizeAtPos(OCI_Bind *bnd, unsigned int position)
+{
+    ub2 size = 0;
+
+    OCI_CHECK_PTR(OCI_IPC_BIND, bnd, 0);
+    OCI_CHECK_BOUND(bnd->stmt->con, position, 1, bnd->buf.count, 0);
+ 
+    if (bnd->buf.lens != NULL)
+    {
+        size = ((ub2 *) bnd->buf.lens)[position-1];
+    }
+
+    OCI_RESULT(TRUE);
+
+    return (unsigned int) size;
 }

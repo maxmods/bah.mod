@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: mutex.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: mutex.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -47,7 +47,7 @@ OCI_Mutex * OCI_MutexCreateInternal(void)
     OCI_Mutex *mutex = NULL;
     boolean res      = TRUE;
 
-    /* allocate mutex structure  */
+    /* allocate mutex structure */
 
     mutex = (OCI_Mutex *) OCI_MemAlloc(OCI_IPC_MUTEX, sizeof(*mutex), 1, TRUE);
 
@@ -69,6 +69,8 @@ OCI_Mutex * OCI_MutexCreateInternal(void)
             OCIThreadMutexInit(OCILib.env, mutex->err, &mutex->handle)
         )
     }
+    else
+        res = FALSE;
 
     if (res == FALSE)
     {
@@ -78,7 +80,6 @@ OCI_Mutex * OCI_MutexCreateInternal(void)
 
     return mutex;
 }
-
 
 /* ************************************************************************ *
  *                            PUBLIC FUNCTIONS

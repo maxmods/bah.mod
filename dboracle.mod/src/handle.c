@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: handle.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: handle.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -217,6 +217,19 @@ const void * OCI_API OCI_HandleGetColl(OCI_Coll *coll)
 }
 
 /* ------------------------------------------------------------------------ *
+ * OCI_HandleGetRef
+ * ------------------------------------------------------------------------ */
+
+const void * OCI_API OCI_HandleGetRef(OCI_Ref *ref)
+{
+    OCI_CHECK_PTR(OCI_IPC_REF, ref, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return ref->handle;
+}
+
+/* ------------------------------------------------------------------------ *
  * OCI_HandleGetMutex
  * ------------------------------------------------------------------------ */
 
@@ -255,3 +268,41 @@ const void * OCI_API OCI_HandleGetThread(OCI_Thread *thread)
     return thread->handle;
 }
 
+/* ------------------------------------------------------------------------ *
+ * OCI_HandleGetDirPathCtx
+ * ------------------------------------------------------------------------ */
+
+OCI_EXPORT const void * OCI_API OCI_HandleGetDirPathCtx(OCI_DirPath *dp)
+{
+    OCI_CHECK_PTR(OCI_IPC_DIRPATH, dp, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return dp->ctx;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_HandleGetDirPathColArray
+ * ------------------------------------------------------------------------ */
+
+OCI_EXPORT const void * OCI_API OCI_HandleGetDirPathColArray(OCI_DirPath *dp)
+{
+    OCI_CHECK_PTR(OCI_IPC_DIRPATH, dp, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return dp->arr;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_HandleGetDirPathStream
+ * ------------------------------------------------------------------------ */
+
+OCI_EXPORT const void * OCI_API OCI_HandleGetDirPathStream(OCI_DirPath *dp)
+{
+    OCI_CHECK_PTR(OCI_IPC_DIRPATH, dp, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return dp->strm;
+}

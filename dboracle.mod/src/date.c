@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: date.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: date.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -338,6 +338,10 @@ boolean OCI_API OCI_DateFromText(OCI_Date *date, const mtext *str,
 
 boolean OCI_API OCI_DateGetDate(OCI_Date *date, int *year, int *month, int *day)
 {
+    sb2 yr = 0;
+    ub1 mt = 0;
+    ub1 dy = 0;
+
     OCI_CHECK_PTR(OCI_IPC_DATE, date,  FALSE);
     OCI_CHECK_PTR(OCI_IPC_INT, year,  FALSE);
     OCI_CHECK_PTR(OCI_IPC_INT, month, FALSE);
@@ -347,7 +351,11 @@ boolean OCI_API OCI_DateGetDate(OCI_Date *date, int *year, int *month, int *day)
     *month = 0;
     *day   = 0;
 
-    OCIDateGetDate(date->handle, (sb2 *) year, (ub1 *) month, (ub1 *) day);
+    OCIDateGetDate(date->handle, &yr, &mt, &dy);
+
+    *year  = (int) yr;
+    *month = (int) mt;
+    *day   = (int) dy;
 
     OCI_RESULT(TRUE);
 
@@ -360,6 +368,10 @@ boolean OCI_API OCI_DateGetDate(OCI_Date *date, int *year, int *month, int *day)
 
 boolean OCI_API OCI_DateGetTime(OCI_Date *date, int *hour, int *min, int *sec)
 {
+    ub1 hr = 0;
+    ub1 mn = 0;
+    ub1 sc = 0;
+
     OCI_CHECK_PTR(OCI_IPC_DATE, date, FALSE);
     OCI_CHECK_PTR(OCI_IPC_INT, hour, FALSE);
     OCI_CHECK_PTR(OCI_IPC_INT, min , FALSE);
@@ -369,7 +381,11 @@ boolean OCI_API OCI_DateGetTime(OCI_Date *date, int *hour, int *min, int *sec)
     *min  = 0;
     *sec  = 0;
 
-    OCIDateGetTime(date->handle, (ub1 *) hour, (ub1 *) min, (ub1 *) sec);
+    OCIDateGetTime(date->handle, &hr, &mn, &sc);
+
+    *hour = (int) hr;
+    *min  = (int) mn;
+    *sec  = (int) sc;
 
     OCI_RESULT(TRUE);
 

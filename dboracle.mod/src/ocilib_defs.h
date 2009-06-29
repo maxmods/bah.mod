@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,12 +29,13 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: ocilib_defs.h v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: ocilib_defs.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCILIB_DEFS_H_INCLUDED
 #define OCILIB_OCILIB_DEFS_H_INCLUDED
 
+#include "ocilib.h"
 #include "oci_import.h"
 
 /* ************************************************************************ *
@@ -45,7 +46,7 @@
 
   /* for runtime loading, set compile time version to the highest minimum
      version needed by OCILIB encapsulation of OCI */
-  #define OCI_VERSION_COMPILE OCI_10
+  #define OCI_VERSION_COMPILE OCI_11
   /* set runtime version to unknown, it will be guessed from symbols loading */
   #define OCI_VERSION_RUNTIME OCI_UNKNOWN
 
@@ -185,7 +186,7 @@
 /* -- external OCILIB handles - */
 
 #define OCI_IPC_ERROR            8
-#define OCI_IPC_SCHEMA           9
+#define OCI_IPC_TYPE_INFO        9
 #define OCI_IPC_CONNECTION       10
 #define OCI_IPC_CONNPOOL         11
 #define OCI_IPC_TRANSACTION      12
@@ -205,29 +206,33 @@
 #define OCI_IPC_HASHTABLE        26
 #define OCI_IPC_THREAD           27
 #define OCI_IPC_MUTEX            28
+#define OCI_IPC_BIND             29
+#define OCI_IPC_REF              30
+#define OCI_IPC_DIRPATH          31
 
 /* ---- Internal pointers ----- */
  
-#define OCI_IPC_LIST             29
-#define OCI_IPC_LIST_ITEM        30
-#define OCI_IPC_BIND             31
-#define OCI_IPC_BIND_ARRAY       32
-#define OCI_IPC_DEFINE           33
-#define OCI_IPC_DEFINE_ARRAY     34
-#define OCI_IPC_HASHENTRY        35
-#define OCI_IPC_HASHENTRY_ARRAY  36
-#define OCI_IPC_HASHVALUE        37
-#define OCI_IPC_THREADKEY        38
-#define OCI_IPC_OCIDATE          39
-#define OCI_IPC_TM               40
-#define OCI_IPC_RESULTSET_ARRAY  41
-#define OCI_IPC_PLS_SIZE_ARRAY   42
-#define OCI_IPC_PLS_RCODE_ARRAY  43
-#define OCI_IPC_SERVER_OUPUT     44
-#define OCI_IPC_INDICATOR_ARRAY  45
-#define OCI_IPC_LEN_ARRAY        46
-#define OCI_IPC_BUFF_ARRAY       47
-#define OCI_IPC_LONG_BUFFER      48
+#define OCI_IPC_LIST             32
+#define OCI_IPC_LIST_ITEM        33
+#define OCI_IPC_BIND_ARRAY       34
+#define OCI_IPC_DEFINE           35
+#define OCI_IPC_DEFINE_ARRAY     36
+#define OCI_IPC_HASHENTRY        37
+#define OCI_IPC_HASHENTRY_ARRAY  38
+#define OCI_IPC_HASHVALUE        39
+#define OCI_IPC_THREADKEY        40
+#define OCI_IPC_OCIDATE          41
+#define OCI_IPC_TM               42
+#define OCI_IPC_RESULTSET_ARRAY  43
+#define OCI_IPC_PLS_SIZE_ARRAY   44
+#define OCI_IPC_PLS_RCODE_ARRAY  45
+#define OCI_IPC_SERVER_OUPUT     46
+#define OCI_IPC_INDICATOR_ARRAY  47
+#define OCI_IPC_LEN_ARRAY        48
+#define OCI_IPC_BUFF_ARRAY       49
+#define OCI_IPC_LONG_BUFFER      50
+#define OCI_IPC_TRACE_INFO       51
+#define OCI_IPC_DP_COL_ARRAY     52
 
 /* ------------------------------------------------------------------------ *
  * Oracle conditionnal features 
@@ -235,7 +240,8 @@
 
 #define OCI_FEATURE_UNICODE_USERDATA    1
 #define OCI_FEATURE_TIMESTAMP           2
-#define OCI_FEATURE_SCROLLABLE_CURSOR   3
+#define OCI_FEATURE_DIRPATH_DATE_CACHE  3
+#define OCI_FEATURE_SCROLLABLE_CURSOR   4
 
 /* ------------------------------------------------------------------------ *
  * Oracle conditionnal features 
@@ -262,7 +268,7 @@
 #define OCI_CONN_LOGGED                 3
 
 /* ------------------------------------------------------------------------ *
- * objects statuss
+ * objects status
  * ------------------------------------------------------------------------ */
 
 #define OCI_OBJECT_ALLOCATED            1
@@ -287,6 +293,15 @@
 #define OCI_DESC_COLLECTION             5
 
 /* ------------------------------------------------------------------------ *
+ * Direct path object status
+ * ------------------------------------------------------------------------ */
+
+#define OCI_DPS_NOT_PREPARED            1
+#define OCI_DPS_PREPARED                2
+#define OCI_DPS_CONVERTED               3
+#define OCI_DPS_TERMINATED              4
+
+/* ------------------------------------------------------------------------ *
  * internal statement fetch direction
  * ------------------------------------------------------------------------ */
 
@@ -294,6 +309,15 @@
 #define OCI_SFD_FIRST                   0x04
 #define OCI_SFD_LAST                    0x08
 #define OCI_SFD_PREV                    0x10
+
+/* ------------------------------------------------------------------------ *
+ * internal direct path column types
+ * ------------------------------------------------------------------------ */
+
+#define OCI_DDT_TEXT                    1
+#define OCI_DDT_BINARY                  2
+#define OCI_DDT_NUMBER                  3
+#define OCI_DDT_OTHERS                  4
 
 /* ------------------------------------------------------------------------ *
  * internal integer types
@@ -374,8 +398,10 @@
 
 #define OCI_IND(exp)                    (sb2) ((exp) ? 0 : -1)
 
-#define OCI_NOT_NULL(def)  \
-    ((def != NULL) && ((sb2) ((sb2*)def->buf.inds)[rs->row_cur-1] != -1))
+#define OCI_NOT_NULL(def)                                   \
+    ((def != NULL) &&                                       \
+     (rs->row_cur > 0) &&                                   \
+     ((sb2) ((sb2*)def->buf.inds)[rs->row_cur-1] != -1))
 
 #define OCI_NOT_USED(p)                 (p) = (p);
 

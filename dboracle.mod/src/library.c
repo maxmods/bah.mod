@@ -1,5 +1,5 @@
 /*
-   +----------------------------------------------------------------------+   
+   +----------------------------------------------------------------------+
    |                                                                      |
    |                     OCILIB - C Driver for Oracle                     |
    |                                                                      |
@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -25,11 +25,11 @@
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
    |          Author: Vincent ROGIER <vince.rogier@gmail.com>             |
-   +----------------------------------------------------------------------+ 
+   +----------------------------------------------------------------------+
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: library.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: library.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -114,7 +114,7 @@ OCIDATENEXTDAY               OCIDateNextDay               = NULL;
 OCIDATECHECK                 OCIDateCheck                 = NULL;
 OCIDATESYSDATE               OCIDateSysDate               = NULL;
 OCIDESCRIBEANY               OCIDescribeAny               = NULL;
-OCIINTERVALASSIGN            OCIIntervalAssign            = NULL;  
+OCIINTERVALASSIGN            OCIIntervalAssign            = NULL;
 OCIINTERVALCHECK             OCIIntervalCheck             = NULL;
 OCIINTERVALCOMPARE           OCIIntervalCompare           = NULL;
 OCIINTERVALFROMTEXT          OCIIntervalFromText          = NULL;
@@ -126,7 +126,7 @@ OCIINTERVALSETDAYSECOND      OCIIntervalSetDaySecond      = NULL;
 OCIINTERVALSETYEARMONTH      OCIIntervalSetYearMonth      = NULL;
 OCIINTERVALSUBTRACT          OCIIntervalSubtract          = NULL;
 OCIINTERVALADD               OCIIntervalAdd               = NULL;
-OCIDATETIMEASSIGN            OCIDateTimeAssign            = NULL;  
+OCIDATETIMEASSIGN            OCIDateTimeAssign            = NULL;
 OCIDATETIMECHECK             OCIDateTimeCheck             = NULL;
 OCIDATETIMECOMPARE           OCIDateTimeCompare           = NULL;
 OCIDATETIMECONSTRUCT         OCIDateTimeConstruct         = NULL;
@@ -161,6 +161,17 @@ OCIOBJECTNEW                 OCIObjectNew                 = NULL;
 OCIOBJECTFREE                OCIObjectFree                = NULL;
 OCIOBJECTSETATTR             OCIObjectSetAttr             = NULL;
 OCIOBJECTGETATTR             OCIObjectGetAttr             = NULL;
+OCIOBJECTPIN                 OCIObjectPin                 = NULL;
+OCIOBJECTUNPIN               OCIObjectUnpin               = NULL;
+OCIOBJECTCOPY                OCIObjectCopy                = NULL;
+OCIOBJECTGETOBJECTREF        OCIObjectGetObjectRef        = NULL;
+OCIOBJECTGETPROPERTY         OCIObjectGetProperty         = NULL;
+OCIOBJECTGETIND              OCIObjectGetInd              = NULL;
+OCIREFASSIGN                 OCIRefAssign                 = NULL;
+OCIREFISNULL                 OCIRefIsNull                 = NULL;
+OCIREFCLEAR                  OCIRefClear                  = NULL;
+OCIREFTOHEX                  OCIRefToHex                  = NULL;
+OCIREFHEXSIZE                OCIRefHexSize                = NULL;
 OCITHREADPROCESSINIT         OCIThreadProcessInit         = NULL;
 OCITHREADINIT                OCIThreadInit                = NULL;
 OCITHREADTERM                OCIThreadTerm                = NULL;
@@ -193,6 +204,18 @@ OCIITERDELETE                OCIIterDelete                = NULL;
 OCIITERINIT                  OCIIterInit                  = NULL;
 OCIITERNEXT                  OCIIterNext                  = NULL;
 OCIITERPREV                  OCIIterPrev                  = NULL;
+OCIDIRPATHABORT              OCIDirPathAbort              = NULL;
+OCIDIRPATHDATASAVE           OCIDirPathDataSave           = NULL;
+OCIDIRPATHFINISH             OCIDirPathFinish             = NULL;
+OCIDIRPATHPREPARE            OCIDirPathPrepare            = NULL;
+OCIDIRPATHLOADSTREAM         OCIDirPathLoadStream         = NULL;
+OCIDIRPATHCOLARRAYENTRYSET   OCIDirPathColArrayEntrySet   = NULL;
+OCIDIRPATHCOLARRAYRESET      OCIDirPathColArrayReset      = NULL;
+OCIDIRPATHCOLARRAYTOSTREAM   OCIDirPathColArrayToStream   = NULL;
+OCIDIRPATHSTREAMRESET        OCIDirPathStreamReset        = NULL;
+OCIDIRPATHFLUSHROW           OCIDirPathFlushRow           = NULL;
+
+OCICACHEFREE                 OCICacheFree                 = NULL;
 
 #ifdef ORAXB8_DEFINED
 
@@ -283,15 +306,17 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
     boolean res  = TRUE;
     ub4 oci_mode = OCI_ENV_MODE | OCI_OBJECT;
 
- #if defined(OCI_IMPORT_RUNTIME) && defined(OCI_CHARSET_UNICODE) && !defined(_WINDOWS)
+#ifdef OCI_IMPORT_RUNTIME
 
-    char temp[OCI_SIZE_BUFFER];
+    char path[OCI_SIZE_BUFFER+1];
+ 
+    size_t len = 0;
 
 #endif
 
     /* check if it was already initialized */
 
-    if (OCILib.ver_compile > 0)
+    if (OCILib.loaded == TRUE)
         return TRUE;
 
     memset(&OCILib, 0, sizeof(OCI_Library));
@@ -319,26 +344,33 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
 
 #else
 
+    memset(path, 0, sizeof(path));
+
+#if defined(OCI_CHARSET_UNICODE)
+
     if (home != NULL && home[0] != 0)
-    {
-        mtsprintf(OCILib.path, msizeof(OCILib.path)-1, MT("%s//%s"), home, OCI_DL_NAME);
-    }
-    else
-        mtsncat(OCILib.path, OCI_DL_NAME, msizeof(OCILib.path)-1);
-
-#if defined(OCI_CHARSET_UNICODE) && !defined(_WINDOWS)
-
-    temp[0] = 0;
-
-    wcstombs(temp, OCILib.path, sizeof(temp));
-
-    OCILib.lib_handle = LIB_OPEN(temp);
+        len = wcstombs(path, home, sizeof(path));
 
 #else
 
-    OCILib.lib_handle = LIB_OPEN(OCILib.path);
+    if (home != NULL && home[0] != 0)
+    {
+        strncat(path, home, sizeof(path));
+
+        len = strlen(path);
+    }
 
 #endif
+
+    if ((len > 0) && (len < sizeof(path)) && (path[len-1] != OCI_CHAR_SLASH))
+    {
+        path[len] = OCI_CHAR_SLASH;
+        len++;
+    }
+
+    strncat(path, OCI_DL_NAME, sizeof(path) - len);
+
+    OCILib.lib_handle = LIB_OPEN(path);
 
     if (OCILib.lib_handle != NULL)
     {
@@ -475,7 +507,7 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
                    OCILOBWRITE2);
         LIB_SYMBOL(OCILib.lib_handle, "OCILobWriteAppend2", OCILobWriteAppend2,
                    OCILOBWRITEAPPEND2);
-     
+
 #endif
 
         LIB_SYMBOL(OCILib.lib_handle, "OCILobFileOpen", OCILobFileOpen,
@@ -597,7 +629,7 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
                    OCINUMBERTOINT);
         LIB_SYMBOL(OCILib.lib_handle, "OCINumberFromInt", OCINumberFromInt,
                    OCINUMBERFROMINT);
-     
+
         LIB_SYMBOL(OCILib.lib_handle, "OCINumberToReal", OCINumberToReal,
                    OCINUMBERTOREAL);
         LIB_SYMBOL(OCILib.lib_handle, "OCINumberFromReal", OCINumberFromReal,
@@ -612,14 +644,14 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
                    OCISTRINGPTR);
         LIB_SYMBOL(OCILib.lib_handle, "OCIStringAssignText", OCIStringAssignText,
                    OCISTRINGASSIGNTEXT);
-        
+
         LIB_SYMBOL(OCILib.lib_handle, "OCIRawPtr", OCIRawPtr,
                    OCIRAWPTR);
         LIB_SYMBOL(OCILib.lib_handle, "OCIRawAssignBytes", OCIRawAssignBytes,
                    OCIRAWASSIGNBYTES);
         LIB_SYMBOL(OCILib.lib_handle, "OCIRawAllocSize", OCIRawAllocSize,
                    OCIRAWALLOCSIZE);
-        
+
         LIB_SYMBOL(OCILib.lib_handle, "OCIObjectNew", OCIObjectNew,
                    OCIOBJECTNEW);
         LIB_SYMBOL(OCILib.lib_handle, "OCIObjectFree", OCIObjectFree,
@@ -628,6 +660,30 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
                    OCIOBJECTSETATTR);
         LIB_SYMBOL(OCILib.lib_handle, "OCIObjectGetAttr", OCIObjectGetAttr,
                    OCIOBJECTGETATTR);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectPin", OCIObjectPin,
+                   OCIOBJECTPIN);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectUnpin", OCIObjectUnpin,
+                   OCIOBJECTUNPIN);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectCopy", OCIObjectCopy,
+                   OCIOBJECTCOPY);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectGetObjectRef", OCIObjectGetObjectRef,
+                   OCIOBJECTGETOBJECTREF);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectGetProperty", OCIObjectGetProperty,
+                   OCIOBJECTGETPROPERTY);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIObjectGetInd", OCIObjectGetInd,
+                   OCIOBJECTGETIND);
+
+
+        LIB_SYMBOL(OCILib.lib_handle, "OCIRefAssign", OCIRefAssign,
+                   OCIREFASSIGN);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIRefIsNull", OCIRefIsNull,
+                   OCIREFISNULL);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIRefClear", OCIRefClear,
+                   OCIREFCLEAR);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIRefToHex", OCIRefToHex,
+                   OCIREFTOHEX);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIRefHexSize", OCIRefHexSize,
+                   OCIREFHEXSIZE);
 
         LIB_SYMBOL(OCILib.lib_handle, "OCIArrayDescriptorFree", OCIArrayDescriptorFree,
                    OCIARRAYDESCRIPTORFREE);
@@ -706,6 +762,30 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
         LIB_SYMBOL(OCILib.lib_handle, "OCIIterPrev", OCIIterPrev,
                    OCIITERPREV);
 
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathAbort", OCIDirPathAbort,
+                   OCIDIRPATHABORT);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathDataSave", OCIDirPathDataSave,
+                   OCIDIRPATHDATASAVE);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathFinish", OCIDirPathFinish,
+                   OCIDIRPATHFINISH);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathPrepare", OCIDirPathPrepare,
+                   OCIDIRPATHPREPARE);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathLoadStream", OCIDirPathLoadStream,
+                   OCIDIRPATHLOADSTREAM);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathColArrayEntrySet", OCIDirPathColArrayEntrySet,
+                   OCIDIRPATHCOLARRAYENTRYSET);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathColArrayReset", OCIDirPathColArrayReset,
+                   OCIDIRPATHCOLARRAYRESET);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathColArrayToStream", OCIDirPathColArrayToStream,
+                   OCIDIRPATHCOLARRAYTOSTREAM);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathStreamReset", OCIDirPathStreamReset,
+                   OCIDIRPATHSTREAMRESET);
+        LIB_SYMBOL(OCILib.lib_handle, "OCIDirPathFlushRow", OCIDirPathFlushRow,
+                   OCIDIRPATHFLUSHROW);
+
+        LIB_SYMBOL(OCILib.lib_handle, "OCICacheFree", OCICacheFree,
+                   OCICACHEFREE);
+
         /* API Version checking */
 
         if (OCIArrayDescriptorFree != NULL)
@@ -767,7 +847,7 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
 
 #if defined(OCI_CHARSET_UNICODE)
 
-    /* Oracle 8i does not support full unicode mode */
+    /* Oracle 8i does not support full Unicode mode */
 
     if ((res == TRUE) && (OCILib.ver_runtime == OCI_8))
     {
@@ -789,15 +869,15 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
 
         /* create environment on success */
 
-        res = res && (OCI_SUCCESS == OCIEnvCreate(&OCILib.env, oci_mode, 
+        res = res && (OCI_SUCCESS == OCIEnvCreate(&OCILib.env, oci_mode,
                                                   (dvoid *) NULL, NULL, NULL, NULL,
                                                   (size_t) 0, (dvoid **) NULL));
 
         /*  allocate error handle */
-        
-        res = res && (OCI_SUCCESS == OCI_HandleAlloc((dvoid *) OCILib.env, 
+
+        res = res && (OCI_SUCCESS == OCI_HandleAlloc((dvoid *) OCILib.env,
                                                      (dvoid **) (void *) &OCILib.err,
-                                                     (ub4) OCI_HTYPE_ERROR, 
+                                                     (ub4) OCI_HTYPE_ERROR,
                                                      (size_t) 0, (dvoid **) NULL));
     }
 
@@ -820,7 +900,7 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
 
         if (res == TRUE)
         {
-            OCILib.cons  = OCI_ListCreate(OCI_IPC_CONNECTION);    
+            OCILib.cons  = OCI_ListCreate(OCI_IPC_CONNECTION);
 
             res = (OCILib.cons != NULL);
         }
@@ -830,10 +910,11 @@ boolean OCI_API OCI_Initialize(POCI_ERROR err_handler, const mtext *home,
         if (res == TRUE)
         {
 
-            OCILib.pools = OCI_ListCreate(OCI_IPC_CONNPOOL); 
+            OCILib.pools = OCI_ListCreate(OCI_IPC_CONNPOOL);
 
             res = (OCILib.pools != NULL);
         }
+
     }
 
     if (res == TRUE)
@@ -862,7 +943,7 @@ boolean OCI_API OCI_Cleanup(void)
 
     /* free objects */
 
-    OCI_KeyMapFree();       
+    OCI_KeyMapFree();
 
     OCI_ListFree(OCILib.cons);
     OCI_ListFree(OCILib.pools);
@@ -878,7 +959,7 @@ boolean OCI_API OCI_Cleanup(void)
         OCI_CALL0
         (
             res, OCILib.err,
-            
+
             OCIThreadTerm(OCILib.env, OCILib.err)
         )
     }
@@ -889,9 +970,9 @@ boolean OCI_API OCI_Cleanup(void)
     {
         OCI_ThreadKey *key = OCILib.key_errs;
         OCI_Error *err     = OCI_ErrorGet(FALSE);
-        
+
         OCILib.key_errs = NULL;
-        
+
         OCI_ErrorFree(err);
         OCI_ThreadKeySet(key, NULL);
         OCI_ThreadKeyFree(key);
@@ -902,15 +983,15 @@ boolean OCI_API OCI_Cleanup(void)
     OCILib.loaded = FALSE;
 
     /* close error handle */
-    
+
     if (OCILib.err != NULL)
        OCI_HandleFree(OCILib.err, OCI_HTYPE_ERROR);
 
-    /* close environnement handle 
-       => direct OCIHandleFree() because this handle was not allocated 
-       with OCI_HandleAlloc() 
+    /* close environment handle
+       => direct OCIHandleFree() because this handle was not allocated
+       with OCI_HandleAlloc()
     */
-    
+
     if (OCILib.env != NULL)
         OCIHandleFree(OCILib.env, OCI_HTYPE_ENV);
 
@@ -920,7 +1001,7 @@ boolean OCI_API OCI_Cleanup(void)
         LIB_CLOSE(OCILib.lib_handle);
 
 #endif
-    
+
     /* checks for not freed handles */
 
     if (OCILib.nb_hndlp > 0)
@@ -969,14 +1050,41 @@ unsigned int OCI_API OCI_GetOCIRuntimeVersion(void)
 }
 
 /* ------------------------------------------------------------------------ *
+ * OCI_GetImportMode
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_GetImportMode(void)
+{
+    return (unsigned int) OCI_IMPORT_MODE;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_GetCharsetMetaData
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_GetCharsetMetaData(void)
+{
+    return (unsigned int) OCI_CHAR_MTEXT;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_GetCharsetUserData
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_GetCharsetUserData(void)
+{
+    return (unsigned int) OCI_CHAR_DTEXT;
+}
+
+/* ------------------------------------------------------------------------ *
  * OCI_GetLastError
  * ------------------------------------------------------------------------ */
 
 OCI_Error * OCI_API OCI_GetLastError(void)
 {
     OCI_Error *err = NULL;
-    
-    if ((OCILib.loaded == FALSE) || (OCI_LIB_CONTEXT)) 
+
+    if ((OCILib.loaded == FALSE) || (OCI_LIB_CONTEXT))
     {
         err = OCI_ErrorGet(TRUE);
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ Module BaH.DBOracle
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.00 Initial Release"
@@ -452,6 +452,7 @@ Type TOracleResultSet Extends TQueryResultSet
 		If values Then
 			Local paramCount:Int = bindCount
 
+			Local params:Byte Ptr[] = New Byte Ptr[paramCount]
 			Local strings:Byte Ptr[] = New Byte Ptr[paramCount]
 			
 			Try
@@ -461,10 +462,12 @@ Type TOracleResultSet Extends TQueryResultSet
 						bmx_ora_bind_setnull(stmtHandle, i + 1)
 						Continue
 					End If
+					
+					params[i] = String(":" + (i + 1)).toCString()
 	
 					Select values[i].kind()
 						Case DBTYPE_INT
-							result = bmx_ora_bind_int(stmtHandle, ":" + (i + 1), Varptr TDBInt(values[i]).value)
+							result = bmx_ora_bind_int(stmtHandle, params[i], Varptr TDBInt(values[i]).value)
 						Case DBTYPE_FLOAT
 							' convert float to a Double
 							If TDBFloat(values[i]) Then
@@ -473,9 +476,9 @@ Type TOracleResultSet Extends TQueryResultSet
 								values[i].clear()
 								values[i] = d
 							End If
-							result = bmx_ora_bind_double(stmtHandle, ":" + (i + 1), Varptr TDBDouble(values[i]).value)
+							result = bmx_ora_bind_double(stmtHandle, params[i], Varptr TDBDouble(values[i]).value)
 						Case DBTYPE_DOUBLE
-							result = bmx_ora_bind_double(stmtHandle, ":" + (i + 1), Varptr TDBDouble(values[i]).value)
+							result = bmx_ora_bind_double(stmtHandle, params[i], Varptr TDBDouble(values[i]).value)
 						Case DBTYPE_LONG
 							' TODO
 						Case DBTYPE_STRING
@@ -483,7 +486,7 @@ Type TOracleResultSet Extends TQueryResultSet
 							Local s:String = values[i].getString()
 							strings[i] = s.toCString()
 	
-							result = bmx_ora_bind_string(stmtHandle, ":" + (i + 1), strings[i], s.length)
+							result = bmx_ora_bind_string(stmtHandle, params[i], strings[i], s.length)
 							
 						Case DBTYPE_BLOB
 							' TODO
@@ -503,6 +506,9 @@ Type TOracleResultSet Extends TQueryResultSet
 							If strings[i] Then
 								MemFree(strings[i])
 							End If
+							If params[i] Then
+								MemFree(params[i])
+							End If
 						Next
 			
 						Return False
@@ -518,6 +524,9 @@ Type TOracleResultSet Extends TQueryResultSet
 					If strings[i] Then
 						MemFree(strings[i])
 					End If
+					If params[i] Then
+						MemFree(params[i])
+					End If
 				Next
 
 				Return False
@@ -527,6 +536,9 @@ Type TOracleResultSet Extends TQueryResultSet
 			For Local i:Int = 0 Until paramCount
 				If strings[i] Then
 					MemFree(strings[i])
+				End If
+				If params[i] Then
+					MemFree(params[i])
 				End If
 			Next
 			

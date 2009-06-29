@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: format.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: format.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -270,7 +270,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                 pf++;
 
-                /* short ints pust be passed as int to va_args */
+                /* short ints must be passed as int to va_args */
 
                 if (*pf == 'i')
                 {

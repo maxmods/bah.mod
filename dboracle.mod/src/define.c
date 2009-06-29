@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: define.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: define.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -56,6 +56,9 @@ OCI_Define * OCI_GetDefine(OCI_Resultset *rs, unsigned int index)
 
 int OCI_GetDefineIndex(OCI_Resultset *rs, const mtext *name)
 {
+    OCI_HashEntry *he = NULL;
+    int index         = -1;
+
     OCI_CHECK_PTR(OCI_IPC_RESULTSET, rs, -1);
     OCI_CHECK_PTR(OCI_IPC_STRING, name, -1);
 
@@ -81,7 +84,20 @@ int OCI_GetDefineIndex(OCI_Resultset *rs, const mtext *name)
 
     OCI_CHECK(rs->map == NULL, -1);
 
-    return OCI_HashGetInt(rs->map, name);
+    he = OCI_HashLookup(rs->map, name, FALSE);
+
+    while (he != NULL)
+    {
+        /* no more entries or key matched => so we got it ! */
+
+        if (he->next == NULL || mtscasecmp(he->key, name) == 0)
+        {
+            index = he->values->value.num;
+            break;
+        }
+    }
+
+    return index;
 }
 
 /* ------------------------------------------------------------------------ *
@@ -103,6 +119,7 @@ void * OCI_DefineGetData(OCI_Define *def)
         case OCI_CDT_FILE:
         case OCI_CDT_OBJECT:
         case OCI_CDT_COLLECTION:
+        case OCI_CDT_REF:
 
             /* handle based types */
 
@@ -169,13 +186,13 @@ boolean OCI_DefineAlloc(OCI_Define *def)
     ub4 i;
 
     /* this function allocates internal buffers, handles, indicators, arrays, ...
-       for the given outpout define handle */
+       for the given output define handle */
 
     OCI_CHECK(def == NULL, FALSE);
 
     /* Allocate null indicators array */
 
-    if (def->col.icode == SQLT_NTY)
+    if (def->col.ocode == SQLT_NTY || def->col.ocode == SQLT_REF)
         indsize = (ub4) sizeof(void*);
     else
         indsize = (ub4) sizeof(sb2);
@@ -226,7 +243,7 @@ boolean OCI_DefineAlloc(OCI_Define *def)
         res = (def->buf.data != NULL);
     }
 
-    /* Allocate descriptor for cursor, lob and file, interval and timestamp  */
+    /* Allocate descriptor for cursor, lob and file, interval and timestamp */
 
     if (res == TRUE)
     {
@@ -311,7 +328,7 @@ boolean OCI_DefineDef(OCI_Define *def)
                        (ub4   ) fetch_mode)
     )
 
-    if (def->col.ocode == SQLT_NTY)
+    if (def->col.ocode == SQLT_NTY || def->col.ocode == SQLT_REF)
     {
         OCI_CALL1
         (
@@ -319,7 +336,7 @@ boolean OCI_DefineDef(OCI_Define *def)
 
             OCIDefineObject((OCIDefine *) def->buf.handle,
                             def->rs->stmt->con->err,
-                            def->col.nty->tdo,
+                            def->col.typinf->tdo,
                             (void **) def->buf.data,
                             (ub4   *) NULL,
                            (void **) def->buf.inds,

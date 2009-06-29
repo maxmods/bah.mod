@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: ocilib_checks.h v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: ocilib_checks.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCILIB_CHECKS_H_INCLUDED
@@ -67,7 +67,7 @@
 
 /**
  * @brief 
- * Conditionnal OCI call with return value checking
+ * Conditional OCI call with return value checking
  *
  * @param res   - OCI call result
  * @param con   - OCILIB connection objet
@@ -99,7 +99,7 @@
 
 /**
  * @brief 
- * Conditionnal OCI call with return value checking
+ * Conditional OCI call with return value checking
  *
  * @param res   - OCI call result
  * @param con   - OCILIB connection objet
@@ -130,7 +130,7 @@
     
 /**
  * @brief 
- * Conditionnal OCI call with return value checking
+ * Conditional OCI call with return value checking
  *
  * @param res   - OCI call result
  * @param err   - OCI error handle
@@ -159,7 +159,7 @@
     
 /**
  * @brief 
- * Conditionnal OCI call with return value checking
+ * Conditional OCI call with return value checking
  *
  * @param res   - OCI call result
  * @param err   - OCI error handle
@@ -262,7 +262,7 @@
  * Checks if the parameters of a bind call are valid
  *
  * @param stmt  - Statement handle
- * @param name  - Bind name/litteral positon
+ * @param name  - Bind name/literal position
  * @param data  - Input pointer to bind
  * @param type  - Input pointer type
  *
@@ -284,7 +284,7 @@
  * Checks if the parameters of a register call are valid
  *
  * @param stmt  - Statement handle
- * @param name  - Bind name/litteral positon
+ * @param name  - Bind name/literal position
  *
  * @note
  * Throws an exception if one of the parameters is invalid and returns FALSE.
@@ -319,14 +319,14 @@
                                                                                \
     if ((v < (b1)) || (v > (b2)))                                              \
     {                                                                          \
-        OCI_ExceptionOutOfBounds((con), (v), (b1),(b2));                       \
+        OCI_ExceptionOutOfBounds((con), (v));                                  \
                                                                                \
         return (ret);                                                          \
     } 
 
 /**
  * @brief 
- * Checks if an integer parameter value is >= minumum provided value
+ * Checks if an integer parameter value is >= minimum provided value
  *
  * @param con  - Connection handle
  * @param stmt - Statement handle
@@ -353,8 +353,7 @@
  * Checks if two expressions are compatible
  *
  * @param con - Connection handle
- * @param e1  - Expression 1
- * @param e2  - Expression 2
+ * @param exp - Equality expression 
  * @param ret - Return value
  *
  * @note
@@ -362,11 +361,11 @@
  *
  */
 
-#define OCI_CHECK_COMPAT(con, e1, e2, ret)                                     \
+#define OCI_CHECK_COMPAT(con, exp, ret)                                        \
                                                                                \
-    if ((e1) != (e2))                                                          \
+    if ((exp) == FALSE)                                                         \
     {                                                                          \
-        OCI_ExceptionTypeNotCompatible((con), (int) (e1), (int) (e2));         \
+        OCI_ExceptionTypeNotCompatible((con));                                 \
                                                                                \
         return (ret);                                                          \
     } 
@@ -384,7 +383,7 @@
  * @param ret - Return value
  *
  * @note
- * Returns the value 'ret' if the object was fechted from a sql statement
+ * Returns the value 'ret' if the object was fetched from a sql statement
  *
  */
 
@@ -428,12 +427,35 @@
 
 #define OCI_CHECK_SCROLLABLE_CURSOR_ACTIVATED(st, ret)                         \
                                                                                \
-    if (((st)->nb_outbinds > 0) ||                                             \
+    if (((st)->nb_rbinds > 0) ||                                             \
         ((st)->exec_mode != OCI_STMT_SCROLLABLE_READONLY))                     \
     {                                                                          \
         OCI_ExceptionStatementNotScrollable(st);                               \
         return ret;                                                            \
     }
+
+/**
+ * @brief 
+ * Checks if the status of a OCILIB direct path handle is compatible with the
+ * given one
+ *
+ * @param st  - Direct path handle
+ * @param v   - Status to compare
+ * @param ret - Return value
+ *
+ * @note
+ * Throws an exception if the status of the direct path handle is different than
+ * the provided one.
+ *
+ */
+#define OCI_CHECK_DIRPATH_STATUS(dp, v, ret)                                   \
+                                                                               \
+    if ((dp)->status != (v))                                                   \
+    {                                                                          \
+        OCI_ExceptionDirPathState((dp), (dp)->status);                         \
+        return ret;                                                            \
+    } 
+
 
 /* ************************************************************************ *
                     INTERNAL FEATURES AVAILABILITY CHECKING MACROS
@@ -487,7 +509,7 @@
  * @param ret - Return value
  *
  * @note
- * Throws an exception the library has not been initiazed with multithreading
+ * Throws an exception the library has not been initialized with multithreading
  * mode
  *
  */
@@ -548,6 +570,27 @@
 #define OCI_CHECK_SCROLLABLE_CURSOR_ENABLED(con, ret)                          \
                                                                                \
         OCI_CHECK_FEATURE(con, OCI_FEATURE_SCROLLABLE_CURSOR, OCI_9, ret)
+
+
+/**
+ * @brief 
+ * Checks if the direct path date caching is available
+ *
+ * @param con - Connection handle
+ * @param ret - Return value
+ *
+ * @note
+ * Throws an exception if the Oracle client does not support date caching
+ *
+ */
+
+#define OCI_CHECK_DIRPATH_DATE_CACHE_ENABLED(dp,  ret)                         \
+                                                                               \
+    if (OCILib.ver_runtime < OCI_9)                                            \
+    {                                                                          \
+        OCI_ExceptionNotAvailable((dp)->con, OCI_FEATURE_DIRPATH_DATE_CACHE);  \
+        return ret;                                                            \
+    }
 
 
 #endif    /* OCILIB_OCILIB_CHECKS_H_INCLUDED */

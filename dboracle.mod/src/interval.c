@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: interval.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: interval.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -46,9 +46,10 @@ OCI_Interval * OCI_IntervalInit(OCI_Connection *con, OCI_Interval **pitv,
                                 OCIInterval *buffer, ub4 type)
 {
     OCI_Interval *itv = NULL;
-    boolean res       = TRUE;
 
 #if OCI_VERSION_COMPILE >= OCI_9
+
+    boolean res       = TRUE;
 
     OCI_CHECK(pitv == NULL, NULL);
 
@@ -104,6 +105,8 @@ OCI_Interval * OCI_IntervalInit(OCI_Connection *con, OCI_Interval **pitv,
 
 #else
 
+    OCI_NOT_USED(con);
+    OCI_NOT_USED(pitv);
     OCI_NOT_USED(type);
     OCI_NOT_USED(buffer);
 

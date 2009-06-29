@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: thread.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: thread.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -67,7 +67,7 @@ OCI_Thread * OCI_API OCI_ThreadCreate(void)
 
     OCI_CHECK_THREAD_ENABLED(FALSE);
 
-    /* allocate thread structure  */
+    /* allocate thread structure */
 
     thread = (OCI_Thread *) OCI_MemAlloc(OCI_IPC_THREAD, sizeof(*thread), 1, TRUE);
 
@@ -98,6 +98,8 @@ OCI_Thread * OCI_API OCI_ThreadCreate(void)
             OCIThreadIdInit(OCILib.env, thread->err, &thread->id)
         )    
     }
+    else
+        res = FALSE;
 
     if (res == FALSE)
     {

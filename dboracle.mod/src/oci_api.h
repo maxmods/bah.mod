@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -32,7 +32,7 @@
    +----------------------------------------------------------------------+
    |                                                                      |
    | THIS FILE CONTAINS CONSTANTS AND STRUCTURES DECLARATIONS THAT WERE   |
-   | PICKED UP FROM ORACLE PUBLIC HEADER FILES 'OCI.H' AND 'ORO.H'.       |
+   | PICKED UP FROM ORACLE PUBLIC HEADER FILES.                           |
    |                                                                      |
    | SO THE CONTENT OF THIS FILE IS UNDER ORACLE COPYRIGHT AND THE        |
    | DECLARATIONS REPRODUCED HERE ARE ORIGINALLY WRITTEN BY ORACLE        | 
@@ -47,7 +47,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_api.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: oci_api.h, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_API_H_INCLUDED 
@@ -1235,6 +1235,100 @@ typedef sword (*OCIOBJECTSETATTR)
     CONST dvoid *attr_value    
 );
 
+typedef sword (*OCIOBJECTPIN)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    OCIRef *object_ref, 
+    OCIComplexObject *corhdl, 
+    OCIPinOpt pin_option, 
+    OCIDuration pin_duration, 
+    OCILockOpt lock_option, 
+    dvoid **object    
+);
+
+typedef sword (*OCIOBJECTUNPIN)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    dvoid *object    
+);
+
+typedef sword (*OCIOBJECTCOPY)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCISvcCtx *svc, 
+    dvoid *source, 
+    dvoid *null_source,
+    dvoid *target, 
+    dvoid *null_target, 
+    OCIType *tdo,
+    OCIDuration duration, 
+    ub1 option    
+);
+
+typedef sword (*OCIOBJECTGETOBJECTREF)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    dvoid *object, 
+    OCIRef *object_ref    
+);
+
+typedef sword (*OCIOBJECTGETPROPERTY)
+( 
+    OCIEnv *envh,
+    OCIError *errh,
+    const void *obj,
+    OCIObjectPropId propertyId,
+    void *property,
+    ub4 *size 
+);
+
+typedef sword (*OCIOBJECTGETIND)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    dvoid *instance,
+    dvoid **null_struct    
+);
+
+typedef sword (*OCIREFASSIGN)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIRef *source, 
+    OCIRef **target    
+);
+
+typedef boolean (*OCIREFISNULL)
+(
+    OCIEnv *env, 
+    CONST OCIRef *ref    
+);
+
+typedef void (*OCIREFCLEAR)
+(
+    OCIEnv *env, 
+    OCIRef *ref    
+);
+
+typedef sword (*OCIREFTOHEX)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCIRef *ref, 
+    oratext *hex, 
+    ub4 *hex_length    
+);
+
+typedef ub4 (*OCIREFHEXSIZE)
+(
+    OCIEnv *env,
+    const OCIRef *ref 
+);
+
 typedef sword (*OCINUMBERTOINT)
 (
     OCIError *err, 
@@ -1584,6 +1678,87 @@ typedef sword (*OCIITERPREV)
     dvoid **elemind, 
     boolean *boc    
 );
+
+typedef sword (*OCIDIRPATHABORT)
+( 
+    OCIDirPathCtx *dpctx, 
+    OCIError *errhp 
+);
+
+typedef sword (*OCIDIRPATHDATASAVE)
+( 
+    OCIDirPathCtx *dpctx, 
+    OCIError *errhp, 
+    ub4 action 
+);
+
+typedef sword (*OCIDIRPATHFINISH)
+( 
+    OCIDirPathCtx *dpctx, 
+    OCIError  *errhp 
+);
+
+typedef sword (*OCIDIRPATHPREPARE)
+( 
+    OCIDirPathCtx *dpctx, 
+    OCISvcCtx *svchp,
+    OCIError  *errhp 
+);
+
+typedef sword (*OCIDIRPATHLOADSTREAM)
+( 
+    OCIDirPathCtx *dpctx, 
+    OCIDirPathStream *dpstr,
+    OCIError *errhp
+);
+
+typedef sword (*OCIDIRPATHCOLARRAYENTRYSET)
+( 
+    OCIDirPathColArray *dpca, 
+    OCIError *errhp,
+    ub4 rownum, 
+    ub2 colIdx, 
+    ub1 *cvalp, 
+    ub4 clen,
+    ub1 cflg 
+);
+
+typedef sword (*OCIDIRPATHCOLARRAYRESET)
+(
+    OCIDirPathColArray *dpca, 
+    OCIError *errhp 
+);
+
+typedef sword (*OCIDIRPATHCOLARRAYTOSTREAM)
+( 
+    OCIDirPathColArray *dpca,  
+    OCIDirPathCtx *dpctx,
+    OCIDirPathStream *dpstr, 
+    OCIError *errhp,
+    ub4 rowcnt, 
+    ub4 rowoff 
+);
+
+typedef sword (*OCIDIRPATHSTREAMRESET)
+(
+    OCIDirPathStream *dpstr, 
+    OCIError *errhp 
+);
+
+typedef sword (*OCIDIRPATHFLUSHROW)
+(
+    OCIDirPathCtx *dpctx,
+    OCIError *errhp 
+);
+
+typedef sword (*OCICACHEFREE)
+(
+    OCIEnv *env, 
+    OCIError *err, 
+    CONST OCISvcCtx *svc
+); 
+
+
 
 #endif /* OCILIB_OCI_API_H_INCLUDED */
 

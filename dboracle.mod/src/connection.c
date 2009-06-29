@@ -8,7 +8,7 @@
    +----------------------------------------------------------------------+
    |                      Website : http://ocilib.net                     |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
    | modify it under the terms of the GNU Library General Public          |
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: connection.c, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: connection.c, v 3.2.0 2009/04/20 00:00 Vince $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -50,7 +50,7 @@ OCI_Connection * OCI_ConnectionAllocate(OCI_ConnPool *pool, const mtext *db,
     OCI_Connection *con = NULL;
     OCI_List *list      = NULL;
     OCI_Item *item      = NULL;
-    boolean res         = FALSE;
+    boolean res         = TRUE;
 
     /* create connection object */
 
@@ -63,8 +63,6 @@ OCI_Connection * OCI_ConnectionAllocate(OCI_ConnPool *pool, const mtext *db,
  
     if (item != NULL)
     {
-        res = TRUE;
-
         con = (OCI_Connection *) item->data;
 
         /* create internal lists */
@@ -73,14 +71,14 @@ OCI_Connection * OCI_ConnectionAllocate(OCI_ConnPool *pool, const mtext *db,
         
         if (res == TRUE)
         {
-            con->sobjs = OCI_ListCreate(OCI_IPC_SCHEMA);    
-            res = (con->sobjs != NULL);
+            con->tinfs = OCI_ListCreate(OCI_IPC_TYPE_INFO);    
+            res = (con->tinfs != NULL);
         }
 
         if (res == TRUE)
         {
             con->trsns = OCI_ListCreate(OCI_IPC_TRANSACTION);
-            res = (con->sobjs != NULL);
+            res = (con->trsns != NULL);
         }
  
         /* set attributes */
@@ -136,6 +134,8 @@ OCI_Connection * OCI_ConnectionAllocate(OCI_ConnPool *pool, const mtext *db,
                                                   (ub4) OCI_HTYPE_SESSION,
                                                   (size_t) 0, (dvoid **) NULL));
     }
+    else
+        res = FALSE;
 
    /* update internal status */
     
@@ -299,9 +299,7 @@ boolean OCI_ConnectionLogon(OCI_Connection *con)
 
     /* set session login attribute */
 
-    
-
-   if ((res == TRUE) && (con->user != NULL) && (con->user[0] != 0))
+    if ((res == TRUE) && (con->user != NULL) && (con->user[0] != 0))
     {
         osize = -1;
         ostr  = OCI_GetInputMetaString(con->user, &osize);
@@ -356,9 +354,9 @@ boolean OCI_ConnectionLogon(OCI_Connection *con)
             OCISessionBegin(con->cxt, con->err, con->ses, credt, con->mode)
         )
  
-    /* This call has moved after OCISessionBegin() call to enable connection
-       pooling (an error ORA-24324 was thrown is the session handle was set to
-       the service context handle before OCISessionBegin() */
+       /* This call has moved after OCISessionBegin() call to enable connection
+          pooling (an error ORA-24324 was thrown is the session handle was set to
+          the service context handle before OCISessionBegin() */
     
         OCI_CALL2
         (
@@ -368,7 +366,7 @@ boolean OCI_ConnectionLogon(OCI_Connection *con)
                        (dvoid *) con->ses, (ub4) sizeof(con->ses), 
                        (ub4) OCI_ATTR_SESSION, con->err))
 
-   }
+    }
     
     /* check for success */
 
@@ -386,6 +384,31 @@ boolean OCI_ConnectionLogon(OCI_Connection *con)
         
         res = OCI_TransactionStart(con->trs);
     }
+
+
+    /* set OCILIB's driver layer name attribute */
+
+#if OCI_VERSION_COMPILE >= OCI_11
+
+    if ((res == TRUE) && (OCILib.ver_runtime >= OCI_11) && (con->ver_maj >= OCI_11))
+    {
+        osize = -1;
+        ostr  = OCI_GetInputMetaString(OCILIB_DRIVER_NAME, &osize);
+
+        OCI_CALL2
+        (
+            res, con,
+            
+            OCIAttrSet((dvoid *) con->ses, (ub4) OCI_HTYPE_SESSION, 
+                       (dvoid *) ostr, (ub4) osize, 
+                       (ub4) OCI_ATTR_DRIVER_NAME, con->err)
+        )
+
+        OCI_ReleaseMetaString(ostr);
+    }
+
+#endif
+
 
    /* update internal status */
     
@@ -416,15 +439,24 @@ boolean OCI_ConnectionLogOff(OCI_Connection *con)
     OCI_ListForEach(con->stmts, (boolean (*)(void *)) OCI_StatementClose);
     OCI_ListClear(con->stmts);
 
+    /* cleanup the cache */
+
+    OCI_CALL2
+    (
+        res, con, 
+
+        OCICacheFree(OCILib.env, con->err, con->cxt)
+    )
+
     /* free all transactions */
     
     OCI_ListForEach(con->trsns, (boolean (*)(void *)) OCI_TransactionClose);
     OCI_ListClear(con->trsns);
 
-    /* free all schema objects */
+    /* free all type info objects */
     
-    OCI_ListForEach(con->sobjs, (boolean (*)(void *)) OCI_SchemaClose);
-    OCI_ListClear(con->sobjs);
+    OCI_ListForEach(con->tinfs, (boolean (*)(void *)) OCI_TypeInfoClose);
+    OCI_ListClear(con->tinfs);
 
    /* close any server files not explicitly closed - no check of return code */
    
@@ -466,7 +498,7 @@ boolean OCI_ConnectionClose(OCI_Connection *con)
 {
     OCI_CHECK(con == NULL, FALSE);
 
-    /* clear server output ressources */
+    /* clear server output resources */
 
     OCI_ServerDisableOutput(con);
 
@@ -480,7 +512,7 @@ boolean OCI_ConnectionClose(OCI_Connection *con)
 
     OCI_ListFree(con->stmts);
     OCI_ListFree(con->trsns);
-    OCI_ListFree(con->sobjs);
+    OCI_ListFree(con->tinfs);
 
     if (con->pool == NULL)
     {
@@ -498,7 +530,7 @@ boolean OCI_ConnectionClose(OCI_Connection *con)
 
     con->stmts = NULL;
     con->trsns = NULL;
-    con->sobjs = NULL;
+    con->tinfs = NULL;
 
     return TRUE;
 }
@@ -557,7 +589,6 @@ boolean OCI_API OCI_ConnectionFree(OCI_Connection *con)
     if (err != NULL && err->con == con)
         err->con = NULL;
         
-   
     if (con->pool != NULL)
     {
         res = OCI_ConnectionLogOff(con);
@@ -655,7 +686,7 @@ boolean OCI_API OCI_GetAutoCommit(OCI_Connection *con)
 
 boolean OCI_API OCI_IsConnected(OCI_Connection *con)
 {
-    boolean res = FALSE;
+    boolean res = TRUE;
     ub4 status  = 0;
 
     OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, FALSE);
@@ -789,7 +820,7 @@ unsigned int OCI_API OCI_GetSessionMode(OCI_Connection *con)
 const mtext * OCI_API OCI_GetVersionServer(OCI_Connection *con)
 {
     boolean res = FALSE;
-
+ 
     OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, NULL);
 
     if (con->version == NULL)
@@ -803,10 +834,12 @@ const mtext * OCI_API OCI_GetVersionServer(OCI_Connection *con)
             void *ostr = NULL;
             mtext *p   = NULL;
 
+            con->version[0] = 0;
+            
             res  = TRUE;
-
+ 
             ostr = OCI_GetInputMetaString(con->version, &osize);
-
+  
             OCI_CALL2
             (
                 res, con, 
@@ -815,8 +848,9 @@ const mtext * OCI_API OCI_GetVersionServer(OCI_Connection *con)
                                  (OraText *) ostr, (ub4) osize,
                                  (ub1) OCI_HTYPE_SVCCTX)
             )
-
+            
             OCI_GetOutputMetaString(ostr, con->version, &osize);
+                       
             OCI_ReleaseMetaString(ostr);
 
             if (res == TRUE)
@@ -1084,7 +1118,7 @@ boolean OCI_API OCI_ServerEnableOutput(OCI_Connection *con,
 
     if ((res == TRUE) && (con->svopt->arrbuf == NULL))
     {
-        /* check params ranges ( Oracle 10g increased the size of ouput line */
+        /* check params ranges ( Oracle 10g increased the size of output line */
 
         if (con->ver_maj > OCI_10 || (con->ver_maj == OCI_10 && con->ver_min >= 2))
         {
@@ -1208,3 +1242,181 @@ const dtext * OCI_API OCI_ServerGetOutput(OCI_Connection *con)
     return (const dtext *) str;
 }
 
+
+
+/* ------------------------------------------------------------------------ *
+ * OCI_SetTrace
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_API OCI_SetTrace(OCI_Connection *con, unsigned int trace, 
+                             const mtext *value)
+{
+    boolean res = TRUE;
+    mtext *str  = NULL;
+
+#if OCI_VERSION_COMPILE >= OCI_10
+    ub4 attrib  = 0;
+#endif
+
+    OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, FALSE);
+
+    /* allocate trace info structure only if trace functions are used */
+
+    if (con->trace == NULL)
+    {
+        con->trace = (OCI_TraceInfo *) OCI_MemAlloc(OCI_IPC_TRACE_INFO, 
+                                                    sizeof(*con->trace), 
+                                                    1, TRUE);
+        res = (con->trace != NULL);
+    }
+
+    /* set trace properties */
+
+    if (con->trace != NULL)
+    {
+        switch (trace)
+        {
+            case OCI_TRC_IDENTITY:
+
+#if OCI_VERSION_COMPILE >= OCI_10
+
+                attrib = OCI_ATTR_CLIENT_IDENTIFIER;
+
+#endif
+                con->trace->identifier[0] = 0;
+
+                mtsncat(con->trace->identifier, value,
+                        msizeof(con->trace->identifier));
+
+                str = con->trace->identifier;
+                
+                break;
+ 
+            case OCI_TRC_MODULE:
+
+ #if OCI_VERSION_COMPILE >= OCI_10
+
+                attrib = OCI_ATTR_MODULE;
+
+#endif
+                con->trace->module[0] = 0;
+
+                mtsncat(con->trace->module, value, msizeof(con->trace->module));
+
+                str = con->trace->module;
+                
+                break;
+
+            case OCI_TRC_ACTION:
+
+#if OCI_VERSION_COMPILE >= OCI_10
+
+                attrib = OCI_ATTR_ACTION;
+
+#endif
+                con->trace->action[0] = 0;
+
+                mtsncat(con->trace->action, value, msizeof(con->trace->action));
+
+                str = con->trace->action;
+                
+                break;
+
+            case OCI_TRC_DETAIL:
+
+#if OCI_VERSION_COMPILE >= OCI_10
+
+                attrib = OCI_ATTR_CLIENT_INFO;
+
+#endif
+                con->trace->info[0] = 0;
+
+                mtsncat(con->trace->info, value,  msizeof(con->trace->info));
+
+                str = con->trace->info;
+                
+                break;
+
+            default:
+
+                res = FALSE;
+        }
+    }
+
+#if OCI_VERSION_COMPILE >= OCI_10
+
+    /* On success, we give the value to Oracle to record it in system session view */
+
+    if (res == TRUE)
+    {
+        void *ostr  = NULL;
+        int osize   = -1;
+
+        ostr  = OCI_GetInputMetaString(str, &osize);
+
+        if (str == NULL)
+            osize = 0;
+
+        OCI_CALL2
+        (
+            res, con,
+            
+            OCIAttrSet((dvoid *) con->ses, (ub4) OCI_HTYPE_SESSION, 
+                       (dvoid *) ostr, (ub4) osize, attrib, con->err)
+        )
+
+        OCI_ReleaseMetaString(ostr);
+    }
+
+#endif
+
+    OCI_RESULT(res);
+
+    return res;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_TraceGet
+ * ------------------------------------------------------------------------ */
+
+const mtext * OCI_API OCI_GetTrace(OCI_Connection *con, unsigned int trace)
+{
+    const mtext *str = NULL;
+    boolean res = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_CONNECTION, con, NULL);
+
+    if (con->trace != NULL)
+    {
+        switch (trace)
+        {
+            case OCI_TRC_IDENTITY:
+
+                str = con->trace->identifier;
+                break;
+
+            case OCI_TRC_MODULE:
+
+                str = con->trace->module;
+                break;
+
+            case OCI_TRC_ACTION:
+
+                str = con->trace->action;
+                break;
+
+            case OCI_TRC_DETAIL:
+
+                str = con->trace->info;
+                break;
+
+            default:
+
+                res = FALSE;
+        }
+    }
+
+    OCI_RESULT(res);
+
+    return str;
+}
