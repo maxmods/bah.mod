@@ -25,10 +25,12 @@ bbdoc: libnotify
 End Rem
 Module BaH.libnotify
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Changed to use FromUTF8String instead of FromCString."
 ModuleInfo "History: 1.00 Initial Release"
 
 ?linux
@@ -83,10 +85,10 @@ Type TNotify
 		Local n:Byte Ptr, ven:Byte Ptr, ver:Byte Ptr, spec:Byte Ptr
 		Local ret:Int = notify_get_server_info(Varptr n, Varptr ven, Varptr ver, Varptr spec)
 		
-		name = String.FromCString(n)
-		vendor = String.FromCString(ven)
-		version = String.FromCString(ver)
-		specVersion = String.FromCString(spec)
+		name = String.FromUTF8String(n)
+		vendor = String.FromUTF8String(ven)
+		version = String.FromUTF8String(ver)
+		specVersion = String.FromUTF8String(spec)
 		
 		g_free(n)
 		g_free(ven)
