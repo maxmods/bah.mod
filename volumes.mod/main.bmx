@@ -194,10 +194,10 @@ bbdoc: Returns the custom directory path.
 about: The following table lists valid @dirType -
 <table align="center">
 <tr><th>Platform</th><th>dirType</th><th>Description</th></tr>
-<tr><td>Mac</td><td>DT_SHAREDUSERDATA</td><td>The Shared documents folder.</td></tr>
-<tr><td>Mac, Windows</td><td>DT_USERPICTURES</td><td>The &quot;Pictures&quot; or &quot;My Pictures&quot; folder of the user.</td></tr>
-<tr><td>Mac, Windows</td><td>DT_USERMUSIC</td><td>The &quot;Music&quot; or &quot;My Music&quot; folder of the user.</td></tr>
-<tr><td>Mac, Windows</td><td>DT_USERMOVIES</td><td>The &quot;Movies&quot; or &quot;My Videos&quot; folder of the user.</td></tr>
+<tr><td>Mac, Linux</td><td>DT_SHAREDUSERDATA</td><td>The Shared documents folder.</td></tr>
+<tr><td>All</td><td>DT_USERPICTURES</td><td>The &quot;Pictures&quot; or &quot;My Pictures&quot; folder of the user.</td></tr>
+<tr><td>All</td><td>DT_USERMUSIC</td><td>The &quot;Music&quot; or &quot;My Music&quot; folder of the user.</td></tr>
+<tr><td>All</td><td>DT_USERMOVIES</td><td>The &quot;Movies&quot;, &quot;Videos&quot; or &quot;My Videos&quot; folder of the user.</td></tr>
 </table>
 <p>Returns Null if @dirType is not valid for the platform.</p>
 End Rem
