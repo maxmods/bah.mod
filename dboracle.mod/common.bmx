@@ -64,12 +64,28 @@ Extern
 	'Function bmx_ora_resultset_getFloat:Float(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getDouble:Double(resultSetHandle:Byte Ptr, index:Int)
 	Function bmx_ora_resultset_getString:String(resultSetHandle:Byte Ptr, index:Int)
+	Function bmx_ora_resultset_getBlob:Byte Ptr(resultSetHandle:Byte Ptr, index:Int)
+	Function bmx_ora_resultset_getLong(resultSetHandle:Byte Ptr, index:Int, value:Long Ptr)
+	Function bmx_ora_resultset_getDatetime(resultSetHandle:Byte Ptr, index:Int, y:Int Ptr, m:Int Ptr, d:Int Ptr, hh:Int Ptr, mm:Int Ptr, ss:Int Ptr)
 
 	Function bmx_ora_bind_int:Int(stmtHandle:Byte Ptr, name:Byte Ptr, value:Int Ptr)
 	Function bmx_ora_bind_double:Int(stmtHandle:Byte Ptr, name:Byte Ptr, value:Double Ptr)
 	Function bmx_ora_bind_string:Int(stmtHandle:Byte Ptr, name:Byte Ptr, str:Byte Ptr, length:Int)
 	Function bmx_ora_bind_setnull:Int(stmtHandle:Byte Ptr, index:Int)
-	
+	Function bmx_ora_bind_long:Int(stmtHandle:Byte Ptr, name:Byte Ptr, value:Long Ptr)
+	Function bmx_ora_bind_blob:Int(stmtHandle:Byte Ptr, name:Byte Ptr, blob:Byte Ptr, data:Byte Ptr, length:Int)
+	Function bmx_ora_bind_date:Int(stmtHandle:Byte Ptr, name:Byte Ptr, date:Byte Ptr, y:Int, m:Int, d:Int)
+	Function bmx_ora_bind_datetime:Int(stmtHandle:Byte Ptr, name:Byte Ptr, date:Byte Ptr, y:Int, m:Int, d:Int, hh:Int, mm:Int, ss:Int)
+	Function bmx_ora_bind_time:Int(stmtHandle:Byte Ptr, name:Byte Ptr, date:Byte Ptr, hh:Int, mm:Int, ss:Int)
+
+	Function bmx_ora_blob_create:Byte Ptr(conn:Byte Ptr)
+	Function bmx_ora_blob_free(handle:Byte Ptr)
+	Function bmx_ora_blob_getdata(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_ora_blob_length:Int(handle:Byte Ptr)
+
+	Function bmx_ora_date_create:Byte Ptr(conn:Byte Ptr)
+	Function bmx_ora_date_free(handle:Byte Ptr)
+
 End Extern
 
 
@@ -85,8 +101,7 @@ Const RESULTSET_END_OF_FETCH:Int = 0
 Const RESULTSET_DATA_AVAILABLE:Int = 1
 Const RESULTSET_STREAM_DATA_AVAILABLE:Int = 2
 
-Const OCI_CDT_INTEGER:Int = 1        
-Const OCI_CDT_DOUBLE:Int = 2        
+Const OCI_CDT_NUMERIC:Int = 1        
 Const OCI_CDT_DATETIME:Int = 3        
 Const OCI_CDT_TEXT:Int = 4        
 Const OCI_CDT_LONG:Int = 5        
@@ -97,6 +112,8 @@ Const OCI_CDT_TIMESTAMP:Int = 9
 Const OCI_CDT_INTERVAL:Int = 10
 Const OCI_CDT_RAW:Int = 11
 Const OCI_CDT_OBJECT:Int = 12
+Const OCI_CDT_COLLECTION:Int = 13
+Const OCI_CDT_REF:Int = 14
 
 
 Const OCCI_SQLT_CHR:Int = 1

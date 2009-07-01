@@ -64,11 +64,27 @@ extern "C" {
 	//float bmx_ora_resultset_getFloat(OCI_Resultset * rs, unsigned int index);
 	double bmx_ora_resultset_getDouble(OCI_Resultset * rs, unsigned int index);
 	BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index);
+	OCI_Lob * bmx_ora_resultset_getBlob(OCI_Resultset * rs, unsigned int index);
+	void bmx_ora_resultset_getLong(OCI_Resultset * rs, unsigned int index, big_int * value);
+	void bmx_ora_resultset_getDatetime(OCI_Resultset * rs, unsigned int index, int * y, int * m, int * d, int * hh, int * mm, int * ss);
 
 	int bmx_ora_bind_int(OCI_Statement * stmt, char * name, int * value);
 	int bmx_ora_bind_double(OCI_Statement * stmt, char * name, double * value);
 	int bmx_ora_bind_string(OCI_Statement * stmt, char * name, char * str, unsigned int length);
 	int bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index);
+	int bmx_ora_bind_long(OCI_Statement * stmt, char * name, big_int * value);
+	int bmx_ora_bind_blob(OCI_Statement * stmt, char * name, OCI_Lob * blob, void * data, unsigned int length);
+	int bmx_ora_bind_date(OCI_Statement * stmt, char * name, OCI_Date * date, int y, int m, int d);
+	int bmx_ora_bind_datetime(OCI_Statement * stmt, char * name, OCI_Date * date, int y, int m, int d, int hh, int mm, int ss);
+	int bmx_ora_bind_time(OCI_Statement * stmt, char * name, OCI_Date * date, int hh, int mm, int ss);
+
+	OCI_Lob * bmx_ora_blob_create(OCI_Connection * conn);
+	void bmx_ora_blob_free(OCI_Lob * blob);
+	void bmx_ora_blob_getdata(OCI_Lob * blob, void * data);
+	unsigned int bmx_ora_blob_length(OCI_Lob * blob);
+
+	OCI_Date * bmx_ora_date_create(OCI_Connection * conn);
+	void bmx_ora_date_free(OCI_Date * date);
 
 }
 
@@ -720,6 +736,63 @@ BBString * bmx_ora_resultset_getString(OCI_Resultset * rs, unsigned int index) {
 	return value;
 }
 
+OCI_Lob * bmx_ora_resultset_getBlob(OCI_Resultset * rs, unsigned int index) {
+
+	ocilib_error_reset();
+
+	OCI_Lob * value = 0;
+
+	try {
+		value = OCI_GetLob(rs, index);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+	
+	return value;
+}
+
+void bmx_ora_resultset_getLong(OCI_Resultset * rs, unsigned int index, big_int * value) {
+
+	ocilib_error_reset();
+
+	try {
+		*value = OCI_GetBigInt(rs, index);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+	
+}
+
+void bmx_ora_resultset_getDatetime(OCI_Resultset * rs, unsigned int index, int * y, int * m, int * d, int * hh, int * mm, int * ss) {
+
+	ocilib_error_reset();
+
+	try {
+		OCI_Date * date = OCI_GetDate(rs, index);
+		
+		if (date) {
+			bool res = OCI_DateGetDateTime(date, y, m, d, hh, mm, ss);
+		}
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+	
+}
 
 // ****************************************************
 
@@ -798,4 +871,137 @@ int bmx_ora_bind_setnull(OCI_Statement * stmt, unsigned int index) {
 
 	return static_cast<int>(ret);
 }
+
+int bmx_ora_bind_long(OCI_Statement * stmt, char * name, big_int * value) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	try {
+		ret = OCI_BindBigInt(stmt, name, value);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+
+	return static_cast<int>(ret);
+}
+
+int bmx_ora_bind_blob(OCI_Statement * stmt, char * name, OCI_Lob * blob, void * data, unsigned int length) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	OCI_LobWrite(blob, data, length);
+
+	try {
+		ret = OCI_BindLob(stmt, name, blob);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+
+	return static_cast<int>(ret);
+}
+
+int bmx_ora_bind_date(OCI_Statement * stmt, char * name, OCI_Date * date, int y, int m, int d) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	OCI_DateSetDate(date, y, m, d);
+
+	try {
+		ret = OCI_BindDate(stmt, name, date);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+
+	return static_cast<int>(ret);
+}
+
+int bmx_ora_bind_datetime(OCI_Statement * stmt, char * name, OCI_Date * date, int y, int m, int d, int hh, int mm, int ss) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	OCI_DateSetDateTime(date, y, m, d, hh, mm, ss);
+
+	try {
+		ret = OCI_BindDate(stmt, name, date);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+
+	return static_cast<int>(ret);
+}
+
+int bmx_ora_bind_time(OCI_Statement * stmt, char * name, OCI_Date * date, int hh, int mm, int ss) {
+	ocilib_error_reset();
+
+	bool ret = false;
+
+	OCI_DateSetDateTime(date, 0, 0, 0, hh, mm, ss);
+
+	try {
+		ret = OCI_BindDate(stmt, name, date);
+		
+		if (hasError) {
+			throw MaxSQLException(lastErrorCode, lastErrorMessage);
+		}
+		
+	} catch (MaxSQLException sqlEx) {
+		bbExThrow(_bah_dboracle_TOracleSQLException__create(sqlEx.getErrorCode(), sqlEx.getMessage()));
+	}
+
+	return static_cast<int>(ret);
+}
+
+
+// ****************************************************
+
+OCI_Lob * bmx_ora_blob_create(OCI_Connection * conn) {
+	return OCI_LobCreate(conn, OCI_BLOB);
+}
+
+void bmx_ora_blob_free(OCI_Lob * blob) {
+	OCI_LobFree(blob);
+}
+
+void bmx_ora_blob_getdata(OCI_Lob * blob, void * data) {
+	OCI_LobRead(blob, data, OCI_LobGetLength(blob));
+}
+
+unsigned int bmx_ora_blob_length(OCI_Lob * blob) {
+	return OCI_LobGetLength(blob);
+}
+
+// ****************************************************
+
+OCI_Date * bmx_ora_date_create(OCI_Connection * conn) {
+	return OCI_DateCreate(conn);
+}
+
+void bmx_ora_date_free(OCI_Date * date) {
+	OCI_DateFree(date);
+}
+
 
