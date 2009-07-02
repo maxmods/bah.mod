@@ -1,0 +1,24 @@
+<a href="http://www.oracle.com/database/index.html"><img src="logo_oracle.png" border="0" align="right" /></a><br><br>
+<a href="http://orclib.sourceforge.net/"><img src="logo_ocilib.png" border="0" align="right" /></a>
+<p>
+The DBOracle database driver allows you to connect to Oracle databases through the standard API provided
+by the Database Framework module.
+</p>
+<h2>Requirements</h2>
+<p>The OCILIB DLL/shared object is provided in the module/lib folder, which you will need to include with your application.<br>
+For deployment, DBOracle also requires access to the Oracle client libraries, which can be downloaded from the Oracle website. You will also need to configure your enviroment correctly for Oracle, defining ORACLE_HOME etc, as normal.
+</p>
+<h2>Accessing an Oracle Database</h2>
+<p>To enable an Oracle connection, you pass a <i>dbtype</i> of &quot;<b>ORACLE</b>&quot; to the
+<a href="../../database.mod/doc/commands.html#LoadDatabase">LoadDatabase</a> function.
+</p>
+<p>The second parameter, <i>dbname</i>, should be the TNS name as defined in the database.
+</p>
+<p><i>Host</i>, <i>port</i>, <i>user</i> and <i>password</i> parameters should be set appropriately.
+</p>
+<h2>Prepared Statement Placeholders</h2>
+<p>Oracle uses placeholders of the form ":nnn" where "nnn" is an integer. Each placeholder has an associated number which is its sequence in the query, beginning with ":1". It is allowed for the same valued-placeholder to occur more than once in the same SQL, in which case all instances of that placeholder will be filled in with the same value. 
+</p>
+<h2>SQL with Oracle</h2>
+<p>For a complete guide to Oracles's support of SQL, check out the official <a href="http://download.oracle.com/docs/cd/B28359_01/server.111/b28286/toc.htm">SQL Language Reference</a>. There are, of course, many other resources available on the internet.
+</p>
