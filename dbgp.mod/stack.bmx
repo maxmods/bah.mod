@@ -90,7 +90,7 @@ Type TBlitzMaxStackScope
 	End Method
 	
 	Method setSource(source:String)
-		Local parts:String[] = source.split("\<")
+		Local parts:String[] = source.split("<")
 		Self.source = convertPath(parts[0])
 		
 		Local lc:String[] = parts[1][0..parts[1].length - 1].split(",")
@@ -234,6 +234,51 @@ Type TBlitzMaxScopeVariable
 	
 	Method getValue:String()
 		Return value
+	End Method
+	
+End Type
+
+
+Type TBlitzMaxObjectScope
+	
+	Field address:String
+	Field offset:Int = 0
+	
+	Field variables:TList
+	
+	Method Create:TBlitzMaxObjectScope(details:String)
+		Local base:String[] = details[0..details.Find("{")].split(":")
+		
+		address = base[0]
+		If base.length > 1 Then
+			offset = base[1].ToInt()
+		End If
+		
+		Return Self
+	End Method
+	
+	Method addVariable(variable:String)
+		If Not variable.StartsWith("Type") Then
+		
+			If Not variables Then
+				variables = New TList
+			End If
+			
+			variables.AddLast(New TBlitzMaxScopeVariable.Create(variable))
+		
+		End If
+	End Method
+	
+	Method getAddress:String()
+		Return address
+	End Method
+	
+	Method getOffset:Int()
+		Return offset
+	End Method
+	
+	Method getVariables:TList()
+		Return variables
 	End Method
 	
 End Type

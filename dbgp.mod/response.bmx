@@ -12,7 +12,33 @@ Type TDdbgpReponse
 	End Method
 	
 	Function fileToURI:String(file:String)
-		Return file
+		Global Hex:Int[] = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70]
+
+		file = fixSlashes(file)
+		
+		Local s:String
+		
+		For Local i:Int = 0 Until file.length
+			Local c:Int = file[i]
+			If c >= 128 Or ";?:@&=+$,[] ".Find(Chr(c)) >= 0 Then
+				s:+ "%" + Chr(Hex[(c Shr 4) & $0f]) + Chr(Hex[(c Shr 0) & $0f])
+			Else
+				s:+ Chr(c)
+			End If
+		Next
+
+		Return "file://" + s
+	End Function
+	
+	Function fixSlashes:String(path:String)
+?win32
+		path = path.Replace("\", "/")
+?
+		If Not path.StartsWith("/") Then
+			path = "/" + path
+		End If
+		
+		Return path
 	End Function
 	
 	Method xml:StringBuffer()
@@ -178,6 +204,81 @@ Type TDdbgpReponse
 		If level > 0 Then
 			If scope.getWhere() Then
 				stack.addAttribute("where", scope.getWhere())
+			End If
+		End If
+		
+	End Method
+	
+	Method contextNames:String(id:String, stack:TList)
+		' FIXME : make this work for different contexts. I'm hard-coding this to Local for now.
+
+		Local buf:StringBuffer = xml()
+		
+		Local response:TNode = newResponse("context_names", id)
+		
+		Local context:TNode = response.addNodeName("context")
+		context.addAttribute("name", "Local")
+		context.addAttribute("id", "0")
+
+		response.render(buf)
+		Return buf.ToString()
+	End Method
+
+	Method stop:String(id:String, state:Int)
+		Local buf:StringBuffer = xml()
+		
+		Local response:TNode = newResponse("stop", id)
+		response.addAttribute("status", DebugState.map(DebugState.BREAK))
+		response.addAttribute("reason", "ok")
+
+		response.render(buf)
+		Return buf.ToString()
+	End Method
+	
+	Method contextGet:String(id:String, stack:TList, depth:Int, context:Int)
+		Local buf:StringBuffer = xml()
+		
+		Local response:TNode = newResponse("context_get", id)
+		response.addAttribute("context", context)
+		
+		For Local scope:TBlitzMaxStackScope = EachIn stack
+			If scope.getVariables() Then
+				For Local variable:TBlitzMaxScopeVariable = EachIn scope.getVariables()
+					addProperty(response, variable)
+				Next
+			End If
+		Next
+	
+		response.render(buf)
+		Return buf.ToString()
+	End Method
+	
+	Method addProperty(response:TNode, variable:TBlitzMaxScopeVariable)
+		Local prop:TNode = response.addNodeName("property")
+		
+		prop.addAttribute("name", variable.getName())
+		prop.addAttribute("fullname", variable.getName())
+		prop.addAttribute("type", variable.getType())
+		
+		prop.addAttribute("constant", "1") ' ie. Not modifiable in the variable editor!
+
+		If variable.hasChildren() Then
+			prop.addAttribute("children", "1")
+		Else
+			prop.addAttribute("children", "0")
+		End If
+
+		If variable.getKey() Then
+			prop.addAttribute("key", variable.getKey())
+			prop.addAttribute("address", variable.getKey())
+		Else
+			If BlitzMaxType.isPrimitive(variable.getBaseType()) Then
+				prop.addText(variable.getValue())
+			Else
+				If BlitzMaxType._STRING = variable.getBaseType() Then
+					prop.addAttribute("encoding", "base64")
+					prop.addNode(New TDataNode.Create(StringToByteArray(variable.getValue())))
+				End If
 			End If
 		End If
 		

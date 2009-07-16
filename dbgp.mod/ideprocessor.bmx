@@ -24,7 +24,7 @@ Type TBlitzMaxIDEDebugProcessor
 	
 	Field response:TDdbgpReponse
 
-	Field commands:TList
+	Field commands:TList = New TList
 	Field inputBuffer:TDataBuffer = New TDataBuffer
 	
 	
@@ -76,7 +76,13 @@ Type TBlitzMaxIDEDebugProcessor
 		If inBytes > 0 Or needCommand Then
 			Local bytesRead:Int = 0
 
-			Local c:Int = inout.ReadByte()
+			Local c:Int
+			
+			Try
+				c = inout.ReadByte()
+			Catch e:Object
+				c = -1
+			End Try
 			
 			While c <> 0
 				If c = -1 Then
@@ -86,7 +92,11 @@ Type TBlitzMaxIDEDebugProcessor
 				inBuffer[bytesRead] = c
 				bytesRead:+ 1
 				
-				c = inout.ReadByte()
+				Try
+					c = inout.ReadByte()
+				Catch e:Object
+					c = -1
+				End Try
 			Wend
 			
 			inputBuffer.addNullBasedData(inBuffer, bytesRead)
@@ -118,8 +128,64 @@ Type TBlitzMaxIDEDebugProcessor
 		sendResponse(response.status(id, state, reason))
 	End Method
 
+	Method getCommands:TList()
+		Return commands
+	End Method
+	
+	Method featureGet(id:String, name:String, supported:Int, value:String)
+		sendResponse(response.featureGet(id, name, supported, value))
+	End Method
+	
+	Method featureSet(id:String, name:String, success:Int)
+		sendResponse(response.featureSet(id, name, success))
+	End Method
+	
+	Method stdin(id:String, success:Int)
+		sendResponse(response.stdin(id, success))
+	End Method
+	
+	Method stderr(id:String, success:Int)
+		sendResponse(response.stderr(id, success))
+	End Method
+	
+	Method stdout(id:String, success:Int)
+		sendResponse(response.stdout(id, success))
+	End Method
+	
+	Method getStderrRedirect:TBlitzMaxStreamRedirect()
+		Return New TBlitzMaxStreamRedirect.Create(Self, TBlitzMaxStreamRedirect.STDERR)
+	End Method
+	
+	Method getStdoutRedirect:TBlitzMaxStreamRedirect()
+		Return New TBlitzMaxStreamRedirect.Create(Self, TBlitzMaxStreamRedirect.STDOUT)
+	End Method
+	
 	Method stream(_type:String, buf:Byte[])
 		sendResponse(response.stream(_type, buf))
+	End Method
+	
+	Method run(id:String, state:Int, success:Int)
+		sendResponse(response.run(id, state, success))
+	End Method
+	
+	Method breakpoint(id:String)
+		sendResponse(response.breakpoint(id))
+	End Method
+	
+	Method stackGet(id:String, stack:TList)
+		sendResponse(response.stackGet(id, stack))
+	End Method
+	
+	Method contextNames(id:String, stack:TList)
+		sendResponse(response.contextNames(id, stack))
+	End Method
+	
+	Method stop(id:String, state:Int)
+		sendResponse(response.stop(id, state))
+	End Method
+	
+	Method contextGet(id:String, stack:TList, depth:Int, context:Int)
+		sendResponse(response.contextGet(id, stack, depth, context))
 	End Method
 	
 End Type
