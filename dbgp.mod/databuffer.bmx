@@ -56,8 +56,6 @@ Type TDataBuffer
 	Method addNullBasedData(newData:Byte[], length:Int)
 		
 		If length > 0 Then
-			DebugLog "length = " + length
-			
 			Local b:Byte[] = New Byte[length]
 			
 			MemCopy(b, newData, length)

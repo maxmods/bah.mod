@@ -10,7 +10,7 @@ Type TBlitzMaxDebugManager
 	Field processor:TBlitzMaxStdDebugProcessor
 	Field ideProcessor:TBlitzMaxIDEDebugProcessor
 	
-	Field finish:Int = False
+	Field terminated:Int = False
 	Field needCommand:Int = False
 	Field transactionId:String
 	
@@ -49,7 +49,7 @@ Type TBlitzMaxDebugManager
 		ideProcessor.init(file)
 		needCommand = True
 		
-		While Not finish And (state <> DebugState.STOPPED)
+		While Not terminated And (state <> DebugState.STOPPED)
 		
 			' check the IDE commands.
 			checkForCommands()
@@ -57,7 +57,7 @@ Type TBlitzMaxDebugManager
 			If Mode > MODE_WAITING Then
 			
 				' check the app buffers
-				finish = processor.monitor()
+				terminated = processor.monitor()
 				
 				checkForBreak()
 			End If
@@ -235,7 +235,13 @@ Type TBlitzMaxDebugManager
 	End Method
 
 	Method destroy()
-		processor.shutdown()
+		' have we been asked to close?
+		If Not terminated Then
+			processor.shutdown()
+		Else
+			' or has our session been terminated?
+			ideProcessor.stop(transactionId, DebugState.STOPPED)
+		End If
 	End Method
 	
 End Type

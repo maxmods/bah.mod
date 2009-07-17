@@ -374,6 +374,8 @@ Type TBlitzMaxStdDebugProcessor
 		
 		Wend
 		
+		renumberStack()
+		
 		If depth >= 0 Then
 			Local list:TList = New TList
 			
@@ -391,7 +393,17 @@ Type TBlitzMaxStdDebugProcessor
 		End If
 		
 	End Method
-
+	
+	' stack level : 0 newest, n oldest
+	Method renumberStack()
+		If stack.Count() > 1 Then
+			Local level:Int = stack.Count() - 1
+			For Local scope:TBlitzMaxStackScope = EachIn stack
+				scope.level = level
+				level:- 1
+			Next
+		End If
+	End Method
 
 End Type
 
