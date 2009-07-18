@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Fixed mem issue in GetText."
 ModuleInfo "History: Improved MOZ_DIST_BIN checking."
+ModuleInfo "History: libgtkembedmoz.so is now runtime linked."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added Free() method."
 ModuleInfo "History: 1.01"
@@ -46,29 +47,50 @@ Import BaH.GTKMaxGUI
 
 ?linux
 
-' NOTE : this only works for compiling.
-'        The path ALSO needs to be in LD_LIBRARY_PATH or added using "ldconfig".
-Import "-L/usr/local/seamonkey"
-Import "-L/usr/lib/mozilla-firefox"
-Import "-L/usr/lib/xulrunner"
-Import "-L/usr/lib/firefox"
-Import "-L/usr/lib"
-Import "-lgtkembedmoz"
-Import "-lxpcom"
-'Import "-lxpcom_core"   ' On some installations, this is required.
+Import "-dl"
 
+
+Private
+
+Global _mozDLL:Byte Ptr=LoadMozilla()
 
 Extern
-	Function gtk_moz_embed_new:Byte Ptr()
-	Function gtk_moz_embed_set_comp_path(aPath:Byte Ptr)
-	Function gtk_moz_embed_load_url(handle:Byte Ptr, url:Byte Ptr)
-	Function gtk_moz_embed_can_go_forward:Int(handle:Byte Ptr)
-	Function gtk_moz_embed_can_go_back:Int(handle:Byte Ptr)
-	Function gtk_moz_embed_go_forward(handle:Byte Ptr)
-	Function gtk_moz_embed_go_back(handle:Byte Ptr)
-	Function gtk_moz_embed_get_location:Byte Ptr(handle:Byte Ptr)
-	Function gtk_moz_embed_stop_load(handle:Byte Ptr)
+	Function dlopen:Byte Ptr(dll:Byte Ptr, flag:Int)
+	Function dlsym:Byte Ptr(dll:Byte Ptr, fname:Byte Ptr)
 End Extern
+
+Function Link:Byte Ptr(func:String)
+	If _mozDLL Then
+		Return dlsym(_mozDLL, func)
+	End If
+End Function
+
+Function LoadMozilla:Byte Ptr()
+	Return dlopen( "libgtkembedmoz.so", 2)
+End Function
+
+Public
+
+Rem
+bbdoc: 
+End Rem
+Function GTKWebMozillaInstalled:Int()
+	If _mozDLL Then
+		Return True
+	End If
+End Function
+
+' function pointers
+Global gtk_moz_embed_new:Byte Ptr()=Link("gtk_moz_embed_new")
+Global gtk_moz_embed_set_comp_path(aPath:Byte Ptr)=Link("gtk_moz_embed_set_comp_path")
+Global gtk_moz_embed_load_url(handle:Byte Ptr, url:Byte Ptr)=Link("gtk_moz_embed_load_url")
+Global gtk_moz_embed_can_go_forward:Int(handle:Byte Ptr)=Link("gtk_moz_embed_can_go_forward")
+Global gtk_moz_embed_can_go_back:Int(handle:Byte Ptr)=Link("gtk_moz_embed_can_go_back")
+Global gtk_moz_embed_go_forward(handle:Byte Ptr)=Link("gtk_moz_embed_go_forward")
+Global gtk_moz_embed_go_back(handle:Byte Ptr)=Link("gtk_moz_embed_go_back")
+Global gtk_moz_embed_get_location:Byte Ptr(handle:Byte Ptr)=Link("gtk_moz_embed_get_location")
+Global gtk_moz_embed_stop_load(handle:Byte Ptr)=Link("gtk_moz_embed_stop_load")
+
 
 Global MOZ_DIST_BIN:String = getenv_("MOZ_DIST_BIN")
 If Not MOZ_DIST_BIN Or MOZ_DIST_BIN.length = 0 Then
@@ -119,7 +141,7 @@ Type TGTKWebMozilla Extends TGTKHTMLView
 				Next
 			End If
 			
-			If Not MOZ_DIST_BIN Or Not FileType(MOZ_DIST_BIN) Then
+			If Not MOZ_DIST_BIN Or Not FileType(MOZ_DIST_BIN) Or Not GTKWebMozillaInstalled() Then
 				' we need some kind of widget...  an empty box
 				handle = gtk_vbox_new(False, 0)
 				Return
