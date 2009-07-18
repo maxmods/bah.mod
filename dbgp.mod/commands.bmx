@@ -248,6 +248,28 @@ Type TPropGetCommand Extends TCommand
 		Return Self
 	End Method
 
+	Method getName:String()
+		Return String(commands.ValueForKey("-n"))
+	End Method
+
+	Method getDepth:Int()
+		Local depth:String = String(commands.ValueForKey("-d"))
+		If Not depth Then
+			Return -1
+		Else
+			Return depth.ToInt()
+		End If
+	End Method
+
+	Method getPage:Int()
+		Local page:String = String(commands.ValueForKey("-p"))
+		If Not page Then
+			Return 0
+		Else
+			Return page.ToInt()
+		End If
+	End Method
+
 	Method getType:Int()
 		Return CommandType.PROP_GET
 	End Method	

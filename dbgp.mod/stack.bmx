@@ -1,5 +1,6 @@
 SuperStrict
 
+Import BRL.Map
 Import BRL.LinkedList
 
 Type BlitzMaxType
@@ -107,7 +108,7 @@ Type TBlitzMaxStackScope
 ?
 	End Method
 	
-	Method addVariable(variable:String)
+	Method addVariable:TBlitzMaxScopeVariable(variable:String)
 		If variable.StartsWith("Function") Then
 			where = variable[variable.Find(" ") + 1..]
 		Else
@@ -115,7 +116,11 @@ Type TBlitzMaxStackScope
 				variables = New TList
 			End If
 			
-			variables.AddLast(New TBlitzMaxScopeVariable.Create(variable))
+			Local v:TBlitzMaxScopeVariable = New TBlitzMaxScopeVariable.Create(variable)
+			
+			variables.AddLast(v)
+			
+			Return v
 		End If
 	End Method
 	
@@ -152,9 +157,12 @@ End Type
 
 Type TBlitzMaxScopeVariable
 
+	Global typeSizeMap:TMap = New TMap
+
 	Field scope:Int
 
 	Field name:String
+	Field fullname:String
 	Field classname:String
 	Field page:Int
 	Field pagesize:Int
@@ -163,7 +171,10 @@ Type TBlitzMaxScopeVariable
 	Field facet:String
 	Field size:Int
 	Field children:Int
+	Field childrenCount:Int
 	Field key:String
+	
+	Field isArray:Int
 	
 	Field value:String
 	
@@ -181,23 +192,37 @@ Type TBlitzMaxScopeVariable
 			' the variable name
 			i = variable.Find(":")
 			name = variable[0..i]
+			fullname = name
 			
 			variable = variable[i + 1..]
 			
 			' the variable type
 			i = variable.Find("=")
 			_type = variable[0..i]
-			baseType = BlitzMaxType.map(_type)
-			
-			If baseType = BlitzMaxType._OBJECT Then
-				children = True
+			If _type.Find("[") >= 0 Then
+				isArray = True
 			End If
+			
+			baseType = BlitzMaxType.map(_type)
 			
 			value = variable[i + 1..]
 			
 			If value.StartsWith("$") Then
 				key = value[1..]
 				value = Null
+				fullname :+ "#" + key
+
+				If baseType = BlitzMaxType._OBJECT Then
+					children = True
+					
+					' get the number of children for this type, if available
+					Local v:TIntValue = TIntValue(typeSizeMap.ValueForKey(_type.ToLower()))
+					If v Then
+						childrenCount = v.value
+					End If
+					
+				End If
+				
 			Else If value = "Null" Then
 				value = Null
 			End If
@@ -236,6 +261,14 @@ Type TBlitzMaxScopeVariable
 		Return value
 	End Method
 	
+	Method getChildrenCount:Int()
+		Return childrenCount
+	End Method
+	
+	Method setChildrenCount(count:Int)
+		childrenCount = count
+	End Method
+	
 End Type
 
 
@@ -257,15 +290,18 @@ Type TBlitzMaxObjectScope
 		Return Self
 	End Method
 	
-	Method addVariable(variable:String)
+	Method addVariable:TBlitzMaxScopeVariable(variable:String)
 		If Not variable.StartsWith("Type") Then
 		
 			If Not variables Then
 				variables = New TList
 			End If
 			
-			variables.AddLast(New TBlitzMaxScopeVariable.Create(variable))
+			Local v:TBlitzMaxScopeVariable = New TBlitzMaxScopeVariable.Create(variable)
+			
+			variables.AddLast(v)
 		
+			Return v
 		End If
 	End Method
 	
@@ -283,3 +319,11 @@ Type TBlitzMaxObjectScope
 	
 End Type
 
+Type TIntValue
+	Field value:Int
+	Function Set:TIntValue(value:Int)
+		Local this:TIntValue = New TIntValue
+		this.value = value
+		Return this
+	End Function
+End Type

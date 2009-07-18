@@ -140,7 +140,15 @@ Type TBlitzMaxDebugManager
 						' TODO	implement me
 	
 					Case CommandType.PROP_GET
-						' TODO	implement me
+						
+						Local name:String = TPropGetCommand(command).getName()
+						Local key:String = name.split("#")[1]
+						Local page:Int = TPropGetCommand(command).getPage()
+						
+						Local obj:TBlitzMaxObjectScope = processor.getObjectDetails(key)
+						
+						ideProcessor.propGet(transactionId, name, page, obj)
+						
 	
 					Case CommandType.PROP_SET
 						' TODO	implement me

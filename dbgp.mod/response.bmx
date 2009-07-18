@@ -253,11 +253,11 @@ Type TDdbgpReponse
 		Return buf.ToString()
 	End Method
 	
-	Method addProperty(response:TNode, variable:TBlitzMaxScopeVariable)
+	Method addProperty:TNode(response:TNode, variable:TBlitzMaxScopeVariable)
 		Local prop:TNode = response.addNodeName("property")
 		
 		prop.addAttribute("name", variable.getName())
-		prop.addAttribute("fullname", variable.getName())
+		prop.addAttribute("fullname", variable.fullname)
 		prop.addAttribute("type", variable.getType())
 		
 		prop.addAttribute("constant", "1") ' ie. Not modifiable in the variable editor!
@@ -266,6 +266,10 @@ Type TDdbgpReponse
 			prop.addAttribute("children", "1")
 		Else
 			prop.addAttribute("children", "0")
+		End If
+		
+		If variable.getChildrenCount() Then
+			prop.addAttribute("numchildren", variable.getChildrenCount())
 		End If
 
 		If variable.getKey() Then
@@ -282,7 +286,30 @@ Type TDdbgpReponse
 			End If
 		End If
 		
+		Return prop
 	End Method
+	
+	Method propGet:String(id:String, name:String, page:Int, obj:TBlitzMaxObjectScope)
+		Local buf:StringBuffer = xml()
+		
+		Local response:TNode = newResponse("property_get", id)
+		
+		' this is the variable for which we are retrieving its contents
+		Local v:TBlitzMaxScopeVariable = New TBlitzMaxScopeVariable
+		v.name = name.Split("#")[0]
+		v.fullname = name
+		v.children = True
+		Local prop:TNode = addProperty(response, v)
+		
+		If obj.getVariables() Then
+			For Local variable:TBlitzMaxScopeVariable = EachIn obj.getVariables()
+				addProperty(prop, variable)
+			Next
+		End If
 
+		response.render(buf)
+		Return buf.ToString()
+	End Method
+	
 End Type
 

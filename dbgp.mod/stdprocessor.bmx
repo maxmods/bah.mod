@@ -42,6 +42,8 @@ Type TBlitzMaxStdDebugProcessor
 	
 	Field bmxPath:String
 	
+	Field sizeRequests:TList = New TList
+	
 	Method Create:TBlitzMaxStdDebugProcessor(sourcePath:String, args:String[])
 		Self.sourcePath = sourcePath
 		Self.args = args
@@ -240,7 +242,7 @@ Type TBlitzMaxStdDebugProcessor
 				inFile = True
 			Else
 				If inScope Then
-					scope.addVariable(line)
+					checkForChildSizes(scope.addVariable(line))
 				End If
 			End If
 		
@@ -301,6 +303,10 @@ Type TBlitzMaxStdDebugProcessor
 	
 	Method quit()
 		sendCommand("q~n")
+	End Method
+	
+	Method dump(key:String)
+		sendCommand("d" + key + "~n")
 	End Method
 	
 	Method sendCommand(command:String)
@@ -374,6 +380,10 @@ Type TBlitzMaxStdDebugProcessor
 		
 		Wend
 		
+		If sizeRequests.Count() > 0 Then
+			fixObjectChildren()
+		End If
+		
 		renumberStack()
 		
 		If depth >= 0 Then
@@ -404,7 +414,73 @@ Type TBlitzMaxStdDebugProcessor
 			Next
 		End If
 	End Method
+	
+	Method checkForChildSizes:Int(variable:TBlitzMaxScopeVariable, requestIfMissing:Int = True)
+		' do we need to look up the count?
+		If variable.getBaseType() = BlitzMaxType._OBJECT And Not variable.isArray And variable.getChildrenCount() = 0 Then
+			Local v:TIntValue = TIntValue(TBlitzMaxScopeVariable.typeSizeMap.ValueForKey(variable.getType().ToLower()))
+			If Not v Then
+				If requestIfMissing Then
+					sizeRequests.AddLast(variable)
+				Else
+					Return True
+				End If
+			Else
+				variable.setChildrenCount(v.value)
+			End If
+		End If
+		
+		Return False
+	End Method
 
+	Method fixObjectChildren()
+	
+		For Local variable:TBlitzMaxScopeVariable = EachIn sizeRequests
+			' do we need to lookup for this type?
+			If checkForChildSizes(variable, False) Then
+			
+				ready = False
+				
+				dump(variable.getKey())
+				
+				While Not ready
+				
+					monitor()
+					
+					Delay(50)
+				
+				Wend
+				
+				If objScope.getVariables() Then
+					variable.setchildrenCount(objScope.getVariables().Count())
+				End If
+				
+			End If
+		Next
+		
+	End Method
+	
+	Method getObjectDetails:TBlitzMaxObjectScope(key:String)
+		reset()
+		dump(key)
+
+		While Not ready
+		
+			monitor()
+			
+			Delay(50)
+		
+		Wend
+		
+		Local obj:TBlitzMaxObjectScope = objScope
+
+		If sizeRequests.Count() > 0 Then
+			fixObjectChildren()
+		End If
+
+		Return obj
+	End Method
+	
+	
 End Type
-
 

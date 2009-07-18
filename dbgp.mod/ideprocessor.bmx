@@ -188,6 +188,10 @@ Type TBlitzMaxIDEDebugProcessor
 		sendResponse(response.contextGet(id, stack, depth, context))
 	End Method
 	
+	Method propGet(id:String, name:String, page:Int, obj:TBlitzMaxObjectScope)
+		sendResponse(response.propGet(id, name, page, obj))
+	End Method
+	
 End Type
 
 
