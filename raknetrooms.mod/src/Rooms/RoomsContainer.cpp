@@ -433,7 +433,7 @@ RoomsErrorCode AllGamesRoomsContainer::EnterRoom(RoomCreationParameters *roomCre
 	if (perGamesRoomsContainers.Has(roomCreationParameters->gameIdentifier)==false)
 		return REC_ENTER_ROOM_UNKNOWN_TITLE;
 	PerGameRoomsContainer *perGameRoomsContainer = perGamesRoomsContainers.Get(roomCreationParameters->gameIdentifier);
-	RoomsErrorCode roomsErrorCode = perGameRoomsContainer->JoinByFilter(roomMemberMode, roomCreationParameters->firstUser, -1, query, joinRoomResult);
+	RoomsErrorCode roomsErrorCode = perGameRoomsContainer->JoinByFilter(roomMemberMode, roomCreationParameters->firstUser, (RakNet::RoomID) -1, query, joinRoomResult);
 
 	// Redundant, rooms plugin does this anyway
 //	if (roomsErrorCode==REC_SUCCESS)
@@ -454,6 +454,8 @@ RoomsErrorCode AllGamesRoomsContainer::EnterRoom(RoomCreationParameters *roomCre
 }
 RoomsErrorCode AllGamesRoomsContainer::JoinByFilter(GameIdentifier gameIdentifier, RoomMemberMode roomMemberMode, RoomsParticipant* roomsParticipant, RoomID lastRoomJoined, RoomQuery *query, JoinedRoomResult *joinRoomResult)
 {
+	(void) lastRoomJoined;
+
 	if (roomsParticipant->GetRoom())
 		return REC_JOIN_BY_FILTER_CURRENTLY_IN_A_ROOM;
 	else if (roomsParticipant->GetInQuickJoin())
@@ -466,7 +468,7 @@ RoomsErrorCode AllGamesRoomsContainer::JoinByFilter(GameIdentifier gameIdentifie
 	}
 	PerGameRoomsContainer *perGameRoomsContainer = perGamesRoomsContainers.Get(gameIdentifier);
 	joinRoomResult->agrc=this;
-	RoomsErrorCode rec = perGameRoomsContainer->JoinByFilter(roomMemberMode, roomsParticipant, -1, query, joinRoomResult);
+	RoomsErrorCode rec = perGameRoomsContainer->JoinByFilter(roomMemberMode, roomsParticipant, (RakNet::RoomID) -1, query, joinRoomResult);
 	joinRoomResult->roomDescriptor.FromRoom(joinRoomResult->roomOutput, this);
 	return rec;
 }
@@ -552,7 +554,7 @@ unsigned int AllGamesRoomsContainer::GetPropertyIndex(RoomID lobbyRoomId, const 
 		if (room)
 			return perGamesRoomsContainers[i]->roomsTable.ColumnIndex(propertyName);
 	}
-	return -1;
+	return (unsigned int) -1;
 }
 RoomsErrorCode AllGamesRoomsContainer::GetInvitesToParticipant(RoomsParticipant* roomsParticipant, DataStructures::List<InvitedUser*> &invites)
 {
@@ -753,7 +755,7 @@ RoomsErrorCode AllGamesRoomsContainer::AreAllMembersReady(RoomID roomId, Room **
 	if (*room==0)
 		return REC_ARE_ALL_MEMBERS_READY_UNKNOWN_ROOM_ID;
 
-	return (*room)->AreAllMembersReady(-1, allReady);
+	return (RoomsErrorCode) (*room)->AreAllMembersReady((unsigned int) -1, allReady);
 }
 RoomsErrorCode AllGamesRoomsContainer::KickMember(RoomsParticipant* roomsParticipant, RoomsParticipant *kickedParticipant, RakNet::RakString reason)
 {
@@ -922,7 +924,7 @@ int PerGameRoomsContainer::RoomsSortByTimeThenTotalSlots( Room* const &key, Room
 {
 	double keyCreationTime = key->GetNumericProperty(DefaultRoomColumns::TC_CREATION_TIME);
 	double dataCreationTime = data->GetNumericProperty(DefaultRoomColumns::TC_CREATION_TIME);
-	int diff = (int) fabs(keyCreationTime-dataCreationTime);
+	int diff = (int) fabs(keyCreationTime-dataCreationTime); // BaH
 	if (diff < 30 * 1000)
 	{
 		double keyTotalSlots = key->GetNumericProperty(DefaultRoomColumns::TC_USED_PUBLIC_PLUS_RESERVED_SLOTS);
@@ -1287,7 +1289,7 @@ unsigned int PerGameRoomsContainer::GetQuickJoinIndex(RoomsParticipant* roomsPar
 	for (i=0; i < quickJoinList.Size(); i++)
 		if (quickJoinList[i]->roomsParticipant==roomsParticipant)
 			return i;
-	return -1;
+	return (unsigned int) -1;
 }
 
 // ----------------------------  ROOMS  ----------------------------
@@ -1301,7 +1303,7 @@ Room::Room( RoomID _roomId, RoomCreationParameters *roomCreationParameters, Data
 	
 	autoLockReadyStatus=roomCreationParameters->networkedRoomCreationParameters.autoLockReadyStatus;
 	hiddenFromSearches=roomCreationParameters->networkedRoomCreationParameters.hiddenFromSearches;
-	destroyOnModeratorLeave=roomCreationParameters->networkedRoomCreationParameters.destroyOnModeratorLeave;
+//	destroyOnModeratorLeave=roomCreationParameters->networkedRoomCreationParameters.destroyOnModeratorLeave;
 	clearInvitesOnNewModerator=roomCreationParameters->networkedRoomCreationParameters.clearInvitesOnNewModerator;
 	inviteToRoomPermission=roomCreationParameters->networkedRoomCreationParameters.inviteToRoomPermission;
 	inviteToSpectatorSlotPermission=roomCreationParameters->networkedRoomCreationParameters.inviteToSpectatorSlotPermission;
@@ -1444,9 +1446,9 @@ RoomsErrorCode Room::SendInvite(RoomsParticipant* roomsParticipant, RoomsPartici
 			relevantPermission==NetworkedRoomCreationParameters::INVITE_MODE_MODERATOR_OR_PUBLIC_OR_RESERVED_SLOTS_CAN_INVITE)
 			&& memberMode==RMM_RESERVED)
 			canInvite=true;
-		else if (relevantPermission==NetworkedRoomCreationParameters::INVITE_MODE_SPECTATOR_SLOTS_CAN_INVITE && (memberMode==RMM_SPECTATOR_PUBLIC || RMM_SPECTATOR_RESERVED))
+		else if (relevantPermission==NetworkedRoomCreationParameters::INVITE_MODE_SPECTATOR_SLOTS_CAN_INVITE && (memberMode==RMM_SPECTATOR_PUBLIC || memberMode==RMM_SPECTATOR_RESERVED))
 			canInvite=true;
-		else if (relevantPermission==NetworkedRoomCreationParameters::INVITE_MODE_MODERATOR_OR_PUBLIC_SLOTS_CAN_INVITE && (memberMode==RMM_SPECTATOR_PUBLIC || RMM_SPECTATOR_RESERVED))
+		else if (relevantPermission==NetworkedRoomCreationParameters::INVITE_MODE_MODERATOR_OR_PUBLIC_SLOTS_CAN_INVITE && (memberMode==RMM_SPECTATOR_PUBLIC || memberMode==RMM_SPECTATOR_RESERVED))
 			canInvite=true;
 		else
 			return REC_SEND_INVITE_INVITOR_LACK_INVITE_PERMISSIONS;
@@ -2042,6 +2044,8 @@ RoomsErrorCode Room::RemoveUser(RoomsParticipant* roomsParticipant,RemoveUserRes
 
 	if (roomMemberList[roomsParticipantIndex]->roomMemberMode==RMM_MODERATOR)
 	{
+		int destroyOnModeratorLeave;
+		tableRow->cells[DefaultRoomColumns::TC_DESTROY_ON_MODERATOR_LEAVE]->Get(&destroyOnModeratorLeave);
 		if (destroyOnModeratorLeave || roomMemberList.Size()==1)
 		{
 			removeUserResult->clearedInvitations=inviteList;
@@ -2130,7 +2134,7 @@ unsigned int Room::GetRoomIndex(RoomsParticipant* roomsParticipant) const
 	for (i=0; i < roomMemberList.Size(); i++)
 		if (roomMemberList[i]->roomsParticipant==roomsParticipant)
 			return i;
-	return -1;
+	return (unsigned int) -1;
 }
 /*
 unsigned int Room::GetKickSlotIndex(RoomsParticipant* roomsParticipant) const
@@ -2148,7 +2152,7 @@ unsigned int Room::GetBannedIndex(RakNet::RakString username) const
 	for (i=0; i < banList.Size(); i++)
 		if (banList[i].target==username)
 			return i;
-	return -1;
+	return (unsigned int) -1;
 }
 unsigned int Room::GetInviteIndex(RakNet::RakString invitee, RakNet::RakString invitor) const
 {
@@ -2156,7 +2160,7 @@ unsigned int Room::GetInviteIndex(RakNet::RakString invitee, RakNet::RakString i
 	for (i=0; i < inviteList.Size(); i++)
 		if (inviteList[i].target==invitee && inviteList[i].invitorName==invitor)
 			return i;
-	return -1;
+	return (unsigned int) -1;
 }
 unsigned int Room::GetFirstInviteIndex(RakNet::RakString invitee) const
 {
@@ -2164,7 +2168,7 @@ unsigned int Room::GetFirstInviteIndex(RakNet::RakString invitee) const
 	for (i=0; i < inviteList.Size(); i++)
 		if (inviteList[i].target==invitee)
 			return i;
-	return -1;
+	return (unsigned int) -1;
 }
 bool Room::AreAllPlayableSlotsFilled(void) const
 {
@@ -2241,7 +2245,6 @@ void AllGamesRoomsContainer::UnitTest(void)
 	cells[1].Set(10);
 	DataStructures::OrderedList<Room*, Room*, RoomsSortByName> roomsOutput;
 	bool onlyJoinable;
-	RoomID lobbyRoomId=1;
 	RemoveUserResult removeUserResult;
 	QuickJoinUser quickJoinUser;
 	DataStructures::List<QuickJoinUser*> timeoutExpired;
@@ -2610,7 +2613,7 @@ void AllGamesRoomsContainer::UnitTest(void)
 	RakAssert(roomsErrorCode==REC_SUCCESS);
 
 	// Join by filter
-	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, -1, &roomQuery, &joinedRoomResult);
+	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, (RakNet::RoomID)-1, &roomQuery, &joinedRoomResult);
 	RakAssert(roomsErrorCode==REC_JOIN_BY_FILTER_NO_ROOMS);
 
 	RakNet::RakString banReasonOut;
@@ -2631,7 +2634,7 @@ void AllGamesRoomsContainer::UnitTest(void)
 	RakAssert(roomsErrorCode==REC_UNBAN_MEMBER_NOT_BANNED);
 
 	// Join by filter
-	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, -1, &roomQuery, &joinedRoomResult);
+	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, (RakNet::RoomID)-1, &roomQuery, &joinedRoomResult);
 	RakAssert(roomsErrorCode==REC_SUCCESS);
 
 	// Set both members ready
@@ -2657,7 +2660,7 @@ void AllGamesRoomsContainer::UnitTest(void)
 	RakAssert(roomsErrorCode==REC_SUCCESS);
 
 	// Join by filter (should fail because hidden)
-	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, -1, &roomQuery, &joinedRoomResult);
+	roomsErrorCode = agrc.JoinByFilter( gameIdentifier1, RMM_ANY_PLAYABLE, &roomsParticipant2, (RakNet::RoomID)-1, &roomQuery, &joinedRoomResult);
 	RakAssert(roomsErrorCode==REC_JOIN_BY_FILTER_NO_ROOMS);
 
 }

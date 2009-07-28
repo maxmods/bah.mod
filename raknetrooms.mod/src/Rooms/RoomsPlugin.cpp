@@ -529,6 +529,25 @@ void Chat_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream
 	SerializeIn( writeToBitstream, bitStream );
 	bitStream->Serialize( writeToBitstream, resultCode );
 }
+void Bitstream_Func::SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream)
+{
+	MessageID messageId = RPO_BITSTREAM;
+	bitStream->Serialize(writeToBitstream, messageId);
+	bitStream->Serialize(writeToBitstream, userName);
+	BitSize_t numBits = bsToSend.GetNumberOfBitsUsed();
+	bitStream->Serialize(writeToBitstream, numBits);
+	if (writeToBitstream==false)
+		bsToSend.AddBitsAndReallocate(numBits);
+	bitStream->SerializeBits(writeToBitstream, bsToSend.GetData(), numBits, true);
+	bsToSend.SetWriteOffset(numBits);
+	bitStream->Serialize(writeToBitstream, privateMessageRecipient);
+	bitStream->Serialize(writeToBitstream, directedToRoom);
+}
+void Bitstream_Func::SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream)
+{
+	SerializeIn( writeToBitstream, bitStream );
+	bitStream->Serialize( writeToBitstream, resultCode );
+}
 void QuickJoinExpired_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
 {
 	MessageID messageId = RPN_QUICK_JOIN_EXPIRED;
@@ -737,6 +756,20 @@ void Chat_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitS
 	bitStream->Serialize(writeToBitstream, privateMessageRecipient);
 	bitStream->Serialize(writeToBitstream, chatMessage);
 	bitStream->Serialize(writeToBitstream, filteredChatMessage);
+}
+void Bitstream_Notification::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
+{
+	MessageID messageId = RPN_BITSTREAM_NOTIFICATION;
+	bitStream->Serialize(writeToBitstream, messageId);
+	bitStream->Serialize(writeToBitstream, recipient);
+	bitStream->Serialize(writeToBitstream, sender);
+	bitStream->Serialize(writeToBitstream, privateMessageRecipient);
+	BitSize_t numBits = bitStreamReceived.GetNumberOfBitsUsed();
+	bitStream->Serialize(writeToBitstream, numBits);
+	if (writeToBitstream==false)
+		bitStreamReceived.AddBitsAndReallocate(numBits);
+	bitStream->SerializeBits(writeToBitstream, bitStreamReceived.GetData(), numBits, true);
+	bitStreamReceived.SetWriteOffset(numBits);
 }
 RoomsPlugin::RoomsPlugin()
 {
@@ -1343,6 +1376,16 @@ void RoomsPlugin::OnRoomsExecuteFunc(Packet *packet)
 			roomsCallback->Chat_Callback(packet->systemAddress,&func);
 		}
 		break;
+	case RPO_BITSTREAM:
+		{
+			Bitstream_Func func;
+			if (IsServer()==false)
+				func.SerializeOut(false,&bs);
+			else
+				func.SerializeIn(false,&bs);
+			roomsCallback->Bitstream_Callback(packet->systemAddress,&func);
+		}
+		break;
 	case RPN_QUICK_JOIN_EXPIRED:
 		{
 			QuickJoinExpired_Notification func;
@@ -1479,10 +1522,20 @@ void RoomsPlugin::OnRoomsExecuteFunc(Packet *packet)
 			roomsCallback->Chat_Callback(packet->systemAddress,&func);
 		}
 		break;
+	case RPN_BITSTREAM_NOTIFICATION:
+		{
+			Bitstream_Notification func;
+			func.Serialize(IsServer(),&bs);
+			roomsCallback->Bitstream_Callback(packet->systemAddress,&func);
+		}
+		break;
 	}
 }
 void RoomsPlugin::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
+	(void) lostConnectionReason;
+	(void) rakNetGUID;
+
 	RemoveUserResult removeUserResult;
 	unsigned i;
 	i=0;
@@ -2124,6 +2177,69 @@ void RoomsPlugin::Chat_Callback( SystemAddress senderAddress, Chat_Func *callRes
 	ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notification);
 	ExecuteFunc(callResult, senderAddress);
 }
+void RoomsPlugin::Bitstream_Callback( SystemAddress senderAddress, Bitstream_Func *callResult)
+{
+	RoomsPluginParticipant* roomsPluginParticipant = ValidateUserHandle(callResult, senderAddress);
+	if (roomsPluginParticipant==0)
+		return;
+	if (roomsPluginParticipant->GetRoom()==0 && callResult->directedToRoom)
+	{
+		callResult->resultCode=REC_BITSTREAM_USER_NOT_IN_ROOM;
+		ExecuteFunc(callResult, senderAddress);
+		return;
+	}
+	Bitstream_Notification notification;
+	notification.sender=roomsPluginParticipant->GetName();
+	notification.privateMessageRecipient=callResult->privateMessageRecipient;
+	notification.bitStreamReceived.Write(callResult->bsToSend);
+	if (callResult->privateMessageRecipient.IsEmpty()==false)
+	{
+		RoomsPluginParticipant* recipient = GetParticipantByHandle(callResult->privateMessageRecipient, UNASSIGNED_SYSTEM_ADDRESS);
+		if (recipient==0)
+		{
+			callResult->resultCode=REC_BITSTREAM_RECIPIENT_NOT_ONLINE;
+			ExecuteFunc(callResult, senderAddress);
+			return;
+		}
+
+		if (callResult->directedToRoom)
+		{
+			if (recipient->GetRoom()==0)
+			{
+				callResult->resultCode=REC_BITSTREAM_RECIPIENT_NOT_IN_ANY_ROOM;
+				ExecuteFunc(callResult, senderAddress);
+				return;
+			}
+
+			if (recipient->GetRoom()!=roomsPluginParticipant->GetRoom())
+			{
+				callResult->resultCode=REC_BITSTREAM_RECIPIENT_NOT_IN_YOUR_ROOM;
+				ExecuteFunc(callResult, senderAddress);
+				return;
+			}
+		}
+
+		callResult->resultCode=REC_SUCCESS;
+		ExecuteNotification(&notification, recipient);
+		ExecuteFunc(callResult, senderAddress);
+		return;
+	}
+	else
+	{
+		if (callResult->directedToRoom==false)
+		{
+			// Chat not directed to room, and no recipients.
+			callResult->resultCode=REC_BITSTREAM_RECIPIENT_NOT_ONLINE;
+			ExecuteFunc(callResult, senderAddress);
+			return;
+		}
+	}
+
+	callResult->resultCode=REC_SUCCESS;
+	ExecuteNotificationToOtherRoomMembers(roomsPluginParticipant->GetRoom(), roomsPluginParticipant, &notification);
+	ExecuteFunc(callResult, senderAddress);
+}
+
 void RoomsPlugin::ProcessRemoveUserResult(RemoveUserResult *removeUserResult)
 {
 	unsigned int j;

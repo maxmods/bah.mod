@@ -160,7 +160,7 @@ const char *RoomsErrorCodeDescription::ToEnglish(RoomsErrorCode result)
 }
 void RoomsErrorCodeDescription::Validate(void)
 {
-	unsigned int i;
+	int i;
 	for (i=0; i < ROOMS_ERROR_CODES_COUNT; i++)
 	{
 		RakAssert(errorCodeDescriptions[i].errorCode==i);

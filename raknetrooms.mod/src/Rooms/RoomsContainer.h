@@ -603,7 +603,7 @@ protected:
 
 		bool autoLockReadyStatus;
 		bool hiddenFromSearches;
-		bool destroyOnModeratorLeave;
+//		bool destroyOnModeratorLeave;
 		bool clearInvitesOnNewModerator;
 		NetworkedRoomCreationParameters::SendInvitePermission inviteToRoomPermission, inviteToSpectatorSlotPermission;
 

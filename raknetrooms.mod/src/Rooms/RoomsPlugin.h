@@ -17,15 +17,29 @@ class RakPeerInterface;
 #include "ConnectionGraph.h"
 #include "RoomsContainer.h"
 #include "PacketPriority.h"
+#include "BitStream.h"
 
 /// \defgroup ROOMS_GROUP RoomsPlugin
+/// \brief Networked implementation of a rooms system, where members join and leave rooms.
+/// \details
 /// \ingroup PLUGINS_GROUP
+
+/// \defgroup ROOMS_COMMANDS RoomsCommands
+/// \brief Commands that can be sent to RoomsPlugin
+/// \details
+/// \ingroup ROOMS_GROUP
+
+/// \defgroup ROOMS_NOTIFICATIONS RoomsNotifications
+/// \brief Notifications that RoomsPlugin sends to you
+/// \details
+/// \ingroup ROOMS_GROUP
 
 namespace RakNet
 {
 
-/// Base class for rooms functionality
-/// Operations performed on rooms are not in the RoomsPlugin - instead, each structure encapsulates one operation
+/// \brief Base class for rooms functionality
+/// \details Operations performed on rooms are not in the RoomsPlugin - instead, each structure encapsulates one operation
+/// \ingroup ROOMS_COMMANDS
 struct RoomsPluginFunc {
 	RoomsPluginFunc() {}
 	virtual ~RoomsPluginFunc() {}
@@ -38,6 +52,7 @@ struct RoomsPluginFunc {
 	RakNet::RakString userName;
 };
 /// Create a room. Each user can be in at most one room, so will fail if the user is already in a room
+/// \ingroup ROOMS_COMMANDS
 struct CreateRoom_Func : public RoomsPluginFunc {
 	// Input parameters
 	NetworkedRoomCreationParameters networkedRoomCreationParameters;
@@ -49,6 +64,7 @@ struct CreateRoom_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Joins a room if possible. If not, creates a room.
+/// \ingroup ROOMS_COMMANDS
 struct EnterRoom_Func : public RoomsPluginFunc {
 	
 	// Input parameters
@@ -78,6 +94,7 @@ struct EnterRoom_Func : public RoomsPluginFunc {
 /// Joins a room given the filter parameters and desired room member mode.
 /// Room joins may fail if the room is locked, or does not have slots of the particular type
 /// Room joins may succeed where they would otherwise fail if the user has an invitation to the room
+/// \ingroup ROOMS_COMMANDS
 struct JoinByFilter_Func : public RoomsPluginFunc {
 	// Input parameters
 	GameIdentifier gameIdentifier;
@@ -108,6 +125,7 @@ struct JoinByFilter_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Leaves a room. You can leave at any time, even if the room is locked.
+/// \ingroup ROOMS_COMMANDS
 struct LeaveRoom_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -117,6 +135,7 @@ struct LeaveRoom_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Gets all invitations to you to various rooms.
+/// \ingroup ROOMS_COMMANDS
 struct GetInvitesToParticipant_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -125,10 +144,11 @@ struct GetInvitesToParticipant_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Sends an invitation to someone.
-/// Each user may have at most one invitation to the same room, although they have have invitations to multiple rooms
-/// This may fail depending on the room settings - the moderator may not allow other users to send invitations
+/// \brief Sends an invitation to someone.
+/// \details Each user may have at most one invitation to the same room, although they have have invitations to multiple rooms.<BR>
+/// This may fail depending on the room settings - the moderator may not allow other users to send invitations.<BR>
 /// Invitations may be cleared when the moderator changes, depending on the room settings
+/// \ingroup ROOMS_COMMANDS
 struct SendInvite_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString inviteeName;
@@ -140,8 +160,9 @@ struct SendInvite_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Accept an invitation from a user to a room.
-/// Invitations are the only way to join reserved slots. If all reserved slots are full, will join a public slot if possible.
+/// \brief Accept an invitation from a user to a room.
+/// \details Invitations are the only way to join reserved slots. If all reserved slots are full, will join a public slot if possible.
+/// \ingroup ROOMS_COMMANDS
 struct AcceptInvite_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString inviteSender;
@@ -151,8 +172,9 @@ struct AcceptInvite_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Begin spectating. Spectators are considered room members that are not playing the game, only watching
-/// Spectators do not count towards room ready states. The moderator can lock the room, preventing users from spectating, or not allow spectators at all
+/// \brief Begin spectating. Spectators are considered room members that are not playing the game, only watching
+/// \details Spectators do not count towards room ready states. The moderator can lock the room, preventing users from spectating, or not allow spectators at all
+/// \ingroup ROOMS_COMMANDS
 struct StartSpectating_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -160,8 +182,9 @@ struct StartSpectating_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Stop spectating. This will rejoin the room as a player, using a reserved slot if we were invited, and a public slot if not or if there are no reserved slots
-/// This may fail if the moderator locked the room, or if no slots are available.
+/// \brief Stop spectating. This will rejoin the room as a player, using a reserved slot if we were invited, and a public slot if not or if there are no reserved slots
+/// \details This may fail if the moderator locked the room, or if no slots are available.
+/// \ingroup ROOMS_COMMANDS
 struct StopSpectating_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -170,6 +193,7 @@ struct StopSpectating_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Give moderator to another player. Moderators cannot be spectators.
+/// \ingroup ROOMS_COMMANDS
 struct GrantModerator_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString newModerator;
@@ -179,6 +203,7 @@ struct GrantModerator_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Change the allowed slot counts for the room. Setting fewer slot counts than the number of players does not kick out players, though it may prevent changing spectator status
+/// \ingroup ROOMS_COMMANDS
 struct ChangeSlotCounts_Func : public RoomsPluginFunc {
 	// Input parameters
 	Slots slots;
@@ -187,10 +212,11 @@ struct ChangeSlotCounts_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Sets a table of user-defined room properties
-/// Fill out the table with the column name, type, and value.
-/// These properties are read when searching for rooms, and can be used as query filters to only join rooms with specified properties
+/// \brief Sets a table of user-defined room properties
+/// \details Fill out the table with the column name, type, and value.<BR>
+/// These properties are read when searching for rooms, and can be used as query filters to only join rooms with specified properties<BR>
 /// See RoomTypes.h for default room properties.
+/// \ingroup ROOMS_COMMANDS
 struct SetCustomRoomProperties_Func : public RoomsPluginFunc {
 	// Input parameters
 	DataStructures::Table table;
@@ -200,6 +226,7 @@ struct SetCustomRoomProperties_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Given a named room, return the properties of that room, including member list
+/// \ingroup ROOMS_COMMANDS
 struct GetRoomProperties_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString roomName;
@@ -216,7 +243,7 @@ struct GetRoomProperties_Func : public RoomsPluginFunc {
 		else
 		{
 //			char out[8096];
-			printf("room %s has %i columns and %.0f used slots\n", roomName.C_String(),
+			printf("room %s has %i columns and %i used slots\n", roomName.C_String(),
 				roomDescriptor.roomProperties.GetColumnCount(), roomDescriptor.roomMemberList.Size());
 			RakAssert(roomDescriptor.GetProperty(DefaultRoomColumns::TC_USED_SLOTS)->i==roomDescriptor.roomMemberList.Size());
 	//		roomDescriptor.roomProperties.PrintColumnHeaders(out,8096,',');
@@ -231,6 +258,7 @@ struct GetRoomProperties_Func : public RoomsPluginFunc {
 };
 
 /// Change the name of the room
+/// \ingroup ROOMS_COMMANDS
 struct ChangeRoomName_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString newRoomName;
@@ -240,6 +268,7 @@ struct ChangeRoomName_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Set or unset the room hidden from searches. If a room is hidden from searches, it can only be joined through invitations
+/// \ingroup ROOMS_COMMANDS
 struct SetHiddenFromSearches_Func : public RoomsPluginFunc {
 	// Input parameters
 	bool hiddenFromSearches;
@@ -248,8 +277,9 @@ struct SetHiddenFromSearches_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Sets or unsets to destroy the room when the moderator leaves the room
-/// If false, the next moderator will be the oldest member that is not a spectator.
+/// \brief Sets or unsets to destroy the room when the moderator leaves the room
+/// \details If false, the next moderator will be the oldest member that is not a spectator.
+/// \ingroup ROOMS_COMMANDS
 struct SetDestroyOnModeratorLeave_Func : public RoomsPluginFunc {
 	// Input parameters
 	bool destroyOnModeratorLeave;
@@ -258,9 +288,10 @@ struct SetDestroyOnModeratorLeave_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Sets or unsets the user as flagged 'ready'
-/// Ready means ready to play the game. This flag can be set or unset by each room member
+/// \brief Sets or unsets the user as flagged 'ready'
+/// \details Ready means ready to play the game. This flag can be set or unset by each room member.BR>
 /// When all players are ready, the can will presumably start (although you can use this flag however you want).
+/// \ingroup ROOMS_COMMANDS
 struct SetReadyStatus_Func : public RoomsPluginFunc {
 	// Input parameters
 	bool isReady;
@@ -306,6 +337,7 @@ struct SetReadyStatus_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Gets the ready states for every user in the room, excluding spectators
+/// \ingroup ROOMS_COMMANDS
 struct GetReadyStatus_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -315,9 +347,10 @@ struct GetReadyStatus_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Lock or unlock the room
-/// If the room is locked, no further players can join regardless of the available room slots. This includes invited players.
+/// \brief Lock or unlock the room
+/// \details If the room is locked, no further players can join regardless of the available room slots. This includes invited players.<BR>
 /// Rooms default to unlocked
+/// \ingroup ROOMS_COMMANDS
 struct SetRoomLockState_Func : public RoomsPluginFunc {
 	// Input parameters
 	RoomLockState roomLockState;
@@ -327,6 +360,7 @@ struct SetRoomLockState_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Gets the lock state of the room
+/// \ingroup ROOMS_COMMANDS
 struct GetRoomLockState_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -336,6 +370,7 @@ struct GetRoomLockState_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// If all members have been set to ready using SetReadyStatus_Func, this operation will set allReady to true.
+/// \ingroup ROOMS_COMMANDS
 struct AreAllMembersReady_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -345,6 +380,7 @@ struct AreAllMembersReady_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Kick a member out of the room. This will also automatically ban that member from rejoining as long as the moderator does not change, or the member is unbanned
+/// \ingroup ROOMS_COMMANDS
 struct KickMember_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString kickedMember;
@@ -355,6 +391,7 @@ struct KickMember_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Allow a member previously kicked out of the room to rejoin.
+/// \ingroup ROOMS_COMMANDS
 struct UnbanMember_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString bannedMemberName;
@@ -364,6 +401,7 @@ struct UnbanMember_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// For a given room, get the \a reason parameter of KickMember_Func when we were kicked out.
+/// \ingroup ROOMS_COMMANDS
 struct GetBanReason_Func : public RoomsPluginFunc {
 	// Input parameters
 	RoomID roomId;
@@ -373,11 +411,12 @@ struct GetBanReason_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Enter quick join mode
-/// Quick join mode will wait until the specified timeout to try to automatically join a room each second.
-/// A room will only be joined if enough quick join members can join at once to fill all playable slots in the room
-/// Older rooms are given priority to quick join
+/// \brief Enter quick join mode
+/// \details Quick join mode will wait until the specified timeout to try to automatically join a room each second.<BR>
+/// A room will only be joined if enough quick join members can join at once to fill all playable slots in the room.<BR>
+/// Older rooms are given priority to quick join.<BR>
 /// If no rooms are available to join, but enough quick join members are present to create a room instead, this will be done. The room custom properties will be any equality comparisons with networkedQuickJoinUser.query
+/// \ingroup ROOMS_COMMANDS
 struct AddUserToQuickJoin_Func : public RoomsPluginFunc {
 	// Input parameters
 	NetworkedQuickJoinUser networkedQuickJoinUser;
@@ -388,6 +427,7 @@ struct AddUserToQuickJoin_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Leave quick join mode
+/// \ingroup ROOMS_COMMANDS
 struct RemoveUserFromQuickJoin_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -396,6 +436,7 @@ struct RemoveUserFromQuickJoin_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Returns if you are waiting in quick join mode
+/// \ingroup ROOMS_COMMANDS
 struct IsInQuickJoin_Func : public RoomsPluginFunc {
 	// Input parameters
 	// Output parameters
@@ -404,8 +445,9 @@ struct IsInQuickJoin_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Return all rooms that pass the \a roomQuery filter
-/// Use onlyJoinable to further filter by rooms that you can join (not locked, not banned, public or invited slots)
+/// \brief Return all rooms that pass the \a roomQuery filter
+/// \details Use onlyJoinable to further filter by rooms that you can join (not locked, not banned, public or invited slots)
+/// \ingroup ROOMS_COMMANDS
 struct SearchByFilter_Func : public RoomsPluginFunc {
 	SearchByFilter_Func() {}
 	~SearchByFilter_Func();
@@ -438,6 +480,7 @@ struct SearchByFilter_Func : public RoomsPluginFunc {
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// Change your handle
+/// \ingroup ROOMS_COMMANDS
 struct ChangeHandle_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString newHandle;
@@ -446,6 +489,8 @@ struct ChangeHandle_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
+/// Send a chat message
+/// \ingroup ROOMS_COMMANDS
 struct Chat_Func : public RoomsPluginFunc {
 	// Input parameters
 	RakNet::RakString chatMessage;
@@ -460,27 +505,47 @@ struct Chat_Func : public RoomsPluginFunc {
 	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
-/// Base class for notification callbacks
-/// recipient is always filled out so you know which user this callback applies to
+/// Send an arbitrary binary message
+/// \ingroup ROOMS_COMMANDS
+struct Bitstream_Func : public RoomsPluginFunc {
+	// Input parameters
+	RakNet::BitStream bsToSend;
+	// Leave recipient blank for all in room
+	RakNet::RakString privateMessageRecipient;
+	/// If true, only sends the bitstream if the user is in the same room.
+	/// If false, privateMessageRecipient must also be filled out
+	bool directedToRoom;
+
+	// Output parameters
+
+	virtual void SerializeIn(bool writeToBitstream, RakNet::BitStream *bitStream);
+	virtual void SerializeOut(bool writeToBitstream, RakNet::BitStream *bitStream);
+};
+/// \brief Base class for notification callbacks
+/// \ingroup ROOMS_GROUP
 struct RoomsPluginNotification {
 	virtual ~RoomsPluginNotification() {}
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)=0;
 	virtual void PrintResult(void)=0;
+	/// Always filled out so you know which user this callback applies to
 	RakNet::RakString recipient;
 };
 /// The quick join duration has expired without joining or creating any rooms
+/// \ingroup ROOMS_NOTIFICATIONS
 struct QuickJoinExpired_Notification : public RoomsPluginNotification {
 	NetworkedQuickJoinUser networkedQuickJoinUser;
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("QuickJoinExpired_Notification to %s\n", recipient.C_String());}
 };
 /// Quick join succeeded, and you are now in a room
+/// \ingroup ROOMS_NOTIFICATIONS
 struct QuickJoinEnteredRoom_Notification : public RoomsPluginNotification {
 	JoinedRoomResult joinedRoomResult;
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("QuickJoinEnteredRoom_Notification to %s. roomId=%i\n", recipient.C_String(), joinedRoomResult.roomDescriptor.lobbyRoomId);}
 };
 /// Another room member has started spectating
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberStartedSpectating_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RakNet::RakString userName;
@@ -488,6 +553,7 @@ struct RoomMemberStartedSpectating_Notification : public RoomsPluginNotification
 	virtual void PrintResult(void) {printf("RoomMemberStartedSpectating_Notification to %s\n", recipient.C_String());}
 };
 /// Another room member has stopped spectating
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberStoppedSpectating_Notification : public RoomsPluginNotification {
 	RakNet::RakString userName;
 	RoomID roomId;
@@ -495,6 +561,7 @@ struct RoomMemberStoppedSpectating_Notification : public RoomsPluginNotification
 	virtual void PrintResult(void) {printf("RoomMemberStoppedSpectating_Notification to %s\n", recipient.C_String());}
 };
 /// The room has a new moderator (possibly you)
+/// \ingroup ROOMS_NOTIFICATIONS
 struct ModeratorChanged_Notification : public RoomsPluginNotification {
 	RakNet::RakString newModerator;
 	RakNet::RakString oldModerator;
@@ -503,12 +570,14 @@ struct ModeratorChanged_Notification : public RoomsPluginNotification {
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 };
 /// The slot counts in the room has changed
+/// \ingroup ROOMS_NOTIFICATIONS
 struct SlotCountsSet_Notification : public RoomsPluginNotification {
 	Slots slots;
 	RoomID roomId;
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("SlotCountsSet_Notification to %s\n", recipient.C_String());}
 };
+/// \ingroup ROOMS_NOTIFICATIONS
 /// The custom properties for the room has changed
 struct CustomRoomPropertiesSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
@@ -520,6 +589,7 @@ struct CustomRoomPropertiesSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("CustomRoomPropertiesSet_Notification to %s\n", recipient.C_String());}
 };
 /// The name of the room has been changed
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomNameSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RakNet::RakString oldName;
@@ -528,6 +598,7 @@ struct RoomNameSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomNameSet_Notification to %s\n", recipient.C_String());}
 };
 /// The room is now hidden, or no longer hidden, from searches
+/// \ingroup ROOMS_NOTIFICATIONS
 struct HiddenFromSearchesSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	bool hiddenFromSearches;
@@ -535,6 +606,7 @@ struct HiddenFromSearchesSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("HiddenFromSearchesSet_Notification to %s\n", recipient.C_String());}
 };
 /// Another room member has changed their ready status
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberReadyStatusSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	bool isReady;
@@ -548,6 +620,7 @@ struct RoomMemberReadyStatusSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomMemberReadyStatusSet_Notification to %s\n", recipient.C_String());}
 };
 /// The room is now, or is no longer, locked
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomLockStateSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RoomLockState roomLockState;
@@ -555,6 +628,7 @@ struct RoomLockStateSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomLockStateSet_Notification to %s\n", recipient.C_String());}
 };
 /// A room member has been kicked out of the room (possibly you)
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberKicked_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RakNet::RakString kickedMember;
@@ -564,6 +638,7 @@ struct RoomMemberKicked_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomMemberKicked_Notification to %s\n", recipient.C_String());}
 };
 /// A room member has changed their handle
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberHandleSet_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RakNet::RakString oldName;
@@ -572,6 +647,7 @@ struct RoomMemberHandleSet_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomMemberHandleSet_Notification to %s\n", recipient.C_String());}
 };
 /// A room member has left the room
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberLeftRoom_Notification : public RoomsPluginNotification {
 	RoomID roomId;
 	RakNet::RakString roomMember;
@@ -579,6 +655,7 @@ struct RoomMemberLeftRoom_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomMemberLeftRoom_Notification to %s\n", recipient.C_String());}
 };
 /// A room member has joined the room
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomMemberJoinedRoom_Notification : public RoomsPluginNotification {
 	RoomMemberJoinedRoom_Notification() {joinedRoomResult=0;}
 	~RoomMemberJoinedRoom_Notification() {if (joinedRoomResult!=0) RakNet::OP_DELETE(joinedRoomResult, __FILE__, __LINE__);}
@@ -591,6 +668,7 @@ struct RoomMemberJoinedRoom_Notification : public RoomsPluginNotification {
 	}
 };
 /// You have received an invitation to a room
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomInvitationSent_Notification : public RoomsPluginNotification {
 	RakNet::RakString invitorName;
 	RakNet::RakString inviteeName;
@@ -602,12 +680,14 @@ struct RoomInvitationSent_Notification : public RoomsPluginNotification {
 	virtual void PrintResult(void) {printf("RoomInvitationSent_Notification to %s\n", recipient.C_String());}
 };
 /// A previous room invitation is no longer valid (possibly due to moderator change, or the room no longer exists)
+/// \ingroup ROOMS_NOTIFICATIONS
 struct RoomInvitationWithdrawn_Notification : public RoomsPluginNotification {
 	InvitedUser invitedUser;
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("RoomInvitationWithdrawn_Notification to %s\n", recipient.C_String());}
 };
 /// The moderator has left the room, and everyone left is a spectator, or the room was set to be destroyed when the moderator left
+/// \ingroup ROOMS_NOTIFICATIONS
 /// You are no longer in the room
 struct RoomDestroyedOnModeratorLeft_Notification : public RoomsPluginNotification {
 	RakNet::RakString oldModerator;
@@ -616,8 +696,9 @@ struct RoomDestroyedOnModeratorLeft_Notification : public RoomsPluginNotificatio
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("RoomDestroyedOnModeratorLeft_Notification to %s\n", recipient.C_String());}
 };
-/// You got a chat message from another user.
-/// If you want to support ignoring chat messages from specific users, use Lobby2Client_PC::IsInIgnoreList
+/// \brief You got a chat message from another user.
+/// \details If you want to support ignoring chat messages from specific users, use Lobby2Client_PC::IsInIgnoreList
+/// \ingroup ROOMS_NOTIFICATIONS
 struct Chat_Notification : public RoomsPluginNotification {
 	RakNet::RakString sender;
 	// If filled in, this was directed to you. Otherwise it was directed to the room
@@ -629,85 +710,103 @@ struct Chat_Notification : public RoomsPluginNotification {
 	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
 	virtual void PrintResult(void) {printf("Chat_Notification to %s\n", recipient.C_String());}
 };
+/// You got a generic bitstream message from another user.
+/// \ingroup ROOMS_NOTIFICATIONS
+struct Bitstream_Notification : public RoomsPluginNotification {
+	RakNet::RakString sender;
+	// If filled in, this was directed to you. Otherwise it was directed to the room
+	RakNet::RakString privateMessageRecipient;
+	// The chat message
+	RakNet::BitStream bitStreamReceived;
+	virtual void Serialize(bool writeToBitstream, RakNet::BitStream *bitStream);
+	virtual void PrintResult(void) {printf("Bitstream_Notification to %s\n", recipient.C_String());}
+};
+/// \ingroup ROOMS_GROUP
 struct RoomsCallback
 {
 	// Results of calls
-	virtual void CreateRoom_Callback( SystemAddress senderAddress, CreateRoom_Func *callResult) {}
-	virtual void EnterRoom_Callback( SystemAddress senderAddress, EnterRoom_Func *callResult) {}
-	virtual void JoinByFilter_Callback( SystemAddress senderAddress, JoinByFilter_Func *callResult) {}
-	virtual void LeaveRoom_Callback( SystemAddress senderAddress, LeaveRoom_Func *callResult) {}
-	virtual void GetInvitesToParticipant_Callback( SystemAddress senderAddress, GetInvitesToParticipant_Func *callResult) {}
-	virtual void SendInvite_Callback( SystemAddress senderAddress, SendInvite_Func *callResult) {}
-	virtual void AcceptInvite_Callback( SystemAddress senderAddress, AcceptInvite_Func *callResult) {}
-	virtual void StartSpectating_Callback( SystemAddress senderAddress, StartSpectating_Func *callResult) {}
-	virtual void StopSpectating_Callback( SystemAddress senderAddress, StopSpectating_Func *callResult) {}
-	virtual void GrantModerator_Callback( SystemAddress senderAddress, GrantModerator_Func *callResult) {}
-	virtual void ChangeSlotCounts_Callback( SystemAddress senderAddress, ChangeSlotCounts_Func *callResult) {}
-	virtual void SetCustomRoomProperties_Callback( SystemAddress senderAddress, SetCustomRoomProperties_Func *callResult) {}
-	virtual void GetRoomProperties_Callback( SystemAddress senderAddress, GetRoomProperties_Func *callResult) {}
-	virtual void ChangeRoomName_Callback( SystemAddress senderAddress, ChangeRoomName_Func *callResult) {}
-	virtual void SetHiddenFromSearches_Callback( SystemAddress senderAddress, SetHiddenFromSearches_Func *callResult) {}
-	virtual void SetDestroyOnModeratorLeave_Callback( SystemAddress senderAddress, SetDestroyOnModeratorLeave_Func *callResult) {}
-	virtual void SetReadyStatus_Callback( SystemAddress senderAddress, SetReadyStatus_Func *callResult) {}
-	virtual void GetReadyStatus_Callback( SystemAddress senderAddress, GetReadyStatus_Func *callResult) {}
-	virtual void SetRoomLockState_Callback( SystemAddress senderAddress, SetRoomLockState_Func *callResult) {}
-	virtual void GetRoomLockState_Callback( SystemAddress senderAddress, GetRoomLockState_Func *callResult) {}
-	virtual void AreAllMembersReady_Callback( SystemAddress senderAddress, AreAllMembersReady_Func *callResult) {}
-	virtual void KickMember_Callback( SystemAddress senderAddress, KickMember_Func *callResult) {}
-	virtual void UnbanMember_Callback( SystemAddress senderAddress, UnbanMember_Func *callResult) {}
-	virtual void GetBanReason_Callback( SystemAddress senderAddress, GetBanReason_Func *callResult) {}
-	virtual void AddUserToQuickJoin_Callback( SystemAddress senderAddress, AddUserToQuickJoin_Func *callResult) {}
-	virtual void RemoveUserFromQuickJoin_Callback( SystemAddress senderAddress, RemoveUserFromQuickJoin_Func *callResult) {}
-	virtual void IsInQuickJoin_Callback( SystemAddress senderAddress, IsInQuickJoin_Func *callResult) {}
-	virtual void SearchByFilter_Callback( SystemAddress senderAddress, SearchByFilter_Func *callResult) {}
-	virtual void ChangeHandle_Callback( SystemAddress senderAddress, ChangeHandle_Func *callResult) {}
-	virtual void Chat_Callback( SystemAddress senderAddress, Chat_Func *callResult) {}
+	virtual void CreateRoom_Callback( SystemAddress senderAddress, CreateRoom_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void EnterRoom_Callback( SystemAddress senderAddress, EnterRoom_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void JoinByFilter_Callback( SystemAddress senderAddress, JoinByFilter_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void LeaveRoom_Callback( SystemAddress senderAddress, LeaveRoom_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GetInvitesToParticipant_Callback( SystemAddress senderAddress, GetInvitesToParticipant_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SendInvite_Callback( SystemAddress senderAddress, SendInvite_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void AcceptInvite_Callback( SystemAddress senderAddress, AcceptInvite_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void StartSpectating_Callback( SystemAddress senderAddress, StartSpectating_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void StopSpectating_Callback( SystemAddress senderAddress, StopSpectating_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GrantModerator_Callback( SystemAddress senderAddress, GrantModerator_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void ChangeSlotCounts_Callback( SystemAddress senderAddress, ChangeSlotCounts_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SetCustomRoomProperties_Callback( SystemAddress senderAddress, SetCustomRoomProperties_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GetRoomProperties_Callback( SystemAddress senderAddress, GetRoomProperties_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void ChangeRoomName_Callback( SystemAddress senderAddress, ChangeRoomName_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SetHiddenFromSearches_Callback( SystemAddress senderAddress, SetHiddenFromSearches_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SetDestroyOnModeratorLeave_Callback( SystemAddress senderAddress, SetDestroyOnModeratorLeave_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SetReadyStatus_Callback( SystemAddress senderAddress, SetReadyStatus_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GetReadyStatus_Callback( SystemAddress senderAddress, GetReadyStatus_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SetRoomLockState_Callback( SystemAddress senderAddress, SetRoomLockState_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GetRoomLockState_Callback( SystemAddress senderAddress, GetRoomLockState_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void AreAllMembersReady_Callback( SystemAddress senderAddress, AreAllMembersReady_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void KickMember_Callback( SystemAddress senderAddress, KickMember_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void UnbanMember_Callback( SystemAddress senderAddress, UnbanMember_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void GetBanReason_Callback( SystemAddress senderAddress, GetBanReason_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void AddUserToQuickJoin_Callback( SystemAddress senderAddress, AddUserToQuickJoin_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void RemoveUserFromQuickJoin_Callback( SystemAddress senderAddress, RemoveUserFromQuickJoin_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void IsInQuickJoin_Callback( SystemAddress senderAddress, IsInQuickJoin_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void SearchByFilter_Callback( SystemAddress senderAddress, SearchByFilter_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void ChangeHandle_Callback( SystemAddress senderAddress, ChangeHandle_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void Chat_Callback( SystemAddress senderAddress, Chat_Func *callResult) {(void) senderAddress; (void) callResult;}
+	virtual void Bitstream_Callback( SystemAddress senderAddress, Bitstream_Func *callResult) {(void) senderAddress; (void) callResult;}
 	// Notifications due to other room members
-	virtual void QuickJoinExpired_Callback( SystemAddress senderAddress, QuickJoinExpired_Notification *notification) {}
-	virtual void QuickJoinEnteredRoom_Callback( SystemAddress senderAddress, QuickJoinEnteredRoom_Notification *notification) {}
-	virtual void RoomMemberStartedSpectating_Callback( SystemAddress senderAddress, RoomMemberStartedSpectating_Notification *notification) {}
-	virtual void RoomMemberStoppedSpectating_Callback( SystemAddress senderAddress, RoomMemberStoppedSpectating_Notification *notification) {}
-	virtual void ModeratorChanged_Callback( SystemAddress senderAddress, ModeratorChanged_Notification *notification) {}
-	virtual void SlotCountsSet_Callback( SystemAddress senderAddress, SlotCountsSet_Notification *notification) {}
-	virtual void CustomRoomPropertiesSet_Callback( SystemAddress senderAddress, CustomRoomPropertiesSet_Notification *notification) {}
-	virtual void RoomNameSet_Callback( SystemAddress senderAddress, RoomNameSet_Notification *notification) {}
-	virtual void HiddenFromSearchesSet_Callback( SystemAddress senderAddress, HiddenFromSearchesSet_Notification *notification) {}
-	virtual void RoomMemberReadyStatusSet_Callback( SystemAddress senderAddress, RoomMemberReadyStatusSet_Notification *notification) {}
-	virtual void RoomLockStateSet_Callback( SystemAddress senderAddress, RoomLockStateSet_Notification *notification) {}
-	virtual void RoomMemberKicked_Callback( SystemAddress senderAddress, RoomMemberKicked_Notification *notification) {}
-	virtual void RoomMemberHandleSet_Callback( SystemAddress senderAddress, RoomMemberHandleSet_Notification *notification) {}
-	virtual void RoomMemberLeftRoom_Callback( SystemAddress senderAddress, RoomMemberLeftRoom_Notification *notification) {}
-	virtual void RoomMemberJoinedRoom_Callback( SystemAddress senderAddress, RoomMemberJoinedRoom_Notification *notification) {}
-	virtual void RoomInvitationSent_Callback( SystemAddress senderAddress, RoomInvitationSent_Notification *notification) {}
-	virtual void RoomInvitationWithdrawn_Callback( SystemAddress senderAddress, RoomInvitationWithdrawn_Notification *notification) {}
-	virtual void RoomDestroyedOnModeratorLeft_Callback( SystemAddress senderAddress, RoomDestroyedOnModeratorLeft_Notification *notification) {}
-	virtual void Chat_Callback( SystemAddress senderAddress, Chat_Notification *notification) {}
+	virtual void QuickJoinExpired_Callback( SystemAddress senderAddress, QuickJoinExpired_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void QuickJoinEnteredRoom_Callback( SystemAddress senderAddress, QuickJoinEnteredRoom_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberStartedSpectating_Callback( SystemAddress senderAddress, RoomMemberStartedSpectating_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberStoppedSpectating_Callback( SystemAddress senderAddress, RoomMemberStoppedSpectating_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void ModeratorChanged_Callback( SystemAddress senderAddress, ModeratorChanged_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void SlotCountsSet_Callback( SystemAddress senderAddress, SlotCountsSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void CustomRoomPropertiesSet_Callback( SystemAddress senderAddress, CustomRoomPropertiesSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomNameSet_Callback( SystemAddress senderAddress, RoomNameSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void HiddenFromSearchesSet_Callback( SystemAddress senderAddress, HiddenFromSearchesSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberReadyStatusSet_Callback( SystemAddress senderAddress, RoomMemberReadyStatusSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomLockStateSet_Callback( SystemAddress senderAddress, RoomLockStateSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberKicked_Callback( SystemAddress senderAddress, RoomMemberKicked_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberHandleSet_Callback( SystemAddress senderAddress, RoomMemberHandleSet_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberLeftRoom_Callback( SystemAddress senderAddress, RoomMemberLeftRoom_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomMemberJoinedRoom_Callback( SystemAddress senderAddress, RoomMemberJoinedRoom_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomInvitationSent_Callback( SystemAddress senderAddress, RoomInvitationSent_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomInvitationWithdrawn_Callback( SystemAddress senderAddress, RoomInvitationWithdrawn_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void RoomDestroyedOnModeratorLeft_Callback( SystemAddress senderAddress, RoomDestroyedOnModeratorLeft_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void Chat_Callback( SystemAddress senderAddress, Chat_Notification *notification) {(void) senderAddress; (void) notification;}
+	virtual void Bitstream_Callback( SystemAddress senderAddress, Bitstream_Notification *notification) {(void) senderAddress; (void) notification;}
 };
 
-/// \ingroup ROOMS_GROUP
 /// \brief Used to create rooms for players where they can matchmake
-/// A room is similar to the rooms you see in other lobby systems, where groups of players can join together in order to start a game match
-/// Each player can be in at most one room
-/// Each player name must be unique
-/// Each room has one moderator, which can perform operations on the room such as kicking out members
-/// This plugin networks the AllGamesRoomsContainer class, which performs the actual functionality
-///
-/// To use as a client:
-/// 1. Connect to the server and attach the plugin as normal.
-/// 2. Call SetServerAddress to tell the system where the server is.
-/// 3. Call RoomsPlugin::SetRoomsCallback() with a pointer to a callback structure
-/// 4. Fill in the input parameters of the desired structure(s)
-/// 5. Call RoomsPlugin::ExecuteFunc with a pointer to the structure.
-/// 6. Process the callback, which will contain the original input parameters, plus the new output parameters. All structures contain resultCode, which indicates if the operation was successful (REC_SUCCESS) or not (Anything else)
-///
+/// \details A room is similar to the rooms you see in other lobby systems, where groups of players can join together in order to start a game match<BR>
+/// Each player can be in at most one room.<BR>
+/// Each player name must be unique.<BR>
+/// Each room has one moderator, which can perform operations on the room such as kicking out members.<BR>
+/// This plugin networks the AllGamesRoomsContainer class, which performs the actual functionality.<BR>
+/// <BR>
+/// To use as a client:<BR>
+/// <OL>
+/// <LI>Connect to the server and attach the plugin as normal.
+/// <LI>Call SetServerAddress to tell the system where the server is.
+/// <LI>Call RoomsPlugin::SetRoomsCallback() with a pointer to a callback structure
+/// <LI>Fill in the input parameters of the desired structure(s)
+/// <LI>Call RoomsPlugin::ExecuteFunc with a pointer to the structure.
+/// <LI>Process the callback, which will contain the original input parameters, plus the new output parameters. All structures contain resultCode, which indicates if the operation was successful (REC_SUCCESS) or not (Anything else)
+/// </OL>
+/// <BR>
 /// To use as a server:
-/// 1. Start RakNet as usual, accepting connections and attaching the plugin
-/// 2. Call RoomsPlugin::SetProfanityFilter() with the ProfanityFilter class, if desired
-/// 3. Call RoomsPlugin::AddTitle() for each title (game) you want to support
-/// 4. If you want other systems to be able to call RoomsPlugin::LoginRoomsParticipant(), call RoomsPlugin::AddLoginServerAddress() with the addresses of those systems
-/// 5. As users go online, call RoomsPlugin::LoginRoomsParticipant(). Login and Logoff is up to you to implement (or rely on other systems, such as Lobby2)
-/// 6. As users go offline, call RoomsPlugin::LogoffRoomsParticipant();
+/// <OL>
+/// <LI>Start RakNet as usual, accepting connections and attaching the plugin
+/// <LI>Call RoomsPlugin::SetProfanityFilter() with the ProfanityFilter class, if desired
+/// <LI>Call RoomsPlugin::AddTitle() for each title (game) you want to support
+/// <LI>If you want other systems to be able to call RoomsPlugin::LoginRoomsParticipant(), call RoomsPlugin::AddLoginServerAddress() with the addresses of those systems
+/// <LI>As users go online, call RoomsPlugin::LoginRoomsParticipant(). Login and Logoff is up to you to implement (or rely on other systems, such as Lobby2)
+/// <LI>As users go offline, call RoomsPlugin::LogoffRoomsParticipant();
+/// </OL>
 /// \sa AllGamesRoomsContainer
+/// \ingroup ROOMS_GROUP
 class RAK_DLL_EXPORT RoomsPlugin : public PluginInterface2, public RoomsCallback
 {
 public:
@@ -856,12 +955,13 @@ protected:
 	virtual void SearchByFilter_Callback( SystemAddress senderAddress, SearchByFilter_Func *callResult);
 	virtual void ChangeHandle_Callback( SystemAddress senderAddress, ChangeHandle_Func *callResult);
 	virtual void Chat_Callback( SystemAddress senderAddress, Chat_Func *callResult);
+	virtual void Bitstream_Callback( SystemAddress senderAddress, Bitstream_Func *callResult);
 
 	void ExecuteNotification(RoomsPluginNotification *func, RoomsPluginParticipant *recipient);
 	void ExecuteNotificationToOtherRoomMembers(Room *room, RoomsPluginParticipant* roomsPluginParticipant, RoomsPluginNotification *notification);
 };
 
-
+/// \ingroup ROOMS_GROUP
 enum RoomsPluginOperations
 {
 	RPO_CREATE_ROOM,
@@ -894,6 +994,7 @@ enum RoomsPluginOperations
 	RPO_SEARCH_BY_FILTER,
 	RPO_CHANGE_HANDLE,
 	RPO_CHAT,
+	RPO_BITSTREAM,
 	RPN_QUICK_JOIN_EXPIRED,
 	RPN_QUICK_JOIN_ENTERED_ROOM,
 	RPN_ROOM_MEMBER_STARTED_SPECTATING,
@@ -913,6 +1014,7 @@ enum RoomsPluginOperations
 	RPN_ROOM_INVITATION_WITHDRAWN,
 	RPN_ROOM_DESTROYED_ON_MODERATOR_LEFT,
 	RPN_CHAT_NOTIFICATION,
+	RPN_BITSTREAM_NOTIFICATION,
 };
 
 } // namespace RakNet

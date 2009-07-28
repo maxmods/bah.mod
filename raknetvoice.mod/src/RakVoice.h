@@ -49,9 +49,7 @@ struct VoiceChannel
 };
 int VoiceChannelComp( const SystemAddress &key, VoiceChannel * const &data );
 
-/// \brief Encodes, decodes, and transmits voice data.
 /// Voice compression and transmission interface
-/// \addtogroup Plugins
 class RakVoice : public PluginInterface2
 {
 public:
