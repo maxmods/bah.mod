@@ -31,7 +31,7 @@ ModuleInfo "License: Raknet - The Creative Commons Attribution - NonCommercial 2
 ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Version(Raknet 3.51)"
+ModuleInfo "History: Initial Version(Raknet 3.611)"
 
 
 Import "common.bmx"
@@ -119,34 +119,79 @@ Type TRKRakNet
 End Type
 
 Rem
-bbdoc: 
+bbdoc: This type is simply used to generate a unique number for a group of instances of NetworkIDObject.
+about: An instance of this type is required to use the ObjectID pointer lookup system. You should have one instance
+of this type per game instance. Call SetIsNetworkIDAuthority before using any functions of this class, or of NetworkIDObject
 End Rem
 Type TRKNetworkIDManager
 
 	Field networkIdManagerPtr:Byte Ptr
-
-	Method SetIsNetworkIDAuthority(isAuthority:Int)
-	' TODO
+	
+	Function CreateManager:TRKNetworkIDManager()
+		Return New TRKNetworkIDManager.Create()
+	End Function
+	
+	Method Create:TRKNetworkIDManager()
+		networkIdManagerPtr = bmx_NetworkIDManager_create()
+		Return Self
 	End Method
 	
+	Function _create:TRKNetworkIDManager(networkIdManagerPtr:Byte Ptr)
+		If networkIdManagerPtr Then
+			Local this:TRKNetworkIDManager = New TRKNetworkIDManager
+			this.networkIdManagerPtr = networkIdManagerPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: For every group of systems, one system needs to be responsible for creating unique IDs for all objects created on all systems.
+	about: This way, systems can send that id in packets to refer to objects (you can't send pointers because the memory
+	allocations may be different). In a client/server environment, the system that creates unique IDs would be the server.
+	If you are using peer to peer or other situations where you don't have a single system to assign ids, set this to true,
+	and be sure NETWORK_ID_SUPPORTS_PEER_TO_PEER is defined in RakNetDefines.h
+	End Rem
+	Method SetIsNetworkIDAuthority(isAuthority:Int)
+		bmk_NetworkIDManager_SetIsNetworkIDAuthority(networkIdManagerPtr, isAuthority)
+	End Method
+	
+	Rem
+	bbdoc: Returns what was passed to SetIsNetworkIDAuthority()
+	End Rem
 	Method IsNetworkIDAuthority:Int()
-	' TODO
+		Return bmk_NetworkIDManager_IsNetworkIDAuthority(networkIdManagerPtr)
 	End Method
 
-	Method SetExternalSystemAddress(address:TRKSystemAddress)
-	' TODO
+	Rem
+	bbdoc: Necessary for peer to peer, as NetworkIDs are then composed of your external player Id (doesn't matter which, as long as unique) plus the usual object ID number.
+	about: Get this from RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS) one time, the first time you make a connection.
+	<p>
+	Precondition: You must first call SetNetworkIDManager before using this method.
+	</p>
+	End Rem
+	Method SetGuid(guid:TRKRakNetGUID)
+		bmk_NetworkIDManager_SetGuid(networkIdManagerPtr, guid.guidPtr)
 	End Method
 
-	Method GetExternalSystemAddress:TRKSystemAddress()
-	' TODO
-	End Method
-
+	Rem
+	bbdoc: This method is only meant to be used when saving games as you should save the HIGHEST value staticItemID has achieved upon save and reload it upon load.
+	about: Save AFTER you've created all the items derived from this class you are going to create.
+	End Rem
 	Method GetSharedNetworkID:Int()
-	' TODO
+		Return bmk_NetworkIDManager_GetSharedNetworkID(networkIdManagerPtr)
 	End Method
 
+	Rem
+	bbdoc: This method is only meant to be used when loading games.
+	about: Load BEFORE you create any new objects that are not SetIDed based on the save data.
+	<p>Parameters: 
+	<ul>
+	<li><b>id</b> : the highest number of NetworkIDObject reached </li>
+	</ul>
+	</p>
+	End Rem
 	Method SetSharedNetworkID(id:Int)
-	' TODO
+		bmk_NetworkIDManager_SetSharedNetworkID(networkIdManagerPtr, id)
 	End Method
 
 End Type
@@ -574,14 +619,14 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 	bbdoc: Used by Object member RPC to lookup objects given that object's ID.
 	End Rem
 	Method SetNetworkIDManager(manager:TRKNetworkIDManager)
-	' TODO
+		bmx_RakPeer_SetNetworkIDManager(rakPeerPtr, manager.networkIdManagerPtr)
 	End Method
 	
 	Rem
 	bbdoc: 
 	End Rem
 	Method GetNetworkIDManager:TRKNetworkIDManager()
-	' TODO
+		Return TRKNetworkIDManager._create(bmx_RakPeer_GetNetworkIDManager(rakPeerPtr))
 	End Method
 	
 	Rem
@@ -3439,10 +3484,16 @@ Type TRKRakNetStatistics
 		Return bmx_RakNetStatistics_internalOutputQueueSize(statsPtr)
 	End Method
 	Rem
-	bbdoc: Current bits per second
-	end rem
-	Method bitsPerSecond:Double()
-		Return bmx_RakNetStatistics_bitsPerSecond(statsPtr)
+	bbdoc: Current bits per second sent
+	End Rem
+	Method bitsPerSecondSent:Double()
+		Return bmx_RakNetStatistics_bitsPerSecondSent(statsPtr)
+	End Method
+	Rem
+	bbdoc: Current bits per second received
+	End Rem
+	Method bitsPerSecondReceived:Double()
+		Return bmx_RakNetStatistics_bitsPerSecondReceived(statsPtr)
 	End Method
 	Rem
 	bbdoc: connection start time

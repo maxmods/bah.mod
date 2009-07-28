@@ -15,6 +15,8 @@ class RakPeerInterface;
 #include "Export.h"
 
 /// \defgroup PACKETLOGGER_GROUP PacketLogger
+/// \brief Print out incoming messages to a target destination
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \brief Writes incoming and outgoing messages to the screen.
@@ -69,6 +71,7 @@ protected:
 	virtual void AddToLog(const char *str);
 	// Users should override this
 	virtual const char* UserIDTOString(unsigned char Id);
+	void GetLocalTime(char buffer[128]);
 
 	bool printId, printAcks;
 	char prefix[256];

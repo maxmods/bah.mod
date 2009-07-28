@@ -148,7 +148,7 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	int i,j;
 	if (attachedFiles && attachedFiles->fileList.Size())
 	{
-		seedMT(RakNet::GetTime());
+		seedMT((unsigned int) RakNet::GetTime());
 		// Random multipart message boundary
 		for (i=0; i < boundarySize; i++)
 			boundary[i]=base64Map[randomMT()%64];
@@ -329,7 +329,7 @@ const char *EmailSender::GetResponse(TCPInterface *tcpInterface, const SystemAdd
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 			if (strstr((const char*)packet->data, "250-STARTTLS"))
 			{
-				tcpInterface->Send("STARTTLS\r\n", (unsigned int) strlen("STARTTLS\r\n"), packet->systemAddress);
+				tcpInterface->Send("STARTTLS\r\n", (unsigned int) strlen("STARTTLS\r\n"), packet->systemAddress, false);
 				return "CONTINUE";
 			}
 #endif

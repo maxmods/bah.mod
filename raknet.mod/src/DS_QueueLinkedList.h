@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] A queue implemented as a linked list.
+/// \file DS_QueueLinkedList.h
+/// \internal
+/// \brief A queue implemented as a linked list.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

@@ -47,7 +47,7 @@ public:
 	/// \return Returns what was passed to SetIsNetworkIDAuthority()
 	bool IsNetworkIDAuthority(void) const;
 
-	/// \Depreciated. Use SetGuid and GetGuid instead
+	/// \deprecated Use NetworkIDManager::SetGuid() and NetworkIDManager::GetGuid() instead
 	/// Necessary for peer to peer, as NetworkIDs are then composed of your external player Id (doesn't matter which, as long as unique)
 	/// plus the usual object ID number.
 	/// Get this from RakPeer::GetExternalSystemAddress) one time, the first time you make a connection.
@@ -81,7 +81,7 @@ public:
 	NetworkIDObject* GET_BASE_OBJECT_FROM_ID( NetworkID x );
 
 	/// Returns the parent object, or this instance if you don't use a parent.
-	/// \depreciated, use the template form. This form requires that NetworkIDObject is the basemost derived class
+	/// \deprecated, use the template form. This form requires that NetworkIDObject is the basemost derived class
 	/// \pre You must first call SetNetworkIDManager before using this function
 	void* GET_OBJECT_FROM_ID( NetworkID x );
 
@@ -100,7 +100,7 @@ public:
 
 protected:
 	RakNetGUID guid;
-	// Depreciated - use guid instead. This has the problem that it can be different between the LAN and the internet, or duplicated on different LANs
+	// deprecated - use guid instead. This has the problem that it can be different between the LAN and the internet, or duplicated on different LANs
 	SystemAddress externalSystemAddress;
 	unsigned short sharedNetworkID;
 	bool isNetworkIDAuthority;

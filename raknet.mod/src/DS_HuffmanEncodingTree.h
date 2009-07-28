@@ -1,4 +1,4 @@
-/// \file
+/// \file DS_HuffmanEncodingTree.h
 /// \brief \b [Internal] Generates a huffman encoding tree, used for string and global compression.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -23,20 +23,20 @@ public:
 	HuffmanEncodingTree();
 	~HuffmanEncodingTree();
 
-	/// Pass an array of bytes to array and a preallocated BitStream to receive the output
+	/// \brief Pass an array of bytes to array and a preallocated BitStream to receive the output.
 	/// \param [in] input Array of bytes to encode
 	/// \param [in] sizeInBytes size of \a input
 	/// \param [out] output The bitstream to write to
 	void EncodeArray( unsigned char *input, size_t sizeInBytes, RakNet::BitStream * output );
 
-	// Decodes an array encoded by EncodeArray()
+	// \brief Decodes an array encoded by EncodeArray().
 	unsigned DecodeArray( RakNet::BitStream * input, BitSize_t sizeInBits, size_t maxCharsToWrite, unsigned char *output );
 	void DecodeArray( unsigned char *input, BitSize_t sizeInBits, RakNet::BitStream * output );
 
-	/// Given a frequency table of 256 elements, all with a frequency of 1 or more, generate the tree
+	/// \brief Given a frequency table of 256 elements, all with a frequency of 1 or more, generate the tree.
 	void GenerateFromFrequencyTable( unsigned int frequencyTable[ 256 ] );
 
-	/// Free the memory used by the tree
+	/// \brief Free the memory used by the tree.
 	void FreeMemory( void );
 
 private:

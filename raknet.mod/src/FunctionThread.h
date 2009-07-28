@@ -1,4 +1,4 @@
-/// \file
+/// \file FunctionThread.h
 /// \brief A set of classes to make it easier to perform asynchronous function processing.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -34,14 +34,15 @@ public:
 		void *context;
 	};
 
-	/// Starts the thread up.
+	/// \brief Starts the thread up.
 	void StartThreads(int numThreads);
 
-	/// Stop processing. Will also call FunctorResultHandler callbacks with /a wasCancelled set to true.
+	/// \brief Stop processing. 
+	/// \details Will also call FunctorResultHandler callbacks with /a wasCancelled set to true.
 	/// \param[in] blockOnCurrentProcessing Wait for the current processing to finish?
 	void StopThreads(bool blockOnCurrentProcessing);
 
-	/// Add a functor to the incoming stream of functors
+	/// \brief Add a functor to the incoming stream of functors.
 	/// \note functor MUST be a valid pointer until Functor::HandleResult() is called, at which point the pointer is returned to you.
 	/// \note For practical purposes this means the instance of functor you pass to this function has to be allocated using new and delete.
 	/// \note You should deallocate the pointer inside Functor::HandleResult() 
@@ -49,17 +50,17 @@ public:
 	/// \param[in] If there is some context to this functor you want to look up to cancel it, you can set it here. Returned back to you in Functor::HandleResult
 	void Push(Functor *functor, void *context=0);
 
-	/// Call FunctorResultHandler callbacks
-	/// Normally you would call this once per update cycle, although you do not have to.
+	/// \brief Call FunctorResultHandler callbacks.
+	/// \details Normally you would call this once per update cycle, although you do not have to.
 	void CallResultHandlers(void);
 
-	/// If you want to cancel input and output functors associated with some context, you can pass a function to do that here
+	/// \brief If you want to cancel input and output functors associated with some context, you can pass a function to do that here
 	/// \param[in] cancelThisFunctor Function should return true to cancel the functor, false to let it process
 	/// \param[in] userData Pointer to whatever you want. Passed to the cancelThisFunctor call
 	void CancelFunctorsWithContext(bool (*cancelThisFunctor)(FunctorAndContext func, void *userData), void *userData);
 
-	/// If you want to automatically do some kind of processing on every functor after Functor::HandleResult is called, set it here.
-	/// Useful to cleanup FunctionThread::Push::context
+	/// \brief If you want to automatically do some kind of processing on every functor after Functor::HandleResult is called, set it here.
+	/// \details Useful to cleanup FunctionThread::Push::context
 	/// \param[in] postResult pointer to a C function to do post-processing 
 	void SetPostResultFunction(void (*postResult)(FunctorAndContext func));
 
@@ -79,10 +80,10 @@ public:
 	Functor() {}
 	virtual ~Functor() {}
 
-	/// Do whatever processing you want.
+	/// \brief Do whatever processing you want.
 	/// \param[in] context pointer passed to FunctionThread::Push::context
 	virtual void Process(void *context)=0;
-	/// Called from FunctionThread::CallResultHandlers with wasCancelled false OR
+	/// \brief Called from FunctionThread::CallResultHandlers with wasCancelled false OR
 	/// Called from FunctionThread::StopThread or FunctionThread::~FunctionThread with wasCancelled true
 	/// \param[in] wasCancelledTrue if CallResultHandlers was called, false if StopThreads or CancelInputWithContext was called before Functor::Process()
 	/// \param[in] context pointer passed to FunctionThread::Push::context
@@ -95,7 +96,7 @@ public:
 	FunctionThreadDependentClass();
 	virtual ~FunctionThreadDependentClass();
 
-	/// Assigns a function thread to process asynchronous calls. If you do not assign one then one will be created automatically.
+	/// \brief Assigns a function thread to process asynchronous calls. If you do not assign one then one will be created automatically.
 	/// \param[in] ft An instance of a running function thread class. This class can be shared and used for other functors as well.
 	virtual void AssignFunctionThread(FunctionThread *ft);
 
@@ -105,7 +106,7 @@ public:
 	/// \returns Whether or not this class allocated the function thread by itself
 	bool GetFunctionThreadWasAllocated(void) const;
 
-	/// Allocates and starts the thread if needed, and pushes the functor
+	/// \brief Allocates and starts the thread if needed, and pushes the functor.
 	/// \param[in] functor Functor to push
 	/// \param[in] context Sent to FunctionThread::Push::context
 	virtual void PushFunctor(Functor *functor, void *context=0);

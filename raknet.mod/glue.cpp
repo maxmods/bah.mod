@@ -315,7 +315,7 @@ bool bmx_RakPeer_RPC(RakPeerInterface * peer, const char * id, const char * data
 		ret = peer->RPC(id, data, bitLength, priority, reliability, static_cast<char>(orderingChannel),
 				addr->Address(), broadcast, 
 #ifdef __GET_TIME_64BIT
-				includedTimestamp
+				(RakNetTime*)includedTimestamp
 #else
 				&timestamp
 #endif
@@ -324,7 +324,7 @@ bool bmx_RakPeer_RPC(RakPeerInterface * peer, const char * id, const char * data
 		ret = peer->RPC(id, data, bitLength, priority, reliability, static_cast<char>(orderingChannel),
 				UNASSIGNED_SYSTEM_ADDRESS, broadcast,
 #ifdef __GET_TIME_64BIT
-				includedTimestamp
+				(RakNetTime*)includedTimestamp
 #else
 				&timestamp
 #endif
@@ -606,6 +606,14 @@ void bmx_RakPeer_PingHost(RakPeerInterface * peer, BBString * host, int remotePo
 	char * p = bbStringToCString(host);
 	peer->Ping(p, remotePort, onlyReplyOnAcceptingConnections, static_cast<unsigned>(connectionSocketIndex));
 	bbMemFree(p);
+}
+
+void bmx_RakPeer_SetNetworkIDManager(RakPeerInterface * peer, NetworkIDManager * manager) {
+	peer->SetNetworkIDManager(manager);
+}
+
+NetworkIDManager * bmx_RakPeer_GetNetworkIDManager(RakPeerInterface * peer) {
+	return peer->GetNetworkIDManager();
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1557,8 +1565,12 @@ int bmx_RakNetStatistics_internalOutputQueueSize(RakNetStatistics * stats) {
 	return static_cast<int>(stats->internalOutputQueueSize);
 }
 
-double bmx_RakNetStatistics_bitsPerSecond(RakNetStatistics * stats) {
-	return stats->bitsPerSecond;
+double bmx_RakNetStatistics_bitsPerSecondSent(RakNetStatistics * stats) {
+	return stats->bitsPerSecondSent;
+}
+
+double bmx_RakNetStatistics_bitsPerSecondReceived(RakNetStatistics * stats) {
+	return stats->bitsPerSecondReceived;
 }
 
 void bmx_RakNetStatistics_connectionStartTime(RakNetStatistics * stats, BBInt64 * v) {
@@ -1728,6 +1740,32 @@ void bmx_ReadyEvent_delete(ReadyEvent * readyEvent) {
 
 bool bmx_ReadyEvent_ForceCompletion(ReadyEvent * readyEvent, int eventId) {
 	return readyEvent->ForceCompletion(eventId);
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+NetworkIDManager * bmx_NetworkIDManager_create() {
+	return new NetworkIDManager;
+}
+
+void bmk_NetworkIDManager_SetIsNetworkIDAuthority(NetworkIDManager * manager, int isAuthority) {
+	manager->SetIsNetworkIDAuthority(static_cast<bool>(isAuthority));
+}
+
+int bmk_NetworkIDManager_IsNetworkIDAuthority(NetworkIDManager * manager) {
+	return static_cast<int>(manager->IsNetworkIDAuthority());
+}
+
+void bmk_NetworkIDManager_SetGuid(NetworkIDManager * manager, RakNetGUID * guid) {
+	manager->SetGuid(*guid);
+}
+
+int bmk_NetworkIDManager_GetSharedNetworkID(NetworkIDManager * manager) {
+	return static_cast<int>(manager->GetSharedNetworkID());
+}
+
+void bmk_NetworkIDManager_SetSharedNetworkID(NetworkIDManager * manager, int id) {
+	manager->SetSharedNetworkID(static_cast<unsigned short>(id));
 }
 
 

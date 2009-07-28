@@ -1,4 +1,4 @@
-/// \file
+/// \file BitStream_NoTemplate.h
 /// \brief This class allows you to write and read native types as a string of bits.  BitStream is used extensively throughout RakNet and is designed to be used by users as well.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -43,14 +43,14 @@ namespace RakNet
 		/// Default Constructor
 		BitStream();
 
-		/// Create the bitstream, with some number of bytes to immediately allocate.
-		/// There is no benefit to calling this, unless you know exactly how many bytes you need and it is greater than BITSTREAM_STACK_ALLOCATION_SIZE.
+		/// \brief Create the bitstream, with some number of bytes to immediately allocate.
+		/// \details There is no benefit to calling this, unless you know exactly how many bytes you need and it is greater than BITSTREAM_STACK_ALLOCATION_SIZE.
 		/// In that case all it does is save you one or more realloc calls.
 		/// \param[in] initialBytesToAllocate the number of bytes to pre-allocate.
 		BitStream( int initialBytesToAllocate );
 
-		/// Initialize the BitStream, immediately setting the data it contains to a predefined pointer.
-		/// Set \a _copyData to true if you want to make an internal copy of the data you are passing. Set it to false to just save a pointer to the data.
+		/// \brief Initialize the BitStream, immediately setting the data it contains to a predefined pointer.
+		/// \details Set \a _copyData to true if you want to make an internal copy of the data you are passing. Set it to false to just save a pointer to the data.
 		/// You shouldn't call Write functions with \a _copyData as false, as this will write to unallocated memory
 		/// 99% of the time you will use this function to cast Packet::data to a bitstream for reading, in which case you should write something as follows:
 		/// \code
@@ -61,13 +61,13 @@ namespace RakNet
 		/// \param[in] _copyData true or false to make a copy of \a _data or not.
 		BitStream( unsigned char* _data, unsigned int lengthInBytes, bool _copyData );
 
-		/// Destructor
+		// Destructor
 		~BitStream();
 
 		/// Resets the bitstream for reuse.
 		void Reset( void );
 
-		/// Bidirectional serialize/deserialize any integral type to/from a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
+		/// \brief Bidirectional serialize/deserialize any integral type to/from a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] var The value to write
 		/// \return true if \a writeToBitstream is true.  true if \a writeToBitstream is false and the read was successful.  false if \a writeToBitstream is false and the read was not successful.
@@ -86,7 +86,7 @@ namespace RakNet
 		bool Serialize(bool writeToBitstream, double &var){if (writeToBitstream)Write(var);else return Read(var); return true;}
 		bool Serialize(bool writeToBitstream, long double &var){if (writeToBitstream)Write(var);else return Read(var); return true;}
 
-		/// Bidirectional serialize/deserialize any integral type to/from a bitstream.  If the current value is different from the last value
+		/// \brief Bidirectional serialize/deserialize any integral type to/from a bitstream.  If the current value is different from the last value
 		/// the current value will be written.  Otherwise, a single bit will be written
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] currentValue The current value to write
@@ -106,7 +106,7 @@ namespace RakNet
 		bool SerializeDelta(bool writeToBitstream, double &currentValue, double lastValue){if (writeToBitstream) WriteDelta(currentValue, lastValue); else return ReadDelta(currentValue);return true;}
 		bool SerializeDelta(bool writeToBitstream, long double &currentValue, long double lastValue){if (writeToBitstream) WriteDelta(currentValue, lastValue); else return ReadDelta(currentValue);return true;}
 
-		/// Bidirectional version of SerializeDelta when you don't know what the last value is, or there is no last value.
+		/// \brief Bidirectional version of SerializeDelta when you don't know what the last value is, or there is no last value.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] currentValue The current value to write
 		/// \return true if \a writeToBitstream is true.  true if \a writeToBitstream is false and the read was successful.  false if \a writeToBitstream is false and the read was not successful.
@@ -124,8 +124,8 @@ namespace RakNet
 		bool SerializeDelta(bool writeToBitstream, double &currentValue){if (writeToBitstream) WriteDelta(currentValue); else return ReadDelta(currentValue);return true;}
 		bool SerializeDelta(bool writeToBitstream, long double &currentValue){if (writeToBitstream) WriteDelta(currentValue); else return ReadDelta(currentValue);return true;}
 
-		/// Bidirectional serialize/deserialize any integral type to/from a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
-		/// If you are not using __BITSTREAM_NATIVE_END the opposite is true for types larger than 1 byte
+		/// \brief Bidirectional serialize/deserialize any integral type to/from a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
+		/// \details If you are not using __BITSTREAM_NATIVE_END the opposite is true for types larger than 1 byte
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
 		/// For non-floating point, this is lossless, but only has benefit if you use less than half the range of the type
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
@@ -146,8 +146,9 @@ namespace RakNet
 		bool SerializeCompressed(bool writeToBitstream, double &var){if (writeToBitstream)WriteCompressed(var);else return ReadCompressed(var); return true;}
 		bool SerializeCompressed(bool writeToBitstream, long double &var){if (writeToBitstream)WriteCompressed(var);else return ReadCompressed(var); return true;}
 
-		/// Bidirectional serialize/deserialize any integral type to/from a bitstream.  If the current value is different from the last value
-		/// the current value will be written.  Otherwise, a single bit will be written
+		/// \brief Bidirectional serialize/deserialize any integral type to/from a bitstream.  
+		/// \details If the current value is different from the last value the current value will be written.  
+		/// Otherwise, a single bit will be written
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
 		/// For non-floating point, this is lossless, but only has benefit if you use less than half the range of the type
 		/// If you are not using __BITSTREAM_NATIVE_END the opposite is true for types larger than 1 byte
@@ -185,14 +186,15 @@ namespace RakNet
 		bool SerializeCompressedDelta(bool writeToBitstream, double &var){if (writeToBitstream)WriteCompressedDelta(var);else return ReadCompressedDelta(var); return true;}
 		bool SerializeCompressedDelta(bool writeToBitstream, long double &var){if (writeToBitstream)WriteCompressedDelta(var);else return ReadCompressedDelta(var); return true;}
 
-		/// Bidirectional serialize/deserialize an array or casted stream or raw data.  This does NOT do endian swapping.
+		/// \brief Bidirectional serialize/deserialize an array or casted stream or raw data.  This does NOT do endian swapping.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] input a byte buffer
 		/// \param[in] numberOfBytes the size of \a input in bytes
 		/// \return true if \a writeToBitstream is true.  true if \a writeToBitstream is false and the read was successful.  false if \a writeToBitstream is false and the read was not successful.
 		bool Serialize(bool writeToBitstream,  char* input, const int numberOfBytes );
 
-		/// Bidirectional serialize/deserialize a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  Will further compress y or z axis aligned vectors.
+		/// \brief Bidirectional serialize/deserialize a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
+		/// \details Will further compress y or z axis aligned vectors.
 		/// Accurate to 1/32767.5.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] x x
@@ -202,8 +204,8 @@ namespace RakNet
 		bool SerializeNormVector(bool writeToBitstream,  float &x, float &y, float z ){if (writeToBitstream) WriteNormVector(x,y,z); else return ReadNormVector(x,y,z); return true;}
 		bool SerializeNormVector(bool writeToBitstream,  double &x, double &y, double &z ){if (writeToBitstream) WriteNormVector(x,y,z); else return ReadNormVector(x,y,z); return true;}
 
-		/// Bidirectional serialize/deserialize a vector, using 10 bytes instead of 12.
-		/// Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
+		/// \brief Bidirectional serialize/deserialize a vector, using 10 bytes instead of 12.
+		/// \details Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] x x
 		/// \param[in] y y
@@ -212,7 +214,7 @@ namespace RakNet
 		bool SerializeVector(bool writeToBitstream,  float &x, float &y, float &z ){if (writeToBitstream) WriteVector(x,y,z); else	return ReadVector(x,y,z); return true;}
 		bool SerializeVector(bool writeToBitstream,  double &x, double &y, double &z ){if (writeToBitstream) WriteVector(x,y,z); else	return ReadVector(x,y,z); return true;}
 
-		/// Bidirectional serialize/deserialize a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.  Slightly lossy.
+		/// \brief Bidirectional serialize/deserialize a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.  Slightly lossy.
 		/// \param[in] writeToBitstream true to write from your data to this bitstream.  False to read from this bitstream and write to your data
 		/// \param[in] w w
 		/// \param[in] x x
@@ -222,7 +224,7 @@ namespace RakNet
 		bool SerializeNormQuat(bool writeToBitstream,  float &w, float &x, float &y, float &z){if (writeToBitstream) WriteNormQuat(w,x,y,z); else return ReadNormQuat(w,x,y,z); return true;}
 		bool SerializeNormQuat(bool writeToBitstream,  double &w, double &x, double &y, double &z){if (writeToBitstream) WriteNormQuat(w,x,y,z); else return ReadNormQuat(w,x,y,z); return true;}
 
-		/// Bidirectional serialize/deserialize an orthogonal matrix by creating a quaternion, and writing 3 components of the quaternion in 2 bytes each
+		/// \brief Bidirectional serialize/deserialize an orthogonal matrix by creating a quaternion, and writing 3 components of the quaternion in 2 bytes each
 		/// for 6 bytes instead of 36
 		/// Lossy, although the result is renormalized
 		bool SerializeOrthMatrix(
@@ -236,8 +238,8 @@ namespace RakNet
 		double &m10, double &m11, double &m12,
 		double &m20, double &m21, double &m22 ){if (writeToBitstream) WriteOrthMatrix(m00,m01,m02,m10,m11,m12,m20,m21,m22); else return ReadOrthMatrix(m00,m01,m02,m10,m11,m12,m20,m21,m22); return true;}
 
-		/// Bidirectional serialize/deserialize numberToSerialize bits to/from the input. Right aligned
-		/// data means in the case of a partial byte, the bits are aligned
+		/// \brief Bidirectional serialize/deserialize numberToSerialize bits to/from the input. 
+		/// \details Right aligned data means in the case of a partial byte, the bits are aligned
 		/// from the right (bit 0) rather than the left (as in the normal
 		/// internal representation) You would set this to true when
 		/// writing user data, and false when copying bitstream data, such
@@ -269,7 +271,8 @@ namespace RakNet
 		void Write(SystemAddress var){WriteBits( ( unsigned char* ) & var.binaryAddress, sizeof(var.binaryAddress) * 8, true ); Write(var.port);}
 		void Write(NetworkID var){if (NetworkID::IsPeerToPeerMode()) Write(var.systemAddress); Write(var.localSystemAddress);}
 
-		/// Write any integral type to a bitstream.  If the current value is different from the last value
+		/// \brief Write any integral type to a bitstream.  
+		/// \details If the current value is different from the last value
 		/// the current value will be written.  Otherwise, a single bit will be written
 		/// \param[in] currentValue The current value to write
 		/// \param[in] lastValue The last value to compare against
@@ -312,7 +315,8 @@ namespace RakNet
 		void WriteDelta(SystemAddress var){Write(true); Write(var);}
 		void WriteDelta(NetworkID var){Write(true); Write(var);}
 
-		/// Write any integral type to a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
+		/// \brief Write any integral type to a bitstream.  
+		/// \details Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
 		/// If you are not using __BITSTREAM_NATIVE_END the opposite is true for types larger than 1 byte
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
 		/// For non-floating point, this is lossless, but only has benefit if you use less than half the range of the type
@@ -332,7 +336,8 @@ namespace RakNet
 		void WriteCompressed(double var) {RakAssert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
 		void WriteCompressed(long double var) {RakAssert(var > -1.01 && var < 1.01); if (var < -1.0) var=-1.0; if (var > 1.0) var=1.0; Write((unsigned long)((var+1.0)*2147483648.0));}
 
-		/// Write any integral type to a bitstream.  If the current value is different from the last value
+		/// \brief Write any integral type to a bitstream.  
+		/// \details If the current value is different from the last value
 		/// the current value will be written.  Otherwise, a single bit will be written
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
 		/// For non-floating point, this is lossless, but only has benefit if you use less than half the range of the type
@@ -374,7 +379,8 @@ namespace RakNet
 		void WriteCompressedDelta(double var) { Write(true);	WriteCompressed(var); }
 		void WriteCompressedDelta(long double var) { Write(true);	WriteCompressed(var); }
 
-		/// Read any integral type from a bitstream.  Define __BITSTREAM_NATIVE_END if you need endian swapping.
+		/// \brief Read any integral type from a bitstream.  
+		/// \details Define __BITSTREAM_NATIVE_END if you need endian swapping.
 		/// \param[in] var The value to read
 		bool Read(bool &var){if ( readOffset + 1 > numberOfBitsUsed ) return false;
 		if ( data[ readOffset >> 3 ] & ( 0x80 >> ( readOffset & 7 ) ) )
@@ -402,7 +408,8 @@ namespace RakNet
 		bool Read(SystemAddress &var){ReadBits( ( unsigned char* ) & var.binaryAddress, sizeof(var.binaryAddress) * 8, true ); return Read(var.port);}
 		bool Read(NetworkID &var){if (NetworkID::IsPeerToPeerMode()) Read(var.systemAddress); return Read(var.localSystemAddress);}
 
-		/// Read any integral type from a bitstream.  If the written value differed from the value compared against in the write function,
+		/// \brief Read any integral type from a bitstream.  
+		/// \details If the written value differed from the value compared against in the write function,
 		/// var will be updated.  Otherwise it will retain the current value.
 		/// ReadDelta is only valid from a previous call to WriteDelta
 		/// \param[in] var The value to read
@@ -424,7 +431,8 @@ namespace RakNet
 		bool ReadDelta(NetworkID &var){bool dataWritten; bool success; success=Read(dataWritten); if (dataWritten) success=Read(var); return success;}
 
 
-		/// Read any integral type from a bitstream.  Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
+		/// \brief Read any integral type from a bitstream.  
+		/// \details Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
 		/// For non-floating point, this is lossless, but only has benefit if you use less than half the range of the type
 		/// If you are not using __BITSTREAM_NATIVE_END the opposite is true for types larger than 1 byte
@@ -446,7 +454,8 @@ namespace RakNet
 		bool ReadCompressed(SystemAddress &var) {return Read(var);}
 		bool ReadCompressed(NetworkID &var) {return Read(var);}
 
-		/// Read any integral type from a bitstream.  If the written value differed from the value compared against in the write function,
+		/// \brief Read any integral type from a bitstream.  
+		/// \details If the written value differed from the value compared against in the write function,
 		/// var will be updated.  Otherwise it will retain the current value.
 		/// the current value will be updated.
 		/// For floating point, this is lossy, using 2 bytes for a float and 4 for a double.  The range must be between -1 and +1.
@@ -469,18 +478,19 @@ namespace RakNet
 		bool ReadCompressedDelta(double &var){bool dataWritten; bool success; success=Read(dataWritten); if (dataWritten) success=ReadCompressed(var); return success;}
 		bool ReadCompressedDelta(long double &var){bool dataWritten; bool success; success=Read(dataWritten); if (dataWritten) success=ReadCompressed(var); return success;}
 
-		/// Write an array or casted stream or raw data.  This does NOT do endian swapping.
+		/// \brief Write an array or casted stream or raw data.  This does NOT do endian swapping.
 		/// \param[in] input a byte buffer
 		/// \param[in] numberOfBytes the size of \a input in bytes
 		void Write( const char* input, const int numberOfBytes );
 
-		/// Write one bitstream to another
+		/// \brief Write one bitstream to another
 		/// \param[in] numberOfBits bits to write
 		/// \param bitStream the bitstream to copy from
 		void Write( BitStream *bitStream, int numberOfBits );
 		void Write( BitStream *bitStream );
 
-		/// Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  Will further compress y or z axis aligned vectors.
+		/// \brief Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
+		/// \details Will further compress y or z axis aligned vectors.
 		/// Accurate to 1/32767.5.
 		/// \param[in] x x
 		/// \param[in] y y
@@ -488,15 +498,15 @@ namespace RakNet
 		void WriteNormVector( float x, float y, float z );
 		void WriteNormVector( double x, double y, double z ) {WriteNormVector((float)x,(float)y,(float)z);}
 
-		/// Write a vector, using 10 bytes instead of 12.
-		/// Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
+		/// \brief Write a vector, using 10 bytes instead of 12.
+		/// \details Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
 		/// \param[in] x x
 		/// \param[in] y y
 		/// \param[in] z z
 		void WriteVector( float x, float y, float z );
 		void WriteVector( double x, double y, double z ) {WriteVector((float)x, (float)y, (float)z);}
 
-		/// Write a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.  Slightly lossy.
+		/// \brief Write a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.  Slightly lossy.
 		/// \param[in] w w
 		/// \param[in] x x
 		/// \param[in] y y
@@ -504,7 +514,7 @@ namespace RakNet
 		void WriteNormQuat( float w, float x, float y, float z);
 		void WriteNormQuat( double w, double x, double y, double z) {WriteNormQuat((float)w, (float) x, (float) y, (float) z);}
 
-		/// Write an orthogonal matrix by creating a quaternion, and writing 3 components of the quaternion in 2 bytes each
+		/// \brief Write an orthogonal matrix by creating a quaternion, and writing 3 components of the quaternion in 2 bytes each
 		/// for 6 bytes instead of 36
 		/// Lossy, although the result is renormalized
 		void WriteOrthMatrix(
@@ -522,14 +532,15 @@ namespace RakNet
 			double m10, double m11, double m12,
 			double m20, double m21, double m22 );
 
-		/// Read an array or casted stream of byte. The array
-		/// is raw data. There is no automatic endian conversion with this function
+		/// \brief Read an array or casted stream of byte. 
+		/// \details The array is raw data. There is no automatic endian conversion with this function
 		/// \param[in] output The result byte array. It should be larger than @em numberOfBytes.
 		/// \param[in] numberOfBytes The number of byte to read
 		/// \return true on success false if there is some missing bytes.
 		bool Read( char* output, const int numberOfBytes );
 
-		/// Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  Will further compress y or z axis aligned vectors.
+		/// \brief Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
+		/// \details Will further compress y or z axis aligned vectors.
 		/// Accurate to 1/32767.5.
 		/// \param[in] x x
 		/// \param[in] y y
@@ -537,15 +548,15 @@ namespace RakNet
 		bool ReadNormVector( float &x, float &y, float &z );
 		bool ReadNormVector( double &x, double &y, double &z ) {float fx, fy, fz; bool b = ReadNormVector(fx, fy, fz); x=fx; y=fy; z=fz; return b;}
 
-		/// Read 3 floats or doubles, using 10 bytes, where those float or doubles comprise a vector
-		/// Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
+		/// \brief Read 3 floats or doubles, using 10 bytes, where those float or doubles comprise a vector.
+		/// \details Loses accuracy to about 3/10ths and only saves 2 bytes, so only use if accuracy is not important.
 		/// \param[in] x x
 		/// \param[in] y y
 		/// \param[in] z z
 		bool ReadVector( float x, float y, float z );
 		bool ReadVector( double &x, double &y, double &z ) {return ReadVector((float)x, (float)y, (float)z);}
 
-		/// Read a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.
+		/// \brief Read a normalized quaternion in 6 bytes + 4 bits instead of 16 bytes.
 		/// \param[in] w w
 		/// \param[in] x x
 		/// \param[in] y y
@@ -553,9 +564,8 @@ namespace RakNet
 		bool ReadNormQuat( float &w, float &x, float &y, float &z){double dw, dx, dy, dz; bool b=ReadNormQuat(dw, dx, dy, dz); w=(float)dw; x=(float)dx; y=(float)dy; z=(float)dz; return b;}
 		bool ReadNormQuat( double &w, double &x, double &y, double &z);
 
-		/// Read an orthogonal matrix from a quaternion, reading 3 components of the quaternion in 2 bytes each and extrapolating the 4th.
-		/// for 6 bytes instead of 36
-		/// Lossy, although the result is renormalized
+		/// \brief Read an orthogonal matrix from a quaternion, reading 3 components of the quaternion in 2 bytes each and extrapolating the 4th, for 6 bytes instead of 36.
+		/// \details Lossy, although the result is renormalized
 		bool ReadOrthMatrix(
 			float &m00, float &m01, float &m02,
 			float &m10, float &m11, float &m12,
@@ -565,13 +575,13 @@ namespace RakNet
 			double &m10, double &m11, double &m12,
 			double &m20, double &m21, double &m22 );
 
-		///Sets the read pointer back to the beginning of your data.
+		/// Sets the read pointer back to the beginning of your data.
 		void ResetReadPointer( void );
 
 		/// Sets the write pointer back to the beginning of your data.
 		void ResetWritePointer( void );
 
-		///This is good to call when you are done with the stream to make
+		/// This is good to call when you are done with the stream to make
 		/// sure you didn't leave any data left over void
 		void AssertStreamEmpty( void );
 
@@ -586,7 +596,7 @@ namespace RakNet
 		/// \param[in] numberOfBits The number of bytes to ignore
 		void IgnoreBytes( const int numberOfBytes );
 
-		///Move the write pointer to a position on the array.
+		/// \brief Move the write pointer to a position on the array.
 		/// \param[in] offset the offset from the start of the array.
 		/// \attention
 		/// Dangerous if you don't know what you are doing!
@@ -597,21 +607,22 @@ namespace RakNet
 		inline int GetNumberOfBitsUsed( void ) const {return GetWriteOffset();}
 		inline int GetWriteOffset( void ) const {return numberOfBitsUsed;}
 
-		///Returns the length in bytes of the stream
+		/// Returns the length in bytes of the stream
 		inline int GetNumberOfBytesUsed( void ) const {return BITS_TO_BYTES( numberOfBitsUsed );}
 
-		///Returns the number of bits into the stream that we have read
+		/// Returns the number of bits into the stream that we have read
 		inline int GetReadOffset( void ) const {return readOffset;}
 
 		// Sets the read bit index
 		inline void SetReadOffset( int newReadOffset ) {readOffset=newReadOffset;}
 
-		///Returns the number of bits left in the stream that haven't been read
+		/// Returns the number of bits left in the stream that haven't been read
 		inline int GetNumberOfUnreadBits( void ) const {return numberOfBitsUsed - readOffset;}
 
-		/// Makes a copy of the internal data for you \a _data will point to
-		/// the stream. Returns the length in bits of the stream. Partial
-		/// bytes are left aligned
+		/// \brief Makes a copy of the internal data for you \a _data will point to
+		/// the stream. 
+		/// \details Returns the length in bits of the stream. Partial
+		/// bytes are left aligned.
 		/// \param[out] _data The allocated copy of GetData()
 		int CopyData( unsigned char** _data ) const;
 
@@ -619,38 +630,39 @@ namespace RakNet
 		/// \internal
 		void SetData( unsigned char *input );
 
-		/// Gets the data that BitStream is writing to / reading from
-		/// Partial bytes are left aligned.
+		/// \brief Gets the data that BitStream is writing to / reading from.
+		/// \details Partial bytes are left aligned.
 		/// \return A pointer to the internal state
 		inline unsigned char* GetData( void ) const {return data;}
 
-		/// Write numberToWrite bits from the input source Right aligned
-		/// data means in the case of a partial byte, the bits are aligned
-		/// from the right (bit 0) rather than the left (as in the normal
-		/// internal representation) You would set this to true when
+		/// \brief Write numberToWrite bits from the input source.
+		/// \details Right aligned data means in the case of a partial byte, 
+		/// the bits are aligned from the right (bit 0) rather than the left (as in the normal
+		/// internal representation). You would set this to true when
 		/// writing user data, and false when copying bitstream data, such
-		/// as writing one bitstream to another
+		/// as writing one bitstream to another.
 		/// \param[in] input The data
 		/// \param[in] numberOfBitsToWrite The number of bits to write
 		/// \param[in] rightAlignedBits if true data will be right aligned
 		void WriteBits( const unsigned char* input,	int numberOfBitsToWrite, const bool rightAlignedBits = true );
 
-		/// Align the bitstream to the byte boundary and then write the
-		/// specified number of bits.  This is faster than WriteBits but
+		/// \brief Align the bitstream to the byte boundary and then write the
+		/// specified number of bits.  
+		/// \details This is faster than WriteBits but
 		/// wastes the bits to do the alignment and requires you to call
 		/// ReadAlignedBits at the corresponding read position.
 		/// \param[in] input The data
 		/// \param[in] numberOfBytesToWrite The size of input.
 		void WriteAlignedBytes( void *input, const int numberOfBytesToWrite );
 
-		/// Aligns the bitstream, writes inputLength, and writes input. Won't write beyond maxBytesToWrite
+		/// \brief Aligns the bitstream, writes inputLength, and writes input. Won't write beyond maxBytesToWrite
 		/// \param[in] input The data
 		/// \param[in] inputLength The size of input.
 		/// \param[in] maxBytesToWrite Max bytes to write
 		void WriteAlignedBytesSafe( void *input, const int inputLength, const int maxBytesToWrite );
 
-		/// Read bits, starting at the next aligned bits. Note that the
-		/// modulus 8 starting offset of the sequence must be the same as
+		/// \brief Read bits, starting at the next aligned bits. 
+		/// \details Note that the modulus 8 starting offset of the sequence must be the same as
 		/// was used with WriteBits. This will be a problem with packet
 		/// coalescence unless you byte align the coalesced packets.
 		/// \param[in] output The byte array larger than @em numberOfBytesToRead
@@ -658,31 +670,31 @@ namespace RakNet
 		/// \return true if there is enough byte.
 		bool ReadAlignedBytes( void *output,	const int numberOfBytesToRead );
 
-		/// Reads what was written by WriteAlignedBytesSafe
+		/// Reads what was written by WriteAlignedBytesSafe.
 		/// \param[in] input The data
 		/// \param[in] maxBytesToRead Maximum number of bytes to read
 		bool ReadAlignedBytesSafe( void *input, int &inputLength, const int maxBytesToRead );
 
-		/// Same as ReadAlignedBytesSafe() but allocates the memory for you using new, rather than assuming it is safe to write to
+		/// Same as ReadAlignedBytesSafe() but allocates the memory for you using new, rather than assuming it is safe to write to.
 		/// \param[in] input input will be deleted if it is not a pointer to 0
 		bool ReadAlignedBytesSafeAlloc( char **input, int &inputLength, const int maxBytesToRead );
 
-		/// Align the next write and/or read to a byte boundary.  This can
-		/// be used to 'waste' bits to byte align for efficiency reasons It
-		/// can also be used to force coalesced bitstreams to start on byte
+		/// \brief Align the next write and/or read to a byte boundary.  
+		/// \details This can be used to 'waste' bits to byte align for efficiency reasons.
+		/// It can also be used to force coalesced bitstreams to start on byte
 		/// boundaries so so WriteAlignedBits and ReadAlignedBits both
 		/// calculate the same offset when aligning.
 		void AlignWriteToByteBoundary( void );
 
-		/// Align the next write and/or read to a byte boundary.  This can
-		/// be used to 'waste' bits to byte align for efficiency reasons It
+		/// \brief Align the next write and/or read to a byte boundary.
+		/// \details This can be used to 'waste' bits to byte align for efficiency reasons It
 		/// can also be used to force coalesced bitstreams to start on byte
 		/// boundaries so so WriteAlignedBits and ReadAlignedBits both
 		/// calculate the same offset when aligning.
 		void AlignReadToByteBoundary( void );
 
-		/// Read \a numberOfBitsToRead bits to the output source
-		/// alignBitsToRight should be set to true to convert internal
+		/// \brief Read \a numberOfBitsToRead bits to the output source.
+		/// \details alignBitsToRight should be set to true to convert internal
 		/// bitstream data to userdata. It should be false if you used
 		/// WriteBits with rightAlignedBits false
 		/// \param[in] output The resulting bits array

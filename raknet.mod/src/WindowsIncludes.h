@@ -1,4 +1,4 @@
-#if defined (_WIN32) && !defined(__X360__)
+#if defined (_WIN32) && !defined(__X360__) && !defined(_XBOX)
 #include <WinSock2.h>
 #include <windows.h>
 

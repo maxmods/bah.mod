@@ -39,7 +39,7 @@ typedef unsigned int MessageNumberType;
 /// were to wrap, the newly wrapped values would no longer be in use.  Warning: Too large of a value wastes bandwidth!
 typedef MessageNumberType OrderingIndexType;
 
-typedef RakNetTime RemoteSystemTimeType;
+typedef RakNetTimeUS RemoteSystemTimeType;
 
 /// Holds a user message, and related information
 /// Don't use a constructor or destructor, due to the memory pool I am using

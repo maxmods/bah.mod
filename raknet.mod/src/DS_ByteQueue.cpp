@@ -102,6 +102,13 @@ void ByteQueue::IncrementReadOffset(unsigned length)
 {
 	readOffset=(readOffset+length) % lengthAllocated;
 }
+void ByteQueue::DecrementReadOffset(unsigned length)
+{
+	if (length>readOffset)
+		readOffset=lengthAllocated-(length-readOffset);
+	else
+		readOffset-=length;
+}
 void ByteQueue::Print(void)
 {
 	unsigned i;

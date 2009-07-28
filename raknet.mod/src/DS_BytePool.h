@@ -1,3 +1,9 @@
+/// \file DS_BytePool.h
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
 #ifndef __BYTE_POOL_H
 #define __BYTE_POOL_H
 

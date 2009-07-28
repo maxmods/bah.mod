@@ -1,4 +1,4 @@
-/// \file
+/// \file FullyConnectedMesh.h
 /// \brief Fully connected mesh plugin.  This will connect RakPeer to all connecting peers, and all peers the connecting peer knows about.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -14,9 +14,12 @@ class RakPeerInterface;
 #include "RakMemoryOverride.h"
 
 /// \defgroup FULLY_CONNECTED_MESH_GROUP FullyConnectedMesh
+/// \brief Depreciated. Connect RakNet to other systems automatically.
+/// \details 
 /// \ingroup PLUGINS_GROUP
 
 /// Fully connected mesh plugin.  This will connect RakPeer to all connecting peers, and all peers the connecting peer knows about.
+/// \deprecated Use FullyConnectedMesh2
 /// \pre You must also install the ConnectionGraph plugin.  If you want a password, set it there.
 /// \ingroup FULLY_CONNECTED_MESH_GROUP
 class RAK_DLL_EXPORT FullyConnectedMesh : public PluginInterface2

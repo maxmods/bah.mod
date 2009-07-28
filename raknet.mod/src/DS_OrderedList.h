@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Quicksort ordered list.
+/// \file DS_OrderedList.h
+/// \internal
+/// \brief Quicksort ordered list.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] ADT that can represent an unordered list, ordered list, stack, or queue with a common interface
+/// \file DS_Multilist.h
+/// \internal
+/// \brief ADT that can represent an unordered list, ordered list, stack, or queue with a common interface
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -51,7 +52,7 @@ namespace DataStructures
 	template <class templateType>
 	void DeletePtr(templateType &ptr) {delete ptr;}
 
-	/// The following is invalid
+	/// The following is invalid.
 	/// bool operator<( const MyClass *myClass, const int &inputKey ) {return myClass->value < inputKey;}
 	/// At least one type has to be a reference to a class
 	/// MLKeyRef is a helper class to turn a native type into a class, so you can compare that native type against a pointer to a different class
@@ -81,7 +82,7 @@ namespace DataStructures
 
 	typedef uint32_t DefaultIndexType;
 
-	/// The multilist, representing an abstract data type that generally holds lists
+	/// \brief The multilist, representing an abstract data type that generally holds lists.
 	/// \param[in] _MultilistType What type of list this is, \sa MultilistType
 	/// \param[in] _DataType What type of data this list holds.
 	/// \param[in] _KeyType If a function takes a key to sort on, what type of key this is. The comparison operator between _DataType and _KeyType must be defined
@@ -101,95 +102,103 @@ namespace DataStructures
 		void Push(const _DataType &d, const char *file=__FILE__, unsigned int line=__LINE__ );
 		void Push(const _DataType &d, const _KeyType &key, const char *file=__FILE__, unsigned int line=__LINE__ );
 
-		/// Gets or removes and gets an element from the list, according to the same rules as Push()
-		/// Ordered list is LIFO for the purposes of Pop and Peek
+		/// \brief Gets or removes and gets an element from the list, according to the same rules as Push().
+		/// Ordered list is LIFO for the purposes of Pop and Peek.
 		_DataType &Pop(const char *file=__FILE__, unsigned int line=__LINE__);
 		_DataType &Peek(void) const;
 
-		/// Same as Push(), except FIFO and LIFO are reversed
-		/// Ordered list still inserts in order
+		/// \brief Same as Push(), except FIFO and LIFO are reversed.
+		/// Ordered list still inserts in order.
 		void PushOpposite(const _DataType &d, const char *file=__FILE__, unsigned int line=__LINE__ );
 		void PushOpposite(const _DataType &d, const _KeyType &key, const char *file=__FILE__, unsigned int line=__LINE__ );
 
-		/// Same as Pop() and Peek(), except FIFO and LIFO are reversed
+		/// \brief Same as Pop() and Peek(), except FIFO and LIFO are reversed.
 		_DataType &PopOpposite(const char *file=__FILE__, unsigned int line=__LINE__);
 		_DataType &PeekOpposite(void) const;
 
-		// Stack,Queue: Inserts at index indicated, elements are shifted. Ordered list: Inserts, position is ignored
+		/// \brief Stack,Queue: Inserts at index indicated, elements are shifted. 
+		/// Ordered list: Inserts, position is ignored
 		void InsertAtIndex(const _DataType &d, _IndexType index, const char *file=__FILE__, unsigned int line=__LINE__);	
 		
-		/// Unordered list, removes at index indicated, swaps last element with that element
+		/// \brief Unordered list, removes at index indicated, swaps last element with that element.
 		/// Otherwise, array is shifted left to overwrite removed element
-		/// Index[0] returns the same as Pop() for a queue. Same as PopOpposite() for the list and ordered list
+		/// \details Index[0] returns the same as Pop() for a queue. 
+		/// Same as PopOpposite() for the list and ordered list
 		void RemoveAtIndex(_IndexType position, const char *file=__FILE__, unsigned int line=__LINE__);
 
-		/// Find the index of \a key, and remove at that index.
+		/// \brief Find the index of \a key, and remove at that index.
 		bool RemoveAtKey(_KeyType key, bool assertIfDoesNotExist, const char *file=__FILE__, unsigned int line=__LINE__);
 
-		/// Finds the index of \a key. Return -1 if the key is not found.
+		/// \brief Finds the index of \a key. Return -1 if the key is not found.
 		_IndexType GetIndexOf(_KeyType key) const;
 
-		/// Returns where in the list we should insert the item, to preserve list order
+		/// \brief Returns where in the list we should insert the item, to preserve list order.
 		/// Returns -1 if the item is already in the list
 		_IndexType GetInsertionIndex(_KeyType key) const;
 
-		/// Finds the index of \a key. Return 0 if the key is not found. Useful if _DataType is always non-zero pointers.
+		/// \brief Finds the index of \a key. Return 0 if the key is not found. Useful if _DataType is always non-zero pointers.
 		_DataType GetPtr(_KeyType key) const;
 
-		/// Iterate over the list, calling the function pointer on each element.
+		/// \brief Iterate over the list, calling the function pointer on each element.
 		void ForEach(void (*func)(_DataType &item, const char *file, unsigned int line), const char *file, unsigned int line);
 		void ForEach(void (*func)(_DataType &item));	
 
-		/// Returns if the list is empty
+		/// \brief Returns if the list is empty.
 		bool IsEmpty(void) const;
 
-		/// Returns the number of elements used in the list
+		/// \brief Returns the number of elements used in the list.
 		_IndexType GetSize(void) const;
 
-		/// Empties the list. The list is not deallocated if it is small, unless \a deallocateSmallBlocks is true
+		/// \brief Empties the list. The list is not deallocated if it is small, 
+		/// unless \a deallocateSmallBlocks is true
 		void Clear( bool deallocateSmallBlocks=true, const char *file=__FILE__, unsigned int line=__LINE__ );
 
-		/// Empties the list, first calling RakNet::OP_Delete on all items.
-		/// The list is not deallocated if it is small, unless \a deallocateSmallBlocks is true
+		/// \brief Empties the list, first calling RakNet::OP_Delete on all items.
+		/// \details The list is not deallocated if it is small, unless \a deallocateSmallBlocks is true
 		void ClearPointers( bool deallocateSmallBlocks=true, const char *file=__FILE__, unsigned int line=__LINE__ );
 
-		/// Reverses the elements in the list, and flips the sort order returned by GetSortOrder() if IsSorted() returns true at the time the function is called
+		/// \brief Empty one item from the list, first calling RakNet::OP_Delete on that item.
+		void ClearPointer( _KeyType key, const char *file=__FILE__, unsigned int line=__LINE__ );
+
+		/// \brief Reverses the elements in the list, and flips the sort order 
+		/// returned by GetSortOrder() if IsSorted() returns true at the time the function is called
 		void ReverseList(void);
 
-		/// Reallocates the list to a larger size.
+		/// \brief Reallocates the list to a larger size.
 		/// If \a size is smaller than the value returned by GetSize(), the call does nothing.
 		void Reallocate(_IndexType size, const char *file=__FILE__, unsigned int line=__LINE__);
 
-		/// Sorts the list unless it is an ordered list, in which it does nothing as the list is assumed to already be sorted.
-		/// However, if \a force is true, it will also resort the ordered list, useful if the comparison operator between _KeyType and _DataType would now return different results
+		/// \brief Sorts the list unless it is an ordered list, in which it does nothing as the list is assumed to already be sorted.
+		/// \details However, if \a force is true, it will also resort the ordered list, useful if the comparison operator between _KeyType and _DataType would now return different results
 		/// Once the list is sorted, further operations to lookup by key will be log2(n) until the list is modified
 		void Sort(bool force);
 
-		/// Sets the list to be remembered as sorted.
-		/// Optimization if the source is sorted already
+		/// \brief Sets the list to be remembered as sorted.
+		/// \details Optimization if the source is sorted already
 		void TagSorted(void);
 
-		/// Defaults to ascending.
-		/// Used by Sort(), and by ML_ORDERED_LIST
+		/// \brief Defaults to ascending.
+		/// \details Used by Sort(), and by ML_ORDERED_LIST
 		void SetSortOrder(bool ascending);
 
-		/// Returns true if ascending
+		/// \brief Returns true if ascending.
 		bool GetSortOrder(void) const;
 
-		/// Returns true if the list is currently believed to be in a sorted state
-		/// Doesn't actually check for sortedness, just if Sort() was recently called, or MultilistType is ML_ORDERED_LIST
+		/// \brief Returns true if the list is currently believed to be in a sorted state.
+		/// \details Doesn't actually check for sortedness, just if Sort() 
+		/// was recently called, or MultilistType is ML_ORDERED_LIST
 		bool IsSorted(void) const;
 
 		/// Returns what type of list this is
 		MultilistType GetMultilistType(void) const;
 
-		/// Changes what type of list this is
+		/// \brief Changes what type of list this is.
 		/// \pre Template must be defined with ML_VARIABLE_DURING_RUNTIME for this to do anything
 		/// \param[in] mlType Any value of the enum MultilistType, except ML_VARIABLE_DURING_RUNTIME
 		void SetMultilistType(MultilistType newType);
 
-		/// Returns the intersection of two lists
-		/// Intersection is items common to both lists
+		/// \brief Returns the intersection of two lists.
+		/// Intersection is items common to both lists.
 		static void FindIntersection(
 			Multilist& source1,
 			Multilist& source2, 
@@ -370,6 +379,8 @@ namespace DataStructures
 					if ( MLKeyRef<_KeyType>(key) > operator[](dataSize-2) )
 						sortState=ML_UNSORTED;
 				}
+
+				sortState=ML_UNSORTED;
 			}
 		}
 	}
@@ -787,6 +798,18 @@ namespace DataStructures
 		for (i=0; i < dataSize; i++)
 			RakNet::OP_DELETE(operator[](i), file, line);
 		Clear(deallocateSmallBlocks, file, line);
+	}
+
+	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>
+	void Multilist<_MultilistType, _DataType, _KeyType, _IndexType>::ClearPointer( _KeyType key, const char *file, unsigned int line )
+	{
+		_IndexType i;
+		i = GetIndexOf(key);
+		if (i!=-1)
+		{
+			RakNet::OP_DELETE(operator[](i), file, line);
+			RemoveAtIndex(i);
+		}
 	}
 
 	template <const MultilistType _MultilistType, class _DataType, class _KeyType, class _IndexType>

@@ -1,11 +1,10 @@
-/// \file
+///
+/// \file AutopatcherRepositoryInterface.h
 /// \brief An interface used by AutopatcherServer to get the data necessary to run an autopatcher.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
-///
 /// Usage of RakNet is subject to the appropriate license agreement.
-
-
+///
 
 #ifndef __AUTOPATCHER_REPOSITORY_INTERFACE_H
 #define __AUTOPATCHER_REPOSITORY_INTERFACE_H
@@ -44,3 +43,4 @@ public:
 };
 
 #endif
+

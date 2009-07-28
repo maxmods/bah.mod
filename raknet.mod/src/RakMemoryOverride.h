@@ -59,6 +59,13 @@ extern RAK_DLL_EXPORT void * (*GetMalloc_Ex()) (size_t size, const char *file, u
 extern RAK_DLL_EXPORT void * (*GetRealloc_Ex()) (void *p, size_t size, const char *file, unsigned int line);
 extern RAK_DLL_EXPORT void (*GetFree_Ex()) (void *p, const char *file, unsigned int line);
 
+#ifdef _LINK_DL_MALLOC
+// Use DLMalloc within a fixed memory space
+// Debug profiling ChatExampleServer: 1116KB in debug for 1 connection. 1568KB for 2 connections. 1620K for 3 connections. 1656K for 4 connections.
+// BigPacketTest: 127,760KB
+extern RAK_DLL_EXPORT void UseDLMallocSpaces(void* base, size_t capacity);
+extern RAK_DLL_EXPORT void FreeDLMallocSpaces(void);
+#endif
 
 namespace RakNet
 {
@@ -76,6 +83,63 @@ namespace RakNet
 		return new Type;
 #endif
 	}
+
+	template <class Type, class P1>
+	RAK_DLL_EXPORT Type* OP_NEW_1(const char *file, unsigned int line, const P1 &p1)
+	{
+#if defined(_USE_RAK_MEMORY_OVERRIDE)
+		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
+		Type *t = new (buffer) Type(p1);
+		return t;
+#else
+		(void) file;
+		(void) line;
+		return new Type(p1);
+#endif
+	}
+
+	template <class Type, class P1, class P2>
+	RAK_DLL_EXPORT Type* OP_NEW_2(const char *file, unsigned int line, const P1 &p1, const P2 &p2)
+	{
+#if defined(_USE_RAK_MEMORY_OVERRIDE)
+		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
+		Type *t = new (buffer) Type(p1, p2);
+		return t;
+#else
+		(void) file;
+		(void) line;
+		return new Type(p1, p2);
+#endif
+	}
+
+	template <class Type, class P1, class P2, class P3>
+	RAK_DLL_EXPORT Type* OP_NEW_3(const char *file, unsigned int line, const P1 &p1, const P2 &p2, const P3 &p3)
+	{
+#if defined(_USE_RAK_MEMORY_OVERRIDE)
+		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
+		Type *t = new (buffer) Type(p1, p2, p3);
+		return t;
+#else
+		(void) file;
+		(void) line;
+		return new Type(p1, p2, p3);
+#endif
+	}
+
+	template <class Type, class P1, class P2, class P3, class P4>
+	RAK_DLL_EXPORT Type* OP_NEW_4(const char *file, unsigned int line, const P1 &p1, const P2 &p2, const P3 &p3, const P4 &p4)
+	{
+#if defined(_USE_RAK_MEMORY_OVERRIDE)
+		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
+		Type *t = new (buffer) Type(p1, p2, p3, p4);
+		return t;
+#else
+		(void) file;
+		(void) line;
+		return new Type(p1, p2, p3, p4);
+#endif
+	}
+
 
 	template <class Type>
 	RAK_DLL_EXPORT Type* OP_NEW_ARRAY(const int count, const char *file, unsigned int line)

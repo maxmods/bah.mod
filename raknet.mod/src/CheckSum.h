@@ -1,7 +1,6 @@
-/// \file
-/// \brief \b [Internal] Generates and validates checksums
 ///
-/// \note I didn't write this, but took it from http://www.flounder.com/checksum.htm
+/// \file CheckSum.cpp
+/// \brief [Internal] CheckSum implementation from http://www.flounder.com/checksum.htm
 ///
 
 #ifndef __CHECKSUM_H

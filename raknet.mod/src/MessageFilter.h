@@ -54,15 +54,17 @@ struct FilteredSystem
 int RAK_DLL_EXPORT FilteredSystemComp( const SystemAddress &key, const FilteredSystem &data );
 
 /// \defgroup MESSAGEFILTER_GROUP MessageFilter
+/// \brief Remote incoming packets from unauthorized systems
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \brief Assigns systems to FilterSets.  Each FilterSet limits what kinds of messages are allowed.
-/// The MessageFilter plugin is used for security where you limit what systems can send what kind of messages.
-/// You implicitly define FilterSets, and add allowed message IDs and RPC calls to these FilterSets.
-/// You then add systems to these filters, such that those systems are limited to sending what the filters allows.
-/// You can automatically assign systems to a filter.
-/// You can automatically kick and possibly ban users that stay in a filter too long, or send the wrong message.
-/// Each system is a member of either zero or one filters.
+/// \details The MessageFilter plugin is used for security where you limit what systems can send what kind of messages.<BR>
+/// You implicitly define FilterSets, and add allowed message IDs and RPC calls to these FilterSets.<BR>
+/// You then add systems to these filters, such that those systems are limited to sending what the filters allows.<BR>
+/// You can automatically assign systems to a filter.<BR>
+/// You can automatically kick and possibly ban users that stay in a filter too long, or send the wrong message.<BR>
+/// Each system is a member of either zero or one filters.<BR>
 /// Add this plugin before any plugin you wish to filter (most likely just add this plugin before any other).
 /// \ingroup MESSAGEFILTER_GROUP
 class RAK_DLL_EXPORT MessageFilter : public PluginInterface2

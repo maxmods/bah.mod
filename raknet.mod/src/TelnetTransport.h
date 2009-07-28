@@ -16,8 +16,8 @@ class TCPInterface;
 struct TelnetClient;
 
 /// \brief Use TelnetTransport to easily allow windows telnet to connect to your ConsoleServer
-/// To run Windows telnet, go to your start menu, click run, and in the edit box type "telnet <IP>" where <IP> is the ip address
-/// of your ConsoleServer (most likely the same IP as your game).
+/// \details To run Windows telnet, go to your start menu, click run, and in the edit box type "telnet <IP>" where <IP> is the ip address.<BR>
+/// of your ConsoleServer (most likely the same IP as your game).<BR>
 /// This implementation always echos commands.
 class RAK_DLL_EXPORT TelnetTransport : public TransportInterface
 {

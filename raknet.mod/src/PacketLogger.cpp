@@ -18,6 +18,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Itoa.h"
+#include <time.h>
+#include "SocketIncludes.h"
+#include "gettimeofday.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -67,8 +70,11 @@ unsigned int splitPacketId, unsigned int splitPacketIndex, unsigned int splitPac
 	char str1[64], str2[62];
 	local.ToString(true, str1);
 	remote.ToString(true, str2);
+	char localtime[128];
+	GetLocalTime(localtime);
 
-	sprintf(into, "%s%s,%s,%5u,%5u,%s,%u,%"PRINTF_TIME_MODIFIER"u,%s,%s,%i,%i,%i,%i,%s,"
+	sprintf(into, "%s,%s%s,%s,%5u,%5u,%s,%u,%"PRINTF_TIME_MODIFIER"u,%s,%s,%i,%i,%i,%i,%s,"
+					, localtime
 					, prefix
 					, dir
 					, type
@@ -89,30 +95,33 @@ unsigned int splitPacketId, unsigned int splitPacketIndex, unsigned int splitPac
 void PacketLogger::OnDirectSocketSend(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress)
 {
 	char str[256];
-	FormatLine(str, "Snd", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetInternalID(), remoteSystemAddress, (unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
+	FormatLine(str, "Snd", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetExternalID(remoteSystemAddress), remoteSystemAddress, (unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
 	AddToLog(str);
 }
 
 void PacketLogger::LogHeader(void)
 {
 	// Last 5 are splitpacket id, split packet index, split packet count, ordering index, suffix
-	AddToLog("S|R,Typ,Pckt#,Frm #,PktID,BitLn,Time     ,Local IP:Port   ,RemoteIP:Port,SPID,SPIN,SPCO,OI,Suffix,Miscellaneous\n");
+	AddToLog("Clock,S|R,Typ,Pckt#,Frm #,PktID,BitLn,Time     ,Local IP:Port   ,RemoteIP:Port,SPID,SPIN,SPCO,OI,Suffix,Miscellaneous\n");
 }
 void PacketLogger::OnDirectSocketReceive(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress)
 {
 	char str[256];
-	FormatLine(str, "Rcv", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetInternalID(), remoteSystemAddress,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
+	FormatLine(str, "Rcv", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetExternalID(remoteSystemAddress), remoteSystemAddress,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
 	AddToLog(str);
 }
 void PacketLogger::OnAck(unsigned int messageNumber, SystemAddress remoteSystemAddress, RakNetTime time)
 {
 	char str[256];
 	char str1[64], str2[62];
-	SystemAddress localSystemAddress = rakPeerInterface->GetInternalID();
+	SystemAddress localSystemAddress = rakPeerInterface->GetExternalID(remoteSystemAddress);
 	localSystemAddress.ToString(true, str1);
 	remoteSystemAddress.ToString(true, str2);
+	char localtime[128];
+	GetLocalTime(localtime);
 
-	sprintf(str, "Rcv,Ack,%i,,,,%"PRINTF_TIME_MODIFIER"u,%s,%s,,,,,,"
+	sprintf(str, "%s,Rcv,Ack,%i,,,,%"PRINTF_TIME_MODIFIER"u,%s,%s,,,,,,"
+					, localtime
 					, messageNumber
 					, (unsigned long long) time
 					, str1
@@ -124,12 +133,15 @@ void PacketLogger::OnPushBackPacket(const char *data, const BitSize_t bitsUsed, 
 {
 	char str[256];
 	char str1[64], str2[62];
-	SystemAddress localSystemAddress = rakPeerInterface->GetInternalID();
+	SystemAddress localSystemAddress = rakPeerInterface->GetExternalID(remoteSystemAddress);
 	localSystemAddress.ToString(true, str1);
 	remoteSystemAddress.ToString(true, str2);
 	RakNetTime time = RakNet::GetTime();
+	char localtime[128];
+	GetLocalTime(localtime);
 
-	sprintf(str, "Lcl,PBP,,,%s,%i,%"PRINTF_TIME_MODIFIER"u,%s,%s,,,,,,"
+	sprintf(str, "%s,Lcl,PBP,,,%s,%i,%"PRINTF_TIME_MODIFIER"u,%s,%s,,,,,,"
+					, localtime
 					, BaseIDTOString(data[0])
 					, bitsUsed
 					, (unsigned long long) time
@@ -142,7 +154,7 @@ void PacketLogger::OnInternalPacket(InternalPacket *internalPacket, unsigned fra
 {
 	char str[256];
 	const char* sendType = (isSend) ? "Snd" : "Rcv";
-	SystemAddress localSystemAddress = rakPeerInterface->GetInternalID();
+	SystemAddress localSystemAddress = rakPeerInterface->GetExternalID(remoteSystemAddress);
 
 	if (internalPacket->data[0]==ID_TIMESTAMP && internalPacket->data[sizeof(unsigned char)+sizeof(RakNetTime)]!=ID_RPC)
 	{
@@ -151,7 +163,7 @@ void PacketLogger::OnInternalPacket(InternalPacket *internalPacket, unsigned fra
 	else if (internalPacket->data[0]==ID_RPC || (internalPacket->dataBitLength>(sizeof(unsigned char)+sizeof(RakNetTime))*8 && internalPacket->data[0]==ID_TIMESTAMP && internalPacket->data[sizeof(unsigned char)+sizeof(RakNetTime)]==ID_RPC))
 	{
 		const char *uniqueIdentifier = rakPeerInterface->GetRPCString((const char*) internalPacket->data, internalPacket->dataBitLength, isSend==true ? remoteSystemAddress : UNASSIGNED_SYSTEM_ADDRESS);
-		
+
 		if (internalPacket->data[0]==ID_TIMESTAMP)
 			FormatLine(str, sendType, "RpT", internalPacket->messageNumber, frameNumber, uniqueIdentifier, internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
 		else
@@ -179,8 +191,11 @@ void PacketLogger::WriteMiscellaneous(const char *type, const char *msg)
 	SystemAddress localSystemAddress = rakPeerInterface->GetInternalID();
 	localSystemAddress.ToString(true, str1);
 	RakNetTime time = RakNet::GetTime();
+	char localtime[128];
+	GetLocalTime(localtime);
 
-	sprintf(str, "Lcl,%s,,,,,%"PRINTF_TIME_MODIFIER"u,%s,,,,,,,%s"
+	sprintf(str, "%s,Lcl,%s,,,,,%"PRINTF_TIME_MODIFIER"u,%s,,,,,,,%s"
+					, localtime
 					, type
 					, (unsigned long long) time
 					, str1
@@ -202,9 +217,9 @@ const char* PacketLogger::BaseIDTOString(unsigned char Id)
 	if (Id >= ID_USER_PACKET_ENUM)
         return 0;
 
-	const char *IDTable[(int)ID_USER_PACKET_ENUM]=
+	const char *IDTable[((int)ID_USER_PACKET_ENUM)+1]=
 	{
-		"ID_INTERNAL_PING",  
+		"ID_INTERNAL_PING",
 		"ID_PING",
 		"ID_PING_OPEN_CONNECTIONS",
 		"ID_CONNECTED_PONG",
@@ -300,12 +315,15 @@ const char* PacketLogger::BaseIDTOString(unsigned char Id)
 		"ID_LOBBY2_SEND_MESSAGE",
 		"ID_LOBBY2_SERVER_ERROR",
 		"ID_INCOMPATIBLE_PROTOCOL_VERSION",
-		"ID_FCM_HOST_QUERY",
-		"ID_FCM_HOST_UNKNOWN",
-		"ID_FCM_HOST_NOTIFICATION",
-		"ID_FCM_HOST_PARTICIPANT_LIST_TRANSMIT",
-		"ID_FCM_HOST_PARTICIPANT_LIST_MATCH",
-		"ID_FCM_HOST_STATE_CHANGE_NOTIFICATION",
+		"ID_FCM2_NEW_HOST",
+		"ID_FCM2_REQUEST_FCMGUID",
+		"ID_FCM2_RESPOND_FCMGUID",
+		"ID_FCM2_INFORM_FCMGUID",
+		"ID_UDP_PROXY_GENERAL",
+		"ID_SQLite3_EXEC",
+		"ID_SQLite3_UNKNOWN_DB",
+		"ID_REPLICA_MANAGER_3_SERIALIZE_CONSTRUCTION_EXISTING",
+		"ID_USER_PACKET_ENUM"
 	};
 
 	return (char*)IDTable[Id];
@@ -334,6 +352,40 @@ void PacketLogger::SetSuffix(const char *_suffix)
 {
 	strncpy(suffix, _suffix, 255);
 	suffix[255]=0;
+}
+void PacketLogger::GetLocalTime(char buffer[128])
+{
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+	buffer[0]=0;
+#else
+	time_t rawtime;
+	struct timeval tv;
+	// If you get an arror about an incomplete type, just delete this file
+	struct timezone tz;
+	gettimeofday(&tv, &tz);
+	// time ( &rawtime );
+	rawtime=tv.tv_sec;
+
+	struct tm * timeinfo;
+	timeinfo = localtime ( &rawtime );
+	strftime (buffer,128,"%x %X",timeinfo);
+	char buff[32];
+	sprintf(buff, ".%i", tv.tv_usec);
+	strcat(buffer,buff);
+
+	// Commented version puts the time first
+	/*
+	struct tm * timeinfo;
+	timeinfo = localtime ( &rawtime );
+	strftime (buffer,128,"%X",timeinfo);
+	char buff[32];
+	sprintf(buff, ".%i ", tv.tv_usec);
+	strcat(buffer,buff);
+	char buff2[32];
+	strftime (buff2,32,"%x",timeinfo);
+	strcat(buffer,buff2);
+	*/
+#endif
 }
 
 #ifdef _MSC_VER

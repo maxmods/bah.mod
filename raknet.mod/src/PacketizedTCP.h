@@ -61,9 +61,12 @@ protected:
 	void RemoveFromConnectionList(SystemAddress sa);
 	void AddToConnectionList(SystemAddress sa);
 	void PushNotificationsToQueues(void);
+	Packet *ReturnOutgoingPacket(void);
 
 	// Plugins
 	DataStructures::List<PluginInterface2*> messageHandlerList;
+	// A single TCP recieve may generate multiple split packets. They are stored in the waitingPackets list until Receive is called
+	DataStructures::Queue<Packet*> waitingPackets;
 	DataStructures::Map<SystemAddress, DataStructures::ByteQueue *> connections;
 
 	// Mirrors single producer / consumer, but processes them in Receive() before returning to user

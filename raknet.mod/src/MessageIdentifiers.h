@@ -33,6 +33,7 @@ enum DefaultMessageIDTypes
 	//
 	/// These types are never returned to the user.
 	/// Ping from a connected system.  Update timestamps (internal use only)
+	/// 0 is reserved for UDT's connect message
 	ID_INTERNAL_PING,  
 	/// Ping from an unconnected system.  Reply but do not update timestamps. (internal use only)
 	ID_PING,
@@ -92,13 +93,14 @@ enum DefaultMessageIDTypes
 	ID_TIMESTAMP,
     /// RakPeer - Pong from an unconnected system.  First byte is ID_PONG, second sizeof(RakNetTime) bytes is the ping, following bytes is system specific enumeration data.
 	ID_PONG,
-	/// RakPeer - Inform a remote system of our IP/Port, plus some offline data
+	/// RakPeer - Inform a remote system of our IP/Port. On the recipient, all data past ID_ADVERTISE_SYSTEM is whatever was passed to the data parameter
 	ID_ADVERTISE_SYSTEM,
 	/// ConnectionGraph plugin - In a client/server environment, a client other than ourselves has disconnected gracefully.  Packet::systemAddress is modified to reflect the systemAddress of this client.
 	ID_REMOTE_DISCONNECTION_NOTIFICATION,
 	/// ConnectionGraph plugin - In a client/server environment, a client other than ourselves has been forcefully dropped. Packet::systemAddress is modified to reflect the systemAddress of this client.
 	ID_REMOTE_CONNECTION_LOST,
 	/// ConnectionGraph plugin - In a client/server environment, a client other than ourselves has connected.  Packet::systemAddress is modified to reflect the systemAddress of the client that is not connected directly to us. The packet encoding is SystemAddress 1, ConnectionGraphGroupID 1, SystemAddress 2, ConnectionGraphGroupID 2
+	/// ConnectionGraph2 plugin: Bytes 1-4 = count. for (count items) contains {SystemAddress, RakNetGUID}
 	ID_REMOTE_NEW_INCOMING_CONNECTION,
 	// RakPeer - Downloading a large message. Format is ID_DOWNLOAD_PROGRESS (MessageID), partCount (unsigned int), partTotal (unsigned int), partLength (unsigned int), first part data (length <= MAX_MTU_SIZE). See the three parameters partCount, partTotal and partLength in OnFileProgress in FileListTransferCBInterface.h
 	ID_DOWNLOAD_PROGRESS,
@@ -137,9 +139,9 @@ enum DefaultMessageIDTypes
 	ID_CONNECTION_GRAPH_UPDATE,
 	/// ConnectionGraph plugin - Add a new connection to a connection graph
 	ID_CONNECTION_GRAPH_NEW_CONNECTION,
-	/// ConnectionGraph plugin - Remove a connection from a connection graph - connection was abruptly lost
+	/// ConnectionGraph plugin - Remove a connection from a connection graph - connection was abruptly lost. Two systems addresses encoded in the data packet.
 	ID_CONNECTION_GRAPH_CONNECTION_LOST,
-	/// ConnectionGraph plugin - Remove a connection from a connection graph - connection was gracefully lost
+	/// ConnectionGraph plugin - Remove a connection from a connection graph - connection was gracefully lost. Two systems addresses encoded in the data packet.
 	ID_CONNECTION_GRAPH_DISCONNECTION_NOTIFICATION,
 
 	/// Router plugin - route a message through another system
@@ -181,17 +183,17 @@ enum DefaultMessageIDTypes
 	/// NATPunchthrough plugin: internal
 	ID_NAT_CLIENT_READY,
 
-	/// NATPunchthrough plugin: Destination system is not connected to the server. Bytes starting at offset 1 contains the destination field of NatPunchthroughClient::OpenNAT().
+	/// NATPunchthrough plugin: Destination system is not connected to the server. Bytes starting at offset 1 contains the RakNetGUID destination field of NatPunchthroughClient::OpenNAT().
 	ID_NAT_TARGET_NOT_CONNECTED,
-	/// NATPunchthrough plugin: Destination system is not responding to the plugin messages. Possibly the plugin is not installed. Bytes starting at offset 1 contains the destination field of NatPunchthroughClient::OpenNAT().
+	/// NATPunchthrough plugin: Destination system is not responding to the plugin messages. Possibly the plugin is not installed. Bytes starting at offset 1 contains the RakNetGUID  destination field of NatPunchthroughClient::OpenNAT().
 	ID_NAT_TARGET_UNRESPONSIVE,
-	/// NATPunchthrough plugin: The server lost the connection to the destination system while setting up punchthrough. Possibly the plugin is not installed. Bytes starting at offset 1 contains the destination field of NatPunchthroughClient::OpenNAT().
+	/// NATPunchthrough plugin: The server lost the connection to the destination system while setting up punchthrough. Possibly the plugin is not installed. Bytes starting at offset 1 contains the RakNetGUID  destination field of NatPunchthroughClient::OpenNAT().
 	ID_NAT_CONNECTION_TO_TARGET_LOST,
-	/// NATPunchthrough plugin: This punchthrough is already in progress. Possibly the plugin is not installed. Bytes starting at offset 1 contains the destination field of NatPunchthroughClient::OpenNAT().
+	/// NATPunchthrough plugin: This punchthrough is already in progress. Possibly the plugin is not installed. Bytes starting at offset 1 contains the RakNetGUID destination field of NatPunchthroughClient::OpenNAT().
 	ID_NAT_ALREADY_IN_PROGRESS,
-	/// NATPunchthrough plugin: This message is generated on the local system, and does not come from the network. packet::guid contains the destination field of NatPunchthroughClient::OpenNAT().
+	/// NATPunchthrough plugin: This message is generated on the local system, and does not come from the network. packet::guid contains the destination field of NatPunchthroughClient::OpenNAT(). Byte 1 contains 1 if you are the sender, 0 if not
 	ID_NAT_PUNCHTHROUGH_FAILED,
-	/// NATPunchthrough plugin: Punchthrough suceeded. See packet::systemAddress and packet::guid. Byte 1 contains 1 if you are teh sender, 0 if not. You can now use RakPeer::Connect() or other calls to communicate with this system.
+	/// NATPunchthrough plugin: Punchthrough suceeded. See packet::systemAddress and packet::guid. Byte 1 contains 1 if you are the sender, 0 if not. You can now use RakPeer::Connect() or other calls to communicate with this system.
 	ID_NAT_PUNCHTHROUGH_SUCCEEDED,
 
 	/// LightweightDatabase plugin - Query
@@ -256,17 +258,26 @@ enum DefaultMessageIDTypes
 	// The 2nd byte of the message contains the value of RAKNET_PROTOCOL_VERSION for the remote system
 	ID_INCOMPATIBLE_PROTOCOL_VERSION,
 
-	// Fully connected mesh host determination plugin
-	ID_FCM_HOST_QUERY,
-	ID_FCM_HOST_UNKNOWN,
-	ID_FCM_HOST_NOTIFICATION,
-	ID_FCM_HOST_PARTICIPANT_LIST_TRANSMIT,
-	ID_FCM_HOST_PARTICIPANT_LIST_MATCH,
-	ID_FCM_HOST_STATE_CHANGE_NOTIFICATION,
+	/// \internal For FullyConnectedMesh2 plugin
+	ID_FCM2_NEW_HOST,
+	/// \internal For FullyConnectedMesh2 plugin
+	ID_FCM2_REQUEST_FCMGUID,
+	/// \internal For FullyConnectedMesh2 plugin
+	ID_FCM2_RESPOND_FCMGUID,
+	/// \internal For FullyConnectedMesh2 plugin
+	ID_FCM2_INFORM_FCMGUID,
 
 	/// UDP proxy messages. Second byte indicates type.
 	ID_UDP_PROXY_GENERAL,
-	
+
+	/// SQLite3Plugin - execute
+	ID_SQLite3_EXEC,
+	/// SQLite3Plugin - Remote database is unknown
+	ID_SQLite3_UNKNOWN_DB,
+
+	/// Serialize construction for an object that already exists on the remote system
+	ID_REPLICA_MANAGER_3_SERIALIZE_CONSTRUCTION_EXISTING,
+
 	// For the user to use.  Start your first enumeration at this value.
 	ID_USER_PACKET_ENUM,
 	//-------------------------------------------------------------------------------------------------------------

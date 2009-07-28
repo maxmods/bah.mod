@@ -16,8 +16,7 @@
 class NetworkIDManager;
 
 /// \brief Unique shared ids for each object instance
-///
-/// A class you can derive from to make it easier to represent every networked object with an integer.  This way you can refer to objects over the network.
+/// \details A class you can derive from to make it easier to represent every networked object with an integer.  This way you can refer to objects over the network.
 /// One system should return true for IsNetworkIDAuthority() and the rest should return false.  When an object needs to be created, have the the one system create the object.
 /// Then have that system send a message to all other systems, and include the value returned from GetNetworkID() in that packet.  All other systems should then create the same
 /// class of object, and call SetNetworkID() on that class with the NetworkID in the packet.
@@ -25,10 +24,10 @@ class NetworkIDManager;
 class RAK_DLL_EXPORT NetworkIDObject
 {
 public:
-	/// Constructor.  NetworkIDs, if IsNetworkIDAuthority() is true, are created here.
+	// Constructor.  NetworkIDs, if IsNetworkIDAuthority() is true, are created here.
 	NetworkIDObject();
 
-	/// Destructor.  Used NetworkIDs, if any, are freed here.
+	// Destructor.  Used NetworkIDs, if any, are freed here.
 	virtual ~NetworkIDObject();
 
 	/// Sets the manager class from which to request unique network IDs

@@ -13,6 +13,9 @@
 #include "RakNetTypes.h"
 #include "RakMemoryOverride.h"
 #include "Export.h"
+#include "DS_List.h"
+#include "RakNetSmartPtr.h"
+#include "RakNetSocket.h"
 
 // Forward declarations
 namespace RakNet
@@ -36,13 +39,13 @@ public:
 
 	// --------------------------------------------------------------------------------------------Major Low Level Functions - Functions needed by most users--------------------------------------------------------------------------------------------
 	/// \brief Starts the network threads, opens the listen port.
-	/// You must call this before calling Connect().
+	/// \details You must call this before calling Connect().
 	/// Multiple calls while already active are ignored.  To call this function again with different settings, you must first call Shutdown().
 	/// \note Call SetMaximumIncomingConnections if you want to accept incoming connections
 	/// \note Set _RAKNET_THREADSAFE in RakNetDefines.h if you want to call RakNet functions from multiple threads (not recommended, as it is much slower and RakNet is already asynchronous).
 	/// \param[in] maxConnections The maximum number of connections between this instance of RakPeer and another instance of RakPeer. Required so the network can preallocate and for thread safety. A pure client would set this to 1.  A pure server would set it to the number of allowed clients.- A hybrid would set it to the sum of both types of connections
 	/// \param[in] localPort The port to listen for connections on.
-	/// \param[in] _threadSleepTimer How many ms to Sleep each internal update cycle (30 to give the game priority, 0 for regular (recommended)
+	/// \param[in] _threadSleepTimer How many ms to Sleep each internal update cycle (30 to give the game priority, 0 for regular (recommended). If using UDT for flow control by commenting out _USE_RAKNET_FLOW_CONTROL, 0 is always used. If using UDT for flow control by commenting out _USE_RAKNET_FLOW_CONTROL, 0 is always used
 	/// \param[in] socketDescriptors An array of SocketDescriptor structures to force RakNet to listen on a particular IP address or port (or both).  Each SocketDescriptor will represent one unique socket.  Do not pass redundant structures.  To listen on a specific port, you can pass SocketDescriptor(myPort,0); such as for a server.  For a client, it is usually OK to just pass SocketDescriptor();
 	/// \param[in] socketDescriptorCount The size of the \a socketDescriptors array.  Pass 1 if you are not sure what to pass.
 	/// \return False on failure (can't create socket or thread), true on success.
@@ -116,11 +119,24 @@ public:
 	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
 	/// \param[in] sendConnectionAttemptCount How many datagrams to send to the other system to try to connect.
 	/// \param[in] timeBetweenSendConnectionAttemptsMS How often to send datagrams to the other system to try to connect. After this many times, ID_CONNECTION_ATTEMPT_FAILED is returned
+	/// \param[in] timeoutTime How long to keep the connection alive before dropping it on unable to send a reliable message. 0 to use the default from SetTimeoutTime(UNASSIGNED_SYSTEM_ADDRESS);
 	/// \return True on successful initiation. False on incorrect parameters, internal error, or too many existing peers.  Returning true does not mean you connected!
-	virtual bool Connect( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex=0, unsigned sendConnectionAttemptCount=7, unsigned timeBetweenSendConnectionAttemptsMS=500 )=0;
+	virtual bool Connect( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex=0, unsigned sendConnectionAttemptCount=7, unsigned timeBetweenSendConnectionAttemptsMS=500, RakNetTime timeoutTime=0 )=0;
+
+	/// \brief Connect to the specified host (ip or domain name) and server port, using a shared socket from another instance of RakNet
+	/// \param[in] host Either a dotted IP address or a domain name
+	/// \param[in] remotePort Which port to connect to on the remote machine.
+	/// \param[in] passwordData A data block that must match the data block on the server passed to SetIncomingPassword.  This can be a string or can be a stream of data.  Use 0 for no password.
+	/// \param[in] passwordDataLength The length in bytes of passwordData
+	/// \param[in] socket A bound socket returned by another instance of RakPeerInterface
+	/// \param[in] sendConnectionAttemptCount How many datagrams to send to the other system to try to connect.
+	/// \param[in] timeBetweenSendConnectionAttemptsMS How often to send datagrams to the other system to try to connect. After this many times, ID_CONNECTION_ATTEMPT_FAILED is returned
+	/// \param[in] timeoutTime How long to keep the connection alive before dropping it on unable to send a reliable message. 0 to use the default from SetTimeoutTime(UNASSIGNED_SYSTEM_ADDRESS);
+	/// \return True on successful initiation. False on incorrect parameters, internal error, or too many existing peers.  Returning true does not mean you connected!
+	virtual bool ConnectWithSocket(const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, RakNetSmartPtr<RakNetSocket> socket, unsigned sendConnectionAttemptCount=7, unsigned timeBetweenSendConnectionAttemptsMS=500, RakNetTime timeoutTime=0)=0;
 
 	/// \brief Connect to the specified network ID (Platform specific console function)
-	/// Does built-in NAt traversal
+	/// \details Does built-in NAt traversal
 	/// \param[in] passwordData A data block that must match the data block on the server passed to SetIncomingPassword.  This can be a string or can be a stream of data.  Use 0 for no password.
 	/// \param[in] passwordDataLength The length in bytes of passwordData
 	//virtual bool Console2LobbyConnect( void *networkServiceId, const char *passwordData, int passwordDataLength )=0;
@@ -128,8 +144,9 @@ public:
 	/// \brief Stops the network threads and closes all connections.
 	/// \param[in] blockDuration How long, in milliseconds, you should wait for all remaining messages to go out, including ID_DISCONNECTION_NOTIFICATION.  If 0, it doesn't wait at all.
 	/// \param[in] orderingChannel If blockDuration > 0, ID_DISCONNECTION_NOTIFICATION will be sent on this channel
+	/// \param[in] disconnectionNotificationPriority Priority to send ID_DISCONNECTION_NOTIFICATION on.
 	/// If you set it to 0 then the disconnection notification won't be sent
-	virtual void Shutdown( unsigned int blockDuration, unsigned char orderingChannel=0 )=0;
+	virtual void Shutdown( unsigned int blockDuration, unsigned char orderingChannel=0, PacketPriority disconnectionNotificationPriority=LOW_PRIORITY )=0;
 
 	/// Returns if the network thread is running
 	/// \return true if the network thread is running, false otherwise
@@ -210,24 +227,24 @@ public:
 
 	// --------------------------------------------------------------------------------------------Remote Procedure Call Functions - Functions to initialize and perform RPC--------------------------------------------------------------------------------------------
 	/// \ingroup RAKNET_RPC
-	/// \depreciated Use the AutoRPC plugin instead
 	/// Register a C or static member function as available for calling as a remote procedure call
 	/// \param[in] uniqueID A null-terminated unique string to identify this procedure.  See RegisterClassMemberRPC() for class member functions.
 	/// \param[in] functionPointer(...) The name of the function to be used as a function pointer. This can be called whether active or not, and registered functions stay registered unless unregistered
+	/// \deprecated Use RakNet::RPC3 instead
 	virtual void RegisterAsRemoteProcedureCall( const char* uniqueID, void ( *functionPointer ) ( RPCParameters *rpcParms ) )=0;
 
 	/// \ingroup RAKNET_RPC
-	/// \depreciated Use the AutoRPC plugin instead
 	/// Register a C++ member function as available for calling as a remote procedure call.
 	/// \param[in] uniqueID A null terminated string to identify this procedure. Recommended you use the macro REGISTER_CLASS_MEMBER_RPC to create the string.  Use RegisterAsRemoteProcedureCall() for static functions.
 	/// \param[in] functionPointer The name of the function to be used as a function pointer. This can be called whether active or not, and registered functions stay registered unless unregistered with UnregisterAsRemoteProcedureCall
 	/// \sa The sample ObjectMemberRPC.cpp
+	/// \deprecated Use RakNet::RPC3 instead
 	virtual void RegisterClassMemberRPC( const char* uniqueID, void *functionPointer )=0;
 
 	/// \ingroup RAKNET_RPC
-	/// \depreciated Use the AutoRPC plugin instead
 	/// Unregisters a C function as available for calling as a remote procedure call that was formerly registered with RegisterAsRemoteProcedureCall. Only call offline.
 	/// \param[in] uniqueID A string of only letters to identify this procedure.  Recommended you use the macro CLASS_MEMBER_ID for class member functions.
+	/// \deprecated Use RakNet::RPC3 instead
 	virtual void UnregisterAsRemoteProcedureCall( const char* uniqueID )=0;
 
 	/// \ingroup RAKNET_RPC
@@ -278,7 +295,8 @@ public:
 	/// \param[in] target Which system to close the connection to.
 	/// \param[in] sendDisconnectionNotification True to send ID_DISCONNECTION_NOTIFICATION to the recipient.  False to close it silently.
 	/// \param[in] channel Which ordering channel to send the disconnection notification on, if any
-	virtual void CloseConnection( const SystemAddress target, bool sendDisconnectionNotification, unsigned char orderingChannel=0 )=0;
+	/// \param[in] disconnectionNotificationPriority Priority to send ID_DISCONNECTION_NOTIFICATION on.
+	virtual void CloseConnection( const SystemAddress target, bool sendDisconnectionNotification, unsigned char orderingChannel=0, PacketPriority disconnectionNotificationPriority=LOW_PRIORITY )=0;
 
 	/// Cancel a pending connection attempt
 	/// If we are already connected, the connection stays open
@@ -302,6 +320,17 @@ public:
 	/// \param[in] index Index should range between 0 and the maximum number of players allowed - 1.
 	/// \return The SystemAddress
 	virtual SystemAddress GetSystemAddressFromIndex( int index )=0;
+
+	/// Same as GetSystemAddressFromIndex but returns RakNetGUID
+	/// \param[in] index Index should range between 0 and the maximum number of players allowed - 1.
+	/// \return The RakNetGUID
+	virtual RakNetGUID GetGUIDFromIndex( int index )=0;
+
+	/// Same as calling GetSystemAddressFromIndex and GetGUIDFromIndex for all systems, but more efficient
+	/// Indices match each other, so \a addresses[0] and \a guids[0] refer to the same system
+	/// \param[out] addresses All system addresses. Size of the list is the number of connections. Size of the list will match the size of the \a guids list.
+	/// \param[out] guids All guids. Size of the list is the number of connections. Size of the list will match the size of the \a addresses list.
+	virtual void GetSystemList(DataStructures::List<SystemAddress> &addresses, DataStructures::List<RakNetGUID> &guids)=0;
 
 	/// Bans an IP from connecting.  Banned IPs persist between connections but are not saved on shutdown nor loaded on startup.
 	/// param[in] IP Dotted IP address. Can use * as a wildcard, such as 128.0.0.* will ban all IP addresses starting with 128.0.0
@@ -327,6 +356,7 @@ public:
 	virtual void Ping( const SystemAddress target )=0;
 
 	/// Send a ping to the specified unconnected system. The remote system, if it is Initialized, will respond with ID_PONG followed by sizeof(RakNetTime) containing the system time the ping was sent.(Default is 4 bytes - See __GET_TIME_64BIT in RakNetTypes.h
+	/// System should reply with ID_PONG if it is active
 	/// \param[in] host Either a dotted IP address or a domain name.  Can be 255.255.255.255 for LAN broadcast.
 	/// \param[in] remotePort Which port to connect to on the remote machine.
 	/// \param[in] onlyReplyOnAcceptingConnections Only request a reply if the remote system is accepting connections
@@ -385,7 +415,7 @@ public:
 	/// If \a input is UNASSIGNED_SYSTEM_ADDRESS, will return your own GUID
 	/// \pre Call Startup() first, or the function will return UNASSIGNED_RAKNET_GUID
 	/// \param[in] input The system address of the system we are connected to
-	virtual RakNetGUID GetGuidFromSystemAddress( const SystemAddress input ) const=0;
+	virtual const RakNetGUID& GetGuidFromSystemAddress( const SystemAddress input ) const=0;
 
 	/// Given the GUID of a connected system, give us the system address of that system.
 	/// The GUID will be the same on all systems connected to that instance of RakPeer, even if the external system addresses are different
@@ -396,9 +426,14 @@ public:
 
 	/// Set the time, in MS, to use before considering ourselves disconnected after not being able to deliver a reliable message.
 	/// Default time is 10,000 or 10 seconds in release and 30,000 or 30 seconds in debug.
+	/// Not supported when using UDT (_USE_RAKNET_FLOW_CONTROL is commented out in RakNetDefines.h). UDT takes between 3 and 30 seconds to disconnect.
 	/// \param[in] timeMS Time, in MS
 	/// \param[in] target Which system to do this for. Pass UNASSIGNED_SYSTEM_ADDRESS for all systems.
 	virtual void SetTimeoutTime( RakNetTime timeMS, const SystemAddress target )=0;
+
+	/// \param[in] target Which system to do this for. Pass UNASSIGNED_SYSTEM_ADDRESS to get the default value
+	/// \return timeoutTime for a given system.
+	virtual RakNetTime GetTimeoutTime( const SystemAddress target )=0;
 
 	/// Set the MTU per datagram.  It's important to set this correctly - otherwise packets will be needlessly split, decreasing performance and throughput.
 	/// Maximum allowed size is MAXIMUM_MTU_SIZE.
@@ -539,11 +574,23 @@ public:
 	/// \return A packet you can write to
 	virtual Packet* AllocatePacket(unsigned dataSize)=0;
 
+	/// Get the socket used with a particular active connection
+	/// The smart pointer reference counts the RakNetSocket object, so the socket will remain active as long as the smart pointer does, even if RakNet were to shutdown or close the connection.
+	/// \note This sends a query to the thread and blocks on the return value for up to one second. In practice it should only take a millisecond or so.
+	/// \param[in] target Which system
+	/// \return A smart pointer object containing the socket information about the socket. Be sure to check IsNull() which is returned if the update thread is unresponsive, shutting down, or if this system is not connected
+	virtual RakNetSmartPtr<RakNetSocket> GetSocket( const SystemAddress target )=0;
+
+	/// Get all sockets in use
+	/// \note This sends a query to the thread and blocks on the return value for up to one second. In practice it should only take a millisecond or so.
+	/// \param[out] sockets List of RakNetSocket structures in use. Sockets will not be closed until \a sockets goes out of scope
+	virtual void GetSockets( DataStructures::List<RakNetSmartPtr<RakNetSocket> > &sockets )=0;
+
 	// --------------------------------------------------------------------------------------------Network Simulator Functions--------------------------------------------------------------------------------------------
 	/// Adds simulated ping and packet loss to the outgoing data flow.
 	/// To simulate bi-directional ping and packet loss, you should call this on both the sender and the recipient, with half the total ping and maxSendBPS value on each.
 	/// You can exclude network simulator code with the _RELEASE #define to decrease code size
-	/// \depreciated Use http://www.jenkinssoftware.com/raknet/forum/index.php?topic=1671.0 instead.
+	/// \deprecated Use http://www.jenkinssoftware.com/raknet/forum/index.php?topic=1671.0 instead.
 	/// \param[in] maxSendBPS Maximum bits per second to send.  Packetloss grows linearly.  0 to disable. (CURRENTLY BROKEN - ALWAYS DISABLED)
 	/// \param[in] minExtraPing The minimum time to delay sends.
 	/// \param[in] extraPingVariance The additional random time to delay sends.
@@ -559,21 +606,6 @@ public:
 	/// \return If you previously called ApplyNetworkSimulator
 	virtual bool IsNetworkSimulatorActive( void )=0;
 
-	// -------------------------------------------------------------------------------------------- Socket Functions--------------------------------------------------------------------------------------------
-	/// Have RakNet use a socket you created yourself
-	/// The socket should not be in use - it is up to you to either shutdown or close the connections using it. Otherwise existing connections on that socket will eventually disconnect
-	/// This socket will be forgotten after calling Shutdown(), so rebind again if you need to.
-	/// \param[in] s The socket to rebind.
-	/// \param[in] haveRakNetCloseSocket If true, RakNet will call closeSocket on shutdown for this socket.
-	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
-	virtual void UseUserSocket( int socket, bool haveRakNetCloseSocket, unsigned connectionSocketIndex)=0;
-
-	/// Have RakNet recreate a socket using a different port.
-	/// The socket should not be in use - it is up to you to either shutdown or close the connections using it. Otherwise existing connections on that socket will eventually disconnect
-	/// \param[in] connectionSocketIndex Index into the array of socket descriptors passed to socketDescriptors in RakPeer::Startup() to send on.
-	/// \param[in] sd Address to bind on
-	virtual void RebindSocketAddress(unsigned connectionSocketIndex, SocketDescriptor &sd)=0;
-
 	// --------------------------------------------------------------------------------------------Statistical Functions - Functions dealing with API performance--------------------------------------------------------------------------------------------
 
 	/// Returns a structure containing a large set of network statistics for the specified system.
@@ -584,12 +616,15 @@ public:
 	/// \sa RakNetStatistics.h
 	virtual RakNetStatistics * const GetStatistics( const SystemAddress systemAddress, RakNetStatistics *rns=0 )=0;
 
+	virtual unsigned int GetReceiveBufferSize(void) const=0;
+
 	// --------------------------------------------------------------------------------------------EVERYTHING AFTER THIS COMMENT IS FOR INTERNAL USE ONLY--------------------------------------------------------------------------------------------
 	/// \internal
 	virtual char *GetRPCString( const char *data, const BitSize_t bitSize, const SystemAddress systemAddress)=0;
 
 	/// \internal
 	virtual bool SendOutOfBand(const char *host, unsigned short remotePort, MessageID header, const char *data, BitSize_t dataLength, unsigned connectionSocketIndex=0 )=0;
+	virtual void WriteOutOfBandHeader(RakNet::BitStream *bitStream, MessageID header)=0;
 
 };
 

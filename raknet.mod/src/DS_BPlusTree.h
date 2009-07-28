@@ -1,3 +1,9 @@
+/// \file DS_BPlusTree.h
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
 #ifndef __B_PLUS_TREE_CPP
 #define __B_PLUS_TREE_CPP
 
@@ -30,7 +36,8 @@ namespace DataStructures
 	template <class KeyType, class DataType, int order>
 	struct RAK_DLL_EXPORT Page
 	{
-		// We use the same data structure for both leaf and index nodes.  It uses a little more memory for index nodes but reduces
+		// We use the same data structure for both leaf and index nodes.  
+		// It uses a little more memory for index nodes but reduces
 		// memory fragmentation, allocations, and deallocations.
 		bool isLeaf;
 

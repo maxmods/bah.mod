@@ -14,7 +14,7 @@ using namespace DataStructures;
 void ExtendRows(Table::Row* input, int index)
 {
 	(void) index;
-	input->cells.Insert(new Table::Cell, __FILE__, __LINE__ );
+	input->cells.Insert(RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__), __FILE__, __LINE__ );
 }
 void FreeRow(Table::Row* input, int index)
 {
@@ -44,7 +44,7 @@ Table::Cell& Table::Cell::operator = ( const Table::Cell& input )
 	i=input.i;
 	ptr=input.ptr;
 	if (c)
-		RakNet::OP_DELETE_ARRAY(c, __FILE__, __LINE__);
+		rakFree_Ex(c, __FILE__, __LINE__);
 	if (input.c)
 	{
 		c = (char*) rakMalloc_Ex( (int) i, __FILE__, __LINE__ );
@@ -62,7 +62,7 @@ Table::Cell::Cell( const Table::Cell & input)
 	if (input.c)
 	{
 		if (c)
-			RakNet::OP_DELETE_ARRAY(c, __FILE__, __LINE__);
+			rakFree_Ex(c, __FILE__, __LINE__);
 		c =  (char*) rakMalloc_Ex( (int) i, __FILE__, __LINE__ );
 		memcpy(c, input.c, (int) i);
 	}
@@ -92,7 +92,7 @@ void Table::Cell::Set(const char *input)
 {
 	Clear();
 		
-	if (input && input[0])
+	if (input)
 	{
 		i=(int)strlen(input)+1;
 		c =  (char*) rakMalloc_Ex( (int) i, __FILE__, __LINE__ );
@@ -298,7 +298,7 @@ void Table::RemoveColumn(unsigned columnIndex)
 		cur=cur->next;
 	}
 }
-unsigned Table::ColumnIndex(const char *columnName)
+unsigned Table::ColumnIndex(const char *columnName) const
 {
 	unsigned columnIndex;
 	for (columnIndex=0; columnIndex<columns.Size(); columnIndex++)
@@ -306,7 +306,7 @@ unsigned Table::ColumnIndex(const char *columnName)
 			return columnIndex;
 	return (unsigned)-1;
 }
-unsigned Table::ColumnIndex(char columnName[_TABLE_MAX_COLUMN_NAME_LENGTH])
+unsigned Table::ColumnIndex(char columnName[_TABLE_MAX_COLUMN_NAME_LENGTH]) const
 {
 	return ColumnIndex((const char *) columnName);
 }
@@ -343,7 +343,7 @@ Table::Row* Table::AddRow(unsigned rowId)
 	}
 	unsigned rowIndex;
 	for (rowIndex=0; rowIndex < columns.Size(); rowIndex++)
-		newRow->cells.Insert( new Table::Cell(), __FILE__, __LINE__ );
+		newRow->cells.Insert( RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__), __FILE__, __LINE__ );
 	return newRow;
 }
 Table::Row* Table::AddRow(unsigned rowId, DataStructures::List<Cell> &initialCellValues)
@@ -374,7 +374,7 @@ Table::Row* Table::AddRow(unsigned rowId, DataStructures::List<Cell*> &initialCe
 		if (rowIndex < initialCellValues.Size() && initialCellValues[rowIndex] && initialCellValues[rowIndex]->isEmpty==false)
 		{
 			if (copyCells==false)
-				newRow->cells.Insert(new Table::Cell(initialCellValues[rowIndex]->i, initialCellValues[rowIndex]->c, initialCellValues[rowIndex]->ptr, columns[rowIndex].columnType), __FILE__, __LINE__);
+				newRow->cells.Insert(RakNet::OP_NEW_4<Table::Cell>( __FILE__, __LINE__, initialCellValues[rowIndex]->i, initialCellValues[rowIndex]->c, initialCellValues[rowIndex]->ptr, columns[rowIndex].columnType), __FILE__, __LINE__);
 			else
 			{
 				Table::Cell *c = RakNet::OP_NEW<Table::Cell>( __FILE__, __LINE__ );
@@ -383,7 +383,7 @@ Table::Row* Table::AddRow(unsigned rowId, DataStructures::List<Cell*> &initialCe
 			}
 		}
 		else
-			newRow->cells.Insert(new Table::Cell(), __FILE__, __LINE__);
+			newRow->cells.Insert(RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__), __FILE__, __LINE__);
 	}
 	rows.Insert(rowId, newRow);
 	return newRow;
@@ -396,7 +396,7 @@ Table::Row* Table::AddRowColumns(unsigned rowId, Row *row, DataStructures::List<
 	{
 		if (row->cells[columnIndices[columnIndex]]->isEmpty==false)
 		{
-			newRow->cells.Insert(new Table::Cell(
+			newRow->cells.Insert(RakNet::OP_NEW_4<Table::Cell>( __FILE__, __LINE__, 
 				row->cells[columnIndices[columnIndex]]->i,
 				row->cells[columnIndices[columnIndex]]->c,
 				row->cells[columnIndices[columnIndex]]->ptr,
@@ -405,7 +405,7 @@ Table::Row* Table::AddRowColumns(unsigned rowId, Row *row, DataStructures::List<
 		}
 		else
 		{
-			newRow->cells.Insert(new Cell(), __FILE__, __LINE__);
+			newRow->cells.Insert(RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__), __FILE__, __LINE__);
 		}
 	}
 	rows.Insert(rowId, newRow);
@@ -1042,7 +1042,7 @@ void Table::Clear(void)
 	rows.Clear();
 	columns.Clear(true);
 }
-List<Table::ColumnDescriptor>& Table::GetColumns(void)
+const List<Table::ColumnDescriptor>& Table::GetColumns(void) const
 {
 	return columns;
 }

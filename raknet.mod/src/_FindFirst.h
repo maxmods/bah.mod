@@ -1,7 +1,7 @@
-/**
- * Original file by the_viking, fixed by Rômulo Fernandes
- * Should emulate windows finddata structure
- */
+///
+/// Original file by the_viking, fixed by Rômulo Fernandes
+/// Should emulate windows finddata structure
+///
 
 #ifndef GCC_FINDFIRST_H
 #define GCC_FINDFIRST_H
@@ -37,8 +37,9 @@ typedef struct _finddata_t
 	unsigned long   size;
 } _finddata;
 
-/** Hold information about the current search
-*/
+/** 
+ *  Hold information about the current search
+ */
 typedef struct _findinfo_t
 {
 	DIR*	openedDir;
@@ -52,3 +53,4 @@ int _findclose(long h);
 
 #endif
 #endif
+

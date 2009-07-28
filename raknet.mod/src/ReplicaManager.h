@@ -26,11 +26,18 @@ class Replica;
 class ReplicaManager;
 
 /// \defgroup REPLICA_MANAGER_GROUP ReplicaManager
+/// \brief Automatic game object replication
+/// \details
 /// \ingroup PLUGINS_GROUP
+
+/// \defgroup REPLICA_MANAGER_GROUP1 ReplicaManager
+/// \brief Depreciated. First implementation of object replication
+/// \details
+/// \ingroup REPLICA_MANAGER_GROUP
 
 /// An interface for a class that handles the construction callback from the network
 /// See ReplicaManager::SetReceiveConstructionCB
-/// \ingroup REPLICA_MANAGER_GROUP
+/// \ingroup REPLICA_MANAGER_GROUP1
 class ReceiveConstructionInterface
 {
 public:
@@ -50,7 +57,7 @@ public:
 
 /// An interface for a class that handles the call to send the download complete notification
 /// See ReplicaManager::SetDownloadCompleteCB
-/// \ingroup REPLICA_MANAGER_GROUP
+/// \ingroup REPLICA_MANAGER_GROUP1
 class SendDownloadCompleteInterface
 {
 public:
@@ -81,7 +88,8 @@ public:
 	virtual ReplicaReturnResult ReceiveDownloadComplete(RakNet::BitStream *inBitStream, SystemAddress senderId, ReplicaManager *caller)=0;
 };
 
-/// \deprecated Use RM2_ReplicaManager in ReplicaManager2.h
+/// \deprecated See RakNet::ReplicaManager3
+
 /// ReplicaManager is a system manager for your game objects that performs the following tasks:
 /// 1. Tracks all locally registered game objects and players and only performs operations to and for those objects and players
 /// 2. Allows you to automatically turn off unneeded local and remote functions for your game objects, thus providing convenience and security against unauthorized sends.
@@ -105,14 +113,14 @@ public:
 /// 4. Object sub-serialization.  Serialize only granular on the level of entire objects.  If you want to serialize part of the object, you need to set your own flags and indicate in the BitStream which parts were sent and which not.
 /// \brief A management system for your game objects and players to make serialization, scoping, and object creation and destruction easier.
 /// \pre You must call RakPeer::SetNetworkIDManager to use this plugin.
-/// \ingroup REPLICA_MANAGER_GROUP
+/// \ingroup REPLICA_MANAGER_GROUP1
 class RAK_DLL_EXPORT ReplicaManager : public PluginInterface2
 {
 public:
-	/// Constructor
+	// Constructor
 	ReplicaManager();
 
-	/// Destructor
+	// Destructor
 	virtual ~ReplicaManager();
 
 	/// If you think all objects should have been removed, call this to assert on any that were not.

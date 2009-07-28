@@ -1,3 +1,9 @@
+/// \file FileList.h
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
 #ifndef __FILE_LIST
 #define __FILE_LIST
 
@@ -74,7 +80,7 @@ public:
 		(void) fileSize;
 	}
 
-	/// This function is called when we are sending a file to a remote system
+	/// \brief This function is called when we are sending a file to a remote system.
 	/// \param[in] fileName The name of the file being sent
 	/// \param[in] fileLengthBytes How long the file is
 	/// \param[in] offset The offset in bytes into the file that we are sending
@@ -111,7 +117,7 @@ class RAK_DLL_EXPORT FileList
 public:
 	FileList();
 	~FileList();
-	/// Add all the files at a given directory.
+	/// \brief Add all the files at a given directory.
 	/// \param[in] applicationDirectory The first part of the path. This is not stored as part of the filename.  Use \ as the path delineator.
 	/// \param[in] subDirectory The rest of the path to the file. This is stored as a prefix to the filename
 	/// \param[in] writeHash The first SHA1_LENGTH bytes is a hash of the file, with the remainder the actual file data (should \a writeData be true)
@@ -129,8 +135,8 @@ public:
 	/// Read all encoded data from a bitstream. Clear() is called before deserializing.
 	bool Deserialize(RakNet::BitStream *inBitStream);
 
-	/// Given the existing set of files, search applicationDirectory for the same files.
-	/// For each file that is missing or different, add that file to \a missingOrChangedFiles. Note: the file contents are not written, and only the hash if written if \a alwaysWriteHash is true
+	/// \brief Given the existing set of files, search applicationDirectory for the same files.
+	/// \details For each file that is missing or different, add that file to \a missingOrChangedFiles. Note: the file contents are not written, and only the hash if written if \a alwaysWriteHash is true
 	/// alwaysWriteHash and neverWriteHash are optimizations to avoid reading the file contents to generate the hash if not necessary because the file is missing or has different lengths anyway.
 	/// \param[in] applicationDirectory The first part of the path. This is not stored as part of the filename. Use \ as the path delineator.
 	/// \param[out] missingOrChangedFiles Output list written to
@@ -138,8 +144,8 @@ public:
 	/// \param[in] neverWriteHash If true, will never write the hash, even if available. If false, will write the hash if the file lengths are the same and it was forced to do a comparison.
 	void ListMissingOrChangedFiles(const char *applicationDirectory, FileList *missingOrChangedFiles, bool alwaysWriteHash, bool neverWriteHash);
 
-	/// Return the files that need to be written to make \a input match this current FileList.
-	/// Specify dirSubset to only consider files that start with this path
+	/// \brief Return the files that need to be written to make \a input match this current FileList.
+	/// \details Specify dirSubset to only consider files that start with this path
 	/// specify remoteSubdir to assume that all filenames in input start with this path, so strip it off when comparing filenames.
 	/// \param[in] input Full list of files
 	/// \param[out] output Files that we need to match input
@@ -147,7 +153,7 @@ public:
 	/// \param[in] remoteSubdir Remove this from the filenames of \a input when comparing to existing filenames.
 	void GetDeltaToCurrent(FileList *input, FileList *output, const char *dirSubset, const char *remoteSubdir);
 
-	/// Assuming FileList contains a list of filenames presumably without data, read the data for these filenames
+	/// \brief Assuming FileList contains a list of filenames presumably without data, read the data for these filenames
 	/// \param[in] applicationDirectory Prepend this path to each filename. Trailing slash will be added if necessary. Use \ as the path delineator.
 	/// \param[in] writeFileData True to read and store the file data. The first SHA1_LENGTH bytes will contain the hash if \a writeFileHash is true
 	/// \param[in] writeFileHash True to read and store the hash of the file data. The first SHA1_LENGTH bytes will contain the hash if \a writeFileHash is true
@@ -158,11 +164,11 @@ public:
 	/// This tags all files as references, required for IncrementalReadInterface to process them incrementally
 	void FlagFilesAsReferences(void);
 
-	/// Write all files to disk, prefixing the paths with applicationDirectory
+	/// \brief Write all files to disk, prefixing the paths with applicationDirectory
 	/// \param[in] applicationDirectory path prefix
 	void WriteDataToDisk(const char *applicationDirectory);
 
-	/// Add a file, given data already in memory
+	/// \brief Add a file, given data already in memory.
 	/// \param[in] filename Name of a file, optionally prefixed with a partial or complete path. Use \ as the path delineator.
 	/// \param[in] fullPathToFile Full path to the file on disk
 	/// \param[in] data Contents to write
@@ -172,17 +178,17 @@ public:
 	/// \param[in] isAReference Means that this is just a reference to a file elsewhere - does not actually have any data
 	void AddFile(const char *filename, const char *fullPathToFile, const char *data, const unsigned dataLength, const unsigned fileLength, FileListNodeContext context, bool isAReference=false);
 
-	/// Add a file, reading it from disk
+	/// \brief Add a file, reading it from disk.
 	/// \param[in] filepath Complete path to the file, including the filename itself
 	/// \param[in] filename filename to store internally, anything you want, but usually either the complete path or a subset of the complete path.
 	/// \param[in] context User defined byte to store with each file. Use for whatever you want.
 	void AddFile(const char *filepath, const char *filename, FileListNodeContext context);
 
-	/// Delete all files stored in the file list
+	/// \brief Delete all files stored in the file list.
 	/// \param[in] applicationDirectory Prefixed to the path to each filename.  Use \ as the path delineator.
 	void DeleteFiles(const char *applicationDirectory);
 
-	/// Set a callback to get progress reports about what this class does
+	/// \brief Set a callback to get progress reports about what this class does.
 	/// \param[in] cb A pointer to an externally defined instance of FileListProgress. This pointer is held internally, so should remain valid as long as this class is valid.
 	void SetCallback(FileListProgress *cb);
 

@@ -14,9 +14,24 @@
 #include "RakNetTypes.h"
 #include "SocketIncludes.h"
 #include "UDPProxyCommon.h"
+#include "SimpleMutex.h"
+#include "RakString.h"
+#include "RakThread.h"
+#include "DS_Queue.h"
+
+#define UDP_FORWARDER_EXECUTE_THREADED
 
 namespace RakNet
 {
+
+enum UDPForwarderResult
+{
+	UDPFORWARDER_FORWARDING_ALREADY_EXISTS,
+	UDPFORWARDER_NO_SOCKETS,
+	UDPFORWARDER_INVALID_PARAMETERS,
+	UDPFORWARDER_SUCCESS,
+
+};
 
 /// \brief Forwards UDP datagrams. Independent of RakNet's protocol.
 /// \ingroup NAT_PUNCHTHROUGH_GROUP
@@ -33,7 +48,8 @@ public:
 	/// Stops the system, and frees all sockets
 	void Shutdown(void);
 
-	/// Call on a regular basis. Will call select() on all sockets and forward messages.
+	/// Call on a regular basis, unless using UDP_FORWARDER_EXECUTE_THREADED.
+	/// Will call select() on all sockets and forward messages.
 	void Update(void);
 
 	/// Sets the maximum number of forwarding entries allowed
@@ -56,10 +72,11 @@ public:
 	/// \param[in] source The source IP and port
 	/// \param[in] destination Where to forward to (and vice-versa)
 	/// \param[in] timeoutOnNoDataMS If no messages are forwarded for this many MS, then automatically remove this entry. Currently hardcoded to UDP_FORWARDER_MAXIMUM_TIMEOUT (else the call fails)
+	/// \param[in] forceHostAddress Force binding on a particular address. 0 to use any.
 	/// \param[out] srcToDestPort Port to go from source to destination
 	/// \param[out] destToSourcePort Port to go from destination to source
-	/// \return false on failure (can't bind the sockets). True otherwise, with \a srcToDestPortOut and \a destToSourcePortOut written
-	bool StartForwarding(SystemAddress source, SystemAddress destination, RakNetTimeMS timeoutOnNoDataMS,
+	/// \return UDPForwarderResult
+	UDPForwarderResult StartForwarding(SystemAddress source, SystemAddress destination, RakNetTimeMS timeoutOnNoDataMS, const char *forceHostAddress,
 		unsigned short *srcToDestPort, unsigned short *destToSourcePort);
 
 	/// No longer forward datagrams from source to destination
@@ -82,13 +99,43 @@ public:
 		SOCKET readSocket;
 		SOCKET writeSocket;
 		RakNetTimeMS timeoutOnNoDataMS;
+		bool updatedSourceAddress;
 	};
 
-protected:
+#ifdef UDP_FORWARDER_EXECUTE_THREADED
+	struct ThreadOperation
+	{
+		enum {
+		TO_NONE,
+		TO_START_FORWARDING,
+		TO_STOP_FORWARDING,
+		} operation;
+
+		SystemAddress source;
+		SystemAddress destination;
+		RakNetTimeMS timeoutOnNoDataMS;
+		RakNet::RakString forceHostAddress;
+		unsigned short srcToDestPort;
+		unsigned short destToSourcePort;
+		UDPForwarderResult result;
+	};
+	SimpleMutex threadOperationIncomingMutex,threadOperationOutgoingMutex;
+	DataStructures::Queue<ThreadOperation> threadOperationIncomingQueue;
+	DataStructures::Queue<ThreadOperation> threadOperationOutgoingQueue;
+#endif
+	void UpdateThreaded(void);
+	UDPForwarderResult StartForwardingThreaded(SystemAddress source, SystemAddress destination, RakNetTimeMS timeoutOnNoDataMS, const char *forceHostAddress,
+		unsigned short *srcToDestPort, unsigned short *destToSourcePort);
+	void StopForwardingThreaded(SystemAddress source, SystemAddress destination);
+
 	DataStructures::Multilist<ML_ORDERED_LIST, ForwardEntry*, SrcAndDest> forwardList;
 	unsigned short maxForwardEntries;
 
-	unsigned short AddForwardingEntry(SrcAndDest srcAndDest, RakNetTimeMS timeoutOnNoDataMS);
+	unsigned short AddForwardingEntry(SrcAndDest srcAndDest, RakNetTimeMS timeoutOnNoDataMS, const char *forceHostAddress);
+
+
+	bool isRunning, threadRunning;
+
 };
 
 } // End namespace

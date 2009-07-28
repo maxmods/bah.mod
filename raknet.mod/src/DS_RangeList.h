@@ -1,3 +1,12 @@
+/// \file DS_RangeList.h
+/// \internal
+/// \brief A queue implemented as a linked list.
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
+
 #ifndef __RANGE_LIST_H
 #define __RANGE_LIST_H
 
@@ -8,7 +17,7 @@
 
 namespace DataStructures
 {
-    template <class range_type>
+	template <class range_type>
 	struct RangeNode
     {
         RangeNode() {}

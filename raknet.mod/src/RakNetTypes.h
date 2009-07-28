@@ -57,19 +57,13 @@ struct RAK_DLL_EXPORT SocketDescriptor
 	/// The local network card address to bind to, such as "127.0.0.1".  Pass an empty string to use INADDR_ANY.
 	char hostAddress[32];
 
-	enum SocketType
-	{
-		UDP,
-		PS3_LOBBY_UDP,
-		NONE // Socket is not created, must be set with UseUserSocket to do anything
-	};
-
-	// Type of the socket. Defaults to UDP.
-	SocketType socketType;
+	// Only need to set for the PS3, when using signaling.
+	// Connect with the port returned by signaling. Set this to whatever port RakNet was actually started on
+	unsigned short remotePortRakNetWasStartedOn_PS3;
 };
 /// \brief Network address for a system
-/// Corresponds to a network address
-/// This is not necessarily a unique identifier. For example, if a system has both LAN and internet connections, the system may be identified by either one, depending on who is communicating
+/// \details Corresponds to a network address<BR>
+/// This is not necessarily a unique identifier. For example, if a system has both LAN and internet connections, the system may be identified by either one, depending on who is communicating<BR>
 /// Use RakNetGUID for a unique per-instance of RakPeer to identify systems
 struct RAK_DLL_EXPORT SystemAddress
 {
@@ -115,7 +109,7 @@ struct RAK_DLL_EXPORT SystemAddress
 class RakPeerInterface;
 
 /// All RPC functions have the same parameter list - this structure.
-/// \depreciated Use the AutoRPC or RPC3 plugin instead
+/// \deprecated use RakNet::RPC3 instead
 struct RPCParameters
 {
 	/// The data from the remote system
@@ -146,7 +140,7 @@ struct RPCParameters
 /// Use RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTSEM_ADDRESS) to get your own GUID
 struct RAK_DLL_EXPORT RakNetGUID
 {
-	uint32_t g[4];
+	uint32_t g[6];
 
 	// Return the GUID as a string
 	// Returns a static string
@@ -166,6 +160,8 @@ struct RAK_DLL_EXPORT RakNetGUID
 		g[1]=input.g[1];
 		g[2]=input.g[2];
 		g[3]=input.g[3];
+		g[4]=input.g[4];
+		g[5]=input.g[5];
 		return *this;
 	}
 
@@ -183,7 +179,7 @@ struct RAK_DLL_EXPORT RakNetGUID
 const SystemAddress UNASSIGNED_SYSTEM_ADDRESS(0xFFFFFFFF, 0xFFFF);
 const RakNetGUID UNASSIGNED_RAKNET_GUID = 
 {
-	{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF}
+	{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF}
 };
 
 struct RAK_DLL_EXPORT NetworkID
@@ -198,7 +194,7 @@ struct RAK_DLL_EXPORT NetworkID
 	}
 	~NetworkID() {}
 
-	/// \depreciated. Use NETWORK_ID_SUPPORTS_PEER_TO_PEER in RakNetDefines.h
+	/// \deprecated Use NETWORK_ID_SUPPORTS_PEER_TO_PEER in RakNetDefines.h
 	// Set this to true to use peer to peer mode for NetworkIDs.
 	// Obviously the value of this must match on all systems.
 	// True, and this will write the systemAddress portion with network sends.  Takes more bandwidth, but NetworkIDs can be locally generated
@@ -206,7 +202,7 @@ struct RAK_DLL_EXPORT NetworkID
 //	static bool peerToPeerMode;
 
 #if defined NETWORK_ID_SUPPORTS_PEER_TO_PEER
-	// Depreciated: Use guid instead
+	// deprecated: Use guid instead
 	// In peer to peer, we use both systemAddress and localSystemAddress
 	// In client / server, we only use localSystemAddress
 	SystemAddress systemAddress;
@@ -240,7 +236,6 @@ struct Packet
 	RakNetGUID guid;
 
 	/// The length of the data in bytes
-	/// \deprecated You should use bitSize.
 	unsigned int length;
 
 	/// The length of the data in bits
@@ -263,8 +258,7 @@ const NetworkID UNASSIGNED_NETWORK_ID;
 const int PING_TIMES_ARRAY_SIZE = 5;
 
 /// \brief RPC Function Implementation
-///
-/// The Remote Procedure Call Subsystem provide the RPC paradigm to
+/// \details The Remote Procedure Call Subsystem provide the RPC paradigm to
 /// RakNet user. It consists in providing remote function call over the
 /// network.  A call to a remote function require you to prepare the
 /// data for each parameter (using BitStream) for example.
@@ -294,41 +288,39 @@ const int PING_TIMES_ARRAY_SIZE = 5;
 
 /// \def REGISTER_STATIC_RPC
 /// \ingroup RAKNET_RPC
-/// \depreciated Use the AutoRPC plugin instead
 /// Register a C function as a Remote procedure.
 /// \param[in] networkObject Your instance of RakPeer, RakPeer, or RakPeer
 /// \param[in] functionName The name of the C function to call
 /// \attention 12/01/05 REGISTER_AS_REMOTE_PROCEDURE_CALL renamed to REGISTER_STATIC_RPC.  Delete the old name sometime in the future
 //#pragma deprecated(REGISTER_AS_REMOTE_PROCEDURE_CALL)
 //#define REGISTER_AS_REMOTE_PROCEDURE_CALL(networkObject, functionName) REGISTER_STATIC_RPC(networkObject, functionName)
+/// \deprecated Use RakNet::RPC3 instead
 #define REGISTER_STATIC_RPC(networkObject, functionName) (networkObject)->RegisterAsRemoteProcedureCall((#functionName),(functionName))
 
 /// \def CLASS_MEMBER_ID
 /// \ingroup RAKNET_RPC
-/// \depreciated Use the AutoRPC plugin instead
 /// \brief Concatenate two strings
 
 /// \def REGISTER_CLASS_MEMBER_RPC
-/// \depreciated Use the AutoRPC plugin instead
 /// \ingroup RAKNET_RPC
 /// \brief Register a member function of an instantiated object as a Remote procedure call.
-/// RPC member Functions MUST be marked __cdecl!
+/// \details RPC member Functions MUST be marked __cdecl!
 /// \sa ObjectMemberRPC.cpp
 /// \b CLASS_MEMBER_ID is a utility macro to generate a unique signature for a class and function pair and can be used for the Raknet functions RegisterClassMemberRPC(...) and RPC(...)
 /// \b REGISTER_CLASS_MEMBER_RPC is a utility macro to more easily call RegisterClassMemberRPC
 /// \param[in] networkObject Your instance of RakPeer, RakPeer, or RakPeer
 /// \param[in] className The class containing the function
 /// \param[in] functionName The name of the function (not in quotes, just the name)
+/// \deprecated Use RakNet::RPC3 instead
 #define CLASS_MEMBER_ID(className, functionName) #className "_" #functionName
+/// \deprecated Use RakNet::RPC3 instead
 #define REGISTER_CLASS_MEMBER_RPC(networkObject, className, functionName) {union {void (__cdecl className::*cFunc)( RPCParameters *rpcParms ); void* voidFunc;}; cFunc=&className::functionName; networkObject->RegisterClassMemberRPC(CLASS_MEMBER_ID(className, functionName),voidFunc);}
 
 /// \def UNREGISTER_AS_REMOTE_PROCEDURE_CALL
 /// \brief Only calls UNREGISTER_STATIC_RPC
-/// \depreciated Use the AutoRPC plugin instead
 
 /// \def UNREGISTER_STATIC_RPC
 /// \ingroup RAKNET_RPC
-/// \depreciated Use the AutoRPC plugin instead
 /// Unregisters a remote procedure call
 /// RPC member Functions MUST be marked __cdecl!  See the ObjectMemberRPC example.
 /// \param[in] networkObject The object that manages the function
@@ -336,15 +328,17 @@ const int PING_TIMES_ARRAY_SIZE = 5;
 // 12/01/05 UNREGISTER_AS_REMOTE_PROCEDURE_CALL Renamed to UNREGISTER_STATIC_RPC.  Delete the old name sometime in the future
 //#pragma deprecated(UNREGISTER_AS_REMOTE_PROCEDURE_CALL)
 //#define UNREGISTER_AS_REMOTE_PROCEDURE_CALL(networkObject,functionName) UNREGISTER_STATIC_RPC(networkObject,functionName)
+/// \deprecated Use RakNet::RPC3 instead
 #define UNREGISTER_STATIC_RPC(networkObject,functionName) (networkObject)->UnregisterAsRemoteProcedureCall((#functionName))
 
 /// \def UNREGISTER_CLASS_INST_RPC
 /// \ingroup RAKNET_RPC
-/// \depreciated Use the AutoRPC plugin instead
+/// \deprecated Use the AutoRPC plugin instead
 /// \brief Unregisters a member function of an instantiated object as a Remote procedure call.
 /// \param[in] networkObject The object that manages the function
 /// \param[in] className The className that was originally passed to REGISTER_AS_REMOTE_PROCEDURE_CALL
 /// \param[in] functionName The function name
+/// \deprecated Use RakNet::RPC3 instead
 #define UNREGISTER_CLASS_MEMBER_RPC(networkObject, className, functionName) (networkObject)->UnregisterAsRemoteProcedureCall((#className "_" #functionName))
 
 #endif

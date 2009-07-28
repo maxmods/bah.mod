@@ -47,7 +47,7 @@ bool ReadyEvent::SetEvent(int eventId, bool isReady)
 	if (objectExists==false)
 	{
 		// Totally new event
-		CreateEvent(eventId, isReady);
+		CreateNewEvent(eventId, isReady);
 	}
 	else
 	{
@@ -62,7 +62,7 @@ bool ReadyEvent::ForceCompletion(int eventId)
 	if (objectExists==false)
 	{
 		// Totally new event
-		CreateEvent(eventId, true);
+		CreateNewEvent(eventId, true);
 		eventIndex = readyEventNodeList.GetIndexFromKey(eventId, &objectExists);
 	}
 	
@@ -147,7 +147,7 @@ bool ReadyEvent::AddToWaitList(int eventId, SystemAddress address)
 	bool eventExists;
 	unsigned eventIndex = readyEventNodeList.GetIndexFromKey(eventId, &eventExists);
 	if (eventExists==false)
-		eventIndex=CreateEvent(eventId, false);
+		eventIndex=CreateNewEvent(eventId, false);
 
 	// Don't do this, otherwise if we are trying to start a 3 player game, it will not allow the 3rd player to hit ready if the first two players have already done so
 	//if (IsLocked(eventIndex))
@@ -435,7 +435,7 @@ void ReadyEvent::Clear(void)
 	readyEventNodeList.Clear();
 }
 
-unsigned ReadyEvent::CreateEvent(int eventId, bool isReady)
+unsigned ReadyEvent::CreateNewEvent(int eventId, bool isReady)
 {
 	ReadyEventNode *ren = RakNet::OP_NEW<ReadyEventNode>( __FILE__, __LINE__ );
 	ren->eventId=eventId;

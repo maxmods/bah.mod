@@ -1,4 +1,4 @@
-/// \file
+/// \file GetTime.h
 /// \brief Returns the value from QueryPerformanceCounter.  This is the function RakNet uses to represent time.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -16,7 +16,7 @@
 /// For the most part I've tried to avoid this simply by using names very likely to be unique for my classes.
 namespace RakNet
 {
-	/// Returns the value from QueryPerformanceCounter.  This is the function RakNet uses to represent time.
+	/// \brief Returns the value from QueryPerformanceCounter.  This is the function RakNet uses to represent time.
 	// Should be renamed GetTimeMS
 	RakNetTime RAK_DLL_EXPORT GetTime( void );
 	// Should be renamed GetTimeUS

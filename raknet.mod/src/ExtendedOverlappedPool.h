@@ -1,5 +1,5 @@
 /// \file
-/// \brief \b [Depreciated] This was used for IO completion ports.
+/// \brief \b [deprecated] This was used for IO completion ports.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -15,7 +15,7 @@
 #include "ClientContextStruct.h"
 #include "DS_Queue.h"
 
-/// Depreciated - for IO completion ports
+/// deprecated - for IO completion ports
 class ExtendedOverlappedPool
 {
 

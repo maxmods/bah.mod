@@ -320,6 +320,7 @@ void FileList::Clear(void)
 	{
 		rakFree_Ex(fileList[i].data, __FILE__, __LINE__ );
 		rakFree_Ex(fileList[i].filename, __FILE__, __LINE__ );
+		rakFree_Ex(fileList[i].fullPathToFile, __FILE__, __LINE__ );
 	}
 	fileList.Clear();
 }
@@ -658,7 +659,7 @@ void FileList::WriteDataToDisk(const char *applicationDirectory)
 }
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4966 ) // unlink declared depreciated by Microsoft in order to make it harder to be cross platform.  I don't agree it's depreciated.
+#pragma warning( disable : 4966 ) // unlink declared deprecated by Microsoft in order to make it harder to be cross platform.  I don't agree it's deprecated.
 #endif
 void FileList::DeleteFiles(const char *applicationDirectory)
 {
@@ -685,7 +686,7 @@ void FileList::DeleteFiles(const char *applicationDirectory)
 		strcat(fullPath, fileList[i].filename);
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4966 ) // unlink declared depreciated by Microsoft in order to make it harder to be cross platform.  I don't agree it's depreciated.
+#pragma warning( disable : 4966 ) // unlink declared deprecated by Microsoft in order to make it harder to be cross platform.  I don't agree it's deprecated.
 #endif
         int result = unlink(fullPath);
 		if (result!=0)

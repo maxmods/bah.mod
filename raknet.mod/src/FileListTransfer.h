@@ -1,4 +1,4 @@
-/// \file
+/// \file FileListTransfer.h
 /// \brief A plugin to provide a simple way to compress and incrementally send the files in the FileList structure.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -24,10 +24,12 @@ class FileListProgress;
 struct FileListReceiver;
 
 /// \defgroup FILE_LIST_TRANSFER_GROUP FileListTransfer
+/// \brief A plugin to provide a simple way to compress and incrementally send the files in the FileList structure.
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \brief A plugin to provide a simple way to compress and incrementally send the files in the FileList structure.
-/// Similar to the DirectoryDeltaTransfer plugin, except that it doesn't send deltas based on pre-existing files or actually write the files to disk.
+/// \details Similar to the DirectoryDeltaTransfer plugin, except that it doesn't send deltas based on pre-existing files or actually write the files to disk.
 ///
 /// Usage:
 /// Call SetupReceive to allow one file set to arrive.  The value returned by FileListTransfer::SetupReceive()
@@ -42,35 +44,35 @@ public:
 	FileListTransfer();
 	virtual ~FileListTransfer();
 	
-	/// Allows one corresponding Send() call from another system to arrive.
+	/// \brief Allows one corresponding Send() call from another system to arrive.
 	/// \param[in] handler The class to call on each file
 	/// \param[in] deleteHandler True to delete the handler when it is no longer needed.  False to not do so.
 	/// \param[in] allowedSender Which system to allow files from.
 	/// \return A set ID value, which should be passed as the \a setID value to the Send() call on the other system.  This value will be returned in the callback and is unique per file set.  Returns 65535 on failure (not connected to sender)
     unsigned short SetupReceive(FileListTransferCBInterface *handler, bool deleteHandler, SystemAddress allowedSender);
 
-	/// Send the FileList structure to another system, which must have previously called SetupReceive()
+	/// \brief Send the FileList structure to another system, which must have previously called SetupReceive().
 	/// \param[in] fileList A list of files.  The data contained in FileList::data will be sent incrementally and compressed among all files in the set
 	/// \param[in] rakPeer The instance of RakNet to use to send the message. Pass 0 to use the instance the plugin is attached to
 	/// \param[in] recipient The address of the system to send to
 	/// \param[in] setID The return value of SetupReceive() which was previously called on \a recipient
 	/// \param[in] priority Passed to RakPeerInterface::Send()
 	/// \param[in] orderingChannel Passed to RakPeerInterface::Send()
-	/// \param[in] compressData Depreciated, unsupported
+	/// \param[in] compressData deprecated, unsupported
 	/// \param[in] _incrementalReadInterface If a file in \a fileList has no data, filePullInterface will be used to read the file in chunks of size \a chunkSize
 	/// \param[in] _chunkSize How large of a block of a file to send at once
-	void Send(FileList *fileList, RakPeerInterface *rakPeer, SystemAddress recipient, unsigned short setID, PacketPriority priority, char orderingChannel, bool compressData, IncrementalReadInterface *_incrementalReadInterface=0, unsigned int _chunkSize=262144);
+	void Send(FileList *fileList, RakPeerInterface *rakPeer, SystemAddress recipient, unsigned short setID, PacketPriority priority, char orderingChannel, bool compressData, IncrementalReadInterface *_incrementalReadInterface=0, unsigned int _chunkSize=262144*4*32);
 
-	/// Stop a download.
+	/// \brief Stop a download.
 	void CancelReceive(unsigned short setId);
 
-	/// Remove all handlers associated with a particular system address
+	/// \brief Remove all handlers associated with a particular system address.
 	void RemoveReceiver(SystemAddress systemAddress);
 
-	/// Is a handler passed to SetupReceive still running?
+	/// \brief Is a handler passed to SetupReceive still running?
 	bool IsHandlerActive(unsigned short setId);
 
-	/// Set a callback to get progress reports about what the file list instances do
+	/// \brief Set a callback to get progress reports about what the file list instances do.
 	/// \param[in] cb A pointer to an externally defined instance of FileListProgress. This pointer is held internally, so should remain valid as long as this class is valid.
 	void SetCallback(FileListProgress *cb);
 

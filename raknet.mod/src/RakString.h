@@ -6,20 +6,22 @@
 #include "RakNetTypes.h" // int64_t
 #include <stdio.h>
 
+class SimpleMutex;
+
 namespace RakNet
 {
 
 class BitStream;
 
 /// \brief String class
-/// Has the following improvements over std::string
-/// Reference counting: Suitable to store in lists
-/// Varidic assignment operator
-/// Doesn't cause linker errors
+/// \details Has the following improvements over std::string
+/// -Reference counting: Suitable to store in lists
+/// -Variadic assignment operator
+/// -Doesn't cause linker errors
 class RAK_DLL_EXPORT RakString
 {
 public:
-	/// Constructors
+	// Constructors
 	RakString();
 	RakString(char input);
 	RakString(unsigned char input);
@@ -35,6 +37,7 @@ public:
 	const char *C_String(void) const {return sharedString->c_str;}
 
 	// Lets you modify the string. Do not make the string longer - however, you can make it shorter, or change the contents.
+	// Pointer is only valid in the scope of RakString itself
 	char *C_StringUnsafe(void) {Clone(); return sharedString->c_str;}
 
 	/// Assigment operators
@@ -65,6 +68,8 @@ public:
 
 	/// Inequality
 	bool operator!=(const RakString &rhs) const;
+	bool operator!=(const char *str) const;
+	bool operator!=(char *str) const;
 
 	/// Change all characters to lowercase
 	const char * ToLower(void);
@@ -96,6 +101,10 @@ public:
 	/// Erase characters out of the string at index for count
 	void Erase(unsigned int index, unsigned int count);
 
+	/// Create a RakString with a value, without doing printf style parsing
+	/// Equivalent to assignment operator
+	static RakNet::RakString NonVariadic(const char *str);
+
 	/// Compare strings (case sensitive)
 	int StrCmp(const RakString &rhs) const;
 
@@ -121,7 +130,13 @@ public:
 	bool IsEmailAddress(void) const;
 
 	/// URL Encode the string. See http://www.codeguru.com/cpp/cpp/cpp_mfc/article.php/c4029/
-	void URLEncode(void);
+	RakNet::RakString& URLEncode(void);
+
+	/// URL decode the string
+	RakNet::RakString& URLDecode(void);
+
+	/// Scan for quote, double quote, and backslash and prepend with backslash
+	RakNet::RakString& SQLEscape(void);
 
 	/// RakString uses a freeList of old no-longer used strings
 	/// Call this function to clear this memory on shutdown
@@ -180,6 +195,7 @@ public:
 	/// \internal
 	struct SharedString
 	{
+		SimpleMutex *refCountMutex;
 		unsigned int refCount;
 		size_t bytesUsed;
 		char *bigString;
@@ -225,7 +241,7 @@ protected:
 
 }
 
-const RakNet::RakString operator+(const RakNet::RakString &lhs, const RakNet::RakString &rhs);
+const RakNet::RakString RAK_DLL_EXPORT operator+(const RakNet::RakString &lhs, const RakNet::RakString &rhs);
 
 
 #endif

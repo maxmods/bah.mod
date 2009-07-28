@@ -32,17 +32,17 @@ int RAK_DLL_EXPORT StrAndBoolComp( char *const &key, const StrAndBool &data );
 
 namespace RakNet
 {
-	/// This is an even more efficient alternative to StringCompressor in that it writes a single byte from a lookup table and only does compression
-	/// if the string does not already exist in the table.
-	/// All string tables must match on all systems - hence you must add all the strings in the same order on all systems.
-	/// Furthermore, this must be done before sending packets that use this class, since the strings are ordered for fast lookup.  Adding after that time would mess up all the indices so don't do it.
+	/// \details This is an even more efficient alternative to StringCompressor in that it writes a single byte from a lookup table and only does compression.<BR>
+	/// if the string does not already exist in the table.<BR>
+	/// All string tables must match on all systems - hence you must add all the strings in the same order on all systems.<BR>
+	/// Furthermore, this must be done before sending packets that use this class, since the strings are ordered for fast lookup.  Adding after that time would mess up all the indices so don't do it.<BR>
 	/// Don't use this class to write strings which were not previously registered with AddString, since you just waste bandwidth then.  Use StringCompressor instead.
 	/// \brief Writes a string index, instead of the whole string
 	class RAK_DLL_EXPORT StringTable
 	{
 	public:
 
-		/// Destructor	
+		// Destructor	
 		~StringTable();
 
 		/// static function because only static functions can access static members

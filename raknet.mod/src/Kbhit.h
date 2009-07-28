@@ -8,7 +8,7 @@ You can do whatever you want with it.
 #if !defined(linux) && !defined(__GNUC__) && !defined(__GCCXML__)
 #include <conio.h> /* kbhit(), getch() */
 
-#else
+#elif !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
 #include <sys/time.h> /* struct timeval, select() */
 /* ICANON, ECHO, TCSANOW, struct termios */
 #include <termios.h> /* tcgetattr(), tcsetattr() */

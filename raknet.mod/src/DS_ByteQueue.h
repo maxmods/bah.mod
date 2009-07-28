@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Byte queue
+/// \file DS_ByteQueue.h
+/// \internal
+/// \brief Byte queue
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -25,6 +26,7 @@ namespace DataStructures
 		bool ReadBytes(char *out, unsigned maxLengthToRead, bool peek);
 		unsigned GetBytesWritten(void) const;
 		void IncrementReadOffset(unsigned length);
+		void DecrementReadOffset(unsigned length);
 		void Clear(void);
 		void Print(void);
 

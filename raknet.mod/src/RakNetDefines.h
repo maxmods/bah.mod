@@ -3,8 +3,7 @@
 
 /// Define __GET_TIME_64BIT to have RakNetTime use a 64, rather than 32 bit value.  A 32 bit value will overflow after about 5 weeks.
 /// However, this doubles the bandwidth use for sending times, so don't do it unless you have a reason to.
-/// Disabled by default.
-// #define __GET_TIME_64BIT
+#define __GET_TIME_64BIT
 
 /// Makes RakNet threadsafe
 /// Define this if you use the same instance of RakPeer from multiple threads
@@ -35,19 +34,25 @@
 /// See RakMemoryOverride.h. 
 #define _USE_RAK_MEMORY_OVERRIDE
 
-/// If defined, RakNet will automatically try to determine available bandwidth and buffer accordingly (recommended)
-/// If commented out, you will probably not be able to send large files and will get increased packetloss. However, responsiveness for the first 10 seconds or so will be improved.
-#define _ENABLE_FLOW_CONTROL
+// Comment out _USE_RAKNET_FLOW_CONTROL to use UDT for flow control instead
+// UDT implementation has the following known problems:
+// 1. Large lower priority messages can block higher priority messages until the lower priority message is sent
+// 2. Startup, shutdown, and connecting is slow compared to RakNet. This may cause connection attempts to fail, especially when using fully connected mesh
+#define _USE_RAKNET_FLOW_CONTROL
+
+// If _USE_RAKNET_FLOW_CONTROL is uncommented, and _ENABLE_RAKNET_FLOW_CONTROL is commented, then no flow control is used at all
+// Has no effect if _USE_RAKNET_FLOW_CONTROL is commented out
+#define _ENABLE_RAKNET_FLOW_CONTROL
 
 /// If defined, OpenSSL is enabled for the class TCPInterface
 /// This is necessary to use the SendEmail class with Google POP servers
 /// Note that OpenSSL carries its own license restrictions that you should be aware of. If you don't agree, don't enable this define
 /// This also requires that you enable header search paths to DependentExtensions\openssl-0.9.8g
-/// #define OPEN_SSL_CLIENT_SUPPORT
+// #define OPEN_SSL_CLIENT_SUPPORT
 
 /// Threshold at which to do a malloc / free rather than pushing data onto a fixed stack for the bitstream class
 /// Arbitrary size, just picking something likely to be larger than most packets
-#define BITSTREAM_STACK_ALLOCATION_SIZE 1024
+#define BITSTREAM_STACK_ALLOCATION_SIZE 256
 
 // Redefine if you want to disable or change the target for debug RAKNET_DEBUG_PRINTF
 #define RAKNET_DEBUG_PRINTF printf
@@ -72,5 +77,8 @@
 #else
 	#define RakAssert(x) 
 #endif
+
+/// Uncomment if you want to link in the DLMalloc library to use with RakMemoryOverride
+// #define _LINK_DL_MALLOC
 
 #endif // __RAKNET_DEFINES_H

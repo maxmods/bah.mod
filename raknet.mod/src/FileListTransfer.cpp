@@ -32,6 +32,7 @@ struct FileListReceiver
 	unsigned setCount;
 	unsigned setTotalCompressedTransmissionLength;
 	unsigned setTotalFinalLength;
+	unsigned setTotalDownloadedLength;
 	bool gotSetHeader;
 	bool deleteDownloadHandler;
 	bool isCompressed;
@@ -43,7 +44,7 @@ struct FileListReceiver
 
 };
 
-FileListReceiver::FileListReceiver() {filesReceived=0; partLength=1; DataStructures::Map<unsigned int, FLR_MemoryBlock>::IMPLEMENT_DEFAULT_COMPARISON();}
+FileListReceiver::FileListReceiver() {filesReceived=0; setTotalDownloadedLength=0; partLength=1; DataStructures::Map<unsigned int, FLR_MemoryBlock>::IMPLEMENT_DEFAULT_COMPARISON();}
 FileListReceiver::~FileListReceiver() {
 	unsigned int i=0;
 	for (i=0; i < pushedFiles.Size(); i++)
@@ -275,25 +276,27 @@ bool FileListTransfer::DecodeFile(Packet *packet, bool fullFile)
 	}
 
 	inBitStream.ReadCompressed(onFileStruct.fileIndex);
-	inBitStream.ReadCompressed(onFileStruct.finalDataLength);
+	inBitStream.ReadCompressed(onFileStruct.byteLengthOfThisFile);
 
 	// Read header uncompressed so the data is byte aligned, for speed
-	onFileStruct.compressedTransmissionLength=(unsigned int) onFileStruct.finalDataLength;
+	//onFileStruct.compressedTransmissionLength=(unsigned int) onFileStruct.byteLengthOfThisFile;
 
 	if (fullFile)
 	{
 		// Support SendLists
 		inBitStream.AlignReadToByteBoundary();
 
-		onFileStruct.fileData = (char*) rakMalloc_Ex( (size_t) onFileStruct.finalDataLength, __FILE__, __LINE__ );
+		onFileStruct.fileData = (char*) rakMalloc_Ex( (size_t) onFileStruct.byteLengthOfThisFile, __FILE__, __LINE__ );
 
-		inBitStream.Read((char*)onFileStruct.fileData, onFileStruct.finalDataLength);
+		inBitStream.Read((char*)onFileStruct.fileData, onFileStruct.byteLengthOfThisFile);
+
+		fileListReceiver->setTotalDownloadedLength+=onFileStruct.byteLengthOfThisFile;
 	}
 	
 
-	onFileStruct.setCount=fileListReceiver->setCount;
-	onFileStruct.setTotalCompressedTransmissionLength=fileListReceiver->setTotalCompressedTransmissionLength;
-	onFileStruct.setTotalFinalLength=fileListReceiver->setTotalFinalLength;
+	onFileStruct.numberOfFilesInThisSet=fileListReceiver->setCount;
+//	onFileStruct.setTotalCompressedTransmissionLength=fileListReceiver->setTotalCompressedTransmissionLength;
+	onFileStruct.byteLengthOfThisSet=fileListReceiver->setTotalFinalLength;
 
 	// User callback for this file.
 	if (fullFile)
@@ -302,6 +305,7 @@ bool FileListTransfer::DecodeFile(Packet *packet, bool fullFile)
 			rakFree_Ex(onFileStruct.fileData, __FILE__, __LINE__ );
 
 		fileListReceiver->filesReceived++;
+		onFileStruct.bytesDownloadedForThisSet=fileListReceiver->setTotalDownloadedLength;
 
 		// If this set is done, free the memory for it.
 		if ((int) fileListReceiver->setCount==fileListReceiver->filesReceived)
@@ -344,6 +348,9 @@ bool FileListTransfer::DecodeFile(Packet *packet, bool fullFile)
 		}
 		else
 			firstDataChunk=0;
+
+		onFileStruct.bytesDownloadedForThisSet=fileListReceiver->setTotalDownloadedLength+unreadBytes;
+		onFileStruct.bytesDownloadedForThisFile=onFileStruct.byteLengthOfThisFile;
 
 		fileListReceiver->downloadHandler->OnFileProgress(&onFileStruct, partCount, partTotal, unreadBytes, firstDataChunk);
 
@@ -497,11 +504,12 @@ void FileListTransfer::Update(void)
 }
 void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 {
-	// fullFile is always true for TCP, since TCP does not return SPLIT_PACKET_NOTIFICATION
-
 	RakNet::BitStream refPushAck;
-	refPushAck.Write((MessageID)ID_FILE_LIST_REFERENCE_PUSH_ACK);
-	SendUnified(&refPushAck,HIGH_PRIORITY, RELIABLE, 0, packet->systemAddress, false);
+	if (fullFile)
+	{
+		refPushAck.Write((MessageID)ID_FILE_LIST_REFERENCE_PUSH_ACK);
+		SendUnified(&refPushAck,HIGH_PRIORITY, RELIABLE, 0, packet->systemAddress, false);
+	}
 
 	FileListTransferCBInterface::OnFileStruct onFileStruct;
 	RakNet::BitStream inBitStream(packet->data, packet->length, false);
@@ -550,7 +558,7 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 	}
 
 	inBitStream.ReadCompressed(onFileStruct.fileIndex);
-	inBitStream.ReadCompressed(onFileStruct.finalDataLength);
+	inBitStream.ReadCompressed(onFileStruct.byteLengthOfThisFile);
 	unsigned int offset;
 	unsigned int chunkLength;
 	inBitStream.ReadCompressed(offset);
@@ -567,14 +575,14 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 	FLR_MemoryBlock mb;
 	if (fileListReceiver->pushedFiles.Has(onFileStruct.fileIndex)==false)
 	{
-		if (chunkLength > 1000000000 || onFileStruct.finalDataLength > 1000000000)
+		if (chunkLength > 1000000000 || onFileStruct.byteLengthOfThisFile > 1000000000)
 		{
 			RakAssert("FileListTransfer::OnReferencePush: file too large" && 0);
 			return;
 		}
 
-		mb.allocatedLength=onFileStruct.finalDataLength;
-		mb.block = (char*) rakMalloc_Ex(onFileStruct.finalDataLength, __FILE__, __LINE__);
+		mb.allocatedLength=onFileStruct.byteLengthOfThisFile;
+		mb.block = (char*) rakMalloc_Ex(onFileStruct.byteLengthOfThisFile, __FILE__, __LINE__);
 		if (mb.block==0)
 		{
 			notifyOutOfMemory(__FILE__, __LINE__);
@@ -584,7 +592,10 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 		fileListReceiver->pushedFiles.SetNew(onFileStruct.fileIndex, mb);
 	}
 	else
+	{
 		mb=fileListReceiver->pushedFiles.Get(onFileStruct.fileIndex);
+	}
+	
 
 	if (offset+chunkLength > mb.allocatedLength)
 	{
@@ -594,7 +605,7 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 	}
 
 	// Read header uncompressed so the data is byte aligned, for speed
-	onFileStruct.compressedTransmissionLength=(unsigned int) onFileStruct.finalDataLength;
+//	onFileStruct.compressedTransmissionLength=(unsigned int) onFileStruct.byteLengthOfThisFile;
 
 	unsigned int unreadBits = inBitStream.GetNumberOfUnreadBits();
 	unsigned int unreadBytes = BITS_TO_BYTES(unreadBits);
@@ -605,14 +616,28 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 		amountToRead=unreadBytes;
 
 	inBitStream.AlignReadToByteBoundary();
-	if (fullFile || (rakPeerInterface->GetSplitMessageProgressInterval() != 0 && (int)partCount==rakPeerInterface->GetSplitMessageProgressInterval()))
+//	if (fullFile ||
+//		(
+//		rakPeerInterface->GetSplitMessageProgressInterval() != 0 &&
+//		(int)partCount==rakPeerInterface->GetSplitMessageProgressInterval())
+//		)
+	if (packet->data[0]!=ID_DOWNLOAD_PROGRESS)
 	{
 		inBitStream.Read(mb.block+offset, amountToRead);
-	}
 
-	onFileStruct.setCount=fileListReceiver->setCount;
-	onFileStruct.setTotalCompressedTransmissionLength=fileListReceiver->setTotalCompressedTransmissionLength;
-	onFileStruct.setTotalFinalLength=fileListReceiver->setTotalFinalLength;
+		onFileStruct.bytesDownloadedForThisFile=offset+amountToRead;
+	}
+	else
+	{
+		fileListReceiver->setTotalDownloadedLength+=partLength;
+		onFileStruct.bytesDownloadedForThisFile=partCount*partLength;
+		
+	}
+	onFileStruct.bytesDownloadedForThisSet=fileListReceiver->setTotalDownloadedLength;
+
+	onFileStruct.numberOfFilesInThisSet=fileListReceiver->setCount;
+//	onFileStruct.setTotalCompressedTransmissionLength=fileListReceiver->setTotalCompressedTransmissionLength;
+	onFileStruct.byteLengthOfThisSet=fileListReceiver->setTotalFinalLength;
 	onFileStruct.fileData=mb.block;
 
 	if (finished)
@@ -642,20 +667,21 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool fullFile)
 		unsigned int currentNotificationIndex;
 		unsigned int unreadBytes;
 
-		if (rakPeerInterface==0 || rakPeerInterface->GetSplitMessageProgressInterval()==0)
+		// if (rakPeerInterface==0 || rakPeerInterface->GetSplitMessageProgressInterval()==0)
+		if (packet->data[0]!=ID_DOWNLOAD_PROGRESS)
 		{
-			totalNotifications = onFileStruct.finalDataLength / chunkLength + 1;
+			totalNotifications = onFileStruct.byteLengthOfThisFile / chunkLength + 1;
 			currentNotificationIndex = offset / chunkLength;
 			unreadBytes = mb.allocatedLength - ((offset+1)*chunkLength);
 		}
 		else
 		{
-			totalNotifications = onFileStruct.finalDataLength / fileListReceiver->partLength + 1;
+			totalNotifications = onFileStruct.byteLengthOfThisFile / fileListReceiver->partLength + 1;
 			if (fullFile==false)
 				currentNotificationIndex = (offset+partCount*fileListReceiver->partLength) / fileListReceiver->partLength ;
 			else
 				currentNotificationIndex = (offset+chunkLength) / fileListReceiver->partLength ;
-			unreadBytes = onFileStruct.finalDataLength - ((currentNotificationIndex+1) * fileListReceiver->partLength);
+			unreadBytes = onFileStruct.byteLengthOfThisFile - ((currentNotificationIndex+1) * fileListReceiver->partLength);
 		}
 		fileListReceiver->downloadHandler->OnFileProgress(&onFileStruct, currentNotificationIndex, totalNotifications, unreadBytes, mb.block);
 	}

@@ -1,3 +1,9 @@
+/// \file Gen_RPC8.h
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
 #ifndef __GEN_RPC8_H
 #define __GEN_RPC8_H
 

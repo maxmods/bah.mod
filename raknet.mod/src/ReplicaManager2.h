@@ -27,7 +27,9 @@ class Connection_RM2;
 class Connection_RM2Factory;
 
 /// \defgroup REPLICA_MANAGER_2_GROUP ReplicaManager2
-/// \ingroup PLUGINS_GROUP
+/// \brief Depreciated. Second implementation of object replication
+/// \details
+/// \ingroup REPLICA_MANAGER_GROUP
 
 /// \brief These are the types of events that can cause network data to be transmitted. 
 /// \ingroup REPLICA_MANAGER_2_GROUP
@@ -102,18 +104,21 @@ enum
 	UNDEFINED_REASON,
 };
 
+/// \deprecated See RakNet::ReplicaManager3
+
 /// \brief A management system for your game objects and players to make serialization, scoping, and object creation and destruction easier.
-///
-/// Quick start:
-/// 1. Create a class that derives from Connection_RM2, implementing the Construct() function. Construct() is a factory function that should return instances of your game objects, given a user-defined identifier.
-/// 2. Create a class that derives from Connection_RM2Factory, implementing AllocConnection() and DeallocConnection() to return instances of the class from step 1.
-/// 3. Attach ReplicaManager2 as a plugin
-/// 4. Call ReplicaManager2::SetConnectionFactory with an instance of the class from step 2.
-/// 5. For each of your game classes that use this system, derive from Replica2 and implement SerializeConstruction(), Serialize(), Deserialize(). The output of SerializeConstruction() is sent to Connection_RM2::Construct()
-/// 6. When these classes are allocated, call Replica2::SetReplicaManager() with the instance of ReplicaManager2 class created in step 3 (this could be done automatically in the constructor)
-/// 7. Creation: Use Replica2::SendConstruction() to create the object remotely, Replica2::SendDestruction() to delete the object remotely.
-/// 8. Scoping: Override Replica2::QueryVisibility() and Replica2::QueryConstruction() to return BQR_YES or BQR_NO if an object should be visible and in scope to a given connection. Defaults to BQR_ALWAYS
-/// 9. Automatic serialization: Call Replica2::AddAutoSerializeTimer() to automatically call Replica2::Serialize() at intervals, compare this to the last value, and broadcast out the object when the serialized variables change.
+/// \details Quick start:
+/// <OL>
+/// <LI>Create a class that derives from Connection_RM2, implementing the Construct() function. Construct() is a factory function that should return instances of your game objects, given a user-defined identifier.
+/// <LI>Create a class that derives from Connection_RM2Factory, implementing AllocConnection() and DeallocConnection() to return instances of the class from step 1.
+/// <LI>Attach ReplicaManager2 as a plugin
+/// <LI>Call ReplicaManager2::SetConnectionFactory with an instance of the class from step 2.
+/// <LI>For each of your game classes that use this system, derive from Replica2 and implement SerializeConstruction(), Serialize(), Deserialize(). The output of SerializeConstruction() is sent to Connection_RM2::Construct()
+/// <LI>When these classes are allocated, call Replica2::SetReplicaManager() with the instance of ReplicaManager2 class created in step 3 (this could be done automatically in the constructor)
+/// <LI>Creation: Use Replica2::SendConstruction() to create the object remotely, Replica2::SendDestruction() to delete the object remotely.
+/// <LI>Scoping: Override Replica2::QueryVisibility() and Replica2::QueryConstruction() to return BQR_YES or BQR_NO if an object should be visible and in scope to a given connection. Defaults to BQR_ALWAYS
+/// <LI>Automatic serialization: Call Replica2::AddAutoSerializeTimer() to automatically call Replica2::Serialize() at intervals, compare this to the last value, and broadcast out the object when the serialized variables change.
+/// <\OL>
 ///
 /// \pre Call RakPeer::SetNetworkIDManager()
 /// \pre This system is a server or peer: Call NetworkIDManager::SetIsNetworkIDAuthority(true).
@@ -123,10 +128,10 @@ enum
 class RAK_DLL_EXPORT ReplicaManager2 : public PluginInterface2
 {
 public:
-	/// Constructor
+	// Constructor
 	ReplicaManager2();
 
-	/// Destructor
+	// Destructor
 	virtual ~ReplicaManager2();
 
 	/// Sets the factory class used to allocate connection objects
@@ -438,16 +443,16 @@ struct RAK_DLL_EXPORT SerializationContext
 
 
 /// \brief Base class for game objects that use the ReplicaManager2 system
-/// All game objects that want to use the ReplicaManager2 functionality must inherit from Replica2.
+/// \details All game objects that want to use the ReplicaManager2 functionality must inherit from Replica2.<BR>
 /// Generally you will want to implement at a minimum Serialize(), Deserialize(), and SerializeConstruction()
 /// \ingroup REPLICA_MANAGER_2_GROUP
 class RAK_DLL_EXPORT Replica2 : public NetworkIDObject
 {
 public:
-	/// Constructor
+	// Constructor
 	Replica2();
 
-	/// Destructor
+	// Destructor
 	virtual ~Replica2();
 
 	/// Sets the replica manager to use with this Replica.
@@ -713,17 +718,17 @@ public:
 };
 
 /// \brief This class represents a connection between two instances of ReplicaManager2
-/// Represents a connection. Allocated by user supplied factory interface Connection_RM2Factory
-/// Implicitly created as needed
-/// Generally you will want to implement at a minimum the Construct() function, used as a factory function to create your game objects
+/// \details Represents a connection. Allocated by user supplied factory interface Connection_RM2Factory.<BR>
+/// Implicitly created as needed.<BR>
+/// Generally you will want to implement at a minimum the Construct() function, used as a factory function to create your game objects.
 /// \ingroup REPLICA_MANAGER_2_GROUP
 class RAK_DLL_EXPORT Connection_RM2
 {
 public:
-	/// Constructor
+	// Constructor
 	Connection_RM2();
 
-	/// Destructor
+	// Destructor
 	virtual ~Connection_RM2();
 
 	/// Factory function, used to create instances of your game objects

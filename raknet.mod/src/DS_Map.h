@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Map
+/// \file DS_Map.h
+/// \internal
+/// \brief Map
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -78,7 +79,7 @@ namespace DataStructures
 		unsigned Size(void) const;
 
 	protected:
-		DataStructures::OrderedList< key_type,MapNode,Map::NodeComparisonFunc > mapNodeList;
+		DataStructures::OrderedList< key_type,MapNode,&Map::NodeComparisonFunc > mapNodeList;
 
 		void SaveLastSearch(const key_type &key, unsigned index) const;
 		bool HasSavedSearchResult(const key_type &key) const;

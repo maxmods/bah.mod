@@ -1,5 +1,5 @@
 /// \file
-/// \brief \b [Internal] Depreciated, back from when I supported IO Completion ports.
+/// \brief \b [Internal] deprecated, back from when I supported IO Completion ports.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

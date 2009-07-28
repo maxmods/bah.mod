@@ -144,7 +144,7 @@ void ConsoleServer::Update(void)
 				transport->Send(p->systemAddress, "[<ParserName>]   <Command> [<Parameters>]   Execute a command\r\n");
 				transport->Send(p->systemAddress, "[<ParserNumber>] <Command> [<Parameters>]   Execute a command\r\n");
 				ListParsers(p->systemAddress);
-				ShowPrompt(p->systemAddress);
+				//ShowPrompt(p->systemAddress);
 			}
 			else // numParameters == 2, including the help tag
 			{
@@ -184,12 +184,12 @@ void ConsoleServer::Update(void)
 					// Don't know what to do
 					transport->Send(p->systemAddress, "Unknown help topic: %s.\r\n", parameterList[1]);
 				}
-				ShowPrompt(p->systemAddress);
+				//ShowPrompt(p->systemAddress);
 			}
 		}
 		else if (_stricmp(*parameterList, "quit")==0 && numParameters==1)
 		{
-			transport->Send(p->systemAddress, "Goodbye!");
+			transport->Send(p->systemAddress, "Goodbye!\r\n");
 			transport->CloseConnection(p->systemAddress);
 		}
 		else
@@ -265,9 +265,9 @@ void ConsoleServer::Update(void)
 				transport->Send(p->systemAddress, "Unknown command:  Type 'help' for help.\r\n");
 			}
 
-			ShowPrompt(p->systemAddress);
 		}
 
+		ShowPrompt(p->systemAddress);
 
 		transport->DeallocatePacket(p);
 		p = transport->Receive();

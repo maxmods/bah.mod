@@ -27,7 +27,7 @@ class RAK_DLL_EXPORT SimpleMutex
 {
 public:
 
-	/// Constructor
+	// Constructor
 	SimpleMutex();
 	
 	// Destructor

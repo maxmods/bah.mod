@@ -31,7 +31,7 @@ public:
 		{
 			strcpy(fullPathToDir, outputSubdir);
 			strcat(fullPathToDir, onFileStruct->fileName+subdirLen);
-			WriteFileWithDirectories(fullPathToDir, (char*)onFileStruct->fileData, (unsigned int ) onFileStruct->finalDataLength);
+			WriteFileWithDirectories(fullPathToDir, (char*)onFileStruct->fileData, (unsigned int ) onFileStruct->byteLengthOfThisFile);
 		}
 		else
 			fullPathToDir[0]=0;
@@ -39,7 +39,7 @@ public:
 		return onFileCallback->OnFile(onFileStruct);
 	}
 
-	virtual void OnFileProgress(OnFileStruct *onFileStruct,unsigned int partCount,unsigned int partTotal,unsigned int partLength, char *firstDataChunk)
+	virtual void OnFileProgress(OnFileStruct *onFileStruct,unsigned int partCount,unsigned int partTotal,unsigned int dataChunkLength, char *firstDataChunk)
 	{
 		char fullPathToDir[1024];
 
@@ -51,7 +51,7 @@ public:
 		else
 			fullPathToDir[0]=0;
 
-		onFileCallback->OnFileProgress(onFileStruct, partCount, partTotal, partLength, firstDataChunk);
+		onFileCallback->OnFileProgress(onFileStruct, partCount, partTotal, dataChunkLength, firstDataChunk);
 	}
 	virtual bool OnDownloadComplete(void)
 	{
@@ -104,8 +104,9 @@ void DirectoryDeltaTransfer::AddUploadsFromSubdirectory(const char *subdir)
 }
 unsigned short DirectoryDeltaTransfer::DownloadFromSubdirectory(const char *subdir, const char *outputSubdir, bool prependAppDirToOutputSubdir, SystemAddress host, FileListTransferCBInterface *onFileCallback, PacketPriority _priority, char _orderingChannel, FileListProgress *cb)
 {
-	if (rakPeerInterface->IsConnected(host)==false)
-		return (unsigned short) -1;
+//	if (rakPeerInterface->IsConnected(host)==false)
+//		return (unsigned short) -1;
+	RakAssert(host!=UNASSIGNED_SYSTEM_ADDRESS);
 
 	DDTCallback *transferCallback;
 	FileList localFiles;

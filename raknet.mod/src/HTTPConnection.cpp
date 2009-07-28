@@ -27,23 +27,26 @@
 
 using namespace RakNet;
 
-HTTPConnection::HTTPConnection(TCPInterface& _tcp, const char *_host, unsigned short _port)
-    : tcp(_tcp), host(_host), port(_port), state(RAK_HTTP_INITIAL) {}
+HTTPConnection::HTTPConnection() : connectionState(CS_NONE)
+{
+	tcp=0;
+}
+
+void HTTPConnection::Init(TCPInterface* _tcp, const char *_host, unsigned short _port)
+{
+	tcp=_tcp;
+	host=_host;
+	port=_port;
+}
 
 void HTTPConnection::Post(const char *remote_path, const char *data, const char *_contentType)
 {
-    if(state == RAK_HTTP_IDLE)
-        state = RAK_HTTP_ESTABLISHED;
-    else if(state == RAK_HTTP_INITIAL)
-        state = RAK_HTTP_STARTING;
-    else
-        return;
-
-    outgoing = data;
-    path = remote_path; 
-	contentType=_contentType;
-
-    incoming.Clear();
+	OutgoingPost op;
+	op.contentType=_contentType;
+	op.data=data;
+	op.remotePath=remote_path;
+	outgoingPosts.Push(op);
+	//printf("Adding outgoing post\n");
 }
 
 bool HTTPConnection::HasBadResponse(int *code, RakNet::RakString *data)
@@ -57,133 +60,205 @@ bool HTTPConnection::HasBadResponse(int *code, RakNet::RakString *data)
 		*data = badResponses.Pop().data;
    return true;
 }
-
-
-bool HTTPConnection::InList(StatusCheckFunction func)
+void HTTPConnection::CloseConnection()
 {
-    SystemAddress address = (tcp.*func)();
-
-    if(address == UNASSIGNED_SYSTEM_ADDRESS)
-        return false;
-
-    server = address;
-    return true;
+	if (incomingData.IsEmpty()==false)
+	{
+//		printf("\n\n----------------------- PUSHING -------------\n\n");
+//		printf(incomingData.C_String());
+//		printf("\n------------------------------------\n\n");
+		//printf("Pushing result\n");
+		results.Push(incomingData);
+	}
+	incomingData.Clear();
+	tcp->CloseConnection(server);
+	connectionState=CS_NONE;
+//	printf("Disconnecting\n");
 }
-
 void HTTPConnection::Update(void)
 {
-	if(InList(&TCPInterface::HasCompletedConnectionAttempt))
-		state = RAK_HTTP_ESTABLISHED;
-
-	if(InList(&TCPInterface::HasFailedConnectionAttempt))
-		state = RAK_HTTP_STARTING; // retry
-
-	// normally, HTTP servers close the stream after sending data
-	if(InList(&TCPInterface::HasLostConnection))
-		state = RAK_HTTP_INITIAL;
-
-	if(state == RAK_HTTP_STARTING)
+	SystemAddress sa;
+	sa = tcp->HasCompletedConnectionAttempt();
+	while (sa!=UNASSIGNED_SYSTEM_ADDRESS)
 	{
-		server = tcp.Connect(host, port, false);
-		state = RAK_HTTP_CONNECTING;
+//		printf("Connected\n");
+		connectionState=CS_CONNECTED;
+		server=sa;
+		sa = tcp->HasCompletedConnectionAttempt();
 	}
 
-	if(state == RAK_HTTP_ESTABLISHED)
+	sa = tcp->HasFailedConnectionAttempt();
+	while (sa!=UNASSIGNED_SYSTEM_ADDRESS)
 	{
-		RakString request("POST %s HTTP/1.0\r\n"
-			"Host: %s\r\n"
-			"Content-Type: %s\r\n"
-			"Content-Length: %u\r\n"
-			"\r\n"
-			"%s",
-			path.C_String(),
-			host.C_String(),
-			contentType.C_String(),
-			(unsigned) outgoing.GetLength(),
-			outgoing.C_String());
-		tcp.Send(request, (unsigned int) strlen(request), server,false);
-
-		state = RAK_HTTP_REQUEST_SENT;
+		//printf("Failed connected\n");
+		CloseConnection();
+		sa = tcp->HasFailedConnectionAttempt();
 	}
+
+	sa = tcp->HasLostConnection();
+	while (sa!=UNASSIGNED_SYSTEM_ADDRESS)
+	{
+		//printf("Lost connection\n");
+		CloseConnection();
+		sa = tcp->HasLostConnection();
+	}
+
+
+	switch (connectionState)
+	{
+	case CS_NONE:
+		{
+			if (outgoingPosts.IsEmpty())
+				return;
+
+			//printf("Connecting\n");
+			server = tcp->Connect(host, port, false);
+			connectionState = CS_CONNECTING;
+		}
+		break;
+	case CS_CONNECTING:
+		{
+		}
+		break;
+	case CS_CONNECTED:
+		{
+			//printf("Connected\n");
+			if (outgoingPosts.IsEmpty())
+			{
+				//printf("Closed connection (nothing to do)\n");
+				CloseConnection();
+				return;
+			}
+
+			//printf("Sending request\n");
+			currentProcessingRequest = outgoingPosts.Pop();
+			RakString request("POST %s HTTP/1.0\r\n"
+				"Host: %s\r\n"
+				"Content-Type: %s\r\n"
+				"Content-Length: %u\r\n"
+				"\r\n"
+				"%s",
+				currentProcessingRequest.remotePath.C_String(),
+				host.C_String(),
+				currentProcessingRequest.contentType.C_String(),
+				(unsigned) currentProcessingRequest.data.GetLength(),
+				currentProcessingRequest.data.C_String());
+	//		request.URLEncode();
+			tcp->Send(request.C_String(), (unsigned int) request.GetLength(), server,false);
+			connectionState=CS_PROCESSING;
+		}
+		break;
+	case CS_PROCESSING:
+		{
+		}
+	}
+
+//	if (connectionState==CS_PROCESSING && currentProcessingRequest.data.IsEmpty()==false)
+//		outgoingPosts.PushAtHead(currentProcessingRequest);
+}
+bool HTTPConnection::HasRead(void) const
+{
+	return results.IsEmpty()==false;
 }
 RakString HTTPConnection::Read(void)
 {
-    const char *start_of_body = strstr(incoming, "\r\n\r\n");
+	if (results.IsEmpty())
+		return RakString();
+
+	RakNet::RakString resultStr = results.Pop();
+    // const char *start_of_body = strstr(resultStr.C_String(), "\r\n\r\n");
+	const char *start_of_body = strpbrk(resultStr.C_String(), "\001\002\003%");
     
     if(! start_of_body)
-        {
-        badResponses.Push(BadResponse(incoming, HTTPConnection::NoBody));
-        return RakString();
-        }
+    {
+		return RakString();
+    }
 
-    return RakString(start_of_body + 4);
+	// size_t len = strlen(start_of_body);
+	//printf("Returning result with length %i\n", len);
+	return RakNet::RakString::NonVariadic(start_of_body);
 }
 SystemAddress HTTPConnection::GetServerAddress(void) const
 {
 	return server;
 }
-bool HTTPConnection::ProcessFinalTCPPacket(Packet *packet)
+void HTTPConnection::ProcessTCPPacket(Packet *packet)
 {
 	RakAssert(packet);
 
 	// read all the packets possible
 	if(packet->systemAddress == server)
 	{
-		if(incoming.GetLength() == 0)
+		if(incomingData.GetLength() == 0)
 		{
 			int response_code = atoi((char *)packet->data + strlen("HTTP/1.0 "));
 
 			if(response_code > 299)
+			{
 				badResponses.Push(BadResponse(packet->data, response_code));
+				//printf("Closed connection (Bad response 2)\n");
+				CloseConnection();
+				return;
+			}
 		}
-		incoming += (char *)packet->data; // safe because TCPInterface Null-terminates
+
+		RakNet::RakString incomingTemp = RakNet::RakString::NonVariadic((const char*) packet->data);
+		incomingTemp.URLDecode();
+		incomingData += incomingTemp;
+
+	//	printf((const char*) packet->data);
+	//	printf("\n");
 
 		RakAssert(strlen((char *)packet->data) == packet->length); // otherwise it contains Null bytes
 
-
-		const char *start_of_body = strstr(incoming, "\r\n\r\n");
+		const char *start_of_body = strstr(incomingData, "\r\n\r\n");
 
 		// besides having the server close the connection, they may
 		// provide a length header and supply that many bytes
-		if(start_of_body && state == RAK_HTTP_REQUEST_SENT)
+		if(start_of_body && connectionState == CS_PROCESSING)
 		{
+			/*
+			// The stupid programmer that wrote this originally didn't think that just because the header contains this value doesn't mean you got the whole message
 			if (strstr((const char*) packet->data, "\r\nConnection: close\r\n"))
 			{
-				state = RAK_HTTP_IDLE;
+				CloseConnection();
 			}
 			else
 			{
-				long length_of_headers = (long)(start_of_body + 4 - incoming.C_String());
+			*/
+				long length_of_headers = (long)(start_of_body + 4 - incomingData.C_String());
 
-				const char *length_header = strstr(incoming, "\r\nLength: ");
+				const char *length_header = strstr(incomingData, "\r\nLength: ");
 				if(length_header)
 				{
 					long length = atol(length_header + 10) + length_of_headers;
 
-					if((long) incoming.GetLength() >= length)
-						state = RAK_HTTP_IDLE;
+					if((long) incomingData.GetLength() >= length)
+					{
+						//printf("Closed connection (Got all data due to length header)\n");
+						CloseConnection();
+					}
 				}
-			}
+			//}
 		}
 	}
-
-	return IsBusy()==false;
 }
 
 bool HTTPConnection::IsBusy(void) const
 {
-	return state != RAK_HTTP_IDLE && state != RAK_HTTP_INITIAL;
+	return connectionState != CS_NONE;
 }
 
 int HTTPConnection::GetState(void) const
 {
-	return state;
+	return connectionState;
 }
 
 
 HTTPConnection::~HTTPConnection(void)
 {
-    tcp.CloseConnection(server);
+	if (tcp)
+		tcp->CloseConnection(server);
 }
 
 

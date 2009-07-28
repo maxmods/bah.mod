@@ -35,6 +35,11 @@
 #include "DS_BPlusTree.h"
 #include "DS_MemoryPool.h"
 
+#ifndef _USE_RAKNET_FLOW_CONTROL
+#include "udt.h"
+#endif
+
+
 class PluginInterface2;
 class RakNetRandom;
 
@@ -64,10 +69,10 @@ class ReliabilityLayer//<ReliabilityLayer>
 {
 public:
 
-	/// Constructor
+	// Constructor
 	ReliabilityLayer();
 
-	/// Destructor
+	// Destructor
 	~ReliabilityLayer();
 
 	/// Resets the layer for reuse
@@ -121,7 +126,15 @@ public:
 	/// \param[in] time current system time
 	/// \param[in] maxBitsPerSecond if non-zero, enforces that outgoing bandwidth does not exceed this amount
 	/// \param[in] messageHandlerList A list of registered plugins
-	void Update(  SOCKET s, SystemAddress systemAddress, int MTUSize, RakNetTimeUS time, unsigned maxBitsPerSecond, DataStructures::List<PluginInterface2*> &messageHandlerList, RakNetRandom *rnr, bool isPS3LobbySocket );
+#ifdef _USE_RAKNET_FLOW_CONTROL // These variables only necessary for RakNet's flow control
+	void Update( SOCKET s, SystemAddress systemAddress, int MTUSize, RakNetTimeUS time,
+		unsigned bitsPerSecondLimit,
+		DataStructures::List<PluginInterface2*> &messageHandlerList,
+		RakNetRandom *rnr, unsigned short remotePortRakNetWasStartedOn_PS3);
+#else
+	void Update(  UDTSOCKET s, SystemAddress systemAddress, int MTUSize, RakNetTimeUS time, unsigned maxBitsPerSecond, DataStructures::List<PluginInterface2*> &messageHandlerList, RakNetRandom *rnr, bool isPS3LobbySocket );
+#endif
+	
 
 	/// If Read returns -1 and this returns true then a modified packetwas detected
 	/// \return true when a modified packet is detected
@@ -182,7 +195,11 @@ private:
 	/// \param[in] s The socket used for sending data
 	/// \param[in] systemAddress The address and port to send to
 	/// \param[in] bitStream The data to send.
-	void SendBitStream( SOCKET s, SystemAddress systemAddress, RakNet::BitStream *bitStream, RakNetRandom *rnr, bool isPS3LobbySocket);
+	#ifdef _USE_RAKNET_FLOW_CONTROL // These variables only necessary for RakNet's flow control
+	void SendBitStream( SOCKET s, SystemAddress systemAddress, RakNet::BitStream *bitStream, RakNetRandom *rnr, unsigned short remotePortRakNetWasStartedOn_PS3, bool isReliable);
+	#else
+	int SendBitStream( UDTSOCKET s, SystemAddress systemAddress, RakNet::BitStream *bitStream, RakNetRandom *rnr, unsigned short remotePortRakNetWasStartedOn_PS3, bool isReliable);
+#endif
 
 	///Parse an internalPacket and create a bitstream to represent this data
 	/// \return Returns number of bits used
@@ -285,20 +302,30 @@ private:
 	// RELIABLE_SEQUENCED just returns the newest one
 	DataStructures::List<DataStructures::LinkedList<InternalPacket*>*> orderingList;
 	DataStructures::Queue<InternalPacket*> outputQueue;
-	DataStructures::RangeList<MessageNumberType> acknowlegements;
 	int splitMessageProgressInterval;
 	RakNetTimeUS unreliableTimeout;
 	
+
+#ifdef _USE_RAKNET_FLOW_CONTROL // These variables only necessary for RakNet's flow control
+	DataStructures::RangeList<MessageNumberType> acknowlegements;
 	// Resend list is a tree of packets we need to resend
 	DataStructures::BPlusTree<MessageNumberType, InternalPacket*, RESEND_TREE_ORDER> resendList;
 	// resend Queue holds the same pointers, but in order of when to send them.  nextActionTime is set to 0 when the packet is no longer needed.
 	DataStructures::Queue<InternalPacket*> resendQueue;
-	
+	RakNetTimeUS lastAckTime;
+	unsigned int blockWindowIncreaseUntilTime;
+
+	// If we backoff due to packetloss, don't remeasure until all waiting resends have gone out or else we overcount
+	bool packetlossThisSample;
+	int backoffThisSample;
+	unsigned packetlossThisSampleResendCount;
+	RakNetTimeUS lastPacketlossTime;
+#endif
+
 	DataStructures::Queue<InternalPacket*> sendPacketSet[ NUMBER_OF_PRIORITIES ];
     DataStructures::OrderedList<SplitPacketIdType, SplitPacketChannel*, SplitPacketChannelComp> splitPacketChannelList;
 	MessageNumberType sendMessageNumberIndex, internalOrderIndex;
 	//unsigned int windowSize;
-	RakNetTimeUS lastAckTime;
 	RakNet::BitStream updateBitStream;
 	OrderingIndexType waitingForOrderedPacketWriteIndex[ NUMBER_OF_ORDERED_STREAMS ], waitingForSequencedPacketWriteIndex[ NUMBER_OF_ORDERED_STREAMS ];
 	
@@ -311,7 +338,6 @@ private:
 	//int MAX_AVERAGE_PACKETS_PER_SECOND; // Name says it all
 //	int RECEIVED_PACKET_LOG_LENGTH, requestedReceivedPacketLogLength; // How big the receivedPackets array is
 //	unsigned int *receivedPackets;
-	unsigned int blockWindowIncreaseUntilTime;
 	RakNetStatistics statistics;
 
 	RakNetTimeUS histogramStart;
@@ -353,12 +379,6 @@ private:
 	///This variable is so that free memory can be called by only the update thread so we don't have to mutex things so much
 	bool freeThreadedMemoryOnNextUpdate;
 
-	// If we backoff due to packetloss, don't remeasure until all waiting resends have gone out or else we overcount
-	bool packetlossThisSample;
-	int backoffThisSample;
-	unsigned packetlossThisSampleResendCount;
-	RakNetTimeUS lastPacketlossTime;
-
 	//long double timeBetweenPacketsIncreaseMultiplier, timeBetweenPacketsDecreaseMultiplier;
 
 #ifndef _RELEASE
@@ -374,6 +394,8 @@ private:
 	double maxSendBPS;
 	RakNetTime minExtraPing, extraPingVariance;
 #endif
+
+	RakNetTimeUS elapsedTimeSinceLastUpdate;
 
 	// This has to be a member because it's not threadsafe when I removed the mutexes
 	DataStructures::MemoryPool<InternalPacket> internalPacketPool;

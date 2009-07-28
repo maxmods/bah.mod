@@ -19,6 +19,7 @@
 #include "SimpleMutex.h"
 #include "RakNetDefines.h"
 #include "SocketIncludes.h"
+#include "DS_ByteQueue.h"
 
 struct RemoteClient;
 
@@ -151,16 +152,17 @@ struct RemoteClient
 	}
 	SOCKET socket;
 	SystemAddress systemAddress;
+	DataStructures::ByteQueue outgoingData;
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	SSL*     ssl;
 	void InitSSL(SSL_CTX* ctx, SSL_METHOD *meth);
 	void DisconnectSSL(void);
 	void FreeSSL(void);
-	void Send(const char *data, unsigned int length);
+	int Send(const char *data, unsigned int length);
 	int Recv(char *data, const int dataSize);
 #else
-	void Send(const char *data, unsigned int length);
+	int Send(const char *data, unsigned int length);
 	int Recv(char *data, const int dataSize);
 #endif
 };

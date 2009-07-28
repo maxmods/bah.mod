@@ -25,10 +25,10 @@ namespace DataStructures
 	class RAK_DLL_EXPORT SingleProducerConsumer
 	{
 	public:
-		/// Constructor
+		// Constructor
 		SingleProducerConsumer();
 
-		/// Destructor
+		// Destructor
 		~SingleProducerConsumer();
 
 		/// WriteLock must be immediately followed by WriteUnlock.  These two functions must be called in the same thread.
@@ -132,7 +132,7 @@ namespace DataStructures
 			writeAheadPointer->next->readyToRead==true)
 		{
 			volatile DataPlusPtr *originalNext=writeAheadPointer->next;
-			writeAheadPointer->next=new DataPlusPtr;
+			writeAheadPointer->next=RakNet::OP_NEW<DataPlusPtr>(__FILE__, __LINE__);
 			RakAssert(writeAheadPointer->next);
 			writeAheadPointer->next->next=originalNext;
 		}

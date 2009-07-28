@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Encrypts and decrypts data blocks.  Used as part of secure connections.
+/// \file DataBlockEncryptor.h
+/// \internal
+/// \brief Encrypts and decrypts data blocks.  Used as part of secure connections.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -19,23 +20,24 @@ class DataBlockEncryptor
 
 public:
 	
-	/// Constructor
+	// Constructor
 	DataBlockEncryptor();
 	
-	/// Destructor
+	// Destructor
 	~DataBlockEncryptor();
 	
 	/// \return true if SetKey has been called previously 
 	bool IsKeySet( void ) const;
 	
-	/// Set the encryption key 
+	/// \brief Set the encryption key 
 	/// \param[in] key The new encryption key 
 	void SetKey( const unsigned char key[ 16 ] );
 	
-	/// Unset the encryption key 
+	/// \brief Unset the encryption key 
 	void UnsetKey( void );
 	
-	/// Encryption adds 6 data bytes and then pads the number of bytes to be a multiple of 16.  Output should be large enough to hold this.
+	/// \brief Encryption adds 6 data bytes and then pads the number of bytes to be a multiple of 16.  
+	/// \details Output should be large enough to hold this.
 	/// Output can be the same memory block as input
 	/// \param[in] input the input buffer to encrypt 
 	/// \param[in] inputLength the size of the @em input buffer 
@@ -43,7 +45,8 @@ public:
 	/// \param[in] outputLength the size of the output buffer 
 	void Encrypt( unsigned char *input, unsigned int inputLength, unsigned char *output, unsigned int *outputLength, RakNetRandom *rnr );
 	
-	/// Decryption removes bytes, as few as 6.  Output should be large enough to hold this.
+	/// \brief Decryption removes bytes, as few as 6. 
+	/// \details Output should be large enough to hold this.
 	/// Output can be the same memory block as input
 	/// \param[in] input the input buffer to decrypt 
 	/// \param[in] inputLength the size of the @em input buffer 

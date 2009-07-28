@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] A queue used by RakNet.
+/// \file DS_Queue.h
+/// \internal
+/// \brief A queue used by RakNet.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

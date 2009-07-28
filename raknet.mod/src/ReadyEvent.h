@@ -14,6 +14,8 @@ class RakPeerInterface;
 #include "DS_OrderedList.h"
 
 /// \defgroup READY_EVENT_GROUP ReadyEvent
+/// \brief Peer to peer synchronized ready and unready events
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \ingroup READY_EVENT_GROUP
@@ -36,21 +38,22 @@ enum ReadyEventSystemStatus
 	RES_UNKNOWN_EVENT,
 };
 
-/// Ready event plugin
-/// For peer to peer networks in a fully connected mesh
-/// Solves the problem of how to tell if all peers, relative to all other peers, are in a certain ready state.
-/// For example, if A is connected to B and C, A may see that B and C are ready, but does not know if B is ready to C, or vice-versa.
-/// This plugin uses two stages to solve that problem, first, everyone I know about is ready. Second, everyone I know about is ready to everyone they know about.
-/// The user will get ID_READY_EVENT_SET and ID_READY_EVENT_UNSET as the signal flag is set or unset
-/// The user will get ID_READY_EVENT_ALL_SET when all systems are done waiting for all other systems, in which case the event is considered complete, and no longer tracked.
+/// \brief Peer to peer synchronized ready and unready events
+/// \details For peer to peer networks in a fully connected mesh.<BR>
+/// Solves the problem of how to tell if all peers, relative to all other peers, are in a certain ready state.<BR>
+/// For example, if A is connected to B and C, A may see that B and C are ready, but does not know if B is ready to C, or vice-versa.<BR>
+/// This plugin uses two stages to solve that problem, first, everyone I know about is ready. Second, everyone I know about is ready to everyone they know about.<BR>
+/// The user will get ID_READY_EVENT_SET and ID_READY_EVENT_UNSET as the signal flag is set or unset<BR>
+/// The user will get ID_READY_EVENT_ALL_SET when all systems are done waiting for all other systems, in which case the event is considered complete, and no longer tracked.<BR>
+/// \sa FullyConnectedMesh2
 /// \ingroup READY_EVENT_GROUP
 class ReadyEvent : public PluginInterface2
 {
 public:
-	/// Constructor
+	// Constructor
 	ReadyEvent();
 
-	/// Destructor
+	// Destructor
 	virtual ~ReadyEvent();
 
 	// --------------------------------------------------------------------------------------------
@@ -209,7 +212,7 @@ protected:
 	void OnReadyEventPacketUpdate(Packet *packet);
 	void UpdateReadyStatus(unsigned eventIndex);
 	bool IsEventCompletedByIndex(unsigned eventIndex) const;
-	unsigned CreateEvent(int eventId, bool isReady);
+	unsigned CreateNewEvent(int eventId, bool isReady);
 	bool SetEventByIndex(int eventIndex, bool isReady);
 
 	DataStructures::OrderedList<int, ReadyEventNode*, ReadyEvent::ReadyEventNodeComp> readyEventNodeList;

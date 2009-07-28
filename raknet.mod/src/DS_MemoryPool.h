@@ -1,3 +1,9 @@
+/// \file DS_MemoryPool.h
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+
 #ifndef __MEMORY_POOL_H
 #define __MEMORY_POOL_H
 

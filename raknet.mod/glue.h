@@ -33,6 +33,7 @@
 #include "MessageFilter.h"
 #include "RakNetStatistics.h"
 #include "ReadyEvent.h"
+#include "NetworkIDManager.h"
 
 class MaxSocketDescriptor;
 class MaxNetworkID;
@@ -133,6 +134,8 @@ extern "C" {
 	void bmx_RakPeer_PushBackPacket(RakPeerInterface * peer, Packet * packet, bool pushAtHead);
 	Packet * bmx_RakPeer_AllocatePacket(RakPeerInterface * peer, int dataSize);
 	void bmx_RakPeer_PingHost(RakPeerInterface * peer, BBString * host, int remotePort, bool onlyReplyOnAcceptingConnections, int connectionSocketIndex);
+	void bmx_RakPeer_SetNetworkIDManager(RakPeerInterface * peer, NetworkIDManager * manager);
+	NetworkIDManager * bmx_RakPeer_GetNetworkIDManager(RakPeerInterface * peer);
 
 	unsigned char * bmx_Packet_GetData(Packet * packet);
 	unsigned int bmx_Packet_GetBitSize(Packet * packet);
@@ -376,7 +379,8 @@ extern "C" {
 	int bmx_RakNetStatistics_duplicateMessagesReceived(RakNetStatistics * stats);
 	int bmx_RakNetStatistics_messagesWaitingForReassembly(RakNetStatistics * stats);
 	int bmx_RakNetStatistics_internalOutputQueueSize(RakNetStatistics * stats);
-	double bmx_RakNetStatistics_bitsPerSecond(RakNetStatistics * stats);
+	double bmx_RakNetStatistics_bitsPerSecondSent(RakNetStatistics * stats);
+	double bmx_RakNetStatistics_bitsPerSecondReceived(RakNetStatistics * stats);
 	void bmx_RakNetStatistics_connectionStartTime(RakNetStatistics * stats, BBInt64 * v);
 	int bmx_RakNetStatistics_bandwidthExceeded(RakNetStatistics * stats);
 
@@ -416,6 +420,13 @@ extern "C" {
 	void bmx_ReadyEvent_SetSendChannel(ReadyEvent * readyEvent, int newChannel);
 	void bmx_ReadyEvent_delete(ReadyEvent * readyEvent);
 	bool bmx_ReadyEvent_ForceCompletion(ReadyEvent * readyEvent, int eventId);
+
+	NetworkIDManager * bmx_NetworkIDManager_create();
+	void bmk_NetworkIDManager_SetIsNetworkIDAuthority(NetworkIDManager * manager, int isAuthority);
+	int bmk_NetworkIDManager_IsNetworkIDAuthority(NetworkIDManager * manager);
+	void bmk_NetworkIDManager_SetGuid(NetworkIDManager * manager, RakNetGUID * guid);
+	int bmk_NetworkIDManager_GetSharedNetworkID(NetworkIDManager * manager);
+	void bmk_NetworkIDManager_SetSharedNetworkID(NetworkIDManager * manager, int id);
 
 }
 

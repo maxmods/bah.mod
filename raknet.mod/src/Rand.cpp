@@ -26,16 +26,7 @@
 * at a time, so the caching and pipelining of modern systems is exploited.
 * It is also divide- and mod-free.
 *
-* This library is free software; you can redistribute it and/or modify it
-* under the terms of the GNU Library General Public License as published by
-* the Free Software Foundation (either version 2 of the License or, at your
-* option, any later version). This library is distributed in the hope that
-* it will be useful, but WITHOUT ANY WARRANTY, without even the implied
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
-* the GNU Library General Public License for more details.  You should have
-* received a copy of the GNU Library General Public License along with this
-* library; if not, write to the Free Software Foundation, Inc., 59 Temple
-* Place, Suite 330, Boston, MA 02111-1307, USA.
+* Licensing is free http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/elicense.html
 *
 * The code as Shawn received it included the following notice:
 *

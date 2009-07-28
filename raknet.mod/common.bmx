@@ -126,6 +126,8 @@ Extern
 	Function bmx_RakPeer_PushBackPacket(handle:Byte Ptr, packet:Byte Ptr, pushAtHead:Int)
 	Function bmx_RakPeer_AllocatePacket:Byte Ptr(handle:Byte Ptr, dataSize:Int)
 	Function bmx_RakPeer_PingHost(handle:Byte Ptr, host:String, remotePort:Int, onlyReplyOnAcceptingConnections:Int, connectionSocketIndex:Int)
+	Function bmx_RakPeer_SetNetworkIDManager(handle:Byte Ptr, manager:Byte Ptr)
+	Function bmx_RakPeer_GetNetworkIDManager:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_Packet_GetData:Byte Ptr(handle:Byte Ptr)
 	Function bmx_Packet_GetBitSize:Int(handle:Byte Ptr)
@@ -355,7 +357,8 @@ Extern
 	Function bmx_RakNetStatistics_duplicateMessagesReceived:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_messagesWaitingForReassembly:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_internalOutputQueueSize:Int(handle:Byte Ptr)
-	Function bmx_RakNetStatistics_bitsPerSecond:Double(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_bitsPerSecondSent:Double(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_bitsPerSecondReceived:Double(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_connectionStartTime(handle:Byte Ptr, v:Long Ptr)
 	Function bmx_RakNetStatistics_bandwidthExceeded:Int(handle:Byte Ptr)
 
@@ -395,6 +398,13 @@ Extern
 	Function bmx_ReadyEvent_SetSendChannel(handle:Byte Ptr, newChannel:Int)
 	Function bmx_ReadyEvent_delete(handle:Byte Ptr)
 	Function bmx_ReadyEvent_ForceCompletion:Int(handle:Byte Ptr, _eventId:Int)
+
+	Function bmx_NetworkIDManager_create:Byte Ptr()
+	Function bmk_NetworkIDManager_SetIsNetworkIDAuthority(handle:Byte Ptr, isAuthority:Int)
+	Function bmk_NetworkIDManager_IsNetworkIDAuthority:Int(handle:Byte Ptr)
+	Function bmk_NetworkIDManager_SetGuid(handle:Byte Ptr, guid:Byte Ptr)
+	Function bmk_NetworkIDManager_GetSharedNetworkID:Int(handle:Byte Ptr)
+	Function bmk_NetworkIDManager_SetSharedNetworkID(handle:Byte Ptr, id:Int)
 
 End Extern
 

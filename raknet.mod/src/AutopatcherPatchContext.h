@@ -1,3 +1,8 @@
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+/// Usage of RakNet is subject to the appropriate license agreement.
+///
+
 #ifndef __AUTOPATCHER_PATCH_CONTEXT_H
 #define __AUTOPATCHER_PATCH_CONTEXT_H
 

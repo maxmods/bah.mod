@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Just a regular tree
+/// \file DS_Tree.h
+/// \internal
+/// \brief Just a regular tree
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

@@ -77,6 +77,18 @@ bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnecti
 		if ((int)listenSocket ==-1)
 			return false;
 
+		/*
+#ifdef _WIN32
+		unsigned long nonblocking = 1;
+		ioctlsocket( listenSocket, FIONBIO, &nonblocking );
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+		int sock_opt=1;
+		setsockopt(listenSocket, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
+#else
+		fcntl( listenSocket, F_SETFL, O_NONBLOCK );
+#endif
+		*/
+
 		struct sockaddr_in serverAddress;
 		serverAddress.sin_family = AF_INET;
 		serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -92,6 +104,9 @@ bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnecti
 	int errorCode = RakNet::RakThread::Create(UpdateTCPInterfaceLoop, this);
 	if (errorCode!=0)
 		return false;
+
+	while (threadRunning==false)
+		RakSleep(0);
 
 	return true;
 }
@@ -175,6 +190,9 @@ void TCPInterface::Stop(void)
 }
 SystemAddress TCPInterface::Connect(const char* host, unsigned short remotePort, bool block)
 {
+	if (threadRunning==false)
+		return UNASSIGNED_SYSTEM_ADDRESS;
+
 	if (block)
 	{
 		SystemAddress systemAddress;
@@ -457,6 +475,18 @@ SOCKET TCPInterface::SocketConnect(const char* host, unsigned short remotePort)
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons( remotePort );
 
+	/*
+#ifdef _WIN32
+	unsigned long nonblocking = 1;
+	ioctlsocket( sockfd, FIONBIO, &nonblocking );
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+	int sock_opt=1;
+	setsockopt(sockfd, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
+#else
+	fcntl( sockfd, F_SETFL, O_NONBLOCK );
+#endif
+	*/
+
 
 #if !defined(_XBOX) && !defined(_X360)
 	memcpy((char *)&serverAddress.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
@@ -542,7 +572,7 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 	TCPInterface::OutgoingMessage *outgoingMessage;
 	Packet *incomingMessage;
 	SystemAddress *systemAddress;
-	fd_set      readFD, exceptionFD;
+	fd_set      readFD, exceptionFD, writeFD;
 	sts->threadRunning=true;
 
 	sockaddr_in sockAddr;
@@ -583,7 +613,8 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 				for (i=0; i < sts->remoteClients.Size(); i++)
 				{
 					if (sts->remoteClients[i]->systemAddress!=outgoingMessage->systemAddress)
-						sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
+		//				sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
+						sts->remoteClients[i]->outgoingData.WriteBytes((const char*)outgoingMessage->data, outgoingMessage->length);
 				}
 			}
 			else
@@ -591,13 +622,15 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 				// Send to this player
 				for (i=0; i < sts->remoteClients.Size(); i++)
 					if (sts->remoteClients[i]->systemAddress==outgoingMessage->systemAddress )
-						sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
+					//	sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
+						sts->remoteClients[i]->outgoingData.WriteBytes((const char*)outgoingMessage->data, outgoingMessage->length);
 			}
 
 			rakFree_Ex(outgoingMessage->data, __FILE__, __LINE__ );
 			sts->outgoingMessages.ReadUnlock();
 			outgoingMessage=sts->outgoingMessages.ReadLock();
 		}
+
 
 		if (sts->remoteClientsInsertionQueue.IsEmpty()==false)
 		{
@@ -637,9 +670,10 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 
 		SOCKET largestDescriptor=0; // see select()'s first parameter's documentation under linux
 
-		// Reset readFD and exceptionFD since select seems to clear it
+		// Reset readFD, writeFD, and exceptionFD since select seems to clear it
 		FD_ZERO(&readFD);
 		FD_ZERO(&exceptionFD);
+		FD_ZERO(&writeFD);
 #ifdef _MSC_VER
 #pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
 #endif
@@ -654,6 +688,8 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 		{
 			FD_SET(sts->remoteClients[i]->socket, &readFD);
 			FD_SET(sts->remoteClients[i]->socket, &exceptionFD);
+			if (sts->remoteClients[i]->outgoingData.GetBytesWritten()>0)
+				FD_SET(sts->remoteClients[i]->socket, &writeFD);
 			if(sts->remoteClients[i]->socket > largestDescriptor) // @see largestDescriptorDef
 				largestDescriptor = sts->remoteClients[i]->socket;
 		}
@@ -667,14 +703,10 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 #pragma warning( disable : 4244 ) // warning C4127: conditional expression is constant
 #endif
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		selectResult=socketselect(largestDescriptor+1, &readFD, 0, &exceptionFD, &tv);
+		selectResult=socketselect(largestDescriptor+1, &readFD, &writeFD, &exceptionFD, &tv);
 #else
-		selectResult=(int) select(largestDescriptor+1, &readFD, 0, &exceptionFD, &tv);		
+		selectResult=(int) select(largestDescriptor+1, &readFD, &writeFD, &exceptionFD, &tv);		
 #endif
-		//selectResult=select(largestDescriptor+1, &readFD, 0, &exceptionFD, &tv);
-
-		//selectResult=select(0, &readFD, 0, &exceptionFD, &tv);
-
 		if (selectResult > 0)
 		{
 			if (sts->listenSocket!=(SOCKET) -1 && FD_ISSET(sts->listenSocket, &readFD))
@@ -692,8 +724,8 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 					*systemAddress=remoteClient->systemAddress;
 					sts->newIncomingConnections.WriteUnlock();
 
-					FD_SET(newSock, &readFD);
-					FD_SET(newSock, &exceptionFD);
+//					FD_SET(newSock, &readFD);
+//					FD_SET(newSock, &exceptionFD);
 				}
 				else
 				{
@@ -711,7 +743,7 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 				RAKNET_DEBUG_PRINTF("Socket error %s on listening socket\n", err);
 #endif
 			}
-			else
+			
 			{
 				i=0;
 				while (i < sts->remoteClients.Size())
@@ -749,11 +781,12 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 								incomingMessage->data = (unsigned char*) rakMalloc_Ex( len+1, __FILE__, __LINE__ );
 								memcpy(incomingMessage->data, data, len);
 								incomingMessage->data[len]=0; // Null terminate this so we can print it out as regular strings.  This is different from RakNet which does not do this.
+//								printf("RECV: %s\n",incomingMessage->data);
 								incomingMessage->length=len;
 								incomingMessage->deleteData=true; // actually means came from SPSC, rather than AllocatePacket
 								incomingMessage->systemAddress=sts->remoteClients[i]->systemAddress;
 								sts->incomingMessages.WriteUnlock();
-								i++; // Nothing deleted so increment the index
+
 							}
 							else
 							{
@@ -763,31 +796,40 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 								sts->lostConnections.WriteUnlock();
 								sts->DeleteRemoteClient(sts->remoteClients[i], &exceptionFD);
 								sts->remoteClients.RemoveAtIndex(i);
+								continue;
 							}
 						}
-						else
-							i++; // Nothing deleted so increment the index
+						if (FD_ISSET(sts->remoteClients[i]->socket, &writeFD))
+						{
+							RemoteClient *rc = sts->remoteClients[i];
+							int bytesInBuffer;
+							int bytesAvailable;
+							int bytesSent;
+							bytesInBuffer=rc->outgoingData.GetBytesWritten();
+							if (bytesInBuffer>0)
+							{
+								if (bytesInBuffer > BUFF_SIZE)
+									bytesAvailable=BUFF_SIZE;
+								else
+									bytesAvailable=bytesInBuffer;
+								rc->outgoingData.ReadBytes(data,bytesAvailable,true);
+								bytesSent=rc->Send(data,bytesAvailable);
+//								char *dataCopy = (char*) malloc(bytesAvailable+1);
+//								memcpy(dataCopy,data,bytesAvailable);
+//								dataCopy[bytesAvailable]=0;
+//								printf("SEND: %s\n",dataCopy);
+//								free(dataCopy);
+								rc->outgoingData.IncrementReadOffset(bytesSent);
+								bytesInBuffer=rc->outgoingData.GetBytesWritten();
+							}
+						}
+							
+						i++; // Nothing deleted so increment the index
 					}
 				}
 			}
 		}
-		else if (selectResult==0)
-		{
-			// No input - sleep for a while
-			RakSleep(50);
-		}
-		else
-		{
-			// FD_CLOSE? closesocket(remoteClient->socket);
-
-#if defined(_DO_PRINTF) && defined(_WIN32)
-			DWORD dwIOError = WSAGetLastError();
-			RAKNET_DEBUG_PRINTF("Socket error %i\n", dwIOError);
-#endif
-		}
-
-
-
+		RakSleep(30);
 	}
 	sts->threadRunning=false;
 
@@ -816,16 +858,17 @@ void RemoteClient::FreeSSL(void)
 	if (ssl)
 		SSL_free (ssl);
 }
-void RemoteClient::Send(const char *data, unsigned int length)
+int RemoteClient::Send(const char *data, unsigned int length)
 {
 	int err;
 	if (ssl)
 	{
 		err = SSL_write (ssl, data, length);
 		RakAssert(err>0);
+		return 0;
 	}
 	else
-		send(socket, data, length, 0);
+		return send(socket, data, length, 0);
 }
 int RemoteClient::Recv(char *data, const int dataSize)
 {
@@ -837,9 +880,9 @@ int RemoteClient::Recv(char *data, const int dataSize)
 		return recv(socket, data, dataSize, 0);
 }
 #else
-void RemoteClient::Send(const char *data, unsigned int length)
+int RemoteClient::Send(const char *data, unsigned int length)
 {
-	send(socket, data, length, 0);
+	return send(socket, data, length, 0);
 }
 int RemoteClient::Recv(char *data, const int dataSize)
 {

@@ -1,3 +1,9 @@
+///
+/// This file is part of RakNet Copyright 2003 Jenkins Software LLC
+///
+/// Usage of RakNet is subject to the appropriate license agreement.
+///
+
 #if !defined(_XBOX) && !defined(X360)
 
 /*
@@ -12,6 +18,7 @@
 #define BIG_INT_HPP
 
 #include "Platform.h"
+#include "NativeTypes.h"
 //#include <string>
 
 namespace big
@@ -36,6 +43,17 @@ namespace big
 	// lhs = rhs (32-bit extension)
 	void Set32(uint32_t *lhs, int lhs_limbs, const uint32_t rhs);
 
+#if defined(__BIG_ENDIAN__)
+	// Flip the byte order as needed to make 'n' big-endian for sharing over a network
+	void ToLittleEndian(uint32_t *n, int limbs);
+
+	// Flip the byte order as needed to make big-endian 'n' use the local byte order
+	void FromLittleEndian(uint32_t *n, int limbs);
+#else
+	inline void ToLittleEndian(uint32_t *, int) {}
+	inline void FromLittleEndian(uint32_t *, int) {}
+#endif
+
 	// Comparisons where both operands have the same number of limbs
 	bool Less(int limbs, const uint32_t *lhs, const uint32_t *rhs);
 	bool Greater(int limbs, const uint32_t *lhs, const uint32_t *rhs);
@@ -59,25 +77,28 @@ namespace big
 		return !Greater(lhs, lhs_limbs, rhs, rhs_limbs);
 	}
 
+	// lhs > rhs
+	bool Greater32(const uint32_t *lhs, int lhs_limbs, uint32_t rhs);
+
+	// lhs <= rhs
+	inline bool LessOrEqual32(const uint32_t *lhs, int lhs_limbs, uint32_t rhs)
+	{
+		return !Greater32(lhs, lhs_limbs, rhs);
+	}
+
 	// lhs == rhs
 	bool Equal(const uint32_t *lhs, int lhs_limbs, const uint32_t *rhs, int rhs_limbs);
 
 	// lhs == rhs
 	bool Equal32(const uint32_t *lhs, int lhs_limbs, uint32_t rhs);
 
-	// n >>= shift*32
-	void LimbShiftRight(uint32_t *n, int limbs, int rhs_shift);
-
-	// n <<= shift*32
-	void LimbShiftLeft(uint32_t *n, int limbs, int rhs_shift);
-
-	// lhs = rhs >>> shift
+	// out = in >>> shift
 	// Precondition: 0 <= shift < 31
-	void BitShiftRight(uint32_t *result, int result_limbs, const uint32_t *lhs, int lhs_limbs, int rhs_shift);
+	void ShiftRight(int limbs, uint32_t *out, const uint32_t *in, int shift);
 
-	// lhs = rhs <<< shift
+	// {out, carry} = in <<< shift
 	// Precondition: 0 <= shift < 31
-	void BitShiftLeft(uint32_t *result, int result_limbs, const uint32_t *lhs, int lhs_limbs, int rhs_shift);
+	uint32_t ShiftLeft(int limbs, uint32_t *out, const uint32_t *in, int shift);
 
 	// lhs += rhs, return carry out
 	// precondition: lhs_limbs >= rhs_limbs
@@ -103,14 +124,17 @@ namespace big
 	// precondition: lhs_limbs > 0, result limbs = lhs_limbs
 	int32_t Subtract32(uint32_t *lhs, int lhs_limbs, uint32_t rhs);
 
-	// n = -n
-	void Negate(uint32_t *n, int limbs);
+	// lhs = -rhs
+	void Negate(int limbs, uint32_t *lhs, const uint32_t *rhs);
 
 	// n = ~n, only invert bits up to the MSB, but none above that
 	void BitNot(uint32_t *n, int limbs);
 
 	// n = ~n, invert all bits, even ones above MSB
 	void LimbNot(uint32_t *n, int limbs);
+
+	// lhs ^= rhs
+	void Xor(int limbs, uint32_t *lhs, const uint32_t *rhs);
 
 	// Return the carry out from A += B << S
     uint32_t AddLeftShift32(
@@ -153,31 +177,6 @@ namespace big
 		uint32_t *product,	// Large number; buffer size = limbs*2
 		const uint32_t *x);	// Large number
 
-	/*
-	 * Multiply two large numbers using the Schoolbook method
-	 * Only produces the low y_limbs of the result 
-	 * 
-	 * The product buffer may not be pointed to by x or y
-	 */
-	void HalfSchoolbookMultiply(
-		uint32_t *product,	// Buffer size = x_limbs+y_limbs
-		const uint32_t *x,	// Number to multiply, buffer size = x_limbs
-		int x_limbs,	// Size of x
-		const uint32_t *y,	// Number to multiply, buffer size = y_limbs
-		int y_limbs);	// Size of y
-
-	/*
-	 * Multiply two large numbers using the Schoolbook method
-	 * 
-	 * The product buffer may not be pointed to by x or y
-	 */
-	void SchoolbookMultiply(
-		uint32_t *product,	// Buffer size = x_limbs+y_limbs
-		const uint32_t *x,	// Number to multiply, buffer size = x_limbs
-		int x_limbs,	// Size of x
-		const uint32_t *y,	// Number to multiply, buffer size = y_limbs
-		int y_limbs);	// Size of y
-
 	// product = xy
 	// memory space for product may not overlap with x,y
     void Multiply(
@@ -200,13 +199,6 @@ namespace big
     	uint32_t *product,	// Product; buffer size = limbs*2
     	const uint32_t *x);	// Large number; buffer size = limbs
 
-	// Multiply two large, 2's complement signed numbers: result = a0 * b0
-    void SignedMultiply(
-    	int limbs,		// Number of limbs in parameters a0,b0
-    	uint32_t *result,	// Output, buffer size = limbs*2
-    	const uint32_t *a0,	// Large number, buffer size = limbs
-    	const uint32_t *b0);	// Large number, buffer size = limbs
-
 	// Returns the remainder of N / divisor for a 32-bit divisor
     uint32_t Modulus32(
     	int limbs,     // Number of limbs in parameter N
@@ -225,43 +217,82 @@ namespace big
     	uint32_t divisor);	// 32-bit number
 
 	// returns (n ^ -1) Mod 2^32
-	uint32_t MulInverseGF32(uint32_t n);
+	uint32_t MulInverse32(uint32_t n);
 
 	/*
-	 * Schoolbook division algorithm
+	 * Computes multiplicative inverse of given number
+	 * Such that: result * u = 1
+	 * Using Extended Euclid's Algorithm (GCDe)
 	 * 
-	 * Returns true on success and false on failure (like divide by 0)
-	 * 
-	 * Quotient and Remainder pointers can be the same as any other
-	*/
-	bool SchoolbookDivide(
-		const uint32_t *dividend,	// Large number (numerator), buffer size = dividend_limbs
-		int dividend_limbs,		// Dividend limbs
-		const uint32_t *divisor,		// Large number (denominator), buffer size = divisor_limbs
-		int divisor_limbs,		// Divisor limbs
-		uint32_t *quotient,			// Quotient of division, buffer size = dividend_limbs
-		uint32_t *remainder);		// Remainder of division, buffer size = divisor_limbs
+	 * This is not always possible, so it will return false iff not possible.
+	 */
+	bool MulInverse(
+		int limbs,		// Limbs in u and result
+		const uint32_t *u,	// Large number, buffer size = limbs
+		uint32_t *result);	// Large number, buffer size = limbs
 
-	// Convert bigint to string
-	//std::string ToStr(const uint32_t *n, int limbs, int base = 10);
+	// {q, r} = u / v
+	// Return false on divide by zero
+	bool Divide(
+		const uint32_t *u,	// numerator, size = u_limbs
+		int u_limbs,
+		const uint32_t *v,	// denominator, size = v_limbs
+		int v_limbs,
+		uint32_t *q,			// quotient, size = u_limbs
+		uint32_t *r);		// remainder, size = v_limbs
+
+	// r = u % v
+	// Return false on divide by zero
+	bool Modulus(
+		const uint32_t *u,	// numerator, size = u_limbs
+		int u_limbs,
+		const uint32_t *v,	// denominator, size = v_limbs
+		int v_limbs,
+		uint32_t *r);		// remainder, size = v_limbs
+
+	// m_inv ~= 2^(2k)/m
+	// Generates m_inv parameter of BarrettModulus()
+	// It is limbs in size, chopping off the 2^k bit
+	// Only works for m with the high bit set
+	void BarrettModulusPrecomp(
+		int limbs,		// Number of limbs in m and m_inv
+		const uint32_t *m,	// Modulus, size = limbs
+		uint32_t *m_inv);	// Large number result, size = limbs
+
+	// r = x mod m
+	// Using Barrett's method with precomputed m_inv
+	void BarrettModulus(
+		int limbs,			// Number of limbs in m and m_inv
+		const uint32_t *x,		// Number to reduce, size = limbs*2
+		const uint32_t *m,		// Modulus, size = limbs
+		const uint32_t *m_inv,	// R/Modulus, precomputed, size = limbs
+		uint32_t *result);		// Large number result
+
+	// result = (x * y) (Mod modulus)
+	bool MulMod(
+		int limbs,			// Number of limbs in x,y,modulus
+		const uint32_t *x,		// Large number x
+		const uint32_t *y,		// Large number y
+		const uint32_t *modulus,	// Large number modulus
+		uint32_t *result);		// Large number result
 
 	// Convert string to bigint
 	// Return 0 if string contains non-digit characters, else number of limbs used
 	int ToInt(uint32_t *lhs, int max_limbs, const char *rhs, uint32_t base = 10);
 
 	/*
-	 * Computes: result = (n ^ -1) (Mod modulus)
-	 * Such that: result * n (Mod modulus) = 1
+	 * Computes: result = (1/u) (Mod v)
+	 * Such that: result * u (Mod v) = 1
 	 * Using Extended Euclid's Algorithm (GCDe)
 	 * 
 	 * This is not always possible, so it will return false iff not possible.
 	 */
 	bool InvMod(
-		const uint32_t *n,		//	Large number, buffer size = n_limbs
-		int n_limbs,		//	Size of n
-		const uint32_t *modulus,	//	Large number, buffer size = limbs
-		int limbs,			//	Size of modulus
-		uint32_t *result);		//	Large number, buffer size = limbs
+		const uint32_t *u,	// Large number, buffer size = u_limbs
+		int u_limbs,	// Limbs in u
+		const uint32_t *v,	// Large number, buffer size = limbs
+		int limbs,		// Limbs in modulus and result
+		uint32_t *result);	// Large number, buffer size = limbs
 
 	/*
 	 * Computes: result = GCD(a, b)  (greatest common divisor)
@@ -269,22 +300,32 @@ namespace big
 	 * Length of result is the length of the smallest argument
 	 */
 	void GCD(
-		const uint32_t *a,	//	Large number, buffer size = a_limbs
-		int a_limbs,	//	Size of a
-		const uint32_t *b,	//	Large number, buffer size = b_limbs
-		int b_limbs,	//	Size of b
-		uint32_t *result);	//	Large number, buffer size = min(a, b)
+		const uint32_t *a,	// Large number, buffer size = a_limbs
+		int a_limbs,	// Size of a
+		const uint32_t *b,	// Large number, buffer size = b_limbs
+		int b_limbs,	// Size of b
+		uint32_t *result);	// Large number, buffer size = min(a, b)
 
-	// Calculates mod_inv from low limb of modulus
-	uint32_t MonModInv(uint32_t modulus0);
+	// root = sqrt(square)
+	// Based on Newton-Raphson iteration: root_n+1 = (root_n + square/root_n) / 2
+	// Doubles number of correct bits each iteration
+	// Precondition: The high limb of square is non-zero
+	// Returns false if it was unable to determine the root
+	bool SquareRoot(
+		int limbs,			// Number of limbs in root
+		const uint32_t *square,	// Square to root, size = limbs * 2
+		uint32_t *root);			// Output root, size = limbs
+
+	// Calculates mod_inv from low limb of modulus for Mon*()
+	uint32_t MonReducePrecomp(uint32_t modulus0);
 
 	// Compute n_residue for Montgomery reduction
 	void MonInputResidue(
-		const uint32_t *n,		//	Large number, buffer size = n_limbs
-		int n_limbs,		//	Number of limbs in n
-		const uint32_t *modulus,	//	Large number, buffer size = m_limbs
-		int m_limbs,		//	Number of limbs in modulus
-		uint32_t *n_residue);	//	Result, buffer size = m_limbs
+		const uint32_t *n,		// Large number, buffer size = n_limbs
+		int n_limbs,		// Number of limbs in n
+		const uint32_t *modulus,	// Large number, buffer size = m_limbs
+		int m_limbs,		// Number of limbs in modulus
+		uint32_t *n_residue);	// Result, buffer size = m_limbs
 
 	// result = a * b * r^-1 (Mod modulus) in Montgomery domain
 	void MonPro(
@@ -292,7 +333,15 @@ namespace big
 		const uint32_t *a_residue,	// Large number, buffer size = limbs
 		const uint32_t *b_residue,	// Large number, buffer size = limbs
 		const uint32_t *modulus,		// Large number, buffer size = limbs
-		uint32_t mod_inv,			// MonModInv() return
+		uint32_t mod_inv,			// MonReducePrecomp() return
+		uint32_t *result);			// Large number, buffer size = limbs
+
+	// result = a^-1 (Mod modulus) in Montgomery domain
+	void MonInverse(
+		int limbs,				// Number of limbs in each parameter
+		const uint32_t *a_residue,	// Large number, buffer size = limbs
+		const uint32_t *modulus,		// Large number, buffer size = limbs
+		uint32_t mod_inv,			// MonReducePrecomp() return
 		uint32_t *result);			// Large number, buffer size = limbs
 
 	// result = a * r^-1 (Mod modulus) in Montgomery domain
@@ -302,7 +351,7 @@ namespace big
 		int limbs,			// Number of limbs in each parameter
 		uint32_t *s,				// Large number, buffer size = limbs*2, gets clobbered
 		const uint32_t *modulus,	// Large number, buffer size = limbs
-		uint32_t mod_inv,		// MonModInv() return
+		uint32_t mod_inv,		// MonReducePrecomp() return
 		uint32_t *result);		// Large number, buffer size = limbs
 
 	// result = a * r^-1 (Mod modulus) in Montgomery domain
@@ -310,31 +359,31 @@ namespace big
 		int limbs,			// Number of limbs in each parameter
 		uint32_t *n,				// Large number, buffer size = limbs
 		const uint32_t *modulus,	// Large number, buffer size = limbs
-		uint32_t mod_inv);		// MonModInv() return
+		uint32_t mod_inv);		// MonReducePrecomp() return
 
 	// Computes: result = base ^ exponent (Mod modulus)
 	// Using Montgomery multiplication with simple squaring method
 	// Base parameter must be a Montgomery Residue created with MonInputResidue()
 	void MonExpMod(
-		const uint32_t *base,	//	Base for exponentiation, buffer size = mod_limbs
-		const uint32_t *exponent,//	Exponent, buffer size = exponent_limbs
-		int exponent_limbs,	//	Number of limbs in exponent
-		const uint32_t *modulus,	//	Modulus, buffer size = mod_limbs
-		int mod_limbs,		//	Number of limbs in modulus
-		uint32_t mod_inv,		//	MonModInv() return
-		uint32_t *result);		//	Result, buffer size = mod_limbs
+		const uint32_t *base,	// Base for exponentiation, buffer size = mod_limbs
+		const uint32_t *exponent,// Exponent, buffer size = exponent_limbs
+		int exponent_limbs,	// Number of limbs in exponent
+		const uint32_t *modulus,	// Modulus, buffer size = mod_limbs
+		int mod_limbs,		// Number of limbs in modulus
+		uint32_t mod_inv,		// MonReducePrecomp() return
+		uint32_t *result);		// Result, buffer size = mod_limbs
 
 	// Computes: result = base ^ exponent (Mod modulus)
 	// Using Montgomery multiplication with simple squaring method
 	void ExpMod(
-		const uint32_t *base,	//	Base for exponentiation, buffer size = base_limbs
-		int base_limbs,		//	Number of limbs in base
-		const uint32_t *exponent,//	Exponent, buffer size = exponent_limbs
-		int exponent_limbs,	//	Number of limbs in exponent
-		const uint32_t *modulus,	//	Modulus, buffer size = mod_limbs
-		int mod_limbs,		//	Number of limbs in modulus
-		uint32_t mod_inv,		//	MonModInv() return
-		uint32_t *result);		//	Result, buffer size = mod_limbs
+		const uint32_t *base,	// Base for exponentiation, buffer size = base_limbs
+		int base_limbs,		// Number of limbs in base
+		const uint32_t *exponent,// Exponent, buffer size = exponent_limbs
+		int exponent_limbs,	// Number of limbs in exponent
+		const uint32_t *modulus,	// Modulus, buffer size = mod_limbs
+		int mod_limbs,		// Number of limbs in modulus
+		uint32_t mod_inv,		// MonReducePrecomp() return
+		uint32_t *result);		// Result, buffer size = mod_limbs
 
 	// Computes: result = base ^ exponent (Mod modulus=mod_p*mod_q)
 	// Using Montgomery multiplication with Chinese Remainder Theorem
@@ -350,6 +399,18 @@ namespace big
 		const uint32_t *pinvq,	//	Large number, InvMod(p, q) precalculated, buffer size = phi_limbs
 		int mod_limbs,		//	Number of limbs in p, q and phi
 		uint32_t *result);		//	Result, buffer size = mod_limbs*2
+
+	// Rabin-Miller method for finding a strong pseudo-prime
+	// Preconditions: High bit and low bit of n = 1
+	bool RabinMillerPrimeTest(
+		const uint32_t *n,	// Number to check for primality
+		int limbs,		// Number of limbs in n
+		uint32_t k);			// Confidence level (40 is pretty good)
+
+	// Generate a strong pseudo-prime using the Rabin-Miller primality test
+	void GenerateStrongPseudoPrime(
+		uint32_t *n,			// Output prime
+		int limbs);		// Number of limbs in n
 }
 
 #endif // include guard

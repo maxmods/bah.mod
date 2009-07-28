@@ -125,8 +125,8 @@ struct RAK_DLL_EXPORT ThreadPool
 	/// The number of currently active threads.
 	int NumThreadsWorking(void);
 
-	/// Have the threads been signaled to be stopped?
-	bool WasStopped(void) const;
+	/// Did we call Start?
+	bool WasStarted(void);
 
 protected:
 	// It is valid to cancel input before it is processed.  To do so, lock the inputQueue with inputQueueMutex,
@@ -291,6 +291,7 @@ ThreadPool<InputType, OutputType>::ThreadPool()
 	numThreadsRunning=0;
 	threadDataInterface=0;
 	tdiContext=0;
+	numThreadsWorking=0;
 
 }
 template <class InputType, class OutputType>
@@ -569,7 +570,7 @@ int ThreadPool<InputType, OutputType>::NumThreadsWorking(void)
 }
 
 template <class InputType, class OutputType>
-bool ThreadPool<InputType, OutputType>::WasStopped(void) const
+bool ThreadPool<InputType, OutputType>::WasStarted(void)
 {
 	bool b;
 	runThreadsMutex.Lock();

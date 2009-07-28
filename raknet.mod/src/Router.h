@@ -21,10 +21,14 @@ class RakPeerInterface;
 #include "ConnectionGraph.h"
 
 /// \defgroup ROUTER_GROUP Router
+/// \brief Deprecated. Doesn't work well in practice. Use it at your own risk
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \ingroup ROUTER_GROUP
 /// \brief Used to route messages between peers
+/// \details
+/// \deprecated
 class RAK_DLL_EXPORT Router : public PluginInterface2 , public RouterInterface
 {
 public:

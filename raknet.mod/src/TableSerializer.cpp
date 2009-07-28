@@ -7,7 +7,7 @@
 void TableSerializer::SerializeTable(DataStructures::Table *in, RakNet::BitStream *out)
 {
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = in->GetRows().GetListHead();
-	DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
+	const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
 	SerializeColumns(in, out);
 	out->Write((unsigned)in->GetRows().Size());
 	unsigned rowIndex;
@@ -22,7 +22,7 @@ void TableSerializer::SerializeTable(DataStructures::Table *in, RakNet::BitStrea
 }
 void TableSerializer::SerializeColumns(DataStructures::Table *in, RakNet::BitStream *out)
 {
-	DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
+	const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
 	out->Write((unsigned)columns.Size());
 	unsigned i;
 	for (i=0; i<columns.Size(); i++)
@@ -33,7 +33,7 @@ void TableSerializer::SerializeColumns(DataStructures::Table *in, RakNet::BitStr
 }
 void TableSerializer::SerializeColumns(DataStructures::Table *in, RakNet::BitStream *out, DataStructures::List<int> &skipColumnIndices)
 {
-	DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
+	const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=in->GetColumns();
 	out->Write((unsigned)columns.Size()-skipColumnIndices.Size());
 	unsigned i;
 	for (i=0; i<columns.Size(); i++)
@@ -86,7 +86,7 @@ bool TableSerializer::DeserializeColumns(RakNet::BitStream *in, DataStructures::
 	}
 	return true;
 }
-void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyIn, DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns, RakNet::BitStream *out)
+void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyIn, const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns, RakNet::BitStream *out)
 {
 	unsigned cellIndex;
 	out->Write(keyIn);
@@ -98,7 +98,7 @@ void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyI
 		SerializeCell(out, in->cells[cellIndex], columns[cellIndex].columnType);
 	}
 }
-void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyIn, DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns, RakNet::BitStream *out, DataStructures::List<int> &skipColumnIndices)
+void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyIn, const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns, RakNet::BitStream *out, DataStructures::List<int> &skipColumnIndices)
 {
 	unsigned cellIndex;
 	out->Write(keyIn);
@@ -123,7 +123,7 @@ void TableSerializer::SerializeRow(DataStructures::Table::Row *in, unsigned keyI
 }
 bool TableSerializer::DeserializeRow(RakNet::BitStream *in, DataStructures::Table *out)
 {
-	DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=out->GetColumns();
+	const DataStructures::List<DataStructures::Table::ColumnDescriptor> &columns=out->GetColumns();
 	unsigned numEntries;
 	DataStructures::Table::Row *row;
 	unsigned key;

@@ -7,6 +7,7 @@
 #include <sys/timer.h>
 #else
 #include <unistd.h> // usleep
+#include <time.h>
 #endif
 
 
@@ -20,6 +21,13 @@ void RakSleep(unsigned int ms)
 	// Use the version of usleep on the console here, this is a macro
 	_PS3_usleep(ms * 1000);
 #else
-	usleep(ms * 1000);
+
+	timespec ts;
+
+	ts.tv_sec=0;
+
+	ts.tv_nsec=ms*1000*1000;
+	// usleep(ms * 1000);
+	nanosleep(&ts,0);
 #endif
 }

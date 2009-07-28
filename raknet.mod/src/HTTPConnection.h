@@ -1,4 +1,4 @@
-/// \file
+/// \file HTTPConnection.h
 /// \brief Contains HTTPConnection, used to communicate with web servers
 ///
 /// This file is part of RakNet Copyright 2008 Kevin Jenkins.
@@ -28,7 +28,7 @@ class TCPInterface;
 struct SystemAddress;
 
 /// \brief Use HTTPConnection to communicate with a web server.
-/// Start an instance of TCPInterface via the Start() command.
+/// \details Start an instance of TCPInterface via the Start() command.
 /// Instantiate a new instance of HTTPConnection, and associate TCPInterface with the class in the constructor.
 /// Use Post() to send commands to the web server, and ProcessDataPacket() to update the connection with packets returned from TCPInterface that have the system address of the web server
 /// This class will handle connecting and reconnecting as necessary.
@@ -38,9 +38,11 @@ class RAK_DLL_EXPORT HTTPConnection
 {
 public:
     /// Returns a HTTP object associated with this tcp connection
-    /// \pre tcp should already be started
-    HTTPConnection(TCPInterface& tcp, const char *host, unsigned short port=80);
+    HTTPConnection();
     virtual ~HTTPConnection();
+
+	/// \pre tcp should already be started
+	void Init(TCPInterface *_tcp, const char *host, unsigned short port=80);
 
     /// Submit data to the HTTP server
     /// HTTP only allows one request at a time per connection
@@ -51,9 +53,11 @@ public:
 	/// \param contentType "Content-Type:" passed to post.
     void Post(const char *path, const char *data, const char *_contentType="application/x-www-form-urlencoded");
     
-    /// Get data returned by the HTTP server
-    /// If IsFinished()==false then this may be empty or a partial
-    /// response.
+	/// Is there a Read result ready?
+	bool HasRead(void) const;
+
+    /// Get one result from the server
+	/// \pre HasResult must return true
     RakNet::RakString Read(void);
 
 	/// Call periodically to do time-based updates
@@ -67,8 +71,7 @@ public:
     /// If this returns true then it's safe to Post() another request
 	/// Deallocate the packet as usual via TCPInterface
     /// \param packet NULL or a packet associated with our host and port
-	/// \return true when all data from one Post() has been read.
-    bool ProcessFinalTCPPacket(Packet *packet);
+   void ProcessTCPPacket(Packet *packet);
 
     /// Results of HTTP requests.  Standard response codes are < 999
     /// ( define HTTP codes and our internal codes as needed )
@@ -103,24 +106,52 @@ public:
 	/// \internal
 	int GetState(void) const;
 
+	struct OutgoingPost
+	{
+		RakNet::RakString remotePath;
+		RakNet::RakString data;
+		RakNet::RakString contentType;
+	};
+
+	 DataStructures::Queue<OutgoingPost> outgoingPosts;
+	 OutgoingPost currentProcessingRequest;
+
 private:
     SystemAddress server;
-    TCPInterface& tcp;
+    TCPInterface *tcp;
 	RakNet::RakString host;
 	unsigned short port;
+	DataStructures::Queue<BadResponse> badResponses;
+
+	enum ConnectionState
+	{
+		CS_NONE,
+		CS_CONNECTING,
+		CS_CONNECTED,
+		CS_PROCESSING,
+	} connectionState;
+
+	RakNet::RakString incomingData;
+	DataStructures::Queue<RakNet::RakString> results;
+
+	void CloseConnection();
+	
+	/*
 	enum { RAK_HTTP_INITIAL,
 		RAK_HTTP_STARTING,
 		RAK_HTTP_CONNECTING,
 		RAK_HTTP_ESTABLISHED,
 		RAK_HTTP_REQUEST_SENT,
 		RAK_HTTP_IDLE } state;
+
     RakNet::RakString outgoing, incoming, path, contentType;
-    DataStructures::Queue<BadResponse> badResponses;
     void Process(Packet *packet); // the workhorse
     
     // this helps check the various status lists in TCPInterface
-    typedef SystemAddress (TCPInterface::*StatusCheckFunction)(void);
-    bool InList(StatusCheckFunction func);
+	typedef SystemAddress (TCPInterface::*StatusCheckFunction)(void);
+	bool InList(StatusCheckFunction func);
+	*/
+
 };
 
 #endif

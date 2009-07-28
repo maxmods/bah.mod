@@ -26,10 +26,10 @@
 #include "SocketLayer.h"
 #include <stdlib.h>
 
-SocketDescriptor::SocketDescriptor() {port=0; hostAddress[0]=0; socketType=UDP;}
+SocketDescriptor::SocketDescriptor() {port=0; hostAddress[0]=0; remotePortRakNetWasStartedOn_PS3=0;}
 SocketDescriptor::SocketDescriptor(unsigned short _port, const char *_hostAddress)
 {
-	socketType=UDP;
+	remotePortRakNetWasStartedOn_PS3=0;
 	port=_port;
 	if (_hostAddress)
 		strcpy(hostAddress, _hostAddress);
@@ -96,9 +96,14 @@ void SystemAddress::ToString(bool writePort, char *dest) const
 	}
 
 #else
+
+	
 	in_addr in;
 	in.s_addr = binaryAddress;
-	strcpy(dest, inet_ntoa( in ));
+//	cellSysmoduleLoadModule(CELL_SYSMODULE_NETCTL);
+//	sys_net_initialize_network();
+	const char *ntoaStr = inet_ntoa( in );
+	strcpy(dest, ntoaStr);
 	if (writePort)
 	{
 		strcat(dest, ":");
@@ -166,7 +171,16 @@ void SystemAddress::SetBinaryAddress(const char *str)
 		}
 
 #if defined(_XBOX) || defined(X360)
-		binaryAddress=atoi(IPPart);
+		int dotCount=0;
+		for (index=0; str[index] && str[index]!=':' && index<22; index++)
+		{
+			if (str[index]=='.')
+				dotCount++;
+		}
+		if (IPPart[0] && dotCount==3)
+			binaryAddress=inet_addr(IPPart);
+		else
+			binaryAddress=atoi(IPPart);
 #else
 		if (IPPart[0])
 			binaryAddress=inet_addr(IPPart);
@@ -266,7 +280,7 @@ void NetworkID::SetPeerToPeerMode(bool isPeerToPeer)
 {
 	(void) isPeerToPeer;
 
-	// Depreciated, define NETWORK_ID_SUPPORTS_PEER_TO_PEER instead for true, comment out for false
+	// deprecated, define NETWORK_ID_SUPPORTS_PEER_TO_PEER instead for true, comment out for false
 	// This is in RakNetDefines.h
 	RakAssert(0);
 
@@ -274,19 +288,19 @@ void NetworkID::SetPeerToPeerMode(bool isPeerToPeer)
 }
 bool RakNetGUID::operator==( const RakNetGUID& right ) const
 {
-//	return memcmp(g, right.g, sizeof(g))==0;
-	for (unsigned int i=0; i < sizeof(RakNetGUID) / sizeof(RakNetGUID::g[0]); i++)
-		if (g[i]!=right.g[i])
-			return false;
-	return true;
+	return memcmp(g, right.g, sizeof(g))==0;
+//	for (unsigned int i=0; i < sizeof(RakNetGUID) / sizeof(RakNetGUID::g[0]); i++)
+//		if (g[i]!=right.g[i])
+//			return false;
+//	return true;
 }
 bool RakNetGUID::operator!=( const RakNetGUID& right ) const
 {
-//	return memcmp(g, right.g, sizeof(g))!=0;
-	for (unsigned int i=0; i < sizeof(RakNetGUID) / sizeof(RakNetGUID::g[0]); i++)
-		if (g[i]!=right.g[i])
-			return true;
-	return false;
+	return memcmp(g, right.g, sizeof(g))!=0;
+//	for (unsigned int i=0; i < sizeof(RakNetGUID) / sizeof(RakNetGUID::g[0]); i++)
+//		if (g[i]!=right.g[i])
+//			return true;
+//	return false;
 }
 bool RakNetGUID::operator > ( const RakNetGUID& right ) const
 {
@@ -329,16 +343,16 @@ void RakNetGUID::ToString(char *dest) const
 	if (*this==UNASSIGNED_RAKNET_GUID)
 		strcpy(dest, "UNASSIGNED_RAKNET_GUID");
 
-	sprintf(dest, "%u.%u.%u.%u", g[0], g[1], g[2], g[3]);
+	sprintf(dest, "%u.%u.%u.%u.%u.%u", g[0], g[1], g[2], g[3], g[4], g[5]);
 }
 bool RakNetGUID::FromString(const char *source)
 {
 	if (source==0)
 		return false;
 
-	char intPart[64];
+	char intPart[128];
 	unsigned int destIndex, sourceIndex=0, partIndex;
-	for (partIndex=0; partIndex<4; partIndex++)
+	for (partIndex=0; partIndex<sizeof(RakNetGUID) / sizeof(RakNetGUID::g[0]); partIndex++)
 	{
 		for (destIndex=0; source[sourceIndex] && source[sourceIndex]!='.' && destIndex<sizeof(intPart)-1; destIndex++, sourceIndex++)
 		{

@@ -6,18 +6,12 @@
 #include "Platform.h"
 #include "Export.h"
 
-bool primeTest(const uint32_t *n, int limbs, uint32_t k);
-void generateStrongPseudoPrime(uint32_t *n, int limbs);
-
 class RAK_DLL_EXPORT RSACrypt
 {
-	uint32_t *p, p_inv, *q, q_inv, *pinvq, factor_limbs;
-	uint32_t *d, e;
-	uint32_t *modulus, mod_inv, mod_limbs;
+	uint32_t *p, p_inv, *q, q_inv, *qInv, *dP, *dQ, factor_limbs;
+	uint32_t e, *modulus, mod_inv, mod_limbs;
 
 	void cleanup();
-
-	bool generateExponents(const uint32_t *p, const uint32_t *q, int limbs, uint32_t &e, uint32_t *d);
 
 public:
 	RSACrypt();

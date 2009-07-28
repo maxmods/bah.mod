@@ -60,7 +60,7 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Bytes received: %s\n"
 			"Acks received: %u\n"
 			"Duplicate acks received: %u\n"
-			"Inst. KBits per second: %.1f\n"
+			"Inst. KBits per second sent: %.1f\n"
 			"KBits per second sent:\t\t\t%.1f\n"
 			"KBits per second received:\t\t%.1f\n"
 			"Bandwith exceeded:\t\t\t%i\n",
@@ -77,7 +77,7 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			RakString::ToString(BITS_TO_BYTES( s->bitsReceived + s->bitsWithBadCRCReceived )),
 			s->acknowlegementsReceived,
 			s->duplicateAcknowlegementsReceived,
-			s->bitsPerSecond  / 1000.0,
+			s->bitsPerSecondSent  / 1000.0,
 			bpsSent / 1000.0,
 			bpsReceived / 1000.0,
 			s->bandwidthExceeded);
@@ -126,7 +126,7 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Ordered messages in of order:\t\t%u\n"
 			"Split messages waiting for reassembly:\t%u\n"
 			"Messages in internal output queue:\t%u\n"
-			"Inst KBits per second:\t\t\t%.1f\n"
+			"Inst KBits per second sent:\t\t%.1f\n"
 			"Elapsed time (sec):\t\t\t%.1f\n"
 			"KBits per second sent:\t\t\t%.1f\n"
 			"KBits per second received:\t\t%.1f\n"
@@ -163,7 +163,7 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			s->orderedMessagesInOrder,
 			s->messagesWaitingForReassembly,
 			s->internalOutputQueueSize,
-			s->bitsPerSecond/1000.0,
+			s->bitsPerSecondSent/1000.0,
 			elapsedTime,
 			bpsSent / 1000.0,
 			bpsReceived / 1000.0,

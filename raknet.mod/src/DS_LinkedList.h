@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Straightforward linked list data structure.
+/// \file DS_LinkedList.h
+/// \internal
+/// \brief Straightforward linked list data structure.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -27,6 +28,7 @@ namespace DataStructures
 	/**
 	* \brief (Circular) Linked List ADT (Doubly Linked Pointer to Node Style) - 
 	* 
+	* \details
 	* By Kevin Jenkins (http://www.rakkar.org)
 	* Initilize with the following command
 	* LinkedList<TYPE>

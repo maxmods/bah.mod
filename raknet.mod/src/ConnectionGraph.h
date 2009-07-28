@@ -18,14 +18,19 @@ class RakPeerInterface;
 #include "GetTime.h"
 #include "Export.h"
 
+/// \defgroup CONNECTION_GRAPH_GROUP ConnectionGraph
+/// \brief Tells other instances of RakPeer about connections to and from this instance
+/// \details Both connection graph plugins have RakNet automatically tell other connected instances of RakNet about new and lost connections<BR>
+/// See ID_REMOTE_DISCONNECTION_NOTIFICATION, ID_REMOTE_CONNECTION_LOST, ID_REMOTE_NEW_INCOMING_CONNECTION<BR>
+/// ConnectionGraph is deprecated. Use ConnectionGraph2 instead.
+/// \ingroup PLUGINS_GROUP
+
 // If you need more than 255 groups just change this typedef
 typedef unsigned char ConnectionGraphGroupID;
 
-/// \defgroup CONNECTION_GRAPH_GROUP ConnectionGraph
-/// \ingroup PLUGINS_GROUP
-
-/// \ingroup CONNECTION_GRAPH_GROUP
 /// \brief A connection graph.  Each peer will know about all other peers.
+/// \ingroup CONNECTION_GRAPH_GROUP
+/// \deprecated Use ConnectionGraph2
 class RAK_DLL_EXPORT ConnectionGraph : public PluginInterface2
 {
 public:
@@ -55,12 +60,12 @@ public:
 	/// Plaintext encoding of the password, or 0 for none.  If you use a password, use secure connections
 	void SetPassword(const char *password);
 
-	/// Returns the connection graph
+	/// \brief Returns the connection graph.
 	/// \return The connection graph, stored as map of adjacency lists
 	DataStructures::WeightedGraph<ConnectionGraph::SystemAddressAndGroupId, unsigned short, false> *GetGraph(void);
 
-	/// Automatically add new connections to the connection graph
-	/// Defaults to true
+	/// \brief Automatically add new connections to the connection graph.
+	/// \details Defaults to true
 	/// If true, then the system will automatically add all new connections for you, assigning groupId 0 to these systems.
 	/// If you want more control, you should call SetAutoAddNewConnections(false);
 	/// When false, it is up to you to call RequestConnectionGraph and AddNewConnection to complete the graph
@@ -68,14 +73,14 @@ public:
 	/// \param[in] autoAdd true to automatically add new connections to the connection graph.  False to not do so.
 	void SetAutoAddNewConnections(bool autoAdd);
 
-	/// Requests the connection graph from another system
-	/// Only necessary to call if SetAutoAddNewConnections(false) is called.
+	/// \brief Requests the connection graph from another system.
+	/// \details Only necessary to call if SetAutoAddNewConnections(false) is called.
 	/// You should call this sometime after getting ID_CONNECTION_REQUEST_ACCEPTED and \a systemAddress is or should be a node on the connection graph
 	/// \param[in] systemAddress The system to send to
 	void RequestConnectionGraph(SystemAddress systemAddress);
 
-	/// Adds a new connection to the connection graph from this system to the specified system.  Also assigns a group identifier for that system
-	/// Only used and valid when SetAutoAddNewConnections(false) is called.
+	/// \brief Adds a new connection to the connection graph from this system to the specified system.  Also assigns a group identifier for that system
+	/// \details Only used and valid when SetAutoAddNewConnections(false) is called.
 	/// Call this for this system sometime after getting ID_NEW_INCOMING_CONNECTION or ID_CONNECTION_REQUEST_ACCEPTED for systems that contain a connection graph
 	/// Groups are sets of one or more nodes in the total graph
 	/// We only add to the graph groups which we subscribe to
@@ -85,20 +90,20 @@ public:
 	/// \param[in] groupId Just a number representing a group.  Important: 0 is reserved to mean unassigned group ID and is assigned to all systems added with SetAutoAddNewConnections(true)
 	void AddNewConnection(RakPeerInterface *peer, SystemAddress systemAddress, RakNetGUID guid, ConnectionGraphGroupID groupId);
 
-	/// Sets our own group ID
-	/// Only used and valid when SetAutoAddNewConnections(false) is called.
+	/// \brief Sets our own group ID.
+	/// \details Only used and valid when SetAutoAddNewConnections(false) is called.
 	/// Defaults to 0
 	/// \param[in] groupId Our group ID
 	void SetGroupId(ConnectionGraphGroupID groupId);
 
-	/// Allows adding to the connection graph nodes with this groupId.
-	/// By default, you subscribe to group 0, which are all systems automatically added with SetAutoAddNewConnections(true)
+	/// \brief Allows adding to the connection graph nodes with this groupId.
+	/// \details By default, you subscribe to group 0, which are all systems automatically added with SetAutoAddNewConnections(true)
 	/// Calling this does not add nodes which were previously rejected due to an unsubscribed group - it only allows addition of nodes after the fact
 	/// \param[in] groupId Just a number representing a group.  0 is reserved to mean unassigned group ID, automatically added with SetAutoAddNewConnections(true)
 	void SubscribeToGroup(ConnectionGraphGroupID groupId);
 
-	/// Disables addition of graph nodes with this groupId
-	/// Calling this does not add remove nodes with this groupId which are already present in the graph.  It only disables addition of nodes after the fact
+	/// \brief Disables addition of graph nodes with this groupId.
+	/// \details Calling this does not add remove nodes with this groupId which are already present in the graph.  It only disables addition of nodes after the fact
 	/// \param[in] groupId Just a number representing a group.  0 is reserved to mean unassigned group ID, automatically added with SetAutoAddNewConnections(true)
 	void UnsubscribeFromGroup(ConnectionGraphGroupID groupId);
 
@@ -153,7 +158,6 @@ protected:
 
 	// Used to broadcast new connections after some time so the pings are correct
 	//RakNetTime forceBroadcastTime;
-
 };
 
 #endif

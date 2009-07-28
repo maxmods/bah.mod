@@ -1,5 +1,7 @@
-/// \file
-/// \brief \b [Internal] Weighted graph.  I'm assuming the indices are complex map types, rather than sequential numbers (which could be implemented much more efficiently).
+/// \file DS_WeightedGraph.h
+/// \internal
+/// \brief Weighted graph.  
+/// \details I'm assuming the indices are complex map types, rather than sequential numbers (which could be implemented much more efficiently).
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///

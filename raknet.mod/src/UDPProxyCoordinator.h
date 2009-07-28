@@ -39,16 +39,6 @@ namespace RakNet
 		/// By default, no password is set
 		void SetRemoteLoginPassword(RakNet::RakString password);
 
-		/// Given a list of all UDPProxyServer sessions we haven't attempted, pick the best one
-		/// By default picks randomly
-		/// Override to pick more intelligently (such as by physical location)
-		/// \param[in] potentialServers List of logged in servers we haven't tried yet
-		/// \param[in] senderAddress Passed to RequestForwarding as sourceAddress
-		/// \param[in] targetAddress Passed to RequestForwarding as targetAddress
-		/// \param[in] serverSelectionBitstream Passed to RequestForwarding as serverSelectionBitstream
-		/// \return The index of the server to use
-		virtual DataStructures::DefaultIndexType GetBestServer(const DataStructures::Multilist<ML_UNORDERED_LIST, SystemAddress> &potentialServers, SystemAddress senderAddress, SystemAddress targetAddress, BitStream *serverSelectionBitstream);
-
 		/// \internal
 		virtual void Update(void);
 		virtual PluginReceiveResult OnReceive(Packet *packet);
@@ -60,21 +50,36 @@ namespace RakNet
 			SystemAddress targetClientAddress;
 		};
 
+		struct ServerWithPing
+		{
+			unsigned short ping;
+			SystemAddress serverAddress;
+		};
+
 		struct ForwardingRequest
 		{
+			RakNetTimeMS timeoutOnNoDataMS;
+			RakNetTimeMS timeoutAfterSuccess;
 			SenderAndTargetAddress sata;
 			SystemAddress requestingAddress; // Which system originally sent the network message to start forwarding
 			SystemAddress currentlyAttemptedServerAddress;
-			DataStructures::Multilist<ML_UNORDERED_LIST, SystemAddress> remainingServersToTry;
-			RakNetTimeMS timeoutOnNoDataMS;
+			DataStructures::Multilist<ML_QUEUE, SystemAddress> remainingServersToTry;
 			RakNet::BitStream serverSelectionBitstream;
+
+			DataStructures::Multilist<ML_STACK, ServerWithPing, unsigned short> sourceServerPings, targetServerPings;
+			RakNetTime timeRequestedPings;
+			// Order based on sourceServerPings and targetServerPings
+			void OrderRemainingServersToTry(void);
+		
 		};
 
 	protected:
 		void OnForwardingRequestFromClientToCoordinator(Packet *packet);
 		void OnLoginRequestFromServerToCoordinator(Packet *packet);
 		void OnForwardingReplyFromServerToCoordinator(Packet *packet);
+		void OnPingServersReplyFromClientToCoordinator(Packet *packet);
 		void TryNextServer(SenderAndTargetAddress sata, ForwardingRequest *fw);
+		void SendAllBusy(SystemAddress senderClientAddress, SystemAddress targetClientAddress, SystemAddress requestingAddress);
 		void Clear(void);
 
 		void SendForwardingRequest(SystemAddress sourceAddress, SystemAddress targetAddress, SystemAddress serverAddress, RakNetTimeMS timeoutOnNoDataMS);

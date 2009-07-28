@@ -19,11 +19,17 @@
 #include "RakNetTypes.h"
 #include "PluginInterface2.h"
 
+/// \defgroup UDP_PROXY_GROUP UDPProxy
+/// \brief Forwards UDP datagrams from one system to another. Protocol independent
+/// \details Used when NatPunchthroughClient fails
+/// \ingroup PLUGINS_GROUP
+
 namespace RakNet
 {
 class UDPProxyClient;
 
 /// Callback to handle results of calling UDPProxyClient::RequestForwarding()
+/// \ingroup UDP_PROXY_GROUP
 struct UDPProxyClientResultHandler
 {
 	/// Called when our forwarding request was completed. We can now connect to \a targetAddress by using \a proxyAddress instead
@@ -74,11 +80,13 @@ struct UDPProxyClientResultHandler
 };
 
 
-/// When NAT Punchthrough fails, it is possible to use a non-NAT system to forward messages from us to the recipient, and vice-versa
-/// The class to forward messages is UDPForwarder, and it is triggered over the network via the UDPProxyServer plugin.
-/// The UDPProxyClient connects to UDPProxyCoordinator to get a list of servers running UDPProxyServer, and the coordinator will relay our forwarding request
 /// \brief Communicates with UDPProxyCoordinator, in order to find a UDPProxyServer to forward our datagrams.
-/// \ingroup NAT_PUNCHTHROUGH_GROUP
+/// \details When NAT Punchthrough fails, it is possible to use a non-NAT system to forward messages from us to the recipient, and vice-versa.<BR>
+/// The class to forward messages is UDPForwarder, and it is triggered over the network via the UDPProxyServer plugin.<BR>
+/// The UDPProxyClient connects to UDPProxyCoordinator to get a list of servers running UDPProxyServer, and the coordinator will relay our forwarding request
+/// \sa NatPunchthroughServer
+/// \sa NatPunchthroughClient
+/// \ingroup UDP_PROXY_GROUP
 class RAK_DLL_EXPORT UDPProxyClient : public PluginInterface2
 {
 public:
@@ -107,9 +115,32 @@ public:
 	/// \internal
 	virtual void Update(void);
 	virtual PluginReceiveResult OnReceive(Packet *packet);
+	virtual void OnShutdown(void);
 	
+	struct ServerWithPing
+	{
+		unsigned short ping;
+		SystemAddress serverAddress;
+	};
+	struct SenderAndTargetAddress
+	{
+		SystemAddress senderClientAddress;
+		SystemAddress targetClientAddress;
+	};
+	struct PingServerGroup
+	{
+		SenderAndTargetAddress sata;
+		RakNetTime startPingTime;
+		SystemAddress coordinatorAddressForPings;
+		DataStructures::Multilist<ML_UNORDERED_LIST, ServerWithPing> serversToPing;
+		bool AreAllServersPinged(void) const;
+		void SendPingedServersToCoordinator(RakPeerInterface *rakPeerInterface);
+	};
+	DataStructures::Multilist<ML_UNORDERED_LIST, PingServerGroup*> pingServerGroups;
 protected:
 
+	void OnPingServers(Packet *packet);
+	void Clear(void);
 	UDPProxyClientResultHandler *resultHandler;
 
 };

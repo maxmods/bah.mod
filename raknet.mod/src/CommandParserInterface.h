@@ -1,4 +1,4 @@
-/// \file
+/// \file CommandParserInterface.h
 /// \brief Contains CommandParserInterface , from which you derive custom command parsers
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
@@ -29,9 +29,9 @@ struct RAK_DLL_EXPORT RegisteredCommand
 /// List of commands registered with RegisterCommand()
 int RAK_DLL_EXPORT RegisteredCommandComp( const char* const & key, const RegisteredCommand &data );
 
-/// CommandParserInterface provides a set of functions and interfaces that plug into the ConsoleServer class.
-/// Each CommandParserInterface works at the same time as other interfaces in the system.
 /// \brief The interface used by command parsers.
+/// \details CommandParserInterface provides a set of functions and interfaces that plug into the ConsoleServer class.
+/// Each CommandParserInterface works at the same time as other interfaces in the system.
 class RAK_DLL_EXPORT CommandParserInterface
 {
 public:
@@ -43,22 +43,22 @@ public:
 	/// \return The name that you return.
 	virtual const char *GetName(void) const=0;
 
-	/// A callback for when \a systemAddress has connected to us.
+	/// \brief A callback for when \a systemAddress has connected to us.
 	/// \param[in] systemAddress The player that has connected.
 	/// \param[in] transport The transport interface that sent us this information.  Can be used to send messages to this or other players.
 	virtual void  OnNewIncomingConnection(SystemAddress systemAddress, TransportInterface *transport);
 
-	/// A callback for when \a systemAddress has disconnected, either gracefully or forcefully
+	/// \brief A callback for when \a systemAddress has disconnected, either gracefully or forcefully
 	/// \param[in] systemAddress The player that has disconnected.
 	/// \param[in] transport The transport interface that sent us this information.
 	virtual void OnConnectionLost(SystemAddress systemAddress, TransportInterface *transport);
 
-	/// A callback for when you are expected to send a brief description of your parser to \a systemAddress
+	/// \brief A callback for when you are expected to send a brief description of your parser to \a systemAddress
 	/// \param[in] transport The transport interface we can use to write to
 	/// \param[in] systemAddress The player that requested help.
 	virtual void SendHelp(TransportInterface *transport, SystemAddress systemAddress)=0;
 
-	/// Given \a command with parameters \a parameterList , do whatever processing you wish.
+	/// \brief Given \a command with parameters \a parameterList , do whatever processing you wish.
 	/// \param[in] command The command to process
 	/// \param[in] numParameters How many parameters were passed along with the command
 	/// \param[in] parameterList The list of parameters.  parameterList[0] is the first parameter and so on.
@@ -67,7 +67,8 @@ public:
 	/// \param[in] originalString The string that was actually sent over the network, in case you want to do your own parsing
 	virtual bool OnCommand(const char *command, unsigned numParameters, char **parameterList, TransportInterface *transport, SystemAddress systemAddress, const char *originalString)=0;
 
-	/// This is called every time transport interface is registered.  If you want to save a copy of the TransportInterface pointer
+	/// \brief This is called every time transport interface is registered.  
+	/// \details If you want to save a copy of the TransportInterface pointer
 	/// This is the place to do it
 	/// \param[in] transport The new TransportInterface
 	virtual void OnTransportChange(TransportInterface *transport);
@@ -108,8 +109,8 @@ protected:
 	/// \param[in] commandHelp A pointer to a STATIC string that has the help information for your command.  I keep a copy of the pointer here so don't deallocate the string.
 	virtual void RegisterCommand(unsigned char parameterCount, const char *command, const char *commandHelp);
 
-	/// Just writes a string to the remote system based on the result ( \a res )of your operation
-	/// This is not necessary to call, but makes it easier to return results of function calls
+	/// \brief Just writes a string to the remote system based on the result ( \a res ) of your operation
+	/// \details This is not necessary to call, but makes it easier to return results of function calls.
 	/// \param[in] res The result to write
 	/// \param[in] command The command that this result came from
 	/// \param[in] transport The transport interface that will be written to
@@ -119,8 +120,8 @@ protected:
 	virtual void ReturnResult(SystemAddress res, const char *command, TransportInterface *transport, SystemAddress systemAddress);
 	virtual void ReturnResult(int res, const char *command,TransportInterface *transport, SystemAddress systemAddress);
 
-	/// Just writes a string to the remote system when you are calling a function that has no return value
-	/// This is not necessary to call, but makes it easier to return results of function calls
+	/// \brief Just writes a string to the remote system when you are calling a function that has no return value.
+	/// \details This is not necessary to call, but makes it easier to return results of function calls.
 	/// \param[in] res The result to write
 	/// \param[in] command The command that this result came from
 	/// \param[in] transport The transport interface that will be written to
@@ -128,8 +129,9 @@ protected:
 	virtual void ReturnResult(const char *command,TransportInterface *transport, SystemAddress systemAddress);
 
 
-	/// Since there's no way to specify a systemAddress directly, the user needs to specify both the binary address and port.
-	/// Given those parameters, this returns the corresponding SystemAddress
+	/// \brief Since there's no way to specify a systemAddress directly, the user needs to 
+	/// specify both the binary address and port.
+	/// \details Given those parameters, this returns the corresponding SystemAddress
 	/// \param[in] binaryAddress The binaryAddress portion of SystemAddress
 	/// \param[in] port The port portion of SystemAddress
 	SystemAddress IntegersToSystemAddress(int binaryAddress, int port);

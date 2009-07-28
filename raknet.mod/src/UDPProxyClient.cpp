@@ -3,8 +3,15 @@
 #include "UDPProxyCommon.h"
 #include "RakPeerInterface.h"
 #include "MessageIdentifiers.h"
+#include "GetTime.h"
 
 using namespace RakNet;
+static const int DEFAULT_UNRESPONSIVE_PING_TIME=1000;
+
+bool operator<( const DataStructures::MLKeyRef<UDPProxyClient::ServerWithPing> &inputKey, const UDPProxyClient::ServerWithPing &cls ) {return inputKey.Get().serverAddress < cls.serverAddress;}
+bool operator>( const DataStructures::MLKeyRef<UDPProxyClient::ServerWithPing> &inputKey, const UDPProxyClient::ServerWithPing &cls ) {return inputKey.Get().serverAddress > cls.serverAddress;}
+bool operator==( const DataStructures::MLKeyRef<UDPProxyClient::ServerWithPing> &inputKey, const UDPProxyClient::ServerWithPing &cls ) {return inputKey.Get().serverAddress == cls.serverAddress;}
+
 
 UDPProxyClient::UDPProxyClient()
 {
@@ -12,7 +19,7 @@ UDPProxyClient::UDPProxyClient()
 }
 UDPProxyClient::~UDPProxyClient()
 {
-
+	Clear();
 }
 void UDPProxyClient::SetResultHandler(UDPProxyClientResultHandler *rh)
 {
@@ -49,14 +56,73 @@ bool UDPProxyClient::RequestForwarding(SystemAddress proxyCoordinator, SystemAdd
 }
 void UDPProxyClient::Update(void)
 {
+	DataStructures::DefaultIndexType idx1=0;
+	while (idx1 < pingServerGroups.GetSize())
+	{
+		PingServerGroup *psg = pingServerGroups[idx1];
+
+		if (psg->serversToPing.GetSize() > 0 && 
+			RakNet::GetTime() > psg->startPingTime+DEFAULT_UNRESPONSIVE_PING_TIME)
+		{
+			// If they didn't reply within DEFAULT_UNRESPONSIVE_PING_TIME, just give up on them
+			psg->SendPingedServersToCoordinator(rakPeerInterface);
+
+			RakNet::OP_DELETE(psg,__FILE__,__LINE__);
+			pingServerGroups.RemoveAtIndex(idx1);
+		}
+		else
+			idx1++;
+	}
 
 }
 PluginReceiveResult UDPProxyClient::OnReceive(Packet *packet)
 {
-	if (packet->data[0]==ID_UDP_PROXY_GENERAL && packet->length>1)
+	if (packet->data[0]==ID_PONG)
+	{
+		DataStructures::DefaultIndexType idx1, idx2;
+		PingServerGroup *psg;
+		for (idx1=0; idx1 < pingServerGroups.GetSize(); idx1++)
+		{
+			psg = pingServerGroups[idx1];
+			for (idx2=0; idx2 < psg->serversToPing.GetSize(); idx2++)
+			{
+				if (psg->serversToPing[idx2].serverAddress==packet->systemAddress)
+				{
+					RakNet::BitStream bsIn(packet->data,packet->length,false);
+					bsIn.IgnoreBytes(sizeof(MessageID));
+					RakNetTime sentTime;
+					bsIn.Read(sentTime);
+					RakNetTime curTime=RakNet::GetTime();
+					int ping;
+					if (curTime>sentTime)
+						ping=(int) (curTime-sentTime);
+					else
+						ping=0;
+					psg->serversToPing[idx2].ping=(unsigned short) ping;
+
+					// If all servers to ping are now pinged, reply to coordinator
+					if (psg->AreAllServersPinged())
+					{
+						psg->SendPingedServersToCoordinator(rakPeerInterface);
+						RakNet::OP_DELETE(psg,__FILE__,__LINE__);
+						pingServerGroups.RemoveAtIndex(idx1);
+					}
+
+					return RR_STOP_PROCESSING_AND_DEALLOCATE;
+				}
+			}
+
+		}
+	}
+	else if (packet->data[0]==ID_UDP_PROXY_GENERAL && packet->length>1)
 	{
 		switch (packet->data[1])
 		{
+		case ID_UDP_PROXY_PING_SERVERS_FROM_COORDINATOR_TO_CLIENT:
+			{
+				OnPingServers(packet);
+			}
+		break;
 		case ID_UDP_PROXY_FORWARDING_SUCCEEDED:
 		case ID_UDP_PROXY_ALL_SERVERS_BUSY:
 		case ID_UDP_PROXY_IN_PROGRESS:
@@ -117,5 +183,68 @@ PluginReceiveResult UDPProxyClient::OnReceive(Packet *packet)
 	}
 	return RR_CONTINUE_PROCESSING;
 }
+void UDPProxyClient::OnShutdown(void)
+{
+	Clear();
+}
+void UDPProxyClient::OnPingServers(Packet *packet)
+{
+	RakNet::BitStream incomingBs(packet->data, packet->length, false);
+	incomingBs.IgnoreBytes(2);
 
+	PingServerGroup *psg = RakNet::OP_NEW<PingServerGroup>(__FILE__,__LINE__);
+	
+	ServerWithPing swp;
+	incomingBs.Read(psg->sata.senderClientAddress);
+	incomingBs.Read(psg->sata.targetClientAddress);
+	psg->startPingTime=RakNet::GetTime();
+	psg->coordinatorAddressForPings=packet->systemAddress;
+	unsigned short serverListSize;
+	incomingBs.Read(serverListSize);
+	SystemAddress serverAddress;
+	unsigned short serverListIndex;
+	char ipStr[64];
+	for (serverListIndex=0; serverListIndex<serverListSize; serverListIndex++)
+	{
+		incomingBs.Read(swp.serverAddress);
+		swp.ping=DEFAULT_UNRESPONSIVE_PING_TIME;
+		psg->serversToPing.Push(swp);
+		swp.serverAddress.ToString(false,ipStr);
+		rakPeerInterface->Ping(ipStr,swp.serverAddress.port,false,0);
+	}
+	pingServerGroups.Push(psg,__FILE__,__LINE__);
+}
+
+bool UDPProxyClient::PingServerGroup::AreAllServersPinged(void) const
+{
+	DataStructures::DefaultIndexType serversToPingIndex;
+	for (serversToPingIndex=0; serversToPingIndex < serversToPing.GetSize(); serversToPingIndex++)
+	{
+		if (serversToPing[serversToPingIndex].ping==DEFAULT_UNRESPONSIVE_PING_TIME)
+			return false;
+	}
+	return true;
+}
+
+void UDPProxyClient::PingServerGroup::SendPingedServersToCoordinator(RakPeerInterface *rakPeerInterface)
+{
+	BitStream outgoingBs;
+	outgoingBs.Write((MessageID)ID_UDP_PROXY_GENERAL);
+	outgoingBs.Write((MessageID)ID_UDP_PROXY_PING_SERVERS_REPLY_FROM_CLIENT_TO_COORDINATOR);
+	outgoingBs.Write(sata.senderClientAddress);
+	outgoingBs.Write(sata.targetClientAddress);
+	unsigned short serversToPingSize = (unsigned short) serversToPing.GetSize();
+	outgoingBs.Write(serversToPingSize);
+	DataStructures::DefaultIndexType serversToPingIndex;
+	for (serversToPingIndex=0; serversToPingIndex < serversToPingSize; serversToPingIndex++)
+	{
+		outgoingBs.Write(serversToPing[serversToPingIndex].serverAddress);
+		outgoingBs.Write(serversToPing[serversToPingIndex].ping);
+	}
+	rakPeerInterface->Send(&outgoingBs, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, coordinatorAddressForPings, false);
+}
+void UDPProxyClient::Clear(void)
+{
+	pingServerGroups.ClearPointers(false,__FILE__,__LINE__);
+}
 

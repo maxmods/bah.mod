@@ -97,7 +97,9 @@ struct RAK_DLL_EXPORT RakNetStatistics
 	///  Number of messages in reliability output queue
 	unsigned internalOutputQueueSize;
 	///  Current bits per second
-	double bitsPerSecond;
+	double bitsPerSecondSent;
+	///  Current bits per second
+	double bitsPerSecondReceived;
 	///  connection start time
 	RakNetTime connectionStartTime;
 	// If true, not all the data can go out in one frame, and RakNet is sending continuously

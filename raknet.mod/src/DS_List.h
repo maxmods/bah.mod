@@ -1,5 +1,7 @@
-/// \file
-/// \brief \b [Internal] Array based list.  Usually the Queue class is used instead, since it has all the same functionality and is only worse at random access.
+/// \file DS_List.h
+/// \internal
+/// \brief Array based list.  
+/// \details Usually the Queue class is used instead, since it has all the same functionality and is only worse at random access.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -30,85 +32,85 @@ namespace DataStructures
 		/// Default constructor
 		List();
 
-		/// Destructor
+		// Destructor
 		~List();
 		
-		/// Copy constructor
+		/// \brief Copy constructor.
 		/// \param[in]  original_copy The list to duplicate 
 		List( const List& original_copy );
 		
-		/// Assign one list to another
+		/// \brief Assign one list to another.
 		List& operator= ( const List& original_copy );
 		
-		/// Access an element by its index in the array 
+		/// \brief Access an element by its index in the array.
 		/// \param[in]  position The index into the array. 
 		/// \return The element at position \a position. 
 		list_type& operator[] ( const unsigned int position ) const;
 
-		/// Access an element by its index in the array 
+		/// \brief Access an element by its index in the array.
 		/// \param[in]  position The index into the array. 
 		/// \return The element at position \a position. 
 		list_type& Get ( const unsigned int position ) const;
 
-		/// Push an element at the end of the stack
+		/// \brief Push an element at the end of the stack.
 		/// \param[in] input The new element. 
-		void Push(const list_type input, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Push(const list_type &input, const char *file=__FILE__, unsigned int line=__LINE__ );
 
-		/// Pop an element from the end of the stack
+		/// \brief Pop an element from the end of the stack.
 		/// \pre Size()>0
 		/// \return The element at the end. 
 		list_type& Pop(void);
 		
-		/// Insert an element at position \a position in the list 
+		/// \brief Insert an element at position \a position in the list.
 		/// \param[in] input The new element. 
 		/// \param[in] position The position of the new element. 		
-		void Insert( const list_type input, const unsigned int position, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Insert( const list_type &input, const unsigned int position, const char *file=__FILE__, unsigned int line=__LINE__ );
 		
-		/// Insert at the end of the list.
+		/// \brief Insert at the end of the list.
 		/// \param[in] input The new element. 
-		void Insert( const list_type input, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Insert( const list_type &input, const char *file=__FILE__, unsigned int line=__LINE__ );
 		
-		/// Replace the value at \a position by \a input.  If the size of
-		/// the list is less than @em position, it increase the capacity of
+		/// \brief Replace the value at \a position by \a input.  
+		/// \details If the size of the list is less than @em position, it increase the capacity of
 		/// the list and fill slot with @em filler.
 		/// \param[in] input The element to replace at position @em position. 
 		/// \param[in] filler The element use to fill new allocated capacity. 
 		/// \param[in] position The position of input in the list. 		
-		void Replace( const list_type input, const list_type filler, const unsigned int position );
+		void Replace( const list_type &input, const list_type filler, const unsigned int position );
 		
-		/// Replace the last element of the list by \a input .
+		/// \brief Replace the last element of the list by \a input.
 		/// \param[in] input The element used to replace the last element. 
-		void Replace( const list_type input );
+		void Replace( const list_type &input );
 		
-		/// Delete the element at position \a position. 
+		/// \brief Delete the element at position \a position. 
 		/// \param[in] position The index of the element to delete 
 		void RemoveAtIndex( const unsigned int position );
 
-		/// Delete the element at position \a position. 
+		/// \brief Delete the element at position \a position.
 		/// \note - swaps middle with end of list, only use if list order does not matter
 		/// \param[in] position The index of the element to delete 
 		void RemoveAtIndexFast( const unsigned int position );
 		
-		/// Delete the element at the end of the list 
+		/// \brief Delete the element at the end of the list.
 		void RemoveFromEnd(const unsigned num=1);
 		
-		/// Returns the index of the specified item or MAX_UNSIGNED_LONG if not found
+		/// \brief Returns the index of the specified item or MAX_UNSIGNED_LONG if not found.
 		/// \param[in] input The element to check for 
 		/// \return The index or position of @em input in the list. 
 		/// \retval MAX_UNSIGNED_LONG The object is not in the list
 		/// \retval [Integer] The index of the element in the list
-		unsigned int GetIndexOf( const list_type input ) const;
+		unsigned int GetIndexOf( const list_type &input ) const;
 		
 		/// \return The number of elements in the list
 		unsigned int Size( void ) const;
 		
-		/// Clear the list		
+		/// \brief Clear the list		
 		void Clear( bool doNotDeallocateSmallBlocks=false );
 		
-		// Preallocate the list, so it needs fewer reallocations at runtime
+		/// \brief Preallocate the list, so it needs fewer reallocations at runtime.
 		void Preallocate( unsigned countNeeded );
 
-		/// Frees overallocated members, to use the minimum memory necessary
+		/// \brief Frees overallocated members, to use the minimum memory necessary.
 		/// \attention 
 		/// This is a slow operation		
 		void Compress( void );
@@ -215,7 +217,7 @@ namespace DataStructures
 		}
 
 		template <class list_type>
-		void List<list_type>::Push(const list_type input, const char *file, unsigned int line)
+		void List<list_type>::Push(const list_type &input, const char *file, unsigned int line)
 		{
 			Insert(input, file, line);
 		}
@@ -231,7 +233,7 @@ namespace DataStructures
 		}
 
 	template <class list_type>
-	void List<list_type>::Insert( const list_type input, const unsigned int position, const char *file, unsigned int line )
+	void List<list_type>::Insert( const list_type &input, const unsigned int position, const char *file, unsigned int line )
 	{
 #ifdef _DEBUG
 		if (position>list_size)
@@ -282,7 +284,7 @@ namespace DataStructures
 
 
 	template <class list_type>
-	void List<list_type>::Insert( const list_type input, const char *file, unsigned int line )
+	void List<list_type>::Insert( const list_type &input, const char *file, unsigned int line )
 	{
 		// Reallocate list if necessary
 
@@ -321,7 +323,7 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		inline void List<list_type>::Replace( const list_type input, const list_type filler, const unsigned int position )
+		inline void List<list_type>::Replace( const list_type &input, const list_type filler, const unsigned int position )
 	{
 		if ( ( list_size > 0 ) && ( position < list_size ) )
 		{
@@ -369,7 +371,7 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		inline void List<list_type>::Replace( const list_type input )
+		inline void List<list_type>::Replace( const list_type &input )
 	{
 		if ( list_size > 0 )
 			listArray[ list_size - 1 ] = input;
@@ -423,7 +425,7 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		unsigned int List<list_type>::GetIndexOf( const list_type input ) const
+		unsigned int List<list_type>::GetIndexOf( const list_type &input ) const
 	{
 		for ( unsigned int i = 0; i < list_size; ++i )
 			if ( listArray[ i ] == input )

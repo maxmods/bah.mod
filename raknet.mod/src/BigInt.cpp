@@ -6,6 +6,11 @@
 
 #include "RakAlloca.h"
 #include "RakMemoryOverride.h"
+#include "Rand.h"
+
+#if defined(_MSC_VER) && !defined(_DEBUG) && _MSC_VER > 1300
+#include <intrin.h>
+#endif
 
 namespace big
 {
@@ -31,17 +36,19 @@ namespace big
 	// returns the degree of the base 2 monic polynomial
 	// (the number of bits used to represent the number)
 	// eg, 0 0 0 0 1 0 1 1 ... => 28 out of 32 used
-#ifdef _MSC_VER
-#pragma warning(disable:4706)
-#endif
 	uint32_t Degree(uint32_t v)
 	{
+//#if defined(_MSC_VER) && !defined(_DEBUG)
+//		unsigned long index;
+//		return _BitScanReverse(&index, v) ? (index + 1) : 0;
+//#else
 		uint32_t r, t = v >> 16;
 
 		if (t)	r = (r = t >> 8) ? 24 + Bits256[r] : 16 + Bits256[t];
 		else 	r = (r = v >> 8) ? 8 + Bits256[r] : Bits256[v];
 
 		return r;
+//#endif
 	}
 
 	// returns the number of limbs that are actually used
@@ -61,8 +68,8 @@ namespace big
 		if (!limb_degree) return 0;
 		--limb_degree;
 
-		uint32_t msl_degree = n[limb_degree];
-
+		uint32_t msl_degree = Degree(n[limb_degree]);
+		
 		return msl_degree + limb_degree*32;
 	}
 
@@ -83,27 +90,39 @@ namespace big
 		memset(&lhs[1], 0, (lhs_limbs - 1)*4);
 	}
 
+#if defined(__BIG_ENDIAN__)
+
+	// Flip the byte order as needed to make 'n' big-endian for sharing over a network
+	void ToLittleEndian(uint32_t *n, int limbs)
+	{
+		for (int ii = 0; ii < limbs; ++ii)
+		{
+			swapLE(n[ii]);
+		}
+	}
+
+	// Flip the byte order as needed to make big-endian 'n' use the local byte order
+	void FromLittleEndian(uint32_t *n, int limbs)
+	{
+		// Same operation as ToBigEndian()
+		ToLittleEndian(n, limbs);
+	}
+
+#endif // __BIG_ENDIAN__
+
 	bool Less(int limbs, const uint32_t *lhs, const uint32_t *rhs)
 	{
 		for (int ii = limbs-1; ii >= 0; --ii)
-		{
 			if (lhs[ii] != rhs[ii])
-			{
 				return lhs[ii] < rhs[ii];
-			}
-		}
 
 		return false;
 	}
 	bool Greater(int limbs, const uint32_t *lhs, const uint32_t *rhs)
 	{
 		for (int ii = limbs-1; ii >= 0; --ii)
-		{
 			if (lhs[ii] != rhs[ii])
-			{
 				return lhs[ii] > rhs[ii];
-			}
-		}
 
 		return false;
 	}
@@ -118,7 +137,7 @@ namespace big
 			do if (lhs[--lhs_limbs] != 0) return false; while (lhs_limbs > rhs_limbs);
 		else if (lhs_limbs < rhs_limbs)
 			do if (rhs[--rhs_limbs] != 0) return true; while (lhs_limbs < rhs_limbs);
-
+	
 		while (lhs_limbs--) if (lhs[lhs_limbs] != rhs[lhs_limbs]) return lhs[lhs_limbs] < rhs[lhs_limbs];
 		return false; // equal
 	}
@@ -128,7 +147,7 @@ namespace big
 			do if (lhs[--lhs_limbs] != 0) return true; while (lhs_limbs > rhs_limbs);
 		else if (lhs_limbs < rhs_limbs)
 			do if (rhs[--rhs_limbs] != 0) return false; while (lhs_limbs < rhs_limbs);
-
+	
 		while (lhs_limbs--) if (lhs[lhs_limbs] != rhs[lhs_limbs]) return lhs[lhs_limbs] > rhs[lhs_limbs];
 		return false; // equal
 	}
@@ -143,6 +162,13 @@ namespace big
 		return true; // equal
 	}
 
+	bool Greater32(const uint32_t *lhs, int lhs_limbs, uint32_t rhs)
+	{
+		if (*lhs > rhs) return true;
+		while (--lhs_limbs)
+			if (*++lhs) return true;
+		return false;
+	}
 	bool Equal32(const uint32_t *lhs, int lhs_limbs, uint32_t rhs)
 	{
 		if (*lhs != rhs) return false;
@@ -151,84 +177,50 @@ namespace big
 		return true; // equal
 	}
 
-	// lhs = rhs >>> shift
+	// out = in >>> shift
 	// Precondition: 0 <= shift < 31
-	void BitShiftRight(uint32_t *result, int result_limbs, const uint32_t *lhs, int lhs_limbs, int rhs_shift)
+	void ShiftRight(int limbs, uint32_t *out, const uint32_t *in, int shift)
 	{
-		if (!rhs_shift)
+		if (!shift)
 		{
-			Set(result, result_limbs, lhs, lhs_limbs);
+			Set(out, limbs, in);
 			return;
 		}
 
-		uint32_t Carrie = 0;
+		uint32_t carry = 0;
 
-		if (result_limbs > lhs_limbs)
-			do result[--result_limbs] = 0; while (result_limbs > lhs_limbs);
-		else if (result_limbs < lhs_limbs)
-			Carrie = lhs[result_limbs] << (32 - rhs_shift);
+		for (int ii = limbs - 1; ii >= 0; --ii)
+		{
+			uint32_t r = in[ii];
 
-		do {
-			uint32_t n = lhs[--result_limbs];
-			result[result_limbs] = Carrie | (n >> rhs_shift);
-			Carrie = n << (32 - rhs_shift);
-		} while (result_limbs);
+			out[ii] = (r >> shift) | carry;
+
+			carry = r << (32 - shift);
+		}
 	}
 
-	// lhs = rhs <<< shift
+	// {out, carry} = in <<< shift
 	// Precondition: 0 <= shift < 31
-	void BitShiftLeft(uint32_t *result, int result_limbs, const uint32_t *lhs, int lhs_limbs, int rhs_shift)
+	uint32_t ShiftLeft(int limbs, uint32_t *out, const uint32_t *in, int shift)
 	{
-		if (!rhs_shift)
+		if (!shift)
 		{
-			Set(result, result_limbs, lhs, lhs_limbs);
-			return;
+			Set(out, limbs, in);
+			return 0;
 		}
 
-		uint32_t Carrie = 0;
-		int ii = 0;
+		uint32_t carry = 0;
 
-		if (result_limbs < lhs_limbs)
-			lhs_limbs = result_limbs;
-
-		for (; ii < lhs_limbs; ++ii)
+		for (int ii = 0; ii < limbs; ++ii)
 		{
-			uint32_t n = lhs[ii];
-			result[ii] = (n << rhs_shift) | Carrie;
-			Carrie = n >> (32 - rhs_shift);
+			uint32_t r = in[ii];
+
+			out[ii] = (r << shift) | carry;
+
+			carry = r >> (32 - shift);
 		}
 
-		if (result_limbs > lhs_limbs)
-		{
-			result[ii++] = Carrie;
-			for (; ii < result_limbs; ++ii)
-				result[ii] = 0;
-		}
-	}
-
-	// n >>= shift*32
-	void LimbShiftRight(uint32_t *n, int limbs, int rhs_shift)
-	{
-		limbs -= rhs_shift;
-
-		while (limbs--)
-		{
-			n[0] = n[rhs_shift];
-			++n;
-		}
-
-		while (rhs_shift--)
-			*n++ = 0;
-	}
-
-	// n <<= shift*32
-	void LimbShiftLeft(uint32_t *n, int limbs, int rhs_shift)
-	{
-		while (limbs-- > rhs_shift)
-			n[limbs] = n[limbs-rhs_shift];
-
-		while (limbs--)
-			*n-- = 0;
+		return carry;
 	}
 
 	// lhs += rhs, return carry out
@@ -236,12 +228,12 @@ namespace big
 	uint32_t Add(uint32_t *lhs, int lhs_limbs, const uint32_t *rhs, int rhs_limbs)
 	{
 		int ii;
-		uint64_t r = 0;
+		uint64_t r = (uint64_t)lhs[0] + rhs[0];
+		lhs[0] = (uint32_t)r;
 
-		for (ii = 0; ii < rhs_limbs; ++ii)
+		for (ii = 1; ii < rhs_limbs; ++ii)
 		{
-			r >>= 32;
-			r += (uint64_t)lhs[ii] + rhs[ii];
+			r = ((uint64_t)lhs[ii] + rhs[ii]) + (uint32_t)(r >> 32);
 			lhs[ii] = (uint32_t)r;
 		}
 
@@ -259,12 +251,12 @@ namespace big
 	uint32_t Add(uint32_t *out, const uint32_t *lhs, int lhs_limbs, const uint32_t *rhs, int rhs_limbs)
 	{
 		int ii;
-		uint64_t r = 0;
+		uint64_t r = (uint64_t)lhs[0] + rhs[0];
+		out[0] = (uint32_t)r;
 
-		for (ii = 0; ii < rhs_limbs; ++ii)
+		for (ii = 1; ii < rhs_limbs; ++ii)
 		{
-			r >>= 32;
-			r += (uint64_t)lhs[ii] + rhs[ii];
+			r = ((uint64_t)lhs[ii] + rhs[ii]) + (uint32_t)(r >> 32);
 			out[ii] = (uint32_t)r;
 		}
 
@@ -300,12 +292,12 @@ namespace big
 	int32_t Subtract(uint32_t *lhs, int lhs_limbs, const uint32_t *rhs, int rhs_limbs)
 	{
 		int ii;
-		int64_t r = 0;
+		int64_t r = (int64_t)lhs[0] - rhs[0];
+		lhs[0] = (uint32_t)r;
 
-		for (ii = 0; ii < rhs_limbs; ++ii)
+		for (ii = 1; ii < rhs_limbs; ++ii)
 		{
-			r >>= 32;
-			r += (int64_t)lhs[ii] - rhs[ii];
+			r = ((int64_t)lhs[ii] - rhs[ii]) + (int32_t)(r >> 32);
 			lhs[ii] = (uint32_t)r;
 		}
 
@@ -323,12 +315,12 @@ namespace big
 	int32_t Subtract(uint32_t *out, const uint32_t *lhs, int lhs_limbs, const uint32_t *rhs, int rhs_limbs)
 	{
 		int ii;
-		int64_t r = 0;
+		int64_t r = (int64_t)lhs[0] - rhs[0];
+		out[0] = (uint32_t)r;
 
-		for (ii = 0; ii < rhs_limbs; ++ii)
+		for (ii = 1; ii < rhs_limbs; ++ii)
 		{
-			r >>= 32;
-			r += (int64_t)lhs[ii] - rhs[ii];
+			r = ((int64_t)lhs[ii] - rhs[ii]) + (int32_t)(r >> 32);
 			out[ii] = (uint32_t)r;
 		}
 
@@ -359,16 +351,14 @@ namespace big
 		return -1;
 	}
 
-	// n = -n
-	void Negate(uint32_t *n, int limbs)
+	// lhs = -rhs
+	void Negate(int limbs, uint32_t *lhs, const uint32_t *rhs)
 	{
-		int64_t r = 0;
-		for (int ii = 0; ii < limbs; ++ii)
-		{
-			r >>= 32;
-			r -= (int32_t)n[ii];
-			n[ii] = (int32_t)r;
-		}
+		// Propagate negations until carries stop
+		while (limbs-- > 0 && !(*lhs++ = -(int32_t)(*rhs++)));
+
+		// Then just invert the remaining words
+		while (limbs-- > 0) *lhs++ = ~(*rhs++);
 	}
 
 	// n = ~n, only invert bits up to the MSB, but none above that
@@ -389,6 +379,12 @@ namespace big
 	void LimbNot(uint32_t *n, int limbs)
 	{
 		while (limbs--) *n++ = ~(*n);
+	}
+
+	// lhs ^= rhs
+	void Xor(int limbs, uint32_t *lhs, const uint32_t *rhs)
+	{
+		while (limbs--) *lhs++ ^= *rhs++;
 	}
 
 	// Return the carry out from A += B << S
@@ -506,7 +502,7 @@ loop_done:
 
 		while (--limbs)
 		{
-			p = *(++B) * (uint64_t)M + *(++A) + (uint32_t)(p >> 32);
+			p = (*(++B) * (uint64_t)M + *(++A)) + (uint32_t)(p >> 32);
 			A[0] = (uint32_t)p;
 		}
 
@@ -529,6 +525,23 @@ loop_done:
 		{
 			++product;
 			product[limbs] = AddMultiply32(limbs, product, x, (++y)[0]);
+		}
+	}
+
+	// product = low half of x * y product
+	void SimpleMultiplyLowHalf(
+		int limbs,		// Number of limbs in parameters x, y
+		uint32_t *product,	// Large number; buffer size = limbs
+		const uint32_t *x,	// Large number
+		const uint32_t *y)	// Large number
+	{
+		Multiply32(limbs, product, x, y[0]);
+
+		while (--limbs)
+		{
+			++product;
+			++y;
+			AddMultiply32(limbs, product, x, y[0]);
 		}
 	}
 
@@ -561,187 +574,6 @@ loop_done:
 		product[limbs*2 - 1] += AddLeftShift32(limbs*2 - 2, product + 1, cross_product + 1, 1);
 	}
 
-	// product = low half of x * y product
-	void SimpleMultiplyLowHalf(
-		int limbs,		// Number of limbs in parameters x, y
-		uint32_t *product,	// Large number; buffer size = limbs
-		const uint32_t *x,	// Large number
-		const uint32_t *y)	// Large number
-	{
-		memset(product, 0, limbs*4);
-
-		for (int ii = 0; ii < limbs; ++ii)
-		{
-			AddMultiply32(limbs - ii, product + ii, x, y[ii]);
-		}
-	}
-
-	/*
-	 * Multiply two large numbers using the Schoolbook method
-	 * Only produces the low y_limbs of the result
-	 *
-	 * The product buffer may not be pointed to by x or y
-	 */
-	void HalfSchoolbookMultiply(
-		uint32_t *product,	// Buffer size = x_limbs+y_limbs
-		const uint32_t *x,	// Number to multiply, buffer size = x_limbs
-		int x_limbs,	// Size of x
-		const uint32_t *y,	// Number to multiply, buffer size = y_limbs
-		int y_limbs)	// Size of y
-	{
-		// Insure that y is the shorter number
-		if (x_limbs < y_limbs)
-		{
-			HalfSchoolbookMultiply(product, y, y_limbs, x, x_limbs);
-			return;
-		}
-
-		if (x_limbs == y_limbs)
-		{
-			SimpleMultiplyLowHalf(x_limbs, product, x, y);
-			return;
-		}
-
-		uint64_t high = 0;
-
-		/* Compute the low y_limbs of output
-		 * x =         P  A  B  C  D
-		 * y =               E  F  G
-		 *         -----------------
-		 *            ?? ?? BG CG DG
-		 *         ?? ?? ?? CF DF
-		 *    + ?? ?? ?? ?? DE
-		 *   -----------------------
-		 *   ?? ?? ?? ?? ?? ^^ ^^ ^^
-		 */
-		for (int ii = 0; ii < y_limbs; ++ii)
-		{
-			uint64_t low = high;
-			high >>= 32;
-
-			for (int jj = 0; jj <= ii; ++jj)
-			{
-				low = (uint64_t)x[jj] * y[ii-jj] + (uint32_t)low;
-				high += low >> 32;
-			}
-
-			product[ii] = (uint32_t)low;
-		}
-	}
-
-	/*
-	 * Multiply two large numbers using the Schoolbook method
-	 *
-	 * The product buffer may not be pointed to by x or y
-	 */
-	void SchoolbookMultiply(
-		uint32_t *product,	// Buffer size = x_limbs+y_limbs
-		const uint32_t *x,	// Number to multiply, buffer size = x_limbs
-		int x_limbs,	// Size of x
-		const uint32_t *y,	// Number to multiply, buffer size = y_limbs
-		int y_limbs)	// Size of y
-	{
-		// Insure that y is the shorter number
-		if (x_limbs < y_limbs)
-		{
-			SchoolbookMultiply(product, y, y_limbs, x, x_limbs);
-			return;
-		}
-
-		if (x_limbs == y_limbs)
-		{
-			Multiply(y_limbs, product, x, y);
-			return;
-		}
-
-		int ii;
-		uint64_t high = 0;
-
-		/* Compute the low y_limbs of output
-		 * x =         P  A  B  C  D
-		 * y =               E  F  G
-		 *         -----------------
-		 *            ?? ?? BG CG DG
-		 *         ?? ?? ?? CF DF
-		 *    + ?? ?? ?? ?? DE
-		 *   -----------------------
-		 *   ?? ?? ?? ?? ?? ^^ ^^ ^^
-		 */
-		for (ii = 0; ii < y_limbs; ++ii)
-		{
-			uint64_t low = high;
-			high >>= 32;
-
-			for (int jj = 0; jj <= ii; ++jj)
-			{
-				low = (uint64_t)x[jj] * y[ii-jj] + (uint32_t)low;
-				high += low >> 32;
-			}
-
-			product[ii] = (uint32_t)low;
-		}
-
-		/* Compute the middle x_limbs - y_limbs of output
-		 * x =         P  A  B  C  D
-		 * y =               E  F  G
-		 *         -----------------
-		 *            PG AG ?? ?? ??
-		 *         ?? AF BF ?? ??
-		 *    + ?? ?? BE CE ??
-		 *   -----------------------
-		 *   ?? ?? ?? ^^ ^^ ?? ?? ??
-		 */
-		for (; ii < x_limbs; ++ii)
-		{
-			uint64_t low = high;
-			high >>= 32;
-
-			for (int jj = 0; jj < y_limbs; ++jj)
-			{
-				low = (uint64_t)x[ii-jj] * y[jj] + (uint32_t)low;
-				high += low >> 32;
-			}
-
-			product[ii] = (uint32_t)low;
-		}
-
-		/* Compute the high y_limbs-1 of output
-		 * x =         P  A  B  C  D
-		 * y =               E  F  G
-		 *         -----------------
-		 *            ?? ?? ?? ?? ??
-		 *         PF ?? ?? ?? ??
-		 *    + PE AE ?? ?? ??
-		 *   -----------------------
-		 *   ?? ^^ ^^ ?? ?? ?? ?? ??
-		 */
-		for (int kk = y_limbs-2; kk >= 0; --kk)
-		{
-			uint64_t low = high;
-			high >>= 32;
-
-			for (int jj = 0; jj <= kk; ++jj)
-			{
-				low = (uint64_t)x[x_limbs-1-jj] * y[y_limbs-1-kk+jj] + (uint32_t)low;
-				high += low >> 32;
-			}
-
-			product[ii++] = (uint32_t)low;
-		}
-
-		/* Record carry into most significant limb
-		 * x =         P  A  B  C  D
-		 * y =               E  F  G
-		 *         -----------------
-		 *            ?? ?? ?? ?? ??
-		 *         ?? ?? ?? ?? ??
-		 *    + ?? ?? ?? ?? ??
-		 *   -----------------------
-		 *   ^^ ?? ?? ?? ?? ?? ?? ??
-		 */
-		product[ii] = (uint32_t)high;
-	}
-
 	// product = xy
 	// memory space for product may not overlap with x,y
     void Multiply(
@@ -751,7 +583,7 @@ loop_done:
     	const uint32_t *y)	// Large number; buffer size = limbs
 	{
 		// Stop recursing under 640 bits or odd limb count
-		if (limbs < 20 || (limbs & 1))
+		if (limbs < 30 || (limbs & 1))
 		{
 			SimpleMultiply(limbs, product, x, y);
 			return;
@@ -774,7 +606,7 @@ loop_done:
 		Multiply(limbs/2, cross_product, xsum, ysum);
 
 		// Subtract out the high and low products
-		int32_t cross_carry = Subtract(cross_product, limbs, product, limbs);
+		int32_t cross_carry = Subtract(cross_product, limbs, product, limbs); 
 		cross_carry += Subtract(cross_product, limbs, product + limbs, limbs);
 
 		// Fix the extra high carry bits of the result
@@ -818,41 +650,6 @@ loop_done:
 		if (cross_carry) Add32(product + limbs*3/2, limbs/2, cross_carry);
 	}
 
-	// Multiply two large, 2's complement signed numbers: result = a0 * b0
-    void SignedMultiply(
-    	int limbs,		// Number of limbs in parameters a0,b0
-    	uint32_t *result,	// Output, buffer size = limbs*2
-    	const uint32_t *a0,	// Large number, buffer size = limbs
-    	const uint32_t *b0)	// Large number, buffer size = limbs
-	{
-		const uint32_t *a, *b;
-		uint32_t *a1 = (uint32_t*)alloca(limbs*4);
-		uint32_t *b1 = (uint32_t*)alloca(limbs*4);
-
-		uint32_t a_high = a0[limbs-1] & 0x80000000;
-
-		if (a_high) {
-			Set(a1, limbs, a0, limbs);
-			Negate(a1, limbs);
-			a = a1;
-		} else
-			a = a0;
-
-		uint32_t b_high = b0[limbs-1] & 0x80000000;
-
-		if (b_high) {
-			Set(b1, limbs, b0, limbs);
-			Negate(b1, limbs);
-			b = b1;
-		} else
-			b = b0;
-
-		Multiply(limbs, result, a, b);
-
-		if (a_high ^ b_high)
-			Negate(result, limbs);
-	}
-
 	// Returns the remainder of N / divisor for a 32-bit divisor
     uint32_t Modulus32(
     	int limbs,		// Number of limbs in parameter N
@@ -861,17 +658,16 @@ loop_done:
 	{
 		uint32_t remainder = N[limbs-1] < divisor ? N[limbs-1] : 0;
 		uint32_t counter = N[limbs-1] < divisor ? limbs-1 : limbs;
-
+	
 		while (counter--) remainder = (uint32_t)((((uint64_t)remainder << 32) | N[counter]) % divisor);
-
+	
 		return remainder;
 	}
-
 
 	/*
 	 * 'A' is overwritten with the quotient of the operation
 	 * Returns the remainder of 'A' / divisor for a 32-bit divisor
-	 *
+	 * 
 	 * Does not check for divide-by-zero
 	 */
     uint32_t Divide32(
@@ -886,12 +682,12 @@ loop_done:
 			A[ii] = (uint32_t)(n / divisor);
 			r = n % divisor;
 		}
-
+	
 		return (uint32_t)r;
 	}
 
 	// returns (n ^ -1) Mod 2^32
-	uint32_t MulInverseGF32(uint32_t n)
+	uint32_t MulInverse32(uint32_t n)
 	{
 		// {u1, g1} = 2^32 / n
 		uint32_t hb = (~(n - 1) >> 31);
@@ -928,162 +724,391 @@ loop_done:
 	}
 
 	/*
-	 * Schoolbook division algorithm
-	 *
-	 * Returns true on success and false on failure (like divide by 0)
-	 *
-	 * Quotient and Remainder pointers can be the same as any other
-	*/
-	bool SchoolbookDivide(
-		const uint32_t *dividend,	// Large number (numerator), buffer size = dividend_limbs
-		int dividend_limbs,		// Dividend limbs
-		const uint32_t *divisor,		// Large number (denominator), buffer size = divisor_limbs
-		int divisor_limbs,		// Divisor limbs
-		uint32_t *quotient,			// Quotient of division, buffer size = dividend_limbs
-		uint32_t *remainder)			// Remainder of division, buffer size = divisor_limbs
+	 * Computes multiplicative inverse of given number
+	 * Such that: result * u = 1
+	 * Using Extended Euclid's Algorithm (GCDe)
+	 * 
+	 * This is not always possible, so it will return false iff not possible.
+	 */
+	bool MulInverse(
+		int limbs,		// Limbs in u and result
+		const uint32_t *u,	// Large number, buffer size = limbs
+		uint32_t *result)	// Large number, buffer size = limbs
 	{
-		// Find divisor MSB limb
-		uint32_t divisor_used = LimbDegree(divisor, divisor_limbs);
+		uint32_t *u1 = (uint32_t*)alloca(limbs*4);
+		uint32_t *u3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *v1 = (uint32_t*)alloca(limbs*4);
+		uint32_t *v3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *t1 = (uint32_t*)alloca(limbs*4);
+		uint32_t *t3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *q = (uint32_t*)alloca((limbs+1)*4);
+		uint32_t *w = (uint32_t*)alloca((limbs+1)*4);
 
-		// If divisor = 0, return false for error
-		if (!divisor_used)
+		// Unrolled first iteration
+		{
+			Set32(u1, limbs, 0);
+			Set32(v1, limbs, 1);
+			Set(v3, limbs, u);
+		}
+
+		// Unrolled second iteration
+		if (!LimbDegree(v3, limbs))
 			return false;
 
-		// Find dividend MSB limb
-		uint32_t dividend_used = LimbDegree(dividend, dividend_limbs);
+		// {q, t3} <- R / v3
+		Set32(w, limbs, 0);
+		w[limbs] = 1;
+		Divide(w, limbs+1, v3, limbs, q, t3);
 
-		// If dividend < divisor, quotient = 0 and remainder = dividend
-		if (Less(dividend, dividend_used, divisor, divisor_used))
+		SimpleMultiplyLowHalf(limbs, t1, q, v1);
+		Add(t1, limbs, u1, limbs);
+
+		for (;;)
 		{
-			Set(remainder, divisor_limbs, dividend, dividend_used);
-			Set32(quotient, dividend_limbs, 0);
+			if (!LimbDegree(t3, limbs))
+			{
+				Set(result, limbs, v1);
+				return Equal32(v3, limbs, 1);
+			}
+
+			Divide(v3, limbs, t3, limbs, q, u3);
+			SimpleMultiplyLowHalf(limbs, u1, q, t1);
+			Add(u1, limbs, v1, limbs);
+
+			if (!LimbDegree(u3, limbs))
+			{
+				Negate(limbs, result, t1);
+				return Equal32(t3, limbs, 1);
+			}
+
+			Divide(t3, limbs, u3, limbs, q, v3);
+			SimpleMultiplyLowHalf(limbs, v1, q, u1);
+			Add(v1, limbs, t1, limbs);
+
+			if (!LimbDegree(v3, limbs))
+			{
+				Set(result, limbs, u1);
+				return Equal32(u3, limbs, 1);
+			}
+
+			Divide(u3, limbs, v3, limbs, q, t3);
+			SimpleMultiplyLowHalf(limbs, t1, q, v1);
+			Add(t1, limbs, u1, limbs);
+
+			if (!LimbDegree(t3, limbs))
+			{
+				Negate(limbs, result, v1);
+				return Equal32(v3, limbs, 1);
+			}
+
+			Divide(v3, limbs, t3, limbs, q, u3);
+			SimpleMultiplyLowHalf(limbs, u1, q, t1);
+			Add(u1, limbs, v1, limbs);
+
+			if (!LimbDegree(u3, limbs))
+			{
+				Set(result, limbs, t1);
+				return Equal32(t3, limbs, 1);
+			}
+
+			Divide(t3, limbs, u3, limbs, q, v3);
+			SimpleMultiplyLowHalf(limbs, v1, q, u1);
+			Add(v1, limbs, t1, limbs);
+
+			if (!LimbDegree(v3, limbs))
+			{
+				Negate(limbs, result, u1);
+				return Equal32(u3, limbs, 1);
+			}
+
+			Divide(u3, limbs, v3, limbs, q, t3);
+			SimpleMultiplyLowHalf(limbs, t1, q, v1);
+			Add(t1, limbs, u1, limbs);
+		}
+	}
+
+	// {q, r} = u / v
+	// q is not u or v
+	// Return false on divide by zero
+	bool Divide(
+		const uint32_t *u,	// numerator, size = u_limbs
+		int u_limbs,
+		const uint32_t *v,	// denominator, size = v_limbs
+		int v_limbs,
+		uint32_t *q,			// quotient, size = u_limbs
+		uint32_t *r)			// remainder, size = v_limbs
+	{
+		// calculate v_used and u_used
+		int v_used = LimbDegree(v, v_limbs);
+		if (!v_used) return false;
+
+		int u_used = LimbDegree(u, u_limbs);
+
+		// if u < v, avoid division
+		if (u_used <= v_used && Less(u, u_used, v, v_used))
+		{
+			// r = u, q = 0
+			Set(r, v_limbs, u, u_used);
+			Set32(q, u_limbs, 0);
 			return true;
 		}
 
-		// If divisor is just one word, use the faster Divide32() algorithm
-		if (divisor_used == 1)
+		// if v is 32 bits, use faster Divide32 code
+		if (v_used == 1)
 		{
-			Set(quotient, dividend_limbs, dividend, dividend_used);
-			Set32(remainder, divisor_limbs, Divide32(dividend_used, quotient, divisor[0]));
+			// {q, r} = u / v[0]
+			Set(q, u_limbs, u);
+			Set32(r, v_limbs, Divide32(u_limbs, q, v[0]));
 			return true;
 		}
 
-		// Find divisor shift to fill MSB
-		uint32_t divisor_shift = 32 - Degree(divisor[divisor_used-1]);
+		// calculate high zero bits in v's high used limb
+		int shift = 32 - Degree(v[v_used - 1]);
+		int uu_used = u_used;
+		if (shift > 0) uu_used++;
 
-		// Shift dividend by divisor_shift
-		uint32_t sd_used = dividend_used + 1;
-		uint32_t *shifted_dividend = (uint32_t*)alloca(sd_used*4);
-		BitShiftLeft(shifted_dividend, sd_used, dividend, dividend_used, divisor_shift);
+		uint32_t *uu = (uint32_t*)alloca(uu_used*4);
+		uint32_t *vv = (uint32_t*)alloca(v_used*4);
 
-		// Find dividend shift to fill MSB
-		uint32_t dividend_shift;
-		uint32_t dividend_msl = shifted_dividend[sd_used-1];
-		if (dividend_msl)
-			dividend_shift = 32 - Degree(dividend_msl);
+		// shift left to fill high MSB of divisor
+		if (shift > 0)
+		{
+			ShiftLeft(v_used, vv, v, shift);
+			uu[u_used] = ShiftLeft(u_used, uu, u, shift);
+		}
 		else
 		{
-			--sd_used;
-			dividend_shift = 32 - Degree(shifted_dividend[sd_used-1]);
+			Set(uu, u_used, u);
+			Set(vv, v_used, v);
 		}
 
-		// Shift dividend to fill MSB
-		BitShiftLeft(shifted_dividend, sd_used, shifted_dividend, sd_used, dividend_shift);
+		int q_high_index = uu_used - v_used;
 
-		// Shift divisor to fill MSB
-		uint32_t *shifted_divisor = (uint32_t*)alloca(divisor_used*4);
-		BitShiftLeft(shifted_divisor, divisor_used, divisor, divisor_used, divisor_shift);
-
-		// shifted_quotient = 0
-		uint32_t *shifted_quotient = (uint32_t*)alloca(sd_used*4);
-		Set32(shifted_quotient, sd_used, 0);
-
-		// If they are the same bitlength or dividend length < divisor length, quotient = 1 or 0
-		if (sd_used <= divisor_used)
+		if (GreaterOrEqual(uu + q_high_index, v_used, vv, v_used))
 		{
-			// if dividend < divisor, shifted_quotient = 0 and shifted_dividend = shifted_dividend
-			// if dividend >= divisor,
-			if (GreaterOrEqual(shifted_dividend, sd_used, shifted_divisor, divisor_used))
+			Subtract(uu + q_high_index, v_used, vv, v_used);
+			Set32(q + q_high_index, u_used - q_high_index, 1);
+		}
+		else
+		{
+			Set32(q + q_high_index, u_used - q_high_index, 0);
+		}
+
+		uint32_t *vq_product = (uint32_t*)alloca((v_used+1)*4);
+
+		// for each limb,
+		for (int ii = q_high_index - 1; ii >= 0; --ii)
+		{
+			uint64_t q_full = *(uint64_t*)(uu + ii + v_used - 1) / vv[v_used - 1];
+			uint32_t q_low = (uint32_t)q_full;
+			uint32_t q_high = (uint32_t)(q_full >> 32);
+
+			vq_product[v_used] = Multiply32(v_used, vq_product, vv, q_low);
+
+			if (q_high) // it must be '1'
+				Add(vq_product + 1, v_used, vv, v_used);
+
+			if (Subtract(uu + ii, v_used + 1, vq_product, v_used + 1))
 			{
-				// shifted_quotient = 1
-				shifted_quotient[0] = 1;
-
-				// shifted_dividend -= shifted_divisor
-				Subtract(shifted_dividend, sd_used, shifted_divisor, divisor_used);
-			}
-		}
-		else
-		{
-			// Produce quotient and remainder one limb at a time
-			uint32_t digit_limbs = divisor_used + 1;
-			uint32_t *trial = (uint32_t*)alloca(digit_limbs*4);
-
-			for (uint32_t ii = sd_used; ii > divisor_used; --ii)
-			{
-				// Digit of dividend to trial divide
-				uint32_t *digit = shifted_dividend + ii - digit_limbs;
-
-				// If high part of digit is greater than divisor,
-				if (GreaterOrEqual(digit+1, divisor_used, shifted_divisor, divisor_used))
+				--q_low;
+				if (Add(uu + ii, v_used + 1, vv, v_used) == 0)
 				{
-					// Subtract it out and increment quotient for next highest limb
-					Subtract(digit+1, divisor_used, shifted_divisor, divisor_used);
-					shifted_quotient[ii-divisor_used]++;
+					--q_low;
+					Add(uu + ii, v_used + 1, vv, v_used);
 				}
-
-				// Trial divide high two of digit by high one of divisor
-				uint64_t q64 = *(uint64_t*)(digit + divisor_used - 1) / shifted_divisor[divisor_used-1];
-				uint32_t q = (uint32_t)q64;
-
-				// Multiply the trial out to check the approximation
-				trial[divisor_used] = Multiply32(divisor_used, trial, shifted_divisor, q);
-
-				// Can be off by at most two, so fix it up if needed
-				if (Greater(trial, digit_limbs, digit, digit_limbs))
-				{
-					--q;
-					Subtract(trial, digit_limbs, shifted_divisor, divisor_used);
-
-					if (Greater(trial, digit_limbs, digit, digit_limbs))
-					{
-						--q;
-						Subtract(trial, digit_limbs, shifted_divisor, divisor_used);
-					}
-				}
-
-				// Subtract the digit by trial to record remainder in place of digit
-				Subtract(digit, digit_limbs, trial, digit_limbs);
-
-				// Record quotient for this limb
-				shifted_quotient[ii-digit_limbs] = q;
 			}
+
+			q[ii] = q_low;
 		}
 
-		// Remainder we calculated is (2^dividend_shift * dividend) (Mod divisor) instead of (dividend) (Mod divisor)
-		if (!dividend_shift)
-		{
-			// When dividend_shift = 0, the result is easily fixable
-			BitShiftRight(remainder, divisor_limbs, shifted_dividend, divisor_used, divisor_shift);
-
-			// Return quotient
-			Set(quotient, dividend_limbs, shifted_quotient, sd_used);
-		}
-		else
-		{
-			// If there was a dividend shift we need to do a trial multiply to recover the remainder =(
-
-			// Copy only the limbs we need to compute the remainder
-			Set(remainder, divisor_limbs, dividend, dividend_used > divisor_used ? divisor_used : dividend_used);
-
-			// Shift quotient back and return it
-			BitShiftRight(quotient, dividend_limbs, shifted_quotient, sd_used, dividend_shift);
-
-			// Calculate remainder = dividend - quotient * divisor, considering just the low limbs
-			HalfSchoolbookMultiply(shifted_divisor, quotient, dividend_used, divisor, divisor_used);
-			Subtract(remainder, divisor_used, shifted_divisor, divisor_used);
-		}
+		memset(r + v_used, 0, (v_limbs - v_used)*4);
+		ShiftRight(v_used, r, uu, shift);
 
 		return true;
+	}
+
+	// r = u % v
+	// Return false on divide by zero
+	bool Modulus(
+		const uint32_t *u,	// numerator, size = u_limbs
+		int u_limbs,
+		const uint32_t *v,	// denominator, size = v_limbs
+		int v_limbs,
+		uint32_t *r)			// remainder, size = v_limbs
+	{
+		// calculate v_used and u_used
+		int v_used = LimbDegree(v, v_limbs);
+		if (!v_used) return false;
+
+		int u_used = LimbDegree(u, u_limbs);
+
+		// if u < v, avoid division
+		if (u_used <= v_used && Less(u, u_used, v, v_used))
+		{
+			// r = u, q = 0
+			Set(r, v_limbs, u, u_used);
+			//Set32(q, u_limbs, 0);
+			return true;
+		}
+
+		// if v is 32 bits, use faster Divide32 code
+		if (v_used == 1)
+		{
+			// {q, r} = u / v[0]
+			//Set(q, u_limbs, u);
+			Set32(r, v_limbs, Modulus32(u_limbs, u, v[0]));
+			return true;
+		}
+
+		// calculate high zero bits in v's high used limb
+		int shift = 32 - Degree(v[v_used - 1]);
+		int uu_used = u_used;
+		if (shift > 0) uu_used++;
+
+		uint32_t *uu = (uint32_t*)alloca(uu_used*4);
+		uint32_t *vv = (uint32_t*)alloca(v_used*4);
+
+		// shift left to fill high MSB of divisor
+		if (shift > 0)
+		{
+			ShiftLeft(v_used, vv, v, shift);
+			uu[u_used] = ShiftLeft(u_used, uu, u, shift);
+		}
+		else
+		{
+			Set(uu, u_used, u);
+			Set(vv, v_used, v);
+		}
+
+		int q_high_index = uu_used - v_used;
+
+		if (GreaterOrEqual(uu + q_high_index, v_used, vv, v_used))
+		{
+			Subtract(uu + q_high_index, v_used, vv, v_used);
+			//Set32(q + q_high_index, u_used - q_high_index, 1);
+		}
+		else
+		{
+			//Set32(q + q_high_index, u_used - q_high_index, 0);
+		}
+
+		uint32_t *vq_product = (uint32_t*)alloca((v_used+1)*4);
+
+		// for each limb,
+		for (int ii = q_high_index - 1; ii >= 0; --ii)
+		{
+			uint64_t q_full = *(uint64_t*)(uu + ii + v_used - 1) / vv[v_used - 1];
+			uint32_t q_low = (uint32_t)q_full;
+			uint32_t q_high = (uint32_t)(q_full >> 32);
+
+			vq_product[v_used] = Multiply32(v_used, vq_product, vv, q_low);
+
+			if (q_high) // it must be '1'
+				Add(vq_product + 1, v_used, vv, v_used);
+
+			if (Subtract(uu + ii, v_used + 1, vq_product, v_used + 1))
+			{
+				//--q_low;
+				if (Add(uu + ii, v_used + 1, vv, v_used) == 0)
+				{
+					//--q_low;
+					Add(uu + ii, v_used + 1, vv, v_used);
+				}
+			}
+
+			//q[ii] = q_low;
+		}
+
+		memset(r + v_used, 0, (v_limbs - v_used)*4);
+		ShiftRight(v_used, r, uu, shift);
+
+		return true;
+	}
+
+	// m_inv ~= 2^(2k)/m
+	// Generates m_inv parameter of BarrettModulus()
+	// It is limbs in size, chopping off the 2^k bit
+	// Only works for m with the high bit set
+	void BarrettModulusPrecomp(
+		int limbs,		// Number of limbs in m and m_inv
+		const uint32_t *m,	// Modulus, size = limbs
+		uint32_t *m_inv)		// Large number result, size = limbs
+	{
+		uint32_t *q = (uint32_t*)alloca((limbs*2+1)*4);
+
+		// q = 2^(2k)
+		big::Set32(q, limbs*2, 0);
+		q[limbs*2] = 1;
+
+		// q /= m
+		big::Divide(q, limbs*2+1, m, limbs, q, m_inv);
+
+		// m_inv = q
+		Set(m_inv, limbs, q);
+	}
+
+	// r = x mod m
+	// Using Barrett's method with precomputed m_inv
+	void BarrettModulus(
+		int limbs,			// Number of limbs in m and m_inv
+		const uint32_t *x,		// Number to reduce, size = limbs*2
+		const uint32_t *m,		// Modulus, size = limbs
+		const uint32_t *m_inv,	// R/Modulus, precomputed, size = limbs
+		uint32_t *result)		// Large number result
+	{
+		// q2 = x * m_inv
+		// Skips the low limbs+1 words and some high limbs too
+		// Needs to partially calculate the next 2 words below for carries
+		uint32_t *q2 = (uint32_t*)alloca((limbs+3)*4);
+		int ii, jj = limbs - 1;
+
+		// derived from the fact that m_inv[limbs] was always 1, so m_inv is the same length as modulus now
+		*(uint64_t*)q2 = (uint64_t)m_inv[jj] * x[jj];
+		*(uint64_t*)(q2 + 1) = (uint64_t)q2[1] + x[jj];
+
+		for (ii = 1; ii < limbs; ++ii)
+			*(uint64_t*)(q2 + ii + 1) = ((uint64_t)q2[ii + 1] + x[jj + ii]) + AddMultiply32(ii + 1, q2, m_inv + jj - ii, x[jj + ii]);
+
+		*(uint64_t*)(q2 + ii + 1) = ((uint64_t)q2[ii + 1] + x[jj + ii]) + AddMultiply32(ii, q2 + 1, m_inv, x[jj + ii]);
+
+		q2 += 2;
+
+		// r2 = (q3 * m2) mod b^(k+1)
+		uint32_t *r2 = (uint32_t*)alloca((limbs+1)*4);
+
+		// Skip high words in product, also input limbs are different by 1
+		Multiply32(limbs + 1, r2, q2, m[0]);
+		for (int ii = 1; ii < limbs; ++ii)
+			AddMultiply32(limbs + 1 - ii, r2 + ii, q2, m[ii]);
+
+		// Correct the error of up to two modulii
+		uint32_t *r = (uint32_t*)alloca((limbs+1)*4);
+		if (Subtract(r, x, limbs+1, r2, limbs+1))
+		{
+			while (!Subtract(r, limbs+1, m, limbs));
+		}
+		else
+		{
+			while (GreaterOrEqual(r, limbs+1, m, limbs))
+				Subtract(r, limbs+1, m, limbs);
+		}
+
+		Set(result, limbs, r);
+	}
+
+	// result = (x * y) (Mod modulus)
+	bool MulMod(
+		int limbs,			// Number of limbs in x,y,modulus
+		const uint32_t *x,		// Large number x
+		const uint32_t *y,		// Large number y
+		const uint32_t *modulus,	// Large number modulus
+		uint32_t *result)		// Large number result
+	{
+		uint32_t *product = (uint32_t*)alloca(limbs*2*4);
+
+		Multiply(limbs, product, x, y);
+
+		return Modulus(product, limbs * 2, modulus, limbs, result);
 	}
 
 	// Convert bigint to string
@@ -1150,7 +1175,7 @@ loop_done:
 
 	/*
 	 * Computes: result = GCD(a, b)  (greatest common divisor)
-	 *
+	 * 
 	 * Length of result is the length of the smallest argument
 	 */
 	void GCD(
@@ -1164,24 +1189,23 @@ loop_done:
 
 		uint32_t *g = (uint32_t*)alloca(limbs*4);
 		uint32_t *g1 = (uint32_t*)alloca(limbs*4);
-		uint32_t *q = (uint32_t*)alloca((a_limbs+b_limbs)*4);
 
 		if (a_limbs <= b_limbs)
 		{
 			// g = a, g1 = b (mod a)
 			Set(g, limbs, a, a_limbs);
-			SchoolbookDivide(b, b_limbs, a, a_limbs, q/*ignore*/, g1);
+			Modulus(b, b_limbs, a, a_limbs, g1);
 		}
 		else
 		{
 			// g = b, g1 = a (mod b)
 			Set(g, limbs, b, b_limbs);
-			SchoolbookDivide(a, a_limbs, b, b_limbs, q/*ignore*/, g1);
+			Modulus(a, a_limbs, b, b_limbs, g1);
 		}
 
 		for (;;) {
 			// g = (g mod g1)
-			SchoolbookDivide(g, limbs, g1, limbs, q/*ignore*/, g);
+			Modulus(g, limbs, g1, limbs, g);
 
 			if (!LimbDegree(g, limbs)) {
 				Set(result, limbs, g1, limbs);
@@ -1189,7 +1213,7 @@ loop_done:
 			}
 
 			// g1 = (g1 mod g)
-			SchoolbookDivide(g1, limbs, g, limbs, q/*ignore*/, g1);
+			Modulus(g1, limbs, g, limbs, g1);
 
 			if (!LimbDegree(g1, limbs)) {
 				Set(result, limbs, g, limbs);
@@ -1199,78 +1223,150 @@ loop_done:
 	}
 
 	/*
-	 * Computes: result = (n ^ -1) (Mod modulus)
-	 * Such that: result * n (Mod modulus) = 1
+	 * Computes: result = (1/u) (Mod v)
+	 * Such that: result * u (Mod v) = 1
 	 * Using Extended Euclid's Algorithm (GCDe)
-	 *
+	 * 
 	 * This is not always possible, so it will return false iff not possible.
 	 */
 	bool InvMod(
-		const uint32_t *n,		//	Large number, buffer size = n_limbs
-		int n_limbs,		//	Size of n
-		const uint32_t *modulus,	//	Large number, buffer size = limbs
-		int limbs,			//	Size of modulus
-		uint32_t *result)		//	Large number, buffer size = limbs
+		const uint32_t *u,	// Large number, buffer size = u_limbs
+		int u_limbs,	// Limbs in u
+		const uint32_t *v,	// Large number, buffer size = limbs
+		int limbs,		// Limbs in modulus(v) and result
+		uint32_t *result)	// Large number, buffer size = limbs
 	{
-		uint32_t *u = (uint32_t*)alloca(limbs*4);
 		uint32_t *u1 = (uint32_t*)alloca(limbs*4);
-		uint32_t *g = (uint32_t*)alloca(limbs*4);
-		uint32_t *g1 = (uint32_t*)alloca(limbs*4);
-		uint32_t *q = (uint32_t*)alloca(limbs*4);
-		uint32_t *p = (uint32_t*)alloca((n_limbs+limbs*2)*4);
+		uint32_t *u3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *v1 = (uint32_t*)alloca(limbs*4);
+		uint32_t *v3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *t1 = (uint32_t*)alloca(limbs*4);
+		uint32_t *t3 = (uint32_t*)alloca(limbs*4);
+		uint32_t *q = (uint32_t*)alloca((limbs + u_limbs)*4);
 
-		SchoolbookDivide(n, n_limbs, modulus, limbs, p/*ignore*/, g);
-		Set(g1, limbs, modulus, limbs);
+		// Unrolled first iteration
+		{
+			Set32(u1, limbs, 0);
+			Set32(v1, limbs, 1);
+			Set(u3, limbs, v);
 
-		Set32(u, limbs, 1);
-		Set32(u1, limbs, 0);
+			// v3 = u % v
+			Modulus(u, u_limbs, v, limbs, v3);
+		}
 
-		for (;;) {
-			if (Equal32(g, limbs, 1)) {
-				Set(result, limbs, u, limbs);
-				return true;
+		for (;;)
+		{
+			if (!LimbDegree(v3, limbs))
+			{
+				Subtract(result, v, limbs, u1, limbs);
+				return Equal32(u3, limbs, 1);
 			}
-			if (!LimbDegree(g, limbs)) return false;
 
-			// {q, g} = g / g1
-			SchoolbookDivide(g, limbs, g1, limbs, q, g);
+			Divide(u3, limbs, v3, limbs, q, t3);
+			SimpleMultiplyLowHalf(limbs, t1, q, v1);
+			Add(t1, limbs, u1, limbs);
 
-			// p = q * u1
-			Multiply(limbs, p, q, u1);
-
-			// q = p (Mod modulus)
-			SchoolbookDivide(p, limbs*2, modulus, limbs, p/*ignore*/, q);
-
-			if (Less(u, limbs, q, limbs))
-				Add(u, limbs, modulus, limbs);
-			Subtract(u, limbs, q, limbs);
-
-			if (Equal32(g1, limbs, 1)) {
-				Set(result, limbs, u1, limbs);
-				return true;
+			if (!LimbDegree(t3, limbs))
+			{
+				Set(result, limbs, v1);
+				return Equal32(v3, limbs, 1);
 			}
-			if (!LimbDegree(g1, limbs)) return false;
 
-			// {q, g1} = g1 / g
-			SchoolbookDivide(g1, limbs, g, limbs, q, g1);
+			Divide(v3, limbs, t3, limbs, q, u3);
+			SimpleMultiplyLowHalf(limbs, u1, q, t1);
+			Add(u1, limbs, v1, limbs);
 
-			// p = q * u
-			Multiply(limbs, p, q, u);
+			if (!LimbDegree(u3, limbs))
+			{
+				Subtract(result, v, limbs, t1, limbs);
+				return Equal32(t3, limbs, 1);
+			}
 
-			// q = p (Mod modulus)
-			SchoolbookDivide(p, limbs*2, modulus, limbs, p/*ignore*/, q);
+			Divide(t3, limbs, u3, limbs, q, v3);
+			SimpleMultiplyLowHalf(limbs, v1, q, u1);
+			Add(v1, limbs, t1, limbs);
 
-			if (Less(u1, limbs, q, limbs))
-				Add(u1, limbs, modulus, limbs);
-			Subtract(u1, limbs, q, limbs);
+			if (!LimbDegree(v3, limbs))
+			{
+				Set(result, limbs, u1);
+				return Equal32(u3, limbs, 1);
+			}
+
+			Divide(u3, limbs, v3, limbs, q, t3);
+			SimpleMultiplyLowHalf(limbs, t1, q, v1);
+			Add(t1, limbs, u1, limbs);
+
+			if (!LimbDegree(t3, limbs))
+			{
+				Subtract(result, v, limbs, v1, limbs);
+				return Equal32(v3, limbs, 1);
+			}
+
+			Divide(v3, limbs, t3, limbs, q, u3);
+			SimpleMultiplyLowHalf(limbs, u1, q, t1);
+			Add(u1, limbs, v1, limbs);
+
+			if (!LimbDegree(u3, limbs))
+			{
+				Set(result, limbs, t1);
+				return Equal32(t3, limbs, 1);
+			}
+
+			Divide(t3, limbs, u3, limbs, q, v3);
+			SimpleMultiplyLowHalf(limbs, v1, q, u1);
+			Add(v1, limbs, t1, limbs);
 		}
 	}
 
-	// Calculates mod_inv from low limb of modulus
-	uint32_t MonModInv(uint32_t modulus0)
+	// root = sqrt(square)
+	// Based on Newton-Raphson iteration: root_n+1 = (root_n + square/root_n) / 2
+	// Doubles number of correct bits each iteration
+	// Precondition: The high limb of square is non-zero
+	// Returns false if it was unable to determine the root
+	bool SquareRoot(
+		int limbs,			// Number of limbs in root
+		const uint32_t *square,	// Square to root, size = limbs * 2
+		uint32_t *root)			// Output root, size = limbs
+	{
+		uint32_t *q = (uint32_t*)alloca(limbs*2*4);
+		uint32_t *r = (uint32_t*)alloca((limbs+1)*4);
+
+		// Take high limbs of square as the initial root guess
+		Set(root, limbs, square + limbs);
+
+		int ctr = 64;
+		while (ctr--)
+		{
+			// {q, r} = square / root
+			Divide(square, limbs*2, root, limbs, q, r);
+
+			// root = (root + q) / 2, assuming high limbs of q = 0
+			Add(q, limbs+1, root, limbs);
+
+			// Round division up to the nearest bit
+			// Fixes a problem where root is off by 1
+			if (q[0] & 1) Add32(q, limbs+1, 2);
+
+			ShiftRight(limbs+1, q, q, 1);
+
+			// Return success if there was no change
+			if (Equal(limbs, q, root))
+				return true;
+
+			// Else update root and continue
+			Set(root, limbs, q);
+		}
+
+		// In practice only takes about 9 iterations, as many as 31
+		// Varies slightly as number of limbs increases but not by much
+		return false;
+	}
+
+	// Calculates mod_inv from low limb of modulus for Mon*()
+	uint32_t MonReducePrecomp(uint32_t modulus0)
 	{
 		// mod_inv = -M ^ -1 (Mod 2^32)
-		return MulInverseGF32(-(int32_t)modulus0);
+		return MulInverse32(-(int32_t)modulus0);
 	}
 
 	// Compute n_residue for Montgomery reduction
@@ -1283,11 +1379,11 @@ loop_done:
 	{
 		// p = n * 2^(k*m)
 		uint32_t *p = (uint32_t*)alloca((n_limbs+m_limbs)*4);
-		Set32(p, m_limbs, 0);
 		Set(p+m_limbs, n_limbs, n, n_limbs);
+		Set32(p, m_limbs, 0);
 
 		// n_residue = p (Mod modulus)
-		SchoolbookDivide(p, n_limbs+m_limbs, modulus, m_limbs, p, n_residue);
+		Modulus(p, n_limbs+m_limbs, modulus, m_limbs, n_residue);
 	}
 
 	// result = a * b * r^-1 (Mod modulus) in Montgomery domain
@@ -1296,7 +1392,7 @@ loop_done:
 		const uint32_t *a_residue,	// Large number, buffer size = limbs
 		const uint32_t *b_residue,	// Large number, buffer size = limbs
 		const uint32_t *modulus,		// Large number, buffer size = limbs
-		uint32_t mod_inv,			// MonModInv() return
+		uint32_t mod_inv,			// MonReducePrecomp() return
 		uint32_t *result)			// Large number, buffer size = limbs
 	{
 		uint32_t *t = (uint32_t*)alloca(limbs*2*4);
@@ -1305,64 +1401,19 @@ loop_done:
 		MonReduce(limbs, t, modulus, mod_inv, result);
 	}
 
-#if 0 // Unused -- keeping it around for novelty purposes
-	// result = a * b * r^-1 (Mod modulus) in Montgomery domain
-	void CIOSMonPro(
+	// result = a^-1 (Mod modulus) in Montgomery domain
+	void MonInverse(
 		int limbs,				// Number of limbs in each parameter
-		const u32 *a_residue,	// Large number, buffer size = limbs
-		const u32 *b_residue,	// Large number, buffer size = limbs
-		const u32 *modulus,		// Large number, buffer size = limbs
-		u32 mod_inv,			// MonModInv() return
-		u32 *result)			// Large number, buffer size = limbs
+		const uint32_t *a_residue,	// Large number, buffer size = limbs
+		const uint32_t *modulus,		// Large number, buffer size = limbs
+		uint32_t mod_inv,			// MonReducePrecomp() return
+		uint32_t *result)			// Large number, buffer size = limbs
 	{
-		// s = 0
-		u32 *s = (u32*)alloca(limbs*4);
-		memset(s, 0, limbs*4);
-		u32 s_high = 0;
-
-		for (int ii = 0; ii < limbs; ++ii)
-		{
-			// bi = b_residue[ii]
-			u32 bi = b_residue[ii];
-
-			// s += a * b[ii]
-			u64 p = a_residue[0] * (u64)bi + s[0];
-
-			// qi = s * mod_inv (Mod 2^32)
-			u32 qi = (u32)p * mod_inv;
-
-			// s += modulus * qi
-			u64 q = modulus[0] * (u64)qi + (u32)p;
-			s[0] = (u32)q;
-
-			for (int jj = 1; jj < limbs; ++jj)
-			{
-				p = a_residue[jj] * (u64)bi + s[jj] + (u32)(p >> 32);
-
-				q = modulus[jj] * (u64)qi + (u32)p + (u32)(q >> 32);
-				s[jj - 1] = (u32)q;
-			}
-
-			p = (u64)s_high + (u32)(p >> 32) + (u32)(q >> 32);
-			s[limbs - 1] = (u32)p;
-			s_high = (u32)(p >> 32);
-		}
-
-		s64 r = 0;
-		for (int ii = 0; ii < limbs; ++ii)
-		{
-			r >>= 32;
-			r += (s64)s[ii] - modulus[ii];
-			result[ii] = (u32)r;
-		}
-
-		r >>= 32;
-		r += (s64)s_high;
-
-		if ((s32)(r >> 32))
-			memcpy(result, s, limbs*4);
+		Set(result, limbs, a_residue);
+		MonFinish(limbs, result, modulus, mod_inv);
+		InvMod(result, limbs, modulus, limbs, result);
+		MonInputResidue(result, limbs, modulus, limbs, result);
 	}
-#endif
 
 	// result = a * r^-1 (Mod modulus) in Montgomery domain
 	// The result may be greater than the modulus, but this is okay since
@@ -1371,7 +1422,7 @@ loop_done:
 		int limbs,			// Number of limbs in modulus
 		uint32_t *s,				// Large number, buffer size = limbs*2, gets clobbered
 		const uint32_t *modulus,	// Large number, buffer size = limbs
-		uint32_t mod_inv,		// MonModInv() return
+		uint32_t mod_inv,		// MonReducePrecomp() return
 		uint32_t *result)		// Large number, buffer size = limbs
 	{
 		// This function is roughly 60% of the cost of exponentiation
@@ -1395,7 +1446,7 @@ loop_done:
 		int limbs,			// Number of limbs in each parameter
 		uint32_t *n,				// Large number, buffer size = limbs
 		const uint32_t *modulus,	// Large number, buffer size = limbs
-		uint32_t mod_inv)		// MonModInv() return
+		uint32_t mod_inv)		// MonReducePrecomp() return
 	{
 		uint32_t *t = (uint32_t*)alloca(limbs*2*4);
 		memcpy(t, n, limbs*4);
@@ -1416,10 +1467,12 @@ loop_done:
 		int exponent_limbs,	//	Number of limbs in exponent
 		const uint32_t *modulus,	//	Modulus, buffer size = mod_limbs
 		int mod_limbs,		//	Number of limbs in modulus
-		uint32_t mod_inv,		//	MonModInv() return
+		uint32_t mod_inv,		//	MonReducePrecomp() return
 		uint32_t *result)		//	Result, buffer size = mod_limbs
 	{
 		bool set = false;
+
+		uint32_t *temp = (uint32_t*)alloca((mod_limbs*2)*4);
 
 		// Run down exponent bits and use the squaring method
 		for (int ii = exponent_limbs - 1; ii >= 0; --ii)
@@ -1431,12 +1484,14 @@ loop_done:
 				if (set)
 				{
 					// result = result^2
-					MonPro(mod_limbs, result, result, modulus, mod_inv, result);
+					Square(mod_limbs, temp, result);
+					MonReduce(mod_limbs, temp, modulus, mod_inv, result);
 
 					if (e_i & mask)
 					{
 						// result *= base
-						MonPro(mod_limbs, result, base, modulus, mod_inv, result);
+						Multiply(mod_limbs, temp, result, base);
+						MonReduce(mod_limbs, temp, modulus, mod_inv, result);
 					}
 				}
 				else
@@ -1490,7 +1545,7 @@ loop_done:
 		int exponent_limbs,	//	Number of limbs in exponent
 		const uint32_t *modulus,	//	Modulus, buffer size = mod_limbs
 		int mod_limbs,		//	Number of limbs in modulus
-		uint32_t mod_inv,		//	MonModInv() return
+		uint32_t mod_inv,		//	MonReducePrecomp() return
 		uint32_t *result)		//	Result, buffer size = mod_limbs
 	{
 		// Calculate the number of window bits to use (decent approximation..)
@@ -1648,7 +1703,7 @@ loop_done:
 		int exponent_limbs,	//	Number of limbs in exponent
 		const uint32_t *modulus,	//	Modulus, buffer size = mod_limbs
 		int mod_limbs,		//	Number of limbs in modulus
-		uint32_t mod_inv,		//	MonModInv() return
+		uint32_t mod_inv,		//	MonReducePrecomp() return
 		uint32_t *result)		//	Result, buffer size = mod_limbs
 	{
 		uint32_t *mon_base = (uint32_t*)alloca(mod_limbs*4);
@@ -1659,66 +1714,99 @@ loop_done:
 		MonFinish(mod_limbs, result, modulus, mod_inv);
 	}
 
-	// Computes: result = base ^ exponent (Mod modulus=mod_p*mod_q)
-	// Using Montgomery multiplication with Chinese Remainder Theorem
-	void ExpCRT(
-		const uint32_t *base,	//	Base for exponentiation, buffer size = base_limbs
-		int base_limbs,		//	Number of limbs in base
-		const uint32_t *exponent,//	Exponent, buffer size = exponent_limbs
-		int exponent_limbs,	//	Number of limbs in exponent
-		const uint32_t *mod_p,	//	Large number, factorization of modulus, buffer size = p_limbs
-		uint32_t p_inv,			//	MonModInv() return
-		const uint32_t *mod_q,	//	Large number, factorization of modulus, buffer size = q_limbs
-		uint32_t q_inv,			//	MonModInv() return
-		const uint32_t *pinvq,	//	Large number, InvMod(p, q) precalculated, buffer size = phi_limbs
-		int mod_limbs,		//	Number of limbs in p, q and phi
-		uint32_t *result)		//	Result, buffer size = mod_limbs*2
+	// returns b ^ e (Mod m)
+	uint32_t ExpMod(uint32_t b, uint32_t e, uint32_t m)
 	{
-		// p = c ^ d (Mod mod_p)
-		uint32_t *p = (uint32_t*)alloca(mod_limbs*4);
-		ExpMod(base, base_limbs, exponent, exponent_limbs, mod_p, mod_limbs, p_inv, p);
+		// validate arguments
+		if (b == 0 || m <= 1) return 0;
+		if (e == 0) return 1;
 
-		// q = c ^ d (Mod mod_q)
-		uint32_t *q = (uint32_t*)alloca(mod_limbs*4);
-		ExpMod(base, base_limbs, exponent, exponent_limbs, mod_q, mod_limbs, q_inv, q);
+		// find high bit of exponent
+		uint32_t mask = 0x80000000;
+		while ((e & mask) == 0) mask >>= 1;
 
-		uint32_t *product = (uint32_t*)alloca((mod_limbs*2)*4);
-		uint32_t *r = (uint32_t*)alloca(mod_limbs*4);
+		// seen 1 set bit, so result = base so far
+		uint32_t r = b;
 
-		// result = ((q - p) * (mod_p^-1) mod mod_q) * mod_p + p
-		if (Greater(p, mod_limbs, q, mod_limbs))
+		while (mask >>= 1)
 		{
-			// r = p - q (result is positive)
-			Set(r, mod_limbs, p, mod_limbs);
-			Subtract(r, mod_limbs, q, mod_limbs);
+			// VS.NET does a poor job recognizing that the division
+			// is just an IDIV with a 32-bit dividend (not 64-bit) :-(
 
-			// product = r * pinvq
-			Multiply(mod_limbs, product, r, pinvq);
+			// r = r^2 (mod m)
+			r = (uint32_t)(((uint64_t)r * r) % m);
 
-			// q = product (Mod mod_q)
-			SchoolbookDivide(product, mod_limbs*2, mod_q, mod_limbs, product/*ignore*/, q);
-
-			// r = mod_q - q
-			Set(r, mod_limbs, mod_q, mod_limbs);
-			Subtract(r, mod_limbs, q, mod_limbs);
-		}
-		else
-		{
-			// q -= p (result is non-negative)
-			Subtract(q, mod_limbs, p, mod_limbs);
-
-			// product = q * pinvq
-			Multiply(mod_limbs, product, q, pinvq);
-
-			// mod_q = product (Mod mod_q)
-			SchoolbookDivide(product, mod_limbs*2, mod_q, mod_limbs, product/*ignore*/, r);
+			// if exponent bit is set, r = r*b (mod m)
+			if (e & mask) r = (uint32_t)(((uint64_t)r * b) % m);
 		}
 
-		// result = r * mod_p
-		Multiply(mod_limbs, result, r, mod_p);
+		return r;
+	}
 
-		// result += p
-		Add(result, mod_limbs*2, p, mod_limbs);
+	// Rabin-Miller method for finding a strong pseudo-prime
+	// Preconditions: High bit and low bit of n = 1
+	bool RabinMillerPrimeTest(
+		const uint32_t *n,	// Number to check for primality
+		int limbs,		// Number of limbs in n
+		uint32_t k)			// Confidence level (40 is pretty good)
+	{
+		// n1 = n - 1
+		uint32_t *n1 = (uint32_t *)alloca(limbs*4);
+		Set(n1, limbs, n);
+		Subtract32(n1, limbs, 1);
+
+		// d = n1
+		uint32_t *d = (uint32_t *)alloca(limbs*4);
+		Set(d, limbs, n1);
+
+		// remove factors of two from d
+		while (!(d[0] & 1))
+			ShiftRight(limbs, d, d, 1);
+
+		uint32_t *a = (uint32_t *)alloca(limbs*4);
+		uint32_t *t = (uint32_t *)alloca(limbs*4);
+		uint32_t *p = (uint32_t *)alloca((limbs*2)*4);
+		uint32_t n_inv = MonReducePrecomp(n[0]);
+
+		// iterate k times
+		while (k--)
+		{
+			//do Random::ref()->generate(a, limbs*4);
+			do fillBufferMT(a,limbs*4);
+			while (GreaterOrEqual(a, limbs, n, limbs));
+
+			// a = a ^ d (Mod n)
+			ExpMod(a, limbs, d, limbs, n, limbs, n_inv, a);
+
+			Set(t, limbs, d);
+			while (!Equal(limbs, t, n1) &&
+				   !Equal32(a, limbs, 1) &&
+				   !Equal(limbs, a, n1))
+			{
+				// a = a^2 (Mod n), non-critical path
+				Square(limbs, p, a);
+				Modulus(p, limbs*2, n, limbs, a);
+
+				// t <<= 1
+				ShiftLeft(limbs, t, t, 1);
+			}
+
+			if (!Equal(limbs, a, n1) && !(t[0] & 1)) return false;
+		}
+		
+		return true;
+	}
+
+	// Generate a strong pseudo-prime using the Rabin-Miller primality test
+	void GenerateStrongPseudoPrime(
+		uint32_t *n,			// Output prime
+		int limbs)		// Number of limbs in n
+	{
+		do {
+			fillBufferMT(n,limbs*4);
+			n[limbs-1] |= 0x80000000;
+			n[0] |= 1;
+		} while (!RabinMillerPrimeTest(n, limbs, 40)); // 40 iterations
 	}
 }
 

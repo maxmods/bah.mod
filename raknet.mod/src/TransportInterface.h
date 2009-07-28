@@ -18,7 +18,7 @@
 class CommandParserInterface;
 
 /// \brief Defines an interface that is used to send and receive null-terminated strings.
-/// In practice this is only used by the CommandParser system for for servers.
+/// \details In practice this is only used by the CommandParser system for for servers.
 class RAK_DLL_EXPORT TransportInterface
 {
 public:

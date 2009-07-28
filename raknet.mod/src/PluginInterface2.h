@@ -14,15 +14,22 @@ class PacketizedTCP;
 struct Packet;
 struct InternalPacket;
 
+/// \defgroup PLUGIN_INTERFACE_GROUP PluginInterface2
+
+/// \defgroup PLUGINS_GROUP Plugins
+/// \ingroup PLUGIN_INTERFACE_GROUP
+
+/// For each message that arrives on an instance of RakPeer, the plugins get an opportunity to process them first. This enumeration represents what to do with the message
+/// \ingroup PLUGIN_INTERFACE_GROUP
 enum PluginReceiveResult
 {
-	// The plugin used this message and it shouldn't be given to the user.
+	/// The plugin used this message and it shouldn't be given to the user.
 	RR_STOP_PROCESSING_AND_DEALLOCATE=0,
 
-	// This message will be processed by other plugins, and at last by the user.
+	/// This message will be processed by other plugins, and at last by the user.
 	RR_CONTINUE_PROCESSING,
 
-	// The plugin is going to hold on to this message.  Do not deallocate it but do not pass it to other plugins either.
+	/// The plugin is going to hold on to this message.  Do not deallocate it but do not pass it to other plugins either.
 	RR_STOP_PROCESSING,
 };
 
@@ -30,13 +37,22 @@ enum PluginReceiveResult
 #include "Export.h"
 #include "PacketPriority.h"
 
+/// Reasons why a connection was lost
+/// \ingroup PLUGIN_INTERFACE_GROUP
 enum PI2_LostConnectionReason
 {
+	/// Called RakPeer::CloseConnection()
 	LCR_CLOSED_BY_USER,
+
+	/// Got ID_DISCONNECTION_NOTIFICATION
 	LCR_DISCONNECTION_NOTIFICATION,
+
+	/// GOT ID_CONNECTION_LOST
 	LCR_CONNECTION_LOST
 };
 
+/// Returns why a connection attempt failed
+/// \ingroup PLUGIN_INTERFACE_GROUP
 enum PI2_FailedConnectionAttemptReason
 {
 	FCAR_CONNECTION_ATTEMPT_FAILED,
@@ -47,14 +63,13 @@ enum PI2_FailedConnectionAttemptReason
 	FCAR_INVALID_PASSWORD
 };
 
-/// \defgroup PLUGINS_GROUP PluginInterface2
-
-/// \brief PluginInterface2 provides a mechanism to add functionality in a modular way.
-/// MessageHandlers should derive from PluginInterface and be attached to RakPeer using the function AttachPlugin
-/// On a user call to Receive, OnReceive is called for every PluginInterface, which can then take action based on the message
-/// passed to it.  This is used to transparently add game-independent functional modules, similar to browser plugins
+/// RakNet's plugin system. Each plugin processes the following events:
+/// -Connection attempts
+/// -The result of connection attempts
+/// -Each incoming message
+/// -Updates over time, when RakPeer::Receive() is called
 ///
-/// \ingroup PLUGINS_GROUP
+/// \ingroup PLUGIN_INTERFACE_GROUP
 class RAK_DLL_EXPORT PluginInterface2
 {
 public:

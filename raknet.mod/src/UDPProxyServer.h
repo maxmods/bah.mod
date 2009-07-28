@@ -26,6 +26,7 @@ namespace RakNet
 class UDPProxyServer;
 
 /// Callback to handle results of calling UDPProxyServer::LoginToCoordinator()
+/// \ingroup UDP_PROXY_GROUP
 struct UDPProxyServerResultHandler
 {
 	/// Called when our login succeeds
@@ -50,11 +51,11 @@ struct UDPProxyServerResultHandler
 	virtual void OnWrongPassword(RakNet::RakString usedPassword, RakNet::UDPProxyServer *proxyServerPlugin)=0;
 };
 
-/// When NAT Punchthrough fails, it is possible to use a non-NAT system to forward messages from us to the recipient, and vice-versa
-/// The class to forward messages is UDPForwarder, and it is triggered over the network via the UDPProxyServer plugin.
-/// The UDPProxyServer connects to UDPProxyServer to get a list of servers running UDPProxyServer, and the coordinator will relay our forwarding request
 /// \brief UDPProxyServer to control our instance of UDPForwarder
-/// \ingroup NAT_PUNCHTHROUGH_GROUP
+/// \details When NAT Punchthrough fails, it is possible to use a non-NAT system to forward messages from us to the recipient, and vice-versa.<BR>
+/// The class to forward messages is UDPForwarder, and it is triggered over the network via the UDPProxyServer plugin.<BR>
+/// The UDPProxyServer connects to UDPProxyServer to get a list of servers running UDPProxyServer, and the coordinator will relay our forwarding request.
+/// \ingroup UDP_PROXY_GROUP
 class RAK_DLL_EXPORT UDPProxyServer : public PluginInterface2
 {
 public:

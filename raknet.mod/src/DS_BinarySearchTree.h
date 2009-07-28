@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] A binary search tree, and an AVL balanced BST derivation.
+/// \file DS_BinarySearchTree.h
+/// \internal
+/// \brief A binary search tree, and an AVL balanced BST derivation.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -23,8 +24,8 @@
 namespace DataStructures
 {
 	/**
-	 * \brief A binary search tree and an AVL balanced binary search tree
-	 *
+	 * \brief A binary search tree and an AVL balanced binary search tree.
+	 * \details
 	 * Initilize with the following structure
 	 *
 	 * BinarySearchTree<TYPE>

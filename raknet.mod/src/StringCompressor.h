@@ -33,7 +33,7 @@ class RAK_DLL_EXPORT StringCompressor
 {
 public:
 	
-	/// Destructor	
+	// Destructor	
 	~StringCompressor();
 	
 	/// static function because only static functions can access static members

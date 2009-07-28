@@ -1,5 +1,5 @@
-/// \file
-/// \brief Automatically serializing and deserializing RPC system. More advanced RPC, but possibly not cross-platform
+/// \file AutoRPC.h
+/// \brief Automatically serializing and deserializing RPC system. More advanced RPC, but possibly not cross-platform.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -24,6 +24,8 @@ class NetworkIDManager;
 #endif
 
 /// \defgroup AUTO_RPC_GROUP AutoRPC
+/// \brief Depreciated. Uses Assembly to do RPC
+/// \details
 /// \ingroup PLUGINS_GROUP
 
 namespace RakNet
@@ -152,6 +154,8 @@ enum RPCErrorCodes
 	RPC_ERROR_INCORRECT_NUMBER_OF_PARAMETERS,
 };
 
+/// \deprecated See RakNet::RPC3
+
 /// The AutoRPC plugin allows you to call remote functions as if they were local functions, using the standard function call syntax
 /// No serialization or deserialization is needed.
 /// Advantages are that this is easier to use than regular RPC system.
@@ -162,10 +166,10 @@ enum RPCErrorCodes
 class AutoRPC : public PluginInterface2
 {
 public:
-	/// Constructor
+	// Constructor
 	AutoRPC();
 
-	/// Destructor
+	// Destructor
 	virtual ~AutoRPC();
 
 	/// Sets the network ID manager to use for object lookup
@@ -178,7 +182,7 @@ public:
 	/// \param[in] functionPtr Pointer to the function. For C, just pass the name of the function. For C++, use ARPC_REGISTER_CPP_FUNCTION
 	/// \param[in] isObjectMember false if a C function. True if a member function of an object (C++)
 	/// \param[in] parameterCount Optional parameter to tell the system how many parameters this function has. If specified, and the wrong number of parameters are called by the remote system, the call is rejected. -1 indicates undefined
-	/// \return True on success, false on uniqueIdentifier already used
+	/// \return True on success, false on uniqueIdentifier already used.
 	bool RegisterFunction(const char *uniqueIdentifier, void *functionPtr, bool isObjectMember, char parameterCount=-1);
 
 	/// Unregisters a function pointer to be callable given an identifier for the pointer
@@ -247,6 +251,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	bool Call(const char *uniqueIdentifier){
 		char stack[ARPC_MAX_STACK_SIZE];
 		unsigned int bytesOnStack = GenRPC::BuildStack(stack);
@@ -258,6 +263,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1>
 	bool Call(const char *uniqueIdentifier, P1 p1)	{
 		char stack[ARPC_MAX_STACK_SIZE];
@@ -270,6 +276,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2)	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -282,6 +289,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3 )	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -294,6 +302,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3, P4 p4 )	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -306,6 +315,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5 )	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -318,6 +328,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6 )	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -330,6 +341,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7 )	{
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -342,6 +354,7 @@ public:
 	/// \note This ONLY works with variables that are passable via memcpy! If you need more flexibility, use SetOutgoingExtraData() and GetIncomingExtraData()
 	/// \note The this pointer, for this instance of AutoRPC, is pushed as the last parameter on the stack. See AutoRPCSample.ccp for an example of this
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
 	bool Call(const char *uniqueIdentifier, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8 ) {
 			char stack[ARPC_MAX_STACK_SIZE];
@@ -361,6 +374,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID){
 		SetTimestamp(timeStamp);
 		SetSendParams(priority, reliability, orderingChannel);
@@ -383,6 +397,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1)	{
 		SetTimestamp(timeStamp);
@@ -406,6 +421,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2)	{
 		SetTimestamp(timeStamp);
@@ -429,6 +445,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3 )	{
 		SetTimestamp(timeStamp);
@@ -452,6 +469,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3, P4 p4 )	{
 		SetTimestamp(timeStamp);
@@ -475,6 +493,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5 )	{
 		SetTimestamp(timeStamp);
@@ -498,6 +517,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6 )	{
 		SetTimestamp(timeStamp);
@@ -521,6 +541,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7 )	{
 		SetTimestamp(timeStamp);
@@ -544,6 +565,7 @@ public:
 	/// \param[in] systemAddress See SetRecipientAddress()
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
+	/// \return True on success, false on uniqueIdentifier already used.
 	template <class P1, class P2, class P3, class P4, class P5, class P6, class P7, class P8>
 	bool CallExplicit(const char *uniqueIdentifier, RakNetTime timeStamp, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast, NetworkID networkID, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8 ) {
 		SetTimestamp(timeStamp);

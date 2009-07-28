@@ -1,5 +1,5 @@
 /// \file
-/// \brief \b [Internal] Depreciated, used for windows back when I supported IO completion ports.
+/// \brief \b [Internal] deprecated, used for windows back when I supported IO completion ports.
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
@@ -33,7 +33,7 @@ public:
  /// Default Constructor 
 	AsynchronousFileIO();
 	
- /// Destructor 
+ // Destructor 
 	~AsynchronousFileIO();
 	
 	

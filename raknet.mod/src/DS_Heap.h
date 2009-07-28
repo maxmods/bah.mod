@@ -1,5 +1,6 @@
-/// \file
-/// \brief \b [Internal] Heap (Also serves as a priority queue)
+/// \file DS_Heap.h
+/// \internal
+/// \brief Heap (Also serves as a priority queue)
 ///
 /// This file is part of RakNet Copyright 2003 Jenkins Software LLC
 ///
