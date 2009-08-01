@@ -202,22 +202,22 @@ Type TFMODSystem
 	Rem
 	bbdoc: Loads a sound into memory, or opens it for streaming. 
 	End Rem
-	Method CreateSoundURL:TFMODSound(filename:String, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+	Method CreateSoundURL:TFMODSound(filename:String, Mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
 		Local s:Byte Ptr
 		' 16-bit chars?
-		If mode & FMOD_UNICODE Then
+		If Mode & FMOD_UNICODE Then
 			s = filename.ToWString()
 		Else
 			s = filename.ToCString()
 		End If
 	
 		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, mode, exInfo.soundExInfoPtr, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, Mode, exInfo.soundExInfoPtr, Varptr ret))
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, mode, Null, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, s, Mode, Null, Varptr ret))
 		End If
 		MemFree(s)
 		
@@ -227,14 +227,14 @@ Type TFMODSystem
 	Rem
 	bbdoc: Loads a sound into memory, or opens it for streaming. 
 	End Rem
-	Method CreateSoundPtr:TFMODSound(mem:Byte Ptr, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+	Method CreateSoundPtr:TFMODSound(mem:Byte Ptr, Mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
 		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, mem, mode, exInfo.soundExInfoPtr, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, mem, Mode, exInfo.soundExInfoPtr, Varptr ret))
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, mem, mode, Null, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, mem, Mode, Null, Varptr ret))
 		End If
 		
 		Return sound
@@ -243,14 +243,14 @@ Type TFMODSystem
 	Rem
 	bbdoc: Loads a sound into memory, or opens it for streaming. 
 	End Rem
-	Method CreateSound:TFMODSound(mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+	Method CreateSound:TFMODSound(Mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
 		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, mode, exInfo.soundExInfoPtr, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, Mode, exInfo.soundExInfoPtr, Varptr ret))
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, mode, Null, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateSound(systemPtr, Null, Mode, Null, Varptr ret))
 		End If
 		
 		Return sound
@@ -260,22 +260,22 @@ Type TFMODSystem
 	bbdoc: Opens a sound for streaming.
 	about: This is a helper method that is the same as System.CreateSound but has the FMOD_CREATESTREAM flag added internally.  
 	End Rem
-	Method CreateStreamURL:TFMODSound(filename:String, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+	Method CreateStreamURL:TFMODSound(filename:String, Mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
 		Local s:Byte Ptr
 		' 16-bit chars?
-		If mode & FMOD_UNICODE Then
+		If Mode & FMOD_UNICODE Then
 			s = filename.ToWString()
 		Else
 			s = filename.ToCString()
 		End If
 		
 		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, mode, exInfo.soundExInfoPtr, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, Mode, exInfo.soundExInfoPtr, Varptr ret))
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, mode, Null, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, s, Mode, Null, Varptr ret))
 		End If
 		MemFree(s)
 		
@@ -286,14 +286,14 @@ Type TFMODSystem
 	bbdoc: Opens a sound for streaming.
 	about: This is a helper method that is the same as System.CreateSound but has the FMOD_CREATESTREAM flag added internally.  
 	End Rem
-	Method CreateStreamPtr:TFMODSound(mem:Byte Ptr, mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
+	Method CreateStreamPtr:TFMODSound(mem:Byte Ptr, Mode:Int, exInfo:TFMODCreateSoundExInfo = Null)
 		Local sound:TFMODSound
 		Local ret:Int
 		
 		If exInfo Then
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, mode, exInfo.soundExInfoPtr, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, Mode, exInfo.soundExInfoPtr, Varptr ret))
 		Else
-			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, mode, Null, Varptr ret))
+			sound = TFMODSound._create(bmx_FMOD_System_CreateStream(systemPtr, mem, Mode, Null, Varptr ret))
 		End If
 		
 		Return sound
@@ -535,15 +535,15 @@ Type TFMODSystem
 		Return FMOD_System_GetSoftwareChannels(systemPtr, Varptr numSoftwareChannels)
 	End Method
 	
-	Rem
-	bbdoc: Retrieves the currently selected recording driver, usually set with System::setRecordDriver.  
-	End Rem
-	Method GetRecordDriver:Int(driver:Int Var)
-		Return FMOD_System_GetRecordDriver(systemPtr, Varptr driver)
-	End Method
+	'Rem
+	'bbdoc: Retrieves the currently selected recording driver, usually set with System::setRecordDriver.  
+	'End Rem
+	'Method GetRecordDriver:Int(driver:Int Var)
+	'	Return FMOD_System_GetRecordDriver(systemPtr, Varptr driver)
+	'End Method
 	
 	Rem
-	bbdoc: Returns information on capabilities of the current output mode for the selected recording sound device.
+	bbdoc: Returns information on capabilities of the Current output Mode For the selected recording sound device.
 	End Rem
 	Method GetRecordDriverCaps:Int(id:Int, caps:Int Var, minFrequency:Int Var, maxFrequency:Int Var)
 		Return FMOD_System_GetRecordDriverCaps(systemPtr, id, Varptr caps, Varptr minFrequency, Varptr maxFrequency)
@@ -710,13 +710,13 @@ Type TFMODSystem
 		Return res
 	End Method
 	
-	Rem
-	bbdoc: Selects a recording driver.
-	about: This method is used when an output mode has enumerated more than one record device, and you need to select between them.
-	End Rem
-	Method SetRecordDriver:Int(driver:Int)
-		Return FMOD_System_SetRecordDriver(systemPtr, driver)
-	End Method
+	'Rem
+	'bbdoc: Selects a recording driver.
+	'about: This Method is used when an output Mode has enumerated more than one record device, And you need To Select between them.
+	'End Rem
+	'Method SetRecordDriver:Int(driver:Int)
+	'	Return FMOD_System_SetRecordDriver(systemPtr, driver)
+	'End Method
 	
 	'Method SetReverbAmbientProperties:Int()
 	'End Method
@@ -747,8 +747,8 @@ Type TFMODSystem
 	Rem
 	bbdoc: Sets the speaker mode in the hardware and FMOD software mixing engine.  
 	End Rem
-	Method SetSpeakerMode:Int(mode:Int)
-		Return FMOD_System_SetSpeakerMode(systemPtr, mode)
+	Method SetSpeakerMode:Int(Mode:Int)
+		Return FMOD_System_SetSpeakerMode(systemPtr, Mode)
 	End Method
 	
 	Rem
@@ -811,8 +811,8 @@ Type TFMODSound
 	<li><b>mode</b> : Variable that receives the current mode for this sound.</li>
 	</ul>
 	End Rem
-	Method GetMode:Int(mode:Int Var)
-		Return FMOD_Sound_GetMode(soundPtr, Varptr mode)
+	Method GetMode:Int(Mode:Int Var)
+		Return FMOD_Sound_GetMode(soundPtr, Varptr Mode)
 	End Method
 	
 	Rem
@@ -863,8 +863,8 @@ Type TFMODSound
 	buffer size. Otherwise you will not normally encounter any problems.
 	</p>
 	End Rem
-	Method SetMode:Int(mode:Int)
-		Return FMOD_Sound_SetMode(soundPtr, mode)
+	Method SetMode:Int(Mode:Int)
+		Return FMOD_Sound_SetMode(soundPtr, Mode)
 	End Method
 	
 	Rem
@@ -1569,8 +1569,8 @@ Type TFMODChannel
 	Rem
 	bbdoc: Retrieves the current mode bit flags for the current channel.  
 	End Rem
-	Method GetMode:Int(mode:Int Var)
-		Return bmx_FMOD_Channel_GetMode(channelPtr, Varptr mode)
+	Method GetMode:Int(Mode:Int Var)
+		Return bmx_FMOD_Channel_GetMode(channelPtr, Varptr Mode)
 	End Method
 	
 	Rem
@@ -1706,8 +1706,8 @@ Type TFMODChannel
 	Rem
 	bbdoc: Changes some attributes for a channel based on the mode passed in. 
 	End Rem
-	Method SetMode:Int(mode:Int)
-		Return bmx_FMOD_Channel_SetMode(channelPtr, mode)
+	Method SetMode:Int(Mode:Int)
+		Return bmx_FMOD_Channel_SetMode(channelPtr, Mode)
 	End Method
 
 	Rem
