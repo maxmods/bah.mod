@@ -21,6 +21,7 @@
 SuperStrict
 
 Import BRL.Blitz
+Import BRL.Stream
 
 ?macos
 Import "-lcrypto"

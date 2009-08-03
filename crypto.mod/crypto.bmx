@@ -25,10 +25,12 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.01"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.02"
+ModuleInfo "History: Added TStream support for the 'easy' digest API."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Added digest functions."
 ModuleInfo "History: 1.00"
@@ -721,7 +723,7 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 128 bit output.
 	End Rem
-	Function md2:EVP_MD()
+	Function MD2:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_md2()
 		Return this
@@ -730,7 +732,7 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 128 bit output.
 	End Rem
-	Function md5:EVP_MD()
+	Function MD5:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_md5()
 		Return this
@@ -739,7 +741,7 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 160 bit output.
 	End Rem
-	Function sha:EVP_MD()
+	Function SHA:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_sha()
 		Return this
@@ -748,7 +750,7 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 160 bit output.
 	End Rem
-	Function sha1:EVP_MD()
+	Function SHA1:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_sha1()
 		Return this
@@ -757,7 +759,7 @@ Type EVP_MD
 	Rem
 	bbdoc: An SHA hash function, but using DSS (DSA) for the signature algorithm.
 	End Rem
-	Function dss:EVP_MD()
+	Function DSS:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_dss()
 		Return this
@@ -766,7 +768,7 @@ Type EVP_MD
 	Rem
 	bbdoc: An SHA1 hash function, but using DSS (DSA) for the signature algorithm.
 	End Rem
-	Function dss1:EVP_MD()
+	Function DSS1:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_dss1()
 		Return this
@@ -776,7 +778,7 @@ Type EVP_MD
 	bbdoc: A method to construct hash functions with 128 bit output from block ciphers.
 	about: These functions are an implementation of MDC2 with DES.
 	End Rem
-	Function mdc2:EVP_MD()
+	Function MDC2:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_mdc2()
 		Return this
@@ -785,7 +787,7 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 160 bit output.
 	End Rem
-	Function ripemd160:EVP_MD()
+	Function RIPEMD160:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_ripemd160()
 		Return this
@@ -794,75 +796,112 @@ Type EVP_MD
 End Type
 
 Rem
-bbdoc: Creates an MD2 hash for @text.
+bbdoc: Creates an MD2 hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function MD2:String(text:String)
-	Return _processDigest(EVP_MD.md2(), text)
+Function MD2:String(data:Object)
+	Return _processDigest(EVP_MD.MD2(), data)
 End Function
 
 Rem
-bbdoc: Creates an MD5 hash for @text.
+bbdoc: Creates an MD5 hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function MD5:String(text:String)
-	Return _processDigest(EVP_MD.md5(), text)
+Function MD5:String(data:Object)
+	Return _processDigest(EVP_MD.MD5(), data)
 End Function
 
 Rem
-bbdoc: Creates an SHA hash for @text.
+bbdoc: Creates an SHA hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function SHA:String(text:String)
-	Return _processDigest(EVP_MD.sha(), text)
+Function SHA:String(data:Object)
+	Return _processDigest(EVP_MD.SHA(), data)
 End Function
 
 Rem
-bbdoc: Creates an SHA1 hash for @text.
+bbdoc: Creates an SHA1 hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function SHA1:String(text:String)
-	Return _processDigest(EVP_MD.sha1(), text)
+Function SHA1:String(data:Object)
+	Return _processDigest(EVP_MD.SHA1(), data)
 End Function
 
 Rem
-bbdoc: Creates a DSS hash for @text.
+bbdoc: Creates a DSS hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function DSS:String(text:String)
-	Return _processDigest(EVP_MD.dss(), text)
+Function DSS:String(data:Object)
+	Return _processDigest(EVP_MD.DSS(), data)
 End Function
 
 Rem
-bbdoc: Creates a DSS1 hash for @text.
+bbdoc: Creates a DSS1 hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function DSS1:String(text:String)
-	Return _processDigest(EVP_MD.dss1(), text)
+Function DSS1:String(data:Object)
+	Return _processDigest(EVP_MD.DSS1(), data)
 End Function
 ?MacOS
 Rem
-bbdoc: Creates an MDC2 hash for @text.
+bbdoc: Creates an MDC2 hash for @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function MDC2:String(text:String)
-	Return _processDigest(EVP_MD.mdc2(), text)
+Function MDC2:String(data:Object)
+	Return _processDigest(EVP_MD.MDC2(), data)
 End Function
 ?
 Rem
-bbdoc: Creates an RIPEMD-160 hash on @text.
+bbdoc: Creates an RIPEMD-160 hash on @data.
+about: @data can be a String or TStream.
 returns: The hashed text or Null on error.
 End Rem
-Function RIPEMD160:String(text:String)
-	Return _processDigest(EVP_MD.ripemd160(), text)
+Function RIPEMD160:String(data:Object)
+	Return _processDigest(EVP_MD.RIPEMD160(), data)
 End Function
 
-Function _processDigest:String(digestType:EVP_MD, text:String)
+Function _processDigest:String(digestType:EVP_MD, text:Object)
 	Local ctx:EVP_MD_CTX = New EVP_MD_CTX.Create()
 	ctx.DigestInit(digestType)
-	If Not ctx.DigestUpdate(text, text.length) Then
+
+	If String(text) Then
+	
+		If Not ctx.DigestUpdate(String(text), String(text).length) Then
+			Return Null
+		End If
+		
+	ElseIf TStream(text) Then
+	
+		Local stream:TStream = TStream(text)
+	
+		Local data:Byte[2048]
+		Local length:Int
+		Local count:Int
+		
+		While True
+			count = stream.Read(data, 2048)
+
+			If count = 0 Then
+				Exit
+			End If
+			
+			If Not ctx.DigestUpdate(data, count) Then
+				Return Null
+			End If
+
+		Wend
+		
+	Else
 		Return Null
 	End If
+
 	Local buf:Byte[EVP_MAX_MD_SIZE]
 	Local length:Int
 	If Not ctx.DigestFinal(buf, length) Then
