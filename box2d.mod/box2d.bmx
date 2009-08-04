@@ -44,6 +44,7 @@ ModuleInfo "History: Added buoyancy types + methods."
 ModuleInfo "History: Added b2Body SetMass() method."
 ModuleInfo "History: Added b2BodyDef GetMassData() method."
 ModuleInfo "History: Converted bool handling in glue to use ints instead."
+ModuleInfo "History: Added b2Vec2 SetX() and SetY() methods."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Updated to box2d svn (rev 172)"
 ModuleInfo "History: Added b2CircleShape and b2PolygonShape types."
@@ -524,6 +525,7 @@ Type b2Vec2
 	
 	Rem
 	bbdoc: Returns the X coordinate.
+	about: Synonym for X().
 	End Rem
 	Method GetX:Float()
 		Return bmx_b2vec2_getx(b2ObjectPtr)
@@ -538,6 +540,7 @@ Type b2Vec2
 
 	Rem
 	bbdoc: Returns the Y coordinate.
+	about: Synonym for Y().
 	End Rem
 	Method GetY:Float()
 		Return bmx_b2vec2_gety(b2ObjectPtr)
@@ -601,6 +604,20 @@ Type b2Vec2
 	End Rem	
 	Method Set(x:Float, y:Float)
 		bmx_b2vec2_set(b2ObjectPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Sets the x part.
+	End Rem
+	Method SetX(x:Float)
+		bmx_b2vec2_setx(b2ObjectPtr, x)
+	End Method
+
+	Rem
+	bbdoc: Sets the y part.
+	End Rem
+	Method SetY(y:Float)
+		bmx_b2vec2_sety(b2ObjectPtr, y)
 	End Method
 	
 	Rem

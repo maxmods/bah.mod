@@ -43,6 +43,8 @@ Extern
 	Function bmx_b2vec2_plus:Byte Ptr(handle:Byte Ptr, vec:Byte Ptr)
 	Function bmx_b2vec2_normalize:Float(handle:Byte Ptr)
 	Function bmx_b2vec2_lengthsquared:Float(handle:Byte Ptr)
+	Function bmx_b2vec2_setx(handle:Byte Ptr, x:Float)
+	Function bmx_b2vec2_sety(handle:Byte Ptr, y:Float)
 
 	Function bmx_b2world_createbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)
 	'Function bmx_b2world_createdynamicbody:Byte Ptr(handle:Byte Ptr, def:Byte Ptr, body:Object)

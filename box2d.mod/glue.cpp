@@ -85,6 +85,8 @@ extern "C" {
 	float32 bmx_b2vec2_normalize(b2Vec2 * vec);
 	float32 bmx_b2vec2_lengthsquared(b2Vec2 * vec);
 	BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount);
+	void bmx_b2vec2_setx(b2Vec2 * vec, float32 x);
+	void bmx_b2vec2_sety(b2Vec2 * vec, float32 y);
 
 	b2Body * bmx_b2world_createbody(b2World * world, b2BodyDef * def, BBObject * body);
 	void bmx_b2world_destroybody(b2World * world, b2Body * body);
@@ -857,6 +859,14 @@ BBArray * bmx_b2vec2_getvertexarray(const b2Vec2* vertices, int32 vertexCount) {
 	}
 	
 	return array;
+}
+
+void bmx_b2vec2_setx(b2Vec2 * vec, float32 x) {
+	vec->Set(x, vec->y);
+}
+
+void bmx_b2vec2_sety(b2Vec2 * vec, float32 y) {
+	vec->Set(vec->x, y);
 }
 
 // *****************************************************
