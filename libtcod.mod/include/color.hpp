@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_COLOR_HPP
-#define _TCOD_COLOR_HPP
 
 class TCODLIB_API TCODColor {
 public :
@@ -99,6 +96,7 @@ public :
 		ret.b=(uint8)(a.b+(b.b-a.b)*coef);
 		return ret;
 	}
+	static TCODColor operation(const TCODColor &a, const TCODColor &b, TCOD_colorop_t op);
 	static void genMap(TCODColor *map, int nbKey, TCODColor const *keyColor, int const *keyIndex);
 
 	// color array
@@ -188,5 +186,3 @@ public :
 };
 
 TCODLIB_API TCODColor operator *(float value, const TCODColor &c);
-
-#endif

@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -219,7 +219,7 @@ void TCOD_lex_get_new_line(TCOD_lex_t *lex)
     }
 }
 
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
 #pragma warning(disable:4127) // conditional expression is constant
 #endif
 
@@ -393,7 +393,7 @@ int TCOD_lex_get_string(TCOD_lex_t *lex)
     } while ( 1 );
 }
 
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
 #pragma warning(default:4127) // conditional expression is constant
 #endif
 

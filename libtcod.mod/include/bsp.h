@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_BSP_H
-#define _TCOD_BSP_H
 
 typedef struct {
 	TCOD_tree_t tree; /* pseudo oop : bsp inherit tree */
@@ -59,5 +56,3 @@ TCODLIB_API void TCOD_bsp_split_once(TCOD_bsp_t *node, bool horizontal, int posi
 TCODLIB_API void TCOD_bsp_split_recursive(TCOD_bsp_t *node, TCOD_random_t randomizer, int nb, 
 		int minHSize, int minVSize, float maxHRatio, float maxVRatio);
 TCODLIB_API void TCOD_bsp_remove_sons(TCOD_bsp_t *node);
-
-#endif

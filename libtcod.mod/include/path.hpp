@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_PATH_HPP
-#define _TCOD_PATH_HPP
-
 class TCODLIB_API ITCODPathCallback {
 public :
 	virtual ~ITCODPathCallback() {}
@@ -44,6 +41,7 @@ public :
 	bool walk(int *x, int *y, bool recalculateWhenNeeded);
 	bool isEmpty() const;
 	int size() const;
+	void clear();
 	void get(int index, int *x, int *y) const;
 	void getOrigin(int *x,int *y) const;
 	void getDestination(int *x,int *y) const;
@@ -56,6 +54,3 @@ protected :
 		const ITCODPathCallback *listener;
 	} cppData;
 };
-
-#endif
-

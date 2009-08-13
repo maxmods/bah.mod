@@ -6,6 +6,7 @@ public :
 	void render();
 	void setLabel(const char *newLabel);
 	void computeSize();
+	inline bool isPressed() { return pressed; }
 protected :
 	bool pressed;
 	char *label;

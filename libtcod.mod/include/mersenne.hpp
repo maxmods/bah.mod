@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_RANDOM_HPP
-#define _TCOD_RANDOM_HPP
-
 class TCODLIB_API TCODRandom {
 	public :
 		static TCODRandom *getInstance();
@@ -46,5 +43,3 @@ class TCODLIB_API TCODRandom {
 		friend class TCODLIB_API TCODHeightMap;
 		TCOD_random_t data;
 };
-
-#endif

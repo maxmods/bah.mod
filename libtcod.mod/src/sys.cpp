@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -68,15 +68,15 @@ void TCODSystem::updateChar(int asciiCode, int fontx, int fonty,const TCODImage 
 
 // filesystem stuff
 bool TCODSystem::createDirectory(const char *path) {
-	return TCOD_sys_create_directory(path);
+	return TCOD_sys_create_directory(path) != 0;
 }
 
 bool TCODSystem::deleteFile(const char *path) {
-	return TCOD_sys_delete_file(path);
+	return TCOD_sys_delete_file(path) != 0;
 }
 
 bool TCODSystem::deleteDirectory(const char *path) {
-	return TCOD_sys_delete_directory(path);
+	return TCOD_sys_delete_directory(path) != 0;
 }
 
 // thread stuff

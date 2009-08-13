@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -33,19 +33,19 @@ void TCODLine::init(int xFrom, int yFrom, int xTo, int yTo) {
 }
 
 bool TCODLine::step(int *xCur, int *yCur) {
-	return TCOD_line_step(xCur,yCur);
+	return TCOD_line_step(xCur,yCur) != 0;
 }
 
 static TCODLineListener *listener=NULL;
 
 // C to C++ bridge
-extern "C" bool internalListener(int x,int y) {
-	return listener->putPoint(x,y);
+extern "C" uint8 internalListener(int x,int y) {
+	return listener->putPoint(x,y) ? 1 : 0;
 }
 
 bool TCODLine::line(int xFrom, int yFrom, int xTo, int yTo, TCODLineListener *plistener) {
 	listener=plistener;
-	return TCOD_line(xFrom,yFrom,xTo,yTo,internalListener);
+	return TCOD_line(xFrom,yFrom,xTo,yTo,internalListener) != 0;
 }
 
 

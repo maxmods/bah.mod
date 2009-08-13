@@ -3,13 +3,12 @@
 #include "gui.hpp"
 
 void ToggleButton::render() {
-	con->setBackgroundColor(mouseIn ? backFocus : back);
 	con->setForegroundColor(mouseIn ? foreFocus : fore);
-	con->rect(x,y,w,h,true,TCOD_BKGND_SET);
+	con->getBackgroundImage()->rect(x,y,w,h,mouseIn ? backFocus : back);
 	if ( label ) {
-		con->printLeft(x,y,TCOD_BKGND_NONE,"%c %s",pressed ? TCOD_CHAR_CHECKBOX_SET : TCOD_CHAR_CHECKBOX_UNSET, label);
+		con->printLeft(x,y,"%c %s",pressed ? TCOD_CHAR_CHECKBOX_SET : TCOD_CHAR_CHECKBOX_UNSET, label);
 	} else {
-		con->printLeft(x,y,TCOD_BKGND_NONE,"%c",pressed ? TCOD_CHAR_CHECKBOX_SET : TCOD_CHAR_CHECKBOX_UNSET);
+		con->printLeft(x,y,"%c",pressed ? TCOD_CHAR_CHECKBOX_SET : TCOD_CHAR_CHECKBOX_UNSET);
 	}
 }
 

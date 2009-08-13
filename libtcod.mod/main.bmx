@@ -196,6 +196,15 @@ Type TCODConsole
 		Return TCODColor._create(bmx_tcodconsole_getbackgroundcolor(consolePtr))
 	End Method
 
+	Method SetBackgroundFlag(flag:Int)
+		bmx_tcodconsole_setbackgroundflag(consolePtr, flag)
+	End Method
+	
+	Method SetForegroundFlag(flag:Int)
+		bmx_tcodconsole_setforegroundflag(consolePtr, flag)
+	End Method
+
+	
 	Rem
 	bbdoc: Modifies the foreground color of a cell, leaving other properties (background color and ASCII code) unchanged.
 	End Rem
@@ -213,8 +222,8 @@ Type TCODConsole
 	Rem
 	bbdoc: Modifies the background color of a cell, leaving other properties (foreground color and ASCII code) unchanged.
 	End Rem
-	Method SetBack(x:Int, y:Int, col:TCODColor, flag:Int = TCOD_BKGND_SET)
-		bmx_tcodconsole_setback(consolePtr, x, y, col.colorPtr, flag:Int)
+	Method SetBack(x:Int, y:Int, col:TCODColor)
+		bmx_tcodconsole_setback(consolePtr, x, y, col.colorPtr)
 	End Method
 
 	Rem
@@ -228,24 +237,24 @@ Type TCODConsole
 	bbdoc: Draws a right aligned string on the console, using default foreground and background colors.
 	about: If the string reaches the left border of the console, it is truncated.
 	End Rem
-	Method PrintRight(x:Int, y:Int, flag:Int, text:String)
-		bmx_tcodconsole_printright(consolePtr, x, y, flag, text)
+	Method PrintRight(x:Int, y:Int, text:String)
+		bmx_tcodconsole_printright(consolePtr, x, y, text)
 	End Method
 
 	Rem
 	bbdoc: Draws a left aligned string on the console, using default foreground and background colors.
 	about: If the string reaches the right border of the console, it is truncated.
 	End Rem
-	Method PrintLeft(x:Int, y:Int, flag:Int, text:String)
-		bmx_tcodconsole_printleft(consolePtr, x, y, flag, text)
+	Method PrintLeft(x:Int, y:Int, text:String)
+		bmx_tcodconsole_printleft(consolePtr, x, y, text)
 	End Method
 
 	Rem
 	bbdoc: Draws a centered string on the console, using default foreground and background colors.
 	about: If the string reaches borders of the console, it is truncated.
 	End Rem
-	Method PrintCenter(x:Int, y:Int, flag:Int, text:String)
-		bmx_tcodconsole_printcenter(consolePtr, x, y,flag, text)
+	Method PrintCenter(x:Int, y:Int, text:String)
+		bmx_tcodconsole_printcenter(consolePtr, x, y, text)
 	End Method
 
 	Rem
@@ -257,8 +266,8 @@ Type TCODConsole
 	reaches the bottom of the console.
 	</p>
 	End Rem
-	Method PrintRightRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
-		Return bmx_tcodconsole_printrightrect(consolePtr, x, y, w, h, flag, text)
+	Method PrintRightRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_printrightrect(consolePtr, x, y, w, h, text)
 	End Method
 
 	Rem
@@ -277,8 +286,8 @@ Type TCODConsole
 	it reaches the bottom of the console.
 	</p>
 	End Rem
-	Method PrintLeftRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
-		Return bmx_tcodconsole_printleftrect(consolePtr, x, y, w, h, flag, text)
+	Method PrintLeftRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_printleftrect(consolePtr, x, y, w, h, text)
 	End Method
 
 	Rem
@@ -296,8 +305,8 @@ Type TCODConsole
 	If h > 0 and the bottom of the rectangle is reached, the string is truncated. If h = 0, the string is only truncated if it reaches the bottom of the console.
 	</p>
 	End Rem
-	Method PrintCenterRect:Int(x:Int, y:Int, w:Int, h:Int, flag:Int, text:String)
-		Return bmx_tcodconsole_printcenterrect(consolePtr, x, y, w, h, flag, text)
+	Method PrintCenterRect:Int(x:Int, y:Int, w:Int, h:Int, text:String)
+		Return bmx_tcodconsole_printcenterrect(consolePtr, x, y, w, h, text)
 	End Method
 
 	Rem
@@ -311,8 +320,16 @@ Type TCODConsole
 	bbdoc: Modifies every property of a cell.
 	about: 
 	End Rem
-	Method PutChar(x:Int, y:Int, c:Int, flag:Int = TCOD_BKGND_SET)
-		bmx_tcodconsole_putchar(consolePtr, x, y, c, flag)
+	Method PutChar(x:Int, y:Int, c:Int, fore:TCODColor, back:TCODColor)
+		bmx_tcodconsole_putchar(consolePtr, x, y, c, fore.colorPtr, back.colorPtr)
+	End Method
+	
+	Rem
+	bbdoc: Modifies every property of a cell.
+	about: 
+	End Rem
+	Method BrushChar(x:Int, y:Int, c:Int)
+		bmx_tcodconsole_brushchar(consolePtr, x, y, c)
 	End Method
 	
 	Rem
@@ -347,30 +364,8 @@ Type TCODConsole
 	<li>If clear is true, set the cell's ASCII code to 32 (space)</li>
 	</ul>
 	End Rem
-	Method Rect(x:Int, y:Int, w:Int, h:Int, clear:Int, flag:Int = TCOD_BKGND_SET)
-		bmx_tcodconsole_rect(consolePtr, x, y, w, h, clear, flag)
-	End Method
-	
-	Rem
-	bbdoc: Draws an horizontal line in the console, using ASCII code TCOD_CHAR_HLINE (196), and the console's default background/foreground colors.
-	End Rem
-	Method HLine(x:Int, y:Int, length:Int, flag:Int = TCOD_BKGND_SET)
-		bmx_tcodconsole_hline(consolePtr, x, y, length, flag)
-	End Method
-	
-	Rem
-	bbdoc: Draws a vertical line in the console, using ASCII code TCOD_CHAR_VLINE (179), and the console's default background/foreground colors.
-	End Rem
-	Method VLine(x:Int, y:Int, length:Int, flag:Int = TCOD_BKGND_SET)
-		bmx_tcodconsole_vline(consolePtr, x, y, length, flag)
-	End Method
-	
-	Rem
-	bbdoc: Calls Rect using the TCOD_BKGND_SET flag, then draws a rectangle with the console's default foreground color.
-	about: If fmt is not NULL, it is printed on the top of the rectangle, using inverted colors.
-	End Rem
-	Method PrintFrame(x:Int, y:Int, w:Int, h:Int, clear:Int, fmt:String)
-		bmx_tcodconsole_printframe(consolePtr, x, y, w, h, clear, fmt)
+	Method Rect(x:Int, y:Int, w:Int, h:Int, clear:Int)
+		bmx_tcodconsole_rect(consolePtr, x, y, w, h, clear)
 	End Method
 	
 	Rem
@@ -403,6 +398,8 @@ Rem
 bbdoc: 
 End Rem
 Type TCODSystem
+
+	Global _root:Byte Ptr
 
 	Global consoleBuffer:Byte Ptr
 	Global consoleWidth:Int
@@ -446,7 +443,9 @@ Type TCODSystem
 	Global mouseVisible:Int = True
 	
 
-	Function _Init:Int(w:Int, h:Int, buf:Byte Ptr, oldbuf:Byte Ptr, fullscreen:Int)
+	Function _Init:Int(con:Byte Ptr, w:Int, h:Int, buf:Byte Ptr, oldbuf:Byte Ptr, fullscreen:Int)
+		_root = con
+	
 		consoleBuffer = buf
 		prevConsoleBuffer = oldbuf
 		
@@ -592,13 +591,13 @@ Type TCODSystem
 		Local bestw:Int = 99999
 		Local besth:Int = 99999
 		
-		For Local mode:TGraphicsMode = EachIn modes
+		For Local Mode:TGraphicsMode = EachIn modes
 
-			If mode.width >= wantedw And mode.width <= bestw ..
-					And mode.height >= wantedh And mode.height <= besth ..
-					And mode.hertz = 32 Then
-				bestw = mode.width
-				besth = mode.height
+			If Mode.width >= wantedw And Mode.width <= bestw ..
+					And Mode.height >= wantedh And Mode.height <= besth ..
+					And Mode.hertz = 32 Then
+				bestw = Mode.width
+				besth = Mode.height
 			End If
 			
 		Next
@@ -616,7 +615,8 @@ Type TCODSystem
 		Local frame_time:Int, time_to_wait:Int
 		If render Then
 			' *** TODO *** : implement rendering the console to the graphics context
-			TCOD_sys_console_to_bitmap(Null, TCOD_console_get_width(Null), TCOD_console_get_height(Null), consoleBuffer, prevConsoleBuffer)
+			'TCOD_sys_console_to_bitmap(Null, TCOD_console_get_width(Null), TCOD_console_get_height(Null), consoleBuffer, prevConsoleBuffer)
+			TCOD_sys_console_to_bitmap(Null, _root) 
 			Flip 0
 			Cls
 		End If
@@ -645,7 +645,7 @@ Type TCODSystem
 		last_frame_length = frame_time * 0.001
 	End Function
 	
-	Function _ConsoleToBitmap(vbitmap:Byte Ptr, console_width:Int, console_height:Int, console_buffer:Byte Ptr)
+	Function _ConsoleToBitmap(vbitmap:Byte Ptr, con:Byte Ptr, console_width:Int, console_height:Int, console_buffer:Byte Ptr)
 	
 		Global index:Int
 		Global br:Int, bg:Int, bb:Int
@@ -662,7 +662,7 @@ Type TCODSystem
 				For Local x:Int = 0 Until console_width
 				
 					' get char colors, and ascii index.
-					bmx_tcodsystem_getcolsandascii(console_buffer, x+y*console_width, Varptr index, ..
+					bmx_tcodsystem_getcolsandascii(con, x, y, Varptr index, ..
 						Varptr br, Varptr bg, Varptr bb, Varptr fr, Varptr fg, Varptr fb, flags)
 
 					' draw the background
@@ -1293,15 +1293,22 @@ Type TCODImage
 	about: The image will be rendered with sub-cell accuracy (no to be confused with sub-cell resolution, which is not yet implemented).
 	For example, if you increase x by 0.01 per frame, you will achieve a smooth scrolling effect.
 	End Rem
-	Method Blit(console:TCODConsole, x:Float, y:Float, backgroundFlag:Int = TCOD_BKGND_SET, scalex:Float = 1.0, scaley:Float = 1.0, angle:Float = 0.0)
-		bmx_tcodimage_blit(objectPtr, console.consolePtr, x, y, backgroundFlag, scalex, scaley, angle)
+	Method Blit(image:TCODImage, x:Float, y:Float, scalex:Float = 1.0, scaley:Float = 1.0, angle:Float = 0.0, op:Int = TCOD_COLOROP_SET)
+		bmx_tcodimage_blit(objectPtr, image.objectPtr, x, y, scalex, scaley, angle, op)
 	End Method
 	
 	Rem
 	bbdoc: Allows you to easily map an image to a specific part of a console, by specifying a rectangular part of the console (upper-left corner and size).
 	End Rem
-	Method BlitRect(console:TCODConsole, x:Int, y:Int, w:Int = -1, h:Int = -1, backgroundFlag:Int = TCOD_BKGND_SET)
-		bmx_tcodimage_blitrect(objectPtr, console.consolePtr, x, y, w, h, backgroundFlag)
+	Method BlitRect(image:TCODImage, x:Int, y:Int, w:Int = -1, h:Int = -1, op:Int = TCOD_COLOROP_SET)
+		bmx_tcodimage_blitrect(objectPtr, image.objectPtr, x, y, w, h, op)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Blit2x(console:TCODConsole, dx:Int, dy:Int, sx:Int = 0, sy:Int = 0, w:Int = -1, h:Int = -1)
+		bmx_tcodimage_blit2x(objectPtr, console.consolePtr, dx, dy, sx, sy, w, h)
 	End Method
 	
 	Rem

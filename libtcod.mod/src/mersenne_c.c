@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "libtcod.h"
+#include "libtcod_int.h"
 
 /* mersenne twister toolkit */
 typedef struct {
@@ -184,6 +185,7 @@ int TCOD_random_get_int_from_byte_array(int min, int max, const char *data,int l
 }
 
 void TCOD_random_delete(TCOD_random_t mersenne) {
+	TCOD_IFNOT(mersenne != NULL && mersenne != TCOD_random_get_instance() ) return;
 	free(mersenne);
 }
 TCOD_random_t TCOD_random_save(TCOD_random_t mersenne) {

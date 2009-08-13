@@ -68,15 +68,27 @@ static int max_font_chars=0;
 static bool *ascii_updated=NULL;
 static bool any_ascii_updated=false;
 
+// total number of characters that can fit in the font bitmap
+int TCOD_max_font_chars=255;
+
+// number of characters in the bitmap font
+int TCOD_font_nb_char_horiz=16;
+int TCOD_font_nb_char_vertic=16;
+
+
+// console size (in cells)
+TCOD_console_data_t *TCOD_root=NULL;
+TCOD_bitmap_char_t * TCOD_font_chars = NULL;
+
 
 extern "C" {
 
 	void _bah_libtcod_TCODSystem__Flush(bool render);
-	bool _bah_libtcod_TCODSystem__Init(int w, int h, char_t *buf, char_t *oldbuf, bool fullscreen);
+	bool _bah_libtcod_TCODSystem__Init(TCOD_console_data_t *con, int w, int h, char_t *buf, char_t *oldbuf, bool fullscreen);
 	void _bah_libtcod_TCODSystem__SleepMilli(uint32 milliseconds);
 	uint32 _bah_libtcod_TCODSystem__ElapsedMilli();
 	void _bah_libtcod_TCODSystem__SetCustomFont(BBString * fontFile, int flags, int nbcw, int nbch);
-	void _bah_libtcod_TCODSystem__ConsoleToBitmap(void *vbitmap, int console_width, int console_height, char_t *console_buffer, char_t *prev_console_buffer);
+	void _bah_libtcod_TCODSystem__ConsoleToBitmap(void *vbitmap, TCOD_console_data_t * con, int console_width, int console_height, char_t *console_buffer, char_t *prev_console_buffer);
 	void _bah_libtcod_TCODSystem__SetFps(int val);
 	int _bah_libtcod_TCODSystem__GetFps();
 	float _bah_libtcod_TCODSystem__LastFrameLength();
@@ -100,6 +112,15 @@ static void alloc_ascii_tables() {
 		free(first_draw);
 	}
 
+	TCOD_font_chars=(TCOD_bitmap_char_t *)calloc(sizeof(TCOD_bitmap_char_t),TCOD_max_font_chars);
+	for (int i=0; i < 256; i++ ) {
+		TCOD_font_chars[i].ascii_to_tcod=init_ascii_to_tcod[i];
+	}
+	for (int i=256; i < TCOD_max_font_chars; i++ ) {
+		TCOD_font_chars[i].ascii_to_tcod=i;
+	}
+
+	
 	ascii_to_tcod = (int *)calloc(sizeof(int),max_font_chars);
 	ascii_updated = (bool *)calloc(sizeof(bool),max_font_chars);
 	charcols = (TCOD_color_t *)calloc(sizeof(TCOD_color_t),max_font_chars);
@@ -124,8 +145,8 @@ void *TCOD_sys_create_bitmap_for_console(TCOD_console_t console) {
 printf("TCOD_sys_create_bitmap_for_console\n");fflush(stdout);
 }
 
-void TCOD_sys_console_to_bitmap(void *vbitmap, int console_width, int console_height, char_t *console_buffer, char_t *prev_console_buffer) {
-	_bah_libtcod_TCODSystem__ConsoleToBitmap(vbitmap, console_width, console_height, console_buffer, prev_console_buffer);
+void TCOD_sys_console_to_bitmap(void *bitmap, TCOD_console_data_t *con) {
+	_bah_libtcod_TCODSystem__ConsoleToBitmap(bitmap, con, con->w, con->h, con->buf, con->oldbuf);
 }
 
 
@@ -133,10 +154,10 @@ void TCOD_sys_set_keyboard_repeat(int initial_delay, int interval) {
 printf("TCOD_sys_set_keyboard_repeat\n");fflush(stdout);
 }
 
-bool TCOD_sys_init(int w,int h, char_t *buf, char_t *oldbuf, bool fullscreen) {
+bool TCOD_sys_init(TCOD_console_data_t *con, bool fullscreen) {
 	if ( ! has_startup ) TCOD_sys_startup();
 	
-	return _bah_libtcod_TCODSystem__Init(w, h, buf, oldbuf, fullscreen);
+	return _bah_libtcod_TCODSystem__Init(con, con->w, con->h, con->buf, con->oldbuf, fullscreen);
 
 }
 
@@ -291,11 +312,11 @@ TCOD_mouse_t TCOD_mouse_get_status() {
 	return ms;
 }
 
-void TCOD_mouse_show_cursor(bool visible) {
+void TCOD_mouse_show_cursor(uint8 visible) {
 	_bah_libtcod_TCODSystem__ShowCursor(visible);
 }
 
-bool TCOD_mouse_is_cursor_visible() {
+uint8 TCOD_mouse_is_cursor_visible() {
 	return _bah_libtcod_TCODSystem__CursorVisible();
 }
 
@@ -303,6 +324,9 @@ void TCOD_mouse_move(int x, int y) {
 	_bah_libtcod_TCODSystem__MoveMouse(x, y);
 }
 
+void *TCOD_sys_get_image_pixel_data(TCOD_image_t img) {
+	return NULL;
+}
 
 
 

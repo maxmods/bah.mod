@@ -36,14 +36,13 @@ void Button::setLabel(const char *newLabel) {
 }
 
 void Button::render() {
-	con->setBackgroundColor(mouseIn ? backFocus : back);
 	con->setForegroundColor(mouseIn ? foreFocus : fore);
-	con->rect(x,y,w,h,true,TCOD_BKGND_SET);
+	con->getBackgroundImage()->rect(x,y,w,h,mouseIn ? backFocus : back);
 	if ( label ) {
 		if ( pressed && mouseIn ) {
-			con->printCenter(x+w/2,y,TCOD_BKGND_NONE,"-%s-",label);
+			con->printCenter(x+w/2,y,"-%s-",label);
 		} else {
-			con->printCenter(x+w/2,y,TCOD_BKGND_NONE,label);
+			con->printCenter(x+w/2,y,label);
 		}
 	}
 }

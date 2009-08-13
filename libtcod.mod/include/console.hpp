@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,8 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_CONSOLE_HPP
-#define _TCOD_CONSOLE_HPP
+class TCODImage;
 
 class TCODLIB_API TCODConsole {
 public :
@@ -44,34 +43,42 @@ public :
 	static void mapAsciiCodesToFont(int firstAsciiCode, int nbCodes, int fontCharX, int fontCharY);
 	static void mapStringToFont(const char *s, int fontCharX, int fontCharY);
 	
-	void setBackgroundColor(TCODColor back);
-	void setForegroundColor(TCODColor fore);
+	void setBackgroundColor(const TCODColor &back);
+	void setForegroundColor(const TCODColor &fore);
+	void setBackgroundFlag(TCOD_colorop_t flag);
+	void setForegroundFlag(TCOD_colorop_t flag);
+	void setBackgroundBrush(const TCODColor &back,TCOD_colorop_t flag);
+	void setForegroundBrush(const TCODColor &fore,TCOD_colorop_t flag);
+	void setBrush(const TCODColor &back,TCOD_colorop_t backflag,const TCODColor &fore,TCOD_colorop_t foreflag);
+	void pushBrush();
+	void popBrush();
+
 	void clear();
-	void setBack(int x, int y, const TCODColor &col, TCOD_bkgnd_flag_t flag = TCOD_BKGND_SET);
+	void setBack(int x, int y, const TCODColor &col);
 	void setFore(int x, int y, const TCODColor &col);
 	void setChar(int x, int y, int c);
-	void putChar(int x, int y, int c, TCOD_bkgnd_flag_t flag = TCOD_BKGND_SET);
+	void putChar(int x, int y, int c, const TCODColor &fore, const TCODColor &back);
+	void brushChar(int x, int y, int c);
 
-	void printLeft(int x, int y, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
-	void printRight(int x, int y, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
-	void printCenter(int x, int y, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
-	int printLeftRect(int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
-	int printRightRect(int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
-	int printCenterRect(int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, const char *fmt, ...); 
+	void printLeft(int x, int y, const char *fmt, ...); 
+	void printRight(int x, int y, const char *fmt, ...); 
+	void printCenter(int x, int y, const char *fmt, ...); 
+	int printLeftRect(int x, int y, int w, int h, const char *fmt, ...); 
+	int printRightRect(int x, int y, int w, int h, const char *fmt, ...); 
+	int printCenterRect(int x, int y, int w, int h, const char *fmt, ...); 
 	int getHeightLeftRect(int x, int y, int w, int h, const char *fmt, ...); 
 	int getHeightRightRect(int x, int y, int w, int h, const char *fmt, ...); 
 	int getHeightCenterRect(int x, int y, int w, int h,const char *fmt, ...); 
 
-	void rect(int x, int y, int w, int h, bool clear, TCOD_bkgnd_flag_t flag = TCOD_BKGND_SET);
-	void hline(int x,int y, int l, TCOD_bkgnd_flag_t flag = TCOD_BKGND_SET);
-	void vline(int x,int y, int l, TCOD_bkgnd_flag_t flag = TCOD_BKGND_SET);
-	void printFrame(int x,int y,int w,int h, bool empty, const char *fmt, ...);
+	void rect(int x, int y, int w, int h, int c = ' ');
 
 	TCODColor getBackgroundColor() const;
 	TCODColor getForegroundColor() const;
 	TCODColor getBack(int x, int y) const;
 	TCODColor getFore(int x, int y) const;
 	int getChar(int x, int y) const;
+	TCODImage *getForegroundImage() const;
+	TCODImage *getBackgroundImage() const;
 
 	static void setFade(uint8 fade, const TCODColor &fadingColor);
 	static uint8 getFade();
@@ -83,8 +90,10 @@ public :
 	
 	static TCOD_key_t checkForKeypress(int flags=TCOD_KEY_RELEASED);
 	static TCOD_key_t waitForKeypress(bool flush);
+/*
 	static void setKeyboardRepeat(int initialDelay,int interval);
 	static void disableKeyboardRepeat();
+*/
 	static bool isKeyPressed(TCOD_keycode_t key);
 	
 	TCODConsole(int w, int h);
@@ -101,6 +110,5 @@ protected :
 	friend class TCODLIB_API TCODZip;
 	TCODConsole();
 	TCOD_console_t data;
+	TCODImage *fore,*back;
 };
-
-#endif

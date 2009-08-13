@@ -401,15 +401,15 @@ void bmx_tcodconsole_setforegroundcolor(MaxTCODConsole * console, MaxTCODColor *
 	console->Console()->setForegroundColor(color->Color());
 }
 
-void bmx_tcodconsole_printright(MaxTCODConsole * console, int x, int y, TCOD_bkgnd_flag_t flag, BBString * text) {
+void bmx_tcodconsole_printright(MaxTCODConsole * console, int x, int y, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printRight(x, y, flag, t);
+	console->Console()->printRight(x, y, t);
 	bbMemFree(t);
 }
 
-void bmx_tcodconsole_printleft(MaxTCODConsole * console, int x, int y, TCOD_bkgnd_flag_t flag, BBString * text) {
+void bmx_tcodconsole_printleft(MaxTCODConsole * console, int x, int y, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printLeft(x, y, flag, t);
+	console->Console()->printLeft(x, y, t);
 	bbMemFree(t);
 }
 
@@ -438,6 +438,14 @@ void bmx_tcodconsole_setbackgroundcolor(MaxTCODConsole * console, MaxTCODColor *
 	console->Console()->setBackgroundColor(color->Color());
 }
 
+void bmx_tcodconsole_setbackgroundflag(MaxTCODConsole * console, TCOD_colorop_t flag) {
+	console->Console()->setBackgroundFlag(flag);
+}
+
+void bmx_tcodconsole_setforegroundflag(MaxTCODConsole * console, TCOD_colorop_t flag) {
+	console->Console()->setForegroundFlag(flag);
+}
+
 void bmx_tcodconsole_setfore(MaxTCODConsole * console, int x, int y, MaxTCODColor * col) {
 	console->Console()->setFore(x, y, col->Color());
 }
@@ -446,43 +454,47 @@ MaxTCODColor * bmx_tcodconsole_getfore(MaxTCODConsole * console, int x, int y) {
 	return new MaxTCODColor(console->Console()->getFore(x, y));
 }
 
-void bmx_tcodconsole_setback(MaxTCODConsole * console, int x, int y, MaxTCODColor * col, TCOD_bkgnd_flag_t flag) {
-	console->Console()->setBack(x, y, col->Color(), flag);
+void bmx_tcodconsole_setback(MaxTCODConsole * console, int x, int y, MaxTCODColor * col) {
+	console->Console()->setBack(x, y, col->Color());
 }
 
 MaxTCODColor * bmx_tcodconsole_getback(MaxTCODConsole * console, int x, int y) {
 	return new MaxTCODColor(console->Console()->getBack(x, y));
 }
 
-void bmx_tcodconsole_printcenter(MaxTCODConsole * console, int x, int y, TCOD_bkgnd_flag_t flag, BBString * text) {
+void bmx_tcodconsole_printcenter(MaxTCODConsole * console, int x, int y, BBString * text) {
 	char * t = bbStringToCString(text);
-	console->Console()->printCenter(x, y, flag, t);
+	console->Console()->printCenter(x, y, t);
 	bbMemFree(t);
 }
 
-int bmx_tcodconsole_printrightrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
+int bmx_tcodconsole_printrightrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
 	char * t = bbStringToCString(text);
-	int res = console->Console()->printRightRect(x, y, w, h, flag, t);
-	bbMemFree(t);
-	return res;
-}
-
-int bmx_tcodconsole_printleftrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
-	char * t = bbStringToCString(text);
-	int res = console->Console()->printLeftRect(x, y, w, h, flag, t);
+	int res = console->Console()->printRightRect(x, y, w, h, t);
 	bbMemFree(t);
 	return res;
 }
 
-int bmx_tcodconsole_printcenterrect(MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t flag, BBString * text) {
+int bmx_tcodconsole_printleftrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
 	char * t = bbStringToCString(text);
-	int res = console->Console()->printCenterRect(x, y, w, h, flag, t);
+	int res = console->Console()->printLeftRect(x, y, w, h, t);
 	bbMemFree(t);
 	return res;
 }
 
-void bmx_tcodconsole_putchar(MaxTCODConsole * console, int x, int y, int c, TCOD_bkgnd_flag_t flag) {
-	console->Console()->putChar(x, y, c, flag);
+int bmx_tcodconsole_printcenterrect(MaxTCODConsole * console, int x, int y, int w, int h, BBString * text) {
+	char * t = bbStringToCString(text);
+	int res = console->Console()->printCenterRect(x, y, w, h, t);
+	bbMemFree(t);
+	return res;
+}
+
+void bmx_tcodconsole_putchar(MaxTCODConsole * console, int x, int y, int c, MaxTCODColor * fore, MaxTCODColor * back) {
+	console->Console()->putChar(x, y, c, fore->Color(), back->Color());
+}
+
+void bmx_tcodconsole_brushchar(MaxTCODConsole * console, int x, int y, int c) {
+	console->Console()->brushChar(x, y, c);
 }
 
 void bmx_tcodconsole_blit(MaxTCODConsole * source, int x, int y, int width, int height, MaxTCODConsole * dest, int posX, int posY, int fade) {
@@ -493,26 +505,8 @@ void bmx_tcodconsole_setchar(MaxTCODConsole * console, int x, int y, int c) {
 	console->Console()->setChar(x, y, c);
 }
 
-void bmx_tcodconsole_rect(MaxTCODConsole * console, int x, int y, int w, int h, bool clear, TCOD_bkgnd_flag_t flag) {
-	console->Console()->rect(x, y, w, h, clear, flag);
-}
-
-void bmx_tcodconsole_hline(MaxTCODConsole * console, int x, int y, int length, TCOD_bkgnd_flag_t flag) {
-	console->Console()->hline(x, y, length, flag);
-}
-
-void bmx_tcodconsole_vline(MaxTCODConsole * console, int x, int y, int length, TCOD_bkgnd_flag_t flag) {
-	console->Console()->vline(x, y, length, flag);
-}
-
-void bmx_tcodconsole_printframe(MaxTCODConsole * console, int x, int y, int w, int h, bool clear, BBString * fmt) {
-	char * t = 0;
-	if (fmt != &bbEmptyString) {
-		t = bbStringToCString(fmt);
-	}
-	console->Console()->printFrame(x, y, w, h, clear, t);
-	
-	if (t) bbMemFree(t);
+void bmx_tcodconsole_rect(MaxTCODConsole * console, int x, int y, int w, int h, bool clear) {
+	console->Console()->rect(x, y, w, h, clear);
 }
 
 void bmx_tcodconsole_credits() {
@@ -584,12 +578,14 @@ void bmx_tcodsystem_getcurrentresolution(int * w, int * h) {
 
 extern int *ascii_to_tcod;
 
-void bmx_tcodsystem_getcolsandascii(char_t * buf, int lookup, int * index, int * br, int * bg, int * bb, int * fr, int * fg, int * fb, int flags) {
-	char_t *c = &buf[lookup];
+void bmx_tcodsystem_getcolsandascii(TCOD_console_data_t * con, int x, int y, int * index, int * br, int * bg, int * bb, int * fr, int * fg, int * fb, int flags) {
+	char_t *c = &con->buf[x+y*con->w];
 	*index = ((flags & TCOD_FONT_LAYOUT_TCOD) != 0) ? ascii_to_tcod[(int)c->c] : (int)c->c;
 //printf("old : %d ... new : %d \n", (int)c->c, *index);fflush(stdout);
-	TCOD_color_t b=c->back;
-	TCOD_color_t f=c->fore;
+	TCOD_color_t b=TCOD_image_get_pixel(con->backbuf,x,y);
+	TCOD_color_t f=TCOD_image_get_pixel(con->forebuf,x,y);
+//	TCOD_color_t b=c->back;
+//	TCOD_color_t f=c->fore;
 	*br = b.r;
 	*bg = b.g;
 	*bb = b.b;
@@ -776,12 +772,16 @@ void bmx_tcodimage_setkeycolor(TCODImage * image, MaxTCODColor * keyColor) {
 	image->setKeyColor(keyColor->Color());
 }
 
-void bmx_tcodimage_blit(TCODImage * image, MaxTCODConsole * console, float x, float y, TCOD_bkgnd_flag_t backgroundFlag, float scalex, float scaley, float angle) {
-	image->blit(console->Console(), x, y, backgroundFlag, scalex, scaley, angle * 0.0174532925);
+void bmx_tcodimage_blit(TCODImage * image, TCODImage * dest, float x, float y, float scalex, float scaley, float angle, TCOD_colorop_t op) {
+	image->blit(dest, x, y, scalex, scaley, angle * 0.0174532925f, op);
 }
 
-void bmx_tcodimage_blitrect(TCODImage * image, MaxTCODConsole * console, int x, int y, int w, int h, TCOD_bkgnd_flag_t backgroundFlag) {
-	image->blitRect(console->Console(), x, y, w, h, backgroundFlag);
+void bmx_tcodimage_blitrect(TCODImage * image, TCODImage * dest, int x, int y, int w, int h, TCOD_colorop_t op) {
+	image->blitRect(dest, x, y, w, h, op);
+}
+
+void bmx_tcodimage_blit2x(TCODImage * image, MaxTCODConsole * console, int dx, int dy, int sx, int sy, int w, int h) {
+	image->blit2x(console->Console(), dx, dy, sx, sy, w, h);
 }
 
 void bmx_tcodimage_clear(TCODImage * image, MaxTCODColor * col) {
@@ -1127,6 +1127,115 @@ bool bmx_tcodbsp_traverseinvertedlevelorder(TCODBsp * bsp) {
 	return res;
 }
 
+// ******************************************************************
+
+TCODHeightMap * bmx_tcodheightmap_create(int w, int h) {
+	return new TCODHeightMap(w, h);
+}
+
+void bmx_tcodheightmap_setvalue(TCODHeightMap * map, int x, int y, float v) {
+	map->setValue(x, y, v);
+}
+
+void bmx_tcodheightmap_add(TCODHeightMap * map, float value) {
+	map->add(value);
+}
+
+void bmx_tcodheightmap_scale(TCODHeightMap * map, float value) {
+	map->scale(value);
+}
+
+void bmx_tcodheightmap_clear(TCODHeightMap * map) {
+	map->clear();
+}
+
+void bmx_tcodheightmap_clamp(TCODHeightMap * map, float minimum, float maximum) {
+	map->clamp(minimum, maximum);
+}
+
+void bmx_tcodheightmap_copy(TCODHeightMap * map, const TCODHeightMap * source) {
+	map->copy(source);
+}
+
+void bmx_tcodheightmap_normalize(TCODHeightMap * map, float minimum, float maximum) {
+	map->normalize(minimum, maximum);
+}
+
+void bmx_tcodheightmap_lerp(TCODHeightMap * map, const TCODHeightMap * a, const TCODHeightMap * b, float coef) {
+	map->lerp(a, b, coef);
+}
+
+void bmx_tcodheightmap_addmaps(TCODHeightMap * map, const TCODHeightMap * a, const TCODHeightMap * b) {
+	map->add(a, b);
+}
+
+void bmx_tcodheightmap_multiplymaps(TCODHeightMap * map, const TCODHeightMap * a, const TCODHeightMap * b) {
+	map->multiply(a, b);
+}
+
+void bmx_tcodheightmap_addhill(TCODHeightMap * map, float x, float y, float radius, float height) {
+	map->addHill(x, y, radius, height);
+}
+
+void bmx_tcodheightmap_dighill(TCODHeightMap * map, float hx, float hy, float hradius, float height) {
+	map->digHill(hx, hy, hradius, height);
+}
+
+void bmx_tcodheightmap_rainerosion(TCODHeightMap * map, int nbDrops, float erosionCoef, float sedimentationCoef, TCODRandom * generator) {
+	map->rainErosion(nbDrops, erosionCoef , sedimentationCoef, generator);
+}
+
+void bmx_tcodheightmap_kerneltransform(TCODHeightMap * map, BBArray * dx, BBArray * dy, BBArray * weight, float minLevel , float maxLevel) {
+//	map->kernelTransform(
+}
+
+void bmx_tcodheightmap_addvoronoi(TCODHeightMap * map, int nbPoints, int nbCoef, BBArray * coef, TCODRandom * generator) {
+//	map->
+}
+
+void bmx_tcodheightmap_addfbm(TCODHeightMap * map, TCODNoise * noise, float mulx, float muly, float addx, float addy, float octaves, float delta, float scale) {
+	map->addFbm(noise, mulx, muly, addx, addy, octaves, delta, scale);
+}
+
+void bmx_tcodheightmap_scalefbm(TCODHeightMap * map, TCODNoise * noise, float mulx, float muly, float addx, float addy, float octaves, float delta, float scale) {
+	map->scaleFbm(noise, mulx, muly, addx, addy, octaves, delta, scale);
+}
+
+void bmx_tcodheightmap_digbezier(TCODHeightMap * map, BBArray * px, BBArray * py, float startRadius, float startDepth, float endRadius, float endDepth) {
+//	map->digBeszier
+}
+
+float bmx_tcodheightmap_getvalue(TCODHeightMap * map, int x, int y) {
+	return map->getValue(x, y);
+}
+
+float bmx_tcodheightmap_getinterpolatedvalue(TCODHeightMap * map, float x, float y) {
+	return map->getInterpolatedValue(x, y);
+}
+
+float bmx_tcodheightmap_getslope(TCODHeightMap * map, int x, int y) {
+	return map->getSlope(x, y);
+}
+
+BBArray * bmx_tcodheightmap_getnormal(TCODHeightMap * map, float x, float y, float waterLevel) {
+//	return map->
+}
+
+int bmx_tcodheightmap_countcells(TCODHeightMap * map, float minimum, float maximum) {
+	return map->countCells(minimum, maximum);
+}
+
+int bmx_tcodheightmap_haslandonborder(TCODHeightMap * map, float waterLevel) {
+	return map->hasLandOnBorder(waterLevel);
+}
+
+void bmx_tcodheightmap_getminmax(TCODHeightMap * map, float * minimum, float * maximum) {
+	map->getMinMax(minimum, maximum);
+}
+
+void bmx_tcodheightmap_free(TCODHeightMap * map) {
+	delete map;
+}
 
 
 

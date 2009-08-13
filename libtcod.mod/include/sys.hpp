@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_SYS_HPP
-#define _TCOD_SYS_HPP
 
 class TCODLIB_API TCODSystem {
 public :
@@ -59,5 +56,3 @@ public :
 	static void unlockSemaphore(TCOD_semaphore_t sem);
 	static void deleteSemaphore( TCOD_semaphore_t sem);
 };
-
-#endif

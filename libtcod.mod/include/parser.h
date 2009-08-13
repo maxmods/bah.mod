@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_PARSER_H
-#define _TCOD_PARSER_H
 
 /* generic type */
 typedef enum { 
@@ -107,7 +104,7 @@ TCODLIB_API bool TCOD_struct_is_mandatory(TCOD_parser_struct_t def,const char *p
 TCODLIB_API TCOD_value_type_t TCOD_struct_get_type(TCOD_parser_struct_t def, const char *propname);
 
 
-/* parser listener */
+/* parser listener (SAX API) */
 typedef struct {
 	bool (*new_struct)(TCOD_parser_struct_t str,const char *name);
 	bool (*new_flag)(const char *name);
@@ -115,6 +112,36 @@ typedef struct {
 	bool (*end_struct)(TCOD_parser_struct_t str, const char *name);
 	void (*error)(const char *msg);
 } TCOD_parser_listener_t;
+
+/* parser StAX events types */
+typedef enum {
+	TCOD_PARSER_EVENT_NEW_STRUCT,
+	TCOD_PARSER_EVENT_FLAG,
+	TCOD_PARSER_EVENT_PROPERTY,
+	TCOD_PARSER_EVENT_END_STRUCT,
+	TCOD_PARSER_EVENT_ERROR,
+} TCOD_parser_event_type_t;
+
+typedef struct {
+	TCOD_parser_event_type_t type;
+	union {
+		struct {
+			const char *name;
+			TCOD_parser_struct_t str;
+		} event_struct;
+		struct {
+			const char *name;
+		} event_flag;
+		struct {
+			const char *name;
+			TCOD_value_type_t type;
+			TCOD_value_t value;
+		} event_property;
+		struct {
+			const char *message;
+		} event_error;
+	};
+} TCOD_parser_event_t;
 
 /* a custom type parser */
 typedef TCOD_value_t (*TCOD_parser_custom_t)(TCOD_lex_t *lex, TCOD_parser_listener_t *listener, TCOD_parser_struct_t str, char *propname);
@@ -125,7 +152,10 @@ typedef void *TCOD_parser_t;
 TCODLIB_API TCOD_parser_t TCOD_parser_new();
 TCODLIB_API TCOD_parser_struct_t TCOD_parser_new_struct(TCOD_parser_t parser, char *name);
 TCODLIB_API TCOD_value_type_t TCOD_parser_new_custom_type(TCOD_parser_t parser,TCOD_parser_custom_t custom_type_parser);
-TCODLIB_API void TCOD_parser_run(TCOD_parser_t parser, const char *filename, TCOD_parser_listener_t *listener);
+TCODLIB_API void TCOD_parser_run_sax(TCOD_parser_t parser, const char *filename, TCOD_parser_listener_t *listener);
+
+TCODLIB_API TCOD_list_t TCOD_parser_run_stax(TCOD_parser_t parser, const char *filename);
+
 TCODLIB_API void TCOD_parser_delete(TCOD_parser_t parser);
 /* error during parsing. can be called by the parser listener */
 TCODLIB_API void TCOD_parser_error(const char *msg, ...);
@@ -174,5 +204,3 @@ TCODLIB_API TCOD_value_t TCOD_parse_color_value();
 TCODLIB_API TCOD_value_t TCOD_parse_dice_value();
 TCODLIB_API TCOD_value_t TCOD_parse_value_list_value(TCOD_struct_int_t *def,int listnum);
 TCODLIB_API TCOD_value_t TCOD_parse_property_value(TCOD_parser_int_t *parser, TCOD_parser_struct_t def, char *propname, bool list);
-
-#endif

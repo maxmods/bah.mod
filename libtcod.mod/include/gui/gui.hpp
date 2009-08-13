@@ -3,13 +3,13 @@
 
 #include "libtcod.hpp"
 
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
 #pragma warning(disable:4996)
 #pragma warning(disable:4251)
 #endif
 
 // DLL export
-#if defined(WIN32) && !defined(MINGW32)
+#ifdef TCOD_WINDOWS
 #ifdef LIBTCOD_GUI_EXPORTS
 #define TCODLIB_GUI_API __declspec(dllexport)
 #else

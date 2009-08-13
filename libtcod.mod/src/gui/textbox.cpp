@@ -1,10 +1,10 @@
 #include <string.h>
+#include <stdio.h>
 #include "libtcod.hpp"
 #include "gui.hpp"
 
 float TextBox::blinkingDelay=0.5f;
-
-TextBox::TextBox(int x,int y,int w, int maxw, const char *label, const char *value, const char *tip) 
+TextBox::TextBox(int x,int y,int w, int maxw, const char *label, const char *value, const char *tip)
 	: Widget(x,y,w,1),txt(NULL),blink(0.0f),pos(0),offset(0),maxw(maxw),insert(true),txtcbk(NULL),
 	data(NULL) {
 	if ( maxw > 0 ) {
@@ -33,17 +33,15 @@ void TextBox::setText(const char *txt) {
 }
 
 void TextBox::render() {
-	con->setBackgroundColor(back);
+	con->getBackgroundImage()->rect(x,y,w,h,back);
 	con->setForegroundColor(fore);
-	con->rect(x,y,w,h,true,TCOD_BKGND_SET);
-	if ( label ) con->printLeft(x,y,TCOD_BKGND_NONE,label);
+	if ( label ) con->printLeft(x,y,label);
 
-	con->setBackgroundColor(keyboardFocus == this ? foreFocus : fore);
 	con->setForegroundColor(keyboardFocus == this ? backFocus : back);
-	con->rect(x+boxx,y,boxw,h,false,TCOD_BKGND_SET);
+	con->getBackgroundImage()->rect(x+boxx,y,boxw,h,keyboardFocus == this ? foreFocus : fore);
 	int len=strlen(txt)-offset;
 	if (len > boxw) len = boxw;
-	if ( txt ) con->printLeft(x+boxx,y,TCOD_BKGND_NONE,"%.*s",len,&txt[offset]);
+	if ( txt ) con->printLeft(x+boxx,y,"%.*s",len,&txt[offset]);
 	if (keyboardFocus == this && blink > 0.0f) {
 		if (insert) {
 			con->setBack(x+boxx+pos-offset,y,fore);
@@ -122,7 +120,7 @@ void TextBox::update(TCOD_key_t k) {
 				blink=blinkingDelay;
 			break;
 			default:break;
-		} 
+		}
 	}
 	Widget::update(k);
 }

@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_SYS_H
-#define _TCOD_SYS_H
 
 TCODLIB_API uint32 TCOD_sys_elapsed_milli();
 TCODLIB_API float TCOD_sys_elapsed_seconds();
@@ -60,4 +57,3 @@ TCODLIB_API TCOD_semaphore_t TCOD_semaphore_new(int initVal);
 TCODLIB_API void TCOD_semaphore_lock(TCOD_semaphore_t sem);
 TCODLIB_API void TCOD_semaphore_unlock(TCOD_semaphore_t sem);
 TCODLIB_API void TCOD_semaphore_delete( TCOD_semaphore_t sem);
-#endif

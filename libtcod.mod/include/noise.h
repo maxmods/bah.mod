@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_PERLIN_H
-#define _TCOD_PERLIN_H
 
 typedef void *TCOD_noise_t;
 
@@ -56,5 +53,3 @@ TCODLIB_API float TCOD_noise_fbm_wavelet(TCOD_noise_t noise, float *f, float oct
 TCODLIB_API float TCOD_noise_turbulence_wavelet(TCOD_noise_t noise, float *f, float octaves);
 
 TCODLIB_API void TCOD_noise_delete(TCOD_noise_t noise);
-
-#endif

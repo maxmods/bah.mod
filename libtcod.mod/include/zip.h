@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_ZIP_H
-#define _TCOD_ZIP_H
 
 typedef void *TCOD_zip_t;
 
@@ -54,6 +51,3 @@ TCODLIB_API TCOD_color_t TCOD_zip_get_color(TCOD_zip_t zip);
 TCODLIB_API TCOD_image_t TCOD_zip_get_image(TCOD_zip_t zip);
 TCODLIB_API TCOD_console_t TCOD_zip_get_console(TCOD_zip_t zip);
 TCODLIB_API int TCOD_zip_get_data(TCOD_zip_t zip, int nbBytes, void *data);
-
-#endif
-

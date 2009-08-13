@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -48,15 +48,15 @@ TCODPath::TCODPath(int width, int height, const ITCODPathCallback *listener, voi
 
 
 bool TCODPath::compute(int ox, int oy, int dx, int dy) {
-	return TCOD_path_compute(data,ox,oy,dx,dy);
+	return TCOD_path_compute(data,ox,oy,dx,dy) != 0;
 }
 
 bool TCODPath::walk(int *x, int *y, bool recalculateWhenNeeded) {
-	return TCOD_path_walk(data,x,y,recalculateWhenNeeded);
+	return TCOD_path_walk(data,x,y,recalculateWhenNeeded) != 0;
 }
 
 bool TCODPath::isEmpty() const {
-	return TCOD_path_is_empty(data);
+	return TCOD_path_is_empty(data) != 0;
 }
 
 int TCODPath::size() const {
@@ -69,6 +69,10 @@ void TCODPath::get(int index, int *x, int *y) const {
 
 void TCODPath::getOrigin(int *x,int *y) const {
 	TCOD_path_get_origin(data,x,y);
+}
+
+void TCODPath::clear() {
+    TCOD_path_clear(data);
 }
 
 void TCODPath::getDestination(int *x,int *y) const {

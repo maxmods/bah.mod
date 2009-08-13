@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,8 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_LEX_H
-#define _TCOD_LEX_H
 /*
  * This is a libtcod internal module.
  * Use at your own risks...
@@ -94,5 +92,3 @@ TCODLIB_API const char *TCOD_lex_get_token_name(int token_type);
 TCODLIB_API char *TCOD_lex_get_last_error();
 
 TCODLIB_API int TCOD_lex_hextoint(char c);
-
-#endif

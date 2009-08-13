@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -32,12 +32,12 @@
 #include "libtcod.hpp"
 #include "libtcod_int.h"
 
-TCODLex::TCODLex( const char **_symbols, const char **_keywords, const char *simpleComment, 
-		const char *commentStart, const char *commentStop, const char *javadocCommentStart, 
+TCODLex::TCODLex( const char **_symbols, const char **_keywords, const char *simpleComment,
+		const char *commentStart, const char *commentStop, const char *javadocCommentStart,
 		const char *_stringDelim, int _flags)
 {
 	data=(void *)TCOD_lex_new(_symbols,_keywords,simpleComment,commentStart,commentStop,javadocCommentStart,_stringDelim,_flags);
-	
+
 }
 
 TCODLex::TCODLex()
@@ -63,7 +63,7 @@ void TCODLex::setDataBuffer(char *dat)
 
 bool TCODLex::setDataFile(const char *_filename)
 {
-	return TCOD_lex_set_data_file((TCOD_lex_t *)data,_filename);
+	return TCOD_lex_set_data_file((TCOD_lex_t *)data,_filename) != 0;
 }
 
 int TCODLex::parse()
@@ -94,11 +94,11 @@ void TCODLex::restore(TCODLex *savepoint)
 
 bool TCODLex::expect(int tokenType)
 {
-	return (bool)(TCOD_lex_expect_token_type((TCOD_lex_t *)data,tokenType));
+	return TCOD_lex_expect_token_type((TCOD_lex_t *)data,tokenType) != 0;
 }
 
 bool TCODLex::expect(int tokenType, const char *tokenValue)
 {
-	return (bool)(TCOD_lex_expect_token_value((TCOD_lex_t *)data,tokenType,tokenValue));
+	return TCOD_lex_expect_token_value((TCOD_lex_t *)data,tokenType,tokenValue) != 0;
 }
 

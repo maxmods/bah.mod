@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,28 +25,21 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdlib.h>
 #include "libtcod.h"
+#include "libtcod_int.h"
 
-/*
-static int stepx;
-static int stepy;
-static int e;
-static int deltax;
-static int deltay;
-static int origx; 
-static int origy; 
-static int destx; 
-static int desty;
-*/ 
 static TCOD_bresenham_data_t bresenham_data;
 
 /* ********** bresenham line drawing ********** */
 void TCOD_line_init_mt(int xFrom, int yFrom, int xTo, int yTo, TCOD_bresenham_data_t *data) {
-	int x=data->origx=xFrom,y=data->origy=yFrom;
+	TCOD_IFNOT(data != NULL) return;
+	data->origx=xFrom;
+	data->origy=yFrom;
 	data->destx=xTo;
 	data->desty=yTo;
-	data->deltax=data->destx-x;
-	data->deltay=data->desty-y;
+	data->deltax=xTo - xFrom;
+	data->deltay=yTo - yFrom;
 	if ( data->deltax > 0 ) {
 		data->stepx=1;
 	} else if ( data->deltax < 0 ){
@@ -69,6 +62,8 @@ void TCOD_line_init_mt(int xFrom, int yFrom, int xTo, int yTo, TCOD_bresenham_da
 }
 
 bool TCOD_line_step_mt(int *xCur, int *yCur, TCOD_bresenham_data_t *data) {
+	TCOD_ASSERT(xCur != NULL && yCur != NULL);
+	TCOD_IFNOT(data != NULL) return false;
 	if ( data->stepx*data->deltax > data->stepy*data->deltay ) {
 		if ( data->origx == data->destx ) return true;
 		data->origx+=data->stepx;
@@ -86,8 +81,8 @@ bool TCOD_line_step_mt(int *xCur, int *yCur, TCOD_bresenham_data_t *data) {
 			data->e+=data->stepy*data->deltay;
 		}
 	}
-	*xCur=data->origx;
-	*yCur=data->origy;
+	if ( xCur ) *xCur=data->origx;
+	if ( yCur ) *yCur=data->origy;
 	return false;
 }
 

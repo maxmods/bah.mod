@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,9 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#ifndef _TCOD_LEX_HPP
-#define _TCOD_LEX_HPP
 /*
  * This is a libtcod internal module.
  * Use at your own risks...
@@ -69,5 +66,3 @@ public :
 protected :
 	void *data;
 };
-
-#endif

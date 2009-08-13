@@ -1,3 +1,4 @@
+#include <string.h>
 #include "libtcod.hpp"
 #include "gui.hpp"
 
@@ -82,8 +83,7 @@ void Widget::update(const TCOD_key_t k) {
 	}
 }
 
-void Widget::updateWidgets(const TCOD_key_t k) {
-	mouse=TCODMouse::getStatus();
+void Widget::updateWidgetsIntern(const TCOD_key_t k) {
 	elapsed=TCODSystem::getLastFrameLength();
 	for (Widget **w=widgets.begin(); w!= widgets.end(); w++) {
 		if ( (*w)->isVisible() ) {
@@ -91,6 +91,16 @@ void Widget::updateWidgets(const TCOD_key_t k) {
 			(*w)->update(k);
 		}
 	}
+}
+
+void Widget::updateWidgets(const TCOD_key_t k,const TCOD_mouse_t pmouse) {
+	mouse=pmouse;
+	updateWidgetsIntern(k);
+}
+
+void Widget::updateWidgets(const TCOD_key_t k) {
+	mouse=TCODMouse::getStatus();
+	updateWidgetsIntern(k);
 }
 
 void Widget::renderWidgets() {

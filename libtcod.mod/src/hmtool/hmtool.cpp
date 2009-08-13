@@ -141,14 +141,12 @@ void render() {
 	sprintf(seedTxt,"seed     : %X",seed);
 	float landProportion=100.0f - 100.0f*backup.countCells(0.0f,sandHeight) / (hm->w*hm->h);
 	sprintf(landMassTxt,"landMass : %d %%%%",(int)landProportion);
-	if ( ! isNormalized ) TCODConsole::root->printCenter(HM_WIDTH/2,HM_HEIGHT-1,TCOD_BKGND_NONE,"the map is not normalized !");
+	if ( ! isNormalized ) TCODConsole::root->printCenter(HM_WIDTH/2,HM_HEIGHT-1,"the map is not normalized !");
 	// message
 	msgDelay-=TCODSystem::getLastFrameLength();
 	if ( msg[0] != 0 && msgDelay > 0.0f ) {
-		int h=TCODConsole::root->printCenterRect(HM_WIDTH/2,HM_HEIGHT/2+1,HM_WIDTH/2-2,0,TCOD_BKGND_NONE,msg);
-		TCODConsole::root->setBackgroundColor(TCODColor::lightBlue);
-		TCODConsole::root->rect(HM_WIDTH/4,HM_HEIGHT/2,HM_WIDTH/2,h+2,false,TCOD_BKGND_SET);
-		TCODConsole::root->setBackgroundColor(TCODColor::black);
+		int h=TCODConsole::root->printCenterRect(HM_WIDTH/2,HM_HEIGHT/2+1,HM_WIDTH/2-2,0,msg);
+		TCODConsole::root->getBackgroundImage()->rect(HM_WIDTH/4,HM_HEIGHT/2,HM_WIDTH/2,h+2,TCODColor::lightBlue);
 	}
 }
 
@@ -352,28 +350,28 @@ void normalCbk(Widget *w, void *data) {
 }
 
 void changeColorMapIdxCbk(Widget *w, float val, void *data) {
-	int i=(int)data;
+	intptr i=(intptr)data;
 	keyIndex[i]=(int)(val);
 	if ( i == 1 ) sandHeight = (float)(i)/255.0f;
 	initColors();
 }
 
 void changeColorMapRedCbk(Widget *w, float val, void *data) {
-	int i=(int)data;
+	intptr i=(intptr)data;
 	keyColor[i].r=(int)(val);
 	keyImages[i]->setBackgroundColor(keyColor[i]);
 	initColors();
 }
 
 void changeColorMapGreenCbk(Widget *w, float val, void *data) {
-	int i=(int)data;
+	intptr i=(intptr)data;
 	keyColor[i].g=(int)(val);
 	keyImages[i]->setBackgroundColor(keyColor[i]);
 	initColors();
 }
 
 void changeColorMapBlueCbk(Widget *w, float val, void *data) {
-	int i=(int)data;
+	intptr i=(intptr)data;
 	keyColor[i].b=(int)(val);
 	keyImages[i]->setBackgroundColor(keyColor[i]);
 	initColors();
@@ -512,6 +510,17 @@ int main(int argc, char *argv[]) {
 	bool creditsEnd=false;
 
 	while ( ! TCODConsole::isWindowClosed() ) {
+		TCOD_key_t key=TCODConsole::checkForKeypress();
+		Widget::updateWidgets(key);
+		switch(key.c) {
+			case '+' : (new AddLevelOperation((mapmax-mapmin)/50))->run(); break;
+			case '-' : (new AddLevelOperation(-(mapmax-mapmin)/50))->run(); break;
+			default:break;
+		}
+		switch(key.vk) {
+			case TCODK_PRINTSCREEN : TCODSystem::saveScreenshot(NULL); break;
+			default:break;
+		}
 		render();
 		guicon->setBackgroundColor(TCODColor(255,0,255));
 		guicon->clear();
@@ -526,17 +535,6 @@ int main(int argc, char *argv[]) {
 		}
 		TCODConsole::blit(guicon,0,0,HM_WIDTH,HM_HEIGHT,TCODConsole::root,0,0,fade);
 		TCODConsole::flush();
-		TCOD_key_t key=TCODConsole::checkForKeypress();
-		Widget::updateWidgets(key);
-		switch(key.c) {
-			case '+' : (new AddLevelOperation((mapmax-mapmin)/50))->run(); break;
-			case '-' : (new AddLevelOperation(-(mapmax-mapmin)/50))->run(); break;
-			default:break;
-		}
-		switch(key.vk) {
-			case TCODK_PRINTSCREEN : TCODSystem::saveScreenshot(NULL); break;
-			default:break;
-		}
 	}
 
 	return 0;

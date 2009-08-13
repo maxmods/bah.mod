@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_MOUSE_H
-#define _TCOD_MOUSE_H
-
 /* mouse data */
 typedef struct {
   int x,y; /* absolute position */
@@ -49,5 +46,3 @@ TCODLIB_API TCOD_mouse_t TCOD_mouse_get_status();
 TCODLIB_API void TCOD_mouse_show_cursor(bool visible);
 TCODLIB_API bool TCOD_mouse_is_cursor_visible();
 TCODLIB_API void TCOD_mouse_move(int x, int y);
-
-#endif

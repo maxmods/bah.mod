@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "libtcod.h"
+#include "libtcod_int.h"
 
 #define WAVELET_TILE_SIZE 32
 #define WAVELET_ARAD 16
@@ -87,6 +88,7 @@ TCOD_noise_t TCOD_noise_new(int ndim, float hurst, float lacunarity, TCOD_random
 	int i, j;
 	unsigned char tmp;
 	float f = 1;
+	TCOD_IFNOT(ndim > 0 && ndim < TCOD_NOISE_MAX_DIMENSIONS) return NULL;
 	data->rand = random ? random : TCOD_random_get_instance();
 	data->ndim = ndim;
 	for(i=0; i<256; i++)
@@ -122,6 +124,7 @@ float TCOD_noise_perlin( TCOD_noise_t noise, float *f )
 	float r[TCOD_NOISE_MAX_DIMENSIONS];		// Remainders to pass to lattice function
 	float w[TCOD_NOISE_MAX_DIMENSIONS];		// Cubic values to pass to interpolation function
 	float value;
+	TCOD_IFNOT(data != NULL) return 0.0f;
 
 	for(i=0; i<data->ndim; i++)
 	{
@@ -209,6 +212,7 @@ static float TCOD_noise_fbm_int(TCOD_noise_t noise,  float *f, float octaves, TC
 	// Initialize locals
 	double value = 0;
 	int i,j;
+	TCOD_IFNOT(data != NULL && f != NULL) return 0.0f;
 	memcpy(tf,f,sizeof(float)*data->ndim);
 
 	// Inner loop of spectral construction, where the fractal is built
@@ -228,27 +232,6 @@ static float TCOD_noise_fbm_int(TCOD_noise_t noise,  float *f, float octaves, TC
 float TCOD_noise_fbm_perlin( TCOD_noise_t noise,  float *f, float octaves )
 {
 	return TCOD_noise_fbm_int(noise,f,octaves,TCOD_noise_perlin);
-/*
-	float tf[TCOD_NOISE_MAX_DIMENSIONS];
-	perlin_data_t *data=(perlin_data_t *)noise;
-	// Initialize locals
-	double value = 0;
-	int i,j;
-	memcpy(tf,f,sizeof(float)*data->ndim);
-
-	// Inner loop of spectral construction, where the fractal is built
-	for(i=0; i<(int)octaves; i++)
-	{
-		value += (double)(TCOD_noise_simplex(noise,tf)) * data->exponent[i];
-		for (j=0; j < data->ndim; j++) tf[j] *= data->lacunarity;
-	}
-
-	// Take care of remainder in octaves
-	octaves -= (int)octaves;
-	if(octaves > DELTA)
-		value += (double)(octaves * TCOD_noise_simplex(noise,tf)) * data->exponent[i];
-	return CLAMP(-0.99999f, 0.99999f, (float)value);
-*/
 }
 
 float TCOD_noise_fbm_simplex( TCOD_noise_t noise,  float *f, float octaves )
@@ -263,6 +246,8 @@ static float TCOD_noise_turbulence_int( TCOD_noise_t noise, float *f, float octa
 	// Initialize locals
 	double value = 0;
 	int i,j;
+
+	TCOD_IFNOT(data != NULL && f != NULL) return 0.0f;
 	memcpy(tf,f,sizeof(float)*data->ndim);
 
 	// Inner loop of spectral construction, where the fractal is built

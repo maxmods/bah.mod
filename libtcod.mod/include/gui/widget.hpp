@@ -21,6 +21,7 @@ public :
 	static void setForegroundColor(const TCODColor col,const TCODColor colFocus);
 	static void setConsole(TCODConsole *con);
 	static void updateWidgets(const TCOD_key_t k);
+	static void updateWidgets(const TCOD_key_t k,const TCOD_mouse_t mouse);
 	static void renderWidgets();
 protected :
 	friend class StatusBar;
@@ -34,6 +35,9 @@ protected :
 	virtual void onButtonRelease() {}
 	virtual void onButtonClick() {}
 	virtual void expand(int width, int height) {}
+
+	static void updateWidgetsIntern(const TCOD_key_t k);
+
 	static TCOD_mouse_t mouse;
 	static float elapsed;
 	static TCODColor back;

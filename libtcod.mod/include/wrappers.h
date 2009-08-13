@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,8 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef WRAPPERS_H
-#define WRAPPERS_H
 
 // wrappers to ease other languages integration
 typedef unsigned int colornum_t;
@@ -60,8 +58,7 @@ TCODLIB_API colornum_t TCOD_console_get_foreground_color_wrapper(TCOD_console_t 
 TCODLIB_API colornum_t TCOD_console_get_back_wrapper(TCOD_console_t con,
 						       int x, int y);
 TCODLIB_API void TCOD_console_set_back_wrapper(TCOD_console_t con,int x, int y,
-                                      colornum_t col,
-                                      TCOD_bkgnd_flag_t flag);
+                                      colornum_t col);
 TCODLIB_API colornum_t TCOD_console_get_fore_wrapper (TCOD_console_t con,
                                               int x, int y);
 TCODLIB_API void TCOD_console_set_fore_wrapper(TCOD_console_t con,int x, int y,
@@ -76,17 +73,8 @@ TCODLIB_API bool TCOD_console_check_for_keypress_wrapper(TCOD_key_t *holder,
 TCODLIB_API void TCOD_console_wait_for_keypress_wrapper(TCOD_key_t *holder,
 							bool flush);
 
-TCODLIB_API void TCOD_console_double_hline(TCOD_console_t con,int x,int y, int l,
-					   TCOD_bkgnd_flag_t flag);
-TCODLIB_API void TCOD_console_double_vline(TCOD_console_t con,int x,int y,
-					   int l, TCOD_bkgnd_flag_t flag);
-TCODLIB_API void TCOD_console_print_double_frame(TCOD_console_t con,int x,int y,
-						 int w,int h, bool empty,
-						 const char *fmt, ...);
-
 TCODLIB_API char *TCOD_console_print_return_string(TCOD_console_t con,int x,
 						   int y, int rw, int rh,
-						   TCOD_bkgnd_flag_t flag,
 						   alignment_t align, char *msg,
 						   bool can_split,
 						   bool count_only);
@@ -101,7 +89,7 @@ TCODLIB_API colornum_t TCOD_image_get_pixel_wrapper(TCOD_image_t image,
 TCODLIB_API colornum_t TCOD_image_get_mipmap_pixel_wrapper(TCOD_image_t image,
 				 float x0,float y0, float x1, float y1);
 TCODLIB_API void TCOD_image_put_pixel_wrapper(TCOD_image_t image,int x, int y,
-				      colornum_t col);
+				      colornum_t col, TCOD_colorop_t op);
 TCODLIB_API void TCOD_image_set_key_color_wrapper(TCOD_image_t image,
 					  colornum_t key_color);
 
@@ -110,6 +98,4 @@ TCODLIB_API void TCOD_mouse_get_status_wrapper(TCOD_mouse_t *holder);
 
 // parser module
 TCODLIB_API colornum_t TCOD_parser_get_color_property_wrapper(TCOD_parser_t parser, const char *name);
-
-#endif	/* WRAPPERS_H */
 

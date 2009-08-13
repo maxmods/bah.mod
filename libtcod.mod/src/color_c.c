@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <math.h>
+#include <stdlib.h>
 #include "libtcod.h"
 #include "libtcod_int.h"
 
@@ -193,12 +194,107 @@ TCOD_color_t TCOD_color_lerp(TCOD_color_t c1, TCOD_color_t c2, float coef) {
 	return ret;
 }
 
+TCOD_color_t TCOD_color_operation (TCOD_color_t c1, TCOD_color_t c2, TCOD_colorop_t op) {
+	TCOD_color_t ret;
+	int newr,newg,newb,alpha;
+	switch ( op & 0xff ) {
+		case TCOD_COLOROP_NONE : ret = c1; break;
+		case TCOD_COLOROP_SET : ret = c2; break;
+		case TCOD_COLOROP_MULTIPLY  : ret= TCOD_color_multiply(c1, c2); break;
+		case TCOD_COLOROP_LIGHTEN :
+			ret.r = MAX(c1.r,c2.r);
+			ret.g = MAX(c1.g,c2.g);
+			ret.b = MAX(c1.b,c2.b);
+		break;
+		case TCOD_COLOROP_DARKEN :
+			ret.r = MIN(c1.r,c2.r);
+			ret.g = MIN(c1.g,c2.g);
+			ret.b = MIN(c1.b,c2.b);
+		break;
+		case TCOD_COLOROP_SCREEN :
+			/* newbk = white - (white - oldbk) * (white - curbk) */
+			ret.r = (uint8)(255 - (int)(255 - c1.r)*(255 - c2.r)/255);
+			ret.g = (uint8)(255 - (int)(255 - c1.g)*(255 - c2.g)/255);
+			ret.b = (uint8)(255 - (int)(255 - c1.b)*(255 - c2.b)/255);
+		break;
+		case TCOD_COLOROP_COLOR_DODGE :
+			/* newbk = curbk / (white - oldbk) */
+			if ( c1.r != 255 ) newr = (int)(255 * c2.r) / (255 - c1.r);
+			else newr=255;
+			if ( c1.g != 255 ) newg = (int)(255 * c2.g) / (255 - c1.g);
+			else newg=255;
+			if ( c1.b != 255 ) newb = (int)(255 * c2.b) / (255 - c1.b);
+			else newb=255;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_COLOR_BURN :
+			/* newbk = white - (white - oldbk) / curbk */
+			if ( c2.r > 0 ) newr = 255 - (int)(255 * (255 - c1.r) )/c2.r;
+			else newr = 0;
+			if ( c2.g > 0 ) newg = 255 - (int)(255 * (255 - c1.g)) /c2.g;
+			else newg = 0;
+			if ( c2.b > 0 ) newb = 255 - (int)(255 * (255 - c1.b)) /c2.b;
+			else newb = 0;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_ADD :
+			/* newbk = oldbk + curbk */
+			newr=(int)(c1.r)+c2.r;
+			newg=(int)(c1.g)+c2.g;
+			newb=(int)(c1.b)+c2.b;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_ADDA :
+			alpha=(op >> 8);
+			/* newbk = oldbk + alpha * curbk */
+			newr=(int)(c1.r)+alpha * c2.r / 255;
+			newg=(int)(c1.g)+alpha * c2.g / 255;
+			newb=(int)(c1.b)+alpha * c2.b / 255;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_BURN :
+			/* newbk = oldbk + curbk - white */
+			newr=(int)(c1.r)+c2.r-255;
+			newg=(int)(c1.g)+c2.g-255;
+			newb=(int)(c1.b)+c2.b-255;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_OVERLAY :
+			/* newbk = curbk.x <= 0.5 ? 2*curbk*oldbk : white - 2*(white-curbk)*(white-oldbk) */
+			newr = c2.r <= 128 ? 2 * (int)(c2.r) * c1.r / 255 : 255 - 2*(int)(255 - c2.r)*(255-c1.r)/255;
+			newg = c2.g <= 128 ? 2 * (int)(c2.g) * c1.g / 255 : 255 - 2*(int)(255 - c2.g)*(255-c1.g)/255;
+			newb = c2.b <= 128 ? 2 * (int)(c2.b) * c1.b / 255 : 255 - 2*(int)(255 - c2.b)*(255-c1.b)/255;
+			ret.r=(uint8)CLAMP(0,255,newr);
+			ret.g=(uint8)CLAMP(0,255,newg);
+			ret.b=(uint8)CLAMP(0,255,newb);
+		break;
+		case TCOD_COLOROP_ALPH :
+			/* newbk = (1.0f-alpha)*oldbk + alpha*(curbk-oldbk) */
+			alpha=(op >> 8);
+			ret = TCOD_color_lerp(c1,c2,(float)(alpha/255.0f));
+		break;
+		default : ret=TCOD_black; break;
+	}
+	return ret;
+}
+
 // 0<= h < 360, 0 <= s <= 1, 0 <= v <= 1 
 void TCOD_color_set_HSV(TCOD_color_t *c, float h, float s, float v)
 {
 	int i;
 	float f, p, q, t;
 
+	TCOD_IFNOT(c != NULL) return;
 	if( s == 0 ) {
 		// achromatic (grey)
 		c->r = c->g = c->b = (uint8)(v*255);
@@ -248,9 +344,10 @@ void TCOD_color_set_HSV(TCOD_color_t *c, float h, float s, float v)
 
 void TCOD_color_get_HSV(TCOD_color_t c, float *h, float *s, float *v)
 {
-  uint8 imax,imin;
+	uint8 imax,imin;
 	float min, max, delta;
 
+	TCOD_ASSERT(h != NULL || s != NULL || v != NULL);
 	imax = ( c.r > c.g ? 
 			( c.r > c.b ? c.r : c.b )
 			: ( c.g > c.b ? c.g : c.b) );
@@ -259,33 +356,37 @@ void TCOD_color_get_HSV(TCOD_color_t c, float *h, float *s, float *v)
 			: ( c.g < c.b ? c.g : c.b) );
 	max = imax/255.0f;
 	min = imin/255.0f;
-	*v = max; // v
+	if ( v ) *v = max; // v
 	
 	delta = max - min;
-	if( max != 0 ) *s = delta / max; // s
-	else 
-	{
-		*s = 0; // s
-		*h= -1; // h
+	if( max != 0 ) {
+		if ( s ) *s = delta / max; // s
+	} else {
+		if ( s ) *s = 0; // s
+		if ( h ) *h= -1; // h
 		return;
 	}
 	
-	if( c.r == imax ) *h = ( c.g - c.b ) / (255 * delta);		// between yellow & magenta
-	else if( c.g == imax )	*h = 2 + ( c.b - c.r ) / (255 * delta);	// between cyan & yellow
-	else *h = 4 + ( c.r - c.g ) / (255 * delta);	// between magenta & cyan
-	
-	*h *= 60;				// degrees
-	if( *h < 0 ) *h += 360;
+	if ( h ) {
+		if( c.r == imax ) *h = ( c.g - c.b ) / (255 * delta);		// between yellow & magenta
+		else if( c.g == imax )	*h = 2 + ( c.b - c.r ) / (255 * delta);	// between cyan & yellow
+		else *h = 4 + ( c.r - c.g ) / (255 * delta);	// between magenta & cyan
+		*h *= 60;				// degrees
+		if( *h < 0 ) *h += 360;
+	}
 }
 
 void TCOD_color_gen_map(TCOD_color_t *map, int nb_key, TCOD_color_t const  *key_color, int const  *key_index) {
 	int segment=0;
+	TCOD_IFNOT(map != NULL && nb_key > 0 && key_color != NULL && key_index != NULL) return;
 	for (segment=0; segment < nb_key-1; segment++) {
 		int idx_start=key_index[segment];
 		int idx_end=key_index[segment+1];
 		int idx;
-		for ( idx=idx_start;idx <= idx_end; idx++) {
-			map[idx]=TCOD_color_lerp(key_color[segment],key_color[segment+1],(float)(idx-idx_start)/(idx_end-idx_start));
+		TCOD_IF ( idx_start >= 0 && idx_end >= 0) {
+			for ( idx=idx_start;idx <= idx_end; idx++) {
+				map[idx]=TCOD_color_lerp(key_color[segment],key_color[segment+1],(float)(idx-idx_start)/(idx_end-idx_start));
+			}
 		}
 	}
 }

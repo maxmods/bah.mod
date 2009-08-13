@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -141,6 +141,12 @@ void TCODColor::getHSV(float *h, float *s, float *v) const {
 // non member operators
 TCODColor operator *(float value, const TCODColor &c) {
 	return c*value;
+}
+
+TCODColor operation(const TCODColor &a, const TCODColor &b, TCOD_colorop_t op) {
+	TCOD_color_t ac={a.r,a.g,a.b};
+	TCOD_color_t bc={b.r,b.g,b.b};
+	return TCOD_color_operation(ac,bc,op);
 }
 
 void TCODColor::genMap(TCODColor *map, int nbKey, TCODColor const *keyColor, int const *keyIndex) {

@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,11 +25,21 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_LIST_HPP
-#define _TCOD_LIST_HPP
-
 #include <string.h> // memcpy
 #include <stdlib.h> // NULL
+
+#ifndef TCOD_IF
+#ifdef NDEBUG
+#define TCOD_IF(x) if (x)
+#define TCOD_IFNOT(x) if (!(x))
+#define TCOD_ASSERT(x)
+#else
+#include <assert.h>
+#define TCOD_IF(x) assert(x);
+#define TCOD_IFNOT(x) assert(x); if (0)
+#define TCOD_ASSERT(x) assert(x)
+#endif
+#endif
 
 // fast & lightweight list template
 template <class T> class TCODList {
@@ -38,23 +48,27 @@ template <class T> class TCODList {
 	int allocSize;
 
 public :
-	TCODList() {
+	inline TCODList() {
 		array=NULL;
 		fillSize=allocSize=0;
 	}
-	TCODList(int nbElements) {
+	inline TCODList(int nbElements) {
 		fillSize=0;
 		allocSize=nbElements;
-		array=new T[ nbElements ];
+		array=NULL;
+		TCOD_IF(nbElements > 0) {
+			array=new T[ nbElements ];
+		};
 	}
-	TCODList(const TCOD_list_t l) {
+	inline TCODList(const TCOD_list_t l) {
 		array=NULL;
 		fillSize=allocSize=0;
+		TCOD_IFNOT(l!=NULL) return;
 		for ( void **it=TCOD_list_begin(l); it != TCOD_list_end(l); it++ ) {
 			push((T)(*it));
 		}
 	}
-	TCODList<T> & operator = (TCODList<T> const & l2) {
+	inline TCODList<T> & operator = (TCODList<T> const & l2) {
 		while ( allocSize < l2.allocSize ) allocate();
 		fillSize=l2.fillSize;
 		int i=0;
@@ -63,50 +77,52 @@ public :
 		}
 		return *this;
 	}  
-	TCODList(const TCODList<T> &l2) {
+	inline TCODList(const TCODList<T> &l2) {
 		array=NULL;
 		fillSize=allocSize=0;
 		*this = l2;
 	}
-	virtual ~TCODList() {
+	inline virtual ~TCODList() {
 		if ( array ) delete [] array;
 	}
 
-	void push(const T elt) {
+	inline void push(const T elt) {
 		if ( fillSize+1 >= allocSize ) allocate();
 		array[fillSize++] = elt;
 	}
-	T pop() {
+	inline T pop() {
 		if ( fillSize == 0 ) return (T)0;
 		return array[--fillSize];
 	}
-	T peek() const {
+	inline T peek() const {
 		if ( fillSize == 0 ) return (T)0;
 		return array[fillSize-1];
 	}
-	T get(int idx) const {
+	inline T get(int idx) const {
+		TCOD_IFNOT(idx >= 0 && idx < fillSize) return (T)0;
 		return array[idx];
 	}
-	void set(const T elt, int idx) {
-		if ( idx < 0 ) return;
+	inline void set(int idx, const T elt) {
+		TCOD_IFNOT(idx >= 0) return;
 		while ( allocSize < idx+1 ) allocate();
 		array[idx] = elt;
 		if ( idx+1 > fillSize ) fillSize = idx+1;
 	}
-	void addAll(const TCODList<T> &l2) {
+	inline void addAll(const TCODList<T> &l2) {
 		for (T *t=l2.begin(); t!= l2.end(); t++) {
 			push(*t);
 		}
 	}
-	T * begin() const {
+	inline T * begin() const {
 		if ( fillSize == 0 ) return (T *)NULL;
 		return &array[0];
 	}
-	T * end() const {
+	inline T * end() const {
 		if ( fillSize == 0 ) return (T *)NULL;
 		return &array[fillSize];
 	}
-	T *remove(T *elt) {
+	inline T *remove(T *elt) {
+		TCOD_IFNOT(elt != NULL) return NULL;
 		for ( T* curElt = elt; curElt < end()-1; curElt ++) {
 			*curElt = *(curElt+1);
 		}
@@ -114,13 +130,14 @@ public :
 		if ( fillSize == 0 ) return ((T *)NULL)-1;
 		else return elt-1;
 	}
-	T *removeFast(T *elt) {
+	inline T *removeFast(T *elt) {
+		TCOD_IFNOT(elt != NULL) return NULL;
 		*elt = array[fillSize-1];
 		fillSize--;
 		if ( fillSize == 0 ) return ((T *)NULL)-1;
 		else return elt-1;
 	}
-	void remove(const T elt) {
+	inline void remove(const T elt) {
 		for ( T* curElt = begin(); curElt != end(); curElt ++) {
 			if ( *curElt == elt ) {
 				remove(curElt);
@@ -128,7 +145,7 @@ public :
 			}
 		}
 	}
-	void removeFast(const T elt) {
+	inline void removeFast(const T elt) {
 		for ( T* curElt = begin(); curElt != end(); curElt ++) {
 			if ( *curElt == elt ) {
 				removeFast(curElt);
@@ -136,25 +153,26 @@ public :
 			}
 		}
 	}
-	bool contains(const T elt) const {
+	inline bool contains(const T elt) const {
 		for ( T* curElt = begin(); curElt != end(); curElt ++) {
 			if ( *curElt == elt ) return true;
 		}
 		return false;
 	}
-	void clear() {
+	inline void clear() {
 		fillSize=0;
 	}
-	void clearAndDelete() {
+	inline void clearAndDelete() {
 		for ( T* curElt = begin(); curElt != end(); curElt ++ ) {
-			delete (*curElt);
+			if ( *curElt != NULL ) delete (*curElt);
 		}
 		fillSize=0;
 	}
-	int size() const {
+	inline int size() const {
 		return fillSize;
 	}
-	T * insertBefore(const T elt,int before) {
+	inline T * insertBefore(const T elt,int before) {
+		TCOD_IFNOT(before >= 0 && before <= fillSize) return NULL;
 		if ( fillSize+1 >= allocSize ) allocate();
 		for (int idx=fillSize; idx > before; idx--) {
 			array[idx]=array[idx-1];
@@ -163,7 +181,7 @@ public :
 		fillSize++;
 		return &array[before];
 	}
-	bool isEmpty() const {
+	inline bool isEmpty() const {
 		return ( fillSize == 0 );
 	}
 protected :
@@ -179,5 +197,3 @@ protected :
 		allocSize=newSize;
 	}
 };
-
-#endif

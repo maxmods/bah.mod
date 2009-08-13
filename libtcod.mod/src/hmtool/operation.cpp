@@ -317,7 +317,7 @@ bool NormalizeOperation::addInternal() {
 }
 
 void normalizeMinValueCbk(Widget *wid, char * val, void * data) {
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
     float f=(float)atof(val);
     {
 #else
@@ -338,7 +338,7 @@ void normalizeMinValueCbk(Widget *wid, char * val, void * data) {
 }
 
 void normalizeMaxValueCbk(Widget *wid, char * val, void *data) {
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
     float f=(float)atof(val);
     {
 #else
@@ -873,14 +873,14 @@ void SmoothOperation::createParamUi() {
 	slider=new Slider(0,0,8,MIN(0.0f,minLevel),MAX(1.0f,maxLevel),"maxLevel","Land level below which the smooth operation is applied");
 	slider->setCallback(smoothMaxValueCbk,this);
 	params->addWidget(slider);
-	slider->setValue(maxLevel);	
+	slider->setValue(maxLevel);
 
 	slider=new Slider(0,0,8,1.0f,20.0f,"amount","Number of times the smoothing operation is applied");
 	slider->setCallback(smoothCountValueCbk,this);
 	slider->setFormat("%.0f");
 	slider->setSensitivity(4.0f);
 	params->addWidget(slider);
-	slider->setValue((float)count);	
+	slider->setValue((float)count);
 
 	slider=new Slider(0,0,8,0.0f,1.0f,"sharpness","Radius of the blurring effect");
 	slider->setCallback(smoothRadiusValueCbk,this);

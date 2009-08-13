@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -24,8 +24,6 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef _TCOD_HEIGHTMAP_HPP
-#define _TCOD_HEIGHTMAP_HPP
 
 class TCODLIB_API TCODHeightMap {
 public :
@@ -73,5 +71,3 @@ private :
 //	void setMPDHeight(TCODRandom *rnd,int x,int y, float z, float offset);
 //	void setMDPHeightSquare(TCODRandom *rnd,int x, int y, int initsz, int sz,float offset);
 };
-
-#endif

@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,8 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_PARSER_HPP
-#define _TCOD_PARSER_HPP
 //**************************************
 // structures
 //**************************************
@@ -83,16 +81,19 @@ public :
 class TCODLIB_API TCODParser {
 public :
 	TCODParser();
+	~TCODParser();
 	// register a new structure
 	TCODParserStruct *newStructure(const char *name);
 	// register a new custom type
 	TCOD_value_type_t newCustomType(TCOD_parser_custom_t custom_type_parser);
 	// parse a file
 	// triggers callbacks in the listener for each event during parsing
-	void run(const char *filename, ITCODParserListener *listener);
+	void runSax(const char *filename, ITCODParserListener *listener);
+	// build a list of StAX events
+	TCODList<TCOD_parser_event_t *> *runStAX(const char *filename);
 	// error during parsing. can be called by the parser listener
 	void error(const char *msg, ...);
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
     // silly stuff to avoid VS warning
 	template class TCODLIB_API TCODList<TCODParserStruct *>;
 #endif
@@ -110,6 +111,3 @@ private :
 	bool parseEntity(TCODParserStruct *def, ITCODParserListener *listener);
 	TCOD_parser_t data;
 };
-
-
-#endif

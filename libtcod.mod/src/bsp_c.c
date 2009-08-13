@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -26,6 +26,7 @@
 */
 #include <stdlib.h>
 #include "libtcod.h"
+#include "libtcod_int.h"
 
 TCOD_bsp_t *TCOD_bsp_new() {
 	return (TCOD_bsp_t *)calloc(sizeof(TCOD_bsp_t),1);
@@ -41,22 +42,27 @@ TCOD_bsp_t *TCOD_bsp_new_with_size(int x,int y,int w, int h) {
 }
 
 TCOD_bsp_t * TCOD_bsp_left(TCOD_bsp_t *node) {
+	TCOD_IFNOT(node != NULL) return NULL;
 	return (TCOD_bsp_t *)node->tree.sons;
 }
 
 TCOD_bsp_t * TCOD_bsp_right(TCOD_bsp_t *node) {
+	TCOD_IFNOT(node != NULL) return NULL;
 	return node->tree.sons ? (TCOD_bsp_t *)node->tree.sons->next : NULL;
 }
 
 TCOD_bsp_t * TCOD_bsp_father(TCOD_bsp_t *node) {
+	TCOD_IFNOT(node != NULL) return NULL;
 	return (TCOD_bsp_t *)node->tree.father;
 }
 
 bool TCOD_bsp_is_leaf(TCOD_bsp_t *node) {
+	TCOD_IFNOT(node != NULL) return false;
 	return node->tree.sons==NULL;
 }
 
 void TCOD_bsp_delete(TCOD_bsp_t *node) {
+	TCOD_IFNOT(node != NULL) return;
 	TCOD_bsp_remove_sons(node);
 	free(node);
 }
@@ -79,6 +85,7 @@ static TCOD_bsp_t *TCOD_bsp_new_intern(TCOD_bsp_t *father, bool left) {
 }
 
 bool TCOD_bsp_traverse_pre_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, void *userData) {
+	TCOD_IFNOT(node != NULL && listener != NULL) return false;
 	if (!listener(node,userData)) return false;
 	if ( TCOD_bsp_left(node) && !TCOD_bsp_traverse_pre_order(TCOD_bsp_left(node),listener,userData)) return false;
 	if ( TCOD_bsp_right(node) && !TCOD_bsp_traverse_pre_order(TCOD_bsp_right(node),listener,userData)) return false;
@@ -86,6 +93,7 @@ bool TCOD_bsp_traverse_pre_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener,
 }
 
 bool TCOD_bsp_traverse_in_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, void *userData) {
+	TCOD_IFNOT(node != NULL && listener != NULL) return false;
 	if ( TCOD_bsp_left(node) && !TCOD_bsp_traverse_in_order(TCOD_bsp_left(node),listener,userData)) return false;
 	if (!listener(node,userData)) return false;
 	if ( TCOD_bsp_right(node) && !TCOD_bsp_traverse_in_order(TCOD_bsp_right(node),listener,userData)) return false;
@@ -93,6 +101,7 @@ bool TCOD_bsp_traverse_in_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, 
 }
 
 bool TCOD_bsp_traverse_post_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, void *userData) {
+	TCOD_IFNOT(node != NULL && listener != NULL) return false;
 	if ( TCOD_bsp_left(node) && !TCOD_bsp_traverse_post_order(TCOD_bsp_left(node),listener,userData)) return false;
 	if ( TCOD_bsp_right(node) && !TCOD_bsp_traverse_post_order(TCOD_bsp_right(node),listener,userData)) return false;
 	if (!listener(node,userData)) return false;
@@ -100,7 +109,9 @@ bool TCOD_bsp_traverse_post_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener
 }
 
 bool TCOD_bsp_traverse_level_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, void *userData) {
-	TCOD_list_t stack=TCOD_list_new();
+	TCOD_list_t stack;
+	TCOD_IFNOT(node != NULL && listener != NULL) return false;
+	stack=TCOD_list_new();
 	TCOD_list_push(stack,node);
 	while ( ! TCOD_list_is_empty(stack) ) {
 		TCOD_bsp_t *node=(TCOD_bsp_t *)TCOD_list_get(stack,0);
@@ -117,8 +128,10 @@ bool TCOD_bsp_traverse_level_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listene
 }
 
 bool TCOD_bsp_traverse_inverted_level_order(TCOD_bsp_t *node, TCOD_bsp_callback_t listener, void *userData) {
-	TCOD_list_t stack1=TCOD_list_new();
-	TCOD_list_t stack2=TCOD_list_new();
+	TCOD_list_t stack1,stack2;
+	TCOD_IFNOT(node != NULL && listener != NULL) return false;
+	stack1=TCOD_list_new();
+	stack2=TCOD_list_new();
 	TCOD_list_push(stack1,node);
 	while ( ! TCOD_list_is_empty(stack1) ) {
 		TCOD_bsp_t *node=(TCOD_bsp_t *)TCOD_list_get(stack1,0);
@@ -141,7 +154,9 @@ bool TCOD_bsp_traverse_inverted_level_order(TCOD_bsp_t *node, TCOD_bsp_callback_
 }
 
 void TCOD_bsp_remove_sons(TCOD_bsp_t *root) {
-	TCOD_bsp_t *node=(TCOD_bsp_t *)root->tree.sons;
+	TCOD_bsp_t *node;
+	TCOD_IFNOT(root != NULL) return;
+	node=(TCOD_bsp_t *)root->tree.sons;
 	while ( node ) {
 		TCOD_bsp_t *nextNode=(TCOD_bsp_t *)node->tree.next;
 		TCOD_bsp_remove_sons(node);
@@ -152,6 +167,7 @@ void TCOD_bsp_remove_sons(TCOD_bsp_t *root) {
 }
 
 void TCOD_bsp_split_once(TCOD_bsp_t *node, bool horizontal, int position) {
+	TCOD_IFNOT(node != NULL) return;
 	node->horizontal = horizontal;
 	node->position=position;
 	TCOD_tree_add_son(&node->tree,&TCOD_bsp_new_intern(node,true)->tree);
@@ -162,6 +178,7 @@ void TCOD_bsp_split_recursive(TCOD_bsp_t *node, TCOD_random_t randomizer, int nb
 	int minHSize, int minVSize, float maxHRatio, float maxVRatio) {
 	bool horiz;
 	int position;
+	TCOD_IFNOT(node != NULL) return;
 	if ( nb == 0 || (node->w < 2*minHSize && node->h < 2*minVSize ) ) return;
 	if (! randomizer ) randomizer=TCOD_random_get_instance();
 	// promote square rooms
@@ -179,6 +196,7 @@ void TCOD_bsp_split_recursive(TCOD_bsp_t *node, TCOD_random_t randomizer, int nb
 }
 
 void TCOD_bsp_resize(TCOD_bsp_t *node, int x,int y, int w, int h) {
+	TCOD_IFNOT(node != NULL) return;
 	node->x=x;
 	node->y=y;
 	node->w=w;
@@ -195,6 +213,7 @@ void TCOD_bsp_resize(TCOD_bsp_t *node, int x,int y, int w, int h) {
 }
 
 bool TCOD_bsp_contains(TCOD_bsp_t *node, int x, int y) {
+	TCOD_IFNOT(node != NULL) return false;
 	return (x >= node->x && y >= node->y && x < node->x+node->w && y < node->y+node->h);
 }
 

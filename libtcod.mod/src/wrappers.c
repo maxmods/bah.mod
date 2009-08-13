@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -129,10 +129,9 @@ colornum_t TCOD_console_get_back_wrapper(TCOD_console_t con,
 }
 
 void TCOD_console_set_back_wrapper(TCOD_console_t con,int x, int y,
-                                      colornum_t col,
-                                      TCOD_bkgnd_flag_t flag)
+                                      colornum_t col)
 {
-  TCOD_console_set_back (con, x, y, int_to_color(col), flag);
+  TCOD_console_set_back (con, x, y, int_to_color(col));
 }
 
 
@@ -190,10 +189,10 @@ colornum_t TCOD_image_get_mipmap_pixel_wrapper(TCOD_image_t image,
 }
 
 void TCOD_image_put_pixel_wrapper(TCOD_image_t image,int x, int y,
-				      colornum_t col)
+				      colornum_t col, TCOD_colorop_t op)
 {
    TCOD_image_put_pixel (image, x, y,
-			 int_to_color( col));
+			 int_to_color( col),op);
 }
 
 void TCOD_image_set_key_color_wrapper(TCOD_image_t image,
@@ -221,62 +220,9 @@ void TCOD_mouse_get_status_wrapper(TCOD_mouse_t *holder)
   *holder = TCOD_mouse_get_status();
 }
 
-/* Routines to draw hlines, vlines and frames using the double-lined
- * characters. */
-
-static TCOD_console_t root = NULL;
-
-void TCOD_console_double_hline(TCOD_console_t con,int x,int y, int l, TCOD_bkgnd_flag_t flag) {
-	int i;
-	for (i=x; i< x+l; i++) TCOD_console_put_char(con,i,y,TCOD_CHAR_DHLINE,flag);
-}
-
-void TCOD_console_double_vline(TCOD_console_t con,int x,int y, int l, TCOD_bkgnd_flag_t flag) {
-	int i;
-	for (i=y; i< y+l; i++) TCOD_console_put_char(con,x,i,TCOD_CHAR_DVLINE,flag);
-}
-
-
-void TCOD_console_print_double_frame(TCOD_console_t con,int x,int y,int w,int h, bool empty, const char *fmt, ...) {
-	TCOD_console_data_t *dat;
-	if (! con ) con=root;
-	dat=(TCOD_console_data_t *)con;
-	TCOD_console_put_char(con,x,y,TCOD_CHAR_DNW,TCOD_BKGND_SET);
-	TCOD_console_put_char(con,x+w-1,y,TCOD_CHAR_DNE,TCOD_BKGND_SET);
-	TCOD_console_put_char(con,x,y+h-1,TCOD_CHAR_DSW,TCOD_BKGND_SET);
-	TCOD_console_put_char(con,x+w-1,y+h-1,TCOD_CHAR_DSE,TCOD_BKGND_SET);
-	TCOD_console_double_hline(con,x+1,y,w-2, TCOD_BKGND_SET);
-	TCOD_console_double_hline(con,x+1,y+h-1,w-2, TCOD_BKGND_SET);
-	TCOD_console_double_vline(con,x,y+1,h-2, TCOD_BKGND_SET);
-	TCOD_console_double_vline(con,x+w-1,y+1,h-2, TCOD_BKGND_SET);
-	if ( empty ) {
-		TCOD_console_rect(con,x+1,y+1,w-2,h-2,true,TCOD_BKGND_SET);
-	}
-	if (fmt) {
-		va_list ap;
-		int xs;
-		TCOD_color_t tmp;
-		char *title;
-		va_start(ap,fmt);
-		title = TCOD_console_vsprint(fmt,ap);
-		va_end(ap);
-		title[w-3]=0; // truncate if needed
-		xs = x + (w-strlen(title)-2)/2;
-		tmp=dat->back; // swap colors
-		dat->back=dat->fore;
-		dat->fore=tmp;
-		TCOD_console_print_left(con,xs,y,TCOD_BKGND_SET," %s ",title);
-		tmp=dat->back; // swap colors
-		dat->back=dat->fore;
-		dat->fore=tmp;
-	}
-}
-
-
 char *TCOD_console_print_return_string(TCOD_console_t con,int x,int y, int rw,
-				     int rh, TCOD_bkgnd_flag_t flag,
-	alignment_t align, char *msg, bool can_split, bool count_only) {
-  TCOD_console_print(con,x,y,rw,rh,flag,align,msg,can_split,count_only);
+				     int rh, alignment_t align, char *msg, bool can_split, bool count_only) {
+  TCOD_console_print(con,x,y,rw,rh,align,msg,can_split,count_only);
   return msg;
 }
 

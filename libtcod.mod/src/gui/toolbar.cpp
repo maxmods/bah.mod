@@ -22,14 +22,16 @@ public :
 		if ( w < width ) w=width;
 	}
 	void render() {
-		con->setBackgroundColor(back);
+		con->pushBrush();
+		con->setBackgroundBrush(back,TCOD_COLOROP_SET);
 		con->setForegroundColor(fore);
-		con->hline(x,y,w, TCOD_BKGND_SET);
+		con->rect(x,y,w,1,TCOD_CHAR_HLINE);
 		con->setChar(x-1,y,TCOD_CHAR_TEEE);
 		con->setChar(x+w,y,TCOD_CHAR_TEEW);
 		con->setBackgroundColor(fore);
 		con->setForegroundColor(back);
-		con->printCenter(x+w/2,y,TCOD_BKGND_SET," %s ",txt);
+		con->printCenter(x+w/2,y," %s ",txt);
+		con->popBrush();
 	}
 	char *txt;
 };
@@ -67,9 +69,37 @@ void ToolBar::setName(const char *name) {
 }
 
 void ToolBar::render() {
-	con->setBackgroundColor(back);
+	con->pushBrush();
+	con->setBackgroundBrush(back,TCOD_COLOROP_SET);
 	con->setForegroundColor(fore);
-	con->printFrame(x,y,w,h,true,name);
+	con->brushChar(x,y,TCOD_CHAR_NW);
+	con->brushChar(x+w-1,y,TCOD_CHAR_NE);
+	con->brushChar(x,y+h-1,TCOD_CHAR_SW);
+	con->brushChar(x+w-1,y+h-1,TCOD_CHAR_SE);
+	con->rect(x+1,y,w-2,1,TCOD_CHAR_HLINE);
+	con->rect(x+1,y+h-1,w-2,1,TCOD_CHAR_HLINE);
+	if ( h > 2 ) {
+		con->rect(x,y+1,1,h-2,TCOD_CHAR_VLINE);
+		con->rect(x+w-1,y+1,1,h-2,TCOD_CHAR_VLINE);
+		con->rect(x+1,y+1,w-2,h-2); 
+	}
+	if ( name ) {
+		char oldchar=0;
+		if ((int)strlen(name) > w-3 ) {
+			// truncate title
+			oldchar=name[w-3];
+			name[w-3]=0;
+		}
+		int xs = x + (w-strlen(name)-2)/2;
+		// swap colors
+		TCODColor oldback=con->getBackgroundColor();
+		con->setBackgroundColor(con->getForegroundColor());
+		con->setForegroundColor(oldback);
+		// print title
+		con->printLeft(xs,y," %s ",name);
+		if ( oldchar ) name[w-3]=oldchar;
+	}
+	con->popBrush();
 	Container::render();
 }
 

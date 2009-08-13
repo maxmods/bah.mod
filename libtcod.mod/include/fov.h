@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,15 +25,13 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_FOV_H
-#define _TCOD_FOV_H
-
 typedef void *TCOD_map_t;
 
 // FOV_BASIC : http://roguebasin.roguelikedevelopment.org/index.php?title=Ray_casting
 // FOV_DIAMOND : http://www.geocities.com/temerra/los_rays.html
 // FOV_SHADOW : http://roguebasin.roguelikedevelopment.org/index.php?title=FOV_using_recursive_shadowcasting
 // FOV_PERMISSIVE : http://roguebasin.roguelikedevelopment.org/index.php?title=Precise_Permissive_Field_of_View
+// FOV_RESTRICTIVE : Mingos' Restrictive Precise Angle Shadowcasting (contribution by Mingos)
 
 typedef enum {
 	FOV_BASIC,
@@ -48,6 +46,7 @@ typedef enum {
 	FOV_PERMISSIVE_6,
 	FOV_PERMISSIVE_7,
 	FOV_PERMISSIVE_8,
+	FOV_RESTRICTIVE,
 	NB_FOV_ALGORITHMS } TCOD_fov_algorithm_t;
 #define FOV_PERMISSIVE(x) ((TCOD_fov_algorithm_t)(FOV_PERMISSIVE_0 + (x)))
 
@@ -74,4 +73,3 @@ TCODLIB_API bool TCOD_map_is_walkable(TCOD_map_t map, int x, int y);
 TCODLIB_API int TCOD_map_get_width(TCOD_map_t map);
 TCODLIB_API int TCOD_map_get_height(TCOD_map_t map);
 TCODLIB_API int TCOD_map_get_nb_cells(TCOD_map_t map);
-#endif

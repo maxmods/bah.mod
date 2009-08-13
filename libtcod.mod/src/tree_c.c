@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -26,13 +26,16 @@
 */
 #include <stdlib.h>
 #include "libtcod.h"
+#include "libtcod_int.h"
 
 TCOD_tree_t *TCOD_tree_new() {
 	return (TCOD_tree_t *)calloc(1,sizeof(TCOD_tree_t));
 }
 
 void TCOD_tree_add_son(TCOD_tree_t *node, TCOD_tree_t *son) {
-	TCOD_tree_t *lastson = node->sons;
+	TCOD_tree_t *lastson;
+	TCOD_IFNOT(node != NULL && son != NULL) return;
+	lastson = node->sons;
 	son->father=node;
 	while ( lastson && lastson->next ) lastson=lastson->next;
 	if ( lastson ) {

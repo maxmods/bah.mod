@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -46,7 +46,7 @@ void TCODMap::computeFov(int x, int y, int maxRadius, bool light_walls, TCOD_fov
 }
 
 bool TCODMap::isInFov(int x, int y) const {
-	return TCOD_map_is_in_fov(data,x,y);
+	return TCOD_map_is_in_fov(data,x,y) != 0;
 }
 
 void TCODMap::setInFov(int x,int y, bool fov) {
@@ -54,11 +54,11 @@ void TCODMap::setInFov(int x,int y, bool fov) {
 }
 
 bool TCODMap::isTransparent(int x, int y) const {
-	return TCOD_map_is_transparent(data,x,y);
+	return TCOD_map_is_transparent(data,x,y) != 0;
 }
 
 bool TCODMap::isWalkable(int x, int y) const {
-	return TCOD_map_is_walkable(data,x,y);
+	return TCOD_map_is_walkable(data,x,y) != 0;
 }
 
 int TCODMap::getWidth() const {

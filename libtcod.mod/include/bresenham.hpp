@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,11 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_BRESENHAM_HPP
-#define _TCOD_BRESENHAM_HPP
 class TCODLIB_API TCODLineListener {
 public :
 	virtual bool putPoint(int x,int y) = 0;
+	virtual ~TCODLineListener() {}
 };
 
 class TCODLIB_API TCODLine {
@@ -39,5 +38,3 @@ public :
 
 	static bool line(int xFrom, int yFrom, int xTo, int yTo, TCODLineListener *listener);
 };
-
-#endif

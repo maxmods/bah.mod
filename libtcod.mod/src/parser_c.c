@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -52,7 +52,9 @@ static const char *symbols[] = {
 };
 
 static TCOD_parser_listener_t *listener=NULL;
+static TCOD_list_t *stax_events=NULL;
 
+// default parser
 static bool default_new_struct(TCOD_parser_struct_t str,const char *name);
 static bool default_new_flag(const char *name);
 static bool default_new_property(const char *propname, TCOD_value_type_t type, TCOD_value_t value);
@@ -65,6 +67,22 @@ static TCOD_parser_listener_t default_listener = {
 	default_new_property,
 	default_end_struct,
 	default_error
+};
+
+
+// stax parser
+static bool stax_new_struct(TCOD_parser_struct_t str,const char *name);
+static bool stax_new_flag(const char *name);
+static bool stax_new_property(const char *propname, TCOD_value_type_t type, TCOD_value_t value);
+static bool stax_end_struct(TCOD_parser_struct_t str, const char *name);
+static void stax_error(const char *msg);
+
+static TCOD_parser_listener_t stax_listener = {
+	stax_new_struct,
+	stax_new_flag,
+	stax_new_property,
+	stax_end_struct,
+	stax_error
 };
 
 static bool string_copy(char *dest, char *source, int len) {
@@ -88,16 +106,19 @@ void TCOD_parser_error(const char *msg, ...) {
 }
 
 const char *TCOD_struct_get_name(TCOD_parser_struct_t def) {
+	TCOD_IFNOT(def != NULL) return NULL;
 	return ((TCOD_struct_int_t *)def)->name;
 }
 
 // add a property to an entity definition
 void TCOD_struct_add_property(TCOD_parser_struct_t def,const char *name,TCOD_value_type_t type, bool mandatory) {
-	TCOD_struct_prop_t *prop=(TCOD_struct_prop_t *)calloc(1,sizeof(TCOD_struct_prop_t));
-	prop->name=strdup(name);
-	prop->value=type;
-	prop->mandat=mandatory;
-	TCOD_list_push(DEF_PROPS(def),(void *)prop);
+	TCOD_IF(def != NULL && name != NULL) {
+		TCOD_struct_prop_t *prop=(TCOD_struct_prop_t *)calloc(1,sizeof(TCOD_struct_prop_t));
+		prop->name=strdup(name);
+		prop->value=type;
+		prop->mandat=mandatory;
+		TCOD_list_push(DEF_PROPS(def),(void *)prop);
+	}
 }
 
 // add a list property to an entity definition
@@ -106,19 +127,21 @@ void TCOD_struct_add_list_property(TCOD_parser_struct_t def,const char *name,TCO
 }
 
 void TCOD_struct_add_value_list_sized(TCOD_parser_struct_t def,const char *name, const char **value_list, int size, bool mandatory) {
-	char ** newArray = NULL;
-	// duplicate value list to avoid issues with C# garbage collector
- 	TCOD_value_type_t type = (TCOD_value_type_t)((int)TCOD_TYPE_VALUELIST00 + TCOD_list_size(DEF_LISTS(def)));
-	int i = 0;
+	TCOD_IF(def != NULL && name != NULL && value_list != NULL && size > 0 ) {
+		char ** newArray = NULL;
+		// duplicate value list to avoid issues with C# garbage collector
+	 	TCOD_value_type_t type = (TCOD_value_type_t)((int)TCOD_TYPE_VALUELIST00 + TCOD_list_size(DEF_LISTS(def)));
+		int i = 0;
 
-	if(size) newArray = calloc(size+1, sizeof(char*));
+		if(size) newArray = calloc(size+1, sizeof(char*));
 
-	for(i = 0 ; i < size ; i++)
-		newArray[i] = strdup(value_list[i]);
-	newArray[size] = NULL;
+		for(i = 0 ; i < size ; i++)
+			newArray[i] = strdup(value_list[i]);
+		newArray[size] = NULL;
 	
-	TCOD_struct_add_property(def,name,type,mandatory);
-	TCOD_list_push(DEF_LISTS(def),(void *)newArray);
+		TCOD_struct_add_property(def,name,type,mandatory);
+		TCOD_list_push(DEF_LISTS(def),(void *)newArray);
+	}
 }
 
 // add a value-list property to an entity definition
@@ -138,17 +161,20 @@ void TCOD_struct_add_value_list(TCOD_parser_struct_t def,const char *name, const
 // add a flag (simplified bool value) to an entity definition
 // a flag cannot be mandatory. if present => true, if omitted => false
 void TCOD_struct_add_flag(TCOD_parser_struct_t def,const char *propname) {
+	TCOD_IFNOT(def != NULL) return;
 	TCOD_list_push(DEF_FLAGS(def),(void *)strdup(propname));
 }
 
 // add a sub-entity to an entity definition
 void TCOD_struct_add_structure(TCOD_parser_struct_t def, TCOD_parser_struct_t sub_definition) {
+	TCOD_IFNOT(def != NULL && sub_definition != NULL) return;
 	TCOD_list_push(((TCOD_struct_int_t *)def)->structs,(const void *)sub_definition);
 }
 
 // check if given property is mandatory for this entity definition
 bool TCOD_struct_is_mandatory(TCOD_parser_struct_t def, const char *propname) {
 	TCOD_struct_prop_t **iprop;
+	TCOD_IFNOT(def != NULL && propname != NULL) return false;
 	for (iprop=(TCOD_struct_prop_t **)TCOD_list_begin(DEF_PROPS(def)); iprop!=(TCOD_struct_prop_t **)TCOD_list_end(DEF_PROPS(def));iprop++) {
 		if ( strcmp((*iprop)->name,propname) == 0 ) return (*iprop)->mandat;
 	}
@@ -160,6 +186,7 @@ bool TCOD_struct_is_mandatory(TCOD_parser_struct_t def, const char *propname) {
 TCOD_value_type_t TCOD_struct_get_type(TCOD_parser_struct_t def, const char *propname) {
 	TCOD_struct_prop_t **iprop;
 	char **iflag;
+	TCOD_IFNOT(def != NULL && propname != NULL) return TCOD_TYPE_NONE;
 	for (iprop=(TCOD_struct_prop_t **)TCOD_list_begin(DEF_PROPS(def)); iprop!=(TCOD_struct_prop_t **)TCOD_list_end(DEF_PROPS(def));iprop++) {
 		if ( strcmp((*iprop)->name,propname) == 0 ) return (*iprop)->value;
 	}
@@ -529,6 +556,7 @@ TCOD_parser_t TCOD_parser_new() {
 TCOD_value_type_t TCOD_parser_new_custom_type(TCOD_parser_t parser, TCOD_parser_custom_t custom_type_parser) {
 	TCOD_parser_int_t *p=(TCOD_parser_int_t *)parser;
 	TCOD_value_type_t type= TCOD_TYPE_CUSTOM00;
+	TCOD_IFNOT(p != NULL && custom_type_parser != NULL) return TCOD_TYPE_NONE;
 	while ( p->customs[ type - TCOD_TYPE_CUSTOM00 ] && type < TCOD_TYPE_CUSTOM15 ) type=(TCOD_value_type_t)(type+1);
 	if ( p->customs[ type - TCOD_TYPE_CUSTOM00 ] ) {
 		/* no more custom types slots available */
@@ -539,7 +567,9 @@ TCOD_value_type_t TCOD_parser_new_custom_type(TCOD_parser_t parser, TCOD_parser_
 }
 
 TCOD_parser_struct_t TCOD_parser_new_struct(TCOD_parser_t parser, char *name) {
-	TCOD_struct_int_t *ent = (TCOD_struct_int_t*)calloc(1,sizeof(TCOD_struct_int_t));
+	TCOD_struct_int_t *ent;
+	TCOD_IFNOT(parser != NULL && name != NULL) return NULL;
+	ent = (TCOD_struct_int_t*)calloc(1,sizeof(TCOD_struct_int_t));
 	ent->name=strdup(name);
 	ent->flags=TCOD_list_new();
 	ent->props=TCOD_list_new();
@@ -556,6 +586,7 @@ void TCOD_parser_delete(TCOD_parser_t parser) {
 
 	char *** listCleanup;
 	int listSize = 0;
+	TCOD_IFNOT(parser != NULL) return;
 
  	for (idef=(TCOD_struct_int_t **)TCOD_list_begin(p->structs); idef!= (TCOD_struct_int_t **)TCOD_list_end(p->structs); idef++) {
 		free((*idef)->name);
@@ -580,8 +611,9 @@ void TCOD_parser_delete(TCOD_parser_t parser) {
 // parse a file
 static TCOD_list_t *default_props;
 // triggers callbacks in the listener for each event during parsing
-void TCOD_parser_run(TCOD_parser_t parser,  const char *filename, TCOD_parser_listener_t *_listener) {
+void TCOD_parser_run_sax(TCOD_parser_t parser,  const char *filename, TCOD_parser_listener_t *_listener) {
 	TCOD_parser_int_t *p=(TCOD_parser_int_t *)parser;
+	TCOD_IFNOT(parser != NULL && filename != NULL) return;
 	if (! _listener && ! p->props ) p->props=TCOD_list_new();
 	listener=_listener ? _listener : &default_listener;
 	default_props = p->props;
@@ -651,6 +683,58 @@ void TCOD_parser_run(TCOD_parser_t parser,  const char *filename, TCOD_parser_li
 	}
 	TCOD_lex_delete(lex);
 }
+
+TCOD_list_t TCOD_parser_run_stax(TCOD_parser_t parser, const char *filename) {
+	stax_events = TCOD_list_new();
+	TCOD_parser_run_sax(parser,filename,&stax_listener);
+	return stax_events;
+}
+
+/* stax listener */
+static bool stax_new_struct(TCOD_parser_struct_t str,const char *name) {
+	TCOD_parser_event_t *evt = (TCOD_parser_event_t *)malloc(sizeof(TCOD_parser_event_t));
+	evt->type=TCOD_PARSER_EVENT_NEW_STRUCT;
+	evt->event_struct.str=str;
+	evt->event_struct.name=name;
+	TCOD_list_push(stax_events,evt);
+	return true;
+}
+
+static bool stax_new_flag(const char *name) {
+	TCOD_parser_event_t *evt = (TCOD_parser_event_t *)malloc(sizeof(TCOD_parser_event_t));
+	evt->type=TCOD_PARSER_EVENT_FLAG;
+	evt->event_flag.name=name;
+	TCOD_list_push(stax_events,evt);
+	return true;
+}
+
+static bool stax_new_property(const char *propname, TCOD_value_type_t type, TCOD_value_t value) {
+	TCOD_parser_event_t *evt = (TCOD_parser_event_t *)malloc(sizeof(TCOD_parser_event_t));
+	evt->type=TCOD_PARSER_EVENT_PROPERTY;
+	evt->event_property.name=propname;
+	evt->event_property.type=type;
+	evt->event_property.value=value;
+	TCOD_list_push(stax_events,evt);
+	return true;
+}
+
+static bool stax_end_struct(TCOD_parser_struct_t str, const char *name) {
+	TCOD_parser_event_t *evt = (TCOD_parser_event_t *)malloc(sizeof(TCOD_parser_event_t));
+	evt->type=TCOD_PARSER_EVENT_END_STRUCT;
+	evt->event_struct.str=str;
+	evt->event_struct.name=name;
+	TCOD_list_push(stax_events,evt);
+	return true;
+}
+
+static void stax_error(const char *msg) {
+	TCOD_parser_event_t *evt = (TCOD_parser_event_t *)malloc(sizeof(TCOD_parser_event_t));
+	evt->type=TCOD_PARSER_EVENT_ERROR;
+	evt->event_error.message=msg;
+	TCOD_list_push(stax_events,evt);
+}
+
+
 /* default parser listener */
 typedef struct {
 	char *name;
@@ -704,6 +788,7 @@ static const TCOD_value_t * TCOD_get_property(TCOD_parser_t parser, TCOD_value_t
 	TCOD_struct_int_t *str=NULL;
 	TCOD_value_type_t type;
 	TCOD_parser_int_t *p=(TCOD_parser_int_t *)parser;
+	TCOD_IFNOT(parser != NULL && name != NULL) return NULL;
 	if (! p->props ) return NULL;
 	for (it=TCOD_list_begin(p->props);it!=TCOD_list_end(p->props);it++) {
 		prop_t *prop=*((prop_t **)it);

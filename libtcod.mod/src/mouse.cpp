@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -35,7 +35,7 @@ void TCODMouse::showCursor(bool visible) {
 }
 
 bool TCODMouse::isCursorVisible() {
-  return TCOD_mouse_is_cursor_visible();
+  return TCOD_mouse_is_cursor_visible() != 0;
 }
 
 void TCODMouse::move(int x, int y) {

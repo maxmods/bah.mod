@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -37,21 +37,33 @@ extern "C" {
 typedef struct {
 	int c;		/* character ascii code */
 	int cf;		/* character number in font */
-	TCOD_color_t fore;	/* foreground color */
-	TCOD_color_t back;	/* background color */
 	uint8 dirt;	/* cell modified since last flush ? */
 } char_t;
+
+typedef struct {
+	/* foreground brush */
+	TCOD_color_t fore;
+	TCOD_colorop_t foreflag;
+	/* background brush */
+	TCOD_color_t back;
+	TCOD_colorop_t backflag;
+} TCOD_brush_t;
 
 /* TCODConsole non public data */
 typedef struct {
 	char_t *buf; /* current console */
 	char_t *oldbuf; /* console for last frame */
+	TCOD_image_t forebuf,oldforebuf;	/* foreground colors */
+	TCOD_image_t backbuf,oldbackbuf;	/* background colors */
 	uint8 fade;
 	bool windowed;
 	bool fullscreen;
 	bool haskey; /* a key color has been defined */
-	/* foreground (text), background and key colors */
-	TCOD_color_t fore,back,key;
+	/* key color */
+	TCOD_color_t key;
+	TCOD_brush_t brush;
+	TCOD_brush_t *brushes;
+	int nbBrushes, maxBrushes;
 	/* console width and height (in characters,not pixels) */
 	int w,h;
 } TCOD_console_data_t;
@@ -73,17 +85,47 @@ typedef struct {
 	cell_t *cells;
 } map_t;
 
+/* bitmap character data */
+typedef struct {
+	/* current color of the character in the font bitmap (for non opengl renderers) */
+	TCOD_color_t col;
+	/* convert ascii code to tcod layout code */
+	int ascii_to_tcod;
+	/* wether the character has been updated in the font */
+	bool updated;
+	/* wether this is the first time this character is drawn */
+	bool first;
+	/* wether this character is a colored tile */
+	bool colored;
+} TCOD_bitmap_char_t;
+
+/* internal configuration */
+typedef struct {
+	bool disableOpenGL;
+} TCOD_config_t;
+
+#if 1
+#define TCOD_IF(x) if (x)
+#define TCOD_IFNOT(x) if (!(x))
+#define TCOD_ASSERT(x)
+#else
+#include <assert.h>
+#define TCOD_IF(x) assert(x);
+#define TCOD_IFNOT(x) assert(x); if (0)
+#define TCOD_ASSERT(x) assert(x)
+#endif
+
 void TCOD_map_compute_fov_circular_raycasting(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
 void TCOD_map_compute_fov_diamond_raycasting(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
 void TCOD_map_compute_fov_recursive_shadowcasting(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
 void TCOD_map_compute_fov_permissive(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
 void TCOD_map_compute_fov_permissive2(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls, int fovType);
-void TCOD_map_compute_fov_digital(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
+void TCOD_map_compute_fov_restrictive_shadowcasting(TCOD_map_t map, int player_x, int player_y, int max_radius, bool light_walls);
 void TCOD_map_postproc(map_t *map,int x0,int y0, int x1, int y1, int dx, int dy);
 
 /* TCODConsole non public methods*/
 bool TCOD_console_init(TCOD_console_t con,const char *title, bool fullscreen);
-int TCOD_console_print(TCOD_console_t con,int x,int y, int w, int h, TCOD_bkgnd_flag_t flag, alignment_t align, char *msg, bool can_split, bool count_only);
+int TCOD_console_print(TCOD_console_t con,int x,int y, int w, int h, alignment_t align, char *msg, bool can_split, bool count_only);
 int TCOD_console_stringLength(const char *s);
 char * TCOD_console_forward(char *s,int l);
 void TCOD_console_set_window_closed();
@@ -94,25 +136,49 @@ void TCOD_fatal(const char *fmt, ...);
 void TCOD_fatal_nopar(const char *msg);
 
 /* TCODSystem non public methods */
-extern int fontNbCharHoriz;
-extern int fontNbCharVertic;
-extern bool fontTcodLayout;
-extern int *ascii_to_tcod;
-
 void TCOD_sys_startup();
-bool TCOD_sys_init(int w,int h, char_t *buf, char_t *oldbuf, bool fullscreen);
+bool TCOD_sys_init(TCOD_console_data_t *con, bool fullscreen);
 void TCOD_sys_set_custom_font(const char *font_name,int nb_ch, int nb_cv,int flags);
 void TCOD_sys_map_ascii_to_font(int asciiCode, int fontCharX, int fontCharY); 
 void *TCOD_sys_create_bitmap_for_console(TCOD_console_t console);
 void TCOD_sys_save_bitmap(void *bitmap, const char *filename);
 void *TCOD_sys_create_bitmap(int width, int height, TCOD_color_t *buf);
 void TCOD_sys_delete_bitmap(void *bitmap);
-void TCOD_sys_console_to_bitmap(void *bitmap, int console_width, int console_height, char_t *console_buffer, char_t *prev_console_buffer);
+void TCOD_sys_console_to_bitmap(void *bitmap, TCOD_console_data_t *con);
 void TCOD_sys_get_char_size(int *w, int *h);
 void TCOD_sys_set_keyboard_repeat(int initial_delay, int interval);
 void *TCOD_sys_get_surface(int width, int height, bool alpha);
 void TCOD_sys_save_fps();
 void TCOD_sys_restore_fps();
+void *TCOD_sys_get_image_pixel_data(TCOD_image_t);
+// renderers internals
+void TCOD_sys_console_to_bitmap_nocharmap(void *vbitmap, TCOD_console_data_t *con, bool new_font);
+void TCOD_sys_console_to_bitmap_32bits(void *vbitmap, TCOD_console_data_t *con, bool new_font);
+void TCOD_sys_console_to_bitmap_24bits(void *vbitmap, TCOD_console_data_t *con, bool new_font);
+void TCOD_sys_console_to_bitmap_opengl(void *vbitmap, TCOD_console_data_t *con, bool new_font);
+void TCOD_sys_flush_SDL();
+void TCOD_sys_flush_OPENGL();
+void * TCOD_sys_get_screen_surface_OPENGL();
+void * TCOD_sys_get_screen_surface_SDL();
+// TCODSystem non public data
+extern int TCOD_font_nb_char_horiz;
+extern int TCOD_font_nb_char_vertic;
+extern int TCOD_old_fade;
+extern TCOD_bitmap_char_t * TCOD_font_chars;
+extern void* TCOD_screen;
+extern int TCOD_font_width;
+extern int TCOD_font_height;
+extern bool TCOD_fullscreen_on;
+extern int TCOD_fullscreen_offsetx;
+extern int TCOD_fullscreen_offsety;
+extern int TCOD_max_font_chars;
+extern bool TCOD_any_ascii_updated;
+extern TCOD_color_t TCOD_font_key_col;
+extern bool TCOD_font_is_in_row, TCOD_font_is_greyscale, TCOD_font_has_tcod_layout;
+extern int32 TCOD_sdl_key, TCOD_rgb_mask, TCOD_nrgb_mask;
+extern void* TCOD_charmap;
+extern TCOD_console_data_t *TCOD_root;
+extern TCOD_config_t TCOD_config;
 
 /* switch fullscreen mode */
 void TCOD_sys_set_fullscreen(bool fullscreen);

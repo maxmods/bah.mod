@@ -39,6 +39,7 @@ public :
 	static void clear(); // remove all operation, clear the heightmap
 	static void cancel(); // cancel the last operation
 	static void reseed();
+	virtual ~Operation() {}
 protected :
 	friend void historyCbk(Widget *w,void *data);
 
@@ -53,7 +54,6 @@ protected :
 	virtual void runInternal() =0; // actually execute this operation
 	virtual bool addInternal() =0; // actually add this operation
 	virtual const char *getCode(CodeType type) = 0; // the code corresponding to this operation
-
 private :
 	static char *codebuf; // generated code buffer
 	static int bufSize,freeSize; // total size and remaining size of the code buffer
@@ -65,6 +65,7 @@ private :
 class NormalizeOperation : public Operation {
 public :
 	NormalizeOperation(float min=0.0f,float max=1.0f) : min(min),max(max) { type=NORM; }
+	virtual ~NormalizeOperation() {}	
 	void createParamUi();
 	float min,max;
 protected :
@@ -79,6 +80,7 @@ public :
 	AddFbmOperation(float zoom,float offsetx,float offsety,float octaves, float scale,float offset) :
 		zoom(zoom), offsetx(offsetx), offsety(offsety), octaves(octaves), 
 		scale(scale), offset(offset) { type=ADDFBM; }
+	virtual ~AddFbmOperation() {}	
 	void createParamUi();
 	float zoom,offsetx,offsety,octaves,scale,offset;
 protected :
@@ -92,6 +94,7 @@ class ScaleFbmOperation : public AddFbmOperation {
 public :
 	ScaleFbmOperation(float zoom,float offsetx,float offsety,float octaves, float scale,float offset) :
 		AddFbmOperation(zoom, offsetx, offsety, octaves,scale, offset) { type=SCALEFBM; }
+	virtual ~ScaleFbmOperation() {}	
 protected :
 	const char *getCode(CodeType type);
 	void runInternal();
@@ -103,6 +106,7 @@ class AddHillOperation : public Operation {
 public :
 	AddHillOperation(int nbHill,float radius,float radiusVar,float height)
 		: nbHill(nbHill),radius(radius),radiusVar(radiusVar),height(height) { type=ADDHILL; }
+	virtual ~AddHillOperation() {}	
 	void createParamUi();
 
 	int nbHill;
@@ -117,6 +121,7 @@ protected :
 class AddLevelOperation : public Operation {
 public :
 	AddLevelOperation(float level) : level(level) { type=ADDLEVEL; }
+	virtual ~AddLevelOperation() {}	
 	void createParamUi();
 
 	float level;
@@ -131,6 +136,7 @@ class SmoothOperation : public Operation {
 public :
 	SmoothOperation(float minLevel, float maxLevel, int count) 
 		: minLevel(minLevel),maxLevel(maxLevel),radius(0.0f),count(count) { type=SMOOTH; }
+	virtual ~SmoothOperation() {}	
 	void createParamUi();
 	float minLevel,maxLevel,radius;
 	int count;
@@ -145,6 +151,7 @@ class RainErosionOperation : public Operation {
 public :
 	RainErosionOperation(int nbDrops,float erosionCoef,float sedimentationCoef) 
 		: nbDrops(nbDrops),erosionCoef(erosionCoef),sedimentationCoef(sedimentationCoef) { type=RAIN; }
+	virtual ~RainErosionOperation() {}	
 	void createParamUi();
 	int nbDrops;
 	float erosionCoef,sedimentationCoef;
@@ -159,6 +166,7 @@ class NoiseLerpOperation : public AddFbmOperation {
 public :
 	NoiseLerpOperation(float coef,float zoom,float offsetx,float offsety,float octaves, float scale,float offset) :
 		AddFbmOperation(zoom, offsetx, offsety, octaves,scale, offset),coef(coef)  { type=NOISELERP; }
+	virtual ~NoiseLerpOperation() {}	
 	void createParamUi();
 	float coef;
 protected :
@@ -172,6 +180,7 @@ protected :
 class VoronoiOperation : public Operation {
 public :
 	VoronoiOperation(int nbPoints, int nbCoef, float *coef);
+	virtual ~VoronoiOperation() {}	
 	void createParamUi();
 	int nbPoints;
 	int nbCoef;

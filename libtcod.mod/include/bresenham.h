@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_BRESENHAM_H
-#define _TCOD_BRESENHAM_H
-
 typedef bool (*TCOD_line_listener_t) (int x, int y);
 
 TCODLIB_API void TCOD_line_init(int xFrom, int yFrom, int xTo, int yTo);
@@ -51,5 +48,3 @@ typedef struct {
 TCODLIB_API void TCOD_line_init_mt(int xFrom, int yFrom, int xTo, int yTo, TCOD_bresenham_data_t *data);
 TCODLIB_API bool TCOD_line_step_mt(int *xCur, int *yCur, TCOD_bresenham_data_t *data);
 TCODLIB_API bool TCOD_line_mt(int xFrom, int yFrom, int xTo, int yTo, TCOD_line_listener_t listener, TCOD_bresenham_data_t *data);
-
-#endif

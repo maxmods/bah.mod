@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,14 +25,18 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_FOV_HPP
-#define _TCOD_FOV_HPP
-
 class TCODPath;
 
 class TCODLIB_API TCODMap {
 	public :
 		TCODMap(int width, int height);
+
+		TCODImage *toImage() const;
+		void fromImage(const TCODImage *img, const TCODColor &wallColor, const TCODColor &groundColor);
+		
+		TCODHeightMap *toHeightmap() const;
+		void fromHeightmap(const TCODHeightMap *hm, float wallValue, float groundValue);
+		
 		void clear();
 		void setProperties(int x,int y, bool isTransparent, bool isWalkable);
 		void copy (const TCODMap *source);
@@ -49,5 +53,3 @@ class TCODLIB_API TCODMap {
 //	protected :
 		TCOD_map_t data;
 };
-
-#endif

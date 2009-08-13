@@ -14,6 +14,7 @@ FlatList::~FlatList() {
 }
 
 void FlatList::render() {
+	con->pushBrush();
 	w--;
 	boxx++;
 	TextBox::render();
@@ -21,10 +22,11 @@ void FlatList::render() {
 	w++;
 	con->setBackgroundColor((onLeftArrow) ? backFocus : back);
 	con->setForegroundColor((onLeftArrow) ? foreFocus : fore);
-	con->putChar(x+boxx,y,TCOD_CHAR_ARROW_W);
+	con->brushChar(x+boxx,y,TCOD_CHAR_ARROW_W);
 	con->setBackgroundColor((onRightArrow) ? backFocus : back);
 	con->setForegroundColor((onRightArrow) ? foreFocus : fore);
-	con->putChar(x+w-1,y,TCOD_CHAR_ARROW_E);
+	con->brushChar(x+w-1,y,TCOD_CHAR_ARROW_E);
+	con->popBrush();
 }
 
 void FlatList::update(TCOD_key_t k) {

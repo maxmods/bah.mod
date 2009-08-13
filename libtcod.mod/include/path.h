@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,9 +25,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_PATH_H
-#define _TCOD_PATH_H
-
 typedef float (*TCOD_path_func_t)( int xFrom, int yFrom, int xTo, int yTo, void *user_data );
 typedef void *TCOD_path_t;
 
@@ -39,8 +36,7 @@ TCODLIB_API bool TCOD_path_walk(TCOD_path_t path, int *x, int *y, bool recalcula
 TCODLIB_API bool TCOD_path_is_empty(TCOD_path_t path);
 TCODLIB_API int TCOD_path_size(TCOD_path_t path);
 TCODLIB_API void TCOD_path_get(TCOD_path_t path, int index, int *x, int *y);
+TCODLIB_API void TCOD_path_clear(TCOD_path_t path);
 TCODLIB_API void TCOD_path_get_origin(TCOD_path_t path, int *x, int *y);
 TCODLIB_API void TCOD_path_get_destination(TCOD_path_t path, int *x, int *y);
 TCODLIB_API void TCOD_path_delete(TCOD_path_t path);
-
-#endif

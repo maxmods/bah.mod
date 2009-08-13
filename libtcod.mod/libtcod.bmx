@@ -46,5 +46,5 @@ Import "gui.bmx"
 '
 ' Changed gui/image.cpp to gui/gui_image.cpp
 '
-
-
+' Added __GNUC__ check to gui/gui.hpp
+'

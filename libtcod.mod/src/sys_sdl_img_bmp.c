@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -35,8 +35,11 @@ bool TCOD_sys_check_bmp(const char *filename) {
 }
 
 SDL_Surface *TCOD_sys_read_bmp(const char *filename) {
-	SDL_Surface *ret=SDL_LoadBMP(filename);
-	if( !ret ) TCOD_fatal("SDL : %s",SDL_GetError());
+	SDL_Surface *ret;
+	TCOD_IFNOT(filename != NULL) return NULL;
+	ret=SDL_LoadBMP(filename);
+	TCOD_ASSERT(ret != NULL);
+	if( !ret ) return NULL;
 	// convert low color images to 24 bits
 	if ( ret->format->BytesPerPixel != 3 ) {
 		Uint32 rmask,gmask,bmask;
@@ -60,6 +63,7 @@ SDL_Surface *TCOD_sys_read_bmp(const char *filename) {
 }
 
 void TCOD_sys_write_bmp(const SDL_Surface *surf, const char *filename) {
+	TCOD_IFNOT(surf != NULL && filename != NULL) return;
 	SDL_SaveBMP((SDL_Surface *)surf,filename);
 }
 

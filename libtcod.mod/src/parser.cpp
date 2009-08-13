@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -56,7 +56,7 @@ void TCODParserStruct::addStructure(TCODParserStruct *sub_entity) {
 }
 
 bool TCODParserStruct::isPropertyMandatory(const char *propname) const {
-	return (bool)(TCOD_struct_is_mandatory(data,propname));
+	return TCOD_struct_is_mandatory(data,propname) != 0;
 }
 
 TCOD_value_type_t TCODParserStruct::getPropertyType(const char *propname) const {
@@ -72,27 +72,27 @@ TCODParserStruct *TCODParser::newStructure(const char *name) {
 
 static ITCODParserListener *listener=NULL;
 static TCODParser *parser=NULL;
-extern "C" bool new_struct(TCOD_parser_struct_t def,const char *name) {
+extern "C" uint8 new_struct(TCOD_parser_struct_t def,const char *name) {
 	for ( TCODParserStruct **idef=parser->defs.begin(); idef != parser->defs.end(); idef++) {
 		if ( (*idef)->data == def ) {
-			return listener->parserNewStruct(parser,*idef,name);
+			return listener->parserNewStruct(parser,*idef,name) ? 1 : 0;
 		}
 	}
-	return false;
+	return 0;
 }
-extern "C" bool new_flag(const char *name) {
-	return listener->parserFlag(parser,name);
+extern "C" uint8 new_flag(const char *name) {
+	return listener->parserFlag(parser,name) ? 1 : 0;
 }
-extern "C" bool new_property(const char *propname, TCOD_value_type_t type, TCOD_value_t value) {
-	return listener->parserProperty(parser,propname,type, value);
+extern "C" uint8 new_property(const char *propname, TCOD_value_type_t type, TCOD_value_t value) {
+	return listener->parserProperty(parser,propname,type, value) ? 1 : 0;
 }
-extern "C" bool end_struct(TCOD_parser_struct_t def, const char *name) {
+extern "C" uint8 end_struct(TCOD_parser_struct_t def, const char *name) {
 	for ( TCODParserStruct **idef=parser->defs.begin(); idef != parser->defs.end(); idef++) {
 		if ( (*idef)->data == def ) {
-			return listener->parserEndStruct(parser,*idef,name);
+			return listener->parserEndStruct(parser,*idef,name) ? 1 : 0;
 		}
 	}
-	return false;
+	return 0;
 }
 
 extern "C" void error(const char *msg) {
@@ -111,11 +111,19 @@ TCODParser::TCODParser() {
 	data = TCOD_parser_new();
 }
 
-void TCODParser::run(const char *filename, ITCODParserListener *_listener) {
+TCODParser::~TCODParser() {
+    TCOD_parser_delete(data);
+}
+
+void TCODParser::runSax(const char *filename, ITCODParserListener *_listener) {
 	listener=_listener;
 	parser=this;
-	if ( listener )	TCOD_parser_run(data,(char *)filename,&c_to_cpp_listener);
-	else TCOD_parser_run(data,(char *)filename, NULL);
+	if ( listener )	TCOD_parser_run_sax(data,(char *)filename,&c_to_cpp_listener);
+	else TCOD_parser_run_sax(data,(char *)filename, NULL);
+}
+
+TCODList<TCOD_parser_event_t *> *TCODParser::runStAX(const char *filename) {
+	return new TCODList<TCOD_parser_event_t *> (TCOD_parser_run_stax(data,filename));
 }
 
 TCOD_value_type_t TCODParser::newCustomType(TCOD_parser_custom_t custom_type_parser) {
@@ -130,10 +138,11 @@ void TCODParser::error(const char *msg, ...) {
 	va_end(ap);
 	TCOD_parser_error(buf);
 }
-// default parser
+
+// default parser
 
 bool TCODParser::getBoolProperty(const char *name) const {
-	return TCOD_parser_get_bool_property(data,name);
+	return TCOD_parser_get_bool_property(data,name) != 0;
 }
 
 int TCODParser::getIntProperty(const char *name) const {

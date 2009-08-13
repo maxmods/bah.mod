@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -91,7 +91,7 @@ void TCODHeightMap::digBezier(int px[4], int py[4], float startRadius, float sta
 
 bool TCODHeightMap::hasLandOnBorder(float seaLevel) const {
 	TCOD_heightmap_t hm={w,h,values};
-	return TCOD_heightmap_has_land_on_border(&hm,seaLevel);
+	return TCOD_heightmap_has_land_on_border(&hm,seaLevel) != 0;
 }
 
 void TCODHeightMap::islandify(float seaLevel,TCODRandom *rnd) {

@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -44,8 +44,8 @@ SDL_Surface *TCOD_sys_read_png(const char *filename) {
 	SDL_Surface *bitmap;
 	png_bytep *row_pointers;
 
-	if ((fp = fopen(filename, "rb")) == NULL)
-		return NULL;
+	TCOD_IFNOT(filename != NULL) return NULL;
+	if ((fp = fopen(filename, "rb")) == NULL) return NULL;
 	/* Create and initialize the png_struct with the desired error handler
 	* functions.  If you want to use the default stderr and longjump method,
 	* you can supply NULL for the last three parameters.  We also supply the
@@ -137,7 +137,9 @@ void TCOD_sys_write_png(const SDL_Surface *surf, const char *filename) {
 	png_infop info_ptr;
 	png_bytep *row_pointers;
 	int y,x;
-	FILE *fp=fopen(filename,"wb");
+	FILE *fp;
+	TCOD_IFNOT(filename != NULL && surf != NULL) return;
+	fp=fopen(filename,"wb");
 	if (!fp) return;
 
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,NULL, NULL, NULL);
@@ -175,6 +177,7 @@ void TCOD_sys_write_png(const SDL_Surface *surf, const char *filename) {
 	row_pointers=(png_bytep *)malloc(sizeof(png_bytep)*surf->h);
 	for (y=0; y<  surf->h; y++ ) {
 //		TODO : we should be able to use directly the surface data...
+//		doesn't seem to work...
 //		row_pointers[y]=(png_bytep)(Uint8 *)(surf->pixels) + y * surf->pitch;
 		row_pointers[y]=(png_bytep)malloc(sizeof(png_byte)*surf->w*3);
 		for (x=0; x < surf->w; x++ ) {

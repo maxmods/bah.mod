@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -28,44 +28,84 @@
 #ifndef _TCODLIB_H
 #define _TCODLIB_H
 
-// os / compiler identification
+// os identification
+// TCOD_WINDOWS : OS is windows
+// TCOD_LINUX : OS is Linux
+// TCOD_MACOSX : OS is Mac OS X
+
+// compiler identification
+// TCOD_VISUAL_STUDIO : compiler is Microsoft Visual Studio
+// TCOD_MINGW32 : compiler is Mingw32
+// TCOD_GCC : compiler is gcc/g++
+
+// word size
+// TCOD_64BITS : 64 bits OS
+// TCOD_WIN64 : 64 bits Windows
+// TCOD_WIN32 : 32 bits Windows
+// TCOD_LINUX64 : 64 bits Linux
+// TCOD_LINUX32 : 32 bits Linux
+
 #if defined( _MSC_VER )
-#define VISUAL_STUDIO
-#ifndef WIN32
-#define WIN32
-#endif
+#  define TCOD_VISUAL_STUDIO
+#  define TCOD_WINDOWS
+#  ifdef _WIN64
+#    define TCOD_WIN64
+#    define TCOD_64BITS
+#  else
+#    define TCOD_WIN32
+#  endif
 #elif defined( __MINGW32__ )
-#ifndef MINGW32
-#define MINGW32
-#endif
-#ifndef WIN32
-#define WIN32
-#endif
+#  define TCOD_WINDOWS
+#  define TCOD_MINGW32
+#  define TCOD_WIN32
 #elif defined( __linux )
-#define LINUX
+#  define TCOD_LINUX
+#  define TCOD_GCC
+#  if __WORDSIZE == 64
+#    define TCOD_LINUX64
+#    define TCOD_64BITS
+#  else
+#    define TCOD_LINUX32
+#  endif
+#elif defined (__APPLE__) && defined (__MACH__)
+#  define TCOD_MACOSX
+#  define TCOD_GCC
+#endif
+
+// SDL_main support for OSX
+#ifdef TCOD_MACOSX
+#include "SDL/SDL.h"
 #endif
 
 // base types
 typedef unsigned char uint8;
-typedef char int8;
+typedef signed char int8;
 typedef unsigned short uint16;
-typedef short int16;
+typedef signed short int16;
 typedef unsigned int uint32;
-typedef int int32;
+typedef signed int int32;
+// int with the same size as a pointer (32 or 64 depending on OS)
+typedef long intptr;
+typedef unsigned long uintptr;
 
-#define TCOD_HEXVERSION 0x010401
-#define TCOD_STRVERSION "1.4.1"
-#define TCOD_TECHVERSION 0x01040104
+#define TCOD_HEXVERSION 0x010500
+#define TCOD_STRVERSION "1.5.0"
+#define TCOD_TECHVERSION 0x01050000
 
 // bool support for C
 #ifndef __cplusplus 
-#ifndef bool 
-typedef enum { false, true } bool;
+#ifndef bool
+typedef uint8 bool;
+#define false ((bool)0) 
+#define true ((bool)1)
 #endif
+#else
+// in C++ all C functions prototype should use uint8 instead of bool
+#define bool uint8
 #endif
 
 // DLL export
-#if defined(WIN32) && !defined(MINGW32)
+#if defined(TCOD_WINDOWS) && !defined(MINGW32)
 #ifdef LIBTCOD_EXPORTS
 #define TCODLIB_API __declspec(dllexport)
 #else
@@ -75,21 +115,16 @@ typedef enum { false, true } bool;
 #define TCODLIB_API
 #endif
 
-// SDL_main support for OSX
-#ifdef __APPLE__
-#include "SDL/SDL.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
 #define strdup _strdup
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #endif
-#if defined( VISUAL_STUDIO ) || defined( MINGW32 )
+#if defined(TCOD_WINDOWS)
 char *strcasestr (const char *haystack, const char *needle);
 #endif
 
@@ -119,8 +154,9 @@ char *strcasestr (const char *haystack, const char *needle);
 #include "bsp.h"
 #include "heightmap.h"
 #include "zip.h"
-#include "perlin.h"
+#include "dungeon.h"
 #ifdef __cplusplus
+#undef bool
 }
 #endif
 

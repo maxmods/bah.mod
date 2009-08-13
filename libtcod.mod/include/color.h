@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -25,12 +25,29 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _TCOD_COLOR_H
-#define _TCOD_COLOR_H
-
 typedef struct {
 	uint8 r,g,b;
 } TCOD_color_t;
+
+
+typedef enum {
+	TCOD_COLOROP_NONE,
+	TCOD_COLOROP_SET,
+	TCOD_COLOROP_MULTIPLY,
+	TCOD_COLOROP_LIGHTEN,
+	TCOD_COLOROP_DARKEN,
+	TCOD_COLOROP_SCREEN,
+	TCOD_COLOROP_COLOR_DODGE,
+	TCOD_COLOROP_COLOR_BURN,
+	TCOD_COLOROP_ADD,
+	TCOD_COLOROP_ADDA,
+	TCOD_COLOROP_BURN,
+	TCOD_COLOROP_OVERLAY,
+	TCOD_COLOROP_ALPH
+} TCOD_colorop_t;
+
+#define TCOD_COLOROP_ALPHA(alpha) ((TCOD_colorop_t)(TCOD_COLOROP_ALPH|(((uint8)(alpha*255))<<8)))
+#define TCOD_COLOROP_ADDALPHA(alpha) ((TCOD_colorop_t)(TCOD_COLOROP_ADDA|(((uint8)(alpha*255))<<8)))
 	
 TCODLIB_API bool TCOD_color_equals (TCOD_color_t c1, TCOD_color_t c2);
 TCODLIB_API TCOD_color_t TCOD_color_add (TCOD_color_t c1, TCOD_color_t c2);
@@ -38,6 +55,7 @@ TCODLIB_API TCOD_color_t TCOD_color_subtract (TCOD_color_t c1, TCOD_color_t c2);
 TCODLIB_API TCOD_color_t TCOD_color_multiply (TCOD_color_t c1, TCOD_color_t c2);
 TCODLIB_API TCOD_color_t TCOD_color_multiply_scalar (TCOD_color_t c1, float value);
 TCODLIB_API TCOD_color_t TCOD_color_lerp(TCOD_color_t c1, TCOD_color_t c2, float coef);
+TCODLIB_API TCOD_color_t TCOD_color_operation(TCOD_color_t c1, TCOD_color_t c2, TCOD_colorop_t op);
 TCODLIB_API void TCOD_color_set_HSV(TCOD_color_t *c,float h, float s, float v);
 TCODLIB_API void TCOD_color_get_HSV(TCOD_color_t c,float * h, float * s, float * v);
 TCODLIB_API void TCOD_color_gen_map(TCOD_color_t *map, int nb_key, TCOD_color_t const *key_color, int const *key_index);
@@ -158,5 +176,3 @@ extern TCODLIB_API const TCOD_color_t TCOD_desaturated_pink;
 // special
 extern TCODLIB_API const TCOD_color_t TCOD_silver;
 extern TCODLIB_API const TCOD_color_t TCOD_gold;
-
-#endif

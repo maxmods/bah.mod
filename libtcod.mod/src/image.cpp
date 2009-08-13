@@ -1,5 +1,5 @@
 /*
-* libtcod 1.4.1
+* libtcod 1.5.0
 * Copyright (c) 2008,2009 J.C.Wilk
 * All rights reserved.
 *
@@ -28,16 +28,12 @@
 #include "libtcod.hpp"
 #include "libtcod.h"
 
-TCODImage::TCODImage(const char *filename) {
+TCODImage::TCODImage(const char *filename) : deleteData(true) {
 	data=(void *)TCOD_image_load(filename);
 }
 
-TCODImage::TCODImage(int width, int height) {
+TCODImage::TCODImage(int width, int height) : deleteData(true) {
 	data=(void *)TCOD_image_new(width,height);
-}
-
-TCODImage::TCODImage(const TCODConsole *con) {
-	data=(void *)TCOD_image_from_console(con->data);
 }
 
 void TCODImage::clear(const TCODColor col) {
@@ -53,7 +49,7 @@ void TCODImage::getSize(int *w,int *h) const {
 }
 
 TCODImage::~TCODImage() {
-	TCOD_image_delete(data);
+	if ( deleteData ) TCOD_image_delete(data);
 }
 
 TCODColor TCODImage::getPixel(int x, int y) const {
@@ -68,32 +64,38 @@ TCODColor TCODImage::getMipmapPixel(float x0,float y0, float x1, float y1) {
 	return TCOD_image_get_mipmap_pixel(data,x0,y0,x1,y1);
 }
 
-void TCODImage::putPixel(int x, int y, const TCODColor col) {
+void TCODImage::putPixel(int x, int y, const TCODColor &col, TCOD_colorop_t op) {
 	TCOD_color_t ccol = {col.r,col.g,col.b};
-	TCOD_image_put_pixel(data,x,y,ccol);
+	TCOD_image_put_pixel(data,x,y,ccol,op);
 }
 
-void TCODImage::blit(TCODConsole *console, float x, float y, TCOD_bkgnd_flag_t bkgnd_flag, float scalex, float scaley, float angle) const {
-	TCOD_image_blit(data,console->data,x,y,bkgnd_flag,scalex,scaley,angle);
+void TCODImage::rect(int x,int y, int w, int h, const TCODColor &col, TCOD_colorop_t op) {
+	TCOD_color_t ccol = {col.r,col.g,col.b};
+	TCOD_image_rect(data,x,y,w,h,ccol,op);	
 }
 
-void TCODImage::blitRect(TCODConsole *console, int x, int y, int w, int h, TCOD_bkgnd_flag_t bkgnd_flag) const {
-	TCOD_image_blit_rect(data,console->data,x,y,w,h,bkgnd_flag);
+void TCODImage::blit(TCODImage *dest, float x, float y,  float scalex, float scaley, float angle, TCOD_colorop_t op) const {
+	TCOD_image_blit(data,dest->data,x,y,scalex,scaley,angle,op);
+}
+
+void TCODImage::blitRect(TCODImage *dest, int x, int y, int w, int h, TCOD_colorop_t op) const {
+	TCOD_image_blit_rect(data,dest->data,x,y,w,h,op);
 }
 
 void TCODImage::save(const char *filename) const {
 	TCOD_image_save(data,filename);
 }
 
-void TCODImage::setKeyColor(const TCODColor keyColor) {
+void TCODImage::setKeyColor(const TCODColor &keyColor) {
 	TCOD_color_t ccol = {keyColor.r,keyColor.g,keyColor.b};
 	TCOD_image_set_key_color(data,ccol);
 }
 
 bool TCODImage::isPixelTransparent(int x, int y) const {
-	return TCOD_image_is_pixel_transparent(data,x,y);
+	return TCOD_image_is_pixel_transparent(data,x,y) != 0;
 }
-void TCODImage::refreshConsole(const TCODConsole *console) {
+
+void TCODImage::refreshConsole(const TCODConsole *console) {
 	TCOD_image_refresh_console(data,console->data);
 }
 
@@ -111,6 +113,10 @@ void TCODImage::vflip() {
 
 void TCODImage::scale(int neww, int newh) {
 	TCOD_image_scale(data,neww,newh);
+}
+
+void TCODImage::blit2x(TCODConsole *dest, int dx, int dy, int sx, int sy, int w, int h) const {
+	TCOD_image_blit_2x(data,dest->data,dx,dy,sx,sy,w,h);
 }
 
 

@@ -22,7 +22,7 @@ Global sampleConsole:TCODConsole = New TCODConsole.Create(SAMPLE_SCREEN_WIDTH,SA
 Local keyColor:TCODColor = TCODColor.Black
 Local key:TCODKey
 
-Local font:String = "fonts/terminal8x8_gs_as.png"
+Local font:String = "fonts/font16x16.png"
 Local charWidth:Int = 8
 Local charHeight:Int = 8
 Local nbCharH:Int =16
@@ -50,7 +50,7 @@ Local samples:TSample[] = [ ..
 Local nbSamples:Int = samples.length
 
 
-TCODConsole.SetCustomFont(font, TCOD_FONT_TYPE_GREYSCALE | TCOD_FONT_LAYOUT_ASCII_INCOL)
+TCODConsole.SetCustomFont(font, TCOD_FONT_TYPE_GREYSCALE | TCOD_FONT_LAYOUT_ASCII_INROW)
 
 
 TCODConsole.InitRoot(80, 50, "Woo!", False)
@@ -77,20 +77,21 @@ Repeat
 			TCODConsole.root.SetBackgroundColor(TCODColor.black)
 		End If
 		' Print the sample name
-		TCODConsole.root.PrintLeft(2, 46 - (nbSamples - i), TCOD_BKGND_SET, samples[i].name)
+		TCODConsole.root.PrintLeft(2, 46 - (nbSamples - i), samples[i].name)
 	Next
 
 	' print the help message
 	TCODConsole.root.SetForegroundColor(TCODColor.Grey)
-	TCODConsole.root.PrintRight(79, 46, TCOD_BKGND_NONE, "last frame : " + ..
+	TCODConsole.root.SetBackgroundFlag(TCOD_COLOROP_NONE)
+	TCODConsole.root.PrintRight(79, 46, "last frame : " + ..
 		PadString(Int(TCODSystem.GetLastFrameLength()*1000), 3) + " ms (" + PadString(TCODSystem.GetFps(), 3) + " fps)")
 
-	TCODConsole.root.PrintRight(79, 47, TCOD_BKGND_NONE, "elapsed : " + PadString(TCODSystem.GetElapsedMilli(), 8) + "ms " + PadString(TCODSystem.GetElapsedSeconds(), 9) + "s")
-	TCODConsole.root.PrintLeft(2, 47, TCOD_BKGND_NONE,Chr(TCOD_CHAR_ARROW_N) + Chr(TCOD_CHAR_ARROW_S) + " : Select a sample")
+	TCODConsole.root.PrintRight(79, 47, "elapsed : " + PadString(TCODSystem.GetElapsedMilli(), 8) + "ms " + PadString(TCODSystem.GetElapsedSeconds(), 9) + "s")
+	TCODConsole.root.PrintLeft(2, 47,Chr(TCOD_CHAR_ARROW_N) + Chr(TCOD_CHAR_ARROW_S) + " : Select a sample")
 	If TCODConsole.isFullscreen() Then
-		TCODConsole.root.PrintLeft(2, 48, TCOD_BKGND_NONE,"ALT-ENTER : switch to windowed mode  ")
+		TCODConsole.root.PrintLeft(2, 48, "ALT-ENTER : switch to windowed mode  ")
 	Else
-		TCODConsole.root.PrintLeft(2, 48, TCOD_BKGND_NONE,"ALT-ENTER : switch to fullscreen mode")
+		TCODConsole.root.PrintLeft(2, 48, "ALT-ENTER : switch to fullscreen mode")
 	End If
 
 	' render current sample
@@ -204,7 +205,7 @@ Function render_colors(_first:Int, key:TCODKey)
 			Local ycoef:Float = y / Float(SAMPLE_SCREEN_HEIGHT-1)
 			' get the current cell color
 			Local curColor:TCODColor = TCODColor.Lerp(top, bottom, ycoef)
-			sampleConsole.SetBack(x, y, curColor, TCOD_BKGND_SET)
+			sampleConsole.SetBack(x, y, curColor)
 		Next
 	Next
 
@@ -219,18 +220,19 @@ Function render_colors(_first:Int, key:TCODKey)
 	' put random text (for performance tests)
 	For Local x:Int= 0 Until SAMPLE_SCREEN_WIDTH
 		For Local y:Int = 0 Until SAMPLE_SCREEN_HEIGHT
-			Local col:TCODColor = sampleConsole.GetBack(x,y)
+			Local back:TCODColor = sampleConsole.GetBack(x,y)
+			Local col:TCODColor = back.Copy()
 			col = TCODColor.Lerp(col, TCODColor.black, 0.5)
 			Local c:Int = TCODRandom.GetInstance().getInt(97, 122)
-			sampleConsole.SetForegroundColor(col)
-			sampleConsole.PutChar(x, y, c, TCOD_BKGND_NONE)
+			'sampleConsole.SetForegroundColor(col)
+			sampleConsole.BrushChar(x, y, c)
 		Next
 	Next
 
 	sampleConsole.SetForegroundColor(textColor)
 	' the background behind the text is slightly darkened using the BKGND_MULTIPLY flag
 	sampleConsole.SetBackgroundColor(TCODColor.grey)
-	sampleConsole.PrintCenterRect(SAMPLE_SCREEN_WIDTH/2,5,SAMPLE_SCREEN_WIDTH-2,SAMPLE_SCREEN_HEIGHT-1,TCOD_BKGND_MULTIPLY, ..
+	sampleConsole.PrintCenterRect(SAMPLE_SCREEN_WIDTH/2,5,SAMPLE_SCREEN_WIDTH-2,SAMPLE_SCREEN_HEIGHT-1, ..
 		"The Doryen library uses 24 bits colors, for both background and foreground.")
 End Function
 
@@ -244,9 +246,9 @@ Function render_offscreen(_first:Int, key:TCODKey)
 	Global xdir:Int = 1, ydir:Int = 1 ' movement direction
 	If Not init Then
 		init = True
-		secondary.PrintFrame(0, 0, SAMPLE_SCREEN_WIDTH / 2, SAMPLE_SCREEN_HEIGHT / 2, False, "Offscreen console")
+		'secondary.PrintFrame(0, 0, SAMPLE_SCREEN_WIDTH / 2, SAMPLE_SCREEN_HEIGHT / 2, False, "Offscreen console")
 		secondary.PrintCenterRect(SAMPLE_SCREEN_WIDTH / 4, 2, SAMPLE_SCREEN_WIDTH / 2 - 2, SAMPLE_SCREEN_HEIGHT / 2, ..
-			TCOD_BKGND_NONE,"You can render to an offscreen console and blit in on another one, simulating alpha transparency.")
+			"You can render to an offscreen console and blit in on another one, simulating alpha transparency.")
 	End If
 	If _first Then
 		TCODSystem.SetFps(30) ' fps limited To 30
@@ -279,7 +281,7 @@ End Function
 Global bkFlag:Int = TCOD_BKGND_SET ' current blending mode
 Function line_listener:Int(x:Int, y:Int)
 	If x>= 0 And y >= 0 And x < SAMPLE_SCREEN_WIDTH And y < SAMPLE_SCREEN_HEIGHT Then
-		sampleConsole.SetBack(x, y, TCODColor.lightBlue, bkFlag)
+		sampleConsole.SetBack(x, y, TCODColor.lightBlue)
 	End If
 	Return True
 End Function
@@ -344,9 +346,9 @@ Function render_lines(_first:Int, key:TCODKey)
 		col.SetR(x*255 / SAMPLE_SCREEN_WIDTH)
 		col.SetG(x*255 / SAMPLE_SCREEN_WIDTH)
 		col.SetB(x*255 / SAMPLE_SCREEN_WIDTH)
-		sampleConsole.SetBack(x,recty,col, bkFlag)
-		sampleConsole.SetBack(x,recty+1,col, bkFlag)
-		sampleConsole.SetBack(x,recty+2,col, bkFlag)
+		sampleConsole.SetBack(x,recty,col)
+		sampleConsole.SetBack(x,recty+1,col)
+		sampleConsole.SetBack(x,recty+2,col)
 	Next
 	' calculate the segment ends
 	Local angle:Float = TCODSystem.GetElapsedSeconds() * 2.0 * 57.2957795
@@ -360,7 +362,7 @@ Function render_lines(_first:Int, key:TCODKey)
 	' render the line
 	TCODLine.Line(xo, yo, xd, yd, line_listener)
 	' print the current flag
-	sampleConsole.PrintLeft(2, 2, TCOD_BKGND_NONE,flagNames[bkFlag & $ff] + " (ENTER to change)")
+	sampleConsole.PrintLeft(2, 2, flagNames[bkFlag & $ff] + " (ENTER to change)")
 End Function
 
 Function render_noise(_first:Int, key:TCODKey)
@@ -436,31 +438,31 @@ Function render_noise(_first:Int, key:TCODKey)
 			Local c:Int=((value+1.0)/2.0*255)
 			' use a bluish color
 			Local col:TCODColor = New TCODColor.Create((c/2),(c/2),c)
-			sampleConsole.setBack(x, y, col, TCOD_BKGND_SET)
+			sampleConsole.setBack(x, y, col)
 		Next
 	Next
 	' draw a transparent rectangle
 	sampleConsole.SetBackgroundColor(TCODColor.grey)
 
-	sampleConsole.Rect(2, 2, 24 , 9, False, TCOD_BKGND_MULTIPLY)
+	sampleConsole.Rect(2, 2, 24 , 9, False)
 	' draw the text
 	For Local curfunc:Int = PERLIN To TURBULENCE_WAVELET
 		If curfunc = func Then
 				sampleConsole.setForegroundColor(TCODColor.white)
 				sampleConsole.setBackgroundColor(TCODColor.lightBlue)
-				sampleConsole.printLeft(2,2+curfunc,TCOD_BKGND_SET,funcName[curfunc])
+				sampleConsole.printLeft(2,2+curfunc, funcName[curfunc])
 		Else
 				sampleConsole.setForegroundColor(TCODColor.grey)
-				sampleConsole.printLeft(2,2+curfunc,TCOD_BKGND_NONE,funcName[curfunc])
+				sampleConsole.printLeft(2,2+curfunc, funcName[curfunc])
 		End If
 	Next
 	' draw parameters
 	sampleConsole.SetForegroundColor(TCODColor.white)
-	sampleConsole.PrintLeft(2, 11, TCOD_BKGND_NONE, "Y/H : zoom " + zoom)
+	sampleConsole.PrintLeft(2, 11, "Y/H : zoom " + zoom)
 	If func > WAVELET Then
-		sampleConsole.printLeft(2,12,TCOD_BKGND_NONE,"E/D : hurst (" + hurst + ")")
-		sampleConsole.printLeft(2,13,TCOD_BKGND_NONE,"R/F : lacunarity (" + lacunarity + ")")
-		sampleConsole.printLeft(2,14,TCOD_BKGND_NONE,"T/G : octaves (" + octaves + ")")
+		sampleConsole.printLeft(2,12, "E/D : hurst (" + hurst + ")")
+		sampleConsole.printLeft(2,13, "R/F : lacunarity (" + lacunarity + ")")
+		sampleConsole.printLeft(2,14, "T/G : octaves (" + octaves + ")")
 	End If
 	' handle keypress
 	If key.vk = TCODK_NONE Then
@@ -571,14 +573,14 @@ Function render_fov(_first:Int, key:TCODKey)
 		' draw the help text & player @
 		sampleConsole.Clear()
 		sampleConsole.SetForegroundColor(TCODColor.white)
-		sampleConsole.PrintLeft(1,0,TCOD_BKGND_NONE, fovdets(torch, lightWalls) + algoNames[algonum])
+		sampleConsole.PrintLeft(1,0, fovdets(torch, lightWalls) + algoNames[algonum])
 		sampleConsole.SetForegroundColor(TCODColor.black)
-		sampleConsole.PutChar(px,py, Asc("@"),TCOD_BKGND_NONE)
+		sampleConsole.brushChar(px,py, Asc("@"))
 		' draw windows
 		For Local y:Int = 0 Until SAMPLE_SCREEN_HEIGHT
 			For Local x:Int = 0 Until SAMPLE_SCREEN_WIDTH
 				If smap[y][x] = Asc("=") Then
-					sampleConsole.PutChar(x, y, TCOD_CHAR_DHLINE, TCOD_BKGND_NONE)
+					sampleConsole.brushChar(x, y, TCOD_CHAR_DHLINE)
 				End If
 			Next
 		Next
@@ -615,9 +617,9 @@ Function render_fov(_first:Int, key:TCODKey)
 			End If
 			If Not visible Then
 				If wall Then
-					sampleConsole.SetBack(x, y, darkWall, TCOD_BKGND_SET)
+					sampleConsole.SetBack(x, y, darkWall)
 				Else
-					sampleConsole.SetBack(x, y, darkGround, TCOD_BKGND_SET)
+					sampleConsole.SetBack(x, y, darkGround)
 				End If
 			Else
 				Local light:TCODColor
@@ -656,52 +658,52 @@ Function render_fov(_first:Int, key:TCODKey)
 					End If
 					light = base
 				End If
-				sampleConsole.setBack(x,y,light, TCOD_BKGND_SET )
+				sampleConsole.setBack(x,y,light )
 			End If
 		Next
 	Next
 	If key.c = Asc("I") Or key.c = Asc("i") Then
 		' player move north
 		If smap[py-1][px] = 32 Then
-			sampleConsole.putChar(px,py, 32, TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, 32)
 			py:- 1
-			sampleConsole.putChar(px,py, Asc("@"),TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, Asc("@"))
 			recomputeFov=True
 		End If
 	Else If key.c = Asc("K") Or key.c = Asc("k") Then
 		' player move south
 		If smap[py+1][px] = 32 Then
-			sampleConsole.putChar(px,py, 32,TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, 32)
 			py:+ 1
-			sampleConsole.putChar(px,py, Asc("@"),TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, Asc("@"))
 			recomputeFov=True
 		End If
 	Else If key.c = Asc("J") Or key.c = Asc("j") Then
 		' player move west
 		If smap[py][px-1] = 32 Then
-			sampleConsole.putChar(px,py, 32,TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, 32)
 			px:- 1
-			sampleConsole.putChar(px,py, Asc("@"),TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, Asc("@"))
 			recomputeFov=True
 		End If
 	Else If key.c = Asc("L") Or key.c = Asc("l") Then
 		' player move east
 		If smap[py][px+1] = 32 Then
-			sampleConsole.putChar(px,py, 32,TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, 32)
 			px:+ 1
-			sampleConsole.putChar(px,py, Asc("@"),TCOD_BKGND_NONE)
+			sampleConsole.brushChar(px,py, Asc("@"))
 			recomputeFov=True
 		End If
 	Else If key.c = Asc("T") Or key.c = Asc("t") Then
 		' enable/disable the torch fx
 		torch = Not torch
 		sampleConsole.SetForegroundColor(TCODColor.white)
-		sampleConsole.PrintLeft(1,0,TCOD_BKGND_NONE, fovdets(torch, lightWalls) + algoNames[algonum])
+		sampleConsole.PrintLeft(1,0, fovdets(torch, lightWalls) + algoNames[algonum])
 		sampleConsole.SetForegroundColor(TCODColor.black)
 	Else If key.c = Asc("W") Or key.c = Asc("w") Then
 		lightWalls = Not lightWalls
 		sampleConsole.SetForegroundColor(TCODColor.white)
-		sampleConsole.PrintLeft(1,0,TCOD_BKGND_NONE, fovdets(torch, lightWalls) + algoNames[algonum])
+		sampleConsole.PrintLeft(1,0, fovdets(torch, lightWalls) + algoNames[algonum])
 		sampleConsole.SetForegroundColor(TCODColor.black)
 		recomputeFov = True
 	Else If key.c = Asc("+") Or key.c = Asc("-") Then
@@ -712,7 +714,7 @@ Function render_fov(_first:Int, key:TCODKey)
 		End If
 		algonum = Max(0, Min(NB_FOV_ALGORITHMS, algonum))
 		sampleConsole.SetForegroundColor(TCODColor.white)
-		sampleConsole.PrintLeft(1,0,TCOD_BKGND_NONE, fovdets(torch, lightWalls) + algoNames[algonum])
+		sampleConsole.PrintLeft(1,0, fovdets(torch, lightWalls) + algoNames[algonum])
 		sampleConsole.SetForegroundColor(TCODColor.black)
 		recomputeFov = True
 	End If
@@ -795,14 +797,14 @@ Function render_path(_first:Int, key:TCODKey)
 		' draw the help text & player @
 		sampleConsole.Clear()
 		sampleConsole.SetForegroundColor(TCODColor.white)
-		sampleConsole.PutChar(dx, dy, Asc("+"), TCOD_BKGND_NONE)
-		sampleConsole.PutChar(px, py, Asc("@"), TCOD_BKGND_NONE)
-		sampleConsole.PrintLeft(1,1,TCOD_BKGND_NONE,"IJKL / mouse :~nmove destination")
+		sampleConsole.BrushChar(dx, dy, Asc("+"))
+		sampleConsole.BrushChar(px, py, Asc("@"))
+		sampleConsole.PrintLeft(1,1,"IJKL / mouse :~nmove destination")
 		' draw windows
 		For Local y:Int = 0 Until SAMPLE_SCREEN_HEIGHT
 			For Local x:Int = 0 Until SAMPLE_SCREEN_WIDTH
 				If smap[y][x] = Asc("=") Then
-					sampleConsole.PutChar(x, y, TCOD_CHAR_DHLINE, TCOD_BKGND_NONE)
+					sampleConsole.BrushChar(x, y, TCOD_CHAR_DHLINE)
 				End If
 			Next
 		Next
@@ -821,9 +823,9 @@ Function render_path(_first:Int, key:TCODKey)
 				wall = True
 			End If
 			If wall Then
-				sampleConsole.SetBack(x,y, darkWall, TCOD_BKGND_SET )
+				sampleConsole.SetBack(x,y, darkWall )
 			Else
-				sampleConsole.SetBack(x,y, darkGround, TCOD_BKGND_SET )
+				sampleConsole.SetBack(x,y, darkGround )
 			End If
 		Next
 	Next
@@ -831,51 +833,51 @@ Function render_path(_first:Int, key:TCODKey)
 	For Local i:Int = 0 Until path.Size()
 		Local x:Int, y:Int
 		path.Get(i, x, y)
-		sampleConsole.SetBack(x, y, lightGround, TCOD_BKGND_SET)
+		sampleConsole.SetBack(x, y, lightGround)
 	Next
 	' move the creature
 	busy :- TCODSystem.GetLastFrameLength()
 	If busy <= 0.0 Then
 		busy :+ 0.2
 		If Not path.IsEmpty() Then
-			sampleConsole.PutChar(px,py, 32, TCOD_BKGND_NONE)
+			sampleConsole.BrushChar(px,py, 32)
 			path.Walk(px, py, True)
-			sampleConsole.PutChar(px,py, Asc("@"), TCOD_BKGND_NONE)
+			sampleConsole.BrushChar(px,py, Asc("@"))
 		End If
 	End If
 	If (key.c = Asc("I") Or key.c = Asc("i")) And dy > 0 Then
 		' destination move north
-		sampleConsole.putChar(dx,dy,oldChar,TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy,oldChar)
 		dy:- 1
 		oldChar = sampleConsole.GetChar(dx,dy)
-		sampleConsole.PutChar(dx, dy, Asc("+"), TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx, dy, Asc("+"))
 		If smap[dy][dx] = 32 Then
 			recalculatePath = True
 		End If
 	Else If (key.c = Asc("K") Or key.c = Asc("k")) And dy < SAMPLE_SCREEN_HEIGHT-1 Then
 		' destination move south
-		sampleConsole.PutChar(dx,dy,oldChar,TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy,oldChar)
 		dy:+ 1
 		oldChar = sampleConsole.GetChar(dx,dy)
-		sampleConsole.PutChar(dx,dy, Asc("+"), TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy, Asc("+"))
 		If smap[dy][dx] = 32 Then
 			recalculatePath = True
 		End If
 	Else If (key.c = Asc("J") Or key.c = Asc("j")) And dx > 0 Then
 		' destination move west
-		sampleConsole.PutChar(dx,dy,oldChar,TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy,oldChar)
 		dx:- 1
 		oldChar = sampleConsole.GetChar(dx,dy)
-		sampleConsole.PutChar(dx,dy, Asc("+"), TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy, Asc("+"))
 		If smap[dy][dx] = 32 Then
 			recalculatePath = True
 		End If
 	Else If (key.c = Asc("L") Or key.c = Asc("l")) And dx < SAMPLE_SCREEN_WIDTH -1 Then
 		' destination move east
-		sampleConsole.PutChar(dx,dy,oldChar,TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy,oldChar)
 		dx:+ 1
 		oldChar = sampleConsole.GetChar(dx,dy)
-		sampleConsole.PutChar(dx,dy, Asc("+"), TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy, Asc("+"))
 		If smap[dy][dx] = 32 Then
 			recalculatePath = True
 		End If
@@ -884,11 +886,11 @@ Function render_path(_first:Int, key:TCODKey)
 	mx = mouse.cx - SAMPLE_SCREEN_X
 	my = mouse.cy - SAMPLE_SCREEN_Y
 	If mx >= 0 And mx < SAMPLE_SCREEN_WIDTH And my >= 0 And my < SAMPLE_SCREEN_HEIGHT And ( dx <> mx Or dy <> my ) Then
-		sampleConsole.PutChar(dx, dy, oldChar, TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx, dy, oldChar)
 		dx = mx
 		dy = my
 		oldChar = sampleConsole.GetChar(dx,dy)
-		sampleConsole.PutChar(dx,dy, Asc("+"), TCOD_BKGND_NONE)
+		sampleConsole.BrushChar(dx,dy, Asc("+"))
 		If smap[dy][dx] = 32 Then
 			recalculatePath = True
 		End If
@@ -899,46 +901,51 @@ Function render_bsp(_first:Int, key:TCODKey)
 End Function
 
 Function render_image(_first:Int, key:TCODKey)
-	Global img:TCODImage = Null, circle:TCODImage = Null
+	Global img:TCODImage = Null, circle:TCODImage = Null, backbuf:TCODImage = Null
 	Global blue:TCODColor = New TCODColor.Create(0,0,255)
 	Global green:TCODColor = New TCODColor.Create(0,255,0)
 	If img = Null Then
 		img = TCODImage.CreateFromFile("skull.png")
 		img.SetKeyColor(TCODColor.black)
 		circle = TCODImage.CreateFromFile("circle.png")
+		backbuf = New TCODImage.Create(SAMPLE_SCREEN_WIDTH*2,SAMPLE_SCREEN_HEIGHT*2)
 	End If
 	If _first Then
 		TCODSystem.SetFps(30) ' fps limited to 30
 	End If
-	sampleConsole.SetBackgroundColor(TCODColor.black)
-	sampleConsole.Clear()
+'	sampleConsole.SetBackgroundColor(TCODColor.black)
+'	sampleConsole.Clear()
 	Local x:Float= SAMPLE_SCREEN_WIDTH/2 + Cos(TCODSystem.GetElapsedSeconds() * 57.2957795)*10.0
 	Local y:Float=(SAMPLE_SCREEN_HEIGHT/2)
 	Local scalex:Float = 0.2 + 1.8 * (1.0 + Cos((TCODSystem.GetElapsedSeconds()/2) * 57.2957795))/2.0
 	Local scaley:Float = scalex
 	Local angle:Float = TCODSystem.GetElapsedSeconds()  * 57.2957795
-	Local elapsed:Int = TCODSystem.GetElapsedMilli() / 2000
-	If elapsed & 1 Then
-		' split the color channels of circle.png
-		' the red channel
-		sampleConsole.setBackgroundColor(TCODColor.red)
-		sampleConsole.rect(0, 3, 15, 15, False, TCOD_BKGND_SET)
-		circle.BlitRect(sampleConsole, 0, 3, -1, -1, TCOD_BKGND_MULTIPLY)
-		' the green channel
-		sampleConsole.setBackgroundColor(green)
-		sampleConsole.rect(15, 3, 15, 15, False, TCOD_BKGND_SET)
-		circle.BlitRect(sampleConsole, 15, 3, -1, -1, TCOD_BKGND_MULTIPLY)
-		' the blue channel
-		sampleConsole.setBackgroundColor(blue)
-		sampleConsole.rect(30, 3, 15, 15, False, TCOD_BKGND_SET)
-		circle.BlitRect(sampleConsole, 30, 3, -1, -1, TCOD_BKGND_MULTIPLY)
-	Else
-		' render circle.png with normal blitting
-		circle.BlitRect(sampleConsole, 0, 3, -1, -1, TCOD_BKGND_SET)
-		circle.BlitRect(sampleConsole, 15, 3, -1, -1, TCOD_BKGND_SET)
-		circle.BlitRect(sampleConsole, 30, 3, -1, -1, TCOD_BKGND_SET)
-	End If
-	img.blit(sampleConsole, x, y, TCOD_BKGND_SET, scalex, scaley, angle)
+'	Local elapsed:Int = TCODSystem.GetElapsedMilli() / 2000
+'	If elapsed & 1 Then
+'		' split the color channels of circle.png
+'		' the red channel
+'		sampleConsole.setBackgroundColor(TCODColor.red)
+'		sampleConsole.rect(0, 3, 15, 15, False)
+'		circle.BlitRect(sampleConsole, 0, 3, -1, -1)
+'		' the green channel
+'		sampleConsole.setBackgroundColor(green)
+'		sampleConsole.rect(15, 3, 15, 15, False)
+'		circle.BlitRect(sampleConsole, 15, 3, -1, -1)
+'		' the blue channel
+'		sampleConsole.setBackgroundColor(blue)
+'		sampleConsole.rect(30, 3, 15, 15, False)
+'		circle.BlitRect(sampleConsole, 30, 3, -1, -1)
+'	Else
+'		' render circle.png with normal blitting
+'		circle.BlitRect(sampleConsole, 0, 3, -1, -1)
+'		circle.BlitRect(sampleConsole, 15, 3, -1, -1)
+'		circle.BlitRect(sampleConsole, 30, 3, -1, -1)
+'	End If
+'	img.blit(sampleConsole, x, y, scalex, scaley, angle)
+	circle.blitRect(backbuf, 0, 0)
+	img.blit(backbuf, x, y, scalex, scaley, angle)
+	backbuf.blit2x(sampleConsole, 0, 0)
+
 End Function
 
 Function render_mouse(_first:Int, key:TCODKey)
@@ -972,9 +979,9 @@ Function render_mouse(_first:Int, key:TCODKey)
 		"Right button   : " + mbutton(mouse.rbutton, lbut) + ..
 		"Middle button  : " + mbutton(mouse.mbutton, lbut)
 	
-	sampleConsole.PrintLeft(1, 1, TCOD_BKGND_NONE, s)
+	sampleConsole.PrintLeft(1, 1, s)
 
-	sampleConsole.printLeft(1, 10, TCOD_BKGND_NONE, "1 : Hide cursor~n2 : Show cursor")
+	sampleConsole.printLeft(1, 10, "1 : Hide cursor~n2 : Show cursor")
 	If key.c = Asc("1") Then
 		TCODMouse.ShowCursor(False)
 	Else If key.c = Asc("2") Then

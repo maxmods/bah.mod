@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include "libtcod.hpp"
 #include "gui.hpp"
@@ -22,14 +23,16 @@ void Slider::setFormat(const char *fmt) {
 }
 
 void Slider::render() {
+	con->pushBrush();
 	w-=2;
 	TextBox::render();
 	w+=2;
-	con->setBackgroundColor((onArrows || drag) ? backFocus : back);
+	con->setBackgroundBrush((onArrows || drag) ? backFocus : back, TCOD_COLOROP_SET);
 	con->setForegroundColor((onArrows || drag) ? foreFocus : fore);
-	con->rect(x+w-2,y,2,1,TCOD_BKGND_SET);
+	con->rect(x+w-2,y,2,1,' ');
 	con->setChar(x+w-2,y,TCOD_CHAR_ARROW_W);
 	con->setChar(x+w-1,y,TCOD_CHAR_ARROW_E);
+	con->popBrush();
 }
 
 void Slider::update(TCOD_key_t k) {
@@ -67,7 +70,7 @@ void Slider::valueToText() {
 }
 
 void Slider::textToValue() {
-#ifdef VISUAL_STUDIO
+#ifdef TCOD_VISUAL_STUDIO
     value=(float)atof(txt);
 #else
 	char *endptr;
