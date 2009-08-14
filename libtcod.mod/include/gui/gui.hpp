@@ -9,7 +9,7 @@
 #endif
 
 // DLL export
-#ifdef TCOD_WINDOWS
+#if defined(TCOD_WINDOWS) && !defined(TCOD_MINGW32)
 #ifdef LIBTCOD_GUI_EXPORTS
 #define TCODLIB_GUI_API __declspec(dllexport)
 #else

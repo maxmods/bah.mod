@@ -105,7 +105,7 @@ typedef uint8 bool;
 #endif
 
 // DLL export
-#if defined(TCOD_WINDOWS) && !defined(MINGW32)
+#if defined(TCOD_WINDOWS) && !defined(TCOD_MINGW32)
 #ifdef LIBTCOD_EXPORTS
 #define TCODLIB_API __declspec(dllexport)
 #else

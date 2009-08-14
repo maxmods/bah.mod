@@ -352,6 +352,7 @@ void TCOD_semaphore_delete( TCOD_semaphore_t sem)
 #endif
 }
 // library initialization function
+#if 0
 #ifdef TCOD_WINDOWS
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD reason, LPVOID reserved) {
 	switch (reason ) {
@@ -367,4 +368,4 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD reason, LPVOID reserved) {
 	}
 	#endif
 #endif
-
+#endif
