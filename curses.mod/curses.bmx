@@ -37,6 +37,10 @@ ModuleInfo "Copyright: Wrapper - 2007,2008 Bruce A Henderson"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (cdk 5.0.20060507, pdcurses 3.4)"
 
+?macos
+ModuleInfo "CC_OPTS: -DNCURSES_OPAQUE=0"
+?
+
 Import Pub.StdC
 
 Import "common.bmx"
