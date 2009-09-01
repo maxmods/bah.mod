@@ -25,10 +25,12 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Added AES cipher support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added TStream support for the 'easy' digest API."
 ModuleInfo "History: 1.01"
@@ -630,6 +632,169 @@ End Rem
 		Return this
 	End Function
 ?
+
+	Rem
+	bbdoc: AES encryption algorithm, using ECB (Electronic codebook) mode.
+	End Rem
+	Function aes_128_ecb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_ecb()
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CBC (Cipher-block chaining) mode.
+	End Rem
+	Function aes_128_cbc:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_cbc();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_128_cfb1:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_cfb1();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_128_cfb8:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_cfb8();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_128_cfb128:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_cfb128();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using OFB (Output feedback) mode.
+	End Rem
+	Function aes_128_ofb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_128_ofb();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using ECB (Electronic codebook) mode.
+	End Rem
+	Function aes_192_ecb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_ecb();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CBC (Cipher-block chaining) mode.
+	End Rem
+	Function aes_192_cbc:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_cbc();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_192_cfb1:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_cfb1();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_192_cfb8:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_cfb8();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_192_cfb128:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_cfb128();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using OFB (Output feedback) mode.
+	End Rem
+	Function aes_192_ofb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_192_ofb();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using ECB (Electronic codebook) mode.
+	End Rem
+	Function aes_256_ecb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_ecb();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CBC (Cipher-block chaining) mode.
+	End Rem
+	Function aes_256_cbc:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_cbc();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_256_cfb1:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_cfb1();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_256_cfb8:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_cfb8();
+		Return this
+	End Function
+			
+	Rem
+	bbdoc: AES encryption algorithm, using CFB (Cipher feedback) mode.
+	End Rem
+	Function aes_256_cfb128:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_cfb128();
+		Return this
+	End Function
+
+	Rem
+	bbdoc: AES encryption algorithm, using OFB (Output feedback) mode.
+	End Rem
+	Function aes_256_ofb:EVP_CIPHER()
+		Local this:EVP_CIPHER = New EVP_CIPHER
+		this.cipherPtr = EVP_aes_256_ofb();
+		Return this
+	End Function
+
 End Type
 
 Rem

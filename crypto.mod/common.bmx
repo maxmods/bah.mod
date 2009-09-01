@@ -144,6 +144,26 @@ End Rem
 	Function EVP_mdc2:Byte Ptr()
 ?
 	Function EVP_ripemd160:Byte Ptr()
+
+	Function EVP_aes_128_ecb:Byte Ptr()
+	Function EVP_aes_128_cbc:Byte Ptr()
+	Function EVP_aes_128_cfb1:Byte Ptr()
+	Function EVP_aes_128_cfb8:Byte Ptr()
+	Function EVP_aes_128_cfb128:Byte Ptr()
+	Function EVP_aes_128_ofb:Byte Ptr()
+	Function EVP_aes_192_ecb:Byte Ptr()
+	Function EVP_aes_192_cbc:Byte Ptr()
+	Function EVP_aes_192_cfb1:Byte Ptr()
+	Function EVP_aes_192_cfb8:Byte Ptr()
+	Function EVP_aes_192_cfb128:Byte Ptr()
+	Function EVP_aes_192_ofb:Byte Ptr()
+	Function EVP_aes_256_ecb:Byte Ptr()
+	Function EVP_aes_256_cbc:Byte Ptr()
+	Function EVP_aes_256_cfb1:Byte Ptr()
+	Function EVP_aes_256_cfb8:Byte Ptr()
+	Function EVP_aes_256_cfb128:Byte Ptr()
+	Function EVP_aes_256_ofb:Byte Ptr()
+
 	
 End Extern
 
