@@ -25,7 +25,7 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.04"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
