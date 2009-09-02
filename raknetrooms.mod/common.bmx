@@ -13,9 +13,24 @@ Extern
 	Function bmx_raknetroomsplugin_ClearRoomMembers(handle:Byte Ptr)
 	Function bmx_raknetroomsplugin_ClearLoginServerAdddresses(handle:Byte Ptr)
 	Function bmx_raknetroomsplugin_SetRoomsCallback(handle:Byte Ptr, roomsCallback:Byte Ptr)
+	Function bmx_raknetroomsplugin_ExecuteFuncAddress(handle:Byte Ptr, func:Byte Ptr, remoteAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_ExecuteFunc(handle:Byte Ptr, func:Byte Ptr)
+	Function bmx_raknetroomsplugin_SetServerAddress(handle:Byte Ptr, systemAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_LoginRoomsParticipant:Int(handle:Byte Ptr, userName:String, roomsParticipantAddress:Byte Ptr, guid:Byte Ptr, loginServerAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_LogoffRoomsParticipant:Int(handle:Byte Ptr, userName:String, loginServerAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_AddLoginServerAddress(handle:Byte Ptr, systemAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_RemoveLoginServerAddress(handle:Byte Ptr, systemAddress:Byte Ptr)
+	Function bmx_raknetroomsplugin_SetProfanityFilter(handle:Byte Ptr, pf:Byte Ptr)
 
 	Function bmx_raknetroomscallback_new:Byte Ptr(handle:Object)
 	
+	Function bmx_profanityfilter_new:Byte Ptr()
+	Function bmx_profanityfilter_HasProfanity:Int(handle:Byte Ptr, text:String)
+	Function bmx_profanityfilter_FilterProfanity:String(handle:Byte Ptr, text:String, filter:Int, ret:Int Ptr)
+	Function bmx_profanityfilter_Count:Int(handle:Byte Ptr)
+	Function bmx_profanityfilter_AddWord(handle:Byte Ptr, newWord:String)
+	Function bmx_profanityfilter_free(handle:Byte Ptr)
+
 End Extern
 
 

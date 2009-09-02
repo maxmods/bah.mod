@@ -119,7 +119,11 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	bbdoc: Execute a function, either using the system address passed to SetServerAddress(), or the one specified.
 	end rem
 	Method ExecuteFunc(func:TRKRoomsPluginFunc, remoteAddress:TRKSystemAddress = Null)
-	' TODO
+		If remoteAddress Then
+			bmx_raknetroomsplugin_ExecuteFuncAddress(pluginPtr, func.funcPtr, remoteAddress.systemAddressPtr)
+		Else
+			bmx_raknetroomsplugin_ExecuteFunc(pluginPtr, func.funcPtr)
+		End If
 	End Method
 	
 	Rem
@@ -127,7 +131,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] systemAddress The remote system, which should be connected while calling client functions
 	end rem
 	Method SetServerAddress(systemAddress:TRKSystemAddress)
-	' TODO
+		bmx_raknetroomsplugin_SetServerAddress(pluginPtr, systemAddress.systemAddressPtr)
 	End Method
 	
 	Rem
@@ -137,8 +141,8 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] roomsParticipantAddress The address of the user
 	/// \param[in] loginServerAddress The server adding this user. Use UNASSIGNED_SYSTEM_ADDRESS for not applicable. Otherwise, the address must previously have been added using AddLoginServerAddress() or the function will fail.
 	end rem
-	Method LoginRoomsParticipant:Int(userName:String, roomsParticipantAddress:TRKSystemAddress, loginServerAddress:TRKSystemAddress)
-	' TODO
+	Method LoginRoomsParticipant:Int(userName:String, roomsParticipantAddress:TRKSystemAddress, guid:TRKRakNetGUID, loginServerAddress:TRKSystemAddress)
+		Return bmx_raknetroomsplugin_LoginRoomsParticipant(pluginPtr, userName, roomsParticipantAddress.systemAddressPtr, guid.guidPtr, loginServerAddress.systemAddressPtr)
 	End Method
 	
 	Rem
@@ -147,7 +151,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] loginServerAddress The server removing. Use UNASSIGNED_SYSTEM_ADDRESS for not applicable. Otherwise, the address must previously have been added using AddLoginServerAddress() or the function will fail.
 	end rem
 	Method LogoffRoomsParticipant:Int(userName:String, loginServerAddress:TRKSystemAddress)
-	' TODO
+		Return bmx_raknetroomsplugin_LogoffRoomsParticipant(pluginPtr, userName, loginServerAddress.systemAddressPtr)
 	End Method
 	
 	Rem
@@ -157,16 +161,12 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 		bmx_raknetroomsplugin_ClearRoomMembers(pluginPtr)
 	End Method
 	
-	Method ChangeHandle(oldHandle:String, newHandle:String)
-	' TODO
-	End Method
-	
 	Rem
 	bbdoc: Add a SystemAddress to a list that will be checked when LoginRoomsParticipant() and LogoffRoomsParticipant() is called
 	/// \param[in] systemAddress The address to add
 	end rem
 	Method AddLoginServerAddress(systemAddress:TRKSystemAddress)
-	' TODO
+		bmx_raknetroomsplugin_AddLoginServerAddress(pluginPtr, systemAddress.systemAddressPtr)
 	End Method
 	
 	Rem
@@ -174,7 +174,7 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// \param[in] systemAddress The address to remove
 	end rem
 	Method RemoveLoginServerAddress(systemAddress:TRKSystemAddress)
-	' TODO
+		bmx_raknetroomsplugin_RemoveLoginServerAddress(pluginPtr, systemAddress.systemAddressPtr)
 	End Method
 	
 	Rem
@@ -190,9 +190,9 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 	/// Room invitations and other messages are not checked.
 	/// \param[in] pf An instance of a profanity filter
 	end rem
-	'Method SetProfanityFilter(pf:TRKProfanityFilter)
-	' TODO
-	'End Method
+	Method SetProfanityFilter(pf:TRKProfanityFilter)
+		bmx_raknetroomsplugin_SetProfanityFilter(pluginPtr, pf.filterPtr)
+	End Method
 
 	
 End Type
@@ -1297,6 +1297,57 @@ Type TRKRoomChatNotification Extends TRKRoomsPluginNotification
 		End If
 	End Function
 
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TRKProfanityFilter
+
+	Field filterPtr:Byte Ptr
+
+	Method New()
+		filterPtr = bmx_profanityfilter_new()
+	End Method
+	
+	Rem
+	bbdoc: Returns true if the string has profanity, false if not.
+	End Rem
+	Method HasProfanity:Int(text:String)
+		Return bmx_profanityfilter_HasProfanity(filterPtr, text)
+	End Method
+
+	Rem
+	bbdoc: Removes profanity.
+	about: Returns number of occurrences of profanity matches (including 0)
+	End Rem
+	Method FilterProfanity:Int(text:String, output:String Var, filter:Int = True)
+		Local ret:Int
+		output = bmx_profanityfilter_FilterProfanity(filterPtr, text, filter, Varptr ret)
+		Return ret
+	End Method
+	
+	Rem
+	bbdoc: Number of profanity words loaded.
+	End Rem
+	Method Count:Int()
+		Return bmx_profanityfilter_Count(filterPtr)
+	End Method
+
+	Rem
+	bbdoc: Adds a word to the profanity words list.
+	End Rem
+	Method AddWord(newWord:String)
+		bmx_profanityfilter_AddWord(filterPtr, newWord)
+	End Method
+	
+	Method Delete()
+		If filterPtr Then
+			bmx_profanityfilter_free(filterPtr)
+			filterPtr = Null
+		End If
+	End Method
+	
 End Type
 
 

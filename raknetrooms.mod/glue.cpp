@@ -1,6 +1,7 @@
 #include "RoomsPlugin.h"
 #include "../raknet.mod/glue.h"
-
+#include "RakNetTypes.h"
+#include "ProfanityFilter.h"
 
 struct MaxRoomsCallback;
 
@@ -64,8 +65,23 @@ extern "C" {
 	void bmx_raknetroomsplugin_ClearRoomMembers(RakNet::RoomsPlugin * rooms);
 	void bmx_raknetroomsplugin_ClearLoginServerAdddresses(RakNet::RoomsPlugin * rooms);
 	void bmx_raknetroomsplugin_SetRoomsCallback(RakNet::RoomsPlugin * rooms, RakNet::RoomsCallback * roomsCallback);
+	void bmx_raknetroomsplugin_ExecuteFuncAddress(RakNet::RoomsPlugin * rooms, RakNet::RoomsPluginFunc * func, MaxSystemAddress * remoteAddress);
+	void bmx_raknetroomsplugin_ExecuteFunc(RakNet::RoomsPlugin * rooms, RakNet::RoomsPluginFunc * func);
+	void bmx_raknetroomsplugin_SetServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress);
+	int bmx_raknetroomsplugin_LoginRoomsParticipant(RakNet::RoomsPlugin * rooms, BBString * userName, MaxSystemAddress * roomsParticipantAddress, RakNetGUID * guid, MaxSystemAddress * loginServerAddress);
+	int bmx_raknetroomsplugin_LogoffRoomsParticipant(RakNet::RoomsPlugin * rooms, BBString * userName, MaxSystemAddress * loginServerAddress);
+	void bmx_raknetroomsplugin_AddLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress);
+	void bmx_raknetroomsplugin_RemoveLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress);
+	void bmx_raknetroomsplugin_SetProfanityFilter(RakNet::RoomsPlugin * rooms, ProfanityFilter * pf);
 
 	MaxRoomsCallback * bmx_raknetroomscallback_new(BBObject * handle);
+
+	ProfanityFilter * bmx_profanityfilter_new();
+	int bmx_profanityfilter_HasProfanity(ProfanityFilter * filter, BBString * text);
+	BBString * bmx_profanityfilter_FilterProfanity(ProfanityFilter * filter, BBString * text, int filter, int * ret);
+	int bmx_profanityfilter_Count(ProfanityFilter * filter);
+	void bmx_profanityfilter_AddWord(ProfanityFilter * filter, BBString * newWord);
+	void bmx_profanityfilter_free(ProfanityFilter * filter);
 
 }
 
@@ -303,11 +319,98 @@ void bmx_raknetroomsplugin_SetRoomsCallback(RakNet::RoomsPlugin * rooms, RakNet:
 	rooms->SetRoomsCallback(roomsCallback);
 }
 
+void bmx_raknetroomsplugin_ExecuteFuncAddress(RakNet::RoomsPlugin * rooms, RakNet::RoomsPluginFunc * func, MaxSystemAddress * remoteAddress) {
+	rooms->ExecuteFunc(func, remoteAddress->Address());
+}
+
+void bmx_raknetroomsplugin_ExecuteFunc(RakNet::RoomsPlugin * rooms, RakNet::RoomsPluginFunc * func) {
+	rooms->ExecuteFunc(func);
+}
+
+void bmx_raknetroomsplugin_SetServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress) {
+	rooms->SetServerAddress(systemAddress->Address());
+}
+
+int bmx_raknetroomsplugin_LoginRoomsParticipant(RakNet::RoomsPlugin * rooms, BBString * userName, MaxSystemAddress * roomsParticipantAddress, RakNetGUID * guid, MaxSystemAddress * loginServerAddress) {
+	char * u = bbStringToCString(userName);
+	int ret = rooms->LoginRoomsParticipant(u, roomsParticipantAddress->Address(), *guid, loginServerAddress->Address());
+	bbMemFree(u);
+	return ret;
+}
+
+int bmx_raknetroomsplugin_LogoffRoomsParticipant(RakNet::RoomsPlugin * rooms, BBString * userName, MaxSystemAddress * loginServerAddress) {
+	char * u = bbStringToCString(userName);
+	int ret = rooms->LogoffRoomsParticipant(u, loginServerAddress->Address());
+	bbMemFree(u);
+	return ret;
+}
+
+void bmx_raknetroomsplugin_AddLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress) {
+	rooms->AddLoginServerAddress(systemAddress->Address());
+}
+
+void bmx_raknetroomsplugin_RemoveLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress) {
+	rooms->RemoveLoginServerAddress(systemAddress->Address());
+}
+
+void bmx_raknetroomsplugin_SetProfanityFilter(RakNet::RoomsPlugin * rooms, ProfanityFilter * pf) {
+	rooms->SetProfanityFilter(pf);
+}
 
 // ****************************
 
 MaxRoomsCallback * bmx_raknetroomscallback_new(BBObject * handle) {
 	return new MaxRoomsCallback(handle);
+}
+
+// ****************************
+
+ProfanityFilter * bmx_profanityfilter_new() {
+	return new ProfanityFilter();
+}
+
+int bmx_profanityfilter_HasProfanity(ProfanityFilter * filter, BBString * text) {
+	char * t = bbStringToCString(text);
+	int ret = static_cast<int>(filter->HasProfanity(t));
+	bbMemFree(t);
+	return ret;
+}
+
+BBString * bmx_profanityfilter_FilterProfanity(ProfanityFilter * filter, BBString * text, int f, int * ret) {
+	char * t = bbStringToCString(text);
+
+	char * output = 0;
+	if (filter) {
+		output = (char *) malloc(strlen(t) + 1);
+	}
+	
+	*ret = filter->FilterProfanity(t, output, static_cast<bool>(f));
+	
+	bbMemFree(t);
+	
+	BBString * o = 0;
+	if (output) {
+		o = bbStringFromCString(output);
+		free(output);
+	} else {
+		o = text;
+	}
+	
+	return o;
+}
+
+int bmx_profanityfilter_Count(ProfanityFilter * filter) {
+	return filter->Count();
+}
+
+void bmx_profanityfilter_AddWord(ProfanityFilter * filter, BBString * newWord) {
+	char * w = bbStringToCString(newWord);
+	filter->AddWord(w);
+	bbMemFree(w);
+}
+
+void bmx_profanityfilter_free(ProfanityFilter * filter) {
+	delete filter;
 }
 
 

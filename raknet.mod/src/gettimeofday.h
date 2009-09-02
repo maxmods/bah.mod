@@ -14,7 +14,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 #include <unistd.h>
 
 // Uncomment this if you need to
-/*
+#ifdef _WIN32
 // http://www.halcode.com/archives/2008/08/26/retrieving-system-time-gettimeofday/
 struct timezone
 {
@@ -42,7 +42,7 @@ inline int gettimeofday(struct timeval* p, void* tz )
 #else
 	int gettimeofday(struct timeval* p, void* tz );
 #endif
-*/
+#endif
 
 #endif
 
