@@ -1,0 +1,53 @@
+<p>
+Utilising <a href="www.openssl.org/">OpenSSL</a>'s crypto libraries, we gain support for AES, BlowFish, CAST, DES, RC2, RC4 and RC5 encryption/decryption,
+with a simple API that anyone should be able to master in no time.
+</p>
+<p>
+Also included is access to message digest functions, including MD2, MD5, SHA, SHA1, SHA (DSS), SAH1 (DSS), MDC2 (Mac only), and RIPEMD160.
+</p>
+<h2>Requirements</h2>
+<p>
+The Crypto module uses an external library (OpenSSL), which needs to be present on the system for it to function correctly.
+</p>
+<h3>OS X</h3>
+<p>
+Mac OS X comes with both the runtime and dev OpenSSL library files pre-installed. It should simply compile and run without the need for installing anything else.
+</p>
+<h3>Linux</h3>
+<p>
+Most Linux distros will have OpenSSL installed, since it is used by a variety of internet applications. You may need to install the openssl-devel package which include headers.
+</p>
+<p>
+Runtime binaries do not require the devel packages.
+</p>
+<h3>Win32</h3>
+<p>
+You will need to install the Win32 OpenSSL library which include the necessary libeay32.dll. (Note that it should compile without it, as the headers/link files are included
+with the module)
+</p>
+<p>
+You can find an installer at <a href="http://www.slproweb.com/products/Win32OpenSSL.html" rel="nofollow">Shining Light Production's</a> page, and need only install the
+<strong>light</strong> version of the library.
+</p>
+<p>
+If you intend distributing your app without the end-user having to also download OpenSSL, it's possible to include the libeay32.dll (you can find it in System32) in
+the application folder.
+</p>
+<h3>Example</h3>
+<p>
+This short example demonstrates encrypting a set of bytes with the BlowFish<a href="/p/maxmods/w/edit/BlowFish">?</a> algorithm in the Cipher-block chaining mode.
+</p>
+<pre>Local ctx:EVP_CIPHER_CTX = New EVP_CIPHER_CTX.Create()
+ctx.EncryptInit(EVP_CIPHER.bf_cbc(), Null, key, iv)
+If Not ctx.EncryptUpdate(outbuf, outlen, inbuf, inlen) Then
+	Print "Error..."
+	End
+	
+End If
+If Not ctx.EncryptFinal(Varptr(outbuf)[outlen], tmplen) Then
+	Print "Error..."
+	End
+End If
+outlen :+ tmplen
+ctx.Cleanup()
+</pre>

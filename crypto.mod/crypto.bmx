@@ -25,14 +25,13 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.02"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
-ModuleInfo "History: 1.03"
-ModuleInfo "History: Added AES cipher support."
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added TStream support for the 'easy' digest API."
+ModuleInfo "History: Added AES cipher support."
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Added digest functions."
 ModuleInfo "History: 1.00"
