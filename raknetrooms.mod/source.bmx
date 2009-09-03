@@ -10,7 +10,7 @@ Import "../raknet.mod/src/*.h"
 
 
 Import "src/Rooms/*.h"
-?Not win32
+
 Import "src/Rooms/IntervalTimer.cpp"
 Import "src/Rooms/RoomTypes.cpp"
 Import "src/Rooms/ProfanityFilter.cpp"
@@ -19,4 +19,4 @@ Import "src/Rooms/RoomsErrorCodes.cpp"
 Import "src/Rooms/RoomsPlugin.cpp"
 
 Import "glue.cpp"
-?
+
