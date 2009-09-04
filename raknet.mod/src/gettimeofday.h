@@ -15,14 +15,14 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 // Uncomment this if you need to
 #ifdef _WIN32
-/*
+#ifndef _SYS_TIME_H
 // http://www.halcode.com/archives/2008/08/26/retrieving-system-time-gettimeofday/
 struct timezone
 {
     int tz_minuteswest;
   int tz_dsttime;
 };
-*/
+#endif
 #ifdef	__cplusplus
  
 void  GetSystemTimeAsFileTime(FILETIME*);

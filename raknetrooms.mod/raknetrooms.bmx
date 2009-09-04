@@ -194,6 +194,9 @@ Type TRKRoomsPlugin Extends TRKPluginInterface
 		bmx_raknetroomsplugin_SetProfanityFilter(pluginPtr, pf.filterPtr)
 	End Method
 
+	Method RoomsContainer:TRKAllGamesRoomsContainer()
+		Return TRKAllGamesRoomsContainer._create(bmx_raknetroomsplugin_RoomsContainer(pluginPtr))
+	End Method
 	
 End Type
 
@@ -557,11 +560,18 @@ End Rem
 Type TRKRoomsPluginFunc
 
 	Field funcPtr:Byte Ptr
+	Field owner:Int = False
 	
 	Method GetResultCode:Int()
+		Return bmx_roomspluginfunc_getresultcode(funcPtr)
 	End Method
-	
+
 	Method GetUserName:String()
+		Return bmx_roomspluginfunc_getusername(funcPtr)
+	End Method
+
+	Method SetUserName(name:String)
+		bmx_roomspluginfunc_setusername(funcPtr, name)
 	End Method
 
 End Type
@@ -579,6 +589,30 @@ Type TRKCreateRoomFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKCreateRoomFunc()
+		funcPtr = bmx_createroomfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetNetworkedRoomCreationParameters:TRKNetworkedRoomCreationParameters()
+		Return TRKNetworkedRoomCreationParameters._create(bmx_createroomfunc_GetNetworkedRoomCreationParameters(funcPtr))
+	End Method
+	
+	Method GetGameIdentifier:String()
+		Return bmx_createroomfunc_GetGameIdentifer(funcPtr)
+	End Method
+	
+	Method SetGameIdentifier(gameIdentifier:String)
+		bmx_createroomfunc_SetGameIdentifer(funcPtr, gameIdentifier)
+	End Method
+
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_createroomfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 End Type
 
 Rem
@@ -1349,5 +1383,91 @@ Type TRKProfanityFilter
 	End Method
 	
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TRKAllGamesRoomsContainer
+
+	Field containerPtr:Byte Ptr
+	
+	Function _create:TRKAllGamesRoomsContainer(containerPtr:Byte Ptr)
+		If containerPtr Then
+			Local this:TRKAllGamesRoomsContainer = New TRKAllGamesRoomsContainer
+			this.containerPtr = containerPtr
+			Return this
+		End If
+	End Function
+
+	Method AddTitle:Int(gameIdentifier:String)
+		Return bmx_allgamesroomcontainer_addtitle(containerPtr, gameIdentifier)
+	End Method
+	
+End Type
+
+Type TRKNetworkedRoomCreationParameters
+
+	Field paramPtr:Byte Ptr
+	
+	Function _create:TRKNetworkedRoomCreationParameters(paramPtr:Byte Ptr)
+		If paramPtr Then
+			Local this:TRKNetworkedRoomCreationParameters = New TRKNetworkedRoomCreationParameters
+			this.paramPtr = paramPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetSlots:TRKSlots()
+		Return TRKSlots._create(bmx_networkedroomcreationparameters_GetSlots(paramPtr))
+	End Method
+	
+	Method GetRoomName:String()
+		Return bmx_networkedroomcreationparameters_GetRoomName(paramPtr)
+	End Method
+	
+	Method SetRoomName(name:String)
+		bmx_networkedroomcreationparameters_SetRoomName(paramPtr, name)
+	End Method
+
+End Type
+
+Type TRKSlots
+
+	Field slotsPtr:Byte Ptr
+	
+	Function _create:TRKSlots(slotsPtr:Byte Ptr)
+		If slotsPtr Then
+			Local this:TRKSlots = New TRKSlots
+			this.slotsPtr = slotsPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetPublicSlots:Int()
+		Return bmx_slots_GetPublicSlots(slotsPtr)
+	End Method
+	
+	Method SetPublicSlots(slots:Int)
+		bmx_slots_SetPublicSlots(slotsPtr, slots)
+	End Method
+	
+	Method GetReservedSlots:Int()
+		Return bmx_slots_GetReservedSlots(slotsPtr)
+	End Method
+	
+	Method SetReservedSlots(slots:Int)
+		bmx_slots_SetReservedSlots(slotsPtr, slots)
+	End Method
+	
+	Method GetSpectatorSlots:Int()
+		Return bmx_slots_GetSpectatorSlots(slotsPtr)
+	End Method
+	
+	Method SetSpectatorSlots(slots:Int)
+		bmx_slots_SetSpectatorSlots(slotsPtr, slots)
+	End Method
+	
+End Type
+
 
 

@@ -2,6 +2,7 @@
 #include "../raknet.mod/glue.h"
 #include "RakNetTypes.h"
 #include "ProfanityFilter.h"
+#include "RoomsContainer.h"
 
 struct MaxRoomsCallback;
 
@@ -73,6 +74,7 @@ extern "C" {
 	void bmx_raknetroomsplugin_AddLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress);
 	void bmx_raknetroomsplugin_RemoveLoginServerAddress(RakNet::RoomsPlugin * rooms, MaxSystemAddress * systemAddress);
 	void bmx_raknetroomsplugin_SetProfanityFilter(RakNet::RoomsPlugin * rooms, ProfanityFilter * pf);
+	RakNet::AllGamesRoomsContainer * bmx_raknetroomsplugin_RoomsContainer(RakNet::RoomsPlugin * rooms);
 
 	MaxRoomsCallback * bmx_raknetroomscallback_new(BBObject * handle);
 
@@ -82,6 +84,29 @@ extern "C" {
 	int bmx_profanityfilter_Count(ProfanityFilter * filter);
 	void bmx_profanityfilter_AddWord(ProfanityFilter * filter, BBString * newWord);
 	void bmx_profanityfilter_free(ProfanityFilter * filter);
+
+	int bmx_allgamesroomcontainer_addtitle(RakNet::AllGamesRoomsContainer * rc, BBString * gameIdentifier);
+
+	int bmx_roomspluginfunc_getresultcode(RakNet::RoomsPluginFunc * func);
+	BBString * bmx_roomspluginfunc_getusername(RakNet::RoomsPluginFunc * func);
+	void bmx_roomspluginfunc_setusername(RakNet::RoomsPluginFunc * func, BBString * name);
+
+	RakNet::CreateRoom_Func * bmx_createroomfunc_create();
+	void bmx_createroomfunc_free(RakNet::CreateRoom_Func * func);
+	RakNet::NetworkedRoomCreationParameters * bmx_createroomfunc_GetNetworkedRoomCreationParameters(RakNet::CreateRoom_Func * func);
+	BBString * bmx_createroomfunc_GetGameIdentifer(RakNet::CreateRoom_Func * func);
+	void bmx_createroomfunc_SetGameIdentifer(RakNet::CreateRoom_Func * func, BBString * gameIdentifier);
+	
+	RakNet::Slots * bmx_networkedroomcreationparameters_GetSlots(RakNet::NetworkedRoomCreationParameters * param);
+	BBString * bmx_networkedroomcreationparameters_GetRoomName(RakNet::NetworkedRoomCreationParameters * param);
+	void bmx_networkedroomcreationparameters_SetRoomName(RakNet::NetworkedRoomCreationParameters * param, BBString * name);
+
+	unsigned int bmx_slots_GetPublicSlots(RakNet::Slots * s);
+	void bmx_slots_SetPublicSlots(RakNet::Slots * s, unsigned int slots);
+	unsigned int bmx_slots_GetReservedSlots(RakNet::Slots * s);
+	void bmx_slots_SetReservedSlots(RakNet::Slots * s, unsigned int slots);
+	unsigned int bmx_slots_GetSpectatorSlots(RakNet::Slots * s);
+	void bmx_slots_SetSpectatorSlots(RakNet::Slots * s, unsigned int slots);
 
 }
 
@@ -98,6 +123,7 @@ struct MaxRoomsCallback: public RakNet::RoomsCallback
 
 	// Results of calls
 	virtual void CreateRoom_Callback( SystemAddress senderAddress, RakNet::CreateRoom_Func *callResult) {
+printf("CreateRoom_Callback\n");fflush(stdout);
 		_bah_raknetrooms_TRKRoomsCallback__CreateRoom_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
 	}
 	
@@ -357,6 +383,10 @@ void bmx_raknetroomsplugin_SetProfanityFilter(RakNet::RoomsPlugin * rooms, Profa
 	rooms->SetProfanityFilter(pf);
 }
 
+RakNet::AllGamesRoomsContainer * bmx_raknetroomsplugin_RoomsContainer(RakNet::RoomsPlugin * rooms) {
+	return &rooms->roomsContainer;
+}
+
 // ****************************
 
 MaxRoomsCallback * bmx_raknetroomscallback_new(BBObject * handle) {
@@ -411,6 +441,98 @@ void bmx_profanityfilter_AddWord(ProfanityFilter * filter, BBString * newWord) {
 
 void bmx_profanityfilter_free(ProfanityFilter * filter) {
 	delete filter;
+}
+
+
+// ****************************
+
+int bmx_allgamesroomcontainer_addtitle(RakNet::AllGamesRoomsContainer * rc, BBString * gameIdentifier) {
+	char * g = bbStringToCString(gameIdentifier);
+	int ret = rc->AddTitle(g);
+	bbMemFree(g);
+	return ret;
+}
+
+// ****************************
+
+int bmx_roomspluginfunc_getresultcode(RakNet::RoomsPluginFunc * func) {
+	return func->resultCode;
+}
+
+BBString * bmx_roomspluginfunc_getusername(RakNet::RoomsPluginFunc * func) {
+	return bbStringFromCString(func->userName.C_String());
+}
+
+void bmx_roomspluginfunc_setusername(RakNet::RoomsPluginFunc * func, BBString * name) {
+	char * n = bbStringToCString(name);
+	func->userName = n;
+	bbMemFree(n);
+}
+
+// ****************************
+
+RakNet::CreateRoom_Func * bmx_createroomfunc_create() {
+	return new RakNet::CreateRoom_Func;
+}
+
+void bmx_createroomfunc_free(RakNet::CreateRoom_Func * func) {
+	delete func;
+}
+
+RakNet::NetworkedRoomCreationParameters * bmx_createroomfunc_GetNetworkedRoomCreationParameters(RakNet::CreateRoom_Func * func) {
+	return &func->networkedRoomCreationParameters;
+}
+
+BBString * bmx_createroomfunc_GetGameIdentifer(RakNet::CreateRoom_Func * func) {
+	return bbStringFromCString(func->gameIdentifier.C_String());
+}
+
+void bmx_createroomfunc_SetGameIdentifer(RakNet::CreateRoom_Func * func, BBString * gameIdentifier) {
+	char * n = bbStringToCString(gameIdentifier);
+	func->gameIdentifier = n;
+	bbMemFree(n);
+}
+
+// ****************************
+
+RakNet::Slots * bmx_networkedroomcreationparameters_GetSlots(RakNet::NetworkedRoomCreationParameters * param) {
+	return &param->slots;
+}
+
+BBString * bmx_networkedroomcreationparameters_GetRoomName(RakNet::NetworkedRoomCreationParameters * param) {
+	return bbStringFromCString(param->roomName.C_String());
+}
+
+void bmx_networkedroomcreationparameters_SetRoomName(RakNet::NetworkedRoomCreationParameters * param, BBString * name) {
+	char * n = bbStringToCString(name);
+	param->roomName = n;
+	bbMemFree(n);
+}
+
+// ****************************
+
+unsigned int bmx_slots_GetPublicSlots(RakNet::Slots * s) {
+	return s->publicSlots;
+}
+
+void bmx_slots_SetPublicSlots(RakNet::Slots * s, unsigned int slots) {
+	s->publicSlots = slots;
+}
+
+unsigned int bmx_slots_GetReservedSlots(RakNet::Slots * s) {
+	return s->reservedSlots;
+}
+
+void bmx_slots_SetReservedSlots(RakNet::Slots * s, unsigned int slots) {
+	s->reservedSlots = slots;
+}
+
+unsigned int bmx_slots_GetSpectatorSlots(RakNet::Slots * s) {
+	return s->spectatorSlots;
+}
+
+void bmx_slots_SetSpectatorSlots(RakNet::Slots * s, unsigned int slots) {
+	s->spectatorSlots = slots;
 }
 
 

@@ -21,6 +21,7 @@ Extern
 	Function bmx_raknetroomsplugin_AddLoginServerAddress(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_raknetroomsplugin_RemoveLoginServerAddress(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_raknetroomsplugin_SetProfanityFilter(handle:Byte Ptr, pf:Byte Ptr)
+	Function bmx_raknetroomsplugin_RoomsContainer:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_raknetroomscallback_new:Byte Ptr(handle:Object)
 	
@@ -30,6 +31,29 @@ Extern
 	Function bmx_profanityfilter_Count:Int(handle:Byte Ptr)
 	Function bmx_profanityfilter_AddWord(handle:Byte Ptr, newWord:String)
 	Function bmx_profanityfilter_free(handle:Byte Ptr)
+
+	Function bmx_allgamesroomcontainer_addtitle:Int(handle:Byte Ptr, gameIdentifier:String)
+
+	Function bmx_roomspluginfunc_getresultcode:Int(handle:Byte Ptr)
+	Function bmx_roomspluginfunc_getusername:String(handle:Byte Ptr)
+	Function bmx_roomspluginfunc_setusername(handle:Byte Ptr, name:String)
+
+	Function bmx_createroomfunc_create:Byte Ptr()
+	Function bmx_createroomfunc_free(handle:Byte Ptr)
+	Function bmx_createroomfunc_GetNetworkedRoomCreationParameters:Byte Ptr(handle:Byte Ptr)
+	Function bmx_createroomfunc_GetGameIdentifer:String(handle:Byte Ptr)
+	Function bmx_createroomfunc_SetGameIdentifer(handle:Byte Ptr, gameIdentifier:String)
+
+	Function bmx_networkedroomcreationparameters_GetSlots:Byte Ptr(handle:Byte Ptr)
+	Function bmx_networkedroomcreationparameters_GetRoomName:String(handle:Byte Ptr)
+	Function bmx_networkedroomcreationparameters_SetRoomName(handle:Byte Ptr, name:String)
+
+	Function bmx_slots_GetPublicSlots:Int(handle:Byte Ptr)
+	Function bmx_slots_SetPublicSlots(handle:Byte Ptr, slots:Int)
+	Function bmx_slots_GetReservedSlots:Int(handle:Byte Ptr)
+	Function bmx_slots_SetReservedSlots(handle:Byte Ptr, slots:Int)
+	Function bmx_slots_GetSpectatorSlots:Int(handle:Byte Ptr)
+	Function bmx_slots_SetSpectatorSlots(handle:Byte Ptr, slots:Int)
 
 End Extern
 
