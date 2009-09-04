@@ -15,7 +15,7 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 // Uncomment this if you need to
 #ifdef _WIN32
-#ifndef _SYS_TIME_H
+#ifndef _SYS_TIME_H_
 // http://www.halcode.com/archives/2008/08/26/retrieving-system-time-gettimeofday/
 struct timezone
 {
