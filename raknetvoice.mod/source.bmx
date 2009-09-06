@@ -23,8 +23,10 @@ SuperStrict
 Import BaH.Raknet
 Import BRL.Blitz
 
-?macos
-Import "config/macos/*.h"
+?macosx86
+Import "config/macos/x86/*.h"
+?macosppc
+Import "config/macos/ppc/*.h"
 ?win32
 Import "config/win32/*.h"
 ?linux
