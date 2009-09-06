@@ -295,7 +295,7 @@ Type TRKRoomsCallback
 	Method ChangeHandle_Callback( senderAddress:TRKSystemAddress, callResult:TRKChangeHandleFunc)
 	End Method
 	
-	Method RoomChat_Callback( senderAddress:TRKSystemAddress, callResult:TRKRoomChatFunc)
+	Method Chat_Callback( senderAddress:TRKSystemAddress, callResult:TRKChatFunc)
 	End Method
 	
 	' Notifications due to other room members
@@ -353,7 +353,7 @@ Type TRKRoomsCallback
 	Method RoomDestroyedOnModeratorLeft_Callback( senderAddress:TRKSystemAddress, notification:TRKRoomDestroyedOnModeratorLeftNotification)
 	End Method
 	
-	Method RoomChatNotification_Callback( senderAddress:TRKSystemAddress, notification:TRKRoomChatNotification)
+	Method ChatNotification_Callback( senderAddress:TRKSystemAddress, notification:TRKChatNotification)
 	End Method
 
 	Function _CreateRoom_Callback(callback:TRKRoomsCallback, senderAddress:Byte Ptr, callResult:Byte Ptr)
@@ -468,8 +468,8 @@ Type TRKRoomsCallback
 		callback.ChangeHandle_Callback(TRKSystemAddress._create(senderAddress), TRKChangeHandleFunc._create(callResult))
 	End Function
 	
-	Function _RoomChat_Callback(callback:TRKRoomsCallback, senderAddress:Byte Ptr, callResult:Byte Ptr)
-		callback.RoomChat_Callback(TRKSystemAddress._create(senderAddress), TRKRoomChatFunc._create(callResult))
+	Function _Chat_Callback(callback:TRKRoomsCallback, senderAddress:Byte Ptr, callResult:Byte Ptr)
+		callback.Chat_Callback(TRKSystemAddress._create(senderAddress), TRKChatFunc._create(callResult))
 	End Function
 	
 	' Notifications due to other room members
@@ -545,8 +545,8 @@ Type TRKRoomsCallback
 		callback.RoomDestroyedOnModeratorLeft_Callback(TRKSystemAddress._create(senderAddress), TRKRoomDestroyedOnModeratorLeftNotification._create(notification))
 	End Function
 	
-	Function _RoomChatNotification_Callback(callback:TRKRoomsCallback, senderAddress:Byte Ptr, notification:Byte Ptr)
-		callback.RoomChatNotification_Callback(TRKSystemAddress._create(senderAddress), TRKRoomChatNotification._create(notification))
+	Function _ChatNotification_Callback(callback:TRKRoomsCallback, senderAddress:Byte Ptr, notification:Byte Ptr)
+		callback.ChatNotification_Callback(TRKSystemAddress._create(senderAddress), TRKChatNotification._create(notification))
 	End Function
 	
 
@@ -573,6 +573,11 @@ Type TRKRoomsPluginFunc
 	Method SetUserName(name:String)
 		bmx_roomspluginfunc_setusername(funcPtr, name)
 	End Method
+
+	Method PrintResult:String()
+		Return "Result for user " + GetUserName() + ": " + TRKRoomsErrorCodeDescription.ToEnglish(GetResultCode())
+	End Method
+
 
 End Type
 
@@ -607,6 +612,10 @@ Type TRKCreateRoomFunc Extends TRKRoomsPluginFunc
 		bmx_createroomfunc_SetGameIdentifer(funcPtr, gameIdentifier)
 	End Method
 
+	Method GetRoomId:Int()
+		Return bmx_createroomfunc_GetRoomId(funcPtr)
+	End Method
+	
 	Method Delete()
 		If funcPtr And owner Then
 			bmx_createroomfunc_free(funcPtr)
@@ -628,6 +637,66 @@ Type TRKEnterRoomFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKEnterRoomFunc()
+		funcPtr = bmx_enterroomfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetNetworkedRoomCreationParameters:TRKNetworkedRoomCreationParameters()
+		Return TRKNetworkedRoomCreationParameters._create(bmx_enterroomfunc_GetNetworkedRoomCreationParameters(funcPtr))
+	End Method
+	
+	Method GetGameIdentifier:String()
+		Return bmx_enterroomfunc_GetGameIdentifer(funcPtr)
+	End Method
+	
+	Method SetGameIdentifier(gameIdentifier:String)
+		bmx_enterroomfunc_SetGameIdentifer(funcPtr, gameIdentifier)
+	End Method
+
+	Method GetJoinedRoomResult:TRKJoinedRoomResult()
+		Return TRKJoinedRoomResult._create(bmx_enterroomfunc_GetJoinedRoomResult(funcPtr))
+	End Method
+	
+	Method IsCreatedRoom:Int()
+		Return bmx_enterroomfunc_IsCreatedRoom(funcPtr)
+	End Method
+	
+	Method GetRoomId:Int()
+		Return bmx_enterroomfunc_GetRoomId(funcPtr)
+	End Method
+	
+	Method SetRoomMemberMode(_mode:Int)
+		bmx_enterroomfunc_SetRoomMemberMode(funcPtr, _mode)
+	End Method
+	
+	Method GetRoomMemberMode:Int()
+		Return bmx_enterroomfunc_GetRoomMemberMode(funcPtr)
+	End Method
+	
+	Method GetQuery:TRKRoomQuery()
+		Return TRKRoomQuery._create(bmx_enterroomfunc_GetQuery(funcPtr))
+	End Method
+
+	Method PrintResult:String()
+		If GetResultCode() <> REC_SUCCESS Then
+			Return Super.PrintResult()
+		Else If IsCreatedRoom() Then
+			Return GetUserName() + " created a new room"
+		Else
+			Return GetUserName() + " entered room with " + GetJoinedRoomResult().GetRoomDescriptor().GetRoomMemberListSize() + " members"
+		End If
+	End Method
+
+
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_enterroomfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -642,6 +711,61 @@ Type TRKJoinByFilterFunc Extends TRKRoomsPluginFunc
 			Return this
 		End If
 	End Function
+
+	Method Create:TRKJoinByFilterFunc()
+		funcPtr = bmx_joinbyfilterfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetJoinedRoomResult:TRKJoinedRoomResult()
+		Return TRKJoinedRoomResult._create(bmx_joinbyfilterfunc_GetJoinedRoomResult(funcPtr))
+	End Method
+
+	Method GetGameIdentifier:String()
+		Return bmx_joinbyfilterfunc_GetGameIdentifer(funcPtr)
+	End Method
+	
+	Method SetGameIdentifier(gameIdentifier:String)
+		bmx_joinbyfilterfunc_SetGameIdentifer(funcPtr, gameIdentifier)
+	End Method
+
+	Method SetRoomMemberMode(_mode:Int)
+		bmx_joinbyfilterfunc_SetRoomMemberMode(funcPtr, _mode)
+	End Method
+	
+	Method GetRoomMemberMode:Int()
+		Return bmx_joinbyfilterfunc_GetRoomMemberMode(funcPtr)
+	End Method
+
+	Method GetQuery:TRKRoomQuery()
+		Return TRKRoomQuery._create(bmx_joinbyfilterfunc_GetQuery(funcPtr))
+	End Method
+
+	Method PrintResult:String()
+		If GetResultCode() <> REC_SUCCESS Then
+			Return Super.PrintResult()
+		Else
+			Local s:String = "Joined room " + GetJoinedRoomResult().GetRoomDescriptor().GetPropertyString(TRKDefaultRoomColumns.TC_ROOM_NAME) + ..
+				" with id " + GetJoinedRoomResult().GetRoomDescriptor().GetLobbyRoomId() + " and " + ..
+				GetJoinedRoomResult().GetRoomDescriptor().GetPropertyValue(TRKDefaultRoomColumns.TC_ROOM_NAME) + " used slots"
+
+			Local list:TRKRoomMemberDescriptor[] =  GetJoinedRoomResult().GetRoomDescriptor().GetRoomMemberList()
+			For Local i:Int = 0 Until list.length
+				s:+ "~n"
+				
+			Next
+			Return s
+		End If
+	End Method
+
+
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_joinbyfilterfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -658,6 +782,23 @@ Type TRKLeaveRoomFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKLeaveRoomFunc()
+		funcPtr = bmx_leaveroomfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetRemoveUserResult:TRKRemoveUserResult()
+	' TODO
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_leaveroomfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -672,6 +813,22 @@ Type TRKGetInvitesToParticipantFunc Extends TRKRoomsPluginFunc
 			Return this
 		End If
 	End Function
+
+	Method Create:TRKGetInvitesToParticipantFunc()
+		funcPtr = bmx_getinvitestoparticipantfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetInvitedUsers:TRKInvitedUser[]()
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_getinvitestoparticipantfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -688,6 +845,35 @@ Type TRKSendInviteFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKSendInviteFunc()
+		funcPtr = bmx_sendinvitefunc_create()
+		owner = True
+		Return Self
+	End Method
+
+	Method SetInviteeName(name:String)
+	' TODO
+	End Method
+	
+	Method SetInviteToSpectatorSlot(value:Int)
+	' TODO
+	End Method
+	
+	Method SetSubject(subject:String)
+	' TODO
+	End Method
+	
+	Method SetBody(body:String)
+	' TODO
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_sendinvitefunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -702,6 +888,25 @@ Type TRKAcceptInviteFunc Extends TRKRoomsPluginFunc
 			Return this
 		End If
 	End Function
+
+	Method Create:TRKAcceptInviteFunc()
+		funcPtr = bmx_acceptinvitefunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method SetInviteSender(sender:String)
+	End Method
+	
+	Method SetRoomId(id:Int)
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_acceptinvitefunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -718,6 +923,19 @@ Type TRKStartSpectatingFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKStartSpectatingFunc()
+		funcPtr = bmx_startspectatingfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_startspectatingfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -732,6 +950,19 @@ Type TRKStopSpectatingFunc Extends TRKRoomsPluginFunc
 			Return this
 		End If
 	End Function
+
+	Method Create:TRKStopSpectatingFunc()
+		funcPtr = bmx_stopspectatingfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_stopspectatingfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -748,6 +979,23 @@ Type TRKGrantModeratorFunc Extends TRKRoomsPluginFunc
 		End If
 	End Function
 
+	Method Create:TRKGrantModeratorFunc()
+		funcPtr = bmx_grantmoderatorfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method SetNewModerator(name:String)
+	' TODO
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_grantmoderatorfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
+
 End Type
 
 Rem
@@ -762,6 +1010,23 @@ Type TRKChangeSlotCountsFunc Extends TRKRoomsPluginFunc
 			Return this
 		End If
 	End Function
+
+	Method Create:TRKChangeSlotCountsFunc()
+		funcPtr = bmx_changeslotcountsfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method GetSlots:TRKSlots()
+	' TODO
+	End Method
+	
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_changeslotcountsfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -1023,15 +1288,40 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TRKRoomChatFunc Extends TRKRoomsPluginFunc
+Type TRKChatFunc Extends TRKRoomsPluginFunc
 
-	Function _create:TRKRoomChatFunc(funcPtr:Byte Ptr)
+	Function _create:TRKChatFunc(funcPtr:Byte Ptr)
 		If funcPtr Then
-			Local this:TRKRoomChatFunc = New TRKRoomChatFunc
+			Local this:TRKChatFunc = New TRKChatFunc
 			this.funcPtr = funcPtr
 			Return this
 		End If
 	End Function
+	
+	Method Create:TRKChatFunc()
+		funcPtr = bmx_chatfunc_create()
+		owner = True
+		Return Self
+	End Method
+	
+	Method SetChatMessage(message:String)
+		bmx_chatfunc_SetChatMessage(funcPtr, message)
+	End Method
+	
+	Method SetPrivateMessageRecipient(name:String)
+		bmx_chatfunc_SetPrivateMessageRecipient(funcPtr, name)
+	End Method
+	
+	Method SetChatDirectedToRoom(value:Int)
+		bmx_chatfunc_SetChatDirectedToRoom(funcPtr, value)
+	End Method
+
+	Method Delete()
+		If funcPtr And owner Then
+			bmx_chatfunc_free(funcPtr)
+			funcPtr = Null
+		End If
+	End Method
 
 End Type
 
@@ -1044,8 +1334,12 @@ Type TRKRoomsPluginNotification
 	Field notificationPtr:Byte Ptr
 
 	Method GetRecipient:String()
+		Return bmx_roomspluginnotification_GetRecipient(notificationPtr)
 	End Method
-	
+
+	Method PrintResult:String()
+	End Method
+
 End Type
 
 Rem
@@ -1321,15 +1615,36 @@ End Type
 Rem
 bbdoc: 
 End Rem
-Type TRKRoomChatNotification Extends TRKRoomsPluginNotification
+Type TRKChatNotification Extends TRKRoomsPluginNotification
 
-	Function _create:TRKRoomChatNotification(notificationPtr:Byte Ptr)
+	Function _create:TRKChatNotification(notificationPtr:Byte Ptr)
 		If notificationPtr Then
-			Local this:TRKRoomChatNotification = New TRKRoomChatNotification
+			Local this:TRKChatNotification = New TRKChatNotification
 			this.notificationPtr = notificationPtr
 			Return this
 		End If
 	End Function
+
+	Method GetSender:String()
+		Return bmx_chatnotification_GetSender(notificationPtr)
+	End Method
+	
+	Method GetPrivateMessageRecipient:String()
+		Return bmx_chatnotification_GetPrivateMessageRecipient(notificationPtr)
+	End Method
+	
+	Method GetChatMessage:String()
+		Return bmx_chatnotification_GetChatMessage(notificationPtr)
+	End Method
+
+	Method GetFilteredChatMessage:String()
+		Return bmx_chatnotification_GetFilteredChatMessage(notificationPtr)
+	End Method
+	
+	Method PrintResult:String()
+		Return "Chat_Notification to " + GetRecipient()
+	End Method
+
 
 End Type
 
@@ -1469,5 +1784,271 @@ Type TRKSlots
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
+Type TRKRoomsErrorCodeDescription
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function ToEnglish:String(result:Int)
+		Return bmx_roomserrorcodedescription_ToEnglish(result)
+	End Function
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TRKJoinedRoomResult
+
+	Field resultPtr:Byte Ptr
+
+	Function _create:TRKJoinedRoomResult(resultPtr:Byte Ptr)
+		If resultPtr Then
+			Local this:TRKJoinedRoomResult = New TRKJoinedRoomResult
+			this.resultPtr = resultPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetRoomDescriptor:TRKRoomDescriptor()
+		Return TRKRoomDescriptor._create(bmx_joinedroomresult_getroomdescriptor(resultPtr))
+	End Method
+
+	Method GetAcceptedInvitor:TRKRoomsParticipant()
+		Return TRKRoomsParticipant._create(bmx_joinedroomresult_getacceptedinvitor(resultPtr))
+	End Method
+	
+	Method GetAcceptedInvitorName:String()
+		Return bmx_joinedroomresult_getacceptedinvitorname(resultPtr)
+	End Method
+	
+	Method GetAcceptedInvitorAddress:TRKSystemAddress()
+		Return TRKSystemAddress._create(bmx_joinedroomresult_getacceptedinvitoraddress(resultPtr))
+	End Method
+	
+	Method GetJoiningMember:TRKRoomsParticipant()
+		Return TRKRoomsParticipant._create(bmx_joinedroomresult_getjoiningmember(resultPtr))
+	End Method
+	
+	Method GetJoiningMemberName:String()
+		Return bmx_joinedroomresult_getjoiningmembername(resultPtr)
+	End Method
+	
+	Method GetJoiningMemberAddress:TRKSystemAddress()
+		Return TRKSystemAddress._create(bmx_joinedroomresult_getjoiningmemberaddress(resultPtr))
+	End Method
+	
+	Method GetRoomOutput:TRKRoom()
+		Return TRKRoom._create(bmx_joinedroomresult_getroomoutput(resultPtr))
+	End Method
+	
+End Type
+
+Type TRKRoomDescriptor
+
+	Field descPtr:Byte Ptr
+
+	Function _create:TRKRoomDescriptor(descPtr:Byte Ptr)
+		If descPtr Then
+			Local this:TRKRoomDescriptor = New TRKRoomDescriptor
+			this.descPtr = descPtr
+			Return this
+		End If
+	End Function
+	
+	Method GetRoomMemberListSize:Int()
+		Return bmx_roomdescriptor_getroommemberlistsize(descPtr)
+	End Method
+	
+	Method GetRoomMemberList:TRKRoomMemberDescriptor[]()
+	' TODO
+	End Method
+
+	Method GetPropertyString:String(index:Int)
+		Return bmx_roomdescriptor_getpropertystring(descPtr, index)
+	End Method
+	
+	Method GetPropertyValue:Double(index:Int)
+		Return bmx_roomdescriptor_getpropertyvalue(descPtr, index)
+	End Method
+	
+	Method GetLobbyRoomId:Int()
+		Return bmx_roomdescriptor_getlobbyroomid(descPtr)
+	End Method
+	
+End Type
+
+
+Type TRKRoomsParticipant
+
+	Field partPtr:Byte Ptr
+
+	Function _create:TRKRoomsParticipant(partPtr:Byte Ptr)
+		If partPtr Then
+			Local this:TRKRoomsParticipant = New TRKRoomsParticipant
+			this.partPtr = partPtr
+			Return this
+		End If
+	End Function
+
+End Type
+
+Type TRKRoom
+
+	Field roomPtr:Byte Ptr
+
+	Function _create:TRKRoom(roomPtr:Byte Ptr)
+		If roomPtr Then
+			Local this:TRKRoom = New TRKRoom
+			this.roomPtr = roomPtr
+			Return this
+		End If
+	End Function
+
+End Type
+
+Type TRKRoomMemberDescriptor
+
+	Field descPtr:Byte Ptr
+
+	Function _create:TRKRoomMemberDescriptor(descPtr:Byte Ptr)
+		If descPtr Then
+			Local this:TRKRoomMemberDescriptor = New TRKRoomMemberDescriptor
+			this.descPtr = descPtr
+			Return this
+		End If
+	End Function
+
+End Type
+
+Type TRKDefaultRoomColumns
+
+	Const TC_TITLE_NAME:Int = 0
+	Const TC_TITLE_ID:Int = 1
+	Const TC_ROOM_NAME:Int = 2
+	Const TC_ROOM_ID:Int = 3
+	Const TC_TOTAL_SLOTS:Int = 4
+	Const TC_TOTAL_PUBLIC_PLUS_RESERVED_SLOTS:Int = 5
+	Const TC_USED_SLOTS:Int = 6
+	Const TC_USED_PUBLIC_PLUS_RESERVED_SLOTS:Int = 7
+	Const TC_REMAINING_SLOTS:Int = 8
+	Const TC_REMAINING_PUBLIC_PLUS_RESERVED_SLOTS:Int = 9
+	Const TC_TOTAL_PUBLIC_SLOTS:Int = 10
+	Const TC_TOTAL_RESERVED_SLOTS:Int = 11
+	Const TC_TOTAL_SPECTATOR_SLOTS:Int = 12
+	Const TC_USED_PUBLIC_SLOTS:Int = 13
+	Const TC_USED_RESERVED_SLOTS:Int = 14
+	Const TC_USED_SPECTATOR_SLOTS:Int = 15
+	Const TC_REMAINING_PUBLIC_SLOTS:Int = 16
+	Const TC_REMAINING_RESERVED_SLOTS:Int = 17
+	Const TC_REMAINING_SPECTATOR_SLOTS:Int = 18
+	Const TC_CREATION_TIME:Int = 19
+	Const TC_DESTROY_ON_MODERATOR_LEAVE:Int = 20
+	Const TC_LOBBY_ROOM_PTR:Int = 21
+	Const TC_TABLE_COLUMNS_COUNT:Int = 22
+
+
+	Function GetColumnName:String(columnId:Int)
+		Return bmx_defaultroomcolumns_GetColumnName(columnId)
+	End Function
+	
+End Type
+
+Type TRKRoomQuery
+
+	Field queryPtr:Byte Ptr
+
+	Function _create:TRKRoomQuery(queryPtr:Byte Ptr)
+		If queryPtr Then
+			Local this:TRKRoomQuery = New TRKRoomQuery
+			this.queryPtr = queryPtr
+			Return this
+		End If
+	End Function
+
+	Method AddQuery_NUMERIC(columnName:String, numericValue:Double, op:Int = QF_EQUAL)
+		bmx_roomquery_AddQuery_NUMERIC(queryPtr, columnName, numericValue, op)
+	End Method
+	
+	Method AddQuery_STRING(columnName:String, charValue:String, op:Int = QF_EQUAL)
+		bmx_roomquery_AddQuery_STRING(queryPtr, columnName, charValue, op)
+	End Method
+	
+	Method AddQuery_BINARY(columnName:String, data:Byte Ptr, inputLength:Int, op:Int = QF_EQUAL)
+		bmx_roomquery_AddQuery_BINARY(queryPtr, columnName, data, inputLength, op)
+	End Method
+	
+End Type
+
+Type TRKRemoveUserResult
+	
+	Field resultPtr:Byte Ptr
+	
+	Function _create:TRKRemoveUserResult(resultPtr:Byte Ptr)
+		If resultPtr Then
+			Local this:TRKRemoveUserResult = New TRKRemoveUserResult
+			this.resultPtr = resultPtr
+			Return this
+		End If
+	End Function
+
+	Method IsRemovedFromQuickJoin:Int()
+	' TODO
+	End Method
+	
+	Method IsRemovedFromRoom:Int()
+	' TODO
+	End Method
+	
+	Method GetRemovedUserAddress:TRKSystemAddress()
+	' TODO
+	End Method
+	
+	Method GetRemovedUserName:String()
+	' TODO
+	End Method
+	
+End Type
+
+Type TRKInvitedUser
+
+	Field userPtr:Byte Ptr
+	
+	Method GetRoom:TRKRoom()
+	' TODO
+	End Method
+	
+	Method GetRoomId:Int()
+	' TODO
+	End Method
+	
+	Method GetInvitorName:String()
+	' TODO
+	End Method
+	
+	Method GetInvitorSystemAddress:TRKSystemAddress()
+	' TODO
+	End Method
+	
+	Method GetTarget:String()
+	' TODO
+	End Method
+	
+	Method GetSubject:String()
+	' TODO
+	End Method
+	
+	Method GetBody:String()
+	' TODO
+	End Method
+	
+	Method IsInvitedAsSpectator:Int()
+	' TODO
+	End Method
+
+End Type
 
 

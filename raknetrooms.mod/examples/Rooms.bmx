@@ -34,6 +34,7 @@ Type Rooms Extends TExampleHelper
 	
 	Const STAGE_USERNAME:Int = 1
 	Const STAGE_ROOMNAME:Int = 2
+	Const STAGE_TARGETNAME:Int = 99
 	
 	Const STAGE_CREATEROOM:Int = 3
 	Const STAGE_ENTERROOM:Int = 4
@@ -75,6 +76,7 @@ Type Rooms Extends TExampleHelper
 	Field func:TRKRoomsPluginFunc
 	Field user:Int = 0
 	Field roomName:String = ""
+	Field targetName:String = ""
 
 	Method Init()
 		Super.Init()
@@ -167,7 +169,6 @@ Type Rooms Extends TExampleHelper
 
 		If p Then
 			If p.GetPacketIdentifier() = ID_NEW_INCOMING_CONNECTION Then
-DebugLog "new connection"
 				roomsPluginServer.LoginRoomsParticipant("User1", p.GetSystemAddress(), p.GetGuid(), UNASSIGNED_SYSTEM_ADDRESS)
 				roomsPluginServer.LoginRoomsParticipant("User2", p.GetSystemAddress(), p.GetGuid(), UNASSIGNED_SYSTEM_ADDRESS)
 				roomsPluginServer.LoginRoomsParticipant("User3", p.GetSystemAddress(), p.GetGuid(), UNASSIGNED_SYSTEM_ADDRESS)
@@ -184,34 +185,151 @@ DebugLog "new connection"
 				ResetStage([STAGE_USERNAME, STAGE_ROOMNAME, STAGE_CREATEROOM, STAGE_NONE])
 				GetUserName()
 			End If
-		
+			
+			If KeyHit(KEY_B) Then
+				AddMessage "EnterRoom"
+				
+				func = New TRKEnterRoomFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_ROOMNAME, STAGE_ENTERROOM, STAGE_NONE])
+				GetUserName()
+			End If
+
+			If KeyHit(KEY_C) Then
+				AddMessage "JoinByFilter"
+				
+				func = New TRKJoinByFilterFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_ROOMNAME, STAGE_JOINBYFILTER, STAGE_NONE])
+				GetUserName()
+			End If
+
+			If KeyHit(KEY_D) Then
+				AddMessage "LeaveRoom"
+				
+				func = New TRKLeaveRoomFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_LEAVEROOM, STAGE_NONE])
+				GetUserName()
+			End If
+
+			If KeyHit(KEY_E) Then
+				AddMessage "GetInvitesToParticipant"
+				
+				func = New TRKGetInvitesToParticipantFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_GETINVITESTOPARTICIPANT, STAGE_NONE])
+				GetUserName()
+			End If
+
+			If KeyHit(KEY_F) Then
+				AddMessage "SendInvite"
+				
+				func = New TRKSendInviteFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_TARGETNAME, STAGE_SENDINVITE, STAGE_NONE])
+				GetUserName()
+			End If
+
+
+
+
+
+
+			If KeyHit(KEY_3) Then
+				AddMessage "RoomChat"
+				
+				func = New TRKChatFunc.Create()
+
+				ResetStage([STAGE_USERNAME, STAGE_ROOMCHAT, STAGE_NONE])
+				GetUserName()
+			End If
 		End If
 		
 		Select stage
 			Case STAGE_CREATEROOM
-DebugLog "b"
 				SetUserName(func)
 				TRKCreateRoomFunc(func).GetNetworkedRoomCreationParameters().SetRoomName(roomName)
 				TRKCreateRoomFunc(func).GetNetworkedRoomCreationParameters().GetSlots().SetPublicSlots(1)
 				TRKCreateRoomFunc(func).SetGameIdentifier(GAME_IDENTIFIER)
 				roomsPluginClient.ExecuteFunc(func)
-DebugLog "a"
 				UpdateState()
+
+			Case STAGE_ENTERROOM
+				SetUserName(func)
+				' Create or join the specified room name
+				TRKEnterRoomFunc(func).GetNetworkedRoomCreationParameters().SetRoomName(roomName)
+				TRKEnterRoomFunc(func).GetQuery().AddQuery_STRING(TRKDefaultRoomColumns.GetColumnName(TRKDefaultRoomColumns.TC_ROOM_NAME), roomName)
+				TRKEnterRoomFunc(func).GetNetworkedRoomCreationParameters().GetSlots().SetPublicSlots(2)
+				TRKEnterRoomFunc(func).SetRoomMemberMode(RMM_PUBLIC)
+				TRKEnterRoomFunc(func).SetGameIdentifier(GAME_IDENTIFIER)
+				roomsPluginClient.ExecuteFunc(func)
+				UpdateState()
+
+			Case STAGE_JOINBYFILTER
+				SetUserName(func)
+				TRKJoinByFilterFunc(func).GetQuery().AddQuery_STRING(TRKDefaultRoomColumns.GetColumnName(TRKDefaultRoomColumns.TC_ROOM_NAME), roomName)
+				TRKJoinByFilterFunc(func).SetGameIdentifier(GAME_IDENTIFIER)
+				TRKJoinByFilterFunc(func).SetRoomMemberMode(RMM_PUBLIC)
+				roomsPluginClient.ExecuteFunc(func)
+
+				UpdateState()
+
+			Case STAGE_LEAVEROOM
+				SetUserName(func)
+				roomsPluginClient.ExecuteFunc(func)
+
+				UpdateState()
+
+			Case STAGE_GETINVITESTOPARTICIPANT
+				SetUserName(func)
+				roomsPluginClient.ExecuteFunc(func)
+
+				UpdateState()
+
+			Case STAGE_SENDINVITE
+				SetUserName(func)
+				TRKSendInviteFunc(func).SetInviteeName(targetName)
+				TRKSendInviteFunc(func).SetInviteToSpectatorSlot(False)
+				TRKSendInviteFunc(func).SetSubject("SendInviteSubject")
+				TRKSendInviteFunc(func).SetBody("SendInviteSubject")
+				roomsPluginClient.ExecuteFunc(func)
+
+				UpdateState()
+
+
+
+
+			Case STAGE_ROOMCHAT
+				SetUserName(func)
+				TRKChatFunc(func).SetChatMessage("Hello world. This is Crapola")
+				roomsPluginClient.ExecuteFunc(func)
+
+				UpdateState()
+
 		End Select
-'DebugLog "1"	
+
 	End Method
 	
 	Method OnSubmit(value:String)
 		Select stage
 			Case STAGE_USERNAME
 				user = value.ToInt()
+
+				If Not user Then
+					user = 3
+				End If
+				
 				If user Then
 					
 					UpdateState()
 					
-					If stage = STAGE_ROOMNAME Then
-						GetRoomName()
-					End If
+					Select stage
+						Case STAGE_ROOMNAME
+							GetRoomName()
+						Case STAGE_TARGETNAME
+							GetTargetName()
+					End Select
 				End If
 			
 			Case STAGE_ROOMNAME
@@ -223,10 +341,31 @@ DebugLog "a"
 
 				UpdateState()
 				
-				If stage = STAGE_USERNAME Then
-					GetUserName()
+				Select stage
+					Case STAGE_USERNAME
+						GetUserName()
+					Case STAGE_TARGETNAME
+						GetTargetName()
+				End Select
+
+			Case STAGE_TARGETNAME
+				If Not value Then
+					targetName = "User3"
+				Else
+					targetName = value
 				End If
+
+				UpdateState()
+				
+				Select stage
+					Case STAGE_USERNAME
+						GetUserName()
+					Case STAGE_ROOMNAME
+						GetRoomName()
+				End Select
 		End Select
+		
+		FlushKeys()
 	End Method
 	
 	Method Finalize()
@@ -236,7 +375,6 @@ DebugLog "a"
 		stages = s
 		stageIdx = 0
 		UpdateState()
-		'stage = stages[stageIdx]
 	End Method
 	
 	Method UpdateState()
@@ -252,7 +390,6 @@ DebugLog "a"
 	Method GetUserName()
 		user = 0
 		RequestValue("User Name", "Which user? 1=User1, 2=User2, 3=User3 :")
-		'stage = stages[stageIdx]
 	End Method
 	
 	Method SetUserName(func:TRKRoomsPluginFunc)
@@ -272,12 +409,60 @@ DebugLog "a"
 		'stage = stages[stageIdx]
 	End Method
 
+	Method GetTargetName()
+		If user = 1 Then
+			targetName = "User1"
+		Else If user = 2 Then
+			targetName = "User2"
+		Else
+			targetName = "User3"
+		End If
+	End Method
+
 End Type
 
 Type TSampleCallbacks Extends TRKRoomsCallback
 
 	Method CreateRoom_Callback( senderAddress:TRKSystemAddress, callResult:TRKCreateRoomFunc)
-		roomsRef.AddMessage "CreateRoom_Callback"
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method EnterRoom_Callback( senderAddress:TRKSystemAddress, callResult:TRKEnterRoomFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method JoinByFilter_Callback( senderAddress:TRKSystemAddress, callResult:TRKJoinByFilterFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method LeaveRoom_Callback( senderAddress:TRKSystemAddress, callResult:TRKLeaveRoomFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method GetInvitesToParticipant_Callback( senderAddress:TRKSystemAddress, callResult:TRKGetInvitesToParticipantFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method SendInvite_Callback( senderAddress:TRKSystemAddress, callResult:TRKSendInviteFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method AcceptInvite_Callback( senderAddress:TRKSystemAddress, callResult:TRKAcceptInviteFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method StartSpectating_Callback( senderAddress:TRKSystemAddress, callResult:TRKStartSpectatingFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+	Method StopSpectating_Callback( senderAddress:TRKSystemAddress, callResult:TRKStopSpectatingFunc)
+		roomsRef.AddMessage callResult.PrintResult()
+	End Method
+
+
+
+	Method Chat_Callback( senderAddress:TRKSystemAddress, callResult:TRKChatFunc)
+		roomsRef.AddMessage callResult.PrintResult()
 	End Method
 
 End Type

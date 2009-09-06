@@ -3,6 +3,7 @@
 #include "RakNetTypes.h"
 #include "ProfanityFilter.h"
 #include "RoomsContainer.h"
+#include "RoomsErrorCodes.h"
 
 struct MaxRoomsCallback;
 
@@ -38,7 +39,7 @@ extern "C" {
 	void _bah_raknetrooms_TRKRoomsCallback__IsInQuickJoin_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::IsInQuickJoin_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__SearchByFilter_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::SearchByFilter_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__ChangeHandle_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::ChangeHandle_Func * callResult);
-//	void _bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Func * callResult);
+	void _bah_raknetrooms_TRKRoomsCallback__Chat_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::Chat_Func * callResult);
 	void _bah_raknetrooms_TRKRoomsCallback__QuickJoinExpired_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::QuickJoinExpired_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__QuickJoinEnteredRoom_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::QuickJoinEnteredRoom_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomMemberStartedSpectating_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomMemberStartedSpectating_Notification * notification);
@@ -57,7 +58,7 @@ extern "C" {
 	void _bah_raknetrooms_TRKRoomsCallback__RoomInvitationSent_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomInvitationSent_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomInvitationWithdrawn_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomInvitationWithdrawn_Notification * notification);
 	void _bah_raknetrooms_TRKRoomsCallback__RoomDestroyedOnModeratorLeft_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomDestroyedOnModeratorLeft_Notification * notification);
-//	void _bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::RoomChat_Notification * notification);
+	void _bah_raknetrooms_TRKRoomsCallback__ChatNotification_Callback(BBObject * handle, MaxSystemAddress * address, RakNet::Chat_Notification * notification);
 
 
 	RakNet::RoomsPlugin * bmx_raknetroomsplugin_new();
@@ -96,6 +97,7 @@ extern "C" {
 	RakNet::NetworkedRoomCreationParameters * bmx_createroomfunc_GetNetworkedRoomCreationParameters(RakNet::CreateRoom_Func * func);
 	BBString * bmx_createroomfunc_GetGameIdentifer(RakNet::CreateRoom_Func * func);
 	void bmx_createroomfunc_SetGameIdentifer(RakNet::CreateRoom_Func * func, BBString * gameIdentifier);
+	unsigned int bmx_createroomfunc_GetRoomId(RakNet::CreateRoom_Func * func);
 	
 	RakNet::Slots * bmx_networkedroomcreationparameters_GetSlots(RakNet::NetworkedRoomCreationParameters * param);
 	BBString * bmx_networkedroomcreationparameters_GetRoomName(RakNet::NetworkedRoomCreationParameters * param);
@@ -107,6 +109,86 @@ extern "C" {
 	void bmx_slots_SetReservedSlots(RakNet::Slots * s, unsigned int slots);
 	unsigned int bmx_slots_GetSpectatorSlots(RakNet::Slots * s);
 	void bmx_slots_SetSpectatorSlots(RakNet::Slots * s, unsigned int slots);
+
+	BBString * bmx_roomserrorcodedescription_ToEnglish(int result);
+
+	RakNet::EnterRoom_Func * bmx_enterroomfunc_create();
+	void bmx_enterroomfunc_free(RakNet::EnterRoom_Func * func);
+	RakNet::NetworkedRoomCreationParameters * bmx_enterroomfunc_GetNetworkedRoomCreationParameters(RakNet::EnterRoom_Func * func);
+	BBString * bmx_enterroomfunc_GetGameIdentifer(RakNet::EnterRoom_Func * func);
+	void bmx_enterroomfunc_SetGameIdentifer(RakNet::EnterRoom_Func * func, BBString * gameIdentifier);
+	RakNet::JoinedRoomResult * bmx_enterroomfunc_GetJoinedRoomResult(RakNet::EnterRoom_Func * func);
+	int bmx_enterroomfunc_IsCreatedRoom(RakNet::EnterRoom_Func * func);
+	unsigned int bmx_enterroomfunc_GetRoomId(RakNet::EnterRoom_Func * func);
+	void bmx_enterroomfunc_SetRoomMemberMode(RakNet::EnterRoom_Func * func, int _mode);
+	int bmx_enterroomfunc_GetRoomMemberMode(RakNet::EnterRoom_Func * func);
+	RakNet::RoomQuery * bmx_enterroomfunc_GetQuery(RakNet::EnterRoom_Func * func);
+
+	int bmx_roomdescriptor_getroommemberlistsize(RakNet::RoomDescriptor * desc);
+	BBString * bmx_roomdescriptor_getpropertystring(RakNet::RoomDescriptor * desc, int index);
+	double bmx_roomdescriptor_getpropertyvalue(RakNet::RoomDescriptor * desc, int index);
+	unsigned int bmx_roomdescriptor_getlobbyroomid(RakNet::RoomDescriptor * desc);
+
+	RakNet::RoomDescriptor * bmx_joinedroomresult_getroomdescriptor(RakNet::JoinedRoomResult * res);
+	RakNet::RoomsParticipant * bmx_joinedroomresult_getacceptedinvitor(RakNet::JoinedRoomResult * res);
+	BBString * bmx_joinedroomresult_getacceptedinvitorname(RakNet::JoinedRoomResult * res);
+	MaxSystemAddress * bmx_joinedroomresult_getacceptedinvitoraddress(RakNet::JoinedRoomResult * res);
+	RakNet::RoomsParticipant * bmx_joinedroomresult_getjoiningmember(RakNet::JoinedRoomResult * res);
+	BBString * bmx_joinedroomresult_getjoiningmembername(RakNet::JoinedRoomResult * res);
+	MaxSystemAddress * bmx_joinedroomresult_getjoiningmemberaddress(RakNet::JoinedRoomResult * res);
+	RakNet::Room * bmx_joinedroomresult_getroomoutput(RakNet::JoinedRoomResult * res);
+
+	RakNet::JoinByFilter_Func * bmx_joinbyfilterfunc_create();
+	void bmx_joinbyfilterfunc_free(RakNet::JoinByFilter_Func * func);
+	RakNet::JoinedRoomResult * bmx_joinbyfilterfunc_GetJoinedRoomResult(RakNet::JoinByFilter_Func * func);
+	void bmx_joinbyfilterfunc_SetRoomMemberMode(RakNet::JoinByFilter_Func * func, int _mode);
+	int bmx_joinbyfilterfunc_GetRoomMemberMode(RakNet::JoinByFilter_Func * func);
+	RakNet::RoomQuery * bmx_joinbyfilterfunc_GetQuery(RakNet::JoinByFilter_Func * func);
+	BBString * bmx_joinbyfilterfunc_GetGameIdentifer(RakNet::JoinByFilter_Func * func);
+	void bmx_joinbyfilterfunc_SetGameIdentifer(RakNet::JoinByFilter_Func * func, BBString * gameIdentifier);
+
+	void bmx_roomquery_AddQuery_NUMERIC(RakNet::RoomQuery * query, BBString * columnName, double numericValue, int op);
+	void bmx_roomquery_AddQuery_STRING(RakNet::RoomQuery * query, BBString * columnName, BBString * charValue, int op);
+	void bmx_roomquery_AddQuery_BINARY(RakNet::RoomQuery * query, BBString * columnName, const char * data, int inputLength, int op);
+
+	BBString * bmx_defaultroomcolumns_GetColumnName(int columnId);
+
+	RakNet::Chat_Func * bmx_chatfunc_create();
+	void bmx_chatfunc_SetChatMessage(RakNet::Chat_Func * func, BBString * message);
+	void bmx_chatfunc_SetPrivateMessageRecipient(RakNet::Chat_Func * func, BBString * name);
+	void bmx_chatfunc_SetChatDirectedToRoom(RakNet::Chat_Func * func, int value);
+	void bmx_chatfunc_free(RakNet::Chat_Func * func);
+
+	RakNet::LeaveRoom_Func * bmx_leaveroomfunc_create();
+	void bmx_leaveroomfunc_free(RakNet::LeaveRoom_Func * func);
+
+	RakNet::GetInvitesToParticipant_Func * bmx_getinvitestoparticipantfunc_create();
+	void bmx_getinvitestoparticipantfunc_free(RakNet::GetInvitesToParticipant_Func * func);
+
+	RakNet::SendInvite_Func * bmx_sendinvitefunc_create();
+	void bmx_sendinvitefunc_free(RakNet::SendInvite_Func * func);
+
+	RakNet::AcceptInvite_Func * bmx_acceptinvitefunc_create();
+	void bmx_acceptinvitefunc_free(RakNet::AcceptInvite_Func * func);
+
+	RakNet::StartSpectating_Func * bmx_startspectatingfunc_create();
+	void bmx_startspectatingfunc_free(RakNet::StartSpectating_Func * func);
+
+	RakNet::StopSpectating_Func * bmx_stopspectatingfunc_create();
+	void bmx_stopspectatingfunc_free(RakNet::StopSpectating_Func * func);
+
+	RakNet::GrantModerator_Func * bmx_grantmoderatorfunc_create();
+	void bmx_grantmoderatorfunc_free(RakNet::GrantModerator_Func * func);
+
+	RakNet::ChangeSlotCounts_Func * bmx_changeslotcountsfunc_create();
+	void bmx_changeslotcountsfunc_free(RakNet::ChangeSlotCounts_Func * func);
+
+	BBString * bmx_roomspluginnotification_GetRecipient(RakNet::RoomsPluginNotification * note);
+
+	BBString * bmx_chatnotification_GetSender(RakNet::Chat_Notification * note);
+	BBString * bmx_chatnotification_GetPrivateMessageRecipient(RakNet::Chat_Notification * note);
+	BBString * bmx_chatnotification_GetChatMessage(RakNet::Chat_Notification * note);
+	BBString * bmx_chatnotification_GetFilteredChatMessage(RakNet::Chat_Notification * note);
 
 }
 
@@ -123,7 +205,6 @@ struct MaxRoomsCallback: public RakNet::RoomsCallback
 
 	// Results of calls
 	virtual void CreateRoom_Callback( SystemAddress senderAddress, RakNet::CreateRoom_Func *callResult) {
-printf("CreateRoom_Callback\n");fflush(stdout);
 		_bah_raknetrooms_TRKRoomsCallback__CreateRoom_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
 	}
 	
@@ -235,9 +316,9 @@ printf("CreateRoom_Callback\n");fflush(stdout);
 		_bah_raknetrooms_TRKRoomsCallback__ChangeHandle_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
 	}
 	
-//	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Func *callResult) {
-//		_bah_raknetrooms_TRKRoomsCallback__RoomChat_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
-//	}
+	virtual void Chat_Callback( SystemAddress senderAddress, RakNet::Chat_Func *callResult) {
+		_bah_raknetrooms_TRKRoomsCallback__Chat_Callback(maxHandle, new MaxSystemAddress(senderAddress), callResult);
+	}
 	
 	// Notifications due to other room members
 	virtual void QuickJoinExpired_Callback( SystemAddress senderAddress, RakNet::QuickJoinExpired_Notification *notification) {
@@ -312,9 +393,9 @@ printf("CreateRoom_Callback\n");fflush(stdout);
 		_bah_raknetrooms_TRKRoomsCallback__RoomDestroyedOnModeratorLeft_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
 	}
 	
-//	virtual void RoomChat_Callback( SystemAddress senderAddress, RakNet::RoomChat_Notification *notification) {
-//		_bah_raknetrooms_TRKRoomsCallback__RoomChatNotification_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
-//	}
+	virtual void Chat_Callback( SystemAddress senderAddress, RakNet::Chat_Notification *notification) {
+		_bah_raknetrooms_TRKRoomsCallback__ChatNotification_Callback(maxHandle, new MaxSystemAddress(senderAddress), notification);
+	}
 	
 };
 
@@ -493,6 +574,10 @@ void bmx_createroomfunc_SetGameIdentifer(RakNet::CreateRoom_Func * func, BBStrin
 	bbMemFree(n);
 }
 
+unsigned int bmx_createroomfunc_GetRoomId(RakNet::CreateRoom_Func * func) {
+	return func->roomId;
+}
+
 // ****************************
 
 RakNet::Slots * bmx_networkedroomcreationparameters_GetSlots(RakNet::NetworkedRoomCreationParameters * param) {
@@ -535,4 +620,303 @@ void bmx_slots_SetSpectatorSlots(RakNet::Slots * s, unsigned int slots) {
 	s->spectatorSlots = slots;
 }
 
+// ****************************
+
+BBString * bmx_roomserrorcodedescription_ToEnglish(int result) {
+	return bbStringFromCString(RakNet::RoomsErrorCodeDescription::ToEnglish(static_cast<RakNet::RoomsErrorCode>(result)));
+}
+
+// ****************************
+
+RakNet::EnterRoom_Func * bmx_enterroomfunc_create() {
+	return new RakNet::EnterRoom_Func;
+}
+
+void bmx_enterroomfunc_free(RakNet::EnterRoom_Func * func) {
+	delete func;
+}
+
+RakNet::NetworkedRoomCreationParameters * bmx_enterroomfunc_GetNetworkedRoomCreationParameters(RakNet::EnterRoom_Func * func) {
+	return &func->networkedRoomCreationParameters;
+}
+
+BBString * bmx_enterroomfunc_GetGameIdentifer(RakNet::EnterRoom_Func * func) {
+	return bbStringFromCString(func->gameIdentifier.C_String());
+}
+
+void bmx_enterroomfunc_SetGameIdentifer(RakNet::EnterRoom_Func * func, BBString * gameIdentifier) {
+	char * n = bbStringToCString(gameIdentifier);
+	func->gameIdentifier = n;
+	bbMemFree(n);
+}
+
+RakNet::JoinedRoomResult * bmx_enterroomfunc_GetJoinedRoomResult(RakNet::EnterRoom_Func * func) {
+	return &func->joinedRoomResult;
+}
+
+int bmx_enterroomfunc_IsCreatedRoom(RakNet::EnterRoom_Func * func) {
+	return static_cast<int>(func->createdRoom);
+}
+
+unsigned int bmx_enterroomfunc_GetRoomId(RakNet::EnterRoom_Func * func) {
+	return func->roomId;
+}
+
+void bmx_enterroomfunc_SetRoomMemberMode(RakNet::EnterRoom_Func * func, int _mode) {
+	func->roomMemberMode = static_cast<RoomMemberMode>(_mode);
+}
+
+int bmx_enterroomfunc_GetRoomMemberMode(RakNet::EnterRoom_Func * func) {
+	return func->roomMemberMode;
+}
+
+RakNet::RoomQuery * bmx_enterroomfunc_GetQuery(RakNet::EnterRoom_Func * func) {
+	return &func->query;
+}
+
+// ****************************
+
+int bmx_roomdescriptor_getroommemberlistsize(RakNet::RoomDescriptor * desc) {
+	return desc->roomMemberList.Size();
+}
+
+BBString * bmx_roomdescriptor_getpropertystring(RakNet::RoomDescriptor * desc, int index) {
+	return bbStringFromCString(desc->GetProperty(index)->c);
+}
+
+double bmx_roomdescriptor_getpropertyvalue(RakNet::RoomDescriptor * desc, int index) {
+	return desc->GetProperty(index)->i;
+}
+
+unsigned int bmx_roomdescriptor_getlobbyroomid(RakNet::RoomDescriptor * desc) {
+	return desc->lobbyRoomId;
+}
+
+// ****************************
+
+RakNet::RoomDescriptor * bmx_joinedroomresult_getroomdescriptor(RakNet::JoinedRoomResult * res) {
+	return &res->roomDescriptor;
+}
+
+RakNet::RoomsParticipant * bmx_joinedroomresult_getacceptedinvitor(RakNet::JoinedRoomResult * res) {
+	return res->acceptedInvitor;
+}
+
+BBString * bmx_joinedroomresult_getacceptedinvitorname(RakNet::JoinedRoomResult * res) {
+	return bbStringFromCString(res->acceptedInvitorName.C_String());
+}
+
+MaxSystemAddress * bmx_joinedroomresult_getacceptedinvitoraddress(RakNet::JoinedRoomResult * res) {
+	return new MaxSystemAddress(res->acceptedInvitorAddress);
+}
+
+RakNet::RoomsParticipant * bmx_joinedroomresult_getjoiningmember(RakNet::JoinedRoomResult * res) {
+	return res->joiningMember;
+}
+
+BBString * bmx_joinedroomresult_getjoiningmembername(RakNet::JoinedRoomResult * res) {
+	return bbStringFromCString(res->joiningMemberName.C_String());
+}
+
+MaxSystemAddress * bmx_joinedroomresult_getjoiningmemberaddress(RakNet::JoinedRoomResult * res) {
+	return new MaxSystemAddress(res->joiningMemberAddress);
+}
+
+RakNet::Room * bmx_joinedroomresult_getroomoutput(RakNet::JoinedRoomResult * res) {
+	return res->roomOutput;
+}
+
+// ****************************
+
+RakNet::JoinByFilter_Func * bmx_joinbyfilterfunc_create() {
+	return new RakNet::JoinByFilter_Func;
+}
+
+void bmx_joinbyfilterfunc_free(RakNet::JoinByFilter_Func * func) {
+	delete func;
+}
+
+RakNet::JoinedRoomResult * bmx_joinbyfilterfunc_GetJoinedRoomResult(RakNet::JoinByFilter_Func * func) {
+	return &func->joinedRoomResult;
+}
+
+void bmx_joinbyfilterfunc_SetRoomMemberMode(RakNet::JoinByFilter_Func * func, int _mode) {
+	func->roomMemberMode = static_cast<RoomMemberMode>(_mode);
+}
+
+int bmx_joinbyfilterfunc_GetRoomMemberMode(RakNet::JoinByFilter_Func * func) {
+	return func->roomMemberMode;
+}
+
+RakNet::RoomQuery * bmx_joinbyfilterfunc_GetQuery(RakNet::JoinByFilter_Func * func) {
+	return &func->query;
+}
+
+BBString * bmx_joinbyfilterfunc_GetGameIdentifer(RakNet::JoinByFilter_Func * func) {
+	return bbStringFromCString(func->gameIdentifier.C_String());
+}
+
+void bmx_joinbyfilterfunc_SetGameIdentifer(RakNet::JoinByFilter_Func * func, BBString * gameIdentifier) {
+	char * n = bbStringToCString(gameIdentifier);
+	func->gameIdentifier = n;
+	bbMemFree(n);
+}
+
+// ****************************
+
+void bmx_roomquery_AddQuery_NUMERIC(RakNet::RoomQuery * query, BBString * columnName, double numericValue, int op) {
+	char * c = bbStringToCString(columnName);
+	query->AddQuery_NUMERIC(c, numericValue, static_cast<DataStructures::Table::FilterQueryType>(op));
+	bbMemFree(c);
+}
+
+void bmx_roomquery_AddQuery_STRING(RakNet::RoomQuery * query, BBString * columnName, BBString * charValue, int op) {
+	char * c = bbStringToCString(columnName);
+	char * v = bbStringToCString(charValue);
+	query->AddQuery_STRING(c, v, static_cast<DataStructures::Table::FilterQueryType>(op));
+	bbMemFree(c);
+	bbMemFree(v);
+}
+
+void bmx_roomquery_AddQuery_BINARY(RakNet::RoomQuery * query, BBString * columnName, const char * data, int inputLength, int op) {
+	char * c = bbStringToCString(columnName);
+	query->AddQuery_BINARY(c, data, inputLength, static_cast<DataStructures::Table::FilterQueryType>(op));
+	bbMemFree(c);
+}
+
+// ****************************
+
+BBString * bmx_defaultroomcolumns_GetColumnName(int columnId) {
+	return bbStringFromCString(DefaultRoomColumns::GetColumnName(columnId));
+}
+
+// ****************************
+
+RakNet::Chat_Func * bmx_chatfunc_create() {
+	return new RakNet::Chat_Func;
+}
+
+void bmx_chatfunc_SetChatMessage(RakNet::Chat_Func * func, BBString * message) {
+	char * m = bbStringToCString(message);
+	func->chatMessage = m;
+	bbMemFree(m);
+}
+
+void bmx_chatfunc_SetPrivateMessageRecipient(RakNet::Chat_Func * func, BBString * name) {
+	char * n = bbStringToCString(name);
+	func->privateMessageRecipient = n;
+	bbMemFree(n);
+}
+
+void bmx_chatfunc_SetChatDirectedToRoom(RakNet::Chat_Func * func, int value) {
+	func->chatDirectedToRoom = static_cast<bool>(value);
+}
+
+void bmx_chatfunc_free(RakNet::Chat_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::LeaveRoom_Func * bmx_leaveroomfunc_create() {
+	return new RakNet::LeaveRoom_Func;
+}
+
+void bmx_leaveroomfunc_free(RakNet::LeaveRoom_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::GetInvitesToParticipant_Func * bmx_getinvitestoparticipantfunc_create() {
+	return new RakNet::GetInvitesToParticipant_Func;
+}
+
+void bmx_getinvitestoparticipantfunc_free(RakNet::GetInvitesToParticipant_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::SendInvite_Func * bmx_sendinvitefunc_create() {
+	return new RakNet::SendInvite_Func;
+}
+
+void bmx_sendinvitefunc_free(RakNet::SendInvite_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::AcceptInvite_Func * bmx_acceptinvitefunc_create() {
+	return new RakNet::AcceptInvite_Func;
+}
+
+void bmx_acceptinvitefunc_free(RakNet::AcceptInvite_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::StartSpectating_Func * bmx_startspectatingfunc_create() {
+	return new RakNet::StartSpectating_Func;
+}
+
+void bmx_startspectatingfunc_free(RakNet::StartSpectating_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::StopSpectating_Func * bmx_stopspectatingfunc_create() {
+	return new RakNet::StopSpectating_Func;
+}
+
+void bmx_stopspectatingfunc_free(RakNet::StopSpectating_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::GrantModerator_Func * bmx_grantmoderatorfunc_create() {
+	return new RakNet::GrantModerator_Func;
+}
+
+void bmx_grantmoderatorfunc_free(RakNet::GrantModerator_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+RakNet::ChangeSlotCounts_Func * bmx_changeslotcountsfunc_create() {
+	return new RakNet::ChangeSlotCounts_Func;
+}
+
+void bmx_changeslotcountsfunc_free(RakNet::ChangeSlotCounts_Func * func) {
+	delete func;
+}
+
+// ****************************
+
+BBString * bmx_roomspluginnotification_GetRecipient(RakNet::RoomsPluginNotification * note) {
+	return bbStringFromCString(note->recipient.C_String());
+}
+
+// ****************************
+
+BBString * bmx_chatnotification_GetSender(RakNet::Chat_Notification * note) {
+	return bbStringFromCString(note->sender.C_String());
+}
+
+BBString * bmx_chatnotification_GetPrivateMessageRecipient(RakNet::Chat_Notification * note) {
+	return bbStringFromCString(note->privateMessageRecipient.C_String());
+}
+
+BBString * bmx_chatnotification_GetChatMessage(RakNet::Chat_Notification * note) {
+	return bbStringFromCString(note->chatMessage.C_String());
+}
+
+BBString * bmx_chatnotification_GetFilteredChatMessage(RakNet::Chat_Notification * note) {
+	return bbStringFromCString(note->filteredChatMessage.C_String());
+}
 
