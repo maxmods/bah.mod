@@ -62,7 +62,7 @@ bool FMODVoiceAdapter::SetupAdapter(FMOD_SYSTEM *fmodSystem, RakVoice *rakVoice)
 		return false;
 
 	// Start recording
-	fmodErr=FMOD_System_RecordStart(fmodSystem, recSound, true);
+	fmodErr=FMOD_System_RecordStart(fmodSystem, 0, recSound, true);
 	if (fmodErr!=FMOD_OK)
 		return false;
 
@@ -85,10 +85,10 @@ void FMODVoiceAdapter::Release(void)
 
 	// Stop recording
 	FMOD_BOOL recording=false;
-	err = FMOD_System_IsRecording(fmodSystem, &recording);
+	err = FMOD_System_IsRecording(fmodSystem, 0, &recording);
 	assert(err==FMOD_OK);
 	if (recording){
-		FMOD_System_RecordStop(fmodSystem);
+		FMOD_System_RecordStop(fmodSystem, 0);
 	}
 
 	// Stop what we hear
@@ -132,7 +132,7 @@ void FMODVoiceAdapter::UpdateSound(bool isRec)
 	// get current Play or recording position
 	unsigned int currPos;
 	if (isRec){
-		fmodErr=FMOD_System_GetRecordPosition(fmodSystem, &currPos);
+		fmodErr=FMOD_System_GetRecordPosition(fmodSystem, 0, &currPos);
 		assert(fmodErr==FMOD_OK);
 	} else {
 		fmodErr=FMOD_Channel_GetPosition(channel, &currPos, FMOD_TIMEUNIT_PCM);
