@@ -18,6 +18,7 @@ char *_strlwr(char * str )
 	{
 		if (str[i]>='A' && str[i]<='Z')
 			str[i]+='a'-'A';
+		i++;
 	}
 	return str;
 }
