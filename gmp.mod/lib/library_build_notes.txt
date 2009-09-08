@@ -1,0 +1,25 @@
+
+MacOS
+-----
+
+./configure ABI=32
+make
+
+the .dylib will be in the hidden .libs folder.
+Then need to run this to fix the path in the file :
+
+install_name_tool -id @executable_path/libgmp.dylib libgmp.dylib
+
+The .dylib will need to be deployed in the app bundle.
+
+
+Win32
+-----
+
+Includes a build of GMP found here : http://haskell.forkio.com/gmpwindows
+(Thanks to Sigbjorn Finne for the build!)
+
+
+Linux
+-----
+
