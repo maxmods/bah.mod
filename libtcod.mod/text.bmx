@@ -65,8 +65,8 @@ Type TCODFont
 		Local f:TCODFont = New TCODFont
 		f.Image = img
 		
-		f.widthMultiplier = 1.0 / img.width
-		f.heightMultiplier = 1.0 / img.height
+		f.widthMultiplier = 1.0 / Pow2Size(img.width)
+		f.heightMultiplier = 1.0 / Pow2Size(img.height)
 		
 		f.fontWidth = img.width / fontNbCharHoriz
 		f.fontHeight = img.height / fontNbCharVertic
@@ -76,9 +76,10 @@ Type TCODFont
 		
 		For Local i:Int = 0 Until 256
 
-			'If i < 32 And flags & TCOD_FONT_LAYOUT_TCOD Then
-			'	Continue
-			'End If
+			If i < 32 And flags & TCOD_FONT_LAYOUT_TCOD Then
+				j:+ 1
+				Continue
+			End If
 			
 			cur = i
 			f.char[cur] = True
@@ -103,7 +104,7 @@ Type TCODFont
 		Return f
 	End Function
 
-	Method Draw(i:Int, X:Float, Y:Float, force:Int = False)
+	Method Draw(i:Int, X:Float, Y:Float, force:Int = False, cb:Int = -1)
 'DebugStop
 		'Local frame:Int = 0
 		
@@ -120,8 +121,11 @@ Type TCODFont
 			TCOD_REFRESH_IMAGE = False
 		End If
 		
-		If char[i] Then
+		If char[i] Or cb >= 0 Then
 			Local curChar:Int = i
+			If cb >= 0 Then
+				curChar = cb
+			End If
 			
 			If isGL
 				GLframe.u0 = u0[curChar]
@@ -156,7 +160,15 @@ Type TCODFont
 		End If
 		
 	End Method
-	
+
+Function Pow2Size:Int( n:Int )
+	Local t:Int=1
+	While t<n
+		t:*2
+	Wend
+	Return t
+End Function
+
 End Type
 
 

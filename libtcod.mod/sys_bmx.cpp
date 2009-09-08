@@ -139,6 +139,11 @@ void TCOD_sys_startup() {
 
 void TCOD_sys_set_custom_font(const char *fontFile, int nbcw, int nbch, int flags) {
 	_bah_libtcod_TCODSystem__SetCustomFont(bbStringFromCString(fontFile), flags, nbcw, nbch);
+	if (has_startup && !(flags & TCOD_FONT_LAYOUT_TCOD)) {
+		// apply standard ascii mapping
+		for (int i=0; i < TCOD_max_font_chars; i++ ) TCOD_font_chars[i].ascii_to_tcod=i;
+	}
+
 }
 
 void *TCOD_sys_create_bitmap_for_console(TCOD_console_t console) {
