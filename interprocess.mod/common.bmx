@@ -28,6 +28,7 @@ SuperStrict
 
 Import BaH.Boost
 Import BRL.Blitz
+Import BRL.Bank
 ?linux
 Import "-lrt"
 ?
@@ -39,7 +40,7 @@ Import "glue.cpp"
 
 Extern
 
-	Function bmx_sharedmemoryobject_create:Byte Ptr(access:Int, name:String, mode:Int)
+	Function bmx_sharedmemoryobject_create:Byte Ptr(access:Int, name:String, Mode:Int)
 	Function bmx_sharedmemoryobject_free(handle:Byte Ptr)
 	Function bmx_sharedmemoryobject_remove:Int(name:String)
 	Function bmx_sharedmemoryobject_truncate(handle:Byte Ptr, offset:Long)
@@ -47,7 +48,7 @@ Extern
 	Function bmx_sharedmemoryobject_getsize:Int(handle:Byte Ptr, size:Long Ptr)
 	Function bmx_sharedmemoryobject_getmode:Int(handle:Byte Ptr)
 
-	Function bmx_mapped_region_createshm:Byte Ptr(mapping:Byte Ptr, mode:Int, offset:Long, size:Int, address:Byte Ptr)
+	Function bmx_mapped_region_createshm:Byte Ptr(mapping:Byte Ptr, Mode:Int, offset:Long, size:Int, address:Byte Ptr)
 	Function bmx_mapped_region_getsize:Int(handle:Byte Ptr)
 	Function bmx_mapped_region_getaddress:Byte Ptr(handle:Byte Ptr)
 	Function bmx_mapped_region_getoffset(handle:Byte Ptr, v:Long Ptr)

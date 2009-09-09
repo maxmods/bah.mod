@@ -58,15 +58,15 @@ Type TSHMO Extends TMemoryMappable
 	Rem
 	bbdoc: 
 	End Rem
-	Function CreateSHMO:TSHMO(access:Int, name:String, mode:Int)
-		Return New TSHMO.Create(access, name, mode)
+	Function CreateSHMO:TSHMO(access:Int, name:String, Mode:Int)
+		Return New TSHMO.Create(access, name, Mode)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method Create:TSHMO(access:Int, name:String, mode:Int)
-		objectPtr = bmx_sharedmemoryobject_create(access, name, mode)
+	Method Create:TSHMO(access:Int, name:String, Mode:Int)
+		objectPtr = bmx_sharedmemoryobject_create(access, name, Mode)
 		Return Self
 	End Method
 	
@@ -135,19 +135,19 @@ Type TMappedRegion
 	Rem
 	bbdoc: 
 	End Rem
-	Function CreateMappedRegion:TMappedRegion(mapping:TMemoryMappable, mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
-		Return New TMappedRegion.Create(mapping, mode, offset, size, address)
+	Function CreateMappedRegion:TMappedRegion(mapping:TMemoryMappable, Mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
+		Return New TMappedRegion.Create(mapping, Mode, offset, size, address)
 	End Function
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method Create:TMappedRegion(mapping:TMemoryMappable, mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
+	Method Create:TMappedRegion(mapping:TMemoryMappable, Mode:Int, offset:Long = 0, size:Int = 0, address:Byte Ptr = Null)
 		If TSHMO(mapping) Then
 			If address Then
-				objectPtr = bmx_mapped_region_createshm(mapping.objectPtr, mode, offset, size, address)
+				objectPtr = bmx_mapped_region_createshm(mapping.objectPtr, Mode, offset, size, address)
 			Else
-				objectPtr = bmx_mapped_region_createshm(mapping.objectPtr, mode, offset, size, Null)
+				objectPtr = bmx_mapped_region_createshm(mapping.objectPtr, Mode, offset, size, Null)
 			End If
 		End If
 		Return Self
@@ -504,5 +504,62 @@ Type TScopedLock
 
 End Type
 
+Rem
+bbdoc: A memory bank using shared memory
+about: Allocates or connects to existing shared memory of the specified @name.
+Note that the memory is not freed from the system when this object is destroyed. You should call either Remove() or #RemoveSharedBank.
+End Rem
+Type TSharedBank Extends TBank
+
+	Field name:String
+	Field shared:TSHMO
+	Field region:TMappedRegion
+	
+	Function CreateShared:TSharedBank(name:String, size:Int)
+		Return New TSharedBank._Create(name, size)
+	End Function
+	
+	Method _Create:TSharedBank(name:String, size:Int)
+	
+		Self.name = name
+		
+		' create the shared object
+		shared = New TSHMO.Create(OPEN_OR_CREATE, name, MODE_RW)
+		shared.Truncate(size)
+		
+		' create a mapped region
+		region = New TMappedRegion.Create(shared, MODE_RW)
+		
+		_buf = region.GetAddress()
+		_size=size
+		_capacity=-1
+		
+		Return Self
+	End Method
+	
+	Rem
+	bbdoc: Removes the related shared memory from the system.
+	about: After calling this, the bank and its data are invalid.
+	End Rem
+	Method Remove()
+		TSHMO.Remove(name)
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Creates (or opens) a shared memory bank.
+about: Note that to free the shared memory from the system you should call RemoveSharedBank().
+End Rem
+Function CreateSharedBank:TSharedBank(name:String, size:Int)
+	Return TSharedBank.CreateShared(name, size)
+End Function
+
+Rem
+bbdoc: Removes a shared memory bank from the system.
+End Rem
+Function RemoveSharedBank(name:String)
+	TSHMO.Remove(name)
+End Function
 
 
