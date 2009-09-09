@@ -22,6 +22,20 @@ extern "C" {
 	int bmx_gmp_mpz_getint(MaxMpz * mpz);
 	double bmx_gmp_mpz_getdouble(MaxMpz * mpz);
 	double bmx_gmp_mpz_getdouble2exp(MaxMpz * mpz, signed long int * _exp);
+	void bmx_gmp_mpz_add(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2);
+	void bmx_gmp_mpz_addint(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_sub(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2);
+	void bmx_gmp_mpz_subint(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_intsub(MaxMpz * mpz, int op1, MaxMpz * op2);
+	void bmx_gmp_mpz_mul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2);
+	void bmx_gmp_mpz_mulint(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_addmul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2);
+	void bmx_gmp_mpz_addmulint(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_submul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2);
+	void bmx_gmp_mpz_submulint(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_mul2exp(MaxMpz * mpz, MaxMpz * op1, int op2);
+	void bmx_gmp_mpz_neg(MaxMpz * mpz, MaxMpz * op);
+	void bmx_gmp_mpz_abs(MaxMpz * mpz, MaxMpz * op);
 
 }
 
@@ -149,6 +163,62 @@ double bmx_gmp_mpz_getdouble(MaxMpz * mpz) {
 
 double bmx_gmp_mpz_getdouble2exp(MaxMpz * mpz, signed long int * _exp) {
 	return mpz_get_d_2exp(_exp, mpz->Value());
+}
+
+void bmx_gmp_mpz_add(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2) {
+	mpz_add(mpz->Value(), op1->Value(), op2->Value());
+}
+
+void bmx_gmp_mpz_addint(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_add_ui(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_sub(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2) {
+	mpz_sub(mpz->Value(), op1->Value(), op2->Value());
+}
+
+void bmx_gmp_mpz_subint(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_sub_ui(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_intsub(MaxMpz * mpz, int op1, MaxMpz * op2) {
+	mpz_ui_sub(mpz->Value(), op1, op2->Value());
+}
+
+void bmx_gmp_mpz_mul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2) {
+	mpz_mul(mpz->Value(), op1->Value(), op2->Value());
+}
+
+void bmx_gmp_mpz_mulint(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_mul_si(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_addmul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2) {
+	mpz_addmul(mpz->Value(), op1->Value(), op2->Value());
+}
+
+void bmx_gmp_mpz_addmulint(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_addmul_ui(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_submul(MaxMpz * mpz, MaxMpz * op1, MaxMpz * op2) {
+	mpz_submul(mpz->Value(), op1->Value(), op2->Value());
+}
+
+void bmx_gmp_mpz_submulint(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_submul_ui(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_mul2exp(MaxMpz * mpz, MaxMpz * op1, int op2) {
+	mpz_mul_2exp(mpz->Value(), op1->Value(), op2);
+}
+
+void bmx_gmp_mpz_neg(MaxMpz * mpz, MaxMpz * op) {
+	mpz_neg(mpz->Value(), op->Value());
+}
+
+void bmx_gmp_mpz_abs(MaxMpz * mpz, MaxMpz * op) {
+	mpz_abs(mpz->Value(), op->Value());
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
