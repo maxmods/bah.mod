@@ -36,7 +36,35 @@ extern "C" {
 	void bmx_gmp_mpz_mul2exp(MaxMpz * mpz, MaxMpz * op1, int op2);
 	void bmx_gmp_mpz_neg(MaxMpz * mpz, MaxMpz * op);
 	void bmx_gmp_mpz_abs(MaxMpz * mpz, MaxMpz * op);
+	void bmx_gmp_mpz_cdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_cdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_cdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d);
+	int bmx_gmp_mpz_cdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_cdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_cdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d);
+	int bmx_gmp_mpz_cdiv_ui(MaxMpz * mpz, int d);
+	void bmx_gmp_mpz_cdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b);
+	void bmx_gmp_mpz_cdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b);
+	void bmx_gmp_mpz_fdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_fdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_fdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d);
+	int bmx_gmp_mpz_fdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_fdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_fdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d);
+	int bmx_gmp_mpz_fdiv_ui(MaxMpz * mpz, int d);
+	void bmx_gmp_mpz_fdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b);
+	void bmx_gmp_mpz_fdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b);
+	void bmx_gmp_mpz_tdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_tdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d);
+	void bmx_gmp_mpz_tdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d);
+	int bmx_gmp_mpz_tdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_tdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d);
+	int bmx_gmp_mpz_tdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d);
+	int bmx_gmp_mpz_tdiv_ui(MaxMpz * mpz, int d);
+	void bmx_gmp_mpz_tdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b);
+	void bmx_gmp_mpz_tdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b);
 
+	
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -220,5 +248,114 @@ void bmx_gmp_mpz_neg(MaxMpz * mpz, MaxMpz * op) {
 void bmx_gmp_mpz_abs(MaxMpz * mpz, MaxMpz * op) {
 	mpz_abs(mpz->Value(), op->Value());
 }
+
+void bmx_gmp_mpz_cdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_cdiv_q(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_cdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_cdiv_r(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_cdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d) {
+	mpz_cdiv_qr(mpz->Value(), r->Value(), n->Value(), d->Value());
+}
+
+int bmx_gmp_mpz_cdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_cdiv_q_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_cdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_cdiv_r_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_cdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d) {
+	return mpz_cdiv_qr_ui(mpz->Value(), r->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_cdiv_ui(MaxMpz * mpz, int d) {
+	return mpz_cdiv_ui(mpz->Value(), d);
+}
+
+void bmx_gmp_mpz_cdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_cdiv_q_2exp(mpz->Value(), n->Value(), b);
+}
+
+void bmx_gmp_mpz_cdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_cdiv_r_2exp(mpz->Value(), n->Value(), b);
+}
+
+void bmx_gmp_mpz_fdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_fdiv_q(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_fdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_fdiv_r(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_fdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d) {
+	mpz_fdiv_qr(mpz->Value(), r->Value(), n->Value(), d->Value());
+}
+
+int bmx_gmp_mpz_fdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_fdiv_q_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_fdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_fdiv_r_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_fdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d) {
+	return mpz_fdiv_qr_ui(mpz->Value(), r->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_fdiv_ui(MaxMpz * mpz, int d) {
+	return mpz_fdiv_ui(mpz->Value(), d);
+}
+
+void bmx_gmp_mpz_fdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_fdiv_q_2exp(mpz->Value(), n->Value(), b);
+}
+
+void bmx_gmp_mpz_fdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_fdiv_r_2exp(mpz->Value(), n->Value(), b);
+}
+
+void bmx_gmp_mpz_tdiv_q(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_tdiv_q(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_tdiv_r(MaxMpz * mpz, MaxMpz * n, MaxMpz * d) {
+	mpz_tdiv_r(mpz->Value(), n->Value(), d->Value());
+}
+
+void bmx_gmp_mpz_tdiv_qr(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, MaxMpz * d) {
+	mpz_tdiv_qr(mpz->Value(), r->Value(), n->Value(), d->Value());
+}
+
+int bmx_gmp_mpz_tdiv_q_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_tdiv_q_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_tdiv_r_ui(MaxMpz * mpz, MaxMpz * n, int d) {
+	return mpz_tdiv_r_ui(mpz->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_tdiv_qr_ui(MaxMpz * mpz, MaxMpz * r, MaxMpz * n, int d) {
+	return mpz_tdiv_qr_ui(mpz->Value(), r->Value(), n->Value(), d);
+}
+
+int bmx_gmp_mpz_tdiv_ui(MaxMpz * mpz, int d) {
+	return mpz_tdiv_ui(mpz->Value(), d);
+}
+
+void bmx_gmp_mpz_tdiv_q_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_tdiv_q_2exp(mpz->Value(), n->Value(), b);
+}
+
+void bmx_gmp_mpz_tdiv_r_2exp(MaxMpz * mpz, MaxMpz * n, int b) {
+	mpz_tdiv_r_2exp(mpz->Value(), n->Value(), b);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
