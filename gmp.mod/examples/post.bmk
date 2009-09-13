@@ -1,0 +1,21 @@
+# post build script
+#
+# We want to ensure that that dlls are here !
+#
+
+@define copydll
+
+	if bmk.Platform() == "win32" then
+		dll = "libgmp-3.dll"
+	else
+		dll = "libgmp.dylib"
+	end
+
+	local path = utils.ModulePath("bah.gmp") .. "/lib/" .. bmk.Platform() .. "/"
+
+	sys.CopyFile(path .. dll, %exepath% .. "/" .. dll)
+@end
+
+# do the copy
+copydll
+
