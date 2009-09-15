@@ -150,6 +150,24 @@ extern "C" {
 	int bmx_gmp_mpz_odd_p(MaxMpz * r);
 	int bmx_gmp_mpz_even_p(MaxMpz * r);
 
+	MaxMpf * bmx_gmp_mpf_init(int prec);
+	void bmx_gmp_mpf_set(MaxMpf * r, MaxMpf * op);
+	void bmx_gmp_mpf_set_default_prec(int prec);
+	int bmx_gmp_mpf_get_default_prec();
+	int bmx_gmp_mpf_get_prec(MaxMpf * r);
+	void bmx_gmp_mpf_set_prec(MaxMpf * r, int prec);
+	void bmx_gmp_mpf_free(MaxMpf * r);
+	void bmx_gmp_mpf_setint(MaxMpf * r, int op);
+	void bmx_gmp_mpf_setdouble(MaxMpf * r, double op);
+	void bmx_gmp_mpf_setinteger(MaxMpf * r, MaxMpz * op);
+	void bmx_gmp_mpf_setrational(MaxMpf * r, MaxMpq * op);
+	int bmx_gmp_mpf_setstr(MaxMpf * r, BBString * s, int base);
+	void bmx_gmp_mpf_swap(MaxMpf * r, MaxMpf * op);
+	double bmx_gmp_mpf_get_d(MaxMpf * r);
+	double bmx_gmp_mpf_get_d_2exp(MaxMpf * r, int * _exp);
+	int bmx_gmp_mpf_get_si(MaxMpf * r);
+	BBString * bmx_gmp_mpf_get_str(MaxMpf * r, int * _exp, int base);
+
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -202,6 +220,11 @@ public:
 	MaxMpf()
 	{
 		mpf_init(value);
+	}
+
+	MaxMpf(int prec)
+	{
+		mpf_init2(value, prec);
 	}
 	
 	~MaxMpf()
@@ -821,3 +844,89 @@ int bmx_gmp_mpz_even_p(MaxMpz * r) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+MaxMpf * bmx_gmp_mpf_init(int prec) {
+	if (prec) {
+		return new MaxMpf(prec);
+	} else {
+		return new MaxMpf;
+	}
+}
+
+void bmx_gmp_mpf_set(MaxMpf * r, MaxMpf * op) {
+	mpf_set(r->Value(), op->Value());
+}
+
+void bmx_gmp_mpf_set_default_prec(int prec) {
+	mpf_set_default_prec(prec);
+}
+
+int bmx_gmp_mpf_get_default_prec() {
+	return static_cast<int>(mpf_get_default_prec());
+}
+
+int bmx_gmp_mpf_get_prec(MaxMpf * r) {
+	return static_cast<int>(mpf_get_prec(r->Value()));
+}
+
+void bmx_gmp_mpf_set_prec(MaxMpf * r, int prec) {
+	mpf_set_prec(r->Value(), prec);
+}
+
+void bmx_gmp_mpf_free(MaxMpf * r) {
+	delete r;
+}
+
+void bmx_gmp_mpf_setint(MaxMpf * r, int op) {
+	mpf_set_si(r->Value(), op);
+}
+
+void bmx_gmp_mpf_setdouble(MaxMpf * r, double op) {
+	mpf_set_d(r->Value(), op);
+}
+
+void bmx_gmp_mpf_setinteger(MaxMpf * r, MaxMpz * op) {
+	mpf_set_z(r->Value(), op->Value());
+}
+
+void bmx_gmp_mpf_setrational(MaxMpf * r, MaxMpq * op) {
+	mpf_set_q(r->Value(), op->Value());
+}
+
+int bmx_gmp_mpf_setstr(MaxMpf * r, BBString * str, int base) {
+	char * s = bbStringToCString(str);
+	int res = mpf_set_str(r->Value(), s, base);
+	bbMemFree(s);
+	return res;
+}
+
+void bmx_gmp_mpf_swap(MaxMpf * r, MaxMpf * op) {
+	mpf_swap(r->Value(), op->Value());
+}
+
+double bmx_gmp_mpf_get_d(MaxMpf * r) {
+	return mpf_get_d(r->Value());
+}
+
+double bmx_gmp_mpf_get_d_2exp(MaxMpf * r, int * _exp) {
+	signed long int exp;
+	double res = mpf_get_d_2exp(&exp, r->Value());
+	*_exp = static_cast<int>(exp);
+	return res;
+}
+
+int bmx_gmp_mpf_get_si(MaxMpf * r) {
+	return static_cast<int>(mpf_get_si(r->Value()));
+}
+
+BBString * bmx_gmp_mpf_get_str(MaxMpf * r, int * _exp, int base) {
+	mp_exp_t expptr;
+	char * s = mpf_get_str(NULL, &expptr, base, 0, r->Value());
+	BBString * str = bbStringFromCString(s);
+	free(s);
+	*_exp = static_cast<int>(expptr);
+	return str;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+

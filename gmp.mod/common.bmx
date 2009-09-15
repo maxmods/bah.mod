@@ -155,5 +155,23 @@ Extern
 	Function bmx_gmp_mpz_odd_p:Int(handle:Byte Ptr)
 	Function bmx_gmp_mpz_even_p:Int(handle:Byte Ptr)
 
+	Function bmx_gmp_mpf_init:Byte Ptr(prec:Int)
+	Function bmx_gmp_mpf_set(handle:Byte Ptr, op:Byte Ptr)
+	Function bmx_gmp_mpf_set_default_prec(prec:Int)
+	Function bmx_gmp_mpf_get_default_prec:Int()
+	Function bmx_gmp_mpf_get_prec:Int(handle:Byte Ptr)
+	Function bmx_gmp_mpf_set_prec(handle:Byte Ptr, prec:Int)
+	Function bmx_gmp_mpf_free(handle:Byte Ptr)
+	Function bmx_gmp_mpf_setint(handle:Byte Ptr, op:Int)
+	Function bmx_gmp_mpf_setdouble(handle:Byte Ptr, op:Double)
+	Function bmx_gmp_mpf_setinteger(handle:Byte Ptr, op:Byte Ptr)
+	Function bmx_gmp_mpf_setrational(handle:Byte Ptr, op:Byte Ptr)
+	Function bmx_gmp_mpf_setstr:Int(handle:Byte Ptr, s:String, base:Int)
+	Function bmx_gmp_mpf_swap(handle:Byte Ptr, op:Byte Ptr)
+	Function bmx_gmp_mpf_get_d:Double(handle:Byte Ptr)
+	Function bmx_gmp_mpf_get_d_2exp:Double(handle:Byte Ptr, _exp:Int Ptr)
+	Function bmx_gmp_mpf_get_si:Int(handle:Byte Ptr)
+	Function bmx_gmp_mpf_get_str:String(handle:Byte Ptr, _exp:Int Ptr, base:Int)
+
 End Extern
 
