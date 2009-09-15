@@ -168,6 +168,35 @@ extern "C" {
 	int bmx_gmp_mpf_get_si(MaxMpf * r);
 	BBString * bmx_gmp_mpf_get_str(MaxMpf * r, int * _exp, int base);
 
+	MaxMpf * bmx_gmp_mpf_add(MaxMpf * r, MaxMpf * op);
+	MaxMpf * bmx_gmp_mpf_addint(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_sub(MaxMpf * r, MaxMpf * op);
+	MaxMpf * bmx_gmp_mpf_subint(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_intsub(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_mul(MaxMpf * r, MaxMpf * op);
+	MaxMpf * bmx_gmp_mpf_mulint(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_div(MaxMpf * r, MaxMpf * op);
+	MaxMpf * bmx_gmp_mpf_ui_div(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_div_ui(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_sqrt(MaxMpf * r);
+	MaxMpf * bmx_gmp_mpf_sqrt_ui(int op);
+	MaxMpf * bmx_gmp_mpf_pow_ui(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_mul2exp(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_div_2exp(MaxMpf * r, int op);
+	MaxMpf * bmx_gmp_mpf_neg(MaxMpf * r);
+	MaxMpf * bmx_gmp_mpf_abs(MaxMpf * r);
+	MaxMpf * bmx_gmp_mpf_ceil(MaxMpf * r);
+	MaxMpf * bmx_gmp_mpf_floor(MaxMpf * r);
+	MaxMpf * bmx_gmp_mpf_trunc(MaxMpf * r);
+	int bmx_gmp_mpf_integer_p(MaxMpf * r);
+
+
+	int bmx_gmp_mpf_cmp(MaxMpf * r, MaxMpf * op);
+	int bmx_gmp_mpf_cmp_d(MaxMpf * r, double op);
+	int bmx_gmp_mpf_cmp_si(MaxMpf * r, int op);
+	int bmx_gmp_mpf_eq(MaxMpf * r, MaxMpf * op1, int op2);
+	MaxMpf * bmx_gmp_mpf_reldiff(MaxMpf * r, MaxMpf * op2);
+	int bmx_gmp_mpf_sgn(MaxMpf * r);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -927,6 +956,158 @@ BBString * bmx_gmp_mpf_get_str(MaxMpf * r, int * _exp, int base) {
 	*_exp = static_cast<int>(expptr);
 	return str;
 }
+
+MaxMpf * bmx_gmp_mpf_add(MaxMpf * r, MaxMpf * op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_add(mpf->Value(), r->Value(), op->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_addint(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_add_ui(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_sub(MaxMpf * r, MaxMpf * op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_sub(mpf->Value(), r->Value(), op->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_subint(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_sub_ui(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_intsub(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_ui_sub(mpf->Value(), op, r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_mul(MaxMpf * r, MaxMpf * op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_mul(mpf->Value(), r->Value(), op->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_mulint(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_mul_ui(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_div(MaxMpf * r, MaxMpf * op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_div(mpf->Value(), r->Value(), op->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_ui_div(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_ui_div(mpf->Value(), op, r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_div_ui(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_div_ui(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_sqrt(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_sqrt(mpf->Value(), r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_sqrt_ui(int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_sqrt_ui(mpf->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_pow_ui(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_pow_ui(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_mul2exp(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_mul_2exp(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_div_2exp(MaxMpf * r, int op) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_div_2exp(mpf->Value(), r->Value(), op);
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_neg(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_neg(mpf->Value(), r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_abs(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_abs(mpf->Value(), r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_ceil(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_ceil(mpf->Value(), r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_floor(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_floor(mpf->Value(), r->Value());
+	return mpf;
+}
+
+MaxMpf * bmx_gmp_mpf_trunc(MaxMpf * r) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_trunc(mpf->Value(), r->Value());
+	return mpf;
+}
+
+int bmx_gmp_mpf_integer_p(MaxMpf * r) {
+	return mpf_integer_p(r->Value());
+}
+
+
+int bmx_gmp_mpf_cmp(MaxMpf * r, MaxMpf * op) {
+	return mpf_cmp(r->Value(), op->Value());
+}
+
+int bmx_gmp_mpf_cmp_d(MaxMpf * r, double op) {
+	return mpf_cmp_d(r->Value(), op);
+}
+
+int bmx_gmp_mpf_cmp_si(MaxMpf * r, int op) {
+	return mpf_cmp_si(r->Value(), op);
+}
+
+int bmx_gmp_mpf_eq(MaxMpf * r, MaxMpf * op1, int op2) {
+	return mpf_eq(r->Value(), op1->Value(), op2);
+}
+
+MaxMpf * bmx_gmp_mpf_reldiff(MaxMpf * r, MaxMpf * op2) {
+	MaxMpf * mpf = new MaxMpf;
+	mpf_reldiff(mpf->Value(), r->Value(), op2->Value());
+	return mpf;
+}
+
+int bmx_gmp_mpf_sgn(MaxMpf * r) {
+	return mpf_sgn(r->Value());
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
