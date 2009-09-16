@@ -190,13 +190,41 @@ extern "C" {
 	MaxMpf * bmx_gmp_mpf_trunc(MaxMpf * r);
 	int bmx_gmp_mpf_integer_p(MaxMpf * r);
 
-
 	int bmx_gmp_mpf_cmp(MaxMpf * r, MaxMpf * op);
 	int bmx_gmp_mpf_cmp_d(MaxMpf * r, double op);
 	int bmx_gmp_mpf_cmp_si(MaxMpf * r, int op);
 	int bmx_gmp_mpf_eq(MaxMpf * r, MaxMpf * op1, int op2);
 	MaxMpf * bmx_gmp_mpf_reldiff(MaxMpf * r, MaxMpf * op2);
 	int bmx_gmp_mpf_sgn(MaxMpf * r);
+
+	MaxMpq * bmx_gmp_mpq_init();
+	void bmx_gmp_mpq_set(MaxMpq * r, MaxMpq * op);
+	void bmx_gmp_mpq_set_z(MaxMpq * r, MaxMpz * op);
+	void bmx_gmp_mpq_set_si(MaxMpq * r, int op1, int op2);
+	int bmx_gmp_mpq_setstr(MaxMpq * r, BBString * s, int base);
+	void bmx_gmp_mpq_swap(MaxMpq * r, MaxMpq * op);
+	double bmx_gmp_mpq_get_d(MaxMpq * r);
+	void bmx_gmp_mpq_set_d(MaxMpq * r, double op);
+	void bmx_gmp_mpq_set_f(MaxMpq * r, MaxMpf * op);
+	BBString * bmx_gmp_mpq_get_str(MaxMpq * r, int base);
+	void bmx_gmp_mpq_free(MaxMpq * r);
+	void bmx_gmp_mpq_canonicalize(MaxMpq * r);
+	MaxMpq * bmx_gmp_mpq_add(MaxMpq * r, MaxMpq * op);
+	MaxMpq * bmx_gmp_mpq_sub(MaxMpq * r, MaxMpq * op);
+	MaxMpq * bmx_gmp_mpq_mul(MaxMpq * r, MaxMpq * op);
+	MaxMpq * bmx_gmp_mpq_div(MaxMpq * r, MaxMpq * op);
+	MaxMpq * bmx_gmp_mpq_mul2exp(MaxMpq * r, int op);
+	MaxMpq * bmx_gmp_mpq_div_2exp(MaxMpq * r, int op);
+	MaxMpq * bmx_gmp_mpq_neg(MaxMpq * r);
+	MaxMpq * bmx_gmp_mpq_abs(MaxMpq * r);
+	MaxMpq * bmx_gmp_mpq_inv(MaxMpq * r);
+	int bmx_gmp_mpq_cmp(MaxMpq * r, MaxMpq * op);
+	int bmx_gmp_mpq_cmp_si(MaxMpq * r, int op1, int op2);
+	int bmx_gmp_mpq_sgn(MaxMpq * r);
+	int bmx_gmp_mpq_equal(MaxMpq * r, MaxMpq * op);
+	MaxMpz * bmx_gmp_mpq_numref(MaxMpq * r);
+	MaxMpz * bmx_gmp_mpq_denref(MaxMpq * r);
+
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1108,6 +1136,144 @@ int bmx_gmp_mpf_sgn(MaxMpf * r) {
 	return mpf_sgn(r->Value());
 }
 
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+MaxMpq * bmx_gmp_mpq_init() {
+	return new MaxMpq;
+}
+
+void bmx_gmp_mpq_set(MaxMpq * r, MaxMpq * op) {
+	mpq_set(r->Value(), op->Value());
+}
+
+void bmx_gmp_mpq_set_z(MaxMpq * r, MaxMpz * op) {
+	mpq_set_z(r->Value(), op->Value());
+}
+
+void bmx_gmp_mpq_set_si(MaxMpq * r, int op1, int op2) {
+	mpq_set_si(r->Value(), op1, op2);
+}
+
+int bmx_gmp_mpq_setstr(MaxMpq * r, BBString * str, int base) {
+	char * s = bbStringToCString(str);
+	int res = mpq_set_str(r->Value(), s, base);
+	bbMemFree(s);
+	return res;
+}
+
+void bmx_gmp_mpq_swap(MaxMpq * r, MaxMpq * op) {
+	mpq_swap(r->Value(), op->Value());
+}
+
+double bmx_gmp_mpq_get_d(MaxMpq * r) {
+	return mpq_get_d(r->Value());
+}
+
+void bmx_gmp_mpq_set_d(MaxMpq * r, double op) {
+	mpq_set_d(r->Value(), op);
+}
+
+void bmx_gmp_mpq_set_f(MaxMpq * r, MaxMpf * op) {
+	mpq_set_f(r->Value(), op->Value());
+}
+
+BBString * bmx_gmp_mpq_get_str(MaxMpq * r, int base) {
+	char * s = mpq_get_str(NULL, base, r->Value());
+	BBString * str = bbStringFromCString(s);
+	free(s);
+	return str;
+}
+
+void bmx_gmp_mpq_free(MaxMpq * r) {
+	delete r;
+}
+
+void bmx_gmp_mpq_canonicalize(MaxMpq * r) {
+	mpq_canonicalize(r->Value());
+}
+
+MaxMpq * bmx_gmp_mpq_add(MaxMpq * r, MaxMpq * op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_add(mpq->Value(), r->Value(), op->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_sub(MaxMpq * r, MaxMpq * op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_sub(mpq->Value(), r->Value(), op->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_mul(MaxMpq * r, MaxMpq * op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_mul(mpq->Value(), r->Value(), op->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_div(MaxMpq * r, MaxMpq * op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_div(mpq->Value(), r->Value(), op->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_mul2exp(MaxMpq * r, int op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_mul_2exp(mpq->Value(), r->Value(), op);
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_div_2exp(MaxMpq * r, int op) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_div_2exp(mpq->Value(), r->Value(), op);
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_neg(MaxMpq * r) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_neg(mpq->Value(), r->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_abs(MaxMpq * r) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_abs(mpq->Value(), r->Value());
+	return mpq;
+}
+
+MaxMpq * bmx_gmp_mpq_inv(MaxMpq * r) {
+	MaxMpq * mpq = new MaxMpq;
+	mpq_inv(mpq->Value(), r->Value());
+	return mpq;
+}
+
+int bmx_gmp_mpq_cmp(MaxMpq * r, MaxMpq * op) {
+	return mpq_cmp(r->Value(), op->Value());
+}
+
+int bmx_gmp_mpq_cmp_si(MaxMpq * r, int op1, int op2) {
+	return mpq_cmp_si(r->Value(), op1, op2);
+}
+
+int bmx_gmp_mpq_sgn(MaxMpq * r) {
+	return mpq_sgn(r->Value());
+}
+
+int bmx_gmp_mpq_equal(MaxMpq * r, MaxMpq * op) {
+	return mpq_equal(r->Value(), op->Value());
+}
+
+MaxMpz * bmx_gmp_mpq_numref(MaxMpq * r) {
+	MaxMpz * mpz = new MaxMpz;
+	mpz_set(mpz->Value(), mpq_numref(r->Value()));
+	return mpz;
+}
+
+MaxMpz * bmx_gmp_mpq_denref(MaxMpq * r) {
+	MaxMpz * mpz = new MaxMpz;
+	mpz_set(mpz->Value(), mpq_denref(r->Value()));
+	return mpz;
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
