@@ -34,8 +34,9 @@
 
 #ifdef _WIN32
 #include <stdlib.h>             /* for _MAX_PATH */
-#undef PATH_MAX				/* BaH */
+#ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
+#endif
 #endif
 
 #ifdef WITH_XSLT_DEBUG
@@ -85,6 +86,7 @@ static xmlHashTablePtr xsltFunctionsHash = NULL;
 static xmlHashTablePtr xsltElementsHash = NULL;
 static xmlHashTablePtr xsltTopLevelsHash = NULL;
 static xmlHashTablePtr xsltModuleHash = NULL;
+static xmlMutexPtr xsltExtMutex = NULL;
 
 /************************************************************************
  * 									*
@@ -311,6 +313,8 @@ typedef void (*exsltRegisterFunction) (void);
  * by LIBXSLT_DEFAULT_PLUGINS_PATH() which is determined at
  * compile time.
  *
+ * Always called with xsltExtMutex lock taken.
+ *
  * Returns 0 if successful, -1 in case of error. 
  */
 
@@ -338,10 +342,14 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
             return (-1);
     }
 
+    xmlMutexLock(xsltExtMutex);
+
     /* have we attempted to register this module already? */
     if (xmlHashLookup(xsltModuleHash, URI) != NULL) {
+        xmlMutexUnlock(xsltExtMutex);
         return (-1);
     }
+    xmlMutexUnlock(xsltExtMutex);
 
     /* transform extension namespace into a module name */
     protocol = xmlStrstr(URI, BAD_CAST "://");
@@ -367,15 +375,16 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
     /* determine module directory */
     ext_directory = (xmlChar *) getenv("LIBXSLT_PLUGINS_PATH");
 
-#ifdef WITH_XSLT_DEBUG_EXTENSIONS
-    xsltGenericDebug(xsltGenericDebugContext,
-                     "LIBXSLT_PLUGINS_PATH is %s\n", ext_directory);
-#endif
-
-    if (NULL == ext_directory)
+    if (NULL == ext_directory) {
         ext_directory = BAD_CAST LIBXSLT_DEFAULT_PLUGINS_PATH();
-    if (NULL == ext_directory)
-        return (-1);
+	if (NULL == ext_directory)
+	  return (-1);
+    }
+#ifdef WITH_XSLT_DEBUG_EXTENSIONS
+    else
+      xsltGenericDebug(xsltGenericDebugContext,
+		       "LIBXSLT_PLUGINS_PATH is %s\n", ext_directory);
+#endif
 
     /* build the module filename, and confirm the module exists */
     xmlStrPrintf((xmlChar *) module_filename, sizeof(module_filename),
@@ -428,7 +437,9 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
         (*regfunc) ();
 
         /* register this module in our hash */
+        xmlMutexLock(xsltExtMutex);
         xmlHashAddEntry(xsltModuleHash, URI, (void *) m);
+        xmlMutexUnlock(xsltExtMutex);
     } else {
 
 #ifdef WITH_XSLT_DEBUG_EXTENSIONS
@@ -447,7 +458,7 @@ xsltExtModuleRegisterDynamic(const xmlChar * URI)
 }
 #else
 static int
-xsltExtModuleRegisterDynamic(const xmlChar * ATTRIBUTE_UNUSED URI)
+xsltExtModuleRegisterDynamic(const xmlChar * URI ATTRIBUTE_UNUSED)
 {
   return -1;
 }
@@ -574,6 +585,8 @@ int
 xsltRegisterExtFunction(xsltTransformContextPtr ctxt, const xmlChar * name,
                         const xmlChar * URI, xmlXPathFunction function)
 {
+    int ret;
+
     if ((ctxt == NULL) || (name == NULL) ||
         (URI == NULL) || (function == NULL))
         return (-1);
@@ -584,8 +597,11 @@ xsltRegisterExtFunction(xsltTransformContextPtr ctxt, const xmlChar * name,
         ctxt->extFunctions = xmlHashCreate(10);
     if (ctxt->extFunctions == NULL)
         return (-1);
-    return (xmlHashAddEntry2
-            (ctxt->extFunctions, name, URI, XML_CAST_FPTR(function)));
+
+    ret = xmlHashAddEntry2(ctxt->extFunctions, name, URI,
+                           XML_CAST_FPTR(function));
+
+    return(ret);
 }
 
 /**
@@ -660,7 +676,12 @@ xsltStyleInitializeStylesheetModule(xsltStylesheetPtr style,
 	return(NULL);
     }
 
+    xmlMutexLock(xsltExtMutex);
+
     module = xmlHashLookup(xsltExtensionsHash, URI);
+
+    xmlMutexUnlock(xsltExtMutex);
+
     if (module == NULL) {
 #ifdef WITH_XSLT_DEBUG_EXTENSIONS
 	xsltGenericDebug(xsltGenericDebugContext,
@@ -854,7 +875,12 @@ xsltGetExtData(xsltTransformContextPtr ctxt, const xmlChar * URI)
         void *extData;
         xsltExtModulePtr module;
 
+        xmlMutexLock(xsltExtMutex);
+
         module = xmlHashLookup(xsltExtensionsHash, URI);
+
+        xmlMutexUnlock(xsltExtMutex);
+
         if (module == NULL) {
 #ifdef WITH_XSLT_DEBUG_EXTENSIONS
             xsltGenericDebug(xsltGenericDebugContext,
@@ -1234,18 +1260,27 @@ xsltRegisterExtModuleFull(const xmlChar * URI,
     if (xsltExtensionsHash == NULL)
         return (-1);
 
+    xmlMutexLock(xsltExtMutex);
+
     module = xmlHashLookup(xsltExtensionsHash, URI);
     if (module != NULL) {
         if ((module->initFunc == initFunc) &&
             (module->shutdownFunc == shutdownFunc))
-            return (0);
-        return (-1);
+            ret = 0;
+        else
+            ret = -1;
+        goto done;
     }
     module = xsltNewExtModule(initFunc, shutdownFunc,
                               styleInitFunc, styleShutdownFunc);
-    if (module == NULL)
-        return (-1);
+    if (module == NULL) {
+        ret = -1;
+        goto done;
+    }
     ret = xmlHashAddEntry(xsltExtensionsHash, URI, (void *) module);
+
+done:
+    xmlMutexUnlock(xsltExtMutex);
     return (ret);
 }
 
@@ -1286,9 +1321,13 @@ xsltUnregisterExtModule(const xmlChar * URI)
     if (xsltExtensionsHash == NULL)
         return (-1);
 
-    ret =
-        xmlHashRemoveEntry(xsltExtensionsHash, URI,
-                           (xmlHashDeallocator) xsltFreeExtModule);
+    xmlMutexLock(xsltExtMutex);
+
+    ret = xmlHashRemoveEntry(xsltExtensionsHash, URI,
+                             (xmlHashDeallocator) xsltFreeExtModule);
+
+    xmlMutexUnlock(xsltExtMutex);
+
     return (ret);
 }
 
@@ -1303,9 +1342,13 @@ xsltUnregisterAllExtModules(void)
     if (xsltExtensionsHash == NULL)
         return;
 
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashFree(xsltExtensionsHash,
                 (xmlHashDeallocator) xsltFreeExtModule);
     xsltExtensionsHash = NULL;
+
+    xmlMutexUnlock(xsltExtMutex);
 }
 
 /**
@@ -1350,8 +1393,12 @@ xsltRegisterExtModuleFunction(const xmlChar * name, const xmlChar * URI,
     if (xsltFunctionsHash == NULL)
         return (-1);
 
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashUpdateEntry2(xsltFunctionsHash, name, URI,
                         XML_CAST_FPTR(function), NULL);
+
+    xmlMutexUnlock(xsltExtMutex);
 
     return (0);
 }
@@ -1373,13 +1420,21 @@ xsltExtModuleFunctionLookup(const xmlChar * name, const xmlChar * URI)
     if ((xsltFunctionsHash == NULL) || (name == NULL) || (URI == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     XML_CAST_FPTR(ret) = xmlHashLookup2(xsltFunctionsHash, name, URI);
+
+    xmlMutexUnlock(xsltExtMutex);
 
     /* if lookup fails, attempt a dynamic load on supported platforms */
     if (NULL == ret) {
         if (!xsltExtModuleRegisterDynamic(URI)) {
+            xmlMutexLock(xsltExtMutex);
+
             XML_CAST_FPTR(ret) =
                 xmlHashLookup2(xsltFunctionsHash, name, URI);
+
+            xmlMutexUnlock(xsltExtMutex);
         }
     }
 
@@ -1398,10 +1453,18 @@ xsltExtModuleFunctionLookup(const xmlChar * name, const xmlChar * URI)
 int
 xsltUnregisterExtModuleFunction(const xmlChar * name, const xmlChar * URI)
 {
+    int ret;
+
     if ((xsltFunctionsHash == NULL) || (name == NULL) || (URI == NULL))
         return (-1);
 
-    return xmlHashRemoveEntry2(xsltFunctionsHash, name, URI, NULL);
+    xmlMutexLock(xsltExtMutex);
+
+    ret = xmlHashRemoveEntry2(xsltFunctionsHash, name, URI, NULL);
+
+    xmlMutexUnlock(xsltExtMutex);
+
+    return(ret);
 }
 
 /**
@@ -1412,8 +1475,12 @@ xsltUnregisterExtModuleFunction(const xmlChar * name, const xmlChar * URI)
 static void
 xsltUnregisterAllExtModuleFunction(void)
 {
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashFree(xsltFunctionsHash, NULL);
     xsltFunctionsHash = NULL;
+
+    xmlMutexUnlock(xsltExtMutex);
 }
 
 
@@ -1493,8 +1560,13 @@ xsltPreComputeExtModuleElement(xsltStylesheetPtr style, xmlNodePtr inst)
         (inst->type != XML_ELEMENT_NODE) || (inst->ns == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     ext = (xsltExtElementPtr)
         xmlHashLookup2(xsltElementsHash, inst->name, inst->ns->href);
+
+    xmlMutexUnlock(xsltExtMutex);
+
     /*
     * EXT TODO: Now what?
     */
@@ -1548,6 +1620,8 @@ xsltRegisterExtModuleElement(const xmlChar * name, const xmlChar * URI,
                              xsltPreComputeFunction precomp,
                              xsltTransformFunction transform)
 {
+    int ret;
+
     xsltExtElementPtr ext;
 
     if ((name == NULL) || (URI == NULL) || (transform == NULL))
@@ -1558,12 +1632,19 @@ xsltRegisterExtModuleElement(const xmlChar * name, const xmlChar * URI,
     if (xsltElementsHash == NULL)
         return (-1);
 
+    xmlMutexLock(xsltExtMutex);
+
     ext = xsltNewExtElement(precomp, transform);
-    if (ext == NULL)
-        return (-1);
+    if (ext == NULL) {
+        ret = -1;
+        goto done;
+    }
 
     xmlHashUpdateEntry2(xsltElementsHash, name, URI, (void *) ext,
                         (xmlHashDeallocator) xsltFreeExtElement);
+
+done:
+    xmlMutexUnlock(xsltExtMutex);
 
     return (0);
 }
@@ -1588,12 +1669,21 @@ xsltExtElementLookup(xsltTransformContextPtr ctxt,
     if ((name == NULL) || (URI == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     if ((ctxt != NULL) && (ctxt->extElements != NULL)) {
         XML_CAST_FPTR(ret) = xmlHashLookup2(ctxt->extElements, name, URI);
-        if (ret != NULL)
-            return (ret);
+        if (ret != NULL) {
+            xmlMutexUnlock(xsltExtMutex);
+            return(ret);
+        }
     }
-    return xsltExtModuleElementLookup(name, URI);
+
+    xmlMutexUnlock(xsltExtMutex);
+
+    ret = xsltExtModuleElementLookup(name, URI);
+
+    return (ret);
 }
 
 /**
@@ -1613,16 +1703,22 @@ xsltExtModuleElementLookup(const xmlChar * name, const xmlChar * URI)
     if ((xsltElementsHash == NULL) || (name == NULL) || (URI == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     ext = (xsltExtElementPtr) xmlHashLookup2(xsltElementsHash, name, URI);
 
-    /* if function lookup fails, attempt a dynamic load on supported platforms */
-    ext = (xsltExtElementPtr) xmlHashLookup2(xsltElementsHash, name, URI);
+    /*
+     * if function lookup fails, attempt a dynamic load on
+     * supported platforms
+     */
     if (NULL == ext) {
         if (!xsltExtModuleRegisterDynamic(URI)) {
             ext = (xsltExtElementPtr)
 	          xmlHashLookup2(xsltElementsHash, name, URI);
         }
     }
+
+    xmlMutexUnlock(xsltExtMutex);
 
     if (ext == NULL)
         return (NULL);
@@ -1647,6 +1743,8 @@ xsltExtModuleElementPreComputeLookup(const xmlChar * name,
     if ((xsltElementsHash == NULL) || (name == NULL) || (URI == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     ext = (xsltExtElementPtr) xmlHashLookup2(xsltElementsHash, name, URI);
 
     if (ext == NULL) {
@@ -1655,6 +1753,7 @@ xsltExtModuleElementPreComputeLookup(const xmlChar * name,
 	          xmlHashLookup2(xsltElementsHash, name, URI);
         }
     }
+    xmlMutexUnlock(xsltExtMutex);
 
     if (ext == NULL)
         return (NULL);
@@ -1673,11 +1772,19 @@ xsltExtModuleElementPreComputeLookup(const xmlChar * name,
 int
 xsltUnregisterExtModuleElement(const xmlChar * name, const xmlChar * URI)
 {
+    int ret;
+
     if ((xsltElementsHash == NULL) || (name == NULL) || (URI == NULL))
         return (-1);
 
-    return xmlHashRemoveEntry2(xsltElementsHash, name, URI,
-                               (xmlHashDeallocator) xsltFreeExtElement);
+    xmlMutexLock(xsltExtMutex);
+
+    ret = xmlHashRemoveEntry2(xsltElementsHash, name, URI,
+                              (xmlHashDeallocator) xsltFreeExtElement);
+
+    xmlMutexUnlock(xsltExtMutex);
+
+    return(ret);
 }
 
 /**
@@ -1688,8 +1795,12 @@ xsltUnregisterExtModuleElement(const xmlChar * name, const xmlChar * URI)
 static void
 xsltUnregisterAllExtModuleElement(void)
 {
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashFree(xsltElementsHash, (xmlHashDeallocator) xsltFreeExtElement);
     xsltElementsHash = NULL;
+
+    xmlMutexUnlock(xsltExtMutex);
 }
 
 /**
@@ -1714,8 +1825,12 @@ xsltRegisterExtModuleTopLevel(const xmlChar * name, const xmlChar * URI,
     if (xsltTopLevelsHash == NULL)
         return (-1);
 
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashUpdateEntry2(xsltTopLevelsHash, name, URI,
                         XML_CAST_FPTR(function), NULL);
+
+    xmlMutexUnlock(xsltExtMutex);
 
     return (0);
 }
@@ -1737,6 +1852,8 @@ xsltExtModuleTopLevelLookup(const xmlChar * name, const xmlChar * URI)
     if ((xsltTopLevelsHash == NULL) || (name == NULL) || (URI == NULL))
         return (NULL);
 
+    xmlMutexLock(xsltExtMutex);
+
     XML_CAST_FPTR(ret) = xmlHashLookup2(xsltTopLevelsHash, name, URI);
 
     /* if lookup fails, attempt a dynamic load on supported platforms */
@@ -1745,6 +1862,8 @@ xsltExtModuleTopLevelLookup(const xmlChar * name, const xmlChar * URI)
             XML_CAST_FPTR(ret) = xmlHashLookup2(xsltTopLevelsHash, name, URI);
         }
     }
+
+    xmlMutexUnlock(xsltExtMutex);
 
     return (ret);
 }
@@ -1761,10 +1880,18 @@ xsltExtModuleTopLevelLookup(const xmlChar * name, const xmlChar * URI)
 int
 xsltUnregisterExtModuleTopLevel(const xmlChar * name, const xmlChar * URI)
 {
+    int ret;
+
     if ((xsltTopLevelsHash == NULL) || (name == NULL) || (URI == NULL))
         return (-1);
 
-    return xmlHashRemoveEntry2(xsltTopLevelsHash, name, URI, NULL);
+    xmlMutexLock(xsltExtMutex);
+
+    ret = xmlHashRemoveEntry2(xsltTopLevelsHash, name, URI, NULL);
+
+    xmlMutexUnlock(xsltExtMutex);
+
+    return(ret);
 }
 
 /**
@@ -1775,8 +1902,12 @@ xsltUnregisterExtModuleTopLevel(const xmlChar * name, const xmlChar * URI)
 static void
 xsltUnregisterAllExtModuleTopLevel(void)
 {
+    xmlMutexLock(xsltExtMutex);
+
     xmlHashFree(xsltTopLevelsHash, NULL);
     xsltTopLevelsHash = NULL;
+
+    xmlMutexUnlock(xsltExtMutex);
 }
 
 /**
@@ -2087,6 +2218,7 @@ xsltExtStyleShutdownTest(xsltStylesheetPtr style ATTRIBUTE_UNUSED,
 void
 xsltRegisterTestModule(void)
 {
+    xsltInitGlobals();
     xsltRegisterExtModuleFull((const xmlChar *) XSLT_DEFAULT_URL,
                               xsltExtInitTest, xsltExtShutdownTest,
                               xsltExtStyleInitTest,
@@ -2101,12 +2233,26 @@ xsltRegisterTestModule(void)
 }
 
 static void
-xsltHashScannerModuleFree(void *payload, void *data ATTRIBUTE_UNUSED,
+xsltHashScannerModuleFree(void *payload ATTRIBUTE_UNUSED,
+                          void *data ATTRIBUTE_UNUSED,
                           xmlChar * name ATTRIBUTE_UNUSED)
 {
 #ifdef WITH_MODULES
     xmlModuleClose(payload);
 #endif
+}
+
+/**
+ * xsltInitGlobals:
+ *
+ * Initialize the global variables for extensions
+ */
+void
+xsltInitGlobals(void)
+{
+    if (xsltExtMutex == NULL) {
+        xsltExtMutex = xmlNewMutex();
+    }
 }
 
 /**
@@ -2122,13 +2268,17 @@ xsltCleanupGlobals(void)
     xsltUnregisterAllExtModuleElement();
     xsltUnregisterAllExtModuleTopLevel();
 
+    xmlMutexLock(xsltExtMutex);
     /* cleanup dynamic module hash */
     if (NULL != xsltModuleHash) {
         xmlHashScan(xsltModuleHash, xsltHashScannerModuleFree, 0);
         xmlHashFree(xsltModuleHash, NULL);
         xsltModuleHash = NULL;
     }
+    xmlMutexUnlock(xsltExtMutex);
 
+    xmlFreeMutex(xsltExtMutex);
+    xsltExtMutex = NULL;
     xsltUninit();
 }
 
@@ -2171,25 +2321,31 @@ xsltDebugDumpExtensions(FILE * output)
         fprintf(output, "No registered extension functions\n");
     else {
         fprintf(output, "Registered Extension Functions:\n");
+        xmlMutexLock(xsltExtMutex);
         xmlHashScanFull(xsltFunctionsHash,
                         (xmlHashScannerFull)
                         xsltDebugDumpExtensionsCallback, output);
+        xmlMutexUnlock(xsltExtMutex);
     }
     if (!xsltElementsHash)
         fprintf(output, "\nNo registered extension elements\n");
     else {
         fprintf(output, "\nRegistered Extension Elements:\n");
+        xmlMutexLock(xsltExtMutex);
         xmlHashScanFull(xsltElementsHash,
                         (xmlHashScannerFull)
                         xsltDebugDumpExtensionsCallback, output);
+        xmlMutexUnlock(xsltExtMutex);
     }
     if (!xsltExtensionsHash)
         fprintf(output, "\nNo registered extension modules\n");
     else {
         fprintf(output, "\nRegistered Extension Modules:\n");
+        xmlMutexLock(xsltExtMutex);
         xmlHashScanFull(xsltExtensionsHash,
                         (xmlHashScannerFull)
                         xsltDebugDumpExtModulesCallback, output);
+        xmlMutexUnlock(xsltExtMutex);
     }
 
 }

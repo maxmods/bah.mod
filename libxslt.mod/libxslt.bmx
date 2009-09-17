@@ -32,7 +32,7 @@ ModuleInfo "Copyright: Wrapper - 2006-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.02"
-ModuleInfo "History: Updated to Libxslt 1.1.24"
+ModuleInfo "History: Updated to Libxslt 1.1.25"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: Updated to Libxslt 1.1.20"
 ModuleInfo "History: 1.00 Initial Release (Libxslt 1.1.16)"
@@ -62,8 +62,13 @@ Import "src/documents.c"
 Import "src/preproc.c"
 Import "src/transform.c"
 Import "src/security.c"
+Import "src/xsltlocale.c"
 
-' Added "undef PATH_MAX" to extensions.c for win32 compile
+' Build notes
+'
+' xsltconfig.h : locale ifdef tweak for multi-platform build.
+'
+'
 
 Extern
 	Function xsltParseStylesheetFile:Byte Ptr(uri:Byte Ptr)
@@ -125,7 +130,7 @@ Extern
 	
 	Function xsltFreeCompMatchList(comp:Byte Ptr)
 	Function xsltFreeTemplateHashes(sheet:Byte Ptr)
-	Function xsltAddTemplate:Int(sheet:Byte Ptr, cur:Byte Ptr, mode:Byte Ptr, modeURI:Byte Ptr)
+	Function xsltAddTemplate:Int(sheet:Byte Ptr, cur:Byte Ptr, Mode:Byte Ptr, modeURI:Byte Ptr)
 	Function xsltCleanupTemplates(sheet:Byte Ptr)
 	Function xsltCompilePattern:Byte Ptr(pattern:Byte Ptr, doc:Byte Ptr, node:Byte Ptr, sheet:Byte Ptr, context:Byte Ptr)
 	Function xsltGetTemplate:Byte Ptr(context:Byte Ptr, node:Byte Ptr, style:Byte Ptr)
@@ -584,13 +589,13 @@ Type TxsltStylesheet
 	<li><b>modeURI</b> : the mode URI or Null</li>
 	</ul>
 	End Rem
-	Method addTemplate:Int(cur:TxsltTemplate, mode:String, modeURI:String)
+	Method addTemplate:Int(cur:TxsltTemplate, Mode:String, modeURI:String)
 		Assert cur, XSLT_ERROR_PARAM
 
 		Local res:Int = -1
 						
-		If mode <> Null Then
-			Local cStr1:Byte Ptr = mode.toCString()
+		If Mode <> Null Then
+			Local cStr1:Byte Ptr = Mode.toCString()
 			
 			If modeURI <> Null Then
 				Local cStr2:Byte Ptr = modeURI.toCString()
