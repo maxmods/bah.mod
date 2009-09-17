@@ -11,6 +11,7 @@
 #include "libxml.h"
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -25,6 +26,11 @@
 #include <libxml/valid.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/globals.h>
+
+/* Define SIZE_T_MAX unless defined through <limits.h>. */
+#ifndef SIZE_T_MAX
+# define SIZE_T_MAX     ((size_t)-1)
+#endif /* !SIZE_T_MAX */
 
 /* #define DEBUG_SAX2 */
 /* #define DEBUG_SAX2_TREE */
@@ -1240,30 +1246,32 @@ xmlSAX2AttributeInternal(void *ctx, const xmlChar *fullname,
     }
 
     if (ns != NULL) {
-	xmlAttrPtr prop;
 	namespace = xmlSearchNs(ctxt->myDoc, ctxt->node, ns);
+
 	if (namespace == NULL) {
 	    xmlNsErrMsg(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
 		    "Namespace prefix %s of attribute %s is not defined\n",
 		             ns, name);
-	}
+	} else {
+            xmlAttrPtr prop;
 
-	prop = ctxt->node->properties;
-	while (prop != NULL) {
-	    if (prop->ns != NULL) {
-		if ((xmlStrEqual(name, prop->name)) &&
-		    ((namespace == prop->ns) ||
-		     (xmlStrEqual(namespace->href, prop->ns->href)))) {
-			xmlNsErrMsg(ctxt, XML_ERR_ATTRIBUTE_REDEFINED,
-			        "Attribute %s in %s redefined\n",
-			                 name, namespace->href);
-		    ctxt->wellFormed = 0;
-		    if (ctxt->recovery == 0) ctxt->disableSAX = 1;
-		    goto error;
-		}
-	    }
-	    prop = prop->next;
-	}
+            prop = ctxt->node->properties;
+            while (prop != NULL) {
+                if (prop->ns != NULL) {
+                    if ((xmlStrEqual(name, prop->name)) &&
+                        ((namespace == prop->ns) ||
+                         (xmlStrEqual(namespace->href, prop->ns->href)))) {
+                            xmlNsErrMsg(ctxt, XML_ERR_ATTRIBUTE_REDEFINED,
+                                    "Attribute %s in %s redefined\n",
+                                             name, namespace->href);
+                        ctxt->wellFormed = 0;
+                        if (ctxt->recovery == 0) ctxt->disableSAX = 1;
+                        goto error;
+                    }
+                }
+                prop = prop->next;
+            }
+        }
     } else {
 	namespace = NULL;
     }
@@ -1414,6 +1422,10 @@ process_external_subset:
 		    } else {
 			fulln = xmlStrdup(attr->name);
 		    }
+                    if (fulln == NULL) {
+                        xmlSAX2ErrMemory(ctxt, "xmlSAX2StartElement");
+                        break;
+                    }
 
 		    /*
 		     * Check that the attribute is not declared in the
@@ -1436,6 +1448,7 @@ process_external_subset:
 				    (const char *)fulln,
 				    (const char *)attr->elem);
 		    }
+                    xmlFree(fulln);
 		}
 		attr = attr->nexth;
 	    }
@@ -2272,9 +2285,14 @@ xmlSAX2StartElementNs(void *ctx,
 	        xmlSAX2ErrMemory(ctxt, "xmlSAX2StartElementNs");
 		return;
 	    }
-	    xmlNsWarnMsg(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
-			"Namespace prefix %s was not found\n",
-			prefix, NULL);
+            if (prefix != NULL)
+                xmlNsWarnMsg(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
+                             "Namespace prefix %s was not found\n",
+                             prefix, NULL);
+            else
+                xmlNsWarnMsg(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
+                             "Namespace default prefix was not found\n",
+                             NULL, NULL);
 	}
     }
 
@@ -2455,9 +2473,19 @@ xmlSAX2Characters(void *ctx, const xmlChar *ch, int len)
 	               (xmlDictOwns(ctxt->dict, lastChild->content))) {
 		lastChild->content = xmlStrdup(lastChild->content);
 	    }
+            if (((size_t)ctxt->nodelen + (size_t)len > XML_MAX_TEXT_LENGTH) &&
+                ((ctxt->options & XML_PARSE_HUGE) == 0)) {
+                xmlSAX2ErrMemory(ctxt, "xmlSAX2Characters: huge text node");
+                return;
+            }
+	    if ((size_t)ctxt->nodelen > SIZE_T_MAX - (size_t)len || 
+	        (size_t)ctxt->nodemem + (size_t)len > SIZE_T_MAX / 2) {
+                xmlSAX2ErrMemory(ctxt, "xmlSAX2Characters overflow prevented");
+                return;
+	    }
 	    if (ctxt->nodelen + len >= ctxt->nodemem) {
 		xmlChar *newbuf;
-		int size;
+		size_t size;
 
 		size = ctxt->nodemem + len;
 		size *= 2;
@@ -2538,7 +2566,6 @@ xmlSAX2ProcessingInstruction(void *ctx, const xmlChar *target,
 
     ret = xmlNewDocPI(ctxt->myDoc, target, data);
     if (ret == NULL) return;
-    parent = ctxt->node;
 
     if (ctxt->linenumbers) {
 	if (ctxt->input != NULL) {

@@ -27,12 +27,12 @@ Module BaH.LibXml
 
 ModuleInfo "Version: 1.14"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: (libxml2) 1998-2008 Daniel Veillard"
+ModuleInfo "Copyright: (libxml2) 1998-2009 Daniel Veillard"
 ModuleInfo "Copyright: (wrapper) 2006-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.14"
-ModuleInfo "History: Updated to Libxml 2.7.2."
+ModuleInfo "History: Updated to Libxml 2.7.4."
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
 ModuleInfo "History: Added xmlParserMaxDepth global variable."
 ModuleInfo "History: Added utf-8 BOM detection/strip for doc string parsing."
@@ -107,8 +107,9 @@ Import "libxml_base.bmx"
 '
 ' Build Notes :
 '
-' setup.h
-' WIN32 ansidecl.h test changed to also check GCC version
+' config.h : customized for multi-platform builds.
+'
+' xmlversion.h : disable LIBXML_ICONV_ENABLED and LIBXML_THREAD_ENABLED.
 '
 
 Extern

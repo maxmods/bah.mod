@@ -14,7 +14,7 @@
 #include "libxml.h"
 
 #include <string.h> /* for memset() only ! */
-
+#include <limits.h>
 #ifdef HAVE_CTYPE_H
 #include <ctype.h>
 #endif
@@ -49,7 +49,8 @@ int __xmlRegisterCallbacks = 0;
  *									*
  ************************************************************************/
 
-xmlNsPtr xmlNewReconciliedNs(xmlDocPtr doc, xmlNodePtr tree, xmlNsPtr ns);
+static xmlNsPtr
+xmlNewReconciliedNs(xmlDocPtr doc, xmlNodePtr tree, xmlNsPtr ns);
 
 static xmlChar* xmlGetPropNodeValueInternal(xmlAttrPtr prop);
 
@@ -1420,9 +1421,9 @@ xmlStringLenGetNodeList(xmlDocPtr doc, const xmlChar *value, int len) {
 	    node = xmlNewDocTextLen(doc, q, cur - q);
 	    if (node == NULL) return(ret);
 	    if (last == NULL) {
-		last = ret = node;
+		ret = node;
 	    } else {
-		last = xmlAddNextSibling(last, node);
+		xmlAddNextSibling(last, node);
 	    }
 	}
     }
@@ -1589,8 +1590,6 @@ xmlStringGetNodeList(xmlDocPtr doc, const xmlChar *value) {
 			last = xmlAddNextSibling(last, node);
 		    }
 		}
-
-		charval = 0;
 	    }
 	} else
 	    cur++;
@@ -1800,7 +1799,7 @@ xmlNewPropInternal(xmlNodePtr node, xmlNsPtr ns,
     cur = (xmlAttrPtr) xmlMalloc(sizeof(xmlAttr));
     if (cur == NULL) {
         if ((eatname == 1) &&
-	    ((node->doc == NULL) ||
+	    ((node == NULL) || (node->doc == NULL) ||
 	     (!(xmlDictOwns(node->doc->dict, name)))))
             xmlFree((xmlChar *) name);
         xmlTreeErrMemory("building attribute");
@@ -1860,7 +1859,8 @@ xmlNewPropInternal(xmlNodePtr node, xmlNsPtr ns,
         }
     }
 
-    if (xmlIsID((node == NULL) ? NULL : node->doc, node, cur) == 1)
+    if ((value != NULL) && (node != NULL) &&
+        (xmlIsID(node->doc, node, cur) == 1))
         xmlAddID(NULL, node->doc, value, cur);
 
     if ((__xmlRegisterCallbacks) && (xmlRegisterNodeDefaultValue))
@@ -3103,6 +3103,14 @@ xmlAddSibling(xmlNodePtr cur, xmlNodePtr elem) {
 	return(NULL);
     }
 
+    if (cur == elem) {
+#ifdef DEBUG_TREE
+        xmlGenericError(xmlGenericErrorContext,
+		"xmlAddSibling : cur == elem\n");
+#endif
+	return(NULL);
+    }
+
     /*
      * Constant time is we can rely on the ->parent->last to find
      * the last sibling.
@@ -3216,7 +3224,10 @@ xmlAddChildList(xmlNodePtr parent, xmlNodePtr cur) {
         cur = cur->next;
     }
     cur->parent = parent;
-    cur->doc = parent->doc; /* the parent may not be linked to a doc ! */
+    /* the parent may not be linked to a doc ! */
+    if (cur->doc != parent->doc) {
+        xmlSetTreeDoc(cur, parent->doc);
+    }
     parent->last = cur;
 
     return(cur);
@@ -3309,9 +3320,7 @@ xmlAddChild(xmlNodePtr parent, xmlNodePtr cur) {
     if (cur->type == XML_ATTRIBUTE_NODE) {
 		if (parent->type != XML_ELEMENT_NODE)
 			return(NULL);
-	if (parent->properties == NULL) {
-	    parent->properties = (xmlAttrPtr) cur;
-	} else {
+	if (parent->properties != NULL) {
 	    /* check if an attribute with the same name exists */
 	    xmlAttrPtr lastattr;
 
@@ -3326,8 +3335,13 @@ xmlAddChild(xmlNodePtr parent, xmlNodePtr cur) {
 	    }
 		if (lastattr == (xmlAttrPtr) cur)
 			return(cur);
+
+	}
+	if (parent->properties == NULL) {
+	    parent->properties = (xmlAttrPtr) cur;
+	} else {
 	    /* find the end */
-	    lastattr = parent->properties;
+	    xmlAttrPtr lastattr = parent->properties;
 	    while (lastattr->next != NULL) {
 		lastattr = lastattr->next;
 	    }
@@ -3366,6 +3380,199 @@ xmlGetLastChild(xmlNodePtr parent) {
     }
     return(parent->last);
 }
+
+#ifdef LIBXML_TREE_ENABLED
+/*
+ * 5 interfaces from DOM ElementTraversal
+ */
+
+/**
+ * xmlChildElementCount:
+ * @parent: the parent node
+ *
+ * Finds the current number of child nodes of that element which are
+ * element nodes.
+ * Note the handling of entities references is different than in
+ * the W3C DOM element traversal spec since we don't have back reference
+ * from entities content to entities references.
+ *
+ * Returns the count of element child or 0 if not available
+ */
+unsigned long
+xmlChildElementCount(xmlNodePtr parent) {
+    unsigned long ret = 0;
+    xmlNodePtr cur = NULL;
+
+    if (parent == NULL)
+        return(0);
+    switch (parent->type) {
+        case XML_ELEMENT_NODE:
+        case XML_ENTITY_NODE:
+        case XML_DOCUMENT_NODE:
+        case XML_HTML_DOCUMENT_NODE:
+            cur = parent->children;
+            break;
+        default:
+            return(0);
+    }
+    while (cur != NULL) {
+        if (cur->type == XML_ELEMENT_NODE)
+            ret++;
+        cur = cur->next;
+    }
+    return(ret);
+}
+
+/**
+ * xmlFirstElementChild:
+ * @parent: the parent node
+ *
+ * Finds the first child node of that element which is a Element node
+ * Note the handling of entities references is different than in
+ * the W3C DOM element traversal spec since we don't have back reference
+ * from entities content to entities references.
+ *
+ * Returns the first element child or NULL if not available
+ */
+xmlNodePtr
+xmlFirstElementChild(xmlNodePtr parent) {
+    xmlNodePtr cur = NULL;
+
+    if (parent == NULL)
+        return(NULL);
+    switch (parent->type) {
+        case XML_ELEMENT_NODE:
+        case XML_ENTITY_NODE:
+        case XML_DOCUMENT_NODE:
+        case XML_HTML_DOCUMENT_NODE:
+            cur = parent->children;
+            break;
+        default:
+            return(NULL);
+    }
+    while (cur != NULL) {
+        if (cur->type == XML_ELEMENT_NODE)
+            return(cur);
+        cur = cur->next;
+    }
+    return(NULL);
+}
+
+/**
+ * xmlLastElementChild:
+ * @parent: the parent node
+ *
+ * Finds the last child node of that element which is a Element node
+ * Note the handling of entities references is different than in
+ * the W3C DOM element traversal spec since we don't have back reference
+ * from entities content to entities references.
+ *
+ * Returns the last element child or NULL if not available
+ */
+xmlNodePtr
+xmlLastElementChild(xmlNodePtr parent) {
+    xmlNodePtr cur = NULL;
+
+    if (parent == NULL)
+        return(NULL);
+    switch (parent->type) {
+        case XML_ELEMENT_NODE:
+        case XML_ENTITY_NODE:
+        case XML_DOCUMENT_NODE:
+        case XML_HTML_DOCUMENT_NODE:
+            cur = parent->last;
+            break;
+        default:
+            return(NULL);
+    }
+    while (cur != NULL) {
+        if (cur->type == XML_ELEMENT_NODE)
+            return(cur);
+        cur = cur->prev;
+    }
+    return(NULL);
+}
+
+/**
+ * xmlPreviousElementSibling:
+ * @node: the current node
+ *
+ * Finds the first closest previous sibling of the node which is an
+ * element node.
+ * Note the handling of entities references is different than in
+ * the W3C DOM element traversal spec since we don't have back reference
+ * from entities content to entities references.
+ *
+ * Returns the previous element sibling or NULL if not available
+ */
+xmlNodePtr
+xmlPreviousElementSibling(xmlNodePtr node) {
+    if (node == NULL)
+        return(NULL);
+    switch (node->type) {
+        case XML_ELEMENT_NODE:
+        case XML_TEXT_NODE:
+        case XML_CDATA_SECTION_NODE:
+        case XML_ENTITY_REF_NODE:
+        case XML_ENTITY_NODE:
+        case XML_PI_NODE:
+        case XML_COMMENT_NODE:
+        case XML_XINCLUDE_START:
+        case XML_XINCLUDE_END:
+            node = node->prev;
+            break;
+        default:
+            return(NULL);
+    }
+    while (node != NULL) {
+        if (node->type == XML_ELEMENT_NODE)
+            return(node);
+        node = node->next;
+    }
+    return(NULL);
+}
+
+/**
+ * xmlNextElementSibling:
+ * @node: the current node
+ *
+ * Finds the first closest next sibling of the node which is an
+ * element node.
+ * Note the handling of entities references is different than in
+ * the W3C DOM element traversal spec since we don't have back reference
+ * from entities content to entities references.
+ *
+ * Returns the next element sibling or NULL if not available
+ */
+xmlNodePtr
+xmlNextElementSibling(xmlNodePtr node) {
+    if (node == NULL)
+        return(NULL);
+    switch (node->type) {
+        case XML_ELEMENT_NODE:
+        case XML_TEXT_NODE:
+        case XML_CDATA_SECTION_NODE:
+        case XML_ENTITY_REF_NODE:
+        case XML_ENTITY_NODE:
+        case XML_PI_NODE:
+        case XML_COMMENT_NODE:
+        case XML_DTD_NODE:
+        case XML_XINCLUDE_START:
+        case XML_XINCLUDE_END:
+            node = node->next;
+            break;
+        default:
+            return(NULL);
+    }
+    while (node != NULL) {
+        if (node->type == XML_ELEMENT_NODE)
+            return(node);
+        node = node->next;
+    }
+    return(NULL);
+}
+
+#endif /* LIBXML_TREE_ENABLED */
 
 /**
  * xmlFreeNodeList:
@@ -3961,7 +4168,8 @@ xmlStaticCopyNode(const xmlNodePtr node, xmlDocPtr doc, xmlNodePtr parent,
 
     if (!extended)
 	goto out;
-    if ((node->type == XML_ELEMENT_NODE) && (node->nsDef != NULL))
+    if (((node->type == XML_ELEMENT_NODE) ||
+         (node->type == XML_XINCLUDE_START)) && (node->nsDef != NULL))
         ret->nsDef = xmlCopyNamespaceList(node->nsDef);
 
     if (node->ns != NULL) {
@@ -3988,7 +4196,8 @@ xmlStaticCopyNode(const xmlNodePtr node, xmlDocPtr doc, xmlNodePtr parent,
 	    ret->ns = ns;
 	}
     }
-    if ((node->type == XML_ELEMENT_NODE) && (node->properties != NULL))
+    if (((node->type == XML_ELEMENT_NODE) ||
+         (node->type == XML_XINCLUDE_START)) && (node->properties != NULL))
         ret->properties = xmlCopyPropList(ret, node->properties);
     if (node->type == XML_ENTITY_REF_NODE) {
 	if ((doc == NULL) || (node->doc != doc)) {
@@ -5846,7 +6055,7 @@ xmlSearchNsByHref(xmlDocPtr doc, xmlNodePtr node, const xmlChar * href)
  * @tree or on one of its ancestors then a new prefix is generated.
  * Returns the (new) namespace definition or NULL in case of error
  */
-xmlNsPtr
+static xmlNsPtr
 xmlNewReconciliedNs(xmlDocPtr doc, xmlNodePtr tree, xmlNsPtr ns) {
     xmlNsPtr def;
     xmlChar prefix[50];
@@ -6862,11 +7071,13 @@ xmlBufferGrow(xmlBufferPtr buf, unsigned int len) {
     if (buf->alloc == XML_BUFFER_ALLOC_IMMUTABLE) return(0);
     if (len + buf->use < buf->size) return(0);
 
-/*
- * Windows has a BIG problem on realloc timing, so we try to double
- * the buffer size (if that's enough) (bug 146697)
- */
-#ifdef WIN32
+    /*
+     * Windows has a BIG problem on realloc timing, so we try to double
+     * the buffer size (if that's enough) (bug 146697)
+     * Apparently BSD too, and it's probably best for linux too
+     * On an embedded system this may be something to change
+     */
+#if 1
     if (buf->size > len)
         size = buf->size * 2;
     else
@@ -6996,7 +7207,13 @@ xmlBufferResize(xmlBufferPtr buf, unsigned int size)
 	case XML_BUFFER_ALLOC_DOUBLEIT:
 	    /*take care of empty case*/
 	    newSize = (buf->size ? buf->size*2 : size + 10);
-	    while (size > newSize) newSize *= 2;
+	    while (size > newSize) {
+	        if (newSize > UINT_MAX / 2) {
+	            xmlTreeErrMemory("growing buffer");
+	            return 0;
+	        }
+	        newSize *= 2;
+	    }
 	    break;
 	case XML_BUFFER_ALLOC_EXACT:
 	    newSize = size+10;
@@ -7560,8 +7777,11 @@ xmlDOMWrapStoreNs(xmlDocPtr doc,
 	}
     }
     /* Create. */
-    ns->next = xmlNewNs(NULL, nsName, prefix);
-    return (ns->next);
+    if (ns != NULL) {
+        ns->next = xmlNewNs(NULL, nsName, prefix);
+        return (ns->next);
+    }
+    return(NULL);
 }
 
 /*

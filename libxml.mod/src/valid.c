@@ -122,7 +122,7 @@ xmlErrValid(xmlValidCtxtPtr ctxt, xmlParserErrors error,
         __xmlRaiseError(NULL, channel, data,
                         pctxt, NULL, XML_FROM_VALID, error,
                         XML_ERR_ERROR, NULL, 0, NULL, NULL, NULL, 0, 0,
-                        msg);
+                        "%s", msg);
 }
 
 #if defined(LIBXML_VALID_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED)
@@ -636,8 +636,6 @@ xmlValidStateDebug(xmlValidCtxtPtr ctxt) {
    if (doc == NULL) return(0);					\
    else if ((doc->intSubset == NULL) &&				\
 	    (doc->extSubset == NULL)) return(0)
-
-xmlAttributePtr xmlScanAttributeDecl(xmlDtdPtr dtd, const xmlChar *elem);
 
 #ifdef LIBXML_REGEXP_ENABLED
 
@@ -1832,53 +1830,6 @@ xmlDumpEnumeration(xmlBufferPtr buf, xmlEnumerationPtr cur) {
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 #ifdef LIBXML_VALID_ENABLED
-/**
- * xmlScanAttributeDeclCallback:
- * @attr:  the attribute decl
- * @list:  the list to update
- *
- * Callback called by xmlScanAttributeDecl when a new attribute
- * has to be entered in the list.
- */
-static void
-xmlScanAttributeDeclCallback(xmlAttributePtr attr, xmlAttributePtr *list,
-	                     const xmlChar* name ATTRIBUTE_UNUSED) {
-    attr->nexth = *list;
-    *list = attr;
-}
-
-/**
- * xmlScanAttributeDecl:
- * @dtd:  pointer to the DTD
- * @elem:  the element name
- *
- * When inserting a new element scan the DtD for existing attributes
- * for that element and initialize the Attribute chain
- *
- * Returns the pointer to the first attribute decl in the chain,
- *         possibly NULL.
- */
-xmlAttributePtr
-xmlScanAttributeDecl(xmlDtdPtr dtd, const xmlChar *elem) {
-    xmlAttributePtr ret = NULL;
-    xmlAttributeTablePtr table;
-
-    if (dtd == NULL) {
-	return(NULL);
-    }
-    if (elem == NULL) {
-	return(NULL);
-    }
-    table = (xmlAttributeTablePtr) dtd->attributes;
-    if (table == NULL) 
-        return(NULL);
-
-    /* WRONG !!! */
-    xmlHashScan3(table, NULL, NULL, elem,
-	        (xmlHashScanner) xmlScanAttributeDeclCallback, &ret);
-    return(ret);
-}
-
 /**
  * xmlScanIDAttributeDecl:
  * @ctxt:  the validation context
@@ -3399,7 +3350,8 @@ int
 xmlValidateNotationUse(xmlValidCtxtPtr ctxt, xmlDocPtr doc,
                        const xmlChar *notationName) {
     xmlNotationPtr notaDecl;
-    if ((doc == NULL) || (doc->intSubset == NULL)) return(-1);
+    if ((doc == NULL) || (doc->intSubset == NULL) ||
+        (notationName == NULL)) return(-1);
 
     notaDecl = xmlGetDtdNotationDesc(doc->intSubset, notationName);
     if ((notaDecl == NULL) && (doc->extSubset != NULL))
@@ -3792,26 +3744,12 @@ xmlValidateNotationDecl(xmlValidCtxtPtr ctxt ATTRIBUTE_UNUSED, xmlDocPtr doc ATT
 }
 
 /**
- * xmlValidateAttributeValue:
+ * xmlValidateAttributeValueInternal:
+ * @doc: the document
  * @type:  an attribute type
  * @value:  an attribute value
  *
  * Validate that the given attribute value match  the proper production
- *
- * [ VC: ID ]
- * Values of type ID must match the Name production....
- *
- * [ VC: IDREF ]
- * Values of type IDREF must match the Name production, and values
- * of type IDREFS must match Names ...
- *
- * [ VC: Entity Name ]
- * Values of type ENTITY must match the Name production, values
- * of type ENTITIES must match Names ...
- *
- * [ VC: Name Token ]
- * Values of type NMTOKEN must match the Nmtoken production; values
- * of type NMTOKENS must match Nmtokens. 
  *
  * returns 1 if valid or 0 otherwise
  */
@@ -3839,6 +3777,30 @@ xmlValidateAttributeValueInternal(xmlDocPtr doc, xmlAttributeType type,
     return(1);
 }
 
+/**
+ * xmlValidateAttributeValue:
+ * @type:  an attribute type
+ * @value:  an attribute value
+ *
+ * Validate that the given attribute value match  the proper production
+ *
+ * [ VC: ID ]
+ * Values of type ID must match the Name production....
+ *
+ * [ VC: IDREF ]
+ * Values of type IDREF must match the Name production, and values
+ * of type IDREFS must match Names ...
+ *
+ * [ VC: Entity Name ]
+ * Values of type ENTITY must match the Name production, values
+ * of type ENTITIES must match Names ...
+ *
+ * [ VC: Name Token ]
+ * Values of type NMTOKEN must match the Nmtoken production; values
+ * of type NMTOKENS must match Nmtokens. 
+ *
+ * returns 1 if valid or 0 otherwise
+ */
 int
 xmlValidateAttributeValue(xmlAttributeType type, const xmlChar *value) {
     return(xmlValidateAttributeValueInternal(NULL, type, value));
@@ -4090,13 +4052,10 @@ xmlValidNormalizeAttributeValue(xmlDocPtr doc, xmlNodePtr elem,
     if ((elem->ns != NULL) && (elem->ns->prefix != NULL)) {
 	xmlChar fn[50];
 	xmlChar *fullname;
-	
+
 	fullname = xmlBuildQName(elem->name, elem->ns->prefix, fn, 50);
 	if (fullname == NULL)
 	    return(NULL);
-	attrDecl = xmlGetDtdAttrDesc(doc->intSubset, fullname, name);
-	if ((attrDecl == NULL) && (doc->extSubset != NULL))
-	    attrDecl = xmlGetDtdAttrDesc(doc->extSubset, fullname, name);
 	if ((fullname != fn) && (fullname != elem->name))
 	    xmlFree(fullname);
     }
@@ -4295,15 +4254,15 @@ xmlValidateElementDecl(xmlValidCtxtPtr ctxt, xmlDocPtr doc,
 		while (next != NULL) {
 		    if (next->type == XML_ELEMENT_CONTENT_ELEMENT) {
 		        if ((xmlStrEqual(next->name, name)) &&
-			    (xmlStrEqual(next->prefix, cur->prefix))) {
-			    if (cur->prefix == NULL) {
+			    (xmlStrEqual(next->prefix, cur->c1->prefix))) {
+			    if (cur->c1->prefix == NULL) {
 				xmlErrValidNode(ctxt, (xmlNodePtr) elem, XML_DTD_CONTENT_ERROR,
 		   "Definition of %s has duplicate references of %s\n",
 				       elem->name, name, NULL);
 			    } else {
 				xmlErrValidNode(ctxt, (xmlNodePtr) elem, XML_DTD_CONTENT_ERROR,
 		   "Definition of %s has duplicate references of %s:%s\n",
-				       elem->name, cur->prefix, name);
+				       elem->name, cur->c1->prefix, name);
 			    }
 			    ret = 0;
 			}
@@ -4312,15 +4271,15 @@ xmlValidateElementDecl(xmlValidCtxtPtr ctxt, xmlDocPtr doc,
 		    if (next->c1 == NULL) break;
 		    if (next->c1->type != XML_ELEMENT_CONTENT_ELEMENT) break;
 		    if ((xmlStrEqual(next->c1->name, name)) &&
-		        (xmlStrEqual(next->c1->prefix, cur->prefix))) {
-			if (cur->prefix == NULL) {
+		        (xmlStrEqual(next->c1->prefix, cur->c1->prefix))) {
+			if (cur->c1->prefix == NULL) {
 			    xmlErrValidNode(ctxt, (xmlNodePtr) elem, XML_DTD_CONTENT_ERROR,
 	       "Definition of %s has duplicate references to %s\n",
 				   elem->name, name, NULL);
 			} else {
 			    xmlErrValidNode(ctxt, (xmlNodePtr) elem, XML_DTD_CONTENT_ERROR,
 	       "Definition of %s has duplicate references to %s:%s\n",
-				   elem->name, cur->prefix, name);
+				   elem->name, cur->c1->prefix, name);
 			}
 			ret = 0;
 		    }
