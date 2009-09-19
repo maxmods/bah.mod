@@ -667,7 +667,7 @@ Type TCODSystem
 
 					' draw the background
 					SetColor br, bg, bb
-					charmap.Draw charBlank, x* fontWidth, yc0
+					charmap.Draw charBlank, x* fontWidth, yc0,, charBlank
 
 					If index <> charBlank Then
 
