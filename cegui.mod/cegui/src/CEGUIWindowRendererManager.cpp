@@ -25,8 +25,8 @@
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
 #include "CEGUIWindowRendererManager.h"
-#include "CEGUILogger.h"
 #include "CEGUIExceptions.h"
+#include <algorithm>
 
 // Start CEGUI namespace
 namespace CEGUI
@@ -36,6 +36,7 @@ namespace CEGUI
     Static data
 *************************************************************************/
 template<> WindowRendererManager* Singleton<WindowRendererManager>::ms_Singleton = 0;
+WindowRendererManager::OwnedFactoryList WindowRendererManager::d_ownedFactories;
 
 /*************************************************************************
     Singleton functions
@@ -58,7 +59,20 @@ WindowRendererManager::WindowRendererManager()
     sprintf(addr_buff, "(%p)", static_cast<void*>(this));
     Logger::getSingleton().logEvent(
         "CEGUI::WindowRendererManager singleton created " + String(addr_buff));
+
+    // complete addition of any pre-added WindowRendererFactory objects
+    OwnedFactoryList::iterator i = d_ownedFactories.begin();
+
+    if (d_ownedFactories.end() != i)
+    {
+        Logger::getSingleton().logEvent(
+        "---- Adding pre-registered WindowRendererFactory objects ----");
+
+        for (; d_ownedFactories.end() != i; ++i)
+            addFactory(*i);
+    }
 }
+
 WindowRendererManager::~WindowRendererManager()
 {
     char addr_buff[32];
@@ -113,7 +127,38 @@ void WindowRendererManager::addFactory(WindowRendererFactory* wr)
 *************************************************************************/
 void WindowRendererManager::removeFactory(const String& name)
 {
+    WR_Registry::iterator i = d_wrReg.find(name);
+
+	// non-existing or already removed? The latter can happen when more then one Scheme
+	// was loaded using the same renderer.
+	if (i == d_wrReg.end())
+	{
+		return;
+	}
+
+    // see if we own this factory
+    OwnedFactoryList::iterator j = std::find(d_ownedFactories.begin(),
+                                             d_ownedFactories.end(),
+                                             (*i).second);
+
+    char addr_buff[32];
+    sprintf(addr_buff, "(%p)", static_cast<void*>((*i).second));
+
     d_wrReg.erase(name);
+
+    Logger::getSingleton().logEvent("WindowRendererFactory for '" + name +
+                                    "' WindowRenderers removed. " + addr_buff);
+
+    // delete factory object if we created it
+    if (j != d_ownedFactories.end())
+    {
+        Logger::getSingleton().logEvent("Deleted WindowRendererFactory for '" +
+                                        (*j)->getName() +
+                                        "' WindowRenderers.");
+
+        delete (*j);
+        d_ownedFactories.erase(j);
+    }
 }
 
 /*************************************************************************

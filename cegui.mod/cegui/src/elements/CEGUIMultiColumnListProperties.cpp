@@ -84,8 +84,8 @@ String	SortColumnID::get(const PropertyReceiver* receiver) const
 	// so this check doesn't hurt.
 	if (mcl->getColumnCount() > 0)
 	{
-		return PropertyHelper::uintToString(mcl->getColumnID(mcl->getSortColumn()));
-	}
+	return PropertyHelper::uintToString(mcl->getColumnID(mcl->getSortColumn()));
+}
 	return "0"; // Return default value. For the Setting part, responsibility lies with the caller again.
 }
 
@@ -286,7 +286,7 @@ void	SelectionMode::set(PropertyReceiver* receiver, const String& value)
 }
 
 
-String ColumnHeader::get(const PropertyReceiver* receiver) const
+String ColumnHeader::get(const PropertyReceiver*) const
 {
 	return String("");
 }
@@ -345,7 +345,7 @@ String RowCount::get(const PropertyReceiver* receiver) const
 }
 
 
-void RowCount::set(PropertyReceiver* receiver, const String& value)
+void RowCount::set(PropertyReceiver* receiver, const String&)
 {
 	// property is read only.
 	Logger::getSingleton().logEvent(

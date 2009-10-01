@@ -28,10 +28,10 @@
 #ifndef _CEGUIFalImagerySection_h_
 #define _CEGUIFalImagerySection_h_
 
-#include "falagard/CEGUIFalImageryComponent.h"
-#include "falagard/CEGUIFalTextComponent.h"
-#include "falagard/CEGUIFalFrameComponent.h"
-#include "CEGUIXMLSerializer.h" 
+#include "CEGUIFalImageryComponent.h"
+#include "CEGUIFalTextComponent.h"
+#include "CEGUIFalFrameComponent.h"
+#include "../CEGUIXMLSerializer.h"
 
 #if defined(_MSC_VER)
 #	pragma warning(push)
@@ -70,16 +70,13 @@ namespace CEGUI
         \param srcWindow
             Window object to be used when calculating pixel values from BaseDim values.
 
-        \param base_z
-            base z value to be used for all imagery in the section.
-
         \param modColours
             ColourRect specifying colours to be modulated with the ImagerySection's master colours.  May be 0.
 
         \return
             Nothing.
         */
-        void render(Window& srcWindow, float base_z, const CEGUI::ColourRect* modColours = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
+        void render(Window& srcWindow, const CEGUI::ColourRect* modColours = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
 
         /*!
         \brief
@@ -91,16 +88,13 @@ namespace CEGUI
         \param baseRect
             Rect object to be used when calculating pixel values from BaseDim values.
 
-        \param base_z
-            base z value to be used for all imagery in the section.
-
         \param modColours
             ColourRect specifying colours to be modulated with the ImagerySection's master colours.  May be 0.
 
         \return
             Nothing.
         */
-        void render(Window& srcWindow, const Rect& baseRect, float base_z, const CEGUI::ColourRect* modColours = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
+        void render(Window& srcWindow, const Rect& baseRect, const CEGUI::ColourRect* modColours = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
 
         /*!
         \brief

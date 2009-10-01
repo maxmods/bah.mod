@@ -52,7 +52,6 @@ Titlebar::Titlebar(const String& type, const String& name) :
 	Window(type, name)
 {
 	addTitlebarProperties();
-
 	setAlwaysOnTop(true);
 
 	// basic initialisation
@@ -118,7 +117,7 @@ void Titlebar::onMouseMove(MouseEventArgs& e)
 		// move the window.  *** Again: Titlebar objects should only be attached to FrameWindow derived classes. ***
 		((FrameWindow*)d_parent)->offsetPixelPosition(delta);
 
-		e.handled = true;
+		++e.handled;
 	}
 }
 
@@ -150,11 +149,13 @@ void Titlebar::onMouseButtonDown(MouseEventArgs& e)
 
 				if ((d_parent == 0) || (d_parent->getParent() == 0))
 				{
-					constrainArea = System::getSingleton().getRenderer()->getRect().getIntersection(d_oldCursorArea);
+                    Rect screen(Vector2(0, 0),
+                                System::getSingleton().getRenderer()->getDisplaySize());
+					constrainArea = screen.getIntersection(d_oldCursorArea);
 				}
 				else 
 				{
-					constrainArea = d_parent->getParent()->getInnerRect().getIntersection(d_oldCursorArea);
+					constrainArea = d_parent->getParent()->getInnerRectClipper().getIntersection(d_oldCursorArea);
 				}
 
 				MouseCursor::getSingleton().setConstraintArea(&constrainArea);
@@ -162,7 +163,7 @@ void Titlebar::onMouseButtonDown(MouseEventArgs& e)
 
 		}
 
-		e.handled = true;
+		++e.handled;
 	}
 }
 
@@ -178,7 +179,7 @@ void Titlebar::onMouseButtonUp(MouseEventArgs& e)
 	if (e.button == LeftButton)
 	{
 		releaseInput();
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -201,7 +202,7 @@ void Titlebar::onMouseDoubleClicked(MouseEventArgs& e)
 			((FrameWindow*)d_parent)->toggleRollup();
 		}
 
-		e.handled = true;
+		++e.handled;
 	}
 
 }

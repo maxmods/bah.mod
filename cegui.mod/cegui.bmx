@@ -27,11 +27,11 @@ Module BaH.CEGUI
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: CEGUI - 2004 - 2006 Paul D Turner & The CEGUI Development Team"
+ModuleInfo "Copyright: CEGUI - 2004 - 2009 Paul D Turner & The CEGUI Development Team"
 ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.6.2)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.0)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"
@@ -459,8 +459,8 @@ Type TCEFrameWindow Extends TCEWindow
 	Rem
 	bbdoc: Checks if the given pixel position would hit this window. 
 	End Rem
-	Method isHit:Int(x:Float, y:Float)
-		Return bmx_cegui_framewindow_ishit(objectPtr, x, y)
+	Method isHit:Int(x:Float, y:Float, allowDisabled:Int)
+		Return bmx_cegui_framewindow_ishit(objectPtr, x, y, allowDisabled)
 	End Method
 	
 	Rem
@@ -1489,8 +1489,8 @@ Type TCECombobox Extends TCEWindow
 	Rem
 	bbdoc: Checks if the given position would hit this window.
 	End Rem
-	Method isHit:Int(x:Float, y:Float)
-		Return bmx_cegui_combobox_ishit(objectPtr, x, y)
+	Method isHit:Int(x:Float, y:Float, allowDisabled:Int = False)
+		Return bmx_cegui_combobox_ishit(objectPtr, x, y, allowDisabled)
 	End Method
 	
 	Rem

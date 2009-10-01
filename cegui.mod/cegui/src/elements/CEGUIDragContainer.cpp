@@ -28,6 +28,7 @@
 #include "elements/CEGUIDragContainer.h"
 #include "CEGUIImageset.h"
 #include "CEGUICoordConverter.h"
+#include "CEGUIRenderingContext.h"
 #include <math.h>
 
 // Start of CEGUI namespace section
@@ -51,6 +52,7 @@ namespace CEGUI
     DragContainerProperties::DragCursorImage DragContainer::d_dragCursorImageProperty;
     DragContainerProperties::DraggingEnabled DragContainer::d_dragEnabledProperty;
     DragContainerProperties::DragThreshold   DragContainer::d_dragThresholdProperty;
+    DragContainerProperties::StickyMode      DragContainer::d_stickyModeProperty;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +65,9 @@ namespace CEGUI
         d_dragAlpha(0.5f),
         d_dropTarget(0),
         d_dragCursorImage((const Image*)DefaultMouseCursor),
-        d_dropflag(false)
+        d_dropflag(false),
+        d_stickyMode(false),
+        d_pickedUp(false)
     {
         addDragContainerProperties();
     }
@@ -151,7 +155,7 @@ namespace CEGUI
 
     void DragContainer::setDragCursorImage(const String& imageset, const String& image)
     {
-        setDragCursorImage(&ImagesetManager::getSingleton().getImageset(imageset)->getImage(image));
+        setDragCursorImage(&ImagesetManager::getSingleton().get(imageset).getImage(image));
     }
 
     Window* DragContainer::getCurrentDropTarget(void) const
@@ -165,6 +169,7 @@ namespace CEGUI
         addProperty(&d_dragAlphaProperty);
         addProperty(&d_dragThresholdProperty);
         addProperty(&d_dragCursorImageProperty);
+        addProperty(&d_stickyModeProperty);
     }
 
     bool DragContainer::isDraggingThresholdExceeded(const Point& local_mouse)
@@ -190,6 +195,8 @@ namespace CEGUI
             d_startPosition = getPosition();
 
             d_dragging = true;
+
+            notifyScreenAreaChanged();
 
             // Now drag mode is set, change cursor as required
             updateActiveMouseCursor();
@@ -233,7 +240,7 @@ namespace CEGUI
                 d_leftMouseDown = true;
             }
 
-            e.handled = true;
+            ++e.handled;
         }
 
     }
@@ -246,14 +253,26 @@ namespace CEGUI
         {
             if (d_dragging)
             {
+                // release picked up state
+                if (d_pickedUp)
+                    d_pickedUp = false;
+
                 // fire off event
                 WindowEventArgs args(this);
                 onDragEnded(args);
             }
+            // check for sticky pick up
+            else if (d_stickyMode && !d_pickedUp)
+            {
+                initialiseDragging();
+                d_pickedUp = true;
+                // in this case, do not proceed to release inputs.
+                return;
+            }
 
             // release our capture on the input data
             releaseInput();
-            e.handled = true;
+            ++e.handled;
         }
     }
 
@@ -298,6 +317,8 @@ namespace CEGUI
             setClippedByParent(d_storedClipState);
             setAlpha(d_storedAlpha);
 
+            notifyScreenAreaChanged();
+
             // restore normal mouse cursor
             updateActiveMouseCursor();
         }
@@ -305,7 +326,7 @@ namespace CEGUI
         d_leftMouseDown = false;
         d_dropTarget = 0;
 
-        e.handled = true;
+        ++e.handled;
     }
 
     void DragContainer::onAlphaChanged(WindowEventArgs& e)
@@ -451,5 +472,38 @@ namespace CEGUI
         if (d_dropTarget)
             d_dropTarget->notifyDragDropItemEnters(this);
     }
+
+//----------------------------------------------------------------------------//
+void DragContainer::getRenderingContext_impl(RenderingContext& ctx) const
+{
+    // if not dragging, do the default thing.
+    if (!d_dragging)
+        return (void)Window::getRenderingContext_impl(ctx);
+
+    // otherwise, switch rendering onto root rendering surface
+    const Window* root = getRootWindow();
+    ctx.surface = &root->getTargetRenderingSurface();
+    // ensure root window is only used as owner if it really is.
+    ctx.owner = root->getRenderingSurface() == ctx.surface ? root : 0;
+    // ensure use of correct offset for the surface we're targetting
+    ctx.offset = ctx.owner ? ctx.owner->getOuterRectClipper().getPosition() :
+                             Vector2(0, 0);
+    // draw to overlay queue
+    ctx.queue = RQ_OVERLAY;
+}
+
+//----------------------------------------------------------------------------//
+bool DragContainer::isStickyModeEnabled() const
+{
+    return d_stickyMode;
+}
+
+//----------------------------------------------------------------------------//
+void DragContainer::setStickyModeEnabled(bool setting)
+{
+    d_stickyMode = setting;
+}
+
+//----------------------------------------------------------------------------//
 
 } // End of  CEGUI namespace section

@@ -28,13 +28,8 @@ Extern
 
 	Function bmx_cegui_new_oglrenderer:Byte Ptr()
 	Function bmx_cegui_new_system:Byte Ptr(renderer:Byte Ptr, resourceProvider:Byte Ptr)
-	Function bmx_cegui_delete_system(system:Byte Ptr)
+	Function bmx_cegui_system_destroy()
 	Function bmx_cegui_delete_renderer(renderer:Byte Ptr)
-	
-	Function bmx_cegui_schememanager_loadScheme:Byte Ptr(scheme:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_schememanager_isschemepresent:Int(scheme:Byte Ptr)
-	Function bmx_cegui_schememanager_getscheme:Byte Ptr(name:Byte Ptr)
-	Function bmx_cegui_schememanager_unloadallschemes()
 	
 	Function bmx_cegui_system_setdefaultfont(handle:Byte Ptr, font:Byte Ptr)
 	Function bmx_cegui_system_setdefaultfonttxt(handle:Byte Ptr, font:Byte Ptr)
@@ -67,7 +62,7 @@ Extern
 	Function bmx_cegui_windowmanager_getsingleton:Byte Ptr()
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(handle:Byte Ptr, filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_windowmanager_getwindow:Object(handle:Byte Ptr, name:Byte Ptr)
-	Function bmx_cegui_windowmanager_createwindow:Object(handle:Byte Ptr, windowType:Byte Ptr, name:Byte Ptr, prefix:Byte Ptr)
+	Function bmx_cegui_windowmanager_createwindow:Object(handle:Byte Ptr, windowType:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_windowmanager_iswindowpresent:Int(handle:Byte Ptr, name:Byte Ptr)
 	Function bmx_cegui_windowmanager_destroyallwindows(handle:Byte Ptr)
 	Function bmx_cegui_windowmanager_destroywindowwindow(handle:Byte Ptr, window:Byte Ptr)
@@ -126,14 +121,11 @@ Extern
 	Function bmx_cegui_window_inheritsalpha:Int(handle:Byte Ptr)
 	Function bmx_cegui_window_getalpha:Float(handle:Byte Ptr)
 	Function bmx_cegui_window_geteffectivealpha:Float(handle:Byte Ptr)
-	Function bmx_cegui_window_getpixelrect(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
-	Function bmx_cegui_window_getinnerrect(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
-	Function bmx_cegui_window_getunclippedpixelrect(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
 	Function bmx_cegui_window_getunclippedinnerrect(handle:Byte Ptr, x:Float Ptr, y:Float Ptr, w:Float Ptr, h:Float Ptr)
 	Function bmx_cegui_window_iscapturedbythis:Int(handle:Byte Ptr)
 	Function bmx_cegui_window_iscapturedbyancestor:Int(handle:Byte Ptr)
 	Function bmx_cegui_window_iscapturedbychild:Int(handle:Byte Ptr)
-	Function bmx_cegui_window_ishit:Int(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_window_ishit:Int(handle:Byte Ptr, x:Float, y:Float, allowDisabled:Int)
 	Function bmx_cegui_window_getchildatposition:Object(handle:Byte Ptr, x:Float, y:Float)
 	Function bmx_cegui_window_gettargetchildatposition:Object(handle:Byte Ptr, x:Float, y:Float)
 	Function bmx_cegui_window_getparent:Object(handle:Byte Ptr)
@@ -165,7 +157,6 @@ Extern
 	Function bmx_cegui_window_isdragdroptarget:Int(handle:Byte Ptr)
 	Function bmx_cegui_window_setclippedbyparent(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_window_setid(handle:Byte Ptr, ID:Int)
-	Function bmx_cegui_window_setprefix(handle:Byte Ptr, prefix:Byte Ptr)
 	Function bmx_cegui_window_inserttext(handle:Byte Ptr, text:Byte Ptr, position:Int)
 	Function bmx_cegui_window_appendtext(handle:Byte Ptr, text:Byte Ptr)
 	Function bmx_cegui_window_setfont(handle:Byte Ptr, font:Byte Ptr)
@@ -180,7 +171,8 @@ Extern
 	Function bmx_cegui_window_setrestorecapture(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_window_setalpha(handle:Byte Ptr, alpha:Float)
 	Function bmx_cegui_window_setinheritsalpha(handle:Byte Ptr, setting:Int)
-	Function bmx_cegui_window_requestredraw(handle:Byte Ptr)
+	Function bmx_cegui_window_invalidate(handle:Byte Ptr)
+	Function bmx_cegui_window_invalidaterenderingsurface(handle:Byte Ptr)
 	Function bmx_cegui_window_setmousecursor(handle:Byte Ptr, image:Byte Ptr)
 	Function bmx_cegui_window_setmousecursormode(handle:Byte Ptr, image:Int)
 	Function bmx_cegui_window_setmousecursorbyname(handle:Byte Ptr, imageset:Byte Ptr, imageName:Byte Ptr)
@@ -306,7 +298,7 @@ Extern
 	Function bmx_cegui_framewindow_setsizingborderthickness(handle:Byte Ptr, pixels:Float)
 	Function bmx_cegui_framewindow_isdragmovingenabled:Int(handle:Byte Ptr)
 	Function bmx_cegui_framewindow_setdragmovingenabled(handle:Byte Ptr, setting:Int)
-	Function bmx_cegui_framewindow_ishit:Int(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_framewindow_ishit:Int(handle:Byte Ptr, x:Float, y:Float, allowDisabled:Int)
 	Function bmx_cegui_framewindow_gettitlebar:Object(handle:Byte Ptr)
 	Function bmx_cegui_framewindow_getclosebutton:Object(handle:Byte Ptr)
 
@@ -367,24 +359,30 @@ Extern
 	Function bmx_cegui_itemlistbox_selectrange(handle:Byte Ptr, a:Int, z:Int)
 	Function bmx_cegui_itemlistbox_selectallitems(handle:Byte Ptr)
 
-	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Byte Ptr(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_createimageset:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_createimagesetfromtexture:Byte Ptr(name:Byte Ptr, texture:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_destroyimageset(objectPtr:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_destroyimagesetname(imageset:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_destroyallimagesets()
-	Function bmx_cegui_imagesetmanager_getimageset:Byte Ptr(name:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_isimagesetpresent:Int(name:Byte Ptr)
-	Function bmx_cegui_imagesetmanager_notifyscreenresolution(width:Float, height:Float)
+	Function bmx_cegui_imagesetmanager_createimagesetfromtexture:Byte Ptr(name:Byte Ptr, texture:Byte Ptr, action:Int)
+	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Byte Ptr(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_imagesetmanager_notifydisplaysizechanged(width:Float, height:Float)
+	Function bmx_cegui_imagesetmanager_createimageset:Object(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_imagesetmanager_destroyname(imageset:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_destroyobj(imageset:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_destroyall()
+	Function bmx_cegui_imagesetmanager_get:Object(name:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_isdefined:Int(name:Byte Ptr)
+	Function bmx_cegui_imagesetmanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
 
-	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_fontmanager_isfontpresent:Int(name:Byte Ptr)
-	Function bmx_cegui_fontmanager_createfonttype:Byte Ptr(fontType:Byte Ptr, name:Byte Ptr, FontName:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_fontmanager_destroyfont(font:Byte Ptr)
-	Function bmx_cegui_fontmanager_destroyfonttxt(font:Byte Ptr)
-	Function bmx_cegui_fontmanager_destroyAllFonts()
-	Function bmx_cegui_fontmanager_getfont:Byte Ptr(name:Byte Ptr)
-	Function bmx_cegui_fontmanager_notifyscreenresolution(width:Float, height:Float)
+	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_fontmanager_destroyname(name:Byte Ptr)
+	Function bmx_cegui_fontmanager_destroyobj(font:Byte Ptr)
+	Function bmx_cegui_fontmanager_destroyall()
+	Function bmx_cegui_fontmanager_get:Object(name:Byte Ptr)
+	Function bmx_cegui_fontmanager_isdefined:Int(name:Byte Ptr)
+	Function bmx_cegui_fontmanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
+
+	Function bmx_cegui_fontmanager_createfreetypefont:Byte Ptr(font_name:Byte Ptr, pointSize:Float, antialiased:Int, fontFilename:Byte Ptr, resourceGroup:Byte Ptr, ..
+			autoScaled:Int, nativeHorzRes:Float, nativeVertRes:Float, action:Int)
+	Function bmx_cegui_fontmanager_createpixmapfont:Byte Ptr(font_name:Byte Ptr, imagesetFilename:Byte Ptr, resourceGroup:Byte Ptr, autoScaled:Int, ..
+			nativeHorzRes:Float, nativeVertRes:Float, action:Int)
+	Function bmx_cegui_fontmanager_notifydislaysizechanged(width:Float, height:Float)
 
 	Function bmx_cegui_spinner_getcurrentvalue:Float(handle:Byte Ptr)
 	Function bmx_cegui_spinner_getstepsize:Float(handle:Byte Ptr)
@@ -451,31 +449,11 @@ Extern
 	Function bmx_cegui_tabcontrol_removetabforid(handle:Byte Ptr, ID:Int)
 	Function bmx_cegui_tabcontrol_settabheightu(handle:Byte Ptr, height:Byte Ptr)
 
-	Function bmx_cegui_renderer_createtexture:Object(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
-	Function bmx_cegui_renderer_createtexturewithsize:Object(handle:Byte Ptr, size:Float)
-	Function bmx_cegui_renderer_destroytexture(handle:Byte Ptr, texture:Byte Ptr)
-	Function bmx_cegui_renderer_destroyalltextures(handle:Byte Ptr)
-	Function bmx_cegui_renderer_isqueueingenabled:Int(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getwidth:Float(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getheight:Float(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
-	Function bmx_cegui_renderer_getmaxtexturesize:Int(handle:Byte Ptr)
-	Function bmx_cegui_renderer_gethorzscreendpi:Int(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getvertscreendpi:Int(handle:Byte Ptr)
-	Function bmx_cegui_renderer_resetzvalue(handle:Byte Ptr)
-	Function bmx_cegui_renderer_advancezvalue(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getcurrentz:Float(handle:Byte Ptr)
-	Function bmx_cegui_renderer_getzlayer:Float(handle:Byte Ptr, layer:Int)
-	Function bmx_cegui_renderer_getidentifierstring:String(handle:Byte Ptr)
-
-	Function bmx_cegui_texture_getwidth:Int(handle:Byte Ptr)
-	Function bmx_cegui_texture_getoriginalwidth:Int(handle:Byte Ptr)
-	Function bmx_cegui_texture_getxscale:Float(handle:Byte Ptr)
-	Function bmx_cegui_texture_getheight:Int(handle:Byte Ptr)
-	Function bmx_cegui_texture_getoriginalheight:Int(handle:Byte Ptr)
-	Function bmx_cegui_texture_getyscale:Float(handle:Byte Ptr)
+	Function bmx_cegui_texture_getsize(handle:Byte Ptr, w:Int Ptr, h:Int Ptr)
+	Function bmx_cegui_texture_getoriginaldatasize(handle:Byte Ptr, w:Int Ptr, h:Int Ptr)
 	Function bmx_cegui_texture_loadfromfile(handle:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr)
 	Function bmx_cegui_texture_loadfrommemory(handle:Byte Ptr, buffer:Byte Ptr, width:Int, height:Int, pixelFormat:Int)
+	Function bmx_cegui_texture_savetomemory(handle:Byte Ptr, buffer:Byte Ptr)
 
 	Function bmx_cegui_scheme_loadresources(handle:Byte Ptr)
 	Function bmx_cegui_scheme_unloadresources(handle:Byte Ptr)
@@ -893,7 +871,7 @@ Extern
 	Function bmx_cegui_coordconverter_screentowindow(window:Byte Ptr, x:Float, y:Float, toX:Float Ptr, toY:Float Ptr)
 	Function bmx_cegui_coordconverter_screentowindowrect(window:Byte Ptr, x:Float, y:Float, w:Float, h:Float, toX:Float Ptr, toY:Float Ptr, toW:Float Ptr, toH:Float Ptr)
 
-	Function bmx_cegui_combobox_ishit:Int(handle:Byte Ptr, x:Float, y:Float)
+	Function bmx_cegui_combobox_ishit:Int(handle:Byte Ptr, x:Float, y:Float, allowDisabled:Int)
 	Function bmx_cegui_combobox_getsingleclickenabled:Int(handle:Byte Ptr)
 	Function bmx_cegui_combobox_isdropdownlistvisible:Int(handle:Byte Ptr)
 	Function bmx_cegui_combobox_geteditbox:Object(handle:Byte Ptr)
@@ -989,7 +967,7 @@ Extern
 	Function bmx_cegui_imageset_getnativeresoultion(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
 	Function bmx_cegui_imageset_setautoscalingenabled(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_imageset_setnativeresolution(handle:Byte Ptr, width:Float, height:Float)
-	Function bmx_cegui_imageset_notifyscreenresolution(handle:Byte Ptr, width:Float, height:Float)
+	Function bmx_cegui_imageset_notifydisplaysizechanged(handle:Byte Ptr, width:Float, height:Float)
 
 	Function bmx_cegui_groupbox_getcontentpane:Object(handle:Byte Ptr)
 
@@ -1045,6 +1023,14 @@ Extern
 	Function bmx_cegui_listheader_movesegmentatsegment(handle:Byte Ptr, segment:Byte Ptr, position:Byte Ptr)
 	Function bmx_cegui_listheader_setsegmentoffset(handle:Byte Ptr, offset:Float)
 	Function bmx_cegui_listheader_setcolumnwidth(handle:Byte Ptr, column:Int, width:Float)
+
+	Function bmx_cegui_schememanager_createscheme:Object(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_schememanager_destroyname(scheme:Byte Ptr)
+	Function bmx_cegui_schememanager_destroyobj(scheme:Byte Ptr)
+	Function bmx_cegui_schememanager_destroyall()
+	Function bmx_cegui_schememanager_get:Object(name:Byte Ptr)
+	Function bmx_cegui_schememanager_isdefined:Int(name:Byte Ptr)
+	Function bmx_cegui_schememanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
 
 End Extern
 
@@ -1283,192 +1269,204 @@ End Type
 Rem
 bbdoc: Window's position specifies an offset of its top edge from the top edge of its parent.
 end rem
-const VA_TOP:int = 0
-rem
+Const VA_TOP:Int = 0
+Rem
 about: Window's position specifies an offset of its vertical centre from the vertical centre of its parent.
 End Rem
 Const VA_CENTRE:Int = 1
 Rem
 about: Window's position specifies an offset of its bottom edge from the bottom edge of its parent.
 end rem
-const VA_BOTTOM:int = 2
+Const VA_BOTTOM:Int = 2
 
 Rem
 bbdoc: Window's position specifies an offset of its left edge from the left edge of its parent.
 end rem
-const HA_LEFT:int = 0
-rem
+Const HA_LEFT:Int = 0
+Rem
 bbdoc: Window's position specifies an offset of its horizontal centre from the horizontal centre of its parent.
 end rem
-const HA_CENTRE:int = 1
-rem
+Const HA_CENTRE:Int = 1
+Rem
 bbdoc: Window's position specifies an offset of its right edge from the right edge of its parent.
 end rem
-const HA_RIGHT:int = 2
+Const HA_RIGHT:Int = 2
 
-rem
+Rem
 bbdoc: Top of Image should be aligned with the top of the destination area.
 end rem
-const VF_TOP_ALIGNED:int = 0
-rem
+Const VF_TOP_ALIGNED:Int = 0
+Rem
 bbdoc: Image should be vertically centred within the destination area.
 end rem
-const VF_CENTRE_ALIGNED:int = 1
-rem
+Const VF_CENTRE_ALIGNED:Int = 1
+Rem
 bbdoc: Bottom of Image should be aligned with the bottom of the destination area.
 end rem
-const VF_BOTTOM_ALIGNED:int = 2
-rem
+Const VF_BOTTOM_ALIGNED:Int = 2
+Rem
 bbdoc: Image should be stretched vertically to fill the destination area.
 end rem
-const VF_STRETCHED:int = 3
-rem
+Const VF_STRETCHED:Int = 3
+Rem
 bbdoc: Image should be tiled vertically to fill the destination area (bottom-most tile may be clipped).
 end rem
-const VF_TILED:int = 4
+Const VF_TILED:Int = 4
 
-rem
+Rem
 bbdoc: Left of Image should be aligned with the left of the destination area.
 end rem
-const HF_LEFT_ALIGNED:int = 0
-rem
+Const HF_LEFT_ALIGNED:Int = 0
+Rem
 bbdoc: Image should be horizontally centred within the destination area.
 end rem
-const HF_CENTRE_ALIGNED:int = 1
-rem
+Const HF_CENTRE_ALIGNED:Int = 1
+Rem
 bbdoc: Right of Image should be aligned with the right of the destination area.
 end rem
-const HF_RIGHT_ALIGNED:int = 2
-rem
+Const HF_RIGHT_ALIGNED:Int = 2
+Rem
 bbdoc: Image should be stretched horizontally to fill the destination area.
 end rem
-const HF_STRETCHED:int = 3
-rem
+Const HF_STRETCHED:Int = 3
+Rem
 bbdoc: Image should be tiled horizontally to fill the destination area (right-most tile may be clipped).
 end rem
-const HF_TILED:int = 4
+Const HF_TILED:Int = 4
 
-rem
+Rem
 bbdoc: Top of text should be aligned with the top of the destination area.
 end rem
-const VTF_TOP_ALIGNED:int = 0
-rem
+Const VTF_TOP_ALIGNED:Int = 0
+Rem
 bbdoc: Text should be vertically centred within the destination area.
 end rem
-const VTF_CENTRE_ALIGNED:int = 1
-rem
+Const VTF_CENTRE_ALIGNED:Int = 1
+Rem
 bbdoc: Bottom of text should be aligned with the bottom of the destination area.
 end rem
-const VTF_BOTTOM_ALIGNED:int = 2
+Const VTF_BOTTOM_ALIGNED:Int = 2
 
-rem
+Rem
 bbdoc: Left of text should be aligned with the left of the destination area (single line of text only).
 end rem
-const HTF_LEFT_ALIGNED:int = 0
-rem
+Const HTF_LEFT_ALIGNED:Int = 0
+Rem
 bbdoc: Right of text should be aligned with the right of the destination area  (single line of text only).
 end rem
-const HTF_RIGHT_ALIGNED:int = 1
-rem
+Const HTF_RIGHT_ALIGNED:Int = 1
+Rem
 bbdoc: text should be horizontally centred within the destination area  (single line of text only).
 end rem
-const HTF_CENTRE_ALIGNED:int = 2
-rem
+Const HTF_CENTRE_ALIGNED:Int = 2
+Rem
 bbdoc: text should be spaced so that it takes the full width of the destination area (single line of text only).
 end rem
-const HTF_JUSTIFIED:int = 3
-rem
+Const HTF_JUSTIFIED:Int = 3
+Rem
 bbdoc: Left of text should be aligned with the left of the destination area (word wrapped to multiple lines as needed).
 end rem
-const HTF_WORDWRAP_LEFT_ALIGNED:int = 4
-rem
+Const HTF_WORDWRAP_LEFT_ALIGNED:Int = 4
+Rem
 bbdoc: Right of text should be aligned with the right of the destination area  (word wrapped to multiple lines as needed).
 end rem
-const HTF_WORDWRAP_RIGHT_ALIGNED:int = 5
-rem
+Const HTF_WORDWRAP_RIGHT_ALIGNED:Int = 5
+Rem
 bbdoc: text should be horizontally centred within the destination area  (word wrapped to multiple lines as needed).
 end rem
-const HTF_WORDWRAP_CENTRE_ALIGNED:int = 6
-rem
+Const HTF_WORDWRAP_CENTRE_ALIGNED:Int = 6
+Rem
 bbdoc: text should be spaced so that it takes the full width of the destination area (word wrapped to multiple lines as needed).
 end rem
-const HTF_WORDWRAP_JUSTIFIED:int = 7
+Const HTF_WORDWRAP_JUSTIFIED:Int = 7
 
-rem
+Rem
 bbdoc: Vertical line spacing value for font.
 end rem
-const FMT_LINE_SPACING:int = 0
-rem
+Const FMT_LINE_SPACING:Int = 0
+Rem
 bbdoc: Vertical baseline value for font.
 end rem
-const FMT_BASELINE:int = 1
-rem
+Const FMT_BASELINE:Int = 1
+Rem
 bbdoc: Horizontal extent of a string.
 end rem
-const FMT_HORZ_EXTENT:int = 2
+Const FMT_HORZ_EXTENT:Int = 2
 
-rem
+Rem
 bbdoc: Do nothing operator.
 end rem
-const DOP_NOOP:int = 0
-rem
+Const DOP_NOOP:Int = 0
+Rem
 bbdoc: Dims should be added.
 end rem
-const DOP_ADD:int = 1
-rem
+Const DOP_ADD:Int = 1
+Rem
 bbdoc: Dims should be subtracted.
 end rem
-const DOP_SUBTRACT:int = 2
-rem
+Const DOP_SUBTRACT:Int = 2
+Rem
 bbdoc: Dims should be multiplied.
 end rem
-const DOP_MULTIPLY:int = 3
-rem
+Const DOP_MULTIPLY:Int = 3
+Rem
 bbdoc: Dims should be divided.
 end rem
-const DOP_DIVIDE:int = 4
+Const DOP_DIVIDE:Int = 4
 
-rem
+Rem
 bbdoc: References image used for the background.
 end rem
-const FIC_BACKGROUND:int = 0
-rem
+Const FIC_BACKGROUND:Int = 0
+Rem
 bbdoc: References image used for the top-left corner.
 end rem
-const FIC_TOP_LEFT_CORNER:int = 1
-rem
+Const FIC_TOP_LEFT_CORNER:Int = 1
+Rem
 bbdoc: References image used for the top-right corner.
 end rem
-const FIC_TOP_RIGHT_CORNER:int = 2
-rem
+Const FIC_TOP_RIGHT_CORNER:Int = 2
+Rem
 bbdoc: References image used for the bottom-left corner.
 end rem
-const FIC_BOTTOM_LEFT_CORNER:int = 3
-rem
+Const FIC_BOTTOM_LEFT_CORNER:Int = 3
+Rem
 bbdoc: References image used for the bottom-right corner.
 end rem
-const FIC_BOTTOM_RIGHT_CORNER:int = 4
-rem
+Const FIC_BOTTOM_RIGHT_CORNER:Int = 4
+Rem
 bbdoc: References image used for the left edge.
 end rem
-const FIC_LEFT_EDGE:int = 5
-rem
+Const FIC_LEFT_EDGE:Int = 5
+Rem
 bbdoc: References image used for the right edge.
 end rem
-const FIC_RIGHT_EDGE:int = 6
-rem
+Const FIC_RIGHT_EDGE:Int = 6
+Rem
 bbdoc: References image used for the top edge.
 end rem
-const FIC_TOP_EDGE:int = 7
-rem
+Const FIC_TOP_EDGE:Int = 7
+Rem
 bbdoc: References image used for the bottom edge.
 end rem
-const FIC_BOTTOM_EDGE:int = 8
-rem
+Const FIC_BOTTOM_EDGE:Int = 8
+Rem
 bbdoc: Max number of images for a frame.
 end rem
-const FIC_FRAME_IMAGE_COUNT:int = 9
+Const FIC_FRAME_IMAGE_COUNT:Int = 9
 
+Rem
+bbdoc: Do not load the resource, return the existing instance.
+End Rem
+Const XREA_RETURN:Int = 0
+Rem
+bbdoc: Destroy the existing instance and replace with the newly loaded one.
+End Rem
+Const XREA_REPLACE:Int = 1
+Rem
+bbdoc: Throw an AlreadyExistsException.
+End Rem
+Const XREA_THROW:Int = 2
 
 
 

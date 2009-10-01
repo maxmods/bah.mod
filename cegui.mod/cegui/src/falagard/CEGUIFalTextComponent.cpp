@@ -25,29 +25,60 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
+
 #include "falagard/CEGUIFalTextComponent.h"
 #include "falagard/CEGUIFalXMLEnumHelper.h"
 #include "CEGUIFontManager.h"
 #include "CEGUIExceptions.h"
 #include "CEGUIPropertyHelper.h"
+#include "CEGUIFont.h"
+#include "CEGUILeftAlignedRenderedString.h"
+#include "CEGUIRightAlignedRenderedString.h"
+#include "CEGUICentredRenderedString.h"
+#include "CEGUIJustifiedRenderedString.h"
+#include "CEGUIRenderedStringWordWrapper.h"
 #include <iostream>
+
+#if defined (CEGUI_USE_FRIBIDI)
+    #include "CEGUIFribidiVisualMapping.h"
+#elif defined (CEGUI_USE_MINIBIDI)
+    #include "CEGUIMinibidiVisualMapping.h"
+#else
+    #include "CEGUIBiDiVisualMapping.h"
+#endif
 
 // Start of CEGUI namespace section
 namespace CEGUI
 {
     TextComponent::TextComponent() :
+#ifndef CEGUI_BIDI_SUPPORT
+        d_bidiVisualMapping(0),
+#elif defined (CEGUI_USE_FRIBIDI)
+        d_bidiVisualMapping(new FribidiVisualMapping),
+#elif defined (CEGUI_USE_MINIBIDI)
+        d_bidiVisualMapping(new MinibidiVisualMapping),
+#else
+    #error "BIDI Configuration is inconsistant, check your config!"
+#endif
+        d_bidiDataValid(false),
+        d_formattedRenderedString(new LeftAlignedRenderedString(d_renderedString)),
+        d_lastHorzFormatting(HTF_LEFT_ALIGNED),
         d_vertFormatting(VTF_TOP_ALIGNED),
         d_horzFormatting(HTF_LEFT_ALIGNED)
     {}
 
     const String& TextComponent::getText() const
     {
-        return d_text;
+        return d_textLogical;
     }
 
     void TextComponent::setText(const String& text)
     {
-        d_text = text;
+        d_textLogical = text;
+        d_bidiDataValid = false;
     }
 
     const String& TextComponent::getFont() const
@@ -80,7 +111,70 @@ namespace CEGUI
         d_horzFormatting = fmt;
     }
 
-    void TextComponent::render_impl(Window& srcWindow, Rect& destRect, float base_z, const CEGUI::ColourRect* modColours, const Rect* clipper, bool clipToDisplay) const
+    void TextComponent::setupStringFormatter(const Window& window,
+                                             const RenderedString& rendered_string) const
+    {
+        const HorizontalTextFormatting horzFormatting = d_horzFormatPropertyName.empty() ? d_horzFormatting :
+            FalagardXMLHelper::stringToHorzTextFormat(window.getProperty(d_horzFormatPropertyName));
+
+        // no formatting change
+        if (horzFormatting == d_lastHorzFormatting)
+        {
+            d_formattedRenderedString->setRenderedString(rendered_string);
+            return;
+        }
+
+        d_lastHorzFormatting = horzFormatting;
+
+        switch(horzFormatting)
+        {
+        case HTF_LEFT_ALIGNED:
+            d_formattedRenderedString =
+                new LeftAlignedRenderedString(rendered_string);
+            break;
+
+        case HTF_CENTRE_ALIGNED:
+            d_formattedRenderedString =
+                new CentredRenderedString(rendered_string);
+            break;
+
+        case HTF_RIGHT_ALIGNED:
+            d_formattedRenderedString =
+                new RightAlignedRenderedString(rendered_string);
+            break;
+
+        case HTF_JUSTIFIED:
+            d_formattedRenderedString =
+                new JustifiedRenderedString(rendered_string);
+            break;
+
+        case HTF_WORDWRAP_LEFT_ALIGNED:
+            d_formattedRenderedString =
+                new RenderedStringWordWrapper
+                    <LeftAlignedRenderedString>(rendered_string);
+            break;
+
+        case HTF_WORDWRAP_CENTRE_ALIGNED:
+            d_formattedRenderedString =
+                new RenderedStringWordWrapper
+                    <CentredRenderedString>(rendered_string);
+            break;
+
+        case HTF_WORDWRAP_RIGHT_ALIGNED:
+            d_formattedRenderedString =
+                new RenderedStringWordWrapper
+                    <RightAlignedRenderedString>(rendered_string);
+            break;
+
+        case HTF_WORDWRAP_JUSTIFIED:
+            d_formattedRenderedString =
+                new RenderedStringWordWrapper
+                    <JustifiedRenderedString>(rendered_string);
+            break;
+        }
+    }
+
+    void TextComponent::render_impl(Window& srcWindow, Rect& destRect, const CEGUI::ColourRect* modColours, const Rect* clipper, bool /*clipToDisplay*/) const
     {
         // get font to use
         Font* font;
@@ -88,8 +182,8 @@ namespace CEGUI
         try
         {
             font = d_fontPropertyName.empty() ?
-                (d_font.empty() ? srcWindow.getFont() : FontManager::getSingleton().getFont(d_font))
-                : FontManager::getSingleton().getFont(srcWindow.getProperty(d_fontPropertyName));
+                (d_font.empty() ? srcWindow.getFont() : &FontManager::getSingleton().get(d_font))
+                : &FontManager::getSingleton().get(srcWindow.getProperty(d_fontPropertyName));
         }
         catch (UnknownObjectException&)
         {
@@ -100,25 +194,46 @@ namespace CEGUI
         if (!font)
             return;
 
-        HorizontalTextFormatting horzFormatting = d_horzFormatPropertyName.empty() ? d_horzFormatting :
-            FalagardXMLHelper::stringToHorzTextFormat(srcWindow.getProperty(d_horzFormatPropertyName));
+        const RenderedString* rs = &d_renderedString;
+        // do we fetch text from a property
+        if (!d_textPropertyName.empty())
+        {
+            // fetch text & do bi-directional reordering as needed
+            String vis;
+            #ifdef CEGUI_BIDI_SUPPORT
+                BiDiVisualMapping::StrIndexList l2v, v2l;
+                d_bidiVisualMapping->reorderFromLogicalToVisual(
+                    srcWindow.getProperty(d_textPropertyName), vis, l2v, v2l);
+            #else
+                vis = srcWindow.getProperty(d_textPropertyName);
+            #endif
+            // parse string using parser from Window.
+            d_renderedString =
+                srcWindow.getRenderedStringParser().parse(vis, font, modColours);
+        }
+        // do we use a static text string from the looknfeel
+        else if (!getTextVisual().empty())
+            // parse string using parser from Window.
+            d_renderedString = srcWindow.getRenderedStringParser().
+                parse(getTextVisual(), font, modColours);
+        // do we have to override the font?
+        else if (font != srcWindow.getFont())
+            d_renderedString = srcWindow.getRenderedStringParser().
+                parse(srcWindow.getTextVisual(), font, modColours);
+        // use ready-made RenderedString from the Window itself
+        else
+            rs = &srcWindow.getRenderedString();
 
+        setupStringFormatter(srcWindow, *rs);
+        d_formattedRenderedString->format(destRect.getSize());
+
+        // Get total formatted height.
+        const float textHeight = d_formattedRenderedString->getVerticalExtent();
+
+        // handle dest area adjustments for vertical formatting.
         VerticalTextFormatting vertFormatting = d_vertFormatPropertyName.empty() ? d_vertFormatting :
             FalagardXMLHelper::stringToVertTextFormat(srcWindow.getProperty(d_vertFormatPropertyName));
 
-        // calculate final colours to be used
-        ColourRect finalColours;
-        initColoursRect(srcWindow, modColours, finalColours);
-
-        // decide which string to render.
-        const String& renderString = d_textPropertyName.empty() ?
-            (d_text.empty() ? srcWindow.getText() : d_text)
-            : srcWindow.getProperty(d_textPropertyName);
-
-        // calculate height of formatted text
-        float textHeight = font->getFormattedLineCount(renderString, destRect, (TextFormatting)horzFormatting) * font->getLineSpacing();
-
-        // handle dest area adjustments for vertical formatting.
         switch(vertFormatting)
         {
         case VTF_CENTRE_ALIGNED:
@@ -134,10 +249,16 @@ namespace CEGUI
             break;
         }
 
+        // calculate final colours to be used
+        ColourRect finalColours;
+        initColoursRect(srcWindow, modColours, finalColours);
+
         // offset the font little down so that it's centered within its own spacing
-        destRect.d_top += (font->getLineSpacing() - font->getFontHeight()) * 0.5f;
-        // add text to the rendering cache for the target window.
-        srcWindow.getRenderCache().cacheText(renderString, font, (TextFormatting)horzFormatting, destRect, base_z, finalColours, clipper, clipToDisplay);
+//        destRect.d_top += (font->getLineSpacing() - font->getFontHeight()) * 0.5f;
+        // add geometry for text to the target window.
+        d_formattedRenderedString->draw(srcWindow.getGeometryBuffer(),
+                                        destRect.getPosition(),
+                                        &finalColours, clipper);
     }
 
     void TextComponent::writeXMLToStream(XMLSerializer& xml_stream) const
@@ -148,13 +269,13 @@ namespace CEGUI
         d_area.writeXMLToStream(xml_stream);
 
         // write text element
-        if (!d_font.empty() && !d_text.empty())
+        if (!d_font.empty() && !getText().empty())
         {
             xml_stream.openTag("Text");
             if (!d_font.empty())
                 xml_stream.attribute("font", d_font);
-            if (!d_text.empty())
-                xml_stream.attribute("string", d_text);
+            if (!getText().empty())
+                xml_stream.attribute("string", getText());
             xml_stream.closeTag();
         }
 
@@ -227,6 +348,21 @@ namespace CEGUI
     void TextComponent::setFontPropertySource(const String& property)
     {
         d_fontPropertyName = property;
+    }
+
+    const String& TextComponent::getTextVisual() const
+    {
+        // no bidi support
+        if (!d_bidiVisualMapping)
+            return d_textLogical;
+
+        if (!d_bidiDataValid)
+        {
+            d_bidiVisualMapping->updateVisual(d_textLogical);
+            d_bidiDataValid = true;
+        }
+
+        return d_bidiVisualMapping->getTextVisual();
     }
 
 } // End of  CEGUI namespace section

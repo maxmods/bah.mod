@@ -59,20 +59,20 @@ namespace CEGUI
     }
 
     /*************************************************************************
-        Return singleton object
-      *************************************************************************/
-      WidgetLookManager&    WidgetLookManager::getSingleton(void)
-      {
-          return Singleton<WidgetLookManager>::getSingleton();
-      }
+		Return singleton object
+	  *************************************************************************/
+	  WidgetLookManager&	WidgetLookManager::getSingleton(void)
+	  {
+		  return Singleton<WidgetLookManager>::getSingleton();
+	  }
 
-      /*************************************************************************
-          Return singleton pointer
-      *************************************************************************/
-      WidgetLookManager*    WidgetLookManager::getSingletonPtr(void)
-      {
-          return Singleton<WidgetLookManager>::getSingletonPtr();
-    }
+	  /*************************************************************************
+		  Return singleton pointer
+	  *************************************************************************/
+	  WidgetLookManager*	WidgetLookManager::getSingletonPtr(void)
+	  {
+		  return Singleton<WidgetLookManager>::getSingletonPtr();
+  	}
 
     void WidgetLookManager::parseLookNFeelSpecification(const String& filename, const String& resourceGroup)
     {

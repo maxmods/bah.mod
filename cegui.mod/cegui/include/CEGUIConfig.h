@@ -87,13 +87,64 @@ Each item in here has a comment to describe what it's for.
 
 //////////////////////////////////////////////////////////////////////////
 // The following controls the version of Lua that is going to be used.
-// 50 is for Lua 5.0.x versions
+// Note that from 0.7.0 and up, Lua 5.0 is no longer supported.
 // 51 is for Lua 5.1.x versions (and above?)
 //////////////////////////////////////////////////////////////////////////
 #ifndef CEGUI_LUA_VER
 #   define CEGUI_LUA_VER 51
 #endif
 
-//#endif // defined(__APPLE__)  // BaH
+//////////////////////////////////////////////////////////////////////////
+// The following controls whether freetype based font support will be
+// compiled in (default).  If you want to build CEGUI /without/ freetype
+// support, comment the following line.
+//////////////////////////////////////////////////////////////////////////
+#define CEGUI_HAS_FREETYPE
+
+//////////////////////////////////////////////////////////////////////////
+// PCRE library
+// CEGUI uses the pcre library for it's regular expression based string
+// validation as used in the Editbox (and derived classes, such as Spinner).
+// To disable the use of PCRE (and therefore the validation factilities),
+// comment the following line.  (Attempts to set validation string will throw).
+//////////////////////////////////////////////////////////////////////////
+#define CEGUI_HAS_PCRE_REGEX
+
+//////////////////////////////////////////////////////////////////////////
+// The following controls whether the default logger be (possibly) used.
+// If you want to build CEGUI so that it does not use the default logger,
+// comment the following line.
+//
+// Note: If you disable the default logger you MUST provide an alternative
+// CEGUI::Logger based class and instantiate it before creating the main
+// CEGUI::System object.
+//////////////////////////////////////////////////////////////////////////
+#define CEGUI_HAS_DEFAULT_LOGGER
+
+//////////////////////////////////////////////////////////////////////////
+// The following defines control bidirectional text support.
+//
+// Uncomment the CEGUI_BIDI_SUPPORT definition to enable bidirectional
+// text in CEGUI.
+//
+// With bidirectional text support enabled, you must then choose to uncomment
+// either the CEGUI_USE_MINIBIDI or CEGUI_USE_FRIBIDI definitions (but you
+// should not uncomment both!)
+//
+// Uncommenting CEGUI_USE_MINIBIDI uses an integrated copy of minibidi to
+// provide the bidirectional support.
+//
+// Uncommenting CEGUI_USE_FRIBIDI uses an external copy of fribidi to
+// provide the bidirectional support (not supplied).
+//////////////////////////////////////////////////////////////////////////
+//#define CEGUI_BIDI_SUPPORT
+
+// Uncomment this to use the embedded minibidi library.
+//#define CEGUI_USE_MINIBIDI
+// - or -
+// Uncomment this to use an external fribidi library.
+//#define CEGUI_USE_FRIBIDI
+
+// #endif // defined(__APPLE__) // BaH
 
 #endif	// end of guard _CEGUIConfig_h_

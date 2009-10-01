@@ -30,7 +30,7 @@ Import BRL.PolledInput
 Import "common.bmx"
 
 ' some global stuff
-Global cegui_rendererPtr:Byte Ptr
+Global cegui_renderer:TCERenderer
 Global cegui_startTime:Int
 
 Global ce_event_handler:TCEEventHandler = New TCEEventHandler
@@ -47,13 +47,13 @@ Function cegui_cleanup()
 	RemoveHook EmitEventHook,TCEEvent.Keyhook
 
 	If TCESystem.cegui_systemPtr Then
-		bmx_cegui_delete_system(TCESystem.cegui_systemPtr)
+		bmx_cegui_system_destroy()
 		TCESystem.cegui_systemPtr = Null
 	End If
 	
-	If cegui_rendererPtr Then
-		bmx_cegui_delete_renderer(cegui_rendererPtr)
-		cegui_rendererPtr = Null
+	If cegui_renderer Then
+		cegui_renderer.free()
+		cegui_renderer = Null
 	End If
 	
 End Function
@@ -65,23 +65,23 @@ about: Optionally, pass in a custom Resource Provider.
 You may also provide your own customEventHandler, and not use the default Blitz event hook system. 
 </p>
 End Rem
-Function Init_CEGUI(resourceProvider:TCEResourceProvider = Null, customEventHandler:Int = False)
-	If Not cegui_rendererPtr Then
-		' creates a new opengl renderer
-		cegui_rendererPtr = bmx_cegui_new_oglrenderer()
+Function Init_CEGUI(renderer:TCERenderer, ResourceProvider:TCEResourceProvider = Null, customEventHandler:Int = False)
+	If Not cegui_renderer Then
+		' attaches the renderer
+		cegui_renderer = renderer
 
-		If cegui_rendererPtr Then
+		'If cegui_rendererPtr Then
 			' creates a new CEGUI system
-			If resourceProvider Then
-				TCESystem.resourceProvider = resourceProvider
-				TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr, resourceProvider.objectPtr)
-			Else
-				TCESystem.cegui_systemPtr = bmx_cegui_new_system(cegui_rendererPtr, Null)
-			End If
-			
-			TCEWindowManager.windowManagerPtr = bmx_cegui_windowmanager_getsingleton()
-			TCEMouseCursor.mouseCursorPtr = bmx_cegui_mousecursor_getsingleton()
+		If resourceProvider Then
+			TCESystem.resourceProvider = resourceProvider
+			TCESystem.cegui_systemPtr = bmx_cegui_new_system(renderer.objectPtr, resourceProvider.objectPtr)
+		Else
+			TCESystem.cegui_systemPtr = bmx_cegui_new_system(renderer.objectPtr, Null)
 		End If
+		
+		TCEWindowManager.windowManagerPtr = bmx_cegui_windowmanager_getsingleton()
+		TCEMouseCursor.mouseCursorPtr = bmx_cegui_mousecursor_getsingleton()
+		'End If
 
 		' TODO : there are probably better ways to do this
 		cegui_startTime = MilliSecs()
@@ -593,12 +593,12 @@ elements to client code.
 End Rem
 Type TCEScheme
 
-	Field schemePtr:Byte Ptr
+	Field objectPtr:Byte Ptr
 	
-	Function _create:TCEScheme(schemePtr:Byte Ptr)
-		If schemePtr Then
+	Function _create:TCEScheme(objectPtr:Byte Ptr)
+		If objectPtr Then
 			Local this:TCEScheme = New TCEScheme
-			this.schemePtr = schemePtr
+			this.objectPtr = objectPtr
 			Return this
 		End If
 	End Function
@@ -607,7 +607,7 @@ Type TCEScheme
 	bbdoc: Loads all resources for this scheme.
 	End Rem
 	Method loadResources()
-		bmx_cegui_scheme_loadresources(schemePtr)
+		bmx_cegui_scheme_loadresources(objectPtr)
 	End Method
 	
 	Rem
@@ -615,21 +615,21 @@ Type TCEScheme
 	about: This should be used very carefully.
 	End Rem
 	Method unloadResources()
-		bmx_cegui_scheme_unloadresources(schemePtr)
+		bmx_cegui_scheme_unloadresources(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns whether the resources for this Scheme are all loaded.
 	End Rem
 	Method resourcesLoaded:Int()
-		Return bmx_cegui_scheme_resourcesloaded(schemePtr)
+		Return bmx_cegui_scheme_resourcesloaded(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the name of this Scheme. 
 	End Rem
 	Method getName:String()
-		Return bmx_cegui_scheme_getname(schemePtr)
+		Return bmx_cegui_scheme_getname(objectPtr)
 	End Method
 
 End Type
@@ -703,8 +703,8 @@ Type TCEWindowManager
 	bbdoc: Creates a new Window object of the specified type, and gives it the specified unique name.
 	returns: The newly created Window object.
 	End Rem
-	Function CreateWindow:TCEWindow(windowType:String, name:String = "", prefix:String = "")
-		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name), _convertMaxToUTF8(prefix)))
+	Function CreateWindow:TCEWindow(windowType:String, name:String = "")
+		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name)))
 	End Function
 	
 End Type
@@ -952,13 +952,6 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Returns the window prefix.
-	End Rem
-	Method getPrefix:String()
-		Return bmx_cegui_window_getprefix(objectPtr)
-	End Method
-	
-	Rem
 	bbdoc: Returns whether or not this Window is set to be destroyed when its parent window is destroyed.
 	End Rem
 	Method isDestroyedByParent:Int()
@@ -1159,27 +1152,6 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	 
 	Rem
-	bbdoc: Returns a Rect describing the Window area in screen space.
-	End Rem
-	Method getPixelRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
-		bmx_cegui_window_getpixelrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
-	End Method
-	 
-	Rem
-	bbdoc: Returns a Rect describing the clipped inner area for this window.
-	End Rem
-	Method getInnerRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
-		bmx_cegui_window_getinnerrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
-	End Method
-	 
-	Rem
-	bbdoc: Returns a Rect describing the Window area unclipped, in screen space.
-	End Rem
-	Method getUnclippedPixelRect(x:Float Var, y:Float Var, w:Float Var, h:Float Var)
-		bmx_cegui_window_getunclippedpixelrect(objectPtr, Varptr x, Varptr y, Varptr w, Varptr h)
-	End Method
-	 
-	Rem
 	bbdoc: Returns a Rect that describes, unclipped, the inner rectangle for this window.
 	about: The inner rectangle is typically an area that excludes some frame or other rendering that should not be
 	touched by subsequent rendering.
@@ -1212,8 +1184,8 @@ Type TCEWindow Extends TCEEventSet
 	Rem
 	bbdoc: Checks if the given pixel position would hit this window.
 	End Rem
-	Method isHit:Int(x:Float, y:Float)
-		Return bmx_cegui_window_ishit(objectPtr, x, y)
+	Method isHit:Int(x:Float, y:Float, allowDisabled:Int = False)
+		Return bmx_cegui_window_ishit(objectPtr, x, y, allowDisabled)
 	End Method
 	 
 	Rem
@@ -1344,13 +1316,6 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: Sets the unique prefix for this window.
-	End Rem
-	Method setPrefix(prefix:String)
-		bmx_cegui_window_setprefix(objectPtr, _convertMaxToUTF8(prefix))
-	End Method
-	
-	Rem
 	bbdoc: Inserts the text string text into the current text string for the Window object at the position specified by position.
 	End Rem
 	Method insertText(text:String, position:Int)
@@ -1464,10 +1429,17 @@ Type TCEWindow Extends TCEEventSet
 	End Method
 	
 	Rem
-	bbdoc: Signals the System object to redraw (at least) this Window on the next render cycle.
+	bbdoc: Invalidate this window causing at least this window to be redrawn during the next rendering pass.
 	End Rem
-	Method requestRedraw()
-		bmx_cegui_window_requestredraw(objectPtr)
+	Method invalidate()
+		bmx_cegui_window_invalidate(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Invalidate the chain of rendering surfaces from this window backwards to ensure they get properly redrawn - but doing the minimum amount of work possibe - next render. 
+	End Rem
+	Method invalidateRenderingSurface()
+		bmx_cegui_window_invalidaterenderingsurface(objectPtr)
 	End Method
 	
 	Rem
@@ -2743,55 +2715,55 @@ Type TCEFontManager
 	Rem
 	bbdoc: Creates a new font from a font definition file, and returns the new Font object.
 	End Rem
-	Function createFont:TCEFont(filename:String, resourceGroup:String = "")
-		Return TCEFont._create(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
+	Function createFreeTypeFont:TCEFont(FontName:String, pointSize:Float, antialiased:Int, fontFilename:String, resourceGroup:String = "", ..
+			autoScaled:Int = False, nativeHorzRes:Float = 640.0, nativeVertRes:Float = 480.0, action:Int = XREA_RETURN)
+		Return TCEFont._create(bmx_cegui_fontmanager_createfreetypefont(_convertMaxToUTF8(FontName), pointSize, antialiased, _convertMaxToUTF8(fontFilename), ..
+			_convertMaxToUTF8(resourceGroup), autoScaled, nativeHorzRes, nativeVertRes, action))
 	End Function
 	
 	Rem
 	bbdoc: Creates a new Font based on a true-type font, and returns the new Font object.
 	End Rem
-	Function createFontType:TCEFont(fontType:String, name:String, FontName:String, resourceGroup:String = "")
-		Return TCEFont._create(bmx_cegui_fontmanager_createfonttype(_convertMaxToUTF8(fontType), ..
-				_convertMaxToUTF8(name), _convertMaxToUTF8(FontName), _convertMaxToUTF8(resourceGroup)))
+	Function createPixmapFont:TCEFont(FontName:String, imagesetFilename:String, resourceGroup:String = "", autoScaled:Int = False, ..
+			nativeHorzRes:Float = 640.0, nativeVertRes:Float = 480.0, action:Int = XREA_RETURN)
+		Return TCEFont._create(bmx_cegui_fontmanager_createpixmapfont(_convertMaxToUTF8(FontName), _convertMaxToUTF8(imagesetFilename), ..
+			_convertMaxToUTF8(resourceGroup), autoScaled, nativeHorzRes, nativeVertRes, action))
+
 	End Function
-	
-	Rem
-	bbdoc: Destroys the given Font object.
-	End Rem
-	Function destroyFont(font:Object)
-		If TCEFont(font) Then
-			bmx_cegui_fontmanager_destroyfont(TCEFont(font).objectPtr)
-		ElseIf String(font) Then
-			bmx_cegui_fontmanager_destroyfonttxt(_convertMaxToUTF8(String(font)))
-		End If
-	End Function
-	
-	Rem
-	bbdoc: Destroys all Font objects registered in the system.
-	End Rem
-	Function destroyAllFonts()
-		bmx_cegui_fontmanager_destroyAllFonts()
-	End Function
-	
-	Rem
-	bbdoc: Checks the existence of a given font.
-	End Rem
-	Function isFontPresent:Int(name:String)
-		Return bmx_cegui_fontmanager_isfontpresent(_convertMaxToUTF8(name))
-	End Function
-	
-	Rem
-	bbdoc: Returns the font object with the specified name.
-	End Rem
-	Function getFont:TCEFont(name:String)
-		Return TCEFont._create(bmx_cegui_fontmanager_getfont(_convertMaxToUTF8(name)))
+
+	Function createFont:TCEFont(filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
+		Return TCEFont._create(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup), action))
 	End Function
 	
 	Rem
 	bbdoc: Notifies the FontManager of the current (usually new) display resolution.
 	End Rem
-	Function notifyScreenResolution(width:Float, height:Float)
-		bmx_cegui_fontmanager_notifyscreenresolution(width, height)
+	Function notifyDisplaySizeChanged(width:Float, height:Float)
+		bmx_cegui_fontmanager_notifydislaysizechanged(width, height)
+	End Function
+
+	Function destroy(font:Object)
+		If String(font) Then
+			bmx_cegui_fontmanager_destroyname(_convertMaxToUTF8(String(font)))
+		Else If TCEFont(font) Then
+			bmx_cegui_fontmanager_destroyobj(TCEFont(font).objectPtr)
+		End If
+	End Function
+	
+	Function destroyAll()
+		bmx_cegui_fontmanager_destroyall()
+	End Function
+	
+	Function get:TCEFont(name:String)
+		Return TCEFont(bmx_cegui_fontmanager_get(_convertMaxToUTF8(name)))
+	End Function
+	
+	Function isDefined:Int(name:String)
+		Return bmx_cegui_fontmanager_isdefined(_convertMaxToUTF8(name))
+	End Function
+	
+	Function createAll(pattern:String, resourceGroup:String)
+		bmx_cegui_fontmanager_createall(_convertMaxToUTF8(pattern), _convertMaxToUTF8(resourceGroup))
 	End Function
 
 End Type
@@ -2802,34 +2774,32 @@ bbdoc: Manages the creation of, access to, and destruction of GUI Scheme objects
 End Rem
 Type TCESchemeManager
 
-	Rem
-	bbdoc: Loads a scheme.
-	End Rem
-	Function loadScheme:TCEScheme(scheme:String, resourceGroup:String = "")
-		Return TCEScheme._create(bmx_cegui_schememanager_loadScheme(_convertMaxToUTF8(scheme), _convertMaxToUTF8(resourceGroup)))
+	Function createScheme:TCEScheme(filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
+		Return TCEScheme(bmx_cegui_schememanager_createscheme(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup), action))
 	End Function
 
-	Rem
-	bbdoc: Returns true if the named Scheme is present in the system (though the resources for the scheme may or may not be loaded).
-	End Rem
-	Function isSchemePresent:Int(scheme:String)
-		Return bmx_cegui_schememanager_isschemepresent(_convertMaxToUTF8(scheme))
+	Function destroy(scheme:Object)
+		If String(scheme) Then
+			bmx_cegui_schememanager_destroyname(_convertMaxToUTF8(String(scheme)))
+		Else If TCEScheme(scheme) Then
+			bmx_cegui_schememanager_destroyobj(TCEScheme(scheme).objectPtr)
+		End If
 	End Function
 	
-	Rem
-	bbdoc: Returns the Scheme object with the specified name.
-	End Rem
-	Function getScheme:TCEScheme(name:String)
-		Return TCEScheme._create(bmx_cegui_schememanager_getscheme(_convertMaxToUTF8(name)))
+	Function destroyAll()
+		bmx_cegui_schememanager_destroyall()
 	End Function
 	
-	Rem
-	bbdoc: Unload all schemes currently defined within the system.
-	about: Calling this method has the potential to be very dangerous; if any of the data that forms
-	part of the scheme is still in use, you can expect fireworks shortly after!
-	End Rem
-	Function unloadAllSchemes()
-		bmx_cegui_schememanager_unloadallschemes()
+	Function get:TCEScheme(name:String)
+		Return TCEScheme(bmx_cegui_schememanager_get(_convertMaxToUTF8(name)))
+	End Function
+	
+	Function isDefined:Int(name:String)
+		Return bmx_cegui_schememanager_isdefined(_convertMaxToUTF8(name))
+	End Function
+	
+	Function createAll(pattern:String, resourceGroup:String)
+		bmx_cegui_schememanager_createall(_convertMaxToUTF8(pattern), _convertMaxToUTF8(resourceGroup))
 	End Function
 	
 End Type
@@ -2981,19 +2951,10 @@ End Rem
 Type TCEImagesetManager
 
 	Rem
-	bbdoc: Create a Imageset object with the given name and Texture.
-	about: The created Imageset will be of limited use, and will require one or more images to
-	be defined for the set.
-	End Rem
-	Function createImageset:TCEImageset(filename:String, resourceGroup:String = "")
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimageset(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
-	End Function
-	
-	Rem
 	bbdoc: Create an Imageset object from the specified file.
 	End Rem
-	Function createImagesetFromTexture:TCEImageset(name:String, texture:TCETexture)
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromtexture(_convertMaxToUTF8(name), texture.objectPtr))
+	Function createImagesetFromTexture:TCEImageset(name:String, texture:TCETexture , action:Int = XREA_RETURN)
+		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromtexture(_convertMaxToUTF8(name), texture.objectPtr, action))
 	End Function
 	
 	Rem
@@ -3001,50 +2962,46 @@ Type TCEImagesetManager
 	about: The Imageset will initially have a single image defined named "full_image" which is
 	an image that represents the entire area of the loaded image.
 	End Rem
-	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "")
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromimagefile(_convertMaxToUTF8(name), _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
-	End Function
-	
-	Rem
-	bbdoc: Destroys the Imageset.
-	about: Accepts either the imageset name, or an imageset object.
-	End Rem
-	Function destroyImageSet(imageset:Object)
-		If TCEImageset(imageset) Then
-			bmx_cegui_imagesetmanager_destroyimageset(TCEImageset(imageset).objectPtr)
-		ElseIf String(imageset) Then
-			bmx_cegui_imagesetmanager_destroyimagesetname(_convertMaxToUTF8(String(imageset)))
-		End If
-	End Function
-	
-	Rem
-	bbdoc: Destroys all Imageset objects registered in the system.
-	End Rem
-	Function destroyAllImagesets()
-		bmx_cegui_imagesetmanager_destroyallimagesets()
-	End Function
-	
-	Rem
-	bbdoc: Returns the Imageset object with the specified name.
-	End Rem
-	Function getImageset:TCEImageset(name:String)
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_getimageset(_convertMaxToUTF8(name)))
-	End Function
-	
-	Rem
-	bbdoc: Check for the existence of a named Imageset.
-	End Rem
-	Function isImagesetPresent:Int(name:String)	
-		Return bmx_cegui_imagesetmanager_isimagesetpresent(_convertMaxToUTF8(name))
+	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
+		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromimagefile(_convertMaxToUTF8(name), _convertMaxToUTF8(filename), ..
+			_convertMaxToUTF8(resourceGroup), action))
 	End Function
 	
 	Rem
 	bbdoc: Notify the ImagesetManager of the current (usually new) display resolution.
 	End Rem
-	Function notifyScreenResolution(width:Float, height:Float)
-		bmx_cegui_imagesetmanager_notifyscreenresolution(width, height)
+	Function notifyDisplaySizeChanged(width:Float, height:Float)
+		bmx_cegui_imagesetmanager_notifydisplaysizechanged(width, height)
+	End Function
+
+	Function createImageset:TCEImageset(filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
+		Return TCEImageset(bmx_cegui_imagesetmanager_createimageset(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup), action))
+	End Function
+
+	Function destroy(imageset:Object)
+		If String(imageset) Then
+			bmx_cegui_imagesetmanager_destroyname(_convertMaxToUTF8(String(imageset)))
+		Else If TCEImageset(imageset) Then
+			bmx_cegui_imagesetmanager_destroyobj(TCEImageset(imageset).objectPtr)
+		End If
 	End Function
 	
+	Function destroyAll()
+		bmx_cegui_imagesetmanager_destroyall()
+	End Function
+	
+	Function get:TCEImageset(name:String)
+		Return TCEImageset(bmx_cegui_imagesetmanager_get(_convertMaxToUTF8(name)))
+	End Function
+	
+	Function isDefined:Int(name:String)
+		Return bmx_cegui_imagesetmanager_isdefined(_convertMaxToUTF8(name))
+	End Function
+	
+	Function createAll(pattern:String, resourceGroup:String)
+		bmx_cegui_imagesetmanager_createall(_convertMaxToUTF8(pattern), _convertMaxToUTF8(resourceGroup))
+	End Function
+
 End Type
 
 Rem
@@ -3076,45 +3033,17 @@ Type TCETexture
 	End Function
 	
 	Rem
-	bbdoc: Returns the current pixel width of the texture.
+	bbdoc: Returns the current pixel size of the texture.
 	End Rem
-	Method getWidth:Int()
-		Return bmx_cegui_texture_getwidth(objectPtr)
+	Method getSize(w:Int Var, h:Int Var)
+		bmx_cegui_texture_getsize(objectPtr, Varptr w, Varptr h)
 	End Method
 	
 	Rem
-	bbdoc: Returns the original pixel width of the data loaded into the texture.
+	bbdoc: 
 	End Rem
-	Method getOriginalWidth:Int()
-		Return bmx_cegui_texture_getoriginalwidth(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the current scale used for the width of the texture.
-	End Rem
-	Method getXScale:Float()
-		Return bmx_cegui_texture_getxscale(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the current pixel height of the texture.
-	End Rem
-	Method getHeight:Int()
-		Return bmx_cegui_texture_getheight(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the original pixel height of the data loaded into the texture.
-	End Rem
-	Method getOriginalHeight:Int()
-		Return bmx_cegui_texture_getoriginalheight(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the current scale used for the height of the texture.
-	End Rem
-	Method getYScale:Float()
-		Return bmx_cegui_texture_getyscale(objectPtr)
+	Method getOriginalDataSize(w:Int Var, h:Int Var)
+		bmx_cegui_texture_getoriginaldatasize(objectPtr, Varptr w, Varptr h)
 	End Method
 	
 	Rem
@@ -3131,6 +3060,17 @@ Type TCETexture
 	End Rem
 	Method loadFromMemory(buffer:Byte Ptr, width:Int, height:Int, pixelFormat:Int)
 		bmx_cegui_texture_loadfrommemory(objectPtr, buffer, width, height, pixelFormat)
+	End Method
+	
+	Rem
+	bbdoc: Saves / dumps the content of the texture to a memory buffer.
+	about: The dumped pixel format is always RGBA (4 bytes per pixel).
+	<p>
+	You must make sure that this buffer is large enough to hold the dumped texture data, the required pixel dimensions can be established by calling getSize.
+	</p>
+	End Rem
+	Method saveToMemory(buffer:Byte Ptr)
+		bmx_cegui_texture_savetomemory(objectPtr, buffer)
 	End Method
 	
 End Type
@@ -3273,8 +3213,8 @@ Type TCEImageset
 	Rem
 	bbdoc: Notifies the Imageset of the current (usually new) display resolution.
 	End Rem
-	Method notifyScreenResolution(width:Float, height:Float)
-		bmx_cegui_imageset_notifyscreenresolution(objectPtr, width, height)
+	Method notifyDisplaySizeChanged(width:Float, height:Float)
+		bmx_cegui_imageset_notifydisplaysizechanged(objectPtr, width, height)
 	End Method
 	
 End Type
@@ -3283,9 +3223,33 @@ Rem
 bbdoc: The means by which the GUI system interfaces with specific rendering technologies.
 about: To use a rendering system or API to draw CEGUI imagery requires that an appropriate Renderer object be available.
 End Rem
-Type TCERenderer
+Type TCERenderer Abstract
 
 	Field objectPtr:Byte Ptr
+	
+	Method createGeometryBuffer:TCEGeometryBuffer()
+'		Return TCEGeometryBuffer(bmx_cegui_renderer_creategeometrybuffer(objectPtr))
+	End Method
+	
+	Method destroyGeometryBuffer(buffer:TCEGeometryBuffer)
+'		bmx_cegui_renderer_destroygeometrybuffer(objectPtr, buffer.objectPtr)
+	End Method
+	
+	Method destroyAllGeometryBuffers()
+'		bmx_cegui_renderer_destroyallgeometrybuffers(objectPtr)
+	End Method
+	
+	Method createTextureTarget:TCETextureTarget()
+'		Return TCETextureTarget(bmx_cegui_renderer_createtexturetarget(objectPtr))
+	End Method
+	
+	Method destroyTextureTarget(target:TCETextureTarget)
+'		bmx_cegui_renderer_destroytexturetarget(objectPtr, target.objectPtr)
+	End Method
+	
+	Method destroyAllTextureTargets()
+'		bmx_cegui_renderer_destroyalltexturetargets(objectPtr)
+	End Method
 	
 	Rem
 	bbdoc: Create a Texture object using the given image file.
@@ -3295,7 +3259,7 @@ Type TCERenderer
 	specified file. You can check the ultimate sizes by querying the texture after creation.
 	End Rem
 	Method CreateTexture:TCETexture(filename:String, resourceGroup:String)
-		Return TCETexture(bmx_cegui_renderer_createtexture(objectPtr, _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
+'		Return TCETexture(bmx_cegui_renderer_createtexture(objectPtr, _convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup)))
 	End Method
 	
 	Rem
@@ -3308,99 +3272,52 @@ Type TCERenderer
 	can check the ultimate size by querying the texture after creation.
 	</p>
 	End Rem
-	Method createTextureWithSize:TCETexture(size:Float)
-		Return TCETexture(bmx_cegui_renderer_createtexturewithsize(objectPtr, size))
+	Method createTextureWithSize:TCETexture(w:Float, h:Float)
+'		Return TCETexture(bmx_cegui_renderer_createtexturewithsize(objectPtr, size))
 	End Method
 	
 	Rem
 	bbdoc: Destroys the given Texture.
 	End Rem
 	Method destroyTexture(texture:TCETexture)
-		bmx_cegui_renderer_destroytexture(objectPtr, texture.objectPtr)
+'		bmx_cegui_renderer_destroytexture(objectPtr, texture.objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Destroys all Texture objects.
 	End Rem
 	Method destroyAllTextures()
-		bmx_cegui_renderer_destroyalltextures(objectPtr)
+'		bmx_cegui_renderer_destroyalltextures(objectPtr)
 	End Method
-	
-	Rem
-	bbdoc: Returns whether queueing is enabled.
-	End Rem
-	Method isQueueingEnabled:Int()
-		Return bmx_cegui_renderer_isqueueingenabled(objectPtr)
+
+	Method beginRendering()
+'		bmx_cegui_renderer_beginrendering(objectPtr)
 	End Method
-	
-	Rem
-	bbdoc: Returns the current width of the display in pixels.
-	End Rem
-	Method getWidth:Float()
-		Return bmx_cegui_renderer_getwidth(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the current height of the display in pixels.
-	End Rem
-	Method getHeight:Float()
-		Return bmx_cegui_renderer_getheight(objectPtr)
+
+	Method endRendering()
+'		bmx_cegui_renderer_endrendering(objectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the size of the display in pixels.
 	End Rem
-	Method getSize(width:Float Var, height:Float Var)
-		bmx_cegui_renderer_getsize(objectPtr, Varptr width, Varptr height)
+	Method getDisplaySize(width:Float Var, height:Float Var)
+'		bmx_cegui_renderer_getdisplaysize(objectPtr, Varptr width, Varptr height)
 	End Method
 	
-	Rem
-	bbdoc: Returns the maximum texture size available.
-	End Rem
-	Method getMaxTextureSize:Int()
-		Return bmx_cegui_renderer_getmaxtexturesize(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the horizontal display resolution dpi.
-	End Rem
-	Method getHorzScreenDPI:Int()
-		Return bmx_cegui_renderer_gethorzscreendpi(objectPtr)
+	Method setDisplaySize(width:Float, height:Float)
+'		bmx_cegui_renderer_setdisplaysize(objectPtr, width, height)
 	End Method
 	
 	Rem
 	bbdoc: Returns the vertical display resolution dpi.
 	End Rem
-	Method getVertScreenDPI:Int()
-		Return bmx_cegui_renderer_getvertscreendpi(objectPtr)
+	Method getDisplayDPI(x:Float Var, y:Float Var)
+'		bmx_cegui_renderer_getdisplaydpi(objectPtr, Varptr x, Varptr y)
 	End Method
 	
-	Rem
-	bbdoc: Resets the z co-ordinate for rendering.
-	End Rem
-	Method resetZValue()
-		bmx_cegui_renderer_resetzvalue(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Updates the z co-ordinate for the next major UI element (window).
-	End Rem
-	Method advanceZValue()
-		bmx_cegui_renderer_advancezvalue(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the z co-ordinate to use for the requested layer on the current GUI element.
-	End Rem
-	Method getCurrentZ:Float()
-		Return bmx_cegui_renderer_getcurrentz(objectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Returns the current Z value to use (equates to layer 0 for this UI element).
-	End Rem
-	Method getZLayer:Float(layer:Int)
-		Return bmx_cegui_renderer_getzlayer(objectPtr, layer)
+	Method getMaxTextureSize:Int()
+'		Return bmx_cegui_renderer_getmaxtexturesize(objectPtr)
 	End Method
 	
 	Rem
@@ -3409,9 +3326,13 @@ Type TCERenderer
 	of "Unknown renderer" will be returned.
 	End Rem
 	Method getIdentifierString:String()
-		Return bmx_cegui_renderer_getidentifierstring(objectPtr)
+'		Return bmx_cegui_renderer_getidentifierstring(objectPtr)
 	End Method
 
+	Method free()
+	' TODO
+	End Method
+	
 End Type
 
 Rem
@@ -3930,5 +3851,19 @@ Type TCEUDim
 		End If
 	End Method
 	
+End Type
+
+
+Type TCEGeometryBuffer
+
+	Field objectPtr:Byte Ptr
+
+End Type
+
+
+Type TCETextureTarget
+
+	Field objectPtr:Byte Ptr
+
 End Type
 

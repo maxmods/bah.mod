@@ -43,13 +43,13 @@ namespace CEGUI
     {
     }
 
-    void PropertyDefinitionBase::set(PropertyReceiver* receiver, const String& value)
+    void PropertyDefinitionBase::set(PropertyReceiver* receiver, const String&)
     {
         if (d_writeCausesLayout)
             static_cast<Window*>(receiver)->performChildWindowLayout();
 
         if (d_writeCausesRedraw)
-            static_cast<Window*>(receiver)->requestRedraw();
+            static_cast<Window*>(receiver)->invalidate();
     }
 
     void PropertyDefinitionBase::writeXMLToStream(XMLSerializer& xml_stream) const

@@ -121,7 +121,7 @@ void ItemEntry::setSelectable(bool setting)
 *************************************************************************/
 void ItemEntry::onSelectionChanged(WindowEventArgs& e)
 {
-    requestRedraw();
+    invalidate();
     fireEvent(EventSelectionChanged, e, EventNamespace);
 }
 
@@ -138,7 +138,7 @@ void ItemEntry::onMouseClicked(MouseEventArgs& e)
             d_ownerList->notifyItemClicked(this);
         else
             setSelected(!isSelected());
-        e.handled = true;
+        ++e.handled;
     }
 }
 

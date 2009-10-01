@@ -268,7 +268,7 @@ void TabControl::addTab(Window* wnd)
 
     // Just request redraw
     performChildWindowLayout();
-    requestRedraw();
+    invalidate();
     // Subscribe to text changed event so that we can resize as needed
     d_eventConnections[wnd] =
         wnd->subscribeEvent(Window::EventTextChanged,
@@ -494,13 +494,13 @@ Selection changed event
 *************************************************************************/
 void TabControl::onSelectionChanged(WindowEventArgs& e)
 {
-    requestRedraw();
+    invalidate();
     fireEvent(EventSelectionChanged, e, EventNamespace);
 }
 /*************************************************************************
 Font changed event
 *************************************************************************/
-void TabControl::onFontChanged(WindowEventArgs& e)
+void TabControl::onFontChanged(WindowEventArgs&)
 {
     // Propagate font change to buttons
     for (size_t i = 0; i < d_tabButtonVector.size(); ++i)
@@ -535,7 +535,7 @@ void TabControl::calculateTabButtonSizePosition(size_t index)
     float left_x = btn->getXPosition ().d_offset;
     btn->setVisible ((left_x < getPixelSize ().d_width) &&
                      (left_x + btn->getPixelSize ().d_width > 0));
-    btn->requestRedraw();
+    btn->invalidate();
 }
 /*************************************************************************
 Layout the widgets
@@ -624,7 +624,7 @@ bool TabControl::handleContentWindowTextChanged(const EventArgs& args)
     tabButton->setText(wargs.window->getText());
     // sort out the layout
     performChildWindowLayout();
-	requestRedraw();
+	invalidate();
 
 	return true;
 }
@@ -743,14 +743,16 @@ bool TabControl::handleDraggedPane(const EventArgs& e)
     {
         // This is the middle-mouse-click event, remember initial drag position
         Window *but_pane = getTabButtonPane();
-        d_btGrabPos = (me.position.d_x - but_pane->getPixelRect ().d_left) -
+        d_btGrabPos = (me.position.d_x -
+            but_pane->getOuterRectClipper().d_left) -
             d_firstTabOffset;
     }
     else if (me.button == NoButton)
     {
         // Regular mouse move event
         Window *but_pane = getTabButtonPane();
-        float new_to = (me.position.d_x - but_pane->getPixelRect ().d_left) -
+        float new_to = (me.position.d_x -
+            but_pane->getOuterRectClipper().d_left) -
             d_btGrabPos;
         if ((new_to < d_firstTabOffset - 0.9) ||
             (new_to > d_firstTabOffset + 0.9))
@@ -768,7 +770,7 @@ bool TabControl::handleWheeledPane(const EventArgs& e)
     const MouseEventArgs& me = static_cast<const MouseEventArgs&>(e);
 
     Window *but_pane = getTabButtonPane();
-    float delta = but_pane->getPixelRect ().getWidth () / 20;
+    float delta = but_pane->getOuterRectClipper().getWidth () / 20;
 
     d_firstTabOffset -= me.wheelChange * delta;
     performChildWindowLayout();
@@ -798,7 +800,7 @@ void TabControl::removeTab_impl(Window* window)
 
     performChildWindowLayout();
 
-    requestRedraw();
+    invalidate();
 }
 
 } // End of  CEGUI namespace section

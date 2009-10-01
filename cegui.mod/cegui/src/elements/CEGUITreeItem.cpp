@@ -25,6 +25,10 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
+
 #include "elements/CEGUITree.h"
 #include "elements/CEGUITreeItem.h"
 #include "CEGUISystem.h"
@@ -36,10 +40,20 @@
 #include "CEGUIImage.h"
 #include <algorithm>
 
+#if defined (CEGUI_USE_FRIBIDI)
+    #include "CEGUIFribidiVisualMapping.h"
+#elif defined (CEGUI_USE_MINIBIDI)
+    #include "CEGUIMinibidiVisualMapping.h"
+#else
+    #include "CEGUIBiDiVisualMapping.h"
+#endif
 
 // Start of CEGUI namespace section
 namespace CEGUI
 {
+//----------------------------------------------------------------------------//
+BasicRenderedStringParser TreeItem::d_stringParser;
+
 /*************************************************************************
     Constants
 *************************************************************************/
@@ -51,7 +65,16 @@ const colour TreeItem::DefaultTextColour = 0xFFFFFFFF;
 *************************************************************************/
 TreeItem::TreeItem(const String& text, uint item_id, void* item_data,
                    bool disabled, bool auto_delete) :
-    d_itemText(text),
+#ifndef CEGUI_BIDI_SUPPORT
+    d_bidiVisualMapping(0),
+#elif defined (CEGUI_USE_FRIBIDI)
+    d_bidiVisualMapping(new FribidiVisualMapping),
+#elif defined (CEGUI_USE_MINIBIDI)
+    d_bidiVisualMapping(new MinibidiVisualMapping),
+#else
+    #error "BIDI Configuration is inconsistant, check your config!"
+#endif
+    d_bidiDataValid(false),
     d_itemID(item_id),
     d_itemData(item_data),
     d_selected(false),
@@ -66,8 +89,10 @@ TreeItem::TreeItem(const String& text, uint item_id, void* item_data,
                DefaultTextColour, DefaultTextColour),
     d_font(0),
     d_iconImage(0),
-    d_isOpen(false)
+    d_isOpen(false),
+    d_renderedStringValid(false)
 {
+    setText(text);
 }
 
 /*************************************************************************
@@ -77,7 +102,7 @@ void TreeItem::setSelectionBrushImage(const String& imageset,
                                       const String& image)
 {
     setSelectionBrushImage(
-        &ImagesetManager::getSingleton().getImageset(imageset)->getImage(image));
+        &ImagesetManager::getSingleton().get(imageset).getImage(image));
 }
 
 /*************************************************************************
@@ -129,26 +154,44 @@ Font* TreeItem::getFont(void) const
 *************************************************************************/
 void TreeItem::setFont(const String& font_name)
 {
-    setFont(FontManager::getSingleton().getFont(font_name));
+    setFont(&FontManager::getSingleton().get(font_name));
 }
 
+//----------------------------------------------------------------------------//
+void TreeItem::setFont(Font* font)
+{
+    d_font = font;
+
+    d_renderedStringValid = false;
+}
+
+//----------------------------------------------------------------------------//
 
 /*************************************************************************
     Return the rendered pixel size of this tree item.
 *************************************************************************/
 Size TreeItem::getPixelSize(void) const
 {
-    Size tmp(0,0);
-    
     Font* fnt = getFont();
-    
-    if (fnt != 0)
+
+    if (!fnt)
+        return Size(0, 0);
+
+    if (!d_renderedStringValid)
+        parseTextString();
+
+    Size sz(0.0f, 0.0f);
+
+    for (size_t i = 0; i < d_renderedString.getLineCount(); ++i)
     {
-        tmp.d_height = PixelAligned(fnt->getLineSpacing());
-        tmp.d_width = PixelAligned(fnt->getTextExtent(d_itemText));
+        const Size line_sz(d_renderedString.getPixelSize(i));
+        sz.d_height += line_sz.d_height;
+
+        if (line_sz.d_width > sz.d_width)
+            sz.d_width = line_sz.d_width;
     }
-    
-    return tmp;
+
+    return sz;
 }
 
 /*************************************************************************
@@ -222,55 +265,43 @@ TreeItem *TreeItem::getTreeItemFromIndex(size_t itemIndex)
 /*************************************************************************
     Draw the tree item in its current state.
 *************************************************************************/
-void TreeItem::draw(const Vector3& position, float alpha, const Rect& clipper) const
-{
-    if (d_selected && (d_selectBrush != 0))
-        d_selectBrush->draw(clipper, position.d_z, clipper,
-                            getModulateAlphaColourRect(d_selectCols, alpha));
-    
-    Font* fnt = getFont();
-    
-    if (fnt != 0)
-    {
-        Vector3 finalPos(position);
-        finalPos.d_y -= PixelAligned(
-            (fnt->getLineSpacing() - fnt->getBaseline()) * 0.5f);
-
-        fnt->drawText(d_itemText, finalPos, clipper,
-                      getModulateAlphaColourRect(d_textCols, alpha),1,1);
-    }
-}
-
-
-void TreeItem::draw(RenderCache &cache, const Rect &targetRect, float zBase,
+void TreeItem::draw(GeometryBuffer& buffer, const Rect &targetRect,
                     float alpha, const Rect *clipper) const
 {
     Rect finalRect(targetRect);
-    
+
     if (d_iconImage != 0)
     {
-        // Size iconSize = d_iconImage->getSize();
         Rect finalPos(finalRect);
         finalPos.setWidth(targetRect.getHeight());
         finalPos.setHeight(targetRect.getHeight());
-        cache.cacheImage(*d_iconImage, finalPos, zBase,
-                         ColourRect(colour(1,1,1,alpha)), clipper);
+        d_iconImage->draw(buffer, finalPos, clipper,
+                          ColourRect(colour(1,1,1,alpha)));
         finalRect.d_left += targetRect.getHeight();
     }
-    
+
     if (d_selected && d_selectBrush != 0)
-        cache.cacheImage(*d_selectBrush, finalRect, zBase,
-                         getModulateAlphaColourRect(d_selectCols, alpha),
-                         clipper);
-    
+        d_selectBrush->draw(buffer, finalRect, clipper,
+                            getModulateAlphaColourRect(d_selectCols, alpha));
+
     Font* font = getFont();
-    
-    if (font)
+
+    if (!font)
+        return;
+
+    Vector2 draw_pos(finalRect.getPosition());
+    draw_pos.d_y -= (font->getLineSpacing() - font->getBaseline()) * 0.5f;
+
+    if (!d_renderedStringValid)
+        parseTextString();
+
+    const ColourRect final_colours(
+        getModulateAlphaColourRect(ColourRect(0xFFFFFFFF), alpha));
+
+    for (size_t i = 0; i < d_renderedString.getLineCount(); ++i)
     {
-        Rect finalPos(finalRect);
-        finalPos.d_top -= (font->getLineSpacing() - font->getBaseline()) * 0.5f;
-        cache.cacheText(d_itemText, font, LeftAligned, finalPos, zBase,
-                        getModulateAlphaColourRect(d_textCols, alpha), clipper);
+        d_renderedString.draw(i, buffer, draw_pos, &final_colours, clipper, 0.0f);
+        draw_pos.d_y += d_renderedString.getPixelSize(i).d_height;
     }
 }
 
@@ -300,6 +331,41 @@ void TreeItem::setTextColours(colour top_left_colour,
     d_textCols.d_top_right		= top_right_colour;
     d_textCols.d_bottom_left	= bottom_left_colour;
     d_textCols.d_bottom_right	= bottom_right_colour;
+
+    d_renderedStringValid = false;
 }
+
+//----------------------------------------------------------------------------//
+void TreeItem::setText( const String& text )
+{
+    d_textLogical = text;
+    d_bidiDataValid = false;
+}
+
+//----------------------------------------------------------------------------//
+void TreeItem::parseTextString() const
+{
+    d_renderedString =
+        d_stringParser.parse(getTextVisual(), getFont(), &d_textCols);
+    d_renderedStringValid = true;
+}
+
+//----------------------------------------------------------------------------//
+const String& TreeItem::getTextVisual() const
+{
+    // no bidi support
+    if (!d_bidiVisualMapping)
+        return d_textLogical;
+
+    if (!d_bidiDataValid)
+    {
+        d_bidiVisualMapping->updateVisual(d_textLogical);
+        d_bidiDataValid = true;
+    }
+
+    return d_bidiVisualMapping->getTextVisual();
+}
+
+//----------------------------------------------------------------------------//
 
 } // End of  CEGUI namespace section

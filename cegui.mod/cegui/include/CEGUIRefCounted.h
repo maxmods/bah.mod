@@ -57,7 +57,8 @@ public:
     RefCounted(T* ob) :
         d_object(ob),
         d_count((ob != 0) ? new unsigned int(1) : 0)
-    {}
+    {
+    }
 
     /*!
     \brief

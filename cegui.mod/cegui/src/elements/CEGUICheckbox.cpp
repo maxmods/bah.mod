@@ -76,7 +76,7 @@ void Checkbox::setSelected(bool select)
 	if (select != d_selected)
 	{
 		d_selected = select;
-		requestRedraw();
+		invalidate();
 
         WindowEventArgs args(this);
 		onSelectStateChange(args);
@@ -106,7 +106,9 @@ void Checkbox::onMouseButtonUp(MouseEventArgs& e)
 		if (sheet)
 		{
 			// if mouse was released over this widget
-			if (this == sheet->getTargetChildAtPosition(e.position))
+            // (use mouse position, as e.position has been unprojected)
+			if (this == sheet->getTargetChildAtPosition(
+                                    MouseCursor::getSingleton().getPosition()))
 			{
 				// toggle selected state
 				setSelected(d_selected ^ true);
@@ -114,7 +116,7 @@ void Checkbox::onMouseButtonUp(MouseEventArgs& e)
 
 		}
 
-		e.handled = true;
+		++e.handled;
 	}
 
 	// default handling

@@ -29,8 +29,8 @@
  ***************************************************************************/
 #ifndef _CEGUIListboxTextItem_h_
 #define _CEGUIListboxTextItem_h_
-#include "elements/CEGUIListboxItem.h"
-
+#include "CEGUIListboxItem.h"
+#include "../CEGUIBasicRenderedStringParser.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -104,7 +104,7 @@ public:
 	\return
 		Nothing
 	*/
-	void	setFont(Font* font)		{d_font = font;}
+    void setFont(Font* font);
 
 
 	/*!
@@ -167,20 +167,30 @@ public:
 	*/
 	void	setTextColours(colour col)		{setTextColours(col, col, col, col);}
 
+    // base class overrides
+    void setText(const String& text);
+
 
 	/*************************************************************************
 		Required implementations of pure virtuals from the base class.
 	*************************************************************************/
     Size getPixelSize(void) const;
-    void draw(const Vector3& position, float alpha, const Rect& clipper) const;
-    void draw(RenderCache& cache,const Rect& targetRect, float zBase,  float alpha, const Rect* clipper) const;
+    void draw(GeometryBuffer& buffer, const Rect& targetRect, float alpha, const Rect* clipper) const;
 
 protected:
+    void parseTextString() const;
+
 	/*************************************************************************
 		Implementation Data
 	*************************************************************************/
 	ColourRect	d_textCols;			//!< Colours used for rendering the text.
 	Font*		d_font;				//!< Font used for rendering text.
+    //! Parser used to produce a final RenderedString from the standard String.
+    static BasicRenderedStringParser d_stringParser;
+    //! RenderedString drawn by this item.
+    mutable RenderedString  d_renderedString;
+    //! boolean used to track when item state changes (and needs re-parse)
+    mutable bool d_renderedStringValid;
 };
 
 } // End of  CEGUI namespace section

@@ -80,8 +80,8 @@ namespace CEGUI
     void Tooltip::positionSelf(void)
     {
         MouseCursor& cursor = MouseCursor::getSingleton();
-        Rect screen(System::getSingleton().getRenderer()->getRect());
-        Rect tipRect(getUnclippedPixelRect());
+        Rect screen(Vector2(0, 0), System::getSingleton().getRenderer()->getDisplaySize());
+        Rect tipRect(getUnclippedOuterRect());
         const Image* mouseImage = cursor.getImage();
 
         Point mousePos(cursor.getPosition());
@@ -126,11 +126,16 @@ namespace CEGUI
 
     void Tooltip::setTargetWindow(Window* wnd)
     {
-        if (wnd)
+        if (!wnd)
+        {
+            d_target = wnd;
+        }
+        else if (wnd != this)
         {
             if (d_target != wnd)
             {
                 System::getSingleton().getGUISheet()->addChildWindow(this);
+                d_target = wnd;
             }
 
             // set text to that of the tooltip text of the target
@@ -142,7 +147,6 @@ namespace CEGUI
         }
 
         resetTimer();
-        d_target = wnd;
     }
 
     const Window* Tooltip::getTargetWindow()
@@ -165,23 +169,19 @@ namespace CEGUI
 
     Size Tooltip::getTextSize_impl() const
     {
-        Font* fnt = getFont();
+        const RenderedString& rs(getRenderedString());
+        Size sz(0.0f, 0.0f);
 
-        if (fnt)
+        for (size_t i = 0; i < rs.getLineCount(); ++i)
         {
-            Rect area(System::getSingleton().getRenderer()->getRect());
+            const Size line_sz(rs.getPixelSize(i));
+            sz.d_height += line_sz.d_height;
 
-            // get required size of the tool tip according to the text extents.
-            // TODO: Add a proprty to allow specification of text formatting.
-            float height = PixelAligned(fnt->getFormattedLineCount(d_text, area, LeftAligned) * fnt->getLineSpacing());
-            float width = PixelAligned(fnt->getFormattedTextExtent(d_text, area, LeftAligned));
+            if (line_sz.d_width > sz.d_width)
+                sz.d_width = line_sz.d_width;
+        }
 
-            return Size(width, height);
-        }
-        else
-        {
-            return Size(0,0);
-        }
+        return sz;
     }
 
     void Tooltip::resetTimer(void)

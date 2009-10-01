@@ -46,7 +46,7 @@
 #   include "macPlugins.h"
 #endif
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #   include "dlfcn.h"
 #endif
 
@@ -64,13 +64,34 @@ DynamicModule::DynamicModule(const String& name) :
 		return;
 	} // if(name.empty())
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
+    #if defined(CEGUI_HAS_VERSION_SUFFIX) || defined(CEGUI_HAS_BUILD_SUFFIX)
+        // check if we are being asked to open a CEGUI .so, if so postfix the
+        // name with our package version
+        if (d_moduleName.substr(0, 5) == "CEGUI" ||
+            d_moduleName.substr(0, 8) == "libCEGUI")
+        {
+            // strip .so extension before postfixing, will get added again below
+            if (d_moduleName.substr(d_moduleName.length() - 3, 3) == ".so")
+                d_moduleName = d_moduleName.substr(0, d_moduleName.length() - 3);
+
+            #ifdef CEGUI_HAS_BUILD_SUFFIX
+                // append a suffix (like _d for debug builds, etc)
+                d_moduleName += CEGUI_BUILD_SUFFIX;
+            #endif
+
+            #ifdef CEGUI_HAS_VERSION_SUFFIX
+                d_moduleName += "-";
+                d_moduleName += CEGUI_VERSION_SUFFIX;
+            #endif
+        }
+    #endif
     // dlopen() does not add .so to the filename, like windows does for .dll
     if (d_moduleName.substr(d_moduleName.length() - 3, 3) != ".so")
         d_moduleName += ".so";
 #endif
     // Optionally add a _d to the module name for the debug config on Win32
-#if (defined(__WIN32__) || defined(_WIN32))
+#if defined(__WIN32__) || defined(_WIN32)
 #   if defined (_DEBUG) && defined (CEGUI_LOAD_MODULE_APPEND_SUFFIX_FOR_DEBUG)
     // if name has .dll extension, assume it's complete and do not touch it.
     if (d_moduleName.substr(d_moduleName.length() - 4, 4) != ".dll")
@@ -80,7 +101,7 @@ DynamicModule::DynamicModule(const String& name) :
 
     d_handle = DYNLIB_LOAD(d_moduleName.c_str());
 
-#if defined(__linux__) || defined(__MINGW32__)
+#if defined(__linux__) || defined(__MINGW32__) || defined(__FreeBSD__)
     if (!d_handle)
     {
         // see if we need to add the leading 'lib'
@@ -121,7 +142,7 @@ void* DynamicModule::getSymbolAddress(const String& symbol) const
 String DynamicModule::getFailureString() const
 {
     String retMsg;
-#if defined(__linux__) || defined (__APPLE_CC__)
+#if defined(__linux__) || defined (__APPLE_CC__) || defined(__FreeBSD__)
     retMsg = DYNLIB_ERROR();
 #elif defined(__WIN32__) || defined(_WIN32)
     LPVOID msgBuffer;

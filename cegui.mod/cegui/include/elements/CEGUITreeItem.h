@@ -28,10 +28,10 @@
 #ifndef _CEGUITreeItem_h_
 #define _CEGUITreeItem_h_
 
-#include "CEGUIBase.h"
-#include "CEGUIString.h"
-#include "CEGUIColourRect.h"
-#include "CEGUIRenderCache.h"
+#include "../CEGUIBase.h"
+#include "../CEGUIString.h"
+#include "../CEGUIColourRect.h"
+#include "../CEGUIBasicRenderedStringParser.h"
 
 #if defined(_MSC_VER)
 #   pragma warning(push)
@@ -49,7 +49,7 @@ namespace CEGUI
     The CEGUI::Tree, CEGUI::TreeItem and any other associated classes are
     deprecated and thier use should be minimised - preferably eliminated -
     where possible.  It is extremely unfortunate that this widget was ever added
-    to CEGUI since its design and implementation are poor and do not meet 
+    to CEGUI since its design and implementation are poor and do not meet
     established standards for the CEGUI project.
     \par
     While no alternative currently exists, a superior, replacement tree widget
@@ -59,7 +59,7 @@ class CEGUIEXPORT TreeItem
 {
 public:
     typedef std::vector<TreeItem*>  LBItemList;
-    
+
     /*************************************************************************
         Constants
      *************************************************************************/
@@ -77,20 +77,20 @@ public:
      */
     TreeItem(const String& text, uint item_id = 0, void* item_data = 0,
              bool disabled = false, bool auto_delete = true);
-    
+
     /*!
      \brief
         base class destructor
      */
     virtual ~TreeItem(void) {}
-    
+
     /*************************************************************************
         Accessors
      *************************************************************************/
     /*!
      \brief
          Return a pointer to the font being used by this TreeItem
-         
+        
          This method will try a number of places to find a font to be used.  If
          no font can be found, NULL is returned.
      
@@ -107,8 +107,8 @@ public:
         ColourRect object describing the currently set colours
      */
     ColourRect getTextColours(void) const
-        { return d_textCols; }
-    
+    { return d_textCols; }
+
     /*************************************************************************
         Manipulator methods
      *************************************************************************/
@@ -122,9 +122,8 @@ public:
      \return
         Nothing
      */
-    void setFont(Font* font)
-        { d_font = font; }
-    
+    void setFont(Font* font);
+
     /*!
      \brief
         Set the font to be used by this TreeItem
@@ -149,7 +148,7 @@ public:
         Nothing.
      */
     void setTextColours(const ColourRect& cols)
-        { d_textCols = cols; }
+    { d_textCols = cols; }
 
     /*!
      \brief
@@ -176,7 +175,7 @@ public:
      */
     void setTextColours(colour top_left_colour, colour top_right_colour,
                         colour bottom_left_colour, colour bottom_right_colour);
-    
+
     /*!
      \brief
         Set the colours used for text rendering.
@@ -188,8 +187,8 @@ public:
         Nothing.
      */
     void setTextColours(colour col)
-        { setTextColours(col, col, col, col); }
-    
+    { setTextColours(col, col, col, col); }
+
     /*!
      \brief
         return the text string set for this tree item.
@@ -200,20 +199,22 @@ public:
      \return
         String object containing the current text for the tree item.
      */
-    const String&  getText(void) const
-        { return d_itemText; }
-    
+    const String& getText() const {return d_textLogical;}
+
+    //! return text string with \e visual ordering of glyphs.
+    const String& getTextVisual() const;
+
     /*!
     \brief
         Return the text string currently set to be used as the tooltip text for
         this item.
-    
+
     \return
         String object containing the current tooltip text as sued by this item.
     */
     const String& getTooltipText(void) const
-        { return d_tooltipText; }
-    
+    { return d_tooltipText; }
+
     /*!
      \brief
         Return the current ID assigned to this tree item.
@@ -225,8 +226,8 @@ public:
         ID code currently assigned to this tree item
      */
     uint getID(void) const
-        { return d_itemID; }
-    
+    { return d_itemID; }
+
     /*!
      \brief
         Return the pointer to any client assigned user data attached to this
@@ -239,7 +240,7 @@ public:
         Pointer to the currently assigned user data.
      */
     void* getUserData(void) const
-        { return d_itemData; }
+    { return d_itemData; }
 
     /*!
      \brief
@@ -250,7 +251,7 @@ public:
         - false if the item is not selected.
      */
     bool isSelected(void) const
-        { return d_selected; }
+    { return d_selected; }
 
     /*!
      \brief
@@ -261,11 +262,11 @@ public:
         - false if the item is enabled.
      */
     bool isDisabled(void) const
-        { return d_disabled; }
-    
+    { return d_disabled; }
+
     /*!
      \brief
-        return whether this item will be automatically deleted when it is 
+        return whether this item will be automatically deleted when it is
         removed from the tree or when the the tree it is attached to is
         destroyed.
      
@@ -277,7 +278,7 @@ public:
           the tree.
      */
     bool isAutoDeleted(void) const
-        { return d_autoDelete; }
+    { return d_autoDelete; }
 
     /*!
      \brief
@@ -290,7 +291,7 @@ public:
         Ponter to the window that is considered the owner of this TreeItem.
      */
     const Window* getOwnerWindow(void)
-        { return d_owner; }
+    { return d_owner; }
 
     /*!
      \brief
@@ -300,9 +301,9 @@ public:
         ColourRect object describing the currently set colours.
      */
     ColourRect getSelectionColours(void) const
-        { return d_selectCols; }
-    
-    
+    { return d_selectCols; }
+
+
     /*!
      \brief
         Return the current selection highlighting brush.
@@ -311,9 +312,9 @@ public:
         Pointer to the Image object currently used for selection highlighting.
      */
     const Image* getSelectionBrushImage(void) const
-        { return d_selectBrush; }
-    
-    
+    { return d_selectBrush; }
+
+
     /*************************************************************************
         Manipulators
      *************************************************************************/
@@ -330,22 +331,21 @@ public:
      \return
         Nothing.
      */
-    void setText(const String& text)
-        { d_itemText = text; }
+    void setText(const String& text);
 
     /*!
     \brief
         Set the tooltip text to be used for this item.
-    
+
     \param text
         String object holding the text to be used in the tooltip displayed for
         this item.
-    
+
     \return
         Nothing.
     */
     void setTooltipText(const String& text)
-        { d_tooltipText = text; }
+    { d_tooltipText = text; }
 
     /*!
      \brief
@@ -361,12 +361,12 @@ public:
         Nothing.
      */
     void setID(uint item_id)
-        { d_itemID = item_id; }
+    { d_itemID = item_id; }
 
     /*!
      \brief
          Set the client assigned user data attached to this lis box item.
-         
+        
          Note that the system does not make use of this data, client code can
          assign any meaning it wishes to the attached data.
      
@@ -377,8 +377,8 @@ public:
         Nothing.
      */
     void setUserData(void* item_data)
-        { d_itemData = item_data; }
-   
+    { d_itemData = item_data; }
+
     /*!
      \brief
         Set the selected state for the item.
@@ -391,7 +391,7 @@ public:
         Nothing.
      */
     void setSelected(bool setting)
-        { d_selected = setting; }
+    { d_selected = setting; }
 
     /*!
      \brief
@@ -405,8 +405,8 @@ public:
         Nothing.
      */
     void setDisabled(bool setting)
-        { d_disabled = setting; }
-    
+    { d_disabled = setting; }
+
     /*!
      \brief
          Set whether this item will be automatically deleted when it is removed
@@ -423,8 +423,8 @@ public:
         Nothing.
      */
     void setAutoDeleted(bool setting)
-        { d_autoDelete = setting; }
-    
+    { d_autoDelete = setting; }
+
     /*!
      \brief
          Set the owner window for this TreeItem.  This is called by the tree
@@ -438,7 +438,7 @@ public:
         Nothing
      */
     void setOwnerWindow(const Window* owner)
-        { d_owner = owner; }
+    { d_owner = owner; }
 
     /*!
      \brief
@@ -451,9 +451,9 @@ public:
         Nothing.
      */
     void setSelectionColours(const ColourRect& cols)
-        { d_selectCols = cols; }
-    
-    
+    { d_selectCols = cols; }
+
+
     /*!
      \brief
         Set the colours used for selection highlighting.
@@ -481,7 +481,7 @@ public:
                              colour top_right_colour,
                              colour bottom_left_colour,
                              colour bottom_right_colour);
-    
+
     /*!
      \brief
         Set the colours used for selection highlighting.
@@ -493,9 +493,9 @@ public:
         Nothing.
      */
     void setSelectionColours(colour col)
-        { setSelectionColours(col, col, col, col); }
-    
-    
+    { setSelectionColours(col, col, col, col); }
+
+
     /*!
      \brief
         Set the selection highlighting brush image.
@@ -507,9 +507,9 @@ public:
         Nothing.
      */
     void setSelectionBrushImage(const Image* image)
-        { d_selectBrush = image; }
-    
-    
+    { d_selectBrush = image; }
+
+
     /*!
      \brief
         Set the selection highlighting brush image.
@@ -524,7 +524,7 @@ public:
         Nothing.
      */
     void setSelectionBrushImage(const String& imageset, const String& image);
-    
+
     /*!
      \brief
         Tell the treeItem where its button is located.
@@ -534,30 +534,30 @@ public:
         Location of the button in screenspace.
      */
     void setButtonLocation(Rect &buttonOffset)
-        { d_buttonLocation = buttonOffset; }
-    
+    { d_buttonLocation = buttonOffset; }
+
     Rect &getButtonLocation(void)
-        { return d_buttonLocation; }
+    { return d_buttonLocation; }
 
     bool getIsOpen(void)
-        { return d_isOpen; }
+    { return d_isOpen; }
 
     void toggleIsOpen(void)
-        { d_isOpen = !d_isOpen; }
+    { d_isOpen = !d_isOpen; }
 
     TreeItem *getTreeItemFromIndex(size_t itemIndex);
 
     size_t getItemCount(void) const
-        { return d_listItems.size(); }
+    { return d_listItems.size(); }
 
     LBItemList &getItemList(void)
-        { return d_listItems; }
+    { return d_listItems; }
 
     void addItem(TreeItem* item);
     void removeItem(const TreeItem* item);
 
     void setIcon(const Image &theIcon)
-        { d_iconImage = (Image *)&theIcon; }
+    { d_iconImage = (Image *) & theIcon; }
 
     /*************************************************************************
         Abstract portion of interface
@@ -576,7 +576,7 @@ public:
         Draw the tree item in its current state
      
      \param position
-        Vector3 object describing the upper-left corner of area that should be
+        Vector2 object describing the upper-left corner of area that should be
         rendered in to for the draw operation.
      
      \param alpha
@@ -588,12 +588,9 @@ public:
      \return
         Nothing.
      */
-    virtual void draw(const Vector3& position, float alpha,
-                      const Rect& clipper) const;
-    
-    virtual void draw(RenderCache& cache,const Rect& targetRect, float zBase,
+    virtual void draw(GeometryBuffer& buffer, const Rect& targetRect,
                       float alpha, const Rect* clipper) const;
-    
+
     /*************************************************************************
         Operators
      *************************************************************************/
@@ -602,15 +599,15 @@ public:
         Less-than operator, compares item texts.
      */
     virtual bool operator<(const TreeItem& rhs) const
-        { return d_itemText < rhs.getText(); }
+    { return getText() < rhs.getText(); }
 
     /*!
      \brief
         Greater-than operator, compares item texts.
      */
     virtual bool operator>(const TreeItem& rhs) const
-        { return d_itemText > rhs.getText(); }
-    
+    { return getText() > rhs.getText(); }
+
 protected:
     /*************************************************************************
         Implementation methods
@@ -629,12 +626,19 @@ protected:
          having its alpha component modulated by the value \a alpha.
      */
     colour calculateModulatedAlphaColour(colour col, float alpha) const;
-    
+
+    //! parse the text visual string into a RenderString representation.
+    void parseTextString() const;
+
     /*************************************************************************
         Implementation Data
      *************************************************************************/
     //! Text for this tree item.  If not rendered, still used for sorting.
-    String d_itemText;
+    String               d_textLogical;            //!< text rendered by this component.
+    //! pointer to bidirection support object
+    BiDiVisualMapping* d_bidiVisualMapping;
+    //! whether bidi visual mapping has been updated since last text change.
+    mutable bool d_bidiDataValid;
     //! Text for the individual tooltip of this item.
     String d_tooltipText;
     //! ID code assigned by client code.
@@ -665,6 +669,12 @@ protected:
     LBItemList d_listItems;
     //! true if the this item's tree branch is opened.
     bool d_isOpen;
+    //! Parser used to produce a final RenderedString from the standard String.
+    static BasicRenderedStringParser d_stringParser;
+    //! RenderedString drawn by this item.
+    mutable RenderedString  d_renderedString;
+    //! boolean used to track when item state changes (and needs re-parse)
+    mutable bool d_renderedStringValid;
 };
 
 } // End of  CEGUI namespace section

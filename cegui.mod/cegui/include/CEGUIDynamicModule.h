@@ -35,14 +35,15 @@
     the Ogre project (http://www.ogre3d.org/)
 *************************************************************************/
 #if defined(__WIN32__) || defined(_WIN32)
-#	define DYNLIB_HANDLE hInstance
-#	define DYNLIB_LOAD( a ) LoadLibrary( a )
-#	define DYNLIB_GETSYM( a, b ) GetProcAddress( a, b )
-#	define DYNLIB_UNLOAD( a ) !FreeLibrary( a )
+#   define DYNLIB_HANDLE hInstance
+#   define DYNLIB_LOAD( a ) LoadLibrary( a )
+#   define DYNLIB_GETSYM( a, b ) GetProcAddress( a, b )
+#   define DYNLIB_UNLOAD( a ) !FreeLibrary( a )
+
     struct HINSTANCE__;
     typedef struct HINSTANCE__* hInstance;
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__FreeBSD__)
 #    define DYNLIB_HANDLE void*
 #    define DYNLIB_LOAD( a ) dlopen( a, RTLD_LAZY )
 #    define DYNLIB_GETSYM( a, b ) dlsym( a, b )

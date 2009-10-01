@@ -62,23 +62,9 @@ namespace CEGUI
 */
 class CEGUIEXPORT Imageset
 {
-	friend class Imageset_xmlHandler;
-private:
 	typedef	std::map<String, Image, String::FastLessCompare>	ImageRegistry;
 
-	/*************************************************************************
-		Friends to allow access to constructors and destructors
-	*************************************************************************/
-	friend Imageset*	ImagesetManager::createImageset(const String& name, Texture* texture);
-	friend Imageset*	ImagesetManager::createImageset(const String& filename, const String& resourceGroup);
-	friend Imageset*	ImagesetManager::createImagesetFromImageFile(const String& name, const String& filename, const String& resourceGroup);
-	friend void			ImagesetManager::destroyImageset(const String& name);
-
-
-	/*************************************************************************
-		Construction and Destruction (private, only ImagesetManager can 
-		create and destroy Imageset objects).
-	*************************************************************************/
+public:
 	/*!
 	\brief
 		Construct a new Imageset object.  Object will initially have no Images defined
@@ -86,27 +72,10 @@ private:
 	\param texture
 		Texture object that holds the imagery for the Imageset being created.
 	*/
-	Imageset(const String& name, Texture* texture);
-
+	Imageset(const String& name, Texture& texture);
 
 	/*!
 	\brief
-		Construct a new Imageset object using data contained in the specified file.
-
-	\param filename
-		String object that holds the name of the Imageset data file that is to be processed.
-
-    \param resourceGroup
-        Resource group identifier to be passed to the resource manager.  NB: This affects the
-        imageset xml file only, the texture loaded may have its own group specified in the XML file.
-
-	\exception	FileIOException		thrown if something goes wrong while processing the file \a filename.
-	*/
-	Imageset(const String& filename, const String& resourceGroup);
-
-
-    /*!
-    \brief
         Construct a new Imageset using the specified image file and imageset name.  The created
         imageset will, by default, have a single Image defined named "full_image" which represents
         the entire area of the loaded image file.
@@ -132,8 +101,6 @@ private:
     */
     Imageset(const String& name, const String& filename, const String& resourceGroup);
 
-
-public:	// For luabind support
 	/*!
 	\brief
 		Destroys Imageset objects
@@ -141,7 +108,6 @@ public:	// For luabind support
 	~Imageset(void);
 
 
-public:
 	typedef	ConstBaseIterator<ImageRegistry>	ImageIterator;	//!< Iterator type for this collection
 
 	/*************************************************************************
@@ -364,73 +330,95 @@ public:
 	void	defineImage(const String& name, const Rect& image_rect, const Point& render_offset);
 
 
-	/*!
-	\brief
-		Queues an area of the associated Texture the be drawn on the screen.  Low-level routine to be used carefully!
+    /*!
+    \brief
+        Queues an area of the associated Texture the be drawn on the screen.
+        Low-level routine to be used carefully!
 
-	\param source_rect
-		Rect object describing the area of the image file / texture that is to be queued for drawing
+    \param buffer
+        GeometryBuffer object where the geometry for the area to be drawn will
+        be queued.
 
-	\param dest_rect
-		Rect describing the area of the screen that will be filled with the imagery from \a source_rect.
+    \param source_rect
+        Rect object describing the area of the image file / texture that is to
+        be queued for drawing
 
-	\param z
-		float value specifying 'z' order.  0 is topmost with increasing values moving back into the screen.
+    \param dest_rect
+        Rect describing the area of the screen that will be filled with the
+        imagery from \a source_rect.
 
-	\param clip_rect
-		Rect object describing a 'clipping rectangle' that will be applied when drawing the requested imagery
+    \param clip_rect
+        Rect object describing a 'clipping rectangle' that will be applied when
+        drawing the requested imagery
 
-	\param colours
-		ColourRect object holding the ARGB colours to be applied to the four corners of the rendered imagery.
-	
-	\param quad_split_mode
-		One of the QuadSplitMode values specifying the way quads are split into triangles
+    \param colours
+        ColourRect object holding the ARGB colours to be applied to the four
+        corners of the rendered imagery.
 
-	\return
-		Nothing
-	*/
-	void	draw(const Rect& source_rect, const Rect& dest_rect, float z, const Rect& clip_rect,const ColourRect& colours, QuadSplitMode quad_split_mode) const;
+    \param quad_split_mode
+        One of the QuadSplitMode values specifying the way the quad geometry for
+        the image is to be split into triangles.
 
+    \return
+        Nothing
+    */
+    void draw(GeometryBuffer& buffer, const Rect& source_rect,
+              const Rect& dest_rect, const Rect* clip_rect,
+              const ColourRect& colours, QuadSplitMode quad_split_mode) const;
 
-	/*!
-	\brief
-		Queues an area of the associated Texture the be drawn on the screen.  Low-level routine to be used carefully!
+    /*!
+    \brief
+        Queues an area of the associated Texture the be drawn on the screen.
+        Low-level routine to be used carefully!
 
-	\param source_rect
-		Rect object describing the area of the image file / texture that is to be queued for drawing
+    \param buffer
+        GeometryBuffer object where the geometry for the area to be drawn will
+        be queued.
 
-	\param dest_rect
-		Rect describing the area of the screen that will be filled with the imagery from \a source_rect.
+    \param source_rect
+        Rect object describing the area of the image file / texture that is to
+        be queued for drawing.
 
-	\param z
-		float value specifying 'z' order.  0 is topmost with increasing values moving back into the screen.
+    \param dest_rect
+        Rect describing the area of the screen that will be filled with the
+        imagery from \a source_rect.
 
-	\param clip_rect
-		Rect object describing a 'clipping rectangle' that will be applied when drawing the requested imagery
+    \param clip_rect
+        Rect object describing a 'clipping rectangle' that will be applied when
+        drawing the requested imagery.
 
-	\param top_left_colour
-		colour to be applied to the top left corner of the rendered imagery.
+    \param top_left_colour
+        colour to be applied to the top left corner of the rendered imagery.
 
-	\param top_right_colour
-		colour to be applied to the top right corner of the rendered imagery.
+    \param top_right_colour
+        colour to be applied to the top right corner of the rendered imagery.
 
-	\param bottom_left_colour
-		colour to be applied to the bottom left corner of the rendered imagery.
+    \param bottom_left_colour
+        colour to be applied to the bottom left corner of the rendered imagery.
 
-	\param bottom_right_colour
-		colour to be applied to the bottom right corner of the rendered imagery.
-	
-	\param quad_split_mode
-		One of the QuadSplitMode values specifying the way quads are split into triangles
+    \param bottom_right_colour
+        colour to be applied to the bottom right corner of the rendered imagery.
 
-	\return
-		Nothing
-	*/
-	void	draw(const Rect& source_rect, const Rect& dest_rect, float z, const Rect& clip_rect, const colour& top_left_colour = 0xFFFFFFFF, const colour& top_right_colour = 0xFFFFFFFF,  const colour& bottom_left_colour = 0xFFFFFFFF, const colour& bottom_right_colour = 0xFFFFFFFF, QuadSplitMode quad_split_mode = TopLeftToBottomRight) const
-	{
-		draw(source_rect, dest_rect, z, clip_rect, ColourRect(top_left_colour, top_right_colour, bottom_left_colour, bottom_right_colour), quad_split_mode);
-	}
+    \param quad_split_mode
+        One of the QuadSplitMode values specifying the way the quad geometry for
+        the image is to be split into triangles.
 
+    \return
+        Nothing
+    */
+    void draw(GeometryBuffer& buffer, const Rect& source_rect,
+              const Rect& dest_rect, const Rect* clip_rect,
+              const colour& top_left_colour = 0xFFFFFFFF,
+              const colour& top_right_colour = 0xFFFFFFFF,
+              const colour& bottom_left_colour = 0xFFFFFFFF,
+              const colour& bottom_right_colour = 0xFFFFFFFF,
+              QuadSplitMode quad_split_mode = TopLeftToBottomRight) const
+    {
+        draw(buffer, source_rect, dest_rect, clip_rect,
+             ColourRect(top_left_colour, top_right_colour,
+                        bottom_left_colour, bottom_right_colour),
+             quad_split_mode);
+    }
 
 	/*!
 	\brief
@@ -478,17 +466,14 @@ public:
 	void	setNativeResolution(const Size& size);
 
 
-	/*!
-	\brief
-		Notify the Imageset of the current (usually new) display resolution.
+    /*!
+    \brief
+        Notify the Imageset that the display size may have changed.
 
-	\param size
-		Size object describing the display resolution
-
-	\return
-		Nothing
-	*/
-	void	notifyScreenResolution(const Size& size);
+    \param size
+        Size object describing the display resolution
+    */
+    void notifyDisplaySizeChanged(const Size& size);
 
 
 	/*!
@@ -539,33 +524,8 @@ public:
 
 protected:
 	/*************************************************************************
-		Implementation Constants
-	*************************************************************************/
-	static const char	ImagesetSchemaName[];			//!< Filename of the XML schema used for validating Imageset files.
-
-
-	/*************************************************************************
 		Implementation Functions
 	*************************************************************************/
-	/*!
-	\brief
-		Initialise the Imageset with information taken from the specified file.
-
-	\param filename
-		String object that holds the name of the Imageset data file that is to be processed.
-
-    \param resourceGroup
-        Resource group identifier to be passed to the resource manager.  NB: This affects the
-        imageset xml file only, the texture loaded may have its own group specified in the XML file.
-
-	\return
-		Nothing
-
-	\exception	FileIOException		thrown if something goes wrong while processing the file \a filename.
-	*/	
-	void	load(const String& filename, const String& resourceGroup);
-
-
 	/*!
 	\brief
 		Unloads all loaded data and leaves the Imageset in a clean (but un-usable) state.  This should be called for cleanup purposes only.

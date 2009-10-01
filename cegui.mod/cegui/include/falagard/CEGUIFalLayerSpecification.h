@@ -28,8 +28,8 @@
 #ifndef _CEGUIFalLayerSpecification_h_
 #define _CEGUIFalLayerSpecification_h_
 
-#include "falagard/CEGUIFalSectionSpecification.h"
-#include "CEGUIWindow.h"
+#include "CEGUIFalSectionSpecification.h"
+#include "../CEGUIWindow.h"
 
 #if defined(_MSC_VER)
 #	pragma warning(push)
@@ -63,13 +63,10 @@ namespace CEGUI
         \param srcWindow
             Window to use when calculating pixel values from BaseDim values.
 
-        \param base_z
-            base level z value to use for all imagery in the layer.
-
         \return
             Nothing.
         */
-        void render(Window& srcWindow, float base_z, const ColourRect* modcols = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
+        void render(Window& srcWindow, const ColourRect* modcols = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
 
         /*!
         \brief
@@ -81,13 +78,10 @@ namespace CEGUI
         \param baseRect
             Rect to use when calculating pixel values from BaseDim values.
 
-        \param base_z
-            base level z value to use for all imagery in the layer.
-
         \return
             Nothing.
         */
-        void render(Window& srcWindow, const Rect& baseRect, float base_z, const ColourRect* modcols = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
+        void render(Window& srcWindow, const Rect& baseRect, const ColourRect* modcols = 0, const Rect* clipper = 0, bool clipToDisplay = false) const;
 
         /*!
         \brief

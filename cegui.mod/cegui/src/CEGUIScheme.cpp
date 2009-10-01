@@ -43,6 +43,18 @@
 #include "CEGUISystem.h"
 #include "CEGUIXMLParser.h"
 #include "falagard/CEGUIFalWidgetLookManager.h"
+#include "CEGUIWindowRendererModule.h"
+
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
+
+#if defined(CEGUI_STATIC)
+#	if defined(CEGUI_FALAGARD_RENDERER)
+#		include "WindowRendererSets/Falagard/FalModule.h"
+#	endif
+#endif
+
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -51,8 +63,6 @@ namespace CEGUI
 /*************************************************************************
     Static Data definitions
 *************************************************************************/
-// name of the xml schema for GUIScheme files
-const char Scheme::GUISchemeSchemaName[]                    = "GUIScheme.xsd";
 // default resource group
 String Scheme::d_defaultResourceGroup;
 
@@ -60,36 +70,9 @@ String Scheme::d_defaultResourceGroup;
 /*************************************************************************
     Constructor for scheme objects
 *************************************************************************/
-Scheme::Scheme(const String& filename, const String& resourceGroup)
+Scheme::Scheme(const String& name) :
+    d_name(name)
 {
-    if (filename.empty())
-    {
-        throw InvalidRequestException("Scheme::Scheme - Filename supplied for Scheme loading must be valid");
-    }
-
-    // create handler object
-    Scheme_xmlHandler handler(this);
-
-    // do parse (which uses handler to create actual data)
-    try
-    {
-        System::getSingleton().getXMLParser()->parseXMLFile(
-            handler, filename, GUISchemeSchemaName,
-            resourceGroup.empty() ? d_defaultResourceGroup : resourceGroup);
-    }
-    catch(...)
-    {
-        Logger::getSingleton().logEvent("Scheme::Scheme - loading of Scheme from file '" + filename +"' failed.", Errors);
-        throw;
-    }
-
-    char addr_buff[32];
-    sprintf(addr_buff, "(%p)", static_cast<void*>(this));
-    Logger::getSingleton().logEvent("Loaded GUI scheme '" + d_name +
-       "' from data in file '" + filename + "'. " + addr_buff, Informative);
-
-    // attempt to load in resources
-    loadResources();
 }
 
 
@@ -176,26 +159,34 @@ bool Scheme::resourcesLoaded(void) const
 void Scheme::loadXMLImagesets()
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
+    std::vector<LoadableUIElement>::iterator  pos;
 
     // check all imagesets
     for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
     {
-        // does such an imageset exist?
-        if (!ismgr.isImagesetPresent((*pos).name))
+        // skip if the imageset already exists
+        if (!(*pos).name.empty() && ismgr.isDefined((*pos).name))
+            continue;
+
+        // create imageset from specified file.
+        Imageset& iset = ismgr.create((*pos).filename, (*pos).resourceGroup);
+        const String realname(iset.getName());
+
+        // if name was not in scheme, set it now and proceed to next imageset
+        if ((*pos).name.empty())
         {
-            // create imageset from specified file.
-            Imageset* iset = ismgr.createImageset((*pos).filename, (*pos).resourceGroup);
+            (*pos).name = realname;
+            continue;
+        }
 
-            // check for wrong imageset for specified name
-            String realname = iset->getName();
-
-            if (realname != (*pos).name)
-            {
-                ismgr.destroyImageset(iset);
-                throw InvalidRequestException("Scheme::loadResources - The Imageset created by file '" +
-                    (*pos).filename + "' is named '" + realname + "', not '" + (*pos).name + "' as required by Scheme '" + d_name + "'.");
-            }
+        // confirm the imageset loaded has same name specified in scheme
+        if (realname != (*pos).name)
+        {
+            ismgr.destroy(iset);
+            throw InvalidRequestException("Scheme::loadResources: "
+                "The Imageset created by file '" + (*pos).filename +
+                "' is named '" + realname + "', not '" + (*pos).name +
+                "' as required by Scheme '" + d_name + "'.");
         }
     }
 }
@@ -206,14 +197,18 @@ void Scheme::loadXMLImagesets()
 void Scheme::loadImageFileImagesets()
 {
     ImagesetManager& ismgr = ImagesetManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
+    std::vector<LoadableUIElement>::iterator  pos;
 
     // check imagesets that are created directly from image files
     for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
     {
+        // if name is empty use the name of the image file.
+        if ((*pos).name.empty())
+            (*pos).name = (*pos).filename;
+
         // see if imageset is present, and create it if not.
-        if (!ismgr.isImagesetPresent((*pos).name))
-            ismgr.createImagesetFromImageFile((*pos).name, (*pos).filename, (*pos).resourceGroup);
+        if (!ismgr.isDefined((*pos).name))
+            ismgr.createFromImageFile((*pos).name, (*pos).filename, (*pos).resourceGroup);
     }
 }
 
@@ -223,26 +218,34 @@ void Scheme::loadImageFileImagesets()
 void Scheme::loadFonts()
 {
     FontManager& fntmgr = FontManager::getSingleton();
-    std::vector<LoadableUIElement>::const_iterator  pos;
+    std::vector<LoadableUIElement>::iterator  pos;
 
     // check fonts
     for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
     {
-        // is such a font already loaded?
-        if (!fntmgr.isFontPresent((*pos).name))
+        // skip if a font with this name is already loaded
+        if (!(*pos).name.empty() && fntmgr.isDefined((*pos).name))
+            continue;
+
+        // create font using specified xml file.
+        Font& font = fntmgr.create((*pos).filename, (*pos).resourceGroup);
+        const String realname(font.getName());
+
+        // if name was not in scheme, set it now and proceed to next font
+        if ((*pos).name.empty())
         {
-            // create font using specified xml file.
-            Font* font = fntmgr.createFont((*pos).filename, (*pos).resourceGroup);
+            (*pos).name = realname;
+            continue;
+        }
 
-            // check for wrong font for specified name
-            String realname = font->getProperty ("Name");
-
-            if (realname != (*pos).name)
-            {
-                fntmgr.destroyFont(font);
-                throw InvalidRequestException("Scheme::loadResources - The Font created by file '" +
-                    (*pos).filename + "' is named '" + realname + "', not '" + (*pos).name + "' as required by Scheme '" + d_name + "'.");
-            }
+        // confirm the font loaded has same name specified in scheme
+        if (realname != (*pos).name)
+        {
+            fntmgr.destroy(font);
+            throw InvalidRequestException("Scheme::loadResources: "
+                "The Font created by file '" + (*pos).filename +
+                "' is named '" + realname + "', not '" + (*pos).name +
+                "' as required by Scheme '" + d_name + "'.");
         }
     }
 }
@@ -305,35 +308,51 @@ void Scheme::loadWindowFactories()
 *************************************************************************/
 void Scheme::loadWindowRendererFactories()
 {
-    WindowRendererManager& wfmgr = WindowRendererManager::getSingleton();
-
     // check factories
-    std::vector<UIModule>::iterator cmod = d_windowRendererModules.begin();
+    std::vector<WRModule>::iterator cmod = d_windowRendererModules.begin();
     for (;cmod != d_windowRendererModules.end(); ++cmod)
     {
-        // create and load dynamic module as required
-        if (!(*cmod).module)
+        if (!(*cmod).wrModule)
         {
-            (*cmod).module = new FactoryModule((*cmod).name);
+#if !defined(CEGUI_STATIC)
+            // load dynamic module as required
+            if (!(*cmod).dynamicModule)
+                (*cmod).dynamicModule = new DynamicModule((*cmod).name);
+
+            WindowRendererModule& (*getWRModuleFunc)() =
+                reinterpret_cast<WindowRendererModule&(*)()>(
+                    (*cmod).dynamicModule->
+                        getSymbolAddress("getWindowRendererModule"));
+
+            if (!getWRModuleFunc)
+                throw InvalidRequestException(
+                    "Scheme::loadWindowRendererFactories: Required function "
+                    "export 'WindowRendererModule& getWindowRendererModule()' "
+                    "was not found in module '" + (*cmod).name + "'.");
+
+            // get the WindowRendererModule object for this module.
+            (*cmod).wrModule = &getWRModuleFunc();
+#else
+            (*cmod).wrModule = &getWindowRendererModule();
+#endif
         }
 
-        // see if we should just register all factories available in the module (i.e. No factories explicitly specified)
-        if ((*cmod).factories.size() == 0)
+        // see if we should just register all factories available in the module
+        // (i.e. No factories explicitly specified)
+        if ((*cmod).wrTypes.size() == 0)
         {
-            Logger::getSingleton().logEvent("No window renderer factories specified for module '" + (*cmod).name + "' - adding all available factories...");
-            (*cmod).module->registerAllFactories();
+            Logger::getSingleton().logEvent("No window renderer factories "
+                                            "specified for module '" +
+                                            (*cmod).name + "' - adding all "
+                                            "available factories...");
+            (*cmod).wrModule->registerAllFactories();
         }
         // some names were explicitly given, so only register those.
         else
         {
-            std::vector<UIElementFactory>::const_iterator   elem = (*cmod).factories.begin();
-            for (; elem != (*cmod).factories.end(); ++elem)
-            {
-                if (!wfmgr.isFactoryPresent((*elem).name))
-                {
-                    (*cmod).module->registerFactory((*elem).name);
-                }
-            }
+            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
+            for (; elem != (*cmod).wrTypes.end(); ++elem)
+                (*cmod).wrModule->registerFactory(*elem);
         }
     }
 }
@@ -418,7 +437,8 @@ void Scheme::unloadXMLImagesets()
 
     // unload all xml based Imagesets
     for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
-        ismgr.destroyImageset((*pos).name);
+        if (!(*pos).name.empty())
+            ismgr.destroy((*pos).name);
 }
 
 /*************************************************************************
@@ -431,7 +451,8 @@ void Scheme::unloadImageFileImagesets()
 
     // unload all imagesets that are created directly from image files
     for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
-        ismgr.destroyImageset((*pos).name);
+        if (!(*pos).name.empty())
+            ismgr.destroy((*pos).name);
 }
 
 /*************************************************************************
@@ -442,9 +463,10 @@ void Scheme::unloadFonts()
     FontManager& fntmgr         = FontManager::getSingleton();
     std::vector<LoadableUIElement>::const_iterator  pos;
 
-    // unload all fonts
+    // unload all loaded fonts
     for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
-        fntmgr.destroyFont((*pos).name);
+        if (!(*pos).name.empty())
+            fntmgr.destroy((*pos).name);
 }
 
 /*************************************************************************
@@ -496,32 +518,37 @@ void Scheme::unloadWindowFactories()
 *************************************************************************/
 void Scheme::unloadWindowRendererFactories()
 {
-    WindowRendererManager& wfmgr = WindowRendererManager::getSingleton();
-    std::vector<UIModule>::iterator cmod = d_windowRendererModules.begin();
+    std::vector<WRModule>::iterator cmod = d_windowRendererModules.begin();
 
     // for all widget modules loaded
     for (;cmod != d_windowRendererModules.end(); ++cmod)
     {
+        // assume module's factories were already removed if wrModule is 0.
+        if (!(*cmod).wrModule)
+            continue;
+
         // see if we should just unregister all factories available in the
         // module (i.e. No factories explicitly specified)
-        if ((*cmod).factories.size() == 0)
+        if ((*cmod).wrTypes.size() == 0)
         {
-            // TODO: This is not supported yet!
+            (*cmod).wrModule->unregisterAllFactories();
         }
         // remove all window factories explicitly registered for this module
         else
         {
-            std::vector<UIElementFactory>::const_iterator elem = (*cmod).factories.begin();
-            for (; elem != (*cmod).factories.end(); ++elem)
-                wfmgr.removeFactory((*elem).name);
+            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
+            for (; elem != (*cmod).wrTypes.end(); ++elem)
+                (*cmod).wrModule->unregisterFactory(*elem);
         }
 
         // unload dynamic module as required
-        if ((*cmod).module)
+        if ((*cmod).dynamicModule)
         {
-            delete (*cmod).module;
-            (*cmod).module = 0;
+            delete (*cmod).dynamicModule;
+            (*cmod).dynamicModule = 0;
         }
+
+        (*cmod).wrModule = 0;
     }
 }
 
@@ -593,10 +620,8 @@ bool Scheme::areXMLImagesetsLoaded() const
 
     // check imagesets
     for (pos = d_imagesets.begin(); pos != d_imagesets.end(); ++pos)
-    {
-        if (!ismgr.isImagesetPresent((*pos).name))
+        if ((*pos).name.empty() || !ismgr.isDefined((*pos).name))
             return false;
-    }
 
     return true;
 }
@@ -610,10 +635,8 @@ bool Scheme::areImageFileImagesetsLoaded() const
     std::vector<LoadableUIElement>::const_iterator  pos;
 
     for (pos = d_imagesetsFromImages.begin(); pos != d_imagesetsFromImages.end(); ++pos)
-    {
-        if (!ismgr.isImagesetPresent((*pos).name))
+        if ((*pos).name.empty() || !ismgr.isDefined((*pos).name))
             return false;
-    }
 
     return true;
 }
@@ -628,10 +651,8 @@ bool Scheme::areFontsLoaded() const
 
     // check fonts
     for (pos = d_fonts.begin(); pos != d_fonts.end(); ++pos)
-    {
-        if (!fntmgr.isFontPresent((*pos).name))
+        if ((*pos).name.empty() || !fntmgr.isDefined((*pos).name))
             return false;
-    }
 
     return true;
 }
@@ -684,27 +705,25 @@ bool Scheme::areWindowFactoriesLoaded() const
 bool Scheme::areWindowRendererFactoriesLoaded() const
 {
     WindowRendererManager& wfmgr = WindowRendererManager::getSingleton();
-    std::vector<UIModule>::const_iterator   cmod = d_windowRendererModules.begin();
+    std::vector<WRModule>::const_iterator cmod = d_windowRendererModules.begin();
 
     // check factory modules
     for (;cmod != d_windowRendererModules.end(); ++cmod)
     {
         // see if we should just test all factories available in the
         // module (i.e. No factories explicitly specified)
-        if ((*cmod).factories.size() == 0)
+        if ((*cmod).wrTypes.size() == 0)
         {
             // TODO: This is not supported yet!
         }
         // check all window factories explicitly registered for this module
         else
         {
-            std::vector<UIElementFactory>::const_iterator   elem = (*cmod).factories.begin();
+            std::vector<String>::const_iterator elem = (*cmod).wrTypes.begin();
 
-            for (; elem != (*cmod).factories.end(); ++elem)
-            {
-                if (!wfmgr.isFactoryPresent((*elem).name))
+            for (; elem != (*cmod).wrTypes.end(); ++elem)
+                if (!wfmgr.isFactoryPresent(*elem))
                     return false;
-            }
         }
     }
 

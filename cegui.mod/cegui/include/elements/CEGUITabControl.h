@@ -30,9 +30,9 @@
 #ifndef _CEGUITabControl_h_
 #define _CEGUITabControl_h_
 
-#include "CEGUIBase.h"
-#include "CEGUIWindow.h"
-#include "elements/CEGUITabControlProperties.h"
+#include "../CEGUIBase.h"
+#include "../CEGUIWindow.h"
+#include "CEGUITabControlProperties.h"
 #include <vector>
 
 
@@ -341,7 +341,7 @@ protected:
     \return
         Nothing
     */
-    virtual	void	drawSelf(float z) { /* do nothing; rendering handled by children */ }
+    virtual	void	drawSelf(const RenderingContext&) { /* do nothing; rendering handled by children */ }
 
     /*!
     \brief

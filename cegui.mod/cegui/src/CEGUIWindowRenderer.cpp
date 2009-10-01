@@ -64,15 +64,13 @@ const WidgetLookFeel& WindowRenderer::getLookNFeel() const
 *************************************************************************/
 Rect WindowRenderer::getUnclippedInnerRect() const
 {
-    return d_window->getUnclippedPixelRect();
-}
+    const WidgetLookFeel& lf(getLookNFeel());
 
-/************************************************************************
-    Get actual pixel rectangle
-*************************************************************************/
-Rect WindowRenderer::getPixelRect() const
-{
-    return d_window->getPixelRect_impl();
+    if (lf.isNamedAreaDefined("inner_rect"))
+        return lf.getNamedArea("inner_rect").getArea().
+            getPixelRect(*d_window, d_window->getUnclippedOuterRect());
+    else
+        return d_window->getUnclippedOuterRect();
 }
 
 /************************************************************************
@@ -107,6 +105,13 @@ void WindowRenderer::onDetach()
         d_window->removeProperty((*i)->getName());
         ++i;
     }
+}
+
+//----------------------------------------------------------------------------//
+void WindowRenderer::getRenderingContext(RenderingContext& ctx) const
+{
+    // default just calls back to the window implementation version.
+    return d_window->getRenderingContext_impl(ctx);
 }
 
 } // End of CEGUI namespace

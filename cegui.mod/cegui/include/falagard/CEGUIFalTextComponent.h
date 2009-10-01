@@ -28,7 +28,15 @@
 #ifndef _CEGUIFalTextComponent_h_
 #define _CEGUIFalTextComponent_h_
 
-#include "falagard/CEGUIFalComponentBase.h"
+#include "CEGUIFalComponentBase.h"
+#include "../CEGUIRenderedString.h"
+#include "../CEGUIRefCounted.h"
+#include "../CEGUIFormattedRenderedString.h"
+
+#if defined(_MSC_VER)
+#  pragma warning(push)
+#  pragma warning(disable : 4251)
+#endif
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -54,6 +62,9 @@ namespace CEGUI
             String object containing the text that will be rendered.
         */
         const String& getText() const;
+
+        //! return text string with \e visual ordering of glyphs.
+        const String& getTextVisual() const;
 
         /*!
         \brief
@@ -217,10 +228,23 @@ namespace CEGUI
 
     protected:
         // implemets abstract from base
-        void render_impl(Window& srcWindow, Rect& destRect, float base_z, const CEGUI::ColourRect* modColours, const Rect* clipper, bool clipToDisplay) const;
-
+        void render_impl(Window& srcWindow, Rect& destRect, const CEGUI::ColourRect* modColours, const Rect* clipper, bool clipToDisplay) const;
+        //! helper to set up an appropriate FormattedRenderedString
+        void setupStringFormatter(const Window& window,
+                                  const RenderedString& rendered_string) const;
     private:
-        String               d_text;            //!< text rendered by this component.
+        String               d_textLogical;            //!< text rendered by this component.
+        //! pointer to bidirection support object
+        BiDiVisualMapping* d_bidiVisualMapping;
+        //! whether bidi visual mapping has been updated since last text change.
+        mutable bool d_bidiDataValid;
+        //! RenderedString used when not using the one from the target Window.
+        mutable RenderedString d_renderedString;
+        //! FormattedRenderedString object that applies formatting to the string
+        mutable RefCounted<FormattedRenderedString> d_formattedRenderedString;
+        //! Tracks last used horizontal formatting (in order to detect changes)
+        mutable HorizontalTextFormatting d_lastHorzFormatting;
+
         String               d_font;            //!< name of font to use.
         VerticalTextFormatting   d_vertFormatting;  //!< Vertical formatting to be applied when rendering the component.
         HorizontalTextFormatting d_horzFormatting;  //!< Horizontal formatting to be applied when rendering the component.
@@ -230,5 +254,8 @@ namespace CEGUI
 
 } // End of  CEGUI namespace section
 
+#if defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
 
 #endif  // end of guard _CEGUIFalTextComponent_h_

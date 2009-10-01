@@ -30,9 +30,9 @@
 #ifndef _CEGUIFrameWindow_h_
 #define _CEGUIFrameWindow_h_
 
-#include "CEGUIBase.h"
-#include "CEGUIWindow.h"
-#include "elements/CEGUIFrameWindowProperties.h"
+#include "../CEGUIBase.h"
+#include "../CEGUIWindow.h"
+#include "CEGUIFrameWindowProperties.h"
 
 
 #if defined(_MSC_VER)
@@ -453,7 +453,8 @@ public:
     void setNESWSizingCursorImage(const String& imageset, const String& image);
 
     // overridden from Window class
-    bool    isHit(const Point& position) const      { return Window::isHit(position) && !d_rolledup; }
+    bool isHit(const Point& position, const bool /*allow_disabled*/) const
+        { return Window::isHit(position) && !d_rolledup; }
 
     /*!
     \brief

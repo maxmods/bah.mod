@@ -111,7 +111,7 @@ bool EventSet::isEventPresent(const String& name)
 
 
 /*************************************************************************
-	be to a scripted event (no group)
+	Subscribe to a scripted event (no group)
 *************************************************************************/
 Event::Connection EventSet::subscribeScriptedEvent(const String& name, const String& subscriber_name)
 {

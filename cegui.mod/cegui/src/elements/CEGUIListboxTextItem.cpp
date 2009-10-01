@@ -36,6 +36,9 @@
 // Start of CEGUI namespace section
 namespace CEGUI
 {
+//----------------------------------------------------------------------------//
+BasicRenderedStringParser ListboxTextItem::d_stringParser;
+
 /*************************************************************************
 	Constants
 *************************************************************************/
@@ -48,7 +51,8 @@ const colour	ListboxTextItem::DefaultTextColour		= 0xFFFFFFFF;
 ListboxTextItem::ListboxTextItem(const String& text, uint item_id, void* item_data, bool disabled, bool auto_delete) :
 	ListboxItem(text, item_id, item_data, disabled, auto_delete),
 	d_textCols(DefaultTextColour, DefaultTextColour, DefaultTextColour, DefaultTextColour),
-	d_font(0)
+	d_font(0),
+    d_renderedStringValid(false)
 {
 }
 
@@ -82,63 +86,76 @@ Font* ListboxTextItem::getFont(void) const
 *************************************************************************/
 void ListboxTextItem::setFont(const String& font_name)
 {
-	setFont(FontManager::getSingleton().getFont(font_name));
+	setFont(&FontManager::getSingleton().get(font_name));
 }
+
+//----------------------------------------------------------------------------//
+void ListboxTextItem::setFont(Font* font)
+{
+    d_font = font;
+
+    d_renderedStringValid = false;
+}
+
 
 /*************************************************************************
 	Return the rendered pixel size of this list box item.
 *************************************************************************/
 Size ListboxTextItem::getPixelSize(void) const
 {
-	Size tmp(0,0);
+    Font* fnt = getFont();
 
-	Font* fnt = getFont();
+    if (!fnt)
+        return Size(0, 0);
 
-	if (fnt)
-	{
-		tmp.d_height = PixelAligned(fnt->getLineSpacing());
-		tmp.d_width = PixelAligned(fnt->getTextExtent(d_itemText));
-	}
+    if (!d_renderedStringValid)
+        parseTextString();
 
-	return tmp;
+    Size sz(0.0f, 0.0f);
+
+    for (size_t i = 0; i < d_renderedString.getLineCount(); ++i)
+    {
+        const Size line_sz(d_renderedString.getPixelSize(i));
+        sz.d_height += line_sz.d_height;
+
+        if (line_sz.d_width > sz.d_width)
+            sz.d_width = line_sz.d_width;
+    }
+
+    return sz;
 }
 
 
 /*************************************************************************
 	Draw the list box item in its current state.
 *************************************************************************/
-void ListboxTextItem::draw(const Vector3& position, float alpha, const Rect& clipper) const
-{
-	if (d_selected && (d_selectBrush != 0))
-	{
-		d_selectBrush->draw(clipper, position.d_z, clipper, getModulateAlphaColourRect(d_selectCols, alpha));
-	}
-
-	Font* fnt = getFont();
-
-	if (fnt)
-	{
-        Vector3 finalPos(position);
-        finalPos.d_y += PixelAligned((fnt->getLineSpacing() - fnt->getFontHeight()) * 0.5f);
-		fnt->drawText(d_itemText, finalPos, clipper, getModulateAlphaColourRect(d_textCols, alpha));
-	}
-
-}
-
-void ListboxTextItem::draw(RenderCache& cache,const Rect& targetRect, float zBase, float alpha, const Rect* clipper) const
+void ListboxTextItem::draw(GeometryBuffer& buffer, const Rect& targetRect,
+                           float alpha, const Rect* clipper) const
 {
     if (d_selected && d_selectBrush != 0)
-    {
-        cache.cacheImage(*d_selectBrush, targetRect, zBase, getModulateAlphaColourRect(d_selectCols, alpha), clipper);
-    }
+        d_selectBrush->draw(buffer, targetRect, clipper,
+                            getModulateAlphaColourRect(d_selectCols, alpha));
 
     Font* font = getFont();
 
-    if (font)
+    if (!font)
+        return;
+
+    Vector2 draw_pos(targetRect.getPosition());
+
+    draw_pos.d_y += PixelAligned(
+        (font->getLineSpacing() - font->getFontHeight()) * 0.5f);
+
+    if (!d_renderedStringValid)
+        parseTextString();
+
+    const ColourRect final_colours(
+        getModulateAlphaColourRect(ColourRect(0xFFFFFFFF), alpha));
+
+    for (size_t i = 0; i < d_renderedString.getLineCount(); ++i)
     {
-        Rect finalPos(targetRect);
-        finalPos.d_top += PixelAligned((font->getLineSpacing() - font->getFontHeight()) * 0.5f);
-        cache.cacheText(d_itemText, font, LeftAligned, finalPos, zBase, getModulateAlphaColourRect(d_textCols, alpha), clipper);
+        d_renderedString.draw(i, buffer, draw_pos, &final_colours, clipper, 0.0f);
+        draw_pos.d_y += d_renderedString.getPixelSize(i).d_height;
     }
 }
 
@@ -146,13 +163,33 @@ void ListboxTextItem::draw(RenderCache& cache,const Rect& targetRect, float zBas
 /*************************************************************************
 	Set the colours used for text rendering.	
 *************************************************************************/
-void ListboxTextItem::setTextColours(colour top_left_colour, colour top_right_colour, colour bottom_left_colour, colour bottom_right_colour)
+void ListboxTextItem::setTextColours(colour top_left_colour,
+                                     colour top_right_colour,
+                                     colour bottom_left_colour,
+                                     colour bottom_right_colour)
 {
 	d_textCols.d_top_left		= top_left_colour;
 	d_textCols.d_top_right		= top_right_colour;
 	d_textCols.d_bottom_left	= bottom_left_colour;
 	d_textCols.d_bottom_right	= bottom_right_colour;
+
+    d_renderedStringValid = false;
 }
 
+//----------------------------------------------------------------------------//
+void ListboxTextItem::setText(const String& text)
+{
+    ListboxItem::setText(text);
+
+    d_renderedStringValid = false;
+}
+
+//----------------------------------------------------------------------------//
+void ListboxTextItem::parseTextString() const
+{
+    d_renderedString =
+        d_stringParser.parse(getTextVisual(), getFont(), &d_textCols);
+    d_renderedStringValid = true;
+}
 
 } // End of  CEGUI namespace section

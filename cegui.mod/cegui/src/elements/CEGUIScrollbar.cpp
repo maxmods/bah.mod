@@ -266,7 +266,7 @@ void Scrollbar::onMouseButtonDown(MouseEventArgs& e)
 			setScrollPosition(d_position + ((d_pageSize - d_overlapSize) * adj));
 		}
 
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -284,14 +284,14 @@ void Scrollbar::onMouseWheel(MouseEventArgs& e)
 	setScrollPosition(d_position + d_stepSize * -e.wheelChange);
 
 	// ensure the message does not go to our parent.
-	e.handled = true;
+	++e.handled;
 }
 
 
 /*************************************************************************
 	handler function for when thumb moves.
 *************************************************************************/
-bool Scrollbar::handleThumbMoved(const EventArgs& e)
+bool Scrollbar::handleThumbMoved(const EventArgs&)
 {
 	// adjust scroll bar position as required.
 	setScrollPosition(getValueFromThumb());
@@ -342,7 +342,7 @@ bool Scrollbar::handleDecreaseClicked(const EventArgs& e)
 /*************************************************************************
 	handler function for when thumb tracking begins
 *************************************************************************/
-bool Scrollbar::handleThumbTrackStarted(const EventArgs& e)
+bool Scrollbar::handleThumbTrackStarted(const EventArgs&)
 {
 	// simply trigger our own version of this event
 	WindowEventArgs args(this);
@@ -355,7 +355,7 @@ bool Scrollbar::handleThumbTrackStarted(const EventArgs& e)
 /*************************************************************************
 	handler function for when thumb tracking begins
 *************************************************************************/
-bool Scrollbar::handleThumbTrackEnded(const EventArgs& e)
+bool Scrollbar::handleThumbTrackEnded(const EventArgs&)
 {
 	// simply trigger our own version of this event
 	WindowEventArgs args(this);

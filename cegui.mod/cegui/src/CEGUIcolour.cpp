@@ -2,7 +2,7 @@
 	filename: 	CEGUIcolour.cpp
 	created:	20/8/2004
 	author:		Paul D Turner (with code from Jeff Leigh)
-
+	
 	purpose:	Implementation of colour class methods.
 *************************************************************************/
 /***************************************************************************

@@ -51,6 +51,7 @@ public:
     }
 
 private:
+    void operator=(const SubComp&) {}
     const BoundSlot& d_s;
 };
 
@@ -98,7 +99,8 @@ void Event::operator()(EventArgs& args)
 
     // execute all subscribers, updating the 'handled' state as we go
     for (; iter != end_iter; ++iter)
-        args.handled |= (*iter->second->d_subscriber)(args);
+        if ((*iter->second->d_subscriber)(args))
+            ++args.handled;
 }
 
 

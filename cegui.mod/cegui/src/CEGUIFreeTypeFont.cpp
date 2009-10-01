@@ -27,18 +27,14 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-
 #include "CEGUIFreeTypeFont.h"
 #include "CEGUIExceptions.h"
-#include "CEGUISystem.h"
 #include "CEGUITexture.h"
 #include "CEGUIImageset.h"
 #include "CEGUIImagesetManager.h"
-#include "CEGUIXMLAttributes.h"
 #include "CEGUILogger.h"
-#include "CEGUIFontManager.h"
 #include "CEGUIPropertyHelper.h"
-
+#include "CEGUIFont_xmlHandler.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -50,97 +46,65 @@
 
 namespace CEGUI
 {
-
+//----------------------------------------------------------------------------//
 // Pixels to put between glyphs
 #define INTER_GLYPH_PAD_SPACE 2
 // A multiplication coefficient to convert FT_Pos values into normal floats
 #define FT_POS_COEF  (1.0/64.0)
 
+//----------------------------------------------------------------------------//
 // Font objects usage count
 static int ft_usage_count = 0;
 // A handle to the FreeType library
 static FT_Library ft_lib;
 
-static const String FontSizeAttribute ("Size");
-static const String FontAntiAliasedAttribute ("AntiAlias");
+//----------------------------------------------------------------------------//
+#undef __FTERRORS_H__
+#define FT_ERRORDEF( e, v, s ) s,
+#define FT_ERROR_START_LIST static const char* ft_errors[] = {
+#define FT_ERROR_END_LIST 0};
+#include FT_ERRORS_H
 
-/*************************************************************************
- Create a FreeTypeFont object from scratch
- *************************************************************************/
-FreeTypeFont::FreeTypeFont (const String& name, const String& filename,
-    const String& resourceGroup) :
-    Font (name, filename, resourceGroup),
-    d_ptSize (10.0),
-    d_antiAliased (true),
-    d_fontFace (0)
+//----------------------------------------------------------------------------//
+FreeTypeFont::FreeTypeFont(const String& font_name, const float point_size,
+                           const bool anti_aliased, const String& font_filename,
+                           const String& resource_group, const bool auto_scaled,
+                           const float native_horz_res,
+                           const float native_vert_res) :
+    Font(font_name, Font_xmlHandler::FontTypeFreeType, font_filename,
+         resource_group, auto_scaled, native_horz_res, native_vert_res),
+    d_ptSize(point_size),
+    d_antiAliased(anti_aliased),
+    d_fontFace(0)
 {
     if (!ft_usage_count++)
-        FT_Init_FreeType (&ft_lib);
-    addFreeTypeFontProperties ();
+        FT_Init_FreeType(&ft_lib);
+
+    addFreeTypeFontProperties();
+
+    updateFont();
+
+    char tmp[50];
+    snprintf(tmp, sizeof(tmp), "Succsessfully loaded %d glyphs",
+             static_cast<int>(d_cp_map.size()));
+    Logger::getSingleton().logEvent(tmp, Informative);
 }
 
-
-/*************************************************************************
- Create a FreeTypeFont object from a XML file
- *************************************************************************/
-FreeTypeFont::FreeTypeFont (const XMLAttributes& attributes) :
-    Font (attributes),
-    d_ptSize (float(attributes.getValueAsInteger (FontSizeAttribute, 12))),
-    d_antiAliased (attributes.getValueAsBool (FontAntiAliasedAttribute, true)),
-    d_fontFace (0)
+//----------------------------------------------------------------------------//
+FreeTypeFont::~FreeTypeFont()
 {
-    if (!ft_usage_count++)
-        FT_Init_FreeType (&ft_lib);
-    addFreeTypeFontProperties ();
-}
-
-
-/*************************************************************************
- Destroys a FreeTypeFont object
- *************************************************************************/
-FreeTypeFont::~FreeTypeFont ()
-{
-    free ();
+    free();
 
     if (!--ft_usage_count)
-        FT_Done_FreeType (ft_lib);
+        FT_Done_FreeType(ft_lib);
 }
 
-
-/*************************************************************************
- Load the font
- *************************************************************************/
-void FreeTypeFont::load ()
-{
-    // log the start of font creation.
-    Logger::getSingleton ().logEvent ("Started creation of FreeType Font:");
-    Logger::getSingleton ().logEvent ("---- CEGUI font name: " + d_name);
-    Logger::getSingleton ().logEvent ("----     Source file: " + d_fileName +
-                                      " in resource group: " + (d_resourceGroup.empty () ?
-                                                                "(Default)" : d_resourceGroup));
-    char tmp [50];
-    snprintf (tmp, sizeof (tmp), "---- Real point size: %g", d_ptSize);
-    Logger::getSingleton ().logEvent (tmp);
-
-    updateFont ();
-
-    snprintf(tmp, sizeof(tmp),
-             "Succsessfully loaded %d glyphs",
-             static_cast<int>(d_cp_map.size()));
-
-    Logger::getSingleton ().logEvent (tmp);
-}
-
-
-/*************************************************************************
- Return the required texture size required to store imagery for the
- glyphs from s to e
- *************************************************************************/
-uint FreeTypeFont::getTextureSize (CodepointMap::const_iterator s,
-                                   CodepointMap::const_iterator e)
+//----------------------------------------------------------------------------//
+uint FreeTypeFont::getTextureSize(CodepointMap::const_iterator s,
+                                  CodepointMap::const_iterator e) const
 {
     uint texsize = 32; // start with 32x32
-    uint max_texsize = System::getSingleton ().getRenderer ()->getMaxTextureSize ();
+    uint max_texsize = System::getSingleton().getRenderer()->getMaxTextureSize();
     uint glyph_count = 0;
 
     // Compute approximatively the optimal texture size for font
@@ -151,7 +115,7 @@ uint FreeTypeFont::getTextureSize (CodepointMap::const_iterator s,
         for (CodepointMap::const_iterator c = s; c != e; ++c)
         {
             // skip glyphs that are already rendered
-            if (c->second.getImage ())
+            if (c->second.getImage())
                 continue;
 
             // load glyph metrics (don't render)
@@ -159,10 +123,10 @@ uint FreeTypeFont::getTextureSize (CodepointMap::const_iterator s,
                              FT_LOAD_DEFAULT | FT_LOAD_FORCE_AUTOHINT))
                 continue;
 
-            uint glyph_w = int (ceil (d_fontFace->glyph->metrics.width * FT_POS_COEF)) +
-                INTER_GLYPH_PAD_SPACE;
-            uint glyph_h = int (ceil (d_fontFace->glyph->metrics.height * FT_POS_COEF)) +
-                INTER_GLYPH_PAD_SPACE;
+            uint glyph_w = int (ceil(d_fontFace->glyph->metrics.width * FT_POS_COEF)) +
+                           INTER_GLYPH_PAD_SPACE;
+            uint glyph_h = int (ceil(d_fontFace->glyph->metrics.height * FT_POS_COEF)) +
+                           INTER_GLYPH_PAD_SPACE;
 
             x += glyph_w;
             if (x > texsize)
@@ -182,41 +146,38 @@ uint FreeTypeFont::getTextureSize (CodepointMap::const_iterator s,
         // Okay, the texture size is enough for holding our glyphs
         break;
 
-too_small:
+    too_small:
         texsize *= 2;
     }
 
     return glyph_count ? texsize : 0;
 }
 
-
-/*************************************************************************
- Rasterize some range of glyphs
- *************************************************************************/
-void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
+//----------------------------------------------------------------------------//
+void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
 {
     CodepointMap::const_iterator s = d_cp_map.lower_bound(start_codepoint);
-    if (s == d_cp_map.end ())
+    if (s == d_cp_map.end())
         return;
 
     CodepointMap::const_iterator orig_s = s;
-    CodepointMap::const_iterator e = d_cp_map.upper_bound (end_codepoint);
+    CodepointMap::const_iterator e = d_cp_map.upper_bound(end_codepoint);
     while (true)
     {
         // Create a new Imageset for glyphs
-        uint texsize = getTextureSize (s, e);
+        uint texsize = getTextureSize(s, e);
         // If all glyphs were already rendered, do nothing
         if (!texsize)
             break;
 
-        Imageset *is = ImagesetManager::getSingleton ().createImageset (
-            d_name + "_auto_glyph_images_" + int (s->first),
-            System::getSingleton ().getRenderer ()->createTexture ());
-        d_glyphImages.push_back (is);
+        Imageset& is = ImagesetManager::getSingleton().create(
+                           d_name + "_auto_glyph_images_" + int (s->first),
+                           System::getSingleton().getRenderer()->createTexture());
+        d_glyphImages.push_back(&is);
 
         // Create a memory buffer where we will render our glyphs
         argb_t *mem_buffer = new argb_t [texsize * texsize];
-        memset (mem_buffer, 0, texsize * texsize * sizeof (argb_t));
+        memset(mem_buffer, 0, texsize * texsize * sizeof(argb_t));
 
         // Go ahead, line by line, top-left to bottom-right
         uint x = INTER_GLYPH_PAD_SPACE, y = INTER_GLYPH_PAD_SPACE;
@@ -242,22 +203,22 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
             if (!s->second.getImage())
             {
                 // Render the glyph
-                if (FT_Load_Char (d_fontFace, s->first, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT |
-                                  (d_antiAliased ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO)))
+                if (FT_Load_Char(d_fontFace, s->first, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT |
+                                 (d_antiAliased ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO)))
                 {
                     std::stringstream err;
                     err << "Font::loadFreetypeGlyph - Failed to load glyph for codepoint: ";
-                    err << static_cast<unsigned int> (s->first);
+                    err << static_cast<unsigned int>(s->first);
                     err << ".  Will use an empty image for this glyph!";
-                    Logger::getSingleton ().logEvent (err.str (), Errors);
+                    Logger::getSingleton().logEvent(err.str(), Errors);
 
                     // Create a 'null' image for this glyph so we do not seg later
                     Rect area(0, 0, 0, 0);
                     Point offset(0, 0);
                     String name;
                     name += s->first;
-                    is->defineImage(name, area, offset);
-                    ((FontGlyph &)s->second).setImage(&is->getImage(name));
+                    is.defineImage(name, area, offset);
+                    ((FontGlyph &)s->second).setImage(&is.getImage(name));
                 }
                 else
                 {
@@ -279,7 +240,7 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
                         break;
 
                     // Copy rendered glyph to memory buffer in RGBA format
-                    drawGlyphToBuffer (mem_buffer + (y * texsize) + x, texsize);
+                    drawGlyphToBuffer(mem_buffer + (y * texsize) + x, texsize);
 
                     // Create a new image in the imageset
                     Rect area(static_cast<float>(x),
@@ -292,8 +253,8 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
 
                     String name;
                     name += s->first;
-                    is->defineImage (name, area, offset);
-                    ((FontGlyph &)s->second).setImage (&is->getImage (name));
+                    is.defineImage(name, area, offset);
+                    ((FontGlyph &)s->second).setImage(&is.getImage(name));
 
                     // Advance to next position
                     x = x_next;
@@ -306,7 +267,7 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
 
             // Go to next glyph, if we are going forward
             if (forward)
-                if (++s == d_cp_map.end ())
+                if (++s == d_cp_map.end())
                 {
                     finished = true;
                     forward = false;
@@ -319,7 +280,7 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
         }
 
         // Copy our memory buffer into the texture and free it
-        is->getTexture ()->loadFromMemory (mem_buffer, texsize, texsize, Texture::PF_RGBA);
+        is.getTexture()->loadFromMemory(mem_buffer, Size(texsize, texsize), Texture::PF_RGBA);
         delete [] mem_buffer;
 
         if (finished)
@@ -327,11 +288,8 @@ void FreeTypeFont::rasterize (utf32 start_codepoint, utf32 end_codepoint)
     }
 }
 
-
-/*************************************************************************
- Copy the FreeType glyph bitmap into the given memory buffer
- *************************************************************************/
-void FreeTypeFont::drawGlyphToBuffer (argb_t *buffer, uint buf_width)
+//----------------------------------------------------------------------------//
+void FreeTypeFont::drawGlyphToBuffer(argb_t *buffer, uint buf_width) const
 {
     FT_Bitmap *glyph_bitmap = &d_fontFace->glyph->bitmap;
 
@@ -340,81 +298,84 @@ void FreeTypeFont::drawGlyphToBuffer (argb_t *buffer, uint buf_width)
         uchar *src = glyph_bitmap->buffer + (i * glyph_bitmap->pitch);
         switch (glyph_bitmap->pixel_mode)
         {
-            case FT_PIXEL_MODE_GRAY:
-                {
-                    uchar *dst = reinterpret_cast<uchar*> (buffer);
-                    for (int j = 0; j < glyph_bitmap->width; ++j)
-                    {
-                        // RGBA
-                        *dst++ = 0xFF;
-                        *dst++ = 0xFF;
-                        *dst++ = 0xFF;
-                        *dst++ = *src++;
-                    }
-                }
-                break;
+        case FT_PIXEL_MODE_GRAY:
+        {
+            uchar *dst = reinterpret_cast<uchar*>(buffer);
+            for (int j = 0; j < glyph_bitmap->width; ++j)
+            {
+                // RGBA
+                *dst++ = 0xFF;
+                *dst++ = 0xFF;
+                *dst++ = 0xFF;
+                *dst++ = *src++;
+            }
+        }
+        break;
 
-            case FT_PIXEL_MODE_MONO:
-                for (int j = 0; j < glyph_bitmap->width; ++j)
-                    buffer [j] = (src [j / 8] & (0x80 >> (j & 7))) ? 0xFFFFFFFF : 0x00000000;
-                break;
+        case FT_PIXEL_MODE_MONO:
+            for (int j = 0; j < glyph_bitmap->width; ++j)
+                buffer [j] = (src [j / 8] & (0x80 >> (j & 7))) ? 0xFFFFFFFF : 0x00000000;
+            break;
 
-            default:
-                throw InvalidRequestException("Font::drawGlyphToBuffer - The glyph could not be drawn because the pixel mode is unsupported.");
-                break;
+        default:
+            throw InvalidRequestException("Font::drawGlyphToBuffer: "
+                "The glyph could not be drawn because the pixel mode is "
+                "unsupported.");
+            break;
         }
 
         buffer += buf_width;
     }
 }
 
-
-/*************************************************************************
- Free all resources we have allocated
- *************************************************************************/
-void FreeTypeFont::free ()
+//----------------------------------------------------------------------------//
+void FreeTypeFont::free()
 {
     if (!d_fontFace)
         return;
 
-    d_cp_map.clear ();
+    d_cp_map.clear();
 
-    for (size_t i = 0; i < d_glyphImages.size (); i++)
-        ImagesetManager::getSingleton ().destroyImageset (d_glyphImages [i]->getName ());
-    d_glyphImages.clear ();
+    for (size_t i = 0; i < d_glyphImages.size(); i++)
+        ImagesetManager::getSingleton().destroy(d_glyphImages [i]->getName());
+    d_glyphImages.clear();
 
-    FT_Done_Face (d_fontFace);
+    FT_Done_Face(d_fontFace);
     d_fontFace = 0;
-    System::getSingleton ().getResourceProvider ()->unloadRawDataContainer (d_fontData);
+    System::getSingleton().getResourceProvider()->unloadRawDataContainer(d_fontData);
 }
 
-
-/*************************************************************************
- Update the font as required according to the current scaling
- *************************************************************************/
-void FreeTypeFont::updateFont ()
+//----------------------------------------------------------------------------//
+void FreeTypeFont::updateFont()
 {
-    free ();
+    free();
 
-    System::getSingleton ().getResourceProvider ()->loadRawDataContainer (
-        d_fileName, d_fontData, d_resourceGroup.empty () ?
-        getDefaultResourceGroup () : d_resourceGroup);
+    System::getSingleton().getResourceProvider()->loadRawDataContainer(
+        d_filename, d_fontData, d_resourceGroup.empty() ?
+            getDefaultResourceGroup() : d_resourceGroup);
+
+    FT_Error error;
 
     // create face using input font
-    if (FT_New_Memory_Face (ft_lib, d_fontData.getDataPtr (),
-                            static_cast<FT_Long>(d_fontData.getSize ()), 0, &d_fontFace) != 0)
-        throw GenericException ("FreeTypeFont::load - The source font file '" + d_fileName +"' does not contain a valid FreeType font.");
+    if ((error = FT_New_Memory_Face(ft_lib, d_fontData.getDataPtr(),
+                           static_cast<FT_Long>(d_fontData.getSize()), 0,
+                           &d_fontFace)) != 0)
+        throw GenericException("FreeTypeFont::updateFont: Failed to create "
+            "face from font file '" + d_filename + "' error was: " +
+            ((error < FT_Err_Max) ? ft_errors[error] : "unknown error"));
 
     // check that default Unicode character map is available
     if (!d_fontFace->charmap)
     {
-        FT_Done_Face (d_fontFace);
+        FT_Done_Face(d_fontFace);
         d_fontFace = 0;
-        throw GenericException ("FreeTypeFont::load - The font '" + d_name +"' does not have a Unicode charmap, and cannot be used.");
+        throw GenericException("FreeTypeFont::updateFont: "
+            "The font '" + d_name + "' does not have a Unicode charmap, and "
+            "cannot be used.");
     }
 
-    uint horzdpi = System::getSingleton ().getRenderer ()->getHorzScreenDPI ();
-    uint vertdpi = System::getSingleton ().getRenderer ()->getVertScreenDPI ();
+    uint horzdpi = System::getSingleton().getRenderer()->getDisplayDPI().d_x;
+    uint vertdpi = System::getSingleton().getRenderer()->getDisplayDPI().d_y;
 
     float hps = d_ptSize * 64;
     float vps = d_ptSize * 64;
@@ -424,7 +385,7 @@ void FreeTypeFont::updateFont ()
         vps *= d_vertScaling;
     }
 
-    if (FT_Set_Char_Size (d_fontFace, FT_F26Dot6 (hps), FT_F26Dot6 (vps), horzdpi, vertdpi))
+    if (FT_Set_Char_Size(d_fontFace, FT_F26Dot6(hps), FT_F26Dot6(vps), horzdpi, vertdpi))
     {
         // For bitmap fonts we can render only at specific point sizes.
         // Try to find nearest point size and use it, if that is possible
@@ -434,7 +395,7 @@ void FreeTypeFont::updateFont ()
         for (int i = 0; i < d_fontFace->num_fixed_sizes; i++)
         {
             float size = d_fontFace->available_sizes [i].size * float(FT_POS_COEF);
-            float delta = fabs (size - ptSize_72);
+            float delta = fabs(size - ptSize_72);
             if (delta < best_delta)
             {
                 best_delta = delta;
@@ -443,18 +404,18 @@ void FreeTypeFont::updateFont ()
         }
 
         if ((best_size <= 0) ||
-            FT_Set_Char_Size (d_fontFace, 0, FT_F26Dot6 (best_size * 64), 0, 0))
+                FT_Set_Char_Size(d_fontFace, 0, FT_F26Dot6(best_size * 64), 0, 0))
         {
             char size [20];
-            snprintf (size, sizeof (size), "%g", d_ptSize);
-            throw GenericException ("FreeTypeFont::load - The font '" + d_name +"' cannot be rasterized at a size of " + size + " points, and cannot be used.");
+            snprintf(size, sizeof(size), "%g", d_ptSize);
+            throw GenericException("FreeTypeFont::load - The font '" + d_name + "' cannot be rasterised at a size of " + size + " points, and cannot be used.");
         }
     }
 
     if (d_fontFace->face_flags & FT_FACE_FLAG_SCALABLE)
     {
         //float x_scale = d_fontFace->size->metrics.x_scale * FT_POS_COEF * (1.0/65536.0);
-        float y_scale = d_fontFace->size->metrics.y_scale * float(FT_POS_COEF) * (1.0f/65536.0f);
+        float y_scale = d_fontFace->size->metrics.y_scale * float(FT_POS_COEF) * (1.0f / 65536.0f);
         d_ascender = d_fontFace->ascender * y_scale;
         d_descender = d_fontFace->descender * y_scale;
         d_height = d_fontFace->height * y_scale;
@@ -468,7 +429,7 @@ void FreeTypeFont::updateFont ()
 
     // Create an empty FontGlyph structure for every glyph of the font
     FT_UInt gindex;
-    FT_ULong codepoint = FT_Get_First_Char (d_fontFace, &gindex);
+    FT_ULong codepoint = FT_Get_First_Char(d_fontFace, &gindex);
     FT_ULong max_codepoint = codepoint;
     while (gindex)
     {
@@ -483,24 +444,56 @@ void FreeTypeFont::updateFont ()
         float adv = d_fontFace->glyph->metrics.horiAdvance * float(FT_POS_COEF);
 
         // create a new empty FontGlyph with given character code
-        d_cp_map[codepoint] = FontGlyph (adv);
+        d_cp_map[codepoint] = FontGlyph(adv);
 
         // proceed to next glyph
-        codepoint = FT_Get_Next_Char (d_fontFace, codepoint, &gindex);
+        codepoint = FT_Get_Next_Char(d_fontFace, codepoint, &gindex);
     }
 
-    setMaxCodepoint (max_codepoint);
+    setMaxCodepoint(max_codepoint);
 }
 
-
-/*************************************************************************
- Update the font as required according to the current scaling
- *************************************************************************/
-void FreeTypeFont::writeXMLToStream_impl (XMLSerializer& xml_stream) const
+//----------------------------------------------------------------------------//
+void FreeTypeFont::writeXMLToStream_impl(XMLSerializer& xml_stream) const
 {
-    xml_stream.attribute (FontSizeAttribute, PropertyHelper::floatToString (d_ptSize));
+    xml_stream.attribute(Font_xmlHandler::FontSizeAttribute,
+                         PropertyHelper::floatToString(d_ptSize));
     if (!d_antiAliased)
-        xml_stream.attribute (FontAntiAliasedAttribute, "False");
+        xml_stream.attribute(Font_xmlHandler::FontAntiAliasedAttribute, "False");
 }
+
+//----------------------------------------------------------------------------//
+float FreeTypeFont::getPointSize() const
+{
+    return d_ptSize;
+}
+
+//----------------------------------------------------------------------------//
+bool FreeTypeFont::isAntiAliased() const
+{
+    return d_antiAliased;
+}
+
+//----------------------------------------------------------------------------//
+void FreeTypeFont::setPointSize(const float point_size)
+{
+    if (point_size == d_ptSize)
+        return;
+
+    d_ptSize = point_size;
+    updateFont();
+}
+
+//----------------------------------------------------------------------------//
+void FreeTypeFont::setAntiAliased(const bool anti_alaised)
+{
+    if (anti_alaised == d_antiAliased)
+        return;
+
+    d_antiAliased = anti_alaised;
+    updateFont();
+}
+
+//----------------------------------------------------------------------------//
 
 } // End of  CEGUI namespace section

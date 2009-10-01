@@ -183,6 +183,12 @@ CEGUI::ColourRect MaxCEColourRect::Rect() {
 
 // *************************************************
 
+MaxRenderer::MaxRenderer()
+{
+}
+
+// *************************************************
+
 MaxResourceProvider::MaxResourceProvider(BBObject * handle)
 	: maxHandle(handle)
 {
@@ -198,6 +204,10 @@ void MaxResourceProvider::loadRawDataContainer(const CEGUI::String &filename, CE
 
 void MaxResourceProvider::unloadRawDataContainer(CEGUI::RawDataContainer &data) {
 	_bah_cegui_TCEResourceProvider__unloadRawDataContainer(maxHandle, new MaxRawDataContainer(data));
+}
+
+size_t MaxResourceProvider::getResourceGroupFileNames(std::vector<CEGUI::String>& out_vec, const CEGUI::String& file_pattern, const CEGUI::String& resource_group) {
+	// TODO
 }
 
 // *************************************************
@@ -441,57 +451,20 @@ void bmx_cegui_eventargs_delete(MaxEventArgs * args) {
 
 // *************************************************
 
-CEGUI::Renderer * bmx_cegui_new_oglrenderer() {
-
-	// we pass in the codec because otherwise it will attempt to load it from the shared library
-	return new CEGUI::OpenGLRenderer(0);
-}
-
 CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r, MaxResourceProvider * provider) {
 	// we pass in the renderer otherwise it will attepmt to load it from the shared library
-	CEGUI::System * sys =  new CEGUI::System(r, provider);
+	CEGUI::System * sys =  &CEGUI::System::create(*r, provider);
 	
 	return sys;
 }
 
-void bmx_cegui_delete_system(CEGUI::System * s) {
-	delete s;
+void bmx_cegui_system_destroy() {
+	CEGUI::System::destroy();
 }
 
 void bmx_cegui_delete_renderer(CEGUI::Renderer * r) {
 	delete r;
 }
-
-// *************************************************
-
-CEGUI::Scheme * bmx_cegui_schememanager_loadScheme(const CEGUI::utf8 * scheme, const CEGUI::utf8 * resourceGroup) {
-	try {
-		return CEGUI::SchemeManager::getSingleton().loadScheme(scheme, resourceGroup);
-	} catch (CEGUI::InvalidRequestException &e) {
-		bmx_cegui_throw_invalidrequestexception(e);
-	} catch (CEGUI::Exception &e) {
-		bmx_cegui_throw_exception(e);
-	}
-}
-
-int bmx_cegui_schememanager_isschemepresent(const CEGUI::utf8 * scheme) {
-	return CEGUI::SchemeManager::getSingleton().isSchemePresent(scheme);
-}
-
-CEGUI::Scheme * bmx_cegui_schememanager_getscheme(const CEGUI::utf8 * name) {
-	try {
-		return CEGUI::SchemeManager::getSingleton().getScheme(name);
-	} catch (CEGUI::UnknownObjectException &e) {
-		bmx_cegui_throw_unknownobjectexception(e);
-	} catch (CEGUI::Exception &e) {
-		bmx_cegui_throw_exception(e);
-	}
-}
-
-void bmx_cegui_schememanager_unloadallschemes() {
-	CEGUI::SchemeManager::getSingleton().unloadAllSchemes();
-}
-
 
 // *************************************************
 
@@ -613,9 +586,9 @@ BBObject * bmx_cegui_windowmanager_getwindow(CEGUI::WindowManager * mgr, const C
 	}
 }
 
-BBObject * bmx_cegui_windowmanager_createwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * windowType, const CEGUI::utf8 * name, const CEGUI::utf8 * prefix) {
+BBObject * bmx_cegui_windowmanager_createwindow(CEGUI::WindowManager * mgr, const CEGUI::utf8 * windowType, const CEGUI::utf8 * name) {
 	try {
-		return newObjectForWindow(mgr->createWindow(windowType, name, prefix));
+		return newObjectForWindow(mgr->createWindow(windowType, name));
 	} catch (CEGUI::InvalidRequestException &e) {
 		bmx_cegui_throw_invalidrequestexception(e);
 	} catch (CEGUI::AlreadyExistsException &e) {
@@ -885,10 +858,6 @@ BBString * bmx_cegui_window_getname(CEGUI::Window * window) {
 	return bah_cegui__convertUTF8ToMax(window->getName().data());
 }
 
-BBString * bmx_cegui_window_getprefix(CEGUI::Window * window) {
-	return bah_cegui__convertUTF8ToMax(window->getPrefix().data());
-}
-
 int bmx_cegui_window_isdestroyedbyparent(CEGUI::Window * window) {
 	return window->isDestroyedByParent();
 }
@@ -997,30 +966,6 @@ float bmx_cegui_window_geteffectivealpha(CEGUI::Window * window) {
 	return window->getEffectiveAlpha();
 }
 
-void bmx_cegui_window_getpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
-	CEGUI::Rect r = window->getPixelRect();
-	*x = r.d_left;
-	*y = r.d_top;
-	*w = r.getWidth();
-	*h = r.getHeight();
-}
-
-void bmx_cegui_window_getinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
-	CEGUI::Rect r = window->getInnerRect();
-	*x = r.d_left;
-	*y = r.d_top;
-	*w = r.getWidth();
-	*h = r.getHeight();
-}
-
-void bmx_cegui_window_getunclippedpixelrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
-	CEGUI::Rect r = window->getUnclippedPixelRect();
-	*x = r.d_left;
-	*y = r.d_top;
-	*w = r.getWidth();
-	*h = r.getHeight();
-}
-
 void bmx_cegui_window_getunclippedinnerrect(CEGUI::Window * window, float * x, float * y, float * w, float * h) {
 	CEGUI::Rect r = window->getUnclippedInnerRect();
 	*x = r.d_left;
@@ -1041,8 +986,8 @@ int bmx_cegui_window_iscapturedbychild(CEGUI::Window * window) {
 	return window->isCapturedByChild();
 }
 
-int bmx_cegui_window_ishit(CEGUI::Window * window, float x, float y) {
-	return window->isHit(CEGUI::Vector2(x, y));
+int bmx_cegui_window_ishit(CEGUI::Window * window, float x, float y, int allowDisabled) {
+	return window->isHit(CEGUI::Vector2(x, y), static_cast<bool>(allowDisabled));
 }
 
 BBObject * bmx_cegui_window_getchildatposition(CEGUI::Window * window, float x, float y) {
@@ -1177,9 +1122,9 @@ void bmx_cegui_window_setid(CEGUI::Window * window, CEGUI::uint ID) {
 	window->setID(ID);
 }
 
-void bmx_cegui_window_setprefix(CEGUI::Window * window, const CEGUI::utf8 * prefix) {
+/*void bmx_cegui_window_setprefix(CEGUI::Window * window, const CEGUI::utf8 * prefix) {
 	window->setPrefix(prefix);
-}
+}*/
 
 void bmx_cegui_window_inserttext(CEGUI::Window * window, const CEGUI::utf8 * text, int position) {
 	window->insertText(text, position);
@@ -1237,8 +1182,12 @@ void bmx_cegui_window_setinheritsalpha(CEGUI::Window * window, int setting) {
 	window->setInheritsAlpha(setting);
 }
 
-void bmx_cegui_window_requestredraw(CEGUI::Window * window) {
-	window->requestRedraw();
+void bmx_cegui_window_invalidate(CEGUI::Window * window) {
+	window->invalidate();
+}
+
+void bmx_cegui_window_invalidaterenderingsurface(CEGUI::Window * window) {
+	window->invalidateRenderingSurface();
 }
 
 void bmx_cegui_window_setmousecursor(CEGUI::Window * window, CEGUI::Image * image) {
@@ -1834,8 +1783,8 @@ void bmx_cegui_framewindow_setdragmovingenabled(CEGUI::FrameWindow * win, int se
 	win->setDragMovingEnabled(setting);
 }
 
-int bmx_cegui_framewindow_ishit(CEGUI::FrameWindow * win, float x, float y) {
-	return win->isHit(CEGUI::Point(x, y));
+int bmx_cegui_framewindow_ishit(CEGUI::FrameWindow * win, float x, float y, int allowDisabled) {
+	return win->isHit(CEGUI::Point(x, y), static_cast<bool>(allowDisabled));
 }
 
 BBObject * bmx_cegui_framewindow_gettitlebar(CEGUI::FrameWindow * win) {
@@ -2069,7 +2018,7 @@ void bmx_cegui_itemlistbox_selectallitems(CEGUI::ItemListbox * lb) {
 }
 
 // *************************************************
-
+/*
 CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
 	try {
 		return CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile(name, filename, resourceGroup);
@@ -2136,13 +2085,86 @@ int bmx_cegui_imagesetmanager_isimagesetpresent(const CEGUI::utf8 * name) {
 void bmx_cegui_imagesetmanager_notifyscreenresolution(float width, float height) {
 	CEGUI::ImagesetManager::getSingleton().notifyScreenResolution(CEGUI::Size(width, height));
 }
+*/
+
+CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture, CEGUI::XMLResourceExistsAction action) {
+	try {
+		return & CEGUI::ImagesetManager::getSingleton().create(name, *texture, action);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
+	try {
+		return & CEGUI::ImagesetManager::getSingleton().createFromImageFile(name, filename, resourceGroup, action);
+	} catch (CEGUI::FileIOException &e) {
+		bmx_cegui_throw_fileioexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+void bmx_cegui_imagesetmanager_notifydisplaysizechanged(float width, float height) {
+	CEGUI::ImagesetManager::getSingleton().notifyDisplaySizeChanged(CEGUI::Size(width, height));
+}
+
+BBObject * bmx_cegui_imagesetmanager_createimageset(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
+	return _bah_cegui_TCEImageset__create(&CEGUI::ImagesetManager::getSingleton().create(filename, resourceGroup, action));
+}
+
+void bmx_cegui_imagesetmanager_destroyname(const CEGUI::utf8 * name) {
+	CEGUI::ImagesetManager::getSingleton().destroy(name);	
+}
+
+void bmx_cegui_imagesetmanager_destroyobj(CEGUI::Imageset * imageset) {
+	CEGUI::ImagesetManager::getSingleton().destroy(*imageset);
+}
+
+void bmx_cegui_imagesetmanager_destroyall() {
+	CEGUI::ImagesetManager::getSingleton().destroyAll();
+}
+
+CEGUI::Imageset * bmx_cegui_imagesetmanager_get(const CEGUI::utf8 * name) {
+	return & CEGUI::ImagesetManager::getSingleton().get(name);
+}
+
+int bmx_cegui_imagesetmanager_isdefined(const CEGUI::utf8 * name) {
+	return static_cast<int>(CEGUI::ImagesetManager::getSingleton().isDefined(name));
+}
+
+void bmx_cegui_imagesetmanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup) {
+	CEGUI::ImagesetManager::getSingleton().createAll(pattern, resourceGroup);
+}
+
 
 // *************************************************
 
-CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
+CEGUI::Font * bmx_cegui_fontmanager_createfreetypefont(const CEGUI::utf8 * font_name, float pointSize, int antialiased, const CEGUI::utf8 * fontFilename, 
+		const CEGUI::utf8 * resourceGroup, int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action) {
+	return &CEGUI::FontManager::getSingleton().createFreeTypeFont(font_name, pointSize, antialiased, fontFilename, resourceGroup, 
+		autoScaled, nativeHorzRes, nativeVertRes, action);
+}
+
+CEGUI::Font * bmx_cegui_fontmanager_createpixmapfont(const CEGUI::utf8 * font_name, const CEGUI::utf8 * imagesetFilename, const CEGUI::utf8 * resourceGroup,
+		int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action) {
+	return & CEGUI::FontManager::getSingleton().createPixmapFont(font_name, imagesetFilename, resourceGroup, 
+		autoScaled, nativeHorzRes, nativeVertRes, action);
+}
+
+void bmx_cegui_fontmanager_notifydislaysizechanged(float width, float height) {
+	CEGUI::FontManager::getSingleton().notifyDisplaySizeChanged(CEGUI::Size(width, height));
+}
+
+CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
 	try {
-		return CEGUI::FontManager::getSingleton().createFont(filename, resourceGroup);
-		
+		return &CEGUI::FontManager::getSingleton().create(filename, resourceGroup, action);
 	} catch (CEGUI::FileIOException &e) {
 		bmx_cegui_throw_fileioexception(e);
 	} catch (CEGUI::InvalidRequestException &e) {
@@ -2160,43 +2182,21 @@ CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, con
 	}
 }
 
-int bmx_cegui_fontmanager_isfontpresent(const CEGUI::utf8 * name) {
-	return CEGUI::FontManager::getSingleton().isFontPresent(name);
+void bmx_cegui_fontmanager_destroyname(const CEGUI::utf8 * name) {
+	CEGUI::FontManager::getSingleton().destroy(name);
 }
 
-CEGUI::Font * bmx_cegui_fontmanager_createfonttype(const CEGUI::utf8 * fontType, const CEGUI::utf8 * name, const CEGUI::utf8 * fontName, const CEGUI::utf8 * resourceGroup) {
-	try {
-		return CEGUI::FontManager::getSingleton().createFont(fontType, name, fontName, resourceGroup);
-		
-	} catch (CEGUI::AlreadyExistsException &e) {
-		bmx_cegui_throw_alreadyexistsexception(e);
-	} catch (CEGUI::GenericException &e) {
-		bmx_cegui_throw_genericexception(e);
-	} catch (CEGUI::RendererException &e) {
-		bmx_cegui_throw_rendererexception(e);
-	} catch (CEGUI::MemoryException &e) {
-		bmx_cegui_throw_memoryexception(e);
-	} catch (CEGUI::Exception &e) {
-		bmx_cegui_throw_exception(e);
-	}
+void bmx_cegui_fontmanager_destroyobj(CEGUI::Font * font) {
+	CEGUI::FontManager::getSingleton().destroy(*font);
 }
 
-void bmx_cegui_fontmanager_destroyfont(CEGUI::Font * font) {
-	CEGUI::FontManager::getSingleton().destroyFont(font);
+void bmx_cegui_fontmanager_destroyall() {
+	CEGUI::FontManager::getSingleton().destroyAll();
 }
 
-void bmx_cegui_fontmanager_destroyfonttxt(const CEGUI::utf8 * font) {
-	CEGUI::FontManager::getSingleton().destroyFont(font);
-}
-
-void bmx_cegui_fontmanager_destroyAllFonts() {
-	CEGUI::FontManager::getSingleton().destroyAllFonts();
-}
-
-CEGUI::Font * bmx_cegui_fontmanager_getfont(const CEGUI::utf8 * name) {
-	try {
-		return CEGUI::FontManager::getSingleton().getFont(name);
-		
+BBObject * bmx_cegui_fontmanager_get(const CEGUI::utf8 * name) {
+	try{ 
+		// TODO
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -2204,9 +2204,14 @@ CEGUI::Font * bmx_cegui_fontmanager_getfont(const CEGUI::utf8 * name) {
 	}
 }
 
-void bmx_cegui_fontmanager_notifyscreenresolution(float width, float height) {
-	CEGUI::FontManager::getSingleton().notifyScreenResolution(CEGUI::Size(width, height));
+int bmx_cegui_fontmanager_isdefined(const CEGUI::utf8 * name) {
+	return static_cast<int>(CEGUI::FontManager::getSingleton().isDefined(name));
 }
+
+void bmx_cegui_fontmanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup) {
+	CEGUI::FontManager::getSingleton().createAll(pattern, resourceGroup);
+}
+
 
 // *************************************************
 
@@ -2465,7 +2470,7 @@ void bmx_cegui_tabcontrol_settabheightu(CEGUI::TabControl * tc, const CEGUI::UDi
 
 // *************************************************
 
-
+/*
 BBObject * bmx_cegui_renderer_createtexture(CEGUI::Renderer * rend, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
 	return _bah_cegui_TCETexture__create(rend->createTexture(filename, resourceGroup));
 }
@@ -2531,32 +2536,20 @@ float bmx_cegui_renderer_getzlayer(CEGUI::Renderer * rend, CEGUI::uint layer) {
 BBString * bmx_cegui_renderer_getidentifierstring(CEGUI::Renderer * rend) {
 	return bah_cegui__convertUTF8ToMax(rend->getIdentifierString().data());
 }
+*/
 
 // *************************************************
 
-
-int bmx_cegui_texture_getwidth(CEGUI::Texture * texture) {
-	return static_cast<int>(texture->getWidth());
+void bmx_cegui_texture_getsize(CEGUI::Texture * texture, int * w, int * h) {
+	CEGUI::Size s(texture->getSize());
+	*w = s.d_width;
+	*h = s.d_height;
 }
 
-int bmx_cegui_texture_getoriginalwidth(CEGUI::Texture * texture) {
-	return static_cast<int>(texture->getOriginalWidth());
-}
-
-float bmx_cegui_texture_getxscale(CEGUI::Texture * texture) {
-	return texture->getXScale();
-}
-
-int bmx_cegui_texture_getheight(CEGUI::Texture * texture) {
-	return static_cast<int>(texture->getHeight());
-}
-
-int bmx_cegui_texture_getoriginalheight(CEGUI::Texture * texture) {
-	return static_cast<int>(texture->getOriginalHeight());
-}
-
-float bmx_cegui_texture_getyscale(CEGUI::Texture * texture) {
-	return texture->getYScale();
+void bmx_cegui_texture_getoriginaldatasize(CEGUI::Texture * texture, int * w, int * h) {
+	CEGUI::Size s(texture->getOriginalDataSize());
+	*w = s.d_width;
+	*h = s.d_height;
 }
 
 void bmx_cegui_texture_loadfromfile(CEGUI::Texture * texture, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup) {
@@ -2564,7 +2557,11 @@ void bmx_cegui_texture_loadfromfile(CEGUI::Texture * texture, const CEGUI::utf8 
 }
 
 void bmx_cegui_texture_loadfrommemory(CEGUI::Texture * texture, const void * buffer, CEGUI::uint width, CEGUI::uint height, CEGUI::Texture::PixelFormat pixelFormat) {
-	texture->loadFromMemory(buffer, width, height, pixelFormat);
+	texture->loadFromMemory(buffer, CEGUI::Size(width, height), pixelFormat);
+}
+
+void bmx_cegui_texture_savetomemory(CEGUI::Texture * texture, void * buffer) {
+	texture->saveToMemory(buffer);
 }
 
 // *************************************************
@@ -4270,8 +4267,8 @@ void bmx_cegui_coordconverter_screentowindowrect(CEGUI::Window * window, float x
 // *************************************************
 
 
-int bmx_cegui_combobox_ishit(CEGUI::Combobox * cb, float x, float y) {
-	return cb->isHit(CEGUI::Point(x, y));
+int bmx_cegui_combobox_ishit(CEGUI::Combobox * cb, float x, float y, int allowDisabled) {
+	return cb->isHit(CEGUI::Point(x, y), allowDisabled);
 }
 
 int bmx_cegui_combobox_getsingleclickenabled(CEGUI::Combobox * cb) {
@@ -4704,8 +4701,8 @@ void bmx_cegui_imageset_setnativeresolution(CEGUI::Imageset * is, float width, f
 	is->setNativeResolution(CEGUI::Size(width, height));
 }
 
-void bmx_cegui_imageset_notifyscreenresolution(CEGUI::Imageset * is, float width, float height) {
-	is->notifyScreenResolution(CEGUI::Size(width, height));
+void bmx_cegui_imageset_notifydisplaysizechanged(CEGUI::Imageset * is, float width, float height) {
+	is->notifyDisplaySizeChanged(CEGUI::Size(width, height));
 }
 
 // *************************************************
@@ -4923,5 +4920,41 @@ void bmx_cegui_listheader_setsegmentoffset(CEGUI::ListHeader * head, float offse
 
 void bmx_cegui_listheader_setcolumnwidth(CEGUI::ListHeader * head, CEGUI::uint column, float width) {
 	head->setColumnWidth(column, guessUDim(width));
+}
+
+// *************************************************
+
+BBObject * bmx_cegui_schememanager_createscheme(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
+	return _bah_cegui_TCEScheme__create(&CEGUI::SchemeManager::getSingleton().create(filename, resourceGroup, action));
+}
+
+void bmx_cegui_schememanager_destroyname(const CEGUI::utf8 * scheme) {
+	CEGUI::SchemeManager::getSingleton().destroy(scheme);
+}
+
+void bmx_cegui_schememanager_destroyobj(CEGUI::Scheme * scheme) {
+	CEGUI::SchemeManager::getSingleton().destroy(*scheme);
+}
+
+void bmx_cegui_schememanager_destroyall() {
+	CEGUI::SchemeManager::getSingleton().destroyAll();
+}
+
+BBObject * bmx_cegui_schememanager_get(const CEGUI::utf8 * name) {
+	try {
+		return _bah_cegui_TCEScheme__create(&CEGUI::SchemeManager::getSingleton().get(name));
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+int bmx_cegui_schememanager_isdefined(const CEGUI::utf8 * name) {
+	return static_cast<int>(CEGUI::SchemeManager::getSingleton().isDefined(name));
+}
+
+void bmx_cegui_schememanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup) {
+	CEGUI::SchemeManager::getSingleton().createAll(pattern, resourceGroup);
 }
 

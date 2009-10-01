@@ -118,7 +118,7 @@ void FrameWindow::initialiseComponents(void)
 
     // configure titlebar
     titlebar->setDraggingEnabled(d_dragMovable);
-    titlebar->setText(d_text);
+    titlebar->setText(getText());
 
     // bind handler to close button 'Click' event
     closeButton->subscribeEvent(PushButton::EventClicked, Event::Subscriber(&CEGUI::FrameWindow::closeClickHandler, this));
@@ -160,7 +160,7 @@ void FrameWindow::setSizingEnabled(bool setting)
 void FrameWindow::setFrameEnabled(bool setting)
 {
 	d_frameEnabled = setting;
-	requestRedraw();
+	invalidate();
 }
 
 
@@ -316,8 +316,8 @@ void FrameWindow::moveLeftEdge(float delta)
     // NB: We are required to do this here due to our virtually unique sizing nature; the
     // normal system for limiting the window size is unable to supply the information we
     // require for updating our internal state used to manage the dragging, etc.
-    float maxWidth(d_maxSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getWidth()));
-    float minWidth(d_minSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getWidth()));
+    float maxWidth(d_maxSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_width));
+    float minWidth(d_minSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_width));
     float newWidth = orgWidth - delta;
 
     if (newWidth > maxWidth)
@@ -359,8 +359,8 @@ void FrameWindow::moveRightEdge(float delta)
     // NB: We are required to do this here due to our virtually unique sizing nature; the
     // normal system for limiting the window size is unable to supply the information we
     // require for updating our internal state used to manage the dragging, etc.
-    float maxWidth(d_maxSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getWidth()));
-    float minWidth(d_minSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getWidth()));
+    float maxWidth(d_maxSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_width));
+    float minWidth(d_minSize.d_x.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_width));
     float newWidth = orgWidth + delta;
 
     if (newWidth > maxWidth)
@@ -404,8 +404,8 @@ void FrameWindow::moveTopEdge(float delta)
     // NB: We are required to do this here due to our virtually unique sizing nature; the
     // normal system for limiting the window size is unable to supply the information we
     // require for updating our internal state used to manage the dragging, etc.
-    float maxHeight(d_maxSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getHeight()));
-    float minHeight(d_minSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getHeight()));
+    float maxHeight(d_maxSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_height));
+    float minHeight(d_minSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_height));
     float newHeight = orgHeight - delta;
 
     if (newHeight > maxHeight)
@@ -449,8 +449,8 @@ void FrameWindow::moveBottomEdge(float delta)
     // NB: We are required to do this here due to our virtually unique sizing nature; the
     // normal system for limiting the window size is unable to supply the information we
     // require for updating our internal state used to manage the dragging, etc.
-    float maxHeight(d_maxSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getHeight()));
-    float minHeight(d_minSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getHeight()));
+    float maxHeight(d_maxSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_height));
+    float minHeight(d_minSize.d_y.asAbsolute(System::getSingleton().getRenderer()->getDisplaySize().d_height));
     float newHeight = orgHeight + delta;
 
     if (newHeight > maxHeight)
@@ -484,7 +484,7 @@ void FrameWindow::moveBottomEdge(float delta)
 /*************************************************************************
 	Handler to map close button clicks to FrameWindow 'CloseCliked' events
 *************************************************************************/
-bool FrameWindow::closeClickHandler(const EventArgs& e)
+bool FrameWindow::closeClickHandler(const EventArgs&)
 {
     WindowEventArgs args(this);
 	onCloseClicked(args);
@@ -535,8 +535,9 @@ void FrameWindow::setCursorForPoint(const Point& pt) const
 *************************************************************************/
 void FrameWindow::onRollupToggled(WindowEventArgs& e)
 {
-    requestRedraw();
+    invalidate();
     notifyClippingChanged();
+    notifyScreenAreaChanged(true);
 
 	fireEvent(EventRollupToggled, e, EventNamespace);
 }
@@ -606,7 +607,7 @@ void FrameWindow::onMouseMove(MouseEventArgs& e)
 	}
 
 	// mark event as handled
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -634,7 +635,7 @@ void FrameWindow::onMouseButtonDown(MouseEventArgs& e)
 					// setup the 'dragging' state variables
 					d_beingSized = true;
 					d_dragPoint = localPos;
-					e.handled = true;
+					++e.handled;
 				}
 
 			}
@@ -658,7 +659,7 @@ void FrameWindow::onMouseButtonUp(MouseEventArgs& e)
 	{
 		// release our capture on the input data
 		releaseInput();
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -675,7 +676,7 @@ void FrameWindow::onCaptureLost(WindowEventArgs& e)
 	// reset sizing state
 	d_beingSized = false;
 
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -686,7 +687,7 @@ void FrameWindow::onTextChanged(WindowEventArgs& e)
 {
     Window::onTextChanged(e);
     // pass this onto titlebar component.
-    getTitlebar()->setText(d_text);
+    getTitlebar()->setText(getText());
     // maybe the user is using a fontdim for titlebar dimensions ;)
     performChildWindowLayout();
 }
@@ -698,7 +699,7 @@ void FrameWindow::onTextChanged(WindowEventArgs& e)
 void FrameWindow::onActivated(ActivationEventArgs& e)
 {
 	Window::onActivated(e);
-	getTitlebar()->requestRedraw();
+	getTitlebar()->invalidate();
 }
 
 
@@ -708,7 +709,7 @@ void FrameWindow::onActivated(ActivationEventArgs& e)
 void FrameWindow::onDeactivated(ActivationEventArgs& e)
 {
 	Window::onDeactivated(e);
-	getTitlebar()->requestRedraw();
+	getTitlebar()->invalidate();
 }
 
 
@@ -816,7 +817,7 @@ void FrameWindow::setNESWSizingCursorImage(const Image* image)
 *************************************************************************/
 void FrameWindow::setNSSizingCursorImage(const String& imageset, const String& image)
 {
-    d_nsSizingCursor = &ImagesetManager::getSingleton().getImageset(imageset)->getImage(image);
+    d_nsSizingCursor = &ImagesetManager::getSingleton().get(imageset).getImage(image);
 }
 
 /*************************************************************************
@@ -824,7 +825,7 @@ void FrameWindow::setNSSizingCursorImage(const String& imageset, const String& i
 *************************************************************************/
 void FrameWindow::setEWSizingCursorImage(const String& imageset, const String& image)
 {
-    d_ewSizingCursor = &ImagesetManager::getSingleton().getImageset(imageset)->getImage(image);
+    d_ewSizingCursor = &ImagesetManager::getSingleton().get(imageset).getImage(image);
 }
 
 /*************************************************************************
@@ -832,7 +833,7 @@ void FrameWindow::setEWSizingCursorImage(const String& imageset, const String& i
 *************************************************************************/
 void FrameWindow::setNWSESizingCursorImage(const String& imageset, const String& image)
 {
-    d_nwseSizingCursor = &ImagesetManager::getSingleton().getImageset(imageset)->getImage(image);
+    d_nwseSizingCursor = &ImagesetManager::getSingleton().get(imageset).getImage(image);
 }
 
 /*************************************************************************
@@ -840,7 +841,7 @@ void FrameWindow::setNWSESizingCursorImage(const String& imageset, const String&
 *************************************************************************/
 void FrameWindow::setNESWSizingCursorImage(const String& imageset, const String& image)
 {
-    d_neswSizingCursor = &ImagesetManager::getSingleton().getImageset(imageset)->getImage(image);
+    d_neswSizingCursor = &ImagesetManager::getSingleton().get(imageset).getImage(image);
 }
 
 /*************************************************************************

@@ -2,7 +2,7 @@
 	filename: 	CEGUIWindowManager.h
 	created:	21/2/2004
 	author:		Paul D Turner
-
+	
 	purpose:	Defines the interface for the WindowManager object
 *************************************************************************/
 /***************************************************************************
@@ -35,6 +35,7 @@
 #include "CEGUISingleton.h"
 #include "CEGUILogger.h"
 #include "CEGUIIteratorBase.h"
+#include "CEGUIEventSet.h"
 #include <map>
 #include <vector>
 
@@ -57,13 +58,20 @@ namespace CEGUI
 	WindowFactoryManager.  Additionally, the WindowManager tracks every Window object created, and can be
 	used to access those Window objects by name.
 */
-class CEGUIEXPORT WindowManager : public Singleton <WindowManager>
+class CEGUIEXPORT WindowManager : public Singleton <WindowManager>,
+                                  public EventSet
 {
 public:
     /*************************************************************************
         Public static data
     *************************************************************************/
     static const String GeneratedWindowNameBase;      //!< Base name to use for generated window names.
+    //! Namespace for global events.
+    static const String EventNamespace;
+    //! Event fired when a new Window object is created.
+    static const String EventWindowCreated;
+    //! Event fired when a Window object is destroyed.
+    static const String EventWindowDestroyed;
 
 	/*!
 	\brief
@@ -87,7 +95,7 @@ public:
 		- false if the property should not be set,
 	*/
 	typedef bool PropertyCallback(Window* window, String& propname, String& propvalue, void* userdata);
-
+	
 	/*************************************************************************
 		Construction and Destruction
 	*************************************************************************/
@@ -135,7 +143,7 @@ public:
 	\exception	UnknownObjectException		No WindowFactory is registered for \a type Window objects.
 	\exception	GenericException			Some other error occurred (Exception message has details).
 	*/
-	Window* createWindow(const String& type, const String& name = "", const String& prefix = "");
+	Window* createWindow(const String& type, const String& name = "");
 
 
 	/*!
@@ -210,22 +218,7 @@ public:
 
 	/*!
 	\brief
-		Creates a set of windows (a Gui layout) from the information in the specified XML file.
-
-    \warning
-        When using a C string literal as the value for the second argument
-        \a name_prefix, currently (0.6.x releases) it is likely that the
-        incorrect overload of loadWindowLayout will be invoked (possibly without
-        immediate error or warning).  To avoid the possibility of invoking the
-        incorrect overload by mistake, it is recommended that you explicity use
-        the CEGUI::String type when passing \a name_prefix.
-        \par
-        For example, instead of this:
-        \code winMgr.loadWindowLayout("MyLayout.layout", "aPrefix/"); \endcode
-        \par
-        Do this:
-        \code winMgr.loadWindowLayout("MyLayout.layout", CEGUI::String("aPrefix/"));
-        \endcode
+		Creates a set of windows (a Gui layout) from the information in the specified XML file.	
 
 	\param filename
 		String object holding the filename of the XML file to be processed.
@@ -254,8 +247,6 @@ public:
 	\exception InvalidRequestException	thrown if \a filename appears to be invalid.
 	*/
 	Window*	loadWindowLayout(const String& filename, const String& name_prefix = "", const String& resourceGroup = "", PropertyCallback* callback = 0, void* userdata = 0);
-
-	Window*	loadWindowLayout(const String& filename, bool generateRandomPrefix);
 
     /*!
     \brief
@@ -433,8 +424,6 @@ private:
     */
     String generateUniqueWindowName();
 
-	String generateUniqueWindowPrefix();
-
 	/*************************************************************************
 		Implementation Constants
 	*************************************************************************/
@@ -477,7 +466,7 @@ public:
     \return
     Nothing.
     */
-    void DEBUG_dumpWindowNames(String zone);
+    void DEBUG_dumpWindowNames(String zone);    
 };
 
 } // End of  CEGUI namespace section

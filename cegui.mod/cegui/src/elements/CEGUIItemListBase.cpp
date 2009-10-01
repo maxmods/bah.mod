@@ -334,7 +334,7 @@ void ItemListBase::onListContentsChanged(WindowEventArgs& e)
     // if we are not currently initialising we might have things todo
 	if (!d_initialising)
 	{
-	    requestRedraw();
+	    invalidate();
 
 	    // if auto resize is enabled - do it
 	    if (d_autoResize)
@@ -351,6 +351,16 @@ void ItemListBase::onListContentsChanged(WindowEventArgs& e)
 	}
 }
 
+//----------------------------------------------------------------------------//
+void ItemListBase::onParentSized(WindowEventArgs& e)
+{
+    Window::onParentSized(e);
+
+    if (d_autoResize)
+        sizeToContent();
+}
+
+//----------------------------------------------------------------------------//
 
 /************************************************************************
     Handler for when a child is removed

@@ -30,8 +30,8 @@
 #ifndef _CEGUIGUISheet_h_
 #define _CEGUIGUISheet_h_
 
-#include "CEGUIWindow.h"
-#include "CEGUIWindowFactory.h"
+#include "../CEGUIWindow.h"
+#include "../CEGUIWindowFactory.h"
 
 
 // Start of CEGUI namespace section
@@ -91,6 +91,15 @@ protected:
 		if (class_name=="DefaultWindow" || class_name=="GUISheet")	return true;
 		return Window::testClassName_impl(class_name);
 	}
+
+    //! helper to update mouse input handled state
+    void updateMouseEventHandled(MouseEventArgs& e) const;
+
+    // override the mouse event handlers
+    void onMouseMove(MouseEventArgs& e);
+    void onMouseWheel(MouseEventArgs& e);
+    void onMouseButtonDown(MouseEventArgs& e);
+    void onMouseButtonUp(MouseEventArgs& e);
 };
 
 

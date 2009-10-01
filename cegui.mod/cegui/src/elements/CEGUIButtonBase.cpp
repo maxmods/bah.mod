@@ -87,7 +87,7 @@ void ButtonBase::updateInternalState(const Point& mouse_pos)
 	// if state has changed, trigger a re-draw
 	if (oldstate != d_hovering)
 	{
-		requestRedraw();
+		invalidate();
 	}
 
 }
@@ -108,7 +108,7 @@ void ButtonBase::onMouseMove(MouseEventArgs& e)
 	Window::onMouseMove(e);
 
 	updateInternalState(e.position);
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -126,11 +126,11 @@ void ButtonBase::onMouseButtonDown(MouseEventArgs& e)
 		{
 			d_pushed = true;
 			updateInternalState(e.position);
-			requestRedraw();
+			invalidate();
 		}
 
 		// event was handled by us.
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -149,7 +149,7 @@ void ButtonBase::onMouseButtonUp(MouseEventArgs& e)
 		releaseInput();
 
 		// event was handled by us.
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -163,11 +163,12 @@ void ButtonBase::onCaptureLost(WindowEventArgs& e)
 	Window::onCaptureLost(e);
 
 	d_pushed = false;
-	updateInternalState(MouseCursor::getSingletonPtr()->getPosition());
-	requestRedraw();
+	updateInternalState(
+        getUnprojectedPosition(MouseCursor::getSingletonPtr()->getPosition()));
+	invalidate();
 
 	// event was handled by us.
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -180,9 +181,9 @@ void ButtonBase::onMouseLeaves(MouseEventArgs& e)
 	Window::onMouseLeaves(e);
 
 	d_hovering = false;
-	requestRedraw();
+	invalidate();
 
-	e.handled = true;
+	++e.handled;
 }
 
 } // End of  CEGUI namespace section

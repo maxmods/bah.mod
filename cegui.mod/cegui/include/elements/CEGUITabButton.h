@@ -30,8 +30,8 @@
 #ifndef _CEGUITabButton_h_
 #define _CEGUITabButton_h_
 
-#include "CEGUIBase.h"
-#include "elements/CEGUIButtonBase.h"
+#include "../CEGUIBase.h"
+#include "CEGUIButtonBase.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
@@ -76,7 +76,7 @@ public:
     \brief
         Set whether this tab button is selected or not
     */
-    virtual void setSelected(bool selected) { d_selected = selected; requestRedraw(); }
+    virtual void setSelected(bool selected) { d_selected = selected; invalidate(); }
 
     /*!
     \brief

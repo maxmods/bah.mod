@@ -30,8 +30,8 @@
 #ifndef _CEGUITitlebar_h_
 #define _CEGUITitlebar_h_
 
-#include "CEGUIWindow.h"
-#include "elements/CEGUITitlebarProperties.h"
+#include "../CEGUIWindow.h"
+#include "CEGUITitlebarProperties.h"
 
 
 #if defined(_MSC_VER)
@@ -117,7 +117,7 @@ protected:
 		Note that this is for 'internal' use at the moment and as such does not add or
 		fire a public Event that can be subscribed to.
 	*/
-	virtual void	onDraggingModeChanged(WindowEventArgs& e) {}
+	virtual void	onDraggingModeChanged(WindowEventArgs&) {}
 
 
 	/*************************************************************************

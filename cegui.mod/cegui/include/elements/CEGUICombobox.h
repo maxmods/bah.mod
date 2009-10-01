@@ -30,9 +30,9 @@
 #ifndef _CEGUICombobox_h_
 #define _CEGUICombobox_h_
 
-#include "CEGUIBase.h"
-#include "CEGUIWindow.h"
-#include "elements/CEGUIComboboxProperties.h"
+#include "../CEGUIBase.h"
+#include "../CEGUIWindow.h"
+#include "CEGUIComboboxProperties.h"
 
 
 #if defined(_MSC_VER)
@@ -88,18 +88,9 @@ public:
     static const String DropListNameSuffix;   //!< Widget name suffix for the drop list component.
     static const String ButtonNameSuffix;           //!< Widget name suffix for the button component.
 
-	/*!
-	\brief
-		check if the given position would hit this window.
-
-	\param position
-		Point object describing the position to check in screen pixels
-
-	\return
-		true if \a position 'hits' this Window, else false.
-	*/
-	virtual bool	isHit(const Point& position) const		{return false;}
-
+    // override from Window class
+    bool isHit(const Vector2& position,
+               const bool allow_disabled = false) const;
 
 	/*!
 	\brief

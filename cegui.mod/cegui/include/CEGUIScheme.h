@@ -125,35 +125,16 @@ public:
 
 private:
 	/*************************************************************************
-		Implementation Constants
-	*************************************************************************/
-	static const char	GUISchemeSchemaName[];			//!< Filename of the XML schema used for validating GUIScheme files.
-
-	/*************************************************************************
-		Friends
-	*************************************************************************/
-	friend	Scheme* SchemeManager::loadScheme(const String& scheme_filename, const String& resourceGroup);
-	friend	void	SchemeManager::unloadScheme(const String& scheme_name);
-
-
-	/*************************************************************************
 		Construction and Destruction
 	*************************************************************************/
 	/*!
 	\brief
-		Creates a scheme object from the data specified in the file \a filename
+		Constructs an empty scheme object with the specified name.
 
-	\param filename
-		String object holding the name of the file to use when creating this Scheme object.
-
-    \param resourceGroup
-        Group identifier to be passed to the resource provider when loading the scheme
-        specification file.
-
-	\return
-		Nothing.
+	\param name
+		String object holding the name of the Scheme object.
 	*/
-	Scheme(const String& filename, const String& resourceGroup);
+	Scheme(const String& name);
 
     /*!
     \brief
@@ -333,6 +314,14 @@ private:
 		std::vector<UIElementFactory>	factories;
 	};
 
+    struct WRModule
+    {
+        String name;
+        DynamicModule* dynamicModule;
+        WindowRendererModule* wrModule;
+        std::vector<String> wrTypes;
+    };
+
 	struct AliasMapping
 	{
 		String aliasName;
@@ -356,7 +345,7 @@ private:
 	std::vector<LoadableUIElement>		d_imagesetsFromImages;
 	std::vector<LoadableUIElement>		d_fonts;
 	std::vector<UIModule>				d_widgetModules;
-    std::vector<UIModule>               d_windowRendererModules;
+    std::vector<WRModule>               d_windowRendererModules;
 	std::vector<AliasMapping>			d_aliasMappings;
     std::vector<LoadableUIElement>		d_looknfeels;
     std::vector<FalagardMapping>        d_falagardMappings;

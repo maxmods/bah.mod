@@ -43,9 +43,6 @@
 // Start of CEGUI namespace section
 namespace CEGUI
 {
-
-class WidgetLookFeel;
-
 /*!
 \brief
     Base-class for the assignable WindowRenderer object
@@ -121,17 +118,20 @@ public:
 
     /*!
     \brief
-        Get actual pixel rectangle our window is to return from its
-        member function with the same name.
-    */
-    virtual Rect getPixelRect() const;
-
-    /*!
-    \brief
         Method called to perform extended laying out of the window's attached
         child windows.
     */
     virtual void performChildWindowLayout() {}
+
+    /*!
+    \brief
+        update the RenderingContext as needed for our window.  This is normally
+        invoked via our window's member function with the same name.
+    */
+    virtual void getRenderingContext(RenderingContext& ctx) const;
+
+    //! perform any time based updates for this WindowRenderer.
+    virtual void update(float /*elapsed*/) {}
 
 protected:
     /*************************************************************************
@@ -171,6 +171,8 @@ protected:
         Handler called when a Look'N'Feel is removed/unassigned from our window.
     */
     virtual void onLookNFeelUnassigned() {}
+
+    void operator=(const WindowRenderer&) {}
 
     /*************************************************************************
         Implementation data

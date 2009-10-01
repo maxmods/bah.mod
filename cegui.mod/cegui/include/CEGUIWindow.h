@@ -41,8 +41,9 @@
 #include "CEGUIInputEvent.h"
 #include "CEGUIWindowProperties.h"
 #include "CEGUIUDim.h"
-#include "CEGUIRenderCache.h"
 #include "CEGUIWindowRenderer.h"
+#include "CEGUITextUtils.h"
+#include "CEGUIBasicRenderedStringParser.h"
 #include <vector>
 #include <set>
 
@@ -121,11 +122,12 @@ public:
     /*************************************************************************
         Event name constants
     *************************************************************************/
-    //!< Namespace for global events
+    //! Namespace for global events
     static const String EventNamespace;
 
     // generated internally by Window
-	static const String EventWindowUpdated; //!< Event to signal the window is being updated. Used by lua system!
+    //! Signal the time based update of window.
+    static const String EventWindowUpdated;
     //! Parent of this Window has been re-sized.
     static const String EventParentSized;
     //! Window size has changed
@@ -190,6 +192,10 @@ public:
     static const String EventWindowRendererAttached;
     //! The currently assigned window renderer was detached.
     static const String EventWindowRendererDetached;
+    //! Window rotation factor(s) changed
+    static const String EventRotated;
+    //! Window non-client setting was changed
+    static const String EventNonClientChanged;
 
     // generated externally (inputs)
     //! Mouse cursor has entered the Window.
@@ -226,9 +232,6 @@ public:
     static const String AutoWidgetNameSuffix;
 
 
-    /*************************************************************************
-        Construction and Destruction
-    *************************************************************************/
     /*!
     \brief
         Constructor for Window base class
@@ -247,9 +250,6 @@ public:
     */
     virtual ~Window(void);
 
-    /*************************************************************************
-        Accessor functions
-    *************************************************************************/
     /*!
     \brief
         return a String object holding the type name for this Window.
@@ -267,12 +267,6 @@ public:
         String object holding the unique Window name.
     */
     const String& getName(void) const  {return d_name;}
-
-	/**
-	 * Return a string to the window prefix
-	 * \return String object holding the prefix of this window
-	 */
-	const String& getPrefix(void) const {return d_windowPrefix;}
 
     /*!
     \brief
@@ -467,16 +461,6 @@ public:
 
     /*!
     \brief
-        This is / was intended for internal use only (should have had protected
-        visibility).  This function is deprecated - do not use this function at
-        all, ever.  The only reason this function is still here is to maintain
-        ABI compatibility for the 0.6.x series of releases.  This function will
-        be gone in 0.7.0.
-    */
-	Window* recursiveChildSearch(const String& name) const;
-
-    /*!
-    \brief
         return a pointer to the first attached child window with the specified
         ID value.
 
@@ -642,7 +626,10 @@ public:
     \return
         The String object that holds the current text for this Window.
     */
-    const String& getText(void) const   {return d_text;}
+    const String& getText(void) const {return d_textLogical;}
+
+    //! return text string with \e visual ordering of glyphs.
+    const String& getTextVisual() const;
 
     /*!
     \brief
@@ -686,68 +673,90 @@ public:
 
     /*!
     \brief
-        return a Rect object describing the Window area in screen space.
+        Return a Rect that describes the unclipped outer rect area of the Window
+        in screen pixels.
+    */
+    Rect getUnclippedOuterRect() const;
 
-    \return
-        Rect object that describes the area covered by the Window.  The values
-        in the returned Rect are in screen pixels.  The returned Rect is clipped
-        as appropriate and depending upon the 'ClippedByParent' setting.
+    /*!
+    \brief
+        Return a Rect that describes the unclipped inner rect area of the Window
+        in screen pixels.
+    */
+    Rect getUnclippedInnerRect() const;
+
+    /*!
+    \brief
+        Return a Rect that describes the unclipped area covered by the Window.
+
+        This function can return either the inner or outer area dependant upon
+        the boolean values passed in.
+
+    \param inner
+        - true if the inner rect area should be returned.
+        - false if the outer rect area should be returned.
+    */
+    Rect getUnclippedRect(const bool inner) const;
+
+    /*!
+    \brief
+        Return a Rect that describes the rendering clipping rect based upon the
+        outer rect area of the window.
 
     \note
-        This has now been made virtual to ease some customisations that require
-        more specialised clipping requirements.
+        The area returned by this function gives you the correct clipping rect
+        for rendering within the Window's outer rect area.  The area described
+        may or may not correspond to the final visual clipping actually seen on
+        the display; this is intentional and neccessary due to the way that
+        imagery is cached under some configurations.
     */
-    Rect getPixelRect(void) const;
+    Rect getOuterRectClipper() const;
 
     /*!
     \brief
-        return a Rect object describing the Window area in screen space.
-
-    \return
-        Rect object that describes the area covered by the Window.  The values
-        in the returned Rect are in screen pixels.  The returned Rect is clipped
-        as appropriate and depending upon the 'ClippedByParent' setting.
+        Return a Rect that describes the rendering clipping rect based upon the
+        inner rect area of the window.
 
     \note
-        This has now been made virtual to ease some customisations that require
-        more specialised clipping requirements.
+        The area returned by this function gives you the correct clipping rect
+        for rendering within the Window's inner rect area.  The area described
+        may or may not correspond to the final visual clipping actually seen on
+        the display; this is intentional and neccessary due to the way that
+        imagery is cached under some configurations.
     */
-    virtual Rect getPixelRect_impl(void) const;
+    Rect getInnerRectClipper() const;
 
     /*!
     \brief
-        return a Rect object describing the clipped inner area for this window.
+        Return a Rect that describes the rendering clipping rect for the Window.
 
-    \return
-        Rect object that describes, in appropriately clipped screen pixel
-        co-ordinates, the window object's inner rect area.
+        This function can return the clipping rect for either the inner or outer
+        area dependant upon the boolean values passed in.
+
+    \note
+        The areas returned by this function gives you the correct clipping rects
+        for rendering within the Window's areas.  The area described may or may
+        not correspond to the final visual clipping actually seen on the
+        display; this is intentional and neccessary due to the way that imagery
+        is cached under some configurations.
+
+    \param non_client
+        - true to return the non-client clipping area (based on outer rect).
+        - false to return the client clipping area (based on inner rect).
     */
-    Rect getInnerRect(void) const;
+    Rect getClipRect(const bool non_client = false) const;
 
     /*!
     \brief
-        return a Rect object describing the Window area unclipped, in screen
-        space.
+        Return the Rect that descibes the clipped screen area that is used for
+        determining whether this window has been hit by a certain point.
 
-    \return
-        Rect object that describes the area covered by the Window.  The values
-        in the returned Rect are in screen pixels.  The returned rect is fully
-        unclipped.
+        The area returned by this function may also be useful for certain
+        calculations that require the clipped Window area as seen on the display
+        as opposed to what is used for rendering (since the actual rendering
+        clipper rects should not to be used if reliable results are desired).
     */
-    Rect getUnclippedPixelRect(void) const;
-
-    /*!
-    \brief
-        Return a Rect object that describes, unclipped, the inner rectangle for
-        this window.  The inner rectangle is typically an area that excludes
-        some frame or other rendering that should not be touched by subsequent
-        rendering.
-
-    \return
-        Rect object that describes, in unclipped screen pixel co-ordinates, the
-        window object's inner rect area.
-    */
-    Rect getUnclippedInnerRect(void) const;
+    Rect getHitTestRect() const;
 
     /*!
     \brief
@@ -792,7 +801,7 @@ public:
         - false if no ancestor of this window has captured input.
     */
     bool isCapturedByAncestor(void) const
-         {return isAncestor(getCaptureWindow());}
+    {return isAncestor(getCaptureWindow());}
 
     /*!
     \brief
@@ -812,11 +821,16 @@ public:
         Vector2 object describing the position to check.  The position
         describes a pixel offset from the top-left corner of the display.
 
+    \param allow_disabled
+        - true specifies that the window may be 'hit' if it is disabled.
+        - false specifies that the window may only be hit if it is enabled.
+
     \return
         - true if \a position hits this Window.
         - false if \a position does not hit this window.
     */
-    virtual bool isHit(const Vector2& position) const;
+    virtual bool isHit(const Vector2& position,
+                       const bool allow_disabled = false) const;
 
     /*!
     \brief
@@ -841,11 +855,16 @@ public:
         Vector2 object describing the position to check.  The position
         describes a pixel offset from the top-left corner of the display.
 
+    \param allow_disabled
+        - true specifies that a disabled window may be returned as the target.
+        - false specifies that only enabled windows may be returned.
+
     \return
         Pointer to the child Window that was hit according to the location
         \a position, or 0 if no child of this window was hit.
     */
-    Window* getTargetChildAtPosition(const Vector2& position) const;
+    Window* getTargetChildAtPosition(const Vector2& position, 
+                                     const bool allow_disabled = false) const;
 
     /*!
     \brief
@@ -1077,7 +1096,7 @@ public:
         true if this window was inherited from \a class_name. false if not.
     */
     bool testClassName(const String& class_name) const
-         {return testClassName_impl(class_name);}
+    {return testClassName_impl(class_name);}
 
     /*!
     \brief
@@ -1105,12 +1124,12 @@ public:
 
     /*!
     \brief
-        Return the RenderCache object for this Window.
+        Return the GeometryBuffer object for this Window.
 
     \return
-        Reference to the RenderCache object for this Window.
+        Reference to the GeometryBuffer object for this Window.
     */
-    RenderCache& getRenderCache()   { return d_renderCache; }
+    GeometryBuffer& getGeometryBuffer();
 
     /*!
     \brief
@@ -1130,7 +1149,7 @@ public:
         Returns true if this Window is the modal target, otherwise false.
     */
     bool getModalState(void) const
-         {return (System::getSingleton().getModalTarget() == this);}
+    {return(System::getSingleton().getModalTarget() == this);}
 
     /*!
     \brief
@@ -1294,9 +1313,75 @@ public:
     */
     bool isDragDropTarget() const;
 
-    /*************************************************************************
-        Manipulator functions
-    *************************************************************************/
+    /*!
+    \brief
+        Fill in the RenderingContext \a ctx with details of the RenderingSurface
+        where this Window object should normally do it's rendering.
+    */
+    void getRenderingContext(RenderingContext& ctx) const;
+
+    //! implementation of the default getRenderingContext logic.
+    virtual void getRenderingContext_impl(RenderingContext& ctx) const;
+
+    /*!
+    \brief
+        return the RenderingSurface currently set for this window.  May return
+        0.
+    */
+    RenderingSurface* getRenderingSurface() const;
+
+    /*!
+    \brief
+        return the RenderingSurface that will be used by this window as the
+        target for rendering.
+    */
+    RenderingSurface& getTargetRenderingSurface() const;
+
+    /*!
+    \brief
+        Returns whether \e automatic use of an imagery caching RenderingSurface
+        (i.e. a RenderingWindow) is enabled for this window.  The reason we
+        emphasise 'automatic' is because the client may manually set a
+        RenderingSurface that does exactly the same job.
+
+    \return
+        - true if automatic use of a caching RenderingSurface is enabled.
+        - false if automatic use of a caching RenderTarget is not enabled.
+    */
+    bool isUsingAutoRenderingSurface() const;
+
+    /*!
+    \brief
+        Returns the window at the root of the hierarchy starting at this
+        Window.  The root window is defined as the first window back up the
+        hierarchy that has no parent window.
+
+    \return
+        A pointer to the root window of the hierarchy that this window is
+        attched to.
+    */
+    const Window* getRootWindow() const;
+    Window* getRootWindow();
+
+    //! return the rotations set for this window.
+    const Vector3& getRotation() const;
+
+    /*!
+    \brief
+        Return whether the Window is a non-client window.
+
+        A non-client window is clipped, positioned and sized according to the
+        parent window's full area as opposed to just the inner rect area used
+        for normal client windows.
+
+    \return
+        - true if the window should is clipped, positioned and sized according
+        to the full area rectangle of it's parent.
+        - false if the window is be clipped, positioned and sized according
+        to the inner rect area of it's parent.
+    */
+    bool isNonClientWindow() const;
+
     /*!
     \brief
         Renames the window.
@@ -1476,12 +1561,6 @@ public:
     */
     void setID(uint ID);
 
-	/**
-	 * Sets the unique prefix for this window.
-	 * \param prefix String object holding the prefix to be used on this window.
-	 */
-	void setPrefix(String prefix) { d_windowPrefix = prefix;}
-
     /*!
     \brief
         Set the current text string for the Window.
@@ -1498,11 +1577,11 @@ public:
     \brief
         Insert the text string \a text into the current text string for the
         Window object at the position specified by \a position.
-
+     
     \param text
         String object holding the text that is to be inserted into the Window
         object's current text string.
-
+     
     \param position
         The characted index position where the string \a text should be
         inserted.
@@ -1513,7 +1592,7 @@ public:
     \brief
         Append the string \a text to the currect text string for the Window
         object.
-
+     
     \param text
         String object holding the text that is to be appended to the Window
         object's current text string.
@@ -1737,13 +1816,13 @@ public:
 
     /*!
     \brief
-        Signal the System object to redraw (at least) this Window on the next
-        render cycle.
+        Invalidate this window causing at least this window to be redrawn during
+        the next rendering pass.
 
     \return
         Nothing
     */
-    void requestRedraw(void) const;
+    void invalidate(void);
 
     /*!
     \brief
@@ -1769,7 +1848,7 @@ public:
         Nothing.
     */
     void setMouseCursor(MouseCursorImage image)
-         {d_mouseCursor = (const Image*)image;}
+    {d_mouseCursor = (const Image*)image;}
 
     /*!
     \brief
@@ -2496,7 +2575,7 @@ public:
     \return
         Nothing
     */
-    void render(void);
+    void render();
 
     /*!
     \brief
@@ -2538,7 +2617,7 @@ public:
         That is just after the window has been created, but before any children or
         properties are read.
     */
-    virtual void beginInitialisation(void)     {d_initialising=true;}
+    virtual void beginInitialisation(void)     {d_initialising = true;}
 
     /*!
     \brief
@@ -2547,7 +2626,7 @@ public:
         creating a window. That is after all properties and children have been
         loaded and just before the next sibling gets created.
     */
-    virtual void endInitialisation(void)       {d_initialising=false;}
+    virtual void endInitialisation(void)       {d_initialising = false;}
 
     /*!
     \brief
@@ -2603,9 +2682,15 @@ public:
 
     /*!
     \brief
-        Recursively inform all children that the screen area has changed, and needs to be re-cached
+        Inform the window, and optionally all children, that screen area
+        rectangles have changed.
+
+    \param recursive
+        - true to recursively call notifyScreenAreaChanged on attached child
+          Window objects.
+        - false to just process \e this Window.
     */
-    void notifyScreenAreaChanged(void);
+    void notifyScreenAreaChanged(bool recursive = true);
 
     /*!
     \brief
@@ -2631,11 +2716,118 @@ public:
     */
     void setDragDropTarget(bool setting);
 
+    /*!
+    \brief
+        Set the RenderingSurface to be associated with this Window, or 0 if
+        none is required.
+    \par
+        If this function is called, and the option for automatic use of an
+        imagery caching RenderingSurface is enabled, any automatically created
+        RenderingSurface will be released, and the affore mentioned option will
+        be disabled.
+    \par
+        If after having set a custom RenderingSurface you then subsequently
+        enable the automatic use of an imagery caching RenderingSurface by
+        calling setUsingAutoRenderingSurface, the previously set
+        RenderingSurface will be disassociated from the Window.  Note that the
+        previous RenderingSurface is not destroyed or cleaned up at all - this
+        is the job of whoever created that object initially.
+
+    \param target
+        Pointer to the RenderingSurface object to be associated with the window.
+    */
+    void setRenderingSurface(RenderingSurface* surface);
+
+    /*!
+    \brief
+        Invalidate the chain of rendering surfaces from this window backwards to
+        ensure they get properly redrawn - but doing the minimum amount of work
+        possibe - next render.
+    */
+    void invalidateRenderingSurface();
+
+    /*!
+    \brief
+        Sets whether \e automatic use of an imagery caching RenderingSurface
+        (i.e. a RenderingWindow) is enabled for this window.  The reason we
+        emphasise 'atutomatic' is because the client may manually set a
+        RenderingSurface that does exactlythe same job.
+    \par
+        Note that this setting really only controls whether the Window
+        automatically creates and manages the RenderingSurface, as opposed to
+        the \e use of the RenderingSurface.  If a RenderingSurfaceis set for the
+        Window it will be used regardless of this setting.
+    \par
+        Enabling this option will cause the Window to attempt to create a
+        suitable RenderingSurface (which will actually be a RenderingWindow).
+        If there is an existing RenderingSurface assocated with this Window, it
+        will be removed as the Window's RenderingSurface
+        <em>but not destroyed</em>; whoever created the RenderingSurface in the
+        first place should take care of its destruction.
+    \par
+        Disabling this option will cause any automatically created
+        RenderingSurface to be released.
+    \par
+        It is possible that the renderer in use may not support facilities for
+        RenderingSurfaces that are suitable for full imagery caching.  If this
+        is the case, then calling getRenderingSurface after enabling this option
+        will return 0.  In these cases this option will still show as being
+        'enabled', this is because Window \e settings should not be influenced
+        by capabilities the renderer in use; for example, this enables correct
+        XML layouts to be written from a Window on a system that does not
+        support such RenderingSurfaces, so that the layout will function as
+        preferred on systems that do.
+    \par
+        If this option is enabled, and the client subsequently assigns a
+        different RenderingSurface to the Window, the existing automatically
+        created RenderingSurface will be released and this setting will be
+        disabled.
+
+    \param setting
+        - true to enable automatic use of an imagery caching RenderingSurface.
+        - false to disable automatic use of an imagery caching RenderingSurface.
+    */
+    void setUsingAutoRenderingSurface(bool setting);
+
+    //! set the rotations for this window.
+    void setRotation(const Vector3& rotation);
+
+    /*!
+    \brief
+        Set whether the Window is a non-client window.
+
+        A non-client window is clipped, positioned and sized according to the
+        parent window's full area as opposed to just the inner rect area used
+        for normal client windows.
+
+    \param setting
+        - true if the window should be clipped, positioned and sized according
+        to the full area rectangle of it's parent.
+        - false if the window should be clipped, positioned and sized according
+        to the inner rect area of it's parent.
+    */
+    void setNonClientWindow(const bool setting);
+
+    //! Return the parsed RenderedString object for this window.
+    const RenderedString& getRenderedString() const;
+    //! Return a pointer to any custom RenderedStringParser set, or 0 if none.
+    RenderedStringParser* getCustomRenderedStringParser() const;
+    //! Set a custom RenderedStringParser, or 0 to remove an existing one.
+    void setCustomRenderedStringParser(RenderedStringParser* parser);
+    //! return the active RenderedStringParser to be used
+    virtual RenderedStringParser& getRenderedStringParser() const;
+
+    //! return Vector2 \a pos after being fully unprojected for this Window.
+    Vector2 getUnprojectedPosition(const Vector2& pos) const;
+
+    //! return the pointer to the BiDiVisualMapping for this window, if any.
+    const BiDiVisualMapping* getBiDiVisualMapping() const
+        {return d_bidiVisualMapping;}
+
 protected:
-    /*************************************************************************
-        System object can trigger events directly
-    *************************************************************************/
+    // friend classes for construction / initialisation purposes (for now)
     friend class System;
+    friend class WindowManager;
 
     /*************************************************************************
         Event trigger methods
@@ -3126,6 +3318,29 @@ protected:
     */
     virtual void onWindowRendererDetached(WindowEventArgs& e);
 
+    /*!
+    \brief
+        Handler called when the window's rotation factor is changed.
+
+    \param e
+        WindowEventArgs object whose 'window' pointer field is set to the window
+        that triggered the event.  For this event the trigger window is always
+        'this'.
+    */
+    virtual void onRotated(WindowEventArgs& e);
+
+    /*!
+    \brief
+        Handler called when the window's non-client setting, affecting it's
+        position and size relative to it's parent is changed.
+
+    \param e
+        WindowEventArgs object whose 'window' pointer field is set to the window
+        that triggered the event.  For this event the trigger window is always
+        'this'.
+    */
+    virtual void onNonClientChanged(WindowEventArgs& e);
+
     /*************************************************************************
         Implementation Functions
     *************************************************************************/
@@ -3146,23 +3361,46 @@ protected:
     \brief
         Perform the actual rendering for this Window.
 
-    \param z
-        float value specifying the base Z co-ordinate that should be used when
-        rendering
+    \param ctx
+        RenderingContext holding the details of the RenderingSurface to be
+        used for the Window rendering operations.
 
     \return
         Nothing
     */
-    virtual void drawSelf(float z);
+    virtual void drawSelf(const RenderingContext& ctx);
+
+    /*!
+    \brief
+        Perform drawing operations concerned with generating and buffering
+        window geometry.
+
+    \note
+        This function is a sub-function of drawSelf; it is provided to make it
+        easier to override drawSelf without needing to duplicate large sections
+        of the code from the default implementation.
+    */
+    void bufferGeometry(const RenderingContext& ctx);
+
+    /*!
+    \brief
+        Perform drawing operations concerned with positioning, clipping and
+        queueing of window geometry to RenderingSurfaces.
+
+    \note
+        This function is a sub-function of drawSelf and is provided to make it
+        easier to override drawSelf without needing to duplicate large sections
+        of the code from the default implementation.
+    */
+    void queueGeometry(const RenderingContext& ctx);
 
     /*!
     \brief
         Update the rendering cache.
 
-        Populates the Window's RenderCache with imagery to be sent to the
-        renderer.
+        Populates the Window's GeometryBuffer ready for rendering.
     */
-    virtual void populateRenderCache()  {}
+    virtual void populateGeometryBuffer()  {}
 
     /*!
     \brief
@@ -3177,7 +3415,7 @@ protected:
     */
     virtual bool testClassName_impl(const String& class_name) const
     {
-        if (class_name=="Window")   return true;
+        if (class_name == "Window")   return true;
         return false;
     }
 
@@ -3239,265 +3477,15 @@ protected:
     */
     void notifyClippingChanged(void);
 
-    /*************************************************************************
-        Implementation Data
-    *************************************************************************/
-    // child stuff
-    typedef std::vector<Window*> ChildList;
-    //! The list of child Window objects attached to this.
-    ChildList d_children;
+    //! helper to create and setup the auto RenderingWindow surface
+    void allocateRenderingWindow();
 
-    //! Child window objects arranged in rendering order.
-    ChildList d_drawList;
+    //! helper to clean up the auto RenderingWindow surface
+    void releaseRenderingWindow();
 
-    // general data
-    //! Window that has captured inputs
-    static Window* d_captureWindow;
+    //! Helper to intialise the needed clipping for geometry and render surface.
+    void initialiseClippers(const RenderingContext& ctx);
 
-    //! The Window that previously had capture (used for restoreOldCapture mode)
-    Window* d_oldCapture;
-
-    //! Holds pointer to the parent window.
-    Window* d_parent;
-
-    //! Holds pointer to the Window objects current Font.
-    Font* d_font;
-
-    //! Holds the text / label / caption for this Window.
-    String d_text;
-
-    //! User ID assigned to this Window
-    uint d_ID;
-
-    //! Alpha transparency setting for the Window
-    float d_alpha;
-
-    //! This Window objects area as defined by a URect.
-    URect d_area;
-
-    //! Current constrained pixel size of the window.
-    Size d_pixelSize;
-
-    //! Holds pointer to the Window objects current mouse cursor image.
-    const Image* d_mouseCursor;
-
-    // user data
-    typedef std::map<String, String, String::FastLessCompare>   UserStringMap;
-
-    //! Holds a collection of named user string values.
-    UserStringMap d_userStrings;
-
-    //! Holds pointer to some user assigned data.
-    void* d_userData;
-
-    // positional alignments
-    //! Specifies the base for horizontal alignment.
-    HorizontalAlignment d_horzAlign;
-
-    //! Specifies the base for vertical alignment.
-    VerticalAlignment d_vertAlign;
-
-    // maximum and minimum sizes
-    //! current minimum size for the window.
-    UVector2 d_minSize;
-
-    //! current maximum size for the window.
-    UVector2 d_maxSize;
-
-    // settings
-    //! true when Window is enabled
-    bool d_enabled;
-
-    /*!
-    \brief
-        true when Window is visible (that is it will be rendered, but may be
-        obscured so no necesarily really visible)
-    */
-    bool d_visible;
-
-    //! true when Window is the active Window (receiving inputs).
-    bool d_active;
-
-    //! true when Window will be clipped by parent Window area Rect.
-    bool d_clippedByParent;
-
-    //! true when Window will be auto-destroyed by parent.
-    bool d_destroyedByParent;
-
-    //! true if Window will be drawn on top of all other Windows
-    bool d_alwaysOnTop;
-
-    //! true if the Window inherits alpha from the parent Window
-    bool d_inheritsAlpha;
-
-    /*!
-    \brief
-        true if the Window restores capture to the previous window when it
-        releases capture.
-    */
-    bool d_restoreOldCapture;
-
-    //! true if the Window responds to z-order change requests.
-    bool d_zOrderingEnabled;
-
-    //! true if the Window wishes to hear about multi-click mouse events.
-    bool d_wantsMultiClicks;
-
-    /*!
-    \brief
-        true if unhandled captured inputs should be distributed to child
-        windows.
-    */
-    bool d_distCapturedInputs;
-
-    /*!
-    \brief
-        True if the window should come to the front of the z order in response
-        to a left mouse button down event.
-    */
-    bool d_riseOnClick;
-
-    // mouse button autorepeat data
-    /*!
-    \brief
-        true if button will auto-repeat mouse button down events while mouse
-        button is held down.
-    */
-    bool d_autoRepeat;
-
-    //! seconds before first repeat event is fired
-    float d_repeatDelay;
-
-    //! secons between further repeats after delay has expired.
-    float d_repeatRate;
-
-    //! implements repeating - is true after delay has elapsed,
-    bool d_repeating;
-
-    //! implements repeating - tracks time elapsed.
-    float d_repeatElapsed;
-
-    /*!
-    \brief
-        Button we're tracking (implication of this is that we only support one
-        button at a time).
-    */
-    MouseButton d_repeatButton;
-
-    //! true if window will receive drag and drop related notifications
-    bool d_dragDropTarget;
-
-    // Tooltip stuff
-    //! Text string used as tip for this window.
-    String d_tooltipText;
-    //! Possible custom Tooltip for this window.
-    Tooltip* d_customTip;
-    //! true if this Window created the custom Tooltip.
-    bool d_weOwnTip;
-    /*!
-    \brief
-        true if the Window inherits tooltip text from its parent (when none set
-        for itself).
-    */
-    bool d_inheritsTipText;
-
-    // rendering
-    //! Object which acts as a cache for Images to be drawn by this Window.
-    RenderCache d_renderCache;
-    //! true if window image cache needs to be regenerated.
-    mutable bool d_needsRedraw;
-
-    // Look'N'Feel stuff
-    //! Name of the Look assigned to this window (if any).
-    String d_lookName;
-    //! The WindowRenderer module that implements the Look'N'Feel specification
-    WindowRenderer* d_windowRenderer;
-
-    //! true when this window is currently being initialised (creating children etc)
-    bool d_initialising;
-    //! true when this window is being destroyed.
-    bool d_destructionStarted;
-
-    // Event pass through
-    /*!
-    \brief
-        true if this window can never be "hit" by the cursor.
-        false for normal mouse event handling.
-    */
-    bool d_mousePassThroughEnabled;
-
-    //! true when this window is an auto-window (it's name contains __auto_)
-    bool d_autoWindow;
-
-    /*!
-    \brief
-        std::set used to determine whether a window should write a property to XML or not.
-        if the property name is present the property will not be written
-    */
-    typedef std::set<String, String::FastLessCompare> BannedXMLPropertySet;
-    BannedXMLPropertySet d_bannedXMLProperties;
-
-    //! true if this window is allowed to write XML, false if not
-    bool d_allowWriteXML;
-
-    //! current unclipped screen rect in pixels
-    mutable Rect d_screenUnclippedRect;
-    mutable bool d_screenUnclippedRectValid;
-    //! current unclipped inner screen rect in pixels
-    mutable Rect d_screenUnclippedInnerRect;
-    mutable bool d_screenUnclippedInnerRectValid;
-    //! current fully clipped screen rect in pixels
-    mutable Rect d_screenRect;
-    mutable bool d_screenRectValid;
-    //! current fully clipped inner screen rect in pixels
-    mutable Rect d_screenInnerRect;
-    mutable bool d_screenInnerRectValid;
-
-protected:
-    /*************************************************************************
-        Properties for Window base class
-    *************************************************************************/
-    static  WindowProperties::Alpha             d_alphaProperty;
-    static  WindowProperties::AlwaysOnTop       d_alwaysOnTopProperty;
-    static  WindowProperties::ClippedByParent   d_clippedByParentProperty;
-    static  WindowProperties::DestroyedByParent d_destroyedByParentProperty;
-    static  WindowProperties::Disabled          d_disabledProperty;
-    static  WindowProperties::Font              d_fontProperty;
-    static  WindowProperties::ID                d_IDProperty;
-    static  WindowProperties::InheritsAlpha     d_inheritsAlphaProperty;
-    static  WindowProperties::MouseCursorImage  d_mouseCursorProperty;
-    static  WindowProperties::RestoreOldCapture d_restoreOldCaptureProperty;
-    static  WindowProperties::Text              d_textProperty;
-    static  WindowProperties::Visible           d_visibleProperty;
-    static  WindowProperties::ZOrderChangeEnabled   d_zOrderChangeProperty;
-    static  WindowProperties::WantsMultiClickEvents d_wantsMultiClicksProperty;
-    static  WindowProperties::MouseButtonDownAutoRepeat d_autoRepeatProperty;
-    static  WindowProperties::AutoRepeatDelay   d_autoRepeatDelayProperty;
-    static  WindowProperties::AutoRepeatRate    d_autoRepeatRateProperty;
-    static  WindowProperties::DistributeCapturedInputs d_distInputsProperty;
-    static  WindowProperties::CustomTooltipType d_tooltipTypeProperty;
-    static  WindowProperties::Tooltip           d_tooltipProperty;
-    static  WindowProperties::InheritsTooltipText d_inheritsTooltipProperty;
-    static  WindowProperties::RiseOnClick       d_riseOnClickProperty;
-    static  WindowProperties::VerticalAlignment   d_vertAlignProperty;
-    static  WindowProperties::HorizontalAlignment d_horzAlignProperty;
-    static  WindowProperties::UnifiedAreaRect   d_unifiedAreaRectProperty;
-    static  WindowProperties::UnifiedPosition   d_unifiedPositionProperty;
-    static  WindowProperties::UnifiedXPosition  d_unifiedXPositionProperty;
-    static  WindowProperties::UnifiedYPosition  d_unifiedYPositionProperty;
-    static  WindowProperties::UnifiedSize       d_unifiedSizeProperty;
-    static  WindowProperties::UnifiedWidth      d_unifiedWidthProperty;
-    static  WindowProperties::UnifiedHeight     d_unifiedHeightProperty;
-    static  WindowProperties::UnifiedMinSize    d_unifiedMinSizeProperty;
-    static  WindowProperties::UnifiedMaxSize    d_unifiedMaxSizeProperty;
-    static  WindowProperties::MousePassThroughEnabled   d_mousePassThroughEnabledProperty;
-    static  WindowProperties::WindowRenderer    d_windowRendererProperty;
-    static  WindowProperties::LookNFeel         d_lookNFeelProperty;
-    static  WindowProperties::DragDropTarget    d_dragDropTargetProperty;
-
-    /*************************************************************************
-        implementation functions
-    *************************************************************************/
     /*!
     \brief
         Cleanup child windows
@@ -3540,20 +3528,6 @@ protected:
 
     /*!
     \brief
-        Implementation of rise on click functionality.
-
-    \deprecated
-        This function is redundant and will be removed for the 0.7.0 release.
-        To achieve what this function was supposed to do - but never actually
-        did - call Window::moveToFront_impl passing true as the parameter.
-
-    \return
-        true if we did something, false if there was nothing to do.
-    */
-    bool doRiseOnClick(void);
-
-    /*!
-    \brief
         Implementation method to modify window area while correctly applying
         min / max size processing, and firing any appropriate events.
 
@@ -3582,7 +3556,8 @@ protected:
         - false to inhibit firing of events (required, for example, if you need
           to call this from the onSize/onMove handlers).
      */
-    void setArea_impl(const UVector2& pos, const UVector2& size, bool topLeftSizing = false, bool fireEvents = true);
+    void setArea_impl(const UVector2& pos, const UVector2& size,
+                      bool topLeftSizing = false, bool fireEvents = true);
 
     /*!
     \brief
@@ -3631,36 +3606,247 @@ protected:
     */
     bool isTopOfZOrder() const;
 
+    /*!
+    \brief
+        Update position and clip region on this Windows geometry / rendering
+        surface.
+    */
+    void updateGeometryRenderSettings();
+
+    //! transfer RenderingSurfaces to be owned by our target RenderingSurface.
+    void transferChildSurfaces();
+
+    //! helper function for calculating clipping rectangles.
+    Rect getParentElementClipIntersection(const Rect& unclipped_area) const;
+
     virtual int writePropertiesXML(XMLSerializer& xml_stream) const;
     virtual int writeChildWindowsXML(XMLSerializer& xml_stream) const;
     virtual bool writeAutoChildWindowXML(XMLSerializer& xml_stream) const;
 
     /*************************************************************************
-        May not copy or assign Window objects
+        Properties for Window base class
     *************************************************************************/
-    Window(const Window& wnd) : PropertySet(), EventSet() {}
-    Window& operator=(const Window& wnd) {return *this;}
+    static  WindowProperties::Alpha             d_alphaProperty;
+    static  WindowProperties::AlwaysOnTop       d_alwaysOnTopProperty;
+    static  WindowProperties::ClippedByParent   d_clippedByParentProperty;
+    static  WindowProperties::DestroyedByParent d_destroyedByParentProperty;
+    static  WindowProperties::Disabled          d_disabledProperty;
+    static  WindowProperties::Font              d_fontProperty;
+    static  WindowProperties::ID                d_IDProperty;
+    static  WindowProperties::InheritsAlpha     d_inheritsAlphaProperty;
+    static  WindowProperties::MouseCursorImage  d_mouseCursorProperty;
+    static  WindowProperties::RestoreOldCapture d_restoreOldCaptureProperty;
+    static  WindowProperties::Text              d_textProperty;
+    static  WindowProperties::Visible           d_visibleProperty;
+    static  WindowProperties::ZOrderChangeEnabled   d_zOrderChangeProperty;
+    static  WindowProperties::WantsMultiClickEvents d_wantsMultiClicksProperty;
+    static  WindowProperties::MouseButtonDownAutoRepeat d_autoRepeatProperty;
+    static  WindowProperties::AutoRepeatDelay   d_autoRepeatDelayProperty;
+    static  WindowProperties::AutoRepeatRate    d_autoRepeatRateProperty;
+    static  WindowProperties::DistributeCapturedInputs d_distInputsProperty;
+    static  WindowProperties::CustomTooltipType d_tooltipTypeProperty;
+    static  WindowProperties::Tooltip           d_tooltipProperty;
+    static  WindowProperties::InheritsTooltipText d_inheritsTooltipProperty;
+    static  WindowProperties::RiseOnClick       d_riseOnClickProperty;
+    static  WindowProperties::VerticalAlignment   d_vertAlignProperty;
+    static  WindowProperties::HorizontalAlignment d_horzAlignProperty;
+    static  WindowProperties::UnifiedAreaRect   d_unifiedAreaRectProperty;
+    static  WindowProperties::UnifiedPosition   d_unifiedPositionProperty;
+    static  WindowProperties::UnifiedXPosition  d_unifiedXPositionProperty;
+    static  WindowProperties::UnifiedYPosition  d_unifiedYPositionProperty;
+    static  WindowProperties::UnifiedSize       d_unifiedSizeProperty;
+    static  WindowProperties::UnifiedWidth      d_unifiedWidthProperty;
+    static  WindowProperties::UnifiedHeight     d_unifiedHeightProperty;
+    static  WindowProperties::UnifiedMinSize    d_unifiedMinSizeProperty;
+    static  WindowProperties::UnifiedMaxSize    d_unifiedMaxSizeProperty;
+    static  WindowProperties::MousePassThroughEnabled   d_mousePassThroughEnabledProperty;
+    static  WindowProperties::WindowRenderer    d_windowRendererProperty;
+    static  WindowProperties::LookNFeel         d_lookNFeelProperty;
+    static  WindowProperties::DragDropTarget    d_dragDropTargetProperty;
+    static  WindowProperties::AutoRenderingSurface d_autoRenderingSurfaceProperty;
+    static  WindowProperties::Rotation d_rotationProperty;
+    static  WindowProperties::XRotation d_xRotationProperty;
+    static  WindowProperties::YRotation d_yRotationProperty;
+    static  WindowProperties::ZRotation d_zRotationProperty;
+    static  WindowProperties::NonClient d_nonClientProperty;
 
     /*************************************************************************
-        Private implementation Data
+        Implementation Data
     *************************************************************************/
-    /*!
-    \brief
-        String holding the type name for the Window
-        (is also the name of the WindowFactory that created us)
-    */
-    const String    d_type;
+    //! definition of type used for the list of attached child windows.
+    typedef std::vector<Window*> ChildList;
+    //! definition of type used for the UserString dictionary.
+    typedef std::map<String, String, String::FastLessCompare> UserStringMap;
+    //! definition of type used to track properties banned from writing XML.
+    typedef std::set<String, String::FastLessCompare> BannedXMLPropertySet;
 
+    //! type of Window (also the name of the WindowFactory that created us)
+    const String d_type;
     //! The name of the window (GUI system unique).
-    String    d_name;
-
+    String d_name;
     //! Type name of the window as defined in a Falagard mapping.
-    String    d_falagardType;
+    String d_falagardType;
+    //! true when this window is an auto-window (it's name contains __auto_)
+    bool d_autoWindow;
 
-	//! The prefix used on this window (if any) when created instanced windows.
-	String    d_windowPrefix;
+    //! true when this window is currently being initialised (creating children etc)
+    bool d_initialising;
+    //! true when this window is being destroyed.
+    bool d_destructionStarted;
+    //! true when Window is enabled
+    bool d_enabled;
+    //! is window visible (i.e. it will be rendered, but may still be obscured)
+    bool d_visible;
+    //! true when Window is the active Window (receiving inputs).
+    bool d_active;
 
-    friend class WindowManager;
+    //! The list of child Window objects attached to this.
+    ChildList d_children;
+    //! Child window objects arranged in rendering order.
+    ChildList d_drawList;
+    //! Holds pointer to the parent window.
+    Window* d_parent;
+    //! true when Window will be auto-destroyed by parent.
+    bool d_destroyedByParent;
+
+    //! true when Window will be clipped by parent Window area Rect.
+    bool d_clippedByParent;
+    //! true if Window is in non-client (outside InnerRect) area of parent.
+    bool d_nonClientContent;
+
+    //! Name of the Look assigned to this window (if any).
+    String d_lookName;
+    //! The WindowRenderer module that implements the Look'N'Feel specification
+    WindowRenderer* d_windowRenderer;
+    //! Object which acts as a cache of geometry drawn by this Window.
+    GeometryBuffer* d_geometry;
+    //! RenderingSurface owned by this window (may be 0)
+    RenderingSurface* d_surface;
+    //! true if window geometry cache needs to be regenerated.
+    mutable bool d_needsRedraw;
+    //! holds setting for automatic creation of of surface (RenderingWindow)
+    bool d_autoRenderingWindow;
+
+    //! Holds pointer to the Window objects current mouse cursor image.
+    const Image* d_mouseCursor;
+
+    //! Alpha transparency setting for the Window
+    float d_alpha;
+    //! true if the Window inherits alpha from the parent Window
+    bool d_inheritsAlpha;
+
+    //! Window that has captured inputs
+    static Window* d_captureWindow;
+    //! The Window that previously had capture (used for restoreOldCapture mode)
+    Window* d_oldCapture;
+    //! Restore capture to the previous capture window when releasing capture.
+    bool d_restoreOldCapture;
+    //! Whether to distribute captured inputs to child windows.
+    bool d_distCapturedInputs;
+
+    //! Holds pointer to the Window objects current Font.
+    Font* d_font;
+    //! Holds the text / label / caption for this Window.
+    String d_textLogical;
+    //! pointer to bidirection support object
+    BiDiVisualMapping* d_bidiVisualMapping;
+    //! whether bidi visual mapping has been updated since last text change.
+    mutable bool d_bidiDataValid;
+    //! RenderedString representation of text string as ouput from a parser.
+    mutable RenderedString d_renderedString;
+    //! true if d_renderedString is valid, false if needs re-parse.
+    mutable bool d_renderedStringValid;
+    //! Shared instance of a parser to be used in most instances.
+    static BasicRenderedStringParser d_basicStringParser;
+    //! Pointer to a custom (user assigned) RenderedStringParser object.
+    RenderedStringParser* d_customStringParser;
+
+    //! User ID assigned to this Window
+    uint d_ID;
+    //! Holds pointer to some user assigned data.
+    void* d_userData;
+    //! Holds a collection of named user string values.
+    UserStringMap d_userStrings;
+
+    //! true if Window will be drawn on top of all other Windows
+    bool d_alwaysOnTop;
+    //! whether window should rise in the z order when left clicked.
+    bool d_riseOnClick;
+    //! true if the Window responds to z-order change requests.
+    bool d_zOrderingEnabled;
+
+    //! true if the Window wishes to hear about multi-click mouse events.
+    bool d_wantsMultiClicks;
+    //! whether (most) mouse events pass through this window
+    bool d_mousePassThroughEnabled;
+    //! whether pressed mouse button will auto-repeat the down event.
+    bool d_autoRepeat;
+    //! seconds before first repeat event is fired
+    float d_repeatDelay;
+    //! secons between further repeats after delay has expired.
+    float d_repeatRate;
+    //! button we're tracking for auto-repeat purposes.
+    MouseButton d_repeatButton;
+    //! implements repeating - is true after delay has elapsed,
+    bool d_repeating;
+    //! implements repeating - tracks time elapsed.
+    float d_repeatElapsed;
+
+    //! true if window will receive drag and drop related notifications
+    bool d_dragDropTarget;
+
+    //! Text string used as tip for this window.
+    String d_tooltipText;
+    //! Possible custom Tooltip for this window.
+    Tooltip* d_customTip;
+    //! true if this Window created the custom Tooltip.
+    bool d_weOwnTip;
+    //! whether tooltip text may be inherited from parent.
+    bool d_inheritsTipText;
+
+    //! true if this window is allowed to write XML, false if not
+    bool d_allowWriteXML;
+    //! collection of properties not to be written to XML for this window.
+    BannedXMLPropertySet d_bannedXMLProperties;
+
+    //! This Window objects area as defined by a URect.
+    URect d_area;
+    //! Current constrained pixel size of the window.
+    Size d_pixelSize;
+    //! current minimum size for the window.
+    UVector2 d_minSize;
+    //! current maximum size for the window.
+    UVector2 d_maxSize;
+    //! Specifies the base for horizontal alignment.
+    HorizontalAlignment d_horzAlign;
+    //! Specifies the base for vertical alignment.
+    VerticalAlignment d_vertAlign;
+    //! Rotation angles for this window
+    Vector3 d_rotation;
+
+    //! outer area rect in screen pixels
+    mutable Rect d_outerUnclippedRect;
+    //! inner area rect in screen pixels
+    mutable Rect d_innerUnclippedRect;
+    //! outer area clipping rect in screen pixels
+    mutable Rect d_outerRectClipper;
+    //! inner area clipping rect in screen pixels
+    mutable Rect d_innerRectClipper;
+    //! area rect used for hit-testing agains this window
+    mutable Rect d_hitTestRect;
+
+    mutable bool d_outerUnclippedRectValid;
+    mutable bool d_innerUnclippedRectValid;
+    mutable bool d_outerRectClipperValid;
+    mutable bool d_innerRectClipperValid;
+    mutable bool d_hitTestRectValid;
+
+private:
+    /*************************************************************************
+        May not copy or assign Window objects
+    *************************************************************************/
+    Window(const Window&) : PropertySet(), EventSet() {}
+    Window& operator=(const Window&) {return *this;}
 };
 
 } // End of  CEGUI namespace section

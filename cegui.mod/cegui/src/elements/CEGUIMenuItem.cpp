@@ -112,7 +112,7 @@ void MenuItem::updateInternalState(const Point& mouse_pos)
 		    }
 	    }
 
-		requestRedraw();
+		invalidate();
 	}
 }
 
@@ -162,7 +162,7 @@ void MenuItem::setPopupMenu_impl(PopupMenu* popup, bool add_as_child)
         addChildWindow(popup);
 	}
 
-    requestRedraw();
+    invalidate();
 }
 
 /*************************************************************************
@@ -205,7 +205,7 @@ void MenuItem::openPopupMenu(bool notify)
     d_popup->openPopupMenu(false);
 
 	d_opened = true;
-	requestRedraw();
+	invalidate();
 }
 
 
@@ -240,7 +240,7 @@ void MenuItem::closePopupMenu(bool notify)
 	}
 
 	d_opened = false;
-	requestRedraw();
+	invalidate();
 }
 
 
@@ -320,7 +320,7 @@ void MenuItem::onMouseMove(MouseEventArgs& e)
 	ItemEntry::onMouseMove(e);
 
 	updateInternalState(e.position);
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -340,11 +340,11 @@ void MenuItem::onMouseButtonDown(MouseEventArgs& e)
 			d_pushed = true;
 			updateInternalState(e.position);
 			d_popupWasClosed = !togglePopupMenu();
-			requestRedraw();
+			invalidate();
 		}
 
 		// event was handled by us.
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -363,14 +363,17 @@ void MenuItem::onMouseButtonUp(MouseEventArgs& e)
 		releaseInput();
 
 		// was the button released over this window?
-		if ( !d_popupWasClosed && System::getSingleton().getGUISheet()->getTargetChildAtPosition(e.position) == this )
+        // (use mouse position, as e.position in args has been unprojected)
+		if ( !d_popupWasClosed &&
+             System::getSingleton().getGUISheet()->getTargetChildAtPosition(
+                    MouseCursor::getSingleton().getPosition()) == this )
 		{
 			WindowEventArgs we(this);
 			onClicked(we);
 		}
 
 		// event was handled by us.
-		e.handled = true;
+		++e.handled;
 	}
 
 }
@@ -384,11 +387,12 @@ void MenuItem::onCaptureLost(WindowEventArgs& e)
 	ItemEntry::onCaptureLost(e);
 
 	d_pushed = false;
-	updateInternalState(MouseCursor::getSingleton().getPosition());
-	requestRedraw();
+	updateInternalState(
+       getUnprojectedPosition(MouseCursor::getSingleton().getPosition()));
+	invalidate();
 
 	// event was handled by us.
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -401,9 +405,9 @@ void MenuItem::onMouseLeaves(MouseEventArgs& e)
 	ItemEntry::onMouseLeaves(e);
 
 	d_hovering = false;
-	requestRedraw();
+	invalidate();
 
-	e.handled = true;
+	++e.handled;
 }
 
 
@@ -421,7 +425,7 @@ void MenuItem::onTextChanged(WindowEventArgs& e)
 		static_cast<ItemListBase*>(parent)->handleUpdatedItemData();
 	}
 
-	e.handled = true;
+	++e.handled;
 }
 
 

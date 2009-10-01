@@ -246,9 +246,7 @@ enum SystemKey
 class CEGUIEXPORT WindowEventArgs : public EventArgs
 {
 public:
-	WindowEventArgs(Window* wnd) : window(wnd) {
-		this->d_hasWindow = true;
-	}
+	WindowEventArgs(Window* wnd) : window(wnd) {}
 
 	Window*	window;		//!< pointer to a Window object of relevance to the event.
 };
@@ -341,6 +339,36 @@ public:
 	DragDropEventArgs(Window* wnd) : WindowEventArgs(wnd) {}
 	DragContainer*	dragDropItem; //<! pointer to the DragContainer window being dragged / dropped.
 };
+
+/*!
+\brief
+    EventArgs based class that is used for notifications regarding the main
+    display.
+*/
+class CEGUIEXPORT DisplayEventArgs : public EventArgs
+{
+public:
+    DisplayEventArgs(const Size& sz) : size(sz) {}
+
+    //! current / new size of the display.
+    Size size;
+};
+
+//! EventArgs based class that is used for notifications regarding resources.
+class CEGUIEXPORT ResourceEventArgs : public EventArgs
+{
+public:
+    ResourceEventArgs(const String& type, const String& name) :
+       resourceType(type),
+       resourceName(name)
+    {}
+
+    //! String identifying the resource type this notification is about.
+    String resourceType;
+    //! String identifying the name of the resource this notification is about.
+    String resourceName;
+};
+
 
 } // End of  CEGUI namespace section
 
