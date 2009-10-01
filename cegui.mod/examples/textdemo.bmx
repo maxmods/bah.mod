@@ -1,6 +1,6 @@
 SuperStrict
 
-Framework BaH.CEGUI
+Framework BaH.CEGUIOpenGL
 Import BRL.GLGraphics
 Import BRL.GLMax2d
 
@@ -11,21 +11,21 @@ HideMouse
 'New CustomLogger
 
 ' Initialize CEGUI !
-Init_CEGUI()
+Init_CEGUI(New TCEOpenGLRenderer)
 
 ' load scheme and set up defaults
-TCESchemeManager.loadScheme("TaharezLook.scheme")
+TCESchemeManager.createScheme("TaharezLook.scheme")
 TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
 
 ' We need a font
-If Not TCEFontManager.isFontPresent("DejaVuSans-10") Then
-	TCEFontManager.createFont("DejaVuSans-10.font")
+If Not TCEFontManager.isDefined("fkp-16") Then
+	TCEFontManager.createFont("fkp-16.font")
 End If
 
 '  Font defaulting
-If TCEFontManager.isFontPresent("DejaVuSans-10") Then
-	TCESystem.setDefaultFont("DejaVuSans-10")
-Else If TCEFontManager.isFontPresent("Commonwealth-10") Then
+If TCEFontManager.isDefined("fkp-16") Then
+	TCESystem.setDefaultFont("fkp-16")
+Else If TCEFontManager.isDefined("Commonwealth-10") Then
 	TCESystem.setDefaultFont("Commonwealth-10")
 End If
 
@@ -33,7 +33,7 @@ End If
 TCEImagesetManager.createImagesetFromImageFile("BackgroundImage", "../datafiles/imagesets/GPN-2000-001437.tga")
 
 ' here we will use a StaticImage as the root, Then we can use it To place a background image
-Local background:TCEWindow = TCEWindowManager.createWindow("TaharezLook/StaticImage", "background_wnd")
+Local background:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/StaticImage", "background_wnd")
 
 ' set position And size
 background.setPosition(0, 0)

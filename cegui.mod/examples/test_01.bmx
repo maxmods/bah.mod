@@ -1,6 +1,6 @@
 SuperStrict
 
-Framework BaH.CEGUI
+Framework BaH.CEGUIOpenGL
 Import BRL.GLGraphics
 Import BRL.GLMax2d
 
@@ -12,9 +12,9 @@ HideMouse
 New CustomLogger
 TCELogger.GetLogger().setLoggingLevel(LOG_ERRORS)
 
-Init_CEGUI()
+Init_CEGUI(New TCEOpenGLRenderer)
 
-TCESchemeManager.loadScheme("WindowsLook.scheme")
+TCESchemeManager.createScheme("WindowsLook.scheme")
 
 TCESystem.setDefaultFont("Commonwealth-12")
 TCESystem.setDefaultMouseCursor("WindowsLook", "MouseArrow")

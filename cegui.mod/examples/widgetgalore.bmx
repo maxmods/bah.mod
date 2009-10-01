@@ -1,6 +1,6 @@
 SuperStrict
 
-Framework BaH.CEGUI
+Framework BaH.CEGUIOpenGL
 Import BRL.GLGraphics
 Import BRL.GLMax2d
 
@@ -9,18 +9,18 @@ Graphics 800, 600, 0
 HideMouse
 
 ' Initialize CEGUI !
-Init_CEGUI()
+Init_CEGUI(New TCEOpenGLRenderer)
 
 
 ' Load the TaharezLook scheme and set up the default mouse cursor and font
-TCESchemeManager.loadScheme("TaharezLook.scheme")
+TCESchemeManager.createScheme("TaharezLook.scheme")
 TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
-If Not TCEFontManager.isFontPresent("Commonwealth-10") Then
+If Not TCEFontManager.isDefined("Commonwealth-10") Then
 	TCEFontManager.createFont("Commonwealth-10.font")
 End If
 
 ' Set the GUI Sheet
-Local sheet:TCEWindow = TCEWindowManager.createWindow("DefaultWindow", "root_wnd")
+Local sheet:TCEWindow = TCEWindowManager.CreateWindow("DefaultWindow", "root_wnd")
 TCESystem.setGUISheet(sheet)
 
 ' Load a layout
@@ -69,13 +69,13 @@ btnClose.setText("Exit")
 ' ScrollablePane
 Local scrollablePane:TCEScrollablePane = TCEScrollablePane(TCEWindowManager.getWindow("ScrollablePane"))
 TCEImagesetManager.createImagesetFromImageFile("ImageForScrollablePane", "../datafiles/imagesets/GPN-2000-001437.tga")
-Local staticImageInScrollablePane:TCEWindow = TCEWindowManager.createWindow("TaharezLook/StaticImage", "StaticImageInScrollablePane")
+Local staticImageInScrollablePane:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/StaticImage", "StaticImageInScrollablePane")
 	staticImageInScrollablePane.setProperty("Image", "set:ImageForScrollablePane image:full_image") ' "full_image" is a default name from CEGUIImageset::Imageset()
 	staticImageInScrollablePane.setPositionU(UDim(), UDim()) ' Start in the upper left corner
 	staticImageInScrollablePane.setWidthU(UDim(2.0, 0.0)) ' Twice the width of the parent, the ScrollablePane
 	staticImageInScrollablePane.setHeightU(UDim(2.0, 0.0)) ' Twice the height of the parent, the ScrollablePane
 	scrollablePane.addChildWindow(staticImageInScrollablePane) ' Add the image to the ' Twice the width of the parent, the ScrollablePane
-Local editboxInScrollablePane:TCEEditbox = TCEEditbox(TCEWindowManager.createWindow("TaharezLook/Editbox", "EditboxInScrollablePane"))
+Local editboxInScrollablePane:TCEEditbox = TCEEditbox(TCEWindowManager.CreateWindow("TaharezLook/Editbox", "EditboxInScrollablePane"))
 	editboxInScrollablePane.setPositionU(UDim(), UDim(2.1, 0.0)) ' Start below the image
 	editboxInScrollablePane.setWidthU(UDim(2.0, 0.0)) 
 	editboxInScrollablePane.setHeightU(UDim(0.3, 0.0))

@@ -4,7 +4,7 @@
 '
 SuperStrict
 
-Framework BaH.CEGUI
+Framework BaH.CEGUIOpenGL
 Import BRL.GLGraphics
 Import BRL.GLMax2d
 
@@ -17,20 +17,20 @@ HideMouse
 Local provider:CustomResourceProvider = New CustomResourceProvider
 
 ' Pass it into CEGUI's initialization
-Init_CEGUI(provider)
+Init_CEGUI(New TCEOpenGLRenderer, provider)
 
-TCESchemeManager.loadScheme("WindowsLook.scheme")
+TCESchemeManager.createScheme("TaharezLook.scheme")
 
-TCESystem.setDefaultFont("Commonwealth-12")
-TCESystem.setDefaultMouseCursor("WindowsLook", "MouseArrow")
+TCESystem.setDefaultFont("Commonwealth-10")
+TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
 
 
-Local root:TCEWindow = TCEWindowManager.loadWindowLayout("test_01.layout")
+Local root:TCEWindow = TCEWindowManager.loadWindowLayout("test_02.layout")
 TCESystem.setGUISheet(root)
 
 
 ' coded button
-Local button:TCEWindow = TCEWindowManager.CreateWindow("WindowsLook/Button", "button")
+Local button:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Button", "button")
 root.addChildWindow(button)
 
 button.setText("Show")
@@ -39,7 +39,7 @@ button.setSize(90, 20)
 button.subscribeEvent(TCEPushButton.EventClicked, clicked)
 
 ' coded editbox
-Local eb:TCEWindow = TCEWindowManager.CreateWindow("WindowsLook/Editbox", "editbox")
+Local eb:TCEWindow = TCEWindowManager.CreateWindow("TaharezLook/Editbox", "editbox")
 root.addChildWindow(eb)
 
 eb.setText("Type here")
