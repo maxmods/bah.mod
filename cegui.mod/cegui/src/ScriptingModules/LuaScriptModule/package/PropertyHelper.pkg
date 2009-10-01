@@ -1,0 +1,33 @@
+/***********************************************************************
+	PropertyHelper
+***********************************************************************/
+class PropertyHelper
+{
+	static	float			stringToFloat(string str);
+	static	unsigned int	stringToUint(string str);
+	static	bool			stringToBool(string str);
+	static	Size			stringToSize(string str);
+	static	Vector2			stringToPoint(string str);
+	static	Rect			stringToRect(string str);
+	static	const Image*	stringToImage(string str);
+	static	colour			stringToColour(string str);
+	static	ColourRect		stringToColourRect(string str);
+
+	static	UDim			stringToUDim(string str);
+	static	UVector2		stringToUVector2(string str);
+	static	URect			stringToURect(string str);
+
+	static string	floatToString(float val);
+	static string	uintToString(unsigned int val);
+	static string	boolToString(bool val);
+	static string	sizeToString(const Size& val);
+	static string	pointToString(const Vector2& val);
+	static string	rectToString(const Rect& val);
+	static string	imageToString(const Image* val);
+	static string	colourToString(const colour& val);
+	static string	colourRectToString(const ColourRect& val);
+
+	static string	udimToString(const UDim& val);
+	static string	uvector2ToString(const UVector2& val);
+	static string	urectToString(const URect& val);
+};

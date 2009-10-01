@@ -1,0 +1,15 @@
+/***********************************************************************
+	SchemeManager
+***********************************************************************/
+class SchemeManager
+{
+	static SchemeManager& getSingleton();
+
+	Scheme& create(string filename, string resourcegroup="");
+	void destroy(string name);
+	bool isDefined(string name) const;
+	Scheme& get(string name) const;
+	void destroyAll();
+
+    SchemeIterator getIterator() const;
+};
