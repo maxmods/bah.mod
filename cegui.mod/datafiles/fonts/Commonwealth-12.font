@@ -1,2 +1,2 @@
 <?xml version="1.0" ?>
-<Font Name="Commonwealth-12" Filename="../datafiles/fonts/Commonv2c.ttf" Type="FreeType" Size="12" NativeHorzRes="800" NativeVertRes="600" AutoScaled="true"/>
+<Font Name="Commonwealth-12" Filename="Commonv2c.ttf" Type="FreeType" Size="12" NativeHorzRes="800" NativeVertRes="600" AutoScaled="true"/>

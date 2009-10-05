@@ -99,12 +99,14 @@ extern "C" {
 	BBObject * _bah_cegui_TCEWindowEventArgs__create(MaxEventArgs * maxArgs);
 	BBObject * _bah_cegui_TCEEventArgs__create(MaxEventArgs * maxArgs);
 	
+	BBObject * _bah_cegui_TCEFont__create(CEGUI::Font * font);
 	BBObject * _bah_cegui_TCETexture__create(CEGUI::Texture * texture);
 	BBObject * _bah_cegui_TCEListboxItem__create(CEGUI::ListboxItem * item);
 	BBObject * _bah_cegui_TCEImage__create(CEGUI::Image * image);
 	BBObject * _bah_cegui_TCETreeItem__create(CEGUI::TreeItem * item);
 	BBObject * _bah_cegui_TCEScheme__create(CEGUI::Scheme * scheme);
 	BBObject * _bah_cegui_TCEImageset__create(CEGUI::Imageset * imageset);
+	BBObject * _bah_cegui_TCEDefaultResourceProvider__create(CEGUI::DefaultResourceProvider * provider);
 	
 	void _bah_cegui_TCEResourceProvider__loadRawDataContainer(BBObject * handle, BBString * filename, MaxRawDataContainer * container, BBString * resourceGroup);
 	void _bah_cegui_TCEResourceProvider__unloadRawDataContainer(BBObject * handle, MaxRawDataContainer * data);
@@ -159,6 +161,7 @@ extern "C" {
 	BBObject * bmx_cegui_system_getdefaulttooltip(CEGUI::System * sys);
 	float bmx_cegui_system_getmousemovescaling(CEGUI::System * sys);
 	void bmx_cegui_system_setmousemovescaling(CEGUI::System * sys, float scaling);
+	BBObject * bmx_cegui_system_getresourceprovider(CEGUI::System * sys);
 
 	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);
@@ -170,6 +173,13 @@ extern "C" {
 	void bmx_cegui_windowmanager_destroywindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window);
 	void bmx_cegui_windowmanager_renamewindowwindow(CEGUI::WindowManager * mgr, CEGUI::Window * window, const CEGUI::utf8 * newName);
 	void bmx_cegui_windowmanager_renamewindowname(CEGUI::WindowManager * mgr, const CEGUI::utf8 * window, const CEGUI::utf8 * newName);
+	int bmx_cegui_windowmanager_isdeadpoolempty(CEGUI::WindowManager * mgr);
+	void bmx_cegui_windowmanager_cleandeadpool(CEGUI::WindowManager * mgr);
+	void bmx_cegui_windowmanager_lock(CEGUI::WindowManager * mgr);
+	void bmx_cegui_windowmanager_unlock(CEGUI::WindowManager * mgr);
+	int bmx_cegui_windowmanager_islocked(CEGUI::WindowManager * mgr);
+	void bmx_cegui_windowmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
+	BBString * bmx_cegui_windowmanager_getdefaultresourcegroup();
 
 	MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle);
 
@@ -328,6 +338,7 @@ extern "C" {
 	BBObject * bmx_cegui_window_gettooltip(CEGUI::Window * window);
 	BBObject * bmx_cegui_window_getactivesibling(CEGUI::Window * window);
 	void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, float * height);
+	void bmx_cegui_window_setarearel(CEGUI::Window * window, float xpos, float ypos, float width, float height);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
@@ -469,13 +480,13 @@ extern "C" {
 	int bmx_cegui_imagesetmanager_isdefined(const CEGUI::utf8 * name);
 	void bmx_cegui_imagesetmanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup);
 
-	CEGUI::Font * bmx_cegui_fontmanager_createfreetypefont(const CEGUI::utf8 * font_name, float pointSize, int antialiased, const CEGUI::utf8 * fontFilename, 
+	BBObject * bmx_cegui_fontmanager_createfreetypefont(const CEGUI::utf8 * font_name, float pointSize, int antialiased, const CEGUI::utf8 * fontFilename, 
 		const CEGUI::utf8 * resourceGroup, int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action);
-	CEGUI::Font * bmx_cegui_fontmanager_createpixmapfont(const CEGUI::utf8 * font_name, const CEGUI::utf8 * imagesetFilename, const CEGUI::utf8 * resourceGroup,
+	BBObject * bmx_cegui_fontmanager_createpixmapfont(const CEGUI::utf8 * font_name, const CEGUI::utf8 * imagesetFilename, const CEGUI::utf8 * resourceGroup,
 		int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action);
 	void bmx_cegui_fontmanager_notifydislaysizechanged(float width, float height);
 
-	CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action);
+	BBObject * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action);
 	void bmx_cegui_fontmanager_destroyname(const CEGUI::utf8 * name);
 	void bmx_cegui_fontmanager_destroyobj(CEGUI::Font * font);
 	void bmx_cegui_fontmanager_destroyall();
@@ -558,6 +569,8 @@ extern "C" {
 	void bmx_cegui_scheme_unloadresources(CEGUI::Scheme * scheme);
 	int bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme);
 	BBString * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme);
+	void bmx_cegui_scheme_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
+	BBString * bmx_cegui_scheme_getdefaultresourcegroup();
 
 	BBString * bmx_cegui_listboxitem_gettext(CEGUI::ListboxItem * item);
 	BBString * bmx_cegui_listboxitem_gettooltiptext(CEGUI::ListboxItem * item);
@@ -864,6 +877,12 @@ extern "C" {
 	MaxResourceProvider * bmx_cegui_resourceprovider_create(BBObject * handle);
 	void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider);
 	void bmx_cegui_rawdatacontainer_delete(MaxRawDataContainer * container);
+	BBString * bmx_cegui_resourceprovider_getdefaultresourcegroup(CEGUI::ResourceProvider * provider);
+	void bmx_cegui_resourceprovider_setdefaultresourcegroup(CEGUI::ResourceProvider * provider, CEGUI::utf8 * group);
+
+	void bmx_cegui_defaultresourceprovider_setresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup, CEGUI::utf8 * directory);
+	BBString * bmx_cegui_defaultresourceprovider_getresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup);
+	void bmx_cegui_defaultresourceprovider_clearresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup);
 
 	void bmx_cegui_rawdatacontainer_setdata(MaxRawDataContainer * container, CEGUI::uint8 * data);
 	CEGUI::uint8 * bmx_cegui_rawdatacontainer_getdataptr(MaxRawDataContainer * container);
@@ -1033,6 +1052,17 @@ extern "C" {
 	float bmx_cegui_font_getlinespacing(CEGUI::Font * font, float yScale);
 	float bmx_cegui_font_getfontheight(CEGUI::Font * font, float yScale);
 	float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale);
+	void bmx_cegui_font_removeproperty(CEGUI::Font * font, const CEGUI::utf8 * name);
+	void bmx_cegui_font_clearproperties(CEGUI::Font * font);
+	int bmx_cegui_font_ispropertypresent(CEGUI::Font * font, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_font_getpropertyhelp(CEGUI::Font * font, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_font_getproperty(CEGUI::Font * font, const CEGUI::utf8 * name);
+	void bmx_cegui_font_setproperty(CEGUI::Font * font, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
+	int bmx_cegui_font_ispropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name);
+	BBString * bmx_cegui_font_getpropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name);
+
+	void bmx_cegui_font_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
+	BBString * bmx_cegui_font_getdefaultresourcegroup();
 
 	BBObject * bmx_cegui_dragdropeventargs_getdragdropitem(CEGUI::DragDropEventArgs * args);
 	BBObject * bmx_cegui_mousecursoreventargs_getimage(CEGUI::MouseCursorEventArgs * args);
@@ -1066,6 +1096,8 @@ extern "C" {
 	void bmx_cegui_imageset_setautoscalingenabled(CEGUI::Imageset * is, int setting);
 	void bmx_cegui_imageset_setnativeresolution(CEGUI::Imageset * is, float width, float height);
 	void bmx_cegui_imageset_notifydisplaysizechanged(CEGUI::Imageset * is, float width, float height);
+	void bmx_cegui_imageset_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
+	BBString * bmx_cegui_imageset_getdefaultresourcegroup();
 
 	BBObject * bmx_cegui_groupbox_getcontentpane(CEGUI::GroupBox * box);
 
@@ -1130,6 +1162,9 @@ extern "C" {
 	BBObject * bmx_cegui_schememanager_get(const CEGUI::utf8 * name);
 	int bmx_cegui_schememanager_isdefined(const CEGUI::utf8 * name);
 	void bmx_cegui_schememanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup);
+
+	BBString * bmx_cegui_widgetlookmanager_getdefaultresourcegroup();
+	void bmx_cegui_widgetlookmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
 
 }
 

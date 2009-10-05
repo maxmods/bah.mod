@@ -12,7 +12,12 @@ HideMouse
 New CustomLogger
 TCELogger.GetLogger().setLoggingLevel(LOG_ERRORS)
 
+
 Init_CEGUI(New TCEOpenGLRenderer)
+
+initialiseResourceGroupDirectories()
+initialiseDefaultResourceGroups()
+
 
 TCESchemeManager.createScheme("WindowsLook.scheme")
 
@@ -93,4 +98,35 @@ Type CustomLogger Extends TCECustomLogger
 	End Method
 
 End Type
+
+
+Function getDataPathPrefix:String()
+	Return "../datafiles"
+End Function
+
+Function initialiseResourceGroupDirectories()
+	' initialise the required dirs for the DefaultResourceProvider
+	Local rp:TCEDefaultResourceProvider = TCEDefaultResourceProvider(TCESystem.getResourceProvider())
+	
+	Local dataPathPrefix:String = getDataPathPrefix()
+	
+	' for each resource type, set a resource group directory
+	rp.setResourceGroupDirectory("schemes", dataPathPrefix + "/schemes/")
+	rp.setResourceGroupDirectory("imagesets", dataPathPrefix + "/imagesets/")
+	rp.setResourceGroupDirectory("fonts", dataPathPrefix + "/fonts/")
+	rp.setResourceGroupDirectory("layouts", dataPathPrefix + "/layouts/")
+	rp.setResourceGroupDirectory("looknfeels", dataPathPrefix + "/looknfeel/")
+	rp.setResourceGroupDirectory("lua_scripts", dataPathPrefix + "/lua_scripts/")
+	rp.setResourceGroupDirectory("schemas", dataPathPrefix + "/xml_schemas/")
+End Function
+
+Function initialiseDefaultResourceGroups()
+	' set the default resource groups to be used
+	TCEImageset.setDefaultResourceGroup("imagesets")
+	TCEFont.setDefaultResourceGroup("fonts")
+	TCEScheme.setDefaultResourceGroup("schemes")
+	TCEWidgetLookManager.setDefaultResourceGroup("looknfeels")
+	TCEWindowManager.setDefaultResourceGroup("layouts")
+	'TCEScriptModule.setDefaultResourceGroup("lua_scripts")
+End Function
 

@@ -1053,6 +1053,9 @@ Type TCEListboxItem
 			Return this
 		End If
 	End Function
+	
+	Method onInit()
+	End Method
 
 	Rem
 	bbdoc: Returns the text string set for this list box item.
@@ -1259,6 +1262,7 @@ Type TCEListboxTextItem Extends TCEListboxItem
 	Method Create:TCEListboxTextItem(text:String, itemId:Int = 0, disabled:Int = False, autoDelete:Int = True)
 		objectPtr = bmx_cegui_listboxtextitem_new(_convertMaxToUTF8(text), itemId, disabled, autoDelete)
 		owner = True
+		onInit()
 		Return Self
 	End Method
 

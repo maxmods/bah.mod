@@ -459,7 +459,7 @@ CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r, MaxResourceProvider * 
 }
 
 void bmx_cegui_system_destroy() {
-	CEGUI::System::destroy();
+	//delete sys;
 }
 
 void bmx_cegui_delete_renderer(CEGUI::Renderer * r) {
@@ -658,6 +658,33 @@ void bmx_cegui_windowmanager_renamewindowname(CEGUI::WindowManager * mgr, const 
 	}
 }
 
+int bmx_cegui_windowmanager_isdeadpoolempty(CEGUI::WindowManager * mgr) {
+	return static_cast<int>(mgr->isDeadPoolEmpty());
+}
+
+void bmx_cegui_windowmanager_cleandeadpool(CEGUI::WindowManager * mgr) {
+	mgr->cleanDeadPool();
+}
+
+void bmx_cegui_windowmanager_lock(CEGUI::WindowManager * mgr) {
+	mgr->lock();
+}
+
+void bmx_cegui_windowmanager_unlock(CEGUI::WindowManager * mgr) {
+	mgr->unlock();
+}
+
+int bmx_cegui_windowmanager_islocked(CEGUI::WindowManager * mgr) {
+	return static_cast<int>(mgr->isLocked());
+}
+
+void bmx_cegui_windowmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
+	CEGUI::WindowManager::setDefaultResourceGroup(resourceGroup);
+}
+
+BBString * bmx_cegui_windowmanager_getdefaultresourcegroup() {
+		return bah_cegui__convertUTF8ToMax(CEGUI::WindowManager::getDefaultResourceGroup().data());
+}
 
 // *************************************************
 
@@ -711,6 +738,10 @@ int bmx_cegui_system_injectchar(CEGUI::System * sys, CEGUI::utf32 key) {
 
 int bmx_cegui_system_injectMouseWheelChange(CEGUI::System * sys, int delta) {
 	return sys->injectMouseWheelChange(static_cast<float>(delta));
+}
+
+BBObject * bmx_cegui_system_getresourceprovider(CEGUI::System * sys) {
+	return _bah_cegui_TCEDefaultResourceProvider__create(static_cast<CEGUI::DefaultResourceProvider*>(sys->getResourceProvider()));
 }
 
 // *************************************************
@@ -1444,6 +1475,10 @@ void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, 
 	*height = s.d_height;
 }
 
+void bmx_cegui_window_setarearel(CEGUI::Window * window, float xpos, float ypos, float width, float height) {
+	window->setArea(CEGUI::URect(cegui_reldim(xpos), cegui_reldim(ypos), cegui_reldim(width), cegui_reldim(height)));
+}
+
 // *************************************************
 
 void bmx_cegui_connection_delete(MaxConnection * conn) {
@@ -2146,25 +2181,25 @@ void bmx_cegui_imagesetmanager_createall(const CEGUI::utf8 * pattern, const CEGU
 
 // *************************************************
 
-CEGUI::Font * bmx_cegui_fontmanager_createfreetypefont(const CEGUI::utf8 * font_name, float pointSize, int antialiased, const CEGUI::utf8 * fontFilename, 
+BBObject * bmx_cegui_fontmanager_createfreetypefont(const CEGUI::utf8 * font_name, float pointSize, int antialiased, const CEGUI::utf8 * fontFilename, 
 		const CEGUI::utf8 * resourceGroup, int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action) {
-	return &CEGUI::FontManager::getSingleton().createFreeTypeFont(font_name, pointSize, antialiased, fontFilename, resourceGroup, 
-		autoScaled, nativeHorzRes, nativeVertRes, action);
+	return _bah_cegui_TCEFont__create(&CEGUI::FontManager::getSingleton().createFreeTypeFont(font_name, pointSize, antialiased, fontFilename, resourceGroup, 
+		autoScaled, nativeHorzRes, nativeVertRes, action));
 }
 
-CEGUI::Font * bmx_cegui_fontmanager_createpixmapfont(const CEGUI::utf8 * font_name, const CEGUI::utf8 * imagesetFilename, const CEGUI::utf8 * resourceGroup,
+BBObject * bmx_cegui_fontmanager_createpixmapfont(const CEGUI::utf8 * font_name, const CEGUI::utf8 * imagesetFilename, const CEGUI::utf8 * resourceGroup,
 		int autoScaled, float nativeHorzRes, float nativeVertRes, CEGUI::XMLResourceExistsAction action) {
-	return & CEGUI::FontManager::getSingleton().createPixmapFont(font_name, imagesetFilename, resourceGroup, 
-		autoScaled, nativeHorzRes, nativeVertRes, action);
+	return _bah_cegui_TCEFont__create(& CEGUI::FontManager::getSingleton().createPixmapFont(font_name, imagesetFilename, resourceGroup, 
+		autoScaled, nativeHorzRes, nativeVertRes, action));
 }
 
 void bmx_cegui_fontmanager_notifydislaysizechanged(float width, float height) {
 	CEGUI::FontManager::getSingleton().notifyDisplaySizeChanged(CEGUI::Size(width, height));
 }
 
-CEGUI::Font * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
+BBObject * bmx_cegui_fontmanager_createfont(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
 	try {
-		return &CEGUI::FontManager::getSingleton().create(filename, resourceGroup, action);
+		return _bah_cegui_TCEFont__create(&CEGUI::FontManager::getSingleton().create(filename, resourceGroup, action));
 	} catch (CEGUI::FileIOException &e) {
 		bmx_cegui_throw_fileioexception(e);
 	} catch (CEGUI::InvalidRequestException &e) {
@@ -2196,7 +2231,7 @@ void bmx_cegui_fontmanager_destroyall() {
 
 BBObject * bmx_cegui_fontmanager_get(const CEGUI::utf8 * name) {
 	try{ 
-		// TODO
+		return _bah_cegui_TCEFont__create(&CEGUI::FontManager::getSingleton().get(name));
 	} catch (CEGUI::UnknownObjectException &e) {
 		bmx_cegui_throw_unknownobjectexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -2581,6 +2616,14 @@ int bmx_cegui_scheme_resourcesloaded(CEGUI::Scheme * scheme) {
 
 BBString * bmx_cegui_scheme_getname(CEGUI::Scheme * scheme) {
 	return bah_cegui__convertUTF8ToMax(scheme->getName().data());
+}
+
+void bmx_cegui_scheme_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
+	CEGUI::Scheme::setDefaultResourceGroup(resourceGroup);
+}
+
+BBString * bmx_cegui_scheme_getdefaultresourcegroup() {
+	return bah_cegui__convertUTF8ToMax(CEGUI::Scheme::getDefaultResourceGroup().data());
 }
 
 // *************************************************
@@ -3823,6 +3866,28 @@ void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider) {
 	delete provider;
 }
 
+BBString * bmx_cegui_resourceprovider_getdefaultresourcegroup(CEGUI::ResourceProvider * provider) {
+	return bah_cegui__convertUTF8ToMax(provider->getDefaultResourceGroup().data());
+}
+
+void bmx_cegui_resourceprovider_setdefaultresourcegroup(CEGUI::ResourceProvider * provider, CEGUI::utf8 * group) {
+	provider->setDefaultResourceGroup(group);
+}
+
+// *************************************************
+
+void bmx_cegui_defaultresourceprovider_setresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup, CEGUI::utf8 * directory) {
+	provider->setResourceGroupDirectory(resourceGroup, directory);
+}
+
+BBString * bmx_cegui_defaultresourceprovider_getresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup) {
+	return bah_cegui__convertUTF8ToMax(provider->getResourceGroupDirectory(resourceGroup).data());
+}
+
+void bmx_cegui_defaultresourceprovider_clearresourcegroupdirectory(CEGUI::DefaultResourceProvider * provider, CEGUI::utf8 * resourceGroup) {
+	provider->clearResourceGroupDirectory(resourceGroup);
+}
+
 // *************************************************
 
 void bmx_cegui_rawdatacontainer_delete(MaxRawDataContainer * container) {
@@ -4527,6 +4592,73 @@ float bmx_cegui_font_getbaseline(CEGUI::Font * font, float yScale) {
 	return font->getBaseline(yScale);
 }
 
+void bmx_cegui_font_removeproperty(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	font->removeProperty(name);
+}
+
+void bmx_cegui_font_clearproperties(CEGUI::Font * font) {
+	font->clearProperties();
+}
+
+int bmx_cegui_font_ispropertypresent(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	return static_cast<int>(font->isPropertyPresent(name));
+}
+
+BBString * bmx_cegui_font_getpropertyhelp(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	try {
+		return bah_cegui__convertUTF8ToMax(font->getPropertyHelp(name).data());
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+BBString * bmx_cegui_font_getproperty(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	try {
+		return bah_cegui__convertUTF8ToMax(font->getProperty(name).data());
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+void bmx_cegui_font_setproperty(CEGUI::Font * font, const CEGUI::utf8 * name, const CEGUI::utf8 * value) {
+	try {
+		font->setProperty(name, value);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+int bmx_cegui_font_ispropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	return static_cast<int>(font->isPropertyDefault(name));
+}
+
+BBString * bmx_cegui_font_getpropertydefault(CEGUI::Font * font, const CEGUI::utf8 * name) {
+	try {
+		return bah_cegui__convertUTF8ToMax(font->getPropertyDefault(name).data());
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
+}
+
+
+void bmx_cegui_font_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
+	CEGUI::Font::setDefaultResourceGroup(resourceGroup);
+}
+
+BBString * bmx_cegui_font_getdefaultresourcegroup() {
+	return bah_cegui__convertUTF8ToMax(CEGUI::Font::getDefaultResourceGroup().data());
+}
+
 // *************************************************
 
 BBObject * bmx_cegui_dragdropeventargs_getdragdropitem(CEGUI::DragDropEventArgs * args) {
@@ -4703,6 +4835,14 @@ void bmx_cegui_imageset_setnativeresolution(CEGUI::Imageset * is, float width, f
 
 void bmx_cegui_imageset_notifydisplaysizechanged(CEGUI::Imageset * is, float width, float height) {
 	is->notifyDisplaySizeChanged(CEGUI::Size(width, height));
+}
+
+void bmx_cegui_imageset_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
+	CEGUI::Imageset::setDefaultResourceGroup(resourceGroup);
+}
+
+BBString * bmx_cegui_imageset_getdefaultresourcegroup() {
+	return bah_cegui__convertUTF8ToMax(CEGUI::Imageset::getDefaultResourceGroup().data());
 }
 
 // *************************************************
@@ -4925,7 +5065,19 @@ void bmx_cegui_listheader_setcolumnwidth(CEGUI::ListHeader * head, CEGUI::uint c
 // *************************************************
 
 BBObject * bmx_cegui_schememanager_createscheme(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
-	return _bah_cegui_TCEScheme__create(&CEGUI::SchemeManager::getSingleton().create(filename, resourceGroup, action));
+	try {
+		return _bah_cegui_TCEScheme__create(&CEGUI::SchemeManager::getSingleton().create(filename, resourceGroup, action));
+	} catch (CEGUI::InvalidRequestException &e) {
+		bmx_cegui_throw_invalidrequestexception(e);
+	} catch (CEGUI::AlreadyExistsException &e) {
+		bmx_cegui_throw_alreadyexistsexception(e);
+	} catch (CEGUI::UnknownObjectException &e) {
+		bmx_cegui_throw_unknownobjectexception(e);
+	} catch (CEGUI::GenericException &e) {
+		bmx_cegui_throw_genericexception(e);
+	} catch (CEGUI::Exception &e) {
+		bmx_cegui_throw_exception(e);
+	}
 }
 
 void bmx_cegui_schememanager_destroyname(const CEGUI::utf8 * scheme) {
@@ -4958,3 +5110,12 @@ void bmx_cegui_schememanager_createall(const CEGUI::utf8 * pattern, const CEGUI:
 	CEGUI::SchemeManager::getSingleton().createAll(pattern, resourceGroup);
 }
 
+// *************************************************
+
+BBString * bmx_cegui_widgetlookmanager_getdefaultresourcegroup() {
+	return bah_cegui__convertUTF8ToMax(CEGUI::WidgetLookManager::getDefaultResourceGroup().data());
+}
+
+void bmx_cegui_widgetlookmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
+	CEGUI::WidgetLookManager::setDefaultResourceGroup(resourceGroup);
+}

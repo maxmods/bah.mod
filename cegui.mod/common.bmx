@@ -58,6 +58,7 @@ Extern
 	Function bmx_cegui_system_getdefaulttooltip:Object(handle:Byte Ptr)
 	Function bmx_cegui_system_getmousemovescaling:Float(handle:Byte Ptr)
 	Function bmx_cegui_system_setmousemovescaling(handle:Byte Ptr, scaling:Float)
+	Function bmx_cegui_system_getresourceprovider:Object(handle:Byte Ptr)
 
 	Function bmx_cegui_windowmanager_getsingleton:Byte Ptr()
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(handle:Byte Ptr, filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)
@@ -69,6 +70,13 @@ Extern
 	Function bmx_cegui_windowmanager_destroywindowname(handle:Byte Ptr, window:Byte Ptr)
 	Function bmx_cegui_windowmanager_renamewindowwindow(handle:Byte Ptr, window:Byte Ptr, newName:Byte Ptr)
 	Function bmx_cegui_windowmanager_renamewindowname(handle:Byte Ptr, window:Byte Ptr, newName:Byte Ptr)
+	Function bmx_cegui_windowmanager_isdeadpoolempty:Int(handle:Byte Ptr)
+	Function bmx_cegui_windowmanager_cleandeadpool(handle:Byte Ptr)
+	Function bmx_cegui_windowmanager_lock(handle:Byte Ptr)
+	Function bmx_cegui_windowmanager_unlock(handle:Byte Ptr)
+	Function bmx_cegui_windowmanager_islocked:Int(handle:Byte Ptr)
+	Function bmx_cegui_windowmanager_setdefaultresourcegroup(resourceGroup:Byte Ptr)
+	Function bmx_cegui_windowmanager_getdefaultresourcegroup:String()
 
 	'Function bmx_cegui_eventhandler_new:Byte Ptr()
 	'Function bmx_cegui_eventhandler_delete(handle:Byte Ptr)
@@ -230,6 +238,7 @@ Extern
 	Function bmx_cegui_window_gettooltip:Object(handle:Byte Ptr)
 	Function bmx_cegui_window_getactivesibling:Object(handle:Byte Ptr)
 	Function bmx_cegui_window_getparentpixelsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
+	Function bmx_cegui_window_setarearel(handle:Byte Ptr, xpos:Float, ypos:Float, width:Float, height:Float)
 
 	Function bmx_cegui_window_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
 	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)
@@ -370,7 +379,7 @@ Extern
 	Function bmx_cegui_imagesetmanager_isdefined:Int(name:Byte Ptr)
 	Function bmx_cegui_imagesetmanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
 
-	Function bmx_cegui_fontmanager_createfont:Byte Ptr(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_fontmanager_createfont:Object(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
 	Function bmx_cegui_fontmanager_destroyname(name:Byte Ptr)
 	Function bmx_cegui_fontmanager_destroyobj(font:Byte Ptr)
 	Function bmx_cegui_fontmanager_destroyall()
@@ -378,9 +387,9 @@ Extern
 	Function bmx_cegui_fontmanager_isdefined:Int(name:Byte Ptr)
 	Function bmx_cegui_fontmanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
 
-	Function bmx_cegui_fontmanager_createfreetypefont:Byte Ptr(font_name:Byte Ptr, pointSize:Float, antialiased:Int, fontFilename:Byte Ptr, resourceGroup:Byte Ptr, ..
+	Function bmx_cegui_fontmanager_createfreetypefont:Object(font_name:Byte Ptr, pointSize:Float, antialiased:Int, fontFilename:Byte Ptr, resourceGroup:Byte Ptr, ..
 			autoScaled:Int, nativeHorzRes:Float, nativeVertRes:Float, action:Int)
-	Function bmx_cegui_fontmanager_createpixmapfont:Byte Ptr(font_name:Byte Ptr, imagesetFilename:Byte Ptr, resourceGroup:Byte Ptr, autoScaled:Int, ..
+	Function bmx_cegui_fontmanager_createpixmapfont:Object(font_name:Byte Ptr, imagesetFilename:Byte Ptr, resourceGroup:Byte Ptr, autoScaled:Int, ..
 			nativeHorzRes:Float, nativeVertRes:Float, action:Int)
 	Function bmx_cegui_fontmanager_notifydislaysizechanged(width:Float, height:Float)
 
@@ -459,6 +468,8 @@ Extern
 	Function bmx_cegui_scheme_unloadresources(handle:Byte Ptr)
 	Function bmx_cegui_scheme_resourcesloaded:Int(handle:Byte Ptr)
 	Function bmx_cegui_scheme_getname:String(handle:Byte Ptr)
+	Function bmx_cegui_scheme_setdefaultresourcegroup(resourceGroup:Byte Ptr)
+	Function bmx_cegui_scheme_getdefaultresourcegroup:String()
 
 	Function bmx_cegui_listboxitem_gettext:String(handle:Byte Ptr)
 	Function bmx_cegui_listboxitem_gettooltiptext:String(handle:Byte Ptr)
@@ -766,6 +777,12 @@ Extern
 	Function bmx_cegui_resourceprovider_create:Byte Ptr(handle:Object)
 	Function bmx_cegui_resourceprovider_delete(handle:Byte Ptr)
 	Function bmx_cegui_rawdatacontainer_delete(handle:Byte Ptr)
+	Function bmx_cegui_resourceprovider_getdefaultresourcegroup:String(handle:Byte Ptr)
+	Function bmx_cegui_resourceprovider_setdefaultresourcegroup(handle:Byte Ptr, group:Byte Ptr)
+
+	Function bmx_cegui_defaultresourceprovider_setresourcegroupdirectory(handle:Byte Ptr, resourceGroup:Byte Ptr, directory:Byte Ptr)
+	Function bmx_cegui_defaultresourceprovider_getresourcegroupdirectory:String(handle:Byte Ptr, resourceGroup:Byte Ptr)
+	Function bmx_cegui_defaultresourceprovider_clearresourcegroupdirectory(handle:Byte Ptr, resourceGroup:Byte Ptr)
 
 	Function bmx_cegui_rawdatacontainer_setdata(handle:Byte Ptr, data:Byte Ptr)
 	Function bmx_cegui_rawdatacontainer_getdataptr:Byte Ptr(handle:Byte Ptr)
@@ -935,6 +952,17 @@ Extern
 	Function bmx_cegui_font_getlinespacing:Float(handle:Byte Ptr, yScale:Float)
 	Function bmx_cegui_font_getfontheight:Float(handle:Byte Ptr, yScale:Float)
 	Function bmx_cegui_font_getbaseline:Float(handle:Byte Ptr, yScale:Float)
+	Function bmx_cegui_font_removeproperty(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_font_clearproperties(handle:Byte Ptr)
+	Function bmx_cegui_font_ispropertypresent:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_font_getpropertyhelp:String(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_font_getproperty:String(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_font_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
+	Function bmx_cegui_font_ispropertydefault:Int(handle:Byte Ptr, name:Byte Ptr)
+	Function bmx_cegui_font_getpropertydefault:String(handle:Byte Ptr, name:Byte Ptr)
+
+	Function bmx_cegui_font_setdefaultresourcegroup(resourceGroup:Byte Ptr)
+	Function bmx_cegui_font_getdefaultresourcegroup:String()
 
 	Function bmx_cegui_dragdropeventargs_getdragdropitem:Object(handle:Byte Ptr)
 	Function bmx_cegui_mousecursoreventargs_getimage:Object(handle:Byte Ptr)
@@ -968,6 +996,8 @@ Extern
 	Function bmx_cegui_imageset_setautoscalingenabled(handle:Byte Ptr, setting:Int)
 	Function bmx_cegui_imageset_setnativeresolution(handle:Byte Ptr, width:Float, height:Float)
 	Function bmx_cegui_imageset_notifydisplaysizechanged(handle:Byte Ptr, width:Float, height:Float)
+	Function bmx_cegui_imageset_setdefaultresourcegroup(resourceGroup:Byte Ptr)
+	Function bmx_cegui_imageset_getdefaultresourcegroup:String()
 
 	Function bmx_cegui_groupbox_getcontentpane:Object(handle:Byte Ptr)
 
@@ -1031,6 +1061,9 @@ Extern
 	Function bmx_cegui_schememanager_get:Object(name:Byte Ptr)
 	Function bmx_cegui_schememanager_isdefined:Int(name:Byte Ptr)
 	Function bmx_cegui_schememanager_createall(pattern:Byte Ptr, resourceGroup:Byte Ptr)
+
+	Function bmx_cegui_widgetlookmanager_getdefaultresourcegroup:String()
+	Function bmx_cegui_widgetlookmanager_setdefaultresourcegroup(group:Byte Ptr)
 
 End Extern
 

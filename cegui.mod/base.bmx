@@ -47,7 +47,7 @@ Function cegui_cleanup()
 	RemoveHook EmitEventHook,TCEEvent.Keyhook
 
 	If TCESystem.cegui_systemPtr Then
-		bmx_cegui_system_destroy()
+		'bmx_cegui_system_destroy()
 		TCESystem.cegui_systemPtr = Null
 	End If
 	
@@ -116,6 +116,20 @@ Type TCEResourceProvider
 		provider.loadRawDataContainer(filename, TCERawDataContainer._create(container), resourceGroup)
 	End Function
 
+	Rem
+	bbdoc: Returns the current default resource group identifier.
+	End Rem
+	Method getDefaultResourceGroup:String()
+		Return bmx_cegui_resourceprovider_getdefaultresourcegroup(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the default resource group identifier.
+	End Rem
+	Method setDefaultResourceGroup(group:String)
+		bmx_cegui_resourceprovider_setdefaultresourcegroup(objectPtr, _convertMaxToUTF8(group))
+	End Method
+		
 	Rem
 	bbdoc: Unload raw binary data.
 	about: This gives the resource provider a chance to unload the data in its own way before the data
@@ -583,6 +597,41 @@ Type TCESystem Extends TCEEventSet
 		bmx_cegui_system_setmousemovescaling(cegui_systemPtr, scaling)
 	End Function
 	
+	Function getResourceProvider:TCEResourceProvider()
+		If resourceProvider Then
+			Return resourceProvider
+		End If
+		
+		Return TCEResourceProvider(bmx_cegui_system_getresourceprovider(cegui_systemPtr))
+	End Function
+	
+End Type
+
+Rem
+bbdoc: The default resource provider.
+End Rem
+Type TCEDefaultResourceProvider Extends TCEResourceProvider
+
+	Function _create:TCEDefaultResourceProvider(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:TCEDefaultResourceProvider = New TCEDefaultResourceProvider
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+
+	Method setResourceGroupDirectory(resourceGroup:String, directory:String)
+		bmx_cegui_defaultresourceprovider_setresourcegroupdirectory(objectPtr, _convertMaxToUTF8(resourceGroup), _convertMaxToUTF8(directory))
+	End Method
+	
+	Method getResourceGroupDirectory:String(resourceGroup:String)
+		Return bmx_cegui_defaultresourceprovider_getresourcegroupdirectory(objectPtr, _convertMaxToUTF8(resourceGroup))
+	End Method
+	
+	Method clearResourceGroupDirectory(resourceGroup:String)
+		bmx_cegui_defaultresourceprovider_clearresourcegroupdirectory(objectPtr, _convertMaxToUTF8(resourceGroup))
+	End Method
+	
 End Type
 
 Rem
@@ -631,6 +680,20 @@ Type TCEScheme
 	Method getName:String()
 		Return bmx_cegui_scheme_getname(objectPtr)
 	End Method
+
+	Rem
+	bbdoc: Sets the default resource group to be used when loading scheme xml data.
+	End Rem
+	Function setDefaultResourceGroup(resourceGroup:String)
+		bmx_cegui_scheme_setdefaultresourcegroup(_convertMaxToUTF8(resourceGroup))
+	End Function
+	
+	Rem
+	bbdoc: Returns the default resource group currently set for Schemes. 
+	End Rem
+	Function getDefaultResourceGroup:String()
+		Return bmx_cegui_scheme_getdefaultresourcegroup()
+	End Function
 
 End Type
 
@@ -706,7 +769,71 @@ Type TCEWindowManager
 	Function CreateWindow:TCEWindow(windowType:String, name:String = "")
 		Return TCEWindow(bmx_cegui_windowmanager_createwindow(windowManagerPtr, _convertMaxToUTF8(windowType), _convertMaxToUTF8(name)))
 	End Function
+
+	Rem
+	bbdoc: Returns whether the window dead pool is empty.
+	returns: True if there are no windows in the dead pool, or False if the dead pool contains 1 or more windows awaiting destruction.
+	End Rem
+	Function isDeadPoolEmpty:Int()
+		Return bmx_cegui_windowmanager_isdeadpoolempty(windowManagerPtr)
+	End Function
 	
+	Rem
+	bbdoc: Permanently destroys any windows placed in the dead pool.
+	about: It is probably not a good idea to call this from a Window based event handler if the specific window has been or is being destroyed.
+	End Rem
+	Function cleanDeadPool()
+		bmx_cegui_windowmanager_cleandeadpool(windowManagerPtr)
+	End Function
+	
+	Rem
+	bbdoc: Puts WindowManager into the locked state.
+	about: While WindowManager is in the locked state all attempts to create a Window of any type will fail with an InvalidRequestException being thrown.
+	Calls to lock/unlock are recursive; if multiple calls to lock are made, WindowManager is only unlocked after a matching number of calls to unlock.
+	<p>
+	Note: This is primarily intended for internal use within the system.
+	</p>
+	End Rem
+	Function lock()
+		bmx_cegui_windowmanager_lock(windowManagerPtr)
+	End Function
+	
+	Rem
+	bbdoc: Puts WindowManager into the unlocked state.
+	about: While WindowManager is in the locked state all attempts to create a Window of any type will fail with an InvalidRequestException being thrown.
+	Calls to lock/unlock are recursive; if multiple calls to lock are made, WindowManager is only unlocked after a matching number of calls to unlock.
+	<p>
+	Note: This is primarily intended for internal use within the system.
+	</p>
+	End Rem
+	Function unlock()
+		bmx_cegui_windowmanager_unlock(windowManagerPtr)
+	End Function
+	
+	Rem
+	bbdoc: Returns whether WindowManager is currently in the locked state.
+	returns: True to indicate WindowManager is locked and that any attempt to create Window objects will fail, or False to indicate WindowManager is unlocked and that Window objects may be created as normal.
+	about: While WindowManager is in the locked state all attempts to create a Window of any type will fail with an InvalidRequestException being thrown.
+	Calls to lock/unlock are recursive; if multiple calls to lock are made, WindowManager is only unlocked after a matching number of calls to unlock.
+	End Rem
+	Function isLocked:Int()
+		Return bmx_cegui_windowmanager_islocked(windowManagerPtr)
+	End Function
+	
+	Rem
+	bbdoc: Sets the default resource group to be used when loading layouts. 
+	End Rem
+	Function setDefaultResourceGroup(resourceGroup:String)
+		bmx_cegui_windowmanager_setdefaultresourcegroup(_convertMaxToUTF8(resourceGroup))
+	End Function
+	
+	Rem
+	bbdoc: Returns the default resource group currently set for layouts. 
+	End Rem
+	Function getDefaultResourceGroup:String()
+		Return bmx_cegui_windowmanager_getdefaultresourcegroup()
+	End Function
+
 End Type
 
 Rem
@@ -907,7 +1034,7 @@ Type TCEWindow Extends TCEEventSet
 			Return this
 		End If
 	End Function
-
+	
 	Rem
 	bbdoc: Subscribes a handler to the named Event.
 	returns: Connection object that can be used to check the status of the Event connection and to disconnect (unsubscribe) from the Event.
@@ -1619,8 +1746,14 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_setuserstring(objectPtr, _convertMaxToUTF8(name), _convertMaxToUTF8(value))
 	End Method
 	
-	'method setArea(const UDim &xpos, UDim &ypos, UDim &width, UDim &height)
-	'end method
+	Rem
+	bbdoc: Sets the window area.
+	about: Sets the area occupied by this window. The defined area is offset from the top-left corner of this windows parent window or from
+	the top-left corner of the display if this window has no parent (i.e. it is the root window).
+	End Rem
+	Method setAreaRel(xpos:Float, ypos:Float, width:Float, height:Float)
+		bmx_cegui_window_setarearel(objectPtr, xpos, ypos, width, height)
+	End Method
 	
 	'method setArea(const UVector2 &pos, UVector2 &size)
 	'end method
@@ -2717,7 +2850,7 @@ Type TCEFontManager
 	End Rem
 	Function createFreeTypeFont:TCEFont(FontName:String, pointSize:Float, antialiased:Int, fontFilename:String, resourceGroup:String = "", ..
 			autoScaled:Int = False, nativeHorzRes:Float = 640.0, nativeVertRes:Float = 480.0, action:Int = XREA_RETURN)
-		Return TCEFont._create(bmx_cegui_fontmanager_createfreetypefont(_convertMaxToUTF8(FontName), pointSize, antialiased, _convertMaxToUTF8(fontFilename), ..
+		Return TCEFont(bmx_cegui_fontmanager_createfreetypefont(_convertMaxToUTF8(FontName), pointSize, antialiased, _convertMaxToUTF8(fontFilename), ..
 			_convertMaxToUTF8(resourceGroup), autoScaled, nativeHorzRes, nativeVertRes, action))
 	End Function
 	
@@ -2726,13 +2859,13 @@ Type TCEFontManager
 	End Rem
 	Function createPixmapFont:TCEFont(FontName:String, imagesetFilename:String, resourceGroup:String = "", autoScaled:Int = False, ..
 			nativeHorzRes:Float = 640.0, nativeVertRes:Float = 480.0, action:Int = XREA_RETURN)
-		Return TCEFont._create(bmx_cegui_fontmanager_createpixmapfont(_convertMaxToUTF8(FontName), _convertMaxToUTF8(imagesetFilename), ..
+		Return TCEFont(bmx_cegui_fontmanager_createpixmapfont(_convertMaxToUTF8(FontName), _convertMaxToUTF8(imagesetFilename), ..
 			_convertMaxToUTF8(resourceGroup), autoScaled, nativeHorzRes, nativeVertRes, action))
 
 	End Function
 
 	Function createFont:TCEFont(filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
-		Return TCEFont._create(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup), action))
+		Return TCEFont(bmx_cegui_fontmanager_createfont(_convertMaxToUTF8(filename), _convertMaxToUTF8(resourceGroup), action))
 	End Function
 	
 	Rem
@@ -2853,6 +2986,79 @@ Type TCEFont
 		Return bmx_cegui_font_getbaseline(objectPtr, yScale)
 	End Method
 	
+	Rem
+	bbdoc: Removes a Property from the PropertySet.
+	End Rem
+	Method removeProperty(name:String)
+		bmx_cegui_font_removeproperty(objectPtr, _convertMaxToUTF8(name))
+	End Method
+	 
+	Rem
+	bbdoc: Removes all Property objects from the PropertySet.
+	End Rem
+	Method clearProperties()
+		bmx_cegui_font_clearproperties(objectPtr)
+	End Method
+	 
+	Rem
+	bbdoc: Checks to see if a Property with the given name is in the PropertySet.
+	returns: True if a Property named name is in the PropertySet. False if no Property named name is in the PropertySet.
+	End Rem
+	Method isPropertyPresent:Int(name:String)
+		Return bmx_cegui_font_ispropertypresent(objectPtr, _convertMaxToUTF8(name))
+	End Method
+	 
+	Rem
+	bbdoc: Returns the help text for the specified Property.
+	End Rem
+	Method getPropertyHelp:String(name:String)
+		Return bmx_cegui_font_getpropertyhelp(objectPtr, _convertMaxToUTF8(name))
+	End Method
+	 
+	Rem
+	bbdoc: Gets the current value of the specified Property.
+	End Rem
+	Method getProperty:String(name:String)
+		Return bmx_cegui_font_getproperty(objectPtr, _convertMaxToUTF8(name))
+	End Method
+	 
+	Rem
+	bbdoc: Sets the current value of a Property.
+	End Rem
+	Method setProperty(name:String, value:String)
+		bmx_cegui_font_setproperty(objectPtr, _convertMaxToUTF8(name), _convertMaxToUTF8(value))
+	End Method
+	 
+	Rem
+	bbdoc: Returns whether a Property is at it's default value.
+	returns: True if the property has it's default value, or False if the property has been modified from it's default value.
+	End Rem
+	Method isPropertyDefault:Int(name:String)
+		Return bmx_cegui_font_ispropertydefault(objectPtr, _convertMaxToUTF8(name))
+	End Method
+	 
+	Rem
+	bbdoc: Returns the default value of a Property as a String.
+	End Rem
+	Method getPropertyDefault:String(name:String)
+		Return bmx_cegui_font_getpropertydefault(objectPtr, _convertMaxToUTF8(name))
+	End Method
+
+
+	Rem
+	bbdoc: Sets the default resource group to be used when loading font data. 
+	End Rem
+	Function setDefaultResourceGroup(resourceGroup:String)
+		bmx_cegui_font_setdefaultresourcegroup(_convertMaxToUTF8(resourceGroup))
+	End Function
+	
+	Rem
+	bbdoc: Returns the default resource group currently set for Fonts. 
+	End Rem
+	Function getDefaultResourceGroup:String()
+		Return bmx_cegui_font_getdefaultresourcegroup()
+	End Function
+
 End Type
 
 Rem
@@ -3216,6 +3422,20 @@ Type TCEImageset
 	Method notifyDisplaySizeChanged(width:Float, height:Float)
 		bmx_cegui_imageset_notifydisplaysizechanged(objectPtr, width, height)
 	End Method
+	
+	Rem
+	bbdoc: Sets the default resource group to be used when loading imageset data.
+	End Rem
+	Function setDefaultResourceGroup(resourceGroup:String)
+		bmx_cegui_imageset_setdefaultresourcegroup(_convertMaxToUTF8(resourceGroup))
+	End Function
+	
+	Rem
+	bbdoc: Returns the default resource group currently set for Imagesets.
+	End Rem
+	Function getDefaultResourceGroup:String()
+		Return bmx_cegui_imageset_getdefaultresourcegroup()
+	End Function
 	
 End Type
 
@@ -3865,5 +4085,26 @@ Type TCETextureTarget
 
 	Field objectPtr:Byte Ptr
 
+End Type
+
+Rem
+bbdoc: Manager type that gives top-level access to widget data based "look and feel" specifications loaded into the system.
+End Rem
+Type TCEWidgetLookManager
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function getDefaultResourceGroup:String()
+		Return bmx_cegui_widgetlookmanager_getdefaultresourcegroup()
+	End Function
+	
+	Rem
+	bbdoc: Sets the default resource group identifier.
+	End Rem
+	Function setDefaultResourceGroup(group:String)
+		bmx_cegui_widgetlookmanager_setdefaultresourcegroup(_convertMaxToUTF8(group))
+	End Function
+	
 End Type
 

@@ -19,6 +19,8 @@ Local provider:CustomResourceProvider = New CustomResourceProvider
 ' Pass it into CEGUI's initialization
 Init_CEGUI(New TCEOpenGLRenderer, provider)
 
+initialiseDefaultResourceGroups()
+
 TCESchemeManager.createScheme("TaharezLook.scheme")
 
 TCESystem.setDefaultFont("Commonwealth-10")
@@ -91,6 +93,15 @@ Type CustomResourceProvider Extends TCEResourceProvider
 		
 		DebugLog "Loading file : " + filename
 		
+		Select resourceGroup
+			Case "imagesets"
+				filename = "../datafiles/imagesets/" + filename
+			Case "fonts"
+				filename = "../datafiles/fonts/" + filename
+			Case "looknfeels"
+				filename = "../datafiles/looknfeel/" + filename
+		End Select
+		
 		Local stream:TStream = ReadStream(filename)
 		
 		Local size:Int = stream.Size()
@@ -121,3 +132,13 @@ Type CustomResourceProvider Extends TCEResourceProvider
 End Type
 
 
+
+Function initialiseDefaultResourceGroups()
+	' set the default resource groups to be used
+	TCEImageset.setDefaultResourceGroup("imagesets")
+	TCEFont.setDefaultResourceGroup("fonts")
+	TCEScheme.setDefaultResourceGroup("schemes")
+	TCEWidgetLookManager.setDefaultResourceGroup("looknfeels")
+	TCEWindowManager.setDefaultResourceGroup("layouts")
+	'TCEScriptModule.setDefaultResourceGroup("lua_scripts")
+End Function
