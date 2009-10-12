@@ -25,12 +25,14 @@ bbdoc: Libxml
 End Rem
 Module BaH.LibXml
 
-ModuleInfo "Version: 1.14"
+ModuleInfo "Version: 1.15"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libxml2) 1998-2009 Daniel Veillard"
 ModuleInfo "Copyright: (wrapper) 2006-2009 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.15"
+ModuleInfo "History: Added missing xmlParserOptions."
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Updated to Libxml 2.7.4."
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
@@ -3817,13 +3819,18 @@ Type TxmlTextReader
 	<tr><td>XML_PARSE_NSCLEAN</td><td>remove redundant namespaces declarations</td></tr>
 	<tr><td>XML_PARSE_NOCDATA</td><td>merge CDATA as text nodes</td></tr>
 	<tr><td>XML_PARSE_NOXINCNODE</td><td>do not generate XINCLUDE START/END nodes</td></tr>
-	<tr><td>XML_PARSE_COMPACT</td><td>compact small text nodes</td></tr>
+	<tr><td>XML_PARSE_COMPACT</td><td>compact small text nodes. no modification of the tree allowed
+	afterwards (will possibly crash if you try to modify the tree)</td></tr>
+	<tr><td>XML_PARSE_OLD10</td><td>parse using XML-1.0 before update 5</td></tr>
+	<tr><td>XML_PARSE_NOBASEFIX</td><td>do not fixup XINCLUDE xml:base uris</td></tr>
+	<tr><td>XML_PARSE_HUGE</td><td>relax any hardcoded limit from the parser</td></tr>
+	<tr><td>XML_PARSE_OLDSAX</td><td>parse using SAX2 interface from before 2.7.0</td></tr>
 	</table>
 	<p>Parameters:
 	<ul>
 	<li><b>filename</b> : a file or URL. Supports "incbin::" paths.</li>
 	<li><b>encoding</b> : the document encoding, or Null.</li>
-	<li><b>options</b> : the new reader or Null in case of error.</li>
+	<li><b>options</b> : a combination of xmlParserOptions.</li>
 	</ul>
 	</p>
 	End Rem
@@ -3880,7 +3887,7 @@ Type TxmlTextReader
 	<li><b>text</b> : the string to be parsed.</li>
 	<li><b>url</b> : the base URL to use for the document.</li>
 	<li><b>encoding</b> : the document encoding, or Null.</li>
-	<li><b>options</b> : a combination of xmlParserOption</li>
+	<li><b>options</b> : a combination of xmlParserOptions</li>
 	</ul>
 	</p>
 	End Rem
