@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2009 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.FMODAudio
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2009 Bruce A Henderson"
 
 Import BaH.FMOD
 Import BRL.Audio
@@ -95,6 +95,7 @@ Type TFMODAudioDriver Extends TAudioDriver
 			End If
 		End If
 
+		Return data
 	End Function
 	
 End Type
