@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,13 +51,13 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>ALTER TABLE</h1><h4><a href="syntaxdiagrams.html#alter-table-stmt">alter-table-stmt:</a></h4><blockquote> <img src="images/syntax/alter-table-stmt.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>ALTER TABLE</h1><h4><a href="syntaxdiagrams.html#alter-table-stmt">alter-table-stmt:</a></h4><blockquote> <img alt="syntax diagram alter-table-stmt" src="images/syntax/alter-table-stmt.gif"></img> </blockquote>
 
 
 <p>SQLite supports a limited subset of ALTER TABLE.
 The ALTER TABLE command in SQLite allows the user to rename a table
 or to add a new column to an existing table. It is not possible
-to rename a colum, remove a column, or add or remove constraints from a table.
+to rename a column, remove a column, or add or remove constraints from a table.
 </p>
 
 <p>The RENAME TO syntax is used to rename the table identified by 
@@ -71,8 +71,15 @@ attached to the table after it has been renamed. However, if there are
 any view definitions, or statements executed by triggers that refer to
 the table being renamed, these are not automatically modified to use the new
 table name. If this is required, the triggers or view definitions must be
-dropped and recreated to use the new table name by hand.
+dropped and recreated to use the new table name by hand. 
 </p>
+
+<p>If <a href="foreignkeys.html">foreign key constraints</a> are 
+<a href="pragma.html#pragma_foreign_keys">enabled</a> when a table is renamed, then any
+<a href="syntaxdiagrams.html#foreign-key-clause">REFERENCES clauses</a> in any table (either the
+table being renamed or some other table)
+that refer to the table being renamed are modified to refer 
+to the renamed table by its new name.
 
 <p>The ADD COLUMN syntax
 is used to add a new column to an existing table.
@@ -86,6 +93,9 @@ statement, with the following restrictions:
     or CURRENT_TIMESTAMP.</li>
 <li>If a NOT NULL constraint is specified, then the column must have a
     default value other than NULL.
+<li>If <a href="foreignkeys.html">foreign key constraints</a> are <a href="pragma.html#pragma_foreign_keys">enabled</a> and
+    a column with a <a href="syntaxdiagrams.html#foreign-key-clause">REFERENCES clause</a>
+    is added, the column must have a default value of NULL.
 </ul>
 
 <p>Note also that when adding a CHECK constraint, the CHECK constraint
@@ -102,6 +112,4 @@ on a table with 10 million rows as it does on a table with 1 row.
 <p>After ADD COLUMN has been run on a database, that database will not
 be readable by SQLite version 3.1.3 and earlier.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

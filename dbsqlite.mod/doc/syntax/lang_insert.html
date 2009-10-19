@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,7 +51,7 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>INSERT</h1><h4><a href="syntaxdiagrams.html#insert-stmt">insert-stmt:</a></h4><blockquote> <img src="images/syntax/insert-stmt.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>INSERT</h1><h4><a href="syntaxdiagrams.html#insert-stmt">insert-stmt:</a></h4><blockquote> <img alt="syntax diagram insert-stmt" src="images/syntax/insert-stmt.gif"></img> </blockquote>
 
 
 <p>The INSERT statement comes in two basic forms.  The first form
@@ -64,7 +64,7 @@ column list are filled with the default value, or with NULL if no
 default value is specified.
 </p>
 
-<p>The second form of the INSERT statement takes it data from a
+<p>The second form of the INSERT statement takes its data from a
 SELECT statement.  The number of columns in the result of the
 SELECT must exactly match the number of columns in the table if
 no column list is specified, or it must match the number of columns
@@ -81,6 +81,12 @@ single keyword <a href="lang_replace.html">REPLACE</a> as an
 alias for "INSERT OR REPLACE".
 </p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+<p>The optional "<i>database-name</i><b>.</b>" prefix on the <i>table-name</i>
+is support for top-level INSERT statements only.  The table name must be
+unqualified for INSERT statements that occur within <a href="lang_createtrigger.html">CREATE TRIGGER</a> statements.
+Likely, the "DEFAULT VALUES" form of the INSERT statement is support for
+top-level INSERT statements only and not for INSERT statements within
+triggers.
+<p>
+
+

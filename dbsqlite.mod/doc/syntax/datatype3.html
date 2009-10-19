@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -263,25 +263,37 @@ two values being compared, according to the following rules:</P>
 
 <P>SQLite may attempt to convert values between the numeric storage
 classes (INTEGER and REAL) and TEXT before performing a comparison.
-For binary comparisons, this is done in the cases enumerated below.
-The term "expression" used in the bullet points below means any
-SQL scalar expression or literal other than a column value.  Note that
-if X and Y.Z are a column names, then +X and +Y.Z are considered
-expressions.</P>
+
+Whether or not any conversions are attempted before the comparison takes
+place depends on the nominal affinity assigned to the expressions on
+either side of the binary operator. Affinities are assigned to expressions
+in the following cases:
 <UL>
-	<LI><P>When a column value is compared to the result of an
-	expression, the affinity of the column is applied to the result of
-	the expression before the comparison takes place.</P>
+	<LI><P>An expression that is a simple reference to a column value
+	has the same affinity as the column it refers to. Note that if X and Y.Z 
+	are column names, then +X and +Y.Z are considered expressions.</P>
+	<LI><P>An expression of the form "CAST(&lt;expr&gt; TO &lt;type&gt;)"
+	is assigned an affinity as if it were a reference to a column declared
+	with type &lt;type&gt;
+</UL>
 
-	<LI><P>When two column values are compared, if one column has
-	INTEGER or REAL or NUMERIC affinity and the other does not, 
-        then NUMERIC affinity is applied to any values with storage
-        class TEXT extracted from the non-NUMERIC column.</P>
-
-	<LI><P>When the results of two expressions are compared, no
-        conversions occur.  The results are compared as is.  If a string
-        is compared to a number, the number will always be less than the
-        string.</P>
+<P>Conversions are applied before the comparison as described below.
+In the following bullet points, the two operands are
+refered to as expression A and expression B. Expressions A and B may
+appear as either the left or right operands - the following statements
+are true when considering both "A &lt;op&gt;B" and "B &lt;op&gt;A".
+<UL>
+	<LI><P>When two expressions are compared, if expression A has
+	INTEGER or REAL or NUMERIC affinity and expression B does not, 
+        then NUMERIC affinity is applied to the value of expression B
+	before the comparison takes place.
+	<LI><P>When two expressions are compared, if expression A has
+	been assigned an affinity and expression B has not, then the
+	affinity of expression A is applied to the value of expression B
+	before the comparison takes place.
+	<LI><P>Otherwise, if neither of the above applies, no conversions
+	occur. The results are compared as is. If a string is compared to a
+	number, the number will always be less than the string.
 </UL>
 
 <P>
@@ -511,6 +523,4 @@ SELECT * FROM t1 ORDER BY c COLLATE NOCASE;
 
 </PRE>
 </blockquote>
-<hr><small><i>
-This page last modified 2008/12/15 22:47:50 UTC
-</i></small></div></body></html>
+

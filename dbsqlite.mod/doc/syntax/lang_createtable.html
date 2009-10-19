@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,19 +51,19 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>CREATE TABLE</h1><h4><a href="syntaxdiagrams.html#create-table-stmt">create-table-stmt:</a></h4><blockquote> <img src="images/syntax/create-table-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#column-def">column-def:</a></h4><blockquote> <img src="images/syntax/column-def.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#type-name">type-name:</a></h4><blockquote> <img src="images/syntax/type-name.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#column-constraint">column-constraint:</a></h4><blockquote> <img src="images/syntax/column-constraint.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#table-constraint">table-constraint:</a></h4><blockquote> <img src="images/syntax/table-constraint.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#foreign-key-clause">foreign-key-clause:</a></h4><blockquote> <img src="images/syntax/foreign-key-clause.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>CREATE TABLE</h1><h4><a href="syntaxdiagrams.html#create-table-stmt">create-table-stmt:</a></h4><blockquote> <img alt="syntax diagram create-table-stmt" src="images/syntax/create-table-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#column-def">column-def:</a></h4><blockquote> <img alt="syntax diagram column-def" src="images/syntax/column-def.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#type-name">type-name:</a></h4><blockquote> <img alt="syntax diagram type-name" src="images/syntax/type-name.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#column-constraint">column-constraint:</a></h4><blockquote> <img alt="syntax diagram column-constraint" src="images/syntax/column-constraint.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#table-constraint">table-constraint:</a></h4><blockquote> <img alt="syntax diagram table-constraint" src="images/syntax/table-constraint.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#foreign-key-clause">foreign-key-clause:</a></h4><blockquote> <img alt="syntax diagram foreign-key-clause" src="images/syntax/foreign-key-clause.gif"></img> </blockquote>
 
 
 <p>A CREATE TABLE statement is basically the keywords "CREATE TABLE"
 followed by the name of a new table and a parenthesized list of column
 definitions and constraints.  
 Tables names that begin with "<b>sqlite_</b>" are reserved
-for use by the engine.</p>
+for use by SQLite itself and cannot appears in a CREATE TABLE statement.</p>
 
 <p>Each column definition is the name of the column optionally followed by the
 datatype for that column, then one or more optional column constraints.
@@ -79,7 +79,8 @@ collating function to use when comparing text entries for the column.
 The built-in BINARY collating function is used by default.
 <p>
 The DEFAULT constraint specifies a default value to use when doing an <a href="lang_insert.html">INSERT</a>.
-The value may be NULL, a string constant or a number.
+The value may be NULL, a string constant, a number, or a constant expression
+enclosed in parentheses.
 The default value may also be one of the special case-independant
 keywords CURRENT_TIME, CURRENT_DATE or CURRENT_TIMESTAMP. If the value is
 NULL, a string constant or number, it is literally inserted into the column
@@ -130,11 +131,13 @@ the table is created in the main database.</p>
 <p>The optional <a href="lang_conflict.html">conflict clause</a> following each constraint
 allows the specification of an alternative default
 constraint conflict resolution algorithm for that constraint.
-The default is abort ABORT.  Different constraints within the same
-table may have different default conflict resolution algorithms.
-If an <a href="lang_insert.html">INSERT</a> or <a href="lang_update.html">UPDATE</a> statement specifies a different conflict
-resolution algorithm, then that algorithm is used in place of the
-default algorithm specified in the CREATE TABLE statement.
+If no conflict clause is specified, the ABORT algorithm is used.
+Different constraints within the same
+table may have different conflict resolution algorithms.
+If an <a href="lang_insert.html">INSERT</a> or <a href="lang_update.html">UPDATE</a> statement specifies a conflict
+resolution algorithm, then the algorithm specified on the INSERT or
+UPDATE statement overrides the algorithm specified in the 
+CREATE TABLE statement.
 See the section titled
 <a href="lang_conflict.html">ON CONFLICT</a> for additional information.</p>
 
@@ -152,18 +155,6 @@ sqlite3_limit() C/C++ interface.</p>
 <p>The CREATE TABLE AS form defines the table to be
 the result set of a query.  The names of the table columns are
 the names of the columns in the result.</p>
-
-<p>The text
-of each CREATE TABLE statement is stored in the <b>sqlite_master</b>
-table.  Every time the database is opened, all CREATE TABLE statements
-are read from the <b>sqlite_master</b> table and used to regenerate
-SQLite's internal representation of the table layout.
-If the original command was a CREATE TABLE AS then then an equivalent
-CREATE TABLE statement is synthesized and store in <b>sqlite_master</b>
-in place of the original command.
-The text of CREATE TEMPORARY TABLE statements are stored in the
-<b>sqlite_temp_master</b> table.
-</p>
 
 <p>If the optional IF NOT EXISTS clause is present and another table
 with the same name aleady exists, then this command becomes a no-op.</p>
@@ -216,7 +207,26 @@ for the rowid.</p>
 fast as searches against any other PRIMARY KEY or indexed value.
 </p>
 
+<p><b>Goofy behavior alert:</b>  The following three declarations all cause
+the column "x" be an alias for the rowid:</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+<ul>
+<li><tt>CREATE TABLE t(x INTEGER PRIMARY KEY ASC, y, z);</tt>
+<li><tt>CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x ASC));</tt>
+<li><tt>CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x DESC));</tt>
+</ul>
+
+<p>But, in contrast, the following declaration does <u>not</u> result in
+"x" being an alias for the rowid:</p>
+
+<ul>
+<li><tt>CREATE TABLE t(x INTEGER PRIMARY KEY DESC, y, z);</tt>
+</ul>
+
+<p>This asymmetrical behavior is unfortunate and is really due to a bug
+in the parser in early versions of SQLite.  But fixing the bug would
+result in very serious backwards incompatibilities.  The SQLite developers
+feel that goofy behavior in an corner case is far better than
+a compatibility break, so the original behavior is retained.</p>
+
+

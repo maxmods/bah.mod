@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -67,30 +67,17 @@ plans to add features near the bottom of the list.
 
 <table cellpadding="10">
 
-<tr><td valign="top"><b><nobr>FOREIGN KEY constraints</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
-  FOREIGN KEY constraints are parsed but are not enforced.
-  However, the equivalent constraint enforcement can be achieved
-  using triggers.  The SQLite source tree contains 
-  <a href="http://www.sqlite.org/cvstrac/fileview?f=sqlite/tool/genfkey.c">
-  source code</a> and 
-  <a href="http://www.sqlite.org/cvstrac/fileview?f=sqlite/tool/genfkey.README">
-  documentation</a> for a C program that will read an SQLite database,
-  analyze the foreign key constraints, and generate appropriate triggers
-  automatically.
-</td></tr><tr><td valign="top"><b><nobr>Complete trigger support</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
-  There is some support for triggers but it is not complete.  Missing
-  subfeatures include FOR EACH STATEMENT triggers (currently all triggers
-  must be FOR EACH ROW), INSTEAD OF triggers on tables (currently 
-  INSTEAD OF triggers are only allowed on views), and recursive
-  triggers - triggers that trigger themselves.
+<tr><td valign="top"><b><nobr>RIGHT and FULL OUTER JOIN</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
+  LEFT OUTER JOIN is implemented, but not RIGHT OUTER JOIN or
+  FULL OUTER JOIN.
 </td></tr><tr><td valign="top"><b><nobr>Complete ALTER TABLE support</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
   Only the RENAME TABLE and ADD COLUMN variants of the 
   ALTER TABLE command are supported.  Other kinds of ALTER TABLE operations
   such as
   DROP COLUMN, ALTER COLUMN, ADD CONSTRAINT, and so forth are omitted.
-</td></tr><tr><td valign="top"><b><nobr>RIGHT and FULL OUTER JOIN</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
-  LEFT OUTER JOIN is implemented, but not RIGHT OUTER JOIN or
-  FULL OUTER JOIN.
+</td></tr><tr><td valign="top"><b><nobr>Complete trigger support</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
+  FOR EACH ROW triggers are supported but not FOR EACH STATEMENT
+  triggers.
 </td></tr><tr><td valign="top"><b><nobr>Writing to VIEWs</nobr></b></td><td width="10">&nbsp;</th><td valign="top">
   VIEWs in SQLite are read-only.  You may not execute a DELETE, INSERT, or
   UPDATE statement on a view. But you can create a trigger
@@ -112,6 +99,4 @@ add them to the Wiki page at
 <a href="http://www.sqlite.org/cvstrac/wiki?p=UnsupportedSql">
 http://www.sqlite.org/cvstrac/wiki?p=Unsupported</a>
 </p>
-<hr><small><i>
-This page last modified 2009/01/03 15:03:50 UTC
-</i></small></div></body></html>
+

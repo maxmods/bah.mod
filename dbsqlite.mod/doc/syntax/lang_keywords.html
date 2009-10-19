@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -99,7 +99,7 @@ the token is understood to be an identifier instead of a string literal.
 
 <li><p>If a keyword in double
 quotes (ex: <b>"key"</b> or <b>"glob"</b>) is used in a context where
-it cannot be resolved to an indentifier but where a string literal
+it cannot be resolved to an identifier but where a string literal
 is allowed, then the token is understood to be a string literal instead
 of an identifer.</p></li>
 </ul>
@@ -121,7 +121,7 @@ used as identifiers are shown in bold.</p>
 <p>
 SQLite adds new keywords from time to time when it takes on new features.
 So to prevent your code from being broken by future enhancements, you should
-normally quote any indentifier that is an English language word, even if
+normally quote any identifier that is an English language word, even if
 you do not have to.
 </p>
 
@@ -134,7 +134,7 @@ The following are the keywords currently recognized by SQLite:
 <tr>
 <td align="left" valign="top" width="20%">
 
-<i>ABORT</i><br><b>ADD</b><br><i>AFTER</i><br><b>ALL</b><br><b>ALTER</b><br><i>ANALYZE</i><br><b>AND</b><br><b>AS</b><br><i>ASC</i><br><i>ATTACH</i><br><b>AUTOINCREMENT</b><br><i>BEFORE</i><br><i>BEGIN</i><br><b>BETWEEN</b><br><i>BY</i><br><i>CASCADE</i><br><b>CASE</b><br><i>CAST</i><br><b>CHECK</b><br><b>COLLATE</b><br><i>COLUMN</i><br><b>COMMIT</b><br><i>CONFLICT</i><br><b>CONSTRAINT</b><br></td><td valign="top" align="left" width="20%"><b>CREATE</b><br><b>CROSS</b><br><i>CURRENT_DATE</i><br><i>CURRENT_TIME</i><br><i>CURRENT_TIMESTAMP</i><br><i>DATABASE</i><br><b>DEFAULT</b><br><b>DEFERRABLE</b><br><i>DEFERRED</i><br><b>DELETE</b><br><i>DESC</i><br><i>DETACH</i><br><b>DISTINCT</b><br><b>DROP</b><br><i>EACH</i><br><b>ELSE</b><br><i>END</i><br><b>ESCAPE</b><br><b>EXCEPT</b><br><i>EXCLUSIVE</i><br><b>EXISTS</b><br><i>EXPLAIN</i><br><i>FAIL</i><br><i>FOR</i><br></td><td valign="top" align="left" width="20%"><b>FOREIGN</b><br><b>FROM</b><br><b>FULL</b><br><i>GLOB</i><br><b>GROUP</b><br><b>HAVING</b><br><i>IF</i><br><i>IGNORE</i><br><i>IMMEDIATE</i><br><b>IN</b><br><b>INDEX</b><br><b>INDEXED</b><br><i>INITIALLY</i><br><b>INNER</b><br><b>INSERT</b><br><i>INSTEAD</i><br><b>INTERSECT</b><br><b>INTO</b><br><b>IS</b><br><b>ISNULL</b><br><b>JOIN</b><br><i>KEY</i><br><b>LEFT</b><br><i>LIKE</i><br></td><td valign="top" align="left" width="20%"><b>LIMIT</b><br><i>MATCH</i><br><b>NATURAL</b><br><b>NOT</b><br><b>NOTNULL</b><br><b>NULL</b><br><i>OF</i><br><i>OFFSET</i><br><b>ON</b><br><b>OR</b><br><b>ORDER</b><br><b>OUTER</b><br><i>PLAN</i><br><i>PRAGMA</i><br><b>PRIMARY</b><br><i>QUERY</i><br><i>RAISE</i><br><b>REFERENCES</b><br><i>REGEXP</i><br><i>REINDEX</i><br><i>RELEASE</i><br><i>RENAME</i><br><i>REPLACE</i><br><i>RESTRICT</i><br></td><td valign="top" align="left" width="20%"><b>RIGHT</b><br><b>ROLLBACK</b><br><i>ROW</i><br><i>SAVEPOINT</i><br><b>SELECT</b><br><b>SET</b><br><b>TABLE</b><br><i>TEMP</i><br><i>TEMPORARY</i><br><b>THEN</b><br><b>TO</b><br><b>TRANSACTION</b><br><i>TRIGGER</i><br><b>UNION</b><br><b>UNIQUE</b><br><b>UPDATE</b><br><b>USING</b><br><i>VACUUM</i><br><b>VALUES</b><br><i>VIEW</i><br><i>VIRTUAL</i><br><b>WHEN</b><br><b>WHERE</b><br>
+<i>ABORT</i><br><b>ADD</b><br><i>AFTER</i><br><b>ALL</b><br><b>ALTER</b><br><i>ANALYZE</i><br><b>AND</b><br><b>AS</b><br><i>ASC</i><br><i>ATTACH</i><br><b>AUTOINCREMENT</b><br><i>BEFORE</i><br><i>BEGIN</i><br><b>BETWEEN</b><br><i>BY</i><br><i>CASCADE</i><br><b>CASE</b><br><i>CAST</i><br><b>CHECK</b><br><b>COLLATE</b><br><i>COLUMN</i><br><b>COMMIT</b><br><i>CONFLICT</i><br><b>CONSTRAINT</b><br></td><td valign="top" align="left" width="20%"><b>CREATE</b><br><b>CROSS</b><br><i>CURRENT_DATE</i><br><i>CURRENT_TIME</i><br><i>CURRENT_TIMESTAMP</i><br><i>DATABASE</i><br><b>DEFAULT</b><br><b>DEFERRABLE</b><br><i>DEFERRED</i><br><b>DELETE</b><br><i>DESC</i><br><i>DETACH</i><br><b>DISTINCT</b><br><b>DROP</b><br><i>EACH</i><br><b>ELSE</b><br><i>END</i><br><b>ESCAPE</b><br><b>EXCEPT</b><br><i>EXCLUSIVE</i><br><b>EXISTS</b><br><i>EXPLAIN</i><br><i>FAIL</i><br><i>FOR</i><br></td><td valign="top" align="left" width="20%"><b>FOREIGN</b><br><b>FROM</b><br><b>FULL</b><br><i>GLOB</i><br><b>GROUP</b><br><b>HAVING</b><br><i>IF</i><br><i>IGNORE</i><br><i>IMMEDIATE</i><br><b>IN</b><br><b>INDEX</b><br><i>INDEXED</i><br><i>INITIALLY</i><br><b>INNER</b><br><b>INSERT</b><br><i>INSTEAD</i><br><b>INTERSECT</b><br><b>INTO</b><br><b>IS</b><br><b>ISNULL</b><br><b>JOIN</b><br><i>KEY</i><br><b>LEFT</b><br><i>LIKE</i><br></td><td valign="top" align="left" width="20%"><b>LIMIT</b><br><i>MATCH</i><br><b>NATURAL</b><br><b>NOT</b><br><b>NOTNULL</b><br><b>NULL</b><br><i>OF</i><br><i>OFFSET</i><br><b>ON</b><br><b>OR</b><br><b>ORDER</b><br><b>OUTER</b><br><i>PLAN</i><br><i>PRAGMA</i><br><b>PRIMARY</b><br><i>QUERY</i><br><i>RAISE</i><br><b>REFERENCES</b><br><i>REGEXP</i><br><i>REINDEX</i><br><i>RELEASE</i><br><i>RENAME</i><br><i>REPLACE</i><br><i>RESTRICT</i><br></td><td valign="top" align="left" width="20%"><b>RIGHT</b><br><b>ROLLBACK</b><br><i>ROW</i><br><i>SAVEPOINT</i><br><b>SELECT</b><br><b>SET</b><br><b>TABLE</b><br><i>TEMP</i><br><i>TEMPORARY</i><br><b>THEN</b><br><b>TO</b><br><b>TRANSACTION</b><br><i>TRIGGER</i><br><b>UNION</b><br><b>UNIQUE</b><br><b>UPDATE</b><br><b>USING</b><br><i>VACUUM</i><br><b>VALUES</b><br><i>VIEW</i><br><i>VIRTUAL</i><br><b>WHEN</b><br><b>WHERE</b><br>
 </td></tr></table></blockquote>
 
 <h2>Special names</h2>
@@ -153,6 +153,4 @@ type of object.</p>
   SQLITE_TEMP_MASTER<br>
   TEMP<br>
 </b></blockquote>
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

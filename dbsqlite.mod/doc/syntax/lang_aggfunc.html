@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -58,7 +58,7 @@ The aggregate functions shown below are available by default. </p>
 
 <p>
 In any aggregate function that takes a single argument, that argument
-can be preceeded by the keyword DISTINCT.  In such cases, duplicate
+can be preceded by the keyword DISTINCT.  In such cases, duplicate
 elements are filtered before being passed into the aggregate function.
 For example, the function "count(distinct X)" will return the number
 of distinct values of column X instead of the total number of non-null
@@ -73,7 +73,7 @@ values in column X.
   interpreted as 0.
   The result of avg() is always a floating point value as long as
   at there is at least one non-NULL input even if all
-  inputs are integers.  The result of avg() NULL if and only if
+  inputs are integers.  The result of avg() is NULL if and only if
   there are no non-NULL inputs.  
 </td></tr><tr><td valign="top" align="right" width="120">count(<i>X</i>)<br></br>count(*)</td><td valign="top"><a name="count"></a>
 
@@ -83,7 +83,8 @@ values in column X.
 </td></tr><tr><td valign="top" align="right" width="120">group_concat(<i>X</i>)<br></br>group_concat(<i>X</i>,<i>Y</i>)</td><td valign="top"><a name="group_concat"></a>
 
   The result is a string which is the concatenation of
-  all non-NULL values of <i>X</i>.  If parameter <i>Y</i> is the separator
+  all non-NULL values of <i>X</i>.  If parameter <i>Y</i> is present then
+  is is used as the separator
   between instances of <i>X</i>.  A comma (",") is used as the separator
   if <i>Y</i> is omitted.  The order of the concatenated elements is
   arbitrary.
@@ -121,10 +122,8 @@ values in column X.
   <p>Sum() will throw an "integer overflow" exception if all inputs
   are integers or NULL
   and an integer overflow occurs at any point during the computation.
-  Total() never throws and integer overflow.
+  Total() never throws an integer overflow.
 </td></tr>
 </table>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

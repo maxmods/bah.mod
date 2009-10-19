@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -63,6 +63,10 @@ a:visited { color: #734559 }
   Return the absolute value of the numeric
   argument <i>X</i>.  Return NULL if <i>X</i> is NULL.  Return 0.0 if
   <i>X</i> is not a numeric value.
+</td></tr><tr><td valign="top" align="right" width="120">changes()</td><td valign="top"><a name="changes"></a>
+
+  Return the number of database rows that were changed or inserted or
+  deleted by the most recently complete SQL.
 </td></tr><tr><td valign="top" align="right" width="120">coalesce(<i>X</i>,<i>Y</i>,...)</td><td valign="top"><a name="coalesce"></a>
 
   Return a copy of the first non-NULL argument.  If
@@ -202,10 +206,16 @@ a:visited { color: #734559 }
   This function is omitted from SQLite by default.
   It is only available the -DSQLITE_SOUNDEX=1 compiler option
   is used when SQLite is built.
+</td></tr><tr><td valign="top" align="right" width="120">sqlite_source_id()</td><td valign="top"><a name="sqlite_source_id"></a>
+
+  Return a string that identifies the specific version of the source code
+  that was used to build the SQLite library.  The return string begins with
+  the date and time that the source code was checked in and is follows by
+  an SHA1 hash that uniquely identifies the source tree. 
 </td></tr><tr><td valign="top" align="right" width="120">sqlite_version()</td><td valign="top"><a name="sqlite_version"></a>
 
   Return the version string for the SQLite library
-  that is running.  Example:  "3.5.9"
+  that is running.  Example:  "3.5.9".
 </td></tr><tr><td valign="top" align="right" width="120">substr(<i>X</i>,<i>Y</i>,<i>Z</i>)<br></br>substr(<i>X</i>,<i>Y</i>)</td><td valign="top"><a name="substr"></a>
 
   Return a substring of input string <i>X</i> that begins
@@ -217,6 +227,11 @@ a:visited { color: #734559 }
   right rather than the left.  If <i>X</i> is string
   then characters indices refer to actual UTF-8 characters.  If
   <i>X</i> is a BLOB then the indices refer to bytes.
+</td></tr><tr><td valign="top" align="right" width="120">total_changes()</td><td valign="top"><a name="total_changes"></a>
+
+  Return the number of row changes caused by INSERT, UPDATE or DELETE
+  statements since the current database connection was opened.
+  
 </td></tr><tr><td valign="top" align="right" width="120">trim(<i>X</i>)<br></br>trim(<i>X</i>,<i>Y</i>)</td><td valign="top"><a name="trim"></a>
 
   Return a string formed by removing any and all
@@ -236,10 +251,10 @@ a:visited { color: #734559 }
 
   Return a BLOB consisting of N bytes of 0x00.  SQLite
   manages these zeroblobs very efficiently.  Zeroblobs can be used to
-  reserve space for a BLOB that is later written using incremental BLOB I/O.
+  reserve space for a BLOB that is later written using 
+  incremental BLOB I/O.
+  
 </td></tr>
 </table>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

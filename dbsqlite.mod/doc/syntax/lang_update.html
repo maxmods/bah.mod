@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,8 +51,8 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>UPDATE</h1><h4><a href="syntaxdiagrams.html#update-stmt">update-stmt:</a></h4><blockquote> <img src="images/syntax/update-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img src="images/syntax/qualified-table-name.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>UPDATE</h1><h4><a href="syntaxdiagrams.html#update-stmt">update-stmt:</a></h4><blockquote> <img alt="syntax diagram update-stmt" src="images/syntax/update-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img alt="syntax diagram qualified-table-name" src="images/syntax/qualified-table-name.gif"></img> </blockquote>
 
 
 <p>The UPDATE statement is used to change the value of columns in 
@@ -67,11 +67,28 @@ constraint conflict resolution algorithm to use during this one command.
 See the section titled
 <a href="lang_conflict.html">ON CONFLICT</a> for additional information.</p>
 
+<h3>Restrictions on UPDATE Statements Within CREATE TRIGGER</h3>
+
+<p>There are additional syntax restrictions on UPDATE statements that
+occur within the body of a <a href="lang_createtrigger.html">CREATE TRIGGER</a> statement.  The <i>table-name</i>
+must be unqualified. 
+In other words, the <i>database-name</i><b>.</b> prefix
+on the table name is not allowed within triggers. 
+The table to be modified must be in the same
+database as the table to which the trigger is attached.</p>
+
+<p>The INDEXED BY and NOT INDEXED clauses are not allowed on UPDATE
+statements within triggers.</p>
+
+<p>The LIMIT clause (described below) is unsupported within triggers.</p>
+
+<h3>Optional LIMIT and ORDER BY Clauses</h3>
+
 <p>If SQLite is built with the <a href="compile.html#enable_update_delete_limit">SQLITE_ENABLE_UPDATE_DELETE_LIMIT</a>
 compile-time option then the syntax of the UPDATE statement is extended
 with optional ORDER BY and LIMIT clauses as follows:</p>
 
-<h4><a href="syntaxdiagrams.html#update-stmt-limited">update-stmt-limited:</a></h4><blockquote> <img src="images/syntax/update-stmt-limited.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#update-stmt-limited">update-stmt-limited:</a></h4><blockquote> <img alt="syntax diagram update-stmt-limited" src="images/syntax/update-stmt-limited.gif"></img> </blockquote>
 
 
 <p>The optional LIMIT clause can be used to limit the number of
@@ -80,6 +97,4 @@ The ORDER BY clause is used only to determine which rows fall
 within the LIMIT.  The order in which rows are modified is arbitrary
 and is not determined by the ORDER BY clause.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

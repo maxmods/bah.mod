@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,9 +51,9 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>BEGIN TRANSACTION</h1><h4><a href="syntaxdiagrams.html#begin-stmt">begin-stmt:</a></h4><blockquote> <img src="images/syntax/begin-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#commit-stmt">commit-stmt:</a></h4><blockquote> <img src="images/syntax/commit-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#rollback-stmt">rollback-stmt:</a></h4><blockquote> <img src="images/syntax/rollback-stmt.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>BEGIN TRANSACTION</h1><h4><a href="syntaxdiagrams.html#begin-stmt">begin-stmt:</a></h4><blockquote> <img alt="syntax diagram begin-stmt" src="images/syntax/begin-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#commit-stmt">commit-stmt:</a></h4><blockquote> <img alt="syntax diagram commit-stmt" src="images/syntax/commit-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#rollback-stmt">rollback-stmt:</a></h4><blockquote> <img alt="syntax diagram rollback-stmt" src="images/syntax/rollback-stmt.gif"></img> </blockquote>
 
 
 <p>
@@ -145,8 +145,13 @@ The ROLLBACK will fail with an error code SQLITE_BUSY if there
 are any pending queries.  Both read-only and read/write queries will
 cause a ROLLBACK to fail.  A ROLLBACK must fail if there are pending
 read operations (unlike COMMIT which can succeed) because bad things
-will happen if memory image of the database is changed out from under
+will happen if the in-memory image of the database is changed out from under
 an active query.
+</p>
+
+<p>
+If <a href="pragma.html#pragma_journal_mode">PRAGMA journal_mode</a> is set to OFF (thus disabling the rollback journal
+file) then the behavior of the ROLLBACK command is undefined.
 </p>
 
 <h3>Response To Errors Within A Transaction</h3>
@@ -186,6 +191,4 @@ SQLite might change the error response.  In particular, we may
 choose to simplify the interface in future versions of SQLite by
 causing the errors above to force an unconditional rollback.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

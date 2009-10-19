@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,8 +51,8 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>CREATE INDEX</h1><h4><a href="syntaxdiagrams.html#create-index-stmt">create-index-stmt:</a></h4><blockquote> <img src="images/syntax/create-index-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#indexed-column">indexed-column:</a></h4><blockquote> <img src="images/syntax/indexed-column.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>CREATE INDEX</h1><h4><a href="syntaxdiagrams.html#create-index-stmt">create-index-stmt:</a></h4><blockquote> <img alt="syntax diagram create-index-stmt" src="images/syntax/create-index-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#indexed-column">indexed-column:</a></h4><blockquote> <img alt="syntax diagram indexed-column" src="images/syntax/indexed-column.gif"></img> </blockquote>
 
 
 <p>The CREATE INDEX command consists of the keywords "CREATE INDEX" followed
@@ -91,14 +91,6 @@ This is one of the two possible interpretations of the SQL-92 standard
 followed by PostgreSQL, MySQL, Firebird, and Oracle.  Informix and
 Microsoft SQL Server follow the other interpretation of the standard.</p>
 
-<p>The text
-of each CREATE INDEX statement is stored in the <b>sqlite_master</b>
-or <b>sqlite_temp_master</b> table, depending on whether the table
-being indexed is temporary.  Every time the database is opened,
-all CREATE INDEX statements
-are read from the <b>sqlite_master</b> table and used to regenerate
-SQLite's internal representation of the index layout.</p>
-
 <p>If the optional IF NOT EXISTS clause is present and another index
 with the same name aleady exists, then this command becomes a no-op.</p>
 
@@ -106,6 +98,4 @@ with the same name aleady exists, then this command becomes a no-op.</p>
 command.</p>
 
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

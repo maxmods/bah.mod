@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -59,16 +59,16 @@ The INDEXED BY phrase always follows the name of a table that SQLite will
 be reading.  The INDEXED BY phrase can be seen in the following syntax
 diagrams:</p>
 
-<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img src="images/syntax/qualified-table-name.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#single-source">single-source:</a></h4><blockquote> <img src="images/syntax/single-source.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img alt="syntax diagram qualified-table-name" src="images/syntax/qualified-table-name.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#single-source">single-source:</a></h4><blockquote> <img alt="syntax diagram single-source" src="images/syntax/single-source.gif"></img> </blockquote>
 
 
 <p>The "INDEXED BY index-name" clause specifies that the named index
-must be used in order to look up values on the preceeding table.
+must be used in order to look up values on the preceding table.
 If index-name does not exist or cannot be used for the query, then
 the preparation of the SQL statement fails.
 The "NOT INDEXED" clause specifies that no index shall be used when
-accessing the preceeding table, including implied indices create by
+accessing the preceding table, including implied indices create by
 UNIQUE and PRIMARY KEY constraints.  However, the INTEGER PRIMARY KEY
 can still be used to look up entries even when "NOT INDEXED" is specified.</p>
 
@@ -101,6 +101,4 @@ making effective use of indices.  Many applications may prefer to
 use the sqlite3_stmt_status() interface to detect index misuse
 rather than the INDEXED BY phrase described here.</p>
 
-<DIV class="pdf_section"><hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+<DIV class="pdf_section">

@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,10 +51,10 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>expression</h1><h4><a href="syntaxdiagrams.html#expr">expr:</a></h4><blockquote> <img src="images/syntax/expr.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#literal-value">literal-value:</a></h4><blockquote> <img src="images/syntax/literal-value.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#signed-number">signed-number:</a></h4><blockquote> <img src="images/syntax/signed-number.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#raise-function">raise-function:</a></h4><blockquote> <img src="images/syntax/raise-function.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>expression</h1><h4><a href="syntaxdiagrams.html#expr">expr:</a></h4><blockquote> <img alt="syntax diagram expr" src="images/syntax/expr.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#literal-value">literal-value:</a></h4><blockquote> <img alt="syntax diagram literal-value" src="images/syntax/literal-value.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#signed-number">signed-number:</a></h4><blockquote> <img alt="syntax diagram signed-number" src="images/syntax/signed-number.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#raise-function">raise-function:</a></h4><blockquote> <img alt="syntax diagram raise-function" src="images/syntax/raise-function.gif"></img> </blockquote>
 
 
 <p>This section is different from the others.  Most other sections of
@@ -74,7 +74,7 @@ highest to lowest precedence:</p>
 +    -
 &lt;&lt;   &gt;&gt;   &amp;    |
 &lt;    &lt;=   &gt;    &gt;=
-=    ==   !=   &lt;&gt;   </big>IN  LIKE  GLOB  MATCH  REGEXP
+=    ==   !=   &lt;&gt;   </big>IS  IN  LIKE  GLOB  MATCH  REGEXP
 AND   
 OR</font>
 </pre></blockquote>
@@ -108,9 +108,11 @@ operand modulo its right operand.</p>
 
 <p>The result of any binary operator is a numeric value, except
 for the <font color="#2c2cf0"><big>||</big></font> concatenation operator which gives a string
-result.</p>
-
-<a name="litvalue"></a>
+result.</p><a name="isisnot"></a>
+<p>The <font color="#2c2cf0"><big>IS</big></font> and <font color="#2c2cf0"><big>IS NOT</big></font> operators work
+like <font color="#2c2cf0"><big>=</big></font> and <font color="#2c2cf0"><big>!=</big></font> except that NULL values compare
+equal to one another.  <font color="#2c2cf0"><big>IS</big></font> and <font color="#2c2cf0"><big>IS NOT</big></font>
+have the same precedence as <font color="#2c2cf0"><big>=</big></font>.<a name="litvalue"></a>
 
 <h3>Literal Values</h3>
 <p>
@@ -241,7 +243,7 @@ to implement the REGEXP operator.</p>
 
 <p>The MATCH operator is a special syntax for the match()
 user function.  The default match() function implementation
-raises and exception and is not really useful for anything.
+raises an exception and is not really useful for anything.
 But extensions can override the match() function with more
 helpful logic.</p>
 
@@ -263,11 +265,9 @@ These special identifiers all describe the
 unique integer key (the <a href="lang_createtable.html#rowid">rowid</a>) associated with every 
 row of every table.
 The special identifiers only refer to the row key if the <a href="lang_createtable.html">CREATE TABLE</a>
-statement does not define a real column with the same name.  Row keys
-act like read-only columns.  A row key can be used anywhere a regular
-column can be used, except that you cannot change the value
-of a row key in an <a href="lang_update.html">UPDATE</a> or <a href="lang_insert.html">INSERT</a> statement.
-"SELECT * ..." does not return the row key.</p>
+statement does not define a real column with the same name.
+The rowid can be used anywhere a regular
+column can be used.</p>
 
 <h3>Subqueries</h3>
 <p><a href="lang_select.html">SELECT</a> statements can appear in expressions as either the
@@ -280,7 +280,7 @@ EXCEPT) are allowed.
 With the EXISTS operator, the columns in the result set of the <a href="lang_select.html">SELECT</a> are
 ignored and the expression returns TRUE if one or more rows exist
 and FALSE if the result set is empty.
-If no terms in the <a href="lang_select.html">SELECT</a> expression refer to value in the containing
+If no terms in the <a href="lang_select.html">SELECT</a> expression refer to values in the containing
 query, then the expression is evaluated once prior to any other
 processing and the result is reused as necessary.  If the <a href="lang_select.html">SELECT</a> expression
 does contain variables from the outer query, then the <a href="lang_select.html">SELECT</a> is reevaluated
@@ -298,7 +298,7 @@ more than one result row, all rows after the first are ignored.  If
 the SELECT yields no rows, then the value of the SELECT is NULL.</p>
 
 <h3>CAST expressions</h3>
-<p>A CAST expression changes the datatype of the <expr> into the
+<p>A CAST expression changes the <a href="datatype3.html">datatype</a> of the <expr> into the
 type specified by &lt;type&gt;. 
 &lt;type&gt; can be any non-empty type name that is valid
 for the type in a column definition of a <a href="lang_createtable.html">CREATE TABLE</a> statement.</p>
@@ -312,6 +312,4 @@ a result immediately based on their inputs.  Aggregate functions
 may only be used in a SELECT statement.  Aggregate functions compute
 their result across all rows of the result set.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

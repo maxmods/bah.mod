@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,8 +51,8 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>DELETE</h1><h4><a href="syntaxdiagrams.html#delete-stmt">delete-stmt:</a></h4><blockquote> <img src="images/syntax/delete-stmt.gif"></img> </blockquote>
-<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img src="images/syntax/qualified-table-name.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>DELETE</h1><h4><a href="syntaxdiagrams.html#delete-stmt">delete-stmt:</a></h4><blockquote> <img alt="syntax diagram delete-stmt" src="images/syntax/delete-stmt.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#qualified-table-name">qualified-table-name:</a></h4><blockquote> <img alt="syntax diagram qualified-table-name" src="images/syntax/qualified-table-name.gif"></img> </blockquote>
 
 
 <p>The DELETE command is used to remove records from a table.
@@ -64,7 +64,24 @@ the name of the table from which records are to be removed.
 If a WHERE clause is supplied, then only those rows that match
 the expression are removed.</p>
 
+<h3>Restrictions on DELETE Statements Within CREATE TRIGGER</h3>
+
+<p>There are additional syntax restrictions on DELETE statements that
+occur within the body of a <a href="lang_createtrigger.html">CREATE TRIGGER</a> statement.  The <i>table-name</i>
+must be unqualified. 
+In other words, the <i>database-name</i><b>.</b> prefix
+on the table name is not allowed within triggers. 
+The table from which to delete must be in the same
+database as the table to which the trigger is attached.</p>
+
+<p>The INDEXED BY and NOT INDEXED clauses are not allowed on DELETE
+statements within triggers.</p>
+
+<p>The LIMIT clause (described below) is unsupported within triggers.</p>
+
 <a name="trucateopt"></a>
+
+<h3>The Truncate Optimization</h3>
 
 <p>When the WHERE is omitted from a DELETE statement and the table
 being deleted has no triggers,
@@ -78,14 +95,23 @@ and the <a href="pragma.html#pragma_count_changes">count_changes pragma</a>
 will not actually return the number of deleted rows.  
 That problem has been fixed as of version 3.6.5.
 
-<p>The truncate optimization can be disabled for all queries by recompiling
+<p>The truncate optimization can be permanently disabled for all queries
+by recompiling
 SQLite with the <a href="compile.html#omit_truncate_optimization">SQLITE_OMIT_TRUNCATE_OPTIMIZATION</a> compile-time switch.</p>
 
-<p>If SQLite is compiled with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT
+<p>The truncate optimization can also be disabled at runtime using
+the sqlite3_set_authorizer() interface.  If an authorizer callback
+returns SQLITE_IGNORE for an SQLITE_DELETE action code, then
+the DELETE operation will proceed but the truncate optimization will
+be bypassed and rows will be deleted one by one.</p>
+
+<h3>Use Of LIMIT</h3>
+
+<p>If SQLite is compiled with the <a href="compile.html#enable_update_delete_limit">SQLITE_ENABLE_UPDATE_DELETE_LIMIT</a>
 compile-time option, then the syntax of the DELETE statement is
 extended by the addition of optional ORDER BY and LIMIT clauses:</p>
 
-<h4><a href="syntaxdiagrams.html#delete-stmt-limited">delete-stmt-limited:</a></h4><blockquote> <img src="images/syntax/delete-stmt-limited.gif"></img> </blockquote>
+<h4><a href="syntaxdiagrams.html#delete-stmt-limited">delete-stmt-limited:</a></h4><blockquote> <img alt="syntax diagram delete-stmt-limited" src="images/syntax/delete-stmt-limited.gif"></img> </blockquote>
 
 
 <p>The optional LIMIT clause can be used to limit the number of
@@ -97,6 +123,4 @@ and is not determined by the ORDER BY clause.</p>
 <p>The presence of a LIMIT clause defeats the truncate optimization
 causing all rows being deleted to be visited.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+

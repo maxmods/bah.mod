@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,7 +51,7 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>ANALYZE</h1><h4><a href="syntaxdiagrams.html#analyze-stmt">analyze-stmt:</a></h4><blockquote> <img src="images/syntax/analyze-stmt.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>ANALYZE</h1><h4><a href="syntaxdiagrams.html#analyze-stmt">analyze-stmt:</a></h4><blockquote> <img alt="syntax diagram analyze-stmt" src="images/syntax/analyze-stmt.gif"></img> </blockquote>
 
 
 <p>The ANALYZE command gathers statistics about indices and stores them
@@ -62,14 +62,28 @@ analyzed.  If a database name is given as the argument, all indices
 in that one database are analyzed.  If the argument is a table name,
 then only indices associated with that one table are analyzed.</p>
 
-<p>The initial implementation stores all statistics in a single
-table named <b>sqlite_stat1</b>.  Future enhancements may create
+<p>The default implementation stores all statistics in a single
+table named <b>sqlite_stat1</b>.  If SQLite is compiled with the
+<a href="compile.html#enable_stat2">SQLITE_ENABLE_STAT2</a> option, then additional histogram data is
+collected and stored in <b>sqlite_stat2</b>.
+Future enhancements may create
 additional tables with the same name pattern except with the "1"
-changed to a different digit.  The <a href="lang_droptable.html">DROP TABLE</a> command does
-not work on the <b>sqlite_stat1</b> table,
-but all the content can be removed using the <a href="lang_delete.html">DELETE</a> command,
-which has the same effect.</p>
+or "2" changed to a different digit.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+<p>The <a href="lang_droptable.html">DROP TABLE</a> command does
+not work on the <b>sqlite_stat1</b> or <b>sqlite_stat2</b> tables,
+but all the content of those tables can be queried using <a href="lang_select.html">SELECT</a>
+and can be deleted, augmented, or modified using the <a href="lang_delete.html">DELETE</a>,
+<a href="lang_insert.html">INSERT</a>, and <a href="lang_update.html">UPDATE</a> commands.
+Appropriate care should be used when changing the content of the statistics
+tables as invalid content can cause SQLite to select inefficient
+query plans.  Generally speaking, one should not modify the content of
+the statistics tables by any mechanism other than invoking the
+ANALYZE command.</p>
+
+<p>Statistics gathered by ANALYZE are <u>not</u> automatically updated as
+the content of the database changes.  If the content of the database
+changes significantly, or if the database schema changes, then one should
+consider rerunning the ANALYZE command in order to update the statistics.</p>
+
+

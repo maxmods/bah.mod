@@ -4,7 +4,7 @@
 <style type="text/css">
 body {
     margin: auto;
-    font-family: "Verdana" "sans-serif";
+    font-family: Verdana, sans-serif;
     padding: 8px 1%;
 }
 
@@ -51,7 +51,7 @@ a:visited { color: #734559 }
 <div><!-- container div to satisfy validator -->
 
 <a href="lang.html">
-           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>DROP TABLE</h1><h4><a href="syntaxdiagrams.html#drop-table-stmt">drop-table-stmt:</a></h4><blockquote> <img src="images/syntax/drop-table-stmt.gif"></img> </blockquote>
+           <h2 align="center">SQL As Understood By SQLite</h2></a><h1>DROP TABLE</h1><h4><a href="syntaxdiagrams.html#drop-table-stmt">drop-table-stmt:</a></h4><blockquote> <img alt="syntax diagram drop-table-stmt" src="images/syntax/drop-table-stmt.gif"></img> </blockquote>
 
 
 <p>The DROP TABLE statement removes a table added with the
@@ -71,6 +71,19 @@ will be freed automatically by DROP TABLE.</p>
 <p>The optional IF EXISTS clause suppresses the error that would normally
 result if the table does not exist.</p>
 
-<hr><small><i>
-This page last modified 2009/02/14 18:02:23 UTC
-</i></small></div></body></html>
+<p>If <a href="foreignkeys.html">foreign key constraints</a> are enabled, a DROP TABLE command performs an
+implicit <a href="lang_delete.html">DELETE FROM &lt;tbl&gt;</a> command before removing the
+table from the database schema. Any triggers attached to the table are
+dropped from the database schema before the implicit DELETE FROM &lt;tbl&gt; 
+is executed, so this cannot cause any triggers to fire. By contrast, an
+implicit DELETE FROM &lt;tbl&gt; does cause any configured
+<a href="foreignkeys.html#fk_actions">foreign key actions</a> to take place. 
+If the implicit DELETE FROM &lt;tbl&gt; executed
+as part of a DROP TABLE command violates any immediate foreign key constraints,
+an error is returned and the table is not dropped. If 
+the implicit DELETE FROM &lt;tbl&gt; causes any 
+deferred foreign key constraints to be violated, and the violations still
+exist when the transaction is committed, an error is returned at the time
+of commit.
+
+
