@@ -60,6 +60,8 @@ Extern
 
 	Function bmx_ocl_memimage_create2d:Byte Ptr(handle:Object, platform:Byte Ptr, flags:Int, channelOrder:Int, imageType:Int, width:Int, height:Int, rowPitch:Int, hostPtr:Byte Ptr)
 	Function bmx_ocl_memimage_create3d:Byte Ptr(handle:Object, platform:Byte Ptr, flags:Int, channelOrder:Int, imageType:Int, width:Int, height:Int, depth:Int, rowPitch:Int, slicePitch:Int, hostPtr:Byte Ptr)
+	Function bmx_ocl_memimage_enqueueread:Int(handle:Byte Ptr, blockingRead:Int, originX:Int, originY:Int, originZ:Int, regionX:Int, regionY:Int, regionZ:Int, rowPitch:Int, slicePitch:Int, data:Byte Ptr)
+	Function bmx_ocl_memimage_enqueuewrite:Int(handle:Byte Ptr, blockingWrite:Int, originX:Int, originY:Int, originZ:Int, regionX:Int, regionY:Int, regionZ:Int, rowPitch:Int, slicePitch:Int, data:Byte Ptr)
 
 End Extern
 

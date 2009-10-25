@@ -69,6 +69,8 @@ extern "C" {
 
 	MaxCLImage * bmx_ocl_memimage_create2d(BBObject * handle, MaxCLPlatform * platform, int flags, int channelOrder, int imageType, int width, int height, int rowPitch, void * hostPtr);
 	MaxCLImage * bmx_ocl_memimage_create3d(BBObject * handle, MaxCLPlatform * platform, int flags, int channelOrder, int imageType, int width, int height, int depth, int rowPitch, int slicePitch, void * hostPtr);
+	int bmx_ocl_memimage_enqueueread(MaxCLImage * image, int blockingRead, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data);
+	int bmx_ocl_memimage_enqueuewrite(MaxCLImage * image, int blockingWrite, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data);
 
 }
 
@@ -160,9 +162,8 @@ public:
 	~MaxCLImage();
 	
 	cl_mem Mem();
-	int EnqueueWrite(int blockingWrite, int size, void * data);
-	int EnqueueRead(int blockingRead, int size, void * data);
-	int EnqueueCopy(cl_mem dest, int offset, int destOffset, int size);
+	int EnqueueRead(int blockingRead, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data);
+	int EnqueueWrite(int blockingWrite, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data);
 	
 private:
 	cl_mem image;

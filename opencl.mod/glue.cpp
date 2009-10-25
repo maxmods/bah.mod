@@ -78,7 +78,7 @@ BBObject * MaxCLDevice::GetInfo() {
 	cl_char profile[1024];
 	cl_char extensions[1024];
 	
-	size_t	size;
+	size_t size = 0;
 	cl_int err = clGetDeviceInfo(id, CL_DEVICE_VENDOR, sizeof(vendorName), vendorName, &size);
 
 	err = clGetDeviceInfo(id, CL_DEVICE_NAME, sizeof(deviceName), deviceName, &size);
@@ -133,7 +133,7 @@ BBObject * MaxCLDevice::GetInfo() {
 MaxCLPlatform::MaxCLPlatform(BBObject * handle, MaxCLDevice * device)
 	: maxHandle(handle), deviceId(device->Id())
 {
-	cl_int err;
+	cl_int err = 0;
 	
 	context = clCreateContext(0, 1, &deviceId, NULL, NULL, &err);
 	if (context == NULL) {
@@ -200,7 +200,7 @@ MaxCLProgram::MaxCLProgram(BBObject * handle, MaxCLPlatform * p, BBString * sour
 	: maxHandle(handle), platform(p)
 {
 
-	cl_int err;
+	cl_int err = 0;
 	char * s = bbStringToCString(source);
 	
 	program = clCreateProgramWithSource(platform->Context(), 1, (const char**)&s, NULL, &err);
@@ -229,7 +229,7 @@ MaxCLPlatform * MaxCLProgram::Platform() {
 MaxCLBuffer::MaxCLBuffer(BBObject * handle, MaxCLPlatform * p, int flags, int size, void * data)
 	: maxHandle(handle), platform(p)
 {
-	cl_int err;
+	cl_int err = 0;
 	buffer = clCreateBuffer(p->Context(), flags, size, data, &err);
 
 	// TODO : THROW on NON-ZERO	
@@ -256,10 +256,12 @@ int MaxCLBuffer::EnqueueCopy(cl_mem dest, int offset, int destOffset, int size) 
 	return clEnqueueCopyBuffer(platform->Queue(), buffer, dest, offset, destOffset, size, 0, NULL, NULL);
 }
 
+// --------------------------------------------------------
+
 MaxCLImage::MaxCLImage(BBObject * handle, MaxCLPlatform * p, int flags, int channelOrder, int imageType, int width, int height, int rowPitch, void * hostPtr)
 	: maxHandle(handle), platform(p)
 {
-	cl_int err;
+	cl_int err = 0;
 
 	cl_image_format format;
 	format.image_channel_order = channelOrder;
@@ -274,7 +276,7 @@ MaxCLImage::MaxCLImage(BBObject * handle, MaxCLPlatform * p, int flags, int chan
 MaxCLImage::MaxCLImage(BBObject * handle, MaxCLPlatform * p, int flags, int channelOrder, int imageType, int width, int height, int depth, int rowPitch, int slicePitch, void * hostPtr)
 	: maxHandle(handle), platform(p)
 {
-	cl_int err;
+	cl_int err = 0;
 
 	cl_image_format format;
 	format.image_channel_order = channelOrder;
@@ -291,6 +293,37 @@ MaxCLImage::~MaxCLImage()
 	clReleaseMemObject(image);
 }
 
+int MaxCLImage::EnqueueRead(int blockingRead, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data) {
+	size_t origin[3];
+	size_t region[3];
+	
+	origin[0] = originX;
+	origin[1] = originY;
+	origin[2] = originZ;
+	
+	region[0] = regionX;
+	region[1] = regionY;
+	region[2] = regionX;
+	
+	return clEnqueueReadImage(platform->Queue(), image, blockingRead, origin, region, rowPitch, slicePitch, data, 0, NULL, NULL);
+}
+
+int MaxCLImage::EnqueueWrite(int blockingWrite, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data) {
+	size_t origin[3];
+	size_t region[3];
+	
+	origin[0] = originX;
+	origin[1] = originY;
+	origin[2] = originZ;
+	
+	region[0] = regionX;
+	region[1] = regionY;
+	region[2] = regionX;
+
+	return clEnqueueWriteImage(platform->Queue(), image, blockingWrite, origin, region, rowPitch, slicePitch, data, 0, NULL, NULL);
+}
+
+
 // --------------------------------------------------------
 
 MaxCLPlatform * bmx_ocl_platform_init(BBObject * handle, MaxCLDevice * device) {
@@ -300,7 +333,7 @@ MaxCLPlatform * bmx_ocl_platform_init(BBObject * handle, MaxCLDevice * device) {
 BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 
 	cl_int err;
-	cl_uint size;
+	cl_uint size = 0;
 	cl_device_id devices[10];
 	
 	err = clGetDeviceIDs(NULL, deviceType, 10, devices, &size);
@@ -310,7 +343,7 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 	for (int n = 0; n < size; n++) {
 		cl_device_id device = devices[n];
 		cl_device_type type;
-		size_t s;
+		size_t s = 0;
 	
 		err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(type), &type, &s);
 	
@@ -355,7 +388,7 @@ void bmx_ocl_program_free(MaxCLProgram * program) {
 
 MaxCLKernel * bmx_ocl_kernel_create(BBObject * handle, BBString * name, MaxCLProgram * program) {
 	
-	cl_int err;
+	cl_int err = 0;
 	char * k = bbStringToCString(name);
 	
 	MaxCLKernel * kernel = new MaxCLKernel(handle, program, clCreateKernel(program->Program(), k, &err));
@@ -401,4 +434,11 @@ MaxCLImage * bmx_ocl_memimage_create3d(BBObject * handle, MaxCLPlatform * platfo
 	return new MaxCLImage(handle, platform, flags, channelOrder, imageType, width, height, depth, rowPitch, slicePitch, hostPtr);
 }
 
+int bmx_ocl_memimage_enqueueread(MaxCLImage * image, int blockingRead, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data) {
+	return image->EnqueueRead(blockingRead, originX, originY, originZ, regionX, regionY, regionZ, rowPitch, slicePitch, data);
+}
+
+int bmx_ocl_memimage_enqueuewrite(MaxCLImage * image, int blockingWrite, int originX, int originY, int originZ, int regionX, int regionY, int regionZ, int rowPitch, int slicePitch, void * data) {
+	return image->EnqueueWrite(blockingWrite, originX, originY, originZ, regionX, regionY, regionZ, rowPitch, slicePitch, data);
+}
 
