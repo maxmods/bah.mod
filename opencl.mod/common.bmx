@@ -29,6 +29,10 @@ Import "-framework OpenCL"
 Import "include/*.h"
 ?
 
+?win32
+Import "-lopencl"
+?
+
 Import "*.h"
 Import "glue.cpp"
 
