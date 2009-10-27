@@ -27,16 +27,14 @@ ModuleInfo "License: MPL"
 ModuleInfo "Copyright: TagLib - Scott Wheeler"
 ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
 
-ModuleInfo "History: 1.00 Initial Release (TagLib 1.5 SVN rev 988793)"
+ModuleInfo "History: 1.00 Initial Release (TagLib 1.6 SVN rev 1041329)"
 
-ModuleInfo "CC_OPTS: -DHAVE_ZLIB -DWITH_MP4 -DWITH_ASF"
+ModuleInfo "CC_OPTS: -DHAVE_ZLIB -DWITH_MP4 -DWITH_ASF -DTAGLIB_STATIC"
 
 Import "common.bmx"
 
 '
 ' Build notes :
-'
-' taglib_export.h - added  "&& !defined(__MINGW32__)" to ifdef.
 '
 ' Passing Strings between BlitzMax and library :
 '   Strings should be converted to UTF-8 :
