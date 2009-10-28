@@ -632,7 +632,108 @@ End Type
 Type TTLOggSpeexFile Extends TTLOggFile
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TTLOggVorbisFile Extends TTLOggFile
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateMPEGFile:TTLOggVorbisFile(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		Return New TTLOggVorbisFile.Create(filename, readProperties, propertiesStyle)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TTLOggVorbisFile(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		filePtr = bmx_taglib_oggvorbisfile_create(filename, readProperties, propertiesStyle)
+		Return Self
+	End Method
+
+	Method tag:TTLOggXiphComment()
+	End Method
+	
+	Rem
+	bbdoc: Returns the TTLAudioProperties for this file.
+	about: If no audio properties were read then this will return null.
+	End Rem
+	Method audioProperties:TTLAudioProperties()
+		Return TTLVorbisProperties._create(bmx_taglib_oggvorbisfile_audioproperties(filePtr))
+	End Method
+
+	Rem
+	bbdoc: Saves the file and its associated tags. 
+	returns: True if the save succeeds.
+	about: 
+	End Rem
+	Method save:Int()
+		Return bmx_taglib_oggvorbisfile_save(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Frees and closes the file.
+	End Rem
+	Method Free()
+		If filePtr Then
+			bmx_taglib_oggvorbisfile_free(filePtr)
+			filePtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+
+End Type
+
+Type TTLOggXiphComment Extends TTLTag
+
+End Type
+
+Rem
+bbdoc: An implementation of audio property reading for Ogg Vorbis.
+about: This reads the data from an Ogg Vorbis stream found in the AudioProperties API. 
+End Rem
+Type TTLVorbisProperties Extends TTLAudioProperties
+
+	Function _create:TTLVorbisProperties(apPtr:Byte Ptr)
+		If apPtr Then
+			Local this:TTLVorbisProperties = New TTLVorbisProperties
+			this.apPtr = apPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Returns the Vorbis version, currently "0" (as specified by the spec). 
+	End Rem
+	Method vorbisVersion:Int()
+		Return bmx_taglib_vorbisproperties_vorbisversion(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the maximum bitrate as read from the Vorbis identification header. 
+	End Rem
+	Method bitrateMaximum:Int()
+		Return bmx_taglib_vorbisproperties_bitratemaximum(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the nominal bitrate as read from the Vorbis identification header.
+	End Rem
+	Method bitrateNominal:Int()
+		Return bmx_taglib_vorbisproperties_bitratenominal(apPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the minimum bitrate as read from the Vorbis identification header. 
+	End Rem
+	Method bitrateMinimum:Int()
+		Return bmx_taglib_vorbisproperties_bitrateminimum(apPtr)
+	End Method
+	
 End Type
 
 Type TTLTrueAudioFile Extends TTLFile

@@ -30,6 +30,8 @@
 #include <unknownframe.h>
 #include <unsynchronizedlyricsframe.h>
 #include <urllinkframe.h>
+#include <vorbisfile.h>
+#include <vorbisproperties.h>
 
 extern "C" {
 
@@ -115,6 +117,16 @@ extern "C" {
 
 	int bmx_taglib_file_isreadable(BBString * file);
 	int bmx_taglib_file_iswritable(BBString * name);
+
+	TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	void bmx_taglib_oggvorbisfile_free(TagLib::Ogg::Vorbis::File * file);
+	TagLib::Vorbis::Properties * bmx_taglib_oggvorbisfile_audioproperties(TagLib::Ogg::Vorbis::File * file);
+	int bmx_taglib_oggvorbisfile_save(TagLib::Ogg::Vorbis::File * file);
+
+	int bmx_taglib_vorbisproperties_vorbisversion(TagLib::Vorbis::Properties * prop);
+	int bmx_taglib_vorbisproperties_bitratemaximum(TagLib::Vorbis::Properties * prop);
+	int bmx_taglib_vorbisproperties_bitratenominal(TagLib::Vorbis::Properties * prop);
+	int bmx_taglib_vorbisproperties_bitrateminimum(TagLib::Vorbis::Properties * prop);
 
 }
 
@@ -485,3 +497,51 @@ int bmx_taglib_file_iswritable(BBString * name) {
 	bbMemFree(f);
 	return res;
 }
+
+// ****************************************
+
+TagLib::Ogg::Vorbis::File * bmx_taglib_oggvorbisfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+
+#ifdef WIN32
+	wchar_t * f = (wchar_t*)bbStringToWString(filename);
+#else
+	char * f = bbStringToUTF8String(filename);
+#endif
+
+	TagLib::Ogg::Vorbis::File * file = new TagLib::Ogg::Vorbis::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	bbMemFree(f);
+	
+	return file;
+}
+
+void bmx_taglib_oggvorbisfile_free(TagLib::Ogg::Vorbis::File * file) {
+	delete file;
+}
+
+TagLib::Vorbis::Properties * bmx_taglib_oggvorbisfile_audioproperties(TagLib::Ogg::Vorbis::File * file) {
+	return file->audioProperties();
+}
+
+int bmx_taglib_oggvorbisfile_save(TagLib::Ogg::Vorbis::File * file){
+	return static_cast<int>(file->save());
+}
+
+
+// ****************************************
+
+int bmx_taglib_vorbisproperties_vorbisversion(TagLib::Vorbis::Properties * prop) {
+	return prop->vorbisVersion();
+}
+
+int bmx_taglib_vorbisproperties_bitratemaximum(TagLib::Vorbis::Properties * prop) {
+	return prop->bitrateMaximum();
+}
+
+int bmx_taglib_vorbisproperties_bitratenominal(TagLib::Vorbis::Properties * prop) {
+	return prop->bitrateNominal();
+}
+
+int bmx_taglib_vorbisproperties_bitrateminimum(TagLib::Vorbis::Properties * prop) {
+	return prop->bitrateMinimum();
+}
+

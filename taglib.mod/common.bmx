@@ -91,6 +91,16 @@ Extern
 	Function bmx_taglib_file_isreadable:Int(file:String)
 	Function bmx_taglib_file_iswritable:Int(name:String)
 
+	Function bmx_taglib_oggvorbisfile_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
+	Function bmx_taglib_oggvorbisfile_free(handle:Byte Ptr)
+	Function bmx_taglib_oggvorbisfile_audioproperties:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_oggvorbisfile_save:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_vorbisproperties_vorbisversion:Int(handle:Byte Ptr)
+	Function bmx_taglib_vorbisproperties_bitratemaximum:Int(handle:Byte Ptr)
+	Function bmx_taglib_vorbisproperties_bitratenominal:Int(handle:Byte Ptr)
+	Function bmx_taglib_vorbisproperties_bitrateminimum:Int(handle:Byte Ptr)
+
 End Extern
 
 
