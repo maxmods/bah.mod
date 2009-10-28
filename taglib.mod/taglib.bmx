@@ -348,6 +348,33 @@ Type TTLFile
 	Method save:Int()
 	End Method
 
+	Method isOpen:Int()
+	End Method
+
+	Method isValid:Int()
+	End Method
+	
+	Method clear()
+	End Method
+	
+	Method length:Int()
+	End Method
+	
+	Rem
+	bbdoc: Returns True if @file can be opened for reading.
+	about: If the file does not exist, this will return False.
+	End Rem
+	Function isReadable:Int(file:String)
+		Return bmx_taglib_file_isreadable(file)
+	End Function
+	
+	Rem
+	bbdoc: Returns True if @file can be opened for writing.
+	End Rem
+	Function isWritable:Int(file:String)
+		Return bmx_taglib_file_iswritable(file)
+	End Function
+	
 End Type
 
 Rem
@@ -362,6 +389,21 @@ Type TTLMPEGFile Extends TTLFile
 	Const TAGTYPE_ID3v2:Int = 2
 	Const TAGTYPE_APE:Int = 3
 	Const TAGTYPE_ALLTAGS:Int = 4
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateMPEGFile:TTLMPEGFile(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		Return New TTLMPEGFile.Create(filename, readProperties, propertiesStyle)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TTLMPEGFile(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		filePtr = bmx_taglib_mpegfile_create(filename, readProperties, propertiesStyle)
+		Return Self
+	End Method
 
 	Rem
 	bbdoc: Returns the TTLMPEGProperties for this file.
@@ -462,6 +504,48 @@ Type TTLMPEGFile Extends TTLFile
 	End Rem
 	Method lastFrameOffset:Int()
 		Return bmx_taglib_mpegfile_lastframeoffset(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Since the file can currently only be opened as an argument to the constructor (sort-of by design), this returns if that open succeeded.
+	End Rem
+	Method isOpen:Int()
+		Return bmx_taglib_mpegfile_isopen(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Returns true if the file is open and readble and valid information for the Tag and / or AudioProperties was found.
+	End Rem
+	Method isValid:Int()
+		Return bmx_taglib_mpegfile_isvalid(filePtr)
+	End Method
+	
+	Rem
+	bbdoc: Resets the end-of-file and error flags on the file.
+	End Rem
+	Method clear()
+		bmx_taglib_mpegfile_clear(filePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the length of the file.
+	End Rem
+	Method length:Int()
+		Return bmx_taglib_mpegfile_length(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Frees and closes the file.
+	End Rem
+	Method Free()
+		If filePtr Then
+			bmx_taglib_mpegfile_free(filePtr)
+			filePtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
 	End Method
 	
 End Type

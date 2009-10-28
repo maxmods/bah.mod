@@ -58,6 +58,8 @@ Extern
 	Function bmx_taglib_mpegproperties_iscopyrighted:Int(handle:Byte Ptr)
 	Function bmx_taglib_mpegproperties_isoriginal:Int(handle:Byte Ptr)
 
+	Function bmx_taglib_mpegfile_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
+	Function bmx_taglib_mpegfile_free(handle:Byte Ptr)
 	Function bmx_taglib_mpegfile_audioproperties:Byte Ptr(handle:Byte Ptr)
 	Function bmx_taglib_mpegfile_save:Int(handle:Byte Ptr)
 	Function bmx_taglib_mpegfile_savetags:Int(handle:Byte Ptr, tags:Int, stripOthers:Int)
@@ -69,6 +71,10 @@ Extern
 	Function bmx_taglib_mpegfile_nextframeoffset:Int(handle:Byte Ptr, position:Int)
 	Function bmx_taglib_mpegfile_previousframeoffset:Int(handle:Byte Ptr, position:Int)
 	Function bmx_taglib_mpegfile_lastframeoffset:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_isopen:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_isvalid:Int(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_clear(handle:Byte Ptr)
+	Function bmx_taglib_mpegfile_length:Int(handle:Byte Ptr)
 
 	Function bmx_taglib_id3v2header_majorversion:Int(handle:Byte Ptr)
 	Function bmx_taglib_id3v2header_revisionnumber:Int(handle:Byte Ptr)
@@ -81,6 +87,9 @@ Extern
 	Function bmx_taglib_id3v2header_settagsize(handle:Byte Ptr, size:Int)
 
 	Function bmx_taglib_id3v2tag_header:Object(handle:Byte Ptr)
+
+	Function bmx_taglib_file_isreadable:Int(file:String)
+	Function bmx_taglib_file_iswritable:Int(name:String)
 
 End Extern
 

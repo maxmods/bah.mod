@@ -83,6 +83,8 @@ extern "C" {
 	int bmx_taglib_mpegproperties_iscopyrighted(TagLib::MPEG::Header * header);
 	int bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header);
 
+	TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	void bmx_taglib_mpegfile_free(TagLib::MPEG::File * file);
 	TagLib::MPEG::Properties * bmx_taglib_mpegfile_audioproperties(TagLib::MPEG::File * file);
 	int bmx_taglib_mpegfile_save(TagLib::MPEG::File * file);
 	int bmx_taglib_mpegfile_savetags(TagLib::MPEG::File * file, int tags, int stripOthers);
@@ -94,6 +96,10 @@ extern "C" {
 	long bmx_taglib_mpegfile_nextframeoffset(TagLib::MPEG::File * file, long position);
 	long bmx_taglib_mpegfile_previousframeoffset(TagLib::MPEG::File * file, long position);
 	long bmx_taglib_mpegfile_lastframeoffset(TagLib::MPEG::File * file);
+	int bmx_taglib_mpegfile_isopen(TagLib::MPEG::File * file);
+	int bmx_taglib_mpegfile_isvalid(TagLib::MPEG::File * file);
+	void bmx_taglib_mpegfile_clear(TagLib::MPEG::File * file);
+	long bmx_taglib_mpegfile_length(TagLib::MPEG::File * file);
 
 	TagLib::uint bmx_taglib_id3v2header_majorversion(TagLib::ID3v2::Header * header);
 	TagLib::uint bmx_taglib_id3v2header_revisionnumber(TagLib::ID3v2::Header * header);
@@ -106,6 +112,9 @@ extern "C" {
 	void bmx_taglib_id3v2header_settagsize(TagLib::ID3v2::Header * header, TagLib::uint size);
 
 	BBObject * bmx_taglib_id3v2tag_header(TagLib::ID3v2::Tag * tag);
+
+	int bmx_taglib_file_isreadable(BBString * file);
+	int bmx_taglib_file_iswritable(BBString * name);
 
 }
 
@@ -338,6 +347,24 @@ int bmx_taglib_mpegproperties_isoriginal(TagLib::MPEG::Header * header) {
 
 // ****************************************
 
+TagLib::MPEG::File * bmx_taglib_mpegfile_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+
+#ifdef WIN32
+	wchar_t * f = (wchar_t*)bbStringToWString(filename);
+#else
+	char * f = bbStringToUTF8String(filename);
+#endif
+
+	TagLib::MPEG::File * file = new TagLib::MPEG::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	bbMemFree(f);
+	
+	return file;
+}
+
+void bmx_taglib_mpegfile_free(TagLib::MPEG::File * file) {
+	delete file;
+}
+
 TagLib::MPEG::Properties * bmx_taglib_mpegfile_audioproperties(TagLib::MPEG::File * file) {
 	return file->audioProperties();
 }
@@ -382,6 +409,21 @@ long bmx_taglib_mpegfile_lastframeoffset(TagLib::MPEG::File * file) {
 	return file->lastFrameOffset();
 }
 
+int bmx_taglib_mpegfile_isopen(TagLib::MPEG::File * file) {
+	return static_cast<int>(file->isOpen());
+}
+
+int bmx_taglib_mpegfile_isvalid(TagLib::MPEG::File * file) {
+	return static_cast<int>(file->isValid());
+}
+
+void bmx_taglib_mpegfile_clear(TagLib::MPEG::File * file) {
+	file->clear();
+}
+
+long bmx_taglib_mpegfile_length(TagLib::MPEG::File * file) {
+	return file->length();
+}
 
 // ****************************************
 
@@ -426,4 +468,20 @@ void bmx_taglib_id3v2header_settagsize(TagLib::ID3v2::Header * header, TagLib::u
 
 BBObject * bmx_taglib_id3v2tag_header(TagLib::ID3v2::Tag * tag) {
 	return getID3v2Header(tag->header());
+}
+
+// ****************************************
+
+int bmx_taglib_file_isreadable(BBString * file) {
+	char * f = bbStringToCString(file);
+	int res = static_cast<int>(TagLib::File::isReadable(f));
+	bbMemFree(f);
+	return res;
+}
+
+int bmx_taglib_file_iswritable(BBString * name) {
+	char * f = bbStringToCString(name);
+	int res = static_cast<int>(TagLib::File::isWritable(f));
+	bbMemFree(f);
+	return res;
 }
