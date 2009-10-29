@@ -783,6 +783,7 @@ Type TTLID3v2Tag Extends TTLTag
 	End Method
 	
 	Method frameList:TTLID3v2FrameList()
+		Return TTLID3v2FrameList._create(bmx_taglib_id3v2tag_framelist(tagPtr))
 	End Method
 	
 	Method addFrame(frame:TTLID3v2Frame)
@@ -793,14 +794,57 @@ Type TTLID3v2Tag Extends TTLTag
 
 End Type
 
-
+Rem
+bbdoc: 
+End Rem
 Type TTLID3v2FrameList
 
 	Field frameListPtr:Byte Ptr
 	
-	
+	Function _create:TTLID3v2FrameList(frameListPtr:Byte Ptr)
+		If frameListPtr Then
+			Local this:TTLID3v2FrameList = New TTLID3v2FrameList
+			this.frameListPtr = frameListPtr
+			Return this
+		End If
+	End Function
 
+	Method ObjectEnumerator:TTLID3v2FrameListEnumerator()
+		Local enum:TTLID3v2FrameListEnumerator = New TTLID3v2FrameListEnumerator
+		enum.list = Self
+		Return enum
+	End Method
+
+	Method Delete()
+		If frameListPtr Then
+			bmx_taglib_id3v2framelist_free(frameListPtr)
+			frameListPtr = Null
+		End If
+	End Method
+	
 End Type
+
+Type TTLID3v2FrameListEnumerator
+	Field list:TTLID3v2FrameList
+	Field nextFrame:TTLID3v2Frame
+
+	Method HasNext:Int()
+		If Not nextFrame Then
+			nextFrame = TTLID3v2Frame(bmx_taglib_id3v2framelist_nextframe(list.frameListPtr))
+		End If
+		
+		If nextFrame Then
+			Return True
+		End If
+	End Method
+	
+	Method NextObject:Object()
+		Local nextItem:TTLID3v2Frame = nextFrame
+		nextFrame = Null
+		Return nextItem
+	End Method
+End Type
+
 
 Type TTLID3v2FrameListMap
 
@@ -960,9 +1004,11 @@ Type TTLID3v2Frame Extends TTLID3v2Header
 	End Method
 	
 	Method toString:String()
+		Return bmx_taglib_id3v2frame_tostring(headerPtr)
 	End Method
 	
 	Method frameID:TTLByteVector()
+		Return TTLByteVector._create(bmx_taglib_id3v2frame_frameid(headerPtr))
 	End Method
 	
 	Method setFrameID(id:TTLByteVector)
@@ -1113,31 +1159,52 @@ Type TTLID3v2AttachedPictureFrame Extends TTLID3v2Frame
 	End Rem
 	Const TYPE_PUBLISHERLOGO:Int = $14
 
-	Method textEncoding:String()
+	Rem
+	bbdoc: Returns the text encoding used for the description.
+	End Rem
+	Method textEncoding:Int()
+		Return bmx_taglib_id3v2attachedpictureframe_textencoding(headerPtr)
 	End Method
 	
-	Method setTextEncoding(encoding:String)
+	Method setTextEncoding(encoding:Int)
 	End Method
 	
+	Rem
+	bbdoc: Returns the mime type of the image.
+	about: This should in most cases be "image/png" or "image/jpeg".
+	End Rem
 	Method mimeType:String()
+		Return bmx_taglib_id3v2attachedpictureframe_mimetype(headerPtr)
 	End Method
 	
 	Method setMimeType(m:String)
 	End Method
 	
+	Rem
+	bbdoc: Returns the type of the image.
+	End Rem
 	Method imageType:Int()
+		Return bmx_taglib_id3v2attachedpictureframe_imagetype(headerPtr)
 	End Method
 	
 	Method setImageType(t:Int)
 	End Method
 	
+	Rem
+	bbdoc: Returns a text description of the image.
+	End Rem
 	Method description:String()
+		Return bmx_taglib_id3v2attachedpictureframe_description(headerPtr)
 	End Method
 	
 	Method setDescription(desc:String)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image data as a TTLByteVector.
+	End Rem
 	Method picture:TTLByteVector()
+		Return TTLByteVector._create(bmx_taglib_id3v2attachedpictureframe_picture(headerPtr))
 	End Method
 	
 	Method setPicture(data:TTLByteVector)
@@ -1293,7 +1360,9 @@ Type TTLID3v2UserUrlLinkFrame Extends TTLID3v2UrlLinkFrame
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A byte vector.
+about: This type provides a byte vector with some methods that are useful for tagging purposes.
+Many of the search functions are tailored to what is useful for finding tag related paterns in a data array.
 End Rem
 Type TTLByteVector
 
@@ -1319,16 +1388,49 @@ Type TTLByteVector
 	Method setData(data:Byte Ptr, length:Int)
 	End Method
 	
+	Rem
+	bbdoc: Returns a pointer to the internal data structure.
+	about: <b>Warning :</b> Care should be taken when modifying this data structure as it is easy to corrupt
+	the TTLByteVector when doing so. Specifically, while the data may be changed, its length may not be.
+	End Rem
 	Method data:Byte Ptr()
+		Return bmx_taglib_bytevector_data(bvPtr)
 	End Method
 	
+	Rem
+	bbdoc: Clears the data.
+	End Rem
 	Method clear()
+		bmx_taglib_bytevector_clear(bvPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the size of the array.
+	End Rem
 	Method size:Int()
+		Return bmx_taglib_bytevector_size(bvPtr)
 	End Method
 
+	Rem
+	bbdoc: Returns true if the byte vector is empty.
+	End Rem
 	Method isEmpty:Int()
+		Return bmx_taglib_bytevector_isempty(bvPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a string representation of the byte vector.
+	about: This is only useful for text-based data.
+	End Rem
+	Method toString:String()
+		Return bmx_taglib_bytevector_tostring(bvPtr)
+	End Method
+	
+	Method Delete()
+		If bvPtr Then
+			bmx_taglib_bytevector_free(bvPtr)
+			bvPtr = Null
+		End If
 	End Method
 
 End Type

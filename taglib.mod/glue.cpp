@@ -33,6 +33,9 @@
 #include <vorbisfile.h>
 #include <vorbisproperties.h>
 
+class MaxID3v2FrameList;
+class MaxByteVector;
+
 extern "C" {
 
 #include "blitz.h"
@@ -49,7 +52,10 @@ extern "C" {
 	BBObject * _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create(TagLib::ID3v2::Header * header);
 	BBObject * _bah_taglib_TTLID3v2Frame__create(TagLib::ID3v2::Header * header);
 	BBObject * _bah_taglib_TTLID3v2Header__create(TagLib::ID3v2::Header * header);
-
+	
+	BBObject * getID3v2Header(TagLib::ID3v2::Header * header);
+	BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header);
+	
 	TagLib::FileRef * bmx_taglib_fileref_create(BBString * filename, int readAudioProperties, TagLib::AudioProperties::ReadStyle audioPropertiesStyle);
 	TagLib::Tag * bmx_taglib_fileref_tag(TagLib::FileRef * ref);
 	TagLib::AudioProperties * bmx_taglib_fileref_audioproperties(TagLib::FileRef * ref);
@@ -114,6 +120,10 @@ extern "C" {
 	void bmx_taglib_id3v2header_settagsize(TagLib::ID3v2::Header * header, TagLib::uint size);
 
 	BBObject * bmx_taglib_id3v2tag_header(TagLib::ID3v2::Tag * tag);
+	MaxID3v2FrameList * bmx_taglib_id3v2tag_framelist(TagLib::ID3v2::Tag * tag);
+	
+	void bmx_taglib_id3v2framelist_free(MaxID3v2FrameList * list);
+	BBObject * bmx_taglib_id3v2framelist_nextframe(MaxID3v2FrameList * list);
 
 	int bmx_taglib_file_isreadable(BBString * file);
 	int bmx_taglib_file_iswritable(BBString * name);
@@ -128,7 +138,73 @@ extern "C" {
 	int bmx_taglib_vorbisproperties_bitratenominal(TagLib::Vorbis::Properties * prop);
 	int bmx_taglib_vorbisproperties_bitrateminimum(TagLib::Vorbis::Properties * prop);
 
+	BBString * bmx_taglib_bytevector_tostring(MaxByteVector * vec);
+	void bmx_taglib_bytevector_free(MaxByteVector * vec);
+	char * bmx_taglib_bytevector_data(MaxByteVector * vec);
+	void bmx_taglib_bytevector_clear(MaxByteVector * vec);
+	int bmx_taglib_bytevector_size(MaxByteVector * vec);
+	int bmx_taglib_bytevector_isempty(MaxByteVector * vec);
+
+	BBString * bmx_taglib_id3v2frame_tostring(TagLib::ID3v2::Frame * frame);
+	MaxByteVector * bmx_taglib_id3v2frame_frameid(TagLib::ID3v2::Frame * frame);
+
+	int bmx_taglib_id3v2attachedpictureframe_textencoding(TagLib::ID3v2::AttachedPictureFrame * frame);
+	BBString * bmx_taglib_id3v2attachedpictureframe_mimetype(TagLib::ID3v2::AttachedPictureFrame * frame);
+	int bmx_taglib_id3v2attachedpictureframe_imagetype(TagLib::ID3v2::AttachedPictureFrame * frame);
+	BBString * bmx_taglib_id3v2attachedpictureframe_description(TagLib::ID3v2::AttachedPictureFrame * frame);
+	MaxByteVector * bmx_taglib_id3v2attachedpictureframe_picture(TagLib::ID3v2::AttachedPictureFrame * frame);
+
 }
+
+// ****************************************
+
+class MaxID3v2FrameList
+{
+public:
+	MaxID3v2FrameList(const TagLib::ID3v2::FrameList & f)
+		: frameList(f)
+	{
+		it = frameList.begin();
+	}
+	
+	~MaxID3v2FrameList()
+	{
+	}
+	
+	BBObject * nextFrame() {
+		if (it != frameList.end()) {
+			return getID3v2Frame(*it++);
+		} else {
+			return &bbNullObject;
+		}
+	}
+
+private:
+	TagLib::ID3v2::FrameList frameList;
+	TagLib::ID3v2::FrameList::ConstIterator it;
+};
+
+// ****************************************
+
+class MaxByteVector
+{
+public:
+	MaxByteVector(const TagLib::ByteVector & v)
+		: vector(v)
+	{
+	}
+	
+	~MaxByteVector()
+	{
+	}
+	
+	TagLib::ByteVector & Vector() {
+		return vector;
+	}
+
+private:
+	TagLib::ByteVector vector;
+};
 
 // ****************************************
 
@@ -184,6 +260,58 @@ BBObject * getID3v2Header(TagLib::ID3v2::Header * header) {
 
 	if (dynamic_cast<TagLib::ID3v2::Header*>(header)) {
 		return _bah_taglib_TTLID3v2Header__create(header);
+	}
+
+}
+
+BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header) {
+
+	if (!header) {
+		return &bbNullObject;
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::UserTextIdentificationFrame*>(header)) {
+		return _bah_taglib_TTLID3v2UserTextIdentificationFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::UserUrlLinkFrame*>(header)) {
+		return _bah_taglib_TTLID3v2UserUrlLinkFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::TextIdentificationFrame*>(header)) {
+		return _bah_taglib_TTLID3v2TextIdentificationFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::AttachedPictureFrame*>(header)) {
+		return _bah_taglib_TTLID3v2AttachedPictureFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::CommentsFrame*>(header)) {
+		return _bah_taglib_TTLID3v2CommentsFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::GeneralEncapsulatedObjectFrame*>(header)) {
+		return _bah_taglib_TTLID3v2GeneralEncapsulatedObjectFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::RelativeVolumeFrame*>(header)) {
+		return _bah_taglib_TTLID3v2RelativeVolumeFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::UniqueFileIdentifierFrame*>(header)) {
+		return _bah_taglib_TTLID3v2UniqueFileIdentifierFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::UnknownFrame*>(header)) {
+		return _bah_taglib_TTLID3v2UnknownFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::UnsynchronizedLyricsFrame*>(header)) {
+		return _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create((TagLib::ID3v2::Header*)header);
+	}
+
+	if (dynamic_cast<const TagLib::ID3v2::Frame*>(header)) {
+		return _bah_taglib_TTLID3v2Frame__create((TagLib::ID3v2::Header*)header);
 	}
 
 }
@@ -482,6 +610,10 @@ BBObject * bmx_taglib_id3v2tag_header(TagLib::ID3v2::Tag * tag) {
 	return getID3v2Header(tag->header());
 }
 
+MaxID3v2FrameList * bmx_taglib_id3v2tag_framelist(TagLib::ID3v2::Tag * tag) {
+	return new MaxID3v2FrameList(tag->frameList());
+}
+
 // ****************************************
 
 int bmx_taglib_file_isreadable(BBString * file) {
@@ -544,4 +676,74 @@ int bmx_taglib_vorbisproperties_bitratenominal(TagLib::Vorbis::Properties * prop
 int bmx_taglib_vorbisproperties_bitrateminimum(TagLib::Vorbis::Properties * prop) {
 	return prop->bitrateMinimum();
 }
+
+// ****************************************
+
+void bmx_taglib_id3v2framelist_free(MaxID3v2FrameList * list) {
+	delete list;
+}
+
+BBObject * bmx_taglib_id3v2framelist_nextframe(MaxID3v2FrameList * list) {
+	return list->nextFrame();
+}
+
+// ****************************************
+
+BBString * bmx_taglib_bytevector_tostring(MaxByteVector * vec) {
+	return bbStringFromBytes(vec->Vector().data(), vec->Vector().size());
+}
+
+void bmx_taglib_bytevector_free(MaxByteVector * vec) {
+	delete vec;
+}
+
+char * bmx_taglib_bytevector_data(MaxByteVector * vec) {
+	return vec->Vector().data();
+}
+
+void bmx_taglib_bytevector_clear(MaxByteVector * vec) {
+	vec->Vector().clear();
+}
+
+int bmx_taglib_bytevector_size(MaxByteVector * vec) {
+	return vec->Vector().size();
+}
+
+int bmx_taglib_bytevector_isempty(MaxByteVector * vec) {
+	return static_cast<int>(vec->Vector().isEmpty());
+}
+
+// ****************************************
+
+BBString * bmx_taglib_id3v2frame_tostring(TagLib::ID3v2::Frame * frame) {
+	return bbStringFromUTF8String(frame->toString().toCString(true));
+}
+
+MaxByteVector * bmx_taglib_id3v2frame_frameid(TagLib::ID3v2::Frame * frame) {
+	return new MaxByteVector(frame->frameID());
+}
+
+
+// ****************************************
+
+int bmx_taglib_id3v2attachedpictureframe_textencoding(TagLib::ID3v2::AttachedPictureFrame * frame) {
+	return frame->textEncoding();
+}
+
+BBString * bmx_taglib_id3v2attachedpictureframe_mimetype(TagLib::ID3v2::AttachedPictureFrame * frame) {
+	return bbStringFromUTF8String(frame->mimeType().toCString(true));
+}
+
+int bmx_taglib_id3v2attachedpictureframe_imagetype(TagLib::ID3v2::AttachedPictureFrame * frame) {
+	return frame->type();
+}
+
+BBString * bmx_taglib_id3v2attachedpictureframe_description(TagLib::ID3v2::AttachedPictureFrame * frame) {
+	return bbStringFromUTF8String(frame->description().toCString(true));
+}
+
+MaxByteVector * bmx_taglib_id3v2attachedpictureframe_picture(TagLib::ID3v2::AttachedPictureFrame * frame) {
+	return new MaxByteVector(frame->picture());
+}
+
 

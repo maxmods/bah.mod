@@ -42,8 +42,11 @@ Function ShowTagInfo(filename:String)
 		If id3v2tag Then
 			Print "ID3v2." + id3v2tag.header().majorVersion() + "." + ..
 				id3v2tag.header().revisionNumber() + ", " + id3v2tag.header().tagSize() + " bytes in tag"
-				
-			' TODO
+
+			For Local frame:TTLID3v2Frame = EachIn id3v2tag.frameList()
+				Print frame.frameID().toString() + " - ~q" + frame.toString() + "~q"
+			Next
+
 		Else
 			Print "file does not have a valid id3v2 tag"
 		End If

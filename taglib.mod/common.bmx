@@ -87,6 +87,10 @@ Extern
 	Function bmx_taglib_id3v2header_settagsize(handle:Byte Ptr, size:Int)
 
 	Function bmx_taglib_id3v2tag_header:Object(handle:Byte Ptr)
+	Function bmx_taglib_id3v2tag_framelist:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_id3v2framelist_free(handle:Byte Ptr)
+	Function bmx_taglib_id3v2framelist_nextframe:Object(handle:Byte Ptr)
 
 	Function bmx_taglib_file_isreadable:Int(file:String)
 	Function bmx_taglib_file_iswritable:Int(name:String)
@@ -100,6 +104,22 @@ Extern
 	Function bmx_taglib_vorbisproperties_bitratemaximum:Int(handle:Byte Ptr)
 	Function bmx_taglib_vorbisproperties_bitratenominal:Int(handle:Byte Ptr)
 	Function bmx_taglib_vorbisproperties_bitrateminimum:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_bytevector_tostring:String(handle:Byte Ptr)
+	Function bmx_taglib_bytevector_free(handle:Byte Ptr)
+	Function bmx_taglib_bytevector_data:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_bytevector_clear(handle:Byte Ptr)
+	Function bmx_taglib_bytevector_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_bytevector_isempty:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_id3v2frame_tostring:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2frame_frameid:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_id3v2attachedpictureframe_textencoding:Int(handle:Byte Ptr)
+	Function bmx_taglib_id3v2attachedpictureframe_mimetype:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2attachedpictureframe_imagetype:Int(handle:Byte Ptr)
+	Function bmx_taglib_id3v2attachedpictureframe_description:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2attachedpictureframe_picture:Byte Ptr(handle:Byte Ptr)
 
 End Extern
 
