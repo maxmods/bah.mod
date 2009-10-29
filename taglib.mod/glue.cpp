@@ -124,6 +124,10 @@ extern "C" {
 	
 	void bmx_taglib_id3v2framelist_free(MaxID3v2FrameList * list);
 	BBObject * bmx_taglib_id3v2framelist_nextframe(MaxID3v2FrameList * list);
+	void bmx_taglib_id3v2framelist_reset(MaxID3v2FrameList * list);
+	BBObject * bmx_taglib_id3v2framelist_frame(MaxID3v2FrameList * list, int index);
+	int bmx_taglib_id3v2framelist_isempty(MaxID3v2FrameList * list);
+	int bmx_taglib_id3v2framelist_size(MaxID3v2FrameList * list);
 
 	int bmx_taglib_file_isreadable(BBString * file);
 	int bmx_taglib_file_iswritable(BBString * name);
@@ -147,12 +151,25 @@ extern "C" {
 
 	BBString * bmx_taglib_id3v2frame_tostring(TagLib::ID3v2::Frame * frame);
 	MaxByteVector * bmx_taglib_id3v2frame_frameid(TagLib::ID3v2::Frame * frame);
+	int bmx_taglib_id3v2frame_size(TagLib::ID3v2::Frame * frame);
 
 	int bmx_taglib_id3v2attachedpictureframe_textencoding(TagLib::ID3v2::AttachedPictureFrame * frame);
 	BBString * bmx_taglib_id3v2attachedpictureframe_mimetype(TagLib::ID3v2::AttachedPictureFrame * frame);
 	int bmx_taglib_id3v2attachedpictureframe_imagetype(TagLib::ID3v2::AttachedPictureFrame * frame);
 	BBString * bmx_taglib_id3v2attachedpictureframe_description(TagLib::ID3v2::AttachedPictureFrame * frame);
 	MaxByteVector * bmx_taglib_id3v2attachedpictureframe_picture(TagLib::ID3v2::AttachedPictureFrame * frame);
+
+	void bmx_taglib_id3v2textidentificationframe_settext(TagLib::ID3v2::TextIdentificationFrame * frame, BBString * text);
+	void bmx_taglib_id3v2textidentificationframe_settextlist(TagLib::ID3v2::TextIdentificationFrame * frame, BBArray * text);
+	BBString * bmx_taglib_id3v2textidentificationframe_tostring(TagLib::ID3v2::TextIdentificationFrame * frame);
+	int bmx_taglib_id3v2textidentificationframe_textencoding(TagLib::ID3v2::TextIdentificationFrame * frame);
+	void bmx_taglib_id3v2textidentificationframe_settextencoding(TagLib::ID3v2::TextIdentificationFrame * frame, TagLib::String::Type encoding);
+	BBArray * bmx_taglib_id3v2textidentificationframe_fieldlist(TagLib::ID3v2::TextIdentificationFrame * frame);
+
+	BBString * bmx_taglib_id3v2urllinkframe_url(TagLib::ID3v2::UrlLinkFrame * frame);
+	void bmx_taglib_id3v2urllinkframe_seturl(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text);
+	void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text);
+	BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame);
 
 }
 
@@ -177,6 +194,14 @@ public:
 		} else {
 			return &bbNullObject;
 		}
+	}
+	
+	void reset() {
+		it = frameList.begin();
+	}
+	
+	TagLib::ID3v2::FrameList & List() {
+		return frameList;
 	}
 
 private:
@@ -687,6 +712,22 @@ BBObject * bmx_taglib_id3v2framelist_nextframe(MaxID3v2FrameList * list) {
 	return list->nextFrame();
 }
 
+void bmx_taglib_id3v2framelist_reset(MaxID3v2FrameList * list) {
+	list->reset();
+}
+
+BBObject * bmx_taglib_id3v2framelist_frame(MaxID3v2FrameList * list, int index) {
+	return getID3v2Frame(list->List()[index]);
+}
+
+int bmx_taglib_id3v2framelist_isempty(MaxID3v2FrameList * list) {
+	return static_cast<int>(list->List().isEmpty());
+}
+
+int bmx_taglib_id3v2framelist_size(MaxID3v2FrameList * list) {
+	return list->List().size();
+}
+
 // ****************************************
 
 BBString * bmx_taglib_bytevector_tostring(MaxByteVector * vec) {
@@ -723,6 +764,9 @@ MaxByteVector * bmx_taglib_id3v2frame_frameid(TagLib::ID3v2::Frame * frame) {
 	return new MaxByteVector(frame->frameID());
 }
 
+int bmx_taglib_id3v2frame_size(TagLib::ID3v2::Frame * frame) {
+	return frame->size();
+}
 
 // ****************************************
 
@@ -747,3 +791,69 @@ MaxByteVector * bmx_taglib_id3v2attachedpictureframe_picture(TagLib::ID3v2::Atta
 }
 
 
+// ****************************************
+
+void bmx_taglib_id3v2textidentificationframe_settext(TagLib::ID3v2::TextIdentificationFrame * frame, BBString * text) {
+	char * t = bbStringToUTF8String(text);
+	frame->setText(t);
+	bbMemFree(t);
+}
+
+void bmx_taglib_id3v2textidentificationframe_settextlist(TagLib::ID3v2::TextIdentificationFrame * frame, BBArray * text) {
+	TagLib::StringList list;
+	int n = text->scales[0];
+	BBString **s = (BBString**)BBARRAYDATA(text,text->dims);
+	for (int i = 0; i < n; i++) {
+		char * t = bbStringToUTF8String(s[i]);
+		list.append(t);
+		bbMemFree(t);
+	}
+	frame->setText(list);
+}
+
+BBString * bmx_taglib_id3v2textidentificationframe_tostring(TagLib::ID3v2::TextIdentificationFrame * frame) {
+	return bbStringFromUTF8String(frame->toString().toCString(true));
+}
+
+int bmx_taglib_id3v2textidentificationframe_textencoding(TagLib::ID3v2::TextIdentificationFrame * frame) {
+	return frame->textEncoding();
+}
+
+void bmx_taglib_id3v2textidentificationframe_settextencoding(TagLib::ID3v2::TextIdentificationFrame * frame, TagLib::String::Type encoding) {
+	frame->setTextEncoding(encoding);
+}
+
+BBArray * bmx_taglib_id3v2textidentificationframe_fieldlist(TagLib::ID3v2::TextIdentificationFrame * frame) {
+	TagLib::StringList list = frame->fieldList();
+	
+	int n = list.size();
+	BBArray *p = bbArrayNew1D("$",n);
+	BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
+	for( int i=0;i<n;++i ){
+		s[i] = bbStringFromUTF8String(list[i].toCString(true));
+		BBRETAIN( s[i] );
+	}
+	return p;
+}
+
+// ****************************************
+
+BBString * bmx_taglib_id3v2urllinkframe_url(TagLib::ID3v2::UrlLinkFrame * frame) {
+	return bbStringFromUTF8String(frame->url().toCString(true));
+}
+
+void bmx_taglib_id3v2urllinkframe_seturl(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text) {
+	char * t = bbStringToUTF8String(text);
+	frame->setUrl(t);
+	bbMemFree(t);
+}
+
+void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text) {
+	char * t = bbStringToUTF8String(text);
+	frame->setText(t);
+	bbMemFree(t);
+}
+
+BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame) {
+	return bbStringFromUTF8String(frame->toString().toCString(true));
+}

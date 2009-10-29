@@ -808,8 +808,32 @@ Type TTLID3v2FrameList
 			Return this
 		End If
 	End Function
+	
+	Rem
+	bbdoc: Returns the frame at the specified index.
+	End Rem
+	Method frame:TTLID3v2Frame(index:Int)
+		Return TTLID3v2Frame(bmx_taglib_id3v2framelist_frame(frameListPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the list is empty.
+	End Rem
+	Method isEmpty:Int()
+		Return bmx_taglib_id3v2framelist_isempty(frameListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the list.
+	End Rem
+	Method size:Int()
+		Return bmx_taglib_id3v2framelist_size(frameListPtr)
+	End Method
 
 	Method ObjectEnumerator:TTLID3v2FrameListEnumerator()
+		' Reset the iterator
+		bmx_taglib_id3v2framelist_reset(frameListPtr)
+	
 		Local enum:TTLID3v2FrameListEnumerator = New TTLID3v2FrameListEnumerator
 		enum.list = Self
 		Return enum
@@ -824,6 +848,7 @@ Type TTLID3v2FrameList
 	
 End Type
 
+' internal support for EachIn
 Type TTLID3v2FrameListEnumerator
 	Field list:TTLID3v2FrameList
 	Field nextFrame:TTLID3v2Frame
@@ -995,6 +1020,7 @@ Type TTLID3v2Frame Extends TTLID3v2Header
 	End Function
 
 	Method size:Int()
+		Return bmx_taglib_id3v2frame_size(headerPtr)
 	End Method
 	
 	Method setData(data:TTLByteVector)
@@ -1014,48 +1040,6 @@ Type TTLID3v2Frame Extends TTLID3v2Header
 	Method setFrameID(id:TTLByteVector)
 	End Method
 	
-	Method frameSize:Int()
-	End Method
-	
-	Method setFrameSize(size:Int)
-	End Method
-	
-	Method version:Int()
-	End Method
-	
-	Method tagAlterPreservation:Int()
-	End Method
-	
-	Method setTagAlterPreservation(discard:Int)
-	End Method
-	
-	Method fileAlterPreservation:Int()
-	End Method
-	
-	Method readOnly:Int()
-	End Method
-	
-	Method groupingIdentity:Int()
-	End Method
-	
-	Method compression:Int()
-	End Method
-	
-	Method encryption:Int()
-	End Method
-	
-	Method unsynchronisation:Int()
-	End Method
-	
-	Method dataLengthIndicator:Int()
-	End Method
-	
-	Method render:TTLByteVector()
-	End Method
-	
-	Method frameAlterPreservation:Int()
-	End Method
-
 End Type
 
 Rem
@@ -1275,6 +1259,63 @@ Type TTLID3v2RelativeVolumeFrame Extends TTLID3v2Frame
 
 End Type
 
+Rem
+bbdoc: An ID3v2 text identification frame implementation.
+about: This is an implementation of the most common type of ID3v2 frame -- text identification frames.
+There are a number of variations on this. Those enumerated in the ID3v2.4 standard are:
+<ul>
+<li><b>TALB</b> Album/Movie/Show title </li>
+<li><b>TBPM</b> BPM (beats per minute) </li>
+<li><b>TCOM</b> Composer </li>
+<li><b>TCON</b> Content type </li>
+<li><b>TCOP</b> Copyright message </li>
+<li><b>TDEN</b> Encoding time </li>
+<li><b>TDLY</b> Playlist delay </li>
+<li><b>TDOR</b> Original release time </li>
+<li><b>TDRC</b> Recording time </li>
+<li><b>TDRL</b> Release time </li>
+<li><b>TDTG</b> Tagging time </li>
+<li><b>TENC</b> Encoded by </li>
+<li><b>TEXT</b> Lyricist/Text writer </li>
+<li><b>TFLT</b> File type </li>
+<li><b>TIPL</b> Involved people list </li>
+<li><b>TIT1</b> Content group description </li>
+<li><b>TIT2</b> Title/songname/content description </li>
+<li><b>TIT3</b> Subtitle/Description refinement </li>
+<li><b>TKEY</b> Initial key </li>
+<li><b>TLAN</b> Language(s) </li>
+<li><b>TLEN</b> Length </li>
+<li><b>TMCL</b> Musician credits list </li>
+<li><b>TMED</b> Media type </li>
+<li><b>TMOO</b> Mood </li>
+<li><b>TOAL</b> Original album/movie/show title </li>
+<li><b>TOFN</b> Original filename </li>
+<li><b>TOLY</b> Original lyricist(s)/text writer(s) </li>
+<li><b>TOPE</b> Original artist(s)/performer(s) </li>
+<li><b>TOWN</b> File owner/licensee </li>
+<li><b>TPE1</b> Lead performer(s)/Soloist(s) </li>
+<li><b>TPE2</b> Band/orchestra/accompaniment </li>
+<li><b>TPE3</b> Conductor/performer refinement </li>
+<li><b>TPE4</b> Interpreted, remixed, or otherwise modified by </li>
+<li><b>TPOS</b> Part of a set </li>
+<li><b>TPRO</b> Produced notice </li>
+<li><b>TPUB</b> Publisher </li>
+<li><b>TRCK</b> Track number/Position in set </li>
+<li><b>TRSN</b> Internet radio station name </li>
+<li><b>TRSO</b> Internet radio station owner </li>
+<li><b>TSOA</b> Album sort order </li>
+<li><b>TSOP</b> Performer sort order </li>
+<li><b>TSOT</b> Title sort order </li>
+<li><b>TSRC</b> ISRC (international standard recording code) </li>
+<li><b>TSSE</b> Software/Hardware and settings used for encoding </li>
+<li><b>TSST</b> Set subtitle </li>
+</ul>
+TTLID3v2Header.frameID() can be used to determine the frame type.
+<p>
+Note: If non-Latin1 compatible strings are used with this class, even if the text encoding
+is set to Latin1, the frame will be written using UTF8 (with the encoding flag appropriately set in the output). 
+</p>
+End Rem
 Type TTLID3v2TextIdentificationFrame Extends TTLID3v2Frame
 
 	Function _create:TTLID3v2TextIdentificationFrame(headerPtr:Byte Ptr)
@@ -1284,7 +1325,60 @@ Type TTLID3v2TextIdentificationFrame Extends TTLID3v2Frame
 			Return this
 		End If
 	End Function
-
+	
+	Rem
+	bbdoc: Set the text of frame in the sanest way possible. 
+	about: Note: If the frame type supports multiple text encodings, this will not change the text encoding
+	of the frame; the string will be converted to that frame's encoding. Please use the specific APIs of the
+	frame types to set the encoding if that is desired.
+	End Rem
+	Method setText(text:String)
+		bmx_taglib_id3v2textidentificationframe_settext(headerPtr, text)
+	End Method
+	
+	Rem
+	bbdoc: Sets the list of string fields.
+	about: Note: This will not change the text encoding of the frame even if the strings passed in are not of
+	the same encoding. Please use setEncoding(s.type()) if you wish to change the encoding of the frame.
+	End Rem
+	Method setTextList(text:String[])
+		bmx_taglib_id3v2textidentificationframe_settextlist(headerPtr, text)
+	End Method
+	
+	Rem
+	bbdoc: This returns the textual representation of the data in the frame.
+	End Rem
+	Method toString:String()
+		Return bmx_taglib_id3v2textidentificationframe_tostring(headerPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the text encoding that will be used in rendering this frame.
+	about: This defaults to the type that was either specified in the constructor or read from the frame when parsed.
+	<p>
+	One of #STRINGTYPE_LATIN1, #STRINGTYPE_UTF16, #STRINGTYPE_UTF16BE, #STRINGTYPE_UTF8 or #STRINGTYPE_UTF16LE.
+	</p>
+	End Rem
+	Method textEncoding:Int()
+		Return bmx_taglib_id3v2textidentificationframe_textencoding(headerPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the text encoding to be used when rendering this frame to encoding.
+	about: Can be one of #STRINGTYPE_LATIN1, #STRINGTYPE_UTF16, #STRINGTYPE_UTF16BE, #STRINGTYPE_UTF8
+	or #STRINGTYPE_UTF16LE.
+	End Rem
+	Method setTextEncoding(encoding:Int)
+		bmx_taglib_id3v2textidentificationframe_settextencoding(headerPtr, encoding)
+	End Method
+	
+	Rem
+	bbdoc: Returns a list of the strings in this frame. 
+	End Rem
+	Method fieldList:String[]()
+		Return bmx_taglib_id3v2textidentificationframe_fieldlist(headerPtr)
+	End Method
+	
 End Type
 
 Type TTLID3v2UserTextIdentificationFrame Extends TTLID3v2TextIdentificationFrame
@@ -1335,6 +1429,10 @@ Type TTLID3v2UnsynchronizedLyricsFrame Extends TTLID3v2Frame
 
 End Type
 
+Rem
+bbdoc: ID3v2 URL frame.
+about: An implementation of ID3v2 URL link frames. 
+End Rem
 Type TTLID3v2UrlLinkFrame Extends TTLID3v2Frame
 
 	Function _create:TTLID3v2UrlLinkFrame(headerPtr:Byte Ptr)
@@ -1345,6 +1443,34 @@ Type TTLID3v2UrlLinkFrame Extends TTLID3v2Frame
 		End If
 	End Function
 
+	Rem
+	bbdoc: Returns the URL. 
+	End Rem
+	Method url:String()
+		Return bmx_taglib_id3v2urllinkframe_url(headerPtr)
+	End Method
+	
+	Rem
+	bbdoc: Sets the URL to @text.
+	End Rem
+	Method setUrl(text:String)
+		bmx_taglib_id3v2urllinkframe_seturl(headerPtr, text)
+	End Method
+	
+	Rem
+	bbdoc: Sets the text of frame in the sanest way possible. 
+	End Rem
+	Method setText(text:String)
+		bmx_taglib_id3v2urllinkframe_settext(headerPtr, text)
+	End Method
+	
+	Rem
+	bbdoc: Returns the textual representation of the data in the frame. 
+	End Rem
+	Method toString:String()
+		Return bmx_taglib_id3v2urllinkframe_tostring(headerPtr)
+	End Method
+	
 End Type
 
 Type TTLID3v2UserUrlLinkFrame Extends TTLID3v2UrlLinkFrame

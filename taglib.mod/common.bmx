@@ -91,6 +91,10 @@ Extern
 
 	Function bmx_taglib_id3v2framelist_free(handle:Byte Ptr)
 	Function bmx_taglib_id3v2framelist_nextframe:Object(handle:Byte Ptr)
+	Function bmx_taglib_id3v2framelist_reset(handle:Byte Ptr)
+	Function bmx_taglib_id3v2framelist_frame:Object(handle:Byte Ptr, index:Int)
+	Function bmx_taglib_id3v2framelist_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_id3v2framelist_size:Int(handle:Byte Ptr)
 
 	Function bmx_taglib_file_isreadable:Int(file:String)
 	Function bmx_taglib_file_iswritable:Int(name:String)
@@ -114,6 +118,7 @@ Extern
 
 	Function bmx_taglib_id3v2frame_tostring:String(handle:Byte Ptr)
 	Function bmx_taglib_id3v2frame_frameid:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_id3v2frame_size:Int(handle:Byte Ptr)
 
 	Function bmx_taglib_id3v2attachedpictureframe_textencoding:Int(handle:Byte Ptr)
 	Function bmx_taglib_id3v2attachedpictureframe_mimetype:String(handle:Byte Ptr)
@@ -121,12 +126,40 @@ Extern
 	Function bmx_taglib_id3v2attachedpictureframe_description:String(handle:Byte Ptr)
 	Function bmx_taglib_id3v2attachedpictureframe_picture:Byte Ptr(handle:Byte Ptr)
 
+	Function bmx_taglib_id3v2textidentificationframe_settext(handle:Byte Ptr, text:String)
+	Function bmx_taglib_id3v2textidentificationframe_settextlist(handle:Byte Ptr, text:String[])
+	Function bmx_taglib_id3v2textidentificationframe_tostring:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2textidentificationframe_textencoding:Int(handle:Byte Ptr)
+	Function bmx_taglib_id3v2textidentificationframe_settextencoding(handle:Byte Ptr, encoding:Int)
+	Function bmx_taglib_id3v2textidentificationframe_fieldlist:String[](handle:Byte Ptr)
+
+	Function bmx_taglib_id3v2urllinkframe_url:String(handle:Byte Ptr)
+	Function bmx_taglib_id3v2urllinkframe_seturl(handle:Byte Ptr, text:String)
+	Function bmx_taglib_id3v2urllinkframe_settext(handle:Byte Ptr, text:String)
+	Function bmx_taglib_id3v2urllinkframe_tostring:String(handle:Byte Ptr)
+
 End Extern
 
-
+Rem
+bbdoc: IS08859-1, or Latin1 encoding. 8 bit characters.
+End Rem
 Const STRINGTYPE_LATIN1:Int = 0
+Rem
+bbdoc: UTF16 with a byte order mark. 16 bit characters. 
+End Rem
 Const STRINGTYPE_UTF16:Int = 1
+Rem
+bbdoc: UTF16 big endian. 16 bit characters.
+about: This is the encoding used internally by TagLib. 
+End Rem
 Const STRINGTYPE_UTF16BE:Int = 2
+Rem
+bbdoc: UTF8 encoding.
+about: Characters are usually 8 bits but can be up to 32. 
+End Rem
 Const STRINGTYPE_UTF8:Int = 3
+Rem
+bbdoc: UTF16 little endian. 16 bit characters. 
+End Rem
 Const STRINGTYPE_UTF16LE:Int = 4
 
