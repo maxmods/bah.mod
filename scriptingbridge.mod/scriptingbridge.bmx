@@ -99,6 +99,13 @@ Type SBObject
 	End Method
 
 	Rem
+	bbdoc: Returns the named property as a pointer, and the size of the data into @length.
+	End Rem
+	Method propertyAsPtr:Byte Ptr(name:String, length:Int Var)
+		Return bmx_sb_sbobject_propertyAsPtr(objectPtr, name, Varptr length)
+	End Method
+
+	Rem
 	bbdoc: Returns the named property as an SBElementArray.
 	End Rem
 	Method propertyAsList:SBElementArray(name:String)

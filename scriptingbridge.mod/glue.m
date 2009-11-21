@@ -95,6 +95,13 @@ double bmx_sb_sbobject_propertyAsDouble(SBObject * obj, BBString * name) {
 	return [value doubleValue];
 }
 
+const void * bmx_sb_sbobject_propertyAsPtr(SBObject * obj, BBString * name, int * length) {
+	NSString * n = bbStringToNSString(name);
+	NSData * value = [obj valueForKey:n];
+	*length = (int)[value length];
+	return [value bytes];
+}
+
 MaxArray * bmx_sb_sbobject_propertyAsList(SBObject * obj, BBString * name) {
 	NSString * n = bbStringToNSString(name);
 	
