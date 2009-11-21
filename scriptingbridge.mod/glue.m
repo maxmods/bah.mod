@@ -117,3 +117,13 @@ SBObject * bmx_sb_sbobjectenum_nextObject(MaxArray * array) {
 	return [array nextObject];
 }
 
+void bmx_sb_sbobject_call(SBObject * obj, BBString * name) {
+	NSString * n = bbStringToNSString(name);
+	SEL selector = NSSelectorFromString(n);
+	[obj performSelector:selector];
+}
+
+void bmx_sb_sbobject_setPropertyAsInt(SBObject * obj, BBString * name, int value) {
+	NSString * n = bbStringToNSString(name);
+	[obj setValue:[NSNumber numberWithInt:value] forKey:n];
+}

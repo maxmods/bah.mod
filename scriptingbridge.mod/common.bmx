@@ -37,6 +37,8 @@ Extern
 	Function bmx_sb_sbobject_propertyAsDouble:Double(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsPtr:Byte Ptr(handle:Byte Ptr, name:String, length:Int Ptr)
+	Function bmx_sb_sbobject_call(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_setPropertyAsInt(handle:Byte Ptr, name:String, value:Int)
 
 	Function bmx_sb_sbelementarray_free(handle:Byte Ptr)
 

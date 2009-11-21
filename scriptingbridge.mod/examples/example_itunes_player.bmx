@@ -53,6 +53,22 @@ Type iTunes
 		Return app.propertyAsInt("playerState")
 	End Method
 	
+	Method play()
+		app.call("playpause")
+	End Method
+	
+	Method pause()
+		app.call("playpause")
+	End Method
+	
+	Method volume:Int()
+		Return app.propertyAsInt("soundVolume")
+	End Method
+	
+	Method setVolume(vol:Int)
+		app.setPropertyAsInt("soundVolume", vol)
+	End Method
+	
 End Type
 
 Type TTrack
@@ -101,7 +117,7 @@ Type TTrack
 	End Method
 	
 	Method draw(x:Int, y:Int)
-	
+
 		DrawText "Album    : " + album, x + 10, y + 14
 		DrawText "Track    : " + name, x + 10, y + 28
 		DrawText "Duration : " + secondsToMinSec(length), x + 10, y + 42
@@ -125,6 +141,7 @@ Type DisplayStatus
 	
 	Field state:Int
 	Field currentTrack:TTrack
+	Field volume:Int
 	
 	Field tick:Int
 	
@@ -149,8 +166,25 @@ Type DisplayStatus
 				currentTrack.Load()
 			End If
 			
+			volume = player.volume()
 		End If
 	
+		If KeyHit(KEY_P) Then
+			If state = STATE_PLAYING Then
+				player.pause()
+			Else
+				player.play()
+			End If
+		End If
+		
+		If KeyDown(KEY_DOWN) Then
+			player.setVolume(volume - 2)
+		End If
+		
+		If KeyDown(KEY_UP) Then
+			player.setVolume(volume + 2)
+		End If
+		
 	End Method
 	
 	Method stateString:String()
@@ -172,10 +206,26 @@ Type DisplayStatus
 		DrawText "iTunes is " + stateString() + ".", 10, 10
 		
 		drawBar()
+		drawVolume()
+		drawInput()
 		
 		If currentTrack Then
 			currentTrack.draw(50, 70)
 		End If
+	End Method
+	
+	Method drawInput()
+		Local s:String
+		Select state
+			Case STATE_STOPPED, STATE_PAUSED, STATE_FASTFORWARDING, STATE_REWINDING
+				s =  "P  : Play"
+			Case STATE_PLAYING
+				s =  "P  : Pause"
+		End Select
+		
+		DrawText s, 600, 20
+		DrawText "UP : Volume Up", 600, 36
+		DrawText "DN : Volume Down", 600, 52
 	End Method
 	
 	Method drawBar()
@@ -197,6 +247,19 @@ Type DisplayStatus
 			DrawText secondsToMinSec(currentPos), 12 + currentPos * timeScale, 45
 		
 		End If
+	End Method
+	
+	Method drawVolume()
+	
+		SetColor 220, 0, 0
+		DrawRect 500, 10, 5, 55
+		SetColor 255, 255, 255
+		
+		Local volumeScale:Float = 55.0 / 100
+
+		DrawRect 500, 10, 5, 55 - volume * volumeScale
+		
+		DrawText volume, 510, 5 + 55 - volume * volumeScale
 	End Method
 	
 End Type

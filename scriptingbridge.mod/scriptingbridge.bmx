@@ -111,7 +111,21 @@ Type SBObject
 	Method propertyAsList:SBElementArray(name:String)
 		Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name))
 	End Method
-
+	
+	Rem
+	bbdoc: Sets the named property as an integer.
+	End Rem
+	Method setPropertyAsInt(name:String, value:Int)
+		bmx_sb_sbobject_setPropertyAsInt(objectPtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: Calls the method @name, without parameters.
+	End Rem
+	Method call(name:String)
+		bmx_sb_sbobject_call(objectPtr, name)
+	End Method
+	
 End Type
 
 
