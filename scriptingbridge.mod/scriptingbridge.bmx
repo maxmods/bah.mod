@@ -113,6 +113,14 @@ Type SBObject
 	End Method
 	
 	Rem
+	bbdoc: Returns the named NSDate property as a double.
+	about: The value returned is the number of seconds since 1 January 1970.
+	End Rem
+	Method propertyAsDate:Double(name:String)
+		Return bmx_sb_sbobject_propertyAsDate(objectPtr, name)
+	End Method
+	
+	Rem
 	bbdoc: Sets the named property as an integer.
 	End Rem
 	Method setPropertyAsInt(name:String, value:Int)
@@ -154,6 +162,22 @@ Type SBApplication Extends SBObject
 		Return SBApplication._create(bmx_sb_sbapplication_applicationWithBundleIdentifier(ident))
 	End Function
 
+	Rem
+	bbdoc: Returns whether the target application represented by the receiver is running.
+	returns: True if the application is running, False otherwise.
+	End Rem
+	Method isRunning:Int()
+		Return bmx_sb_sbapplication_isRunning(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Moves the target application to the foreground immediately.
+	about: If the target application is not already running, this method launches it.
+	End Rem
+	Method activate()
+		bmx_sb_sbapplication_activate(objectPtr)
+	End Method
+	
 End Type
 
 Rem
@@ -178,6 +202,20 @@ Type SBElementArray
 		enum.obj = SBObject._create(bmx_sb_sbobjectenum_nextObject(objectPtr))
 		enum.objectPtr = objectPtr
 		Return enum
+	End Method
+	
+	Rem
+	bbdoc: Returns the count of elements in the array.
+	End Rem
+	Method count:Int()
+		Return bmx_sb_sbelementarray_count(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns an array of String properties for the specified property @name.
+	End Rem
+	Method propertyArrayAsString:String[](name:String)
+		Return bmx_sb_sbelementarray_propertyArrayAsString(objectPtr, name)
 	End Method
 
 	Method Delete()

@@ -5,6 +5,13 @@ Import BRL.StandardIO
 
 Local itunes:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.iTunes")
 
+If Not itunes.isRunning() Then
+	Print "~niTunes is not running."
+	Print "Continuing here would automatically launch it... or you could call activate()."
+	Print "But in this example, we will simply End."
+	End
+End If
+
 Print itunes.propertyAsString("name")
 
 Local track:SBObject = itunes.propertyAsObject("currentTrack")
@@ -35,6 +42,7 @@ If playlist Then
 	Local count:Int = 0
 	
 	' iterate through the tracks
+	' this way is very inefficient.
 	For track:SBObject = EachIn tracks
 	
 		Print "Name    : " + track.propertyAsString("name")
@@ -43,6 +51,17 @@ If playlist Then
 			Exit
 		End If
 		count:+ 1
+	Next
+	
+
+	Print "~n"
+
+	' get a list of all the track names in the playlist.
+	' this way is much more efficient	
+	Local trackNames:String[] = tracks.propertyArrayAsString("name")
+
+	For Local s:String = EachIn trackNames
+		Print "Name    : " + s
 	Next
 		
 End If
