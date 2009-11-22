@@ -30,6 +30,8 @@ Import "glue.m"
 
 Extern
 	Function bmx_sb_sbapplication_applicationWithBundleIdentifier:Byte Ptr(ident:String)
+	Function bmx_sb_sbapplication_applicationWithProcessIdentifier:Byte Ptr(pid:Int)
+	Function bmx_sb_sbapplication_applicationWithURL:Byte Ptr(url:String)
 	Function bmx_sb_sbapplication_isRunning:Int(handle:Byte Ptr)
 	Function bmx_sb_sbapplication_activate(handle:Byte Ptr)
 
@@ -40,12 +42,15 @@ Extern
 	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsPtr:Byte Ptr(handle:Byte Ptr, name:String, length:Int Ptr)
 	Function bmx_sb_sbobject_call(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_callWithInt(handle:Byte Ptr, name:String, value:Int)
+	Function bmx_sb_sbobject_callReturningInt:Int(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_setPropertyAsInt(handle:Byte Ptr, name:String, value:Int)
 	Function bmx_sb_sbobject_propertyAsDate:Double(handle:Byte Ptr, name:String)
 
 	Function bmx_sb_sbelementarray_free(handle:Byte Ptr)
 	Function bmx_sb_sbelementarray_count:Int(handle:Byte Ptr)
 	Function bmx_sb_sbelementarray_propertyArrayAsString:String[](handle:Byte Ptr, name:String)
+	Function bmx_sb_sbelementarray_setPropertyArrayAsInt(handle:Byte Ptr, name:String, value:Int)
 
 	Function bmx_sb_sbobjectenum_nextObject:Byte Ptr(handle:Byte Ptr)
 

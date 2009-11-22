@@ -71,6 +71,13 @@ Type SBObject
 	End Function
 	
 	Rem
+	bbdoc: Verifies if an object exists.
+	End Rem
+	Method exists:Int()
+		Return callReturningInt("exists")
+	End Method
+	
+	Rem
 	bbdoc: Returns the named property as a String.
 	End Rem
 	Method propertyAsString:String(name:String)
@@ -134,6 +141,20 @@ Type SBObject
 		bmx_sb_sbobject_call(objectPtr, name)
 	End Method
 	
+	Rem
+	bbdoc: Calls the method @name, passing an Int parameter.
+	End Rem
+	Method callWithInt(name:String, value:Int)
+		bmx_sb_sbobject_callWithInt(objectPtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: Calls the method @name, returning an Int result.
+	End Rem
+	Method callReturningInt:Int(name:String)
+		Return bmx_sb_sbobject_callReturningInt(objectPtr, name)
+	End Method
+	
 End Type
 
 
@@ -160,6 +181,30 @@ Type SBApplication Extends SBObject
 	End Rem
 	Function applicationWithBundleIdentifier:SBApplication(ident:String)
 		Return SBApplication._create(bmx_sb_sbapplication_applicationWithBundleIdentifier(ident))
+	End Function
+	
+	Rem
+	bbdoc: Returns the shared instance representing a target application specified by its process identifier.
+	about: You should avoid using this function unless you know nothing about a target application but its process ID. In most cases, it
+	is better to use classForApplicationWithBundleIdentifier(), which will dynamically locate the application's path at runtime, or
+	classForApplicationWithURL(), which is not dependent on the target application being open at the time the method is called.
+	End Rem
+	Function applicationWithProcessIdentifier:SBApplication(pid:Int)
+		Return SBApplication._create(bmx_sb_sbapplication_applicationWithProcessIdentifier(pid))
+	End Function
+	
+	Rem
+	bbdoc: Returns the shared instance representing a target application specified by the given URL.
+	about: For applications that declare themselves to have a dynamic scripting interface, this method will launch the application if it is not already
+	running. This approach to initializing SBApplication objects should be used only if you know for certain the URL of the target application. In
+	most cases, it is better to use classForApplicationWithBundleIdentifier() which dynamically locates the target application at runtime.
+	<p>
+	This method currently supports file URLs (file:) and remote application URLs (eppc:). It checks whether a file exists at the specified path,
+	but it does not check whether an application identified via eppc: exists.
+	</p>
+	End Rem
+	Function applicationWithURL:SBApplication(url:String)
+		Return SBApplication._create(bmx_sb_sbapplication_applicationWithURL(url))
 	End Function
 
 	Rem
@@ -216,6 +261,13 @@ Type SBElementArray
 	End Rem
 	Method propertyArrayAsString:String[](name:String)
 		Return bmx_sb_sbelementarray_propertyArrayAsString(objectPtr, name)
+	End Method
+	
+	Rem
+	bbdoc: Sets all array item properties of the specified @name, with @value.
+	End Rem
+	Method setPropertyArrayAsInt(name:String, value:Int)
+		bmx_sb_sbelementarray_setPropertyArrayAsInt(objectPtr, name, value)
 	End Method
 
 	Method Delete()

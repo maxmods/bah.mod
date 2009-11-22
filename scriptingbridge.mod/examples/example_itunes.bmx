@@ -16,13 +16,12 @@ Print itunes.propertyAsString("name")
 
 Local track:SBObject = itunes.propertyAsObject("currentTrack")
 
-If track Then
+If track.exists() Then
 
 	Print "Album    : " + track.propertyAsString("album")
 	Print "Track    : " + track.propertyAsString("name")
 	Print "Duration : " + track.propertyAsDouble("duration")
 	Print "Size     : " + track.propertyAsInt("size") + " bytes"
-
 
 End If
 
@@ -30,7 +29,7 @@ End If
 
 Local playlist:SBObject = itunes.propertyAsObject("currentPlaylist")
 
-If playlist Then
+If playlist.exists() Then
 	Print "~n"
 	
 	Print "Playlist : " + playlist.propertyAsString("name")

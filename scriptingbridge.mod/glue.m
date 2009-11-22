@@ -57,6 +57,7 @@ NSString *bbStringToNSString(BBString *s){
 -(id)initWithArray:(SBElementArray *)a;
 -(SBObject *)nextObject;
 -(BBArray *)propertyArrayAsString:(NSString *)name;
+-(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value;
 @end
 
 @implementation MaxArray
@@ -72,7 +73,7 @@ NSString *bbStringToNSString(BBString *s){
 	NSArray *stringArray = [array valueForKey:name];
 
 	int n = [stringArray count];
-printf("%d\n", n);fflush(stdout);
+
 	BBArray *p = bbArrayNew1D( "$", n);
 	BBString **s = (BBString**)BBARRAYDATA(p, p->dims);
 	
@@ -86,12 +87,24 @@ printf("%d\n", n);fflush(stdout);
 	}
 	return p;
 }
+-(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value {
+	 [array setValue:[NSNumber numberWithInt:value] forKey:name];
+}
 @end
 
 // --------------------------------------------------------
 
 SBApplication * bmx_sb_sbapplication_applicationWithBundleIdentifier(BBString * ident) {
 	return [SBApplication applicationWithBundleIdentifier:bbStringToNSString(ident)];
+}
+
+SBApplication * bmx_sb_sbapplication_applicationWithProcessIdentifier(int pid) {
+	return [SBApplication applicationWithProcessIdentifier:pid];
+}
+
+SBApplication * bmx_sb_sbapplication_applicationWithURL(BBString * url) {
+	NSURL * s = [NSURL URLWithString:bbStringToNSString(url)];
+	return [SBApplication applicationWithURL:s];
 }
 
 int bmx_sb_sbapplication_isRunning(SBApplication * app) {
@@ -159,6 +172,18 @@ void bmx_sb_sbobject_call(SBObject * obj, BBString * name) {
 	[obj performSelector:selector];
 }
 
+void bmx_sb_sbobject_callWithInt(SBObject * obj, BBString * name, int value) {
+	NSString * n = bbStringToNSString(name);
+	SEL selector = NSSelectorFromString(n);
+	[obj performSelector:selector withObject:[NSNumber numberWithInt:value]];
+}
+
+int bmx_sb_sbobject_callReturningInt(SBObject * obj, BBString * name) {
+	NSString * n = bbStringToNSString(name);
+	SEL selector = NSSelectorFromString(n);
+	return [obj performSelector:selector];
+}
+
 // --------------------------------------------------------
 
 void bmx_sb_sbelementarray_free(MaxArray * array) {
@@ -171,6 +196,10 @@ int bmx_sb_sbelementarray_count(MaxArray * array) {
 
 BBArray * bmx_sb_sbelementarray_propertyArrayAsString(MaxArray * array, BBString * name) {
 	[array propertyArrayAsString:bbStringToNSString(name)];
+}
+
+void bmx_sb_sbelementarray_setPropertyArrayAsInt(MaxArray * array, BBString * name, int value) {
+	[array setPropertyArrayAsInt:bbStringToNSString(name) withValue:value];
 }
 
 // --------------------------------------------------------

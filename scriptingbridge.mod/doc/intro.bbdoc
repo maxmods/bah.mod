@@ -1,0 +1,203 @@
+<img src="logo.png" align="right" />
+<p>
+Scripting Bridge is a framework and a technology that makes it much easier for developers to
+control and communicate with scriptable applications.<br>
+Instead of incorporating AppleScript scripts in your application or dealing with the complexities
+of sending and handling Apple events, you can simply send messages to an object that represents
+an application with a scripting interface. Your application can do anything an AppleScript
+script can, but it does so in code that is integrated with the rest of your project's code.
+</p>
+<p>
+BaH.ScriptingBridge therefore, gives you access to all scriptable applications on your Mac.
+</p>
+<h3>Preparing to Code</h3>
+<p>
+Before you begin writing any Scripting Bridge code for your project, there are a some steps you
+should complete :
+</p>
+<ul>
+<li>Generate header files for all scriptable applications that your code is sending messages to.</li>
+<li>Add the Scripting Bridge module to your project.</li>
+</ul>
+<p>
+A header file that you generate for a scriptable application serves as reference documentation 
+for the scripting classes of that application. It includes information about the inheritance
+relationships between classes and the containment relationships between their objects. It also
+shows how commands, properties, and elements are declared. Taking the iTunes application as an
+example, the header file shows the definition of the application class (iTunesApplication), the
+application's scripting classes (such as iTunesTrack and iTunesSource), commands (such as the eject
+method), and properties (such as the artist declared property). A header file also includes
+comments extracted from the scripting definition, such as the comment added to this declaration
+for the FinderApplication class:
+<pre>
+- (void)empty;   // Empty the trash
+</pre>
+</p>
+<p>
+To create a header file, you need to run two command-line tools—sdef and sdp—together, with
+the output from one piped to the other. This is the recommended syntax:
+<pre>
+sdef /path/to/application.app | sdp -fh --basename applicationName
+</pre>
+</p>
+<p>
+The <code>sdef</code> utility gets the scripting definition from the designated application;
+if that application does not contain an <code>sdef</code> file, but does instead contain scripting
+information in an older format (such as the scripting suite and terminology property lists),
+it translates that information into the <code>sdef</code> format first. The <code>sdp</code> tool run
+with the above options generates an Objective-C header file for the designated scriptable
+application. Thus, for iTunes, you would run the following command to produce a header
+file named <code>iTunes.h</code> :
+<pre>
+sdef /Applications/iTunes.app | sdp -fh --basename iTunes
+</pre>
+</p>
+<p>
+Finally, make sure that you have added the Scripting Bridge module to your project ;-)
+</p>
+<h3>Creating the Application Object</h3>
+<p>
+Before you can send messages to a scriptable application, you need an object that represents
+the application. The Scripting Bridge framework declares three class factory functions for creating
+instances of scriptable applications; each takes a different value for locating the application.
+</p>
+<ul>
+<li><code>applicationWithBundleIdentifier()</code> locates an application by its bundle identifier.</li>
+<li><code>applicationWithURL()</code> locates a (local or remote) application by URL.</li>
+<li><code>applicationWithProcessIdentifier()</code> locates an application by its BSD process identifier (pid).</li>
+</ul>
+<p>
+The recommended method for creating an instance of a scriptable application is
+<code>applicationWithBundleIdentifier()</code>. The method can locate an application on a system even
+if the user has renamed the application, and it doesn't require you to know where an application
+is installed in the file system (which could be anywhere). The following line of code creates
+an instance of the iTunes application:
+<pre>
+Local itunes:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.iTunes")
+</pre>
+</p>
+<p>
+If you don't know an application's bundle identifier, you can find it by looking for the value
+of CFBundleIdentifier property in the Info.plist file stored in the application bundle.
+</p>
+<p>
+There might be occasions when using one of the other class factory functions makes sense. For
+example, if you are writing an application that uses Scripting Bridge for your own personal
+use, you could refer to applications by URL. The following example creates an instance of
+the Pages application, locating it by URL in an installation location other than /Applications.
+<pre>
+Local pagesURL:String = "/Users/fred/Applications/iWork/Pages.app"
+Local pages:SBApplication = SBApplication.applicationWithUR(pagesURL)
+</pre>
+</p>
+<h3>Controlling an Application</h3>
+<p>
+To control a scriptable application, simply send to the instance of the application or one of its
+objects a message based on a method declared by the object's class. These methods correspond
+to commands in the application's scripting definition. The code snippet listed in the following
+example plays the currently selected iTunes track and then modulates the volume of the sound,
+eventually restoring it to the original level.
+<pre>
+SuperStrict
+
+Framework BaH.ScriptingBridge
+
+Local iTunes:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.iTunes")
+If iTunes.isRunning() Then
+	Local rampVolume:Int, originalVolume:Int
+	originalVolume = iTunes.propertyAsInt("soundVolume")
+
+	iTunes.setPropertyAsInt("sountVolume", 0)
+	iTunes.callWithInt("playOnce", False)
+
+	While rampVolume < originalVolume
+		iTunes.setPropertyAsInt("soundVolume", rampVolume)
+		' pause 1/10th of a Second (100,000 microseconds) between adjustments.
+		Delay(10)
+		
+		rampVolume :+ originalVolume / 16
+	Wend
+	iTunes.setPropertyAsInt("soundVolume", originalVolume)
+End If
+</pre>
+</p>
+<p>
+Note that this example tests whether the application is running before it attempts to control it.
+(The isRunning() method is declared by the SBApplication.) 
+</p>
+<h3>Getting and Setting Properties</h3>
+<p>
+In the object graph that Scripting Bridge dynamically generates for a scriptable application,
+most objects are containers of other objects (that is, ( SBElementArray objects) or of objects
+that refer to another scripting object. In a data-modeling sense, they express to-many or to-one
+relationships and enable your code to &quot;drill down&quot; the object graph. It is only when
+you get to the leaf nodes of the graph, which are typically the properties of an object, that you
+are able to access concrete data, such as a name, a color, or a numerical value. As you may recall,
+Scripting Bridge implements properties of scripting objects as declared properties.
+</p>
+<p>
+Getting the value of a property requires you to navigate the object hierarchy of the application
+until you come to the target object—that is, the object that declares those properties—and then
+send a message to that object that is the same as the property name. Sometimes you don't have to
+navigate that far. For example, the fragment of code in the following example sends two messages
+to the iTunes SBApplication object.
+<pre>
+Local iTunes:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.iTunes")
+
+Print "Current song is " + itunes.propertyAsObject("currentTrack").propertyAsString("name")
+</pre>
+</p>
+<p>
+The first message to the application gets the value of its currentTrack property; this message
+yields an object of class iTunesTrack representing the track currently playing. This object
+does itself not represent any concrete data, but the message then sent to it (name) returns the
+value of its name property as a String.
+</p>
+<p>
+<strong>Important</strong>: If you call an accessor method to get a property value of a type
+descended from SBObject (for example, an iTunesTrack object), you receive an SBObject object
+even if there is no &quot;real&quot; object set. In a sense, this is an &quot;empty&quot; object
+that refers to nothing in the target application. Attempting to evaluate the reference results
+in an error. In such cases, it is recommended that you test the returned object with the
+<code>exists()</code> method to determine if it is a reference to a real object.
+</p>
+<p>
+You can also set the values of properties unless they are (in their declaration) marked as readonly.
+The code in the following example implements a command-line tool that clears the locked property
+in items in the Trash.
+<pre>
+SuperStrict
+
+Framework BaH.ScriptingBridge
+
+Local theFinder:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.finder")
+
+Local trashItems:SBElementArray = theFinder.propertyAsObject("trash").propertyAsList("items")
+
+If trashItems.count() > 0 Then
+
+	For Local item:SBObject = EachIn trashItems
+		If item.propertyAsInt("locked") Then
+			item.setPropertyAsInt("locked", False)
+		End If
+	Next
+
+End If
+</pre>
+</p>
+<p>
+However, you could rewrite the Scripting Bridge code in the previous example to be more efficient
+by using the setPropertyArrayAsInt() method of SBElementArray. The following example sends just one
+Apple event instead of one event per item in the Trash.
+<pre>
+SuperStrict
+Framework BaH.ScriptingBridge
+
+Local theFinder:SBApplication = SBApplication.applicationWithBundleIdentifier("com.apple.finder")
+
+Local trashItems:SBElementArray = theFinder.propertyAsObject("trash").propertyAsList("items")
+
+trashItems.setPropertyArrayAsInt("locked", False)
+</pre>
+</p>
+
