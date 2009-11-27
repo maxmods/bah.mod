@@ -279,7 +279,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// allocate a new dib
 			dib = FreeImage_AllocateT(image_type, width, height);
-			if(!dib) THROW (Iex::NullExc, "Not enough memory");
+			if(!dib) THROW (Iex::NullExc, FI_MSG_ERROR_MEMORY);
 
 			BYTE *bits = FreeImage_GetBits(dib);			// pointer to our pixel buffer
 			size_t bytespp = sizeof(float) * components;	// size of our pixel in bytes
@@ -355,26 +355,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				// read the file
 				file.setFrameBuffer(frameBuffer);
 				file.readPixels(dataWindow.min.y, dataWindow.max.y);
-			}
-
-			// check for unused alpha channels
-			if(components == 4) {
-				BOOL bIsAlpha = FALSE;
-				for(unsigned y = 0; y < FreeImage_GetHeight(dib); y++) {
-					FIRGBAF *pixel = (FIRGBAF*)FreeImage_GetScanLine(dib, y);
-					for(unsigned x = 0; x < FreeImage_GetWidth(dib); x++) {
-						if((pixel->alpha != 1) && (pixel->alpha != 0)) {
-							bIsAlpha = TRUE;
-							break;
-						}
-					}
-					if(bIsAlpha) break;
-				}
-				if(!bIsAlpha) {
-					FIBITMAP *rgbf = FreeImage_ConvertToRGBF(dib);
-					FreeImage_Unload(dib);
-					dib = rgbf;
-				}
 			}
 
 			// lastly, flip dib lines
@@ -564,7 +544,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		if(pixelType == Imf::HALF) {
 			// convert from float to half
 			halfData = new half[width * height * components];
-			if(!halfData) THROW (Iex::NullExc, "Not enough memory");
+			if(!halfData) THROW (Iex::NullExc, FI_MSG_ERROR_MEMORY);
 			for(int y = 0; y < height; y++) {
 				float *src_bits = (float*)FreeImage_GetScanLine(dib, height - 1 - y);
 				half *dst_bits = halfData + y * width * components;

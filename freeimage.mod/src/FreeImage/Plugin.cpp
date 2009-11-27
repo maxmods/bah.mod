@@ -92,7 +92,7 @@ PluginList::AddNode(FI_InitProc init_proc, void *instance, const char *format, c
 
 		// fill-in the plugin structure
 
-		init_proc(plugin, m_plugin_map.size());
+		init_proc(plugin, (int)m_plugin_map.size());
 
 		// get the format string (two possible ways)
 
@@ -107,7 +107,7 @@ PluginList::AddNode(FI_InitProc init_proc, void *instance, const char *format, c
 
 		if (the_format != NULL) {
 			if (FindNodeFromFormat(the_format) == NULL) {
-				node->m_id = m_plugin_map.size();
+				node->m_id = (int)m_plugin_map.size();
 				node->m_instance = instance;
 				node->m_plugin = plugin;
 				node->m_format = format;
@@ -117,7 +117,7 @@ PluginList::AddNode(FI_InitProc init_proc, void *instance, const char *format, c
 				node->m_next = NULL;
 				node->m_enabled = TRUE;
 
-				m_plugin_map[m_plugin_map.size()] = node;
+				m_plugin_map[(const int)m_plugin_map.size()] = node;
 
 				return (FREE_IMAGE_FORMAT)node->m_id;
 			}
@@ -176,7 +176,7 @@ PluginList::FindNodeFromFIF(int node_id) {
 
 int
 PluginList::Size() const {
-	return m_plugin_map.size();
+	return (int)m_plugin_map.size();
 }
 
 BOOL
@@ -253,6 +253,9 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitEXR);
 			s_plugins->AddNode(InitJ2K);
 			s_plugins->AddNode(InitJP2);
+			s_plugins->AddNode(InitPFM);
+			s_plugins->AddNode(InitPICT);
+			s_plugins->AddNode(InitRAW);
 			
 			// external plugin initialization
 
@@ -286,7 +289,7 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 					strcpy(buffer, s_search_list[count]);
 					strcat(buffer, "*.fip");
 
-					if ((find_handle= _findfirst(buffer, &find_data)) != -1L) {
+					if ((find_handle = (long)_findfirst(buffer, &find_data)) != -1L) {
 						do {
 							strcpy(buffer, s_search_list[count]);
 							strncat(buffer, find_data.name, MAX_PATH + 200);
@@ -359,8 +362,11 @@ FreeImage_LoadFromHandle(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handl
 			if (node->m_enabled) {
 				if(node->m_plugin->load_proc != NULL) {
 					FIBITMAP *bitmap = NULL;
+					
 					void *data = FreeImage_Open(node, io, handle, TRUE);
+					
 					bitmap = node->m_plugin->load_proc(io, handle, -1, flags, data);
+					
 					FreeImage_Close(node, io, handle, data);
 					
 					return bitmap;
@@ -385,6 +391,8 @@ FreeImage_Load(FREE_IMAGE_FORMAT fif, const char *filename, int flags) {
 		fclose(handle);
 
 		return bitmap;
+	} else {
+		FreeImage_OutputMessageProc((int)fif, "FreeImage_Load: failed to open file %s", filename);
 	}
 
 	return NULL;
@@ -403,6 +411,8 @@ FreeImage_LoadU(FREE_IMAGE_FORMAT fif, const wchar_t *filename, int flags) {
 		fclose(handle);
 
 		return bitmap;
+	} else {
+		FreeImage_OutputMessageProc((int)fif, "FreeImage_LoadU: failed to open input file");
 	}
 #endif
 	return NULL;
@@ -447,6 +457,8 @@ FreeImage_Save(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const char *filename, int f
 		fclose(handle);
 
 		return success;
+	} else {
+		FreeImage_OutputMessageProc((int)fif, "FreeImage_Save: failed to open file %s", filename);
 	}
 
 	return FALSE;
@@ -465,6 +477,8 @@ FreeImage_SaveU(FREE_IMAGE_FORMAT fif, FIBITMAP *dib, const wchar_t *filename, i
 		fclose(handle);
 
 		return success;
+	} else {
+		FreeImage_OutputMessageProc((int)fif, "FreeImage_SaveU: failed to open output file");
 	}
 #endif
 	return FALSE;

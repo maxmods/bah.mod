@@ -1,4 +1,4 @@
-/* $Id: tif_open.c,v 1.20 2007/11/10 18:41:24 drolon Exp $ */
+/* $Id: tif_open.c,v 1.27 2009/09/06 13:11:28 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -304,7 +304,7 @@ TIFFClientOpen(
 	/*
 	 * Read in TIFF header.
 	 */
-	if (m & O_TRUNC || // BaH - was : tif->tif_mode & O_TRUNC
+	if (tif->tif_mode & O_TRUNC ||
 	    !ReadOK(tif, &tif->tif_header, sizeof (TIFFHeader))) {
 		if (tif->tif_mode == O_RDONLY) {
 			TIFFErrorExt(tif->tif_clientdata, name,
@@ -348,9 +348,8 @@ TIFFClientOpen(
 		/*
 		 * Setup default directory.
 		 */
-		if (!TIFFDefaultDirectory(tif)) {
+		if (!TIFFDefaultDirectory(tif))
 			goto bad;
-			}
 		tif->tif_diroff = 0;
 		tif->tif_dirlist = NULL;
 		tif->tif_dirlistsize = 0;

@@ -29,6 +29,7 @@
 class MaxFreeImage;
 class MaxMultiFreeImage;
 class MaxFreeImageTag;
+class MaxRGBQUAD;
 
 extern "C" {
 
@@ -78,9 +79,10 @@ extern "C" {
 	FIBITMAP * bmx_freeimage_ConvertTo16Bits555(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_ConvertTo16Bits565(MaxFreeImage * freeimage);
 	FIBITMAP * bmx_freeimage_ColorQuantize(MaxFreeImage * freeimage, FREE_IMAGE_QUANTIZE quantize);
+	FIBITMAP * bmx_freeimage_ConvertToType(MaxFreeImage * freeimage, FREE_IMAGE_TYPE destType, int scaleLinear);
 
 	
-	FIBITMAP * bmx_freeimage_RotateClassic(MaxFreeImage * freeimage, double angle);
+	FIBITMAP * bmx_freeimage_Rotate(MaxFreeImage * freeimage, double angle, RGBQUAD * color);
 	FIBITMAP * bmx_freeimage_RotateEx(MaxFreeImage * freeimage, double angle, double xShift, double yShift, double xOrigin, double yOrigin, BOOL useMask);
 	
 	void bmx_freeimage_FlipHorizontal(MaxFreeImage * freeimage);
@@ -145,6 +147,17 @@ extern "C" {
 	BOOL bmx_freeimagetag_setlength(MaxFreeImageTag * tag, int length);
 	BOOL bmx_freeimagetag_setvalue(MaxFreeImageTag * tag, void * value);
 
+	BOOL bmx_freeimage_AdjustCurve(MaxFreeImage * freeimage, BYTE * lut, int channel);
+	BOOL bmx_freeimage_AdjustColors(MaxFreeImage * freeimage, double brightness, double contrast, double Gamma, int invert);
+	BOOL bmx_freeimage_JPEGCrop(BBString * source, BBString * dest, int _left, int _top, int _right, int _bottom);
+	BOOL bmx_freeimage_PreMultiplyWithAlpha(MaxFreeImage * freeimage);
+	FIBITMAP * bmx_freeimage_enlargeCanvas(MaxFreeImage * freeimage, int _left, int _top, int _right, int _bottom, MaxRGBQUAD * color, int options);
+	BOOL bmx_freeimage_HasBackgroundColor(MaxFreeImage * freeimage);
+	MaxRGBQUAD * bmx_freeimage_getBackgroundColor(MaxFreeImage * freeimage);
+	BOOL bmx_freeimage_setBackgroundColor(MaxFreeImage * freeimage, MaxRGBQUAD * color);
+	MaxRGBQUAD * bmx_freeimage_getPixelColor(MaxFreeImage * freeimage, int x, int y);
+	void bmx_freeimage_setPixelColor(MaxFreeImage * freeimage, int x, int y, MaxRGBQUAD * color);
+
 	MaxFreeImageTag * bmx_freeimagetag_create();
 	MaxFreeImageTag * bmx_freeimagetag_clone(MaxFreeImageTag * tag);
 	BBString * bmx_freeimagetag_tagtostring(MaxFreeImageTag * tag, FREE_IMAGE_MDMODEL model, BBString * make);
@@ -152,6 +165,18 @@ extern "C" {
 	FIMETADATA * bmx_freeimagemetadata_FindFirstMetadata(FREE_IMAGE_MDMODEL model, MaxFreeImage * freeimage, MaxFreeImageTag * tag);
 	MaxFreeImageTag * bmx_freeimagemetadata_FindNextMetadata(FIMETADATA * handle);
 	void bmx_freeimagemetadata_free(FIMETADATA * handle);
+
+	void bmx_rgbquad_free(MaxRGBQUAD * quad);
+	MaxRGBQUAD * bmx_rgbquad_create(int r, int g, int b, int a);
+	int bmx_rgbquad_red(MaxRGBQUAD * quad);
+	int bmx_rgbquad_green(MaxRGBQUAD * quad);
+	int bmx_rgbquad_blue(MaxRGBQUAD * quad);
+	int bmx_rgbquad_reserved(MaxRGBQUAD * quad);
+	void bmx_rgbquad_setrgba(MaxRGBQUAD * quad, int r, int g, int b, int a);
+	void bmx_rgbquad_setred(MaxRGBQUAD * quad, int r);
+	void bmx_rgbquad_setgreen(MaxRGBQUAD * quad, int g);
+	void bmx_rgbquad_setblue(MaxRGBQUAD * quad, int b);
+	void bmx_rgbquad_setalpha(MaxRGBQUAD * quad, int a);
 
 }
 
@@ -206,6 +231,100 @@ void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 void MultiFreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 	_bah_freeimage_TMultiFreeImage_error((int)fif, message);
 }
+
+// +++++++++++++++++++++++++++++++++++++++
+
+class MaxRGBQUAD
+{
+public:
+
+	MaxRGBQUAD()
+	{
+		quad = new RGBQUAD;
+	}
+
+	MaxRGBQUAD(int r, int g, int b, int a)
+	{
+		quad = new RGBQUAD;
+		quad->rgbRed = r;
+		quad->rgbGreen = g;
+		quad->rgbBlue = b;
+		quad->rgbReserved = a;
+	}
+	
+	MaxRGBQUAD(RGBQUAD & q)
+	{
+		quad = new RGBQUAD;
+		
+		quad->rgbRed = q.rgbRed;
+		quad->rgbGreen = q.rgbGreen;
+		quad->rgbBlue = q.rgbBlue;
+		quad->rgbReserved = q.rgbReserved;
+	}
+
+	
+	~MaxRGBQUAD()
+	{
+		delete quad;
+	}
+	
+	RGBQUAD * Quad() {
+		return quad;
+	}
+
+private:
+	RGBQUAD * quad;
+};
+
+// ++++++++++++++++++++++++++++++++++++++++++
+
+void bmx_rgbquad_free(MaxRGBQUAD * quad) {
+	delete quad;
+}
+
+MaxRGBQUAD * bmx_rgbquad_create(int r, int g, int b, int a) {
+	return new MaxRGBQUAD(r, g, b, a);
+}
+
+int bmx_rgbquad_red(MaxRGBQUAD * quad) {
+	return static_cast<int>(quad->Quad()->rgbRed);
+}
+
+int bmx_rgbquad_green(MaxRGBQUAD * quad) {
+	return static_cast<int>(quad->Quad()->rgbGreen);
+}
+
+int bmx_rgbquad_blue(MaxRGBQUAD * quad) {
+	return static_cast<int>(quad->Quad()->rgbBlue);
+}
+
+int bmx_rgbquad_reserved(MaxRGBQUAD * quad) {
+	return static_cast<int>(quad->Quad()->rgbReserved);
+}
+
+void bmx_rgbquad_setrgba(MaxRGBQUAD * quad, int r, int g, int b, int a) {
+	quad->Quad()->rgbRed = static_cast<BYTE>(r);
+	quad->Quad()->rgbGreen = static_cast<BYTE>(g);
+	quad->Quad()->rgbBlue = static_cast<BYTE>(b);
+	quad->Quad()->rgbReserved = static_cast<BYTE>(a);
+}
+
+void bmx_rgbquad_setred(MaxRGBQUAD * quad, int r) {
+	quad->Quad()->rgbRed = static_cast<BYTE>(r);
+}
+
+void bmx_rgbquad_setgreen(MaxRGBQUAD * quad, int g) {
+	quad->Quad()->rgbGreen = static_cast<BYTE>(g);
+}
+
+void bmx_rgbquad_setblue(MaxRGBQUAD * quad, int b) {
+	quad->Quad()->rgbBlue = static_cast<BYTE>(b);
+}
+
+void bmx_rgbquad_setalpha(MaxRGBQUAD * quad, int a) {
+	quad->Quad()->rgbReserved = static_cast<BYTE>(a);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++
 
@@ -264,8 +383,9 @@ public:
 	FIBITMAP * ConvertTo8Bits();
 	FIBITMAP * ConvertTo24Bits();
 	FIBITMAP * ConvertToGreyscale();
+	FIBITMAP * ConvertToType(FREE_IMAGE_TYPE dst_type, BOOL scale_linear);
 	BOOL isTransparent();
-	FIBITMAP * RotateClassic(double angle);
+	FIBITMAP * Rotate(double angle, RGBQUAD * color);
 	FIBITMAP * RotateEx(double angle, double xShift, double yShift, double xOrigin, double yOrigin, BOOL useMask);
 	void FlipHorizontal();
 	void FlipVertical();
@@ -294,7 +414,16 @@ public:
 	unsigned GetMetadataCount(FREE_IMAGE_MDMODEL model);
 	BOOL SetMetadata(FREE_IMAGE_MDMODEL model, const char *key, FITAG *tag);
 	FIMETADATA * FindFirstMetadata(FREE_IMAGE_MDMODEL model, FITAG **tag);
-	
+	BOOL AdjustCurve(BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel);
+	BOOL AdjustColors(double brightness, double contrast, double gamma, BOOL invert);
+	BOOL PreMultiplyWithAlpha();
+	FIBITMAP * EnlargeCanvas(int left, int top, int right, int bottom, const void *color, int options);
+	BOOL HasBackgroundColor();
+	BOOL GetBackgroundColor(RGBQUAD *bkcolor);
+	BOOL SetBackgroundColor(RGBQUAD *bkcolor);
+	BOOL GetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
+	BOOL SetPixelColor(unsigned x, unsigned y, RGBQUAD *value);
+
 	~MaxFreeImage()
 	{
 		if (bitmap) {
@@ -436,13 +565,16 @@ FIBITMAP * MaxFreeImage::ConvertToGreyscale() {
 	return FreeImage_ConvertToGreyscale(bitmap);
 }
 
+FIBITMAP * MaxFreeImage::ConvertToType(FREE_IMAGE_TYPE dst_type, BOOL scale_linear) {
+	return FreeImage_ConvertToType(bitmap, dst_type, scale_linear);
+}
 
 BOOL MaxFreeImage::isTransparent() {
 	return FreeImage_IsTransparent(bitmap);
 }
 
-FIBITMAP * MaxFreeImage::RotateClassic(double angle) {
-	return FreeImage_RotateClassic(bitmap, angle);
+FIBITMAP * MaxFreeImage::Rotate(double angle, RGBQUAD * color) {
+	return FreeImage_Rotate(bitmap, angle, color);
 }
 
 FIBITMAP * MaxFreeImage::RotateEx(double angle, double xShift, double yShift, double xOrigin, double yOrigin, BOOL useMask) {
@@ -567,6 +699,43 @@ FIMETADATA * MaxFreeImage::FindFirstMetadata(FREE_IMAGE_MDMODEL model, FITAG **t
 	return FreeImage_FindFirstMetadata(model, bitmap, tag);
 }
 
+BOOL MaxFreeImage::AdjustCurve(BYTE *LUT, FREE_IMAGE_COLOR_CHANNEL channel) {
+	return FreeImage_AdjustCurve(bitmap, LUT, channel);
+}
+
+BOOL MaxFreeImage::AdjustColors(double brightness, double contrast, double gamma, BOOL invert) {
+	return FreeImage_AdjustColors(bitmap, brightness, contrast, gamma, invert);
+}
+
+BOOL MaxFreeImage::PreMultiplyWithAlpha() {
+	return FreeImage_PreMultiplyWithAlpha(bitmap);
+}
+
+FIBITMAP * MaxFreeImage::EnlargeCanvas(int left, int top, int right, int bottom, const void *color, int options) {
+	return FreeImage_EnlargeCanvas(bitmap, left, top, right, bottom, color, options);
+}
+
+BOOL MaxFreeImage::HasBackgroundColor() {
+	return FreeImage_HasBackgroundColor(bitmap);
+}
+
+BOOL MaxFreeImage::GetBackgroundColor(RGBQUAD *bkcolor) {
+	return FreeImage_GetBackgroundColor(bitmap, bkcolor);
+}
+
+BOOL MaxFreeImage::SetBackgroundColor(RGBQUAD *bkcolor) {
+	return FreeImage_SetBackgroundColor(bitmap, bkcolor);
+}
+
+BOOL MaxFreeImage::GetPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
+	return FreeImage_GetPixelColor(bitmap, x, y, value);
+}
+
+BOOL MaxFreeImage::SetPixelColor(unsigned x, unsigned y, RGBQUAD *value) {
+	return FreeImage_SetPixelColor(bitmap, x, y, value);
+}
+
+
 // ++++++++++++++++++++++++++++++++++++++++++
 
 
@@ -646,12 +815,16 @@ void bmx_freeimage_self_convertTo8Bits(MaxFreeImage * freeimage) {
 	freeimage->selfConvertTo8Bits();
 }
 
+FIBITMAP * bmx_freeimage_ConvertToType(MaxFreeImage * freeimage, FREE_IMAGE_TYPE destType, int scaleLinear) {
+	freeimage->ConvertToType(destType, scaleLinear);
+}
+
 BOOL bmx_freeimage_isTransparent(MaxFreeImage * freeimage) {
 	return freeimage->isTransparent();
 }
 
-FIBITMAP * bmx_freeimage_RotateClassic(MaxFreeImage * freeimage, double angle) {
-	return freeimage->RotateClassic(angle);
+FIBITMAP * bmx_freeimage_Rotate(MaxFreeImage * freeimage, double angle, RGBQUAD * color) {
+	return freeimage->Rotate(angle, color);
 }
 
 FIBITMAP * bmx_freeimage_RotateEx(MaxFreeImage * freeimage, double angle, double xShift, double yShift, double xOrigin, double yOrigin, BOOL useMask) {
@@ -801,7 +974,7 @@ BOOL bmx_freeimage_SetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL mode
 	BOOL res;
 	
 	if (tag) {
-		res = freeimage->SetMetadata(model, k, tag-tag);
+		res = freeimage->SetMetadata(model, k, tag->tag);
 	} else {
 		res = freeimage->SetMetadata(model, k, NULL);
 	}
@@ -810,6 +983,73 @@ BOOL bmx_freeimage_SetMetadata(MaxFreeImage * freeimage, FREE_IMAGE_MDMODEL mode
 	
 	return res;
 }
+
+BOOL bmx_freeimage_AdjustCurve(MaxFreeImage * freeimage, BYTE * lut, int channel) {
+	return freeimage->AdjustCurve(lut, static_cast<FREE_IMAGE_COLOR_CHANNEL>(channel));
+}
+
+BOOL bmx_freeimage_AdjustColors(MaxFreeImage * freeimage, double brightness, double contrast, double Gamma, int invert) {
+	return freeimage->AdjustColors(brightness, contrast, Gamma, static_cast<BOOL>(invert));
+}
+
+BOOL bmx_freeimage_JPEGCrop(BBString * source, BBString * dest, int _left, int _top, int _right, int _bottom) {
+#ifdef WIN32
+	wchar_t *s = bbStringToWString( source );
+	wchar_t *d = bbStringToWString( dest );
+	BOOL res = FreeImage_JPEGCropU(s, d, _left, _top, _right, _bottom);
+	bbMemFree(d);
+	bbMemFree(s);
+	return res;
+#else
+	char *s = bbStringToCString( source );
+	char *d = bbStringToCString( dest );
+	BOOL res = FreeImage_JPEGCrop(s, d, _left, _top, _right, _bottom);
+	bbMemFree(d);
+	bbMemFree(s);
+	return res;
+#endif
+}
+
+BOOL bmx_freeimage_PreMultiplyWithAlpha(MaxFreeImage * freeimage) {
+	return freeimage->PreMultiplyWithAlpha();
+}
+
+FIBITMAP * bmx_freeimage_enlargeCanvas(MaxFreeImage * freeimage, int _left, int _top, int _right, int _bottom, MaxRGBQUAD * color, int options) {
+	return freeimage->EnlargeCanvas(_left, _top, _right, _bottom, color->Quad(), options);
+}
+
+BOOL bmx_freeimage_HasBackgroundColor(MaxFreeImage * freeimage) {
+	return freeimage->HasBackgroundColor();
+}
+
+MaxRGBQUAD * bmx_freeimage_getBackgroundColor(MaxFreeImage * freeimage) {
+	MaxRGBQUAD * quad = new MaxRGBQUAD();
+	BOOL res = freeimage->GetBackgroundColor(quad->Quad());
+	if (!res) {
+		delete quad;
+		return 0;
+	}
+	return quad;
+}
+
+BOOL bmx_freeimage_setBackgroundColor(MaxFreeImage * freeimage, MaxRGBQUAD * color) {
+	return freeimage->SetBackgroundColor(color->Quad());
+}
+
+MaxRGBQUAD * bmx_freeimage_getPixelColor(MaxFreeImage * freeimage, int x, int y) {
+	MaxRGBQUAD * quad = new MaxRGBQUAD();
+	BOOL res = freeimage->GetPixelColor(x, y, quad->Quad());
+	if (!res) {
+		delete quad;
+		return 0;
+	}
+	return quad;
+}
+
+void bmx_freeimage_setPixelColor(MaxFreeImage * freeimage, int x, int y, MaxRGBQUAD * color) {
+	freeimage->SetPixelColor(x, y, color->Quad());
+}
+
 
 // ***********************************
 
@@ -1095,5 +1335,4 @@ MaxFreeImageTag * bmx_freeimagemetadata_FindNextMetadata(FIMETADATA * handle) {
 void bmx_freeimagemetadata_free(FIMETADATA * handle) {
 	FreeImage_FindCloseMetadata(handle);
 }
-
 

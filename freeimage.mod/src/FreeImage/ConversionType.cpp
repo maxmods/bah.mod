@@ -227,7 +227,8 @@ CONVERT_TO_COMPLEX<double>			convertDoubleToComplex;
 For standard images, a clone of the input image is returned.
 When the scale_linear parameter is TRUE, conversion is done by scaling linearly 
 each pixel to an integer value between [0..255]. When it is FALSE, conversion is done 
-by rounding each float pixel to an integer between [0..255]
+by rounding each float pixel to an integer between [0..255]. 
+For complex images, the magnitude is extracted as a double image, then converted according to the scale parameter. 
 @param image Image to convert
 @param scale_linear Linear scaling / rounding switch
 */
@@ -239,7 +240,7 @@ FreeImage_ConvertToStandardType(FIBITMAP *src, BOOL scale_linear) {
 
 	// convert from src_type to FIT_BITMAP
 
-	FREE_IMAGE_TYPE src_type = FreeImage_GetImageType(src);
+	const FREE_IMAGE_TYPE src_type = FreeImage_GetImageType(src);
 
 	switch(src_type) {
 		case FIT_BITMAP:	// standard image: 1-, 4-, 8-, 16-, 24-, 32-bit
@@ -264,13 +265,34 @@ FreeImage_ConvertToStandardType(FIBITMAP *src, BOOL scale_linear) {
 			dst = convertDoubleToByte.convert(src, scale_linear);
 			break;
 		case FIT_COMPLEX:	// array of FICOMPLEX: 2 x 64-bit
+			{
+				// Convert to type FIT_DOUBLE
+				FIBITMAP *dib_double = FreeImage_GetComplexChannel(src, FICC_MAG);
+				if(dib_double) {
+					// Convert to a standard bitmap (linear scaling)
+					dst = convertDoubleToByte.convert(dib_double, scale_linear);
+					// Free image of type FIT_DOUBLE
+					FreeImage_Unload(dib_double);
+				}
+			}
+			break;
+		case FIT_RGB16:		// 48-bit RGB image: 3 x 16-bit
+			break;
+		case FIT_RGBA16:	// 64-bit RGBA image: 4 x 16-bit
+			break;
+		case FIT_RGBF:		// 96-bit RGB float image: 3 x 32-bit IEEE floating point
+			break;
+		case FIT_RGBAF:		// 128-bit RGBA float image: 4 x 32-bit IEEE floating point
 			break;
 	}
 
 	if(NULL == dst) {
 		FreeImage_OutputMessageProc(FIF_UNKNOWN, "FREE_IMAGE_TYPE: Unable to convert from type %d to type %d.\n No such conversion exists.", src_type, FIT_BITMAP);
+	} else {
+		// copy metadata from src to dst
+		FreeImage_CloneMetadata(dst, src);
 	}
-
+	
 	return dst;
 }
 
@@ -288,13 +310,18 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 
 	// convert from src_type to dst_type
 
-	FREE_IMAGE_TYPE src_type = FreeImage_GetImageType(src);
+	const FREE_IMAGE_TYPE src_type = FreeImage_GetImageType(src);
 
 	if(src_type == dst_type) {
 		return FreeImage_Clone(src);
 	}
 	if(src_type == FIT_BITMAP) {
-		if(FreeImage_GetBPP(src) != 8) {
+		const unsigned src_bpp = FreeImage_GetBPP(src);
+		if(((src_bpp == 24) || (src_bpp == 32)) && (dst_type != FIT_RGBF)) {
+			FreeImage_OutputMessageProc(FIF_UNKNOWN, "FREE_IMAGE_TYPE: Only 24-/32-bit dib can be converted to type %d.", dst_type);
+			return NULL;
+		}
+		else if(src_bpp != 8) {
 			FreeImage_OutputMessageProc(FIF_UNKNOWN, "FREE_IMAGE_TYPE: Only 8-bit dib can be converted to type %d.", dst_type);
 			return NULL;
 		}
@@ -324,6 +351,15 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertByteToComplex.convert(src);
 					break;
+				case FIT_RGB16:					
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					dst = FreeImage_ConvertToRGBF(src);
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_UINT16:
@@ -346,12 +382,22 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertUShortToComplex.convert(src);
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_INT16:
 			switch(dst_type) {
 				case FIT_BITMAP:
 					dst = FreeImage_ConvertToStandardType(src, scale_linear);
+					break;
+				case FIT_UINT16:
 					break;
 				case FIT_UINT32:
 					break;
@@ -365,6 +411,14 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 					break;
 				case FIT_COMPLEX:
 					dst = convertShortToComplex.convert(src);
+					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
 					break;
 			}
 			break;
@@ -388,6 +442,14 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertULongToComplex.convert(src);
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_INT32:
@@ -410,6 +472,14 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertLongToComplex.convert(src);
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_FLOAT:
@@ -431,6 +501,14 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertFloatToComplex.convert(src);
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_DOUBLE:
@@ -451,6 +529,14 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 				case FIT_COMPLEX:
 					dst = convertDoubleToComplex.convert(src);
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
 			}
 			break;
 		case FIT_COMPLEX:
@@ -469,12 +555,132 @@ FreeImage_ConvertToType(FIBITMAP *src, FREE_IMAGE_TYPE dst_type, BOOL scale_line
 					break;
 				case FIT_DOUBLE:
 					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					break;
+				case FIT_RGBAF:
+					break;
+			}
+			break;
+		case FIT_RGB16:
+			switch(dst_type) {
+				case FIT_BITMAP:
+					dst = FreeImage_ConvertTo24Bits(src);
+					break;
+				case FIT_UINT16:
+					break;
+				case FIT_INT16:
+					break;
+				case FIT_UINT32:
+					break;
+				case FIT_INT32:
+					break;
+				case FIT_FLOAT:
+					break;
+				case FIT_DOUBLE:
+					break;
+				case FIT_COMPLEX:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					dst = FreeImage_ConvertToRGBF(src);
+					break;
+				case FIT_RGBAF:
+					break;
+			}
+			break;
+		case FIT_RGBA16:
+			switch(dst_type) {
+				case FIT_BITMAP:
+					dst = FreeImage_ConvertTo32Bits(src);
+					break;
+				case FIT_UINT16:
+					break;
+				case FIT_INT16:
+					break;
+				case FIT_UINT32:
+					break;
+				case FIT_INT32:
+					break;
+				case FIT_FLOAT:
+					break;
+				case FIT_DOUBLE:
+					break;
+				case FIT_COMPLEX:
+					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBF:
+					dst = FreeImage_ConvertToRGBF(src);
+					break;
+				case FIT_RGBAF:
+					break;
+			}
+			break;
+		case FIT_RGBF:
+			switch(dst_type) {
+				case FIT_BITMAP:
+					break;
+				case FIT_UINT16:
+					break;
+				case FIT_INT16:
+					break;
+				case FIT_UINT32:
+					break;
+				case FIT_INT32:
+					break;
+				case FIT_FLOAT:
+					break;
+				case FIT_DOUBLE:
+					break;
+				case FIT_COMPLEX:
+					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBAF:
+					break;
+			}
+			break;
+		case FIT_RGBAF:
+			switch(dst_type) {
+				case FIT_BITMAP:
+					break;
+				case FIT_UINT16:
+					break;
+				case FIT_INT16:
+					break;
+				case FIT_UINT32:
+					break;
+				case FIT_INT32:
+					break;
+				case FIT_FLOAT:
+					break;
+				case FIT_DOUBLE:
+					break;
+				case FIT_COMPLEX:
+					break;
+				case FIT_RGB16:
+					break;
+				case FIT_RGBA16:
+					break;
+				case FIT_RGBF:
+					dst = FreeImage_ConvertToRGBF(src);
+					break;
 			}
 			break;
 	}
 
 	if(NULL == dst) {
 		FreeImage_OutputMessageProc(FIF_UNKNOWN, "FREE_IMAGE_TYPE: Unable to convert from type %d to type %d.\n No such conversion exists.", src_type, dst_type);
+	} else {
+		// copy metadata from src to dst
+		FreeImage_CloneMetadata(dst, src);
 	}
 
 	return dst;

@@ -3,6 +3,7 @@
 //
 // Design and implementation by
 // - Hervé Drolon (drolon@infonie.fr)
+// - Mihail Naydenov (mnaydenov@users.sourceforge.net)
 //
 // This file is part of FreeImage 3
 //
@@ -105,26 +106,14 @@ static const float  XYZ2RGB[3][3] = {
 This gives approximately the following matrices : 
 
 static const float RGB2XYZ[3][3] = { 
-	{ 0.514083F, 0.323889F, 0.162028F },
-	{ 0.265074F, 0.670115F, 0.0648112F },
-	{ 0.0240976F, 0.122854F, 0.853348F }
+	{ 0.41239083F, 0.35758433F, 0.18048081F },
+	{ 0.21263903F, 0.71516865F, 0.072192319F },
+	{ 0.019330820F, 0.11919473F, 0.95053220F }
 };
 static const float XYZ2RGB[3][3] = { 
-	{ 2.56562F, -1.16699F, -0.398511F },
-	{ -1.02209F, 1.97826F, 0.0438210F }, 
-	{ 0.0746980F, -0.251851F, 1.17680F } 
-};
-*/
-/*
-static const float RGB2XYZ[3][3] = { 
-	{ 0.412391F, 0.357584F, 0.180481F },
-	{ 0.212639F, 0.715169F, 0.0721923F },
-	{ 0.0193308F, 0.119195F, 0.950532F }
-};
-static const float XYZ2RGB[3][3] = { 
-	{ 3.24097F, -1.53738F, -0.498611F },
-	{ -0.969244F, 1.87597F, 0.0415551F }, 
-	{ 0.0556300F, -0.203977F, 1.05697F } 
+	{ 3.2409699F, -1.5373832F, -0.49861079F },
+	{ -0.96924376F, 1.8759676F, 0.041555084F },
+	{ 0.055630036F, -0.20397687F, 1.0569715F }
 };
 */
 
@@ -255,7 +244,7 @@ LuminanceFromYxy(FIBITMAP *Yxy, float *maxLum, float *minLum, float *worldLum) {
 		for(unsigned x = 0; x < width; x++) {
 			const float Y = pixel[x].red;
 			max_lum = (max_lum < Y) ? Y : max_lum;	// max Luminance in the scene
-			min_lum = (min_lum < Y) ? min_lum : Y;	// max Luminance in the scene
+			min_lum = (min_lum < Y) ? min_lum : Y;	// min Luminance in the scene
 			sum += log(2.3e-5 + Y);					// contrast constant in Tumblin paper
 		}
 		// next line
@@ -357,16 +346,17 @@ ConvertRGBFToY(FIBITMAP *src) {
 }
 
 /**
-Get the maximum, minimum and average luminance
+Get the maximum, minimum, average luminance and log average luminance from a Y image
 @param dib Source Y image to analyze
 @param maxLum Maximum luminance
 @param minLum Minimum luminance
-@param worldLum Average luminance (world adaptation luminance)
+@param Lav Average luminance
+@param Llav Log average luminance (also known as 'world adaptation luminance')
 @return Returns TRUE if successful, returns FALSE otherwise
-@see ConvertRGBFToY
+@see ConvertRGBFToY, FreeImage_TmoReinhard05Ex
 */
 BOOL 
-LuminanceFromY(FIBITMAP *dib, float *maxLum, float *minLum, float *worldLum) {
+LuminanceFromY(FIBITMAP *dib, float *maxLum, float *minLum, float *Lav, float *Llav) {
 	if(FreeImage_GetImageType(dib) != FIT_FLOAT)
 		return FALSE;
 
@@ -375,7 +365,7 @@ LuminanceFromY(FIBITMAP *dib, float *maxLum, float *minLum, float *worldLum) {
 	unsigned pitch  = FreeImage_GetPitch(dib);
 
 	float max_lum = -1e20F, min_lum = 1e20F;
-	double sum = 0;
+	double sumLum = 0, sumLogLum = 0;
 
 	BYTE *bits = (BYTE*)FreeImage_GetBits(dib);
 	for(unsigned y = 0; y < height; y++) {
@@ -384,19 +374,21 @@ LuminanceFromY(FIBITMAP *dib, float *maxLum, float *minLum, float *worldLum) {
 			const float Y = pixel[x];
 			max_lum = (max_lum < Y) ? Y : max_lum;				// max Luminance in the scene
 			min_lum = ((Y > 0) && (min_lum < Y)) ? min_lum : Y;	// min Luminance in the scene
-			sum += log(2.3e-5 + Y);								// contrast constant in Tumblin paper
+			sumLum += Y;										// average luminance
+			sumLogLum += log(2.3e-5 + Y);						// contrast constant in Tumblin paper
 		}
 		// next line
 		bits += pitch;
 	}
+
 	// maximum luminance
 	*maxLum = max_lum;
 	// minimum luminance
 	*minLum = min_lum;
-	// average log luminance
-	double avgLogLum = (sum / (width * height));
-	// world adaptation luminance
-	*worldLum = (float)exp(avgLogLum);
+	// average luminance
+	*Lav = (float)(sumLum / (width * height));
+	// average log luminance, a.k.a. world adaptation luminance
+	*Llav = (float)exp(sumLogLum / (width * height));
 
 	return TRUE;
 }

@@ -27,11 +27,6 @@
 // Internal functions
 // ==========================================================
 
-static const char *PNM_ERROR_SIGNATURE	= "Invalid magic number";
-static const char *PNM_ERROR_MAXVALUE	= "Invalid max value";
-static const char *PNM_ERROR_PARSING	= "Parsing error";
-static const char *PNM_ERROR_MALLOC		= "DIB allocation failed";
-
 /**
 Get an integer value from the actual position pointed by handle
 */
@@ -42,7 +37,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
 
     // skip forward to start of next number
 
-    if(!io->read_proc(&c, 1, 1, handle)) throw PNM_ERROR_PARSING;
+    if(!io->read_proc(&c, 1, 1, handle)) throw FI_MSG_ERROR_PARSING;
 
     while (1) {
         // eat comments
@@ -53,7 +48,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
             firstchar = TRUE;
 
             while (1) {
-				if(!io->read_proc(&c, 1, 1, handle)) throw PNM_ERROR_PARSING;
+				if(!io->read_proc(&c, 1, 1, handle)) throw FI_MSG_ERROR_PARSING;
 
 				if (firstchar && c == ' ') {
 					// loop off 1 sp after #
@@ -71,7 +66,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
             break;
 		}
 
-        if(!io->read_proc(&c, 1, 1, handle)) throw PNM_ERROR_PARSING;
+        if(!io->read_proc(&c, 1, 1, handle)) throw FI_MSG_ERROR_PARSING;
     }
 
     // we're at the start of a number, continue until we hit a non-number
@@ -81,7 +76,7 @@ GetInt(FreeImageIO *io, fi_handle handle) {
     while (1) {
         i = (i * 10) + (c - '0');
 
-        if(!io->read_proc(&c, 1, 1, handle)) throw PNM_ERROR_PARSING;
+        if(!io->read_proc(&c, 1, 1, handle)) throw FI_MSG_ERROR_PARSING;
 
         if (c < '0' || c > '9')
             break;
@@ -225,8 +220,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		io->read_proc(&id_one, 1, 1, handle);
 		io->read_proc(&id_two, 1, 1, handle);
 
-		if ((id_one != 'P') || (id_two < '1') || (id_two > '6')) {
-			throw PNM_ERROR_SIGNATURE;
+		if ((id_one != 'P') || (id_two < '1') || (id_two > '6')) {			
+			// signature error
+			throw FI_MSG_ERROR_MAGIC_NUMBER;
 		}
 
 		// Read the header information: width, height and the 'max' value if any
@@ -237,7 +233,10 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		if((id_two == '2') || (id_two == '5') || (id_two == '3') || (id_two == '6')) {
 			maxval = GetInt(io, handle);
-			if((maxval < 0) || (maxval > 65535)) throw PNM_ERROR_MAXVALUE;
+			if((maxval <= 0) || (maxval > 65535)) {
+				FreeImage_OutputMessageProc(s_format_id, "Invalid max value : %d", maxval);
+				throw (const char*)NULL;
+			}
 		}
 
 		// Create a new DIB
@@ -274,8 +273,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				break;
 		}
 
-		if (dib == NULL)
-			throw PNM_ERROR_MALLOC;
+		if (dib == NULL) {
+			throw FI_MSG_ERROR_DIB_MEMORY;
+		}
 
 		// Read the image...
 
@@ -471,23 +471,24 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	} catch (const char *text)  {
 		if(dib) FreeImage_Unload(dib);
 
-		switch(id_two)  {
-			case '1':
-			case '4':
-				FreeImage_OutputMessageProc(s_format_id, text);
-				break;
+		if(NULL != text) {
+			switch(id_two)  {
+				case '1':
+				case '4':
+					FreeImage_OutputMessageProc(s_format_id, text);
+					break;
 
-			case '2':
-			case '5':
-				FreeImage_OutputMessageProc(s_format_id, text);
-				break;
+				case '2':
+				case '5':
+					FreeImage_OutputMessageProc(s_format_id, text);
+					break;
 
-			case '3':
-			case '6':
-				FreeImage_OutputMessageProc(s_format_id, text);
-				break;
+				case '3':
+				case '6':
+					FreeImage_OutputMessageProc(s_format_id, text);
+					break;
+			}
 		}
-
 		return NULL;
 	}
 		
@@ -569,11 +570,11 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 	// Write the header info
 
 	sprintf(buffer, "P%d\n%d %d\n", magic, width, height);
-	io->write_proc(&buffer, strlen(buffer), 1, handle);
+	io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 	if (bpp != 1) {
 		sprintf(buffer, "%d\n", maxval);
-		io->write_proc(&buffer, strlen(buffer), 1, handle);
+		io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 	}
 
 	// Write the image data
@@ -606,14 +607,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 						for (x = 0; x < width; x++) {
 							sprintf(buffer, "%3d %3d %3d ", bits[FI_RGBA_RED], bits[FI_RGBA_GREEN], bits[FI_RGBA_BLUE]);
 
-							io->write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 							length += 12;
 
 							if(length > 58) {
 								// No line should be longer than 70 characters
 								sprintf(buffer, "\n");
-								io->write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 								length = 0;
 							}
 
@@ -646,14 +647,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 						for (x = 0; x < width; x++) {
 							sprintf(buffer, "%3d ", bits[x]);
 
-							io->write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 							length += 4;
 
 							if (length > 66) {
 								// No line should be longer than 70 characters
 								sprintf(buffer, "\n");
-								io->write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 								length = 0;
 							}
 						}
@@ -686,14 +687,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 							sprintf(buffer, "%c ", color ? '1':'0');
 
-							io->write_proc(&buffer, strlen(buffer), 1, handle);
+							io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 							length += 2;
 
 							if (length > 68) {
 								// No line should be longer than 70 characters
 								sprintf(buffer, "\n");
-								io->write_proc(&buffer, strlen(buffer), 1, handle);
+								io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 								length = 0;
 							}
 						}
@@ -725,14 +726,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				for (x = 0; x < width; x++) {
 					sprintf(buffer, "%5d ", bits[x]);
 
-					io->write_proc(&buffer, strlen(buffer), 1, handle);
+					io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 					length += 6;
 
 					if (length > 64) {
 						// No line should be longer than 70 characters
 						sprintf(buffer, "\n");
-						io->write_proc(&buffer, strlen(buffer), 1, handle);
+						io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 						length = 0;
 					}
 				}
@@ -762,14 +763,14 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				for (x = 0; x < width; x++) {
 					sprintf(buffer, "%5d %5d %5d ", bits[x].red, bits[x].green, bits[x].blue);
 
-					io->write_proc(&buffer, strlen(buffer), 1, handle);
+					io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 
 					length += 18;
 
 					if(length > 52) {
 						// No line should be longer than 70 characters
 						sprintf(buffer, "\n");
-						io->write_proc(&buffer, strlen(buffer), 1, handle);
+						io->write_proc(&buffer, (unsigned int)strlen(buffer), 1, handle);
 						length = 0;
 					}
 				}					

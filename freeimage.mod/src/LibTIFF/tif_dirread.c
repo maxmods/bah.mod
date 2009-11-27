@@ -1,4 +1,4 @@
-/* $Id: tif_dirread.c,v 1.21 2007/11/10 18:40:57 drolon Exp $ */
+/* $Id: tif_dirread.c,v 1.28 2009/09/06 13:11:27 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -100,7 +100,7 @@ TIFFReadDirectory(TIFF* tif)
 				      &dir, &tif->tif_nextdiroff);
 	if (!dircount) {
 		TIFFErrorExt(tif->tif_clientdata, module,
-			     "%s: Failed to read directory at offset %lu",
+			     "%s: Failed to read directory at offset %u",
 			     tif->tif_name, tif->tif_nextdiroff);
 		return 0;
 	}
@@ -188,8 +188,7 @@ TIFFReadDirectory(TIFF* tif)
                         "%s: unknown field with tag %d (0x%x) encountered",
 						       tif->tif_name,
 						       dp->tdir_tag,
-						       dp->tdir_tag,
-						       dp->tdir_type);
+						       dp->tdir_tag);
 
 					if (!_TIFFMergeFieldInfo(tif,
 						_TIFFCreateAnonFieldInfo(tif,
@@ -776,12 +775,13 @@ TIFFReadCustomDirectory(TIFF* tif, toff_t diroff,
 	dircount = TIFFFetchDirectory(tif, diroff, &dir, NULL);
 	if (!dircount) {
 		TIFFErrorExt(tif->tif_clientdata, module,
-			"%s: Failed to read custom directory at offset %lu",
+			"%s: Failed to read custom directory at offset %u",
 			     tif->tif_name, diroff);
 		return 0;
 	}
 
 	TIFFFreeDirectory(tif);
+        _TIFFmemset(&tif->tif_dir, 0, sizeof(TIFFDirectory));
 
 	fix = 0;
 	for (dp = dir, i = dircount; i > 0; i--, dp++) {
@@ -802,8 +802,7 @@ TIFFReadCustomDirectory(TIFF* tif, toff_t diroff,
 
 			TIFFWarningExt(tif->tif_clientdata, module,
                         "%s: unknown field with tag %d (0x%x) encountered",
-				    tif->tif_name, dp->tdir_tag, dp->tdir_tag,
-				    dp->tdir_type);
+				    tif->tif_name, dp->tdir_tag, dp->tdir_tag);
 			if (!_TIFFMergeFieldInfo(tif,
 						 _TIFFCreateAnonFieldInfo(tif,
 						 dp->tdir_tag,
@@ -905,6 +904,9 @@ EstimateStripByteCounts(TIFF* tif, TIFFDirEntry* dir, uint16 dircount)
 	td->td_stripbytecount = (uint32*)
 	    _TIFFCheckMalloc(tif, td->td_nstrips, sizeof (uint32),
 		"for \"StripByteCounts\" array");
+        if( td->td_stripbytecount == NULL )
+            return -1;
+
 	if (td->td_compression != COMPRESSION_NONE) {
 		uint32 space = (uint32)(sizeof (TIFFHeader)
 		    + sizeof (uint16)
@@ -1024,13 +1026,13 @@ CheckDirCount(TIFF* tif, TIFFDirEntry* dir, uint32 count)
 {
 	if (count > dir->tdir_count) {
 		TIFFWarningExt(tif->tif_clientdata, tif->tif_name,
-	"incorrect count for field \"%s\" (%lu, expecting %lu); tag ignored",
+	"incorrect count for field \"%s\" (%u, expecting %u); tag ignored",
 		    _TIFFFieldWithTag(tif, dir->tdir_tag)->field_name,
 		    dir->tdir_count, count);
 		return (0);
 	} else if (count < dir->tdir_count) {
 		TIFFWarningExt(tif->tif_clientdata, tif->tif_name,
-	"incorrect count for field \"%s\" (%lu, expecting %lu); tag trimmed",
+	"incorrect count for field \"%s\" (%u, expecting %u); tag trimmed",
 		    _TIFFFieldWithTag(tif, dir->tdir_tag)->field_name,
 		    dir->tdir_count, count);
 		return (1);
@@ -1228,7 +1230,7 @@ cvtRational(TIFF* tif, TIFFDirEntry* dir, uint32 num, uint32 denom, float* rv)
 {
 	if (denom == 0) {
 		TIFFErrorExt(tif->tif_clientdata, tif->tif_name,
-		    "%s: Rational with zero denominator (num = %lu)",
+		    "%s: Rational with zero denominator (num = %u)",
 		    _TIFFFieldWithTag(tif, dir->tdir_tag)->field_name, num);
 		return (0);
 	} else {
@@ -1350,7 +1352,7 @@ TIFFFetchShortPair(TIFF* tif, TIFFDirEntry* dir)
 	 */
 	if (dir->tdir_count > 2) {
 		TIFFWarningExt(tif->tif_clientdata, tif->tif_name,
-		"unexpected count for field \"%s\", %lu, expected 2; ignored",
+		"unexpected count for field \"%s\", %u, expected 2; ignored",
 			_TIFFFieldWithTag(tif, dir->tdir_tag)->field_name,
 			dir->tdir_count);
 		return 0;

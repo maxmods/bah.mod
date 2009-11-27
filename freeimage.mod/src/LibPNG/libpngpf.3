@@ -1,6 +1,6 @@
-.TH LIBPNGPF 3 "November 6, 2007"
+.TH LIBPNGPF 3 "September 10, 2009"
 .SH NAME
-libpng \- Portable Network Graphics (PNG) Reference Library 1.2.23
+libpng \- Portable Network Graphics (PNG) Reference Library 1.2.40
 (private functions)
 .SH SYNOPSIS
 \fB#include <png.h>\fP
@@ -81,7 +81,7 @@ libpng \- Portable Network Graphics (PNG) Reference Library 1.2.23
 
 \fI\fB
 
-\fBpng_charp png_decompress_chunk (png_structp \fP\fIpng_ptr\fP\fB, int \fP\fIcomp_type\fP\fB, png_charp \fP\fIchunkdata\fP\fB, png_size_t \fP\fIchunklength\fP\fB, png_size_t \fP\fIprefix_length\fP\fB, png_size_t \fI*data_length\fP\fB);\fP
+\fBvoid png_decompress_chunk (png_structp \fP\fIpng_ptr\fP\fB, int \fP\fIcomp_type\fP\fB, png_charp \fP\fIchunkdata\fP\fB, png_size_t \fP\fIchunklength\fP\fB, png_size_t \fP\fIprefix_length\fP\fB, png_size_t \fI*data_length\fP\fB);\fP
 
 \fI\fB
 
@@ -532,6 +532,12 @@ libpng \- Portable Network Graphics (PNG) Reference Library 1.2.23
 \fI\fB
 
 \fBvoid png_push_save_buffer (png_structp \fIpng_ptr\fP\fB);\fP
+
+\fI\fB
+
+\fI\fB
+
+\fBpng_uint_32 png_read_chunk_header (png_structp \fIpng_ptr\fP\fB);\fP
 
 \fI\fB
 

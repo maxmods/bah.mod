@@ -1,4 +1,4 @@
-/* $Id: tif_zip.c,v 1.20 2007/11/10 18:41:43 drolon Exp $ */
+/* $Id: tif_zip.c,v 1.27 2009/09/06 13:11:29 drolon Exp $ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler
@@ -119,7 +119,7 @@ ZIPPreDecode(TIFF* tif, tsample_t s)
 	assert(sp != NULL);
 
         if( (sp->state & ZSTATE_INIT_DECODE) == 0 )
-            ZIPSetupDecode(tif);
+            tif->tif_setupdecode( tif );
 
 	sp->stream.next_in = tif->tif_rawdata;
 	sp->stream.avail_in = tif->tif_rawcc;
@@ -197,7 +197,7 @@ ZIPPreEncode(TIFF* tif, tsample_t s)
 	(void) s;
 	assert(sp != NULL);
         if( sp->state != ZSTATE_INIT_ENCODE )
-            ZIPSetupEncode(tif);
+            tif->tif_setupencode( tif );
 
 	sp->stream.next_out = tif->tif_rawdata;
 	sp->stream.avail_out = tif->tif_rawdatasize;

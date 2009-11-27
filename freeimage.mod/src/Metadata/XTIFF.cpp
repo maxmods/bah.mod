@@ -58,7 +58,7 @@ static const TIFFFieldInfo xtiffFieldInfo[] = {
 
 static void 
 _XTIFFLocalDefaultDirectory(TIFF *tif) {
-	size_t tag_size = sizeof(xtiffFieldInfo) / sizeof(xtiffFieldInfo[0]);
+	int tag_size = sizeof(xtiffFieldInfo) / sizeof(xtiffFieldInfo[0]);
     // Install the extended Tag field info
     TIFFMergeFieldInfo(tif, xtiffFieldInfo, tag_size);
 }
@@ -128,7 +128,7 @@ tiff_read_geotiff_profile(TIFF *tif, FIBITMAP *dib) {
 				FreeImage_SetTagID(tag, tag_id);
 				FreeImage_SetTagKey(tag, tag_lib.getTagFieldName(TagLib::GEOTIFF, tag_id, defaultKey));
 				FreeImage_SetTagDescription(tag, tag_lib.getTagDescription(TagLib::GEOTIFF, tag_id));
-				FreeImage_SetTagLength(tag, strlen(params) + 1);
+				FreeImage_SetTagLength(tag, (DWORD)strlen(params) + 1);
 				FreeImage_SetTagCount(tag, FreeImage_GetTagLength(tag));
 				FreeImage_SetTagValue(tag, params);
 				FreeImage_SetMetadata(FIMD_GEOTIFF, dib, FreeImage_GetTagKey(tag), tag);
@@ -205,7 +205,6 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 	TIFFDirectory *td = &tif->tif_dir;
     
 	count = (short) TIFFGetTagListCount(tif);
-
     for(i = 0; i < count; i++) {
         ttag_t tag = TIFFGetTagListEntry(tif, i);
         const TIFFFieldInfo *fip;
@@ -220,28 +219,31 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 		if(key == NULL) continue;
         
 		fip = TIFFFieldWithTag(tif, tag);
-        if(fip == NULL)
-			continue;
+        if(fip == NULL) continue;
 		
 		if(fip->field_passcount) {
-			if(TIFFGetField(tif, tag, &value_count, &raw_data) != 1)
-				continue;
-			if (value_count > 0xFF000000) // BaH - bad data??
-				continue;
+			if (fip->field_readcount != TIFF_VARIABLE2) {
+				// assume TIFF_VARIABLE
+				uint16 value_count16;
+				if(TIFFGetField(tif, tag, &value_count16, &raw_data) != 1) continue;
+				value_count = value_count16;
+			} else {
+				if(TIFFGetField(tif, tag, &value_count, &raw_data) != 1) continue;
+			}
 		} else {
-			if (fip->field_readcount == TIFF_VARIABLE || fip->field_readcount == TIFF_VARIABLE2)
+			if (fip->field_readcount == TIFF_VARIABLE || fip->field_readcount == TIFF_VARIABLE2) {
 				value_count = 1;
-			else if (fip->field_readcount == TIFF_SPP)
+			} else if (fip->field_readcount == TIFF_SPP) {
 				value_count = td->td_samplesperpixel;
-			else
+			} else {
 				value_count = fip->field_readcount;
+			}
 			if (fip->field_type == TIFF_ASCII 
 				|| fip->field_readcount == TIFF_VARIABLE
 				|| fip->field_readcount == TIFF_VARIABLE2
 				|| fip->field_readcount == TIFF_SPP
 				|| value_count > 1) {
-				if(TIFFGetField(tif, tag, &raw_data) != 1)
-					continue;
+				if(TIFFGetField(tif, tag, &raw_data) != 1) continue;
 			} else {
 				raw_data = _TIFFmalloc(_TIFFDataSize(fip->field_type) * value_count);
 				mem_alloc = 1;
@@ -372,10 +374,10 @@ BOOL tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 
 			default:
 			{
-				int length = strlen((char*)raw_data) + 1;
+				size_t length = strlen((char*)raw_data) + 1;
 				FreeImage_SetTagType(fitag, FIDT_ASCII);
-				FreeImage_SetTagLength(fitag, length);
-				FreeImage_SetTagCount(fitag, length);
+				FreeImage_SetTagLength(fitag, (DWORD)length);
+				FreeImage_SetTagCount(fitag, (DWORD)length);
 				FreeImage_SetTagValue(fitag, raw_data);
 			}
 			break;

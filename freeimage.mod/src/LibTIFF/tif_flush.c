@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_flush.c,v 1.20 2007/11/10 18:41:11 drolon Exp $ */
+/* $Header: /cvsroot/freeimage/FreeImage/Source/LibTIFF/tif_flush.c,v 1.27 2009/09/06 13:11:28 drolon Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler

@@ -378,6 +378,7 @@ static TagInfo
   exif_fujifilm_tag_table[] =
   {
     {  0x0000, (char *) "MakernoteVersion", (char *) NULL},
+    {  0x0010, (char *) "InternalSerialNumber", (char *) NULL},
     {  0x1000, (char *) "Quality", (char *) NULL},
     {  0x1001, (char *) "Sharpness", (char *) NULL},
     {  0x1002, (char *) "WhiteBalance", (char *) NULL},
@@ -387,12 +388,16 @@ static TagInfo
     {  0x1011, (char *) "FlashStrength", (char *) NULL},
     {  0x1020, (char *) "Macro", (char *) NULL},
     {  0x1021, (char *) "FocusMode", (char *) NULL},
+    {  0x1023, (char *) "FocusPixel", (char *) NULL},
     {  0x1030, (char *) "SlowSynchro", (char *) NULL},
     {  0x1031, (char *) "PictureMode", (char *) NULL},
     {  0x1100, (char *) "AutoBracketting", (char *) NULL},
+    {  0x1101, (char *) "SequenceNumber", (char *) NULL},
+    {  0x1210, (char *) "ColorMode", (char *) NULL},
     {  0x1300, (char *) "BlurWarning", (char *) NULL},
     {  0x1301, (char *) "FocusWarning", (char *) NULL},
     {  0x1302, (char *) "ExposureWarning", (char *) NULL},
+    {  0x1400, (char *) "DynamicRange", (char *) NULL},
     {  0x0000, (char *) NULL, (char *) NULL}
   };
 
@@ -408,10 +413,10 @@ static TagInfo
   };
 
 /**
-Olympus / Epson / Agfa maker note
+Olympus Type 1 / Epson / Agfa maker note
 */
 static TagInfo
-  exif_olympus_tag_table[] =
+  exif_olympus_type1__tag_table[] =
   {
     {  0x0000, (char *) "MakerNoteVersion", (char *) NULL},
     {  0x0001, (char *) "MinoltaCameraSettingsOld", (char *) NULL},
@@ -609,6 +614,8 @@ static TagInfo
     {  0x0096, (char *) "NEFCurve2", (char *) NULL},
     {  0x0099, (char *) "RawImageCenter", (char *) NULL},
     {  0x009A, (char *) "SensorPixelSize", (char *) NULL},
+    {  0x009C, (char *) "SceneAssist", (char *) NULL},
+    {  0x009E, (char *) "RetouchHistory", (char *) NULL},
     {  0x00A0, (char *) "SerialNumber2", (char *) NULL},
     {  0x00A2, (char *) "ImageDataSize", (char *) NULL},
     {  0x00A5, (char *) "ImageCount", (char *) NULL},
@@ -684,6 +691,7 @@ static TagInfo
 static TagInfo
   exif_pentax_tag_table[] =
   {
+    {  0x0000, (char *) "PentaxVersion", (char *) NULL},
     {  0x0001, (char *) "PentaxMode", (char *) NULL},
     {  0x0002, (char *) "PreviewImageSize", (char *) NULL},
     {  0x0003, (char *) "PreviewImageLength", (char *) NULL},
@@ -696,13 +704,15 @@ static TagInfo
     {  0x000B, (char *) "PictureMode", (char *) NULL},
     {  0x000C, (char *) "FlashMode", (char *) NULL},
     {  0x000D, (char *) "FocusMode", (char *) NULL},
-    {  0x000F, (char *) "AutoAFPoint", (char *) NULL},
+    {  0x000E, (char *) "AFPointSelected", (char *) NULL},
+    {  0x000F, (char *) "AFPointsInFocus", (char *) NULL},
     {  0x0010, (char *) "FocusPosition", (char *) NULL},
     {  0x0012, (char *) "ExposureTime", (char *) NULL},
     {  0x0013, (char *) "FNumber", (char *) NULL},
     {  0x0014, (char *) "ISO", (char *) NULL},
     {  0x0016, (char *) "ExposureCompensation", (char *) NULL},
     {  0x0017, (char *) "MeteringMode", (char *) NULL},
+    {  0x0018, (char *) "AutoBracketing", (char *) NULL},
     {  0x0019, (char *) "WhiteBalance", (char *) NULL},
     {  0x001A, (char *) "WhiteBalanceMode", (char *) NULL},
     {  0x001B, (char *) "BlueBalance", (char *) NULL},
@@ -717,14 +727,56 @@ static TagInfo
     {  0x0024, (char *) "DestinationCity", (char *) NULL},
     {  0x0025, (char *) "HometownDST", (char *) NULL},
     {  0x0026, (char *) "DestinationDST", (char *) NULL},
+    {  0x0027, (char *) "DSPFirmwareVersion", (char *) NULL},
+    {  0x0028, (char *) "CPUFirmwareVersion", (char *) NULL},
     {  0x0029, (char *) "FrameNumber", (char *) NULL},
+    {  0x002D, (char *) "EffectiveLV", (char *) NULL},
+    {  0x0032, (char *) "ImageProcessing", (char *) NULL},
+    {  0x0033, (char *) "PictureMode", (char *) NULL},
+    {  0x0034, (char *) "DriveMode", (char *) NULL},
     {  0x0037, (char *) "ColorSpace", (char *) NULL},
     {  0x0039, (char *) "RawImageSize", (char *) NULL},
+    {  0x003E, (char *) "PreviewImageBorders", (char *) NULL},
     {  0x003F, (char *) "LensType", (char *) NULL},
+    {  0x0040, (char *) "SensitivityAdjust", (char *) NULL},
+    {  0x0041, (char *) "ImageProcessingCount", (char *) NULL},
+    {  0x0047, (char *) "CameraTemperature", (char *) NULL},
+    {  0x0048, (char *) "AELock", (char *) NULL},
     {  0x0049, (char *) "NoiseReduction", (char *) NULL},
+    {  0x004D, (char *) "FlashExposureComp", (char *) NULL},
+    {  0x004F, (char *) "ImageTone", (char *) NULL},
+	{  0x0050, (char *) "ColorTemperature", (char *) NULL},
+    {  0x005C, (char *) "ShakeReductionInfo", (char *) NULL},
+    {  0x005D, (char *) "ShutterCount", (char *) NULL},
+    {  0x0069, (char *) "DynamicRangeExpansion", (char *) NULL},
+    {  0x0071, (char *) "HighISONoiseReduction", (char *) NULL},
+    {  0x0072, (char *) "AFAdjustment", (char *) NULL},
     {  0x0200, (char *) "BlackPoint", (char *) NULL},
     {  0x0201, (char *) "WhitePoint", (char *) NULL},
-    {  0x03FE, (char *) "DataDump", (char *) NULL},
+    {  0x0203, (char *) "ColorMatrixA", (char *) NULL},
+    {  0x0204, (char *) "ColorMatrixB", (char *) NULL},
+    {  0x0205, (char *) "CameraSettings", (char *) NULL},
+	{  0x0206, (char *) "AEInfo", (char *) NULL},
+    {  0x0207, (char *) "LensInfo", (char *) NULL},
+    {  0x0208, (char *) "FlashInfo", (char *) NULL},
+    {  0x0209, (char *) "AEMeteringSegments", (char *) NULL},
+    {  0x020A, (char *) "FlashMeteringSegments", (char *) NULL},
+    {  0x020B, (char *) "SlaveFlashMeteringSegments", (char *) NULL},
+    {  0x020D, (char *) "WB_RGGBLevelsDaylight", (char *) NULL},
+    {  0x020E, (char *) "WB_RGGBLevelsShade", (char *) NULL},
+    {  0x020F, (char *) "WB_RGGBLevelsCloudy", (char *) NULL},
+    {  0x0210, (char *) "WB_RGGBLevelsTungsten", (char *) NULL},
+    {  0x0211, (char *) "WB_RGGBLevelsFluorescentD", (char *) NULL},
+    {  0x0212, (char *) "WB_RGGBLevelsFluorescentN", (char *) NULL},
+    {  0x0213, (char *) "WB_RGGBLevelsFluorescentW", (char *) NULL},
+    {  0x0214, (char *) "WB_RGGBLevelsFlash", (char *) NULL},
+    {  0x0215, (char *) "CameraInfo", (char *) NULL},
+    {  0x0216, (char *) "BatteryInfo", (char *) NULL},
+    {  0x021B, (char *) "SaturationInfo", (char *) NULL},
+    {  0x021F, (char *) "AFInfo", (char *) NULL},
+    {  0x0222, (char *) "ColorInfo", (char *) NULL},
+    {  0x0224, (char *) "EVStepInfo", (char *) NULL},
+	{  0x03FE, (char *) "DataDump", (char *) NULL},
     {  0x0402, (char *) "ToneCurve", (char *) NULL},
     {  0x0403, (char *) "ToneCurves", (char *) NULL},
     {  0x0E00, (char *) "PrintIM", (char *) NULL},
@@ -751,32 +803,79 @@ static TagInfo
 static TagInfo
   iptc_tag_table[] =
   {
-    {  0x0200, (char *) "DirectoryVersion", (char *) "Directory Version"},
-    {  0x0278, (char *) "Caption/Abstract", (char *) "Caption"},
-    {  0x027A, (char *) "Writer/Editor", (char *) "Caption Writer"},
-    {  0x0269, (char *) "Headline", (char *) "Headline"},
-    {  0x0228, (char *) "SpecialInstructions", (char *) "Instructions"},
-    {  0x0250, (char *) "ByLine", (char *) "Author"},
-    {  0x0255, (char *) "BylineTitle", (char *) "Author's Position"},
-    {  0x026E, (char *) "Credit", (char *) "Credit"},
-    {  0x0273, (char *) "Source", (char *) "Source"},
-    {  0x0205, (char *) "ObjectName", (char *) "Title"},
-    {  0x0237, (char *) "DateCreated", (char *) "Date Created"},
-    {  0x025A, (char *) "City", (char *) "City"},
-	{  0x025C, (char *) "Sublocation", (char*) "Sub Location"}, 
-    {  0x025F, (char *) "Province/State", (char *) "State/Province"},
-    {  0x0264, (char *) "Country/PrimaryLocationCode", (char *) "Country Code"},
-	{  0x0265, (char *) "Country/PrimaryLocationName", (char *) "Country Name"},
-    {  0x0267, (char *) "OriginalTransmissionReference", (char *) "Transmission Reference"},
-    {  0x020F, (char *) "Category", (char *) "Category"},
-    {  0x0214, (char *) "SupplementalCategory", (char *) "Supplemental Categories"},
-    {  0x020A, (char *) "Urgency", (char *) "Urgency"},
-    {  0x0219, (char *) "Keywords", (char *) "Keywords"},
-    {  0x0274, (char *) "CopyrightNotice", (char *) "Copyright Notice"},
-    {  0x021E, (char *) "ReleaseDate", (char *) "Release Date"},
-    {  0x0223, (char *) "ReleaseTime", (char *) "Release Time"},
-    {  0x023C, (char *) "TimeCreated", (char *) "Time Created"},
-    {  0x0241, (char *) "OriginatingProgram", (char *) "Originating Program"},
+	  // IPTC-NAA IIM version 4
+    {  0x0200 +   0, (char *) "ApplicationRecordVersion", (char *) "Application Record Version"},
+    {  0x0200 +   3, (char *) "ObjectTypeReference", (char *) "Object Type Reference"},
+    {  0x0200 +   4, (char *) "ObjectAttributeReference", (char *) "Object Attribute Reference"},
+    {  0x0200 +   5, (char *) "ObjectName", (char *) "Title"},
+    {  0x0200 +   7, (char *) "EditStatus", (char *) "Edit Status"},
+    {  0x0200 +   8, (char *) "EditorialUpdate", (char *) "Editorial Update"},
+    {  0x0200 +  10, (char *) "Urgency", (char *) "Urgency"},
+    {  0x0200 +  12, (char *) "SubjectReference", (char *) "Subject Reference"},
+    {  0x0200 +  15, (char *) "Category", (char *) "Category"},
+    {  0x0200 +  20, (char *) "SupplementalCategories", (char *) "Supplemental Categories"},
+    {  0x0200 +  22, (char *) "FixtureIdentifier", (char *) "Fixture Identifier"},
+    {  0x0200 +  25, (char *) "Keywords", (char *) "Keywords"},
+    {  0x0200 +  26, (char *) "ContentLocationCode", (char *) "Content Location Code"},
+    {  0x0200 +  27, (char *) "ContentLocationName", (char *) "Content Location Name"},
+    {  0x0200 +  30, (char *) "ReleaseDate", (char *) "Release Date"},
+    {  0x0200 +  35, (char *) "ReleaseTime", (char *) "Release Time"},
+    {  0x0200 +  37, (char *) "ExpirationDate", (char *) "Expiration Date"},
+    {  0x0200 +  38, (char *) "ExpirationTime", (char *) "Expiration Time"},
+    {  0x0200 +  40, (char *) "SpecialInstructions", (char *) "Instructions"},
+    {  0x0200 +  42, (char *) "ActionAdvised", (char *) "Action Advised"},
+    {  0x0200 +  45, (char *) "ReferenceService", (char *) "Reference Service"},
+    {  0x0200 +  47, (char *) "ReferenceDate", (char *) "Reference Date"},
+    {  0x0200 +  50, (char *) "ReferenceNumber", (char *) "Reference Number"},
+    {  0x0200 +  55, (char *) "DateCreated", (char *) "Date Created"},
+    {  0x0200 +  60, (char *) "TimeCreated", (char *) "Time Created"},
+    {  0x0200 +  62, (char *) "DigitalCreationDate", (char *) "Digital Creation Date"},
+    {  0x0200 +  63, (char *) "DigitalCreationTime", (char *) "Digital Creation Time"},
+    {  0x0200 +  65, (char *) "OriginatingProgram", (char *) "Originating Program"},
+    {  0x0200 +  70, (char *) "ProgramVersion", (char *) "Program Version"},
+    {  0x0200 +  75, (char *) "ObjectCycle", (char *) "Object Cycle"},
+    {  0x0200 +  80, (char *) "By-line", (char *) "Author"},
+    {  0x0200 +  85, (char *) "By-lineTitle", (char *) "Author's Position"},
+    {  0x0200 +  90, (char *) "City", (char *) "City"},
+    {  0x0200 +  92, (char *) "SubLocation", (char *) "Sub-Location"},
+    {  0x0200 +  95, (char *) "Province-State", (char *) "State/Province"},
+    {  0x0200 + 100, (char *) "Country-PrimaryLocationCode", (char *) "Country Code"},
+    {  0x0200 + 101, (char *) "Country-PrimaryLocationName", (char *) "Country Name"},
+    {  0x0200 + 103, (char *) "OriginalTransmissionReference", (char *) "Transmission Reference"},
+    {  0x0200 + 105, (char *) "Headline", (char *) "Headline"},
+    {  0x0200 + 110, (char *) "Credit", (char *) "Credit"},
+    {  0x0200 + 115, (char *) "Source", (char *) "Source"},
+    {  0x0200 + 116, (char *) "CopyrightNotice", (char *) "Copyright Notice"},
+    {  0x0200 + 118, (char *) "Contact", (char *) "Contact"},
+    {  0x0200 + 120, (char *) "Caption-Abstract", (char *) "Caption"},
+    {  0x0200 + 122, (char *) "Writer-Editor", (char *) "Caption Writer"},
+    {  0x0200 + 125, (char *) "RasterizedCaption", (char *) "Rasterized Caption"},
+    {  0x0200 + 130, (char *) "ImageType", (char *) "Image Type"},
+    {  0x0200 + 131, (char *) "ImageOrientation", (char *) "Image Orientation"},
+    {  0x0200 + 135, (char *) "LanguageIdentifier", (char *) "Language Identifier"},
+    {  0x0200 + 150, (char *) "AudioType", (char *) "Audio Type"},
+    {  0x0200 + 151, (char *) "AudioSamplingRate", (char *) "Audio Sampling Rate"},
+    {  0x0200 + 152, (char *) "AudioSamplingResolution", (char *) "Audio Sampling Resolution"},
+    {  0x0200 + 153, (char *) "AudioDuration", (char *) "Audio Duration"},
+    {  0x0200 + 154, (char *) "AudioOutcue", (char *) "Audio Outcue"},
+		// Metadata seen in other softwares (see also http://owl.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html#ApplicationRecord)
+    {  0x0200 + 184, (char *) "JobID", (char *) "Job ID"},
+    {  0x0200 + 185, (char *) "MasterDocumentID", (char *) "Master Document ID"},
+    {  0x0200 + 186, (char *) "ShortDocumentID", (char *) "Short Document ID"},
+    {  0x0200 + 187, (char *) "UniqueDocumentID", (char *) "Unique Document ID"},
+    {  0x0200 + 188, (char *) "OwnerID", (char *) "Owner ID"},
+		// IPTC-NAA IIM version 4
+    {  0x0200 + 200, (char *) "ObjectPreviewFileFormat", (char *) "Object Preview File Format"},
+    {  0x0200 + 201, (char *) "ObjectPreviewFileVersion", (char *) "Object Preview File Version"},
+    {  0x0200 + 202, (char *) "ObjectPreviewData", (char *) "Audio Outcue"},
+		// Metadata seen in other softwares (see also http://owl.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html#ApplicationRecord)
+    {  0x0200 + 221, (char *) "Prefs", (char *) "PhotoMechanic preferences"},
+    {  0x0200 + 225, (char *) "ClassifyState", (char *) "Classify State"},
+    {  0x0200 + 228, (char *) "SimilarityIndex", (char *) "Similarity Index"},
+    {  0x0200 + 230, (char *) "DocumentNotes", (char *) "Document Notes"},
+    {  0x0200 + 231, (char *) "DocumentHistory", (char *) "Document History"},
+    {  0x0200 + 232, (char *) "ExifCameraInfo", (char *) "Exif Camera Info"},
+
     {  0x0000, (char *) NULL, (char *) NULL}
   };
 
@@ -846,7 +945,7 @@ TagLib::TagLib() {
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_NIKONTYPE1, exif_nikon_type1_tag_table);
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_NIKONTYPE2, exif_nikon_type2_tag_table);
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_NIKONTYPE3, exif_nikon_type3_tag_table);
-	addMetadataModel(TagLib::EXIF_MAKERNOTE_OLYMPUS, exif_olympus_tag_table);
+	addMetadataModel(TagLib::EXIF_MAKERNOTE_OLYMPUSTYPE1, exif_olympus_type1__tag_table);
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_PANASONIC, exif_panasonic_tag_table);
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_ASAHI, exif_asahi_tag_table);
 	addMetadataModel(TagLib::EXIF_MAKERNOTE_PENTAX, exif_pentax_tag_table);
@@ -975,7 +1074,7 @@ TagLib::getFreeImageModel(MDMODEL model) {
 		case EXIF_MAKERNOTE_NIKONTYPE1:
 		case EXIF_MAKERNOTE_NIKONTYPE2:
 		case EXIF_MAKERNOTE_NIKONTYPE3:
-		case EXIF_MAKERNOTE_OLYMPUS:
+		case EXIF_MAKERNOTE_OLYMPUSTYPE1:
 		case EXIF_MAKERNOTE_PANASONIC:
 		case EXIF_MAKERNOTE_ASAHI:
 		case EXIF_MAKERNOTE_PENTAX:

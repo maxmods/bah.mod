@@ -25,7 +25,7 @@ FIBITMAP * DLL_CALLCONV
 FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTER filter) {
 	FIBITMAP *dst = NULL;
 
-	if (!src || (dst_width <= 0) || (dst_height <= 0)) {
+	if (!src || (dst_width <= 0) || (dst_height <= 0) || (FreeImage_GetWidth(src) <= 0) || (FreeImage_GetHeight(src) <= 0)) {
 		return NULL;
 	}
 
@@ -69,7 +69,7 @@ FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTE
 				dst24 = Engine.scale(src24, dst_width, dst_height);
 				if(!dst24) throw(1);
 				// color quantize to 8-bit
-				dst = FreeImage_ColorQuantize(dst24, FIQ_WUQUANT);
+				dst = FreeImage_ColorQuantize(dst24, FIQ_NNQUANT);
 				// free and return
 				FreeImage_Unload(src24);
 				FreeImage_Unload(dst24);
@@ -122,6 +122,9 @@ FreeImage_Rescale(FIBITMAP *src, int dst_width, int dst_height, FREE_IMAGE_FILTE
 
 	delete pFilter;
 
+	// copy metadata from src to dst
+	FreeImage_CloneMetadata(dst, src);
+	
 	return dst;
 }
 
@@ -156,7 +159,7 @@ FreeImage_MakeThumbnail(FIBITMAP *dib, int max_pixel_size, BOOL convert) {
 		if(new_width == 0) new_width = 1;
 	}
 
-	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
+	const FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
 
 	// perform downsampling using a bilinear interpolation
 
@@ -217,5 +220,8 @@ FreeImage_MakeThumbnail(FIBITMAP *dib, int max_pixel_size, BOOL convert) {
 		}
 	}
 
+	// copy metadata from src to dst
+	FreeImage_CloneMetadata(thumbnail, dib);
+	
 	return thumbnail;
 }

@@ -53,7 +53,7 @@ typedef struct {
 static void
 _ReadProc(png_structp png_ptr, unsigned char *data, png_size_t size) {
     pfi_ioStructure pfio = (pfi_ioStructure)png_get_io_ptr(png_ptr);
-	unsigned n = pfio->s_io->read_proc(data, size, 1, pfio->s_handle);
+	unsigned n = pfio->s_io->read_proc(data, (unsigned int)size, 1, pfio->s_handle);
 	if(size && (n == 0)) {
 		throw "Read error: invalid or corrupted PNG file";
 	}
@@ -62,7 +62,7 @@ _ReadProc(png_structp png_ptr, unsigned char *data, png_size_t size) {
 static void
 _WriteProc(png_structp png_ptr, unsigned char *data, png_size_t size) {
     pfi_ioStructure pfio = (pfi_ioStructure)png_get_io_ptr(png_ptr);
-    pfio->s_io->write_proc(data, size, 1, pfio->s_handle);
+    pfio->s_io->write_proc(data, (unsigned int)size, 1, pfio->s_handle);
 }
 
 static void
@@ -101,7 +101,7 @@ ReadMetadata(png_structp png_ptr, png_infop info_ptr, FIBITMAP *dib) {
 			tag = FreeImage_CreateTag();
 			if(!tag) return FALSE;
 
-			DWORD tag_length = MAX(text_ptr[i].text_length, text_ptr[i].itxt_length);
+			DWORD tag_length = (DWORD) MAX(text_ptr[i].text_length, text_ptr[i].itxt_length);
 
 			FreeImage_SetTagLength(tag, tag_length);
 			FreeImage_SetTagCount(tag, tag_length);
@@ -260,8 +260,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	png_structp png_ptr = NULL;
 	png_infop info_ptr;
 	png_uint_32 width, height;
-	png_colorp png_palette;
-	int color_type, palette_entries;
+	png_colorp png_palette = NULL;
+	int color_type, palette_entries = 0;
 	int bit_depth, pixel_depth;		// pixel_depth = bit_depth * channels
 
 	FIBITMAP *dib = NULL;
@@ -392,7 +392,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					break;
 
 				default:
-					throw "PNG format not supported";
+					throw FI_MSG_ERROR_UNSUPPORTED_FORMAT;
 			}
 
 			// Get the background color to draw transparent and alpha images over.
@@ -408,13 +408,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				rgbBkColor.rgbBlue     = (BYTE)image_background->blue;
 				rgbBkColor.rgbReserved = 0;
 			}
-
-			// if this image has transparency, store the trns values
-
-			png_bytep trans               = NULL;
-			int num_trans                 = 0;
-			//png_color_16p trans_values    = NULL;
-			//png_uint_32 transparent_value = png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, &trans_values);
 
 			// unlike the example in the libpng documentation, we have *no* idea where
 			// this file may have come from--so if it doesn't have a file gamma, don't
@@ -473,8 +466,12 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 					// store the transparency table
 
-					if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-						FreeImage_SetTransparencyTable(dib, (BYTE *)trans, num_trans);					
+					if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+						int num_trans = 0; 
+						png_bytep trans = NULL; 
+						png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, NULL); 
+						FreeImage_SetTransparencyTable(dib, (BYTE *)trans, num_trans);
+					}
 
 					break;
 
@@ -491,15 +488,26 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 							palette[i].rgbBlue  = (BYTE)((i * 255) / (palette_entries - 1));
 						}
 					}
+
 					// store the transparency table
 
-					if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-						FreeImage_SetTransparencyTable(dib, (BYTE *)trans, num_trans);					
+					if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+						png_color_16p trans_values = NULL; 
+						png_get_tRNS(png_ptr, info_ptr, NULL, NULL, &trans_values); 
+						if(trans_values) {
+							if (trans_values->gray < palette_entries) { 
+								BYTE table[256]; 
+								memset(table, 0xFF, palette_entries); 
+								table[trans_values->gray] = 0; 
+								FreeImage_SetTransparencyTable(dib, table, palette_entries); 
+							}
+						}
+					}
 
 					break;
 
 				default:
-					throw "PNG format not supported";
+					throw FI_MSG_ERROR_UNSUPPORTED_FORMAT;
 			}
 
 			// store the background color 
@@ -678,10 +686,33 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			// PNG_INTERLACE_ADAM7, and the compression_type and filter_type MUST
 			// currently be PNG_COMPRESSION_TYPE_BASE and PNG_FILTER_TYPE_BASE. REQUIRED
 
-			interlace_type = PNG_INTERLACE_NONE;	// Default value
 			width = FreeImage_GetWidth(dib);
 			height = FreeImage_GetHeight(dib);
-			pixel_depth = FreeImage_GetBPP(dib);	
+			pixel_depth = FreeImage_GetBPP(dib);
+
+			BOOL bInterlaced = FALSE;
+			if( (flags & PNG_INTERLACED) == PNG_INTERLACED) {
+				interlace_type = PNG_INTERLACE_ADAM7;
+				bInterlaced = TRUE;
+			} else {
+				interlace_type = PNG_INTERLACE_NONE;
+			}
+
+			// set the ZLIB compression level or default to PNG default compression level (ZLIB level = 6)
+			int zlib_level = flags & 0x0F;
+			if((zlib_level >= 1) && (zlib_level <= 9)) {
+				png_set_compression_level(png_ptr, zlib_level);
+			} else if((flags & PNG_Z_NO_COMPRESSION) == PNG_Z_NO_COMPRESSION) {
+				png_set_compression_level(png_ptr, Z_NO_COMPRESSION);
+			}
+
+			// filtered strategy works better for high color images
+			if(pixel_depth >= 16){
+				png_set_compression_strategy(png_ptr, Z_FILTERED);
+				png_set_filter(png_ptr, 0, PNG_FILTER_NONE|PNG_FILTER_SUB|PNG_FILTER_PAETH);
+			} else {
+				png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
+			}
 
 			FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
 			if(image_type == FIT_BITMAP) {
@@ -691,7 +722,6 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 				// 16-bit greyscale or 16-bit RGB(A)
 				bit_depth = 16;
 			}
-
 
 			switch (FreeImage_GetColorType(dib)) {
 				case FIC_MINISWHITE:
@@ -779,8 +809,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			// set the transparency table
 
-			if ((pixel_depth == 8) && (FreeImage_IsTransparent(dib)) && (FreeImage_GetTransparencyCount(dib) > 0))
+			if ((pixel_depth == 8) && (FreeImage_IsTransparent(dib)) && (FreeImage_GetTransparencyCount(dib) > 0)) {
 				png_set_tRNS(png_ptr, info_ptr, FreeImage_GetTransparencyTable(dib), FreeImage_GetTransparencyCount(dib), NULL);
+			}
 
 			// set the background color
 
@@ -811,21 +842,29 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			}
 #endif
 
+			int number_passes = 1;
+			if (bInterlaced) {
+				number_passes = png_set_interlace_handling(png_ptr);
+			}
 
 			if ((pixel_depth == 32) && (!has_alpha_channel)) {
 				BYTE *buffer = (BYTE *)malloc(width * 3);
 
 				// transparent conversion to 24-bit
-				for (png_uint_32 k = 0; k < height; k++) {
-					FreeImage_ConvertLine32To24(buffer, FreeImage_GetScanLine(dib, height - k - 1), width);
-
-					png_write_row(png_ptr, buffer);
+				// the number of passes is either 1 for non-interlaced images, or 7 for interlaced images
+				for (int pass = 0; pass < number_passes; pass++) {
+					for (png_uint_32 k = 0; k < height; k++) {
+						FreeImage_ConvertLine32To24(buffer, FreeImage_GetScanLine(dib, height - k - 1), width);			
+						png_write_row(png_ptr, buffer);
+					}
 				}
-
 				free(buffer);
 			} else {
-				for (png_uint_32 k = 0; k < height; k++) {
-					png_write_row(png_ptr, FreeImage_GetScanLine(dib, height - k - 1));
+				// the number of passes is either 1 for non-interlaced images, or 7 for interlaced images
+				for (int pass = 0; pass < number_passes; pass++) {
+					for (png_uint_32 k = 0; k < height; k++) {			
+						png_write_row(png_ptr, FreeImage_GetScanLine(dib, height - k - 1));					
+					}
 				}
 			}
 
@@ -835,8 +874,9 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			png_write_end(png_ptr, info_ptr);
 
 			// clean up after the write, and free any memory allocated
-			if (palette)
+			if (palette) {
 				png_free(png_ptr, palette);
+			}
 
 			png_destroy_write_struct(&png_ptr, &info_ptr);
 

@@ -26,13 +26,6 @@
 #include "Utilities.h"
 
 // ----------------------------------------------------------
-//   Macros + structures
-// ----------------------------------------------------------
-
-#define RGB555(r, g, b) ((r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10))
-#define RGB565(r, g, b) ((r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11))
-
-// ----------------------------------------------------------
 //   Helpers
 // ----------------------------------------------------------
 
@@ -41,19 +34,19 @@
 
 // ----------------------------------------------------------
 /// 1-bit
-static BOOL Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 4-bit
-static BOOL Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 8-bit
-static BOOL Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 16-bit 555
-static BOOL Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 16-bit 565
-static BOOL Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 24-bit
-static BOOL Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 /// 32- bit
-static BOOL Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha);
+static BOOL Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha);
 // ----------------------------------------------------------
 
 // ----------------------------------------------------------
@@ -61,7 +54,7 @@ static BOOL Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD
 // ----------------------------------------------------------
 
 static BOOL 
-Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	BOOL value;
 
 	// check the bit depth of src and dst images
@@ -78,8 +71,8 @@ Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 	BYTE *src_bits = FreeImage_GetBits(src_dib);	
 
 	// combine images
-	for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-		for(WORD cols = 0; cols < FreeImage_GetWidth(src_dib); cols++) {
+	for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned cols = 0; cols < FreeImage_GetWidth(src_dib); cols++) {
 			// get bit at (rows, cols) in src image
 			value = (src_bits[cols >> 3] & (0x80 >> (cols & 0x07))) != 0;
 			// set bit at (rows, x+cols) in dst image	
@@ -98,7 +91,7 @@ Combine1(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 // ----------------------------------------------------------
 
 static BOOL 
-Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 
 	int swapTable[16];
 	BOOL bOddStart, bOddEnd;
@@ -167,12 +160,12 @@ Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 		bOddEnd = FALSE;
 	}
 
-	for(WORD rows = 0; rows < src_height; rows++) {
+	for(unsigned rows = 0; rows < src_height; rows++) {
 		memcpy(buffer, src_bits, src_line);
 		
 		// change the values in the temp row to be those from the swap table
 		
-		for (WORD cols = 0; cols < src_line; cols++) {
+		for (unsigned cols = 0; cols < src_line; cols++) {
 			buffer[cols] = (BYTE)((swapTable[HINIBBLE(buffer[cols]) >> 4] << 4) + swapTable[LOWNIBBLE(buffer[cols])]);
 		}
 
@@ -201,7 +194,7 @@ Combine4(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 // ----------------------------------------------------------
 
 static BOOL 
-Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	// check the bit depth of src and dst images
 	if((FreeImage_GetBPP(dst_dib) != 8) || (FreeImage_GetBPP(src_dib) != 8)) {
 		return FALSE;
@@ -217,7 +210,7 @@ Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 
 	if(alpha > 255) {
 		// combine images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
 			memcpy(dst_bits, src_bits, FreeImage_GetLine(src_dib));
 
 			dst_bits += FreeImage_GetPitch(dst_dib);
@@ -225,8 +218,8 @@ Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 		}
 	} else {
 		// alpha blend images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-			for (WORD cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {							
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+			for (unsigned cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {							
 				dst_bits[cols] = (BYTE)(((src_bits[cols] - dst_bits[cols]) * alpha + (dst_bits[cols] << 8)) >> 8);
 			}
 
@@ -243,7 +236,7 @@ Combine8(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 // ----------------------------------------------------------
 
 static BOOL 
-Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	// check the bit depth of src and dst images
 	if((FreeImage_GetBPP(dst_dib) != 16) || (FreeImage_GetBPP(src_dib) != 16)) {
 		return FALSE;
@@ -258,15 +251,15 @@ Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 	BYTE *src_bits = FreeImage_GetBits(src_dib);	
 
 	if (alpha > 255) {
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
 			memcpy(dst_bits, src_bits, FreeImage_GetLine(src_dib));
 
 			dst_bits += FreeImage_GetPitch(dst_dib);
 			src_bits += FreeImage_GetPitch(src_dib);
 		}
 	} else {
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-			for(WORD cols = 0; cols < FreeImage_GetLine(src_dib); cols += 2) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+			for(unsigned cols = 0; cols < FreeImage_GetLine(src_dib); cols += 2) {
 				RGBTRIPLE color_s;
 				RGBTRIPLE color_t;
 				
@@ -303,7 +296,7 @@ Combine16_555(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 }
 
 static BOOL 
-Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	// check the bit depth of src and dst images
 	if((FreeImage_GetBPP(dst_dib) != 16) || (FreeImage_GetBPP(src_dib) != 16)) {
 		return FALSE;
@@ -318,15 +311,15 @@ Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 	BYTE *src_bits = FreeImage_GetBits(src_dib);	
 
 	if (alpha > 255) {
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
 			memcpy(dst_bits, src_bits, FreeImage_GetLine(src_dib));
 
 			dst_bits += FreeImage_GetPitch(dst_dib);
 			src_bits += FreeImage_GetPitch(src_dib);
 		}
 	} else {
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-			for(WORD cols = 0; cols < FreeImage_GetLine(src_dib); cols += 2) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+			for(unsigned cols = 0; cols < FreeImage_GetLine(src_dib); cols += 2) {
 				RGBTRIPLE color_s;
 				RGBTRIPLE color_t;
 				
@@ -367,7 +360,7 @@ Combine16_565(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) 
 // ----------------------------------------------------------
 
 static BOOL 
-Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	// check the bit depth of src and dst images
 	if((FreeImage_GetBPP(dst_dib) != 24) || (FreeImage_GetBPP(src_dib) != 24)) {
 		return FALSE;
@@ -383,7 +376,7 @@ Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 
 	if(alpha > 255) {
 		// combine images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
 			memcpy(dst_bits, src_bits, FreeImage_GetLine(src_dib));
 
 			dst_bits += FreeImage_GetPitch(dst_dib);
@@ -391,8 +384,8 @@ Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 		}
 	} else {
 		// alpha blend images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-			for (WORD cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {							
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+			for (unsigned cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {							
 				dst_bits[cols] = (BYTE)(((src_bits[cols] - dst_bits[cols]) * alpha + (dst_bits[cols] << 8)) >> 8);
 			}
 
@@ -409,7 +402,7 @@ Combine24(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 // ----------------------------------------------------------
 
 static BOOL 
-Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
+Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y, unsigned alpha) {
 	// check the bit depth of src and dst images
 	if((FreeImage_GetBPP(dst_dib) != 32) || (FreeImage_GetBPP(src_dib) != 32)) {
 		return FALSE;
@@ -425,7 +418,7 @@ Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 
 	if (alpha > 255) {
 		// combine images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
 			memcpy(dst_bits, src_bits, FreeImage_GetLine(src_dib));
 
 			dst_bits += FreeImage_GetPitch(dst_dib);
@@ -433,8 +426,8 @@ Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 		}
 	} else {
 		// alpha blend images
-		for(WORD rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
-			for(WORD cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {
+		for(unsigned rows = 0; rows < FreeImage_GetHeight(src_dib); rows++) {
+			for(unsigned cols = 0; cols < FreeImage_GetLine(src_dib); cols++) {
 				dst_bits[cols] = (BYTE)(((src_bits[cols] - dst_bits[cols]) * alpha + (dst_bits[cols] << 8)) >> 8);
 			}
 
@@ -451,19 +444,19 @@ Combine32(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y, WORD alpha) {
 // ----------------------------------------------------------
 
 static BOOL 
-CombineSameType(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y) {
+CombineSameType(FIBITMAP *dst_dib, FIBITMAP *src_dib, unsigned x, unsigned y) {
 	// check the bit depth of src and dst images
 	if(FreeImage_GetImageType(dst_dib) != FreeImage_GetImageType(src_dib)) {
 		return FALSE;
 	}
 
-	int src_width  = FreeImage_GetWidth(src_dib);
-	int src_height = FreeImage_GetHeight(src_dib);
-	int src_pitch  = FreeImage_GetPitch(src_dib);
-	int src_line   = FreeImage_GetLine(src_dib);
-	int dst_width  = FreeImage_GetWidth(dst_dib);
-	int dst_height = FreeImage_GetHeight(dst_dib);
-	int dst_pitch  = FreeImage_GetPitch(dst_dib);
+	unsigned src_width  = FreeImage_GetWidth(src_dib);
+	unsigned src_height = FreeImage_GetHeight(src_dib);
+	unsigned src_pitch  = FreeImage_GetPitch(src_dib);
+	unsigned src_line   = FreeImage_GetLine(src_dib);
+	unsigned dst_width  = FreeImage_GetWidth(dst_dib);
+	unsigned dst_height = FreeImage_GetHeight(dst_dib);
+	unsigned dst_pitch  = FreeImage_GetPitch(dst_dib);
 	
 	// check the size of src image
 	if((x + src_width > dst_width) || (y + src_height > dst_height)) {
@@ -474,7 +467,7 @@ CombineSameType(FIBITMAP *dst_dib, FIBITMAP *src_dib, WORD x, WORD y) {
 	BYTE *src_bits = FreeImage_GetBits(src_dib);	
 
 	// combine images	
-	for(WORD rows = 0; rows < src_height; rows++) {
+	for(unsigned rows = 0; rows < src_height; rows++) {
 		memcpy(dst_bits, src_bits, src_line);
 
 		dst_bits += dst_pitch;
@@ -607,6 +600,27 @@ FreeImage_Copy(FIBITMAP *src, int left, int top, int right, int bottom) {
 		}
 	}
 
+	// copy metadata from src to dst
+	FreeImage_CloneMetadata(dst, src);
+	
+	// copy transparency table 
+	FreeImage_SetTransparencyTable(dst, FreeImage_GetTransparencyTable(src), FreeImage_GetTransparencyCount(src));
+	
+	// copy background color 
+	RGBQUAD bkcolor; 
+	if( FreeImage_GetBackgroundColor(src, &bkcolor) ) {
+		FreeImage_SetBackgroundColor(dst, &bkcolor); 
+	}
+	
+	// clone resolution 
+	FreeImage_SetDotsPerMeterX(dst, FreeImage_GetDotsPerMeterX(src)); 
+	FreeImage_SetDotsPerMeterY(dst, FreeImage_GetDotsPerMeterY(src)); 
+	
+	// clone ICC profile 
+	FIICCPROFILE *src_profile = FreeImage_GetICCProfile(src); 
+	FIICCPROFILE *dst_profile = FreeImage_CreateICCProfile(dst, src_profile->data, src_profile->size); 
+	dst_profile->flags = src_profile->flags; 
+	
 	return dst;
 }
 
@@ -628,12 +642,15 @@ FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha) {
 	if(!src || !dst) return FALSE;
 
 	// check the size of src image
+	if((left < 0) || (top < 0)) {
+		return FALSE;
+	}
 	if((left + FreeImage_GetWidth(src) > FreeImage_GetWidth(dst)) || (top + FreeImage_GetHeight(src) > FreeImage_GetHeight(dst))) {
 		return FALSE;
 	}
 
 	// check data type
-	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dst);
+	const FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dst);
 	if(image_type != FreeImage_GetImageType(src)) {
 		// no conversion between data type is done
 		return FALSE;
@@ -692,27 +709,27 @@ FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha) {
 		// paste src to dst
 		switch(FreeImage_GetBPP(dst)) {
 			case 1:
-				bResult = Combine1(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+				bResult = Combine1(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				break;
 			case 4:
-				bResult = Combine4(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+				bResult = Combine4(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				break;
 			case 8:
-				bResult = Combine8(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+				bResult = Combine8(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				break;
 			case 16:
 				if (isRGB565) {
-					bResult = Combine16_565(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+					bResult = Combine16_565(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				} else {
 					// includes case where all the masks are 0
-					bResult = Combine16_555(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+					bResult = Combine16_555(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				}
 				break;
 			case 24:
-				bResult = Combine24(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+				bResult = Combine24(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				break;
 			case 32:
-				bResult = Combine32(dst, clone, (WORD)left, (WORD)top, (WORD)alpha);
+				bResult = Combine32(dst, clone, (unsigned)left, (unsigned)top, (unsigned)alpha);
 				break;
 		}
 
@@ -721,7 +738,7 @@ FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha) {
 
 		}
 	else {	// any type other than FITBITMAP
-		bResult = CombineSameType(dst, src, (WORD)left, (WORD)top);
+		bResult = CombineSameType(dst, src, (unsigned)left, (unsigned)top);
 	}
 
 	return bResult;

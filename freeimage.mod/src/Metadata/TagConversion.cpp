@@ -174,10 +174,10 @@ ConvertAnyTag(FITAG *tag) {
 		{
 			unsigned long *pvalue = (unsigned long *)FreeImage_GetTagValue(tag);
 
-			sprintf(format, "%p", pvalue[0]);
+			sprintf(format, "%X", pvalue[0]);
 			buffer += format;
 			for(i = 1; i < tag_count; i++) {
-				sprintf(format, " %p",	pvalue[i]);
+				sprintf(format, " %X",	pvalue[i]);
 				buffer += format;
 			}
 			break;
@@ -837,6 +837,19 @@ ConvertExifTag(FITAG *tag) {
 			}
 			sprintf(format, "%d", isoEquiv);
 			buffer += format;
+			return buffer.c_str();
+		}
+		break;
+
+		case TAG_USER_COMMENT:
+		{
+			// first 8 bytes are used to define an ID code
+			// we assume this is an ASCII string
+			const BYTE *userComment = (BYTE*)FreeImage_GetTagValue(tag);
+			for(DWORD i = 8; i < FreeImage_GetTagLength(tag); i++) {
+				buffer += userComment[i];
+			}
+			buffer += '\0';
 			return buffer.c_str();
 		}
 		break;

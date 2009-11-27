@@ -172,13 +172,19 @@ processMakerNote(FIBITMAP *dib, char *pval, BOOL msb_order, DWORD *subdirOffset,
 	FreeImage_GetMetadata(FIMD_EXIF_MAIN, dib, "Make", &tagMake);
 	const char *Maker = (char*)FreeImage_GetTagValue(tagMake);
 
-	if((strncmp("OLYMP", pval, 5) == 0) || (strncmp("EPSON", pval, 5) == 0) || (strncmp("AGFA", pval, 4) == 0)) {
-		// Olympus Makernote
+	if((strncmp("OLYMP\x00\x01", pval, 7) == 0) || (strncmp("OLYMP\x00\x02", pval, 7) == 0) || (strncmp("EPSON", pval, 5) == 0) || (strncmp("AGFA", pval, 4) == 0)) {
+		// Olympus Type 1 Makernote
 		// Epson and Agfa use Olympus maker note standard, 
 		// see: http://www.ozhiker.com/electronics/pjmt/jpeg_info/
-		*md_model = TagLib::EXIF_MAKERNOTE_OLYMPUS;
+		*md_model = TagLib::EXIF_MAKERNOTE_OLYMPUSTYPE1;
 		*subdirOffset = 8;
 	} 
+	else if(strncmp("OLYMPUS\x00\x49\x49\x03\x00", pval, 12) == 0) {
+		// Olympus Type 2 Makernote
+		// !!! NOT YET SUPPORTED !!!
+		*subdirOffset = 0;
+		*md_model = TagLib::UNKNOWN;
+	}
 	else if(strncmp("Nikon", pval, 5) == 0) {
 		/* There are two scenarios here:
 		 * Type 1:
@@ -221,6 +227,10 @@ processMakerNote(FIBITMAP *dib, char *pval, BOOL msb_order, DWORD *subdirOffset,
 		}
 	} else if ((strncmp("FUJIFILM", pval, 8) == 0) || (Maker && (FreeImage_strnicmp("Fujifilm", Maker, 8) == 0))) {
         // Fujifile Makernote
+		// Fujifilm's Makernote always use Intel order altough the Exif section maybe in Intel order or in Motorola order. 
+		// If msb_order == TRUE, the Makernote won't be read: 
+		// the value of ifdStart will be 0x0c000000 instead of 0x0000000c and the MakerNote section will be discarded later
+		// in jpeg_read_exif_dir because the IFD is too high
 		*md_model = TagLib::EXIF_MAKERNOTE_FUJIFILM;
         DWORD ifdStart = (DWORD) ReadUint32(msb_order, pval + 8);
 		*subdirOffset = ifdStart;
@@ -461,7 +471,7 @@ processExifTag(FIBITMAP *dib, FITAG *tag, char *pval, BOOL msb_order, TagLib::MD
 	@return 
 */
 static BOOL 
-jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsigned int length, BOOL msb_order) {
+jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned long offset, unsigned int length, BOOL msb_order) {
 	WORD de, nde;
 
 	std::stack<WORD>			destack;	// directory entries stack
@@ -495,7 +505,7 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 		}
 
 		// remember that we've visited this directory so that we don't visit it again later
-		DWORD visited = (((DWORD)ifdp & 0xFFFF) << 16) | (DWORD)de;
+		DWORD visited = (DWORD)( (((size_t)ifdp & 0xFFFF) << 16) | (size_t)de );
 		if(visitedIFD.find(visited) != visitedIFD.end()) {
 			continue;
 		} else {
@@ -537,11 +547,17 @@ jpeg_read_exif_dir(FIBITMAP *dib, const BYTE *tiffp, unsigned int offset, unsign
 				// 4 bytes or less and value is in the dir entry itself
 				pval = pde + 8;
 			} else {
-				DWORD offset_value;
-
 				// if its bigger than 4 bytes, the directory entry contains an offset
-				offset_value = ReadUint32(msb_order, pde + 8);
-				if((size_t) (offset_value + FreeImage_GetTagLength(tag)) > length) {
+				// first check if offset exceeds buffer, at this stage FreeImage_GetTagLength may return invalid data
+				DWORD offset_value = ReadUint32(msb_order, pde + 8);
+				if(offset_value > length) {
+					// a problem occured : delete the tag (not free'd after)
+					FreeImage_DeleteTag(tag);
+					// jump to next entry
+					continue;
+				}
+				// now check if offset + tag length exceeds buffer
+				if(offset_value > length - FreeImage_GetTagLength(tag)) {
 					// a problem occured : delete the tag (not free'd after)
 					FreeImage_DeleteTag(tag);
 					// jump to next entry
@@ -634,7 +650,7 @@ jpeg_read_exif_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen)
 	BYTE lsb_first[4] = { 0x49, 0x49, 0x2A, 0x00 };		// Intel order
 	BYTE msb_first[4] = { 0x4D, 0x4D, 0x00, 0x2A };		// Motorola order
 
-	size_t length = datalen;
+	unsigned int length = datalen;
 	BYTE *profile = (BYTE*)dataptr;
 
 	// verify the identifying string
@@ -663,7 +679,7 @@ jpeg_read_exif_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen)
 		}
 
 		// this is the offset to the first IFD
-		size_t first_offset = ReadUint32(bMotorolaOrder, profile + 4);
+		unsigned long first_offset = ReadUint32(bMotorolaOrder, profile + 4);
 
 		if (first_offset < 8 || first_offset > 16) {
 			// This is usually set to 8

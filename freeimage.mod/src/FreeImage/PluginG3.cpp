@@ -115,13 +115,13 @@ copyFaxFile(FreeImageIO *io, fi_handle handle, TIFF* tifin, uint32 xsize, int st
 		rowbuf = (BYTE*) _TIFFmalloc(linesize);
 		refbuf = (BYTE*) _TIFFmalloc(linesize);
 		if (rowbuf == NULL || refbuf == NULL) {
-			throw "Not enough memory";
+			throw FI_MSG_ERROR_MEMORY;
 		}
 
 		tifin->tif_rawdatasize = G3GetFileSize(io, handle);
 		tifin->tif_rawdata = (tidata_t) _TIFFmalloc(tifin->tif_rawdatasize);
 		if (tifin->tif_rawdata == NULL) {
-			throw "Not enough memory";
+			throw FI_MSG_ERROR_MEMORY;
 		}
 			
 		if(!G3ReadFile(io, handle, tifin->tif_rawdata, tifin->tif_rawdatasize)) {
@@ -319,7 +319,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 		// open a temporary memory buffer to save decoded scanlines
 		memory = FreeImage_OpenMemory();
-		if(!memory) throw "not enough memory";
+		if(!memory) throw FI_MSG_ERROR_MEMORY;
 		
 		// wrap the raw fax file
 		faxTIFF = TIFFClientOpen("(FakeInput)", "w",

@@ -74,8 +74,9 @@ Extern
 	Function bmx_freeimage_ConvertTo16Bits555:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_ConvertTo16Bits565:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimage_ColorQuantize:Byte Ptr(handle:Byte Ptr, quantize:Int)
+	Function bmx_freeimage_ConvertToType:Byte Ptr(handle:Byte Ptr, dstType:Int, scaleLinear:Int)
 	
-	Function bmx_freeimage_RotateClassic:Byte Ptr(handle:Byte Ptr, angle:Double)
+	Function bmx_freeimage_Rotate:Byte Ptr(handle:Byte Ptr, angle:Double, color:Byte Ptr)
 	Function bmx_freeimage_RotateEx:Byte Ptr(handle:Byte Ptr, angle:Double, xShift:Double, yShift:Double, xOrigin:Double, yOrigin:Double, useMask:Int)
 	
 	Function bmx_freeimage_FlipHorizontal(handle:Byte Ptr)
@@ -147,12 +148,34 @@ Extern
 	Function FreeImage_GetFIFDescription:Byte Ptr(fif:Int)
 	Function FreeImage_FIFSupportsReading:Int(fif:Int)
 	Function FreeImage_FIFSupportsWriting:Int(fif:Int)
+	Function FreeImage_GetFIFFromFilename:Int(filename:Byte Ptr)
 	Function FreeImage_GetFIFFromFilenameU:Int(filename:Short Ptr)
-	'Function FreeImage_SetPixelColor(dib:Byte Ptr, x:Int, y:Int, rgbquad:Byte Ptr)
+	Function bmx_freeimage_AdjustCurve:Int(handle:Byte Ptr, lut:Byte Ptr, channel:Int)
+	Function bmx_freeimage_AdjustColors:Int(handle:Byte Ptr, brightness:Double, contrast:Double, Gamma:Double, invert:Int)
+	Function bmx_freeimage_JPEGCrop:Int(source:String, dest:String, _left:Int, _top:Int, _right:Int, _bottom:Int)
+	Function bmx_freeimage_PreMultiplyWithAlpha:Int(handle:Byte Ptr)
+	Function bmx_freeimage_enlargeCanvas:Byte Ptr(handle:Byte Ptr, _left:Int, _top:Int, _right:Int, _bottom:Int, color:Byte Ptr, options:Int)
+	Function bmx_freeimage_HasBackgroundColor:Int(handle:Byte Ptr)
+	Function bmx_freeimage_getBackgroundColor:Byte Ptr(handle:Byte Ptr)
+	Function bmx_freeimage_setBackgroundColor:Int(handle:Byte Ptr, color:Byte Ptr)
+	Function bmx_freeimage_getPixelColor:Byte Ptr(handle:Byte Ptr, x:Int, y:Int)
+	Function bmx_freeimage_setPixelColor(handle:Byte Ptr, x:Int, y:Int, color:Byte Ptr)
 
 	Function bmx_freeimagemetadata_FindFirstMetadata:Byte Ptr(model:Int, image:Byte Ptr, tag:Byte Ptr)
 	Function bmx_freeimagemetadata_FindNextMetadata:Byte Ptr(handle:Byte Ptr)
 	Function bmx_freeimagemetadata_free(handle:Byte Ptr)
+
+	Function bmx_rgbquad_free(handle:Byte Ptr)
+	Function bmx_rgbquad_create:Byte Ptr(r:Int, g:Int, b:Int, a:Int)
+	Function bmx_rgbquad_red:Int(handle:Byte Ptr)
+	Function bmx_rgbquad_green:Int(handle:Byte Ptr)
+	Function bmx_rgbquad_blue:Int(handle:Byte Ptr)
+	Function bmx_rgbquad_reserved:Int(handle:Byte Ptr)
+	Function bmx_rgbquad_setrgba(handle:Byte Ptr, r:Int, g:Int, b:Int, a:Int)
+	Function bmx_rgbquad_setred(handle:Byte Ptr, r:Int)
+	Function bmx_rgbquad_setgreen(handle:Byte Ptr, g:Int)
+	Function bmx_rgbquad_setblue(handle:Byte Ptr, b:Int)
+	Function bmx_rgbquad_setalpha(handle:Byte Ptr, a:Int)
 
 End Extern
 
@@ -203,6 +226,9 @@ Const FIF_SGI:Int = 28
 Const FIF_EXR:Int = 29
 Const FIF_J2K:Int = 30
 Const FIF_JP2:Int = 31
+Const FIF_PFM:Int = 32
+Const FIF_PICT:Int = 33
+Const FIF_RAW:Int = 34
 
 
 Const FILTER_BOX:Int = 0	' Box, pulse, Fourier window, 1st order (constant) b-spline
@@ -280,7 +306,9 @@ Const FIQ_NNQUANT:Int = 1
 
 Const FITMO_DRAGO03:Int = 0
 Const FITMO_REINHARD05:Int = 1
+Const FITMO_FATTAL02:Int = 2 ' Gradient domain high dynamic Range compression (R. Fattal, 2002)
 
+	
 Const FIMD_NODATA:Int = -1
 Const FIMD_COMMENTS:Int = 0       ' single comment Or keywords
 Const FIMD_EXIF_MAIN:Int = 1      ' Exif-TIFF metadata
@@ -308,6 +336,29 @@ Const FIDT_SRATIONAL:Int = 10 ' 64-bit signed fraction
 Const FIDT_FLOAT:Int = 11     ' 32-bit IEEE floating point 
 Const FIDT_DOUBLE:Int = 12    ' 64-bit IEEE floating point 
 Const FIDT_IFD:Int = 13       ' 32-bit unsigned integer (offset) 
-Const FIDT_PALETTE:int = 14   ' 32-bit RGBQUAD 
+Const FIDT_PALETTE:Int = 14   ' 32-bit RGBQUAD 
 
+Const FIT_UNKNOWN:Int = 0    ' unknown type
+Const FIT_BITMAP:Int = 1    ' standard image			: 1-, 4-, 8-, 16-, 24-, 32-bit
+Const FIT_UINT16:Int = 2    ' array of unsigned short	: unsigned 16-bit
+Const FIT_INT16:Int = 3    ' array of short			: signed 16-bit
+Const FIT_UINT32:Int = 4    ' array of unsigned long	: unsigned 32-bit
+Const FIT_INT32:Int = 5    ' array of long			: signed 32-bit
+Const FIT_FLOAT:Int = 6    ' array of float			: 32-bit IEEE floating point
+Const FIT_DOUBLE:Int = 7    ' array of double			: 64-bit IEEE floating point
+Const FIT_COMPLEX:Int = 8    ' array of FICOMPLEX		: 2 x 64-bit IEEE floating point
+Const FIT_RGB16:Int = 9    ' 48-bit RGB image			: 3 x 16-bit
+Const FIT_RGBA16:Int = 10    ' 64-bit RGBA image		: 4 x 16-bit
+Const FIT_RGBF:Int = 11    ' 96-bit RGB float image	: 3 x 32-bit IEEE floating point
+Const FIT_RGBAF:Int = 12	' 128-bit RGBA float image	: 4 x 32-bit IEEE floating point
+
+
+Const FIJPEG_OP_NONE:Int = 0    ' no transformation
+Const FIJPEG_OP_FLIP_H:Int = 1    ' horizontal flip
+Const FIJPEG_OP_FLIP_V:Int = 2    ' vertical flip
+Const FIJPEG_OP_TRANSPOSE:Int = 3    ' transpose across UL-to-LR axis
+Const FIJPEG_OP_TRANSVERSE:Int = 4    ' transpose across UR-to-LL axis
+Const FIJPEG_OP_ROTATE_90:Int = 5    ' 90-degree clockwise rotation
+Const FIJPEG_OP_ROTATE_180:Int = 6    ' 180-degree rotation
+Const FIJPEG_OP_ROTATE_270:Int = 7    ' 270-degree clockwise (or 90 ccw)
 

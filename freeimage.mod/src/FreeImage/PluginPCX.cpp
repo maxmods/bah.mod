@@ -331,7 +331,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			// check PCX identifier
 
 			if ((header.manufacturer != 0x0A) || (header.version > 5))
-				throw "Invalid PCX file";
+				throw FI_MSG_ERROR_MAGIC_NUMBER;
 
 			// allocate a new DIB
 
@@ -346,14 +346,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			// if the dib couldn't be allocated, throw an error
 
-			if (!dib)
-				throw "DIB allocation failed";			
+			if (!dib) {
+				throw FI_MSG_ERROR_DIB_MEMORY;
+			}
 
 			// metrics handling code
 
-			BITMAPINFOHEADER *pInfoHeader = FreeImage_GetInfoHeader(dib);
-			pInfoHeader->biXPelsPerMeter = (int) (((float)header.hdpi) / 0.0254000 + 0.5);
-			pInfoHeader->biYPelsPerMeter = (int) (((float)header.vdpi) / 0.0254000 + 0.5);
+			FreeImage_SetDotsPerMeterX(dib, (unsigned) (((float)header.hdpi) / 0.0254000 + 0.5));
+			FreeImage_SetDotsPerMeterY(dib, (unsigned) (((float)header.vdpi) / 0.0254000 + 0.5));
 
 			// Set up the palette if needed
 			// ----------------------------
@@ -532,7 +532,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					bits -= pitch;
 				}
 			} else {
-				throw "Unable to read this file";
+				throw FI_MSG_ERROR_UNSUPPORTED_FORMAT;
 			}
 
 			delete [] line;

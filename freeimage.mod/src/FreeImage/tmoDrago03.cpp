@@ -35,7 +35,7 @@
 Bias function
 */
 static inline double 
-biasFunction(double b, double x) {
+biasFunction(const double b, const double x) {
 	return pow (x, b);		// pow(x, log(bias)/log(0.5)
 }
 
@@ -46,10 +46,10 @@ x*(6 + 0.7662x)/(5.9897 + 3.7658x) between 1 and 2
 See http://www.nezumi.demon.co.uk/consult/logx.htm
 */
 static inline double 
-pade_log(double x) {
+pade_log(const double x) {
 	if(x < 1) {
 		return (x * (6 + x) / (6 + 4 * x));
-	} else if(x >= 1 && x < 2) {
+	} else if(x < 2) {
 		return (x * (6 + 0.7662 * x) / (5.9897 + 3.7658 * x));
 	}
 	return log(x + 1);
@@ -63,10 +63,9 @@ Log mapping operator
 @param biasParam Bias parameter (a zero value default to 0.85)
 @param exposure Exposure parameter (default to 0)
 @return Returns TRUE if successful, returns FALSE otherwise
-@see calculateLuminance
 */
 static BOOL 
-ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, float exposure) {
+ToneMappingDrago03(FIBITMAP *dib, const float maxLum, const float avgLum, float biasParam, const float exposure) {
 	const float LOG05 = -0.693147F;	// log(0.5) 
 
 	double Lmax, divider, interpol, biasP;
@@ -76,9 +75,9 @@ ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, f
 	if(FreeImage_GetImageType(dib) != FIT_RGBF)
 		return FALSE;
 
-	unsigned width  = FreeImage_GetWidth(dib);
-	unsigned height = FreeImage_GetHeight(dib);
-	unsigned pitch  = FreeImage_GetPitch(dib);
+	const unsigned width  = FreeImage_GetWidth(dib);
+	const unsigned height = FreeImage_GetHeight(dib);
+	const unsigned pitch  = FreeImage_GetPitch(dib);
 
 
 	// arbitrary Bias Parameter 
@@ -102,9 +101,7 @@ ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, f
 		FIRGBF *pixel = (FIRGBF*)bits;
 		for(x = 0; x < width; x++) {
 			double Yw = pixel[x].red / avgLum;
-			if(exposure != 1.0) {
-				Yw *= exposure;
-			}
+			Yw *= exposure;
 			interpol = log(2 + biasFunction(biasP, Yw / Lmax) * 8);
 			L = pade_log(Yw);// log(Yw + 1)
 			pixel[x].red = (float)((L / interpol) / divider);
@@ -137,9 +134,7 @@ ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, f
 				for(j = 0; j < 3; j++) {
 					index = (y + i)*fpitch + (x + j);
 					image[index].red /= (float)avgLum;
-					if (exposure != 1) {
-						image[index].red *= exposure; 
-					}
+					image[index].red *= exposure; 
 					average += image[index].red;
 				}
 			}
@@ -178,9 +173,7 @@ ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, f
 		FIRGBF *pixel = (FIRGBF*)bits;
 		for(x = max_width; x < width; x++) {
 			double Yw = pixel[x].red / avgLum;
-			if(exposure != 1.0) {
-				Yw *= exposure;
-			}
+			Yw *= exposure;
 			interpol = log(2 + biasFunction(biasP, Yw / Lmax) * 8);
 			L = pade_log(Yw);// log(Yw + 1)
 			pixel[x].red = (float)((L / interpol) / divider);
@@ -194,9 +187,7 @@ ToneMappingDrago03(FIBITMAP *dib, float maxLum, float avgLum, float biasParam, f
 		FIRGBF *pixel = (FIRGBF*)bits;
 		for(x = 0; x < max_width; x++) {
 			double Yw = pixel[x].red / avgLum;
-			if(exposure != 1.0) {
-				Yw *= exposure;
-			}
+			Yw *= exposure;
 			interpol = log(2 + biasFunction(biasP, Yw / Lmax) * 8);
 			L = pade_log(Yw);// log(Yw + 1)
 			pixel[x].red = (float)((L / interpol) / divider);
@@ -217,14 +208,14 @@ Custom gamma correction based on the ITU-R BT.709 standard
 @return Returns TRUE if successful, returns FALSE otherwise
 */
 static BOOL 
-REC709GammaCorrection(FIBITMAP *dib, float gammaval) {
+REC709GammaCorrection(FIBITMAP *dib, const float gammaval) {
 	if(FreeImage_GetImageType(dib) != FIT_RGBF)
 		return FALSE;
 
 	float slope = 4.5F;
 	float start = 0.018F;
 	
-	float fgamma = (float)((0.45 / gammaval) * 2);
+	const float fgamma = (float)((0.45 / gammaval) * 2);
 	if(gammaval >= 2.1F) {
 		start = (float)(0.018 / ((gammaval - 2) * 7.5));
 		slope = (float)(4.5 * ((gammaval - 2) * 7.5));
@@ -233,9 +224,9 @@ REC709GammaCorrection(FIBITMAP *dib, float gammaval) {
 		slope = (float)(4.5 / ((2 - gammaval) * 7.5));
 	}
 
-	unsigned width  = FreeImage_GetWidth(dib);
-	unsigned height = FreeImage_GetHeight(dib);
-	unsigned pitch  = FreeImage_GetPitch(dib);
+	const unsigned width  = FreeImage_GetWidth(dib);
+	const unsigned height = FreeImage_GetHeight(dib);
+	const unsigned pitch  = FreeImage_GetPitch(dib);
 
 	BYTE *bits = (BYTE*)FreeImage_GetBits(dib);
 	for(unsigned y = 0; y < height; y++) {
@@ -257,11 +248,10 @@ REC709GammaCorrection(FIBITMAP *dib, float gammaval) {
 // ----------------------------------------------------------
 
 /**
-Apply the Adaptive Logarithmic Mapping operator to a RGBF image and convert to 24-bit RGB
-@param src Input RGBF image
+Apply the Adaptive Logarithmic Mapping operator to a HDR image and convert to 24-bit RGB
+@param src Input RGB16 or RGB[A]F image
 @param gamma Gamma correction (gamma > 0). 1 means no correction, 2.2 in the original paper.
 @param exposure Exposure parameter (0 means no correction, 0 in the original paper)
-If set to FALSE, src is left unchanged: a temporary working image is allocated. 
 @return Returns a 24-bit RGB image if successful, returns NULL otherwise
 */
 FIBITMAP* DLL_CALLCONV 
@@ -277,8 +267,8 @@ FreeImage_TmoDrago03(FIBITMAP *src, double gamma, double exposure) {
 	if(!dib) return NULL;
 
 	// default algorithm parameters
-	float biasParam = 0.85F;
-	float expoParam = (float)pow(2.0, exposure); //default exposure is 1, 2^0
+	const float biasParam = 0.85F;
+	const float expoParam = (float)pow(2.0, exposure); //default exposure is 1, 2^0
 
 	// convert to Yxy
 	ConvertInPlaceRGBFToYxy(dib);
@@ -298,5 +288,8 @@ FreeImage_TmoDrago03(FIBITMAP *src, double gamma, double exposure) {
 	// clean-up and return
 	FreeImage_Unload(dib);
 
+	// copy metadata from src to dst
+	FreeImage_CloneMetadata(dst, src);
+	
 	return dst;
 }
