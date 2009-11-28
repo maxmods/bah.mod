@@ -20,6 +20,8 @@
  THE SOFTWARE.
 */
 
+#include <blitz.h>
+
 #include "FreeImage.h"
 #include "Plugin.h"
 #include "CacheFile.h"
@@ -32,8 +34,6 @@ class MaxFreeImageTag;
 class MaxRGBQUAD;
 
 extern "C" {
-
-#include <blitz.h>
 
 	MaxFreeImage * bmx_freeimage_new(void * handle);
 	void bmx_freeimage_delete(MaxFreeImage * freeimage);

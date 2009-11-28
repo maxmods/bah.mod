@@ -24,7 +24,7 @@ img.flipHorizontal()
 
 ' for 32 bit images... it will also invert ALPHA !!! (making things invisible)
 img.invert()
-img = img.rotateClassic(45)
+img = img.rotate(45)
 
 
 ' save the image as a png
