@@ -994,8 +994,8 @@ BOOL bmx_freeimage_AdjustColors(MaxFreeImage * freeimage, double brightness, dou
 
 BOOL bmx_freeimage_JPEGCrop(BBString * source, BBString * dest, int _left, int _top, int _right, int _bottom) {
 #ifdef WIN32
-	wchar_t *s = bbStringToWString( source );
-	wchar_t *d = bbStringToWString( dest );
+	wchar_t *s = (wchar_t *)bbStringToWString( source );
+	wchar_t *d = (wchar_t *)bbStringToWString( dest );
 	BOOL res = FreeImage_JPEGCropU(s, d, _left, _top, _right, _bottom);
 	bbMemFree(d);
 	bbMemFree(s);
