@@ -16,9 +16,9 @@ Import "../cegui.mod/cegui/src/implementations/mac/*.h"
 Import "../cegui.mod/cegui/include/*.h"
 
 ' ogl renderer
+Import Pub.Glew
+Import "../../pub.mod/glew.mod/GL/*.h"
 Import "../cegui.mod/cegui/include/RendererModules/OpenGL/*.h"
-Import "../cegui.mod/cegui/src/RendererModules/OpenGL/GLEW/*.h"
-Import "../cegui.mod/cegui/src/RendererModules/OpenGL/GLEW/src/glew.c"
 
 ?macos
 Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLApplePBTextureTarget.cpp"
