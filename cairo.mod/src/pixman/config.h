@@ -61,7 +61,7 @@
 #undef USE_MMX
 
 /* use SSE2 compiler intrinsics */
-#undef USE_SSE2
+//#define USE_SSE2
 
 /* use VMX compiler intrinsics */
 #undef USE_VMX

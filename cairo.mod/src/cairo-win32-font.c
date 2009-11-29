@@ -158,7 +158,8 @@ _compute_transform (cairo_win32_scaled_font_t *scaled_font,
 {
     cairo_status_t status;
 
-    if (NEARLY_ZERO (sc->yx) && NEARLY_ZERO (sc->xy)) {
+    if (NEARLY_ZERO (sc->yx) && NEARLY_ZERO (sc->xy) &&
+	    !NEARLY_ZERO(sc->xx) && !NEARLY_ZERO(sc->yy)) {
 	scaled_font->preserve_axes = TRUE;
 	scaled_font->x_scale = sc->xx;
 	scaled_font->swap_x = (sc->xx < 0);
@@ -166,7 +167,8 @@ _compute_transform (cairo_win32_scaled_font_t *scaled_font,
 	scaled_font->swap_y = (sc->yy < 0);
 	scaled_font->swap_axes = FALSE;
 
-    } else if (NEARLY_ZERO (sc->xx) && NEARLY_ZERO (sc->yy)) {
+    } else if (NEARLY_ZERO (sc->xx) && NEARLY_ZERO (sc->yy) &&
+	    !NEARLY_ZERO(sc->yx) && !NEARLY_ZERO(sc->xy)) {
 	scaled_font->preserve_axes = TRUE;
 	scaled_font->x_scale = sc->yx;
 	scaled_font->swap_x = (sc->yx < 0);
@@ -982,12 +984,9 @@ _cairo_win32_scaled_font_init_glyph_metrics (cairo_win32_scaled_font_t *scaled_f
 	if (GetGlyphOutlineW (hdc, _cairo_scaled_glyph_index (scaled_glyph),
 			      GGO_METRICS | GGO_GLYPH_INDEX,
 			      &metrics, 0, NULL, &matrix) == GDI_ERROR) {
-	  status = _cairo_win32_print_gdi_error ("_cairo_win32_scaled_font_init_glyph_metrics:GetGlyphOutlineW");
-	  memset (&metrics, 0, sizeof (GLYPHMETRICS));
+	    memset (&metrics, 0, sizeof (GLYPHMETRICS));
 	}
 	cairo_win32_scaled_font_done_font (&scaled_font->base);
-	if (status)
-	    return status;
 
 	if (scaled_font->swap_axes) {
 	    extents.x_bearing = - metrics.gmptGlyphOrigin.y / scaled_font->y_scale;
@@ -1026,12 +1025,9 @@ _cairo_win32_scaled_font_init_glyph_metrics (cairo_win32_scaled_font_t *scaled_f
 	if (GetGlyphOutlineW (hdc, _cairo_scaled_glyph_index (scaled_glyph),
 	                      GGO_METRICS | GGO_GLYPH_INDEX,
 			      &metrics, 0, NULL, &matrix) == GDI_ERROR) {
-	  status = _cairo_win32_print_gdi_error ("_cairo_win32_scaled_font_init_glyph_metrics:GetGlyphOutlineW");
-	  memset (&metrics, 0, sizeof (GLYPHMETRICS));
+	    memset (&metrics, 0, sizeof (GLYPHMETRICS));
 	}
 	_cairo_win32_scaled_font_done_unscaled_font (&scaled_font->base);
-	if (status)
-	    return status;
 
 	extents.x_bearing = (double)metrics.gmptGlyphOrigin.x / scaled_font->em_square;
 	extents.y_bearing = - (double)metrics.gmptGlyphOrigin.y / scaled_font->em_square;
@@ -1548,6 +1544,7 @@ _cairo_win32_scaled_font_index_to_ucs4 (void		*abstract_font,
 	goto exit1;
     }
 
+    *ucs4 = (uint32_t) -1;
     for (i = 0; i < glyph_set->cRanges; i++) {
 	num_glyphs = glyph_set->ranges[i].cGlyphs;
 

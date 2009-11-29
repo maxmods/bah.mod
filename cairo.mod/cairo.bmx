@@ -6,12 +6,16 @@ bbdoc: Cairo Vector Graphics Library
 End Rem
 Module BaH.cairo
 
-ModuleInfo "Version: 1.21"
+ModuleInfo "Version: 1.23"
 ModuleInfo "License: MPL / LGPL"
 ModuleInfo "Author: University of Southern California and Carl D. Worth"
 ModuleInfo "Credit: Adapted for BlitzMax by Duncan Cross and Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.23"
+ModuleInfo "History: Cairo update to 1.8.8. Pixmap update to 0.17.2."
+ModuleInfo "History: 1.22"
+ModuleInfo "History: Version bump... problem with release 1.21"
 ModuleInfo "History: 1.21"
 ModuleInfo "History: Cairo upgrade to 1.8.4"
 ModuleInfo "History: Removal of fontconfig dependency on Win32 and Mac."
@@ -71,9 +75,18 @@ ModuleInfo "History: Fixed Delete() method for Linux to prevent memory exception
 ModuleInfo "History: 1.00 Initial Release (Cairo 1.0.4)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+?x86
+ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX"
+?
 
-' pixman-private.h
-' includes config.h
+' build notes
+'
+' cairo-ft.h
+'  Commented out references to fontconfig
+'
+' cairo-ft-font.c
+'  Commented out references to fontconfig
+'
 
 Import BRL.Pixmap
 Import BRL.Max2D
