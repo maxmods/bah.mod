@@ -75,7 +75,7 @@ ModuleInfo "History: Fixed Delete() method for Linux to prevent memory exception
 ModuleInfo "History: 1.00 Initial Release (Cairo 1.0.4)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
-?x86
+?macosx86
 ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX"
 ?
 
