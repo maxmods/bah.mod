@@ -38,6 +38,9 @@ ModuleInfo "CC_OPTS: -fexceptions"
 
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
+?win32
+ModuleInfo "CC_OPTS: -DFREEIMAGE_LIB"
+ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ?
 
 Import "common.bmx"
