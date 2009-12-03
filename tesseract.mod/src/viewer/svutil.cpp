@@ -43,6 +43,8 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <stdio.h>
+
 const int kBufferSize = 65536;
 const int kMaxMsgSize = 4096;
 
