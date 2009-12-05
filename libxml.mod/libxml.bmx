@@ -33,6 +33,7 @@ ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.15"
 ModuleInfo "History: Added missing xmlParserOptions."
+ModuleInfo "History: Added TxmlDoc readFile() and readDoc() functions."
 ModuleInfo "History: 1.14"
 ModuleInfo "History: Updated to Libxml 2.7.4."
 ModuleInfo "History: Fixed TxmlTextReader cleaning up string before it had finished using it."
@@ -562,6 +563,8 @@ Type TxmlDoc Extends TxmlBase
 
 	' reference to the actual document
 	Field _xmlDocPtr:Byte Ptr
+	
+	Field _readStream:TStream
 
 	Rem
 	bbdoc: Creates a new XML document.
@@ -647,6 +650,236 @@ Type TxmlDoc Extends TxmlBase
 		End If
 		
 	End Function
+	
+	Rem
+	bbdoc: Parse an XML file from the filesystem or the network.
+	returns: The resulting document tree.
+	about: The parsing flags @options are a combination of the following:
+	<table>
+	<tr><th>Constant</th><th>Meaning</th></tr>
+	<tr><td>XML_PARSE_RECOVER</td><td>recover on errors</td></tr>
+	<tr><td>XML_PARSE_NOENT</td><td>substitute entities</td></tr>
+	<tr><td>XML_PARSE_DTDLOAD</td><td>load the external subset</td></tr>
+	<tr><td>XML_PARSE_DTDATTR</td><td>default DTD attributes</td></tr>
+	<tr><td>XML_PARSE_DTDVALID</td><td>validate with the DTD</td></tr>
+	<tr><td>XML_PARSE_NOERROR</td><td>suppress error reports</td></tr>
+	<tr><td>XML_PARSE_NOWARNING</td><td>suppress warning reports</td></tr>
+	<tr><td>XML_PARSE_PEDANTIC</td><td>pedantic error reporting</td></tr>
+	<tr><td>XML_PARSE_NOBLANKS</td><td>remove blank nodes</td></tr>
+	<tr><td>XML_PARSE_SAX1</td><td>use the SAX1 interface internally</td></tr>
+	<tr><td>XML_PARSE_XINCLUDE</td><td>Implement XInclude substitition</td></tr>
+	<tr><td>XML_PARSE_NONET</td><td>Forbid network access</td></tr>
+	<tr><td>XML_PARSE_NODICT</td><td>Do not reuse the context dictionnary</td></tr>
+	<tr><td>XML_PARSE_NSCLEAN</td><td>remove redundant namespaces declarations</td></tr>
+	<tr><td>XML_PARSE_NOCDATA</td><td>merge CDATA as text nodes</td></tr>
+	<tr><td>XML_PARSE_NOXINCNODE</td><td>do not generate XINCLUDE START/END nodes</td></tr>
+	<tr><td>XML_PARSE_COMPACT</td><td>compact small text nodes. no modification of the tree allowed
+	afterwards (will possibly crash if you try to modify the tree)</td></tr>
+	<tr><td>XML_PARSE_OLD10</td><td>parse using XML-1.0 before update 5</td></tr>
+	<tr><td>XML_PARSE_NOBASEFIX</td><td>do not fixup XINCLUDE xml:base uris</td></tr>
+	<tr><td>XML_PARSE_HUGE</td><td>relax any hardcoded limit from the parser</td></tr>
+	<tr><td>XML_PARSE_OLDSAX</td><td>parse using SAX2 interface from before 2.7.0</td></tr>
+	</table>
+	Parameters:
+	<ul>
+	<li><b> filename </b> : a file or URL.</li>
+	<li><b> encoding </b> : the document encoding, or NULL.</li>
+	<li><b> options </b> : a combination of parser options.</li>
+	</ul>
+	End Rem
+	Function ReadFile:TxmlDoc(filename:String, encoding:String = "", options:Int = 0)
+		Assert filename, XML_ERROR_PARAM
+		
+		Local i:Int = filename.Find( "::",0 )
+		' a "normal" url?
+		If i = -1 Then
+			Local cStr:Byte Ptr = filename.toCString()
+			Local cStr1:Byte Ptr
+			If encoding Then
+				cStr1 = encoding.toCString()
+			End If
+			Local doc:TxmlDoc
+			If cStr1 Then
+				doc = TxmlDoc._create(xmlReadFile(cStr, cStr1, options))
+				MemFree cStr1
+			Else
+				doc = TxmlDoc._create(xmlReadFile(cStr, Null, options))
+			End If
+			MemFree cStr
+			Return doc
+		Else
+			Local proto:String = filename[..i].ToLower()
+			Local path:String = filename[i+2..]
+			
+			If proto = "incbin" Then
+				Local buf:Byte Ptr = IncbinPtr( path )
+				If Not buf Then
+					Return Null
+				End If
+				Local size:Int = IncbinLen( path )
+				
+				Local cStr1:Byte Ptr
+				If encoding Then
+					cStr1 = encoding.toCString()
+				End If
+				
+				Local doc:TxmlDoc
+				If cStr1 Then
+					doc = TxmlDoc._create(xmlReadMemory(buf, size, Null, cStr1, options))
+					MemFree cStr1
+				Else
+					doc = TxmlDoc._create(xmlReadMemory(buf, size, Null, Null, options))
+				End If
+				Return doc
+			End If
+		End If
+		
+		Return Null
+	End Function
+	
+	Rem
+	bbdoc: Parse an XML document from a String or TStream and build a tree.
+	returns: The resulting document tree.
+	about: The parsing flags @options are a combination of the following:
+	<table>
+	<tr><th>Constant</th><th>Meaning</th></tr>
+	<tr><td>XML_PARSE_RECOVER</td><td>recover on errors</td></tr>
+	<tr><td>XML_PARSE_NOENT</td><td>substitute entities</td></tr>
+	<tr><td>XML_PARSE_DTDLOAD</td><td>load the external subset</td></tr>
+	<tr><td>XML_PARSE_DTDATTR</td><td>default DTD attributes</td></tr>
+	<tr><td>XML_PARSE_DTDVALID</td><td>validate with the DTD</td></tr>
+	<tr><td>XML_PARSE_NOERROR</td><td>suppress error reports</td></tr>
+	<tr><td>XML_PARSE_NOWARNING</td><td>suppress warning reports</td></tr>
+	<tr><td>XML_PARSE_PEDANTIC</td><td>pedantic error reporting</td></tr>
+	<tr><td>XML_PARSE_NOBLANKS</td><td>remove blank nodes</td></tr>
+	<tr><td>XML_PARSE_SAX1</td><td>use the SAX1 interface internally</td></tr>
+	<tr><td>XML_PARSE_XINCLUDE</td><td>Implement XInclude substitition</td></tr>
+	<tr><td>XML_PARSE_NONET</td><td>Forbid network access</td></tr>
+	<tr><td>XML_PARSE_NODICT</td><td>Do not reuse the context dictionnary</td></tr>
+	<tr><td>XML_PARSE_NSCLEAN</td><td>remove redundant namespaces declarations</td></tr>
+	<tr><td>XML_PARSE_NOCDATA</td><td>merge CDATA as text nodes</td></tr>
+	<tr><td>XML_PARSE_NOXINCNODE</td><td>do not generate XINCLUDE START/END nodes</td></tr>
+	<tr><td>XML_PARSE_COMPACT</td><td>compact small text nodes. no modification of the tree allowed
+	afterwards (will possibly crash if you try to modify the tree)</td></tr>
+	<tr><td>XML_PARSE_OLD10</td><td>parse using XML-1.0 before update 5</td></tr>
+	<tr><td>XML_PARSE_NOBASEFIX</td><td>do not fixup XINCLUDE xml:base uris</td></tr>
+	<tr><td>XML_PARSE_HUGE</td><td>relax any hardcoded limit from the parser</td></tr>
+	<tr><td>XML_PARSE_OLDSAX</td><td>parse using SAX2 interface from before 2.7.0</td></tr>
+	</table>
+	Parameters:
+	<ul>
+	<li><b> doc </b> : a string for parsing, or an open TStream.</li>
+	<li><b> url </b> : the base URL to use for the document.</li>
+	<li><b> encoding </b> : the document encoding, or NULL.</li>
+	<li><b> options </b> : a combination of parser options.</li>
+	</ul>
+	End Rem
+	Function ReadDoc:TxmlDoc(doc:Object, url:String = "", encoding:String = "", options:Int = 0)
+		Assert doc, XML_ERROR_PARAM
+		
+		If String(doc) Then
+			Local text:String = String(doc)
+	
+			' strip utf8 BOM		
+			If text[..3] = BOM_UTF8 Then
+				text = text[3..]
+			End If
+			
+			Local cStr:Byte Ptr = _xmlConvertMaxToUTF8(text).toCString()
+			
+			Local cStr1:Byte Ptr, cStr2:Byte Ptr
+			If url Then
+				cStr1 = url.toCString()
+			End If
+			If encoding Then
+				cStr2 = encoding.toCString()
+			End If
+			
+			Local _xmlDocPtr:Byte Ptr
+			
+			If cStr1 Then
+				If cStr2 Then
+					_xmlDocPtr = xmlReadDoc(cStr, cStr1, cStr2, options)
+				Else
+					_xmlDocPtr = xmlReadDoc(cStr, cStr1, Null, options)
+				End If
+			Else
+				If cStr2 Then
+					_xmlDocPtr = xmlReadDoc(cStr, Null, cStr2, options)
+				Else
+					_xmlDocPtr = xmlReadDoc(cStr, Null, Null, options)
+				End If
+			End If
+			
+			If cStr1 Then
+				MemFree cStr1
+			End If
+			If cStr2 Then
+				MemFree cStr2
+			End If
+			
+			MemFree cStr
+			
+			If _xmlDocPtr = Null Then
+				Return Null
+			Else
+				Return TxmlDoc._create(_xmlDocPtr)
+			End If
+		
+		Else If TStream(doc) Then
+		
+			Local tempDoc:TxmlDoc = New TxmlDoc
+			tempDoc._readStream = TStream(doc)
+			
+			
+			Local cStr1:Byte Ptr, cStr2:Byte Ptr
+			If url Then
+				cStr1 = url.toCString()
+			End If
+			If encoding Then
+				cStr2 = encoding.toCString()
+			End If
+			
+			Local _xmlDocPtr:Byte Ptr
+			
+			If cStr1 Then
+				If cStr2 Then
+					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, cStr2, options)
+				Else
+					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, cStr1, Null, options)
+				End If
+			Else
+				If cStr2 Then
+					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, cStr2, options)
+				Else
+					_xmlDocPtr = xmlReadIO(_xmlInputReadCallback, _xmlInputCloseCallback, tempDoc, Null, Null, options)
+				End If
+			End If
+			
+			If cStr1 Then
+				MemFree cStr1
+			End If
+			If cStr2 Then
+				MemFree cStr2
+			End If
+
+			If _xmlDocPtr = Null Then
+				Return Null
+			Else
+				Return TxmlDoc._create(_xmlDocPtr)
+			End If
+		
+		End If
+		
+	End Function
+	
+	Function _xmlInputReadCallback:Int(doc:Object, buffer:Byte Ptr, length:Int)
+		Return TxmlDoc(doc)._readStream.Read(buffer, length)
+	End Function
+	
+	Function _xmlInputCloseCallback:Int(doc:Object)
+		Return 0
+	End function
 
 	Rem
 	bbdoc: Parse an XML file and build a tree.

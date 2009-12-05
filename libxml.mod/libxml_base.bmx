@@ -101,6 +101,10 @@ Extern
 	Function xmlCreateIntSubset:Byte Ptr(doc:Byte Ptr, name:Byte Ptr, externalID:Byte Ptr, systemID:Byte Ptr)
 	Function xmlCopyDoc:Byte Ptr(doc:Byte Ptr, recursive:Int)
 	Function xmlGetIntSubset:Byte Ptr(doc:Byte Ptr)
+	Function xmlReadFile:Byte Ptr(filename:Byte Ptr, encoding:Byte Ptr, options:Int)
+	Function xmlReadMemory:Byte Ptr(buf:Byte Ptr, size:Int, url:Byte Ptr, encoding:Byte Ptr, options:Int)
+	Function xmlReadDoc:Byte Ptr(text:Byte Ptr, url:Byte Ptr, encoding:Byte Ptr, options:Int)
+	Function xmlReadIO:Byte Ptr(readCallback:Int(context:Object, buf:Byte Ptr, length:Int), closeCallback:Int(context:Object), context:Object, url:Byte Ptr, encoding:Byte Ptr, options:Int)
 	
 	Function xmlSetDocCompressMode(doc:Byte Ptr, Mode:Int)
 	Function xmlGetDocCompressMode:Int(doc:Byte Ptr)
