@@ -98,6 +98,10 @@ Extern
 	Function pixConvolve:Byte Ptr(handle:Byte Ptr, kel:Byte Ptr, outDepth:Int, normFlag:Int)
 	Function pixConvolveSep:Byte Ptr(handle:Byte Ptr, kelX:Byte Ptr, kelY:Byte Ptr, outDepth:Int, normFlag:Int)
 
+	Function pixRotate:Byte Ptr(handle:Byte Ptr, angle:Float, rotateType:Int, inColor:Int, width:Int, height:Int)
+	Function pixEmbedForRotation:Byte Ptr(handle:Byte Ptr, angle:Float, inColor:Int, width:Int, height:Int)
+	Function pixRotateBySampling:Byte Ptr(handle:Byte Ptr, xCen:Int, yCen:Int, radians:Float, inColor:Int)
+
 	Function bmx_pixRenderBoxArb:Int(handle:Byte Ptr, box:Byte Ptr, width:Int, rval:Int, gval:Int, bval:Int)
 	Function bmx_pixRenderBoxBlend:Int(handle:Byte Ptr, box:Byte Ptr, width:Int, rval:Int, gval:Int, bval:Int, fract:Float)
 	Function bmx_pixRenderHashBoxArb:Int(handle:Byte Ptr, box:Byte Ptr, spacing:Int, width:Int, orient:Int, outline:Int, rval:Int, gval:Int, bval:Int)
@@ -269,3 +273,35 @@ bbdoc: Add amount of src inverse to itself, based on blender pix value.
 end rem
 Const L_BLEND_GRAY_WITH_INVERSE:Int = 5
 
+Rem
+bbdoc: Use area map rotation, if possible
+end rem
+Const L_ROTATE_AREA_MAP:Int = 1
+Rem
+bbdoc: Use shear rotation
+end rem
+Const L_ROTATE_SHEAR:Int = 2
+Rem
+bbdoc: Use sampling
+end rem
+Const L_ROTATE_SAMPLING:Int = 3
+
+
+Rem
+bbdoc: Bring in white pixels from the outside.
+end rem
+Const L_BRING_IN_WHITE:Int = 1
+Rem
+bbdoc: Bring in black pixels from the outside.
+end rem
+Const L_BRING_IN_BLACK:Int = 2
+
+
+Rem
+bbdoc: Shear image about UL corner.
+End Rem
+Const L_SHEAR_ABOUT_CORNER:Int = 1
+Rem
+bbdoc: Shear image about center.
+End Rem
+Const L_SHEAR_ABOUT_CENTER:Int = 2

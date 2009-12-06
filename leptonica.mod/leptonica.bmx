@@ -187,147 +187,148 @@ Type TLPIX
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the pix width.
 	End Rem
 	Method GetWidth:Int()
 		Return pixGetWidth(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pix width.
 	End Rem
 	Method SetWidth:Int(width:Int)
 		Return pixSetWidth(pixPtr, width)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the pix height.
 	End Rem
 	Method GetHeight:Int()
 		Return pixGetHeight(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pix height.
 	End Rem
 	Method SetHeight:Int(height:Int)
 		Return pixSetHeight(pixPtr, height)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the pix depth.
 	End Rem
 	Method GetDepth:Int()
 		Return pixGetDepth(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pix depth.
 	End Rem
 	Method SetDepth:Int(depth:Int)
 		Return pixSetDepth(pixPtr, depth)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the pix dimensions (width, height and depth).
 	End Rem
 	Method GetDimensions:Int(pw:Int Var, ph:Int Var, pd:Int Var)
 		Return pixGetDimensions(pixPtr, Varptr pw, Varptr ph, Varptr pd)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pix dimensions.
 	End Rem
 	Method SetDimensions:Int(w:Int, h:Int, d:Int)
 		Return pixSetDimensions(pixPtr, w, h, d)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Copies the @source dimensions into the current pix.
 	End Rem
 	Method CopyDimensions:Int(source:TLPIX)
 		Return pixCopyDimensions(pixPtr, source.pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the "words per line".
 	End Rem
 	Method GetWpl:Int()
 		Return pixGetWpl(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the "words per line".
 	End Rem
 	Method SetWpl:Int(wpl:Int)
 		Return pixSetWpl(pixPtr, wpl)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the X resolution of the pix.
 	End Rem
 	Method GetXRes:Int()
 		Return pixGetXRes(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the X resolution of the pix.
 	End Rem
 	Method SetXRes:Int(res:Int)
 		Return pixSetXRes(pixPtr, res)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the Y resolution of the pix.
 	End Rem
 	Method GetYRes:Int()
 		Return pixGetYRes(pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the Y resolution of the pix.
 	End Rem
 	Method SetYRes:Int(res:Int)
 		Return pixSetYRes(pixPtr, res)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the resolution of the pix.
 	End Rem
 	Method GetResolution:Int(pxRes:Int Var, pyRes:Int Var)
 		Return pixGetResolution(pixPtr, Varptr pxRes, Varptr pyRes)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the resolution of the pix.
 	End Rem
 	Method SetResolution:Int(xRes:Int, yRes:Int)
 		Return pixSetResolution(pixPtr, xRes, yRes)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Copies the resolution from @source to the current pix.
 	End Rem
 	Method CopyResolution:Int(source:TLPIX)
 		Return pixCopyResolution(pixPtr, source.pixPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Scales the resolution by @xScale, @yScale.
 	End Rem
 	Method ScaleResolution:Int(xScale:Float, yScale:Float)
 		Return pixScaleResolution(pixPtr, xScale, yScale)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the text string belongs to the pix.
 	End Rem
 	Method GetText:String()
 		Return String.fromCString(pixGetText(pixPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the pix text.
+	about: This removes any existing text.
 	End Rem
 	Method SetText:Int(text:String)
 		Local s:Byte Ptr = text.toCString()
@@ -337,7 +338,7 @@ Type TLPIX
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adds @text to any existing text.
 	End Rem
 	Method AddText:Int(text:String)
 		Local s:Byte Ptr = text.toCString()
@@ -347,7 +348,7 @@ Type TLPIX
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Copies text from @source to the current pix.
 	End Rem
 	Method CopyText:Int(source:TLPIX)
 		Return pixCopyText(pixPtr, source.pixPtr)
@@ -690,6 +691,89 @@ Type TLPIX
 	End Rem
 	Method ConvolveSep:TLPIX(kelX:TLKERNEL, kelY:TLKERNEL, outDepth:Int, normFlag:Int)
 		Return TLPIX._create(pixConvolveSep(pixPtr, kelX.kernelPtr, kelY.kernelPtr, outDepth, normFlag))
+	End Method
+	
+	Rem
+	bbdoc: General rotation about the center.
+	returns: The rotated pix, or Null on error.
+	about: Notes:
+	<ul>
+	<li>Rotation is about the center of the image.</li>
+	<li>For very small rotations, just return a clone.</li>
+	<li>Rotation brings either white or black pixels in from outside the image.</li>
+	<li>Above 20 degrees, if rotation by shear is requested, we rotate by sampling.</li>
+	<li>Colormaps are removed for rotation by area map and shear.</li>
+	<li>The dest can be expanded so that no image pixels are lost.  To invoke expansion, input the original
+          width and height.  For repeated rotation, use of the original width and height allows the expansion to
+          stop at the maximum required size, which is a square with side = sqrt(w*w + h*h).</li>
+	</ul>
+	<p>Parameters:
+	<ul>
+	<li><b>angle</b> : degrees; clockwise is positive.</li>
+	<li><b>rotateType </b> : one of L_ROTATE_AREA_MAP, L_ROTATE_SHEAR or L_ROTATE_SAMPLING.</li>
+	<li><b>inColor</b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
+	<li><b>width</b> : original width; use 0 to avoid embedding.</li>
+	<li><b>height</b> : original height; use 0 to avoid embedding.</li>
+	</ul>
+	</p>
+
+	End Rem
+	Method Rotate:TLPIX(angle:Float, rotateType:Int, inColor:Int, width:Int, height:Int)
+		Local radians:Float = angle * 0.0174532925
+		Return TLPIX._create(pixRotate(pixPtr, radians, rotateType, inColor, width, height))
+	End Method
+	
+	Rem
+	bbdoc: General rotation about the center.
+	about: Notes:
+	<ul>
+	<li>For very small rotations, just return a clone.</li>
+	<li>Generate larger image to embed pixs if necessary, and place in the center.</li>
+	<li>Rotation brings either white or black pixels in from outside the image.  For colormapped images where
+          there is no white or black, a new color is added if possible for these pixels; otherwise, either the
+          lightest or darkest color is used.  In most cases, the colormap will be removed prior to rotation.</li>
+	<li>The dest is to be expanded so that no image pixels are lost after rotation.  Input of the original width
+          and height allows the expansion to stop at the maximum required size, which is a square with side equal to sqrt(w*w + h*h).</li>
+	<li>Let theta be atan(w/h).  Then the height after rotation  cannot increase by a factor more than
+	<pre>cos(theta - |angle|)</pre>
+          whereas the width after rotation cannot increase by a factor more than 
+     <pre>sin(theta + |angle|)</pre>
+          These must be clipped to the maximal side, and additionally, we don't allow either the width or height to decrease.</li>
+	</ul>
+	<p>Parameters:
+	<ul>
+	<li><b>angle</b> : degrees; clockwise is positive.</li>
+	<li><b>inColor</b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
+	<li><b>width</b> : original width; use 0 to avoid embedding.</li>
+	<li><b>height</b> : original height; use 0 to avoid embedding.</li>
+	</ul>
+	</p>
+	End Rem
+	Method EmbedForRotation:TLPIX(angle:Float, inColor:Int, width:Int, height:Int)
+		Local radians:Float = angle * 0.0174532925
+		Return TLPIX._create(pixEmbedForRotation(pixPtr, radians, inColor, width, height))
+	End Method
+	
+	Rem
+	bbdoc: General rotation by sampling.
+	about: Notes:
+	<ul>
+	<li>For very small rotations, just return a clone.</li>
+	<li>Rotation brings either white or black pixels in from outside the image.</li>
+	<li>Colormaps are retained.</li>
+	</ul>
+	<p>Parameters:
+	<ul>
+	<li><b>xCen</b> : x value of center of rotation.</li>
+	<li><b>yCen</b> : y value of center of rotation.</li>
+	<li><b>angle</b> : degrees; clockwise is positive.</li>
+	<li><b>inColor</b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
+	</ul>
+	</p>	
+	End Rem
+	Method RotateBySampling:TLPIX(xCen:Int, yCen:Int, angle:Float, inColor:Int)
+		Local radians:Float = angle * 0.0174532925
+		Return TLPIX._create(pixRotateBySampling(pixPtr, xCen, yCen, radians, inColor))
 	End Method
 	
 	Rem
