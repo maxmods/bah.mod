@@ -135,7 +135,7 @@ Type TCODFont
 				
 				If force Then
 					' just to force the texture bind...
-					GLframe.Draw(0, 0, fontWidth, fontHeight, X, Y)
+					GLframe.Draw(0, 0, fontWidth, fontHeight, X, Y, 0, 0, 1, 1)
 				End If
 
 				glEnable GL_TEXTURE_2D
