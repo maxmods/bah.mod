@@ -36,6 +36,8 @@ extern "C" {
 	int bmx_pixRenderHashBoxBlend(PIX *pix, BOX *box, int spacing, int width, int orient, int outline, int rval, int gval, int bval, float fract);
 	int bmx_pixRenderLineArb(PIX *pix, int x1, int y1, int x2, int y2, int width, int rval, int gval, int bval);
 	int bmx_pixRenderLineBlend(PIX *pix, int x1, int y1, int x2, int y2, int width, int rval, int gval, int bval, float fract);
+	int bmx_pixRenderPolylineArb(PIX *pix, PTA *ptas, int width, int rval, int gval, int bval, int closeFlag);
+	int bmx_pixRenderPolylineBlend(PIX *pix, PTA *ptas, int width, int rval, int gval, int bval, float fract, int closeFlag, int removeDups);
 
 	void bmx_pixFree(PIX *pix);
 	void bmx_boxFree(BOX *box);

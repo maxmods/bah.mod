@@ -97,6 +97,7 @@ Extern
 	Function pixCensusTransform:Byte Ptr(handle:Byte Ptr, halfSize:Int, accum:Byte Ptr)
 	Function pixConvolve:Byte Ptr(handle:Byte Ptr, kel:Byte Ptr, outDepth:Int, normFlag:Int)
 	Function pixConvolveSep:Byte Ptr(handle:Byte Ptr, kelX:Byte Ptr, kelY:Byte Ptr, outDepth:Int, normFlag:Int)
+	Function pixRenderPolyline:Int(handle:Byte Ptr, ptas:Byte Ptr, width:Int, op:Int, closeFlag:Int)
 
 	Function pixRotate:Byte Ptr(handle:Byte Ptr, angle:Float, rotateType:Int, inColor:Int, width:Int, height:Int)
 	Function pixEmbedForRotation:Byte Ptr(handle:Byte Ptr, angle:Float, inColor:Int, width:Int, height:Int)
@@ -108,6 +109,8 @@ Extern
 	Function bmx_pixRenderHashBoxBlend:Int(handle:Byte Ptr, box:Byte Ptr, spacing:Int, width:Int, orient:Int, outline:Int, rval:Int, gval:Int, bval:Int, fract:Float)
 	Function bmx_pixRenderLineArb:Int(handle:Byte Ptr, x1:Int, y1:Int, x2:Int, y2:Int, width:Int, rval:Int, gval:Int, bval:Int)
 	Function bmx_pixRenderLineBlend:Int(handle:Byte Ptr, x1:Int, y1:Int, x2:Int, y2:Int, width:Int, rval:Int, gval:Int, bval:Int, fract:Float)
+	Function bmx_pixRenderPolylineArb:Int(handle:Byte Ptr, ptas:Byte Ptr, width:Int, rval:Int, gval:Int, bval:Int, closeFlag:Int)
+	Function bmx_pixRenderPolylineBlend:Int(handle:Byte Ptr, ptas:Byte Ptr, width:Int, rval:Int, gval:Int, bval:Int, fract:Float, closeFlag:Int, removeDups:Int)
 
 	Function bmx_pixFree(handle:Byte Ptr)
 

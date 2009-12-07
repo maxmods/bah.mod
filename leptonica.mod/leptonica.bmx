@@ -180,6 +180,55 @@ Type TLPIX
 	End Method
 	
 	Rem
+	bbdoc: Renders a closed contour.
+	returns: 0 if OK, 1 on error
+	about: Parameters:
+	<ul>
+	<li><b>ptas</b> : list of points.</li>
+	<li><b>width</b> : thickness of the line.</li>
+	<li><b>op</b> : one of L_SET_PIXELS, L_CLEAR_PIXELS or L_FLIP_PIXELS.</li>
+	<li><b>closeFlag</b> : 1 to close the contour; 0 otherwise.</li>
+	</ul>
+	End Rem
+	Method RenderPolyline:Int(ptas:TLPTA, width:Int, op:Int, closeFlag:Int)
+		Return pixRenderPolyline(pixPtr, ptas.ptaPtr, width, op, closeFlag)
+	End Method
+	
+	Rem
+	bbdoc: 
+	about: Parameters:
+	<ul>
+	<li><b>ptas</b> : list of points.</li>
+	<li><b>width</b> : thickness of the line.</li>
+	<li><b>rval</b> : red value.</li>
+	<li><b>gval</b> : green value.</li>
+	<li><b>bval</b> : blue value.</li>
+	<li><b>closeFlag</b> : 1 to close the contour; 0 otherwise.</li>
+	</ul>
+	End Rem
+	Method RenderPolylineArb:Int(ptas:TLPTA, width:Int, rval:Int, gval:Int, bval:Int, closeFlag:Int)
+		Return bmx_pixRenderPolylineArb(pixPtr, ptas.ptaPtr, width, rval, gval, bval, closeFlag)
+	End Method
+	
+	Rem
+	bbdoc: 
+	about: Parameters:
+	<ul>
+	<li><b>ptas</b> : list of points.</li>
+	<li><b>width</b> : thickness of the line.</li>
+	<li><b>rval</b> : red value.</li>
+	<li><b>gval</b> : green value.</li>
+	<li><b>bval</b> : blue value.</li>
+	<li><b>fract</b> : in [0.0 - 1.0]; complete transparency (no effect) if 0.0; no transparency if 1.0.</li>
+	<li><b>closeFlag</b> : 1 to close the contour; 0 otherwise.</li>
+	<li><b>removeDups</b> : xxxxxxxxxxxxxx.</li>
+	</ul>
+	End Rem
+	Method RenderPolylineBlend:Int(ptas:TLPTA, width:Int, rval:Int, gval:Int, bval:Int, fract:Float, closeFlag:Int, removeDups:Int)
+		Return bmx_pixRenderPolylineBlend(pixPtr, ptas.ptaPtr, width, rval, gval, bval, fract, closeFlag, removeDups)
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method SetData:Int(data:Byte Ptr)

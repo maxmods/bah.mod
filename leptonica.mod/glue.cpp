@@ -70,6 +70,14 @@ int bmx_pixRenderLineBlend(PIX *pix, int x1, int y1, int x2, int y2, int width, 
 	return pixRenderLineBlend(pix, x1, y1, x2, y2, width, static_cast<l_uint8>(rval), static_cast<l_uint8>(gval), static_cast<l_uint8>(bval), fract);
 }
 
+int bmx_pixRenderPolylineArb(PIX *pix, PTA *ptas, int width, int rval, int gval, int bval, int closeFlag) {
+	return pixRenderPolylineArb(pix, ptas, width, static_cast<l_uint8>(rval), static_cast<l_uint8>(gval), static_cast<l_uint8>(bval), closeFlag);
+}
+
+int bmx_pixRenderPolylineBlend(PIX *pix, PTA *ptas, int width, int rval, int gval, int bval, float fract, int closeFlag, int removeDups) {
+	return pixRenderPolylineBlend(pix, ptas, width, static_cast<l_uint8>(rval), static_cast<l_uint8>(gval), static_cast<l_uint8>(bval), fract, closeFlag, removeDups);
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void bmx_boxFree(BOX *box) {
