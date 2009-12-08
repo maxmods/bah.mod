@@ -441,6 +441,9 @@ CPLErr bmx_gdal_GDALRasterBand_WriteBlock(GDALRasterBand * handle, int xBlockOff
 	return handle->WriteBlock(xBlockOff, yBlockOff, image);
 }
 
+GDALColorTable * bmx_gdal_GDALRasterBand_GetColorTable(GDALRasterBand * handle) {
+	return handle->GetColorTable();
+}
 
 // *****************************************************
 
@@ -1140,6 +1143,16 @@ CPLErr bmx_gdal_VRTSourcedRasterBand_AddSimpleSource(VRTSourcedRasterBand * hand
 
 	bbMemFree(r);
 	return res;
+}
+
+// *****************************************************
+
+GDALPaletteInterp bmx_gdal_GDALColorTable_GetPaletteInterpretation(GDALColorTable * handle) {
+	return handle->GetPaletteInterpretation();
+}
+
+int bmx_gdal_GDALColorTable_GetColorEntryCount(GDALColorTable * handle) {
+	return handle->GetColorEntryCount();
 }
 
 

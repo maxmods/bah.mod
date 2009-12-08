@@ -748,8 +748,13 @@ Type GDALRasterBand Extends GDALMajorObject
 		Return bmx_gdal_GDALRasterBand_GetColorInterpretation(objectPtr)
 	End Method
 	
+	Rem
+	bbdoc: Fetches the color table associated with band.
+	about: If there is no associated color table, the return result is NULL. The returned color table
+	remains owned by the GDALRasterBand, and can't be depended on for long, nor should it ever be modified by the caller.
+	End Rem
 	Method GetColorTable:GDALColorTable()
-	' TODO
+		Return GDALColorTable._create(bmx_gdal_GDALRasterBand_GetColorTable(objectPtr))
 	End Method
 	
 	Rem
@@ -1233,6 +1238,44 @@ End Rem
 Type GDALColorTable
 
 	Field objectPtr:Byte Ptr
+	Field owner:Int = False
+	
+	Function _create:GDALColorTable(objectPtr:Byte Ptr)
+		If objectPtr Then
+			Local this:GDALColorTable = New GDALColorTable
+			this.objectPtr = objectPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Fetches palette interpretation.
+	about: The returned value is used to interpret the values in the GDALColorEntry.
+	One of GPI_Gray, GPI_RGB, GPI_CMYK or GPI_HLS .
+	End Rem
+	Method GetPaletteInterpretation:Int()
+		Return bmx_gdal_GDALColorTable_GetPaletteInterpretation(objectPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets number of color entries in table.
+	End Rem
+	Method GetColorEntryCount:Int()
+		Return bmx_gdal_GDALColorTable_GetColorEntryCount(objectPtr)
+	End Method
+	
+	Method Free()
+		If objectPtr Then
+			If owner Then
+				' TODO : free
+			End If
+			objectPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
 	
 End Type
 

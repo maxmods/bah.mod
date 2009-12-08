@@ -103,6 +103,7 @@ extern "C" {
 			GDALDataType bufType, int pixelSpace, int lineSpace);
 	CPLErr bmx_gdal_GDALRasterBand_ReadBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image);
 	CPLErr bmx_gdal_GDALRasterBand_WriteBlock(GDALRasterBand * handle, int xBlockOff, int yBlockOff, void * image);
+	GDALColorTable * bmx_gdal_GDALRasterBand_GetColorTable(GDALRasterBand * handle);
 
 	int bmx_gdal_GDALDriverManager_GetDriverCount();
 	GDALDriver * bmx_gdal_GDALDriverManager_GetDriver(int index);
@@ -231,6 +232,9 @@ extern "C" {
 	CPLErr bmx_gdal_VRTSourcedRasterBand_AddSimpleSource(VRTSourcedRasterBand * handle, GDALRasterBand *poSrcBand, int nSrcXOff, int nSrcYOff, 
 		int nSrcXSize, int nSrcYSize, int nDstXOff, int nDstYOff, int nDstXSize, int nDstYSize,
 		BBString * pszResampling, double dfNoDataValue);
+
+	GDALPaletteInterp bmx_gdal_GDALColorTable_GetPaletteInterpretation(GDALColorTable * handle);
+	int bmx_gdal_GDALColorTable_GetColorEntryCount(GDALColorTable * handle);
 
 	char** bmx_bbStringArrayToStringList(BBArray * data);
 	void bmx_StringListFree(char** list);

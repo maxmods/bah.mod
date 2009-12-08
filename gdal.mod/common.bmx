@@ -103,6 +103,7 @@ Extern
 			bufType:Int, pixelSpace:Int, lineSpace:Int)
 	Function bmx_gdal_GDALRasterBand_ReadBlock:Int(handle:Byte Ptr, xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
 	Function bmx_gdal_GDALRasterBand_WriteBlock:Int(handle:Byte Ptr, xBlockOff:Int, yBlockOff:Int, image:Byte Ptr)
+	Function bmx_gdal_GDALRasterBand_GetColorTable:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_gdal_GDAL_GCP_create:Byte Ptr(id:String, info:String, pixel:Double, line:Double, x:Double, y:Double, z:Double)
 	Function bmx_gdal_GDAL_GCP_GetID:String(handle:Byte Ptr)
@@ -217,6 +218,9 @@ Extern
 
 	Function bmx_gdal_VRTSourcedRasterBand_AddSimpleSource:Int(handle:Byte Ptr, srcBand:Byte Ptr, srcXOff:Int, srcYOff:Int, srcXSize:Int, srcYSize:Int, ..
 			dstXOff:Int, dstYOff:Int, dstXSize:Int, dstYSize:Int, resampling:String, noDataValue:Double)
+
+	Function bmx_gdal_GDALColorTable_GetPaletteInterpretation:Int(handle:Byte Ptr)
+	Function bmx_gdal_GDALColorTable_GetColorEntryCount:Int(handle:Byte Ptr)
 
 End Extern
 
@@ -644,4 +648,21 @@ Rem
 bbdoc: Write data
 End Rem
 Const GF_Write:Int = 1
+
+Rem
+bbdoc: Grayscale
+End Rem
+Const GPI_Gray:Int = 0
+Rem
+bbdoc: Red, Green, Blue And Alpha in (in c1, c2, c3 And c4)
+End Rem
+Const GPI_RGB:Int = 1
+Rem
+bbdoc: Cyan, Magenta, Yellow And Black (in c1, c2, c3 And c4)
+End Rem
+Const GPI_CMYK:Int = 2
+Rem
+bbdoc: Hue, Lightness And Saturation (in c1, c2, And c3) 
+End Rem
+Const GPI_HLS:Int = 3
 
