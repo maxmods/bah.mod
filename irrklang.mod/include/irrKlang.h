@@ -33,9 +33,9 @@
 #include "ik_IAudioRecorder.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.1.3"
+#define IRR_KLANG_VERSION "1.2.0"
 
-/*! \mainpage irrKlang 1.1.3 API documentation
+/*! \mainpage irrKlang 1.2.0 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 
@@ -44,6 +44,7 @@
  * @ref intro <br/>
  * @ref features <br/>
  * @ref links <br/>
+ * @ref tipsandtricks <br/>
  * <br/>
  * Programming irrKlang:<br/>
  * @ref concept <br/>
@@ -97,6 +98,7 @@
  *               <li>RIFF WAVE (*.wav)</li>
  *               <li>Ogg Vorbis (*.ogg)</li>
  *               <li>MPEG-1 Audio Layer 3 (*.mp3)</li>
+ *               <li>Free Lossless Audio Codec (*.flac)</li>
  *               <li>Amiga Modules (*.mod)</li>
  *               <li>Impulse Tracker (*.it)</li>
  *               <li>Scream Tracker 3 (*.s3d)</li>
@@ -104,7 +106,7 @@
  * </ul>
  * It is also able to run on different operating systems and use several output drivers:
  *<ul>
- *       <li>Windows 98, ME, NT 4, 2000, XP, Vista</li>
+ *       <li>Windows 98, ME, NT 4, 2000, XP, Vista, Windows 7</li>
  *	<ul>
  *       <li>DirectSound</li>
  *       <li>DirectSound8</li>
@@ -130,6 +132,32 @@
  * irrklang::ISoundEngine: The main class of irrKlang.<br/>
  * <A HREF="annotated.html">Class list</A>: List of all classes with descriptions.<BR/>
  * <A HREF="functions.html">Class members</A>: Good place to find forgotten features.<BR/>
+ * <br/>
+ * <br/>
+ * <br/>
+ *
+ *
+ *
+  * \section tipsandtricks Tips and Tricks
+ *
+ * This section lists a few tips you might consider when implementing the sound part of your application
+ * using irrKlang:
+ *
+ * <ul>
+ *               <li>If you can choose which audio file format is the primary one for your application,
+ *					 use .OGG files, instead of for example .MP3 files. irrKlang uses a lot less memory
+ *                   and CPU power when playing .OGGs.</li>
+ *               <li>To keep your application simple, each time you play a sound, you can use for example
+ *                   play2D("filename.mp3") and let irrKlang handle the rest. There is no need to implement
+ *                   a preloading/caching/file management system for the audio playback. irrKlang will handle
+ *                   all this by itself and will never load a file twice. </li>
+ *               <li>irrKlang is crashing in your application? This should not happen, irrKlang is pretty stable,
+ *                   and in most cases, this is a problem in your code: In a lot of cases the reason is simply
+ *                   a wrong call to irrklang::IRefCounted::drop(). Be sure you are doing it correctly. (If you are unsure,
+ *                   tempoarily remove all calls to irrklang::IRefCounted::drop() and see if this helps.)</li>
+ * </ul>
+ *
+ * <br/>
  * <br/>
  * <br/>
  * <br/>

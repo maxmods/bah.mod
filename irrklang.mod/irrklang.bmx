@@ -32,7 +32,7 @@ ModuleInfo "Copyright: Wrapper - 2008-2009 Bruce A Henderson"
 ModuleInfo "Copyright: irrKlang - Nikolaus Gebhardt / Ambiera 2002-2009"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Updated to irrKlang 1.1.3c"
+ModuleInfo "History: Updated to irrKlang 1.2.0"
 ModuleInfo "History: Loading the same sound twice now returns a valid object."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (irrKlang 1.04)"
@@ -95,9 +95,9 @@ Type TISoundEngine
 		with this sound source as parameter. Otherwise the sound will be preloaded.</li>
 	</ul>
 	End Rem
-	Method AddSoundSourceFromFile:TISoundSource(fileName:String, mode:Int = ESM_AUTO_DETECT, preload:Int = False)
+	Method AddSoundSourceFromFile:TISoundSource(fileName:String, Mode:Int = ESM_AUTO_DETECT, preload:Int = False)
 		Local s:Byte Ptr = fileName.ToCString()
-		Local source:Byte Ptr = bmx_soundengine_addsoundsourcefromfile(refPtr, s, mode, preload)
+		Local source:Byte Ptr = bmx_soundengine_addsoundsourcefromfile(refPtr, s, Mode, preload)
 		MemFree(s)
 		Return TISoundSource._create(source)
 	End Method
@@ -814,8 +814,8 @@ Type TISoundSource
 	to stream the sound if it is too big. The threashold for this can be 
 	adjusted using ISoundSource::setForcedStreamingThreshold().
 	End Rem
-	Method SetStreamMode(mode:Int)
-		bmx_soundsource_setstreammode(soundSourcePtr, mode)
+	Method SetStreamMode(Mode:Int)
+		bmx_soundsource_setstreammode(soundSourcePtr, Mode)
 	End Method
 	
 	Rem
