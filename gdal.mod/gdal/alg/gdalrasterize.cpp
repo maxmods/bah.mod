@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterize.cpp 15665 2008-10-31 18:18:35Z warmerdam $
+ * $Id: gdalrasterize.cpp 17662 2009-09-21 18:23:21Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Vector rasterization.
@@ -384,6 +384,8 @@ CPLErr GDALRasterizeGeometries( GDALDatasetH hDS,
 
     // prototype band.
     GDALRasterBand *poBand = poDS->GetRasterBand( panBandList[0] );
+    if (poBand == NULL)
+        return CE_Failure;
 
 /* -------------------------------------------------------------------- */
 /*      If we have no transformer, assume the geometries are in file    */
@@ -571,6 +573,8 @@ CPLErr GDALRasterizeLayers( GDALDatasetH hDS,
 
     // prototype band.
     GDALRasterBand *poBand = poDS->GetRasterBand( panBandList[0] );
+    if (poBand == NULL)
+        return CE_Failure;
 
 /* -------------------------------------------------------------------- */
 /*      Establish a chunksize to operate on.  The larger the chunk      */

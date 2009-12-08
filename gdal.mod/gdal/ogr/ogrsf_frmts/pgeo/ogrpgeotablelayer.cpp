@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeotablelayer.cpp 15796 2008-11-23 16:08:33Z rouault $
+ * $Id: ogrpgeotablelayer.cpp 17620 2009-09-08 20:14:53Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
 
-CPL_CVSID("$Id: ogrpgeotablelayer.cpp 15796 2008-11-23 16:08:33Z rouault $");
+CPL_CVSID("$Id: ogrpgeotablelayer.cpp 17620 2009-09-08 20:14:53Z chaitanya $");
 
 /************************************************************************/
 /*                          OGRPGeoTableLayer()                         */
@@ -103,18 +103,21 @@ CPLErr OGRPGeoTableLayer::Initialize( const char *pszTableName,
         case SHPT_POINT:
         case SHPT_POINTM:
         case SHPT_POINTZ:
+        case SHPT_POINTZM:
             eOGRType = wkbPoint;
             break;
 
         case SHPT_ARC:
         case SHPT_ARCZ:
         case SHPT_ARCM:
+        case SHPT_ARCZM:
             eOGRType = wkbLineString;
             break;
             
         case SHPT_MULTIPOINT:
         case SHPT_MULTIPOINTZ:
         case SHPT_MULTIPOINTM:
+        case SHPT_MULTIPOINTZM:
             eOGRType = wkbMultiPoint;
             break;
 

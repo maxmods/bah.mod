@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 15853 2008-11-29 19:04:57Z rouault $
+ * $Id: gmlhandler.cpp 17913 2009-10-27 15:54:26Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -253,6 +253,60 @@ void GMLHandler::endElement(const   XMLCh* const    uri,
     }
 }
 
+#if XERCES_VERSION_MAJOR >= 3
+/************************************************************************/
+/*                             characters()                             */
+/************************************************************************/
+
+void GMLHandler::characters(const XMLCh* const chars_in,
+                                  const XMLSize_t length )
+{
+    const XMLCh *chars = chars_in;
+
+    if( m_pszCurField != NULL )
+    {
+        int     nCurFieldLength = strlen(m_pszCurField);
+
+        while( *chars == ' ' || *chars == 10 || *chars == 13 || *chars == '\t')
+            chars++;
+
+        char *pszTranslated = tr_strdup(chars);
+        
+        if( m_pszCurField == NULL )
+        {
+            m_pszCurField = pszTranslated;
+            nCurFieldLength = strlen(m_pszCurField);
+        }
+        else
+        {
+            m_pszCurField = (char *) 
+                CPLRealloc( m_pszCurField, 
+                            nCurFieldLength+strlen(pszTranslated)+1 );
+            strcpy( m_pszCurField + nCurFieldLength, pszTranslated );
+            CPLFree( pszTranslated );
+        }
+    }
+    else if( m_pszGeometry != NULL )
+    {
+        // Ignore white space
+        while( *chars == ' ' || *chars == 10 || *chars == 13 || *chars == '\t')
+            chars++;
+        
+        int nCharsLen = tr_strlen(chars);
+
+        if( m_nGeomLen + nCharsLen*4 + 4 > m_nGeomAlloc )
+        {
+            m_nGeomAlloc = (int) (m_nGeomAlloc * 1.3 + nCharsLen*4 + 1000);
+            m_pszGeometry = (char *) 
+                CPLRealloc( m_pszGeometry, m_nGeomAlloc);
+        }
+
+        tr_strcpy( m_pszGeometry+m_nGeomLen, chars );
+        m_nGeomLen += strlen(m_pszGeometry+m_nGeomLen);
+    }
+}
+
+#else
 /************************************************************************/
 /*                             characters()                             */
 /************************************************************************/
@@ -305,6 +359,7 @@ void GMLHandler::characters(const XMLCh* const chars_in,
         m_nGeomLen += strlen(m_pszGeometry+m_nGeomLen);
     }
 }
+#endif
 
 /************************************************************************/
 /*                             fatalError()                             */

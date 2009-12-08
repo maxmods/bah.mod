@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalallregister.cpp 15659 2008-10-31 04:19:53Z ilucena $
+ * $Id: gdalallregister.cpp 16026 2009-01-01 18:47:30Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALAllRegister(), primary format registration.
@@ -30,7 +30,7 @@
 #include "gdal_priv.h"
 #include "gdal_frmts.h"
 
-CPL_CVSID("$Id: gdalallregister.cpp 15659 2008-10-31 04:19:53Z ilucena $");
+CPL_CVSID("$Id: gdalallregister.cpp 16026 2009-01-01 18:47:30Z warmerdam $");
 
 #ifdef notdef
 // we may have a use for this some day
@@ -154,6 +154,7 @@ void CPL_STDCALL GDALAllRegister()
 
 #ifdef FRMT_gif
     GDALRegister_GIF();
+    GDALRegister_BIGGIF();
 #endif
 
 #ifdef FRMT_envisat

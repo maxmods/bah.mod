@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_proj4.cpp 15830 2008-11-27 22:50:50Z warmerdam $
+ * $Id: ogr_srs_proj4.cpp 17261 2009-06-19 17:35:16Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference interface to PROJ.4.
@@ -33,7 +33,7 @@
 
 extern int EPSGGetWGS84Transform( int nGeogCS, double *padfTransform );
 
-CPL_CVSID("$Id: ogr_srs_proj4.cpp 15830 2008-11-27 22:50:50Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_proj4.cpp 17261 2009-06-19 17:35:16Z warmerdam $");
 
 /* -------------------------------------------------------------------- */
 /*      The following list comes from osrs/proj/src/pj_ellps.c          */
@@ -1186,12 +1186,27 @@ OGRErr OGRSpatialReference::exportToProj4( char ** ppszProj4 ) const
 
     else if( EQUAL(pszProjection,SRS_PT_MERCATOR_1SP) )
     {
-        sprintf( szProj4+strlen(szProj4),
-           "+proj=merc +lon_0=%.16g +k=%.16g +x_0=%.16g +y_0=%.16g ",
-                 GetNormProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0),
-                 GetNormProjParm(SRS_PP_SCALE_FACTOR,1.0),
-                 GetNormProjParm(SRS_PP_FALSE_EASTING,0.0),
-                 GetNormProjParm(SRS_PP_FALSE_NORTHING,0.0) );
+        if( GetNormProjParm(SRS_PP_LATITUDE_OF_ORIGIN,0.0) == 0.0 )
+            sprintf( szProj4+strlen(szProj4),
+                     "+proj=merc +lon_0=%.16g +k=%.16g +x_0=%.16g +y_0=%.16g ",
+                     GetNormProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0),
+                     GetNormProjParm(SRS_PP_SCALE_FACTOR,1.0),
+                     GetNormProjParm(SRS_PP_FALSE_EASTING,0.0),
+                     GetNormProjParm(SRS_PP_FALSE_NORTHING,0.0) );
+        else if( GetNormProjParm(SRS_PP_SCALE_FACTOR,1.0) == 1.0 )
+            sprintf( szProj4+strlen(szProj4),
+                     "+proj=merc +lon_0=%.16g +lat_ts=%.16g +x_0=%.16g +y_0=%.16g ",
+                     GetNormProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0),
+                     GetNormProjParm(SRS_PP_LATITUDE_OF_ORIGIN,0.0),
+                     GetNormProjParm(SRS_PP_FALSE_EASTING,0.0),
+                     GetNormProjParm(SRS_PP_FALSE_NORTHING,0.0) );
+        else
+        {
+            CPLError( CE_Failure, CPLE_NotSupported,
+                      "Mercator_1SP with scale != 1.0 and latitude of origin != 0, not supported by PROJ.4." );
+            *ppszProj4 = CPLStrdup("");
+            return OGRERR_UNSUPPORTED_SRS;
+        }
     }
 
     else if( EQUAL(pszProjection,SRS_PT_MERCATOR_2SP) )
@@ -1479,9 +1494,10 @@ OGRErr OGRSpatialReference::exportToProj4( char ** ppszProj4 ) const
         {
             sprintf( szProj4+strlen(szProj4),
                      "+proj=somerc +lat_0=%.16g +lon_0=%.16g"
-                     " +x_0=%.16g +y_0=%.16g ",
+                     " +k_0=%.16g +x_0=%.16g +y_0=%.16g ",
                      GetNormProjParm(SRS_PP_LATITUDE_OF_ORIGIN,0.0),
                      GetNormProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0),
+                     GetNormProjParm(SRS_PP_SCALE_FACTOR,1.0),
                      GetNormProjParm(SRS_PP_FALSE_EASTING,0.0),
                      GetNormProjParm(SRS_PP_FALSE_NORTHING,0.0) );
         }

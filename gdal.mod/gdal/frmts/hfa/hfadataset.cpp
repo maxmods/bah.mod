@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfadataset.cpp 15824 2008-11-27 22:24:32Z warmerdam $
+ * $Id: hfadataset.cpp 15987 2008-12-21 17:49:42Z warmerdam $
  *
  * Name:     hfadataset.cpp
  * Project:  Erdas Imagine Driver
@@ -33,7 +33,7 @@
 #include "hfa_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hfadataset.cpp 15824 2008-11-27 22:24:32Z warmerdam $");
+CPL_CVSID("$Id: hfadataset.cpp 15987 2008-12-21 17:49:42Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_HFA(void);
@@ -654,6 +654,7 @@ void HFARasterBand::ReadAuxMetadata()
             CPLAssert( FALSE );
         }
     }
+
     // now try to read the histogram
     HFAEntry *poEntry = poBand->poNode->GetNamedChild( "Descriptor_Table.Histogram" );
     if ( poEntry != NULL )
@@ -997,11 +998,31 @@ GDALColorTable *HFARasterBand::GetColorTable()
 CPLErr HFARasterBand::SetColorTable( GDALColorTable * poCTable )
 
 {
-    int nColors = poCTable->GetColorEntryCount();
+    if( GetAccess() == GA_ReadOnly )
+    {
+        CPLError( CE_Failure, CPLE_NoWriteAccess, 
+                  "Unable to set color table on read-only file." );
+        return CE_Failure;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Special case if we are clearing the color table.                */
+/* -------------------------------------------------------------------- */
+    if( poCTable == NULL )
+    {
+        delete poCT;
+        poCT = NULL;
+
+        HFASetPCT( hHFA, nBand, 0, NULL, NULL, NULL, NULL );
+
+        return CE_None;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Write out the colortable, and update the configuration.         */
 /* -------------------------------------------------------------------- */
+    int nColors = poCTable->GetColorEntryCount();
+
     double *padfRed, *padfGreen, *padfBlue, *padfAlpha;
 
     padfRed   = (double *) CPLMalloc(sizeof(double) * nColors);
@@ -2976,9 +2997,17 @@ void HFADataset::UseXFormStack( int nStepCount,
             continue;
         }
 
-        CPLAssert( pasPLForward[iStep].order == 2 );
+        int nCoefCount;
 
-        for( i = 0; i < 10; i++ )
+        if( pasPLForward[iStep].order == 2 )
+            nCoefCount = 10;
+        else
+        {
+            CPLAssert( pasPLForward[iStep].order == 3 );
+            nCoefCount = 18;
+        }
+
+        for( i = 0; i < nCoefCount; i++ )
             GDALMajorObject::SetMetadataItem( 
                 CPLString().Printf("XFORM%d_FWD_POLYCOEFMTX[%d]", iStep, i),
                 CPLString().Printf("%.15g",
@@ -2992,7 +3021,7 @@ void HFADataset::UseXFormStack( int nStepCount,
                                    pasPLForward[iStep].polycoefvector[i]),
                 "XFORMS" );
             
-        for( i = 0; i < 10; i++ )
+        for( i = 0; i < nCoefCount; i++ )
             GDALMajorObject::SetMetadataItem( 
                 CPLString().Printf("XFORM%d_REV_POLYCOEFMTX[%d]", iStep, i),
                 CPLString().Printf("%.15g",

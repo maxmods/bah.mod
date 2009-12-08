@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsagdataset.cpp 14760 2008-06-24 20:02:19Z warmerdam $
+ * $Id: gsagdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software ASCII Grid Format.
@@ -49,7 +49,7 @@
 # define INT_MAX 2147483647
 #endif /* INT_MAX */
 
-CPL_CVSID("$Id: gsagdataset.cpp 14760 2008-06-24 20:02:19Z warmerdam $");
+CPL_CVSID("$Id: gsagdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
 
 CPL_C_START
 void	GDALRegister_GSAG(void);
@@ -372,7 +372,7 @@ CPLErr GSAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 	    /* No number found */
 
 	    /* Check if this was an expected failure */
-	    while( isspace( *szStart ) )
+	    while( isspace( (unsigned char)*szStart ) )
 		szStart++;
 
 	    /* Found sign at end of input, seek back to re-read it */
@@ -396,7 +396,7 @@ CPLErr GSAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 	    else if( *szStart != '\0' )
 	    {
 		szEnd = szStart;
-		while( !isspace( *szEnd ) && *szEnd != '\0' )
+		while( !isspace( (unsigned char)*szEnd ) && *szEnd != '\0' )
 		    szEnd++;
 		char cOldEnd = *szEnd;
 		*szEnd = '\0';
@@ -525,7 +525,7 @@ CPLErr GSAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 	CPLDebug( "GSAG", "Grid row %d does not end with a newline.  "
                   "Possible skew.\n", nBlockYOff );
 
-    while( isspace( *szEnd ) )
+    while( isspace( (unsigned char)*szEnd ) )
 	szEnd++;
 
     nCharsExamined += szEnd - szLineBuf;
@@ -985,7 +985,7 @@ GDALDataset *GSAGDataset::Open( GDALOpenInfo * poOpenInfo )
     szStart = szEnd;
 
     /* Parse the minimum Z value of the grid */
-    while( isspace( *szStart ) )
+    while( isspace( (unsigned char)*szStart ) )
 	szStart++;
     poDS->nMinMaxZOffset = szStart - pabyHeader;
 
@@ -1013,7 +1013,7 @@ GDALDataset *GSAGDataset::Open( GDALOpenInfo * poOpenInfo )
 	dfMaxZ = dfTemp;
     }
 
-    while( isspace(*szEnd) )
+    while( isspace((unsigned char)*szEnd) )
 	    szEnd++;
 
 /* -------------------------------------------------------------------- */
@@ -1347,7 +1347,7 @@ CPLErr GSAGDataset::ShiftFileContents( FILE *fp, vsi_l_offset nShiftStart,
     if( nShiftSize > 0 )
     {
 	size_t nTailSize = nOverlap;
-	while( nTailSize > 0 && isspace( pabyBuffer[nTailSize-1] ) )
+	while( nTailSize > 0 && isspace( (unsigned char)pabyBuffer[nTailSize-1] ) )
 	    nTailSize--;
 
 	if( VSIFWriteL( (void *)pabyBuffer, 1, nTailSize, fp ) != nTailSize )
@@ -1487,7 +1487,14 @@ GDALDataset *GSAGDataset::CreateCopy( const char *pszFilename,
     if( pfnProgress == NULL )
 	pfnProgress = GDALDummyProgress;
 
-    if( poSrcDS->GetRasterCount() > 1 )
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "GSAG driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
+    else if (nBands > 1)
     {
 	if( bStrict )
 	{

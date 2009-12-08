@@ -467,6 +467,7 @@ Import "gdal/frmts/gif/libungif/gif_err.c"
 Import "gdal/frmts/gif/libungif/egif_lib.c"
 Import "gdal/frmts/gif/libungif/gifalloc.c"
 Import "gdal/frmts/gif/gifdataset.cpp"
+Import "gdal/frmts/gif/biggifdataset.cpp"
 
 ' gff
 Import "gdal/frmts/gff/*.h"
@@ -1087,6 +1088,8 @@ Import "gdal/proj/src/geocent.c"
 Import "gdal/proj/src/pj_utils.c"
 Import "gdal/proj/src/pj_gridinfo.c"
 Import "gdal/proj/src/pj_gridlist.c"
+Import "gdal/proj/src/pj_mutex.c"
+Import "gdal/proj/src/pj_initcache.c"
 
 ' jasper
 Import "gdal/jasper/libjasper/bmp/bmp_cod.c"

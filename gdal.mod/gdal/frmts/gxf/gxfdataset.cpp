@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfdataset.cpp 13738 2008-02-09 15:18:03Z rouault $
+ * $Id: gxfdataset.cpp 16259 2009-02-07 17:53:10Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  GDAL binding for GXF reader.
@@ -30,7 +30,7 @@
 #include "gxfopen.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gxfdataset.cpp 13738 2008-02-09 15:18:03Z rouault $");
+CPL_CVSID("$Id: gxfdataset.cpp 16259 2009-02-07 17:53:10Z rouault $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -307,7 +307,16 @@ GDALDataset *GXFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     GXFGetRawInfo( hGXF, &(poDS->nRasterXSize), &(poDS->nRasterYSize), NULL,
                    NULL, NULL, &(poDS->dfNoDataValue) );
-    
+
+    if  (poDS->nRasterXSize <= 0 || poDS->nRasterYSize <= 0)
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Invalid dimensions : %d x %d", 
+                  poDS->nRasterXSize, poDS->nRasterYSize); 
+        delete poDS;
+        return NULL;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Create band information objects.                                */
 /* -------------------------------------------------------------------- */

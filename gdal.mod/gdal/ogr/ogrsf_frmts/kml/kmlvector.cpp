@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlvector.cpp 12914 2007-11-21 15:48:01Z warmerdam $
+ * $Id: kmlvector.cpp 16909 2009-05-02 14:56:22Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Specialization of the kml class, only for vectors in kml files.
@@ -130,18 +130,18 @@ void KMLVector::findLayers(KMLNode* poNode)
             return;
         }
         
-        if( isFeature(Nodetype2String(poNode->getType())) )
+        Nodetype nodeType = poNode->getType();
+        if( isFeature(Nodetype2String(nodeType)) ||
+            nodeType == Mixed ||
+            nodeType == MultiGeometry || nodeType == MultiPoint ||
+            nodeType == MultiLineString || nodeType == MultiPolygon)
         {
             poNode->setLayerNumber(nNumLayers_++);
         }
-        else if( poNode->getType() == Mixed )
-        {
-            CPLDebug( "KML", "We have a mixed container here" );
-        }
         else
         {
-            CPLDebug( "KML", "We have a strange type here: %s",
-                      Nodetype2String(poNode->getType()).c_str() );
+            CPLDebug( "KML", "We have a strange type here for node %s: %s",
+                      poNode->getName().c_str(), Nodetype2String(poNode->getType()).c_str() );
         }
     }
     else

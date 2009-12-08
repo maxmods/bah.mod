@@ -1,5 +1,5 @@
 /*****************************************************************************
- * $Id: IntergraphDataset.cpp 15573 2008-10-22 03:54:47Z ilucena $
+ * $Id: IntergraphDataset.cpp 16659 2009-03-27 12:27:06Z warmerdam $
  *
  * Project:  Intergraph Raster Format support
  * Purpose:  Read/Write Intergraph Raster Format, dataset support
@@ -382,6 +382,12 @@ GDALDataset *IntergraphDataset::Open( GDALOpenInfo *poOpenInfo )
 
     poDS->nBands = nBands;
 
+    /* -------------------------------------------------------------------- */
+    /*      Check for external overviews.                                   */
+    /* -------------------------------------------------------------------- */
+
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
     // -------------------------------------------------------------------- 
     // Initialize any PAM information                                 
     // -------------------------------------------------------------------- 
@@ -546,6 +552,14 @@ GDALDataset *IntergraphDataset::CreateCopy( const char *pszFilename,
                                            void *pProgressData )
 {
     (void) bStrict;
+
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "Intergraph driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
 
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
     {

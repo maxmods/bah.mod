@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2readerp.h 11354 2007-04-26 00:26:17Z mloskot $
+ * $Id: ili2readerp.h 17913 2009-10-27 15:54:26Z chaitanya $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -97,8 +97,13 @@ public:
         const   XMLCh* const    localname,
         const   XMLCh* const    qname
     );
+#if XERCES_VERSION_MAJOR >= 3
     void characters( const XMLCh *const chars,
-                     const unsigned int length );
+                     const XMLSize_t length ); // xerces 3
+#else
+    void characters( const XMLCh *const chars,
+                     const unsigned int length ); // xerces 2
+#endif
 
     void fatalError(const SAXParseException&);
 };

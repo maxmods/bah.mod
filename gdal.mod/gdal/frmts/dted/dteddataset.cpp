@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 14610 2008-06-01 17:51:28Z rouault $
+ * $Id: dteddataset.cpp 16798 2009-04-18 22:12:03Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dteddataset.cpp 14610 2008-06-01 17:51:28Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 16798 2009-04-18 22:12:03Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -298,7 +298,15 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
     }
 
-    if( strstr((const char *)poOpenInfo->pabyHeader,"UHL") == NULL )
+    int bFoundUHL = FALSE;
+    for(i=0;i<poOpenInfo->nHeaderBytes-3 && !bFoundUHL ;i += DTED_UHL_SIZE)
+    {
+        if( EQUALN((const char *)poOpenInfo->pabyHeader + i,"UHL", 3) )
+        {
+            bFoundUHL = TRUE;
+        }
+    }
+    if (!bFoundUHL)
         return NULL;
 
 /* -------------------------------------------------------------------- */
@@ -509,6 +517,25 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     (void) papszOptions;
     (void) bStrict;
 
+
+/* -------------------------------------------------------------------- */
+/*      Some some rudimentary checks                                    */
+/* -------------------------------------------------------------------- */
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "DTED driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
+    else if (nBands != 1)
+    {
+        CPLError( (bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported, 
+                  "DTED driver only uses the first band of the dataset.\n");
+        if (bStrict)
+            return NULL;
+    }
+
     if( pfnProgress && !pfnProgress( 0.0, NULL, pProgressData ) )
         return NULL;
 
@@ -681,7 +708,7 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /* Partial cell indicator: 0 for complete coverage; 1-99 for incomplete */
 /* -------------------------------------------------------------------- */
-    char pszPartialCell[2];
+    char szPartialCell[3];
 
     if ( dfNodataCount == 0 )
         iPartialCell = 0;
@@ -692,8 +719,8 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         if (iPartialCell < 1)
            iPartialCell=1;
     }
-    sprintf(pszPartialCell,"%02d",iPartialCell);
-    strncpy((char *) (psDTED->pachDSIRecord+289), pszPartialCell, 2 );
+    sprintf(szPartialCell,"%02d",iPartialCell);
+    strncpy((char *) (psDTED->pachDSIRecord+289), szPartialCell, 2 );
 
 /* -------------------------------------------------------------------- */
 /*      Try to copy any matching available metadata.                    */

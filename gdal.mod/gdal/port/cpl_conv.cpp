@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp 15264 2008-08-30 21:37:43Z mloskot $
+ * $Id: cpl_conv.cpp 16866 2009-04-27 12:52:26Z chaitanya $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -34,7 +34,7 @@
 #include "cpl_vsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp 15264 2008-08-30 21:37:43Z mloskot $");
+CPL_CVSID("$Id: cpl_conv.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
 
 #if defined(WIN32CE)
 #  include "cpl_wince.h"
@@ -696,7 +696,7 @@ char *CPLScanString( const char *pszString, int nMaxLength,
     if ( bTrimSpaces )
     {
         size_t  i = strlen( pszBuffer );
-        while ( i-- > 0 && isspace(pszBuffer[i]) )
+        while ( i-- > 0 && isspace((unsigned char)pszBuffer[i]) )
             pszBuffer[i] = '\0';
     }
 
@@ -1468,7 +1468,7 @@ double CPLDMSToDec( const char *is )
     double v, tv;
 
     /* copy sting into work space */
-    while (isspace(sign = *is)) ++is;
+    while (isspace((unsigned char)(sign = *is))) ++is;
     for (n = sizeof(work), s = work, p = (char *)is; isgraph(*p) && --n ; )
         *s++ = *p++;
     *s = '\0';

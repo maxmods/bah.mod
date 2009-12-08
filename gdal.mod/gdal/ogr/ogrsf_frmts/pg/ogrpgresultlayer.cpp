@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgresultlayer.cpp 15721 2008-11-12 16:42:55Z rouault $
+ * $Id: ogrpgresultlayer.cpp 16808 2009-04-20 18:24:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGResultLayer class, access the resultset from
@@ -32,7 +32,7 @@
 #include "ogr_pg.h"
 #include "ogrpgutility.h"
 
-CPL_CVSID("$Id: ogrpgresultlayer.cpp 15721 2008-11-12 16:42:55Z rouault $");
+CPL_CVSID("$Id: ogrpgresultlayer.cpp 16808 2009-04-20 18:24:00Z rouault $");
 
 
 /************************************************************************/
@@ -370,7 +370,7 @@ void OGRPGResultLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
                 OGREnvelope  sEnvelope;
 
                 m_poFilterGeom->getEnvelope( &sEnvelope );
-                osWHERE.Printf("WHERE %s && SetSRID('BOX3D(%.12f %.12f, %.12f %.12f)'::box3d,%d) ",
+                osWHERE.Printf("WHERE \"%s\" && SetSRID('BOX3D(%.12f %.12f, %.12f %.12f)'::box3d,%d) ",
                             pszGeomColumn,
                             sEnvelope.MinX, sEnvelope.MinY,
                             sEnvelope.MaxX, sEnvelope.MaxY,

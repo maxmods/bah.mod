@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlpropertydefn.cpp 14253 2008-04-11 03:00:50Z warmerdam $
+ * $Id: gmlpropertydefn.cpp 17630 2009-09-10 15:30:44Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLPropertyDefn
@@ -46,6 +46,7 @@ GMLPropertyDefn::GMLPropertyDefn( const char *pszName,
         m_pszSrcElement = NULL;
     m_eType = GMLPT_Untyped;
     m_nWidth = 0; 
+    m_nPrecision = 0;
 }
 
 /************************************************************************/

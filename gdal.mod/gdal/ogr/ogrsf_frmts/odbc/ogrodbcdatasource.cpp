@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbcdatasource.cpp 11839 2007-08-03 17:45:30Z warmerdam $
+ * $Id: ogrodbcdatasource.cpp 17872 2009-10-22 15:10:32Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrodbcdatasource.cpp 11839 2007-08-03 17:45:30Z warmerdam $");
+CPL_CVSID("$Id: ogrodbcdatasource.cpp 17872 2009-10-22 15:10:32Z warmerdam $");
 /************************************************************************/
 /*                         OGRODBCDataSource()                          */
 /************************************************************************/
@@ -252,8 +252,19 @@ int OGRODBCDataSource::Open( const char * pszNewName, int bUpdate,
         {
             while( oTableList.Fetch() )
             {
-                papszTables = 
-                    CSLAddString( papszTables, oTableList.GetColData(2) );
+                const char *pszSchema = oTableList.GetColData(1);
+                CPLString osLayerName;
+
+                if( pszSchema != NULL && strlen(pszSchema) > 0 )
+                {
+                    osLayerName = pszSchema;
+                    osLayerName += ".";
+                }
+
+                osLayerName += oTableList.GetColData(2);
+
+                papszTables = CSLAddString( papszTables, osLayerName );
+
                 papszGeomCol = CSLAddString(papszGeomCol,"");
             }
         }

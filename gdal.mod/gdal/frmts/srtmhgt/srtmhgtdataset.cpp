@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srtmhgtdataset.cpp 15212 2008-08-25 19:03:53Z rouault $
+ * $Id: srtmhgtdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
  *
  * Project:  SRTM HGT Driver
  * Purpose:  SRTM HGT File Read Support.
@@ -37,7 +37,7 @@
 
 #define SRTMHG_NODATA_VALUE -32768
 
-CPL_CVSID("$Id: srtmhgtdataset.cpp 15212 2008-08-25 19:03:53Z rouault $");
+CPL_CVSID("$Id: srtmhgtdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SRTMHGT(void);
@@ -251,7 +251,7 @@ CPLErr SRTMHGTDataset::GetGeoTransform(double * padfTransform)
 const char *SRTMHGTDataset::GetProjectionRef()
 
 {
-    return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AXIS[\"Lat\",NORTH],AXIS[\"Long\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]" );
+    return( SRS_WKT_WGS84 );
 }
 
 /************************************************************************/
@@ -397,10 +397,18 @@ GDALDataset * SRTMHGTDataset::CreateCopy( const char * pszFilename, GDALDataset 
 /* -------------------------------------------------------------------- */
 /*      Some some rudimentary checks                                    */
 /* -------------------------------------------------------------------- */
-    if( nBands != 1)
+    if (nBands == 0)
     {
-        CPLError( CE_Warning, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "SRTMHGT driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
+    else if (nBands != 1)
+    {
+        CPLError( (bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported, 
                   "SRTMHGT driver only uses the first band of the dataset.\n");
+        if (bStrict)
+            return NULL;
     }
 
 /* -------------------------------------------------------------------- */

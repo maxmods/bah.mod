@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitffile.c 15339 2008-09-08 07:41:21Z warmerdam $
+ * $Id: nitffile.c 17654 2009-09-17 23:08:25Z warmerdam $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for opening NITF file, populating NITFFile
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitffile.c 15339 2008-09-08 07:41:21Z warmerdam $");
+CPL_CVSID("$Id: nitffile.c 17654 2009-09-17 23:08:25Z warmerdam $");
 
 static int NITFWriteBLOCKA( char *pachUDIDL, char *pachTRE, 
                             int *pnOffset, int nBytesAvailable,
@@ -46,7 +46,7 @@ static int NITFWriteTREsFromOptions(
 static int 
 NITFCollectSegmentInfo( NITFFile *psFile, int nOffset, char *pszType,
                         int nHeaderLenSize, int nDataLenSize, 
-                        int *pnNextData );
+                        GUIntBig *pnNextData );
 
 /************************************************************************/
 /*                              NITFOpen()                              */
@@ -58,7 +58,8 @@ NITFFile *NITFOpen( const char *pszFilename, int bUpdatable )
     FILE	*fp;
     char        *pachHeader;
     NITFFile    *psFile;
-    int         nHeaderLen, nOffset, nNextData, nHeaderLenOffset;
+    int         nHeaderLen, nOffset, nHeaderLenOffset;
+    GUIntBig    nNextData;
     char        szTemp[128], achFSDWNG[6];
     GIntBig     currentPos;
 
@@ -348,7 +349,6 @@ int NITFCreate( const char *pszFilename,
     FILE	*fp;
     char        *pachIMHDR;
     char        achHeader[5000];
-    int         nHeaderUsed = 0;
     int         nOffset = 0, iBand, nIHSize, nNPPBH, nNPPBV;
     GIntBig     nImageSize;
     int         nNBPR, nNBPC;
@@ -359,6 +359,7 @@ int NITFCreate( const char *pszFilename,
     int nHL, nNUMT = 0;
     int nUDIDLOffset;
     const char *pszVersion;
+    int nHeaderUsed;
 
     if( pszIC == NULL )
         pszIC = "NC";
@@ -673,6 +674,18 @@ int NITFCreate( const char *pszFilename,
     }
 
 /* -------------------------------------------------------------------- */
+/*  Validate image maximum image size.                                  */
+/* -------------------------------------------------------------------- */
+    if (EQUAL(pszIC, "NC") && (double)nImageSize >= 10000000000.)
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Unable to create file %s,\n"
+                  "Too big image size : " CPL_FRMT_GUIB,
+                  pszFilename, nImageSize );
+        return FALSE;
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Update the image header length in the file header.              */
 /* -------------------------------------------------------------------- */
     nIHSize = nOffset;
@@ -788,6 +801,7 @@ static int NITFWriteTREsFromOptions(
         char *pszUnescapedContents;
         char *pszTREName;
         int  nContentLength;
+        const char* pszSpace; 
 
         if( !EQUALN(papszOptions[iOption],"TRE=",4) )
             continue;
@@ -796,14 +810,19 @@ static int NITFWriteTREsFromOptions(
             && bIgnoreBLOCKA )
             continue;
 
-        pszEscapedContents = CPLParseNameValue( papszOptions[iOption]+4, 
-                                                &pszTREName );
-        if (pszEscapedContents == NULL)
+        /* We do no longer use CPLParseNameValue() as it removes leading spaces */ 
+        /* from the value (see #3088) */ 
+        pszSpace = strchr(papszOptions[iOption]+4, '='); 
+        if (pszSpace == NULL)
         {
             CPLError(CE_Failure, CPLE_AppDefined,
                      "Could not parse creation options %s", papszOptions[iOption]+4);
             return FALSE;
         }
+        
+        pszTREName = CPLStrdup(papszOptions[iOption]+4); 
+        pszTREName[pszSpace - (papszOptions[iOption]+4)] = '\0';
+        pszEscapedContents = pszSpace + 1; 
 
         pszUnescapedContents = 
             CPLUnescapeString( pszEscapedContents, &nContentLength,
@@ -902,7 +921,7 @@ static int NITFWriteBLOCKA( char *pachUDIDL, char *pachTRE,
 
 static int 
 NITFCollectSegmentInfo( NITFFile *psFile, int nOffset, char *pszType,
-                        int nHeaderLenSize, int nDataLenSize, int *pnNextData )
+                        int nHeaderLenSize, int nDataLenSize, GUIntBig *pnNextData )
 
 {
     char szTemp[12];
@@ -946,6 +965,13 @@ NITFCollectSegmentInfo( NITFFile *psFile, int nOffset, char *pszType,
     {
         NITFSegmentInfo *psInfo = psFile->pasSegmentInfo+psFile->nSegmentCount;
         
+        psInfo->nDLVL = -1;
+        psInfo->nALVL = -1;
+        psInfo->nLOC_R = -1;
+        psInfo->nLOC_C = -1;
+        psInfo->nCCS_R = -1;
+        psInfo->nCCS_C = -1;
+
         psInfo->hAccess = NULL;
         strcpy( psInfo->szSegmentType, pszType );
         
@@ -954,10 +980,10 @@ NITFCollectSegmentInfo( NITFFile *psFile, int nOffset, char *pszType,
                               iSegment * (nHeaderLenSize+nDataLenSize), 
                               nHeaderLenSize));
         psInfo->nSegmentSize = 
-            atoi(NITFGetField(szTemp,pachSegDef, 
+            CPLScanUIntBig(NITFGetField(szTemp,pachSegDef, 
                               iSegment * (nHeaderLenSize+nDataLenSize) 
                               + nHeaderLenSize,
-                              nDataLenSize));
+			      nDataLenSize),nDataLenSize);
 
         psInfo->nSegmentHeaderStart = *pnNextData;
         psInfo->nSegmentStart = *pnNextData + psInfo->nSegmentHeaderSize;
@@ -1112,7 +1138,6 @@ double NITF_WGS84_Geocentric_Latitude_To_Geodetic_Latitude( double dfLat )
     return dfLat;
 }
 
-
 /************************************************************************/
 /*                        NITFGetSeriesInfo()                           */
 /************************************************************************/
@@ -1231,3 +1256,149 @@ const NITFSeries* NITFGetSeriesInfo(const char* pszFilename)
     return NULL;
 }
 
+/************************************************************************/
+/*                       NITFCollectAttachments()                       */
+/*                                                                      */
+/*      Collect attachment, display level and location info into the    */
+/*      segmentinfo structures.                                         */
+/************************************************************************/
+
+int NITFCollectAttachments( NITFFile *psFile )
+
+{
+    int iSegment;
+
+/* ==================================================================== */
+/*      Loop over all segments.                                         */
+/* ==================================================================== */
+    for( iSegment = 0; iSegment < psFile->nSegmentCount; iSegment++ )
+    {
+        NITFSegmentInfo *psSegInfo = psFile->pasSegmentInfo + iSegment;
+
+/* -------------------------------------------------------------------- */
+/*      For image segments, we use the normal image access stuff.       */
+/* -------------------------------------------------------------------- */
+        if( EQUAL(psSegInfo->szSegmentType,"IM") )
+        {
+            NITFImage *psImage = NITFImageAccess( psFile, iSegment );
+            if (psImage == NULL)
+                return FALSE;
+                
+            psSegInfo->nDLVL = psImage->nIDLVL;
+            psSegInfo->nALVL = psImage->nIALVL;
+            psSegInfo->nLOC_R = psImage->nILOCRow;
+            psSegInfo->nLOC_C = psImage->nILOCColumn;
+        }
+/* -------------------------------------------------------------------- */
+/*      For graphic file we need to process the header.                 */
+/* -------------------------------------------------------------------- */
+        else if( EQUAL(psSegInfo->szSegmentType,"SY")
+                 || EQUAL(psSegInfo->szSegmentType,"GR") )
+        {
+            char achSubheader[298];
+            int  nSTYPEOffset;
+            char szTemp[100];
+
+/* -------------------------------------------------------------------- */
+/*      Load the graphic subheader.                                     */
+/* -------------------------------------------------------------------- */
+            if( VSIFSeekL( psFile->fp, psSegInfo->nSegmentHeaderStart, 
+                           SEEK_SET ) != 0 
+                || VSIFReadL( achSubheader, 1, sizeof(achSubheader), 
+                              psFile->fp ) < 258 )
+            {
+                CPLError( CE_Warning, CPLE_FileIO, 
+                          "Failed to read graphic subheader at " CPL_FRMT_GUIB ".", 
+                          psSegInfo->nSegmentHeaderStart );
+                continue;
+            }
+
+            // NITF 2.0. (also works for NITF 2.1)
+            nSTYPEOffset = 200;
+            if( EQUALN(achSubheader+193,"999998",6) )
+                nSTYPEOffset += 40;
+
+/* -------------------------------------------------------------------- */
+/*      Report some standard info.                                      */
+/* -------------------------------------------------------------------- */
+            psSegInfo->nDLVL = atoi(NITFGetField(szTemp,achSubheader,
+                                                 nSTYPEOffset + 14, 3));
+            psSegInfo->nALVL = atoi(NITFGetField(szTemp,achSubheader,
+                                                 nSTYPEOffset + 17, 3));
+            psSegInfo->nLOC_R = atoi(NITFGetField(szTemp,achSubheader,
+                                                  nSTYPEOffset + 20, 5));
+            psSegInfo->nLOC_C = atoi(NITFGetField(szTemp,achSubheader,
+                                                  nSTYPEOffset + 25, 5));
+        }
+    }
+    
+    return TRUE;
+}
+
+/************************************************************************/
+/*                      NITFReconcileAttachments()                      */
+/*                                                                      */
+/*      Generate the CCS location information for all the segments      */
+/*      if possible.                                                    */
+/************************************************************************/
+
+int NITFReconcileAttachments( NITFFile *psFile )
+
+{
+    int iSegment;
+    int bSuccess = TRUE;
+    int bMadeProgress = FALSE;
+
+    for( iSegment = 0; iSegment < psFile->nSegmentCount; iSegment++ )
+    {
+        NITFSegmentInfo *psSegInfo = psFile->pasSegmentInfo + iSegment;
+        int iOther;
+
+        // already processed?
+        if( psSegInfo->nCCS_R != -1 )
+            continue;
+
+        // unattached segments are straight forward.
+        if( psSegInfo->nALVL < 1 )
+        {
+            psSegInfo->nCCS_R = psSegInfo->nLOC_R;
+            psSegInfo->nCCS_C = psSegInfo->nLOC_C;
+            if( psSegInfo->nCCS_R != -1 )
+                bMadeProgress = TRUE;
+            continue;
+        }
+
+        // Loc for segment to which we are attached.
+        for( iOther = 0; iOther < psFile->nSegmentCount; iOther++ )
+        {
+            NITFSegmentInfo *psOtherSegInfo = psFile->pasSegmentInfo + iOther;
+            
+            if( psSegInfo->nALVL == psOtherSegInfo->nDLVL )
+            {
+                if( psOtherSegInfo->nCCS_R != -1 )
+                {
+                    psSegInfo->nCCS_R = psOtherSegInfo->nLOC_R + psSegInfo->nLOC_R;
+                    psSegInfo->nCCS_C = psOtherSegInfo->nLOC_C + psSegInfo->nLOC_C;
+                    bMadeProgress = TRUE;
+                }
+                else
+                {
+                    bSuccess = FALSE;
+                }
+            }
+        }
+
+        if( iOther == psFile->nSegmentCount )
+            bSuccess = FALSE;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If succeeded or made no progress then return our success        */
+/*      flag.  Otherwise make another pass, hopefully filling in        */
+/*      more values.                                                    */
+/* -------------------------------------------------------------------- */
+    if( bSuccess || !bMadeProgress )
+        return bSuccess;
+    else
+        return NITFReconcileAttachments( psFile );
+}

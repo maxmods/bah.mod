@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pngdataset.cpp 13859 2008-02-23 17:20:49Z rouault $
+ * $Id: pngdataset.cpp 15987 2008-12-21 17:49:42Z warmerdam $
  *
  * Project:  PNG Driver
  * Purpose:  Implement GDAL PNG Support
@@ -49,7 +49,7 @@
 #include "cpl_string.h"
 #include <setjmp.h>
 
-CPL_CVSID("$Id: pngdataset.cpp 13859 2008-02-23 17:20:49Z rouault $");
+CPL_CVSID("$Id: pngdataset.cpp 15987 2008-12-21 17:49:42Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_PNG(void);
@@ -1474,6 +1474,9 @@ CPLErr PNGDataset::SetGeoTransform( double * padfTransform )
 
 CPLErr PNGRasterBand::SetColorTable(GDALColorTable* poCT)
 {
+    if( poCT == NULL )
+        return CE_Failure;
+
     // rcg, added to support Create().
     // We get called even for grayscale files, since some 
     // formats need a palette even then. PNG doesn't, so

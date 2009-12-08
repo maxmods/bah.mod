@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmldatasource.cpp 14947 2008-07-17 18:16:40Z condit $
+ * $Id: ogrkmldatasource.cpp 16909 2009-05-02 14:56:22Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLDataSource class.
@@ -190,8 +190,19 @@ int OGRKMLDataSource::Open( const char * pszNewName, int bTestOpen )
             poGeotype = wkbLineString;
         else if( poKMLFile_->getCurrentType() == Polygon )
             poGeotype = wkbPolygon;
+        else if( poKMLFile_->getCurrentType() == MultiPoint )
+            poGeotype = wkbMultiPoint;
+        else if( poKMLFile_->getCurrentType() == MultiLineString )
+            poGeotype = wkbMultiLineString;
+        else if( poKMLFile_->getCurrentType() == MultiPolygon )
+            poGeotype = wkbMultiPolygon;
+        else if( poKMLFile_->getCurrentType() == MultiGeometry )
+            poGeotype = wkbGeometryCollection;
         else
             poGeotype = wkbUnknown;
+        
+        if (poGeotype != wkbUnknown && poKMLFile_->is25D())
+            poGeotype = (OGRwkbGeometryType) (poGeotype | wkb25DBit);
 
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */

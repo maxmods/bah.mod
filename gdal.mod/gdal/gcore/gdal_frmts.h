@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_frmts.h 15668 2008-10-31 20:37:01Z ilucena $
+ * $Id: gdal_frmts.h 16026 2009-01-01 18:47:30Z warmerdam $
  *
  * Project:  GDAL
  * Purpose:  Prototypes for all format specific driver initializations.
@@ -63,6 +63,7 @@ void CPL_DLL GDALRegister_JDEM(void);
 void CPL_DLL GDALRegister_GRASS(void);
 void CPL_DLL GDALRegister_PNM(void);
 void CPL_DLL GDALRegister_GIF(void);
+void CPL_DLL GDALRegister_BIGGIF(void);
 void CPL_DLL GDALRegister_Envisat(void);
 void CPL_DLL GDALRegister_FITS(void);
 void CPL_DLL GDALRegister_ECW(void);

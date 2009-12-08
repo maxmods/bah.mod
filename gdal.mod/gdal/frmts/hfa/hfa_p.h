@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa_p.h 15768 2008-11-20 05:17:40Z warmerdam $
+ * $Id: hfa_p.h 15987 2008-12-21 17:49:42Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Private class declarations for the HFA classes used to read
@@ -237,12 +237,15 @@ public:
                           
     virtual     ~HFAEntry();                
 
+    CPLErr      RemoveAndDestroy();
+
     GUInt32	GetFilePos() { return nFilePos; }
 
     const char	*GetName() { return szName; }
     void SetName( const char *pszNodeName );
     
     const char  *GetType() { return szType; }
+    HFAType     *GetTypeObject();
 
     GByte      *GetData() { LoadData(); return pabyData; }
     GUInt32	GetDataPos() { return nDataPos; }
@@ -370,6 +373,9 @@ class HFADictionary
     int		nTypes;
     int         nTypesMax;
     HFAType	**papoTypes;
+
+    CPLString   osDictionaryText;
+    int         bDictionaryTextDirty;
     
                 HFADictionary( const char *pszDict );
                 ~HFADictionary();

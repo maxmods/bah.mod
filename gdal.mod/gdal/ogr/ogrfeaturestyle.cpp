@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturestyle.cpp 15125 2008-08-08 22:13:54Z tamas $
+ * $Id: ogrfeaturestyle.cpp 16197 2009-01-28 19:38:39Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Feature Representation string API
@@ -33,7 +33,7 @@
 #include "ogr_featurestyle.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrfeaturestyle.cpp 15125 2008-08-08 22:13:54Z tamas $");
+CPL_CVSID("$Id: ogrfeaturestyle.cpp 16197 2009-01-28 19:38:39Z rouault $");
 
 CPL_C_START
 void OGRFeatureStylePuller() {}
@@ -720,16 +720,14 @@ const char *OGRStyleTable::GetStyleName(const char *pszStyleString)
 GBool OGRStyleTable::AddStyle(const char *pszName, const char *pszStyleString)
 {
     int nPos;
-    const char *pszNewString = NULL;
     
     if (pszName && pszStyleString)
     {
         if ((nPos = IsExist(pszName)) != -1)
           return FALSE;
-        
-        pszNewString = CPLString().Printf("%s:%s",pszName,pszStyleString);
-        
-        m_papszStyleTable = CSLAddString(m_papszStyleTable,pszNewString);
+
+        m_papszStyleTable = CSLAddString(m_papszStyleTable,
+                              CPLString().Printf("%s:%s",pszName,pszStyleString));
         return TRUE;
     }
     return FALSE;
@@ -856,14 +854,16 @@ void OGRStyleTable::Print(FILE *fpOut)
 int OGRStyleTable::IsExist(const char *pszName)
 {
     int i;
+    int nCount;
     const char *pszNewString;
 
     if (pszName == NULL)
       return -1;
 
-    pszNewString = CPLString().Printf("%s:",pszName);
+    nCount = CSLCount(m_papszStyleTable);
+    pszNewString = CPLSPrintf("%s:",pszName);
 
-    for (i=0;i<CSLCount(m_papszStyleTable);i++)
+    for (i=0;i<nCount;i++)
     {
         if (strstr(m_papszStyleTable[i],pszNewString) != NULL)
         {

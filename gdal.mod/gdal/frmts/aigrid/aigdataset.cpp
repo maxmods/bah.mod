@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigdataset.cpp 15018 2008-07-24 09:56:54Z mloskot $
+ * $Id: aigdataset.cpp 17431 2009-07-22 17:27:11Z rouault $
  *
  * Project:  Arc/Info Binary Grid Driver
  * Purpose:  Implements GDAL interface to underlying library.
@@ -34,7 +34,7 @@
 #include "aigrid.h"
 #include "avc.h"
 
-CPL_CVSID("$Id: aigdataset.cpp 15018 2008-07-24 09:56:54Z mloskot $");
+CPL_CVSID("$Id: aigdataset.cpp 17431 2009-07-22 17:27:11Z rouault $");
 
 CPL_C_START
 void	GDALRegister_AIGrid(void);
@@ -372,7 +372,7 @@ void AIGDataset::ReadRAT()
     VSIStatBufL sStatBuf;
 
     osInfoPath = psInfo->pszCoverName;
-    osInfoPath += "/../info/";
+    osInfoPath += "/../info";
     
     if( VSIStatL( osInfoPath, &sStatBuf ) != 0 )
     {
@@ -380,6 +380,8 @@ void AIGDataset::ReadRAT()
                   osInfoPath.c_str() );
         return;
     }
+    
+    osInfoPath += "/";
 
 /* -------------------------------------------------------------------- */
 /*      Attempt to open the VAT table associated with this coverage.    */
@@ -478,6 +480,11 @@ void AIGDataset::ReadRAT()
 /* -------------------------------------------------------------------- */
 
     AVCBinReadClose( psFile );
+
+    /* Workaround against #2447 and #3031, to avoid binding languages */
+    /* not being able to open the dataset */
+    CPLErrorReset();
+
 #endif /* OGR_ENABLED */
 }
 

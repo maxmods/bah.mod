@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_odbc.cpp 15782 2008-11-21 22:04:29Z rouault $
+ * $Id: cpl_odbc.cpp 17381 2009-07-11 17:28:19Z chaitanya $
  *
  * Project:  OGR ODBC Driver
  * Purpose:  Declarations for ODBC Access Cover API.
@@ -35,7 +35,7 @@
 
 #ifndef WIN32CE /* ODBC is not supported on Windows CE. */
 
-CPL_CVSID("$Id: cpl_odbc.cpp 15782 2008-11-21 22:04:29Z rouault $");
+CPL_CVSID("$Id: cpl_odbc.cpp 17381 2009-07-11 17:28:19Z chaitanya $");
 
 #ifndef SQLColumns_TABLE_CAT 
 #define SQLColumns_TABLE_CAT 1
@@ -766,7 +766,7 @@ int CPLODBCStatement::Fetch( int nOrientation, int nOffset )
                     return FALSE;
                 }
 
-                if( cbDataLen > (int) (sizeof(szWrkData) - 1)
+                if( cbDataLen >= (int) (sizeof(szWrkData) - 1)
                     || cbDataLen == SQL_NO_TOTAL )
                 {
                     nChunkLen = sizeof(szWrkData)-1;

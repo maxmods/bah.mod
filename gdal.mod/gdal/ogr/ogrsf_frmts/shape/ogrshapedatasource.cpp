@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 15328 2008-09-07 12:07:27Z rouault $
+ * $Id: ogrshapedatasource.cpp 17132 2009-05-26 22:05:47Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 15328 2008-09-07 12:07:27Z rouault $");
+CPL_CVSID("$Id: ogrshapedatasource.cpp 17132 2009-05-26 22:05:47Z rouault $");
 
 /************************************************************************/
 /*                         OGRShapeDataSource()                         */
@@ -73,7 +73,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
                               int bTestOpen, int bSingleNewFileIn )
 
 {
-    VSIStatBuf  stat;
+    VSIStatBufL  stat;
     
     CPLAssert( nLayers == 0 );
     
@@ -96,7 +96,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
 /*      Is the given path a directory or a regular file?                */
 /* -------------------------------------------------------------------- */
-    if( CPLStat( pszNewName, &stat ) != 0 
+    if( VSIStatL( pszNewName, &stat ) != 0 
         || (!VSI_ISDIR(stat.st_mode) && !VSI_ISREG(stat.st_mode)) )
     {
         if( !bTestOpen )

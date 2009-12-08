@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp 15592 2008-10-24 19:46:47Z warmerdam $
+ * $Id: ogrgeometryfactory.cpp 15945 2008-12-12 16:15:41Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -34,7 +34,7 @@
 #include <assert.h>
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 15592 2008-10-24 19:46:47Z warmerdam $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 15945 2008-12-12 16:15:41Z warmerdam $");
 
 /************************************************************************/
 /*                           createFromWkb()                            */
@@ -740,6 +740,39 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
         }
         
         delete poPoly;
+
+        return poMP;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Convert multi-polygons into a multilinestring.                  */
+/* -------------------------------------------------------------------- */
+    if( wkbFlatten(poGeom->getGeometryType()) == wkbMultiPolygon )
+    {
+        OGRMultiLineString *poMP = new OGRMultiLineString();
+        OGRMultiPolygon *poMPoly = (OGRMultiPolygon *) poGeom;
+        int iPoly;
+
+        for( iPoly = 0; iPoly < poMPoly->getNumGeometries(); iPoly++ )
+        {
+            OGRPolygon *poPoly = (OGRPolygon*) poMPoly->getGeometryRef(iPoly);
+            int iRing;
+
+            for( iRing = 0; iRing < poPoly->getNumInteriorRings()+1; iRing++ )
+            {
+                OGRLineString *poNewLS, *poLR;
+                
+                if( iRing == 0 )
+                    poLR = poPoly->getExteriorRing();
+                else
+                    poLR = poPoly->getInteriorRing(iRing-1);
+                
+                poNewLS = new OGRLineString();
+                poNewLS->addSubLineString( poLR );
+                poMP->addGeometryDirectly( poNewLS );
+            }
+        }
+        delete poMPoly;
 
         return poMP;
     }

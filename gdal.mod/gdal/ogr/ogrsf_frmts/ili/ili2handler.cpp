@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2handler.cpp 13354 2007-12-17 14:52:10Z pka $
+ * $Id: ili2handler.cpp 17913 2009-10-27 15:54:26Z chaitanya $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Handler class.
@@ -34,7 +34,7 @@
 #include "ili2readerp.h"
 #include <xercesc/sax2/Attributes.hpp>
 
-CPL_CVSID("$Id: ili2handler.cpp 13354 2007-12-17 14:52:10Z pka $");
+CPL_CVSID("$Id: ili2handler.cpp 17913 2009-10-27 15:54:26Z chaitanya $");
 
 // 
 // constants
@@ -145,6 +145,31 @@ void ILI2Handler::endElement(
   }
 }
 
+#if XERCES_VERSION_MAJOR >= 3
+/************************************************************************/
+/*                     characters()                                     */
+/************************************************************************/
+
+void ILI2Handler::characters( const XMLCh *const chars,
+                     const XMLSize_t length ) {
+  
+  // add the text element
+  if (level >= 3) {
+    char *tmpC = XMLString::transcode(chars);
+    
+    // only add the text if it is not empty
+    if (trim(tmpC) != "") 
+      dom_elem->appendChild(dom_doc->createTextNode(chars));
+    
+    XMLString::release(&tmpC);
+  }
+}
+
+#else
+/************************************************************************/
+/*                     characters()                                     */
+/************************************************************************/
+
 void ILI2Handler::characters( const XMLCh *const chars,
                      const unsigned int length ) {
   
@@ -159,6 +184,7 @@ void ILI2Handler::characters( const XMLCh *const chars,
     XMLString::release(&tmpC);
   }
 }
+#endif
 
 void ILI2Handler::fatalError(const SAXParseException&) {
   // FIXME Error handling

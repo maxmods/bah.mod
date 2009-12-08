@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil.cpp 15344 2008-09-08 18:02:47Z rouault $
+ * $Id: cpl_vsil.cpp 17132 2009-05-26 22:05:47Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation VSI*L File API and other file system access
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cpl_vsil.cpp 15344 2008-09-08 18:02:47Z rouault $");
+CPL_CVSID("$Id: cpl_vsil.cpp 17132 2009-05-26 22:05:47Z rouault $");
 
 /************************************************************************/
 /*                             VSIReadDir()                             */
@@ -226,6 +226,18 @@ int VSIRmdir( const char * pszDirname )
 int VSIStatL( const char * pszFilename, VSIStatBufL *psStatBuf )
 
 {
+    char    szAltPath[4];
+    /* enable to work on "C:" as if it were "C:\" */
+    if( strlen(pszFilename) == 2 && pszFilename[1] == ':' )
+    {
+        szAltPath[0] = pszFilename[0];
+        szAltPath[1] = pszFilename[1];
+        szAltPath[2] = '\\';
+        szAltPath[3] = '\0';
+
+        pszFilename = szAltPath;
+    }
+
     VSIFilesystemHandler *poFSHandler = 
         VSIFileManager::GetHandler( pszFilename );
 

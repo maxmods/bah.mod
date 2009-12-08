@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: l1bdataset.cpp 14645 2008-06-07 12:09:32Z dron $
+ * $Id: l1bdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $
  *
  * Project:  NOAA Polar Orbiter Level 1b Dataset Reader (AVHRR)
  * Purpose:  Can read NOAA-9(F)-NOAA-17(M) AVHRR datasets
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: l1bdataset.cpp 14645 2008-06-07 12:09:32Z dron $");
+CPL_CVSID("$Id: l1bdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_L1B(void);
@@ -411,7 +411,7 @@ L1BDataset::L1BDataset( int eL1BFormat )
     fp = NULL;
     nGCPCount = 0;
     pasGCPList = NULL;
-    pszGCPProjection = CPLStrdup( "GEOGCS[\"WGS 72\",DATUM[\"WGS_1972\",SPHEROID[\"WGS 72\",6378135,298.26,AUTHORITY[\"EPSG\",7043]],TOWGS84[0,0,4.5,0,0,0.554,0.2263],AUTHORITY[\"EPSG\",6322]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",8901]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",9108]],AXIS[\"Lat\",\"NORTH\"],AXIS[\"Long\",\"EAST\"],AUTHORITY[\"EPSG\",4322]]" );
+    pszGCPProjection = CPLStrdup( "GEOGCS[\"WGS 72\",DATUM[\"WGS_1972\",SPHEROID[\"WGS 72\",6378135,298.26,AUTHORITY[\"EPSG\",7043]],TOWGS84[0,0,4.5,0,0,0.554,0.2263],AUTHORITY[\"EPSG\",6322]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",8901]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",9108]],AUTHORITY[\"EPSG\",4322]]" );
     nBands = 0;
     eLocationIndicator = DESCEND; // XXX: should be initialised
     iChannelsMask = 0;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpcimdio.cpp 14161 2008-03-31 15:57:42Z warmerdam $
+ * $Id: gdal_rpcimdio.cpp 17297 2009-06-27 03:29:41Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Functions for reading RPC and IMD formats, and normalizing.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cplkeywordparser.h"
 
-CPL_CVSID("$Id: gdal_rpcimdio.cpp 14161 2008-03-31 15:57:42Z warmerdam $");
+CPL_CVSID("$Id: gdal_rpcimdio.cpp 17297 2009-06-27 03:29:41Z warmerdam $");
 
 /************************************************************************/
 /*                          GDALLoadRPBFile()                           */
@@ -78,11 +78,13 @@ char **CPL_STDCALL GDALLoadRPBFile( const char *pszFilename,
     }
     else
     {
-        int iSibling = CSLFindString( papszSiblingFiles, osTarget );
+        int iSibling = CSLFindString( papszSiblingFiles, 
+                                      CPLGetFilename(osTarget) );
         if( iSibling < 0 )
             return NULL;
 
-        osTarget = papszSiblingFiles[iSibling];
+        osTarget.resize(osTarget.size() - strlen(papszSiblingFiles[iSibling]));
+        osTarget += papszSiblingFiles[iSibling];
     }
 
 /* -------------------------------------------------------------------- */
@@ -394,11 +396,13 @@ char ** CPL_STDCALL GDALLoadIMDFile( const char *pszFilename,
     }
     else
     {
-        int iSibling = CSLFindString( papszSiblingFiles, osTarget );
+        int iSibling = CSLFindString( papszSiblingFiles, 
+                                      CPLGetFilename(osTarget) );
         if( iSibling < 0 )
             return NULL;
 
-        osTarget = papszSiblingFiles[iSibling];
+        osTarget.resize(osTarget.size() - strlen(papszSiblingFiles[iSibling]));
+        osTarget += papszSiblingFiles[iSibling];
     }
 
 /* -------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: elasdataset.cpp 14049 2008-03-20 19:01:59Z rouault $
+ * $Id: elasdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
  *
  * Project:  ELAS Translator
  * Purpose:  Complete implementation of ELAS translator module for GDAL.
@@ -29,7 +29,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: elasdataset.cpp 14049 2008-03-20 19:01:59Z rouault $");
+CPL_CVSID("$Id: elasdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
 
 CPL_C_START
 void	GDALRegister_ELAS(void);
@@ -445,6 +445,13 @@ GDALDataset *ELASDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Verify input options.                                           */
 /* -------------------------------------------------------------------- */
+    if (nBands <= 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "ELAS driver does not support %d bands.\n", nBands);
+        return NULL;
+    }
+
     if( eType != GDT_Byte && eType != GDT_Float32 && eType != GDT_Float64 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,

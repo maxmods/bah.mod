@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtwarped.cpp 15025 2008-07-24 19:26:51Z rouault $
+ * $Id: vrtwarped.cpp 15926 2008-12-10 02:48:48Z warmerdam $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTWarpedRasterBand *and VRTWarpedDataset.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "gdalwarper.h"
 
-CPL_CVSID("$Id: vrtwarped.cpp 15025 2008-07-24 19:26:51Z rouault $");
+CPL_CVSID("$Id: vrtwarped.cpp 15926 2008-12-10 02:48:48Z warmerdam $");
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -815,6 +815,7 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
 /*      Allocate block of memory large enough to hold all the bands     */
 /*      for this block.                                                 */
 /* -------------------------------------------------------------------- */
+    int iBand;
     GByte *pabyDstBuffer;
     int   nDstBufferSize;
     int   nWordSize = (GDALGetDataTypeSize(psWO->eWorkingDataType) / 8);
@@ -833,6 +834,65 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
     }				
 
     memset( pabyDstBuffer, 0, nDstBufferSize );
+
+/* -------------------------------------------------------------------- */
+/*      Process INIT_DEST option to initialize the buffer prior to      */
+/*      warping into it.                                                */
+/* -------------------------------------------------------------------- */
+    const char *pszInitDest = CSLFetchNameValue( psWO->papszWarpOptions,
+                                                 "INIT_DEST" );
+
+    if( pszInitDest != NULL )
+    {
+        char **papszInitValues = 
+            CSLTokenizeStringComplex( pszInitDest, ",", FALSE, FALSE );
+        int nInitCount = CSLCount(papszInitValues);
+                                                           
+        for( iBand = 0; iBand < psWO->nBandCount; iBand++ )
+        {
+            double adfInitRealImag[2];
+            GByte *pBandData;
+            int nBandSize = nBlockXSize * nBlockYSize * nWordSize;
+            const char *pszBandInit = papszInitValues[MIN(iBand,nInitCount-1)];
+
+            if( EQUAL(pszBandInit,"NO_DATA")
+                && psWO->padfDstNoDataReal != NULL )
+            {
+                adfInitRealImag[0] = psWO->padfDstNoDataReal[iBand];
+                adfInitRealImag[1] = psWO->padfDstNoDataImag[iBand];
+            }
+            else
+            {
+                CPLStringToComplex( pszBandInit,
+                                    adfInitRealImag + 0, adfInitRealImag + 1);
+            }
+
+            pBandData = ((GByte *) pabyDstBuffer) + iBand * nBandSize;
+            
+            if( psWO->eWorkingDataType == GDT_Byte )
+                memset( pBandData, 
+                        MAX(0,MIN(255,(int)adfInitRealImag[0])), 
+                        nBandSize);
+            else if( adfInitRealImag[0] == 0.0 && adfInitRealImag[1] == 0 )
+            {
+                memset( pBandData, 0, nBandSize );
+            }
+            else if( adfInitRealImag[1] == 0.0 )
+            {
+                GDALCopyWords( &adfInitRealImag, GDT_Float64, 0, 
+                               pBandData,psWO->eWorkingDataType,nWordSize,
+                               nBlockXSize * nBlockYSize );
+            }
+            else
+            {
+                GDALCopyWords( &adfInitRealImag, GDT_CFloat64, 0, 
+                               pBandData,psWO->eWorkingDataType,nWordSize,
+                               nBlockXSize * nBlockYSize );
+            }
+        }
+
+        CSLDestroy( papszInitValues );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Warp into this buffer.                                          */
@@ -854,8 +914,6 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
 /* -------------------------------------------------------------------- */
 /*      Copy out into cache blocks for each band.                       */
 /* -------------------------------------------------------------------- */
-    int iBand;
-
     for( iBand = 0; iBand < psWO->nBandCount; iBand++ )
     {
         GDALRasterBand *poBand;

@@ -19,7 +19,7 @@ CPPFLAGS	:=	-Iogrsf_frmts -I. $(GDAL_INCLUDE) $(PROJ_INCLUDE) $(PROJ_FLAGS) $(CP
 
 default:	lib
 
-all:	sublibs apps test_ogrsf$(EXE) 
+all:	lib
 
 clean:
 	rm -f html/*
@@ -29,7 +29,7 @@ clean:
 very-clean: clean
 	rm -rf html rtf
 
-lib:	sublibs $(OBJ)
+lib:	sublibs $(OBJ:.o=.$(OBJ_EXT))
 
 $(OBJ): ogr_feature.h ogr_geometry.h
 

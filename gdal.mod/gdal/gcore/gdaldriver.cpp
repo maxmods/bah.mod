@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 15685 2008-11-04 21:15:58Z rouault $
+ * $Id: gdaldriver.cpp 16736 2009-04-07 03:10:37Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -29,7 +29,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 15685 2008-11-04 21:15:58Z rouault $");
+CPL_CVSID("$Id: gdaldriver.cpp 16736 2009-04-07 03:10:37Z warmerdam $");
 
 /************************************************************************/
 /*                             GDALDriver()                             */
@@ -129,6 +129,15 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Do some rudimentary argument checking.                          */
 /* -------------------------------------------------------------------- */
+    if (nBands < 0)
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Attempt to create dataset with %d bands is illegal,"
+                  "Must be >= 0.",
+                  nBands );
+        return NULL;
+    }
+
     if( nXSize < 1 || nYSize < 1 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
@@ -257,11 +266,15 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
 {
     CPLErr eErr = CE_None;	
 
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+        return CE_None;
+
 /* -------------------------------------------------------------------- */
 /*      Try to copy mask if it seems appropriate.                       */
 /* -------------------------------------------------------------------- */
     for( int iBand = 0; 
-         eErr == CE_None && iBand < poSrcDS->GetRasterCount(); 
+         eErr == CE_None && iBand < nBands; 
          iBand++ )
     {
         GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );
@@ -323,25 +336,77 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
     
     CPLErrorReset();
 
-/* -------------------------------------------------------------------- */
-/*      Create destination dataset.                                     */
-/* -------------------------------------------------------------------- */
-    GDALDataset  *poDstDS;
-    int          nXSize = poSrcDS->GetRasterXSize();
-    int          nYSize = poSrcDS->GetRasterYSize();
-    GDALDataType eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
-    CPLErr       eErr = CE_None;
-
-    CPLDebug( "GDAL", "Using default GDALDriver::CreateCopy implementation." );
-
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
     {
         CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
         return NULL;
     }
 
+/* -------------------------------------------------------------------- */
+/*      Validate that we can create the output as requested.            */
+/* -------------------------------------------------------------------- */
+    int          nXSize = poSrcDS->GetRasterXSize();
+    int          nYSize = poSrcDS->GetRasterYSize();
+    int          nBands = poSrcDS->GetRasterCount();
+
+    CPLDebug( "GDAL", "Using default GDALDriver::CreateCopy implementation." );
+
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "GDALDriver::DefaultCreateCopy does not support zero band" );
+        return NULL;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Propogate some specific structural metadata as options if it    */
+/*      appears to be supported by the target driver and the caller     */
+/*      didn't provide values.                                          */
+/* -------------------------------------------------------------------- */
+    char **papszCreateOptions = CSLDuplicate( papszOptions );
+    int  iOptItem;
+    static const char *apszOptItems[] = {
+        "NBITS", "IMAGE_STRUCTURE",
+        "PIXELTYPE", "IMAGE_STRUCTURE", 
+        NULL };
+
+    for( iOptItem = 0; apszOptItems[iOptItem] != NULL; iOptItem += 2 )
+    {
+        // does the source have this metadata item on the first band?
+        const char *pszValue = 
+            poSrcDS->GetRasterBand(1)->GetMetadataItem( 
+                apszOptItems[iOptItem], apszOptItems[iOptItem+1] );
+
+        if( pszValue == NULL )
+            continue;
+
+        // do not override provided value.
+        if( CSLFetchNameValue( papszCreateOptions, pszValue ) != NULL )
+            continue;
+
+        // Does this appear to be a supported creation option on this driver?
+        const char *pszOptionList =
+            GetMetadataItem( GDAL_DMD_CREATIONDATATYPES );
+
+        if( pszOptionList == NULL 
+            || strstr(pszOptionList,apszOptItems[iOptItem]) != NULL )
+            continue;
+
+        papszCreateOptions = CSLSetNameValue( papszCreateOptions,
+                                              apszOptItems[iOptItem], 
+                                              pszValue );
+    }
+    
+/* -------------------------------------------------------------------- */
+/*      Create destination dataset.                                     */
+/* -------------------------------------------------------------------- */
+    GDALDataset  *poDstDS;
+    GDALDataType eType;
+    CPLErr       eErr = CE_None;
+
+    eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
     poDstDS = Create( pszFilename, nXSize, nYSize, 
-                      poSrcDS->GetRasterCount(), eType, papszOptions );
+                      nBands, eType, papszCreateOptions );
 
     if( poDstDS == NULL )
         return NULL;
@@ -404,7 +469,7 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 /*      Loop copying bands.                                             */
 /* -------------------------------------------------------------------- */
     for( int iBand = 0; 
-         eErr == CE_None && iBand < poSrcDS->GetRasterCount(); 
+         eErr == CE_None && iBand < nBands; 
          iBand++ )
     {
         GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterband.cpp 15729 2008-11-13 20:33:46Z warmerdam $
+ * $Id: gdalrasterband.cpp 17677 2009-09-24 20:51:27Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for format specific band class implementation.  This
@@ -40,7 +40,7 @@
 // (minimum value, maximum value, etc.)
 #define GDALSTAT_APPROX_NUMSAMPLES 2500
 
-CPL_CVSID("$Id: gdalrasterband.cpp 15729 2008-11-13 20:33:46Z warmerdam $");
+CPL_CVSID("$Id: gdalrasterband.cpp 17677 2009-09-24 20:51:27Z rouault $");
 
 /************************************************************************/
 /*                           GDALRasterBand()                           */
@@ -53,6 +53,7 @@ GDALRasterBand::GDALRasterBand()
 {
     poDS = NULL;
     nBand = 0;
+    nRasterXSize = nRasterYSize = 0;
 
     eAccess = GA_ReadOnly;
     nBlockXSize = nBlockYSize = -1;
@@ -592,12 +593,22 @@ GDALDataType CPL_STDCALL GDALGetRasterDataType( GDALRasterBandH hBand )
 void GDALRasterBand::GetBlockSize( int * pnXSize, int *pnYSize )
 
 {
-    CPLAssert( nBlockXSize > 0 && nBlockYSize > 0 );
-    
-    if( pnXSize != NULL )
-        *pnXSize = nBlockXSize;
-    if( pnYSize != NULL )
-        *pnYSize = nBlockYSize;
+    if( nBlockXSize <= 0 || nBlockYSize <= 0 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, "Invalid block dimension : %d * %d",
+                 nBlockXSize, nBlockYSize );
+        if( pnXSize != NULL )
+            *pnXSize = 0;
+        if( pnYSize != NULL )
+            *pnYSize = 0;
+    }
+    else
+    {
+        if( pnXSize != NULL )
+            *pnXSize = nBlockXSize;
+        if( pnYSize != NULL )
+            *pnYSize = nBlockYSize;
+    }
 }
 
 /************************************************************************/
@@ -629,7 +640,54 @@ int GDALRasterBand::InitBlockInfo()
     if( papoBlocks != NULL )
         return TRUE;
 
-    CPLAssert( nBlockXSize > 0 && nBlockYSize > 0 );
+    /* Do some validation of raster and block dimensions in case the driver */
+    /* would have neglected to do it itself */
+    if( nBlockXSize <= 0 || nBlockYSize <= 0 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, "Invalid block dimension : %d * %d",
+                  nBlockXSize, nBlockYSize );
+        return FALSE;
+    }
+
+    if( nRasterXSize <= 0 || nRasterYSize <= 0 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, "Invalid raster dimension : %d * %d",
+                  nRasterXSize, nRasterYSize );
+        return FALSE;
+    }
+
+    if (nBlockXSize >= 10000 || nBlockYSize >= 10000)
+    {
+        /* Check that the block size is not overflowing int capacity as it is */
+        /* (reasonnably) assumed in many places (GDALRasterBlock::Internalize(), */
+        /* GDALRasterBand::Fill(), many drivers...) */
+        /* As 10000 * 10000 * 16 < 0x7ffffff, we don't need to do the multiplication in other cases */
+
+        int nSizeInBytes = nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8);
+
+        GIntBig nBigSizeInBytes = (GIntBig)nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8);
+        if ((GIntBig)nSizeInBytes != nBigSizeInBytes)
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, "Too big block : %d * %d",
+                        nBlockXSize, nBlockYSize );
+            return FALSE;
+        }
+    }
+
+    /* Check for overflows in computation of nBlocksPerRow and nBlocksPerColumn */
+    if (nRasterXSize > INT_MAX - (nBlockXSize-1))
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, "Inappropriate raster width (%d) for block width (%d)",
+                    nRasterXSize, nBlockXSize );
+        return FALSE;
+    }
+
+    if (nRasterYSize > INT_MAX - (nBlockYSize-1))
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, "Inappropriate raster height (%d) for block height (%d)",
+                    nRasterYSize, nBlockYSize );
+        return FALSE;
+    }
 
     nBlocksPerRow = (nRasterXSize+nBlockXSize-1) / nBlockXSize;
     nBlocksPerColumn = (nRasterYSize+nBlockYSize-1) / nBlockYSize;
@@ -637,19 +695,52 @@ int GDALRasterBand::InitBlockInfo()
     if( nBlocksPerRow < SUBBLOCK_SIZE/2 )
     {
         bSubBlockingActive = FALSE;
-        
-        papoBlocks = (GDALRasterBlock **)
-            VSICalloc( sizeof(void*), nBlocksPerRow * nBlocksPerColumn );
+
+        if (nBlocksPerRow < INT_MAX / nBlocksPerColumn)
+        {
+            papoBlocks = (GDALRasterBlock **)
+                VSICalloc( sizeof(void*), nBlocksPerRow * nBlocksPerColumn );
+        }
+        else
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, "Too many blocks : %d x %d",
+                     nBlocksPerRow, nBlocksPerColumn );
+            return FALSE;
+        }
     }
     else
     {
+        /* Check for overflows in computation of nSubBlocksPerRow and nSubBlocksPerColumn */
+        if (nBlocksPerRow > INT_MAX - (SUBBLOCK_SIZE+1))
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, "Inappropriate raster width (%d) for block width (%d)",
+                        nRasterXSize, nBlockXSize );
+            return FALSE;
+        }
+
+        if (nBlocksPerColumn > INT_MAX - (SUBBLOCK_SIZE+1))
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, "Inappropriate raster height (%d) for block height (%d)",
+                        nRasterYSize, nBlockYSize );
+            return FALSE;
+        }
+
         bSubBlockingActive = TRUE;
 
         nSubBlocksPerRow = (nBlocksPerRow + SUBBLOCK_SIZE + 1)/SUBBLOCK_SIZE;
         nSubBlocksPerColumn = (nBlocksPerColumn + SUBBLOCK_SIZE + 1)/SUBBLOCK_SIZE;
-        
-        papoBlocks = (GDALRasterBlock **)
-            VSICalloc( sizeof(void*), nSubBlocksPerRow * nSubBlocksPerColumn );
+
+        if (nSubBlocksPerRow < INT_MAX / nSubBlocksPerColumn)
+        {
+            papoBlocks = (GDALRasterBlock **)
+                VSICalloc( sizeof(void*), nSubBlocksPerRow * nSubBlocksPerColumn );
+        }
+        else
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, "Too many subblocks : %d x %d",
+                      nSubBlocksPerRow, nSubBlocksPerColumn );
+            return FALSE;
+        }
     }
 
     if( papoBlocks == NULL )
@@ -1094,6 +1185,32 @@ GDALRasterBlock * GDALRasterBand::GetLockedBlockRef( int nXBlockOff,
 /* -------------------------------------------------------------------- */
     if( poBlock == NULL )
     {
+        if( !InitBlockInfo() )
+            return( NULL );
+
+    /* -------------------------------------------------------------------- */
+    /*      Validate the request                                            */
+    /* -------------------------------------------------------------------- */
+        if( nXBlockOff < 0 || nXBlockOff >= nBlocksPerRow )
+        {
+            CPLError( CE_Failure, CPLE_IllegalArg,
+                      "Illegal nBlockXOff value (%d) in "
+                      "GDALRasterBand::GetLockedBlockRef()\n",
+                      nXBlockOff );
+
+            return( NULL );
+        }
+
+        if( nYBlockOff < 0 || nYBlockOff >= nBlocksPerColumn )
+        {
+            CPLError( CE_Failure, CPLE_IllegalArg,
+                      "Illegal nBlockYOff value (%d) in "
+                      "GDALRasterBand::GetLockedBlockRef()\n",
+                      nYBlockOff );
+
+            return( NULL );
+        }
+
         poBlock = new GDALRasterBlock( this, nXBlockOff, nYBlockOff );
 
         poBlock->AddLock();
@@ -1106,7 +1223,12 @@ GDALRasterBlock * GDALRasterBand::GetLockedBlockRef( int nXBlockOff,
             return( NULL );
         }
 
-        AdoptBlock( nXBlockOff, nYBlockOff, poBlock );
+        if ( AdoptBlock( nXBlockOff, nYBlockOff, poBlock ) != CE_None )
+        {
+            poBlock->DropLock();
+            delete poBlock;
+            return( NULL );
+        }
 
         if( !bJustInitialize
          && IReadBlock(nXBlockOff,nYBlockOff,poBlock->GetDataRef()) != CE_None)
@@ -1205,8 +1327,15 @@ CPLErr GDALRasterBand::Fill(double dfRealValue, double dfImaginaryValue) {
 		CPLError(CE_Failure, CPLE_OutOfMemory,
 			 "GDALRasterBand::Fill(): Error "
 			 "while retrieving cache block.\n");
+                VSIFree(srcBlock);
 		return CE_Failure;
 	    }
+            if (destBlock->GetDataRef() == NULL)
+            {
+                destBlock->DropLock();
+                VSIFree(srcBlock);
+                return CE_Failure;
+            }
 	    memcpy(destBlock->GetDataRef(), srcBlock, blockByteSize);
 	    destBlock->MarkDirty();
             destBlock->DropLock();
@@ -1493,7 +1622,13 @@ double GDALRasterBand::GetMaximum( int *pbSuccess )
     switch( eDataType )
     {
       case GDT_Byte:
-        return 255;
+      {
+        const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+        if (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"))
+            return 127;
+        else
+            return 255;
+      }
 
       case GDT_UInt16:
         return 65535;
@@ -1576,7 +1711,13 @@ double GDALRasterBand::GetMinimum( int *pbSuccess )
     switch( eDataType )
     {
       case GDT_Byte:
-        return 0;
+      {
+        const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+        if (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"))
+            return -128;
+        else
+            return 0;
+      }
 
       case GDT_UInt16:
         return 0;
@@ -1747,7 +1888,8 @@ GDALColorTableH CPL_STDCALL GDALGetRasterColorTable( GDALRasterBandH hBand )
  *
  * This method is the same as the C function GDALSetRasterColorTable().
  *
- * @param poCT the color table to apply.
+ * @param poCT the color table to apply.  This may be NULL to clear the color 
+ * table (where supported).
  *
  * @return CE_None on success, or CE_Failure on failure.  If the action is
  * unsupported by the driver, a value of CE_Failure is returned, but no
@@ -2467,6 +2609,9 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
     dfScale = nBuckets / (dfMax - dfMin);
     memset( panHistogram, 0, sizeof(int) * nBuckets );
 
+    const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+    int bSignedByte = (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"));
+
     if ( bApproxOK && HasArbitraryOverviews() )
     {
 /* -------------------------------------------------------------------- */
@@ -2513,8 +2658,13 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                 switch( eDataType )
                 {
                   case GDT_Byte:
-                    dfValue = ((GByte *)pData)[iOffset];
+                  {
+                    if (bSignedByte)
+                        dfValue = ((signed char *)pData)[iOffset];
+                    else
+                        dfValue = ((GByte *)pData)[iOffset];
                     break;
+                  }
                   case GDT_UInt16:
                     dfValue = ((GUInt16 *)pData)[iOffset];
                     break;
@@ -2640,6 +2790,11 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
             poBlock = GetLockedBlockRef( iXBlock, iYBlock );
             if( poBlock == NULL )
                 return CE_Failure;
+            if( poBlock->GetDataRef() == NULL )
+            {
+                poBlock->DropLock();
+                return CE_Failure;
+            }
             
             if( (iXBlock+1) * nBlockXSize > GetXSize() )
                 nXCheck = GetXSize() - iXBlock * nBlockXSize;
@@ -2652,7 +2807,7 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                 nYCheck = nBlockYSize;
 
             /* this is a special case for a common situation */
-            if( poBlock->GetDataType() == GDT_Byte
+            if( poBlock->GetDataType() == GDT_Byte && !bSignedByte
                 && dfScale == 1.0 && (dfMin >= -0.5 && dfMin <= 0.5)
                 && nYCheck == nBlockYSize && nXCheck == nBlockXSize
                 && nBuckets == 256 )
@@ -2679,8 +2834,13 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                     switch( poBlock->GetDataType() )
                     {
                       case GDT_Byte:
-                        dfValue = ((GByte *) poBlock->GetDataRef())[iOffset];
+                      {
+                        if (bSignedByte)
+                            dfValue = ((signed char *) poBlock->GetDataRef())[iOffset];
+                        else
+                            dfValue = ((GByte *) poBlock->GetDataRef())[iOffset];
                         break;
+                      }
                       case GDT_UInt16:
                         dfValue = ((GUInt16 *) poBlock->GetDataRef())[iOffset];
                         break;
@@ -2854,8 +3014,11 @@ CPLErr
         return CE_Warning;
 
     *pnBuckets = 256;
+    
+    const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+    int bSignedByte = (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"));
 
-    if( GetRasterDataType() == GDT_Byte )
+    if( GetRasterDataType() == GDT_Byte && !bSignedByte)
     {
         *pdfMin = -0.5;
         *pdfMax = 255.5;
@@ -3169,6 +3332,9 @@ GDALRasterBand::ComputeStatistics( int bApproxOK,
 
     dfNoDataValue = GetNoDataValue( &bGotNoDataValue );
 
+    const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+    int bSignedByte = (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"));
+    
     if ( bApproxOK && HasArbitraryOverviews() )
     {
 /* -------------------------------------------------------------------- */
@@ -3214,8 +3380,13 @@ GDALRasterBand::ComputeStatistics( int bApproxOK,
                 switch( eDataType )
                 {
                   case GDT_Byte:
-                    dfValue = ((GByte *)pData)[iOffset];
+                  {
+                    if (bSignedByte)
+                        dfValue = ((signed char *)pData)[iOffset];
+                    else
+                        dfValue = ((GByte *)pData)[iOffset];
                     break;
+                  }
                   case GDT_UInt16:
                     dfValue = ((GUInt16 *)pData)[iOffset];
                     break;
@@ -3314,6 +3485,11 @@ GDALRasterBand::ComputeStatistics( int bApproxOK,
             poBlock = GetLockedBlockRef( iXBlock, iYBlock );
             if( poBlock == NULL )
                 continue;
+            if( poBlock->GetDataRef() == NULL )
+            {
+                poBlock->DropLock();
+                continue;
+            }
             
             if( (iXBlock+1) * nBlockXSize > GetXSize() )
                 nXCheck = GetXSize() - iXBlock * nBlockXSize;
@@ -3336,8 +3512,13 @@ GDALRasterBand::ComputeStatistics( int bApproxOK,
                     switch( poBlock->GetDataType() )
                     {
                       case GDT_Byte:
-                        dfValue = ((GByte *)poBlock->GetDataRef())[iOffset];
+                      {
+                        if (bSignedByte)
+                            dfValue = ((signed char *)poBlock->GetDataRef())[iOffset];
+                        else
+                            dfValue = ((GByte *)poBlock->GetDataRef())[iOffset];
                         break;
+                      }
                       case GDT_UInt16:
                         dfValue = ((GUInt16 *)poBlock->GetDataRef())[iOffset];
                         break;
@@ -3604,6 +3785,9 @@ CPLErr GDALRasterBand::ComputeRasterMinMax( int bApproxOK,
 
     dfNoDataValue = GetNoDataValue( &bGotNoDataValue );
 
+    const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+    int bSignedByte = (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"));
+    
     if ( bApproxOK && HasArbitraryOverviews() )
     {
 /* -------------------------------------------------------------------- */
@@ -3649,8 +3833,13 @@ CPLErr GDALRasterBand::ComputeRasterMinMax( int bApproxOK,
                 switch( eDataType )
                 {
                   case GDT_Byte:
-                    dfValue = ((GByte *)pData)[iOffset];
+                  {
+                    if (bSignedByte)
+                        dfValue = ((signed char *)pData)[iOffset];
+                    else
+                        dfValue = ((GByte *)pData)[iOffset];
                     break;
+                  }
                   case GDT_UInt16:
                     dfValue = ((GUInt16 *)pData)[iOffset];
                     break;
@@ -3744,6 +3933,11 @@ CPLErr GDALRasterBand::ComputeRasterMinMax( int bApproxOK,
             poBlock = GetLockedBlockRef( iXBlock, iYBlock );
             if( poBlock == NULL )
                 continue;
+            if( poBlock->GetDataRef() == NULL )
+            {
+                poBlock->DropLock();
+                continue;
+            }
             
             if( (iXBlock+1) * nBlockXSize > GetXSize() )
                 nXCheck = GetXSize() - iXBlock * nBlockXSize;
@@ -3766,8 +3960,13 @@ CPLErr GDALRasterBand::ComputeRasterMinMax( int bApproxOK,
                     switch( poBlock->GetDataType() )
                     {
                       case GDT_Byte:
-                        dfValue = ((GByte *) poBlock->GetDataRef())[iOffset];
+                      {
+                        if (bSignedByte)
+                            dfValue = ((signed char *) poBlock->GetDataRef())[iOffset];
+                        else
+                            dfValue = ((GByte *) poBlock->GetDataRef())[iOffset];
                         break;
+                      }
                       case GDT_UInt16:
                         dfValue = ((GUInt16 *) poBlock->GetDataRef())[iOffset];
                         break;

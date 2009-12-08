@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdatasource.cpp 15684 2008-11-03 20:37:19Z rouault $
+ * $Id: ogrcsvdatasource.cpp 16004 2008-12-28 19:55:49Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDataSource class
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrcsvdatasource.cpp 15684 2008-11-03 20:37:19Z rouault $");
+CPL_CVSID("$Id: ogrcsvdatasource.cpp 16004 2008-12-28 19:55:49Z rouault $");
 
 /************************************************************************/
 /*                          OGRCSVDataSource()                          */
@@ -136,6 +136,9 @@ int OGRCSVDataSource::Open( const char * pszFilename, int bUpdateIn,
             CPLFormFilename( pszFilename, papszNames[i], NULL );
 
         if( EQUAL(papszNames[i],".") || EQUAL(papszNames[i],"..") )
+            continue;
+
+        if (EQUAL(CPLGetExtension(oSubFilename),"csvt"))
             continue;
 
         if( VSIStatL( oSubFilename, &sStatBuf ) != 0 

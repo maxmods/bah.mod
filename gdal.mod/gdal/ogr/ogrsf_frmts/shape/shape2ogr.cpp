@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 15457 2008-10-05 20:43:01Z rouault $
+ * $Id: shape2ogr.cpp 16201 2009-01-28 21:29:52Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -31,7 +31,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 15457 2008-10-05 20:43:01Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 16201 2009-01-28 21:29:52Z warmerdam $");
 
 static const double EPSILON = 1E-5;
 
@@ -880,13 +880,25 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
           case OFTDate:
           {
               OGRField sFld;
-              int nFullDate = 
-                  DBFReadIntegerAttribute( hDBF, iShape, iField );
-              
+              const char* pszDateValue = 
+                  DBFReadStringAttribute(hDBF,iShape,iField); 
+
               memset( &sFld, 0, sizeof(sFld) );
-              sFld.Date.Year = (GInt16)(nFullDate / 10000);
-              sFld.Date.Month = (GByte)((nFullDate / 100) % 100);
-              sFld.Date.Day = (GByte)(nFullDate % 100);
+
+              if( pszDateValue[2] == '/' && pszDateValue[5] == '/' 
+                  && strlen(pszDateValue) >= 10 )
+              {
+                  sFld.Date.Month = atoi(pszDateValue+0);
+                  sFld.Date.Day   = atoi(pszDateValue+3);
+                  sFld.Date.Year  = atoi(pszDateValue+6);
+              }
+              else
+              {
+                  int nFullDate = atoi(pszDateValue);
+                  sFld.Date.Year = (GInt16)(nFullDate / 10000);
+                  sFld.Date.Month = (GByte)((nFullDate / 100) % 100);
+                  sFld.Date.Day = (GByte)(nFullDate % 100);
+              }
               
               poFeature->SetField( iField, &sFld );
           }

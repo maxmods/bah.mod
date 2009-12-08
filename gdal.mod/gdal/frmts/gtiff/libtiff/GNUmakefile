@@ -43,8 +43,14 @@ O_OBJ	=	$(foreach file,$(OBJ),../../o/$(file))
 
 ALL_C_FLAGS =	$(CFLAGS) $(CPPFLAGS)
 
+ifeq ($(LIBZ_SETTING),internal) 
+XTRA_OPT =      -I../../zlib 
+else 
+XTRA_OPT = 
+endif 
+
 ifneq ($(LIBZ_SETTING),no)
-ALL_C_FLAGS 	:=	$(ALL_C_FLAGS) -DPIXARLOG_SUPPORT -DZIP_SUPPORT -I../../zlib
+ALL_C_FLAGS     :=      $(ALL_C_FLAGS) -DPIXARLOG_SUPPORT -DZIP_SUPPORT $(XTRA_OPT)
 endif
 
 ifneq ($(JPEG_SETTING),no)
@@ -55,7 +61,7 @@ ifeq ($(JPEG_SETTING),internal)
 ALL_C_FLAGS 	:=	$(ALL_C_FLAGS) -I../../jpeg/libjpeg
 endif
 
-default:	$(OBJ)
+default:	$(OBJ:.o=.$(OBJ_EXT))
 
 clean:
 	rm -f $(O_OBJ) *.o *.a
@@ -77,7 +83,7 @@ import:
 	@echo '% cvs commit -m "updated to libtiff 3.6.0"'
 	@echo
 
-install-obj:	$(O_OBJ)
+install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))
 
-../../o/%.o:	%.c
+../../o/%.$(OBJ_EXT):	%.c
 	$(CC) -c -I../../port $(ALL_C_FLAGS) $< -o $@

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aaigriddataset.cpp 14724 2008-06-18 20:20:38Z rouault $
+ * $Id: aaigriddataset.cpp 17210 2009-06-07 09:25:31Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements Arc/Info ASCII Grid Format.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: aaigriddataset.cpp 14724 2008-06-18 20:20:38Z rouault $");
+CPL_CVSID("$Id: aaigriddataset.cpp 17210 2009-06-07 09:25:31Z rouault $");
 
 CPL_C_START
 void    GDALRegister_AAIGrid(void);
@@ -191,9 +191,9 @@ CPLErr AAIGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         /* suck up any pre-white space. */
         do {
             chNext = poODS->Getc();
-        } while( isspace( chNext ) );
+        } while( isspace( (unsigned char)chNext ) );
 
-        while( !isspace(chNext)  )
+        while( chNext != '\0' && !isspace((unsigned char)chNext)  )
         {
             if( iTokenChar == sizeof(szToken)-2 )
             {
@@ -207,7 +207,9 @@ CPLErr AAIGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             chNext = poODS->Getc();
         }
 
-        if( chNext == '\0' )
+        if( chNext == '\0' &&
+            (iPixel != poODS->nRasterXSize - 1 ||
+            nBlockYOff != poODS->nRasterYSize - 1) )
         {
             CPLError( CE_Failure, CPLE_FileIO, 
                       "File short, can't read line %d.",
@@ -346,8 +348,10 @@ char AAIGDataset::Getc()
         return achReadBuf[nOffsetInBuffer++];
 
     nBufferOffset = VSIFTellL( fp );
-    if( VSIFReadL( achReadBuf, 1, sizeof(achReadBuf), fp ) < 1 )
-        return EOF;
+    int nRead = VSIFReadL( achReadBuf, 1, sizeof(achReadBuf), fp );
+    unsigned int i;
+    for(i=nRead;i<sizeof(achReadBuf);i++)
+        achReadBuf[i] = '\0';
 
     nOffsetInBuffer = 0;
 

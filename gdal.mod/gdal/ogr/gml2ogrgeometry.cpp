@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gml2ogrgeometry.cpp 14768 2008-06-25 19:37:42Z warmerdam $
+ * $Id: gml2ogrgeometry.cpp 18086 2009-11-23 19:03:00Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Code to translate between GML and OGR geometry forms.
@@ -195,10 +195,10 @@ int ParseGMLCoordinates( CPLXMLNode *psGeomNode, OGRGeometry *poGeometry )
             dfX = atof( pszCoordString );
             while( *pszCoordString != '\0'
                    && *pszCoordString != ','
-                   && !isspace(*pszCoordString) )
+                   && !isspace((unsigned char)*pszCoordString) )
                 pszCoordString++;
 
-            if( *pszCoordString == '\0' || isspace(*pszCoordString) )
+            if( *pszCoordString == '\0' || isspace((unsigned char)*pszCoordString) )
             {
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Corrupt <coordinates> value." );
@@ -209,7 +209,7 @@ int ParseGMLCoordinates( CPLXMLNode *psGeomNode, OGRGeometry *poGeometry )
             dfY = atof( pszCoordString );
             while( *pszCoordString != '\0' 
                    && *pszCoordString != ','
-                   && !isspace(*pszCoordString) )
+                   && !isspace((unsigned char)*pszCoordString) )
                 pszCoordString++;
 
             if( *pszCoordString == ',' )
@@ -219,11 +219,11 @@ int ParseGMLCoordinates( CPLXMLNode *psGeomNode, OGRGeometry *poGeometry )
                 nDimension = 3;
                 while( *pszCoordString != '\0' 
                        && *pszCoordString != ','
-                       && !isspace(*pszCoordString) )
+                       && !isspace((unsigned char)*pszCoordString) )
                 pszCoordString++;
             }
 
-            while( isspace(*pszCoordString) )
+            while( isspace((unsigned char)*pszCoordString) )
                 pszCoordString++;
 
             if( !AddPoint( poGeometry, dfX, dfY, dfZ, nDimension ) )
@@ -243,6 +243,7 @@ int ParseGMLCoordinates( CPLXMLNode *psGeomNode, OGRGeometry *poGeometry )
 /* -------------------------------------------------------------------- */
     CPLXMLNode *psPos;
     
+    int bHasFoundPosElement = FALSE;
     for( psPos = psGeomNode->psChild; 
          psPos != NULL;
          psPos = psPos->psNext )
@@ -277,9 +278,15 @@ int ParseGMLCoordinates( CPLXMLNode *psGeomNode, OGRGeometry *poGeometry )
         }
 
         CSLDestroy( papszTokens );
-
-        return bSuccess;
+        
+        if (bSuccess)
+            bHasFoundPosElement = TRUE;
+        else
+            return FALSE;
     }
+    
+    if (bHasFoundPosElement)
+        return TRUE;
     
 
 /* -------------------------------------------------------------------- */

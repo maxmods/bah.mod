@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgpxlayer.cpp 15805 2008-11-23 21:42:01Z rouault $
+ * $Id: ogrgpxlayer.cpp 16887 2009-04-30 18:45:03Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Implements OGRGPXLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgpxlayer.cpp 15805 2008-11-23 21:42:01Z rouault $");
+CPL_CVSID("$Id: ogrgpxlayer.cpp 16887 2009-04-30 18:45:03Z rouault $");
 
 /************************************************************************/
 /*                            OGRGPXLayer()                             */
@@ -70,6 +70,8 @@ OGRGPXLayer::OGRGPXLayer( const char* pszFilename,
     
     bEleAs25D =  CSLTestBoolean(CPLGetConfigOption("GPX_ELE_AS_25D", "NO"));
     
+    int bShortNames  = CSLTestBoolean(CPLGetConfigOption("GPX_SHORT_NAMES", "NO"));
+    
     poFeatureDefn = new OGRFeatureDefn( pszLayerName );
     poFeatureDefn->Reference();
     
@@ -80,10 +82,10 @@ OGRGPXLayer::OGRGPXLayer( const char* pszFilename,
         OGRFieldDefn oFieldTrackFID("track_fid", OFTInteger );
         poFeatureDefn->AddFieldDefn( &oFieldTrackFID );
         
-        OGRFieldDefn oFieldTrackSegID("track_seg_id", OFTInteger );
+        OGRFieldDefn oFieldTrackSegID((bShortNames) ? "trksegid" : "track_seg_id", OFTInteger );
         poFeatureDefn->AddFieldDefn( &oFieldTrackSegID );
         
-        OGRFieldDefn oFieldTrackSegPointID("track_seg_point_id", OFTInteger );
+        OGRFieldDefn oFieldTrackSegPointID((bShortNames) ? "trksegptid" : "track_seg_point_id", OFTInteger );
         poFeatureDefn->AddFieldDefn( &oFieldTrackSegPointID );
     }
     else if (gpxGeomType == GPX_ROUTE_POINT)
@@ -92,7 +94,7 @@ OGRGPXLayer::OGRGPXLayer( const char* pszFilename,
         OGRFieldDefn oFieldRouteFID("route_fid", OFTInteger );
         poFeatureDefn->AddFieldDefn( &oFieldRouteFID );
         
-        OGRFieldDefn oFieldRoutePointID("route_point_id", OFTInteger );
+        OGRFieldDefn oFieldRoutePointID((bShortNames) ? "rteptid" : "route_point_id", OFTInteger );
         poFeatureDefn->AddFieldDefn( &oFieldRoutePointID );
     }
 

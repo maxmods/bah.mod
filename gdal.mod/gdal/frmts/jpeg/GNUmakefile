@@ -19,16 +19,20 @@ OBJ	=	jpgdataset.o vsidataio.o
 XTRA_OPT	=	
 endif
 
-CPPFLAGS	:=	$(XTRA_OPT) $(GDAL_INCLUDE) $(CPPFLAGS) -I../zlib
+ifeq ($(LIBZ_SETTING),internal) 
+  XTRA_OPT :=   $(XTRA_OPT) -I../zlib 
+endif 
 
-default:	$(OBJ)
+CPPFLAGS        :=      $(XTRA_OPT) $(GDAL_INCLUDE) $(CPPFLAGS) 
+
+default:	$(OBJ:.o=.$(OBJ_EXT))
 
 clean:
 	rm -f *.o $(O_OBJ)
 
-../o/%.o:	libjpeg/%.c
+../o/%.$(OBJ_EXT):	libjpeg/%.c
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-all:	$(OBJ)
+all:	$(OBJ:.o=.$(OBJ_EXT))
 
-install-obj:	$(O_OBJ)
+install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))

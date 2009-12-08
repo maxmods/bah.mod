@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: overview.cpp 15729 2008-11-13 20:33:46Z warmerdam $
+ * $Id: overview.cpp 17267 2009-06-19 21:18:57Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Helper code to implement overview support in different drivers.
@@ -29,7 +29,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: overview.cpp 15729 2008-11-13 20:33:46Z warmerdam $");
+CPL_CVSID("$Id: overview.cpp 17267 2009-06-19 21:18:57Z rouault $");
 
 typedef enum
 {
@@ -272,7 +272,8 @@ GDALDownsampleChunk32R( int nSrcWidth, int nSrcHeight,
             }
             else if ( eResampling == GRM_Average )
             {
-                if (poColorTable == NULL)
+                if (poColorTable == NULL
+                    || EQUALN(pszResampling,"AVERAGE_BIT2GRAYSCALE",13))
                 {
                     double val;
                     double dfTotal = 0.0;
@@ -895,12 +896,23 @@ GDALRegenerateOverviews( GDALRasterBandH hSrcBand,
         }
     }
 
+
+    /* If we have a nodata mask and we are doing something more complicated */
+    /* than nearest neighbouring, we have to fetch to nodata mask */ 
+    int bUseNoDataMask = (!EQUALN(pszResampling,"NEAR",4) &&
+                          (poSrcBand->GetMaskFlags() & GMF_ALL_VALID) == 0);
+
 /* -------------------------------------------------------------------- */
 /*      If we are operating on multiple overviews, and using            */
 /*      averaging, lets do them in cascading order to reduce the        */
 /*      amount of computation.                                          */
 /* -------------------------------------------------------------------- */
-    if( (EQUALN(pszResampling,"AVER",4) || EQUALN(pszResampling,"GAUSS",5)) && nOverviewCount > 1 )
+
+    /* In case the mask made be computed from another band of the dataset, */
+    /* we can't use cascaded generation, as the computation of the overviews */
+    /* of the band used for the mask band may not have yet occured (#3033) */
+    if( (EQUALN(pszResampling,"AVER",4) || EQUALN(pszResampling,"GAUSS",5)) && nOverviewCount > 1
+         && !(bUseNoDataMask && poSrcBand->GetMaskFlags() != GMF_NODATA))
         return GDALRegenerateCascadingOverviews( poSrcBand, 
                                                  nOverviewCount, papoOvrBands,
                                                  pszResampling, 
@@ -924,11 +936,6 @@ GDALRegenerateOverviews( GDALRasterBandH hSrcBand,
         eType = GDT_CFloat32;
     else
         eType = GDT_Float32;
-
-    /* If we have a nodata mask and we are doing something more complicated */
-    /* than nearest neighbouring, we have to fetch to nodata mask */ 
-    int bUseNoDataMask = (!EQUALN(pszResampling,"NEAR",4) &&
-                          (poSrcBand->GetMaskFlags() & GMF_ALL_VALID) == 0);
 
     nWidth = poSrcBand->GetXSize();
     pafChunk = (float *) 

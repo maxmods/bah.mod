@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 15276 2008-09-01 09:04:27Z dron $
+ * $Id: gdalwarper.cpp 15927 2008-12-10 02:49:55Z warmerdam $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 15276 2008-09-01 09:04:27Z dron $");
+CPL_CVSID("$Id: gdalwarper.cpp 15927 2008-12-10 02:49:55Z warmerdam $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -1122,7 +1122,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeserializeWarpOptions( CPLXMLNode *psTree )
                 psWO->padfSrcNoDataImag = 
                     (double *) CPLCalloc(sizeof(double),psWO->nBandCount);
 
-            psWO->padfSrcNoDataReal[iBand] = atof(pszValue);
+            psWO->padfSrcNoDataImag[iBand] = atof(pszValue);
         }
         
 /* -------------------------------------------------------------------- */
@@ -1145,7 +1145,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeserializeWarpOptions( CPLXMLNode *psTree )
                 psWO->padfDstNoDataImag = 
                     (double *) CPLCalloc(sizeof(double),psWO->nBandCount);
 
-            psWO->padfDstNoDataReal[iBand] = atof(pszValue);
+            psWO->padfDstNoDataImag[iBand] = atof(pszValue);
         }
         
         iBand++;

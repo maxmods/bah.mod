@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldefaultoverviews.cpp 14902 2008-07-12 15:46:11Z warmerdam $
+ * $Id: gdaldefaultoverviews.cpp 17412 2009-07-19 10:28:50Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Helper code to implement overview and mask support for many 
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaldefaultoverviews.cpp 14902 2008-07-12 15:46:11Z warmerdam $");
+CPL_CVSID("$Id: gdaldefaultoverviews.cpp 17412 2009-07-19 10:28:50Z rouault $");
 
 /************************************************************************/
 /*                        GDALDefaultOverviews()                        */
@@ -136,6 +136,9 @@ void GDALDefaultOverviews::Initialize( GDALDataset *poDSIn,
 /*      We didn't find that, so try and find a corresponding aux        */
 /*      file.  Check that we are the dependent file of the aux          */
 /*      file.                                                           */
+/*                                                                      */
+/*      We only use the .aux file for overviews if they already have    */
+/*      overviews existing, or if USE_RRD is set true.                  */
 /* -------------------------------------------------------------------- */
     if( !poODS )
     {
@@ -144,8 +147,19 @@ void GDALDefaultOverviews::Initialize( GDALDataset *poDSIn,
 
         if( poODS )
         {
+            int bUseRRD = CSLTestBoolean(CPLGetConfigOption("USE_RRD","NO"));
+            
             bOvrIsAux = TRUE;
-            osOvrFilename = poODS->GetDescription();
+            if( GetOverviewCount(1) == 0 && !bUseRRD )
+            {
+                bOvrIsAux = FALSE;
+                GDALClose( poODS );
+                poODS = NULL;
+            }
+            else
+            {
+                osOvrFilename = poODS->GetDescription();
+            }
         }
     }
 
@@ -460,8 +474,8 @@ GDALDefaultOverviews::BuildOverviews(
                     || nOvFactor == GDALOvLevelAdjust( -panOverviewList[i], 
                                                        poBand->GetXSize() ) )
                 {
-                    //panOverviewList[i] *= -1;
                     papoOverviewBands[nNewOverviews++] = poOverview;
+                    break;
                 }
             }
         }

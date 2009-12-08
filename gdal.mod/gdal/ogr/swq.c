@@ -866,25 +866,30 @@ const char *swq_expr_compile2( const char *where_clause,
                                swq_expr **expr_out )
 
 {
-#define MAX_TOKEN 1024
-    char        *token_list[MAX_TOKEN], *rest_of_expr;
+#define TOKEN_BLOCK_SIZE 1024
+    char        **token_list, *rest_of_expr;
     int         token_count = 0;
-    int         tokens_consumed, i;
+    int         tokens_consumed, i, token_list_size;
     const char *error;
     
     /*
     ** Collect token array.
     */
+    token_list = (char **)SWQ_MALLOC(sizeof(char *) * TOKEN_BLOCK_SIZE);
+    token_list_size = TOKEN_BLOCK_SIZE;
     rest_of_expr = (char *) where_clause;
-    while( token_count < MAX_TOKEN )
+    while( (token_list[token_count] = 
+             swq_token(rest_of_expr,&rest_of_expr,NULL)) != NULL )
     {
-        token_list[token_count] = swq_token(rest_of_expr,&rest_of_expr,NULL);
-        if( token_list[token_count] == NULL )
-            break;
-
         token_count++;
+        if (token_count == token_list_size)
+        {
+            token_list = (char **)swq_realloc(token_list, 
+                sizeof(char *) * token_list_size, 
+                  sizeof(char *) * (token_list_size + TOKEN_BLOCK_SIZE));
+            token_list_size += TOKEN_BLOCK_SIZE;
+        }
     }
-    token_list[token_count] = NULL;
     
     /*
     ** Parse the expression.
@@ -896,6 +901,8 @@ const char *swq_expr_compile2( const char *where_clause,
 
     for( i = 0; i < token_count; i++ )
         SWQ_FREE( token_list[i] );
+
+    SWQ_FREE(token_list);
 
     if( error != NULL )
         return error;
@@ -1888,34 +1895,49 @@ const char *swq_select_expand_wildcard( swq_select *select_info,
             }
         }
 
+        if (new_fields > 0)
+        {
 /* -------------------------------------------------------------------- */
 /*      Reallocate the column list larger.                              */
 /* -------------------------------------------------------------------- */
-        SWQ_FREE( select_info->column_defs[isrc].field_name );
-        select_info->column_defs = (swq_col_def *) 
-            swq_realloc( select_info->column_defs, 
-                         sizeof(swq_col_def) * select_info->result_columns, 
-                         sizeof(swq_col_def) * 
-                         (select_info->result_columns + new_fields - 1 ) );
+            SWQ_FREE( select_info->column_defs[isrc].field_name );
+            select_info->column_defs = (swq_col_def *) 
+                swq_realloc( select_info->column_defs, 
+                            sizeof(swq_col_def) * select_info->result_columns, 
+                            sizeof(swq_col_def) * 
+                            (select_info->result_columns + new_fields - 1 ) );
 
 /* -------------------------------------------------------------------- */
 /*      Push the old definitions that came after the one to be          */
 /*      replaced further up in the array.                               */
 /* -------------------------------------------------------------------- */
-        for( i = select_info->result_columns-1; i > isrc; i-- )
-        {
-            memcpy( select_info->column_defs + i + new_fields - 1,
-                    select_info->column_defs + i,
-                    sizeof( swq_col_def ) );
-        }
+            for( i = select_info->result_columns-1; i > isrc; i-- )
+            {
+                memcpy( select_info->column_defs + i + new_fields - 1,
+                        select_info->column_defs + i,
+                        sizeof( swq_col_def ) );
+            }
 
-        select_info->result_columns += (new_fields - 1 );
+            select_info->result_columns += (new_fields - 1 );
 
 /* -------------------------------------------------------------------- */
 /*      Zero out all the stuff in the target column definitions.        */
 /* -------------------------------------------------------------------- */
-        memset( select_info->column_defs + i, 0, 
-                new_fields * sizeof(swq_col_def) );
+            memset( select_info->column_defs + i, 0, 
+                    new_fields * sizeof(swq_col_def) );
+        }
+        else
+        {
+/* -------------------------------------------------------------------- */
+/*      The wildcard expands to nothing                                 */
+/* -------------------------------------------------------------------- */
+            SWQ_FREE( select_info->column_defs[isrc].field_name );
+            memmove( select_info->column_defs + isrc,
+                     select_info->column_defs + isrc + 1,
+                     sizeof( swq_col_def ) * (select_info->result_columns-1-isrc) );
+
+            select_info->result_columns --;
+        }
 
 /* -------------------------------------------------------------------- */
 /*      Assign the selected fields.                                     */
@@ -1924,17 +1946,18 @@ const char *swq_select_expand_wildcard( swq_select *select_info,
         
         for( i = 0; i < field_list->count; i++ )
         {
-            swq_col_def *def = select_info->column_defs + iout;
+            swq_col_def *def;
             int compose = itable != -1;
-
-            /* set up some default values. */
-            def->field_precision = -1; 
-            def->target_type = SWQ_OTHER;
 
             /* skip this field if it isn't in the target table.  */
             if( itable != -1 && field_list->table_ids != NULL 
                 && itable != field_list->table_ids[i] )
                 continue;
+
+            /* set up some default values. */
+            def = select_info->column_defs + iout;
+            def->field_precision = -1; 
+            def->target_type = SWQ_OTHER;
 
             /* does this field duplicate an earlier one? */
             if( field_list->table_ids != NULL 
@@ -1978,7 +2001,11 @@ const char *swq_select_expand_wildcard( swq_select *select_info,
                parse operation. */
         }
 
-        return NULL;
+        /* If there are several occurrences of '*', go on, but stay on the */
+        /* same index in case '*' is expanded to nothing */
+        /* (the -- is to compensate the fact that isrc will be incremented in */
+        /*  the after statement of the for loop) */
+        isrc --;
     }
 
     
@@ -2105,6 +2132,10 @@ const char *swq_select_parse( swq_select *select_info,
         && select_info->query_mode == SWQM_DISTINCT_LIST )
     {
         return "SELECTing more than one DISTINCT field is a query not supported.";
+    }
+    else if (select_info->result_columns == 0)
+    {
+        select_info->query_mode = SWQM_RECORDSET;
     }
 
 /* -------------------------------------------------------------------- */

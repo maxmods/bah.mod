@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.cpp 15727 2008-11-13 19:29:57Z warmerdam $
+ * $Id: gdalgrid.cpp 17956 2009-11-03 10:40:26Z dron $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Implementation of GDAL scattered data gridder.
@@ -29,7 +29,7 @@
 
 #include "gdalgrid.h"
 
-CPL_CVSID("$Id: gdalgrid.cpp 15727 2008-11-13 19:29:57Z warmerdam $");
+CPL_CVSID("$Id: gdalgrid.cpp 17956 2009-11-03 10:40:26Z dron $");
 
 #define TO_RADIANS (3.14159265358979323846 / 180.0)
 
@@ -484,9 +484,9 @@ GDALGridDataMetricMinimum( const void *poOptions, GUInt32 nPoints,
 
     // Pre-compute search ellipse parameters
     double  dfRadius1 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius1;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
     double  dfRadius2 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius2;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
     double  dfR12;
 
     dfRadius1 *= dfRadius1;
@@ -496,7 +496,7 @@ GDALGridDataMetricMinimum( const void *poOptions, GUInt32 nPoints,
     // Compute coefficients for coordinate system rotation.
     double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
     const double dfAngle =
-        TO_RADIANS * ((GDALGridNearestNeighborOptions *)poOptions)->dfAngle;
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
     const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
     if ( bRotated )
     {
@@ -537,11 +537,11 @@ GDALGridDataMetricMinimum( const void *poOptions, GUInt32 nPoints,
         i++;
     }
 
-    if ( n < ((GDALGridMovingAverageOptions *)poOptions)->nMinPoints
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints
          || n == 0 )
     {
         (*pdfValue) =
-            ((GDALGridMovingAverageOptions *)poOptions)->dfNoDataValue;
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
     }
     else
         (*pdfValue) = dfMinimumValue;
@@ -595,9 +595,9 @@ GDALGridDataMetricMaximum( const void *poOptions, GUInt32 nPoints,
 
     // Pre-compute search ellipse parameters
     double  dfRadius1 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius1;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
     double  dfRadius2 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius2;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
     double  dfR12;
 
     dfRadius1 *= dfRadius1;
@@ -607,7 +607,7 @@ GDALGridDataMetricMaximum( const void *poOptions, GUInt32 nPoints,
     // Compute coefficients for coordinate system rotation.
     double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
     const double    dfAngle =
-        TO_RADIANS * ((GDALGridNearestNeighborOptions *)poOptions)->dfAngle;
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
     const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
     if ( bRotated )
     {
@@ -648,11 +648,11 @@ GDALGridDataMetricMaximum( const void *poOptions, GUInt32 nPoints,
         i++;
     }
 
-    if ( n < ((GDALGridMovingAverageOptions *)poOptions)->nMinPoints
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints
          || n == 0 )
     {
         (*pdfValue) =
-            ((GDALGridMovingAverageOptions *)poOptions)->dfNoDataValue;
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
     }
     else
         (*pdfValue) = dfMaximumValue;
@@ -707,9 +707,9 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
 
     // Pre-compute search ellipse parameters
     double  dfRadius1 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius1;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
     double  dfRadius2 =
-        ((GDALGridNearestNeighborOptions *)poOptions)->dfRadius2;
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
     double  dfR12;
 
     dfRadius1 *= dfRadius1;
@@ -719,7 +719,7 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
     // Compute coefficients for coordinate system rotation.
     double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
     const double    dfAngle =
-        TO_RADIANS * ((GDALGridNearestNeighborOptions *)poOptions)->dfAngle;
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
     const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
     if ( bRotated )
     {
@@ -762,11 +762,11 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
         i++;
     }
 
-    if ( n < ((GDALGridMovingAverageOptions *)poOptions)->nMinPoints
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints
          || n == 0 )
     {
         (*pdfValue) =
-            ((GDALGridMovingAverageOptions *)poOptions)->dfNoDataValue;
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
     }
     else
         (*pdfValue) = dfMaximumValue - dfMinimumValue;
@@ -820,6 +820,9 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
     CPLAssert( padfY );
     CPLAssert( padfZ );
     CPLAssert( pData );
+    
+    if ( pfnProgress == NULL )
+        pfnProgress = GDALDummyProgress;
 
     if ( nXSize == 0 || nYSize == 0 )
     {

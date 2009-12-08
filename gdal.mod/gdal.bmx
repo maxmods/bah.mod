@@ -52,6 +52,11 @@ ModuleInfo "CC_OPTS: -DXPLANE_ENABLED -DAVCBIN_ENABLED -DGEOCONCEPT_ENABLED "
 
 ModuleInfo "CC_OPTS: -fexceptions"
 
+
+ModuleInfo "History: 1.00"
+ModuleInfo "History: Initial release (gdal 1.6.3, proj4 4.7.0)"
+
+
 Import "common.bmx"
 
 '

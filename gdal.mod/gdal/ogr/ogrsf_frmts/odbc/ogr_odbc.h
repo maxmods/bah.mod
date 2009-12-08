@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_odbc.h 15583 2008-10-23 00:04:33Z warmerdam $
+ * $Id: ogr_odbc.h 17872 2009-10-22 15:10:32Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/ODBC driver.
@@ -55,9 +55,9 @@ class OGRODBCLayer : public OGRLayer
 
     OGRODBCDataSource    *poDS;
 
-    int                 bGeomColumnWKB;
-    char                *pszGeomColumn;
-    char                *pszFIDColumn;
+    int                bGeomColumnWKB;
+    char               *pszGeomColumn;
+    char               *pszFIDColumn;
 
     int                *panFieldOrdinals;
 
@@ -99,6 +99,9 @@ class OGRODBCTableLayer : public OGRODBCLayer
     OGRErr              ResetStatement();
 
     virtual CPLODBCStatement *  GetStatement();
+
+    char               *pszTableName;
+    char               *pszSchemaName;
 
   public:
                         OGRODBCTableLayer( OGRODBCDataSource * );

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: reader.cpp 14993 2008-07-22 18:40:40Z mloskot $
+ * $Id: reader.cpp 17913 2009-10-27 15:54:26Z chaitanya $
  *
  * Project:  iom - The INTERLIS Object Model
  * Purpose:  For more information, please see <http://iom.sourceforge.net>
@@ -814,19 +814,40 @@ void  ParserHandler::endElement (const XMLCh *const uri
 }
 
 
+#if XERCES_VERSION_MAJOR >= 3
+/************************************************************************/
+/*                     characters()                                     */
+/************************************************************************/
 
-void ParserHandler::characters(  const   XMLCh* const    chars
-								    , const unsigned int    length)
+void ParserHandler::characters( const XMLCh* const chars,
+                                const XMLSize_t length )
 {
-	if(state==ST_BEFORE_CHARACTERS
-			|| state==CV_C1
-			|| state==CV_C2
-			|| state==CV_C3
-			){
-		propertyValue.append(chars,length);
-	}
+    if(   state==ST_BEFORE_CHARACTERS
+       || state==CV_C1
+       || state==CV_C2
+       || state==CV_C3 )
+    {
+        propertyValue.append(chars,length);
+    }
 }
 
+#else
+/************************************************************************/
+/*                     characters()                                     */
+/************************************************************************/
+
+void ParserHandler::characters( const XMLCh* const chars,
+                                const unsigned int length )
+{
+    if(   state==ST_BEFORE_CHARACTERS
+       || state==CV_C1
+       || state==CV_C2
+       || state==CV_C3 )
+    {
+        propertyValue.append(chars,length);
+    }
+}
+#endif
 
 void ParserHandler::error(const SAXParseException& e)
 {

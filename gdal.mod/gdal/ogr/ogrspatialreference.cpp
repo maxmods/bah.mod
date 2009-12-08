@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrspatialreference.cpp 15868 2008-12-01 20:01:56Z rouault $
+ * $Id: ogrspatialreference.cpp 16377 2009-02-21 18:53:58Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSpatialReference class.
@@ -32,7 +32,7 @@
 #include "cpl_csv.h"
 #include "cpl_http.h"
 
-CPL_CVSID("$Id: ogrspatialreference.cpp 15868 2008-12-01 20:01:56Z rouault $");
+CPL_CVSID("$Id: ogrspatialreference.cpp 16377 2009-02-21 18:53:58Z rouault $");
 
 // The current opinion is that WKT longitudes like central meridian
 // should be relative to greenwich, not the prime meridian in use. 
@@ -5120,7 +5120,7 @@ int OGRSpatialReference::IsSame( const OGRSpatialReference * poOtherSRS ) const
 /* -------------------------------------------------------------------- */
 /*      If they are LOCALCS/PROJCS, do they have the same units?        */
 /* -------------------------------------------------------------------- */
-    if( EQUAL(GetRoot()->GetValue(),"LOCALCS") || IsProjected() )
+    if( IsLocal() || IsProjected() )
     {
         if( GetLinearUnits() != 0.0 )
         {

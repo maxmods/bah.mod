@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalcutline.cpp 15701 2008-11-10 15:40:02Z warmerdam $
+ * $Id: gdalcutline.cpp 16415 2009-02-25 20:14:43Z warmerdam $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implement cutline/blend mask generator.
@@ -34,7 +34,7 @@
 #include "ogr_geometry.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalcutline.cpp 15701 2008-11-10 15:40:02Z warmerdam $");
+CPL_CVSID("$Id: gdalcutline.cpp 16415 2009-02-25 20:14:43Z warmerdam $");
 
 /************************************************************************/
 /*                         BlendMaskGenerator()                         */
@@ -90,10 +90,12 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
 /*      processing each pixel.                                          */
 /* -------------------------------------------------------------------- */
     int iY, iX;
-    double dfLastDist = 0;
+    double dfLastDist;
     
     for( iY = 0; iY < nYSize; iY++ )
     {
+        dfLastDist = 0.0;
+
         for( iX = 0; iX < nXSize; iX++ )
         {
             if( iX < iXMin || iX >= iXMax
@@ -203,6 +205,9 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
     float *pafMask = (float *) pValidityMask;
     CPLErr eErr;
     GDALDriverH hMemDriver;
+
+    if( nXSize < 1 || nYSize < 1 )
+        return CE_None;
 
 /* -------------------------------------------------------------------- */
 /*      Do some minimal checking.                                       */

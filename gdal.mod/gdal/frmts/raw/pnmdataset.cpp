@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pnmdataset.cpp 13663 2008-02-01 23:24:02Z rouault $
+ * $Id: pnmdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $
  *
  * Project:  PNM Driver
  * Purpose:  Portable anymap file format imlementation
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: pnmdataset.cpp 13663 2008-02-01 23:24:02Z rouault $");
+CPL_CVSID("$Id: pnmdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
 
 CPL_C_START
 void    GDALRegister_PNM(void);
@@ -172,7 +172,7 @@ GDALDataset *PNMDataset::Open( GDALOpenInfo * poOpenInfo )
                     iIn++;
             }
 
-            if( iOut != 0 && isspace(pszSrc[iIn]) )
+            if( iOut != 0 && isspace((unsigned char)pszSrc[iIn]) )
             {
                 szToken[iOut] = '\0';
 
@@ -188,7 +188,7 @@ GDALDataset *PNMDataset::Open( GDALOpenInfo * poOpenInfo )
                 break;
             }
 
-            else if( !isspace(pszSrc[iIn]) )
+            else if( !isspace((unsigned char)pszSrc[iIn]) )
             {
                 szToken[iOut++] = pszSrc[iIn];
             }

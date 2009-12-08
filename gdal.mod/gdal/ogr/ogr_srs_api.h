@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_api.h 15871 2008-12-01 20:31:01Z warmerdam $
+ * $Id: ogr_srs_api.h 16108 2009-01-18 09:43:31Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  C API and constant declarations for OGR Spatial References.
@@ -124,7 +124,7 @@ typedef enum {
 #define SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP                              \
                                 "Lambert_Conformal_Conic_2SP"
 #define SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP_BELGIUM                      \
-                                "Lambert_Conformal_Conic_2SP_Belgium)"
+                                "Lambert_Conformal_Conic_2SP_Belgium"
 #define SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA                     \
                                 "Lambert_Azimuthal_Equal_Area"
 #define SRS_PT_MERCATOR_1SP     "Mercator_1SP"

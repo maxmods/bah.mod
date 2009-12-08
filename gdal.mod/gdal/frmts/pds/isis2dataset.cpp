@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: isis2dataset.cpp 15824 2008-11-27 22:24:32Z warmerdam $
+ * $Id: isis2dataset.cpp 16593 2009-03-15 07:14:45Z chaitanya $
  *
  * Project:  ISIS Version 2 Driver
  * Purpose:  Implementation of ISIS2Dataset
@@ -48,7 +48,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp 15824 2008-11-27 22:24:32Z warmerdam $");
+CPL_CVSID("$Id: isis2dataset.cpp 16593 2009-03-15 07:14:45Z chaitanya $");
 
 CPL_C_START
 void	GDALRegister_ISIS2(void);
@@ -418,9 +418,8 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     } else if (EQUAL( map_proj_name, "LAMBERT_CONFORMAL_CONIC" )) {
         oSRS.OGRSpatialReference::SetLCC ( first_std_parallel, second_std_parallel, center_lat, center_lon, 0, 0 );
     } else {
-        CPLError( CE_Warning, CPLE_AppDefined,
-                  "Dataset projection %s is not supported.\n"
-                  "Are you sure this is a map projected cube?",
+        CPLDebug( "ISIS2",
+                  "Dataset projection %s is not supported. Continuing...",
                   map_proj_name.c_str() );
         bProjectionSet = FALSE;
     }

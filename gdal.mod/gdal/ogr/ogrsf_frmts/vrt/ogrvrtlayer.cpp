@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtlayer.cpp 13808 2008-02-17 16:29:35Z warmerdam $
+ * $Id: ogrvrtlayer.cpp 16802 2009-04-19 09:07:36Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrvrtlayer.cpp 13808 2008-02-17 16:29:35Z warmerdam $");
+CPL_CVSID("$Id: ogrvrtlayer.cpp 16802 2009-04-19 09:07:36Z rouault $");
 
 typedef struct 
 {
@@ -64,6 +64,7 @@ OGRVRTLayer::OGRVRTLayer()
     poFeatureDefn = NULL;
     poSrcLayer = NULL;
     poSRS = NULL;
+    poSrcDS = NULL;
 
     bUseSpatialSubquery = FALSE;
     iFIDField = -1;

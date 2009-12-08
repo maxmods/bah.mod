@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ehdrdataset.cpp 15425 2008-09-23 20:21:13Z rouault $
+ * $Id: ehdrdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $
  *
  * Project:  ESRI .hdr Driver
  * Purpose:  Implementation of EHdrDataset
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ehdrdataset.cpp 15425 2008-09-23 20:21:13Z rouault $");
+CPL_CVSID("$Id: ehdrdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
 
 CPL_C_START
 void	GDALRegister_EHdr(void);
@@ -468,10 +468,10 @@ const char *EHdrDataset::GetKeyValue( const char *pszKey,
     for( i = 0; papszHDR[i] != NULL; i++ )
     {
         if( EQUALN(pszKey,papszHDR[i],strlen(pszKey))
-            && isspace(papszHDR[i][strlen(pszKey)]) )
+            && isspace((unsigned char)papszHDR[i][strlen(pszKey)]) )
         {
             const char *pszValue = papszHDR[i] + strlen(pszKey);
-            while( isspace(*pszValue) )
+            while( isspace((unsigned char)*pszValue) )
                 pszValue++;
             
             return pszValue;
@@ -1531,6 +1531,13 @@ GDALDataset *EHdrDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Verify input options.                                           */
 /* -------------------------------------------------------------------- */
+    if (nBands <= 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "EHdr driver does not support %d bands.\n", nBands);
+        return NULL;
+    }
+
     if( eType != GDT_Byte && eType != GDT_Float32 && eType != GDT_UInt16
         && eType != GDT_Int16 && eType != GDT_Int32 && eType != GDT_UInt32 )
     {
@@ -1638,6 +1645,14 @@ GDALDataset *EHdrDataset::CreateCopy( const char * pszFilename,
 {
     char **papszAdjustedOptions = CSLDuplicate( papszOptions );
     GDALDataset *poOutDS;
+
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "EHdr driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
 
     if( poSrcDS->GetRasterBand(1)->GetMetadataItem( "NBITS", 
                                                     "IMAGE_STRUCTURE" ) !=NULL

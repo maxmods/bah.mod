@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_misc.cpp 15744 2008-11-16 18:19:00Z rouault $
+ * $Id: gdal_misc.cpp 16245 2009-02-07 11:09:58Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Free standing functions for GDAL.
@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include <string>
 
-CPL_CVSID("$Id: gdal_misc.cpp 15744 2008-11-16 18:19:00Z rouault $");
+CPL_CVSID("$Id: gdal_misc.cpp 16245 2009-02-07 11:09:58Z rouault $");
 
 #include "ogr_spatialref.h"
 
@@ -739,6 +739,11 @@ GDALGetRandomRasterSample( GDALRasterBandH hBand, int nSamples,
         poBlock = poBand->GetLockedBlockRef( iXBlock, iYBlock );
         if( poBlock == NULL )
             continue;
+        if( poBlock->GetDataRef() == NULL )
+        {
+            poBlock->DropLock();
+            continue;
+        }
 
         if( (iXBlock + 1) * nBlockXSize > poBand->GetXSize() )
             iXValid = poBand->GetXSize() - iXBlock * nBlockXSize;
@@ -1415,7 +1420,7 @@ const char * CPL_STDCALL GDALVersionInfo( const char *pszRequest )
 /*      deallocating the returned memory in this case since in the      */
 /*      future we may resolve the leak issue internally.                */
 /* -------------------------------------------------------------------- */
-    if( EQUAL(pszRequest,"LICENSE") )
+    if( pszRequest != NULL && EQUAL(pszRequest,"LICENSE") )
     {
         const char *pszFilename = CPLFindFile( "etc", "LICENSE.TXT" );
         FILE *fp = NULL;

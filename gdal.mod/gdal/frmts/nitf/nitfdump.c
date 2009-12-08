@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdump.c 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: nitfdump.c 17653 2009-09-17 22:10:35Z warmerdam $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Simple test mainline to dump info about NITF file. 
@@ -30,7 +30,7 @@
 #include "nitflib.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfdump.c 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: nitfdump.c 17653 2009-09-17 22:10:35Z warmerdam $");
 
 static void DumpRPC( NITFImage *psImage, NITFRPC00BInfo *psRPC );
 static void DumpMetadata( const char *, const char *, char ** );
@@ -80,6 +80,12 @@ int main( int nArgc, char ** papszArgv )
             while( nTREBytes > 10 )
             {
                 int nThisTRESize = atoi(NITFGetField(szTemp, pszTREData, 6, 5 ));
+                if (nThisTRESize < 0)
+                {
+                    NITFGetField(szTemp, pszTREData, 0, 6 );
+                    printf(" Invalid size (%d) for TRE %s", nThisTRESize, szTemp);
+                    break;
+                }
 
                 printf( " %6.6s(%d)", pszTREData, nThisTRESize );
                 pszTREData += nThisTRESize + 11;
@@ -96,6 +102,9 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
 /*      Dump general info about segments.                               */
 /* -------------------------------------------------------------------- */
+        NITFCollectAttachments( psFile );
+        NITFReconcileAttachments( psFile );
+
         for( iSegment = 0; iSegment < psFile->nSegmentCount; iSegment++ )
         {
             NITFSegmentInfo *psSegInfo = psFile->pasSegmentInfo + iSegment;
@@ -103,11 +112,18 @@ int main( int nArgc, char ** papszArgv )
             printf( "Segment %d (Type=%s):\n", 
                     iSegment + 1, psSegInfo->szSegmentType );
 
-            printf( "  HeaderStart=%d, HeaderSize=%d, DataStart=%d, DataSize=%d\n",
+            printf( "  HeaderStart=" CPL_FRMT_GUIB ", HeaderSize=" CPL_FRMT_GUIB ", DataStart=" CPL_FRMT_GUIB ", DataSize=" CPL_FRMT_GUIB "\n",
                     psSegInfo->nSegmentHeaderStart,
                     psSegInfo->nSegmentHeaderSize, 
                     psSegInfo->nSegmentStart,
                     psSegInfo->nSegmentSize );
+            printf( "  DLVL=%d, ALVL=%d, LOC=C%d,R%d, CCS=C%d,R%d\n",
+                    psSegInfo->nDLVL, 
+                    psSegInfo->nALVL, 
+                    psSegInfo->nLOC_C, 
+                    psSegInfo->nLOC_R,
+                    psSegInfo->nCCS_C,
+                    psSegInfo->nCCS_R );
             printf( "\n" );
         }
 
@@ -147,13 +163,11 @@ int main( int nArgc, char ** papszArgv )
                         psImage->dfLLX, psImage->dfLLY,
                         psImage->dfLRX, psImage->dfLRY );
             }
-            if( psImage->nILOCRow != 0 )
-            {
-                printf( "  IDLVL=%d, IALVL=%d, ILOC R=%d,C=%d, IMAG=%s\n",
-                        psImage->nIDLVL, psImage->nIALVL, 
-                        psImage->nILOCRow, psImage->nILOCColumn, 
-                        psImage->szIMAG );
-            }
+
+            printf( "  IDLVL=%d, IALVL=%d, ILOC R=%d,C=%d, IMAG=%s\n",
+                    psImage->nIDLVL, psImage->nIALVL, 
+                    psImage->nILOCRow, psImage->nILOCColumn, 
+                    psImage->szIMAG );
 
             printf( "  %d x %d blocks of size %d x %d\n",
                     psImage->nBlocksPerRow, psImage->nBlocksPerColumn,
@@ -170,6 +184,12 @@ int main( int nArgc, char ** papszArgv )
                 while( nTREBytes > 10 )
                 {
                     int nThisTRESize = atoi(NITFGetField(szTemp, pszTREData, 6, 5 ));
+                    if (nThisTRESize < 0)
+                    {
+                        NITFGetField(szTemp, pszTREData, 0, 6 );
+                        printf(" Invalid size (%d) for TRE %s", nThisTRESize, szTemp);
+                        break;
+                    }
                 
                     printf( " %6.6s(%d)", pszTREData, nThisTRESize );
                     pszTREData += nThisTRESize + 11;
@@ -232,6 +252,50 @@ int main( int nArgc, char ** papszArgv )
             }
 
             DumpMetadata( "  Image Metadata:", "    ", psImage->papszMetadata );
+        }
+
+/* ==================================================================== */
+/*      Report details of graphic segments.                             */
+/* ==================================================================== */
+        for( iSegment = 0; iSegment < psFile->nSegmentCount; iSegment++ )
+        {
+            NITFSegmentInfo *psSegInfo = psFile->pasSegmentInfo + iSegment;
+            char achSubheader[298];
+            int  nSTYPEOffset;
+
+            if( !EQUAL(psSegInfo->szSegmentType,"GR") 
+                && !EQUAL(psSegInfo->szSegmentType,"SY") )
+                continue;
+        
+/* -------------------------------------------------------------------- */
+/*      Load the graphic subheader.                                     */
+/* -------------------------------------------------------------------- */
+            if( VSIFSeekL( psFile->fp, psSegInfo->nSegmentHeaderStart, 
+                           SEEK_SET ) != 0 
+                || VSIFReadL( achSubheader, 1, sizeof(achSubheader), 
+                              psFile->fp ) < 258 )
+            {
+                CPLError( CE_Warning, CPLE_FileIO, 
+                          "Failed to read graphic subheader at " CPL_FRMT_GUIB ".", 
+                          psSegInfo->nSegmentHeaderStart );
+                continue;
+            }
+
+            // NITF 2.0. (also works for NITF 2.1)
+            nSTYPEOffset = 200;
+            if( EQUALN(achSubheader+193,"999998",6) )
+                nSTYPEOffset += 40;
+
+/* -------------------------------------------------------------------- */
+/*      Report some standard info.                                      */
+/* -------------------------------------------------------------------- */
+            printf( "Graphic Segment %d, type=%2.2s, sfmt=%c, sid=%10.10s\n",
+                    iSegment, 
+                    achSubheader + 0, 
+                    achSubheader[nSTYPEOffset],
+                    achSubheader + 2 );
+
+            printf( "  sname=%20.20s\n", achSubheader + 12 );
         }
 
 /* -------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: parsexsd.cpp 17630 2009-09-10 15:30:44Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader::ParseXSD() method.
@@ -136,6 +136,8 @@ int GMLReader::ParseXSD( const char *pszFile )
         const char *pszType;
 
         pszType = CPLGetXMLValue( psThis, "type", NULL );
+        if( strstr( pszType, ":" ) != NULL )
+            pszType = strstr( pszType, ":" ) + 1;
         if( pszType == NULL || !EQUALN(pszType,pszName,strlen(pszName)) 
             || !EQUAL(pszType+strlen(pszName),"_Type") )
         {
@@ -204,16 +206,40 @@ int GMLReader::ParseXSD( const char *pszFile )
                 StripNS( CPLGetXMLValue( psAttrDef, 
                                          "simpleType.restriction.base", "" ));
 
-            if( EQUAL(pszBase,"decimal")
-                || EQUAL(pszBase,"float") 
-                || EQUAL(pszBase,"double") )
+            if( EQUAL(pszBase,"decimal") )
+            {
                 poProp->SetType( GMLPT_Real );
+                const char *pszWidth = 
+                    CPLGetXMLValue( psAttrDef, 
+                              "simpleType.restriction.totalDigits.value", "0" );
+                const char *pszPrecision = 
+                    CPLGetXMLValue( psAttrDef, 
+                              "simpleType.restriction.fractionDigits.value", "0" );
+                poProp->SetWidth( atoi(pszWidth) );
+                poProp->SetPrecision( atoi(pszPrecision) );
+            }
             
+            else if( EQUAL(pszBase,"float") 
+                     || EQUAL(pszBase,"double") )
+                poProp->SetType( GMLPT_Real );
+
             else if( EQUAL(pszBase,"integer") )
+            {
                 poProp->SetType( GMLPT_Integer );
+                const char *pszWidth = 
+                    CPLGetXMLValue( psAttrDef, 
+                              "simpleType.restriction.totalDigits.value", "0" );
+                poProp->SetWidth( atoi(pszWidth) );
+            }
 
             else if( EQUAL(pszBase,"string") )
+            {
                 poProp->SetType( GMLPT_String );
+                const char *pszWidth = 
+                    CPLGetXMLValue( psAttrDef, 
+                              "simpleType.restriction.maxLength.value", "0" );
+                poProp->SetWidth( atoi(pszWidth) );
+            }
 
             else
                 poProp->SetType( GMLPT_Untyped );

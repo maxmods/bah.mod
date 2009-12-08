@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_minixml.cpp 15264 2008-08-30 21:37:43Z mloskot $
+ * $Id: cpl_minixml.cpp 17931 2009-10-30 22:58:25Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implementation of MiniXML Parser and handling.
@@ -44,7 +44,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: cpl_minixml.cpp 15264 2008-08-30 21:37:43Z mloskot $");
+CPL_CVSID("$Id: cpl_minixml.cpp 17931 2009-10-30 22:58:25Z rouault $");
 
 typedef enum {
     TNone,
@@ -162,7 +162,7 @@ static XMLTokenType ReadToken( ParseContext *psContext )
     psContext->pszToken[0] = '\0';
     
     chNext = ReadChar( psContext );
-    while( isspace(chNext) )
+    while( isspace((unsigned char)chNext) )
         chNext = ReadChar( psContext );
 
 /* -------------------------------------------------------------------- */
@@ -225,8 +225,17 @@ static XMLTokenType ReadToken( ParseContext *psContext )
                     chNext = ReadChar( psContext );
                     AddToToken( psContext, chNext );
                 }
-                while( chNext != ']'
+                while( chNext != ']' && chNext != '\0'
                     && !EQUALN(psContext->pszInput+psContext->nInputOffset,"]>", 2) );
+                    
+                if (chNext == '\0')
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined, 
+                          "Parse error in DOCTYPE on or before line %d, "
+                          "reached end of file without ']'.", 
+                          psContext->nInputLine );
+                    break;
+                }
 
                 chNext = ReadChar( psContext );
                 AddToToken( psContext, chNext );

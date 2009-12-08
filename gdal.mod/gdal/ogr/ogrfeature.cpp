@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 15749 2008-11-17 19:36:50Z rouault $
+ * $Id: ogrfeature.cpp 18027 2009-11-14 20:21:18Z rouault $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -31,7 +31,7 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrfeature.cpp 15749 2008-11-17 19:36:50Z rouault $");
+CPL_CVSID("$Id: ogrfeature.cpp 18027 2009-11-14 20:21:18Z rouault $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
@@ -1086,10 +1086,10 @@ const char *OGRFeature::GetFieldAsString( int iField )
 
             if( nMinutes == 0 )
                 snprintf( szTempBuffer+strlen(szTempBuffer), 
-                          TEMP_BUFFER_SIZE, "%02d", nHours );
+                          TEMP_BUFFER_SIZE-strlen(szTempBuffer), "%02d", nHours );
             else
                 snprintf( szTempBuffer+strlen(szTempBuffer), 
-                          TEMP_BUFFER_SIZE, "%02d%02d", nHours, nMinutes );
+                          TEMP_BUFFER_SIZE-strlen(szTempBuffer), "%02d%02d", nHours, nMinutes );
         }
 
         return m_pszTmpFieldValue = CPLStrdup( szTempBuffer );
@@ -1120,10 +1120,10 @@ const char *OGRFeature::GetFieldAsString( int iField )
         snprintf( szTempBuffer, TEMP_BUFFER_SIZE, "(%d:", nCount );
         for( i = 0; i < nCount; i++ )
         {
-            snprintf( szItem, TEMP_BUFFER_SIZE, "%d",
+            snprintf( szItem, sizeof(szItem), "%d",
                       pauFields[iField].IntegerList.paList[i] );
             if( strlen(szTempBuffer) + strlen(szItem) + 6
-                > sizeof(szTempBuffer) )
+                >= sizeof(szTempBuffer) )
             {
                 break;
             }
@@ -1149,7 +1149,7 @@ const char *OGRFeature::GetFieldAsString( int iField )
 
         if( poFDefn->GetWidth() != 0 )
         {
-            snprintf( szFormat, TEMP_BUFFER_SIZE, "%%%d.%df",
+            snprintf( szFormat, sizeof(szFormat), "%%%d.%df",
                       poFDefn->GetWidth(), poFDefn->GetPrecision() );
         }
         else
@@ -1158,10 +1158,10 @@ const char *OGRFeature::GetFieldAsString( int iField )
         snprintf( szTempBuffer, TEMP_BUFFER_SIZE, "(%d:", nCount );
         for( i = 0; i < nCount; i++ )
         {
-            snprintf( szItem, TEMP_BUFFER_SIZE, szFormat,
+            snprintf( szItem, sizeof(szItem), szFormat,
                       pauFields[iField].RealList.paList[i] );
             if( strlen(szTempBuffer) + strlen(szItem) + 6
-                > sizeof(szTempBuffer) )
+                >= sizeof(szTempBuffer) )
             {
                 break;
             }
@@ -1189,7 +1189,7 @@ const char *OGRFeature::GetFieldAsString( int iField )
             const char  *pszItem = pauFields[iField].StringList.paList[i];
             
             if( strlen(szTempBuffer) + strlen(pszItem)  + 6
-                > sizeof(szTempBuffer) )
+                >= sizeof(szTempBuffer) )
             {
                 break;
             }
@@ -2735,6 +2735,10 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int bForgiving )
             {
                 SetField( iDstField, poSrcFeature->GetRawFieldRef( iField ) );
             }
+            else if (GetFieldDefnRef(iDstField)->GetType() == OFTString)
+            {
+                SetField( iDstField, poSrcFeature->GetFieldAsString( iField ) );
+            }
             else if( !bForgiving )
                 return OGRERR_FAILURE;
             break;
@@ -2744,6 +2748,10 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int bForgiving )
                 == GetFieldDefnRef(iDstField)->GetType() )
             {
                 SetField( iDstField, poSrcFeature->GetRawFieldRef(iField) );
+            }
+            else if (GetFieldDefnRef(iDstField)->GetType() == OFTString)
+            {
+                SetField( iDstField, poSrcFeature->GetFieldAsString( iField ) );
             }
             else if( !bForgiving )
                 return OGRERR_FAILURE;

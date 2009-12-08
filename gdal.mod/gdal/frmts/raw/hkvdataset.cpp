@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hkvdataset.cpp 14675 2008-06-10 03:13:23Z warmerdam $
+ * $Id: hkvdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis HKV labelled blob support
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: hkvdataset.cpp 14675 2008-06-10 03:13:23Z warmerdam $");
+CPL_CVSID("$Id: hkvdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HKV(void);
@@ -1548,9 +1548,16 @@ GDALDataset *HKVDataset::Create( const char * pszFilenameIn,
 /* -------------------------------------------------------------------- */
 /*      Verify input options.                                           */
 /* -------------------------------------------------------------------- */
-    if( eType != GDT_Byte && eType != GDT_Float32 
+    if (nBands <= 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "HKV driver does not support %d bands.\n", nBands);
+        return NULL;
+    }
+
+    if( eType != GDT_Byte
         && eType != GDT_UInt16 && eType != GDT_Int16 
-        && eType != GDT_CInt16 && eType != GDT_CInt32
+        && eType != GDT_CInt16 && eType != GDT_Float32
         && eType != GDT_CFloat32 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
@@ -1700,9 +1707,19 @@ HKVDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
 {
     HKVDataset	*poDS;
-    GDALDataType eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
+    GDALDataType eType;
     int          iBand;
-   
+
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "HKV driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
+
+    eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
+
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
         return NULL;
 

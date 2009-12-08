@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rpftocfile.cpp 14971 2008-07-19 12:57:18Z rouault $
+ * $Id: rpftocfile.cpp 17618 2009-09-07 19:14:58Z rouault $
  *
  * Project:  RPF A.TOC read Library
  * Purpose:  Module responsible for opening a RPF TOC file, populating RPFToc
@@ -49,7 +49,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rpftocfile.cpp 14971 2008-07-19 12:57:18Z rouault $");
+CPL_CVSID("$Id: rpftocfile.cpp 17618 2009-09-07 19:14:58Z rouault $");
 
 /************************************************************************/
 /*                        RPFTOCTrim()                                    */
@@ -135,7 +135,7 @@ RPFToc* RPFTOCReadFromBuffer(const char* pszFilename, FILE* fp, const char* tocH
     tocHeader += 2; /* skip country  */
     tocHeader += 2; /* skip release  */
     
-    locationSectionPhysicalLocation = *(unsigned int*)tocHeader;
+    memcpy(&locationSectionPhysicalLocation, tocHeader, sizeof(unsigned int));
     CPL_MSBPTR32(&locationSectionPhysicalLocation);
     
     if( VSIFSeekL( fp, locationSectionPhysicalLocation, SEEK_SET ) != 0)

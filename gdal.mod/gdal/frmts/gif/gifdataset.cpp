@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $
+ * $Id: gifdataset.cpp 16026 2009-01-01 18:47:30Z warmerdam $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $");
+CPL_CVSID("$Id: gifdataset.cpp 16026 2009-01-01 18:47:30Z warmerdam $");
 
 CPL_C_START
 #include "gif_lib.h"
@@ -392,11 +392,14 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
         DGifCloseFile(hGifFile);
 
         if( nGifErr == D_GIF_ERR_DATA_TOO_BIG )
-            CPLError( CE_Failure, CPLE_OpenFailed, 
+        {
+            CPLDebug( "GIF",
                       "DGifSlurp() failed for %s because it was too large.\n"
                       "Due to limitations of the GDAL GIF driver we deliberately avoid\n"
                       "opening large GIF files (larger than 100 megapixels).",
                       poOpenInfo->pszFilename );
+            return NULL;
+        }
         else
             CPLError( CE_Failure, CPLE_OpenFailed, 
                       "DGifSlurp() failed for %s.\n"

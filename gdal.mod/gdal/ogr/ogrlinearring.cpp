@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinearring.cpp 15517 2008-10-11 18:34:03Z rouault $
+ * $Id: ogrlinearring.cpp 16126 2009-01-19 18:58:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLinearRing geometry class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrlinearring.cpp 15517 2008-10-11 18:34:03Z rouault $");
+CPL_CVSID("$Id: ogrlinearring.cpp 16126 2009-01-19 18:58:35Z rouault $");
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */
@@ -335,7 +335,7 @@ OGRGeometry *OGRLinearRing::clone() const
 /************************************************************************/
 
 /**
- * Returns TRUE if the ring has clockwise winding.
+ * Returns TRUE if the ring has clockwise winding (or less than 2 points)
  *
  * @return TRUE if clockwise otherwise FALSE.
  */
@@ -344,6 +344,9 @@ int OGRLinearRing::isClockwise() const
 
 {
     double dfSum = 0.0;
+
+    if( nPointCount < 2 )
+        return TRUE;
 
     for( int iVert = 0; iVert < nPointCount-1; iVert++ )
     {
@@ -421,6 +424,9 @@ double OGRLinearRing::get_Area() const
 {
     double dfAreaSum = 0.0;
     int i;
+
+    if( nPointCount < 2 )
+        return 0;
 
     for( i = 0; i < nPointCount-1; i++ )
     {

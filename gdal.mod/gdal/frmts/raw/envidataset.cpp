@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.cpp 14675 2008-06-10 03:13:23Z warmerdam $
+ * $Id: envidataset.cpp 16101 2009-01-17 20:20:08Z rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: envidataset.cpp 14675 2008-06-10 03:13:23Z warmerdam $");
+CPL_CVSID("$Id: envidataset.cpp 16101 2009-01-17 20:20:08Z rouault $");
 
 CPL_C_START
 void GDALRegister_ENVI(void);
@@ -1846,11 +1846,11 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
         if(!EQUAL(pszEnviFileType, "ENVI Standard") &&
            !EQUAL(pszEnviFileType, "ENVI Classification"))
         {
-            delete poDS;
             CPLError( CE_Failure, CPLE_OpenFailed, 
                       "File %s contains an invalid file type in the ENVI .hdr\n"
                       "GDAL does not support '%s' type files.",
                       poOpenInfo->pszFilename, pszEnviFileType );
+            delete poDS;
             return NULL;
         }
     }

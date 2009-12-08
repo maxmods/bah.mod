@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp 12146 2007-09-13 20:14:10Z warmerdam $
+ * $Id: s57reader.cpp 17954 2009-11-02 21:14:05Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -35,7 +35,7 @@
 #include <string>
 #include <fstream>
 
-CPL_CVSID("$Id: s57reader.cpp 12146 2007-09-13 20:14:10Z warmerdam $");
+CPL_CVSID("$Id: s57reader.cpp 17954 2009-11-02 21:14:05Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -233,7 +233,7 @@ OGRFeature *S57Reader::NextPendingMultiPoint()
     poSrcPoint = (OGRPoint *) poMPGeom->getGeometryRef( iPointOffset++ );
     poPoint->SetGeometry( poSrcPoint );
 
-    if( poPoint != NULL )
+    if( poPoint != NULL && (nOptionFlags & S57M_ADD_SOUNDG_DEPTH) )
         poPoint->SetField( "DEPTH", poSrcPoint->getZ() );
 
     if( iPointOffset >= poMPGeom->getNumGeometries() )

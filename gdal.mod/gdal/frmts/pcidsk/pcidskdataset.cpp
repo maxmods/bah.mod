@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcidskdataset.cpp 12493 2007-10-22 14:08:09Z dron $
+ * $Id: pcidskdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
  *
  * Project:  PCIDSK Database File
  * Purpose:  Read/write PCIDSK Database File used by the PCI software
@@ -29,7 +29,7 @@
 
 #include "gdal_pcidsk.h"
 
-CPL_CVSID("$Id: pcidskdataset.cpp 12493 2007-10-22 14:08:09Z dron $");
+CPL_CVSID("$Id: pcidskdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PCIDSK(void);
@@ -1385,15 +1385,25 @@ PCIDSKDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
 {
     PCIDSKDataset	*poDS;
-    GDALDataType eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
+    GDALDataType eType;
     int          iBand;
+
+    int nBands = poSrcDS->GetRasterCount();
+    if (nBands == 0)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "PCIDSK driver does not support source dataset with zero band.\n");
+        return NULL;
+    }
 
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
         return NULL;
 
+    eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
+
     /* check that other bands match type- sets type */
     /* to unknown if they differ.                  */
-    for( iBand = 1; iBand < poSrcDS->GetRasterCount(); iBand++ )
+    for( iBand = 1; iBand < nBands; iBand++ )
      {
          GDALRasterBand *poBand = poSrcDS->GetRasterBand( iBand+1 );
          eType = GDALDataTypeUnion( eType, poBand->GetRasterDataType() );

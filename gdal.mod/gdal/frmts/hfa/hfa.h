@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa.h 15774 2008-11-20 20:31:17Z warmerdam $
+ * $Id: hfa.h 15913 2008-12-08 19:04:24Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Public (C callable) interface for the Erdas Imagine reading
@@ -122,7 +122,7 @@ typedef struct {
 
 typedef struct {
     int		order;
-    double      polycoefmtx[12];
+    double      polycoefmtx[18];
     double      polycoefvector[2];
 } Efga_Polynomial;
 

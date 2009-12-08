@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmllayer.cpp 14501 2008-05-21 18:01:05Z rouault $
+ * $Id: ogrgmllayer.cpp 16900 2009-05-01 13:15:31Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgmllayer.cpp 14501 2008-05-21 18:01:05Z rouault $");
+CPL_CVSID("$Id: ogrgmllayer.cpp 16900 2009-05-01 13:15:31Z rouault $");
 
 /************************************************************************/
 /*                           OGRGMLLayer()                              */
@@ -107,6 +107,13 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
 {
     GMLFeature  *poGMLFeature = NULL;
     OGRGeometry *poGeom = NULL;
+
+    if (bWriter)
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "Cannot read features when writing a GML file");
+        return NULL;
+    }
 
     if( iNextGMLId == 0 )
         ResetReading();
@@ -218,7 +225,17 @@ int OGRGMLLayer::GetFeatureCount( int bForce )
     if( m_poFilterGeom != NULL || m_poAttrQuery != NULL )
         return OGRLayer::GetFeatureCount( bForce );
     else
-        return poFClass->GetFeatureCount();
+    {
+        /* If the schema is read from a .xsd file, we haven't read */
+        /* the feature count, so compute it now */
+        int nFeatureCount = poFClass->GetFeatureCount();
+        if (nFeatureCount < 0)
+        {
+            nFeatureCount = OGRLayer::GetFeatureCount(bForce);
+            poFClass->SetFeatureCount(nFeatureCount);
+        }
+        return nFeatureCount;
+    }
 }
 
 /************************************************************************/

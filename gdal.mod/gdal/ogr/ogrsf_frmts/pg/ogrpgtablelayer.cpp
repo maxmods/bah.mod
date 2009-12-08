@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 15753 2008-11-17 22:04:09Z rouault $
+ * $Id: ogrpgtablelayer.cpp 17107 2009-05-22 22:02:44Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGTableLayer class, access to an existing table.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 15753 2008-11-17 22:04:09Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 17107 2009-05-22 22:02:44Z rouault $");
 
 #define USE_COPY_UNSET  -10
 
@@ -400,7 +400,9 @@ OGRFeatureDefn *OGRPGTableLayer::ReadTableDefinition( const char * pszTableIn,
         {
             oField.SetType( OFTInteger );
         }
-        else if( EQUALN(pszType,"float",5) || EQUALN(pszType,"double",6) )
+        else if( EQUALN(pszType,"float",5) ||
+                 EQUALN(pszType,"double",6) ||
+                 EQUAL(pszType,"real") )
         {
             oField.SetType( OFTReal );
         }
@@ -452,6 +454,10 @@ OGRFeatureDefn *OGRPGTableLayer::ReadTableDefinition( const char * pszTableIn,
         if (pszGeomColumn)
         {
             osCommand += CPLString().Printf(" AND f_geometry_column='%s'", pszGeomColumn);
+        }
+        if (pszSchemaNameIn)
+        {
+            osCommand += CPLString().Printf(" AND f_table_schema='%s'", pszSchemaNameIn);
         }
 
         hResult = PQexec(hPGConn,osCommand);
@@ -554,7 +560,7 @@ void OGRPGTableLayer::BuildWhere()
         OGREnvelope  sEnvelope;
 
         m_poFilterGeom->getEnvelope( &sEnvelope );
-        osWHERE.Printf("WHERE %s && SetSRID('BOX3D(%.12f %.12f, %.12f %.12f)'::box3d,%d) ",
+        osWHERE.Printf("WHERE \"%s\" && SetSRID('BOX3D(%.12f %.12f, %.12f %.12f)'::box3d,%d) ",
                        pszGeomColumn,
                        sEnvelope.MinX, sEnvelope.MinY,
                        sEnvelope.MaxX, sEnvelope.MaxY,
@@ -1042,7 +1048,7 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
 
     if( bHasPostGISGeometry && poFeature->GetGeometryRef() != NULL )
     {
-        osCommand = osCommand + pszGeomColumn + " ";
+        osCommand = osCommand + "\"" + pszGeomColumn + "\" ";
         bNeedComma = TRUE;
     }
 
@@ -1051,7 +1057,7 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
         if( bNeedComma )
             osCommand += ", ";
         
-        osCommand = osCommand + pszFIDColumn + " ";
+        osCommand = osCommand + "\"" + pszFIDColumn + "\" ";
         bNeedComma = TRUE;
     }
 
@@ -1713,7 +1719,7 @@ OGRFeature *OGRPGTableLayer::GetFeature( long nFeatureId )
 
     osCommand.Printf(
              "DECLARE getfeaturecursor %s for "
-             "SELECT %s FROM %s WHERE %s = %ld",
+             "SELECT %s FROM %s WHERE \"%s\" = %ld",
               ( poDS->bUseBinaryCursor ) ? "BINARY CURSOR" : "CURSOR",
              pszFieldList, pszSqlTableName, pszFIDColumn,
              nFeatureId );
@@ -1729,9 +1735,25 @@ OGRFeature *OGRPGTableLayer::GetFeature( long nFeatureId )
 
         if( hResult && PQresultStatus(hResult) == PGRES_TUPLES_OK )
         {
-            hCursorResult = hResult;
-            poFeature = RecordToFeature( 0 );
-            hCursorResult = NULL;
+            int nRows = PQntuples(hResult);
+            if (nRows > 0)
+            {
+                hCursorResult = hResult;
+                poFeature = RecordToFeature( 0 );
+                hCursorResult = NULL;
+
+                if (nRows > 1)
+                {
+                    CPLError(CE_Warning, CPLE_AppDefined,
+                             "%d rows in response to the WHERE %s = %ld clause !",
+                             nRows, pszFIDColumn, nFeatureId );
+                }
+            }
+            else
+            {
+                 CPLError( CE_Failure, CPLE_AppDefined,
+                  "Attempt to read feature with unknown feature id (%ld).", nFeatureId );
+            }
         }
     }
 

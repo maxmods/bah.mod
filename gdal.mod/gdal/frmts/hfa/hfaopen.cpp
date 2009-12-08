@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaopen.cpp 15774 2008-11-20 20:31:17Z warmerdam $
+ * $Id: hfaopen.cpp 15943 2008-12-12 04:40:54Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Supporting functions for HFA (.img) ... main (C callable) API
@@ -40,7 +40,7 @@
 #include "cpl_conv.h"
 #include <limits.h>
 
-CPL_CVSID("$Id: hfaopen.cpp 15774 2008-11-20 20:31:17Z warmerdam $");
+CPL_CVSID("$Id: hfaopen.cpp 15943 2008-12-12 04:40:54Z warmerdam $");
 
 
 static const char *apszAuxMetadataItems[] = {
@@ -380,7 +380,7 @@ void HFAClose( HFAHandle hHFA )
 {
     int		i;
 
-    if( hHFA->bTreeDirty )
+    if( hHFA->bTreeDirty || hHFA->poDictionary->bDictionaryTextDirty )
         HFAFlush( hHFA );
 
     if( hHFA->psDependent != NULL )
@@ -1068,6 +1068,8 @@ CPLErr HFASetMapInfo( HFAHandle hHFA, const Eprj_MapInfo *poMapInfo )
             + strlen(poMapInfo->units) + 1;
 
         pabyData = poMIEntry->MakeData( nSize );
+        memset( pabyData, 0, nSize );
+
         poMIEntry->SetPosition();
 
 /* -------------------------------------------------------------------- */
@@ -1169,22 +1171,21 @@ CPLErr HFASetPEString( HFAHandle hHFA, const char *pszPEString )
 /*      is likely to be more complicated.                               */
 /* -------------------------------------------------------------------- */
         poProX = hHFA->papoBand[iBand]->poNode->GetNamedChild( "ProjectionX" );
-        if( poProX != NULL )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "HFASetPEString() failed because the ProjectionX node\n"
-                      "already exists and can't be reliably updated." );
-            return CE_Failure;
-        }
 
 /* -------------------------------------------------------------------- */
 /*      Create the node.                                                */
 /* -------------------------------------------------------------------- */
-        poProX = new HFAEntry( hHFA, "ProjectionX","Eprj_MapProjection842",
-                               hHFA->papoBand[iBand]->poNode );
         if( poProX == NULL )
-            return CE_Failure;
+        {
+            poProX = new HFAEntry( hHFA, "ProjectionX","Eprj_MapProjection842",
+                                   hHFA->papoBand[iBand]->poNode );
+            if( poProX == NULL || poProX->GetTypeObject() == NULL )
+                return CE_Failure;
+        }
 
+/* -------------------------------------------------------------------- */
+/*      Prepare the data area with some extra space just in case.       */
+/* -------------------------------------------------------------------- */
         GByte *pabyData = poProX->MakeData( 700 + strlen(pszPEString) );
         memset( pabyData, 0, 250+strlen(pszPEString) );
 
@@ -1200,7 +1201,8 @@ CPLErr HFASetPEString( HFAHandle hHFA, const char *pszPEString )
 /*      handling for MIFObjects.                                        */
 /* -------------------------------------------------------------------- */
         pabyData = poProX->GetData();
-        int    nDataSize = poProX->GetDataSize();
+        
+        int       nDataSize = poProX->GetDataSize();
         GUInt32   iOffset = poProX->GetDataPos();
         GUInt32   nSize;
 
@@ -1859,7 +1861,7 @@ CPLErr HFAFlush( HFAHandle hHFA )
 {
     CPLErr	eErr;
 
-    if( !hHFA->bTreeDirty )
+    if( !hHFA->bTreeDirty && !hHFA->poDictionary->bDictionaryTextDirty )
         return CE_None;
 
     CPLAssert( hHFA->poRoot != NULL );
@@ -1867,23 +1869,52 @@ CPLErr HFAFlush( HFAHandle hHFA )
 /* -------------------------------------------------------------------- */
 /*      Flush HFAEntry tree to disk.                                    */
 /* -------------------------------------------------------------------- */
-    eErr = hHFA->poRoot->FlushToDisk();
-    if( eErr != CE_None )
-        return eErr;
+    if( hHFA->bTreeDirty )
+    {
+        eErr = hHFA->poRoot->FlushToDisk();
+        if( eErr != CE_None )
+            return eErr;
+        
+        hHFA->bTreeDirty = FALSE;
+    }
 
-    hHFA->bTreeDirty = FALSE;
+/* -------------------------------------------------------------------- */
+/*      Flush Dictionary to disk.                                       */
+/* -------------------------------------------------------------------- */
+    GUInt32 nNewDictionaryPos = hHFA->nDictionaryPos;
+
+    if( hHFA->poDictionary->bDictionaryTextDirty )
+    {
+        VSIFSeekL( hHFA->fp, 0, SEEK_END );
+        nNewDictionaryPos = (GUInt32) VSIFTellL( hHFA->fp );
+        VSIFWriteL( hHFA->poDictionary->osDictionaryText.c_str(), 
+                    strlen(hHFA->poDictionary->osDictionaryText.c_str()) + 1,
+                    1, hHFA->fp );
+        hHFA->poDictionary->bDictionaryTextDirty = FALSE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      do we need to update the Ehfa_File pointer to the root node?    */
 /* -------------------------------------------------------------------- */
-    if( hHFA->nRootPos != hHFA->poRoot->GetFilePos() )
+    if( hHFA->nRootPos != hHFA->poRoot->GetFilePos() 
+        || nNewDictionaryPos != hHFA->nDictionaryPos )
     {
-        GUInt32		nRootPos;
+        GUInt32		nOffset;
+        GUInt32         nHeaderPos;
 
-        nRootPos = hHFA->nRootPos = hHFA->poRoot->GetFilePos();
-        HFAStandard( 4, &nRootPos );
-        VSIFSeekL( hHFA->fp, 20 + 8, SEEK_SET );
-        VSIFWriteL( &nRootPos, 4, 1, hHFA->fp );
+        VSIFSeekL( hHFA->fp, 16, SEEK_SET );
+        VSIFReadL( &nHeaderPos, sizeof(GInt32), 1, hHFA->fp );
+        HFAStandard( 4, &nHeaderPos );
+
+        nOffset = hHFA->nRootPos = hHFA->poRoot->GetFilePos();
+        HFAStandard( 4, &nOffset );
+        VSIFSeekL( hHFA->fp, nHeaderPos+8, SEEK_SET );
+        VSIFWriteL( &nOffset, 4, 1, hHFA->fp );
+
+        nOffset = hHFA->nDictionaryPos = nNewDictionaryPos;
+        HFAStandard( 4, &nOffset );
+        VSIFSeekL( hHFA->fp, nHeaderPos+14, SEEK_SET );
+        VSIFWriteL( &nOffset, 4, 1, hHFA->fp );
     }
 
     return CE_None;
@@ -2936,7 +2967,7 @@ static int HFAReadAndValidatePoly( HFAEntry *poTarget,
     osFldName.Printf( "%sorder", pszName );
     psRetPoly->order = poTarget->GetIntField(osFldName);
 
-    if( psRetPoly->order < 1 || psRetPoly->order > 2 )
+    if( psRetPoly->order < 1 || psRetPoly->order > 3 )
         return FALSE;
 
 /* -------------------------------------------------------------------- */
@@ -2957,7 +2988,8 @@ static int HFAReadAndValidatePoly( HFAEntry *poTarget,
         return FALSE;
 
     if( (psRetPoly->order == 1 && termcount != 3) 
-        || (psRetPoly->order == 2 && termcount != 6) )
+        || (psRetPoly->order == 2 && termcount != 6) 
+        || (psRetPoly->order == 3 && termcount != 10) )
         return FALSE;
 
     // we don't check the exponent organization for now.  Hopefully
@@ -3125,6 +3157,32 @@ int HFAEvaluateXFormStack( int nStepCount, int bForward,
                 + psStep->polycoefmtx[5] * *pdfX * *pdfX
                 + psStep->polycoefmtx[7] * *pdfX * *pdfY
                 + psStep->polycoefmtx[9] * *pdfY * *pdfY;
+
+            *pdfX = dfXOut;
+            *pdfY = dfYOut;
+        }
+        else if( psStep->order == 3 )
+        {
+            dfXOut = psStep->polycoefvector[0] 
+                + psStep->polycoefmtx[ 0] * *pdfX
+                + psStep->polycoefmtx[ 2] * *pdfY
+                + psStep->polycoefmtx[ 4] * *pdfX * *pdfX
+                + psStep->polycoefmtx[ 6] * *pdfX * *pdfY
+                + psStep->polycoefmtx[ 8] * *pdfY * *pdfY
+                + psStep->polycoefmtx[10] * *pdfX * *pdfX * *pdfX
+                + psStep->polycoefmtx[12] * *pdfX * *pdfX * *pdfY
+                + psStep->polycoefmtx[14] * *pdfX * *pdfY * *pdfY
+                + psStep->polycoefmtx[16] * *pdfY * *pdfY * *pdfY;
+            dfYOut = psStep->polycoefvector[1] 
+                + psStep->polycoefmtx[ 1] * *pdfX
+                + psStep->polycoefmtx[ 3] * *pdfY
+                + psStep->polycoefmtx[ 5] * *pdfX * *pdfX
+                + psStep->polycoefmtx[ 7] * *pdfX * *pdfY
+                + psStep->polycoefmtx[ 9] * *pdfY * *pdfY
+                + psStep->polycoefmtx[11] * *pdfX * *pdfX * *pdfX
+                + psStep->polycoefmtx[13] * *pdfX * *pdfX * *pdfY
+                + psStep->polycoefmtx[15] * *pdfX * *pdfY * *pdfY
+                + psStep->polycoefmtx[17] * *pdfY * *pdfY * *pdfY;
 
             *pdfX = dfXOut;
             *pdfY = dfYOut;

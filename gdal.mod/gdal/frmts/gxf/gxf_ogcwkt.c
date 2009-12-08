@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxf_ogcwkt.c 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: gxf_ogcwkt.c 16108 2009-01-18 09:43:31Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  Handle GXF to OGC WKT projection transformation.
@@ -29,7 +29,7 @@
 
 #include "gxfopen.h"
 
-CPL_CVSID("$Id: gxf_ogcwkt.c 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: gxf_ogcwkt.c 16108 2009-01-18 09:43:31Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /* the following #defines come from ogr_spatialref.h in the GDAL/OGR	*/
@@ -57,7 +57,7 @@ CPL_CVSID("$Id: gxf_ogcwkt.c 10645 2007-01-18 02:22:39Z warmerdam $");
 #define SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP			        \
                                 "Lambert_Conformal_Conic_2SP"
 #define SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP_BELGIUM		        \
-                                "Lambert_Conformal_Conic_2SP_Belgium)"
+                                "Lambert_Conformal_Conic_2SP_Belgium"
 #define SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA		        \
                                 "Lambert_Azimuthal_Equal_Area"
 #define SRS_PT_MERCATOR_1SP     "Mercator_1SP"

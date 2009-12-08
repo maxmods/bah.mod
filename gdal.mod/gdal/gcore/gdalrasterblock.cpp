@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterblock.cpp 13986 2008-03-12 22:10:20Z rouault $
+ * $Id: gdalrasterblock.cpp 16229 2009-02-04 21:30:04Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALRasterBlock class and related global 
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalrasterblock.cpp 13986 2008-03-12 22:10:20Z rouault $");
+CPL_CVSID("$Id: gdalrasterblock.cpp 16229 2009-02-04 21:30:04Z rouault $");
 
 static int bCacheMaxInitialized = FALSE;
 static int nCacheMax = 40 * 1024*1024;
@@ -357,7 +357,7 @@ CPLErr GDALRasterBlock::Internalize()
     int         nSizeInBytes;
     int         nCurCacheMax = GDALGetCacheMax();
 
-    //FIXME? : risk of overflow in multiplication
+    /* No risk of overflow as it is checked in GDALRasterBand::InitBlockInfo() */
     nSizeInBytes = nXSize * nYSize * (GDALGetDataTypeSize(eType) / 8);
 
     pNewData = VSIMalloc( nSizeInBytes );

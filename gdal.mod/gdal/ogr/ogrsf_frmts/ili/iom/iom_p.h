@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: iom_p.h 12582 2007-10-29 09:38:21Z pka $
+ * $Id: iom_p.h 17913 2009-10-27 15:54:26Z chaitanya $
  *
  * Project:  iom - The INTERLIS Object Model
  * Purpose:  For more information, please see <http://iom.sourceforge.net>
@@ -540,12 +540,17 @@ public:
 
 public:
 	// SAX handler
-	void  characters (const XMLCh *const chars, const unsigned int length);
+#if XERCES_VERSION_MAJOR >= 3
+	void  characters (const XMLCh *const chars, const XMLSize_t length); // xerces 3
+	// void  ignorableWhitespace (const XMLCh *const chars, const XMLSize_t length); // xerces 3
+#else
+	void  characters (const XMLCh *const chars, const unsigned int length); // xerces 2
+	// void  ignorableWhitespace (const XMLCh *const chars, const unsigned int length); // xerces 2
+#endif
 	// void  startDocument ();
 	// void  endDocument ();
 	void  startElement (const XMLCh *const uri, const XMLCh *const localname, const XMLCh *const qname, const Attributes &attrs);
 	void  endElement (const XMLCh *const uri, const XMLCh *const localname, const XMLCh *const qname);
-	// void  ignorableWhitespace (const XMLCh *const chars, const unsigned int length);
 	// void  processingInstruction (const XMLCh *const target, const XMLCh *const data); 
 	void  setDocumentLocator (const Locator *const locator);
 	// void  startPrefixMapping (const XMLCh *const prefix, const XMLCh *const uri);

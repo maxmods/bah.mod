@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 15833 2008-11-28 03:18:51Z warmerdam $
+ * $Id: ogr_srs_esri.cpp 17176 2009-06-03 20:39:47Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -31,7 +31,7 @@
 #include "ogr_p.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 15833 2008-11-28 03:18:51Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 17176 2009-06-03 20:39:47Z warmerdam $");
 
 static const char *apszProjMapping[] = {
     "Albers", SRS_PT_ALBERS_CONIC_EQUAL_AREA,
@@ -1114,7 +1114,11 @@ OGRErr OGRSpatialReference::morphToESRI()
             (char **)apszAlbersMapping + 0, 2 );
 
     if( pszProjection != NULL 
-        && EQUAL(pszProjection,SRS_PT_EQUIDISTANT_CONIC) )
+        && (EQUAL(pszProjection,SRS_PT_EQUIDISTANT_CONIC) ||
+            EQUAL(pszProjection,SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA) ||
+            EQUAL(pszProjection,SRS_PT_AZIMUTHAL_EQUIDISTANT) ||
+            EQUAL(pszProjection,SRS_PT_SINUSOIDAL) ||
+            EQUAL(pszProjection,SRS_PT_ROBINSON) ) )
         GetRoot()->applyRemapper( 
             "PARAMETER", (char **)apszECMapping + 1,
             (char **)apszECMapping + 0, 2 );
@@ -1313,7 +1317,11 @@ OGRErr OGRSpatialReference::morphFromESRI()
             (char **)apszAlbersMapping + 1, 2 );
 
     if( pszProjection != NULL 
-        && EQUAL(pszProjection,SRS_PT_EQUIDISTANT_CONIC) )
+        && (EQUAL(pszProjection,SRS_PT_EQUIDISTANT_CONIC) ||
+            EQUAL(pszProjection,SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA) ||
+            EQUAL(pszProjection,SRS_PT_AZIMUTHAL_EQUIDISTANT) ||
+            EQUAL(pszProjection,SRS_PT_SINUSOIDAL) ||
+            EQUAL(pszProjection,SRS_PT_ROBINSON) ) )
         GetRoot()->applyRemapper( 
             "PARAMETER", (char **)apszECMapping + 0,
             (char **)apszECMapping + 1, 2 );

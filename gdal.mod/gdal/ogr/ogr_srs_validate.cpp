@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_validate.cpp 15827 2008-11-27 22:30:18Z warmerdam $
+ * $Id: ogr_srs_validate.cpp 15949 2008-12-13 23:24:36Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of the OGRSpatialReference::Validate() method and
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srs_validate.cpp 15827 2008-11-27 22:30:18Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_validate.cpp 15949 2008-12-13 23:24:36Z rouault $");
 
 /* why would fipszone and zone be paramers when they relate to a composite
    projection which renders done into a non-zoned projection? */
@@ -618,6 +618,16 @@ OGRErr OGRSpatialReference::Validate()
                 {
                     CPLDebug( "OGRSpatialReference::Validate",
                        "AUTHORITY has wrong number of children (%d), not 2.\n",
+                              poNode->GetChildCount() );
+                    return OGRERR_CORRUPT_DATA;
+                }
+            }
+            else if( EQUAL(poNode->GetValue(),"AXIS") )
+            {
+                if( poNode->GetChildCount() != 2 )
+                {
+                    CPLDebug( "OGRSpatialReference::Validate",
+                       "AXIS has wrong number of children (%d), not 2.\n",
                               poNode->GetChildCount() );
                     return OGRERR_CORRUPT_DATA;
                 }

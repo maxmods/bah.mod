@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsourcedrasterband.cpp 14998 2008-07-22 21:18:04Z rouault $
+ * $Id: vrtsourcedrasterband.cpp 17333 2009-07-02 18:14:16Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSourcedRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 14998 2008-07-22 21:18:04Z rouault $");
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 17333 2009-07-02 18:14:16Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -122,7 +122,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 
 {
     int         iSource;
-    CPLErr      eErr = CE_Failure;
+    CPLErr      eErr = CE_None;
 
     if( eRWFlag == GF_Write )
     {
@@ -137,7 +137,20 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 /* -------------------------------------------------------------------- */
     if ( nPixelSpace == GDALGetDataTypeSize(eBufType)/8 &&
          (!bNoDataValueSet || dfNoDataValue == 0) )
-        memset( pData, 0, nBufXSize * nBufYSize * nPixelSpace );
+    {
+        if (nLineSpace == nBufXSize * nPixelSpace)
+        {
+             memset( pData, 0, nBufYSize * nLineSpace );
+        }
+        else
+        {
+            int    iLine;
+            for( iLine = 0; iLine < nBufYSize; iLine++ )
+            {
+                memset( ((GByte*)pData) + iLine * nLineSpace, 0, nBufXSize * nPixelSpace );
+            }
+        }
+    }
     else if ( !bEqualAreas || bNoDataValueSet )
     {
         double dfWriteValue = 0.0;
@@ -171,7 +184,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 /* -------------------------------------------------------------------- */
 /*      Overlay each source in turn over top this.                      */
 /* -------------------------------------------------------------------- */
-    for( iSource = 0; iSource < nSources; iSource++ )
+    for( iSource = 0; eErr == CE_None && iSource < nSources; iSource++ )
     {
         eErr = 
             papoSources[iSource]->RasterIO( nXOff, nYOff, nXSize, nYSize, 
@@ -298,15 +311,11 @@ CPLErr VRTSourcedRasterBand::XMLInit( CPLXMLNode * psTree,
 /* -------------------------------------------------------------------- */
 /*      Done.                                                           */
 /* -------------------------------------------------------------------- */
-    if( nSources > 0 )
-        return CE_None;
-    else
-    {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "No valid sources found for band in VRT file:\n%s",
+    if( nSources == 0 )
+        CPLDebug( "VRT", "No valid sources found for band in VRT file:\n%s",
                   pszVRTPath );
-        return CE_Failure;
-    }
+
+    return CE_None;
 }
 
 /************************************************************************/
@@ -650,6 +659,41 @@ CPLErr VRTSourcedRasterBand::SetMetadataItem( const char *pszName,
         
         if( poSource != NULL )
             return AddSource( poSource );
+        else
+            return CE_Failure;
+    }
+    else if( pszDomain != NULL
+        && EQUAL(pszDomain,"vrt_sources") )
+    {
+        int iSource;
+        if (sscanf(pszName, "source_%d", &iSource) != 1 || iSource < 0 ||
+            iSource >= nSources)
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "%s metadata item name is not recognized. "
+                     "Should be between source_0 and source_%d",
+                     pszName, nSources - 1);
+            return CE_Failure;
+        }
+
+        VRTDriver *poDriver = (VRTDriver *) GDALGetDriverByName( "VRT" );
+
+        CPLXMLNode *psTree = CPLParseXMLString( pszValue );
+        VRTSource *poSource;
+        
+        if( psTree == NULL )
+            return CE_Failure;
+        
+        poSource = poDriver->ParseSource( psTree, NULL );
+        CPLDestroyXMLNode( psTree );
+        
+        if( poSource != NULL )
+        {
+            delete papoSources[iSource];
+            papoSources[iSource] = poSource;
+            ((VRTDataset *)poDS)->SetNeedsFlush();
+            return CE_None;
+        }
         else
             return CE_Failure;
     }

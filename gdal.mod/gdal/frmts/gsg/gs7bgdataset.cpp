@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 13592 2008-01-24 22:50:53Z warmerdam $
+ * $Id: gs7bgdataset.cpp 17606 2009-09-02 19:14:05Z warmerdam $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -59,7 +59,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 13592 2008-01-24 22:50:53Z warmerdam $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 17606 2009-09-02 19:14:05Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_GS7BG(void);
@@ -296,10 +296,11 @@ GDALDataset *GS7BGDataset::Open( GDALOpenInfo * poOpenInfo )
 
     CPL_LSBPTR32( &nVersion );
 
-    if(nVersion != 1)
+    if(nVersion != 1 && nVersion != 2)
     {
         delete poDS;
-        CPLError( CE_Failure, CPLE_FileIO, "Incorrect file version.\n" );
+        CPLError( CE_Failure, CPLE_FileIO, 
+                  "Incorrect file version (%d).", nVersion );
         return NULL;
     }
 

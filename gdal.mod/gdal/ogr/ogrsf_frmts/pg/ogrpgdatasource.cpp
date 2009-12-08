@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdatasource.cpp 15753 2008-11-17 22:04:09Z rouault $
+ * $Id: ogrpgdatasource.cpp 16766 2009-04-14 10:30:17Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_hash_set.h"
 
-CPL_CVSID("$Id: ogrpgdatasource.cpp 15753 2008-11-17 22:04:09Z rouault $");
+CPL_CVSID("$Id: ogrpgdatasource.cpp 16766 2009-04-14 10:30:17Z chaitanya $");
 
 static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
 
@@ -1133,9 +1133,9 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
         }
 
         osCommand.Printf(
-                 "select AddGeometryColumn('%s','%s','%s',%d,'%s',%d)",
-                 pszSchemaName, pszTableName, pszGFldName, nSRSId, pszGeometryType,
-                 nDimension );
+                 "SELECT AddGeometryColumn('%s','%s','%s',%d,'%s',%d)",
+                 pszSchemaName, pszTableName, pszGFldName,
+                 nSRSId, pszGeometryType, nDimension );
 
         CPLDebug( "PG", "PQexec(%s)", osCommand.c_str() );
         hResult = PQexec(hPGConn, osCommand.c_str());
@@ -1169,7 +1169,9 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
         const char *pszSI = CSLFetchNameValue( papszOptions, "SPATIAL_INDEX" );
         if( pszSI == NULL || CSLTestBoolean(pszSI) )
         {
-            osCommand.Printf("CREATE INDEX %s_geom_idx ON \"%s\".\"%s\" USING GIST (\"%s\")",
+            osCommand.Printf("CREATE INDEX \"%s_geom_idx\" "
+                             "ON \"%s\".\"%s\" "
+                             "USING GIST (\"%s\")",
                     pszTableName, pszSchemaName, pszTableName, pszGFldName);
 
             CPLDebug( "PG", "PQexec(%s)", osCommand.c_str() );
