@@ -229,6 +229,22 @@ Type TLPIX
 	End Method
 	
 	Rem
+	bbdoc: Contour rendering on grayscale images
+	returns: A new pix or Null on error.
+	about: The output can be either 1 bpp, showing just the contour lines, or a copy of the input pixs with the contour lines superposed.
+	<p>Parameters:
+	<ul>
+	<li><b> startVal </b> :  of lowest contour; must be in [0 ... maxval].</li>
+	<li><b> incr </b> : increment to next contour; must be &gt; 0.</li>
+	<li><b> outDepth </b> : either 1 or depth of this pix.</li>
+	</ul>
+	</p>
+	End Rem
+	Method RenderContours:TLPIX(startVal:Int, incr:Int, outDepth:Int)
+		Return TLPIX._create(pixRenderContours(pixPtr, startVal, incr, outDepth))
+	End Method
+	
+	Rem
 	bbdoc: 
 	End Rem
 	Method SetData:Int(data:Byte Ptr)
@@ -826,6 +842,71 @@ Type TLPIX
 	End Method
 	
 	Rem
+	bbdoc: Sampled affine image transformation.
+	returns: The transformed pix, or Null on error.
+	about: Notes:
+	<ul>
+	<li>Brings in either black or white pixels from the boundary.</li>
+	<li>Retains colormap, which you can do for a sampled transform.</li>
+	<li>The 3 points must not be collinear.</li>
+	<li>The order of the 3 points is arbitrary; however, to compare with the sequential transform they must be in these locations 
+	and in this order: origin, x-axis, y-axis.</li>
+	<li>For 1 bpp images, this has much better quality results than AffineSequential(), particularly for text.
+          It is about 3x slower, but does not require additional border pixels.  The poor quality of AffineSequential()
+          is due to repeated quantized transforms.  It is strongly recommended that AffineSampled() be used for 1 bpp images.</li>
+	<li>For 8 or 32 bpp, much better quality is obtained by the somewhat slower AffinePta().  See that method for relative timings between sampled and interpolated.</li>
+	<li>To repeat, use of the sequential transform, AffineSequential(), for any images, is discouraged.</li>
+	</ul>
+	<p>Parameters:
+	<ul>
+	<li><b>ptad</b> : 3 pts of final coordinate space.</li>
+	<li><b>ptas</b> : 3 pts of initial coordinate space.</li>
+	<li><b> inColor </b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
+	</ul>
+	</p>
+	End Rem
+	Method AffineSampledPta:TLPIX(ptad:TLPTA, ptas:TLPTA, inColor:Int)
+		Return TLPIX._create(pixAffineSampledPta(pixPtr, ptad.ptaPtr, ptas.ptaPtr, inColor))
+	End Method
+	
+	Rem
+	bbdoc: Sampled affine image transformation.
+	returns: The transformed pix, or Null on error.
+	End Rem
+	Method AffineSampled:TLPIX(vc:Float[], inColor:Int)
+		Assert vc.length = 6, "Vector of 6 coefficients expected"
+		Return TLPIX._create(pixAffineSampled(pixPtr, vc, inColor))
+	End Method
+	
+	Rem
+	bbdoc: Interpolated affine image transformation.
+	returns: The transformed pix, or Null on error.
+	about: Notes:
+	<ul>
+	<li>Brings in either black or white pixels from the boundary</li>
+	<li>Removes any existing colormap, if necessary, before transforming</li>
+	</ul>
+	<p>Parameters:
+	<ul>
+	<li><b>ptad</b> : 3 pts of final coordinate space.</li>
+	<li><b>ptas</b> : 3 pts of initial coordinate space.</li>
+	<li><b> inColor </b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
+	</ul>
+	End Rem
+	Method AffinePta:TLPIX(ptad:TLPTA, ptas:TLPTA, inColor:Int)
+		Return TLPIX._create(pixAffinePta(pixPtr, ptad.ptaPtr, ptas.ptaPtr, inColor))
+	End Method
+	
+	Rem
+	bbdoc: Interpolated affine image transformation.
+	returns: The transformed pix, or Null on error.
+	End Rem
+	Method Affine:TLPIX(vc:Float[], inColor:Int)
+		Assert vc.length = 6, "Vector of 6 coefficients expected"
+		Return TLPIX._create(pixAffine(pixPtr, vc, inColor))
+	End Method
+
+	Rem
 	bbdoc: 
 	End Rem
 	Method Free()
@@ -841,7 +922,9 @@ Type TLPIX
 
 End Type
 
-
+Rem
+bbdoc: 
+End Rem
 Type TLBOX
 
 	Field boxPtr:Byte Ptr
