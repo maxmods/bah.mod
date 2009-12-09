@@ -153,7 +153,7 @@ Type TCODFont
 			?win32
 			Else
 				DXframe.setUV(u0[curchar], v0[curChar], u1[curChar], v1[curChar])
-				DXframe.Draw(0, 0, fontWidth, fontHeight, X, Y)
+				DXframe.Draw(0, 0, fontWidth, fontHeight, X, Y, 0, 0, 1, 1)
 			?
 			End If
 			
