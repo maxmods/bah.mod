@@ -81,12 +81,53 @@ void GUISheet::onMouseButtonUp(MouseEventArgs& e)
 }
 
 //----------------------------------------------------------------------------//
+void GUISheet::onMouseClicked(MouseEventArgs& e)
+{
+    // always call the base class handler
+    Window::onMouseClicked(e);
+    // only adjust the handled state if event was directly injected
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        updateMouseEventHandled(e);
+}
+
+//----------------------------------------------------------------------------//
+void GUISheet::onMouseDoubleClicked(MouseEventArgs& e)
+{
+    // always call the base class handler
+    Window::onMouseDoubleClicked(e);
+    // only adjust the handled state if event was directly injected
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        updateMouseEventHandled(e);
+}
+
+//----------------------------------------------------------------------------//
+void GUISheet::onMouseTripleClicked(MouseEventArgs& e)
+{
+    // always call the base class handler
+    Window::onMouseTripleClicked(e);
+    // only adjust the handled state if event was directly injected
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        updateMouseEventHandled(e);
+}
+
+//----------------------------------------------------------------------------//
 void GUISheet::updateMouseEventHandled(MouseEventArgs& e) const
 {
     // by default, if we are a root window (no parent) with pass-though enabled
     // we do /not/ mark mouse events as handled.
     if (!d_parent && e.handled && d_mousePassThroughEnabled)
         --e.handled;
+}
+
+//----------------------------------------------------------------------------//
+bool GUISheet::moveToFront_impl(bool wasClicked)
+{
+    const bool took_action = Window::moveToFront_impl(wasClicked);
+
+    if (!d_parent && d_mousePassThroughEnabled)
+        return false;
+    else
+        return took_action;
 }
 
 //----------------------------------------------------------------------------//

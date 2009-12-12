@@ -771,6 +771,11 @@ public:
     \return
         Rect object that describes, in unclipped screen pixel co-ordinates, the
         window object's inner rect area.
+
+    \note
+        This function is going to change from public visibility to pretected.
+        All code accessing the area rects via external code should be using the
+        regular getUnclippedInnerRect function.
     */
     virtual Rect getUnclippedInnerRect_impl(void) const;
 
@@ -1824,8 +1829,28 @@ public:
 
     \return
         Nothing
+
+    \deprecated
+        This function is deprecated in favour of the version taking a boolean.
     */
     void invalidate(void);
+
+    /*!
+    \brief
+        Invalidate this window and - dependant upon \a recursive - all child
+        content, causing affected windows to be redrawn during the next
+        rendering pass.
+
+    \param recursive
+        Boolean value indicating whether attached child content should also be
+        invalidated.
+        - true will cause all child content to be invalidated also.
+        - false will just invalidate this single window.
+
+    \return
+        Nothing
+    */
+    void invalidate(const bool recursive);
 
     /*!
     \brief
@@ -3637,6 +3662,21 @@ protected:
 
     //! helper function for calculating clipping rectangles.
     Rect getParentElementClipIntersection(const Rect& unclipped_area) const;
+
+    //! helper function to invalidate window and optionally child windows.
+    void invalidate_impl(const bool recursive);
+
+    //! helper to return whether the inner rect size has changed
+    bool isInnerRectSizeChanged() const;
+
+    //! Default implementation of function to return Window outer rect area.
+    virtual Rect getUnclippedOuterRect_impl() const;
+    //! Default implementation of function to return Window outer clipper area.
+    virtual Rect getOuterRectClipper_impl() const;
+    //! Default implementation of function to return Window inner clipper area.
+    virtual Rect getInnerRectClipper_impl() const;
+    //! Default implementation of function to return Window hit-test area.
+    virtual Rect getHitTestRect_impl() const;
 
     virtual int writePropertiesXML(XMLSerializer& xml_stream) const;
     virtual int writeChildWindowsXML(XMLSerializer& xml_stream) const;

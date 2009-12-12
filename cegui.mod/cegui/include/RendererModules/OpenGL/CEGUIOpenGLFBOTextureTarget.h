@@ -28,8 +28,7 @@
 #ifndef _CEGUIOpenGLFBOTextureTarget_h_
 #define _CEGUIOpenGLFBOTextureTarget_h_
 
-#include "CEGUIOpenGLRenderTarget.h"
-#include "../../CEGUITextureTarget.h"
+#include "CEGUIOpenGLTextureTarget.h"
 #include "../../CEGUIRect.h"
 #include "CEGUIOpenGL.h"
 
@@ -44,8 +43,7 @@ namespace CEGUI
 class OpenGLTexture;
 
 //! OpenGLFBOTextureTarget - allows rendering to an OpenGL texture via FBO.
-class OPENGL_GUIRENDERER_API OpenGLFBOTextureTarget : public OpenGLRenderTarget,
-                                                      public TextureTarget
+class OPENGL_GUIRENDERER_API OpenGLFBOTextureTarget : public OpenGLTextureTarget
 {
 public:
     OpenGLFBOTextureTarget(OpenGLRenderer& owner);
@@ -54,13 +52,12 @@ public:
     // overrides from OpenGLRenderTarget
     void activate();
     void deactivate();
-    // implementation of RenderTarget interface
-    bool isImageryCache() const;
     // implementation of TextureTarget interface
     void clear();
-    Texture& getTexture() const;
     void declareRenderSize(const Size& sz);
-    bool isRenderingInverted() const;
+    // specialise functions from OpenGLTextureTarget
+    void grabTexture();
+    void restoreTexture();
 
 protected:
     //! default size of created texture objects
@@ -73,10 +70,6 @@ protected:
 
     //! Frame buffer object.
     GLuint d_frameBuffer;
-    //! Associated OpenGL texture ID
-    GLuint d_texture;
-    //! we use this to wrap d_texture so it can be used by the core CEGUI lib.
-    OpenGLTexture* d_CEGUITexture;
 };
 
 } // End of  CEGUI namespace section

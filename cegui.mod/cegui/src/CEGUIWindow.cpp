@@ -528,8 +528,7 @@ Rect Window::getUnclippedOuterRect() const
 {
     if (!d_outerUnclippedRectValid)
     {
-        const Rect local(0, 0, d_pixelSize.d_width, d_pixelSize.d_height);
-        d_outerUnclippedRect = CoordConverter::windowToScreen(*this, local);
+        d_outerUnclippedRect = getUnclippedOuterRect_impl();
         d_outerUnclippedRectValid = true;
     }
 
@@ -559,10 +558,7 @@ Rect Window::getOuterRectClipper() const
 {
     if (!d_outerRectClipperValid)
     {
-        d_outerRectClipper = (d_surface && d_surface->isRenderingWindow()) ?
-            getUnclippedOuterRect() :
-            getParentElementClipIntersection(getUnclippedOuterRect());
-
+        d_outerRectClipper = getOuterRectClipper_impl();
         d_outerRectClipperValid = true;
     }
 
@@ -574,10 +570,7 @@ Rect Window::getInnerRectClipper() const
 {
     if (!d_innerRectClipperValid)
     {
-        d_innerRectClipper = (d_surface && d_surface->isRenderingWindow()) ?
-            getUnclippedInnerRect() :
-            getParentElementClipIntersection(getUnclippedInnerRect());
-
+        d_innerRectClipper = getInnerRectClipper_impl();
         d_innerRectClipperValid = true;
     }
 
@@ -595,23 +588,7 @@ Rect Window::getHitTestRect() const
 {
     if (!d_hitTestRectValid)
     {
-        // if clipped by parent wnd, hit test area is the intersection of our
-        // outer rect with the parent's hit test area intersected with the
-        // parent's clipper.
-        if (d_parent && d_clippedByParent)
-        {
-            d_hitTestRect = getUnclippedOuterRect().getIntersection(
-                d_parent->getHitTestRect().getIntersection(
-                    d_parent->getClipRect(d_nonClientContent)));
-        }
-        // not clipped to parent wnd, so get intersection with screen area.
-        else
-        {
-            d_hitTestRect = getUnclippedOuterRect().getIntersection(
-                Rect(Vector2(0, 0),
-                     System::getSingleton().getRenderer()->getDisplaySize()));
-        }
-
+        d_hitTestRect = getHitTestRect_impl();
         d_hitTestRectValid = true;
     }
 
@@ -629,10 +606,54 @@ Rect Window::getParentElementClipIntersection(const Rect& unclipped_area) const
 }
 
 //----------------------------------------------------------------------------//
+Rect Window::getUnclippedOuterRect_impl() const
+{
+    const Rect local(0, 0, d_pixelSize.d_width, d_pixelSize.d_height);
+    return CoordConverter::windowToScreen(*this, local);
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getOuterRectClipper_impl() const
+{
+    return (d_surface && d_surface->isRenderingWindow()) ?
+        getUnclippedOuterRect() :
+        getParentElementClipIntersection(getUnclippedOuterRect());
+}
+
+//----------------------------------------------------------------------------//
 Rect Window::getUnclippedInnerRect_impl(void) const
 {
     return d_windowRenderer ? d_windowRenderer->getUnclippedInnerRect() :
                               getUnclippedOuterRect();
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getInnerRectClipper_impl() const
+{
+    return (d_surface && d_surface->isRenderingWindow()) ?
+        getUnclippedInnerRect() :
+        getParentElementClipIntersection(getUnclippedInnerRect());
+}
+
+//----------------------------------------------------------------------------//
+Rect Window::getHitTestRect_impl() const
+{
+    // if clipped by parent wnd, hit test area is the intersection of our
+    // outer rect with the parent's hit test area intersected with the
+    // parent's clipper.
+    if (d_parent && d_clippedByParent)
+    {
+        return getUnclippedOuterRect().getIntersection(
+            d_parent->getHitTestRect().getIntersection(
+                d_parent->getClipRect(d_nonClientContent)));
+    }
+    // not clipped to parent wnd, so get intersection with screen area.
+    else
+    {
+        return getUnclippedOuterRect().getIntersection(
+            Rect(Vector2(0, 0),
+                 System::getSingleton().getRenderer()->getDisplaySize()));
+    }
 }
 
 //----------------------------------------------------------------------------//
@@ -1118,9 +1139,28 @@ void Window::setInheritsAlpha(bool setting)
 //----------------------------------------------------------------------------//
 void Window::invalidate(void)
 {
+    invalidate(false);
+}
+
+//----------------------------------------------------------------------------//
+void Window::invalidate(const bool recursive)
+{
+    invalidate_impl(recursive);
+    System::getSingleton().signalRedraw();
+}
+
+//----------------------------------------------------------------------------//
+void Window::invalidate_impl(const bool recursive)
+{
     d_needsRedraw = true;
     invalidateRenderingSurface();
-    System::getSingleton().signalRedraw();
+
+    if (recursive)
+    {
+        const size_t child_count = getChildCount();
+        for (size_t i = 0; i < child_count; ++i)
+            d_children[i]->invalidate_impl(true);
+    }
 }
 
 //----------------------------------------------------------------------------//
@@ -1203,7 +1243,22 @@ void Window::queueGeometry(const RenderingContext& ctx)
 void Window::setParent(Window* parent)
 {
     d_parent = parent;
-    transferChildSurfaces();
+
+    // if we do not have a surface, xfer any surfaces from our children to
+    // whatever our target surface now is.
+    if (!d_surface)
+        transferChildSurfaces();
+    // else, since we have a surface, child surfaces stay with us.  Though we
+    // must now ensure /our/ surface is xferred if it is a RenderingWindow.
+    else if (d_surface->isRenderingWindow())
+    {
+        // target surface is eihter the parent's target, or the default root.
+        RenderingSurface& tgt = d_parent ?
+            d_parent->getTargetRenderingSurface() :
+            System::getSingleton().getRenderer()->getDefaultRenderingRoot();
+
+        tgt.transferRenderingWindow(static_cast<RenderingWindow&>(*d_surface));
+    }
 }
 
 //----------------------------------------------------------------------------//
@@ -2364,6 +2419,14 @@ void Window::onSized(WindowEventArgs& e)
     // more selectively with child Window cases.
     notifyScreenAreaChanged(false);
 
+    // we need to layout loonfeel based content first, in case anything is
+    // relying on that content for size or positioning info (i.e. some child
+    // is used to establish inner-rect position or size).
+    //
+    // TODO: The subsequent onParentSized notification for those windows cause
+    // additional - unneccessary - work; we should look to optimise that.
+    performChildWindowLayout();
+
     // inform children their parent has been re-sized
     const size_t child_count = getChildCount();
     for (size_t i = 0; i < child_count; ++i)
@@ -2372,7 +2435,6 @@ void Window::onSized(WindowEventArgs& e)
         d_children[i]->onParentSized(args);
     }
 
-    performChildWindowLayout();
     invalidate();
 
     fireEvent(EventSized, e, EventNamespace);
@@ -2618,9 +2680,11 @@ void Window::onParentSized(WindowEventArgs& e)
     setArea_impl(d_area.getPosition(), d_area.getSize(), false, false);
 
     const bool moved =
-        ((d_area.d_min.d_x.d_scale != 0) || (d_area.d_min.d_y.d_scale != 0));
+        ((d_area.d_min.d_x.d_scale != 0) || (d_area.d_min.d_y.d_scale != 0) ||
+         (d_horzAlign != HA_LEFT) || (d_vertAlign != VA_TOP));
     const bool sized =
-        ((d_area.d_max.d_x.d_scale != 0) || (d_area.d_max.d_y.d_scale != 0));
+        ((d_area.d_max.d_x.d_scale != 0) || (d_area.d_max.d_y.d_scale != 0) ||
+         isInnerRectSizeChanged());
 
     // now see if events should be fired.
     if (moved)
@@ -2762,18 +2826,33 @@ void Window::onMouseButtonUp(MouseEventArgs& e)
 void Window::onMouseClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseClick, e, EventNamespace);
+
+    // if event was directly injected, mark as handled to be consistent with
+    // other mouse button injectors
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        ++e.handled;
 }
 
 //----------------------------------------------------------------------------//
 void Window::onMouseDoubleClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseDoubleClick, e, EventNamespace);
+
+    // if event was directly injected, mark as handled to be consistent with
+    // other mouse button injectors
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        ++e.handled;
 }
 
 //----------------------------------------------------------------------------//
 void Window::onMouseTripleClicked(MouseEventArgs& e)
 {
     fireEvent(EventMouseTripleClick, e, EventNamespace);
+
+    // if event was directly injected, mark as handled to be consistent with
+    // other mouse button injectors
+    if (!System::getSingleton().isMouseClickEventGenerationEnabled())
+        ++e.handled;
 }
 
 //----------------------------------------------------------------------------//
@@ -2845,12 +2924,16 @@ void Window::onDragDropItemDropped(DragDropEventArgs& e)
 //----------------------------------------------------------------------------//
 void Window::onVerticalAlignmentChanged(WindowEventArgs& e)
 {
+    notifyScreenAreaChanged();
+
     fireEvent(EventVerticalAlignmentChanged, e, EventNamespace);
 }
 
 //----------------------------------------------------------------------------//
 void Window::onHorizontalAlignmentChanged(WindowEventArgs& e)
 {
+    notifyScreenAreaChanged();
+
     fireEvent(EventHorizontalAlignmentChanged, e, EventNamespace);
 }
 
@@ -3042,6 +3125,11 @@ void Window::updateGeometryRenderSettings()
     {
         static_cast<RenderingWindow*>(ctx.surface)->
             setPosition(getUnclippedOuterRect().getPosition());
+        static_cast<RenderingWindow*>(d_surface)->setPivot(
+            Vector3(d_pixelSize.d_width / 2.0f,
+                    d_pixelSize.d_height / 2.0f,
+                    0.0f));
+        d_geometry->setTranslation(Vector3(0.0f, 0.0f, 0.0f));
     }
     // if we're not texture backed, update geometry position.
     else
@@ -3598,5 +3686,11 @@ void Window::onTextParsingChanged(WindowEventArgs& e)
 }
 
 //----------------------------------------------------------------------------//
+bool Window::isInnerRectSizeChanged() const
+{
+    const Size old_sz(d_innerUnclippedRect.getSize());
+    d_innerUnclippedRectValid = false;
+    return old_sz != getUnclippedInnerRect().getSize();
+}
 
 } // End of  CEGUI namespace section
