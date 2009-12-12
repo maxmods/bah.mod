@@ -141,6 +141,10 @@ void MaxLogger::logEvent(const CEGUI::String& message, CEGUI::LoggingLevel level
 	_bah_cegui_TCECustomLogger__logEvent(maxHandle, message.data(), level);
 }
 
+void MaxLogger::setLogFilename(const CEGUI::String& filename, bool append) {
+	_bah_cegui_TCECustomLogger__setLogFilename(maxHandle, filename.data(), static_cast<int>(append));
+}
+
 // *************************************************
 
 MaxCEEventCallback * bmx_cegui_eventcallback_new(BBObject * handle) {
@@ -453,7 +457,13 @@ void bmx_cegui_eventargs_delete(MaxEventArgs * args) {
 
 CEGUI::System * bmx_cegui_new_system(CEGUI::Renderer * r, MaxResourceProvider * provider) {
 	// we pass in the renderer otherwise it will attepmt to load it from the shared library
-	CEGUI::System * sys =  &CEGUI::System::create(*r, provider);
+	CEGUI::System * sys;
+	
+	if (provider) {
+		sys =  &CEGUI::System::create(*r, provider);
+	} else {
+		sys =  &CEGUI::System::create(*r);
+	}
 	
 	return sys;
 }
@@ -3862,8 +3872,10 @@ MaxResourceProvider * bmx_cegui_resourceprovider_create(BBObject * handle) {
 	return new MaxResourceProvider(handle);
 }
 
-void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider) {
-	delete provider;
+void bmx_cegui_resourceprovider_delete(CEGUI::ResourceProvider * provider) {
+	if (dynamic_cast<MaxResourceProvider*>(provider)) {
+		delete provider;
+	}
 }
 
 BBString * bmx_cegui_resourceprovider_getdefaultresourcegroup(CEGUI::ResourceProvider * provider) {

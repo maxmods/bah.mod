@@ -10,7 +10,7 @@ Graphics 800, 600, 0
 
 HideMouse
 
-'New CustomLogger
+New CustomLogger
 
 ' Initialize CEGUI !
 Init_CEGUI(New TCEOpenGLRenderer)
@@ -27,17 +27,13 @@ Type MyApp Extends CEGuiBaseApplication
 		' load scheme and set up defaults
 		TCESchemeManager.createScheme("TaharezLook.scheme")
 		TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
-		
+
 		' We need a font
-		If Not TCEFontManager.isDefined("fkp-16") Then
-			TCEFontManager.createFont("fkp-16.font")
-		End If
+		TCEFontManager.createFont("DejaVuSans-10.font")
 		
 		'  Font defaulting
-		If TCEFontManager.isDefined("fkp-16") Then
-			TCESystem.setDefaultFont("fkp-16")
-		Else If TCEFontManager.isDefined("Commonwealth-10") Then
-			TCESystem.setDefaultFont("Commonwealth-10")
+		If TCEFontManager.isDefined("DejaVuSans-10") Then
+			TCESystem.setDefaultFont("DejaVuSans-10")
 		End If
 		
 		' Load an image To use as a background
@@ -220,9 +216,6 @@ Type MyApp Extends CEGuiBaseApplication
 	End Function
 	
 End Type
-
-
-
 
 ' a custom logger
 Type CustomLogger Extends TCECustomLogger

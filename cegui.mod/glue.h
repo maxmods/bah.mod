@@ -45,6 +45,7 @@ extern "C" {
 
 	int _bah_cegui_TCEEventCallback__callback(BBObject * cb, BBObject * args);
 	void _bah_cegui_TCECustomLogger__logEvent(BBObject * handle, const CEGUI::utf8 * message, CEGUI::LoggingLevel level);
+	void _bah_cegui_TCECustomLogger__setLogFilename(BBObject * handle, const CEGUI::utf8 * filename, int append);
 
 	BBString * bah_cegui__convertUTF8ToMax(const CEGUI::utf8 * text);
 
@@ -875,7 +876,7 @@ extern "C" {
 	BBObject * bmx_cegui_tabbutton_gettargetwindow(CEGUI::TabButton * button);
 
 	MaxResourceProvider * bmx_cegui_resourceprovider_create(BBObject * handle);
-	void bmx_cegui_resourceprovider_delete(MaxResourceProvider * provider);
+	void bmx_cegui_resourceprovider_delete(CEGUI::ResourceProvider * provider);
 	void bmx_cegui_rawdatacontainer_delete(MaxRawDataContainer * container);
 	BBString * bmx_cegui_resourceprovider_getdefaultresourcegroup(CEGUI::ResourceProvider * provider);
 	void bmx_cegui_resourceprovider_setdefaultresourcegroup(CEGUI::ResourceProvider * provider, CEGUI::utf8 * group);
@@ -1203,12 +1204,12 @@ private:
 	CEGUI::Event::Connection conn;
 };
 
-class MaxLogger : public CEGUI::DefaultLogger
+class MaxLogger : public CEGUI::Logger
 {
 public:
 	MaxLogger(BBObject * handle);
-	virtual void logEvent(const CEGUI::String& message, CEGUI::LoggingLevel level = CEGUI::Standard);
-
+	void logEvent(const CEGUI::String& message, CEGUI::LoggingLevel level = CEGUI::Standard);
+	void setLogFilename(const CEGUI::String&, bool);
 
 private:
 	BBObject * maxHandle;

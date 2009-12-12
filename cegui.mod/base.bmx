@@ -602,7 +602,8 @@ Type TCESystem Extends TCEEventSet
 			Return resourceProvider
 		End If
 		
-		Return TCEResourceProvider(bmx_cegui_system_getresourceprovider(cegui_systemPtr))
+		resourceProvider = TCEResourceProvider(bmx_cegui_system_getresourceprovider(cegui_systemPtr))
+		Return resourceProvider
 	End Function
 	
 End Type
@@ -615,6 +616,10 @@ Type TCEDefaultResourceProvider Extends TCEResourceProvider
 	Function _create:TCEDefaultResourceProvider(objectPtr:Byte Ptr)
 		If objectPtr Then
 			Local this:TCEDefaultResourceProvider = New TCEDefaultResourceProvider
+
+			' remove the "dummy" object
+			bmx_cegui_resourceprovider_delete(this.objectPtr)
+
 			this.objectPtr = objectPtr
 			Return this
 		End If
@@ -2490,6 +2495,10 @@ Type TCECustomLogger Extends TCELogger
 	Method setLogFilename(filename:String, append:Int = False)
 		Super.setLogFilename(filename, append)
 	End Method
+
+	Function _setLogFilename(instance:TCECustomLogger, filename:Byte Ptr, append:Int)
+		instance.setLogFilename(_convertUTF8ToMax(filename), append)
+	End Function
 	
 	Rem
 	bbdoc: Adds an event to the log.
