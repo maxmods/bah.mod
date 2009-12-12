@@ -469,14 +469,14 @@ extern "C" {
 	void bmx_cegui_itemlistbox_selectrange(CEGUI::ItemListbox * lb, int a, int z);
 	void bmx_cegui_itemlistbox_selectallitems(CEGUI::ItemListbox * lb);
 
-	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture, CEGUI::XMLResourceExistsAction action);
-	CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action);
+	BBObject * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture, CEGUI::XMLResourceExistsAction action);
+	BBObject * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action);
 	void bmx_cegui_imagesetmanager_notifydisplaysizechanged(float width, float height);
 	BBObject * bmx_cegui_imagesetmanager_createimageset(const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action);
 	void bmx_cegui_imagesetmanager_destroyname(const CEGUI::utf8 * name);
 	void bmx_cegui_imagesetmanager_destroyobj(CEGUI::Imageset * imageset);
 	void bmx_cegui_imagesetmanager_destroyall();
-	CEGUI::Imageset * bmx_cegui_imagesetmanager_get(const CEGUI::utf8 * name);
+	BBObject * bmx_cegui_imagesetmanager_get(const CEGUI::utf8 * name);
 	int bmx_cegui_imagesetmanager_isdefined(const CEGUI::utf8 * name);
 	void bmx_cegui_imagesetmanager_createall(const CEGUI::utf8 * pattern, const CEGUI::utf8 * resourceGroup);
 

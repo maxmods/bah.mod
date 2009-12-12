@@ -2122,9 +2122,9 @@ void bmx_cegui_imagesetmanager_notifyscreenresolution(float width, float height)
 }
 */
 
-CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture, CEGUI::XMLResourceExistsAction action) {
+BBObject * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGUI::utf8 * name, CEGUI::Texture * texture, CEGUI::XMLResourceExistsAction action) {
 	try {
-		return & CEGUI::ImagesetManager::getSingleton().create(name, *texture, action);
+		return _bah_cegui_TCEImageset__create(& CEGUI::ImagesetManager::getSingleton().create(name, *texture, action));
 	} catch (CEGUI::AlreadyExistsException &e) {
 		bmx_cegui_throw_alreadyexistsexception(e);
 	} catch (CEGUI::Exception &e) {
@@ -2132,9 +2132,9 @@ CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromtexture(const CEGU
 	}
 }
 
-CEGUI::Imageset * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
+BBObject * bmx_cegui_imagesetmanager_createimagesetfromimagefile(const CEGUI::utf8 * name, const CEGUI::utf8 * filename, const CEGUI::utf8 * resourceGroup, CEGUI::XMLResourceExistsAction action) {
 	try {
-		return & CEGUI::ImagesetManager::getSingleton().createFromImageFile(name, filename, resourceGroup, action);
+		return _bah_cegui_TCEImageset__create(& CEGUI::ImagesetManager::getSingleton().createFromImageFile(name, filename, resourceGroup, action));
 	} catch (CEGUI::FileIOException &e) {
 		bmx_cegui_throw_fileioexception(e);
 	} catch (CEGUI::AlreadyExistsException &e) {
@@ -2166,8 +2166,8 @@ void bmx_cegui_imagesetmanager_destroyall() {
 	CEGUI::ImagesetManager::getSingleton().destroyAll();
 }
 
-CEGUI::Imageset * bmx_cegui_imagesetmanager_get(const CEGUI::utf8 * name) {
-	return & CEGUI::ImagesetManager::getSingleton().get(name);
+BBObject * bmx_cegui_imagesetmanager_get(const CEGUI::utf8 * name) {
+	return _bah_cegui_TCEImageset__create(& CEGUI::ImagesetManager::getSingleton().get(name));
 }
 
 int bmx_cegui_imagesetmanager_isdefined(const CEGUI::utf8 * name) {

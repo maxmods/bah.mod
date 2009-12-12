@@ -3160,7 +3160,7 @@ Type TCEImagesetManager
 	bbdoc: Create an Imageset object from the specified file.
 	End Rem
 	Function createImagesetFromTexture:TCEImageset(name:String, texture:TCETexture , action:Int = XREA_RETURN)
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromtexture(_convertMaxToUTF8(name), texture.objectPtr, action))
+		Return TCEImageset(bmx_cegui_imagesetmanager_createimagesetfromtexture(_convertMaxToUTF8(name), texture.objectPtr, action))
 	End Function
 	
 	Rem
@@ -3169,7 +3169,7 @@ Type TCEImagesetManager
 	an image that represents the entire area of the loaded image.
 	End Rem
 	Function createImagesetFromImageFile:TCEImageset(name:String, filename:String, resourceGroup:String = "", action:Int = XREA_RETURN)
-		Return TCEImageset._create(bmx_cegui_imagesetmanager_createimagesetfromimagefile(_convertMaxToUTF8(name), _convertMaxToUTF8(filename), ..
+		Return TCEImageset(bmx_cegui_imagesetmanager_createimagesetfromimagefile(_convertMaxToUTF8(name), _convertMaxToUTF8(filename), ..
 			_convertMaxToUTF8(resourceGroup), action))
 	End Function
 	
@@ -4032,7 +4032,7 @@ Type TCECoordConverter
 	bbdoc: Converts a screen x,y vector pixel point to a window co-ordinate point, specified in pixels. 
 	End Rem
 	Function screenToWindow(window:TCEWindow, x:Float, y:Float, toX:Float Var, toY:Float Var)
-		bmx_cegui_coordconverter_screentowindow(window.objectPtr, x, y, Varptr x, Varptr y)
+		bmx_cegui_coordconverter_screentowindow(window.objectPtr, x, y, Varptr toX, Varptr toY)
 	End Function
 	
 	Rem

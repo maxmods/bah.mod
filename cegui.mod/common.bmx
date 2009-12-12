@@ -368,8 +368,8 @@ Extern
 	Function bmx_cegui_itemlistbox_selectrange(handle:Byte Ptr, a:Int, z:Int)
 	Function bmx_cegui_itemlistbox_selectallitems(handle:Byte Ptr)
 
-	Function bmx_cegui_imagesetmanager_createimagesetfromtexture:Byte Ptr(name:Byte Ptr, texture:Byte Ptr, action:Int)
-	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Byte Ptr(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
+	Function bmx_cegui_imagesetmanager_createimagesetfromtexture:Object(name:Byte Ptr, texture:Byte Ptr, action:Int)
+	Function bmx_cegui_imagesetmanager_createimagesetfromimagefile:Object(name:Byte Ptr, filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
 	Function bmx_cegui_imagesetmanager_notifydisplaysizechanged(width:Float, height:Float)
 	Function bmx_cegui_imagesetmanager_createimageset:Object(filename:Byte Ptr, resourceGroup:Byte Ptr, action:Int)
 	Function bmx_cegui_imagesetmanager_destroyname(imageset:Byte Ptr)
