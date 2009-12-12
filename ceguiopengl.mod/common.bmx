@@ -32,6 +32,7 @@ Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLRenderer.cpp"
 Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLRenderTarget.cpp"
 Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLTexture.cpp"
 Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLViewportTarget.cpp"
+Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLTextureTarget.cpp"
 ?win32
 Import "../cegui.mod/cegui/src/RendererModules/OpenGL/CEGUIOpenGLWGLPBTextureTarget.cpp"
 ?
