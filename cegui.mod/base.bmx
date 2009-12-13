@@ -2493,7 +2493,6 @@ Type TCECustomLogger Extends TCELogger
 	</p>
 	End Rem
 	Method setLogFilename(filename:String, append:Int = False)
-		Super.setLogFilename(filename, append)
 	End Method
 
 	Function _setLogFilename(instance:TCECustomLogger, filename:Byte Ptr, append:Int)
@@ -2505,7 +2504,6 @@ Type TCECustomLogger Extends TCELogger
 	about: Override this method to implement your own functionality.
 	End Rem
 	Method logEvent(message:String, level:Int = LOG_STANDARD)	
-		Super.logEvent(message, level)
 	End Method
 	
 	' callback hook for custom logging
