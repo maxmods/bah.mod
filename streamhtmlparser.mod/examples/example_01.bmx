@@ -31,6 +31,8 @@ While Not Eof(stream)
 
 Wend
 
+stream.close()
+
 End
 
 

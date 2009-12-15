@@ -1,0 +1,9 @@
+<p>
+StreamHtmlParse, is an mplementation of an html and javascript context scanner
+with no lookahead.<br>
+Its purpose is to scan an html document and provide context information at any point
+within the input stream. An example use of this scanner would be an auto escaping
+templating system, which would require html context information at very specific
+points within the html stream.<br>
+The implementation is based on a simplified state machine of HTML4.1 and javascript.
+</p>
