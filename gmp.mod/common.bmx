@@ -22,12 +22,7 @@ SuperStrict
 
 Import BRL.Blitz
 
-?macos
 Import "-lgmp"
-?win32
-Import "-lgmp"
-?linux
-?
 
 Import "include/*.h"
 Import "glue.cpp"
