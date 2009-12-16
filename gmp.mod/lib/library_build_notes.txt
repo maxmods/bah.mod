@@ -23,3 +23,7 @@ Includes a build of GMP found here : http://haskell.forkio.com/gmpwindows
 Linux
 -----
 
+Uses the system provided libgmp.
+You may need to install the libgmp dev package in order to link your
+application to the shared object.
+ 
