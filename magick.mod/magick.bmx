@@ -35,6 +35,10 @@ ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
 ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC -std=c99"
+?win32
+ModuleInfo "CC_OPTS: -DWIN32 -D_MAX_PATH=260"
+'ModuleInfo "LD_OPTS: --enable-stdcall-fixup"
+?
 
 Import BRL.Pixmap
 Import BRL.Stream
