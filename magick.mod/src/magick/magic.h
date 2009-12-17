@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2008 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -21,14 +21,20 @@ extern "C" {
 extern MagickExport MagickPassFail
   GetMagickFileFormat(const unsigned char *header,const size_t header_length,
      char *format,const size_t format_length,ExceptionInfo *exception),
-  InitializeMagicInfo(ExceptionInfo *exception),
   ListMagicInfo(FILE *file,ExceptionInfo *exception);
+
+#if defined(MAGICK_IMPLEMENTATION)
+
+extern MagickExport MagickPassFail
+  InitializeMagicInfo(void);
 
 extern MagickExport void
   DestroyMagicInfo(void);
+
+#endif /* MAGICK_IMPLEMENTATION */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
-#endif
+#endif /* _MAGICK_MAGIC_H */

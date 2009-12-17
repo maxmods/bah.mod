@@ -165,7 +165,8 @@ static Image *ReadUYVYImage(const ImageInfo *image_info,
       break;
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         break;
   }
   image->colorspace=YCbCrColorspace;
@@ -352,7 +353,8 @@ static unsigned int WriteUYVYImage(const ImageInfo *image_info,Image *image)
     }
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                  SaveImageText,image->filename))
+                                  SaveImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   /*

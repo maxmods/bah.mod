@@ -236,7 +236,8 @@ static Image *ReadSCTImage(const ImageInfo *image_info,ExceptionInfo *exception)
       (void) ReadBlobByte(image);  /* pad */
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         break;
   }
   if (EOFBlob(image))

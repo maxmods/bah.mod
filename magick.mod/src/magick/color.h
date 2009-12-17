@@ -1,12 +1,12 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
   package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
  
-  ImageMagick Color Methods.
+  GraphicsMagick Color Utility Methods.
 */
 #ifndef _MAGICK_COLOR_H
 #define _MAGICK_COLOR_H
@@ -15,13 +15,33 @@
 extern "C" {
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
-#if defined(MAGICK_IMPLEMENTATION)
+/*
+  PixelPacket with usage count, used to support color histograms.
+*/
+typedef struct _HistogramColorPacket
+{
+  PixelPacket
+    pixel;
 
-#define VerifyColormapIndex(image,index) \
-{ \
-  if (index >= image->colors) \
-    index=MagickConstrainColormapIndex(image,index); \
-}
+  unsigned long
+    count;
+} HistogramColorPacket;
+
+extern MagickExport HistogramColorPacket
+  *GetColorHistogram(const Image *image,unsigned long *colors,
+     ExceptionInfo *exception);
+
+extern MagickExport unsigned long
+  GetNumberColors(const Image *image,FILE *file,ExceptionInfo *exception);
+
+extern MagickExport void
+  GetColorTuple(const PixelPacket *color,const unsigned int depth,
+    const unsigned int matte,const unsigned int hex,char *tuple);
+
+extern MagickExport MagickBool
+  IsPaletteImage(const Image *image,ExceptionInfo *exception);
+
+#if defined(MAGICK_IMPLEMENTATION)
 
 /*
   Macros for testing a pixel to see if it is grayscale, bilevel,
@@ -46,51 +66,10 @@ extern "C" {
 #define NotColorMatch(p,q) (((p)->red != (q)->red) || \
   ((p)->green != (q)->green) || ((p)->blue != (q)->blue))
 
-#endif /* defined(MAGICK_IMPLEMENTATION) */
-
-/*
-  PixelPacket with usage count, used to support color histograms.
-*/
-typedef struct _HistogramColorPacket
-{
-  PixelPacket
-    pixel;
-
-  unsigned long
-    count;
-} HistogramColorPacket;
-
-extern MagickExport char
-  **GetColorList(const char *,unsigned long *);
-
-extern MagickExport const ColorInfo
-  *GetColorInfo(const char *,ExceptionInfo *);
-
-extern MagickExport ColorInfo
-  **GetColorInfoArray(ExceptionInfo *exception);
-
-extern MagickExport HistogramColorPacket
-  *GetColorHistogram(const Image *, unsigned long *colors, ExceptionInfo *);
-
 extern MagickExport unsigned int
-  MagickConstrainColormapIndex(Image *image, unsigned int index),
-  FuzzyColorMatch(const PixelPacket *,const PixelPacket *,const double),
-  IsGrayImage(const Image *,ExceptionInfo *),
-  IsMonochromeImage(const Image *,ExceptionInfo *),
-  IsOpaqueImage(const Image *,ExceptionInfo *),
-  IsPaletteImage(const Image *,ExceptionInfo *),
-  ListColorInfo(FILE *,ExceptionInfo *),
-  QueryColorDatabase(const char *,PixelPacket *,ExceptionInfo *),
-  QueryColorname(const Image *,const PixelPacket *,const ComplianceType,char *,
-    ExceptionInfo *);
+  FuzzyColorMatch(const PixelPacket *p,const PixelPacket *q,const double fuzz);
 
-extern MagickExport unsigned long
-  GetNumberColors(const Image *,FILE *,ExceptionInfo *);
-
-extern MagickExport void
-  DestroyColorInfo(void),
-  GetColorTuple(const PixelPacket *,const unsigned int,const unsigned int,
-    const unsigned int,char *);
+#endif /* defined(MAGICK_IMPLEMENTATION) */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

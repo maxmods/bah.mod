@@ -167,7 +167,7 @@ MagickExport void GetSignatureInfo(SignatureInfo *signature_info)
 %
 %
 */
-#define SignatureImageText "[%s] Compute image SHA-256 signature..."
+#define SignatureImageText "[%s] Compute SHA-256 signature..."
 MagickExport unsigned int SignatureImage(Image *image)
 {
   char

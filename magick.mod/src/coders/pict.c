@@ -37,13 +37,13 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/composite.h"
 #include "magick/constitute.h"
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/profile.h"
 #include "magick/tempfile.h"
 #include "magick/transform.h"
@@ -1152,7 +1152,8 @@ static Image *ReadPICTImage(const ImageInfo *image_info,
               if (destination.bottom == (long) image->rows)
                 if (QuantumTick(y,tile_image->rows))
                   if (!MagickMonitorFormatted(y,tile_image->rows,&image->exception,
-                                              LoadImageText,image->filename))
+                                              LoadImageText,image->filename,
+					      image->columns,image->rows))
                     break;
             }
             MagickFreeMemory(pixels);
@@ -1164,7 +1165,8 @@ static Image *ReadPICTImage(const ImageInfo *image_info,
                 DestroyImage(tile_image);
             if (destination.bottom != (long) image->rows)
               if (!MagickMonitorFormatted(destination.bottom,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
             break;
           }
@@ -1784,7 +1786,8 @@ static unsigned int WritePICTImage(const ImageInfo *image_info,Image *image)
       count+=EncodeImage(image,scanline,row_bytes & 0x7FFF,packed_scanline);
       if (QuantumTick(y,image->rows))
         if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
     }
   else
@@ -1833,7 +1836,8 @@ static unsigned int WritePICTImage(const ImageInfo *image_info,Image *image)
           count+=EncodeImage(image,scanline,bytes_per_line & 0x7FFF,packed_scanline);
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
       }

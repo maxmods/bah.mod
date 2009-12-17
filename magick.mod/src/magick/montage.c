@@ -47,6 +47,7 @@
 #include "magick/pixel_cache.h"
 #include "magick/render.h"
 #include "magick/resize.h"
+#include "magick/texture.h"
 #include "magick/utility.h"
 
 /*
@@ -258,7 +259,7 @@ static int SceneCompare(const void *x,const void *y)
 MagickExport Image *MontageImages(const Image *images,
   const MontageInfo *montage_info,ExceptionInfo *exception)
 {
-#define MontageImageText  "[%s] Create visual image directory..."
+#define MontageImageText "[%s] Create visual image directory..."
 #define TileImageText  "[%s] Create image tiles..."
 
   char

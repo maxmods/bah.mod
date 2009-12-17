@@ -172,7 +172,9 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/enhance.h"
 #include "magick/monitor.h"
 #include "magick/pixel_cache.h"
@@ -347,7 +349,7 @@ static void
 */
 static MagickPassFail AssignImageColors(CubeInfo *cube_info,Image *image)
 {
-#define AssignImageText  "[%s] Assign image colors..."
+#define AssignImageText "[%s] Assign colors..."
 
   IndexPacket
     index;
@@ -554,7 +556,7 @@ static MagickPassFail AssignImageColors(CubeInfo *cube_info,Image *image)
 static MagickPassFail ClassifyImageColors(CubeInfo *cube_info,const Image *image,
   ExceptionInfo *exception)
 {
-#define ClassifyImageText  "[%s] Classify image colors..."
+#define ClassifyImageText "[%s] Classify colors..."
 
   double
     bisect;
@@ -2152,7 +2154,7 @@ MagickExport MagickPassFail MapImages(Image *images,const Image *map_image,
 */
 MagickExport MagickPassFail OrderedDitherImage(Image *image)
 {
-#define DitherImageText  "[%s] Ordered dither image..."
+#define DitherImageText "[%s] Ordered dither..."
 
   static Quantum
     DitherMatrix[8][8] =
@@ -2592,8 +2594,9 @@ MagickExport MagickPassFail QuantizeImages(const QuantizeInfo *quantize_info,
       break;
     image=image->next;
     (void) SetMonitorHandler(handler);
-    if (!MagickMonitorFormatted(i,number_images,&image->exception,
-                                ClassifyImageText,image->filename))
+    if ((image != (Image *) NULL) &&
+	(!MagickMonitorFormatted(i,number_images,&image->exception,
+				 ClassifyImageText,image->filename)))
       break;
   }
   if (status != MagickFail)
@@ -2613,8 +2616,9 @@ MagickExport MagickPassFail QuantizeImages(const QuantizeInfo *quantize_info,
           (void) TransformColorspace(image,quantize_info->colorspace);
         image=image->next;
         (void) SetMonitorHandler(handler);
-        if (!MagickMonitorFormatted(i,number_images,&image->exception,
-                                    AssignImageText,image->filename))
+        if ((image != (Image *) NULL) &&
+	    (!MagickMonitorFormatted(i,number_images,&image->exception,
+				     AssignImageText,image->filename)))
           {
             status=MagickFail;
             break;
@@ -2739,7 +2743,7 @@ static void Reduce(CubeInfo *cube_info,const NodeInfo *node_info)
 static void ReduceImageColors(CubeInfo *cube_info,
   const unsigned long number_colors,ExceptionInfo *exception)
 {
-#define ReduceImageText  "Reduce image colors..."
+#define ReduceImageText "Reduce colors: %lu..."
 
   unsigned int
     status;
@@ -2757,7 +2761,8 @@ static void ReduceImageColors(CubeInfo *cube_info,
     Reduce(cube_info,cube_info->root);
     status=MagickMonitorFormatted(span-cube_info->colors,
                                   span-number_colors+1,exception,
-                                  ReduceImageText);
+                                  ReduceImageText,
+				  number_colors);
     if (status == False)
       break;
   }

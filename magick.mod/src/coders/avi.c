@@ -36,10 +36,10 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -275,7 +275,8 @@ static MagickPassFail DecodeImage(Image *image,const unsigned int compression,
       }
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                  LoadImageText,image->filename))
+                                  LoadImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   if (ReadBlobByte(image) == EOF)  /* end of line */
@@ -551,7 +552,8 @@ static Image *ReadAVIImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   {
                     status=MagickMonitorFormatted(image->rows-y-1,
                                                   image->rows,exception,
-                                                  LoadImageText,image->filename);
+                                                  LoadImageText,image->filename,
+						  image->columns,image->rows);
                     if (status == False)
                       break;
                   }
@@ -597,7 +599,8 @@ static Image *ReadAVIImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   {
                     status=MagickMonitorFormatted(image->rows-y-1,
                                                   image->rows,exception,
-                                                  LoadImageText,image->filename);
+                                                  LoadImageText,image->filename,
+						  image->columns,image->rows);
                     if (status == False)
                       break;
                   }
@@ -633,7 +636,8 @@ static Image *ReadAVIImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   {
                     status=MagickMonitorFormatted(image->rows-y-1,
                                                   image->rows,exception,
-                                                  LoadImageText,image->filename);
+                                                  LoadImageText,image->filename,
+						  image->columns,image->rows);
                     if (status == False)
                       break;
                   }
@@ -672,7 +676,8 @@ static Image *ReadAVIImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   {
                     status=MagickMonitorFormatted(image->rows-y-1,
                                                   image->rows,exception,
-                                                  LoadImageText,image->filename);
+                                                  LoadImageText,image->filename,
+						  image->columns,image->rows);
                     if (status == False)
                       break;
                   }
@@ -708,7 +713,8 @@ static Image *ReadAVIImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   {
                     status=MagickMonitorFormatted(image->rows-y-1,
                                                   image->rows,exception,
-                                                  LoadImageText,image->filename);
+                                                  LoadImageText,image->filename,
+						  image->columns,image->rows);
                     if (status == False)
                       break;
                   }

@@ -38,12 +38,12 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/profile.h"
 #include "magick/transform.h"
 #include "magick/utility.h"
@@ -279,7 +279,8 @@ static unsigned int DecodeImage(Image *image,const unsigned long compression,
       }
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                  LoadImageText,image->filename))
+                                  LoadImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   (void) ReadBlobByte(image);  /* end of line */
@@ -369,7 +370,8 @@ static size_t EncodeImage(Image *image,const unsigned long bytes_per_line,
     *q++=0x00;
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                  SaveImageText,image->filename))
+                                  SaveImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   /*
@@ -986,7 +988,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1014,7 +1017,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1045,7 +1049,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1103,7 +1108,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1136,7 +1142,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1195,7 +1202,8 @@ static Image *ReadBMPImage(const ImageInfo *image_info,ExceptionInfo *exception)
               {
                 status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                               exception,LoadImageText,
-                                              image->filename);
+                                              image->filename,
+					      image->columns,image->rows);
                 if (status == False)
                   break;
               }
@@ -1582,7 +1590,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
               if (image->previous == (Image *) NULL)
                 if (QuantumTick(y,image->rows))
                   if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                              SaveImageText,image->filename))
+                                              SaveImageText,image->filename,
+					      image->columns,image->rows))
                     break;
             }
           break;
@@ -1612,7 +1621,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
          if (image->previous == (Image *) NULL)
            if (QuantumTick(y,image->rows))
              if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                         SaveImageText,image->filename))
+                                         SaveImageText,image->filename,
+					 image->columns,image->rows))
                break;
         }
         break;
@@ -1641,7 +1651,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -1676,7 +1687,8 @@ static unsigned int WriteBMPImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;

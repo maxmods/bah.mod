@@ -190,7 +190,8 @@ static Image *ReadVIDImage(const ImageInfo *image_info,ExceptionInfo *exception)
       }
     (void) SetMonitorHandler(handler);
     if (!MagickMonitorFormatted(i,number_files,&image->exception,
-                                LoadImageText,image->filename))
+                                LoadImageText,image->filename,
+				image->columns,image->rows))
       break;
   }
   DestroyImageInfo(clone_info);

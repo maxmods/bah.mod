@@ -13,7 +13,6 @@
 extern "C" {
 #endif
 
-
 extern MagickExport Image
   *ExportImageChannel(const Image *image,
                       const ChannelType channel,

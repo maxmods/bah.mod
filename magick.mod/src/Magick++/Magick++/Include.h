@@ -519,6 +519,7 @@ namespace Magick
   using MagickLib::CacheError;
   using MagickLib::CacheFatalError;
   using MagickLib::CacheWarning;
+  using MagickLib::CdlImage;
   using MagickLib::ChannelImage;
   using MagickLib::CharcoalImage;
   using MagickLib::ChopImage;
@@ -532,6 +533,7 @@ namespace Magick
   using MagickLib::CoderWarning;
   using MagickLib::ColorFloodfillImage;
   using MagickLib::ColorizeImage;
+  using MagickLib::ColorMatrixImage;
   using MagickLib::CompositeImage;
   using MagickLib::ConfigureError;
   using MagickLib::ConfigureFatalError;
@@ -698,6 +700,7 @@ namespace Magick
   using MagickLib::GetTypeMetrics;
   using MagickLib::GlobExpression;
   using MagickLib::GreaterValue;
+  using MagickLib::HaldClutImage;
   using MagickLib::HSLTransform;
   using MagickLib::HeightValue;
   using MagickLib::IdentityAffine;

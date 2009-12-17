@@ -37,6 +37,7 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
+#include "magick/colormap.h"
 #include "magick/compress.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"

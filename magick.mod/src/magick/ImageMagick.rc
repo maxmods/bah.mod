@@ -54,7 +54,7 @@ DELEGATES.MGK     IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\delegates.mgk"
 LOG.MGK           IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\log.mgk"
 TYPE.MGK          IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\type.mgk"
 TYPE-GHOSTSCRIPT.MGK IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\type-ghostscript.mgk"
-MAGIC.MGK         IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\magic.mgk"
+// MAGIC.MGK         IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\magic.mgk"
 MODULES.MGK       IMAGEMAGICK DISCARDABLE "..\\VisualMagick\\bin\\modules.mgk"
 
 /////////////////////////////////////////////////////////////////////////////

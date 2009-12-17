@@ -36,11 +36,12 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -302,6 +303,9 @@ static Image *ReadPCXImage(const ImageInfo *image_info,ExceptionInfo *exception)
     */
     image->columns=(pcx_info.right-pcx_info.left)+1;
     image->rows=(pcx_info.bottom-pcx_info.top)+1;
+    if ((image->columns == 0) || (image->rows == 0) ||
+        (pcx_info.bits_per_pixel == 0))
+      ThrowReaderException(CorruptImageError,ImproperImageHeader,image);
     image->depth=pcx_info.bits_per_pixel <= 8 ? 8 : QuantumDepth;
     image->units=PixelsPerInchResolution;
     image->x_resolution=pcx_info.horizontal_resolution;
@@ -584,7 +588,8 @@ static Image *ReadPCXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       if (image->previous == (Image *) NULL)
         if (QuantumTick(y,image->rows))
           if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                      image->filename))
+                                      image->filename,
+				      image->columns,image->rows))
             break;
     }
     if (image->storage_class == PseudoClass)
@@ -1019,7 +1024,8 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
             break;
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
       }
@@ -1044,7 +1050,8 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
       else
@@ -1093,7 +1100,8 @@ static unsigned int WritePCXImage(const ImageInfo *image_info,Image *image)
             if (image->previous == (Image *) NULL)
               if (QuantumTick(y,image->rows))
                 if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                            SaveImageText,image->filename))
+                                            SaveImageText,image->filename,
+					    image->columns,image->rows))
                   break;
           }
         }

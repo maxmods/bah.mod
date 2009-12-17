@@ -37,17 +37,19 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
+#include "magick/constitute.h"
 #include "magick/magick.h"
+#include "magick/magick_endian.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/shear.h"
+#include "magick/tempfile.h"
 #include "magick/transform.h"
 #include "magick/utility.h"
-#include "magick/constitute.h"
-#include "magick/magick_endian.h"
-#include "magick/tempfile.h"
 #if defined(HasZLIB)
 #  include "zlib.h"
 #endif
@@ -1046,7 +1048,8 @@ static unsigned int WriteMATLABImage(const ImageInfo *image_info,Image *image)
           (void) WriteBlob(image,image->rows,pixels);
           if (QuantumTick(progress_quantum,progress_span))
             if (!MagickMonitorFormatted(progress_quantum,progress_span,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               goto BreakAll;
 	}    
       } while(z-- >= 2);

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2004, 2005, 2007, 2008 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -177,7 +177,6 @@ extern MagickExport MagickPassFail
     ExceptionInfo *exception);
 
 extern MagickExport void
-  DestroyConstitute(void),
   ExportPixelAreaOptionsInit(ExportPixelAreaOptions *options),
   ImportPixelAreaOptionsInit(ImportPixelAreaOptions *options);
 
@@ -186,6 +185,16 @@ extern MagickExport MagickPassFail
     unsigned long width, unsigned long height,StorageType type,
     unsigned scanline_octets, void *scanline_buffer,
     double *min, double *max);
+
+#if defined(MAGICK_IMPLEMENTATION)
+
+extern MagickExport void
+  DestroyConstitute(void);
+
+extern MagickPassFail
+  InitializeConstitute(void);
+
+#endif /* defined(MAGICK_IMPLEMENTATION) */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

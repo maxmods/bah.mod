@@ -41,6 +41,7 @@
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/plasma.h"
 #include "magick/random.h"
 #include "magick/utility.h"
 

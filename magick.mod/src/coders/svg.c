@@ -59,6 +59,14 @@
 #  include <libxml/parserInternals.h>
 #  include <libxml/xmlerror.h>
 #endif
+
+/*
+  Disable SVG writer by default since it rarely works correctly.
+*/
+#if !defined(ENABLE_SVG_WRITER)
+#  define ENABLE_SVG_WRITER 0
+#endif /* if !defined(ENABLE_SVG_WRITER) */
+
 /*
   Avoid shadowing library globals and functions.
 */
@@ -159,8 +167,10 @@ typedef struct _SVGInfo
 /*
   Forward declarations.
 */
+#if ENABLE_SVG_WRITER
 static unsigned int
   WriteSVGImage(const ImageInfo *,Image *);
+#endif /* if ENABLE_SVG_WRITER */
 
 #if defined(HasXML)
 /*
@@ -2331,7 +2341,7 @@ static void SVGEndElement(void *context,const xmlChar *name)
   svg_info->n--;
 }
 
-static void SVGCharacters(void *context,const xmlChar *c,size_t length)
+static void SVGCharacters(void *context,const xmlChar *c,int length)
 {
   register char
     *p;
@@ -2346,7 +2356,7 @@ static void SVGCharacters(void *context,const xmlChar *c,size_t length)
     Receiving some characters from the parser.
   */
   (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                        "  SAX.characters(%.1024s,%lu)",c,(unsigned long) length);
+                        "  SAX.characters(%.1024s,%d)",c,length);
   svg_info=(SVGInfo *) context;
   if (svg_info->text != (char *) NULL)
     {
@@ -2354,14 +2364,14 @@ static void SVGCharacters(void *context,const xmlChar *c,size_t length)
     }
   else
     {
-      svg_info->text=MagickAllocateMemory(char *,length+1);
+      svg_info->text=MagickAllocateMemory(char *,(size_t) length+1);
       if (svg_info->text != (char *) NULL)
         *svg_info->text='\0';
     }
   if (svg_info->text == (char *) NULL)
     return;
   p=svg_info->text+strlen(svg_info->text);
-  for (i=0; i < length; i++)
+  for (i=0; i < (size_t) length; i++)
     *p++=c[i];
   *p='\0';
 }
@@ -2586,36 +2596,7 @@ static void SVGExternalSubset(void *context,const xmlChar *name,
 static Image *ReadSVGImage(const ImageInfo *image_info,ExceptionInfo *exception)
 {
   xmlSAXHandler
-    SAXModules =
-    {
-      SVGInternalSubset,
-      SVGIsStandalone,
-      SVGHasInternalSubset,
-      SVGHasExternalSubset,
-      SVGResolveEntity,
-      SVGGetEntity,
-      SVGEntityDeclaration,
-      SVGNotationDeclaration,
-      SVGAttributeDeclaration,
-      SVGElementDeclaration,
-      SVGUnparsedEntityDeclaration,
-      SVGSetDocumentLocator,
-      SVGStartDocument,
-      SVGEndDocument,
-      SVGStartElement,
-      SVGEndElement,
-      SVGReference,
-      SVGCharacters,
-      SVGIgnorableWhitespace,
-      SVGProcessingInstructions,
-      SVGComment,
-      SVGWarning,
-      SVGError,
-      SVGError,
-      SVGGetParameterEntity,
-      SVGCDataBlock,
-      SVGExternalSubset
-    };
+    SAXModules;
 
   char
     filename[MaxTextExtent],
@@ -2685,6 +2666,36 @@ static Image *ReadSVGImage(const ImageInfo *image_info,ExceptionInfo *exception)
     (void) CloneString(&svg_info.size,image_info->size);
   (void) LogMagickEvent(CoderEvent,GetMagickModule(),"begin SAX");
   (void) xmlSubstituteEntitiesDefault(1);
+
+  (void) memset(&SAXModules,0,sizeof(SAXModules));
+  SAXModules.internalSubset=SVGInternalSubset;
+  SAXModules.isStandalone=SVGIsStandalone;
+  SAXModules.hasInternalSubset=SVGHasInternalSubset;
+  SAXModules.hasExternalSubset=SVGHasExternalSubset;
+  SAXModules.resolveEntity=SVGResolveEntity;
+  SAXModules.getEntity=SVGGetEntity;
+  SAXModules.entityDecl=SVGEntityDeclaration;
+  SAXModules.notationDecl=SVGNotationDeclaration;
+  SAXModules.attributeDecl=SVGAttributeDeclaration;
+  SAXModules.elementDecl=SVGElementDeclaration;
+  SAXModules.unparsedEntityDecl=SVGUnparsedEntityDeclaration;
+  SAXModules.setDocumentLocator=SVGSetDocumentLocator;
+  SAXModules.startDocument=SVGStartDocument;
+  SAXModules.endDocument=SVGEndDocument;
+  SAXModules.startElement=SVGStartElement;
+  SAXModules.endElement=SVGEndElement;
+  SAXModules.reference=SVGReference;
+  SAXModules.characters=SVGCharacters;
+  SAXModules.ignorableWhitespace=SVGIgnorableWhitespace;
+  SAXModules.processingInstruction=SVGProcessingInstructions;
+  SAXModules.comment=SVGComment;
+  SAXModules.warning=SVGWarning;
+  SAXModules.error=SVGError;
+  SAXModules.fatalError=SVGError;
+  SAXModules.getParameterEntity=SVGGetParameterEntity;
+  SAXModules.cdataBlock=SVGCDataBlock;
+  SAXModules.externalSubset=SVGExternalSubset;
+
   SAXHandler=(&SAXModules);
   svg_info.parser=xmlCreatePushParserCtxt(SAXHandler,&svg_info,(char *) NULL,0,
     image->filename);
@@ -2777,13 +2788,15 @@ ModuleExport void RegisterSVGImage(void)
   *version='\0';
 #if defined(LIBXML_DOTTED_VERSION)
   (void) strlcpy(version,"XML " LIBXML_DOTTED_VERSION,MaxTextExtent);
-#endif
+#endif /* defined(LIBXML_DOTTED_VERSION) */
 
   entry=SetMagickInfo("SVG");
 #if defined(HasXML)
   entry->decoder=(DecoderHandler) ReadSVGImage;
-#endif
+#endif /* defined(HasXML) */
+#if ENABLE_SVG_WRITER
   entry->encoder=(EncoderHandler) WriteSVGImage;
+#endif /* if ENABLE_SVG_WRITER */
   entry->description="Scalable Vector Graphics";
   if (*version != '\0')
     entry->version=version;
@@ -2793,8 +2806,10 @@ ModuleExport void RegisterSVGImage(void)
   entry=SetMagickInfo("SVGZ");
 #if defined(HasXML)
   entry->decoder=(DecoderHandler) ReadSVGImage;
-#endif
+#endif /* defined(HasXML) */
+#if ENABLE_SVG_WRITER
   entry->encoder=(EncoderHandler) WriteSVGImage;
+#endif /* if ENABLE_SVG_WRITER */
   entry->description="Scalable Vector Graphics (ZIP compressed)";
   if (*version != '\0')
     entry->version=version;
@@ -2827,6 +2842,7 @@ ModuleExport void UnregisterSVGImage(void)
   (void) UnregisterMagickInfo("SVGZ");
 }
 
+#if ENABLE_SVG_WRITER
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
@@ -4084,3 +4100,4 @@ static unsigned int WriteSVGImage(const ImageInfo *image_info,Image *image)
   return(status);
 }
 #endif
+#endif /* if ENABLE_SVG_WRITER */

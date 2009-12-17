@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
   Copyright 1991-1999 E. I. du Pont de Nemours and Company
  
@@ -48,7 +48,7 @@ extern MagickExport unsigned int
 /*
   Compress methods.
 */
-extern MagickExport unsigned int
+extern MagickExport MagickPassFail
   HuffmanDecodeImage(Image *image),
   HuffmanEncodeImage(const ImageInfo *image_info,Image *image),
   HuffmanEncode2Image(const ImageInfo *image_info,Image *image,WriteByteHook write_byte,void *info),
@@ -56,6 +56,12 @@ extern MagickExport unsigned int
   LZWEncode2Image(Image *image,const size_t length,magick_uint8_t *pixels,WriteByteHook write_byte,void *info),
   PackbitsEncodeImage(Image *image,const size_t length,magick_uint8_t *pixels),
   PackbitsEncode2Image(Image *image,const size_t length,magick_uint8_t *pixels,WriteByteHook write_byte,void *info);
+
+extern MagickExport unsigned char
+  *ImageToHuffman2DBlob(const Image *image,const ImageInfo *image_info,
+     size_t *length,ExceptionInfo *exception),
+  *ImageToJPEGBlob(const Image *image,const ImageInfo *image_info,
+     size_t *length,ExceptionInfo *exception);
 
 extern MagickExport void
   Ascii85Encode(Image *image,const magick_uint8_t code),

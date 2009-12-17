@@ -43,7 +43,6 @@
 #include "magick/color.h"
 #include "magick/enhance.h"
 #include "magick/gem.h"
-#include "magick/omp_data_view.h"
 #include "magick/pixel_iterator.h"
 #include "magick/monitor.h"
 #include "magick/utility.h"
@@ -114,7 +113,7 @@ BuildChannelHistograms(const Image *image, ExceptionInfo *exception)
     iterator_options.max_threads=1;
     status=PixelIterateMonoRead(BuildChannelHistogramsCB,
                                 &iterator_options,
-                                "[%s] Building image histogram...",
+                                "[%s] Building histogram...",
                                 histogram,NULL,
                                 0,0,image->columns,image->rows,
                                 image,exception);
@@ -199,8 +198,8 @@ ContrastImagePixels(void *mutable_data,         /* User provided mutable data */
 
   return MagickPass;
 }
-#define DullContrastImageText  "[%s] Dulling image contrast..."
-#define SharpenContrastImageText  "[%s] Sharpening image contrast..."
+#define DullContrastImageText "[%s] Dulling contrast..."
+#define SharpenContrastImageText "[%s] Sharpening contrast..."
 MagickExport MagickPassFail ContrastImage(Image *image,const unsigned int sharpen)
 {
   double
@@ -317,7 +316,7 @@ ApplyLevels(void *mutable_data,          /* User provided mutable data */
   return MagickPass;
 }
 
-#define EqualizeImageText  "Equalizing image...  "
+#define EqualizeImageText "Equalize...  "
 MagickExport MagickPassFail EqualizeImage(Image *image)
 {
   DoublePixelPacket
@@ -440,15 +439,16 @@ MagickExport MagickPassFail EqualizeImage(Image *image)
 %  Use GammaImage() to gamma-correct an image.  The same image viewed on
 %  different devices will have perceptual differences in the way the
 %  image's intensities are represented on the screen.  Specify individual
-%  gamma levels for the red, green, and blue channels, or adjust all three
-%  with the gamma parameter.  Values typically range from 0.8 to 2.3.
+%  gamma levels for the red, green, and blue channels (e.g. "1.0,2.2,0.45"),
+%  or adjust all three with a single gamma parameter.  Values typically range
+%  from 0.45 to 2.6.
 %
 %  You can also reduce the influence of a particular channel with a gamma
 %  value of 0.
 %
 %  The format of the GammaImage method is:
 %
-%      unsigned int GammaImage(Image *image,const char *level)
+%      MagickPassFail GammaImage(Image *image,const char *level)
 %
 %  A description of each parameter follows:
 %
@@ -458,22 +458,155 @@ MagickExport MagickPassFail EqualizeImage(Image *image)
 %
 %
 */
-MagickExport MagickPassFail GammaImage(Image *image,const char *level)
+#if MaxMap == MaxRGB
+typedef struct _ApplyLevelsDiscrete_t
 {
-  DoublePixelPacket
-    gamma;
+  Quantum
+    * restrict color,    /* red, green, & blue */
+    * restrict red,      /* red */
+    * restrict green,    /* green */
+    * restrict blue,     /* blue */
+    * restrict opacity;  /* Opacity */
+} ApplyLevelsDiscrete_t;
 
-  long
-    count;
-
-  ApplyLevels_t
-    levels;
+static MagickPassFail
+ApplyLevelsDiscrete(void *mutable_data,             /* User provided mutable data */
+		    const void *immutable_data,     /* User provided immutable data */
+		    Image *image,                   /* Modify image */
+		    PixelPacket * restrict pixels,  /* Pixel row */
+		    IndexPacket * restrict indexes, /* Pixel row indexes */
+		    const long npixels,             /* Number of pixels in row */
+		    ExceptionInfo *exception)       /* Exception report */
+{
+  /*
+    Apply a levels transformation based on a supplied look-up table.
+  */
+  const ApplyLevelsDiscrete_t
+    levels = *(const ApplyLevelsDiscrete_t *) immutable_data;
 
   register long
     i;
 
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  for (i=0; i < npixels; i++)
+    {
+      if (levels.color)
+	{
+	  pixels[i].red=levels.color[ScaleQuantumToMap(pixels[i].red)];
+	  pixels[i].green=levels.color[ScaleQuantumToMap(pixels[i].green)];
+	  pixels[i].blue=levels.color[ScaleQuantumToMap(pixels[i].blue)];
+	}
+      else
+	{
+	  if (levels.red)
+	    pixels[i].red=levels.red[ScaleQuantumToMap(pixels[i].red)];
+	  if (levels.green)
+	    pixels[i].green=levels.green[ScaleQuantumToMap(pixels[i].green)];
+	  if (levels.blue)
+	    pixels[i].blue=levels.blue[ScaleQuantumToMap(pixels[i].blue)];
+	}
+      if (levels.opacity)
+        pixels[i].opacity=levels.opacity[ScaleQuantumToMap(pixels[i].opacity)];
+    }
+
+  return MagickPass;
+}
+#endif /* if MaxMap == MaxRGB */
+
+/*
+  Gamma correct value in range of 0.0 to 1.0
+*/
+static inline double
+GammaCorrect(const double value, const double gamma)
+{
+  return pow(value,1.0/gamma);
+}
+
+#if MaxMap != MaxRGB
+typedef DoublePixelPacket GammaCorrectPixelsOptions_t;
+
+static MagickPassFail
+GammaCorrectPixels(void *mutable_data,             /* User provided mutable data */
+		   const void *immutable_data,     /* User provided immutable data */
+		   Image *image,                   /* Modify image */
+		   PixelPacket * restrict pixels,  /* Pixel row */
+		   IndexPacket * restrict indexes, /* Pixel row indexes */
+		   const long npixels,             /* Number of pixels in row */
+		   ExceptionInfo *exception)       /* Exception report */
+{
+  /*
+    Apply a gamma transformation based on slow accurate math.
+  */
+  const GammaCorrectPixelsOptions_t
+    options = *(const GammaCorrectPixelsOptions_t *) immutable_data;
+
+  register long
+    i;
+
+  MagickBool
+    red_flag,
+    green_flag,
+    blue_flag;
+
+  ARG_NOT_USED(mutable_data);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(indexes);
+  ARG_NOT_USED(exception);
+
+  red_flag=(options.red != 1.0);
+  green_flag=(options.green != 1.0);
+  blue_flag=(options.blue != 1.0);
+
+  for (i=0; i < npixels; i++)
+    {
+      double
+	value;
+
+      if (red_flag)
+	{
+	  value=MaxRGBDouble*GammaCorrect(pixels[i].red/MaxRGBDouble,options.red);
+	  pixels[i].red=RoundDoubleToQuantum(value);
+	}
+      if (green_flag)
+	{
+	  value=MaxRGBDouble*GammaCorrect(pixels[i].green/MaxRGBDouble,options.green);
+	  pixels[i].green=RoundDoubleToQuantum(value);
+	}
+      if (blue_flag)
+	{
+	  value=MaxRGBDouble*GammaCorrect(pixels[i].blue/MaxRGBDouble,options.blue);
+	  pixels[i].blue=RoundDoubleToQuantum(value);
+	}
+    }
+
+  return MagickPass;
+}
+#endif /* MaxMap != MaxRGB */
+
+MagickExport MagickPassFail GammaImage(Image *image,const char *level)
+{
+  double
+    gamma_color=0.0,
+    gamma_red=1.0,
+    gamma_green=1.0,
+    gamma_blue=1.0;
+
+  long
+    count;
+
   unsigned int
     is_grayscale;
+
+  MagickBool
+    level_color=MagickFalse,
+    level_red=MagickFalse,
+    level_green=MagickFalse,
+    level_blue=MagickFalse,
+    unity_gamma;
 
   MagickPassFail
     status=MagickPass;
@@ -482,70 +615,144 @@ MagickExport MagickPassFail GammaImage(Image *image,const char *level)
   assert(image->signature == MagickSignature);
   if (level == (char *) NULL)
     return(MagickFail);
-  gamma.red=1.0;
-  gamma.green=1.0;
-  gamma.blue=1.0;
-  count=sscanf(level,"%lf%*[,/]%lf%*[,/]%lf",&gamma.red,&gamma.green,
-    &gamma.blue);
+  count=sscanf(level,"%lf%*[,/]%lf%*[,/]%lf",&gamma_red,&gamma_green,
+	       &gamma_blue);
   if (count == 1)
     {
-      if (gamma.red == 1.0)
-        return(MagickFail);
-      gamma.green=gamma.red;
-      gamma.blue=gamma.red;
+      gamma_green=gamma_red;
+      gamma_blue=gamma_red;
     }
-  is_grayscale=(image->is_grayscale && (gamma.red == gamma.green) &&
-                (gamma.green == gamma.blue));
-  /*
-    Allocate and initialize gamma maps.
-  */
-  levels.map=MagickAllocateMemory(PixelPacket *,(MaxMap+1)*sizeof(PixelPacket));
-  if (levels.map == (PixelPacket *) NULL)
-    ThrowBinaryException3(ResourceLimitError,MemoryAllocationFailed,
-      UnableToGammaCorrectImage);
-  (void) memset(levels.map,0,(MaxMap+1)*sizeof(PixelPacket));
-  levels.level_red = (gamma.red != 0.0);
-  levels.level_green = (gamma.green != 0.0);
-  levels.level_blue = (gamma.blue != 0.0);
-  levels.level_opacity = MagickFalse;
-#if (MaxMap > 256) && defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(guided)
-#endif
-  for (i=0; i <= (long) MaxMap; i++)
-  {
-    if (levels.level_red)
-      levels.map[i].red=
-        ScaleMapToQuantum(MaxMap*pow((double) i/MaxMap,1.0/gamma.red));
-    if (levels.level_green)
-      levels.map[i].green=
-       ScaleMapToQuantum(MaxMap*pow((double) i/MaxMap,1.0/gamma.green));
-    if (levels.level_blue)
-      levels.map[i].blue=
-        ScaleMapToQuantum(MaxMap*pow((double) i/MaxMap,1.0/gamma.blue));
-  }
-  /*
-    Apply gamma.
-  */
-  if (image->storage_class == PseudoClass)
+
+  unity_gamma=((gamma_red == gamma_green) && (gamma_green == gamma_blue));
+
+  if ((unity_gamma) && (gamma_red != 1.0))
     {
-      (void) ApplyLevels(NULL,&levels,image,image->colormap,
-                         (IndexPacket *) NULL,image->colors,
-                         &image->exception);
-      status=SyncImage(image);
+      gamma_color=gamma_red;
+      level_color = MagickTrue;
     }
   else
     {
-      status=PixelIterateMonoModify(ApplyLevels,
-                                    NULL,
-                                    "[%s] Applying gamma correction...",
-                                    NULL,&levels,
-                                    0,0,image->columns,image->rows,
-                                    image,
-                                    &image->exception);
+      level_red = ((gamma_red != 0.0) && (gamma_red != 1.0));
+      level_green = ((gamma_green != 0.0) && (gamma_green != 1.0));
+      level_blue = ((gamma_blue != 0.0) && (gamma_blue != 1.0));
     }
+
+  is_grayscale=((image->is_grayscale) && (unity_gamma));
+
+  if (!level_color && !level_red && !level_green && !level_blue)
+    return(MagickPass);
+
+#if MaxMap == MaxRGB
+  {
+    ApplyLevelsDiscrete_t
+      levels;
+
+    register long
+      i;
+
+    /*
+      Allocate and initialize gamma maps.
+    */
+    (void) memset(&levels,0,sizeof(levels));
+    if (level_color)
+      levels.color=MagickAllocateArray(Quantum *,(MaxMap+1),sizeof(Quantum));
+    if (level_red)
+      levels.red=MagickAllocateArray(Quantum *,(MaxMap+1),sizeof(Quantum));
+    if (level_green)
+      levels.green=MagickAllocateArray(Quantum *,(MaxMap+1),sizeof(Quantum));
+    if (level_blue)
+      levels.blue=MagickAllocateArray(Quantum *,(MaxMap+1),sizeof(Quantum));
+    if ((level_color && !levels.color) ||
+	(level_red && !levels.red) ||
+	(level_green && !levels.green) ||
+	(level_blue && !levels.blue))
+      {
+	MagickFreeMemory(levels.color);
+	MagickFreeMemory(levels.red);
+	MagickFreeMemory(levels.green);
+	MagickFreeMemory(levels.blue);
+	ThrowBinaryException3(ResourceLimitError,MemoryAllocationFailed,
+			      UnableToGammaCorrectImage);
+      }
+#if (MaxMap > 256) && defined(HAVE_OPENMP)
+#  pragma omp parallel for
+#endif
+    for (i=0; i <= (long) MaxMap; i++)
+      {
+	if (levels.color)
+	  levels.color[i]=
+	    ScaleMapToQuantum(MaxMap*GammaCorrect((double) i/MaxMap,gamma_color));
+	if (levels.red)
+	  levels.red[i]=
+	    ScaleMapToQuantum(MaxMap*GammaCorrect((double) i/MaxMap,gamma_red));
+	if (levels.green)
+	  levels.green[i]=
+	    ScaleMapToQuantum(MaxMap*GammaCorrect((double) i/MaxMap,gamma_green));
+	if (levels.blue)
+	  levels.blue[i]=
+	    ScaleMapToQuantum(MaxMap*GammaCorrect((double) i/MaxMap,gamma_blue));
+      }
+    /*
+      Apply gamma.
+    */
+    if (image->storage_class == PseudoClass)
+      {
+	(void) ApplyLevelsDiscrete(NULL,&levels,image,image->colormap,
+				   (IndexPacket *) NULL,image->colors,
+				   &image->exception);
+	status=SyncImage(image);
+      }
+    else
+      {
+	status=PixelIterateMonoModify(ApplyLevelsDiscrete,
+				      NULL,
+				      "[%s] Applying gamma correction...",
+				      NULL,&levels,
+				      0,0,image->columns,image->rows,
+				      image,
+				      &image->exception);
+      }
+    MagickFreeMemory(levels.color);
+    MagickFreeMemory(levels.red);
+    MagickFreeMemory(levels.green);
+    MagickFreeMemory(levels.blue);
+  }
+#else /* if MaxMap == MaxRGB */
+  {
+    GammaCorrectPixelsOptions_t
+      levels;
+
+    levels.red=gamma_red;
+    levels.green=gamma_green;
+    levels.blue=gamma_blue;
+    levels.opacity=OpaqueOpacity;
+
+    /*
+      Apply gamma.
+    */
+    if (image->storage_class == PseudoClass)
+      {
+	(void) GammaCorrectPixels(NULL,&levels,image,image->colormap,
+				   (IndexPacket *) NULL,image->colors,
+				   &image->exception);
+	status=SyncImage(image);
+      }
+    else
+      {
+	status=PixelIterateMonoModify(GammaCorrectPixels,
+				      NULL,
+				      "[%s] Applying gamma correction...",
+				      NULL,&levels,
+				      0,0,image->columns,image->rows,
+				      image,
+				      &image->exception);
+      }
+  }
+  
+#endif/* if MaxMap != MaxRGB */
+
   if (image->gamma != 0.0)
-    image->gamma*=(gamma.red+gamma.green+gamma.blue)/3.0;
-  MagickFreeMemory(levels.map);
+    image->gamma*=(gamma_red+gamma_green+gamma_blue)/3.0;
   image->is_grayscale=is_grayscale;
   return(status);
 }
@@ -583,7 +790,7 @@ MagickExport MagickPassFail GammaImage(Image *image,const char *level)
 %
 %
 */
-#define LevelImageText  "Leveling the image...  "
+#define LevelImageText "Level...  "
 MagickExport MagickPassFail LevelImage(Image *image,const char *levels)
 {
   double
@@ -796,7 +1003,7 @@ MagickExport MagickPassFail LevelImageChannel(Image *image,
     {
       status=PixelIterateMonoModify(ApplyLevels,
                                     NULL,
-                                    "[%s] Leveling image...",
+                                    "[%s] Leveling channels...",
                                     NULL,&levels,
                                     0,0,image->columns,image->rows,
                                     image,
@@ -927,7 +1134,7 @@ MagickExport MagickPassFail ModulateImage(Image *image,const char *modulate)
   param.percent_saturation=AbsoluteValue(param.percent_saturation);
   param.percent_hue=AbsoluteValue(param.percent_hue);
 
-  FormatString(progress_message,"[%%s] Modulate %g/%g/%g image...",
+  FormatString(progress_message,"[%%s] Modulate %g/%g/%g...",
                param.percent_brightness,param.percent_saturation,
                param.percent_hue);
   TransformColorspace(image,RGBColorspace);
@@ -1026,7 +1233,7 @@ NegateImagePixels(void *mutable_data,         /* User provided mutable data */
   return MagickPass;
 }
 
-#define NegateImageText  "[%s] Negating the image colors..."
+#define NegateImageText "[%s] Negate..."
 MagickExport MagickPassFail NegateImage(Image *image,const unsigned int grayscale)
 {
   unsigned int

@@ -710,7 +710,8 @@ static Image *ReadPCDImage(const ImageInfo *image_info,ExceptionInfo *exception)
           }
         (void) SetMonitorHandler(handler);
         if (!MagickMonitorFormatted(j-1,number_images,&image->exception,
-                                    LoadImageText,image->filename))
+                                    LoadImageText,image->filename,
+				    image->columns,image->rows))
           break;
       }
       MagickFreeMemory(chroma2);
@@ -798,7 +799,8 @@ static Image *ReadPCDImage(const ImageInfo *image_info,ExceptionInfo *exception)
       break;
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         break;
   }
   MagickFreeMemory(chroma2);
@@ -1048,7 +1050,8 @@ static unsigned int WritePCDTile(const ImageInfo *ARGUNUSED(image_info),
     }
     if (QuantumTick(y,tile_image->rows))
       if (!MagickMonitorFormatted(y,tile_image->rows,&image->exception,
-                                  SaveImageText,image->filename))
+                                  SaveImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   for (i=0; i < 0x800; i++)

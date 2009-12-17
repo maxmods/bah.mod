@@ -1,6 +1,6 @@
 // This may look like C code, but it is really -*- C++ -*-
 //
-// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2003, 2004
+// Copyright Bob Friesenhahn, 1999, 2000, 2001, 2002, 2003, 2004, 2009
 //
 // Definition of Image, the representation of a single image in Magick++
 //
@@ -173,6 +173,13 @@ namespace Magick
     void            border ( const Geometry &geometry_
                              = borderGeometryDefault );
 
+    // Bake in the ASC-CDL, which is a convention for the for the
+    // exchange of basic primary color grading information between for
+    // the exchange of basic primary color grading information between
+    // equipment and software from different manufacturers.  It is a
+    // useful transform for other purposes as well.
+    void            cdl ( const std::string &cdl_ );
+
     // Extract channel from image
     void            channel ( const ChannelType channel_ );
 
@@ -203,6 +210,11 @@ namespace Magick
     // Colorize image with pen color, using specified percent opacity.
     void            colorize ( const unsigned int opacity_,
 			       const Color &penColor_ );
+
+    // Apply a color matrix to the image channels.  The user supplied
+    // matrix may be of order 1 to 5 (1x1 through 5x5).
+    void            colorMatrix (const unsigned int order_,
+				 const double *color_matrix_);
     
     // Comment image (add comment string to image)
     void            comment ( const std::string &comment_ );
@@ -350,6 +362,9 @@ namespace Magick
     
     // Implode image (special effect)
     void            implode ( const double factor_ );
+
+    // Apply a color lookup table (Hald CLUT) to the image.
+    void            haldClut ( const Image &clutImage_ );
     
     // Label image
     void            label ( const std::string &label_ );

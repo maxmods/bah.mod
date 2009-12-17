@@ -38,10 +38,11 @@
 #include "magick/studio.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/quantize.h"
 #include "magick/utility.h"
 
@@ -359,7 +360,8 @@ static MagickPassFail DecodeImage(Image *image,const long opacity)
     if (image->previous == (Image *) NULL)
       if (QuantumTick(y,image->rows))
         if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                    LoadImageText,image->filename))
+                                    LoadImageText,image->filename,
+				    image->columns,image->rows))
           {
             status=MagickFail;
             break;
@@ -598,7 +600,8 @@ static MagickPassFail EncodeImage(const ImageInfo *image_info,Image *image,
         }
       waiting_code=index;
     }
-    if (image_info->interlace == NoInterlace)
+    if ((image_info->interlace == NoInterlace) ||
+	(image_info->interlace == UndefinedInterlace))
       offset++;
     else
       switch (pass)
@@ -643,7 +646,8 @@ static MagickPassFail EncodeImage(const ImageInfo *image_info,Image *image,
     if (image->previous == (Image *) NULL)
       if (QuantumTick(y,image->rows))
         if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
   }
   /*
@@ -981,7 +985,7 @@ static Image *ReadGIFImage(const ImageInfo *image_info,ExceptionInfo *exception)
     image->rows=ReadBlobLSBShort(image);
     image->depth=8;
     flag=ReadBlobByte(image);
-    image->interlace=BitSet(flag,0x40) ? PlaneInterlace : NoInterlace;
+    image->interlace=BitSet(flag,0x40) ? LineInterlace : NoInterlace;
     image->colors=!BitSet(flag,0x80) ? global_colors : 0x01U << ((flag & 0x07)+1);
     if (opacity >= (long) image->colors)
       image->colors=opacity+1;
@@ -1279,7 +1283,8 @@ static MagickPassFail WriteGIFImage(const ImageInfo *image_info,Image *image)
   /*
     Write images to file.
   */
-  interlace=image_info->interlace;
+  interlace=(image_info->interlace == UndefinedInterlace ? NoInterlace :
+	     image_info->interlace);
   if (image_info->adjoin && (image->next != (Image *) NULL))
     interlace=NoInterlace;
   opacity=(-1);

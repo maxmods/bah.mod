@@ -136,6 +136,13 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
                            image->filename);
         }
     }
+
+  if (image->logging)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			  "Tile %lux%lu%+ld%+ld",
+			  image->tile_info.width,image->tile_info.height,
+			  image->tile_info.x,image->tile_info.y);
+
   /*
     Allocate memory for a scanline.
   */
@@ -153,8 +160,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
       image->matte=True;
       packet_size=(quantum_size*5)/8;
     }
-  scanline=MagickAllocateMemory(unsigned char *,
-    packet_size*image->tile_info.width);
+  scanline=MagickAllocateArray(unsigned char *,
+			       packet_size,image->tile_info.width);
   if (scanline == (unsigned char *) NULL)
     ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
   /*
@@ -221,7 +228,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         count=image->tile_info.height-image->rows-image->tile_info.y;
@@ -267,7 +275,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         count=image->tile_info.height-image->rows-image->tile_info.y;
@@ -310,7 +319,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(i,span))
               if (!MagickMonitorFormatted(i,span,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
           i++;
         }
@@ -340,7 +350,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(i,span))
               if (!MagickMonitorFormatted(i,span,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
           i++;
         }
@@ -370,7 +381,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(i,span))
               if (!MagickMonitorFormatted(i,span,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
           i++;
         }
@@ -400,7 +412,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(i,span))
               if (!MagickMonitorFormatted(i,span,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
           i++;
         }
@@ -437,7 +450,8 @@ static Image *ReadCMYKImage(const ImageInfo *image_info,
               if (image->previous == (Image *) NULL)
                 if (QuantumTick(i,span))
                   if (!MagickMonitorFormatted(i,span,&image->exception,
-                                              LoadImageText,image->filename))
+                                              LoadImageText,image->filename,
+					      image->columns,image->rows))
                     break;
               i++;
             }
@@ -633,7 +647,7 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
   packet_size=(quantum_size*4)/8;
   if (LocaleCompare(image_info->magick,"CMYKA") == 0)
     packet_size=(quantum_size*5)/8;
-  pixels=MagickAllocateMemory(unsigned char *,packet_size*image->columns);
+  pixels=MagickAllocateArray(unsigned char *,packet_size,image->columns);
   if (pixels == (unsigned char *) NULL)
     ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
   if (image_info->interlace != PartitionInterlace)
@@ -695,7 +709,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -730,7 +745,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
             }
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
         break;
@@ -768,7 +784,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
               ThrowWriterException(FileOpenError,UnableToOpenFile,image);
           }
         if (!MagickMonitorFormatted(100,400,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
         for (y=0; y < (long) image->rows; y++)
         {
@@ -789,7 +806,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
               ThrowWriterException(FileOpenError,UnableToOpenFile,image);
           }
         if (!MagickMonitorFormatted(200,400,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
         for (y=0; y < (long) image->rows; y++)
         {
@@ -810,7 +828,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
               ThrowWriterException(FileOpenError,UnableToOpenFile,image);
           }
         if (!MagickMonitorFormatted(200,400,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
         for (y=0; y < (long) image->rows; y++)
         {
@@ -824,7 +843,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
         if (LocaleCompare(image_info->magick,"CMYKA") == 0)
           {
             if (!MagickMonitorFormatted(300,400,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
             if (image_info->interlace == PartitionInterlace)
               {
@@ -849,7 +869,8 @@ static unsigned int WriteCMYKImage(const ImageInfo *image_info,Image *image)
         if (image_info->interlace == PartitionInterlace)
           (void) strlcpy(image->filename,image_info->filename,MaxTextExtent);
         if (!MagickMonitorFormatted(400,400,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
         break;
       }

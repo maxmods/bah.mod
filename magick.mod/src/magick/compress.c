@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -878,6 +878,144 @@ MagickExport MagickPassFail HuffmanEncodeImage(const ImageInfo *image_info,
     Ascii85Flush(image);
     return(status);
   }
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   I m a g e T o H u f f m a n 2 D B l o b                                   %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method ImageToHuffman2DBlob compresses an image via two-dimensional
+%  Huffman-coding (CCITT Group4 FAX) and returns the compressed data in a
+%  heap allocated buffer.  NULL is returned if there is an error.
+%
+%  Data is output with one strip per page with MSB2LSB fill order.
+%
+%  The format of the ImageToHuffman2DBlob method is:
+%
+%      unsigned char *ImageToHuffman2DBlob(const Image *image,
+%                                          const ImageInfo *image_info,
+%                                          size_t *blob_length,
+%                                          ExceptionInfo *exception);
+%
+%  A description of each parameter follows:
+%
+%    o image: The image to compress.
+%
+%    o image_info: Image options
+%
+%    o blob_length: Updated with the length of the compressed data.
+%
+%    o exception: Any exception is reported here.
+%
+*/
+MagickExport unsigned char *
+ImageToHuffman2DBlob(const Image *image,const ImageInfo *image_info,
+		     size_t *blob_length,ExceptionInfo *exception)
+{
+  unsigned char
+    *blob = (unsigned char *) NULL;
+
+  ImageInfo
+    *huffman_info;
+
+  ARG_NOT_USED(image_info);
+  *blob_length=0;
+  huffman_info=CloneImageInfo((const ImageInfo *) NULL);
+  if (huffman_info != (ImageInfo *) NULL)
+    {
+      Image
+	*huffman_image;
+
+      huffman_image=CloneImage(image,0,0,MagickTrue,exception);
+      if (huffman_image != (Image *) NULL)
+	{
+	  (void) strlcpy(huffman_image->magick,"GROUP4RAW",sizeof(huffman_image->magick));
+	  (void) strlcpy(huffman_image->filename,"",sizeof(huffman_image->filename));
+	  blob=ImageToBlob(huffman_info, huffman_image, blob_length, exception);
+	  DestroyImage(huffman_image);
+	}
+      DestroyImageInfo(huffman_info);
+    }
+  return blob;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   I m a g e T o J P E G B l o b                                             %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method ImageToJPEGBlob compresses an image into a JFIF JPEG format and
+%  returns the compressed data in a heap allocated buffer.  NULL is
+%  returned if there is an error.
+%
+%  The format of the ImageToJPEGBlob method is:
+%
+%      unsigned char *ImageToJPEGBlob(const Image *image,
+%                                     const ImageInfo *image_info,
+%                                     size_t *blob_length,
+%                                     ExceptionInfo *exception);
+%
+%  A description of each parameter follows:
+%
+%    o image: The image to compress.
+%
+%    o image_info: Image options
+%
+%    o blob_length: Updated with the length of the compressed data.
+%
+%    o exception: Any exception is reported here.
+%
+*/
+MagickExport unsigned char *
+ImageToJPEGBlob(const Image *image,const ImageInfo *image_info,
+		size_t *blob_length,ExceptionInfo *exception)
+{
+  unsigned char
+    *blob = NULL;
+
+  ImageInfo
+    *jpeg_info;
+
+  *blob_length=0;
+  jpeg_info=CloneImageInfo(image_info);
+  if (jpeg_info != (ImageInfo *) NULL)
+    {
+      Image
+	*jpeg_image;
+
+      /*
+	Try to preserve any existing JPEG options but if the user
+	applies any override, then existing JPEG options are ignored.
+      */
+      if ((JPEGCompression == image->compression) &&
+	  (DefaultCompressionQuality == image_info->quality) &&
+	  ((char *) NULL == jpeg_info->sampling_factor))
+	(void) AddDefinitions(jpeg_info,"jpeg:preserve-settings=TRUE",
+			      exception);
+      jpeg_image=CloneImage(image,0,0,MagickTrue,exception);
+      if (jpeg_image != (Image *) NULL)
+	{
+	  (void) strlcpy(jpeg_image->magick,"JPEG",sizeof(jpeg_image->magick));
+	  (void) strlcpy(jpeg_image->filename,"",sizeof(jpeg_image->filename));
+	  blob =(unsigned char *) ImageToBlob(jpeg_info, jpeg_image, blob_length, exception);
+	  DestroyImage(jpeg_image);
+	}
+      DestroyImageInfo(jpeg_info);
+    }
+  return blob;
 }
 
 /*

@@ -37,10 +37,11 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 #include "magick/xwindow.h"
 #if defined(HasDPS)
@@ -82,7 +83,7 @@
 static Image *ReadDPSImage(const ImageInfo *image_info,
   ExceptionInfo *exception)
 {
-  char
+  const char
     *client_name;
 
   Display
@@ -173,7 +174,7 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
   /*
     Get user defaults from X resource database.
   */
-  client_name=SetClientName((char *) NULL);
+  client_name=GetClientName();
   resource_database=MagickXGetResourceDatabase(display,client_name);
   MagickXGetResourceInfo(resource_database,client_name,&resource_info);
   /*
@@ -388,7 +389,8 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
             break;
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,exception,
-                                        LoadImageText,image->filename))
+                                        LoadImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
       else
@@ -412,7 +414,8 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
             break;
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,exception,
-                                        LoadImageText,image->filename))
+                                        LoadImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
       break;
@@ -457,7 +460,8 @@ static Image *ReadDPSImage(const ImageInfo *image_info,
           break;
         if (QuantumTick(y,image->rows))
           if (!MagickMonitorFormatted(y,image->rows,exception,
-                                      LoadImageText,image->filename))
+                                      LoadImageText,image->filename,
+				      image->columns,image->rows))
             break;
       }
       break;

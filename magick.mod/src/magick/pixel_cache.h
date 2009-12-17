@@ -317,6 +317,13 @@ extern "C" {
   GetCacheInfo(Cache *cache);
 
   /*
+    GetPixelCacheInCore() tests to see the pixel cache is based on
+    allocated memory and therefore supports efficient random access.
+  */
+  extern MagickBool
+  GetPixelCacheInCore(const Image *image);
+
+  /*
     GetPixelCachePresent() tests to see the pixel cache is present
     and contains pixels.
   */
@@ -329,7 +336,7 @@ extern "C" {
   extern MagickExport PixelPacket
     InterpolateColor(const Image *image,const double x_offset,
       const double y_offset,ExceptionInfo *exception)
-      __attribute__ ((deprecated));
+      MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport void
     InterpolateViewColor(const ViewInfo *view,PixelPacket *color,

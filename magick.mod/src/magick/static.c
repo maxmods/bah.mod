@@ -100,7 +100,11 @@ MagickExport unsigned int ExecuteModuleProcess(const char *tag,
       LogMagickEvent(CoderEvent,GetMagickModule(),
         "Returned from \"%.1024s\" filter module",tag);
     }
-
+#else
+  ARG_NOT_USED(tag);
+  ARG_NOT_USED(image);
+  ARG_NOT_USED(argc);
+  ARG_NOT_USED(argv);
 #endif /* !defined(BuildMagickModules) */
   return(status);
 }
@@ -143,7 +147,9 @@ MagickExport void RegisterStaticModules(void)
   RegisterDCMImage();
   RegisterDCRAWImage();
   RegisterDIBImage();
+#if defined(HasDPS)
   RegisterDPSImage();
+#endif
   RegisterDPXImage();
 #if defined(HasWINGDI32)
   RegisterEMFImage();
@@ -291,7 +297,9 @@ MagickExport void UnregisterStaticModules(void)
   UnregisterDCMImage();
   UnregisterDCRAWImage();
   UnregisterDIBImage();
+#if defined(HasDPS)
   UnregisterDPSImage();
+#endif
   UnregisterDPXImage();
 #if defined(HasWINGDI32)
   UnregisterEMFImage();

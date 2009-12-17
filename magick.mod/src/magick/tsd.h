@@ -18,6 +18,7 @@ typedef pthread_key_t MagickTsdKey_t;
 #elif defined(MSWINDOWS)
 typedef DWORD MagickTsdKey_t;
 #else
+/* FIXME: This type should be based on magick_uintptr_t */
 typedef unsigned long * MagickTsdKey_t;
 #endif
 

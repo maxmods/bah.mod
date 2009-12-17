@@ -273,7 +273,7 @@ static double BesselOrderOne(double x)
 */
 MagickExport Image *MagnifyImage(const Image *image,ExceptionInfo *exception)
 {
-#define MagnifyImageText  "[%s] Magnify image...  "
+#define MagnifyImageText "[%s] Magnify...  "
 
   Image
     *magnify_image;
@@ -465,7 +465,7 @@ MagickExport Image *MinifyImage(const Image *image,ExceptionInfo *exception)
   total.blue+=(weight)*(r->blue);               \
   total.opacity+=(weight)*(r->opacity);         \
   r++;
-#define MinifyImageText  "[%s] Minify image..."
+#define MinifyImageText "[%s] Minify..."
 
   Image
     *minify_image;
@@ -790,7 +790,7 @@ HorizontalFilter(const Image *source,Image *destination,
                  const size_t span,unsigned long *quantum,
                  ExceptionInfo *exception)
 {
-#define ResizeImageText  "[%s] Resize image..."
+#define ResizeImageText "[%s] Resize..."
   
   double
     scale,
@@ -1568,7 +1568,7 @@ SampleImage(const Image *image,const unsigned long columns,
 MagickExport Image *ScaleImage(const Image *image,const unsigned long columns,
                                const unsigned long rows,ExceptionInfo *exception)
 {
-#define ScaleImageText  "[%s] Scale image..."
+#define ScaleImageText "[%s] Scale..."
 
   double
     x_scale,

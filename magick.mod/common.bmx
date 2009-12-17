@@ -28,6 +28,7 @@ Extern
 	Function bmx_magick_createfromspec:Byte Ptr(imageSpec:String)
 	Function bmx_magick_image_createfromblob:Byte Ptr(blob:Byte Ptr)
 	Function bmx_magick_create:Byte Ptr()
+	Function bmx_magick_InitializeMagick(path:Byte Ptr)
 
 	Function bmx_magick_image_adaptivethreshold(handle:Byte Ptr, width:Int, height:Int, offset:Int)
 	Function bmx_magick_image_addnoise(handle:Byte Ptr, noiseType:Int)

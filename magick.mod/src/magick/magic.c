@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -34,58 +34,132 @@
   Include declarations.
 */
 #include "magick/studio.h"
-#include "magick/blob.h"
 #include "magick/magic.h"
-#include "magick/semaphore.h"
 #include "magick/utility.h"
 
 /*
   Define declarations.
 */
-#define MagicFilename  "magic.mgk"
-
-/*
-  Typedef declarations.
-*/
-typedef struct _MagicInfo
-{  
-  char
-    *path,
-    *name,
-    *target;
-
-  unsigned char
-    *magic;
-
-  unsigned long
-    length,
-    offset;
-
-  unsigned int
-    stealth;
-
-  unsigned long
-    signature;
-
-  struct _MagicInfo
-    *previous,
-    *next;
-} MagicInfo;
 
 /*
   Static declarations.
 */
-static SemaphoreInfo
-  *magic_semaphore = (SemaphoreInfo *) NULL;
+static const struct
+{
+  char
+    *name;
 
-static MagicInfo
-  *magic_list = (MagicInfo *) NULL;
+  unsigned char
+    *magic;
+
+  unsigned int
+    length,
+    offset;
+}
+StaticMagic[] =
+{
+#define MAGIC(name,offset,magic) {name,(unsigned char *)magic,sizeof(magic)-1,offset}
+  MAGIC("AVI", 0, "RIFF"),
+  MAGIC("8BIMWTEXT", 0, "8\000B\000I\000M\000#"),
+  MAGIC("8BIMTEXT", 0, "8BIM#"),
+  MAGIC("8BIM", 0, "8BIM"),
+  MAGIC("BMP", 0, "BA"),
+  MAGIC("BMP", 0, "BM"),
+  MAGIC("BMP", 0, "CI"),
+  MAGIC("BMP", 0, "CP"),
+  MAGIC("BMP", 0, "IC"),
+  MAGIC("BMP", 0, "PI"),
+  MAGIC("CALS", 21, "version: MIL-STD-1840"),
+  MAGIC("CALS", 0, "srcdocid:"),
+  MAGIC("CALS", 9, "srcdocid:"),
+  MAGIC("CALS", 8, "rorient:"),
+  MAGIC("CGM", 0, "BEGMF"),
+  MAGIC("CIN", 0, "\200\052\137\327"),
+  MAGIC("DCM", 128, "DICM"),
+  MAGIC("DCX", 0, "\261\150\336\72"),
+  MAGIC("DIB", 0, "\050\000"),
+  MAGIC("DOT", 0, "digraph"),
+  MAGIC("DPX", 0, "SDPX"),
+  MAGIC("DPX", 0, "XPDS"),
+  MAGIC("EMF", 40, "\040\105\115\106\000\000\001\000"),
+  MAGIC("EPT", 0, "\305\320\323\306"),
+  MAGIC("FAX", 0, "DFAX"),
+  MAGIC("FIG", 0, "#FIG"),
+  MAGIC("FITS", 0, "IT0"),
+  MAGIC("FITS", 0, "SIMPLE"),
+  MAGIC("FPX", 0, "\320\317\021\340"),
+  MAGIC("GIF", 0, "GIF8"),
+  MAGIC("GPLT", 0, "#!/usr/local/bin/gnuplot"),
+  MAGIC("HDF", 1, "HDF"),
+  MAGIC("HPGL", 0, "IN;"),
+  MAGIC("HPGL", 0, "\033E\033"),
+  MAGIC("HTML", 1, "HTML"),
+  MAGIC("HTML", 1, "html"),
+  MAGIC("ILBM", 8, "ILBM"),
+  MAGIC("IPTCWTEXT", 0, "\062\000#\000\060\000=\000\042\000&\000#\000\060\000;\000&\000#\000\062\000;\000\042\000"),
+  MAGIC("IPTCTEXT", 0, "2#0=\042&#0;&#2;\042"),
+  MAGIC("IPTC", 0, "\034\002"),
+  MAGIC("JNG", 0, "\213JNG\r\n\032\n"),
+  MAGIC("JPEG", 0, "\377\330\377"),
+  MAGIC("JPC", 0, "\377\117"),
+  MAGIC("JP2", 4, "\152\120\040\040\015"),
+  MAGIC("MIFF", 0, "Id=ImageMagick"),
+  MAGIC("MIFF", 0, "id=ImageMagick"),
+  MAGIC("MNG", 0, "\212MNG\r\n\032\n"),
+  MAGIC("MPC", 0, "id=MagickCache"),
+  MAGIC("MPEG", 0, "\000\000\001\263"),
+  MAGIC("PCD", 2048, "PCD_"),
+  MAGIC("PCL", 0, "\033E\033"),
+  MAGIC("PCX", 0, "\012\002"),
+  MAGIC("PCX", 0, "\012\005"),
+  MAGIC("PDB", 60, "vIMGView"),
+  MAGIC("PDF", 0, "%PDF-"),
+  MAGIC("PFA", 0, "%!PS-AdobeFont-1.0"),
+  MAGIC("PFB", 6, "%!PS-AdobeFont-1.0"),
+  MAGIC("PGX", 0, "\050\107\020\115\046"),
+  MAGIC("PICT", 522, "\000\021\002\377\014\000"),
+  MAGIC("PNG", 0, "\211PNG\r\n\032\n"),
+  MAGIC("PNM", 0, "P1"),
+  MAGIC("PNM", 0, "P2"),
+  MAGIC("PNM", 0, "P3"),
+  MAGIC("PNM", 0, "P4"),
+  MAGIC("PNM", 0, "P5"),
+  MAGIC("PNM", 0, "P6"),
+  MAGIC("PNM", 0, "P7"),
+  MAGIC("PS", 0, "%!"),
+  MAGIC("PS", 0, "\004%!"),
+  MAGIC("PS", 0, "\305\320\323\306"),
+  MAGIC("PSD", 0, "8BPS"),
+  MAGIC("PWP", 0, "SFW95"),
+  MAGIC("RAD", 0, "#?RADIANCE"),
+  MAGIC("RAD", 0, "VIEW= "),
+  MAGIC("RLE", 0, "\122\314"),
+  MAGIC("SCT", 0, "CT"),
+  MAGIC("SFW", 0, "SFW94"),
+  MAGIC("SGI", 0, "\001\332"),
+  MAGIC("SUN", 0, "\131\246\152\225"),
+  MAGIC("SVG", 1, "?XML"),
+  MAGIC("SVG", 1, "?xml"),
+  MAGIC("TIFF", 0, "\115\115\000\052"),
+  MAGIC("TIFF", 0, "\111\111\052\000"),
+  MAGIC("BIGTIFF", 0, "\115\115\000\053\000\010\000\000"),
+  MAGIC("BIGTIFF", 0, "\111\111\053\000\010\000\000\000"),
+  MAGIC("VICAR", 0, "LBLSIZE"),
+  MAGIC("VICAR", 0, "NJPL1I"),
+  MAGIC("VIFF", 0, "\253\001"),
+  MAGIC("WMF", 0, "\327\315\306\232"),
+  MAGIC("WMF", 0, "\001\000\011\000"),
+  MAGIC("WPG", 0, "\377WPC"),
+  MAGIC("XBM", 0, "#define"),
+  MAGIC("XCF", 0, "gimp xcf"),
+  MAGIC("XPM", 1, "* XPM *"),
+  MAGIC("XWD", 4, "\007\000\000"),
+  MAGIC("XWD", 5, "\000\000\007")
+};
 
 /*
   Forward declarations.
 */
-static unsigned int
-  ReadMagicConfigureFile(const char *,const unsigned long,ExceptionInfo *);
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,32 +180,9 @@ static unsigned int
 %
 %
 */
-MagickExport void DestroyMagicInfo(void)
+MagickExport void
+DestroyMagicInfo(void)
 {
-  MagicInfo
-    *magic_info;
-
-  register MagicInfo
-    *p;
-
-  AcquireSemaphoreInfo(&magic_semaphore);
-  for (p=magic_list; p != (MagicInfo *) NULL; )
-  {
-    magic_info=p;
-    p=p->next;
-    if (magic_info->path != (char *) NULL)
-      MagickFreeMemory(magic_info->path);
-    if (magic_info->name != (char *) NULL)
-      MagickFreeMemory(magic_info->name);
-    if (magic_info->target != (char *) NULL)
-      MagickFreeMemory(magic_info->target);
-    if (magic_info->magic != (unsigned char *) NULL)
-      MagickFreeMemory(magic_info->magic);
-    MagickFreeMemory(magic_info);
-  }
-  magic_list=(MagicInfo *) NULL;
-  LiberateSemaphoreInfo(&magic_semaphore);
-  DestroySemaphoreInfo(&magic_semaphore);
 }
 
 /*
@@ -181,56 +232,35 @@ GetMagickFileFormat(const unsigned char *header, const size_t header_length,
                     char *format, const size_t format_length,
                     ExceptionInfo *exception)
 {
+  register unsigned int
+    i;
+
   MagickPassFail
-    status;
+    status=MagickFail;
 
-  status=MagickFail;
+  ARG_NOT_USED(exception);
 
-  if (InitializeMagicInfo(exception) == MagickFail)
-    return MagickFail;
-
-  if ((header == (const unsigned char *) NULL) || (header_length == 0) ||
-      (format_length < 2))
-    return MagickFail;
-
-  /*
-    Search for requested magic.
-  */
-  {
-    register MagicInfo
-      *p;
-
-    AcquireSemaphoreInfo(&magic_semaphore);
-    for (p=magic_list; p != (MagicInfo *) NULL; p=p->next)
-      {
-        if (p->offset+p->length <= header_length)
-          {
-            if (memcmp(header+p->offset,p->magic,p->length) == 0)
-              {
-                strlcpy(format,p->name,format_length);
-                status=MagickPass;
-                break;
-              }
-          }
-      }
-
-    if (p != (MagicInfo *) NULL)
-      if (p != magic_list)
-        {
-          /*
-            Self-adjusting list.
-          */
-          if (p->previous != (MagicInfo *) NULL)
-            p->previous->next=p->next;
-          if (p->next != (MagicInfo *) NULL)
-            p->next->previous=p->previous;
-          p->previous=(MagicInfo *) NULL;
-          p->next=magic_list;
-          magic_list->previous=p;
-          magic_list=p;
-        }
-    LiberateSemaphoreInfo(&magic_semaphore);
-  }
+  if (!((header == (const unsigned char *) NULL) || (header_length == 0) ||
+	(format_length < 2)))
+    {
+      /*
+	Search for requested magic.
+      */
+      for (i=0; i < sizeof(StaticMagic)/sizeof(StaticMagic[0]); i++)
+	{
+	  if (StaticMagic[i].offset+StaticMagic[i].length <= header_length)
+	    {
+	      if ((header[StaticMagic[i].offset] == StaticMagic[i].magic[0]) &&
+		  (memcmp(header+StaticMagic[i].offset,StaticMagic[i].magic,
+			  StaticMagic[i].length) == 0))
+		{
+		  if (strlcpy(format,StaticMagic[i].name,format_length) < format_length)
+		    status=MagickPass;
+		  break;
+		}
+	    }
+	}
+    }
   return status;
 }
 
@@ -254,17 +284,9 @@ GetMagickFileFormat(const unsigned char *header, const size_t header_length,
 %
 %
 */
-MagickExport MagickPassFail InitializeMagicInfo(ExceptionInfo *exception)
+MagickExport MagickPassFail
+InitializeMagicInfo(void)
 {
-  if (magic_list == (MagicInfo *) NULL)
-    {
-      AcquireSemaphoreInfo(&magic_semaphore);
-      if (magic_list == (MagicInfo *) NULL)
-        (void) ReadMagicConfigureFile(MagicFilename,0,exception);
-      LiberateSemaphoreInfo(&magic_semaphore);
-      if (exception->severity > UndefinedException)
-        return MagickFail;
-    }
   return MagickPass;
 }
 
@@ -293,282 +315,64 @@ MagickExport MagickPassFail InitializeMagicInfo(ExceptionInfo *exception)
 %
 %
 */
-MagickExport MagickPassFail ListMagicInfo(FILE *file,ExceptionInfo *exception)
+MagickExport MagickPassFail
+ListMagicInfo(FILE *file,ExceptionInfo *exception)
 {
-  register const MagicInfo
-    *p;
+  register unsigned int
+    i,
+    j;
 
-  register long
-    i;
+  ARG_NOT_USED(exception);
 
   if (file == (const FILE *) NULL)
     file=stdout;
-  if (InitializeMagicInfo(exception) == MagickFail)
-    return MagickFail;
-  AcquireSemaphoreInfo(&magic_semaphore);
-  for (p=magic_list; p != (MagicInfo *) NULL; p=p->next)
-  {
-    if ((p->previous == (MagicInfo *) NULL) ||
-        (LocaleCompare(p->path,p->previous->path) != 0))
-      {
-        if (p->previous != (MagicInfo *) NULL)
-          (void) fprintf(file,"\n");
-        if (p->path != (char *) NULL)
-          (void) fprintf(file,"Path: %.1024s\n\n",p->path);
-        (void) fprintf(file,"Name      Offset Target\n");
-        (void) fprintf(file,"-------------------------------------------------"
-          "------------------------------\n");
-      }
-    if (p->stealth)
-      continue;
-    (void) fprintf(file,"%.1024s",p->name);
-    for (i=(long) strlen(p->name); i <= 9; i++)
-      (void) fprintf(file," ");
-    (void) fprintf(file,"%6ld ",p->offset);
-    if (p->target != (char *) NULL)
-      (void) fprintf(file,"%.1024s",p->target);
-    (void) fprintf(file,"\n");
-  }
-  (void) fflush(file);
-  LiberateSemaphoreInfo(&magic_semaphore);
-  return(MagickPass);
-}
-
-/*
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                             %
-%                                                                             %
-%                                                                             %
-+   R e a d C o n f i g u r e F i l e                                 %
-%                                                                             %
-%                                                                             %
-%                                                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Method ReadMagicConfigureFile reads the magic configuration file which provides
-%  the file header strings for identifying an image format.
-%
-%  The format of the ReadMagicConfigureFile method is:
-%
-%      unsigned int ReadMagicConfigureFile(const char *basename,
-%        const unsigned long depth,ExceptionInfo *exception)
-%
-%  A description of each parameter follows:
-%
-%    o status: Method ReadMagicConfigureFile returns True if loading is successful.
-%
-%    o basename:  The magic configuration filename.
-%
-%    o depth: depth of <include /> statements.
-%
-%    o exception: Return any errors or warnings in this structure.
-%
-%
-*/
-static unsigned int ReadMagicConfigureFile(const char *basename,
-  const unsigned long depth,ExceptionInfo *exception)
-{
-  char
-    keyword[MaxTextExtent],
-    path[MaxTextExtent],
-    *q,
-    *token,
-    *xml;
 
-  size_t
-    length;
-
-  /*
-    Read the magic configure file.
-  */
-  (void) strcpy(path,basename);
-  if (depth == 0)
-    xml=(char *) GetConfigureBlob(basename,path,&length,exception);
-  else
-    xml=(char *) FileToBlob(basename,&length,exception);
-
-  if (exception->severity > UndefinedException)
-    return False;
-
-  token=AllocateString(xml);
-  for (q=xml; *q != '\0'; )
-  {
-    /*
-      Interpret XML.
-    */
-    GetToken(q,&q,token);
-    if (*token == '\0')
-      break;
-    (void) strlcpy(keyword,token,MaxTextExtent);
-    if (LocaleNCompare(keyword,"<!--",4) == 0)
-      {
-        /*
-          Comment element.
-        */
-        while ((LocaleNCompare(q,"->",2) != 0) && (*q != '\0'))
-          GetToken(q,&q,token);
-        continue;
-      }
-    if (LocaleCompare(keyword,"<include") == 0)
-      {
-        /*
-          Include element.
-        */
-        while ((*token != '>') && (*q != '\0'))
-        {
-          (void) strlcpy(keyword,token,MaxTextExtent);
-          GetToken(q,&q,token);
-          if (*token != '=')
-            continue;
-          GetToken(q,&q,token);
-          if (LocaleCompare(keyword,"file") == 0)
-            {
-              if (depth > 200)
-                ThrowException(exception,ConfigureError,IncludeElementNestedTooDeeply,path);
-              else
-                {
-                  char
-                    filename[MaxTextExtent];
-
-                  GetPathComponent(path,HeadPath,filename);
-                  if (*filename != '\0')
-                    (void) strlcat(filename,DirectorySeparator,MaxTextExtent);
-                  (void) strlcat(filename,token,MaxTextExtent);
-                  (void) ReadMagicConfigureFile(filename,depth+1,exception);
-                }
-              if (magic_list != (MagicInfo *) NULL)
-                while (magic_list->next != (MagicInfo *) NULL)
-                  magic_list=magic_list->next;
-            }
-        }
-        continue;
-      }
-    if (LocaleCompare(keyword,"<magic") == 0)
-      {
-        MagicInfo
-          *magic_info;
-
-        /*
-          Allocate memory for the magic list.
-        */
-        magic_info=MagickAllocateMemory(MagicInfo *,sizeof(MagicInfo));
-        if (magic_info == (MagicInfo *) NULL)
-          MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-            UnableToAllocateMagicInfo);
-        (void) memset(magic_info,0,sizeof(MagicInfo));
-        magic_info->path=AcquireString(path);
-        magic_info->signature=MagickSignature;
-        if (magic_list == (MagicInfo *) NULL)
-          {
-            magic_list=magic_info;
-            continue;
-          }
-        magic_list->next=magic_info;
-        magic_info->previous=magic_list;
-        magic_list=magic_list->next;
-        continue;
-      }
-    if (magic_list == (MagicInfo *) NULL)
-      continue;
-    GetToken(q,(char **) NULL,token);
-    if (*token != '=')
-      continue;
-    GetToken(q,&q,token);
-    GetToken(q,&q,token);
-    switch (*keyword)
+  (void) fprintf(file,"Name      Offset Target\n");
+  (void) fprintf(file,"-------------------------------------------------"
+		 "------------------------------\n");
+  for (i=0; i < sizeof(StaticMagic)/sizeof(StaticMagic[0]); i++)
     {
-      case 'N':
-      case 'n':
-      {
-        if (LocaleCompare((char *) keyword,"name") == 0)
-          {
-            magic_list->name=AcquireString(token);
-            break;
-          }
-        break;
-      }
-      case 'O':
-      case 'o':
-      {
-        if (LocaleCompare((char *) keyword,"offset") == 0)
-          {
-            magic_list->offset=atol(token);
-            break;
-          }
-        break;
-      }
-      case 'S':
-      case 's':
-      {
-        if (LocaleCompare((char *) keyword,"stealth") == 0)
-          {
-            magic_list->stealth=LocaleCompare(token,"True") == 0;
-            break;
-          }
-        break;
-      }
-      case 'T':
-      case 't':
-      {
-        if (LocaleCompare((char *) keyword,"target") == 0)
-          {
-            const char
-              *p;
+      register const unsigned char
+	*c;
 
-            register unsigned char
-              *q;
+      (void) fprintf(file,"%.1024s",StaticMagic[i].name);
+      for (j= (unsigned int) strlen(StaticMagic[i].name); j <= 9; j++)
+	(void) fprintf(file," ");
+      (void) fprintf(file,"%6u ",StaticMagic[i].offset);
 
-            magic_list->target=AcquireString(token);
-            magic_list->magic=(unsigned char *) AllocateString(token);
-            q=magic_list->magic;
-            for (p=magic_list->target; *p != '\0'; )
-            {
-              if (*p == '\\')
-                {
-                  p++;
-                  if (isdigit((int) *p))
-                    {
-                      char
-                        *end;
-
-                      *q++=(unsigned char) strtol(p,&end,8);
-                      p+=(end-p);
-                      magic_list->length++;
-                      continue;
-                    }
-                  switch (*p)
-                  {
-                    case 'b': *q='\b'; break;
-                    case 'f': *q='\f'; break;
-                    case 'n': *q='\n'; break;
-                    case 'r': *q='\r'; break;
-                    case 't': *q='\t'; break;
-                    case 'v': *q='\v'; break;
-                    case 'a': *q='a'; break;
-                    case '?': *q='\?'; break;
-                    default: *q=(*p); break;
-                  }
-                  p++;
-                  q++;
-                  magic_list->length++;
-                  continue;
-                }
-              *q++=(*p++);
-              magic_list->length++;
-            }
-            break;
-          }
-        break;
-      }
-      default:
-        break;
+      (void) fprintf(file,"\"");
+      c=StaticMagic[i].magic;
+      for (j=0; j < StaticMagic[i].length; j++)
+	{
+/* 	    else if ('\b' == c[j]) */
+/* 	      (void) fprintf(file,"\\b"); */
+/* 	    else if ('\f' == c[j]) */
+/* 	      (void) fprintf(file,"\\f"); */
+	  if ('\n' == c[j])
+	    (void) fprintf(file,"\\n");
+	  else if ('\r' == c[j])
+	    (void) fprintf(file,"\\r");
+	  else if ('\t' == c[j])
+	      (void) fprintf(file,"\\t");
+/* 	    else if ('\v' == c[j]) */
+/* 	      (void) fprintf(file,"\\v"); */
+/* 	    else if ('\a' == c[j]) */
+/* 	      (void) fprintf(file,"\\a"); */
+	  else if ('\\' == c[j])
+	    (void) fprintf(file,"\\");
+	  else if ('\?' == c[j])
+	    (void) fprintf(file,"\\?");
+	  else if ('"' == c[j])
+	    (void) fprintf(file,"\\\"");
+	  else if (isprint((int) c[j]))
+	    (void) fprintf(file,"%c",(int) c[j]);
+	  else
+	    {
+	      (void) fprintf(file,"\\%03o",c[j]);
+	    }
+	}
+      (void) fprintf(file,"\"\n");
     }
-  }
-  MagickFreeMemory(token);
-  MagickFreeMemory(xml);
-  if (magic_list == (MagicInfo *) NULL)
-    return(False);
-  while (magic_list->previous != (MagicInfo *) NULL)
-    magic_list=magic_list->previous;
-  return(True);
+  (void) fflush(file);
+  return(MagickPass);
 }

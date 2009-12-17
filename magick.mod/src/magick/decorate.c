@@ -138,7 +138,7 @@ MagickExport Image *BorderImage(const Image *image,
 MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
                                ExceptionInfo *exception)
 {
-#define FrameImageText  "[%s] Add frame to image..."
+#define FrameImageText "[%s] Frame: %lux%lu%+ld%+ld bevel inner %ld outer %ld..."
 
   Image
     *frame_image;
@@ -340,7 +340,12 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
         row_count++;
         if (QuantumTick(row_count,image->rows))
           if (!MagickMonitorFormatted(row_count,image->rows,exception,
-                                      FrameImageText,image->filename))
+                                      FrameImageText,image->filename,
+				      frame_info->width,frame_info->height,
+				      frame_info->x,
+				      frame_info->y,
+				      frame_info->inner_bevel,
+				      frame_info->outer_bevel))
             thread_status=MagickFail;
           
         if (thread_status == MagickFail)
@@ -436,7 +441,7 @@ MagickExport Image *FrameImage(const Image *image,const FrameInfo *frame_info,
 #define AccentuateFactor  (double) ScaleCharToQuantum(135)
 #define HighlightFactor  (double) ScaleCharToQuantum(190)
 #define ShadowFactor  (double) ScaleCharToQuantum(190)
-#define RaiseImageText  "[%s] Raise image..."
+#define RaiseImageText  "[%s] Raise..."
 #define TroughFactor  (double) ScaleCharToQuantum(135)
 
 MagickExport MagickPassFail

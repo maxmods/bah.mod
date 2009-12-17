@@ -495,6 +495,18 @@ void Magick::Image::border( const Geometry &geometry_ )
   throwException( exceptionInfo );
 }
 
+// Bake in the ASC-CDL, which is a convention for the for the exchange
+// of basic primary color grading information between for the exchange
+// of basic primary color grading information between equipment and
+// software from different manufacturers.  It is a useful transform
+// for other purposes as well.
+void Magick::Image::cdl ( const std::string &cdl_ )
+{
+  modifyImage();
+  (void) CdlImage( image(), cdl_.c_str() );
+  throwImageException();
+}
+
 // Extract channel from image
 void Magick::Image::channel ( const ChannelType channel_ )
 {
@@ -574,6 +586,16 @@ void Magick::Image::colorize ( const unsigned int opacity_,
 			       const Color &penColor_ )
 {
   colorize( opacity_, opacity_, opacity_, penColor_ );
+}
+
+// Apply a color matrix to the image channels.  The user supplied
+// matrix may be of order 1 to 5 (1x1 through 5x5).
+void Magick::Image::colorMatrix (const unsigned int order_,
+				 const double *color_matrix_)
+{
+  modifyImage();
+  (void) ColorMatrixImage(image(),order_,color_matrix_);
+  throwImageException();
 }
 
 // Compare current image with another image
@@ -1110,6 +1132,14 @@ void Magick::Image::level ( const double black_point,
   (void) LevelImage( image(), levels );
   throwImageException();
 }
+
+// Apply a color lookup table (Hald CLUT) to the image.
+void  Magick::Image::haldClut ( const Image &clutImage_ )
+{
+  modifyImage();
+  (void) HaldClutImage( image(), clutImage_.constImage() );
+  throwImageException();
+}   
 
 // Level image channel. Adjust the levels of the image channel by
 // scaling the values falling between specified white and black points
@@ -2072,6 +2102,7 @@ unsigned int Magick::Image::animationIterations ( void ) const
 void Magick::Image::attribute ( const std::string name_,
                                 const std::string value_ )
 {
+  modifyImage();
   SetImageAttribute( image(), name_.c_str(), value_.c_str() );
 }
 std::string Magick::Image::attribute ( const std::string name_ )

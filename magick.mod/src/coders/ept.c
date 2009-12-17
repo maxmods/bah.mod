@@ -153,9 +153,6 @@ static Image *ReadEPTImage(const ImageInfo *image_info,
     *image,
     *next_image;
 
-  ImageInfo
-    *clone_info;
-
   int
     c,
     status;
@@ -355,7 +352,7 @@ static Image *ReadEPTImage(const ImageInfo *image_info,
   }
   (void) MagickMonitorFormatted(0,8,&image->exception,RenderPostscriptText,
                                 image->filename);
-  status=InvokePostscriptDelegate(image_info->verbose,command);
+  status=InvokePostscriptDelegate(image_info->verbose,command,exception);
   if (!IsAccessibleAndNotEmpty(image_info->filename))
     {
       /*
@@ -363,48 +360,59 @@ static Image *ReadEPTImage(const ImageInfo *image_info,
       */
       file=fopen(postscript_filename,"ab");
       if (file == (FILE *) NULL)
-        ThrowReaderException(FileOpenError,UnableToWriteFile,image);
+        {
+          (void) LiberateTemporaryFile((char *) image_info->filename);
+          ThrowReaderException(FileOpenError,UnableToWriteFile,image);
+        }
       (void) fputs("showpage\n",file);
       (void) fclose(file);
-       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                             "Invoking Postscript delegate ...");
-      status=InvokePostscriptDelegate(image_info->verbose,command);
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                            "Returned from Postscript delegate (status=%d) ...", status);
+      status=InvokePostscriptDelegate(image_info->verbose,command,exception);
     }
   (void) LiberateTemporaryFile(postscript_filename);
   (void) MagickMonitorFormatted(7,8,&image->exception,RenderPostscriptText,
                                 image->filename);
-  if (!IsAccessibleAndNotEmpty(image_info->filename))
+  if (IsAccessibleAndNotEmpty(image_info->filename))
+    {
+      /*
+	Read Ghostscript output.
+      */
+      ImageInfo
+	*clone_info;
+
+      clone_info=CloneImageInfo(image_info);
+      clone_info->blob=(void *) NULL;
+      clone_info->length=0;
+      clone_info->magick[0]='\0';
+      image=ReadImage(clone_info,exception);
+      DestroyImageInfo(clone_info);
+    }
+  (void) LiberateTemporaryFile((char *) image_info->filename);
+#if defined(HasDPS)
+  if (image == (Image *) NULL)
     {
       /*
         Ghostscript has failed-- try the Display Postscript Extension.
       */
       (void) FormatString((char *) image_info->filename,"dps:%.1024s",filename);
       image=ReadImage(image_info,exception);
-      if (image != (Image *) NULL)
-        return(image);
-      ThrowReaderException(DelegateError,PostscriptDelegateFailed,image)
     }
-  clone_info=CloneImageInfo(image_info);
-  clone_info->blob=(void *) NULL;
-  clone_info->length=0;
-  clone_info->magick[0]='\0';
-  image=ReadImage(clone_info,exception);
-  DestroyImageInfo(clone_info);
-  (void) LiberateTemporaryFile((char *) image_info->filename);
+#endif /* defined(HasDPS) */
   if (image == (Image *) NULL)
-    ThrowReaderException(DelegateError,PostscriptDelegateFailed,image);
-  do
-  {
-    (void) strcpy(image->magick,"PS");
-    (void) strlcpy(image->filename,filename,MaxTextExtent);
-    next_image=SyncNextImageInList(image);
-    if (next_image != (Image *) NULL)
-      image=next_image;
-  } while (next_image != (Image *) NULL);
-  while (image->previous != (Image *) NULL)
-    image=image->previous;
+    if (UndefinedException == exception->severity)
+      ThrowException(exception,DelegateError,PostscriptDelegateFailed,filename);
+  if (image != (Image *) NULL)
+    {
+      do
+	{
+	  (void) strcpy(image->magick,"PS");
+	  (void) strlcpy(image->filename,filename,MaxTextExtent);
+	  next_image=SyncNextImageInList(image);
+	  if (next_image != (Image *) NULL)
+	    image=next_image;
+	} while (next_image != (Image *) NULL);
+      while (image->previous != (Image *) NULL)
+	image=image->previous;
+    }
   return(image);
 }
 

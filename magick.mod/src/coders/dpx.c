@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2005 GraphicsMagick Group
+% Copyright (C) 2005-2009 GraphicsMagick Group
 %
 % This program is covered by multiple licenses, which are described in
 % Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -125,7 +125,6 @@
 #include "magick/blob.h"
 #include "magick/bit_stream.h"
 #include "magick/pixel_cache.h"
-#include "magick/color.h"
 #include "magick/constitute.h"
 #include "magick/enum_strings.h"
 #include "magick/magick_endian.h"
@@ -137,15 +136,6 @@
 #include "magick/resize.h"
 #include "magick/utility.h"
 #include "magick/version.h"
-
-/*
-  While OpenMP has been observed to provide considerable speed-ups
-  when repetitively reading a few files (which become cached), it is
-  observed to slow the bulk processing of many files (showing high
-  lock occupancy) so it is always disabled for the moment.
-*/
-#undef DisableSlowOpenMP
-#define DisableSlowOpenMP 1
 
 /*
   Define STATIC to nothing so that normally static functions are
@@ -164,29 +154,23 @@ typedef char ASCII;
 typedef magick_uint8_t U8;
 typedef magick_uint16_t U16;
 typedef magick_uint32_t U32;
-typedef float R32;
-typedef magick_uint16_t sample_t;
-
-/*
-  Union to allow R32 to be accessed as an unsigned U32 type for "unset
-  value" access.
-*/
 typedef union _R32_u
 {
-  U32   u;
-  R32   f;
-} R32_u;
+  magick_uint32_t u;
+  float f;
+} R32;
+typedef magick_uint16_t sample_t;
 
 #define SET_UNDEFINED_U8(value)  (value=0xFFU)
 #define SET_UNDEFINED_U16(value) (value=0xFFFFU)
 #define SET_UNDEFINED_U32(value) (value=0xFFFFFFFFU)
-#define SET_UNDEFINED_R32(value) (((R32_u*) &value)->u=~0U);
+#define SET_UNDEFINED_R32(value) (value.u=~0U);
 #define SET_UNDEFINED_ASCII(value) ((void) memset(value,0,sizeof(value)))
 
 #define IS_UNDEFINED_U8(value) (value == ((U8) 0xFFU))
 #define IS_UNDEFINED_U16(value) (value == ((U16) 0xFFFFU))
 #define IS_UNDEFINED_U32(value) (value == ((U32) 0xFFFFFFFFU))
-#define IS_UNDEFINED_R32(value) (((R32_u*) &value)->u == ((U32) ~0U))
+#define IS_UNDEFINED_R32(value) (value.u == ((U32) ~0U))
 #define IS_UNDEFINED_ASCII(value) (!(value[0] > 0))
 
 /*
@@ -554,7 +538,7 @@ STATIC unsigned int IsDPX(const unsigned char *magick,const size_t length)
 \
   if (!IS_UNDEFINED_R32(member)) \
     { \
-      FormatString(buffer_,"%g",member); \
+      FormatString(buffer_,"%g",member.f); \
       (void) SetImageAttribute(image,name,buffer_); \
       LogSetImageAttribute(name,buffer_); \
     } \
@@ -583,9 +567,9 @@ STATIC void SwabDPXImageInfo(DPXImageInfo *image_info)
     {
       MagickSwabUInt32(&image_info->element_info[i].data_sign);
       MagickSwabUInt32(&image_info->element_info[i].reference_low_data_code);
-      MagickSwabFloat(&image_info->element_info[i].reference_low_quantity);
+      MagickSwabFloat(&image_info->element_info[i].reference_low_quantity.f);
       MagickSwabUInt32(&image_info->element_info[i].reference_high_data_code);
-      MagickSwabFloat(&image_info->element_info[i].reference_high_quantity);
+      MagickSwabFloat(&image_info->element_info[i].reference_high_quantity.f);
       MagickSwabUInt16(&image_info->element_info[i].packing);
       MagickSwabUInt16(&image_info->element_info[i].encoding);
       MagickSwabUInt32(&image_info->element_info[i].data_offset);
@@ -597,8 +581,8 @@ STATIC void SwabDPXImageSourceInfo(DPXImageSourceInfo *source_info)
 {
   MagickSwabUInt32(&source_info->x_offset);
   MagickSwabUInt32(&source_info->y_offset);
-  MagickSwabFloat(&source_info->x_center);
-  MagickSwabFloat(&source_info->y_center);
+  MagickSwabFloat(&source_info->x_center.f);
+  MagickSwabFloat(&source_info->y_center.f);
   MagickSwabUInt32(&source_info->x_original_size);
   MagickSwabUInt32(&source_info->y_original_size);
   MagickSwabUInt16(&source_info->border_validity.XL);
@@ -607,31 +591,31 @@ STATIC void SwabDPXImageSourceInfo(DPXImageSourceInfo *source_info)
   MagickSwabUInt16(&source_info->border_validity.YB);
   MagickSwabUInt32(&source_info->aspect_ratio.horizontal);
   MagickSwabUInt32(&source_info->aspect_ratio.vertical);
-  MagickSwabFloat(&source_info->x_scanned_size);
-  MagickSwabFloat(&source_info->y_scanned_size);
+  MagickSwabFloat(&source_info->x_scanned_size.f);
+  MagickSwabFloat(&source_info->y_scanned_size.f);
 }
 STATIC void SwabDPXMPFilmInfo(DPXMPFilmInfo *mp_info)
 {
   MagickSwabUInt32(&mp_info->frame_position);
   MagickSwabUInt32(&mp_info->sequence_length);
   MagickSwabUInt32(&mp_info->held_count);
-  MagickSwabFloat(&mp_info->frame_rate);
-  MagickSwabFloat(&mp_info->shutter_angle);
+  MagickSwabFloat(&mp_info->frame_rate.f);
+  MagickSwabFloat(&mp_info->shutter_angle.f);
 }
 STATIC void SwabDPXTVInfo(DPXTVInfo *tv_info)
 {
   MagickSwabUInt32(&tv_info->time_code);
   MagickSwabUInt32(&tv_info->user_bits);
-  MagickSwabFloat(&tv_info->horizontal_sample);
-  MagickSwabFloat(&tv_info->vertical_sample);
-  MagickSwabFloat(&tv_info->temporal_sample);
-  MagickSwabFloat(&tv_info->sync_time);
-  MagickSwabFloat(&tv_info->gamma);
-  MagickSwabFloat(&tv_info->black_level);
-  MagickSwabFloat(&tv_info->black_gain);
-  MagickSwabFloat(&tv_info->breakpoint);
-  MagickSwabFloat(&tv_info->white_level);
-  MagickSwabFloat(&tv_info->integration_time);
+  MagickSwabFloat(&tv_info->horizontal_sample.f);
+  MagickSwabFloat(&tv_info->vertical_sample.f);
+  MagickSwabFloat(&tv_info->temporal_sample.f);
+  MagickSwabFloat(&tv_info->sync_time.f);
+  MagickSwabFloat(&tv_info->gamma.f);
+  MagickSwabFloat(&tv_info->black_level.f);
+  MagickSwabFloat(&tv_info->black_gain.f);
+  MagickSwabFloat(&tv_info->breakpoint.f);
+  MagickSwabFloat(&tv_info->white_level.f);
+  MagickSwabFloat(&tv_info->integration_time.f);
 }
 STATIC void SMPTEBitsToString(const U32 value, char *str)
 {
@@ -986,12 +970,12 @@ STATIC void DescribeDPXImageElement(const DPXImageElement *element_info,
                         "Element %u: reference_low_data_code=%u reference_low_quantity=%g",
                         element,
                         element_info->reference_low_data_code,
-                        element_info->reference_low_quantity);
+                        element_info->reference_low_quantity.f);
   (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                         "Element %u: reference_high_data_code=%u reference_high_quantity=%g",
                         element,
                         element_info->reference_high_data_code,
-                        element_info->reference_high_quantity);
+                        element_info->reference_high_quantity.f);
   (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                         "Element %u: descriptor=%s(%u) transfer_characteristic=%s(%u) colorimetric=%s(%u)",
                         element,
@@ -1217,8 +1201,8 @@ DPXOrientationToOrientationType(const unsigned int orientation)
 /*
   Scale from a video level to a full-range level.
 */
-STATIC inline Quantum ScaleFromVideo(const unsigned int sample,
-                                     const unsigned int ref_low,
+STATIC inline Quantum ScaleFromVideo(const double sample,
+                                     const double ref_low,
                                      const double upscale)
 {
   double
@@ -2204,15 +2188,16 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
       samples_per_pixel=DPXSamplesPerPixel(element_descriptor);
       if (samples_per_pixel != 0)
         {
-          unsigned int
-            max_value_given_bits = MaxValueGivenBits(bits_per_sample),
-            reference_low = 0,
-            reference_high = max_value_given_bits,
-            scale_to_short;             /* multiplier to scale to 16-bits */
+	  double
+            max_value,
+	    reference_low,
+	    reference_high,
+	    scale_to_quantum;           /* multiplier to scale to Quantum */
 
-          scale_to_short=1U;
-          if (bits_per_sample < 16U)
-            scale_to_short=(65535U / (65535U >> (16-bits_per_sample)));
+	  max_value = (double) MaxValueGivenBits(bits_per_sample);
+	  reference_low = 0.0;
+	  reference_high = max_value;
+	  scale_to_quantum=MaxRGBDouble/max_value;
 
           /*
             Is this a video type space?
@@ -2230,33 +2215,33 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 8 bit ==> Luma 16 to 235
                 10 bit ==> Luma 64 to 940
               */
-              reference_low = (((double) max_value_given_bits+1) * (64.0/1024.0));
-              reference_high = (((double) max_value_given_bits+1) * (940.0/1024.0));
+              reference_low = ((max_value+1.0) * (64.0/1024.0));
+              reference_high = ((max_value+1.0) * (940.0/1024.0));
               
               if (!IS_UNDEFINED_U32(dpx_image_info.element_info[element].reference_low_data_code))
                 reference_low=dpx_image_info.element_info[element].reference_low_data_code;
               if ((definition_value=AccessDefinition(image_info,"dpx","reference-low")))
-                reference_low=strtol(definition_value, (char **)NULL, 10);
+                reference_low=(double) strtol(definition_value, (char **)NULL, 10);
               
               if (!IS_UNDEFINED_U32(dpx_image_info.element_info[element].reference_high_data_code))
                 reference_high=dpx_image_info.element_info[element].reference_high_data_code;
               if ((definition_value=AccessDefinition(image_info,"dpx","reference-high")))
-                reference_high=strtol(definition_value, (char **)NULL, 10);
+                reference_high=(double) strtol(definition_value, (char **)NULL, 10);
               
-              ScaleY = (((double) max_value_given_bits+1.0)/(reference_high-reference_low));
+              ScaleY = ((max_value+1.0)/(reference_high-reference_low));
               ScaleCbCr = ScaleY*((940.0-64.0)/(960.0-64.0));
-              reference_low=ScaleShortToQuantum(reference_low*scale_to_short);
+	      reference_low=reference_low*scale_to_quantum;
 
-              for(i=0; i <= max_value_given_bits; i++)
+              for(i=0; i <= (unsigned long) max_value; i++)
                 {
-                  map_Y[i] = ScaleFromVideo(ScaleShortToQuantum(i*scale_to_short),reference_low,ScaleY);
-                  map_CbCr[i] = ScaleFromVideo(ScaleShortToQuantum(i*scale_to_short),reference_low,ScaleCbCr);
+                  map_Y[i] = ScaleFromVideo(i*scale_to_quantum,reference_low,ScaleY);
+                  map_CbCr[i] = ScaleFromVideo(i*scale_to_quantum,reference_low,ScaleCbCr);
                 }
             }
           else
             {
-              for(i=0; i <= max_value_given_bits; i++)
-                map_Y[i]=ScaleShortToQuantum(i*scale_to_short);
+              for(i=0; i <= (unsigned long) max_value; i++)
+		map_Y[i]=scale_to_quantum*i+0.5;
             }
 
           /*
@@ -2294,7 +2279,7 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
             Read element data.
           */
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,1)
+#  pragma omp parallel for schedule(static,1)
 #endif
           for (y=0; y < (long) image->rows; y++)
             {
@@ -2348,7 +2333,8 @@ STATIC Image *ReadDPXImage(const ImageInfo *image_info,ExceptionInfo *exception)
                   row_count++;
                   if (QuantumTick(thread_row_count,image->rows))
                     if (!MagickMonitorFormatted(thread_row_count,image->rows,exception,
-                                                LoadImageText,image->filename))
+                                                LoadImageText,image->filename,
+						image->columns,image->rows))
                       thread_status=MagickFail;
                 }
                   
@@ -3228,9 +3214,9 @@ STATIC void WriteRowSamples(const sample_t *samples,
     *definition_value_; \
 \
   if ((definition_value_=AccessDefinition(image_info,"dpx",key+4))) \
-    member=(R32) strtod(definition_value_, (char **) NULL); \
+    member.f=strtod(definition_value_, (char **) NULL); \
   else if ((attribute_=GetImageAttribute(image,key))) \
-    member=(R32) strtod(attribute_->value, (char **) NULL); \
+    member.f=strtod(attribute_->value, (char **) NULL);	\
   else \
     SET_UNDEFINED_R32(member); \
 }
@@ -3255,12 +3241,6 @@ STATIC void WriteRowSamples(const sample_t *samples,
   else \
     SET_UNDEFINED_ASCII(member); \
 }
-
-/*
-  Scale a value to video levels.
-*/
-#define ScaleToVideo(sample,ref_low,dnscale) \
-  ((unsigned int) (((double) sample*dnscale)+ref_low+0.5))
 
 /*
   Round an offset up to specified offset boundary.
@@ -3333,7 +3313,6 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
     samples_per_component,
     samples_per_pixel,
     samples_per_row,
-    scale_from_short,
     status;
 
   MagickBool
@@ -3637,8 +3616,8 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
       dpx_image_info.element_info[0].reference_low_data_code=0;
       dpx_image_info.element_info[0].reference_high_data_code=
         MaxValueGivenBits(bits_per_sample);
-      dpx_image_info.element_info[0].reference_low_quantity=0.00F;
-      dpx_image_info.element_info[0].reference_high_quantity=2.047F;
+      dpx_image_info.element_info[0].reference_low_quantity.f=0.00F;
+      dpx_image_info.element_info[0].reference_high_quantity.f=2.047F;
     }
   else if ((transfer_characteristic == TransferCharacteristicUnspecifiedVideo) ||
            (transfer_characteristic == TransferCharacteristicSMTPE274M) ||
@@ -3683,8 +3662,8 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
         (U32) (max_value_given_bits * (16.0/255.0) + 0.5);
       dpx_image_info.element_info[0].reference_high_data_code=       /* 235 for 8 bits */
         (U32) (max_value_given_bits * (235.0/255.0) + 0.5);
-      dpx_image_info.element_info[0].reference_low_quantity=0.00F;   /* 0mv */
-      dpx_image_info.element_info[0].reference_high_quantity=0.700F; /* 700mv */
+      dpx_image_info.element_info[0].reference_low_quantity.f=0.00F;   /* 0mv */
+      dpx_image_info.element_info[0].reference_high_quantity.f=0.700F; /* 700mv */
     }
   else if (transfer_characteristic == TransferCharacteristicLinear)
     {
@@ -4039,10 +4018,6 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
       MagickBool
         swap_word_datums = MagickFalse;
 
-      unsigned int
-        max_value_given_bits = MaxValueGivenBits(bits_per_sample),
-        reference_low = 0,
-        reference_high = max_value_given_bits;
 
       if (BlobIsSeekable(image))
         {
@@ -4058,36 +4033,46 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
       DescribeDPXImageElement(&dpx_image_info.element_info[element],element+1);
 
       bits_per_sample=dpx_image_info.element_info[element].bits_per_sample;
-      transfer_characteristic=(DPXTransferCharacteristic) dpx_image_info.element_info[element].transfer_characteristic;
+      transfer_characteristic=(DPXTransferCharacteristic)
+	dpx_image_info.element_info[element].transfer_characteristic;
 
-      scale_from_short=1U;
-      if (bits_per_sample < 16U)
-        scale_from_short=(65535U / (65535U >> (16-bits_per_sample)));
+      {
+	double
+	  max_value,
+	  reference_low,
+	  reference_high,
+	  scale_from_maxmap;           /* multiplier to scale from MaxMap */
 
-      if ((transfer_characteristic == TransferCharacteristicITU_R709) ||
-          (transfer_characteristic == TransferCharacteristicITU_R601_625L) ||
-          (transfer_characteristic == TransferCharacteristicITU_R601_525L))
-        {
-          double
-            ScaleY = 0.0,
-            ScaleCbCr = 0.0;
+	max_value = (double) MaxValueGivenBits(bits_per_sample);
+	reference_low = 0.0;
+	reference_high = max_value;
+	scale_from_maxmap=max_value/((double) MaxMap);
 
-          reference_low = (((double) MaxRGB+1)*(64.0/1024.0));
-          reference_high = (((double) MaxRGB+1)*(940.0/1024.0));
-          ScaleY = ((double) reference_high-reference_low)/((double) MaxRGB+1);
-          ScaleCbCr = ScaleY*((960.0-64.0)/(940.0-64.0));
+	if ((transfer_characteristic == TransferCharacteristicITU_R709) ||
+	    (transfer_characteristic == TransferCharacteristicITU_R601_625L) ||
+	    (transfer_characteristic == TransferCharacteristicITU_R601_525L))
+	  {
+	    double
+	      ScaleY = 0.0,
+	      ScaleCbCr = 0.0;
 
-          for (i=0; i <= MaxMap ; i++)
-            {
-              map_Y[i]=ScaleQuantumToShort(ScaleToVideo(i,reference_low,ScaleY))/scale_from_short;
-              map_CbCr[i]=ScaleQuantumToShort(ScaleToVideo(i,reference_low,ScaleCbCr))/scale_from_short;
-            }
-        }
-      else
-        {
-          for (i=0; i <= MaxMap ; i++)
-            map_Y[i]=ScaleQuantumToShort(i)/scale_from_short;
-        }
+	    reference_low = ((MaxRGBDouble+1.0)*(64.0/1024.0));
+	    reference_high = ((MaxRGBDouble+1.0)*(940.0/1024.0));
+	    ScaleY = (reference_high-reference_low)/(MaxRGBDouble+1.0);
+	    ScaleCbCr = ScaleY*((960.0-64.0)/(940.0-64.0));
+
+	    for (i=0; i <= MaxMap ; i++)
+	      {
+		map_Y[i]=(i*ScaleY+reference_low)*scale_from_maxmap+0.5;
+		map_CbCr[i]=(i*ScaleCbCr+reference_low)*scale_from_maxmap+0.5;
+	      }
+	  }
+	else
+	  {
+	    for (i=0; i <= MaxMap ; i++)
+	      map_Y[i]=i*scale_from_maxmap+0.5;
+	  }
+      }
 
       element_descriptor=(DPXImageElementDescriptor)
         dpx_image_info.element_info[element].descriptor;
@@ -4328,29 +4313,6 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
               break;
             }
 
-#if 0
-          /*
-            Scale samples.
-          */
-          samples_itr=samples;
-          if (bits_per_sample == 1)
-            {
-              for (i=samples_per_row; i != 0; i--)
-                {
-                  *samples_itr=(*samples_itr > MaxRGB/2) ? 1 : 0;
-                  samples_itr++;
-                }
-            }
-          else
-            {
-              for (i=samples_per_row; i != 0; i--)
-                {
-                  *samples_itr=ScaleQuantumToShort(*samples_itr)/scale_from_short;
-                  samples_itr++;
-                }
-            }
-#endif
-
           /*
             FIXME: RLE samples.
           */
@@ -4368,7 +4330,8 @@ STATIC unsigned int WriteDPXImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
     }

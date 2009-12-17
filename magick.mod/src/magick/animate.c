@@ -194,7 +194,7 @@ static Image *MagickXMagickCommand(Display *display,MagickXResourceInfo *resourc
           continue;
         (void) SetMonitorHandler(handler);
         if (!MagickMonitorFormatted(i,number_files,&image->exception,
-                                    LoadImageText,image->filename))
+                                    LoadImagesText,image->filename))
           break;
       }
       DestroyExceptionInfo(&exception);
@@ -915,8 +915,12 @@ MagickExport void MagickXAnimateBackgroundImage(Display *display,
 %
 %
 */
-MagickExport Image *MagickXAnimateImages(Display *display,
-  MagickXResourceInfo *resource_info,char **argv,const int argc,Image *images)
+MagickExport Image *
+MagickXAnimateImages(Display *display,
+		     MagickXResourceInfo *resource_info,
+		     char *argv[],
+		     const int argc,
+		     Image *images)
 {
 #define MagickMenus  4
 #define MaxWindows  8

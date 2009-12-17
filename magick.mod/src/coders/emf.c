@@ -89,8 +89,7 @@
 static HENHMETAFILE ReadEnhMetaFile(const char *szFileName,long *width,
   long *height)
 {
-#pragma pack( push )
-#pragma pack( 2 )
+#pragma pack( push, 2 )
   typedef struct
   {
     DWORD dwKey;

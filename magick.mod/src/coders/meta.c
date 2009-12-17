@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -1094,14 +1094,14 @@ static Image *ReadMETAImage(const ImageInfo *image_info,
             (void) WriteBlobByte(buff,c);
           }
         }
-
+      blob=GetBlobStreamData(buff);
+      length=GetBlobSize(buff);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                             "Store IPTC profile, size %lu bytes",
-                            (unsigned long) GetBlobSize(buff));
-      (void) SetImageProfile(image,"IPTC",GetBlobStreamData(buff),
-                             GetBlobSize(buff));
-      /* MagickFreeMemory(blob); */
+                            (unsigned long) length);
+      (void) SetImageProfile(image,"IPTC",blob,length);
       DetachBlob(buff->blob);
+      MagickFreeMemory(blob);
       DestroyImage(buff);
     }
   if (LocaleNCompare(image_info->magick,"APP1",4) == 0)
@@ -1208,13 +1208,14 @@ static Image *ReadMETAImage(const ImageInfo *image_info,
             }
 #endif
         }
+      blob=GetBlobStreamData(buff);
+      length=GetBlobSize(buff);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                             "Store APP1 profile, size %lu bytes",
-                            (unsigned long) GetBlobSize(buff));
-      (void) SetImageProfile(image,"APP1",GetBlobStreamData(buff),
-                             GetBlobSize(buff));
-      /* MagickFreeMemory(blob); */
+                            (unsigned long) length);
+      (void) SetImageProfile(image,"APP1",blob,length);
       DetachBlob(buff->blob);
+      MagickFreeMemory(blob);
       DestroyImage(buff);
     }
   if ((LocaleCompare(image_info->magick,"ICC") == 0) ||
@@ -1238,13 +1239,14 @@ static Image *ReadMETAImage(const ImageInfo *image_info,
           break;
         (void) WriteBlobByte(buff,c);
       }
+      blob=GetBlobStreamData(buff);
+      length=GetBlobSize(buff);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                             "Store ICM profile, size %lu bytes",
-                            (unsigned long) GetBlobSize(buff));
-      (void) SetImageProfile(image,"ICM",GetBlobStreamData(buff),
-                             GetBlobSize(buff));
-      /* MagickFreeMemory(blob); */
+                            (unsigned long) length);
+      (void) SetImageProfile(image,"ICM",blob,length);
       DetachBlob(buff->blob);
+      MagickFreeMemory(blob);
 
       DestroyImage(buff);
     }
@@ -1287,14 +1289,14 @@ static Image *ReadMETAImage(const ImageInfo *image_info,
       length=GetBlobSize(buff)-12;
       blob[10]=length >> 8;
       blob[11]=length & 0xff;
-
+      blob=GetBlobStreamData(buff);
+      length=GetBlobSize(buff);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                             "Store IPTC profile, size %lu bytes",
-                            (unsigned long) GetBlobSize(buff));
-      (void) SetImageProfile(image,"IPTC",GetBlobStreamData(buff),
-                             GetBlobSize(buff));
-      /* MagickFreeMemory(blob) */
+                            (unsigned long) length);
+      (void) SetImageProfile(image,"IPTC",blob,length);
       DetachBlob(buff->blob);
+      MagickFreeMemory(blob)
       DestroyImage(buff);
     }
   CloseBlob(image);
@@ -1539,11 +1541,65 @@ static long GetIPTCStream(const unsigned char *blob, size_t blob_length, size_t 
     marker;
 
   unsigned long
-    tag_length;
+    tag_length,
+    blob_remaining;
+    
+  p=blob;
+  blob_remaining=blob_length;
+  if ((*p == 0x1c) && (*(p+1) == 0x02))
+    {
+      /* This looks like a plain IPTC record 2 block so drop through */
+      *offset=0;
+      return blob_length;
+    }
 
-  /*
-    Find the beginning of the IPTC info.
-  */
+  /* Scan in case we are in an 8BIM block */
+  while (blob_remaining >= 12)
+  {
+    /* Check for 8BIM string ID */
+    if (strncmp((const char*)p,"8BIM",4)) break;
+    p+=4;
+    blob_remaining -= 4;
+
+    /* Read marker ID */
+    marker=(unsigned int)(*p) << 8 | *(p+1);
+    p+=2;
+    blob_remaining-=2;
+
+    /* Read length of Pascal style description string */
+    c=*p++;
+    blob_remaining--;
+    /* ...allow for possible padding byte */
+    c |= 1;
+    /* ...and skip the string data */
+    if (c >= blob_remaining) break;
+    p+=c;
+    blob_remaining-=c;
+      
+    /* Read data length */
+    if (blob_remaining < 4) break;
+    tag_length=(((unsigned long)*p) << 24) | (((unsigned long)*(p+1)) << 16) |
+               (((unsigned long)*(p+2)) << 8) | ((unsigned long)*(p+3));
+    p+=4;
+    blob_remaining-=4;
+    if (tag_length > blob_remaining) break;
+    /* Check whether we have the IPTC tag data */
+    if (marker == IPTC_ID)
+      {
+        /* All looks good so return IPTC block "as is" */
+        *offset=(unsigned long)(p-blob);
+        return tag_length;
+      }
+
+    /* Allow for padding of data to even size */
+    if (tag_length & 1) tag_length++;
+
+    /* Skip unwanted data */
+    p+=tag_length;
+    blob_remaining-=tag_length;
+  }
+  
+  /* Find the beginning of the IPTC info */
   p=blob;
   tag_length=0;
 iptc_find:

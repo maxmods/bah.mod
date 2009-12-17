@@ -43,12 +43,15 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/bit_stream.h"
 #include "magick/blob.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/delegate.h"
+#include "magick/describe.h"
 #include "magick/enum_strings.h"
 #include "magick/log.h"
 #include "magick/magick.h"
@@ -66,7 +69,7 @@ typedef enum
   BlueMapQuanum,
   GreenMapQuantum,
   IntensityMapQuantum,
-  OpacityInvertedMapQuantum,
+  TransparencyMapQuantum,
   PadMapQuantum,
   RedMapQuantum,
   OpacityMapQuantum
@@ -75,10 +78,10 @@ typedef enum
 typedef enum {
   UndefinedDispatchType,
   BGRDispatchType,
-  BGRODispatchType,
+  BGRADispatchType,
   BGRPDispatchType,
   RGBDispatchType,
-  RGBODispatchType,
+  RGBADispatchType,
   IDispatchType
 } DispatchType;
 
@@ -1478,7 +1481,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
     y;
 
   PixelPacket
-    *q;
+    * restrict q;
 
   register Quantum
     quantum;
@@ -1487,7 +1490,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
     switch_map[MaxTextExtent/sizeof(MapQuantumType)];
 
   register IndexPacket
-    *indexes;
+    * restrict indexes;
 
   register long
     i,
@@ -1502,7 +1505,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
   assert(pixels != (void *) NULL);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   image=AllocateImage((ImageInfo *) NULL);
   if (image == (Image *) NULL)
     return((Image *) NULL);
@@ -1521,15 +1524,15 @@ MagickExport Image *ConstituteImage(const unsigned long width,
         dispatch_type=UndefinedDispatchType;
 
       if (LocaleCompare(map,"BGR") == 0)
-        dispatch_type=BGRDispatchType;
-      else if (LocaleCompare(map,"BGRO") == 0)
-        dispatch_type=BGRODispatchType;
+	dispatch_type=BGRDispatchType;
+      else if (LocaleCompare(map,"BGRA") == 0)
+	dispatch_type=BGRADispatchType;
       else if (LocaleCompare(map,"BGRP") == 0)
-        dispatch_type=BGRPDispatchType;
+	dispatch_type=BGRPDispatchType;
       else if (LocaleCompare(map,"RGB") == 0)
-        dispatch_type=RGBDispatchType;
-      else if (LocaleCompare(map,"RGBO") == 0)
-        dispatch_type=RGBODispatchType;
+	dispatch_type=RGBDispatchType;
+      else if (LocaleCompare(map,"RGBA") == 0)
+	dispatch_type=RGBADispatchType;
       else if (LocaleCompare(map,"I") == 0)
         {
           if (!AllocateImageColormap(image,MaxColormapSize))
@@ -1541,7 +1544,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
       if (dispatch_type != UndefinedDispatchType)
         {
           register const unsigned char
-            *p = (const unsigned char*) pixels;
+            * restrict p = (const unsigned char*) pixels;
 
           for (y=0; y < (long) image->rows; y++)
             {
@@ -1564,8 +1567,9 @@ MagickExport Image *ConstituteImage(const unsigned long width,
                       }
                     break;
                   }
-                case BGRODispatchType:
-                  { 
+                case BGRADispatchType:
+                  {
+		    image->matte=True;
                     for (x=(long) image->columns; x != 0; x--)
                       {
                         SetBlueSample(q,ScaleCharToQuantum(*p++));
@@ -1601,8 +1605,9 @@ MagickExport Image *ConstituteImage(const unsigned long width,
                       }
                     break;
                   }
-                case RGBODispatchType:
+                case RGBADispatchType:
                   {
+		    image->matte=True;
                     for (x=(long) image->columns; x != 0; x--)
                       {
                         SetRedSample(q,ScaleCharToQuantum(*p++));
@@ -1668,7 +1673,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
           }
         case 'A':
           {
-            switch_map[i]=OpacityMapQuantum;
+            switch_map[i]=TransparencyMapQuantum;
             image->matte=True;
             break;
           }
@@ -1706,7 +1711,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
           }
         case 'O':
           {
-            switch_map[i]=OpacityInvertedMapQuantum;
+            switch_map[i]=OpacityMapQuantum;
             image->matte=True;
             break;
           }
@@ -1717,7 +1722,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
           }
         case 'T':
           {
-            switch_map[i]=OpacityMapQuantum;
+            switch_map[i]=TransparencyMapQuantum;
             image->matte=True;
             break;
           }
@@ -1834,7 +1839,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
                     SetOpacitySample(q,quantum);
                     break;
                   }
-                case OpacityInvertedMapQuantum:
+                case TransparencyMapQuantum:
                   {
                     SetOpacitySample(q,MaxRGB-quantum);
                     break;
@@ -1894,167 +1899,7 @@ MagickExport Image *ConstituteImage(const unsigned long width,
 */
 MagickExport void DestroyConstitute(void)
 {
-#if defined(JUST_FOR_DOCUMENTATION)
-  /* The first two calls should bracket any code that deals with the data
-     structurees being released */
-  AcquireSemaphoreInfo(&constitute_semaphore);
-  LiberateSemaphoreInfo(&constitute_semaphore);
-#endif
-  /* The final call actually releases the associated mutex used to prevent
-     multiple threads from accessing the data */
   DestroySemaphoreInfo(&constitute_semaphore);
-}
-
-/*
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                             %
-%                                                                             %
-%     C o n s t i t u t e T e x t u r e I m a g e                             %
-%                                                                             %
-%                                                                             %
-%                                                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  ConstituteTextureImage() returns a new image canvas based on repeatedly
-%  tiling the texture image across and down the new image canvas.  The
-%  returned image properties are similar to the texture image properties.
-%
-%  The format of the TextureImage method is:
-%
-%      Image *ConstituteTextureImage(unsigned long columns,unsigned long rows,
-%                              const Image *texture, ExceptionInfo *exception)
-%
-%  A description of each parameter follows:
-%
-%    o columns: The number of columns in the new image.
-%
-%    o rows: The number of rows in the new image.
-%
-%    o texture: The texture image to layer on the background.
-%
-%    o exceptions: Any errors are reported here.
-%
-*/
-#define ConstituteTextureImageText  "[%s] Generate image texture...  "
-MagickExport Image *ConstituteTextureImage(const unsigned long columns,
-                                           const unsigned long rows,
-                                           const Image *texture_image,
-                                           ExceptionInfo *exception)
-{
-  Image
-    *canvas_image;
-
-  long
-    y;
-
-  unsigned long
-    row_count=0;
-
-  MagickPassFail
-    status=MagickPass;
-
-  assert(texture_image != (Image *) NULL);
-  assert(texture_image->signature == MagickSignature);
-
-  canvas_image=CloneImage(texture_image,columns,rows,MagickTrue,exception);
-  if (canvas_image == (Image *) NULL)
-    return canvas_image;
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
-#endif
-  for (y=0; y < (long) canvas_image->rows; y++)
-    {
-      const PixelPacket
-        *texture_pixels;
-
-      PixelPacket
-        *canvas_pixels;
-
-      unsigned long
-        x;
-
-      MagickBool
-        thread_status;
-
-      thread_status=status;
-      if (thread_status == MagickFail)
-        continue;
-
-      texture_pixels=AcquireImagePixels(texture_image,0,
-                                        y % texture_image->rows,
-                                        texture_image->columns,1,
-                                        exception);
-      canvas_pixels=SetImagePixelsEx(canvas_image,0,y,canvas_image->columns,
-                                     1,exception);
-
-      if ((texture_pixels == (const PixelPacket *) NULL) ||
-          (canvas_pixels == (PixelPacket *) NULL))
-        thread_status=MagickFail;
-
-      if (thread_status != MagickFail)
-        {
-          const IndexPacket
-            *texture_indexes=(const IndexPacket *) NULL;
-          
-          IndexPacket
-            *canvas_indexes=(IndexPacket *) NULL;;
-
-          if (texture_image->storage_class == PseudoClass)
-            texture_indexes=AccessImmutableIndexes(texture_image);
-          if (canvas_image->storage_class == PseudoClass)
-            canvas_indexes=AccessMutableIndexes(canvas_image);
-
-          for (x=0; x < canvas_image->columns; x+=texture_image->columns)
-            {
-              unsigned long
-                texture_width;
-
-              texture_width=texture_image->columns;
-              if ((x+texture_width) > canvas_image->columns)
-                texture_width=canvas_image->columns-x;
-
-              if ((texture_indexes != (const IndexPacket *) NULL) &&
-                  (canvas_indexes != (const IndexPacket *) NULL))
-                {
-                  (void) memcpy(canvas_indexes,texture_indexes,texture_width*sizeof(IndexPacket));
-                  canvas_indexes += texture_width;
-                }
-              (void) memcpy(canvas_pixels,texture_pixels,texture_width*sizeof(PixelPacket));
-              canvas_pixels += texture_width;
-            }
-
-          if (!SyncImagePixelsEx(canvas_image,exception))
-            thread_status=MagickFail;
-        }
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical (GM_ConstituteTextureImage)
-#endif
-      {
-        row_count++;
-        if (QuantumTick(row_count,canvas_image->rows))
-          if (!MagickMonitorFormatted(row_count,canvas_image->rows,exception,
-                                      ConstituteTextureImageText,
-                                      texture_image->filename))
-            thread_status=MagickFail;
-
-        if (thread_status == MagickFail)
-          status=MagickFail;
-      }
-    }
-
-  if (status == MagickFail)
-    {
-      DestroyImage(canvas_image);
-      canvas_image=(Image *) NULL;
-    }
-
-  if (canvas_image != (Image *) NULL)
-    {
-      canvas_image->is_monochrome=texture_image->is_monochrome;
-      canvas_image->is_grayscale=texture_image->is_grayscale;
-    }
-
-  return canvas_image;
 }
 
 /*
@@ -2132,7 +1977,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
     x;
 
   register const PixelPacket
-    *p;
+    * restrict p;
 
   register Quantum
     quantum;
@@ -2159,21 +2004,21 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
 
       if (LocaleCompare(map,"BGR") == 0)
         dispatch_type=BGRDispatchType;
-      else if (LocaleCompare(map,"BGRO") == 0)
-        dispatch_type=BGRODispatchType;
+      else if (LocaleCompare(map,"BGRA") == 0)
+        dispatch_type=BGRADispatchType;
       else if (LocaleCompare(map,"BGRP") == 0)
         dispatch_type=BGRPDispatchType;
       else if (LocaleCompare(map,"RGB") == 0)
         dispatch_type=RGBDispatchType;
-      else if (LocaleCompare(map,"RGBO") == 0)
-        dispatch_type=RGBODispatchType;
+      else if (LocaleCompare(map,"RGBA") == 0)
+        dispatch_type=RGBADispatchType;
       else if (LocaleCompare(map,"I") == 0)
         dispatch_type=IDispatchType;
 
       if (dispatch_type != UndefinedDispatchType)
         {
           register unsigned char
-            *q = (unsigned char*) pixels;
+            * restrict q = (unsigned char*) pixels;
           
           for (y=0; y < (long) rows; y++)
             {
@@ -2197,7 +2042,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
                       }
                     break;
                   }
-                case BGRODispatchType:
+                case BGRADispatchType:
                   {
                     for (x=(long) columns; x != 0; x--)
                       {
@@ -2232,7 +2077,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
                       }
                     break;
                   }
-                case RGBODispatchType:
+                case RGBADispatchType:
                   {
                     for (x=(long) columns; x != 0; x--)
                       {
@@ -2301,7 +2146,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
         case 'A':
         case 'T':
           {
-            switch_map[i]=OpacityMapQuantum;
+            switch_map[i]=TransparencyMapQuantum;
             break;
           }
         case 'C':
@@ -2343,7 +2188,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
           }
         case 'O':
           {
-            switch_map[i]=OpacityInvertedMapQuantum;
+            switch_map[i]=OpacityMapQuantum;
             break;
           }
         case 'P':
@@ -2405,7 +2250,7 @@ MagickExport MagickPassFail DispatchImage(const Image *image,const long x_offset
                       }
                     break;
                   }
-                case OpacityInvertedMapQuantum:
+                case TransparencyMapQuantum:
                   {
                     if (image->matte)
                       quantum=GetOpacitySample(p);
@@ -2618,13 +2463,13 @@ ExportViewPixelArea(const ViewInfo *view,
     *image;
 
   register const IndexPacket
-    *indexes;
+    * restrict indexes;
 
   register const PixelPacket
-    *p;
+    * restrict p;
 
   register unsigned char
-    *q;
+    * restrict q;
 
   register unsigned long
     x;
@@ -5250,7 +5095,7 @@ ImportViewPixelArea(ViewInfo *view,
     *image;
 
   register const unsigned char
-    *p;
+    * restrict p;
 
   register unsigned int
     index,
@@ -5258,13 +5103,13 @@ ImportViewPixelArea(ViewInfo *view,
     unsigned_value;
 
   register IndexPacket
-    *indexes;
+    * restrict indexes;
 
   register unsigned long
     x;
 
   register PixelPacket
-    *q;
+    * restrict q;
 
   MagickBool
     grayscale_miniswhite = MagickFalse;
@@ -8084,7 +7929,7 @@ MagickExport void ImportPixelAreaOptionsInit(ImportPixelAreaOptions *options)
           x;                                                            \
                                                                         \
         basic_type                                                      \
-          *scanline;                                                    \
+          * restrict scanline;						\
                                                                         \
         scanline=(basic_type *) scanline_buffer;                        \
         if ((read_func)(image, scanline_octets, scanline) !=            \
@@ -8206,6 +8051,33 @@ MagickFindRawImageMinMax(Image *image, EndianType endian,
 %                                                                             %
 %                                                                             %
 %                                                                             %
++   I n i t i a l i z e C o n s t i t u t e                                   %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InitializeConstitute initializes the constitute facility
+%
+%  The format of the InitializeConstitute method is:
+%
+%      MagickPassFail InitializeConstitute(void)
+%
+%
+*/
+MagickPassFail
+InitializeConstitute(void)
+{
+  assert(constitute_semaphore == (SemaphoreInfo *) NULL);
+  constitute_semaphore=AllocateSemaphoreInfo();
+  return MagickPass;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %   P i n g I m a g e                                                         %
 %                                                                             %
 %                                                                             %
@@ -8242,7 +8114,7 @@ MagickExport Image *PingImage(const ImageInfo *image_info,
   assert(image_info != (ImageInfo *) NULL);
   assert(image_info->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   clone_info=CloneImageInfo(image_info);
   clone_info->ping=True;
   image=ReadImage(clone_info,exception);
@@ -8351,7 +8223,7 @@ MagickExport Image *ReadImage(const ImageInfo *image_info,
   assert(image_info->signature == MagickSignature);
   assert(image_info->filename != (char *) NULL);
   assert(exception != (ExceptionInfo *) NULL);
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   if (*image_info->filename == '@')
     return(ReadImages(image_info,exception));
   clone_info=CloneImageInfo(image_info);
@@ -8471,13 +8343,16 @@ MagickExport Image *ReadImage(const ImageInfo *image_info,
       (magick_info->decoder != NULL))
     {
       if (!magick_info->thread_support)
-        AcquireSemaphoreInfo(&constitute_semaphore);
+        LockSemaphoreInfo(constitute_semaphore);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Invoking \"%.1024s\" decoder (%.1024s)",magick_info->name,
-        magick_info->description);
+        "Invoking \"%.1024s\" decoder (%.1024s) subimage=%lu subrange=%lu",
+			    magick_info->name,
+			    magick_info->description,
+			    clone_info->subimage,
+			    clone_info->subrange);
       image=(magick_info->decoder)(clone_info,exception);
       if (!magick_info->thread_support)
-        LiberateSemaphoreInfo(&constitute_semaphore);
+        UnlockSemaphoreInfo(constitute_semaphore);
 
       if (image != (Image *) NULL)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
@@ -8567,13 +8442,16 @@ MagickExport Image *ReadImage(const ImageInfo *image_info,
         Invoke decoder for format
       */
       if (!magick_info->thread_support)
-        AcquireSemaphoreInfo(&constitute_semaphore);
+        LockSemaphoreInfo(constitute_semaphore);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-        "Invoking \"%.1024s\" decoder (%.1024s)",magick_info->name,
-        magick_info->description);
+        "Invoking \"%.1024s\" decoder (%.1024s) subimage=%lu subrange=%lu",
+			    magick_info->name,
+			    magick_info->description,
+			    clone_info->subimage,
+			    clone_info->subrange);
       image=(magick_info->decoder)(clone_info,exception);
       if (!magick_info->thread_support)
-        LiberateSemaphoreInfo(&constitute_semaphore);
+        UnlockSemaphoreInfo(constitute_semaphore);
 
       if (image != (Image *) NULL)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
@@ -8902,7 +8780,7 @@ MagickExport Image *ReadInlineImage(const ImageInfo *image_info,
   register const char
     *p;
 
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   image=(Image *) NULL;
   for (p=content; (*p != ',') && (*p != '\0'); p++);
   if (*p == '\0')
@@ -9039,7 +8917,7 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
 	}
 
       if (!magick_info->thread_support)
-        AcquireSemaphoreInfo(&constitute_semaphore);
+        LockSemaphoreInfo(constitute_semaphore);
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			    "Invoking \"%.1024s\" encoder (%.1024s): "
 			    "monochrome=%s grayscale=%s class=%s colorspace=%s",
@@ -9053,7 +8931,7 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			    "Returned from \"%.1024s\" encoder",magick_info->name);
       if (!magick_info->thread_support)
-        LiberateSemaphoreInfo(&constitute_semaphore);
+        UnlockSemaphoreInfo(constitute_semaphore);
 
       if (tempfile[0] != '\0')
 	{
@@ -9105,10 +8983,10 @@ MagickExport unsigned int WriteImage(const ImageInfo *image_info,Image *image)
 			       image->filename)
 	    }
       if (!magick_info->thread_support)
-        AcquireSemaphoreInfo(&constitute_semaphore);
+        LockSemaphoreInfo(constitute_semaphore);
       status=(magick_info->encoder)(clone_info,image);
       if (!magick_info->thread_support)
-        LiberateSemaphoreInfo(&constitute_semaphore);
+        UnlockSemaphoreInfo(constitute_semaphore);
     }
   (void) strlcpy(image->magick,clone_info->magick,MaxTextExtent);
   DestroyImageInfo(clone_info);
@@ -9193,7 +9071,7 @@ MagickExport MagickPassFail WriteImages(const ImageInfo *image_info,Image *image
             break;
         }
       if (clone_info->verbose)
-        (void) DescribeImage(image,stdout,False);
+        (void) DescribeImage(image,stderr,False);
       DestroyImageInfo(clone_info);
       clone_info=0;
     }

@@ -47,38 +47,38 @@ extern "C" {
 #endif
 
   extern MagickExport unsigned int
-  PopImagePixels(const Image *,const QuantumType,unsigned char *) __attribute__ ((deprecated));
+  PopImagePixels(const Image *,const QuantumType,unsigned char *) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport unsigned int
-  PushImagePixels(Image *,const QuantumType,const unsigned char *) __attribute__ ((deprecated));
+  PushImagePixels(Image *,const QuantumType,const unsigned char *) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport void
-  *AcquireMemory(const size_t) __attribute__ ((deprecated));
+  *AcquireMemory(const size_t) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport void
-  *CloneMemory(void *,const void *,const size_t) __attribute__ ((deprecated));
+  *CloneMemory(void *,const void *,const size_t) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport void
-  LiberateMemory(void **) __attribute__ ((deprecated));
+  LiberateMemory(void **) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport void
-  ReacquireMemory(void **,const size_t) __attribute__ ((deprecated));
+  ReacquireMemory(void **,const size_t) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport const PixelPacket
   *AcquireCacheView(const ViewInfo *view,
                     const long x,const long y,const unsigned long columns,
-                    const unsigned long rows,ExceptionInfo *exception) __attribute__ ((deprecated));
+                    const unsigned long rows,ExceptionInfo *exception) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport PixelPacket
   *GetCacheView(ViewInfo *view,const long x,const long y,
-                const unsigned long columns,const unsigned long rows)  __attribute__ ((deprecated));
+                const unsigned long columns,const unsigned long rows)  MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport PixelPacket
   *SetCacheView(ViewInfo *view,const long x,const long y,
-                const unsigned long columns,const unsigned long rows) __attribute__ ((deprecated));
+                const unsigned long columns,const unsigned long rows) MAGICK_FUNC_DEPRECATED;
 
   extern MagickExport MagickPassFail
-  SyncCacheView(ViewInfo *view) __attribute__ ((deprecated));
+  SyncCacheView(ViewInfo *view) MAGICK_FUNC_DEPRECATED;
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

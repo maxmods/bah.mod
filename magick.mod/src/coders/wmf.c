@@ -41,6 +41,7 @@
 #include "magick/blob.h"
 #include "magick/pixel_cache.h"
 #include "magick/color.h"
+#include "magick/color_lookup.h"
 #include "magick/constitute.h"
 #include "magick/draw.h"
 #include "magick/log.h"
@@ -53,7 +54,9 @@
 
 #if defined(MSWINDOWS)
 /* The need for this under Visual C++ is a mystery to me */
-#  define M_PI MagickPI
+#  if !defined(M_PI)
+#    define M_PI MagickPI
+#  endif
 #endif
 
 #if defined(HasWMF) || defined(HasWMFlite)
@@ -155,12 +158,16 @@ struct _wmf_magick_t
     draw_context;
 
   /* GraphicsMagick image */
-    Image
-      *image;
+  Image
+    *image;
 
   /* ImageInfo */
-    const ImageInfo
-      *image_info;
+  const ImageInfo
+    *image_info;
+
+  /* DrawInfo */
+  DrawInfo
+    *draw_info;
 
   /* Pattern ID */
   unsigned long
@@ -181,6 +188,7 @@ struct _wmf_magick_t
 
 
 #define WMF_MAGICK_GetData(Z) ((wmf_magick_t*)((Z)->device_data))
+#define WMF_MAGICK_GetFontData(Z) ((wmf_magick_font_t*)((wmfFontData *)Z->font_data)->user_data)
 
 #define WmfDrawContext (((wmf_magick_t*)((API)->device_data))->draw_context)
 
@@ -583,19 +591,13 @@ static void ipa_device_open(wmfAPI * API)
   wmf_magick_t
     *ddata = WMF_MAGICK_GetData (API);
 
-  DrawInfo
-    *draw_info;
-
-  draw_info = CloneDrawInfo((ImageInfo*)NULL,(DrawInfo*)NULL);
-
   ddata->pattern_id = 0;
   ddata->clipping = False;
   ddata->clip_path_id = 0;
 
   ddata->push_depth = 0;
 
-  ddata->draw_context = DrawAllocateContext(draw_info,ddata->image);
-  DestroyDrawInfo(draw_info);
+  ddata->draw_context = DrawAllocateContext(ddata->draw_info,ddata->image);
 }
 
 /*
@@ -607,6 +609,8 @@ static void ipa_device_close(wmfAPI * API)
     *ddata = WMF_MAGICK_GetData(API);
 
   DrawDestroyContext(ddata->draw_context);
+  DestroyDrawInfo(ddata->draw_info);
+  MagickFreeMemory(WMF_MAGICK_GetFontData(API)->ps_name);
 }
 
 /*
@@ -1308,18 +1312,14 @@ static void ipa_draw_text(wmfAPI * API, wmfDrawText_t * draw_text)
         *image = ddata->image;
       
       DrawInfo
-        draw_info;
-      
-      ImageInfo
-        *image_info;
-      
-      image_info = CloneImageInfo((ImageInfo *) NULL);
-      (void) CloneString(&image_info->font, WMF_FONT_PSNAME(font));
-      image_info->pointsize = pointsize;
-      GetDrawInfo(image_info, &draw_info);
-      (void) CloneString(&draw_info.text, draw_text->str);
-      
-      if (GetTypeMetrics(image, &draw_info, &metrics) != False)
+        *draw_info;
+
+      draw_info=ddata->draw_info;
+      draw_info->font=WMF_FONT_PSNAME(font);
+      draw_info->pointsize = pointsize;
+      draw_info->text=draw_text->str;
+
+      if (GetTypeMetrics(image, draw_info, &metrics) != False)
         {
           /* Center the text if it is not yet centered and should be */
           if ((WMF_DC_TEXTALIGN(draw_text->dc) & TA_CENTER))
@@ -1334,6 +1334,8 @@ static void ipa_draw_text(wmfAPI * API, wmfDrawText_t * draw_text)
 #endif
             }
         }
+      draw_info->font=NULL;
+      draw_info->text=NULL;
     }
 
   /* Set text background color */
@@ -1922,48 +1924,49 @@ static double util_pointsize( wmfAPI* API, wmfFont* font, char* str, double font
     metrics;
 
   DrawInfo
-    draw_info;
-
-  ImageInfo
-    *image_info;
+    *draw_info;
 
   double
-    pointsize = 0;
+    pointsize = 0.0;
 
-  image_info = CloneImageInfo((ImageInfo *) NULL);
-  (void) CloneString(&image_info->font, WMF_FONT_PSNAME(font));
-  image_info->pointsize = font_height;
-  GetDrawInfo(image_info, &draw_info);
-  (void) CloneString(&draw_info.text, str);
+  draw_info=ddata->draw_info;
+  if (draw_info == (const DrawInfo *) NULL)
+    return 0;
 
-  if (GetTypeMetrics(image, &draw_info, &metrics) != False)
+  draw_info->font=WMF_FONT_PSNAME(font);
+  draw_info->pointsize=font_height;
+  draw_info->text=str;
+
+  if (GetTypeMetrics(image, draw_info, &metrics) != False)
     {
 
       if(strlen(str) == 1)
         {
           pointsize = (font_height *
                        ( font_height / (metrics.ascent + AbsoluteValue(metrics.descent))));
-          draw_info.pointsize = pointsize;
-          if (GetTypeMetrics(image, &draw_info, &metrics) != False)
+          draw_info->pointsize = pointsize;
+          if (GetTypeMetrics(image, draw_info, &metrics) != False)
             pointsize *= (font_height / ( metrics.ascent + AbsoluteValue(metrics.descent)));
         }
       else
         {
           pointsize = (font_height * (font_height / (metrics.height)));
-          draw_info.pointsize = pointsize;
-          if (GetTypeMetrics(image, &draw_info, &metrics) != False)
+          draw_info->pointsize = pointsize;
+          if (GetTypeMetrics(image, draw_info, &metrics) != False)
             pointsize *= (font_height / metrics.height);
           
         }
 
 
 #if 0
-      draw_info.pointsize = pointsize;
-      if (GetTypeMetrics(image, &draw_info, &metrics) != False)
+      draw_info->pointsize = pointsize;
+      if (GetTypeMetrics(image, draw_info, &metrics) != False)
         pointsize *= (font_height / (metrics.ascent + AbsoluteValue(metrics.descent)));
       pointsize *= 1.114286; /* Magic number computed through trial and error */
 #endif
     }
+  draw_info->font=NULL;
+  draw_info->text=NULL;
 #if 0
   printf("String    = %s\n", str);
   printf("Font      = %s\n", WMF_FONT_PSNAME(font));
@@ -2027,10 +2030,7 @@ static float lite_font_stringwidth( wmfAPI* API, wmfFont* font, char* str)
     *image = ddata->image;
 
   DrawInfo
-    draw_info;
-
-  ImageInfo
-    *image_info;
+    *draw_info;
 
   TypeMetric
     metrics;
@@ -2049,17 +2049,23 @@ static float lite_font_stringwidth( wmfAPI* API, wmfFont* font, char* str)
   orig_y_resolution = image->y_resolution;
   orig_resolution_units = image->units;
 
-  image_info = CloneImageInfo((ImageInfo *) NULL);
-  (void) CloneString(&image_info->font, WMF_FONT_PSNAME(font));
-  image_info->pointsize = 12;
-  GetDrawInfo(image_info, &draw_info);
-  (void) CloneString(&draw_info.text, str);
+  draw_info=ddata->draw_info;
+  if (draw_info == (const DrawInfo *) NULL)
+    return 0;
+
+  draw_info->font=WMF_FONT_PSNAME(font);
+  draw_info->pointsize=12;
+  draw_info->text=str;
+
   image->x_resolution = 72;
   image->y_resolution = 72;
   image->units = PixelsPerInchResolution;
 
-  if (GetTypeMetrics(image, &draw_info, &metrics) != False)
-    stringwidth = ((metrics.width * 72)/(image->x_resolution * image_info->pointsize)); /* *0.916348; */
+  if (GetTypeMetrics(image, draw_info, &metrics) != False)
+    stringwidth = ((metrics.width * 72)/(image->x_resolution * draw_info->pointsize)); /* *0.916348; */
+
+  draw_info->font=NULL;
+  draw_info->text=NULL;
 
 #if 0
   printf("\nlite_font_stringwidth\n");
@@ -2400,6 +2406,9 @@ static Image *ReadWMFImage(const ImageInfo * image_info, ExceptionInfo * excepti
   ddata = WMF_MAGICK_GetData(API);
   ddata->image = image;
   ddata->image_info = image_info;
+  ddata->draw_info = CloneDrawInfo((const ImageInfo *) NULL, (const DrawInfo *) NULL);
+  MagickFreeMemory(ddata->draw_info->font);
+  MagickFreeMemory(ddata->draw_info->text);
 
 #if defined(HasWMFlite)
   /* Must initialize font subystem for WMFlite interface */

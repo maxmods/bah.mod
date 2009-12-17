@@ -67,20 +67,21 @@
 */
 MagickExport long MagickGetMMUPageSize(void)
 {
-  long
-    pagesize;
+  static long
+    pagesize = -1;
 
-  pagesize=-1;
-
+  if (pagesize <= 0)
+    {
 #if defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
-  pagesize=sysconf(_SC_PAGE_SIZE);
+      pagesize=sysconf(_SC_PAGE_SIZE);
 #endif /* defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE) */
 #if defined(HAVE_GETPAGESIZE)
-  if (pagesize <= 0)
-    pagesize=getpagesize();
+      if (pagesize <= 0)
+	pagesize=getpagesize();
 #endif /* defined(HAVE_GETPAGESIZE) */
-  if (pagesize <= 0)
-    pagesize=16384;
+      if (pagesize <= 0)
+	pagesize=16384;
+    }
 
   return pagesize;
 }

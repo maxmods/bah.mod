@@ -39,11 +39,11 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 #include "magick/version.h"
 
@@ -63,8 +63,8 @@ static void FixSignedValues(unsigned char *data, int size, unsigned step, unsign
 {
   if(endian != MSBEndian)
   {
-    data += step - 1;  //LSB has most signifficant byte at the end
-  }		       //MSB has most signifficant byte first
+    data += step - 1;  /* LSB has most signifficant byte at the end */
+  }		       /* MSB has most signifficant byte first */
 
   while(size-->0)
   {
@@ -319,7 +319,9 @@ ReadExtension:
               ax_number = atoi(keyword+5);
             else ax_number=-2;			/*unsupported fits keyword*/
           }
-          if(ax_number>=-1) y = atoi(value);
+	  y=0;
+          if(ax_number>=-1)
+	    y = atoi(value);
           switch(ax_number)
           {
             case -1:fits_info.number_axes = y; break;
@@ -498,7 +500,8 @@ ReadExtension:
         break;
       if (QuantumTick(y,image->rows))
         if (!MagickMonitorFormatted(y,image->rows,exception,
-                                    LoadImageText,image->filename))
+                                    LoadImageText,image->filename,
+				    image->columns,image->rows))
           break;
     }
     MagickFreeMemory(fits_pixels);
@@ -763,7 +766,8 @@ static unsigned int WriteFITSImage(const ImageInfo *image_info,Image *image)
       {
         status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                       &image->exception,SaveImageText,
-                                      image->filename);
+                                      image->filename,
+				      image->columns,image->rows);
         if (status == False)
           break;
       }

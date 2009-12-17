@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -10,6 +10,8 @@
 */
 #ifndef _MAGICK_RENDER_H
 #define _MAGICK_RENDER_H
+
+#include "magick/type.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
@@ -114,28 +116,6 @@ typedef enum
   ReflectSpead,
   RepeatSpread
 } SpreadMethod;
-
-typedef enum
-{
-  NormalStretch,
-  UltraCondensedStretch,
-  ExtraCondensedStretch,
-  CondensedStretch,
-  SemiCondensedStretch,
-  SemiExpandedStretch,
-  ExpandedStretch,
-  ExtraExpandedStretch,
-  UltraExpandedStretch,
-  AnyStretch
-} StretchType;
-
-typedef enum
-{
-  NormalStyle,
-  ItalicStyle,
-  ObliqueStyle,
-  AnyStyle
-} StyleType;
 
 /*
   Typedef declarations.
@@ -330,41 +310,6 @@ typedef struct _PrimitiveInfo
     *text;
 } PrimitiveInfo;
 
-typedef struct _TypeInfo
-{
-  char
-    *path,
-    *name,
-    *description,
-    *family;
-
-  StyleType
-    style;
-
-  StretchType
-    stretch;
-
-  unsigned long
-    weight;
-
-  char
-    *encoding,
-    *foundry,
-    *format,
-    *metrics,
-    *glyphs;
-
-  unsigned int
-    stealth;
-
-  unsigned long
-    signature;
-
-  struct _TypeInfo
-    *previous,
-    *next;
-} TypeInfo;
-
 typedef struct _TypeMetric
 {
   PointInfo
@@ -384,19 +329,10 @@ typedef struct _TypeMetric
     underline_position,
     underline_thickness;
 } TypeMetric;
-
 
 /*
   Method declarations.
 */
-extern MagickExport char
-  **GetTypeList(const char *,unsigned long *);
-
-extern MagickExport const TypeInfo
-  *GetTypeInfo(const char *,ExceptionInfo *),
-  *GetTypeInfoByFamily(const char *,const StyleType,const StretchType,
-    const unsigned long,ExceptionInfo *);
-
 extern MagickExport DrawInfo
   *CloneDrawInfo(const ImageInfo *,const DrawInfo *);
 
@@ -406,16 +342,14 @@ extern MagickExport MagickPassFail
   DrawClipPath(Image *,const DrawInfo *,const char *),
   DrawImage(Image *,const DrawInfo *),
   DrawPatternPath(Image *,const DrawInfo *,const char *,Image **),
-  GetTypeMetrics(Image *,const DrawInfo *,TypeMetric *),
-  ListTypeInfo(FILE *,ExceptionInfo *);
+  GetTypeMetrics(Image *,const DrawInfo *,TypeMetric *);
 
 extern MagickExport void
   DestroyDrawInfo(DrawInfo *),
-  DestroyTypeInfo(void),
   GetDrawInfo(const ImageInfo *,DrawInfo *);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
-#endif
+#endif /* _MAGICK_RENDER_H */

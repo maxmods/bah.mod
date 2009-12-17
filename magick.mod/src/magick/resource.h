@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003, 2008 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
@@ -25,7 +25,8 @@ typedef enum
   FileResource,        /* Pixel cache number of open files (Files) */
   MapResource,         /* Pixel cache total file memory-mapping (Megabytes) */
   MemoryResource,      /* Maximum pixel cache heap memory allocations (Megabytes) */
-  PixelsResource       /* Maximum number of pixels in single image (Pixels) */
+  PixelsResource,      /* Maximum number of pixels in single image (Pixels) */
+  ThreadsResource      /* Maximum number of worker threads */
 } ResourceType;
 
 /*
@@ -37,7 +38,8 @@ extern MagickExport MagickPassFail
   SetMagickResourceLimit(const ResourceType type,const magick_int64_t limit);
 
 extern MagickExport magick_int64_t
-  GetMagickResource(const ResourceType type);
+  GetMagickResource(const ResourceType type),
+  GetMagickResourceLimit(const ResourceType type);
 
 extern MagickExport void
   DestroyMagickResources(void),

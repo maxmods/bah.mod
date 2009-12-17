@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 
+#include "magick/image.h"
+
 typedef struct _ImageAttribute
 {
   char

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003, 2004, 2005 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -37,17 +37,19 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/color.h"
 #include "magick/composite.h"
+#include "magick/log.h"
 #include "magick/map.h"
 #include "magick/monitor.h"
+#include "magick/omp_data_view.h"
 #include "magick/pixel_iterator.h"
+#include "magick/profile.h"
+#include "magick/quantize.h"
 #include "magick/resize.h"
 #include "magick/transform.h"
-#include "magick/quantize.h"
 #include "magick/utility.h"
-#include "magick/log.h"
-#include "magick/profile.h"
 #if defined(HasLCMS)
 #if defined(HAVE_LCMS_LCMS_H)
 #include <lcms/lcms.h>
@@ -91,6 +93,92 @@ AllocateImageProfileIterator(const Image *image)
     return 0;
 
   return (ImageProfileIterator) MagickMapAllocateIterator(image->profiles);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%     A p p e n d I m a g e P r o f i l e                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  AppendImageProfile adds a named profile to the image. If a profile with the
+%  same name already exists, then the new profile data is appended to the
+%  existing profile. If a null profile address is supplied, then an existing
+%  profile is removed. The profile is copied into the image. Note that this
+%  function does not execute CMS color profiles. Any existing CMS color
+%  profile is simply added/updated. Use the ProfileImage() function in order
+%  to execute a CMS color profile.
+%
+%  The format of the AppendImageProfile method is:
+%
+%      MaickPassFail AppendImageProfile(Image *image,const char *name,
+%                                       const unsigned char *profile_chunk,
+%                                       const size_t chunk_length)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o name: Profile name. Valid names are "8BIM", "ICM", "IPTC", XMP, or any
+%                          unique text string.
+%
+%    o profile_chunk: Address of profile chunk to add or append. Pass zero
+%               to remove an existing profile.
+%
+%    o length: The length of the profile chunk to add or append.
+%
+*/
+MagickExport MagickPassFail
+AppendImageProfile(Image *image,
+		   const char *name,
+		   const unsigned char *profile_chunk,
+		   const size_t chunk_length)
+{
+  const unsigned char
+    *existing_profile;
+
+  size_t
+    existing_length;
+
+  MagickPassFail
+    status;
+
+  status=MagickFail;
+  existing_length=0;
+  existing_profile=(const unsigned char *) NULL;
+  if (profile_chunk != (const unsigned char *) NULL)
+    existing_profile=GetImageProfile(image,name,&existing_length);
+
+  if ((profile_chunk == (const unsigned char *) NULL) ||
+      (existing_profile == (const unsigned char *) NULL))
+    {
+      status=SetImageProfile(image,name,profile_chunk,chunk_length);
+    }
+  else
+    {
+      unsigned char
+	*profile;
+
+      size_t
+	profile_length;
+
+      profile_length=existing_length+chunk_length;
+      if ((profile_length < existing_length) || 
+	  ((profile=MagickAllocateMemory(unsigned char *,(size_t) profile_length)) ==
+	   (unsigned char *) NULL))
+	ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
+			     (char *) NULL);
+      (void) memcpy(profile,existing_profile,existing_length);
+      (void) memcpy(profile+existing_length,profile_chunk,chunk_length);
+      status=SetImageProfile(image,name,profile,profile_length);
+    }
+
+  return status;
 }
 
 /*
@@ -373,9 +461,16 @@ typedef struct _ProfilePacket
 
 typedef struct _TransformInfo
 {
-  cmsHTRANSFORM   transform;          /* LCMS transform */
-  ColorspaceType  source_colorspace;  /* Source image transform colorspace */
-  ColorspaceType  target_colorspace;  /* Target image transform colorspace */
+  cmsHPROFILE     source_profile;     /* input profile */
+  cmsHPROFILE     target_profile;     /* output profile */
+  DWORD           source_type;        /* input pixel format */
+  DWORD           target_type;        /* output pixel format */
+  int             intent;             /* rendering intent */
+  DWORD           flags;              /* create transform flags */
+  //cmsHTRANSFORM   transform;          /* LCMS transform */
+  ThreadViewDataSet *transform;       /* Thread-specific transforms */
+  ColorspaceType  source_colorspace;  /* source image transform colorspace */
+  ColorspaceType  target_colorspace;  /* target image transform colorspace */
 } TransformInfo;
 
 static MagickPassFail
@@ -388,19 +483,19 @@ ProfileImagePixels(void *mutable_data,         /* User provided mutable data */
                    ExceptionInfo *exception)   /* Exception report */
 {
   const TransformInfo
-    *tranform_info = (const TransformInfo *) immutable_data;
+    *xform = (const TransformInfo *) immutable_data;
 
   register long
     i;
 
   cmsHTRANSFORM
-    transform = tranform_info->transform;
+    transform;
 
   const ColorspaceType
-    source_colorspace = tranform_info->source_colorspace;
+    source_colorspace = xform->source_colorspace;
 
   const ColorspaceType
-    target_colorspace = tranform_info->target_colorspace;
+    target_colorspace = xform->target_colorspace;
 
   ProfilePacket
     alpha,
@@ -409,6 +504,7 @@ ProfileImagePixels(void *mutable_data,         /* User provided mutable data */
   ARG_NOT_USED(mutable_data);
   ARG_NOT_USED(exception);
 
+  transform=(cmsHTRANSFORM) AccessThreadViewData(xform->transform);
 
   /*
     TODO: This may be optimized to use PixelPackets instead
@@ -462,6 +558,51 @@ ProfileImagePixels(void *mutable_data,         /* User provided mutable data */
 
   return MagickPass;
 }
+
+static void MagickFreeCMSTransform(void * cmsTransformVoid)
+{
+  cmsHTRANSFORM
+    cmsTransform=(cmsHTRANSFORM) cmsTransformVoid;
+
+  cmsDeleteTransform(cmsTransform);
+}
+
+static const char *
+PixelTypeToString(int pixel_type)
+{
+const char *
+  result="";
+
+  switch (pixel_type)
+    {
+    case PT_ANY:    result="ANY"   ; break;
+    case PT_GRAY:   result="GRAY"  ; break;
+    case PT_RGB:    result="RGB"   ; break;
+    case PT_CMY:    result="CMY"   ; break;
+    case PT_CMYK:   result="CMYK"  ; break;
+    case PT_YCbCr:  result="YCbCr" ; break;
+    case PT_YUV:    result="YUV (Lu'v')"; break;
+    case PT_XYZ:    result="XYZ"   ; break;
+    case PT_Lab:    result="Lab"   ; break;
+    case PT_YUVK:   result="YUVK (Lu'v'K)" ; break;
+    case PT_HSV:    result="HSV"   ; break;
+    case PT_HLS:    result="HLS"   ; break;
+    case PT_Yxy:    result="Yxy"   ; break;
+    case PT_HiFi:   result="HiFi"  ; break;
+    case PT_HiFi7:  result="HiFi7" ; break;
+    case PT_HiFi8:  result="HiFi8" ; break;
+    case PT_HiFi9:  result="HiFi9" ; break;
+    case PT_HiFi10: result="HiFi10"; break;
+    case PT_HiFi11: result="HiFi11"; break;
+    case PT_HiFi12: result="HiFi12"; break;
+    case PT_HiFi13: result="HiFi13"; break;
+    case PT_HiFi14: result="HiFi14"; break;
+    case PT_HiFi15: result="HiFi15"; break;
+    }
+
+  return result;
+}
+
 #endif /* defined(HasLCMS) */
 
 #define ProfileImageText "[%s] Color Transform Pixels..."
@@ -508,6 +649,7 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
         i;
 
       (void) strlcpy(arg_string,name,sizeof(arg_string));
+      LocaleUpper(arg_string);
       for (i=0; arg_string[i] != '\0'; i++)
         if (arg_string[i] == ',')
           arg_string[i] = ' ';
@@ -571,7 +713,7 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
       existing_profile=GetImageProfile(image,"ICM",&existing_profile_length);
 
       (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                            "Profile1: %lu bytes, Profile2: %lu bytes",
+                            "New Profile: %lu bytes, Existing Profile: %lu bytes",
                             (unsigned long) length,
                             (unsigned long) existing_profile_length);
 
@@ -587,18 +729,7 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
 #if defined(HasLCMS)
 
           TransformInfo
-            transform_info;
-
-          cmsHPROFILE
-            source_profile,
-            target_profile;
-
-          DWORD
-            source_type,
-            target_type;
-
-          int
-            intent;
+            xform;
 
           MagickBool
             transform_colormap;
@@ -611,206 +742,211 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
 #else
           (void) cmsErrorAction(LCMS_ERROR_SHOW);
 #endif
-          source_profile=cmsOpenProfileFromMem((unsigned char *) existing_profile,
-                                               existing_profile_length);
-          target_profile=cmsOpenProfileFromMem((unsigned char *) profile,
-                                               length);
-          if ((source_profile == (cmsHPROFILE) NULL) ||
-              (target_profile == (cmsHPROFILE) NULL))
+          xform.source_profile=cmsOpenProfileFromMem((unsigned char *) existing_profile,
+						     existing_profile_length);
+          xform.target_profile=cmsOpenProfileFromMem((unsigned char *) profile,
+						     length);
+          if ((xform.source_profile == (cmsHPROFILE) NULL) ||
+              (xform.target_profile == (cmsHPROFILE) NULL))
             ThrowBinaryException3(ResourceLimitError,UnableToManageColor,
                                   UnableToOpenColorProfile);
 
-          switch (cmsGetColorSpace(source_profile))
+          switch (cmsGetColorSpace(xform.source_profile))
             {
             case icSigXYZData:
               {
-                transform_info.source_colorspace=XYZColorspace;
-                source_type=TYPE_XYZ_16;
+                xform.source_colorspace=XYZColorspace;
+                xform.source_type=TYPE_XYZ_16;
                 break;
               }
             case icSigLabData:
               {
-                transform_info.source_colorspace=LABColorspace;
-                source_type=TYPE_Lab_16;
+                xform.source_colorspace=LABColorspace;
+                xform.source_type=TYPE_Lab_16;
                 break;
               }
             case icSigCmykData:
               {
-                transform_info.source_colorspace=CMYKColorspace;
-                source_type=TYPE_CMYK_16;
+                xform.source_colorspace=CMYKColorspace;
+                xform.source_type=TYPE_CMYK_16;
                 break;
               }
             case icSigYCbCrData:
               {
-                transform_info.source_colorspace=YCbCrColorspace;
-                source_type=TYPE_YCbCr_16;
+                xform.source_colorspace=YCbCrColorspace;
+                xform.source_type=TYPE_YCbCr_16;
                 break;
               }
             case icSigLuvData:
               {
-                transform_info.source_colorspace=YUVColorspace;
-                source_type=TYPE_YUV_16;
+                xform.source_colorspace=YUVColorspace;
+                xform.source_type=TYPE_YUV_16;
                 break;
               }
             case icSigGrayData:
               {
-                transform_info.source_colorspace=GRAYColorspace;
-                source_type=TYPE_GRAY_16;
+                xform.source_colorspace=GRAYColorspace;
+                xform.source_type=TYPE_GRAY_16;
                 break;
               }
             case icSigRgbData:
               {
-                transform_info.source_colorspace=RGBColorspace;
-                source_type=TYPE_RGB_16;
+                xform.source_colorspace=RGBColorspace;
+                xform.source_type=TYPE_RGB_16;
                 break;
               }
             default:
               {
-                transform_info.source_colorspace=UndefinedColorspace;
-                source_type=TYPE_RGB_16;
+                xform.source_colorspace=UndefinedColorspace;
+                xform.source_type=TYPE_RGB_16;
                 break;
               }
             }
-          switch (cmsGetColorSpace(target_profile))
+          switch (cmsGetColorSpace(xform.target_profile))
             {
             case icSigXYZData:
               {
-                transform_info.target_colorspace=XYZColorspace;
-                target_type=TYPE_XYZ_16;
+                xform.target_colorspace=XYZColorspace;
+                xform.target_type=TYPE_XYZ_16;
                 break;
               }
             case icSigLabData:
               {
-                transform_info.target_colorspace=LABColorspace;
-                target_type=TYPE_Lab_16;;
+                xform.target_colorspace=LABColorspace;
+                xform.target_type=TYPE_Lab_16;;
                 break;
               }
             case icSigCmykData:
               {
-                transform_info.target_colorspace=CMYKColorspace;
-                target_type=TYPE_CMYK_16;
+                xform.target_colorspace=CMYKColorspace;
+                xform.target_type=TYPE_CMYK_16;
                 break;
               }
             case icSigYCbCrData:
               {
-                transform_info.target_colorspace=YCbCrColorspace;
-                target_type=TYPE_YCbCr_16;
+                xform.target_colorspace=YCbCrColorspace;
+                xform.target_type=TYPE_YCbCr_16;
                 break;
               }
             case icSigLuvData:
               {
-                transform_info.target_colorspace=YUVColorspace;
-                target_type=TYPE_YUV_16;
+                xform.target_colorspace=YUVColorspace;
+                xform.target_type=TYPE_YUV_16;
                 break;
               }
             case icSigGrayData:
               {
-                transform_info.target_colorspace=GRAYColorspace;
-                target_type=TYPE_GRAY_16;
+                xform.target_colorspace=GRAYColorspace;
+                xform.target_type=TYPE_GRAY_16;
                 break;
               }
             case icSigRgbData:
               {
-                transform_info.target_colorspace=RGBColorspace;
-                target_type=TYPE_RGB_16;
+                xform.target_colorspace=RGBColorspace;
+                xform.target_type=TYPE_RGB_16;
                 break;
               }
             default:
               {
-                transform_info.target_colorspace=UndefinedColorspace;
-                target_type=TYPE_RGB_16;
+                xform.target_colorspace=UndefinedColorspace;
+                xform.target_type=TYPE_RGB_16;
                 break;
               }
             }
 
           /* Colorspace undefined */
-          if ((transform_info.source_colorspace == UndefinedColorspace) ||
-              (transform_info.target_colorspace == UndefinedColorspace))
+          if ((xform.source_colorspace == UndefinedColorspace) ||
+              (xform.target_colorspace == UndefinedColorspace))
             {
-              (void) cmsCloseProfile(source_profile);
-              (void) cmsCloseProfile(target_profile);
+              (void) cmsCloseProfile(xform.source_profile);
+              (void) cmsCloseProfile(xform.target_profile);
               ThrowBinaryException3(ImageError,UnableToAssignProfile,
                                     ColorspaceColorProfileMismatch);
             }
           /* Gray colorspace */
-          if (IsGrayColorspace(transform_info.source_colorspace) &&
+          if (IsGrayColorspace(xform.source_colorspace) &&
               !IsGrayImage(image,&image->exception))
             {
-              (void) cmsCloseProfile(source_profile);
-              (void) cmsCloseProfile(target_profile);
+              (void) cmsCloseProfile(xform.source_profile);
+              (void) cmsCloseProfile(xform.target_profile);
               ThrowBinaryException3(ImageError,UnableToAssignProfile,
                                     ColorspaceColorProfileMismatch);
             }
           /* CMYK colorspace */
-          if (IsCMYKColorspace(transform_info.source_colorspace) &&
+          if (IsCMYKColorspace(xform.source_colorspace) &&
               !IsCMYKColorspace(image->colorspace))
             {
-              (void) cmsCloseProfile(source_profile);
-              (void) cmsCloseProfile(target_profile);
+              (void) cmsCloseProfile(xform.source_profile);
+              (void) cmsCloseProfile(xform.target_profile);
               ThrowBinaryException3(ImageError,UnableToAssignProfile,
                                     ColorspaceColorProfileMismatch);
             }
           /* YCbCr colorspace */
-          if (IsYCbCrColorspace(transform_info.source_colorspace) &&
+          if (IsYCbCrColorspace(xform.source_colorspace) &&
               !IsYCbCrColorspace(image->colorspace))
             {
-              (void) cmsCloseProfile(source_profile);
-              (void) cmsCloseProfile(target_profile);
+              (void) cmsCloseProfile(xform.source_profile);
+              (void) cmsCloseProfile(xform.target_profile);
               ThrowBinaryException3(ImageError,UnableToAssignProfile,
                                     ColorspaceColorProfileMismatch);
             }
           /* Verify that source colorspace type is supported */
-          if (!IsGrayColorspace(transform_info.source_colorspace) &&
-              !IsCMYKColorspace(transform_info.source_colorspace) &&
-              !IsYCbCrColorspace(transform_info.source_colorspace) &&
+          if (!IsGrayColorspace(xform.source_colorspace) &&
+              !IsCMYKColorspace(xform.source_colorspace) &&
+	      !IsLABColorspace(xform.source_colorspace) &&
+              !IsYCbCrColorspace(xform.source_colorspace) &&
               !IsRGBColorspace(image->colorspace))
             {
-              (void) cmsCloseProfile(source_profile);
-              (void) cmsCloseProfile(target_profile);
+              (void) cmsCloseProfile(xform.source_profile);
+              (void) cmsCloseProfile(xform.target_profile);
               ThrowBinaryException3(ImageError,UnableToAssignProfile,
                                     ColorspaceColorProfileMismatch);
             }
 
           (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                                "Source pixel format: COLORSPACE=%d SWAPFIRST=%d FLAVOR=%d PLANAR=%d ENDIAN16=%d DOSWAP=%d EXTRA=%d CHANNELS=%d BYTES=%d",
-                                (int) T_COLORSPACE(source_type),
-                                (int) T_SWAPFIRST(source_type),
-                                (int) T_FLAVOR(source_type),
-                                (int) T_PLANAR(source_type),
-                                (int) T_ENDIAN16(source_type),
-                                (int) T_DOSWAP(source_type),
-                                (int) T_EXTRA(source_type),
-                                (int) T_CHANNELS(source_type),
-                                (int) T_BYTES(source_type));
+                                "Source pixel format: COLORSPACE=%s SWAPFIRST=%d "
+				"FLAVOR=%d PLANAR=%d ENDIAN16=%d DOSWAP=%d "
+				"EXTRA=%d CHANNELS=%d BYTES=%d",
+                                PixelTypeToString((int) T_COLORSPACE(xform.source_type)),
+                                (int) T_SWAPFIRST(xform.source_type),
+                                (int) T_FLAVOR(xform.source_type),
+                                (int) T_PLANAR(xform.source_type),
+                                (int) T_ENDIAN16(xform.source_type),
+                                (int) T_DOSWAP(xform.source_type),
+                                (int) T_EXTRA(xform.source_type),
+                                (int) T_CHANNELS(xform.source_type),
+                                (int) T_BYTES(xform.source_type));
 
           (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                                "Target pixel format: COLORSPACE=%d SWAPFIRST=%d FLAVOR=%d PLANAR=%d ENDIAN16=%d DOSWAP=%d EXTRA=%d CHANNELS=%d BYTES=%d",
-                                (int) T_COLORSPACE(target_type),
-                                (int) T_SWAPFIRST(target_type),
-                                (int) T_FLAVOR(target_type),
-                                (int) T_PLANAR(target_type),
-                                (int) T_ENDIAN16(target_type),
-                                (int) T_DOSWAP(target_type),
-                                (int) T_EXTRA(target_type),
-                                (int) T_CHANNELS(target_type),
-                                (int) T_BYTES(target_type));
+                                "Target pixel format: COLORSPACE=%s SWAPFIRST=%d "
+				"FLAVOR=%d PLANAR=%d ENDIAN16=%d DOSWAP=%d "
+				"EXTRA=%d CHANNELS=%d BYTES=%d",
+                                PixelTypeToString((int) T_COLORSPACE(xform.target_type)),
+                                (int) T_SWAPFIRST(xform.target_type),
+                                (int) T_FLAVOR(xform.target_type),
+                                (int) T_PLANAR(xform.target_type),
+                                (int) T_ENDIAN16(xform.target_type),
+                                (int) T_DOSWAP(xform.target_type),
+                                (int) T_EXTRA(xform.target_type),
+                                (int) T_CHANNELS(xform.target_type),
+                                (int) T_BYTES(xform.target_type));
 
           switch (image->rendering_intent)
             {
             case AbsoluteIntent:
-              intent=INTENT_ABSOLUTE_COLORIMETRIC;
+              xform.intent=INTENT_ABSOLUTE_COLORIMETRIC;
               break;
             case PerceptualIntent: 
-              intent=INTENT_PERCEPTUAL; 
+              xform.intent=INTENT_PERCEPTUAL; 
               break;
             case RelativeIntent: 
-              intent=INTENT_RELATIVE_COLORIMETRIC;
+              xform.intent=INTENT_RELATIVE_COLORIMETRIC;
               break;
             case SaturationIntent: 
-              intent=INTENT_SATURATION; 
+              xform.intent=INTENT_SATURATION; 
               break;
             default: 
-              intent=INTENT_PERCEPTUAL; 
+              xform.intent=INTENT_PERCEPTUAL; 
               break;
             }
 
@@ -822,21 +958,47 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
             colors. CMYK images are never color mapped.
           */
           transform_colormap=(image->storage_class == PseudoClass) &&
-            (transform_info.target_colorspace != CMYKColorspace) &&
-            ((transform_info.source_colorspace != GRAYColorspace) ||
-             (transform_info.source_colorspace == transform_info.target_colorspace));
+            (xform.target_colorspace != CMYKColorspace) &&
+            ((xform.source_colorspace != GRAYColorspace) ||
+             (xform.source_colorspace == xform.target_colorspace));
 
-          transform_info.transform=cmsCreateTransform(source_profile, /* input profile */
-                                                      source_type,    /* input pixel format */
-                                                      target_profile, /* output profile */
-                                                      target_type,    /* output pixel format */
-                                                      intent,         /* rendering intent */
-                                                      /* build pre-computed transforms? */
-                                                      (transform_colormap ? cmsFLAGS_NOTPRECALC : 0));
-          (void) cmsCloseProfile(source_profile);
-          (void) cmsCloseProfile(target_profile);
-          if (transform_info.transform == (cmsHTRANSFORM) NULL)
+	  /* build pre-computed transforms? */
+	  xform.flags=(transform_colormap ? cmsFLAGS_NOTPRECALC : 0);
+
+	  xform.transform=AllocateThreadViewDataSet(MagickFreeCMSTransform,
+						    image,&image->exception);
+	  if (xform.transform == (ThreadViewDataSet *) NULL)
+	    status=MagickFail;
+	  if (status != MagickFail)
+	    {
+	      cmsHTRANSFORM
+		transform;
+
+	      unsigned int
+		index;
+
+	      for (index=0 ; index < GetThreadViewDataSetAllocatedViews(xform.transform); index++)
+		{
+		  transform=cmsCreateTransform(xform.source_profile, /* input profile */
+					       xform.source_type,    /* input pixel format */
+					       xform.target_profile, /* output profile */
+					       xform.target_type,    /* output pixel format */
+					       xform.intent,         /* rendering intent */
+					       xform.flags           /* pre-computed transforms? */
+					       );
+		  if (transform == (cmsHTRANSFORM) NULL)
+		    {
+		      status=MagickFail;
+		      break;
+		    }
+		  AssignThreadViewData(xform.transform,index,transform);
+		}
+	    }
+          (void) cmsCloseProfile(xform.source_profile);
+          (void) cmsCloseProfile(xform.target_profile);
+	  if (status == MagickFail)
             {
+	      DestroyThreadViewDataSet(xform.transform);
               ThrowBinaryException3(ResourceLimitError,UnableToManageColor,
                                     UnableToCreateColorTransform);
             }
@@ -847,7 +1009,7 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
                                     "Performing pseudo class color conversion");
 
               (void) ProfileImagePixels(NULL,
-                                        &transform_info,
+                                        &xform,
                                         image,
                                         image->colormap,
                                         (IndexPacket *) NULL,
@@ -867,27 +1029,27 @@ ProfileImage(Image *image,const char *name,unsigned char *profile,
                   status &= SyncImage(image);
                   image->storage_class=DirectClass;
                 }
-              if (transform_info.target_colorspace == CMYKColorspace)
-                image->colorspace=transform_info.target_colorspace;
+              if (xform.target_colorspace == CMYKColorspace)
+                image->colorspace=xform.target_colorspace;
 
               status=PixelIterateMonoModify(ProfileImagePixels,
                                             NULL,
                                             ProfileImageText,
-                                            NULL,&transform_info,0,0,image->columns,image->rows,
+                                            NULL,&xform,0,0,image->columns,image->rows,
                                             image,&image->exception);
 
               (void) LogMagickEvent(TransformEvent,GetMagickModule(),
                                     "Completed direct class color conversion");
 
             }
-          image->colorspace=transform_info.target_colorspace;
+          image->colorspace=xform.target_colorspace;
           /*
             We can't be sure black and white stays exactly black and white
             and that gray colors transform to gray colors.
           */
-          image->is_grayscale=IsGrayColorspace(transform_info.target_colorspace);
-          image->is_monochrome=False; 
-          cmsDeleteTransform(transform_info.transform);
+          image->is_grayscale=IsGrayColorspace(xform.target_colorspace);
+          image->is_monochrome=False;
+	  DestroyThreadViewDataSet(xform.transform);
 
           /*
             Throw away the old profile after conversion before we
@@ -970,12 +1132,23 @@ MagickExport MagickPassFail
 SetImageProfile(Image *image,const char *name, const unsigned char *profile,
                 const size_t length)
 {
+  char
+    ucase_name[MaxTextExtent];
+
   unsigned int
     status = MagickPass;
 
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   assert(name != NULL);
+
+  if (strlcpy(ucase_name,name,sizeof(ucase_name)) >= sizeof(ucase_name))
+    {
+      (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                            "Profile name too long! (%s)",name);
+      return MagickFail;
+    }
+  LocaleUpper(ucase_name);
 
   if ((profile == 0) && (image->profiles != 0))
     {
@@ -996,7 +1169,8 @@ SetImageProfile(Image *image,const char *name, const unsigned char *profile,
                                              MagickMapDeallocateBlob);
 
       (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                            "Adding %s profile",name);
+                            "Adding %s profile with length %ld bytes",name,
+			    (unsigned long) length);
       status &= MagickMapAddEntry(image->profiles,name,profile,length,
                                   &image->exception);
     }

@@ -58,6 +58,7 @@ static void
 static GhostscriptVectors
     gs_vectors;
 
+static MagickPassFail NTstrerror_r(LONG errnum, char *strerrbuf, size_t  buflen);
 
 /*
   External declarations.
@@ -797,133 +798,13 @@ char *NTGetLastError(void)
 %    o path_length: Length of buffer
 %
 */
-
-/* Portions of the following code fall under the following copyright: */
-
-/* Copyright (C) 2000-2002, Ghostgum Software Pty Ltd.  All rights reserved.
-
-  Permission is hereby granted, free of charge, to any person obtaining
-  a copy of this file ("Software"), to deal in the Software without
-  restriction, including without limitation the rights to use, copy,
-  modify, merge, publish, distribute, sublicense, and/or sell copies of
-  this Software, and to permit persons to whom this file is furnished to
-  do so, subject to the following conditions:
-
-  This Software is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-*/
-
-#define GS_PRODUCT_AFPL "AFPL Ghostscript"
-#define GS_PRODUCT_ALADDIN "Aladdin Ghostscript"
-#define GS_PRODUCT_GNU "GNU Ghostscript"
-#define GS_PRODUCT_GPL "GPL Ghostscript"
-#define GS_MINIMUM_VERSION 550
-
-/* Get Ghostscript versions for given product.
- * Store results starting at pver + 1 + offset.
- * Returns total number of versions in pver.
- */
-static int NTGhostscriptProductVersions(int *pver, int offset,
-    const char *gs_productfamily)
-{
-  HKEY
-    hkey,
-    hkeyroot;
-
-  DWORD
-    cbData;
-
-  char
-    key[256],
-    *p;
-
-  int
-    n = 0,
-    ver;
-
-  sprintf(key, "Software\\%s", gs_productfamily);
-  hkeyroot = HKEY_LOCAL_MACHINE;
-  if (RegOpenKeyExA(hkeyroot, key, 0, KEY_READ, &hkey) == ERROR_SUCCESS) {
-    /* Now enumerate the keys */
-    cbData = sizeof(key) / sizeof(char);
-    while (RegEnumKeyA(hkey, n, key, cbData) == ERROR_SUCCESS) {
-      n++;
-      ver = 0;
-      p = key;
-      while (*p && (*p!='.')) {
-        ver = (ver * 10) + (*p - '0')*100;
-        p++;
-      }
-      if (*p == '.')
-        p++;
-      if (*p) {
-        ver += (*p - '0') * 10;
-        p++;
-      }
-      if (*p)
-        ver += (*p - '0');
-      if (n + offset < pver[0])
-        pver[n+offset] = ver;
-    }
-  }
-  return n+offset;
-}
-
-/* Query registry to find which versions of Ghostscript are installed.
- * Return version numbers in an integer array.
- * On entry, the first element in the array must be the array size
- * in elements.
- * If all is well, TRUE is returned.
- * On exit, the first element is set to the number of Ghostscript
- * versions installed, and subsequent elements to the version
- * numbers of Ghostscript.
- * e.g. on entry {5, 0, 0, 0, 0}, on exit {3, 550, 600, 596, 0}
- * Returned version numbers may not be sorted.
- *
- * If Ghostscript is not installed at all, return FALSE
- * and set pver[0] to 0.
- * If the array is not large enough, return FALSE
- * and set pver[0] to the number of Ghostscript versions installed.
- */
-
-static int NTGhostscriptEnumerateVersions(int *pver)
-{
-  int
-    n;
-
-  assert(pver != (int *) NULL);
-
-  n = NTGhostscriptProductVersions(pver, 0, GS_PRODUCT_AFPL);
-  n = NTGhostscriptProductVersions(pver, n, GS_PRODUCT_ALADDIN);
-  n = NTGhostscriptProductVersions(pver, n, GS_PRODUCT_GNU);
-  n = NTGhostscriptProductVersions(pver, n, GS_PRODUCT_GPL);
-
-  if (n >= pver[0]) {
-    pver[0] = n;
-    return FALSE;  /* too small */
-  }
-
-  if (n == 0) {
-    pver[0] = 0;
-    return FALSE;  /* not installed */
-  }
-  pver[0] = n;
-  return TRUE;
-}
-
 /*
- * Get a named registry value.
- * Key = hkeyroot\\key, named value = name.
- * name, ptr, plen and return values are the same as in gp_getenv();
+  Get a named registry value.
+  Key = hkeyroot\\key, named value = name.
  */
-
-static int  NTGetRegistryValue(HKEY hkeyroot, const char *key, const char *name,
-    char *ptr, int *plen)
+static int
+NTGetRegistryValue(HKEY hkeyroot, const char *key, const char *name,
+		   char *ptr, int *plen)
 {
   HKEY
     hkey;
@@ -940,118 +821,267 @@ static int  NTGetRegistryValue(HKEY hkeyroot, const char *key, const char *name,
     rc;
 
   if (RegOpenKeyExA(hkeyroot, key, 0, KEY_READ, &hkey)
-      == ERROR_SUCCESS) {
-    keytype = REG_SZ;
-    cbData = *plen;
-    if (bptr == (BYTE *)NULL)
-      bptr = &b;  /* Registry API won't return ERROR_MORE_DATA */
-    /* if ptr is NULL */
-    rc = RegQueryValueExA(hkey, (char *)name, 0, &keytype, bptr, &cbData);
-    RegCloseKey(hkey);
-    if (rc == ERROR_SUCCESS) {
-      *plen = cbData;
-      return 0;  /* found environment variable and copied it */
-    } else if (rc == ERROR_MORE_DATA) {
-      /* buffer wasn't large enough */
-      *plen = cbData;
-      return -1;
+      == ERROR_SUCCESS)
+    {
+      keytype = REG_SZ;
+      cbData = *plen;
+      if (bptr == (BYTE *) NULL)
+	bptr = &b;  /* Registry API won't return ERROR_MORE_DATA */
+      /* if ptr is NULL */
+      rc = RegQueryValueExA(hkey, (char *)name, 0, &keytype, bptr, &cbData);
+      RegCloseKey(hkey);
+      if (rc == ERROR_SUCCESS)
+	{
+	  *plen = cbData;
+	  return 0;  /* found environment variable and copied it */
+	}
+      else
+	if (rc == ERROR_MORE_DATA)
+	  {
+	    /* buffer wasn't large enough */
+	    *plen = cbData;
+	    return -1;
+	  }
     }
-  }
   return 1;  /* not found */
 }
 
-static int NTGhostscriptGetProductString(int gs_revision, const char *name,
-    char *ptr, int len, const char *gs_productfamily)
+/*
+  Find the latest version of Ghostscript installed on the system (if
+  any).
+*/
+static MagickPassFail
+NTGhostscriptFind(const char **gs_productfamily,
+		  int *gs_major_version,
+		  int *gs_minor_version)
 {
-  /* If using Win32, look in the registry for a value with
-   * the given name.  The registry value will be under the key
-   * HKEY_CURRENT_USER\Software\AFPL Ghostscript\N.NN
-   * or if that fails under the key
-   * HKEY_LOCAL_MACHINE\Software\AFPL Ghostscript\N.NN
-   * where "AFPL Ghostscript" is actually gs_productfamily
-   * and N.NN is obtained from gs_revision.
-   */
+  /*
+    These are the Ghostscript product versions we will search for.
+  */
+  const char *products[4] =
+    {
+      "GPL Ghostscript",
+      "GNU Ghostscript",
+      "AFPL Ghostscript",
+      "Aladdin Ghostscript" 
+    };
 
   int
-    code,
-    length;
+    product_index;
 
-  char
-    dotversion[16],
-    key[256];
+  MagickPassFail
+    status;
 
-  DWORD version = GetVersion();
+  status=MagickFail;
+  *gs_productfamily=NULL;
 
-  if (((HIWORD(version) & 0x8000) != 0)
-      && ((HIWORD(version) & 0x4000) == 0)) {
-    /* Win32s */
-    return FALSE;
+  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+			"Searching for Ghostscript...");
+
+  /* Minimum version of Ghostscript is 5.50 */
+  *gs_major_version=5;
+  *gs_minor_version=49;
+  for (product_index=0; product_index < sizeof(products)/sizeof(products[0]);
+       ++product_index)
+    {
+      HKEY
+	hkey,
+	hkeyroot;
+
+      LONG
+	winstatus;
+
+      REGSAM
+	open_key_mode;
+
+      char
+	key[MaxTextExtent],
+	last_error_msg[MaxTextExtent];
+
+      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+			    "  Searching for %s...",
+			    products[product_index]);
+      FormatString(key,"SOFTWARE\\%s",products[product_index]);
+      hkeyroot = HKEY_LOCAL_MACHINE;
+      /*
+	long WINAPI RegOpenKeyEx(const HKEY hKey, const LPCTSTR
+	lpSubKey, const DWORD ulOptions, const REGSAM samDesired,
+	PHKEY phkResult)
+      */
+      open_key_mode=KEY_READ;
+#if defined(KEY_WOW64_32KEY)
+      // Access a 32-bit key from either a 32-bit or 64-bit
+      // application.  This flag is not supported on Windows 2000.
+      // Presumably Ghostscript is registered in the 32-bit registry.
+      open_key_mode |= KEY_WOW64_32KEY;
+#endif // defined(KEY_WOW64_32KEY)
+      if ((winstatus=RegOpenKeyExA(hkeyroot, key, 0, open_key_mode, &hkey))
+	  == ERROR_SUCCESS)
+	{
+	  DWORD
+	    cbData;
+
+	  int
+	    n;
+
+	  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				"    RegOpenKeyExA() opened "
+				"\"HKEY_LOCAL_MACHINE\\%s\"",
+				key);
+	  /* Now enumerate the keys */
+	  cbData = sizeof(key) / sizeof(char);
+	  n=0;
+	  /*
+	    LONG WINAPI RegEnumKeyEx(HKEY hKey, DWORD dwIndex, LPTSTR
+	    lpName, LPDWORD lpcName, LPDWORD lpReserved, LPTSTR
+	    lpClass, LPDWORD lpcClass, PFILETIME lpftLastWriteTime)
+
+	    Enumerates the subkeys of the specified open registry key. 
+
+	    RegEnumKeyA is is provided only for compatibility with
+	    16-bit versions of Windows.
+	  */
+	  while ((winstatus=RegEnumKeyA(hkey, n, key, cbData)) == ERROR_SUCCESS)
+	    {
+	      int
+		major_version,
+		minor_version;
+
+	      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				    "      RegEnumKeyA enumerated \"%s\"",key);
+	      n++;
+	      major_version=0;
+	      minor_version=0;
+	      if (sscanf(key,"%d.%d",&major_version,&minor_version) != 2)
+		continue;
+
+	      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				    "      Found Ghostscript (%s) version %d.%02d",
+				    products[product_index],
+				    major_version,
+				    minor_version);
+
+	      if ((major_version > *gs_major_version) ||
+		  ((major_version == *gs_major_version) &&
+		   (minor_version > *gs_minor_version)))
+		{
+		  *gs_productfamily=products[product_index];
+		  *gs_major_version=major_version;
+		  *gs_minor_version=minor_version;
+		  status=MagickPass;
+		}
+	    }
+	  if (winstatus != ERROR_NO_MORE_ITEMS)
+	    {
+	      (void) NTstrerror_r(winstatus,last_error_msg,sizeof(last_error_msg));
+	      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				    "      RegEnumKeyA (%s)",
+				    last_error_msg);
+	    }
+	  /*
+	    LONG WINAPI RegCloseKey(HKEY hKey)
+	    
+	    Close the registry key.
+	  */
+	  winstatus=RegCloseKey(hkey);
+	}
+      else
+	{
+	  /*
+	    If the function fails, the return value is a nonzero error
+	    code defined in Winerror.h. You can use the FormatMessage
+	    function with the FORMAT_MESSAGE_FROM_SYSTEM flag to get a
+	    generic description of the error.
+	   */
+	  (void) NTstrerror_r(winstatus,last_error_msg,sizeof(last_error_msg));
+	  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				"    RegOpenKeyExA() failed to open "
+				"\"HKEY_LOCAL_MACHINE\\%s\" (%s)",
+				key,last_error_msg);
+	}
+    }
+  if (status != MagickFail)
+    {
+      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+			    "Selected Ghostscript (%s) version %d.%02d",
+			    *gs_productfamily,*gs_major_version,
+			    *gs_minor_version);
+    }
+  else
+    {
+      (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+			    "Failed to find Ghostscript!");
+      *gs_major_version=0;
+      *gs_minor_version=0;
+    }
+
+  return status;
+}
+
+
+/*
+  Obtain a string from the installed Ghostscript (if any).
+*/
+static MagickPassFail
+NTGhostscriptGetString(const char *name, char *ptr, const size_t len)
+{
+  static const char
+    *gs_productfamily=NULL;
+
+  static int
+    gs_major_version=0,
+    gs_minor_version=0;
+
+  struct
+  {
+    const HKEY hkey;
+    const char *name;
   }
+  hkeys[2] =
+    {
+      { HKEY_CURRENT_USER,  "HKEY_CURRENT_USER"  },
+      { HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE" }
+    };
 
-  sprintf(dotversion, "%d.%02d",
-          (int)(gs_revision / 100), (int)(gs_revision % 100));
-  sprintf(key, "Software\\%s\\%s", gs_productfamily, dotversion);
-
-  length = len;
-  code = NTGetRegistryValue(HKEY_CURRENT_USER, key, name, ptr, &length);
-  if ( code == 0 )
-    return TRUE;  /* found it */
-
-  length = len;
-  code = NTGetRegistryValue(HKEY_LOCAL_MACHINE, key, name, ptr, &length);
-
-  if ( code == 0 )
-    return TRUE;  /* found it */
-
-  return FALSE;
-}
-
-static int NTGhostscriptGetString(int gs_revision, const char *name, char *ptr, int len)
-{
-  if (NTGhostscriptGetProductString(gs_revision, name, ptr, len, GS_PRODUCT_AFPL))
-    return TRUE;
-  if (NTGhostscriptGetProductString(gs_revision, name, ptr, len, GS_PRODUCT_ALADDIN))
-    return TRUE;
-  if (NTGhostscriptGetProductString(gs_revision, name, ptr, len, GS_PRODUCT_GNU))
-    return TRUE;
-  if (NTGhostscriptGetProductString(gs_revision, name, ptr, len, GS_PRODUCT_GPL))
-    return TRUE;
-  return FALSE;
-}
-
-static int NTGetLatestGhostscript( void )
-{
   int
-    count,
     i,
-    gsver,
-    *ver;
+    length;
+  
+  char
+    key[MaxTextExtent];
 
-  DWORD version = GetVersion();
-  if ( ((HIWORD(version) & 0x8000)!=0) && ((HIWORD(version) & 0x4000)==0) )
-    return FALSE;  /* win32s */
+  ptr[0]='\0';
 
-  count = 1;
-  NTGhostscriptEnumerateVersions(&count);
-  if (count < 1)
-    return FALSE;
-  ver = (int *)malloc((count+1)*sizeof(int));
-  if (ver == (int *)NULL)
-    return FALSE;
-  ver[0] = count+1;
-  if (!NTGhostscriptEnumerateVersions(ver)) {
-    free(ver);
-    return FALSE;
-  }
-  gsver = 0;
-  for (i=1; i<=ver[0]; i++) {
-    if (ver[i] > gsver)
-      gsver = ver[i];
-  }
-  free(ver);
-  return gsver;
+  if (NULL == gs_productfamily)
+    (void) NTGhostscriptFind(&gs_productfamily,&gs_major_version,
+			     &gs_minor_version);
+
+  if (NULL == gs_productfamily)
+    return MagickFail;
+
+  FormatString(key,"SOFTWARE\\%s\\%d.%02d",gs_productfamily,
+	       gs_major_version, gs_minor_version);
+  
+  for (i=0; i < sizeof(hkeys)/sizeof(hkeys[0]); ++i)
+    {
+      length = len;
+      if (NTGetRegistryValue(hkeys[i].hkey, key, name, ptr, &length) == 0)
+	{
+	  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				"Registry: \"%s\\%s\\%s\"=\"%s\"",
+				hkeys[i].name,key,name,ptr);
+	  return MagickPass;
+	}
+      else
+	{
+	  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				"Failed lookup: \"%s\\%s\\%s\"",
+				hkeys[i].name,key,name);
+	}
+    }
+
+  return MagickFail;
 }
-
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1080,22 +1110,23 @@ static int NTGetLatestGhostscript( void )
 */
 MagickExport int NTGhostscriptDLL(char *path, int path_length)
 {
-  int
-    gsver;
+  static char
+    cache[MaxTextExtent],
+    *result=NULL;
 
-  char
-    buf[256];
+  path[0]='\0';
 
-  *path='\0';
-  gsver = NTGetLatestGhostscript();
-  if ((gsver == FALSE) || (gsver < GS_MINIMUM_VERSION))
-    return FALSE;
+  if (NULL == result)
+    if (NTGhostscriptGetString("GS_DLL", cache, sizeof(cache)))
+      result=cache;
 
-  if (!NTGhostscriptGetString(gsver, "GS_DLL", buf, sizeof(buf)))
-    return FALSE;
+  if (result)
+    {
+      (void) strlcpy(path, result, path_length);
+      return TRUE;
+    }
 
-  strlcpy(path, buf, path_length);
-  return TRUE;
+  return FALSE;
 }
 
 /*
@@ -1140,7 +1171,9 @@ MagickExport const GhostscriptVectors *NTGhostscriptDLLVectors( void )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   Method NTGhostscriptEXE obtains the path to the latest Ghostscript
-%   executable.  The method returns False if a value is not obtained.
+%   executable.  The method returns TRUE if path is updated, otherwise
+%   FALSE.  When the full path value is not obtained, then the value
+%   "gswin32c.exe" is used.
 %
 %  The format of the NTGhostscriptEXE method is:
 %
@@ -1155,29 +1188,35 @@ MagickExport const GhostscriptVectors *NTGhostscriptDLLVectors( void )
 */
 MagickExport int NTGhostscriptEXE(char *path, int path_length)
 {
-  int
-    gsver;
+  static char
+    cache[MaxTextExtent],
+    *result=NULL;
 
   char
-    buf[256],
     *p;
 
-  *path='\0';
-  gsver = NTGetLatestGhostscript();
-  if ((gsver == FALSE) || (gsver < GS_MINIMUM_VERSION))
-    return FALSE;
+  if (NULL == result)
+    {
+      /* Ensure a suitable default. */
+      (void) strlcpy(cache,"gswin32c.exe",sizeof(cache));
 
-  if (!NTGhostscriptGetString(gsver, "GS_DLL", buf, sizeof(buf)))
-    return FALSE;
+      if (NTGhostscriptDLL(cache,sizeof(cache)))
+	{
+	  p = strrchr(cache, '\\');
+	  if (p) {
+	    p++;
+	    *p = 0;
+ 	    (void) strlcat(cache,"gswin32c.exe",sizeof(cache));
+	  }
+	}
+      result=cache;
+    }
 
-  p = strrchr(buf, '\\');
-  if (p) {
-    p++;
-    *p = 0;
-    strncpy(p, "gswin32c.exe", sizeof(buf)-1-strlen(buf));
-    strncpy(path, buf, path_length-1);
-    return TRUE;
-  }
+  if (result)
+    {
+      (void) strlcpy(path,result, path_length);
+      return TRUE;
+    }
 
   return FALSE;
 }
@@ -1209,19 +1248,12 @@ MagickExport int NTGhostscriptEXE(char *path, int path_length)
 */
 MagickExport int NTGhostscriptFonts(char *path, int path_length)
 {
-  int
-    ghostscript_version;
-
   char
     gs_lib_path[MaxTextExtent];
 
-  *path='\0';
-  ghostscript_version = NTGetLatestGhostscript();
-  if ((ghostscript_version == FALSE) || (ghostscript_version < GS_MINIMUM_VERSION))
-    return FALSE;
+  path[0]='\0';
 
-  if (!NTGhostscriptGetString(ghostscript_version, "GS_LIB", gs_lib_path,
-                              sizeof(gs_lib_path)))
+  if (!NTGhostscriptGetString("GS_LIB", gs_lib_path,sizeof(gs_lib_path)))
     return FALSE;
 
   /*
@@ -1252,14 +1284,14 @@ MagickExport int NTGhostscriptFonts(char *path, int path_length)
           length=seperator-start;
         else
           length=end-start;
-        strlcpy(font_dir,start,Min(length+1,MaxTextExtent));
-        strlcpy(font_dir_file,font_dir,MaxTextExtent);
-        strlcat(font_dir_file,DirectorySeparator,MaxTextExtent);
-        strlcat(font_dir_file,"fonts.dir",MaxTextExtent);
+        (void) strlcpy(font_dir,start,Min(length+1,MaxTextExtent));
+        (void) strlcpy(font_dir_file,font_dir,MaxTextExtent);
+        (void) strlcat(font_dir_file,DirectorySeparator,MaxTextExtent);
+        (void) strlcat(font_dir_file,"fonts.dir",MaxTextExtent);
         if (IsAccessible(font_dir_file))
           {
-            strlcpy(path,font_dir,path_length);
-            (void) LogMagickEvent(AnnotateEvent,GetMagickModule(),
+            (void) strlcpy(path,font_dir,path_length);
+            (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
                                   "Ghostscript fonts in directory \"%s\"",
                                   path);
             return TRUE;
@@ -1299,7 +1331,7 @@ MagickExport int NTGhostscriptLoadDLL(void)
   if (gs_dll_handle != (void *) NULL)
     return True;
 
-  if(!NTGhostscriptDLL(dll_path,sizeof(dll_path)))
+  if (!NTGhostscriptDLL(dll_path,sizeof(dll_path)))
     return False;
 
   gs_dll_handle = lt_dlopen(dll_path);
@@ -1587,6 +1619,67 @@ MagickExport unsigned char *NTResourceToBlob(const char *id)
   UnlockResource(global); /* Obsolete 16 bit API with no replacement */
   FreeResource(global); /* Obsolete 16 bit API */
   return(blob);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   N T s t r e r r o r _ r                                                   %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Method NTstrerror_r formats a returned Windows error code into a
+%   message string in a thread-safe manner.  MagickFail is returned if a
+%   message could not be found corresponding to the error code, otherwise
+%   MagickPass is returned.
+%
+%  The format of the NTstrerror_r method is:
+%
+%      MagickPassFail NTstrerror_r(LONG errnum, char *strerrbuf, size_t  buflen)
+%
+%  A description of each parameter follows:
+%
+%    o errnum: Windows error number
+%
+%    o strerrbuf: A buffer in which to write the message.
+%
+%    o buflen: The allocation length of the buffer.
+%
+*/
+static MagickPassFail
+NTstrerror_r(LONG errnum, char *strerrbuf, size_t  buflen)
+{
+  MagickPassFail
+    status;
+
+  LPVOID
+    buffer;
+
+  status=MagickFail;
+  if (buflen > 0)
+    strerrbuf[0]='\0';
+  if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		    FORMAT_MESSAGE_FROM_SYSTEM,NULL,errnum,
+		    MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),
+		    (LPTSTR) &buffer,0,NULL))
+    {
+      if (strlcpy(strerrbuf,buffer,buflen) < buflen)
+	{
+	  size_t
+	    index;
+
+	  for (index=0; strerrbuf[index] != 0; index++)
+	    if (strerrbuf[index] == '\015')
+	      strerrbuf[index]='\0';
+	  status=MagickPass;
+	}
+      LocalFree(buffer);
+    }
+  return status;
 }
 
 /*

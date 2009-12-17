@@ -37,9 +37,10 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -162,7 +163,8 @@ static Image *ReadMONOImage(const ImageInfo *image_info,
       break;
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         break;
   }
   (void) SyncImage(image);
@@ -330,7 +332,8 @@ static unsigned int WriteMONOImage(const ImageInfo *image_info,Image *image)
       (void) WriteBlobByte(image,byte >> (8-bit));
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                  SaveImageText,image->filename))
+                                  SaveImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   CloseBlob(image);

@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -41,7 +41,8 @@
 # include "magick/nt_feature.h"
 #endif
 #include "magick/blob.h"
-#include "magick/color.h"
+#include "magick/color_lookup.h"
+#include "magick/command.h"
 #include "magick/constitute.h"
 #include "magick/delegate.h"
 #include "magick/log.h"
@@ -78,6 +79,11 @@ static void
 static SemaphoreInfo
   *magick_semaphore = (SemaphoreInfo *) NULL;
 
+#if defined(SupportMagickModules)
+static SemaphoreInfo
+  *module_semaphore = (SemaphoreInfo *) NULL;
+#endif /* #if defined(SupportMagickModules) */
+
 static MagickInfo
   *magick_list = (MagickInfo *) NULL;
 
@@ -86,6 +92,35 @@ static CoderClass MinimumCoderClass = UnstableCoderClass;
 
 static void DestroyMagickInfo(MagickInfo** magick_info);
 static void DestroyMagickInfoList(void);
+
+static MagickPassFail InitializeMagickInfoList(void);
+
+/*
+  Block size to use when accessing filesystem.
+
+  Adjust via MAGICK_IOBUF_SIZE environment variable.
+*/
+
+static size_t filesystem_blocksize=16384;
+
+/*
+  Get blocksize to use when accessing the filesystem.
+*/
+size_t
+MagickGetFileSystemBlockSize(void)
+{
+  return filesystem_blocksize;
+}
+
+/*
+  Set blocksize to use when accessing the filesystem.
+*/
+void
+MagickSetFileSystemBlockSize(const size_t block_size)
+{
+  filesystem_blocksize=block_size;
+}
+
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,7 +133,10 @@ static void DestroyMagickInfoList(void);
 %                                                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  DestroyMagick() destroys the GraphicsMagick environment.
+%  DestroyMagick() destroys the GraphicsMagick environment.  This function
+%  should be invoked in the primary (original) thread of the application's
+%  process while shutting down, and only after any threads which might be
+%  using GraphicsMagick functions have terminated.
 %
 %  The format of the DestroyMagick function is:
 %
@@ -106,11 +144,13 @@ static void DestroyMagickInfoList(void);
 %
 %
 */
-MagickExport void DestroyMagick(void)
+MagickExport void
+DestroyMagick(void)
 {
   if (MagickInitialized == InitUninitialized)
     return;
 
+  MagickDestroyCommandInfo();   /* Command parser */
 #if defined(HasX11)
   MagickXDestroyX11Resources();
 #endif
@@ -158,7 +198,8 @@ MagickExport void DestroyMagick(void)
 %      void DestroyMagickInfo(MagickInfo** magick_info)
 %
 */
-static void DestroyMagickInfo(MagickInfo** magick_info)
+static void
+DestroyMagickInfo(MagickInfo** magick_info)
 {
   MagickInfo
     *p;
@@ -194,7 +235,8 @@ static void DestroyMagickInfo(MagickInfo** magick_info)
 %      void DestroyMagickInfoList(void)
 %
 */
-static void DestroyMagickInfoList(void)
+static void
+DestroyMagickInfoList(void)
 {
   MagickInfo
     *magick_info;
@@ -214,7 +256,6 @@ static void DestroyMagickInfoList(void)
     At this point, the list should be empty, but check for remaining
     entries anyway.
   */
-  AcquireSemaphoreInfo(&magick_semaphore);
 #if defined(BuildMagickModules)
   if (magick_list != (MagickInfo *) NULL)
     (void) printf("Warning: module registrations are still present!\n");
@@ -231,8 +272,11 @@ static void DestroyMagickInfoList(void)
     DestroyMagickInfo(&magick_info);
   }
   magick_list=(MagickInfo *) NULL;
-  LiberateSemaphoreInfo(&magick_semaphore);
   DestroySemaphoreInfo(&magick_semaphore);
+
+#if defined(SupportMagickModules)
+  DestroySemaphoreInfo(&module_semaphore);
+#endif /* #if defined(SupportMagickModules) */
 }
 
 /*
@@ -262,18 +306,18 @@ static void DestroyMagickInfoList(void)
 %
 %
 */
-MagickExport const char *GetImageMagick(const unsigned char *magick,
-  const size_t length)
+MagickExport const char *
+GetImageMagick(const unsigned char *magick,const size_t length)
 {
   register MagickInfo
     *p;
 
   assert(magick != (const unsigned char *) NULL);
-  AcquireSemaphoreInfo(&magick_semaphore);
+  LockSemaphoreInfo(magick_semaphore);
   for (p=magick_list; p != (MagickInfo *) NULL; p=p->next)
     if (p->magick && p->magick(magick,length))
       break;
-  LiberateSemaphoreInfo(&magick_semaphore);
+  UnlockSemaphoreInfo(magick_semaphore);
   if (p != (MagickInfo *) NULL)
     return(p->name);
   return((char *) NULL);
@@ -297,6 +341,9 @@ MagickExport const char *GetImageMagick(const unsigned char *magick,
 %  may be altered while the list is being traversed. If the list must be
 %  traversed, access it via the GetMagickInfoArray function instead.
 %
+%  If GraphicsMagick has not been initialized via InitializeMagick()
+%  then this function will not work.
+%
 %  The format of the GetMagickInfo method is:
 %
 %     const MagickInfo *GetMagickInfo(const char *name,ExceptionInfo *exception)
@@ -309,12 +356,13 @@ MagickExport const char *GetImageMagick(const unsigned char *magick,
 %
 %
 */
-static MagickInfo *GetMagickInfoEntryLocked(const char *name)
+static MagickInfo *
+GetMagickInfoEntryLocked(const char *name)
 {
   register MagickInfo
     *p;
 
-  AcquireSemaphoreInfo(&magick_semaphore);
+  LockSemaphoreInfo(magick_semaphore);
 
   p=magick_list;
 
@@ -341,58 +389,51 @@ static MagickInfo *GetMagickInfoEntryLocked(const char *name)
           }
     }
 
-  LiberateSemaphoreInfo(&magick_semaphore);
+  UnlockSemaphoreInfo(magick_semaphore);
 
   return p;
 }
-MagickExport const MagickInfo *GetMagickInfo(const char *name,
-  ExceptionInfo *ARGUNUSED(exception))
+MagickExport const MagickInfo *
+GetMagickInfo(const char *name,ExceptionInfo *ARGUNUSED(exception))
 {
-#if !defined(BuildMagickModules)
-  if ((magick_list == (MagickInfo *) NULL) &&
-      (GetMagickInfoEntryLocked(NULL) == (MagickInfo *) NULL))
-    {
-      /*
-        Register all static modules
-      */
-      RegisterStaticModules();
-    }
-#endif /* !defined(BuildMagickModules) */
-
-  /*
-    If name is NULL, then return head of list (as it currently
-    exists).
-  */
-  if (name == (const char *) NULL)
-    return GetMagickInfoEntryLocked(name);
+  const MagickInfo
+    *magick_info=(const MagickInfo *) NULL;
 
 #if defined(SupportMagickModules)
-  /*
-    Load module aliases (does nothing if already loaded)
-  */
-  (void) GetModuleInfo((char *) NULL,exception);
-
-  if (name[0] == '*')
+  if ((name != (const char *) NULL) &&
+      (name[0] != '\0'))
     {
-      /*
-        If all modules are requested, then use OpenModules to load all
-        modules.
-      */
-      (void) OpenModules(exception);
-    }
-  else
-    {
-      /*
-        Try to load a supporting module.
-      */
-      (void) OpenModule(name,exception);
+      LockSemaphoreInfo(module_semaphore);
+      if (name[0] == '*')
+	{
+	  /*
+	    If all modules are requested, then use OpenModules to load all
+	    modules.
+	  */
+	  (void) OpenModules(exception);
+	}
+      else
+	{
+	  magick_info=GetMagickInfoEntryLocked(name);
+	  if (magick_info == (const MagickInfo *) NULL)
+	    {
+	      /*
+		Try to load a supporting module.
+	      */
+	      (void) OpenModule(name,exception);
+	    }
+	}
+      UnlockSemaphoreInfo(module_semaphore);
     }
 #endif /* #if defined(SupportMagickModules) */
 
   /*
     Return whatever we've got
   */
-  return GetMagickInfoEntryLocked(name);
+  if (magick_info == (const MagickInfo *) NULL)
+    magick_info=GetMagickInfoEntryLocked(name);
+
+  return magick_info;
 }
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -427,7 +468,8 @@ MagickExport const MagickInfo *GetMagickInfo(const char *name,
 /*
   Compare two MagickInfo structures based on their name
 */
-static int MagickInfoCompare(const void *x, const void *y)
+static int
+MagickInfoCompare(const void *x, const void *y)
 {
   const MagickInfo
     *xx=*((const MagickInfo **) x),
@@ -435,7 +477,8 @@ static int MagickInfoCompare(const void *x, const void *y)
 
   return (strcmp(xx->name, yy->name));
 }
-MagickExport MagickInfo **GetMagickInfoArray(ExceptionInfo *exception)
+MagickExport MagickInfo **
+GetMagickInfoArray(ExceptionInfo *exception)
 {
   MagickInfo
     **array;
@@ -459,7 +502,7 @@ MagickExport MagickInfo **GetMagickInfoArray(ExceptionInfo *exception)
   if (!magick_list)
     return 0;
 
-  AcquireSemaphoreInfo(&magick_semaphore);
+  LockSemaphoreInfo(magick_semaphore);
 
   list=magick_list;
 
@@ -487,7 +530,7 @@ MagickExport MagickInfo **GetMagickInfoArray(ExceptionInfo *exception)
   for (p=list; p != 0; p=p->next)
     array[i++]=p;
 
-  LiberateSemaphoreInfo(&magick_semaphore);
+  UnlockSemaphoreInfo(magick_semaphore);
 
   /*
     Sort array entries
@@ -510,7 +553,11 @@ MagickExport MagickInfo **GetMagickInfoArray(ExceptionInfo *exception)
 %
 %  InitializeMagick() initializes the GraphicsMagick environment.
 %  InitializeMagick() MUST be invoked by the using program before making
-%  use of GraphicsMagick functions or else the library may be unstable.
+%  use of GraphicsMagick functions or else the library will be unusable.
+%
+%  This function should be invoked in the primary (original) thread of the
+%  application's process, and before starting any OpenMP threads, as part
+%  of program initialization.
 %
 %  The format of the InitializeMagick function is:
 %
@@ -540,12 +587,16 @@ typedef RETSIGTYPE Sigfunc(int);
 # define SIG_DFL (Sigfunc *)0
 #endif
 
+static RETSIGTYPE MagickPanicSignalHandler(int signo) __attribute__ ((noreturn));
+static RETSIGTYPE MagickSignalHandler(int signo) __attribute__ ((noreturn));
+
 /*
   Signal function which prevents interrupted system calls from
   automatically being restarted. From W. Richard Stevens "Advanced
   Programming in the UNIX Environment", Chapter 10.14.
 */
-static Sigfunc *MagickSignal(int signo, Sigfunc *func)
+static Sigfunc *
+MagickSignal(int signo, Sigfunc *func)
 {
 #if defined(HAVE_SIGACTION) && defined(HAVE_SIGEMPTYSET)
   struct sigaction
@@ -575,7 +626,8 @@ static Sigfunc *MagickSignal(int signo, Sigfunc *func)
   If an API user registers its own signal hander, then it is responsible
   for invoking DestroyMagick when a signal is received.
 */
-static Sigfunc *MagickCondSignal(int signo, Sigfunc *func)
+static Sigfunc *
+MagickCondSignal(int signo, Sigfunc *func)
 {
   Sigfunc *
     o_handler;
@@ -599,7 +651,8 @@ static Sigfunc *MagickCondSignal(int signo, Sigfunc *func)
   Signal handler which does nothing.
 */
 #if 0
-static RETSIGTYPE MagickIgnoreSignalHandler(int signo)
+static RETSIGTYPE
+MagickIgnoreSignalHandler(int signo)
 {
   fprintf(stderr,"Caught ignored signal %d\n", signo);
 }
@@ -622,7 +675,9 @@ static RETSIGTYPE MagickIgnoreSignalHandler(int signo)
   While support for signal is definitely broken under Windows, the good
   news is that it seems to be unlikely to generate a signal we care about.
 */
-static RETSIGTYPE MagickPanicSignalHandler(int signo)
+
+static RETSIGTYPE
+MagickPanicSignalHandler(int signo)
 {
   /* fprintf(stderr,"Caught panic signal %d\n", signo); */
 
@@ -647,7 +702,9 @@ static RETSIGTYPE MagickPanicSignalHandler(int signo)
 
   SignalHandlerExit(signo);
 }
-static RETSIGTYPE MagickSignalHandler(int signo)
+
+static RETSIGTYPE
+MagickSignalHandler(int signo)
 {
   /* fprintf(stderr,"Caught signal %d\n", signo); */
 
@@ -678,7 +735,8 @@ static RETSIGTYPE MagickSignalHandler(int signo)
    filesystem
  */
 #if !defined(UseInstalledMagick)
-static unsigned int IsValidFilesystemPath(const char *path)
+static unsigned int
+IsValidFilesystemPath(const char *path)
 {
   if ((path != (const char *) NULL) && (*path != '\0'))
     {
@@ -710,7 +768,8 @@ static unsigned int IsValidFilesystemPath(const char *path)
 /*
   Try and figure out the path and name of the client
  */
-MagickExport void InitializeMagickClientPathAndName(const char *ARGUNUSED(path))
+MagickExport void
+InitializeMagickClientPathAndName(const char *ARGUNUSED(path))
 {
 #if !defined(UseInstalledMagick)
   const char
@@ -787,7 +846,8 @@ MagickExport void InitializeMagickClientPathAndName(const char *ARGUNUSED(path))
 /*
   Establish signal handlers for common signals
 */
-MagickExport void InitializeMagickSignalHandlers(void)
+MagickExport void
+InitializeMagickSignalHandlers(void)
 {
 #if 0
   /* termination of child process */
@@ -830,7 +890,8 @@ MagickExport void InitializeMagickSignalHandlers(void)
 #endif
 }
 
-MagickExport void InitializeMagick(const char *path)
+MagickExport void
+InitializeMagick(const char *path)
 {
   const char
     *p;
@@ -869,6 +930,9 @@ MagickExport void InitializeMagick(const char *path)
   /* Initialize semaphores */
   InitializeSemaphore();
 
+  /* Initialize logging */
+  InitializeLogInfo();
+
   /* Seed the random number generator */
   srand(MagickRandNewSeed());
 
@@ -883,6 +947,19 @@ MagickExport void InitializeMagick(const char *path)
     (void) SetLogEventMask(p);
 
   /*
+    Set the filesystem block size.
+  */
+  {
+    size_t
+      block_size=16384;
+    
+    if ((p=getenv("MAGICK_IOBUF_SIZE")) != (const char *) NULL)
+      block_size = (size_t) atol(p);
+    
+    MagickSetFileSystemBlockSize(block_size);
+  }
+
+  /*
     Establish the path, filename, and display name of the client app
   */
   InitializeMagickClientPathAndName(path);
@@ -893,29 +970,6 @@ MagickExport void InitializeMagick(const char *path)
   if (GetClientName() == (const char *) NULL)
     DefineClientName(path);
 
-  /*
-    Set logging flags using the value of MAGICK_DEBUG if it is set in
-    the environment.
-  */
-  if ((p=getenv("MAGICK_DEBUG")) != (const char *) NULL)
-    (void) SetLogEventMask(p);
-
-  /*
-    Establish signal handlers for common signals
-  */
-  InitializeMagickSignalHandlers();
-
-  /*
-    Compute memory allocation and memory map resource limits based
-    on available memory
-  */
-  /* NOTE: This call does logging, so you can not make it before the path
-     to the client is setup */
-  InitializeMagickResources();
-
-  /* Initialize magick registry */
-  InitializeMagickRegistry();
-  
   /*
     Adjust minimum coder class if requested.
   */
@@ -929,17 +983,63 @@ MagickExport void InitializeMagick(const char *path)
         MinimumCoderClass=PrimaryCoderClass;
     }
 
-  /*
-    Initialize module loader
-  */
-#if defined(SupportMagickModules)
-  InitializeMagickModules();
-#endif /* defined(SupportMagickModules) */
+  InitializeMagickSignalHandlers(); /* Signal handlers */
+  InitializeTemporaryFiles();       /* Temporary files */
+  InitializeMagickResources();      /* Resources */
+  InitializeMagickRegistry();       /* Image/blob registry */
+  InitializeConstitute();           /* Constitute semaphore */
+  InitializeMagickInfoList();       /* Coder registrations + modules */
+  InitializeMagicInfo();            /* File format detection */
+  InitializeTypeInfo();             /* Font information */
+  InitializeDelegateInfo();         /* External delegate information */
+  InitializeColorInfo();            /* Color database */
+  MagickInitializeCommandInfo();    /* Command parser */
 
   /* Let's log the three important setting as we exit this routine */
   (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
     "Path: \"%s\" Name: \"%s\" Filename: \"%s\"",
       GetClientPath(),GetClientName(),GetClientFilename());
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   I n i t i a l i z e M a g i c k I n f o L i s t                           %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InitializeMagickInfoList initializes the magick info facility
+%
+%  The format of the InitializeMagickInfoList method is:
+%
+%      MagickPassFail InitializeMagickInfoList(void)
+%
+%
+*/
+MagickPassFail
+InitializeMagickInfoList(void)
+{
+  assert(magick_semaphore == (SemaphoreInfo *) NULL);
+  magick_semaphore=AllocateSemaphoreInfo();
+
+#if defined(SupportMagickModules)
+  assert(module_semaphore == (SemaphoreInfo *) NULL);
+  module_semaphore=AllocateSemaphoreInfo();
+#endif /* #if defined(SupportMagickModules) */
+
+#if !defined(BuildMagickModules)
+  RegisterStaticModules();          /* Register all static modules */
+#endif /* !defined(BuildMagickModules) */
+
+#if defined(SupportMagickModules)
+  InitializeMagickModules();        /* Module loader */
+#endif /* defined(SupportMagickModules) */
+
+  return MagickPass;
 }
 
 /*
@@ -969,7 +1069,8 @@ MagickExport void InitializeMagick(const char *path)
 %
 %
 */
-MagickExport MagickBool IsMagickConflict(const char *magick)
+MagickExport MagickBool
+IsMagickConflict(const char *magick)
 {
   assert(magick != (char *) NULL);
 #if defined(MSWINDOWS) || defined(__CYGWIN__)
@@ -1003,7 +1104,8 @@ MagickExport MagickBool IsMagickConflict(const char *magick)
 %
 %
 */
-MagickExport MagickPassFail ListMagickInfo(FILE *file,ExceptionInfo *exception)
+MagickExport MagickPassFail
+ListMagickInfo(FILE *file,ExceptionInfo *exception)
 {
 
   MagickInfo
@@ -1091,7 +1193,8 @@ MagickExport MagickPassFail ListMagickInfo(FILE *file,ExceptionInfo *exception)
 %
 %
 */
-MagickExport MagickPassFail ListModuleMap(FILE *file,ExceptionInfo *exception)
+MagickExport MagickPassFail
+ListModuleMap(FILE *file,ExceptionInfo *exception)
 {
   MagickInfo
     **magick_array;
@@ -1115,11 +1218,10 @@ MagickExport MagickPassFail ListModuleMap(FILE *file,ExceptionInfo *exception)
      {
        if (LocaleCompare(magick_array[i]->name,magick_array[i]->module) != 0)
          {
-/*            if (i != 0) */
-/*              (void) fprintf(file, "\n"); */
-/*            (void) fprintf(file, "  <!-- %s -->\n",magick_array[i]->description); */
            (void) fprintf(file, "  <module magick=\"%s\" name=\"%s\" />\n",
-                          magick_array[i]->name, magick_array[i]->module);
+                          magick_array[i]->name,
+			  (magick_array[i]->module == NULL ? "(null)" :
+			   magick_array[i]->module));
          }
      }
    (void) fprintf(file, "</modulemap>\n");
@@ -1156,7 +1258,8 @@ MagickExport MagickPassFail ListModuleMap(FILE *file,ExceptionInfo *exception)
 %
 %
 */
-MagickExport char *MagickToMime(const char *magick)
+MagickExport char *
+MagickToMime(const char *magick)
 {
   typedef struct _MediaType
   {
@@ -1238,7 +1341,8 @@ MagickExport char *MagickToMime(const char *magick)
 %    o magick_info: The magick info.
 %
 */
-MagickExport MagickInfo *RegisterMagickInfo(MagickInfo *magick_info)
+MagickExport MagickInfo *
+RegisterMagickInfo(MagickInfo *magick_info)
 {
   assert(magick_info != (MagickInfo *) NULL);
   assert(magick_info->signature == MagickSignature);
@@ -1256,13 +1360,13 @@ MagickExport MagickInfo *RegisterMagickInfo(MagickInfo *magick_info)
       /*
         Add to front of list.
       */
-      AcquireSemaphoreInfo(&magick_semaphore);
+      LockSemaphoreInfo(magick_semaphore);
       magick_info->previous=(MagickInfo *) NULL;
       magick_info->next=magick_list;
       if (magick_info->next != (MagickInfo *) NULL)
         magick_info->next->previous=magick_info;
       magick_list=magick_info;
-      LiberateSemaphoreInfo(&magick_semaphore);
+      UnlockSemaphoreInfo(magick_semaphore);
       return(magick_info);
     }
 
@@ -1301,7 +1405,8 @@ MagickExport MagickInfo *RegisterMagickInfo(MagickInfo *magick_info)
 %
 %
 */
-MagickExport MagickInfo *SetMagickInfo(const char *name)
+MagickExport MagickInfo *
+SetMagickInfo(const char *name)
 {
   MagickInfo
     *magick_info;
@@ -1353,7 +1458,8 @@ MagickExport MagickInfo *SetMagickInfo(const char *name)
 %      looking for.
 %
 */
-MagickExport MagickPassFail UnregisterMagickInfo(const char *name)
+MagickExport MagickPassFail
+UnregisterMagickInfo(const char *name)
 {
   MagickInfo
     *magick_info;
@@ -1366,7 +1472,7 @@ MagickExport MagickPassFail UnregisterMagickInfo(const char *name)
 
   assert(name != (const char *) NULL);
   status=MagickFail;
-  AcquireSemaphoreInfo(&magick_semaphore);
+  LockSemaphoreInfo(magick_semaphore);
   for (p=magick_list; p != (MagickInfo *) NULL; p=p->next)
   {
     if (LocaleCompare(p->name,name) != 0)
@@ -1382,6 +1488,6 @@ MagickExport MagickPassFail UnregisterMagickInfo(const char *name)
     status=MagickPass;
     break;
   }
-  LiberateSemaphoreInfo(&magick_semaphore);
+  UnlockSemaphoreInfo(magick_semaphore);
   return(status);
 }

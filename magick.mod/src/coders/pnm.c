@@ -36,9 +36,11 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/log.h"
 #include "magick/magick.h"
@@ -403,7 +405,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (image->previous == (Image *) NULL)
                   if (QuantumTick(y,image->rows))
                     if (!MagickMonitorFormatted(y,image->rows,exception,
-                                                LoadImageText,image->filename))
+                                                LoadImageText,image->filename,
+						image->columns,image->rows))
                       break;
                 if (EOFBlob(image))
                   break;
@@ -463,7 +466,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (image->previous == (Image *) NULL)
                   if (QuantumTick(y,image->rows))
                     if (!MagickMonitorFormatted(y,image->rows,exception,
-                                                LoadImageText,image->filename))
+                                                LoadImageText,image->filename,
+						image->columns,image->rows))
                       break;
               }
             image->is_monochrome=is_monochrome;
@@ -523,7 +527,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 if (image->previous == (Image *) NULL)
                   if (QuantumTick(y,image->rows))
                     if (!MagickMonitorFormatted(y,image->rows,exception,
-                                                LoadImageText,image->filename))
+                                                LoadImageText,image->filename,
+						image->columns,image->rows))
                       break;
               }
             image->is_monochrome=is_monochrome;
@@ -557,7 +562,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             ImportPixelAreaOptionsInit(&import_options);
             import_options.grayscale_miniswhite=MagickTrue;
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,1) shared(row_count,status)
+#  pragma omp parallel for schedule(static,1) shared(row_count,status)
 #endif
             for (y=0; y < (long) image->rows; y++)
               {
@@ -592,7 +597,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     if (QuantumTick(thread_row_count,image->rows))
                       if (!MagickMonitorFormatted(thread_row_count,image->rows,
                                                   exception,LoadImageText,
-                                                  image->filename))
+                                                  image->filename,
+						  image->columns,image->rows))
                         thread_status=MagickFail;
                 }
                 if (thread_status != MagickFail)
@@ -651,7 +657,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
               ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
 
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,1) shared(is_monochrome,row_count,status)
+#  pragma omp parallel for schedule(static,1) shared(is_monochrome,row_count,status)
 #endif
             for (y=0; y < (long) image->rows; y++)
               {
@@ -695,7 +701,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     if (QuantumTick(thread_row_count,image->rows))
                       if (!MagickMonitorFormatted(thread_row_count,image->rows,
                                                   exception,LoadImageText,
-                                                  image->filename))
+                                                  image->filename,
+						  image->columns,image->rows))
                         thread_status=MagickFail;
                 }
 
@@ -778,7 +785,7 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
               ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
 #if 1
 #if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(dynamic,1) shared(is_grayscale,is_monochrome,row_count,status)
+#  pragma omp parallel for schedule(static,1) shared(is_grayscale,is_monochrome,row_count,status)
 #endif
 #endif
             for (y=0; y < (long) image->rows; y++)
@@ -825,7 +832,8 @@ static Image *ReadPNMImage(const ImageInfo *image_info,ExceptionInfo *exception)
                     if (QuantumTick(thread_row_count,image->rows))
                       if (!MagickMonitorFormatted(thread_row_count,image->rows,
                                                   exception,LoadImageText,
-                                                  image->filename))
+                                                  image->filename,
+						  image->columns,image->rows))
                         thread_status=MagickFail;
                 }
 
@@ -1239,7 +1247,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         if (i != 0)
@@ -1280,7 +1289,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         if (i != 0)
@@ -1322,7 +1332,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         if (i != 0)
@@ -1368,7 +1379,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
             if (image->previous == (Image *) NULL)
               if (QuantumTick(y,image->rows))
                 if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                            SaveImageText,image->filename))
+                                            SaveImageText,image->filename,
+					    image->columns,image->rows))
                   break;
           }
         MagickFreeMemory(pixels);
@@ -1411,7 +1423,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         MagickFreeMemory(pixels);
@@ -1455,7 +1468,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         MagickFreeMemory(pixels);
@@ -1570,7 +1584,8 @@ static unsigned int WritePNMImage(const ImageInfo *image_info,Image *image)
             i=0;
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
         }
         /*

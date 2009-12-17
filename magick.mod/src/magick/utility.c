@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003-2009 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (c) 2000 Markus Friedl.  All rights reserved.
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
@@ -37,6 +37,7 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/color.h"
@@ -55,17 +56,20 @@
 #endif
 
 /*
-  Compute a value which is the next power of 2 larger than the
-  requested value, or size+MaxTextExtent, whichever is larger.
+  Compute a value which is the next kilobyte power of 2 larger than
+  the requested value or MaxTextExtent, whichever is larger.
+
+  The objective is to round up the size quickly (and in repeatable
+  steps) in order to reduce the number of memory copies due to realloc
+  for strings which grow rapidly, while producing a reasonable size
+  for smaller strings.
 */
 #define MagickRoundUpStringLength(size) \
 { \
   size_t \
     _rounded; \
  \
-  for (_rounded=1024U; _rounded <= size; _rounded *= 2); \
-  if (_rounded < size+MaxTextExtent) \
-    _rounded=size+MaxTextExtent; \
+  for (_rounded=256U; _rounded < (Max(size,256)); _rounded *= 2); \
   size=_rounded; \
 }
 
@@ -148,14 +152,18 @@ MagickExport char *AcquireString(const char *source)
   char
     *destination;
 
+  size_t
+    length;
+
   assert(source != (const char *) NULL);
-  destination=MagickAllocateMemory(char *,strlen(source)+1);
+  length=strlen(source);
+  destination=MagickAllocateMemory(char *,length+1);
   if (destination == (char *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
       UnableToAllocateString);
-  *destination='\0';
-  if (source != (char *) NULL)
-    (void) strcpy(destination,source);
+  if (length != 0)
+    (void) memcpy(destination,source,length);
+  destination[length]='\0';
   return(destination);
 }
 
@@ -193,21 +201,24 @@ MagickExport char *AllocateString(const char *source)
     *destination;
 
   size_t
-    length;
+    allocation_length,
+    source_length;
 
-  length=MaxTextExtent;
+  allocation_length=MaxTextExtent;
+  source_length=0;
   if (source != (char *) NULL)
     {
-      length=strlen(source)+1;
-      MagickRoundUpStringLength(length);
+      source_length=strlen(source);
+      allocation_length=source_length+1;
+      MagickRoundUpStringLength(allocation_length);
     }
-  destination=MagickAllocateMemory(char *,length);
+  destination=MagickAllocateMemory(char *,allocation_length);
   if (destination == (char *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
       UnableToAllocateString);
-  *destination='\0';
-  if (source != (char *) NULL)
-    (void) strcpy(destination,source);
+  if (source_length != 0)
+    (void) memcpy(destination,source,source_length);
+  destination[source_length]='\0';
   return(destination);
 }
 
@@ -540,7 +551,8 @@ MagickExport char *Base64Encode(const unsigned char *blob,
 MagickExport MagickPassFail CloneString(char **destination,const char *source)
 {
   size_t
-    allocation_length;
+    allocation_length,
+    string_length;
 
   assert(destination != (char **) NULL);
   if (source == (const char *) NULL)
@@ -548,13 +560,16 @@ MagickExport MagickPassFail CloneString(char **destination,const char *source)
       MagickFreeMemory(*destination);
       return(MagickPass);
     }
-  allocation_length=strlen(source)+1;
+  string_length=strlen(source);
+  allocation_length=string_length+1;
   MagickRoundUpStringLength(allocation_length);
   MagickReallocMemory(char *,*destination,allocation_length);
   if (*destination == (char *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
       UnableToAllocateString);
-  (void) strcpy(*destination,source);
+  if (0 != string_length)
+    (void) memcpy(*destination,source,string_length);
+  (*destination)[string_length]='\0';
   return(MagickPass);
 }
 
@@ -607,7 +622,9 @@ MagickExport MagickPassFail ConcatenateString(char **destination,
   if (*destination == (char *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
       UnableToConcatenateString);
-  (void) strcpy(((*destination)+destination_length),source);
+  if (0 != source_length)
+    (void) memcpy(&(*destination)[destination_length],source,source_length);
+  (*destination)[destination_length+source_length]='\0';
   return(MagickPass);
 }
 
@@ -899,7 +916,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
   /*
     Expand any wildcard filenames.
   */
-  (void) getcwd(current_directory,MaxTextExtent-1);
+  current_directory[0]='\0';
   count=0;
   for (i=0; i < *argc; i++)
     {
@@ -948,6 +965,7 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
       /*
 	Expand @filename to a list of arguments.
       */
+      j=0;
       if (option[0] == '@')
 	{
 	  FILE
@@ -1015,6 +1033,9 @@ MagickExport MagickPassFail ExpandFilenames(int *argc,char ***argv)
       if (*magick != '\0')
 	(void) strlcat(magick,":",sizeof(magick));
       ExpandFilename(path);
+
+      if ('\0' == current_directory[0])
+	(void) getcwd(current_directory,MaxTextExtent-1);
 
       /* Get the list of matching file names. */
       filelist=ListFiles(*path=='\0' ? current_directory : path,
@@ -2213,6 +2234,7 @@ MagickExport char *GetPageGeometry(const char *page_geometry)
 %  Method GetPathComponent returns the parent directory name, filename,
 %  basename, or extension of a file path.
 %
+%
 %  The format of the GetPathComponent function is:
 %
 %      GetPathComponent(const char *path,PathType type,char *component)
@@ -3269,24 +3291,32 @@ MagickExport char **ListFiles(const char *directory,const char *pattern,
 */
 MagickExport int LocaleCompare(const char *p,const char *q)
 {
-  register unsigned char
-    c,
-    d;
+  int
+    result;
 
   if (p == (char *) NULL)
-    return(-1);
-  if (q == (char *) NULL)
-    return(1);
-  for ( ; ; )
-  {
-    c=(unsigned char) *p;
-    d=(unsigned char) *q;
-    if ((c == '\0') || (AsciiMap[c] != AsciiMap[d]))
-      break;
-    p++;
-    q++;
-  }
-  return(AsciiMap[c]-AsciiMap[d]);
+    result=-1;
+  else if (q == (char *) NULL)
+    result=1;
+  else
+    {
+      register unsigned int
+	c,
+	d,
+	i;
+
+      i=0;
+      while (1)
+	{
+	  c=(unsigned int) p[i];
+	  d=(unsigned int) q[i];
+	  if ((c == 0U) || (AsciiMap[c] != AsciiMap[d]))
+	    break;
+	  i++;
+	}
+      result=AsciiMap[c]-AsciiMap[d];
+    }
+  return result;
 }
 
 /*
@@ -4142,7 +4172,7 @@ MagickExport const char *GetClientName(void)
   return(SetClientName((char *) NULL));
 }
 
-MagickExport char *SetClientName(const char *name)
+MagickExport const char *SetClientName(const char *name)
 {
   static char
     client_name[MaxTextExtent] = "Magick";
@@ -4588,18 +4618,20 @@ MagickExport void Strip(char *message)
 %                                                                             %
 %                                                                             %
 %                                                                             %
-%   S u b s t i t u t e S t r i n g                                           %
++   S u b s t i t u t e S t r i n g                                           %
 %                                                                             %
 %                                                                             %
 %                                                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  SubstituteString() performs string substitution on a buffer, replacing the
-%  buffer with the substituted version. Buffer must be allocated from the heap.
+%  SubstituteString() performs string substitution on a buffer, replacing
+%  the buffer with the substituted version. Buffer must be allocated from
+%  the heap since it may be reallocated (as required). MagickTrue is returned
+%  if a replacement was made.
 %
 %  The format of the SubstituteString method is:
 %
-%      void SubstituteString(char **buffer,const char* search,
+%      MagickBool SubstituteString(char **buffer,const char* search,
 %        const char *replace)
 %
 %  A description of each parameter follows:
@@ -4612,100 +4644,53 @@ MagickExport void Strip(char *message)
 %    o replace: Replacement string.
 %
 */
-MagickExport int SubstituteString(char **buffer,const char *search,
-  const char *replace)
+MagickExport MagickBool
+SubstituteString(char **buffer,const char *search,const char *replace)
 {
-  char
-    *destination,
-    *result;
+  register char
+    *p=*buffer;
 
-  const char
-    *match,
-    *source;
+  register unsigned int
+    i;
 
   size_t
-    allocated_length,
-    copy_length,
-    replace_length,
-    result_length,
-    search_length;
+    search_len=0,
+    replace_len=0;
 
-  assert(buffer != (char**) NULL);
-  assert(*buffer != (char *) NULL);
-  assert(search != (const char*) NULL);
-  assert(replace != (const char*) NULL);
-  source=(*buffer);
-  match=strstr(source,search);
-  if (match == (char *) NULL)
-    return(False);
-  allocated_length=strlen(source)+MaxTextExtent;
-  result=MagickAllocateMemory(char *,allocated_length);
-  if (result == (char *) NULL)
-    MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-      UnableToAllocateString);
-  *result='\0';
-  result_length=0;
-  destination=result;
-  replace_length=strlen(replace);
-  search_length=strlen(search);
-  while (match != (char*) NULL)
-  {
-    /*
-      Copy portion before match.
-    */
-    copy_length=match-source;
-    if (copy_length != 0)
-      {
-        result_length+=copy_length;
-        if (result_length >= allocated_length)
-          {
-            allocated_length+=copy_length+MaxTextExtent;
-            MagickReallocMemory(char *,result,allocated_length);
-            if (result == (char *) NULL)
-              MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-              UnableToAllocateString);
-          }
-        (void) strlcpy(destination,source,copy_length+1);
-        destination+=copy_length;
-      }
-      /*
-        Copy replacement.
-      */
-      result_length+=replace_length;
-      if (result_length >= allocated_length)
-        {
-          allocated_length+=replace_length+MaxTextExtent;
-          MagickReallocMemory(char *,result,allocated_length);
-          if (result == (char *) NULL)
-            MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-              UnableToAllocateString);
-        }
-      (void) strcat(destination,replace);
-      destination+=replace_length;
-      /*
-        Find next match.
-      */
-      source=match;
-      source+=search_length;
-      match=strstr(source,search);
-    }
-  /*
-    Copy remaining string.
-  */
-  copy_length=strlen(source);
-  result_length+=copy_length;
-  if (result_length >= allocated_length)
+  MagickBool
+    replaced=MagickFalse;
+
+  search_len=strlen(search);
+  p=*buffer;
+  for (i=0; p[i] != '\0'; i++)
     {
-      allocated_length+=copy_length+MaxTextExtent;
-      MagickReallocMemory(char *,result,allocated_length);
-      if (result == (char *) NULL)
-        MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
-          UnableToAllocateString);
+      if ((p[i] == search[0]) && (strncmp(&p[i],search,search_len) == 0))
+	{
+	  if (0 == replace_len)
+	    replace_len=strlen(replace);
+	  if (replace_len > search_len)
+	    {
+	      size_t
+		allocation_len;
+
+	      allocation_len=strlen(p)+(replace_len-search_len)+1;
+	      MagickRoundUpStringLength(allocation_len);
+	      MagickReallocMemory(char *,p,allocation_len);
+	      *buffer=p;
+	      if (p == (char *) NULL)
+		MagickFatalError3(ResourceLimitFatalError,
+				  MemoryAllocationFailed,
+				  UnableToAllocateString);
+	    }
+	  if (search_len != replace_len)
+	    (void) MagickCloneMemory(&p[i+replace_len],&p[i+search_len],
+				     strlen(&p[i+search_len])+1);
+	  (void) MagickCloneMemory(&p[i],replace,replace_len);
+	  i += replace_len;
+	  replaced=MagickTrue;
+	}
     }
-  (void) strcat(destination,source);
-  MagickFreeMemory(*buffer);
-  *buffer=result;
-  return True;
+  return replaced;
 }
 
 /*

@@ -37,9 +37,10 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -287,7 +288,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -319,7 +321,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -345,7 +348,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -373,7 +377,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -403,7 +408,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
         break;
@@ -444,7 +450,8 @@ static Image *ReadIconImage(const ImageInfo *image_info,
       if (image->previous == (Image *) NULL)
         if (QuantumTick(y,image->rows))
           if (!MagickMonitorFormatted(image->rows-y-1,image->rows,&image->exception,
-                                      LoadImageText,image->filename))
+                                      LoadImageText,image->filename,
+				      image->columns,image->rows))
             break;
     }
     if (EOFBlob(image))

@@ -68,9 +68,10 @@ static inline void AlphaCompositePixel(PixelPacket *composite, const PixelPacket
                                        const double change_alpha,const PixelPacket *base,
                                        const double base_alpha)
 {
-  if ((change_alpha == TransparentOpacity) && (composite != base))
+  if (change_alpha == (double) TransparentOpacity)
     {
-      *composite=*base;
+      if (composite != base)
+	*composite=*base;
     }
   else
     {

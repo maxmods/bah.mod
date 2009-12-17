@@ -37,6 +37,7 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/color.h"
 #include "magick/composite.h"
 #include "magick/monitor.h"
@@ -78,7 +79,7 @@
 MagickExport Image *ChopImage(const Image *image,const RectangleInfo *chop_info,
                               ExceptionInfo *exception)
 {
-#define ChopImageText  "[%s] Chop image..."
+#define ChopImageText "[%s] Chop..."
 
   Image
     *chop_image;
@@ -547,8 +548,8 @@ MagickExport Image *CropImage(const Image *image,const RectangleInfo *geometry,
       {
         row_count++;
         if (QuantumTick(row_count,crop_image->rows))
-          if (!MagickMonitorFormatted(row_count,crop_image->rows-1,exception,
-                                      "[%s] Crop %lux%lu+%ld+%ld image...",
+          if (!MagickMonitorFormatted(row_count,crop_image->rows,exception,
+                                      "[%s] Crop: %lux%lu+%ld+%ld...",
                                       crop_image->filename,
                                       crop_image->columns,crop_image->rows,
                                       page.x,page.y))
@@ -798,21 +799,22 @@ MagickExport Image *FlattenImages(const Image *image,ExceptionInfo *exception)
   assert(image->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickSignature);
-  if (image->next == (Image *) NULL)
-    ThrowImageException3(ImageError,ImageSequenceIsRequired,
-      UnableToFlattenImage);
+
   /*
-    Clone first image in sequence.
+    Clone first image in sequence to serve as canvas image
   */
   flatten_image=CloneImage(image,0,0,True,exception);
-  if (flatten_image == (Image *) NULL)
-    return((Image *) NULL);
-  /*
-    Flatten image.
-  */
-  for (next=image->next; next != (Image *) NULL; next=next->next)
-    (void) CompositeImage(flatten_image,next->compose,next,next->page.x,
-      next->page.y);
+
+  if ((flatten_image != (Image *) NULL) &&
+      (image->next != (Image *) NULL))
+    {
+      /*
+	Flatten remaining images onto canvas
+      */
+      for (next=image->next; next != (Image *) NULL; next=next->next)
+	(void) CompositeImage(flatten_image,next->compose,next,next->page.x,
+			      next->page.y);
+    }
   return(flatten_image);
 }
 
@@ -844,7 +846,7 @@ MagickExport Image *FlattenImages(const Image *image,ExceptionInfo *exception)
 */
 MagickExport Image *FlipImage(const Image *image,ExceptionInfo *exception)
 {
-#define FlipImageText  "[%s] Flip image..."
+#define FlipImageText "[%s] Flip..."
 
   Image
     *flip_image;
@@ -963,7 +965,7 @@ MagickExport Image *FlipImage(const Image *image,ExceptionInfo *exception)
 */
 MagickExport Image *FlopImage(const Image *image,ExceptionInfo *exception)
 {
-#define FlopImageText  "[%s] Flop image..."
+#define FlopImageText "[%s] Flop..."
 
   Image
     *flop_image;
@@ -1091,7 +1093,7 @@ MagickExport Image *FlopImage(const Image *image,ExceptionInfo *exception)
 */
 MagickExport Image *MosaicImages(const Image *image,ExceptionInfo *exception)
 {
-#define MosaicImageText  "[%s] Create image mosaic..."
+#define MosaicImageText "[%s] Create mosaic..."
 
   Image
     *mosaic_image;

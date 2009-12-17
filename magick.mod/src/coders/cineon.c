@@ -63,29 +63,23 @@ typedef char ASCII;
 typedef magick_uint8_t U8;
 typedef magick_uint32_t U32;
 typedef magick_int32_t S32;
-typedef float R32;
-
-/*
-  Union to allow R32 to be accessed as an unsigned U32 type for "unset
-  value" access.
-*/
 typedef union _R32_u
 {
-  U32   u;
-  R32   f;
-} R32_u;
+  magick_uint32_t u;
+  float f;
+} R32;
 
 #define SET_UNDEFINED_U8(value)  (value=0xFFU)
 #define SET_UNDEFINED_U32(value) (value=0xFFFFFFFFU)
 #define SET_UNDEFINED_S32(value) (value=0x80000000)
 
-#define SET_UNDEFINED_R32(value) (((R32_u*) &value)->u=0x7F800000U);
+#define SET_UNDEFINED_R32(value) (value.u=0x7F800000U);
 #define SET_UNDEFINED_ASCII(value) ((void) memset(value,0,sizeof(value)))
 
 #define IS_UNDEFINED_U8(value) (value == ((U8) 0xFFU))
 #define IS_UNDEFINED_U32(value) (value == ((U32) 0xFFFFFFFFU))
 #define IS_UNDEFINED_S32(value) (value == ((S32) 0x80000000))
-#define IS_UNDEFINED_R32(value) (((R32_u*) &value)->u == ((U32) 0x7F800000U))
+#define IS_UNDEFINED_R32(value) (value.u == ((U32) 0x7F800000U))
 #define IS_UNDEFINED_ASCII(value) (!(value[0] > 0))
 
 typedef struct _CineonFileInfo
@@ -286,7 +280,7 @@ static unsigned int IsCINEON(const unsigned char *magick,const size_t length)
 \
   if (!IS_UNDEFINED_R32(member)) \
     { \
-      FormatString(buffer,"%g",member); \
+      FormatString(buffer,"%g",member.f); \
       (void) SetImageAttribute(image,name,buffer); \
       LogSetImageAttribute(name,buffer); \
     } \
@@ -322,20 +316,20 @@ static void SwabCineonImageInfo(CineonImageInfo *image_info)
     {
       MagickSwabUInt32(&image_info->channel_info[i].pixels_per_line);
       MagickSwabUInt32(&image_info->channel_info[i].lines_per_image);
-      MagickSwabFloat(&image_info->channel_info[i].reference_low_data_code);
-      MagickSwabFloat(&image_info->channel_info[i].reference_low_quantity);
-      MagickSwabFloat(&image_info->channel_info[i].reference_high_data_code);
-      MagickSwabFloat(&image_info->channel_info[i].reference_high_quantity);
+      MagickSwabFloat(&image_info->channel_info[i].reference_low_data_code.f);
+      MagickSwabFloat(&image_info->channel_info[i].reference_low_quantity.f);
+      MagickSwabFloat(&image_info->channel_info[i].reference_high_data_code.f);
+      MagickSwabFloat(&image_info->channel_info[i].reference_high_quantity.f);
     }
 
-  MagickSwabFloat(&image_info->white_point[0]);
-  MagickSwabFloat(&image_info->white_point[1]);
-  MagickSwabFloat(&image_info->red_primary_chromaticity[0]);
-  MagickSwabFloat(&image_info->red_primary_chromaticity[1]);
-  MagickSwabFloat(&image_info->green_primary_chromaticity[0]);
-  MagickSwabFloat(&image_info->green_primary_chromaticity[1]);
-  MagickSwabFloat(&image_info->blue_primary_chromaticity[0]);
-  MagickSwabFloat(&image_info->blue_primary_chromaticity[1]);
+  MagickSwabFloat(&image_info->white_point[0].f);
+  MagickSwabFloat(&image_info->white_point[1].f);
+  MagickSwabFloat(&image_info->red_primary_chromaticity[0].f);
+  MagickSwabFloat(&image_info->red_primary_chromaticity[1].f);
+  MagickSwabFloat(&image_info->green_primary_chromaticity[0].f);
+  MagickSwabFloat(&image_info->green_primary_chromaticity[1].f);
+  MagickSwabFloat(&image_info->blue_primary_chromaticity[0].f);
+  MagickSwabFloat(&image_info->blue_primary_chromaticity[1].f);
   MagickSwabUInt32(&image_info->eol_pad);
   MagickSwabUInt32(&image_info->eoc_pad);  
 }
@@ -344,9 +338,9 @@ static void SwabCineonImageOriginationInfo(CineonImageOriginationInfo *image_inf
 {
   MagickSwabUInt32((U32 *) &image_info->x_offset);
   MagickSwabUInt32((U32 *) &image_info->y_offset);
-  MagickSwabFloat(&image_info->input_device_pitch_x);
-  MagickSwabFloat(&image_info->input_device_pitch_y);
-  MagickSwabFloat(&image_info->gamma);
+  MagickSwabFloat(&image_info->input_device_pitch_x.f);
+  MagickSwabFloat(&image_info->input_device_pitch_y.f);
+  MagickSwabFloat(&image_info->gamma.f);
 }
 
 static void SwabCineonFilmInfo(CineonFilmInfo *mp_info)
@@ -354,7 +348,7 @@ static void SwabCineonFilmInfo(CineonFilmInfo *mp_info)
   MagickSwabUInt32(&mp_info->prefix);
   MagickSwabUInt32(&mp_info->count);
   MagickSwabUInt32(&mp_info->frame_position);
-  MagickSwabFloat(&mp_info->frame_rate);
+  MagickSwabFloat(&mp_info->frame_rate.f);
 }
 
 static Image *ReadCINEONImage(const ImageInfo *image_info,
@@ -520,21 +514,21 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
                         image->columns, image->rows,
                         (unsigned int) cin_image_info.channels);
   if (!IS_UNDEFINED_R32(cin_image_info.white_point[0]))
-    image->chromaticity.white_point.x = cin_image_info.white_point[0];
+    image->chromaticity.white_point.x = cin_image_info.white_point[0].f;
   if (!IS_UNDEFINED_R32(cin_image_info.white_point[1]))
-    image->chromaticity.white_point.y = cin_image_info.white_point[1];
+    image->chromaticity.white_point.y = cin_image_info.white_point[1].f;
   if (!IS_UNDEFINED_R32(cin_image_info.red_primary_chromaticity[0]))
-    image->chromaticity.red_primary.x = cin_image_info.red_primary_chromaticity[0];
+    image->chromaticity.red_primary.x = cin_image_info.red_primary_chromaticity[0].f;
   if (!IS_UNDEFINED_R32(cin_image_info.red_primary_chromaticity[1]))
-    image->chromaticity.red_primary.y = cin_image_info.red_primary_chromaticity[1];
+    image->chromaticity.red_primary.y = cin_image_info.red_primary_chromaticity[1].f;
   if (!IS_UNDEFINED_R32(cin_image_info.green_primary_chromaticity[0]))
-    image->chromaticity.green_primary.x = cin_image_info.green_primary_chromaticity[0];
+    image->chromaticity.green_primary.x = cin_image_info.green_primary_chromaticity[0].f;
   if (!IS_UNDEFINED_R32(cin_image_info.green_primary_chromaticity[1]))
-    image->chromaticity.green_primary.y = cin_image_info.green_primary_chromaticity[1];
+    image->chromaticity.green_primary.y = cin_image_info.green_primary_chromaticity[1].f;
   if (!IS_UNDEFINED_R32(cin_image_info.blue_primary_chromaticity[0]))
-    image->chromaticity.blue_primary.x = cin_image_info.blue_primary_chromaticity[0];
+    image->chromaticity.blue_primary.x = cin_image_info.blue_primary_chromaticity[0].f;
   if (!IS_UNDEFINED_R32(cin_image_info.blue_primary_chromaticity[1]))
-    image->chromaticity.blue_primary.y = cin_image_info.blue_primary_chromaticity[1];
+    image->chromaticity.blue_primary.y = cin_image_info.blue_primary_chromaticity[1].f;
   StringToAttribute(image,"DPX:file.project.name",cin_image_info.label_text);
 
   /*
@@ -695,7 +689,8 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
               if (image->previous == (Image *) NULL)
                 if (QuantumTick(y,image->rows))
                   if (!MagickMonitorFormatted(y,image->rows,exception,
-                                              LoadImageText,image->filename))
+                                              LoadImageText,image->filename,
+					      image->columns,image->rows))
                     break;
             }
           MagickFreeMemory(scandata);
@@ -743,7 +738,8 @@ static Image *ReadCINEONImage(const ImageInfo *image_info,
               if (image->previous == (Image *) NULL)
                 if (QuantumTick(y,image->rows))
                   if (!MagickMonitorFormatted(y,image->rows,exception,
-                                              LoadImageText,image->filename))
+                                              LoadImageText,image->filename,
+					      image->columns,image->rows))
                     break;
             }
           MagickFreeMemory(scandata);
@@ -929,9 +925,9 @@ ModuleExport void UnregisterCINEONImage(void)
     *definition_value; \
 \
   if ((definition_value=AccessDefinition(image_info,"dpx",key+4))) \
-    member=(R32) strtod(definition_value, (char **) NULL); \
+    member.f=strtod(definition_value, (char **) NULL); \
   else if ((attribute=GetImageAttribute(image,key))) \
-    member=(R32) strtod(attribute->value, (char **) NULL); \
+    member.f=strtod(attribute->value, (char **) NULL); \
   else \
     SET_UNDEFINED_R32(member); \
 }
@@ -1088,13 +1084,13 @@ static unsigned int WriteCINEONImage(const ImageInfo *image_info,Image *image)
   /* Lines per image (rows) */
   cin_image_info.channel_info[0].lines_per_image = image->rows;
   /* Reference low data code value */
-  cin_image_info.channel_info[0].reference_low_data_code = 0;
+  cin_image_info.channel_info[0].reference_low_data_code.f = 0;
   /* Low quantity represented */
-  cin_image_info.channel_info[0].reference_low_quantity = 0.00;
+  cin_image_info.channel_info[0].reference_low_quantity.f = 0.00;
   /* Reference high data code value */
-  cin_image_info.channel_info[0].reference_high_data_code = 1023;
+  cin_image_info.channel_info[0].reference_high_data_code.f = 1023;
   /* Reference high quantity represented */
-  cin_image_info.channel_info[0].reference_high_quantity = 2.048F;
+  cin_image_info.channel_info[0].reference_high_quantity.f = 2.048F;
 
   /* Channel 1 (Green) */
   cin_image_info.channel_info[1] = cin_image_info.channel_info[0];
@@ -1109,32 +1105,32 @@ static unsigned int WriteCINEONImage(const ImageInfo *image_info,Image *image)
   SET_UNDEFINED_R32(cin_image_info.white_point[1]);
   if ( image->chromaticity.white_point.x != 0.0 && image->chromaticity.white_point.y != 0.0 )
     {
-      cin_image_info.white_point[0] = image->chromaticity.white_point.x;
-      cin_image_info.white_point[1] = image->chromaticity.white_point.y;
+      cin_image_info.white_point[0].f = image->chromaticity.white_point.x;
+      cin_image_info.white_point[1].f = image->chromaticity.white_point.y;
     }
   /* Red primary chromaticity - x,y pair */
   SET_UNDEFINED_R32(cin_image_info.red_primary_chromaticity[0]);
   SET_UNDEFINED_R32(cin_image_info.red_primary_chromaticity[1]);
   if ( image->chromaticity.red_primary.x != 0.0 &&  image->chromaticity.red_primary.y != 0.0)
     {
-      cin_image_info.red_primary_chromaticity[0] = image->chromaticity.red_primary.x;
-      cin_image_info.red_primary_chromaticity[1] = image->chromaticity.red_primary.y;
+      cin_image_info.red_primary_chromaticity[0].f = image->chromaticity.red_primary.x;
+      cin_image_info.red_primary_chromaticity[1].f = image->chromaticity.red_primary.y;
     }
   /* Green primary chromaticity - x,y pair */
   SET_UNDEFINED_R32(cin_image_info.green_primary_chromaticity[0]);
   SET_UNDEFINED_R32(cin_image_info.green_primary_chromaticity[1]);
   if ( image->chromaticity.green_primary.x != 0.0 && image->chromaticity.green_primary.y != 0.0 )
     {
-      cin_image_info.green_primary_chromaticity[0] = image->chromaticity.green_primary.x;
-      cin_image_info.green_primary_chromaticity[1] = image->chromaticity.green_primary.y;
+      cin_image_info.green_primary_chromaticity[0].f = image->chromaticity.green_primary.x;
+      cin_image_info.green_primary_chromaticity[1].f = image->chromaticity.green_primary.y;
     }
   /* Blue primary chromaticity - x,y pair */
   SET_UNDEFINED_R32(cin_image_info.blue_primary_chromaticity[0]);
   SET_UNDEFINED_R32(cin_image_info.blue_primary_chromaticity[1]);
   if ( image->chromaticity.blue_primary.x != 0.0 && image->chromaticity.blue_primary.y != 0.0 )
     {
-      cin_image_info.blue_primary_chromaticity[0] = image->chromaticity.blue_primary.x;
-      cin_image_info.blue_primary_chromaticity[1] = image->chromaticity.blue_primary.y;
+      cin_image_info.blue_primary_chromaticity[0].f = image->chromaticity.blue_primary.x;
+      cin_image_info.blue_primary_chromaticity[1].f = image->chromaticity.blue_primary.y;
     }
   /* Label text */
   AttributeToString(image_info,image,"DPX:file.project.name",cin_image_info.label_text);
@@ -1358,7 +1354,8 @@ static unsigned int WriteCINEONImage(const ImageInfo *image_info,Image *image)
         if (image->previous == (Image *) NULL)
           if (QuantumTick(y,image->rows))
             if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                        SaveImageText,image->filename))
+                                        SaveImageText,image->filename,
+					image->columns,image->rows))
               break;
       }
     MagickFreeMemory(scanline);

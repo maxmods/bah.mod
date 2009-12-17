@@ -80,7 +80,7 @@
 MagickExport void *CropImageToHBITMAP(Image *image,
   const RectangleInfo *geometry,ExceptionInfo *exception)
 {
-#define CropImageText  "  Crop image...  "
+#define CropImageText  "[%s] Crop to bitmap...  "
 
   long
     y;
@@ -197,7 +197,8 @@ MagickExport void *CropImageToHBITMAP(Image *image,
       }
 #endif
     if (QuantumTick(y,page.height))
-      if (!MagickMonitor(CropImageText,y,page.height-1,exception))
+      if (!MagickMonitorFormatted(y,page.height-1,exception,CropImageText,
+				  image->filename))
         break;
   }
   if (y < (long) page.height)

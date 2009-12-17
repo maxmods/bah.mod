@@ -896,7 +896,8 @@ static MagickPassFail load_level (Image* image,
       if (offset != 0)
         if (!MagickMonitorFormatted(offset,inDocInfo->file_size,
                                     &image->exception,LoadImageText,
-                                    image->filename))
+                                    image->filename,
+				    image->columns,image->rows))
           break;
     }
 
@@ -908,7 +909,8 @@ static MagickPassFail load_level (Image* image,
     {
       (void) MagickMonitorFormatted(inDocInfo->file_size,
                                     inDocInfo->file_size+1,&image->exception,
-                                    LoadImageText,image->filename);
+                                    LoadImageText,image->filename,
+				    image->columns,image->rows);
     }
 
   return MagickPass;

@@ -37,9 +37,10 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -183,7 +184,8 @@ static Image *ReadPIXImage(const ImageInfo *image_info,ExceptionInfo *exception)
         break;
       if (image->previous == (Image *) NULL)
         if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                    image->filename))
+                                    image->filename,
+				    image->columns,image->rows))
           break;
     }
     if (image->storage_class == PseudoClass)

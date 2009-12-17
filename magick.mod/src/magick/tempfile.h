@@ -8,8 +8,8 @@
   GraphicsMagick Temporary File Management
 */
 
-#ifndef _MAGICK_TEMPORARY_H
-#define _MAGICK_TEMPORARY_H
+#ifndef _MAGICK_TEMPFILE_H
+#define _MAGICK_TEMPFILE_H
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
@@ -21,8 +21,6 @@ typedef enum
   TextFileIOMode
 } FileIOMode;
 
-MagickExport void
-  DestroyTemporaryFiles(void);
 
 MagickExport MagickPassFail
   AcquireTemporaryFileName(char *filename),
@@ -33,6 +31,8 @@ MagickExport int
 
 MagickExport FILE *
   AcquireTemporaryFileStream(char *filename,FileIOMode mode);
+
+#if defined(MAGICK_IMPLEMENTATION)
 
 #define ThrowReaderTemporaryFileException(filename) \
 { \
@@ -62,8 +62,16 @@ MagickExport FILE *
   return(False); \
 }
 
+MagickExport void
+  DestroyTemporaryFiles(void);
+
+extern MagickPassFail
+  InitializeTemporaryFiles(void);
+
+#endif /* MAGICK_IMPLEMENTATION */
+
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif /* defined(__cplusplus) || defined(c_plusplus) */
 
-#endif /* ifndef _MAGICK_TEMPORARY_H */
+#endif /* _MAGICK_TEMPFILE_H */

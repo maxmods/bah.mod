@@ -199,7 +199,7 @@ ColorizeImagePixelsCB(void *mutable_data,                /* User provided mutabl
 MagickExport Image *ColorizeImage(const Image *image,const char *opacity,
   const PixelPacket target,ExceptionInfo *exception)
 {
-#define ColorizeImageText  "[%s] Colorize the image..."
+#define ColorizeImageText "[%s] Colorize..."
 
   ColorizeImagePixelsOptions
     options;
@@ -405,7 +405,7 @@ ColorMatrixImagePixels(void *mutable_data,         /* User provided mutable data
   return MagickPass;
 }
 
-#define ColorMatrixImageText  "[%s] Color matrix image..."
+#define ColorMatrixImageText "[%s] Color matrix..."
 MagickExport MagickPassFail
 ColorMatrixImage(Image *image,const unsigned int order,const double *color_matrix)
 {
@@ -465,8 +465,11 @@ ColorMatrixImage(Image *image,const unsigned int order,const double *color_matri
 	  }
       }
 
-    if (!image->matte)
-      options.matrix[3] = (double *) NULL;
+    /*
+      Add opacity channel if we will be updating opacity.
+    */
+    if ((!image->matte) && (options.matrix[3] != (double *) NULL))
+      SetImageOpacity(image,OpaqueOpacity);
   }
 
   if (LogMagickEvent(TransformEvent,GetMagickModule(),
@@ -537,253 +540,6 @@ ColorMatrixImage(Image *image,const unsigned int order,const double *color_matri
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
-%     C o n v o l v e I m a g e                                               %
-%                                                                             %
-%                                                                             %
-%                                                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  ConvolveImage() applies a custom convolution kernel to the image.
-%
-%  The format of the ConvolveImage method is:
-%
-%      Image *ConvolveImage(const Image *image,const unsigned int order,
-%        const double *kernel,ExceptionInfo *exception)
-%
-%  A description of each parameter follows:
-%
-%    o image: The image.
-%
-%    o order: The number of columns and rows in the filter kernel.
-%
-%    o kernel: An array of double representing the convolution kernel.
-%
-%    o exception: Return any errors or warnings in this structure.
-%
-%
-*/
-#define ConvolveImageText  "[%s] Convolving image..."
-MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
-                                  const double *kernel,ExceptionInfo *exception)
-{
-  double
-    *normal_kernel;
-
-  Image
-    *convolve_image;
-
-  long
-    width,
-    y;
-
-  MagickPassFail
-    status;
-
-  const MagickBool
-    matte=((image->matte) || (image->colorspace == CMYKColorspace));
-
-  /*
-    Initialize convolve image attributes.
-  */
-  assert(image != (Image *) NULL);
-  assert(image->signature == MagickSignature);
-  assert(exception != (ExceptionInfo *) NULL);
-  assert(exception->signature == MagickSignature);
-  width=(long) order;
-  if ((width % 2) == 0)
-    ThrowImageException3(OptionError,UnableToConvolveImage,
-                         KernelWidthMustBeAnOddNumber);
-  if (((long) image->columns < width) || ((long) image->rows < width))
-    ThrowImageException3(OptionError,UnableToConvolveImage,
-                         ImageSmallerThanKernelWidth);
-  convolve_image=CloneImage(image,image->columns,image->rows,MagickTrue,exception);
-  if (convolve_image == (Image *) NULL)
-    return((Image *) NULL);
-  convolve_image->storage_class=DirectClass;
-  {
-    /*
-      Build normalized kernel.
-    */
-    double
-      normalize;
-    
-    register long
-      i;
-
-    normal_kernel=MagickAllocateMemory(double *,width*width*sizeof(double));
-    if (normal_kernel == (double *) NULL)
-      {
-        DestroyImage(convolve_image);
-        ThrowImageException(ResourceLimitError,MemoryAllocationFailed,
-                            MagickMsg(OptionError,UnableToConvolveImage));
-      }
-    normalize=0.0;
-    for (i=0; i < (width*width); i++)
-      normalize+=kernel[i];
-    if (AbsoluteValue(normalize) <= MagickEpsilon)
-      normalize=1.0;
-    normalize=1.0/normalize;
-    for (i=0; i < (width*width); i++)
-      {
-        normal_kernel[i]=normalize*kernel[i];
-      }
-  }
-  
-  if (LogMagickEvent(TransformEvent,GetMagickModule(),
-                     "  ConvolveImage with %ldx%ld kernel:",width,width))
-    {
-      /*
-        Log convolution matrix.
-      */
-      char
-        cell_text[MaxTextExtent],
-        row_text[MaxTextExtent];
-
-      const double
-        *k;
-
-      long
-        u,
-        v;
-
-      k=kernel;
-      for (v=0; v < width; v++)
-        {
-          *row_text='\0';
-          for (u=0; u < width; u++)
-            {
-              FormatString(cell_text,"%#12.4g",*k++);
-              (void) strlcat(row_text,cell_text,sizeof(row_text));
-              if (u%5 == 4)
-                {
-                  (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                                        "   %.64s", row_text);
-                  *row_text='\0';
-                }
-            }
-          if (u > 5)
-            (void) strlcat(row_text,"\n",sizeof(row_text));
-          if (row_text[0] != '\0')
-            (void) LogMagickEvent(TransformEvent,GetMagickModule(),
-                                  "   %s", row_text);
-        }
-    }
-
-  status=MagickPass;
-  /*
-    Convolve image.
-  */
-  {
-    unsigned long
-      row_count=0;
-
-    DoublePixelPacket
-      zero;
-
-    (void) memset(&zero,0,sizeof(DoublePixelPacket));
-#if defined(HAVE_OPENMP)
-#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
-#endif
-    for (y=0; y < (long) convolve_image->rows; y++)
-      {
-        const PixelPacket
-          *p;
-    
-        PixelPacket
-          *q;
-
-        long
-          x;
-
-        MagickBool
-          thread_status;
-
-        thread_status=status;
-        if (thread_status == MagickFail)
-          continue;
-
-        p=AcquireImagePixels(image,-width/2,y-width/2,image->columns+width,width,
-                             exception);
-        q=SetImagePixelsEx(convolve_image,0,y,convolve_image->columns,1,exception);
-        if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
-          thread_status=MagickFail;
-
-        if (thread_status != MagickFail)
-          {
-            for (x=0; x < (long) convolve_image->columns; x++)
-              {
-                DoublePixelPacket
-                  pixel;
-
-                const PixelPacket
-                  *r;
-
-                long
-                  u,
-                  v;
-
-                const double
-                  *k;
-
-                r=p;
-                pixel=zero;
-                k=normal_kernel;
-                for (v=width; v > 0; v--)
-                  {
-                    for (u=0; u < width; u++)
-                      {
-                        pixel.red+=(*k)*r[u].red;
-                        pixel.green+=(*k)*r[u].green;
-                        pixel.blue+=(*k)*r[u].blue;
-                        if (matte)
-                          pixel.opacity+=(*k)*r[u].opacity;
-                        k++;
-                      }
-                    r+=image->columns+width;
-                  }
-                q->red=RoundDoubleToQuantum(pixel.red);
-                q->green=RoundDoubleToQuantum(pixel.green);
-                q->blue=RoundDoubleToQuantum(pixel.blue);
-                q->opacity=RoundDoubleToQuantum(pixel.opacity);
-                p++;
-                q++;
-              }
-            if (!SyncImagePixelsEx(convolve_image,exception))
-              thread_status=MagickFail;
-          }
-#if defined(HAVE_OPENMP)
-#  pragma omp critical (GM_ConvolveImage)
-#endif
-        {
-          row_count++;
-          if (QuantumTick(row_count,image->rows))
-            if (!MagickMonitorFormatted(row_count,image->rows,exception,
-                                        ConvolveImageText,
-                                        convolve_image->filename))
-              thread_status=MagickFail;
-          
-          if (thread_status == MagickFail)
-            status=MagickFail;
-        }
-      }
-  }
-  MagickFreeMemory(normal_kernel);
-  if (MagickFail == status)
-    {
-      DestroyImage(convolve_image);
-      convolve_image=(Image *) NULL;
-    }
-  else
-    {
-      convolve_image->is_grayscale=image->is_grayscale;
-    }
-  return(convolve_image);
-}
-
-/*
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                                                             %
-%                                                                             %
 %     I m p l o d e I m a g e                                                 %
 %                                                                             %
 %                                                                             %
@@ -817,7 +573,7 @@ MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
 MagickExport Image *ImplodeImage(const Image *image,const double amount,
                                  ExceptionInfo *exception)
 {
-#define ImplodeImageText  "[%s] Implode image..."
+#define ImplodeImageText "[%s] Implode..."
 
   double
     radius,
@@ -1032,7 +788,7 @@ MorphImagePixelsCB(void *mutable_data,                /* User provided mutable d
 MagickExport Image *MorphImages(const Image *image,
   const unsigned long number_frames,ExceptionInfo *exception)
 {
-#define MorphImageText  "[%s] Morph image sequence..."
+#define MorphImageText "[%s] Morph sequence..."
 
   MorphImagePixelsOptions
     options;
@@ -1183,7 +939,7 @@ MagickExport Image *MorphImages(const Image *image,
 MagickExport Image *OilPaintImage(const Image *image,const double radius,
                                   ExceptionInfo *exception)
 {
-#define OilPaintImageText  "[%s] OilPaint image..."
+#define OilPaintImageText "[%s] OilPaint..."
 
   Image
     *paint_image;
@@ -1389,7 +1145,7 @@ SolarizeImagePixelsCB(void *mutable_data,         /* User provided mutable data 
 }
 MagickExport MagickPassFail SolarizeImage(Image *image,const double threshold)
 {
-#define SolarizeImageText  "[%s] Solarize the image colors..."
+#define SolarizeImageText "[%s] Solarize..."
 
   unsigned int
     is_grayscale;
@@ -1469,7 +1225,7 @@ MagickExport MagickPassFail SolarizeImage(Image *image,const double threshold)
 #define GetBit(a,i) (((a) >> (i)) & 0x01)
 #define SetBit(a,i,set) \
   a=(Quantum) ((set) ? (a) | (1UL << (i)) : (a) & ~(1UL << (i)))
-#define SteganoImageText  "[%s] Stegano image..."
+#define SteganoImageText "[%s] Stegano..."
 MagickExport Image *SteganoImage(const Image *image,const Image *watermark,
   ExceptionInfo *exception)
 {
@@ -1605,7 +1361,7 @@ MagickExport Image *SteganoImage(const Image *image,const Image *watermark,
 MagickExport Image *StereoImage(const Image *image,const Image *offset_image,
   ExceptionInfo *exception)
 {
-#define StereoImageText  "[%s] Stereo image..."
+#define StereoImageText "[%s] Stereo..."
 
   Image
     *stereo_image;
@@ -1702,7 +1458,7 @@ MagickExport Image *StereoImage(const Image *image,const Image *offset_image,
 MagickExport Image *SwirlImage(const Image *image,double degrees,
                                ExceptionInfo *exception)
 {
-#define SwirlImageText  "[%s] Swirl image..."
+#define SwirlImageText "[%s] Swirl..."
 
   double
     radius,
@@ -1870,7 +1626,7 @@ MagickExport Image *SwirlImage(const Image *image,double degrees,
 MagickExport Image *WaveImage(const Image *image,const double amplitude,
                               const double wave_length,ExceptionInfo *exception)
 {
-#define WaveImageText  "[%s] Wave image..."
+#define WaveImageText "[%s] Wave..."
 
   VirtualPixelMethod
     virtual_pixel_method;

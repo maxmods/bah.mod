@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
   Copyright 1991-1999 E. I. du Pont de Nemours and Company
  
@@ -7,7 +7,7 @@
   Copyright.txt. You should have received a copy of Copyright.txt with this
   package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
  
-  ImageMagick Application Programming Interface declarations.
+  GraphicsMagick Application Programming Interface declarations.
 */
 #ifndef _MAGICK_MAGICK_H
 #define _MAGICK_MAGICK_H
@@ -125,8 +125,25 @@ extern MagickExport MagickInfo
   *RegisterMagickInfo(MagickInfo *magick_info),
   *SetMagickInfo(const char *name);
 
+#if defined(MAGICK_IMPLEMENTATION)
+
+  /*
+    Get blocksize to use when accessing the filesystem.
+  */
+  extern size_t
+  MagickGetFileSystemBlockSize(void);
+
+  /*
+    Set blocksize to use when accessing the filesystem.
+  */
+  extern void
+  MagickSetFileSystemBlockSize(const size_t block_size);
+
+#endif /* defined(MAGICK_IMPLEMENTATION) */
+
+
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
-#endif
+#endif /* _MAGICK_MAGICK_H */

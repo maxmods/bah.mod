@@ -108,7 +108,7 @@ MagickExport MagickPassFail DeleteMagickRegistry(const long id)
   RegistryInfo
     *registry_info;
 
-  AcquireSemaphoreInfo(&registry_semaphore);
+  LockSemaphoreInfo(registry_semaphore);
   for (p=registry_list; p != (RegistryInfo *) NULL; p=p->next)
   {
     if (id != p->id)
@@ -142,7 +142,7 @@ MagickExport MagickPassFail DeleteMagickRegistry(const long id)
     registry_info=(RegistryInfo *) NULL;
     break;
   }
-  LiberateSemaphoreInfo(&registry_semaphore);
+  UnlockSemaphoreInfo(registry_semaphore);
   return ((p != (RegistryInfo *) NULL) ? MagickPass : MagickFail);
 }
 
@@ -173,7 +173,6 @@ void DestroyMagickRegistry(void)
   RegistryInfo
     *registry_info;
 
-  AcquireSemaphoreInfo(&registry_semaphore);
   for (p=registry_list; p != (RegistryInfo *) NULL; )
   {
     registry_info=p;
@@ -200,7 +199,6 @@ void DestroyMagickRegistry(void)
   }
   registry_list=(RegistryInfo *) NULL;
   current_id = 0;
-  LiberateSemaphoreInfo(&registry_semaphore);
   DestroySemaphoreInfo(&registry_semaphore);
 }
 
@@ -244,7 +242,7 @@ MagickExport Image *GetImageFromMagickRegistry(const char *name,long *id,
 
   *id=(-1);
   image=(Image *) NULL;
-  AcquireSemaphoreInfo(&registry_semaphore);
+  LockSemaphoreInfo(registry_semaphore);
   for (p=registry_list; p != (RegistryInfo *) NULL; p=p->next)
   {
     if (p->type != ImageRegistryType)
@@ -256,7 +254,7 @@ MagickExport Image *GetImageFromMagickRegistry(const char *name,long *id,
         break;
       }
   }
-  LiberateSemaphoreInfo(&registry_semaphore);
+  UnlockSemaphoreInfo(registry_semaphore);
   if (image == (Image *) NULL)
     ThrowException(exception,RegistryError,UnableToLocateImage,name);
   return (image);
@@ -308,7 +306,7 @@ MagickExport void *GetMagickRegistry(const long id,RegistryType *type,
   blob=(void *) NULL;
   *type=UndefinedRegistryType;
   *length=0;
-  AcquireSemaphoreInfo(&registry_semaphore);
+  LockSemaphoreInfo(registry_semaphore);
   for (p=registry_list; p != (RegistryInfo *) NULL; p=p->next)
   {
     if (id != p->id)
@@ -351,7 +349,7 @@ MagickExport void *GetMagickRegistry(const long id,RegistryType *type,
     *length=registry_info->length;
     break;
   }
-  LiberateSemaphoreInfo(&registry_semaphore);
+  UnlockSemaphoreInfo(registry_semaphore);
   if (blob == (void *) NULL)
     {
       char
@@ -386,10 +384,10 @@ MagickExport void *GetMagickRegistry(const long id,RegistryType *type,
 */
 void InitializeMagickRegistry(void)
 {
-  AcquireSemaphoreInfo(&registry_semaphore);
+  assert(registry_semaphore == (SemaphoreInfo *) NULL);
+  registry_semaphore=AllocateSemaphoreInfo();
   current_id = 0;
   registry_list = (RegistryInfo *) NULL;
-  LiberateSemaphoreInfo(&registry_semaphore);
 }
 
 /*
@@ -498,7 +496,7 @@ MagickExport long SetMagickRegistry(const RegistryType type,const void *blob,
   registry_info->blob=clone_blob;
   registry_info->length=length;
   registry_info->signature=MagickSignature;
-  AcquireSemaphoreInfo(&registry_semaphore);
+  LockSemaphoreInfo(registry_semaphore);
   registry_info->id=current_id++;
   if (registry_list == (RegistryInfo *) NULL)
     registry_list=registry_info;
@@ -511,6 +509,6 @@ MagickExport long SetMagickRegistry(const RegistryType type,const void *blob,
       registry_info->previous=p;
       p->next=registry_info;
     }
-  LiberateSemaphoreInfo(&registry_semaphore);
+  UnlockSemaphoreInfo(registry_semaphore);
   return (registry_info->id);
 }

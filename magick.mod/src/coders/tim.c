@@ -37,9 +37,10 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -252,7 +253,8 @@ static Image *ReadTIMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             {
               status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                             exception,LoadImageText,
-                                            image->filename);
+                                            image->filename,
+					    image->columns,image->rows);
               if (status == False)
                 break;
             }
@@ -279,7 +281,8 @@ static Image *ReadTIMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             {
               status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                             exception,LoadImageText,
-                                            image->filename);
+                                            image->filename,
+					    image->columns,image->rows);
               if (status == False)
                 break;
             }
@@ -312,7 +315,8 @@ static Image *ReadTIMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             {
               status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                             exception,LoadImageText,
-                                            image->filename);
+                                            image->filename,
+					    image->columns,image->rows);
               if (status == False)
                 break;
             }
@@ -343,7 +347,8 @@ static Image *ReadTIMImage(const ImageInfo *image_info,ExceptionInfo *exception)
             {
               status=MagickMonitorFormatted(image->rows-y-1,image->rows,
                                             exception,LoadImageText,
-                                            image->filename);
+                                            image->filename,
+					    image->columns,image->rows);
               if (status == False)
                 break;
             }

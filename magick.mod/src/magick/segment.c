@@ -245,7 +245,7 @@ DumpHistogramArray(FILE *stream,const unsigned int entries,
 %
 %
 */
-#define SegmentImageText  "[%s] Segmenting image..."
+#define SegmentImageText "[%s] Segment..."
 
 typedef struct _Cluster
 {
@@ -283,9 +283,9 @@ Classify(Image *image,short **extrema,
     total_vectors;
 
   ExtentPacket
-    blue,
-    green,
-    red;
+    blue = { 0.0, 0, 0, 0},
+    green = { 0.0, 0, 0, 0},
+    red = { 0.0, 0, 0, 0};
 
   unsigned long
     count;

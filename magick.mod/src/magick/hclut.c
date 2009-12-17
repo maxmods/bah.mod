@@ -252,10 +252,11 @@ HaldClutImage(Image *image, const Image *clut)
     return MagickFail;
 							 
   FormatString(progress_message,
-	       "[%%s] Correcting the image with a clut of level %u ...",
-	       param.level);
-	
-  TransformColorspace(image,RGBColorspace);
+	       "[%%s] Applying Hald CLUT level %u (%lux%lu) ...",
+	       param.level,clut->columns,clut->rows);
+
+  if (!IsRGBCompatibleColorspace(image->colorspace))
+    TransformColorspace(image,RGBColorspace);
   if (image->storage_class == PseudoClass)
     {
       (void) HaldClutImagePixels(NULL,&param,image,image->colormap,

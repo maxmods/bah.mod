@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -43,6 +43,7 @@
 #include "magick/log.h"
 #include "magick/render.h"
 #include "magick/semaphore.h"
+#include "magick/type.h"
 #include "magick/utility.h"
 
 /*
@@ -102,7 +103,6 @@ MagickExport void DestroyTypeInfo(void)
   TypeInfo
     *type_info;
 
-  AcquireSemaphoreInfo(&type_semaphore);
   for (p=type_list; p != (TypeInfo *) NULL; )
   {
     type_info=p;
@@ -128,7 +128,6 @@ MagickExport void DestroyTypeInfo(void)
     MagickFreeMemory(type_info);
   }
   type_list=(TypeInfo *) NULL;
-  LiberateSemaphoreInfo(&type_semaphore);
   DestroySemaphoreInfo(&type_semaphore);
 }
 
@@ -169,7 +168,7 @@ MagickExport const TypeInfo *GetTypeInfo(const char *name,
 
   if (type_list == (TypeInfo *) NULL)
     {
-      AcquireSemaphoreInfo(&type_semaphore);
+      LockSemaphoreInfo(type_semaphore);
       if (type_list == (TypeInfo *) NULL)
         {
           (void) ReadTypeConfigureFile(TypeFilename,0,exception);
@@ -196,14 +195,14 @@ MagickExport const TypeInfo *GetTypeInfo(const char *name,
           }
 #endif
         }
-      LiberateSemaphoreInfo(&type_semaphore);
+      UnlockSemaphoreInfo(type_semaphore);
     }
   if ((name == (const char *) NULL) || (LocaleCompare(name,"*") == 0))
     return((const TypeInfo *) type_list);
   /*
     Search for requested type.
   */
-  AcquireSemaphoreInfo(&type_semaphore);
+  LockSemaphoreInfo(type_semaphore);
   for (p=type_list; p != (TypeInfo *) NULL; p=p->next)
     if ((p->name != (char *) NULL) && (LocaleCompare(p->name,name) == 0))
       break;
@@ -222,7 +221,7 @@ MagickExport const TypeInfo *GetTypeInfo(const char *name,
         type_list->previous=p;
         type_list=p;
       }
-  LiberateSemaphoreInfo(&type_semaphore);
+  UnlockSemaphoreInfo(type_semaphore);
   return((const TypeInfo *) p);
 }
 
@@ -481,6 +480,33 @@ MagickExport char **GetTypeList(const char *pattern,unsigned long *number_types)
 %                                                                             %
 %                                                                             %
 %                                                                             %
++   I n i t i a l i z e T y p e I n f o                                       %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InitializeTypeInfo initializes the type facility
+%
+%  The format of the InitializeTypeInfo method is:
+%
+%      MagickPassFail InitializeTypeInfo(void)
+%
+%
+*/
+MagickPassFail
+InitializeTypeInfo(void)
+{
+  assert(type_semaphore == (SemaphoreInfo *) NULL);
+  type_semaphore=AllocateSemaphoreInfo();
+  return MagickPass;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 %  L i s t T y p e I n f o                                                    %
 %                                                                             %
 %                                                                             %
@@ -519,7 +545,7 @@ MagickExport unsigned int ListTypeInfo(FILE *file,ExceptionInfo *exception)
   if (file == (FILE *) NULL)
     file=stdout;
   (void) GetTypeInfo("*",exception);
-  AcquireSemaphoreInfo(&type_semaphore);
+  LockSemaphoreInfo(type_semaphore);
   for (p=type_list; p != (const TypeInfo *) NULL; p=p->next)
   {
     if ((p->previous == (TypeInfo *) NULL) ||
@@ -549,7 +575,7 @@ MagickExport unsigned int ListTypeInfo(FILE *file,ExceptionInfo *exception)
       name,family,style,stretch,weight);
   }
   (void) fflush(file);
-  LiberateSemaphoreInfo(&type_semaphore);
+  UnlockSemaphoreInfo(type_semaphore);
   return(True);
 }
 

@@ -37,14 +37,14 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/magic.h"
 #include "magick/magick.h"
+#include "magick/pixel_cache.h"
+#include "magick/shear.h"
 #include "magick/tempfile.h"
 #include "magick/transform.h"
-#include "magick/shear.h"
 #include "magick/utility.h"
 
 

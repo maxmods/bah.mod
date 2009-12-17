@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2004, 2005 GraphicsMagick Group
+  Copyright (C) 2004 - 2009 GraphicsMagick Group
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
@@ -39,6 +39,14 @@ extern MagickExport MagickPassFail
 extern MagickExport MagickPassFail
   SetImageProfile(Image *image,const char *name,const unsigned char *profile,
                   const size_t length);
+
+/*
+  Add (or append) profile to the image by name.
+ */
+  extern MagickExport MagickPassFail
+  AppendImageProfile(Image *image,const char *name,
+		     const unsigned char *profile_chunk,
+		     const size_t chunk_length);
 
 /*
   Generic iterator for traversing profiles.

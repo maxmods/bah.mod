@@ -34,6 +34,7 @@
 #include "magick/studio.h"
 #include "magick/alpha_composite.h"
 #include "magick/color.h"
+#include "magick/color_lookup.h"
 #include "magick/compare.h"
 #include "magick/enum_strings.h"
 #include "magick/pixel_iterator.h"

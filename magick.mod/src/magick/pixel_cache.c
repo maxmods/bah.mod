@@ -89,6 +89,37 @@
 extern "C" {
 #endif
 
+  typedef magick_off_t pixel_off_t;
+
+  /*
+    Read only access to a linear pixel region.
+  */
+  MagickExport const PixelPacket
+  *AcquireImagePixelsDirect(const Image *image,
+			    const pixel_off_t offset,
+			    const unsigned long length,
+			    ExceptionInfo *exception);
+
+  /*
+    Read/write access to a linear pixel region (existing data read and
+    updated).
+  */
+  extern MagickExport PixelPacket
+  *GetImagePixelsDirect(Image *image,
+			const pixel_off_t offset,
+			const unsigned long length,
+			ExceptionInfo *exception);
+
+  /*
+    Write access to a linear pixel region (existing data ignored).
+  */
+  extern MagickExport PixelPacket
+  *SetImagePixelsDirect(Image *image,
+			const pixel_off_t offset,
+			const unsigned long length,
+			ExceptionInfo *exception);
+
+
 /*
   Enum declaractions.
 */
@@ -132,6 +163,9 @@ typedef struct _CacheInfo
 
   /* The number of Image structures referencing this cache */
   long reference_count;
+
+  /* True if cache is read only */
+  MagickBool read_only;
 
    /* Lock for updating reference count */
   SemaphoreInfo *reference_semaphore;
@@ -289,11 +323,22 @@ FilePositionRead(int file, void *buffer, size_t length,magick_off_t offset)
 
   for (total_count=0; total_count < length; total_count+=count)
     {
+      char
+	*io_buff_address;
+
+      size_t
+	requested_io_size;
+
+      off_t
+	io_file_offset;
+
+      requested_io_size=length-total_count;
+      io_buff_address=(char *) buffer+total_count;
+      io_file_offset=offset+total_count;
 #if HAVE_PREAD
-      count=pread(file,(char *) buffer+total_count,length-total_count,
-                  offset+total_count);
+      count=pread(file,io_buff_address,requested_io_size,io_file_offset);
 #else
-      count=read(file,(char *) buffer+total_count,length-total_count);
+      count=read(file,io_buff_address,requested_io_size);
 #endif
       if (count <= 0)
         break;
@@ -319,17 +364,40 @@ FilePositionWrite(int file, const void *buffer,size_t length,magick_off_t offset
   register size_t
     total_count;
 
+#if 0
+  fprintf(stderr,"FilePositionWrite file=%d, buffer=0x%p, length=%lu, "
+	  "offset=%" MAGICK_OFF_F "u\n",
+	  file,buffer,(unsigned long) length,offset);
+#endif
+
 #if !HAVE_PWRITE
   if ((MagickSeek(file,offset,SEEK_SET)) < 0)
     return (ssize_t)-1;
 #endif /* !HAVE_PWRITE */
   for (total_count=0; total_count < length; total_count+=count)
     {
+      char
+	*io_buff_address;
+
+      size_t
+	requested_io_size;
+
+      off_t
+	io_file_offset;
+
+      io_buff_address=(char *) buffer+total_count;
+      requested_io_size=length-total_count;
+      io_file_offset=offset+total_count;
 #if HAVE_PWRITE
-      count=pwrite(file,(char *) buffer+total_count,length-total_count,
-                   offset+total_count);
+#if 0
+  fprintf(stderr,"pwrite file=%d, io_buff_address=0x%p, requested_io_size=%lu, "
+	  "io_file_offset=%" MAGICK_OFF_F "u\n",
+	  file,io_buff_address,(unsigned long) requested_io_size,
+	  (magick_off_t) io_file_offset);
+#endif
+      count=pwrite(file,io_buff_address,requested_io_size,io_file_offset);
 #else
-      count=write(file,(char *) buffer+total_count,length-total_count);
+      count=write(file,io_buff_address,requested_io_size);
 #endif
       if (count <= 0)
         break;
@@ -379,13 +447,7 @@ AllocateThreadViewSet(Image *image,ExceptionInfo *exception)
   if (view_set == (ThreadViewSet *) NULL)
     MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
                       UnableToAllocateCacheView);
-  /*
-    omp_get_max_threads() returns the # threads which will be used in team by default.
-    omp_get_num_threads() returns the # of threads in current team (1 in main thread).
-  */
-  view_set->nviews=omp_get_max_threads();
-  /* printf("Allocated %d cache views ...\n",view_set->nviews); */
-  
+  view_set->nviews=(unsigned int) GetMagickResourceLimit(ThreadsResource);
   view_set->views=MagickAllocateArray(ViewInfo *,view_set->nviews,sizeof(ViewInfo *));
   if (view_set->views == (ViewInfo *) NULL)
     {
@@ -1376,7 +1438,7 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
       /*
         Unoptimized pixel cache clone.
       */
-      (void) LogMagickEvent(CacheEvent,GetMagickModule(),"unoptimized");
+      (void) LogMagickEvent(CacheEvent,GetMagickModule(),"unoptimized clone");
       clip_mask=clone_image->clip_mask;
       clone_image->clip_mask=(Image *) NULL;
       length=Min(image->columns,clone_image->columns);
@@ -1388,16 +1450,19 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
         {
           for (y=0; y < (long) image->rows; y++)
             {
-              p=AcquireCacheViewPixels(image_view,0,y,image->columns,1,exception);
+              p=AcquireCacheViewPixels(image_view,0,y,image->columns,1,
+				       exception);
               q=SetCacheViewPixels(clone_view,0,y,image->columns,1,exception);
-              if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
+              if ((p == (const PixelPacket *) NULL) ||
+		  (q == (PixelPacket *) NULL))
                 break;
               (void) memcpy(q,p,length*sizeof(PixelPacket));
               indexes=AcquireCacheViewIndexes(image_view);
               clone_indexes=GetCacheViewIndexes(clone_view);
               if ((indexes != (const IndexPacket *) NULL) &&
                   (clone_indexes != (IndexPacket *) NULL))
-                (void) memcpy(clone_indexes,indexes,length*sizeof(IndexPacket));
+                (void) memcpy(clone_indexes,indexes,
+			      length*sizeof(IndexPacket));
               if (!SyncCacheViewPixels(clone_view,exception))
                 break;
             }
@@ -1412,7 +1477,8 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
   */
   if ((cache_info->type != DiskCache) && (clone_info->type != DiskCache))
     {
-      (void) LogMagickEvent(CacheEvent,GetMagickModule(),"memory => memory");
+      (void) LogMagickEvent(CacheEvent,GetMagickModule(),
+			    "memory => memory clone");
       (void) memcpy(clone_info->pixels,cache_info->pixels,
                     (size_t) cache_info->length);
       return(MagickPass);
@@ -1425,6 +1491,7 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
     {
       if (cache_info->file == -1)
         {
+	  /* FIXME: open */
           cache_file=open(cache_info->cache_filename,O_RDONLY | O_BINARY);
           if (cache_file == -1)
             {
@@ -1437,7 +1504,8 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
       (void) MagickSeek(cache_file,cache_info->offset,SEEK_SET);
       if (clone_info->type != DiskCache)
         {
-          (void) LogMagickEvent(CacheEvent,GetMagickModule(),"disk => memory");
+          (void) LogMagickEvent(CacheEvent,GetMagickModule(),
+				"disk => memory clone");
           for (offset=0; offset < cache_info->length; offset+=count)
             {
               count=read(cache_file,(char *) clone_info->pixels+offset,
@@ -1462,6 +1530,7 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
     {
       if (clone_info->file == -1)
         {
+	  /* FIXME: open */
           clone_file=open(clone_info->cache_filename,O_WRONLY | O_BINARY |
                           O_EXCL,S_MODE);
           if (clone_file == -1)
@@ -1480,7 +1549,8 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
       (void) MagickSeek(clone_file,cache_info->offset,SEEK_SET);
       if (cache_info->type != DiskCache)
         {
-          (void) LogMagickEvent(CacheEvent,GetMagickModule(),"memory => disk");
+          (void) LogMagickEvent(CacheEvent,GetMagickModule(),
+				"memory => disk clone");
           for (offset=0L; offset < clone_info->length; offset+=count)
             {
               count=write(clone_file,(char *) cache_info->pixels+offset,
@@ -1499,7 +1569,7 @@ ClonePixelCache(Image *image,Image *clone_image,ExceptionInfo *exception)
           goto clone_pixel_cache_done;
         }
     }
-  (void) LogMagickEvent(CacheEvent,GetMagickModule(),"disk => disk");
+  (void) LogMagickEvent(CacheEvent,GetMagickModule(),"disk => disk clone");
   buffer=MagickAllocateMemory(char *,MaxBufferSize);
   if (buffer == (char *) NULL)
     {
@@ -1658,17 +1728,9 @@ DestroyCacheInfo(Cache cache_info)
         break;
       }
     }
-  if (cache_info->file_semaphore != (SemaphoreInfo *) NULL)
-    {
-      DestroySemaphoreInfo(&cache_info->file_semaphore);
-      cache_info->file_semaphore=(SemaphoreInfo *) NULL;
-    }
-  if (cache_info->reference_semaphore != (SemaphoreInfo *) NULL)
-    {
-      DestroySemaphoreInfo(&cache_info->reference_semaphore);
-      cache_info->reference_semaphore=(SemaphoreInfo *) NULL;
-    }
-  (void) LogMagickEvent(CacheEvent,GetMagickModule(),"destroy %.1024s",
+  DestroySemaphoreInfo(&cache_info->file_semaphore);
+  DestroySemaphoreInfo(&cache_info->reference_semaphore);
+  (void) LogMagickEvent(CacheEvent,GetMagickModule(),"destroy cache %.1024s",
                         cache_info->filename);
   cache_info->signature=0;
   MagickFreeMemory(cache_info);
@@ -2477,6 +2539,56 @@ GetPixelCacheArea(const Image *image)
 %                                                                             %
 %                                                                             %
 %                                                                             %
++   G e t P i x e l C a c h e I n C o r e                                     %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  GetPixelCacheInCore() tests to see the pixel cache is based on allocated
+%  memory and therefore supports efficient random access.
+%
+%  The format of the GetPixelCacheInCore() method is:
+%
+%      MagickBool GetPixelCacheInCore(const Image *image)
+%
+%  A description of each parameter follows:
+%
+%    o image: Specifies a pointer to an Image structure.
+%
+%
+*/
+extern MagickBool
+GetPixelCacheInCore(const Image *image)
+{
+
+  MagickBool
+    status;
+
+  assert(image != (Image *) NULL);
+  assert(image->signature == MagickSignature);
+
+  status = MagickFalse;
+  if (image->cache != (Cache) NULL)
+    {
+      CacheInfo
+	*cache_info;
+
+      cache_info=(CacheInfo *) image->cache;
+      assert(cache_info->signature == MagickSignature);
+
+      if (image->cache->type == MemoryCache)
+	status=MagickTrue;
+    }
+
+  return status;
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
 +   G e t P i x e l C a c h e P r e s e n t                                   %
 %                                                                             %
 %                                                                             %
@@ -2647,12 +2759,15 @@ ModifyCache(Image *image, ExceptionInfo *exception)
   */
   LockSemaphoreInfo(image->semaphore);
   {
+    MagickBool
+      destroy_cache=MagickFalse;
+
     assert(image->cache != (Cache) NULL);
     cache_info=(CacheInfo *) image->cache;
 
     LockSemaphoreInfo(cache_info->reference_semaphore);
     {
-      if (cache_info->reference_count > 1)
+      if ((cache_info->reference_count > 1) || (cache_info->read_only))
         {
           Image
             clone_image;
@@ -2666,13 +2781,13 @@ ModifyCache(Image *image, ExceptionInfo *exception)
           if (status != MagickFail)
             {
               /*
-                More than one reference, clone the pixel cache.
+                Clone the pixel cache.
               */
               status=ClonePixelCache(image,&clone_image,exception);
             }
           if (status != MagickFail)
             {
-              cache_info->reference_count--;
+	      destroy_cache=MagickTrue;
               image->cache=clone_image.cache;
             }
           if (status == MagickFail)
@@ -2682,6 +2797,13 @@ ModifyCache(Image *image, ExceptionInfo *exception)
         }
     }
     UnlockSemaphoreInfo(cache_info->reference_semaphore);
+
+    /*
+      Decrement the cache reference count, and destroys the origin
+      cache if necessary.
+    */
+    if (destroy_cache)
+      DestroyCacheInfo(cache_info);
 
     if (status != MagickFail)
       {
@@ -2848,6 +2970,11 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
     }
 
   /*
+    Save the open mode.
+  */
+  cache_info->read_only = (mode == ReadMode ? MagickTrue : MagickFalse);
+
+  /*
     Indexes are valid if the image storage class is PseudoClass or the
     colorspace is CMYK.
   */
@@ -2947,11 +3074,13 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
     {
     case ReadMode:
       {
+	/* FIXME: open */
         file=open(cache_info->cache_filename,O_RDONLY | O_BINARY | _O_SEQUENTIAL);
         break;
       }
     case WriteMode:
       {
+	/* FIXME: open */
         file=open(cache_info->cache_filename,O_WRONLY | O_CREAT | O_BINARY |
                   O_EXCL | _O_SEQUENTIAL,S_MODE);
         if (file == -1)
@@ -2961,6 +3090,7 @@ OpenCache(Image *image,const MapMode mode,ExceptionInfo *exception)
     case IOMode:
     default:
       {
+	/* FIXME: open */
         file=open(cache_info->cache_filename,O_RDWR | O_CREAT | O_BINARY |
                   O_EXCL | _O_SEQUENTIAL, S_MODE);
         if (file == -1)
@@ -3116,7 +3246,7 @@ OpenCacheView(Image *image)
 %
 %
 */
-MagickExport unsigned int
+MagickExport MagickPassFail
 PersistCache(Image *image,const char *filename,
              const MagickBool attach,magick_off_t *offset,
              ExceptionInfo *exception)
@@ -3159,6 +3289,7 @@ PersistCache(Image *image,const char *filename,
       if (!OpenCache(image,ReadMode,exception))
         return(MagickFail);
       *offset+=cache_info->length+pagesize-(cache_info->length % pagesize);
+      cache_info->read_only=MagickTrue;
       (void) LogMagickEvent(CacheEvent,GetMagickModule(),
                             "Attach persistent cache %.1024s",
                             cache_info->filename);
@@ -4016,7 +4147,7 @@ SyncCacheNexus(Image *image,const NexusInfo *nexus_info,
                ExceptionInfo *exception)
 {
   MagickPassFail
-    status;
+    status=MagickPass;
 
   CacheInfo
     *cache_info;
@@ -4031,21 +4162,30 @@ SyncCacheNexus(Image *image,const NexusInfo *nexus_info,
   if (cache_info == (CacheInfo *) NULL)
     {
       ThrowException(exception,CacheError,PixelCacheIsNotOpen,image->filename);
-      return MagickFail;
+      status=MagickFail;
     }
-  if (IsNexusInCore(cache_info,nexus_info))
-    return(MagickPass);
-  if (image->clip_mask != (Image *) NULL)
-    if (!ClipCacheNexus(image,nexus_info))
-      return(MagickFail);
-  status=WriteCachePixels(cache_info,nexus_info);
-  if (cache_info->indexes_valid)
-    status&=WriteCacheIndexes(cache_info,nexus_info);
-  if (status == MagickFail)
+  else if (IsNexusInCore(cache_info,nexus_info))
     {
-      ThrowException(exception,CacheError,UnableToSyncCache,image->filename);
-      return MagickFail;
+      status=MagickPass;
     }
+  else
+    {
+      if (image->clip_mask != (Image *) NULL)
+	if (!ClipCacheNexus(image,nexus_info))
+	  status=MagickFail;
+
+      if (status != MagickFail)
+	if ((status=WriteCachePixels(cache_info,nexus_info)) == MagickFail)
+	  ThrowException(exception,CacheError,UnableToSyncCache,
+			 image->filename);
+
+      if (status != MagickFail)
+	if (cache_info->indexes_valid)
+	  if ((status=WriteCacheIndexes(cache_info,nexus_info)) == MagickFail)
+	    ThrowException(exception,CacheError,UnableToSyncCache,
+			   image->filename);
+    }
+
   return(status);
 }
 
@@ -4234,12 +4374,6 @@ WriteCacheIndexes(Cache cache,const NexusInfo *nexus_info)
   length=nexus_info->region.width*sizeof(IndexPacket);
   rows=nexus_info->region.height;  
   number_pixels=(magick_uint64_t) length*rows;
-  if ((cache_info->columns == nexus_info->region.width) &&
-      (number_pixels == (size_t) number_pixels))
-    {
-      length=number_pixels;
-      rows=1;
-    }
   y=0;
   indexes=nexus_info->indexes;
   if (cache_info->type != DiskCache)
@@ -4248,9 +4382,18 @@ WriteCacheIndexes(Cache cache,const NexusInfo *nexus_info)
         *cache_indexes;
 
       /*
+	Coalesce rows into larger write request if possible.
+      */
+      if ((cache_info->columns == nexus_info->region.width) &&
+	  (number_pixels == (size_t) number_pixels))
+	{
+	  length=number_pixels;
+	  rows=1;
+	}
+
+      /*
         Write indexes to memory.
       */
-
       cache_indexes=cache_info->indexes+offset;
       if (length < 257)
         {
@@ -4283,19 +4426,37 @@ WriteCacheIndexes(Cache cache,const NexusInfo *nexus_info)
     file=cache_info->file;
     if (cache_info->file == -1)
       {
+	/* FIXME: open */
         file=open(cache_info->cache_filename,O_WRONLY | O_BINARY | O_EXCL,S_MODE);
         if (file == -1)
           file=open(cache_info->cache_filename,O_WRONLY | O_BINARY,S_MODE);
       }
     if (file != -1)
       {
+	magick_off_t
+	  row_offset;
+	
+	ssize_t
+	  bytes_written;
+
         number_pixels=(magick_uint64_t) cache_info->columns*cache_info->rows;
+	row_offset=cache_info->offset+number_pixels*sizeof(PixelPacket)+offset
+	  *sizeof(IndexPacket);
         for (y=0; y < (long) rows; y++)
           {
-            if ((FilePositionWrite(file,indexes,length,cache_info->offset+
-                                   number_pixels*sizeof(PixelPacket)+offset
-                                   *sizeof(IndexPacket))) < (long) length)
-              break;
+            if ((bytes_written=FilePositionWrite(file,indexes,length,row_offset))
+		< (long) length)
+	      {
+		(void) LogMagickEvent(CacheEvent,GetMagickModule(),
+				      "Failed to write row %ld at file offset %" MAGICK_OFF_F
+				      "d.  Wrote %ld rather than %lu bytes (%s).",
+				      y,
+				      row_offset,
+				      (long) bytes_written,
+				      (unsigned long) length,
+				      strerror(errno));
+		break;
+	      }
             indexes+=nexus_info->region.width;
             offset+=cache_info->columns;
           }
@@ -4378,18 +4539,22 @@ WriteCachePixels(Cache cache,const NexusInfo *nexus_info)
   length=nexus_info->region.width*sizeof(PixelPacket);
   rows=nexus_info->region.height;  
   number_pixels=(magick_uint64_t) length*rows;
-  if ((cache_info->columns == nexus_info->region.width) &&
-      (number_pixels == (size_t) number_pixels))
-    {
-      length=number_pixels;
-      rows=1;
-    }
   y=0;
   pixels=nexus_info->pixels;
   if (cache_info->type != DiskCache)
     {
       register PixelPacket
         *cache_pixels;
+
+      /*
+	Coalesce rows into larger write request if possible.
+      */
+      if ((cache_info->columns == nexus_info->region.width) &&
+	  (number_pixels == (size_t) number_pixels))
+	{
+	  length=number_pixels;
+	  rows=1;
+	}
 
       /*
         Write pixels to memory.
@@ -4434,10 +4599,26 @@ WriteCachePixels(Cache cache,const NexusInfo *nexus_info)
       {
         for (y=0; y < (long) rows; y++)
           {
-            if ((FilePositionWrite(file,pixels,length,
-                                   cache_info->offset+offset*
-                                   sizeof(PixelPacket))) < (long) length)
-              break;
+	    magick_off_t
+	      row_offset;
+
+	    ssize_t
+	      bytes_written;
+
+	    row_offset=cache_info->offset+offset*sizeof(PixelPacket);
+            if ((bytes_written=FilePositionWrite(file,pixels,length,row_offset))
+		< (ssize_t) length)
+	      {
+		(void) LogMagickEvent(CacheEvent,GetMagickModule(),
+				      "Failed to write row %ld at file offset %" MAGICK_OFF_F
+				      "d.  Wrote %ld rather than %lu bytes (%s).",
+				      y,
+				      row_offset,
+				      (long) bytes_written,
+				      (unsigned long) length,
+				      strerror(errno));
+		break;
+	      }
             pixels+=nexus_info->region.width;
             offset+=cache_info->columns;
           }

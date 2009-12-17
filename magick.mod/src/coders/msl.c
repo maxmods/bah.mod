@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 - 2008 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -41,6 +41,7 @@
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/color.h"
+#include "magick/color_lookup.h"
 #include "magick/pixel_cache.h"
 #include "magick/composite.h"
 #include "magick/constitute.h"
@@ -52,9 +53,11 @@
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/paint.h"
+#include "magick/profile.h"
 #include "magick/render.h"
 #include "magick/resize.h"
 #include "magick/shear.h"
+#include "magick/texture.h"
 #include "magick/transform.h"
 #include "magick/utility.h"
 #if defined(MSWINDOWS)
@@ -2386,6 +2389,116 @@ MSLStartElement(void *context,const xmlChar *name,
                   }
                 MagickFreeMemory(value);
               }
+            break;
+          }
+        else if (LocaleCompare((char *) name, "profile") == 0)
+          {
+            ImageInfo
+              *clone_info;
+
+            if (msl_info->image[n] == (Image *) NULL)
+              {
+                ThrowException(msl_info->exception,OptionError,
+                               NoImagesDefined,(char *) name);
+                break;
+              }
+            if (attributes == (const xmlChar **) NULL)
+              break;
+            clone_info=CloneImageInfo(msl_info->image_info[n]);
+            for (i=0; (attributes[i] != (const xmlChar *) NULL); i++)
+              {
+                keyword=(const char *) attributes[i++];
+                value=TranslateText(msl_info->image_info[n],
+                                    msl_info->attributes[n],
+                                    (char *) attributes[i]);
+                if (value == NULL)
+                  {
+                    DestroyImageInfo(clone_info);
+                    MagickFatalError3(ResourceLimitFatalError,
+                                      MemoryAllocationFailed,
+                                      UnableToAllocateString);
+                  }
+
+                if (LocaleCompare(value,"!") == 0)
+                  {
+                    /*
+                      Remove profile named <keyword> from the image.
+                    */
+                    (void) ProfileImage(msl_info->image[n],keyword,
+                      (unsigned char *) NULL,0,True);
+                  }
+                else
+                  {
+                    /*
+                      Add profile named <keyword> held in file <value> to the image.
+                    */
+                    Image
+                      *profile_image;
+
+                    ProfileInfo
+                      profile_info;
+
+                    const char
+                      *profile_name;
+
+                    size_t
+                      profile_length;
+
+                    const unsigned char *
+                      profile_data;
+
+                    ImageProfileIterator
+                      profile_iterator;
+
+                    void
+                      *client_data;
+
+                    client_data=clone_info->client_data;
+
+                    /*
+                      FIXME: Next three lines replace:
+                       clone_info->client_data=(void *) &(msl_info->image[n]->iptc_profile);
+                    */
+                    profile_info.name="IPTC";
+                    profile_info.info=(unsigned char *) GetImageProfile(msl_info->image[n],profile_info.name,
+                                                                      &profile_info.length);
+                    clone_info->client_data=&profile_info;
+
+                    (void) strlcpy(clone_info->filename,value,MaxTextExtent);
+                    profile_image=ReadImage(clone_info,&(msl_info->image[n]->exception));
+                    if (profile_image == (Image *) NULL)
+                      {
+                        (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                             "Failed to load profile from file \"%s\"",
+                                             clone_info->filename);
+                      }
+                    else
+                      {
+                        /*
+                          Transfer profile(s) to image.
+                        */
+                        profile_iterator=AllocateImageProfileIterator(profile_image);
+                        while(NextImageProfile(profile_iterator,&profile_name,&profile_data,
+                                               &profile_length) != MagickFail)
+                          {
+                            (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                                 "Adding %s profile to image",profile_name);
+                            if ((LocaleCompare(profile_name,"ICC") == 0) ||
+                                (LocaleCompare(profile_name,"ICM") == 0))
+                              (void) ProfileImage(msl_info->image[n],profile_name,(unsigned char *) profile_data,
+                                                    profile_length,True);
+                            else
+                              (void) SetImageProfile(msl_info->image[n],profile_name,profile_data,profile_length);
+                          }
+                        DeallocateImageProfileIterator(profile_iterator);
+                        DestroyImage(profile_image);
+                        profile_image=(Image *) NULL;
+                        clone_info->client_data=client_data;
+                      }
+                MagickFreeMemory(value);
+              }
+            }
+            DestroyImageInfo(clone_info);
             break;
           }
         ThrowException(msl_info->exception,OptionError,

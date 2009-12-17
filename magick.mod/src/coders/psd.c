@@ -39,10 +39,11 @@
 #include "magick/studio.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/log.h"
 #include "magick/magick.h"
+#include "magick/pixel_cache.h"
 #include "magick/profile.h"
 #include "magick/utility.h"
 
@@ -946,35 +947,26 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 }
               combinedlength += length + 4;  /* +4 for length */
 
+			  /* layer name */
               length=ReadBlobByte(image);
-              if (length != 0)
-                {
-                  /* layer name */
-                  for (j=0; j < (long) (length); j++)
-                    layer_info[i].name[j] = ReadBlobByte(image);
-                  layer_info[i].name[j] = 0;  /* zero term */
+			  for (j=0; j < (long) (length); j++)
+				layer_info[i].name[j] = ReadBlobByte(image);
+			  layer_info[i].name[j] = 0;  /* zero term */
 
-                  if (logging)
-                    {
-                      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                                            "      layer name: %s",
-                                            layer_info[i].name);
-                    }
-                }
-#if 0
-              if ( length == 0 )
-                padBytes = 3;
-              else
-                padBytes = (4 - (length % 4));
-              if ( padBytes != 0 )
-                { /* we need to pad */
-                  for ( i=0; i < padBytes; i++)
-                    (void) ReadBlobByte(image);
-                }
-              combinedlength += length + padBytes + 1;  /* +1 for length */
-#else
-              combinedlength += length + 1;  /* +1 for length */
-#endif
+			  if (logging)
+				{
+				  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+										"      layer name: %s",
+										layer_info[i].name);
+				}
+
+              combinedlength += length + 1;
+
+              // layer name, including length byte, is padded to multiple of 4 bytes
+              // skip over padding
+              //padBytes = ((length + 1 + 3) & ~3) - (length + 1);
+			  //for (j=0; j < padBytes; j++)
+			  //	ReadBlobByte(image);
 
 #if 0  /* still in development */
               /*
@@ -1121,6 +1113,7 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 }
 #endif
               compression=ReadBlobMSBShort(layer_info[i].image);
+              if(layer_info[i].page.height > 0 && layer_info[i].page.width > 0){
               if (compression == 1)
                 {
                   /*
@@ -1270,7 +1263,7 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
                 }
             }
         }
-
+        }
       /* diff_offset = TellBlob(image) - offset; */
 
       (void) ReadBlobMSBLong(image);  /* global mask size: currently ignored */
@@ -1278,19 +1271,23 @@ static Image *ReadPSDImage(const ImageInfo *image_info,ExceptionInfo *exception)
       if (number_layers > 0)
         {
           Image* returnImage = image;
+          LayerInfo *prevLayer = NULL;
 
           if (logging)
             {
               (void) LogMagickEvent(CoderEvent,GetMagickModule(),
                                     "  putting layers into image list");
             }
+          // omit any 0x0 sized layers from the list, as they break compositing
           for (i=0; i < number_layers; i++)
+            if(layer_info[i].page.height > 0 && layer_info[i].page.width > 0)
             {
-              if (i > 0)
-                layer_info[i].image->previous=layer_info[i-1].image;
-              if (i < (number_layers-1))
-                layer_info[i].image->next=layer_info[i+1].image;
-              layer_info[i].image->page=layer_info[i].page;
+              if (prevLayer){
+                layer_info[i].image->previous = prevLayer->image;
+                prevLayer->image->next = layer_info[i].image;
+              }
+              layer_info[i].image->page = layer_info[i].page;
+              prevLayer = &layer_info[i];
             }
 #ifdef use_image
           image->next=layer_info[0].image;

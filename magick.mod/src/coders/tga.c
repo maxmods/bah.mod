@@ -36,13 +36,14 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -531,7 +532,8 @@ static Image *ReadTGAImage(const ImageInfo *image_info,ExceptionInfo *exception)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,exception,
-                                          LoadImageText,image->filename))
+                                          LoadImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
       if (EOFBlob(image))
@@ -983,7 +985,8 @@ static unsigned int WriteTGAImage(const ImageInfo *image_info,Image *image)
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
         }
       MagickFreeMemory(targa_pixels);

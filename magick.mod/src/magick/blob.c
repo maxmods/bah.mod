@@ -685,7 +685,7 @@ MagickExport Image *BlobToImage(const ImageInfo *image_info,const void *blob,
   assert(image_info->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
   (void) LogMagickEvent(BlobEvent,GetMagickModule(), "Entering BlobToImage");
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   if ((blob == (const void *) NULL) || (length == 0))
     {
       ThrowException(exception,OptionError,NullBlobArgument,
@@ -807,7 +807,6 @@ MagickExport BlobInfo *CloneBlobInfo(const BlobInfo *blob_info)
   clone_info->file=blob_info->file;
   clone_info->data=blob_info->data;
   clone_info->reference_count=1;
-  clone_info->semaphore=(SemaphoreInfo *) NULL;
   return(clone_info);
 }
 
@@ -844,18 +843,20 @@ MagickExport void CloseBlob(Image *image)
   */
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
-  assert(image->blob != (BlobInfo *) NULL);
+
+  /*
+    If blob was not allocated, or blob type is UndefinedStream then it
+    doesn't need to be closed.
+  */
+  if ((image->blob == (BlobInfo *) NULL) ||
+      (image->blob->type == UndefinedStream))
+    return;
+
   if (image->logging)
     (void) LogMagickEvent(BlobEvent,GetMagickModule(),
                           "Closing %sStream blob %p",
                           BlobStreamTypeToString(image->blob->type),
                           &image->blob);
-
-  /*
-    If blob type is UndefinedStream then it doesn't need to be closed.
-  */
-  if (image->blob->type == UndefinedStream)
-    return;
 
   status=0;
   switch (image->blob->type)
@@ -987,11 +988,11 @@ MagickExport void DestroyBlob(Image *image)
         (void) LogMagickEvent(BlobEvent,GetMagickModule(),
                               "Destroy blob, image=%p, filename=\"%s\"",
                               image,image->filename);
-      AcquireSemaphoreInfo(&image->blob->semaphore);
+      LockSemaphoreInfo(image->blob->semaphore);
       image->blob->reference_count--;
       assert(image->blob->reference_count >= 0);
       destroy=(image->blob->reference_count > 0 ? MagickFalse : MagickTrue);
-      LiberateSemaphoreInfo(&image->blob->semaphore);
+      UnlockSemaphoreInfo(image->blob->semaphore);
       if (destroy)
         {
           /*
@@ -1001,8 +1002,7 @@ MagickExport void DestroyBlob(Image *image)
             CloseBlob(image);
           if (image->blob->mapped)
             (void) UnmapBlob(image->blob->data,image->blob->length);
-          if (image->blob->semaphore != (SemaphoreInfo *) NULL)
-            DestroySemaphoreInfo(&image->blob->semaphore);
+	  DestroySemaphoreInfo(&image->blob->semaphore);
           (void) memset((void *) image->blob,0xbf,sizeof(BlobInfo));
           MagickFreeMemory(image->blob);
         }
@@ -1046,17 +1046,16 @@ MagickExport void DestroyBlobInfo(BlobInfo *blob)
         destroy;
 
       assert(blob->signature == MagickSignature);
-      AcquireSemaphoreInfo(&blob->semaphore);
+      LockSemaphoreInfo(blob->semaphore);
       blob->reference_count--;
       assert(blob->reference_count >= 0);
       destroy=(blob->reference_count > 0 ? MagickFalse : MagickTrue);
-      LiberateSemaphoreInfo(&blob->semaphore);
+      UnlockSemaphoreInfo(blob->semaphore);
       if (destroy)
         {
           if (blob->mapped)
             (void) UnmapBlob(blob->data,blob->length);
-          if (blob->semaphore != (SemaphoreInfo *) NULL)
-            DestroySemaphoreInfo(&blob->semaphore);
+	  DestroySemaphoreInfo(&blob->semaphore);
           (void) memset((void *)blob,0xbf,sizeof(BlobInfo));
           MagickFreeMemory(blob);
         }
@@ -1223,7 +1222,7 @@ MagickExport void *FileToBlob(const char *filename,size_t *length,
 
   assert(filename != (const char *) NULL);
   assert(exception != (ExceptionInfo *) NULL);
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   if (MagickConfirmAccess(FileReadConfirmAccessMode,filename,exception)
       == MagickFail)
     return MagickFail;
@@ -1334,6 +1333,7 @@ MagickExport void GetBlobInfo(BlobInfo *blob_info)
   blob_info->quantum=DefaultBlobQuantum;
   blob_info->fsync=MagickFalse;
   blob_info->reference_count=1;
+  blob_info->semaphore=AllocateSemaphoreInfo();
   blob_info->signature=MagickSignature;
 }
 
@@ -1800,8 +1800,12 @@ MagickExport void *GetConfigureBlob(const char *filename,char *path,
         }
 
       if (logging)
-        (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
-          "Tried: %.1024s [%.1024s]",test_path,strerror(errno));
+	{
+	  (void) LogMagickEvent(ConfigureEvent,GetMagickModule(),
+				"Tried: %.1024s [%.1024s]",test_path,
+				strerror(errno));
+	  errno=0;
+	}
     }
   MagickMapDeallocateIterator(path_map_iterator);
   MagickMapDeallocateMap(path_map);
@@ -1886,7 +1890,7 @@ MagickExport void *ImageToBlob(const ImageInfo *image_info,Image *image,
   image->logging=IsEventLogging();
   if (image->logging)
     (void) LogMagickEvent(BlobEvent,GetMagickModule(),"Entering ImageToBlob");
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   clone_info=CloneImageInfo(image_info);
   (void) strlcpy(clone_info->magick,image->magick,MaxTextExtent);
   magick_info=GetMagickInfo(clone_info->magick,exception);
@@ -2522,13 +2526,9 @@ MagickExport MagickPassFail OpenBlob(const ImageInfo *image_info,Image *image,
                       count;
 
                     size_t
-                      vbuf_size = 16384;
+                      vbuf_size;
 
-                    if ((env = getenv("MAGICK_IOBUF_SIZE")))
-                      {
-                        vbuf_size = (size_t) atol(env);
-                      }
-
+		    vbuf_size=MagickGetFileSystemBlockSize();
                     if (setvbuf(image->blob->file,NULL,_IOFBF,vbuf_size) != 0)
                       {
                         if (image->logging)
@@ -2770,7 +2770,7 @@ MagickExport Image *PingBlob(const ImageInfo *image_info,const void *blob,
   assert(image_info != (ImageInfo *) NULL);
   assert(image_info->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
-  SetExceptionInfo(exception,UndefinedException);
+  /* SetExceptionInfo(exception,UndefinedException); */
   if (((blob == (const void *) NULL)) || (length == 0))
     {
       ThrowException(exception,OptionError,NullBlobArgument,
@@ -3813,9 +3813,9 @@ MagickExport BlobInfo *ReferenceBlob(BlobInfo *blob)
 {
   assert(blob != (BlobInfo *) NULL);
   assert(blob->signature == MagickSignature);
-  AcquireSemaphoreInfo(&blob->semaphore);
+  LockSemaphoreInfo(blob->semaphore);
   blob->reference_count++;
-  LiberateSemaphoreInfo(&blob->semaphore);
+  UnlockSemaphoreInfo(blob->semaphore);
   return(blob);
 }
 

@@ -33,6 +33,8 @@ MagickExport MagickPassFail MagickTsdKeyCreate(MagickTsdKey_t *key)
   return ((*key != TLS_OUT_OF_INDEXES) ? MagickPass : MagickFail);
 #else
   *key=MagickAllocateMemory(unsigned long *,sizeof(unsigned long));
+  if (*key != (void *) NULL)
+    *key[0]=0;
   return ((*key != (void *) NULL) ? MagickPass : MagickFail);
 #endif
 }

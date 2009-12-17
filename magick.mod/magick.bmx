@@ -34,7 +34,7 @@ ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
-ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
+ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC -std=c99"
 
 Import BRL.Pixmap
 Import BRL.Stream
@@ -43,9 +43,9 @@ Import "drawable.bmx"
 
 ' NOTES:
 '
-' Renamed coders/locale.c and map.c with prefix bmx_
-' Renamed coders/map.c and map.c with prefix bmx_
+' Renamed coders/locale.c, map.c and plasma.c with prefix bmx_
 ' Renamed delegates/bzip2/compress.c with prefix bmx_
+' Renamed magick/analyze.c with prefix bmx_
 '
 ' Be careful not to overwrite magick_config.h !!
 '
@@ -57,8 +57,11 @@ Global _magick_initialized:Int = False
 
 ' set the config path
 Function _init_magick()
-	putenv_("MAGICK_CONFIGURE_PATH=" + MagickConfigPath)
-	_magick_initialized = True
+	If Not _magick_initialized Then
+		putenv_("MAGICK_CONFIGURE_PATH=" + MagickConfigPath)
+		bmx_magick_InitializeMagick(MagickConfigPath)
+		_magick_initialized = True
+	End If
 End Function
 
 Rem
@@ -123,9 +126,7 @@ Type TMImage
 	Field imageChanged:Int = True
 	
 	Method New()
-		If Not _magick_initialized Then
-			_init_magick()
-		End If
+		_init_magick()
 	End Method
 
 	Function _create:TMImage(imagePtr:Byte Ptr)
@@ -141,9 +142,7 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Function Create:TMImage()
-		If Not _magick_initialized Then
-			_init_magick()
-		End If
+		_init_magick()
 		Return TMImage._create(bmx_magick_create())
 	End Function
 
@@ -151,9 +150,7 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Function CreateFromFile:TMImage(imageSpec:String)
-		If Not _magick_initialized Then
-			_init_magick()
-		End If
+		_init_magick()
 		Return TMImage._create(bmx_magick_createfromspec(imageSpec))
 	End Function
 	
@@ -171,6 +168,7 @@ Type TMImage
 	bbdoc: 
 	End Rem
 	Function CreateFromStream:TMImage(stream:TStream)
+		_init_magick()
 		
 		Local size:Int = stream.Size()
 		Local buffer:Byte Ptr = MemAlloc(size)
@@ -221,7 +219,7 @@ Type TMImage
 		' copy pixel data to pixmap
 		bmx_magick_image_writedata(imagePtr, 0, 0, width, height, "RGBA", 0, pixmap.pixels)
 		' invert the alpha - magick uses opposite, where 0 is opaque, 1 is transparent
-		_invertalpha()
+		'_invertalpha()
 	End Method
 	
 	Rem
@@ -2310,9 +2308,7 @@ Type TMBlob
 	Field blobPtr:Byte Ptr
 
 	Method New()
-		If Not _magick_initialized Then
-			_init_magick()
-		End If
+		_init_magick()
 	End Method
 	
 	Function CreateFromData:TMBlob(data:Byte Ptr, size:Int)
@@ -2327,6 +2323,7 @@ Rem
 bbdoc: Obtains information about the image formats supported by GraphicsMagick.
 End Rem
 Function coderInfoList:TList(isReadable:Int = TMCoderInfo.AnyMatch, isWritable:Int = TMCoderInfo.AnyMatch, isMultiFrame:Int = TMCoderInfo.AnyMatch)
+	_init_magick()
 	Local list:TList = New TList
 	bmx_magick_coderinfolist(list, isReadable, isWritable, isMultiFrame)
 	Return list
@@ -2391,6 +2388,7 @@ Type TMCoderInfo
 	bbdoc: Returns a TMCoderInfo corresponding to the named format.
 	End Rem
 	Function info:TMCoderInfo(format:String)
+		_init_magick()
 		Return TMCoderInfo(bmx_magick_coderinfo_info(format))
 	End Function
 	

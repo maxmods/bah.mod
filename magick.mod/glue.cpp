@@ -59,6 +59,7 @@ extern "C" {
 	MaxMImage * bmx_magick_createfromspec(BBString * imageSpec);
 	MaxMImage * bmx_magick_image_createfromblob(Blob * blob);
 	MaxMImage * bmx_magick_create();
+	void bmx_magick_InitializeMagick(const char *path);
 
 	void bmx_magick_image_adaptivethreshold(MaxMImage * image, const unsigned int width, const unsigned int height, unsigned offset);
 	void bmx_magick_image_addnoise(MaxMImage * image, const NoiseType noiseType);
@@ -367,6 +368,12 @@ public:
 private:
 	Color magickColor;
 };
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+void bmx_magick_InitializeMagick(const char *path) {
+	InitializeMagick(path);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

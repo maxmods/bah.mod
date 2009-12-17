@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003-2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -45,12 +45,15 @@
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/color.h"
+#include "magick/color_lookup.h"
 #include "magick/constitute.h"
 #include "magick/enhance.h"
 #include "magick/enum_strings.h"
 #include "magick/gem.h"
+#include "magick/gradient.h"
 #include "magick/log.h"
 #include "magick/monitor.h"
+#include "magick/omp_data_view.h"
 #include "magick/paint.h"
 #include "magick/pixel_cache.h"
 #include "magick/render.h"
@@ -235,7 +238,8 @@ MagickExport DrawInfo *CloneDrawInfo(const ImageInfo *image_info,
         x;
 
       for (x=0; draw_info->dash_pattern[x] != 0.0; x++);
-      clone_info->dash_pattern=MagickAllocateMemory(double *,(x+1)*sizeof(double));
+      clone_info->dash_pattern=
+	MagickAllocateArray(double *,(x+1),sizeof(double));
       if (clone_info->dash_pattern == (double *) NULL)
         MagickFatalError3(ResourceLimitFatalError,MemoryAllocationFailed,
           UnableToAllocateDashPattern);
@@ -361,8 +365,7 @@ static void ReversePoints(PointInfo *points,const int number_points)
   }
 }
 
-static PolygonInfo *ConvertPathToPolygon(const DrawInfo *ARGUNUSED(draw_info),
-  const PathInfo *path_info)
+static PolygonInfo *ConvertPathToPolygon(const PathInfo *path_info)
 {
   long
     direction,
@@ -393,7 +396,8 @@ static PolygonInfo *ConvertPathToPolygon(const DrawInfo *ARGUNUSED(draw_info),
   if (polygon_info == (PolygonInfo *) NULL)
     return((PolygonInfo *) NULL);
   number_edges=16;
-  polygon_info->edges=MagickAllocateMemory(EdgeInfo *,number_edges*sizeof(EdgeInfo));
+  polygon_info->edges=
+    MagickAllocateArray(EdgeInfo *,number_edges,sizeof(EdgeInfo));
   if (polygon_info->edges == (EdgeInfo *) NULL)
     return((PolygonInfo *) NULL);
   direction=0;
@@ -440,7 +444,8 @@ static PolygonInfo *ConvertPathToPolygon(const DrawInfo *ARGUNUSED(draw_info),
         if (points == (PointInfo *) NULL)
           {
             number_points=16;
-            points=MagickAllocateMemory(PointInfo *,number_points*sizeof(PointInfo));
+            points=
+	      MagickAllocateArray(PointInfo *,number_points,sizeof(PointInfo));
             if (points == (PointInfo *) NULL)
               return((PolygonInfo *) NULL);
           }
@@ -485,7 +490,8 @@ static PolygonInfo *ConvertPathToPolygon(const DrawInfo *ARGUNUSED(draw_info),
         polygon_info->edges[edge].bounds.y1=points[0].y;
         polygon_info->edges[edge].bounds.y2=points[n-1].y;
         number_points=16;
-        points=MagickAllocateMemory(PointInfo *,number_points*sizeof(PointInfo));
+        points=
+	  MagickAllocateArray(PointInfo *,number_points,sizeof(PointInfo));
         if (points == (PointInfo *) NULL)
           return((PolygonInfo *) NULL);
         n=1;
@@ -634,7 +640,7 @@ static PathInfo *ConvertPrimitiveToPath(const DrawInfo *ARGUNUSED(draw_info),
       break;
   }
   for (i=0; primitive_info[i].primitive != UndefinedPrimitive; i++);
-  path_info=MagickAllocateMemory(PathInfo *,(2*i+3)*sizeof(PathInfo));
+  path_info=MagickAllocateArray(PathInfo *,(2*i+3),sizeof(PathInfo));
   if (path_info == (PathInfo *) NULL)
     return((PathInfo *) NULL);
   coordinates=0;
@@ -840,8 +846,11 @@ static void DestroyGradientInfo(GradientInfo *gradient_info)
 %
 %
 */
-static void DestroyPolygonInfo(PolygonInfo *polygon_info)
+static void DestroyPolygonInfo(void *polygon_info_void)
 {
+  PolygonInfo
+    *polygon_info = (PolygonInfo *) polygon_info_void;
+
   register long
     i;
 
@@ -986,7 +995,7 @@ static AffineMatrix InverseAffineMatrix(const AffineMatrix *affine)
   return(inverse_affine);
 }
 
-#define AffineDrawImageText "[%s] Affine composite image..."
+#define AffineDrawImageText "[%s] Affine composite..."
 MagickExport MagickPassFail DrawAffineImage(Image *image,const Image *composite,
                                             const AffineMatrix *affine)
 {
@@ -1414,7 +1423,8 @@ static unsigned int DrawDashPolygon(const DrawInfo *draw_info,
 
   int
     j,
-    n;
+    n,
+    number_vertices;
 
   PrimitiveInfo
     *dash_polygon;
@@ -1429,17 +1439,15 @@ static unsigned int DrawDashPolygon(const DrawInfo *draw_info,
   unsigned int
     status;
 
-  unsigned long
-    number_vertices;
-
   assert(draw_info != (const DrawInfo *) NULL);
   (void) LogMagickEvent(RenderEvent,GetMagickModule(),"    begin draw-dash");
   clone_info=CloneDrawInfo((ImageInfo *) NULL,draw_info);
   clone_info->miterlimit=0;
   for (i=0; primitive_info[i].primitive != UndefinedPrimitive; i++);
   number_vertices=i;
-  dash_polygon=MagickAllocateMemory(PrimitiveInfo *,
-    (2*number_vertices+1)*sizeof(PrimitiveInfo));
+  dash_polygon=MagickAllocateArray(PrimitiveInfo *,
+				   (size_t) 2*number_vertices+1,
+				   sizeof(PrimitiveInfo));
   if (dash_polygon == (PrimitiveInfo *) NULL)
     return(False);
   dash_polygon[0]=primitive_info[0];
@@ -1469,7 +1477,7 @@ static unsigned int DrawDashPolygon(const DrawInfo *draw_info,
     n++;
   }
   status=True;
-  for (i=1; i < (long) number_vertices; i++)
+  for (i=1; i < number_vertices; i++)
   {
     dx=primitive_info[i].point.x-primitive_info[i-1].point.x;
     dy=primitive_info[i].point.y-primitive_info[i-1].point.y;
@@ -1495,6 +1503,8 @@ static unsigned int DrawDashPolygon(const DrawInfo *draw_info,
         }
       else
         {
+	  if (j+1 > number_vertices)
+	    break;
           dash_polygon[j]=primitive_info[i-1];
           dash_polygon[j].point.x=primitive_info[i-1].point.x+
             dx*total_length/maximum_length;
@@ -1569,7 +1579,7 @@ static inline unsigned int IsPoint(const char *point)
 
 MagickExport unsigned int DrawImage(Image *image,const DrawInfo *draw_info)
 {
-#define RenderImageText  "[%s] Render image..."
+#define RenderImageText "[%s] Render..."
 
   AffineMatrix
     affine,
@@ -1664,8 +1674,8 @@ MagickExport unsigned int DrawImage(Image *image,const DrawInfo *draw_info)
         UnableToDrawOnImage)
     }
   number_points=2047;
-  primitive_info=MagickAllocateMemory(PrimitiveInfo *,
-    number_points*sizeof(PrimitiveInfo));
+  primitive_info=
+    MagickAllocateArray(PrimitiveInfo *,number_points,sizeof(PrimitiveInfo));
   if (primitive_info == (PrimitiveInfo *) NULL)
     {
       MagickFreeMemory(primitive);
@@ -2431,8 +2441,8 @@ MagickExport unsigned int DrawImage(Image *image,const DrawInfo *draw_info)
                   if (*token == ',')
                     GetToken(p,&p,token);
                 }
-                graphic_context[n]->dash_pattern=MagickAllocateMemory(double *,
-                  (2*x+1)*sizeof(double));
+                graphic_context[n]->dash_pattern=
+		  MagickAllocateArray(double *,(2*x+1),sizeof(double));
                 if (graphic_context[n]->dash_pattern == (double *) NULL)
                   {
                     ThrowException3(&image->exception,ResourceLimitError,
@@ -3273,184 +3283,307 @@ static double GetPixelOpacity(PolygonInfo *polygon_info,const double mid,
   return(subpath_opacity);
 }
 
-static unsigned int DrawPolygonPrimitive(Image *image,const DrawInfo *draw_info,
-  const PrimitiveInfo *primitive_info)
+static MagickPassFail
+DrawPolygonPrimitive(Image *image,const DrawInfo *draw_info,
+		     const PrimitiveInfo *primitive_info)
 {
   double
-    fill_opacity,
-    mid,
-    stroke_opacity;
-
-  Image
-    *pattern;
-
-  long
-    start,
-    stop,
-    y;
-
-  PathInfo
-    *path_info;
-
-  PixelPacket
-    fill_color,
-    stroke_color;
-
-  PolygonInfo
-    *polygon_info;
-
-  register EdgeInfo
-    *p;
-
-  register long
-    x;
-
-  register PixelPacket
-    *q;
-
-  register long
-    i;
+    mid;
 
   SegmentInfo
     bounds;
 
-  unsigned int
-    fill;
+  ThreadViewDataSet
+    *polygon_set;
 
-  /*
-    Compute bounding box.
-  */
+  MagickPassFail
+    status = MagickPass;
+
   assert(image != (Image *) NULL);
   assert(image->signature == MagickSignature);
   assert(draw_info != (DrawInfo *) NULL);
   assert(draw_info->signature == MagickSignature);
   assert(primitive_info != (PrimitiveInfo *) NULL);
+  /*
+    Nothing to do.
+  */
   if (primitive_info->coordinates == 0)
-    return(True);
-  path_info=ConvertPrimitiveToPath(draw_info,primitive_info);
-  if (path_info == (PathInfo *) NULL)
-    return(False);
-  polygon_info=ConvertPathToPolygon(draw_info,path_info);
-  MagickFreeMemory(path_info);
-  if (polygon_info == (PolygonInfo *) NULL)
-    return(False);
-  if (0) /* FIXME ??? */
-    DrawBoundingRectangles(image,draw_info,polygon_info);
-  (void) LogMagickEvent(RenderEvent,GetMagickModule(),"    begin draw-polygon");
-  fill=(primitive_info->method == FillToBorderMethod) ||
-    (primitive_info->method == FloodfillMethod);
-  fill_color=draw_info->fill;
-  stroke_color=draw_info->stroke;
-  mid=ExpandAffine(&draw_info->affine)*draw_info->stroke_width/2.0;
-  bounds=polygon_info->edges[0].bounds;
-  for (i=1; i < polygon_info->number_edges; i++)
+    return(MagickPass);
+
   {
-    p=polygon_info->edges+i;
-    if (p->bounds.x1 < bounds.x1)
-      bounds.x1=p->bounds.x1;
-    if (p->bounds.y1 < bounds.y1)
-      bounds.y1=p->bounds.y1;
-    if (p->bounds.x2 > bounds.x2)
-      bounds.x2=p->bounds.x2;
-    if (p->bounds.y2 > bounds.y2)
-      bounds.y2=p->bounds.y2;
+    /*
+      Allocate and initialize thread-specific polygon sets.
+    */
+    PathInfo
+      *path_info;
+
+    path_info=ConvertPrimitiveToPath(draw_info,primitive_info);
+    if (path_info == (PathInfo *) NULL)
+      return(MagickFail);
+
+    if (path_info != (PathInfo *) NULL)
+      {
+	unsigned int
+	  index;
+
+	polygon_set=AllocateThreadViewDataSet(DestroyPolygonInfo,image,
+					      &image->exception);
+	if (polygon_set != (ThreadViewDataSet *) NULL)
+	  {
+	    for (index=0; index < GetThreadViewDataSetAllocatedViews(polygon_set); index++)
+	      AssignThreadViewData(polygon_set,index,(void *) ConvertPathToPolygon(path_info));
+	  }
+	MagickFreeMemory(path_info);
+
+	for (index=0; index < GetThreadViewDataSetAllocatedViews(polygon_set); index++)
+	  if (AccessThreadViewDataById(polygon_set,index) == (void *) NULL)
+	    status=MagickFail;
+
+	if (status == MagickFail)
+	  {
+	    DestroyThreadViewDataSet(polygon_set);
+	    return status;
+	  }
+      }
   }
-  bounds.x1-=(mid+1.0);
-  bounds.x1=bounds.x1 < 0.0 ? 0.0 : bounds.x1 >= image->columns ?
-    image->columns-1 : bounds.x1;
-  bounds.y1-=(mid+1.0);
-  bounds.y1=bounds.y1 < 0.0 ? 0.0 : bounds.y1 >= image->rows ?
-    image->rows-1 : bounds.y1;
-  bounds.x2+=(mid+1.0);
-  bounds.x2=bounds.x2 < 0.0 ? 0.0 : bounds.x2 >= image->columns ?
-    image->columns-1 : bounds.x2;
-  bounds.y2+=(mid+1.0);
-  bounds.y2=bounds.y2 < 0.0 ? 0.0 : bounds.y2 >= image->rows ?
-    image->rows-1 : bounds.y2;
+
+  /*
+    Compute bounding box.
+  */
+  {
+    const PolygonInfo
+      *polygon_info;
+
+    register long
+      i;
+
+    polygon_info=(const PolygonInfo *) AccessThreadViewData(polygon_set);
+    bounds=polygon_info->edges[0].bounds;
+
+    if (0) /* FIXME ??? */
+      DrawBoundingRectangles(image,draw_info,polygon_info);
+    
+    for (i=1; i < polygon_info->number_edges; i++)
+      {
+	register const EdgeInfo
+	  *p;
+
+	p=polygon_info->edges+i;
+	if (p->bounds.x1 < bounds.x1)
+	  bounds.x1=p->bounds.x1;
+	if (p->bounds.y1 < bounds.y1)
+	  bounds.y1=p->bounds.y1;
+	if (p->bounds.x2 > bounds.x2)
+	  bounds.x2=p->bounds.x2;
+	if (p->bounds.y2 > bounds.y2)
+	  bounds.y2=p->bounds.y2;
+      }
+    mid=ExpandAffine(&draw_info->affine)*draw_info->stroke_width/2.0;
+    bounds.x1-=(mid+1.0);
+    bounds.x1=bounds.x1 < 0.0 ? 0.0 : bounds.x1 >= image->columns ?
+      image->columns-1 : bounds.x1;
+    bounds.y1-=(mid+1.0);
+    bounds.y1=bounds.y1 < 0.0 ? 0.0 : bounds.y1 >= image->rows ?
+      image->rows-1 : bounds.y1;
+    bounds.x2+=(mid+1.0);
+    bounds.x2=bounds.x2 < 0.0 ? 0.0 : bounds.x2 >= image->columns ?
+      image->columns-1 : bounds.x2;
+    bounds.y2+=(mid+1.0);
+    bounds.y2=bounds.y2 < 0.0 ? 0.0 : bounds.y2 >= image->rows ?
+      image->rows-1 : bounds.y2;
+  }
+
+  (void) LogMagickEvent(RenderEvent,GetMagickModule(),"    begin draw-polygon");
+
   if (primitive_info->coordinates == 1)
     {
       /*
         Draw point.
       */
-      start=(long) ceil(bounds.x1-0.5);
-      stop=(long) floor(bounds.x2+0.5);
-      /* FIXME: OpenMP */
-      for (y=(long) ceil(bounds.y1-0.5); y <= (long) floor(bounds.y2+0.5); y++)
-      {
-        x=start;
-        q=GetImagePixels(image,x,y,stop-x+1,1);
-        if (q == (PixelPacket *) NULL)
-          break;
-        for ( ; x <= stop; x++)
-        {
-          if ((x == (long) ceil(primitive_info->point.x-0.5)) &&
-              (y == (long) ceil(primitive_info->point.y-0.5)))
-            *q=stroke_color;
-          q++;
-        }
-        if (!SyncImagePixels(image))
-          break;
-      }
-      (void) LogMagickEvent(RenderEvent,GetMagickModule(),
-        "    end draw-polygon");
-      return(True);
-    }
-  /*
-    Draw polygon or line.
-  */
-  start=(long) ceil(bounds.x1-0.5);
-  stop=(long) floor(bounds.x2+0.5);
-  /* FIXME: OpenMP */
-  for (y=(long) ceil(bounds.y1-0.5); y <= (long) floor(bounds.y2+0.5); y++)
-  {
-    x=start;
-    q=GetImagePixels(image,x,y,stop-x+1,1);
-    if (q == (PixelPacket *) NULL)
-      break;
-    for ( ; x <= stop; x++)
+      long
+	x_start,
+	x_stop,
+	y_start,
+	y_stop,
+	y;
+
+      PixelPacket
+	stroke_color;
+
+      stroke_color=draw_info->stroke;      
+      x_start=(long) ceil(bounds.x1-0.5);
+      x_stop=(long) floor(bounds.x2+0.5);
+      y_start=(long) ceil(bounds.y1-0.5);
+      y_stop=(long) floor(bounds.y2+0.5);
+#if defined(HAVE_OPENMP)
+#  pragma omp parallel for shared(status)
+#endif
+      for (y=y_start; y <= y_stop; y++)
+	{
+	  long
+	    x;
+
+	  PixelPacket
+	    *q;
+
+	  MagickPassFail
+	    thread_status;
+
+	  thread_status=status;
+	  if (thread_status == MagickFail)
+	    continue;
+
+	  x=x_start;
+	  q=GetImagePixelsEx(image,x,y,x_stop-x+1,1,&image->exception);
+	  if (q == (PixelPacket *) NULL)
+	    thread_status=MagickFail;
+	  if (thread_status != MagickFail)
+	    {
+	      for ( ; x <= x_stop; x++)
+		{
+		  if ((x == (long) ceil(primitive_info->point.x-0.5)) &&
+		      (y == (long) ceil(primitive_info->point.y-0.5)))
+		    *q=stroke_color;
+		  q++;
+		}
+	      if (!SyncImagePixelsEx(image,&image->exception))
+		thread_status=MagickFail;
+	    }
+	  if (thread_status == MagickFail)
+	    {
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_DrawPolygonPrimitive_Status)
+#endif
+	      status=thread_status;
+	    }
+	}
+    } /* if (primitive_info->coordinates == 1) */
+  else
     {
       /*
-        Fill and/or stroke.
+	Draw polygon or line.
       */
-      fill_opacity=GetPixelOpacity(polygon_info,mid,fill,draw_info->fill_rule,
-        x,y,&stroke_opacity);
-      if (!draw_info->stroke_antialias)
-        {
-          /* When stroke antialiasing is disabled, only draw for
-             opacities >= 0.99 in order to ensure that lines are not
-             drawn wider than requested. */
-          if (fill_opacity < 0.99)
-            fill_opacity=0.0;
-          if (stroke_opacity < 0.99)
-            stroke_opacity=0.0;
-        }
-      pattern=draw_info->fill_pattern;
-      if (pattern != (Image *) NULL)
-        (void) AcquireOnePixelByReference(pattern,&fill_color,
-          (long) (x-pattern->tile_info.x) % pattern->columns,
-          (long) (y-pattern->tile_info.y) % pattern->rows,
-          &image->exception);
-      fill_opacity=MaxRGB-fill_opacity*(MaxRGB-fill_color.opacity);
-      if (fill_opacity != TransparentOpacity)
-        AlphaCompositePixel(q,&fill_color,fill_opacity,q,
-          (q->opacity == TransparentOpacity) ? OpaqueOpacity : q->opacity);
-      pattern=draw_info->stroke_pattern;
-      if (pattern != (Image *) NULL)
-        (void) AcquireOnePixelByReference(pattern,&stroke_color,
-          (long) (x-pattern->tile_info.x) % pattern->columns,
-          (long) (y-pattern->tile_info.y) % pattern->rows,&image->exception);
-      stroke_opacity=MaxRGB-stroke_opacity*(MaxRGB-stroke_color.opacity);
-      if (stroke_opacity != TransparentOpacity)
-        AlphaCompositePixel(q,&stroke_color,stroke_opacity,q,
-          (q->opacity == TransparentOpacity) ? OpaqueOpacity : q->opacity);
-      q++;
+      long
+	x_start,
+	x_stop,
+	y_start,
+	y_stop,
+	y;
+
+      const Image
+	*fill_pattern=draw_info->fill_pattern,
+	*stroke_pattern=draw_info->stroke_pattern;
+
+      unsigned int
+	fill;
+
+      fill=(primitive_info->method == FillToBorderMethod) ||
+	(primitive_info->method == FloodfillMethod);
+
+      x_start=(long) ceil(bounds.x1-0.5);
+      x_stop=(long) floor(bounds.x2+0.5);
+      y_start=(long) ceil(bounds.y1-0.5);
+      y_stop=(long) floor(bounds.y2+0.5);
+#if 1
+#if defined(HAVE_OPENMP)
+#  pragma omp parallel for schedule(dynamic) shared(status)
+#endif
+#endif
+      for (y=y_start; y <= y_stop; y++)
+	{
+	  PixelPacket
+	    fill_color,
+	    stroke_color;
+
+	  double
+	    fill_opacity,
+	    stroke_opacity;
+
+	  long
+	    x;
+
+	  PolygonInfo
+	    *polygon_info;
+
+	  PixelPacket
+	    *q;
+
+	  MagickPassFail
+	    thread_status;
+
+	  thread_status=status;
+	  if (thread_status == MagickFail)
+	    continue;
+
+	  polygon_info=(PolygonInfo *) AccessThreadViewData(polygon_set);
+	  fill_color=draw_info->fill;
+	  stroke_color=draw_info->stroke;
+	  x=x_start;
+	  q=GetImagePixelsEx(image,x,y,x_stop-x+1,1,&image->exception);
+	  if (q == (PixelPacket *) NULL)
+	    thread_status=MagickFail;
+
+	  if (thread_status != MagickFail)
+	    {
+	      for ( ; x <= x_stop; x++)
+		{
+		  /*
+		    Fill and/or stroke.
+		  */
+		  fill_opacity=GetPixelOpacity(polygon_info,mid,fill,
+					       draw_info->fill_rule,
+					       x,y,&stroke_opacity);
+		  if (!draw_info->stroke_antialias)
+		    {
+		      /* When stroke antialiasing is disabled, only draw for
+			 opacities >= 0.99 in order to ensure that lines are not
+			 drawn wider than requested. */
+		      if (fill_opacity < 0.99)
+			fill_opacity=0.0;
+		      if (stroke_opacity < 0.99)
+			stroke_opacity=0.0;
+		    }
+		  if (fill_pattern != (Image *) NULL)
+		    (void) AcquireOnePixelByReference
+		      (fill_pattern,&fill_color,
+		       (long) (x-fill_pattern->tile_info.x) % fill_pattern->columns,
+		       (long) (y-fill_pattern->tile_info.y) % fill_pattern->rows,
+		       &image->exception);
+		  fill_opacity=MaxRGBDouble-fill_opacity*
+		    (MaxRGBDouble-(double) fill_color.opacity);
+		  AlphaCompositePixel(q,&fill_color,fill_opacity,q,
+				      (q->opacity == TransparentOpacity)
+				      ? OpaqueOpacity : q->opacity);
+		  if (stroke_pattern != (Image *) NULL)
+		    (void) AcquireOnePixelByReference
+		      (stroke_pattern,&stroke_color,
+		       (long) (x-stroke_pattern->tile_info.x) % stroke_pattern->columns,
+		       (long) (y-stroke_pattern->tile_info.y) % stroke_pattern->rows,
+		       &image->exception);
+		  stroke_opacity=MaxRGBDouble-stroke_opacity*
+		    (MaxRGBDouble-(double)stroke_color.opacity);
+		  AlphaCompositePixel(q,&stroke_color,stroke_opacity,q,
+				      (q->opacity == TransparentOpacity)
+				      ? OpaqueOpacity : q->opacity);
+		  q++;
+		} /* for ( ; x <= x_stop; x++) */
+	      if (!SyncImagePixelsEx(image,&image->exception))
+		thread_status=MagickFail;
+
+	      if (thread_status == MagickFail)
+		{
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_DrawPolygonPrimitive_Status)
+#endif
+		  status=thread_status;
+		}
+	    }
+	}
     }
-    if (!SyncImagePixels(image))
-      break;
-  }
   (void) LogMagickEvent(RenderEvent,GetMagickModule(),"    end draw-polygon");
-  DestroyPolygonInfo(polygon_info);
-  return(True);
+  DestroyThreadViewDataSet(polygon_set);
+
+  return(status);
 }
 
 /*
@@ -4305,8 +4438,8 @@ static void TraceBezier(PrimitiveInfo *primitive_info,
   }
   quantum=Min(quantum/number_coordinates,BezierQuantum);
   control_points=quantum*number_coordinates;
-  coefficients=MagickAllocateMemory(double *,number_coordinates*sizeof(double));
-  points=MagickAllocateMemory(PointInfo *,control_points*sizeof(PointInfo));
+  coefficients=MagickAllocateArray(double *,number_coordinates,sizeof(double));
+  points=MagickAllocateArray(PointInfo *,control_points,sizeof(PointInfo));
   if ((coefficients == (double *) NULL) || (points == (PointInfo *) NULL))
     MagickFatalError3(ResourceLimitError,MemoryAllocationFailed,
       UnableToDrawOnImage);
@@ -4700,7 +4833,7 @@ static unsigned long TracePath(PrimitiveInfo *primitive_info,const char *path)
               points[0]=points[2];
               points[1]=points[3];
             }
-          for (i=0; i <= 4; i++)
+          for (i=0; i <= 3; i++)
             (q+i)->point=points[i];
           TraceBezier(q,4);
           q+=q->coordinates;
@@ -4989,10 +5122,11 @@ static PrimitiveInfo *TraceStrokePolygon(const DrawInfo *draw_info,
   */
   number_vertices=primitive_info->coordinates;
   max_strokes=2*number_vertices+6*BezierQuantum+360;
-  path_p=MagickAllocateMemory(PointInfo *,max_strokes*sizeof(PointInfo));
-  path_q=MagickAllocateMemory(PointInfo *,max_strokes*sizeof(PointInfo));
-  polygon_primitive=MagickAllocateMemory(PrimitiveInfo *,
-    (number_vertices+2)*sizeof(PrimitiveInfo));
+  path_p=MagickAllocateArray(PointInfo *,max_strokes,sizeof(PointInfo));
+  path_q=MagickAllocateArray(PointInfo *,max_strokes,sizeof(PointInfo));
+  polygon_primitive=
+    MagickAllocateArray(PrimitiveInfo *,(number_vertices+2),
+			sizeof(PrimitiveInfo));
   if ((path_p == (PointInfo *) NULL) || (path_q == (PointInfo *) NULL) ||
       (polygon_primitive == (PrimitiveInfo *) NULL))
     return((PrimitiveInfo *) NULL);
@@ -5313,8 +5447,9 @@ static PrimitiveInfo *TraceStrokePolygon(const DrawInfo *draw_info,
   /*
     Trace stroked polygon.
   */
-  stroke_polygon=MagickAllocateMemory(PrimitiveInfo *,
-    (p+q+2*closed_path+2)*sizeof(PrimitiveInfo));
+  stroke_polygon=
+    MagickAllocateArray(PrimitiveInfo *,(p+q+2*closed_path+2),
+			sizeof(PrimitiveInfo));
   if (stroke_polygon != (PrimitiveInfo *) NULL)
     {
       for (i=0; i < (long) p; i++)

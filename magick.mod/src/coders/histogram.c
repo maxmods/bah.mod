@@ -40,6 +40,7 @@
 #include "magick/blob.h"
 #include "magick/pixel_cache.h"
 #include "magick/color.h"
+#include "magick/color_lookup.h"
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
@@ -296,7 +297,8 @@ static unsigned int WriteHISTOGRAMImage(const ImageInfo *image_info,
       break;
     if (QuantumTick(x,histogram_image->columns))
       if (!MagickMonitorFormatted(x,histogram_image->columns,&image->exception,
-                                  SaveImageText,image->filename))
+                                  SaveImageText,image->filename,
+				  image->columns,image->rows))
         break;
   }
   /*

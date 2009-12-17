@@ -37,10 +37,11 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
+#include "magick/colormap.h"
 #include "magick/constitute.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 /*
@@ -268,7 +269,8 @@ static Image *ReadVICARImage(const ImageInfo *image_info,
       break;
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         break;
   }
   MagickFreeMemory(scanline);
@@ -429,7 +431,8 @@ static unsigned int WriteVICARImage(const ImageInfo *image_info,Image *image)
     if (image->previous == (Image *) NULL)
       if (QuantumTick(y,image->rows))
         if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                    SaveImageText,image->filename))
+                                    SaveImageText,image->filename,
+				    image->columns,image->rows))
           break;
   }
   MagickFreeMemory(scanline);

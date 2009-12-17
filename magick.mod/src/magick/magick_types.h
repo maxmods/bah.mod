@@ -42,10 +42,14 @@ extern "C" {
 #  if defined(_CH_)
 #  include <stdint.h>
   typedef int64_t  magick_int64_t;
+#define MAGICK_INT32_F ""
   typedef uint64_t magick_uint64_t;
+#define MAGICK_UINT32_F ""
 #  else
   typedef signed __int64  magick_int64_t;
+#define MAGICK_INT64_F "I64"
   typedef unsigned __int64 magick_uint64_t;
+#define MAGICK_UINT64_F "I64"
 #  endif
 
   typedef magick_uint64_t magick_uintmax_t;

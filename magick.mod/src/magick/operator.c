@@ -2197,7 +2197,7 @@ QuantumOperatorRegionImage(Image *image,
 
   if (call_back)
     {
-      FormatString(description,"[%%s] Apply operator '%s %g (%g%%)' to channel '%s'...",
+      FormatString(description,"[%%s] Apply operator '%s %g (%g%%%%)' to channel '%s'...",
                    QuantumOperatorToString(quantum_operator),rvalue,
                    ((rvalue/MaxRGBFloat)*100),
                    ChannelTypeToString(channel));

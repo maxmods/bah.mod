@@ -615,7 +615,8 @@ static Image *ReadRLAImage(const ImageInfo *image_info,ExceptionInfo *exception)
     }
     if (QuantumTick(y,image->rows))
       if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-                                  image->filename))
+                                  image->filename,
+				  image->columns,image->rows))
         {
           status=MagickFail;
           break;

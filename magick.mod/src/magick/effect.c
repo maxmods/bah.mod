@@ -36,12 +36,13 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/channel.h"
 #include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/effect.h"
 #include "magick/enhance.h"
 #include "magick/enum_strings.h"
-#include "magick/fx.h"
 #include "magick/gem.h"
 #include "magick/log.h"
 #include "magick/monitor.h"
@@ -89,7 +90,7 @@
 %
 %
 */
-#define AdaptiveThresholdImageText  "[%s] Adaptive threshold image..."
+#define AdaptiveThresholdImageText "[%s] Adaptive threshold..."
 MagickExport Image *AdaptiveThresholdImage(const Image *image,
                                            const unsigned long width,
                                            const unsigned long height,
@@ -413,8 +414,8 @@ MagickExport MagickPassFail BlackThresholdImage(Image *image,const char *thresho
 %
 %
 */
-#define BlurImageColumnsText  "[%s] Blur image columns..."
-#define BlurImageRowsText  "[%s] Blur image rows...  "
+#define BlurImageColumnsText "[%s] Blur columns: order %lu..."
+#define BlurImageRowsText "[%s] Blur rows: order %lu...  "
 static void
 BlurScanline(const double *kernel,const unsigned long width,
              const PixelPacket *source,PixelPacket *destination,
@@ -655,7 +656,8 @@ static MagickPassFail BlurImageScanlines(Image *image,const double *kernel,
                 }
               if (i != image->columns)
                 {
-                  (void) memcpy(&scanline[i],&q[i],(image->columns-i)*sizeof(PixelPacket));
+                  (void) memcpy(&scanline[i],&q[i],
+				(image->columns-i)*sizeof(PixelPacket));
                   BlurScanline(kernel,width,scanline,q,image->columns,matte);
                   if (!SyncImagePixelsEx(image,exception))
                     thread_status=MagickFail;
@@ -668,7 +670,7 @@ static MagickPassFail BlurImageScanlines(Image *image,const double *kernel,
             row_count++;
             if (QuantumTick(row_count,image->rows))
               if (!MagickMonitorFormatted(row_count,image->rows,exception,
-                                          format,image->filename))
+                                          format,image->filename,width))
                 thread_status=MagickFail;
           
             if (thread_status == MagickFail)
@@ -742,7 +744,8 @@ BlurImage(const Image *original_image,const double radius,
   blur_image->storage_class=DirectClass;
 
   if (status != MagickFail)
-    status&=BlurImageScanlines(blur_image,kernel,width,BlurImageColumnsText,exception);
+    status&=BlurImageScanlines(blur_image,kernel,width,BlurImageColumnsText,
+			       exception);
   
   if (status != MagickFail)
   {
@@ -761,7 +764,8 @@ BlurImage(const Image *original_image,const double radius,
   }
 
   if (status != MagickFail)
-    status&=BlurImageScanlines(blur_image,kernel,width,BlurImageRowsText,exception);
+    status&=BlurImageScanlines(blur_image,kernel,width,BlurImageRowsText,
+			       exception);
 
   MagickFreeMemory(kernel);
   blur_image->is_grayscale=original_image->is_grayscale;
@@ -905,7 +909,7 @@ ChannelThresholdPixels(void *mutable_data,         /* User provided mutable data
   return MagickPass;
 }
 
-#define ChannelThresholdImageText  "[%s] Channel threshold the image..."
+#define ChannelThresholdImageText "[%s] Channel threshold..."
 MagickExport MagickPassFail ChannelThresholdImage(Image *image,
   const char *threshold)
 {
@@ -1005,6 +1009,260 @@ MagickExport MagickPassFail ChannelThresholdImage(Image *image,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
 %                                                                             %
+%     C o n v o l v e I m a g e                                               %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  ConvolveImage() applies a custom convolution kernel to the image.
+%
+%  The format of the ConvolveImage method is:
+%
+%      Image *ConvolveImage(const Image *image,const unsigned int order,
+%        const double *kernel,ExceptionInfo *exception)
+%
+%  A description of each parameter follows:
+%
+%    o image: The image.
+%
+%    o order: The number of columns and rows in the filter kernel.
+%
+%    o kernel: An array of double representing the convolution kernel.
+%
+%    o exception: Return any errors or warnings in this structure.
+%
+%
+*/
+#define ConvolveImageText "[%s] Convolve: order %u..."
+MagickExport Image *ConvolveImage(const Image *image,const unsigned int order,
+                                  const double *kernel,ExceptionInfo *exception)
+{
+  double
+    *normal_kernel;
+
+  Image
+    *convolve_image;
+
+  long
+    width,
+    y;
+
+  MagickPassFail
+    status;
+
+  const MagickBool
+    matte=((image->matte) || (image->colorspace == CMYKColorspace));
+
+  /*
+    Initialize convolve image attributes.
+  */
+  assert(image != (Image *) NULL);
+  assert(image->signature == MagickSignature);
+  assert(exception != (ExceptionInfo *) NULL);
+  assert(exception->signature == MagickSignature);
+  width=(long) order;
+  if ((width % 2) == 0)
+    ThrowImageException3(OptionError,UnableToConvolveImage,
+                         KernelWidthMustBeAnOddNumber);
+  if (((long) image->columns < width) || ((long) image->rows < width))
+    ThrowImageException3(OptionError,UnableToConvolveImage,
+                         ImageSmallerThanKernelWidth);
+  convolve_image=CloneImage(image,image->columns,image->rows,MagickTrue,exception);
+  if (convolve_image == (Image *) NULL)
+    return((Image *) NULL);
+  convolve_image->storage_class=DirectClass;
+  {
+    /*
+      Build normalized kernel.
+    */
+    double
+      normalize;
+    
+    register long
+      i;
+
+    normal_kernel=MagickAllocateMemory(double *,width*width*sizeof(double));
+    if (normal_kernel == (double *) NULL)
+      {
+        DestroyImage(convolve_image);
+        ThrowImageException(ResourceLimitError,MemoryAllocationFailed,
+                            MagickMsg(OptionError,UnableToConvolveImage));
+      }
+    normalize=0.0;
+    for (i=0; i < (width*width); i++)
+      normalize+=kernel[i];
+    if (AbsoluteValue(normalize) <= MagickEpsilon)
+      normalize=1.0;
+    normalize=1.0/normalize;
+    for (i=0; i < (width*width); i++)
+      {
+        normal_kernel[i]=normalize*kernel[i];
+      }
+  }
+  
+  if (LogMagickEvent(TransformEvent,GetMagickModule(),
+                     "  ConvolveImage with %ldx%ld kernel:",width,width))
+    {
+      /*
+        Log convolution matrix.
+      */
+      char
+        cell_text[MaxTextExtent],
+        row_text[MaxTextExtent];
+
+      const double
+        *k;
+
+      long
+        u,
+        v;
+
+      k=kernel;
+      for (v=0; v < width; v++)
+        {
+          *row_text='\0';
+          for (u=0; u < width; u++)
+            {
+              FormatString(cell_text,"%#12.4g",*k++);
+              (void) strlcat(row_text,cell_text,sizeof(row_text));
+              if (u%5 == 4)
+                {
+                  (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                        "   %.64s", row_text);
+                  *row_text='\0';
+                }
+            }
+          if (u > 5)
+            (void) strlcat(row_text,"\n",sizeof(row_text));
+          if (row_text[0] != '\0')
+            (void) LogMagickEvent(TransformEvent,GetMagickModule(),
+                                  "   %s", row_text);
+        }
+    }
+
+  status=MagickPass;
+  /*
+    Convolve image.
+  */
+  {
+    unsigned long
+      row_count=0;
+
+    DoublePixelPacket
+      zero;
+
+    (void) memset(&zero,0,sizeof(DoublePixelPacket));
+#if defined(HAVE_OPENMP)
+#  pragma omp parallel for schedule(dynamic,4) shared(row_count, status)
+#endif
+    for (y=0; y < (long) convolve_image->rows; y++)
+      {
+        const PixelPacket
+          *p;
+    
+        PixelPacket
+          *q;
+
+        long
+          x;
+
+        MagickBool
+          thread_status;
+
+        thread_status=status;
+        if (thread_status == MagickFail)
+          continue;
+
+	/*
+	  Acquire rectangle of columns+width high, and width tall.
+	*/
+        p=AcquireImagePixels(image,-width/2,y-width/2,image->columns+width,width,
+                             exception);
+	/*
+	  Set one row.
+	*/
+        q=SetImagePixelsEx(convolve_image,0,y,convolve_image->columns,1,exception);
+        if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
+          thread_status=MagickFail;
+
+        if (thread_status != MagickFail)
+          {
+            for (x=0; x < (long) convolve_image->columns; x++)
+              {
+                DoublePixelPacket
+                  pixel;
+
+                const PixelPacket
+                  *r;
+
+                long
+                  u,
+                  v;
+
+                const double
+                  *k;
+
+                r=p;
+                pixel=zero;
+                k=normal_kernel;
+                for (v=width; v > 0; v--)
+                  {
+                    for (u=0; u < width; u++)
+                      {
+                        pixel.red+=(*k)*r[u].red;
+                        pixel.green+=(*k)*r[u].green;
+                        pixel.blue+=(*k)*r[u].blue;
+                        if (matte)
+                          pixel.opacity+=(*k)*r[u].opacity;
+                        k++;
+                      }
+                    r+=image->columns+width;
+                  }
+                q->red=RoundDoubleToQuantum(pixel.red);
+                q->green=RoundDoubleToQuantum(pixel.green);
+                q->blue=RoundDoubleToQuantum(pixel.blue);
+                q->opacity=RoundDoubleToQuantum(pixel.opacity);
+                p++;
+                q++;
+              }
+            if (!SyncImagePixelsEx(convolve_image,exception))
+              thread_status=MagickFail;
+          }
+#if defined(HAVE_OPENMP)
+#  pragma omp critical (GM_ConvolveImage)
+#endif
+        {
+          row_count++;
+          if (QuantumTick(row_count,image->rows))
+            if (!MagickMonitorFormatted(row_count,image->rows,exception,
+                                        ConvolveImageText,
+                                        convolve_image->filename,
+					order))
+              thread_status=MagickFail;
+          
+          if (thread_status == MagickFail)
+            status=MagickFail;
+        }
+      }
+  }
+  MagickFreeMemory(normal_kernel);
+  if (MagickFail == status)
+    {
+      DestroyImage(convolve_image);
+      convolve_image=(Image *) NULL;
+    }
+  else
+    {
+      convolve_image->is_grayscale=image->is_grayscale;
+    }
+  return(convolve_image);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
 %     D e s p e c k l e I m a g e                                             %
 %                                                                             %
 %                                                                             %
@@ -1028,7 +1286,7 @@ MagickExport MagickPassFail ChannelThresholdImage(Image *image,
 */
 MagickExport Image *DespeckleImage(const Image *image,ExceptionInfo *exception)
 {
-#define DespeckleImageText  "[%s] Despeckle image..."
+#define DespeckleImageText "[%s] Despeckle..."
 
   Image
     *despeckle_image;
@@ -1507,7 +1765,7 @@ MagickExport Image *EmbossImage(const Image *image,const double radius,
       total_weight+=(weight);                                           \
     }                                                                   \
   r++;
-#define EnhanceImageText  "[%s] Enhance image...  "
+#define EnhanceImageText "[%s] Enhance...  "
 
 MagickExport Image *EnhanceImage(const Image *image,ExceptionInfo *exception)
 {
@@ -2056,7 +2314,7 @@ static MedianPixelList *AllocateMedianList(const long width)
 MagickExport Image *MedianFilterImage(const Image *image,const double radius,
                                       ExceptionInfo *exception)
 {
-#define MedianFilterImageText  "[%s] Filter image with neighborhood ranking..."
+#define MedianFilterImageText "[%s] Filter with neighborhood ranking..."
 
   Image
     *median_image;
@@ -2288,7 +2546,7 @@ typedef struct _BlurOffsetInfo
     x,
     y;
 } BlurOffsetInfo;
-#define MotionBlurImageText  "[%s] Motion blur image..."
+#define MotionBlurImageText "[%s] Motion blur..."
 MagickExport Image *MotionBlurImage(const Image *image,const double radius,
                                     const double sigma,const double angle,
                                     ExceptionInfo *exception)
@@ -2498,7 +2756,7 @@ MagickExport MagickPassFail
 RandomChannelThresholdImage(Image *image,const char *channel,
                             const char *thresholds,ExceptionInfo *exception)
 {
-#define RandomChannelThresholdImageText  "[%s] Random-channel threshold image...  "
+#define RandomChannelThresholdImageText "[%s] Random-channel threshold...  "
 
   const double
     o2[4]={0.2,0.6,0.8,0.4};
@@ -3027,7 +3285,7 @@ static PixelPacket GetNonpeakMedianList(MedianPixelList *pixel_list)
 MagickExport Image *ReduceNoiseImage(const Image *image,const double radius,
                                      ExceptionInfo *exception)
 {
-#define ReduceNoiseImageText  "[%s] Reduce the image noise...  "
+#define ReduceNoiseImageText "[%s] Reduce noise...  "
 
   Image
     *noise_image;
@@ -3206,7 +3464,7 @@ MagickExport Image *ReduceNoiseImage(const Image *image,const double radius,
 MagickExport Image *ShadeImage(const Image *image,const unsigned int gray,
                                double azimuth,double elevation,ExceptionInfo *exception)
 {
-#define ShadeImageText  "[%s] Shade image..."
+#define ShadeImageText "[%s] Shade..."
 
   Image
     *shade_image;
@@ -3523,7 +3781,7 @@ MagickExport Image *SharpenImageChannel(const Image *image,
 MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
                                 ExceptionInfo *exception)
 {
-#define SpreadImageText  "[%s] Spread image..."
+#define SpreadImageText "[%s] Spread..."
 #define OFFSETS_ENTRIES 5009U /* prime number is best */
 
   Image
@@ -3624,7 +3882,7 @@ MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
         else
           y_min=y-radius;
     
-        if ((y+radius) >= image->rows)
+        if (((unsigned long) y+radius) >= image->rows)
           y_max=image->rows-1;
         else
           y_max=y+radius;
@@ -3726,7 +3984,7 @@ MagickExport Image *SpreadImage(const Image *image,const unsigned int radius,
 */
 MagickExport MagickPassFail ThresholdImage(Image *image,const double threshold)
 {
-#define ThresholdImageText  "[%s] Threshold image..."
+#define ThresholdImageText "[%s] Threshold..."
 
   long
     y;
@@ -3947,15 +4205,22 @@ UnsharpMaskPixels(void *mutable_data,                /* User provided mutable da
   ARG_NOT_USED(exception);
   for (i=0; i < npixels; i++)
     {
-      update_pixels[i].red=UnsharpQuantum(source_pixels[i].red,update_pixels[i].red,options);
-      update_pixels[i].green=UnsharpQuantum(source_pixels[i].green,update_pixels[i].green,options);
-      update_pixels[i].blue=UnsharpQuantum(source_pixels[i].blue,update_pixels[i].blue,options);
-      update_pixels[i].opacity=UnsharpQuantum(source_pixels[i].opacity,update_pixels[i].opacity,options);
+      update_pixels[i].red=UnsharpQuantum(source_pixels[i].red,
+					  update_pixels[i].red,
+					  options);
+      update_pixels[i].green=UnsharpQuantum(source_pixels[i].green,
+					    update_pixels[i].green,
+					    options);
+      update_pixels[i].blue=UnsharpQuantum(source_pixels[i].blue,
+					   update_pixels[i].blue,
+					   options);
+      update_pixels[i].opacity=UnsharpQuantum(source_pixels[i].opacity,
+					      update_pixels[i].opacity,
+					      options);
     }
   return MagickPass;
 }
 
-#define SharpenImageText  "[%s] Sharpen image..."
 MagickExport Image *UnsharpMaskImage(const Image *image,const double radius,
   const double sigma,const double amount,const double threshold,
   ExceptionInfo *exception)
@@ -3966,6 +4231,9 @@ MagickExport Image *UnsharpMaskImage(const Image *image,const double radius,
   Image
     *sharp_image;
 
+  char
+    message[MaxTextExtent];
+
   assert(image != (const Image *) NULL);
   assert(image->signature == MagickSignature);
   assert(exception != (ExceptionInfo *) NULL);
@@ -3974,9 +4242,12 @@ MagickExport Image *UnsharpMaskImage(const Image *image,const double radius,
     return((Image *) NULL);
   options.amount=amount;
   options.threshold=(MaxRGBFloat*threshold)/2.0;
+  FormatString(message,"[%%s] Unsharp mask: amount %g, threshold %g...",
+	       amount,threshold);
   (void) PixelIterateDualModify(UnsharpMaskPixels,NULL,
-                                SharpenImageText,NULL,&options,
-                                image->columns,image->rows,image,0,0,sharp_image,
+                                message,NULL,&options,
+                                image->columns,image->rows,image,0,0,
+				sharp_image,
                                 0,0,exception);                                
   sharp_image->is_grayscale=image->is_grayscale;
   return(sharp_image);

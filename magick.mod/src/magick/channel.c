@@ -74,13 +74,13 @@
 %
 */
 static MagickPassFail
-ChannelImagePixels(void *mutable_data,         /* User provided mutable data */
-                   const void *immutable_data, /* User provided immutable data */
-                   Image *image,               /* Modify image */
-                   PixelPacket *pixels,        /* Pixel row */
-                   IndexPacket *indexes,       /* Pixel row indexes */
-                   const long npixels,         /* Number of pixels in row */
-                   ExceptionInfo *exception)   /* Exception report */
+ChannelImagePixels(void *mutable_data,            /* User provided mutable data */
+                   const void *immutable_data,    /* User provided immutable data */
+                   Image *image,                  /* Modify image */
+                   PixelPacket * restrict pixels, /* Pixel row */
+                   IndexPacket * restrict indexes,/* Pixel row indexes */
+                   const long npixels,            /* Number of pixels in row */
+                   ExceptionInfo *exception)      /* Exception report */
 {
   /*
     Transform image so that it only represents the specified channel.
@@ -185,7 +185,7 @@ ChannelImagePixels(void *mutable_data,         /* User provided mutable data */
 }
 MagickExport MagickPassFail ChannelImage(Image *image,const ChannelType channel)
 {
-#define ChannelImageText  "[%s] Extract channel from image...  "
+#define ChannelImageText "[%s] Extract channel...  "
 
   ChannelType
     channel_type = channel;
@@ -340,7 +340,7 @@ ExportImageChannelPixels(void *mutable_data,                /* User provided mut
   
   return MagickPass;
 }
-#define ExportImageChannelText "[%s] Export image channel...  "
+#define ExportImageChannelText "[%s] Exporting channel...  "
 MagickExport Image *ExportImageChannel(const Image *source_image,
                                        const ChannelType channel,
                                        ExceptionInfo *exception)
@@ -412,7 +412,7 @@ MagickExport Image *ExportImageChannel(const Image *source_image,
 %
 %
 */
-#define ComputeChannelDepthText "[%s] Get image channel depth..."
+#define ComputeChannelDepthText "[%s] Get channel depth..."
 
 #define CHANNEL_DEPTH(parameter)                                \
   {                                                             \
@@ -668,7 +668,7 @@ ImportImageChannelPixels(void *mutable_data,                /* User provided mut
   return MagickPass;
 }
 
-#define ImportImageChannelText  "[%s] Import a channel into the image..."
+#define ImportImageChannelText  "[%s] Importing channel..."
 MagickPassFail ImportImageChannel(const Image *source_image,
                                   Image *update_image,
                                   const ChannelType channel)
@@ -788,7 +788,7 @@ ImportImageChannelsMaskedPixels(void *mutable_data,                /* User provi
   return MagickPass;
 }
 
-#define ImportImageChannelsMaskedText  "[%s] Import channels into the image...  "
+#define ImportImageChannelsMaskedText  "[%s] Importing channels...  "
 MagickPassFail ImportImageChannelsMasked(const Image *source_image,
                                          Image *update_image,
                                          const ChannelType channels)

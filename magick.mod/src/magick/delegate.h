@@ -41,6 +41,30 @@ typedef struct _DelegateInfo
     *next;
 } DelegateInfo;
 
+/*
+  Magick delegate methods.
+*/
+extern MagickExport char
+  *GetDelegateCommand(const ImageInfo *image_info,Image *image,
+                      const char *decode,const char *encode,
+                      ExceptionInfo *exception);
+
+extern MagickExport const DelegateInfo
+  *GetDelegateInfo(const char *decode,const char *encode,
+                   ExceptionInfo *exception),
+  *GetPostscriptDelegateInfo(const ImageInfo *image_info,
+                   unsigned int *antialias, ExceptionInfo *exception);
+
+extern MagickExport DelegateInfo
+  *SetDelegateInfo(DelegateInfo *);
+
+extern MagickExport MagickPassFail
+  InvokePostscriptDelegate(const unsigned int verbose,const char *command,
+			   ExceptionInfo *exception),
+  InvokeDelegate(ImageInfo *image_info,Image *image,const char *decode,
+                 const char *encode,ExceptionInfo *exception),
+  ListDelegateInfo(FILE *file,ExceptionInfo *exception);
+
 #if defined(MAGICK_IMPLEMENTATION)
 
 #if defined(HasGS)
@@ -88,36 +112,17 @@ typedef struct _GhostscriptVectors
   int  (MagickDLLCall *run_string)(gs_main_instance *instance,const char *str,
                                    int user_errors,int *pexit_code);
 } GhostscriptVectors;
-#endif /* MAGICK_IMPLEMENTATION */
-
-/*
-  Magick delegate methods.
-*/
-extern MagickExport char
-  *GetDelegateCommand(const ImageInfo *image_info,Image *image,
-                      const char *decode,const char *encode,
-                      ExceptionInfo *exception);
-
-extern MagickExport const DelegateInfo
-  *GetDelegateInfo(const char *decode,const char *encode,
-                   ExceptionInfo *exception),
-  *GetPostscriptDelegateInfo(const ImageInfo *image_info,
-                   unsigned int *antialias, ExceptionInfo *exception);
-
-extern MagickExport DelegateInfo
-  *SetDelegateInfo(DelegateInfo *);
-
-extern MagickExport unsigned int
-  InvokePostscriptDelegate(const unsigned int verbose,const char *command),
-  InvokeDelegate(ImageInfo *image_info,Image *image,const char *decode,
-                 const char *encode,ExceptionInfo *exception),
-  ListDelegateInfo(FILE *file,ExceptionInfo *exception);
 
 extern MagickExport void
   DestroyDelegateInfo(void);
+
+extern MagickPassFail
+  InitializeDelegateInfo(void);
+
+#endif /* MAGICK_IMPLEMENTATION */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
-#endif
+#endif /* _MAGICK_DELEGATE_H */

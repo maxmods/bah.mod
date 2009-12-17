@@ -281,6 +281,11 @@ static void CropToFitImage(Image **image,const double x_shear,
 %
 %
 */
+#if 1
+#if !defined(DisableSlowOpenMP)
+#  define IntegralRotateImageUseOpenMP
+#endif
+#endif
 static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                                   ExceptionInfo *exception)
 {
@@ -294,8 +299,8 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
     page;
 
   long
-    tile_width_max=128,
-    tile_height_max=128;
+    tile_width_max,
+    tile_height_max;
 
   MagickPassFail
     status=MagickPass;
@@ -306,37 +311,68 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
   assert(image != (Image *) NULL);
   page=image->page;
   rotations%=4;
+
+  {
+    /*
+      Clone appropriately to create rotate image.
+    */
+    unsigned long
+      clone_columns=0,
+      clone_rows=0;
+    
+    switch (rotations)
+      {
+      case 0:
+	clone_columns=0;
+	clone_rows=0;
+	break;
+      case 2:
+	clone_columns=image->columns;
+	clone_rows=image->rows;
+	break;
+      case 1:
+      case 3:
+	clone_columns=image->rows;
+	clone_rows=image->columns;
+	break;
+      }
+    rotate_image=CloneImage(image,clone_columns,clone_rows,True,exception);
+    if (rotate_image == (Image *) NULL)
+      return((Image *) NULL);
+    if (rotations != 0)
+      if (ModifyCache(rotate_image,exception) != MagickPass)
+	{
+	  DestroyImage(rotate_image);
+	  return (Image *) NULL;
+	}
+  }
+
+  tile_height_max=tile_width_max=2048/sizeof(PixelPacket); /* 2k x 2k = 4MB */
   if ((rotations == 1) || (rotations == 3))
     {
-      rotate_image=CloneImage(image,image->rows,image->columns,True,exception);
+      /*
+	Allow override of tile geometry for testing.
+      */
+      const char *
+	value;
 
-      {
-        const char *
-          value;
+      if (!GetPixelCacheInCore(image) || !GetPixelCacheInCore(rotate_image))
+	tile_height_max=tile_width_max=8192/sizeof(PixelPacket); /* 8k x 8k = 64MB */
 
-        /*
-          Allow override of tile geometry for testing.
-        */
-        if ((value=getenv("MAGICK_ROTATE_TILE_GEOMETRY")))
-          {
-            double
-              width,
-              height;
-            
-            if (GetMagickDimension(value,&width,&height,NULL,NULL) == 2)
-              {
-                tile_height_max=(unsigned long) height;
-                tile_width_max=(unsigned long) width;
-              }
-          }
-      }
+      if ((value=getenv("MAGICK_ROTATE_TILE_GEOMETRY")))
+	{
+	  double
+	    width,
+	    height;
+	  
+	  if (GetMagickDimension(value,&width,&height,NULL,NULL) == 2)
+	    {
+	      tile_height_max=(unsigned long) height;
+	      tile_width_max=(unsigned long) width;
+	    }
+	}
     }
-  else
-    {
-      rotate_image=CloneImage(image,image->columns,image->rows,True,exception);
-    }
-  if (rotate_image == (Image *) NULL)
-    return((Image *) NULL);
+
   /*
     Integral rotate the image.
   */
@@ -345,70 +381,12 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
     case 0:
       {
         /*
-          Rotate 0 degrees.
+          Rotate 0 degrees (nothing more to do).
         */
-        long
-          y;
-
-        unsigned long
-          row_count=0;
-
-        (void) strlcpy(message,"[%s] Rotate image 0 degrees...",sizeof(message));
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(static,8) shared(row_count, status)
-#endif
-        for (y=0; y < (long) image->rows; y++)
-          {
-            register const PixelPacket
-              *p;
-            
-            register PixelPacket
-              *q;
-            
-            register const IndexPacket
-              *indexes;
-            
-            IndexPacket
-              *rotate_indexes;
-
-            MagickPassFail
-              thread_status;
-
-            thread_status=status;
-            if (thread_status == MagickFail)
-              continue;
-
-            p=AcquireImagePixels(image,0,y,image->columns,1,exception);
-            q=SetImagePixelsEx(rotate_image,0,y,rotate_image->columns,1,exception);
-            if ((p == (const PixelPacket *) NULL) || (q == (PixelPacket *) NULL))
-              thread_status=MagickFail;
-            if (thread_status != MagickFail)
-              {
-                (void) memcpy(q,p,image->columns*sizeof(PixelPacket));
-                indexes=AccessImmutableIndexes(image);
-                rotate_indexes=AccessMutableIndexes(rotate_image);
-                if ((indexes != (IndexPacket *) NULL) &&
-                    (rotate_indexes != (IndexPacket *) NULL))
-                  (void) memcpy(rotate_indexes,indexes,image->columns*
-                                sizeof(IndexPacket));
-
-                if (!SyncImagePixelsEx(rotate_image,exception))
-                  thread_status=MagickFail;
-              }
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical (GM_IntegralRotateImage)
-#endif
-            {
-              row_count++;
-              if (QuantumTick(row_count,image->rows))
-                if (!MagickMonitorFormatted(row_count,image->rows,exception,
-                                            message,image->filename))
-                  thread_status=MagickFail;
-                  
-              if (thread_status == MagickFail)
-                status=MagickFail;
-            }
-          }
+	(void) strlcpy(message,"[%s] Rotate: 0 degrees...",sizeof(message));
+	if (!MagickMonitorFormatted(image->rows-1,image->rows,exception,
+				    message,image->filename))
+	  status=MagickFail;
         break;
       }
     case 1:
@@ -425,12 +403,15 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
         long
           tile_y;
 
-        (void) strlcpy(message,"[%s] Rotate image 90 degrees...",sizeof(message));
+        (void) strlcpy(message,"[%s] Rotate: 90 degrees...",sizeof(message));
         total_tiles=(((image->rows/tile_height_max)+1)*
                      ((image->columns/tile_width_max)+1));        
         tile=0;
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(static,1) shared(status, tile)
+
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp parallel for schedule(static,1) shared(status, tile)
+#  endif
 #endif
         for (tile_y=0; tile_y < (long) image->rows; tile_y+=tile_height_max)
           {
@@ -555,8 +536,10 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                       }
                   }
 
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical (GM_IntegralRotateImage)
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp critical (GM_IntegralRotateImage)
+#  endif
 #endif
                 {
                   tile++;
@@ -586,9 +569,11 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
         unsigned long
           row_count=0;
 
-        (void) strlcpy(message,"[%s] Rotate image 180 degrees...",sizeof(message));
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(static,8) shared(row_count, status)
+        (void) strlcpy(message,"[%s] Rotate: 180 degrees...",sizeof(message));
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp parallel for schedule(static,8) shared(row_count, status)
+#  endif
 #endif
         for (y=0; y < (long) image->rows; y++)
           {
@@ -633,8 +618,10 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                 if (!SyncImagePixelsEx(rotate_image,exception))
                   thread_status=MagickFail;
               }
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical (GM_IntegralRotateImage)
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp critical (GM_IntegralRotateImage)
+#  endif
 #endif
             {
               row_count++;
@@ -666,12 +653,14 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
         long
           tile_y;
 
-        (void) strlcpy(message,"[%s] Rotate image 270 degrees...",sizeof(message));
+        (void) strlcpy(message,"[%s] Rotate: 270 degrees...",sizeof(message));
         total_tiles=(((image->rows/tile_height_max)+1)*
                      ((image->columns/tile_width_max)+1));
         tile=0;
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp parallel for schedule(static,1) shared(status, tile)
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp parallel for schedule(static,1) shared(status, tile)
+#  endif
 #endif
         for (tile_y=0; tile_y < (long) image->rows; tile_y+=tile_height_max)
           {
@@ -796,8 +785,10 @@ static Image *IntegralRotateImage(const Image *image,unsigned int rotations,
                       }
                   }
 
-#if defined(HAVE_OPENMP) && !defined(DisableSlowOpenMP)
-#  pragma omp critical (GM_IntegralRotateImage)
+#if defined(IntegralRotateImageUseOpenMP)
+#  if defined(HAVE_OPENMP)
+#    pragma omp critical (GM_IntegralRotateImage)
+#  endif
 #endif
                 {
                   tile++;
@@ -865,7 +856,7 @@ static void XShearImage(Image *image,const double degrees,
                         const unsigned long width,const unsigned long height,
                         const long x_offset,long y_offset)
 {
-#define XShearImageText  "[%s] X Shear image...  "
+#define XShearImageText  "[%s] X Shear: %+g degrees, region %lux%lu%+ld%+ld...  "
 
   long
     y;
@@ -928,7 +919,7 @@ static void XShearImage(Image *image,const double degrees,
           direction=LEFT;
         }
       step=(long) floor(displacement);
-      alpha=(double) MaxRGB*(displacement-step);
+      alpha=MaxRGBDouble*(displacement-step);
       if (alpha == 0.0)
         {
           /*
@@ -987,7 +978,9 @@ static void XShearImage(Image *image,const double degrees,
             row_count++;
             if (QuantumTick(row_count,height))
               if (!MagickMonitorFormatted(row_count,height,&image->exception,
-                                          XShearImageText,image->filename))
+                                          XShearImageText,image->filename,
+					  degrees,width,height,
+					  x_offset,y_offset))
                 thread_status=MagickFail;
             
             if (thread_status == MagickFail)
@@ -1074,7 +1067,9 @@ static void XShearImage(Image *image,const double degrees,
         row_count++;
         if (QuantumTick(row_count,height))
           if (!MagickMonitorFormatted(row_count,height,&image->exception,
-                                      XShearImageText,image->filename))
+                                          XShearImageText,image->filename,
+					  degrees,width,height,
+					  x_offset,y_offset))
             thread_status=MagickFail;
         
         if (thread_status == MagickFail)
@@ -1123,7 +1118,7 @@ static void YShearImage(Image *image,const double degrees,
                         const unsigned long width,const unsigned long height,long x_offset,
                         const long y_offset)
 {
-#define YShearImageText  "[%s] Y Shear image..."
+#define YShearImageText  "[%s] Y Shear: %+g degrees, region %lux%lu%+ld%+ld...  "
 
   long
     y;
@@ -1245,7 +1240,9 @@ static void YShearImage(Image *image,const double degrees,
             row_count++;
             if (QuantumTick(row_count,width))
               if (!MagickMonitorFormatted(row_count,width,&image->exception,
-                                          YShearImageText,image->filename))
+                                          YShearImageText,image->filename,
+					  degrees,width,height,
+					  x_offset,y_offset))
                 thread_status=MagickFail;
             
             if (thread_status == MagickFail)
@@ -1333,7 +1330,9 @@ static void YShearImage(Image *image,const double degrees,
         row_count++;
         if (QuantumTick(row_count,width))
           if (!MagickMonitorFormatted(row_count,width,&image->exception,
-                                      YShearImageText,image->filename))
+                                      YShearImageText,image->filename,
+				      degrees,width,height,
+				      x_offset,y_offset))
             thread_status=MagickFail;
         
         if (thread_status == MagickFail)

@@ -34,11 +34,12 @@
 */
 #include "magick/studio.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
+#include "magick/constitute.h"
 #include "magick/error.h"
 #include "magick/list.h"
 #include "magick/magick.h"
+#include "magick/pixel_cache.h"
 #include "magick/utility.h"
 
 
@@ -47,7 +48,7 @@ typedef struct
   char Name[20];
   magick_uint16_t Rows;
   magick_uint16_t Cols;
-  magick_uint16_t TypSou;	/* 0-binary, 1-8 bitu, 2-8 bits+PAL, 3-4 bits,
+  magick_uint16_t FileType;	/* 0-binary, 1-8 bitu, 2-8 bits+PAL, 3-4 bits,
 				   4-4 bits+PAL, 5-24 bits, 6-16 bits, 7-32
 				   bits */
   magick_uint32_t Zoom;
@@ -82,7 +83,7 @@ typedef struct			The palette record inside TopoL
    BYTE Blue;
 } paletteRAS;*/
 
-static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsigned char *MEZ)
+static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsigned Xoffset, unsigned columns, ImportPixelAreaOptions *import_options)
 {
   int
     bit;
@@ -103,26 +104,26 @@ static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsign
     {
     case 1:			/* Convert bitmap scanline. */
       {
-	q = SetImagePixels(image, 0, y, image->columns, 1);
+	q = SetImagePixels(image, Xoffset, y, columns, 1);
 	if (q == (PixelPacket *) NULL)
 	  break;
 	indexes = AccessMutableIndexes(image);
-	for (x = 0; x < ((long) image->columns - 7); x += 8)
+	for (x = 0; x < ((long)columns - 7); x += 8)
           {
             for (bit = 0; bit < 8; bit++)
               {
                 index = ((*p) & (0x80U >> bit) ? 0x01U : 0x00U);
-                indexes[x + bit] = MEZ[index];
+                indexes[x + bit] = index;
                 *q++ = image->colormap[index];
               }
             p++;
           }
-	if ((image->columns % 8) != 0)
+	if ((columns % 8) != 0)
           {
-            for (bit = 0; bit < (long) (image->columns % 8); bit++)
+            for (bit = 0; bit < (long)(columns % 8); bit++)
               {
                 index = ((*p) & (0x80 >> bit) ? 0x01 : 0x00);
-                indexes[x + bit] = MEZ[index];
+                indexes[x + bit] = index;
                 *q++ = image->colormap[index];
               }
             p++;
@@ -136,47 +137,47 @@ static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsign
       }
     case 2:			/* Convert PseudoColor scanline. */
       {
-	q = SetImagePixels(image, 0, y, image->columns, 1);
+	q = SetImagePixels(image, Xoffset, y, columns, 1);
 	if (q == (PixelPacket *) NULL)
 	  break;
 	indexes = AccessMutableIndexes(image);
-	for (x = 0; x < ((long) image->columns - 1); x += 2)
+	for (x = 0; x < ((long)columns - 1); x += 2)
           {
             index = (IndexPacket) ((*p >> 6) & 0x3);
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
             index = (IndexPacket) ((*p >> 4) & 0x3);
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
             index = (IndexPacket) ((*p >> 2) & 0x3);
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
             index = (IndexPacket) ((*p) & 0x3);
             VerifyColormapIndex(image, index);
-            indexes[x + 1] = MEZ[index];
+            indexes[x + 1] = index;
             *q++ = image->colormap[index];
             p++;
           }
-	if ((image->columns % 4) != 0)
+	if ((columns % 4) != 0)
           {
             index = (IndexPacket) ((*p >> 6) & 0x3);
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
-            if ((image->columns % 4) >= 1)
+            if ((columns % 4) >= 1)
               {
                 index = (IndexPacket) ((*p >> 4) & 0x3);
                 VerifyColormapIndex(image, index);
-                indexes[x] = MEZ[index];
+                indexes[x] = index;
                 *q++ = image->colormap[index];
-                if ((image->columns % 4) >= 2)
+                if((columns % 4) >= 2)
                   {
                     index = (IndexPacket) ((*p >> 2) & 0x3);
                     VerifyColormapIndex(image, index);
-                    indexes[x] = MEZ[index];
+                    indexes[x] = index;
                     *q++ = image->colormap[index];
                   }
               }
@@ -192,27 +193,27 @@ static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsign
 
     case 4:			/* Convert PseudoColor scanline. */
       {
-	q = SetImagePixels(image, 0, y, image->columns, 1);
+	q = SetImagePixels(image, Xoffset, y, columns, 1);
 	if (q == (PixelPacket *) NULL)
 	  break;
 	indexes = AccessMutableIndexes(image);
-	for (x = 0; x < ((long) image->columns - 1); x += 2)
+	for (x = 0; x < ((long)columns - 1); x += 2)
           {
-            index = (IndexPacket) ((*p >> 4) & 0xf);
+            index = (IndexPacket) ((*p >> 4) & 0xF);	/* Lo nibble */
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
-            index = (IndexPacket) ((*p) & 0xf);
+            index = (IndexPacket) ((*p) & 0xF);		/* Hi nibble */
             VerifyColormapIndex(image, index);
-            indexes[x + 1] = MEZ[index];
+            indexes[x + 1] = index;
             *q++ = image->colormap[index];
             p++;
           }
-	if ((image->columns % 2) != 0)
+	if((columns % 2) != 0)
           {
-            index = (IndexPacket) ((*p >> 4) & 0xf);
+            index = (IndexPacket) ((*p >> 4) & 0xF);	/* padding nibble */
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
             p++;
           }
@@ -225,16 +226,16 @@ static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsign
       }
     case 8:			/* Convert PseudoColor scanline. */
       {
-	q = SetImagePixels(image, 0, y, image->columns, 1);
+	q = SetImagePixels(image, Xoffset, y, columns, 1);
 	if (q == (PixelPacket *) NULL)
 	  break;
 	indexes = AccessMutableIndexes(image);
 
-	for (x = 0; x < (long) image->columns; x++)
+	for (x = 0; x < (long)columns; x++)
           {
             index = (IndexPacket) (*p);
             VerifyColormapIndex(image, index);
-            indexes[x] = MEZ[index];
+            indexes[x] = index;
             *q++ = image->colormap[index];
             p++;
           }
@@ -245,28 +246,42 @@ static void InsertRow(int depth, unsigned char *p, long y, Image * image, unsign
                      ProgressMonitor(LoadImageText,image->rows-y-1,image->rows); */
       }
       break;
+
+    case 16:		/* Convert 16 bit Gray scanline. */
+      q = SetImagePixels(image, Xoffset, y, columns, 1);
+      if (q == (PixelPacket *) NULL)
+	  break;	
+      (void)ImportImagePixelArea(image,GrayQuantum,16,p,import_options,0);
+      if(!SyncImagePixels(image)) break;
+      break;
+
+    case 24:		/* Convert RGB scanline. */
+      q = SetImagePixels(image, Xoffset, y, columns, 1);
+      if (q == (PixelPacket *) NULL)
+	  break;	
+      (void)ImportImagePixelArea(image,RGBQuantum,8,p,import_options,0);
+      if(!SyncImagePixels(image)) break;
+      break;
+
+    case 32:		/* Convert 32 bit Gray scanline. */
+      q = SetImagePixels(image, Xoffset, y, columns, 1);
+      if (q == (PixelPacket *) NULL)
+	  break;	
+      (void)ImportImagePixelArea(image,GrayQuantum,32,p,import_options,0);
+      if(!SyncImagePixels(image)) break;
+      break;
+      
     }
 }
 
-/* This function reads one block of unsigned shortS */
-static void ReadBlobWordLSB(Image * image, size_t len, unsigned short *data)
-{
-  while (len >= 2)
-    {
-      *data++ = ReadBlobLSBShort(image);
-      len -= 2;
-    }
-  if (len > 0)
-    (void) SeekBlob(image, len, SEEK_CUR);
-}
 
 /* This function reads one block of unsigned longS */
-static void ReadBlobDwordLSB(Image * image, size_t len, unsigned long *data)
+static void ReadBlobDwordLSB(Image *image, size_t len, magick_uint32_t *data)
 {
-  while (len >= 2)
+  while (len >= 4)
     {
       *data++ = ReadBlobLSBLong(image);
-      len -= 2;
+      len -= 4;
     }
   if (len > 0)
     (void) SeekBlob(image, len, SEEK_CUR);
@@ -318,8 +333,8 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   int logging;
 
   int
-    depth,
-    status;
+    depth,    
+    status;    
 
   long
     i,
@@ -329,6 +344,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   unsigned char
     *BImgBuff = NULL,
     MEZ[256];
+  ImportPixelAreaOptions import_options;
 
 
   palette = NULL;
@@ -349,6 +365,10 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   if (status == False)
     ThrowReaderException(FileOpenError, UnableToOpenFile, image);
 
+  ImportPixelAreaOptionsInit(&import_options);
+  import_options.endian = LSBEndian;
+  import_options.sample_type = UnsignedQuantumSampleType;
+
   /*
     Read TopoL RAS header.
   */
@@ -356,7 +376,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   (void) ReadBlob(image, 20, &Header.Name);
   Header.Rows = ReadBlobLSBShort(image);
   Header.Cols = ReadBlobLSBShort(image);
-  Header.TypSou = ReadBlobLSBShort(image);
+  Header.FileType = ReadBlobLSBShort(image);
   Header.Zoom = ReadBlobLSBLong(image);
   Header.Version = ReadBlobLSBShort(image);
   if (Header.Version >= 1)
@@ -382,8 +402,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   for (i = 0; i < (long) sizeof(Header.Name); i++)
     {
       if (Header.Name[i] < ' ')
-        TOPOL_KO:ThrowReaderException(CorruptImageError,ImproperImageHeader,
-                                      image);
+TOPOL_KO:              ThrowReaderException(CorruptImageError,ImproperImageHeader, image);
     }
   if (Header.Komprese != 0 || (Header.Version >= 2 && Header.TileCompression != 0))
     ThrowReaderException(CorruptImageError, UnrecognizedImageCompression, image);
@@ -392,7 +411,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   if (Header.Version > 2)
     ThrowReaderException(CorruptImageError, InvalidFileFormatVersion, image); /* unknown version */
 
-  switch (Header.TypSou)
+  switch(Header.FileType)
     {
     case 0:
       image->colors = 2;
@@ -410,8 +429,9 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
       break;
     case 5:
       image->colors = 0;
+      image->depth = 8;
       depth = 24;
-      break;			/* ????????? 24 bits */
+      break;
     case 6:
       image->colors = 0;
       depth = 16;
@@ -427,13 +447,18 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   image->columns = Header.Cols;
   image->rows = Header.Rows;
 
+  /* If ping is true, then only set image size and colors without reading any image data. */
+  if (image_info->ping) goto DONE_READING;
+
   /* ----- Handle the reindexing mez file ----- */
-  for(i=0;i<255;i++)
-    {
-      MEZ[i]=(unsigned char) i;
-    }
+  j = image->colors;
+  if(j<=0 || j>256) j=256;
+  for(i=0; i<j; i++)
+  {    
+    MEZ[i] = (unsigned char)((i*256)/j);
+  }
     
-  if(Header.TypSou>=5) goto NoMEZ;    
+  if(Header.FileType>=5) goto NoMEZ;    
     
   if ((clone_info=CloneImageInfo(image_info)) == NULL) goto NoMEZ;
   
@@ -442,15 +467,14 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
   while(--i>0)
     {
       if(clone_info->filename[i]=='.') 
-        {
-          break;
-        }
-      if(clone_info->filename[i]=='/' || clone_info->filename[i]=='\\' ||
-         clone_info->filename[i]==':' ) 
-        {
-          i=j;
-          break;
-        }
+      {
+        break;
+      }
+      if(clone_info->filename[i]=='/' || clone_info->filename[i]=='\\' || clone_info->filename[i]==':' )
+      {
+        i=j;
+        break;
+      }
     }
   
   (void) strcpy(clone_info->filename+i,".MEZ");
@@ -474,7 +498,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
     ldblk=sizeof(MEZ);
   (void) ReadBlob(palette, ldblk, MEZ); 
             
- NoMEZ:		/*Clean up palette and clone_info*/
+NoMEZ:		/*Clean up palette and clone_info*/
   if (palette != NULL) {DestroyImage(palette);palette=NULL;}
   if (clone_info != NULL) 
     {
@@ -483,6 +507,7 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
     }
 
   /* ----- Do something with palette ----- */
+  if(Header.FileType==5) goto NoPalette;
   if ((clone_info=CloneImageInfo(image_info)) == NULL) goto NoPalette;
  
   i=(long) strlen(clone_info->filename);
@@ -536,67 +561,121 @@ static Image *ReadTOPOLImage(const ImageInfo * image_info, ExceptionInfo * excep
       if (!AllocateImageColormap(image, image->colors)) goto NoMemory;
     
       for(i=0;i<=ldblk;i++)
-        {     
-          j=ReadBlobByte(palette);	/* Flag */
-          if(j==EOF) break;		/* unexpected end of file */
-          if(j<=ldblk)
-            {
-              image->colormap[j].red = ScaleCharToQuantum(ReadBlobByte(palette));
-              image->colormap[j].green = ScaleCharToQuantum(ReadBlobByte(palette));
-              image->colormap[j].blue = ScaleCharToQuantum(ReadBlobByte(palette));
-            }
+      {     
+        j = ReadBlobByte(palette);	/* Flag */
+        if(j==EOF) break;		/* unexpected end of file */
+        if(j<=ldblk)
+        {
+	  if(j==MEZ[i])
+	    j = i; /* MEZ[i];	ignore MEZ!!! proper palete element after reindexing */	
           else
-            {
-              (void) SeekBlob(palette, 3, SEEK_CUR);
-              (void) fprintf(stderr,"TopoL: Wrong index inside palette %d!",(int)j);
-            } 
+            j = MEZ[i];			/* ?? I do not know, big mess ?? */
+	  if(j>=(long) image->colors) j=image->colors-1;
+          image->colormap[j].red = ScaleCharToQuantum(ReadBlobByte(palette));
+          image->colormap[j].green = ScaleCharToQuantum(ReadBlobByte(palette));
+          image->colormap[j].blue = ScaleCharToQuantum(ReadBlobByte(palette));
         }
+        else
+        {
+          (void) SeekBlob(palette, 3, SEEK_CUR);
+          (void) fprintf(stderr,"TopoL: Wrong index inside palette %d!",(int)j);
+        } 
+      }
     }
 
-
- NoPalette:
-  if (palette == NULL && image->colors != 0)
+NoPalette:
+  if(palette == NULL && image->colors != 0)
+  {
+    if(Header.FileType<5)
     {
       if (!AllocateImageColormap(image, image->colors))
-        {
+      {
         NoMemory:
           ThrowReaderException(ResourceLimitError, MemoryAllocationFailed, image);
-        }
+      }
 
-      for (i = 0; i < (long) image->colors; i++)
-        {
-          image->colormap[i].red = ScaleCharToQuantum(i);
-          image->colormap[i].green = ScaleCharToQuantum(i);
-          image->colormap[i].blue = ScaleCharToQuantum(i);
-        }
+      for(i = 0; i < (long) image->colors; i++)
+      {
+	j = MEZ[i];
+        image->colormap[i].red = ScaleCharToQuantum(j);
+        image->colormap[i].green = ScaleCharToQuantum(j);
+        image->colormap[i].blue = ScaleCharToQuantum(j);
+      }
     }
+  }
 
-  /* ----- Load TopoL raster ----- */
-  ldblk = (long) ((depth * image->columns + 7) / 8);
-  BImgBuff = MagickAllocateMemory(unsigned char *,(size_t) ldblk);	/*Ldblk was set in the check phase */
-  if (BImgBuff == NULL)
-    goto NoMemory;
-
-  (void) SeekBlob(image, 512 /*sizeof(Header)*/, SEEK_SET);
-  for (i = 0; i < (int) Header.Rows; i++)
+  /* ----- Load TopoL raster ----- */    
+  switch(Header.Version)
+  {
+   case 0:
+   case 1:
+     ldblk = (long) ((depth * image->columns + 7) / 8);
+     BImgBuff = MagickAllocateMemory(unsigned char *,(size_t) ldblk);	/*Ldblk was set in the check phase */
+     if (BImgBuff == NULL)
+        ThrowReaderException(ResourceLimitError, MemoryAllocationFailed, image);
+     (void) SeekBlob(image, 512 /*sizeof(Header)*/, SEEK_SET);
+     for (i = 0; i < (int) Header.Rows; i++)
+     {
+       (void)ReadBlob(image, ldblk, (char *)BImgBuff);       
+       InsertRow(depth, BImgBuff, i, image, 0, image->columns, &import_options);
+     }
+     break;
+  case 2:
     {
-      switch (Header.TypSou)
-        {
-        case 6:
-          ReadBlobWordLSB(image, ldblk, (unsigned short *) BImgBuff);
-          break;
-        case 7:
-          ReadBlobDwordLSB(image, ldblk, (unsigned long *) BImgBuff);
-          break;
-        default:
-          (void) ReadBlob(image, ldblk, (char *) BImgBuff);
-        }
-      InsertRow(depth, BImgBuff, i, image, MEZ);
+      magick_uint32_t *Offsets;
+      long SkipBlk;
+      unsigned TilX, TilY;
+      unsigned TilesAcross = (Header.Cols+Header.TileWidth-1) / Header.TileWidth;
+      unsigned TilesDown   = (Header.Rows+Header.TileHeight-1) / Header.TileHeight;
+
+      if(Header.TileCompression!=0)
+		{
+  	        ThrowReaderException(CorruptImageError, UnrecognizedImageCompression, image);
+		break;
+		}
+
+       ldblk = (long)((depth * Header.TileWidth + 7) / 8);
+       BImgBuff = MagickAllocateMemory(unsigned char *,(size_t) ldblk);	/*Ldblk was set in the check phase */
+
+       /* dlazdice.create(Header.TileWidth,Header.TileHeight,p.Planes); */
+       Offsets = MagickAllocateMemory(magick_uint32_t *,(size_t)TilesAcross*TilesDown*sizeof(magick_uint32_t));
+       if(Offsets==NULL)
+         ThrowReaderException(ResourceLimitError, MemoryAllocationFailed, image);         
+
+       (void)SeekBlob(image, Header.TileOffsets, SEEK_SET);
+       ReadBlobDwordLSB(image, TilesAcross*TilesDown*4, (magick_uint32_t *)Offsets);
+
+       for(TilY=0;TilY<Header.Rows;TilY+=Header.TileHeight)
+	 for(TilX=0;TilX<TilesAcross;TilX++)
+	   {
+	   ldblk = image->columns - TilX*Header.TileWidth;
+
+	   if(ldblk>Header.TileWidth) ldblk = Header.TileWidth;
+	   SkipBlk = ((long)depth * (Header.TileWidth-ldblk)+7) / 8;
+	   ldblk = ((long)depth * ldblk+7) / 8;
+
+           (void)SeekBlob(image, Offsets[(TilY/Header.TileHeight)*TilesAcross+TilX], SEEK_SET);	   
+	   j = TilX * (ldblk+SkipBlk);
+	   for(i=0;i<Header.TileHeight;i++)
+	   {
+             (void)ReadBlob(image, ldblk, (char *)BImgBuff);
+             if(SkipBlk>0)
+               SeekBlob(image, SkipBlk, SEEK_CUR);
+	     InsertRow(depth, BImgBuff, i+TilY, image, TilX, 
+                    (image->columns<Header.TileWidth)?image->columns:Header.TileWidth, &import_options);
+          }          
+	}
+
+       if(Offsets) {MagickFreeMemory(Offsets);Offsets=NULL;}
+       break;
+      }
     }
+
 
   /* Finish: */
+DONE_READING:
   if (BImgBuff != NULL)
-    free(BImgBuff);
+    MagickFreeMemory(BImgBuff);
   if (palette != NULL)
     DestroyImage(palette);
   if (clone_info != NULL)

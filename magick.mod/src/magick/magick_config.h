@@ -232,7 +232,9 @@
 #undef HAVE_PRELOADED_SYMBOLS
 
 /* Define if you have POSIX threads libraries and header files. */
-#undef HAVE_PTHREAD
+#ifndef WIN32
+#define HAVE_PTHREAD 1
+#endif
 
 /* Define to 1 if you have the `putc_unlocked' function. */
 #undef HAVE_PUTC_UNLOCKED

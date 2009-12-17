@@ -40,13 +40,14 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
-#include "magick/pixel_cache.h"
-#include "magick/color.h"
+#include "magick/colormap.h"
 #include "magick/log.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
+#include "magick/pixel_cache.h"
 #include "magick/profile.h"
 #include "magick/resource.h"
 #include "magick/utility.h"
@@ -256,6 +257,8 @@ static void InitializeSource(j_decompress_ptr cinfo)
   source->start_of_blob=TRUE;
 }
 
+static void JPEGErrorHandler(j_common_ptr jpeg_info) MAGICK_FUNC_NORETURN;
+
 static void JPEGErrorHandler(j_common_ptr jpeg_info)
 {
   ErrorManager
@@ -385,7 +388,7 @@ static boolean ReadGenericProfile(j_decompress_ptr jpeg_info)
   /*
     Store profile in Image.
   */
-  status=SetImageProfile(image,profile_name,profile,length);
+  status=AppendImageProfile(image,profile_name,profile,length);
   MagickFreeMemory(profile);
 
   (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Profile: %s, %lu bytes",
@@ -451,13 +454,14 @@ static boolean ReadICCProfile(j_decompress_ptr jpeg_info)
     ThrowBinaryException(ResourceLimitError,MemoryAllocationFailed,
       (char *) NULL);
 
-  (void) LogMagickEvent(CoderEvent,GetMagickModule(),"ICC profile: %ld bytes",
+  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			"ICC profile chunk: %ld bytes",
     length);
 
   for (i=0 ; i < length; i++)
    profile[i]=GetCharacter(jpeg_info);
 
-  (void) SetImageProfile(image,"ICM",profile,length);
+  (void) AppendImageProfile(image,"ICM",profile,length);
 
   MagickFreeMemory(profile);
 
@@ -562,7 +566,7 @@ static boolean ReadIPTCProfile(j_decompress_ptr jpeg_info)
   for (i=0; i<length; i++)
     profile[i]=GetCharacter(jpeg_info);
 
-  (void) SetImageProfile(image,"IPTC",profile,length);
+  (void) AppendImageProfile(image,"IPTC",profile,length);
 
   MagickFreeMemory(profile);
   return(True);
@@ -867,6 +871,33 @@ FormatJPEGSamplingFactors(const struct jpeg_decompress_struct *jpeg_info,
     }
 }
 
+static MagickBool
+IsITUFax(const Image* image)
+{
+  size_t
+    profile_length;
+  
+  const unsigned char
+    *profile;
+  
+  MagickBool
+    status;
+  
+  status=MagickFalse;
+  if ((profile=GetImageProfile(image,"APP1",&profile_length)) &&
+      (profile_length >= 5))
+    {
+      if (profile[0] == 0x47 &&
+	  profile[1] == 0x33 &&
+	  profile[2] == 0x46 &&
+	  profile[3] == 0x41 &&
+	  profile[4] == 0x58)
+      status=MagickTrue;
+    }
+
+    return status;
+}
+
 static Image *ReadJPEGImage(const ImageInfo *image_info,
 			    ExceptionInfo *exception)
 {
@@ -954,8 +985,21 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
     if ((i != 2) && (i != 13) && (i != 14))
       jpeg_set_marker_processor(&jpeg_info,JPEG_APP0+i,ReadGenericProfile);
   i=jpeg_read_header(&jpeg_info,True);
-  if (jpeg_info.out_color_space == JCS_CMYK)
-    image->colorspace=CMYKColorspace;
+  if (IsITUFax(image))
+    {
+      if (image->logging)
+	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			      "Image colorspace set to LAB");
+      image->colorspace=LABColorspace;
+      jpeg_info.out_color_space = JCS_YCbCr;
+    }
+  else if (jpeg_info.out_color_space == JCS_CMYK)
+    {
+      if (image->logging)
+	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			      "Image colorspace set to CMYK");
+      image->colorspace=CMYKColorspace;
+    }
   if (jpeg_info.saw_JFIF_marker)
     {
       if ((jpeg_info.X_density != 1U) && (jpeg_info.Y_density != 1U))
@@ -971,36 +1015,64 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
             image->units=PixelsPerCentimeterResolution;
         }
     }
+  /*
+    If the desired image size is pre-set (e.g. by using -size), then
+    let the JPEG library subsample for us.
+  */
   number_pixels=image->columns*image->rows;
   if (number_pixels != 0)
     {
       double
         scale_factor;
 
-      /*
-        Let the JPEG library subsample for us.
-      */
+
+      if (image->logging)
+	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			      "Requested Geometry: %lux%lu",
+			      image->columns,image->rows);
       jpeg_calc_output_dimensions(&jpeg_info);
       image->magick_columns=jpeg_info.output_width;
       image->magick_rows=jpeg_info.output_height;
       scale_factor=(double) jpeg_info.output_width/image->columns;
       if (scale_factor > ((double) jpeg_info.output_height/image->rows))
         scale_factor=(double) jpeg_info.output_height/image->rows;
-      jpeg_info.scale_denom=(unsigned int) scale_factor;
+      jpeg_info.scale_denom *=(unsigned int) scale_factor;
       jpeg_calc_output_dimensions(&jpeg_info);
       if (image->logging)
 	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
-			      "Scale_factor: %ld",(long) scale_factor);
+			      "Scale_factor: %ld (scale_num=%d, "
+			      "scale_denom=%d)",
+			      (long) scale_factor,
+			      jpeg_info.scale_num,jpeg_info.scale_denom);
     }
-  if (image_info->subrange != 0)
+#if 0
+  /*
+    The subrange parameter is set by the filename array syntax similar
+    to the way an image is requested from a list (e.g. myfile.jpg[2]).
+    Argument values other than zero are used to scale the image down
+    by that factor.  IJG JPEG 62 (6b) supports values of 1,2,4, or 8
+    while IJG JPEG 70 supports all values in the range 1-16.  This
+    feature is useful in case you want to view all of the images with
+    a consistent ratio.  Unfortunately, it uses the same syntax as
+    list member access.
+  */
+  else if (image_info->subrange != 0)
     {
-      jpeg_info.scale_denom=(int) image_info->subrange;
+      jpeg_info.scale_denom *=(int) image_info->subrange;
       jpeg_calc_output_dimensions(&jpeg_info);
+      if (image->logging)
+	(void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			      "Requested Scaling Denominator: %d "
+			      "(scale_num=%d, scale_denom=%d)",
+			      (int) image_info->subrange,
+			      jpeg_info.scale_num,jpeg_info.scale_denom);
+
     }
+#endif
 #if (JPEG_LIB_VERSION >= 61) && defined(D_PROGRESSIVE_SUPPORTED)
 #ifdef D_LOSSLESS_SUPPORTED
   image->interlace=
-    jpeg_info.process == JPROC_PROGRESSIVE ? PlaneInterlace : NoInterlace;
+    jpeg_info.process == JPROC_PROGRESSIVE ? LineInterlace : NoInterlace;
   image->compression=jpeg_info.process == JPROC_LOSSLESS ?
     LosslessJPEGCompression : JPEGCompression;
   if (jpeg_info.data_precision > 8)
@@ -1008,19 +1080,62 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 		 "12-bit JPEG not supported. Reducing pixel data to 8 bits",
 		 (char *) NULL);
 #else
-  image->interlace=jpeg_info.progressive_mode ? PlaneInterlace : NoInterlace;
+  image->interlace=jpeg_info.progressive_mode ? LineInterlace : NoInterlace;
   image->compression=JPEGCompression;
 #endif
 #else
   image->compression=JPEGCompression;
-  image->interlace=PlaneInterlace;
+  image->interlace=LineInterlace;
 #endif
+  {
+    const char
+      *value;
+
+    /*
+      Allow the user to enable/disable block smoothing.
+    */
+    if ((value=AccessDefinition(image_info,"jpeg","block-smoothing")))
+      {
+	if (LocaleCompare(value,"FALSE") == 0)
+          jpeg_info.do_block_smoothing=False;
+        else
+          jpeg_info.do_block_smoothing=True;
+      }
+
+    /*
+      Allow the user to select the DCT decoding algorithm.
+    */
+    if ((value=AccessDefinition(image_info,"jpeg","dct-method")))
+      {
+        if (LocaleCompare(value,"ISLOW") == 0)
+          jpeg_info.dct_method=JDCT_ISLOW;
+        else if (LocaleCompare(value,"IFAST") == 0)
+          jpeg_info.dct_method=JDCT_IFAST;
+        else if (LocaleCompare(value,"FLOAT") == 0)
+          jpeg_info.dct_method=JDCT_FLOAT;
+        else if (LocaleCompare(value,"DEFAULT") == 0)
+          jpeg_info.dct_method=JDCT_DEFAULT;
+        else if (LocaleCompare(value,"FASTEST") == 0)
+          jpeg_info.dct_method=JDCT_FASTEST;
+      }
+
+    /*
+      Allow the user to enable/disable fancy upsampling.
+    */
+    if ((value=AccessDefinition(image_info,"jpeg","fancy-upsampling")))
+      {
+	if (LocaleCompare(value,"FALSE") == 0)
+          jpeg_info.do_fancy_upsampling=False;
+        else
+          jpeg_info.do_fancy_upsampling=True;
+      }
+  }
   (void) jpeg_start_decompress(&jpeg_info);
   image->columns=jpeg_info.output_width;
   image->rows=jpeg_info.output_height;
   if (image->logging)
     {
-      if (image->interlace == PlaneInterlace)
+      if (image->interlace == LineInterlace)
         (void) LogMagickEvent(CoderEvent,GetMagickModule(),
 			      "Interlace: progressive");
       else
@@ -1033,6 +1148,12 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Geometry: %dx%d",
 			    (int) jpeg_info.output_width,
 			    (int) jpeg_info.output_height);
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"DCT Method: %d",
+			    jpeg_info.dct_method);
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Fancy Upsampling: %s",
+			    (jpeg_info.do_fancy_upsampling ? "true" : "false"));
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Block Smoothing: %s",
+			    (jpeg_info.do_block_smoothing ? "true" : "false"));
     }
 
   {
@@ -1052,7 +1173,8 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
     (void) SetImageAttribute(image,"JPEG-Colorspace-Name",attribute);
     if (image->logging)
       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-			    "Colorspace: %s", attribute);
+			    "Colorspace: %s (%d)", attribute,
+			    jpeg_info.out_color_space);
 
     FormatJPEGSamplingFactors(&jpeg_info,attribute);
     (void) SetImageAttribute(image,"JPEG-Sampling-factors",attribute);
@@ -1187,7 +1309,8 @@ static Image *ReadJPEGImage(const ImageInfo *image_info,
 	}
       if (QuantumTick(y,image->rows))
 	if (!MagickMonitorFormatted(y,image->rows,exception,LoadImageText,
-				    image->filename))
+				    image->filename,
+				    image->columns,image->rows))
 	  {
 	    status=MagickFail;
 	    break;
@@ -1741,8 +1864,6 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
         }
     }
 
-
-
   if ((image_info->type != TrueColorType) &&
       (image_info->type != TrueColorMatteType) &&
       (image_info->type != ColorSeparationType) &&
@@ -1811,9 +1932,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
       *value;
 
     /*
-      Allow the user to select the DCD encoding algorithm.
+      Allow the user to select the DCT encoding algorithm.
     */
-    /* jpeg_info.dct_method=JDCT_DEFAULT; */
     if ((value=AccessDefinition(image_info,"jpeg","dct-method")))
       {
         if (LocaleCompare(value,"ISLOW") == 0)
@@ -1862,17 +1982,17 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
  }
 
 #if (JPEG_LIB_VERSION >= 61) && defined(C_PROGRESSIVE_SUPPORTED)
-  if (image_info->interlace != NoInterlace)
-    jpeg_simple_progression(&jpeg_info);
-  if (image->logging)
-    {
-      if (image_info->interlace != NoInterlace)
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Interlace: progressive");
-      else
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Interlace: nonprogressive");
-    }
+ if (image_info->interlace == LineInterlace)
+   jpeg_simple_progression(&jpeg_info);
+ if (image->logging)
+   {
+     if (image_info->interlace == LineInterlace)
+       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			     "Interlace: progressive");
+     else
+       (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+			     "Interlace: nonprogressive");
+   }
 #else
   if (image->logging)
     (void) LogMagickEvent(CoderEvent,GetMagickModule(),
@@ -2158,7 +2278,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
               (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
               if (QuantumTick(y,image->rows))
                 if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                            SaveImageText,image->filename))
+                                            SaveImageText,image->filename,
+					    image->columns,image->rows))
                   break;
             }
         }
@@ -2185,7 +2306,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
                 (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
                 if (QuantumTick(y,image->rows))
                   if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                              SaveImageText,image->filename))
+                                              SaveImageText,image->filename,
+					      image->columns,image->rows))
                     break;
               }
           }
@@ -2214,7 +2336,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
                 (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
                 if (QuantumTick(y,image->rows))
                   if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                              SaveImageText,image->filename))
+                                              SaveImageText,image->filename,
+					      image->columns,image->rows))
                     break;
               }
           }
@@ -2250,7 +2373,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
             (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
+                                          SaveImageText,image->filename,
+					  image->columns,image->rows))
                 break;
           }
       }
@@ -2277,7 +2401,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
               (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
               if (QuantumTick(y,image->rows))
                 if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                            SaveImageText,image->filename))
+                                            SaveImageText,image->filename,
+					    image->columns,image->rows))
                   break;
             }
         }
@@ -2306,7 +2431,8 @@ static MagickPassFail WriteJPEGImage(const ImageInfo *image_info,Image *image)
               (void) jpeg_write_scanlines(&jpeg_info,scanline,1);
               if (QuantumTick(y,image->rows))
                 if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                            SaveImageText,image->filename))
+                                            SaveImageText,image->filename,
+					    image->columns,image->rows))
                   break;
             }
         }

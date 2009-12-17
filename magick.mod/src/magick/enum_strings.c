@@ -21,7 +21,7 @@
 MagickExport const char *BlobModeToString(BlobMode blob_mode)
 {
   const char
-    *mode_string="Undefined";
+    *mode_string="?";
 
   switch (blob_mode)
   {
@@ -50,11 +50,12 @@ MagickExport const char *BlobModeToString(BlobMode blob_mode)
 MagickExport const char *ChannelTypeToString(const ChannelType channel)
 {
   const char
-    *channel_type="undefined";
+    *channel_type="?";
 
   switch (channel)
     {
     case UndefinedChannel:
+      channel_type="undefined";
       break;
     case RedChannel:
       channel_type="red";
@@ -132,7 +133,7 @@ MagickExport ChannelType StringToChannelType(const char *option)
 MagickExport const char* ClassTypeToString(const ClassType class_type)
 {
   const char
-    *log_class_type="Unknown";
+    *log_class_type="?";
 
   switch (class_type)
     {
@@ -155,7 +156,7 @@ MagickExport const char* ClassTypeToString(const ClassType class_type)
 MagickExport const char *ColorspaceTypeToString(const ColorspaceType colorspace)
 {
   const char
-    *colorspace_type = "Unknown";
+    *colorspace_type = "?";
   
   switch (colorspace)
     {
@@ -277,7 +278,7 @@ MagickExport ColorspaceType StringToColorspaceType(const char *option)
 MagickExport const char *CompositeOperatorToString(const CompositeOperator composite_op)
 {
   const char
-    *composite_op_text = "Undefined";
+    *composite_op_text = "?";
 
   switch (composite_op)
     {
@@ -486,7 +487,7 @@ MagickExport CompositeOperator StringToCompositeOperator(const char *option)
 MagickExport const char* CompressionTypeToString(const CompressionType compression_type)
 {
   const char
-    *compression_string="Unknown";
+    *compression_string="?";
 
   switch (compression_type)
     {
@@ -532,6 +533,10 @@ MagickExport CompressionType StringToCompressionType(const char *option)
     compression_type=NoCompression;
   else if (LocaleCompare("BZip",option) == 0)
     compression_type=BZipCompression;
+  else if (LocaleCompare("BZip2",option) == 0)
+    compression_type=BZipCompression;
+  else if (LocaleCompare("BZ2",option) == 0)
+    compression_type=BZipCompression;
   else if (LocaleCompare("Fax",option) == 0)
     compression_type=FaxCompression;
   else if (LocaleCompare("Group4",option) == 0)
@@ -546,6 +551,8 @@ MagickExport CompressionType StringToCompressionType(const char *option)
     compression_type=RLECompression;
   else if (LocaleCompare("Zip",option) == 0)
     compression_type=ZipCompression;
+  else if (LocaleCompare("GZip",option) == 0)
+    compression_type=ZipCompression;
 
   return compression_type;
 }
@@ -556,7 +563,7 @@ MagickExport CompressionType StringToCompressionType(const char *option)
 MagickExport const char *ConfirmAccessModeToString(const ConfirmAccessMode access_mode)
 {
   const char
-    *mode_string="Undefined";
+    *mode_string="?";
 
   switch(access_mode)
     {
@@ -592,7 +599,7 @@ MagickExport const char *ConfirmAccessModeToString(const ConfirmAccessMode acces
 MagickExport const char *EndianTypeToString(const EndianType endian_type)
 {
   const char
-    *endian_string="Undefined";
+    *endian_string="?";
 
   switch (endian_type)
     {
@@ -716,11 +723,12 @@ MagickExport const char *
 HighlightStyleToString(const HighlightStyle difference_style)
 {
   const char
-    *style="Undefined";;
+    *style="?";
 
   switch(difference_style)
     {
     case UndefinedHighlightStyle:
+      style="Undefined";
       break;
     case AssignHighlightStyle:
       style="Assign";
@@ -761,7 +769,7 @@ StringToHighlightStyle(const char *option)
 MagickExport const char *ImageTypeToString(const ImageType image_type)
 {
   const char
-    *p = "Unknown";
+    *p = "?";
 
   switch (image_type)
     {
@@ -837,7 +845,7 @@ MagickExport ImageType StringToImageType(const char *option)
 MagickExport const char *InterlaceTypeToString(const InterlaceType interlace_type)
 {
   const char
-    *interlace_string = "Undefined";
+    *interlace_string = "?";
 
   switch (interlace_type)
     {
@@ -883,7 +891,7 @@ MagickExport InterlaceType StringToInterlaceType(const char *option)
 MagickExport const char *MapModeToString(MapMode map_mode)
 {
   char
-    *mode_string="Undefined";
+    *mode_string="?";
 
   switch (map_mode)
   {
@@ -962,7 +970,7 @@ MagickExport MetricType StringToMetricType(const char *option)
 MagickExport const char *OrientationTypeToString(const OrientationType orientation_type)
 {
   const char *
-    orientation = "Unknown";
+    orientation = "?";
 
   switch (orientation_type)
     {
@@ -1147,11 +1155,12 @@ MagickExport QuantumOperator StringToQuantumOperator(const char *option)
 MagickExport const char *QuantumOperatorToString(const QuantumOperator quantum_operator)
 {
   const char
-    *operator_text = "undefined";
+    *operator_text = "?";
 
   switch (quantum_operator)
     {
     case UndefinedQuantumOp:
+      operator_text="undefined";
       break;
     case AddQuantumOp:
       operator_text="add";
@@ -1242,7 +1251,7 @@ MagickExport const char *QuantumOperatorToString(const QuantumOperator quantum_o
 MagickExport const char *ResizeFilterToString(const FilterTypes filter)
 {
   const char *
-    filter_string = "Unknown";
+    filter_string = "?";
 
   switch (filter)
     {
@@ -1311,12 +1320,16 @@ MagickExport ResourceType StringToResourceType(const char *option)
     resource_type=DiskResource;
   else if (LocaleCompare("File",option) == 0)
     resource_type=FileResource;
+  else if (LocaleCompare("Files",option) == 0)
+    resource_type=FileResource;
   else if (LocaleCompare("Map",option) == 0)
     resource_type=MapResource;
   else if (LocaleCompare("Memory",option) == 0)
     resource_type=MemoryResource;
   else if (LocaleCompare("Pixels",option) == 0)
     resource_type=PixelsResource;
+  else if (LocaleCompare("Threads",option) == 0)
+    resource_type=ThreadsResource;
   return resource_type;
 }
 
@@ -1326,7 +1339,7 @@ MagickExport ResourceType StringToResourceType(const char *option)
 MagickExport const char *StorageTypeToString(const StorageType storage_type)
 {
     const char
-    *p = "Unknown";
+    *p = "?";
 
     switch (storage_type)
       {
@@ -1359,7 +1372,7 @@ MagickExport const char *StorageTypeToString(const StorageType storage_type)
 MagickExport const char *QuantumSampleTypeToString(const QuantumSampleType sample_type)
 {
     const char
-    *p = "Unknown";
+    *p = "?";
 
     switch (sample_type)
       {
@@ -1421,7 +1434,7 @@ MagickExport const char *StyleTypeToString(StyleType style)
 MagickExport const char *QuantumTypeToString(const QuantumType quantum_type)
 {
   const char
-    *p = "Unknown";
+    *p = "?";
 
   switch (quantum_type)
     {

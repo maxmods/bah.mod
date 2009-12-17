@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003 - 2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 %
 % This program is covered by multiple licenses, which are described in
@@ -112,7 +112,6 @@ MagickExport void DestroyDelegateInfo(void)
   register DelegateInfo
     *p;
 
-  AcquireSemaphoreInfo(&delegate_semaphore);
   for (p=delegate_list; p != (DelegateInfo *) NULL; )
   {
     delegate_info=p;
@@ -128,7 +127,6 @@ MagickExport void DestroyDelegateInfo(void)
     MagickFreeMemory(delegate_info);
   }
   delegate_list=(DelegateInfo *) NULL;
-  LiberateSemaphoreInfo(&delegate_semaphore);
   DestroySemaphoreInfo(&delegate_semaphore);
 }
 
@@ -256,17 +254,17 @@ MagickExport const DelegateInfo *GetDelegateInfo(const char *decode,
 
   if (delegate_list == (DelegateInfo *) NULL)
     {
-      AcquireSemaphoreInfo(&delegate_semaphore);
+      LockSemaphoreInfo(delegate_semaphore);
       if (delegate_list == (DelegateInfo *) NULL)
         (void) ReadConfigureFile(DelegateFilename,0,exception);
-      LiberateSemaphoreInfo(&delegate_semaphore);
+      UnlockSemaphoreInfo(delegate_semaphore);
     }
   if ((LocaleCompare(decode,"*") == 0) && (LocaleCompare(encode,"*") == 0))
     return((const DelegateInfo *) delegate_list);
   /*
     Search for requested delegate.
   */
-  AcquireSemaphoreInfo(&delegate_semaphore);
+  LockSemaphoreInfo(delegate_semaphore);
   for (p=delegate_list; p != (const DelegateInfo *) NULL; p=p->next)
   {
     if (p->mode > 0)
@@ -306,7 +304,7 @@ MagickExport const DelegateInfo *GetDelegateInfo(const char *decode,
         delegate_list->previous=p;
         delegate_list=p;
       }
-  LiberateSemaphoreInfo(&delegate_semaphore);
+  UnlockSemaphoreInfo(delegate_semaphore);
   return((const DelegateInfo *) p);
 }
 
@@ -359,6 +357,10 @@ MagickExport const DelegateInfo *GetPostscriptDelegateInfo(const ImageInfo *imag
     {
       (void) strlcpy(delegate,"gs-gray",sizeof(delegate));
     }
+  else if (PaletteType == image_info->type)
+    {
+      (void) strlcpy(delegate,"gs-palette",sizeof(delegate));
+    }
   else if ((GrayscaleMatteType == image_info->type) ||
            (PaletteMatteType == image_info->type) ||
            (TrueColorMatteType == image_info->type))
@@ -366,6 +368,33 @@ MagickExport const DelegateInfo *GetPostscriptDelegateInfo(const ImageInfo *imag
       (void) strlcpy(delegate,"gs-color+alpha",sizeof(delegate));
     }
   return GetDelegateInfo(delegate,(char *) NULL,exception);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   I n i t i a l i z e D e l e g a t e I n f o                               %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InitializeDelegateInfo initializes the delegate facility
+%
+%  The format of the InitializeDelegateInfo method is:
+%
+%      MagickPassFail InitializeDelegateInfo(void)
+%
+%
+*/
+MagickPassFail
+InitializeDelegateInfo(void)
+{
+  assert(delegate_semaphore == (SemaphoreInfo *) NULL);
+  delegate_semaphore=AllocateSemaphoreInfo();
+  return MagickPass;
 }
 
 /*
@@ -740,7 +769,7 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
 %                                                                             %
 %                                                                             %
 %                                                                             %
-%   I n v o k e P o s t s r i p t D e l e g a t e                             %
++   I n v o k e P o s t s c r i p t D e l e g a t e                           %
 %                                                                             %
 %                                                                             %
 %                                                                             %
@@ -751,13 +780,13 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
 %
 %  The format of the InvokePostscriptDelegate method is:
 %
-%      unsigned int InvokePostscriptDelegate(const unsigned int verbose,
-%        const char *command)
+%      MagickPassFail InvokePostscriptDelegate(const unsigned int verbose,
+%        const char *command, ExceptionInfo *exception)
 %
 %  A description of each parameter follows:
 %
-%    o status:  Method InvokePostscriptDelegate returns True is the command
-%      is successfully executed, otherwise False.
+%    o status:  Method InvokePostscriptDelegate returns MagickPass if the command
+%      is successfully executed, otherwise MagickFail.
 %
 %    o verbose: A value other than zero displays the command prior to
 %      executing it.
@@ -768,23 +797,29 @@ MagickExport unsigned int InvokeDelegate(ImageInfo *image_info,Image *image,
 %
 %
 */
-MagickExport unsigned int InvokePostscriptDelegate(const unsigned int verbose,
-  const char *command)
+MagickExport MagickPassFail
+InvokePostscriptDelegate(const unsigned int verbose,
+			 const char *command,ExceptionInfo *exception)
 {
-#if defined(HasGS) || defined(MSWINDOWS)
+  register long
+    i;
+
   char
     **argv;
+
+  int
+    argc;
+
+  int
+    status;
+
+#if defined(HasGS) || defined(MSWINDOWS)
 
   gs_main_instance
     *interpreter;
 
   int
-    argc,
-    pexit_code,
-    status;
-
-  register long
-    i;
+    pexit_code;
 
 #if defined(MSWINDOWS)
   const GhostscriptVectors
@@ -805,72 +840,103 @@ MagickExport unsigned int InvokePostscriptDelegate(const unsigned int verbose,
   gs_func_struct.run_string=gsapi_run_string;
   gs_func_struct.delete_instance=gsapi_delete_instance;
 #endif
-  if (gs_func == (GhostscriptVectors *) NULL)
+  if (gs_func != (GhostscriptVectors *) NULL)
     {
-#if defined(POSIX)
-      {
-        int arg_count;
-        char **arg_array;
-        arg_array = StringToArgv(command,&arg_count);
-        return MagickSpawnVP(verbose,arg_array[1],arg_array+1);
-      }
+
+      /*
+	Allocate an interpreter.
+      */
+      interpreter = (gs_main_instance *) NULL;
+      status=(gs_func->new_instance)(&interpreter,(void *) NULL);
+      if (status < 0)
+	{
+	  ThrowException(exception,DelegateError,
+			 FailedToAllocateGhostscriptInterpreter,command);
+	  return(MagickFail);
+	}
+      /*
+	Initialize interpreter with argument list.
+      */
+      argv=StringToArgv(command,&argc);
+      if (argv == (char **) NULL)
+	{
+	  ThrowException(exception,DelegateError,FailedToAllocateArgumentList,
+			 command);
+	  return(MagickFail);
+	}
+
+      if (verbose)
+	{
+	  char
+	    buffer[MaxTextExtent];
+
+#if defined(MSWINDOWS)
+	  (void) NTGhostscriptDLL(buffer,sizeof(buffer));
 #else
-      return(SystemCommand(verbose,command));
+	  (void) strlcpy(buffer,"[ghostscript library]",sizeof(buffer));
 #endif
-    }
-  if (verbose)
-    {
-      (void) fputs("[ghostscript library]",stdout);
-      (void) fputs(strchr(command,' '),stdout);
-    }
-  /*
-    Allocate an interpreter.
-  */
-  interpreter = (gs_main_instance *) NULL;
-  status=(gs_func->new_instance)(&interpreter,(void *) NULL);
-  if (status < 0)
-    {
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                            "Failed to allocate Ghostscript interpreter!");
-      return(False);
-    }
-  /*
-    Initialize interpreter with argument list.
-  */
-  argv=StringToArgv(command,&argc);
-  if (argv == (char **) NULL)
-    {
-      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                            "Failed to allocate Ghostscript argument list!");
-      return(False);
-    }
-  status=(gs_func->init_with_args)(interpreter,argc-1,argv+1);
-  if (status == 0)
-    {
-      status=(gs_func->run_string)
-        (interpreter,"systemdict /start get exec\n",0,&pexit_code);
+	  (void) fputs(buffer,stderr);
+	  for (i=2 ; i < argc ; i++)
+	    (void) fprintf(stderr," \"%s\"",argv[i]);
+	  (void) fflush(stderr);
+	}
+      status=(gs_func->init_with_args)(interpreter,argc-1,argv+1);
+      if (status == 0)
+	{
+	  status=(gs_func->run_string)
+	    (interpreter,"systemdict /start get exec\n",0,&pexit_code);
+	  if ((status == 0) || (status <= -100))
+	    {
+	      char
+		reason[MaxTextExtent];
+
+	      FormatString(reason,"Ghostscript returns status %d, exit code %d",
+			   status,pexit_code);
+	      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"%s",reason);
+	      ThrowException(exception,DelegateError,PostscriptDelegateFailed,command);
+	    }
+	}
+      /*
+	Exit interpreter.
+      */
+      (gs_func->exit)(interpreter);
+      /*
+	Deallocate interpreter.
+      */
+      (gs_func->delete_instance)(interpreter);
+      for (i=0; i < argc; i++)
+	MagickFreeMemory(argv[i]);
+      MagickFreeMemory(argv);
       if ((status == 0) || (status <= -100))
-        (void) LogMagickEvent(CoderEvent,GetMagickModule(),
-                              "Ghostscript returns status %d, exit code %d",
-                              status,pexit_code);
+	return(MagickFail);
+      return(MagickPass);
     }
-  /*
-    Exit interpreter.
-  */
-  (gs_func->exit)(interpreter);
-  /*
-    Deallocate interpreter.
-  */
-  (gs_func->delete_instance)(interpreter);
-  for (i=0; i < argc; i++)
-    MagickFreeMemory(argv[i]);
-  MagickFreeMemory(argv);
-  if ((status == 0) || (status <= -100))
-    return(False);
-  return(True);
+#endif /* defined(HasGS) || defined(MSWINDOWS) */
+
+  status=MagickFail;
+#if defined(POSIX)
+  {
+    argv = StringToArgv(command,&argc);
+    if (argv == (char **) NULL)
+      {
+	ThrowException(exception,DelegateError,
+		       FailedToAllocateArgumentList,
+		       command);
+      }
+    else
+      {
+	if (MagickSpawnVP(verbose,argv[1],argv+1) == 0)
+	  status=MagickPass;
+	for (i=0; i < argc; i++)
+	  MagickFreeMemory(argv[i]);
+	MagickFreeMemory(argv);
+      }
+  }
 #else
-  return(SystemCommand(verbose,command));
+  if (SystemCommand(verbose,command) == 0)
+    status=MagickPass;
 #endif
+  return status;
 }
 
 /*
@@ -913,7 +979,7 @@ MagickExport unsigned int ListDelegateInfo(FILE *file,ExceptionInfo *exception)
   if (file == (const FILE *) NULL)
     file=stdout;
   (void) GetDelegateInfo("*","*",exception);
-  AcquireSemaphoreInfo(&delegate_semaphore);
+  LockSemaphoreInfo(delegate_semaphore);
   for (p=delegate_list; p != (const DelegateInfo *) NULL; p=p->next)
   {
     if ((p->previous == (DelegateInfo *) NULL) ||
@@ -978,9 +1044,10 @@ MagickExport unsigned int ListDelegateInfo(FILE *file,ExceptionInfo *exception)
     }
     for (i=0; commands[i] != (char *) NULL; i++)
       MagickFreeMemory(commands[i]);
+    MagickFreeMemory(commands);
   }
   (void) fflush(file);
-  LiberateSemaphoreInfo(&delegate_semaphore);
+  UnlockSemaphoreInfo(delegate_semaphore);
   return(True);
 }
 
@@ -1018,8 +1085,8 @@ MagickExport unsigned int ListDelegateInfo(FILE *file,ExceptionInfo *exception)
 */
 #if defined(MSWINDOWS)
 static void CatDelegatePath(char *path,
-                               const char *binpath,
-                               const char *command)
+			    const char *binpath,
+			    const char *command)
 {
   strcpy(path,binpath);
   strcat(path,command);

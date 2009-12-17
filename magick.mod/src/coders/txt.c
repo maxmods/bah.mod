@@ -1,5 +1,5 @@
 /*
-% Copyright (C) 2003 GraphicsMagick Group
+% Copyright (C) 2003=2009 GraphicsMagick Group
 % Copyright (C) 2002 ImageMagick Studio
 % Copyright 1991-1999 E. I. du Pont de Nemours and Company
 %
@@ -50,31 +50,29 @@
 #include "magick/magick.h"
 #include "magick/monitor.h"
 #include "magick/render.h"
+#include "magick/texture.h"
 #include "magick/utility.h"
 
-
 typedef enum
 {
-	NO_TXT = 0,
-	IMAGEMAGICK_TXT = 1,
-	TXT_GM8B_HEX,
-	TXT_GM8B_PLAIN,
-        TXT_GM8B_PLAIN2,
-	TXT_GM16B_HEX,
-	TXT_GM16B_PLAIN,
-	TXT_GM32B_HEX,
-	TXT_GM32B_PLAIN,
-        IMAGEMAGICK_TXT_Q = 17,
-	TXT_GM8B_HEX_Q,
-	TXT_GM8B_PLAIN_Q,
-        TXT_GM8B_PLAIN2_Q,
-	TXT_GM16B_HEX_Q,
-	TXT_GM16B_PLAIN_Q,
-	TXT_GM32B_HEX_Q,
-	TXT_GM32B_PLAIN_Q
+  NO_TXT = 0,
+  IMAGEMAGICK_TXT = 1,
+  TXT_GM8B_HEX,
+  TXT_GM8B_PLAIN,
+  TXT_GM8B_PLAIN2,
+  TXT_GM16B_HEX,
+  TXT_GM16B_PLAIN,
+  TXT_GM32B_HEX,
+  TXT_GM32B_PLAIN,
+  IMAGEMAGICK_TXT_Q = 17,
+  TXT_GM8B_HEX_Q,
+  TXT_GM8B_PLAIN_Q,
+  TXT_GM8B_PLAIN2_Q,
+  TXT_GM16B_HEX_Q,
+  TXT_GM16B_PLAIN_Q,
+  TXT_GM32B_HEX_Q,
+  TXT_GM32B_PLAIN_Q
 } TXT_TYPE;
-
-
 
 /*
   Forward declarations.
@@ -86,42 +84,42 @@ static unsigned int
 /** Reads up to end of line. */
 static void readln(Image *image, int *pch)
 {
-int ch=0;
+  int ch=0;
   if(pch) ch=*pch;
-     else ch=' ';
+  else ch=' ';
   while(ch!=10 && ch!=13 && ch!=EOF)
-  {
-    ch = ReadBlobByte(image);
-  }
+    {
+      ch = ReadBlobByte(image);
+    }
   if(pch) *pch=ch;
 }
 
 static long ReadInt(Image *image, int *pch)
 {
-int ch;
-long n;
+  int ch;
+  long n;
 
   n=0;
   if(pch) ch=*pch;
-     else ch=' ';
+  else ch=' ';
 
   while(isspace(ch)||ch==0)
-  {
-    ch = ReadBlobByte(image);
-    if(ch==EOF) return(0);
-  }
+    {
+      ch = ReadBlobByte(image);
+      if(ch==EOF) return(0);
+    }
 
   while(isdigit(ch))
-  {
-	n=10*n+(ch-'0');
-	ch = ReadBlobByte(image);
-	if(ch==EOF) return(n);
-  }
+    {
+      n=10*n+(ch-'0');
+      ch = ReadBlobByte(image);
+      if(ch==EOF) return(n);
+    }
 
- if(pch) *pch=ch;
-//  else ungetc(ch,F);
+  if(pch) *pch=ch;
+  /*  else ungetc(ch,F); */
 
-return(n);
+  return(n);
 }
 
 
@@ -184,7 +182,7 @@ static unsigned int IsTXT(const unsigned char *magick,const size_t length)
     (void) memcpy((void *)buffer,(const void *)magick,Min(MaxTextExtent,length));
 
     if(!strncmp(buffer,"# ImageMagick pixel enumeration:",32))
-		return IMAGEMAGICK_TXT;
+      return IMAGEMAGICK_TXT;
 
     count=sscanf(buffer,"%lu,%lu: (%u, %u, %u) #%02X%02X%02X",
                  &column, &row, &red, &green, &blue, &hex_red, &hex_green,
@@ -212,7 +210,7 @@ static unsigned int IsTXT(const unsigned char *magick,const size_t length)
                  &hex_green, &hex_blue, &hex_opacity);
     if ((count == 10) && (column == 0) && (row == 0) && (red == hex_red) &&
         (green == hex_green) && (blue == hex_blue) && (opacity == hex_opacity))
-	  return(TXT_GM8B_HEX_Q);
+      return(TXT_GM8B_HEX_Q);
 
     count=sscanf(buffer,"%lu,%lu: (%u, %u, %u, %u) #%04X%04X%04X%04X",
                  &column, &row, &red, &green, &blue, &opacity, &hex_red,
@@ -226,7 +224,7 @@ static unsigned int IsTXT(const unsigned char *magick,const size_t length)
                  &hex_green, &hex_blue, &hex_opacity);
     if ((count == 10) && (column == 0) && (row == 0) && (red == hex_red) &&
         (green == hex_green) && (blue == hex_blue) && (opacity == hex_opacity))
-	  return(TXT_GM32B_HEX_Q);
+      return(TXT_GM32B_HEX_Q);
 
     count=sscanf(buffer,"%lu,%lu: (%u, %u, %u, %u)",
                  &column, &row, &red, &green, &blue, &opacity);
@@ -329,337 +327,339 @@ static Image *ReadTXTImage(const ImageInfo *image_info,ExceptionInfo *exception)
   p = ReadBlobString(image,text);
   status = IsTXT((unsigned char *)p,strlen(p));
   if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
-          "File type: %d", status);
+				    "File type: %d", status);
 
   if(status)
-  {
-    unsigned x,y;
-    unsigned x_min,x_max,y_curr;
-    int ch;
-    unsigned long max,i;
-    char NumOfPlanes;
-    unsigned char *BImgBuff;
-    magick_uint16_t *WImgBuff;
-    magick_uint32_t *DImgBuff;
-    magick_uint32_t R,G,B,A;
-    const PixelPacket *q;
-    ImportPixelAreaOptions import_options;
-
-    (void) SeekBlob(image,0,SEEK_SET);    
-
-    x=0; y=0;
-    max=0;
-
-    switch(status)
     {
-      case TXT_GM8B_HEX:
-      case TXT_GM8B_HEX_Q:  max=255; break;
-      case TXT_GM16B_HEX:
-      case TXT_GM16B_HEX_Q: max=65535; break;	
-      case TXT_GM32B_HEX:	
-      case TXT_GM32B_HEX_Q: max=65536; break;
-    }
+      unsigned x,y;
+      unsigned x_min,x_max,y_curr;
+      int ch;
+      unsigned long max,i;
+      char NumOfPlanes;
+      unsigned char *BImgBuff;
+      magick_uint16_t *WImgBuff;
+      magick_uint32_t *DImgBuff;
+      magick_uint32_t R,G,B,A;
+      const PixelPacket *q;
+      ImportPixelAreaOptions import_options;
 
-    if(!strncmp(p,"# ImageMagick pixel enumeration:",32))
-    {
-      if(sscanf(p+32,"%u,%u,%u",&x_min,&y_curr,&x_max)==3)
-      {
-        if(strstr(p+32,",rgb")!=NULL)
+      (void) SeekBlob(image,0,SEEK_SET);    
+
+      A=0;
+      x=0;
+      y=0;
+      max=0;
+
+      switch(status)
 	{
-	  x = x_min-1;
-	  y = y_curr-1;
-	  max = x_max;
+	case TXT_GM8B_HEX:
+	case TXT_GM8B_HEX_Q:  max=255; break;
+	case TXT_GM16B_HEX:
+	case TXT_GM16B_HEX_Q: max=65535; break;	
+	case TXT_GM32B_HEX:	
+	case TXT_GM32B_HEX_Q: max=65536; break;
 	}
-        if(strstr(p+32,",rgba")!=NULL)
-        {
-          status = IMAGEMAGICK_TXT_Q;
-        }
-      }
-    }
 
-    ch=0;
-    if(x==0 && y==0) while(!EOFBlob(image))	//auto detect sizes and num of planes
-    {
-      while(!(ch>='0' && ch<='9'))
-	  {             //go to the begin of number
-	    ch = ReadBlobByte(image);
-	    if(ch==EOF) goto EndReading;
-		if(ch=='#') 
-		  {readln(image,&ch); continue;}
-	    if(ch==0 || ch>128 || (ch>='a' && ch<='z') || (ch>='A' && ch<='Z'))
-            {
-TXT_FAIL:			//not a text data
-		ThrowReaderException(CoderError,ImageTypeNotSupported,image);
-            }
-	  }
-					// x,y: (R,G,B)
-   i = ReadInt(image,&ch);		// x
-   if(i>x) x=i;
+      if(!strncmp(p,"# ImageMagick pixel enumeration:",32))
+	{
+	  if(sscanf(p+32,"%u,%u,%u",&x_min,&y_curr,&x_max)==3)
+	    {
+	      if(strstr(p+32,",rgb")!=NULL)
+		{
+		  x = x_min-1;
+		  y = y_curr-1;
+		  max = x_max;
+		}
+	      if(strstr(p+32,",rgba")!=NULL)
+		{
+		  status = IMAGEMAGICK_TXT_Q;
+		}
+	    }
+	}
 
-   while(ch!=',')
-   {  
-     ch = ReadBlobByte(image);
-     if(ch==EOF) break;
-     if(ch==10 || ch==13) goto TXT_FAIL;
-   }
-   ch=0;
-   i=ReadInt(image,&ch);		// y
-   if(i>y) y=i;
+      ch=0;
+      if(x==0 && y==0) while(!EOFBlob(image))	/* auto detect sizes and num of planes */
+	{
+	  while(!(ch>='0' && ch<='9'))
+	    {             /* go to the begin of number */
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) goto EndReading;
+	      if(ch=='#') 
+		{readln(image,&ch); continue;}
+	      if(ch==0 || ch>128 || (ch>='a' && ch<='z') || (ch>='A' && ch<='Z'))
+		{
+		TXT_FAIL:			/* not a text data */
+		  ThrowReaderException(CoderError,ImageTypeNotSupported,image);
+		}
+	    }
+	  /* x,y: (R,G,B) */
+	  i = ReadInt(image,&ch);		/* x */
+	  if(i>x) x=i;
 
-   while(ch!=':')
-   {
-     ch = ReadBlobByte(image);
-     if(ch==10 || ch==13) goto TXT_FAIL;
-     if(ch==EOF) break;
-   }
-   if(status!=TXT_GM8B_PLAIN2_Q)
-     while(ch!='(')
-     {
-       ch = ReadBlobByte(image);
-       if(ch==10 || ch==13) goto TXT_FAIL;
-       if(ch==EOF) break;
-     }
-   ch=0;
-   R = ReadInt(image,&ch);		// R
-   if(R>max) max=R;
+	  while(ch!=',')
+	    {  
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	      if(ch==10 || ch==13) goto TXT_FAIL;
+	    }
+	  ch=0;
+	  i=ReadInt(image,&ch);		/* y */
+	  if(i>y) y=i;
 
-   while(ch!=',')
-   { 
-     ch = ReadBlobByte(image);
-     if(ch==10 || ch==13) goto TXT_FAIL;
-     if(ch==EOF) break;
-   }
-   ch=0;
-   G = ReadInt(image,&ch);		//G
-   if(G>max) max=G;
+	  while(ch!=':')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==10 || ch==13) goto TXT_FAIL;
+	      if(ch==EOF) break;
+	    }
+	  if(status!=TXT_GM8B_PLAIN2_Q)
+	    while(ch!='(')
+	      {
+		ch = ReadBlobByte(image);
+		if(ch==10 || ch==13) goto TXT_FAIL;
+		if(ch==EOF) break;
+	      }
+	  ch=0;
+	  R = ReadInt(image,&ch);		/* R */
+	  if(R>max) max=R;
 
-   while(ch!=',')
-   {
-     ch = ReadBlobByte(image);
-     if(ch==10 || ch==13) goto TXT_FAIL;
-     if(ch==EOF) break;
-   }
-   ch=0;
-   B = ReadInt(image,&ch);		//B
-   if(B>max) max=B;
+	  while(ch!=',')
+	    { 
+	      ch = ReadBlobByte(image);
+	      if(ch==10 || ch==13) goto TXT_FAIL;
+	      if(ch==EOF) break;
+	    }
+	  ch=0;
+	  G = ReadInt(image,&ch);		/* G */
+	  if(G>max) max=G;
 
-   if(status>16)
-   {
-     while(ch!=',')
-     {
-       ch = ReadBlobByte(image);
-       if(ch==10 || ch==13) goto TXT_FAIL;
-       if(ch==EOF) break;
-     }
-     ch=0;
-     A = ReadInt(image,&ch);		//A
-     if(A>max) max=A;
-   }
+	  while(ch!=',')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==10 || ch==13) goto TXT_FAIL;
+	      if(ch==EOF) break;
+	    }
+	  ch=0;
+	  B = ReadInt(image,&ch);		/* B */
+	  if(B>max) max=B;
 
-   if(status!=TXT_GM8B_PLAIN2_Q)
-     while(ch!=')')
-     {
-       ch = ReadBlobByte(image);
-       if(ch==10 || ch==13) goto TXT_FAIL;
-       if(ch==EOF) break;
-     }
+	  if(status>16)
+	    {
+	      while(ch!=',')
+		{
+		  ch = ReadBlobByte(image);
+		  if(ch==10 || ch==13) goto TXT_FAIL;
+		  if(ch==EOF) break;
+		}
+	      ch=0;
+	      A = ReadInt(image,&ch);		/* A */
+	      if(A>max) max=A;
+	    }
 
-   readln(image,&ch);
-   }
+	  if(status!=TXT_GM8B_PLAIN2_Q)
+	    while(ch!=')')
+	      {
+		ch = ReadBlobByte(image);
+		if(ch==10 || ch==13) goto TXT_FAIL;
+		if(ch==EOF) break;
+	      }
 
-EndReading:
-  x_min = 1; x_max = 0;
-  y_curr = 0;
+	  readln(image,&ch);
+	}
 
-  NumOfPlanes=8;
-//  if(max>=    2) i=2;
-//  if(max>=    4) i=4;
-//  if(max>=   16) i=8;
-  if(max>=  256) NumOfPlanes=16;
-  if(max>=65536) NumOfPlanes=32;
+    EndReading:
+      x_min = 1; x_max = 0;
+      y_curr = 0;
 
-  if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
-          "Image detected [%u * %u]: %d", x, y, NumOfPlanes);
+      NumOfPlanes=8;
+      /*   if(max>=    2) i=2; */
+      /*   if(max>=    4) i=4; */
+      /*   if(max>=   16) i=8; */
+      if(max>=  256) NumOfPlanes=16;
+      if(max>=65536) NumOfPlanes=32;
 
-  image->depth = Min(QuantumDepth,NumOfPlanes);
-  ImportPixelAreaOptionsInit(&import_options);
-  import_options.endian = NativeEndian;
+      if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+					"Image detected [%u * %u]: %d", x, y, NumOfPlanes);
+
+      image->depth = Min(QuantumDepth,NumOfPlanes);
+      ImportPixelAreaOptionsInit(&import_options);
+      import_options.endian = NativeEndian;
   
-  BImgBuff = MagickAllocateMemory(unsigned char *,
-     (size_t)(x+1) * ( ((status>16)?4:3) * NumOfPlanes/8));  
-  WImgBuff = (magick_uint16_t *)BImgBuff;
-  DImgBuff = (magick_uint32_t *)BImgBuff;  
-  if(BImgBuff==NULL) 
+      BImgBuff = MagickAllocateMemory(unsigned char *,
+				      (size_t)(x+1) * ( ((status>16)?4:3) * NumOfPlanes/8));  
+      WImgBuff = (magick_uint16_t *)BImgBuff;
+      DImgBuff = (magick_uint32_t *)BImgBuff;  
+      if(BImgBuff==NULL) 
 	ThrowReaderException(ResourceLimitError,MemoryAllocationFailed,image);
   
-  image->columns = x+1;
-  image->rows = y+1;
+      image->columns = x+1;
+      image->rows = y+1;
 
-  (void) SeekBlob(image,0,SEEK_SET);
+      (void) SeekBlob(image,0,SEEK_SET);
 
-  while(!EOFBlob(image)) 	//load picture data
-    {
-    x=0;
-    while(!(ch >= '0' && ch <= '9'))
-    {		//move to the beginning of number
-      if(EOFBlob(image)) goto FINISH;
-      ch = ReadBlobByte(image);
-      if(ch=='#') 
-      {readln(image,&ch); continue;}
-    }
+      while(!EOFBlob(image)) 	/* load picture data */
+	{
+	  x=0;
+	  while(!(ch >= '0' && ch <= '9'))
+	    {		/* move to the beginning of number */
+	      if(EOFBlob(image)) goto FINISH;
+	      ch = ReadBlobByte(image);
+	      if(ch=='#') 
+		{readln(image,&ch); continue;}
+	    }
     
-    x = ReadInt(image,&ch);		// x
+	  x = ReadInt(image,&ch);		/* x */
 
-    while(ch!=',')
-    {
-       ch = ReadBlobByte(image);       
-       if(ch==EOF) break;
-    }
-    ch = 0;
-    y = ReadInt(image,&ch);		// y
+	  while(ch!=',')
+	    {
+	      ch = ReadBlobByte(image);       
+	      if(ch==EOF) break;
+	    }
+	  ch = 0;
+	  y = ReadInt(image,&ch);		/* y */
 
-    while(ch!=':')
-    {
-      ch = ReadBlobByte(image);
-      if(ch==EOF) break;
-    }
-    while(ch!='(')
-    {
-      ch = ReadBlobByte(image);
-      if(ch==EOF) break;
-    }
-    ch=0;
-    R = ReadInt(image,&ch);		// R	
+	  while(ch!=':')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	    }
+	  while(ch!='(')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	    }
+	  ch=0;
+	  R = ReadInt(image,&ch);		/* R */
 
-    while(ch!=',')
-    {
-      ch = ReadBlobByte(image);
-      if(ch==EOF) break;
-    }
-    ch=0;
-    G = ReadInt(image,&ch);		// G    	
+	  while(ch!=',')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	    }
+	  ch=0;
+	  G = ReadInt(image,&ch);		/* G */
 
-    while(ch!=',')
-    {
-      ch = ReadBlobByte(image);
-      if(ch==EOF) break;
-    }
-    ch=0;
-    B = ReadInt(image,&ch);		// B
+	  while(ch!=',')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	    }
+	  ch=0;
+	  B = ReadInt(image,&ch);		/* B */
 
-    if(status>16)
-    {
-      while(ch!=',')
-      {
-        ch = ReadBlobByte(image);       
-        if(ch==EOF) break;
-      }
-      ch=0;
-      A = ReadInt(image,&ch);		//A
-      if(A>max) max=A;
-    }
+	  if(status>16)
+	    {
+	      while(ch!=',')
+		{
+		  ch = ReadBlobByte(image);       
+		  if(ch==EOF) break;
+		}
+	      ch=0;
+	      A = ReadInt(image,&ch);		/* A */
+	      if(A>max) max=A;
+	    }
 
-    while(ch!=')')
-    {
-      ch = ReadBlobByte(image);
-      if(ch==EOF) break;
-    }
+	  while(ch!=')')
+	    {
+	      ch = ReadBlobByte(image);
+	      if(ch==EOF) break;
+	    }
 
 
-		//a new line has been detected
-    if(y!=y_curr)
-    {
-      q = SetImagePixels(image,x_min,y_curr,x_max-x_min+1,1);
-      if (q == (PixelPacket *)NULL) break;	
-      if(status>16)
-        (void)ImportImagePixelArea(image,RGBAQuantum,NumOfPlanes,
-		  BImgBuff + 4*x_min*(NumOfPlanes/8),&import_options,0);
-      else
-        (void)ImportImagePixelArea(image,RGBQuantum,NumOfPlanes,
-		  BImgBuff + 3*x_min*(NumOfPlanes/8),&import_options,0);
-      if (!SyncImagePixels(image)) break;
+	  /* a new line has been detected */
+	  if(y!=y_curr)
+	    {
+	      q = SetImagePixels(image,x_min,y_curr,x_max-x_min+1,1);
+	      if (q == (PixelPacket *)NULL) break;	
+	      if(status>16)
+		(void)ImportImagePixelArea(image,RGBAQuantum,NumOfPlanes,
+					   BImgBuff + 4*x_min*(NumOfPlanes/8),&import_options,0);
+	      else
+		(void)ImportImagePixelArea(image,RGBQuantum,NumOfPlanes,
+					   BImgBuff + 3*x_min*(NumOfPlanes/8),&import_options,0);
+	      if (!SyncImagePixels(image)) break;
 
-	  x_min = 1; x_max = 0;
-	  y_curr=y;
+	      x_min = 1; x_max = 0;
+	      y_curr=y;
+	    }
+
+	  if(x<image->columns)
+	    {
+	      if(status>16)
+		{
+		  switch(NumOfPlanes)
+		    {
+		    case 8: BImgBuff[0+4*x] = R;
+		      BImgBuff[1+4*x] = G;
+		      BImgBuff[2+4*x] = B;
+		      BImgBuff[3+4*x] = A;
+		      break;
+		    case 16:WImgBuff[0+4*x] = R;
+		      WImgBuff[1+4*x] = G;
+		      WImgBuff[2+4*x] = B;
+		      WImgBuff[3+4*x] = A;
+		      break;
+		    case 32:DImgBuff[0+4*x] = R;
+		      DImgBuff[1+4*x] = G;
+		      DImgBuff[2+4*x] = B;
+		      DImgBuff[3+4*x] = A;
+		      break;
+		    }    
+		}
+	      else
+		{
+		  switch(NumOfPlanes)
+		    {
+		    case 8: BImgBuff[0+3*x] = R;
+		      BImgBuff[1+3*x] = G;
+		      BImgBuff[2+3*x] = B;
+		      break;
+		    case 16:WImgBuff[0+3*x] = R;
+		      WImgBuff[1+3*x] = G;
+		      WImgBuff[2+3*x] = B;
+		      break;
+		    case 32:DImgBuff[0+3*x] = R;
+		      DImgBuff[1+3*x] = G;
+		      DImgBuff[2+3*x] = B;
+		      break;
+		    }    
+		}
+	      if(x_min>x_max) 
+		x_max=x_min=x;
+	      else
+		{
+		  if(x<x_min) x_min=x;
+		  if(x>x_max) x_max=x;
+		}
+	    }
+
+	  readln(image,&ch);
 	}
 
-      if(x<image->columns)
-      {
-        if(status>16)
-        {
-          switch(NumOfPlanes)
-	  {
-	    case 8: BImgBuff[0+4*x] = R;
-		    BImgBuff[1+4*x] = G;
-		    BImgBuff[2+4*x] = B;
-		    BImgBuff[3+4*x] = A;
-		    break;
-	    case 16:WImgBuff[0+4*x] = R;
-		    WImgBuff[1+4*x] = G;
-		    WImgBuff[2+4*x] = B;
-		    WImgBuff[3+4*x] = A;
-		    break;
-	    case 32:DImgBuff[0+4*x] = R;
-		    DImgBuff[1+4*x] = G;
-		    DImgBuff[2+4*x] = B;
-		    DImgBuff[3+4*x] = A;
-		    break;
-	  }    
-        }
-        else
-        {
-          switch(NumOfPlanes)
-	  {
-	    case 8: BImgBuff[0+3*x] = R;
-		    BImgBuff[1+3*x] = G;
-		    BImgBuff[2+3*x] = B;
-		    break;
-	    case 16:WImgBuff[0+3*x] = R;
-		    WImgBuff[1+3*x] = G;
-		    WImgBuff[2+3*x] = B;
-		    break;
-	    case 32:DImgBuff[0+3*x] = R;
-		    DImgBuff[1+3*x] = G;
-		    DImgBuff[2+3*x] = B;
-		    break;
-	  }    
-        }
-	if(x_min>x_max) 
-	    x_max=x_min=x;
-	else
+    FINISH:
+      if(x_min<=x_max)
 	{
-          if(x<x_min) x_min=x;
-	    if(x>x_max) x_max=x;
-	}
+	  q = SetImagePixels(image,x_min,y_curr,x_max-x_min+1,1);	  
+	  if (q != (PixelPacket *)NULL)
+	    {
+	      if(status>16)        
+		(void)ImportImagePixelArea(image, RGBAQuantum, NumOfPlanes,
+					   BImgBuff + 4*x_min*(NumOfPlanes/8), &import_options, 0);
+	      else
+		(void)ImportImagePixelArea(image, RGBQuantum, NumOfPlanes,
+					   BImgBuff + 3*x_min*(NumOfPlanes/8), &import_options, 0);
+	      if(!SyncImagePixels(image))
+		{
+		  if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
+						    "  TXT failed to sync image pixels for a row %u", y_curr);
+		}
+
+	    }
 	}
 
-    readln(image,&ch);
+      MagickFreeMemory(BImgBuff);
+      goto TXT_FINISH;    
     }
-
-FINISH:
-    if(x_min<=x_max)
-    {
-      q = SetImagePixels(image,x_min,y_curr,x_max-x_min+1,1);	  
-      if (q != (PixelPacket *)NULL)
-      {
-        if(status>16)        
-	  (void)ImportImagePixelArea(image, RGBAQuantum, NumOfPlanes,
-		           BImgBuff + 4*x_min*(NumOfPlanes/8), &import_options, 0);
-        else
-          (void)ImportImagePixelArea(image, RGBQuantum, NumOfPlanes,
-		           BImgBuff + 3*x_min*(NumOfPlanes/8), &import_options, 0);
-        if(!SyncImagePixels(image))
-	{
-          if (logging) (void)LogMagickEvent(CoderEvent,GetMagickModule(),
-            "  TXT failed to sync image pixels for a row %u", y_curr);
-	}
-
-      }
-    }
-
-    MagickFreeMemory(BImgBuff);
-    goto TXT_FINISH;    
-  }
 
   /*
     Set the page geometry.
@@ -667,23 +667,23 @@ FINISH:
   dx_resolution=72.0;
   dy_resolution=72.0;
   if ((image->x_resolution == 0.0) || (image->y_resolution == 0.0))
-  {
-    char
+    {
+      char
         density[MaxTextExtent];
 
-    (void) strcpy(density,PSDensityGeometry);
+      (void) strcpy(density,PSDensityGeometry);
       count=GetMagickDimension(density,&image->x_resolution,
-        &image->y_resolution,NULL,NULL);
+			       &image->y_resolution,NULL,NULL);
       if (count != 2)
         image->y_resolution=image->x_resolution;
-  }
+    }
   SetGeometry(image,&page);
   page.width=612;
   page.height=792;
   (void) GetGeometry("612x792+43+43",&page.x,&page.y,&page.width,&page.height);
   if (image_info->page != (char *) NULL)
     (void) GetGeometry(image_info->page,&page.x,&page.y,&page.width,
-      &page.height);
+		       &page.height);
   /*
     Initialize Image structure.
   */
@@ -721,70 +721,71 @@ FINISH:
     *draw_info->text='\0';  
 
   for (offset=2*page.y; p != (char *) NULL; )
-  {
-    /*
-      Annotate image with text.
-    */
-    (void) ConcatenateString(&draw_info->text,text);
-    (void) ConcatenateString(&draw_info->text,"\\n");
-    offset+=(long) (metrics.ascent-metrics.descent);
-    if (image->previous == (Image *) NULL)
-      if (QuantumTick(offset,image->rows))
-        if (!MagickMonitorFormatted(offset,image->rows,&image->exception,
-                                    LoadImageText,image->filename))
-          break;
-    p=ReadBlobString(image,text);
-    if ((offset < (long) image->rows) && (p != (char *) NULL))
-      continue;
-    if (texture != (Image *) NULL)
-      {
-        MonitorHandler
-          handler;
+    {
+      /*
+	Annotate image with text.
+      */
+      (void) ConcatenateString(&draw_info->text,text);
+      (void) ConcatenateString(&draw_info->text,"\\n");
+      offset+=(long) (metrics.ascent-metrics.descent);
+      if (image->previous == (Image *) NULL)
+	if (QuantumTick(offset,image->rows))
+	  if (!MagickMonitorFormatted(offset,image->rows,&image->exception,
+				      LoadImageText,image->filename,
+				      image->columns,image->rows))
+	    break;
+      p=ReadBlobString(image,text);
+      if ((offset < (long) image->rows) && (p != (char *) NULL))
+	continue;
+      if (texture != (Image *) NULL)
+	{
+	  MonitorHandler
+	    handler;
 
-        handler=SetMonitorHandler((MonitorHandler) NULL);
-        (void) TextureImage(image,texture);
-        (void) SetMonitorHandler(handler);
-      }
-    (void) AnnotateImage(image,draw_info);
-    if (p == (char *) NULL)
-      break;
-    /*
-      Page is full-- allocate next image structure.
-    */
-    *draw_info->text='\0';
-    offset=2*page.y;
-    AllocateNextImage(image_info,image);
-    if (image->next == (Image *) NULL)
-      {
-        DestroyImageList(image);
-        return((Image *) NULL);
-      }
-    image->next->columns=image->columns;
-    image->next->rows=image->rows;
-    image=SyncNextImageInList(image);
-    (void) strlcpy(image->filename,filename,MaxTextExtent);
-    (void) SetImage(image,OpaqueOpacity);
-    if (!MagickMonitorFormatted(TellBlob(image),GetBlobSize(image),exception,
-                                LoadImagesText,image->filename))
-      break;
-  }
+	  handler=SetMonitorHandler((MonitorHandler) NULL);
+	  (void) TextureImage(image,texture);
+	  (void) SetMonitorHandler(handler);
+	}
+      (void) AnnotateImage(image,draw_info);
+      if (p == (char *) NULL)
+	break;
+      /*
+	Page is full-- allocate next image structure.
+      */
+      *draw_info->text='\0';
+      offset=2*page.y;
+      AllocateNextImage(image_info,image);
+      if (image->next == (Image *) NULL)
+	{
+	  DestroyImageList(image);
+	  return((Image *) NULL);
+	}
+      image->next->columns=image->columns;
+      image->next->rows=image->rows;
+      image=SyncNextImageInList(image);
+      (void) strlcpy(image->filename,filename,MaxTextExtent);
+      (void) SetImage(image,OpaqueOpacity);
+      if (!MagickMonitorFormatted(TellBlob(image),GetBlobSize(image),exception,
+				  LoadImagesText,image->filename))
+	break;
+    }
 
   if (texture != (Image *) NULL)
-  {
-    MonitorHandler
+    {
+      MonitorHandler
         handler;
 
-    handler=SetMonitorHandler((MonitorHandler) NULL);
-    (void) TextureImage(image,texture);
-    (void) SetMonitorHandler(handler);
-  }
+      handler=SetMonitorHandler((MonitorHandler) NULL);
+      (void) TextureImage(image,texture);
+      (void) SetMonitorHandler(handler);
+    }
   (void) AnnotateImage(image,draw_info);
   if (texture != (Image *) NULL)
     DestroyImage(texture);
   DestroyDrawInfo(draw_info);
   while (image->previous != (Image *) NULL)
     image=image->previous;
-TXT_FINISH:
+ TXT_FINISH:
   CloseBlob(image);
   return(image);
 }

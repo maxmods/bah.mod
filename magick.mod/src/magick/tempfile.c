@@ -59,7 +59,7 @@ static void AddTemporaryFileToList(const char *filename)
 {
   (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
     "Allocating temporary file \"%s\"",filename);
-  AcquireSemaphoreInfo(&templist_semaphore);
+  LockSemaphoreInfo(templist_semaphore);
   {
     TempfileInfo
       *info;
@@ -78,7 +78,7 @@ static void AddTemporaryFileToList(const char *filename)
           }
       }
   }
-  LiberateSemaphoreInfo(&templist_semaphore);
+  UnlockSemaphoreInfo(templist_semaphore);
 }
 
 /*
@@ -93,7 +93,7 @@ static MagickPassFail RemoveTemporaryFileFromList(const char *filename)
   (void) LogMagickEvent(TemporaryFileEvent,GetMagickModule(),
     "Deallocating temporary file \"%s\"",filename);
 
-  AcquireSemaphoreInfo(&templist_semaphore);
+  LockSemaphoreInfo(templist_semaphore);
   {
     TempfileInfo
       *current,
@@ -114,7 +114,7 @@ static MagickPassFail RemoveTemporaryFileFromList(const char *filename)
         previous=current;
       }
   }
-  LiberateSemaphoreInfo(&templist_semaphore);
+  UnlockSemaphoreInfo(templist_semaphore);
   return status;
 }
 /*
@@ -433,8 +433,6 @@ MagickExport void DestroyTemporaryFiles(void)
     *member,
     *liberate;
 
-  if (templist_semaphore)
-    AcquireSemaphoreInfo(&templist_semaphore);
   member=templist;
   templist=0;
   while(member)
@@ -449,10 +447,34 @@ MagickExport void DestroyTemporaryFiles(void)
       liberate->next=0;
       MagickFreeMemory(liberate);
     }
-  if (templist_semaphore)
-    LiberateSemaphoreInfo(&templist_semaphore);
-  if (templist_semaphore)
-    DestroySemaphoreInfo(&templist_semaphore);
+  DestroySemaphoreInfo(&templist_semaphore);
+}
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                                                                             %
+%                                                                             %
++   I n i t i a l i z e T e m p o r a r y F i l e s                           %
+%                                                                             %
+%                                                                             %
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Method InitializeTemporaryFiles initializes the temporary file facility
+%
+%  The format of the InitializeTemporaryFiles method is:
+%
+%      MagickPassFail InitializeTemporaryFiles(void)
+%
+%
+*/
+MagickPassFail
+InitializeTemporaryFiles(void)
+{
+  assert(templist_semaphore == (SemaphoreInfo *) NULL);
+  templist_semaphore=AllocateSemaphoreInfo();
+  return MagickPass;
 }
 
 /*

@@ -106,6 +106,16 @@ Import "src/magick/omp_data_view.c"
 Import "src/magick/nt_base.c"
 Import "src/magick/nt_feature.c"
 ?
+Import "src/magick/average.c"
+Import "src/magick/cdl.c"
+Import "src/magick/colormap.c"
+Import "src/magick/color_lookup.c"
+Import "src/magick/describe.c"
+Import "src/magick/bmx_analyze.c"
+Import "src/magick/bmx_gradient.c"
+Import "src/magick/bmx_plasma.c"
+Import "src/magick/statistics.c"
+Import "src/magick/texture.c"
 
 ' coders
 Import "src/coders/art.c"

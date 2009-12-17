@@ -526,6 +526,7 @@ static char *EscapeLocaleString(const char *str)
     return strput;
 }
 
+#if 0
 static void FreeAccumulatedStrings(void *handle)
 {
     struct locale_str *xl = (struct locale_str *)handle;
@@ -536,6 +537,7 @@ static void FreeAccumulatedStrings(void *handle)
     MagickFreeMemory(xl->name);
     MagickFreeMemory(handle);
 }
+#endif
 
 /*  accumulate -- read a line from the file, break it up at the '/'s into
  *                individual subfields and build a tree structure that has

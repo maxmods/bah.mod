@@ -36,10 +36,10 @@
   Include declarations.
 */
 #include "magick/studio.h"
+#include "magick/analyze.h"
 #include "magick/attribute.h"
 #include "magick/blob.h"
 #include "magick/pixel_cache.h"
-#include "magick/color.h"
 #include "magick/magick.h"
 #include "magick/monitor.h"
 #include "magick/utility.h"
@@ -55,7 +55,7 @@ typedef enum
   PCL_DeltaCompression,
   PCL_ZeroRowCompression,
   PCL_RepeatedRowCompression,
-  PCL_UndefinedCompression,
+  PCL_UndefinedCompression
 } PCL_CompressionType;
 
 /*
@@ -214,14 +214,14 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
   unsigned char
     *q,
     *last_row_q;
-        
+
   unsigned char
     last_char,
     this_char;
 
   PCL_CompressionType
     compression;
-        
+
   /*
     Calculate cost to encode via either RLE method
   */
@@ -251,7 +251,7 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
           last_char=this_char;
           unrep++;
         }
-        
+
       /*
         Count repeated bytes
       */
@@ -259,7 +259,7 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
         {
           this_char=*q;
           if (this_char != last_char)
-            break;          
+            break;
           rep++;
           x++;
           q++;
@@ -300,7 +300,7 @@ static PCL_CompressionType PCL_ChooseCompression(unsigned long row_width,
             }
           rep++;
         }
-        
+
       /*
         Count altered bytes
       */
@@ -402,7 +402,7 @@ static unsigned long PCL_DeltaCompress(unsigned long row_width,
     *q,
     *last_row_q,
     *out;
-        
+
   x=0;
   q=row;
   last_row_q=last_row;
@@ -424,7 +424,7 @@ static unsigned long PCL_DeltaCompress(unsigned long row_width,
             }
           rep++;
         }
-        
+
       /*
         Count altered bytes
       */
@@ -437,7 +437,7 @@ static unsigned long PCL_DeltaCompress(unsigned long row_width,
           q++;
           last_row_q++;
         }
-    
+
       /*
         Unrep can only be zero if no further changes are required on this row
       */
@@ -451,7 +451,7 @@ static unsigned long PCL_DeltaCompress(unsigned long row_width,
       rep -= rep_this_time;
       unrep_this_time = (unrep >= 8)?8:unrep;
       *out++ = (unsigned char)(((unrep_this_time-1) << 5) | rep_this_time);
-  
+
       if (rep_this_time == 31)
         {
           /*
@@ -539,7 +539,7 @@ static unsigned long PCL_TiffRLECompress(unsigned long row_width,
   unsigned char
     *q,
     *out;
-        
+
   unsigned char
     last_char,
     this_char;
@@ -569,7 +569,7 @@ static unsigned long PCL_TiffRLECompress(unsigned long row_width,
           last_char=this_char;
           unrep++;
         }
-        
+
       /*
         Count repeated bytes
       */
@@ -577,7 +577,7 @@ static unsigned long PCL_TiffRLECompress(unsigned long row_width,
         {
           this_char=*q;
           if (this_char != last_char)
-            break;          
+            break;
           rep++;
           x++;
           q++;
@@ -602,7 +602,7 @@ static unsigned long PCL_TiffRLECompress(unsigned long row_width,
             }
           q += rep;
         }
-  
+
       /*
         Output repeated bytes
       */
@@ -665,7 +665,7 @@ static unsigned long PCL_RLECompress(unsigned long row_width,
   unsigned char
     *q,
     *out;
-        
+
   unsigned char
     last_char,
     this_char;
@@ -695,7 +695,7 @@ static unsigned long PCL_RLECompress(unsigned long row_width,
           last_char=this_char;
           unrep++;
         }
-        
+
       /*
         Count repeated bytes
       */
@@ -703,7 +703,7 @@ static unsigned long PCL_RLECompress(unsigned long row_width,
         {
           this_char=*q;
           if (this_char != last_char)
-            break;          
+            break;
           rep++;
           x++;
           q++;
@@ -723,7 +723,7 @@ static unsigned long PCL_RLECompress(unsigned long row_width,
             }
           q += rep;
         }
-  
+
       /*
         Output repeated bytes
       */
@@ -815,11 +815,11 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
 
   ImageCharacteristics
     characteristics;
-  
+
   PCL_CompressionType
     compression,
     last_row_compression;
-  
+
   /*
     Open output image file.
   */
@@ -830,7 +830,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
   status=OpenBlob(image_info,image,WriteBinaryBlobMode,&image->exception);
   if (status == False)
     ThrowWriterException(FileOpenError,UnableToOpenFile,image);
-  
+
   (void) GetGeometry("75x75",&sans,&sans,&density,&density);
   if (image_info->density != (char *) NULL)
     (void) GetGeometry(image_info->density,&sans,&sans,&density,&density);
@@ -844,7 +844,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
         Ensure that image is in an RGB space.
       */
       (void) TransformColorspace(image,RGBColorspace);
-  
+
       /*
         Analyze image to be written.
       */
@@ -867,7 +867,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
       FormatString(buffer,"\033*t%luR",density);  /* set resolution */
       (void) WriteBlobString(image,buffer);
       (void) WriteBlobString(image,"\033&l0E");  /* top margin 0 */
-    
+
       /*
         Determine output type and initialize further accordingly
       */
@@ -919,7 +919,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
           for ( ; i < (1L << bits_per_pixel); i++)
             {
               FormatString(buffer,"\033*v%luI",i);
-	       /* set index to current component values */
+              /* set index to current component values */
               (void) WriteBlobString(image,buffer);
             }
         }
@@ -927,9 +927,12 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
       /*
         Start raster image
       */
-      (void) WriteBlobString(image,"\033*r1A");  /* start raster graphics */
+      if  (AccessDefinition(image_info,"pcl","fit_to_page") != NULL)
+        (void) WriteBlobString(image,"\033*r3A");  /* start raster graphics with scaling */
+      else
+        (void) WriteBlobString(image,"\033*r1A");  /* start raster graphics */
       (void) WriteBlobString(image,"\033*b0Y");  /* set y offset */
-    
+
       /*
         Assign row buffer
       */
@@ -937,21 +940,21 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
       pixels=MagickAllocateMemory(unsigned char *,bytes_per_line);
       if (pixels == (unsigned char *) NULL)
         ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
-    
+
       /*
         Set up for compression if desired
       */
       last_row_compression = PCL_UndefinedCompression;  
       if (image_info->compression != NoCompression)
         {
-	  MagickFreeMemory(last_row_pixels);
+          MagickFreeMemory(last_row_pixels);
           last_row_pixels=MagickAllocateMemory(unsigned char *,bytes_per_line);
           if (last_row_pixels == (unsigned char *) NULL)
             {
               MagickFreeMemory(pixels);
               ThrowWriterException(ResourceLimitError,MemoryAllocationFailed,image);
             }
-	  MagickFreeMemory(output_row);
+          MagickFreeMemory(output_row);
           output_row=MagickAllocateMemory(unsigned char *,bytes_per_line);
           if (output_row == (unsigned char *) NULL)
             {
@@ -1002,7 +1005,7 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
                   *q++=byte << (8-bit);
                 break;
               }
-        
+
             case 8:
               {
                 /*
@@ -1063,101 +1066,102 @@ static unsigned int WritePCLImage(const ImageInfo *image_info,Image *image)
                         } while (zero_rows > 0);
                     }
 
-		  switch (compression)
-		    {
-		    case PCL_DeltaCompression:
-		      {
-			if (compression != last_row_compression)
-			  {
-			    FormatString(buffer,"\033*b3M");  /* delta compression */
-			    (void) WriteBlobString(image,buffer);
-			    last_row_compression=compression;
-			  }
-			bytes_to_write=PCL_DeltaCompress(bytes_per_line,pixels,
-							 last_row_pixels,output_row);
-			FormatString(buffer,"\033*b%luW",bytes_to_write);
-			(void) WriteBlobString(image,buffer);
-			WriteBlob(image,bytes_to_write,output_row);
-			break;
-		      } 
-		    case PCL_TiffRLECompression:
-		      {
-			if (compression != last_row_compression)
-			  {
-			    FormatString(buffer,"\033*b2M");  /* Tiff RLE compression */
-			    (void) WriteBlobString(image,buffer);
-			    last_row_compression=compression;
-			  }
-			bytes_to_write=PCL_TiffRLECompress(bytes_per_line,pixels,output_row);
-			FormatString(buffer,"\033*b%luW",bytes_to_write);
-			(void) WriteBlobString(image,buffer);
-			WriteBlob(image,bytes_to_write,output_row);         
-			break;
-		      }
-		    case PCL_RLECompression:
-		      {
-			if (compression != last_row_compression)
-			  {
-			    FormatString(buffer,"\033*b1M");  /* RLE compression */
-			    (void) WriteBlobString(image,buffer);
-			    last_row_compression=compression;
-			  }
-			bytes_to_write=PCL_RLECompress(bytes_per_line,pixels,output_row);
-			FormatString(buffer,"\033*b%luW",bytes_to_write);
-			(void) WriteBlobString(image,buffer);
-			WriteBlob(image,bytes_to_write,output_row);         
-			break;
-		      }
-		    case PCL_RepeatedRowCompression:
-		      {
-			compression=PCL_DeltaCompression;
-			if (compression != last_row_compression)
-			  {
-			    FormatString(buffer,"\033*b3M");  /* delta row compression */
-			    (void) WriteBlobString(image,buffer);
-			    last_row_compression=compression;
-			  }
-			FormatString(buffer,"\033*b0W");  /* no data -> replicate row */
-			(void) WriteBlobString(image,buffer);
-			break;
-		      }          
-		    case PCL_NoCompression:
-		      {
-			if (compression != last_row_compression)
-			  {
-			    FormatString(buffer,"\033*b0M");  /* no compression */
-			    (void) WriteBlobString(image,buffer);
-			    last_row_compression=compression;
-			  }
-			FormatString(buffer,"\033*b%luW",bytes_per_line);  /* send row */
-			(void) WriteBlobString(image,buffer);
-			(void) WriteBlob(image,bytes_per_line,pixels);
-			break;
-		      }
-		    case PCL_ZeroRowCompression:
-		    case PCL_UndefinedCompression:
-		      {
-			break;
-		      }
-		    }
-		}
-      
-              /*
-                Swap row with last row
-              */
-              q=last_row_pixels;
-              last_row_pixels=pixels;
-              pixels=q;
+              switch (compression)
+                {
+                  case PCL_DeltaCompression:
+                    {
+                      if (compression != last_row_compression)
+                        {
+                          FormatString(buffer,"\033*b3M");  /* delta compression */
+                          (void) WriteBlobString(image,buffer);
+                          last_row_compression=compression;
+                        }
+                      bytes_to_write=PCL_DeltaCompress(bytes_per_line,pixels,
+                                                       last_row_pixels,output_row);
+                      FormatString(buffer,"\033*b%luW",bytes_to_write);
+                      (void) WriteBlobString(image,buffer);
+                      WriteBlob(image,bytes_to_write,output_row);
+                      break;
+                    } 
+                  case PCL_TiffRLECompression:
+                    {
+                      if (compression != last_row_compression)
+                        {
+                          FormatString(buffer,"\033*b2M");  /* Tiff RLE compression */
+                          (void) WriteBlobString(image,buffer);
+                          last_row_compression=compression;
+                        }
+                      bytes_to_write=PCL_TiffRLECompress(bytes_per_line,pixels,output_row);
+                      FormatString(buffer,"\033*b%luW",bytes_to_write);
+                      (void) WriteBlobString(image,buffer);
+                      WriteBlob(image,bytes_to_write,output_row);         
+                      break;
+                    }
+                  case PCL_RLECompression:
+                    {
+                      if (compression != last_row_compression)
+                        {
+                          FormatString(buffer,"\033*b1M");  /* RLE compression */
+                          (void) WriteBlobString(image,buffer);
+                          last_row_compression=compression;
+                        }
+                      bytes_to_write=PCL_RLECompress(bytes_per_line,pixels,output_row);
+                      FormatString(buffer,"\033*b%luW",bytes_to_write);
+                      (void) WriteBlobString(image,buffer);
+                      WriteBlob(image,bytes_to_write,output_row);         
+                      break;
+                    }
+                  case PCL_RepeatedRowCompression:
+                    {
+                      compression=PCL_DeltaCompression;
+                      if (compression != last_row_compression)
+                        {
+                          FormatString(buffer,"\033*b3M");  /* delta row compression */
+                          (void) WriteBlobString(image,buffer);
+                          last_row_compression=compression;
+                        }
+                      FormatString(buffer,"\033*b0W");  /* no data -> replicate row */
+                      (void) WriteBlobString(image,buffer);
+                      break;
+                    } 
+                  case PCL_NoCompression:
+                    {
+                      if (compression != last_row_compression)
+                        {
+                          FormatString(buffer,"\033*b0M");  /* no compression */
+                          (void) WriteBlobString(image,buffer);
+                          last_row_compression=compression;
+                        }
+                      FormatString(buffer,"\033*b%luW",bytes_per_line);  /* send row */
+                      (void) WriteBlobString(image,buffer);
+                      (void) WriteBlob(image,bytes_per_line,pixels);
+                      break;
+                    }
+                  case PCL_ZeroRowCompression:
+                  case PCL_UndefinedCompression:
+                    {
+                      break;
+                    }
+                }
             }
+
+            /*
+              Swap row with last row
+            */
+            q=last_row_pixels;
+            last_row_pixels=pixels;
+            pixels=q;
+          }
 
           if (image->previous == (Image *) NULL)
             if (QuantumTick(y,image->rows))
               if (!MagickMonitorFormatted(y,image->rows,&image->exception,
-                                          SaveImageText,image->filename))
-		break;
-        }   
+                                          SaveImageText,image->filename,
+                                          image->columns,image->rows))
+                break;
+        }
 
-      (void) WriteBlobString(image,"\033*r0B");  /* end graphics */
+      (void) WriteBlobString(image,"\033*rB");  /* end graphics */
       MagickFreeMemory(pixels);
       MagickFreeMemory(last_row_pixels);
       MagickFreeMemory(output_row);

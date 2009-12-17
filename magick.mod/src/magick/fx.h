@@ -6,7 +6,7 @@
   Copyright.txt. You should have received a copy of Copyright.txt with this
   package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
  
-  ImageMagick Image FX Methods.
+  GraphicsMagick Image FX Methods.
 */
 #ifndef _MAGICK_FX_H
 #define _MAGICK_FX_H
@@ -18,8 +18,6 @@ extern "C" {
 extern MagickExport Image
   *CharcoalImage(const Image *,const double,const double,ExceptionInfo *),
   *ColorizeImage(const Image *,const char *,const PixelPacket,ExceptionInfo *),
-  *ConvolveImage(const Image *,const unsigned int,const double *,
-     ExceptionInfo *),
   *ImplodeImage(const Image *,const double,ExceptionInfo *),
   *MorphImages(const Image *,const unsigned long,ExceptionInfo *),
   *OilPaintImage(const Image *,const double,ExceptionInfo *),

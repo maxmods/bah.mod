@@ -156,6 +156,7 @@ ModuleExport void RegisterDCRAWImage(void)
       entry->decoder=(DecoderHandler) ReadDCRAWImage;
       entry->description=dcraw_formats[i].description;
       entry->extension_treatment=ObeyExtensionTreatment;
+      entry->module="DCRAW";
       (void) RegisterMagickInfo(entry);
     }
 }

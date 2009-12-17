@@ -649,7 +649,7 @@ OpaqueImageCallBack(void *mutable_data,         /* User provided mutable data */
 MagickExport MagickPassFail
 OpaqueImage(Image *image,const PixelPacket target,const PixelPacket fill)
 {
-#define OpaqueImageText  "[%s] Setting opaque color in image..."
+#define OpaqueImageText "[%s] Setting opaque color..."
 
   OpaqueImageOptions_t
     options;
@@ -774,7 +774,7 @@ MagickExport MagickPassFail
 TransparentImage(Image *image,const PixelPacket target,
                  const unsigned int opacity)
 {
-#define TransparentImageText  "[%s] Setting transparent color in image...  "
+#define TransparentImageText "[%s] Setting transparent color...  "
 
   TransparentImageOptions_t
     options;

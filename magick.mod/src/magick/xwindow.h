@@ -525,8 +525,8 @@ extern MagickExport Cursor
   MagickXMakeCursor(Display *,Window,Colormap,char *,char *);
 
 extern MagickExport Image
-  *MagickXAnimateImages(Display *,MagickXResourceInfo *,char **,const int,Image *),
-  *MagickXDisplayImage(Display *,MagickXResourceInfo *,char **,int,Image **,
+  *MagickXAnimateImages(Display *,MagickXResourceInfo *,char *[],const int,Image *),
+  *MagickXDisplayImage(Display *,MagickXResourceInfo *,char *[],int,Image **,
     unsigned long *),
   *MagickXImportImage(const ImageInfo *,MagickXImportInfo *);
 
@@ -570,7 +570,7 @@ extern MagickExport void
   MagickXGetMapInfo(const XVisualInfo *,const Colormap,XStandardColormap *),
   MagickXGetPixelPacket(Display *,const XVisualInfo *,const XStandardColormap *,
     const MagickXResourceInfo *,Image *,MagickXPixelInfo *),
-  MagickXGetResourceInfo(XrmDatabase,char *,MagickXResourceInfo *),
+  MagickXGetResourceInfo(XrmDatabase,const char *,MagickXResourceInfo *),
   MagickXGetWindowInfo(Display *,XVisualInfo *,XStandardColormap *,MagickXPixelInfo *,
     XFontStruct *,MagickXResourceInfo *,MagickXWindowInfo *),
   MagickXHighlightEllipse(Display *,Window,GC,const RectangleInfo *),
@@ -584,7 +584,7 @@ extern MagickExport void
   MagickXQueryPosition(Display *,const Window,int *,int *),
   MagickXRefreshWindow(Display *,const MagickXWindowInfo *,const XEvent *),
   MagickXRetainWindowColors(Display *,const Window),
-  MagickXSignalHandler(int),
+  MagickXSignalHandler(int) MAGICK_FUNC_NORETURN,
   MagickXSetCursorState(Display *,MagickXWindows *,const unsigned int),
   MagickXUserPreferences(MagickXResourceInfo *),
   MagickXWarning(const ExceptionType,const char *,const char *);

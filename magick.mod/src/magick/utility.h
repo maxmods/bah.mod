@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 - 2008 GraphicsMagick Group
+  Copyright (C) 2003 - 2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
   Copyright 1991-1999 E. I. du Pont de Nemours and Company
  
@@ -52,9 +52,6 @@ typedef struct _TokenInfo
 /*
   Utilities methods.
 */
-#if !defined(__GNUC__) && !defined(__attribute__)
-#  define __attribute__(x) /*nothing*/
-#endif
 
 #undef ARGUNUSED
 #define ARGUNUSED(arg) arg __attribute__((unused))
@@ -77,7 +74,6 @@ extern MagickExport char
   *EscapeString(const char *,const char),
   *GetPageGeometry(const char *),
   **ListFiles(const char *,const char *,long *),
-  *SetClientName(const char *),
   **StringToArgv(const char *,int *),
   **StringToList(const char *),
   *TranslateText(const ImageInfo *,Image *,const char *),
@@ -85,9 +81,10 @@ extern MagickExport char
 
 extern MagickExport const char
   *GetClientFilename(void),
-  *SetClientFilename(const char *),
   *GetClientName(void),
   *GetClientPath(void),
+  *SetClientFilename(const char *),
+  *SetClientName(const char *),
   *SetClientPath(const char *);
 
 extern MagickExport double
@@ -102,7 +99,6 @@ extern MagickExport int
   GetMagickGeometry(const char *geometry,long *x,long *y,unsigned long *width,
     unsigned long *height),
   MagickRandReentrant(unsigned int *seed),
-  SubstituteString(char **,const char*,const char *),
   SystemCommand(const unsigned int,const char *),
   Tokenizer(TokenInfo *,unsigned,char *,size_t,char *,char *,char *,char *,
     char,char *,int *,char *);
@@ -129,7 +125,8 @@ extern MagickExport MagickBool
   IsGlob(const char *),
   IsWriteable(const char *),
   MagickSceneFileName(char *filename,const char* filename_template,
-    const char* scene_template,const MagickBool force,unsigned long scene);
+    const char* scene_template,const MagickBool force,unsigned long scene),
+  SubstituteString(char **buffer,const char *search,const char *replace);
 
 extern MagickExport unsigned long
   MultilineCensus(const char *);
@@ -155,9 +152,9 @@ extern MagickExport magick_int64_t
   MagickSizeStrToInt64(const char *str,const unsigned int kilo);
 
 extern MagickExport size_t
-  MagickStrlCat(char *dst, const char *src, const size_t size),
-  MagickStrlCpy(char *dst, const char *src, const size_t size),
-  MagickStrlCpyTrunc(char *dst, const char *src, const size_t size);
+  MagickStrlCat(char *dst, const char *src, const size_t size) MAGICK_FUNC_NONNULL,
+  MagickStrlCpy(char *dst, const char *src, const size_t size) MAGICK_FUNC_NONNULL,
+  MagickStrlCpyTrunc(char *dst, const char *src, const size_t size) MAGICK_FUNC_NONNULL;
 
 #if defined(MAGICK_IMPLEMENTATION)
 

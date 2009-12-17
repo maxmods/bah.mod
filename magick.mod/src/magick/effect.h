@@ -1,12 +1,12 @@
 /*
-  Copyright (C) 2003 GraphicsMagick Group
+  Copyright (C) 2003-2009 GraphicsMagick Group
   Copyright (C) 2002 ImageMagick Studio
  
   This program is covered by multiple licenses, which are described in
   Copyright.txt. You should have received a copy of Copyright.txt with this
   package; otherwise see http://www.graphicsmagick.org/www/Copyright.html.
  
-  ImageMagick Image Effect Methods.
+  GraphicsMagick Image Effect Methods.
 */
 #ifndef _MAGICK_EFFECT_H
 #define _MAGICK_EFFECT_H
@@ -24,6 +24,8 @@ extern MagickExport Image
   *BlurImage(const Image *,const double,const double,ExceptionInfo *),
   *BlurImageChannel(const Image *image,const ChannelType channel,
      const double radius,const double sigma,ExceptionInfo *exception),
+  *ConvolveImage(const Image *,const unsigned int,const double *,
+     ExceptionInfo *),
   *DespeckleImage(const Image *,ExceptionInfo *),
   *EdgeImage(const Image *,const double,ExceptionInfo *),
   *EmbossImage(const Image *,const double,const double,ExceptionInfo *),

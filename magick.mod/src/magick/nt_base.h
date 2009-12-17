@@ -60,6 +60,8 @@ extern "C" {
 /* Define to 1 if you have the `TIFFSetWarningHandlerExt' function. */
 #define HAVE_TIFFSETWARNINGHANDLEREXT 1
 
+/* Define to 1 if you have the `TIFFSwabArrayOfTriples' function. */
+#define HAVE_TIFFSWABARRAYOFTRIPLES 1
 
 // Define to support memory mapping files for improved performance
 #define HAVE_MMAP_FILEIO 1
@@ -67,6 +69,12 @@ extern "C" {
 // Use Visual C++ C inline method extension to improve performance
 #if !defined(inline)
 #  define inline __inline
+#endif
+
+// Visual C++ does not usually seem to support the C'99 restrict keyword
+// Maybe it will be added in some version.
+#if defined(_VISUALC_)  /* && (_MSC_VER <= 1500) */
+#  define restrict /* nothing */
 #endif
 
 #if !defined(chsize)
