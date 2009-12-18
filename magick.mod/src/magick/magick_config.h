@@ -659,7 +659,11 @@
 /* Define to the equivalent of the C99 'restrict' keyword, or to
    nothing if this is not supported.  Do not define if restrict is
    supported directly.  */
+#ifndef WIN32
 #define restrict restrict
+#else
+#define restrict
+#endif
 /* Work around a bug in Sun C++: it does not support _Restrict or
    __restrict__, even though the corresponding Sun C compiler ends up with
    "#define restrict _Restrict" or "#define restrict __restrict__" in the

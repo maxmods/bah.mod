@@ -34,10 +34,11 @@ ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
-ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC -std=c99"
+ModuleInfo "CC_OPTS: -fexceptions -DLIBXML_STATIC"
+?Not win32
+ModuleInfo "CC_OPTS: -std=c99"
 ?win32
 ModuleInfo "CC_OPTS: -DWIN32 -D_MAX_PATH=260"
-'ModuleInfo "LD_OPTS: --enable-stdcall-fixup"
 ?
 
 Import BRL.Pixmap
