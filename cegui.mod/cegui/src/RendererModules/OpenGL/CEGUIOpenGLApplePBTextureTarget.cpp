@@ -64,14 +64,14 @@ OpenGLApplePBTextureTarget::OpenGLApplePBTextureTarget(OpenGLRenderer& owner) :
 
     CGLError err;
     CGLContextObj cctx = CGLGetCurrentContext();
-    if (err = CGLGetVirtualScreen(cctx, (GLint*)&d_screen))
+    if (err = CGLGetVirtualScreen(cctx, &d_screen))
         throw RendererException("OpenGLApplePBTextureTarget - "
                                 "CGLGetVirtualScreen failed: " +
                                 String(CGLErrorString(err)));
 
-    long fmt_count;
+    GLint fmt_count;
     CGLPixelFormatObj pix_fmt;
-    if (err = CGLChoosePixelFormat(fmtAttrs, &pix_fmt, (GLint*)&fmt_count))
+    if (err = CGLChoosePixelFormat(fmtAttrs, &pix_fmt, &fmt_count))
         throw RendererException("OpenGLApplePBTextureTarget - "
                                 "CGLChoosePixelFormat failed: " +
                                 String(CGLErrorString(err)));
