@@ -1011,8 +1011,15 @@ Type TMImage
 	'TODO
 	End Method
 	
+	Rem
+	bbdoc: Adds matte channel to image, setting pixels matching @color to transparent
+	End Rem
 	Method transparent(color:Object)
-	'TODO
+		If TMColor(color) Then
+			bmx_magick_image_transparent(imagePtr, TMColor(color).colorPtr)
+		ElseIf String(color)
+			bmx_magick_image_transparenttxt(imagePtr, String(color))
+		End If
 	End Method
 	
 	Rem
@@ -1057,7 +1064,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Writes single image frame to a file.
 	End Rem
 	Method WriteFile(imageSpec:String)
 		bmx_magick_image_writefile(imagePtr, imageSpec)
@@ -1085,7 +1092,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns whether to join images into a single multi-image file.
 	End Rem
 	Method getAdjoin:Int()
 		Return bmx_magick_image_getadjoin(imagePtr)
@@ -1100,7 +1107,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the setting of antialiasing of rendered Postscript and Postscript or TrueType fonts.
 	End Rem
 	Method getAntiAlias:Int()
 		Return bmx_magick_image_getantialias(imagePtr)
@@ -1108,14 +1115,15 @@ Type TMImage
 	
 	Rem
 	bbdoc: Sets the time in 1/100ths of a second (0 to 65535) which must expire before displaying the next image in an animated sequence.
-	about: This option is useful for regulating the animation of a sequence  of GIF images within Netscape.
+	about: This option is useful for regulating the animation of a sequence  of GIF images.
 	End Rem
 	Method animationDelay(_delay:Int)
 		bmx_magick_image_animationdelay(imagePtr, _delay)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the time in 1/100ths of a second (0 to 65535) which must expire before displaying the next image in an animated sequence.
+	about: This option is useful for regulating the animation of a sequence of GIF images.
 	End Rem
 	Method getAnimationDelay:Int() 
 		Return bmx_magick_image_getanimationdelay(imagePtr)
@@ -1129,24 +1137,33 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the number of iterations to loop an animation (e.g. Netscape loop extension) for.
 	End Rem
 	Method getAnimationIterations:Int()
 		Return bmx_magick_image_getanimationiterations(imagePtr)
 	End Method
 	
 	Rem
-	bbdoc: Sets an arbitrary named image attribute. Any number of named attributes may be attached to the image.
-	about: For example, the image comment is a named image attribute with the name "comment". EXIF tags are
+	bbdoc: Sets an arbitrary named image attribute.
+	about: Any number of named attributes may be attached to the image.
+	<p>
+	For example, the image comment is a named image attribute with the name "comment". EXIF tags are
 	attached to the image as named attributes. Use the syntax "EXIF:<tag>" to request an EXIF tag similar
 	to "EXIF:DateTime".
+	</p>
 	End Rem
 	Method attribute(name:String, value:String)
 		bmx_magick_image_attribute(imagePtr, name, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns an arbitrary named image attribute
+	about: Any number of named attributes may be attached to the image.
+	<p>
+	For example, the image comment is a named image attribute with the name "comment". EXIF tags are
+	attached to the image as named attributes. Use the syntax "EXIF:<tag>" to request an EXIF tag similar
+	to "EXIF:DateTime".
+	</p>
 	End Rem
 	Method getAttribute:String(name:String)
 		Return bmx_magick_image_getattribute(imagePtr, name)
@@ -1176,7 +1193,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the image file name to use as the background texture.
 	End Rem
 	Method getBackgroundTexture:String()
 		Return bmx_magick_image_getbackgroundtexture(imagePtr)
@@ -1204,7 +1221,7 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Image border color.
 	End Rem
 	Method borderColor(color:Object)
 		If TMColor(color) Then
@@ -1218,6 +1235,10 @@ Type TMImage
 	' TODO
 	End Method
 
+	Rem
+	bbdoc: Returns the smallest bounding box enclosing non-border pixels.
+	about: The current fuzz value is used when discriminating between pixels. This is the crop bounding box used by crop(Geometry(0,0))
+	End Rem
 	Method getBoundingBox:TMGeometry()
 	' TODO
 	End Method
@@ -1265,63 +1286,66 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Chromaticity blue primary point (e.g. x=0.15, y=0.06)
 	End Rem
 	Method chromaBluePrimary(x:Double, y:Double)
 		bmx_magick_image_chromablueprimary(imagePtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the chromaticity blue primary point.
 	End Rem
 	Method getChromaBluePrimary(x:Double Var, y:Double Var)
 		bmx_magick_image_getchromablueprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Chromaticity green primary point (e.g. x=0.3, y=0.6)
 	End Rem
 	Method chromaGreenPrimary(x:Double, y:Double)
 		bmx_magick_image_chromagreenprimary(imagePtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the chromaticity green primary point.
 	End Rem
 	Method getChromaGreenPrimary(x:Double Var, y:Double Var)
 		bmx_magick_image_getchromagreenprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Chromaticity red primary point (e.g. x=0.64, y=0.33)
 	End Rem
 	Method chromaRedPrimary(x:Double, y:Double)
 		bmx_magick_image_chromaredprimary(imagePtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the chromaticity red primary point.
 	End Rem
 	Method getChromaRedPrimary(x:Double Var, y:Double Var)
 		bmx_magick_image_getchromaredprimary(imagePtr, Varptr x, Varptr y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Chromaticity white point (e.g. x=0.3127, y=0.329)
 	End Rem
 	Method chromaWhitePoint(x:Double, y:Double)
 		bmx_magick_image_chromawhitepoint(imagePtr, x, y)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the chromaticity white point.
 	End Rem
 	Method getChromaWhitePoint(x:Double Var, y:Double Var)
 		bmx_magick_image_getchromawhitepoint(imagePtr, Varptr x, Varptr y)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Image class (CLASS_DIRECTCLASS or CLASS_PSEUDOCLASS).
+	about: NOTE: setting a DirectClass image to PseudoClass will result in the loss of color information
+	if the number of colors in the image is greater than the maximum palette size
+	(either 256 or 65536 entries depending on the value of QuantumDepth when ImageMagick was built)
 	End Rem
 	Method classType(class:Int)
 		bmx_magick_image_classtype(imagePtr, class)
@@ -1340,14 +1364,21 @@ Type TMImage
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Colors within this distance are considered equal.
+	about: A number of algorithms search for a target color. By default the color must be exact.
+	Use this option to match colors that are close to the target color in RGB space
 	End Rem
 	Method colorFuzz(fuzz:Double)
 		bmx_magick_image_colorfuzz(imagePtr, fuzz)
 	End Method
 	
+	Rem
+	bbdoc: Returns the distance where colors within this distance are considered equal.
+	about: A number of algorithms search for a target color. By default the color must be exact.
+	Use this option to match colors that are close to the target color in RGB space
+	End Rem
 	Method getColorFuzz:Double()
-	' TODO
+		Return bmx_magick_image_getcolorfuzz(imagePtr)
 	End Method
 	
 	Rem
@@ -1373,12 +1404,30 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: The colorspace used to represent the image pixel colors.
+	about: One of #COLORSPACE_UNDEFINEDCOLORSPACE, #COLORSPACE_RGBCOLORSPACE, #COLORSPACE_GRAYCOLORSPACE, #COLORSPACE_TRANSPARENTCOLORSPACE, #COLORSPACE_OHTACOLORSPACE, 
+	#COLORSPACE_XYZCOLORSPACE, #COLORSPACE_YCCCOLORSPACE, #COLORSPACE_YIQCOLORSPACE, #COLORSPACE_YPBPRCOLORSPACE, #COLORSPACE_YUVCOLORSPACE, 
+	#COLORSPACE_CMYKCOLORSPACE, #COLORSPACE_SRGBCOLORSPACE, #COLORSPACE_HSLCOLORSPACE, #COLORSPACE_HWBCOLORSPACE, #COLORSPACE_LABCOLORSPACE, 
+	#COLORSPACE_CINEONLOGRGBCOLORSPACE, #COLORSPACE_REC601LUMACOLORSPACE, #COLORSPACE_REC601YCBCRCOLORSPACE, #COLORSPACE_REC709LUMACOLORSPACE or
+	#COLORSPACE_REC709YCBCRCOLORSPACE.
+
+	End Rem
 	Method colorSpace(colorSpace:Int)
-	' TODO
+		bmx_magick_image_colorspace(imagePtr, colorSpace)
 	End Method
 	
+	Rem
+	bbdoc: Returns the colorspace used to represent the image pixel colors.
+	about: One of #COLORSPACE_UNDEFINEDCOLORSPACE, #COLORSPACE_RGBCOLORSPACE, #COLORSPACE_GRAYCOLORSPACE, #COLORSPACE_TRANSPARENTCOLORSPACE, #COLORSPACE_OHTACOLORSPACE, 
+	#COLORSPACE_XYZCOLORSPACE, #COLORSPACE_YCCCOLORSPACE, #COLORSPACE_YIQCOLORSPACE, #COLORSPACE_YPBPRCOLORSPACE, #COLORSPACE_YUVCOLORSPACE, 
+	#COLORSPACE_CMYKCOLORSPACE, #COLORSPACE_SRGBCOLORSPACE, #COLORSPACE_HSLCOLORSPACE, #COLORSPACE_HWBCOLORSPACE, #COLORSPACE_LABCOLORSPACE, 
+	#COLORSPACE_CINEONLOGRGBCOLORSPACE, #COLORSPACE_REC601LUMACOLORSPACE, #COLORSPACE_REC601YCBCRCOLORSPACE, #COLORSPACE_REC709LUMACOLORSPACE or
+	#COLORSPACE_REC709YCBCRCOLORSPACE.
+
+	End Rem
 	Method getColorSpace:Int()
-	' TODO
+		Return bmx_magick_image_getcolorspace(imagePtr)
 	End Method
 	
 	Method getColumns:Int()
@@ -1784,36 +1833,80 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Image modulus depth (minimum number of bits required to support red/green/blue components without loss of accuracy).
+	about: The pixel modulus depth may be decreased by supplying a value which is less than the current value, updating the
+	pixels (reducing accuracy) to the new depth. The pixel modulus depth cannot be increased over the current value using this method.
+	End Rem
 	Method modulusDepth(depth:Int)
-	' TODO
+		bmx_magick_image_modulusdepth(imagePtr, depth)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image modulus depth (minimum number of bits required to support red/green/blue components without loss of accuracy).
+	about: The pixel modulus depth may be decreased by supplying a value which is less than the current value, updating the
+	pixels (reducing accuracy) to the new depth. The pixel modulus depth cannot be increased over the current value using this method.
+	End Rem
 	Method getModulusDepth:Int()
-	' TODO
+		Return bmx_magick_image_getmodulusdepth(imagePtr)
 	End Method
 
+	Rem
+	bbdoc: Transform image to black and white while color reducing (quantizing).
+	End Rem
 	Method monochrome(flag:Int)
-	' TODO
+		bmx_magick_image_monochrome(imagePtr, flag)
 	End Method
 	
+	Rem
+	bbdoc: Returns whether to transform image to black and white while color reducing (quantizing).
+	End Rem
 	Method getMonochrome:Int()
-	' TODO
+		Return bmx_magick_image_getmonochrome(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the normalized max error per pixel computed when an image is color reduced.
+	about: This is only valid if verbose is set to true and the image has just been quantized
+	End Rem
 	Method getNormalizedMaxError:Double()
-	' TODO
+		Return bmx_magick_image_normalizedmaxerror(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the normalized mean error per pixel computed when an image is color reduced.
+	about: This is only valid if verbose is set to true and the image has just been quantized.
+	End Rem
 	Method getNormalizedMeanError:Double()
-	' TODO
+		Return bmx_magick_image_normalizedmeanerror(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Image orientation.
+	about: Supported by some file formats such as DPX and TIFF. Useful for turning the right way up.
+	<p>
+	One of #ORIENTATION_UNDEFINEDORIENTATION, #ORIENTATION_TOPLEFTORIENTATION, #ORIENTATION_TOPRIGHTORIENTATION, 
+	#ORIENTATION_BOTTOMRIGHTORIENTATION, #ORIENTATION_BOTTOMLEFTORIENTATION, #ORIENTATION_LEFTTOPORIENTATION, 
+	#ORIENTATION_RIGHTTOPORIENTATION, #ORIENTATION_RIGHTBOTTOMORIENTATION or  #ORIENTATION_LEFTBOTTOMORIENTATION.
+
+	</p>
+	End Rem
 	Method orientation(orientation:Int)
-	' TODO
+		bmx_magick_image_orientation(imagePtr, orientation)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image orientation.
+	about: Supported by some file formats such as DPX and TIFF. Useful for turning the right way up.
+	<p>
+	One of #ORIENTATION_UNDEFINEDORIENTATION, #ORIENTATION_TOPLEFTORIENTATION, #ORIENTATION_TOPRIGHTORIENTATION, 
+	#ORIENTATION_BOTTOMRIGHTORIENTATION, #ORIENTATION_BOTTOMLEFTORIENTATION, #ORIENTATION_LEFTTOPORIENTATION, 
+	#ORIENTATION_RIGHTTOPORIENTATION, #ORIENTATION_RIGHTBOTTOMORIENTATION or  #ORIENTATION_LEFTBOTTOMORIENTATION.
+
+	</p>
+	End Rem
 	Method getOrientation:Int()
-	' TODO
+		Return bmx_magick_image_getorientation(imagePtr)
 	End Method
 	
 	Method page(pageSize:Object)
@@ -1863,76 +1956,169 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: JPEG/MIFF/PNG compression level (default 75).
+	End Rem
 	Method quality(value:Int)
-	' TODO
+		bmx_magick_image_quality(imagePtr, value)
 	End Method
 	
+	Rem
+	bbdoc: Returns the JPEG/MIFF/PNG compression level.
+	End Rem
 	Method getQuality:Int()
-	' TODO
+		Return bmx_magick_image_getquality(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Maximum number of colors to quantize to.
+	End Rem
 	Method quantizeColors(colors:Int)
-	' TODO
+		bmx_magick_image_quantizecolors(imagePtr, colors)
 	End Method
 
+	Rem
+	bbdoc: Returns the maximum number of colors to quantize to.
+	End Rem
 	Method getQuantizeColors:Int()
-	' TODO
+		Return bmx_magick_image_getquantizecolors(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Colorspace to quantize in (default RGB).
+	about: Empirical evidence suggests that distances in color spaces such as YUV or YIQ correspond
+	to perceptual color differences more closely than do distances in RGB space.
+	These color spaces may give better results when color reducing an image.
+	<p>
+	One of #COLORSPACE_UNDEFINEDCOLORSPACE, #COLORSPACE_RGBCOLORSPACE, #COLORSPACE_GRAYCOLORSPACE, #COLORSPACE_TRANSPARENTCOLORSPACE, 
+	#COLORSPACE_OHTACOLORSPACE, #COLORSPACE_XYZCOLORSPACE, #COLORSPACE_YCCCOLORSPACE, #COLORSPACE_YIQCOLORSPACE, 
+	#COLORSPACE_YPBPRCOLORSPACE, #COLORSPACE_YUVCOLORSPACE, #COLORSPACE_CMYKCOLORSPACE, #COLORSPACE_SRGBCOLORSPACE, 
+	#COLORSPACE_HSLCOLORSPACE, #COLORSPACE_HWBCOLORSPACE, #COLORSPACE_LABCOLORSPACE, #COLORSPACE_CINEONLOGRGBCOLORSPACE, 
+	#COLORSPACE_REC601LUMACOLORSPACE, #COLORSPACE_REC601YCBCRCOLORSPACE, #COLORSPACE_REC709LUMACOLORSPACE or
+	#COLORSPACE_REC709YCBCRCOLORSPACE.
+	</p>
+
+	End Rem
 	Method quantizeColorSpace(colorSpace:Int)
-	' TODO
+		bmx_magick_image_quantizecolorspace(imagePtr, colorSpace)
 	End Method
 
+	Rem
+	bbdoc: Returns the colorspace to quantize in (default RGB).
+	about: Empirical evidence suggests that distances in color spaces such as YUV or YIQ correspond
+	to perceptual color differences more closely than do distances in RGB space.
+	These color spaces may give better results when color reducing an image.
+	<p>
+	One of #COLORSPACE_UNDEFINEDCOLORSPACE, #COLORSPACE_RGBCOLORSPACE, #COLORSPACE_GRAYCOLORSPACE, #COLORSPACE_TRANSPARENTCOLORSPACE, 
+	#COLORSPACE_OHTACOLORSPACE, #COLORSPACE_XYZCOLORSPACE, #COLORSPACE_YCCCOLORSPACE, #COLORSPACE_YIQCOLORSPACE, 
+	#COLORSPACE_YPBPRCOLORSPACE, #COLORSPACE_YUVCOLORSPACE, #COLORSPACE_CMYKCOLORSPACE, #COLORSPACE_SRGBCOLORSPACE, 
+	#COLORSPACE_HSLCOLORSPACE, #COLORSPACE_HWBCOLORSPACE, #COLORSPACE_LABCOLORSPACE, #COLORSPACE_CINEONLOGRGBCOLORSPACE, 
+	#COLORSPACE_REC601LUMACOLORSPACE, #COLORSPACE_REC601YCBCRCOLORSPACE, #COLORSPACE_REC709LUMACOLORSPACE or
+	#COLORSPACE_REC709YCBCRCOLORSPACE.
+	</p>
+
+	End Rem
 	Method getQuantizeColorSpace:Int()
-	' TODO
+		Return bmx_magick_image_getquantizecolorspace(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Apply Floyd/Steinberg error diffusion to the image.
+	about: The basic strategy of dithering is to trade intensity resolution for spatial resolution by averaging the
+	intensities of several neighboring pixels. Images which suffer from severe contouring when reducing colors can
+	be improved with this option. The quantizeColors or monochrome option must be set for this option to take effect
+	End Rem
 	Method quantizeDither(flag:Int)
-	' TODO
+		bmx_magick_image_quantizedither(imagePtr, flag)
 	End Method
 
+	Rem
+	bbdoc: Returns wheter to apply Floyd/Steinberg error diffusion to the image.
+	about: The basic strategy of dithering is to trade intensity resolution for spatial resolution by averaging the
+	intensities of several neighboring pixels. Images which suffer from severe contouring when reducing colors can
+	be improved with this option. The quantizeColors or monochrome option must be set for this option to take effect
+	End Rem
 	Method getQuantizeDither:Int()
-	' TODO
+		Return bmx_magick_image_getquantizedither(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Depth of the quantization color classification tree.
+	about: Values of 0 or 1 allow selection of the optimal tree depth for the color reduction algorithm.
+	Values between 2 and 8 may be used to manually adjust the tree depth
+	End Rem
 	Method quantizeTreeDepth(treeDepth:Int)
-	' TODO
+		bmx_magick_image_quantizetreedepth(imagePtr, treeDepth)
 	End Method
 
+	Rem
+	bbdoc: Returns the depth of the quantization color classification tree.
+	about: Values of 0 or 1 allow selection of the optimal tree depth for the color reduction algorithm.
+	Values between 2 and 8 may be used to manually adjust the tree depth
+	End Rem
 	Method getQuantizeTreeDepth:Int()
-	' TODO
+		Return bmx_magick_image_getquantizetreedepth(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: The type of rendering intent (used when applying an ICC color profile).
+	about: One of RENDERING_UNDEFINEDINTENT, RENDERING_SATURATIONINTENT, RENDERING_PERCEPTUALINTENT
+	RENDERING_ABSOLUTEINTENT, or RENDERING_RELATIVEINTENT.
+	End Rem
 	Method renderingIntent(intent:Int)
-	' TODO
+		bmx_magick_image_renderingintent(imagePtr, intent)
 	End Method
 	
+	Rem
+	bbdoc: Returns the type of rendering intent (used when applying an ICC color profile).
+	about: One of RENDERING_UNDEFINEDINTENT, RENDERING_SATURATIONINTENT, RENDERING_PERCEPTUALINTENT
+	RENDERING_ABSOLUTEINTENT, or RENDERING_RELATIVEINTENT.
+	End Rem
 	Method getRenderingIntent:Int()
-	' TODO
+		Return bmx_magick_image_getrenderingintent(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Units of image resolution.
+	End Rem
 	Method resolutionUnits(units:Int)
-	' TODO
+		bmx_magick_image_resolutionunits(imagePtr, units)
 	End Method
 	
+	Rem
+	bbdoc: Returns the units of image resolution.
+	End Rem
 	Method getResolutionUnits:Int()
-	' TODO
+		Return bmx_magick_image_getresolutionunits(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of pixel rows in the image.
+	End Rem
 	Method getRows:Int()
-	' TODO
+		Return bmx_magick_image_getrows(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Image scene number.
+	End Rem
 	Method scene(scene:Int)
-	' TODO
+		bmx_magick_image_scene(imagePtr, scene)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image scene number.
+	End Rem
 	Method getScene:Int()
-	' TODO
+		Return bmx_magick_image_getscene(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the image textual signature.
+	about: Set @force to true in order to re-calculate the signature regardless of whether the image data has been modified.
+	End Rem
 	Method getSignature:String(force:Int = False)
-	' TODO
+		Return bmx_magick_image_getsignature(imagePtr, force)
 	End Method
 	
 	Rem
@@ -1947,14 +2133,23 @@ Type TMImage
 		End If
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method strokeAntiAlias(flag:Int)
-	' TODO
+		bmx_magick_image_strokeantialias(imagePtr, flag)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getStrokeAntiAlias:Int()
-	' TODO
+		Return bmx_magick_image_getstrokeantialias(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method strokeColor(color:Object)
 		If TMColor(color) Then
 			bmx_magick_image_strokecolor(imagePtr, TMColor(color).colorPtr)
@@ -1967,124 +2162,230 @@ Type TMImage
 	' TODO
 	End Method
 	
+	Rem
+	bbdoc: Specify the pattern of dashes and gaps used to stroke paths.
+	about: The strokeDashArray represents an array of numbers that specify the lengths of alternating dashes and gaps in pixels.
+	If an odd number of values is provided, then the list of values is repeated to yield an even number
+	of values. A typical strokeDashArray array might contain the members 5 3 2.
+	End Rem
 	Method strokeDashArray(array:Double[])
-	' TODO
+		bmx_magick_image_strokedasharray(imagePtr, array)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pattern of dashes and gaps used to stroke paths.
+	about: The strokeDashArray represents an array of numbers that specify the lengths of alternating dashes and gaps in pixels.
+	If an odd number of values is provided, then the list of values is repeated to yield an even number
+	of values. A typical strokeDashArray array might contain the members 5 3 2.
+	End Rem
 	Method getStrokeDashArray:Double[]()
-	' TODO
+		Return bmx_magick_image_getstrokedasharray(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: While drawing using a dash pattern, specify distance into the dash pattern to start the dash (default 0)
+	End Rem
 	Method strokeDashOffset(offset:Double)
-	' TODO
+		bmx_magick_image_strokedashoffset(imagePtr, offset)
 	End Method
 	
+	Rem
+	bbdoc: Returns the distance into the dash pattern to start the dash of a dash pattern.
+	End Rem
 	Method getStrokeDashOffset:Double()
-	' TODO
+		Return bmx_magick_image_getstrokedashoffset(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Specifies the shape to be used at the end of open subpaths when they are stroked.
+	about: Values of LineCap are LINECAP_UNDEFINEDCAP, LINECAP_BUTTCAP, LINECAP_ROUNDCAP and LINECAP_SQUARECAP.
+	End Rem
 	Method strokeLineCap(lineCap:Int)
-	' TODO
+		bmx_magick_image_strokelinecap(imagePtr, lineCap)
 	End Method
 	
+	Rem
+	bbdoc: Returns the shape to be used at the end of open subpaths when they are stroked.
+	about: Values of LineCap are LINECAP_UNDEFINEDCAP, LINECAP_BUTTCAP, LINECAP_ROUNDCAP and LINECAP_SQUARECAP.
+	End Rem
 	Method getStrokeLineCap:Int()
-	' TODO
+		Return bmx_magick_image_getstrokelinecap(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Specifies the shape to be used at the corners of paths (or other vector shapes) when they are stroked.
+	about: Values of LineJoin are LINEJOIN_UNDEFINEDJOIN, LINEJOIN_MITERJOIN,  LINEJOIN_ROUNDJOIN and LINEJOIN_BEVELJOIN.
+	End Rem
 	Method strokeLineJoin(lineJoin:Int)
-	' TODO
+		bmx_magick_image_strokelinejoin(imagePtr, lineJoin)
 	End Method
 	
+	Rem
+	bbdoc: Returns the shape to be used at the corners of paths (or other vector shapes) when they are stroked.
+	about: Values of LineJoin are LINEJOIN_UNDEFINEDJOIN, LINEJOIN_MITERJOIN,  LINEJOIN_ROUNDJOIN and LINEJOIN_BEVELJOIN.
+	End Rem
 	Method getStrokeLineJoin:Int()
-	' TODO
+		Return bmx_magick_image_getstrokelinejoin(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Specifies miter limit.
+	about: When two line segments meet at a sharp angle and miter joins have been specified for 'lineJoin', it
+	is possible for the miter to extend far beyond the thickness of the line stroking the path. The miterLimit imposes a
+	limit on the ratio of the miter length to the 'lineWidth'. The default value of this parameter is 4
+	End Rem
 	Method strokeMiterLimit(miterLimit:Int)
-	' TODO
+		bmx_magick_image_strokemiterlimit(imagePtr, miterlimit)
 	End Method
 	
+	Rem
+	bbdoc: Returns the miter limit.
+	about: When two line segments meet at a sharp angle and miter joins have been specified for 'lineJoin', it
+	is possible for the miter to extend far beyond the thickness of the line stroking the path. The miterLimit imposes a
+	limit on the ratio of the miter length to the 'lineWidth'. The default value of this parameter is 4
+	End Rem
 	Method getStrokeMiterLimit:Int()
-	' TODO
+		Return bmx_magick_image_getstrokemiterlimit(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Pattern image to use while stroking object outlines.
+	End Rem
 	Method strokePattern(pattern:TMImage)
-	' TODO
+		bmx_magick_image_strokepattern(imagePtr, pattern.imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the pattern image to use while stroking object outlines.
+	End Rem
 	Method getStrokePattern:TMImage()
-	' TODO
+		Return TMImage._create(bmx_magick_image_getstrokepattern(imagePtr))
 	End Method
 	
+	Rem
+	bbdoc: Subimage of an image sequence.
+	End Rem
 	Method subImage(subImage:Int)
-	' TODO
+		bmx_magick_image_subimage(imagePtr, subImage)
 	End Method
 	
+	Rem
+	bbdoc: Returns the subimage of an image sequence.
+	End Rem
 	Method getSubImage:Int()
-	' TODO
+		Return bmx_magick_image_getsubimage(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Number of images relative to the base image.
+	End Rem
 	Method subRange(subRange:Int)
-	' TODO
+		bmx_magick_image_subrange(imagePtr, subRange)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of images relative to the base image.
+	End Rem
 	Method getSubRange:Int()
-	' TODO
+		Return bmx_magick_image_getsubrange(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Annotation text encoding (e.g. "UTF-16").
+	End Rem
 	Method textEncoding(encoding:String)
-	' TODO
+		bmx_magick_image_textencoding(imagePtr, encoding)
 	End Method
 	
+	Rem
+	bbdoc: Returns the annotation text encoding (e.g. "UTF-16").
+	End Rem
 	Method getTextEncoding:String()
-	' TODO
+		Return bmx_magick_image_gettextencoding(imagePtr)
 	End Method
 
+	Rem
+	bbdoc: Tile name.
+	End Rem
 	Method tileName(name:String)
-	' TODO
+		bmx_magick_image_tilename(imagePtr, name)
 	End Method
 	
+	Rem
+	bbdoc: Returns the tile name.
+	End Rem
 	Method getTileName:String()
-	' TODO
+		Return bmx_magick_image_gettilename(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the number of colors in the image.
+	End Rem
 	Method getTotalColors:Int()
-	' TODO
+		Return bmx_magick_image_gettotalcolors(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Origin of coordinate system to use when annotating with text or drawing.
+	End Rem
 	Method transformOrigin(x:Double, y:Double)
-	' TODO
+		bmx_magick_image_transformorigin(imagePtr, x, y)
 	End Method
 	
+	Rem
+	bbdoc: Rotation to use when annotating with text or drawing.
+	End Rem
 	Method transformRotation(angle:Double)
-	' TODO
+		bmx_magick_image_transformrotation(imagePtr, angle)
 	End Method
 	
+	Rem
+	bbdoc: Resets transformation parameters to default.
+	End Rem
 	Method transformReset()
-	' TODO
+		bmx_magick_image_transformreset(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Scale to use when annotating with text or drawing.
+	End Rem
 	Method transformScale(sx:Double, sy:Double)
-	' TODO
+		bmx_magick_image_transformscale(imagePtr, sx, sy)
 	End Method
 	
+	Rem
+	bbdoc: Skew to use in X axis when annotating with text or drawing.
+	End Rem
 	Method transformSkewX(skew:Double)
-	' TODO
+		bmx_magick_image_transformskewx(imagePtr, skew)
 	End Method
 	
+	Rem
+	bbdoc: Skew to use in Y axis when annotating with text or drawing.
+	End Rem
 	Method transformSkewY(skew:Double)
-	' TODO
+		bmx_magick_image_transformskewy(imagePtr, skew)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method getType:Int()
-	' TODO
+		Return bmx_magick_image_gettype(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the x resolution of the image.
+	End Rem
 	Method getXResolution:Double()
-	' TODO
+		Return bmx_magick_image_getxresolution(imagePtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the y resolution of the image
+	End Rem
 	Method getYResolution:Double()
-	' TODO
+		Return bmx_magick_image_getyresolution(imagePtr)
 	End Method
 	
 End Type

@@ -235,6 +235,69 @@ extern "C" {
 	void bmx_magick_image_opaquesc(MaxMImage * image, BBString * opaqueColor, MaxMColor * penColor);
 	void bmx_magick_image_opaquess(MaxMImage * image, BBString * opaqueColor, BBString * penColor);
 
+	void bmx_magick_image_modulusdepth(MaxMImage * image, int depth);
+	int bmx_magick_image_getmodulusdepth(MaxMImage * image);
+	void bmx_magick_image_monochrome(MaxMImage * image, int flag);
+	int bmx_magick_image_getmonochrome(MaxMImage * image);
+	double bmx_magick_image_normalizedmaxerror(MaxMImage * image);
+	double bmx_magick_image_normalizedmeanerror(MaxMImage * image);
+	void bmx_magick_image_orientation(MaxMImage * image, const OrientationType orientation);
+	OrientationType bmx_magick_image_getorientation(MaxMImage * image);
+	void bmx_magick_image_quality(MaxMImage * image, const unsigned int value);
+	unsigned int bmx_magick_image_getquality(MaxMImage * image);
+	void bmx_magick_image_quantizecolors(MaxMImage * image, const unsigned int colors);
+	unsigned int bmx_magick_image_getquantizecolors(MaxMImage * image);
+	void bmx_magick_image_quantizecolorspace(MaxMImage * image, const ColorspaceType colorSpace);
+	ColorspaceType bmx_magick_image_getquantizecolorspace(MaxMImage * image);
+	void bmx_magick_image_quantizedither(MaxMImage * image, int flag);
+	int bmx_magick_image_getquantizedither(MaxMImage * image);
+	void bmx_magick_image_quantizetreedepth(MaxMImage * image, const unsigned int treeDepth);
+	unsigned int bmx_magick_image_getquantizetreedepth(MaxMImage * image);
+	void bmx_magick_image_renderingintent(MaxMImage * image, const RenderingIntent intent);
+	RenderingIntent bmx_magick_image_getrenderingintent(MaxMImage * image);
+	void bmx_magick_image_resolutionunits(MaxMImage * image, const ResolutionType units);
+	ResolutionType bmx_magick_image_getresolutionunits(MaxMImage * image);
+	unsigned int bmx_magick_image_getrows(MaxMImage * image);
+	void bmx_magick_image_scene(MaxMImage * image, const unsigned int scene);
+	unsigned int bmx_magick_image_getscene(MaxMImage * image);
+	BBString * bmx_magick_image_getsignature(MaxMImage * image, int force);
+	void bmx_magick_image_strokeantialias(MaxMImage * image, int flag);
+	int bmx_magick_image_getstrokeantialias(MaxMImage * image);
+	void bmx_magick_image_strokedasharray(MaxMImage * image, BBArray * array);
+	BBArray * bmx_magick_image_getstrokedasharray(MaxMImage * image);
+	void bmx_magick_image_strokedashoffset(MaxMImage * image, double offset);
+	double bmx_magick_image_getstrokedashoffset(MaxMImage * image);
+	void bmx_magick_image_strokelinecap(MaxMImage * image, const LineCap lineCap);
+	LineCap bmx_magick_image_getstrokelinecap(MaxMImage * image);
+	void bmx_magick_image_strokelinejoin(MaxMImage * image, const LineJoin lineJoin);
+	LineJoin bmx_magick_image_getstrokelinejoin(MaxMImage * image);
+	void bmx_magick_image_strokemiterlimit(MaxMImage * image, const unsigned int miterlimit);
+	unsigned int bmx_magick_image_getstrokemiterlimit(MaxMImage * image);
+	void bmx_magick_image_strokepattern(MaxMImage * image, MaxMImage * pattern);
+	MaxMImage * bmx_magick_image_getstrokepattern(MaxMImage * image);
+	void bmx_magick_image_subimage(MaxMImage * image, const unsigned int subImage);
+	unsigned int bmx_magick_image_getsubimage(MaxMImage * image);
+	void bmx_magick_image_subrange(MaxMImage * image, const unsigned int subRange);
+	unsigned int bmx_magick_image_getsubrange(MaxMImage * image);
+	void bmx_magick_image_textencoding(MaxMImage * image, BBString * encoding);
+	BBString * bmx_magick_image_gettextencoding(MaxMImage * image);
+	void bmx_magick_image_tilename(MaxMImage * image, BBString * name);
+	BBString * bmx_magick_image_gettilename(MaxMImage * image);
+	int bmx_magick_image_gettotalcolors(MaxMImage * image);
+	void bmx_magick_image_transformorigin(MaxMImage * image, const double x, const double y);
+	void bmx_magick_image_transformrotation(MaxMImage * image, const double angle);
+	void bmx_magick_image_transformreset(MaxMImage * image);
+	void bmx_magick_image_transformscale(MaxMImage * image, const double sx, const double sy);
+	void bmx_magick_image_transformskewx(MaxMImage * image, const double skew);
+	void bmx_magick_image_transformskewy(MaxMImage * image, const double skew);
+	ImageType bmx_magick_image_gettype(MaxMImage * image);
+	double bmx_magick_image_getxresolution(MaxMImage * image);
+	double bmx_magick_image_getyresolution(MaxMImage * image);
+	void bmx_magick_image_transparent(MaxMImage * image, MaxMColor * color);
+	void bmx_magick_image_transparenttxt(MaxMImage * image, BBString * color);
+	double bmx_magick_image_getcolorfuzz(MaxMImage * image);
+	void bmx_magick_image_colorspace(MaxMImage * image, const ColorspaceType colorSpace);
+	ColorspaceType bmx_magick_image_getcolorspace(MaxMImage * image);
 
 	Blob * bmx_magick_blob_createfromdata(void * data, int size);
 
@@ -440,8 +503,9 @@ void bmx_magick_throw_exception(Magick::Exception &e) {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 MaxMImage * bmx_magick_createfromspec(BBString * imageSpec) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( imageSpec );
+		p = bbStringToCString( imageSpec );
 		
 		Image image(p);
 		MaxMImage * mImage = new MaxMImage(image);
@@ -449,6 +513,7 @@ MaxMImage * bmx_magick_createfromspec(BBString * imageSpec) {
 		bbMemFree( p );
 		return mImage;
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -496,23 +561,29 @@ void bmx_magick_image_affinetransform(MaxMImage * image, const DrawableAffine &a
 }
 
 void bmx_magick_image_annotate(MaxMImage * image, BBString * text, MaxMGeometry * location ) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( text );
+		t = bbStringToCString( text );
 		image->image().annotate(t, location->geometry());
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_annotatetxt(MaxMImage * image, BBString * text, BBString * location) {
+	char *t = 0;
+	char *l = 0;
 	try {
-		char *t = bbStringToCString( text );
-		char *l = bbStringToCString( location );
+		t = bbStringToCString( text );
+		l = bbStringToCString( location );
 		image->image().annotate(t, l);
 		bbMemFree(t);
 		bbMemFree(l);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
+		if (l) bbMemFree(l);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -543,11 +614,13 @@ void bmx_magick_image_border(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_bordertxt(MaxMImage * image, BBString * geometry) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( geometry );
+		p = bbStringToCString( geometry );
 		image->image().border(p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -593,11 +666,13 @@ void bmx_magick_image_chop(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_choptxt(MaxMImage * image, BBString * geometry) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( geometry );
+		p = bbStringToCString( geometry );
 		image->image().chop(p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -611,11 +686,13 @@ void bmx_magick_image_colorize(MaxMImage * image, const unsigned int opacityRed,
 }
 
 void bmx_magick_image_colorizetxt(MaxMImage * image, const unsigned int opacityRed, const unsigned int opacityGreen, const unsigned int opacityBlue, BBString * penColor) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( penColor );
+		p = bbStringToCString( penColor );
 		image->image().colorize(opacityRed, opacityGreen, opacityBlue, p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -629,21 +706,25 @@ void bmx_magick_image_colorizecolor(MaxMImage * image, const unsigned int opacit
 }
 
 void bmx_magick_image_colorizecolortxt(MaxMImage * image, const unsigned int opacity, BBString * penColor) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( penColor );
+		p = bbStringToCString( penColor );
 		image->image().colorize(opacity, p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_comment(MaxMImage * image, BBString * comment) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( comment );
+		p = bbStringToCString( comment );
 		image->image().comment(p);
 		bbMemFree( p );
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -732,11 +813,13 @@ void bmx_magick_image_oilpaint(MaxMImage * image, double radius) {
 
 
 void bmx_magick_image_writefile(MaxMImage * image, BBString * imageSpec) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( imageSpec );
+		p = bbStringToCString( imageSpec );
 		image->image().write(p);
 		bbMemFree( p );
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree( p );
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -761,11 +844,13 @@ unsigned int bmx_magick_image_getdepth(MaxMImage * image) {
 
 void bmx_magick_image_writedata(MaxMImage * image, const int x, const int y, const unsigned int columns,
 		const unsigned int rows, BBString * map, const StorageType type, void *pixels) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( map );
+		p = bbStringToCString( map );
 		image->image().write(x, y, columns, rows, p, type, pixels);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -811,43 +896,53 @@ void bmx_magick_image_size(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_sizetxt(MaxMImage * image, BBString * geometry) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( geometry );
+		p = bbStringToCString( geometry );
 		image->image().size(p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_read(MaxMImage * image, BBString * imageSpec) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( imageSpec );
+		p = bbStringToCString( imageSpec );
 		image->image().read(p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_readgeom(MaxMImage * image, MaxMGeometry * geometry, BBString * imageSpec) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( imageSpec );
+		p = bbStringToCString( imageSpec );
 		image->image().read(geometry->geometry(), p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_readgeomtxt(MaxMImage * image, BBString * geometry, BBString * imageSpec) {
+	char *g = 0;
+	char *i = 0;
 	try {
-		char *g = bbStringToCString( geometry );
-		char *i = bbStringToCString( imageSpec );
+		g = bbStringToCString( geometry );
+		i = bbStringToCString( imageSpec );
 		image->image().read(g, i);
 		bbMemFree(g);
 		bbMemFree(i);
 	} catch (Magick::Exception & e) {
+		if (g) bbMemFree(g);
+		if (i) bbMemFree(i);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -861,11 +956,13 @@ void bmx_magick_image_zoom(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_zoomtxt(MaxMImage * image, BBString * geometry) {
+	char *g = 0;
 	try {
-		char *g = bbStringToCString( geometry );
+		g = bbStringToCString( geometry );
 		image->image().zoom(g);
 		bbMemFree(g);
 	} catch (Magick::Exception & e) {
+		if (g) bbMemFree(g);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -879,11 +976,13 @@ void bmx_magick_image_pixelcolor(MaxMImage * image, unsigned int x, unsigned int
 }
 
 void bmx_magick_image_pixelcolortxt(MaxMImage * image, unsigned int x, unsigned int y, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().pixelColor(x, y, c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -897,11 +996,13 @@ void bmx_magick_image_strokecolor(MaxMImage * image, MaxMColor * color) {
 }
 
 void bmx_magick_image_strokecolortxt(MaxMImage * image, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().strokeColor(c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -915,11 +1016,13 @@ void bmx_magick_image_colormap(MaxMImage * image, unsigned int index, MaxMColor 
 }
 
 void bmx_magick_image_colormaptxt(MaxMImage * image, unsigned int index, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().colorMap(index, c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -933,11 +1036,13 @@ void bmx_magick_image_backgroundcolor(MaxMImage * image, MaxMColor * color) {
 }
 
 void bmx_magick_image_backgroundcolortxt(MaxMImage * image, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().backgroundColor(c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -951,11 +1056,13 @@ void bmx_magick_image_bordercolor(MaxMImage * image, MaxMColor * color) {
 }
 
 void bmx_magick_image_bordercolortxt(MaxMImage * image, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().borderColor(c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -969,11 +1076,13 @@ void bmx_magick_image_crop(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_croptxt(MaxMImage * image, BBString * geometry) {
+	char *p = 0;
 	try {
-		char *p = bbStringToCString( geometry );
+		p = bbStringToCString( geometry );
 		image->image().crop(p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1099,34 +1208,42 @@ unsigned int bmx_magick_image_getanimationiterations(MaxMImage * image) {
 }
 
 void bmx_magick_image_attribute(MaxMImage * image, BBString * name, BBString * value) {
+	char *n = 0;
+	char *v = 0;
 	try {
-		char *n = bbStringToCString( name );
-		char *v = bbStringToCString( value );
+		n = bbStringToCString( name );
+		v = bbStringToCString( value );
 		image->image().attribute(n, v);
 		bbMemFree(n);
 		bbMemFree(v);
 	} catch (Magick::Exception & e) {
+		if (n) bbMemFree(n);
+		if (v) bbMemFree(v);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 BBString * bmx_magick_image_getattribute(MaxMImage * image, BBString * name) {
+	char *n = 0;
 	try {
-		char *n = bbStringToCString( name );
+		n = bbStringToCString( name );
 		BBString * att = bbStringFromCString(image->image().attribute(n).c_str());
 		bbMemFree(n);
 		return att;
 	} catch (Magick::Exception & e) {
+		if (n) bbMemFree(n);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_backgroundtexture(MaxMImage * image, BBString * backgroundTexture) {
+	char *b = 0;
 	try {
-		char *b = bbStringToCString( backgroundTexture );
+		b = bbStringToCString( backgroundTexture );
 		image->image().backgroundTexture(b);
 		bbMemFree(b);
 	} catch (Magick::Exception & e) {
+		if (b) bbMemFree(b);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1272,8 +1389,9 @@ void bmx_magick_image_floodfillcolorcc(MaxMImage * image, const unsigned int x, 
 }
 
 void bmx_magick_image_floodfillcolorsc(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, MaxMColor * borderColor) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( fillColor );
+		t = bbStringToCString( fillColor );
 		if (borderColor) {
 			image->image().floodFillColor(x, y, t, borderColor->color());
 		} else {
@@ -1281,30 +1399,37 @@ void bmx_magick_image_floodfillcolorsc(MaxMImage * image, const unsigned int x, 
 		}
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_floodfillcolorcs(MaxMImage * image, const unsigned int x, const unsigned int y, MaxMColor * fillColor, BBString * borderColor) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( borderColor );
+		t = bbStringToCString( borderColor );
 		image->image().floodFillColor(x, y, fillColor->color(), t);
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_floodfillcolorss(MaxMImage * image, const unsigned int x, const unsigned int y, BBString * fillColor, BBString * borderColor) {
+	char *f = 0;
+	char *b = 0;
 	try {
-		char *f = bbStringToCString( fillColor );
-		char *b = bbStringToCString( borderColor );
+		f = bbStringToCString( fillColor );
+		b = bbStringToCString( borderColor );
 	
 		image->image().floodFillColor(x, y, f, b);
 		
 		bbMemFree(f);
 		bbMemFree(b);
 	} catch (Magick::Exception & e) {
+		if (f) bbMemFree(f);
+		if (b) bbMemFree(b);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1318,11 +1443,13 @@ void bmx_magick_image_frame(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_frametxt(MaxMImage * image, BBString * geometry) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( geometry );
+		t = bbStringToCString( geometry );
 		image->image().frame(t);
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1376,11 +1503,13 @@ void bmx_magick_image_implode(MaxMImage * image, const double factor) {
 }
 
 void bmx_magick_image_label(MaxMImage * image, BBString * text) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( text );
+		t = bbStringToCString( text );
 		image->image().label(t);
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1418,11 +1547,13 @@ void bmx_magick_image_modifyImage(MaxMImage * image) {
 }
 
 void bmx_magick_image_ping(MaxMImage * image, BBString * imageSpec) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( imageSpec );
+		t = bbStringToCString( imageSpec );
 		image->image().ping(t);
 		bbMemFree(t);
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1573,54 +1704,71 @@ CompressionType bmx_magick_image_getcompresstype(MaxMImage * image) {
 }
 
 void bmx_magick_image_definevalue(MaxMImage * image, BBString * magick, BBString * key, BBString * value) {
-
+	char *m = 0;
+	char *k = 0;
+	char *v = 0;
 	try {
-		char *m = bbStringToCString( magick );
-		char *k = bbStringToCString( key );
-		char *v = bbStringToCString( value );
+		m = bbStringToCString( magick );
+		k = bbStringToCString( key );
+		v = bbStringToCString( value );
 		image->image().defineValue(m, k, v);
 		bbMemFree(m);
 		bbMemFree(k);
 		bbMemFree(v);
 	} catch (Magick::Exception & e) {
+		if (m) bbMemFree(m);
+		if (k) bbMemFree(k);
+		if (v) bbMemFree(v);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 BBString * bmx_magick_image_getdefinedvalue(MaxMImage * image, BBString * magick, BBString * key) {
+	char *m = 0;
+	char *k = 0;
 	try {
-		char *m = bbStringToCString( magick );
-		char *k = bbStringToCString( key );
+		m = bbStringToCString( magick );
+		k = bbStringToCString( key );
 		BBString * value = bbStringFromCString(image->image().defineValue(m, k).c_str());
 		bbMemFree(m);
 		bbMemFree(k);
 		return value;
 	} catch (Magick::Exception & e) {
+		if (m) bbMemFree(m);
+		if (k) bbMemFree(k);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_defineset(MaxMImage * image, BBString * magick, BBString * key, int flag) {
+	char *m = 0;
+	char *k = 0;
 	try {
-		char *m = bbStringToCString( magick );
-		char *k = bbStringToCString( key );
+		m = bbStringToCString( magick );
+		k = bbStringToCString( key );
 		image->image().defineSet(m, k, static_cast<bool>(flag));
 		bbMemFree(m);
 		bbMemFree(k);
 	} catch (Magick::Exception & e) {
+		if (m) bbMemFree(m);
+		if (k) bbMemFree(k);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 int bmx_magick_image_getdefinedset(MaxMImage * image, BBString * magick, BBString * key) {
+	char *m = 0;
+	char *k = 0;
 	try {
-		char *m = bbStringToCString( magick );
-		char *k = bbStringToCString( key );
+		m = bbStringToCString( magick );
+		k = bbStringToCString( key );
 		int flag = static_cast<int>(image->image().defineSet(m, k));
 		bbMemFree(m);
 		bbMemFree(k);
 		return flag;
 	} catch (Magick::Exception & e) {
+		if (m) bbMemFree(m);
+		if (k) bbMemFree(k);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1634,11 +1782,13 @@ void bmx_magick_image_density(MaxMImage * image, MaxMGeometry * geometry) {
 }
 
 void bmx_magick_image_densitytxt(MaxMImage * image, BBString * geometry) {
+	char *g = 0;
 	try {
-		char *g = bbStringToCString( geometry );
+		g = bbStringToCString( geometry );
 		image->image().density(g);
 		bbMemFree(g);
 	} catch (Magick::Exception & e) {
+		if (g) bbMemFree(g);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1676,11 +1826,13 @@ EndianType bmx_magick_image_getendian(MaxMImage * image) {
 }
 
 void bmx_magick_image_filename(MaxMImage * image, BBString * filename) {
+	char *f = 0;
 	try {
-		char *f = bbStringToCString( filename );
+		f = bbStringToCString( filename );
 		image->image().fileName(f);
 		bbMemFree(f);
 	} catch (Magick::Exception & e) {
+		if (f) bbMemFree(f);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1710,11 +1862,13 @@ void bmx_magick_image_fillcolor(MaxMImage * image, MaxMColor * color) {
 }
 
 void bmx_magick_image_fillcolortxt(MaxMImage * image, BBString * color) {
+	char *c = 0;
 	try {
-		char *c = bbStringToCString( color );
+		c = bbStringToCString( color );
 		image->image().fillColor(c);
 		bbMemFree(c);
 	} catch (Magick::Exception & e) {
+		if (c) bbMemFree(c);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1752,11 +1906,13 @@ FilterTypes bmx_magick_image_getfiltertype(MaxMImage * image) {
 }
 
 void bmx_magick_image_font(MaxMImage * image, BBString * font) {
+	char *f = 0;
 	try {
-		char *f = bbStringToCString( font );
+		f = bbStringToCString( font );
 		image->image().font(f);
 		bbMemFree(f);
 	} catch (Magick::Exception & e) {
+		if (f) bbMemFree(f);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1874,11 +2030,13 @@ double bmx_magick_image_getstrokewidth(MaxMImage * image) {
 }
 
 void bmx_magick_image_magick(MaxMImage * image, BBString * magick) {
+	char * m = 0;
 	try {
-		char * m = bbStringToCString( magick );
+		m = bbStringToCString( magick );
 		image->image().magick(m);
 		bbMemFree(m);
 	} catch (Magick::Exception & e) {
+		if (m) bbMemFree(m);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1916,37 +2074,582 @@ void bmx_magick_image_opaquecc(MaxMImage * image, MaxMColor * opaqueColor, MaxMC
 }
 
 void bmx_magick_image_opaquecs(MaxMImage * image, MaxMColor * opaqueColor, BBString * penColor) {
+	char * p = 0;
 	try {
-		char * p = bbStringToCString(penColor);
+		p = bbStringToCString(penColor);
 		image->image().opaque(opaqueColor->color(), p);
 		bbMemFree(p);
 	} catch (Magick::Exception & e) {
+		if (p) bbMemFree(p);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_opaquesc(MaxMImage * image, BBString * opaqueColor, MaxMColor * penColor) {
+	char * o = 0;
 	try {
-		char * o = bbStringToCString(opaqueColor);
+		o = bbStringToCString(opaqueColor);
 		image->image().opaque(o, penColor->color());
 		bbMemFree(o);
 	} catch (Magick::Exception & e) {
+		if (o) bbMemFree(o);
 		bmx_magick_throw_exception(e);
 	}
 }
 
 void bmx_magick_image_opaquess(MaxMImage * image, BBString * opaqueColor, BBString * penColor) {
+	char * o = 0;
+	char * p = 0;
 	try {
-		char * o = bbStringToCString(opaqueColor);
-		char * p = bbStringToCString(penColor);
+		o = bbStringToCString(opaqueColor);
+		p = bbStringToCString(penColor);
 		image->image().opaque(o, p);
 		bbMemFree(o);
 		bbMemFree(p);
+	} catch (Magick::Exception & e) {
+		if (o) bbMemFree(o);
+		if (p) bbMemFree(p);
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_modulusdepth(MaxMImage * image, int depth) {
+	try {
+		image->image().modulusDepth(depth);
 	} catch (Magick::Exception & e) {
 		bmx_magick_throw_exception(e);
 	}
 }
 
+int bmx_magick_image_getmodulusdepth(MaxMImage * image) {
+	try {
+		return image->image().modulusDepth();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_monochrome(MaxMImage * image, int flag) {
+	try {
+		image->image().monochrome(static_cast<bool>(flag));
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+int bmx_magick_image_getmonochrome(MaxMImage * image) {
+	try {
+		return static_cast<int>(image->image().monochrome());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_normalizedmaxerror(MaxMImage * image) {
+	try {
+		return image->image().normalizedMaxError();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_normalizedmeanerror(MaxMImage * image) {
+	try {
+		return image->image().normalizedMeanError();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_orientation(MaxMImage * image, const OrientationType orientation) {
+	try {
+		image->image().orientation(orientation);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+OrientationType bmx_magick_image_getorientation(MaxMImage * image) {
+	try {
+		return image->image().orientation();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_quality(MaxMImage * image, const unsigned int value) {
+	try {
+		image->image().quality(value);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getquality(MaxMImage * image) {
+	try {
+		return image->image().quality();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_quantizecolors(MaxMImage * image, const unsigned int colors) {
+	try {
+		image->image().quantizeColors(colors);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getquantizecolors(MaxMImage * image) {
+	try {
+		return image->image().quantizeColors();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_quantizecolorspace(MaxMImage * image, const ColorspaceType colorSpace) {
+	try {
+		image->image().quantizeColorSpace(colorSpace);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+ColorspaceType bmx_magick_image_getquantizecolorspace(MaxMImage * image) {
+	try {
+		return image->image().quantizeColorSpace();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_quantizedither(MaxMImage * image, int flag) {
+	try {
+		image->image().quantizeDither(static_cast<bool>(flag));
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+int bmx_magick_image_getquantizedither(MaxMImage * image) {
+	try {
+		return static_cast<int>(image->image().quantizeDither());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_quantizetreedepth(MaxMImage * image, const unsigned int treeDepth) {
+	try {
+		image->image().quantizeTreeDepth(treeDepth);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getquantizetreedepth(MaxMImage * image) {
+	try {
+		return image->image().quantizeTreeDepth();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_renderingintent(MaxMImage * image, const RenderingIntent intent) {
+	try {
+		image->image().renderingIntent(intent);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+RenderingIntent bmx_magick_image_getrenderingintent(MaxMImage * image) {
+	try {
+		return image->image().renderingIntent();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_resolutionunits(MaxMImage * image, const ResolutionType units) {
+	try {
+		image->image().resolutionUnits(units);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+ResolutionType bmx_magick_image_getresolutionunits(MaxMImage * image) {
+	try {
+		return image->image().resolutionUnits();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getrows(MaxMImage * image) {
+	try {
+		return image->image().rows();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_scene(MaxMImage * image, const unsigned int scene) {
+	try {
+		image->image().scene(scene);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getscene(MaxMImage * image) {
+	try {
+		return image->image().scene();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+BBString * bmx_magick_image_getsignature(MaxMImage * image, int force) {
+	try {
+		return bbStringFromCString(image->image().signature(static_cast<bool>(force)).c_str());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokeantialias(MaxMImage * image, int flag) {
+	try {
+		image->image().strokeAntiAlias(static_cast<bool>(flag));
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+int bmx_magick_image_getstrokeantialias(MaxMImage * image) {
+	try {
+		return static_cast<int>(image->image().strokeAntiAlias());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokedasharray(MaxMImage * image, BBArray * array) {
+	try {
+		int n = array->scales[0];
+		double *s=(double*)BBARRAYDATA( array,array->dims );
+		
+		double arr[n + 1];
+		for (int i = 0; i < n; i++) {
+			arr[i] = s[i];
+		}
+		arr[n] = 0;
+		image->image().strokeDashArray(arr);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+BBArray * bmx_magick_image_getstrokedasharray(MaxMImage * image) {
+	try {
+		const double* p = image->image().strokeDashArray();
+		const double* arr = p;
+		
+		int n = 0;
+		while (*p != 0) {
+			n++;
+			p++;
+		}
+		BBArray *array = bbArrayNew1D( "d",n );
+		double *s = (double*)BBARRAYDATA( array, array->dims );
+		for (int i = 0; i < n; i++) {
+			s[i] = arr[i];
+		}
+		
+		return array;
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokedashoffset(MaxMImage * image, double offset) {
+	try {
+		image->image().strokeDashOffset(offset);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_getstrokedashoffset(MaxMImage * image) {
+	try {
+		return image->image().strokeDashOffset();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokelinecap(MaxMImage * image, const LineCap lineCap) {
+	try {
+		image->image().strokeLineCap(lineCap);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+LineCap bmx_magick_image_getstrokelinecap(MaxMImage * image) {
+	try {
+		return image->image().strokeLineCap();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokelinejoin(MaxMImage * image, const LineJoin lineJoin) {
+	try {
+		image->image().strokeLineJoin(lineJoin);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+LineJoin bmx_magick_image_getstrokelinejoin(MaxMImage * image) {
+	try {
+		return image->image().strokeLineJoin();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokemiterlimit(MaxMImage * image, const unsigned int miterlimit) {
+	try {
+		image->image().strokeMiterLimit(miterlimit);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getstrokemiterlimit(MaxMImage * image) {
+	try {
+		return image->image().strokeMiterLimit();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_strokepattern(MaxMImage * image, MaxMImage * pattern) {
+	try {
+		image->image().strokePattern(pattern->image());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+MaxMImage * bmx_magick_image_getstrokepattern(MaxMImage * image) {
+	try {
+		return new MaxMImage(image->image().strokePattern());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_subimage(MaxMImage * image, const unsigned int subImage) {
+	try {
+		image->image().subImage(subImage);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getsubimage(MaxMImage * image) {
+	try {
+		return image->image().subImage();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_subrange(MaxMImage * image, const unsigned int subRange) {
+	try {
+		image->image().subRange(subRange);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+unsigned int bmx_magick_image_getsubrange(MaxMImage * image) {
+	try {
+		return image->image().subRange();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_textencoding(MaxMImage * image, BBString * encoding) {
+	char *n = 0;
+	try {
+		n = bbStringToCString( encoding );
+		image->image().textEncoding(n);
+		bbMemFree(n);
+	} catch (Magick::Exception & e) {
+		if (n) bbMemFree(n);
+		bmx_magick_throw_exception(e);
+	}
+}
+
+BBString * bmx_magick_image_gettextencoding(MaxMImage * image) {
+	try {
+		return bbStringFromCString(image->image().textEncoding().c_str());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_tilename(MaxMImage * image, BBString * name) {
+	char *n = 0;
+	try {
+		n = bbStringToCString( name );
+		image->image().tileName(n);
+		bbMemFree(n);
+	} catch (Magick::Exception & e) {
+		if (n) bbMemFree(n);
+		bmx_magick_throw_exception(e);
+	}
+}
+
+BBString * bmx_magick_image_gettilename(MaxMImage * image) {
+	try {
+		return bbStringFromCString(image->image().tileName().c_str());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+int bmx_magick_image_gettotalcolors(MaxMImage * image) {
+	try {
+		return image->image().totalColors();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformorigin(MaxMImage * image, const double x, const double y) {
+	try {
+		image->image().transformOrigin(x, y);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformrotation(MaxMImage * image, const double angle) {
+	try {
+		image->image().transformRotation(angle);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformreset(MaxMImage * image) {
+	try {
+		image->image().transformReset();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformscale(MaxMImage * image, const double sx, const double sy) {
+	try {
+		image->image().transformScale(sx, sy);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformskewx(MaxMImage * image, const double skew) {
+	try {
+		image->image().transformSkewX(skew);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transformskewy(MaxMImage * image, const double skew) {
+	try {
+		image->image().transformSkewY(skew);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+ImageType bmx_magick_image_gettype(MaxMImage * image) {
+	try {
+		image->image().type();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_getxresolution(MaxMImage * image) {
+	try {
+		image->image().xResolution();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_getyresolution(MaxMImage * image) {
+	try {
+		return image->image().yResolution();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transparent(MaxMImage * image, MaxMColor * color) {
+	try {
+		image->image().transparent(color->color());
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_transparenttxt(MaxMImage * image, BBString * color) {
+	char *n = 0;
+	try {
+		n = bbStringToCString( color );
+		image->image().transparent(n);
+		bbMemFree(n);
+	} catch (Magick::Exception & e) {
+		if (n) bbMemFree(n);
+		bmx_magick_throw_exception(e);
+	}
+}
+
+double bmx_magick_image_getcolorfuzz(MaxMImage * image) {
+	try {
+		return image->image().colorFuzz();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+void bmx_magick_image_colorspace(MaxMImage * image, const ColorspaceType colorSpace) {
+	try {
+		image->image().colorSpace(colorSpace);
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
+
+ColorspaceType bmx_magick_image_getcolorspace(MaxMImage * image) {
+	try {
+		return image->image().colorSpace();
+	} catch (Magick::Exception & e) {
+		bmx_magick_throw_exception(e);
+	}
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1979,8 +2682,9 @@ void bmx_magick_coderinfolist(BBObject * tlist, CoderInfo::MatchType isReadable,
 }
 
 BBObject * bmx_magick_coderinfo_info(BBString * format) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( format );
+		t = bbStringToCString( format );
 		CoderInfo info(t);
 		BBObject * obj = _bah_magick_TMCoderInfo__create(bbStringFromCString(info.name().c_str()),
 					bbStringFromCString(info.description().c_str()), info.isReadable(), info.isWritable(),
@@ -1988,6 +2692,7 @@ BBObject * bmx_magick_coderinfo_info(BBString * format) {
 		bbMemFree(t);
 		return obj;
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -1995,12 +2700,14 @@ BBObject * bmx_magick_coderinfo_info(BBString * format) {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 DrawableText * bmx_magick_drawable_drawabletext_create(double x, double y, BBString * text) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( text );
+		t = bbStringToCString( text );
 		DrawableText * drawable = new DrawableText(x, y, t);
 		bbMemFree(t);
 		return drawable;
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }
@@ -2026,12 +2733,14 @@ void bmx_magick_drawable_drawabletextantialias_delete(DrawableTextAntialias * dr
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 DrawableFont * bmx_magick_drawable_drawablefont_create(BBString * font) {
+	char *t = 0;
 	try {
-		char *t = bbStringToCString( font );
+		t = bbStringToCString( font );
 		DrawableFont * drawable = new DrawableFont(t);
 		bbMemFree(t);
 		return drawable;
 	} catch (Magick::Exception & e) {
+		if (t) bbMemFree(t);
 		bmx_magick_throw_exception(e);
 	}
 }

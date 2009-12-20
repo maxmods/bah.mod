@@ -206,7 +206,70 @@ Extern
 	Function bmx_magick_image_opaquesc(handle:Byte Ptr, opaqueColor:String, penColor:Byte Ptr)
 	Function bmx_magick_image_opaquess(handle:Byte Ptr, opaqueColor:String, penColor:String)
 
-	
+	Function bmx_magick_image_modulusdepth(handle:Byte Ptr, depth:Int)
+	Function bmx_magick_image_getmodulusdepth:Int(handle:Byte Ptr)
+	Function bmx_magick_image_monochrome(handle:Byte Ptr, flag:Int)
+	Function bmx_magick_image_getmonochrome:Int(handle:Byte Ptr)
+	Function bmx_magick_image_normalizedmaxerror:Double(handle:Byte Ptr)
+	Function bmx_magick_image_normalizedmeanerror:Double(handle:Byte Ptr)
+	Function bmx_magick_image_orientation(handle:Byte Ptr, orientation:Int)
+	Function bmx_magick_image_getorientation:Int(handle:Byte Ptr)
+	Function bmx_magick_image_quality(handle:Byte Ptr, value:Int)
+	Function bmx_magick_image_getquality:Int(handle:Byte Ptr)
+	Function bmx_magick_image_quantizecolors(handle:Byte Ptr, colors:Int)
+	Function bmx_magick_image_getquantizecolors:Int(handle:Byte Ptr)
+	Function bmx_magick_image_quantizecolorspace(handle:Byte Ptr, colorSpace:Int)
+	Function bmx_magick_image_getquantizecolorspace:Int(handle:Byte Ptr)
+	Function bmx_magick_image_quantizedither(handle:Byte Ptr, flag:Int)
+	Function bmx_magick_image_getquantizedither:Int(handle:Byte Ptr)
+	Function bmx_magick_image_quantizetreedepth(handle:Byte Ptr, treeDepth:Int)
+	Function bmx_magick_image_getquantizetreedepth:Int(handle:Byte Ptr)
+	Function bmx_magick_image_renderingintent(handle:Byte Ptr, intent:Int)
+	Function bmx_magick_image_getrenderingintent:Int(handle:Byte Ptr)
+	Function bmx_magick_image_resolutionunits(handle:Byte Ptr, units:Int)
+	Function bmx_magick_image_getresolutionunits:Int(handle:Byte Ptr)
+	Function bmx_magick_image_getrows:Int(handle:Byte Ptr)
+	Function bmx_magick_image_scene(handle:Byte Ptr, scene:Int)
+	Function bmx_magick_image_getscene:Int(handle:Byte Ptr)
+	Function bmx_magick_image_getsignature:String(handle:Byte Ptr, force:Int)
+	Function bmx_magick_image_strokeantialias(handle:Byte Ptr, flag:Int)
+	Function bmx_magick_image_getstrokeantialias:Int(handle:Byte Ptr)
+	Function bmx_magick_image_strokedasharray(handle:Byte Ptr, array:Double[])
+	Function bmx_magick_image_getstrokedasharray:Double[](handle:Byte Ptr)
+	Function bmx_magick_image_strokedashoffset(handle:Byte Ptr, offset:Double)
+	Function bmx_magick_image_getstrokedashoffset:Double(handle:Byte Ptr)
+	Function bmx_magick_image_strokelinecap(handle:Byte Ptr, lineCap:Int)
+	Function bmx_magick_image_getstrokelinecap:Int(handle:Byte Ptr)
+	Function bmx_magick_image_strokelinejoin(handle:Byte Ptr, lineJoin:Int)
+	Function bmx_magick_image_getstrokelinejoin:Int(handle:Byte Ptr)
+	Function bmx_magick_image_strokemiterlimit(handle:Byte Ptr, miterlimit:Int)
+	Function bmx_magick_image_getstrokemiterlimit:Int(handle:Byte Ptr)
+	Function bmx_magick_image_strokepattern(handle:Byte Ptr, pattern:Byte Ptr)
+	Function bmx_magick_image_getstrokepattern:Byte Ptr(handle:Byte Ptr)
+	Function bmx_magick_image_subimage(handle:Byte Ptr, subImage:Int)
+	Function bmx_magick_image_getsubimage:Int(handle:Byte Ptr)
+	Function bmx_magick_image_subrange(handle:Byte Ptr, subRange:Int)
+	Function bmx_magick_image_getsubrange:Int(handle:Byte Ptr)
+	Function bmx_magick_image_textencoding(handle:Byte Ptr, encoding:String)
+	Function bmx_magick_image_gettextencoding:String(handle:Byte Ptr)
+	Function bmx_magick_image_tilename(handle:Byte Ptr, name:String)
+	Function bmx_magick_image_gettilename:String(handle:Byte Ptr)
+	Function bmx_magick_image_gettotalcolors:Int(handle:Byte Ptr)
+	Function bmx_magick_image_transformorigin(handle:Byte Ptr, x:Double, y:Double)
+	Function bmx_magick_image_transformrotation(handle:Byte Ptr, angle:Double)
+	Function bmx_magick_image_transformreset(handle:Byte Ptr)
+	Function bmx_magick_image_transformscale(handle:Byte Ptr, sx:Double, sy:Double)
+	Function bmx_magick_image_transformskewx(handle:Byte Ptr, skew:Double)
+	Function bmx_magick_image_transformskewy(handle:Byte Ptr, skew:Double)
+	Function bmx_magick_image_gettype:Int(handle:Byte Ptr)
+	Function bmx_magick_image_getxresolution:Double(handle:Byte Ptr)
+	Function bmx_magick_image_getyresolution:Double(handle:Byte Ptr)
+	Function bmx_magick_image_transparent(handle:Byte Ptr, color:Byte Ptr)
+	Function bmx_magick_image_transparenttxt(handle:Byte Ptr, color:String)
+	Function bmx_magick_image_getcolorfuzz:Double(handle:Byte Ptr)
+	Function bmx_magick_image_colorspace(handle:Byte Ptr, colorSpace:Int)
+	Function bmx_magick_image_getcolorspace:Int(handle:Byte Ptr)
+
 	Function bmx_magick_blob_createfromdata:Byte Ptr(data:Byte Ptr, size:Int)
 	
 	Function bmx_magick_coderinfolist(list:Object, isReadable:Int, isWritable:Int, isMultiFrame:Int)
@@ -812,3 +875,96 @@ Const STORAGE_INTEGERPIXEL:Int = 2
 Const STORAGE_LONGPIXEL:Int = 3
 Const STORAGE_FLOATPIXEL:Int = 4
 Const STORAGE_DOUBLEPIXEL:Int = 5
+
+Const LINECAP_UNDEFINEDCAP:Int = 0
+Const LINECAP_BUTTCAP:Int = 1
+Const LINECAP_ROUNDCAP:Int = 2
+Const LINECAP_SQUARECAP:Int = 3
+
+Const LINEJOIN_UNDEFINEDJOIN:Int = 0
+Const LINEJOIN_MITERJOIN:Int = 1
+Const LINEJOIN_ROUNDJOIN:Int = 2
+Const LINEJOIN_BEVELJOIN:Int = 3
+
+Rem
+bbdoc: 
+End Rem
+Const COLORSPACE_UNDEFINEDCOLORSPACE:Int = 0
+Rem
+bbdoc: Plain old RGB colorspace.
+End Rem
+Const COLORSPACE_RGBCOLORSPACE:Int = 1
+Rem
+bbdoc: Plain old full-range grayscale.
+End Rem
+Const COLORSPACE_GRAYCOLORSPACE:Int = 2
+Rem
+bbdoc: RGB but preserve matte channel during quantize.
+End Rem
+Const COLORSPACE_TRANSPARENTCOLORSPACE:Int = 3
+Rem
+bbdoc: 
+End Rem
+Const COLORSPACE_OHTACOLORSPACE:Int = 4
+Rem
+bbdoc: CIE XYZ.
+End Rem
+Const COLORSPACE_XYZCOLORSPACE:Int = 5
+Rem
+bbdoc: Kodak PhotoCD PhotoYCC.
+End Rem
+Const COLORSPACE_YCCCOLORSPACE:Int = 6
+Rem
+bbdoc: 
+End Rem
+Const COLORSPACE_YIQCOLORSPACE:Int = 7
+Rem
+bbdoc: 
+End Rem
+Const COLORSPACE_YPBPRCOLORSPACE:Int = 8
+Rem
+bbdoc: 
+End Rem
+Const COLORSPACE_YUVCOLORSPACE:Int = 9
+Rem
+bbdoc: Cyan, magenta, yellow, black, alpha.
+End Rem
+Const COLORSPACE_CMYKCOLORSPACE:Int = 10
+Rem
+bbdoc: Kodak PhotoCD sRGB.
+End Rem
+Const COLORSPACE_SRGBCOLORSPACE:Int = 11
+Rem
+bbdoc: Hue, saturation, luminosity.
+End Rem
+Const COLORSPACE_HSLCOLORSPACE:Int = 12
+Rem
+bbdoc: Hue, whiteness, blackness.
+End Rem
+Const COLORSPACE_HWBCOLORSPACE:Int = 13
+Rem
+bbdoc: LAB colorspace not supported yet other than via lcms.
+End Rem
+Const COLORSPACE_LABCOLORSPACE:Int = 14
+Rem
+bbdoc: RGB data with Cineon Log scaling, 2.048 density range.
+End Rem
+Const COLORSPACE_CINEONLOGRGBCOLORSPACE:Int = 15
+Rem
+bbdoc: Luma (Y) according to ITU-R 601.
+End Rem
+Const COLORSPACE_REC601LUMACOLORSPACE:Int = 16
+Rem
+bbdoc: YCbCr according to ITU-R 601.
+End Rem
+Const COLORSPACE_REC601YCBCRCOLORSPACE:Int = 17
+Rem
+bbdoc: Luma (Y) according to ITU-R 709.
+End Rem
+Const COLORSPACE_REC709LUMACOLORSPACE:Int = 18
+Rem
+bbdoc: YCbCr according to ITU-R 709.
+End Rem
+Const COLORSPACE_REC709YCBCRCOLORSPACE:Int = 19
+
+
