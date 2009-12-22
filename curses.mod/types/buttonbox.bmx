@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -115,5 +115,19 @@ Type TCursesButtonBox Extends TCursesWidget
 		Return vBUTTONBOX
 	End Method
 
+	Method free()
+		If titlePtr Then
+			MemFree(titlePtr)
+			titlePtr = Null
+		End If
+		
+		If _buttons Then
+			freeCStringArray(_buttons, buttonCount)
+			_buttons = Null
+		End If
+		
+		Super.free()
+	End Method
+	
 End Type
 

@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ Import "types/entry.bmx"
 Import "types/label.bmx"
 Import "types/scrolllist.bmx"
 Import "types/slider.bmx"
+Import "types/calendar.bmx"
 
 New TCDKDriver
 

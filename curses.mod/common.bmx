@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -113,6 +113,21 @@ Extern
 	Function setCDKSliderValue(slider:Byte Ptr, value:Int)
 	Function bmx_curses_CDKSlider_window:Byte Ptr(slider:Byte Ptr)
 	
+	Function newCDKCalendar:Byte Ptr(screen:Byte Ptr, x:Int, y:Int, title:Byte Ptr, _day:Int, _month:Int, ..
+		_year:Int, dayAttrib:Int, monthAttrib:Int, yearAttrib:Int, highlight:Int, box:Int, shadow:Int)
+	Function setCDKCalendarDate(calendar:Byte Ptr, _day:Int, _month:Int, _year:Int)
+	Function getCDKCalendarDate(calendar:Byte Ptr, _day:Int Ptr, _month:Int Ptr, _year:Int Ptr)
+	Function setCDKCalendarMonthsNames(calendar:Byte Ptr, names:Byte Ptr)
+	Function setCDKCalendarDaysNames(calendar:Byte Ptr, names:Byte Ptr)
+	Function setCDKCalendarMarker(calendar:Byte Ptr, _day:Int, _month:Int, _year:Int, marker:Int)
+	Function getCDKCalendarMarker:Int(calendar:Byte Ptr, _day:Int, _month:Int, _year:Int)
+	Function removeCDKCalendarMarker(calendar:Byte Ptr, _day:Int, _month:Int, _year:Int)
+	Function bmx_curses_positionCDKCalendar(calendar:Byte Ptr)
+	Function bmx_curses_drawCDKCalendar(widgetPtr:Byte Ptr)
+	Function bmx_curses_eraseCDKCalendar(calendar:Byte Ptr)
+	Function bmx_curses_injectCDKCalendar(widgetPtr:Byte Ptr, char:Int)
+	Function bmx_curses_CDKCalendar_window:Byte Ptr(calendar:Byte Ptr)
+
 	Function bmx_entry_exitType:Int(entry:Byte Ptr)
 	Function bmx_curses_drawCDKEntry(entry:Byte Ptr)
 	Function bmx_curses_positionCDKEntry(entry:Byte Ptr)
@@ -211,6 +226,15 @@ Extern
 	Function nodelay(window:Byte Ptr, b:Int)
 	Function getch:Int()
 '	Function cbreak:Int()
+
+	Rem
+	bbdoc: Will sound the audible bell on the terminal if possible, and if not, will flash the screen (visible bell).
+	End Rem
+	Function beep:Int()
+	Rem
+	bbdoc: Flashes the screen.
+	End Rem
+	Function flash:Int()
 	
 	Function bmx_curses_getchCDKObject:Int(widget:Byte Ptr, t:Int)
 	
@@ -271,23 +295,7 @@ Const A_COLOR:Int = $ff000000
 Const A_ITALIC:Int = A_INVIS
 Const A_PROTECT:Int = (A_UNDERLINE | A_LEFTLINE | A_RIGHTLINE)
 
-?linux
-Const A_BOLD:Int = $0100
-Const A_REVERSE:Int = $0200
-Const A_BLINK:Int = $0400
-
-Const A_ATTRIBUTES:Int = $ff00
-Const A_CHARTEXT:Int = $00ff
-Const A_COLOR:Int = $f800
-
-Const A_ALTCHARSET:Int = A_NORMAL
-Const A_PROTECT:Int = A_NORMAL
-Const A_UNDERLINE:Int = A_NORMAL
-Const A_INVIS:Int = A_NORMAL
-Const A_LEFTLINE:Int = A_NORMAL
-Const A_RIGHTLINE:Int = A_NORMAL
-Const A_ITALIC:Int = A_NORMAL
-?macos
+?Not win32
 Const A_BOLD:Int = $0100
 Const A_REVERSE:Int = $0200
 Const A_BLINK:Int = $0400

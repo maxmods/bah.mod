@@ -1,4 +1,29 @@
+/*
+ Copyright (c) 2007-2009 Bruce A Henderson
+ All rights reserved.
 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+     * Neither the name of Bruce A Henderson nor the
+       names of its contributors may be used to endorse or promote products
+       derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY Bruce A Henderson ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL Bruce A Henderson BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 extern "C" {
 
@@ -9,17 +34,22 @@ extern "C" {
 	EExitType bmx_slider_exitType(CDKSLIDER * slider);
 
 	void bmx_curses_drawCDKEntry(CDKENTRY * entry);
+	void bmx_curses_drawCDKLabel(CDKLABEL * label);
+	void bmx_curses_drawCDKCalendar(CDKCALENDAR * calendar);
+
 	void bmx_curses_positionCDKEntry(CDKENTRY * entry);
 	void bmx_curses_positionCDKLabel(CDKLABEL * label);
-	void bmx_curses_drawCDKLabel(CDKLABEL * label);
+	void bmx_curses_positionCDKCalendar(CDKCALENDAR * calendar);
 
 	void bmx_curses_eraseCDKEntry(CDKENTRY * entry);
 	void bmx_curses_eraseCDKLabel(CDKLABEL * label);
+	void bmx_curses_eraseCDKCalendar(CDKCALENDAR * calendar);
 	
 	int bmx_dialog_currentButton(CDKDIALOG * dialog);
 	
 	void bmx_curses_injectCDKButtonBox(CDKBUTTONBOX * bbox, int input);
 	void bmx_curses_injectCDKEntry(CDKENTRY * entry, int input);
+	void bmx_curses_injectCDKCalendar(CDKCALENDAR * calendar, int input);
 	
 	int bmx_curses_getbegx(WINDOW * window);
 	int bmx_curses_getbegy(WINDOW * window);
@@ -31,6 +61,7 @@ extern "C" {
 	WINDOW * bmx_curses_CDKLabel_window(CDKLABEL * label);
 	WINDOW * bmx_curses_CDKScroll_window(CDKLABEL * scroll);
 	WINDOW * bmx_curses_CDKFSelect_window(CDKLABEL * fselect);
+	WINDOW * bmx_curses_CDKCalendar_window(CDKCALENDAR * calendar);
 	
 	int bmx_curses_boxHeight(void * widget, EObjectType type);
 	int bmx_curses_boxWidth(void * widget, EObjectType type);
@@ -86,12 +117,24 @@ void bmx_curses_drawCDKEntry(CDKENTRY * entry) {
 	drawCDKEntry(entry, ObjOf(entry)->box);
 }
 
+void bmx_curses_drawCDKLabel(CDKLABEL * label) {
+	drawCDKLabel(label, ObjOf(label)->box);
+}
+
+void bmx_curses_drawCDKCalendar(CDKCALENDAR * calendar) {
+	drawCDKCalendar(calendar, ObjOf(calendar)->box);
+}
+
 void bmx_curses_positionCDKEntry(CDKENTRY * entry) {
 	positionCDKEntry(entry);
 }
 
 void bmx_curses_positionCDKLabel(CDKLABEL * label) {
 	positionCDKLabel(label);
+}
+
+void bmx_curses_positionCDKCalendar(CDKCALENDAR * calendar) {
+	positionCDKCalendar(calendar);
 }
 
 void bmx_curses_eraseCDKEntry(CDKENTRY * entry) {
@@ -102,8 +145,8 @@ void bmx_curses_eraseCDKLabel(CDKLABEL * label) {
 	eraseCDKLabel(label);
 }
 
-void bmx_curses_drawCDKLabel(CDKLABEL * label) {
-	drawCDKLabel(label, ObjOf(label)->box);
+void bmx_curses_eraseCDKCalendar(CDKCALENDAR * calendar) {
+	eraseCDKCalendar(calendar);
 }
 
 void bmx_curses_drawCDKButtonBox(CDKBUTTONBOX * box) {
@@ -122,6 +165,10 @@ void bmx_curses_injectCDKEntry(CDKENTRY * entry, int input) {
 	injectCDKEntry(entry, input);
 }
 
+void bmx_curses_injectCDKCalendar(CDKCALENDAR * calendar, int input) {
+	injectCDKCalendar(calendar, input);
+}
+
 int bmx_curses_getbegx(WINDOW * window) {
 	return getbegx(window);
 }
@@ -130,7 +177,6 @@ int bmx_curses_getbegy(WINDOW * window) {
 	return getbegy(window);
 }
 
-	
 WINDOW * bmx_curses_CDKButtonbox_window(CDKBUTTONBOX * bbox) {
 	return bbox->win;
 }
@@ -157,6 +203,10 @@ WINDOW * bmx_curses_CDKScroll_window(CDKLABEL * scroll) {
 
 WINDOW * bmx_curses_CDKFSelect_window(CDKLABEL * fselect) {
 	return fselect->win;
+}
+
+WINDOW * bmx_curses_CDKCalendar_window(CDKCALENDAR * calendar) {
+	return calendar->win;
 }
 
 int bmx_curses_boxHeight(void * widget, EObjectType type) {

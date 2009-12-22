@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2008, Bruce A Henderson
+' Copyright (c) 2007-2009, Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,7 @@ Type TCursesLabel Extends TCursesWidget
 	End Method
 
 	Method move(x:Int, y:Int, relative:Int, refresh:Int)
+	' TODO
 	End Method
 
 	Method injectCharacter(char:Int)
