@@ -26,7 +26,7 @@ End Rem
 Module BaH.CEGUIOpenGL
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2340)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2357)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"
