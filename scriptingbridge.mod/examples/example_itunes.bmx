@@ -14,7 +14,7 @@ End If
 
 Print itunes.propertyAsString("name")
 
-Local track:SBObject = itunes.propertyAsObject("currentTrack")
+Local track:SBObject = SBObject(itunes.propertyAsObject("currentTrack"))
 
 If track.exists() Then
 
@@ -27,7 +27,7 @@ End If
 
 ' playlist?
 
-Local playlist:SBObject = itunes.propertyAsObject("currentPlaylist")
+Local playlist:SBObject = SBObject(itunes.propertyAsObject("currentPlaylist"))
 
 If playlist.exists() Then
 	Print "~n"

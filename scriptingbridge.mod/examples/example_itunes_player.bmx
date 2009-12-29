@@ -41,7 +41,7 @@ Type iTunes
 	End Method
 	
 	Method currentTrack:TTrack()
-		Return New TTrack.Create(app.propertyAsObject("currentTrack"))
+		Return New TTrack.Create(SBObject(app.propertyAsObject("currentTrack")))
 	End Method
 	
 	Method position:Int()

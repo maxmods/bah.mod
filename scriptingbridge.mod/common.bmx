@@ -36,7 +36,7 @@ Extern
 	Function bmx_sb_sbapplication_activate(handle:Byte Ptr)
 
 	Function bmx_sb_sbobject_propertyAsString:String(handle:Byte Ptr, name:String)
-	Function bmx_sb_sbobject_propertyAsObject:Byte Ptr(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_propertyAsObject:Object(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsInt:Int(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsDouble:Double(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String)

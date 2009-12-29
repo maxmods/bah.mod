@@ -26,10 +26,12 @@ about: Communicate with scriptable applications.
 End Rem
 Module BaH.ScriptingBridge
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: 2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
 ModuleInfo "History: 1.00 Initial Release"
 
 
@@ -101,8 +103,8 @@ Type SBObject
 	Rem
 	bbdoc: Returns the named property as an SBObject.
 	End Rem
-	Method propertyAsObject:SBObject(name:String)
-		Return SBObject._create(bmx_sb_sbobject_propertyAsObject(objectPtr, name))
+	Method propertyAsObject:Object(name:String)
+		Return bmx_sb_sbobject_propertyAsObject(objectPtr, name)
 	End Method
 
 	Rem

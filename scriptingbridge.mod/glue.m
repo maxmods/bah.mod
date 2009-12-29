@@ -26,6 +26,11 @@
 
 #include <blitz.h>
 
+// a class to keep the array and enumerator in scope!
+@class MaxArray;
+
+extern BBObject * _bah_scriptingbridge_SBObject__create(SBObject * obj);
+extern BBObject * _bah_scriptingbridge_SBElementArray__create(MaxArray * arr);
 
 // string conversion
 BBString *bbStringFromNSString(NSString *s){
@@ -47,21 +52,20 @@ NSString *bbStringToNSString(BBString *s){
 
 // --------------------------------------------------------
 
-// a class to keep the array and enumerator in scope!
-@class MaxArray;
 
 @interface MaxArray:NSObject{
-	SBElementArray * array;
+	NSArray * array;
 	NSEnumerator *enumerator;
 }
--(id)initWithArray:(SBElementArray *)a;
+-(id)initWithArray:(NSArray *)a;
 -(SBObject *)nextObject;
 -(BBArray *)propertyArrayAsString:(NSString *)name;
 -(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value;
+-(int)count;
 @end
 
 @implementation MaxArray
--(id)initWithArray:(SBElementArray *)a{
+-(id)initWithArray:(NSArray *)a{
 	array = a;
 	enumerator = [array objectEnumerator];
 	return self;
@@ -89,6 +93,9 @@ NSString *bbStringToNSString(BBString *s){
 }
 -(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value {
 	 [array setValue:[NSNumber numberWithInt:value] forKey:name];
+}
+-(int)count {
+	return [array count];
 }
 @end
 
@@ -124,9 +131,29 @@ BBString * bmx_sb_sbobject_propertyAsString(SBObject * obj, BBString * name) {
 	return bbStringFromNSString(s);
 }
 
-SBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
+BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
+	NSObject * o;
+
 	NSString * n = bbStringToNSString(name);
-	return [obj valueForKey:n];
+	o = [[obj valueForKey:n] get];
+	
+	if ([o isKindOfClass:[SBObject class]]) {
+
+		return _bah_scriptingbridge_SBObject__create((SBObject *)o);
+
+	} else if ([o isKindOfClass:[NSArray class]]) {
+	
+		return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:(NSArray*)o]);
+	
+	} else {
+		BBString * s = bbStringFromNSString([o description]);
+		char * c = bbStringToCString(s);
+		printf("Warning! Property is of an unknown type. DUMP FOLLOWS : \n%s\nEND OF DUMP\n\n", c);fflush(stdout);
+		bbMemFree(c);
+		
+		return &bbNullObject;
+	}
+	
 }
 
 int bmx_sb_sbobject_propertyAsInt(SBObject * obj, BBString * name) {
