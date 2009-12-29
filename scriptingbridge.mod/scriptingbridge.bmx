@@ -32,6 +32,7 @@ ModuleInfo "Copyright: 2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
+ModuleInfo "History: Added setPropertyAsString() method."
 ModuleInfo "History: 1.00 Initial Release"
 
 
@@ -136,6 +137,13 @@ Type SBObject
 		bmx_sb_sbobject_setPropertyAsInt(objectPtr, name, value)
 	End Method
 	
+	Rem
+	bbdoc: Sets the named property as a String.
+	End Rem
+	Method setPropertyAsString(name:String, value:String)
+		bmx_sb_sbobject_setPropertyAsString(objectPtr, name, value)
+	End Method
+
 	Rem
 	bbdoc: Calls the method @name, without parameters.
 	End Rem

@@ -193,6 +193,11 @@ void bmx_sb_sbobject_setPropertyAsInt(SBObject * obj, BBString * name, int value
 	[obj setValue:[NSNumber numberWithInt:value] forKey:n];
 }
 
+void bmx_sb_sbobject_setPropertyAsString(SBObject * obj, BBString * name, BBString * value) {
+	NSString * n = bbStringToNSString(name);
+	[obj setValue:bbStringToNSString(value) forKey:n];
+}
+
 void bmx_sb_sbobject_call(SBObject * obj, BBString * name) {
 	NSString * n = bbStringToNSString(name);
 	SEL selector = NSSelectorFromString(n);
