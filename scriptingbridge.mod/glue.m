@@ -146,12 +146,13 @@ BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
 		return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:(NSArray*)o]);
 	
 	} else {
+/*
 		BBString * s = bbStringFromNSString([o description]);
 		char * c = bbStringToCString(s);
-		printf("Warning! Property is of an unknown type. DUMP FOLLOWS : \n%s\nEND OF DUMP\n\n", c);fflush(stdout);
+		printf("Warning! Property is of an unknown type. : \n%s\n", c);fflush(stdout);
 		bbMemFree(c);
-		
-		return &bbNullObject;
+*/
+		return _bah_scriptingbridge_SBObject__create([obj valueForKey:n]);
 	}
 	
 }
