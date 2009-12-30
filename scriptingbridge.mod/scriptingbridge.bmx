@@ -33,6 +33,7 @@ ModuleInfo "Copyright: 2009 Bruce A Henderson"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
 ModuleInfo "History: Added setPropertyAsString() method."
+ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
 ModuleInfo "History: 1.00 Initial Release"
 
 

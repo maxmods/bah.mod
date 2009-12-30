@@ -33,7 +33,7 @@ extern BBObject * _bah_scriptingbridge_SBObject__create(SBObject * obj);
 extern BBObject * _bah_scriptingbridge_SBElementArray__create(MaxArray * arr);
 
 // string conversion
-BBString *bbStringFromNSString(NSString *s){
+BBString *_bbStringFromNSString(NSString *s){
 	BBString *bbstring;
 	unsigned short *buff;
 	int n;
@@ -46,7 +46,7 @@ BBString *bbStringFromNSString(NSString *s){
 }
 
 // string conversion
-NSString *bbStringToNSString(BBString *s){
+NSString *_bbStringToNSString(BBString *s){
 	return [NSString stringWithCharacters:s->buf length:s->length];
 }
 
@@ -85,7 +85,7 @@ NSString *bbStringToNSString(BBString *s){
 	NSString * text;
 	int i = 0;
 	while (text = [ae nextObject]) {
-		s[i] = bbStringFromNSString(text);
+		s[i] = _bbStringFromNSString(text);
 		BBRETAIN( s[i] );
 		i++;
 	}
@@ -102,7 +102,7 @@ NSString *bbStringToNSString(BBString *s){
 // --------------------------------------------------------
 
 SBApplication * bmx_sb_sbapplication_applicationWithBundleIdentifier(BBString * ident) {
-	return [SBApplication applicationWithBundleIdentifier:bbStringToNSString(ident)];
+	return [SBApplication applicationWithBundleIdentifier:_bbStringToNSString(ident)];
 }
 
 SBApplication * bmx_sb_sbapplication_applicationWithProcessIdentifier(int pid) {
@@ -110,7 +110,7 @@ SBApplication * bmx_sb_sbapplication_applicationWithProcessIdentifier(int pid) {
 }
 
 SBApplication * bmx_sb_sbapplication_applicationWithURL(BBString * url) {
-	NSURL * s = [NSURL URLWithString:bbStringToNSString(url)];
+	NSURL * s = [NSURL URLWithString:_bbStringToNSString(url)];
 	return [SBApplication applicationWithURL:s];
 }
 
@@ -125,16 +125,16 @@ void bmx_sb_sbapplication_activate(SBApplication * app) {
 // --------------------------------------------------------
 
 BBString * bmx_sb_sbobject_propertyAsString(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	NSString * s = [obj valueForKey:n];
 	
-	return bbStringFromNSString(s);
+	return _bbStringFromNSString(s);
 }
 
 BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
 	NSObject * o;
 
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	o = [[obj valueForKey:n] get];
 	
 	if ([o isKindOfClass:[SBObject class]]) {
@@ -147,7 +147,7 @@ BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
 	
 	} else {
 /*
-		BBString * s = bbStringFromNSString([o description]);
+		BBString * s = _bbStringFromNSString([o description]);
 		char * c = bbStringToCString(s);
 		printf("Warning! Property is of an unknown type. : \n%s\n", c);fflush(stdout);
 		bbMemFree(c);
@@ -158,61 +158,61 @@ BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
 }
 
 int bmx_sb_sbobject_propertyAsInt(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	NSNumber * value = [obj valueForKey:n];
 	return [value intValue];
 }
 
 double bmx_sb_sbobject_propertyAsDouble(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	NSNumber * value = [obj valueForKey:n];
 	return [value doubleValue];
 }
 
 const void * bmx_sb_sbobject_propertyAsPtr(SBObject * obj, BBString * name, int * length) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	NSData * value = [obj valueForKey:n];
 	*length = (int)[value length];
 	return [value bytes];
 }
 
 double bmx_sb_sbobject_propertyAsDate(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	NSDate * d = [obj valueForKey:n];
 	return [d timeIntervalSince1970];
 }
 
 MaxArray * bmx_sb_sbobject_propertyAsList(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	
 	SBElementArray * array = [obj valueForKey:n];
 	return [[MaxArray alloc] initWithArray:array];
 }
 
 void bmx_sb_sbobject_setPropertyAsInt(SBObject * obj, BBString * name, int value) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	[obj setValue:[NSNumber numberWithInt:value] forKey:n];
 }
 
 void bmx_sb_sbobject_setPropertyAsString(SBObject * obj, BBString * name, BBString * value) {
-	NSString * n = bbStringToNSString(name);
-	[obj setValue:bbStringToNSString(value) forKey:n];
+	NSString * n = _bbStringToNSString(name);
+	[obj setValue:_bbStringToNSString(value) forKey:n];
 }
 
 void bmx_sb_sbobject_call(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	SEL selector = NSSelectorFromString(n);
 	[obj performSelector:selector];
 }
 
 void bmx_sb_sbobject_callWithInt(SBObject * obj, BBString * name, int value) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	SEL selector = NSSelectorFromString(n);
 	[obj performSelector:selector withObject:[NSNumber numberWithInt:value]];
 }
 
 int bmx_sb_sbobject_callReturningInt(SBObject * obj, BBString * name) {
-	NSString * n = bbStringToNSString(name);
+	NSString * n = _bbStringToNSString(name);
 	SEL selector = NSSelectorFromString(n);
 	return [obj performSelector:selector];
 }
@@ -228,11 +228,11 @@ int bmx_sb_sbelementarray_count(MaxArray * array) {
 }
 
 BBArray * bmx_sb_sbelementarray_propertyArrayAsString(MaxArray * array, BBString * name) {
-	[array propertyArrayAsString:bbStringToNSString(name)];
+	[array propertyArrayAsString:_bbStringToNSString(name)];
 }
 
 void bmx_sb_sbelementarray_setPropertyArrayAsInt(MaxArray * array, BBString * name, int value) {
-	[array setPropertyArrayAsInt:bbStringToNSString(name) withValue:value];
+	[array setPropertyArrayAsInt:_bbStringToNSString(name) withValue:value];
 }
 
 // --------------------------------------------------------
