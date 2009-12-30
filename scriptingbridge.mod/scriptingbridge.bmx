@@ -33,6 +33,7 @@ ModuleInfo "Copyright: 2009 Bruce A Henderson"
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
 ModuleInfo "History: Added setPropertyAsString() method."
+ModuleInfo "History: Added description() method. Useful for debugging."
 ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
 ModuleInfo "History: 1.00 Initial Release"
 
@@ -166,6 +167,13 @@ Type SBObject
 		Return bmx_sb_sbobject_callReturningInt(objectPtr, name)
 	End Method
 	
+	Rem
+	bbdoc: Returns a description of the object, suitable for debugging.
+	End Rem
+	Method description:String()
+		Return bmx_sb_sbobject_description(objectPtr)
+	End Method
+	
 End Type
 
 
@@ -279,6 +287,13 @@ Type SBElementArray
 	End Rem
 	Method setPropertyArrayAsInt(name:String, value:Int)
 		bmx_sb_sbelementarray_setPropertyArrayAsInt(objectPtr, name, value)
+	End Method
+
+	Rem
+	bbdoc: Returns a description of the array object, suitable for debugging.
+	End Rem
+	Method description:String()
+		Return bmx_sb_sbelementarray_description(objectPtr)
 	End Method
 
 	Method Delete()

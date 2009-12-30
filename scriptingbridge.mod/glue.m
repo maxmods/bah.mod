@@ -62,6 +62,7 @@ NSString *_bbStringToNSString(BBString *s){
 -(BBArray *)propertyArrayAsString:(NSString *)name;
 -(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value;
 -(int)count;
+-(NSString *)getDescription;
 @end
 
 @implementation MaxArray
@@ -96,6 +97,9 @@ NSString *_bbStringToNSString(BBString *s){
 }
 -(int)count {
 	return [array count];
+}
+-(NSString *)getDescription {
+	return [array description];
 }
 @end
 
@@ -171,9 +175,23 @@ double bmx_sb_sbobject_propertyAsDouble(SBObject * obj, BBString * name) {
 
 const void * bmx_sb_sbobject_propertyAsPtr(SBObject * obj, BBString * name, int * length) {
 	NSString * n = _bbStringToNSString(name);
-	NSData * value = [obj valueForKey:n];
-	*length = (int)[value length];
-	return [value bytes];
+	NSObject * o = [obj valueForKey:n];
+	
+	if ([o isKindOfClass:[NSData class]]) {
+
+		NSData * value = (NSData*)o;
+		*length = (int)[value length];
+		return [value bytes];
+
+	} else if ([o isKindOfClass:[SBObject class]]) {
+
+		NSData * value = (NSData*)[o get];
+		*length = (int)[value length];
+		return [value bytes];
+
+	}
+
+	return NULL;	
 }
 
 double bmx_sb_sbobject_propertyAsDate(SBObject * obj, BBString * name) {
@@ -217,6 +235,12 @@ int bmx_sb_sbobject_callReturningInt(SBObject * obj, BBString * name) {
 	return [obj performSelector:selector];
 }
 
+BBString * bmx_sb_sbobject_description(SBObject * obj) {
+	NSString * s = [obj description];
+	return _bbStringFromNSString(s);
+}
+
+
 // --------------------------------------------------------
 
 void bmx_sb_sbelementarray_free(MaxArray * array) {
@@ -233,6 +257,10 @@ BBArray * bmx_sb_sbelementarray_propertyArrayAsString(MaxArray * array, BBString
 
 void bmx_sb_sbelementarray_setPropertyArrayAsInt(MaxArray * array, BBString * name, int value) {
 	[array setPropertyArrayAsInt:_bbStringToNSString(name) withValue:value];
+}
+
+BBString * bmx_sb_sbelementarray_description(MaxArray * array) {
+	return _bbStringFromNSString([array getDescription]);
 }
 
 // --------------------------------------------------------
