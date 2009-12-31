@@ -241,6 +241,12 @@ BBString * bmx_sb_sbobject_description(SBObject * obj) {
 	return _bbStringFromNSString(s);
 }
 
+BBString * bmx_sb_sbobject_propertyAsURL(SBObject * obj, BBString * name) {
+	NSString * n = _bbStringToNSString(name);
+	NSURL * u = [obj valueForKey:n];
+	
+	return _bbStringFromNSString([u absoluteString]);
+}
 
 // --------------------------------------------------------
 

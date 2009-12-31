@@ -48,6 +48,7 @@ Extern
 	Function bmx_sb_sbobject_setPropertyAsString(handle:Byte Ptr, name:String, value:String)
 	Function bmx_sb_sbobject_propertyAsDate:Double(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_description:String(handle:Byte Ptr)
+	Function bmx_sb_sbobject_propertyAsURL:String(handle:Byte Ptr, name:String)
 
 	Function bmx_sb_sbelementarray_free(handle:Byte Ptr)
 	Function bmx_sb_sbelementarray_count:Int(handle:Byte Ptr)

@@ -32,7 +32,7 @@ ModuleInfo "Copyright: 2009 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
-ModuleInfo "History: Added setPropertyAsString() method."
+ModuleInfo "History: Added setPropertyAsString() and propertyAsURL() methods."
 ModuleInfo "History: Added description() method. Useful for debugging."
 ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
 ModuleInfo "History: 1.00 Initial Release"
@@ -131,7 +131,14 @@ Type SBObject
 	Method propertyAsDate:Double(name:String)
 		Return bmx_sb_sbobject_propertyAsDate(objectPtr, name)
 	End Method
-	
+
+	Rem
+	bbdoc: Returns the named NSURL property as a String.
+	End Rem
+	Method propertyAsURL:String(name:String)
+		Return bmx_sb_sbobject_propertyAsURL(objectPtr, name)
+	End Method
+
 	Rem
 	bbdoc: Sets the named property as an integer.
 	End Rem
@@ -145,7 +152,7 @@ Type SBObject
 	Method setPropertyAsString(name:String, value:String)
 		bmx_sb_sbobject_setPropertyAsString(objectPtr, name, value)
 	End Method
-
+	
 	Rem
 	bbdoc: Calls the method @name, without parameters.
 	End Rem
