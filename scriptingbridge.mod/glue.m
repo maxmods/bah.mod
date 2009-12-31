@@ -185,7 +185,8 @@ const void * bmx_sb_sbobject_propertyAsPtr(SBObject * obj, BBString * name, int 
 
 	} else if ([o isKindOfClass:[SBObject class]]) {
 
-		NSData * value = (NSData*)[o get];
+		NSData * value = (NSData*)[[o get] data]; //you have to ask the "NSAppleEventDescriptor" for the data
+
 		*length = (int)[value length];
 		return [value bytes];
 
