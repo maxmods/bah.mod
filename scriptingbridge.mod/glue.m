@@ -255,6 +255,21 @@ void bmx_sb_sbobject_callWithInt(SBObject * obj, BBString * name, int value) {
 	[obj performSelector:selector withObject:[NSNumber numberWithInt:value]];
 }
 
+BBObject * bmx_sb_sbobject_callWithStringIntReturningObject(SBObject * obj, BBString * name, BBString * value1, int value2) {
+	NSString * n = _bbStringToNSString(name);
+	NSString * v = _bbStringToNSString(value1);
+	
+	SEL selector = NSSelectorFromString(n);
+	
+	NSObject * o = [obj performSelector:selector withObject:v withObject:[NSNumber numberWithInt:value2]];
+
+	if ([o isKindOfClass:[NSArray class]]) {
+		return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:(NSArray*)o]);
+	} else {
+		return _bah_scriptingbridge_SBObject__create((SBObject *)o);
+	}
+}
+
 int bmx_sb_sbobject_callReturningInt(SBObject * obj, BBString * name) {
 	NSString * n = _bbStringToNSString(name);
 	SEL selector = NSSelectorFromString(n);

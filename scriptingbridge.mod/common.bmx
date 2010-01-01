@@ -44,6 +44,7 @@ Extern
 	Function bmx_sb_sbobject_call(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_callWithInt(handle:Byte Ptr, name:String, value:Int)
 	Function bmx_sb_sbobject_callReturningInt:Int(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_callWithStringIntReturningObject:Object(handle:Byte Ptr, name:String, value1:String, value2:Int)
 	Function bmx_sb_sbobject_setPropertyAsInt(handle:Byte Ptr, name:String, value:Int)
 	Function bmx_sb_sbobject_setPropertyAsString(handle:Byte Ptr, name:String, value:String)
 	Function bmx_sb_sbobject_propertyAsDate:Double(handle:Byte Ptr, name:String)

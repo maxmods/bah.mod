@@ -32,7 +32,7 @@ ModuleInfo "Copyright: 2009-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
-ModuleInfo "History: Added setPropertyAsString() and propertyAsURL() methods."
+ModuleInfo "History: Added setPropertyAsString(), propertyAsURL() and callWithStringIntReturningObject() methods."
 ModuleInfo "History: Added description() method. Useful for debugging."
 ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
 ModuleInfo "History: Added predicate parameter to propertyAsObject and propertyAsList methods."
@@ -176,6 +176,14 @@ Type SBObject
 	End Rem
 	Method callWithInt(name:String, value:Int)
 		bmx_sb_sbobject_callWithInt(objectPtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: Calls the method @name, passing String and Int parameters, returning an Object.
+	about: Note, the method @name should include the full signature. For examle "searchFor:only:"
+	End Rem
+	Method callWithStringIntReturningObject:Object(name:String, value1:String, value2:Int)
+		Return bmx_sb_sbobject_callWithStringIntReturningObject(objectPtr, name, value1, value2)
 	End Method
 	
 	Rem
