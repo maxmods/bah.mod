@@ -135,7 +135,7 @@ BBString * bmx_sb_sbobject_propertyAsString(SBObject * obj, BBString * name) {
 	return _bbStringFromNSString(s);
 }
 
-BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
+BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name, BBString * predicate) {
 	NSObject * o;
 
 	NSString * n = _bbStringToNSString(name);
@@ -146,8 +146,18 @@ BBObject * bmx_sb_sbobject_propertyAsObject(SBObject * obj, BBString * name) {
 		return _bah_scriptingbridge_SBObject__create((SBObject *)o);
 
 	} else if ([o isKindOfClass:[NSArray class]]) {
+		NSPredicate *pred = NULL;
+		
+		if (predicate != &bbEmptyString) {
+			NSString * p = _bbStringToNSString(predicate);
+			pred = [NSPredicate predicateWithFormat:p];
+		}
 	
-		return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:(NSArray*)o]);
+		if (pred) {
+			return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:[(NSArray*)o filteredArrayUsingPredicate:pred]]);
+		} else {
+			return _bah_scriptingbridge_SBElementArray__create([[MaxArray alloc] initWithArray:(NSArray*)o]);
+		}
 	
 	} else {
 /*
@@ -201,11 +211,22 @@ double bmx_sb_sbobject_propertyAsDate(SBObject * obj, BBString * name) {
 	return [d timeIntervalSince1970];
 }
 
-MaxArray * bmx_sb_sbobject_propertyAsList(SBObject * obj, BBString * name) {
+MaxArray * bmx_sb_sbobject_propertyAsList(SBObject * obj, BBString * name, BBString * predicate) {
 	NSString * n = _bbStringToNSString(name);
+
+	NSPredicate *pred = NULL;
+	
+	if (predicate != &bbEmptyString) {
+		NSString * p = _bbStringToNSString(predicate);
+		pred = [NSPredicate predicateWithFormat:p];
+	}
 	
 	SBElementArray * array = [obj valueForKey:n];
-	return [[MaxArray alloc] initWithArray:array];
+	if (pred) {
+		return [[MaxArray alloc] initWithArray:[array filteredArrayUsingPredicate:pred]];
+	} else {
+		return [[MaxArray alloc] initWithArray:array];
+	}
 }
 
 void bmx_sb_sbobject_setPropertyAsInt(SBObject * obj, BBString * name, int value) {
@@ -241,11 +262,15 @@ BBString * bmx_sb_sbobject_description(SBObject * obj) {
 	return _bbStringFromNSString(s);
 }
 
-BBString * bmx_sb_sbobject_propertyAsURL(SBObject * obj, BBString * name) {
+BBString * bmx_sb_sbobject_propertyAsURL(SBObject * obj, BBString * name, int kind) {
 	NSString * n = _bbStringToNSString(name);
 	NSURL * u = [obj valueForKey:n];
 	
-	return _bbStringFromNSString([u absoluteString]);
+	if (kind == 1) {
+		return _bbStringFromNSString([u absoluteString]);
+	} else {
+		return _bbStringFromNSString([u path]);
+	}
 }
 
 // --------------------------------------------------------

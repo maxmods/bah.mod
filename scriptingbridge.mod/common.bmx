@@ -36,10 +36,10 @@ Extern
 	Function bmx_sb_sbapplication_activate(handle:Byte Ptr)
 
 	Function bmx_sb_sbobject_propertyAsString:String(handle:Byte Ptr, name:String)
-	Function bmx_sb_sbobject_propertyAsObject:Object(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_propertyAsObject:Object(handle:Byte Ptr, name:String, predicate:String)
 	Function bmx_sb_sbobject_propertyAsInt:Int(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsDouble:Double(handle:Byte Ptr, name:String)
-	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String, predicate:String)
 	Function bmx_sb_sbobject_propertyAsPtr:Byte Ptr(handle:Byte Ptr, name:String, length:Int Ptr)
 	Function bmx_sb_sbobject_call(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_callWithInt(handle:Byte Ptr, name:String, value:Int)
@@ -48,7 +48,7 @@ Extern
 	Function bmx_sb_sbobject_setPropertyAsString(handle:Byte Ptr, name:String, value:String)
 	Function bmx_sb_sbobject_propertyAsDate:Double(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_description:String(handle:Byte Ptr)
-	Function bmx_sb_sbobject_propertyAsURL:String(handle:Byte Ptr, name:String)
+	Function bmx_sb_sbobject_propertyAsURL:String(handle:Byte Ptr, name:String, kind:Int)
 
 	Function bmx_sb_sbelementarray_free(handle:Byte Ptr)
 	Function bmx_sb_sbelementarray_count:Int(handle:Byte Ptr)
@@ -59,3 +59,12 @@ Extern
 	Function bmx_sb_sbobjectenum_nextObject:Byte Ptr(handle:Byte Ptr)
 
 End Extern
+
+Rem
+bbdoc: Returns the path of a URL conforming to RFC 1808.
+End Rem
+Const URL_PATH:Int = 0
+Rem
+bbdoc: Returns the string for the receiver as if it were an absolute URL.
+End Rem
+Const URL_ABSOLUTE:Int = 1

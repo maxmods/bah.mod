@@ -35,6 +35,7 @@ ModuleInfo "History: propertyAsObject() now returns Object. This can be either a
 ModuleInfo "History: Added setPropertyAsString() and propertyAsURL() methods."
 ModuleInfo "History: Added description() method. Useful for debugging."
 ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
+ModuleInfo "History: Added predicate parameter to propertyAsObject and propertyAsArray methods."
 ModuleInfo "History: 1.00 Initial Release"
 
 
@@ -106,8 +107,12 @@ Type SBObject
 	Rem
 	bbdoc: Returns the named property as an SBObject.
 	End Rem
-	Method propertyAsObject:Object(name:String)
-		Return bmx_sb_sbobject_propertyAsObject(objectPtr, name)
+	Method propertyAsObject:Object(name:String, predicate:String = Null)
+		If predicate Then
+			Return bmx_sb_sbobject_propertyAsObject(objectPtr, name, predicate)
+		Else
+			Return bmx_sb_sbobject_propertyAsObject(objectPtr, name, Null)
+		End If
 	End Method
 
 	Rem
@@ -120,10 +125,14 @@ Type SBObject
 	Rem
 	bbdoc: Returns the named property as an SBElementArray.
 	End Rem
-	Method propertyAsList:SBElementArray(name:String)
-		Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name))
+	Method propertyAsList:SBElementArray(name:String, predicate:String = Null)
+		If predicate Then
+			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, predicate))
+		Else
+			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, Null))
+		End If
 	End Method
-	
+
 	Rem
 	bbdoc: Returns the named NSDate property as a double.
 	about: The value returned is the number of seconds since 1 January 1970.
@@ -134,9 +143,10 @@ Type SBObject
 
 	Rem
 	bbdoc: Returns the named NSURL property as a String.
+	about: @kind may be one of #URL_PATH or #URL_ABSOLUTE.
 	End Rem
-	Method propertyAsURL:String(name:String)
-		Return bmx_sb_sbobject_propertyAsURL(objectPtr, name)
+	Method propertyAsURL:String(name:String, kind:Int = URL_PATH)
+		Return bmx_sb_sbobject_propertyAsURL(objectPtr, name, kind)
 	End Method
 
 	Rem
