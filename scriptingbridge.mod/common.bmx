@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ Extern
 	Function bmx_sb_sbobject_propertyAsObject:Object(handle:Byte Ptr, name:String, predicate:String)
 	Function bmx_sb_sbobject_propertyAsInt:Int(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsDouble:Double(handle:Byte Ptr, name:String)
-	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String, predicate:String)
+	Function bmx_sb_sbobject_propertyAsList:Byte Ptr(handle:Byte Ptr, name:String, predicate:String, immediate:Int)
 	Function bmx_sb_sbobject_propertyAsPtr:Byte Ptr(handle:Byte Ptr, name:String, length:Int Ptr)
 	Function bmx_sb_sbobject_call(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_callWithInt(handle:Byte Ptr, name:String, value:Int)

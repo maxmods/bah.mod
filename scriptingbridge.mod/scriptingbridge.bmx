@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,15 @@ Module BaH.ScriptingBridge
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2009-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
 ModuleInfo "History: propertyAsObject() now returns Object. This can be either an SBObject or SBElementArray."
 ModuleInfo "History: Added setPropertyAsString() and propertyAsURL() methods."
 ModuleInfo "History: Added description() method. Useful for debugging."
 ModuleInfo "History: Renamed internal string functions not to clash with MaxGUI."
-ModuleInfo "History: Added predicate parameter to propertyAsObject and propertyAsArray methods."
+ModuleInfo "History: Added predicate parameter to propertyAsObject and propertyAsList methods."
+ModuleInfo "History: Added immediate parameter to propertyAsList method."
 ModuleInfo "History: 1.00 Initial Release"
 
 
@@ -125,11 +126,11 @@ Type SBObject
 	Rem
 	bbdoc: Returns the named property as an SBElementArray.
 	End Rem
-	Method propertyAsList:SBElementArray(name:String, predicate:String = Null)
+	Method propertyAsList:SBElementArray(name:String, predicate:String = Null, immediate:Int = True)
 		If predicate Then
-			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, predicate))
+			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, predicate, immediate))
 		Else
-			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, Null))
+			Return SBElementArray._create(bmx_sb_sbobject_propertyAsList(objectPtr, name, Null, immediate))
 		End If
 	End Method
 
