@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -983,6 +983,18 @@ Type TCEWindow Extends TCEEventSet
 	bbdoc: The currently assigned window renderer was detached. 
 	End Rem
 	Const EventWindowRendererDetached:String = "WindowRendererDetached"
+	Rem
+	bbdoc: Window rotation factor(s) changed.
+	End Rem
+	Const EventRotated:String = "Rotated"
+	Rem
+	bbdoc: Window non-client setting was changed. 
+	End Rem
+	Const EventNonClientChanged:String = "NonClientChanged"
+	Rem
+	bbdoc: Window text parsing setting was changed. 
+	End Rem
+	Const EventTextParsingChanged:String = "TextParsingChanged"
 	Rem
 	bbdoc: Mouse cursor has entered the Window. 
 	End Rem
@@ -2258,6 +2270,84 @@ Type TCEWindow Extends TCEEventSet
 		bmx_cegui_window_setdragdroptarget(objectPtr, setting)
 	End Method
 
+	Rem
+	bbdoc: Sets whether automatic use of an imagery caching RenderingSurface (i.e. a RenderingWindow) is enabled for this window.
+	about: The reason we emphasise 'atutomatic' is because the client may manually set a RenderingSurface that does exactlythe same job.
+	<p>
+	Note that this setting really only controls whether the Window automatically creates and manages the RenderingSurface,
+	as opposed to the use of the RenderingSurface. If a RenderingSurfaceis set for the Window it will be used regardless of this setting.
+	</p>
+	<p>
+	Enabling this option will cause the Window to attempt to create a suitable RenderingSurface (which will actually be a RenderingWindow).
+	If there is an existing RenderingSurface assocated with this Window, it will be removed as the Window's RenderingSurface but not destroyed;
+	whoever created the RenderingSurface in the first place should take care of its destruction.
+	</p>
+	<p>
+	Disabling this option will cause any automatically created RenderingSurface to be released.
+	</p>
+	<p>
+	It is possible that the renderer in use may not support facilities for RenderingSurfaces that are suitable for full imagery caching.
+	If this is the case, then calling getRenderingSurface after enabling this option will return 0. In these cases this option will still show as being
+	'enabled', this is because Window settings should not be influenced by capabilities the renderer in use; for example, this enables correct XML
+	layouts to be written from a Window on a system that does not support such RenderingSurfaces, so that the layout will function as preferred on systems that do.
+	</p>
+	<p>
+	If this option is enabled, and the client subsequently assigns a different RenderingSurface to the Window, the existing automatically created
+	RenderingSurface will be released and this setting will be disabled.
+	</p>
+	End Rem
+	Method setUsingAutoRenderingSurface(setting:Int)
+		bmx_cegui_window_setusingautorenderingsurface(objectPtr, setting)
+	End Method
+	
+	Rem
+	bbdoc: Sets the rotation for this window.
+	End Rem
+	Method SetRotation(x:Float, y:Float, z:Float)
+		bmx_cegui_window_setrotation(objectPtr, x, y, z)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method setNonClientWindow(setting:Int)
+		bmx_cegui_window_setnonclientwindow(objectPtr, setting)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method getRenderedString:TCERenderedString()
+		Return TCERenderedString._create(bmx_cegui_window_getrenderedstring(objectPtr))
+	End Method
+
+	Method getCustomRenderedStringParser:TCERenderedStringParser()
+	' TODO 
+	End Method
+
+	Method setCustomRenderedStringParser(parser:TCERenderedStringParser)
+	' TODO
+	End Method
+
+	Method getRenderedStringParser:TCERenderedStringParser()
+	' TODO
+	End Method
+
+	Rem
+	bbdoc: Returns whether text parsing is enabled for this window. 
+	End Rem
+	Method isTextParsingEnabled:Int()
+		Return bmx_cegui_window_istextparsingenabled(objectPtr)
+	End Method
+
+	Rem
+	bbdoc: Sets whether text parsing is enabled for this window.
+	End Rem
+	Method setTextParsingEnabled(setting:Int)
+		bmx_cegui_window_settextparsingenabled(objectPtr, setting)
+	End Method
+
+	
 	' properties
 	Rem
 	bbdoc: Removes a Property from the PropertySet.
@@ -4115,3 +4205,77 @@ Type TCEWidgetLookManager
 	
 End Type
 
+
+Type TCERenderedString
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCERenderedString(objectPtr:Byte Ptr)
+		Local this:TCERenderedString = New TCERenderedString
+		this.objectPtr = objectPtr
+		Return this
+	End Function
+		
+	Method getPixelSize(line:Int, w:Int Var, h:Int Var)
+	End Method
+	
+	Method appendComponent(component:TCERenderedStringComponent)
+	End Method
+	
+	Method clearComponents()
+	End Method
+	
+	Method getComponentCount:Int()
+	End Method
+	
+	Method split:TCERenderedString(line:Int, split_point:Float)
+	End Method
+	
+	Method getSpaceCount:Int(line:Int)
+	End Method
+	
+	Method appendLineBreak()
+	End Method
+	
+	Method getLineCount:Int()
+	End Method
+		
+	Method Delete()
+		If objectPtr Then
+			bmx_cegui_renderedstring_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Type TCERenderedStringComponent
+
+	Field objectPtr:Byte Ptr
+
+	Function _create:TCERenderedStringComponent(objectPtr:Byte Ptr)
+		Local this:TCERenderedStringComponent = New TCERenderedStringComponent
+		this.objectPtr = objectPtr
+		Return this
+	End Function
+
+	Method Delete()
+		If objectPtr Then
+			' TODO
+			'bmx_cegui_renderedstringcomponent_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Type TCERenderedStringParser
+End Type
+
+Type TCEBasicRenderedStringParser Extends TCERenderedStringParser
+
+End Type
+
+Type TCEDefaultRenderedStringParser Extends  TCERenderedStringParser
+
+End Type

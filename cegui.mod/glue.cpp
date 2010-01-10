@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2008-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -1487,6 +1487,30 @@ void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, 
 
 void bmx_cegui_window_setarearel(CEGUI::Window * window, float xpos, float ypos, float width, float height) {
 	window->setArea(CEGUI::URect(cegui_reldim(xpos), cegui_reldim(ypos), cegui_reldim(width), cegui_reldim(height)));
+}
+
+void bmx_cegui_window_setusingautorenderingsurface(CEGUI::Window * window, int setting) {
+	window->setUsingAutoRenderingSurface(static_cast<bool>(setting));
+}
+
+void bmx_cegui_window_setrotation(CEGUI::Window * window, float x, float y, float z) {
+	window->setRotation(CEGUI::Vector3(x, y, z));
+}
+
+void bmx_cegui_window_setnonclientwindow(CEGUI::Window * window, int setting) {
+	window->setNonClientWindow(static_cast<int>(setting));
+}
+
+MaxRenderedString * bmx_cegui_window_getrenderedstring(CEGUI::Window * window) {
+	return new MaxRenderedString(window->getRenderedString());
+}
+
+int bmx_cegui_window_istextparsingenabled(CEGUI::Window * window) {
+	return static_cast<int>(window->isTextParsingEnabled());
+}
+
+void bmx_cegui_window_settextparsingenabled(CEGUI::Window * window, int setting) {
+	window->setTextParsingEnabled(static_cast<bool>(setting));
 }
 
 // *************************************************
@@ -5131,3 +5155,24 @@ BBString * bmx_cegui_widgetlookmanager_getdefaultresourcegroup() {
 void bmx_cegui_widgetlookmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup) {
 	CEGUI::WidgetLookManager::setDefaultResourceGroup(resourceGroup);
 }
+
+// *************************************************
+
+
+MaxRenderedString::MaxRenderedString(const CEGUI::RenderedString & s)
+	: str(s)
+{
+}
+
+MaxRenderedString::~MaxRenderedString()
+{
+}
+	
+CEGUI::RenderedString & MaxRenderedString::String() {
+	return str;
+}
+
+void bmx_cegui_renderedstring_free(MaxRenderedString * s) {
+	delete s;
+}
+

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2008-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ class MaxCEColourRect;
 class MaxResourceProvider;
 class MaxRawDataContainer;
 class MaxWindowFactory;
+class MaxRenderedString;
 
 extern "C" {
 
@@ -340,6 +341,12 @@ extern "C" {
 	BBObject * bmx_cegui_window_getactivesibling(CEGUI::Window * window);
 	void bmx_cegui_window_getparentpixelsize(CEGUI::Window * window, float * width, float * height);
 	void bmx_cegui_window_setarearel(CEGUI::Window * window, float xpos, float ypos, float width, float height);
+	void bmx_cegui_window_setusingautorenderingsurface(CEGUI::Window * window, int setting);
+	void bmx_cegui_window_setrotation(CEGUI::Window * window, float x, float y, float z);
+	void bmx_cegui_window_setnonclientwindow(CEGUI::Window * window, int setting);
+	MaxRenderedString * bmx_cegui_window_getrenderedstring(CEGUI::Window * window);
+	int bmx_cegui_window_istextparsingenabled(CEGUI::Window * window);
+	void bmx_cegui_window_settextparsingenabled(CEGUI::Window * window, int setting);
 
 	void bmx_cegui_window_setproperty(CEGUI::Window * window, const CEGUI::utf8 * name, const CEGUI::utf8 * value);
 	void bmx_cegui_window_removeproperty(CEGUI::Window * window, const CEGUI::utf8 * name);
@@ -1167,6 +1174,8 @@ extern "C" {
 	BBString * bmx_cegui_widgetlookmanager_getdefaultresourcegroup();
 	void bmx_cegui_widgetlookmanager_setdefaultresourcegroup(const CEGUI::utf8 * resourceGroup);
 
+	void bmx_cegui_renderedstring_free(MaxRenderedString * s);
+
 }
 
 class MaxConnection
@@ -1282,5 +1291,17 @@ class MaxRenderer
 public:
 	MaxRenderer();
 	virtual CEGUI::Renderer & Renderer() {} ;
+};
+
+class MaxRenderedString
+{
+public:
+	MaxRenderedString(const CEGUI::RenderedString & s);
+	~MaxRenderedString();
+	
+	CEGUI::RenderedString & String();
+
+private:
+	CEGUI::RenderedString str;
 };
 

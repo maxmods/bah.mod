@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -116,6 +116,7 @@ Import "cegui/src/CEGUIXMLAttributes.cpp"
 Import "cegui/src/CEGUIXMLHandler.cpp"
 Import "cegui/src/CEGUIXMLParser.cpp"
 Import "cegui/src/CEGUIXMLSerializer.cpp"
+Import "cegui/src/CEGUIRenderEffectManager.cpp"
 Import "cegui/src/elements/CEGUIButtonBase.cpp"
 Import "cegui/src/elements/CEGUICheckbox.cpp"
 Import "cegui/src/elements/CEGUICheckboxProperties.cpp"
@@ -204,6 +205,9 @@ Import "cegui/src/falagard/CEGUIFalWidgetComponent.cpp"
 Import "cegui/src/falagard/CEGUIFalWidgetLookFeel.cpp"
 Import "cegui/src/falagard/CEGUIFalWidgetLookManager.cpp"
 Import "cegui/src/falagard/CEGUIFalXMLEnumHelper.cpp"
+Import "cegui/src/falagard/CEGUIFalExpressionDim.cpp"
+Import "cegui/src/falagard/CEGUIFalExpressionDimParser.cpp"
+Import "cegui/src/falagard/CEGUIFalExpressionDimScanner.cpp"
 
 '
 Import "cegui/include/WindowRendererSets/Falagard/*.h"

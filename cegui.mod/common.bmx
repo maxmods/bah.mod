@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -239,6 +239,12 @@ Extern
 	Function bmx_cegui_window_getactivesibling:Object(handle:Byte Ptr)
 	Function bmx_cegui_window_getparentpixelsize(handle:Byte Ptr, width:Float Ptr, height:Float Ptr)
 	Function bmx_cegui_window_setarearel(handle:Byte Ptr, xpos:Float, ypos:Float, width:Float, height:Float)
+	Function bmx_cegui_window_setusingautorenderingsurface(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_window_setrotation(handle:Byte Ptr, x:Float, y:Float, z:Float)
+	Function bmx_cegui_window_setnonclientwindow(handle:Byte Ptr, setting:Int)
+	Function bmx_cegui_window_getrenderedstring:Byte Ptr(handle:Byte Ptr)
+	Function bmx_cegui_window_istextparsingenabled:Int(handle:Byte Ptr)
+	Function bmx_cegui_window_settextparsingenabled(handle:Byte Ptr, setting:Int)
 
 	Function bmx_cegui_window_setproperty(handle:Byte Ptr, name:Byte Ptr, value:Byte Ptr)
 	Function bmx_cegui_window_removeproperty(handle:Byte Ptr, name:Byte Ptr)
@@ -1065,6 +1071,8 @@ Extern
 	Function bmx_cegui_widgetlookmanager_getdefaultresourcegroup:String()
 	Function bmx_cegui_widgetlookmanager_setdefaultresourcegroup(group:Byte Ptr)
 
+	Function bmx_cegui_renderedstring_free(handle:Byte Ptr)
+	
 End Extern
 
 ' converts a UTF character array from byte-size characters to short-size characters
