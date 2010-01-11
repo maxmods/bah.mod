@@ -1,4 +1,4 @@
-' Copyright (c) 2008,2009 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.FMOD
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: FMOD - See http://www.fmod.org"
-ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
 ModuleInfo "Copyright: FMOD - 2004-2008 Firelight Technologies, Pty, Ltd"
 
 
@@ -59,7 +59,9 @@ Rem
 End Rem
 
 Rem
-bbdoc: 
+bbdoc: The current version of FMOD Ex being used.
+about: The version is a 32bit hexadecimal value formated as 16:8:8, with the upper 16bits being the major version,
+the middle 8bits being the minor version and the bottom 8bits being the development version. For example a value of 00040106h is equal to 4.01.06
 End Rem
 Global FMOD_VERSION:Int = bmx_fmod_getversion()
 
@@ -68,6 +70,39 @@ bbdoc: Returns a string representation of the error code.
 End Rem
 Function FMOD_ErrorString:String(result:Int)
 	Return String.FromCString(bmx_FMOD_ErrorString(result))
+End Function
+
+Rem
+bbdoc: Mutex function to synchronize user file reads with FMOD's file reads.
+about: Parameters: 
+<ul>
+<li><b>busy</b> : 1 = you are about to perform a disk access. 0 = you are finished with the disk.</li>
+</ul>
+<p>
+This function tells fmod that you are using the disk so that it will  block until you are finished with it.
+</p>
+<p>
+This function also blocks if FMOD is already using the disk, so that you cannot do a read at the same time FMOD is reading.
+</p>
+End Rem
+Function FMOD_SetDiskBusy:Int(busy:Int)
+	Return FMOD_File_SetDiskBusy(busy)
+End Function
+
+Rem
+bbdoc: Information function to retreive the state of fmod's disk access.
+about: Parameters: 
+<ul>
+<li><b>busy</b> : A variable to receive the busy state of the disk at the current time.</li>
+</ul>
+<p>
+Do not use this function to syncrhonize your own reads with, as due to timing, you might call this function
+and it says false = it is not busy, but the split second after call this function, internally FMOD might set it
+to busy. Use #FMOD_SetDiskBusy for proper mutual exclusion as it uses semaphores.
+</p>
+End Rem
+Function FMOD_GetDiskBusy:Int(busy:Int Var)
+	Return FMOD_File_GetDiskBusy(Varptr busy)
 End Function
 
 Rem
@@ -559,16 +594,26 @@ Type TFMODSystem
 	Rem
 	bbdoc: Retrieves the number of recording devices available for this output mode.
 	about: Use this to enumerate all recording devices possible so that the user can select one. 
+	<p>Parameters: 
+	<ul>
+	<li><b>numDrivers</b> : A variable that receives the number of recording drivers available for this output mode.</li>
+	</ul>
+	</p>
 	End Rem
 	Method GetRecordNumDrivers:Int(numDrivers:Int Var)
 		Return FMOD_System_GetRecordNumDrivers(systemPtr, Varptr numDrivers)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the current recording position of the record buffer in PCM samples. 
+	bbdoc: Retrieves the current recording position of the record buffer in PCM samples.
+	about: Parameters: 
+	<ul>
+	<li><b>id</b> : Enumerated driver ID. This must be in a valid range delimited by #getRecordNumDrivers. </li>
+	<li><b>position</b> : A variable to receieve the current recording position in PCM samples.</li>
+	</ul>
 	End Rem
-	Method GetRecordPosition:Int(position:Int Var)
-		Return FMOD_System_GetRecordPosition(systemPtr, Varptr position)
+	Method GetRecordPosition:Int(id:Int, position:Int Var)
+		Return FMOD_System_GetRecordPosition(systemPtr, id, Varptr position)
 	End Method
 	
 	Rem
@@ -581,23 +626,63 @@ Type TFMODSystem
 	Rem
 	bbdoc: Retrieves a pointer to a block of PCM data that represents the currently playing audio mix.
 	about: This method is useful for a very easy way to plot an oscilliscope.
+	<p>
+	This is the actual resampled, filtered and volume scaled data of the final output, at the time this function is called.
+	</p>
+	<p>
+	Do not use this method to try and display the whole waveform of the sound, as this is more of a 'snapshot' of the current
+	waveform at the time it is called, and could return the same data if it is called very quickly in succession.<br>
+	See the DSP API to capture a continual stream of wave data as it plays, or see Sound::lock / Sound::unlock if you want to simply
+	display the waveform of a sound.
+	</p>
+	<p>
+	This method allows retrieval of left and right data for a stereo sound individually. To combine them into one signal, simply add the
+	entries of each seperate buffer together and then divide them by 2.
+	</p>
+	<p>
+	Note: This method only displays data for sounds playing that were created with FMOD_SOFTWARE. FMOD_HARDWARE based sounds
+	are played using the sound card driver and are not accessable.
+	</p>
+	<p>Parameters: 
+	<ul>
+	<li><b>waveArray</b> : An array of floats that receives the currently playing waveform data. This is an array of floating point values.</li>
+	<li><b>numValues</b> : Number of floats to write to the array. Maximum value = 16384. </li>
+	<li><b>channelOffset</b> : Offset into multichannel data. For mono output use 0. Stereo output will use 0 = left, 1 = right.
+	More than stereo output - use the appropriate index. </li>
+	</ul>
+	<p>
 	End Rem
-	Method GetWaveData:Int(waveArray:Float Ptr, numValues:Int, channelOffset:Int)
+	Method GetWaveData:Int(waveArray:Float[], numValues:Int, channelOffset:Int)
 		Return FMOD_System_GetWaveData(systemPtr, waveArray, numValues, channelOffset)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the state of the FMOD recording API, ie if it is currently recording or not.  
+	bbdoc: Retrieves the state of the FMOD recording API, ie if it is currently recording or not. 
+	about: Recording can be started with #recordStart.
+	<p>Parameters: 
+	<ul>
+	<li><b>id</b> : Enumerated driver ID. This must be in a valid range delimited by #getRecordNumDrivers.</li>
+	<li><b>recording</b> : A variable to receive the current recording state. True or non zero if the FMOD
+	recording api is currently in the middle of recording, False or zero if the recording api is stopped / not recording.</li>
+	</ul>
+	<p>
 	End Rem
-	Method IsRecording:Int(recording:Int Var)
-		Return FMOD_System_IsRecording(systemPtr, Varptr recording)
+	Method IsRecording:Int(id:Int, recording:Int Var)
+		Return FMOD_System_IsRecording(systemPtr, id:Int, Varptr recording)
 	End Method
 	
 	Rem
-	bbdoc:
+	bbdoc: Starts the recording engine recording to the specified recording sound.
+	about: Parameters: 
+	<ul>
+	<li><b>id</b> : Enumerated driver ID. This must be in a valid range delimited by #getRecordNumDrivers().</li>
+	<li><b>sound</b> : User created sound for the user to record to.</li>
+	<li><b>loop</b> : Boolean flag to tell the recording engine whether to continue recording to the provided sound from the start
+	again, after it has reached the end. If this is set to true the data will be continually be overwritten once every loop.</li>
+	</ul>
 	End Rem
-	Method RecordStart:Int(sound:TFMODSound, loop:Int)
-	' TODO
+	Method RecordStart:Int(id:Int, sound:TFMODSound, loop:Int)
+		Return FMOD_System_RecordStart(systemPtr, id, sound.soundPtr, loop)
 	End Method
 	
 	Rem
@@ -655,7 +740,28 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Selects a soundcard driver.
-	about: This method is used when an output mode has enumerated more than one output device, and you need to select between them.  
+	about: This method is used when an output mode has enumerated more than one output device, and you need to select between them. 
+	<p>Parameters: 
+	<ul>
+	<li><b>driver</b> : Driver number to select. 0 = primary or main sound device as selected by the operating
+	system settings. Use #getNumDrivers to select a specific device.</li>
+	</ul>
+	<p>
+	If this method is called after FMOD is already initialized with #init, the current driver will be shutdown and the
+	newly selected driver will be initialized / started.
+	</p>
+	<p>
+	When switching output driver after System::init there are a few considerations to make:
+	</p>
+	<p>
+	All sounds must be created with FMOD_SOFTWARE, creating even one FMOD_HARDWARE sound will cause this function to return FMOD_ERR_NEEDSSOFTWARE.
+	</p>
+	<p>
+	The driver that you wish to change to must support the current output format, sample rate, and number of
+	channels. If it does not, FMOD_ERR_OUTPUT_INIT is returned and driver state is cleared. You
+	should now call #setDriver with your original driver index to restore driver state
+	(providing that driver is still available / connected) or make another selection.
+	</p>
 	End Rem
 	Method SetDriver:Int(driver:Int)
 		Return FMOD_System_SetDriver(systemPtr, driver)
@@ -663,6 +769,18 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Sets the maximum world size for the geometry engine for performance / precision reasons.  
+	about: Parameters: 
+	<ul>
+	<li><b>maxWorldSize</b> : Maximum size of the world from the centerpoint to the edge using the same units used in other 3D methods.</li>
+	</ul>
+	<p>
+	Setting maxworldsize should be done first before creating any geometry.<br>
+	It can be done any time afterwards but may be slow in this case.
+	</p>
+	<p>
+	Objects or polygons outside the range of maxworldsize will not be handled efficiently.<br>
+	Conversely, if maxworldsize is excessively large, the structure may loose precision and efficiency may drop.
+	</p>
 	End Rem
 	Method SetGeometrySettings:Int(maxWorldSize:Float)
 		Return FMOD_System_SetGeometrySettings(systemPtr, maxWorldSize)
