@@ -388,7 +388,46 @@ Type TFMODSystem
 	Rem
 	bbdoc: Plays a sound object on a particular channel.  
 	returns:  The newly playing channel.
-	about: 
+	about: Parameters: 
+	<ul>
+	<li><b>channelId</b> : Use the value #FMOD_CHANNEL_FREE to get FMOD to pick a free channel.
+	Otherwise specify a channel number from 0 to the 'maxchannels' value specified in System::init minus 1.</li>
+	<li><b>sound</b> : The sound to play. This is opened with System::createSound. </li>
+	<li><b>paused</b> : True or False flag to specify whether to start the channel paused or not. Starting a
+	channel paused allows the user to alter its attributes without it being audible, and unpausing with
+	Channel::setPaused actually starts the sound.</li>
+	<li><b>reuse</b> : An option channel that receives the newly playing channel. If #FMOD_CHANNEL_REUSE is used, this
+	can contain a previously used channel handle and FMOD will re-use it to play a sound on.</li>
+	</ul>
+	<p>
+	When a sound is played, it will use the sound's default frequency, volume, pan, levels and priority.
+	</p>
+	<p>
+	A sound defined as #FMOD_3D will by default play at the position of the listener.
+	</p>
+	<p>
+	To change channel attributes before the sound is audible, start the channel paused by setting the paused flag to true, and calling
+	the relevant channel based methods. Following that, unpause the channel with Channel::setPaused.
+	</p>
+	<p>
+	If #FMOD_CHANNEL_FREE is used as the channel index, it will pick an arbitrary free channel and use channel management. (As described below).<br>
+	If #FMOD_CHANNEL_REUSE is used as the channel index, FMOD Ex will re-use the channel handle that is passed in as the 'channel' parameter.
+	If NULL or 0 is passed in as the channel handle it will use the same logic as FMOD_CHANNEL_FREE and pick an arbitrary channel.
+	</p>
+	<p>
+	Channels are reference counted. If a channel is stolen by the FMOD priority system, then the handle to the stolen voice becomes
+	invalid, and Channel based commands will not affect the new sound playing in its place.<br>
+	If all channels are currently full playing a sound, FMOD will steal a channel with the lowest priority sound.<br>
+	If more channels are playing than are currently available on the soundcard/sound device or software mixer, then FMOD will
+	'virtualize' the channel. This type of channel is not heard, but it is updated as if it was playing. When its priority
+	becomes high enough or another sound stops that was using a real hardware/software channel, it will start playing from where
+	it should be. This technique saves CPU time (thousands of sounds can be played at once without actually being mixed or taking
+	up resources), and also removes the need for the user to manage voices themselves.<br>
+	An example of virtual channel usage is a dungeon with 100 torches burning, all with a looping crackling sound, but with a soundcard
+	that only supports 32 hardware voices. If the 3D positions and priorities for each torch are set correctly, FMOD will play all 100
+	sounds without any 'out of channels' errors, and swap the real voices in and out according to which torches are closest in 3D space.<br>
+	Priority for virtual channels can be changed in the sound's defaults, or at runtime with Channel::setPriority.
+	</p>
 	End Rem
 	Method PlaySound:TFMODChannel(channelId:Int, sound:TFMODSound, paused:Int = False, reuse:TFMODChannel = Null)
 		If reuse Then
@@ -411,7 +450,15 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: This retrieves the position, velocity and orientation of the specified 3D sound listener.  
+	bbdoc: Retrieves the position, velocity and orientation of the specified 3D sound listener.
+	about: Parameters: 
+	<ul>
+	<li><b>listener</b> : Listener ID in a multi-listener environment. Specify 0 if there is only 1 listener. </li>
+	<li><b>pos</b> : A variable that receives the position of the listener in world space, measured in distance units. Optional. Specify Null to ignore.</li>
+	<li><b>vel</b> : A variable that receives the velocity of the listener measured in distance units per second. Optional. Specify Null to ignore </li>
+	<li><b>forward</b> : A variable that receives the forwards orientation of the listener. Optional. Specify Null to ignore.</li>
+	<li><b>up</b> : A variable that receives the upwards orientation of the listener. Optional. Specify Null to ignore.</li>
+	</ul>
 	End Rem
 	Method Get3DListenerAttributes:Int(listener:Int, pos:TFMODVector = Null, vel:TFMODVector = Null, ..
 			forward:TFMODVector = Null, up:TFMODVector = Null)
@@ -419,21 +466,41 @@ Type TFMODSystem
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the number of 3D listeners.  
+	bbdoc: Retrieves the number of 3D listeners.
+	about: Parameters: 
+	<ul>
+	<li><b>listeners</b> : A variable that receives the current number of 3D listeners in the 3D scene.</li>
+	</ul>
 	End Rem
 	Method Get3DNumListeners:Int(listeners:Int Var)
 		Return FMOD_System_Get3DNumListeners(systemPtr, Varptr listeners)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the global doppler scale, distance factor and rolloff scale for all 3D sound in FMOD.  
+	bbdoc: Retrieves the global doppler scale, distance factor and rolloff scale for all 3D sound in FMOD.
+	about: Parameters: 
+	<ul>
+	<li><b>dopplerScale</b> : A variable that receives the scaling factor for doppler shift.</li>
+	<li><b>distanceFactor</b> : A variable that receives the relative distance factor to FMOD's units.</li>
+	<li><b>rollOffScale</b> : A variable that receives the scaling factor for 3D sound rolloff or attenuation.</li>
+	</ul>
 	End Rem
 	Method Get3DSettings:Int(dopplerScale:Float Var, distanceFactor:Float Var, rollOffScale:Float Var)
 		Return FMOD_System_Get3DSettings(systemPtr, Varptr dopplerScale, Varptr distanceFactor, Varptr rollOffScale)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the current speaker position information for the selected speaker.  
+	bbdoc: Retrieves the current speaker position information for the selected speaker.
+	about: Parameters: 
+	<ul>
+	<li><b>speaker</b> : The selected speaker of interest to return the x and y position. </li>
+	<li><b>x</b> : A variable that receives the 2D X position relative to the listener.</li>
+	<li><b>y</b> : A variable that receives the 2D Y position relative to the listener.</li>
+	<li><b>active</b> : A variable that receives the active state of a speaker.</li>
+	</ul>
+	<p>
+	See #set3DSpeakerPosition for more information on speaker positioning.
+	</p>
 	End Rem
 	Method Get3DSpeakerPosition:Int(speaker:Int, x:Float Var, y:Float Var, active:Int Var)
 		Return FMOD_System_Get3DSpeakerPosition(systemPtr, speaker, Varptr x, Varptr y, Varptr active)
@@ -450,20 +517,42 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Retrieves in percent of CPU time - the amount of cpu usage that FMOD is taking for streaming/mixing and System::Update combined.
+	about: Parameters: 
+	<ul>
+	<li><b>dsp</b> : A variable that receives the current dsp mixing engine cpu usage. Result will be from 0 to 100.0.</li>
+	<li><b>stream</b> : A variable that receives the current streaming engine cpu usage. Result will be from 0 to 100.0.</li>
+	<li><b>geometry</b> : A variable that receives the current geometry engine cpu usage. Result will be from 0 to 100.0.</li>
+	<li><b>update</b> : A variable that receives the current #update cpu usage. Result will be from 0 to 100.0.</li>
+	<li><b>total</b> : A variable that receives the current total cpu usage. Result will be from 0 to 100.0.</li>
+	</ul>
+	<p>
+	This value is slightly smoothed to provide more stable readout (and to round off spikes that occur due to multitasking/operating system issues).
+	</p>
 	End Rem
-	Method GetCPUUsage:Int(dsp:Float Var, stream:Float Var, update:Float Var, total:Float Var)
-		Return FMOD_System_GetCPUUsage(systemPtr, Varptr dsp, Varptr stream, Varptr update, Varptr total)
+	Method GetCPUUsage:Int(dsp:Float Var, stream:Float Var, geometry:Float Var, update:Float Var, total:Float Var)
+		Return FMOD_System_GetCPUUsage(systemPtr, Varptr dsp, Varptr stream, Varptr geometry, Varptr update, Varptr total)
 	End Method
 
 	Rem
 	bbdoc: Retrieves a handle to a channel by ID.  
+	about: Parameters: 
+	<ul>
+	<li><b>channelId</b> : Index in the FMOD channel pool. Specify a channel number from 0 to the 'maxchannels' value specified in #init minus 1. </li>
+	</ul>
+	<p>
+	This method is mainly for getting handles to existing (playing) channels and setting their attributes.
+	</p>
 	End Rem
 	Method GetChannel:TFMODChannel(channelId:Int)
 		Return TFMODChannel._create(bmx_FMOD_System_GetChannel(systemPtr, channelId))
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the number of currently playing channels.  
+	bbdoc: Retrieves the number of currently playing channels.
+	about: Parameters: 
+	<ul>
+	<li><b>channels</b> : A variable that receives the number of currently playing channels.</li>
+	</ul>
 	End Rem
 	Method GetChannelsPlaying:Int(channels:Int Var)
 		Return FMOD_System_GetChannelsPlaying(systemPtr, Varptr channels)
@@ -625,7 +714,16 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Retrieves a pointer to a block of PCM data that represents the currently playing audio mix.
-	about: This method is useful for a very easy way to plot an oscilliscope.
+	about: Parameters: 
+	<ul>
+	<li><b>waveArray</b> : An array of floats that receives the currently playing waveform data. This is an array of floating point values.</li>
+	<li><b>numValues</b> : Number of floats to write to the array. Maximum value = 16384. </li>
+	<li><b>channelOffset</b> : Offset into multichannel data. For mono output use 0. Stereo output will use 0 = left, 1 = right.
+	More than stereo output - use the appropriate index. </li>
+	</ul>
+	<p>
+	This method is useful for a very easy way to plot an oscilliscope.
+	</p>
 	<p>
 	This is the actual resampled, filtered and volume scaled data of the final output, at the time this function is called.
 	</p>
@@ -643,14 +741,6 @@ Type TFMODSystem
 	Note: This method only displays data for sounds playing that were created with FMOD_SOFTWARE. FMOD_HARDWARE based sounds
 	are played using the sound card driver and are not accessable.
 	</p>
-	<p>Parameters: 
-	<ul>
-	<li><b>waveArray</b> : An array of floats that receives the currently playing waveform data. This is an array of floating point values.</li>
-	<li><b>numValues</b> : Number of floats to write to the array. Maximum value = 16384. </li>
-	<li><b>channelOffset</b> : Offset into multichannel data. For mono output use 0. Stereo output will use 0 = left, 1 = right.
-	More than stereo output - use the appropriate index. </li>
-	</ul>
-	<p>
 	End Rem
 	Method GetWaveData:Int(waveArray:Float[], numValues:Int, channelOffset:Int)
 		Return FMOD_System_GetWaveData(systemPtr, waveArray, numValues, channelOffset)
@@ -658,14 +748,15 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Retrieves the state of the FMOD recording API, ie if it is currently recording or not. 
-	about: Recording can be started with #recordStart.
-	<p>Parameters: 
+	about: Parameters: 
 	<ul>
 	<li><b>id</b> : Enumerated driver ID. This must be in a valid range delimited by #getRecordNumDrivers.</li>
 	<li><b>recording</b> : A variable to receive the current recording state. True or non zero if the FMOD
 	recording api is currently in the middle of recording, False or zero if the recording api is stopped / not recording.</li>
 	</ul>
 	<p>
+	Recording can be started with #recordStart.	
+	</p>
 	End Rem
 	Method IsRecording:Int(id:Int, recording:Int Var)
 		Return FMOD_System_IsRecording(systemPtr, id:Int, Varptr recording)
@@ -740,13 +831,14 @@ Type TFMODSystem
 	
 	Rem
 	bbdoc: Selects a soundcard driver.
-	about: This method is used when an output mode has enumerated more than one output device, and you need to select between them. 
-	<p>Parameters: 
+	about: Parameters: 
 	<ul>
 	<li><b>driver</b> : Driver number to select. 0 = primary or main sound device as selected by the operating
 	system settings. Use #getNumDrivers to select a specific device.</li>
 	</ul>
 	<p>
+	This method is used when an output mode has enumerated more than one output device, and you need to select between them. 
+	</p>
 	If this method is called after FMOD is already initialized with #init, the current driver will be shutdown and the
 	newly selected driver will be initialized / started.
 	</p>
@@ -1071,13 +1163,30 @@ Type TFMODSound
 
 	Rem
 	bbdoc: Retrieves the number of subsounds stored within a sound. 
+	about: Parameters: 
+	<ul>
+	<li><b>numSubSounds</b> : A variable that receives the number of subsounds stored within this sound.</li>
+	</ul>
+	<p>
+	A format that has subsounds is usually a container format, such as FSB, DLS, MOD, S3M, XM, IT.
+	</p>
 	End Rem
 	Method GetNumSubSounds:Int(numSubSounds:Int Var)
 		Return FMOD_Sound_GetNumSubSounds(soundPtr, Varptr numSubSounds)
 	End Method
 	
 	Rem
-	bbdoc: Retrieves the number of tags belonging to a sound.  
+	bbdoc: Retrieves the number of tags belonging to a sound.
+	about: Parameters: 
+	<ul>
+	<li><b>numTags</b> : A variable that receives the number of tags in the sound.</li>
+	<li><b>numTagsUpdated</b> : A variable that receives the number of tags updated since this method was last called.</li>
+	</ul>
+	<p>
+	The 'numtagsupdated' parameter can be used to check if any tags have been updated since last calling this method.
+	This can be useful to update tag fields, for example from internet based streams, such as shoutcast or icecast
+	where the name of the song might change.
+	</p>
 	End Rem
 	Method GetNumTags:Int(numTags:Int Var, numTagsUpdated:Int Var)
 		Return FMOD_Sound_GetNumTags(soundPtr, Varptr numTags, Varptr numTagsUpdated)
@@ -1085,7 +1194,16 @@ Type TFMODSound
 	
 	Rem
 	bbdoc: Retrieves the state a sound is in after FMOD_NONBLOCKING has been used to open it, or the state of the streaming buffer.  
-	about: When a sound is opened with FMOD_NONBLOCKING, it is opened and prepared in the background, or asynchronously.
+	about: Parameters: 
+	<ul>
+	<li><b>openState</b> : A variable that receives the open state of a sound.</li>
+	<li><b>percentBuffered</b> : A variable that receives the percentage of the file buffer filled progress of a stream.</li>
+	<li><b>starving</b> : A variable that receives the starving state of a sound. If a stream has decoded more than
+	the stream file buffer has ready for it, it will return TRUE. </li>
+	</ul>
+	<p>
+	When a sound is opened with FMOD_NONBLOCKING, it is opened and prepared in the background, or asynchronously.
+	</p>
 	<p>
 	This allows the main application to execute without stalling on audio loads.
 	</p>
@@ -1116,27 +1234,98 @@ Type TFMODSound
 	
 	Rem
 	bbdoc: Retrieves the current loop count value for the specified sound. 
+	about: Parameters: 
+	<ul>
+	<li><b>loopCount</b> : A variable that receives the number of times a sound will loop by default before stopping.
+	0 = oneshot. 1 = loop once then stop. -1 = loop forever. Default = -1</li>
+	</ul>
+	<p>
+	Unlike the channel loop count method, this method simply returns the value set with #setLoopCount. It
+	does not decrement as it plays (especially seeing as one sound can be played multiple times).
+	</p>
 	End Rem
 	Method GetLoopCount:Int(loopCount:Int Var)
 		Return FMOD_Sound_GetLoopCount(soundPtr, Varptr loopCount)
 	End Method
 	
 	Rem
-	bbdoc: Sets a sound, by default, to loop a specified number of times before stopping if its mode is set to FMOD_LOOP_NORMAL or FMOD_LOOP_BIDI.  
+	bbdoc: Sets a sound, by default, to loop a specified number of times before stopping if its mode is set to #FMOD_LOOP_NORMAL or #FMOD_LOOP_BIDI.
+	about: Parameters: 
+	<ul>
+	<li><b>loopCount</b> : Number of times to loop before stopping. 0 = oneshot. 1 = loop once then stop. -1 = loop forever. Default = -1</li>
+	</ul>
+	<p>
+	This method does not affect FMOD_HARDWARE based sounds that are not streamable.
+	FMOD_SOFTWARE based sounds or any type of sound created with System::CreateStream or FMOD_CREATESTREAM will support this method.
+	</p>
+	<p>
+	Issues with streamed audio. (Sounds created with with System::createStream or FMOD_CREATESTREAM). When changing the loop count,
+	sounds created with System::createStream or FMOD_CREATESTREAM may already have been pre-buffered and executed their loop logic
+	ahead of time, before this call was even made.
+	This is dependent on the size of the sound versus the size of the stream decode buffer. See FMOD_CREATESOUNDEXINFO.
+	If this happens, you may need to reflush the stream buffer. To do this, you can call Channel::setPosition which forces a reflush of
+	the stream buffer.
+	Note this will usually only happen if you have sounds or looppoints that are smaller than the stream decode buffer size. Otherwise you
+	will not normally encounter any problems.
+	</p>
 	End Rem
 	Method SetLoopCount:Int(loopCount:Int)
 		Return FMOD_Sound_SetLoopCount(soundPtr, loopCount)
 	End Method
 
 	Rem
-	bbdoc: Retrieves the loop points for a sound.  
+	bbdoc: Retrieves the loop points for a sound.
+	about: Parameters: 
+	<ul>
+	<li><b>loopStart</b> : A variable to receive the loop start point. This point in time is played, so it is inclusive.</li>
+	<li><b>loopStartType</b> : The time format used for the returned loop start point. One of #FMOD_TIMEUNIT_MS, #FMOD_TIMEUNIT_PCM,
+	#FMOD_TIMEUNIT_PCMBYTES, #FMOD_TIMEUNIT_RAWBYTES, #FMOD_TIMEUNIT_MODORDER, #FMOD_TIMEUNIT_MODROW, #FMOD_TIMEUNIT_MODPATTERN,
+	#FMOD_TIMEUNIT_SENTENCE_MS, #FMOD_TIMEUNIT_SENTENCE_PCM, #FMOD_TIMEUNIT_SENTENCE_PCMBYTES, #FMOD_TIMEUNIT_SENTENCE,
+	#FMOD_TIMEUNIT_SENTENCE_SUBSOUND or #FMOD_TIMEUNIT_BUFFERED</li>
+	<li><b>loopEnd</b> : A variable to receive the loop end point. This point in time is played, so it is inclusive.</li>
+	<li><b>loopEndType</b> : The time format used for the returned loop end point. One of #FMOD_TIMEUNIT_MS, #FMOD_TIMEUNIT_PCM,
+	#FMOD_TIMEUNIT_PCMBYTES, #FMOD_TIMEUNIT_RAWBYTES, #FMOD_TIMEUNIT_MODORDER, #FMOD_TIMEUNIT_MODROW, #FMOD_TIMEUNIT_MODPATTERN,
+	#FMOD_TIMEUNIT_SENTENCE_MS, #FMOD_TIMEUNIT_SENTENCE_PCM, #FMOD_TIMEUNIT_SENTENCE_PCMBYTES, #FMOD_TIMEUNIT_SENTENCE,
+	#FMOD_TIMEUNIT_SENTENCE_SUBSOUND or #FMOD_TIMEUNIT_BUFFERED</li>
+	</ul>
 	End Rem
 	Method GetLoopPoints:Int(loopStart:Int Var, loopStartType:Int Var, loopEnd:Int Var, loopEndType:Int Var)
 		Return FMOD_Sound_GetLoopPoints(soundPtr, Varptr loopStart, Varptr loopStartType, Varptr loopEnd, Varptr loopEndType)
 	End Method
 		
 	Rem
-	bbdoc: Sets the loop points within a sound.  
+	bbdoc: Sets the loop points within a sound.
+	about: Parameters: 
+	<ul>
+	<li><b>loopStart</b> : The loop start point. This point in time is played, so it is inclusive. </li>
+	<li><b>loopStartType</b> : The time format used for the loop start point. One of #FMOD_TIMEUNIT_MS, #FMOD_TIMEUNIT_PCM,
+	#FMOD_TIMEUNIT_PCMBYTES, #FMOD_TIMEUNIT_RAWBYTES, #FMOD_TIMEUNIT_MODORDER, #FMOD_TIMEUNIT_MODROW, #FMOD_TIMEUNIT_MODPATTERN,
+	#FMOD_TIMEUNIT_SENTENCE_MS, #FMOD_TIMEUNIT_SENTENCE_PCM, #FMOD_TIMEUNIT_SENTENCE_PCMBYTES, #FMOD_TIMEUNIT_SENTENCE,
+	#FMOD_TIMEUNIT_SENTENCE_SUBSOUND or #FMOD_TIMEUNIT_BUFFERED</li>
+	<li><b>loopEnd</b> : The loop end point. This point in time is played, so it is inclusive. </li>
+	<li><b>loopEndType</b> : The time format used for the loop end point. One of #FMOD_TIMEUNIT_MS, #FMOD_TIMEUNIT_PCM,
+	#FMOD_TIMEUNIT_PCMBYTES, #FMOD_TIMEUNIT_RAWBYTES, #FMOD_TIMEUNIT_MODORDER, #FMOD_TIMEUNIT_MODROW, #FMOD_TIMEUNIT_MODPATTERN,
+	#FMOD_TIMEUNIT_SENTENCE_MS, #FMOD_TIMEUNIT_SENTENCE_PCM, #FMOD_TIMEUNIT_SENTENCE_PCMBYTES, #FMOD_TIMEUNIT_SENTENCE,
+	#FMOD_TIMEUNIT_SENTENCE_SUBSOUND or #FMOD_TIMEUNIT_BUFFERED</li>
+	</ul>
+	<p>
+	Not supported by static sounds created with FMOD_HARDWARE.
+	Supported by sounds created with FMOD_SOFTWARE, or sounds of any type (hardware or software) created with System::createStream or FMOD_CREATESTREAM. 
+	If a sound was 44100 samples long and you wanted to loop the whole sound, loopstart would be 0, and loopend would be 44099, 
+	not 44100. You wouldn't use milliseconds in this case because they are not sample accurate.
+	If loop end is smaller or equal to loop start, it will result in an error.
+	If loop start or loop end is larger than the length of the sound, it will result in an error.
+	</p>
+	<p>
+	Issues with streamed audio. (Sounds created with with System::createStream or FMOD_CREATESTREAM). 
+	When changing the loop points, sounds created with System::createStream or FMOD_CREATESTREAM may already have been pre-buffered
+	and executed their loop logic ahead of time, before this call was even made.
+	This is dependant on the size of the sound versus the size of the stream decode buffer. See FMOD_CREATESOUNDEXINFO.
+	If this happens, you may need to reflush the stream buffer. To do this, you can call Channel::setPosition which forces a
+	reflush of the stream buffer.
+	Note this will usually only happen if you have sounds or looppoints that are smaller than the stream decode buffer size.
+	Otherwise you will not normally encounter any problems.
+	</p>
 	End Rem
 	Method SetLoopPoints:Int(loopStart:Int, loopStartType:Int, loopEnd:Int, loopEndType:Int)
 		Return FMOD_Sound_SetLoopPoints(soundPtr, loopStart, loopStartType, loopEnd, loopEndType)

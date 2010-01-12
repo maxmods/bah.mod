@@ -143,7 +143,7 @@ Extern
 	Function FMOD_System_Get3DNumListeners:Int(handle:Byte Ptr, listeners:Int Ptr)
 	Function FMOD_System_Get3DSettings:Int(handle:Byte Ptr, dopplerScale:Float Ptr, distanceFactor:Float Ptr, rollOffScale:Float Ptr)
 	Function FMOD_System_Get3DSpeakerPosition:Int(handle:Byte Ptr, speaker:Int, x:Float Ptr, y:Float Ptr, active:Int Ptr)
-	Function FMOD_System_GetCPUUsage:Int(handle:Byte Ptr, dsp:Float Ptr, stream:Float Ptr, update:Float Ptr, total:Float Ptr)
+	Function FMOD_System_GetCPUUsage:Int(handle:Byte Ptr, dsp:Float Ptr, stream:Float Ptr, geometry:Float Ptr, update:Float Ptr, total:Float Ptr)
 	Function FMOD_System_GetHardwareChannels:Int(handle:Byte Ptr, num2D:Int Ptr, num3D:Int Ptr, total:Int Ptr)
 	Function FMOD_System_GetVersion:Int(handle:Byte Ptr, version:Int Ptr)
 	Function FMOD_System_GetNumCDROMDrives:Int(handle:Byte Ptr, numDrives:Int Ptr)
