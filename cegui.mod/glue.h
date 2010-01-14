@@ -164,6 +164,7 @@ extern "C" {
 	float bmx_cegui_system_getmousemovescaling(CEGUI::System * sys);
 	void bmx_cegui_system_setmousemovescaling(CEGUI::System * sys, float scaling);
 	BBObject * bmx_cegui_system_getresourceprovider(CEGUI::System * sys);
+	void bmx_cegui_system_notifydisplaysizechanged(CEGUI::System * sys, float width, float height);
 
 	CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton();
 	BBObject * bmx_cegui_windowmanager_loadWindowLayout(CEGUI::WindowManager * mgr, const CEGUI::utf8 * filename, const CEGUI::utf8 * namePrefix, const CEGUI::utf8 * resourceGroup);

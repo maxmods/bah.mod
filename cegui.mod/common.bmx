@@ -59,6 +59,7 @@ Extern
 	Function bmx_cegui_system_getmousemovescaling:Float(handle:Byte Ptr)
 	Function bmx_cegui_system_setmousemovescaling(handle:Byte Ptr, scaling:Float)
 	Function bmx_cegui_system_getresourceprovider:Object(handle:Byte Ptr)
+	Function bmx_cegui_system_notifydisplaysizechanged(handle:Byte Ptr, width:Float, height:Float)
 
 	Function bmx_cegui_windowmanager_getsingleton:Byte Ptr()
 	Function bmx_cegui_windowmanager_loadWindowLayout:Object(handle:Byte Ptr, filename:Byte Ptr, namePrefix:Byte Ptr, resourceGroup:Byte Ptr)

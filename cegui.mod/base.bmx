@@ -449,6 +449,18 @@ Type TCESystem Extends TCEEventSet
 	End Method
 	
 	Rem
+	bbdoc: Notification method to be called when the main display changes size.
+	about: Client code should call this function when the host window changes size, or if the display resolution is changed in full-screen mode.
+	</p>
+	Calling this method ensures that any other parts of the system that need to know about display size changes are
+	notified. This affects things such as the MouseCursor default constraint area, and also the auto-scale functioning of Imagesets and Fonts.
+	<p>
+	End Rem
+	Method notifyDisplaySizeChanged(width:Float, height:Float)
+		bmx_cegui_system_notifydisplaysizechanged(cegui_systemPtr, width, height)
+	End Method
+	
+	Rem
 	bbdoc: Returns the current timeout for generation of single-click events.
 	about: A single-click is defined here as a button being pressed and then released.
 	End Rem

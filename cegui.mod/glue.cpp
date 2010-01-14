@@ -568,6 +568,10 @@ void bmx_cegui_system_setmousemovescaling(CEGUI::System * sys, float scaling) {
 	sys->setMouseMoveScaling(scaling);
 }
 
+void bmx_cegui_system_notifydisplaysizechanged(CEGUI::System * sys, float width, float height) {
+	sys->notifyDisplaySizeChanged(CEGUI::Size(width, height));
+}
+
 // *************************************************
 
 CEGUI::WindowManager * bmx_cegui_windowmanager_getsingleton() {
