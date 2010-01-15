@@ -112,6 +112,13 @@ Const PCRE_NEWLINE_CR:Int =         $00100000
 Const PCRE_NEWLINE_LF:Int =         $00200000
 Const PCRE_NEWLINE_CRLF:Int =       $00300000
 Const PCRE_NEWLINE_ANY:Int =        $00400000
+Const PCRE_NEWLINE_ANYCRLF:Int =    $00500000
+Const PCRE_BSR_ANYCRLF:Int =        $00800000
+Const PCRE_BSR_UNICODE:Int =        $01000000
+Const PCRE_JAVASCRIPT_COMPAT:Int =  $02000000
+Const PCRE_NO_START_OPTIMIZE:Int =  $04000000
+Const PCRE_PARTIAL_HARD:Int =       $08000000
+Const PCRE_NOTEMPTY_ATSTART:Int =   $10000000
 
 Const PCRE_INFO_OPTIONS:Int =            0
 Const PCRE_INFO_SIZE:Int =               1
@@ -126,6 +133,10 @@ Const PCRE_INFO_NAMECOUNT:Int =          8
 Const PCRE_INFO_NAMETABLE:Int =          9
 Const PCRE_INFO_STUDYSIZE:Int =         10
 Const PCRE_INFO_DEFAULT_TABLES:Int =    11
+Const PCRE_INFO_OKPARTIAL:Int =         12
+Const PCRE_INFO_JCHANGED:Int =          13
+Const PCRE_INFO_HASCRORLF:Int =         14
+Const PCRE_INFO_MINLENGTH:Int =         15
 
 
 Extern
