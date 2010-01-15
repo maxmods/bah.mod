@@ -1,4 +1,4 @@
-' Copyright (c) 2007,2008 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,12 @@ Module BaH.RegEx
 ModuleInfo "Version: 1.04"
 ModuleInfo "Author: PCRE - Philip Hazel"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: PCRE - 1997-2008 University of Cambridge"
-ModuleInfo "Copyright: Wrapper - 2007, 2008 Bruce A Henderson"
+ModuleInfo "Copyright: PCRE - 1997-2009 University of Cambridge"
+ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.04"
-ModuleInfo "History: Updated to PCRE 7.8"
+ModuleInfo "History: Updated to PCRE 8.0"
 ModuleInfo "History: Fixed offset problems when working with non-ascii text."
 ModuleInfo "History: Fixed Replace() where loop was overflowing."
 ModuleInfo "History: Added test_08 for utf-8."

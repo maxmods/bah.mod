@@ -6,7 +6,7 @@
 its pattern matching. On a Unix or Win32 system it can recurse into
 directories.
 
-           Copyright (c) 1997-2008 University of Cambridge
+           Copyright (c) 1997-2009 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ POSSIBILITY OF SUCH DAMAGE.
 typedef int BOOL;
 
 #define MAX_PATTERN_COUNT 100
+#define OFFSET_SIZE 99
 
 #if BUFSIZ > 8192
 #define MBUFTHIRD BUFSIZ
@@ -82,7 +83,7 @@ typedef int BOOL;
 output. The order is important; it is assumed that a file name is wanted for
 all values greater than FN_DEFAULT. */
 
-enum { FN_NONE, FN_DEFAULT, FN_ONLY, FN_NOMATCH_ONLY, FN_FORCE };
+enum { FN_NONE, FN_DEFAULT, FN_MATCH_ONLY, FN_NOMATCH_ONLY, FN_FORCE };
 
 /* File reading styles */
 
@@ -164,6 +165,7 @@ static BOOL invert = FALSE;
 static BOOL line_offsets = FALSE;
 static BOOL multiline = FALSE;
 static BOOL number = FALSE;
+static BOOL omit_zero_count = FALSE;
 static BOOL only_matching = FALSE;
 static BOOL quiet = FALSE;
 static BOOL silent = FALSE;
@@ -208,8 +210,8 @@ static option_item optionlist[] = {
   { OP_OP_STRING, N_COLOUR, &colour_option,    "colour=option", "matched text colour option" },
   { OP_STRING,    'D',      &DEE_option,       "devices=action","how to handle devices, FIFOs, and sockets" },
   { OP_STRING,    'd',      &dee_option,       "directories=action", "how to handle directories" },
-  { OP_PATLIST,   'e',      NULL,              "regex(p)",      "specify pattern (may be used more than once)" },
-  { OP_NODATA,    'F',      NULL,              "fixed_strings", "patterns are sets of newline-separated strings" },
+  { OP_PATLIST,   'e',      NULL,              "regex(p)=pattern", "specify pattern (may be used more than once)" },
+  { OP_NODATA,    'F',      NULL,              "fixed-strings", "patterns are sets of newline-separated strings" },
   { OP_STRING,    'f',      &pattern_filename, "file=path",     "read patterns from file" },
   { OP_NODATA,    N_FOFFSETS, NULL,            "file-offsets",  "output file offsets, not text" },
   { OP_NODATA,    'H',      NULL,              "with-filename", "force the prefixing filename on output" },
@@ -821,6 +823,60 @@ if (after_context > 0 && lastmatchnumber > 0)
 
 
 /*************************************************
+*   Apply patterns to subject till one matches   *
+*************************************************/
+
+/* This function is called to run through all patterns, looking for a match. It
+is used multiple times for the same subject when colouring is enabled, in order
+to find all possible matches.
+
+Arguments:
+  matchptr    the start of the subject
+  length      the length of the subject to match
+  offsets     the offets vector to fill in
+  mrc         address of where to put the result of pcre_exec()
+
+Returns:      TRUE if there was a match
+              FALSE if there was no match
+              invert if there was a non-fatal error
+*/
+
+static BOOL
+match_patterns(char *matchptr, size_t length, int *offsets, int *mrc)
+{
+int i;
+for (i = 0; i < pattern_count; i++)
+  {
+  *mrc = pcre_exec(pattern_list[i], hints_list[i], matchptr, length, 0,
+    PCRE_NOTEMPTY, offsets, OFFSET_SIZE);
+  if (*mrc >= 0) return TRUE;
+  if (*mrc == PCRE_ERROR_NOMATCH) continue;
+  fprintf(stderr, "pcregrep: pcre_exec() error %d while matching ", *mrc);
+  if (pattern_count > 1) fprintf(stderr, "pattern number %d to ", i+1);
+  fprintf(stderr, "this text:\n");
+  fwrite(matchptr, 1, length, stderr);  /* In case binary zero included */
+  fprintf(stderr, "\n");
+  if (error_count == 0 &&
+      (*mrc == PCRE_ERROR_MATCHLIMIT || *mrc == PCRE_ERROR_RECURSIONLIMIT))
+    {
+    fprintf(stderr, "pcregrep: error %d means that a resource limit "
+      "was exceeded\n", *mrc);
+    fprintf(stderr, "pcregrep: check your regex for nested unlimited loops\n");
+    }
+  if (error_count++ > 20)
+    {
+    fprintf(stderr, "pcregrep: too many errors - abandoned\n");
+    exit(2);
+    }
+  return invert;    /* No more matching; don't show the line again */
+  }
+
+return FALSE;  /* No match, no errors */
+}
+
+
+
+/*************************************************
 *            Grep an individual file             *
 *************************************************/
 
@@ -853,7 +909,7 @@ int linenumber = 1;
 int lastmatchnumber = 0;
 int count = 0;
 int filepos = 0;
-int offsets[99];
+int offsets[OFFSET_SIZE];
 char *lastmatchrestart = NULL;
 char buffer[3*MBUFTHIRD];
 char *ptr = buffer;
@@ -909,9 +965,9 @@ way, the buffer is shifted left and re-filled. */
 
 while (ptr < endptr)
   {
-  int i, endlinelength;
+  int endlinelength;
   int mrc = 0;
-  BOOL match = FALSE;
+  BOOL match;
   char *matchptr = ptr;
   char *t = ptr;
   size_t length, linelength;
@@ -919,9 +975,10 @@ while (ptr < endptr)
   /* At this point, ptr is at the start of a line. We need to find the length
   of the subject string to pass to pcre_exec(). In multiline mode, it is the
   length remainder of the data in the buffer. Otherwise, it is the length of
-  the next line. After matching, we always advance by the length of the next
-  line. In multiline mode the PCRE_FIRSTLINE option is used for compiling, so
-  that any match is constrained to be in the first line. */
+  the next line, excluding the terminating newline. After matching, we always
+  advance by the length of the next line. In multiline mode the PCRE_FIRSTLINE
+  option is used for compiling, so that any match is constrained to be in the
+  first line. */
 
   t = end_of_line(t, endptr, &endlinelength);
   linelength = t - ptr - endlinelength;
@@ -936,6 +993,7 @@ while (ptr < endptr)
       #include <time.h>
       struct timeval start_time, end_time;
       struct timezone dummy;
+      int i;
 
       if (jfriedl_XT)
       {
@@ -961,7 +1019,8 @@ while (ptr < endptr)
 
 
       for (i = 0; i < jfriedl_XR; i++)
-          match = (pcre_exec(pattern_list[0], hints_list[0], ptr, length, 0, 0, offsets, 99) >= 0);
+          match = (pcre_exec(pattern_list[0], hints_list[0], ptr, length, 0,
+              PCRE_NOTEMPTY, offsets, OFFSET_SIZE) >= 0);
 
       if (gettimeofday(&end_time, &dummy) != 0)
               perror("bad gettimeofday");
@@ -980,37 +1039,11 @@ while (ptr < endptr)
 
   ONLY_MATCHING_RESTART:
 
-  /* Run through all the patterns until one matches. Note that we don't include
-  the final newline in the subject string. */
+  /* Run through all the patterns until one matches or there is an error other
+  than NOMATCH. This code is in a subroutine so that it can be re-used for
+  finding subsequent matches when colouring matched lines. */
 
-  for (i = 0; i < pattern_count; i++)
-    {
-    mrc = pcre_exec(pattern_list[i], hints_list[i], matchptr, length, 0, 0,
-      offsets, 99);
-    if (mrc >= 0) { match = TRUE; break; }
-    if (mrc != PCRE_ERROR_NOMATCH)
-      {
-      fprintf(stderr, "pcregrep: pcre_exec() error %d while matching ", mrc);
-      if (pattern_count > 1) fprintf(stderr, "pattern number %d to ", i+1);
-      fprintf(stderr, "this line:\n");
-      fwrite(matchptr, 1, linelength, stderr);  /* In case binary zero included */
-      fprintf(stderr, "\n");
-      if (error_count == 0 &&
-          (mrc == PCRE_ERROR_MATCHLIMIT || mrc == PCRE_ERROR_RECURSIONLIMIT))
-        {
-        fprintf(stderr, "pcregrep: error %d means that a resource limit "
-          "was exceeded\n", mrc);
-        fprintf(stderr, "pcregrep: check your regex for nested unlimited loops\n");
-        }
-      if (error_count++ > 20)
-        {
-        fprintf(stderr, "pcregrep: too many errors - abandoned\n");
-        exit(2);
-        }
-      match = invert;    /* No more matching; don't show the line again */
-      break;
-      }
-    }
+  match = match_patterns(matchptr, length, offsets, &mrc);
 
   /* If it's a match or a not-match (as required), do what's wanted. */
 
@@ -1029,7 +1062,7 @@ while (ptr < endptr)
     /* If all we want is a file name, there is no need to scan any more lines
     in the file. */
 
-    else if (filenames == FN_ONLY)
+    else if (filenames == FN_MATCH_ONLY)
       {
       fprintf(stdout, "%s\n", printname);
       return 0;
@@ -1060,7 +1093,11 @@ while (ptr < endptr)
           fprintf(stdout, "%d,%d", (int)(filepos + matchptr + offsets[0] - ptr),
             offsets[1] - offsets[0]);
         else
+          {
+          if (do_colour) fprintf(stdout, "%c[%sm", 0x1b, colour_string);
           fwrite(matchptr + offsets[0], 1, offsets[1] - offsets[0], stdout);
+          if (do_colour) fprintf(stdout, "%c[00m", 0x1b);
+          }
         fprintf(stdout, "\n");
         matchptr += offsets[1];
         length -= offsets[1];
@@ -1197,17 +1234,33 @@ while (ptr < endptr)
       else
 #endif
 
-      /* We have to split the line(s) up if colouring. */
+      /* We have to split the line(s) up if colouring, and search for further
+      matches. */
 
       if (do_colour)
         {
+        int last_offset = 0;
         fwrite(ptr, 1, offsets[0], stdout);
         fprintf(stdout, "%c[%sm", 0x1b, colour_string);
         fwrite(ptr + offsets[0], 1, offsets[1] - offsets[0], stdout);
         fprintf(stdout, "%c[00m", 0x1b);
-        fwrite(ptr + offsets[1], 1, (linelength + endlinelength) - offsets[1],
+        for (;;)
+          {
+          last_offset += offsets[1];
+          matchptr += offsets[1];
+          length -= offsets[1];
+          if (!match_patterns(matchptr, length, offsets, &mrc)) break;
+          fwrite(matchptr, 1, offsets[0], stdout);
+          fprintf(stdout, "%c[%sm", 0x1b, colour_string);
+          fwrite(matchptr + offsets[0], 1, offsets[1] - offsets[0], stdout);
+          fprintf(stdout, "%c[00m", 0x1b);
+          }
+        fwrite(ptr + last_offset, 1, (linelength + endlinelength) - last_offset,
           stdout);
         }
+
+      /* Not colouring; no need to search for further matches */
+
       else fwrite(ptr, 1, linelength + endlinelength, stdout);
       }
 
@@ -1313,8 +1366,12 @@ if (filenames == FN_NOMATCH_ONLY)
 
 if (count_only)
   {
-  if (printname != NULL) fprintf(stdout, "%s:", printname);
-  fprintf(stdout, "%d\n", count);
+  if (count > 0 || !omit_zero_count)
+    {
+    if (printname != NULL && filenames != FN_NONE)
+      fprintf(stdout, "%s:", printname);
+    fprintf(stdout, "%d\n", count);
+    }
   }
 
 return rc;
@@ -1478,7 +1535,7 @@ an attempt to read a .bz2 file indicates that it really is a plain file. */
 PLAIN_FILE:
 #endif
   {
-  in = fopen(pathname, "r");
+  in = fopen(pathname, "rb");
   handle = (void *)in;
   frtype = FR_PLAIN;
   }
@@ -1634,7 +1691,7 @@ switch(letter)
   case 'H': filenames = FN_FORCE; break;
   case 'h': filenames = FN_NONE; break;
   case 'i': options |= PCRE_CASELESS; break;
-  case 'l': filenames = FN_ONLY; break;
+  case 'l': omit_zero_count = TRUE; filenames = FN_MATCH_ONLY; break;
   case 'L': filenames = FN_NOMATCH_ONLY; break;
   case 'M': multiline = TRUE; options |= PCRE_MULTILINE|PCRE_FIRSTLINE; break;
   case 'n': number = TRUE; break;
@@ -1819,16 +1876,18 @@ const char *error;
 
 /* Set the default line ending value from the default in the PCRE library;
 "lf", "cr", "crlf", and "any" are supported. Anything else is treated as "lf".
-*/
+Note that the return values from pcre_config(), though derived from the ASCII
+codes, are the same in EBCDIC environments, so we must use the actual values
+rather than escapes such as as '\r'. */
 
 (void)pcre_config(PCRE_CONFIG_NEWLINE, &i);
 switch(i)
   {
-  default:                 newline = (char *)"lf"; break;
-  case '\r':               newline = (char *)"cr"; break;
-  case ('\r' << 8) | '\n': newline = (char *)"crlf"; break;
-  case -1:                 newline = (char *)"any"; break;
-  case -2:                 newline = (char *)"anycrlf"; break;
+  default:               newline = (char *)"lf"; break;
+  case 13:               newline = (char *)"cr"; break;
+  case (13 << 8) | 10:   newline = (char *)"crlf"; break;
+  case -1:               newline = (char *)"any"; break;
+  case -2:               newline = (char *)"anycrlf"; break;
   }
 
 /* Process the options */
@@ -1870,14 +1929,17 @@ for (i = 1; i < argc; i++)
     Some options have variations in the long name spelling: specifically, we
     allow "regexp" because GNU grep allows it, though I personally go along
     with Jeffrey Friedl and Larry Wall in preferring "regex" without the "p".
-    These options are entered in the table as "regex(p)". No option is in both
-    these categories, fortunately. */
+    These options are entered in the table as "regex(p)". Options can be in
+    both these categories. */
 
     for (op = optionlist; op->one_char != 0; op++)
       {
       char *opbra = strchr(op->long_name, '(');
       char *equals = strchr(op->long_name, '=');
-      if (opbra == NULL)     /* Not a (p) case */
+
+      /* Handle options with only one spelling of the name */
+
+      if (opbra == NULL)     /* Does not contain '(' */
         {
         if (equals == NULL)  /* Not thing=data case */
           {
@@ -1899,16 +1961,36 @@ for (i = 1; i < argc; i++)
             }
           }
         }
-      else                   /* Special case xxxx(p) */
+
+      /* Handle options with an alternate spelling of the name */
+
+      else
         {
         char buff1[24];
         char buff2[24];
+
         int baselen = opbra - op->long_name;
+        int fulllen = strchr(op->long_name, ')') - op->long_name + 1;
+        int arglen = (argequals == NULL || equals == NULL)?
+          (int)strlen(arg) : argequals - arg;
+
         sprintf(buff1, "%.*s", baselen, op->long_name);
-        sprintf(buff2, "%s%.*s", buff1,
-          (int)strlen(op->long_name) - baselen - 2, opbra + 1);
-        if (strcmp(arg, buff1) == 0 || strcmp(arg, buff2) == 0)
+        sprintf(buff2, "%s%.*s", buff1, fulllen - baselen - 2, opbra + 1);
+
+        if (strncmp(arg, buff1, arglen) == 0 ||
+           strncmp(arg, buff2, arglen) == 0)
+          {
+          if (equals != NULL && argequals != NULL)
+            {
+            option_data = argequals;
+            if (*option_data == '=')
+              {
+              option_data++;
+              longopwasequals = TRUE;
+              }
+            }
           break;
+          }
         }
       }
 
@@ -1918,7 +2000,6 @@ for (i = 1; i < argc; i++)
       exit(usage(2));
       }
     }
-
 
   /* Jeffrey Friedl's debugging harness uses these additional options which
   are not in the right form for putting in the option table because they use
