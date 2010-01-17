@@ -171,8 +171,6 @@ public:
     const Vector2& getDisplayDPI() const;
     uint getMaxTextureSize() const;
     const String& getIdentifierString() const;
-    void setupRenderingBlendMode(const BlendMode mode,
-                                 const bool force = false);
 
 protected:
     //! Constructor
@@ -214,8 +212,6 @@ protected:
     bool d_supportsNSquareTextures;
     //! true if driver supports non power of two textures
     bool d_supportsNPOTTextures;
-    //! What we think the active texture blend mode is.
-    BlendMode d_activeBlendMode;
 };
 
 } // End of  CEGUI namespace section

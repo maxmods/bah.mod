@@ -31,7 +31,7 @@ ModuleInfo "Copyright: CEGUI - 2004 - 2009 Paul D Turner & The CEGUI Development
 ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2379)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2394)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"

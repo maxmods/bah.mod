@@ -26,8 +26,8 @@ Type MyApp Extends CEGuiBaseApplication
 		' Load the TaharezLook scheme and set up the default mouse cursor and font
 		TCESchemeManager.createScheme("TaharezLook.scheme")
 		TCESystem.setDefaultMouseCursor("TaharezLook", "MouseArrow")
-		If Not TCEFontManager.isDefined("Commonwealth-10") Then
-			TCEFontManager.createFont("Commonwealth-10.font")
+		If Not TCEFontManager.isDefined("DejaVuSans-10") Then
+			TCEFontManager.createFont("DejaVuSans-10")
 		End If
 		
 		' Set the GUI Sheet
