@@ -1,4 +1,4 @@
-' Copyright (c) 2007 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,15 @@ bbdoc: Chipmunk 2D Physics
 End Rem
 Module BaH.Chipmunk
 
-ModuleInfo "Version: 1.03"
+ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2007 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.04"
+ModuleInfo "History: Updated to latest v5 source."
+ModuleInfo "History: Changed CPJoint to CPConstraint."
+ModuleInfo "History: Now uses Double instead of Float."
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Added user Set/GetData() methods for CPBody and CPShape."
 ModuleInfo "History: 1.02"
@@ -77,13 +81,13 @@ End Type
 
 Type _posFunc
 
-	Field func(Body:CPBody, dt:Float)
+	Field func(Body:CPBody, dt:Double)
 	
 End Type
 
 Type _velFunc
 
-	Field func(body:CPBody, gravity:CPVect, damping:Float, dt:Float)
+	Field func(body:CPBody, gravity:CPVect, damping:Double, dt:Double)
 	
 End Type
 
@@ -96,8 +100,8 @@ Type CPBody Extends CPObject
 
 	'Global posFuncs:TMap = New TMap
 	'Global velFuncs:TMap = New TMap
-	Field posFunction(body:CPBody, dt:Float)
-	Field velFunction(body:CPBody, gravity:CPVect, damping:Float, dt:Float)
+	Field posFunction(body:CPBody, dt:Double)
+	Field velFunction(body:CPBody, gravity:CPVect, damping:Double, dt:Double)
 
 	Function _create:CPBody(cpObjectPtr:Byte Ptr)
 		If cpObjectPtr Then
@@ -110,7 +114,7 @@ Type CPBody Extends CPObject
 	Rem
 	bbdoc: Creates a new body
 	End Rem
-	Method Create:CPBody(mass:Float, inertia:Float)
+	Method Create:CPBody(mass:Double, inertia:Double)
 		cpObjectPtr = bmx_cpbody_create(Self, mass, inertia)
 		Return Self
 	End Method
@@ -118,56 +122,56 @@ Type CPBody Extends CPObject
 	Rem
 	bbdoc: Returns the body mass.
 	End Rem
-	Method GetMass:Float()
+	Method GetMass:Double()
 		Return bmx_cpbody_getmass(cpObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Returns the body inertia.
 	End Rem
-	Method GetInertia:Float()
+	Method GetInertia:Double()
 		Return bmx_cpbody_getinertia(cpObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Gets the current angle for the body.
 	End Rem
-	Method GetAngle:Float()
+	Method GetAngle:Double()
 		Return bmx_cpbody_getangle(cpObjectPtr)
 	End Method
 
 	Rem
 	bbdoc: Sets the body angle
 	End Rem
-	Method SetAngle(angle:Float)
+	Method SetAngle(angle:Double)
 		bmx_cpbody_setangle(cpObjectPtr, angle)
 	End Method
 	
 	Rem
 	bbdoc: Returns the body angular velocity.
 	End Rem
-	Method GetAngularVelocity:Float()
+	Method GetAngularVelocity:Double()
 		Return bmx_cpbody_getangularvelocity(cpObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Sets the body angular velocity.
 	End Rem
-	Method SetAngularVelocity(av:Float)
+	Method SetAngularVelocity(av:Double)
 		bmx_cpbody_setangularvelocity(cpObjectPtr, av)
 	End Method
 	
 	Rem
 	bbdoc: Returns the body torque.
 	End Rem
-	Method GetTorque:Float()
+	Method GetTorque:Double()
 		Return bmx_cpbody_gettorque(cpObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Sets the body torque.
 	End Rem
-	Method SetTorque(torque:Float)
+	Method SetTorque(torque:Double)
 		bmx_cpbody_settorque(cpObjectPtr, torque)
 	End Method
 	
@@ -210,7 +214,7 @@ Type CPBody Extends CPObject
 	bbdoc: Updates the velocity of the body using Euler integration.
 	about: You don't need to call this unless you are managing the object manually instead of adding it to a CPSpace.
 	End Rem
-	Method UpdateVelocity(gravity:CPVect, damping:Float, dt:Float)
+	Method UpdateVelocity(gravity:CPVect, damping:Double, dt:Double)
 		bmx_cpbody_updatevelocity(cpObjectPtr, gravity.vecPtr, damping, dt)
 	End Method
 	
@@ -218,7 +222,7 @@ Type CPBody Extends CPObject
 	bbdoc: Updates the position of the body using Euler integration.
 	about: Like UpdateVelocity() you shouldn't normally need to call this yourself.
 	End Rem
-	Method UpdatePosition(dt:Float)
+	Method UpdatePosition(dt:Double)
 		cpBodyUpdatePosition(cpObjectPtr, dt)
 	End Method
 	
@@ -254,14 +258,14 @@ Type CPBody Extends CPObject
 	Rem
 	bbdoc: Sets the body mass.
 	End Rem
-	Method SetMass(mass:Float)
+	Method SetMass(mass:Double)
 		cpBodySetMass(cpObjectPtr, mass)
 	End Method
 	
 	Rem
 	bbdoc: Sets the body moment.
 	End Rem
-	Method SetMoment(moment:Float)
+	Method SetMoment(moment:Double)
 		cpBodySetMoment(cpObjectPtr, moment)
 	End Method
 	
@@ -276,31 +280,31 @@ Type CPBody Extends CPObject
 	Rem
 	bbdoc: Modify the velocity of an object so that it will slew.
 	End Rem
-	Method Slew(pos:CPVect, dt:Float)
+	Method Slew(pos:CPVect, dt:Double)
 		bmx_body_slew(cpObjectPtr, pos.vecPtr, dt)
 	End Method
 	
 	Rem
 	bbdoc: Sets the position function.
 	End Rem
-	Method SetPositionFunction(func(Body:CPBody, dt:Float))
+	Method SetPositionFunction(func(Body:CPBody, dt:Double))
 		posFunction = func
 		bmx_cpbody_posfunc(cpObjectPtr, bmx_position_function)
 	End Method
 	
-	Function _positionFunction(body:CPBody, dt:Float)
+	Function _positionFunction(body:CPBody, dt:Double)
 		body.posFunction(body, dt)
 	End Function
 
 	Rem
 	bbdoc: Sets the velocity function.
 	End Rem
-	Method SetVelocityFunction(func(Body:CPBody, gravity:CPVect, damping:Float, dt:Float))
+	Method SetVelocityFunction(func(Body:CPBody, gravity:CPVect, damping:Double, dt:Double))
 		velFunction = func
 		bmx_cpbody_velfunc(cpObjectPtr, bmx_velocity_function)
 	End Method
 	
-	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Float, dt:Float)
+	Function _velocityFunction(body:CPBody, gravity:Byte Ptr, damping:Double, dt:Double)
 		body.velFunction(body, CPVect._create(gravity), damping, dt)
 	End Function
 	
@@ -338,7 +342,7 @@ Type _CollisionPair
 	
 	Field data:Object
 	Field func:Int(shapeA:CPShape, shapeB:CPShape, ..
-			contacts:CPContact[], normalCoeficient:Float, data:Object)
+			contacts:CPContact[], normalCoeficient:Double, data:Object)
 	
 	Method Compare:Int(obj:Object)
 		Return abHash - _CollisionPair(obj).abHash
@@ -384,8 +388,8 @@ Type CPSpace Extends CPObject
 	Rem
 	bbdoc: Sets the amount of viscous damping applied to the system.
 	End Rem
-	Method SetDamping(damping:Float)
-		bmx_cpspace_setdamping(cpObjectPtr, damping)
+	Method SetDamping(damping:Double)
+		'bmx_cpspace_setdamping(cpObjectPtr, damping)
 	End Method
 
 	Rem
@@ -438,9 +442,9 @@ Type CPSpace Extends CPObject
 	likely end in a segfault as an earlier collision may already be referencing the shape or body. You must wait until
 	after the DoStep() method returns.
 	</p>
-	End Rem
+	'End Rem
 	Method AddCollisionPairFunc(collTypeA:Int, collTypeB:Int, cpCollFunc:Int(shapeA:CPShape, shapeB:CPShape, ..
-			contacts:CPContact[], normalCoeficient:Float, data:Object), data:Object = Null)
+			contacts:CPContact[], normalCoeficient:Double, data:Object), data:Object = Null)
 			
 		If cpCollFunc Then
 			Local collpair:_CollisionPair = New _CollisionPair
@@ -458,7 +462,7 @@ Type CPSpace Extends CPObject
 		End If
 	End Method
 	
-	Function _doCollision:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Float, data:Object)
+	Function _doCollision:Int(shapeA:Byte Ptr, shapeB:Byte Ptr, contacts:Byte Ptr, numContacts:Int, normalCoeficient:Double, data:Object)
 		If _CollisionPair(data) Then
 			Local conts:CPContact[] = New CPContact[numContacts]
 			bmx_cpcontact_fill(conts, contacts, numContacts)
@@ -471,7 +475,7 @@ Type CPSpace Extends CPObject
 	Rem
 	bbdoc: Remove the function for the given collision type pair.
 	about: The order of @collTypeA and @collTypeB must match the original order used with AddCollisionPairFunc().
-	End Rem
+	'End Rem
 	Method RemoveCollisionPairFunc(collTypeA:Int, collTypeB:Int)
 		Local collpair:_CollisionPair = New _CollisionPair
 		collpair.abHash = bmx_CP_HASH_PAIR(collTypeA, collTypeB)
@@ -489,9 +493,9 @@ Type CPSpace Extends CPObject
 	<p>
 	Passing Null for @cpCollFunc will reject collisions by default.
 	</p>
-	End Rem
+	'End Rem
 	Method SetDefaultCollisionPairFunc(cpCollFunc(shapeA:CPShape, shapeB:CPShape, ..
-			contacts:CPContact[], normalCoeficient:Float, data:Object), data:Object = Null)
+			contacts:CPContact[], normalCoeficient:Double, data:Object), data:Object = Null)
 			
 		Local collpair:_CollisionPair = New _CollisionPair
 		collpair.abHash = bmx_CP_HASH_PAIR(-9999, -9999)
@@ -510,13 +514,14 @@ Type CPSpace Extends CPObject
 			bmx_cpspace_setdefaultcollisionpairfunc(cpObjectPtr, _doCollision, collpair)
 		End If
 	End Method
+	End Rem
 	
 	Rem
 	bbdoc: 
 	End Rem
-	Method AddJoint(joint:CPJoint)
-		bmx_cpspace_addjoint(cpObjectPtr, joint.cpObjectPtr)
-		joint.parent = Self
+	Method AddConstraint(constraint:CPConstraint)
+		bmx_cpspace_addconstraint(cpObjectPtr, constraint.cpObjectPtr)
+		constraint.parent = Self
 	End Method
 
 	Rem
@@ -531,7 +536,7 @@ Type CPSpace Extends CPObject
 	By default, @dim is 100.0, and @count is 1000.
 	</p>
 	End Rem
-	Method ResizeStaticHash(dim:Float, count:Int)
+	Method ResizeStaticHash(dim:Double, count:Int)
 		cpSpaceResizeStaticHash(cpObjectPtr, dim, count)
 	End Method
 
@@ -547,7 +552,7 @@ Type CPSpace Extends CPObject
 	By default, @dim is 100.0, and @count is 1000.
 	</p>
 	End Rem
-	Method ResizeActiveHash(dim:Float, count:Int)
+	Method ResizeActiveHash(dim:Double, count:Int)
 		cpSpaceResizeActiveHash(cpObjectPtr, dim, count)
 	End Method
 
@@ -556,7 +561,7 @@ Type CPSpace Extends CPObject
 	about: Using a fixed time step is highly recommended. Doing so will increase the efficiency of the contact
 	persistence, requiring an order of magnitude fewer iterations to resolve the collisions in the usual case.
 	End Rem
-	Method DoStep(dt:Float)
+	Method DoStep(dt:Double)
 		cpSpaceStep(cpObjectPtr, dt)
 	End Method
 	
@@ -675,7 +680,7 @@ Type CPContact
 	Rem
 	bbdoc: Returns the penetration distance of the collision.
 	End Rem
-	Method GetDistance:Float()
+	Method GetDistance:Double()
 		Return bmx_cpcontact_getdistance(contactPtr)
 	End Method
 	
@@ -683,7 +688,7 @@ Type CPContact
 	bbdoc: Returns the normal component of the accumulated (final) impulse applied to resolve the collision.
 	about: This value is not valid until after the call to DoStep() returns.
 	End Rem
-	Method GetNormalAccumulatedImpulse:Float()
+	Method GetNormalAccumulatedImpulse:Double()
 		Return bmx_cpcontact_getjnacc(contactPtr)
 	End Method
 	
@@ -691,7 +696,7 @@ Type CPContact
 	bbdoc: Returns the tangential component of the accumulated (final) impulse applied to resolve the collision.
 	about: This value is not valid until after the call to DoStep() returns.
 	End Rem
-	Method GetTangentAccumulatedImpulse:Float()
+	Method GetTangentAccumulatedImpulse:Double()
 		Return bmx_cpcontact_getjtacc(contactPtr)
 	End Method
 	
@@ -707,13 +712,13 @@ End Rem
 Type CPVect
 	Field vecPtr:Byte Ptr
 	
-	Field x:Float
-	Field y:Float
+	Field x:Double
+	Field y:Double
 	
 	Rem
 	bbdoc: Creates a new CPVect.
 	End Rem
-	Method Create:CPVect(_x:Float, _y:Float)
+	Method Create:CPVect(_x:Double, _y:Double)
 		vecPtr = bmx_cpvect_create(_x, _y)
 		x = _x
 		y = _y
@@ -738,14 +743,14 @@ Type CPVect
 	Rem
 	bbdoc: X
 	End Rem
-	Method GetX:Float()
+	Method GetX:Double()
 		Return x
 	End Method
 	
 	Rem
 	bbdoc: Y
 	End Rem
-	Method GetY:Float()
+	Method GetY:Double()
 		Return y
 	End Method
 	
@@ -787,14 +792,14 @@ Type CPVect
 	Rem
 	bbdoc: Scalar multiplication.
 	End Rem
-	Method Mult:CPVect(scalar:Float)
+	Method Mult:CPVect(scalar:Double)
 		Return _create(bmx_cpvect_mult(vecPtr, scalar))
 	End Method
 	
 	Rem
 	bbdoc: Vector dot product.
 	End Rem
-	Method Dot:Float(vec:CPVect)
+	Method Dot:Double(vec:CPVect)
 		Return bmx_cpvect_dot(vecPtr, vec.vecPtr)
 	End Method
 	
@@ -802,7 +807,7 @@ Type CPVect
 	bbdoc: 2D vector cross product analog.
 	about: The cross product of 2D vectors exists only in the z component, so only that value is returned.
 	End Rem
-	Method Cross:Float(vec:CPVect)
+	Method Cross:Double(vec:CPVect)
 		Return bmx_cpvect_cross(vecPtr, vec.vecPtr)
 	End Method
 	
@@ -830,7 +835,7 @@ Type CPVect
 	Rem
 	bbdoc: Returns the length of the vector.
 	End Rem
-	Method Length:Float()
+	Method Length:Double()
 		Return bmx_cpvect_length(vecPtr)
 	End Method
 	
@@ -838,7 +843,7 @@ Type CPVect
 	bbdoc: Returns the squared length of the vector.
 	about: Faster than Length() when you only need to compare lengths.
 	End Rem
-	Method LengthSq:Float()
+	Method LengthSq:Double()
 		Return bmx_cpvect_lengthsq(vecPtr)
 	End Method
 	
@@ -852,7 +857,7 @@ Type CPVect
 	Rem
 	bbdoc: Returns the angular direction the vector is pointing in (in degrees).
 	End Rem
-	Method ToAngle:Float()
+	Method ToAngle:Double()
 		Return bmx_cpvect_toangle(vecPtr)
 	End Method
 
@@ -873,7 +878,7 @@ Type CPBB
 	Rem
 	bbdoc: Creates a new bounding box.
 	End Rem
-	Method Create:CPBB(l:Float, b:Float, r:Float, t:Float)
+	Method Create:CPBB(l:Double, b:Double, r:Double, t:Double)
 		bbPtr = bmx_cpbb_create(l, b, r, t)
 		Return Self
 	End Method
@@ -954,14 +959,14 @@ Type CPShape Extends CPObject
 	The amount of elasticity applied during a collision is determined by multiplying the elasticity of both shapes together.
 	</p>
 	End Rem
-	Method SetElasticity(e:Float)
+	Method SetElasticity(e:Double)
 		bmx_cpshape_setelasticity(cpObjectPtr, e)
 	End Method
 	
 	Rem
 	bbdoc: Returns the shape elasticity.
 	End Rem
-	Method GetElasticity:Float()
+	Method GetElasticity:Double()
 		Return bmx_cpshape_getelasticity(cpObjectPtr)
 	End Method
 	
@@ -973,14 +978,14 @@ Type CPShape Extends CPObject
 	The amount of friction applied during a collision is determined by multiplying the friction of both shapes together.
 	</p>
 	End Rem
-	Method SetFriction(u:Float)
+	Method SetFriction(u:Double)
 		bmx_cpshape_setfriction(cpObjectPtr, u)
 	End Method
 	
 	Rem
 	bbdoc: Returns the shape friction.
 	End Rem
-	Method GetFriction:Float()
+	Method GetFriction:Double()
 		Return bmx_cpshape_getfriction(cpObjectPtr)
 	End Method
 
@@ -1091,7 +1096,7 @@ Type CPSegmentShape Extends CPShape
 	about: @body is the body to attach the segment to, @a and @b are the endpoints, and @radius is the thickness of the
 	segment.
 	End Rem
-	Method Create:CPSegmentShape(body:CPBody, a:CPVect, b:CPVect, radius:Float)
+	Method Create:CPSegmentShape(body:CPBody, a:CPVect, b:CPVect, radius:Double)
 		cpObjectPtr = bmx_cpsegmentshape_create(Self, body.cpObjectPtr, a.vecPtr, b.vecPtr, radius)
 		Return Self
 	End Method
@@ -1136,9 +1141,9 @@ Type CPPolyShape Extends CPShape
 	End Method
 
 	Rem
-	bbdoc: Returns the vertices as an array of floats.
+	bbdoc: Returns the vertices as an array of Doubles.
 	End Rem
-	Method GetVertsAsCoords:Float[]()
+	Method GetVertsAsCoords:Double[]()
 		Return bmx_cppolyshape_getvertsascoords(cpObjectPtr)
 	End Method
 	
@@ -1167,7 +1172,7 @@ Type CPCircleShape Extends CPShape
 	bbdoc: Creates a new circle shape.
 	about: @body is the body attach the circle to, @offset is the offset from the body's center of gravity in body local coordinates.
 	End Rem
-	Method Create:CPCircleShape(body:CPBody, radius:Float, offset:CPVect)
+	Method Create:CPCircleShape(body:CPBody, radius:Double, offset:CPVect)
 		cpObjectPtr = bmx_cpcircleshape_create(Self, body.cpObjectPtr, radius, offset.vecPtr)
 		Return Self
 	End Method
@@ -1189,7 +1194,7 @@ Type CPCircleShape Extends CPShape
 	Rem
 	bbdoc: Returns the shape radius.
 	End Rem
-	Method GetRadius:Float()
+	Method GetRadius:Double()
 		Return bmx_cpcircleshape_getradius(cpObjectPtr)
 	End Method
 	
@@ -1248,26 +1253,26 @@ End Type
 Rem
 bbdoc: Base type for joints.
 End Rem
-Type CPJoint Extends CPObject
+Type CPConstraint Extends CPObject
 
 	Rem
 	bbdoc: Body A
 	End Rem
 	Method GetBodyA:CPBody()
-		Return CPBody(cpfind(bmx_cpjoint_getbodya(cpObjectPtr)))
+		Return CPBody(cpfind(bmx_cpconstraint_getbodya(cpObjectPtr)))
 	End Method
 	
 	Rem
 	bbdoc: Body B
 	End Rem
 	Method GetBodyB:CPBody()
-		Return CPBody(cpfind(bmx_cpjoint_getbodyb(cpObjectPtr)))
+		Return CPBody(cpfind(bmx_cpconstraint_getbodyb(cpObjectPtr)))
 	End Method
 	
 	Method Free()
 		If cpObjectPtr Then
-			cpSpaceRemoveJoint(parent.cpObjectPtr, cpObjectPtr)
-			cpJointFree(cpObjectPtr)
+			cpSpaceRemoveConstraint(parent.cpObjectPtr, cpObjectPtr)
+			cpConstraintFree(cpObjectPtr)
 			cpObjectPtr = Null
 		End If
 	End Method
@@ -1278,7 +1283,7 @@ Rem
 bbdoc: Connects two rigid bodies with a solid pin or rod.
 about: It keeps the anchor points at a set distance from one another.
 End Rem
-Type CPPinJoint Extends CPJoint
+Type CPPinJoint Extends CPConstraint
 
 	Rem
 	bbdoc: Creates a new pin joint.
@@ -1309,12 +1314,12 @@ bbdoc: Like pin joints, but have a minimum and maximum distance.
 about: A chain could be modeled using this joint. It keeps the anchor points from getting to far apart,
 but will allow them to get closer together.
 End Rem
-Type CPSlideJoint Extends CPJoint
+Type CPSlideJoint Extends CPConstraint
 
 	Rem
 	bbdoc: Creates a new slide joint.
 	End Rem
-	Method Create:CPSlideJoint(bodyA:CPBody, bodyB:CPBody, anchor1:CPVect, anchor2:CPVect, minDist:Float, maxDist:Float)
+	Method Create:CPSlideJoint(bodyA:CPBody, bodyB:CPBody, anchor1:CPVect, anchor2:CPVect, minDist:Double, maxDist:Double)
 		cpObjectPtr = bmx_cpslidejoint_create(Self, bodyA.cpObjectPtr, bodyB.cpObjectPtr, anchor1.vecPtr, anchor2.vecPtr, minDist, maxDist)
 		Return Self
 	End Method
@@ -1336,14 +1341,14 @@ Type CPSlideJoint Extends CPJoint
 	Rem
 	bbdoc: Minimum allowed distance of the anchor points.
 	End Rem
-	Method GetMinDist:Float()
+	Method GetMinDist:Double()
 		Return bmx_cpslidejoint_getmindist(cpObjectPtr)
 	End Method
 	
 	Rem
 	bbdoc: Maximum allowed distance of the anchor points.
 	End Rem
-	Method GetMaxDist:Float()
+	Method GetMaxDist:Double()
 		Return bmx_cpslidejoint_getmaxdist(cpObjectPtr)
 	End Method
 	
@@ -1352,7 +1357,7 @@ End Type
 Rem
 bbdoc: Allows two objects to pivot about a single point.
 End Rem
-Type CPPivotJoint Extends CPJoint
+Type CPPivotJoint Extends CPConstraint
 
 	Rem
 	bbdoc: Creates a new pivot joint.
@@ -1385,7 +1390,7 @@ Rem
 bbdoc: Attaches a point on one body to a groove on the other.
 about: Think of it as a sliding pivot joint.
 End Rem
-Type CPGrooveJoint Extends CPJoint
+Type CPGrooveJoint Extends CPConstraint
 
 	Rem
 	bbdoc: Creates a new groove joint.
@@ -1423,7 +1428,7 @@ End Type
 Rem
 bbdoc: Convenience function for the creation of a CPVect of @x, @y.
 End Rem
-Function Vec2:CPVect(x:Float, y:Float)
+Function Vec2:CPVect(x:Double, y:Double)
 	Return New CPVect.Create(x, y)
 End Function
 
@@ -1433,7 +1438,7 @@ End Rem
 Global CPVZero:CPVect = CPVect._create(bmx_cpvect_cpvzero())
 
 Extern
-	Function bmx_momentforpoly:Float(m:Float, verts:CPVect[], count:Int, offset:Byte Ptr)
+	Function bmx_momentforpoly:Double(m:Double, verts:CPVect[], count:Int, offset:Byte Ptr)
 	Function bmx_cppolyshape_create:Byte Ptr(handle:Object, body:Byte Ptr, verts:CPVect[], count:Int, offset:Byte Ptr)
 	Function bmx_cppolyshape_getverts(handle:Byte Ptr, verts:CPVect[])
 	Function bmx_cpcontact_fill(conts:CPContact[], contacts:Byte Ptr, numContacts:Int)
@@ -1443,14 +1448,14 @@ End Extern
 Rem
 bbdoc: Calculates the moment of inertia for the polygons of mass @m.
 End Rem
-Function MomentForPoly:Float(m:Float, verts:CPVect[], offset:CPVect)
+Function MomentForPoly:Double(m:Double, verts:CPVect[], offset:CPVect)
 	Return bmx_momentforpoly(m, verts, verts.length, offset.vecPtr)
 End Function
 
 Rem
 bbdoc: Calculates the moment of inertia for the circle of mass @m.
 End Rem
-Function MomentForCircle:Float(m:Float, r1:Float, r2:Float, offset:CPVect)
+Function MomentForCircle:Double(m:Double, r1:Double, r2:Double, offset:CPVect)
 	Return cpMomentForCircle(m, r1, r2, offset.vecPtr)
 End Function
 
@@ -1459,7 +1464,25 @@ bbdoc: Apply a spring force between bodies @a and @b at anchors @anchor1 and @an
 about: @k is the spring constant (force/distance), @rlen is the rest length of the spring, @dmp is the damping
 constant (force/velocity), and @dt is the time step to apply the force over.
 End Rem
-Function DampedSpring(a:CPBody, b:CPBody, anchor1:CPVect, anchor2:CPVect, rlen:Float, k:Float, dmp:Float, dt:Float)
-	bmx_cpdampedspring(a.cpObjectPtr, b.cpObjectPtr, anchor1.vecPtr, anchor2.vecPtr, rlen, k, dmp, dt)
+Function DampedSpring(a:CPBody, b:CPBody, anchor1:CPVect, anchor2:CPVect, rlen:Double, k:Double, dmp:Double, dt:Double)
+'	bmx_cpdampedspring(a.cpObjectPtr, b.cpObjectPtr, anchor1.vecPtr, anchor2.vecPtr, rlen, k, dmp, dt)
 End Function
 
+Rem
+bbdoc: 
+End Rem
+Type cpAribter
+	
+	Field cpArbiterPtr:Byte Ptr
+	
+	Function _create:cpAribter(cpArbiterPtr:Byte Ptr)
+		If cpArbiterPtr Then
+			Local this:cpAribter = New cpAribter
+			this.cpArbiterPtr = cpArbiterPtr
+			Return this
+		End If
+	End Function
+	
+'	Method 
+	
+End Type

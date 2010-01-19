@@ -23,29 +23,55 @@ struct cpBody;
 typedef void (*cpBodyVelocityFunc)(struct cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt);
 typedef void (*cpBodyPositionFunc)(struct cpBody *body, cpFloat dt);
 
+extern cpBodyVelocityFunc cpBodyUpdateVelocityDefault;
+extern cpBodyPositionFunc cpBodyUpdatePositionDefault;
  
 typedef struct cpBody{
+	// *** Integration Functions.ntoehu
+
 	// Function that is called to integrate the body's velocity. (Defaults to cpBodyUpdateVelocity)
 	cpBodyVelocityFunc velocity_func;
 	
 	// Function that is called to integrate the body's position. (Defaults to cpBodyUpdatePosition)
 	cpBodyPositionFunc position_func;
 	
+	// *** Mass Properties
+	
 	// Mass and it's inverse.
+	// Always use cpBodySetMass() whenever changing the mass as these values must agree.
 	cpFloat m, m_inv;
+	
 	// Moment of inertia and it's inverse.
+	// Always use cpBodySetMass() whenever changing the mass as these values must agree.
 	cpFloat i, i_inv;
 	
-	// NOTE: v_bias and w_bias are used internally for penetration/joint correction.
+	// *** Positional Properties
+	
 	// Linear components of motion (position, velocity, and force)
-	cpVect p, v, f, v_bias;
+	cpVect p, v, f;
+	
 	// Angular components of motion (angle, angular velocity, and torque)
-	cpFloat a, w, t, w_bias;
-	// Unit length 
-	cpVect rot; 
+	// Always use cpBodySetAngle() to set the angle of the body as a and rot must agree.
+	cpFloat a, w, t;
+	
+	// Cached unit length vector representing the angle of the body.
+	// Used for fast vector rotation using cpvrotate().
+	cpVect rot;
+	
+	// *** User Definable Fields
 	
 	// User defined data pointer.
-	void *data;
+	cpDataPointer data;
+	
+	// Maximum velocities this body can move at after integrating velocity
+	cpFloat v_limit, w_limit;
+	
+	// *** Internally Used Fields
+	
+	// Velocity bias values used when solving penetrations and correcting constraints.
+	cpVect v_bias;
+	cpFloat w_bias;
+	
 //	int active;
 } cpBody;
 
@@ -57,15 +83,38 @@ cpBody *cpBodyNew(cpFloat m, cpFloat i);
 void cpBodyDestroy(cpBody *body);
 void cpBodyFree(cpBody *body);
 
-// Setters for some of the special properties (mandatory!)
-void cpBodySetMass(cpBody *body, cpFloat m);
-void cpBodySetMoment(cpBody *body, cpFloat i);
-void cpBodySetAngle(cpBody *body, cpFloat a);
+#define CP_DefineBodyGetter(type, member, name) static inline type cpBodyGet##name(cpBody *body){return body->member;}
+#define CP_DefineBodySetter(type, member, name) static inline void cpBodySet##name(cpBody *body, type value){body->member = value;}
 
-// Modify the velocity of an object so that it will 
+#define CP_DefineBodyProperty(type, member, name) \
+CP_DefineBodyGetter(type, member, name) \
+CP_DefineBodySetter(type, member, name)
+
+
+// Accessors for cpBody struct members
+CP_DefineBodyGetter(cpFloat, m, Mass);
+void cpBodySetMass(cpBody *body, cpFloat m);
+
+CP_DefineBodyGetter(cpFloat, i, Moment);
+void cpBodySetMoment(cpBody *body, cpFloat i);
+
+
+CP_DefineBodyProperty(cpVect, p, Pos);
+CP_DefineBodyProperty(cpVect, v, Vel);
+CP_DefineBodyProperty(cpVect, f, Force);
+CP_DefineBodyGetter(cpFloat, a, Angle);
+void cpBodySetAngle(cpBody *body, cpFloat a);
+CP_DefineBodyProperty(cpFloat, w, AngVel);
+CP_DefineBodyProperty(cpFloat, t, Torque);
+CP_DefineBodyGetter(cpVect, rot, Rot);
+CP_DefineBodyProperty(cpFloat, v_limit, VelLimit);
+CP_DefineBodyProperty(cpFloat, w_limit, AngVelLimit);
+
+//  Modify the velocity of the body so that it will move to the specified absolute coordinates in the next timestep.
+// Intended for objects that are moved manually with a custom velocity integration function.
 void cpBodySlew(cpBody *body, cpVect pos, cpFloat dt);
 
-// Integration functions.
+// Default Integration functions.
 void cpBodyUpdateVelocity(cpBody *body, cpVect gravity, cpFloat damping, cpFloat dt);
 void cpBodyUpdatePosition(cpBody *body, cpFloat dt);
 
@@ -83,7 +132,7 @@ cpBodyWorld2Local(cpBody *body, cpVect v)
 	return cpvunrotate(cpvsub(v, body->p), body->rot);
 }
 
-// Apply an impulse (in world coordinates) to the body.
+// Apply an impulse (in world coordinates) to the body at a point relative to the center of gravity (also in world coordinates).
 static inline void
 cpBodyApplyImpulse(cpBody *body, cpVect j, cpVect r)
 {
@@ -91,7 +140,7 @@ cpBodyApplyImpulse(cpBody *body, cpVect j, cpVect r)
 	body->w += body->i_inv*cpvcross(r, j);
 }
 
-// Not intended for external use. Used by cpArbiter.c and cpJoint.c.
+// Not intended for external use. Used by cpArbiter.c and cpConstraint.c.
 static inline void
 cpBodyApplyBiasImpulse(cpBody *body, cpVect j, cpVect r)
 {
@@ -101,10 +150,11 @@ cpBodyApplyBiasImpulse(cpBody *body, cpVect j, cpVect r)
 
 // Zero the forces on a body.
 void cpBodyResetForces(cpBody *body);
-// Apply a force (in world coordinates) to a body.
+// Apply a force (in world coordinates) to a body at a point relative to the center of gravity (also in world coordinates).
 void cpBodyApplyForce(cpBody *body, cpVect f, cpVect r);
 
 // Apply a damped spring force between two bodies.
-void cpDampedSpring(cpBody *a, cpBody *b, cpVect anchr1, cpVect anchr2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt);
+// Warning: Large damping values can be unstable. Use a cpDampedSpring constraint for this instead.
+void cpApplyDampedSpring(cpBody *a, cpBody *b, cpVect anchr1, cpVect anchr2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt);
 
 //int cpBodyMarkLowEnergy(cpBody *body, cpFloat dvsq, int max);

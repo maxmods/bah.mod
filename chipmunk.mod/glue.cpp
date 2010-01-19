@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007 Bruce A Henderson
+  Copyright (c) 2007-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -70,12 +70,12 @@ extern "C" {
 	cpSpaceHash * bmx_cpspace_getactiveshapes(cpSpace * space);
 	cpSpaceHash * bmx_cpspace_getstaticshapes(cpSpace * space);
 	void bmx_cpspace_setiterations(cpSpace * space, int num);
-	void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint);
-	void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data);
-	void bmx_cpspace_addcollisionpairnullfunc(cpSpace * space, unsigned long a, unsigned long b);
-	void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b);
-	void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, void *data);
-	void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping);
+	void bmx_cpspace_addconstraint(cpSpace * space, cpConstraint * joint);
+	//void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data);
+	//void bmx_cpspace_addcollisionpairnullfunc(cpSpace * space, unsigned long a, unsigned long b);
+	//void bmx_cpspace_removecollisionpairfunc(cpSpace *space, unsigned long a, unsigned long b);
+	//void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, void *data);
+	//void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping);
 
 	cpVect * bmx_cpvect_create(cpFloat x, cpFloat y);
 	void bmx_cpvect_delete(cpVect * vec);
@@ -135,10 +135,10 @@ extern "C" {
 	cpVect * bmx_cpcircleshape_getcenter(cpCircleShape * shape);
 	cpVect * bmx_cpcircleshape_gettransformedcenter(cpCircleShape * shape);
 	
-	cpJoint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2);
-	cpJoint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist);
-	cpJoint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot);
-	cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor);
+	cpConstraint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2);
+	cpConstraint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist);
+	cpConstraint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot);
+	cpConstraint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor);
 
 	unsigned int bmx_CP_HASH_PAIR(int collTypeA, int collTypeB);
 
@@ -172,8 +172,8 @@ extern "C" {
 	cpVect * bmx_cpgroovejoint_getgrooveb(cpGrooveJoint * joint);
 	cpVect * bmx_cpgroovejoint_getanchor(cpGrooveJoint * joint);
 
-	cpBody * bmx_cpjoint_getbodya(cpJoint * joint);
-	cpBody * bmx_cpjoint_getbodyb(cpJoint * joint);
+	cpBody * bmx_cpconstraint_getbodya(cpConstraint * joint);
+	cpBody * bmx_cpconstraint_getbodyb(cpConstraint * joint);
 
 }
 
@@ -207,8 +207,8 @@ void cpunbind(void *obj) {
 	}
 }
 
-BBArray *vertsToBBFloatArray( int num, cpVect *verts ){
-	BBArray *p=bbArrayNew1D( "f", num * 2 );
+BBArray *vertsToBBDoubleArray( int num, cpVect *verts ){
+	BBArray *p=bbArrayNew1D( "d", num * 2 );
 	cpFloat *s=(cpFloat*)BBARRAYDATA( p,p->dims );
 	for( int i=0;i < num;++i ){
 		s[i * 2] = verts[i].x;
@@ -365,10 +365,11 @@ void bmx_cpspace_setiterations(cpSpace * space, int num) {
 	space->iterations = num;
 }
 
-void bmx_cpspace_addjoint(cpSpace * space, cpJoint * joint) {
-	cpSpaceAddJoint(space, joint);
+void bmx_cpspace_addconstraint(cpSpace * space, cpConstraint * constraint) {
+	cpSpaceAddConstraint(space, constraint);
 }
 
+/*
 void bmx_cpspace_addcollisionpairfunc(cpSpace * space, unsigned long a, unsigned long b, cpCollFunc func, void *data) {
 		cpSpaceAddCollisionPairFunc(space, a, b, func, data);
 }
@@ -389,6 +390,7 @@ void bmx_cpspace_setdefaultcollisionpairfunc(cpSpace * space, cpCollFunc func, v
 void bmx_cpspace_setdamping(cpSpace * space, cpFloat damping) {
 	space->damping = damping;
 }
+*/
 
 // -------------------------------------------------
 
@@ -625,9 +627,9 @@ cpFloat bmx_momentforcircle(cpFloat m, cpFloat r1, cpFloat r2, cpVect * offset) 
 	return cpMomentForCircle(m, r1, r2, *offset);
 }
 
-void bmx_cpdampedspring(cpBody * a, cpBody * b, cpVect * anchor1, cpVect * anchor2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt) {
-	cpDampedSpring(a, b, *anchor1, *anchor2, rlen, k, dmp, dt);
-}
+//void bmx_cpdampedspring(cpBody * a, cpBody * b, cpVect * anchor1, cpVect * anchor2, cpFloat rlen, cpFloat k, cpFloat dmp, cpFloat dt) {
+//	cpDampedSpring(a, b, *anchor1, *anchor2, rlen, k, dmp, dt);
+//}
 
 // -------------------------------------------------
 
@@ -642,7 +644,7 @@ cpShape * bmx_cppolyshape_create(BBObject * handle, cpBody * body, BBArray *vert
 }
 
 BBArray * bmx_cppolyshape_getvertsascoords(cpPolyShape * shape) {
-	return vertsToBBFloatArray(shape->numVerts, shape->verts);
+	return vertsToBBDoubleArray(shape->numVerts, shape->verts);
 }
 
 int bmx_cppolyshape_numverts(cpPolyShape * shape) {
@@ -678,8 +680,8 @@ cpVect * bmx_cpcircleshape_gettransformedcenter(cpCircleShape * shape) {
 
 // -------------------------------------------------
 
-cpJoint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2) {
-	cpJoint * joint = cpPinJointNew(bodyA, bodyB, *anchor1, *anchor2);
+cpConstraint * bmx_cppinjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2) {
+	cpConstraint * joint = cpPinJointNew(bodyA, bodyB, *anchor1, *anchor2);
 	cpbind(joint, handle);
 	return joint;
 }
@@ -694,8 +696,8 @@ cpVect * bmx_cppinjoint_getanchor2(cpPinJoint * joint) {
 
 // -------------------------------------------------
 
-cpJoint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist) {
-	cpJoint * joint = cpSlideJointNew(bodyA, bodyB, *anchor1, *anchor2, minDist, maxDist);
+cpConstraint * bmx_cpslidejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * anchor1, cpVect * anchor2, cpFloat minDist, cpFloat maxDist) {
+	cpConstraint * joint = cpSlideJointNew(bodyA, bodyB, *anchor1, *anchor2, minDist, maxDist);
 	cpbind(joint, handle);
 	return joint;
 }
@@ -718,8 +720,8 @@ cpFloat bmx_cpslidejoint_getmaxdist(cpSlideJoint * joint) {
 
 // -------------------------------------------------
 
-cpJoint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot) {
-	cpJoint * joint = cpPivotJointNew(bodyA, bodyB, *pivot);
+cpConstraint * bmx_cppivotjoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * pivot) {
+	cpConstraint * joint = cpPivotJointNew(bodyA, bodyB, *pivot);
 	cpbind(joint, handle);
 	return joint;
 }
@@ -734,8 +736,8 @@ cpVect * bmx_cppivotjoint_getanchor2(cpPivotJoint * joint) {
 
 // -------------------------------------------------
 
-cpJoint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor) {
-	cpJoint * joint = cpGrooveJointNew(bodyA, bodyB, *grooveA, *grooveB, *anchor);
+cpConstraint * bmx_cpgroovejoint_create(BBObject * handle, cpBody * bodyA, cpBody * bodyB, cpVect * grooveA, cpVect * grooveB, cpVect * anchor) {
+	cpConstraint * joint = cpGrooveJointNew(bodyA, bodyB, *grooveA, *grooveB, *anchor);
 	cpbind(joint, handle);
 	return joint;
 }
@@ -754,11 +756,11 @@ cpVect * bmx_cpgroovejoint_getanchor(cpGrooveJoint * joint) {
 
 // -------------------------------------------------
 
-cpBody * bmx_cpjoint_getbodya(cpJoint * joint) {
+cpBody * bmx_cpconstraint_getbodya(cpConstraint * joint) {
 	return joint->a;
 }
 
-cpBody * bmx_cpjoint_getbodyb(cpJoint * joint) {
+cpBody * bmx_cpconstraint_getbodyb(cpConstraint * joint) {
 	return joint->b;
 }
 
