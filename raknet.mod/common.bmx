@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,10 @@ Extern
 	Function bmx_raknet_randomMT:Int()
 	Function bmx_raknet_frandomMT:Float()
 	Function bmx_raknet_fillBufferMT(buffer:Byte Ptr, size:Int)
+	Function bmx_raknet_getversion:Int()
+	Function bmx_raknet_getversionstring:String()
+	Function bmx_raknet_getprotocolversion:Int()
+	Function bmx_raknet_getdate:String()
 
 	Function bmx_RakNetworkFactory_GetRakPeerInterface:Byte Ptr()
 	Function bmx_RakNetworkFactory_GetConsoleServer:Byte Ptr()
@@ -109,7 +113,6 @@ Extern
 	Function bmx_RakPeer_GetInternalID:Byte Ptr(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_RakPeer_GetExternalID:Byte Ptr(handle:Byte Ptr, systemAddress:Byte Ptr)
 	Function bmx_RakPeer_SetTimeoutTime(handle:Byte Ptr, timeMS:Long, target:Byte Ptr)
-	Function bmx_RakPeer_SetMTUSize:Int(handle:Byte Ptr, size:Int)
 	Function bmx_RakPeer_GetMTUSize:Int(handle:Byte Ptr, target:Byte Ptr)
 	Function bmx_RakPeer_GetNumberOfAddresses:Int(handle:Byte Ptr)
 	Function bmx_RakPeer_DeleteCompressionLayer:Int(handle:Byte Ptr, inputLayer:Int)
@@ -211,7 +214,8 @@ Extern
 	Function bmx_BitStream_ReadDouble:Int(handle:Byte Ptr, value:Double Ptr)
 	Function bmx_BitStream_ReadLong:Int(handle:Byte Ptr, value:Long Ptr)
 	Function bmx_BitStream_ReadTime:Int(handle:Byte Ptr, value:Long Ptr)
-	Function bmx_BitStream_ReadString:String(handle:Byte Ptr, length:Int)
+	Function bmx_BitStream_ReadString:String(handle:Byte Ptr)
+	Function bmx_BitStream_ReadCompressedString:String(handle:Byte Ptr)
 	Function bmx_BitStream_ReadDeltaByte:Int(handle:Byte Ptr, value:Byte Ptr)
 	Function bmx_BitStream_ReadDeltaShort:Int(handle:Byte Ptr, value:Short Ptr)
 	Function bmx_BitStream_ReadDeltaInt:Int(handle:Byte Ptr, value:Int Ptr)
@@ -244,6 +248,7 @@ Extern
 	Function bmx_BitStream_Write1(handle:Byte Ptr)
 	Function bmx_BitStream_WriteUShort(handle:Byte Ptr, value:Short Ptr)
 	Function bmx_BitStream_WriteUInt(handle:Byte Ptr, value:Int Ptr)
+	Function bmx_BitStream_WriteString(handle:Byte Ptr, value:String)
 
 	Function bmx_BitStream_ReadDeltaBool:Int(handle:Byte Ptr, value:Int Ptr)
 	Function bmx_BitStream_ReadCompressedBool:Int(handle:Byte Ptr, value:Int Ptr)
@@ -284,6 +289,7 @@ Extern
 	Function bmx_BitStream_WriteCompressedDeltaFloat(handle:Byte Ptr, currentValue:Float Ptr, lastValue:Float)
 	Function bmx_BitStream_WriteCompressedDeltaDouble(handle:Byte Ptr, currentValue:Double Ptr, lastValue:Double)
 	Function bmx_BitStream_WriteCompressedDeltaLong(handle:Byte Ptr, currentValue:Long Ptr, lastValue:Long)
+	Function bmx_BitStream_WriteCompressedString(handle:Byte Ptr, value:String)
 
 	Function bmx_RSACrypt_new:Byte Ptr()
 	Function bmx_RSACrypt_delete(handle:Byte Ptr)
@@ -327,11 +333,9 @@ Extern
 	Function bmx_RakNetStatistics_messagesSent:Int(handle:Byte Ptr, priority:Int)
 	Function bmx_RakNetStatistics_messageDataBitsSent(handle:Byte Ptr, priority:Int, v:Long Ptr)
 	Function bmx_RakNetStatistics_messageTotalBitsSent(handle:Byte Ptr, priority:Int, v:Long Ptr)
-	Function bmx_RakNetStatistics_packetsContainingOnlyAcknowlegements:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_acknowlegementsSent:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_acknowlegementsPending:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_acknowlegementBitsSent(handle:Byte Ptr, v:Long Ptr)
-	Function bmx_RakNetStatistics_packetsContainingOnlyAcknowlegementsAndResends:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_messageResends:Int(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_messageDataBitsResent(handle:Byte Ptr, v:Long Ptr)
 	Function bmx_RakNetStatistics_messagesTotalBitsResent(handle:Byte Ptr, v:Long Ptr)
@@ -361,6 +365,10 @@ Extern
 	Function bmx_RakNetStatistics_bitsPerSecondReceived:Double(handle:Byte Ptr)
 	Function bmx_RakNetStatistics_connectionStartTime(handle:Byte Ptr, v:Long Ptr)
 	Function bmx_RakNetStatistics_bandwidthExceeded:Int(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_isInSlowStart:Int(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_CWNDLimit:Int(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_unacknowledgedBytes:Int(handle:Byte Ptr)
+	Function bmx_RakNetStatistics_timeToNextAllowedSend(handle:Byte Ptr, v:Long Ptr)
 
 	Function bmx_raknet_SizeOfRakNetTime:Int()
 

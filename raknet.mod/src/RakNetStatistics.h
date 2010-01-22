@@ -29,7 +29,7 @@ struct RAK_DLL_EXPORT RakNetStatistics
 	uint64_t messageTotalBitsSent[ NUMBER_OF_PRIORITIES ];
 	
 	///  Number of packets sent containing only acknowledgments
-	unsigned packetsContainingOnlyAcknowlegements;
+//	unsigned packetsContainingOnlyAcknowlegements;
 	///  Number of acknowledgments sent
 	unsigned acknowlegementsSent;
 	///  Number of acknowledgments waiting to be sent
@@ -38,7 +38,7 @@ struct RAK_DLL_EXPORT RakNetStatistics
 	uint64_t acknowlegementBitsSent;
 	
 	///  Number of packets containing only acknowledgments and resends
-	unsigned packetsContainingOnlyAcknowlegementsAndResends;
+//	unsigned packetsContainingOnlyAcknowlegementsAndResends;
 	
 	///  Number of messages resent
 	unsigned messageResends;
@@ -48,6 +48,9 @@ struct RAK_DLL_EXPORT RakNetStatistics
 	uint64_t messagesTotalBitsResent;
 	///  Number of messages waiting for ack (// TODO - rename this)
 	unsigned messagesOnResendQueue;
+
+	// A continuously calculated packetloss value
+	float packetloss;
 	
 	///  Number of messages not split for sending
 	unsigned numberOfUnsplitMessages;
@@ -106,8 +109,23 @@ struct RAK_DLL_EXPORT RakNetStatistics
 	// RakNet will try to increase the bandwidth, so this condition may be temporary and only last a second.  However, it if
 	// stays on most of the time, you are at the maximum bandwidth and should slow down your sends, because other data is now waiting.
 	bool bandwidthExceeded;
+	/// New flow control - during slow start, only capped by CWNDLimit
+	bool isInSlowStart;
+	/// max unacknowledgedBytes
+	uint32_t CWNDLimit;
+	/// current unacknowledgedBytes
+	uint32_t unacknowledgedBytes;
+	/// How long until next data send is allowed, used after slow start
+	RakNetTimeUS timeToNextAllowedSend;
 
-	RakNetStatistics operator +=(const RakNetStatistics& other)
+	double localSendRate;
+	double localContinuousReceiveRate;
+	double remoteContinuousReceiveRate;
+	double estimatedLinkCapacityMBPS;
+
+
+
+	RakNetStatistics& operator +=(const RakNetStatistics& other)
 	{
 		unsigned i;
 		for (i=0; i < NUMBER_OF_PRIORITIES; i++)
@@ -118,11 +136,11 @@ struct RAK_DLL_EXPORT RakNetStatistics
 			messageTotalBitsSent[i]+=other.messageTotalBitsSent[i];
 		}
 
-		packetsContainingOnlyAcknowlegements+=other.packetsContainingOnlyAcknowlegements;
-		acknowlegementsSent+=other.packetsContainingOnlyAcknowlegements;
+//		packetsContainingOnlyAcknowlegements+=other.packetsContainingOnlyAcknowlegements;
+//		acknowlegementsSent+=other.packetsContainingOnlyAcknowlegements;
 		acknowlegementsPending+=other.acknowlegementsPending;
 		acknowlegementBitsSent+=other.acknowlegementBitsSent;
-		packetsContainingOnlyAcknowlegementsAndResends+=other.packetsContainingOnlyAcknowlegementsAndResends;
+//		packetsContainingOnlyAcknowlegementsAndResends+=other.packetsContainingOnlyAcknowlegementsAndResends;
 		messageResends+=other.messageResends;
 		messageDataBitsResent+=other.messageDataBitsResent;
 		messagesTotalBitsResent+=other.messagesTotalBitsResent;
@@ -160,6 +178,48 @@ struct RAK_DLL_EXPORT RakNetStatistics
 /// 0 low
 /// 1 medium 
 /// 2 high 
+/// 3 debugging congestion control
 void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int verbosityLevel );
+
+/// A simpler version of RakNetStatistics used to check bandwidth utilization
+struct RAK_DLL_EXPORT RakNetBandwidth
+{
+	/// How many bytes per second you are currently sending
+	double bytesPerSecondOutgoing;
+
+	/// How many bytes per second you can send.
+	double bytesPerSecondLimit;
+
+	/// How many bytes are waiting to be sent, because the outgoing bandwidth is less than the limit.
+	/// If this number is greater than 0, you are sending faster than the connection can support
+	double bytesBuffered;
+
+	float packetloss;
+
+	RakNetBandwidth& operator +=(const RakNetBandwidth& other)
+	{
+		bytesPerSecondOutgoing+=other.bytesPerSecondOutgoing;
+		// Limit doesn't apply when taking averages
+	//	bytesPerSecondLimit+=other.bytesPerSecondLimit;
+		bytesBuffered+=other.bytesBuffered;
+		packetloss+=other.packetloss;
+		return *this;
+	}
+	RakNetBandwidth& operator /=(int count)
+	{
+		if (count>0)
+		{
+			bytesPerSecondOutgoing/=count;
+			// Limit doesn't apply when taking averages
+			//bytesPerSecondLimit/=count;
+			bytesBuffered/=count;
+			packetloss/=count;
+		}
+		return *this;
+	}
+	void Reset(void) {bytesPerSecondOutgoing=0; bytesPerSecondLimit=0; bytesBuffered=0;}
+};
+
+void RAK_DLL_EXPORT BandwidthToString( RakNetBandwidth *s, char *buffer );
 
 #endif

@@ -145,7 +145,7 @@ void GridSectorizer::GetEntries(DataStructures::List<void*>& intersectionList, c
 	xEnd=WorldToCellXOffsetAndClamped(maxX);
 	yEnd=WorldToCellYOffsetAndClamped(maxY);
 
-	intersectionList.Clear(true);
+	intersectionList.Clear(true, __FILE__,__LINE__);
 	for (xCur=xStart; xCur <= xEnd; ++xCur)
 	{
 		for (yCur=yStart; yCur <= yEnd; ++yCur)
@@ -187,5 +187,5 @@ void GridSectorizer::Clear(void)
 	int cur;
 	int count = gridCellWidthCount*gridCellHeightCount;
 	for (cur=0; cur<count;cur++)
-		grid[cur].Clear(true);
+		grid[cur].Clear(true, __FILE__,__LINE__);
 }

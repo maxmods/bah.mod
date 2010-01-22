@@ -107,14 +107,14 @@ namespace DataStructures
 	* (++A).Peek();  // Returns 5
 	* A.Peek();  // Returns 20
 	*
-	* A.Clear();  // Deletes all nodes in A
+	* A.Clear(__FILE__, __LINE__);  // Deletes all nodes in A
 	*
 	* A.Insert(5);  // A: 5 - current is 5
 	* A.Insert(6); // A: 6 5 - current is 6
 	* A.Insert(7); // A: 7 6 5 - current is 7
 	*
-	* A.Clear();
-	* B.Clear();
+	* A.Clear(__FILE__, __LINE__);
+	* B.Clear(__FILE__, __LINE__);
 	*
 	* B.Add(10);
 	* B.Add(20);

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2009 Bruce A Henderson
+  Copyright (c) 2007-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
 #include "RakNetStatistics.h"
 #include "ReadyEvent.h"
 #include "NetworkIDManager.h"
+#include "RakNetVersion.h"
 
 class MaxSocketDescriptor;
 class MaxNetworkID;
@@ -117,7 +118,6 @@ extern "C" {
 	MaxSystemAddress * bmx_RakPeer_GetInternalID(RakPeerInterface * peer, MaxSystemAddress * systemAddress);
 	MaxSystemAddress * bmx_RakPeer_GetExternalID(RakPeerInterface * peer, MaxSystemAddress * systemAddress);
 	void bmx_RakPeer_SetTimeoutTime(RakPeerInterface * peer, BBInt64 timeMS, MaxSystemAddress * target);
-	bool bmx_RakPeer_SetMTUSize(RakPeerInterface * peer, int size);
 	int bmx_RakPeer_GetMTUSize(RakPeerInterface * peer, MaxSystemAddress * target);
 	int  bmx_RakPeer_GetNumberOfAddresses(RakPeerInterface * peer);
 	bool bmx_RakPeer_DeleteCompressionLayer(RakPeerInterface * peer, bool inputLayer);
@@ -222,7 +222,8 @@ extern "C" {
 	bool bmx_BitStream_ReadDouble(RakNet::BitStream * stream, double * value);
 	bool bmx_BitStream_ReadLong(RakNet::BitStream * stream, BBInt64 * value);
 	bool bmx_BitStream_ReadTime(RakNet::BitStream * stream, BBInt64 * value);
-	BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream, int length);
+	BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream);
+	BBString * bmx_BitStream_ReadCompressedString(RakNet::BitStream * stream);
 
 	bool bmx_BitStream_ReadDeltaByte(RakNet::BitStream * stream, unsigned char * value);
 	bool bmx_BitStream_ReadDeltaShort(RakNet::BitStream * stream, short * value);
@@ -265,6 +266,7 @@ extern "C" {
 	void bmx_BitStream_Write1(RakNet::BitStream * stream);
 	void bmx_BitStream_WriteUShort(RakNet::BitStream * stream, unsigned short * value);
 	void bmx_BitStream_WriteUInt(RakNet::BitStream * stream, unsigned int * value);
+	void bmx_BitStream_WriteString(RakNet::BitStream * stream, BBString * value);
 
 	int bmx_BitStream_GetNumberOfBitsUsed(RakNet::BitStream * stream);
 	int bmx_BitStream_GetWriteOffset(RakNet::BitStream * stream);
@@ -297,6 +299,7 @@ extern "C" {
 	void bmx_BitStream_WriteCompressedDeltaFloat(RakNet::BitStream * stream, float * currentValue, float lastValue);
 	void bmx_BitStream_WriteCompressedDeltaDouble(RakNet::BitStream * stream, double * currentValue, double lastValue);
 	void bmx_BitStream_WriteCompressedDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue);
+	void bmx_BitStream_WriteCompressedString(RakNet::BitStream * stream, BBString * value);
 
 	
 	RSACrypt * bmx_RSACrypt_new();
@@ -315,6 +318,10 @@ extern "C" {
 	unsigned int bmx_raknet_randomMT();
 	float bmx_raknet_frandomMT();
 	void bmx_raknet_fillBufferMT(void * buffer, unsigned int size);
+	int bmx_raknet_getversion();
+	BBString * bmx_raknet_getversionstring();
+	int bmx_raknet_getprotocolversion();
+	BBString * bmx_raknet_getdate();
 
 	FileListTransfer * bmx_FileListTransfer_new();
 	int bmx_FileListTransfer_SetupReceive(FileListTransfer * transfer, FileListTransferCBInterface * handler, bool deleteHandler, MaxSystemAddress * allowedSender);
@@ -349,11 +356,9 @@ extern "C" {
 	int bmx_RakNetStatistics_messagesSent(RakNetStatistics * stats, PacketPriority priority);
 	void bmx_RakNetStatistics_messageDataBitsSent(RakNetStatistics * stats, PacketPriority priority, BBInt64 * v);
 	void bmx_RakNetStatistics_messageTotalBitsSent(RakNetStatistics * stats, PacketPriority priority, BBInt64 * v);
-	int bmx_RakNetStatistics_packetsContainingOnlyAcknowlegements(RakNetStatistics * stats);
 	int bmx_RakNetStatistics_acknowlegementsSent(RakNetStatistics * stats);
 	int bmx_RakNetStatistics_acknowlegementsPending(RakNetStatistics * stats);
 	void bmx_RakNetStatistics_acknowlegementBitsSent(RakNetStatistics * stats, BBInt64 * v);
-	int bmx_RakNetStatistics_packetsContainingOnlyAcknowlegementsAndResends(RakNetStatistics * stats);
 	int bmx_RakNetStatistics_messageResends(RakNetStatistics * stats);
 	void bmx_RakNetStatistics_messageDataBitsResent(RakNetStatistics * stats, BBInt64 * v);
 	void bmx_RakNetStatistics_messagesTotalBitsResent(RakNetStatistics * stats, BBInt64 * v);
@@ -383,6 +388,10 @@ extern "C" {
 	double bmx_RakNetStatistics_bitsPerSecondReceived(RakNetStatistics * stats);
 	void bmx_RakNetStatistics_connectionStartTime(RakNetStatistics * stats, BBInt64 * v);
 	int bmx_RakNetStatistics_bandwidthExceeded(RakNetStatistics * stats);
+	int bmx_RakNetStatistics_isInSlowStart(RakNetStatistics * stats);
+	int bmx_RakNetStatistics_CWNDLimit(RakNetStatistics * stats);
+	int bmx_RakNetStatistics_unacknowledgedBytes(RakNetStatistics * stats);
+	int bmx_RakNetStatistics_timeToNextAllowedSend(RakNetStatistics * stats, BBInt64 * v);
 
 	int bmx_raknet_SizeOfRakNetTime();
 

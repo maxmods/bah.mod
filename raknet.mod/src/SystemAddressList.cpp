@@ -49,13 +49,13 @@ bool SystemAddressList::Deserialize(RakNet::BitStream *in)
 		RakAssert(0);
 		return false;
 	}
-	systemList.Clear();
+	systemList.Clear(false, __FILE__, __LINE__);
 	for (index=0; index < systemListSize; index++)
 	{
 		if (in->Read(systemAddress)==false)
 		{
 			RakAssert(0);
-			systemList.Clear();
+			systemList.Clear(false, __FILE__, __LINE__);
 			return false;
 		}
 		systemList.Insert(systemAddress, __FILE__, __LINE__);
@@ -127,5 +127,5 @@ SystemAddress& SystemAddressList::operator[] ( const unsigned int position ) con
 }
 void SystemAddressList::Clear(void)
 {
-	systemList.Clear();
+	systemList.Clear(false, __FILE__, __LINE__);
 }

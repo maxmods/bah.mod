@@ -236,8 +236,8 @@ namespace DataStructures
 		unsigned i;
 		for (i=0; i < map.Size(); i++)
 			RakNet::OP_DELETE(map[i], __FILE__, __LINE__);
-		map.Clear();
-		heap.Clear();
+		map.Clear(__FILE__, __LINE__);
+		heap.Clear(__FILE__, __LINE__);
 	}
 }
 

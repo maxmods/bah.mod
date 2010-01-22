@@ -1,7 +1,7 @@
 #include "IncrementalReadInterface.h"
 #include <stdio.h>
 
-unsigned int IncrementalReadInterface::GetFilePart( char *filename, unsigned int startReadBytes, unsigned int numBytesToRead, void *preallocatedDestination, FileListNodeContext context)
+unsigned int IncrementalReadInterface::GetFilePart( const char *filename, unsigned int startReadBytes, unsigned int numBytesToRead, void *preallocatedDestination, FileListNodeContext context)
 {
 	FILE *fp = fopen(filename, "rb");
 	if (fp==0)

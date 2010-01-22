@@ -62,6 +62,14 @@ struct UDPProxyClientResultHandler
 	/// \param[out] proxyClient The plugin that is calling this callback
 	virtual void OnNoServersOnline(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddress, RakNet::UDPProxyClient *proxyClientPlugin)=0;
 
+	/// Called when our forwarding request failed, because no UDPProxyServers are connected to UDPProxyCoordinator
+	/// \param[out] proxyCoordinator \a proxyCoordinator parameter originally passed to UDPProxyClient::RequestForwarding
+	/// \param[out] sourceAddress \a sourceAddress parameter passed to UDPProxyClient::RequestForwarding. If it was UNASSIGNED_SYSTEM_ADDRESS, it is now our external IP address.
+	/// \param[out] targetAddress \a targetAddress parameter originally passed to UDPProxyClient::RequestForwarding
+	/// \param[out] targetGuid \a targetGuid parameter originally passed to UDPProxyClient::RequestForwarding
+	/// \param[out] proxyClient The plugin that is calling this callback
+	virtual void OnRecipientNotConnected(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddress, RakNetGUID targetGuid, RakNet::UDPProxyClient *proxyClientPlugin)=0;
+
 	/// Called when our forwarding request failed, because all UDPProxyServers that are connected to UDPProxyCoordinator are at their capacity
 	/// Either add more servers, or increase capacity via UDPForwarder::SetMaxForwardEntries()
 	/// \param[out] proxyCoordinator \a proxyCoordinator parameter originally passed to UDPProxyClient::RequestForwarding
@@ -98,7 +106,7 @@ public:
 	/// \param[in] resultHandler 
 	void SetResultHandler(UDPProxyClientResultHandler *rh);
 
-	/// Sends a request to proxyCoordinator to find a server and have that server setup UDPForwarder::StartForwarding() on our address to \a targetAddress
+	/// Sends a request to proxyCoordinator to find a server and have that server setup UDPForwarder::StartForwarding() on our address to \a targetAddressAsSeenFromCoordinator
 	/// The forwarded datagrams can be from any UDP source, not just RakNet
 	/// \pre Must be connected to \a proxyCoordinator
 	/// \pre Systems running UDPProxyServer must be connected to \a proxyCoordinator and logged in via UDPProxyCoordinator::LoginServer() or UDPProxyServer::LoginToCoordinator()
@@ -106,11 +114,15 @@ public:
 	/// \note RakNet's protocol will ensure a message is sent at least every 5 seconds, so if routing RakNet messages, it is a reasonable value for timeoutOnNoDataMS, plus an extra few seconds for latency.
 	/// \param[in] proxyCoordinator System we are connected to that is running the UDPProxyCoordinator plugin
 	/// \param[in] sourceAddress External IP address of the system we want to forward messages from. This does not have to be our own system. To specify our own system, you can pass UNASSIGNED_SYSTEM_ADDRESS which the coordinator will treat as our external IP address.
-	/// \param[in] targetAddress External IP address of the system we want to forward messages to. This system does NOT have to be connected or otherwise do anything.
+	/// \param[in] targetAddressAsSeenFromCoordinator External IP address of the system we want to forward messages to. If this system is connected to UDPProxyCoordinator at this address using RakNet, that system will ping the server and thus open the router for incoming communication. In any other case, you are responsible for doing your own network communication to have that system ping the server. See also targetGuid in the other version of RequestForwarding(), to avoid the need to know the IP address to the coordinator of the destination.
 	/// \param[in] timeoutOnNoData If no data is sent by the forwarded systems, how long before removing the forward entry from UDPForwarder? UDP_FORWARDER_MAXIMUM_TIMEOUT is the maximum value. Recommended high enough to not drop valid connections, but low enough to not waste forwarding slots on the proxy server.
 	/// \param[in] serverSelectionBitstream If you want to send data to UDPProxyCoordinator::GetBestServer(), write it here
 	/// \return true if the request was sent, false if we are not connected to proxyCoordinator
-	bool RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddress, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream=0);
+	bool RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddressAsSeenFromCoordinator, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream=0);
+
+	/// Same as above, but specify the target with a GUID, in case you don't know what its address is to the coordinator
+	/// If requesting forwarding to a RakNet enabled system, then it is easier to use targetGuid instead of targetAddressAsSeenFromCoordinator
+	bool RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, RakNetGUID targetGuid, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream=0);
 
 	/// \internal
 	virtual void Update(void);

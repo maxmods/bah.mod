@@ -12,7 +12,7 @@
 #include <stdio.h>
 
 #if defined(_XBOX) || defined(X360)
-#include "XBOX360Includes.h"
+                            
 #endif
 
 #include "RakSleep.h"
@@ -30,6 +30,9 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 	emailServer=tcpInterface.Connect(hostAddress, hostPort,true);
 	if (emailServer==UNASSIGNED_SYSTEM_ADDRESS)
 		return "Failed to connect to host";
+#ifdef OPEN_SSL_CLIENT_SUPPORT
+	tcpInterface.StartSSLClient(emailServer);
+#endif
 	RakNetTime timeoutTime = RakNet::GetTime()+3000;
 	packet=0;
 	while (RakNet::GetTime() < timeoutTime)
@@ -79,7 +82,6 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 		response=GetResponse(&tcpInterface, emailServer, doPrintf);
 		if (response!=0)
 			return response;
-
 		if (password==0)
 			return "Password needed";
 		char *outputData = RakNet::OP_NEW_ARRAY<char >((const int) (strlen(sender)+strlen(password)+2)*3, __FILE__, __LINE__ );
@@ -255,7 +257,7 @@ const char *EmailSender::Send(const char *hostAddress, unsigned short hostPort, 
 			sprintf(query, "\r\n--%s\r\n", boundary);
 			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
-			sprintf(query, "Content-Type: APPLICATION/Octet-Stream; SizeOnDisk=%i; name=\"%s\"\r\nContent-Transfer-Encoding: BASE64\r\nContent-Description: %s\r\n\r\n", attachedFiles->fileList[i].dataLengthBytes, attachedFiles->fileList[i].filename, attachedFiles->fileList[i].filename);
+			sprintf(query, "Content-Type: APPLICATION/Octet-Stream; SizeOnDisk=%i; name=\"%s\"\r\nContent-Transfer-Encoding: BASE64\r\nContent-Description: %s\r\n\r\n", attachedFiles->fileList[i].dataLengthBytes, attachedFiles->fileList[i].filename.C_String(), attachedFiles->fileList[i].filename.C_String());
 			tcpInterface.Send(query, (unsigned int)strlen(query), emailServer,false);
 
 			newBody = (char*) rakMalloc_Ex( (size_t) (attachedFiles->fileList[i].dataLengthBytes*3)/2, __FILE__, __LINE__ );
@@ -321,6 +323,11 @@ const char *EmailSender::GetResponse(TCPInterface *tcpInterface, const SystemAdd
 				tcpInterface->StartSSLClient(packet->systemAddress);
 				return "AUTHENTICATE"; // OK
 			}
+// 			if (strstr((const char*)packet->data, "250-AUTH LOGIN PLAIN"))
+// 			{
+// 				tcpInterface->StartSSLClient(packet->systemAddress);
+// 				return "AUTHENTICATE"; // OK
+// 			}
 #endif
 			if (strstr((const char*)packet->data, "235"))
 				return 0; // Authentication accepted

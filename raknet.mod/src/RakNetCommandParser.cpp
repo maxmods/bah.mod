@@ -51,7 +51,7 @@ RakNetCommandParser::RakNetCommandParser()
 	RegisterCommand(4,"AdvertiseSystem","( const char *host, unsigned short remotePort, const char *data, int dataLength );");
 	RegisterCommand(2,"SetIncomingPassword","( const char* passwordData, int passwordDataLength );");
 	RegisterCommand(0,"GetIncomingPassword","( void );");
-	RegisterCommand(3,"ApplyNetworkSimulator","( double maxSendBPS, unsigned short minExtraPing, unsigned short extraPingVariance);");
+	RegisterCommand(3,"ApplyNetworkSimulator","( float packetloss, unsigned short minExtraPing, unsigned short extraPingVariance);");
 	RegisterCommand(0,"IsNetworkSimulatorActive","( void );");
 }
 RakNetCommandParser::~RakNetCommandParser()
@@ -226,10 +226,12 @@ bool RakNetCommandParser::OnCommand(const char *command, unsigned numParameters,
 		peer->SetTimeoutTime(atoi(parameterList[0]), IntegersToSystemAddress(atoi(parameterList[0]), atoi(parameterList[1])));
 		ReturnResult(command, transport, systemAddress);
 	}
+	/*
 	else if (strcmp(command, "SetMTUSize")==0)
 	{
 		ReturnResult(peer->SetMTUSize(atoi(parameterList[0]), UNASSIGNED_SYSTEM_ADDRESS), command, transport, systemAddress);
 	}
+	*/
 	else if (strcmp(command, "GetMTUSize")==0)
 	{
 		ReturnResult(peer->GetMTUSize(UNASSIGNED_SYSTEM_ADDRESS), command, transport, systemAddress);
@@ -254,7 +256,7 @@ bool RakNetCommandParser::OnCommand(const char *command, unsigned numParameters,
 	}
 	else if (strcmp(command, "ApplyNetworkSimulator")==0)
 	{
-		peer->ApplyNetworkSimulator(atof(parameterList[0]), (unsigned short) atoi(parameterList[1]),(unsigned short) atoi(parameterList[2]));
+		peer->ApplyNetworkSimulator((float) atof(parameterList[0]), (unsigned short) atoi(parameterList[1]),(unsigned short) atoi(parameterList[2]));
 		ReturnResult(command, transport, systemAddress);
 	}
 	else if (strcmp(command, "IsNetworkSimulatorActive")==0)

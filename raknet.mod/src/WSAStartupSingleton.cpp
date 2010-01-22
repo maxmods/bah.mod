@@ -1,9 +1,7 @@
 #include "WSAStartupSingleton.h"
 
 #if defined(_XBOX) || defined(X360)
-#include "XBOX360Includes.h"
-extern void X360Startup(void);
-extern void X360Shutdown(void);
+                                                                                             
 #elif defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -11,9 +9,9 @@ extern void X360Shutdown(void);
 #include "RakNetDefines.h"
 #include <stdio.h>
 
-int WSAStartupSingleton::refCount;
+int WSAStartupSingleton::refCount=0;
 
-WSAStartupSingleton::WSAStartupSingleton() {refCount=0;}
+WSAStartupSingleton::WSAStartupSingleton() {}
 WSAStartupSingleton::~WSAStartupSingleton() {}
 void WSAStartupSingleton::AddRef(void)
 {
@@ -25,7 +23,7 @@ void WSAStartupSingleton::AddRef(void)
 		return;
 
 #if defined(_XBOX) || defined(X360)
-	X360Startup();
+               
 #endif
 
 	WSADATA winsockInfo;
@@ -61,7 +59,7 @@ void WSAStartupSingleton::Deref(void)
 	WSACleanup();
 
 #if defined(_XBOX) || defined(X360)
-	X360Shutdown();
+                
 #endif
 
 	

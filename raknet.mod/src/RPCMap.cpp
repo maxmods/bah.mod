@@ -28,7 +28,7 @@ void RPCMap::Clear(void)
 			RakNet::OP_DELETE(node, __FILE__, __LINE__);
 		}
 	}
-	rpcSet.Clear();
+	rpcSet.Clear(false, __FILE__, __LINE__);
 }
 RPCNode *RPCMap::GetNodeFromIndex(RPCIndex index)
 {
@@ -87,7 +87,7 @@ void RPCMap::AddIdentifierWithFunction(const char *uniqueIdentifier, void *funct
 	{
 		if (rpcSet[index]==0)
 		{
-			rpcSet.Replace(node, 0, index);
+			rpcSet.Replace(node, 0, index, __FILE__,__LINE__);
 			return;
 		}
 	}
@@ -138,7 +138,7 @@ void RPCMap::AddIdentifierAtIndex(const char *uniqueIdentifier, RPCIndex inserti
 	else
 	{
 		// Insert after the end of the list and use 0 as a filler for the empty spots
-		rpcSet.Replace(node, 0, insertionIndex);
+		rpcSet.Replace(node, 0, insertionIndex, __FILE__,__LINE__);
 	}
 }
 

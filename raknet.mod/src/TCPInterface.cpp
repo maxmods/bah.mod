@@ -41,6 +41,8 @@ TCPInterface::TCPInterface()
 	isStarted=false;
 	threadRunning=false;
 	listenSocket=(SOCKET) -1;
+	remoteClients=0;
+	remoteClientsLength=0;
 
 	StringCompressor::AddReference();
 	RakNet::StringTable::AddReference();
@@ -61,33 +63,44 @@ TCPInterface::~TCPInterface()
 	WSAStartupSingleton::Deref();
 #endif
 
+	RakNet::OP_DELETE_ARRAY(remoteClients,__FILE__,__LINE__);
+
 	StringCompressor::RemoveReference();
 	RakNet::StringTable::RemoveReference();
 }
-bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnections)
+bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnections, unsigned short maxConnections, int _threadPriority)
 {
 	if (isStarted)
 		return false;
 
+	threadPriority=_threadPriority;
+
+	if (threadPriority==-99999)
+	{
+#if defined(_XBOX) || defined(X360)
+                   
+#elif defined(_WIN32)
+		threadPriority=0;
+#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+                   
+#else
+		threadPriority=0;
+#endif
+	}
+
 	isStarted=true;
+	if (maxConnections==0)
+		maxConnections=maxIncomingConnections;
+	if (maxConnections==0)
+		maxConnections=1;
+	remoteClientsLength=maxConnections;
+	remoteClients=RakNet::OP_NEW_ARRAY<RemoteClient>(maxConnections,__FILE__,__LINE__);
 
 	if (maxIncomingConnections>0)
 	{
 		listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if ((int)listenSocket ==-1)
 			return false;
-
-		/*
-#ifdef _WIN32
-		unsigned long nonblocking = 1;
-		ioctlsocket( listenSocket, FIONBIO, &nonblocking );
-#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		int sock_opt=1;
-		setsockopt(listenSocket, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
-#else
-		fcntl( listenSocket, F_SETFL, O_NONBLOCK );
-#endif
-		*/
 
 		struct sockaddr_in serverAddress;
 		serverAddress.sin_family = AF_INET;
@@ -101,7 +114,7 @@ bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnecti
 	}
 
 	// Start the update thread
-	int errorCode = RakNet::RakThread::Create(UpdateTCPInterfaceLoop, this);
+	int errorCode = RakNet::RakThread::Create(UpdateTCPInterfaceLoop, this, threadPriority);
 	if (errorCode!=0)
 		return false;
 
@@ -117,8 +130,8 @@ void TCPInterface::Stop(void)
 
 	unsigned i;
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
-	for (i=0; i < remoteClients.Size(); i++)
-		remoteClients[i]->DisconnectSSL();
+	for (i=0; i < remoteClientsLength; i++)
+		remoteClients[i].DisconnectSSL();
 #endif
 
 	isStarted=false;
@@ -149,43 +162,36 @@ void TCPInterface::Stop(void)
 	RakSleep(100);
 
 	// Stuff from here on to the end of the function is not threadsafe
-	for (i=0; i < remoteClients.Size(); i++)
+	for (i=0; i < (unsigned int) remoteClientsLength; i++)
 	{
-		closesocket(remoteClients[i]->socket);
+		closesocket(remoteClients[i].socket);
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
-		remoteClients[i]->FreeSSL();
+		remoteClients[i].FreeSSL();
 #endif
-		RakNet::OP_DELETE(remoteClients[i], __FILE__, __LINE__);
 	}
-	remoteClients.Clear();
+	remoteClientsLength=0;
+	RakNet::OP_DELETE_ARRAY(remoteClients,__FILE__,__LINE__);
+	remoteClients=0;
 
-	for (i=0; i < remoteClientsInsertionQueue.Size(); i++)
-	{
-		closesocket(remoteClientsInsertionQueue[i]->socket);
-		RakNet::OP_DELETE(remoteClientsInsertionQueue[i], __FILE__, __LINE__);
-	}
-	remoteClientsInsertionQueue.Clear();
-
-	outgoingMessages.Clear();
-	incomingMessages.Clear();
-	newIncomingConnections.Clear();
-	newRemoteClients.Clear();
-	lostConnections.Clear();
-	requestedCloseConnections.Clear();
-	failedConnectionAttempts.Clear();
-	completedConnectionAttempts.Clear();
-	failedConnectionAttempts.Clear();
+	incomingMessages.Clear(__FILE__, __LINE__);
+	newIncomingConnections.Clear(__FILE__, __LINE__);
+	newRemoteClients.Clear(__FILE__, __LINE__);
+	lostConnections.Clear(__FILE__, __LINE__);
+	requestedCloseConnections.Clear(__FILE__, __LINE__);
+	failedConnectionAttempts.Clear(__FILE__, __LINE__);
+	completedConnectionAttempts.Clear(__FILE__, __LINE__);
+	failedConnectionAttempts.Clear(__FILE__, __LINE__);
 	for (i=0; i < headPush.Size(); i++)
 		DeallocatePacket(headPush[i]);
-	headPush.Clear();
+	headPush.Clear(__FILE__, __LINE__);
 	for (i=0; i < tailPush.Size(); i++)
 		DeallocatePacket(tailPush[i]);
-	tailPush.Clear();
+	tailPush.Clear(__FILE__, __LINE__);
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	SSL_CTX_free (ctx);
-	startSSL.Clear();
-	activeSSLConnections.Clear();
+	startSSL.Clear(__FILE__, __LINE__);
+	activeSSLConnections.Clear(false, __FILE__, __LINE__);
 #endif
 }
 SystemAddress TCPInterface::Connect(const char* host, unsigned short remotePort, bool block)
@@ -193,47 +199,65 @@ SystemAddress TCPInterface::Connect(const char* host, unsigned short remotePort,
 	if (threadRunning==false)
 		return UNASSIGNED_SYSTEM_ADDRESS;
 
+	int newRemoteClientIndex=-1;
+	for (newRemoteClientIndex=0; newRemoteClientIndex < remoteClientsLength; newRemoteClientIndex++)
+	{
+		remoteClients[newRemoteClientIndex].isActiveMutex.Lock();
+		if (remoteClients[newRemoteClientIndex].isActive==false)
+		{
+			remoteClients[newRemoteClientIndex].SetActive(true);
+			remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+			break;
+		}
+		remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+	}
+	if (newRemoteClientIndex==-1)
+		return UNASSIGNED_SYSTEM_ADDRESS;
+
 	if (block)
 	{
 		SystemAddress systemAddress;
 		systemAddress.binaryAddress=inet_addr(host);
 		systemAddress.port=remotePort;
+		systemAddress.systemIndex=(SystemIndex) newRemoteClientIndex;
 
 		SOCKET sockfd = SocketConnect(host, remotePort);
 		if (sockfd==(SOCKET)-1)
-		{	
+		{
+			remoteClients[newRemoteClientIndex].isActiveMutex.Lock();
+			remoteClients[newRemoteClientIndex].SetActive(false);
+			remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+
 			failedConnectionAttemptMutex.Lock();
-			failedConnectionAttempts.Push(systemAddress);
+			failedConnectionAttempts.Push(systemAddress, __FILE__, __LINE__ );
 			failedConnectionAttemptMutex.Unlock();
 
 			return UNASSIGNED_SYSTEM_ADDRESS;
 		}
 
-		RemoteClient *remoteClient;
-		remoteClient = AllocRemoteClient( __FILE__, __LINE__ );
-		remoteClient->socket=sockfd;
-		remoteClient->systemAddress=systemAddress;
-		InsertRemoteClient(remoteClient);
+		remoteClients[newRemoteClientIndex].socket=sockfd;
+		remoteClients[newRemoteClientIndex].systemAddress=systemAddress;
 
 		completedConnectionAttemptMutex.Lock();
-		completedConnectionAttempts.Push(remoteClient->systemAddress);
+		completedConnectionAttempts.Push(remoteClients[newRemoteClientIndex].systemAddress, __FILE__, __LINE__ );
 		completedConnectionAttemptMutex.Unlock();
 
-		return remoteClient->systemAddress;
+		return remoteClients[newRemoteClientIndex].systemAddress;
 	}
 	else
 	{
 		ThisPtrPlusSysAddr *s = RakNet::OP_NEW<ThisPtrPlusSysAddr>( __FILE__, __LINE__ );
 		s->systemAddress.SetBinaryAddress(host);
 		s->systemAddress.port=remotePort;
+		s->systemAddress.systemIndex=(SystemIndex) newRemoteClientIndex;
 		s->tcpInterface=this;
 
 		// Start the connection thread
-		int errorCode = RakNet::RakThread::Create(ConnectionAttemptLoop, s);
+		int errorCode = RakNet::RakThread::Create(ConnectionAttemptLoop, s, threadPriority);
 		if (errorCode!=0)
 		{
 			RakNet::OP_DELETE(s, __FILE__, __LINE__);
-			failedConnectionAttempts.Push(s->systemAddress);
+			failedConnectionAttempts.Push(s->systemAddress, __FILE__, __LINE__ );
 		}
 		return UNASSIGNED_SYSTEM_ADDRESS;
 	}	
@@ -250,12 +274,12 @@ void TCPInterface::StartSSLClient(SystemAddress systemAddress)
 		RakAssert(ctx!=0);
 	}
 
-	SystemAddress *id = startSSL.WriteLock();
+	SystemAddress *id = startSSL.Allocate( __FILE__, __LINE__ );
 	*id=systemAddress;
-	startSSL.WriteUnlock();
+	startSSL.Push(id);
 	unsigned index = activeSSLConnections.GetIndexOf(systemAddress);
 	if (index==(unsigned)-1)
-		activeSSLConnections.Insert(systemAddress);
+		activeSSLConnections.Insert(systemAddress,__FILE__,__LINE__);
 }
 bool TCPInterface::IsSSLActive(SystemAddress systemAddress)
 {
@@ -264,38 +288,17 @@ bool TCPInterface::IsSSLActive(SystemAddress systemAddress)
 #endif
 void TCPInterface::Send( const char *data, unsigned length, SystemAddress systemAddress, bool broadcast )
 {
-	if (isStarted==false)
-		return;
-	if (remoteClients.Size()==0)
-		return;
-	if (data==0)
-		return;
-	if (systemAddress==UNASSIGNED_SYSTEM_ADDRESS && broadcast==false)
-		return;
-	OutgoingMessage *p;
-	if (broadcast==false)
-	{
-		p=outgoingMessages.WriteLock();
-		p->length=length;
-		p->data = (unsigned char*) rakMalloc_Ex( p->length, __FILE__, __LINE__ );
-		memcpy(p->data, data, p->length);
-		p->systemAddress=systemAddress;
-		p->broadcast=broadcast;
-		outgoingMessages.WriteUnlock();
-	}
+	SendList( &data, &length, 1, systemAddress,broadcast );
 }
-bool TCPInterface::SendList( char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast )
+bool TCPInterface::SendList( const char **data, const unsigned int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast )
 {
 	if (isStarted==false)
-		return false;
-	if (remoteClients.Size()==0)
 		return false;
 	if (data==0)
 		return false;
 	if (systemAddress==UNASSIGNED_SYSTEM_ADDRESS && broadcast==false)
 		return false;
 	unsigned int totalLength=0;
-	unsigned int lengthOffset;
 	int i;
 	for (i=0; i < numParameters; i++)
 	{
@@ -304,21 +307,38 @@ bool TCPInterface::SendList( char **data, const int *lengths, const int numParam
 	}
 	if (totalLength==0)
 		return false;
-	OutgoingMessage *p;
-	p=outgoingMessages.WriteLock();
-	p->length=totalLength;
-	p->data = (unsigned char*) rakMalloc_Ex( totalLength, __FILE__, __LINE__ );
-	for (i=0, lengthOffset=0; i < numParameters; i++)
+
+	if (broadcast)
 	{
-		if (lengths[i]>0)
+		// Send to all, possible exception system
+		for (i=0; i < remoteClientsLength; i++)
 		{
-			memcpy(p->data+lengthOffset, data[i], lengths[i]);
-			lengthOffset+=lengths[i];
+			if (remoteClients[i].systemAddress!=systemAddress)
+			{
+				remoteClients[i].SendOrBuffer(data, lengths, numParameters);
+			}
 		}
 	}
-	p->systemAddress=systemAddress;
-	p->broadcast=broadcast;
-	outgoingMessages.WriteUnlock();
+	else
+	{
+		// Send to this player
+		if (systemAddress.systemIndex<remoteClientsLength &&
+			remoteClients[systemAddress.systemIndex].systemAddress==systemAddress)
+		{
+			remoteClients[systemAddress.systemIndex].SendOrBuffer(data, lengths, numParameters);
+		}
+		else
+		{
+			for (i=0; i < remoteClientsLength; i++)
+			{
+				if (remoteClients[i].systemAddress==systemAddress )
+				{
+					remoteClients[i].SendOrBuffer(data, lengths, numParameters);
+				}
+			}
+		}
+	}
+
 
 	return true;
 }
@@ -328,7 +348,7 @@ Packet* TCPInterface::Receive( void )
 		return 0;
 	if (headPush.IsEmpty()==false)
 		return headPush.Pop();
-	Packet *p = incomingMessages.ReadLock();
+	Packet *p = incomingMessages.PopInaccurate();
 	if (p)
 		return p;
 	if (tailPush.IsEmpty()==false)
@@ -341,9 +361,26 @@ void TCPInterface::CloseConnection( SystemAddress systemAddress )
 		return;
 	if (systemAddress==UNASSIGNED_SYSTEM_ADDRESS)
 		return;
-	SystemAddress *id = requestedCloseConnections.WriteLock();
-	*id=systemAddress;
-	requestedCloseConnections.WriteUnlock();
+	
+	if (systemAddress.systemIndex<remoteClientsLength && remoteClients[systemAddress.systemIndex].systemAddress==systemAddress)
+	{
+		remoteClients[systemAddress.systemIndex].SetActive(false);
+	}
+	else
+	{
+		for (int i=0; i < remoteClientsLength; i++)
+		{
+			remoteClients[i].isActiveMutex.Lock();
+			if (remoteClients[i].isActive && remoteClients[i].systemAddress==systemAddress)
+			{
+				remoteClients[systemAddress.systemIndex].SetActive(false);
+				remoteClients[i].isActiveMutex.Unlock();
+				break;
+			}
+			remoteClients[i].isActiveMutex.Unlock();
+		}
+	}
+
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	unsigned index = activeSSLConnections.GetIndexOf(systemAddress);
@@ -357,9 +394,8 @@ void TCPInterface::DeallocatePacket( Packet *packet )
 		return;
 	if (packet->deleteData)
 	{
-		RakAssert(incomingMessages.CheckReadUnlockOrder(packet));
 		rakFree_Ex(packet->data, __FILE__, __LINE__ );
-		incomingMessages.ReadUnlock();
+		incomingMessages.Deallocate(packet, __FILE__,__LINE__);
 	}
 	else
 	{
@@ -377,15 +413,15 @@ Packet* TCPInterface::AllocatePacket(unsigned dataSize)
 	p->deleteData=false;
 	p->guid=UNASSIGNED_RAKNET_GUID;
 	p->systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
-	p->systemIndex=(SystemIndex)-1;
+	p->systemAddress.systemIndex=(SystemIndex)-1;
 	return p;
 }
 void TCPInterface::PushBackPacket( Packet *packet, bool pushAtHead )
 {
 	if (pushAtHead)
-		headPush.Push(packet);
+		headPush.Push(packet, __FILE__, __LINE__ );
 	else
-		tailPush.Push(packet);
+		tailPush.Push(packet, __FILE__, __LINE__ );
 }
 SystemAddress TCPInterface::HasCompletedConnectionAttempt(void)
 {
@@ -407,11 +443,12 @@ SystemAddress TCPInterface::HasFailedConnectionAttempt(void)
 }
 SystemAddress TCPInterface::HasNewIncomingConnection(void)
 {
-	SystemAddress *out;
-	out = newIncomingConnections.ReadLock();
+	SystemAddress *out, out2;
+	out = newIncomingConnections.PopInaccurate();
 	if (out)
 	{
-		newIncomingConnections.ReadUnlock();
+		out2=*out;
+		newIncomingConnections.Deallocate(out, __FILE__,__LINE__);
 		return *out;
 	}
 	else
@@ -421,11 +458,12 @@ SystemAddress TCPInterface::HasNewIncomingConnection(void)
 }
 SystemAddress TCPInterface::HasLostConnection(void)
 {
-	SystemAddress *out;
-	out = lostConnections.ReadLock();
+	SystemAddress *out, out2;
+	out = lostConnections.PopInaccurate();
 	if (out)
 	{
-		lostConnections.ReadUnlock();
+		out2=*out;
+		lostConnections.Deallocate(out, __FILE__,__LINE__);
 		return *out;
 	}
 	else
@@ -433,28 +471,55 @@ SystemAddress TCPInterface::HasLostConnection(void)
 		return UNASSIGNED_SYSTEM_ADDRESS;
 	}
 }
-void TCPInterface::DeleteRemoteClient(RemoteClient *remoteClient, fd_set *exceptionFD)
+void TCPInterface::GetConnectionList( SystemAddress *remoteSystems, unsigned short *numberOfSystems ) const
 {
-	(void) exceptionFD;
-#if defined(OPEN_SSL_CLIENT_SUPPORT)
-	remoteClient->DisconnectSSL();
-	remoteClient->FreeSSL();
-#endif
-//	FD_CLR(remoteClient->socket, exceptionFD);
-	closesocket(remoteClient->socket);
-	//shutdown(remoteClient->socket, SD_SEND);
-	RakNet::OP_DELETE(remoteClient, __FILE__, __LINE__);
+	unsigned short systemCount=0;
+	unsigned short maxToWrite=*numberOfSystems;
+	for (int i=0; i < remoteClientsLength; i++)
+	{
+		if (remoteClients[i].isActive)
+		{
+			if (systemCount < maxToWrite)
+				remoteSystems[systemCount]=remoteClients[i].systemAddress;
+			systemCount++;
+		}
+	}
+	*numberOfSystems=systemCount;
+}
+unsigned short TCPInterface::GetConnectionCount(void) const
+{
+	unsigned short systemCount=0;
+	for (int i=0; i < remoteClientsLength; i++)
+	{
+		if (remoteClients[i].isActive)
+			systemCount++;
+	}
+	return systemCount;
 }
 
-void TCPInterface::InsertRemoteClient(RemoteClient* remoteClient)
+unsigned int TCPInterface::GetOutgoingDataBufferSize(SystemAddress systemAddress) const
 {
-	remoteClientsInsertionQueueMutex.Lock();
-	remoteClientsInsertionQueue.Push(remoteClient);
-	remoteClientsInsertionQueueMutex.Unlock();
-}
-RemoteClient* TCPInterface::AllocRemoteClient(const char *file, unsigned int line) const
-{
-	return RakNet::OP_NEW<RemoteClient>(file, line);
+	unsigned bytesWritten=0;
+	if (systemAddress.systemIndex<remoteClientsLength &&
+		remoteClients[systemAddress.systemIndex].isActive &&
+		remoteClients[systemAddress.systemIndex].systemAddress==systemAddress)
+	{
+		remoteClients[systemAddress.systemIndex].outgoingDataMutex.Lock();
+		bytesWritten=remoteClients[systemAddress.systemIndex].outgoingData.GetBytesWritten();
+		remoteClients[systemAddress.systemIndex].outgoingDataMutex.Unlock();
+		return bytesWritten;
+	}
+
+	for (int i=0; i < remoteClientsLength; i++)
+	{
+		if (remoteClients[i].isActive && remoteClients[i].systemAddress==systemAddress)
+		{
+			remoteClients[i].outgoingDataMutex.Lock();
+			bytesWritten+=remoteClients[i].outgoingData.GetBytesWritten();
+			remoteClients[i].outgoingDataMutex.Unlock();
+		}
+	}
+	return bytesWritten;
 }
 SOCKET TCPInterface::SocketConnect(const char* host, unsigned short remotePort)
 {
@@ -480,12 +545,14 @@ SOCKET TCPInterface::SocketConnect(const char* host, unsigned short remotePort)
 	unsigned long nonblocking = 1;
 	ioctlsocket( sockfd, FIONBIO, &nonblocking );
 #elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-	int sock_opt=1;
-	setsockopt(sockfd, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
+                                                                                                        
 #else
 	fcntl( sockfd, F_SETFL, O_NONBLOCK );
 #endif
 	*/
+
+	int sock_opt=1024*256;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, ( char * ) & sock_opt, sizeof ( sock_opt ) );
 
 
 #if !defined(_XBOX) && !defined(_X360)
@@ -521,6 +588,7 @@ RAK_THREAD_DECLARATION(ConnectionAttemptLoop)
 	TCPInterface::ThisPtrPlusSysAddr *s = (TCPInterface::ThisPtrPlusSysAddr *) arguments;
 	SystemAddress systemAddress = s->systemAddress;
 	TCPInterface *tcpInterface = s->tcpInterface;
+	int newRemoteClientIndex=systemAddress.systemIndex;
 	RakNet::OP_DELETE(s, __FILE__, __LINE__);
 
 	char str1[64];
@@ -528,33 +596,24 @@ RAK_THREAD_DECLARATION(ConnectionAttemptLoop)
 	SOCKET sockfd = tcpInterface->SocketConnect(str1, systemAddress.port);
 	if (sockfd==(SOCKET)-1)
 	{
+		tcpInterface->remoteClients[newRemoteClientIndex].isActiveMutex.Lock();
+		tcpInterface->remoteClients[newRemoteClientIndex].SetActive(false);
+		tcpInterface->remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+
 		tcpInterface->failedConnectionAttemptMutex.Lock();
-		tcpInterface->failedConnectionAttempts.Push(systemAddress);
+		tcpInterface->failedConnectionAttempts.Push(systemAddress, __FILE__, __LINE__ );
 		tcpInterface->failedConnectionAttemptMutex.Unlock();
 		return 0;
 	}
 
-	RemoteClient *remoteClient;
-	remoteClient = tcpInterface->AllocRemoteClient( __FILE__, __LINE__ );
-	remoteClient->socket=sockfd;
-	remoteClient->systemAddress=systemAddress;
-	tcpInterface->InsertRemoteClient(remoteClient);
-
-	// Wait for the other thread to pick up the remote client
-	bool isEmpty;
-	do 
-	{
-		RakSleep(30);
-		tcpInterface->remoteClientsInsertionQueueMutex.Lock();
-		isEmpty=tcpInterface->remoteClientsInsertionQueue.IsEmpty();
-		tcpInterface->remoteClientsInsertionQueueMutex.Unlock();
-	} while(isEmpty==false && tcpInterface->threadRunning);	
+	tcpInterface->remoteClients[newRemoteClientIndex].socket=sockfd;
+	tcpInterface->remoteClients[newRemoteClientIndex].systemAddress=systemAddress;
 
 	// Notify user that the connection attempt has completed.
 	if (tcpInterface->threadRunning)
 	{
 		tcpInterface->completedConnectionAttemptMutex.Lock();
-		tcpInterface->completedConnectionAttempts.Push(systemAddress);
+		tcpInterface->completedConnectionAttempts.Push(systemAddress, __FILE__, __LINE__ );
 		tcpInterface->completedConnectionAttemptMutex.Unlock();
 	}	
 
@@ -564,168 +623,140 @@ RAK_THREAD_DECLARATION(ConnectionAttemptLoop)
 RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 {
 	TCPInterface * sts = ( TCPInterface * ) arguments;
-	RemoteClient *remoteClient;
 //	const int BUFF_SIZE=8096;
 	const int BUFF_SIZE=1048576;
 	//char data[ BUFF_SIZE ];
 	char * data = (char*) rakMalloc_Ex(BUFF_SIZE,__FILE__,__LINE__);
-	TCPInterface::OutgoingMessage *outgoingMessage;
 	Packet *incomingMessage;
-	SystemAddress *systemAddress;
 	fd_set      readFD, exceptionFD, writeFD;
 	sts->threadRunning=true;
 
 	sockaddr_in sockAddr;
 	int sockAddrSize = sizeof(sockAddr);
 
-	unsigned i;
 	int len;
 	SOCKET newSock;
 	timeval tv;
 	int selectResult;
 	tv.tv_sec=0;
-	tv.tv_usec=25000;
+	tv.tv_usec=50000;
 
 	while (sts->isStarted)
 	{
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
-		systemAddress = sts->startSSL.ReadLock();
-		if (systemAddress)
+		SystemAddress *sslSystemAddress;
+		sslSystemAddress = sts->startSSL.PopInaccurate();
+		if (sslSystemAddress)
 		{
-			for (i=0; i < sts->remoteClients.Size(); i++)
+			if (sslSystemAddress->systemIndex>=0 &&
+				sslSystemAddress->systemIndex<sts->remoteClientsLength &&
+				sts->remoteClients[sslSystemAddress->systemIndex].systemAddress==*sslSystemAddress)
 			{
-				if (sts->remoteClients[i]->systemAddress==*systemAddress)
-				{
-					if (sts->remoteClients[i]->ssl==0)
-						sts->remoteClients[i]->InitSSL(sts->ctx,sts->meth);
-				}
-			}
-			sts->startSSL.ReadUnlock();
-		}
-#endif
-
-		outgoingMessage=sts->outgoingMessages.ReadLock();
-		while (outgoingMessage)
-		{
-			if (outgoingMessage->broadcast)
-			{
-				// Send to all, possible exception system
-				for (i=0; i < sts->remoteClients.Size(); i++)
-				{
-					if (sts->remoteClients[i]->systemAddress!=outgoingMessage->systemAddress)
-		//				sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
-						sts->remoteClients[i]->outgoingData.WriteBytes((const char*)outgoingMessage->data, outgoingMessage->length);
-				}
+				sts->remoteClients[sslSystemAddress->systemIndex].InitSSL(sts->ctx,sts->meth);
 			}
 			else
 			{
-				// Send to this player
-				for (i=0; i < sts->remoteClients.Size(); i++)
-					if (sts->remoteClients[i]->systemAddress==outgoingMessage->systemAddress )
-					//	sts->remoteClients[i]->Send((const char*)outgoingMessage->data, outgoingMessage->length);
-						sts->remoteClients[i]->outgoingData.WriteBytes((const char*)outgoingMessage->data, outgoingMessage->length);
-			}
-
-			rakFree_Ex(outgoingMessage->data, __FILE__, __LINE__ );
-			sts->outgoingMessages.ReadUnlock();
-			outgoingMessage=sts->outgoingMessages.ReadLock();
-		}
-
-
-		if (sts->remoteClientsInsertionQueue.IsEmpty()==false)
-		{
-			sts->remoteClientsInsertionQueueMutex.Lock();
-			if (sts->remoteClientsInsertionQueue.IsEmpty()==false)
-				sts->remoteClients.Insert(sts->remoteClientsInsertionQueue.Pop(), __FILE__, __LINE__);
-			sts->remoteClientsInsertionQueueMutex.Unlock();
-		}
-
-		systemAddress=sts->requestedCloseConnections.ReadLock();
-		if (systemAddress)
-		{
-			for (i=0; i < sts->remoteClients.Size(); i++)
-			{
-				if (sts->remoteClients[i]->systemAddress==*systemAddress )
+				for (int i=0; i < sts->remoteClientsLength; i++)
 				{
-					systemAddress=sts->lostConnections.WriteLock();
-					*systemAddress=sts->remoteClients[i]->systemAddress;
-					sts->lostConnections.WriteUnlock();
-
-					sts->DeleteRemoteClient(sts->remoteClients[i], &exceptionFD);
-					sts->remoteClients.RemoveAtIndex(i);
-
-
-					/*
-					systemAddress=sts->lostConnections.WriteLock();
-					*systemAddress=sts->remoteClients[i]->systemAddress;
-					sts->lostConnections.WriteUnlock();
-					sts->remoteClients.Del(i);
-					*/
-					break;
+					sts->remoteClients[i].isActiveMutex.Lock();
+					if (sts->remoteClients[i].isActive && sts->remoteClients[i].systemAddress==*sslSystemAddress)
+					{
+						if (sts->remoteClients[i].ssl==0)
+							sts->remoteClients[i].InitSSL(sts->ctx,sts->meth);
+					}
+					sts->remoteClients[i].isActiveMutex.Unlock();
 				}
 			}
-
-			sts->requestedCloseConnections.ReadUnlock();
+			sts->startSSL.Deallocate(sslSystemAddress,__FILE__,__LINE__);
 		}
+#endif
+
 
 		SOCKET largestDescriptor=0; // see select()'s first parameter's documentation under linux
-
-		// Reset readFD, writeFD, and exceptionFD since select seems to clear it
-		FD_ZERO(&readFD);
-		FD_ZERO(&exceptionFD);
-		FD_ZERO(&writeFD);
-#ifdef _MSC_VER
-#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
-#endif
-		if (sts->listenSocket!=(SOCKET) -1)
-		{
-			FD_SET(sts->listenSocket, &readFD);
-			FD_SET(sts->listenSocket, &exceptionFD);
-			largestDescriptor = sts->listenSocket; // @see largestDescriptor def
-		}
-		
-		for (i=0; i < sts->remoteClients.Size(); i++)
-		{
-			FD_SET(sts->remoteClients[i]->socket, &readFD);
-			FD_SET(sts->remoteClients[i]->socket, &exceptionFD);
-			if (sts->remoteClients[i]->outgoingData.GetBytesWritten()>0)
-				FD_SET(sts->remoteClients[i]->socket, &writeFD);
-			if(sts->remoteClients[i]->socket > largestDescriptor) // @see largestDescriptorDef
-				largestDescriptor = sts->remoteClients[i]->socket;
-		}
 
 
 		// Linux' select() implementation changes the timeout
 		tv.tv_sec=0;
-		tv.tv_usec=25000;
+		tv.tv_usec=500000;
+
+		while (1)
+		{
+			// Reset readFD, writeFD, and exceptionFD since select seems to clear it
+			FD_ZERO(&readFD);
+			FD_ZERO(&exceptionFD);
+			FD_ZERO(&writeFD);
+#ifdef _MSC_VER
+#pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
+#endif
+			largestDescriptor=0;
+			if (sts->listenSocket!=(SOCKET) -1)
+			{
+				FD_SET(sts->listenSocket, &readFD);
+				FD_SET(sts->listenSocket, &exceptionFD);
+				largestDescriptor = sts->listenSocket; // @see largestDescriptor def
+			}
+
+			unsigned i;
+			for (i=0; i < (unsigned int) sts->remoteClientsLength; i++)
+			{
+				sts->remoteClients[i].isActiveMutex.Lock();
+				if (sts->remoteClients[i].isActive && sts->remoteClients[i].socket!=INVALID_SOCKET)
+				{
+					FD_SET(sts->remoteClients[i].socket, &readFD);
+					FD_SET(sts->remoteClients[i].socket, &exceptionFD);
+					if (sts->remoteClients[i].outgoingData.GetBytesWritten()>0)
+						FD_SET(sts->remoteClients[i].socket, &writeFD);
+					if(sts->remoteClients[i].socket > largestDescriptor) // @see largestDescriptorDef
+						largestDescriptor = sts->remoteClients[i].socket;
+				}
+				sts->remoteClients[i].isActiveMutex.Unlock();
+			}
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4244 ) // warning C4127: conditional expression is constant
 #endif
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		selectResult=socketselect(largestDescriptor+1, &readFD, &writeFD, &exceptionFD, &tv);
+                                                                                        
 #else
-		selectResult=(int) select(largestDescriptor+1, &readFD, &writeFD, &exceptionFD, &tv);		
+			selectResult=(int) select(largestDescriptor+1, &readFD, &writeFD, &exceptionFD, &tv);		
 #endif
-		if (selectResult > 0)
-		{
+
+			if (selectResult<=0)
+				break;
+
 			if (sts->listenSocket!=(SOCKET) -1 && FD_ISSET(sts->listenSocket, &readFD))
 			{
 				newSock = accept(sts->listenSocket, (sockaddr*)&sockAddr, (socklen_t*)&sockAddrSize);
 
 				if (newSock != (SOCKET) -1)
 				{
-					remoteClient = sts->AllocRemoteClient( __FILE__, __LINE__ );
-					remoteClient->socket=newSock;
-					remoteClient->systemAddress.binaryAddress=sockAddr.sin_addr.s_addr;
-					remoteClient->systemAddress.port=ntohs( sockAddr.sin_port);
-					sts->remoteClients.Insert(remoteClient, __FILE__, __LINE__);
-					systemAddress=sts->newIncomingConnections.WriteLock();
-					*systemAddress=remoteClient->systemAddress;
-					sts->newIncomingConnections.WriteUnlock();
+					int newRemoteClientIndex=-1;
+					for (newRemoteClientIndex=0; newRemoteClientIndex < sts->remoteClientsLength; newRemoteClientIndex++)
+					{
+						sts->remoteClients[newRemoteClientIndex].isActiveMutex.Lock();
+						if (sts->remoteClients[newRemoteClientIndex].isActive==false)
+						{
+							sts->remoteClients[newRemoteClientIndex].socket=newSock;
+							sts->remoteClients[newRemoteClientIndex].systemAddress.binaryAddress=sockAddr.sin_addr.s_addr;
+							sts->remoteClients[newRemoteClientIndex].systemAddress.port=ntohs( sockAddr.sin_port);
+							sts->remoteClients[newRemoteClientIndex].systemAddress.systemIndex=newRemoteClientIndex;
 
-//					FD_SET(newSock, &readFD);
-//					FD_SET(newSock, &exceptionFD);
+							sts->remoteClients[newRemoteClientIndex].SetActive(true);
+							sts->remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+
+
+							SystemAddress *newConnectionSystemAddress=sts->newIncomingConnections.Allocate( __FILE__, __LINE__ );
+							*newConnectionSystemAddress=sts->remoteClients[newRemoteClientIndex].systemAddress;
+							sts->newIncomingConnections.Push(newConnectionSystemAddress);
+
+							break;
+						}
+						sts->remoteClients[newRemoteClientIndex].isActiveMutex.Unlock();
+					}
+					if (newRemoteClientIndex==-1)
+					{
+						closesocket(sts->listenSocket);
+					}
 				}
 				else
 				{
@@ -746,9 +777,15 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 			
 			{
 				i=0;
-				while (i < sts->remoteClients.Size())
+				while (i < (unsigned int) sts->remoteClientsLength)
 				{
-					if (FD_ISSET(sts->remoteClients[i]->socket, &exceptionFD))
+					if (sts->remoteClients[i].isActive==false)
+					{
+						i++;
+						continue;
+					}
+
+					if (FD_ISSET(sts->remoteClients[i].socket, &exceptionFD))
 					{
 #ifdef _DO_PRINTF
 						if (sts->listenSocket!=-1)
@@ -757,71 +794,75 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 							int errlen = sizeof(err);
 							getsockopt(sts->listenSocket, SOL_SOCKET, SO_ERROR,(char*)&err, &errlen);
 							in_addr in;
-							in.s_addr = sts->remoteClients[i]->systemAddress.binaryAddress;
-							RAKNET_DEBUG_PRINTF("Socket error %i on %s:%i\n", err,inet_ntoa( in ), sts->remoteClients[i]->systemAddress.port );
+							in.s_addr = sts->remoteClients[i].systemAddress.binaryAddress;
+							RAKNET_DEBUG_PRINTF("Socket error %i on %s:%i\n", err,inet_ntoa( in ), sts->remoteClients[i].systemAddress.port );
 						}
 						
 #endif
 						// Connection lost abruptly
-						systemAddress=sts->lostConnections.WriteLock();
-						*systemAddress=sts->remoteClients[i]->systemAddress;
-						sts->lostConnections.WriteUnlock();
-						sts->DeleteRemoteClient(sts->remoteClients[i], &exceptionFD);
-						sts->remoteClients.RemoveAtIndex(i);
+						SystemAddress *lostConnectionSystemAddress=sts->lostConnections.Allocate( __FILE__, __LINE__ );
+						*lostConnectionSystemAddress=sts->remoteClients[i].systemAddress;
+						sts->lostConnections.Push(lostConnectionSystemAddress);
+						sts->remoteClients[i].SetActive(false);
 					}
 					else
 					{
-						if (FD_ISSET(sts->remoteClients[i]->socket, &readFD))
+						if (FD_ISSET(sts->remoteClients[i].socket, &readFD))
 						{
 							// if recv returns 0 this was a graceful close
-							len = sts->remoteClients[i]->Recv(data,BUFF_SIZE);
+							len = sts->remoteClients[i].Recv(data,BUFF_SIZE);
 							if (len>0)
 							{
-								incomingMessage=sts->incomingMessages.WriteLock();
+								incomingMessage=sts->incomingMessages.Allocate( __FILE__, __LINE__ );
 								incomingMessage->data = (unsigned char*) rakMalloc_Ex( len+1, __FILE__, __LINE__ );
 								memcpy(incomingMessage->data, data, len);
 								incomingMessage->data[len]=0; // Null terminate this so we can print it out as regular strings.  This is different from RakNet which does not do this.
 //								printf("RECV: %s\n",incomingMessage->data);
 								incomingMessage->length=len;
 								incomingMessage->deleteData=true; // actually means came from SPSC, rather than AllocatePacket
-								incomingMessage->systemAddress=sts->remoteClients[i]->systemAddress;
-								sts->incomingMessages.WriteUnlock();
-
+								incomingMessage->systemAddress=sts->remoteClients[i].systemAddress;
+								sts->incomingMessages.Push(incomingMessage);
 							}
 							else
 							{
 								// Connection lost gracefully
-								systemAddress=sts->lostConnections.WriteLock();
-								*systemAddress=sts->remoteClients[i]->systemAddress;
-								sts->lostConnections.WriteUnlock();
-								sts->DeleteRemoteClient(sts->remoteClients[i], &exceptionFD);
-								sts->remoteClients.RemoveAtIndex(i);
+								SystemAddress *lostConnectionSystemAddress=sts->lostConnections.Allocate( __FILE__, __LINE__ );
+								*lostConnectionSystemAddress=sts->remoteClients[i].systemAddress;
+								sts->lostConnections.Push(lostConnectionSystemAddress);
+								sts->remoteClients[i].SetActive(false);
 								continue;
 							}
 						}
-						if (FD_ISSET(sts->remoteClients[i]->socket, &writeFD))
+						if (FD_ISSET(sts->remoteClients[i].socket, &writeFD))
 						{
-							RemoteClient *rc = sts->remoteClients[i];
-							int bytesInBuffer;
+							RemoteClient *rc = &sts->remoteClients[i];
+							unsigned int bytesInBuffer;
 							int bytesAvailable;
 							int bytesSent;
+							rc->outgoingDataMutex.Lock();
 							bytesInBuffer=rc->outgoingData.GetBytesWritten();
 							if (bytesInBuffer>0)
 							{
-								if (bytesInBuffer > BUFF_SIZE)
-									bytesAvailable=BUFF_SIZE;
+								unsigned int contiguousLength;
+								char* contiguousBytesPointer = rc->outgoingData.PeekContiguousBytes(&contiguousLength);
+								if (contiguousLength < BUFF_SIZE && contiguousLength<bytesInBuffer)
+								{
+									if (bytesInBuffer > BUFF_SIZE)
+										bytesAvailable=BUFF_SIZE;
+									else
+										bytesAvailable=bytesInBuffer;
+									rc->outgoingData.ReadBytes(data,bytesAvailable,true);
+									bytesSent=rc->Send(data,bytesAvailable);
+								}
 								else
-									bytesAvailable=bytesInBuffer;
-								rc->outgoingData.ReadBytes(data,bytesAvailable,true);
-								bytesSent=rc->Send(data,bytesAvailable);
-//								char *dataCopy = (char*) malloc(bytesAvailable+1);
-//								memcpy(dataCopy,data,bytesAvailable);
-//								dataCopy[bytesAvailable]=0;
-//								printf("SEND: %s\n",dataCopy);
-//								free(dataCopy);
+								{
+									bytesSent=rc->Send(contiguousBytesPointer,contiguousLength);
+								}
+
 								rc->outgoingData.IncrementReadOffset(bytesSent);
 								bytesInBuffer=rc->outgoingData.GetBytesWritten();
 							}
+							rc->outgoingDataMutex.Unlock();
 						}
 							
 						i++; // Nothing deleted so increment the index
@@ -829,6 +870,8 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 				}
 			}
 		}
+
+		// Sleep 0 on Linux monopolizes the CPU
 		RakSleep(30);
 	}
 	sts->threadRunning=false;
@@ -837,7 +880,48 @@ RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop)
 
 	return 0;
 }
+void RemoteClient::SetActive(bool a)
+{
+	isActive=a;
+	Reset();
+	if (isActive==false && socket!=INVALID_SOCKET)
+	{
+		closesocket(socket);
+		socket=INVALID_SOCKET;
+	}
+}
+void RemoteClient::SendOrBuffer(const char **data, const unsigned int *lengths, const int numParameters)
+{
+	// True can save memory and buffer copies, but gives worse performance overall
+	// Do not use true for the XBOX, as it just locks up
+	const bool ALLOW_SEND_FROM_USER_THREAD=false;
 
+	int parameterIndex;
+	if (isActive==false)
+		return;
+	parameterIndex=0;
+	for (; parameterIndex < numParameters; parameterIndex++)
+	{
+		outgoingDataMutex.Lock();
+		if (ALLOW_SEND_FROM_USER_THREAD && outgoingData.GetBytesWritten()==0)
+		{
+			outgoingDataMutex.Unlock();
+			int bytesSent = Send(data[parameterIndex],lengths[parameterIndex]);
+			if (bytesSent<(int) lengths[parameterIndex])
+			{
+				// Push remainder
+				outgoingDataMutex.Lock();
+				outgoingData.WriteBytes(data[parameterIndex]+bytesSent,lengths[parameterIndex]-bytesSent,__FILE__,__LINE__);
+				outgoingDataMutex.Unlock();
+			}
+		}
+		else
+		{
+			outgoingData.WriteBytes(data[parameterIndex],lengths[parameterIndex],__FILE__,__LINE__);
+			outgoingDataMutex.Unlock();
+		}
+	}
+}
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 void RemoteClient::InitSSL(SSL_CTX* ctx, SSL_METHOD *meth)
 {
@@ -873,9 +957,7 @@ int RemoteClient::Send(const char *data, unsigned int length)
 int RemoteClient::Recv(char *data, const int dataSize)
 {
 	if (ssl)
-	{
 		return SSL_read (ssl, data, dataSize);
-	}
 	else
 		return recv(socket, data, dataSize, 0);
 }

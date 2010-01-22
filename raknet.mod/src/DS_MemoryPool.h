@@ -19,7 +19,7 @@
 // DS_MEMORY_POOL_MAX_FREE_PAGES must be > 1
 #define DS_MEMORY_POOL_MAX_FREE_PAGES 4
 
-// #define _DISABLE_MEMORY_POOL
+//#define _DISABLE_MEMORY_POOL
 
 namespace DataStructures
 {
@@ -46,10 +46,10 @@ namespace DataStructures
 
 		MemoryPool();
 		~MemoryPool();
-		void SetPageSize(int size); // Defaults to 16384
-		MemoryBlockType *Allocate(void);
-		void Release(MemoryBlockType *m);
-		void Clear(void);
+		void SetPageSize(int size); // Defaults to 16384 bytes
+		MemoryBlockType *Allocate(const char *file, unsigned int line);
+		void Release(MemoryBlockType *m, const char *file, unsigned int line);
+		void Clear(const char *file, unsigned int line);
 
 		int GetAvailablePagesSize(void) const {return availablePagesSize;}
 		int GetUnavailablePagesSize(void) const {return unavailablePagesSize;}
@@ -57,7 +57,7 @@ namespace DataStructures
 	protected:
 		int BlocksPerPage(void) const;
 		void AllocateFirst(void);
-		bool InitPage(Page *page, Page *prev);
+		bool InitPage(Page *page, Page *prev, const char *file, unsigned int line);
 
 		// availablePages contains pages which have room to give the user new blocks.  We return these blocks from the head of the list
 		// unavailablePages are pages which are totally full, and from which we do not return new blocks.
@@ -81,7 +81,7 @@ namespace DataStructures
 	MemoryPool<MemoryBlockType>::~MemoryPool()
 	{
 #ifndef _DISABLE_MEMORY_POOL
-		Clear();
+		Clear(__FILE__, __LINE__);
 #endif
 	}
 
@@ -92,11 +92,11 @@ namespace DataStructures
 	}
 
 	template<class MemoryBlockType>
-	MemoryBlockType* MemoryPool<MemoryBlockType>::Allocate(void)
+	MemoryBlockType* MemoryPool<MemoryBlockType>::Allocate(const char *file, unsigned int line)
 	{
 #ifdef _DISABLE_MEMORY_POOL
-		return new MemoryBlockType;
-#endif
+		return (MemoryBlockType*) rakMalloc_Ex(sizeof(MemoryBlockType), file, line);
+#else
 
 		if (availablePagesSize>0)
 		{
@@ -131,23 +131,25 @@ namespace DataStructures
 			return retVal;
 		}
 
-		availablePages = (Page *) rakMalloc_Ex(sizeof(Page), __FILE__, __LINE__);
+		availablePages = (Page *) rakMalloc_Ex(sizeof(Page), file, line);
 		if (availablePages==0)
 			return 0;
 		availablePagesSize=1;
-		if (InitPage(availablePages, availablePages)==false)
+		if (InitPage(availablePages, availablePages, file, line)==false)
 			return 0;
+		// If this assert hits, we couldn't allocate even 1 block per page. Increase the page size
 		RakAssert(availablePages->availableStackSize>1);
+
 		return (MemoryBlockType *) availablePages->availableStack[--availablePages->availableStackSize];
+#endif
 	}
 	template<class MemoryBlockType>
-	void MemoryPool<MemoryBlockType>::Release(MemoryBlockType *m)
+	void MemoryPool<MemoryBlockType>::Release(MemoryBlockType *m, const char *file, unsigned int line)
 	{
 #ifdef _DISABLE_MEMORY_POOL
-		RakNet::OP_DELETE(m, __FILE__, __LINE__);
+		rakFree_Ex(m, file, line);
 		return;
-#endif
-
+#else
 		// Find the page this block is in and return it.
 		Page *curPage;
 		MemoryWithPage *memoryWithPage = (MemoryWithPage*)m;
@@ -196,18 +198,19 @@ namespace DataStructures
 				curPage->prev->next=curPage->next;
 				curPage->next->prev=curPage->prev;
 				availablePagesSize--;
-				rakFree_Ex(curPage->availableStack, __FILE__, __LINE__ );
-				rakFree_Ex(curPage->block, __FILE__, __LINE__ );
-				rakFree_Ex(curPage, __FILE__, __LINE__ );
+				rakFree_Ex(curPage->availableStack, file, line );
+				rakFree_Ex(curPage->block, file, line );
+				rakFree_Ex(curPage, file, line );
 			}
 		}
+#endif
 	}
 	template<class MemoryBlockType>
-	void MemoryPool<MemoryBlockType>::Clear(void)
+	void MemoryPool<MemoryBlockType>::Clear(const char *file, unsigned int line)
 	{
 #ifdef _DISABLE_MEMORY_POOL
 		return;
-#endif
+#else
 		Page *cur, *freed;
 
 		if (availablePagesSize>0)
@@ -219,16 +222,16 @@ namespace DataStructures
 			while (true) 
 			// do
 			{
-				rakFree_Ex(cur->availableStack, __FILE__, __LINE__ );
-				rakFree_Ex(cur->block, __FILE__, __LINE__ );
+				rakFree_Ex(cur->availableStack, file, line );
+				rakFree_Ex(cur->block, file, line );
 				freed=cur;
 				cur=cur->next;
 				if (cur==availablePages)
 				{
-					rakFree_Ex(freed, __FILE__, __LINE__ );
+					rakFree_Ex(freed, file, line );
 					break;
 				}
-				rakFree_Ex(freed, __FILE__, __LINE__ );
+				rakFree_Ex(freed, file, line );
 			}// while(cur!=availablePages);
 		}
 		
@@ -238,21 +241,22 @@ namespace DataStructures
 			while (1)
 			//do 
 			{
-				rakFree_Ex(cur->availableStack, __FILE__, __LINE__ );
-				rakFree_Ex(cur->block, __FILE__, __LINE__ );
+				rakFree_Ex(cur->availableStack, file, line );
+				rakFree_Ex(cur->block, file, line );
 				freed=cur;
 				cur=cur->next;
 				if (cur==unavailablePages)
 				{
-					rakFree_Ex(freed, __FILE__, __LINE__ );
+					rakFree_Ex(freed, file, line );
 					break;
 				}
-				rakFree_Ex(freed, __FILE__, __LINE__ );
+				rakFree_Ex(freed, file, line );
 			} // while(cur!=unavailablePages);
 		}
 
 		availablePagesSize=0;
 		unavailablePagesSize=0;
+#endif
 	}
 	template<class MemoryBlockType>
 	int MemoryPool<MemoryBlockType>::BlocksPerPage(void) const
@@ -260,17 +264,17 @@ namespace DataStructures
 		return memoryPoolPageSize / sizeof(MemoryWithPage);
 	}
 	template<class MemoryBlockType>
-	bool MemoryPool<MemoryBlockType>::InitPage(Page *page, Page *prev)
+	bool MemoryPool<MemoryBlockType>::InitPage(Page *page, Page *prev, const char *file, unsigned int line)
 	{
 		int i=0;
 		const int bpp = BlocksPerPage();
-		page->block=(MemoryWithPage*) rakMalloc_Ex(memoryPoolPageSize, __FILE__, __LINE__);
+		page->block=(MemoryWithPage*) rakMalloc_Ex(memoryPoolPageSize, file, line);
 		if (page->block==0)
 			return false;
-		page->availableStack=(MemoryWithPage**)rakMalloc_Ex(sizeof(MemoryWithPage*)*bpp, __FILE__, __LINE__);
+		page->availableStack=(MemoryWithPage**)rakMalloc_Ex(sizeof(MemoryWithPage*)*bpp, file, line);
 		if (page->availableStack==0)
 		{
-			rakFree_Ex(page->block, __FILE__, __LINE__ );
+			rakFree_Ex(page->block, file, line );
 			return false;
 		}
 		MemoryWithPage *curBlock = page->block;

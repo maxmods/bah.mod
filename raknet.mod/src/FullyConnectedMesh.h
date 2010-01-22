@@ -14,7 +14,7 @@ class RakPeerInterface;
 #include "RakMemoryOverride.h"
 
 /// \defgroup FULLY_CONNECTED_MESH_GROUP FullyConnectedMesh
-/// \brief Depreciated. Connect RakNet to other systems automatically.
+/// \brief Deprecated. Connect RakNet to other systems automatically.
 /// \details 
 /// \ingroup PLUGINS_GROUP
 

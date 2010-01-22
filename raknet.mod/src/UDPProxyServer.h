@@ -78,6 +78,9 @@ public:
 	/// UDPForwarder::Startup(), UDPForwarder::Shutdown(), and UDPForwarder::Update() are called automatically by the plugin
 	UDPForwarder udpForwarder;
 
+	virtual void OnAttach(void);
+	virtual void OnDetach(void);
+
 	/// \internal
 	virtual void Update(void);
 	virtual PluginReceiveResult OnReceive(Packet *packet);

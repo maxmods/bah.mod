@@ -357,10 +357,10 @@ Table::Row* Table::AddRow(unsigned rowId, DataStructures::List<Cell> &initialCel
 			Table::Cell *c;
 			c = RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__);
 			c->SetByType(initialCellValues[rowIndex].i,initialCellValues[rowIndex].c,initialCellValues[rowIndex].ptr,columns[rowIndex].columnType);
-			newRow->cells.Insert(c);
+			newRow->cells.Insert(c, __FILE__, __LINE__ );
 		}
 		else
-			newRow->cells.Insert(RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__));
+			newRow->cells.Insert(RakNet::OP_NEW<Table::Cell>(__FILE__, __LINE__), __FILE__, __LINE__ );
 	}
 	rows.Insert(rowId, newRow);
 	return newRow;
@@ -912,7 +912,7 @@ void Table::SortTable(Table::SortQuery *sortQueries, unsigned numSortQueries, Ta
 		for (i=0; i < (unsigned)cur->size; i++)
 		{
 			RakAssert(cur->data[i]);
-			orderedList.Insert(cur->data[i],cur->data[i], true);
+			orderedList.Insert(cur->data[i],cur->data[i], true, __FILE__,__LINE__);
 		}
 		cur=cur->next;
 	}
@@ -1040,7 +1040,7 @@ void Table::Clear(void)
 {
 	rows.ForEachData(FreeRow);
 	rows.Clear();
-	columns.Clear(true);
+	columns.Clear(true, __FILE__, __LINE__);
 }
 const List<Table::ColumnDescriptor>& Table::GetColumns(void) const
 {

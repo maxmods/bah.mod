@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ Module BaH.Raknet
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: Raknet - The Creative Commons Attribution - NonCommercial 2.5, or see http://www.rakkarsoft.com/SingleApplicationLicense.html"
-ModuleInfo "Copyright: 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2007-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Version(Raknet 3.611)"
+ModuleInfo "History: Initial Version(Raknet 3.717)"
 
 
 Import "common.bmx"
@@ -114,6 +114,38 @@ Type TRKRakNet
 		Local v:Long
 		bmx_raknet_gettimens(Varptr v)
 		Return v
+	End Function
+	
+	Rem
+	bbdoc: Returns the current version number multiplied by 1000.
+	about: So, version 3.717 would be returned as 3717.
+	End Rem
+	Function GetVersion:Int()
+		Return bmx_raknet_getversion()
+	End Function
+	
+	Rem
+	bbdoc: Returns the current version number as a String.
+	about: Unlike #GetVersion, this returns the actual value.
+	End Rem
+	Function GetVersionString:String()
+		Return bmx_raknet_getversionstring()
+	End Function
+	
+	Rem
+	bbdoc: Returns the compatible protocol version RakNet is using.
+	about: When this value changes, it indicates this version of RakNet cannot connection to an older version. 
+	ID_INCOMPATIBLE_PROTOCOL_VERSION will be returned on connection attempt in this case
+	End Rem
+	Function GetProtocolVersion:Int()
+		Return bmx_raknet_getprotocolversion()
+	End Function
+	
+	Rem
+	bbdoc: Returns the version release date.
+	End Rem
+	Function GetDate:String()
+		Return bmx_raknet_getdate()
 	End Function
 	
 End Type
@@ -272,7 +304,6 @@ Type TRKRakPeerInterface
 	Method GetInternalID:TRKSystemAddress(systemAddress:TRKSystemAddress = Null) Abstract
 	Method GetExternalID:TRKSystemAddress(target:TRKSystemAddress) Abstract
 	Method SetTimeoutTime(timeMS:Long, target:TRKSystemAddress) Abstract
-	Method SetMTUSize:Int(size:Int) Abstract
 	Method GetMTUSize:Int(target:TRKSystemAddress) Abstract
 	Method GetNumberOfAddresses:Int() Abstract
 	Method GetLocalIP:String(index:Int) Abstract
@@ -1116,25 +1147,6 @@ Type TRKRakPeer Extends TRKRakPeerInterface
 	End Rem
 	Method SetTimeoutTime(timeMS:Long, target:TRKSystemAddress)
 		bmx_RakPeer_SetTimeoutTime(rakPeerPtr, timeMS, target.systemAddressPtr)
-	End Method
-	
-	Rem
-	bbdoc: Set the MTU per datagram.
-	returns: False on failure (we are connected), else True.
-	about: It's important to set this correctly - otherwise packets will be needlessly split, decreasing performance
-	and throughput. Maximum allowed size is MAXIMUM_MTU_SIZE. Too high of a value will cause packets not to arrive at
-	worst and be fragmented at best. Too low of a value will split packets unnecessarily. Recommended size is 1500.
-	<p>
-	Can only be called when not connected.
-	</p>
-	<p>Parameters: 
-	<ul>
-	<li><b>size</b> : The MTU size</li>
-	</ul>
-	</p>
-	End Rem
-	Method SetMTUSize:Int(size:Int)
-		Return bmx_RakPeer_SetMTUSize(rakPeerPtr, size)
 	End Method
 	
 	Rem
@@ -2048,8 +2060,12 @@ Type TRKBitStream
 	Rem
 	bbdoc: 
 	End Rem
-	Method ReadString:String(length:Int)
-		Return bmx_BitStream_ReadString(bitStreamPtr, length)
+	Method ReadString:String()
+		Return bmx_BitStream_ReadString(bitStreamPtr)
+	End Method
+
+	Method ReadCompressedString:String()
+		Return bmx_BitStream_ReadCompressedString(bitStreamPtr)
 	End Method
 
 	Rem
@@ -2312,6 +2328,10 @@ Type TRKBitStream
 	Method WriteBits(data:Byte Ptr, numberOfBitsToWrite:Int, rightAlignedBits:Int = True)
 		bmx_BitStream_WriteBits(bitStreamPtr, data, numberOfBitsToWrite, rightAlignedBits)
 	End Method
+	
+	Method WriteString(value:String)
+		bmx_BitStream_WriteString(bitStreamPtr, value)
+	End Method
 
 	Rem
 	bbdoc: 
@@ -2482,6 +2502,10 @@ Type TRKBitStream
 	End Rem
 	Method WriteCompressedDeltaLong(currentValue:Long Var, lastValue:Long)
 		bmx_BitStream_WriteCompressedDeltaLong(bitStreamPtr, Varptr currentValue, lastValue)
+	End Method
+	
+	Method WriteCompressedString(value:String)
+		bmx_BitStream_WriteCompressedString(bitStreamPtr, value)
 	End Method
 
 	Rem
@@ -3290,12 +3314,6 @@ Type TRKRakNetStatistics
 		Return v
 	End Method
 	Rem
-	bbdoc: Number of packets sent containing only acknowledgments
-	end rem
-	Method packetsContainingOnlyAcknowlegements:Int()
-		Return bmx_RakNetStatistics_packetsContainingOnlyAcknowlegements(statsPtr)
-	End Method
-	Rem
 	bbdoc: Number of acknowledgments sent
 	end rem
 	Method acknowlegementsSent:Int()
@@ -3314,12 +3332,6 @@ Type TRKRakNetStatistics
 		Local v:Long
 		bmx_RakNetStatistics_acknowlegementBitsSent(statsPtr, Varptr v)
 		Return v
-	End Method
-	Rem
-	bbdoc: Number of packets containing only acknowledgments and resends
-	end rem
-	Method packetsContainingOnlyAcknowlegementsAndResends:Int()
-		Return bmx_RakNetStatistics_packetsContainingOnlyAcknowlegementsAndResends(statsPtr)
 	End Method
 	Rem
 	bbdoc: Number of messages resent
@@ -3510,7 +3522,33 @@ Type TRKRakNetStatistics
 	Method bandwidthExceeded:Int()
 		Return bmx_RakNetStatistics_bandwidthExceeded(statsPtr)
 	End Method
-	
+	Rem
+	bbdoc: New flow control - during slow start, only capped by CWNDLimit. 
+	End Rem
+	Method isInSlowStart:Int()
+		Return bmx_RakNetStatistics_isInSlowStart(statsPtr)
+	End Method
+	Rem
+	bbdoc: Max unacknowledgedBytes 
+	End Rem
+	Method CWNDLimit:Int()
+		Return bmx_RakNetStatistics_CWNDLimit(statsPtr)
+	End Method
+	Rem
+	bbdoc: Current unacknowledgedBytes
+	End Rem
+	Method unacknowledgedBytes:Int()
+		Return bmx_RakNetStatistics_unacknowledgedBytes(statsPtr)
+	End Method
+	Rem
+	bbdoc: How long until next data send is allowed, used after slow start.
+	End Rem
+	Method timeToNextAllowedSend:Long()
+		Local v:Long
+		bmx_RakNetStatistics_timeToNextAllowedSend(statsPtr, Varptr v)
+		Return v
+	End Method
+
 End Type
 
 Rem

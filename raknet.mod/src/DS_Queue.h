@@ -28,20 +28,22 @@ namespace DataStructures
 		~Queue();
 		Queue( Queue& original_copy );
 		bool operator= ( const Queue& original_copy );
-		void Push( const queue_type& input );
-		void PushAtHead( const queue_type& input, unsigned index=0 );
+		void Push( const queue_type& input, const char *file, unsigned int line );
+		void PushAtHead( const queue_type& input, unsigned index, const char *file, unsigned int line );
 		queue_type& operator[] ( unsigned int position ) const; // Not a normal thing you do with a queue but can be used for efficiency
 		void RemoveAtIndex( unsigned int position ); // Not a normal thing you do with a queue but can be used for efficiency
 		inline queue_type Peek( void ) const;
 		inline queue_type PeekTail( void ) const;
 		inline queue_type Pop( void );
+		// Debug: Set pointer to 0, for memory leak detection
+		inline queue_type PopDeref( void );
 		inline unsigned int Size( void ) const;
 		inline bool IsEmpty(void) const;
 		inline unsigned int AllocationSize( void ) const;
-		inline void Clear( void );
-		void Compress( void );
+		inline void Clear( const char *file, unsigned int line );
+		void Compress( const char *file, unsigned int line );
 		bool Find ( queue_type q );
-		void ClearAndForceAllocation( int size ); // Force a memory allocation to a certain larger size
+		void ClearAndForceAllocation( int size, const char *file, unsigned int line ); // Force a memory allocation to a certain larger size
 
 	private:
 		queue_type* array;
@@ -108,12 +110,31 @@ namespace DataStructures
 	}
 
 	template <class queue_type>
-		void Queue<queue_type>::PushAtHead( const queue_type& input, unsigned index )
+		inline queue_type Queue<queue_type>::PopDeref( void )
+		{
+			if ( ++head == allocation_size )
+				head = 0;
+
+			queue_type q;
+			if ( head == 0 )
+			{
+				q=array[ allocation_size -1 ];
+				array[ allocation_size -1 ]=0;
+				return q;
+			}
+
+			q=array[ head -1 ];
+			array[ head -1 ]=0;
+			return q;
+		}
+
+	template <class queue_type>
+	void Queue<queue_type>::PushAtHead( const queue_type& input, unsigned index, const char *file, unsigned int line )
 	{
 		RakAssert(index <= Size());
 
 		// Just force a reallocation, will be overwritten
-		Push(input);
+		Push(input, file, line );
 
 		if (Size()==1)
 			return;
@@ -175,11 +196,11 @@ namespace DataStructures
 		}
 
 	template <class queue_type>
-		void Queue<queue_type>::Push( const queue_type& input )
+		void Queue<queue_type>::Push( const queue_type& input, const char *file, unsigned int line )
 	{
 		if ( allocation_size == 0 )
 		{
-			array = RakNet::OP_NEW_ARRAY<queue_type>(16, __FILE__, __LINE__ );
+			array = RakNet::OP_NEW_ARRAY<queue_type>(16, file, line );
 			head = 0;
 			tail = 1;
 			array[ 0 ] = input;
@@ -198,7 +219,7 @@ namespace DataStructures
 
 			// Need to allocate more memory.
 			queue_type * new_array;
-			new_array = RakNet::OP_NEW_ARRAY<queue_type>(allocation_size * 2, __FILE__, __LINE__ );
+			new_array = RakNet::OP_NEW_ARRAY<queue_type>(allocation_size * 2, file, line );
 #ifdef _DEBUG
 			RakAssert( new_array );
 #endif
@@ -215,7 +236,7 @@ namespace DataStructures
 			allocation_size *= 2;
 
 			// Delete the old array and move the pointer to the new array
-			RakNet::OP_DELETE_ARRAY(array, __FILE__, __LINE__);
+			RakNet::OP_DELETE_ARRAY(array, file, line);
 
 			array = new_array;
 		}
@@ -253,7 +274,7 @@ namespace DataStructures
 		if ( ( &original_copy ) == this )
 			return false;
 
-		Clear();
+		Clear(__FILE__, __LINE__);
 
 		// Allocate memory for copy
 		if ( original_copy.Size() == 0 )
@@ -279,14 +300,14 @@ namespace DataStructures
 	}
 
 	template <class queue_type>
-		inline void Queue<queue_type>::Clear ( void )
+	inline void Queue<queue_type>::Clear ( const char *file, unsigned int line )
 	{
 		if ( allocation_size == 0 )
 			return ;
 
 		if (allocation_size > 32)
 		{
-			RakNet::OP_DELETE_ARRAY(array, __FILE__, __LINE__);
+			RakNet::OP_DELETE_ARRAY(array, file, line);
 			allocation_size = 0;
 		}
 
@@ -295,7 +316,7 @@ namespace DataStructures
 	}
 
 	template <class queue_type>
-		void Queue<queue_type>::Compress ( void )
+	void Queue<queue_type>::Compress ( const char *file, unsigned int line )
 	{
 		queue_type* new_array;
 		unsigned int newAllocationSize;
@@ -306,7 +327,7 @@ namespace DataStructures
 		while (newAllocationSize <= Size())
 			newAllocationSize<<=1; // Must be a better way to do this but I'm too dumb to figure it out quickly :)
 
-		new_array = RakNet::OP_NEW_ARRAY<queue_type >(newAllocationSize, __FILE__, __LINE__ );
+		new_array = RakNet::OP_NEW_ARRAY<queue_type >(newAllocationSize, file, line );
 
 		for (unsigned int counter=0; counter < Size(); ++counter)
 			new_array[counter] = array[(head + counter)%(allocation_size)];
@@ -316,7 +337,7 @@ namespace DataStructures
 		head=0;
 
 		// Delete the old array and move the pointer to the new array
-		RakNet::OP_DELETE_ARRAY(array, __FILE__, __LINE__);
+		RakNet::OP_DELETE_ARRAY(array, file, line);
 		array=new_array;
 	}
 
@@ -340,10 +361,10 @@ namespace DataStructures
 	}
 
 	template <class queue_type>
-		void Queue<queue_type>::ClearAndForceAllocation( int size )
+	void Queue<queue_type>::ClearAndForceAllocation( int size, const char *file, unsigned int line )
 	{
-		RakNet::OP_DELETE_ARRAY(array, __FILE__, __LINE__);
-		array = RakNet::OP_NEW_ARRAY<queue_type>(size, __FILE__, __LINE__ );
+		RakNet::OP_DELETE_ARRAY(array, file, line);
+		array = RakNet::OP_NEW_ARRAY<queue_type>(size, file, line );
 		allocation_size = size;
 		head = 0;
 		tail = 0;

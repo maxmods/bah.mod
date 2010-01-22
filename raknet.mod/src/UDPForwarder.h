@@ -75,9 +75,11 @@ public:
 	/// \param[in] forceHostAddress Force binding on a particular address. 0 to use any.
 	/// \param[out] srcToDestPort Port to go from source to destination
 	/// \param[out] destToSourcePort Port to go from destination to source
+	/// \param[out] srcToDestSocket Socket to go from source to destination
+	/// \param[out] destToSourceSocket Socket to go from destination to source
 	/// \return UDPForwarderResult
 	UDPForwarderResult StartForwarding(SystemAddress source, SystemAddress destination, RakNetTimeMS timeoutOnNoDataMS, const char *forceHostAddress,
-		unsigned short *srcToDestPort, unsigned short *destToSourcePort);
+		unsigned short *srcToDestPort, unsigned short *destToSourcePort, SOCKET *srcToDestSocket, SOCKET *destToSourceSocket);
 
 	/// No longer forward datagrams from source to destination
 	/// \param[in] source The source IP and port
@@ -117,6 +119,8 @@ public:
 		RakNet::RakString forceHostAddress;
 		unsigned short srcToDestPort;
 		unsigned short destToSourcePort;
+		SOCKET srcToDestSocket;
+		SOCKET destToSourceSocket;
 		UDPForwarderResult result;
 	};
 	SimpleMutex threadOperationIncomingMutex,threadOperationOutgoingMutex;
@@ -125,7 +129,7 @@ public:
 #endif
 	void UpdateThreaded(void);
 	UDPForwarderResult StartForwardingThreaded(SystemAddress source, SystemAddress destination, RakNetTimeMS timeoutOnNoDataMS, const char *forceHostAddress,
-		unsigned short *srcToDestPort, unsigned short *destToSourcePort);
+		unsigned short *srcToDestPort, unsigned short *destToSourcePort, SOCKET *srcToDestSocket, SOCKET *destToSourceSocket);
 	void StopForwardingThreaded(SystemAddress source, SystemAddress destination);
 
 	DataStructures::Multilist<ML_ORDERED_LIST, ForwardEntry*, SrcAndDest> forwardList;

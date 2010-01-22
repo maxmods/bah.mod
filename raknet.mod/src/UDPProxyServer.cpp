@@ -31,7 +31,7 @@ bool UDPProxyServer::LoginToCoordinator(RakNet::RakString password, SystemAddres
 	outgoingBs.Write((MessageID)ID_UDP_PROXY_LOGIN_REQUEST_FROM_SERVER_TO_COORDINATOR);
 	outgoingBs.Write(password);
 	rakPeerInterface->Send(&outgoingBs, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, coordinatorAddress, false);
-	loggingInCoordinators.InsertAtIndex(coordinatorAddress, insertionIndex);
+	loggingInCoordinators.InsertAtIndex(coordinatorAddress, insertionIndex, __FILE__, __LINE__ );
 	return true;
 }
 void UDPProxyServer::Update(void)
@@ -61,7 +61,7 @@ PluginReceiveResult UDPProxyServer::OnReceive(Packet *packet)
 				DataStructures::DefaultIndexType removalIndex = loggingInCoordinators.GetIndexOf(packet->systemAddress);
 				if (removalIndex!=(DataStructures::DefaultIndexType)-1)
 				{
-					loggingInCoordinators.RemoveAtKey(packet->systemAddress, false);
+					loggingInCoordinators.RemoveAtKey(packet->systemAddress, false, __FILE__, __LINE__ );
 
 					RakNet::BitStream incomingBs(packet->data, packet->length, false);
 					incomingBs.IgnoreBytes(2);
@@ -102,8 +102,8 @@ void UDPProxyServer::OnClosedConnection(SystemAddress systemAddress, RakNetGUID 
 	(void) lostConnectionReason;
 	(void) rakNetGUID;
 
-	loggingInCoordinators.RemoveAtKey(systemAddress,false);
-	loggedInCoordinators.RemoveAtKey(systemAddress,false);
+	loggingInCoordinators.RemoveAtKey(systemAddress,false, __FILE__, __LINE__ );
+	loggedInCoordinators.RemoveAtKey(systemAddress,false, __FILE__, __LINE__ );
 }
 void UDPProxyServer::OnStartup(void)
 {
@@ -114,6 +114,15 @@ void UDPProxyServer::OnShutdown(void)
 	udpForwarder.Shutdown();
 	loggingInCoordinators.Clear(true,__FILE__,__LINE__);
 	loggedInCoordinators.Clear(true,__FILE__,__LINE__);
+}
+void UDPProxyServer::OnAttach(void)
+{
+	if (rakPeerInterface->IsActive())
+		OnStartup();
+}
+void UDPProxyServer::OnDetach(void)
+{
+	OnShutdown();
 }
 void UDPProxyServer::OnForwardingRequestFromCoordinatorToServer(Packet *packet)
 {
@@ -128,7 +137,7 @@ void UDPProxyServer::OnForwardingRequestFromCoordinatorToServer(Packet *packet)
 
 	unsigned short srcToDestPort;
 	unsigned short destToSourcePort;
-	UDPForwarderResult success = udpForwarder.StartForwarding(sourceAddress, targetAddress, timeoutOnNoDataMS, 0, &srcToDestPort, &destToSourcePort);
+	UDPForwarderResult success = udpForwarder.StartForwarding(sourceAddress, targetAddress, timeoutOnNoDataMS, 0, &srcToDestPort, &destToSourcePort, 0, 0);
 	RakNet::BitStream outgoingBs;
 	outgoingBs.Write((MessageID)ID_UDP_PROXY_GENERAL);
 	outgoingBs.Write((MessageID)ID_UDP_PROXY_FORWARDING_REPLY_FROM_SERVER_TO_COORDINATOR);

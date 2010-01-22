@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2009 Bruce A Henderson
+  Copyright (c) 2007-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -99,6 +99,23 @@ void bmx_raknet_gettime(BBInt64 * v) {
 void bmx_raknet_gettimens(RakNetTimeUS * v) {
 	*v = RakNet::GetTimeUS();
 }
+
+int bmx_raknet_getversion() {
+	return RAKNET_VERSION_NUMBER * 1000;
+}
+
+BBString * bmx_raknet_getversionstring() {
+	return bbStringFromCString(RAKNET_VERSION);
+}
+
+int bmx_raknet_getprotocolversion() {
+	return RAKNET_PROTOCOL_VERSION;
+}
+
+BBString * bmx_raknet_getdate() {
+	return bbStringFromCString(RAKNET_DATE);
+}
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -529,10 +546,6 @@ void bmx_RakPeer_SetTimeoutTime(RakPeerInterface * peer, BBInt64 timeMS, MaxSyst
 #endif
 }
 
-bool bmx_RakPeer_SetMTUSize(RakPeerInterface * peer, int size) {
-	return peer->SetMTUSize(size);
-}
-
 int bmx_RakPeer_GetMTUSize(RakPeerInterface * peer, MaxSystemAddress * target) {
 	return peer->GetMTUSize(target->Address());
 }
@@ -955,13 +968,25 @@ bool bmx_BitStream_ReadTime(RakNet::BitStream * stream, BBInt64 * value) {
 #endif
 }
 
-BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream, int length) {
-	char data[length];
-	bool ret = stream->Read(&data[0], length);
+BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream) {
+	RakNet::RakString s;
+	bool ret = stream->Read(s);
+
 	if (!ret) {
 		return &bbEmptyString;
 	} else {
-		return bbStringFromCString(&data[0]);
+		return bbStringFromCString(s.C_String());
+	}
+}
+
+BBString * bmx_BitStream_ReadCompressedString(RakNet::BitStream * stream) {
+	RakNet::RakString s;
+	bool ret = stream->ReadCompressed(s);
+
+	if (!ret) {
+		return &bbEmptyString;
+	} else {
+		return bbStringFromCString(s.C_String());
 	}
 }
 
@@ -1113,6 +1138,12 @@ void bmx_BitStream_WriteUInt(RakNet::BitStream * stream, unsigned int * value) {
 	stream->Write(*value);
 }
 
+void bmx_BitStream_WriteString(RakNet::BitStream * stream, BBString * value) {
+	char * v = bbStringToUTF8String(value);
+	stream->Write(RakNet::RakString::NonVariadic(v));
+	bbMemFree(v);
+}
+
 
 void bmx_BitStream_AssertStreamEmpty(RakNet::BitStream * stream) {
 	stream->AssertStreamEmpty();
@@ -1252,6 +1283,12 @@ void bmx_BitStream_WriteCompressedDeltaDouble(RakNet::BitStream * stream, double
 
 void bmx_BitStream_WriteCompressedDeltaLong(RakNet::BitStream * stream, BBInt64 * currentValue, BBInt64 lastValue) {
 	stream->WriteCompressedDelta(*currentValue, lastValue);
+}
+
+void bmx_BitStream_WriteCompressedString(RakNet::BitStream * stream, BBString * value) {
+	char * v = bbStringToUTF8String(value);
+	stream->WriteCompressed(RakNet::RakString::NonVariadic(v));
+	bbMemFree(v);
 }
 
 
@@ -1445,10 +1482,6 @@ void bmx_RakNetStatistics_messageTotalBitsSent(RakNetStatistics * stats, PacketP
 	*v = stats->messageTotalBitsSent[priority];
 }
 
-int bmx_RakNetStatistics_packetsContainingOnlyAcknowlegements(RakNetStatistics * stats) {
-	return static_cast<int>(stats->packetsContainingOnlyAcknowlegements);
-}
-
 int bmx_RakNetStatistics_acknowlegementsSent(RakNetStatistics * stats) {
 	return static_cast<int>(stats->acknowlegementsSent);
 }
@@ -1459,10 +1492,6 @@ int bmx_RakNetStatistics_acknowlegementsPending(RakNetStatistics * stats) {
 
 void bmx_RakNetStatistics_acknowlegementBitsSent(RakNetStatistics * stats, BBInt64 * v) {
 	*v = stats->acknowlegementBitsSent;
-}
-
-int bmx_RakNetStatistics_packetsContainingOnlyAcknowlegementsAndResends(RakNetStatistics * stats) {
-	return static_cast<int>(stats->packetsContainingOnlyAcknowlegementsAndResends);
 }
 
 int bmx_RakNetStatistics_messageResends(RakNetStatistics * stats) {
@@ -1579,6 +1608,22 @@ void bmx_RakNetStatistics_connectionStartTime(RakNetStatistics * stats, BBInt64 
 
 int bmx_RakNetStatistics_bandwidthExceeded(RakNetStatistics * stats) {
 	return static_cast<int>(stats->bandwidthExceeded);
+}
+
+int bmx_RakNetStatistics_isInSlowStart(RakNetStatistics * stats) {
+	return static_cast<int>(stats->isInSlowStart);
+}
+
+int bmx_RakNetStatistics_CWNDLimit(RakNetStatistics * stats) {
+	return stats->CWNDLimit;
+}
+
+int bmx_RakNetStatistics_unacknowledgedBytes(RakNetStatistics * stats) {
+	return stats->unacknowledgedBytes;
+}
+
+int bmx_RakNetStatistics_timeToNextAllowedSend(RakNetStatistics * stats, BBInt64 * v) {
+	
 }
 
 

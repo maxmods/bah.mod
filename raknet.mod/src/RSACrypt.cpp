@@ -41,7 +41,7 @@ void RSACrypt::cleanup()
 	qInv = 0;
 	if (dQ) RakNet::OP_DELETE_ARRAY(dQ, __FILE__, __LINE__);
 	dQ = 0;
-	if (dP) RakNet::OP_DELETE_ARRAY(dQ, __FILE__, __LINE__);
+	if (dP) RakNet::OP_DELETE_ARRAY(dP, __FILE__, __LINE__);
 	dP = 0;
 	if (modulus) RakNet::OP_DELETE_ARRAY(modulus, __FILE__, __LINE__);
 	modulus = 0;

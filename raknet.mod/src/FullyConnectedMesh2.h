@@ -16,6 +16,7 @@ class RakPeerInterface;
 #include "DS_Multilist.h"
 #include "NativeTypes.h"
 #include "DS_List.h"
+#include "RakString.h"
 
 typedef int64_t FCM2Guid;
 
@@ -29,6 +30,11 @@ class RAK_DLL_EXPORT FullyConnectedMesh2 : public PluginInterface2
 public:
 	FullyConnectedMesh2();
 	virtual ~FullyConnectedMesh2();
+
+	/// When the message ID_REMOTE_NEW_INCOMING_CONNECTION arrives, we try to connect to that system
+	/// \param[in] attemptConnection If true, we try to connect to any systems we are notified about with ID_REMOTE_NEW_INCOMING_CONNECTION, which comes from the ConnectionGraph2 plugin. Defaults to true.
+	/// \param[in] pw The password to use to connect with. Only used if \a attemptConnection is true
+	void SetConnectOnNewRemoteConnection(bool attemptConnection, RakNet::RakString pw);
 
 	/// \brief The connected host is whichever system we are connected to that has been running the longest.
 	/// \details Will return UNASSIGNED_RAKNET_GUID if we are not connected to anyone, or if we are connected and are calculating the host
@@ -53,10 +59,15 @@ public:
 	/// \param[in] b As stated
 	void SetAutoparticipateConnections(bool b);
 
+	/// Clear our own host order, and recalculate as if we had just reconnected
+	void ResetHostCalculation(void);
+
 	/// \brief if SetAutoparticipateConnections() is called with false, then you need to use AddParticipant before these systems will be added to the mesh 
 	/// \param[in] participant The new participant
-	void AddParticipant(SystemAddress participant);
+	void AddParticipant(RakNetGUID rakNetGuid);
 
+	unsigned int GetParticipantCount(void) const;
+	void GetParticipantCount(DataStructures::DefaultIndexType *participantListSize) const;
 	/// \internal
 	RakNetTimeUS GetElapsedRuntime(void);
 
@@ -77,23 +88,29 @@ public:
 	struct FCM2Participant
 	{
 		FCM2Participant() {}
-		FCM2Participant(const FCM2Guid &_fcm2Guid, const RakNetGUID &_rakNetGuid, const SystemAddress &_systemAddress) : fcm2Guid(_fcm2Guid), rakNetGuid(_rakNetGuid), systemAddress(_systemAddress) {}
+		FCM2Participant(const FCM2Guid &_fcm2Guid, const RakNetGUID &_rakNetGuid) : fcm2Guid(_fcm2Guid), rakNetGuid(_rakNetGuid) {}
+
+		// Low half is a random number.
+		// High half is the order we connected in (totalConnectionCount)
 		FCM2Guid fcm2Guid;
 		RakNetGUID rakNetGuid;
-		SystemAddress systemAddress;
 	};
 
 protected:
 	void Clear(void);
-	void PushNewHost(const SystemAddress &sa, const RakNetGUID &guid);
+	void PushNewHost(const RakNetGUID &guid);
 	void SendOurFCMGuid(SystemAddress addr);
-	void SendFCMGuidRequest(SystemAddress addr);
-	void SendFCMGuidResponse(SystemAddress addr, unsigned int responseAssignedConnectionCount, unsigned int responseTotalConnectionCount);
+	void SendFCMGuidRequest(RakNetGUID rakNetGuid);
+	void SendConnectionCountResponse(SystemAddress addr, unsigned int responseTotalConnectionCount);
 	void OnRequestFCMGuid(Packet *packet);
-	void OnRespondFCMGuid(Packet *packet);
+	void OnRespondConnectionCount(Packet *packet);
 	void OnInformFCMGuid(Packet *packet);
-	void AssignOurFCMGuid(unsigned int responseAssignedConnectionCount);
-	void CalculateHost(SystemAddress *systemAddress, RakNetGUID *rakNetGuid, FCM2Guid *fcm2Guid);
+	void AssignOurFCMGuid(void);
+	void CalculateHost(RakNetGUID *rakNetGuid, FCM2Guid *fcm2Guid);
+	bool AddParticipantInternal( RakNetGUID rakNetGuid, FCM2Guid theirFCMGuid );
+	void CalculateAndPushHost(void);
+	bool ParticipantListComplete(void);
+	void IncrementTotalConnectionCount(unsigned int i);
 
 	// Used to track how long RakNet has been running. This is so we know who has been running longest
 	RakNetTimeUS startupTime;
@@ -106,23 +123,92 @@ protected:
 	// It is used as the high 4 bytes for new FCMGuids. This causes newer values of FCM2Guid to be higher than lower values. The lowest value is the host.
 	unsigned int totalConnectionCount;
 
-	// Our own ourFCMGuid. Starts at unassigned (0). Assigned once we send ID_FCM2_REQUEST_FCMGUID and get back ID_FCM2_RESPOND_FCMGUID
+	// Our own ourFCMGuid. Starts at unassigned (0). Assigned once we send ID_FCM2_REQUEST_FCMGUID and get back ID_FCM2_RESPOND_CONNECTION_COUNT
 	FCM2Guid ourFCMGuid;
-
-	// Only the host replies to ID_FCM2_REQUEST_FCMGUID
-	// Otherwise, the host would rapidly change as new FCM2Guids are downloaded, and if the host was temporarily unresponsive we'd have the wrong host
-	// This tracks who we send ID_FCM2_REQUEST_FCMGUID to so that if that system disconnects before we know who the host is, we resend the request
-	// This list is cleared and no longer used once we know our own guid
-	DataStructures::Multilist<ML_UNORDERED_LIST,SystemAddress> guidRequestRetryList;
 
 	/// List of systems we know the FCM2Guid for
 	DataStructures::List<FCM2Participant> participantList;
 
+	RakNetGUID lastPushedHost;
+
 	// Optimization: Store last calculated host in these variables.
-	SystemAddress hostSystemAddress;
 	RakNetGUID hostRakNetGuid;
 	FCM2Guid hostFCM2Guid;
+
+	RakNet::RakString connectionPassword;
+	bool connectOnNewRemoteConnections;
 };
+
+/*
+Startup()
+ourFCMGuid=unknown
+totalConnectionCount=0
+Set startupTime
+
+AddParticipant()
+if (sender by guid is a participant)
+return;
+AddParticipantInternal(guid);
+if (ourFCMGuid==unknown)
+Send to that system a request for their fcmGuid, totalConnectionCount. Inform startupTime.
+else
+Send to that system a request for their fcmGuid. Inform total connection count, our fcmGuid
+
+OnRequestGuid()
+if (sender by guid is not a participant)
+{
+	// They added us as a participant, but we didn't add them. This can be caused by lag where both participants are not added at the same time.
+	// It doesn't affect the outcome as long as we still process the data
+	AddParticipantInternal(guid);
+}
+if (ourFCMGuid==unknown)
+{
+	if (includedStartupTime)
+	{
+		// Nobody has a fcmGuid
+
+		if (their startup time is greater than our startup time)
+			ReplyConnectionCount(1);
+		else
+			ReplyConnectionCount(2);
+	}
+	else
+	{
+		// They have a fcmGuid, we do not
+
+		SetMaxTotalConnectionCount(remoteCount);
+		AssignTheirGuid()
+		GenerateOurGuid();
+		SendOurGuid(all);
+	}
+}
+else
+{
+	if (includedStartupTime)
+	{
+		// We have a fcmGuid they do not
+
+		ReplyConnectionCount(totalConnectionCount+1);
+		SendOurGuid(sender);
+	}
+	else
+	{
+		// We both have fcmGuids
+
+		SetMaxTotalConnectionCount(remoteCount);
+		AssignTheirGuid();
+		SendOurGuid(sender);
+	}
+}
+
+OnReplyConnectionCount()
+SetMaxTotalConnectionCount(remoteCount);
+GenerateOurGuid();
+SendOurGuid(allParticipants);
+
+OnReceiveTheirGuid()
+AssignTheirGuid()
+*/
 
 #endif
 

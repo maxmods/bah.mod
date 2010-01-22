@@ -71,7 +71,7 @@ void StringTable::AddString(const char *str, bool copyString)
 	}
 
 	// If it asserts inside here you are adding duplicate strings.
-	if (orderedStringList.Insert(sab.str,sab, true)!=(unsigned)-1)
+	if (orderedStringList.Insert(sab.str,sab, true, __FILE__,__LINE__)!=(unsigned)-1)
 	{
 		if (copyString)
 			RakNet::OP_DELETE(sab.str, __FILE__, __LINE__);

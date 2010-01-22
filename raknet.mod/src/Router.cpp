@@ -30,7 +30,7 @@ void Router::SetRestrictRoutingByType(bool restrict__)
 void Router::AddAllowedType(unsigned char messageId)
 {
 	if (allowedTypes.HasData(messageId)==false)
-		allowedTypes.Insert(messageId,messageId, true);
+		allowedTypes.Insert(messageId,messageId, true, __FILE__,__LINE__);
 }
 void Router::RemoveAllowedType(unsigned char messageId)
 {
@@ -277,7 +277,7 @@ PluginReceiveResult Router::OnReceive(Packet *packet)
 				packet->bitSize=payloadBitLength;
 			}
 			packet->length=(unsigned int) BITS_TO_BYTES(packet->bitSize);
-			packet->systemIndex=65535;
+			packet->systemAddress.systemIndex=(SystemIndex)-1;
 			packet->systemAddress=originalSender;
 
 			return RR_CONTINUE_PROCESSING;

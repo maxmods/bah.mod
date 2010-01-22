@@ -170,13 +170,13 @@ void NatPunchthroughServer::Update(void)
 						connectionAttempt->sender->isReady=true;
 						connectionAttempt->recipient->isReady=true;
 						recipient=connectionAttempt->recipient;
-						connectionAttempt->sender->DerefConnectionAttempt(connectionAttempt);
-						connectionAttempt->recipient->DeleteConnectionAttempt(connectionAttempt);
+
 
 						if (natPunchthroughServerDebugInterface)
 						{
 							char str[1024];
 							char addr1[128], addr2[128];
+							// 8/01/09 Fixed bug where this was after DeleteConnectionAttempt()
 							connectionAttempt->sender->systemAddress.ToString(true,addr1);
 							connectionAttempt->recipient->systemAddress.ToString(true,addr2);
 							sprintf(str, "Sending ID_NAT_TARGET_UNRESPONSIVE to sender %s and recipient %s.", addr1, addr2);
@@ -185,6 +185,10 @@ void NatPunchthroughServer::Update(void)
 							connectionAttempt->sender->LogConnectionAttempts(log);
 							connectionAttempt->recipient->LogConnectionAttempts(log);
 						}
+
+
+						connectionAttempt->sender->DerefConnectionAttempt(connectionAttempt);
+						connectionAttempt->recipient->DeleteConnectionAttempt(connectionAttempt);
 
 						StartPunchthroughForUser(user);
 						StartPunchthroughForUser(recipient);
@@ -253,7 +257,7 @@ void NatPunchthroughServer::OnClosedConnection(SystemAddress systemAddress, RakN
 			if (connectionAttempt->attemptPhase==ConnectionAttempt::NAT_ATTEMPT_PHASE_GETTING_RECENT_PORTS)
 			{
 				otherUser->isReady=true;
-				freedUpInProgressUsers.Insert(otherUser);
+				freedUpInProgressUsers.Insert(otherUser, __FILE__, __LINE__ );
 			}
 
 			otherUser->DeleteConnectionAttempt(connectionAttempt);
@@ -279,7 +283,7 @@ void NatPunchthroughServer::OnNewConnection(SystemAddress systemAddress, RakNetG
 	user->mostRecentPort=0;
 	user->systemAddress=systemAddress;
 	user->isReady=true;
-	users.Insert(rakNetGUID, user, true);
+	users.Insert(rakNetGUID, user, true, __FILE__,__LINE__);
 }
 void NatPunchthroughServer::OnNATPunchthroughRequest(Packet *packet)
 {
@@ -316,8 +320,8 @@ void NatPunchthroughServer::OnNATPunchthroughRequest(Packet *packet)
 		return;
 	}
 
-	ca->sender->connectionAttempts.Insert(ca);
-	ca->recipient->connectionAttempts.Insert(ca);
+	ca->sender->connectionAttempts.Insert(ca, __FILE__, __LINE__ );
+	ca->recipient->connectionAttempts.Insert(ca, __FILE__, __LINE__ );
 
 	StartPunchthroughForUser(ca->sender);
 }

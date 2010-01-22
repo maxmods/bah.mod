@@ -25,7 +25,7 @@ void UDPProxyClient::SetResultHandler(UDPProxyClientResultHandler *rh)
 {
 	resultHandler=rh;
 }
-bool UDPProxyClient::RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddress, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream)
+bool UDPProxyClient::RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, RakNetGUID targetGuid, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream)
 {
 	if (rakPeerInterface->IsConnected(proxyCoordinator,false,false)==false)
 		return false;
@@ -39,7 +39,38 @@ bool UDPProxyClient::RequestForwarding(SystemAddress proxyCoordinator, SystemAdd
 	outgoingBs.Write((MessageID)ID_UDP_PROXY_GENERAL);
 	outgoingBs.Write((MessageID)ID_UDP_PROXY_FORWARDING_REQUEST_FROM_CLIENT_TO_COORDINATOR);
 	outgoingBs.Write(sourceAddress);
-	outgoingBs.Write(targetAddress);
+	outgoingBs.Write(false);
+	outgoingBs.Write(targetGuid);
+	outgoingBs.Write(timeoutOnNoDataMS);
+	if (serverSelectionBitstream && serverSelectionBitstream->GetNumberOfBitsUsed()>0)
+	{
+		outgoingBs.Write(true);
+		outgoingBs.Write(serverSelectionBitstream);
+	}
+	else
+	{
+		outgoingBs.Write(false);
+	}
+	rakPeerInterface->Send(&outgoingBs, MEDIUM_PRIORITY, RELIABLE_ORDERED, 0, proxyCoordinator, false);
+
+	return true;
+}
+bool UDPProxyClient::RequestForwarding(SystemAddress proxyCoordinator, SystemAddress sourceAddress, SystemAddress targetAddressAsSeenFromCoordinator, RakNetTimeMS timeoutOnNoDataMS, RakNet::BitStream *serverSelectionBitstream)
+{
+	if (rakPeerInterface->IsConnected(proxyCoordinator,false,false)==false)
+		return false;
+
+	// Pretty much a bug not to set the result handler, as otherwise you won't know if the operation succeeed or not
+	RakAssert(resultHandler!=0);
+	if (resultHandler==0)
+		return false;
+
+	BitStream outgoingBs;
+	outgoingBs.Write((MessageID)ID_UDP_PROXY_GENERAL);
+	outgoingBs.Write((MessageID)ID_UDP_PROXY_FORWARDING_REQUEST_FROM_CLIENT_TO_COORDINATOR);
+	outgoingBs.Write(sourceAddress);
+	outgoingBs.Write(true);
+		outgoingBs.Write(targetAddressAsSeenFromCoordinator);
 	outgoingBs.Write(timeoutOnNoDataMS);
 	if (serverSelectionBitstream && serverSelectionBitstream->GetNumberOfBitsUsed()>0)
 	{
@@ -68,7 +99,7 @@ void UDPProxyClient::Update(void)
 			psg->SendPingedServersToCoordinator(rakPeerInterface);
 
 			RakNet::OP_DELETE(psg,__FILE__,__LINE__);
-			pingServerGroups.RemoveAtIndex(idx1);
+			pingServerGroups.RemoveAtIndex(idx1, __FILE__, __LINE__ );
 		}
 		else
 			idx1++;
@@ -105,7 +136,7 @@ PluginReceiveResult UDPProxyClient::OnReceive(Packet *packet)
 					{
 						psg->SendPingedServersToCoordinator(rakPeerInterface);
 						RakNet::OP_DELETE(psg,__FILE__,__LINE__);
-						pingServerGroups.RemoveAtIndex(idx1);
+						pingServerGroups.RemoveAtIndex(idx1, __FILE__, __LINE__ );
 					}
 
 					return RR_STOP_PROCESSING_AND_DEALLOCATE;
@@ -127,6 +158,7 @@ PluginReceiveResult UDPProxyClient::OnReceive(Packet *packet)
 		case ID_UDP_PROXY_ALL_SERVERS_BUSY:
 		case ID_UDP_PROXY_IN_PROGRESS:
 		case ID_UDP_PROXY_NO_SERVERS_ONLINE:
+		case ID_UDP_PROXY_RECIPIENT_GUID_NOT_CONNECTED_TO_COORDINATOR:
 		case ID_UDP_PROXY_FORWARDING_NOTIFICATION:
 			{
 				SystemAddress senderAddress, targetAddress;
@@ -175,6 +207,14 @@ PluginReceiveResult UDPProxyClient::OnReceive(Packet *packet)
 					if (resultHandler)
 						resultHandler->OnNoServersOnline(packet->systemAddress, senderAddress, targetAddress, this);
 					break;
+				case ID_UDP_PROXY_RECIPIENT_GUID_NOT_CONNECTED_TO_COORDINATOR:
+					{
+						RakNetGUID targetGuid;
+						incomingBs.Read(targetGuid);
+						if (resultHandler)
+							resultHandler->OnRecipientNotConnected(packet->systemAddress, senderAddress, targetAddress, targetGuid, this);
+						break;
+					}
 				}
 			
 			}
@@ -208,7 +248,7 @@ void UDPProxyClient::OnPingServers(Packet *packet)
 	{
 		incomingBs.Read(swp.serverAddress);
 		swp.ping=DEFAULT_UNRESPONSIVE_PING_TIME;
-		psg->serversToPing.Push(swp);
+		psg->serversToPing.Push(swp, __FILE__, __LINE__ );
 		swp.serverAddress.ToString(false,ipStr);
 		rakPeerInterface->Ping(ipStr,swp.serverAddress.port,false,0);
 	}

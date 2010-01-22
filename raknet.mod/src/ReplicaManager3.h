@@ -241,10 +241,13 @@ protected:
 	virtual void Update(void);
 	virtual void OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason );
 	virtual void OnNewConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, bool isIncoming);
+	virtual void OnShutdown(void);
 
 	void OnConstructionExisting(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
 	void OnConstruction(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
 	void OnSerialize(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, RakNetTime timestamp, unsigned char packetDataOffset);
+	void OnDownloadStarted(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
+	void OnDownloadComplete(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
 	void OnLocalConstructionRejected(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
 	void OnLocalConstructionAccepted(unsigned char *packetData, int packetDataLength, RakNetGUID senderGuid, unsigned char packetDataOffset);
 
@@ -301,6 +304,9 @@ struct SerializeParameters
 	/// Write to any or all of the NUM_OUTPUT_BITSTREAM_CHANNELS channels available. Channels can hold independent data
 	RakNet::BitStream outputBitstream[RM3_NUM_OUTPUT_BITSTREAM_CHANNELS];
 
+	/// Last bitstream we sent for this replica to this system.
+	/// Read, but DO NOT MODIFY
+	RakNet::BitStream* lastSentBitstream[RM3_NUM_OUTPUT_BITSTREAM_CHANNELS];
 
 	/// Set to non-zero to transmit a timestamp with this message.
 	/// Defaults to 0
@@ -361,8 +367,9 @@ public:
 	/// Sample implementation:<BR>
 	/// {RakNet::RakString typeName; allocationIdBitstream->Read(typeName); if (typeName=="Soldier") return new Soldier; return 0;}<BR>
 	/// \param[in] allocationIdBitstream user-defined bitstream uniquely identifying a game object type
+	/// \param[in] replicaManager3 Instance of ReplicaManager3 that controls this connection
 	/// \return The new replica instance
-	virtual Replica3 *AllocReplica(RakNet::BitStream *allocationIdBitstream)=0;
+	virtual Replica3 *AllocReplica(RakNet::BitStream *allocationIdBitstream, ReplicaManager3 *replicaManager3)=0;
 
 	/// \brief Get list of all replicas that are constructed for this connection
 	/// \param[out] objectsTheyDoHave Destination list. Returned in sorted ascending order, sorted on the value of the Replica3 pointer.
@@ -372,6 +379,22 @@ public:
 	/// \param[in] replica3 Which replica we are querying
 	/// \return True if constructed, false othewise
 	bool HasReplicaConstructed(RakNet::Replica3 *replica);
+
+	/// When a new connection connects, before sending any objects, SerializeOnDownloadStarted() is called
+	/// \param[out] bitStream Passed to DeserializeOnDownloadStarted()
+	virtual void SerializeOnDownloadStarted(RakNet::BitStream *bitStream) {(void) bitStream;}
+
+	/// Receives whatever was written in SerializeOnDownloadStarted()
+	/// \param[in] bitStream Written in SerializeOnDownloadStarted()
+	virtual void DeserializeOnDownloadStarted(RakNet::BitStream *bitStream) {(void) bitStream;}
+
+	/// When a new connection connects, after constructing and serialization all objects, SerializeOnDownloadComplete() is called
+	/// \param[out] bitStream Passed to DeserializeOnDownloadComplete()
+	virtual void SerializeOnDownloadComplete(RakNet::BitStream *bitStream) {(void) bitStream;}
+
+	/// Receives whatever was written in DeserializeOnDownloadComplete()
+	/// \param[in] bitStream Written in SerializeOnDownloadComplete()
+	virtual void DeserializeOnDownloadComplete(RakNet::BitStream *bitStream) {(void) bitStream;}
 
 	/// \brief Sends over a serialization update for \a replica.<BR>
 	/// NetworkID::GetNetworkID() is written automatically, serializationData is the object data.<BR>
@@ -432,11 +455,13 @@ public:
 	void SendValidation(RakPeerInterface *rakPeer, unsigned char worldId);
 
 	/// \internal
-	void AutoConstructByQuery(ReplicaManager3 *replicaManager3, bool isFirstConnection);
+	void AutoConstructByQuery(ReplicaManager3 *replicaManager3);
 
 
 	// Internal - does the other system have this connection too? Validated means we can now use it
 	bool isValidated;
+	// Internal - Used to see if we should send download started
+	bool isFirstConstruction;
 
 protected:
 
@@ -725,6 +750,10 @@ public:
 	/// \param[in/out] serializeParameters Parameters controlling the serialization, including destination bitstream to write to
 	/// \return Whether to serialize, and if so, how to optimize the results
 	virtual RM3SerializationResult Serialize(RakNet::SerializeParameters *serializeParameters)=0;
+
+	/// \brief Called when the class is actually transmitted via Serialize()
+	/// \details Use to track how much bandwidth this class it taking
+	virtual void OnSerializeTransmission(RakNet::BitStream *bitStream, SystemAddress systemAddress) {(void) bitStream; (void) systemAddress; }
 
 	/// \brief Read what was written in Serialize()
 	/// \details Reads the contents of the class from SerializationParamters::serializationBitstream.<BR>

@@ -32,18 +32,18 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Packetloss: %.1f%%\n",
 			RakString::ToString(BITS_TO_BYTES( s->totalBitsSent )),
 			RakString::ToString(BITS_TO_BYTES( s->bitsReceived + s->bitsWithBadCRCReceived )),
-			100.0f * ( float ) s->messagesTotalBitsResent / ( float ) (s->totalBitsSent+s->messagesTotalBitsResent) );
+			s->packetloss );
 	}
 
 	else if ( verbosityLevel == 1 )
 	{
 		RakNetTime time = RakNet::GetTime();
 		double elapsedTime;
-		double bpsSent;
-		double bpsReceived;
+//		double bpsSent;
+//		double bpsReceived;
 		elapsedTime = (time-s->connectionStartTime) / 1000.0f;
-		bpsSent = (double) s->totalBitsSent / elapsedTime;
-		bpsReceived= (double) s->bitsReceived / elapsedTime;
+	//	bpsSent = (double) s->totalBitsSent / elapsedTime;
+	//	bpsReceived= (double) s->bitsReceived / elapsedTime;
 		// Verbosity level 1
 
 		sprintf( buffer,
@@ -61,9 +61,9 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Acks received: %u\n"
 			"Duplicate acks received: %u\n"
 			"Inst. KBits per second sent: %.1f\n"
-			"KBits per second sent:\t\t\t%.1f\n"
-			"KBits per second received:\t\t%.1f\n"
-			"Bandwith exceeded:\t\t\t%i\n",
+			"Inst. KBits per second received:\t%.1f\n"
+			"Bandwith exceeded:\t\t\t%i\n"
+			"Link capacity (Megabytes per second)\t%f\n",
 			s->messageSendBuffer[ SYSTEM_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
 			s->messagesSent[ SYSTEM_PRIORITY ] + s->messagesSent[ HIGH_PRIORITY ] + s->messagesSent[ MEDIUM_PRIORITY ] + s->messagesSent[ LOW_PRIORITY ],
 			RakString::ToString(BITS_TO_BYTES( s->totalBitsSent )),
@@ -72,25 +72,34 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			s->messagesOnResendQueue,
 			s->messageResends,
 			RakString::ToString(BITS_TO_BYTES( s->messagesTotalBitsResent )),
-			100.0f * ( float ) s->messagesTotalBitsResent / ( float ) (s->totalBitsSent+s->messagesTotalBitsResent),
+			s->packetloss,
 			s->duplicateMessagesReceived + s->invalidMessagesReceived + s->messagesReceived,
 			RakString::ToString(BITS_TO_BYTES( s->bitsReceived + s->bitsWithBadCRCReceived )),
 			s->acknowlegementsReceived,
 			s->duplicateAcknowlegementsReceived,
 			s->bitsPerSecondSent  / 1000.0,
-			bpsSent / 1000.0,
-			bpsReceived / 1000.0,
-			s->bandwidthExceeded);
+			s->bitsPerSecondReceived  / 1000.0,
+			(int) s->bandwidthExceeded,
+			s->estimatedLinkCapacityMBPS);
 	}
-	else
+	else if ( verbosityLevel == 2 )
 	{
-		RakNetTime time = RakNet::GetTime();
+		RakNetTimeMS time = RakNet::GetTimeMS();
 		double elapsedTime;
-		double bpsSent;
-		double bpsReceived;
+	//	double bpsSent;
+	//	double bpsReceived;
 		elapsedTime = (time-s->connectionStartTime) / 1000.0f;
-		bpsSent = (double) s->totalBitsSent / elapsedTime;
-		bpsReceived= (double) s->bitsReceived / elapsedTime;
+	//	bpsSent = (double) s->totalBitsSent / elapsedTime;
+	//	bpsReceived= (double) s->bitsReceived / elapsedTime;
+
+
+
+		RakNetTimeMS timeToNextAllowedSendMS = (RakNetTimeMS)(s->timeToNextAllowedSend/1000);
+		RakNetTimeMS timeUntilNextSend;
+		if (timeToNextAllowedSendMS > time)
+			timeUntilNextSend=timeToNextAllowedSendMS-time;
+		else
+			timeUntilNextSend=0;
 
 		// Verbosity level 2.
 		sprintf( buffer,
@@ -105,13 +114,13 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Acks received:\t\t\t\tTtl:%u Good:%u Dup:%u\n"
 			"Messages received:\t\t\tTotal:%u Valid:%u Invalid:%u Dup:%u\n"
 			"Packetloss:\t\t\t\t%.1f%%\n"
-			"Packets sent:\t\t\t\t%u\n"
+			"Datagrams sent:\t\t\t\t%u\n"
 			"Acks sent:\t\t\t\t%u\n"
 			"Acks in send buffer:\t\t\t%u\n"
 			"Messages waiting for ack:\t\t%u\n"
 			"Ack bytes sent:\t\t\t\t%s\n"
-			"Sent packets containing only acks:\t%u\n"
-			"Sent packets w/only acks and resends:\t%u\n"
+//			"Sent packets containing only acks:\t%u\n"
+//			"Sent packets w/only acks and resends:\t%u\n"
 			"Reliable messages resent:\t\t%u\n"
 			"Reliable message data bytes resent:\t%s\n"
 			"Reliable message header bytes resent:\t%s\n"
@@ -126,11 +135,13 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Ordered messages in of order:\t\t%u\n"
 			"Split messages waiting for reassembly:\t%u\n"
 			"Messages in internal output queue:\t%u\n"
-			"Inst KBits per second sent:\t\t%.1f\n"
+			"Inst KBits\t\t\t\tSent: %.1f Received:\t%.1f\n"
 			"Elapsed time (sec):\t\t\t%.1f\n"
-			"KBits per second sent:\t\t\t%.1f\n"
-			"KBits per second received:\t\t%.1f\n"
-			"Bandwith exceeded:\t\t\t%i\n",
+			"Bandwith exceeded:\t\t\t%i\n"
+			"Link capacity (MBPS)\t\t\t%f InSlowStart %i\n"
+			"Unacknowledgement window\t\t%i/%i\n"
+			"Time until next send\t\t\t%i MS\n"
+			,
 			RakString::ToString(BITS_TO_BYTES( s->totalBitsSent )),
 			s->messageSendBuffer[ SYSTEM_PRIORITY ], s->messageSendBuffer[ HIGH_PRIORITY ], s->messageSendBuffer[ MEDIUM_PRIORITY ], s->messageSendBuffer[ LOW_PRIORITY ],
 			s->messagesSent[ SYSTEM_PRIORITY ], s->messagesSent[ HIGH_PRIORITY ], s->messagesSent[ MEDIUM_PRIORITY ], s->messagesSent[ LOW_PRIORITY ],
@@ -141,14 +152,14 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			s->packetsReceived + s->packetsWithBadCRCReceived, s->packetsReceived, s->packetsWithBadCRCReceived,
 			s->acknowlegementsReceived + s->duplicateAcknowlegementsReceived, s->acknowlegementsReceived, s->duplicateAcknowlegementsReceived,
 			s->messagesReceived + s->invalidMessagesReceived + s->duplicateMessagesReceived, s->messagesReceived, s->invalidMessagesReceived, s->duplicateMessagesReceived,
-			100.0f * ( float ) s->messagesTotalBitsResent / ( float ) (s->totalBitsSent+s->messagesTotalBitsResent),
+			s->packetloss,
 			s->packetsSent,
 			s->acknowlegementsSent,
 			s->acknowlegementsPending,
 			s->messagesOnResendQueue,
 			RakString::ToString(BITS_TO_BYTES( s->acknowlegementBitsSent )),
-			s->packetsContainingOnlyAcknowlegements,
-			s->packetsContainingOnlyAcknowlegementsAndResends,
+//			s->packetsContainingOnlyAcknowlegements,
+//			s->packetsContainingOnlyAcknowlegementsAndResends,
 			s->messageResends,
 			RakString::ToString(BITS_TO_BYTES( s->messageDataBitsResent )),
 			RakString::ToString(BITS_TO_BYTES( s->messagesTotalBitsResent - s->messageDataBitsResent )),
@@ -164,10 +175,63 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			s->messagesWaitingForReassembly,
 			s->internalOutputQueueSize,
 			s->bitsPerSecondSent/1000.0,
+			s->bitsPerSecondReceived/1000.0,
 			elapsedTime,
-			bpsSent / 1000.0,
-			bpsReceived / 1000.0,
-			s->bandwidthExceeded
+			s->bandwidthExceeded,
+			s->estimatedLinkCapacityMBPS,
+			s->isInSlowStart,
+			s->unacknowledgedBytes, s->CWNDLimit,
+			timeUntilNextSend
+			);
+	}
+	else if ( verbosityLevel == 3 )
+	{
+		RakNetTimeMS time = RakNet::GetTimeMS();
+		RakNetTimeMS timeToNextAllowedSendMS = (RakNetTimeMS)(s->timeToNextAllowedSend/1000);
+		RakNetTimeMS timeUntilNextSend;
+		if (timeToNextAllowedSendMS > time)
+			timeUntilNextSend=timeToNextAllowedSendMS-time;
+		else
+			timeUntilNextSend=0;
+		int t = (int) timeUntilNextSend;
+		sprintf( buffer,
+			"Messages in Send buffer:\t%u\n"
+			"Packetloss:\t\t\t%.1f%%\n"
+			"Unacknowledgement window\t%i/%i\n"
+			"isInSlowStart\t\t\t%i\n"
+			"localSendRate\t\t\t%.4f MBPS\n"
+			"localContinuousReceiveRate\t%.4f MBPS\n"
+			"remoteContinuousReceiveRate\t%.4f MBPS\n"
+			"estimatedLinkCapacityMBPS\t%.4f MBPS\n"
+			"timeUntilNextSend\t\t%i",
+			s->messageSendBuffer[ SYSTEM_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
+			s->packetloss,
+			s->unacknowledgedBytes, s->CWNDLimit,
+			s->isInSlowStart,
+			s->localSendRate,
+			s->localContinuousReceiveRate,
+			s->remoteContinuousReceiveRate,
+			s->estimatedLinkCapacityMBPS,
+			t);
+	}
+}
+
+void BandwidthToString( RakNetBandwidth *s, char *buffer )
+{
+	if (s->bytesPerSecondLimit!=0.0)
+	{
+		double percentageUsed;
+		percentageUsed=100.0 * s->bytesPerSecondOutgoing/s->bytesPerSecondLimit;
+		sprintf( buffer,
+			"Sending %.2f / %.2f MBPS. %.0f%% of capacity. Packetloss: %.2f%%. %.0f bytes buffered.\n",
+			s->bytesPerSecondOutgoing/1000000.0, s->bytesPerSecondLimit/1000000.0, percentageUsed, s->packetloss, s->bytesBuffered
+			);
+	}
+	else
+	{
+		sprintf( buffer,
+			"Sending %.2f MBPS. Unknown capacity. Packetloss: %.2f%%. %.0f bytes buffered.\n",
+			s->bytesPerSecondOutgoing/1000000.0, s->packetloss, s->bytesBuffered
 			);
 	}
 }

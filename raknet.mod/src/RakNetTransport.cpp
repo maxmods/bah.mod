@@ -84,8 +84,8 @@ void RakNetTransport::Stop(void)
 {
 	if (rakPeer==0) return;
 	rakPeer->Shutdown(1000, 0);
-	newConnections.Clear();
-	lostConnections.Clear();
+	newConnections.Clear(__FILE__, __LINE__);
+	lostConnections.Clear(__FILE__, __LINE__);
 }
 void RakNetTransport::Send( SystemAddress systemAddress, const char *data, ... )
 {
@@ -123,11 +123,11 @@ Packet* RakNetTransport::Receive( void )
 	}
 	if (p->data[0]==ID_NEW_INCOMING_CONNECTION)
 	{
-		newConnections.Push(p->systemAddress);
+		newConnections.Push(p->systemAddress, __FILE__, __LINE__ );
 	}
 	else if (p->data[0]==ID_DISCONNECTION_NOTIFICATION || p->data[0]==ID_CONNECTION_LOST)
 	{
-		lostConnections.Push(p->systemAddress);
+		lostConnections.Push(p->systemAddress, __FILE__, __LINE__ );
 	}
 	rakPeer->DeallocatePacket(p);
 

@@ -14,14 +14,12 @@
 #include <new>
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-// Causes linker errors
-// #include <stdlib.h>
-typedef unsigned int size_t;
+                                                                             
 #endif
 
 #include "RakAlloca.h"
 
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 	#if defined(new)
 		#pragma push_macro("new")
 		#undef new
@@ -40,6 +38,9 @@ extern RAK_DLL_EXPORT void * (*rakMalloc_Ex) (size_t size, const char *file, uns
 extern RAK_DLL_EXPORT void * (*rakRealloc_Ex) (void *p, size_t size, const char *file, unsigned int line);
 extern RAK_DLL_EXPORT void (*rakFree_Ex) (void *p, const char *file, unsigned int line);
 extern RAK_DLL_EXPORT void (*notifyOutOfMemory) (const char *file, const long line);
+extern RAK_DLL_EXPORT void * (*dlMallocMMap) (size_t size);
+extern RAK_DLL_EXPORT void * (*dlMallocDirectMMap) (size_t size);
+extern RAK_DLL_EXPORT int (*dlMallocMUnmap) (void* ptr, size_t size);
 
 // Change to a user defined allocation function
 void RAK_DLL_EXPORT SetMalloc( void* (*userFunction)(size_t size) );
@@ -50,7 +51,9 @@ void RAK_DLL_EXPORT SetRealloc_Ex( void* (*userFunction)(void *p, size_t size, c
 void RAK_DLL_EXPORT SetFree_Ex( void (*userFunction)(void *p, const char *file, unsigned int line) );
 // Change to a user defined out of memory function
 void RAK_DLL_EXPORT SetNotifyOutOfMemory( void (*userFunction)(const char *file, const long line) );
-
+void RAK_DLL_EXPORT SetDLMallocMMap( void* (*userFunction)(size_t size) );
+void RAK_DLL_EXPORT SetDLMallocDirectMMap( void* (*userFunction)(size_t size) );
+void RAK_DLL_EXPORT SetDLMallocMUnmap( int (*userFunction)(void* ptr, size_t size) );
 
 extern RAK_DLL_EXPORT void * (*GetMalloc()) (size_t size);
 extern RAK_DLL_EXPORT void * (*GetRealloc()) (void *p, size_t size);
@@ -58,14 +61,9 @@ extern RAK_DLL_EXPORT void (*GetFree()) (void *p);
 extern RAK_DLL_EXPORT void * (*GetMalloc_Ex()) (size_t size, const char *file, unsigned int line);
 extern RAK_DLL_EXPORT void * (*GetRealloc_Ex()) (void *p, size_t size, const char *file, unsigned int line);
 extern RAK_DLL_EXPORT void (*GetFree_Ex()) (void *p, const char *file, unsigned int line);
-
-#ifdef _LINK_DL_MALLOC
-// Use DLMalloc within a fixed memory space
-// Debug profiling ChatExampleServer: 1116KB in debug for 1 connection. 1568KB for 2 connections. 1620K for 3 connections. 1656K for 4 connections.
-// BigPacketTest: 127,760KB
-extern RAK_DLL_EXPORT void UseDLMallocSpaces(void* base, size_t capacity);
-extern RAK_DLL_EXPORT void FreeDLMallocSpaces(void);
-#endif
+extern RAK_DLL_EXPORT void *(*GetDLMallocMMap())(size_t size);
+extern RAK_DLL_EXPORT void *(*GetDLMallocDirectMMap())(size_t size);
+extern RAK_DLL_EXPORT int (*GetDLMallocMUnmap())(void* ptr, size_t size);
 
 namespace RakNet
 {
@@ -73,7 +71,7 @@ namespace RakNet
 	template <class Type>
 	RAK_DLL_EXPORT Type* OP_NEW(const char *file, unsigned int line)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
 		Type *t = new (buffer) Type;
 		return t;
@@ -87,7 +85,7 @@ namespace RakNet
 	template <class Type, class P1>
 	RAK_DLL_EXPORT Type* OP_NEW_1(const char *file, unsigned int line, const P1 &p1)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
 		Type *t = new (buffer) Type(p1);
 		return t;
@@ -101,7 +99,7 @@ namespace RakNet
 	template <class Type, class P1, class P2>
 	RAK_DLL_EXPORT Type* OP_NEW_2(const char *file, unsigned int line, const P1 &p1, const P2 &p2)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
 		Type *t = new (buffer) Type(p1, p2);
 		return t;
@@ -115,7 +113,7 @@ namespace RakNet
 	template <class Type, class P1, class P2, class P3>
 	RAK_DLL_EXPORT Type* OP_NEW_3(const char *file, unsigned int line, const P1 &p1, const P2 &p2, const P3 &p3)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
 		Type *t = new (buffer) Type(p1, p2, p3);
 		return t;
@@ -129,7 +127,7 @@ namespace RakNet
 	template <class Type, class P1, class P2, class P3, class P4>
 	RAK_DLL_EXPORT Type* OP_NEW_4(const char *file, unsigned int line, const P1 &p1, const P2 &p2, const P3 &p3, const P4 &p4)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(Type), file, line);
 		Type *t = new (buffer) Type(p1, p2, p3, p4);
 		return t;
@@ -147,7 +145,7 @@ namespace RakNet
 		if (count==0)
 			return 0;
 
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		Type *t;
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(int)+sizeof(Type)*count, file, line);
 		((int*)buffer)[0]=count;
@@ -167,7 +165,7 @@ namespace RakNet
 	template <class Type>
 	RAK_DLL_EXPORT void OP_DELETE(Type *buff, const char *file, unsigned int line)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		if (buff==0) return;
 		buff->~Type();
 		(GetFree_Ex())((char*)buff, file, line );
@@ -182,7 +180,7 @@ namespace RakNet
 	template <class Type>
 	RAK_DLL_EXPORT void OP_DELETE_ARRAY(Type *buff, const char *file, unsigned int line)
 	{
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+#if _USE_RAK_MEMORY_OVERRIDE==1
 		if (buff==0)
 			return;
 
@@ -202,16 +200,30 @@ namespace RakNet
 
 	}
 
-void RAK_DLL_EXPORT * _RakMalloc (size_t size);
-void RAK_DLL_EXPORT * _RakRealloc (void *p, size_t size);
-void RAK_DLL_EXPORT _RakFree (void *p);
-void RAK_DLL_EXPORT * _RakMalloc_Ex (size_t size, const char *file, unsigned int line);
-void RAK_DLL_EXPORT * _RakRealloc_Ex (void *p, size_t size, const char *file, unsigned int line);
-void RAK_DLL_EXPORT _RakFree_Ex (void *p, const char *file, unsigned int line);
+	void RAK_DLL_EXPORT * _RakMalloc (size_t size);
+	void RAK_DLL_EXPORT * _RakRealloc (void *p, size_t size);
+	void RAK_DLL_EXPORT _RakFree (void *p);
+	void RAK_DLL_EXPORT * _RakMalloc_Ex (size_t size, const char *file, unsigned int line);
+	void RAK_DLL_EXPORT * _RakRealloc_Ex (void *p, size_t size, const char *file, unsigned int line);
+	void RAK_DLL_EXPORT _RakFree_Ex (void *p, const char *file, unsigned int line);
+	void RAK_DLL_EXPORT * _DLMallocMMap (size_t size);
+	void RAK_DLL_EXPORT * _DLMallocDirectMMap (size_t size);
+	int RAK_DLL_EXPORT _DLMallocMUnmap (void *p, size_t size);
 
 }
 
-#if defined(_USE_RAK_MEMORY_OVERRIDE)
+// Call to make RakNet allocate a large block of memory, and do all subsequent allocations in that memory block
+// Initial and reallocations will be done through whatever function is pointed to by yourMMapFunction, and yourDirectMMapFunction (default is malloc)
+// Allocations will be freed through whatever function is pointed to by yourMUnmapFunction (default free)
+void UseRaknetFixedHeap(size_t initialCapacity,
+						void * (*yourMMapFunction) (size_t size) = RakNet::_DLMallocMMap,
+						void * (*yourDirectMMapFunction) (size_t size) = RakNet::_DLMallocDirectMMap,
+						int (*yourMUnmapFunction) (void *p, size_t size) = RakNet::_DLMallocMUnmap);
+
+// Free memory allocated from UseRaknetFixedHeap
+void FreeRakNetFixedHeap(void);
+
+#if _USE_RAK_MEMORY_OVERRIDE==1
 	#if defined(RMO_NEW_UNDEF)
 	#pragma pop_macro("new")
 	#undef RMO_NEW_UNDEF

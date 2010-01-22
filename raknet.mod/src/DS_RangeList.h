@@ -68,9 +68,14 @@ namespace DataStructures
 		{
 			if ((int)sizeof(unsigned short)*8+bitsWritten+(int)sizeof(range_type)*8*2+1>maxBits)
 				break;
-			tempBS.Write(ranges[i].minIndex==ranges[i].maxIndex);
+			unsigned char minEqualsMax;
+			if (ranges[i].minIndex==ranges[i].maxIndex)
+				minEqualsMax=1;
+			else
+				minEqualsMax=0;
+			tempBS.Write(minEqualsMax); // Use one byte, intead of one bit, for speed, as this is done a lot
 			tempBS.Write(ranges[i].minIndex);
-			bitsWritten+=sizeof(range_type)*8+1;
+			bitsWritten+=sizeof(range_type)*8+8;
 			if (ranges[i].minIndex!=ranges[i].maxIndex)
 			{
 				tempBS.Write(ranges[i].maxIndex);
@@ -79,8 +84,9 @@ namespace DataStructures
 			countWritten++;
 		}
 
+		in->AlignWriteToByteBoundary();
 		BitSize_t before=in->GetWriteOffset();
-		in->WriteCompressed(countWritten);
+		in->Write(countWritten);
 		bitsWritten+=in->GetWriteOffset()-before;
 	//	RAKNET_DEBUG_PRINTF("%i ", in->GetNumberOfBitsUsed());
 		in->Write(&tempBS, tempBS.GetNumberOfBitsUsed());
@@ -101,12 +107,13 @@ namespace DataStructures
 	template <class range_type>
 	bool RangeList<range_type>::Deserialize(RakNet::BitStream *out)
 	{
-		ranges.Clear();
+		ranges.Clear(true, __FILE__, __LINE__);
 		unsigned short count;
-		out->ReadCompressed(count);
+		out->AlignReadToByteBoundary();
+		out->Read(count);
 		unsigned short i;
 		range_type min,max;
-		bool maxEqualToMin=false;
+		unsigned char maxEqualToMin=0;
 
 		for (i=0; i < count; i++)
 		{
@@ -123,7 +130,8 @@ namespace DataStructures
 			else
 				max=min;
 
-			ranges.InsertAtEnd(RangeNode<range_type>(min,max));
+
+			ranges.InsertAtEnd(RangeNode<range_type>(min,max), __FILE__,__LINE__);
 		}
 		return true;
 	}
@@ -145,7 +153,7 @@ namespace DataStructures
 	{
 		if (ranges.Size()==0)
 		{
-			ranges.Insert(index, RangeNode<range_type>(index, index), true);
+			ranges.Insert(index, RangeNode<range_type>(index, index), true, __FILE__,__LINE__);
 			return;
 		}
 
@@ -153,29 +161,29 @@ namespace DataStructures
 		unsigned insertionIndex=ranges.GetIndexFromKey(index, &objectExists);
 		if (insertionIndex==ranges.Size())
 		{
-			if (index == ranges[insertionIndex-1].maxIndex+1)
+			if (index == ranges[insertionIndex-1].maxIndex+(range_type)1)
 				ranges[insertionIndex-1].maxIndex++;
-			else if (index > ranges[insertionIndex-1].maxIndex+1)
+			else if (index > ranges[insertionIndex-1].maxIndex+(range_type)1)
 			{
 				// Insert at end
-				ranges.Insert(index, RangeNode<range_type>(index, index), true);
+				ranges.Insert(index, RangeNode<range_type>(index, index), true, __FILE__,__LINE__);
 			}
 
 			return;
 		}
 
-		if (index < ranges[insertionIndex].minIndex-1)
+		if (index < ranges[insertionIndex].minIndex-(range_type)1)
 		{
 			// Insert here
-			ranges.InsertAtIndex(RangeNode<range_type>(index, index), insertionIndex);
+			ranges.InsertAtIndex(RangeNode<range_type>(index, index), insertionIndex, __FILE__,__LINE__);
 
 			return;
 		}
-		else if (index == ranges[insertionIndex].minIndex-1)
+		else if (index == ranges[insertionIndex].minIndex-(range_type)1)
 		{
 			// Decrease minIndex and join left
 			ranges[insertionIndex].minIndex--;
-			if (insertionIndex>0 && ranges[insertionIndex-1].maxIndex+1==ranges[insertionIndex].minIndex)
+			if (insertionIndex>0 && ranges[insertionIndex-1].maxIndex+(range_type)1==ranges[insertionIndex].minIndex)
 			{
 				ranges[insertionIndex-1].maxIndex=ranges[insertionIndex].maxIndex;
 				ranges.RemoveAtIndex(insertionIndex);
@@ -188,11 +196,11 @@ namespace DataStructures
 			// Already exists
 			return;
 		}
-		else if (index == ranges[insertionIndex].maxIndex+1)
+		else if (index == ranges[insertionIndex].maxIndex+(range_type)1)
 		{
 			// Increase maxIndex and join right
 			ranges[insertionIndex].maxIndex++;
-			if (insertionIndex<ranges.Size()-1 && ranges[insertionIndex+1].minIndex==ranges[insertionIndex].maxIndex+1)
+			if (insertionIndex<ranges.Size()-1 && ranges[insertionIndex+(range_type)1].minIndex==ranges[insertionIndex].maxIndex+(range_type)1)
 			{
 				ranges[insertionIndex+1].minIndex=ranges[insertionIndex].minIndex;
 				ranges.RemoveAtIndex(insertionIndex);
@@ -205,7 +213,7 @@ namespace DataStructures
 	template <class range_type>
 	void RangeList<range_type>::Clear(void)
 	{
-		ranges.Clear();
+		ranges.Clear(true, __FILE__, __LINE__);
 	}
 
 	template <class range_type>

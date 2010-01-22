@@ -63,7 +63,7 @@ void MessageFilter::SetAllowRPC(bool allow, const char *functionName, int filter
 	{
 		char *str = (char*) rakMalloc_Ex( strlen(functionName)+1, __FILE__, __LINE__ );
 		strcpy(str, functionName);
-		filterSet->allowedRPCs.InsertAtIndex(str, index);
+		filterSet->allowedRPCs.InsertAtIndex(str, index, __FILE__,__LINE__);
 	}
 }
 void MessageFilter::SetActionOnDisallowedMessage(bool kickOnDisallowed, bool banOnDisallowed, RakNetTime banTimeMS, int filterSetID)
@@ -116,7 +116,7 @@ void MessageFilter::SetSystemFilterSet(SystemAddress systemAddress, int filterSe
 		filteredSystem.filter = GetFilterSetByID(filterSetID);
 		filteredSystem.systemAddress=systemAddress;
 		filteredSystem.timeEnteredThisSet=RakNet::GetTime();
-		systemList.Insert(systemAddress, filteredSystem, true);
+		systemList.Insert(systemAddress, filteredSystem, true, __FILE__,__LINE__);
 	}
 	else
 	{
@@ -200,10 +200,10 @@ void MessageFilter::DeleteFilterSet(int filterSetID)
 void MessageFilter::Clear(void)
 {
 	unsigned i;
-	systemList.Clear();
+	systemList.Clear(false, __FILE__,__LINE__);
 	for (i=0; i < filterList.Size(); i++)
 		DeallocateFilterSet(filterList[i]);
-	filterList.Clear();
+	filterList.Clear(false, __FILE__,__LINE__);
 }
 void MessageFilter::DeallocateFilterSet(FilterSet* filterSet)
 {
@@ -234,7 +234,7 @@ FilterSet* MessageFilter::GetFilterSetByID(int filterSetID)
 		newFilterSet->invalidMessageCallback=0;
 		newFilterSet->timeoutCallback=0;
 		newFilterSet->timeoutUserData=0;
-		filterList.Insert(filterSetID, newFilterSet, true);
+		filterList.Insert(filterSetID, newFilterSet, true, __FILE__,__LINE__);
 		return newFilterSet;
 	}
 }
@@ -311,6 +311,7 @@ void MessageFilter::OnClosedConnection(SystemAddress systemAddress, RakNetGUID r
 	case ID_DISCONNECTION_NOTIFICATION:
 	case ID_CONNECTION_ATTEMPT_FAILED:
 	case ID_NO_FREE_INCOMING_CONNECTIONS:
+	case ID_IP_RECENTLY_CONNECTED:
 	case ID_RSA_PUBLIC_KEY_MISMATCH:
 	case ID_CONNECTION_BANNED:
 	case ID_INVALID_PASSWORD:

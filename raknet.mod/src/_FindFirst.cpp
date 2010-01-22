@@ -48,7 +48,7 @@ long _findfirst(const char *name, _finddata_t *f)
 	fi->filter    = filter;
 	fi->dirName   = nameCopy;  // we need to remember this for stat()
 	fi->openedDir = dir;
-	fileInfo.Insert(fi);
+	fileInfo.Insert(fi, __FILE__, __LINE__);
 
         long ret = fileInfo.Size()-1;
 
@@ -59,36 +59,7 @@ long _findfirst(const char *name, _finddata_t *f)
 }
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-int _findnext(long h, _finddata_t *f)
-{
-	_findinfo_t* fi = fileInfo[h];
-
-	while(true)
-	{
-		dirent* entry = readdir(fi->openedDir);
-		if(entry == 0)
-			return -1;
-
-		// Commented code not supported on a console
-		//	if(fnmatch(fi->filter,entry->d_name, 200) == 0)
-		if(strcasecmp(fi->filter,entry->d_name) == 0)
-		{
-			strcpy(f->name, entry->d_name);
-			if (entry->d_type == DT_REG)
-				f->attrib = _A_NORMAL;
-			f->size = entry->d_reclen;
-			return 0;
-		}
-		if (entry->d_type == DT_DIR)
-		{
-			f->attrib = _A_SUBDIR;
-			strcpy(f->name, entry->d_name);
-			return 0;
-		}
-	}
-
-	return -1;
-}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
 #else
 int _findnext(long h, _finddata_t *f)
 {

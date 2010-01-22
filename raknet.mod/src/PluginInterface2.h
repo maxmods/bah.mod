@@ -60,7 +60,9 @@ enum PI2_FailedConnectionAttemptReason
 	FCAR_NO_FREE_INCOMING_CONNECTIONS,
 	FCAR_RSA_PUBLIC_KEY_MISMATCH,
 	FCAR_CONNECTION_BANNED,
-	FCAR_INVALID_PASSWORD
+	FCAR_INVALID_PASSWORD,
+	FCAR_INCOMPATIBLE_PROTOCOL,
+	FCAR_IP_RECENTLY_CONNECTED
 };
 
 /// RakNet's plugin system. Each plugin processes the following events:
@@ -155,11 +157,12 @@ public:
 	void SetPacketizedTCP( PacketizedTCP *ptr );
 protected:
 	// Send through either rakPeerInterface or packetizedTCP, whichever is available
-	void SendUnified( const RakNet::BitStream * bitStream, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast );
-	bool SendListUnified( char **data, const int *lengths, const int numParameters, PacketPriority priority, PacketReliability reliability, char orderingChannel, SystemAddress systemAddress, bool broadcast );
+	void SendUnified( const RakNet::BitStream * bitStream, PacketPriority priority, PacketReliability reliability, char orderingChannel, const AddressOrGUID systemIdentifier, bool broadcast );
+	bool SendListUnified( const char **data, const int *lengths, const int numParameters, PacketPriority priority, PacketReliability reliability, char orderingChannel, const AddressOrGUID systemIdentifier, bool broadcast );
 
 	Packet *AllocatePacketUnified(unsigned dataSize);
 	void PushBackPacketUnified(Packet *packet, bool pushAtHead);
+	void DeallocPacketUnified(Packet *packet);
 
 	// Filled automatically in when attached
 	RakPeerInterface *rakPeerInterface;

@@ -16,8 +16,8 @@ TypeMapping typeMappings[NUM_TYPE_MAPPINGS] =
 	{'d', "int"},
 	{'s', "text"},
 	{'b', "bool"},
-	{'f', "real"},
-	{'g', "double"},
+	{'f', "numeric"},
+	{'g', "double precision"},
 	{'a', "bytea"},
 };
 unsigned int GetTypeMappingIndex(char c)
@@ -37,7 +37,7 @@ void VariadicSQLParser::GetTypeMappingIndices( const char *format, DataStructure
 	bool previousCharWasPercentSign;
 	unsigned int i;
 	unsigned int typeMappingIndex;
-	indices.Clear();
+	indices.Clear(false, __FILE__, __LINE__);
 	unsigned int len = (unsigned int) strlen(format);
 	previousCharWasPercentSign=false;
 	for (i=0; i < len; i++)
@@ -51,7 +51,7 @@ void VariadicSQLParser::GetTypeMappingIndices( const char *format, DataStructure
 				IndexAndType iat;
 				iat.strIndex=i-1;
 				iat.typeMappingIndex=typeMappingIndex;
-				indices.Insert(iat);
+				indices.Insert(iat, __FILE__, __LINE__ );
 			}
 		}
 

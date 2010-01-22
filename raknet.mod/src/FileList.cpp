@@ -144,16 +144,13 @@ void FileList::AddFile(const char *filename, const char *fullPathToFile, const c
 
 			// File of the same name, but different contents, so overwrite
 			rakFree_Ex(fileList[i].data, __FILE__, __LINE__ );
-			rakFree_Ex(fileList[i].filename, __FILE__, __LINE__ );
 			fileList.RemoveAtIndex(i);
 			break;
 		}
 	}
 
 	FileListNode n;
-	size_t fileNameLen = strlen(filename);
-	n.filename=(char*) rakMalloc_Ex( fileNameLen+1, __FILE__, __LINE__ );
-	n.fullPathToFile=(char*) rakMalloc_Ex( strlen(fullPathToFile)+1, __FILE__, __LINE__ );
+//	size_t fileNameLen = strlen(filename);
 	if (dataLength && data)
 	{
 		n.data=(char*) rakMalloc_Ex( dataLength, __FILE__, __LINE__ );
@@ -165,8 +162,8 @@ void FileList::AddFile(const char *filename, const char *fullPathToFile, const c
 	n.fileLengthBytes=fileLength;
 	n.isAReference=isAReference;
 	n.context=context;
-	strcpy(n.filename, filename);
-	strcpy(n.fullPathToFile, fullPathToFile);
+	n.filename=filename;
+	n.fullPathToFile=fullPathToFile;
 		
 	fileList.Insert(n, __FILE__, __LINE__);
 }
@@ -204,7 +201,7 @@ void FileList::AddFilesFromDirectory(const char *applicationDirectory, const cha
 	if (callback)
 		callback->OnAddFilesFromDirectoryStarted(this, dirSoFar);
 	// RAKNET_DEBUG_PRINTF("Adding files from directory %s\n",dirSoFar);
-	dirList.Push(dirSoFar);
+	dirList.Push(dirSoFar, __FILE__, __LINE__ );
 	while (dirList.Size())
 	{
 		dirSoFar=dirList.Pop();
@@ -304,7 +301,7 @@ void FileList::AddFilesFromDirectory(const char *applicationDirectory, const cha
 				strcpy(newDir, dirSoFar);
 				strcat(newDir, fileInfo.name);
 				strcat(newDir, "/");
-				dirList.Push(newDir);
+				dirList.Push(newDir, __FILE__, __LINE__ );
 			}
 
 		} while (_findnext(dir, &fileInfo ) != -1);
@@ -319,10 +316,8 @@ void FileList::Clear(void)
 	for (i=0; i<fileList.Size(); i++)
 	{
 		rakFree_Ex(fileList[i].data, __FILE__, __LINE__ );
-		rakFree_Ex(fileList[i].filename, __FILE__, __LINE__ );
-		rakFree_Ex(fileList[i].fullPathToFile, __FILE__, __LINE__ );
 	}
-	fileList.Clear();
+	fileList.Clear(false, __FILE__, __LINE__);
 }
 void FileList::Serialize(RakNet::BitStream *outBitStream)
 {
@@ -332,7 +327,7 @@ void FileList::Serialize(RakNet::BitStream *outBitStream)
 	{
 		outBitStream->WriteCompressed(fileList[i].context.op);
 		outBitStream->WriteCompressed(fileList[i].context.fileId);
-		stringCompressor->EncodeString(fileList[i].filename, MAX_FILENAME_LENGTH, outBitStream);
+		stringCompressor->EncodeString(fileList[i].filename.C_String(), MAX_FILENAME_LENGTH, outBitStream);
 		outBitStream->Write((bool)(fileList[i].dataLengthBytes>0==true));
 		if (fileList[i].dataLengthBytes>0)
 		{
@@ -399,10 +394,8 @@ bool FileList::Deserialize(RakNet::BitStream *inBitStream)
 			Clear();
 			return false;
 		}
-		n.filename=(char*) rakMalloc_Ex( strlen(filename)+1, __FILE__, __LINE__ );
-		strcpy(n.filename, filename);
-		n.fullPathToFile=(char*) rakMalloc_Ex( strlen(filename)+1, __FILE__, __LINE__ );
-		strcpy(n.fullPathToFile, filename);
+		n.filename=filename;
+		n.fullPathToFile=filename;
 		fileList.Insert(n, __FILE__, __LINE__);
 	}
 
@@ -430,7 +423,7 @@ void FileList::GetDeltaToCurrent(FileList *input, FileList *output, const char *
 
 	for (thisIndex=0; thisIndex < fileList.Size(); thisIndex++)
 	{
-		localPathLen = (unsigned int) strlen(fileList[thisIndex].filename);
+		localPathLen = (unsigned int) fileList[thisIndex].filename.GetLength();
 		while (localPathLen>0)
 		{
 			if (IsSlash(fileList[thisIndex].filename[localPathLen-1]))
@@ -444,7 +437,7 @@ void FileList::GetDeltaToCurrent(FileList *input, FileList *output, const char *
 		// fileList[thisIndex].filename has to match dirSubset and be shorter or equal to it in length.
 		if (dirSubsetLen>0 &&
 			(localPathLen<dirSubsetLen ||
-			_strnicmp(fileList[thisIndex].filename, dirSubset, dirSubsetLen)!=0 ||
+			_strnicmp(fileList[thisIndex].filename.C_String(), dirSubset, dirSubsetLen)!=0 ||
 			(localPathLen>dirSubsetLen && IsSlash(fileList[thisIndex].filename[dirSubsetLen])==false)))
 			continue;
 
@@ -452,7 +445,7 @@ void FileList::GetDeltaToCurrent(FileList *input, FileList *output, const char *
 		for (inputIndex=0; inputIndex < input->fileList.Size(); inputIndex++)
 		{
 			// If the filenames, hashes, and lengths match then skip this element in fileList.  Otherwise write it to output
-			if (_stricmp(input->fileList[inputIndex].filename+remoteSubdirLen,fileList[thisIndex].filename+dirSubsetLen)==0)
+			if (_stricmp(input->fileList[inputIndex].filename.C_String()+remoteSubdirLen,fileList[thisIndex].filename.C_String()+dirSubsetLen)==0)
 			{
 				match=true;
 				if (input->fileList[inputIndex].fileLengthBytes==fileList[thisIndex].fileLengthBytes &&
@@ -549,7 +542,7 @@ void FileList::PopulateDataFromDisk(const char *applicationDirectory, bool write
 		rakFree_Ex(fileList[i].data, __FILE__, __LINE__ );
 		strcpy(fullPath, applicationDirectory);
 		FixEndingSlash(fullPath);
-		strcat(fullPath,fileList[i].filename);
+		strcat(fullPath,fileList[i].filename.C_String());
 		fp=fopen(fullPath, "rb");
 		if (fp)
 		{
@@ -614,7 +607,6 @@ void FileList::PopulateDataFromDisk(const char *applicationDirectory, bool write
 		{
 			if (removeUnknownFiles)
 			{
-				rakFree_Ex(fileList[i].filename, __FILE__, __LINE__ );
 				fileList.RemoveAtIndex(i);
 			}
 			else
@@ -639,10 +631,10 @@ void FileList::WriteDataToDisk(const char *applicationDirectory)
 	{
 		strcpy(fullPath, applicationDirectory);
 		FixEndingSlash(fullPath);
-		strcat(fullPath,fileList[i].filename);
+		strcat(fullPath,fileList[i].filename.C_String());
 		
 		// Security - Don't allow .. in the filename anywhere so you can't write outside of the root directory
-		for (j=1; j < strlen(fileList[i].filename); j++)
+		for (j=1; j < fileList[i].filename.GetLength(); j++)
 		{
 			if (fileList[i].filename[j]=='.' && fileList[i].filename[j-1]=='.')
 			{
@@ -669,7 +661,7 @@ void FileList::DeleteFiles(const char *applicationDirectory)
 	for (i=0; i < fileList.Size(); i++)
 	{
 		// The filename should not have .. in the path - if it does ignore it
-		for (j=1; j < strlen(fileList[i].filename); j++)
+		for (j=1; j < fileList[i].filename.GetLength(); j++)
 		{
 			if (fileList[i].filename[j]=='.' && fileList[i].filename[j-1]=='.')
 			{
@@ -683,7 +675,7 @@ void FileList::DeleteFiles(const char *applicationDirectory)
 
 		strcpy(fullPath, applicationDirectory);
 		FixEndingSlash(fullPath);
-		strcat(fullPath, fileList[i].filename);
+		strcat(fullPath, fileList[i].filename.C_String());
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4966 ) // unlink declared deprecated by Microsoft in order to make it harder to be cross platform.  I don't agree it's deprecated.

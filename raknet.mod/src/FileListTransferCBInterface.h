@@ -14,6 +14,7 @@
 #pragma warning( push )
 #endif
 
+/// \deprecated. Use FileListTransferCBInterface2
 /// \brief Used by FileListTransfer plugin as a callback for when we get a file.
 /// \details You get the last file when fileIndex==numberOfFilesInThisSet
 /// \sa FileListTransfer
@@ -55,6 +56,26 @@ public:
 		FileListNodeContext context;
 	};
 
+	struct FileProgressStruct
+	{
+		/// \param[out] onFileStruct General information about this file, such as the filename and the first \a partLength bytes. You do NOT need to save this data yourself. The complete file will arrive normally.
+		OnFileStruct *onFileStruct;
+		/// \param[out] partCount The zero based index into partTotal. The percentage complete done of this file is 100 * (partCount+1)/partTotal
+		unsigned int partCount;
+		/// \param[out] partTotal The total number of parts this file was split into. Each part will be roughly the MTU size, minus the UDP header and RakNet headers
+		unsigned int partTotal;
+		/// \param[out] dataChunkLength How many bytes long firstDataChunk and iriDataChunk are
+		unsigned int dataChunkLength;
+		/// \param[out] firstDataChunk The first \a partLength of the final file. If you store identifying information about the file in the first \a partLength bytes, you can read them while the download is taking place. If this hasn't arrived yet, firstDataChunk will be 0
+		char *firstDataChunk;
+		/// \param[out] iriDataChunk If the remote system is sending this file using IncrementalReadInterface, then this is the chunk we just downloaded. It will not exist in memory after this callback. You should either store this to disk, or in memory. If it is 0, then the file is smaller than one chunk, and will be held in memory automatically
+		char *iriDataChunk;
+		/// \param[out] iriWriteOffset Offset in bytes from the start of the file for the data pointed to by iriDataChunk
+		unsigned int iriWriteOffset;
+		/// \param[in] allocateIrIDataChunkAutomatically If true, then RakNet will hold iriDataChunk for you and return it in OnFile. Defaults to true
+		bool allocateIrIDataChunkAutomatically;
+	};
+
 	FileListTransferCBInterface() {}
 	virtual ~FileListTransferCBInterface() {}
 
@@ -63,21 +84,14 @@ public:
 	/// \return Return true to have RakNet delete the memory allocated to hold this file for this function call.
 	virtual bool OnFile(OnFileStruct *onFileStruct)=0;
 
-	/// \brief Got part of a big file.
-	/// \details You can get these notifications by calling RakPeer::SetSplitMessageProgressInterval
-	/// Otherwise you will only get complete files.
-	/// \param[in] onFileStruct General information about this file, such as the filename and the first \a partLength bytes. You do NOT need to save this data yourself. The complete file will arrive normally.
-	/// \param[in] partCount The zero based index into partTotal. The percentage complete done of this file is 100 * (partCount+1)/partTotal
-	/// \param[in] partTotal The total number of parts this file was split into. Each part will be roughly the MTU size, minus the UDP header and RakNet headers
-	/// \param[in] partLength How many bytes long firstDataChunk is
-	/// \param[in] firstDataChunk The first \a partLength of the final file. If you store identifying information about the file in the first \a partLength bytes, you can read them while the download is taking place. If this hasn't arrived yet, firstDataChunk will be 0
-	virtual void OnFileProgress(OnFileStruct *onFileStruct,unsigned int partCount,unsigned int partTotal,unsigned int dataChunkLength, char *firstDataChunk) {
-		(void) onFileStruct;
-		(void) partCount;
-		(void) partTotal;
-		(void) dataChunkLength;
-		(void) firstDataChunk;
-	}
+	/// \brief Got part of a big file internally in RakNet
+	/// \details This is called in one of two circumstances: Either the transport layer is returning ID_PROGRESS_NOTIFICATION, or you got a block via IncrementalReadInterface
+	/// If the transport layer is returning ID_PROGRESS_NOTIFICATION (see RakPeer::SetSplitMessageProgressInterval()) then FileProgressStruct::iriDataChunk will be 0.
+	/// If this is a block via IncrementalReadInterface, then iriDataChunk will point to the block just downloaded.
+	/// If not using IncrementalReadInterface, then you only care about partCount and partTotal to tell how far the download has progressed. YOu can use firstDataChunk to read the first part of the file if desired. The file is usable when you get the OnFile callback.
+	/// If using IncrementalReadInterface and you let RakNet buffer the files in memory (default), then it is the same as above. The file is usable when you get the OnFile callback.
+	/// If using IncrementalReadInterface and you do not let RakNet buffer the files in memory, then set allocateIrIDataChunkAutomatically to false. Write the file to disk whenever you get OnFileProgress and iriDataChunk is not 0, and ignore OnFile.
+	virtual void OnFileProgress(FileProgressStruct *fps)=0;
 
 	/// \brief Called while the handler is active by FileListTransfer
 	/// \details Return false when you are done with the class.

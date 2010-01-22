@@ -1,10 +1,11 @@
-
-#if (defined(__GNUC__)  || defined(__GCCXML__) || defined(_PS3)) && !defined(__WIN32)
+#if (defined(__GNUC__)  || defined(__GCCXML__)) && !defined(__WIN32)
 #include <string.h>
+#ifndef _stricmp
 int _stricmp(const char* s1, const char* s2)
 {
 	return strcasecmp(s1,s2);
 }
+#endif
 int _strnicmp(const char* s1, const char* s2, size_t n)
 {
 	return strncasecmp(s1,s2,n);
@@ -13,12 +14,10 @@ char *_strlwr(char * str )
 {
 	if (str==0)
 		return 0;
-	int i=0;
-	while (str[i])
+	for (int i=0; str[i]; i++)
 	{
 		if (str[i]>='A' && str[i]<='Z')
 			str[i]+='a'-'A';
-		i++;
 	}
 	return str;
 }

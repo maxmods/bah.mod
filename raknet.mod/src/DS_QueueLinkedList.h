@@ -96,7 +96,7 @@ namespace DataStructures
 	template <class QueueType>
 	void QueueLinkedList<QueueType>::Clear ( void )
 	{
-		data.Clear();
+		data.Clear(__FILE__, __LINE__);
 	}
 } // End namespace
 

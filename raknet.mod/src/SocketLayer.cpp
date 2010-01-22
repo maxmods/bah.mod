@@ -9,10 +9,8 @@
 #include "SocketLayer.h"
 #include "RakAssert.h"
 #include "RakNetTypes.h"
-
-#ifndef _USE_RAKNET_FLOW_CONTROL
-#include "udt.h"
-#endif
+#include "CCRakNetUDT.h"
+#include "GetTime.h"
 
 #ifdef _WIN32
 #elif !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
@@ -25,19 +23,16 @@
 #endif
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-#include "np/common.h"
-#include <netdb.h>
-#include <string.h>
+                                                               
 #endif
 
 #if defined(_XBOX) || defined(X360)
-//#define RAKNET_USE_VDP
-#include "WSAStartupSingleton.h"
+                                                          
 #elif defined(_WIN32)
 #include "WSAStartupSingleton.h"
 #include <ws2tcpip.h> // 'IP_DONTFRAGMENT' 'IP_TTL'
 #elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-#define closesocket socketclose
+                               
 #else
 #define closesocket close
 #include <unistd.h>
@@ -54,7 +49,8 @@
 
 SocketLayer SocketLayer::I;
 
-extern void ProcessNetworkPacket( const unsigned int binaryAddress, const unsigned short port, const char *data, const int length, RakPeer *rakPeer, RakNetSmartPtr<RakNetSocket> rakNetSocket );
+extern void ProcessNetworkPacket( const SystemAddress systemAddress, const char *data, const int length, RakPeer *rakPeer, RakNetSmartPtr<RakNetSocket> rakNetSocket, RakNetTimeUS timeRead );
+extern void ProcessNetworkPacket( const SystemAddress systemAddress, const char *data, const int length, RakPeer *rakPeer, RakNetTimeUS timeRead );
 extern void ProcessPortUnreachable( const unsigned int binaryAddress, const unsigned short port, RakPeer *rakPeer );
 
 #ifdef _DEBUG
@@ -66,6 +62,7 @@ SocketLayer::SocketLayer()
 #ifdef _WIN32
 	WSAStartupSingleton::AddRef();
 #endif
+	slo=0;
 }
 
 SocketLayer::~SocketLayer()
@@ -101,7 +98,7 @@ SOCKET SocketLayer::Connect( SOCKET writeSocket, unsigned int binaryAddress, uns
 
 	return writeSocket;
 }
-bool SocketLayer::IsPortInUse(unsigned short port)
+bool SocketLayer::IsPortInUse(unsigned short port, const char *hostAddress)
 {
 	SOCKET listenSocket;
 	sockaddr_in listenerSocketAddress;
@@ -113,10 +110,43 @@ bool SocketLayer::IsPortInUse(unsigned short port)
 	// bind our name to the socket
 	// Fill in the rest of the address structure
 	listenerSocketAddress.sin_family = AF_INET;
-	listenerSocketAddress.sin_addr.s_addr = INADDR_ANY;
+	if ( hostAddress && hostAddress[0] )
+		listenerSocketAddress.sin_addr.s_addr = inet_addr( hostAddress );
+	else
+		listenerSocketAddress.sin_addr.s_addr = INADDR_ANY;
 	int ret = bind( listenSocket, ( struct sockaddr * ) & listenerSocketAddress, sizeof( listenerSocketAddress ) );
 	closesocket(listenSocket);
+
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+                                  
+#else
 	return ret <= -1;
+#endif
+}
+void SocketLayer::SetDoNotFragment( SOCKET listenSocket, int opt )
+{
+
+#if defined(IP_DONTFRAGMENT )
+
+#if defined(_WIN32) && !defined(_XBOX) && defined(_DEBUG) && !defined(X360)
+	// If this assert hit you improperly linked against WSock32.h
+	RakAssert(IP_DONTFRAGMENT==14);
+#endif
+
+	if ( setsockopt( listenSocket, IPPROTO_IP, IP_DONTFRAGMENT, ( char * ) & opt, sizeof ( opt ) ) == -1 )
+	{
+#if defined(_WIN32) && defined(_DEBUG)
+		DWORD dwIOError = GetLastError();
+		LPVOID messageBuffer;
+		FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, dwIOError, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),  // Default language
+			( LPTSTR ) & messageBuffer, 0, NULL );
+		RAKNET_DEBUG_PRINTF( "setsockopt(IP_DONTFRAGMENT) failed:Error code - %d\n%s", dwIOError, messageBuffer );
+		LocalFree( messageBuffer );
+#endif
+	}
+#endif
+
 }
 void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 {
@@ -154,70 +184,16 @@ void SocketLayer::SetSocketOptions( SOCKET listenSocket)
 	setsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, ( char * ) & sock_opt, sizeof ( sock_opt ) );
 #endif
 
-#ifdef _USE_RAKNET_FLOW_CONTROL
+	/*
 	#ifdef _WIN32
 		unsigned long nonblocking = 1;
 		ioctlsocket( listenSocket, FIONBIO, &nonblocking );
 	#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		sock_opt=1;
-		setsockopt(listenSocket, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
+                                                                                                            
 	#else
 		fcntl( listenSocket, F_SETFL, O_NONBLOCK );
 	#endif
-#else
-	// UDT flow control
-	timeval tv;
-		tv.tv_sec = 0;
-	#if defined (BSD) || defined (OSX)
-		// Known BSD bug as the day I wrote this code.
-		// A small time out value will cause the socket to block forever.
-		tv.tv_usec = 10000;
-	#else
-		tv.tv_usec = 100;
-	#endif
-	#ifdef UNIX
-		// Set non-blocking I/O
-		// UNIX does not support SO_RCVTIMEO
-		int opts = fcntl(listenSocket, F_GETFL);
-		if (-1 == fcntl(listenSocket, F_SETFL, opts | O_NONBLOCK))
-			THROW_CUDTEXCEPTION(1, 3, NET_ERROR);
-	#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		sock_opt=1;
-		setsockopt(listenSocket, SOL_SOCKET, SO_NBIO, ( char * ) & sock_opt, sizeof ( sock_opt ) );
-	#elif WIN32
-		DWORD ot = 1; //milliseconds
-		if (setsockopt(listenSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&ot, sizeof(DWORD)) < 0)
-			return;
-	#else
-		// Set receiving time-out value
-		if (setsockopt(listenSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(timeval)) < 0)
-			return;
-	#endif // UNIX
-#endif
-
-
-#if defined(_WIN32) && !defined(_XBOX) && defined(_DEBUG) && !defined(X360)
-	// If this assert hit you improperly linked against WSock32.h
-	RakAssert(IP_DONTFRAGMENT==14);
-#endif
-
-	// TODO - I need someone on dialup to test this with :(
-	// Path MTU Detection
-
-	//	if ( setsockopt( listenSocket, IPPROTO_IP, IP_DONTFRAGMENT, ( char * ) & sock_opt, sizeof ( sock_opt ) ) == -1 )
-	//	{
-	//#if defined(_WIN32) && !defined(_XBOX) && defined(_DEBUG)
-	//		DWORD dwIOError = GetLastError();
-	//		LPVOID messageBuffer;
-	//		FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-	//			NULL, dwIOError, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),  // Default language
-	//			( LPTSTR ) & messageBuffer, 0, NULL );
-	// something has gone wrong here...
-	//		RAKNET_DEBUG_PRINTF( "setsockopt(IP_DONTFRAGMENT) failed:Error code - %d\n%s", dwIOError, messageBuffer );
-	//Free the buffer.
-	//		LocalFree( messageBuffer );
-	//#endif
-	//	}
+	*/
 
 	// Set broadcast capable
 	sock_opt=1;
@@ -250,72 +226,7 @@ SOCKET SocketLayer::CreateBoundSocket_PS3Lobby( unsigned short port, bool blocki
 	(void) forceHostAddress;
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-	(void) blockingSocket;
-
-	int ret;
-	SOCKET listenSocket;
-	sockaddr_in_p2p listenerSocketAddress;
-	memset(&listenerSocketAddress, 0, sizeof(listenerSocketAddress));
-
-	// Lobby version
-	listenerSocketAddress.sin_port = htons(SCE_NP_PORT);
-	listenerSocketAddress.sin_vport = htons(port);
-	listenSocket = socket( AF_INET, SOCK_DGRAM_P2P, 0 );
-
-	// Normal version as below
-
-	if ( listenSocket == (SOCKET) -1 )
-	{
-		return (SOCKET) -1;
-	}
-
-	SetSocketOptions(listenSocket);
-
-	// Fill in the rest of the address structure
-	listenerSocketAddress.sin_family = AF_INET;
-
-	if (forceHostAddress && forceHostAddress[0])
-	{
-		listenerSocketAddress.sin_addr.s_addr = inet_addr( forceHostAddress );
-	}
-	else
-	{
-		listenerSocketAddress.sin_addr.s_addr = INADDR_ANY;
-	}
-
-	// bind our name to the socket
-	ret = bind( listenSocket, ( struct sockaddr * ) & listenerSocketAddress, sizeof( listenerSocketAddress ) );
-
-	if ( ret <= -1 )
-	{
-	switch (ret)
-		{
-		case EBADF:
-			RAKNET_DEBUG_PRINTF("bind(): sockfd is not a valid descriptor.\n"); break;
-		case EINVAL:
-			RAKNET_DEBUG_PRINTF("bind(): The addrlen is wrong, or the socket was not in the AF_UNIX family.\n"); break;
-		case EROFS:
-			RAKNET_DEBUG_PRINTF("bind(): The socket inode would reside on a read-only file system.\n"); break;
-		case EFAULT:
-			RAKNET_DEBUG_PRINTF("bind(): my_addr points outside the user's accessible address space.\n"); break;
-		case ENAMETOOLONG:
-			RAKNET_DEBUG_PRINTF("bind(): my_addr is too long.\n"); break;
-		case ENOENT:
-			RAKNET_DEBUG_PRINTF("bind(): The file does not exist.\n"); break;
-		case ENOMEM:
-			RAKNET_DEBUG_PRINTF("bind(): Insufficient kernel memory was available.\n"); break;
-		case ENOTDIR:
-			RAKNET_DEBUG_PRINTF("bind(): A component of the path prefix is not a directory.\n"); break;
-		case EACCES:
-			RAKNET_DEBUG_PRINTF("bind(): Search permission is denied on a component of the path prefix.\n"); break;
-		default:
-			RAKNET_DEBUG_PRINTF("Unknown bind() error %i.\n", ret); break;
-		}
-
-		return (SOCKET) -1;
-	}
-
-	return listenSocket;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 #else
 	return 0;
 #endif
@@ -413,37 +324,7 @@ SOCKET SocketLayer::CreateBoundSocket( unsigned short port, bool blockingSocket,
 		//Free the buffer.
 		LocalFree( messageBuffer );
 #elif (defined(__GNUC__)  || defined(__GCCXML__) || defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)) && !defined(__WIN32)
-		switch (ret)
-		{
-		case EBADF:
-			RAKNET_DEBUG_PRINTF("bind(): sockfd is not a valid descriptor.\n"); break;
-#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
-		case ENOTSOCK:
-			RAKNET_DEBUG_PRINTF("bind(): Argument is a descriptor for a file, not a socket.\n"); break;
-#endif
-		case EINVAL:
-			RAKNET_DEBUG_PRINTF("bind(): The addrlen is wrong, or the socket was not in the AF_UNIX family.\n"); break;
-		case EROFS:
-			RAKNET_DEBUG_PRINTF("bind(): The socket inode would reside on a read-only file system.\n"); break;
-		case EFAULT:
-			RAKNET_DEBUG_PRINTF("bind(): my_addr points outside the user's accessible address space.\n"); break;
-		case ENAMETOOLONG:
-			RAKNET_DEBUG_PRINTF("bind(): my_addr is too long.\n"); break;
-		case ENOENT:
-			RAKNET_DEBUG_PRINTF("bind(): The file does not exist.\n"); break;
-		case ENOMEM:
-			RAKNET_DEBUG_PRINTF("bind(): Insufficient kernel memory was available.\n"); break;
-		case ENOTDIR:
-			RAKNET_DEBUG_PRINTF("bind(): A component of the path prefix is not a directory.\n"); break;
-		case EACCES:
-			RAKNET_DEBUG_PRINTF("bind(): Search permission is denied on a component of the path prefix.\n"); break;
-#if !defined(_PS3) && !defined(__PS3__) && !defined(SN_TARGET_PS3)
-		case ELOOP:
-			RAKNET_DEBUG_PRINTF("bind(): Too many symbolic links were encountered in resolving my_addr.\n"); break;
-#endif
-		default:
-			RAKNET_DEBUG_PRINTF("Unknown bind() error %i.\n", ret); break;
-		}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 #endif
 
 		return (SOCKET) -1;
@@ -481,8 +362,6 @@ void SocketLayer::Write( const SOCKET writeSocket, const char* data, const int l
 
 	send( writeSocket, data, length, 0 );
 }
-// REMOVEME
-//#include "BitStream.h"
 int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, RakNetSmartPtr<RakNetSocket> rakNetSocket, unsigned short remotePortRakNetWasStartedOn_PS3 )
 {
 	int len=0;
@@ -496,10 +375,10 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, Rak
 	if (slo)
 	{
 		SystemAddress sender;
-		len = slo->RakNetRecvFrom(s,rakPeer,data,&sender);
+		len = slo->RakNetRecvFrom(s,rakPeer,data,&sender,true);
 		if (len>0)
 		{
-			ProcessNetworkPacket( sender.binaryAddress, sender.port, data, len, rakPeer, rakNetSocket );
+			ProcessNetworkPacket( sender, data, len, rakPeer, rakNetSocket, RakNet::GetTimeUS() );
 			return 1;
 		}
 	}
@@ -522,12 +401,7 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, Rak
 	if (remotePortRakNetWasStartedOn_PS3!=0)
 	{
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-		sockaddr_in_p2p sap2p;
-		len2 = sizeof( sap2p );
-		sap2p.sin_family = AF_INET;
-		len = recvfrom( s, data, MAXIMUM_MTU_SIZE, flag, ( sockaddr* ) & sap2p, ( socklen_t* ) & len2 );
-		portnum = ntohs( sap2p.sin_port );
-		sa.sin_addr.s_addr = sap2p.sin_addr.s_addr;
+                                                                                                                                                                                                                                                                           
 #endif
 	}
 	else
@@ -581,7 +455,7 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, Rak
 
 	if ( len > 0 )
 	{
-		ProcessNetworkPacket( sa.sin_addr.s_addr, portnum, data, len, rakPeer, rakNetSocket );
+		ProcessNetworkPacket( SystemAddress(sa.sin_addr.s_addr, portnum), data, len, rakPeer, rakNetSocket, RakNet::GetTimeUS() );
 
 		return 1;
 	}
@@ -632,6 +506,85 @@ int SocketLayer::RecvFrom( const SOCKET s, RakPeer *rakPeer, int *errorCode, Rak
 
 	return 0; // no data
 }
+void SocketLayer::RecvFromBlocking( const SOCKET s, RakPeer *rakPeer, unsigned short remotePortRakNetWasStartedOn_PS3, char *dataOut, int *bytesReadOut, SystemAddress *systemAddressOut, RakNetTimeUS *timeRead )
+{
+	(void) rakPeer;
+	// Randomly crashes, slo is 0, yet gets inside loop.
+	/*
+	if (SocketLayer::Instance()->slo)
+	{
+		SystemAddress sender;
+		*bytesReadOut = SocketLayer::Instance()->slo->RakNetRecvFrom(s,rakPeer,dataOut,systemAddressOut,false);
+		if (*bytesReadOut>0)
+		{
+			*timeRead=RakNet::GetTimeUS();
+			return;
+		}
+		else if (*bytesReadOut==0)
+		{
+			return;
+		}
+		// Negative, process as normal
+	}
+	*/
+
+
+	sockaddr* sockAddrPtr;
+	socklen_t sockLen;
+	socklen_t* socketlenPtr=(socklen_t*) &sockLen;
+	sockaddr_in sa;
+	char *dataOutModified;
+	int dataOutSize;
+	const int flag=0;
+
+	(void) remotePortRakNetWasStartedOn_PS3;
+
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+                                                                                                                                                                               
+#endif
+	{
+		sockLen=sizeof(sa);
+		sa.sin_family = AF_INET;
+		sa.sin_port=0;
+		sockAddrPtr=(sockaddr*) &sa;
+	}
+
+#if (defined(_XBOX) || defined(_X360)) && defined(RAKNET_USE_VDP)
+	dataOutModified=dataOut+sizeof(uint16_t);
+	dataOutSize=MAXIMUM_MTU_SIZE*2;
+#else
+	dataOutModified=dataOut;
+	dataOutSize=MAXIMUM_MTU_SIZE;
+#endif
+	*bytesReadOut = recvfrom( s, dataOutModified, dataOutSize, flag, sockAddrPtr, socketlenPtr );
+	if (*bytesReadOut<=0)
+	{
+		/*
+#if defined(_WIN32) && !defined(_XBOX) && !defined(X360) && defined(_DEBUG)
+		DWORD dwIOError = GetLastError();
+		LPVOID messageBuffer;
+		FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, dwIOError, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),  // Default language
+			( LPTSTR ) & messageBuffer, 0, NULL );
+		// something has gone wrong here...
+		RAKNET_DEBUG_PRINTF( "sendto failed:Error code - %d\n%s", dwIOError, messageBuffer );
+
+		//Free the buffer.
+		LocalFree( messageBuffer );
+#endif
+		*/
+		return;
+	}
+	*timeRead=RakNet::GetTimeUS();
+	
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+                                                                                                                                                                         
+#endif
+	{
+		systemAddressOut->port=ntohs( sa.sin_port );
+		systemAddressOut->binaryAddress=sa.sin_addr.s_addr;
+	}
+}
 
 
 int SocketLayer::SendTo_PS3Lobby( SOCKET s, const char *data, int length, unsigned int binaryAddress, unsigned short port, unsigned short remotePortRakNetWasStartedOn_PS3 )
@@ -645,18 +598,7 @@ int SocketLayer::SendTo_PS3Lobby( SOCKET s, const char *data, int length, unsign
 
 	int len=0;
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-	sockaddr_in_p2p sa;
-	memset(&sa, 0, sizeof(sa));
-	// LAME!!!! You have to know the behind-nat port on the recipient! Just guessing it is the same as our own
-	sa.sin_vport = htons(remotePortRakNetWasStartedOn_PS3);
-	sa.sin_port = htons(port); // Port returned from signaling
-	sa.sin_addr.s_addr = binaryAddress;
-	sa.sin_family = AF_INET;
-	do
-	{
-		len = sendto( s, data, length, 0, ( const sockaddr* ) & sa, sizeof( sa ) );
-	}
-	while ( len == 0 );
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 #endif
 	return len;
 }
@@ -708,6 +650,23 @@ int SocketLayer::SendTo_PC( SOCKET s, const char *data, int length, unsigned int
 	do
 	{
 		len = sendto( s, data, length, 0, ( const sockaddr* ) & sa, sizeof( sa ) );
+		if (len<0)
+		{
+
+#if defined(_WIN32) && !defined(_XBOX) && defined(_DEBUG) && !defined(X360)
+			DWORD dwIOError = GetLastError();
+			LPVOID messageBuffer;
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL, dwIOError, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),  // Default language
+				( LPTSTR ) &messageBuffer, 0, NULL );
+			// something has gone wrong here...
+			RAKNET_DEBUG_PRINTF( "SendTo_PC failed:Error code - %d\n%s", dwIOError, messageBuffer );
+			//Free the buffer.
+			LocalFree( messageBuffer );
+#endif
+
+			printf("sendto failed with code %i for char %i and length %i.\n", len, data[0], length);
+		}
 	}
 	while ( len == 0 );
 	return len;
@@ -718,6 +677,8 @@ int SocketLayer::SendTo_PC( SOCKET s, const char *data, int length, unsigned int
 #endif
 int SocketLayer::SendTo( SOCKET s, const char *data, int length, unsigned int binaryAddress, unsigned short port, unsigned short remotePortRakNetWasStartedOn_PS3 )
 {
+	RakAssert(length<=MAXIMUM_MTU_SIZE-UDP_HEADER_SIZE);
+	RakAssert(port!=0);
 	if (slo)
 	{
 		SystemAddress sa(binaryAddress,port);
@@ -780,27 +741,6 @@ int SocketLayer::SendTo( SOCKET s, const char *data, int length, unsigned int bi
 
 	return 1; // error
 }
-#include "RakNetTime.h"
-#include "GetTime.h"
-#ifndef _USE_RAKNET_FLOW_CONTROL // Use UDT
-int SocketLayer::SendToUDT( int s, const char *data, int length, unsigned short remotePortRakNetWasStartedOn_PS3, int ttl )
-{
-	(void) isPs3LobbySocket;
-
-	static RakNetTimeUS sum=0;
-//	RakNetTimeUS start=RakNet::GetTime();
-
-	int ss;
-	RakAssert(length>0);
-	ss = UDT::sendmsg(s, data, length, ttl, false);
-	RakAssert(ss!=UDT::ERROR);
-//	RakAssert(ss==length || ss==0);
-//	RakNetTimeUS end=RakNet::GetTime();
-//	sum+=end-start;
-//	printf("%i ", (RakNetTimeMS)sum);
-	return ss;
-}
-#endif
 int SocketLayer::SendTo( SOCKET s, const char *data, int length, const char ip[ 16 ], unsigned short port, unsigned short remotePortRakNetWasStartedOn_PS3 )
 {
 	unsigned int binaryAddress;

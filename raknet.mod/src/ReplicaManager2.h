@@ -27,7 +27,7 @@ class Connection_RM2;
 class Connection_RM2Factory;
 
 /// \defgroup REPLICA_MANAGER_2_GROUP ReplicaManager2
-/// \brief Depreciated. Second implementation of object replication
+/// \brief Deprecated. Second implementation of object replication
 /// \details
 /// \ingroup REPLICA_MANAGER_GROUP
 

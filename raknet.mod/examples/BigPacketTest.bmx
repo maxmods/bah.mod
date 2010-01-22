@@ -61,7 +61,7 @@ Type BigPacketTest Extends TExampleHelper
 		If peer1 Then
 			peer1.SetMaximumIncomingConnections(1)
 			Local socketDescriptor:TRKSocketDescriptor = New TRKSocketDescriptor.Create(10000)
-			peer1.SetMTUSize(1492)
+			'peer1.SetMTUSize(1492)
 			peer1.Startup(1, 0, socketDescriptor)
 			peer1.SetSplitMessageProgressInterval(100) ' Get ID_DOWNLOAD_PROGRESS notifications
 		End If
@@ -122,8 +122,8 @@ Type BigPacketTest Extends TExampleHelper
 					Local data:String
 					progressBS.ReadInt(progress)
 					progressBS.ReadInt(total)
-					progressBS.ReadInt(partLength)
-					data = ProgressBS.ReadString(partLength)
+					'progressBS.ReadInt(partLength)
+					data = ProgressBS.ReadString()
 					AddMessage "Progress: msgID=" + Asc(data[0]) + " Progress " + progress + "/" + total + " Partsize=" + partLength + " Full=" + rss.bandwidthExceeded()
 				ElseIf packet.GetData()[0] >= ID_USER_PACKET_ENUM
 					If packet.GetData()[0] = 255 Then
@@ -160,7 +160,7 @@ Type BigPacketTest Extends TExampleHelper
 			If peer2 Then
 				rssSender = peer2.GetStatistics(peer2.GetSystemAddressFromIndex(0))
 				If rssSender Then
-					AddMessage "Snd: " + rssSender.messageSendBuffer(HIGH_PRIORITY) + " waiting. " + rssSender.messagesOnResendQueue() + " waiting on ack. Got " + rssSender.acknowlegementsReceived() + " acks. KBPS=" + (rssSender.bitsPerSecond() / 1000.0) + " Ploss=" + 100.0 * rssSender.messagesTotalBitsResent() / Float(Rsssender.totalBitsSent()) + " Full=" + rssSender.bandwidthExceeded()
+					'AddMessage "Snd: " + rssSender.messageSendBuffer(HIGH_PRIORITY) + " waiting. " + rssSender.messagesOnResendQueue() + " waiting on ack. Got " + rssSender.acknowlegementsReceived() + " acks. KBPS=" + (rssSender.bitsPerSecond() / 1000.0) + " Ploss=" + 100.0 * rssSender.messagesTotalBitsResent() / Float(Rsssender.totalBitsSent()) + " Full=" + rssSender.bandwidthExceeded()
 
 					If sentPacket And rssSender.messageSendBuffer(HIGH_PRIORITY) = 0 And rsssender.messagesOnResendQueue() = 0 And peer1 = Null Then
 						rss = peer2.GetStatistics(peer2.GetSystemAddressFromIndex(0))
@@ -177,7 +177,7 @@ Type BigPacketTest Extends TExampleHelper
 					AddMessage "Receiver: " + rssReceiver.acknowlegementsPending() + " acks waiting."
 				End If
 			End If
-			Delay(100)
+			Delay(10)
 		End If
 
 	End Method
@@ -202,7 +202,7 @@ Type BigPacketTest Extends TExampleHelper
 	
 	Method StartPeer2()
 		socketDescriptor = New TRKSocketDescriptor.Create()
-		peer2.SetMTUSize(1492)
+		'peer2.SetMTUSize(1492)
 		peer2.Startup(1, 0, socketDescriptor)
 		peer2.Connect(ip, 10000)
 	End Method

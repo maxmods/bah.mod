@@ -32,6 +32,7 @@ PacketLogger::PacketLogger()
 	printAcks=true;
 	prefix[0]=0;
 	suffix[0]=0;
+	logDirectMessages=true;
 }
 PacketLogger::~PacketLogger()
 {
@@ -45,7 +46,7 @@ unsigned int splitPacketId, unsigned int splitPacketIndex, unsigned int splitPac
 	const char* idToPrint = NULL;
 	if(printId)
 	{
-		if (splitPacketIndex>0 && splitPacketIndex!=(unsigned int) -1)
+		if (splitPacketCount>0)
 			idToPrint="(SPLIT PACKET)";
 		else
 			idToPrint =	IDTOString(id);
@@ -94,6 +95,9 @@ unsigned int splitPacketId, unsigned int splitPacketIndex, unsigned int splitPac
 }
 void PacketLogger::OnDirectSocketSend(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress)
 {
+	if (logDirectMessages==false)
+		return;
+
 	char str[256];
 	FormatLine(str, "Snd", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetExternalID(remoteSystemAddress), remoteSystemAddress, (unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
 	AddToLog(str);
@@ -106,6 +110,9 @@ void PacketLogger::LogHeader(void)
 }
 void PacketLogger::OnDirectSocketReceive(const char *data, const BitSize_t bitsUsed, SystemAddress remoteSystemAddress)
 {
+	if (logDirectMessages==false)
+		return;
+
 	char str[256];
 	FormatLine(str, "Rcv", "Raw", 0, 0, data[0], bitsUsed, RakNet::GetTime(), rakPeerInterface->GetExternalID(remoteSystemAddress), remoteSystemAddress,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1,(unsigned int)-1);
 	AddToLog(str);
@@ -158,20 +165,20 @@ void PacketLogger::OnInternalPacket(InternalPacket *internalPacket, unsigned fra
 
 	if (internalPacket->data[0]==ID_TIMESTAMP && internalPacket->data[sizeof(unsigned char)+sizeof(RakNetTime)]!=ID_RPC)
 	{
-		FormatLine(str, sendType, "Tms", internalPacket->messageNumber, frameNumber, internalPacket->data[1+sizeof(int)], internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
+		FormatLine(str, sendType, "Tms", internalPacket->reliableMessageNumber, frameNumber, internalPacket->data[1+sizeof(int)], internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
 	}
 	else if (internalPacket->data[0]==ID_RPC || (internalPacket->dataBitLength>(sizeof(unsigned char)+sizeof(RakNetTime))*8 && internalPacket->data[0]==ID_TIMESTAMP && internalPacket->data[sizeof(unsigned char)+sizeof(RakNetTime)]==ID_RPC))
 	{
 		const char *uniqueIdentifier = rakPeerInterface->GetRPCString((const char*) internalPacket->data, internalPacket->dataBitLength, isSend==true ? remoteSystemAddress : UNASSIGNED_SYSTEM_ADDRESS);
 
 		if (internalPacket->data[0]==ID_TIMESTAMP)
-			FormatLine(str, sendType, "RpT", internalPacket->messageNumber, frameNumber, uniqueIdentifier, internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
+			FormatLine(str, sendType, "RpT", internalPacket->reliableMessageNumber, frameNumber, uniqueIdentifier, internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
 		else
-			FormatLine(str, sendType, "Rpc", internalPacket->messageNumber, frameNumber, uniqueIdentifier, internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
+			FormatLine(str, sendType, "Rpc", internalPacket->reliableMessageNumber, frameNumber, uniqueIdentifier, internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
 	}
 	else
 	{
-		FormatLine(str, sendType, "Nrm", internalPacket->messageNumber, frameNumber, internalPacket->data[0], internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
+		FormatLine(str, sendType, "Nrm", internalPacket->reliableMessageNumber, frameNumber, internalPacket->data[0], internalPacket->dataBitLength, (unsigned long long)time, localSystemAddress, remoteSystemAddress, internalPacket->splitPacketId, internalPacket->splitPacketIndex, internalPacket->splitPacketCount, internalPacket->orderingIndex);
 	}
 
 	AddToLog(str);
@@ -243,6 +250,8 @@ const char* PacketLogger::BaseIDTOString(unsigned char Id)
 		"ID_RSA_PUBLIC_KEY_MISMATCH",
 		"ID_CONNECTION_BANNED",
 		"ID_INVALID_PASSWORD",
+		"ID_INCOMPATIBLE_PROTOCOL_VERSION",
+		"ID_IP_RECENTLY_CONNECTED",
 		"ID_MODIFIED_PACKET",
 		"ID_TIMESTAMP",
 		"ID_PONG",
@@ -314,15 +323,31 @@ const char* PacketLogger::BaseIDTOString(unsigned char Id)
 		"ID_ROOMS_HANDLE_CHANGE",
 		"ID_LOBBY2_SEND_MESSAGE",
 		"ID_LOBBY2_SERVER_ERROR",
-		"ID_INCOMPATIBLE_PROTOCOL_VERSION",
 		"ID_FCM2_NEW_HOST",
 		"ID_FCM2_REQUEST_FCMGUID",
-		"ID_FCM2_RESPOND_FCMGUID",
+		"ID_FCM2_RESPOND_CONNECTION_COUNT",
 		"ID_FCM2_INFORM_FCMGUID",
 		"ID_UDP_PROXY_GENERAL",
 		"ID_SQLite3_EXEC",
 		"ID_SQLite3_UNKNOWN_DB",
 		"ID_REPLICA_MANAGER_3_SERIALIZE_CONSTRUCTION_EXISTING",
+		"ID_REPLICA_MANAGER_3_LOCAL_CONSTRUCTION_REJECTED",
+		"ID_REPLICA_MANAGER_3_LOCAL_CONSTRUCTION_ACCEPTED",
+		"ID_NAT_TYPE_DETECTION_REQUEST",
+		"ID_NAT_TYPE_DETECTION_RESULT",
+		"ID_SQLLITE_LOGGER",
+		"ID_ROUTER_2_INTERNAL",
+		"ID_ROUTER_2_FORWARDING_NO_PATH",
+		"ID_ROUTER_2_REROUTED",
+		"ID_RESERVED_1",
+		"ID_RESERVED_2",
+		"ID_RESERVED_3",
+		"ID_RESERVED_4",
+		"ID_RESERVED_5",
+		"ID_RESERVED_6",
+		"ID_RESERVED_7",
+		"ID_RESERVED_8",
+		"ID_RESERVED_9",
 		"ID_USER_PACKET_ENUM"
 	};
 
@@ -355,10 +380,8 @@ void PacketLogger::SetSuffix(const char *_suffix)
 }
 void PacketLogger::GetLocalTime(char buffer[128])
 {
-#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-	buffer[0]=0;
-#else
-	time_t rawtime;
+#if defined(_WIN32) && !defined(__GNUC__)  && !defined(__GCCXML__)
+    time_t rawtime;
 	struct timeval tv;
 	// If you get an arror about an incomplete type, just delete this file
 	struct timezone tz;
@@ -385,7 +408,13 @@ void PacketLogger::GetLocalTime(char buffer[128])
 	strftime (buff2,32,"%x",timeinfo);
 	strcat(buffer,buff2);
 	*/
+#else
+    buffer[0]=0;
 #endif
+}
+void PacketLogger::SetLogDirectMessages(bool send)
+{
+	logDirectMessages=send;
 }
 
 #ifdef _MSC_VER

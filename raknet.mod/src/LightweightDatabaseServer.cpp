@@ -155,17 +155,17 @@ bool LightweightDatabaseServer::RemoveTable(const char *tableName)
 	return true;
 }
 void LightweightDatabaseServer::Clear(void)
-	{
+{
 	unsigned i;
 
 	for (i=0; i < database.Size(); i++)
-		{
+	{
 		database[i]->table.Clear();
 		RakNet::OP_DELETE(database[i], __FILE__, __LINE__);
-		}
+	}
 
 	database.Clear();
-	}
+}
 unsigned LightweightDatabaseServer::GetAndIncrementRowID(const char *tableName)
 	{
 	LightweightDatabaseServer::DatabaseTable *databaseTable;
@@ -233,7 +233,7 @@ void LightweightDatabaseServer::Update(void)
 				// Remove dropped entities
 				for (j=0; j < removeList.Size(); j++)
 					databaseTable->table.RemoveRow(removeList[i]);
-				removeList.Clear(true);
+				removeList.Clear(true, __FILE__,__LINE__);
 
 			}
 		}
@@ -414,7 +414,7 @@ void LightweightDatabaseServer::OnUpdateRow(Packet *packet)
 			if (databaseTable->onlyUpdateOwnRows && RowHasIP(row, packet->systemAddress, databaseTable->SystemAddressColumnIndex)==false)
 				{
 				SystemAddress sysAddr;
-				memcpy(&sysAddr, row->cells[databaseTable->SystemAddressColumnIndex]->c, sizeof(SystemAddress));
+				memcpy(&sysAddr, row->cells[databaseTable->SystemAddressColumnIndex]->c, SystemAddress::size());
 
 				char str1[64], str2[64];
 				packet->systemAddress.ToString(true, str1);
@@ -600,12 +600,12 @@ bool LightweightDatabaseServer::RowHasIP(DataStructures::Table::Row *row, System
 		return false;
 
 	SystemAddress sysAddr;
-	memcpy(&sysAddr, row->cells[SystemAddressColumnIndex]->c, sizeof(SystemAddress));
+	memcpy(&sysAddr, row->cells[SystemAddressColumnIndex]->c, SystemAddress::size());
 	return sysAddr==systemAddress;
 
 	// Doesn't work in release for some reason
 	//RakAssert(row->cells[SystemAddressColumnIndex]->isEmpty==false);
-	//if (memcmp(row->cells[SystemAddressColumnIndex]->c, &systemAddress, sizeof(SystemAddress))==0)
+	//if (memcmp(row->cells[SystemAddressColumnIndex]->c, &systemAddress, SystemAddress::size())==0)
 	//	return true;
 	// return false;
 }
@@ -633,7 +633,7 @@ DataStructures::Table::Row * LightweightDatabaseServer::AddRow(LightweightDataba
 	// Set IP and last update time
 	if ( databaseTable->oneRowPerSystemAddress || databaseTable->onlyUpdateOwnRows || databaseTable->removeRowOnPingFailure || databaseTable->removeRowOnDisconnect)
 		{
-		row->cells[databaseTable->SystemAddressColumnIndex]->Set((char*)&systemAddress, sizeof(SystemAddress));
+		row->cells[databaseTable->SystemAddressColumnIndex]->Set((char*)&systemAddress, (int) SystemAddress::size());
 		row->cells[databaseTable->SystemGuidColumnIndex]->Set((char*)&guid, sizeof(guid));
 		}
 	if (databaseTable->removeRowOnPingFailure)
@@ -684,7 +684,7 @@ void LightweightDatabaseServer::RemoveRowsFromIP(SystemAddress systemAddress)
 
 		for (j=0; j < removeList.Size(); j++)
 			databaseTable->table.RemoveRow(removeList[j]);
-		removeList.Clear(true);
+		removeList.Clear(true, __FILE__,__LINE__);
 	}
 }
 #ifdef _MSC_VER

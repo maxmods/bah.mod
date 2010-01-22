@@ -14,15 +14,17 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "SocketIncludes.h"
+
 #if defined(_XBOX) || defined(X360)
-#include "XBOX360Includes.h"
+                            
 #elif defined(_WIN32)
 #include <winsock2.h> // htonl
 #include <memory.h>
 #include <cmath>
 #include <float.h>
 #elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-#include "PS3Includes.h"
+                        
 #else
 #include <arpa/inet.h>
 #include <memory.h>
@@ -327,7 +329,13 @@ void BitStream::WriteAlignedBytes( const unsigned char* input, const unsigned in
 	AlignWriteToByteBoundary();
 	Write((const char*) input, numberOfBytesToWrite);
 }
-
+void BitStream::EndianSwapBytes( int byteOffset, int length )
+{
+	if (DoEndianSwap())
+	{
+		ReverseBytesInPlace(data+byteOffset, length);
+	}
+}
 /// Aligns the bitstream, writes inputLength, and writes input. Won't write beyond maxBytesToWrite
 void BitStream::WriteAlignedBytesSafe( const char *input, const unsigned int inputLength, const unsigned int maxBytesToWrite )
 {
@@ -396,19 +404,6 @@ bool BitStream::ReadAlignedBytesSafeAlloc( char **input, unsigned int &inputLeng
 	*input = (char*) rakMalloc_Ex( (size_t) inputLength, __FILE__, __LINE__ );
 	return ReadAlignedBytes((unsigned char*) *input, inputLength);
 }
-// Align the next write and/or read to a byte boundary.  This can be used to 'waste' bits to byte align for efficiency reasons
-void BitStream::AlignWriteToByteBoundary( void )
-{
-	if ( numberOfBitsUsed )
-		numberOfBitsUsed += 8 - ( (( numberOfBitsUsed - 1 ) & 7) + 1 );
-}
-
-// Align the next write and/or read to a byte boundary.  This can be used to 'waste' bits to byte align for efficiency reasons
-void BitStream::AlignReadToByteBoundary( void )
-{
-	if ( readOffset )
-		readOffset += 8 - ( (( readOffset - 1 ) & 7 ) + 1 );
-}
 
 // Write numberToWrite bits from the input source
 void BitStream::WriteBits( const unsigned char* input, BitSize_t numberOfBitsToWrite, const bool rightAlignedBits )
@@ -417,8 +412,18 @@ void BitStream::WriteBits( const unsigned char* input, BitSize_t numberOfBitsToW
 //		return;
 
 	AddBitsAndReallocate( numberOfBitsToWrite );
-	unsigned char dataByte;
+
 	const BitSize_t numberOfBitsUsedMod8 = numberOfBitsUsed & 7;
+
+	// If currently aligned and numberOfBits is a multiple of 8, just memcpy for speed
+	if (numberOfBitsUsedMod8==0 && (numberOfBitsToWrite&7)==0)
+	{
+		memcpy( data + ( numberOfBitsUsed >> 3 ), input, numberOfBitsToWrite>>3);
+		numberOfBitsUsed+=numberOfBitsToWrite;
+		return;
+	}
+
+	unsigned char dataByte;
 	const unsigned char* inputPtr=input;
 
 	// Faster to put the while at the top surprisingly enough
@@ -539,13 +544,22 @@ bool BitStream::ReadBits( unsigned char *output, BitSize_t numberOfBitsToRead, c
 	if ( readOffset + numberOfBitsToRead > numberOfBitsUsed )
 		return false;
 
-	BitSize_t readOffsetMod8;
+
+	const BitSize_t readOffsetMod8 = readOffset & 7;
+
+	// If currently aligned and numberOfBits is a multiple of 8, just memcpy for speed
+	if (readOffsetMod8==0 && (numberOfBitsToRead&7)==0)
+	{
+		memcpy( output, data + ( readOffset >> 3 ), numberOfBitsToRead>>3);
+		readOffset+=numberOfBitsToRead;
+		return true;
+	}
+
+
 
 	BitSize_t offset = 0;
 
 	memset( output, 0, (size_t) BITS_TO_BYTES( numberOfBitsToRead ) );
-
-	readOffsetMod8 = readOffset & 7;
 
 	while ( numberOfBitsToRead > 0 )
 	{
@@ -663,9 +677,6 @@ bool BitStream::ReadCompressed( unsigned char* output,
 // Reallocates (if necessary) in preparation of writing numberOfBitsToWrite
 void BitStream::AddBitsAndReallocate( const BitSize_t numberOfBitsToWrite )
 {
-	if (numberOfBitsToWrite <= 0)
-		return;
-
 	BitSize_t newNumberOfBitsAllocated = numberOfBitsToWrite + numberOfBitsUsed;
 
 	if ( numberOfBitsToWrite + numberOfBitsUsed > 0 && ( ( numberOfBitsAllocated - 1 ) >> 3 ) < ( ( newNumberOfBitsAllocated - 1 ) >> 3 ) )   // If we need to allocate 1 or more new bytes
@@ -713,6 +724,17 @@ void BitStream::AddBitsAndReallocate( const BitSize_t numberOfBitsToWrite )
 BitSize_t BitStream::GetNumberOfBitsAllocated(void) const
 {
 	return numberOfBitsAllocated;
+}
+void BitStream::PadWithZeroToByteLength( unsigned int bytes )
+{
+	if (GetNumberOfBytesUsed() < bytes)
+	{
+		AlignWriteToByteBoundary();
+		unsigned int numToWrite = bytes - GetNumberOfBytesUsed();
+		AddBitsAndReallocate( BYTES_TO_BITS(numToWrite) );
+		memset(data+BITS_TO_BYTES(numberOfBitsUsed), 0, (size_t) numToWrite);
+		numberOfBitsUsed+=BYTES_TO_BITS(numToWrite);
+	}
 }
 
 // Should hit if reads didn't match writes
@@ -874,6 +896,15 @@ void BitStream::AssertCopyData( void )
 			data = 0;
 	}
 }
+bool BitStream::IsNetworkOrderInternal(void)
+{
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+             
+#else
+	static const bool isNetworkOrder=(htonl(12345) == 12345);
+	return isNetworkOrder;
+#endif
+}
 void BitStream::ReverseBytes(unsigned char *input, unsigned char *output, const unsigned int length)
 {
 	for (BitSize_t i=0; i < length; i++)
@@ -890,27 +921,7 @@ void BitStream::ReverseBytesInPlace(unsigned char *data,const unsigned int lengt
 		data[length-i-1]=temp;
 	}
 }
-bool BitStream::DoEndianSwap(void)
-{
-#ifndef __BITSTREAM_NATIVE_END 
-	return IsNetworkOrder()==false;
-#else
-	return false;
-#endif
-}
-bool BitStream::IsBigEndian(void)
-{
-	return IsNetworkOrder();
-}
-bool BitStream::IsNetworkOrder(void)
-{
-#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-	return true;
-#else
-	static bool isNetworkOrder=(htonl(12345) == 12345);
-	return isNetworkOrder;
-#endif
-}
+
 bool BitStream::Read(char *var)
 {
 	return RakString::Deserialize(var,this);
@@ -918,6 +929,152 @@ bool BitStream::Read(char *var)
 bool BitStream::Read(unsigned char *var)
 {
 	return RakString::Deserialize((char*) var,this);
+}
+void BitStream::WriteAlignedVar8(const char *input)
+{
+	RakAssert((numberOfBitsUsed&7)==0);
+	AddBitsAndReallocate(1*8);
+	data[( numberOfBitsUsed >> 3 ) + 0] = input[0];
+	numberOfBitsUsed+=1*8;
+}
+bool BitStream::ReadAlignedVar8(char *output)
+{
+	RakAssert((readOffset&7)==0);
+	if ( readOffset + 1*8 > numberOfBitsUsed )
+		return false;
+
+	output[0] = data[( readOffset >> 3 ) + 0];
+	readOffset+=1*8;
+	return true;
+}
+void BitStream::WriteAlignedVar16(const char *input)
+{
+	RakAssert((numberOfBitsUsed&7)==0);
+	AddBitsAndReallocate(2*8);
+#ifndef __BITSTREAM_NATIVE_END
+	if (DoEndianSwap())
+	{
+		data[( numberOfBitsUsed >> 3 ) + 0] = input[1];
+		data[( numberOfBitsUsed >> 3 ) + 1] = input[0];
+	}
+	else
+#endif
+	{
+		data[( numberOfBitsUsed >> 3 ) + 0] = input[0];
+		data[( numberOfBitsUsed >> 3 ) + 1] = input[1];
+	}
+
+	numberOfBitsUsed+=2*8;
+}
+bool BitStream::ReadAlignedVar16(char *output)
+{
+	RakAssert((readOffset&7)==0);
+	if ( readOffset + 2*8 > numberOfBitsUsed )
+		return false;
+#ifndef __BITSTREAM_NATIVE_END
+	if (DoEndianSwap())
+	{
+		output[0] = data[( readOffset >> 3 ) + 1];
+		output[1] = data[( readOffset >> 3 ) + 0];
+	}
+	else
+#endif
+	{
+		output[0] = data[( readOffset >> 3 ) + 0];
+		output[1] = data[( readOffset >> 3 ) + 1];
+	}
+
+	readOffset+=2*8;
+	return true;
+}
+void BitStream::WriteAlignedVar32(const char *input)
+{
+	RakAssert((numberOfBitsUsed&7)==0);
+	AddBitsAndReallocate(4*8);
+#ifndef __BITSTREAM_NATIVE_END
+	if (DoEndianSwap())
+	{
+		data[( numberOfBitsUsed >> 3 ) + 0] = input[3];
+		data[( numberOfBitsUsed >> 3 ) + 1] = input[2];
+		data[( numberOfBitsUsed >> 3 ) + 2] = input[1];
+		data[( numberOfBitsUsed >> 3 ) + 3] = input[0];
+	}
+	else
+#endif
+	{
+		data[( numberOfBitsUsed >> 3 ) + 0] = input[0];
+		data[( numberOfBitsUsed >> 3 ) + 1] = input[1];
+		data[( numberOfBitsUsed >> 3 ) + 2] = input[2];
+		data[( numberOfBitsUsed >> 3 ) + 3] = input[3];
+	}
+
+	numberOfBitsUsed+=4*8;
+}
+bool BitStream::ReadAlignedVar32(char *output)
+{
+	RakAssert((readOffset&7)==0);
+	if ( readOffset + 4*8 > numberOfBitsUsed )
+		return false;
+#ifndef __BITSTREAM_NATIVE_END
+	if (DoEndianSwap())
+	{
+		output[0] = data[( readOffset >> 3 ) + 3];
+		output[1] = data[( readOffset >> 3 ) + 2];
+		output[2] = data[( readOffset >> 3 ) + 1];
+		output[3] = data[( readOffset >> 3 ) + 0];
+	}
+	else
+#endif
+	{
+		output[0] = data[( readOffset >> 3 ) + 0];
+		output[1] = data[( readOffset >> 3 ) + 1];
+		output[2] = data[( readOffset >> 3 ) + 2];
+		output[3] = data[( readOffset >> 3 ) + 3];
+	}
+
+	readOffset+=4*8;
+	return true;
+}
+bool BitStream::ReadFloat16( float &f, float floatMin, float floatMax )
+{
+	unsigned short percentile;
+	if (Read(percentile))
+	{
+		RakAssert(floatMax>floatMin);
+		f = floatMin + ((float) percentile / 65535.0f) * (floatMax-floatMin);
+		if (f<floatMin)
+			f=floatMin;
+		else if (f>floatMax)
+			f=floatMax;
+		return true;
+	}
+	return false;
+}
+bool BitStream::SerializeFloat16(bool writeToBitstream, float &f, float floatMin, float floatMax)
+{
+	if (writeToBitstream)
+		WriteFloat16(f, floatMin, floatMax);
+	else
+		return ReadFloat16(f, floatMin, floatMax);
+	return true;
+}
+void BitStream::WriteFloat16( float f, float floatMin, float floatMax )
+{
+	RakAssert(floatMax>floatMin);
+	if (f>floatMax+.001)
+	{
+		RakAssert(f<=floatMax+.001);
+	}
+	if (f<floatMin-.001)
+	{
+		RakAssert(f>=floatMin-.001);
+	}
+	float percentile=65535.0f * (f-floatMin)/(floatMax-floatMin);
+	if (percentile<0.0)
+		percentile=0.0;
+	if (percentile>65535.0f)
+		percentile=65535.0f;
+	Write((unsigned short)percentile);
 }
 
 #ifdef _MSC_VER

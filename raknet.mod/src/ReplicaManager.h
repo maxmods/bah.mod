@@ -31,7 +31,7 @@ class ReplicaManager;
 /// \ingroup PLUGINS_GROUP
 
 /// \defgroup REPLICA_MANAGER_GROUP1 ReplicaManager
-/// \brief Depreciated. First implementation of object replication
+/// \brief Deprecated. First implementation of object replication
 /// \details
 /// \ingroup REPLICA_MANAGER_GROUP
 

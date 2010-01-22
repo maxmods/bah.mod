@@ -17,7 +17,7 @@
 #include "RakNetTypes.h"
 #include "RakAssert.h"
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-#include <math.h>
+                 
 #else
 #include <cmath>
 #endif

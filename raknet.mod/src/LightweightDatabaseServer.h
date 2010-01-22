@@ -21,7 +21,7 @@ struct Packet;
 /// \brief A simple flat database included with RakNet, useful for a server browser or a lobby server.
 /// \details A flat database interface.  Adds the ability to track IPs of row updaters and passwords for table read and write operations,
 /// Best used for data in which queries which do not need to be updated in real-time
-/// \ingroup SIMPLE_DATABSE_GROUP
+/// \ingroup SIMPLE_DATABASE_GROUP
 class RAK_DLL_EXPORT LightweightDatabaseServer : public PluginInterface2
 	{
 	public:

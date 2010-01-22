@@ -16,14 +16,14 @@
 class RakPeerInterface;
 struct Packet;
 
-/// \defgroup SIMPLE_DATABSE_GROUP
+/// \defgroup SIMPLE_DATABASE_GROUP MySQLNetworkedDatabase
 /// \brief Networked data stored in tabular format
 /// \details
 /// \ingroup PLUGINS_GROUP
 
 /// \deprecated Use RakNet::SQLite3ClientPlugin found at DependentExtensions/SQLite3Plugin/SQLite3ClientPlugin.h
 /// \brief The client interface to the simple database included with RakNet, useful for a server browser or a lobby server.
-/// \ingroup SIMPLE_DATABSE_GROUP
+/// \ingroup SIMPLE_DATABASE_GROUP
 class RAK_DLL_EXPORT LightweightDatabaseClient : public PluginInterface2
 {
 public:

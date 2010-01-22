@@ -12,7 +12,6 @@
 #include "RakMemoryOverride.h"
 #include "DS_List.h"
 #include "RakNetTypes.h"
-#include "SingleProducerConsumer.h"
 #include "Export.h"
 #include "RakThread.h"
 #include "DS_Queue.h"
@@ -20,6 +19,7 @@
 #include "RakNetDefines.h"
 #include "SocketIncludes.h"
 #include "DS_ByteQueue.h"
+#include "DS_ThreadsafeAllocatingQueue.h"
 
 struct RemoteClient;
 
@@ -40,7 +40,8 @@ public:
 	virtual ~TCPInterface();
 
 	/// Starts the TCP server on the indicated port
-	bool Start(unsigned short port, unsigned short maxIncomingConnections);
+	/// \param[in] threadPriority Passed to thread creation routine. Use THREAD_PRIORITY_NORMAL for Windows. WARNING!!! On Linux, 0 means highest priority! You MUST set this to something valid based on the values used by your other threads
+	bool Start(unsigned short port, unsigned short maxIncomingConnections, unsigned short maxConnections=0, int _threadPriority=-99999);
 
 	/// Stops the TCP server
 	void Stop(void);
@@ -57,10 +58,13 @@ public:
 #endif
 
 	/// Sends a byte stream
-	void Send( const char *data, unsigned length, SystemAddress systemAddress, bool broadcast );
+	void Send( const char *data, unsigned int length, SystemAddress systemAddress, bool broadcast );
 
 	// Sends a concatenated list of byte streams
-	bool SendList( char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast );
+	bool SendList( const char **data, const unsigned int  *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast );
+
+	// Get how many bytes are waiting to be sent. If too many, you may want to skip sending
+	unsigned int GetOutgoingDataBufferSize(SystemAddress systemAddress) const;
 
 	/// Returns data received
 	Packet* Receive( void );
@@ -70,6 +74,14 @@ public:
 
 	/// Deallocates a packet returned by Receive
 	void DeallocatePacket( Packet *packet );
+
+	/// Fills the array remoteSystems with the SystemAddress of all the systems we are connected to
+	/// \param[out] remoteSystems An array of SystemAddress structures to be filled with the SystemAddresss of the systems we are connected to. Pass 0 to remoteSystems to only get the number of systems we are connected to
+	/// \param[in, out] numberOfSystems As input, the size of remoteSystems array.  As output, the number of elements put into the array 
+	void GetConnectionList( SystemAddress *remoteSystems, unsigned short *numberOfSystems ) const;
+
+	/// Returns just the number of connections we have
+	unsigned short GetConnectionCount(void) const;
 
 	/// Has a previous call to connect succeeded?
 	/// \return UNASSIGNED_SYSTEM_ADDRESS = no. Anything else means yes.
@@ -91,18 +103,21 @@ public:
 	// Push a packet back to the queue
 	virtual void PushBackPacket( Packet *packet, bool pushAtHead );
 protected:
-	virtual RemoteClient* AllocRemoteClient(const char *file, unsigned int line) const;
 
 	bool isStarted, threadRunning;
 	SOCKET listenSocket;
 
 	DataStructures::Queue<Packet*> headPush, tailPush;
+	RemoteClient* remoteClients;
+	int remoteClientsLength;
 
 	// Assuming remoteClients is only used by one thread!
-	DataStructures::List<RemoteClient*> remoteClients;
+	// DataStructures::List<RemoteClient*> remoteClients;
 	// Use this thread-safe queue to add to remoteClients
-	DataStructures::Queue<RemoteClient*> remoteClientsInsertionQueue;
-	SimpleMutex remoteClientsInsertionQueueMutex;
+	// DataStructures::Queue<RemoteClient*> remoteClientsInsertionQueue;
+	// SimpleMutex remoteClientsInsertionQueueMutex;
+
+	/*
 	struct OutgoingMessage
 	{
 		unsigned char* data;
@@ -110,12 +125,19 @@ protected:
 		bool broadcast;
 		unsigned int length;
 	};
-	DataStructures::SingleProducerConsumer<OutgoingMessage> outgoingMessages;
-	DataStructures::SingleProducerConsumer<Packet> incomingMessages;
-	DataStructures::SingleProducerConsumer<SystemAddress> newIncomingConnections, lostConnections, requestedCloseConnections;
-	DataStructures::SingleProducerConsumer<RemoteClient*> newRemoteClients;
+	*/
+//	DataStructures::SingleProducerConsumer<OutgoingMessage> outgoingMessages;
+//	DataStructures::SingleProducerConsumer<Packet> incomingMessages;
+//	DataStructures::SingleProducerConsumer<SystemAddress> newIncomingConnections, lostConnections, requestedCloseConnections;
+//	DataStructures::SingleProducerConsumer<RemoteClient*> newRemoteClients;
+//	DataStructures::ThreadsafeAllocatingQueue<OutgoingMessage> outgoingMessages;
+	DataStructures::ThreadsafeAllocatingQueue<Packet> incomingMessages;
+	DataStructures::ThreadsafeAllocatingQueue<SystemAddress> newIncomingConnections, lostConnections, requestedCloseConnections;
+	DataStructures::ThreadsafeAllocatingQueue<RemoteClient*> newRemoteClients;
 	SimpleMutex completedConnectionAttemptMutex, failedConnectionAttemptMutex;
 	DataStructures::Queue<SystemAddress> completedConnectionAttempts, failedConnectionAttempts;
+
+	int threadPriority;
 
 	DataStructures::List<SOCKET> blockingSocketList;
 	SimpleMutex blockingSocketListMutex;
@@ -123,8 +145,8 @@ protected:
 	friend RAK_THREAD_DECLARATION(UpdateTCPInterfaceLoop);
 	friend RAK_THREAD_DECLARATION(ConnectionAttemptLoop);
 
-	void DeleteRemoteClient(RemoteClient *remoteClient, fd_set *exceptionFD);
-	void InsertRemoteClient(RemoteClient* remoteClient);
+//	void DeleteRemoteClient(RemoteClient *remoteClient, fd_set *exceptionFD);
+//	void InsertRemoteClient(RemoteClient* remoteClient);
 	SOCKET SocketConnect(const char* host, unsigned short remotePort);
 
 	struct ThisPtrPlusSysAddr
@@ -137,7 +159,7 @@ protected:
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	SSL_CTX* ctx;
 	SSL_METHOD *meth;
-	DataStructures::SingleProducerConsumer<SystemAddress> startSSL;
+	DataStructures::ThreadsafeAllocatingQueue<SystemAddress> startSSL;
 	DataStructures::List<SystemAddress> activeSSLConnections;
 #endif
 };
@@ -149,10 +171,15 @@ struct RemoteClient
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 		ssl=0;
 #endif
+		isActive=false;
+		socket=INVALID_SOCKET;
 	}
 	SOCKET socket;
 	SystemAddress systemAddress;
 	DataStructures::ByteQueue outgoingData;
+	bool isActive;
+	SimpleMutex outgoingDataMutex;
+	SimpleMutex isActiveMutex;
 
 #if defined(OPEN_SSL_CLIENT_SUPPORT)
 	SSL*     ssl;
@@ -165,6 +192,14 @@ struct RemoteClient
 	int Send(const char *data, unsigned int length);
 	int Recv(char *data, const int dataSize);
 #endif
+	void Reset(void)
+	{
+		outgoingDataMutex.Lock();
+		outgoingData.Clear(__FILE__,__LINE__);
+		outgoingDataMutex.Unlock();
+	}
+	void SetActive(bool a);
+	void SendOrBuffer(const char **data, const unsigned int *lengths, const int numParameters);
 };
 
 #endif

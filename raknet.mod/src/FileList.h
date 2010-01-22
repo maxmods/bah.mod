@@ -12,6 +12,7 @@
 #include "RakMemoryOverride.h"
 #include "RakNetTypes.h"
 #include "FileListNodeContext.h"
+#include "RakString.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -26,10 +27,10 @@ namespace RakNet
 struct FileListNode
 {
 	/// Name of the file
-	char *filename;
+	RakNet::RakString filename;
 
 	/// Full path to the file, which may be different than filename
-	char *fullPathToFile;
+	RakNet::RakString fullPathToFile;
 
 	/// File data (may be null if not ready)
 	char *data;

@@ -106,7 +106,7 @@ bool ReplicaManager::AddParticipant(SystemAddress systemAddress)
 	participantStruct->callDownloadCompleteCB=true;
 
     // Add the new participant to the list of participants
-	participantList.Insert(systemAddress,participantStruct, true);
+	participantList.Insert(systemAddress,participantStruct, true, __FILE__,__LINE__);
 
 	/*
 	if (autoConstructToNewParticipants)
@@ -314,7 +314,7 @@ void ReplicaManager::ReferencePointer(Replica *replica)
 		replicaAndTime.lastDeserializeTrue=0;
 		replicaAndTime.allowedInterfaces=REPLICA_SET_ALL;
 		replicaAndTime.referenceOrder=nextReferenceIndex++;
-		replicatedObjects.Insert(replica,replicaAndTime, true);
+		replicatedObjects.Insert(replica,replicaAndTime, true, __FILE__,__LINE__);
 		/// Try setting the network ID manager if the user forgot
 		if (replica->GetNetworkIDManager()==0)
 			replica->SetNetworkIDManager(rakPeerInterface->GetNetworkIDManager());
@@ -647,8 +647,8 @@ void ReplicaManager::Clear(void)
 	unsigned i;
 	for (i=0; i < participantList.Size(); i++)
 		RakNet::OP_DELETE(participantList[i], __FILE__, __LINE__);
-	participantList.Clear();
-	replicatedObjects.Clear();
+	participantList.Clear(false, __FILE__, __LINE__);
+	replicatedObjects.Clear(false, __FILE__, __LINE__);
 	nextReferenceIndex=0;
 }
 void ReplicaManager::AssertReplicatedObjectsClear(void)
@@ -807,7 +807,7 @@ void ReplicaManager::Update(void)
 						remoteObject.userFlags=participantStruct->commandList[commandListIndex].userFlags;
 						// Create an entry for this object.  We do this now, even if the user might refuse the SendConstruction override,
 						// because that call may be delayed and other commands sent while that is pending.  We always do the REPLICA_EXPLICIT_CONSTRUCTION call first.
-						participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true);
+						participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true, __FILE__,__LINE__);
 					}
 					else if (res==REPLICA_PROCESS_IMPLICIT)
 					{
@@ -823,7 +823,7 @@ void ReplicaManager::Update(void)
 						remoteObject.userFlags=participantStruct->commandList[commandListIndex].userFlags;
 						// Create an entry for this object.  We do this now, even if the user might refuse the SendConstruction override,
 						// because that call may be delayed and other commands sent while that is pending.  We always do the REPLICA_EXPLICIT_CONSTRUCTION call first.
-						participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true);
+						participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true, __FILE__,__LINE__);
 					}
 					else if (res==REPLICA_PROCESS_LATER)
 					{
@@ -855,7 +855,7 @@ void ReplicaManager::Update(void)
 				remoteObject.userFlags=participantStruct->commandList[commandListIndex].userFlags;
 				// Create an entry for this object.  We do this now, even if the user might refuse the SendConstruction override,
 				// because that call may be delayed and other commands sent while that is pending.  We always do the REPLICA_EXPLICIT_CONSTRUCTION call first.
-				participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true);
+				participantStruct->remoteObjectList.Insert(remoteObject.replica,remoteObject, true, __FILE__,__LINE__);
 			}
 
 			// The remaining commands, SendScopeChange and Serialize, require the object the command references exists on the remote system, so check that
@@ -1021,7 +1021,7 @@ void ReplicaManager::Update(void)
 				if (res==REPLICA_PROCESS_LATER)
 				{
 					// Push the command back in the queue
-					participantStruct->pendingCommands.PushAtHead(receivedCommand);
+					participantStruct->pendingCommands.PushAtHead(receivedCommand, 0, __FILE__,__LINE__);
 
 					// Stop processing, because all processing is in order
 					break;
@@ -1144,7 +1144,7 @@ PluginReceiveResult ReplicaManager::OnReceive(Packet *packet)
 					rc->userData = RakNet::OP_NEW<RakNet::BitStream>( __FILE__, __LINE__ );
 					rc->userData->Write(&inBitstream, inBitstream.GetNumberOfBitsUsed());
 
-					participantStruct->pendingCommands.Push(rc);
+					participantStruct->pendingCommands.Push(rc, __FILE__, __LINE__ );
 				}
 			}
 

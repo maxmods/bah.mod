@@ -39,19 +39,19 @@ public:
 		return onFileCallback->OnFile(onFileStruct);
 	}
 
-	virtual void OnFileProgress(OnFileStruct *onFileStruct,unsigned int partCount,unsigned int partTotal,unsigned int dataChunkLength, char *firstDataChunk)
+	virtual void OnFileProgress(FileProgressStruct *fps)
 	{
 		char fullPathToDir[1024];
 
-		if (onFileStruct->fileName && subdirLen < strlen(onFileStruct->fileName))
+		if (fps->onFileStruct->fileName && subdirLen < strlen(fps->onFileStruct->fileName))
 		{
 			strcpy(fullPathToDir, outputSubdir);
-			strcat(fullPathToDir, onFileStruct->fileName+subdirLen);
+			strcat(fullPathToDir, fps->onFileStruct->fileName+subdirLen);
 		}
 		else
 			fullPathToDir[0]=0;
 
-		onFileCallback->OnFileProgress(onFileStruct, partCount, partTotal, dataChunkLength, firstDataChunk);
+		onFileCallback->OnFileProgress(fps);
 	}
 	virtual bool OnDownloadComplete(void)
 	{

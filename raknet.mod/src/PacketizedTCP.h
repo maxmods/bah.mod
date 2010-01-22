@@ -21,7 +21,8 @@ public:
 	virtual ~PacketizedTCP();
 
 	/// Starts the TCP server on the indicated port
-	bool Start(unsigned short port, unsigned short maxIncomingConnections);
+	/// \param[in] threadPriority Passed to thread creation routine. Use THREAD_PRIORITY_NORMAL for Windows. WARNING!!! On Linux, 0 means highest priority! You MUST set this to something valid based on the values used by your other threads
+	bool Start(unsigned short port, unsigned short maxIncomingConnections, int threadPriority=-99999);
 
 	/// Stops the TCP server
 	void Stop(void);
@@ -30,7 +31,7 @@ public:
 	void Send( const char *data, unsigned length, SystemAddress systemAddress, bool broadcast );
 
 	// Sends a concatenated list of byte streams
-	bool SendList( char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast );
+	bool SendList( const char **data, const int *lengths, const int numParameters, SystemAddress systemAddress, bool broadcast );
 
 	/// Returns data received
 	Packet* Receive( void );

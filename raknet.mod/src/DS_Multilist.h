@@ -1097,9 +1097,9 @@ namespace DataStructures
 		source2.SetSortOrder(true);
 		source1.Sort(false);
 		source2.Sort(false);
-		intersection.Clear();
-		uniqueToSource1.Clear();
-		uniqueToSource2.Clear();
+		intersection.Clear(__FILE__, __LINE__);
+		uniqueToSource1.Clear(__FILE__, __LINE__);
+		uniqueToSource2.Clear(__FILE__, __LINE__);
 		
 		while (index1 < source1.GetSize() && index2 < source2.GetSize())
 		{
@@ -1347,25 +1347,25 @@ void MultilistUnitTest(void)
 	ml1.RemoveAtIndex(0);
 	RakAssert(ml1.GetSize()==oldSize-1);
 	RakAssert(ml1.PeekOpposite()==1);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 	RakAssert(ml1.IsEmpty()==true);
 
 	ml1.Sort(true);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(100);
 	ml1.Sort(true);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(50);
 	ml1.Push(100);
 	ml1.Sort(true);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(100);
 	ml1.Push(50);
 	ml1.Sort(true);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(100);
 	ml1.Push(50);
@@ -1383,7 +1383,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml1.GetIndexOf(100)==2);
 	RakAssert(ml1.GetIndexOf(150)==3);
 	RakAssert(ml1.GetIndexOf(175)==4);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(1);
 	ml1.Push(2);
@@ -1401,7 +1401,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml1.GetIndexOf(3)==2);
 	RakAssert(ml1.GetIndexOf(4)==3);
 	RakAssert(ml1.GetIndexOf(5)==4);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	ml1.Push(5);
 	ml1.Push(4);
@@ -1430,7 +1430,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml1.GetIndexOf(3)==2);
 	RakAssert(ml1.GetIndexOf(4)==3);
 	RakAssert(ml1.GetIndexOf(5)==4);
-	ml1.Clear();
+	ml1.Clear(__FILE__, __LINE__);
 
 	DataStructures::Multilist<ML_STACK, int> ml2;
 	ml2.Reallocate(64);
@@ -1457,7 +1457,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml2.GetSize()==oldSize-1);
 	RakAssert(ml2.Peek()==1);
 	RakAssert(ml2.PeekOpposite()==510);
-	ml2.Clear();
+	ml2.Clear(__FILE__, __LINE__);
 	RakAssert(ml2.IsEmpty()==true);
 
 	DataStructures::Multilist<ML_QUEUE, int> ml3;
@@ -1484,7 +1484,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml3.GetSize()==oldSize-1);
 	RakAssert(ml3.Peek()==509);
 	RakAssert(ml3.PeekOpposite()==0);
-	ml3.Clear();
+	ml3.Clear(__FILE__, __LINE__);
 	RakAssert(ml3.IsEmpty()==true);
 
 	ml3.PushOpposite(100);
@@ -1503,7 +1503,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml3.GetIndexOf(100)==2);
 	RakAssert(ml3.GetIndexOf(150)==3);
 	RakAssert(ml3.GetIndexOf(175)==4);
-	ml3.Clear();
+	ml3.Clear(__FILE__, __LINE__);
 
 	ml3.PushOpposite(1);
 	ml3.PushOpposite(2);
@@ -1521,7 +1521,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml3.GetIndexOf(3)==2);
 	RakAssert(ml3.GetIndexOf(4)==3);
 	RakAssert(ml3.GetIndexOf(5)==4);
-	ml3.Clear();
+	ml3.Clear(__FILE__, __LINE__);
 
 	ml3.PushOpposite(5);
 	ml3.PushOpposite(4);
@@ -1564,7 +1564,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml3.GetIndexOf(4)==1);
 	RakAssert(ml3.GetIndexOf(5)==0);
 
-	ml3.Clear();
+	ml3.Clear(__FILE__, __LINE__);
 
 	DataStructures::Multilist<ML_ORDERED_LIST, int> ml4;
 	ml4.Reallocate(64);
@@ -1591,7 +1591,7 @@ void MultilistUnitTest(void)
 	RakAssert(ml4.GetSize()==oldSize-1);
 	RakAssert(ml4.Peek()==1);
 	RakAssert(ml4.PeekOpposite()==510);
-	ml4.Clear();
+	ml4.Clear(__FILE__, __LINE__);
 	RakAssert(ml4.IsEmpty()==true);
 
 	DataStructures::Multilist<ML_ORDERED_LIST, KeyAndValue*, int> ml5;

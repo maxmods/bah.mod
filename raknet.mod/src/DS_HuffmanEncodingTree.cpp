@@ -34,17 +34,17 @@ void HuffmanEncodingTree::FreeMemory( void )
 
 	HuffmanEncodingTreeNode *node;
 
-	nodeQueue.Push( root );
+	nodeQueue.Push( root, __FILE__, __LINE__  );
 
 	while ( nodeQueue.Size() > 0 )
 	{
 		node = nodeQueue.Pop();
 
 		if ( node->left )
-			nodeQueue.Push( node->left );
+			nodeQueue.Push( node->left, __FILE__, __LINE__  );
 
 		if ( node->right )
-			nodeQueue.Push( node->right );
+			nodeQueue.Push( node->right, __FILE__, __LINE__  );
 
 		RakNet::OP_DELETE(node, __FILE__, __LINE__);
 	}

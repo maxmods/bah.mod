@@ -13,9 +13,6 @@
 #include "NativeTypes.h"
 #include "RakNetTime.h"
 #include "Export.h"
-#if !defined(_WIN32) && ((defined(__GNUC__)  || defined(__GCCXML__)))
-#include "stdint.h"
-#endif
 
 /// Forward declaration
 namespace RakNet
@@ -61,6 +58,9 @@ struct RAK_DLL_EXPORT SocketDescriptor
 	// Connect with the port returned by signaling. Set this to whatever port RakNet was actually started on
 	unsigned short remotePortRakNetWasStartedOn_PS3;
 };
+
+extern bool NonNumericHostString( const char *host );
+
 /// \brief Network address for a system
 /// \details Corresponds to a network address<BR>
 /// This is not necessarily a unique identifier. For example, if a system has both LAN and internet connections, the system may be identified by either one, depending on who is communicating<BR>
@@ -72,9 +72,12 @@ struct RAK_DLL_EXPORT SystemAddress
 	explicit SystemAddress(unsigned int a, unsigned short b);
 
 	///The peer address from inet_addr.
-	unsigned int binaryAddress;
+	uint32_t binaryAddress;
 	///The port number
 	unsigned short port;
+	// Used internally for fast lookup. Optional (use -1 to do regular lookup). Don't transmit this.
+	SystemIndex systemIndex;
+	static const int size() {return (int) sizeof(uint32_t)+sizeof(unsigned short);}
 
 	// Return the systemAddress as a string in the format <IP>:<Port>
 	// Returns a static string
@@ -93,6 +96,7 @@ struct RAK_DLL_EXPORT SystemAddress
 	{
 		binaryAddress = input.binaryAddress;
 		port = input.port;
+		systemIndex = input.systemIndex;
 		return *this;
 	}
 
@@ -137,10 +141,13 @@ struct RPCParameters
 };
 
 /// Uniquely identifies an instance of RakPeer. Use RakPeer::GetGuidFromSystemAddress() and RakPeer::GetSystemAddressFromGuid() to go between SystemAddress and RakNetGUID
-/// Use RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTSEM_ADDRESS) to get your own GUID
+/// Use RakPeer::GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS) to get your own GUID
 struct RAK_DLL_EXPORT RakNetGUID
 {
-	uint32_t g[6];
+	RakNetGUID() {systemIndex=(SystemIndex)-1;}
+	explicit RakNetGUID(uint64_t _g) {g=_g; systemIndex=(SystemIndex)-1;}
+//	uint32_t g[6];
+	uint64_t g;
 
 	// Return the GUID as a string
 	// Returns a static string
@@ -156,14 +163,14 @@ struct RAK_DLL_EXPORT RakNetGUID
 
 	RakNetGUID& operator = ( const RakNetGUID& input )
 	{
-		g[0]=input.g[0];
-		g[1]=input.g[1];
-		g[2]=input.g[2];
-		g[3]=input.g[3];
-		g[4]=input.g[4];
-		g[5]=input.g[5];
+		g=input.g;
+		systemIndex=input.systemIndex;
 		return *this;
 	}
+
+	// Used internally for fast lookup. Optional (use -1 to do regular lookup). Don't transmit this.
+	SystemIndex systemIndex;
+	static const int size() {return (int) sizeof(uint64_t);}
 
 	bool operator==( const RakNetGUID& right ) const;
 	bool operator!=( const RakNetGUID& right ) const;
@@ -177,16 +184,65 @@ struct RAK_DLL_EXPORT RakNetGUID
 //	0xFFFFFFFF, 0xFFFF
 //};
 const SystemAddress UNASSIGNED_SYSTEM_ADDRESS(0xFFFFFFFF, 0xFFFF);
-const RakNetGUID UNASSIGNED_RAKNET_GUID = 
+const RakNetGUID UNASSIGNED_RAKNET_GUID((uint64_t)-1);
+//{
+//	{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF}
+//	0xFFFFFFFFFFFFFFFF
+//};
+
+
+struct RAK_DLL_EXPORT AddressOrGUID
 {
-	{0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF}
+	RakNetGUID rakNetGuid;
+	SystemAddress systemAddress;
+
+	SystemIndex GetSystemIndex(void) const {if (rakNetGuid!=UNASSIGNED_RAKNET_GUID) return rakNetGuid.systemIndex; else return systemAddress.systemIndex;}
+	bool IsUndefined(void) const {return rakNetGuid==UNASSIGNED_RAKNET_GUID && systemAddress==UNASSIGNED_SYSTEM_ADDRESS;}
+	void SetUndefined(void) {rakNetGuid=UNASSIGNED_RAKNET_GUID; systemAddress=UNASSIGNED_SYSTEM_ADDRESS;}
+
+	AddressOrGUID() {}
+	AddressOrGUID( const AddressOrGUID& input )
+	{
+		rakNetGuid=input.rakNetGuid;
+		systemAddress=input.systemAddress;
+	}
+	AddressOrGUID( const SystemAddress& input )
+	{
+		rakNetGuid=UNASSIGNED_RAKNET_GUID;
+		systemAddress=input;
+	}
+	AddressOrGUID( const RakNetGUID& input )
+	{
+		rakNetGuid=input;
+		systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+	}
+	AddressOrGUID& operator = ( const AddressOrGUID& input )
+	{
+		rakNetGuid=input.rakNetGuid;
+		systemAddress=input.systemAddress;
+		return *this;
+	}
+
+	AddressOrGUID& operator = ( const SystemAddress& input )
+	{
+		rakNetGuid=UNASSIGNED_RAKNET_GUID;
+		systemAddress=input;
+		return *this;
+	}
+
+	AddressOrGUID& operator = ( const RakNetGUID& input )
+	{
+		rakNetGuid=input;
+		systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+		return *this;
+	}
 };
 
 struct RAK_DLL_EXPORT NetworkID
 {
 	NetworkID()
 	{
-#if defined NETWORK_ID_SUPPORTS_PEER_TO_PEER
+#if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
 		guid = UNASSIGNED_RAKNET_GUID;
 		systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 #endif
@@ -201,7 +257,7 @@ struct RAK_DLL_EXPORT NetworkID
 	// False, and only localSystemAddress is used.
 //	static bool peerToPeerMode;
 
-#if defined NETWORK_ID_SUPPORTS_PEER_TO_PEER
+#if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
 	// deprecated: Use guid instead
 	// In peer to peer, we use both systemAddress and localSystemAddress
 	// In client / server, we only use localSystemAddress
@@ -224,8 +280,9 @@ struct RAK_DLL_EXPORT NetworkID
 /// This represents a user message from another system.
 struct Packet
 {
+	// This is now in the systemAddress struct and is used for lookups automatically
 	/// Server only - this is the index into the player array that this systemAddress maps to
-	SystemIndex systemIndex;
+//	SystemIndex systemIndex;
 
 	/// The system that send this packet.
 	SystemAddress systemAddress;
@@ -258,6 +315,7 @@ const NetworkID UNASSIGNED_NETWORK_ID;
 const int PING_TIMES_ARRAY_SIZE = 5;
 
 /// \brief RPC Function Implementation
+/// \Deprecated Use RPC3
 /// \details The Remote Procedure Call Subsystem provide the RPC paradigm to
 /// RakNet user. It consists in providing remote function call over the
 /// network.  A call to a remote function require you to prepare the
@@ -340,5 +398,48 @@ const int PING_TIMES_ARRAY_SIZE = 5;
 /// \param[in] functionName The function name
 /// \deprecated Use RakNet::RPC3 instead
 #define UNREGISTER_CLASS_MEMBER_RPC(networkObject, className, functionName) (networkObject)->UnregisterAsRemoteProcedureCall((#className "_" #functionName))
+
+
+
+struct RAK_DLL_EXPORT uint24_t
+{
+	uint32_t val;
+
+	uint24_t() {}
+	inline operator uint32_t() { return val; }
+	inline operator uint32_t() const { return val; }
+
+	inline uint24_t(const uint24_t& a) {val=a.val;}
+	inline uint24_t operator++() {++val; val&=0x00FFFFFF; return *this;}
+	inline uint24_t operator--() {--val; val&=0x00FFFFFF; return *this;}
+	inline uint24_t operator++(int) {uint24_t temp(val); ++val; val&=0x00FFFFFF; return temp;}
+	inline uint24_t operator--(int) {uint24_t temp(val); --val; val&=0x00FFFFFF; return temp;}
+	inline uint24_t operator&(const uint24_t& a) {return uint24_t(val&a.val);}
+	inline uint24_t& operator=(const uint24_t& a) { val=a.val; return *this; }
+	inline uint24_t& operator+=(const uint24_t& a) { val+=a.val; val&=0x00FFFFFF; return *this; }
+	inline uint24_t& operator-=(const uint24_t& a) { val-=a.val; val&=0x00FFFFFF; return *this; }
+	inline bool operator==( const uint24_t& right ) const {return val==right.val;}
+	inline bool operator!=( const uint24_t& right ) const {return val!=right.val;}
+	inline bool operator > ( const uint24_t& right ) const {return val>right.val;}
+	inline bool operator < ( const uint24_t& right ) const {return val<right.val;}
+	inline const uint24_t operator+( const uint24_t &other ) const { return uint24_t(val+other.val); }
+	inline const uint24_t operator-( const uint24_t &other ) const { return uint24_t(val-other.val); }
+	inline const uint24_t operator/( const uint24_t &other ) const { return uint24_t(val/other.val); }
+	inline const uint24_t operator*( const uint24_t &other ) const { return uint24_t(val*other.val); }
+
+	inline uint24_t(const uint32_t& a) {val=a; val&=0x00FFFFFF;}
+	inline uint24_t operator&(const uint32_t& a) {return uint24_t(val&a);}
+	inline uint24_t& operator=(const uint32_t& a) { val=a; val&=0x00FFFFFF; return *this; }
+	inline uint24_t& operator+=(const uint32_t& a) { val+=a; val&=0x00FFFFFF; return *this; }
+	inline uint24_t& operator-=(const uint32_t& a) { val-=a; val&=0x00FFFFFF; return *this; }
+	inline bool operator==( const uint32_t& right ) const {return val==(right&0x00FFFFFF);}
+	inline bool operator!=( const uint32_t& right ) const {return val!=(right&0x00FFFFFF);}
+	inline bool operator > ( const uint32_t& right ) const {return val>(right&0x00FFFFFF);}
+	inline bool operator < ( const uint32_t& right ) const {return val<(right&0x00FFFFFF);}
+	inline const uint24_t operator+( const uint32_t &other ) const { return uint24_t(val+other); }
+	inline const uint24_t operator-( const uint32_t &other ) const { return uint24_t(val-other); }
+	inline const uint24_t operator/( const uint32_t &other ) const { return uint24_t(val/other); }
+	inline const uint24_t operator*( const uint32_t &other ) const { return uint24_t(val*other); }
+};
 
 #endif

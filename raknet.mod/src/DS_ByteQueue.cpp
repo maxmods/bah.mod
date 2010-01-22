@@ -13,22 +13,23 @@ ByteQueue::ByteQueue()
 }
 ByteQueue::~ByteQueue()
 {
-	Clear();
+	Clear(__FILE__, __LINE__);
 	
 
 }
-void ByteQueue::WriteBytes(const char *in, unsigned length)
+void ByteQueue::WriteBytes(const char *in, unsigned length, const char *file, unsigned int line)
 {
 	unsigned bytesWritten;
 	bytesWritten=GetBytesWritten();
 	if (lengthAllocated==0 || length > lengthAllocated-bytesWritten-1)
 	{
 		unsigned oldLengthAllocated=lengthAllocated;
-		unsigned newAmountToAllocate=length*2;
+		// Always need to waste 1 byte for the math to work, else writeoffset==readoffset
+		unsigned newAmountToAllocate=length+oldLengthAllocated+1;
 		if (newAmountToAllocate<256)
 			newAmountToAllocate=256;
 		lengthAllocated=lengthAllocated + newAmountToAllocate;
-		data=(char*)rakRealloc_Ex(data, lengthAllocated, __FILE__, __LINE__);
+		data=(char*)rakRealloc_Ex(data, lengthAllocated, file, line);
 		if (writeOffset < readOffset)
 		{
 			if (writeOffset <= newAmountToAllocate)
@@ -84,10 +85,18 @@ bool ByteQueue::ReadBytes(char *out, unsigned maxLengthToRead, bool peek)
 		
 	return true;
 }
-void ByteQueue::Clear(void)
+char* ByteQueue::PeekContiguousBytes(unsigned int *length) const
+{
+	if (writeOffset>=readOffset)
+		*length=writeOffset-readOffset;
+	else
+		*length=lengthAllocated-readOffset;
+	return data+readOffset;
+}
+void ByteQueue::Clear(const char *file, unsigned int line)
 {
 	if (lengthAllocated)
-		rakFree_Ex(data, __FILE__, __LINE__ );
+		rakFree_Ex(data, file, line );
 	readOffset=writeOffset=lengthAllocated=0;
 	data=0;
 }

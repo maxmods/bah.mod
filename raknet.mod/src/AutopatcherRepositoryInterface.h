@@ -16,6 +16,7 @@ namespace RakNet
 }
 
 #include "IncrementalReadInterface.h"
+#include "SimpleMutex.h"
 
 /// An interface used by AutopatcherServer to get the data necessary to run an autopatcher.  This is up to you to implement for custom repository solutions.
 class AutopatcherRepositoryInterface : public IncrementalReadInterface

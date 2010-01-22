@@ -139,7 +139,7 @@ namespace DataStructures
 		unsigned i;
 		DataStructures::Queue<node_type> removeNodeQueue;
 
-		removeNodeQueue.Push(node);
+		removeNodeQueue.Push(node, __FILE__, __LINE__ );
 		while (removeNodeQueue.Size())
 		{
 			RakNet::OP_DELETE(adjacencyLists.Pop(removeNodeQueue.Pop()), __FILE__, __LINE__);
@@ -153,7 +153,7 @@ namespace DataStructures
 #pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
 #endif
 				if (allow_unlinkedNodes==false && adjacencyLists[i]->Size()==0)
-					removeNodeQueue.Push(adjacencyLists.GetKeyAtIndex(i));
+					removeNodeQueue.Push(adjacencyLists.GetKeyAtIndex(i), __FILE__, __LINE__ );
 			}
 		}
 
@@ -218,7 +218,7 @@ namespace DataStructures
 	template <class node_type, class weight_type, bool allow_unlinkedNodes>
 		bool WeightedGraph<node_type, weight_type, allow_unlinkedNodes>::GetShortestPath(DataStructures::List<node_type> &path, node_type startNode, node_type endNode, weight_type INFINITE_WEIGHT)
 	{
-		path.Clear();
+		path.Clear(false, __FILE__, __LINE__);
 		if (startNode==endNode)
 		{
 			path.Insert(startNode, __FILE__, __LINE__);
@@ -261,7 +261,7 @@ namespace DataStructures
 			return true;
 		}
 		vertex=endNode;
-		outputQueue.PushAtHead(vertex);
+		outputQueue.PushAtHead(vertex, 0, __FILE__,__LINE__);
 		row--;
 #ifdef _MSC_VER
 #pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
@@ -281,7 +281,7 @@ namespace DataStructures
 			}
 
 			vertex=leastNodeArray[row];
-			outputQueue.PushAtHead(vertex);
+			outputQueue.PushAtHead(vertex, 0, __FILE__,__LINE__);
 			if (row==0)
 				break;
 			col=costMatrixIndices.GetIndexFromKey(vertex, &objectExists);
@@ -358,7 +358,7 @@ namespace DataStructures
 			nap2.node=RakNet::OP_NEW<DataStructures::Tree<node_type> >( __FILE__, __LINE__ );
 			nap2.node->data=adjacencyList->GetKeyAtIndex(i);
 			nap2.parent=current;
-			nodesToProcess.Push(nap2);
+			nodesToProcess.Push(nap2, __FILE__, __LINE__ );
 			current->children.Insert(nap2.node, __FILE__, __LINE__);
 		}
 
@@ -376,7 +376,7 @@ namespace DataStructures
 					nap2.node=RakNet::OP_NEW<DataStructures::Tree<node_type> >( __FILE__, __LINE__ );
 					nap2.node->data=key;
 					nap2.parent=current;
-					nodesToProcess.Push(nap2);
+					nodesToProcess.Push(nap2, __FILE__, __LINE__ );
 					current->children.Insert(nap2.node, __FILE__, __LINE__);
 				}				
 			}
@@ -406,7 +406,7 @@ namespace DataStructures
 		for (col=0; col < adjacencyLists.Size(); col++)
 		{
 			// This should be already sorted, so it's a bit inefficient to do an insertion sort, but what the heck
-			costMatrixIndices.Insert(adjacencyLists.GetKeyAtIndex(col),adjacencyLists.GetKeyAtIndex(col), true);
+			costMatrixIndices.Insert(adjacencyLists.GetKeyAtIndex(col),adjacencyLists.GetKeyAtIndex(col), true, __FILE__,__LINE__);
 		}
 		for (col=0; col < adjacencyLists.Size() * adjacencyLists.Size(); col++)
 			costMatrix[col]=INFINITE_WEIGHT;
@@ -444,9 +444,9 @@ namespace DataStructures
 			}
 
 			// Find the lowest in the open set
-			minHeap.Clear();
+			minHeap.Clear(true,__FILE__,__LINE__);
 			for (openSetIndex=0; openSetIndex < openSet.Size(); openSetIndex++)
-				minHeap.Push(openSet[openSetIndex], openSet.GetKeyAtIndex(openSetIndex));
+				minHeap.Push(openSet[openSetIndex], openSet.GetKeyAtIndex(openSetIndex),__FILE__,__LINE__);
 
 			/*
 			unsigned i,j;
@@ -501,7 +501,7 @@ namespace DataStructures
 			isValidPath=false;
 			RakNet::OP_DELETE_ARRAY(costMatrix, __FILE__, __LINE__);
 			RakNet::OP_DELETE_ARRAY(leastNodeArray, __FILE__, __LINE__);
-			costMatrixIndices.Clear();
+			costMatrixIndices.Clear(false, __FILE__, __LINE__);
 		}
 	}
 

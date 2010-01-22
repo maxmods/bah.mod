@@ -3,9 +3,10 @@
 
 #include "RakNetTypes.h"
 #include "RakNetDefines.h"
+#include "Export.h"
 // #include "SocketIncludes.h"
 
-struct RakNetSocket
+struct RAK_DLL_EXPORT RakNetSocket
 {
 	RakNetSocket();
 	~RakNetSocket();

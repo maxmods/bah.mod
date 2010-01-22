@@ -6,6 +6,7 @@
 #include "SimpleMutex.h"
 #include "Export.h"
 #include "RakThread.h"
+#include "SignaledEvent.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -17,7 +18,6 @@ public:
 	virtual void* PerThreadFactory(void *context)=0;
 	virtual void PerThreadDestructor(void* factoryResult, void *context)=0;
 };
-
 /// A simple class to create worker threads that processes a queue of functions with data.
 /// This class does not allocate or deallocate memory.  It is up to the user to handle memory management.
 /// InputType and OutputType are stored directly in a queue.  For large structures, if you plan to delete from the middle of the queue,
@@ -31,10 +31,10 @@ struct RAK_DLL_EXPORT ThreadPool
 	/// Start the specified number of threads.
 	/// \param[in] numThreads The number of threads to start
 	/// \param[in] stackSize 0 for default (except on consoles).
-	/// \param[in] _perThreadDataFactory User callback to return data stored per thread.  Pass 0 if not needed.
-	/// \param[in] _perThreadDataDestructor User callback to destroy data stored per thread, created by _perThreadDataFactory.  Pass 0 if not needed.
+	/// \param[in] _perThreadInit User callback to return data stored per thread.  Pass 0 if not needed.
+	/// \param[in] _perThreadDeinit User callback to destroy data stored per thread, created by _perThreadInit.  Pass 0 if not needed.
 	/// \return True on success, false on failure.
-	bool StartThreads(int numThreads, int stackSize, void* (*_perThreadDataFactory)()=0, void (*_perThreadDataDestructor)(void*)=0);
+	bool StartThreads(int numThreads, int stackSize, void* (*_perThreadInit)()=0, void (*_perThreadDeinit)(void*)=0);
 
 	// Alternate form of _perThreadDataFactory, _perThreadDataDestructor
 	void SetThreadDataInterface(ThreadDataInterface *tdi, void *context);
@@ -128,6 +128,12 @@ struct RAK_DLL_EXPORT ThreadPool
 	/// Did we call Start?
 	bool WasStarted(void);
 
+	// Block until all threads are stopped.
+	bool Pause(void);
+
+	// Continue running
+	void Resume(void);
+
 protected:
 	// It is valid to cancel input before it is processed.  To do so, lock the inputQueue with inputQueueMutex,
 	// Scan the list, and remove the item you don't want.
@@ -165,10 +171,8 @@ protected:
 	int numThreadsWorking;
 	/// \internal
 	SimpleMutex numThreadsRunningMutex;
-#ifdef _WIN32
-	/// \internal
-	HANDLE quitAndIncomingDataEvents[2];
-#endif
+
+	SignaledEvent quitAndIncomingDataEvents;
 };
 
 #include "ThreadPool.h"
@@ -219,12 +223,7 @@ void* WorkerThread( void* arguments )
 #ifdef _WIN32
 		if (userCallback==0)
 		{
-			// Wait for signaled event
-			WaitForMultipleObjects(
-				2,
-				threadPool->quitAndIncomingDataEvents,
-				false,
-				INFINITE);
+			threadPool->quitAndIncomingDataEvents.WaitOnEvent(INFINITE);
 		}		
 #endif
 
@@ -256,7 +255,7 @@ void* WorkerThread( void* arguments )
 			if (returnOutput)
 			{
 				threadPool->outputQueueMutex.Lock();
-				threadPool->outputQueue.Push(callbackOutput);
+				threadPool->outputQueue.Push(callbackOutput, __FILE__, __LINE__ );
 				threadPool->outputQueueMutex.Unlock();
 			}			
 		}
@@ -264,19 +263,13 @@ void* WorkerThread( void* arguments )
 		threadPool->workingThreadCountMutex.Lock();
 		--threadPool->numThreadsWorking;
 		threadPool->workingThreadCountMutex.Unlock();
-
-#ifndef _WIN32
-		// If no input data available, and GCC, then sleep.
-		if (userCallback==0)
-			RakSleep(1000);
-#endif
 	}
 
 	// Decrease numThreadsRunning
 	threadPool->numThreadsRunningMutex.Lock();
 	--threadPool->numThreadsRunning;
 	threadPool->numThreadsRunningMutex.Unlock();
-
+	
 	if (threadPool->perThreadDataDestructor)
 		threadPool->perThreadDataDestructor(perThreadData);
 	else if (threadPool->threadDataInterface)
@@ -313,10 +306,7 @@ bool ThreadPool<InputType, OutputType>::StartThreads(int numThreads, int stackSi
 	}
 	runThreadsMutex.Unlock();
 
-#ifdef _WIN32
-	quitAndIncomingDataEvents[0]=CreateEvent(0, true, false, 0);
-	quitAndIncomingDataEvents[1]=CreateEvent(0, false, false, 0);
-#endif
+	quitAndIncomingDataEvents.InitEvent();
 
 	perThreadDataFactory=_perThreadDataFactory;
 	perThreadDataDestructor=_perThreadDataDestructor;
@@ -370,15 +360,12 @@ void ThreadPool<InputType, OutputType>::StopThreads(void)
 	runThreads=false;
 	runThreadsMutex.Unlock();
 
-#ifdef _WIN32
-	// Quit event
-	SetEvent(quitAndIncomingDataEvents[0]);
-#endif
-
 	// Wait for number of threads running to decrease to 0
 	bool done=false;
 	while (done==false)
 	{
+		quitAndIncomingDataEvents.SetEvent();
+
 		RakSleep(50);
 		numThreadsRunningMutex.Lock();
 		if (numThreadsRunning==0)
@@ -386,29 +373,23 @@ void ThreadPool<InputType, OutputType>::StopThreads(void)
 		numThreadsRunningMutex.Unlock();
 	}
 
-#ifdef _WIN32
-	CloseHandle(quitAndIncomingDataEvents[0]);
-	CloseHandle(quitAndIncomingDataEvents[1]);
-#endif
+	quitAndIncomingDataEvents.CloseEvent();
 }
 template <class InputType, class OutputType>
 void ThreadPool<InputType, OutputType>::AddInput(OutputType (*workerThreadCallback)(InputType, bool *returnOutput, void* perThreadData), InputType inputData)
 {
 	inputQueueMutex.Lock();
-	inputQueue.Push(inputData);
-	inputFunctionQueue.Push(workerThreadCallback);
+	inputQueue.Push(inputData, __FILE__, __LINE__ );
+	inputFunctionQueue.Push(workerThreadCallback, __FILE__, __LINE__ );
 	inputQueueMutex.Unlock();
 
-#ifdef _WIN32
-	// Input data event
-	SetEvent(quitAndIncomingDataEvents[1]);
-#endif
+	quitAndIncomingDataEvents.SetEvent();
 }
 template <class InputType, class OutputType>
 void ThreadPool<InputType, OutputType>::AddOutput(OutputType outputData)
 {
 	outputQueueMutex.Lock();
-	outputQueue.Push(outputData);
+	outputQueue.Push(outputData, __FILE__, __LINE__ );
 	outputQueueMutex.Unlock();
 }
 template <class InputType, class OutputType>
@@ -457,19 +438,19 @@ void ThreadPool<InputType, OutputType>::Clear(void)
 	{
 		runThreadsMutex.Unlock();
 		inputQueueMutex.Lock();
-		inputFunctionQueue.Clear();
-		inputQueue.Clear();
+		inputFunctionQueue.Clear(__FILE__, __LINE__);
+		inputQueue.Clear(__FILE__, __LINE__);
 		inputQueueMutex.Unlock();
 
 		outputQueueMutex.Lock();
-		outputQueue.Clear();
+		outputQueue.Clear(__FILE__, __LINE__);
 		outputQueueMutex.Unlock();
 	}
 	else
 	{
-		inputFunctionQueue.Clear();
-		inputQueue.Clear();
-		outputQueue.Clear();
+		inputFunctionQueue.Clear(__FILE__, __LINE__);
+		inputQueue.Clear(__FILE__, __LINE__);
+		outputQueue.Clear(__FILE__, __LINE__);
 	}
 }
 template <class InputType, class OutputType>
@@ -526,14 +507,14 @@ void ThreadPool<InputType, OutputType>::RemoveOutputAtIndex(unsigned index)
 template <class InputType, class OutputType>
 void ThreadPool<InputType, OutputType>::ClearInput(void)
 {
-	inputQueue.Clear();
-	inputFunctionQueue.Clear();
+	inputQueue.Clear(__FILE__,__LINE__);
+	inputFunctionQueue.Clear(__FILE__,__LINE__);
 }
 
 template <class InputType, class OutputType>
 void ThreadPool<InputType, OutputType>::ClearOutput(void)
 {
-	outputQueue.Clear();
+	outputQueue.Clear(__FILE__,__LINE__);
 }
 template <class InputType, class OutputType>
 bool ThreadPool<InputType, OutputType>::IsWorking(void)
@@ -577,6 +558,24 @@ bool ThreadPool<InputType, OutputType>::WasStarted(void)
 	b = runThreads;
 	runThreadsMutex.Unlock();
 	return b;
+}
+template <class InputType, class OutputType>
+bool ThreadPool<InputType, OutputType>::Pause(void)
+{
+	if (WasStarted()==false)
+		return false;
+
+	workingThreadCountMutex.Lock();
+	while (numThreadsWorking>0)
+	{
+		RakSleep(30);
+	}
+	return true;
+}
+template <class InputType, class OutputType>
+void ThreadPool<InputType, OutputType>::Resume(void)
+{
+	workingThreadCountMutex.Unlock();
 }
 
 #ifdef _MSC_VER

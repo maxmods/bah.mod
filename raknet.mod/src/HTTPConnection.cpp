@@ -45,7 +45,7 @@ void HTTPConnection::Post(const char *remote_path, const char *data, const char 
 	op.contentType=_contentType;
 	op.data=data;
 	op.remotePath=remote_path;
-	outgoingPosts.Push(op);
+	outgoingPosts.Push(op, __FILE__, __LINE__ );
 	//printf("Adding outgoing post\n");
 }
 
@@ -68,7 +68,7 @@ void HTTPConnection::CloseConnection()
 //		printf(incomingData.C_String());
 //		printf("\n------------------------------------\n\n");
 		//printf("Pushing result\n");
-		results.Push(incomingData);
+		results.Push(incomingData, __FILE__, __LINE__ );
 	}
 	incomingData.Clear();
 	tcp->CloseConnection(server);
@@ -195,7 +195,7 @@ void HTTPConnection::ProcessTCPPacket(Packet *packet)
 
 			if(response_code > 299)
 			{
-				badResponses.Push(BadResponse(packet->data, response_code));
+				badResponses.Push(BadResponse(packet->data, response_code), __FILE__, __LINE__ );
 				//printf("Closed connection (Bad response 2)\n");
 				CloseConnection();
 				return;

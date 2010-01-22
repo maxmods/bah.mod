@@ -103,10 +103,10 @@ namespace DataStructures
 		BinarySearchTree( const BinarySearchTree& original_type );
 		BinarySearchTree& operator= ( const BinarySearchTree& original_copy );
 		unsigned int Size( void );
-		void Clear( void );
+		void Clear( const char *file, unsigned int line );
 		unsigned int Height( node* starting_node = 0 );
-		node* Add ( const BinarySearchTreeType& input );
-		node* Del( const BinarySearchTreeType& input );
+		node* Add ( const BinarySearchTreeType& input, const char *file, unsigned int line );
+		node* Del( const BinarySearchTreeType& input, const char *file, unsigned int line );
 		bool IsIn( const BinarySearchTreeType& input );
 		void DisplayInorder( BinarySearchTreeType* return_array );
 		void DisplayPreorder( BinarySearchTreeType* return_array );
@@ -208,14 +208,14 @@ namespace DataStructures
 	void AVLBalancedBinarySearchTree<BinarySearchTreeType>::Add ( const BinarySearchTreeType& input )
 	{
 	
-		typename BinarySearchTree<BinarySearchTreeType>::node * current = BinarySearchTree<BinarySearchTreeType>::Add ( input );
+		typename BinarySearchTree<BinarySearchTreeType>::node * current = BinarySearchTree<BinarySearchTreeType>::Add ( input, __FILE__,__LINE__ );
 		BalanceTree( current, true );
 	}
 	
 	template <class BinarySearchTreeType>
 	void AVLBalancedBinarySearchTree<BinarySearchTreeType>::Del( const BinarySearchTreeType& input )
 	{
-		typename BinarySearchTree<BinarySearchTreeType>::node * current = BinarySearchTree<BinarySearchTreeType>::Del( input );
+		typename BinarySearchTree<BinarySearchTreeType>::node * current = BinarySearchTree<BinarySearchTreeType>::Del( input, __FILE__,__LINE__ );
 		BalanceTree( current, false );
 		
 	}
@@ -369,7 +369,7 @@ namespace DataStructures
 	template <class BinarySearchTreeType>
 	AVLBalancedBinarySearchTree<BinarySearchTreeType>::~AVLBalancedBinarySearchTree()
 	{
-		this->Clear();
+		this->Clear(__FILE__,__LINE__);
 	}
 	
 	template <class BinarySearchTreeType>
@@ -418,7 +418,7 @@ namespace DataStructures
 	template <class BinarySearchTreeType>
 	BinarySearchTree<BinarySearchTreeType>::~BinarySearchTree()
 	{
-		this->Clear();
+		this->Clear(__FILE__,__LINE__);
 	}
 	
 	template <class BinarySearchTreeType>
@@ -534,7 +534,7 @@ namespace DataStructures
 	}
 	
 	template <class BinarySearchTreeType>
-	typename BinarySearchTree<BinarySearchTreeType>::node* BinarySearchTree<BinarySearchTreeType>::Del( const BinarySearchTreeType& input )
+	typename BinarySearchTree<BinarySearchTreeType>::node* BinarySearchTree<BinarySearchTreeType>::Del( const BinarySearchTreeType& input, const char *file, unsigned int line )
 	{
 		typename BinarySearchTree::node * node_to_delete, *current, *parent;
 		
@@ -543,7 +543,7 @@ namespace DataStructures
 			
 		if ( BinarySearchTree_size == 1 )
 		{
-			Clear();
+			Clear(file, line);
 			return 0;
 		}
 		
@@ -566,8 +566,8 @@ namespace DataStructures
 					parent->right = 0;
 			}
 			
-			RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
-			RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
+			RakNet::OP_DELETE(node_to_delete->item, file, line);
+			RakNet::OP_DELETE(node_to_delete, file, line);
 			BinarySearchTree_size--;
 			return parent;
 		}
@@ -586,9 +586,9 @@ namespace DataStructures
 				else
 					root = current->right; // Without a parent this must be the root node
 					
-				RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
+				RakNet::OP_DELETE(node_to_delete->item, file, line);
 				
-				RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
+				RakNet::OP_DELETE(node_to_delete, file, line);
 				
 				BinarySearchTree_size--;
 				
@@ -609,9 +609,9 @@ namespace DataStructures
 					else
 						root = current->left; // Without a parent this must be the root node
 						
-					RakNet::OP_DELETE(node_to_delete->item, __FILE__, __LINE__);
+					RakNet::OP_DELETE(node_to_delete->item, file, line);
 					
-					RakNet::OP_DELETE(node_to_delete, __FILE__, __LINE__);
+					RakNet::OP_DELETE(node_to_delete, file, line);
 					
 					BinarySearchTree_size--;
 					
@@ -642,9 +642,9 @@ namespace DataStructures
 						else
 							parent->left = 0;
 							
-						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current->item, file, line);
 						
-						RakNet::OP_DELETE(current, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current, file, line);
 						
 						BinarySearchTree_size--;
 						
@@ -660,9 +660,9 @@ namespace DataStructures
 						else
 							parent->left = current->right;
 							
-						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current->item, file, line);
 						
-						RakNet::OP_DELETE(current, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current, file, line);
 						
 						BinarySearchTree_size--;
 						
@@ -672,7 +672,7 @@ namespace DataStructures
 	}
 	
 	template <class BinarySearchTreeType>
-	typename BinarySearchTree<BinarySearchTreeType>::node* BinarySearchTree<BinarySearchTreeType>::Add ( const BinarySearchTreeType& input )
+	typename BinarySearchTree<BinarySearchTreeType>::node* BinarySearchTree<BinarySearchTreeType>::Add ( const BinarySearchTreeType& input, const char *file, unsigned int line )
 	{
 		typename BinarySearchTree::node * current, *parent;
 		
@@ -684,8 +684,8 @@ namespace DataStructures
 		if ( BinarySearchTree_size == 0 )
 		{
 			BinarySearchTree_size = 1;
-			root = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
-			root->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
+			root = RakNet::OP_NEW<typename BinarySearchTree::node>( file, line );
+			root->item = RakNet::OP_NEW<BinarySearchTreeType>( file, line );
 			*( root->item ) = input;
 			root->left = 0;
 			root->right = 0;
@@ -708,8 +708,8 @@ namespace DataStructures
 				{
 					if ( current->left == 0 )
 					{
-						current->left = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
-						current->left->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
+						current->left = RakNet::OP_NEW<typename BinarySearchTree::node>( file, line );
+						current->left->item = RakNet::OP_NEW<BinarySearchTreeType>( file, line );
 						current = current->left;
 						current->left = 0;
 						current->right = 0;
@@ -731,8 +731,8 @@ namespace DataStructures
 					{
 						if ( current->right == 0 )
 						{
-							current->right = RakNet::OP_NEW<typename BinarySearchTree::node>( __FILE__, __LINE__ );
-							current->right->item = RakNet::OP_NEW<BinarySearchTreeType>( __FILE__, __LINE__ );
+							current->right = RakNet::OP_NEW<typename BinarySearchTree::node>( file, line );
+							current->right->item = RakNet::OP_NEW<BinarySearchTreeType>( file, line );
 							current = current->right;
 							current->left = 0;
 							current->right = 0;
@@ -1004,7 +1004,7 @@ namespace DataStructures
 			{
 				current = tree_queue.Pop();
 				
-				Add ( *( current->item ) )
+				Add ( *( current->item ), __FILE__, __LINE__ )
 				
 				;
 				
@@ -1029,7 +1029,7 @@ namespace DataStructures
 		if ( ( &original_copy ) == this )
 			return *this;
 			
-		Clear();  // Remove the current tree
+		Clear( __FILE__, __LINE__ );  // Remove the current tree
 		
 		// This is a copy of the constructor.  A bug in Visual C++ made it so if I just put the constructor call here the variable assignments were ignored.
 		BinarySearchTree_size = 0;
@@ -1056,7 +1056,7 @@ namespace DataStructures
 			{
 				current = tree_queue.Pop();
 				
-				Add ( *( current->item ) )
+				Add ( *( current->item ), __FILE__, __LINE__ )
 				
 				;
 				
@@ -1076,7 +1076,7 @@ namespace DataStructures
 	}
 	
 	template <class BinarySearchTreeType>
-	inline void BinarySearchTree<BinarySearchTreeType>::Clear ( void )
+	inline void BinarySearchTree<BinarySearchTreeType>::Clear ( const char *file, unsigned int line )
 	{
 		typename BinarySearchTree::node * current, *parent;
 		
@@ -1086,8 +1086,8 @@ namespace DataStructures
 		{
 			if ( BinarySearchTree_size == 1 )
 			{
-				RakNet::OP_DELETE(root->item, __FILE__, __LINE__);
-				RakNet::OP_DELETE(root, __FILE__, __LINE__);
+				RakNet::OP_DELETE(root->item, file, line);
+				RakNet::OP_DELETE(root, file, line);
 				root = 0;
 				BinarySearchTree_size = 0;
 			}
@@ -1115,9 +1115,9 @@ namespace DataStructures
 						else
 							parent->right = 0;
 							
-						RakNet::OP_DELETE(current->item, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current->item, file, line);
 						
-						RakNet::OP_DELETE(current, __FILE__, __LINE__);
+						RakNet::OP_DELETE(current, file, line);
 						
 						current = parent;
 						

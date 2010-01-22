@@ -1,6 +1,5 @@
 #include "SuperFastHash.h"
-#include "RakNetTypes.h"
-#include "RakAssert.h"
+#include "NativeTypes.h"
 #include <stdlib.h>
 
 #if !defined(_WIN32)
@@ -91,7 +90,6 @@ unsigned int SuperFastHashIncremental (const char * data, int len, unsigned int 
 unsigned int SuperFastHashFile (const char * filename)
 {
 	FILE *fp = fopen(filename, "rb");
-	RakAssert(fp);	
 	if (fp==0)
 		return 0;
 	unsigned int hash = SuperFastHashFilePtr(fp);

@@ -4,7 +4,7 @@
 #include "RakAssert.h"
 #include <stdio.h>
 #if defined(_XBOX) || defined(X360)
-#include "XBOX360Includes.h"
+                            
 #elif defined(_WIN32)
 // IP_DONTFRAGMENT is different between winsock 1 and winsock 2.  Therefore, Winsock2.h must be linked againt Ws2_32.lib
 // winsock.h must be linked against WSock32.lib.  If these two are mixed up the flag won't work correctly
@@ -99,7 +99,7 @@ void CommandParserInterface::RegisterCommand(unsigned char parameterCount, const
 	rc.command=command;
 	rc.commandHelp=commandHelp;
 	rc.parameterCount=parameterCount;
-	commandList.Insert( command, rc, true);
+	commandList.Insert( command, rc, true, __FILE__, __LINE__);
 }
 bool CommandParserInterface::GetRegisteredCommand(const char *command, RegisteredCommand *rc)
 {

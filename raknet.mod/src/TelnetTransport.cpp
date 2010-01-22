@@ -41,7 +41,7 @@ void TelnetTransport::Stop(void)
 	unsigned i;
 	for (i=0; i < remoteClients.Size(); i++)
 		RakNet::OP_DELETE(remoteClients[i], __FILE__, __LINE__);
-	remoteClients.Clear();
+	remoteClients.Clear(false, __FILE__, __LINE__);
 	RakNet::OP_DELETE(tcpInterface, __FILE__, __LINE__);
 	tcpInterface=0;
 }

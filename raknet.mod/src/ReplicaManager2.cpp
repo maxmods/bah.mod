@@ -540,7 +540,7 @@ void ReplicaManager2::GetConnectionsWithReplicaConstructed(Replica2 *replica, Da
 		for (i=0; i < connectionList.Size(); i++)
 		{
 			if (connectionList[i]->lastConstructionList.HasData(replica))
-				output.Insert(connectionList[i]->GetSystemAddress(),connectionList[i], false);
+				output.Insert(connectionList[i]->GetSystemAddress(),connectionList[i], false, __FILE__,__LINE__);
 		}
 	}
 }
@@ -558,7 +558,7 @@ void ReplicaManager2::GetConnectionsWithSerializeVisibility(Replica2 *replica, D
 		for (i=0; i < connectionList.Size(); i++)
 		{
 			if (connectionList[i]->lastSerializationList.HasData(replica))
-				output.Insert(connectionList[i]->GetSystemAddress(),connectionList[i], false);
+				output.Insert(connectionList[i]->GetSystemAddress(),connectionList[i], false, __FILE__,__LINE__);
 		}
 	}
 }
@@ -592,7 +592,7 @@ Connection_RM2* ReplicaManager2::CreateConnectionIfDoesNotExist(SystemAddress sy
 		Connection_RM2 *connection = connectionFactoryInterface->AllocConnection();
 		connection->SetSystemAddress(systemAddress);
 		connection->SetGuid(rakPeerInterface->GetGuidFromSystemAddress(systemAddress));
-		connectionList.Insert(systemAddress, connection, false);
+		connectionList.Insert(systemAddress, connection, false, __FILE__,__LINE__);
 		*newConnection=true;
 		return connection;
 	}
@@ -632,19 +632,19 @@ void ReplicaManager2::Reference(Replica2* replica, bool *newReference)
 	if (objectExists==false)
 	{
 		fullReplicaUnorderedList.Insert(replica, __FILE__, __LINE__);
-		fullReplicaOrderedList.InsertAtIndex(replica, index);
+		fullReplicaOrderedList.InsertAtIndex(replica, index, __FILE__,__LINE__);
 
 		BooleanQueryResult queryResult;
 		queryResult = replica->QueryConstruction(0);
 		if (queryResult==BQR_ALWAYS)
-			alwaysDoConstructReplicaOrderedList.Insert(replica,replica, false);
+			alwaysDoConstructReplicaOrderedList.Insert(replica,replica, false, __FILE__,__LINE__);
 		else if (queryResult!=BQR_NEVER)
-			variableConstructReplicaOrderedList.Insert(replica,replica, false);
+			variableConstructReplicaOrderedList.Insert(replica,replica, false, __FILE__,__LINE__);
 		queryResult = replica->QueryVisibility(0);
 		if (queryResult==BQR_ALWAYS)
-			alwaysDoSerializeReplicaOrderedList.Insert(replica,replica, false);
+			alwaysDoSerializeReplicaOrderedList.Insert(replica,replica, false, __FILE__,__LINE__);
 		else if (queryResult!=BQR_NEVER)
-			variableSerializeReplicaOrderedList.Insert(replica,replica, false);
+			variableSerializeReplicaOrderedList.Insert(replica,replica, false, __FILE__,__LINE__);
 
 		if (newReference)
 			*newReference=true;
@@ -657,12 +657,12 @@ void ReplicaManager2::Reference(Replica2* replica, bool *newReference)
 void ReplicaManager2::AddConstructionReference(Connection_RM2* connection, Replica2* replica)
 {
 	if (replica->QueryIsConstructionAuthority() && replica->QueryConstruction(0)!=BQR_ALWAYS && replica->QueryConstruction(0)!=BQR_NEVER)
-		connection->lastConstructionList.Insert(replica, replica, false);
+		connection->lastConstructionList.Insert(replica, replica, false, __FILE__,__LINE__);
 }
 void ReplicaManager2::AddVisibilityReference(Connection_RM2* connection, Replica2* replica)
 {
 	if (replica->QueryIsVisibilityAuthority() && replica->QueryVisibility(0)!=BQR_ALWAYS && replica->QueryVisibility(0)!=BQR_NEVER)
-		connection->lastSerializationList.Insert(replica, replica, false);
+		connection->lastSerializationList.Insert(replica, replica, false, __FILE__,__LINE__);
 }
 void ReplicaManager2::RemoveVisibilityReference(Connection_RM2* connection, Replica2* replica)
 {
@@ -801,7 +801,7 @@ PluginReceiveResult ReplicaManager2::OnConstruction(unsigned char *packetData, i
 
 	DataStructures::OrderedList<SystemAddress,SystemAddress> exclusionList;
 	ReadExclusionList(&incomingBitstream, exclusionList);
-	exclusionList.Insert(sender,sender, false);
+	exclusionList.Insert(sender,sender, false, __FILE__,__LINE__);
 
 	Replica2* replica;
 	// The prefix misaligns the data from the send, which is a problem if the user uses aligned data
@@ -828,7 +828,7 @@ PluginReceiveResult ReplicaManager2::OnDestruction(unsigned char *packetData, in
 	incomingBitstream.Read(networkId);
 	DataStructures::OrderedList<SystemAddress,SystemAddress> exclusionList;
 	ReadExclusionList(&incomingBitstream, exclusionList);
-	exclusionList.Insert(sender,sender, false);
+	exclusionList.Insert(sender,sender, false, __FILE__,__LINE__);
 	Replica2 * replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2*>( networkId );
 	if (replica)
 	{
@@ -864,7 +864,7 @@ PluginReceiveResult ReplicaManager2::OnVisibilityChange(unsigned char *packetDat
 	incomingBitstream.Read(networkId);
 	DataStructures::OrderedList<SystemAddress,SystemAddress> exclusionList;
 	ReadExclusionList(&incomingBitstream, exclusionList);
-	exclusionList.Insert(sender,sender, false);
+	exclusionList.Insert(sender,sender, false, __FILE__,__LINE__);
 	
 	Replica2 *replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
 	if (replica)
@@ -907,7 +907,7 @@ PluginReceiveResult ReplicaManager2::OnSerialize(unsigned char *packetData, int 
 	incomingBitstream.Read(networkId);
 	DataStructures::OrderedList<SystemAddress,SystemAddress> exclusionList;
 	ReadExclusionList(&incomingBitstream, exclusionList);
-	exclusionList.Insert(sender,sender, false);
+	exclusionList.Insert(sender,sender, false, __FILE__,__LINE__);
 
 	Replica2 *replica = rakPeerInterface->GetNetworkIDManager()->GET_OBJECT_FROM_ID<Replica2 *>( networkId );
 	if (replica)
@@ -919,7 +919,7 @@ PluginReceiveResult ReplicaManager2::OnSerialize(unsigned char *packetData, int 
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
 		}
 
-		exclusionList.Insert(sender,sender, false);
+		exclusionList.Insert(sender,sender, false, __FILE__,__LINE__);
 
 		// The prefix misaligns the data from the send, which is a problem if the user uses aligned data
 		incomingBitstream.AlignReadToByteBoundary();
@@ -933,7 +933,7 @@ bool ReplicaManager2::AddToAndWriteExclusionList(SystemAddress recipient, RakNet
 {
 	if (exclusionList.HasData(recipient))
 		return false;
-	exclusionList.Insert(recipient,recipient,true);
+	exclusionList.Insert(recipient,recipient,true, __FILE__,__LINE__);
 	WriteExclusionList(bs,exclusionList);
 	return true;
 }
@@ -962,11 +962,11 @@ void ReplicaManager2::CullByAndAddToExclusionList(
 			exclusionListIndex++;
 			continue;
 		}
-		culledOutput.InsertAtEnd(connection);
+		culledOutput.InsertAtEnd(connection, __FILE__,__LINE__);
 	}
 
 	for (i=0; i < culledOutput.Size(); i++)
-		exclusionList.Insert(culledOutput[i]->GetSystemAddress(),culledOutput[i]->GetSystemAddress(),true);
+		exclusionList.Insert(culledOutput[i]->GetSystemAddress(),culledOutput[i]->GetSystemAddress(),true, __FILE__,__LINE__);
 }
 void ReplicaManager2::ReadExclusionList(RakNet::BitStream *bs, DataStructures::OrderedList<SystemAddress,SystemAddress> &exclusionList)
 {
@@ -976,7 +976,7 @@ void ReplicaManager2::ReadExclusionList(RakNet::BitStream *bs, DataStructures::O
 	{
 		SystemAddress systemToExclude;
 		bs->Read(systemToExclude);
-		exclusionList.InsertAtEnd(systemToExclude);
+		exclusionList.InsertAtEnd(systemToExclude, __FILE__,__LINE__);
 	}
 }
 void ReplicaManager2::Send(RakNet::BitStream *bs, SystemAddress recipient, PacketPriority priority, PacketReliability reliability, char orderingChannel)
@@ -991,16 +991,16 @@ void ReplicaManager2::Send(RakNet::BitStream *bs, SystemAddress recipient, Packe
 }
 void ReplicaManager2::Clear(void)
 {
-	fullReplicaUnorderedList.Clear();
-	fullReplicaOrderedList.Clear();
-	alwaysDoConstructReplicaOrderedList.Clear();
-	alwaysDoSerializeReplicaOrderedList.Clear();
-	variableConstructReplicaOrderedList.Clear();
-	variableSerializeReplicaOrderedList.Clear();
+	fullReplicaUnorderedList.Clear(false, __FILE__, __LINE__);
+	fullReplicaOrderedList.Clear(false, __FILE__, __LINE__);
+	alwaysDoConstructReplicaOrderedList.Clear(false, __FILE__, __LINE__);
+	alwaysDoSerializeReplicaOrderedList.Clear(false, __FILE__, __LINE__);
+	variableConstructReplicaOrderedList.Clear(false, __FILE__, __LINE__);
+	variableSerializeReplicaOrderedList.Clear(false, __FILE__, __LINE__);
 	unsigned i;
 	for (i=0; i < connectionList.Size(); i++)
 		connectionFactoryInterface->DeallocConnection(connectionList[i]);
-	connectionList.Clear();
+	connectionList.Clear(false, __FILE__, __LINE__);
 }
 void ReplicaManager2::DownloadToNewConnection(Connection_RM2* connection, RakNetTime timestamp, PacketPriority priority, PacketReliability reliability, char orderingChannel)
 {
@@ -1036,7 +1036,7 @@ void ReplicaManager2::DownloadToNewConnection(Connection_RM2* connection, RakNet
 			if (bqr==BQR_ALWAYS || bqr==BQR_YES)
 			{
 				initialDownloadList[i]->SendConstruction(systemAddress, SEND_CONSTRUCTION_SERIALIZATION_AUTO_INITIAL_DOWNLOAD_TO_SYSTEM);
-				culledDownloadList.Insert(initialDownloadList[i]);
+				culledDownloadList.Insert(initialDownloadList[i], __FILE__, __LINE__ );
 			}
 			// Remember for this particular connection that we already sent this update to this system
 			if (bqr==BQR_YES)
@@ -1252,11 +1252,11 @@ void Replica2::BroadcastSerialize(SerializationContext *serializationContext)
 		bs.AlignWriteToByteBoundary();
 		if (Serialize(&bs, usedContext)==false)
 			continue;
-		exclusionList.Clear();
+		exclusionList.Clear(false, __FILE__, __LINE__);
 		for (unsigned j=0; j < rm2->connectionList.Size(); j++)
 		{
 			if (rm2->connectionList[j]->GetSystemAddress()!=usedContext->recipientAddress)
-				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress());
+				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress(), __FILE__,__LINE__);
 		}
 		rm2->SendSerialize(this,&bs,usedContext->recipientAddress,usedContext->timestamp,exclusionList,usedContext->serializationType);
 	}
@@ -1340,11 +1340,11 @@ void Replica2::BroadcastConstruction(SerializationContext *serializationContext)
 		}
 		else
 			localId=0;
-		exclusionList.Clear();
+		exclusionList.Clear(false, __FILE__, __LINE__);
 		for (unsigned j=0; j < rm2->connectionList.Size(); j++)
 		{
 			if (rm2->connectionList[j]->GetSystemAddress()!=usedContext->recipientAddress)
-				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress());
+				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress(), __FILE__,__LINE__);
 		}
 		rm2->SendConstruction(this,&bs,usedContext->recipientAddress,usedContext->timestamp,true,exclusionList, localId, usedContext->serializationType);
 	}
@@ -1406,11 +1406,11 @@ void Replica2::BroadcastDestruction(SerializationContext *serializationContext)
 		bs.Reset();
 		if (SerializeDestruction(&bs, usedContext)==false)
 			continue;
-		exclusionList.Clear();
+		exclusionList.Clear(false, __FILE__, __LINE__);
 		for (unsigned j=0; j < rm2->connectionList.Size(); j++)
 		{
 			if (rm2->connectionList[j]->GetSystemAddress()!=usedContext->recipientAddress)
-				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress());
+				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress(), __FILE__,__LINE__);
 		}
 		rm2->SendDestruction(this,&bs,usedContext->recipientAddress,usedContext->timestamp,true,exclusionList,usedContext->serializationType);
 	}
@@ -1462,11 +1462,11 @@ void Replica2::BroadcastVisibility(bool isVisible, SerializationContext *seriali
 		bs.Reset();
 		if (SerializeVisibility(&bs, usedContext)==false)
 			continue;
-		exclusionList.Clear();
+		exclusionList.Clear(false, __FILE__, __LINE__);
 		for (unsigned j=0; j < rm2->connectionList.Size(); j++)
 		{
 			if (rm2->connectionList[j]->GetSystemAddress()!=usedContext->recipientAddress)
-				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress());
+				exclusionList.InsertAtEnd(rm2->connectionList[j]->GetSystemAddress(), __FILE__,__LINE__);
 		}
 		rm2->SendVisibility(this,&bs,usedContext->recipientAddress,usedContext->timestamp,exclusionList,usedContext->serializationType);
 	}
@@ -1828,12 +1828,12 @@ void Connection_RM2::CalculateListExclusivity(
 		res = ReplicaManager2::Replica2ObjectComp(listOne[listOneIndex],listTwo[listTwoIndex]);
 		if (res<0)
 		{
-			exclusiveToListOne.InsertAtEnd(listOne[listOneIndex]);
+			exclusiveToListOne.InsertAtEnd(listOne[listOneIndex], __FILE__,__LINE__);
 			listOneIndex++;
 		}
 		else if (res>0)
 		{
-			exclusiveToListTwo.InsertAtEnd(listTwo[listTwoIndex]);
+			exclusiveToListTwo.InsertAtEnd(listTwo[listTwoIndex], __FILE__,__LINE__);
 			listTwoIndex++;
 		}
 		else
@@ -1845,13 +1845,13 @@ void Connection_RM2::CalculateListExclusivity(
 
 	while (listOneIndex<listOne.Size())
 	{
-		exclusiveToListOne.InsertAtEnd(listOne[listOneIndex]);
+		exclusiveToListOne.InsertAtEnd(listOne[listOneIndex], __FILE__,__LINE__);
 		listOneIndex++;
 	}
 
 	while (listTwoIndex<listTwo.Size())
 	{
-		exclusiveToListTwo.InsertAtEnd(listTwo[listTwoIndex]);
+		exclusiveToListTwo.InsertAtEnd(listTwo[listTwoIndex], __FILE__,__LINE__);
 		listTwoIndex++;
 	}
 }
@@ -1867,7 +1867,7 @@ void Connection_RM2::SetConstructionByReplicaQuery(ReplicaManager2 *replicaManag
 		{
 			res = replicaManager->variableConstructReplicaOrderedList[i]->QueryConstruction(this);
 			if (res==BQR_YES || res==BQR_ALWAYS) // TODO - optimize ALWAYS here
-				constructedObjects.InsertAtEnd(replicaManager->variableConstructReplicaOrderedList[i]);
+				constructedObjects.InsertAtEnd(replicaManager->variableConstructReplicaOrderedList[i], __FILE__,__LINE__);
 		}
 	}
 
@@ -1885,7 +1885,7 @@ void Connection_RM2::SetVisibilityByReplicaQuery(ReplicaManager2 *replicaManager
 		{
 			res = replicaManager->variableSerializeReplicaOrderedList[i]->QueryVisibility(this);
 			if (res==BQR_YES || res==BQR_ALWAYS) // TODO - optimize ALWAYS here
-				currentVisibility.InsertAtEnd(replicaManager->variableSerializeReplicaOrderedList[i]);
+				currentVisibility.InsertAtEnd(replicaManager->variableSerializeReplicaOrderedList[i], __FILE__,__LINE__);
 		}
 	}
 
@@ -1984,7 +1984,7 @@ Replica2 * Connection_RM2::ReceiveConstruct(RakNet::BitStream *replicaData, Netw
 					serializationContext.serializationType=BROADCAST_CONSTRUCTION_REQUEST_ACCEPTED_TO_SYSTEM;
 				else 
 					serializationContext.serializationType=BROADCAST_CONSTRUCTION_GENERIC_TO_SYSTEM;
-				exclusionList.Insert(sender,sender,false);
+				exclusionList.Insert(sender,sender,false, __FILE__,__LINE__);
 
 				unsigned exclusionListIndex=0;
 				for (unsigned i=0; i < replicaManager->connectionList.Size(); i++)

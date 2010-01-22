@@ -22,6 +22,9 @@ char* Itoa( int value, char* result, int base )
 	} while ( quotient );
 
 	// Only apply negative sign for base 10
+	// KURT - we never want negative values.  This isn't even a correct negative value
+	// its simple a value with a minus sign in front of it which makes for an invalid
+	// ip address string, which is all this funtion is used for
 	if ( value < 0 && base == 10) *out++ = '-';
 
 	// KevinJ - get rid of this dependency
@@ -43,3 +46,4 @@ char* Itoa( int value, char* result, int base )
 
 	return result;
 }
+

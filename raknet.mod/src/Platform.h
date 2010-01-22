@@ -6,6 +6,10 @@
 
 #include "RakNetTypes.h"
 
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+
 #ifdef _WIN32_WCE //makslane
 #	define _byteswap_ushort(s) ((s >> 8) | (s << 8))
 #	define _byteswap_ulong(s) (byteswap_ushort(s&0xffff)<<16) | (byteswap_ushort(s>>16))
@@ -28,7 +32,7 @@
 	  defined(__alpha__) || defined(__alpha) || defined(__ia64) || defined(__ia64__) || \
 	  defined(_M_ALPHA) || defined(ns32000) || defined(__ns32000__) || defined(sequent) || \
 	  defined(MIPSEL) || defined(_MIPSEL) || defined(sun386) || defined(__sun386__) || \
-	  defined(x86_64) || defined(__x86_64)
+	  defined(x86_64) || defined(__x86_64) || (defined(TARGET_OS_IPHONE) && defined(TARGET_CPU_ARM))
 #  define LITTLE_ENDIAN
 # else
 #  error "Add your platform to the list"

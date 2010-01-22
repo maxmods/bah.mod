@@ -5,10 +5,6 @@
 #include "GetTime.h"
 #include "PacketLogger.h"
 
-// As I add more out of band messages this will be moved elsewhere
-static const char ID_NAT_ESTABLISH_UNIDIRECTIONAL=0;
-static const char ID_NAT_ESTABLISH_BIDIRECTIONAL=1;
-
 void NatPunchthroughDebugInterface_Printf::OnClientMessage(const char *msg)
 {
 	printf("%s\n", msg);
@@ -37,7 +33,8 @@ bool NatPunchthroughClient::OpenNAT(RakNetGUID destination, SystemAddress facili
 	if (rakPeerInterface->IsConnected(facilitator)==false)
 		return false;
 	// Already connected
-	if (rakPeerInterface->GetSystemAddressFromGuid(destination)!=UNASSIGNED_SYSTEM_ADDRESS)
+	SystemAddress sa = rakPeerInterface->GetSystemAddressFromGuid(destination);
+	if (sa!=UNASSIGNED_SYSTEM_ADDRESS && rakPeerInterface->IsConnected(sa,true,true) )
 		return false;
 
 	SendPunchthrough(destination, facilitator);
@@ -203,7 +200,7 @@ void NatPunchthroughClient::PushFailure(void)
 	Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID)+sizeof(unsigned char));
 	p->data[0]=ID_NAT_PUNCHTHROUGH_FAILED;
 	p->systemAddress=sp.targetAddress;
-	p->systemIndex=(SystemIndex)-1;
+	p->systemAddress.systemIndex=(SystemIndex)-1;
 	p->guid=sp.targetGuid;
 	if (sp.weAreSender)
 		p->data[1]=1;
@@ -426,7 +423,7 @@ PluginReceiveResult NatPunchthroughClient::OnReceive(Packet *packet)
 					Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID));
 					p->data[0]=ID_NAT_PUNCHTHROUGH_FAILED;
 					p->systemAddress=failedAttemptList[i].addr;
-					p->systemIndex=(SystemIndex)-1;
+					p->systemAddress.systemIndex=(SystemIndex)-1;
 					p->guid=failedAttemptList[i].guid;
 					rakPeerInterface->PushBackPacket(p, false);
 					*/
@@ -626,7 +623,7 @@ void NatPunchthroughClient::OnClosedConnection(SystemAddress systemAddress, RakN
 			Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID));
 			p->data[0]=ID_NAT_CONNECTION_TO_TARGET_LOST;
 			p->systemAddress=systemAddress;
-			p->systemIndex=(SystemIndex)-1;
+			p->systemAddress.systemIndex=(SystemIndex)-1;
 			p->guid=rakNetGUID;
 			rakPeerInterface->PushBackPacket(p, false);
 			if (i==0)
@@ -703,7 +700,7 @@ void NatPunchthroughClient::Clear(void)
 {
 	OnReadyForNextPunchthrough();
 
-	failedAttemptList.Clear();
+	failedAttemptList.Clear(false, __FILE__,__LINE__);
 }
 PunchthroughConfiguration* NatPunchthroughClient::GetPunchthroughConfiguration(void)
 {
@@ -728,7 +725,7 @@ void NatPunchthroughClient::PushSuccess(void)
 	Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID)+sizeof(unsigned char));
 	p->data[0]=ID_NAT_PUNCHTHROUGH_SUCCEEDED;
 	p->systemAddress=sp.targetAddress;
-	p->systemIndex=(SystemIndex)-1;
+	p->systemAddress.systemIndex=(SystemIndex)-1;
 	p->guid=sp.targetGuid;
 	if (sp.weAreSender)
 		p->data[1]=1;

@@ -95,15 +95,29 @@ public:
 	/// Replace character at index with string s
 	void SetChar( unsigned index, RakNet::RakString s );
 
+	/// Make sure string is no longer than \a length
+	void Truncate(unsigned length);
+
 	// Gets the substring starting at index for count characters
 	RakString SubStr(unsigned int index, unsigned int count) const;
 
 	/// Erase characters out of the string at index for count
 	void Erase(unsigned int index, unsigned int count);
 
+	/// Set the first instance of c with a NULL terminator
+	void TerminateAtFirstCharacter(char c);
+	/// Set the last instance of c with a NULL terminator
+	void TerminateAtLastCharacter(char c);
+	
+	/// Remove all instances of c
+	void RemoveCharacter(char c);
+
 	/// Create a RakString with a value, without doing printf style parsing
 	/// Equivalent to assignment operator
 	static RakNet::RakString NonVariadic(const char *str);
+
+	// Like strncat, but for a fixed length
+	void AppendBytes(const char *bytes, unsigned int count);
 
 	/// Compare strings (case sensitive)
 	int StrCmp(const RakString &rhs) const;
@@ -137,6 +151,9 @@ public:
 
 	/// Scan for quote, double quote, and backslash and prepend with backslash
 	RakNet::RakString& SQLEscape(void);
+
+	/// Fix to be a file path, ending with /
+	RakNet::RakString& MakeFilePath(void);
 
 	/// RakString uses a freeList of old no-longer used strings
 	/// Call this function to clear this memory on shutdown

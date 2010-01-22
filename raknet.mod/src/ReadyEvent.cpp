@@ -184,7 +184,7 @@ bool ReadyEvent::RemoveFromWaitList(int eventId, SystemAddress address)
 		if (address==UNASSIGNED_SYSTEM_ADDRESS)
 		{
 			// Remove all waiters
-			readyEventNodeList[eventIndex]->systemList.Clear();
+			readyEventNodeList[eventIndex]->systemList.Clear(false, __FILE__, __LINE__);
 			UpdateReadyStatus(eventIndex);
 		}
 		else
@@ -301,7 +301,7 @@ bool ReadyEvent::AddToWaitListInternal(unsigned eventIndex, SystemAddress addres
 		rs.lastReceivedStatus=ID_READY_EVENT_UNSET;
 		rs.lastSentStatus=ID_READY_EVENT_UNSET;
 		rs.systemAddress=address;
-		ren->systemList.InsertAtIndex(rs,systemIndex);
+		ren->systemList.InsertAtIndex(rs,systemIndex, __FILE__,__LINE__);
 
 		SendReadyStateQuery(ren->eventId, address);
 		return true;
@@ -432,7 +432,7 @@ void ReadyEvent::Clear(void)
 	{
 		RakNet::OP_DELETE(readyEventNodeList[i], __FILE__, __LINE__);
 	}
-	readyEventNodeList.Clear();
+	readyEventNodeList.Clear(false, __FILE__, __LINE__);
 }
 
 unsigned ReadyEvent::CreateNewEvent(int eventId, bool isReady)
@@ -443,7 +443,7 @@ unsigned ReadyEvent::CreateNewEvent(int eventId, bool isReady)
 		ren->eventStatus=ID_READY_EVENT_UNSET;
 	else
 		ren->eventStatus=ID_READY_EVENT_SET;
-	return readyEventNodeList.Insert(eventId, ren, true);
+	return readyEventNodeList.Insert(eventId, ren, true, __FILE__,__LINE__);
 }
 void ReadyEvent::UpdateReadyStatus(unsigned eventIndex)
 {

@@ -13,12 +13,15 @@
 #include "GetTime.h"
 #include "Rand.h"
 
+// #define DEBUG_FCM2
+
 FullyConnectedMesh2::FullyConnectedMesh2()
 {
 	startupTime=0;
-	autoParticipateConnections=true;
 	totalConnectionCount=0;
 	ourFCMGuid=0;
+	autoParticipateConnections=true;
+	connectOnNewRemoteConnections=true;
 }
 FullyConnectedMesh2::~FullyConnectedMesh2()
 {
@@ -34,7 +37,7 @@ SystemAddress FullyConnectedMesh2::GetConnectedHostAddr(void) const
 {
 	if (ourFCMGuid==0)
 		return UNASSIGNED_SYSTEM_ADDRESS;
-	return hostSystemAddress;
+	return rakPeerInterface->GetSystemAddressFromGuid(hostRakNetGuid);
 }
 RakNetGUID FullyConnectedMesh2::GetHostSystem(void) const
 {
@@ -55,52 +58,77 @@ void FullyConnectedMesh2::SetAutoparticipateConnections(bool b)
 {
 	autoParticipateConnections=b;
 }
-void FullyConnectedMesh2::AddParticipant(SystemAddress participant)
+void FullyConnectedMesh2::ResetHostCalculation(void)
 {
-	if (rakPeerInterface->IsConnected(participant,false,false)==false)
-		return;
-
-	if (ourFCMGuid==0)
+	startupTime=RakNet::GetTimeUS();
+	totalConnectionCount=0;
+	ourFCMGuid=0;
+	for (unsigned int i=0; i < participantList.Size(); i++)
+		SendFCMGuidRequest(participantList[i].rakNetGuid);
+}
+bool FullyConnectedMesh2::AddParticipantInternal( RakNetGUID rakNetGuid, FCM2Guid theirFCMGuid )
+{
+	for (unsigned int i=0; i < participantList.Size(); i++)
 	{
-		if (guidRequestRetryList.GetIndexOf(participant)==(DataStructures::DefaultIndexType)-1)
+		if (participantList[i].rakNetGuid==rakNetGuid)
 		{
-			SendFCMGuidRequest(participant);
-			guidRequestRetryList.Push(participant,__FILE__,__LINE__);
+			if (theirFCMGuid!=0)
+				participantList[i].fcm2Guid=theirFCMGuid;
+			return false;
 		}
 	}
-	else
-	{
-		SendOurFCMGuid(participant);
-	}
-}
 
+	FCM2Participant participant;
+	participant.rakNetGuid=rakNetGuid;
+	participant.fcm2Guid=theirFCMGuid;
+	participantList.Push(participant,__FILE__,__LINE__);
+
+	SendFCMGuidRequest(rakNetGuid);
+
+	return true;
+}
+void FullyConnectedMesh2::AddParticipant( RakNetGUID rakNetGuid )
+{
+	if (rakPeerInterface->IsConnected(rakPeerInterface->GetSystemAddressFromGuid(rakNetGuid),false,false)==false)
+	{
+#ifdef DEBUG_FCM2
+		printf("AddParticipant to %s failed (not connected)\n", rakNetGuid.ToString());
+#endif
+		return;
+	}
+
+	AddParticipantInternal(rakNetGuid,0);
+}
 PluginReceiveResult FullyConnectedMesh2::OnReceive(Packet *packet)
 {
 	switch (packet->data[0])
 	{
 	case ID_REMOTE_NEW_INCOMING_CONNECTION:
 		{
-			unsigned int count;
-			RakNet::BitStream bsIn(packet->data, packet->length, false);
-			bsIn.IgnoreBytes(sizeof(MessageID));
-			bsIn.Read(count);
-			SystemAddress remoteAddress;
-			RakNetGUID remoteGuid;
-			char str[64];
-			for (unsigned int i=0; i < count; i++)
+			if (connectOnNewRemoteConnections)
 			{
-				bsIn.Read(remoteAddress);
-				bsIn.Read(remoteGuid);
-				remoteAddress.ToString(false,str);
-				rakPeerInterface->Connect(str,remoteAddress.port,0,0);
+				unsigned int count;
+				RakNet::BitStream bsIn(packet->data, packet->length, false);
+				bsIn.IgnoreBytes(sizeof(MessageID));
+				bsIn.Read(count);
+				SystemAddress remoteAddress;
+				RakNetGUID remoteGuid;
+				char str[64];
+				for (unsigned int i=0; i < count; i++)
+				{
+					bsIn.Read(remoteAddress);
+					bsIn.Read(remoteGuid);
+					remoteAddress.ToString(false,str);
+					rakPeerInterface->Connect(str,remoteAddress.port,connectionPassword.C_String(),connectionPassword.GetLength());
+				}
 			}
 		}
 		break;
 	case ID_FCM2_REQUEST_FCMGUID:
 		OnRequestFCMGuid(packet);
 		break;
-	case ID_FCM2_RESPOND_FCMGUID:
-		OnRespondFCMGuid(packet);
+	case ID_FCM2_RESPOND_CONNECTION_COUNT:
+		OnRespondConnectionCount(packet);
 		break;
 	case ID_FCM2_INFORM_FCMGUID:
 		OnInformFCMGuid(packet);
@@ -110,10 +138,12 @@ PluginReceiveResult FullyConnectedMesh2::OnReceive(Packet *packet)
 }
 void FullyConnectedMesh2::OnStartup(void)
 {
+	Clear();
 	startupTime=RakNet::GetTimeUS();
 }
 void FullyConnectedMesh2::OnAttach(void)
 {
+	Clear();
 	// In case Startup() was called first
 	if (rakPeerInterface->IsActive())
 		startupTime=RakNet::GetTimeUS();
@@ -129,40 +159,29 @@ void FullyConnectedMesh2::OnClosedConnection(SystemAddress systemAddress, RakNet
 	(void) systemAddress;
 	(void) rakNetGUID;
 
-	DataStructures::DefaultIndexType idx;
-	idx = guidRequestRetryList.GetIndexOf(systemAddress);
-	if (idx!=-1)
-	{
-		guidRequestRetryList.RemoveAtIndex(idx,__FILE__,__LINE__);
-		// If ourFCMGuid is UNASSIGNED, SendFCMGuidRequest to all in guidRequestRetryList
-		if (ourFCMGuid==0)
-		{
-			for (idx=0; idx < guidRequestRetryList.GetSize(); idx++)
-			{
-				SendFCMGuidRequest(guidRequestRetryList[idx]);
-			}
-		}
-	}
-
+	unsigned int idx;
 	for (idx=0; idx < participantList.Size(); idx++)
 	{
-		if (participantList[idx].systemAddress==systemAddress)
+		if (participantList[idx].rakNetGuid==rakNetGUID)
 		{
 			participantList[idx]=participantList[participantList.Size()-1];
+#ifdef DEBUG_FCM2
+			printf("Popping participant %s\n", participantList[participantList.Size()-1].rakNetGuid.ToString());
+#endif
+
 			participantList.Pop();
-			if (systemAddress==hostSystemAddress)
-			{
+			if (rakNetGUID==hostRakNetGuid && ourFCMGuid!=0)
+			{	
 				if (participantList.Size()==0)
 				{
-					hostSystemAddress=UNASSIGNED_SYSTEM_ADDRESS;
-					hostRakNetGuid=rakPeerInterface->GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS);
+					hostRakNetGuid=UNASSIGNED_RAKNET_GUID;
 					hostFCM2Guid=ourFCMGuid;
 				}
 				else
 				{
-					CalculateHost(&hostSystemAddress, &hostRakNetGuid, &hostFCM2Guid);
+					CalculateHost(&hostRakNetGuid, &hostFCM2Guid);
 				}
-				PushNewHost(hostSystemAddress,hostRakNetGuid);
+				PushNewHost(hostRakNetGuid);
 			}
 			return;
 		}
@@ -184,25 +203,46 @@ void FullyConnectedMesh2::OnNewConnection(SystemAddress systemAddress, RakNetGUI
 	(void) systemAddress;
 
 	if (autoParticipateConnections)
-		AddParticipant(systemAddress);
+		AddParticipant(rakNetGUID);
 }
 void FullyConnectedMesh2::Clear(void)
 {
-	guidRequestRetryList.Clear(false,__FILE__,__LINE__);
-	participantList.Clear(false);
+	participantList.Clear(false, __FILE__,__LINE__);
 
-	autoParticipateConnections=true;
 	totalConnectionCount=0;
 	ourFCMGuid=0;
+	lastPushedHost=UNASSIGNED_RAKNET_GUID;
 }
-void FullyConnectedMesh2::PushNewHost(const SystemAddress &sa, const RakNetGUID &guid)
+void FullyConnectedMesh2::PushNewHost(const RakNetGUID &guid)
 {
 	Packet *p = rakPeerInterface->AllocatePacket(sizeof(MessageID));
 	p->data[0]=ID_FCM2_NEW_HOST;
-	p->systemAddress=sa;
-	p->systemIndex=(SystemIndex)-1;
+	p->systemAddress=rakPeerInterface->GetSystemAddressFromGuid(guid);
+	p->systemAddress.systemIndex=(SystemIndex)-1;
 	p->guid=guid;
 	rakPeerInterface->PushBackPacket(p, true);
+
+	lastPushedHost=guid;
+}
+void FullyConnectedMesh2::SendFCMGuidRequest(RakNetGUID rakNetGuid)
+{
+	if (rakNetGuid==rakPeerInterface->GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS))
+		return;
+
+	RakNet::BitStream bsOut;
+	bsOut.Write((MessageID)ID_FCM2_REQUEST_FCMGUID);
+	if (ourFCMGuid==0)
+	{
+		bsOut.Write(false);
+		bsOut.Write(GetElapsedRuntime());
+	}
+	else
+	{
+		bsOut.Write(true);
+		bsOut.Write(totalConnectionCount);
+		bsOut.Write(ourFCMGuid);
+	}
+ 	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,rakNetGuid,false);
 }
 void FullyConnectedMesh2::SendOurFCMGuid(SystemAddress addr)
 {
@@ -211,33 +251,27 @@ void FullyConnectedMesh2::SendOurFCMGuid(SystemAddress addr)
 	RakAssert(ourFCMGuid!=0); // Can't inform others of our FCM2Guid if it's unset!
 	bsOut.Write(ourFCMGuid);
 	bsOut.Write(totalConnectionCount);
-	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE,0,addr,false);
+	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,addr,false);
 }
-void FullyConnectedMesh2::SendFCMGuidRequest(SystemAddress addr)
+void FullyConnectedMesh2::SendConnectionCountResponse(SystemAddress addr, unsigned int responseTotalConnectionCount)
 {
 	RakNet::BitStream bsOut;
-	bsOut.Write((MessageID)ID_FCM2_REQUEST_FCMGUID);
-	bsOut.Write(GetElapsedRuntime());
-	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE,0,addr,false);
-}
-void FullyConnectedMesh2::SendFCMGuidResponse(SystemAddress addr, unsigned int responseAssignedConnectionCount, unsigned int responseTotalConnectionCount)
-{
-	RakNet::BitStream bsOut;
-	bsOut.Write((MessageID)ID_FCM2_RESPOND_FCMGUID);
-	bsOut.Write(responseAssignedConnectionCount);
+	bsOut.Write((MessageID)ID_FCM2_RESPOND_CONNECTION_COUNT);
 	bsOut.Write(responseTotalConnectionCount);
-	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE,0,addr,false);
+	rakPeerInterface->Send(&bsOut,HIGH_PRIORITY,RELIABLE_ORDERED,0,addr,false);
 }
-void FullyConnectedMesh2::AssignOurFCMGuid(unsigned int responseAssignedConnectionCount)
+void FullyConnectedMesh2::AssignOurFCMGuid(void)
 {
 	// Only assigned once ever
 	RakAssert(ourFCMGuid==0);
 	unsigned int randomNumber = randomMT();
+	randomNumber ^= (unsigned int) (RakNet::GetTimeUS() & 0xFFFFFFFF);
+	randomNumber ^= (unsigned int) (rakPeerInterface->GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS).g & 0xFFFFFFFF);
 	ourFCMGuid |= randomNumber;
-	uint64_t reponse64 = responseAssignedConnectionCount;
+	uint64_t reponse64 = totalConnectionCount;
 	ourFCMGuid |= reponse64<<32;
 }
-void FullyConnectedMesh2::CalculateHost(SystemAddress *systemAddress, RakNetGUID *rakNetGuid, FCM2Guid *fcm2Guid)
+void FullyConnectedMesh2::CalculateHost(RakNetGUID *rakNetGuid, FCM2Guid *fcm2Guid)
 {
 	// Can't calculate host without knowing our own
 	RakAssert(ourFCMGuid!=0);
@@ -253,15 +287,13 @@ void FullyConnectedMesh2::CalculateHost(SystemAddress *systemAddress, RakNetGUID
 	DataStructures::DefaultIndexType idx;
 	for (idx=0; idx < participantList.Size(); idx++)
 	{
-		if (participantList[idx].fcm2Guid<lowestFCMGuid)
+		if (participantList[idx].fcm2Guid!=0 && participantList[idx].fcm2Guid<lowestFCMGuid)
 		{
 			lowestFCMGuid=participantList[idx].fcm2Guid;
-			associatedSystemAddress=participantList[idx].systemAddress;
 			associatedRakNetGuid=participantList[idx].rakNetGuid;
 		}
 	}
 
-	*systemAddress=associatedSystemAddress;
 	*rakNetGuid=associatedRakNetGuid;
 	*fcm2Guid=lowestFCMGuid;
 }
@@ -269,105 +301,155 @@ void FullyConnectedMesh2::OnRequestFCMGuid(Packet *packet)
 {
 	RakNet::BitStream bsIn(packet->data,packet->length,false);
 	bsIn.IgnoreBytes(sizeof(MessageID));
-
-	// If ourFCMGuid is set, and we are not host, return
-	if (ourFCMGuid!=0 && IsHostSystem()==false)
-		return;
-
-	RakNetTimeUS senderElapsedRuntime;
-	if (ourFCMGuid==0)
+	bool hasRemoteFCMGuid;
+	bsIn.Read(hasRemoteFCMGuid);
+	RakNetTimeUS senderElapsedRuntime=0;
+	unsigned int remoteTotalConnectionCount=0;
+	FCM2Guid theirFCMGuid=0;
+	if (hasRemoteFCMGuid)
+	{
+		bsIn.Read(remoteTotalConnectionCount);
+		bsIn.Read(theirFCMGuid);
+	}
+	else
 	{
 		bsIn.Read(senderElapsedRuntime);
-		RakNetTimeUS ourElapsedRuntime = GetElapsedRuntime();
-
-		// Even if both systems disagree on who is host by time, the problem is avoid because of the random number for the low 4 bytes of FCM2Guid
-		if (ourElapsedRuntime>senderElapsedRuntime)
+	}
+	AddParticipantInternal(packet->guid,theirFCMGuid);
+	if (ourFCMGuid==0)
+	{
+		if (hasRemoteFCMGuid==false)
 		{
-			// We are probably host
-			// 2 is for 2 total connections, since neither of us are host
-			SendFCMGuidResponse(packet->systemAddress, totalConnectionCount+1, 2);
+			// Nobody has a fcmGuid
+
+			RakNetTimeUS ourElapsedRuntime = GetElapsedRuntime();
+			if (ourElapsedRuntime>senderElapsedRuntime)
+			{
+				// We are probably host
+				SendConnectionCountResponse(packet->systemAddress, 2);
+			}
+			else
+			{
+				// They are probably host
+				SendConnectionCountResponse(packet->systemAddress, 1);
+			}
 		}
 		else
 		{
-			// They are probably host
-			SendFCMGuidResponse(packet->systemAddress, totalConnectionCount, 2);
+			// They have a fcmGuid, we do not
+
+			IncrementTotalConnectionCount(remoteTotalConnectionCount+1);
+
+			AssignOurFCMGuid();
+			DataStructures::DefaultIndexType idx;
+			for (idx=0; idx < participantList.Size(); idx++)
+				SendOurFCMGuid(rakPeerInterface->GetSystemAddressFromGuid(participantList[idx].rakNetGuid));
 		}
 	}
 	else
 	{
-		// totalConnectionCount is set to the value of 2 passed to SendFCMGuidResponse when our own guid is first assigned
-		RakAssert(totalConnectionCount!=0);
-		SendFCMGuidResponse(packet->systemAddress, totalConnectionCount+1, totalConnectionCount+1);
+		if (hasRemoteFCMGuid==false)
+		{
+			// We have a fcmGuid they do not
+
+			SendConnectionCountResponse(packet->systemAddress, totalConnectionCount+1);
+
+		}
+		else
+		{
+			// We both have fcmGuids
+
+			IncrementTotalConnectionCount(remoteTotalConnectionCount);
+
+			SendOurFCMGuid(packet->systemAddress);
+		}
 	}
+	CalculateAndPushHost();
 }
-void FullyConnectedMesh2::OnRespondFCMGuid(Packet *packet)
+void FullyConnectedMesh2::OnRespondConnectionCount(Packet *packet)
 {
 	RakNet::BitStream bsIn(packet->data,packet->length,false);
 	bsIn.IgnoreBytes(sizeof(MessageID));
-	unsigned int responseAssignedConnectionCount;
 	unsigned int responseTotalConnectionCount;
-	bsIn.Read(responseAssignedConnectionCount);
 	bsIn.Read(responseTotalConnectionCount);
+	IncrementTotalConnectionCount(responseTotalConnectionCount);
+	bool wasAssigned;
 	if (ourFCMGuid==0)
 	{
-		AssignOurFCMGuid(responseAssignedConnectionCount);
-		guidRequestRetryList.Clear(true,__FILE__,__LINE__);
-		printf("Total connection count updated from %i to %i\n", totalConnectionCount, responseTotalConnectionCount);
-		totalConnectionCount=responseTotalConnectionCount;
-		if (participantList.Size()!=0)
-		{
-			CalculateHost(&hostSystemAddress, &hostRakNetGuid, &hostFCM2Guid);
-			PushNewHost(hostSystemAddress, hostRakNetGuid);
-		}
+		wasAssigned=true;
+		AssignOurFCMGuid();
 	}
-	SendOurFCMGuid(packet->systemAddress);
-	DataStructures::DefaultIndexType idx;
-	for (idx=0; idx < participantList.Size(); idx++)
-		SendOurFCMGuid(participantList[idx].systemAddress);
+	else
+		wasAssigned=false;
+
+	// 1 is returned to give us lower priority, but the actual minimum is 2
+	IncrementTotalConnectionCount(2);
+
+	if (wasAssigned==true)
+	{
+		DataStructures::DefaultIndexType idx;
+		for (idx=0; idx < participantList.Size(); idx++)
+			SendOurFCMGuid(rakPeerInterface->GetSystemAddressFromGuid(participantList[idx].rakNetGuid));
+		CalculateAndPushHost();
+	}
 }
 void FullyConnectedMesh2::OnInformFCMGuid(Packet *packet)
 {
 	RakNet::BitStream bsIn(packet->data,packet->length,false);
 	bsIn.IgnoreBytes(sizeof(MessageID));
 
-	DataStructures::DefaultIndexType idx;
-	for (idx=0; idx < participantList.Size(); idx++)
-	{
-		if (participantList[idx].systemAddress==packet->systemAddress)
-		{
-			// Duplicate message, just ignore since they are already in the participantList
-			return;
-		}
-	}
-
-
 	FCM2Guid theirFCMGuid;
 	unsigned int theirTotalConnectionCount;
 	bsIn.Read(theirFCMGuid);
 	bsIn.Read(theirTotalConnectionCount);
-	participantList.Push(FCM2Participant(theirFCMGuid, packet->guid, packet->systemAddress), __FILE__,__LINE__);
-	if (theirTotalConnectionCount>totalConnectionCount)
-	{
-		printf("Total connection count IS  updated from %i to %i\n", totalConnectionCount, theirTotalConnectionCount);
-		totalConnectionCount=theirTotalConnectionCount;
-	}
-	else
-	{
-		printf("Total connection count NOT updated from %i to %i\n", totalConnectionCount, theirTotalConnectionCount);
-	}
+	IncrementTotalConnectionCount(theirTotalConnectionCount);
+	AddParticipantInternal(packet->guid,theirFCMGuid);
 
-	if (ourFCMGuid!=0)
+	CalculateAndPushHost();
+}
+void FullyConnectedMesh2::GetParticipantCount(DataStructures::DefaultIndexType *participantListSize) const
+{
+	*participantListSize=participantList.Size();
+}
+
+unsigned int FullyConnectedMesh2::GetParticipantCount(void) const
+{
+	return participantList.Size();
+}
+void FullyConnectedMesh2::CalculateAndPushHost(void)
+{
+	RakNetGUID newHostGuid;
+	FCM2Guid newFcmGuid;
+	if (ParticipantListComplete())
 	{
-		SystemAddress systemAddress;
-		RakNetGUID rakNetGuid;
-		FCM2Guid fcm2Guid;
-		CalculateHost(&systemAddress, &rakNetGuid, &fcm2Guid);
-		if (rakNetGuid!=hostRakNetGuid)
+		CalculateHost(&newHostGuid, &newFcmGuid);
+		if (newHostGuid!=lastPushedHost)
 		{
-			hostSystemAddress=systemAddress;
-			hostRakNetGuid=rakNetGuid;
-			hostFCM2Guid=fcm2Guid;
-			PushNewHost(hostSystemAddress, hostRakNetGuid);
+			hostRakNetGuid=newHostGuid;
+			hostFCM2Guid=newFcmGuid;
+			PushNewHost(hostRakNetGuid);
 		}
 	}
+}
+bool FullyConnectedMesh2::ParticipantListComplete(void)
+{
+	for (unsigned int i=0; i < participantList.Size(); i++)
+	{
+		if (participantList[i].fcm2Guid==0)
+			return false;
+	}
+	return true;
+}
+void FullyConnectedMesh2::IncrementTotalConnectionCount(unsigned int i)
+{
+	if (i>totalConnectionCount)
+	{
+		totalConnectionCount=i;
+	//	printf("totalConnectionCount=%i\n",i);
+	}
+}
+void FullyConnectedMesh2::SetConnectOnNewRemoteConnection(bool attemptConnection, RakNet::RakString pw)
+{
+	connectOnNewRemoteConnections=attemptConnection;
+	connectionPassword=pw;
 }

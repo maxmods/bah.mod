@@ -1,9 +1,10 @@
 #include "RakThread.h"
+#include "RakAssert.h"
 #include "RakNetDefines.h"
+#include "RakSleep.h"
 
 #if defined(_XBOX) || defined(X360)
-#include "XBOX360Includes.h"
-#include <process.h>
+                                                  
 #elif defined(_WIN32)
 #include "WindowsIncludes.h"
 #include <stdio.h>
@@ -17,23 +18,25 @@
 using namespace RakNet;
 
 #if defined(_WIN32_WCE)
-int RakThread::Create( LPTHREAD_START_ROUTINE start_address, void *arglist)
+int RakThread::Create( LPTHREAD_START_ROUTINE start_address, void *arglist, int priority)
 #elif defined(_WIN32)
-int RakThread::Create( unsigned __stdcall start_address( void* ), void *arglist)
+int RakThread::Create( unsigned __stdcall start_address( void* ), void *arglist, int priority)
 #else
-int RakThread::Create( void* start_address( void* ), void *arglist)
+int RakThread::Create( void* start_address( void* ), void *arglist, int priority)
 #endif
 {
 #ifdef _WIN32
 	HANDLE threadHandle;
 	unsigned threadID = 0;
 #if defined(_XBOX) || defined(X360)
-	threadHandle = (HANDLE) _beginthreadex( NULL, 0, start_address, arglist, 0, &threadID );
+                                                                                         
 #elif defined (_WIN32_WCE)
 	threadHandle = CreateThread(NULL,MAX_ALLOCA_STACK_ALLOCATION*2,start_address,arglist,0,(DWORD*)&threadID);
+	SetThreadPriority(threadHandle, priority);
 #else
 	threadHandle = (HANDLE) _beginthreadex( NULL, MAX_ALLOCA_STACK_ALLOCATION*2, start_address, arglist, 0, &threadID );
 #endif
+	SetThreadPriority(threadHandle, priority);
 
 	if (threadHandle==0)
 	{
@@ -48,9 +51,18 @@ int RakThread::Create( void* start_address( void* ), void *arglist)
 	pthread_t threadHandle;
 	// Create thread linux
 	pthread_attr_t attr;
+	sched_param param;
+	param.sched_priority=priority;
 	pthread_attr_init( &attr );
+	pthread_attr_setschedparam(&attr, &param);
+#if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
+                                                                                                                                                                  
+#else
+	pthread_attr_setstacksize(&attr, MAX_ALLOCA_STACK_ALLOCATION*2);
+#endif
 	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_DETACHED );
-
-	return pthread_create( &threadHandle, &attr, start_address, arglist );
+	int res = pthread_create( &threadHandle, &attr, start_address, arglist );
+	RakAssert(res==0 && "pthread_create in RakThread.cpp failed.")
+	return res;
 #endif
 }

@@ -21,19 +21,15 @@
 #include "PacketPriority.h"
 #include "RakNetTypes.h"
 #include "RakMemoryOverride.h"
+#include "RakNetDefines.h"
+#include "CCRakNetUDT.h"
 
 typedef unsigned short SplitPacketIdType;
 typedef unsigned int SplitPacketIndexType;
 
-
 /// This is the counter used for holding packet numbers, so we can detect duplicate packets.  It should be large enough that if the variables
-/// were to wrap, the newly wrapped values would no longer be in use.  Warning: Too large of a value wastes bandwidth!
-/// Use the smallest possible value, such that you send no more than rangeof(MessageNumberType) / GetTimeoutTime() packets per second
-/// For the default value of 10 seconds, this is
-/// unsigned char - 25.5 packets per second
-/// unsigned short - 6553.5 packets per second
-/// unsigned int - You'll run out of memory first.
-typedef unsigned int MessageNumberType;
+/// Internally assumed to be 4 bytes, but written as 3 bytes in ReliabilityLayer::WriteToBitStreamFromInternalPacket
+typedef uint24_t MessageNumberType;
 
 /// This is the counter used for holding ordered packet numbers, so we can detect out-of-order packets.  It should be large enough that if the variables
 /// were to wrap, the newly wrapped values would no longer be in use.  Warning: Too large of a value wastes bandwidth!
@@ -41,52 +37,74 @@ typedef MessageNumberType OrderingIndexType;
 
 typedef RakNetTimeUS RemoteSystemTimeType;
 
+struct InternalPacketFixedSizeTransmissionHeader
+{
+	/// A unique numerical identifier given to this user message. Used to identify reliable messages on the network
+	MessageNumberType reliableMessageNumber;
+	///The ID used as identification for ordering channels
+	OrderingIndexType orderingIndex;
+	///What ordering channel this packet is on, if the reliability type uses ordering channels
+	unsigned char orderingChannel;
+	///The ID of the split packet, if we have split packets.  This is the maximum number of split messages we can send simultaneously per connection.
+	SplitPacketIdType splitPacketId;
+	///If this is a split packet, the index into the array of subsplit packets
+	SplitPacketIndexType splitPacketIndex;
+	///The size of the array of subsplit packets
+	SplitPacketIndexType splitPacketCount;;
+	///How many bits long the data is
+	BitSize_t dataBitLength;
+	///What type of reliability algorithm to use with this packet
+	PacketReliability reliability;
+	// Not endian safe
+	// unsigned char priority : 3;
+	// unsigned char reliability : 5;
+};
+
+/// Used in InternalPacket when pointing to sharedDataBlock, rather than allocating itself
+struct InternalPacketRefCountedData
+{
+	unsigned char *sharedDataBlock;
+	unsigned int refCount;
+};
+
 /// Holds a user message, and related information
 /// Don't use a constructor or destructor, due to the memory pool I am using
-struct InternalPacket//<InternalPacket>
+struct InternalPacket : public InternalPacketFixedSizeTransmissionHeader
 {
-	///True if this is an acknowledgment packet
-	//bool isAcknowledgement;
-	
-	/// A unique numerical identifier given to this user message. Used to identify messages on the network
-	MessageNumberType messageNumber;
 	/// Identifies the order in which this number was sent. Used locally
 	MessageNumberType messageInternalOrder;
 	/// Has this message number been assigned yet?  We don't assign until the message is actually sent.
 	/// This fixes a bug where pre-determining message numbers and then sending a message on a different channel creates a huge gap.
 	/// This causes performance problems and causes those messages to timeout.
 	bool messageNumberAssigned;
-	/// Used only for tracking packetloss and windowing internally, this is the aggreggate packet number that a message was last sent in
-	unsigned packetNumber;
 	/// Was this packet number used this update to track windowing drops or increases?  Each packet number is only used once per update.
 //	bool allowWindowUpdate;
-	///The priority level of this packet
-	PacketPriority priority;
-	///What type of reliability algorithm to use with this packet
-	PacketReliability reliability;
-	///What ordering channel this packet is on, if the reliability type uses ordering channels
-	unsigned char orderingChannel;
-	///The ID used as identification for ordering channels
-	OrderingIndexType orderingIndex;
-	///The ID of the split packet, if we have split packets.  This is the maximum number of split messages we can send simultaneously per connection.
-	SplitPacketIdType splitPacketId;
-	///If this is a split packet, the index into the array of subsplit packets
-	SplitPacketIndexType splitPacketIndex;
-	///The size of the array of subsplit packets
-	SplitPacketIndexType splitPacketCount;
 	///When this packet was created
 	RakNetTimeUS creationTime;
-	///The next time to take action on this packet
+	///The resendNext time to take action on this packet
 	RakNetTimeUS nextActionTime;
-	// If this was a reliable packet, it included the ping time, to be sent back in an ack
-	//RakNetTimeUS remoteSystemTime;
-	//RemoteSystemTimeType remoteSystemTime;
-	///How many bits the data is
-	BitSize_t dataBitLength;
-	///Buffer is a pointer to the actual data, assuming this packet has data at all
+	// Size of the header when encoded into a bitstream
+	BitSize_t headerLength;
+	/// Buffer is a pointer to the actual data, assuming this packet has data at all
 	unsigned char *data;
-	// How many attempts we made at sending this message
+	/// How to alloc and delete the data member
+	enum AllocationScheme
+	{
+		/// Data is allocated using rakMalloc. Just free it
+		NORMAL,
+
+		/// data points to a larger block of data, where the larger block is reference counted. internalPacketRefCountedData is used in this case
+		REF_COUNTED
+	} allocationScheme;
+	InternalPacketRefCountedData *refCountedData;
+	/// How many attempts we made at sending this message
 	unsigned char timesSent;
+	///The priority level of this packet
+	PacketPriority priority;
+
+	// Used for the resend queue
+	// Linked list implementation so I can remove from the list via a pointer, without finding it in the list
+	InternalPacket *resendPrev, *resendNext,*unreliablePrev,*unreliableNext;
 };
 
 #endif

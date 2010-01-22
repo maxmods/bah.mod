@@ -54,7 +54,7 @@ namespace DataStructures
 
 		/// \brief Push an element at the end of the stack.
 		/// \param[in] input The new element. 
-		void Push(const list_type &input, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Push(const list_type &input, const char *file, unsigned int line );
 
 		/// \brief Pop an element from the end of the stack.
 		/// \pre Size()>0
@@ -64,11 +64,11 @@ namespace DataStructures
 		/// \brief Insert an element at position \a position in the list.
 		/// \param[in] input The new element. 
 		/// \param[in] position The position of the new element. 		
-		void Insert( const list_type &input, const unsigned int position, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Insert( const list_type &input, const unsigned int position, const char *file, unsigned int line );
 		
 		/// \brief Insert at the end of the list.
 		/// \param[in] input The new element. 
-		void Insert( const list_type &input, const char *file=__FILE__, unsigned int line=__LINE__ );
+		void Insert( const list_type &input, const char *file, unsigned int line );
 		
 		/// \brief Replace the value at \a position by \a input.  
 		/// \details If the size of the list is less than @em position, it increase the capacity of
@@ -76,7 +76,7 @@ namespace DataStructures
 		/// \param[in] input The element to replace at position @em position. 
 		/// \param[in] filler The element use to fill new allocated capacity. 
 		/// \param[in] position The position of input in the list. 		
-		void Replace( const list_type &input, const list_type filler, const unsigned int position );
+		void Replace( const list_type &input, const list_type filler, const unsigned int position, const char *file, unsigned int line );
 		
 		/// \brief Replace the last element of the list by \a input.
 		/// \param[in] input The element used to replace the last element. 
@@ -105,15 +105,15 @@ namespace DataStructures
 		unsigned int Size( void ) const;
 		
 		/// \brief Clear the list		
-		void Clear( bool doNotDeallocateSmallBlocks=false );
+		void Clear( bool doNotDeallocateSmallBlocks, const char *file, unsigned int line );
 		
 		/// \brief Preallocate the list, so it needs fewer reallocations at runtime.
-		void Preallocate( unsigned countNeeded );
+		void Preallocate( unsigned countNeeded, const char *file, unsigned int line );
 
 		/// \brief Frees overallocated members, to use the minimum memory necessary.
 		/// \attention 
 		/// This is a slow operation		
-		void Compress( void );
+		void Compress( const char *file, unsigned int line );
 		
 	private:
 		/// An array of user values
@@ -170,7 +170,7 @@ namespace DataStructures
 	{
 		if ( ( &original_copy ) != this )
 		{
-			Clear();
+			Clear( false, __FILE__, __LINE__ );
 
 			// Allocate memory for copy
 
@@ -323,7 +323,7 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		inline void List<list_type>::Replace( const list_type &input, const list_type filler, const unsigned int position )
+		inline void List<list_type>::Replace( const list_type &input, const list_type filler, const unsigned int position, const char *file, unsigned int line )
 	{
 		if ( ( list_size > 0 ) && ( position < list_size ) )
 		{
@@ -338,7 +338,7 @@ namespace DataStructures
 				list_type * new_array;
 				allocation_size = position + 1;
 
-				new_array = RakNet::OP_NEW_ARRAY<list_type >( allocation_size , __FILE__, __LINE__ );
+				new_array = RakNet::OP_NEW_ARRAY<list_type >( allocation_size , file, line );
 
 				// copy old array over
 
@@ -349,7 +349,7 @@ namespace DataStructures
 				//memcpy(new_array, listArray, list_size*sizeof(list_type));
 
 				// set old array to point to the newly allocated array
-				RakNet::OP_DELETE_ARRAY(listArray, __FILE__, __LINE__);
+				RakNet::OP_DELETE_ARRAY(listArray, file, line);
 
 				listArray = new_array;
 			}
@@ -441,14 +441,14 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		void List<list_type>::Clear( bool doNotDeallocateSmallBlocks )
+	void List<list_type>::Clear( bool doNotDeallocateSmallBlocks, const char *file, unsigned int line )
 	{
 		if ( allocation_size == 0 )
 			return;
 
 		if (allocation_size>512 || doNotDeallocateSmallBlocks==false)
 		{
-			RakNet::OP_DELETE_ARRAY(listArray, __FILE__, __LINE__);
+			RakNet::OP_DELETE_ARRAY(listArray, file, line);
 			allocation_size = 0;
 			listArray = 0;
 		}
@@ -456,14 +456,14 @@ namespace DataStructures
 	}
 
 	template <class list_type>
-		void List<list_type>::Compress( void )
+	void List<list_type>::Compress( const char *file, unsigned int line )
 	{
 		list_type * new_array;
 
 		if ( allocation_size == 0 )
 			return ;
 
-		new_array = RakNet::OP_NEW_ARRAY<list_type >( allocation_size , __FILE__, __LINE__ );
+		new_array = RakNet::OP_NEW_ARRAY<list_type >( allocation_size , file, line );
 
 		// copy old array over
 		for ( unsigned int counter = 0; counter < list_size; ++counter )
@@ -473,13 +473,13 @@ namespace DataStructures
 		//memcpy(new_array, listArray, list_size*sizeof(list_type));
 
 		// set old array to point to the newly allocated array
-		RakNet::OP_DELETE_ARRAY(listArray, __FILE__, __LINE__);
+		RakNet::OP_DELETE_ARRAY(listArray, file, line);
 
 		listArray = new_array;
 	}
 
 	template <class list_type>
-	void List<list_type>::Preallocate( unsigned countNeeded )
+	void List<list_type>::Preallocate( unsigned countNeeded, const char *file, unsigned int line )
 	{
 		unsigned amountToAllocate = allocation_size;
 		if (allocation_size==0)
@@ -494,7 +494,7 @@ namespace DataStructures
 
 			allocation_size=amountToAllocate;
 
-			new_array = RakNet::OP_NEW_ARRAY< list_type >( allocation_size , __FILE__, __LINE__ );
+			new_array = RakNet::OP_NEW_ARRAY< list_type >( allocation_size , file, line );
 
 			if (listArray)
 			{
@@ -506,7 +506,7 @@ namespace DataStructures
 				//memcpy(new_array, listArray, list_size*sizeof(list_type));
 
 				// set old array to point to the newly allocated and twice as large array
-				RakNet::OP_DELETE_ARRAY(listArray, __FILE__, __LINE__);
+				RakNet::OP_DELETE_ARRAY(listArray, file, line);
 			}
 
 			listArray = new_array;

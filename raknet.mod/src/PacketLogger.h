@@ -66,12 +66,16 @@ public:
 	/// Append this string to output logs. (newline is useful here)
 	virtual void SetSuffix(const char *_suffix);
 	static const char* BaseIDTOString(unsigned char Id);
+
+	/// Log the direct sends and receives or not. Default true
+	void SetLogDirectMessages(bool send);
 protected:
 	const char* IDTOString(unsigned char Id);
 	virtual void AddToLog(const char *str);
 	// Users should override this
 	virtual const char* UserIDTOString(unsigned char Id);
 	void GetLocalTime(char buffer[128]);
+	bool logDirectMessages;
 
 	bool printId, printAcks;
 	char prefix[256];

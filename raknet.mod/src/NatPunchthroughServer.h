@@ -55,6 +55,8 @@ struct NatPunchthroughServerDebugInterface_PacketLogger : public NatPunchthrough
 /// \details Maintain connection to NatPunchthroughServer to process incoming connection attempts through NatPunchthroughClient<BR>
 /// Server maintains two sockets clients can connect to so as to estimate the next port choice<BR>
 /// Server tells other client about port estimate, current public port to the server, and a time to start connection attempts
+/// \sa NatTypeDetectionClient
+/// See also http://www.jenkinssoftware.com/raknet/manual/natpunchthrough.html
 /// \ingroup NAT_PUNCHTHROUGH_GROUP
 class RAK_DLL_EXPORT NatPunchthroughServer : public PluginInterface2
 {

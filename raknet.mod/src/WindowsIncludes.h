@@ -1,4 +1,5 @@
-#if defined (_WIN32) && !defined(__X360__) && !defined(_XBOX)
+#if defined(__X360__) || defined(_XBOX)
+#elif defined (_WIN32)
 #include <WinSock2.h>
 #include <windows.h>
 
@@ -11,5 +12,4 @@
 // winsock2.h(199) : error C2011: 'hostent' : 'struct' type redefinition
 // winsock2.h(212) : error C2011: 'netent' : 'struct' type redefinition
 // winsock2.h(219) : error C2011: 'servent' : 'struct' type redefinition 
-
 #endif

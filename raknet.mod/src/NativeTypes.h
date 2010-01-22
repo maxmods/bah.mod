@@ -5,7 +5,7 @@
 		#include <stdint.h>
 	#endif
 	
-#if !defined(_STDINT_H) && !defined(_SN_STDINT_H) && !defined(_SYS_STDINT_H_)
+	#if !defined(_STDINT_H) && !defined(_SN_STDINT_H) && !defined(_SYS_STDINT_H_)
 		typedef unsigned char         uint8_t;
 		typedef unsigned short        uint16_t;
 		typedef unsigned int          uint32_t;
@@ -20,5 +20,6 @@
 			typedef signed long long   	int64_t;
 		#endif
 	#endif
+
 
 #endif

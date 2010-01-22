@@ -125,6 +125,12 @@ namespace RakNet
 		/// \return true if \a writeToBitstream is true.  true if \a writeToBitstream is false and the read was successful.  false if \a writeToBitstream is false and the read was not successful.
 		bool Serialize(bool writeToBitstream,  char* input, const unsigned int numberOfBytes );
 
+		/// \brief Serialize a float into 2 bytes, spanning the range between \a floatMin and \a floatMax
+		/// \param[in] f The float to write
+		/// \param[in] floatMin Predetermined minimum value of f
+		/// \param[in] floatMax Predetermined maximum value of f
+		bool SerializeFloat16(bool writeToBitstream, float &f, float floatMin, float floatMax);
+
 		/// \brief Bidirectional serialize/deserialize a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
 		/// \details Will further compress y or z axis aligned vectors.
 		/// Accurate to 1/32767.5.
@@ -295,9 +301,15 @@ namespace RakNet
 		void Write( BitStream *bitStream, BitSize_t numberOfBits );
 		void Write( BitStream *bitStream );
 		void Write( BitStream &bitStream, BitSize_t numberOfBits );
-		void Write( BitStream &bitStream );
+		void Write( BitStream &bitStream );\
+		
+		/// \brief Write a float into 2 bytes, spanning the range between \a floatMin and \a floatMax
+		/// \param[in] f The float to write
+		/// \param[in] floatMin Predetermined minimum value of f
+		/// \param[in] floatMax Predetermined maximum value of f
+		void WriteFloat16( float x, float floatMin, float floatMax );
 
-		/// \brief Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
+		/// \brief Write a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
 		/// \details Will further compress y or z axis aligned vectors.
 		/// Accurate to 1/32767.5.
 		/// \param[in] x x
@@ -338,6 +350,12 @@ namespace RakNet
 		/// \param[in] numberOfBytes The number of byte to read
 		/// \return true on success false if there is some missing bytes.
 		bool Read( char* output, const unsigned int numberOfBytes );
+
+		/// \brief Read a float into 2 bytes, spanning the range between \a floatMin and \a floatMax
+		/// \param[in] f The float to read
+		/// \param[in] floatMin Predetermined minimum value of f
+		/// \param[in] floatMax Predetermined maximum value of f
+		bool ReadFloat16( float &f, float floatMin, float floatMax );
 
 		/// \brief Read a normalized 3D vector, using (at most) 4 bytes + 3 bits instead of 12-24 bytes.  
 		/// \details Will further compress y or z axis aligned vectors.
@@ -460,6 +478,9 @@ namespace RakNet
 		/// \param[in] numberOfBytesToWrite The size of input.
 		void WriteAlignedBytes( const unsigned char *input, const unsigned int numberOfBytesToWrite );
 
+		// Endian swap bytes already in the bitstream
+		void EndianSwapBytes( int byteOffset, int length );
+
 		/// \brief Aligns the bitstream, writes inputLength, and writes input. Won't write beyond maxBytesToWrite
 		/// \param[in] input The data
 		/// \param[in] inputLength The size of input.
@@ -493,14 +514,14 @@ namespace RakNet
 		/// can also be used to force coalesced bitstreams to start on byte
 		/// boundaries so so WriteAlignedBits and ReadAlignedBits both
 		/// calculate the same offset when aligning.
-		void AlignWriteToByteBoundary( void );
+		inline void AlignWriteToByteBoundary( void ) {numberOfBitsUsed += 8 - ( (( numberOfBitsUsed - 1 ) & 7) + 1 );}
 
 		/// \brief Align the next write and/or read to a byte boundary.  
 		/// \details This can be used to 'waste' bits to byte align for efficiency reasons It
 		/// can also be used to force coalesced bitstreams to start on byte
 		/// boundaries so so WriteAlignedBits and ReadAlignedBits both
 		/// calculate the same offset when aligning.
-		void AlignReadToByteBoundary( void );
+		inline void AlignReadToByteBoundary( void ) {readOffset += 8 - ( (( readOffset - 1 ) & 7 ) + 1 );}
 
 		/// \brief Read \a numberOfBitsToRead bits to the output source.
 		/// \details alignBitsToRight should be set to true to convert internal
@@ -537,9 +558,25 @@ namespace RakNet
 		/// \return How many bits have been allocated internally
 		BitSize_t GetNumberOfBitsAllocated(void) const;
 
-		// \brief Read strings, non reference.
+		/// \brief Read strings, non reference.
 		bool Read(char *var);
 		bool Read(unsigned char *var);
+
+		/// Write zeros until the bitstream is filled up to \a bytes
+		void PadWithZeroToByteLength( unsigned int bytes );
+
+		/// \internal Unrolled inner loop, for when performance is critical
+		void WriteAlignedVar8(const char *input);
+		/// \internal Unrolled inner loop, for when performance is critical
+		bool ReadAlignedVar8(char *output);
+		/// \internal Unrolled inner loop, for when performance is critical
+		void WriteAlignedVar16(const char *input);
+		/// \internal Unrolled inner loop, for when performance is critical
+		bool ReadAlignedVar16(char *output);
+		/// \internal Unrolled inner loop, for when performance is critical
+		void WriteAlignedVar32(const char *input);
+		/// \internal Unrolled inner loop, for when performance is critical
+		bool ReadAlignedVar32(char *output);
 
 		/// ---- Member function template specialization declarations ----
 		// Used for VC7
@@ -553,6 +590,11 @@ namespace RakNet
 		/// \param[in] var The value to write
 		template <>
 			void Write(SystemAddress var);
+
+		/// Write a uint24_t to a bitstream
+		/// \param[in] var The value to write
+		template <>
+		void Write(uint24_t var);
 
 		/// Write a RakNetGUID to a bitsteam
 		/// \param[in] var The value to write
@@ -586,6 +628,9 @@ namespace RakNet
 			void WriteDelta(SystemAddress currentValue, SystemAddress lastValue);
 
 		template <>
+		void WriteDelta(uint24_t currentValue, uint24_t lastValue);
+
+		template <>
 			void WriteDelta(RakNetGUID currentValue, RakNetGUID lastValue);
 
 		/// \brief Write an networkID.  
@@ -605,6 +650,9 @@ namespace RakNet
 
 		template <>
 			void WriteCompressed(SystemAddress var);
+
+		template <>
+		void WriteCompressed(uint24_t var);
 
 		template <>
 			void WriteCompressed(RakNetGUID var);
@@ -660,6 +708,9 @@ namespace RakNet
 			bool Read(SystemAddress &var);
 
 		template <>
+		bool Read(uint24_t &var);
+
+		template <>
 			bool Read(RakNetGUID &var);
 
 		/// \brief Read an NetworkID from a bitstream.
@@ -686,6 +737,9 @@ namespace RakNet
 
 		template <>
 			bool ReadCompressed(SystemAddress &var);
+
+		template <>
+		bool ReadCompressed(uint24_t &var);
 
 		template <>
 			bool ReadCompressed(RakNetGUID &var);
@@ -718,9 +772,20 @@ namespace RakNet
 			bool ReadCompressedDelta(bool &var);
 #endif
 
-		static bool DoEndianSwap(void);
-		static bool IsBigEndian(void);
-		static bool IsNetworkOrder(void);
+		inline static bool DoEndianSwap(void) {
+#ifndef __BITSTREAM_NATIVE_END
+			return IsNetworkOrder()==false;
+#else
+			return false;
+#endif
+		}
+		inline static bool IsBigEndian(void)
+		{
+			return IsNetworkOrder();
+		}
+		inline static bool IsNetworkOrder(void) {const static bool r = IsNetworkOrderInternal(); return r;}
+		// Not inline, won't compile on PC due to winsock include errors
+		static bool IsNetworkOrderInternal(void);
 		static void ReverseBytes(unsigned char *input, unsigned char *output, const unsigned int length);
 		static void ReverseBytesInPlace(unsigned char *data,const unsigned int length);
 
@@ -904,7 +969,7 @@ namespace RakNet
 #ifdef _MSC_VER
 #pragma warning(disable:4127)   // conditional expression is constant
 #endif
-		if (sizeof(var)==1)
+		if (sizeof(templateType)==1)
 			WriteBits( ( unsigned char* ) var, sizeof( templateType ) * 8, true );
 		else
 		{
@@ -945,9 +1010,31 @@ namespace RakNet
 	}
 
 	template <>
+	inline void BitStream::Write(uint24_t var)
+	{
+		AlignWriteToByteBoundary();
+		AddBitsAndReallocate(3*8);
+
+		if (IsBigEndian()==false)
+		{
+			data[( numberOfBitsUsed >> 3 ) + 0] = ((char *)&var.val)[0];
+			data[( numberOfBitsUsed >> 3 ) + 1] = ((char *)&var.val)[1];
+			data[( numberOfBitsUsed >> 3 ) + 2] = ((char *)&var.val)[2];
+		}
+		else
+		{
+			data[( numberOfBitsUsed >> 3 ) + 0] = ((char *)&var.val)[3];
+			data[( numberOfBitsUsed >> 3 ) + 1] = ((char *)&var.val)[2];
+			data[( numberOfBitsUsed >> 3 ) + 2] = ((char *)&var.val)[1];
+		}
+
+		numberOfBitsUsed+=3*8;
+	}
+
+	template <>
 		inline void BitStream::Write(RakNetGUID var)
 		{
-			WriteAlignedBytes((const unsigned char*) &var,sizeof(var));
+			Write(var.g);
 		}
 
 	/// \brief Write an networkID to a bitstream.
@@ -955,7 +1042,7 @@ namespace RakNet
 	template <>
 		inline void BitStream::Write(NetworkID var)
 	{
-#if defined (NETWORK_ID_SUPPORTS_PEER_TO_PEER)
+#if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
 		RakAssert(NetworkID::IsPeerToPeerMode());
 //		if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
 		{
@@ -1029,6 +1116,7 @@ namespace RakNet
 		}
 	}
 
+		/*
 	/// \brief Write a systemAddress.  
 	/// \details If the current value is different from the last value
 	/// the current value will be written.  Otherwise, a single bit will be written
@@ -1080,6 +1168,7 @@ namespace RakNet
 			Write(currentValue);
 		}
 	}
+	*/
 
 	/// \brief Write a bool delta. Same thing as just calling Write
 	/// \param[in] currentValue The current value to write
@@ -1142,6 +1231,12 @@ namespace RakNet
 
 	template <>
 	inline void BitStream::WriteCompressed(RakNetGUID var)
+	{
+		Write(var);
+	}
+
+	template <>
+	inline void BitStream::WriteCompressed(uint24_t var)
 	{
 		Write(var);
 	}
@@ -1300,7 +1395,7 @@ namespace RakNet
 #ifdef _MSC_VER
 #pragma warning(disable:4127)   // conditional expression is constant
 #endif
-		if (sizeof(var)==1)
+		if (sizeof(templateType)==1)
 			return ReadBits( ( unsigned char* ) var, sizeof(templateType) * 8, true );
 		else
 		{
@@ -1357,9 +1452,36 @@ namespace RakNet
 	}
 
 	template <>
+	inline bool BitStream::Read(uint24_t &var)
+	{
+		AlignReadToByteBoundary();
+		if ( readOffset + 3*8 > numberOfBitsUsed )
+			return false;
+
+		if (IsBigEndian()==false)
+		{
+			((char *)&var.val)[0]=data[ (readOffset >> 3) + 0];
+			((char *)&var.val)[1]=data[ (readOffset >> 3) + 1];
+			((char *)&var.val)[2]=data[ (readOffset >> 3) + 2];
+			((char *)&var.val)[3]=0;
+		}
+		else
+		{
+
+			((char *)&var.val)[3]=data[ (readOffset >> 3) + 0];
+			((char *)&var.val)[2]=data[ (readOffset >> 3) + 1];
+			((char *)&var.val)[1]=data[ (readOffset >> 3) + 2];
+			((char *)&var.val)[0]=0;
+		}
+
+		readOffset+=3*8;
+		return true;
+	}
+
+	template <>
 	inline bool BitStream::Read(RakNetGUID &var)
 	{
-		return ReadAlignedBytes((unsigned char*) &var,sizeof(var));
+		return Read(var.g);
 	}
 
 	/// \brief Read an networkID from a bitstream.
@@ -1367,7 +1489,7 @@ namespace RakNet
 	template <>
 		inline bool BitStream::Read(NetworkID &var)
 	{
-#if defined (NETWORK_ID_SUPPORTS_PEER_TO_PEER)
+#if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
 		RakAssert(NetworkID::IsPeerToPeerMode());
 		//if (NetworkID::IsPeerToPeerMode()) // Use the function rather than directly access the member or DLL users will get an undefined external error
 		{
@@ -1473,6 +1595,12 @@ namespace RakNet
 	}
 
 	template <>
+	inline bool BitStream::ReadCompressed(uint24_t &var)
+	{
+		return Read(var);
+	}
+
+	template <>
 	inline bool BitStream::ReadCompressed(RakNetGUID &var)
 	{
 		return Read(var);
@@ -1560,7 +1688,6 @@ namespace RakNet
 	{
 		return Read(var);
 	}
-
 
 	template <class templateType> // templateType for this function must be a float or double
 		void BitStream::WriteNormVector( templateType x, templateType y, templateType z )
