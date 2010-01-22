@@ -8,6 +8,7 @@ Import BaH.CEGUIOpenGL
 Import BRL.Max2D
 Import BRL.GLMax2D
 Import BRL.LinkedList
+Import BRL.FreeTypeFont
 
 Global _helper:TExampleHelper
 
@@ -38,6 +39,8 @@ Type TExampleHelper
 		Graphics 800, 600, 0
 		SetBlend ALPHABLEND
 		HideMouse
+
+		SetImageFont(LoadImageFont("datafiles/fonts/DejaVuSans.ttf", 11))
 
 		Init_CEGUI(New TCEOpenGLRenderer)
 		

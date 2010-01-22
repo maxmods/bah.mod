@@ -14,8 +14,6 @@ AppTitle = "ChatClient"
 
 New ChatClient.Run()
 
-
-
 Type ChatClient Extends TExampleHelper
 
 	Const STAGE_NONE:Int = 0
@@ -115,7 +113,7 @@ Type ChatClient Extends TExampleHelper
 
 			Default
 				' It's a client, so just show the message
-				AddMessage String.FromCString(p.GetData())
+				AddMessage String.FromUTF8String(p.GetData())
 		End Select
 		
 		
@@ -215,13 +213,13 @@ Type ChatClient Extends TExampleHelper
 
 						Return
 				End Select
-				
+
 				' message is the data To send
 				' strlen(message)+1 is To send the Null terminator
 				' HIGH_PRIORITY doesn't actually matter here because we don't use any other priority
 				' RELIABLE_ORDERED means make sure the message arrives in the right order
-				Local message:Byte Ptr = value.ToCString()
-				client.Send(message, value.length + 1, HIGH_PRIORITY, RELIABLE_ORDERED, 0, UNASSIGNED_SYSTEM_ADDRESS, True)
+				Local message:Byte Ptr = value.ToUTF8String()
+				client.Send(message, String.FromCString(message).length + 1, HIGH_PRIORITY, RELIABLE_ORDERED, 0, UNASSIGNED_SYSTEM_ADDRESS, True)
 				MemFree(message)
 		
 				ShowChatWindow()

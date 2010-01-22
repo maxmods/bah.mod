@@ -96,14 +96,14 @@ Type ChatServer Extends TExampleHelper
 
 				' The server knows the static data of all clients, so we can prefix the message
 				' With the name data
-				Local value:String = String.FromCString(p.GetData())
+				Local value:String = String.FromUTF8String(p.GetData())
 				AddMessage value
 
 				' Relay the message.  We prefix the name For other clients.  This demonstrates
 				' That messages can be changed on the server before being broadcast
 				' Sending is the same as before
-				Local message:Byte Ptr = value.ToCString()
-				server.Send(message, value.length + 1, HIGH_PRIORITY, RELIABLE_ORDERED, 0, p.GetSystemAddress(), True)
+				Local message:Byte Ptr = value.ToUTF8String()
+				server.Send(message, String.FromCString(message).length + 1, HIGH_PRIORITY, RELIABLE_ORDERED, 0, p.GetSystemAddress(), True)
 				MemFree(message)
 
 
