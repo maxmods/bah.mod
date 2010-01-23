@@ -192,8 +192,8 @@ struct RoomDescriptor
 	
 	void Clear(void)
 	{
-		roomMemberList.Clear();
-		banList.Clear();
+		roomMemberList.Clear(false, __FILE__, __LINE__);
+		banList.Clear(false, __FILE__, __LINE__);
 		roomProperties.Clear();
 	}
 	void FromRoom(Room *room, AllGamesRoomsContainer *agrc);

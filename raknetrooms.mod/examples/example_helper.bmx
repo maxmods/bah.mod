@@ -4,7 +4,7 @@
 '
 SuperStrict
 
-Import BaH.CEGUI
+Import BaH.CEGUIOpenGL
 Import BRL.Max2D
 Import BRL.GLMax2D
 Import BRL.LinkedList
@@ -39,17 +39,30 @@ Type TExampleHelper
 		SetBlend ALPHABLEND
 		HideMouse
 
-		Init_CEGUI()
+		Init_CEGUI(New TCEOpenGLRenderer)
 		
-		TCESchemeManager.loadScheme("datafiles/schemes/WindowsLook.scheme")
+		Local rp:TCEDefaultResourceProvider = TCEDefaultResourceProvider(TCESystem.getResourceProvider())
+		rp.setResourceGroupDirectory("schemes", "datafiles/schemes/")
+		rp.setResourceGroupDirectory("imagesets", "datafiles/imagesets/")
+		rp.setResourceGroupDirectory("fonts", "datafiles/fonts/")
+		rp.setResourceGroupDirectory("layouts", "datafiles/layouts/")
+		rp.setResourceGroupDirectory("looknfeels", "datafiles/looknfeel/")
+
+		TCEImageset.setDefaultResourceGroup("imagesets")
+		TCEFont.setDefaultResourceGroup("fonts")
+		TCEScheme.setDefaultResourceGroup("schemes")
+		TCEWidgetLookManager.setDefaultResourceGroup("looknfeels")
+		TCEWindowManager.setDefaultResourceGroup("layouts")
 		
-		If Not TCEFontManager.isFontPresent( "DejaVuSans-10" ) Then
-			TCEFontManager.createFont( "datafiles/fonts/DejaVuSans-10.font" )
+		TCESchemeManager.createScheme("WindowsLook.scheme")
+		
+		If Not TCEFontManager.isDefined( "DejaVuSans-10" ) Then
+			TCEFontManager.createFont( "DejaVuSans-10.font" )
 		End If
 
 		TCESystem.setDefaultMouseCursor("WindowsLook", "MouseArrow")
 
-		Local root:TCEWindow = TCEWindowManager.loadWindowLayout("datafiles/layouts/helper.layout")
+		Local root:TCEWindow = TCEWindowManager.loadWindowLayout("helper.layout")
 		TCESystem.setGUISheet(root)
 		
 		helperWindow = TCEWindowManager.getWindow("HelperWindow")

@@ -169,12 +169,12 @@ void RemoveUserResult::Serialize(bool writeToBitstream, RakNet::BitStream *bitSt
 	bitStream->Serialize(writeToBitstream,clearedInvitationsSize);
 	if (writeToBitstream==false)
 	{
-		clearedInvitations.Clear();
+		clearedInvitations.Clear(false, __FILE__, __LINE__);
 		InvitedUser invitedUser;
 		for (unsigned i=0; i < clearedInvitationsSize; i++)
 		{
 			invitedUser.Serialize(writeToBitstream, bitStream);
-			clearedInvitations.Insert(invitedUser);
+			clearedInvitations.Insert(invitedUser, __FILE__, __LINE__ );
 		}
 	}
 }
@@ -222,11 +222,11 @@ void RoomDescriptor::FromRoom(Room *room, AllGamesRoomsContainer *agrc)
 	for (i=0; i < room->roomMemberList.Size(); i++)
 	{
 		rmd.FromRoomMember(room->roomMemberList[i]);
-		roomMemberList.Insert(rmd);
+		roomMemberList.Insert(rmd, __FILE__, __LINE__ );
 	}
 	for (i=0; i < room->banList.Size(); i++)
 	{
-		banList.Insert(room->banList[i]);
+		banList.Insert(room->banList[i], __FILE__, __LINE__ );
 	}
 
 	RakAssert(agrc);
@@ -254,7 +254,7 @@ void RoomDescriptor::Serialize(bool writeToBitstream, RakNet::BitStream *bitStre
 		if (writeToBitstream==false)
 		{
 			rmd.Serialize(writeToBitstream, bitStream);
-			roomMemberList.Insert(rmd);
+			roomMemberList.Insert(rmd, __FILE__, __LINE__ );
 		}
 		else
 			roomMemberList[i].Serialize(writeToBitstream, bitStream);
@@ -290,11 +290,15 @@ void RoomQuery::Serialize(bool writeToBitstream, RakNet::BitStream *bitStream)
 	bitStream->Serialize(writeToBitstream,hasQuery);
 	if (hasQuery)
 	{
-		if (writeToBitstream)
-			TableSerializer::SerializeFilterQuery(bitStream, queries);
-		else
-			TableSerializer::DeserializeFilterQuery(bitStream, queries);
 		bitStream->Serialize(writeToBitstream,numQueries);
+		unsigned int i;
+		for (i=0; i < numQueries; i++)
+		{
+			if (writeToBitstream)
+				TableSerializer::SerializeFilterQuery(bitStream, &queries[i]);
+			else
+				TableSerializer::DeserializeFilterQuery(bitStream, &queries[i]);
+		} 
 	}
 }
 // ----------------------------  RoomCreationParameters  ----------------------------
@@ -524,7 +528,7 @@ bool AllGamesRoomsContainer::IsInQuickJoin(RoomsParticipant* roomsParticipant)
 }
 RoomsErrorCode AllGamesRoomsContainer::SearchByFilter( GameIdentifier gameIdentifier, RoomsParticipant* roomsParticipant, RoomQuery *roomQuery, DataStructures::OrderedList<Room*, Room*, RoomsSortByName> &roomsOutput, bool onlyJoinable )
 {
-	roomsOutput.Clear();
+	roomsOutput.Clear(false, __FILE__, __LINE__);
 	if (perGamesRoomsContainers.Has(gameIdentifier)==false)
 		return REC_SEARCH_BY_FILTER_UNKNOWN_TITLE;
 	PerGameRoomsContainer *perGameRoomsContainer = perGamesRoomsContainers.Get(gameIdentifier);
@@ -559,7 +563,7 @@ unsigned int AllGamesRoomsContainer::GetPropertyIndex(RoomID lobbyRoomId, const 
 RoomsErrorCode AllGamesRoomsContainer::GetInvitesToParticipant(RoomsParticipant* roomsParticipant, DataStructures::List<InvitedUser*> &invites)
 {
 	unsigned int i;
-	invites.Clear(true);
+	invites.Clear(true, __FILE__, __LINE__ );
 	for (i=0; i < perGamesRoomsContainers.Size(); i++)
 		perGamesRoomsContainers[i]->GetInvitesToParticipant(roomsParticipant, invites);
 	return REC_SUCCESS;
@@ -819,8 +823,8 @@ RoomsErrorCode AllGamesRoomsContainer::ProcessQuickJoins(
 {
 	unsigned int numRoomsCreated;
 	unsigned int i;
-	dereferencedPointers.Clear();
-	joinedRoomMembers.Clear();
+	dereferencedPointers.Clear(false, __FILE__, __LINE__);
+	joinedRoomMembers.Clear(false, __FILE__, __LINE__);
 	for (i=0; i < perGamesRoomsContainers.Size(); i++)
 	{
 		numRoomsCreated=perGamesRoomsContainers[i]->ProcessQuickJoins(timeoutExpired, joinedRoomMembers, dereferencedPointers, elapsedTime, nextRoomId);
@@ -900,7 +904,7 @@ RoomsErrorCode PerGameRoomsContainer::AddUserToQuickJoin(QuickJoinUser *quickJoi
 		return REC_ADD_TO_QUICK_JOIN_ALREADY_THERE;
 	quickJoinMember->roomsParticipant->SetPerGameRoomsContainer(this);
 	quickJoinMember->roomsParticipant->SetInQuickJoin(true);
-	quickJoinList.Insert(quickJoinMember);
+	quickJoinList.Insert(quickJoinMember, __FILE__, __LINE__ );
 	return REC_SUCCESS;
 }
 RoomsErrorCode PerGameRoomsContainer::RemoveUserFromQuickJoin(RoomsParticipant* roomsParticipant, QuickJoinUser **qju)
@@ -924,7 +928,7 @@ int PerGameRoomsContainer::RoomsSortByTimeThenTotalSlots( Room* const &key, Room
 {
 	double keyCreationTime = key->GetNumericProperty(DefaultRoomColumns::TC_CREATION_TIME);
 	double dataCreationTime = data->GetNumericProperty(DefaultRoomColumns::TC_CREATION_TIME);
-	int diff = (int) fabs(keyCreationTime-dataCreationTime); // BaH
+	int diff = (int) abs(keyCreationTime-dataCreationTime);
 	if (diff < 30 * 1000)
 	{
 		double keyTotalSlots = key->GetNumericProperty(DefaultRoomColumns::TC_USED_PUBLIC_PLUS_RESERVED_SLOTS);
@@ -970,7 +974,7 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 	{
 		// 1. Clear all quickJoinWorkingList from all rooms
 		for (roomIndex=0; roomIndex < allRooms.Size(); roomIndex++)
-			allRooms[roomIndex]->quickJoinWorkingList.Clear(true);
+			allRooms[roomIndex]->quickJoinWorkingList.Clear(true, __FILE__, __LINE__ );
 
 		// 2. Use RoomPrioritySort to get all rooms they can potentially join
 		// 3. For each of these rooms, record that this member can potentially join by storing a copy of the pointer into quickJoinWorkingList, if minimumPlayers => total room slots
@@ -983,7 +987,7 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 				totalRoomSlots = potentialRooms[roomIndex]->GetNumericProperty(DefaultRoomColumns::TC_TOTAL_PUBLIC_PLUS_RESERVED_SLOTS);
 				if (totalRoomSlots >= quickJoinList[quickJoinIndex]->networkedQuickJoinUser.minimumPlayers-1 &&
 					potentialRooms[roomIndex]->ParticipantCanJoinRoom(quickJoinList[quickJoinIndex]->roomsParticipant, false, true)==PCJRR_SUCCESS )
-					potentialRooms[roomIndex]->quickJoinWorkingList.Insert( quickJoinList[quickJoinIndex] );
+					potentialRooms[roomIndex]->quickJoinWorkingList.Insert( quickJoinList[quickJoinIndex], __FILE__, __LINE__  );
 			}
 		}
 
@@ -996,11 +1000,11 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 			remainingRoomSlots = room->GetNumericProperty(DefaultRoomColumns::TC_REMAINING_PUBLIC_PLUS_RESERVED_SLOTS);
 			if (remainingRoomSlots>0 && room->quickJoinWorkingList.Size() >= (unsigned int) remainingRoomSlots)
 			{
-				quickJoinMemberTimeSort.Clear(false);
+				quickJoinMemberTimeSort.Clear(false, __FILE__, __LINE__ );
 
 				// Sort those waiting in quick join from longest waiting to least waiting. Those longest waiting are processed first
 				for (quickJoinIndex=0; quickJoinIndex < (int) room->quickJoinWorkingList.Size(); quickJoinIndex++)
-					quickJoinMemberTimeSort.Insert( room->quickJoinWorkingList[quickJoinIndex], room->quickJoinWorkingList[quickJoinIndex], true );
+					quickJoinMemberTimeSort.Insert( room->quickJoinWorkingList[quickJoinIndex], room->quickJoinWorkingList[quickJoinIndex], true, __FILE__, __LINE__  );
 
 				for (quickJoinIndex=0; quickJoinIndex < (unsigned) remainingRoomSlots; quickJoinIndex++)
 				{
@@ -1009,8 +1013,8 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 					roomsErrorCode=room->JoinByQuickJoin(quickJoinMemberTimeSort[quickJoinIndex]->roomsParticipant, RMM_ANY_PLAYABLE, &jrr);
 					RakAssert(roomsErrorCode==REC_SUCCESS);
 
-					dereferencedPointers.Insert(quickJoinMemberTimeSort[quickJoinIndex]);
-					joinedRoomMembers.Insert(jrr);
+					dereferencedPointers.Insert(quickJoinMemberTimeSort[quickJoinIndex], __FILE__, __LINE__ );
+					joinedRoomMembers.Insert(jrr, __FILE__, __LINE__ );
 
 					QuickJoinUser *qju;
 					roomsErrorCode=RemoveUserFromQuickJoin(quickJoinMemberTimeSort[quickJoinIndex]->roomsParticipant, &qju);
@@ -1029,7 +1033,7 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 	for (quickJoinIndex=0; quickJoinIndex < quickJoinList.Size(); quickJoinIndex++)
 	{
 		if (quickJoinList[quickJoinIndex]->networkedQuickJoinUser.minimumPlayers <= (int) quickJoinList.Size())
-			quickJoinMemberSlotSort.Insert(quickJoinList[quickJoinIndex],quickJoinList[quickJoinIndex],true);
+			quickJoinMemberSlotSort.Insert(quickJoinList[quickJoinIndex],quickJoinList[quickJoinIndex],true, __FILE__, __LINE__ );
 	}
 
 	DataStructures::Table potentialNewRoom;
@@ -1064,7 +1068,7 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 			}
 		}
 
-		potentialNewRoommates.Clear(true);
+		potentialNewRoommates.Clear(true, __FILE__, __LINE__ );
 		for (quickJoinIndex2=quickJoinIndex+1; quickJoinIndex2 < quickJoinList.Size(); quickJoinIndex2++)
 		{
 			resultTable.Clear();
@@ -1086,7 +1090,7 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 			potentialNewRoom.QueryTable(columnIndices,1,subQueries,subQueryCount,0,0,&resultTable);
 			if (resultTable.GetRowCount()>0)
 			{
-				potentialNewRoommates.Insert(quickJoinList[quickJoinIndex2]);
+				potentialNewRoommates.Insert(quickJoinList[quickJoinIndex2], __FILE__, __LINE__ );
 				if (potentialNewRoommates.Size()>=(unsigned int) quickJoinMember->networkedQuickJoinUser.minimumPlayers-1)
 				{
 					// 7. If this satisfies minimumPlayers, have that user create a roomOutput and those subsequent members join.
@@ -1106,15 +1110,15 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 						roomsErrorCode = roomCreationParameters.roomOutput->JoinByQuickJoin(potentialNewRoommates[quickJoinIndex2]->roomsParticipant, RMM_PUBLIC, &joinedRoomResult);
 						RakAssert(roomsErrorCode==REC_SUCCESS);
 						RemoveUserFromQuickJoin(potentialNewRoommates[quickJoinIndex2]->roomsParticipant, &qju);
-						dereferencedPointers.Insert(qju);
+						dereferencedPointers.Insert(qju, __FILE__, __LINE__ );
 						joinedRoomResult.joiningMember=potentialNewRoommates[quickJoinIndex2]->roomsParticipant;
-						joinedRoomMembers.Insert(joinedRoomResult);
+						joinedRoomMembers.Insert(joinedRoomResult, __FILE__, __LINE__ );
 					}
 
 					joinedRoomResult.joiningMember=quickJoinMember->roomsParticipant;
-					joinedRoomMembers.Insert(joinedRoomResult);
+					joinedRoomMembers.Insert(joinedRoomResult, __FILE__, __LINE__ );
 					RemoveUserFromQuickJoin(quickJoinMember->roomsParticipant, &qju);
-					dereferencedPointers.Insert(qju);
+					dereferencedPointers.Insert(qju, __FILE__, __LINE__ );
 					continue;
 				}
 			}
@@ -1131,8 +1135,8 @@ unsigned PerGameRoomsContainer::ProcessQuickJoins( DataStructures::List<QuickJoi
 		if (quickJoinList[quickJoinIndex]->totalTimeWaiting >= quickJoinList[quickJoinIndex]->networkedQuickJoinUser.timeout)
 		{
 			quickJoinList[quickJoinIndex]->roomsParticipant->SetInQuickJoin(false);
-			timeoutExpired.Insert(quickJoinList[quickJoinIndex]);
-			dereferencedPointers.Insert(quickJoinList[quickJoinIndex]);
+			timeoutExpired.Insert(quickJoinList[quickJoinIndex], __FILE__, __LINE__ );
+			dereferencedPointers.Insert(quickJoinList[quickJoinIndex], __FILE__, __LINE__ );
 			quickJoinList.RemoveAtIndexFast(quickJoinIndex);
 		}
 		else
@@ -1173,7 +1177,7 @@ RoomsErrorCode PerGameRoomsContainer::SearchByFilter( RoomsParticipant* roomsPar
 	// Process user queries
 	roomsTable.QueryTable(columnIndices,1,roomQuery->queries,roomQuery->numQueries,0,0,&resultTable);
 
-	roomsOutput.Clear();
+	roomsOutput.Clear(false, __FILE__, __LINE__);
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = resultTable.GetRows().GetListHead();
 	int i;
 	Room *room;
@@ -1185,7 +1189,7 @@ RoomsErrorCode PerGameRoomsContainer::SearchByFilter( RoomsParticipant* roomsPar
 			room = (Room*) cur->data[i]->cells[0]->ptr;
 			if ( (onlyJoinable==false || room->ParticipantCanJoinRoom(roomsParticipant, false, true)==PCJRR_SUCCESS) &&
 				room->IsHiddenToParticipant(roomsParticipant)==false)
-				roomsOutput.Insert(room,room,true);
+				roomsOutput.Insert(room,room,true, __FILE__, __LINE__ );
 		}
 		cur=cur->next;
 	}
@@ -1204,7 +1208,7 @@ void PerGameRoomsContainer::RoomPrioritySort( RoomsParticipant* roomsParticipant
 			Room *room = rooms[i];
 			if (room->ParticipantCanJoinRoom(roomsParticipant, false, true)==PCJRR_SUCCESS &&
 				room->IsHiddenToParticipant(roomsParticipant)==false)
-					roomsOutput.Insert(rooms[i], rooms[i], true);
+					roomsOutput.Insert(rooms[i], rooms[i], true, __FILE__, __LINE__ );
 		}
 		return;
 	}
@@ -1220,7 +1224,7 @@ void PerGameRoomsContainer::RoomPrioritySort( RoomsParticipant* roomsParticipant
 	// Process user queries
 	roomsTable.QueryTable(columnIndices,1,roomQuery->queries,roomQuery->numQueries,0,0,&resultTable);
 
-	roomsOutput.Clear();
+	roomsOutput.Clear(false, __FILE__, __LINE__);
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = resultTable.GetRows().GetListHead();
 	Room *room;
 	while (cur)
@@ -1231,7 +1235,7 @@ void PerGameRoomsContainer::RoomPrioritySort( RoomsParticipant* roomsParticipant
 			room = (Room*) cur->data[i]->cells[0]->ptr;
 			if (room->ParticipantCanJoinRoom(roomsParticipant, false, true)==PCJRR_SUCCESS &&
 				room->IsHiddenToParticipant(roomsParticipant)==false)
-				roomsOutput.Insert(room,room,true);
+				roomsOutput.Insert(room,room,true, __FILE__, __LINE__ );
 		}
 		cur=cur->next;
 	}
@@ -1262,11 +1266,11 @@ void PerGameRoomsContainer::GetAllRooms(DataStructures::List<Room*> &rooms)
 {
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = roomsTable.GetRows().GetListHead();
 	int i;
-	rooms.Clear();
+	rooms.Clear(false, __FILE__, __LINE__);
 	while (cur)
 	{
 		for (i=0; i < cur->size; i++)
-			rooms.Insert((Room*)cur->data[i]->cells[DefaultRoomColumns::TC_LOBBY_ROOM_PTR]->ptr);
+			rooms.Insert((Room*)cur->data[i]->cells[DefaultRoomColumns::TC_LOBBY_ROOM_PTR]->ptr, __FILE__, __LINE__ );
 		cur=cur->next;
 	}
 }
@@ -1274,11 +1278,11 @@ void PerGameRoomsContainer::GetRoomNames(DataStructures::List<RakNet::RakString>
 {
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = roomsTable.GetRows().GetListHead();
 	int i;
-	roomNames.Clear();
+	roomNames.Clear(false, __FILE__, __LINE__);
 	while (cur)
 	{
 		for (i=0; i < cur->size; i++)
-			roomNames.Insert(RakNet::RakString(cur->data[i]->cells[DefaultRoomColumns::TC_ROOM_NAME]->c));
+			roomNames.Insert(RakNet::RakString(cur->data[i]->cells[DefaultRoomColumns::TC_ROOM_NAME]->c), __FILE__, __LINE__ );
 		cur=cur->next;
 	}
 }
@@ -1316,7 +1320,7 @@ Room::Room( RoomID _roomId, RoomCreationParameters *roomCreationParameters, Data
 	roomMember->roomMemberMode=RMM_MODERATOR;
 	roomMember->roomsParticipant=roomsParticipant;
 	roomsParticipant->SetRoom(this);
-	roomMemberList.Insert(roomMember);
+	roomMemberList.Insert(roomMember, __FILE__, __LINE__ );
 	tableRow->cells[DefaultRoomColumns::TC_ROOM_NAME]->Set(roomCreationParameters->networkedRoomCreationParameters.roomName.C_String());
 	tableRow->cells[DefaultRoomColumns::TC_ROOM_ID]->Set(lobbyRoomId);	
 	tableRow->cells[DefaultRoomColumns::TC_CREATION_TIME]->Set((int) RakNet::GetTime());
@@ -1461,7 +1465,7 @@ RoomsErrorCode Room::SendInvite(RoomsParticipant* roomsParticipant, RoomsPartici
 	invitedUser.invitorName=roomsParticipant->GetName();
 	invitedUser.room=this;
 	invitedUser.subject=subject;
-	inviteList.Insert(invitedUser);
+	inviteList.Insert(invitedUser, __FILE__, __LINE__ );
 	return REC_SUCCESS;
 }
 RoomsErrorCode Room::AcceptInvite(RoomsParticipant* roomsParticipant, RakNet::RakString inviteSender)
@@ -1493,7 +1497,7 @@ RoomsErrorCode Room::AcceptInvite(RoomsParticipant* roomsParticipant, RakNet::Ra
 	roomMember->roomMemberMode=RMM_RESERVED;
 	roomMember->roomsParticipant=roomsParticipant;
 	roomsParticipant->SetRoom(this);
-	roomMemberList.Insert(roomMember);
+	roomMemberList.Insert(roomMember, __FILE__, __LINE__ );
 	UpdateUsedSlots();
 	return REC_SUCCESS;
 }
@@ -1585,7 +1589,7 @@ RoomsErrorCode Room::GrantModerator(RoomsParticipant* roomsParticipant, RoomsPar
 	{
 		// Clear invites
 		clearedInvites=inviteList;
-		inviteList.Clear(true);
+		inviteList.Clear(true, __FILE__, __LINE__ );
 
 		// Change RMM_SPECTATOR_RESERVED to RMM_SPECTATOR_PUBLIC
 		unsigned int i;
@@ -1725,15 +1729,15 @@ RoomsErrorCode Room::GetReadyStatus(DataStructures::List<RoomsParticipant*> &rea
 {
 	RakAssert(roomDestroyed==false);
 
-	readyUsers.Clear(true);
-	unreadyUsers.Clear(true);
+	readyUsers.Clear(true, __FILE__, __LINE__ );
+	unreadyUsers.Clear(true, __FILE__, __LINE__ );
 	unsigned int i;
 	for (i=0; i < roomMemberList.Size(); i++)
 	{
 		if (roomMemberList[i]->isReady)
-			readyUsers.Insert(roomMemberList[i]->roomsParticipant);
+			readyUsers.Insert(roomMemberList[i]->roomsParticipant, __FILE__, __LINE__ );
 		else
-			unreadyUsers.Insert(roomMemberList[i]->roomsParticipant);
+			unreadyUsers.Insert(roomMemberList[i]->roomsParticipant, __FILE__, __LINE__ );
 	}
 	return REC_SUCCESS;
 }
@@ -1808,7 +1812,7 @@ RoomsErrorCode Room::KickMember(RoomsParticipant* roomsParticipant, RoomsPartici
 		BannedUser bannedUser;
 		bannedUser.reason=reason;
 		bannedUser.target=kickedParticipant->GetName();
-		banList.Insert(bannedUser);
+		banList.Insert(bannedUser, __FILE__, __LINE__ );
 	}	
 
 	return REC_SUCCESS;
@@ -1896,7 +1900,7 @@ RoomsErrorCode Room::JoinByFilter(RoomsParticipant* roomsParticipant, RoomMember
 	RoomMember *rm = new RoomMember;
 	rm->roomsParticipant=roomsParticipant;
 	rm->roomMemberMode=roomMemberMode;
-	roomMemberList.Insert(rm);
+	roomMemberList.Insert(rm, __FILE__, __LINE__ );
 	roomsParticipant->SetRoom(this);
 	
 	if (firstInviteIndex!=-1)
@@ -1996,7 +2000,7 @@ RoomsErrorCode Room::GetInvitesToParticipant(RoomsParticipant* roomsParticipant,
 	for (i=0; i < inviteList.Size(); i++)
 	{
 		if (inviteList[i].target==roomsParticipant->GetName())
-			invites.Insert(&inviteList[i]);
+			invites.Insert(&inviteList[i], __FILE__, __LINE__ );
 	}
 	return REC_SUCCESS;
 }
@@ -2049,7 +2053,7 @@ RoomsErrorCode Room::RemoveUser(RoomsParticipant* roomsParticipant,RemoveUserRes
 		if (destroyOnModeratorLeave || roomMemberList.Size()==1)
 		{
 			removeUserResult->clearedInvitations=inviteList;
-			inviteList.Clear();
+			inviteList.Clear(false, __FILE__, __LINE__);
 
 			removeUserResult->roomDestroyed=true;
 			unsigned int i;
@@ -2089,7 +2093,7 @@ RoomsErrorCode Room::RemoveUser(RoomsParticipant* roomsParticipant,RemoveUserRes
 		if (clearInvitesOnNewModerator)
 		{
 			removeUserResult->clearedInvitations=inviteList;
-			inviteList.Clear();
+			inviteList.Clear(false, __FILE__, __LINE__);
 
 			unsigned int i;
 			for (i=0; i < roomMemberList.Size(); i++)
@@ -2264,8 +2268,8 @@ void AllGamesRoomsContainer::UnitTest(void)
 	DataStructures::List<DataStructures::Table::Cell*> cellList;
 	DataStructures::List<InvitedUser*> invites;
 	RakNet::RakString kickReason;
-	cellList.Insert(&cells[0]);
-	cellList.Insert(&cells[1]);
+	cellList.Insert(&cells[0], __FILE__, __LINE__ );
+	cellList.Insert(&cells[1], __FILE__, __LINE__ );
 	customRoomProperties.AddRow(0, cellList);
 
 	// Search by filter
