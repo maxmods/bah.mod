@@ -1,0 +1,345 @@
+<img src="keychain_logo.png" align="right" />
+<p>
+Keychain Services provides secure storage of passwords, keys, certificates, and
+notes for one or more users. A user can unlock a keychain with a single password,
+and any Keychain Services–aware application can then use that keychain to store and
+retrieve passwords.
+</p>
+<h2>Keychain Services Concepts</h2>
+<p>
+Computer users typically have to manage multiple accounts that require logins with
+<strong>user IDs</strong> and <strong>passwords</strong>. Secure FTP servers, AppleShare
+servers, database servers, secure websites, instant messaging accounts, and many other
+services require authentication before they can be used. Users often respond to this
+situation by making up very simple, easily remembered passwords, by using the same
+password over and over, or by writing passwords down where they can be easily found.
+Any of these cases compromises security.
+</p>
+<p>
+The Keychain Services API provides a solution to this problem. By making a single call
+to this API, an application can store login information on a keychain where the
+application can retrieve the information—also with a single call—when needed. A
+<strong>keychain</strong> is an encrypted container that holds passwords for multiple
+applications and secure services. Keychains are <strong>secure storage</strong>
+containers, which means that when the keychain is <strong>locked</strong>, no one can
+access its protected contents. In Mac OS X, users can unlock a keychain—thus providing
+trusted applications access to the contents—by entering a single master password.
+Any application can access any keychain item provided the user gives permission.
+</p>
+<p>
+From the user's point of view, a keychain provides <strong>transparent authentication</strong>;
+that is, (after unlocking the keychain) the user does not have to log in separately
+to any services whose passwords are stored in the keychain. The user has only to enter
+one password once to access any number of applications, servers, websites, and so on.
+</p>
+<p>
+The following diagram shows the relationship between the user, the keychain, and the
+password-protected services.
+</p>
+<img src = "unlocking_keychain.jpg" align="center"/>
+<p>
+By default, each login account has one keychain (for a new login on Mac OS X v10.3, this
+keychain is named <code>login.keychain</code>); however, a user or application can
+create as many keychains as desired. The <strong>login keychain</strong> is automatically
+<strong>unlocked</strong> during login if it has the same password as the user's login
+account password. When first created, the login keychain is also the
+<strong>default keychain</strong>. The default keychain is used to store newly
+created keychain items unless a different keychain is specified in the function
+call; certain other Keychain Services functions also use the default keychain
+when no other keychain is specified. The user can use the Keychain Access
+utility to designate another keychain as the default; however, the
+login keychain doesn't change. In iPhone OS, the situation is simpler: There is a single
+keychain accessible to applications. Although it stores the keychain items of all
+the applications on the system, an application can access only its own keychain
+items (with the possible exception of a keychain item for which the application that
+created it obtained a persistent reference).
+</p>
+<h2>Keychain Services and CDSA</h2>
+<p>
+<strong>Keychain Services</strong> and other security APIs are built on the
+open source <strong>Common Data Security Architecture (CDSA)</strong> and its
+programming interface, <strong>Common Security Services Manager (CSSM)</strong>.
+</p>
+<p>The Keychain Services API provides functions to perform most of the
+operations needed by applications, including creating, deleting, and modifying keychains
+and keychain items, controlling access to keychain items, finding keychain items,
+and retrieving attributes and data from items. However, the underlying CSSM API
+provides more capabilities that might be of interest to specialty applications,
+such as applications designed to administer the security of a computer or
+network. For this reason, the Keychain Services API includes a number of
+functions that return or create CSSM structures so that, if you are familiar
+with the CSSM API, you can move freely back and forth between Keychain
+Services and CSSM.
+</p>
+<p>
+For more information about the CSSM API, see <em>Common Security: CDSA and CSSM,
+version 2 (with corrigenda)</em> from The Open Group
+(<a href="http://www.opengroup.org/security/cdsa.htm">http://www.opengroup.org/security/cdsa.htm</a>).
+</p>
+<h2>Structure of a Keychain</h2>
+<p>
+Each keychain can contain any number of keychain items. Each <strong>keychain item</strong>
+contains data plus a set of attributes. For a keychain item that needs protection,
+such as a password or private <strong>key</strong> (a string of bytes used
+to encrypt or decrypt data), the data is encrypted and protected by the keychain.
+For keychain items that do not need protection, such as certificates, the
+data is not encrypted.
+</p>
+<p>
+The attributes associated with a keychain item depend on the class of the item;
+the item classes most used by applications (other than the Finder and the Keychain
+Access application in Mac OS X) are <strong>Internet passwords</strong> and
+<strong>generic passwords</strong>. As you might expect, Internet passwords
+include attributes for such things as security domain, protocol type, and path.
+The passwords or other <strong>secrets</strong> stored as keychain items are
+encrypted. In Mac OS X, encrypted items are inaccessible when the keychain
+is locked; if you try to access the item while the keychain is locked, Keychain
+Services displays a dialog prompting the user for the keychain password.
+The attributes are not encrypted, however, and can be read at any time,
+even when the keychain is locked. 
+</p>
+<p>Each protected keychain item (and the keychain itself) contains access control
+information in the form of an opaque data structure called an
+<strong>access object</strong>. The access object contains one or more
+<strong>access control list</strong> (ACL) entries for that item. Each ACL
+entry has a list of one or more <strong>authorization tags</strong> specifying
+operations that can be done with that item, such as decrypting or authenticating.
+In addition, each ACL entry has a list of <strong>trusted applications</strong> that
+can perform the specified operations without authorization from the user.
+</p>
+<h2>Keychain Access Controls</h2>
+<p>
+When a Mac OS X application attempts to access a keychain item for a particular purpose
+(such as to sign a document), the system looks at each ACL entry for that item to
+determine whether the application should be allowed access. If there is no ACL entry
+for that operation, then access is denied and it is up to the calling application to
+try something else or to notify the user. If there are any ACL entries for the operation,
+then the system looks at the list of trusted applications of each ACL entry to see
+if the calling application is in the list. If it is—or if the ACL specifies that all
+applications are allowed access—then access is permitted without confirmation from the
+user (as long as the keychain is unlocked). If there is an ACL entry for the operation
+but the calling application is not in the list of trusted applications, then the system
+prompts the user for the keychain password before permitting the application to access
+the item.
+</p>
+<p>
+The Keychain Services API provides functions to create, delete, read, and modify ACL
+entries. Because an ACL entry is always associated with an access object, when you modify
+an ACL entry, you are modifying the access object as well. Therefore, there is no need
+for a separate function to write a modified ACL entry back into the access object.
+</p>
+<p>
+There can be any number of ACL entries in an access object. If two or more of the ACL
+entries are for the same operation, there is no way to predict the order in which they
+will be evaluated.
+</p>
+<h3>Trusted Applications</h3>
+<p>
+An ACL entry either permits all applications to perform the operations specified by
+its list of authorization tags or it contains a list of trusted applications. The
+trusted application list is actually a list of trusted application objects (objects
+with the opaque type <code>SecTrustedApplicationRef</code>). In addition to serving
+as a reference to the application, a trusted application object includes data that
+uniquely identifies the application, such as a cryptographic hash. The system can use
+this data to verify that the application has not been altered since the trusted
+application object was created. For example, when a trusted application requests access
+to an item in the keychain, the system checks this data before granting access. Although
+you can extract this data from the trusted application object for storage or
+for transmittal to another location (such as over a network), this data is in a
+private format; there is no supported way to read or interpret it.
+</p>
+<p>
+You can use the <code>SecTrustedApplicationCreateFromPath</code> function to create a
+trusted application object. The trusted application is the binary form of the
+application that's on the disk at the moment the trusted application object is created.
+If an application listed as a trusted application for a keychain item is modified
+in any way, the system does not recognize it as a trusted application.
+Instead, the user is prompted for confirmation when that application attempts to access
+the keychain item.
+</p>
+<p>
+When a program attempts to access a keychain item for which it is not recognized as a
+trusted application, the system displays a confirmation dialog, like the one below
+</p>
+<img src = "confirm_access_nopw_dlg.gif" align="center" width="399" height="163"/>
+<p>
+The confirmation dialog has three buttons: Deny, Allow Once, and Always Allow. If the user
+clicks Always Allow, the system creates a trusted application object for the application
+and adds it to the access object for that keychain item.
+</p>
+<p>
+To make the launching of programs more efficient, the system prebinds executables to
+dynamically loaded libraries (DLLs). When a user updates a DLL, the system automatically
+changes the executables of all the programs that use that library, a process
+referred to as reprebinding. Reprebinding a trusted application therefore causes
+the application to no longer match the version represented in the application hash.
+In Mac OS X v10.2 and earlier, the next time the application tries to use a
+protected keychain item, a confirmation dialog appears. When the user clicks
+Always Allow, the system adds it to the access object as a new trusted application.
+Starting with Mac OS X v10.3, on the other hand, the system maintains a database that
+keeps track of applications that were reprebound so that in most cases no
+confirmation dialog appears.
+</p>
+<p>
+In Mac OS X v10.3 and later, in addition, the system keeps track of applications
+that were updated by Software Update. When the updated application attempts to access
+a protected keychain item, the system either recognizes that it is the same
+application or, if necessary, displays a confirmation dialog saying that the
+application has been changed and asking the user whether to treat it like the
+older version, like the one below :
+</p>
+<img src = "update_all_dlg.gif" align="center" width="445" height="189"/>
+<p>
+If the user clicks the Change All button, the system makes the change only to the
+current user's keychains, not to the keychains of other users on the system.
+</p>
+<h3>ACL Entries</h3>
+<p>
+The <code>SecAccessCreate</code> function creates an access object with three ACL entries.
+The first, referred to as <em>owner access</em>, determines who can modify the access
+object itself. By default, there are no trusted applications for owner access;
+the user is always prompted for permission if someone tries to change access
+controls. The second ACL entry is for operations considered safe, such
+as encrypting data. This ACL entry applies to all applications. The third ACL entry is
+for operations that should be restricted, such as decrypting, signing, deriving
+keys, and exporting keys. This ACL entry applies to the trusted applications listed
+as input to the function.
+</p>
+<p>
+In addition to providing a list of trusted applications to <code>SecAccessCreate</code>,
+you specify a String that describes the keychain item. This is the name of the item
+that appears in dialogs. This is not necessarily the same name as appears for the
+item in the Keychain Access utility.
+</p>
+<p>
+You use other functions in Keychain Services to modify any of these default ACL
+entries or to add additional ACL entries to the access object. These functions let you retrieve all
+the ACL entries for an access object, modify ACL entries, and create new ones. For
+each ACL entry, you can specify trusted applications, the item descriptor string, a
+list of authorization tags, and a prompt selector bit. If you set the prompt selector
+bit, the user is prompted for the keychain password each time a nontrusted application
+attempts to access the item, even if the keychain is already unlocked. The following image shows the dialog :
+</p>
+<img src = "confirm_access_pw_dlg.gif" align="center" width="427" height="192"/>
+<p>
+Compare this figure with the previous image, which is the dialog that appears if the
+prompt selector bit is not set. If the user clicks Always Allow in response to this
+dialog, the application is added to the access object as a trusted application
+and the dialog does not appear again. This bit is clear by default—you must set it
+explicitly for any ACL entry for which you want this extra protection. There is one
+exception to this rule: the Keychain Access application always requires a
+password to display the secret of a keychain item unless the Keychain Access application
+itself is included in the trusted application list.
+</p>
+<p>
+As noted earlier, because an ACL entry is always associated with an access object, when
+you modify an ACL entry, you are modifying the access object as well. Therefore, there
+is no need for a separate function to write a modified ACL entry back into the access
+object. However, if you modify an access object, you must write the new version of
+the access object to the keychain item before the keychain item can use it.
+</p>
+<h2>Keeping Your Mac OS X Keychain Data Secure</h2>
+<p>
+In Mac OS X, to provide security for the passwords and other valuable secrets stored in
+your keychain, you should adopt at least the following measures:
+</p>
+<ul>
+<li><p>Set your keychain to lock itself when not in use: in the Keychain Access
+utility, choose Edit &gt; Change Settings for Keychain, and check both Lock checkboxes.</p></li>
+<li><p>Use a different password for your keychain than your login password: In Keychain
+Access utility, choose Edit &gt; Change Password to change your keychain's password.
+Click the lock icon in the Change Password dialog to get the password assistant, which
+tells you how secure your password is and can suggest passwords.  Be sure to pick one
+you can remember—don't write it down anywhere.</p></li>
+</ul>
+<h2>Keychain Services Ease of Use</h2>
+<p>
+Although the structure of the keychain provides a great deal of power and flexibility, it
+also introduces a level of complexity that most application writers would rather not
+have to deal with. Fortunately, you don't. The Keychain Services API provides a handful
+of high-level functions that handle all of the keychain operations most applications
+will ever need to perform.
+</p>
+<p>
+To create a keychain item and add it to a keychain in Mac OS X, for example, you call
+one of two methods, depending on whether you want to add an Internet password or
+some other type of password: <code>AddInternetPassword</code> or <code>AddGenericPassword</code>.
+In your method call, you pass only those attributes for which there is no obvious default
+value. For example, you must specify the name of the service and the user's account
+name, but you do not have to specify the creation date and creator, because the
+method can figure those out by itself. You also pass the data (usually a password)
+that you want to store in the keychain.
+If the keychain is locked, the method automatically displays a dialog prompting the
+user to unlock the keychain. The method also creates the access object for you, listing
+the calling application as the only trusted application.
+</p>
+<p>
+When your Mac OS X application needs access to a user's password, you call either
+<code>FindInternetPassword</code> or <code>FindGenericPassword</code>, passing some
+attributes (such as the name of the service and the user's account name) so that
+the method can find the password that you need. The method prompts the user to unlock
+the keychain if necessary. 
+</p>
+<h2>Keychain Services Advanced Features</h2>
+<p>
+Mac OS X Keychain Services allows you to create keychains, manipulate elements within
+a keychain, and manage collections of keychains. In most cases, a keychain-aware
+application does not have to do any keychain management and only has to call a few
+functions to store or retrieve passwords. By default, Keychain Services automatically
+interacts with the user to create or unlock a keychain when necessary. For example,
+if you are trying to add a password to a keychain but no keychain exists,
+Keychain Services prompts the user as shown below.
+</p>
+<img src = "new_keychain_dlg.gif" align="center" width="343" height="171"/>
+<p>
+When the user clicks Reset To Defaults, Keychain Services creates a keychain with the
+name <code>login.keychain</code> and the same password as the user's login account.
+</p>
+<p>
+If the keychain is locked when you try to save or retrieve a password, Keychain Services
+prompts the user to unlock the keychain, as shown below.
+</p>
+<img src = "unlock_keychain_dlg.gif" align="center" width="339" height="190"/>
+<p>
+Once the user enters the correct password, your application can access the keychain.
+Keychain Services also displays dialogs to confirm that the user wants the application
+to access the keychain and for other reasons.
+</p>
+<p>
+In addition to storing and retrieving passwords, there are a few operations that
+some applications might need to perform, including:
+</p>
+<ul>
+<li><p>Disabling or enabling Keychain Services functions that display a user interface;
+for example, a server might want to suppress the Unlock Keychain dialog box and unlock
+the keychain itself instead.</p></li>
+<li><p>Unlocking a locked keychain when the user is unable to do so, as for an
+unattended server.</p></li>
+<li><p>Adding trusted applications to the access object of a keychain item if, for
+example, a server application wants to let an administration application have access
+to its passwords.</p></li>
+</ul>
+<p>
+Mac OS X Keychain Services includes many other functions that can be used to manipulate
+keychains, keychain items, attributes, access objects, and ACLs. However, these
+functions are generally needed only by programs designed specifically to administer
+keychains. Mac OS X includes a keychain administration program, called
+<strong>Keychain Access</strong> :
+</p>
+<img src = "keychain_access_app.jpg" align="center"/>
+<p>
+With this utility, a user can lock or unlock keychains, create new keychains, change
+the default keychain, add and delete keychain items, change the values of the attributes
+of keychain items, and see or change the data stored in a keychain item.
+</p>
+<p>
+To duplicate the capabilities of this program in Mac OS X, you would need to be
+familiar with the open source Common Data Security Architecture (CDSA) and its
+API, the Common Security Services Manager (CSSM), in addition to all of the functions
+provided by Keychain Services. For more information about the CSSM API,
+see <em>Common Security: CDSA and CSSM, version 2 (with corrigenda)</em>
+from The Open Group (<a href="http://www.opengroup.org/security/cdsa.htm">http://www.opengroup.org/security/cdsa.htm</a>).
+</p>
+
+
+
