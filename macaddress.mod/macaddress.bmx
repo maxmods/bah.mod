@@ -44,6 +44,8 @@ Import "MACAddressUtility.cpp"
 
 ?win32
 Import "-lrpcrt4"
+?macos
+Import "-framework IOKit"
 ?
 
 Extern

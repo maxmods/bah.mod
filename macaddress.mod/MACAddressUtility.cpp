@@ -128,7 +128,7 @@ static kern_return_t GetMACAddress(io_iterator_t intfIterator, UInt8 *MACAddress
 																 kCFAllocatorDefault,
 																 0);
             if (MACAddressAsCFData) {
-                CFShow(MACAddressAsCFData); // for display purposes only; output goes to stderr
+                //CFShow(MACAddressAsCFData); // for display purposes only; output goes to stderr
                 
                 // Get the raw bytes of the MAC address from the CFData
                 CFDataGetBytes((CFDataRef)MACAddressAsCFData, CFRangeMake(0, kIOEthernetAddressSize), MACAddress);
@@ -142,7 +142,7 @@ static kern_return_t GetMACAddress(io_iterator_t intfIterator, UInt8 *MACAddress
         // Done with the Ethernet interface object so we release it.
         (void) IOObjectRelease(intfService);
     }
-	
+
     return kernResult;
 }
 
@@ -158,6 +158,8 @@ long MACAddressUtility::GetMACAddressMAC(unsigned char * result)
     }
 	while(false);
     (void) IOObjectRelease(intfIterator);
+
+	return 0;
 }
 
 #elif defined(LINUX) || defined(linux)
