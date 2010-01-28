@@ -25,8 +25,6 @@ bbdoc: MAC address access.
 End Rem
 Module BaH.MACAddress
 
-' Volodymir (T-Rex) Tryapichko
-
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: MACAddressUtility - Volodymir (T-Rex) Tryapichko, 2009"
