@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009 Bruce A Henderson
+ Copyright (c) 2009-2010 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -335,10 +335,12 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 	cl_int err;
 	cl_uint size = 0;
 	cl_device_id devices[10];
-	
-	err = clGetDeviceIDs(NULL, deviceType, 10, devices, &size);
 
+	err = clGetDeviceIDs(NULL, deviceType, 10, devices, &size);
+printf("size = %d\n", size);fflush(stdout);
 	BBArray * list = _bah_opencl_TCLDevice__newDeviceList(size);
+printf("size = %d\n", size);fflush(stdout);
+printf("size = %d\n", size);fflush(stdout);
 	
 	for (int n = 0; n < size; n++) {
 		cl_device_id device = devices[n];
@@ -346,11 +348,16 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 		size_t s = 0;
 	
 		err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(type), &type, &s);
+printf("infosize = %d : %d\n", s, type);fflush(stdout);
 	
 		MaxCLDevice * dev = new MaxCLDevice(device);
+printf("A\n");fflush(stdout);
 		BBObject * obj = _bah_opencl_TCLDevice__setDevice(list, n, dev, type);
+printf("B\n");fflush(stdout);
 		dev->SetHandle(obj);
+printf("C\n");fflush(stdout);
 	}
+printf("D\n");fflush(stdout);
 	
 	return list;
 }

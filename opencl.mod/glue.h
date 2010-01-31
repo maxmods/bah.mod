@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009 Bruce A Henderson
+ Copyright (c) 2009-2010 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,9 @@
 #ifdef __APPLE__
 #include <OpenCL/Opencl.h>
 #else
+#define _MSC_VER
+#include <windows.h>
+#include <stdint.h>
 #include <CL/cl.h>
 #endif
 
