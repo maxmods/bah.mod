@@ -27,7 +27,7 @@ Module BaH.Inet
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2010 Bruce A Henderson"
+ModuleInfo "Copyright: 2010 Bruce A Henderson"
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "History: Initial Release"
@@ -39,7 +39,6 @@ Import "*.h"
 Import "glue.cpp"
 
 ?win32
-Import "-lrpcrt4"
 Import "-lws2_32"
 Import "-liphlpapi"
 ?macos
