@@ -12,11 +12,11 @@ Local interfaces:TInet[] = GetInetInterfaces()
 
 For Local inet:TInet = EachIn interfaces
 	Print ""
-	Print "Interface  : " + inet.name
-	Print "IP Address : " + DottedIP(inet.address)
-	Print "Netmask    : " + DottedIP(inet.netmask)
-	Print "Broadcast  : " + DottedIP(inet.broadcast)
-	Print "MACAddress : " + inet.MACAddressString
+	Print "Interface   : " + inet.name
+	Print "IP Address  : " + DottedIP(inet.address)
+	Print "Netmask     : " + DottedIP(inet.netmask)
+	Print "Broadcast   : " + DottedIP(inet.broadcast)
+	Print "MAC Address : " + inet.MACAddressString
 Next
 
 Local inet:TInet = GetInetInterface("en0")

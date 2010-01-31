@@ -211,5 +211,73 @@ BBArray * bmx_inet_listinterfaces() {
 	
 	return arr;
 }
+
+#elif defined(linux)
+
+BBArray * bmx_inet_listinterfaces() {
+	int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (s < 0) {
+		return &bbEmptyArray;
+	}
+	
+	struct ifconf conf;
+	char ifconfbuf[128 * sizeof(struct ifreq)];
+	
+	memset(ifconfbuf, 0, sizeof( ifconfbuf ));
+	
+	conf.ifc_buf = ifconfbuf;
+	conf.ifc_len = sizeof(ifconfbuf);
+	
+	if (ioctl(s, SIOCGIFCONF, &conf)) {
+		shutdown(s, SHUT_RDWR);
+		return &bbEmptyArray;
+	}
+	
+
+	BBArray * arr = _bah_inet_TInet__newArray(conf.ifc_len);
+
+
+	struct ifreq* ifreq = conf.ifc_req;
+	int i = 0;
+	while (ifreq < conf.ifc_req + conf.ifc_len) {
+	
+		if (! ioctl(s, SIOCGIFNAME, ifreq)) {
+		
+			BBObject * obj = _bah_inet_TInet__create(bbStringFromUTF8String(ifreq->ifr_name));
+			
+			_bah_inet_TInet__setAddress(obj, ((struct sockaddr_in *)&ifreq->ifr_addr)->sin_addr);
+			
+			if (! ioctl(s, SIOCGIFNETMASK, ifreq)) {
+				_bah_inet_TInet__setNetmask(obj, ((struct sockaddr_in *)&ifreq->ifr_netmask)->sin_addr);
+			}
+
+			if (! ioctl(s, SIOCGIFHWADDR, ifreq)) {
+			
+				unsigned char * address = (unsigned char*)ifreq->ifr_hwaddr.sa_data;
+			
+				BBArray * arr = bbArrayNew1D( "i",6 );
+				int *s=(int*)BBARRAYDATA( arr, arr->dims );
+				for (int n = 0; n < 6; ++n){
+					s[n] = address[n];
+				}
+			
+				char buffer[50];
+				sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1],
+					address[2], address[3], address[4], address[5]);
+			
+				_bah_inet_TInet__setMACAddress(obj, arr, bbStringFromCString(buffer));
+				
+			}
+
+			_bah_inet_TInet__newEntry(arr, i++, obj);
+		}
+		
+		ifreq++;
+	}
+	
+	shutdown(s, SHUT_RDWR);
+	return arr;
+}
+
 #endif
 
