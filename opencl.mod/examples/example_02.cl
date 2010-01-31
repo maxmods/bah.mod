@@ -27,7 +27,7 @@ __kernel void divide(__global float *a, __global float *b, __global float *resul
 //--------------------------------------------------------------
 __kernel void inverseSquareroot(__global float *a, __global float *result) {
 	int gid = get_global_id(0);
-	result[gid] = 1.0f/sqrt(a[gid]);
+	result[gid] = rsqrt(a[gid]);
 }
 
 //--------------------------------------------------------------
