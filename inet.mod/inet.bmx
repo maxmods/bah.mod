@@ -78,6 +78,10 @@ Type TInet
 	bbdoc: Broadcast address.
 	End Rem
 	Field broadcast:Int
+	Rem
+	bbdoc: Interface flags.
+	End Rem
+	Field flags:Int
 	
 	Function _create:TInet(name:String)
 		Local this:TInet = New TInet
@@ -115,6 +119,10 @@ Type TInet
 		Return value Shl 24 | ((value Shl 8) & $FF0000) | ((value Shr 8) & $FF00) | value Shr 24
 	End Function
 	
+	Function _setFlags(inet:TInet, flags:Int)
+		inet.flags = flags
+	End Function
+
 End Type
 
 Rem
@@ -135,3 +143,67 @@ Function GetInetInterface:TInet(name:String)
 	Next
 End Function
 
+Rem
+bbdoc: interface is up
+end rem
+Const IFF_UP:Int = $1
+Rem
+bbdoc: broadcast address valid
+end rem
+Const IFF_BROADCAST:Int = $2
+Rem
+bbdoc: turn on debugging
+end rem
+Const IFF_DEBUG:Int = $4
+Rem
+bbdoc: is a loopback net
+end rem
+Const IFF_LOOPBACK:Int = $8
+Rem
+bbdoc: interface is point-to-point link
+end rem
+Const IFF_POINTOPOINT:Int = $10
+Rem
+bbdoc: resources allocated
+end rem
+Const IFF_RUNNING:Int = $40
+Rem
+bbdoc: no address resolution protocol
+end rem
+Const IFF_NOARP:Int = $80
+Rem
+bbdoc: receive all packets
+end rem
+Const IFF_PROMISC:Int = $100
+Rem
+bbdoc: receive all multicast packets
+end rem
+Const IFF_ALLMULTI:Int = $200
+Rem
+bbdoc: transmission in progress
+end rem
+Const IFF_OACTIVE:Int = $400
+Rem
+bbdoc: can't hear own transmissions
+end rem
+Const IFF_SIMPLEX:Int = $800
+Rem
+bbdoc: per link layer defined bit
+end rem
+Const IFF_LINK0:Int = $1000
+Rem
+bbdoc: per link layer defined bit
+end rem
+Const IFF_LINK1:Int = $2000
+Rem
+bbdoc: per link layer defined bit
+end rem
+Const IFF_LINK2:Int = $4000
+Rem
+bbdoc: use alternate physical connection
+end rem
+Const IFF_ALTPHYS:Int = IFF_LINK2
+Rem
+bbdoc: supports multicast
+end rem
+Const IFF_MULTICAST:Int = $8000

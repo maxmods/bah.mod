@@ -33,6 +33,7 @@ extern "C" {
 #else
 	void _bah_inet_TInet__setAddress(BBObject * obj, in_addr address);
 	void _bah_inet_TInet__setNetmask(BBObject * obj, in_addr netmask);
+	void _bah_inet_TInet__setFlags(BBObject * obj, unsigned int flags);
 #endif
 	void _bah_inet_TInet__setMACAddress(BBObject * obj, BBArray * arr, BBString * add);
 }
@@ -210,6 +211,7 @@ BBArray * bmx_inet_listinterfaces() {
 			BBObject * obj = _bah_inet_TInet__create(bbStringFromUTF8String(addr->ifa_name));
 			_bah_inet_TInet__setAddress(obj, ((struct sockaddr_in *)addr->ifa_addr)->sin_addr);
 			_bah_inet_TInet__setNetmask(obj, ((struct sockaddr_in *)addr->ifa_netmask)->sin_addr);
+			_bah_inet_TInet__setFlags(obj, addr->ifa_flags);
 			
 			getMACAddress(obj, addr->ifa_name);
 
