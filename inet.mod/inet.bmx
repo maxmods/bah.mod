@@ -80,6 +80,7 @@ Type TInet
 	Field broadcast:Int
 	Rem
 	bbdoc: Interface flags.
+	about: Not all platforms support all flags.
 	End Rem
 	Field flags:Int
 	

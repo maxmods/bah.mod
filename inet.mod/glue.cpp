@@ -33,8 +33,8 @@ extern "C" {
 #else
 	void _bah_inet_TInet__setAddress(BBObject * obj, in_addr address);
 	void _bah_inet_TInet__setNetmask(BBObject * obj, in_addr netmask);
-	void _bah_inet_TInet__setFlags(BBObject * obj, unsigned int flags);
 #endif
+	void _bah_inet_TInet__setFlags(BBObject * obj, unsigned int flags);
 	void _bah_inet_TInet__setMACAddress(BBObject * obj, BBArray * arr, BBString * add);
 }
 
@@ -52,6 +52,32 @@ static int countInterfaces(PIP_ADAPTER_INFO info) {
 	return count;
 }
 
+static unsigned int convertFlags(unsigned int flags) {
+	unsigned f = 0;
+	
+	if (flags & IFF_UP) {
+		f |= 0x1;
+	}
+
+	if (flags & IFF_POINTTOPOINT) {
+		f |= 0x10;
+	}
+
+	if (flags & IFF_LOOPBACK) {
+		f |= 0x8;
+	}
+
+	if (flags & IFF_BROADCAST) {
+		f |= 0x2;
+	}
+
+	if (flags & IFF_MULTICAST) {
+		f |= 0x8000;
+	}
+	
+	return f;
+}
+
 BBArray * bmx_inet_listinterfaces() {
 
 	IP_ADAPTER_INFO adapterInfo[32];
@@ -67,6 +93,19 @@ BBArray * bmx_inet_listinterfaces() {
 	int count = countInterfaces(info);
 	BBArray * arr = _bah_inet_TInet__newArray(count);
 
+	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
+	if (sd == SOCKET_ERROR) {
+		return &bbEmptyArray;
+	}
+	
+	INTERFACE_INFO interfaces[20];
+	unsigned long bytes;
+	if (WSAIoctl(sd, SIO_GET_INTERFACE_LIST, 0, 0, &interfaces, sizeof(interfaces), &bytes, 0, 0) == SOCKET_ERROR) {
+		closesocket(sd);
+		return &bbEmptyArray;
+	}
+	int interfaceCount = bytes / sizeof(INTERFACE_INFO);
+	
 	info = adapterInfo;
 	int i = 0;
 	while (info) {
@@ -87,7 +126,15 @@ BBArray * bmx_inet_listinterfaces() {
 		BBObject * obj = _bah_inet_TInet__create(bbStringFromCString(buf));
 		_bah_inet_TInet__setAddress(obj, inet_addr(info->IpAddressList.IpAddress.String));
 		_bah_inet_TInet__setNetmask(obj, inet_addr(info->IpAddressList.IpMask.String));
-			
+		
+		
+		for (int n = 0; n < interfaceCount; n++) {
+			if (strcmp(info->IpAddressList.IpAddress.String, inet_ntoa(((sockaddr_in *) & (interfaces[n].iiAddress))->sin_addr)) == 0) {
+				_bah_inet_TInet__setFlags(obj, convertFlags(interfaces[i].iiFlags));
+				break;
+			}
+		}
+		
 		_bah_inet_TInet__newEntry(arr, i++, obj);
 
 
@@ -108,19 +155,7 @@ BBArray * bmx_inet_listinterfaces() {
 	}
 	
 
-
-/*		cout << " Iface is ";
-		u_long nFlags = interfaces[i].iiFlags;
-		if (nFlags & IFF_UP) cout << "up";
-		else                 cout << "down";
-		if (nFlags & IFF_POINTTOPOINT) cout << ", is point-to-point";
-		if (nFlags & IFF_LOOPBACK)     cout << ", is a loopback iface";
-		cout << ", and can do: ";
-		if (nFlags & IFF_BROADCAST) cout << "bcast ";
-		if (nFlags & IFF_MULTICAST) cout << "multicast ";
-		cout << endl;
-*/
-	
+	closesocket(sd);
 	
 	return arr;
 
