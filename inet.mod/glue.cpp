@@ -70,8 +70,20 @@ BBArray * bmx_inet_listinterfaces() {
 	int i = 0;
 	while (info) {
 
+		char buf[1024];
+		sprintf(buf, "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}\\%s\\Connection",
+			info->AdapterName);
 
-		BBObject * obj = _bah_inet_TInet__create(bbStringFromCString(info->AdapterName));
+		HKEY hKey;
+		int res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, buf, 0, KEY_READ, &hKey);
+
+		LPDWORD lpType;
+		DWORD blen = 1024;
+		res = RegQueryValueEx(hKey, "Name", NULL, lpType, (LPBYTE)buf, &blen);
+
+		res = RegCloseKey(hKey);
+
+		BBObject * obj = _bah_inet_TInet__create(bbStringFromCString(buf));
 		_bah_inet_TInet__setAddress(obj, inet_addr(info->IpAddressList.IpAddress.String));
 		_bah_inet_TInet__setNetmask(obj, inet_addr(info->IpAddressList.IpMask.String));
 			
