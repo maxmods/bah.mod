@@ -317,6 +317,10 @@ BBArray * bmx_inet_listinterfaces() {
 				_bah_inet_TInet__setMACAddress(obj, arr, bbStringFromCString(buffer));
 				
 			}
+			
+			if (! ioctl(s, SIOCGIFFLAGS, ifreq)) {
+				_bah_inet_TInet__setFlags(obj, ifreq->ifr_flags);
+			}
 
 			_bah_inet_TInet__newEntry(arr, i++, obj);
 		}
