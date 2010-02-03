@@ -508,7 +508,9 @@ static void _launch_debugger (CGI *cgi, char *display)
   }
   else
   {
+#ifndef WIN32
     sleep(60);
+#endif
   }
 }
 
@@ -554,7 +556,9 @@ static NEOERR *cgi_pre_parse (CGI *cgi)
 
     if (hdf_get_int_value(cgi->hdf, "Config.DebugEnabled", 0) &&
         d && d_p && !strcmp(d, d_p)) {
+#ifndef WIN32
       sleep(20);
+#endif
     }
   }
 
