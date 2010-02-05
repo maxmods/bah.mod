@@ -44,7 +44,7 @@ kernelInverse.SetArg(1, buf[0])
 Local startTime:Int = MilliSecs()
 
 For Local i:Int = 0 Until 200
-	kernelSquare.Execute(1, SIZE)
+	kernelSquare.Execute(SIZE)
 	'kernelInverse.Execute(1, SIZE)
 Next
 

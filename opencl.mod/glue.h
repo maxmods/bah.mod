@@ -64,9 +64,10 @@ extern "C" {
 
 	MaxCLKernel * bmx_ocl_kernel_create(BBObject * handle, BBString * name, MaxCLProgram * program);
 	int bmx_ocl_kernel_setargbuffer(MaxCLKernel * kernel, int index, MaxCLBuffer * buffer);
-	int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int workDim, int globalWorkSize, int localWorkSize);
-	int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int value);
-	int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float value);
+	int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int globalWorkSize, int localWorkSize);
+	int bmx_ocl_kernel_executedim(MaxCLKernel * kernel, int workDim, BBArray * globalWorkSize, BBArray * localWorkSize);
+	int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int * value);
+	int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float * value);
 	int bmx_ocl_kernel_setarglong(MaxCLKernel * kernel, int index, BBInt64 * value);
 
 	MaxCLBuffer * bmx_ocl_membuff_create(BBObject * handle, MaxCLPlatform * platform, int flags, int size, void * data);
@@ -121,9 +122,10 @@ public:
 	~MaxCLKernel();
 
 	int SetArg(int index, cl_mem mem);
-	int Execute(int workDim, int globalWorkSize, int localWorkSize);
-	int SetArg(int index, int value);
-	int SetArg(int index, float value);
+	int Execute(int globalWorkSize, int localWorkSize);
+	int Execute(int workDim, BBArray * globalWorkSize, BBArray * localWorkSize);
+	int SetArg(int index, int * value);
+	int SetArg(int index, float * value);
 	int SetArg(int index, BBInt64 * value);
 	
 private:

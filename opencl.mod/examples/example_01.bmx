@@ -57,7 +57,7 @@ For Local i:Int = 0 Until devices.length
 	Print "    endianLittle             : " + info.endianLittle
 	Print "    profile                  : " + info.profile
 	Print "    deviceAddressBits        : " + info. deviceAddressBits
-	Print "    fpConfig                 : " + GetFPConfig(info.fpConfig)
+	Print "    singleFPConfig           : " + GetFPConfig(info.singleFPConfig)
 	
 	Local extensions:String[] = info.extensions.Split(" ")
 	
@@ -111,6 +111,8 @@ Function GetFPConfig:String(config:Int)
 	If config & CL_FP_FMA Then
 		AddToOr s, "CL_FP_FMA"
 	End If
+	
+	Return s
 End Function
 
 Function AddToOr(s:String Var, value:String)

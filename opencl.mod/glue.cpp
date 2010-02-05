@@ -79,7 +79,7 @@ BBObject * MaxCLDevice::GetInfo() {
 	cl_char extensions[1024];
 	cl_bool deviceAvailable;
 	cl_uint deviceAddressBits;
-	cl_device_fp_config fpConfig;
+	cl_device_fp_config singleFPConfig;
 	
 	size_t size = 0;
 	cl_int err = clGetDeviceInfo(id, CL_DEVICE_VENDOR, sizeof(vendorName), vendorName, &size);
@@ -115,8 +115,8 @@ BBObject * MaxCLDevice::GetInfo() {
 	err = clGetDeviceInfo(id, CL_DEVICE_EXTENSIONS, sizeof(extensions), extensions, &size);
 	err = clGetDeviceInfo(id, CL_DEVICE_ADDRESS_BITS, sizeof(deviceAddressBits), &deviceAddressBits, &size);
 	err = clGetDeviceInfo(id, CL_DEVICE_AVAILABLE, sizeof(deviceAvailable), &deviceAvailable, &size);
-	err = clGetDeviceInfo(id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(cl_device_fp_config), &fpConfig, &size);
-	
+	err = clGetDeviceInfo(id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(cl_device_fp_config), &singleFPConfig, &size);
+
 	BBArray * sizes = bbArrayNew1D("i", maxWorkItemDimensions);
 	int *s = (int*)BBARRAYDATA( sizes, sizes->dims );
 	for (int i = 0; i < maxWorkItemDimensions; i++) {
@@ -131,7 +131,7 @@ BBObject * MaxCLDevice::GetInfo() {
 		static_cast<int>(maxSamplers), static_cast<int>(maxParameterSize), static_cast<BBInt64>(globalMemCacheSize), static_cast<BBInt64>(globalMemSize),
 		static_cast<BBInt64>(maxConstantBufferSize), static_cast<int>(maxConstantArgs), static_cast<int>(localMemSize), static_cast<int>(errorCorrectionSupport),
 		static_cast<int>(profilingTimerResolution), static_cast<int>(endianLittle), bbStringFromCString((char*)profile), bbStringFromCString((char*)extensions),
-		static_cast<int>(deviceAddressBits), static_cast<int>(deviceAvailable), static_cast<int>(fpConfig));
+		static_cast<int>(deviceAddressBits), static_cast<int>(deviceAvailable), static_cast<int>(singleFPConfig));
 
 }
 
@@ -184,29 +184,45 @@ int MaxCLKernel::SetArg(int index, cl_mem mem) {
 	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(cl_mem), &mem));
 }
 
-int MaxCLKernel::Execute(int workDim, int globalWorkSize, int localWorkSize) {
+int MaxCLKernel::Execute(int globalWorkSize, int localWorkSize) {
 	cl_int err;
 
 	size_t globalSize = globalWorkSize;
 	size_t localSize = localWorkSize;
 
-	
 	if (localSize) {
-		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, workDim, NULL, &globalSize, &localSize, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	} else {
-		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, workDim, NULL, &globalSize, NULL, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, 1, NULL, &globalSize, NULL, 0, NULL, NULL);
 	}
 	
 	return err;
 
 }
 
-int MaxCLKernel::SetArg(int index, int value) {
-	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(int), &value));
+int MaxCLKernel::Execute(int workDim, BBArray * globalWorkSize, BBArray * localWorkSize) {
+	cl_int err;
+
+	size_t * globalSize = (size_t*)BBARRAYDATA( globalWorkSize, globalWorkSize->dims );
+
+	if (localWorkSize != &bbEmptyArray) {
+		size_t * localSize = (size_t*)BBARRAYDATA( localWorkSize, localWorkSize->dims );
+		
+		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, workDim, NULL, globalSize, localSize, 0, NULL, NULL);
+	} else {
+		err = clEnqueueNDRangeKernel(program->Platform()->Queue(), kernel, workDim, NULL, globalSize, NULL, 0, NULL, NULL);
+	}
+	
+	return err;
+
 }
 
-int MaxCLKernel::SetArg(int index, float value) {
-	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(float), &value));
+int MaxCLKernel::SetArg(int index, int * value) {
+	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(int), value));
+}
+
+int MaxCLKernel::SetArg(int index, float * value) {
+	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(float), value));
 }
 
 int MaxCLKernel::SetArg(int index, BBInt64 * value) {
@@ -421,15 +437,19 @@ int bmx_ocl_kernel_setargbuffer(MaxCLKernel * kernel, int index, MaxCLBuffer * b
 	return kernel->SetArg(index, buffer->Mem());
 }
 
-int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int workDim, int globalWorkSize, int localWorkSize) {
+int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int globalWorkSize, int localWorkSize) {
+	return kernel->Execute(globalWorkSize, localWorkSize);
+}
+
+int bmx_ocl_kernel_executedim(MaxCLKernel * kernel, int workDim, BBArray * globalWorkSize, BBArray * localWorkSize) {
 	return kernel->Execute(workDim, globalWorkSize, localWorkSize);
 }
 
-int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int value) {
+int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int * value) {
 	return kernel->SetArg(index, value);
 }
 
-int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float value) {
+int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float * value) {
 	return kernel->SetArg(index, value);
 }
 
