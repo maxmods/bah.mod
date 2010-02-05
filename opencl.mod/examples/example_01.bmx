@@ -17,6 +17,7 @@ For Local i:Int = 0 Until devices.length
 	
 	Print "    deviceType               : " + GetDeviceType(devices[i].deviceType)
 
+	Print "    deviceAvailable          : " + info.deviceAvailable
 	Print "    vendorName               : " + info.vendorName
 	Print "    deviceName               : " + info.deviceName
 	Print "    driverVersion            : " + info.driverVersion
@@ -55,6 +56,8 @@ For Local i:Int = 0 Until devices.length
 	Print "    profilingTimerResolution : " + info.profilingTimerResolution
 	Print "    endianLittle             : " + info.endianLittle
 	Print "    profile                  : " + info.profile
+	Print "    deviceAddressBits        : " + info. deviceAddressBits
+	Print "    fpConfig                 : " + GetFPConfig(info.fpConfig)
 	
 	Local extensions:String[] = info.extensions.Split(" ")
 	
@@ -81,5 +84,39 @@ Function GetDeviceType:String(deviceType:Int)
 		Case CL_DEVICE_TYPE_ALL
 			Return "CL_DEVICE_TYPE_ALL"
 	End Select
+End Function
+
+Function GetFPConfig:String(config:Int)
+	Local s:String
+	If config & CL_FP_DENORM Then
+		AddToOr s, "CL_FP_DENORM"
+	End If
+	
+	If config & CL_FP_INF_NAN Then
+		AddToOr s, "CL_FP_INF_NAN"
+	End If
+	
+	If config & CL_FP_ROUND_TO_NEAREST
+		AddToOr s, "CL_FP_ROUND_TO_NEAREST"
+	End If
+	
+	If config & CL_FP_ROUND_TO_ZERO Then
+		AddToOr s, "CL_FP_ROUND_TO_ZERO"
+	End If
+	
+	If config & CL_FP_ROUND_TO_INF Then
+		AddToOr s, "CL_FP_ROUND_TO_INF"
+	End If
+	
+	If config & CL_FP_FMA Then
+		AddToOr s, "CL_FP_FMA"
+	End If
+End Function
+
+Function AddToOr(s:String Var, value:String)
+	If s Then
+		s:+ " | "
+	End If
+	s:+ value
 End Function
 

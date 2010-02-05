@@ -52,6 +52,9 @@ Extern
 	Function bmx_ocl_kernel_create:Byte Ptr(handle:Object, name:String, program:Byte Ptr)
 	Function bmx_ocl_kernel_setargbuffer:Int(handle:Byte Ptr, index:Int, buffer:Byte Ptr)
 	Function bmx_ocl_kernel_execute:Int(handle:Byte Ptr, workDim:Int, globalWorkSize:Int, localWorkSize:Int)
+	Function bmx_ocl_kernel_setargint:Int(handle:Byte Ptr, index:Int, value:Int)
+	Function bmx_ocl_kernel_setargfloat:Int(handle:Byte Ptr, index:Int, value:Float)
+	Function bmx_ocl_kernel_setarglong:Int(handle:Byte Ptr, index:Int, value:Long Ptr)
 
 	Function bmx_ocl_membuff_create:Byte Ptr(handle:Object, platform:Byte Ptr, flags:Int, size:Int, data:Byte Ptr)
 	Function bmx_ocl_membuff_enqueuewrite:Int(handle:Byte Ptr, blockingWrite:Int, size:Int, data:Byte Ptr)
@@ -260,5 +263,29 @@ bbdoc: Each channel component is a single precision floating-point value.
 End Rem
 Const CL_FLOAT:Int = $10DE
 
+Rem
+bbdoc: Denorms are supported.
+End Rem
+Const CL_FP_DENORM:Int = 1 Shl 0
+Rem
+bbdoc: INF and NaNs are supported.
+End Rem
+Const CL_FP_INF_NAN:Int = 1 Shl 1
+Rem
+bbdoc: Round to nearest even rounding mode supported.
+End Rem
+Const CL_FP_ROUND_TO_NEAREST:Int = 1 Shl 2
+Rem
+bbdoc: Round to zero rounding mode supported.
+End Rem
+Const CL_FP_ROUND_TO_ZERO:Int = 1 Shl 3
+Rem
+bbdoc: Round to +ve and -ve infinity rounding modes supported.
+End Rem
+Const CL_FP_ROUND_TO_INF:Int = 1 Shl 4
+Rem
+bbdoc: IEEE754-2008 fused multiply-add is supported.
+End Rem
+Const CL_FP_FMA:Int = 1 Shl 5
 
 

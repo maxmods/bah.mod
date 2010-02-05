@@ -77,6 +77,9 @@ BBObject * MaxCLDevice::GetInfo() {
 	cl_bool endianLittle;
 	cl_char profile[1024];
 	cl_char extensions[1024];
+	cl_bool deviceAvailable;
+	cl_uint deviceAddressBits;
+	cl_device_fp_config fpConfig;
 	
 	size_t size = 0;
 	cl_int err = clGetDeviceInfo(id, CL_DEVICE_VENDOR, sizeof(vendorName), vendorName, &size);
@@ -110,6 +113,9 @@ BBObject * MaxCLDevice::GetInfo() {
 	err = clGetDeviceInfo(id, CL_DEVICE_ENDIAN_LITTLE, sizeof(endianLittle), &endianLittle, &size);
 	err = clGetDeviceInfo(id, CL_DEVICE_PROFILE, sizeof(profile), profile, &size);
 	err = clGetDeviceInfo(id, CL_DEVICE_EXTENSIONS, sizeof(extensions), extensions, &size);
+	err = clGetDeviceInfo(id, CL_DEVICE_ADDRESS_BITS, sizeof(deviceAddressBits), &deviceAddressBits, &size);
+	err = clGetDeviceInfo(id, CL_DEVICE_AVAILABLE, sizeof(deviceAvailable), &deviceAvailable, &size);
+	err = clGetDeviceInfo(id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(cl_device_fp_config), &fpConfig, &size);
 	
 	BBArray * sizes = bbArrayNew1D("i", maxWorkItemDimensions);
 	int *s = (int*)BBARRAYDATA( sizes, sizes->dims );
@@ -124,7 +130,8 @@ BBObject * MaxCLDevice::GetInfo() {
 		static_cast<int>(image2dMaxHeight), static_cast<int>(image3dMaxWidth), static_cast<int>(image3dMaxHeight), static_cast<int>(image3dMaxDepth),
 		static_cast<int>(maxSamplers), static_cast<int>(maxParameterSize), static_cast<BBInt64>(globalMemCacheSize), static_cast<BBInt64>(globalMemSize),
 		static_cast<BBInt64>(maxConstantBufferSize), static_cast<int>(maxConstantArgs), static_cast<int>(localMemSize), static_cast<int>(errorCorrectionSupport),
-		static_cast<int>(profilingTimerResolution), static_cast<int>(endianLittle), bbStringFromCString((char*)profile), bbStringFromCString((char*)extensions));
+		static_cast<int>(profilingTimerResolution), static_cast<int>(endianLittle), bbStringFromCString((char*)profile), bbStringFromCString((char*)extensions),
+		static_cast<int>(deviceAddressBits), static_cast<int>(deviceAvailable), static_cast<int>(fpConfig));
 
 }
 
@@ -192,6 +199,18 @@ int MaxCLKernel::Execute(int workDim, int globalWorkSize, int localWorkSize) {
 	
 	return err;
 
+}
+
+int MaxCLKernel::SetArg(int index, int value) {
+	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(int), &value));
+}
+
+int MaxCLKernel::SetArg(int index, float value) {
+	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(float), &value));
+}
+
+int MaxCLKernel::SetArg(int index, BBInt64 * value) {
+	return static_cast<int>(clSetKernelArg(kernel, index, sizeof(BBInt64), value));
 }
 
 // --------------------------------------------------------
@@ -335,7 +354,7 @@ BBArray * bmx_ocl_platform_getdevices(int deviceType) {
 	cl_int err;
 	cl_uint size = 0;
 	cl_device_id devices[10];
-
+	
 	err = clGetDeviceIDs(NULL, deviceType, 10, devices, &size);
 
 	BBArray * list = _bah_opencl_TCLDevice__newDeviceList(size);
@@ -404,6 +423,18 @@ int bmx_ocl_kernel_setargbuffer(MaxCLKernel * kernel, int index, MaxCLBuffer * b
 
 int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int workDim, int globalWorkSize, int localWorkSize) {
 	return kernel->Execute(workDim, globalWorkSize, localWorkSize);
+}
+
+int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int value) {
+	return kernel->SetArg(index, value);
+}
+
+int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float value) {
+	return kernel->SetArg(index, value);
+}
+
+int bmx_ocl_kernel_setarglong(MaxCLKernel * kernel, int index, BBInt64 * value) {
+	return kernel->SetArg(index, value);
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++

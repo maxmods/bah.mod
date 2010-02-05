@@ -48,7 +48,8 @@ extern "C" {
 		BBInt64 maxMemAllocSize, int imageSupport, int maxReadImageArgs, int maxWriteImageArgs, int image2dMaxWidth,
 		int image2dMaxHeight, int image3dMaxWidth, int image3dMaxHeight, int image3dMaxDepth, int maxSamplers, int maxParameterSize,
 		BBInt64 globalMemCacheSize, BBInt64 globalMemSize, BBInt64 maxConstantBufferSize, int maxConstantArgs, int localMemSize,
-		int errorCorrectionSupport, int profilingTimerResolution, int endianLittle, BBString * profile, BBString * extensions);
+		int errorCorrectionSupport, int profilingTimerResolution, int endianLittle, BBString * profile, BBString * extensions,
+		int deviceAddressBits, int deviceAvailable, int fpConfig);
 
 	MaxCLPlatform * bmx_ocl_platform_init(BBObject * handle, MaxCLDevice * device);
 	BBArray * bmx_ocl_platform_getdevices(int deviceType);
@@ -64,6 +65,9 @@ extern "C" {
 	MaxCLKernel * bmx_ocl_kernel_create(BBObject * handle, BBString * name, MaxCLProgram * program);
 	int bmx_ocl_kernel_setargbuffer(MaxCLKernel * kernel, int index, MaxCLBuffer * buffer);
 	int bmx_ocl_kernel_execute(MaxCLKernel * kernel, int workDim, int globalWorkSize, int localWorkSize);
+	int bmx_ocl_kernel_setargint(MaxCLKernel * kernel, int index, int value);
+	int bmx_ocl_kernel_setargfloat(MaxCLKernel * kernel, int index, float value);
+	int bmx_ocl_kernel_setarglong(MaxCLKernel * kernel, int index, BBInt64 * value);
 
 	MaxCLBuffer * bmx_ocl_membuff_create(BBObject * handle, MaxCLPlatform * platform, int flags, int size, void * data);
 	int bmx_ocl_membuff_enqueuewrite(MaxCLBuffer * mem, int blockingWrite, int size, void * data);
@@ -118,6 +122,9 @@ public:
 
 	int SetArg(int index, cl_mem mem);
 	int Execute(int workDim, int globalWorkSize, int localWorkSize);
+	int SetArg(int index, int value);
+	int SetArg(int index, float value);
+	int SetArg(int index, BBInt64 * value);
 	
 private:
 	cl_kernel	 kernel;
