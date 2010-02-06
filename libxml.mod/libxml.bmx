@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,11 @@ Module BaH.LibXml
 ModuleInfo "Version: 1.15"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libxml2) 1998-2009 Daniel Veillard"
-ModuleInfo "Copyright: (wrapper) 2006-2009 Bruce A Henderson"
+ModuleInfo "Copyright: (wrapper) 2006-2010 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.15"
+ModuleInfo "History: Updated to Libxml 2.7.6."
 ModuleInfo "History: Added missing xmlParserOptions."
 ModuleInfo "History: Added TxmlDoc readFile() and readDoc() functions."
 ModuleInfo "History: 1.14"
@@ -879,7 +880,7 @@ Type TxmlDoc Extends TxmlBase
 	
 	Function _xmlInputCloseCallback:Int(doc:Object)
 		Return 0
-	End function
+	End Function
 
 	Rem
 	bbdoc: Parse an XML file and build a tree.
