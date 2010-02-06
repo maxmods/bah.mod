@@ -16,7 +16,7 @@
                 <Property Name="FrameEnabled" Value="False" />
                 <Property Name="VerticalAlignment" Value="Top" />
                 <Property Name="UnifiedMaxSize" Value="{{1.0,0},{1.0,0}}" />
-                <Property Name="UnifiedPosition" Value="{{0,7},{0,20}}" />
+                <Property Name="UnifiedPosition" Value="{{0,7},{0,0}}" />
                 <Property Name="UnifiedSize" Value="{{1.0,0},{0,45}}" />
                 <Property Name="Text" Value="asdasdasdasd" />
             </Window>

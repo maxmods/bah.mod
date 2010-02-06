@@ -1,0 +1,28 @@
+# post build script
+#
+# We want to ensure that that dlls are here !
+#
+
+@define copydll
+	local ext
+	local pre
+
+	if bmk.Platform() == "win32" then
+		ext = "dll"
+		pre = ""
+	elseif bmk.Platform() == "linux" then
+		ext = "so"
+		pre = "lib"
+	else
+		ext = "dylib"
+		pre = "lib"
+	end
+
+	local path = utils.ModulePath("bah.fmod") .. "/lib/" .. bmk.Platform() .. "/"
+	local file = pre .. arg1 .. "." .. ext
+
+	sys.CopyFile(path .. file, %exepath% .. "/" .. file)
+@end
+
+# do the copy
+copydll fmodex
