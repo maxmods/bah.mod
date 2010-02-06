@@ -70,7 +70,7 @@
 #endif
 
 #include "arch.h"
-#include "speex/speex_echo.h"
+#include "../include/speex/speex_echo.h"
 #include "fftwrap.h"
 #include "pseudofloat.h"
 #include "math_approx.h"
