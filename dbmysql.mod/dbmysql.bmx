@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,13 @@ about: A MySQL database driver for #bah.database.Database
 End Rem
 Module BaH.DBMySQL
 
-ModuleInfo "Version: 1.06"
+ModuleInfo "Version: 1.07"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
 
+ModuleInfo "History: 1.07"
+ModuleInfo "History: Changed bool types to int."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."

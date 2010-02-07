@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2007-2009 Bruce A Henderson
+  Copyright (c) 2007-2010 Bruce A Henderson
   All rights reserved.
  
   Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ void bmx_mysql_deleteBools(my_bool * bools) {
 	delete[] bools;
 }
 
-void bmx_mysql_setBool(my_bool * bools, int index, bool isNull) {
+void bmx_mysql_setBool(my_bool * bools, int index, int isNull) {
 	bools[index] = static_cast<my_bool>(isNull);
 }
 
@@ -265,8 +265,8 @@ void examine_bindings(MYSQL_BIND* bindings, int size, MYSQL_STMT *stmt) {
 	}
 }
 
-bool bmx_mysql_rowField_isNull(MYSQL_ROW row, int index) {
-	return (row[index] == NULL);
+int bmx_mysql_rowField_isNull(MYSQL_ROW row, int index) {
+	return ((row[index] == NULL) || (!row[index])) ? 1 : 0;
 }
 
 unsigned long bmx_mysql_getLength(unsigned long * lengths, int index) {
