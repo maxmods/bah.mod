@@ -22,10 +22,12 @@
 
 #ifdef __APPLE__
 #include <OpenCL/Opencl.h>
-#else
+#elifdef WIN32
 #define _MSC_VER
 #include <windows.h>
 #include <stdint.h>
+#include <CL/cl.h>
+#else
 #include <CL/cl.h>
 #endif
 

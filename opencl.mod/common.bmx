@@ -31,6 +31,8 @@ Import "include/*.h"
 
 ?win32
 Import "-lopencl"
+?linux
+Import "-lOpenCL"
 ?
 
 Import "*.h"
