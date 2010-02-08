@@ -38,6 +38,7 @@ ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Changed bool types to int."
+ModuleInfo "History: Fixed prepare where memory was being freed before completion."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."
@@ -551,10 +552,13 @@ Type TMySQLResultSet Extends TQueryResultSet
 
 		Local paramCount:Int = mysql_stmt_param_count(stmtHandle)
 
+		Local strings:Byte Ptr[]
+		Local times:Byte Ptr[]
+
 		If paramCount = bindCount Then
 
-			Local strings:Byte Ptr[] = New Byte Ptr[paramCount]
-			Local times:Byte Ptr[] = New Byte Ptr[paramCount]
+			strings = New Byte Ptr[paramCount]
+			times = New Byte Ptr[paramCount]
 		
 			For Local i:Int = 0 Until paramCount
 
@@ -600,7 +604,30 @@ Type TMySQLResultSet Extends TQueryResultSet
 			' actually bind the parameters
 			result = bmx_mysql_stmt_bind_param(stmtHandle, parameterBindings)
 			
-			' free up the strings
+			If result Then
+				conn.setError("Error binding values", convertUTF8toISO8859(mysql_stmt_error(stmtHandle)), TDatabaseError.ERROR_STATEMENT, mysql_errno(stmtHandle))
+			
+				' free up the strings
+				For Local i:Int = 0 Until paramCount
+					If strings[i] Then
+						MemFree(strings[i])
+					End If
+					
+					If times[i] Then
+						bmx_mysql_deleteTime(times[i])
+					End If
+				Next
+				
+				Return False
+			End If
+			
+		End If
+	
+		' execute the statement
+		result = mysql_stmt_execute(stmtHandle)
+		
+		' free up the strings
+		If strings Or times Then
 			For Local i:Int = 0 Until paramCount
 				If strings[i] Then
 					MemFree(strings[i])
@@ -610,17 +637,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 					bmx_mysql_deleteTime(times[i])
 				End If
 			Next
-			
-			If result Then
-				conn.setError("Error binding values", convertUTF8toISO8859(mysql_stmt_error(stmtHandle)), TDatabaseError.ERROR_STATEMENT, mysql_errno(stmtHandle))
-			
-				Return False
-			End If
-			
 		End If
-	
-		' execute the statement
-		result = mysql_stmt_execute(stmtHandle)
 		
 		If result Then
 			conn.setError("Error executing statement", convertUTF8toISO8859(mysql_stmt_error(stmtHandle)), TDatabaseError.ERROR_STATEMENT, mysql_errno(stmtHandle))
