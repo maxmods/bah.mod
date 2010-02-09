@@ -291,16 +291,6 @@ void bmx_mysql_inbind(MYSQL_BIND* bindings, int index, MYSQL_FIELD * field, char
 	bind->buffer = dataValue;
 }
 
-int bmx_mysql_stmt_bind_result(MYSQL_STMT *stmt, MYSQL_BIND* bindings) {
-	int result = mysql_stmt_bind_result(stmt, bindings);
-	return result;
-}
-
-int bmx_mysql_stmt_bind_param(MYSQL_STMT *stmt, MYSQL_BIND* bindings) {
-	int result = mysql_stmt_bind_param(stmt, bindings);
-	return result;
-}
-
 MYSQL_BIND * bmx_mysql_getBindings(MYSQL_STMT *stmt) {
 	return stmt->bind;
 }
@@ -321,6 +311,31 @@ void bmx_mysql_stmt_insert_id(MYSQL_STMT *stmt, BBInt64 * id) {
 
 void bmx_mysql_insert_id(MYSQL * mysql, BBInt64 * id) {
 	*id = mysql_insert_id(mysql);
+}
+
+
+int bmx_mysql_stmt_close(MYSQL_STMT *stmt) {
+	return static_cast<int>(mysql_stmt_close(stmt));
+}
+
+void bmx_mysql_affected_rows(MYSQL *mysql, BBInt64 * rows) {
+	*rows = mysql_affected_rows(mysql);
+}
+
+int bmx_mysql_stmt_reset(MYSQL_STMT *stmt) {
+	return static_cast<int>(mysql_stmt_reset(stmt));
+}
+
+int bmx_mysql_stmt_bind_param(MYSQL_STMT *stmt, MYSQL_BIND * bind) {
+	return static_cast<int>(mysql_stmt_bind_param(stmt, bind));
+}
+
+void bmx_mysql_stmt_affected_rows(MYSQL_STMT *stmt, BBInt64 * rows) {
+	*rows = mysql_stmt_affected_rows(stmt);
+}
+
+int bmx_mysql_stmt_bind_result(MYSQL_STMT *stmt, MYSQL_BIND * bind) {
+	return static_cast<int>(mysql_stmt_bind_result(stmt, bind));
 }
 
 

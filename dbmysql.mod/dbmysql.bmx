@@ -39,6 +39,8 @@ ModuleInfo "Copyright: Wrapper - 2007-2010 Bruce A Henderson"
 ModuleInfo "History: 1.07"
 ModuleInfo "History: Changed bool types to int."
 ModuleInfo "History: Fixed prepare where memory was being freed before completion."
+ModuleInfo "History: Wrapped my_bool returning functions for Ints."
+ModuleInfo "History: Fixed functions returning Long."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Minor update."
 ModuleInfo "History: Added getTableInfo() support."
@@ -434,7 +436,9 @@ Type TMySQLResultSet Extends TQueryResultSet
 
 		initRecord(fieldCount)
 
-		_rowsAffected = mysql_affected_rows(conn.handle)
+		Local af:Long
+		bmx_mysql_affected_rows(conn.handle, Varptr af)
+		_rowsAffected = af
 		
 		If fieldCount <> 0 Then
 			
@@ -541,7 +545,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 		
 		Local result:Int = 0
 		
-		result = mysql_stmt_reset(stmtHandle)
+		result = bmx_mysql_stmt_reset(stmtHandle)
 		If result Then
 			conn.setError("Error resetting statement", convertUTF8toISO8859(mysql_stmt_error(stmtHandle)), TDatabaseError.ERROR_STATEMENT, mysql_errno(stmtHandle))
 			Return False
@@ -644,7 +648,9 @@ Type TMySQLResultSet Extends TQueryResultSet
 			Return False
 		End If
 		
-		_rowsAffected = mysql_stmt_affected_rows(stmtHandle)
+		Local af:Long
+		bmx_mysql_stmt_affected_rows(stmtHandle, Varptr af)
+		_rowsAffected = af
 
 		' if this is set, then there is data returned from the statement execution
 		' in which case we need to bind the results for the result set
@@ -858,7 +864,7 @@ Type TMySQLResultSet Extends TQueryResultSet
 		End If
 		
 		If stmtHandle Then
-			If mysql_stmt_close(stmtHandle) Then
+			If bmx_mysql_stmt_close(stmtHandle) Then
 			
 			End If
 			stmtHandle = Null

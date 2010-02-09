@@ -98,24 +98,17 @@ Extern
 	Function mysql_stmt_fetch:Int(stmt:Byte Ptr)
 	Function mysql_fetch_row:Byte Ptr(stmt:Byte Ptr)
 	Function mysql_free_result(result:Byte Ptr)
-	Function mysql_stmt_close:Int(stmt:Byte Ptr)
 
-	Function mysql_affected_rows:Int(handle:Byte Ptr)
-	
 	Function mysql_stmt_init:Byte Ptr(handle:Byte Ptr)
 	Function mysql_stmt_prepare:Int(stmt:Byte Ptr, query:Byte Ptr, size:Int)
 	Function mysql_stmt_param_count:Int(stmt:Byte Ptr)
-	Function mysql_stmt_reset:Int(stmt:Byte Ptr)
-	Function mysql_stmt_bind_param:Int(stmt:Byte Ptr, bind:Byte Ptr)
 	Function mysql_stmt_execute:Int(stmt:Byte Ptr)
 	Function mysql_stmt_error:Byte Ptr(stmt:Byte Ptr)
-	Function mysql_stmt_affected_rows:Int(stmt:Byte Ptr)
 	Function mysql_stmt_result_metadata:Byte Ptr(stmt:Byte Ptr)
 	
 	Function mysql_num_fields:Int(meta:Byte Ptr)
 	Function mysql_fetch_lengths:Byte Ptr(result:Byte Ptr)
 	Function mysql_fetch_field:Byte Ptr(meta:Byte Ptr)
-	Function mysql_stmt_bind_result:Int(stmt:Byte Ptr, bindings:Byte Ptr)
 	Function mysql_stmt_store_result:Int(stmt:Byte Ptr)
 	
 	Function mysql_list_tables:Byte Ptr(handle:Byte Ptr, name:Byte Ptr)
@@ -173,6 +166,11 @@ Extern
 	Function bmx_mysql_makeTime:Byte Ptr()
 	Function bmx_mysql_deleteTime(handle:Byte Ptr)
 	
+	Function bmx_mysql_stmt_close:Int(stmt:Byte Ptr)
+	Function bmx_mysql_affected_rows(handle:Byte Ptr, rows:Long Ptr)
+	Function bmx_mysql_stmt_reset:Int(stmt:Byte Ptr)
+	Function bmx_mysql_stmt_affected_rows(stmt:Byte Ptr, rows:Long Ptr)
+
 End Extern
 
 
