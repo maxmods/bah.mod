@@ -27,24 +27,6 @@
 
 #include <blitz.h>
 
-// string conversion
-BBString *kbbStringFromNSString(NSString *s){
-	BBString *bbstring;
-	unsigned short *buff;
-	int n;
-	n = [s length];
-	buff = malloc(n*2);
-	[s getCharacters:buff];
-	bbstring = bbStringFromShorts(buff,n);
-	free(buff);
-	return bbstring;	
-}
-
-// string conversion
-NSString *kbbStringToNSString(BBString *s){
-	return [NSString stringWithCharacters:s->buf length:s->length];
-}
-
 // --------------------------------------------------------
 
 extern void _bah_keychain_TKeychain__postLastError(int err);
@@ -183,7 +165,7 @@ MaxKeyChain * bmx_keychain_create(BBString * path, BBString * password, int prom
 }
 
 BBString * bmx_keychain_SecCopyErrorMessageString(int status) {
-	return kbbStringFromNSString(SecCopyErrorMessageString(status, NULL));
+	return bbStringFromNSString(SecCopyErrorMessageString(status, NULL));
 }
 
 void bmx_keychain_SecKeychainSetUserInteractionAllowed(int allowed) {

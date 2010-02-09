@@ -21,6 +21,7 @@
 SuperStrict
 
 Import BRL.Blitz
+Import Pub.Macos
 
 Import "-framework Security"
 Import "glue.m"
