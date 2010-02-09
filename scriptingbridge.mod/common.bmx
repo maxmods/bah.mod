@@ -21,6 +21,7 @@
 SuperStrict
 
 Import BRL.Blitz
+Import Pub.Macos
 
 Import "-lobjc"
 Import "-framework ScriptingBridge"
