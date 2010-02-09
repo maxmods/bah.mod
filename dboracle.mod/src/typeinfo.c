@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: typeinfo.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: typeinfo.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -113,7 +113,7 @@ OCI_TypeInfo * OCI_API OCI_TypeInfoGet(OCI_Connection *con, const mtext *name,
         if (*str == MT('.'))
         {
             mtsncat(obj_schema, name, str-name);
-            mtsncat(obj_name, ++str, OCI_SIZE_OBJ_NAME);
+            mtsncat(obj_name, ++str, (size_t) OCI_SIZE_OBJ_NAME);
             break;
         }
     }
@@ -122,7 +122,7 @@ OCI_TypeInfo * OCI_API OCI_TypeInfoGet(OCI_Connection *con, const mtext *name,
 
     if (obj_name[0] == 0)
     {
-        mtsncat(obj_name, name, OCI_SIZE_OBJ_NAME);
+        mtsncat(obj_name, name, (size_t) OCI_SIZE_OBJ_NAME);
     }
 
     /* type name must be uppercase */
@@ -177,7 +177,7 @@ OCI_TypeInfo * OCI_API OCI_TypeInfoGet(OCI_Connection *con, const mtext *name,
 
             res = (OCI_SUCCESS == OCI_HandleAlloc(OCILib.env,
                                                   (dvoid **) (void *) &dschp, 
-                                                  OCI_HTYPE_DESCRIBE, 0, 
+                                                  OCI_HTYPE_DESCRIBE, (size_t) 0, 
                                                   (dvoid **) NULL));
         }
 
@@ -241,7 +241,7 @@ OCI_TypeInfo * OCI_API OCI_TypeInfoGet(OCI_Connection *con, const mtext *name,
                     str = mtsncat(buffer, typinf->schema, size);
                     size -= mtslen(typinf->schema);
                     str = mtsncat(str, MT("."), size);
-                    size -= 1;
+                    size -= (size_t) 1;
                 }
 
                 mtsncat(str, typinf->name, size);
@@ -323,7 +323,7 @@ OCI_TypeInfo * OCI_API OCI_TypeInfoGet(OCI_Connection *con, const mtext *name,
             {
                 typinf->cols = (OCI_Column *) OCI_MemAlloc(OCI_IPC_COLUMN,
                                                            sizeof(*typinf->cols),
-                                                           typinf->nb_cols,
+                                                           (size_t) typinf->nb_cols,
                                                            TRUE);
 
                 /* describe children */

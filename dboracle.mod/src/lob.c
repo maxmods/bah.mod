@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: lob.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: lob.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -54,7 +54,7 @@
     OCI_CHECK(plob == NULL, NULL);
 
     if (*plob == NULL)
-        *plob = (OCI_Lob *) OCI_MemAlloc(OCI_IPC_LOB, sizeof(*lob), 1, TRUE);
+        *plob = (OCI_Lob *) OCI_MemAlloc(OCI_IPC_LOB, sizeof(*lob), (size_t) 1, TRUE);
 
     if (*plob != NULL)
     {
@@ -265,7 +265,7 @@ unsigned int OCI_API OCI_LobRead(OCI_Lob *lob, void *buffer, unsigned int len)
 
 #endif        
         
-        size_in *= sizeof(odtext);
+        size_in *= (ub4) sizeof(odtext);
     }
 
     if (lob->type == OCI_NCLOB)
@@ -356,7 +356,7 @@ unsigned int OCI_API OCI_LobWrite(OCI_Lob *lob, void *buffer, unsigned int len)
 
 #endif
 
-        size_in *= sizeof(dtext);
+        size_in *= (ub4)  sizeof(dtext);
         obuf     = OCI_GetInputDataString(buffer, (int *) &size_in);
     }
     else
@@ -556,6 +556,29 @@ big_uint OCI_API OCI_LobGetLength(OCI_Lob *lob)
 }
 
 /* ------------------------------------------------------------------------ *
+ * OCI_LobGetChunkSize
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_LobGetChunkSize(OCI_Lob *lob)
+{
+    boolean res = TRUE;
+    ub4    size = 0;
+
+    OCI_CHECK_PTR(OCI_IPC_LOB, lob, 0);
+ 
+    OCI_CALL2
+    (
+        res, lob->con, 
+        
+        OCILobGetChunkSize(lob->con->cxt, lob->con->err, lob->handle, &size)
+    )
+
+    OCI_RESULT(res);
+
+    return (unsigned int) size;
+}
+
+/* ------------------------------------------------------------------------ *
  * OCI_LobCopy
  * ------------------------------------------------------------------------ */
 
@@ -684,7 +707,7 @@ unsigned int OCI_API OCI_LobAppend(OCI_Lob *lob, void *buffer, unsigned int len)
        It's an Oracle known bug #886191
        So we use OCI_LobSeek() + OCI_LobWrite() instead */
 
-    if (OCILib.ver_runtime < OCI_10)
+    if (OCILib.version_runtime < OCI_10_1)
     {
        return OCI_LobSeek(lob, OCI_LobGetLength(lob), OCI_SEEK_SET) &&
               OCI_LobWrite(lob, buffer, len);
@@ -694,7 +717,7 @@ unsigned int OCI_API OCI_LobAppend(OCI_Lob *lob, void *buffer, unsigned int len)
     
     if (lob->type != OCI_BLOB)
     {
-        size_in *= sizeof(dtext);
+        size_in *= (ub4) sizeof(dtext);
         obuf  = OCI_GetInputDataString(buffer, (int *) &size_in);
     }
     else
@@ -912,6 +935,94 @@ boolean OCI_API OCI_LobAssign(OCI_Lob *lob, OCI_Lob *lob_src)
             
             OCILobAssign(OCILib.env, lob->con->err,
                          lob_src->handle, &lob->handle)
+        )
+    }
+
+    OCI_RESULT(res);
+
+    return res;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_LobGetMaxSize
+ * ------------------------------------------------------------------------ */
+
+big_uint OCI_API OCI_LobGetMaxSize(OCI_Lob *lob)
+{
+    boolean res   = TRUE;
+    big_uint size = 0;
+
+    OCI_CHECK_PTR(OCI_IPC_LOB, lob, 0);
+
+#ifdef OCI_LOB2_API_ENABLED
+
+    if (OCILib.use_lob_ub8)
+    {
+        OCI_CALL2
+        (
+            res, lob->con, 
+            
+            OCILobGetStorageLimit(lob->con->cxt, lob->con->err, lob->handle,
+                                  (ub8 *) &size)
+        )
+    }
+
+#endif 
+
+    OCI_RESULT(res);
+
+    return size;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_LobFlush
+ * ------------------------------------------------------------------------ */
+
+boolean OCI_API OCI_LobFlush(OCI_Lob *lob)
+{
+    boolean res   = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_LOB, lob, FALSE);
+
+    OCI_CALL2
+    (
+        res, lob->con, 
+        
+        OCILobFlushBuffer(lob->con->cxt, lob->con->err, lob->handle, (ub4) OCI_DEFAULT)
+    )
+
+    OCI_RESULT(res);
+
+    return res;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_LobFlush
+ * ------------------------------------------------------------------------ */
+
+
+boolean OCI_API OCI_LobEnableBuffering(OCI_Lob *lob, boolean value)
+{
+    boolean res   = TRUE;
+
+    OCI_CHECK_PTR(OCI_IPC_LOB, lob, FALSE);
+
+    if (value == TRUE)
+    {
+        OCI_CALL2
+        (
+            res, lob->con, 
+            
+            OCILobEnableBuffering(lob->con->cxt, lob->con->err, lob->handle)
+        )
+    }
+    else
+    {
+        OCI_CALL2
+        (
+            res, lob->con, 
+            
+            OCILobDisableBuffering(lob->con->cxt, lob->con->err, lob->handle)
         )
     }
 

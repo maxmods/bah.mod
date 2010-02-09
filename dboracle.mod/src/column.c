@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: column.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: column.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -115,13 +115,34 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     /* precision */
 
-    OCI_CALL1
-    (
-        res, con, stmt,
-        
-        OCIAttrGet((dvoid *) param, (ub4) OCI_DTYPE_PARAM, (dvoid *) &col->prec,
-                   (ub4 *) NULL, (ub4) OCI_ATTR_PRECISION, con->err)
-    )
+    if (ptype == OCI_DESC_RESULTSET)
+    {
+        sb2 prec = 0;
+
+        OCI_CALL1
+        (
+            res, con, stmt,
+            
+            OCIAttrGet((dvoid *) param, (ub4) OCI_DTYPE_PARAM, (dvoid *) &prec,
+                       (ub4 *) NULL, (ub4) OCI_ATTR_PRECISION, con->err)
+        )
+
+        col->prec = (sb2) prec;
+    }
+    else
+    {
+        ub1 prec = 0;
+
+        OCI_CALL1
+        (
+            res, con, stmt,
+            
+            OCIAttrGet((dvoid *) param, (ub4) OCI_DTYPE_PARAM, (dvoid *) &prec,
+                       (ub4 *) NULL, (ub4) OCI_ATTR_PRECISION, con->err)
+        )
+
+        col->prec = (sb2) prec;
+    }
 
     /* charset form */
 
@@ -135,9 +156,9 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     /* type of column length for string based column */
 
-#if OCI_VERSION_COMPILE >= OCI_9 
+#if OCI_VERSION_COMPILE >= OCI_9_0 
 
-    if ((OCILib.ver_runtime >= OCI_9) && (con->ver_maj >= OCI_9))
+    if ((OCILib.version_runtime >= OCI_9_0) && (con->ver_num >= OCI_9_0))
     {
         /* char used - no error checking because on Oracle 9.0, querying
                        this param that is not char/varchar based will cause an 
@@ -167,7 +188,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
         )
     }
 
-    if ((OCILib.ver_runtime >= OCI_9) && (con->ver_maj >= OCI_9))
+    if ((OCILib.version_runtime >= OCI_9_0) && (con->ver_num >= OCI_9_0))
     {
         /* fractional time precision for timestamps */
 
@@ -214,7 +235,7 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
 
     /* check nullable only for table based column */
 
-    if (ptype == OCI_DESC_RESULTSET)
+    if (ptype == OCI_DESC_TABLE)
     {
         OCI_CALL1
         (
@@ -246,7 +267,8 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
     if ((res == TRUE) && (ostr != NULL))
     {
         col->name = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
-                                           ((osize/sizeof(omtext))+ 1), TRUE);
+                                           (size_t) ((osize / (int) sizeof(omtext)) + 1),
+                                           TRUE);
   
         if (col->name != NULL)
         {
@@ -273,7 +295,8 @@ boolean OCI_ColumnDescribe(OCI_Column *col, OCI_Connection *con,
         if ((res == TRUE) && (ostr != NULL))
         {   
             mtext *tmp = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
-                                               ((osize/sizeof(omtext))+ 1), TRUE);
+                                                (size_t)((osize / (int) sizeof(omtext)) + 1),
+                                                TRUE);
         
             if (tmp != NULL)
             {
@@ -344,7 +367,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
         case SQLT_PDN:
         case SQLT_NUM:
 
-#if OCI_VERSION_COMPILE >= OCI_10
+#if OCI_VERSION_COMPILE >= OCI_10_1
 
         case SQLT_BFLOAT:
         case SQLT_BDOUBLE:
@@ -398,7 +421,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
                    OCI_SIZE_ROWID 
                 */
 
-                col->bufsize = (OCI_SIZE_ROWID + 1) * sizeof(dtext);
+                col->bufsize = (OCI_SIZE_ROWID + 1) * (ub4) sizeof(dtext);
             }
             else
             {
@@ -408,7 +431,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
                     its value as an hex string
                 */
 
-                col->bufsize = (col->size + 1) * sizeof(dtext);
+                col->bufsize = (ub4) ((col->size + 1) * (ub2) sizeof(dtext));
             }
 
             break;
@@ -416,7 +439,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
         case SQLT_BIN:
 
             col->type    = OCI_CDT_RAW;
-            col->bufsize = col->size + sizeof(dtext); /* for string conversion */
+            col->bufsize = (ub4) (col->size + (ub2) sizeof(dtext)); /* for string conversion */
             break;
 
         case SQLT_BLOB:
@@ -424,14 +447,14 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_LOB;
             col->subtype = OCI_BLOB;
             col->dtype   = OCI_DTYPE_LOB;
-            col->bufsize = sizeof(OCILobLocator *);
+            col->bufsize = (ub4) sizeof(OCILobLocator *);
             break;
 
         case SQLT_CLOB:
 
             col->type    = OCI_CDT_LOB;
             col->dtype   = OCI_DTYPE_LOB;
-            col->bufsize = sizeof(OCILobLocator *);
+            col->bufsize = (ub4) sizeof(OCILobLocator *);
            
             if (col->csfrm == SQLCS_NCHAR)
                 col->subtype = OCI_NCLOB;
@@ -445,14 +468,14 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_FILE;
             col->subtype = OCI_BFILE;
             col->dtype   = OCI_DTYPE_LOB;
-            col->bufsize = sizeof(OCILobLocator *);
+            col->bufsize = (ub4) sizeof(OCILobLocator *);
             break;
 
         case SQLT_CFILE:
 
             col->type    = OCI_CDT_FILE;
             col->subtype = OCI_CFILE;
-            col->bufsize = sizeof(OCILobLocator *);
+            col->bufsize = (ub4) sizeof(OCILobLocator *);
             col->dtype   = OCI_DTYPE_LOB;
             break;
 
@@ -465,7 +488,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             if ((col->icode == SQLT_LNG || col->icode == SQLT_LVC) &&
                 (stmt != NULL && stmt->long_mode == OCI_LONG_IMPLICIT))
             {
-                 col->type = OCI_CDT_TEXT;
+                 col->type    = OCI_CDT_TEXT;
                  col->bufsize = (OCI_SIZE_LONG+1);
                  col->subtype = OCI_CLONG;
             }
@@ -489,14 +512,14 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
 
             break;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_TIMESTAMP:
 
             col->type    = OCI_CDT_TIMESTAMP;
             col->subtype = OCI_TIMESTAMP;
             col->dtype   = OCI_DTYPE_TIMESTAMP;
-            col->bufsize = sizeof(OCIDateTime *);
+            col->bufsize = (ub4) sizeof(OCIDateTime *);
             break;
 
         case SQLT_TIMESTAMP_TZ:
@@ -504,7 +527,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_TIMESTAMP;
             col->subtype = OCI_TIMESTAMP_TZ;
             col->dtype   = OCI_DTYPE_TIMESTAMP_TZ;
-            col->bufsize = sizeof(OCIDateTime *);
+            col->bufsize = (ub4) sizeof(OCIDateTime *);
             break;
 
         case SQLT_TIMESTAMP_LTZ:
@@ -512,7 +535,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_TIMESTAMP;
             col->subtype = OCI_TIMESTAMP_LTZ;
             col->dtype   = OCI_DTYPE_TIMESTAMP_LTZ;
-            col->bufsize = sizeof(OCIDateTime *);
+            col->bufsize = (ub4) sizeof(OCIDateTime *);
             break;
 
         case SQLT_INTERVAL_YM:
@@ -520,7 +543,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_INTERVAL;
             col->subtype = OCI_INTERVAL_YM;
             col->dtype   = OCI_DTYPE_INTERVAL_YM;
-            col->bufsize = sizeof(OCIInterval *);
+            col->bufsize = (ub4) sizeof(OCIInterval *);
             break;
 
         case SQLT_INTERVAL_DS:
@@ -528,12 +551,12 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
             col->type    = OCI_CDT_INTERVAL;
             col->subtype = OCI_INTERVAL_DS;
             col->dtype   = OCI_DTYPE_INTERVAL_DS;
-            col->bufsize = sizeof(OCIInterval *);
+            col->bufsize = (ub4) sizeof(OCIInterval *);
             break;
 
 #endif
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_PNTY:
 
@@ -542,7 +565,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
         case SQLT_NTY:
 
             col->icode   = SQLT_NTY;
-            col->bufsize = sizeof(void *);
+            col->bufsize = (ub4) sizeof(void *);
 
             if (col->typinf->tcode == SQLT_NCO)
                 col->type = OCI_CDT_COLLECTION;                    
@@ -554,7 +577,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
         case SQLT_REF:
 
             col->icode   = SQLT_REF;
-            col->bufsize = sizeof(OCIRef *);
+            col->bufsize = (ub4) sizeof(OCIRef *);
             col->type    = OCI_CDT_REF;                    
 
             break;
@@ -572,7 +595,7 @@ boolean OCI_ColumnMap(OCI_Column *col, OCI_Statement *stmt)
 
             col->icode   = SQLT_STR;
             col->type    = OCI_CDT_TEXT;
-            col->bufsize = (col->size + 1) * sizeof(dtext);
+            col->bufsize = (ub4) ((col->size + 1) * (ub2) sizeof(dtext));
             break;
     }
 
@@ -786,7 +809,7 @@ const mtext * OCI_API OCI_ColumnGetSQLType(OCI_Column *col)
 
              return MT("FLOAT");
 
-#if OCI_VERSION_COMPILE >= OCI_10
+#if OCI_VERSION_COMPILE >= OCI_10_1
 
         case SQLT_BFLOAT:
         case SQLT_IBFLOAT:
@@ -850,7 +873,7 @@ const mtext * OCI_API OCI_ColumnGetSQLType(OCI_Column *col)
 
             return MT("CFILE");
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_TIMESTAMP:
 
@@ -878,7 +901,7 @@ const mtext * OCI_API OCI_ColumnGetSQLType(OCI_Column *col)
 
             return MT("REF");
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_PNTY:
 #endif
@@ -974,7 +997,7 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
             len = mtsprintf(buffer, len,  MT("FLOAT(%i)"), (int) col->prec);
             break;
 
-#if OCI_VERSION_COMPILE >= OCI_10
+#if OCI_VERSION_COMPILE >= OCI_10_1
 
         case SQLT_BFLOAT:
         case SQLT_IBFLOAT:
@@ -1050,7 +1073,7 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
             len = mtsprintf(buffer, len,  MT("CFILE"));
             break;
  
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_TIMESTAMP:
 
@@ -1088,7 +1111,7 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
             len = mtsprintf(buffer, len,  MT("REF"));
             break;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
         case SQLT_PNTY:
 #endif
@@ -1103,7 +1126,7 @@ unsigned int OCI_API OCI_ColumnGetFullSQLType(OCI_Column *col, mtext *buffer,
 
         default:
 
-            mtsncat(buffer, MT("?"), len);
+            mtsncat(buffer, MT("?"), (size_t) len);
     }
 
     return len;

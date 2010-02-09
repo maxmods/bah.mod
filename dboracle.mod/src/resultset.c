@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: resultset.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: resultset.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -51,7 +51,8 @@ OCI_Resultset * OCI_ResultsetCreate(OCI_Statement *stmt, int size)
 
     /* allocate resultset structure */
 
-    rs = (OCI_Resultset *) OCI_MemAlloc(OCI_IPC_RESULTSET, sizeof(*rs), 1, TRUE);
+    rs = (OCI_Resultset *) OCI_MemAlloc(OCI_IPC_RESULTSET, sizeof(*rs),
+                                        (size_t) 1, TRUE);
 
     /* set attributes */
 
@@ -88,8 +89,9 @@ OCI_Resultset * OCI_ResultsetCreate(OCI_Statement *stmt, int size)
 
         if (res == TRUE)
         {
-            rs->defs = (OCI_Define *) OCI_MemAlloc(OCI_IPC_DEFINE, sizeof(*rs->defs),
-                                                   nb, TRUE);
+            rs->defs = (OCI_Define *) OCI_MemAlloc(OCI_IPC_DEFINE, 
+                                                   sizeof(*rs->defs),
+                                                   (size_t) nb, TRUE);
 
             res = (rs->defs != NULL);
         }
@@ -167,7 +169,7 @@ OCI_Resultset * OCI_ResultsetCreate(OCI_Statement *stmt, int size)
                 /* adjust column size from bind attributes */
 
                 if (def->col.type == OCI_CDT_TEXT)
-                    def->col.size = (ub2) (def->col.size / (sizeof(dtext)) - 1);
+                    def->col.size = (ub2) (def->col.size / ((ub2) sizeof(dtext)) - 1);
 
                 /* for integer types, set the bufsize here in order to
                    retrieve later the integer type (short, integer, big_int)
@@ -268,7 +270,7 @@ boolean OCI_FetchPieces(OCI_Resultset *rs)
                 ub4 bufsize = rs->stmt->long_size;
 
                 if (lg->type == OCI_CLONG)
-                    bufsize += sizeof(dtext);
+                    bufsize += (ub4) sizeof(dtext);
 
                 /* check buffer */
 
@@ -277,7 +279,8 @@ boolean OCI_FetchPieces(OCI_Resultset *rs)
                     lg->maxsize = bufsize;
 
                     lg->buffer  = (ub1 *) OCI_MemAlloc(OCI_IPC_LONG_BUFFER,
-                                                       lg->maxsize, 1, FALSE);
+                                                       (size_t) lg->maxsize,
+                                                       (size_t) 1, FALSE);
 
                     lg->buffer[0] = 0;
                 }
@@ -286,8 +289,8 @@ boolean OCI_FetchPieces(OCI_Resultset *rs)
                     lg->maxsize = lg->size + bufsize;
 
                     lg->buffer  = (ub1 *) OCI_MemRealloc(lg->buffer,
-                                                         OCI_IPC_LONG_BUFFER,
-                                                         lg->maxsize, 1);
+                                                         (size_t) OCI_IPC_LONG_BUFFER,
+                                                         (size_t) lg->maxsize, 1);
                 }
 
                 res = (lg->buffer != NULL);
@@ -305,7 +308,7 @@ boolean OCI_FetchPieces(OCI_Resultset *rs)
                         OCIStmtSetPieceInfo((dvoid *) handle,
                                             (ub4) OCI_HTYPE_DEFINE,
                                             lg->stmt->con->err,
-                                            (dvoid *) (lg->buffer + lg->size),
+                                            (dvoid *) (lg->buffer + (size_t) lg->size),
                                             &lg->piecesize, piece,
                                             lg->def->buf.inds, (ub2 *) NULL)
                      )
@@ -334,15 +337,17 @@ boolean OCI_FetchPieces(OCI_Resultset *rs)
                                             (ub4) OCI_DEFAULT);
         }
 
-        if (rs->fetch_status == OCI_NO_DATA)
-            rs->fetch_status = rs->fetch_status;
-
         /* check for return value of fetch call */
 
         if (rs->fetch_status == OCI_ERROR)
         {
-              OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt);
+              OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt, FALSE);
               res = FALSE;
+        }
+        else if (rs->fetch_status == OCI_SUCCESS_WITH_INFO)
+        {
+              OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt, TRUE);
+              res = TRUE;
         }
         else
         {
@@ -421,8 +426,13 @@ boolean OCI_FetchData(OCI_Resultset *rs, int mode, int offset, boolean *err)
 
     if (rs->fetch_status == OCI_ERROR)
     {
-          OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt);
+          OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt, FALSE);
           res = FALSE;
+    }
+    else if (rs->fetch_status == OCI_SUCCESS_WITH_INFO)
+    {
+          OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt, TRUE);
+          res = TRUE;
     }
 
     /* do we need to do a piecewise fetch */
@@ -450,6 +460,11 @@ boolean OCI_FetchData(OCI_Resultset *rs, int mode, int offset, boolean *err)
     {
         ub4 row_count      = 0;
         ub4 row_fetched    = 0;
+
+        if (rs->fetch_status == OCI_SUCCESS_WITH_INFO)
+        {
+            OCI_ExceptionOCI(rs->stmt->con->err, rs->stmt->con, rs->stmt, TRUE);
+        }
 
 #if defined(OCI_STMT_SCROLLABLE_READONLY)
 
@@ -646,7 +661,7 @@ OCI_Resultset * OCI_API OCI_GetResultset(OCI_Statement *stmt)
 
             stmt->rsts = (OCI_Resultset **) OCI_MemAlloc(OCI_IPC_RESULTSET_ARRAY,
                                                          sizeof(*stmt->rsts),
-                                                         1, TRUE);
+                                                         (size_t) 1, TRUE);
             if (stmt->rsts != NULL)
             {
                 stmt->nb_rs   = 1;
@@ -768,19 +783,19 @@ boolean OCI_ResultsetFree(OCI_Resultset *rs)
 
         if (def->col.dtype != 0)
         {
-            for(j=0; j < def->buf.count; j++)
+            if (def->col.type == OCI_CDT_CURSOR)
             {
-                if (def->col.type == OCI_CDT_CURSOR)
+                for(j=0; j < def->buf.count; j++)
                 {
-                    OCI_HandleFree((dvoid *) def->buf.data[j],
-                                   (ub4    ) def->col.dtype);
-                }
-                else
-                {
-                    OCI_DescriptorFree((dvoid *) def->buf.data[j],
+                        OCI_HandleFree((dvoid *) def->buf.data[j],
                                        (ub4    ) def->col.dtype);
                 }
-
+            }
+            else
+            {
+                OCI_DescriptorArrayFree((dvoid *) def->buf.data,
+                                        (ub4    ) def->col.dtype,
+                                        (ub4    ) def->buf.count);
             }
         }
 
@@ -842,7 +857,7 @@ boolean OCI_API OCI_FetchPrev(OCI_Resultset *rs)
 
     OCI_CHECK_SCROLLABLE_CURSOR_ENABLED(rs->stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_SCROLLABLE_CURSOR_ACTIVATED(rs->stmt, FALSE);
 
@@ -990,7 +1005,7 @@ boolean OCI_API OCI_FetchFirst(OCI_Resultset *rs)
 
     OCI_CHECK_SCROLLABLE_CURSOR_ENABLED(rs->stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_SCROLLABLE_CURSOR_ACTIVATED(rs->stmt, FALSE);
 
@@ -1027,7 +1042,7 @@ boolean OCI_API OCI_FetchLast(OCI_Resultset *rs)
 
     OCI_CHECK_SCROLLABLE_CURSOR_ENABLED(rs->stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_SCROLLABLE_CURSOR_ACTIVATED(rs->stmt, FALSE);
 
@@ -1066,7 +1081,7 @@ boolean OCI_API OCI_FetchSeek(OCI_Resultset *rs, unsigned int mode, int offset)
 
     OCI_CHECK_SCROLLABLE_CURSOR_ENABLED(rs->stmt->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_SCROLLABLE_CURSOR_ACTIVATED(rs->stmt, FALSE);
 
@@ -1171,11 +1186,14 @@ OCI_Column * OCI_API OCI_GetColumn2(OCI_Resultset *rs, const mtext *name)
 
 unsigned int OCI_API OCI_GetColumnIndex(OCI_Resultset *rs, const mtext *name)
 {
-   unsigned int index = OCI_GetDefineIndex(rs, name);
+   int index = OCI_GetDefineIndex(rs, name);
 
    OCI_RESULT(index >= 1);
 
-   return index;
+   if (index <= 0)
+       index = 0;
+
+   return (unsigned int) index;
 }
 
 /* ------------------------------------------------------------------------ *
@@ -1349,7 +1367,7 @@ const dtext * OCI_API OCI_GetString(OCI_Resultset *rs, unsigned int index)
             {
                 def->buf.temp = (dtext *) OCI_MemAlloc(OCI_IPC_STRING,
                                                        sizeof(dtext),
-                                                       (OCI_SIZE_BUFFER+1),
+                                                       (size_t) (OCI_SIZE_BUFFER+1),
                                                        FALSE);
 
                 res = (def->buf.temp != NULL);
@@ -1365,35 +1383,28 @@ const dtext * OCI_API OCI_GetString(OCI_Resultset *rs, unsigned int index)
                     {
                         void *ostr1 = NULL;
                         void *ostr2 = NULL;
-                        int  osize1 = OCI_SIZE_FORMAT_NUML * sizeof(mtext);
-                        int  osize2 = OCI_SIZE_BUFFER      * sizeof(dtext);
+                        int  osize1 = OCI_SIZE_FORMAT_NUML * (int) sizeof(mtext);
+                        int  osize2 = OCI_SIZE_BUFFER      * (int) sizeof(dtext);
                         const mtext *fmt;
                         int pos;
 
-#ifdef OCI_CHARSET_MIXED
-
-                        mtext temp[OCI_SIZE_BUFFER+1];
-
-                        temp[0] = 0;
-
-#else
                         def->buf.temp[0] = 0;
-#endif
 
                         /* init output buffer in case of OCI failure */
 
                         fmt   = OCI_GetDefaultFormatNumeric(rs->stmt->con);
                         ostr1 = OCI_GetInputMetaString(fmt, &osize1);
+                        
+#ifndef OCI_CHARSET_MIXED
 
-#ifdef OCI_CHARSET_MIXED
-
-                        ostr2 = OCI_GetInputDataString(temp, &osize2);
-
+                        ostr2 = OCI_GetInputString(def->buf.temp, &osize2,
+                                                   sizeof(dtext), sizeof(omtext));
 #else
- 
-                        ostr2 = OCI_GetInputDataString(def->buf.temp, &osize2);
+
+                        ostr2 = (void* ) def->buf.temp;
 
 #endif
+
                         /* check for decimal character */
 
                         OCI_CALL1
@@ -1410,24 +1421,22 @@ const dtext * OCI_API OCI_GetString(OCI_Resultset *rs, unsigned int index)
                                                 (oratext *) ostr2)
                         )
 
+#ifndef OCI_CHARSET_MIXED
 
+                        OCI_GetOutputString(ostr2, def->buf.temp, &osize2,
+                                            sizeof(omtext), sizeof(dtext));
 
-#ifdef OCI_CHARSET_MIXED
-
-                        OCI_GetOutputDataString(ostr2, temp, &osize2);
-
-                        mbstowcs(def->buf.temp, temp, strlen(temp) + OCI_CVT_CHAR);
-
-                        osize2 = osize2 * sizeof(dtext);
 #else
+                        
+                        OCI_ConvertString(ostr2, osize2/sizeof(omtext)+1,
+                                          sizeof(omtext), sizeof(dtext));
 
-                        OCI_GetOutputDataString(ostr2, def->buf.temp, &osize2);
+                        osize2 = (osize2/sizeof(omtext)) * sizeof(dtext);                   
 
 #endif
-
                         /* do we need to suppress last '.' or ',' from integers */
 
-                        pos = (osize2 / sizeof(dtext)) -1;
+                        pos = (osize2 / (int) sizeof(dtext)) - 1;
 
                         if (pos >= 0)
                         {
@@ -1439,8 +1448,10 @@ const dtext * OCI_API OCI_GetString(OCI_Resultset *rs, unsigned int index)
                         }
 
                         OCI_ReleaseMetaString(ostr1);
+                        
+#ifndef OCI_CHARSET_MIXED
                         OCI_ReleaseDataString(ostr2);
-
+#endif
                         if (res == TRUE)
                             str = def->buf.temp;
 
@@ -1593,7 +1604,7 @@ const dtext * OCI_API OCI_GetString(OCI_Resultset *rs, unsigned int index)
 
 #ifndef OCI_CHARSET_MIXED
 
-                        OCI_RefToText(ref, OCI_SIZE_BUFFER, (mtext *) def->buf.temp);
+                            OCI_RefToText(ref, OCI_SIZE_BUFFER, (mtext *) def->buf.temp);
 
 #else
                             /* mixed mode... conversion needed ! */
@@ -1660,7 +1671,7 @@ unsigned int OCI_API OCI_GetRaw(OCI_Resultset *rs, unsigned int index,
         /* for RAWs, we copy the data in the destination buffer instead of
            returning internal buffer as we do for strings */
 
-        memcpy(buffer, OCI_DefineGetData(def), count);
+        memcpy(buffer, OCI_DefineGetData(def), (size_t) count);
 
     }
 

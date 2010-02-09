@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: ref.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: ref.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -51,7 +51,7 @@ OCI_Ref * OCI_RefInit(OCI_Connection *con, OCI_TypeInfo *typinf, OCI_Ref **pref,
     OCI_CHECK(pref == NULL, NULL);
 
     if (*pref == NULL)
-        *pref = (OCI_Ref *) OCI_MemAlloc(OCI_IPC_REF, sizeof(*ref), 1, TRUE);
+        *pref = (OCI_Ref *) OCI_MemAlloc(OCI_IPC_REF, sizeof(*ref), (size_t) 1, TRUE);
 
     if (*pref != NULL)
     {
@@ -275,9 +275,7 @@ boolean OCI_API OCI_RefAssign(OCI_Ref *ref, OCI_Ref *ref_src)
 
         ref->typinf = ref_src->typinf;
         ref->pinned = ref_src->pinned;
-
     }
-
 
     OCI_RESULT(res);
 
@@ -329,11 +327,11 @@ boolean OCI_API OCI_RefSetNull(OCI_Ref *ref)
  * OCI_RefToText
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_RefToText(OCI_Ref *ref, int size, mtext *str)
+boolean OCI_API OCI_RefToText(OCI_Ref *ref, unsigned int size, mtext *str)
 {
     boolean res = TRUE;
     void *ostr  = NULL;
-    int osize   = size * sizeof(mtext);
+    int osize   = (int) size * (int) sizeof(mtext);
 
     OCI_CHECK_PTR(OCI_IPC_REF, ref, FALSE);
     OCI_CHECK_PTR(OCI_IPC_STRING, str, FALSE);
@@ -357,7 +355,7 @@ boolean OCI_API OCI_RefToText(OCI_Ref *ref, int size, mtext *str)
 
     /* set null string terminator */
 
-    str[osize/sizeof(mtext)] = 0;
+    str[osize/ (int) sizeof(mtext)] = 0;
 
     OCI_RESULT(res);
    
@@ -376,7 +374,7 @@ unsigned int OCI_API OCI_RefGetHexSize(OCI_Ref *ref)
 
     size = OCIRefHexSize(OCILib.env, (const OCIRef *) ref->handle);
 
-    size /= sizeof(mtext);
+    size /= (ub4) sizeof(mtext);
 
     OCI_RESULT(TRUE);
 

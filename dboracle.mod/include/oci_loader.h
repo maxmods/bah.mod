@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_loader.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: oci_loader.h, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_LOADER_H_INCLUDED 
@@ -38,7 +38,7 @@
 
 #if defined(_AIX)
   #define  LIB_OPEN_FLAGS        RTLD_NOW | RTLD_GLOBAL | RTLD_MEMBER
-#elsif defined(__hpux)           
+#elif defined(__hpux)           
   #define  LIB_OPEN_FLAGS        BIND_DEFERRED |BIND_VERBOSE| DYNAMIC_PATH
 #else
   #define  LIB_OPEN_FLAGS        RTLD_NOW | RTLD_GLOBAL
@@ -49,7 +49,7 @@
   #include <windows.h>
 
   #define LIB_HANDLE               HMODULE
-  #define LIB_OPEN(l)              LoadLibrary(l)
+  #define LIB_OPEN(l)              LoadLibraryA(l)
   #define LIB_CLOSE                FreeLibrary
   #define LIB_SYMBOL(h, s, p, t)   p = (t) GetProcAddress(h, s)
  

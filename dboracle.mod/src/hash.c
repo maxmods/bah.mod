@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: hash.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: hash.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -76,7 +76,8 @@ OCI_HashTable * OCI_API OCI_HashCreate(unsigned int size, unsigned int type)
     
     /* allocate table structure */
 
-    table = (OCI_HashTable *) OCI_MemAlloc(OCI_IPC_HASHTABLE, sizeof(*table), 1, TRUE);
+    table = (OCI_HashTable *) OCI_MemAlloc(OCI_IPC_HASHTABLE, sizeof(*table), 
+                                           (size_t) 1, TRUE);
 
     /* set up attributes and allocate internal array of hash entry pointers */
 
@@ -88,7 +89,7 @@ OCI_HashTable * OCI_API OCI_HashCreate(unsigned int size, unsigned int type)
 
         table->items = (OCI_HashEntry **) OCI_MemAlloc(OCI_IPC_HASHENTRY_ARRAY,
                                                        sizeof(*table->items),
-                                                       size, TRUE);
+                                                       (size_t) size, TRUE);
         res = (table->items != NULL);
     }
     else
@@ -308,7 +309,8 @@ boolean OCI_HashAdd(OCI_HashTable *table, const mtext *key, OCI_Variant value,
 
     if (e != NULL)
     {
-        v = (OCI_HashValue *) OCI_MemAlloc(OCI_IPC_HASHVALUE, sizeof(*v), 1, TRUE);
+        v = (OCI_HashValue *) OCI_MemAlloc(OCI_IPC_HASHVALUE, sizeof(*v), 
+                                           (size_t) 1, TRUE);
 
         if (v != NULL)
         {
@@ -429,7 +431,8 @@ OCI_HashEntry * OCI_API OCI_HashLookup(OCI_HashTable *table, const mtext *key,
 
         if ((e == NULL) && (create == TRUE))
         {
-            e = (OCI_HashEntry *) OCI_MemAlloc(OCI_IPC_HASHENTRY, sizeof(*e), 1, TRUE);
+            e = (OCI_HashEntry *) OCI_MemAlloc(OCI_IPC_HASHENTRY, sizeof(*e),
+                                               (size_t) 1, TRUE);
 
             if (e != NULL)
             {

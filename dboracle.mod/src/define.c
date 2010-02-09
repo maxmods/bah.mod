@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: define.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: define.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -129,7 +129,7 @@ void * OCI_DefineGetData(OCI_Define *def)
 
             /* scalar types */
 
-            return (((ub1*)def->buf.data) + (def->col.bufsize  * (def->rs->row_cur-1)));
+            return (((ub1*)def->buf.data) + (size_t) (def->col.bufsize  * (def->rs->row_cur-1)));
     }
 }
 
@@ -200,7 +200,8 @@ boolean OCI_DefineAlloc(OCI_Define *def)
     if (res == TRUE)
     {
         def->buf.inds = (void *) OCI_MemAlloc(OCI_IPC_INDICATOR_ARRAY,
-                                              (int) indsize, def->buf.count, TRUE);
+                                              (size_t) indsize,
+                                              (size_t) def->buf.count, TRUE);
         res = (def->buf.inds != NULL);
     }
 
@@ -208,8 +209,9 @@ boolean OCI_DefineAlloc(OCI_Define *def)
 
     if (res == TRUE)
     {
-        def->buf.lens = (void *) OCI_MemAlloc(OCI_IPC_LEN_ARRAY, def->buf.sizelen,
-                                              def->buf.count, TRUE);
+        def->buf.lens = (void *) OCI_MemAlloc(OCI_IPC_LEN_ARRAY, 
+                                              (size_t) def->buf.sizelen,
+                                              (size_t) def->buf.count, TRUE);
 
         res = (def->buf.lens != NULL);
     }
@@ -221,10 +223,10 @@ boolean OCI_DefineAlloc(OCI_Define *def)
     {
         for (i=0; i < def->buf.count; i++)
         {
-            if (def->buf.sizelen == sizeof(ub2))
-                *(ub2*)(((ub1 *)def->buf.lens) + def->buf.sizelen*(i)) = (ub2) def->col.bufsize;
-            else if (def->buf.sizelen == sizeof(ub4))
-                *(ub4*)(((ub1 *)def->buf.lens) + def->buf.sizelen*(i)) = (ub4) def->col.bufsize;
+            if (def->buf.sizelen == (int) sizeof(ub2))
+                *(ub2*)(((ub1 *)def->buf.lens) + (size_t) (def->buf.sizelen*i)) = (ub2) def->col.bufsize;
+            else if (def->buf.sizelen == (int) sizeof(ub4))
+                *(ub4*)(((ub1 *)def->buf.lens) + (size_t) (def->buf.sizelen*i)) = (ub4) def->col.bufsize;
        }
     }
 
@@ -237,8 +239,8 @@ boolean OCI_DefineAlloc(OCI_Define *def)
         else
             bufsize = def->col.bufsize;
 
-        def->buf.data = (void *) OCI_MemAlloc(OCI_IPC_BUFF_ARRAY, (int) bufsize,
-                                              def->buf.count, TRUE);
+        def->buf.data = (void *) OCI_MemAlloc(OCI_IPC_BUFF_ARRAY, (size_t) bufsize,
+                                              (size_t) def->buf.count, TRUE);
 
         res = (def->buf.data != NULL);
     }
@@ -249,26 +251,34 @@ boolean OCI_DefineAlloc(OCI_Define *def)
     {
         if (def->col.dtype != 0)
         {
-            for (i = 0; i < def->buf.count; i++)
+            if (def->col.type == OCI_CDT_CURSOR)
             {
-                if (def->col.type == OCI_CDT_CURSOR)
+                for (i = 0; (i < def->buf.count) && (res == TRUE); i++)
                 {
-                    res = (OCI_SUCCESS == OCI_HandleAlloc((dvoid  *) OCILib.env,
+                     res = (OCI_SUCCESS == OCI_HandleAlloc((dvoid  *) OCILib.env,
                                                           (dvoid **) &(def->buf.data[i]),
                                                           (ub4) def->col.dtype,
                                                           (size_t) 0, (dvoid **) NULL));
-                }
-                else
+               }
+            }
+            else
+            {
+                res = (OCI_SUCCESS == OCI_DescriptorArrayAlloc
+                                      (
+                                          (dvoid  *) OCILib.env,
+                                          (dvoid **) def->buf.data,
+                                          (ub4) def->col.dtype,
+                                          (ub4) def->buf.count,
+                                          (size_t) 0, (dvoid **) NULL
+                                      )
+                       );
+            
+                if ((res == TRUE) && (def->col.type == OCI_CDT_LOB))
                 {
-                    res = (OCI_SUCCESS == OCI_DescriptorAlloc((dvoid  *) OCILib.env,
-                                                              (dvoid **) &(def->buf.data[i]),
-                                                              (ub4) def->col.dtype,
-                                                              (size_t) 0, (dvoid **) NULL));
-
-                    if ((res == TRUE) && (def->col.type == OCI_CDT_LOB))
+                    ub4 empty = 0;
+                   
+                    for (i = 0; (i < def->buf.count) && (res == TRUE); i++)
                     {
-                        ub4 empty = 0;
-
                         OCI_CALL1
                         (
                             res, def->rs->stmt->con, def->rs->stmt,
@@ -281,9 +291,6 @@ boolean OCI_DefineAlloc(OCI_Define *def)
                         )
                     }
                 }
-
-                if (res == FALSE)
-                    break;
             }
         }
     }
@@ -346,7 +353,7 @@ boolean OCI_DefineDef(OCI_Define *def)
 
     if (def->col.csfrm == SQLCS_NCHAR
 #ifdef OCI_USERDATA_UNICODE
-        || (def->col.type == OCI_CDT_TEXT && OCILib.ver_runtime >= OCI_9)
+        || (def->col.type == OCI_CDT_TEXT && OCILib.version_runtime >= OCI_9_0)
 #endif
         )
     {

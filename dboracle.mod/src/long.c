@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: long.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: long.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -51,7 +51,8 @@ OCI_Long * OCI_LongInit(OCI_Statement *stmt, OCI_Long **plg,
     OCI_CHECK(plg == NULL, NULL);
 
     if (*plg == NULL)
-        *plg = (OCI_Long *) OCI_MemAlloc(OCI_IPC_LONG, sizeof(*lg), 1, TRUE);
+        *plg = (OCI_Long *) OCI_MemAlloc(OCI_IPC_LONG, sizeof(*lg), 
+                                         (size_t) 1, TRUE);
 
     if (*plg != NULL)
     {
@@ -145,7 +146,7 @@ unsigned int OCI_API OCI_LongRead(OCI_Long *lg, void *buffer,
     OCI_CHECK(lg->offset > lg->size, 0);
 
     if (lg->type == OCI_CLONG)
-        len *= sizeof(dtext);
+        len *= (unsigned int) sizeof(dtext);
 
    /* check buffer size to read */
 
@@ -154,12 +155,12 @@ unsigned int OCI_API OCI_LongRead(OCI_Long *lg, void *buffer,
 
    /* copy buffer */
 
-    memcpy(buffer, lg->buffer + lg->offset, len);
+    memcpy(buffer, lg->buffer + (size_t) lg->offset, (size_t) len);
 
     lg->offset += len;
 
     if (lg->type == OCI_CLONG)
-        len /= sizeof(dtext);
+        len /= (unsigned int) sizeof(dtext);
 
     OCI_RESULT(TRUE);
 
@@ -190,7 +191,7 @@ unsigned int OCI_API OCI_LongWrite(OCI_Long *lg, void *buffer,
     OCI_CHECK_MIN(lg->stmt->con, lg->stmt, len, 1, 0);
 
     if (lg->type == OCI_CLONG)
-        len *= sizeof(odtext);
+        len *= (unsigned int) sizeof(odtext);
 
     if (lg->type == OCI_CLONG)
         obuf = OCI_GetInputDataString(buffer, (int *) &len);
@@ -244,7 +245,15 @@ unsigned int OCI_API OCI_LongWrite(OCI_Long *lg, void *buffer,
      
     if ((code != OCI_SUCCESS) && (code != OCI_NEED_DATA))
     {
-        OCI_ExceptionOCI(lg->stmt->con->err, lg->stmt->con, lg->stmt);
+        if (code == OCI_SUCCESS_WITH_INFO)
+        {
+            OCI_ExceptionOCI(lg->stmt->con->err, lg->stmt->con, lg->stmt, TRUE);
+        }
+        else
+        {
+            OCI_ExceptionOCI(lg->stmt->con->err, lg->stmt->con, lg->stmt, FALSE);
+            res = FALSE;
+        }
     }
 
     if (lg->type == OCI_CLONG)
@@ -257,7 +266,7 @@ unsigned int OCI_API OCI_LongWrite(OCI_Long *lg, void *buffer,
         lg->size += count;
 
         if (lg->type == OCI_CLONG)
-            count /= sizeof(odtext);
+            count /= (ub4) sizeof(odtext);
     }
 
     OCI_RESULT(res);
@@ -278,7 +287,7 @@ unsigned int OCI_API OCI_LongGetSize(OCI_Long *lg)
     size = lg->size;
 
     if (lg->type == OCI_CLONG)
-        size /= sizeof(dtext);
+        size /= (unsigned int) sizeof(dtext);
 
     OCI_RESULT(TRUE);
 

@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: error.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: error.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -42,7 +42,7 @@
  * OCI_ErrorCreate
  * ------------------------------------------------------------------------ */
 
-OCI_Error * OCI_ErrorCreate()
+OCI_Error * OCI_ErrorCreate(void)
 {
     OCI_Error *err = calloc(1, sizeof(*err));
 
@@ -66,14 +66,15 @@ void OCI_ErrorReset(OCI_Error *err)
 {
     if (err != NULL)
     {
-        err->raise  = TRUE;
-        err->active = FALSE;
-        err->con    = NULL;
-        err->stmt   = NULL;
-        err->ocode  = 0;
-        err->icode  = 0;
-        err->type   = 0;
-        err->str[0] = 0;
+        err->warning = FALSE;
+        err->raise   = TRUE;
+        err->active  = FALSE;
+        err->con     = NULL;
+        err->stmt    = NULL;
+        err->ocode   = 0;
+        err->icode   = 0;
+        err->type    = 0;
+        err->str[0]  = 0;
     }
 }
 
@@ -81,9 +82,12 @@ void OCI_ErrorReset(OCI_Error *err)
  * OCI_ErrorGet
  * ------------------------------------------------------------------------ */
 
-OCI_Error * OCI_ErrorGet(boolean check)
+OCI_Error * OCI_ErrorGet(boolean check, boolean warning)
 {
     OCI_Error *err = NULL;
+
+    if ((warning == TRUE) && (OCILib.warnings_on == FALSE))
+        return NULL;
 
     if (OCILib.loaded == TRUE)
     {
@@ -96,16 +100,22 @@ OCI_Error * OCI_ErrorGet(boolean check)
                 if (err != NULL)
                     OCI_ThreadKeySet(OCILib.key_errs, err);
             }
-            else
+            else  if (check == TRUE) 
             {
-                if ((check == TRUE) && (err->active == TRUE))
-                    err = NULL;
+                if ((err->active == TRUE) || (err->warning != warning))
+                err = NULL;
             }
         }
     }
     else
     {
         err = &OCILib.lib_err;
+
+        if (err != NULL)
+        {
+            if ((err->active == TRUE) || (err->warning != warning))
+                err = NULL;
+        }
     }
 
     return err;
@@ -179,4 +189,15 @@ OCI_Statement * OCI_API OCI_ErrorGetStatement(OCI_Error *err)
     OCI_CHECK(err == NULL, NULL);
 
     return err->stmt;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_ErrorGetRow
+ * ------------------------------------------------------------------------ */
+
+unsigned int OCI_API OCI_ErrorGetRow(OCI_Error *err)
+{
+    OCI_CHECK(err == NULL, 0);
+
+    return err->row;
 }

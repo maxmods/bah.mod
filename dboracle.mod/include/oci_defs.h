@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2008 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -32,7 +32,7 @@
    +----------------------------------------------------------------------+
    |                                                                      |
    | THIS FILE CONTAINS CONSTANTS AND STRUCTURES DECLARATIONS THAT WERE   |
-   | PICKED UP FROM ORACLE PUBLIC HEADER FILES 'OCI.H' AND 'OCIDFN.H'.    |
+   | PICKED UP FROM ORACLE PUBLIC HEADER FILES.                           |
    |                                                                      |
    | SO THE CONTENT OF THIS FILE IS UNDER ORACLE COPYRIGHT AND THE        |
    | DECLARATIONS REPRODUCED HERE ARE ORIGINALLY WRITTEN BY ORACLE        | 
@@ -47,7 +47,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_defs.h, v 3.0.1 2008/10/17 21:50 Vince $
+ * $Id: oci_defs.h, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_DEFS_H_INCLUDED 
@@ -142,8 +142,13 @@
 #define OCI_HTYPE_SERVER         8                          /* server handle */
 #define OCI_HTYPE_SESSION        9                  /* authentication handle */
 #define OCI_HTYPE_AUTHINFO      OCI_HTYPE_SESSION  /* SessionGet auth handle */
+#define OCI_HTYPE_SUBSCRIPTION  13                    /* subscription handle */
+#define OCI_HTYPE_DIRPATH_CTX   14                    /* direct path context */
+#define OCI_HTYPE_DIRPATH_COLUMN_ARRAY 15        /* direct path column array */
+#define OCI_HTYPE_DIRPATH_STREAM       16              /* direct path stream */
 #define OCI_HTYPE_TRANS         10                     /* transaction handle */
 #define OCI_HTYPE_CPOOL         26                 /* connection pool handle */
+#define OCI_HTYPE_ADMIN         28                           /* admin handle */
 
 
 /*-------------------------Descriptor Types----------------------------------*/
@@ -159,7 +164,10 @@
 #define OCI_DTYPE_TIMESTAMP 68                                  /* Timestamp */
 #define OCI_DTYPE_TIMESTAMP_TZ 69                 /* Timestamp with timezone */
 #define OCI_DTYPE_TIMESTAMP_LTZ 70                /* Timestamp with local tz */
-#
+#define OCI_DTYPE_CHDES         77          /* Top level change notification desc */
+#define OCI_DTYPE_TABLE_CHDES   78          /* Table change descriptor           */
+#define OCI_DTYPE_ROW_CHDES     79          /* Row change descriptor            */
+
 /*---------------------------------------------------------------------------*/
 
 /*--------------------------------LOB types ---------------------------------*/
@@ -171,11 +179,13 @@
 
 
 #define OCI_ATTR_OBJECT   2 /* is the environment initialized in object mode */
+#define OCI_ATTR_SQLCODE  4                                  /* the SQL verb */
 #define OCI_ATTR_ENV  5                            /* the environment handle */
 #define OCI_ATTR_SERVER 6                               /* the server handle */
 #define OCI_ATTR_SESSION 7                        /* the user session handle */
 #define OCI_ATTR_TRANS   8                         /* the transaction handle */
 #define OCI_ATTR_ROW_COUNT   9                  /* the rows processed so far */
+#define OCI_ATTR_SQLFNCODE 10               /* the SQL verb of the statement */
 #define OCI_ATTR_PREFETCH_ROWS  11    /* sets the number of rows to prefetch */
 #define OCI_ATTR_NESTED_PREFETCH_ROWS 12 /* the prefetch rows of nested table*/
 #define OCI_ATTR_PREFETCH_MEMORY 13         /* memory limit for rows fetched */
@@ -211,6 +221,13 @@
 #define OCI_ATTR_NUM_ROWS               81 /* number of rows in column array */                                 
 #define OCI_ATTR_COL_COUNT              82 /* columns of column array
                                                      processed so far.       */
+
+#define OCI_ATTR_SUBSCR_NAME            94           /* name of subscription */
+#define OCI_ATTR_SUBSCR_CALLBACK        95            /* associated callback */
+#define OCI_ATTR_SUBSCR_CTX             96    /* associated callback context */
+#define OCI_ATTR_SUBSCR_PAYLOAD         97             /* associated payload */
+#define OCI_ATTR_SUBSCR_NAMESPACE       98           /* associated namespace */
+
 #define OCI_ATTR_NUM_COLS              102              /* number of columns */
 #define OCI_ATTR_LIST_COLUMNS          103   /* parameter of the column list */
 
@@ -220,6 +237,7 @@
 #define OCI_ATTR_SERVER_STATUS		   143        /* state of the server hdl */
 
 #define OCI_ATTR_CURRENT_POSITION      164      /* for scrollable result sets*/
+#define OCI_ATTR_STMTCACHESIZE         176         /* size of the stmt cache */
 
 #define OCI_ATTR_CONN_NOWAIT           178
 #define OCI_ATTR_CONN_BUSY_COUNT       179
@@ -234,13 +252,28 @@
 #define OCI_ATTR_TYPECODE              216           /* object or collection */
 #define OCI_ATTR_COLLECTION_TYPECODE   217         /* varray or nested table */
 
+#define OCI_ATTR_SUBSCR_TIMEOUT        227                        /* Timeout */
 
 #define OCI_ATTR_COLLECTION_ELEMENT    227     /* has a collection attribute */
 #define OCI_ATTR_NUM_TYPE_ATTRS        228      /* number of attribute types */
 #define OCI_ATTR_LIST_TYPE_ATTRS       229        /* list of type attributes */
 
+#define OCI_ATTR_CQ_QUERYID            304
+
+#define OCI_ATTR_CLIENT_IDENTIFIER     278       /* value of client id to set*/
+
 #define OCI_ATTR_CHAR_USED             285          /* char length semantics */
 #define OCI_ATTR_CHAR_SIZE             286                    /* char length */
+
+#define OCI_ATTR_ADMIN_PFILE           389         /* client-side param file */
+
+#define OCI_ATTR_MODULE                366             /* module for tracing */
+#define OCI_ATTR_ACTION                367             /* action for tracing */
+#define OCI_ATTR_CLIENT_INFO           368                    /* client info */
+
+#define OCI_ATTR_SUBSCR_PORTNO         390       /* port no to listen        */
+
+#define OCI_ATTR_DRIVER_NAME           424                    /* Driver Name */
 
 /*------- Temporary attribute value for UCS2/UTF16 character set ID -------- */ 
 
@@ -319,6 +352,10 @@
 #define OCI_DATA_AT_EXEC      0x00000002             /* data at execute time */
 #define OCI_DYNAMIC_FETCH     0x00000002                /* fetch dynamically */
 #define OCI_PIECEWISE         0x00000004          /* piecewise DMLs or fetch */
+
+/*----------------------- Execution Modes -----------------------------------*/
+
+#define OCI_BATCH_ERRORS      0x80             /* batch errors in array dmls */
 #define OCI_STMT_SCROLLABLE_READONLY 0x08     /* if result set is scrollable */
 
 
@@ -326,12 +363,13 @@
 #define OCI_DEFAULT         0x00000000 
 #define OCI_THREADED        0x00000001      /* appl. in threaded environment */
 #define OCI_OBJECT          0x00000002  /* application in object environment */
+#define OCI_EVENTS          0x00000004  /* application is enabled for events */
 #define OCI_UTF16           0x00004000        /* mode for all UTF16 metadata */
 
 /*------------------------Authentication Modes-------------------------------*/
 #define OCI_SYSDBA          0x00000002           /* for SYSDBA authorization */
 #define OCI_SYSOPER         0x00000004          /* for SYSOPER authorization */
-
+#define OCI_PRELIM_AUTH     0x00000008      /* for preliminary authorization */
 
 /*------------------------ Transaction Start Flags --------------------------*/
 
@@ -371,7 +409,9 @@
 #define OCI_ATTR_PRECISION      5                /* precision if number type */
 #define OCI_ATTR_SCALE          6                    /* scale if number type */
 #define OCI_ATTR_IS_NULL        7                            /* is it null ? */
-#define OCI_ATTR_TYPE_NAME      8
+#define OCI_ATTR_TYPE_NAME      8             /* name of the named data type */
+#define OCI_ATTR_SCHEMA_NAME    9                         /* the schema name */
+#define OCI_ATTR_SUB_NAME       10      /* type name if package private type */
 
 /*------------------------Other Constants------------------------------------*/
 
@@ -399,6 +439,11 @@ typedef struct OCISPool         OCISPool;             /* session pool handle */
 typedef struct OCIAuthInfo      OCIAuthInfo;                  /* auth handle */
 typedef struct OCIAdmin         OCIAdmin;                    /* admin handle */
 typedef struct OCIEvent         OCIEvent;                 /* HA event handle */
+
+
+typedef struct OCIDirPathCtx      OCIDirPathCtx;               /* DP context */
+typedef struct OCIDirPathColArray OCIDirPathColArray;     /* DP column array */
+typedef struct OCIDirPathStream   OCIDirPathStream;             /* DP stream */
 
 /*--------------------- OCI Thread Object Definitions------------------------*/
 
@@ -440,6 +485,8 @@ typedef struct OCILobLocator    OCILobLocator; /* OCI Lob Locator descriptor */
 typedef struct OCIParam         OCIParam;        /* OCI PARameter descriptor */
 typedef struct OCIDateTime      OCIDateTime;      /* OCI DateTime descriptor */
 typedef struct OCIInterval      OCIInterval;      /* OCI Interval descriptor */
+typedef struct OCIRowid         OCIRowid;            /* OCI ROWID descriptor */
+
 
 /*----------------------------- OBJECT FREE OPTION --------------------------*/
 
@@ -463,6 +510,7 @@ typedef struct OCIString        OCIString;
 typedef struct OCIRaw           OCIRaw;
 typedef struct OCIType          OCIType;
 typedef struct OCINumber        OCINumber;
+typedef struct OCIRef           OCIRef;   
 
 /*--------------------------- OBJECT INDICATOR ------------------------------*/
 
@@ -503,6 +551,40 @@ enum OCITypeGetOpt
   OCI_TYPEGET_ALL       /* load all attribute and method descriptors as well */
 };
 typedef enum OCITypeGetOpt OCITypeGetOpt;
+
+/*--------------------------- OBJECT PIN OPTION -----------------------------*/
+
+enum OCIPinOpt
+{
+  /* 0 = uninitialized */
+  OCI_PIN_DEFAULT = 1,                                 /* default pin option */
+  OCI_PIN_ANY = 3,                             /* pin any copy of the object */
+  OCI_PIN_RECENT = 4,                       /* pin recent copy of the object */
+  OCI_PIN_LATEST = 5                        /* pin latest copy of the object */
+};
+typedef enum OCIPinOpt OCIPinOpt;
+
+/*--------------------------- OBJECT LOCK OPTION ----------------------------*/
+
+enum OCILockOpt
+{
+  /* 0 = uninitialized */
+  OCI_LOCK_NONE = 1,                               /* null (same as no lock) */
+  OCI_LOCK_X = 2,                                          /* exclusive lock */
+  OCI_LOCK_X_NOWAIT = 3                      /* exclusive lock, do not wait  */
+};
+typedef enum OCILockOpt OCILockOpt;
+
+/*------------------------- OBJECT MODIFYING OPTION -------------------------*/
+
+enum OCIMarkOpt
+{
+  /* 0 = uninitialized */
+  OCI_MARK_DEFAULT = 1,               /* default (the same as OCI_MARK_NONE) */
+  OCI_MARK_NONE = OCI_MARK_DEFAULT,          /* object has not been modified */
+  OCI_MARK_UPDATE                                 /* object is to be updated */
+};
+typedef enum OCIMarkOpt OCIMarkOpt;
 
 /*------------------------------ TYPE CODE ----------------------------------*/
 
@@ -584,7 +666,124 @@ typedef ub2 OCIDuration;
 #define OCI_PARAM_IN 0x01                                    /* in parameter */
 #define OCI_PARAM_OUT 0x02                                  /* out parameter */
 
+/*----------------------- OBJECT PROPERTY ID -------------------------------*/
 
+typedef ub1 OCIObjectPropId;
+#define OCI_OBJECTPROP_LIFETIME 1       /* persistent or transient or value */
+#define OCI_OBJECTPROP_SCHEMA 2   /* schema name of table containing object */
+#define OCI_OBJECTPROP_TABLE 3     /* table name of table containing object */
+#define OCI_OBJECTPROP_PIN_DURATION 4             /* pin duartion of object */
+#define OCI_OBJECTPROP_ALLOC_DURATION 5         /* alloc duartion of object */
+#define OCI_OBJECTPROP_LOCK 6                      /* lock status of object */
+#define OCI_OBJECTPROP_MARKSTATUS 7                /* mark status of object */
+#define OCI_OBJECTPROP_VIEW 8            /* is object a view object or not? */
+
+/*----------------------- OBJECT LIFETIME ----------------------------------*/
+
+enum OCIObjectLifetime
+{
+   /* 0 = uninitialized */
+   OCI_OBJECT_PERSISTENT = 1,                          /* persistent object */
+   OCI_OBJECT_TRANSIENT,                                /* transient object */
+   OCI_OBJECT_VALUE                                         /* value object */
+};
+typedef enum OCIObjectLifetime OCIObjectLifetime;
+
+/*----------------------- OBJECT MARK STATUS -------------------------------*/
+
+typedef uword OCIObjectMarkStatus;
+#define OCI_OBJECT_NEW     0x0001                             /* new object */
+#define OCI_OBJECT_DELETED 0x0002                  /* object marked deleted */
+#define OCI_OBJECT_UPDATED 0x0004                  /* object marked updated */
+
+/* macros to test the object mark status */ 
+#define OCI_OBJECT_IS_UPDATED(flag) bit((flag), OCI_OBJECT_UPDATED)
+#define OCI_OBJECT_IS_DELETED(flag) bit((flag), OCI_OBJECT_DELETED)
+#define OCI_OBJECT_IS_NEW(flag) bit((flag), OCI_OBJECT_NEW)
+#define OCI_OBJECT_IS_DIRTY(flag) \
+  bit((flag), OCI_OBJECT_UPDATED|OCI_OBJECT_NEW|OCI_OBJECT_DELETED)
+
+/*----- values for cflg argument to OCIDirpathColArrayEntrySet --------------*/
+
+#define OCI_DIRPATH_COL_COMPLETE 0                /* column data is complete */
+#define OCI_DIRPATH_COL_NULL     1                         /* column is null */
+#define OCI_DIRPATH_COL_PARTIAL  2                 /* column data is partial */
+#define OCI_DIRPATH_COL_ERROR    3               /* column error, ignore row */
+
+/*----- values for action parameter to OCIDirPathDataSave -------------------*/
+#define OCI_DIRPATH_DATASAVE_SAVEONLY 0              /* data save point only */
+
+/*------------- Supported Values for Direct Path Date cache -----------------*/
+#define OCI_ATTR_DIRPATH_DCACHE_NUM         303        /* date cache entries */
+#define OCI_ATTR_DIRPATH_DCACHE_SIZE        304          /* date cache limit */
+#define OCI_ATTR_DIRPATH_DCACHE_MISSES      305         /* date cache misses */
+#define OCI_ATTR_DIRPATH_DCACHE_HITS        306           /* date cache hits */
+#define OCI_ATTR_DIRPATH_DCACHE_DISABLE     307 /* on set: disable datecache */
+
+/*------------- Supported Values for Direct Path Stream Version -------------*/
+
+#define OCI_ATTR_DIRPATH_NOLOG          79               /* nologging option */
+#define OCI_ATTR_DIRPATH_PARALLEL       80     /* parallel (temp seg) option */
+
+/*------------------------- Database Startup Flags --------------------------*/
+#define OCI_DBSTARTUPFLAG_FORCE 0x00000001  /* Abort running instance, start */
+#define OCI_DBSTARTUPFLAG_RESTRICT 0x00000002      /* Restrict access to DBA */
+
+/*------------------------- Database Shutdown Modes -------------------------*/
+#define OCI_DBSHUTDOWN_TRANSACTIONAL      1 /* Wait for all the transactions */
+#define OCI_DBSHUTDOWN_TRANSACTIONAL_LOCAL 2  /* Wait for local transactions */
+#define OCI_DBSHUTDOWN_IMMEDIATE           3      /* Terminate and roll back */
+#define OCI_DBSHUTDOWN_ABORT              4 /* Terminate and don't roll back */
+#define OCI_DBSHUTDOWN_FINAL              5              /* Orderly shutdown */
+
+/*---------------------------OCIPasswordChange-------------------------------*/
+#define OCI_AUTH         0x08        /* Change the password but do not login */
+
+/* ------------- DB Change Notification reg handle attributes ---------------*/
+#define OCI_ATTR_CHNF_TABLENAMES          401     /* out: array of table names     */
+#define OCI_ATTR_CHNF_ROWIDS              402     /* in: rowids needed */ 
+#define OCI_ATTR_CHNF_OPERATIONS          403  /* in: notification operation filter*/ 
+#define OCI_ATTR_CHNF_CHANGELAG           404  /* txn lag between notifications  */
+
+/* DB Change: Notification Descriptor attributes -----------------------*/
+#define OCI_ATTR_CHDES_DBNAME            405    /* source database    */
+#define OCI_ATTR_CHDES_NFYTYPE           406    /* notification type flags */
+#define OCI_ATTR_CHDES_XID               407    /* XID  of the transaction */
+#define OCI_ATTR_CHDES_TABLE_CHANGES     408    /* array of table chg descriptors */
+
+#define OCI_ATTR_CHDES_TABLE_NAME        409    /* table name */
+#define OCI_ATTR_CHDES_TABLE_OPFLAGS     410    /* table operation flags */
+#define OCI_ATTR_CHDES_TABLE_ROW_CHANGES 411   /* array of changed rows   */
+#define OCI_ATTR_CHDES_ROW_ROWID         412   /* rowid of changed row    */
+#define OCI_ATTR_CHDES_ROW_OPFLAGS       413   /* row operation flags     */
+
+/* Statement handle attribute for db change notification */
+#define OCI_ATTR_CHNF_REGHANDLE          414   /* IN: subscription handle  */
+
+/* DB Change: Event types ---------------*/
+#define OCI_EVENT_NONE 0x0                      /* None */
+#define OCI_EVENT_STARTUP 0x1                   /* Startup database */
+#define OCI_EVENT_SHUTDOWN 0x2                  /* Shutdown database */
+#define OCI_EVENT_SHUTDOWN_ANY 0x3              /* Startup instance */
+#define OCI_EVENT_DROP_DB 0x4                   /* Drop database    */
+#define OCI_EVENT_DEREG 0x5                     /* Subscription deregistered */
+#define OCI_EVENT_OBJCHANGE 0x6                 /* Object change notification */
+
+/* DB Change: Operation types -----------*/
+#define OCI_OPCODE_ALLROWS 0x1                 /* all rows invalidated  */
+#define OCI_OPCODE_ALLOPS 0x0                  /* interested in all operations */
+#define OCI_OPCODE_INSERT 0x2                 /*  INSERT */
+#define OCI_OPCODE_UPDATE 0x4                 /*  UPDATE */
+#define OCI_OPCODE_DELETE 0x8                 /* DELETE */
+#define OCI_OPCODE_ALTER 0x10                 /* ALTER */
+#define OCI_OPCODE_DROP 0x20                  /* DROP TABLE */
+#define OCI_OPCODE_UNKNOWN 0x40               /* GENERIC/ UNKNOWN*/
+
+/*------------------------- Supported Namespaces  ---------------------------*/
+#define OCI_SUBSCR_NAMESPACE_ANONYMOUS   0            /* Anonymous Namespace */
+#define OCI_SUBSCR_NAMESPACE_AQ          1                /* Advanced Queues */
+#define OCI_SUBSCR_NAMESPACE_DBCHANGE    2            /* change notification */
+#define OCI_SUBSCR_NAMESPACE_MAX         3          /* Max Name Space Number */
 
 #endif /* OCILIB_OCI_DEFS_H_INCLUDED */
 

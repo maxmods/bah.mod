@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: date.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: date.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -51,7 +51,8 @@ OCI_Date * OCI_DateInit(OCI_Connection *con, OCI_Date **pdate, OCIDate *buffer,
     OCI_CHECK(pdate == NULL, NULL);
 
     if (*pdate == NULL)
-        *pdate = (OCI_Date *) OCI_MemAlloc(OCI_IPC_DATE, sizeof(*date), 1, TRUE);
+        *pdate = (OCI_Date *) OCI_MemAlloc(OCI_IPC_DATE, sizeof(*date), 
+                                           (size_t) 1, TRUE);
 
     if (*pdate != NULL)
     {
@@ -77,7 +78,7 @@ OCI_Date * OCI_DateInit(OCI_Connection *con, OCI_Date **pdate, OCIDate *buffer,
 
             date->handle = (OCIDate *) OCI_MemAlloc(OCI_IPC_OCIDATE, 
                                                     sizeof(*date->handle), 
-                                                    1, TRUE);
+                                                    (size_t) 1, TRUE);
 
             res = (date->handle != NULL);
         }
@@ -432,17 +433,23 @@ boolean OCI_API OCI_DateLastDay(OCI_Date *date)
 boolean OCI_API OCI_DateNextDay(OCI_Date *date, const mtext *day)
 {
     boolean res = TRUE;
+    void *ostr  = NULL;
+    int  osize  = -1;
 
     OCI_CHECK_PTR(OCI_IPC_DATE, date, FALSE);
     OCI_CHECK_PTR(OCI_IPC_STRING, day,  FALSE);
+
+    ostr = OCI_GetInputMetaString(day, &osize);
 
     OCI_CALL4
     (
         res, date->err, date->con, 
         
-        OCIDateNextDay(date->err, date->handle, (oratext *) day,
-                       (ub4) mtextsize(day), date->handle)
+        OCIDateNextDay(date->err, date->handle, (oratext *) ostr,
+                       (ub4) osize, date->handle)
     )
+
+    OCI_ReleaseMetaString(ostr);
 
     OCI_RESULT(res);
 
@@ -521,7 +528,7 @@ boolean OCI_API OCI_DateToText(OCI_Date *date, const mtext *fmt, int size,
 {
     void *ostr1 = NULL;
     void *ostr2 = NULL;
-    int  osize1 = size*sizeof(mtext);
+    int  osize1 = size * (int) sizeof(mtext);
     int  osize2 = -1;
     boolean res = TRUE;
 
@@ -552,7 +559,7 @@ boolean OCI_API OCI_DateToText(OCI_Date *date, const mtext *fmt, int size,
 
     /* set null string terminator*/
 
-    str[osize1/sizeof(mtext)] = 0;
+    str[osize1/ (int) sizeof(mtext)] = 0;
 
     OCI_RESULT(res);
 
@@ -603,7 +610,7 @@ boolean OCI_API OCI_DateZoneToZone(OCI_Date *date, const mtext *zone1,
 
 boolean OCI_API OCI_DateToCTime(OCI_Date *date, struct tm *ptm, time_t *pt)
 {
-    time_t time = -1;
+    time_t time = (time_t) -1;
     struct tm t;
 
     OCI_CHECK_PTR(OCI_IPC_DATE, date, FALSE);
@@ -630,7 +637,7 @@ boolean OCI_API OCI_DateToCTime(OCI_Date *date, struct tm *ptm, time_t *pt)
 
     OCI_RESULT(TRUE);
 
-    return (time != -1);
+    return (time != (time_t) -1);
 }
 
 /* ------------------------------------------------------------------------ *
@@ -641,7 +648,7 @@ boolean OCI_API OCI_DateFromCTime(OCI_Date *date, struct tm *ptm, time_t t)
 {
     OCI_CHECK_PTR(OCI_IPC_DATE, date, FALSE);
 
-    if (ptm == NULL && t == 0)
+    if ((ptm == NULL) && (t == (time_t) 0))
         OCI_ExceptionNullPointer(OCI_IPC_TM);
 
     if (ptm == NULL)

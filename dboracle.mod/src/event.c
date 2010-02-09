@@ -29,57 +29,36 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: mutex.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
+ * $Id: event.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
 
 /* ************************************************************************ *
- *                            PRIVATE FUNCTIONS
+ *                             PRIVATE FUNCTIONS
  * ************************************************************************ */
 
 /* ------------------------------------------------------------------------ *
- * OCI_MutexCreateInternal
+ * OCI_EventReset
  * ------------------------------------------------------------------------ */
 
-OCI_Mutex * OCI_MutexCreateInternal(void)
+boolean OCI_EventReset(OCI_Event *event)
 {
-    OCI_Mutex *mutex = NULL;
-    boolean res      = TRUE;
+    OCI_CHECK(event == NULL, FALSE);
 
-    /* allocate mutex structure */
+    event->op   = OCI_UNKNOWN;
+    event->type = OCI_UNKNOWN;
 
-    mutex = (OCI_Mutex *) OCI_MemAlloc(OCI_IPC_MUTEX, sizeof(*mutex), 
-                                       (size_t) 1, TRUE);
+    if (event->dbname != NULL)
+        event->dbname[0] = 0;
 
-    if (mutex != NULL)
-    {
-        /* allocate error handle */
+    if (event->objname != NULL)
+        event->objname[0] = 0;
 
-        res = (OCI_SUCCESS == OCI_HandleAlloc(OCILib.env, 
-                                              (dvoid **) (void *) &mutex->err,
-                                              OCI_HTYPE_ERROR, (size_t) 0,
-                                              (dvoid **) NULL));
+    if (event->rowid != NULL)
+        event->rowid[0] = 0;
 
-        /* allocate mutex handle */
-
-        OCI_CALL3
-        (
-            res, mutex->err,
-            
-            OCIThreadMutexInit(OCILib.env, mutex->err, &mutex->handle)
-        )
-    }
-    else
-        res = FALSE;
-
-    if (res == FALSE)
-    {
-        OCI_MutexFree(mutex);
-        mutex = NULL;
-    }
-
-    return mutex;
+    return TRUE;
 }
 
 /* ************************************************************************ *
@@ -87,100 +66,81 @@ OCI_Mutex * OCI_MutexCreateInternal(void)
  * ************************************************************************ */
 
 /* ------------------------------------------------------------------------ *
- * OCI_MutexCreate
+ * OCI_EventGetType
  * ------------------------------------------------------------------------ */
 
-OCI_Mutex * OCI_API OCI_MutexCreate(void)
+unsigned int OCI_API OCI_EventGetType(OCI_Event *event)
 {
-    OCI_Mutex *mutex = NULL;
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, OCI_UNKNOWN);
 
-    OCI_CHECK_INITIALIZED(NULL);
+    OCI_RESULT(TRUE);
 
-    mutex = OCI_MutexCreateInternal();
-
-    OCI_RESULT(mutex != NULL);
-
-    return mutex;
+    return event->type;
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_MutexFree
+ * OCI_EventGetType
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_MutexFree(OCI_Mutex *mutex)
+unsigned int OCI_API OCI_EventGetOperation(OCI_Event *event)
 {
-    boolean res = TRUE;
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, OCI_UNKNOWN);
 
-    OCI_CHECK_PTR(OCI_IPC_MUTEX, mutex, FALSE);
+    OCI_RESULT(TRUE);
 
-    /* close mutex handle */
-
-    if (mutex->handle != NULL)
-    {
-        OCI_CALL0
-        (
-            res, mutex->err, 
-            
-            OCIThreadMutexDestroy(OCILib.env, mutex->err, &mutex->handle)
-        )
-    }
-
-    /* close error handle */
-
-    if (mutex->err != NULL)
-    {
-        OCI_HandleFree(mutex->err, OCI_HTYPE_ERROR);
-    }
-
-    /* free mutex structure */
-
-    OCI_FREE(mutex);
-
-    OCI_RESULT(res);
-
-    return res;
+    return event->op;
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_MutexAcquire
+ * OCI_EventGetObject
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_MutexAcquire(OCI_Mutex *mutex)
+const dtext * OCI_API OCI_EventGetDatabase(OCI_Event *event)
 {
-    boolean res = TRUE;
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, NULL);
 
-    OCI_CHECK_PTR(OCI_IPC_MUTEX, mutex, FALSE);
+    OCI_RESULT(TRUE);
 
-    OCI_CALL3
-    (
-        res, mutex->err, 
-        
-        OCIThreadMutexAcquire(OCILib.env, mutex->err, mutex->handle)
-    )
-    
-    OCI_RESULT(res);
+    return event->dbname;
+}
 
-    return res;
+
+/* ------------------------------------------------------------------------ *
+ * OCI_EventGetObject
+ * ------------------------------------------------------------------------ */
+
+const dtext * OCI_API OCI_EventGetObject(OCI_Event *event)
+{
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return event->objname;
 }
 
 /* ------------------------------------------------------------------------ *
- * OCI_MutexRelease
+ * OCI_EventGetRowid
  * ------------------------------------------------------------------------ */
 
-boolean OCI_API OCI_MutexRelease(OCI_Mutex *mutex)
+const dtext * OCI_API OCI_EventGetRowid(OCI_Event *event)
 {
-    boolean res = TRUE;
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, NULL);
 
-    OCI_CHECK_PTR(OCI_IPC_MUTEX, mutex, FALSE);
+    OCI_RESULT(TRUE);
 
-    OCI_CALL3
-    (
-        res, mutex->err, 
-        
-        OCIThreadMutexRelease(OCILib.env, mutex->err, mutex->handle)
-    )
-  
-    OCI_RESULT(res);
-
-    return TRUE;
+    return event->rowid;
 }
+
+/* ------------------------------------------------------------------------ *
+ * OCI_EventGetSubscription
+ * ------------------------------------------------------------------------ */
+
+OCI_Subscription * OCI_API OCI_EventGetSubscription(OCI_Event *event)
+{
+    OCI_CHECK_PTR(OCI_IPC_EVENT, event, NULL);
+
+    OCI_RESULT(TRUE);
+
+    return event->sub;
+}
+

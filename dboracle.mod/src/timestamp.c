@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: timestamp.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: timestamp.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -47,7 +47,7 @@ OCI_Timestamp * OCI_TimestampInit(OCI_Connection *con, OCI_Timestamp **ptmsp,
 {
     OCI_Timestamp *tmsp = NULL;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     boolean res = TRUE;
 
@@ -55,7 +55,7 @@ OCI_Timestamp * OCI_TimestampInit(OCI_Connection *con, OCI_Timestamp **ptmsp,
 
     if (*ptmsp == NULL)
         *ptmsp = (OCI_Timestamp *) OCI_MemAlloc(OCI_IPC_TIMESTAMP, sizeof(*tmsp), 
-                                                1, TRUE);
+                                                (size_t) 1, TRUE);
 
     if (*ptmsp != NULL)
     {
@@ -135,7 +135,7 @@ OCI_Timestamp * OCI_API OCI_TimestampCreate(OCI_Connection *con,
 
     OCI_CHECK_TIMESTAMP_ENABLED(con, NULL);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     tmsp = OCI_TimestampInit(con, &tmsp, NULL, type);
 
@@ -160,7 +160,7 @@ boolean OCI_API OCI_TimestampFree(OCI_Timestamp *tmsp)
     
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_OBJECT_FETCHED(tmsp, FALSE);
 
@@ -215,7 +215,7 @@ boolean OCI_API OCI_TimestampAssign(OCI_Timestamp *tmsp, OCI_Timestamp *tmsp_src
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -245,7 +245,7 @@ int OCI_API OCI_TimestampCheck(OCI_Timestamp *tmsp)
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, value);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -275,7 +275,7 @@ int OCI_API OCI_TimestampCompare(OCI_Timestamp *tmsp, OCI_Timestamp *tmsp2)
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -306,7 +306,7 @@ boolean OCI_API OCI_TimestampConstruct(OCI_Timestamp *tmsp, int year,int month,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -351,7 +351,7 @@ boolean OCI_API OCI_TimestampConvert(OCI_Timestamp *tmsp, OCI_Timestamp *tmsp_sr
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -387,7 +387,7 @@ boolean OCI_API OCI_TimestampFromText(OCI_Timestamp *tmsp, const mtext *str,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr1 = OCI_GetInputMetaString(str, &osize1);
     ostr2 = OCI_GetInputMetaString(fmt, &osize2);
@@ -430,7 +430,7 @@ boolean OCI_API OCI_TimestampToText(OCI_Timestamp *tmsp, const mtext *fmt,
     boolean res = TRUE;
     void *ostr1 = NULL;
     void *ostr2 = NULL;
-    int  osize1 = size*sizeof(mtext);
+    int  osize1 = size * (int) sizeof(mtext);
     int  osize2 = -1;
 
     OCI_CHECK_PTR(OCI_IPC_TIMESTAMP, tmsp, FALSE);
@@ -443,7 +443,7 @@ boolean OCI_API OCI_TimestampToText(OCI_Timestamp *tmsp, const mtext *fmt,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr1 = OCI_GetInputMetaString(str, &osize1);
     ostr2 = OCI_GetInputMetaString(fmt, &osize2);
@@ -467,7 +467,7 @@ boolean OCI_API OCI_TimestampToText(OCI_Timestamp *tmsp, const mtext *fmt,
 
     /* set null string terminator */
 
-    str[osize1/sizeof(mtext)] = 0;
+    str[osize1/ (int) sizeof(mtext)] = 0;
 
 #else
 
@@ -508,7 +508,7 @@ boolean OCI_API OCI_TimestampGetDate(OCI_Timestamp *tmsp, int *year, int *month,
     *month = 0;
     *day   = 0;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -566,7 +566,7 @@ boolean OCI_API OCI_TimestampGetTime(OCI_Timestamp *tmsp, int *hour, int *min,
     *sec  = 0;
     *fsec = 0;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -620,14 +620,14 @@ boolean OCI_API OCI_TimestampGetTimeZoneName(OCI_Timestamp *tmsp, int size,
 {
     boolean res = TRUE;
     void *ostr  = NULL;
-    int osize   = size*sizeof(mtext);
+    int osize   = size * (int) sizeof(mtext);
 
     OCI_CHECK_PTR(OCI_IPC_TIMESTAMP, tmsp, FALSE);
     OCI_CHECK_PTR(OCI_IPC_STRING, str, FALSE);
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr = OCI_GetInputMetaString(str, &osize);
 
@@ -645,7 +645,7 @@ boolean OCI_API OCI_TimestampGetTimeZoneName(OCI_Timestamp *tmsp, int size,
 
     /* set null string terminator */
 
-    str[osize/sizeof(mtext)] = 0;
+    str[osize/ (int) sizeof(mtext)] = 0;
 
 #else
 
@@ -676,7 +676,7 @@ boolean OCI_API OCI_TimestampGetTimeZoneOffset(OCI_Timestamp *tmsp,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -712,7 +712,7 @@ boolean OCI_API OCI_TimestampIntervalAdd(OCI_Timestamp *tmsp, OCI_Interval *itv)
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* OCIDateTimeIntervalAdd() fails if timestamps is not OCI_TIMESTAMP_TZ */
 
@@ -768,7 +768,7 @@ boolean OCI_API OCI_TimestampIntervalSub(OCI_Timestamp *tmsp,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* OCIDateTimeIntervalSub() fails if timestamps is not OCI_TIMESTAMP_TZ */
 
@@ -824,7 +824,7 @@ boolean OCI_API OCI_TimestampSubtract(OCI_Timestamp *tmsp, OCI_Timestamp *tmsp2,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -855,7 +855,7 @@ boolean OCI_API OCI_TimestampSysTimeStamp(OCI_Timestamp *tmsp)
  
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     /* Filling a timestamp handle of type OCI_TIMESTAMP with 
        OCIDateTimeSysTimeStamp() can lead later to an error ORA-01483 when
@@ -891,6 +891,7 @@ boolean OCI_API OCI_TimestampSysTimeStamp(OCI_Timestamp *tmsp)
 #else
 
     OCI_NOT_USED(tmp);
+    OCI_NOT_USED(handle);
 
 #endif
 
@@ -907,7 +908,7 @@ boolean OCI_API OCI_TimestampToCTime(OCI_Timestamp *tmsp, struct tm *ptm,
                                      time_t *pt)
 {
     boolean res = TRUE;
-    time_t time = -1;
+    time_t time = (time_t) -1;
     int msec    = 0;
     struct tm t;
 
@@ -939,7 +940,7 @@ boolean OCI_API OCI_TimestampToCTime(OCI_Timestamp *tmsp, struct tm *ptm,
 
     OCI_RESULT(res);
 
-    return (time != -1);
+    return (time != (time_t) -1);
 }
 
 /* ------------------------------------------------------------------------ *
@@ -955,7 +956,7 @@ boolean OCI_API OCI_TimestampFromCTime(OCI_Timestamp *tmsp, struct tm *ptm,
 
     OCI_CHECK_TIMESTAMP_ENABLED(tmsp->con, FALSE);
 
-    if (ptm == NULL && t == 0)
+    if (ptm == NULL && t == (time_t) 0)
         return FALSE;
 
     if (ptm == NULL)

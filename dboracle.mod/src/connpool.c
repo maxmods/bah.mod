@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: connpool.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: connpool.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -59,9 +59,9 @@ boolean OCI_ConnPoolClose(OCI_ConnPool *pool)
     if (OCI_LIB_THREADED)
         OCI_MutexFree(pool->mutex);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         /* close connection pool handle */
 
@@ -164,9 +164,9 @@ OCI_ConnPool * OCI_API OCI_ConnPoolCreate(const mtext *db, const mtext *user,
     }
 
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         int osize_name  = -1;
         int osize_db    = -1;
@@ -226,7 +226,7 @@ OCI_ConnPool * OCI_API OCI_ConnPoolCreate(const mtext *db, const mtext *user,
         if ((res == TRUE) && (ostr_name != NULL))
         {
             pool->name = (mtext *) OCI_MemAlloc(OCI_IPC_STRING, sizeof(mtext),
-                                                (osize_name/sizeof(omtext)) + 1,
+                                                (osize_name / (int) sizeof(omtext)) + 1,
                                                 FALSE);
 
             if (pool->name != NULL)
@@ -323,7 +323,7 @@ OCI_Connection * OCI_API OCI_ConnPoolGetConnection(OCI_ConnPool *pool)
     {
         /* no available connection found ! Try to allocate a new one... */
 
-        if (OCILib.ver_runtime >= OCI_9 || pool->cons->count < pool->max)
+        if (OCILib.version_runtime >= OCI_9_0 || pool->cons->count < pool->max)
         {
             ub4 i, nb;
             OCI_Connection *c = NULL;
@@ -351,7 +351,7 @@ OCI_Connection * OCI_API OCI_ConnPoolGetConnection(OCI_ConnPool *pool)
         if (con->cstate == OCI_CONN_ALLOCATED)
             res = res && OCI_ConnectionAttach(con);
 
-        res  = res &&  OCI_ConnectionLogon(con);
+        res  = res &&  OCI_ConnectionLogon(con, NULL);
 
         if (res == FALSE)
         {
@@ -391,9 +391,9 @@ boolean OCI_API OCI_ConnPoolSetTimeout(OCI_ConnPool *pool, unsigned int value)
 
     OCI_CHECK_PTR(OCI_IPC_CONNPOOL, pool, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         ub4 timeout = value;
 
@@ -440,9 +440,9 @@ boolean OCI_API OCI_ConnPoolSetNoWait(OCI_ConnPool *pool, boolean value)
 
     OCI_CHECK_PTR(OCI_IPC_CONNPOOL, pool, 0);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         ub1 nowait = (ub1) value;
 
@@ -476,9 +476,9 @@ unsigned int OCI_API OCI_ConnPoolGetBusyCount(OCI_ConnPool *pool)
 
     OCI_CHECK_PTR(OCI_IPC_CONNPOOL, pool, 0);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         ub4 value = 0;
 
@@ -512,9 +512,9 @@ unsigned int OCI_API OCI_ConnPoolGetOpenedCount(OCI_ConnPool *pool)
 
     OCI_CHECK_PTR(OCI_IPC_CONNPOOL, pool, 0);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
-    if (OCILib.ver_runtime >= OCI_9)
+    if (OCILib.version_runtime >= OCI_9_0)
     {
         ub4 value = 0;
 

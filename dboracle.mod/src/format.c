@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: format.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: format.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -83,7 +83,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
             case MT('s'):
             case MT('m'):
             {
-                const mtext *str = va_arg(*pargs, const mtext *);
+                const mtext *str = (const mtext *) va_arg(*pargs, const mtext *);
 
                 if (str != NULL && str[0] != 0)
                 {
@@ -94,8 +94,8 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                         if (buf != NULL)
                         {
                             *pb = 39;
-                            mtscpy(pb + 1, str);
-                            *(pb + len + 1) = MT('\'');
+                            mtscpy(pb + (size_t) 1, str);
+                            *(pb + (size_t) (len + 1)) = MT('\'');
                         }
 
                         len+=2;
@@ -160,7 +160,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
                                                  &hh, &mi, &ss, &ff);
 
                         if (ff > 0)
-                            mtsprintf(str_ff, msizeof(str_ff)-1, MT("%i"), ff);
+                            mtsprintf(str_ff, (int) msizeof(str_ff)- 1, MT("%i"), ff);
                         else
                             mtscpy(str_ff, MT("00"));
 
@@ -191,7 +191,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                 if (itv != NULL)
                 {
-                    OCI_IntervalToText(itv, 3, 3, msizeof(temp)-1, temp);
+                    OCI_IntervalToText(itv, 3, 3, (int) msizeof(temp)- 1, temp);
                     
                     len = (int) mtslen(temp);
 
@@ -214,8 +214,8 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
        
                 temp[0] = 0;
 
-                len = mtsprintf(temp, msizeof(temp)-1, MT("%i"),
-                                va_arg(*pargs, int));
+                len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%i"),
+                                      va_arg(*pargs, int));
 
                 if ((buf != NULL) && (len > 0)) 
                     mtscpy(pb, temp);
@@ -228,8 +228,8 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
   
                 temp[0] = 0;
 
-                len = mtsprintf(temp, msizeof(temp)-1, MT("%u"),
-                                va_arg(*pargs, unsigned int));
+                len = (int) mtsprintf(temp, (int)  msizeof(temp) - 1, MT("%u"),
+                                      va_arg(*pargs, unsigned int));
 
                 if ((buf != NULL) && (len > 0)) 
                     mtscpy(pb, temp);
@@ -246,13 +246,13 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                 if (*pf == MT('i'))
                 {
-                    len = mtsprintf(temp, msizeof(temp)-1, MT("%lld"),
-                                    va_arg(*pargs, big_int));
+                    len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%lld"),
+                                          va_arg(*pargs, big_int));
                 }
                 else if (*pf == MT('u'))
                 {
-                    len = mtsprintf(temp, msizeof(temp)-1, MT("%llu"),
-                                    va_arg(*pargs, big_uint));
+                    len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%llu"),
+                                          va_arg(*pargs, big_uint));
                 }
                 else
                     len = 0;
@@ -274,13 +274,13 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
 
                 if (*pf == 'i')
                 {
-                    len = mtsprintf(temp, msizeof(temp)-1, MT("%hd"),
-                                    va_arg(*pargs, int));
+                    len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%hd"),
+                                          va_arg(*pargs, int));
                 }
                 else if (*pf == 'u')
                 {
-                    len = mtsprintf(temp, msizeof(temp)-1, MT("%hu"),
-                                    va_arg(*pargs, unsigned int));
+                    len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%hu"),
+                                          va_arg(*pargs, unsigned int));
                 }
                 else
                     len = 0;
@@ -296,12 +296,39 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
       
                 temp[0] = 0;
 
-                len = mtsprintf(temp, msizeof(temp)-1, MT("%f"),
-                                va_arg(*pargs, double));
+                len = (int) mtsprintf(temp, (int) msizeof(temp) - 1, MT("%f"),
+                                      va_arg(*pargs, double));
 
                 if ((buf != NULL) && (len > 0)) 
                     mtscpy(pb, temp);
 
+                break;
+            }
+            case MT('r'):
+            {
+                mtext temp[128];
+
+                OCI_Ref *ref = (OCI_Ref *) va_arg(*pargs, OCI_Ref *);
+
+                temp[0] = 0;
+
+                if (ref != NULL)
+                {
+                    OCI_RefToText(ref, (unsigned int) msizeof(temp) - 1, temp);
+                    
+                    len = (int) mtslen(temp);
+
+                    if ((buf != NULL) && (len > 0)) 
+                        mtscpy(pb, temp);
+                }
+                else
+                {
+                    len = OCI_SIZE_NULL;
+                    
+                    if ((buf != NULL) && (len > 0)) 
+                        mtscpy(pb, OCI_STRING_NULL);
+                }
+  
                 break;
             }
             default:
@@ -314,7 +341,7 @@ int OCI_ParseSqlFmt(OCI_Statement *stmt, mtext *buf, const mtext *format,
         }
 
         if (buf != NULL)
-            pb += len;
+            pb += (size_t) len;
 
         size += len;
     }

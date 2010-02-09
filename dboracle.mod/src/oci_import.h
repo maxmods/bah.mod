@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: oci_import.h, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: oci_import.h, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #ifndef OCILIB_OCI_IMPORT_H_INCLUDED
@@ -77,10 +77,18 @@ extern "C" {
   #endif
 #endif
 
-#define OCI_DL_GET(s) OCI_DL_CVT(s)
-#define OCI_DL_CVT(s) #s
+/* ANSI string version of Oracle shared lib */
 
-#define OCI_DL_NAME OCI_DL_GET(OCI_DL)
+#define OCI_DL_ANSI_GET(s)  OCI_DL_ANSI_CVT(s)
+#define OCI_DL_ANSI_CVT(s)  #s
+#define OCI_DL_ANSI_NAME    OCI_DL_ANSI_GET(OCI_DL)
+
+
+/* Meta string version of Oracle shared lib */
+
+#define OCI_DL_META_GET(s)  OCI_DL_META_CVT(s)
+#define OCI_DL_META_CVT(s)  MT(#s)
+#define OCI_DL_META_NAME    OCI_DL_META_GET(OCI_DL)
 
 /* symbol list */
 
@@ -121,6 +129,7 @@ extern OCILOBISTEMPORARY            OCILobIsTemporary;
 extern OCILOBAPPEND                 OCILobAppend;
 extern OCILOBCOPY                   OCILobCopy;
 extern OCILOBGETLENGTH              OCILobGetLength;
+extern OCILOBGETCHUNKSIZE           OCILobGetChunkSize;
 extern OCILOBREAD                   OCILobRead;
 extern OCILOBWRITE                  OCILobWrite;
 extern OCILOBTRIM                   OCILobTrim;
@@ -130,6 +139,10 @@ extern OCILOBCLOSE                  OCILobClose;
 extern OCILOBLOCATORASSIGN          OCILobLocatorAssign;
 extern OCILOBASSIGN                 OCILobAssign;
 extern OCILOBISEQUAL                OCILobIsEqual;
+extern OCILOBFLUSHBUFFER            OCILobFlushBuffer;
+extern OCILOBGETSTORAGELIMIT        OCILobGetStorageLimit;
+extern OCILOBENABLEBUFFERING        OCILobEnableBuffering;
+extern OCILOBDISABLEBUFFERING       OCILobDisableBuffering;
 extern OCILOBFILEOPEN               OCILobFileOpen;
 extern OCILOBFILECLOSE              OCILobFileClose;
 extern OCILOBFILECLOSEALL           OCILobFileCloseAll;
@@ -185,8 +198,9 @@ extern OCIDATETIMEINTERVALADD       OCIDateTimeIntervalAdd;
 extern OCIDATETIMEINTERVALSUB       OCIDateTimeIntervalSub;
 extern OCIDATETIMESUBTRACT          OCIDateTimeSubtract;
 extern OCIDATETIMESYSTIMESTAMP      OCIDateTimeSysTimeStamp;
+extern OCIARRAYDESCRIPTORALLOC      OCIArrayDescriptorAlloc;
 extern OCIARRAYDESCRIPTORFREE       OCIArrayDescriptorFree;
-extern OCICLIENTVERSION             OCIClientVersion;;
+extern OCICLIENTVERSION             OCIClientVersion;
 extern OCITYPEBYNAME                OCITypeByName;
 extern OCINUMBERTOINT               OCINumberToInt;
 extern OCINUMBERFROMINT             OCINumberFromInt;
@@ -260,6 +274,8 @@ extern OCIDIRPATHFLUSHROW           OCIDirPathFlushRow;
 
 extern OCICACHEFREE                 OCICacheFree;
 
+extern OCIPING                      OCIPing;
+
 #ifdef ORAXB8_DEFINED
 
 extern OCILOBCOPY2                  OCILobCopy2;
@@ -270,6 +286,15 @@ extern OCILOBREAD2                  OCILobRead2;
 extern OCILOBTRIM2                  OCILobTrim2;
 extern OCILOBWRITE2                 OCILobWrite2;
 extern OCILOBWRITEAPPEND2           OCILobWriteAppend2;
+
+extern OCIDBSTARTUP                 OCIDBStartup;
+extern OCIDBSHUTDOWN                OCIDBShutdown;
+
+extern OCISTMTPREPARE2              OCIStmtPrepare2;
+extern OCISTMTRELEASE               OCIStmtRelease;
+
+extern OCISUBSCRIPTIONREGISTER      OCISubscriptionRegister;
+extern OCISUBSCRIPTIONUNREGISTER    OCISubscriptionUnRegister;
 
 #endif
 

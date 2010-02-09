@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: interval.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: interval.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -47,14 +47,15 @@ OCI_Interval * OCI_IntervalInit(OCI_Connection *con, OCI_Interval **pitv,
 {
     OCI_Interval *itv = NULL;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     boolean res       = TRUE;
 
     OCI_CHECK(pitv == NULL, NULL);
 
     if (*pitv == NULL)
-        *pitv = (OCI_Interval *) OCI_MemAlloc(OCI_IPC_INTERVAL, sizeof(*itv), 1, TRUE);
+        *pitv = (OCI_Interval *) OCI_MemAlloc(OCI_IPC_INTERVAL, sizeof(*itv), 
+                                              (size_t) 1, TRUE);
 
     if (*pitv != NULL)
     {
@@ -131,7 +132,7 @@ OCI_Interval * OCI_API OCI_IntervalCreate(OCI_Connection *con, unsigned int type
 
     OCI_CHECK_INTERVAL_ENABLED(con, NULL);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     itv = OCI_IntervalInit(con, &itv, NULL, type);
 
@@ -156,7 +157,7 @@ boolean OCI_API OCI_IntervalFree(OCI_Interval *itv)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CHECK_OBJECT_FETCHED(itv, FALSE);
 
@@ -209,7 +210,7 @@ boolean OCI_API OCI_IntervalAssign(OCI_Interval *itv,  OCI_Interval *itv_src)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -239,7 +240,7 @@ int OCI_API OCI_IntervalCheck(OCI_Interval *itv)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, OCI_ERROR);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -271,7 +272,7 @@ int OCI_API OCI_IntervalCompare(OCI_Interval *itv, OCI_Interval *itv2)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, value);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -303,7 +304,7 @@ boolean OCI_API OCI_IntervalFromText(OCI_Interval *itv, const mtext * str)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr = OCI_GetInputMetaString(str, &osize);
  
@@ -340,7 +341,8 @@ boolean OCI_API OCI_IntervalToText(OCI_Interval *itv, int leading_prec,
 {
     boolean res = TRUE;
     void *ostr  = NULL;
-    int osize   = size * sizeof(mtext);
+    int osize   = size * (int)   sizeof(mtext);
+    size_t len  = 0;
 
     OCI_CHECK_PTR(OCI_IPC_INTERVAL, itv, FALSE);
     OCI_CHECK_PTR(OCI_IPC_STRING, str, FALSE);
@@ -351,9 +353,11 @@ boolean OCI_API OCI_IntervalToText(OCI_Interval *itv, int leading_prec,
     
     str[0] = 0;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr = OCI_GetInputMetaString(str, &osize);
+
+    len = (size_t) osize;
  
     OCI_CALL4
     (
@@ -363,15 +367,17 @@ boolean OCI_API OCI_IntervalToText(OCI_Interval *itv, int leading_prec,
                           (OCIInterval *) itv->handle,
                           (ub1) leading_prec, (ub1) fraction_prec,
                           (OraText *) ostr, (size_t) osize, 
-                          (size_t *) &osize)
+                          (size_t *) &len)
     )
+
+    osize = (int) len;
  
     OCI_GetOutputMetaString(ostr, str, &osize);
     OCI_ReleaseMetaString(ostr);
 
     /* set null string terminator */
 
-    str[osize/sizeof(mtext)] = 0;
+    str[osize/ (int) sizeof(mtext)] = 0;
 
 #else
 
@@ -404,7 +410,7 @@ boolean OCI_API OCI_IntervalFromTimeZone(OCI_Interval *itv, const mtext * str)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     ostr = OCI_GetInputMetaString(str, &osize);
   
@@ -412,7 +418,7 @@ boolean OCI_API OCI_IntervalFromTimeZone(OCI_Interval *itv, const mtext * str)
     (
         res, itv->err, itv->con,
         
-        OCIIntervalFromTZ((dvoid *) OCILib.env, itv->err,  (OraText *) ostr,
+        OCIIntervalFromTZ((dvoid *) OCILib.env, itv->err,  (CONST OraText *) ostr,
                           (size_t) osize, itv->handle)
     )
 
@@ -454,7 +460,7 @@ boolean OCI_API OCI_IntervalGetDaySecond(OCI_Interval *itv, int *day, int *hour,
     *sec  = 0;
     *fsec = 0;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -497,7 +503,7 @@ boolean OCI_API OCI_IntervalGetYearMonth(OCI_Interval *itv, int *year, int *mont
     *year  = 0;
     *month = 0;
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -532,7 +538,7 @@ boolean OCI_API OCI_IntervalSetDaySecond(OCI_Interval *itv, int day,int hour,
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -570,7 +576,7 @@ boolean OCI_API OCI_IntervalSetYearMonth(OCI_Interval *itv, int year, int month)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -605,7 +611,7 @@ boolean OCI_API OCI_IntervalAdd(OCI_Interval *itv, OCI_Interval *itv2)
 
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (
@@ -635,7 +641,7 @@ boolean OCI_API OCI_IntervalSubtract(OCI_Interval *itv, OCI_Interval *itv2)
     
     OCI_CHECK_INTERVAL_ENABLED(itv->con, FALSE);
 
-#if OCI_VERSION_COMPILE >= OCI_9
+#if OCI_VERSION_COMPILE >= OCI_9_0
 
     OCI_CALL4
     (

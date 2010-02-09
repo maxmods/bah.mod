@@ -6,21 +6,21 @@
    |                      (C Wrapper for Oracle OCI)                      |
    |                                                                      |
    +----------------------------------------------------------------------+
-   |                      Website : http://ocilib.net                     |
+   |                      Website : http://www.ocilib.net                 |
    +----------------------------------------------------------------------+
-   |               Copyright (c) 2007-2009 Vincent ROGIER                 |
+   |               Copyright (c) 2007-2010 Vincent ROGIER                 |
    +----------------------------------------------------------------------+
    | This library is free software; you can redistribute it and/or        |
-   | modify it under the terms of the GNU Library General Public          |
+   | modify it under the terms of the GNU Lesser General Public           |
    | License as published by the Free Software Foundation; either         |
    | version 2 of the License, or (at your option) any later version.     |
    |                                                                      |
    | This library is distributed in the hope that it will be useful,      |
    | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
    | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU    |
-   | Library General Public License for more details.                     |
+   | Lesser General Public License for more details.                      |
    |                                                                      |
-   | You should have received a copy of the GNU Library General Public    |
+   | You should have received a copy of the GNU Lesser General Public     |
    | License along with this library; if not, write to the Free           |
    | Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.   |
    +----------------------------------------------------------------------+
@@ -29,7 +29,7 @@
 */
 
 /* ------------------------------------------------------------------------ *
- * $Id: memory.c, v 3.2.0 2009/04/20 00:00 Vince $
+ * $Id: memory.c, v 3.5.1 2010-02-03 18:00 Vincent Rogier $
  * ------------------------------------------------------------------------ */
 
 #include "ocilib_internal.h"
@@ -42,7 +42,7 @@
  * OCI_MemAlloc
  * ------------------------------------------------------------------------ */
 
-void * OCI_MemAlloc(int ptr_type, int block_size, int block_count, 
+void * OCI_MemAlloc(int ptr_type, size_t block_size, size_t block_count, 
                     boolean zero_fill)
 {
     void * ptr  = NULL;
@@ -65,8 +65,8 @@ void * OCI_MemAlloc(int ptr_type, int block_size, int block_count,
  * OCI_MemRealloc
  * ------------------------------------------------------------------------ */
 
-void * OCI_MemRealloc(void * ptr_mem, int ptr_type, int block_size, 
-                      int block_count)
+void * OCI_MemRealloc(void * ptr_mem, int ptr_type, size_t block_size, 
+                      size_t block_count)
 {
     void * ptr  = NULL;
     size_t size = (size_t) (block_size * block_count);
@@ -150,6 +150,45 @@ sword OCI_DescriptorAlloc(CONST dvoid *parenth, dvoid **descpp, CONST ub4 type,
 }
 
 /* ------------------------------------------------------------------------ *
+ * OCI_DescriptorArrayAlloc
+ * ------------------------------------------------------------------------ */
+
+sword OCI_DescriptorArrayAlloc(CONST dvoid *parenth, dvoid **descpp, 
+                               CONST ub4 type, ub4 nb_elem, 
+                               CONST size_t xtramem_sz, dvoid **usrmempp)
+{
+    sword ret = OCI_SUCCESS;
+
+#if OCI_VERSION_COMPILE >= OCI_11_1
+
+    if (OCILib.version_runtime >= OCI_11_1)
+    {
+        ret = OCIArrayDescriptorAlloc(parenth, descpp, type, nb_elem,
+                                      xtramem_sz, usrmempp);
+
+    }
+    else
+
+#endif
+
+    {
+        ub4 i;
+
+        for(i = 0; (i < nb_elem) && (ret == OCI_SUCCESS); i++)
+        {
+            ret = OCIDescriptorAlloc(parenth, &descpp[i], type, xtramem_sz, usrmempp);
+        }
+    }
+
+    if (ret == OCI_SUCCESS)
+    {
+        OCILib.nb_descp += nb_elem;   
+    }
+
+    return ret;
+}
+
+/* ------------------------------------------------------------------------ *
  * OCI_DescriptorFree
  * ------------------------------------------------------------------------ */
 
@@ -162,6 +201,43 @@ sword OCI_DescriptorFree(dvoid *descp, CONST ub4 type)
         OCILib.nb_descp--;  
 
         ret = OCIDescriptorFree(descp, type);
+    }
+
+    return ret;
+}
+
+/* ------------------------------------------------------------------------ *
+ * OCI_DescriptorFree
+ * ------------------------------------------------------------------------ */
+
+sword OCI_DescriptorArrayFree(dvoid **descp, CONST ub4 type, ub4 nb_elem)
+{            
+    sword ret = OCI_SUCCESS;
+
+    if (descp != NULL)
+    {
+    #if OCI_VERSION_COMPILE >= OCI_11_1
+
+        if (OCILib.version_runtime >= OCI_11_1)
+        {
+            ret = OCIArrayDescriptorFree(descp, type);
+
+        }
+        else
+
+    #endif
+
+        {
+            ub4 i;
+
+            for(i = 0; (i < nb_elem) && (ret == OCI_SUCCESS); i++)
+            {
+                ret = OCIDescriptorFree(&descp[i], type);
+            }
+        }
+
+  
+        OCILib.nb_descp -= nb_elem;  
     }
 
     return ret;
