@@ -23,6 +23,7 @@ SuperStrict
 Import BRL.Blitz
 
 ?macos
+Import Pub.Macos
 Import "glue.m"
 ?win32
 Import pub.win32

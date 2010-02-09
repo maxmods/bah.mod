@@ -26,19 +26,6 @@
 #include <blitz.h>
 
 
-// string conversion
-BBString *speech_bbStringFromNSString(NSString *s){
-	BBString *bbstring;
-	unsigned short *buff;
-	int n;
-	n = [s length];
-	buff = malloc(n*2);
-	[s getCharacters:buff];
-	bbstring = bbStringFromShorts(buff,n);
-	free(buff);
-	return bbstring;	
-}
-
 // --------------------------------------------------------
 
 
@@ -48,7 +35,7 @@ NSSpeechSynthesizer * bmx_speech_new() {
 }
 
 int bmx_speech_speak(NSSpeechSynthesizer *synth, BBString * text) {
-	return [synth startSpeakingString:[NSString stringWithCharacters:text->buf length:text->length]];
+	return [synth startSpeakingString:NSStringFromBBString(text)];
 }
 
 int bmx_speech_isSpeaking(NSSpeechSynthesizer *synth) {
@@ -71,7 +58,7 @@ BBArray * bmx_speech_availableVoices() {
 	NSString * text;
 	int i = 0;
 	while (text = [ae nextObject]) {
-		s[i] = speech_bbStringFromNSString(text);
+		s[i] = bbStringFromNSString(text);
 		BBRETAIN( s[i] );
 		i++;
 	}
@@ -79,7 +66,7 @@ BBArray * bmx_speech_availableVoices() {
 }
 
 void bmx_speech_setVoice(NSSpeechSynthesizer *synth, BBString * voice) {
-	[synth setVoice:[NSString stringWithCharacters:voice->buf length:voice->length]];
+	[synth setVoice:NSStringFromBBString(voice)];
 }
 
 void bmx_speech_pause(NSSpeechSynthesizer *synth) {
