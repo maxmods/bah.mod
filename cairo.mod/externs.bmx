@@ -3,6 +3,9 @@ SuperStrict
 Import Pub.FreeType
 Import BRL.Stream
 Import BRL.FileSystem
+?Not linux
+Import BRL.Map
+?
 
 ' Cairo external functions
 
@@ -232,6 +235,7 @@ Extern
 
 	Function cairo_ft_font_face_create_for_ft_face:Byte Ptr(ft_face:Byte Ptr, loadFlags:Int)
 
+	
 End Extern
 
 
@@ -289,7 +293,35 @@ Const kCPATHSEPARATOR:String = ":"
 ?
 
 ?Not linux
+Private
+Type TFTMap
+	Global _ft_map:TMap = New TMap
+
+	Field face:Byte Ptr
+	
+	Function Create(src:String, face:Byte Ptr)
+		Local this:TFTMap = New TFTMap
+		this.face = face
+
+		_ft_map.Insert(src, this)
+	End Function
+
+	Function GetFace:Byte Ptr(src:String)
+		Local map:TFTMap = TFTMap(TFTMap._ft_map.ValueForKey(src))
+		If map Then
+			Return map.face
+		End If
+	End Function
+			
+End Type
+
+Public
 Function LoadFT:Byte Ptr( src$ )
+
+	Local ft_face:Byte Ptr = TFTMap.GetFace(src)
+	If ft_face Then
+		Return ft_face
+	End If
 
 	Global ft_lib:Byte Ptr
 	
@@ -299,7 +331,7 @@ Function LoadFT:Byte Ptr( src$ )
 
 	Local buf:Byte Ptr,buf_size:Int
 			
-	Local ft_face:Byte Ptr
+	'Local ft_face:Byte Ptr
 
 	If src.Find( "::" )>0
 		Local tmp:Byte[]=LoadByteArray( src )
@@ -314,6 +346,8 @@ Function LoadFT:Byte Ptr( src$ )
 	Else
 		If FT_New_Face( ft_lib,src$,0,Varptr ft_face ) Return Null
 	EndIf
+	
+	TFTMap.Create(src, ft_face)
 	
 	Return ft_face
 
