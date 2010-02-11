@@ -85,12 +85,44 @@ public:
 		Constants
 	*************************************************************************/
 	// event names
-	static const String EventListContentsChanged;			//!< Event triggered when the contents of the list is changed.
-	static const String EventSelectionChanged;			//!< Event triggered when there is a change to the currently selected item(s).
-	static const String EventSortModeChanged;				//!< Event triggered when the sort mode setting changes.
-	static const String EventMultiselectModeChanged;		//!< Event triggered when the multi-select mode setting changes.
-	static const String EventVertScrollbarModeChanged;	//!< Event triggered when the vertical scroll bar 'force' setting changes.
-	static const String EventHorzScrollbarModeChanged;	//!< Event triggered when the horizontal scroll bar 'force' setting changes.
+    /** Event fired when the contents of the list is changed.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Listbox whose content is changed.
+     */
+	static const String EventListContentsChanged;
+    /** Event fired when there is a change to the currently selected item(s)
+     * within the list.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Litbox that has had a change in the
+     * selected items.
+     */
+	static const String EventSelectionChanged;
+    /** Event fired when the sort mode setting changes for the Listbox.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Listbox whose sort mode has been
+     * changed.
+     */
+	static const String EventSortModeChanged;
+    /** Event fired when the multi-select mode setting changes for the Listbox.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Listbox whose multi-select mode has
+     * been changed.
+     */
+	static const String EventMultiselectModeChanged;
+    /** Event fired when the mode setting that forces the display of the
+     * vertical scroll bar for the Listbox is changed.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Listbox whose vertical
+     * scrollbar mode has been changed.
+     */
+	static const String EventVertScrollbarModeChanged;
+    /** Event fired when the mode setting that forces the display of the
+     * horizontal scroll bar for the Listbox is changed.
+     * Handlers are passed a const WindowEventArgs reference with
+     * WindowEventArgs::window set to the Listbox whose horizontal
+     * scrollbar mode has been changed.
+     */
+	static const String EventHorzScrollbarModeChanged;
 
     /*************************************************************************
         Child Widget name suffix constants
@@ -551,6 +583,19 @@ public:
     float   getWidestItemWidth(void) const;
 
 
+	/*!
+	\brief
+		Return a pointer to the ListboxItem attached to this Listbox at the
+        given screen pixel co-ordinate.
+
+	\return
+		Pointer to the ListboxItem attached to this Listbox that is at screen
+        position \a pt, or 0 if no ListboxItem attached to this Listbox is at
+        that position.
+	*/
+    ListboxItem* getItemAtPoint(const Point& pt) const;
+
+
 	/*************************************************************************
 		Construction and Destruction
 	*************************************************************************/
@@ -609,17 +654,6 @@ protected:
 		true if some selections were cleared, false nothing was changed.
 	*/
 	bool	clearAllSelections_impl(void);
-
-
-	/*!
-	\brief
-		Return the ListboxItem under the given window local pixel co-ordinate.
-
-	\return
-		ListboxItem that is under window pixel co-ordinate \a pt, or NULL if no
-		item is under that position.
-	*/
-	ListboxItem*	getItemAtPoint(const Point& pt) const;
 
 
 	/*!

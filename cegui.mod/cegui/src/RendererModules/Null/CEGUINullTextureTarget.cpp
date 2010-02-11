@@ -1,10 +1,10 @@
 /***********************************************************************
-    filename:   CEGUIDefaultRenderedStringParser.cpp
-    created:    28/05/2009
-    author:     Paul Turner
- *************************************************************************/
+    filename:   CEGUINullTextureTarget.cpp
+    created:    Sat Jan 16 2010
+    author:     Eugene Marcotte
+*************************************************************************/
 /***************************************************************************
- *   Copyright (C) 2004 - 2009 Paul D Turner & The CEGUI Development Team
+ *   Copyright (C) 2004 - 2010 Paul D Turner & The CEGUI Development Team
  *
  *   Permission is hereby granted, free of charge, to any person obtaining
  *   a copy of this software and associated documentation files (the
@@ -25,53 +25,64 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-#include "CEGUIDefaultRenderedStringParser.h"
-#include "CEGUIRenderedStringTextComponent.h"
+#include "CEGUINullTextureTarget.h"
+#include "CEGUINullTexture.h"
 
 // Start of CEGUI namespace section
 namespace CEGUI
 {
 //----------------------------------------------------------------------------//
-void appendSubstring(RenderedString& rs,
-                     const String& string,
-                     Font* initial_font,
-                     const ColourRect* initial_colours)
+const float NullTextureTarget::DEFAULT_SIZE = 128.0f;
+
+//----------------------------------------------------------------------------//
+NullTextureTarget::NullTextureTarget(NullRenderer& owner) :
+    NullRenderTarget(owner),
+    d_CEGUITexture(0)
 {
-    RenderedStringTextComponent rstc(string, initial_font);
+    d_CEGUITexture = static_cast<NullTexture*>(&d_owner.createTexture());
 
-    if (initial_colours)
-        rstc.setColours(*initial_colours);
-
-    rs.appendComponent(rstc);
+    // setup area and cause the initial texture to be generated.
+    declareRenderSize(Size(DEFAULT_SIZE, DEFAULT_SIZE));
 }
 
 //----------------------------------------------------------------------------//
-RenderedString DefaultRenderedStringParser::parse(
-                                        const String& input_string,
-                                        Font* initial_font,
-                                        const ColourRect* initial_colours)
+NullTextureTarget::~NullTextureTarget()
 {
-    RenderedString rs;
-
-    size_t epos, spos = 0;
-
-    while ((epos = input_string.find('\n', spos)) != String::npos)
-    {
-        appendSubstring(rs, input_string.substr(spos, epos - spos),
-                        initial_font, initial_colours);
-        rs.appendLineBreak();
-
-        // set new start position (skipping the previous \n we found)
-        spos = epos + 1;
-    }
-
-    if (spos < input_string.length())
-        appendSubstring(rs, input_string.substr(spos),
-                        initial_font, initial_colours);
-
-    return rs;
+    d_owner.destroyTexture(*d_CEGUITexture);
 }
 
 //----------------------------------------------------------------------------//
-    
+bool NullTextureTarget::isImageryCache() const
+{
+    return true;
+}
+
+//----------------------------------------------------------------------------//
+void NullTextureTarget::clear()
+{
+}
+
+//----------------------------------------------------------------------------//
+Texture& NullTextureTarget::getTexture() const
+{
+    return *d_CEGUITexture;
+}
+
+//----------------------------------------------------------------------------//
+void NullTextureTarget::declareRenderSize(const Size& sz)
+{
+	Rect r;
+	r.setSize(sz);
+	r.setPosition(Point(0, 0));
+    setArea(r);
+}
+
+//----------------------------------------------------------------------------//
+bool NullTextureTarget::isRenderingInverted() const
+{
+    return false;
+}
+
+//----------------------------------------------------------------------------//
+
 } // End of  CEGUI namespace section
