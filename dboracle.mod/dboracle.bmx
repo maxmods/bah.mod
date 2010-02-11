@@ -137,6 +137,68 @@ Type TDBOracle Extends TDBConnection
 	End Method
 	
 	Method getTableInfo:TDBTable(tableName:String, withDDL:Int = False)
+		tableName = tableName.ToUpper()
+
+		Local query:TDatabaseQuery = TDatabaseQuery.Create(Self)
+		
+		Local sql:String = "SELECT column_name, data_type, data_length, data_precision, data_scale, nullable, data_default FROM user_tab_columns " + ..
+			" WHERE table_name = '" + tableName + "' ORDER BY column_id"
+			
+		Local table:TDBTable
+
+		If query.execute(sql) Then
+			table = New TDBTable
+			table.name = tableName
+			
+			Local cols:TList = New TList
+
+			For Local rec:TQueryRecord = EachIn query
+				Local name:String = rec.GetString(0)
+				Local _type:String = rec.GetString(1)
+				Local dbType:Int
+				Select _type
+					Case "NUMBER"
+						If rec.GetInt(4) > 0 Then
+							dbType = DBTYPE_FLOAT
+						Else If rec.GetInt(3) > 10 Or rec.GetInt(3) = 0 Then
+							dbType = DBTYPE_LONG
+						Else
+							dbType = DBTYPE_INT
+						End If
+					Case "DATE"
+						dbType = DBTYPE_DATE
+					Case "timestamp", "datetime"
+						dbType = DBTYPE_DATETIME
+					Case "time"
+						dbType = DBTYPE_TIME
+					Case "tinyblob", "blob", "mediumblob", "longblob"
+						dbType = DBTYPE_BLOB
+					Default
+						dbType = DBTYPE_STRING
+				End Select
+				
+				Local nullable:Int
+				If rec.GetString(5) = "Y" Then
+					nullable = True
+				End If
+				
+				Local defaultValue:TDBType = rec.value(6)
+				
+				cols.AddLast(TDBColumn.Create(name, dbType, nullable, defaultValue))
+			Next
+
+			table.SetCountColumns(cols.count())
+			Local i:Int
+			For Local col:TDBColumn = EachIn cols
+				table.SetColumn(i, col)
+				i:+ 1
+			Next
+			
+			cols.Clear()
+			
+		End If
+
+		Return table
 	End Method
 	
 	Method open:Int(user:String = Null, pass:String = Null)
