@@ -20,5 +20,6 @@
 ' 
 SuperStrict
 
+?Not linux
 Import "-liconv"
-
+?
