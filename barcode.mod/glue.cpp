@@ -67,14 +67,14 @@ void bmx_barcode_multiformatreader_free(zxing::MultiFormatReader * reader) {
 
 MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height) {
 	try {
-	
+
 		zxing::Ref<MaxBitmapSource> source(new MaxBitmapSource(pixels, width, height));
-	    
+
 		zxing::Ref<zxing::Binarizer> binarizer(NULL);
 		binarizer = new zxing::GlobalHistogramBinarizer(source);
-		
+
 		zxing::Ref<zxing::BinaryBitmap> image(new zxing::BinaryBitmap(binarizer));
-	
+
 		zxing::Ref<zxing::Result> result(reader->decode(image));
 		return new MaxResult(result);
 		

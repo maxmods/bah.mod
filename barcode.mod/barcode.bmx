@@ -28,6 +28,9 @@ ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release. (ZXing - SVN rev 1207)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
+?win32
+ModuleInfo "CC_OPTS: -DZXING_ICONV_CONST"
+?
 
 Import "common.bmx"
 

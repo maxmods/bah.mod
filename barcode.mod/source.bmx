@@ -16,6 +16,10 @@ SuperStrict
 
 Import BRL.Blitz
 
+?win32
+Import "../libiconv.mod/include/*.h"
+?
+
 Import "src/*.h"
 
 Import "src/zxing/BarcodeFormat.cpp"

@@ -27,8 +27,10 @@
 namespace zxing {
 	MultiFormatReader::MultiFormatReader(){
 		readers = new std::vector<Reader*>();
-		
+
+#ifndef WIN32
 		readers->push_back(new zxing::qrcode::QRCodeReader());
+#endif
 		readers->push_back(new zxing::oned::MultiFormatUPCEANReader());
 		readers->push_back(new zxing::oned::MultiFormatOneDReader());
 	}

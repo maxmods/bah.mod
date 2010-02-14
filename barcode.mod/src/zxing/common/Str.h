@@ -24,6 +24,8 @@
 #include <string>
 #include <iostream>
 #include <zxing/common/Counted.h>
+#include <string.h>
+#include <limits.h>
 
 namespace zxing {
 
