@@ -25,7 +25,7 @@ ModuleInfo "Copyright: ZXing - 2010 ZXing authors All rights reserved"
 ModuleInfo "Copyright: Wrapper - 2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (ZXing - SVN rev 1207)"
+ModuleInfo "History: Initial Release. (ZXing - SVN rev 1212)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ?win32
@@ -158,6 +158,15 @@ Type TBCResult
 			Return bmx_barcode_result_getBarcodeFormat(resultPtr)
 		Else
 			Return BarcodeFormat_None
+		End If
+	End Method
+	
+	Rem
+	bbdoc: Returns a list of points for the detected bounding box around the barcode.
+	End Rem
+	Method getPoints:Float[]()
+		If resultPtr Then
+			Return bmx_barcode_result_getResultPoints(resultPtr)
 		End If
 	End Method
 	

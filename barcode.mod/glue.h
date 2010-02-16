@@ -18,7 +18,7 @@
 #include "zxing/LuminanceSource.h"
 
 #include "zxing/common/GlobalHistogramBinarizer.h"
-
+#include "zxing/Result.h"
 
 class MaxResult;
 
@@ -30,10 +30,10 @@ extern "C" {
 	void bmx_barcode_multiformatreader_free(zxing::MultiFormatReader * reader);
 	MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height);
 
-
 	BBString * bmx_barcode_result_getText(MaxResult * result);
 	int bmx_barcode_result_getBarcodeFormat(MaxResult * result);
 	void bmx_barcode_result_free(MaxResult * result);
+	BBArray * bmx_barcode_result_getResultPoints(MaxResult * result);
 
 }
 

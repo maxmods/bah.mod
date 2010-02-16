@@ -24,6 +24,7 @@ Extern
 	Function bmx_barcode_result_getText:String(handle:Byte Ptr)
 	Function bmx_barcode_result_getBarcodeFormat:Int(handle:Byte Ptr)
 	Function bmx_barcode_result_free(handle:Byte Ptr)
+	Function bmx_barcode_result_getResultPoints:Float[](handle:Byte Ptr)
 
 	Function bmx_barcode_multiFormatReader_create:Byte Ptr()
 	Function bmx_barcode_multiformatreader_free(handle:Byte Ptr)

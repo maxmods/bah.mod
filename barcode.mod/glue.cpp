@@ -97,3 +97,17 @@ void bmx_barcode_result_free(MaxResult * result) {
 	delete result;
 }
 
+BBArray * bmx_barcode_result_getResultPoints(MaxResult * result) {
+
+	std::vector<zxing::Ref<zxing::ResultPoint> > points = result->result->getResultPoints();
+	int size = points.size() * 2;
+	
+	BBArray * arr = bbArrayNew1D( "f", size );
+	float * f = (float*)BBARRAYDATA(arr, arr->dims);
+	int i = 0;
+	while (i < size) {
+		f[i++] = points[i / 2]->getX();
+		f[i++] = points[i / 2]->getY();
+	}
+	return arr;
+}
