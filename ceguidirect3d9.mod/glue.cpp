@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,8 @@
 
 #include "glue.h"
 
-/*
-CEGUI::Direct3D9Renderer * bmx_cegui_direct3d9renderer_new() {
-	return &CEGUI::Direct3D9Renderer::create();
+CEGUI::Direct3D9Renderer * bmx_cegui_direct3d9renderer_new(LPDIRECT3DDEVICE9 device) {
+	return &CEGUI::Direct3D9Renderer::create(device);
 }
 
 BBObject * bmx_cegui_direct3d9renderer_creategeometrybuffer(CEGUI::Direct3D9Renderer * rend) {
@@ -100,21 +99,6 @@ void bmx_cegui_direct3d9renderer_endrendering(CEGUI::Direct3D9Renderer * rend) {
 	rend->endRendering();
 }
 
-BBObject * bmx_cegui_direct3d9renderer_creategltexture(CEGUI::Direct3D9Renderer * rend, GLuint tex, float w, float h) {
-	// FIXME : linking issue ...
-	//return _bah_ceguidirect3d9_TCEOpenGLTexture__create(&rend->createTexture(tex, CEGUI::Size(w, h)));
-}
 
-void bmx_cegui_direct3d9renderer_enableextrastatesettings(CEGUI::Direct3D9Renderer * rend, int setting) {
-	rend->enableExtraStateSettings(static_cast<bool>(setting));
-}
 
-void bmx_cegui_direct3d9renderer_grabtextures(CEGUI::Direct3D9Renderer * rend) {
-	rend->grabTextures();
-}
-
-void bmx_cegui_direct3d9renderer_restoretextures(CEGUI::Direct3D9Renderer * rend) {
-	rend->restoreTextures();
-}
-*/
 

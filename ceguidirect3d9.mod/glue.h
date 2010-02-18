@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2009 Bruce A Henderson
+  Copyright (c) 2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,12 @@ extern "C" {
 
 #include "blitz.h"
 
-/*
-	BBObject * _bah_ceguidirect3d9_TCEOpenGLGeometryBuffer__create(CEGUI::GeometryBuffer * buffer);
-	BBObject * _bah_ceguidirect3d9_TCEOpenGLTextureTarget__create(CEGUI::TextureTarget * target);
-	BBObject * _bah_ceguidirect3d9_TCEOpenGLTexture__create(CEGUI::Texture * buffer);
 
-	CEGUI::Direct3D9Renderer * bmx_cegui_direct3d9renderer_new();
+	BBObject * _bah_ceguidirect3d9_TCEDirect3D9GeometryBuffer__create(CEGUI::GeometryBuffer * buffer);
+	BBObject * _bah_ceguidirect3d9_TCEDirect3D9TextureTarget__create(CEGUI::TextureTarget * target);
+	BBObject * _bah_ceguidirect3d9_TCEDirect3D9Texture__create(CEGUI::Texture * buffer);
+
+	CEGUI::Direct3D9Renderer * bmx_cegui_direct3d9renderer_new(LPDIRECT3DDEVICE9 device);
 	BBObject * bmx_cegui_direct3d9renderer_creategeometrybuffer(CEGUI::Direct3D9Renderer * rend);
 	void bmx_cegui_direct3d9renderer_destroygeometrybuffer(CEGUI::Direct3D9Renderer * rend, CEGUI::GeometryBuffer * buffer);
 	void bmx_cegui_direct3d9renderer_destroyallgeometrybuffers(CEGUI::Direct3D9Renderer * rend);
@@ -52,10 +52,7 @@ extern "C" {
 	void bmx_cegui_direct3d9renderer_beginrendering(CEGUI::Direct3D9Renderer * rend);
 	void bmx_cegui_direct3d9renderer_endrendering(CEGUI::Direct3D9Renderer * rend);
 //	BBObject * bmx_cegui_direct3d9renderer_creategltexture(CEGUI::Direct3D9Renderer * rend, GLuint tex, float w, float h);
-	void bmx_cegui_direct3d9renderer_enableextrastatesettings(CEGUI::Direct3D9Renderer * rend, int setting);
-	void bmx_cegui_direct3d9renderer_grabtextures(CEGUI::Direct3D9Renderer * rend);
-	void bmx_cegui_direct3d9renderer_restoretextures(CEGUI::Direct3D9Renderer * rend);
-*/
+
 }
 
 
