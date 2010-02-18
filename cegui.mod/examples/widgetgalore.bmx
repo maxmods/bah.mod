@@ -1,17 +1,25 @@
 SuperStrict
 
+?Not win32
 Framework BaH.CEGUIOpenGL
 Import BRL.GLGraphics
 Import BRL.GLMax2d
+?win32
+Framework BaH.CEGUIDirect3D9
+?
 
 Import "examples_base.bmx"
 
-Graphics 800, 600, 0
+Local g:TGraphics = Graphics(800, 600, 0)
 
 HideMouse
 
 ' Initialize CEGUI !
-Init_CEGUI(New TCEOpenGLRenderer)
+?Not win32
+Init_CEGUI(New TCEOpenGLRenderer.init())
+?win32 
+Init_CEGUI(New TCEDirect3D9Renderer.init(g))
+?
 
 Local app:MyApp = New MyApp
 app.run()
