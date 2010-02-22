@@ -28,3 +28,5 @@ SuperStrict
 Import "src/*.hpp"
 
 
+Import "src/libs/system/src/error_code.cpp"
+
