@@ -28,9 +28,16 @@ SuperStrict
 Import BRL.Blitz
 Import Pub.Zlib
 Import BaH.Boost
+?win32
+Import BaH.Crypto
+?
 
 Import "../../pub.mod/zlib.mod/*.h"
 Import "../boost.mod/src/*.hpp"
+
+?win32
+Import "../crypto.mod/ssl/include/*.h"
+?
 
 Import "include/*.h"
 Import "include/libtorrent/*.h"
@@ -106,8 +113,12 @@ Import "glue.cpp"
 Import "../boost.mod/src/libs/thread/src/pthread/exceptions.cpp"
 Import "../boost.mod/src/libs/thread/src/pthread/thread.cpp"
 Import "../boost.mod/src/libs/thread/src/pthread/once.cpp"
+?win32
+Import "../boost.mod/src/libs/thread/src/win32/exceptions.cpp"
+Import "../boost.mod/src/libs/thread/src/win32/thread.cpp"
 ?
 
 Import "../boost.mod/src/libs/filesystem/src/operations.cpp"
 Import "../boost.mod/src/libs/filesystem/src/path.cpp"
 Import "../boost.mod/src/libs/filesystem/src/portability.cpp"
+

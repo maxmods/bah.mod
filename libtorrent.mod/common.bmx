@@ -34,6 +34,7 @@ Import "-lcrypto"
 Import "-ladvapi32"
 Import "-leay32"
 Import "-lssleay32"
+Import "-lws2_32"
 ?macos
 Import "-lssl"
 Import "-lcrypto"

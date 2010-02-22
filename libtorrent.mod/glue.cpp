@@ -27,6 +27,13 @@
 
 #include "glue.h"
 
+#ifdef WIN32
+    extern "C" void tss_cleanup_implemented(void)
+    {
+    }
+#endif
+
+
 Max_session_status::Max_session_status(libtorrent::session_status s)
 	: status(s)
 {
