@@ -26,7 +26,6 @@ SetBlend alphablend
 Global smallFont:TImageFont = LoadImageFont("incbin::media/Pixel_Berry_08_84_Ltd.Edition.TTF", 8, 0)
 Global mainFont:TImageFont = LoadImageFont("incbin::media/Share-TechMono.ttf", 14)
 Global tinyFont:TImageFont = LoadImageFont("incbin::media/Share-TechMono.ttf", 10)
-'Global tinyFont:TImageFont = LoadImageFont("incbin::media/amiga4everpro2.ttf", 6)
 
 SetImageFont(mainFont)
 
@@ -63,6 +62,7 @@ Type TMainProcess
 	Field session:TSession
 	Field handles:TList = New TList
 	Field activeHandle:TTorrentHandle
+	Field torrentIndex:Int = 0
 
 	Field print_peers:Int = False
 	Field print_log:Int = False
@@ -201,6 +201,66 @@ Type TMainProcess
 		If KeyHit(KEY_6) print_fails = Not print_fails
 		If KeyHit(KEY_7) print_send_bufs = Not print_send_bufs
 		
+		If KeyHit(KEY_J) Then
+			If activeHandle And activeHandle.isValid() Then
+				activeHandle.forceRecheck()
+			End If
+		End If
+
+		If KeyHit(KEY_R) Then
+			If activeHandle And activeHandle.isValid() Then
+				activeHandle.forceReannounce()
+			End If
+		End If
+
+		If KeyHit(KEY_S) Then
+			If activeHandle And activeHandle.isValid() Then
+				activeHandle.setSequentialDownload(Not activeHandle.isSequentialDownload())
+			End If
+		End If
+
+		If KeyHit(KEY_V) Then
+			If activeHandle And activeHandle.isValid() Then
+				activeHandle.scrapeTracker()
+			End If
+		End If
+	
+		If KeyHit(KEY_C) Then
+			If activeHandle And activeHandle.isValid() Then
+				activeHandle.clearError()
+			End If
+		End If
+	
+		Local newHandle:Int = False
+		If KeyHit(KEY_UP) Then
+			torrentIndex :- 1
+			If torrentIndex < 0 Then
+				torrentIndex = handles.count() - 1
+			End If
+			
+			newHandle = True
+		End If
+		
+		If KeyHit(KEY_DOWN) Then
+			torrentIndex :+ 1
+			If torrentIndex >= handles.count() Then
+				torrentIndex = 0
+			End If
+
+			newHandle = True
+		End If
+		
+		If newHandle Then
+			Local i:Int = 0
+			For Local handle:TTorrentHandle = EachIn handles
+				If i = torrentIndex Then
+					activeHandle = handle
+					Exit
+				End If
+				
+				i:+ 1
+			Next	
+		End If
 	
 	End Method
 
@@ -380,7 +440,7 @@ Type TMainProcess
 		SetImageFont(smallFont)
 
 		DrawText "[ESC] quit [i] toggle peers [d] toggle downloading pieces [p] toggle paused [a] toggle piece bar [s] toggle download sequential [f] toggle files", 120, 5
-		DrawText "[j] force recheck [SPACE] toggle session pause [c] clear error [v] scrape", 120, 20
+		DrawText "[j] force recheck [SPACE] toggle session pause [c] clear error [v] scrape [UP] previous torrent [DOWN] next torrent", 120, 20
 		DrawText "[1] toggle IP [2] toggle AS [3] toggle timers [4] toggle block progress [5] toggle peer rate [6] toggle failures [7] toggle send buffers", 120, 35
 
 		SetImageFont(mainFont)
@@ -433,9 +493,9 @@ Type TMainProcess
 				If bitfield.getBit(k) Then
 					numHave:+ 1
 				End If
-				Local col:Int = Ceil(numHave / Float(numPieces * 6))
-				bar:+ lookup[col]
 			Next
+			Local col:Int = Ceil(numHave / Float(numPieces * 6))
+			bar:+ lookup[col]
 			
 			piece:+ piecesPerChar
 		Next
@@ -456,7 +516,7 @@ Type TMainProcess
 		
 		For Local handle:TTorrentHandle = EachIn handles
 		
-			Local offset:Int = 80 + i * 20
+			Local offset:Int = 80 + i * 15
 		
 			If handle.isValid() Then
 				
