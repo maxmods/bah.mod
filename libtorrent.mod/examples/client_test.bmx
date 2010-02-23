@@ -479,39 +479,225 @@ Type TMainProcess
 		Local s:String
 		
 		If print_ip Then s:+ "IP                     "
-		s:+ "down     (total | peak   )  up      (total | peak   ) sent-req recv flags         source "
+		s:+ "down     (total | peak   ) up       (total | peak   ) sent-req recv flags          source "
 		If print_fails s:+ "fail hshf "
 		If print_send_bufs s:+ "rq sndb            quota rcvb            "
 		If print_timers s:+ "inactive wait timeout "
 
 		
-		s:+ "disk   rtt "
+		s:+ "disk    rtt "
 		If print_block s:+ "block-progress "
 		If print_peer_rate s:+ "peer-rate "
 		s:+ "client"
 		
 		DrawText s, 10, y
 		
-		Local yOffset:Int = y
+		Const rowHeight:Int = 11
+		Local yOffset:Int = y + rowHeight
 		
 		For Local info:TPeerInfo = EachIn peers
 		
-			'If info.flags() & TPeerInfo.handshake Then
-			'	Continue
-			'End If
+			Local xOffset:Int = 10
+
+			If info.flags() & TPeerInfo.handshake Then
+				Continue
+			End If
 				
 			If print_ip Then
 				' TODO
+				xOffset:+ 115
 			End If
 		
+
+			' Downloads
+			color(COLOR_GREEN)
+			If info.downSpeed() > 0 Then
+				DrawText addSuffix(info.downSpeed()) + "/s", xOffset, yOffset
+			End If
+
+			s = "("
+			If info.totalDownload() > 0 Then
+				s:+ addSuffix(info.totalDownload())
+			Else
+				s:+ "      "
+			End If
+			
+			s:+ "|"
+			
+			If info.downloadRatePeak() > 0 Then
+				s:+ addSuffix(info.downloadRatePeak()) + "/s"
+			Else
+				s:+ "        "
+			End If
+			s:+ ")"
+			
+			xOffset:+ 45
+			DrawText s, xOffset, yOffset
+			xOffset:+ 90
 		
-		
+
+			' Uploads
+			color(COLOR_RED)
+			If info.upSpeed() > 0 Then
+				DrawText addSuffix(info.upSpeed()) + "/s", xOffset, yOffset
+			End If
+
+			s = "("
+			If info.totalUpload() > 0 Then
+				s:+ addSuffix(info.totalUpload())
+			Else
+				s:+ "      "
+			End If
+			
+			s:+ "|"
+			
+			If info.uploadRatePeak() > 0 Then
+				s:+ addSuffix(info.uploadRatePeak()) + "/s"
+			Else
+				s:+ "        "
+			End If
+			s:+ ")"
+			
+			xOffset:+ 45
+			DrawText s, xOffset, yOffset
+			xOffset:+ 90
+	
+			' 
+			color()
+			s = fixedString(info.downloadQueueLength(), 3) + " ("
+			s:+ fixedString(info.targetDlQueueLength(), 3) + ") "
+			s:+ fixedString(info.uploadQueueLength(), 3)
+			DrawText s, xOffset, yOffset
+			xOffset:+ 70
+
+			' flags
+			s = ""
+			Local flags:Int = info.flags()
+			
+			s:+ checkFlag(flags, TPeerInfo.interesting, "I")
+			s:+ checkFlag(flags, TPeerInfo.choked, "C")
+			s:+ checkFlag(flags, TPeerInfo.remoteInterested, "i")
+			s:+ checkFlag(flags, TPeerInfo.remoteChoked, "c")
+			s:+ checkFlag(flags, TPeerInfo.supportsExtensions, "e")
+			s:+ checkFlag(flags, TPeerInfo.localConnection, "l", "r")
+			s:+ checkFlag(flags, TPeerInfo.seed, "s")
+			s:+ checkFlag(flags, TPeerInfo.onParole, "p")
+			s:+ checkFlag(flags, TPeerInfo.optimisticUnchoke, "O")
+			
+			Select info.readState()
+				Case TPeerInfo.bwTorrent
+					s:+ "t"
+				Case TPeerInfo.bwGlobal
+					s:+ "r"
+				Case TPeerInfo.bwNetwork
+					s:+ "R"
+				Default
+					s:+ "."
+			End Select
+
+			Select info.writeState()
+				Case TPeerInfo.bwTorrent
+					s:+ "t"
+				Case TPeerInfo.bwGlobal
+					s:+ "w"
+				Case TPeerInfo.bwNetwork
+					s:+ "W"
+				Default
+					s:+ "."
+			End Select
+			
+			s:+ checkFlag(flags, TPeerInfo.snubbed, "S")
+			s:+ checkFlag(flags, TPeerInfo.uploadOnly, "U", "D")
+
+			If flags & TPeerInfo.rc4Encrypted Then
+				s:+ "E"
+			Else If flags & TPeerInfo.plaintextEncrypted Then
+				s:+ "e"
+			Else
+				s:+ "."
+			End If
+			
+			s:+ " "
+			
+			s:+ checkFlag(info.source(), TPeerInfo.tracker, "T", "_")
+			s:+ checkFlag(info.source(), TPeerInfo.pex, "P", "_")
+			s:+ checkFlag(info.source(), TPeerInfo.dht, "D", "_")
+			s:+ checkFlag(info.source(), TPeerInfo.lsd, "L", "_")
+			s:+ checkFlag(info.source(), TPeerInfo.resumeData, "R", "_")
+			
+			DrawText s, xOffset, yOffset
+			
+
+			xOffset:+ 110
+			
+			If print_fails Then
+				xOffset:+ 5
+				DrawText fixedString(info.failCount(), 3) + " " + fixedString(info.numHashFails(), 3), xOffset, yOffset
+				xOffset:+ 45
+			End If
+			
+			If print_send_bufs Then
+				s = fixedString(info.requestsInBuffer(), 2) + " "
+				s:+ fixedString(info.usedSendBuffer(), 6) + " ("
+				s:+ addSuffix(info.sendBufferSize()) + ") "
+				s:+ fixedString(info.sendQuota(), 5) + " "
+				s:+ fixedString(info.usedReceiveBuffer(), 6) + " ("
+				s:+ addSuffix(info.receiveBufferSize()) + ")"
+				
+				DrawText s, xOffset, yOffset
+				xOffset:+ 205
+			End If
+			
+			If print_timers Then
+				s = fixedString(info.lastActive(), 8) + " "
+				s:+ fixedString(info.lastRequest(), 4) + " "
+				s:+ fixedString(info.requestTimeout(), 7)
+
+				DrawText s, xOffset, yOffset
+				xOffset:+ 100
+			End If
+			
+			' pending disk bytes
+			DrawText addSuffix(info.pendingDiskBytes()) + " " + fixedString(info.rtt(), 4), xOffset, yOffset
+			xOffset :+ 60
+			
+			If print_block Then
+				xOffset:+ 50
+			End If
+			
+			If print_peer_rate Then
+				xOffset:+ 80
+			End If
+			
+			
+			If info.flags() & TPeerInfo.handshake Then
+				color(COLOR_RED)
+				DrawText "waiting for handshake", xOffset, yOffset
+			Else If info.flags() & TPeerInfo.connecting Then
+				color(COLOR_RED)
+				DrawText "connecting to peer", xOffset, yOffset
+			Else If info.flags() & TPeerInfo.queued Then
+				color(COLOR_YELLOW)
+				DrawText "queued", xOffset, yOffset
+			Else
+				DrawText info.client(), xOffset, yOffset
+			End If
+	
+			yOffSet:+ rowHeight
 		Next
 		
 		
 		SetImageFont(mainFont)
 		Return y
 	End Method
+	
+	Function checkFlag:String(flag:Int, value:Int, character:String, def:String = ".")
+		If flag & value Then
+			Return character
+		Else
+			Return def
+		End If
+	End Function
 	
 	Function addSuffix:String(value:Float)
 		Global prefix:String[] = ["kB", "MB", "GB", "TB"]
@@ -542,7 +728,12 @@ Type TMainProcess
 		formatter.Clear()
 		Local s:String = formatter.FloatArg(value).Format()
 		If s.length > width Then
-			Return s[..width]
+			s = s[..width]
+		End If
+		
+		' strip dot
+		If s.EndsWith(".") Then
+			s = " " + s[..s.length -1]
 		End If
 		
 		Return s

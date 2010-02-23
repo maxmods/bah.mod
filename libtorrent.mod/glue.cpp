@@ -1471,4 +1471,173 @@ unsigned int bmx_torrent_peerinfo_flags(Max_peer_info * p) {
 	return p->Info().flags;
 }
 
+int bmx_torrent_peerinfo_source(Max_peer_info * p) {
+	return p->Info().source;
+}
+
+float bmx_torrent_peerinfo_up_speed(Max_peer_info * p) {
+	return p->Info().up_speed;
+}
+
+float bmx_torrent_peerinfo_down_speed(Max_peer_info * p) {
+	return p->Info().down_speed;
+}
+
+float bmx_torrent_peerinfo_payload_up_speed(Max_peer_info * p) {
+	return p->Info().payload_up_speed;
+}
+
+float bmx_torrent_peerinfo_payload_down_speed(Max_peer_info * p) {
+	return p->Info().payload_down_speed;
+}
+
+void bmx_torrent_peerinfo_total_download(Max_peer_info * p, BBInt64 * v) {
+	*v = p->Info().total_download;
+}
+
+void bmx_torrent_peerinfo_total_upload(Max_peer_info * p, BBInt64 * v) {
+	*v = p->Info().total_upload;
+}
+
+Max_bitfield * bmx_torrent_peerinfo_pieces(Max_peer_info * p) {
+	return new Max_bitfield(p->Info().pieces);
+}
+
+int bmx_torrent_peerinfo_upload_limit(Max_peer_info * p) {
+	return p->Info().upload_limit;
+}
+
+int bmx_torrent_peerinfo_download_limit(Max_peer_info * p) {
+	return p->Info().download_limit;
+}
+
+int bmx_torrent_peerinfo_last_request(Max_peer_info * p) {
+	return libtorrent::total_seconds(p->Info().last_request);
+}
+
+int bmx_torrent_peerinfo_last_active(Max_peer_info * p) {
+	return libtorrent::total_seconds(p->Info().last_active);
+}
+
+int bmx_torrent_peerinfo_request_timeout(Max_peer_info * p) {
+	return p->Info().request_timeout;
+}
+
+int bmx_torrent_peerinfo_send_buffer_size(Max_peer_info * p) {
+	return p->Info().send_buffer_size;
+}
+
+int bmx_torrent_peerinfo_used_send_buffer(Max_peer_info * p) {
+	return p->Info().used_send_buffer;
+}
+
+int bmx_torrent_peerinfo_receive_buffer_size(Max_peer_info * p) {
+	return p->Info().receive_buffer_size;
+}
+
+int bmx_torrent_peerinfo_used_receive_buffer(Max_peer_info * p) {
+	return p->Info().used_receive_buffer;
+}
+
+int bmx_torrent_peerinfo_num_hashfails(Max_peer_info * p) {
+	return p->Info().num_hashfails;
+}
+
+BBString * bmx_torrent_peerinfo_inet_as_name(Max_peer_info * p) {
+	return bbStringFromUTF8String(p->Info().inet_as_name.c_str());
+}
+
+int bmx_torrent_peerinfo_inet_as(Max_peer_info * p) {
+	return p->Info().inet_as;
+}
+
+void bmx_torrent_peerinfo_load_balancing(Max_peer_info * p, BBInt64 * v) {
+	*v = p->Info().load_balancing;
+}
+
+int bmx_torrent_peerinfo_requests_in_buffer(Max_peer_info * p) {
+	return p->Info().requests_in_buffer;
+}
+
+
+int bmx_torrent_peerinfo_target_dl_queue_length(Max_peer_info * p) {
+	return p->Info().target_dl_queue_length;
+}
+
+int bmx_torrent_peerinfo_download_queue_length(Max_peer_info * p) {
+	return p->Info().download_queue_length;
+}
+
+int bmx_torrent_peerinfo_upload_queue_length(Max_peer_info * p) {
+	return p->Info().upload_queue_length;
+}
+
+int bmx_torrent_peerinfo_failcount(Max_peer_info * p) {
+	return p->Info().failcount;
+}
+
+int bmx_torrent_peerinfo_downloading_piece_index(Max_peer_info * p) {
+	return p->Info().downloading_piece_index;
+}
+
+int bmx_torrent_peerinfo_downloading_block_index(Max_peer_info * p) {
+	return p->Info().downloading_block_index;
+}
+
+int bmx_torrent_peerinfo_downloading_progress(Max_peer_info * p) {
+	return p->Info().downloading_progress;
+}
+
+int bmx_torrent_peerinfo_downloading_total(Max_peer_info * p) {
+	return p->Info().downloading_total;
+}
+
+BBString * bmx_torrent_peerinfo_client(Max_peer_info * p) {
+	return bbStringFromUTF8String(p->Info().client.c_str());
+}
+
+int bmx_torrent_peerinfo_connection_type(Max_peer_info * p) {
+	return p->Info().connection_type;
+}
+
+int bmx_torrent_peerinfo_remote_dl_rate(Max_peer_info * p) {
+	return p->Info().remote_dl_rate;
+}
+
+int bmx_torrent_peerinfo_pending_disk_bytes(Max_peer_info * p) {
+	return p->Info().pending_disk_bytes;
+}
+
+int bmx_torrent_peerinfo_send_quota(Max_peer_info * p) {
+	return p->Info().send_quota;
+}
+
+int bmx_torrent_peerinfo_receive_quota(Max_peer_info * p) {
+	return p->Info().receive_quota;
+}
+
+int bmx_torrent_peerinfo_rtt(Max_peer_info * p) {
+	return p->Info().rtt;
+}
+
+int bmx_torrent_peerinfo_download_rate_peak(Max_peer_info * p) {
+	return p->Info().download_rate_peak;
+}
+
+int bmx_torrent_peerinfo_upload_rate_peak(Max_peer_info * p) {
+	return p->Info().upload_rate_peak;
+}
+
+float bmx_torrent_peerinfo_progress(Max_peer_info * p) {
+	return p->Info().progress;
+}
+
+
+int bmx_torrent_peerinfo_read_state(Max_peer_info * p) {
+	return static_cast<int>(p->Info().read_state);
+}
+
+int bmx_torrent_peerinfo_write_state(Max_peer_info * p) {
+	return static_cast<int>(p->Info().write_state);
+}
 

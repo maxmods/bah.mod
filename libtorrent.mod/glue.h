@@ -361,6 +361,49 @@ extern "C" {
 
 	void bmx_torrent_peerinfo_free(Max_peer_info * p);
 	unsigned int bmx_torrent_peerinfo_flags(Max_peer_info * p);
+	int bmx_torrent_peerinfo_source(Max_peer_info * p);
+	float bmx_torrent_peerinfo_up_speed(Max_peer_info * p);
+	float bmx_torrent_peerinfo_down_speed(Max_peer_info * p);
+	float bmx_torrent_peerinfo_payload_up_speed(Max_peer_info * p);
+	float bmx_torrent_peerinfo_payload_down_speed(Max_peer_info * p);
+	void bmx_torrent_peerinfo_total_download(Max_peer_info * p, BBInt64 * v);
+	void bmx_torrent_peerinfo_total_upload(Max_peer_info * p, BBInt64 * v);
+	Max_bitfield * bmx_torrent_peerinfo_pieces(Max_peer_info * p);
+	int bmx_torrent_peerinfo_upload_limit(Max_peer_info * p);
+	int bmx_torrent_peerinfo_download_limit(Max_peer_info * p);
+	int bmx_torrent_peerinfo_last_request(Max_peer_info * p);
+	int bmx_torrent_peerinfo_last_active(Max_peer_info * p);
+	int bmx_torrent_peerinfo_request_timeout(Max_peer_info * p);
+	int bmx_torrent_peerinfo_send_buffer_size(Max_peer_info * p);
+	int bmx_torrent_peerinfo_used_send_buffer(Max_peer_info * p);
+	int bmx_torrent_peerinfo_receive_buffer_size(Max_peer_info * p);
+	int bmx_torrent_peerinfo_used_receive_buffer(Max_peer_info * p);
+	int bmx_torrent_peerinfo_num_hashfails(Max_peer_info * p);
+	BBString * bmx_torrent_peerinfo_inet_as_name(Max_peer_info * p);
+	int bmx_torrent_peerinfo_inet_as(Max_peer_info * p);
+	void bmx_torrent_peerinfo_load_balancing(Max_peer_info * p, BBInt64 * v);
+	int bmx_torrent_peerinfo_requests_in_buffer(Max_peer_info * p);
+	int bmx_torrent_peerinfo_target_dl_queue_length(Max_peer_info * p);
+	int bmx_torrent_peerinfo_download_queue_length(Max_peer_info * p);
+	int bmx_torrent_peerinfo_upload_queue_length(Max_peer_info * p);
+	int bmx_torrent_peerinfo_failcount(Max_peer_info * p);
+	int bmx_torrent_peerinfo_downloading_piece_index(Max_peer_info * p);
+	int bmx_torrent_peerinfo_downloading_block_index(Max_peer_info * p);
+	int bmx_torrent_peerinfo_downloading_progress(Max_peer_info * p);
+	int bmx_torrent_peerinfo_downloading_total(Max_peer_info * p);
+	BBString * bmx_torrent_peerinfo_client(Max_peer_info * p);
+	int bmx_torrent_peerinfo_connection_type(Max_peer_info * p);
+	int bmx_torrent_peerinfo_remote_dl_rate(Max_peer_info * p);
+	int bmx_torrent_peerinfo_pending_disk_bytes(Max_peer_info * p);
+	int bmx_torrent_peerinfo_send_quota(Max_peer_info * p);
+	int bmx_torrent_peerinfo_receive_quota(Max_peer_info * p);
+	int bmx_torrent_peerinfo_rtt(Max_peer_info * p);
+	int bmx_torrent_peerinfo_download_rate_peak(Max_peer_info * p);
+	int bmx_torrent_peerinfo_upload_rate_peak(Max_peer_info * p);
+	float bmx_torrent_peerinfo_progress(Max_peer_info * p);
+	int bmx_torrent_peerinfo_read_state(Max_peer_info * p);
+	int bmx_torrent_peerinfo_write_state(Max_peer_info * p);
+
 
 }
 

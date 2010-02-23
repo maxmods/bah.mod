@@ -1218,10 +1218,16 @@ Type TTorrentStatus
 		Return bmx_torrent_torrentstatus_has_incoming(statusPtr)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
 	Method pieces:TBitfield()
 		Return TBitfield._create(bmx_torrent_torrentstatus_pieces(statusPtr))
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method numPieces:Int()
 		Return bmx_torrent_torrentstatus_num_pieces(statusPtr)
 	End Method
@@ -1236,28 +1242,111 @@ Type TTorrentStatus
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Peer information.
 End Rem
 Type TPeerInfo
 
+	Rem
+	bbdoc: We are interested in pieces from this peer.
+	End Rem
 	Const interesting:Int = $1
+	Rem
+	bbdoc: We have choked this peer.
+	End Rem
 	Const choked:Int = $2
+	Rem
+	bbdoc: The peer is interested in us.
+	End Rem
 	Const remoteInterested:Int = $4
+	Rem
+	bbdoc: Tthe peer has choked us.
+	End Rem
 	Const remoteChoked:Int = $8
+	Rem
+	bbdoc: Means that this peer supports the extension protocol.
+	End Rem
 	Const supportsExtensions:Int = $10
+	Rem
+	bbdoc: The connection was initiated by us, the peer has a listen port open, and that port is the same as in the address of this peer.
+	about: If this flag is not set, this peer connection was opened by this peer connecting to us.
+	End Rem
 	Const localConnection:Int = $20
+	Rem
+	bbdoc: The connection is opened, and waiting for the handshake.
+	about: Until the handshake is done, the peer cannot be identified.
+	End Rem
 	Const handshake:Int = $40
+	Rem
+	bbdoc: The connection is in a half-open state (i.e. it is being connected).
+	End Rem
 	Const connecting:Int = $80
+	Rem
+	bbdoc: The connection is currently queued for a connection attempt.
+	about: This may happen if there is a limit set on the number of half-open TCP connections.
+	End Rem
 	Const queued:Int = $100
+	Rem
+	bbdoc: The peer has participated in a piece that failed the hash check, and is now "on parole", which means we're only requesting whole pieces from this peer until it either fails that piece or proves that it doesn't send bad data.
+	End Rem
 	Const onParole:Int = $200
+	Rem
+	bbdoc: This peer is a seed (it has all the pieces).
+	End Rem
 	Const seed:Int = $400
+	Rem
+	bbdoc: This peer is subject to an optimistic unchoke.
+	about: It has been unchoked for a while to see if it might unchoke us in return an earn an upload/unchoke slot. If it doesn't within
+	some period of time, it will be choked and another peer will be optimistically unchoked.
+	End Rem
 	Const optimisticUnchoke:Int = $800
+	Rem
+	bbdoc: This peer has recently failed to send a block within the request timeout from when the request was sent.
+	about: We're currently picking one block at a time from this peer.
+	End Rem
 	Const snubbed:Int = $1000
+	Rem
+	bbdoc: This peer has either explicitly (with an extension) or implicitly (by becoming a seed) told us that it will not downloading anything more, regardless of which pieces we have.
+	End Rem
 	Const uploadOnly:Int = $2000
+	Rem
+	bbdoc: This peer uses rc4 encryption.
+	End Rem
 	Const rc4Encrypted:Int = $100000
+	Rem
+	bbdoc: This peer uses plaintext encryption.
+	End Rem
 	Const plaintextEncrypted:Int = $200000
 
+	Rem
+	bbdoc: The peer was received from the tracker.
+	End Rem
+	Const tracker:Int = $1
+	Rem
+	bbdoc: The peer was received from the kademlia DHT.
+	End Rem
+	Const dht:Int = $2
+	Rem
+	bbdoc: The peer was received from the peer exchange extension.
+	End Rem
+	Const pex:Int = $4
+	Rem
+	bbdoc: The peer was received from the local service discovery (The peer is on the local network).
+	End Rem
+	Const lsd:Int = $8
+	Rem
+	bbdoc: The peer was added from the fast resume data.
+	End Rem
+	Const resumeData:Int = $10
+	Rem
+	bbdoc: 
+	End Rem
+	Const incoming:Int = $20
 	
+	Const bwIdle:Int = 0
+	Const bwTorrent:Int = 1
+	Const bwGlobal:Int = 2
+	Const bwNetwork:Int = 3
+
 	Field infoPtr:Byte Ptr
 	
 	Function _create:TPeerInfo(infoPtr:Byte Ptr)
@@ -1282,7 +1371,307 @@ Type TPeerInfo
 	Method flags:Int()
 		Return bmx_torrent_peerinfo_flags(infoPtr)
 	End Method
-
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method source:Int()
+		Return bmx_torrent_peerinfo_source(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method upSpeed:Float()
+		Return bmx_torrent_peerinfo_up_speed(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downSpeed:Float()
+		Return bmx_torrent_peerinfo_down_speed(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method payloadUpSpeed:Float()
+		Return bmx_torrent_peerinfo_payload_up_speed(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method payloadDownSpeed:Float()
+		Return bmx_torrent_peerinfo_payload_down_speed(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method totalDownload:Long()
+		Local v:Long
+		bmx_torrent_peerinfo_total_download(infoPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method totalUpload:Long()
+		Local v:Long
+		bmx_torrent_peerinfo_total_upload(infoPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method pieces:TBitfield()
+		Return TBitfield._create(bmx_torrent_peerinfo_pieces(infoPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method uploadLimit:Int()
+		Return bmx_torrent_peerinfo_upload_limit(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadLimit:Int()
+		Return bmx_torrent_peerinfo_download_limit(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method lastRequest:Int()
+		Return bmx_torrent_peerinfo_last_request(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method lastActive:Int()
+		Return bmx_torrent_peerinfo_last_active(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method requestTimeout:Int()
+		Return bmx_torrent_peerinfo_request_timeout(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method sendBufferSize:Int()
+		Return bmx_torrent_peerinfo_send_buffer_size(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method usedSendBuffer:Int()
+		Return bmx_torrent_peerinfo_used_send_buffer(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method receiveBufferSize:Int()
+		Return bmx_torrent_peerinfo_receive_buffer_size(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method usedReceiveBuffer:Int()
+		Return bmx_torrent_peerinfo_used_receive_buffer(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method numHashfails:Int()
+		Return bmx_torrent_peerinfo_num_hashfails(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method inetAsName:String()
+		Return bmx_torrent_peerinfo_inet_as_name(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method inetAs:Int()
+		Return bmx_torrent_peerinfo_inet_as(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method loadBalancing:Long()
+		Local v:Long
+		bmx_torrent_peerinfo_load_balancing(infoPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The number of request messages waiting to be sent inside the send buffer.
+	End Rem
+	Method requestsInBuffer:Int()
+		Return bmx_torrent_peerinfo_requests_in_buffer(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The number of requests that is tried to be maintained (this is typically a function of download speed)
+	End Rem
+	Method targetDlQueueLength:Int()
+		Return bmx_torrent_peerinfo_target_dl_queue_length(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadQueueLength:Int()
+		Return bmx_torrent_peerinfo_download_queue_length(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method uploadQueueLength:Int()
+		Return bmx_torrent_peerinfo_upload_queue_length(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method failcount:Int()
+		Return bmx_torrent_peerinfo_failcount(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadingPieceIndex:Int()
+		Return bmx_torrent_peerinfo_downloading_piece_index(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadingBlockIndex:Int()
+		Return bmx_torrent_peerinfo_downloading_block_index(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadingProgress:Int()
+		Return bmx_torrent_peerinfo_downloading_progress(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadingTotal:Int()
+		Return bmx_torrent_peerinfo_downloading_total(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method client:String()
+		Return bmx_torrent_peerinfo_client(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method connectionType:Int()
+		Return bmx_torrent_peerinfo_connection_type(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method remoteDlRate:Int()
+		Return bmx_torrent_peerinfo_remote_dl_rate(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method pendingDiskBytes:Int()
+		Return bmx_torrent_peerinfo_pending_disk_bytes(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method sendQuota:Int()
+		Return bmx_torrent_peerinfo_send_quota(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method receiveQuota:Int()
+		Return bmx_torrent_peerinfo_receive_quota(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method rtt:Int()
+		Return bmx_torrent_peerinfo_rtt(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method downloadRatePeak:Int()
+		Return bmx_torrent_peerinfo_download_rate_peak(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method uploadRatePeak:Int()
+		Return bmx_torrent_peerinfo_upload_rate_peak(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method progress:Float()
+		Return bmx_torrent_peerinfo_progress(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method readState:Int()
+		Return bmx_torrent_peerinfo_read_state(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method writeState:Int()
+		Return bmx_torrent_peerinfo_write_state(infoPtr)
+	End Method
+	
 	Method Delete()
 		If infoPtr Then
 			bmx_torrent_peerinfo_free(infoPtr)
