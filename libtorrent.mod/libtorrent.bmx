@@ -40,6 +40,9 @@ ModuleInfo "History: Initial Release. (libtorrent 0.14.9)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DTORRENT_USE_OPENSSL -DTORRENT_NO_DEPRECATE"
+?linux
+ModuleInfo "CC_OPTS: -D_FILE_OFFSET_BITS=64"
+?
 
 Import "core.bmx"
 
