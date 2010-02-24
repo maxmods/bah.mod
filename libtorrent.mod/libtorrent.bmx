@@ -1753,3 +1753,37 @@ End Type
 Type TNatpmp
 End Type
 
+Type TFileStorage
+
+	Field storagePtr:Byte Ptr
+
+	Method Create:TFileStorage(files:String = Null)
+		If files Then
+			'storagePtr = bmx_torrent_file_storage_create(files)
+		Else
+			'storagePtr = bmx_torrent_file_storage_create(Null)
+		End If
+		
+		Return Self
+	End Method
+
+	Method isValid:Int()
+		'Return bmx_torrent_file_storage_is_valid(storagePtr)
+	End Method
+	
+	
+	
+	Method Delete()
+		If storagePtr Then
+			'bmx_torrent_file_storage_free(storagePtr)
+			storagePtr = Null
+		End If
+	End Method
+	
+End Type
+
+Type TCreateTorrent
+
+End Type
+
+
