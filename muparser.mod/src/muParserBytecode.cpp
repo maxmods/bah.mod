@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2009 Ingo Berg
+  Copyright (C) 2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -140,7 +140,7 @@ namespace mu
     m_vBase.push_back( ++m_iStackPos );
     m_vBase.push_back( cmVAR );
 
-    m_iMaxStackSize = std::max(m_iMaxStackSize, m_iStackPos);
+    m_iMaxStackSize = std::max(m_iMaxStackSize, (size_t)m_iStackPos);
 
     StorePtr(a_pVar);
 
@@ -170,7 +170,7 @@ namespace mu
   {
     m_vBase.push_back( ++m_iStackPos );
     m_vBase.push_back( cmVAL );
-    m_iMaxStackSize = std::max(m_iMaxStackSize, m_iStackPos);
+    m_iMaxStackSize = std::max(m_iMaxStackSize, (size_t)m_iStackPos);
 
     for (int i=0; i<mc_iSizeVal; ++i)
       m_vBase.push_back( *(reinterpret_cast<map_type*>(&a_fVal) + i) );
@@ -227,11 +227,11 @@ namespace mu
     {
       m_iStackPos = m_iStackPos + a_iArgc + 1; 
     }
-    m_iMaxStackSize = std::max(m_iMaxStackSize, m_iStackPos);
+    m_iMaxStackSize = std::max(m_iMaxStackSize, (size_t)m_iStackPos);
 
     m_vBase.push_back(m_iStackPos);
     m_vBase.push_back(cmFUNC);
-	  m_vBase.push_back(a_iArgc);
+    m_vBase.push_back(a_iArgc);
 
     StorePtr(a_pFun);
   }
@@ -249,10 +249,10 @@ namespace mu
     m_iStackPos = m_iStackPos - a_iArgc + 1;
     m_vBase.push_back(m_iStackPos);
     m_vBase.push_back(cmFUNC_STR);
-	  m_vBase.push_back(a_iArgc);
+    m_vBase.push_back(a_iArgc);
     m_vBase.push_back(a_iIdx);
 
-    m_iMaxStackSize = std::max(m_iMaxStackSize, m_iStackPos);
+    m_iMaxStackSize = std::max(m_iMaxStackSize, (size_t)m_iStackPos);
 
     StorePtr(a_pFun);
   }

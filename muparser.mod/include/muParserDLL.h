@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2008 Ingo Berg
+  Copyright (C) 2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -77,7 +77,7 @@ API_EXPORT(void) mupRelease(muParserHandle_t a_hParser);
 API_EXPORT(const muChar_t*) mupGetExpr(muParserHandle_t a_hParser);
 API_EXPORT(void) mupSetExpr(muParserHandle_t a_hParser, const muChar_t *a_szExpr);
 API_EXPORT(void) mupSetVarFactory(muParserHandle_t a_hParser, muFacFun_t a_pFactory, void* pUserData);
-
+API_EXPORT(const muChar_t*) mupGetVersion(muParserHandle_t a_hParser);
 API_EXPORT(muFloat_t) mupEval(muParserHandle_t a_hParser);
 
 // Defining callbacks / variables / constants
@@ -148,6 +148,7 @@ API_EXPORT(void) mupGetConst(muParserHandle_t a_hParser, unsigned a_iVar, const 
 API_EXPORT(void) mupSetArgSep(muParserHandle_t a_hParser, const muChar_t cArgSep);
 API_EXPORT(void) mupSetDecSep(muParserHandle_t a_hParser, const muChar_t cArgSep);
 API_EXPORT(void) mupSetThousandsSep(muParserHandle_t a_hParser, const muChar_t cArgSep);
+API_EXPORT(void) mupResetLocale(muParserHandle_t a_hParser);
 
 // Add value recognition callbacks
 API_EXPORT(void) mupAddValIdent(muParserHandle_t a_hParser, muIdentFun_t);

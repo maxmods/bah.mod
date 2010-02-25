@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2008 Ingo Berg
+  Copyright (C) 2004-2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -170,6 +170,18 @@ API_EXPORT(void) mupRelease(muParserHandle_t a_hParser)
     ParserTag* p = static_cast<ParserTag*>(a_hParser);
     delete p;
   MU_CATCH
+}
+
+//---------------------------------------------------------------------------
+API_EXPORT(const muChar_t*) mupGetVersion(muParserHandle_t a_hParser)
+{
+  MU_TRY
+    muParser_t* const p(AsParser(a_hParser));
+    sprintf(s_tmpOutBuf, "%s", p->GetVersion().c_str());
+    return s_tmpOutBuf;
+  MU_CATCH
+
+  return "";
 }
 
 //---------------------------------------------------------------------------
@@ -627,6 +639,15 @@ API_EXPORT(void) mupSetArgSep(muParserHandle_t a_hParser, const muChar_t cArgSep
   MU_TRY
     muParser_t* const p(AsParser(a_hParser));
     p->SetArgSep(cArgSep);
+  MU_CATCH
+}
+
+//-----------------------------------------------------------------------------------------------------
+API_EXPORT(void) mupResetLocale(muParserHandle_t a_hParser)
+{
+  MU_TRY
+    muParser_t* const p(AsParser(a_hParser));
+    p->ResetLocale();
   MU_CATCH
 }
 

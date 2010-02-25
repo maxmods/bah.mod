@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2009 Ingo Berg
+  Copyright (C) 2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -48,7 +48,7 @@ namespace mu
       When defining custom binary operators with #AddOprt(...) make sure not to choose 
       names conflicting with these definitions. 
   */
-  char_type* ParserBase::c_DefaultOprt[] = 
+  const char_type* ParserBase::c_DefaultOprt[] = 
   { 
     _T("<="), _T(">="),  _T("!="), 
     _T("=="), _T("<"),   _T(">"), 
@@ -199,8 +199,17 @@ namespace mu
   }
 
   //---------------------------------------------------------------------------
-  void ParserBase::OnDetectVar(std::string *pExpr, int &nStart, int &nEnd)
+  void ParserBase::OnDetectVar(string_type * /*pExpr*/, int & /*nStart*/, int & /*nEnd*/)
+  {}
+
+  //---------------------------------------------------------------------------
+  /** \brief Returns the version of muparser. 
+  
+    Format is as follows: "MAJOR.MINOR (OPTIONAL TEXT)"
+  */
+  string_type ParserBase::GetVersion() const
   {
+    return MUP_VERSION;
   }
 
   //---------------------------------------------------------------------------
@@ -468,8 +477,8 @@ namespace mu
     if (m_ConstDef.find(a_sName)!=m_ConstDef.end())
       Error(ecNAME_CONFLICT);
 
-    if (m_FunDef.find(a_sName)!=m_FunDef.end())
-      Error(ecNAME_CONFLICT);
+//    if (m_FunDef.find(a_sName)!=m_FunDef.end())
+//      Error(ecNAME_CONFLICT);
 
     CheckName(a_sName, ValidNameChars());
     m_VarDef[a_sName] = a_pVar;
@@ -500,7 +509,7 @@ namespace mu
     {
     // built in operators
     case cmEND:      return -5;
-	  case cmARG_SEP:  return -4;
+    case cmARG_SEP:  return -4;
     case cmBO :	
     case cmBC :      return -2;
     case cmASSIGN:   return -1;               
@@ -521,7 +530,7 @@ namespace mu
 
     // user defined binary operators
     case cmOPRT_INFIX: 
-    case cmOPRT_BIN:   return a_Tok.GetPri();
+    case cmOPRT_BIN: return a_Tok.GetPri();
     default:  Error(ecINTERNAL_ERROR, 5);
               return 999;
     }  
@@ -602,35 +611,35 @@ namespace mu
     {
       case -1:
             // Function with variable argument count
- 		        // copy arguments into a vector<value_type> 
-	          {
+            // copy arguments into a vector<value_type> 
+            {
               if (iArgCount==0)
                 Error(ecTOO_FEW_PARAMS, m_pTokenReader->GetPos(), a_FunTok.GetAsString());
 
               std::vector<value_type> vArg(iArgCount);
-		          for (int i=0; i<iArgCount; ++i)
-		            vArg[iArgCount-(i+1)] = a_vArg[i].GetVal();
+              for (int i=0; i<iArgCount; ++i)
+                vArg[iArgCount-(i+1)] = a_vArg[i].GetVal();
 
               valTok.SetVal( ((multfun_type)a_FunTok.GetFuncAddr())(&vArg[0], (int)vArg.size()) );  
-	          }
-	          break;
+            }
+            break;
 
       case 0: valTok.SetVal( ((fun_type0)pFunc)() );  break;
       case 1: valTok.SetVal( ((fun_type1)pFunc)(a_vArg[0].GetVal()) );  break;
       case 2: valTok.SetVal( ((fun_type2)pFunc)(a_vArg[1].GetVal(),
-		                                            a_vArg[0].GetVal()) );  break;
+                                                a_vArg[0].GetVal()) );  break;
       case 3: valTok.SetVal( ((fun_type3)pFunc)(a_vArg[2].GetVal(), 
-		                                            a_vArg[1].GetVal(), 
-														                    a_vArg[0].GetVal()) ); break;
+                                                a_vArg[1].GetVal(), 
+                                                a_vArg[0].GetVal()) ); break;
       case 4: valTok.SetVal( ((fun_type4)pFunc)(a_vArg[3].GetVal(),
-	                                              a_vArg[2].GetVal(), 
-				   	  	                                a_vArg[1].GetVal(),
-													                      a_vArg[0].GetVal()) );  break;
+                                                a_vArg[2].GetVal(), 
+                                                a_vArg[1].GetVal(),
+                                                a_vArg[0].GetVal()) );  break;
       case 5: valTok.SetVal( ((fun_type5)pFunc)(a_vArg[4].GetVal(), 
-														                    a_vArg[3].GetVal(), 
-	                                              a_vArg[2].GetVal(), 
-				   	  	                                a_vArg[1].GetVal(),
-													                      a_vArg[0].GetVal()) );  break;
+                                                a_vArg[3].GetVal(), 
+                                                a_vArg[2].GetVal(), 
+                                                a_vArg[1].GetVal(),
+                                                a_vArg[0].GetVal()) );  break;
       default: Error(ecINTERNAL_ERROR, 6);
     }
 
@@ -654,16 +663,16 @@ namespace mu
     if ( m_bOptimize && 
         !valTok.IsFlagSet(token_type::flVOLATILE) &&
         !a_FunTok.IsFlagSet(token_type::flVOLATILE) ) 
-	  {
+    {
       m_vByteCode.RemoveValEntries(iArgCount);
       m_vByteCode.AddVal( valTok.GetVal() );
-	  }
-	  else 
-	  { 
+    }
+    else 
+    { 
       // operation dosnt depends on a variable or the function is flagged unoptimizeable
       // we cant optimize here...
       m_vByteCode.AddFun(pFunc, (a_FunTok.GetArgCount()==-1) ? -iArgCount : iArgCount);
-	  }
+    }
 
     return valTok;
 
@@ -695,10 +704,10 @@ namespace mu
       {
       case 0: valTok.SetVal( ((strfun_type1)pFunc)(a_vArg[0].GetAsString().c_str()) );  break;
       case 1: valTok.SetVal( ((strfun_type2)pFunc)(a_vArg[1].GetAsString().c_str(),
-		                                              a_vArg[0].GetVal()) );  break;
+                                                   a_vArg[0].GetVal()) );  break;
       case 2: valTok.SetVal( ((strfun_type3)pFunc)(a_vArg[2].GetAsString().c_str(), 
-		                                              a_vArg[1].GetVal(), 
-														                      a_vArg[0].GetVal()) );  break;
+                                                   a_vArg[1].GetVal(), 
+                                                   a_vArg[0].GetVal()) );  break;
       default: Error(ecINTERNAL_ERROR);
       }
     }
@@ -758,16 +767,16 @@ namespace mu
     int iArgNumerical = iArgCount - ((funTok.GetType()==tpSTR) ? 1 : 0);
 
     if (funTok.GetCode()==cmFUNC_STR && iArgCount-iArgNumerical>1)
-        Error(ecINTERNAL_ERROR);
+      Error(ecINTERNAL_ERROR);
 
     if (funTok.GetArgCount()>=0 && iArgCount>iArgRequired) 
-	      Error(ecTOO_MANY_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
+      Error(ecTOO_MANY_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
 
-	  if (funTok.GetCode()!=cmOPRT_BIN && iArgCount<iArgRequired )
-	      Error(ecTOO_FEW_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
+    if (funTok.GetCode()!=cmOPRT_BIN && iArgCount<iArgRequired )
+      Error(ecTOO_FEW_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
 
     if (funTok.GetCode()==cmFUNC_STR && iArgCount>iArgRequired )
-	      Error(ecTOO_MANY_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
+      Error(ecTOO_MANY_PARAMS, m_pTokenReader->GetPos()-1, funTok.GetAsString());
 
     // Collect the numeric function arguments from the value stack and store them
     // in a vector
@@ -821,16 +830,16 @@ namespace mu
       MUP_ASSERT(a_stVal.size()>=2);
 
       token_type valTok1 = a_stVal.pop(),
-                valTok2 = a_stVal.pop(),
-                optTok = a_stOpt.pop(),
-                resTok; 
+                 valTok2 = a_stVal.pop(),
+                 optTok = a_stOpt.pop(),
+                 resTok; 
 
       if ( valTok1.GetType()!=valTok2.GetType() || 
           (valTok1.GetType()==tpSTR && valTok2.GetType()==tpSTR) )
         Error(ecOPRT_TYPE_CONFLICT, m_pTokenReader->GetPos(), optTok.GetAsString());
 
       value_type x = valTok2.GetVal(),
-	               y = valTok1.GetVal();
+                 y = valTok1.GetVal();
 
       switch (optTok.GetCode())
       {
@@ -838,17 +847,25 @@ namespace mu
         case cmAND: resTok.SetVal( (int)x & (int)y ); break;
         case cmOR:  resTok.SetVal( (int)x | (int)y ); break;
         case cmXOR: resTok.SetVal( (int)x ^ (int)y ); break;
-        case cmLT:  resTok.SetVal( x < y ); break;
-        case cmGT:  resTok.SetVal( x > y ); break;
-        case cmLE:  resTok.SetVal( x <= y ); break;
-        case cmGE:  resTok.SetVal( x >= y ); break;
-        case cmNEQ: resTok.SetVal( x != y ); break;
-        case cmEQ:  resTok.SetVal( x == y ); break;
-        case cmADD: resTok.SetVal( x + y ); break;
-        case cmSUB: resTok.SetVal( x - y ); break;
-        case cmMUL: resTok.SetVal( x * y ); break;
-        case cmDIV: resTok.SetVal( x / y ); break;
-  	    case cmPOW: resTok.SetVal(pow(x, y)); break;
+        case cmLT:  resTok.SetVal( x < y );   break;
+        case cmGT:  resTok.SetVal( x > y );   break;
+        case cmLE:  resTok.SetVal( x <= y );  break;
+        case cmGE:  resTok.SetVal( x >= y );  break;
+        case cmNEQ: resTok.SetVal( x != y );  break;
+        case cmEQ:  resTok.SetVal( x == y );  break;
+        case cmADD: resTok.SetVal( x + y );   break;
+        case cmSUB: resTok.SetVal( x - y );   break;
+        case cmMUL: resTok.SetVal( x * y );   break;
+        case cmDIV: 
+#if defined(MUP_MATH_EXCEPTIONS)
+                    if (y==0)
+                    {
+                      Error(ecDIV_BY_ZERO);
+                    }
+#endif
+                    resTok.SetVal( x / y );   
+                    break;
+        case cmPOW: resTok.SetVal(pow(x, y)); break;
 
         case cmASSIGN: 
                   // The assignement operator needs special treatment
@@ -859,11 +876,12 @@ namespace mu
                       
                     value_type *pVar = valTok2.GetVar();
                     resTok.SetVal( *pVar = y );
+                    resTok.AddFlags(token_type::flVOLATILE);
                     a_stVal.push( resTok );
 
                     m_vByteCode.AddAssignOp(pVar);
                     return;  // we must return since the following 
-                            // stuff does not apply
+                             // stuff does not apply
                   }
 
         default:  Error(ecINTERNAL_ERROR, 8);
@@ -911,7 +929,6 @@ namespace mu
   #endif
 
     value_type *Stack = &m_vStackBuffer[0];
-//    value_type Stack[99];
     ECmdCode iCode;
     bytecode_type idx(0);
     int i(0);
@@ -924,7 +941,7 @@ namespace mu
 
 #ifdef _DEBUG
     // Die Formelendkennung ist Wert 26 dreimal hintereinander geschrieben
-    // Ich muß für den Test das Formelende filtern.
+    // Ich muss für den Test das Formelende filtern.
     if (idx>=(int)m_vStackBuffer.size() && iCode!=cmEND)
       throw exception_type(ecGENERIC, _T(""), m_pTokenReader->GetFormula(), -1);
 #endif
@@ -939,16 +956,23 @@ namespace mu
       case cmGE:  Stack[idx]  = Stack[idx] >= Stack[idx+1]; goto __start;
       case cmNEQ: Stack[idx]  = Stack[idx] != Stack[idx+1]; goto __start;
       case cmEQ:  Stack[idx]  = Stack[idx] == Stack[idx+1]; goto __start;
-	    case cmLT:  Stack[idx]  = Stack[idx] < Stack[idx+1];  goto __start;
-	    case cmGT:  Stack[idx]  = Stack[idx] > Stack[idx+1];  goto __start;
+      case cmLT:  Stack[idx]  = Stack[idx] < Stack[idx+1];  goto __start;
+      case cmGT:  Stack[idx]  = Stack[idx] > Stack[idx+1];  goto __start;
       case cmADD: Stack[idx] += Stack[1+idx]; goto __start;
- 	    case cmSUB: Stack[idx] -= Stack[1+idx]; goto __start;
-	    case cmMUL: Stack[idx] *= Stack[1+idx]; goto __start;
-	    case cmDIV: Stack[idx] /= Stack[1+idx]; goto __start;
+      case cmSUB: Stack[idx] -= Stack[1+idx]; goto __start;
+      case cmMUL: Stack[idx] *= Stack[1+idx]; goto __start;
+      case cmDIV: 
+
+#if defined(MUP_MATH_EXCEPTIONS)
+                    if (Stack[1+idx]==0)
+                      Error(ecDIV_BY_ZERO);
+#endif
+                  Stack[idx] /= Stack[1+idx]; 
+                  goto __start;
       case cmPOW: Stack[idx]  = pow(Stack[idx], Stack[1+idx]); goto __start;
 
       // Assignement needs special treatment
-      case cmASSIGN:
+      case  cmASSIGN:
             {
               // next is a pointer to the target
               value_type **pDest = (value_type**)(&m_pCmdCode[i]);
@@ -961,73 +985,74 @@ namespace mu
             goto __start;
 
       // user defined binary operators
-      case cmOPRT_BIN:
+      case  cmOPRT_BIN:
             Stack[idx] = (**(fun_type2**)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1]);
             ++i;
             goto __start;
 
       // variable tokens
-	    case cmVAR:
-		          Stack[idx] = **(value_type**)(&m_pCmdCode[i]);
-		          i += m_vByteCode.GetValSize();
-		          goto __start;
+      case  cmVAR:
+            Stack[idx] = **(value_type**)(&m_pCmdCode[i]);
+            i += m_vByteCode.GetValSize();
+            goto __start;
 
       // value tokens
-	    case cmVAL:
-              Stack[idx] = *(value_type*)(&m_pCmdCode[i]);
- 	            i += m_vByteCode.GetValSize();
-              goto __start;
+      case  cmVAL:
+            Stack[idx] = *(value_type*)(&m_pCmdCode[i]);
+            i += m_vByteCode.GetValSize();
+            goto __start;
 
       // Next is treatment of string functions
-      case cmFUNC_STR:
+      case  cmFUNC_STR:
+            {
+              // The function argument count
+              int iArgCount = (int)m_pCmdCode[ i++ ];  
+
+              // The index of the string argument in the string table
+              int iIdxStack = (int)m_pCmdCode[ i++ ];  
+              MUP_ASSERT( iIdxStack>=0 && iIdxStack<(int)m_vStringBuf.size() );
+
+              switch(iArgCount)  // switch according to argument count
               {
-		            // The function argument count
-                int iArgCount = (int)m_pCmdCode[ i++ ];  
-
-                // The index of the string argument in the string table
-                int iIdxStack = (int)m_pCmdCode[ i++ ];  
-                MUP_ASSERT( iIdxStack>=0 && iIdxStack<(int)m_vStringBuf.size() );
-
-                switch(iArgCount)  // switch according to argument count
-		            {
-                  case 0: Stack[idx] = (*(strfun_type1*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str()); break;
-			            case 1: Stack[idx] = (*(strfun_type2*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str(), Stack[idx]); break;
-			            case 2: Stack[idx] = (*(strfun_type3*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str(), Stack[idx], Stack[idx+1]); break;
-                }
-		            i += m_vByteCode.GetPtrSize();
+              case 0: Stack[idx] = (*(strfun_type1*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str()); break;
+              case 1: Stack[idx] = (*(strfun_type2*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str(), Stack[idx]); break;
+	            case 2: Stack[idx] = (*(strfun_type3*)(&m_pCmdCode[i]))(m_vStringBuf[iIdxStack].c_str(), Stack[idx], Stack[idx+1]); break;
               }
-              goto __start;
+              i += m_vByteCode.GetPtrSize();
+            }
+            goto __start;
 
       // Next is treatment of numeric functions
-      case cmFUNC:
-		          {
-		            int iArgCount = (int)m_pCmdCode[i++];
+      case  cmFUNC:
+            {
+              int iArgCount = (int)m_pCmdCode[i++];
 
-                switch(iArgCount)  // switch according to argument count
-		            {
-                  case 0: Stack[idx] = (*(fun_type0*)(&m_pCmdCode[i]))(); break;
-                  case 1: Stack[idx] = (*(fun_type1*)(&m_pCmdCode[i]))(Stack[idx]); break;
-			            case 2: Stack[idx] = (*(fun_type2*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1]); break;
-			            case 3: Stack[idx] = (*(fun_type3*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2]); break;
-			            case 4: Stack[idx] = (*(fun_type4*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2], Stack[idx+3]); break;
-  		            case 5: Stack[idx] = (*(fun_type5*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2], Stack[idx+3], Stack[idx+4]); break;
-                  default:
-				            if (iArgCount>0) // function with variable arguments store the number as a negative value
-                      Error(ecINTERNAL_ERROR, 1);
+              // switch according to argument count
+              switch(iArgCount)  
+              {
+              case 0: Stack[idx] = (*(fun_type0*)(&m_pCmdCode[i]))(); break;
+              case 1: Stack[idx] = (*(fun_type1*)(&m_pCmdCode[i]))(Stack[idx]); break;
+              case 2: Stack[idx] = (*(fun_type2*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1]); break;
+              case 3: Stack[idx] = (*(fun_type3*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2]); break;
+              case 4: Stack[idx] = (*(fun_type4*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2], Stack[idx+3]); break;
+              case 5: Stack[idx] = (*(fun_type5*)(&m_pCmdCode[i]))(Stack[idx], Stack[idx+1], Stack[idx+2], Stack[idx+3], Stack[idx+4]); break;
+              default:
+                if (iArgCount>0) // function with variable arguments store the number as a negative value
+                  Error(ecINTERNAL_ERROR, 1);
 
-                    Stack[idx] =(*(multfun_type*)(&m_pCmdCode[i]))(&Stack[idx], -iArgCount);
-                    break;
-		            }
-		            i += m_vByteCode.GetPtrSize();
-		          }
-		          goto __start;
+               Stack[idx] =(*(multfun_type*)(&m_pCmdCode[i]))(&Stack[idx], -iArgCount);
+               break;
+              }
+              i += m_vByteCode.GetPtrSize();
+            }
+            goto __start;
 
-	    case cmEND:
-		          return Stack[1];
+	    case  cmEND:
+	          return Stack[1];
 
 	    default:
-              Error(ecINTERNAL_ERROR, 2);
-              return 0;
+            Error(ecINTERNAL_ERROR, 2);
+            return 0;
     }
 
   #if defined(_MSC_VER)
@@ -1147,7 +1172,7 @@ namespace mu
                   
                   if (stOpt.size() && stOpt.top().GetCode()!=cmOPRT_INFIX && stOpt.top().GetFuncAddr()!=0)
                     ApplyFunc(stOpt, stVal, iArgCount);
-			          } // if bracket content is evaluated
+                } // if bracket content is evaluated
                 break;
 
         //
@@ -1188,10 +1213,10 @@ namespace mu
         //
         // Last section contains functions and operators implicitely mapped to functions
         //
-	      case cmBO:
+        case cmBO:
                 stArgCount.push(1);
                 stOpt.push(opt);
-		    	      break;
+                break;
 
         case cmFUNC:
         case cmOPRT_INFIX:
@@ -1204,7 +1229,7 @@ namespace mu
                 ApplyFunc(stOpt, stVal, 1);  // this is the postfix operator
                 break;
 
-	      default:  Error(ecINTERNAL_ERROR, 3);
+        default:  Error(ecINTERNAL_ERROR, 3);
       } // end of switch operator-token
 
       opta = opt;
@@ -1455,8 +1480,8 @@ namespace mu
 
       This function is used for debugging only.
   */
-  void ParserBase::StackDump( const ParserStack<token_type> &a_stVal, 
-				             			    const ParserStack<token_type> &a_stOprt ) const
+  void ParserBase::StackDump(const ParserStack<token_type> &a_stVal, 
+                             const ParserStack<token_type> &a_stOprt) const
   {
     ParserStack<token_type> stOprt(a_stOprt), 
                             stVal(a_stVal);
@@ -1475,33 +1500,33 @@ namespace mu
     while ( !stOprt.empty() )
     {
       if (stOprt.top().GetCode()<=cmASSIGN) 
-  	  {
-	  	  mu::console() << _T("OPRT_INTRNL \"")
+      {
+        mu::console() << _T("OPRT_INTRNL \"")
                       << ParserBase::c_DefaultOprt[stOprt.top().GetCode()] 
                       << _T("\" \n");
-	    }
+      }
       else
       {
-		      switch(stOprt.top().GetCode())
-		      {
+        switch(stOprt.top().GetCode())
+	{
           case cmVAR:   mu::console() << _T("VAR\n");  break;
-		      case cmVAL:   mu::console() << _T("VAL\n");  break;
-		      case cmFUNC:  mu::console() << _T("FUNC_NUM \"") 
+	  case cmVAL:   mu::console() << _T("VAL\n");  break;
+	  case cmFUNC:  mu::console() << _T("FUNC_NUM \"") 
                                       << stOprt.top().GetAsString() 
                                       << _T("\"\n");   break;
-		      case cmOPRT_INFIX: mu::console() << _T("OPRT_INFIX \"")
-                                          << stOprt.top().GetAsString() 
-                                          << _T("\"\n");   break;
+	  case cmOPRT_INFIX: mu::console() << _T("OPRT_INFIX \"")
+                                           << stOprt.top().GetAsString() 
+                                           << _T("\"\n");      break;
           case cmOPRT_BIN:   mu::console() << _T("OPRT_BIN \"") 
-                                          << stOprt.top().GetAsString() 
-                                          << _T("\"\n");        break;
-          case cmFUNC_STR: mu::console() << _T("FUNC_STR\n");  break;
-		      case cmEND:      mu::console() << _T("END\n");       break;
-		      case cmUNKNOWN:  mu::console() << _T("UNKNOWN\n");   break;
-		      case cmBO:       mu::console() << _T("BRACKET \"(\"\n");  break;
-		      case cmBC:       mu::console() << _T("BRACKET \")\"\n");  break;
+                                           << stOprt.top().GetAsString() 
+                                           << _T("\"\n");           break;
+          case cmFUNC_STR: mu::console() << _T("FUNC_STR\n");       break;
+          case cmEND:      mu::console() << _T("END\n");            break;
+	  case cmUNKNOWN:  mu::console() << _T("UNKNOWN\n");        break;
+	  case cmBO:       mu::console() << _T("BRACKET \"(\"\n");  break;
+	  case cmBC:       mu::console() << _T("BRACKET \")\"\n");  break;
           default:         mu::console() << stOprt.top().GetType() << _T(" ");  break;
-		      }
+	}
       }	
       stOprt.pop();
     }

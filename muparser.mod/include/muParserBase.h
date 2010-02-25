@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2009 Ingo Berg
+  Copyright (C) 2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -49,7 +49,7 @@ namespace mu
 //--------------------------------------------------------------------------------------------------
 /** \brief Mathematical expressions parser (base parser engine).
   
-  Version 1.31 (20090112)
+  Version 1.33 (20100221)
 
   This is the implementation of a bytecode based mathematical expressions parser. 
   The formula will be parsed from string and converted into a bytecode. 
@@ -58,7 +58,7 @@ namespace mu
   Complementary to a set of internally implemented functions the parser is able to handle 
   user defined functions and variables. 
 
-  \author (C) 2004-2009 Ingo Berg
+  \author (C) 2010 Ingo Berg
 */
 class ParserBase 
 {
@@ -165,7 +165,7 @@ private:
     void DefineInfixOprt(const string_type &a_strName, fun_type1 a_pOprt, int a_iPrec=prINFIX, bool a_bAllowOpt=true);
 
     // Clear user defined variables, constants or functions
-	  void ClearVar();
+    void ClearVar();
     void ClearFun();
     void ClearConst();
     void ClearInfixOprt();
@@ -178,6 +178,7 @@ private:
     const valmap_type& GetConst() const;
     const string_type& GetExpr() const;
     const funmap_type& GetFunDef() const;
+    string_type GetVersion() const;
 
     const char_type ** GetOprtDef() const;
     void DefineNameChars(const char_type *a_szCharset);
@@ -190,7 +191,7 @@ private:
 
     void SetArgSep(char_type cArgSep);
     char_type GetArgSep() const;
-
+    
     void  Error(EErrorCodes a_iErrc, 
                 int a_iPos = (int)mu::string_type::npos, 
                 const string_type &a_strTok = string_type() ) const;
@@ -204,8 +205,8 @@ private:
     virtual void InitConst() = 0;
     virtual void InitOprt() = 0; 
 
-    virtual void OnDetectVar(std::string *pExpr, int &nStart, int &nEnd);
-    static char_type *c_DefaultOprt[]; 
+    virtual void OnDetectVar(string_type *pExpr, int &nStart, int &nEnd);
+    static const char_type *c_DefaultOprt[]; 
 
  private:
 

@@ -5,7 +5,7 @@
   |  Y Y  \|  |  /|    |     / __ \_|  | \/\___ \ \  ___/ |  | \/
   |__|_|  /|____/ |____|    (____  /|__|  /____  > \___  >|__|   
         \/                       \/            \/      \/        
-  Copyright (C) 2004-2008 Ingo Berg
+  Copyright (C) 2010 Ingo Berg
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this 
   software and associated documentation files (the "Software"), to deal in the Software
@@ -154,6 +154,10 @@ namespace mu
       iStat += EqnTest(_T("a = b"), 2, true); 
       iStat += EqnTest(_T("a = sin(b)"), 0.909297, true); 
       iStat += EqnTest(_T("a = 1+sin(b)"), 1.909297, true);
+      iStat += EqnTest(_T("(a=b)*2"), 4, true);
+      iStat += EqnTest(_T("2*(a=b)"), 4, true);
+      iStat += EqnTest(_T("2*(a=b+1)"), 6, true);
+      iStat += EqnTest(_T("(a=b+1)*2"), 6, true);
 
       // Test user defined binary operators
       iStat += EqnTestInt(_T("1 | 2"), 3, true);          
@@ -232,7 +236,7 @@ namespace mu
       int  iStat= 0,
            iErr = 0;
 
-     mu::console() << "testing name restriction enforcement...";
+      mu::console() << "testing name restriction enforcement...";
     
       Parser p;
 
@@ -734,7 +738,7 @@ namespace mu
     int ParserTester::TestExpression()
     {
       int iStat = 0;
-      mu::console() << _T("testing sample formulas...");
+      mu::console() << _T("testing expression samples...");
 
       // operator precedencs
       iStat += EqnTest( _T("1+2-3*4/5^6"), 2.99923, true);
@@ -849,7 +853,13 @@ namespace mu
       iStat += ThrowTest( _T("3=4"), ecUNEXPECTED_OPERATOR);
       iStat += ThrowTest( _T("sin(8)=4"), ecUNEXPECTED_OPERATOR);
       iStat += ThrowTest( _T("\"test\"=a"), ecUNEXPECTED_OPERATOR);
-      iStat += ThrowTest( _T("sin=9"), ecUNEXPECTED_OPERATOR);
+
+      // <ibg 20090529>
+      // this is now legal, for reference see:
+      // https://sourceforge.net/forum/message.php?msg_id=7411373
+      //      iStat += ThrowTest( _T("sin=9"), ecUNEXPECTED_OPERATOR);    
+      // </ibg>
+
       iStat += ThrowTest( _T("(8)=5"), ecUNEXPECTED_OPERATOR);
       iStat += ThrowTest( _T("(a)=5"), ecUNEXPECTED_OPERATOR);
       iStat += ThrowTest( _T("a=\"tttt\""), ecOPRT_TYPE_CONFLICT);
