@@ -215,32 +215,110 @@ Type TSession
 		bmx_torrent_session_set_settings(sessionPtr, settings.settingsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem	
 	Method popAlert:TAlert()
 		Return TAlert(bmx_torrent_session_pop_alert(sessionPtr))
 	End Method
 	
+	Rem
+	bbdoc: Starts the UPnP service.
+	about: When started, the listen port and the DHT port are attempted to be forwarded on local UPnP router devices.
+	<p>
+	The upnp object returned by the method can be used to add and remove arbitrary port mappings. Mapping status is returned
+	through the TPortmapAlert and the TPortmapErrorAlert. The object will be valid until stopUpnp() is called.
+	</p>
+	<p>
+	It is off by default.
+	</p>
+	End Rem	
 	Method startUpnp:TUpnp()
+		Return TUpnp._create(bmx_torrent_session_start_upnp(sessionPtr))
 	End Method
 	
+	Rem
+	bbdoc: Stops the UPnP service.
+	End Rem	
 	Method stopUpnp()
+		bmx_torrent_session_stop_upnp(sessionPtr)
 	End Method
 	
+	Rem
+	bbdoc: Starts the NAT-PMP service.
+	about: When started, the listen port and the DHT port are attempted to be forwarded on the router through NAT-PMP.
+	<p>
+	The natpmp object returned by the method can be used to add and remove arbitrary port mappings. Mapping status is returned
+	through the TPortmapAlert and the TPortmapErrorAlert. The object will be valid until stopNatpmp() is called.
+	</p>
+	<p>
+	It is off by default.
+	</p>
+	End Rem	
 	Method startNatpmp:TNatpmp()
+		Return TNatpmp._create(bmx_torrent_session_start_natpmp(sessionPtr))
 	End Method
 	
+	Rem
+	bbdoc: Stops the NAT-PMP service.
+	End Rem	
 	Method stopNatpmp()
+		bmx_torrent_session_stop_natpmp(sessionPtr)
 	End Method
 	
+	Rem
+	bbdoc: Starts Local Service Discovery.
+	about: This service will broadcast the infohashes of all the non-private torrents on the local network to look for peers on the same
+	swarm within multicast reach.
+	<p>
+	It is turned off by default.
+	</p>
+	End Rem	
 	Method startLsd()
+		bmx_torrent_session_start_lsd(sessionPtr)
 	End Method
 	
+	Rem
+	bbdoc: Stops Local Service Discovery.
+	about: This service will broadcast the infohashes of all the non-private torrents on the local network to look for peers on the same
+	swarm within multicast reach.
+	<p>
+	It is turned off by default.
+	</p>
+	End Rem	
 	Method stopLsd()
+		bmx_torrent_session_stop_lsd(sessionPtr)
 	End Method
 
-	Method setMaxHalfOpenConnections(value:Int)
+	Rem
+	bbdoc: Sets the maximum number of half-open connections libtorrent will have when connecting to peers.
+	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
+	(nor failed). Windows XP Service Pack 2 sets a default, system wide, limit of the number of half-open connections
+	to 10. So, this limit can be used to work nicer together with other network applications on that system.
+	The default is to have no limit, and passing -1 as the limit, means to have no limit. When limiting the number of simultaneous
+	connection attempts, peers will be put in a queue waiting for their turn to get connected.
+	End Rem	
+	Method setMaxHalfOpenConnections(limit:Int)
+		bmx_torrent_session_set_max_half_open_connections(sessionPtr, limit)
 	End Method
 	
+	Rem
+	bbdoc: Returns the maximum number of half-open connections libtorrent will have when connecting to peers.
+	about: A half-open connection is one where connect() has been called, but the connection still hasn't been established
+	(nor failed). Windows XP Service Pack 2 sets a default, system wide, limit of the number of half-open connections
+	to 10. So, this limit can be used to work nicer together with other network applications on that system.
+	The default is to have no limit, and passing -1 as the limit, means to have no limit. When limiting the number of simultaneous
+	connection attempts, peers will be put in a queue waiting for their turn to get connected.
+	End Rem	
 	Method maxHalfOpenConnections:Int()
+		Return bmx_torrent_session_max_half_open_connections(sessionPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns status of the disk cache for this session.
+	End Rem
+	Method getCacheStatus:TCacheStatus()
+		Return TCacheStatus._create(bmx_torrent_session_get_cache_status(sessionPtr))
 	End Method
 
 	Method Delete()
@@ -276,35 +354,35 @@ Type TSessionStatus
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total upload rate accumulated from all torrents.
 	End Rem
 	Method uploadRate:Float()
 		Return bmx_torrent_sessionstatus_upload_rate(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total download rate accumulated from all torrents.
 	End Rem
 	Method downloadRate:Float()
 		Return bmx_torrent_sessionstatus_download_rate(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total payload upload rate accumulated from all torrents.
 	End Rem
 	Method payloadUploadRate:Float()
 		Return bmx_torrent_sessionstatus_payload_upload_rate(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total payload download rate accumulated from all torrents.
 	End Rem
 	Method payloadDownloadRate:Float()
 		Return bmx_torrent_sessionstatus_payload_download_rate(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total number of bytes downloaded from all torrents.
 	End Rem
 	Method totalDownload:Long()
 		Local v:Long
@@ -313,7 +391,7 @@ Type TSessionStatus
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total number of bytes uploaded to all torrents.
 	End Rem
 	Method totalUpload:Long()
 		Local v:Long
@@ -322,7 +400,9 @@ Type TSessionStatus
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of bytes that have been received more than once.
+	about: This can happen if a request from a peer times out and is requested from a different peer, and then received again
+	from the first one. To make this lower, increase the requestTimeout and the pieceTimeout in the session settings.
 	End Rem
 	Method totalRedundantBytes:Long()
 		Local v:Long
@@ -331,7 +411,7 @@ Type TSessionStatus
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of bytes that was downloaded which later failed the hash-check.
 	End Rem
 	Method totalFailedBytes:Long()
 		Local v:Long
@@ -358,49 +438,54 @@ Type TSessionStatus
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The total number of peer connections this session has.
+	about: This includes incoming connections that still hasn't sent their handshake or outgoing connections that still
+	hasn't completed the TCP connection. This number may be slightly higher than the sum of all peers of all torrents because
+	the incoming connections may not be assigned a torrent yet.
 	End Rem
 	Method numPeers:Int()
 		Return bmx_torrent_sessionstatus_num_peers(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The current number of unchoked peers.
 	End Rem
 	Method numUnchoked:Int()
 		Return bmx_torrent_sessionstatus_num_unchoked(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The current allowed number of unchoked peers.
 	End Rem
 	Method allowedUploadSlots:Int()
 		Return bmx_torrent_sessionstatus_allowed_upload_slots(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of nodes in the routing table.
+	about: This number only includes active nodes, not cache nodes.
 	End Rem
 	Method dhtNodes:Int()
 		Return bmx_torrent_sessionstatus_dht_nodes(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of nodes in the node cache.
+	about: These nodes are used to replace the regular nodes in the routing table in case any of them becomes unresponsive.
 	End Rem
 	Method dhtNodeCache:Int()
 		Return bmx_torrent_sessionstatus_dht_node_cache(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The number of torrents tracked by the DHT at the moment.
 	End Rem
 	Method dhtTorrents:Int()
 		Return bmx_torrent_sessionstatus_dht_torrents(statusPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: An estimation of the total number of nodes in the DHT network.
 	End Rem
 	Method dhtGlobalNodes:Int()
 		Return bmx_torrent_sessionstatus_dht_global_nodes(statusPtr)
@@ -444,6 +529,9 @@ Type TAddTorrentParams
 		info.owner = False
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setTrackerUrl(url:String)
 		If urlPtr Then
 			MemFree(urlPtr)
@@ -453,10 +541,16 @@ Type TAddTorrentParams
 		bmx_torrent_addtorrentparams_set_tracker_url(paramsPtr, urlPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method trackerUrl:String()
 		Return bmx_torrent_addtorrentparams_tracker_url(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setName(name:String)
 		If namePtr Then
 			MemFree(namePtr)
@@ -466,42 +560,72 @@ Type TAddTorrentParams
 		bmx_torrent_addtorrentparams_set_name(paramsPtr, namePtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method name:String()
 		Return bmx_torrent_addtorrentparams_name(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method savePath:String()
 		Return bmx_torrent_addtorrentparams_save_path(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setStorageMode(_mode:Int)
 		bmx_torrent_addtorrentparams_set_storage_mode(paramsPtr, _mode)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method storageMode:Int()
 		Return bmx_torrent_addtorrentparams_storage_mode(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setPaused(value:Int)
 		bmx_torrent_addtorrentparams_set_paused(paramsPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method paused:Int()
 		Return bmx_torrent_addtorrentparams_paused(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setAutoManaged(value:Int)
 		bmx_torrent_addtorrentparams_set_auto_managed(paramsPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method autoManaged:Int()
 		Return bmx_torrent_addtorrentparams_auto_managed(paramsPtr)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method setDuplicateIsError(value:Int)
 		bmx_torrent_addtorrentparams_set_duplicate_is_error(paramsPtr, value)
 	End Method
 	
+	Rem
+	bbdoc: 
+	End Rem
 	Method duplicateIsError:Int()
 		Return bmx_torrent_addtorrentparams_duplicate_is_error(paramsPtr)
 	End Method
@@ -527,7 +651,7 @@ Rem
 bbdoc: Provides information about the torrent, and aborts the torrent.
 about: You will usually have to store your torrent handles somewhere, since it's the object through which you retrieve information it.
 <p>
-Warning : All operations on a TTorrentHandle may throw invalid_handle exception, in case the handle is no longer refering to a torrent.
+Warning : All operations on a handle may throw TInvalidHandle exception, in case the handle is no longer refering to a torrent.
 There is one exception, isValid() will never throw. Since the torrents are processed by a background thread, there is
 no guarantee that a handle will remain valid between two calls.
 </p>
@@ -545,28 +669,37 @@ Type TTorrentHandle
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if this handle refers to a valid torrent and false if it hasn't been initialized or if the torrent it refers to has been aborted.
+	about: Note that a handle may become invalid after it has been added to the session. Usually this is because the storage for
+	the torrent is somehow invalid or if the filenames are not allowed (and hence cannot be opened/created) on your filesystem. If
+	such an error occurs, a TFileErrorAlert is generated and all handles that refers to that torrent will become invalid.
 	End Rem
 	Method isValid:Int()
 		Return bmx_torrent_torrenthandle_is_valid(torrentPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns a TTorrentStatus object with information about the status of this torrent.
+	about: If the handle is invalid, it will throw TInvalidHandle exception. 
 	End Rem
 	Method status:TTorrentStatus()
 		Return TTorrentStatus._create(bmx_torrent_torrenthandle_status(torrentPtr))
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the name of the torrent.
+	about: i.e. the name from the metadata associated with it. In case the torrent was started without metadata, and
+	hasn't completely received it yet, it returns the name given to it when added to the session. See TSession::addTorrent.
 	End Rem
 	Method name:String()
 		Return bmx_torrent_torrenthandle_name(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns reference to the TTorrentInfo object associated with this torrent.
+	about: This reference is valid as long as the TTorrentHandle is valid, no longer. If the TTorrentHandle is invalid or if
+	it doesn't have any metadata, a TInvalidHandle exception will be thrown. The torrent may be in a state without metadata
+	only if it was started without a .torrent file, i.e. by using the libtorrent extension of just supplying a tracker and info-hash.
 	End Rem
 	Method getTorrentInfo:TTorrentInfo()
 		Return TTorrentInfo._create(bmx_torrent_torrenthandle_get_torrent_info(torrentPtr))
@@ -580,112 +713,139 @@ Type TTorrentHandle
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Forces this torrent to do another tracker request, to receive new peers.
 	End Rem
 	Method forceReannounce()
 		bmx_torrent_torrenthandle_force_reannounce(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sends a scrape request to the tracker.
+	about: A scrape request queries the tracker for statistics such as total number of incomplete peers, complete peers, number of downloads etc.
+	<p>
+	This request will specifically update the numComplete and numIncomplete fields in the TTorrentStatus object once it completes. When
+	it completes, it will generate a TScrapeReplyAlert. If it fails, it will generate a TScrapeFailedAlert.
+	</p>
 	End Rem
 	Method scrapeTracker()
 		bmx_torrent_torrenthandle_scrape_tracker(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets a username and password that will be sent along in the HTTP-request of the tracker announce.
+	about: Set this if the tracker requires authorization.
 	End Rem
 	Method setTrackerLogin(username:String, password:String)
 		bmx_torrent_torrenthandle_set_tracker_login(torrentPtr, username, password)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adds another url to the torrent's list of url seeds.
+	about: If the given url already exists in that list, the call has no effect. The torrent will connect to the server
+	and try to download pieces from it, unless it's paused, queued, checking or seeding.
 	End Rem
 	Method addUrlSeed(url:String)
 		bmx_torrent_torrenthandle_add_url_seed(torrentPtr, url)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Removes the given url if it exists already.
 	End Rem
 	Method removeUrlSeed(url:String)
 		bmx_torrent_torrenthandle_remove_url_seed(torrentPtr, url)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns a set of the url seeds currently in this torrent.
+	about: Note that urls that fail may be removed automatically from the list.
 	End Rem
 	Method urlSeeds:String[]()
 		Return bmx_torrent_torrenthandle_url_seeds(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the desired download / upload ratio.
+	abou: If set to 0, it is considered being infinite. i.e. the client will always upload as much as it can, no
+	matter how much it gets back in return. With this setting it will work much like the standard clients.
+	<p>
+	Besides 0, the ratio can be set to any number greater than or equal to 1. It means how much to attempt to upload in return
+	for each download. e.g. if set to 2, the client will try to upload 2 bytes for every byte received. The default setting
+	for this is 0, which will make it work as a standard client.
+	</p>
 	End Rem
 	Method setRatio(ratio:Float)
 		bmx_torrent_torrenthandle_set_ratio(torrentPtr, ratio)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the maximum number of peers that's unchoked at the same time on this torrent.
+	about: If you set this to -1, there will be no limit.
 	End Rem
 	Method setMaxUploads(maxUploads:Int)
 		bmx_torrent_torrenthandle_set_max_uploads(torrentPtr, maxUploads)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the maximum number of connection this torrent will open.
+	about: If all connections are used up, incoming connections may be refused or poor connections may be closed.
+	This must be at least 2. The default is unlimited number of connections. If -1 is given to the function, it means unlimited.
 	End Rem
 	Method setMaxConnections(maxConnections:Int)
 		bmx_torrent_torrenthandle_set_max_connections(torrentPtr, maxConnections)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Limits the upload bandwidth used by this particular torrent to the limit you set.
+	about: It is given as the number of bytes per second the torrent is allowed to upload.
 	End Rem
 	Method setUploadLimit(limit:Int)
 		bmx_torrent_torrenthandle_set_upload_limit(torrentPtr, limit)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current upload limit setting.
 	End Rem
 	Method uploadLimit:Int()
 		Return bmx_torrent_torrenthandle_upload_limit(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Limits the download bandwidth used by this particular torrent to the limit you set.
+	about: It is given as the number of bytes per second the torrent is allowed to download. 
 	End Rem
 	Method setDownloadLimit(limit:Int)
 		bmx_torrent_torrenthandle_set_download_limit(torrentPtr, limit)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the current download limit setting.
 	End Rem
 	Method downloadLimit:Int()
 		Return bmx_torrent_torrenthandle_download_limit(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Enables or disables sequential download.
+	about: When enabled, the piece picker will pick pieces in sequence instead of rarest first.
+	<p>
+	Enabling sequential download will affect the piece distribution negatively in the swarm. It should be used sparingly.
+	</p>
 	End Rem
 	Method setSequentialDownload(value:Int)
 		bmx_torrent_torrenthandle_set_sequential_download(torrentPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if this torrent is downloading in sequence, and False otherwise.
 	End Rem
 	Method isSequentialDownload:Int()
 		Return bmx_torrent_torrenthandle_is_sequential_download(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns the torrent's position in the download queue.
+	about: The torrents with the smallest numbers are the ones that are being downloaded. The smaller number, the closer
+	the torrent is to the front of the line to be started.
 	End Rem
 	Method queuePosition:Int()
 		Return bmx_torrent_torrenthandle_queue_position(torrentPtr)
@@ -720,70 +880,93 @@ Type TTorrentHandle
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets the network interface this torrent will use when it opens outgoing connections.
+	about: By default, it uses the same interface as the session uses to listen on. The parameter must be a string
+	containing an ip-address (either an IPv4 or IPv6 address). If the string does not conform to this format and exception is thrown.
 	End Rem
 	Method useInterface(netInterface:String)
 		bmx_torrent_torrenthandle_use_interface(torrentPtr, netInterface)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Will disconnect all peers.
+	about: When a torrent is paused, it will however remember all share ratios to all peers and remember all potential
+	(not connected) peers. You can use isPaused() to determine if a torrent is currently paused. Torrents may be paused
+	automatically if there is a file error (e.g. disk full) or something similar. See TFileErrorAlert.
+	<p>
+	Torrents that are auto-managed may be automatically resumed again. It does not make sense to pause an auto-managed torrent without
+	making it not automanaged first. Torrents are auto-managed by default when added to the session.
+	</p>
 	End Rem
 	Method pause()
 		bmx_torrent_torrenthandle_pause(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Reconnects all peers.
+	about: When a torrent is paused, it will however remember all share ratios to all peers and remember all potential
+	(not connected) peers. You can use isPaused() to determine if a torrent is currently paused. Torrents may be paused
+	automatically if there is a file error (e.g. disk full) or something similar. See TFileErrorAlert.
+	<p>
+	Torrents that are auto-managed may be automatically resumed again. It does not make sense to pause an auto-managed torrent without
+	making it not automanaged first. Torrents are auto-managed by default when added to the session.
+	</p>
 	End Rem
 	Method resume()
 		bmx_torrent_torrenthandle_resume(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Only returns true if the torrent itself is paused.
+	about: If the torrent is not running because the session is paused, this still returns False. To know if a torrent is active or not,
+	you need to inspect both TTorrentHandle::isPaused() and TSession::isPaused().
 	End Rem
 	Method isPaused:Int()
 		Return bmx_torrent_torrenthandle_is_paused(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns True if the torrent is in seed mode (i.e. if it has finished downloading).
 	End Rem
 	Method isSeed:Int()
 		Return bmx_torrent_torrenthandle_is_seed(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Puts the torrent back in a state where it assumes to have no resume data.
+	about: All peers will be disconnected and the torrent will stop announcing to the tracker. The torrent will be added to the
+	checking queue, and will be checked (all the files will be read and compared to the piece hashes). Once the check
+	is complete, the torrent will start connecting to peers again, as normal.
 	End Rem
 	Method forceRecheck()
 		bmx_torrent_torrenthandle_force_recheck(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: If the torrent is in an error state (i.e. TTorrentStatus::error is non-empty), this will clear the error and start the torrent again.
 	End Rem
 	Method clearError()
 		bmx_torrent_torrenthandle_clear_error(torrentPtr)
 	End Method
 
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if this torrent is currently auto managed.
 	End Rem
 	Method isAutoManaged:Int()
 		Return bmx_torrent_torrenthandle_is_auto_managed(torrentPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Changes whether the torrent is auto managed or not.
 	End Rem
 	Method autoManaged(value:Int)
 		bmx_torrent_torrenthandle_auto_managed(torrentPtr, value)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Returns true if this torrent has metadata (either it was started from a .torrent file or the metadata has been downloaded).
+	about: The only scenario where this can return False is when the torrent was started torrent-less (i.e. with just an info-hash
+	and tracker ip). Note that if the torrent doesn't have metadata, the member getTorrentInfo() will throw.
 	End Rem
 	Method hasMetadata:Int()
 		Return bmx_torrent_torrenthandle_has_metadata(torrentPtr)
@@ -796,10 +979,59 @@ Type TTorrentHandle
 		Return bmx_torrent_torrenthandle_get_peer_info(torrentPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns the availability for each piece in this torrent.
+	about: libtorrent does not keep track of availability for seeds, so if the torrent is seeding the availability for all pieces is reported as 0.
+	<p>
+	The piece availability is the number of peers that we are connected that has advertized having a particular piece. This is the
+	information that libtorrent uses in order to prefer picking rare pieces.
+	</p>
+	End Rem
+	Method pieceAvailablity:Int[]()
+		Return bmx_torrent_torrenthandle_piece_availability(torrentPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method setPiecePriority(index:Int, priority:Int)
+		bmx_torrent_torrenthandle_set_piece_priority(torrentPtr, index, priority)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method piecePriority:Int(index:Int)
+		Return bmx_torrent_torrenthandle_piece_priority(torrentPtr, index)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method prioritizePieces(pieces:Int[])
+		bmx_torrent_torrenthandle_prioritize_pieces(torrentPtr, pieces)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method piecePriorities:Int[]()
+		Return bmx_torrent_torrenthandle_piece_priorities(torrentPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns a list about pieces that are partially downloaded or not downloaded at all but partially requested.
+	End Rem
+	Method getDownloadQueue:TPartialPieceInfo[]()
+		Return bmx_torrent_torrenthandle_get_download_queue(torrentPtr)
+	End Method
+
 End Type
 
 Extern
 	Function bmx_torrent_torrenthandle_get_peer_info:TPeerInfo[](handle:Byte Ptr)
+	Function bmx_torrent_partialpieceinfo_blocks:TBlockInfo[](handle:Byte Ptr)
+	Function bmx_torrent_torrenthandle_get_download_queue:TPartialPieceInfo[](handle:Byte Ptr)
 End Extern
 
 Rem
@@ -1376,21 +1608,28 @@ Type TPeerInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: A combination of flags describing from which sources this peer was received.
 	End Rem
 	Method source:Int()
 		Return bmx_torrent_peerinfo_source(infoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The IP-address to this peer.
+	End Rem
+	Method ip:String()
+		Return bmx_torrent_peerinfo_ip(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The current upload speed we have to this peer (including any protocol messages). 
 	End Rem
 	Method upSpeed:Float()
 		Return bmx_torrent_peerinfo_up_speed(infoPtr)
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The current download speed we have from this peer (including any protocol messages). 
 	End Rem
 	Method downSpeed:Float()
 		Return bmx_torrent_peerinfo_down_speed(infoPtr)
@@ -1634,7 +1873,8 @@ Type TPeerInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: An estimated round trip time to this peer, in milliseconds.
+	about: It is estimated by timing the the tcp connect(). It may be 0 for incoming connections.
 	End Rem
 	Method rtt:Int()
 		Return bmx_torrent_peerinfo_rtt(infoPtr)
@@ -1655,7 +1895,7 @@ Type TPeerInfo
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: The progress of the peer.
 	End Rem
 	Method progress:Float()
 		Return bmx_torrent_peerinfo_progress(infoPtr)
@@ -1734,6 +1974,9 @@ End Type
 Type TFingerprint
 End Type
 
+Rem
+bbdoc: Contains the state for all UPnP mappings.
+End Rem
 Type TUpnp
 
 	Const PROTOCOL_NONE:Int = 0
@@ -1742,20 +1985,57 @@ Type TUpnp
 	
 	Field pnpPtr:Byte Ptr
 	
+	Function _create:TUpnp(pnpPtr:Byte Ptr)
+		If pnpPtr Then
+			Local this:TUpnp = New TUpnp
+			this.pnpPtr = pnpPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Attempts to add a port mapping for the specified protocol.
+	End Rem
 	Method addMapping:Int(protocol:Int, externalPort:Int, localPort:Int)
+		Return bmx_torrent_upnp_add_mapping(pnpPtr, protocol, externalPort, localPort)
 	End Method
 	
+	Rem
+	bbdoc: Removes a port mapping.
+	End Rem
 	Method deleteMapping(mappingIndex:Int)
+		bmx_torrent_upnp_delete_mapping(pnpPtr, mappingIndex)
 	End Method
 	
+	Rem
+	bbdoc: If the model is advertized by the router, it can be queried through this method.
+	End Rem
 	Method routerModel:String()
+		Return bmx_torrent_upnp_router_model(pnpPtr)
 	End Method
 	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TNatpmp
+
+	Field pmpPtr:Byte Ptr
+
+	Function _create:TNatpmp(pmpPtr:Byte Ptr)
+		If pmpPtr Then
+			Local this:TNatpmp = New TNatpmp
+			this.pmpPtr = pmpPtr
+			Return this
+		End If
+	End Function
+	
 End Type
 
+Rem
+bbdoc: 
+End Rem
 Type TFileStorage
 
 	Field storagePtr:Byte Ptr
@@ -1787,6 +2067,244 @@ End Type
 
 Type TCreateTorrent
 
+End Type
+
+Rem
+bbdoc: The disk cache status.
+End Rem
+Type TCacheStatus
+
+	Field statusPtr:Byte Ptr
+	
+	Function _create:TCacheStatus(statusPtr:Byte Ptr)
+		If statusPtr Then
+			Local this:TCacheStatus = New TCacheStatus
+			this.statusPtr = statusPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: The total number of 16 KiB blocks written to disk since this session was started.
+	End Rem
+	Method blocks_written:Long()
+		Local v:Long
+		bmx_torrent_cachestatus_blocks_written(statusPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The total number of write operations performed since this session was started.
+	End Rem
+	Method writes:Long()
+		Local v:Long
+		bmx_torrent_cachestatus_writes(statusPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The number of blocks that were requested from the bittorrent engine (from peers), that were served from disk or cache.
+	End Rem
+	Method blocks_read:Long()
+		Local v:Long
+		bmx_torrent_cachestatus_blocks_read(statusPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The number of blocks that were served from cache.
+	End Rem
+	Method blocks_read_hit:Long()
+		Local v:Long
+		bmx_torrent_cachestatus_blocks_read_hit(statusPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The total number of read operations performed since this session was started.
+	End Rem
+	Method reads:Long()
+		Local v:Long
+		bmx_torrent_cachestatus_reads(statusPtr, Varptr v)
+		Return v
+	End Method
+	
+	Rem
+	bbdoc: The number of 16 KiB blocks currently in the disk cache.
+	about: This includes both read and write cache.
+	End Rem
+	Method cache_size:Int()
+		Return bmx_torrent_cachestatus_cache_size(statusPtr)
+	End Method
+	
+	Rem
+	bbdoc: The number of 16KiB blocks in the read cache.
+	End Rem
+	Method read_cache_size:Int()
+		Return bmx_torrent_cachestatus_read_cache_size(statusPtr)
+	End Method
+
+	Method Delete()
+		If statusPtr Then
+			bmx_torrent_cachestatus_free(statusPtr)
+			statusPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TPartialPieceInfo
+
+	Field infoPtr:Byte Ptr
+
+	Rem
+	bbdoc: No peer is currently downloading any part of the piece.
+	about: Peers prefer picking pieces from the same category as themselves. The reason for this is to keep the number of partially
+	downloaded pieces down.
+	End Rem
+	Const none:Int = 0
+	Rem
+	bbdoc: The slow download rate category.
+	End Rem
+	Const slow:Int = 1
+	Rem
+	bbdoc: The medium download rate category.
+	End Rem
+	Const medium:Int = 2
+	Rem
+	bbdoc: The fast download rate category.
+	End Rem
+	Const fast:Int = 3
+	
+	Function _create:TPartialPieceInfo(infoPtr:Byte Ptr)
+		If infoPtr Then
+			Local this:TPartialPieceInfo = New TPartialPieceInfo
+			this.infoPtr = infoPtr
+			Return this
+		End If
+	End Function
+
+	Function _newArray:TPartialPieceInfo[](size:Int)
+		Return New TPartialPieceInfo[size]
+	End Function
+	
+	Function _newEntry(array:TPartialPieceInfo[], index:Int, infoPtr:Byte Ptr)
+		array[index] = TPartialPieceInfo._create(infoPtr)
+	End Function
+	
+	Rem
+	bbdoc: The index of the piece in question.
+	End Rem
+	Method pieceIndex:Int()
+		Return bmx_torrent_partialpieceinfo_piece_index(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The number of blocks in this particular piece.
+	about: This number will be the same for most pieces, but the last piece may have fewer blocks than the standard pieces.
+	End Rem
+	Method blocksInPiece:Int()
+		Return bmx_torrent_partialpieceinfo_blocks_in_piece(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns an array of data for each individual block in the piece.
+	End Rem
+	Method blocks:TBlockInfo[]()
+		Return bmx_torrent_partialpieceinfo_blocks(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: One of fast, medium, slow or none.
+	about: It tells which download rate category the peers downloading this piece falls into. Pieces set to none can be converted into
+	any of fast, medium or slow as soon as a peer want to download from it.
+	End Rem
+	Method pieceState:Int()
+		Return bmx_torrent_partialpieceinfo_piece_state(infoPtr)
+	End Method
+
+	Method Delete()
+		If infoPtr Then
+			bmx_torrent_partialpieceinfo_free(infoPtr)
+			infoPtr = Null
+		End If
+	End Method
+	
+End Type
+
+Rem
+bbdoc: Block information for a single piece.
+End Rem
+Type TBlockInfo
+
+	Field infoPtr:Byte Ptr
+
+	Rem
+	bbdoc: This block has not been downloaded or requested form any peer.
+	End Rem
+	Const none:Int = 0
+	Rem
+	bbdoc: The block has been requested, but not completely downloaded yet.
+	End Rem
+	Const requested:Int = 1
+	Rem
+	bbdoc: The block has been downloaded and is currently queued for being written to disk.
+	End Rem
+	Const writing:Int = 2
+	Rem
+	bbdoc: The block has been written to disk.
+	End Rem
+	Const finished:Int = 3
+	
+	Function _create:TBlockInfo(infoPtr:Byte Ptr)
+		If infoPtr Then
+			Local this:TBlockInfo = New TBlockInfo
+			this.infoPtr = infoPtr
+			Return this
+		End If
+	End Function
+
+	Function _newArray:TBlockInfo[](size:Int)
+		Return New TBlockInfo[size]
+	End Function
+	
+	Function _newEntry(array:TBlockInfo[], index:Int, infoPtr:Byte Ptr)
+		array[index] = TBlockInfo._create(infoPtr)
+	End Function
+	
+	Rem
+	bbdoc: The ip address of the peer this block was downloaded from.
+	End Rem
+	Method peer:String()
+		Return bmx_torrent_blockinfo_peer(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The block state.
+	about: One of, none, requested, writing or finished.
+	End Rem
+	Method state:Int()
+		Return bmx_torrent_blockinfo_state(infoPtr)
+	End Method
+	
+	Rem
+	bbdoc: The number of peers that is currently requesting this block.
+	about: Typically this is 0 or 1, but at the end of the torrent blocks may be requested by more peers in parallel to speed things up.
+	End Rem
+	Method numPeers:Int()
+		Return bmx_torrent_blockinfo_num_peers(infoPtr)
+	End Method
+
+	Method Delete()
+		If infoPtr Then
+			bmx_torrent_blockinfo_free(infoPtr)
+			infoPtr = Null
+		End If
+	End Method
+	
 End Type
 
 

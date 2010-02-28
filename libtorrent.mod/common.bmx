@@ -68,6 +68,15 @@ Extern
 	Function bmx_torrent_session_add_torrent:Byte Ptr(handle:Byte Ptr, params:Byte Ptr)
 	Function bmx_torrent_session_set_settings(handle:Byte Ptr, settings:Byte Ptr)
 	Function bmx_torrent_session_pop_alert:Object(handle:Byte Ptr)
+	Function bmx_torrent_session_start_upnp:Byte Ptr(handle:Byte Ptr)
+	Function bmx_torrent_session_stop_upnp(handle:Byte Ptr)
+	Function bmx_torrent_session_start_natpmp:Byte Ptr(handle:Byte Ptr)
+	Function bmx_torrent_session_stop_natpmp(handle:Byte Ptr)
+	Function bmx_torrent_session_start_lsd(handle:Byte Ptr)
+	Function bmx_torrent_session_stop_lsd(handle:Byte Ptr)
+	Function bmx_torrent_session_set_max_half_open_connections(handle:Byte Ptr, limit:Int)
+	Function bmx_torrent_session_max_half_open_connections:Int(handle:Byte Ptr)
+	Function bmx_torrent_session_get_cache_status:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_torrent_sessionstatus_free(handle:Byte Ptr)
 	Function bmx_torrent_sessionstatus_has_incoming_connections:Int(handle:Byte Ptr)
@@ -308,6 +317,11 @@ Extern
 	Function bmx_torrent_torrenthandle_is_auto_managed:Int(handle:Byte Ptr)
 	Function bmx_torrent_torrenthandle_auto_managed(handle:Byte Ptr, value:Int)
 	Function bmx_torrent_torrenthandle_has_metadata:Int(handle:Byte Ptr)
+	Function bmx_torrent_torrenthandle_piece_availability:Int[](handle:Byte Ptr)
+	Function bmx_torrent_torrenthandle_set_piece_priority(handle:Byte Ptr, index:Int, priority:Int)
+	Function bmx_torrent_torrenthandle_piece_priority:Int(handle:Byte Ptr, index:Int)
+	Function bmx_torrent_torrenthandle_prioritize_pieces(handle:Byte Ptr, pieces:Int[])
+	Function bmx_torrent_torrenthandle_piece_priorities:Int[](handle:Byte Ptr)
 
 	Function bmx_torrent_bitfield_get_bit:Int(handle:Byte Ptr, index:Int)
 	Function bmx_torrent_bitfield_size:Int(handle:Byte Ptr)
@@ -355,10 +369,33 @@ Extern
 	Function bmx_torrent_peerinfo_download_rate_peak:Int(handle:Byte Ptr)
 	Function bmx_torrent_peerinfo_upload_rate_peak:Int(handle:Byte Ptr)
 	Function bmx_torrent_peerinfo_progress:Float(handle:Byte Ptr)
-
 	Function bmx_torrent_peerinfo_read_state:Int(handle:Byte Ptr)
 	Function bmx_torrent_peerinfo_write_state:Int(handle:Byte Ptr)
-	
+	Function bmx_torrent_peerinfo_ip:String(handle:Byte Ptr)
+
+	Function bmx_torrent_cachestatus_free(handle:Byte Ptr)
+	Function bmx_torrent_cachestatus_blocks_written(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_torrent_cachestatus_writes(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_torrent_cachestatus_blocks_read(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_torrent_cachestatus_blocks_read_hit(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_torrent_cachestatus_reads(handle:Byte Ptr, v:Long Ptr)
+	Function bmx_torrent_cachestatus_cache_size:Int(handle:Byte Ptr)
+	Function bmx_torrent_cachestatus_read_cache_size:Int(handle:Byte Ptr)
+
+	Function bmx_torrent_upnp_add_mapping:Int(handle:Byte Ptr, protocol:Int, externalPort:Int, localPort:Int)
+	Function bmx_torrent_upnp_delete_mapping(handle:Byte Ptr, mappingIndex:Int)
+	Function bmx_torrent_upnp_router_model:String(handle:Byte Ptr)
+
+	Function bmx_torrent_partialpieceinfo_piece_index:Int(handle:Byte Ptr)
+	Function bmx_torrent_partialpieceinfo_blocks_in_piece:Int(handle:Byte Ptr)
+	Function bmx_torrent_partialpieceinfo_piece_state:Int(handle:Byte Ptr)
+	Function bmx_torrent_partialpieceinfo_free(handle:Byte Ptr)
+
+	Function bmx_torrent_blockinfo_free(handle:Byte Ptr)
+	Function bmx_torrent_blockinfo_peer:String(handle:Byte Ptr)
+	Function bmx_torrent_blockinfo_state:Int(handle:Byte Ptr)
+	Function bmx_torrent_blockinfo_num_peers:Int(handle:Byte Ptr)
+
 End Extern
 
 Rem

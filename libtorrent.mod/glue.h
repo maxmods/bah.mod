@@ -25,6 +25,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "libtorrent/upnp.hpp"
 #include "libtorrent/session.hpp"
 #include "libtorrent/alert_types.hpp"
 
@@ -34,6 +35,9 @@ class Max_torrent_status;
 class Max_alert;
 class Max_bitfield;
 class Max_peer_info;
+class Max_cache_status;
+class Max_block_info;
+class Max_partial_piece_info;
 
 extern "C" {
 
@@ -92,6 +96,10 @@ extern "C" {
 
 	BBArray * _bah_libtorrent_TPeerInfo__newArray(int size);
 	void _bah_libtorrent_TPeerInfo__newEntry(BBArray * arr, int index, Max_peer_info * info);
+	BBArray * _bah_libtorrent_TPartialPieceInfo__newArray(int size);
+	void _bah_libtorrent_TPartialPieceInfo__newEntry(BBArray * arr, int index, Max_partial_piece_info * info);
+	BBArray * _bah_libtorrent_TBlockInfo__newArray(int size);
+	void _bah_libtorrent_TBlockInfo__newEntry(BBArray * arr, int index, Max_block_info * info);
 
 	BBString * bmx_LIBTORRENT_VERSION();
 	void bmx_LIBTORRENT_VERSION_parts(int * major, int * minor, int * tiny);
@@ -115,6 +123,15 @@ extern "C" {
 	Max_torrent_handle * bmx_torrent_session_add_torrent(libtorrent::session * s, libtorrent::add_torrent_params * params);
 	void bmx_torrent_session_set_settings(libtorrent::session * s, libtorrent::session_settings * settings);
 	BBObject * bmx_torrent_session_pop_alert(libtorrent::session * s);
+	libtorrent::upnp * bmx_torrent_session_start_upnp(libtorrent::session * s);
+	void bmx_torrent_session_stop_upnp(libtorrent::session * s);
+	libtorrent::natpmp * bmx_torrent_session_start_natpmp(libtorrent::session * s);
+	void bmx_torrent_session_stop_natpmp(libtorrent::session * s);
+	void bmx_torrent_session_start_lsd(libtorrent::session * s);
+	void bmx_torrent_session_stop_lsd(libtorrent::session * s);
+	void bmx_torrent_session_set_max_half_open_connections(libtorrent::session * s, int limit);
+	int bmx_torrent_session_max_half_open_connections(libtorrent::session * s);
+	Max_cache_status * bmx_torrent_session_get_cache_status(libtorrent::session * s);
 
 	void bmx_torrent_sessionstatus_free(Max_session_status * s);
 	int bmx_torrent_sessionstatus_has_incoming_connections(Max_session_status * s);
@@ -354,6 +371,12 @@ extern "C" {
 	void bmx_torrent_torrenthandle_auto_managed(Max_torrent_handle * handle, int value);
 	int bmx_torrent_torrenthandle_has_metadata(Max_torrent_handle * handle);
 	BBArray * bmx_torrent_torrenthandle_get_peer_info(Max_torrent_handle * handle);
+	BBArray * bmx_torrent_torrenthandle_piece_availability(Max_torrent_handle * handle);
+	void bmx_torrent_torrenthandle_set_piece_priority(Max_torrent_handle * handle, int index, int priority);
+	int bmx_torrent_torrenthandle_piece_priority(Max_torrent_handle * handle, int index);
+	void bmx_torrent_torrenthandle_prioritize_pieces(Max_torrent_handle * handle, BBArray * pieces);
+	BBArray * bmx_torrent_torrenthandle_piece_priorities(Max_torrent_handle * handle);
+	BBArray * bmx_torrent_torrenthandle_get_download_queue(Max_torrent_handle * handle);
 
 	int bmx_torrent_bitfield_get_bit(Max_bitfield * b, int index);
 	int bmx_torrent_bitfield_size(Max_bitfield * b);
@@ -403,7 +426,31 @@ extern "C" {
 	float bmx_torrent_peerinfo_progress(Max_peer_info * p);
 	int bmx_torrent_peerinfo_read_state(Max_peer_info * p);
 	int bmx_torrent_peerinfo_write_state(Max_peer_info * p);
+	BBString * bmx_torrent_peerinfo_ip(Max_peer_info * p);
 
+	void bmx_torrent_cachestatus_free(Max_cache_status * s);
+	void bmx_torrent_cachestatus_blocks_written(Max_cache_status * s, BBInt64 * v);
+	void bmx_torrent_cachestatus_writes(Max_cache_status * s, BBInt64 * v);
+	void bmx_torrent_cachestatus_blocks_read(Max_cache_status * s, BBInt64 * v);
+	void bmx_torrent_cachestatus_blocks_read_hit(Max_cache_status * s, BBInt64 * v);
+	void bmx_torrent_cachestatus_reads(Max_cache_status * s, BBInt64 * v);
+	int bmx_torrent_cachestatus_cache_size(Max_cache_status * s);
+	int bmx_torrent_cachestatus_read_cache_size(Max_cache_status * s);
+
+	int bmx_torrent_upnp_add_mapping(libtorrent::upnp * u, int protocol, int externalPort, int localPort);
+	void bmx_torrent_upnp_delete_mapping(libtorrent::upnp * u, int mappingIndex);
+	BBString * bmx_torrent_upnp_router_model(libtorrent::upnp * u);
+
+	int bmx_torrent_partialpieceinfo_piece_index(Max_partial_piece_info * i);
+	int bmx_torrent_partialpieceinfo_blocks_in_piece(Max_partial_piece_info * i);
+	int bmx_torrent_partialpieceinfo_piece_state(Max_partial_piece_info * i);
+	void bmx_torrent_partialpieceinfo_free(Max_partial_piece_info * i);
+	BBArray * bmx_torrent_partialpieceinfo_blocks(Max_partial_piece_info * i);
+
+	void bmx_torrent_blockinfo_free(Max_block_info * i);
+	BBString * bmx_torrent_blockinfo_peer(Max_block_info * i);
+	int bmx_torrent_blockinfo_state(Max_block_info * i);
+	int bmx_torrent_blockinfo_num_peers(Max_block_info * i);
 
 }
 
@@ -493,5 +540,47 @@ public:
 
 private:
 	libtorrent::peer_info info;
+};
+
+// --------------------------------------------------------
+
+class Max_cache_status
+{
+public:
+	Max_cache_status(libtorrent::cache_status s);
+	~Max_cache_status();
+	
+	libtorrent::cache_status & Status();
+
+private:
+	libtorrent::cache_status status;
+};
+
+// --------------------------------------------------------
+
+class Max_block_info
+{
+public:
+	Max_block_info(libtorrent::block_info i);
+	~Max_block_info();
+
+	libtorrent::block_info & Info();
+
+private:
+	libtorrent::block_info info;
+};
+
+// --------------------------------------------------------
+
+class Max_partial_piece_info
+{
+public:
+	Max_partial_piece_info(libtorrent::partial_piece_info i);
+	~Max_partial_piece_info();
+
+	libtorrent::partial_piece_info & Info();
+
+private:
+	libtorrent::partial_piece_info info;
 };
 
