@@ -18,6 +18,7 @@
 #include <boost/limits.hpp>
 #include <boost/iterator.hpp>
 #include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graph_mutability_traits.hpp>
 #include <boost/graph/graph_selectors.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/graph/adjacency_iterator.hpp>
@@ -511,6 +512,7 @@ namespace boost {
     typedef no_vertex_bundle vertex_bundled;
     typedef no_edge_bundle   edge_bundled;
 #endif
+    typedef GraphProperty    graph_property_type;
 
   public: // should be private
     typedef typename mpl::if_<typename has_property<edge_property_type>::type,
@@ -598,13 +600,52 @@ namespace boost {
     typedef adjacency_matrix_class_tag graph_tag;
 
     // Constructor required by MutableGraph
-    adjacency_matrix(vertices_size_type n_vertices)
+    adjacency_matrix(vertices_size_type n_vertices,
+                     const GraphProperty& p = GraphProperty())
       : m_matrix(Directed::is_directed ?
                  (n_vertices * n_vertices)
                  : (n_vertices * (n_vertices + 1) / 2)),
       m_vertex_set(0, n_vertices),
       m_vertex_properties(n_vertices),
-      m_num_edges(0) { }
+      m_num_edges(0),
+      m_property(p) { }
+
+    template <typename EdgeIterator>
+    adjacency_matrix(EdgeIterator first,
+                     EdgeIterator last,
+                     vertices_size_type n_vertices,
+                     const GraphProperty& p = GraphProperty())
+      : m_matrix(Directed::is_directed ?
+                 (n_vertices * n_vertices)
+                 : (n_vertices * (n_vertices + 1) / 2)),
+      m_vertex_set(0, n_vertices),
+      m_vertex_properties(n_vertices),
+      m_num_edges(0),
+      m_property(p)
+    {
+      for (; first != last; ++first) {
+        add_edge(first->first, first->second, *this);
+      }
+    }
+
+    template <typename EdgeIterator, typename EdgePropertyIterator>
+    adjacency_matrix(EdgeIterator first,
+                     EdgeIterator last,
+                     EdgePropertyIterator ep_iter,
+                     vertices_size_type n_vertices,
+                     const GraphProperty& p = GraphProperty())
+      : m_matrix(Directed::is_directed ?
+                 (n_vertices * n_vertices)
+                 : (n_vertices * (n_vertices + 1) / 2)),
+      m_vertex_set(0, n_vertices),
+      m_vertex_properties(n_vertices),
+      m_num_edges(0),
+      m_property(p)
+    {
+      for (; first != last; ++first, ++ep_iter) {
+        add_edge(first->first, first->second, *ep_iter, *this);
+      }
+    }
 
 #ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
     // Directly access a vertex or edge bundle
@@ -648,6 +689,7 @@ namespace boost {
     VertexList m_vertex_set;
     std::vector<vertex_property_type> m_vertex_properties;
     size_type m_num_edges;
+    GraphProperty m_property;
   };
 
   //=========================================================================
@@ -883,18 +925,19 @@ namespace boost {
   // Functions required by the MutableGraph concept
 
   // O(1)
-  template <typename D, typename VP, typename EP, typename GP, typename A>
+  template <typename D, typename VP, typename EP, typename GP, typename A,
+            typename EP2>
   std::pair<typename adjacency_matrix<D,VP,EP,GP,A>::edge_descriptor, bool>
   add_edge(typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor u,
            typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor v,
-           const EP& ep,
+           const EP2& ep,
            adjacency_matrix<D,VP,EP,GP,A>& g)
   {
     typedef typename adjacency_matrix<D,VP,EP,GP,A>::edge_descriptor
       edge_descriptor;
     if (detail::get_edge_exists(g.get_edge(u,v), 0) == false) {
       ++(g.m_num_edges);
-      detail::set_property(g.get_edge(u,v), ep, 0);
+      detail::set_property(g.get_edge(u,v), EP(ep), 0);
       detail::set_edge_exists(g.get_edge(u,v), true, 0);
       return std::make_pair
         (edge_descriptor(true, u, v, &detail::get_property(g.get_edge(u,v))),
@@ -947,9 +990,10 @@ namespace boost {
     return *vertices(g).first;
   }
 
-  template <typename D, typename VP, typename EP, typename GP, typename A>
+  template <typename D, typename VP, typename EP, typename GP, typename A,
+            typename VP2>
   inline typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor
-  add_vertex(const VP& vp, adjacency_matrix<D,VP,EP,GP,A>& g) {
+  add_vertex(const VP2& /*vp*/, adjacency_matrix<D,VP,EP,GP,A>& g) {
     // UNDER CONSTRUCTION
     assert(false);
     return *vertices(g).first;
@@ -957,8 +1001,8 @@ namespace boost {
 
   template <typename D, typename VP, typename EP, typename GP, typename A>
   inline void
-  remove_vertex(typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor u,
-                adjacency_matrix<D,VP,EP,GP,A>& g)
+  remove_vertex(typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor /*u*/,
+                adjacency_matrix<D,VP,EP,GP,A>& /*g*/)
   {
     // UNDER CONSTRUCTION
     assert(false);
@@ -990,6 +1034,37 @@ namespace boost {
       vi, vi_end;
     for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
       remove_edge(u, *vi, g);
+  }
+
+  //=========================================================================
+  // Functions required by the PropertyGraph concept
+
+  // O(1)
+  template <typename D, typename VP, typename EP, typename GP, typename A,
+            typename Tag, typename Value>
+  inline void
+  set_property(adjacency_matrix<D,VP,EP,GP,A>& g, Tag, const Value& value)
+  {
+      get_property_value(g.m_property, Tag()) = value;
+  }
+
+  template <typename D, typename VP, typename EP, typename GP, typename A,
+            typename Tag>
+  inline
+  typename graph_property<adjacency_matrix<D,VP,EP,GP,A>, Tag>::type&
+  get_property(adjacency_matrix<D,VP,EP,GP,A>& g, Tag)
+  {
+      return get_property_value(g.m_property, Tag());
+  }
+
+  template <typename D, typename VP, typename EP, typename GP, typename A,
+            typename Tag>
+  inline
+  const
+  typename graph_property<adjacency_matrix<D,VP,EP,GP,A>, Tag>::type&
+  get_property(const adjacency_matrix<D,VP,EP,GP,A>& g, Tag)
+  {
+      return get_property_value(g.m_property, Tag());
   }
 
   //=========================================================================
@@ -1225,7 +1300,7 @@ namespace boost {
   template <typename D, typename VP, typename EP, typename GP, typename A>
   typename adjacency_matrix<D,VP,EP,GP,A>::vertex_descriptor
   vertex(typename adjacency_matrix<D,VP,EP,GP,A>::vertices_size_type n,
-         const adjacency_matrix<D,VP,EP,GP,A>& g)
+         const adjacency_matrix<D,VP,EP,GP,A>&)
   {
     return n;
   }
@@ -1277,6 +1352,17 @@ namespace boost {
   }
 
 #endif
+
+#define ADJMAT_PARAMS \
+    typename D, typename VP, typename EP, typename GP, typename A
+#define ADJMAT adjacency_matrix<D,VP,EP,GP,A>
+template <ADJMAT_PARAMS>
+struct graph_mutability_traits<ADJMAT> {
+    typedef mutable_edge_property_graph_tag category;
+};
+#undef ADJMAT_PARAMS
+#undef ADJMAT
+
 
 } // namespace boost
 

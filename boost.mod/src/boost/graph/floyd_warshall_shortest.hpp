@@ -29,7 +29,7 @@
 #ifndef BOOST_GRAPH_FLOYD_WARSHALL_HPP
 #define BOOST_GRAPH_FLOYD_WARSHALL_HPP
 
-#include <boost/property_map.hpp>
+#include <boost/property_map/property_map.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/named_function_params.hpp>
 #include <boost/graph/graph_concepts.hpp>
@@ -159,7 +159,7 @@ namespace boost
     template <class VertexListGraph, class DistanceMatrix, 
       class WeightMap, class P, class T, class R>
     bool floyd_warshall_init_dispatch(const VertexListGraph& g, 
-      DistanceMatrix& d, WeightMap w, 
+      DistanceMatrix& d, WeightMap /*w*/, 
       const bgl_named_params<P, T, R>& params)
     {
       typedef typename property_traits<WeightMap>::value_type WM;

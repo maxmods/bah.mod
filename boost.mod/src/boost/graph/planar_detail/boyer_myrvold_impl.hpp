@@ -14,7 +14,7 @@
 #include <boost/config.hpp>    //for std::min macros
 #include <boost/shared_ptr.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/property_map.hpp>
+#include <boost/property_map/property_map.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/planar_detail/face_handles.hpp>
@@ -104,7 +104,7 @@ namespace boost
     }
     
     template <typename Vertex, typename Graph>
-    void finish_vertex(const Vertex& u, Graph& g)
+    void finish_vertex(const Vertex& u, Graph&)
     {
       typedef typename graph_traits<Graph>::vertices_size_type v_size_t;
 
@@ -889,7 +889,7 @@ namespace boost
     }          
 
 
-    void add_to_merge_points(vertex_t v, graph::detail::no_old_handles) {}
+    void add_to_merge_points(vertex_t, graph::detail::no_old_handles) {}
 
     void add_to_merge_points(vertex_t v, graph::detail::store_old_handles)
     {
@@ -897,7 +897,7 @@ namespace boost
     }
 
     
-    void add_to_embedded_edges(edge_t e, graph::detail::no_old_handles) {}
+    void add_to_embedded_edges(edge_t, graph::detail::no_old_handles) {}
 
     void add_to_embedded_edges(edge_t e, graph::detail::store_old_handles)
     {
@@ -1025,7 +1025,7 @@ namespace boost
       garbage.splice(garbage.end(), 
                      *separated_dfs_child_list[dfs_parent[v]], 
                      to_delete, 
-                     next(to_delete)
+                     boost::next(to_delete)
                      );
     }
 
@@ -1589,7 +1589,7 @@ namespace boost
                   if (w == graph_traits<Graph>::null_vertex() && 
                       externally_active(current_vertex,v) &&
                       outer_face_edge[e] &&
-                      outer_face_edge[*next(old_face_itr)] &&
+                      outer_face_edge[*boost::next(old_face_itr)] &&
                       !seen_x_or_y
                       )
                     {

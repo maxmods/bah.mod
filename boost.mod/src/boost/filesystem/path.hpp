@@ -208,6 +208,15 @@ namespace boost
           basic_path & append( InputIterator first, InputIterator last );
 #     endif
       
+      void clear()
+      { 
+#     if BOOST_WORKAROUND(BOOST_DINKUMWARE_STDLIB, >= 310)
+        m_path.clear();
+#     else
+        m_path.erase( m_path.begin(), m_path.end() );
+#     endif
+      }
+
       void swap( basic_path & rhs )
       {
         m_path.swap( rhs.m_path );
@@ -390,64 +399,84 @@ namespace boost
         lhs.begin(), lhs.end(), tmp.begin(), tmp.end() );
     }
 
+    //  operator == uses hand-written compare rather than !(lhs < rhs) && !(rhs < lhs)
+    //  because the result is the same yet the direct compare is much more efficient
+    //  than lexicographical_compare, which would also be called twice.
+
     template< class String, class Traits >
-    inline bool operator==( const basic_path<String, Traits> & lhs, const basic_path<String, Traits> & rhs )
+    inline bool operator==( const basic_path<String, Traits> & lhs,
+                    const typename basic_path<String, Traits>::string_type::value_type * rhs )
+    {
+      typedef typename
+        boost::BOOST_FILESYSTEM_NAMESPACE::basic_path<String, Traits> path_type;
+      const typename path_type::string_type::value_type * l (lhs.string().c_str());
+      while ( (*l == *rhs
+#      ifdef BOOST_WINDOWS_PATH
+        || (*l == path_alt_separator<path_type>::value && *rhs == slash<path_type>::value) 
+            || (*l == slash<path_type>::value && *rhs == path_alt_separator<path_type>::value)
+#      endif
+        ) && *l ) { ++l; ++rhs; }
+      return *l == *rhs
+#      ifdef BOOST_WINDOWS_PATH
+        || (*l == path_alt_separator<path_type>::value && *rhs == slash<path_type>::value) 
+          || (*l == slash<path_type>::value && *rhs == path_alt_separator<path_type>::value)
+#      endif
+        ;  
+    }
+
+    template< class String, class Traits >
+    inline bool operator==( const basic_path<String, Traits> & lhs,
+                            const basic_path<String, Traits> & rhs )
     { 
-      return !(lhs < rhs) && !(rhs < lhs);
+      return lhs == rhs.string().c_str();
     }
 
     template< class String, class Traits >
     inline bool operator==( const typename basic_path<String, Traits>::string_type::value_type * lhs,
                     const basic_path<String, Traits> & rhs )
     {
-      basic_path<String, Traits> tmp( lhs );
-      return !(tmp < rhs) && !(rhs < tmp);
+      return rhs == lhs;
     }
 
     template< class String, class Traits >
     inline bool operator==( const typename basic_path<String, Traits>::string_type & lhs,
                     const basic_path<String, Traits> & rhs )
     {
-      basic_path<String, Traits> tmp( lhs );
-      return !(tmp < rhs) && !(rhs < tmp);
-    }
-
-    template< class String, class Traits >
-    inline bool operator==( const basic_path<String, Traits> & lhs,
-                    const typename basic_path<String, Traits>::string_type::value_type * rhs )
-    {
-      basic_path<String, Traits> tmp( rhs );
-      return !(lhs < tmp) && !(tmp < lhs);
+      return rhs == lhs.c_str();
     }
 
     template< class String, class Traits >
     inline bool operator==( const basic_path<String, Traits> & lhs,
                     const typename basic_path<String, Traits>::string_type & rhs )
     {
-      basic_path<String, Traits> tmp( rhs );
-      return !(lhs < tmp) && !(tmp < lhs);
+      return lhs == rhs.c_str();
     }
 
     template< class String, class Traits >
-    inline bool operator!=( const basic_path<String, Traits> & lhs, const basic_path<String, Traits> & rhs ) { return !(lhs == rhs); }
+    inline bool operator!=( const basic_path<String, Traits> & lhs,
+      const basic_path<String, Traits> & rhs )
+        { return !(lhs == rhs); }
     
     template< class String, class Traits >
-    inline bool operator!=( const typename basic_path<String, Traits>::string_type::value_type * lhs,
-                    const basic_path<String, Traits> & rhs ) { return !(basic_path<String, Traits>(lhs) == rhs); }
+    inline bool operator!=( const typename basic_path<String,
+      Traits>::string_type::value_type * lhs,
+        const basic_path<String, Traits> & rhs )
+        { return !(lhs == rhs); }
 
     template< class String, class Traits >
     inline bool operator!=( const typename basic_path<String, Traits>::string_type & lhs,
-                    const basic_path<String, Traits> & rhs ) { return !(basic_path<String, Traits>(lhs) == rhs); }
+      const basic_path<String, Traits> & rhs )
+        { return !(lhs == rhs); }
 
     template< class String, class Traits >
     inline bool operator!=( const basic_path<String, Traits> & lhs,
-                    const typename basic_path<String, Traits>::string_type::value_type * rhs )
-                    { return !(lhs == basic_path<String, Traits>(rhs)); }
+      const typename basic_path<String, Traits>::string_type::value_type * rhs )
+        { return !(lhs == rhs); }
 
     template< class String, class Traits >
     inline bool operator!=( const basic_path<String, Traits> & lhs,
-                    const typename basic_path<String, Traits>::string_type & rhs )
-                    { return !(lhs == basic_path<String, Traits>(rhs)); }
+      const typename basic_path<String, Traits>::string_type & rhs )
+        { return !(lhs == rhs); }
 
     template< class String, class Traits >
     inline bool operator>( const basic_path<String, Traits> & lhs, const basic_path<String, Traits> & rhs ) { return rhs < lhs; }
@@ -925,7 +954,7 @@ namespace boost
     String basic_path<String, Traits>::stem() const
     {
       string_type name = filename();
-      typename string_type::size_type n = name.rfind('.');
+      typename string_type::size_type n = name.rfind(dot<path_type>::value);
       return name.substr(0, n);
     }
 
@@ -933,7 +962,7 @@ namespace boost
     String basic_path<String, Traits>::extension() const
     {
       string_type name = filename();
-      typename string_type::size_type n = name.rfind('.');
+      typename string_type::size_type n = name.rfind(dot<path_type>::value);
       if (n != string_type::npos)
         return name.substr(n);
       else

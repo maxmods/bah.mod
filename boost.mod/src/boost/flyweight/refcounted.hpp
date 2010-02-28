@@ -1,4 +1,4 @@
-/* Copyright 2006-2008 Joaquin M Lopez Munoz.
+/* Copyright 2006-2009 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -22,9 +22,21 @@
 #include <boost/flyweight/tracking_tag.hpp>
 #include <boost/utility/swap.hpp>
 
-/* Refcounting tracking policy: values have an embedded ref count,
- * when this goes down to zero the element is erased from the
- * factory.
+/* Refcounting tracking policy.
+ * The implementation deserves some explanation; values are equipped with two
+ * reference counts:
+ *   - a regular count of active references
+ *   - a deleter count
+ * It looks like a value can be erased when the number of references reaches
+ * zero, but this condition alone can lead to data races:
+ *   - Thread A detaches the last reference to x and is preempted.
+ *   - Thread B looks for x, finds it and attaches a reference to it.
+ *   - Thread A resumes and proceeds with erasing x, leaving a dangling
+ *     reference in thread B.
+ * Here is where the deleter count comes into play. This count is
+ * incremented when the reference count changes from 0 to 1, and decremented
+ * when a thread is about to check a value for erasure; it can be seen that a
+ * value is effectively erasable only when the deleter count goes down to 0.
  */
 
 namespace boost{
@@ -38,11 +50,11 @@ class refcounted_value
 {
 public:
   explicit refcounted_value(const Value& x_):
-    x(x_),ref(0)
+    x(x_),ref(0),del_ref(0)
   {}
   
   refcounted_value(const refcounted_value& r):
-    x(r.x),ref(0)
+    x(r.x),ref(0),del_ref(0)
   {}
 
   ~refcounted_value()
@@ -71,12 +83,16 @@ private:
 #endif
 
   long count()const{return ref;}
-  void add_ref()const{++ref;}
+  long add_ref()const{return ++ref;}
   bool release()const{return (--ref==0);}
+
+  void add_deleter()const{++del_ref;}
+  bool release_deleter()const{return (--del_ref==0);}
 
 private:
   Value                               x;
   mutable boost::detail::atomic_count ref;
+  mutable long                        del_ref;
 };
 
 template<typename Handle,typename TrackingHelper>
@@ -85,7 +101,9 @@ class refcounted_handle
 public:
   explicit refcounted_handle(const Handle& h_):h(h_)
   {
-    TrackingHelper::entry(*this).add_ref();
+    if(TrackingHelper::entry(*this).add_ref()==1){
+      TrackingHelper::entry(*this).add_deleter();
+    }
   }
   
   refcounted_handle(const refcounted_handle& x):h(x.h)
@@ -116,7 +134,7 @@ public:
 private:
   static bool check_erase(const refcounted_handle& x)
   {
-    return TrackingHelper::entry(x).count()==0;
+    return TrackingHelper::entry(x).release_deleter();
   }
 
   Handle h;
