@@ -18,15 +18,15 @@
 
 #include <cstddef> // std::size_t
 #include <climits> // ULONG_MAX 
-#include <boost/config.hpp>
+#include <string>
 
+#include <boost/config.hpp>
 #if defined(BOOST_NO_STDC_NAMESPACE)
 namespace std{
     using ::size_t;
 } // namespace std
 #endif
 
-#include <string>
 #include <boost/cstdint.hpp>
 
 #include <boost/serialization/pfto.hpp>
@@ -34,6 +34,9 @@ namespace std{
 #include <boost/archive/detail/interface_iarchive.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/archive/detail/register_archive.hpp>
+
+#include <boost/archive/detail/decl.hpp>
+#include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 // determine if its necessary to handle (u)int64_t specifically
 // i.e. that its not a synonym for (unsigned) long
@@ -63,8 +66,8 @@ namespace serialization {
 } // namespace serialization
 namespace archive {
 namespace detail {
-    class basic_iarchive;
-    class basic_iserializer;
+    class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_iarchive;
+    class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_iarchive;
 }
 
 class polymorphic_iarchive;
@@ -138,7 +141,7 @@ protected:
     virtual ~polymorphic_iarchive_impl(){};
 public:
     // utility function implemented by all legal archives
-    virtual void set_library_version(unsigned int archive_library_version) = 0;
+    virtual void set_library_version(version_type archive_library_version) = 0;
     virtual unsigned int get_library_version() const = 0;
     virtual unsigned int get_flags() const = 0;
     virtual void delete_created_pointers() = 0;
@@ -165,6 +168,8 @@ public:
 
 } // namespace archive
 } // namespace boost
+
+#include <boost/archive/detail/abi_suffix.hpp> // pops abi_suffix.hpp pragmas
 
 // note special treatment of shared_ptr. This type needs a special
 // structure associated with every archive.  We created a "mix-in"

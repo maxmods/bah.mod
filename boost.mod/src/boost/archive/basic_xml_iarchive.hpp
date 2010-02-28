@@ -29,6 +29,11 @@
 
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
+#ifdef BOOST_MSVC
+#  pragma warning(push)
+#  pragma warning(disable : 4511 4512)
+#endif
+
 namespace boost {
 namespace archive {
 
@@ -77,9 +82,9 @@ public:
         boost::serialization::nvp<T> & t,
         int
     ){
-        load_start(t.name());
+        this->This()->load_start(t.name());
         this->detail_common_iarchive::load_override(t.value(), 0);
-        load_end(t.name());
+        this->This()->load_end(t.name());
     }
 
     // specific overrides for attributes - handle as
@@ -112,6 +117,10 @@ public:
 
 } // namespace archive
 } // namespace boost
+
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
 
 #include <boost/archive/detail/abi_suffix.hpp> // pops abi_suffix.hpp pragmas
 

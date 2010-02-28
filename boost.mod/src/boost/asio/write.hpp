@@ -2,7 +2,7 @@
 // write.hpp
 // ~~~~~~~~~
 //
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2010 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -82,7 +82,7 @@ std::size_t write(SyncWriteStream& s, const ConstBufferSequence& buffers);
  * @li All of the data in the supplied buffers has been written. That is, the
  * bytes transferred is equal to the sum of the buffer sizes.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * write_some function.
@@ -133,7 +133,7 @@ std::size_t write(SyncWriteStream& s, const ConstBufferSequence& buffers,
  * @li All of the data in the supplied buffers has been written. That is, the
  * bytes transferred is equal to the sum of the buffer sizes.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * write_some function.
@@ -168,6 +168,8 @@ template <typename SyncWriteStream, typename ConstBufferSequence,
     typename CompletionCondition>
 std::size_t write(SyncWriteStream& s, const ConstBufferSequence& buffers,
     CompletionCondition completion_condition, boost::system::error_code& ec);
+
+#if !defined(BOOST_NO_IOSTREAM)
 
 /// Write all of the supplied data to a stream before returning.
 /**
@@ -205,7 +207,7 @@ std::size_t write(SyncWriteStream& s, basic_streambuf<Allocator>& b);
  *
  * @li All of the data in the supplied basic_streambuf has been written.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * write_some function.
@@ -245,7 +247,7 @@ std::size_t write(SyncWriteStream& s, basic_streambuf<Allocator>& b,
  *
  * @li All of the data in the supplied basic_streambuf has been written.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * write_some function.
@@ -278,6 +280,8 @@ template <typename SyncWriteStream, typename Allocator,
     typename CompletionCondition>
 std::size_t write(SyncWriteStream& s, basic_streambuf<Allocator>& b,
     CompletionCondition completion_condition, boost::system::error_code& ec);
+
+#endif // !defined(BOOST_NO_IOSTREAM)
 
 /*@}*/
 /**
@@ -353,7 +357,7 @@ void async_write(AsyncWriteStream& s, const ConstBufferSequence& buffers,
  * @li All of the data in the supplied buffers has been written. That is, the
  * bytes transferred is equal to the sum of the buffer sizes.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * async_write_some function.
@@ -411,6 +415,8 @@ template <typename AsyncWriteStream, typename ConstBufferSequence,
 void async_write(AsyncWriteStream& s, const ConstBufferSequence& buffers,
     CompletionCondition completion_condition, WriteHandler handler);
 
+#if !defined(BOOST_NO_IOSTREAM)
+
 /// Start an asynchronous operation to write all of the supplied data to a
 /// stream.
 /**
@@ -463,7 +469,7 @@ void async_write(AsyncWriteStream& s, basic_streambuf<Allocator>& b,
  *
  * @li All of the data in the supplied basic_streambuf has been written.
  *
- * @li The completion_condition function object returns true.
+ * @li The completion_condition function object returns 0.
  *
  * This operation is implemented in terms of zero or more calls to the stream's
  * async_write_some function.
@@ -509,6 +515,8 @@ template <typename AsyncWriteStream, typename Allocator,
     typename CompletionCondition, typename WriteHandler>
 void async_write(AsyncWriteStream& s, basic_streambuf<Allocator>& b,
     CompletionCondition completion_condition, WriteHandler handler);
+
+#endif // !defined(BOOST_NO_IOSTREAM)
 
 /*@}*/
 

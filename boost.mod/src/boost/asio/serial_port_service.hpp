@@ -2,7 +2,7 @@
 // serial_port_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2010 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -25,16 +25,10 @@
 
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/serial_port_base.hpp>
 #include <boost/asio/detail/service_base.hpp>
 #include <boost/asio/detail/reactive_serial_port_service.hpp>
 #include <boost/asio/detail/win_iocp_serial_port_service.hpp>
-
-#if !defined(BOOST_ASIO_DISABLE_SERIAL_PORT)
-# if defined(BOOST_ASIO_HAS_IOCP) \
-    || !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
-#  define BOOST_ASIO_HAS_SERIAL_PORT 1
-# endif // defined(BOOST_ASIO_HAS_IOCP)
-#endif // !defined(BOOST_ASIO_DISABLE_STREAM_HANDLE)
 
 #if defined(BOOST_ASIO_HAS_SERIAL_PORT) \
   || defined(GENERATING_DOCUMENTATION)

@@ -46,8 +46,8 @@ namespace std{
 #include <boost/cstdint.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/serialization/throw_exception.hpp>
-//#include <boost/limits.hpp>
-//#include <boost/io/ios_state.hpp>
+#include <boost/integer.hpp>
+#include <boost/integer_traits.hpp>
 
 #include <boost/archive/basic_streambuf_locale_saver.hpp>
 #include <boost/archive/archive_exception.hpp>
@@ -151,17 +151,22 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load_binary(
     std::size_t count
 ){
     // note: an optimizer should eliminate the following for char files
-    std::streamsize s = count / sizeof(Elem);
+    assert(
+        static_cast<std::streamsize>(count / sizeof(Elem)) 
+        <= boost::integer_traits<std::streamsize>::const_max
+    );
+    std::streamsize s = static_cast<std::streamsize>(count / sizeof(Elem));
     std::streamsize scount = m_sb.sgetn(
         static_cast<Elem *>(address), 
         s
     );
-    if(scount != static_cast<std::streamsize>(s))
+    if(scount != s)
         boost::serialization::throw_exception(
             archive_exception(archive_exception::stream_error)
         );
     // note: an optimizer should eliminate the following for char files
-    s = count % sizeof(Elem);
+    assert(count % sizeof(Elem) <= boost::integer_traits<std::streamsize>::const_max);
+    s = static_cast<std::streamsize>(count % sizeof(Elem));
     if(0 < s){
 //        if(is.fail())
 //            boost::serialization::throw_exception(
@@ -180,6 +185,6 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load_binary(
 } // namespace archive
 } // namespace boost
 
-#include <boost/archive/detail/abi_suffix.hpp> // pop pragams
+#include <boost/archive/detail/abi_suffix.hpp> // pop pragmas
 
 #endif // BOOST_ARCHIVE_BINARY_IPRIMITIVE_HPP

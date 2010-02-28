@@ -2,7 +2,7 @@
 // win_iocp_serial_port_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2010 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2008 Rep Invariant Systems, Inc. (info@repinvariant.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -237,7 +237,7 @@ public:
   }
 
   // Send a break sequence to the serial port.
-  boost::system::error_code send_break(implementation_type& impl,
+  boost::system::error_code send_break(implementation_type&,
       boost::system::error_code& ec)
   {
     ec = boost::asio::error::operation_not_supported;

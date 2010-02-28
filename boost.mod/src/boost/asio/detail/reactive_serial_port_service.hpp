@@ -2,7 +2,7 @@
 // reactive_serial_port_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2010 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2008 Rep Invariant Systems, Inc. (info@repinvariant.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -23,11 +23,10 @@
 #include <string>
 #include <boost/asio/detail/pop_options.hpp>
 
-#if !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
+#include <boost/asio/serial_port_base.hpp>
 
-#include <boost/asio/detail/push_options.hpp>
-#include <termios.h>
-#include <boost/asio/detail/pop_options.hpp>
+#if defined(BOOST_ASIO_HAS_SERIAL_PORT) \
+  && !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
 #include <boost/asio/error.hpp>
 #include <boost/asio/io_service.hpp>
@@ -263,7 +262,8 @@ private:
 } // namespace asio
 } // namespace boost
 
-#endif // !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
+#endif // defined(BOOST_ASIO_HAS_SERIAL_PORT)
+       //   && !defined(BOOST_WINDOWS) && !defined(__CYGWIN__)
 
 #include <boost/asio/detail/pop_options.hpp>
 
