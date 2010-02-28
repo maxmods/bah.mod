@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@ Import Pub.StdC
 
 Import "../boost.mod/src/*.hpp"
 
-Import "lib/src/gregorian/*.hpp"
+Import "../boost.mod/src/libs/date_time/src/gregorian/*.hpp"
 
-Import "lib/src/gregorian/date_generators.cpp"
-Import "lib/src/gregorian/greg_month.cpp"
-Import "lib/src/gregorian/greg_weekday.cpp"
-Import "lib/src/gregorian/gregorian_types.cpp"
+Import "../boost.mod/src/libs/date_time/src/gregorian/date_generators.cpp"
+Import "../boost.mod/src/libs/date_time/src/gregorian/greg_month.cpp"
+Import "../boost.mod/src/libs/date_time/src/gregorian/greg_weekday.cpp"
+Import "../boost.mod/src/libs/date_time/src/gregorian/gregorian_types.cpp"
 
 Import "glue.cpp"
 
