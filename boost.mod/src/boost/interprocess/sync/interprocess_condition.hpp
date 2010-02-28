@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2008. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -14,6 +14,8 @@
 #if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
+
+/// @cond
 
 #include <boost/interprocess/detail/config_begin.hpp>
 #include <boost/interprocess/detail/workaround.hpp>
@@ -37,6 +39,8 @@
    #include <boost/interprocess/detail/os_thread_functions.hpp>
    #define BOOST_INTERPROCESS_USE_GENERIC_EMULATION
 #endif
+
+/// @endcond
 
 //!\file
 //!Describes process-shared variables interprocess_condition class
@@ -145,7 +149,7 @@ class interprocess_condition
    #if defined (BOOST_INTERPROCESS_USE_GENERIC_EMULATION)
       enum { SLEEP = 0, NOTIFY_ONE, NOTIFY_ALL };
       interprocess_mutex m_enter_mut;
-      interprocess_mutex     m_check_mut;
+      //interprocess_mutex     m_check_mut;
       volatile boost::uint32_t    m_command;
       volatile boost::uint32_t    m_num_waiters;
       bool do_timed_wait(bool tout_enabled, const boost::posix_time::ptime &abs_time, interprocess_mutex &mut);

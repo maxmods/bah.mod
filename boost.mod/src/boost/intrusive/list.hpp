@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 //
 // (C) Copyright Olaf Krzikalla 2004-2006.
-// (C) Copyright Ion Gaztanaga  2006-2008
+// (C) Copyright Ion Gaztanaga  2006-2009
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -106,7 +106,7 @@ class list_impl
    typedef circular_list_algorithms<node_traits>                     node_algorithms;
 
    static const bool constant_time_size = Config::constant_time_size;
-   static const bool stateful_value_traits = detail::store_cont_ptr_on_it<list_impl>::value;
+   static const bool stateful_value_traits = detail::is_stateful_value_traits<real_value_traits>::value;
 
    /// @cond
 
@@ -978,7 +978,8 @@ class list_impl
             carry.splice(carry.cbegin(), *this, this->cbegin());
             int i = 0;
             while(i < fill && !counter[i].empty()) {
-               carry.merge(counter[i++], p);
+               counter[i].merge(carry, p);
+               carry.swap(counter[i++]);
             }
             carry.swap(counter[i]);
             if(i == fill)
@@ -1021,21 +1022,26 @@ class list_impl
    template<class Predicate>
    void merge(list_impl& x, Predicate p)
    {
-      const_iterator e(this->end());
-      const_iterator bx(x.begin());
-      const_iterator ex(x.end());
-
-      for (const_iterator b = this->cbegin(); b != e; ++b) {
-         size_type n(0);
-         const_iterator ix(bx);
-         while(ix != ex && p(*ix, *b)){
-            ++ix; ++n;
+      const_iterator e(this->cend()), ex(x.cend());
+      const_iterator b(this->cbegin());
+      while(!x.empty()){
+         const_iterator ix(x.cbegin());
+         while (b != e && !p(*ix, *b)){
+            ++b;
          }
-         this->splice(b, x, bx, ix, n);
-         bx = ix;
+         if(b == e){
+            //Now transfer the rest to the end of the container
+            this->splice(e, x);
+            break;
+         }
+         else{
+            size_type n(0);
+            do{
+               ++ix; ++n;
+            } while(ix != ex && p(*ix, *b));
+            this->splice(b, x, x.begin(), ix, n);
+         }
       }
-      //Now transfer the rest at the end of the container
-      this->splice(e, x);
    }
 
    //! <b>Effects</b>: Reverses the order of elements in the list. 

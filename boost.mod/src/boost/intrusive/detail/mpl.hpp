@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga  2006-2008
+// (C) Copyright Ion Gaztanaga  2006-2009
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -13,6 +13,7 @@
 #ifndef BOOST_INTRUSIVE_DETAIL_MPL_HPP
 #define BOOST_INTRUSIVE_DETAIL_MPL_HPP
 
+#include <boost/intrusive/detail/config_begin.hpp>
 #include <cstddef>
 
 namespace boost {
@@ -64,7 +65,7 @@ class is_convertible
    class false_t { char dummy[2]; };
    static true_t dispatch(U);
    static false_t dispatch(...);
-   static T trigger();
+   static const T &trigger();
    public:
    static const bool value = sizeof(dispatch(trigger())) == sizeof(true_t);
 };
@@ -363,5 +364,7 @@ struct ls_zeros<1>
 } //namespace detail 
 } //namespace intrusive 
 } //namespace boost 
+
+#include <boost/intrusive/detail/config_end.hpp>
 
 #endif //BOOST_INTRUSIVE_DETAIL_MPL_HPP

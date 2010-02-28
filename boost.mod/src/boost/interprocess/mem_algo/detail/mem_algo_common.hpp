@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2008. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -19,14 +19,18 @@
 #include <boost/interprocess/detail/workaround.hpp>
 
 #include <boost/interprocess/interprocess_fwd.hpp>
-#include <boost/interprocess/allocators/allocation_type.hpp>
+#include <boost/interprocess/containers/allocation_type.hpp>
 #include <boost/interprocess/detail/utilities.hpp>
 #include <boost/interprocess/detail/type_traits.hpp>
-#include <boost/interprocess/detail/iterators.hpp>
 #include <boost/interprocess/detail/math_functions.hpp>
 #include <boost/interprocess/detail/utilities.hpp>
+#include <boost/interprocess/detail/move.hpp>
+#include <boost/interprocess/detail/min_max.hpp>
 #include <boost/assert.hpp>
 #include <boost/static_assert.hpp>
+#include <algorithm>
+#include <utility>
+#include <iterator>
 
 //!\file
 //!Implements common operations for memory algorithms.
@@ -34,208 +38,6 @@
 namespace boost {
 namespace interprocess {
 namespace detail {
-
-template<class VoidPointer>
-struct multi_allocation_next
-{
-   typedef typename detail::
-      pointer_to_other<VoidPointer, multi_allocation_next>::type
-         multi_allocation_next_ptr;
-
-   multi_allocation_next(multi_allocation_next_ptr n)
-      :  next_(n)
-   {}
-   multi_allocation_next_ptr next_;
-};
-
-//!This iterator is returned by "allocate_many" functions so that
-//!the user can access the multiple buffers allocated in a single call
-template<class VoidPointer>
-class basic_multiallocation_iterator
-   :  public std::iterator<std::input_iterator_tag, char>
-{
-   void unspecified_bool_type_func() const {}
-   typedef void (basic_multiallocation_iterator::*unspecified_bool_type)() const;
-   typedef typename detail::
-      pointer_to_other
-         <VoidPointer, multi_allocation_next<VoidPointer> >::type
-            multi_allocation_next_ptr;
-
-   public:
-   typedef char         value_type;
-   typedef value_type & reference;
-   typedef value_type * pointer;
-
-   basic_multiallocation_iterator()
-      : next_alloc_(0)
-   {}
-
-   basic_multiallocation_iterator(multi_allocation_next_ptr next)
-      : next_alloc_(next)
-   {}
-
-   basic_multiallocation_iterator &operator=(const basic_multiallocation_iterator &other)
-   {  next_alloc_ = other.next_alloc_;  return *this;  }
-
-   public:
-   basic_multiallocation_iterator& operator++() 
-   {  next_alloc_.next_ = detail::get_pointer(next_alloc_.next_->next_); return *this;  }
-   
-   basic_multiallocation_iterator operator++(int)
-   {
-      basic_multiallocation_iterator result(next_alloc_.next_);
-      ++*this;
-      return result;
-   }
-
-   bool operator== (const basic_multiallocation_iterator& other) const
-   { return next_alloc_.next_ == other.next_alloc_.next_; }
-
-   bool operator!= (const basic_multiallocation_iterator& other) const
-   { return !operator== (other); }
-
-   reference operator*() const
-   {  return *reinterpret_cast<char*>(detail::get_pointer(next_alloc_.next_)); }
-
-   operator unspecified_bool_type() const  
-   {  return next_alloc_.next_? &basic_multiallocation_iterator::unspecified_bool_type_func : 0;   }
-
-   pointer operator->() const
-   { return &(*(*this)); }
-
-   static basic_multiallocation_iterator create_simple_range(void *mem)
-   {
-      basic_multiallocation_iterator it;
-      typedef multi_allocation_next<VoidPointer> next_impl_t;
-      next_impl_t * tmp_mem = static_cast<next_impl_t*>(mem);
-      it = basic_multiallocation_iterator<VoidPointer>(tmp_mem);
-      tmp_mem->next_ = 0;
-      return it;
-   }
-
-   multi_allocation_next<VoidPointer> &get_multi_allocation_next()
-   {  return *next_alloc_.next_;  }
-
-   private:
-   multi_allocation_next<VoidPointer> next_alloc_;
-};
-
-template<class VoidPointer>
-class basic_multiallocation_chain
-{
-   private:
-   basic_multiallocation_iterator<VoidPointer> it_;
-   VoidPointer last_mem_;
-   std::size_t num_mem_;
-
-   basic_multiallocation_chain(const basic_multiallocation_chain &);
-   basic_multiallocation_chain &operator=(const basic_multiallocation_chain &);
-
-   public:
-   typedef basic_multiallocation_iterator<VoidPointer> multiallocation_iterator;
-
-   basic_multiallocation_chain()
-      :  it_(0), last_mem_(0), num_mem_(0)
-   {}
-
-   void reset()
-   {
-      this->it_ = multiallocation_iterator();
-      this->last_mem_ = 0;
-      this->num_mem_ = 0;
-   }
-
-   void push_back(void *mem)
-   {
-      typedef multi_allocation_next<VoidPointer> next_impl_t;
-      next_impl_t * tmp_mem = static_cast<next_impl_t*>(mem);
-      
-      if(!this->last_mem_){
-         this->it_ = basic_multiallocation_iterator<VoidPointer>(tmp_mem);
-      }
-      else{
-         static_cast<next_impl_t*>(detail::get_pointer(this->last_mem_))->next_ = tmp_mem;
-      }
-      tmp_mem->next_ = 0;
-      this->last_mem_ = tmp_mem;
-      ++num_mem_;
-   }
-
-   void push_front(void *mem)
-   {
-      typedef multi_allocation_next<VoidPointer> next_impl_t;
-      next_impl_t * tmp_mem   = static_cast<next_impl_t*>(mem);      
-      ++num_mem_;
-
-      if(!this->last_mem_){
-         this->it_ = basic_multiallocation_iterator<VoidPointer>(tmp_mem);
-         tmp_mem->next_ = 0;
-         this->last_mem_ = tmp_mem;
-      }
-      else{
-         next_impl_t * old_first = &this->it_.get_multi_allocation_next();
-         tmp_mem->next_          = old_first;
-         this->it_ = basic_multiallocation_iterator<VoidPointer>(tmp_mem);
-      }
-   }
-
-   void swap(basic_multiallocation_chain &other_chain)
-   {
-      std::swap(this->it_, other_chain.it_);
-      std::swap(this->last_mem_, other_chain.last_mem_);
-      std::swap(this->num_mem_, other_chain.num_mem_);
-   }
-
-   void splice_back(basic_multiallocation_chain &other_chain)
-   {
-      typedef multi_allocation_next<VoidPointer> next_impl_t;
-      multiallocation_iterator end_it;
-      multiallocation_iterator other_it = other_chain.get_it();
-      multiallocation_iterator this_it  = this->get_it();
-      if(end_it == other_it){
-         return;
-      }
-      else if(end_it == this_it){
-         this->swap(other_chain);
-      }
-      else{
-         static_cast<next_impl_t*>(detail::get_pointer(this->last_mem_))->next_
-            = &other_chain.it_.get_multi_allocation_next();
-         this->last_mem_ = other_chain.last_mem_;
-         this->num_mem_ += other_chain.num_mem_;
-      }
-   }
-
-   void *pop_front()
-   {
-      multiallocation_iterator itend;
-      if(this->it_ == itend){
-         this->last_mem_= 0;
-         this->num_mem_ = 0;
-         return 0;
-      }
-      else{
-         void *addr = &*it_;
-         ++it_;
-         --num_mem_;
-         if(!num_mem_){
-            this->last_mem_ = 0;
-            this->it_ = multiallocation_iterator();
-         }
-         return addr;
-      }
-   }
-
-   bool empty() const
-   {  return !num_mem_; }
-
-   multiallocation_iterator get_it() const
-   {  return it_;  }
-
-   std::size_t size() const
-   {  return num_mem_;  }
-};
-
 
 //!This class implements several allocation functions shared by different algorithms
 //!(aligned allocation, multiple allocation...).
@@ -245,19 +47,16 @@ class memory_algorithm_common
    public:
    typedef typename MemoryAlgorithm::void_pointer              void_pointer;
    typedef typename MemoryAlgorithm::block_ctrl                block_ctrl;
-   typedef typename MemoryAlgorithm::multiallocation_iterator  multiallocation_iterator;
-   typedef multi_allocation_next<void_pointer>                 multi_allocation_next_t;
-   typedef typename multi_allocation_next_t::
-      multi_allocation_next_ptr                                multi_allocation_next_ptr;
+   typedef typename MemoryAlgorithm::multiallocation_chain     multiallocation_chain;
    typedef memory_algorithm_common<MemoryAlgorithm>            this_type;
 
-   static const std::size_t Alignment           = MemoryAlgorithm::Alignment;
-   static const std::size_t MinBlockUnits       = MemoryAlgorithm::MinBlockUnits;
-   static const std::size_t AllocatedCtrlBytes  = MemoryAlgorithm::AllocatedCtrlBytes;
-   static const std::size_t AllocatedCtrlUnits  = MemoryAlgorithm::AllocatedCtrlUnits;
-   static const std::size_t BlockCtrlBytes      = MemoryAlgorithm::BlockCtrlBytes;
-   static const std::size_t BlockCtrlUnits      = MemoryAlgorithm::BlockCtrlUnits;
-   static const std::size_t UsableByPreviousChunk   = MemoryAlgorithm::UsableByPreviousChunk;
+   static const std::size_t Alignment              = MemoryAlgorithm::Alignment;
+   static const std::size_t MinBlockUnits          = MemoryAlgorithm::MinBlockUnits;
+   static const std::size_t AllocatedCtrlBytes     = MemoryAlgorithm::AllocatedCtrlBytes;
+   static const std::size_t AllocatedCtrlUnits     = MemoryAlgorithm::AllocatedCtrlUnits;
+   static const std::size_t BlockCtrlBytes         = MemoryAlgorithm::BlockCtrlBytes;
+   static const std::size_t BlockCtrlUnits         = MemoryAlgorithm::BlockCtrlUnits;
+   static const std::size_t UsableByPreviousChunk  = MemoryAlgorithm::UsableByPreviousChunk;
 
    static void assert_alignment(const void *ptr)
    {  assert_alignment((std::size_t)ptr); }
@@ -280,10 +79,15 @@ class memory_algorithm_common
    static std::size_t multiple_of_units(std::size_t size)
    {  return detail::get_rounded_size(size, Alignment);  }
 
-   static multiallocation_iterator allocate_many
+   static multiallocation_chain allocate_many
       (MemoryAlgorithm *memory_algo, std::size_t elem_bytes, std::size_t n_elements)
    {
       return this_type::priv_allocate_many(memory_algo, &elem_bytes, n_elements, 0);
+   }
+
+   static void deallocate_many(MemoryAlgorithm *memory_algo, multiallocation_chain chain)
+   {
+      return this_type::priv_deallocate_many(memory_algo, boost::interprocess::move(chain));
    }
 
    static bool calculate_lcm_and_needs_backwards_lcmed
@@ -381,7 +185,7 @@ class memory_algorithm_common
       return true;
    }
 
-   static multiallocation_iterator allocate_many
+   static multiallocation_chain allocate_many
       ( MemoryAlgorithm *memory_algo
       , const std::size_t *elem_sizes
       , std::size_t n_elements
@@ -403,7 +207,8 @@ class memory_algorithm_common
 
       std::size_t real_size;
       if(alignment <= Alignment){
-         return memory_algo->priv_allocate(allocate_new, nbytes, nbytes, real_size).first;
+         return memory_algo->priv_allocate
+            (boost::interprocess::allocate_new, nbytes, nbytes, real_size).first;
       }
 
       if(nbytes > UsableByPreviousChunk)
@@ -428,7 +233,8 @@ class memory_algorithm_common
          );
 
       //Now allocate the buffer
-      void *buffer = memory_algo->priv_allocate(allocate_new, request, request, real_size).first;
+      void *buffer = memory_algo->priv_allocate
+         (boost::interprocess::allocate_new, request, request, real_size).first;
       if(!buffer){
          return 0;
       }
@@ -608,7 +414,7 @@ class memory_algorithm_common
    }
 
    private:
-   static multiallocation_iterator priv_allocate_many
+   static multiallocation_chain priv_allocate_many
       ( MemoryAlgorithm *memory_algo
       , const std::size_t *elem_sizes
       , std::size_t n_elements
@@ -620,7 +426,7 @@ class memory_algorithm_common
       //Calculate the total size of all requests
       std::size_t total_request_units = 0;
       std::size_t elem_units = 0;
-      const std::size_t ptr_size_units = memory_algo->priv_get_total_units(sizeof(multi_allocation_next_ptr));
+      const std::size_t ptr_size_units = memory_algo->priv_get_total_units(sizeof(void_pointer));
       if(!sizeof_element){
          elem_units = memory_algo->priv_get_total_units(*elem_sizes);
          elem_units = ptr_size_units > elem_units ? ptr_size_units : elem_units;
@@ -634,7 +440,8 @@ class memory_algorithm_common
          }
       }
 
-      multi_allocation_next_ptr first = 0, previous = 0;
+      multiallocation_chain chain;
+
       std::size_t low_idx = 0;
       while(low_idx < n_elements){
          std::size_t total_bytes = total_request_units*Alignment - AllocatedCtrlBytes + UsableByPreviousChunk;
@@ -645,7 +452,7 @@ class memory_algorithm_common
 
          std::size_t received_size;
          std::pair<void *, bool> ret = memory_algo->priv_allocate
-            (allocate_new, min_allocation, total_bytes, received_size, 0);
+            (boost::interprocess::allocate_new, min_allocation, total_bytes, received_size, 0);
          if(!ret.first){
             break;
          }
@@ -710,33 +517,28 @@ class memory_algorithm_common
             block_address += new_block->m_size*Alignment;
             total_used_units += new_block->m_size;
             //Check we have enough room to overwrite the intrusive pointer
-            assert((new_block->m_size*Alignment - AllocatedCtrlUnits) >= sizeof(multi_allocation_next_t));
-            multi_allocation_next_ptr p = new(memory_algo->priv_get_user_buffer(new_block))multi_allocation_next_t(0);
-      
-            if(!first){
-               first = p;
-            }
-            else{
-               previous->next_ = p;
-            }
-            previous = p;
+            assert((new_block->m_size*Alignment - AllocatedCtrlUnits) >= sizeof(void_pointer));
+            void_pointer p = new(memory_algo->priv_get_user_buffer(new_block))void_pointer(0);
+            chain.push_back(p);
             ++low_idx;
             //prev_block = new_block;
          }
          //Sanity check
          BOOST_ASSERT(total_used_units == received_units);
       }
-
+      
       if(low_idx != n_elements){
-         while(first){
-            multi_allocation_next_ptr prev = first;
-            first = first->next_;
-            memory_algo->priv_deallocate(detail::get_pointer(prev));
-         }
-         return multiallocation_iterator();
+         priv_deallocate_many(memory_algo, boost::interprocess::move(chain));
       }
-      else{
-         return multiallocation_iterator(first);
+      return boost::interprocess::move(chain);
+   }
+
+   static void priv_deallocate_many(MemoryAlgorithm *memory_algo, multiallocation_chain chain)
+   {
+      while(!chain.empty()){
+         void *addr = detail::get_pointer(chain.front());
+         chain.pop_front();
+         memory_algo->priv_deallocate(addr);
       }
    }
 };

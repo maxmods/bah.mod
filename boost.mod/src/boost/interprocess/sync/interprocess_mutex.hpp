@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2008. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -27,6 +27,8 @@
 #ifndef BOOST_INTERPROCESS_MUTEX_HPP
 #define BOOST_INTERPROCESS_MUTEX_HPP
 
+/// @cond
+
 #if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
@@ -47,6 +49,8 @@
    #include <boost/interprocess/detail/os_thread_functions.hpp>
    #define BOOST_INTERPROCESS_USE_GENERIC_EMULATION
 #endif
+
+/// @endcond
 
 //!\file
 //!Describes a mutex class that can be placed in memory shared by
@@ -110,7 +114,7 @@ class interprocess_mutex
       volatile boost::uint32_t m_s;
    #elif defined(BOOST_INTERPROCESS_USE_POSIX)
       pthread_mutex_t   m_mut;
-   #endif   //#if (defined BOOST_WINDOWS) && !(defined BOOST_DISABLE_WIN32)
+   #endif   //#if (defined BOOST_INTERPROCESS_WINDOWS)
    /// @endcond
 };
 

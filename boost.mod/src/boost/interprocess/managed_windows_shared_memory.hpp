@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2008. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -60,6 +60,7 @@ class basic_managed_windows_shared_memory
 
    private:
    typedef typename base_t::char_ptr_holder_t   char_ptr_holder_t;
+   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(basic_managed_windows_shared_memory)
    /// @endcond
 
    public: //functions
@@ -121,24 +122,15 @@ class basic_managed_windows_shared_memory
 
    //!Moves the ownership of "moved"'s managed memory to *this.
    //!Does not throw
-   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
    basic_managed_windows_shared_memory
-      (detail::moved_object<basic_managed_windows_shared_memory> moved)
-   {  this->swap(moved.get());   }
-   #else
-   basic_managed_windows_shared_memory(basic_managed_windows_shared_memory &&moved)
+      (BOOST_INTERPROCESS_RV_REF(basic_managed_windows_shared_memory) moved)
    {  this->swap(moved);   }
-   #endif
 
    //!Moves the ownership of "moved"'s managed memory to *this.
    //!Does not throw
-   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-   basic_managed_windows_shared_memory &operator=(detail::moved_object<basic_managed_windows_shared_memory> moved)
-   #else
-   basic_managed_windows_shared_memory &operator=(basic_managed_windows_shared_memory &&moved)
-   #endif
+   basic_managed_windows_shared_memory &operator=(BOOST_INTERPROCESS_RV_REF(basic_managed_windows_shared_memory) moved)
    {
-      basic_managed_windows_shared_memory tmp(detail::move_impl(moved));
+      basic_managed_windows_shared_memory tmp(boost::interprocess::move(moved));
       this->swap(tmp);
       return *this;
    }
@@ -153,19 +145,14 @@ class basic_managed_windows_shared_memory
 
    //!Swaps the ownership of the managed mapped memories managed by *this and other.
    //!Never throws.
-   #if !defined(BOOST_INTERPROCESS_RVALUE_REFERENCE) && !defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
-   void swap(detail::moved_object<basic_managed_windows_shared_memory> mother)
-   {  this->swap(mother.get());  }
    void swap(basic_managed_windows_shared_memory &other)
-   #else
-   void swap(basic_managed_windows_shared_memory &&other)
-   #endif
    {
       base_t::swap(other);
       m_wshm.swap(other.m_wshm);
    }
 
    /// @cond
+
    //!Tries to find a previous named allocation address. Returns a memory
    //!buffer and the object count. If not found returned pointer is 0.
    //!Never throws.
@@ -184,25 +171,6 @@ class basic_managed_windows_shared_memory
    detail::managed_open_or_create_impl<windows_shared_memory, false> m_wshm;
    /// @endcond
 };
-
-///@cond
-
-//!Trait class to detect if a type is
-//!movable
-template
-      <
-         class CharType, 
-         class AllocationAlgorithm, 
-         template<class IndexConfig> class IndexType
-      >
-struct is_movable<basic_managed_windows_shared_memory
-   <CharType,  AllocationAlgorithm, IndexType>
->
-{
-   static const bool value = true;
-};
-
-///@endcond
 
 }  //namespace interprocess {
 }  //namespace boost {

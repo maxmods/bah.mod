@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // (C) Copyright John Maddock 2000.
-// (C) Copyright Ion Gaztanaga 2005-2008.
+// (C) Copyright Ion Gaztanaga 2005-2009.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
@@ -120,13 +120,13 @@ struct add_reference<T&>
 template<>
 struct add_reference<void>
 {
-    typedef nat& type;
+    typedef nat &type;
 };
 
 template<>
 struct add_reference<const void>
 {
-    typedef const nat& type;
+    typedef const nat &type;
 };
 
 template <class T>

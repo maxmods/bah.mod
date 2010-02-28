@@ -20,13 +20,14 @@
 #include <stdexcept>                       // logic_error.
 #include <boost/config.hpp>                // BOOST_STATIC_CONSTANT.
 #include <boost/iostreams/categories.hpp>
-#include <boost/iostreams/detail/char_traits.hpp>	
+#include <boost/iostreams/detail/char_traits.hpp>
 #include <boost/iostreams/detail/ios.hpp>  // BOOST_IOSTREAMS_FAILURE 
 #include <boost/iostreams/read.hpp>        // get 
 #include <boost/iostreams/write.hpp>       // put 
 #include <boost/iostreams/pipeline.hpp>
 #include <boost/iostreams/putback.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/throw_exception.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 
 // Must come last.
@@ -124,7 +125,7 @@ public:
              target != newline::dos &&
              target != newline::mac )
         {
-            throw std::logic_error("bad flags");
+            boost::throw_exception(std::logic_error("bad flags"));
         }
     }
 
@@ -211,7 +212,7 @@ public:
     }
 
     template<typename Sink>
-    void close(Sink& dest, BOOST_IOS::openmode which)
+    void close(Sink& dest, BOOST_IOS::openmode)
     {
         typedef typename iostreams::category_of<Sink>::type category;
         if ((flags_ & f_write) != 0 && (flags_ & f_has_CR) != 0)
@@ -398,7 +399,7 @@ public:
     }
 
     template<typename Sink>
-    void close(Sink&, BOOST_IOS::openmode which)
+    void close(Sink&, BOOST_IOS::openmode)
     {
         using iostreams::newline::final_newline;
 
@@ -420,7 +421,7 @@ public:
         }
     }
 private:
-    void fail() { throw newline_error(source()); }
+    void fail() { boost::throw_exception(newline_error(source())); }
     int& source() { return flags_; }
     int source() const { return flags_; }
 
