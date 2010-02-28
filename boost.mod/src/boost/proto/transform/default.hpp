@@ -11,7 +11,6 @@
     #ifndef BOOST_PROTO_TRANSFORM_DEFAULT_HPP_EAN_04_04_2008
     #define BOOST_PROTO_TRANSFORM_DEFAULT_HPP_EAN_04_04_2008
 
-    #include <boost/proto/detail/prefix.hpp>
     #include <boost/preprocessor/iteration/iterate.hpp>
     #include <boost/preprocessor/repetition/repeat.hpp>
     #include <boost/preprocessor/repetition/enum_shifted.hpp>
@@ -27,11 +26,10 @@
     #include <boost/proto/transform/impl.hpp>
     #include <boost/proto/transform/arg.hpp>
     #include <boost/proto/detail/decltype.hpp>
-    #include <boost/proto/detail/suffix.hpp>
 
     namespace boost { namespace proto
     {
-        template<typename Grammar>
+        template<typename Grammar /*= detail::_default*/>
         struct _default
           : transform<_default<Grammar> >
         {
@@ -140,13 +138,18 @@
             /// INTERNAL ONLY
             template<typename Expr, typename State, typename Data>
             struct is_member_function_invocation
-            {
-                typedef typename result_of::child_c<Expr, 1>::type e1;
-                typedef typename Grammar::template impl<e1, State, Data>::result_type r1;
-                typedef typename remove_const<typename remove_reference<r1>::type>::type uncvref_r1;
-                typedef typename is_member_function_pointer<uncvref_r1>::type type;
-                BOOST_STATIC_CONSTANT(bool, value = type::value);
-            };
+              : is_member_function_pointer<
+                    typename remove_const<
+                        typename remove_reference<
+                            typename Grammar::template impl<
+                                typename result_of::child_c<Expr, 1>::type
+                              , State
+                              , Data
+                            >::result_type
+                        >::type
+                    >::type
+                >
+            {};
 
             /// INTERNAL ONLY
             template<typename Expr, typename State, typename Data, bool IsMemFunCall>
@@ -420,8 +423,9 @@
                   , mpl::false_
                 ) const
                 {
-                    using namespace detail::get_pointer_;
-                    return (get_pointer(EVAL(~, 1, e)) ->* EVAL(~, 0, e))();
+                    BOOST_PROTO_USE_GET_POINTER();
+                    typedef typename detail::classtypeof<function_type>::type class_type;
+                    return (BOOST_PROTO_GET_POINTER(class_type, EVAL(~, 1, e)) ->* EVAL(~, 0, e))();
                 }
 
                 result_type invoke(
@@ -432,8 +436,9 @@
                   , mpl::true_
                 ) const
                 {
-                    using namespace detail::get_pointer_;
-                    return (get_pointer(EVAL(~, 1, e)) ->* EVAL(~, 0, e));
+                    BOOST_PROTO_USE_GET_POINTER();
+                    typedef typename detail::classtypeof<function_type>::type class_type;
+                    return (BOOST_PROTO_GET_POINTER(class_type, EVAL(~, 1, e)) ->* EVAL(~, 0, e));
                 }
             };
 
@@ -459,6 +464,15 @@
         struct is_callable<_default<Grammar> >
           : mpl::true_
         {};
+
+        namespace detail
+        {
+            // Loopy indirection that allows proto::_default<> to be
+            // used without specifying a Grammar argument.
+            struct _default
+              : proto::_default<>
+            {};
+        }
 
     }}
 
@@ -512,8 +526,9 @@
             ) const
             {
                 #define M0(Z, M, e) BOOST_PP_COMMA_IF(BOOST_PP_SUB(M, 2)) EVAL(Z, M, e)
-                using namespace detail::get_pointer_;
-                return (get_pointer(EVAL(~, 1, e)) ->* EVAL(~, 0, e))(
+                BOOST_PROTO_USE_GET_POINTER();
+                typedef typename detail::classtypeof<function_type>::type class_type;
+                return (BOOST_PROTO_GET_POINTER(class_type, EVAL(~, 1, e)) ->* EVAL(~, 0, e))(
                     BOOST_PP_REPEAT_FROM_TO(2, N, M0, e)
                 );
                 #undef M0

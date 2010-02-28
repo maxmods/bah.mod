@@ -9,11 +9,10 @@
 #ifndef BOOST_PROTO_TRANSFORM_ARG_HPP_EAN_11_01_2007
 #define BOOST_PROTO_TRANSFORM_ARG_HPP_EAN_11_01_2007
 
-#include <boost/proto/detail/prefix.hpp>
 #include <boost/proto/proto_fwd.hpp>
 #include <boost/proto/traits.hpp>
 #include <boost/proto/transform/impl.hpp>
-#include <boost/proto/detail/suffix.hpp>
+#include <boost/type_traits/is_array.hpp>
 
 namespace boost { namespace proto
 {
@@ -196,7 +195,7 @@ namespace boost { namespace proto
             /// \return <tt>proto::value(e)</tt>
             /// \throw nothrow
             #ifdef BOOST_HAS_DECLTYPE
-            result_type
+            typename mpl::if_c<is_array<result_type>::value, result_type &, result_type>::type
             #else
             typename result_of::value<typename impl::expr_param>::type
             #endif

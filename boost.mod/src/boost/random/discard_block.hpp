@@ -7,7 +7,7 @@
  *
  * See http://www.boost.org for most recent version including documentation.
  *
- * $Id: discard_block.hpp 29116 2005-05-21 15:57:01Z dgregor $
+ * $Id: discard_block.hpp 53871 2009-06-13 17:54:06Z steven_watanabe $
  *
  * Revision history
  *  2001-03-02  created
@@ -20,6 +20,7 @@
 #include <boost/config.hpp>
 #include <boost/limits.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/random/detail/config.hpp>
 
 
 namespace boost {
@@ -42,6 +43,7 @@ public:
 
   discard_block() : _rng(), _n(0) { }
   explicit discard_block(const base_type & rng) : _rng(rng), _n(0) { }
+  template<class T> explicit discard_block(T s) : _rng(s), _n(0) {}
   template<class It> discard_block(It& first, It last)
     : _rng(first, last), _n(0) { }
   void seed() { _rng.seed(); _n = 0; }
@@ -69,7 +71,7 @@ public:
 
 #ifndef BOOST_NO_OPERATORS_IN_NAMESPACE
 
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+#ifndef BOOST_RANDOM_NO_STREAM_OPERATORS
   template<class CharT, class Traits>
   friend std::basic_ostream<CharT,Traits>&
   operator<<(std::basic_ostream<CharT,Traits>& os, const discard_block& s)

@@ -12,8 +12,6 @@
     #ifndef BOOST_PROTO_MAKE_EXPR_HPP_EAN_04_01_2005
     #define BOOST_PROTO_MAKE_EXPR_HPP_EAN_04_01_2005
 
-    #include <boost/proto/detail/prefix.hpp>
-    #include <boost/version.hpp>
     #include <boost/config.hpp>
     #include <boost/detail/workaround.hpp>
     #include <boost/preprocessor/cat.hpp>
@@ -28,7 +26,6 @@
     #include <boost/preprocessor/repetition/enum_binary_params.hpp>
     #include <boost/preprocessor/repetition/enum_shifted_params.hpp>
     #include <boost/preprocessor/repetition/enum_trailing_params.hpp>
-    #include <boost/preprocessor/repetition/enum_shifted_binary_params.hpp>
     #include <boost/preprocessor/repetition/enum_trailing_binary_params.hpp>
     #include <boost/preprocessor/repetition/repeat.hpp>
     #include <boost/ref.hpp>
@@ -46,20 +43,12 @@
     #include <boost/proto/traits.hpp>
     #include <boost/proto/domain.hpp>
     #include <boost/proto/generate.hpp>
-    #if BOOST_VERSION >= 103500
-    # include <boost/fusion/include/begin.hpp>
-    # include <boost/fusion/include/next.hpp>
-    # include <boost/fusion/include/value_of.hpp>
-    # include <boost/fusion/include/size.hpp>
-    #else
-    # include <boost/spirit/fusion/sequence/begin.hpp>
-    # include <boost/spirit/fusion/iterator/next.hpp>
-    # include <boost/spirit/fusion/iterator/value_of.hpp>
-    # include <boost/spirit/fusion/sequence/size.hpp>
-    #endif
+    #include <boost/fusion/include/begin.hpp>
+    #include <boost/fusion/include/next.hpp>
+    #include <boost/fusion/include/value_of.hpp>
+    #include <boost/fusion/include/size.hpp>
     #include <boost/proto/detail/poly_function.hpp>
     #include <boost/proto/detail/deprecated.hpp>
-    #include <boost/proto/detail/suffix.hpp>
 
     #ifdef _MSC_VER
     # pragma warning(push)
@@ -102,7 +91,7 @@
     /// INTERNAL ONLY
     ///
     #define BOOST_PROTO_FUSION_NEXT_ITERATOR_TYPE(Z, N, DATA)                                       \
-        typedef typename fusion::BOOST_PROTO_FUSION_RESULT_OF::next<                                \
+        typedef typename fusion::result_of::next<                                \
             BOOST_PP_CAT(fusion_iterator, N)>::type                                                 \
                 BOOST_PP_CAT(fusion_iterator, BOOST_PP_INC(N));                                     \
         /**/
@@ -111,7 +100,7 @@
     ///
     #define BOOST_PROTO_FUSION_ITERATORS_TYPE(N)                                                    \
         typedef                                                                                     \
-            typename fusion::BOOST_PROTO_FUSION_RESULT_OF::begin<Sequence const>::type              \
+            typename fusion::result_of::begin<Sequence const>::type              \
         fusion_iterator0;                                                                           \
         BOOST_PP_REPEAT(BOOST_PP_DEC(N), BOOST_PROTO_FUSION_NEXT_ITERATOR_TYPE, fusion_iterator)    \
         /**/
@@ -120,7 +109,7 @@
     ///
     #define BOOST_PROTO_FUSION_AT_TYPE(Z, N, DATA)                                                  \
         typename add_const<                                                                         \
-            typename fusion::BOOST_PROTO_FUSION_RESULT_OF::value_of<                                \
+            typename fusion::result_of::value_of<                                \
                 BOOST_PP_CAT(fusion_iterator, N)                                                    \
             >::type                                                                                 \
         >::type                                                                                     \
@@ -174,8 +163,8 @@
                 unref_type;
 
                 typedef
-                    typename mpl::eval_if<
-                        boost::is_reference_wrapper<T>
+                    typename mpl::eval_if_c<
+                        boost::is_reference_wrapper<T>::value
                       , proto::result_of::as_child<unref_type, Domain>
                       , proto::result_of::as_expr<unref_type, Domain>
                     >::type
@@ -183,8 +172,8 @@
 
                 static type call(T &t)
                 {
-                    return typename mpl::if_<
-                        is_reference_wrapper<T>
+                    return typename mpl::if_c<
+                        is_reference_wrapper<T>::value
                       , functional::as_child<Domain>
                       , functional::as_expr<Domain>
                     >::type()(static_cast<unref_type &>(t));
@@ -254,8 +243,8 @@
             {
                 typedef
                     typename add_const<
-                        typename fusion::BOOST_PROTO_FUSION_RESULT_OF::value_of<
-                            typename fusion::BOOST_PROTO_FUSION_RESULT_OF::begin<Sequence>::type
+                        typename fusion::result_of::value_of<
+                            typename fusion::result_of::begin<Sequence>::type
                         >::type
                     >::type
                 terminal_type;
@@ -269,7 +258,7 @@
 
                 static type const call(Sequence const &sequence)
                 {
-                    return proto::detail::protoify_<terminal_type, Domain>::call(fusion::BOOST_PROTO_FUSION_AT_C(0, sequence));
+                    return proto::detail::protoify_<terminal_type, Domain>::call(fusion::at_c<0>(sequence));
                 }
             };
 
@@ -310,15 +299,15 @@
             {};
 
             template<typename Base, typename Expr>
-            Expr implicit_expr_wrap(Base const &expr, mpl::false_, Expr *)
+            Expr implicit_expr_wrap(Base const &e, mpl::false_, Expr *)
             {
-                return Expr(expr);
+                return Expr(e);
             }
 
             template<typename Base, typename Expr>
-            Expr implicit_expr_wrap(Base const &expr, mpl::true_, Expr *)
+            Expr implicit_expr_wrap(Base const &e, mpl::true_, Expr *)
             {
-                Expr that = {expr};
+                Expr that = {e};
                 return that;
             }
 
@@ -398,14 +387,9 @@
             /// specialization is selected.)
             template<
                 typename Tag
-              , typename A0
-              , BOOST_PP_ENUM_SHIFTED_BINARY_PARAMS(
-                    BOOST_PROTO_MAX_ARITY
-                  , typename A
-                  , BOOST_PROTO_WHEN_BUILDING_DOCS(= void) BOOST_PP_INTERCEPT
-                )
-              , typename Void1  BOOST_PROTO_WHEN_BUILDING_DOCS(= void)
-              , typename Void2  BOOST_PROTO_WHEN_BUILDING_DOCS(= void)
+              , BOOST_PP_ENUM_PARAMS(BOOST_PROTO_MAX_ARITY, typename A)
+              , typename Void1  // = void
+              , typename Void2  // = void
             >
             struct make_expr
             {
@@ -489,8 +473,8 @@
             template<
                 typename Tag
               , typename Sequence
-              , typename Void1  BOOST_PROTO_WHEN_BUILDING_DOCS(= void)
-              , typename Void2  BOOST_PROTO_WHEN_BUILDING_DOCS(= void)
+              , typename Void1  // = void
+              , typename Void2  // = void
             >
             struct unpack_expr
             {
@@ -505,7 +489,7 @@
                         Tag
                       , deduce_domain
                       , Sequence
-                      , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence>::type::value
+                      , fusion::result_of::size<Sequence>::type::value
                     >::type
                 type;
             };
@@ -529,7 +513,7 @@
                         Tag
                       , Domain
                       , Sequence
-                      , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence>::type::value
+                      , fusion::result_of::size<Sequence>::type::value
                     >::type
                 type;
             };
@@ -545,7 +529,7 @@
             ///
             /// <tt>functional::make_expr\<Tag\>()(a0, ... aN)</tt>
             /// is equivalent to <tt>proto::make_expr\<Tag\>(a0, ... aN)</tt>.
-            template<typename Tag, typename Domain  BOOST_PROTO_WHEN_BUILDING_DOCS(= deduce_domain)>
+            template<typename Tag, typename Domain  /* = deduce_domain*/>
             struct make_expr
             {
                 BOOST_PROTO_CALLABLE()
@@ -619,7 +603,7 @@
             ///
             /// <tt>functional::unpack_expr\<Tag\>()(seq)</tt>
             /// is equivalent to <tt>proto::unpack_expr\<Tag\>(seq)</tt>.
-            template<typename Tag, typename Domain  BOOST_PROTO_WHEN_BUILDING_DOCS(= deduce_domain)>
+            template<typename Tag, typename Domain /* = deduce_domain*/>
             struct unpack_expr
             {
                 BOOST_PROTO_CALLABLE()
@@ -653,7 +637,7 @@
                         Tag
                       , Domain
                       , Sequence const
-                      , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence>::type::value
+                      , fusion::result_of::size<Sequence>::type::value
                     >::call(sequence);
                 }
             };
@@ -688,7 +672,7 @@
                         Tag
                       , Domain
                       , Sequence const
-                      , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence>::type::value
+                      , fusion::result_of::size<Sequence>::type::value
                     >::call(sequence);
                 }
             };
@@ -721,7 +705,7 @@
         /// <tt>as_expr\<Domain\>(x)</tt>.
         ///
         /// Let <tt>make_\<Tag\>(b0,...bN)</tt> be defined as
-        /// <tt>expr\<Tag, listN\<B0,...BN\> \>::::make(b0,...bN)</tt>
+        /// <tt>expr\<Tag, listN\<C0,...CN\> \>::::make(c0,...cN)</tt>
         /// where \c Bx is the type of \c bx.
         ///
         /// \return <tt>Domain()(make_\<Tag\>(wrap_(a0),...wrap_(aN)))</tt>.
@@ -744,19 +728,19 @@
 
         /// \overload
         ///
-        template<typename Tag, typename Domain, typename B0>
+        template<typename Tag, typename Domain, typename C0>
         typename result_of::make_expr<
             Tag
           , Domain
-          , B0 const
+          , C0 const
         >::type const
-        make_expr(B0 const &b0)
+        make_expr(C0 const &c0)
         {
             return proto::detail::make_expr_<
                 Tag
               , Domain
-              , B0 const
-            >()(b0);
+              , C0 const
+            >()(c0);
         }
 
         // Additional overloads generated by the preprocessor...
@@ -805,7 +789,7 @@
                 Tag
               , deduce_domain
               , Sequence const
-              , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence>::type::value
+              , fusion::result_of::size<Sequence>::type::value
             >::call(sequence);
         }
 
@@ -819,7 +803,7 @@
                 Tag
               , Domain
               , Sequence2 const
-              , fusion::BOOST_PROTO_FUSION_RESULT_OF::size<Sequence2>::type::value
+              , fusion::result_of::size<Sequence2>::type::value
             >::call(sequence2);
         }
 
@@ -946,8 +930,7 @@
             type;
             #else
             #define M0(N, F) char (&F)[BOOST_PP_INC(N)]
-            static M0(BOOST_PROTO_MAX_ARITY, deducer(
-                BOOST_PP_ENUM_PARAMS(N, dont_care BOOST_PP_INTERCEPT)));
+            static M0(BOOST_PROTO_MAX_ARITY, deducer(...));
             #define M1(Z, X, DATA)                                                                  \
             typedef typename domain_of<BOOST_PP_CAT(A, X)>::type BOOST_PP_CAT(D, X);                \
             static BOOST_PP_CAT(D, X) &BOOST_PP_CAT(d, X);                                          \
@@ -976,9 +959,10 @@
             typedef proto::expr<
                 Tag
               , BOOST_PP_CAT(list, N)<BOOST_PP_ENUM(N, BOOST_PROTO_AS_CHILD_TYPE, (A, ~, Domain)) >
+              , N
             > expr_type;
 
-            typedef typename Domain::template result<void(expr_type)>::type result_type;
+            typedef typename Domain::template result<Domain(expr_type)>::type result_type;
 
             result_type operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, typename add_reference<A, >::type a)) const
             {
@@ -1009,9 +993,10 @@
               , BOOST_PP_CAT(list, N)<
                     BOOST_PP_ENUM(N, BOOST_PROTO_FUSION_AS_CHILD_AT_TYPE, ~)
                 >
+              , N
             > expr_type;
 
-            typedef typename Domain::template result<void(expr_type)>::type type;
+            typedef typename Domain::template result<Domain(expr_type)>::type type;
 
             static type const call(Sequence const &sequence)
             {
@@ -1110,19 +1095,19 @@
 
         /// \overload
         ///
-        template<typename Tag, typename Domain BOOST_PP_ENUM_TRAILING_PARAMS(N, typename B)>
+        template<typename Tag, typename Domain BOOST_PP_ENUM_TRAILING_PARAMS(N, typename C)>
         typename result_of::make_expr<
             Tag
           , Domain
-            BOOST_PP_ENUM_TRAILING_PARAMS(N, const B)
+            BOOST_PP_ENUM_TRAILING_PARAMS(N, const C)
         >::type const
-        make_expr(BOOST_PP_ENUM_BINARY_PARAMS(N, const B, &b))
+        make_expr(BOOST_PP_ENUM_BINARY_PARAMS(N, const C, &c))
         {
             return proto::detail::make_expr_<
                 Tag
               , Domain
-                BOOST_PP_ENUM_TRAILING_PARAMS(N, const B)
-            >()(BOOST_PP_ENUM_PARAMS(N, b));
+                BOOST_PP_ENUM_TRAILING_PARAMS(N, const C)
+            >()(BOOST_PP_ENUM_PARAMS(N, c));
         }
 
     #undef N

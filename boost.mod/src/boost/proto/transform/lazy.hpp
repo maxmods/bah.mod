@@ -10,7 +10,6 @@
     #ifndef BOOST_PROTO_TRANSFORM_LAZY_HPP_EAN_12_02_2007
     #define BOOST_PROTO_TRANSFORM_LAZY_HPP_EAN_12_02_2007
 
-    #include <boost/proto/detail/prefix.hpp>
     #include <boost/preprocessor/iteration/iterate.hpp>
     #include <boost/preprocessor/repetition/enum_params.hpp>
     #include <boost/preprocessor/repetition/enum_trailing_params.hpp>
@@ -18,7 +17,6 @@
     #include <boost/proto/transform/make.hpp>
     #include <boost/proto/transform/call.hpp>
     #include <boost/proto/transform/impl.hpp>
-    #include <boost/proto/detail/suffix.hpp>
 
     namespace boost { namespace proto
     {
@@ -36,7 +34,7 @@
             template<typename Expr, typename State, typename Data>
             struct impl
               : call<
-                    typename detail::make_<Object, Expr, State, Data>::type
+                    typename make<Object>::template impl<Expr, State, Data>::result_type
                 >::template impl<Expr, State, Data>
             {};
         };
@@ -74,7 +72,7 @@
             template<typename Expr, typename State, typename Data>
             struct impl
               : call<
-                    typename detail::make_<Object, Expr, State, Data>::type
+                    typename make<Object>::template impl<Expr, State, Data>::result_type
                     (BOOST_PP_ENUM_PARAMS(N, A))
                 >::template impl<Expr, State, Data>
             {};

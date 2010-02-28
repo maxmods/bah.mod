@@ -7,7 +7,7 @@
  *
  * See http://www.boost.org for most recent version including documentation.
  *
- * $Id: additive_combine.hpp 41369 2007-11-25 18:07:19Z bemandawes $
+ * $Id: additive_combine.hpp 58649 2010-01-02 21:23:17Z steven_watanabe $
  *
  * Revision history
  *  2001-02-18  moved to individual header files
@@ -20,6 +20,7 @@
 #include <algorithm> // for std::min and std::max
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/random/detail/config.hpp>
 #include <boost/random/linear_congruential.hpp>
 
 namespace boost {
@@ -53,6 +54,8 @@ public:
   additive_combine(typename MLCG1::result_type seed1, 
                    typename MLCG2::result_type seed2)
     : _mlcg1(seed1), _mlcg2(seed2) { }
+  additive_combine(result_type aseed)
+    : _mlcg1(aseed), _mlcg2(aseed) { }
   template<class It> additive_combine(It& first, It last)
     : _mlcg1(first, last), _mlcg2(first, last) { }
 
@@ -60,6 +63,12 @@ public:
   {
     _mlcg1.seed();
     _mlcg2.seed();
+  }
+
+  void seed(result_type aseed)
+  {
+    _mlcg1.seed(aseed);
+    _mlcg2.seed(aseed);
   }
 
   void seed(typename MLCG1::result_type seed1,
@@ -85,7 +94,7 @@ public:
 
 #ifndef BOOST_NO_OPERATORS_IN_NAMESPACE
 
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+#ifndef BOOST_RANDOM_NO_STREAM_OPERATORS
   template<class CharT, class Traits>
   friend std::basic_ostream<CharT,Traits>&
   operator<<(std::basic_ostream<CharT,Traits>& os, const additive_combine& r)

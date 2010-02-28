@@ -7,7 +7,7 @@
  *
  * See http://www.boost.org for most recent version including documentation.
  *
- * $Id: lagged_fibonacci.hpp 49314 2008-10-13 09:00:03Z johnmaddock $
+ * $Id: lagged_fibonacci.hpp 53871 2009-06-13 17:54:06Z steven_watanabe $
  *
  * Revision history
  *  2001-02-18  moved to individual header files
@@ -27,6 +27,8 @@
 #include <boost/detail/workaround.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_01.hpp>
+#include <boost/random/detail/config.hpp>
+#include <boost/random/detail/seed.hpp>
 #include <boost/random/detail/pass_through_engine.hpp>
 
 namespace boost {
@@ -141,7 +143,7 @@ public:
   
 #ifndef BOOST_NO_OPERATORS_IN_NAMESPACE
 
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+#ifndef BOOST_RANDOM_NO_STREAM_OPERATORS
   template<class CharT, class Traits>
   friend std::basic_ostream<CharT,Traits>&
   operator<<(std::basic_ostream<CharT,Traits>& os, const lagged_fibonacci& f)
@@ -266,9 +268,10 @@ public:
   BOOST_STATIC_CONSTANT(unsigned int, short_lag = q);
 
   lagged_fibonacci_01() { init_modulus(); seed(); }
-  explicit lagged_fibonacci_01(uint32_t value) { init_modulus(); seed(value); }
-  template<class Generator>
-  explicit lagged_fibonacci_01(Generator & gen) { init_modulus(); seed(gen); }
+  BOOST_RANDOM_DETAIL_ARITHMETIC_CONSTRUCTOR(lagged_fibonacci_01, uint32_t, value)
+  { init_modulus(); seed(value); }
+  BOOST_RANDOM_DETAIL_GENERATOR_CONSTRUCTOR(lagged_fibonacci_01, Generator, gen)
+  { init_modulus(); seed(gen); }
   template<class It> lagged_fibonacci_01(It& first, It last)
   { init_modulus(); seed(first, last); }
   // compiler-generated copy ctor and assignment operator are fine
@@ -284,7 +287,8 @@ private:
   }
 
 public:
-  void seed(uint32_t value = 331u)
+  void seed() { seed(331u); }
+  BOOST_RANDOM_DETAIL_ARITHMETIC_SEED(lagged_fibonacci_01, uint32_t, value)
   {
     minstd_rand0 intgen(value);
     seed(intgen);
@@ -293,8 +297,7 @@ public:
   // For GCC, moving this function out-of-line prevents inlining, which may
   // reduce overall object code size.  However, MSVC does not grok
   // out-of-line template member functions.
-  template<class Generator>
-  void seed(Generator & gen)
+  BOOST_RANDOM_DETAIL_GENERATOR_SEED(lagged_fibonacci, Generator, gen)
   {
     // use pass-by-reference, but wrap argument in pass_through_engine
     typedef detail::pass_through_engine<Generator&> ref_gen;
@@ -317,12 +320,14 @@ public:
     unsigned long mask = ~((~0u) << (w%32));   // now lowest w bits set
     RealType two32 = pow(RealType(2), 32);
     unsigned int j;
-    for(j = 0; j < long_lag && first != last; ++j, ++first) {
+    for(j = 0; j < long_lag && first != last; ++j) {
       x[j] = RealType(0);
       for(int k = 0; k < w/32 && first != last; ++k, ++first)
         x[j] += *first / pow(two32,k+1);
-      if(first != last && mask != 0)
+      if(first != last && mask != 0) {
         x[j] += fmod((*first & mask) / _modulus, RealType(1));
+        ++first;
+      }
     }
     i = long_lag;
     if(first == last && j < long_lag)
@@ -352,7 +357,7 @@ public:
   
 #ifndef BOOST_NO_OPERATORS_IN_NAMESPACE
 
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+#ifndef BOOST_RANDOM_NO_STREAM_OPERATORS
   template<class CharT, class Traits>
   friend std::basic_ostream<CharT,Traits>&
   operator<<(std::basic_ostream<CharT,Traits>& os, const lagged_fibonacci_01&f)
