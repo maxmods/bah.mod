@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.Bass
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: BASS - see http://www.un4seen.com/bass.html#license"
-ModuleInfo "Copyright: Wrapper - 2008 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2010 Bruce A Henderson"
 ModuleInfo "Copyright: BASS - 1999-2008 Un4seen Developments Ltd."
 
 ModuleInfo "History: 1.00 Initial Release"
@@ -37,9 +37,9 @@ ModuleInfo "History: 1.00 Initial Release"
 ModuleInfo "LD_OPTS: -L%PWD%/lib/win32"
 ?macos
 ModuleInfo "LD_OPTS: -L%PWD%/lib/macos"
+?linux
+ModuleInfo "LD_OPTS: -L%PWD%/lib/linux"
 ?
-
-?Not Linux
 
 Import BRL.Stream
 Import "common.bmx"
@@ -276,9 +276,9 @@ Type TBassChannel
 	</ul>
 	<p>
 	End Rem
-	Method GetLength:Long(mode:Int)
+	Method GetLength:Long(Mode:Int)
 		Local length:Long
-		bmx_bass_channelgetlength(handle, Varptr length, mode)
+		bmx_bass_channelgetlength(handle, Varptr length, Mode)
 		Return length
 	End Method
 	
@@ -378,18 +378,18 @@ Type TBassChannel
 	</ul>
 	</p>
 	End Rem
-	Method GetPosition:Long(mode:Int)
+	Method GetPosition:Long(Mode:Int)
 		Local pos:Long
-		bmx_bass_channelgetposition(handle, Varptr pos, mode)
+		bmx_bass_channelgetposition(handle, Varptr pos, Mode)
 		Return pos
 	End Method
 
 	Rem
 	bbdoc: 
 	End Rem
-	Method GetPositionLowHigh:Long(mode:Int, low:Int Var, high:Int Var)
+	Method GetPositionLowHigh:Long(Mode:Int, low:Int Var, high:Int Var)
 		Local pos:Long
-		bmx_bass_channelgetpositionlowhigh(handle, Varptr pos, mode, Varptr low, Varptr high)
+		bmx_bass_channelgetpositionlowhigh(handle, Varptr pos, Mode, Varptr low, Varptr high)
 		Return pos
 	End Method
 	
@@ -817,9 +817,9 @@ Type TBassChannel
 	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
 	about: 
 	End Rem
-	Method Set3DAttributes:Int(mode:Int = -1, minDist:Float = 0, maxDist:Float = 0, iangle:Int = -1, ..
+	Method Set3DAttributes:Int(Mode:Int = -1, minDist:Float = 0, maxDist:Float = 0, iangle:Int = -1, ..
 			oangle:Int = -1, outvol:Float = -1)
-		Return BASS_ChannelSet3DAttributes(handle, mode, minDist, maxDist, iangle, oangle, outvol)
+		Return BASS_ChannelSet3DAttributes(handle, Mode, minDist, maxDist, iangle, oangle, outvol)
 	End Method
 	
 	Rem
@@ -827,9 +827,9 @@ Type TBassChannel
 	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code.
 	about: 
 	End Rem
-	Method Get3DAttributes:Int(mode:Int Var, minDist:Float Var, maxDist:Float Var, iangle:Int Var, oangle:Int Var, ..
+	Method Get3DAttributes:Int(Mode:Int Var, minDist:Float Var, maxDist:Float Var, iangle:Int Var, oangle:Int Var, ..
 			outvol:Float Var)
-		Return BASS_ChannelGet3DAttributes(handle, Varptr mode, Varptr minDist, Varptr maxDist, ..
+		Return BASS_ChannelGet3DAttributes(handle, Varptr Mode, Varptr minDist, Varptr maxDist, ..
 			Varptr iangle, Varptr oangle, Varptr outvol)
 	End Method
 
@@ -915,7 +915,7 @@ Type TBassChannel
 	End Method
 	
 	Rem
-	bbdoc: 
+	bbdoc: Sets up a synchronizer on a MOD music, stream or recording channel.
 	End Rem
 	Method SetSync(stype:Int, param:Long, syncData:TBassSyncData)
 		bmx_bass_setsync(handle, stype, param, syncData.dataPtr, Varptr syncData.channel, Varptr syncData.data, Varptr syncData.set)
@@ -946,8 +946,8 @@ Type TBassChannel
 	position, so long as the file is not being streamed in blocks (BASS_STREAM_BLOCK flag). 
 	</p>
 	End Rem
-	Method SetPosition:Int(pos:Long, mode:Int)
-		Return BASS_ChannelSetPosition(handle, pos, mode)
+	Method SetPosition:Int(pos:Long, Mode:Int)
+		Return BASS_ChannelSetPosition(handle, pos, Mode)
 	End Method
 	
 End Type
@@ -1268,9 +1268,9 @@ Type TBassStream Extends TBassChannel
 	Rem
 	bbdoc: Retrieves the file position/status of a stream.
 	End Rem
-	Method GetFilePosition:Long(mode:Int)
+	Method GetFilePosition:Long(Mode:Int)
 		Local pos:Long
-		bmx_bass_streamgetfileposition(handle, Varptr pos, mode)
+		bmx_bass_streamgetfileposition(handle, Varptr pos, Mode)
 		Return pos
 	End Method
 
@@ -2520,8 +2520,14 @@ Type TBassDeviceInfo
 	End Method
 	
 	Rem
-	bbdoc: The device's current status... a combination of these flags. 
-	about: 
+	bbdoc: The device's current status.
+	about: A combination of these flags:
+	<table width="100%">
+	<tr><th>Constant</th><th>Description</th></tr>
+	<tr><td> BASS_DEVICE_ENABLED </td><td> The device is enabled. It will not be possible to initialize the device if this flag is not present. </td></tr>
+	<tr><td> BASS_DEVICE_DEFAULT </td><td> The device is the system default. </td></tr>
+	<tr><td> BASS_DEVICE_INIT </td><td> The device is initialized, ie. TBASS.Init or TBassRecord.Init has been called.</td></tr>
+	</table>
 	End Rem
 	Method GetFlags:Int()
 		Return bmx_deviceinfo_getflags(deviceinfoPtr)
@@ -2537,7 +2543,7 @@ Type TBassDeviceInfo
 End Type
 
 Rem
-bbdoc: 
+bbdoc: A recording channel.
 End Rem
 Type TBassRecord Extends TBassChannel
 
@@ -2545,19 +2551,48 @@ Type TBassRecord Extends TBassChannel
 	Field userData:Object
 
 	Rem
-	bbdoc: 
+	bbdoc: Starts recording.
+	about: Parameters: 
+	<ul>
+	<li><b> freq </b> : The sample rate to record at.</li>
+	<li><b> chans </b> : The number of channels... 1 = mono, 2 = stereo, etc...</li>
+	<li><b> flags </b> : Any combination of these flags :
+		<table width="100%">
+		<tr><th>Constant</th><th>Description</th></tr>
+		<tr><td> BASS_SAMPLE_8BITS </td><td> Use 8-bit resolution. If neither this or the BASS_SAMPLE_FLOAT flag are specified, then the recorded data is 16-bit.</td></tr>
+		<tr><td> BASS_SAMPLE_FLOAT </td><td> Use 32-bit floating-point sample data. See Floating-point channels for info. </td></tr>
+		<tr><td> BASS_RECORD_PAUSE </td><td> Start the recording paused. Use TBassChannel.Play to start it. </td></tr>
+		</table>
+	</li>
+	<li><b> proc </b> : The user defined function to receive the recorded sample data... can be NULL if you do not wish to use a callback. 
+	<b>Note:</b> The callback function will only be reliable when using BlitzMax in threaded mode, due to the nature of the non-threaded GC. In this case,
+	you should pass Null, and retrieve audio data using GetData().</li>
+	<li><b> user </b> : User instance data to pass to the callback function. </li>
+	</ul>
+	Use TBassChannel.Stop to stop the recording, and TBassChannel.Pause to paused it. Recording can also be started in a paused
+	state (via the BASS_RECORD_PAUSE flag), allowing DSP/FX to be set on it before any data reaches the callback function.
+	<p>
+	When not using a callback (proc = NULL), the recorded data is instead retrieved via TBassChannel.GetData. To keep latency at a minimum, the
+	amount of data in the recording buffer should be monitored (also done via TBassChannel.GetData, with the BASS_DATA_AVAILABLE flag) to
+	check that there is not too much data. If there is too much data in the buffer, then that means the data currently being recorded
+	will be delayed by the older data in the buffer being retrieved first.
+	</p>
 	End Rem
 	Function RecordStart:TBassRecord(freq:Int, chans:Int, flags:Int, proc:Int(handle:TBassRecord, buffer:Byte Ptr, length:Int, user:Object), user:Object)
 		Return New TBassRecord.Start(freq, chans, flags, proc, user)
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Starts recording.
 	End Rem
 	Method Start:TBassRecord(freq:Int, chans:Int, flags:Int, proc:Int(handle:TBassRecord, buffer:Byte Ptr, length:Int, user:Object), user:Object)
 		callback = proc
 		userData = user
-		handle = BASS_RecordStart(freq, chans, flags, _proc, Self)
+		If proc Then
+			handle = BASS_RecordStart(freq, chans, flags, _proc, Self)
+		Else
+			handle = BASS_RecordStart(freq, chans, flags, Null, Self)
+		End If
 		Return Self
 	End Method
 	
@@ -2566,21 +2601,30 @@ Type TBassRecord Extends TBassChannel
 	End Function
 
 	Rem
-	bbdoc: 
+	bbdoc: Frees all resources used by the recording device.
+	about: This method should be called for all initialized recording devices before your program exits.
+	<p>
+	When using multiple recording devices, the current thread's device setting (as set with BASS_RecordSetDevice) determines which device
+	this method call applies to.
+	</p>
 	End Rem
 	Function Free:Int()
 		Return BASS_RecordFree()
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves the recording device setting of the current thread.
 	End Rem
 	Function GetRecordDevice:Int()
 		Return BASS_RecordGetDevice()
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Initializes a recording device.
+	about: Parameters: 
+	<ul>
+	<li><b>device</b> : The device to use... -1 = default device, 0 = first. </li>
+	</ul>
 	End Rem
 	Function Init:Int(device:Int)
 		Return BASS_RecordInit(device)
@@ -2594,7 +2638,7 @@ Type TBassRecord Extends TBassChannel
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Adjusts the settings of a recording input source.
 	End Rem
 	Function SetInput:Int(inp:Int, flags:Int, volume:Float)
 		Return BASS_RecordSetInput(inp, flags, volume)
@@ -2602,6 +2646,11 @@ Type TBassRecord Extends TBassChannel
 	
 	Rem
 	bbdoc: Retrieves the current settings of a recording input source. 
+	about: Parameters: 
+	<ul>
+	<li><b> inp</b> : The input to get the settings of... 0 = first, -1 = master. </li>
+	<li><b> volume </b> : A variable to receive the volume </li>
+	</ul>
 	End Rem
 	Function GetInput:Int(inp:Int, volume:Float Var)
 		Return BASS_RecordGetInput(inp, Varptr volume)
@@ -2609,13 +2658,17 @@ Type TBassRecord Extends TBassChannel
 
 	Rem
 	bbdoc: Retrieves the text description of a recording input source. 
+	about: Parameters: 
+	<ul>
+	<li><b> inp </b> : The input to get the description of... 0 = first, -1 = master.</li>
+	</ul>
 	End Rem
 	Function GetInputName:String(inp:Int)
 		Return String.FromCString(BASS_RecordGetInputName(inp))
 	End Function
 	
 	Rem
-	bbdoc: 
+	bbdoc: Retrieves information on the recording device being used.
 	End Rem
 	Function GetRecordInfo:TBassRecordInfo()
 		Return TBassRecordInfo._create(bmx_bass_recordgetinfo())
@@ -2843,5 +2896,3 @@ Type TBassCoreFXFactory Extends TBassFXFactory
 
 End Type
 
-
-?

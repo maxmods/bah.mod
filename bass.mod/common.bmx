@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -50,13 +50,13 @@ Extern
 	Function bmx_bassinfo_delete(handle:Byte Ptr)
 
 	Function bmx_bass_channelgetlevel:Int(handle:Int, Left:Int Ptr, Right:Int Ptr)
-	Function bmx_bass_channelgetlength(handle:Int, length:Long Ptr, mode:Int)
-	Function bmx_bass_channelgetposition(handle:Int, pos:Long Ptr, mode:Int)
-	Function bmx_bass_channelgetpositionlowhigh(handle:Int, pos:Long Ptr, mode:Int, low:Int Ptr, high:Int Ptr)
+	Function bmx_bass_channelgetlength(handle:Int, length:Long Ptr, Mode:Int)
+	Function bmx_bass_channelgetposition(handle:Int, pos:Long Ptr, Mode:Int)
+	Function bmx_bass_channelgetpositionlowhigh(handle:Int, pos:Long Ptr, Mode:Int, low:Int Ptr, high:Int Ptr)
 	Function bmx_bass_channelseconds2bytes(handle:Int, bytes:Long Ptr, pos:Double)
 	Function bmx_bass_channelgettags:String[](handle:Int, tags:Int)
 
-	Function bmx_bass_streamgetfileposition(handle:Int, pos:Long Ptr, mode:Int)
+	Function bmx_bass_streamgetfileposition(handle:Int, pos:Long Ptr, Mode:Int)
 	Function bmx_bass_streamcreatetstream:Int(handle:Object, system:Int, flags:Int)
 	Function bmx_bass_streamcreateurlncb:Int(url:Byte Ptr, offset:Int, flags:Int, user:Object)
 	Function bmx_bass_streamcreateurl:Int(url:Byte Ptr, offset:Int, flags:Int, user:Object)
@@ -178,14 +178,14 @@ Extern
 	Function BASS_ChannelSetLink:Int(handle:Int, channel:Int)
 	Function BASS_ChannelGet3DPosition:Int(handle:Int, pos:Byte Ptr, orient:Byte Ptr, vel:Byte Ptr)
 	Function BASS_ChannelSet3DPosition:Int(handle:Int, pos:Byte Ptr, orient:Byte Ptr, vel:Byte Ptr)
-	Function BASS_ChannelSet3DAttributes:Int(handle:Int, mode:Int, minDist:Float, maxDist:Float, iangle:Int, ..
+	Function BASS_ChannelSet3DAttributes:Int(handle:Int, Mode:Int, minDist:Float, maxDist:Float, iangle:Int, ..
 			oangle:Int, outvol:Float)
-	Function BASS_ChannelGet3DAttributes:Int(handle:Int, mode:Int Ptr, minDist:Float Ptr, maxDist:Float Ptr, ..
+	Function BASS_ChannelGet3DAttributes:Int(handle:Int, Mode:Int Ptr, minDist:Float Ptr, maxDist:Float Ptr, ..
 		iangle:Int Ptr, oangle:Int Ptr, outvol:Float Ptr)
 	Function BASS_ChannelGetData:Int(handle:Int, buffer:Byte Ptr, length:Int)
 	Function BASS_ChannelGetDevice:Int(handle:Int)
 	Function BASS_ChannelLock:Int(handle:Int, value:Int)
-	Function BASS_ChannelSetPosition:Int(handle:Int, pos:Long, mode:Int)
+	Function BASS_ChannelSetPosition:Int(handle:Int, pos:Long, Mode:Int)
 
 	Function BASS_StreamCreate:Int(freq:Int, chans:Int, flags:Int, callback:Int(handle:Int, buffer:Byte Ptr, length:Int, data:Object), user:Object)
 	Function BASS_StreamCreateFile:Int(mem:Int, filename:Byte Ptr, offset:Long, length:Long, flags:Int)
@@ -441,6 +441,7 @@ Const BASS_CTYPE_MUSIC_MO3:Int = $00100 ' MO3 flag
 ' BASS_ChannelGetLength/GetPosition/SetPosition modes
 Const BASS_POS_BYTE:Int = 0		' byte position
 Const BASS_POS_MUSIC_ORDER:Int = 1		' order.row position, MAKELONG(order,row)
+Const BASS_POS_DECODE:Int = $10000000 ' flag: get the decoding (not playing) position
 
 ' BASS_ChannelIsActive return values
 Const BASS_ACTIVE_STOPPED:Int = 0
@@ -512,9 +513,13 @@ Const BASS_TAG_ICY:Int = 4	' ICY headers : series of null-terminated ANSI string
 Const BASS_TAG_META:Int = 5	' ICY metadata : ANSI string
 Const BASS_TAG_VENDOR:Int = 9	' OGG encoder : UTF-8 string
 Const BASS_TAG_LYRICS3:Int = 10	' Lyric3v2 tag : ASCII string
+Const BASS_TAG_CA_CODEC:Int = 11 ' CoreAudio codec info : TAG_CA_CODEC structure
 Const BASS_TAG_RIFF_INFO:Int = $100 ' RIFF/WAVE tags : series of null-terminated ANSI strings
+Const BASS_TAG_RIFF_BEXT:Int = $101 ' RIFF/BWF "bext" tags : TAG_BEXT structure
+Const BASS_TAG_RIFF_CART:Int = $102 ' RIFF/BWF "cart" tags : TAG_CART structure
 Const BASS_TAG_MUSIC_NAME:Int = $10000	' MOD music name : ANSI string
 Const BASS_TAG_MUSIC_MESSAGE:Int = $10001	' MOD message : ANSI string
+Const BASS_TAG_MUSIC_ORDERS:Int = $10002	' MOD order list : BYTE array of pattern numbers
 Const BASS_TAG_MUSIC_INST:Int = $10100	' + instrument #, MOD instrument name : ANSI string
 Const BASS_TAG_MUSIC_SAMPLE:Int = $10300	' + sample #, MOD sample name : ANSI string
 
