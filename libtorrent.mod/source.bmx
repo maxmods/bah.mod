@@ -110,11 +110,9 @@ Import "*.h"
 Import "glue.cpp"
 
 ?Not win32
-Import "../boost.mod/src/libs/thread/src/pthread/exceptions.cpp"
 Import "../boost.mod/src/libs/thread/src/pthread/thread.cpp"
 Import "../boost.mod/src/libs/thread/src/pthread/once.cpp"
 ?win32
-Import "../boost.mod/src/libs/thread/src/win32/exceptions.cpp"
 Import "../boost.mod/src/libs/thread/src/win32/thread.cpp"
 ?
 
