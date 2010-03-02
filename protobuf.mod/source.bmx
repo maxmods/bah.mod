@@ -28,7 +28,11 @@ SuperStrict
 Import BRL.Blitz
 
 ' turns out we don't need anything other than this config...
+?macos
 Import "src/include/macos/*.h"
+?win32
+Import "src/include/win32/*.h"
+?
 
 Import "src/*.h"
 
