@@ -32,6 +32,8 @@ Import BRL.Blitz
 Import "src/include/macos/*.h"
 ?win32
 Import "src/include/win32/*.h"
+?linux
+Import "src/include/linux/*.h"
 ?
 
 Import "src/*.h"
