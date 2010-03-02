@@ -212,6 +212,13 @@ void MessageGenerator::GenerateType(io::Printer* printer) {
 	"\tReturn Self\n"
 	"End Method\n"
 	"\n"
+	"Method Delete()\n"
+	"\tIf messagePtr And owner Then\n"
+	"\t\tbmx_pb_$classname$_free(messagePtr)\n"
+	"\t\tmessagePtr = Null\n"
+	"\tEnd If\n"
+	"End Method\n"
+	"\n"
     "' implements Message ----------------------------------------------\n"
     "\n"
     //"$classname$* New() const;\n"
@@ -429,6 +436,7 @@ GenerateExterns(io::Printer* printer) {
 
   printer->Print(vars,
     "Function bmx_pb_$classname$_create:Byte Ptr()\n"
+    "Function bmx_pb_$classname$_free(handle:Byte Ptr)\n"
     "Function bmx_pb_$classname$_cached_size:Int(handle:Byte Ptr)\n"
     "Function bmx_pb_$classname$_getdescriptor:Byte Ptr(handle:Byte Ptr)\n"
     "Function bmx_pb_$classname$_getreflection:Byte Ptr(handle:Byte Ptr)\n");
@@ -456,6 +464,10 @@ GenerateGlue(io::Printer* printer) {
   printer->Print(vars,
     "$classname$ * bmx_pb_$classname$_create() {\n"
     "  return new $classname$;\n"
+    "}\n"
+    "\n"
+    "void bmx_pb_$classname$_free($classname$ * handle) {\n"
+    "  delete handle;\n"
     "}\n"
     "\n"
     "int bmx_pb_$classname$_cached_size($classname$ * handle) {\n"
@@ -488,6 +500,7 @@ GenerateDeclarations(io::Printer* printer) {
 
   printer->Print(vars,
     "$classname$ * bmx_pb_$classname$_create();\n"
+    "void bmx_pb_$classname$_free($classname$ * handle);\n"
     "int bmx_pb_$classname$_cached_size($classname$ * handle);\n"
     "const ::google::protobuf::Descriptor * bmx_pb_$classname$_getdescriptor($classname$ * handle);\n"
     "const ::google::protobuf::Message::Reflection * bmx_pb_$classname$_getreflection($classname$ * handle);\n");

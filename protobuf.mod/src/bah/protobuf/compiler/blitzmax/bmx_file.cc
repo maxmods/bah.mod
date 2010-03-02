@@ -116,8 +116,6 @@ void FileGenerator::GenerateGlue(io::Printer* printer) {
   "\n");
   printer->Indent();
   
-  printer->Print("BBString * bah_protobuf__pbConvertUTF8ToMax(const char * s, int length);\n");
-  
   for (int i = 0; i < file_->message_type_count(); i++) {
     message_generators_[i]->GenerateDeclarations(printer);
   }
@@ -159,7 +157,8 @@ void FileGenerator::GenerateBmx(io::Printer* printer) {
   string filename_identifier = FilenameIdentifier(file_->name());
   string basename = StripProto(file_->name());
 
-
+	// we need the module path, because limitations in BlitzMax require us to pass in the full path to the protobuf headers.
+	// Kind of limits deployment of source, somewhat... but they could always "re-generate" it if required.
 	char * modpath = getenv("MODPATH");
 
   // Generate top of header.
@@ -174,10 +173,10 @@ void FileGenerator::GenerateBmx(io::Printer* printer) {
     "\n");
 
   printer->Print(
-	"Import \"$modpath$/bah.mod/protobuf.mod/src/*.h\"\n"
+	"Import \"$modpath$/bah.mod/protobuf.mod/src/*.h\" ' hardcoded to your local module path, unfortunately\n"
 	"Import \"*.h\"\n"
 	"Import \"$basename$.pb_glue.cpp\"\n"
-	"Import \"$basename$.pb.cc\"\n"   // FIXME : change to .cpp
+	"Import \"$basename$.pb.cc\"\n"
 	"\n", "basename", basename, "modpath", modpath);
 
   // Generate enum definitions.

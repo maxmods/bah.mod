@@ -50,7 +50,6 @@ extern "C" {
 
 #include "blitz.h"
 
-	BBString * bah_protobuf__pbConvertUTF8ToMax(const char * s, int length);
 	int _bah_protobuf_TCopyingInputStream__Read(BBObject * handle, void * buffer, int size);
 	int _bah_protobuf_TCopyingInputStream__Skip(BBObject * handle, int count);
 	bool _bah_protobuf_TCopyingOutputStream__Write(BBObject * handle, const void * buffer, int size);
@@ -249,7 +248,7 @@ BBString * bmx_textformat_printtostring(google::protobuf::Message * message) {
 	std::string s;
 	bool res = google::protobuf::TextFormat::PrintToString(*message, &s);
 
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(s.c_str());
 }
 
 // ******************************************************
@@ -267,8 +266,7 @@ bool bmx_pb_message_isinitialized(google::protobuf::Message * message) {
 }
 
 BBString * bmx_pb_message_initializationerrorstring(google::protobuf::Message * message) {
-	std::string s = message->InitializationErrorString();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(message->InitializationErrorString().c_str());
 }
 
 void bmx_pb_message_discardunknownfields(google::protobuf::Message * message) {
@@ -324,13 +322,11 @@ bool bmx_pb_message_serializetozerocopystream(google::protobuf::Message * messag
 // ******************************************************
 
 BBString * bmx_pb_descriptor_getname(google::protobuf::Descriptor * desc) {
-	std::string s = desc->name();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->name().c_str());
 }
 
 BBString * bmx_pb_descriptor_getfullname(google::protobuf::Descriptor * desc) {
-	std::string s = desc->full_name();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->full_name().c_str());
 }
 
 int bmx_pb_descriptor_getindex(google::protobuf::Descriptor * desc) {
@@ -338,8 +334,7 @@ int bmx_pb_descriptor_getindex(google::protobuf::Descriptor * desc) {
 }
 
 BBString * bmx_pb_descriptor_debugstring(google::protobuf::Descriptor * desc) {
-	std::string s = desc->DebugString();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->DebugString().c_str());
 }
 
 int bmx_pb_descriptor_fieldcount(google::protobuf::Descriptor * desc) {
@@ -442,13 +437,11 @@ const google::protobuf::FieldDescriptor * bmx_pb_descriptor_findextensionbyname(
 // ******************************************************
 
 BBString * bmx_pb_fielddescriptor_getname(google::protobuf::FieldDescriptor * desc) {
-	std::string s = desc->name();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->name().c_str());
 }
 
 BBString * bmx_pb_fielddescriptor_getfullname(google::protobuf::FieldDescriptor * desc) {
-	std::string s = desc->full_name();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->full_name().c_str());
 }
 
 const google::protobuf::FileDescriptor * bmx_pb_fielddescriptor_getfile(google::protobuf::FieldDescriptor * desc) {
@@ -514,13 +507,11 @@ void bmx_pb_copyingoutputstream_delete(MaxCopyingOutputStream *stream) {
 // ******************************************************
 
 BBString * bmx_pb_filedescriptor_getname(google::protobuf::FileDescriptor * desc) {
-	std::string s = desc->name();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->name().c_str());
 }
 
 BBString * bmx_pb_filedescriptor_getpackage(google::protobuf::FileDescriptor * desc) {
-	std::string s = desc->package();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->package().c_str());
 }
 
 const google::protobuf::DescriptorPool * bmx_pb_filedescriptor_getpool(google::protobuf::FileDescriptor * desc) {
@@ -608,8 +599,7 @@ const google::protobuf::FieldDescriptor * bmx_pb_filedescriptor_findextensionbyn
 }
 
 BBString * bmx_pb_filedescriptor_debugstring(google::protobuf::FileDescriptor * desc) {
-	std::string s = desc->DebugString();
-	return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());
+	return bbStringFromUTF8String(desc->DebugString().c_str());
 }
 
 

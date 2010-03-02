@@ -87,11 +87,11 @@ GenerateAccessorGlue(io::Printer* printer) const {
   printer->Print(variables_,
     "BBString * bmx_pb_$classname$_$name$_get($classname$ * handle) {\n"
     "  std::string s = handle->$name$();\n"
-    "  return bah_protobuf__pbConvertUTF8ToMax(s.c_str(), s.length());\n"
+    "  return bbStringFromUTF8String(s.c_str());\n"
     "}\n"
     "\n"
     "void bmx_pb_$classname$_$name$_set($classname$ * handle, BBString * value) {\n"
-    "  char *p = bbStringToCString( value );\n"
+    "  char *p = bbStringToUTF8String( value );\n"
     "  handle->set_$name$(p);\n"
     "  bbMemFree(p);\n"
     "}\n"
