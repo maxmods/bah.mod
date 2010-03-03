@@ -528,7 +528,7 @@ GenerateFieldAccessorDeclarations(io::Printer* printer) {
     } else {
       // Singular field.
       printer->Print(vars,
-        "bool bmx_pb_$classname$_has_$lname$($classname$ * handle);\n");
+        "int bmx_pb_$classname$_has_$lname$($classname$ * handle);\n");
     }
 
     if (!field->is_repeated()) {
@@ -568,8 +568,8 @@ GenerateFieldAccessorGlue(io::Printer* printer) {
     } else {
       // Singular field.
       printer->Print(vars,
-        "bool bmx_pb_$classname$_has_$lname$($classname$ * handle) {\n"
-      "  return handle->has_$lname$();\n"
+        "int bmx_pb_$classname$_has_$lname$($classname$ * handle) {\n"
+      "  return static_cast<int>(handle->has_$lname$());\n"
       "}\n"
       "\n");
     }

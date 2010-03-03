@@ -251,37 +251,54 @@ GeneratePrivateMembers(io::Printer* printer) const {
 void RepeatedPrimitiveFieldGenerator::
 GenerateAccessorDeclarations(io::Printer* printer) const {
   printer->Print(variables_,
-    "inline const ::google::protobuf::RepeatedField< $type$ >& $name$() const;\n"
-    "inline ::google::protobuf::RepeatedField< $type$ >* mutable_$name$();\n"
-    "inline $type$ $name$(int index) const;\n"
-    "inline void set_$name$(int index, $type$ value);\n"
-    "inline void add_$name$($type$ value);\n");
+    //"inline const ::google::protobuf::RepeatedField< $type$ >& $name$() const;\n"
+    //"inline ::google::protobuf::RepeatedField< $type$ >* mutable_$name$();\n"
+    "$gtype$ bmx_pb_$classname$_$name$_get(int index);\n"
+    "void bmx_pb_$classname$_$name$_set(int index, $gtype$ value);\n"
+    "void bmx_pb_$classname$_$name$_add($gtype$ value);\n");
 }
 
 void RepeatedPrimitiveFieldGenerator::
 GenerateAccessorGlue(io::Printer* printer) const {
+
+  printer->Print(variables_,
+    "$gtype$ bmx_bp_$classname$_$name$_get($classname$ * handle, int index) {\n"
+    "  return handle->mutable_$name$(index);\n"
+    "}\n"
+    "\n"
+    "void bmx_pb_$classname$_$name$_set($classname$ * handle, int index, $gtype$ value) {\n"
+    "  handle->set_$name$(index, value);\n"
+    "}\n"
+    "\n"
+    "void bmx_pb_$classname$_$name$_add($classname$ * handle, $gtype$ value) {\n"
+    "  handle->add_$name$(value);\n"
+    "}\n"
+    "\n");
+
 }
 
 void RepeatedPrimitiveFieldGenerator::
 GenerateAccessorDefinitions(io::Printer* printer) const {
   printer->Print(variables_,
-    "inline const ::google::protobuf::RepeatedField< $type$ >&\n"
-    "$classname$::$name$() const {\n"
-    "  return $name$_;\n"
-    "}\n"
-    "inline ::google::protobuf::RepeatedField< $type$ >*\n"
-    "$classname$::mutable_$name$() {\n"
-    "  return &$name$_;\n"
-    "}\n"
-    "inline $type$ $classname$::$name$(int index) const {\n"
-    "  return $name$_.Get(index);\n"
-    "}\n"
-    "inline void $classname$::set_$name$(int index, $type$ value) {\n"
-    "  $name$_.Set(index, value);\n"
-    "}\n"
-    "inline void $classname$::add_$name$($type$ value) {\n"
-    "  $name$_.Add(value);\n"
-    "}\n");
+    //"inline const ::google::protobuf::RepeatedField< $type$ >&\n"
+    //"$classname$::$name$() const {\n"
+    //"  return $name$_;\n"
+    //"}\n"
+    //"inline ::google::protobuf::RepeatedField< $type$ >*\n"
+    //"$classname$::mutable_$name$() {\n"
+    //"  return &$name$_;\n"
+    //"}\n"
+    "Method Get$name$:$type$(index:Int)\n"
+    "\tReturn bmx_pb_$classname$_$name$_get(messagePtr, index)\n"
+    "End Method\n"
+    "\n"
+    "Method Set$name$(index:Int, value:$type$)\n"
+    "\tbmx_pb_$classname$_$name$_set(messagePtr, index, value)\n"
+    "End Method\n"
+    "\n"
+    "Method Add$name$(value:$type$)\n"
+    "\tbmx_pb_$classname$_$name$_add(messagePtr, value)\n"
+    "End Method\n");
 }
 
 void RepeatedPrimitiveFieldGenerator::
@@ -332,6 +349,12 @@ GenerateByteSize(io::Printer* printer) const {
 
 void RepeatedPrimitiveFieldGenerator::
 GenerateAccessorExterns(io::Printer* printer) const {
+
+  printer->Print(variables_,
+    "Function bmx_pb_$classname$_$name$_get:$type$(handle:Byte Ptr, index:Int)\n"
+    "Function bmx_pb_$classname$_$name$_set(handle:Byte Ptr, index:Int, value:$type$)\n"
+    "Function bmx_pb_$classname$_$name$_add(handle:Byte Ptr, value:$type$)\n");
+
 }
 
 }  // namespace cpp

@@ -167,7 +167,7 @@ const char* PrimitiveGlueTypeName(FieldDescriptor::CppType type) {
     case FieldDescriptor::CPPTYPE_UINT64 : return "::google::protobuf::uint64";
     case FieldDescriptor::CPPTYPE_DOUBLE : return "double";
     case FieldDescriptor::CPPTYPE_FLOAT  : return "float";
-    case FieldDescriptor::CPPTYPE_BOOL   : return "bool";
+    case FieldDescriptor::CPPTYPE_BOOL   : return "int";
     case FieldDescriptor::CPPTYPE_ENUM   : return "int";
     case FieldDescriptor::CPPTYPE_STRING : return "::std::string";
     case FieldDescriptor::CPPTYPE_MESSAGE: return NULL;
