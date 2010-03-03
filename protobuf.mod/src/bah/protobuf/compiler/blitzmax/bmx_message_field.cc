@@ -189,19 +189,19 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
     "// TODO : inline $type$* add_$name$();\n");
 
   printer->Print(variables_,
-    "$type$ * bmx_bp_$classname$_$name$_Get($classname$ * handle, int index);\n"
-    "$type$ * bmx_bp_$classname$_$name$_Add($classname$ * handle);\n");
+    "$type$ * bmx_pb_$classname$_$name$_Get($classname$ * handle, int index);\n"
+    "$type$ * bmx_pb_$classname$_$name$_Add($classname$ * handle);\n");
 }
 
 void RepeatedMessageFieldGenerator::
 GenerateAccessorGlue(io::Printer* printer) const {
 
   printer->Print(variables_,
-    "$type$ * bmx_bp_$classname$_$name$_Get($classname$ * handle, int index) {\n"
+    "$type$ * bmx_pb_$classname$_$name$_Get($classname$ * handle, int index) {\n"
     "  return handle->mutable_$name$(index);\n"
     "}\n"
     "\n"
-    "$type$ * bmx_bp_$classname$_$name$_Add($classname$ * handle) {\n"
+    "$type$ * bmx_pb_$classname$_$name$_Add($classname$ * handle) {\n"
     "  return handle->add_$name$();\n"
     "}\n"
     "\n");
@@ -220,7 +220,7 @@ GenerateAccessorDefinitions(io::Printer* printer) const {
     //"  return &$name$_;\n"
     //"}\n"
     "Method Get$name$:$type$(index:Int)\n"
-    "  return $type$._create(bmx_bp_$classname$_$name$_Get(messagePtr, index))\n"
+    "  return $type$._create(bmx_pb_$classname$_$name$_Get(messagePtr, index))\n"
     "End Method\n"
     "\n"
     //"Method $type$* $classname$::mutable_$name$(int index) {\n"
@@ -228,7 +228,7 @@ GenerateAccessorDefinitions(io::Printer* printer) const {
     //"End Method\n"
     //"\n"
     "Method Add$name$:$type$()\n"
-    "  Return $type$._create(bmx_bp_$classname$_$name$_Add(messagePtr))\n"
+    "  Return $type$._create(bmx_pb_$classname$_$name$_Add(messagePtr))\n"
     "End Method\n"
     "\n");
 }
@@ -283,8 +283,8 @@ void RepeatedMessageFieldGenerator::
 GenerateAccessorExterns(io::Printer* printer) const {
 
   printer->Print(variables_,
-    "Function bmx_bp_$classname$_$name$_Get:Byte Ptr(handle:Byte Ptr, index:Int)\n"
-    "Function bmx_bp_$classname$_$name$_Add:Byte Ptr(handle:Byte Ptr)\n");
+    "Function bmx_pb_$classname$_$name$_Get:Byte Ptr(handle:Byte Ptr, index:Int)\n"
+    "Function bmx_pb_$classname$_$name$_Add:Byte Ptr(handle:Byte Ptr)\n");
 
 }
 

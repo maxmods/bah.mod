@@ -253,17 +253,17 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
   printer->Print(variables_,
     //"inline const ::google::protobuf::RepeatedField< $type$ >& $name$() const;\n"
     //"inline ::google::protobuf::RepeatedField< $type$ >* mutable_$name$();\n"
-    "$gtype$ bmx_pb_$classname$_$name$_get(int index);\n"
-    "void bmx_pb_$classname$_$name$_set(int index, $gtype$ value);\n"
-    "void bmx_pb_$classname$_$name$_add($gtype$ value);\n");
+    "$gtype$ bmx_pb_$classname$_$name$_get($classname$ * handle, int index);\n"
+    "void bmx_pb_$classname$_$name$_set($classname$ * handle, int index, $gtype$ value);\n"
+    "void bmx_pb_$classname$_$name$_add($classname$ * handle, $gtype$ value);\n");
 }
 
 void RepeatedPrimitiveFieldGenerator::
 GenerateAccessorGlue(io::Printer* printer) const {
 
   printer->Print(variables_,
-    "$gtype$ bmx_bp_$classname$_$name$_get($classname$ * handle, int index) {\n"
-    "  return handle->mutable_$name$(index);\n"
+    "$gtype$ bmx_pb_$classname$_$name$_get($classname$ * handle, int index) {\n"
+    "  return handle->$name$(index);\n"
     "}\n"
     "\n"
     "void bmx_pb_$classname$_$name$_set($classname$ * handle, int index, $gtype$ value) {\n"

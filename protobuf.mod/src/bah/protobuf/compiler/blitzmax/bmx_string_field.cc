@@ -204,15 +204,15 @@ GeneratePrivateMembers(io::Printer* printer) const {
 void RepeatedStringFieldGenerator::
 GenerateAccessorDeclarations(io::Printer* printer) const {
   // See comment above about unknown ctypes.
-  if (descriptor_->options().has_ctype()) {
-    printer->Outdent();
-    printer->Print(
-      " private:\n"
-      "  // Hidden due to unknown ctype option.\n");
-    printer->Indent();
-  }
+  //if (descriptor_->options().has_ctype()) {
+  //  printer->Outdent();
+  //  printer->Print(
+  //    " private:\n"
+  //    "  // Hidden due to unknown ctype option.\n");
+  //  printer->Indent();
+  //}
 
-  printer->Print(variables_,
+  /*printer->Print(variables_,
     "inline const ::google::protobuf::RepeatedPtrField< ::std::string>& $name$() const;\n"
     "inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_$name$();\n"
     "inline const ::std::string& $name$(int index) const;\n"
@@ -221,51 +221,65 @@ GenerateAccessorDeclarations(io::Printer* printer) const {
     "inline void set_$name$(int index, const char* value);\n"
     "inline ::std::string* add_$name$();\n"
     "inline void add_$name$(const ::std::string& value);\n"
-    "inline void add_$name$(const char* value);\n");
+    "inline void add_$name$(const char* value);\n");*/
 
-  if (descriptor_->options().has_ctype()) {
+  printer->Print(variables_,
+    "BBString * bmx_pb_$classname$_$name$_get($classname$ * handle, int index);\n"
+    "void bmx_pb_$classname$_$name$_set($classname$ * handle, int index, BBString * value);\n"
+    "void bmx_pb_$classname$_$name$_add($classname$ * handle, BBString * value);\n");
+
+  /*if (descriptor_->options().has_ctype()) {
     printer->Outdent();
     printer->Print(" public:\n");
     printer->Indent();
-  }
+  }*/
 }
 
 void RepeatedStringFieldGenerator::
 GenerateAccessorDefinitions(io::Printer* printer) const {
   printer->Print(variables_,
-    "inline const ::google::protobuf::RepeatedPtrField< ::std::string>&\n"
+    /*"inline const ::google::protobuf::RepeatedPtrField< ::std::string>&\n"
     "$classname$::$name$() const {\n"
     "  return $name$_;\n"
     "}\n"
     "inline ::google::protobuf::RepeatedPtrField< ::std::string>*\n"
     "$classname$::mutable_$name$() {\n"
     "  return &$name$_;\n"
-    "}\n"
-    "inline const ::std::string& $classname$::$name$(int index) const {\n"
-    "  return $name$_.Get(index);\n"
-    "}\n"
-    "inline ::std::string* $classname$::mutable_$name$(int index) {\n"
-    "  return $name$_.Mutable(index);\n"
-    "}\n"
-    "inline void $classname$::set_$name$(int index, const ::std::string& value) {\n"
-    "  $name$_.Mutable(index)->assign(value);\n"
-    "}\n"
-    "inline void $classname$::set_$name$(int index, const char* value) {\n"
-    "  $name$_.Mutable(index)->assign(value);\n"
-    "}\n"
-    "inline ::std::string* $classname$::add_$name$() {\n"
-    "  return $name$_.Add();\n"
-    "}\n"
-    "inline void $classname$::add_$name$(const ::std::string& value) {\n"
-    "  $name$_.Add()->assign(value);\n"
-    "}\n"
-    "inline void $classname$::add_$name$(const char* value) {\n"
-    "  $name$_.Add()->assign(value);\n"
-    "}\n");
+    "}\n"*/
+    "Method Get$uname$:String(index:Int)\n"
+    "\tReturn bmx_pb_$classname$_$name$_get(messagePtr, index)\n"
+    "End Method\n"
+    "\n"
+    "Method Set$uname$(index:Int, value:String)\n"
+    "\tbmx_pb_$classname$_$name$_set(messagePtr, index, value)\n"
+    "End Method\n"
+    "\n"
+    "Method Add$uname$(value:String)\n"
+    "\tbmx_pb_$classname$_$name$_add(messagePtr, value)\n"
+    "End Method\n");
 }
 
 void RepeatedStringFieldGenerator::
 GenerateAccessorGlue(io::Printer* printer) const {
+
+  printer->Print(variables_,
+    "BBString * bmx_pb_$classname$_$name$_get($classname$ * handle, int index) {\n"
+    "  return bbStringFromUTF8String(handle->$name$(index).c_str());\n"
+    "}\n"
+    "\n"
+    "void bmx_pb_$classname$_$name$_set($classname$ * handle, int index, BBString * value) {\n"
+    "\tchar * v = bbStringToUTF8String(value);\n"
+    "\thandle->set_$name$(index, v);\n"
+    "\tbbMemFree(v);\n"
+    "}\n"
+    "\n"
+    "void bmx_pb_$classname$_$name$_add($classname$ * handle, BBString * value) {\n"
+    "\tchar * v = bbStringToUTF8String(value);\n"
+    "\thandle->add_$name$(v);\n"
+    "\tbbMemFree(v);\n"
+    "}\n"
+    "\n");
+
 }
 
 void RepeatedStringFieldGenerator::
@@ -309,6 +323,12 @@ GenerateByteSize(io::Printer* printer) const {
 
 void RepeatedStringFieldGenerator::
 GenerateAccessorExterns(io::Printer* printer) const {
+
+  printer->Print(variables_,
+    "Function bmx_pb_$classname$_$name$_get:String(handle:Byte Ptr, index:Int)\n"
+    "Function bmx_pb_$classname$_$name$_set(handle:Byte Ptr, index:Int, value:String)\n"
+    "Function bmx_pb_$classname$_$name$_add(handle:Byte Ptr, value:String)\n");
+
 }
 
 }  // namespace cpp
