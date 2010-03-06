@@ -32,6 +32,9 @@ class UDPProxyClient;
 /// \ingroup UDP_PROXY_GROUP
 struct UDPProxyClientResultHandler
 {
+	UDPProxyClientResultHandler() {}
+	virtual ~UDPProxyClientResultHandler() {}
+
 	/// Called when our forwarding request was completed. We can now connect to \a targetAddress by using \a proxyAddress instead
 	/// \param[out] proxyIPAddress IP Address of the proxy server, which will forward messages to targetAddress
 	/// \param[out] proxyPort Remote port to use on the proxy server, which will forward messages to targetAddress

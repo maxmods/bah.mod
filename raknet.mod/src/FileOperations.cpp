@@ -52,7 +52,7 @@ bool WriteFileWithDirectories( const char *path, char *data, unsigned dataLength
 	
 				res = mkdir( pathCopy, 0744 );
 	#endif
-				if (res<0 && errno!=EEXIST)
+				if (res<0 && errno!=EEXIST && errno!=EACCES)
 				{
 					rakFree_Ex(pathCopy, __FILE__, __LINE__ );
 					return false;

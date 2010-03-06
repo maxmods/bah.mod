@@ -68,7 +68,7 @@ SOCKET RakNet::CreateNonblockingBoundSocket(const char *bindAddr)
 		unsigned long nonblocking = 1;
 		ioctlsocket( s, FIONBIO, &nonblocking );
 	#elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-                                                                                                 
+                                                                                                     
 	#else
 		fcntl( s, F_SETFL, O_NONBLOCK );
 	#endif

@@ -126,7 +126,7 @@ void DataBlockEncryptor::Encrypt( unsigned char *input, unsigned int inputLength
 
 bool DataBlockEncryptor::Decrypt( unsigned char *input, unsigned int inputLength, unsigned char *output, unsigned int *outputLength )
 {
-	unsigned index, byteIndex, lastBlock;
+	unsigned index, byteIndex;
 	unsigned int checkSum;
 	unsigned char paddingBytes;
 	unsigned char encodedPad;
@@ -156,7 +156,7 @@ bool DataBlockEncryptor::Decrypt( unsigned char *input, unsigned int inputLength
 				output[ index + byteIndex ] ^= input[ index + 16 + byteIndex ];
 		}
 
-		lastBlock = index;
+	//	lastBlock = index;
 	};
 
 	// Decrypt the first block

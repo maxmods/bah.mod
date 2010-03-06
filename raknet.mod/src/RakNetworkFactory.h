@@ -24,6 +24,7 @@ class PacketFileLogger;
 class Router;
 class ConnectionGraph;
 
+// TODO RakNet 4 - move these to the classes themselves
 class RAK_DLL_EXPORT RakNetworkFactory
 {
 public:

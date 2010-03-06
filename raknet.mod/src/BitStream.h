@@ -27,6 +27,11 @@
 #pragma warning( push )
 #endif
 
+// MSWin uses _copysign, others use copysign...
+#ifndef _WIN32
+#define _copysign copysign
+#endif
+
 /// The namespace RakNet is not consistently used.  It's only purpose is to avoid compiler errors for classes whose names are very common.
 /// For the most part I've tried to avoid this simply by using names very likely to be unique for my classes.
 namespace RakNet
@@ -189,8 +194,11 @@ namespace RakNet
 		/// \brief Write any integral type to a bitstream.  
 		/// \details Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
 		/// \param[in] var The value to write
+		// TODO - RakNet 4 Remove write, use only the WriteRef version, but rename it to Write
 		template <class templateType>
 			void Write(templateType var);
+		template <class templateType>
+			void WriteRef(const templateType &var);
 
 		/// \brief Write the dereferenced pointer to any integral type to a bitstream.  
 		/// \details Undefine __BITSTREAM_NATIVE_END if you need endian swapping.
@@ -584,40 +592,40 @@ namespace RakNet
 		/// Write a bool to a bitstream.
 		/// \param[in] var The value to write
 		template <>
-			void Write(bool var);
+			void WriteRef(const bool &var);
 
 		/// Write a systemAddress to a bitstream
 		/// \param[in] var The value to write
 		template <>
-			void Write(SystemAddress var);
+			void WriteRef(const SystemAddress &var);
 
 		/// Write a uint24_t to a bitstream
 		/// \param[in] var The value to write
 		template <>
-		void Write(uint24_t var);
+		void WriteRef(const uint24_t &var);
 
 		/// Write a RakNetGUID to a bitsteam
 		/// \param[in] var The value to write
 		template <>
-			void Write(RakNetGuid var);
+			void WriteRef(const RakNetGuid &var);
 
 		/// Write an networkID to a bitstream
 		/// \param[in] var The value to write
 		template <>
-			void Write(NetworkID var);
+			void WriteRef(const NetworkID &var);
 
 		/// Write a string to a bitstream
 		/// \param[in] var The value to write
 		template <>
-			void Write(const char* var);
+			void WriteRef(const char* const &var);
 		template <>
-			void Write(const unsigned char* var);
+			void WriteRef(const unsigned char* const &var);
 		template <>
-			void Write(char* var);
+			void WriteRef(char* const &var);
 		template <>
-			void Write(unsigned char* var);
+			void WriteRef(unsigned char* const &var);
 		template <>
-			void Write(RakString var);
+			void WriteRef(const RakString &var);
 
 		/// \brief Write a systemAddress.  
 		/// \details If the current value is different from the last value
@@ -783,7 +791,7 @@ namespace RakNet
 		{
 			return IsNetworkOrder();
 		}
-		inline static bool IsNetworkOrder(void) {const static bool r = IsNetworkOrderInternal(); return r;}
+		inline static bool IsNetworkOrder(void) {static const bool r = IsNetworkOrderInternal(); return r;}
 		// Not inline, won't compile on PC due to winsock include errors
 		static bool IsNetworkOrderInternal(void);
 		static void ReverseBytes(unsigned char *input, unsigned char *output, const unsigned int length);
@@ -942,6 +950,12 @@ namespace RakNet
 
 	template <class templateType>
 		inline void BitStream::Write(templateType var)
+		{
+			WriteRef(var);
+		}
+
+	template <class templateType>
+		inline void BitStream::WriteRef(const templateType &var)
 	{
 #ifdef _MSC_VER
 #pragma warning(disable:4127)   // conditional expression is constant
@@ -989,28 +1003,30 @@ namespace RakNet
 	/// \brief Write a bool to a bitstream.
 	/// \param[in] var The value to write
 	template <>
-		inline void BitStream::Write(bool var)
-	{
-		if ( var )
-			Write1();
-		else
-			Write0();
-	}
+		inline void BitStream::WriteRef(const bool &var)
+		{
+			if ( var )
+				Write1();
+			else
+				Write0();
+		}
+
 
 	/// \brief Write a systemAddress to a bitstream.
 	/// \param[in] var The value to write
 	template <>
-		inline void BitStream::Write(SystemAddress var)
+		inline void BitStream::WriteRef(const SystemAddress &var)
 	{
 		// Hide the address so routers don't modify it
-		var.binaryAddress=~var.binaryAddress;
+		SystemAddress var2=var;
+		var2.binaryAddress=~var.binaryAddress;
 		// Don't endian swap the address
-		WriteBits((unsigned char*)&var.binaryAddress, sizeof(var.binaryAddress)*8, true);
-		Write(var.port);
+		WriteBits((unsigned char*)&var2.binaryAddress, sizeof(var2.binaryAddress)*8, true);
+		Write(var2.port);
 	}
 
 	template <>
-	inline void BitStream::Write(uint24_t var)
+	inline void BitStream::WriteRef(const uint24_t &var)
 	{
 		AlignWriteToByteBoundary();
 		AddBitsAndReallocate(3*8);
@@ -1032,7 +1048,7 @@ namespace RakNet
 	}
 
 	template <>
-		inline void BitStream::Write(RakNetGUID var)
+		inline void BitStream::WriteRef(const RakNetGUID &var)
 		{
 			Write(var.g);
 		}
@@ -1040,7 +1056,7 @@ namespace RakNet
 	/// \brief Write an networkID to a bitstream.
 	/// \param[in] var The value to write
 	template <>
-		inline void BitStream::Write(NetworkID var)
+		inline void BitStream::WriteRef(const NetworkID &var)
 	{
 #if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
 		RakAssert(NetworkID::IsPeerToPeerMode());
@@ -1072,27 +1088,27 @@ namespace RakNet
 	/// \brief Write a string to a bitstream.
 	/// \param[in] var The value to write
 	template <>
-		inline void BitStream::Write(RakString var)
+		inline void BitStream::WriteRef(const RakString &var)
 	{
 		var.Serialize(this);
 	}
 	template <>
-		inline void BitStream::Write(const char * var)
+		inline void BitStream::WriteRef(const char * const &var)
 	{
 		RakString::Serialize(var, this);
 	}
 	template <>
-		inline void BitStream::Write(const unsigned char * var)
+		inline void BitStream::WriteRef(const unsigned char * const &var)
 	{
 		Write((const char*)var);
 	}
 	template <>
-		inline void BitStream::Write(char * var)
+		inline void BitStream::WriteRef(char * const &var)
 	{
 		Write((const char*)var);
 	}
 	template <>
-		inline void BitStream::Write(unsigned char * var)
+		inline void BitStream::WriteRef(unsigned char * const &var)
 	{
 		Write((const char*)var);
 	}
@@ -1695,36 +1711,10 @@ namespace RakNet
 #ifdef _DEBUG
 		RakAssert(x <= 1.01 && y <= 1.01 && z <= 1.01 && x >= -1.01 && y >= -1.01 && z >= -1.01);
 #endif
-		if (x>1.0)
-			x=1.0;
-		if (y>1.0)
-			y=1.0;
-		if (z>1.0)
-			z=1.0;
-		if (x<-1.0)
-			x=-1.0;
-		if (y<-1.0)
-			y=-1.0;
-		if (z<-1.0)
-			z=-1.0;
 
-		Write((bool) (x < 0.0));
-		if (y==0.0)
-			Write(true);
-		else
-		{
-			Write(false);
-			WriteCompressed((float)y);
-			//Write((unsigned short)((y+1.0f)*32767.5f));
-		}
-		if (z==0.0)
-			Write(true);
-		else
-		{
-			Write(false);
-			WriteCompressed((float)z);
-			//Write((unsigned short)((z+1.0f)*32767.5f));
-		}
+		WriteFloat16((float)x,-1.0f,1.0f);
+		WriteFloat16((float)y,-1.0f,1.0f);
+		WriteFloat16((float)z,-1.0f,1.0f);
 	}
 
 	template <class templateType> // templateType for this function must be a float or double
@@ -1787,9 +1777,9 @@ namespace RakNet
 		if (qx < 0.0) qx=0.0;
 		if (qy < 0.0) qy=0.0;
 		if (qz < 0.0) qz=0.0;
-		qx = _copysign( qx, m21 - m12 );
-		qy = _copysign( qy, m02 - m20 );
-		qz = _copysign( qz, m10 - m01 );
+		qx = _copysign( (double) qx, (double) (m21 - m12) );
+		qy = _copysign( (double) qy, (double) (m02 - m20) );
+		qz = _copysign( (double) qz, (double) (m10 - m01) );
 
 		WriteNormQuat(qw,qx,qy,qz);
 	}
@@ -1797,43 +1787,13 @@ namespace RakNet
 	template <class templateType> // templateType for this function must be a float or double
 		bool BitStream::ReadNormVector( templateType &x, templateType &y, templateType &z )
 	{
-		//	unsigned short sy, sz;
-		bool yZero, zZero;
-		bool xNeg;
-		float cy,cz;
-
-		Read(xNeg);
-
-		Read(yZero);
-		if (yZero)
-			y=0.0;
-		else
-		{
-			ReadCompressed((float)cy);
-			y=cy;
-			//Read(sy);
-			//y=((float)sy / 32767.5f - 1.0f);
-		}
-
-		if (!Read(zZero))
-			return false;
-
-		if (zZero)
-			z=0.0;
-		else
-		{
-			//	if (!Read(sz))
-			//		return false;
-
-			//	z=((float)sz / 32767.5f - 1.0f);
-			if (!ReadCompressed((float)cz))
-				return false;
-			z=cz;
-		}
-
-		x = (templateType) (sqrtf((templateType)1.0 - y*y - z*z));
-		if (xNeg)
-			x=-x;
+		float xIn,yIn,zIn;
+		ReadFloat16(xIn,-1.0f,1.0f);
+		ReadFloat16(yIn,-1.0f,1.0f);
+		ReadFloat16(zIn,-1.0f,1.0f);
+		x=xIn;
+		y=yIn;
+		z=zIn;
 		return true;
 	}
 
@@ -1945,7 +1905,7 @@ namespace RakNet
 	template <class templateType>
 	BitStream& operator<<(BitStream& out, templateType& c)
 	{
-		out.Write(c);
+		out.WriteRef(c);
 		return out;
 	}
 	template <class templateType>

@@ -495,7 +495,7 @@ void LightweightDatabaseServer::OnPong(Packet *packet)
 		databaseTable=database[databaseIndex];
 		if (databaseTable->removeRowOnPingFailure)
 		{
-			if ((unsigned int) databaseTable->SystemAddressColumnIndex==-1)
+			if ((unsigned int) databaseTable->SystemAddressColumnIndex==(unsigned int)-1)
 				continue;
 			if (time==0)
 				time=RakNet::GetTime();
@@ -576,7 +576,7 @@ DataStructures::Table::Row * LightweightDatabaseServer::GetRowFromIP(DatabaseTab
 	DataStructures::Page<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> *cur = rows.GetListHead();
 	DataStructures::Table::Row* row;
 	unsigned i;
-	if ((unsigned int) databaseTable->SystemAddressColumnIndex==-1)
+	if ((unsigned int) databaseTable->SystemAddressColumnIndex==(unsigned int)-1)
 		return 0;
 	while (cur)
 	{
@@ -596,7 +596,7 @@ DataStructures::Table::Row * LightweightDatabaseServer::GetRowFromIP(DatabaseTab
 }
 bool LightweightDatabaseServer::RowHasIP(DataStructures::Table::Row *row, SystemAddress systemAddress, unsigned SystemAddressColumnIndex)
 {
-	if ((unsigned int) SystemAddressColumnIndex==-1)
+	if ((unsigned int) SystemAddressColumnIndex==(unsigned int)-1)
 		return false;
 
 	SystemAddress sysAddr;
@@ -656,7 +656,7 @@ void LightweightDatabaseServer::RemoveRowsFromIP(SystemAddress systemAddress)
 	for (i=0; i < database.Size(); i++)
 	{
 		databaseTable=database[i];
-		if ((unsigned int) databaseTable->SystemAddressColumnIndex!=-1)
+		if ((unsigned int) databaseTable->SystemAddressColumnIndex!=(unsigned int)-1)
 		{
 			const DataStructures::BPlusTree<unsigned, DataStructures::Table::Row*, _TABLE_BPLUS_TREE_ORDER> &rows = databaseTable->table.GetRows();
 			cur = rows.GetListHead();

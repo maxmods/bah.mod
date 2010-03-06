@@ -8,6 +8,7 @@
 #if defined(_WIN32) && !defined(_XBOX) && !defined(X360)
 #include "WindowsIncludes.h"
 // To call timeGetTime
+// on Code::Blocks, this needs to be libwinmm.a instead
 #pragma comment(lib, "Winmm.lib")
 #endif
 
@@ -127,6 +128,8 @@ RakNetTimeUS RakNet::GetTimeNS( void )
 		return lastQueryVal;
 
 #if !defined(_XBOX) && !defined(X360)
+    // To call timeGetTime
+    // on Code::Blocks, at the top of the file you need to import libwinmm.a instead of Winmm.lib
 	DWORD tgt = timeGetTime();
 	RakNetTimeMS timeInMS = curTime/1000;
 	if (timeInMS>tgt+1000)

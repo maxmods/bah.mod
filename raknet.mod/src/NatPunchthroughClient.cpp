@@ -297,7 +297,6 @@ PluginReceiveResult NatPunchthroughClient::OnReceive(Packet *packet)
 			OnGetMostRecentPort(packet);
 			return RR_STOP_PROCESSING_AND_DEALLOCATE;
 		}
-		break;
 	case ID_OUT_OF_BAND_INTERNAL:
 		if (packet->length>=2 &&
 			(packet->data[1]==ID_NAT_ESTABLISH_UNIDIRECTIONAL || packet->data[1]==ID_NAT_ESTABLISH_BIDIRECTIONAL) &&

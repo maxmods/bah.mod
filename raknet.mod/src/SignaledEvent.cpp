@@ -85,13 +85,14 @@ void SignaledEvent::WaitOnEvent(int timeoutMs)
 	}
 	isSignaledMutex.Unlock();
 
-	int               rc;
+	
 	struct timespec   ts;
 
 	// Else wait for SetEvent to be called
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                      
 	#else
+		int rc;
 		struct timeval    tp;
 		rc =  gettimeofday(&tp, NULL);
 		ts.tv_sec  = tp.tv_sec;
@@ -103,6 +104,11 @@ void SignaledEvent::WaitOnEvent(int timeoutMs)
 			// Wait 30 milliseconds for the signal, then check again.
 			// This is in case we  missed the signal between the top of this function and pthread_cond_timedwait, or after the end of the loop and pthread_cond_timedwait
 			ts.tv_nsec += 30*1000000;
+			if (ts.tv_nsec >= 1000000000)
+			{
+			        ts.tv_nsec -= 1000000000;
+			        ts.tv_sec++;
+			}
 			pthread_cond_timedwait(&eventList, &hMutex, &ts);
 			timeoutMs-=30;
 
@@ -118,6 +124,11 @@ void SignaledEvent::WaitOnEvent(int timeoutMs)
 
 		// Wait the remaining time, and turn off the signal in case it was set
 		ts.tv_nsec += timeoutMs*1000000;
+		if (ts.tv_nsec >= 1000000000)
+		{
+		        ts.tv_nsec -= 1000000000;
+		        ts.tv_sec++;
+		}
 		pthread_cond_timedwait(&eventList, &hMutex, &ts);
 
 		isSignaledMutex.Lock();

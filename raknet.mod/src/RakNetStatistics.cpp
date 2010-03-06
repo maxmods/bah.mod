@@ -37,14 +37,9 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 
 	else if ( verbosityLevel == 1 )
 	{
-		RakNetTime time = RakNet::GetTime();
-		double elapsedTime;
-//		double bpsSent;
-//		double bpsReceived;
-		elapsedTime = (time-s->connectionStartTime) / 1000.0f;
-	//	bpsSent = (double) s->totalBitsSent / elapsedTime;
-	//	bpsReceived= (double) s->bitsReceived / elapsedTime;
-		// Verbosity level 1
+//		RakNetTime time = RakNet::GetTime();
+// 		double elapsedTime;
+// 		elapsedTime = (time-s->connectionStartTime) / 1000.0f;
 
 		sprintf( buffer,
 			"Messages in Send buffer: %u\n"
@@ -64,8 +59,8 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Inst. KBits per second received:\t%.1f\n"
 			"Bandwith exceeded:\t\t\t%i\n"
 			"Link capacity (Megabytes per second)\t%f\n",
-			s->messageSendBuffer[ SYSTEM_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
-			s->messagesSent[ SYSTEM_PRIORITY ] + s->messagesSent[ HIGH_PRIORITY ] + s->messagesSent[ MEDIUM_PRIORITY ] + s->messagesSent[ LOW_PRIORITY ],
+			s->messageSendBuffer[ IMMEDIATE_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
+			s->messagesSent[ IMMEDIATE_PRIORITY ] + s->messagesSent[ HIGH_PRIORITY ] + s->messagesSent[ MEDIUM_PRIORITY ] + s->messagesSent[ LOW_PRIORITY ],
 			RakString::ToString(BITS_TO_BYTES( s->totalBitsSent )),
 			s->acknowlegementsSent,
 			s->acknowlegementsPending,
@@ -143,11 +138,11 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"Time until next send\t\t\t%i MS\n"
 			,
 			RakString::ToString(BITS_TO_BYTES( s->totalBitsSent )),
-			s->messageSendBuffer[ SYSTEM_PRIORITY ], s->messageSendBuffer[ HIGH_PRIORITY ], s->messageSendBuffer[ MEDIUM_PRIORITY ], s->messageSendBuffer[ LOW_PRIORITY ],
-			s->messagesSent[ SYSTEM_PRIORITY ], s->messagesSent[ HIGH_PRIORITY ], s->messagesSent[ MEDIUM_PRIORITY ], s->messagesSent[ LOW_PRIORITY ],
-			RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ SYSTEM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(( s->messageDataBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ LOW_PRIORITY ] )),
-			RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ SYSTEM_PRIORITY ] - s->messageDataBitsSent[ SYSTEM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ HIGH_PRIORITY ] - s->messageDataBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ MEDIUM_PRIORITY ] - s->messageDataBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ LOW_PRIORITY ] - s->messageDataBitsSent[ LOW_PRIORITY ] )),
-			RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ SYSTEM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ LOW_PRIORITY ] )),
+			s->messageSendBuffer[ IMMEDIATE_PRIORITY ], s->messageSendBuffer[ HIGH_PRIORITY ], s->messageSendBuffer[ MEDIUM_PRIORITY ], s->messageSendBuffer[ LOW_PRIORITY ],
+			s->messagesSent[ IMMEDIATE_PRIORITY ], s->messagesSent[ HIGH_PRIORITY ], s->messagesSent[ MEDIUM_PRIORITY ], s->messagesSent[ LOW_PRIORITY ],
+			RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ IMMEDIATE_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(( s->messageDataBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageDataBitsSent[ LOW_PRIORITY ] )),
+			RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ IMMEDIATE_PRIORITY ] - s->messageDataBitsSent[ IMMEDIATE_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ HIGH_PRIORITY ] - s->messageDataBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ MEDIUM_PRIORITY ] - s->messageDataBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ LOW_PRIORITY ] - s->messageDataBitsSent[ LOW_PRIORITY ] )),
+			RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ IMMEDIATE_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ HIGH_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ MEDIUM_PRIORITY ] )), RakString::ToString(BITS_TO_BYTES( s->messageTotalBitsSent[ LOW_PRIORITY ] )),
 			RakString::ToString(BITS_TO_BYTES( s->bitsReceived + s->bitsWithBadCRCReceived )), RakString::ToString(BITS_TO_BYTES( s->bitsReceived )), RakString::ToString(BITS_TO_BYTES( s->bitsWithBadCRCReceived )),
 			s->packetsReceived + s->packetsWithBadCRCReceived, s->packetsReceived, s->packetsWithBadCRCReceived,
 			s->acknowlegementsReceived + s->duplicateAcknowlegementsReceived, s->acknowlegementsReceived, s->duplicateAcknowlegementsReceived,
@@ -204,7 +199,7 @@ void RAK_DLL_EXPORT StatisticsToString( RakNetStatistics *s, char *buffer, int v
 			"remoteContinuousReceiveRate\t%.4f MBPS\n"
 			"estimatedLinkCapacityMBPS\t%.4f MBPS\n"
 			"timeUntilNextSend\t\t%i",
-			s->messageSendBuffer[ SYSTEM_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
+			s->messageSendBuffer[ IMMEDIATE_PRIORITY ] + s->messageSendBuffer[ HIGH_PRIORITY ] + s->messageSendBuffer[ MEDIUM_PRIORITY ] + s->messageSendBuffer[ LOW_PRIORITY ],
 			s->packetloss,
 			s->unacknowledgedBytes, s->CWNDLimit,
 			s->isInSlowStart,

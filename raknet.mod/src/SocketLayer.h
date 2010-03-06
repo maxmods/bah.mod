@@ -17,6 +17,7 @@
 #include "RakNetSocket.h"
 #include "Export.h"
 #include "MTUSize.h"
+#include "RakString.h"
 
 //#include "ClientContextStruct.h"
 
@@ -25,6 +26,9 @@ class RakPeer;
 class RAK_DLL_EXPORT SocketLayerOverride
 {
 public:
+	SocketLayerOverride() {}
+	virtual ~SocketLayerOverride() {}
+
 	/// Called when SendTo would otherwise occur.
 	virtual int RakNetSendTo( SOCKET s, const char *data, int length, SystemAddress systemAddress )=0;
 
@@ -97,6 +101,27 @@ public:
 	// Newer version, for reads from a thread
 	static void RecvFromBlocking( const SOCKET s, RakPeer *rakPeer, unsigned short remotePortRakNetWasStartedOn_PS3, char *dataOut, int *bytesReadOut, SystemAddress *systemAddressOut, RakNetTimeUS *timeRead );
 	
+	/// Read raw unprocessed data from the socket
+	/// \param[in] s the socket 
+	/// \param[in] remotePortRakNetWasStartedOn_PS3 was started on the PS3?
+	/// \param[out] dataOut The data read
+	/// \param[out]	bytesReadOut Number of bytes read, -1 if nothing was read
+	/// \param[out] systemAddressOut Who is sending the packet
+	/// \param[out]	timeRead Time that thre read occured
+	void RawRecvFromNonBlocking( const SOCKET s, unsigned short remotePortRakNetWasStartedOn_PS3, char *dataOut, int *bytesReadOut, SystemAddress *systemAddressOut, RakNetTimeUS *timeRead );
+
+
+	/// Given a socket and IP, retrieves the subnet mask, on linux the socket is unused
+	/// \param[in] inSock the socket 
+	/// \param[in] inIpString The ip of the interface you wish to retrieve the subnet mask from
+	/// \return Returns the ip dotted subnet mask if successful, otherwise returns empty string ("")
+	RakNet::RakString GetSubNetForSocketAndIp(SOCKET inSock, RakNet::RakString inIpString);
+
+
+	/// Sets the socket flags to nonblocking 
+	/// \param[in] listenSocket the socket to set
+	void SetNonBlocking( SOCKET listenSocket);
+
 #if !defined(_XBOX) && !defined(_X360)
 	/// Retrieve all local IP address in a string format.
 	/// \param[in] s The socket whose port we are referring to

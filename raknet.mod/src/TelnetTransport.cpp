@@ -104,6 +104,39 @@ Packet* TelnetTransport::Receive( void )
 	}
 	*/
 
+	// Get this guy's cursor buffer.  This is real bullcrap that I have to do this.
+	unsigned i;
+	TelnetClient *remoteClient=0;
+	for (i=0; i < remoteClients.Size(); i++)
+	{
+		if (remoteClients[i]->systemAddress==p->systemAddress)
+			remoteClient=remoteClients[i];
+	}
+	//RakAssert(remoteClient);
+	if (remoteClient==0)
+	{
+		tcpInterface->DeallocatePacket(p);
+		return 0;
+	}
+
+
+	if (p->length==3 && p->data[0]==27 && p->data[1]==91 && p->data[2]==65)
+	{
+		if (remoteClient->lastSentTextInput[0])
+		{
+			// Up arrow, return last string
+			for (int i=0; remoteClient->textInput[i]; i++)
+				remoteClient->textInput[i]=8;
+			strcat(remoteClient->textInput, remoteClient->lastSentTextInput);
+			tcpInterface->Send((const char *)remoteClient->textInput, strlen(remoteClient->textInput), p->systemAddress, false);
+			strcpy(remoteClient->textInput,remoteClient->lastSentTextInput);
+			remoteClient->cursorPosition=strlen(remoteClient->textInput);
+		}
+		
+		return 0;
+	}
+
+
 	// 127 is delete - ignore that
 	// 9 is tab
 	// 27 is escape
@@ -124,20 +157,6 @@ Packet* TelnetTransport::Receive( void )
 		return 0;
 	}
 
-	// Get this guy's cursor buffer.  This is real bullcrap that I have to do this.
-	unsigned i;
-	TelnetClient *remoteClient=0;
-	for (i=0; i < remoteClients.Size(); i++)
-	{
-		if (remoteClients[i]->systemAddress==p->systemAddress)
-			remoteClient=remoteClients[i];
-	}
-	//RakAssert(remoteClient);
-	if (remoteClient==0)
-	{
-		tcpInterface->DeallocatePacket(p);
-		return 0;
-	}
 
 
 	// Echo
@@ -163,8 +182,10 @@ Packet* TelnetTransport::Receive( void )
 		gotLine=ReassembleLine(remoteClient, p->data[i]);
 		if (gotLine && remoteClient->textInput[0])
 		{
+
 			Packet *reassembledLine = (Packet*) rakMalloc_Ex(sizeof(Packet), __FILE__, __LINE__);
 			reassembledLine->length=(unsigned int) strlen(remoteClient->textInput);
+			memcpy(remoteClient->lastSentTextInput, remoteClient->textInput, reassembledLine->length+1);
 			RakAssert(reassembledLine->length < REMOTE_MAX_TEXT_INPUT);
 			reassembledLine->data= (unsigned char*) rakMalloc_Ex( reassembledLine->length+1, __FILE__, __LINE__ );
 			memcpy(reassembledLine->data, remoteClient->textInput, reassembledLine->length);
@@ -229,6 +250,7 @@ SystemAddress TelnetTransport::HasNewIncomingConnection(void)
 		if (remoteClient==0)
 		{
 			remoteClient=new TelnetClient;
+			remoteClient->lastSentTextInput[0]=0;
 			remoteClient->cursorPosition=0;
 			remoteClient->systemAddress=newConnection;
 #ifdef _PRINTF_DEBUG

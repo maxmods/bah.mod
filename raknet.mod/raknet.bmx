@@ -31,7 +31,7 @@ ModuleInfo "License: Raknet - The Creative Commons Attribution - NonCommercial 2
 ModuleInfo "Copyright: 2007-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Version(Raknet 3.717)"
+ModuleInfo "History: Initial Version(Raknet 3.72)"
 
 
 Import "common.bmx"

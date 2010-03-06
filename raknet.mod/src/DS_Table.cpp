@@ -591,7 +591,7 @@ void Table::QueryTable(unsigned *columnIndicesSubset, unsigned numColumnSubset, 
 	{
 		for (i=0; i < numColumnSubset; i++)
 		{
-			if (columnIndicesSubset[i]>=0 && columnIndicesSubset[i]<columns.Size())
+			if (columnIndicesSubset[i]<columns.Size())
 				columnIndicesToReturn.Insert(columnIndicesSubset[i], __FILE__, __LINE__);
 		}
 	}
@@ -617,7 +617,7 @@ void Table::QueryTable(unsigned *columnIndicesSubset, unsigned numColumnSubset, 
 		{
 			if (inclusionFilters[i].columnName[0])
 				inclusionFilters[i].columnIndex=ColumnIndex(inclusionFilters[i].columnName);
-			if (inclusionFilters[i].columnIndex>=0 && inclusionFilters[i].columnIndex<columns.Size())
+			if (inclusionFilters[i].columnIndex<columns.Size())
 				inclusionFilterColumnIndices.Insert(inclusionFilters[i].columnIndex, __FILE__, __LINE__);
 			else
 				inclusionFilterColumnIndices.Insert((unsigned)-1, __FILE__, __LINE__);
@@ -880,7 +880,7 @@ void Table::SortTable(Table::SortQuery *sortQueries, unsigned numSortQueries, Ta
 
 	for (i=0; i < numSortQueries; i++)
 	{
-		if (sortQueries[i].columnIndex>=0 && sortQueries[i].columnIndex<columns.Size() && columns[sortQueries[i].columnIndex].columnType!=BINARY)
+		if (sortQueries[i].columnIndex<columns.Size() && columns[sortQueries[i].columnIndex].columnType!=BINARY)
 		{
 			columnIndices.Insert(sortQueries[i].columnIndex, __FILE__, __LINE__);
 			anyValid=true;

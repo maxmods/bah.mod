@@ -674,7 +674,7 @@ namespace DataStructures
 	template <class BinarySearchTreeType>
 	typename BinarySearchTree<BinarySearchTreeType>::node* BinarySearchTree<BinarySearchTreeType>::Add ( const BinarySearchTreeType& input, const char *file, unsigned int line )
 	{
-		typename BinarySearchTree::node * current, *parent;
+		typename BinarySearchTree::node * current;
 		
 		// Add the new element to the tree according to the following alogrithm:
 		// 1.  If the current node is empty add the new leaf
@@ -696,7 +696,7 @@ namespace DataStructures
 		else
 		{
 			// start at the root
-			current = parent = root;
+			current = root;
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4127 ) // warning C4127: conditional expression is constant
@@ -721,7 +721,6 @@ namespace DataStructures
 					
 					else
 					{
-						parent = current;
 						current = current->left;
 					}
 				}
@@ -744,7 +743,6 @@ namespace DataStructures
 						
 						else
 						{
-							parent = current;
 							current = current->right;
 						}
 					}

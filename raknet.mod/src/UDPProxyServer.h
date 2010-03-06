@@ -29,6 +29,9 @@ class UDPProxyServer;
 /// \ingroup UDP_PROXY_GROUP
 struct UDPProxyServerResultHandler
 {
+	UDPProxyServerResultHandler() {}
+	virtual ~UDPProxyServerResultHandler() {}
+
 	/// Called when our login succeeds
 	/// \param[out] usedPassword The password we passed to UDPProxyServer::LoginToCoordinator()
 	/// \param[out] proxyServer The plugin calling this callback

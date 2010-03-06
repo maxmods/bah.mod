@@ -34,12 +34,25 @@ public:
 	Router2();
 	virtual ~Router2();
 
-	/// Query all connected systems to connect through them to a third system.
+	/// \brief Query all connected systems to connect through them to a third system.
 	/// System will return ID_ROUTER_2_FORWARDING_NO_PATH if unable to connect.
-	/// Else you will get ID_CONNECTION_REQUEST_ACCEPTED with Packet::guid equal to endpointGuid
+	/// Else you will get ID_ROUTER_2_FORWARDING_ESTABLISHED
+	///
+	/// On ID_ROUTER_2_FORWARDING_ESTABLISHED, EstablishRouting as follows:
+	///
+	/// RakNet::BitStream bs(packet->data, packet->length, false);
+	/// bs.IgnoreBytes(sizeof(MessageID));
+	/// RakNetGUID endpointGuid;
+	/// bs.Read(endpointGuid);
+	/// unsigned short sourceToDestPort;
+	/// bs.Read(sourceToDestPort);
+	/// char ipAddressString[32];
+	/// packet->systemAddress.ToString(false, ipAddressString);
+	/// rakPeerInterface->EstablishRouting(ipAddressString, sourceToDestPort, 0,0);
+	///
 	/// \note The SystemAddress for a connection should not be used - always use RakNetGuid as the address can change at any time.
 	/// When the address changes, you will get ID_ROUTER_2_REROUTED
-	void Connect(RakNetGUID endpointGuid);
+	void EstablishRouting(RakNetGUID endpointGuid);
 
 	/// Set the maximum number of bidirectional connections this system will support
 	/// Defaults to 0
@@ -117,8 +130,10 @@ protected:
 	void OnQueryForwarding(Packet *packet);
 	void OnQueryForwardingReply(Packet *packet);
 	void OnRequestForwarding(Packet *packet);
+	void OnReroute(Packet *packet);
 	void OnMiniPunchReply(Packet *packet);
-	void OnForwardingSuccess(Packet *packet);
+	void OnMiniPunchReplyBounce(Packet *packet);
+	bool OnForwardingSuccess(Packet *packet);
 	int GetLargestPingAmongConnectedSystems(void) const;
 	void ReturnToUser(MessageID messageId, RakNetGUID endpointGuid, SystemAddress systemAddress);
 	bool ConnectInternal(RakNetGUID endpointGuid, bool returnConnectionLostOnFailure);
@@ -135,7 +150,7 @@ protected:
 	void ClearAll(void);
 	int ReturnFailureOnCannotForward(RakNetGUID sourceGuid, RakNetGUID endpointGuid);
 	void SendFailureOnCannotForward(RakNetGUID sourceGuid, RakNetGUID endpointGuid);
-	void SendForwardingSuccess(RakNetGUID sourceGuid, RakNetGUID endpointGuid);
+	void SendForwardingSuccess(RakNetGUID sourceGuid, RakNetGUID endpointGuid, unsigned short sourceToDstPort);
 	void SendOOBFromRakNetPort(OutOfBandIdentifiers oob, BitStream *extraData, SystemAddress sa);
 	void SendOOBFromSpecifiedSocket(OutOfBandIdentifiers oob, SystemAddress sa, SOCKET socket);
 	void SendOOBMessages(MiniPunchRequest *mpr);

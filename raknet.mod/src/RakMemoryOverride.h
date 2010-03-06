@@ -146,12 +146,13 @@ namespace RakNet
 			return 0;
 
 #if _USE_RAK_MEMORY_OVERRIDE==1
-		Type *t;
+//		Type *t;
 		char *buffer = (char *) (GetMalloc_Ex())(sizeof(int)+sizeof(Type)*count, file, line);
 		((int*)buffer)[0]=count;
 		for (int i=0; i<count; i++)
 		{
-			t = new(buffer+sizeof(int)+i*sizeof(Type)) Type;
+			//t = 
+				new(buffer+sizeof(int)+i*sizeof(Type)) Type;
 		}
 		return (Type *) (buffer+sizeof(int));
 #else

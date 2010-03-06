@@ -15,6 +15,9 @@
 class ThreadDataInterface
 {
 public:
+	ThreadDataInterface() {}
+	virtual ~ThreadDataInterface() {}
+
 	virtual void* PerThreadFactory(void *context)=0;
 	virtual void PerThreadDestructor(void* factoryResult, void *context)=0;
 };

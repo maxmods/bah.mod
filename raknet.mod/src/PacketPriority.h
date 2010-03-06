@@ -12,16 +12,19 @@
 /// These enumerations are used to describe when packets are delivered.
 enum PacketPriority
 {
-	/// \internal Used by RakNet to send above-high priority messages.
-	SYSTEM_PRIORITY,
+	/// The highest possible priority. These message trigger sends immediately, and are generally not buffered or aggregated into a single datagram.
+	IMMEDIATE_PRIORITY,
 
-	/// High priority messages are send before medium priority messages.
+	/// For every 2 IMMEDIATE_PRIORITY messages, 1 HIGH_PRIORITY will be sent.
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
 	HIGH_PRIORITY,
 
-	/// Medium priority messages are send before low priority messages.
+	/// For every 2 HIGH_PRIORITY messages, 1 MEDIUM_PRIORITY will be sent.
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
 	MEDIUM_PRIORITY,   
 
-	/// Low priority messages are only sent when no other messages are waiting.
+	/// For every 2 MEDIUM_PRIORITY messages, 1 LOW_PRIORITY will be sent.
+	/// Messages at this priority and lower are buffered to be sent in groups at 10 millisecond intervals to reduce UDP overhead and better measure congestion control. 
 	LOW_PRIORITY,
 
 	/// \internal

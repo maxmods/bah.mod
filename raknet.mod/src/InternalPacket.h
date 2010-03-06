@@ -23,9 +23,10 @@
 #include "RakMemoryOverride.h"
 #include "RakNetDefines.h"
 #include "CCRakNetUDT.h"
+#include "NativeTypes.h"
 
-typedef unsigned short SplitPacketIdType;
-typedef unsigned int SplitPacketIndexType;
+typedef uint16_t SplitPacketIdType;
+typedef uint32_t SplitPacketIndexType;
 
 /// This is the counter used for holding packet numbers, so we can detect duplicate packets.  It should be large enough that if the variables
 /// Internally assumed to be 4 bytes, but written as 3 bytes in ReliabilityLayer::WriteToBitStreamFromInternalPacket

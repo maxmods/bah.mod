@@ -42,11 +42,10 @@ void VariadicSQLParser::GetTypeMappingIndices( const char *format, DataStructure
 	previousCharWasPercentSign=false;
 	for (i=0; i < len; i++)
 	{
-		if (previousCharWasPercentSign==true &&
-			GetTypeMappingIndex(format[i])!=-1)
+		if (previousCharWasPercentSign==true )
 		{
 			typeMappingIndex = GetTypeMappingIndex(format[i]);
-			if (typeMappingIndex!=-1)
+			if (typeMappingIndex!=(unsigned int) -1)
 			{
 				IndexAndType iat;
 				iat.strIndex=i-1;
@@ -73,54 +72,63 @@ void VariadicSQLParser::ExtractArguments( va_list argptr, const DataStructures::
 	int variadicArgIndex;
 	for (variadicArgIndex=0, i=0; i < indices.Size(); i++, variadicArgIndex++)
 	{
-		if (typeMappings[indices[i].typeMappingIndex].inputType=='i' ||
-			typeMappings[indices[i].typeMappingIndex].inputType=='d')
+		switch (typeMappings[indices[i].typeMappingIndex].inputType)
 		{
-			int val = va_arg( argptr, int );
-			paramLength[i]=sizeof(val);
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
-			memcpy(paramData[i], &val, paramLength[i]);
-			if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
-		}
-		else if (typeMappings[indices[i].typeMappingIndex].inputType=='s')
-		{
-			char* val = va_arg( argptr, char* );
-			paramLength[i]=(int) strlen(val);
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i]+1, __FILE__, __LINE__);
-			memcpy(paramData[i], val, paramLength[i]+1);
-		}
-		else if (typeMappings[indices[i].typeMappingIndex].inputType=='b')
-		{
-			bool val = (va_arg( argptr, int )!=0);
-			paramLength[i]=sizeof(val);
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
-			memcpy(paramData[i], &val, paramLength[i]);
-			if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
-		}
-		else if (typeMappings[indices[i].typeMappingIndex].inputType=='f')
-		{
-			// On MSVC at least, this only works with double as the 2nd param
-			float val = (float) va_arg( argptr, double );
-			//float val = va_arg( argptr, float );
-			paramLength[i]=sizeof(val);
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
-			memcpy(paramData[i], &val, paramLength[i]);
-			if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
-		}
-		else if (typeMappings[indices[i].typeMappingIndex].inputType=='g')
-		{
-			double val = va_arg( argptr, double );
-			paramLength[i]=sizeof(val);
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
-			memcpy(paramData[i], &val, paramLength[i]);
-			if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
-		}
-		else if (typeMappings[indices[i].typeMappingIndex].inputType=='a')
-		{
-			char* val = va_arg( argptr, char* );
-			paramLength[i]=va_arg( argptr, unsigned int );
-			paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
-			memcpy(paramData[i], val, paramLength[i]);
+		case 'i':
+		case 'd':
+			{
+				int val = va_arg( argptr, int );
+				paramLength[i]=sizeof(val);
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
+				memcpy(paramData[i], &val, paramLength[i]);
+				if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
+			}
+			break;
+		case 's':
+			{
+				char* val = va_arg( argptr, char* );
+				paramLength[i]=(int) strlen(val);
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i]+1, __FILE__, __LINE__);
+				memcpy(paramData[i], val, paramLength[i]+1);
+			}
+			break;
+		case 'b':
+			{
+				bool val = (va_arg( argptr, int )!=0);
+				paramLength[i]=sizeof(val);
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
+				memcpy(paramData[i], &val, paramLength[i]);
+				if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
+			}
+			break;
+		case 'f':
+			{
+				// On MSVC at least, this only works with double as the 2nd param
+				float val = (float) va_arg( argptr, double );
+				//float val = va_arg( argptr, float );
+				paramLength[i]=sizeof(val);
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
+				memcpy(paramData[i], &val, paramLength[i]);
+				if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
+			}
+			break;
+		case 'g':
+			{
+				double val = va_arg( argptr, double );
+				paramLength[i]=sizeof(val);
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
+				memcpy(paramData[i], &val, paramLength[i]);
+				if (RakNet::BitStream::IsNetworkOrder()==false) RakNet::BitStream::ReverseBytesInPlace((unsigned char*) paramData[i], paramLength[i]);
+			}
+			break;
+		case 'a':
+			{
+				char* val = va_arg( argptr, char* );
+				paramLength[i]=va_arg( argptr, unsigned int );
+				paramData[i]=(char*) rakMalloc_Ex(paramLength[i], __FILE__, __LINE__);
+				memcpy(paramData[i], val, paramLength[i]);
+			}
+			break;
 		}
 	}
 

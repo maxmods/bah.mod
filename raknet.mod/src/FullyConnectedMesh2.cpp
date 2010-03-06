@@ -119,20 +119,20 @@ PluginReceiveResult FullyConnectedMesh2::OnReceive(Packet *packet)
 					bsIn.Read(remoteAddress);
 					bsIn.Read(remoteGuid);
 					remoteAddress.ToString(false,str);
-					rakPeerInterface->Connect(str,remoteAddress.port,connectionPassword.C_String(),connectionPassword.GetLength());
+					rakPeerInterface->Connect(str,remoteAddress.port,connectionPassword.C_String(),(int) connectionPassword.GetLength());
 				}
 			}
 		}
 		break;
 	case ID_FCM2_REQUEST_FCMGUID:
 		OnRequestFCMGuid(packet);
-		break;
+		return RR_STOP_PROCESSING_AND_DEALLOCATE;
 	case ID_FCM2_RESPOND_CONNECTION_COUNT:
 		OnRespondConnectionCount(packet);
-		break;
+		return RR_STOP_PROCESSING_AND_DEALLOCATE;
 	case ID_FCM2_INFORM_FCMGUID:
 		OnInformFCMGuid(packet);
-		break;
+		return RR_STOP_PROCESSING_AND_DEALLOCATE;
 	}
 	return RR_CONTINUE_PROCESSING;
 }
@@ -281,7 +281,7 @@ void FullyConnectedMesh2::CalculateHost(RakNetGUID *rakNetGuid, FCM2Guid *fcm2Gu
 
 	// Return the lowest value of all FCM2Guid
 	FCM2Guid lowestFCMGuid=ourFCMGuid;
-	SystemAddress associatedSystemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+//	SystemAddress associatedSystemAddress=UNASSIGNED_SYSTEM_ADDRESS;
 	RakNetGUID associatedRakNetGuid=rakPeerInterface->GetGuidFromSystemAddress(UNASSIGNED_SYSTEM_ADDRESS);
 
 	DataStructures::DefaultIndexType idx;

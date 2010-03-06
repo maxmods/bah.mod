@@ -394,6 +394,42 @@ void RakString::SetChar( unsigned index, RakNet::RakString s )
 	*this += s;
 	*this += secondHalf;
 }
+
+size_t RakString::Find(const char *stringToFind,size_t pos)
+{
+	size_t len=GetLength();
+	if (pos>=len || stringToFind==0 || stringToFind[0]==0)
+	{
+		return nPos;
+	}
+	size_t matchLen= strlen(stringToFind);
+	size_t matchPos=0;
+	size_t iStart=0;
+
+	for (size_t i=pos;i<len;i++)
+	{
+		if (stringToFind[matchPos]==sharedString->c_str[i])
+		{
+			if(matchPos==0)
+			{
+				iStart=i;
+			}
+			matchPos++;
+		}
+		else
+		{
+			matchPos=0;
+		}
+
+		if (matchPos>=matchLen)
+		{
+			return iStart;
+		}
+	}
+
+	return nPos;
+}
+
 void RakString::Truncate(unsigned length)
 {
 	if (length < GetLength())
@@ -750,7 +786,7 @@ void RakString::FreeMemoryNoMutex(void)
 	}
 	freeList.Clear(false, __FILE__, __LINE__);
 }
-void RakString::Serialize(BitStream *bs)
+void RakString::Serialize(BitStream *bs) const
 {
 	Serialize(sharedString->c_str, bs);
 }
@@ -760,7 +796,7 @@ void RakString::Serialize(const char *str, BitStream *bs)
 	bs->Write(l);
 	bs->WriteAlignedBytes((const unsigned char*) str, (const unsigned int) l);
 }
-void RakString::SerializeCompressed(BitStream *bs, int languageId, bool writeLanguageId)
+void RakString::SerializeCompressed(BitStream *bs, int languageId, bool writeLanguageId) const
 {
 	SerializeCompressed(C_String(), bs, languageId, writeLanguageId);
 }
@@ -904,11 +940,54 @@ void RakString::Assign(const char *str)
 	Allocate(len);
 	memcpy(sharedString->c_str, str, len);
 }
+
+RakNet::RakString RakString::Assign(const char *str,size_t pos, size_t n )
+{
+
+	size_t incomingLen=strlen(str);
+
+	Clone();
+
+	if (str==0 || str[0]==0||pos>=incomingLen)
+	{
+		sharedString=&emptyString;
+		return (*this);
+	}
+
+	if (pos+n>=incomingLen)
+	{
+	n=incomingLen-pos;
+	
+	}
+	const char * tmpStr=&(str[pos]); 
+
+	size_t len = n+1;
+	Allocate(len);
+	memcpy(sharedString->c_str, tmpStr, len);
+	sharedString->c_str[n]=0;
+
+	return (*this);
+}
+
 RakNet::RakString RakString::NonVariadic(const char *str)
 {
 	RakNet::RakString rs;
 	rs=str;
 	return rs;
+}
+unsigned long RakString::ToInteger(const char *str)
+{
+	unsigned long hash = 0;
+	int c;
+
+	while (c = *str++)
+		hash = c + (hash << 6) + (hash << 16) - hash;
+
+	return hash;
+}
+unsigned long RakString::ToInteger(const RakString &rs)
+{
+	return RakString::ToInteger(rs.C_String());
 }
 void RakString::AppendBytes(const char *bytes, unsigned int count)
 {

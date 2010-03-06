@@ -41,6 +41,7 @@ protected:
 	{
 		SystemAddress systemAddress;
 		char textInput[REMOTE_MAX_TEXT_INPUT];
+		char lastSentTextInput[REMOTE_MAX_TEXT_INPUT];
 		unsigned cursorPosition;
 	};
 

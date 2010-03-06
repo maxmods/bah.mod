@@ -82,9 +82,9 @@ bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnecti
 #elif defined(_WIN32)
 		threadPriority=0;
 #elif defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-                   
+                      
 #else
-		threadPriority=0;
+		threadPriority=1000;
 #endif
 	}
 

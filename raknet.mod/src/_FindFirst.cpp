@@ -59,7 +59,7 @@ long _findfirst(const char *name, _finddata_t *f)
 }
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 #else
 int _findnext(long h, _finddata_t *f)
 {

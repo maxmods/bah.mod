@@ -55,6 +55,15 @@ public:
 	/// Character index. Do not use to change the string however.
 	unsigned char operator[] ( const unsigned int position ) const;
 
+	
+	///String class find replacement
+	///Searches the string for the content specified in stringToFind and returns the position of the first occurrence in the string.
+	///Search only includes characters on or after position pos, ignoring any possible occurrences in previous locations.
+	/// \param[in] stringToFind The string to find inside of this object's string
+	/// \param[in] pos The position in the string to start the search
+	/// \return Returns the position of the first occurrence in the string.
+	size_t Find(const char *stringToFind,size_t pos = 0 );
+
 	/// Equality
 	bool operator==(const RakString &rhs) const;
 	bool operator==(const char *str) const;
@@ -79,6 +88,15 @@ public:
 
 	/// Set the value of the string
 	void Set(const char *format, ...);
+
+	/// Sets a copy of a substring of str as the new content. The substring is the portion of str 
+	/// that begins at the character position pos and takes up to n characters 
+	/// (it takes less than n if the end of str is reached before).
+	/// \param[in] str The string to copy in
+	/// \param[in] pos The position on str to start the copy
+	/// \param[in] n How many chars to copy
+	/// \return Returns the string, note that the current string is set to that value as well
+	RakString Assign(const char *str,size_t pos, size_t n );
 
 	/// Returns if the string is empty. Also, C_String() would return ""
 	bool IsEmpty(void) const;
@@ -115,6 +133,10 @@ public:
 	/// Create a RakString with a value, without doing printf style parsing
 	/// Equivalent to assignment operator
 	static RakNet::RakString NonVariadic(const char *str);
+
+	/// Has the string into an unsigned int
+	static unsigned long ToInteger(const char *str);
+	static unsigned long ToInteger(const RakString &rs);
 
 	// Like strncat, but for a fixed length
 	void AppendBytes(const char *bytes, unsigned int count);
@@ -163,7 +185,7 @@ public:
 
 	/// Serialize to a bitstream, uncompressed (slightly faster)
 	/// \param[out] bs Bitstream to serialize to
-	void Serialize(BitStream *bs);
+	void Serialize(BitStream *bs) const;
 
 	/// Static version of the Serialize function
 	static void Serialize(const char *str, BitStream *bs);
@@ -173,7 +195,7 @@ public:
 	/// \param[in] languageId languageId to pass to the StringCompressor class
 	/// \param[in] writeLanguageId encode the languageId variable in the stream. If false, 0 is assumed, and DeserializeCompressed will not look for this variable in the stream (saves bandwidth)
 	/// \pre StringCompressor::AddReference must have been called to instantiate the class (Happens automatically from RakPeer::Startup())
-	void SerializeCompressed(BitStream *bs, int languageId=0, bool writeLanguageId=false);
+	void SerializeCompressed(BitStream *bs, int languageId=0, bool writeLanguageId=false) const;
 
 	/// Static version of the SerializeCompressed function
 	static void SerializeCompressed(const char *str, BitStream *bs, int languageId=0, bool writeLanguageId=false);
@@ -249,6 +271,7 @@ public:
 protected:
 	void Allocate(size_t len);
 	void Assign(const char *str);
+	
 	void Clone(void);
 	void Free(void);
 	unsigned char ToLower(unsigned char c);

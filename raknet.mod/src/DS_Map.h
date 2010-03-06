@@ -225,9 +225,8 @@ namespace DataStructures
 	void Map<key_type, data_type, key_comparison_func>::SetNew(const key_type &key, const data_type &data)
 	{
 #ifdef _DEBUG
-		unsigned index;
 		bool objectExists;
-		index=mapNodeList.GetIndexFromKey(key, &objectExists);
+		mapNodeList.GetIndexFromKey(key, &objectExists);
 		RakAssert(objectExists==false);
 #endif
 		SaveLastSearch(key,mapNodeList.Insert(key,MapNode(key,data), true, __FILE__,__LINE__));

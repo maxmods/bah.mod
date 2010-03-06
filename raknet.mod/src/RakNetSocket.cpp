@@ -9,7 +9,7 @@ RakNetSocket::RakNetSocket() {
 }
 RakNetSocket::~RakNetSocket() 
 {
-	if (s != (SOCKET)-1)
+	if ((SOCKET)s != (SOCKET)-1)
 		closesocket(s);
 
 #if defined (_WIN32) && defined(USE_WAIT_FOR_MULTIPLE_EVENTS)

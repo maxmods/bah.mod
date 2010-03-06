@@ -31,12 +31,12 @@ static const CCTimeType MAX_TIME_BETWEEN_PACKETS= 350; // 350 milliseconds
 static const CCTimeType HISTOGRAM_RESTART_CYCLE=10000; // Every 10 seconds reset the histogram
 #else
 static const CCTimeType MAX_TIME_BETWEEN_PACKETS= 350000; // 350 milliseconds
-static const CCTimeType HISTOGRAM_RESTART_CYCLE=10000000; // Every 10 seconds reset the histogram
+//static const CCTimeType HISTOGRAM_RESTART_CYCLE=10000000; // Every 10 seconds reset the histogram
 #endif
 static const int DEFAULT_HAS_RECEIVED_PACKET_QUEUE_SIZE=512;
 static const CCTimeType STARTING_TIME_BETWEEN_PACKETS=MAX_TIME_BETWEEN_PACKETS;
-static const long double TIME_BETWEEN_PACKETS_INCREASE_MULTIPLIER_DEFAULT=.02;
-static const long double TIME_BETWEEN_PACKETS_DECREASE_MULTIPLIER_DEFAULT=1.0 / 9.0;
+//static const long double TIME_BETWEEN_PACKETS_INCREASE_MULTIPLIER_DEFAULT=.02;
+//static const long double TIME_BETWEEN_PACKETS_DECREASE_MULTIPLIER_DEFAULT=1.0 / 9.0;
 
 typedef uint32_t BitstreamLengthEncoding;
 
@@ -1454,11 +1454,11 @@ void ReliabilityLayer::Update( SOCKET s, SystemAddress systemAddress, int MTUSiz
 			}
 		}
 
-		CCTimeType timeSinceLastContinualSend;
-		if (timeOfLastContinualSend!=0)
-			timeSinceLastContinualSend=time-timeOfLastContinualSend;
-		else
-			timeSinceLastContinualSend=0;
+// 		CCTimeType timeSinceLastContinualSend;
+// 		if (timeOfLastContinualSend!=0)
+// 			timeSinceLastContinualSend=time-timeOfLastContinualSend;
+// 		else
+// 			timeSinceLastContinualSend=0;
 
 
 		//RakAssert(bufferOverflow==false); // If asserts, buffer is too small. We are using a slot that wasn't acked yet
@@ -1883,8 +1883,8 @@ unsigned ReliabilityLayer::RemovePacketFromResendListAndDeleteOlderReliableSeque
 	(void) messageNumber;
 	InternalPacket * internalPacket;
 	//InternalPacket *temp;
-	PacketReliability reliability; // What type of reliability algorithm to use with this packet
-	unsigned char orderingChannel; // What ordering channel this packet is on, if the reliability type uses ordering channels
+//	PacketReliability reliability; // What type of reliability algorithm to use with this packet
+//	unsigned char orderingChannel; // What ordering channel this packet is on, if the reliability type uses ordering channels
 	OrderingIndexType orderingIndex; // The ID used as identification for ordering channels
 	//	unsigned j;
 
@@ -1910,8 +1910,8 @@ unsigned ReliabilityLayer::RemovePacketFromResendListAndDeleteOlderReliableSeque
 
 		statistics.acknowlegementsReceived++;
 
-		reliability = (PacketReliability) internalPacket->reliability;
-		orderingChannel = internalPacket->orderingChannel;
+	//	reliability = (PacketReliability) internalPacket->reliability;
+	//	orderingChannel = internalPacket->orderingChannel;
 		orderingIndex = internalPacket->orderingIndex;
 		totalUserDataBytesAcked+=(double) BITS_TO_BYTES(internalPacket->headerLength+internalPacket->dataBitLength);
 
@@ -2254,21 +2254,12 @@ void ReliabilityLayer::SplitPacket( InternalPacket *internalPacket )
 	internalPacket->splitPacketCount = 1; // This causes GetMessageHeaderLengthBits to account for the split packet header
 	unsigned int headerLength = (unsigned int) BITS_TO_BYTES( GetMessageHeaderLengthBits( internalPacket ) );
 	unsigned int dataByteLength = (unsigned int) BITS_TO_BYTES( internalPacket->dataBitLength );
-	int maxDataSizeBytes;
 	int maximumSendBlockBytes, byteOffset, bytesToSend;
 	SplitPacketIndexType splitPacketIndex;
 	int i;
 	InternalPacket **internalPacketArray;
 
-	maxDataSizeBytes = GetMaxDatagramSizeExcludingMessageHeaderBytes();
-
-#ifdef _DEBUG
-	// Make sure we need to split the packet to begin with
-	RakAssert( dataByteLength > maxDataSizeBytes - headerLength );
-#endif
-
-	// How much to send in the largest block
-	maximumSendBlockBytes = maxDataSizeBytes - headerLength;
+	maximumSendBlockBytes = GetMaxDatagramSizeExcludingMessageHeaderBytes() - BITS_TO_BYTES(GetMaxMessageHeaderLengthBits());
 
 	// Calculate how many packets we need to create
 	internalPacket->splitPacketCount = ( ( dataByteLength - 1 ) / ( maximumSendBlockBytes ) + 1 );
@@ -2765,6 +2756,16 @@ void ReliabilityLayer::PushPacket(CCTimeType time, InternalPacket *internalPacke
 	packetsToDeallocThisUpdate.Push(isReliable==false, __FILE__, __LINE__ );
 	RakAssert(internalPacket->headerLength==GetMessageHeaderLengthBits(internalPacket));
 
+// This code tells me how much time elapses between when you send, and when the message actually goes out
+// 	if (internalPacket->data[0]==0)
+// 	{
+// 		RakNetTime t;
+// 		RakNet::BitStream bs(internalPacket->data+1,sizeof(t),false);
+// 		bs.Read(t);
+// 		RakNetTime curTime=RakNet::GetTime();
+// 		RakNetTime diff = curTime-t;
+// 	}
+
 	congestionManager.OnSendBytes(time, BITS_TO_BYTES(internalPacket->dataBitLength)+BITS_TO_BYTES(internalPacket->headerLength));
 }
 //-------------------------------------------------------------------------------------------------------
@@ -3080,7 +3081,8 @@ void ReliabilityLayer::AddFirstToDatagramHistory(DatagramSequenceNumberType data
 //-------------------------------------------------------------------------------------------------------
 ReliabilityLayer::MessageNumberNode* ReliabilityLayer::AddFirstToDatagramHistory(DatagramSequenceNumberType datagramNumber, DatagramSequenceNumberType messageNumber)
 {
-	RakAssert(datagramHistoryPopCount+datagramHistory.Size()==datagramNumber);
+	(void) datagramNumber;
+//	RakAssert(datagramHistoryPopCount+(unsigned int) datagramHistory.Size()==datagramNumber);
 	if (datagramHistory.Size()>DATAGRAM_MESSAGE_ID_ARRAY_LENGTH)
 	{
 		RemoveFromDatagramHistory(datagramHistoryPopCount);

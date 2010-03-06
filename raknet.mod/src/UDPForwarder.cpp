@@ -131,8 +131,10 @@ void UDPForwarder::UpdateThreaded(void)
 #endif
 		FD_SET(forwardList[i]->readSocket, &readFD);
 //		FD_SET(forwardList[i]->readSocket, &exceptionFD);
+
+		if (forwardList[i]->readSocket > largestDescriptor)
+			largestDescriptor = forwardList[i]->readSocket;
 	}
-	largestDescriptor = forwardList[forwardList.GetSize()-1]->readSocket;
 
 #if defined(_PS3) || defined(__PS3__) || defined(SN_TARGET_PS3)
                                                                     
@@ -267,7 +269,7 @@ unsigned short UDPForwarder::AddForwardingEntry(SrcAndDest srcAndDest, RakNetTim
 
 		DataStructures::DefaultIndexType oldSize = forwardList.GetSize();
 		forwardList.InsertAtIndex(fe,insertionIndex,__FILE__,__LINE__);
-		RakAssert(forwardList.GetIndexOf(fe->srcAndDest)!=-1);
+		RakAssert(forwardList.GetIndexOf(fe->srcAndDest)!=(unsigned int) -1);
 		RakAssert(forwardList.GetSize()==oldSize+1);
 		return SocketLayer::GetLocalPort ( fe->readSocket );
 	}
@@ -326,8 +328,10 @@ UDPForwarderResult UDPForwarder::StartForwarding(SystemAddress source, SystemAdd
 			threadOperationOutgoingMutex.Unlock();
 			*srcToDestPort=threadOperation.srcToDestPort;
 			*destToSourcePort=threadOperation.destToSourcePort;
-			*srcToDestSocket=threadOperation.srcToDestSocket;
-			*destToSourceSocket=threadOperation.destToSourceSocket;
+			if (srcToDestSocket)
+				*srcToDestSocket=threadOperation.srcToDestSocket;
+			if (destToSourceSocket)
+				*destToSourceSocket=threadOperation.destToSourceSocket;
 			return threadOperation.result;
 		}
 		threadOperationOutgoingMutex.Unlock();

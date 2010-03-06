@@ -24,6 +24,12 @@ namespace RakNet
 		NAT_TYPE_PORT_RESTRICTED,
 		/// A different port is chosen for every remote destination. The same source address and port to a different destination uses a different mapping. Since the port will be different, the first external punchthrough attempt will fail. For this to work it requires port-prediction (MAX_PREDICTIVE_PORT_RANGE>1) and that the router chooses ports sequentially.
 		NAT_TYPE_SYMMETRIC,
+		/// Hasn't been determined. NATTypeDetectionClient does not use this, but other plugins might
+		NAT_TYPE_UKNOWN,
+		/// In progress. NATTypeDetectionClient does not use this, but other plugins might
+		NAT_TYPE_DETECTION_IN_PROGRESS,
+		/// Didn't bother figuring it out, as we support UPNP, so it is equivalent to NAT_TYPE_NONE. NATTypeDetectionClient does not use this, but other plugins might
+		NAT_TYPE_SUPPORTS_UPNP,
 		/// \internal Must be last
 		NAT_TYPE_COUNT
 	};

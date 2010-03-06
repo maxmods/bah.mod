@@ -122,7 +122,7 @@ public:
 	/// \param[in] sendConnectionAttemptCount How many datagrams to send to the other system to try to connect.
 	/// \param[in] timeBetweenSendConnectionAttemptsMS How often to send datagrams to the other system to try to connect. After this many times, ID_CONNECTION_ATTEMPT_FAILED is returned
 	/// \param[in] timeoutTime How long to keep the connection alive before dropping it on unable to send a reliable message. 0 to use the default from SetTimeoutTime(UNASSIGNED_SYSTEM_ADDRESS);
-	/// \return True on successful initiation. False on incorrect parameters, internal error, or too many existing peers.  Returning true does not mean you connected!
+	/// \return True on successful initiation. False if you are already connected to this system, a connection to the system is pending,  the domain name cannot be resolved, incorrect parameters, internal error, or too many existing peers.  Returning true does not mean you connected!
 	virtual bool Connect( const char* host, unsigned short remotePort, const char *passwordData, int passwordDataLength, unsigned connectionSocketIndex=0, unsigned sendConnectionAttemptCount=12, unsigned timeBetweenSendConnectionAttemptsMS=500, RakNetTime timeoutTime=0 )=0;
 
 	/// \brief Connect to the specified host (ip or domain name) and server port, using a shared socket from another instance of RakNet
@@ -423,6 +423,7 @@ public:
 	/// Given a connected system, give us the unique GUID representing that instance of RakPeer.
 	/// This will be the same on all systems connected to that instance of RakPeer, even if the external system addresses are different
 	/// Currently O(log(n)), but this may be improved in the future. If you use this frequently, you may want to cache the value as it won't change.
+	/// Returns UNASSIGNED_RAKNET_GUID if system address can't be found.
 	/// If \a input is UNASSIGNED_SYSTEM_ADDRESS, will return your own GUID
 	/// \pre Call Startup() first, or the function will return UNASSIGNED_RAKNET_GUID
 	/// \param[in] input The system address of the system we are connected to
@@ -613,7 +614,7 @@ public:
 	/// Adds simulated ping and packet loss to the outgoing data flow.
 	/// To simulate bi-directional ping and packet loss, you should call this on both the sender and the recipient, with half the total ping and packetloss value on each.
 	/// You can exclude network simulator code with the _RELEASE #define to decrease code size
-	/// \deprecated Use http://www.jenkinssoftware.com/raknet/forum/index.php?topic=1671.0 instead.
+	/// \deprecated Use http://www.jenkinssoftware.com/forum/index.php?topic=1671.0 instead.
 	/// \note Doesn't work past version 3.6201
 	/// \param[in] packetloss Chance to lose a packet. Ranges from 0 to 1.
 	/// \param[in] minExtraPing The minimum time to delay sends.

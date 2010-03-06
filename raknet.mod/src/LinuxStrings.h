@@ -9,7 +9,9 @@
 			int _stricmp(const char* s1, const char* s2);  	 	 
 		#endif 
 		int _strnicmp(const char* s1, const char* s2, size_t n);
-		char *_strlwr(char * str );
+#ifndef __APPLE__
+		char *_strlwr(char * str ); //this won't compile on OSX for some reason
+#endif
 		#ifndef _vsnprintf
 		#define _vsnprintf vsnprintf
 		#endif 

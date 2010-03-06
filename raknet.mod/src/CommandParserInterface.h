@@ -98,7 +98,6 @@ public:
 
 	static const unsigned char VARIABLE_NUMBER_OF_PARAMETERS;
 
-protected:
 	// Currently only takes static strings - doesn't make a copy of what you pass.
 	// parameterCount is the number of parameters that the sender has to include with the command.
 	// Pass 255 to parameterCount to indicate variable number of parameters
@@ -136,6 +135,7 @@ protected:
 	/// \param[in] port The port portion of SystemAddress
 	SystemAddress IntegersToSystemAddress(int binaryAddress, int port);
 
+protected:
 	DataStructures::OrderedList<const char*, RegisteredCommand, RegisteredCommandComp> commandList;
 };
 

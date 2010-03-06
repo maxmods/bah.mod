@@ -46,7 +46,7 @@ struct PRO
 /// As objects are created, destroyed, or serialized differently, those changes are pushed out to other systems.<BR>
 /// To use:<BR>
 /// <OL>
-/// <LI>Derive from Connection_RM3 and implement Connection_RM3::AllocReplica(). This is a factory function where given an identifier for a class (such as name) return an instance of that class. Should be able to return any networked object in your game.
+/// <LI>Derive from Connection_RM3 and implement Connection_RM3::AllocReplica(). This is a factory function where given a user-supplied identifier for a class (such as name) return an instance of that class. Should be able to return any networked object in your game.
 /// <LI>Derive from ReplicaManager3 and implement AllocConnection() and DeallocConnection() to return the class you created in step 1.
 /// <LI>Derive your networked game objects from Replica3. All pure virtuals have to be implemented, however defaults are provided for Replica3::QueryConstruction(), Replica3::QueryRemoteConstruction(), and Replica3::QuerySerialization() depending on your network architecture.
 /// <LI>When a new game object is created on the local system, pass it to ReplicaManager3::Reference().
@@ -65,7 +65,8 @@ public:
 	/// \details The connection object represents a remote system connected to you that is using the ReplicaManager3 system.<BR>
 	/// It has functions to perform operations per-connection.<BR>
 	/// AllocConnection() and DeallocConnection() are factory functions to create and destroy instances of the connection object.<BR>
-	/// It is used if connections are automanaged (which they are by default).<BR>
+	/// It is used if autoCreate is true via SetAutoManageConnections() (true by default). Otherwise, the function is not called, and you will have to call PushConnection() manually<BR>
+	/// \note If you do not want a new network connection to immediately download game objects, SetAutoManageConnections() and PushConnection() are how you do this.
 	/// \sa SetAutoManageConnections()
 	/// \param[in] systemAddress Address of the system you are adding
 	/// \param[in] rakNetGUID GUID of the system you are adding. See Packet::rakNetGUID or RakPeerInterface::GetGUIDFromSystemAddress()
@@ -73,35 +74,35 @@ public:
 	virtual Connection_RM3* AllocConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID) const=0;
 
 	/// \brief Implement to destroy a class instanced returned by AllocConnection()
-	/// \details Most likely just implement as {delete connection;}
+	/// \details Most likely just implement as {delete connection;}<BR>
+	/// It is used if autoDestroy is true via SetAutoManageConnections() (true by default). Otherwise, the function is not called and you would then be responsible for deleting your own connection objects.
 	/// \param[in] connection The pointer instance to delete
 	virtual void DeallocConnection(Connection_RM3 *connection) const=0;
 
 	/// \brief Enable or disable automatically assigning connections to new instances of Connection_RM3
 	/// \details ReplicaManager3 can automatically create and/or destroy Connection_RM3 as systems connect or disconnect from RakPeerInterface.<BR>
-	/// By default this is on, to make the system faster to setup.<BR>
+	/// By default this is on, to make the system easier to learn and setup.<BR>
 	/// If you don't want all connections to take part in the game, or you want to delay when a connection downloads the game, set \a autoCreate to false.<BR>
-	/// If you want to delay deleting a connection that has dropped, set \a autoDestroy to false. If you do this, then you must call PopConnection() to remove that connection from being internally tracked. You'll also have to delete the connection instance on your own..<BR>
+	/// If you want to delay deleting a connection that has dropped, set \a autoDestroy to false. If you do this, then you must call PopConnection() to remove that connection from being internally tracked. You'll also have to delete the connection instance on your own.<BR>
 	/// \param[in] autoCreate Automatically call ReplicaManager3::AllocConnection() for each new connection. Defaults to true.
 	/// \param[in] autoDestroy Automatically call ReplicaManager3::DeallocConnection() for each dropped connection. Defaults to true.
 	void SetAutoManageConnections(bool autoCreate, bool autoDestroy);
 
 	/// \brief Track a new Connection_RM3 instance
-	/// \details If \a autoCreate is false for SetAutoManageConnections(), then you need to add new instances of Connection_RM3 yourself.<BR>
-	/// Use PushConnection() to do so.<BR>
+	/// \details If \a autoCreate is false for SetAutoManageConnections(), then you need this function to add new instances of Connection_RM3 yourself.<BR>
 	/// You don't need to track this pointer yourself, you can get it with GetConnectionAtIndex(), GetConnectionByGUID(), or GetConnectionBySystemAddress().<BR>
 	/// \param[in] newConnection The new connection instance to track.
 	bool PushConnection(RakNet::Connection_RM3 *newConnection);
 
-	/// \brief Stop tracking a connection, and optionally destroy all objects created by that system
-	/// \details If \a autoDestroy is false for SetAutoManageConnections(), then you need to manually have the system stop connections.<BR>
-	/// PopConnection() will do so, and return that connection instance to you.<BR>
+	/// \brief Stop tracking a connection
+	/// \details On call, for each replica returned by GetReplicasCreatedByGuid(), QueryActionOnPopConnection() will be called. Depending on the return value, this may delete the corresponding replica.<BR>
+	/// If autoDestroy is true in the call to SetAutoManageConnections() (true by default) then this is called automatically when the connection is lost. In that case, the returned connection instance is deleted.<BR>
 	/// \param[in] guid of the connection to get. Passed to ReplicaManager3::AllocConnection() originally. 
 	RakNet::Connection_RM3 * PopConnection(RakNetGUID guid);
 
 	/// \brief Adds a replicated object to the system.
 	/// \details Anytime you create a new object that derives from Replica3, and you want ReplicaManager3 to use it, pass it to Reference().<BR>
-	/// Remote systems already connected will download this object the next time ReplicaManager3::Update() is called, which happens every time you call RakPeerInterface::Receive().<BR>
+	/// Remote systems already connected will potentially download this object the next time ReplicaManager3::Update() is called, which happens every time you call RakPeerInterface::Receive().<BR>
 	/// \param[in] replica3 The object to start tracking
 	void Reference(RakNet::Replica3 *replica3);
 
@@ -113,7 +114,7 @@ public:
 
 	/// \brief Removes multiple replicated objects from the system.
 	/// \details Same as Dereference(), but for a list of objects.<BR>
-	/// Useful if also using GetReplicasCreatedByGuid(), GetReplicasCreatedByMe(), or  GetReferencedReplicaList().<BR>
+	/// Useful with the lists returned by GetReplicasCreatedByGuid(), GetReplicasCreatedByMe(), or GetReferencedReplicaList().<BR>
 	/// \param[in] replicaListIn List of objects
 	void DereferenceList(DataStructures::Multilist<ML_STACK, Replica3*> &replicaListIn);
 
@@ -173,16 +174,6 @@ public:
 
 	/// \param[in] Default packet reliability to use for object creation, destruction, and serializations
 	void SetDefaultPacketReliability(PacketReliability def);
-
-	/// \brief Enables or disables the automatic object creation and destruction feature.
-	/// \details If true, then each ReplicaManager3::Update(), Replica3::QueryConstruction() will be called for each locally created instance of Replica3, for each instance of Connection_RM3.<BR>
-	/// Based on the return value of QueryConstruction(), the object will be created or destroyed on that remote system.<BR>
-	/// Defaults to true.<BR>
-	/// This is not efficient for large worlds where higher level culling mechanisms exist. You can narrow the scope of which objects are checked by using Connection_RM3::SetConstructionByList.<BR>
-	/// \note Connection_RM3::SetConstructionByList and ReplicaManager3::SetAutoConstructByQuery are mutually exclusive. Do not use both at the same time.
-	/// \param[in] autoConstruct True to enable, false to disable.
-	/// \param[in] autoDestruct Same as autoConstruct, but for objects that already exist. Should this object continue to exist for this particular system? (Slow, recommended disabled)
-	void SetAutoConstructByQuery(bool autoConstruct, bool autoDestruct);
 
 	/// \details Every \a intervalMS milliseconds, Connection_RM3::OnAutoserializeInterval() will be called.<BR>
 	/// Defaults to 30.<BR>
@@ -258,8 +249,6 @@ protected:
 	DataStructures::Multilist<ML_STACK, Replica3*> userReplicaList;
 
 	PRO defaultSendParameters;
-	bool autoDestructByQuery;
-	bool autoConstructByQuery;
 	RakNetTime autoSerializeInterval;
 	RakNetTime lastAutoSerializeOccurance;
 	unsigned char worldId;
@@ -288,7 +277,6 @@ struct LastSerializationResult
 	/// The replica instance we serialized
 	RakNet::Replica3 *replica;
 	//bool neverSerialize;
-	RakNetTime whenLastSerialized;
 //	bool isConstructed;
 
 	void AllocBS(void);
@@ -361,8 +349,9 @@ public:
 
 	/// \brief Class factory to create a Replica3 instance, given a user-defined identifier
 	/// \details Identifier is returned by Replica3::WriteAllocationID() for what type of class to create.<BR>
+	/// This is called when you download a replica from another system.<BR>
 	/// See Replica3::Dealloc for the corresponding destruction message.<BR>
-	/// Return 0 if unable to create the intended object.<BR>
+	/// Return 0 if unable to create the intended object. Note, in that case the other system will still think we have the object and will try to serialize object updates to us. Generally, you should not send objects the other system cannot create.<BR>
 	/// \sa Replica3::WriteAllocationID().
 	/// Sample implementation:<BR>
 	/// {RakNet::RakString typeName; allocationIdBitstream->Read(typeName); if (typeName=="Soldier") return new Soldier; return 0;}<BR>
@@ -396,9 +385,61 @@ public:
 	/// \param[in] bitStream Written in SerializeOnDownloadComplete()
 	virtual void DeserializeOnDownloadComplete(RakNet::BitStream *bitStream) {(void) bitStream;}
 
+	/// \return The system address passed to the constructor of this object
+	SystemAddress GetSystemAddress(void) const {return systemAddress;}
+
+	/// \return Returns the RakNetGUID passed to the constructor of this object
+	RakNetGUID GetRakNetGUID(void) const {return guid;}
+
+	/// List of enumerations for how to get the list of valid objects for other systems
+	enum ConstructionMode
+	{
+		/// For every object that does not exist on the remote system, call Replica3::QueryConstruction() every tick.
+		/// Do not call Replica3::QueryDestruction()
+		/// Do not call Connection_RM3::QueryReplicaList()
+		QUERY_REPLICA_FOR_CONSTRUCTION,
+
+		/// For every object that does not exist on the remote system, call Replica3::QueryConstruction() every tick. Based on the call, the object may be sent to the other system.
+		/// For every object that does exist on the remote system, call Replica3::QueryDestruction() every tick. Based on the call, the object may be deleted on the other system.
+		/// Do not call Connection_RM3::QueryReplicaList()
+		QUERY_REPLICA_FOR_CONSTRUCTION_AND_DESTRUCTION,
+
+		/// Do not call Replica3::QueryConstruction() or Replica3::QueryDestruction()
+		/// Call Connection_RM3::QueryReplicaList() to determine which objects exist on remote systems
+		/// This can be faster than QUERY_REPLICA_FOR_CONSTRUCTION and QUERY_REPLICA_FOR_CONSTRUCTION_AND_DESTRUCTION for large worlds
+		/// See GridSectorizer.h under /Source for code that can help with this
+		QUERY_CONNECTION_FOR_REPLICA_LIST
+	};
+
+	/// \brief Queries how to get the list of objects that exist on remote systems
+	/// \details The default of calling QueryConstruction for every known object is easy to use, but not efficient, especially for large worlds where many objects are outside of the player's circle of influence.<BR>
+	/// QueryDestruction is also not necessarily useful or efficient, as object destruction tends to happen in known cases, and can be accomplished by calling Replica3::BroadcastDestruction()
+	/// QueryConstructionMode() allows you to specify more efficient algorithms than the default when overriden.
+	/// \return How to get the list of objects that exist on the remote system. You should always return the same value for a given connection
+	virtual ConstructionMode QueryConstructionMode(void) const {return QUERY_REPLICA_FOR_CONSTRUCTION_AND_DESTRUCTION;}
+
+	/// \brief Callback used when QueryConstructionMode() returns QUERY_CONNECTION_FOR_REPLICA_LIST
+	/// \details This advantage of this callback is if that there are many objects that a particular connection does not have, then we do not have to iterate through those
+	/// objects calling QueryConstruction() for each of them.<BR>
+	///<BR>
+	/// The following code uses a sorted merge sort to quickly find new and deleted objects, given a list of objects we know should exist.<BR>
+	///<BR>
+	/// DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> objectsTheyShouldHave; // You have to fill in this list<BR>
+	/// DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> objectsTheyCurrentlyHave,objectsTheyStillHave,existingReplicasToDestro,newReplicasToCreatey;<BR>
+	/// GetConstructedReplicas(objectsTheyCurrentlyHave);<BR>
+	/// DataStructures::Multilist::FindIntersection(objectsTheyCurrentlyHave, objectsTheyShouldHave, objectsTheyStillHave, existingReplicasToDestroy, newReplicasToCreate);<BR>
+	///<BR>
+	/// See GridSectorizer in the Source directory as a method to find all objects within a certain radius in a fast way.<BR>
+	///<BR>
+	/// \param[out] newReplicasToCreate Anything in this list will be created on the remote system
+	/// \param[out] existingReplicasToDestroy Anything in this list will be destroyed on the remote system
+	virtual void QueryReplicaList(
+		DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> newReplicasToCreate,
+		DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> existingReplicasToDestroy) {}
+
+	/// \internal This is used internally - however, you can also call it manually to send a data update for a remote replica.<BR>
 	/// \brief Sends over a serialization update for \a replica.<BR>
 	/// NetworkID::GetNetworkID() is written automatically, serializationData is the object data.<BR>
-	/// This is used internally - however, you can also call it manually to send a data update for a remote replica.<BR>
 	/// \param[in] replica Which replica to serialize
 	/// \param[in] serializationData Serialized object data
 	/// \param[in] timestamp 0 means no timestamp. Otherwise message is prepended with ID_TIMESTAMP
@@ -416,24 +457,6 @@ public:
 	/// \param[in] worldId Which world, see ReplicaManager3::SetWorldID()
 	virtual SendSerializeIfChangedResult SendSerializeIfChanged(DataStructures::DefaultIndexType queryToSerializeIndex, SerializeParameters *sp, RakPeerInterface *rakPeer, unsigned char worldId, ReplicaManager3 *replicaManager);
 
-	/// \return The system address passed to the constructor of this object
-	SystemAddress GetSystemAddress(void) const {return systemAddress;}
-
-	/// \return Returns the RakNetGUID passed to the constructor of this object
-	RakNetGUID GetRakNetGUID(void) const {return guid;}
-
-	// Disabled - slow
-	/// \brief Destroy objects that no longer exist. Create objects that now exist. objectsThatExist is the entire list of objects that should exist.
-	/// Given a list of objects, compare it against constructedReplicas.
-	/// Objects in objectsThatExist, that are not in constructedReplicas, and that pass Replica3::QueryConstruction() be constructed.
-	/// Objects not in objectsThatExist, that are in constructedReplicas, and that pass Replica3::SerializeDestruction() be destroyed.
-	/// This can be more efficient than ReplicaManager3::SetAutoConstructByQuery.
-	/// \note Connection_RM3::SetConstructionByList and ReplicaManager3::SetAutoConstructByQuery are mutually exclusive. Do not use both at the same time.
-	/// \note Does NOT check QueryConstruction(). It is assumed that the objectsThatExist list itself determines construction or destruction.
-	/// \param[in] objectsThatExist Objects to check against
-	/// \param[in] replicaManager ReplicaManager3 instance this connection is using
-	// virtual void SetConstructionByList(DataStructures::Multilist<ML_STACK, Replica3*> objectsThatExist, ReplicaManager3 *replicaManager);
-
 	/// \internal
 	/// \brief Given a list of objects that were created and destroyed, serialize and send them to another system.
 	/// \param[in] newObjects Objects to serialize construction
@@ -441,7 +464,7 @@ public:
 	/// \param[in] sendParameters Controlling parameters over the serialization
 	/// \param[in] rakPeer Instance of RakPeerInterface to send on
 	/// \param[in] worldId Which world, see ReplicaManager3::SetWorldID()
-	virtual void SendConstruction(DataStructures::Multilist<ML_STACK, LastSerializationResult*, Replica3*> &newObjects, DataStructures::Multilist<ML_STACK, LastSerializationResult*, Replica3*> &deletedObjects, PRO sendParameters, RakPeerInterface *rakPeer, unsigned char worldId);
+	virtual void SendConstruction(DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> &newObjects, DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> &deletedObjects, PRO sendParameters, RakPeerInterface *rakPeer, unsigned char worldId);
 
 	/// \internal
 	/// Remove from \a newObjectsIn objects that already exist and save to \a newObjectsOut
@@ -519,6 +542,7 @@ protected:
 	void OnDownloadFromOtherSystem(Replica3* replica3, ReplicaManager3 *replicaManager);
 	void OnNeverConstruct(DataStructures::DefaultIndexType queryToConstructIdx, ReplicaManager3 *replicaManager);
 	void OnConstructToThisConnection(DataStructures::DefaultIndexType queryToConstructIdx, ReplicaManager3 *replicaManager);
+	void OnConstructToThisConnection(Replica3 *replica, ReplicaManager3 *replicaManager);
 	void OnNeverSerialize(DataStructures::DefaultIndexType queryToSerializeIndex, ReplicaManager3 *replicaManager);
 	void OnReplicaAlreadyExists(DataStructures::DefaultIndexType queryToConstructIdx, ReplicaManager3 *replicaManager);
 	void OnDownloadExisting(Replica3* replica3, ReplicaManager3 *replicaManager);
@@ -529,7 +553,7 @@ protected:
 	// The list of objects that our local system and this remote system both have
 	// Either we sent this object to them, or they sent this object to us
 	// A given Replica can be either in queryToConstructReplicaList or constructedReplicaList but not both at the same time
-	DataStructures::Multilist<ML_STACK, LastSerializationResult*, Replica3*> constructedReplicaList;
+	DataStructures::Multilist<ML_ORDERED_LIST, LastSerializationResult*, Replica3*> constructedReplicaList;
 
 	// Objects that we have, but this system does not, and we will query each tick to see if it should be sent to them
 	// If we do send it to them, the replica is moved to constructedReplicaList
@@ -544,11 +568,13 @@ protected:
 	DataStructures::Multilist<ML_STACK, LastSerializationResult*, Replica3*> queryToDestructReplicaList;
 
 	// Working lists
-	DataStructures::Multilist<ML_STACK, LastSerializationResult*, Replica3*> constructedReplicasCulled, destroyedReplicasCulled;
+	DataStructures::Multilist<ML_STACK, Replica3*, Replica3*> constructedReplicasCulled, destroyedReplicasCulled;
 
 	friend class ReplicaManager3;
 private:
 	Connection_RM3() {};
+
+	ConstructionMode constructionMode;
 };
 
 /// \brief Return codes for Connection_RM3::GetConstructionState() and Replica3::QueryConstruction()
@@ -598,6 +624,13 @@ enum RM3SerializationResult
 	/// Efficient for memory, speed, and bandwidth but only if the object is always broadcast identically.
 	RM3SR_BROADCAST_IDENTICALLY,
 
+	/// Same as RM3SR_BROADCAST_IDENTICALLY, but assume the object needs to be serialized, do not check with a memcmp
+	/// Assume the object changed, and serialize it
+	/// Use this if you know exactly when your object needs to change. Can be faster than RM3SR_BROADCAST_IDENTICALLY.
+	/// An example of this is if every member variable has an accessor, changing a member sets a flag, and you check that flag in Replica3::QuerySerialization()
+	/// The opposite of this is RM3SR_DO_NOT_SERIALIZE, in case the object did not change
+	RM3SR_BROADCAST_IDENTICALLY_FORCE_SERIALIZATION,
+
 	/// Either this object serializes differently depending on who we send to or we send it to some systems and not others.
 	/// Inefficient for memory and speed, but efficient for bandwidth
 	/// However, if you don't know what to return, return this
@@ -645,7 +678,6 @@ enum RM3ActionOnPopConnection
 
 /// \brief Base class for your replicated objects for the ReplicaManager3 system.
 /// \details To use, derive your class, or a member of your class, from Replica3.<BR>
-/// Implement all pure virtual functions.
 /// \ingroup REPLICA_MANAGER_GROUP3
 class RAK_DLL_EXPORT Replica3 : public NetworkIDObject
 {
@@ -656,29 +688,39 @@ public:
 	/// It is not necessary to call ReplicaManager3::Dereference(), as this happens automatically in the destructor
 	virtual ~Replica3();
 
-	/// \brief Write a unique identifer for this class type
+	/// \brief Write a unique identifer that can be read on a remote system to create an object of this same class.
 	/// \details The value written to \a allocationIdBitstream will be passed to Connection_RM3::AllocReplica().<BR>
 	/// Sample implementation:<BR>
 	/// {allocationIdBitstream->Write(RakNet::RakString("Soldier");}<BR>
 	/// \param[out] allocationIdBitstream Bitstream for the user to write to, to identify this class
 	virtual void WriteAllocationID(RakNet::BitStream *allocationIdBitstream) const=0;
 
-	/// \brief This object does not exist on this system. Queried every tick to see if it should be created
-	/// \details If ReplicaManager3::SetAutoManageConnections() is true, then this function is called by ReplicaManager3::Update() to determine if an object should exist on a given system.<BR>
-	/// If an object previously existed, but no longer does, a network message will be automatically sent to destroy it.<BR>
-	/// Likewise, if an object did not previously exist, but now does, a network message will be automatically sent to create it.<BR>
+	/// \brief Ask if this object, which does not exist on \a destinationConnection should (now) be sent to that system.
+	/// \details If ReplicaManager3::QueryConstructionMode() returns QUERY_CONNECTION_FOR_REPLICA_LIST or QUERY_REPLICA_FOR_CONSTRUCTION_AND_DESTRUCTION (default),
+	/// then QueyrConstruction() is called once per tick from ReplicaManager3::Update() to determine if an object should exist on a given system.<BR>
+	/// Based on the return value, a network message may be sent to the other system to create the object.<BR>
+	/// If QueryConstructionMode() is overriden to return QUERY_CONNECTION_FOR_REPLICA_LIST, this function is unused.<BR>
 	/// \note Defaults are provided: QueryConstruction_PeerToPeer(), QueryConstruction_ServerConstruction(), QueryConstruction_ClientConstruction(). Return one of these functions for a working default for the relevant topology.
 	/// \param[in] destinationConnection Which system we will send to
 	/// \param[in] replicaManager3 Plugin instance for this Replica3
 	/// \return What action to take
 	virtual RM3ConstructionState QueryConstruction(RakNet::Connection_RM3 *destinationConnection, ReplicaManager3 *replicaManager3)=0;
 
+	/// \brief Ask if this object, which does exist on \a destinationConnection should be removed from the remote system
+	/// \details If ReplicaManager3::QueryConstructionMode() returns QUERY_REPLICA_FOR_CONSTRUCTION_AND_DESTRUCTION (default),
+	/// then QueryDestruction() is called once per tick from ReplicaManager3::Update() to determine if an object that exists on a remote system should be destroyed for a given system.<BR>
+	/// Based on the return value, a network message may be sent to the other system to destroy the object.<BR>
+	/// Note that you can also destroy objects with BroadcastDestruction(), so this function is not useful unless you plan to delete objects for only a particular connection.<BR>
+	/// If QueryConstructionMode() is overriden to return QUERY_CONNECTION_FOR_REPLICA_LIST, this function is unused.<BR>
 	/// \param[in] destinationConnection Which system we will send to
 	/// \param[in] replicaManager3 Plugin instance for this Replica3
 	/// \return What action to take. Only RM3CS_SEND_DESTRUCTION does anything at this time.
 	virtual RM3DestructionState QueryDestruction(RakNet::Connection_RM3 *destinationConnection, ReplicaManager3 *replicaManager3) {(void) destinationConnection; (void) replicaManager3; return RM3DS_DO_NOT_QUERY_DESTRUCTION;}
 
-	/// \brief Should I allow this object to be created remotely, based solely on the sender?
+	/// \brief We're about to call DeserializeConstruction() on this Replica3. If QueryRemoteConstruction() returns false, this object is deleted instead.
+	/// \details By default, QueryRemoteConstruction_ServerConstruction() does not allow clients to create objects. The client will get Replica3::DeserializeConstructionRequestRejected().<BR>
+	/// If you want the client to be able to potentially create objects for client/server, override accordingly.<BR>
+	/// Other variants of QueryRemoteConstruction_* just return true.
 	/// \note Defaults are provided: QueryRemoteConstruction_PeerToPeer(), QueryRemoteConstruction_ServerConstruction(), QueryRemoteConstruction_ClientConstruction(). Return one of these functions for a working default for the relevant topology.
 	/// \param[in] sourceConnection Which system sent us the object creation request message.
 	/// \return True to allow the object to pass onto DeserializeConstruction() (where it may also be rejected), false to immediately reject the remote construction request
@@ -687,7 +729,8 @@ public:
 	/// \brief Write data to be sent only when the object is constructed on a remote system.
 	/// \details SerializeConstruction is used to write out data that you need to create this object in the context of your game, such as health, score, name. Use it for data you only need to send when the object is created.<BR>
 	/// After SerializeConstruction() is called, Serialize() will be called immediately thereafter. However, they are sent in different messages, so Serialize() may arrive a later frame than SerializeConstruction()
-	/// \note The object's NetworkID and allocation id are handled by the system automatically, you do not need to write these values.
+	/// For that reason, the object should be valid after a call to DeserializeConstruction() for at least a short time.<BR>
+	/// \note The object's NetworkID and allocation id are handled by the system automatically, you do not need to write these values to \a constructionBitstream
 	/// \param[out] constructionBitstream Destination bitstream to write your data to
 	/// \param[in] destinationConnection System that will receive this network message.
 	virtual void SerializeConstruction(RakNet::BitStream *constructionBitstream, RakNet::Connection_RM3 *destinationConnection)=0;
@@ -846,6 +889,7 @@ public:
 	ReplicaManager3 *replicaManager;
 
 	LastSerializationResultBS lastSentSerialization;
+	RakNetTime whenLastSerialized;
 	bool forceSendUntilNextUpdate;
 };
 

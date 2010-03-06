@@ -82,7 +82,7 @@ PluginReceiveResult UDPProxyServer::OnReceive(Packet *packet)
 							resultHandler->OnAlreadyLoggedIn(password, this);
 						break;
 					case ID_UDP_PROXY_LOGIN_SUCCESS_FROM_COORDINATOR_TO_SERVER:
-						RakAssert(loggedInCoordinators.GetIndexOf(packet->systemAddress)==-1);
+						RakAssert(loggedInCoordinators.GetIndexOf(packet->systemAddress)==(unsigned int)-1);
 						loggedInCoordinators.Push(packet->systemAddress, __FILE__, __LINE__);
 						if (resultHandler)
 							resultHandler->OnLoginSuccess(password, this);

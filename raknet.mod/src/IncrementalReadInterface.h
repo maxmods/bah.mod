@@ -7,6 +7,9 @@
 class RAK_DLL_EXPORT IncrementalReadInterface
 {
 public:
+	IncrementalReadInterface() {}
+	virtual ~IncrementalReadInterface() {}
+
 	/// Read part of a file into \a destination
 	/// Return the number of bytes written. Return 0 when file is done.
 	/// \param[in] filename Filename to read

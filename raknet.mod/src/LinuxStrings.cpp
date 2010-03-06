@@ -10,6 +10,7 @@ int _strnicmp(const char* s1, const char* s2, size_t n)
 {
 	return strncasecmp(s1,s2,n);
 }
+#ifndef __APPLE__
 char *_strlwr(char * str )
 {
 	if (str==0)
@@ -21,4 +22,5 @@ char *_strlwr(char * str )
 	}
 	return str;
 }
+#endif
 #endif

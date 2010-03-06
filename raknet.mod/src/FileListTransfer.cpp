@@ -632,8 +632,7 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool isTheFileAndIsNotDow
 	unsigned int chunkLength;
 	inBitStream.ReadCompressed(offset);
 	inBitStream.ReadCompressed(chunkLength);
-//	if (chunkLength==0)
-//		return;
+
 	bool lastChunk;
 	inBitStream.Read(lastChunk);
 	bool finished = lastChunk && isTheFileAndIsNotDownloadProgress;
@@ -644,7 +643,7 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool isTheFileAndIsNotDow
 	FLR_MemoryBlock mb;
 	if (fileListReceiver->pushedFiles.Has(onFileStruct.fileIndex)==false)
 	{
-		mb.flrMemoryBlock=0;
+		mb.flrMemoryBlock=(char*) rakMalloc_Ex(onFileStruct.byteLengthOfThisFile, __FILE__, __LINE__);
 		fileListReceiver->pushedFiles.SetNew(onFileStruct.fileIndex, mb);
 	}
 	else
@@ -663,33 +662,41 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool isTheFileAndIsNotDow
 	inBitStream.AlignReadToByteBoundary();
 
 	FileListTransferCBInterface::FileProgressStruct fps;
-	fps.iriDataChunk=(char*) inBitStream.GetData()+BITS_TO_BYTES(inBitStream.GetReadOffset());
 
 	if (isTheFileAndIsNotDownloadProgress)
 	{
 		if (mb.flrMemoryBlock)
-			memcpy(mb.flrMemoryBlock+offset, fps.iriDataChunk, amountToRead);
-
-		// inBitStream.Read(mb.flrMemoryBlock+offset, amountToRead);
+		{
+			// Either the very first block, or a subsequent block and allocateIrIDataChunkAutomatically was true for the first block
+			memcpy(mb.flrMemoryBlock+offset, inBitStream.GetData()+BITS_TO_BYTES(inBitStream.GetReadOffset()), amountToRead);
+			fps.iriDataChunk=mb.flrMemoryBlock+offset;
+		}
+		else
+		{
+			// In here mb.flrMemoryBlock is null
+			// This means the first block explicitly deallocated the memory, and no blocks will be permanently held by RakNet
+			fps.iriDataChunk=(char*) inBitStream.GetData()+BITS_TO_BYTES(inBitStream.GetReadOffset());
+		}
 
 		onFileStruct.bytesDownloadedForThisFile=offset+amountToRead;
 	}
 	else
 	{
 		fileListReceiver->setTotalDownloadedLength+=partLength;
-		onFileStruct.bytesDownloadedForThisFile=partCount*partLength;
-		
+		onFileStruct.bytesDownloadedForThisFile=partCount*partLength;		
+		fps.iriDataChunk=(char*) inBitStream.GetData()+BITS_TO_BYTES(inBitStream.GetReadOffset());
 	}
 	onFileStruct.bytesDownloadedForThisSet=fileListReceiver->setTotalDownloadedLength;
 
 	onFileStruct.numberOfFilesInThisSet=fileListReceiver->setCount;
 //	onFileStruct.setTotalCompressedTransmissionLength=fileListReceiver->setTotalCompressedTransmissionLength;
 	onFileStruct.byteLengthOfThisSet=fileListReceiver->setTotalFinalLength;
+	// Note: mb.flrMemoryBlock may be null here
 	onFileStruct.fileData=mb.flrMemoryBlock;
 
 	unsigned int totalNotifications;
 	unsigned int currentNotificationIndex;
-	if (chunkLength==onFileStruct.byteLengthOfThisFile)
+	if (chunkLength==0 || chunkLength==onFileStruct.byteLengthOfThisFile)
 		totalNotifications=1;
 	else
 		totalNotifications = onFileStruct.byteLengthOfThisFile / chunkLength + 1;
@@ -745,11 +752,10 @@ void FileListTransfer::OnReferencePush(Packet *packet, bool isTheFileAndIsNotDow
 			// 12/23/09 Don't use OnReferencePush anymore, just use OnFileProgress
 			fileListReceiver->downloadHandler->OnFileProgress(&fps);
 
-			if (fps.allocateIrIDataChunkAutomatically==true && mb.flrMemoryBlock==0)
+			if (fps.allocateIrIDataChunkAutomatically==false)
 			{
-				char *memblock = (char*) rakMalloc_Ex(onFileStruct.byteLengthOfThisFile, __FILE__, __LINE__);
-				fileListReceiver->pushedFiles.Get(onFileStruct.fileIndex).flrMemoryBlock = memblock;
-				memcpy(memblock+offset, fps.iriDataChunk, amountToRead);
+				rakFree_Ex(fileListReceiver->pushedFiles.Get(onFileStruct.fileIndex).flrMemoryBlock, __FILE__, __LINE__ );
+				fileListReceiver->pushedFiles.Get(onFileStruct.fileIndex).flrMemoryBlock=0;
 			}
 		}
 		else

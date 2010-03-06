@@ -240,15 +240,16 @@ struct RAK_DLL_EXPORT AddressOrGUID
 
 struct RAK_DLL_EXPORT NetworkID
 {
+	// This is done because we don't know the global constructor order
 	NetworkID()
+		:
+#if NETWORK_ID_SUPPORTS_PEER_TO_PEER
+	guid((uint64_t)-1), systemAddress(0xFFFFFFFF, 0xFFFF),
+#endif // NETWORK_ID_SUPPORTS_PEER_TO_PEER
+		localSystemAddress(65535)
 	{
-#if NETWORK_ID_SUPPORTS_PEER_TO_PEER==1
-		guid = UNASSIGNED_RAKNET_GUID;
-		systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
-#endif
-		localSystemAddress=65535;
 	}
-	~NetworkID() {}
+	~NetworkID() {} 
 
 	/// \deprecated Use NETWORK_ID_SUPPORTS_PEER_TO_PEER in RakNetDefines.h
 	// Set this to true to use peer to peer mode for NetworkIDs.
@@ -398,8 +399,6 @@ const int PING_TIMES_ARRAY_SIZE = 5;
 /// \param[in] functionName The function name
 /// \deprecated Use RakNet::RPC3 instead
 #define UNREGISTER_CLASS_MEMBER_RPC(networkObject, className, functionName) (networkObject)->UnregisterAsRemoteProcedureCall((#className "_" #functionName))
-
-
 
 struct RAK_DLL_EXPORT uint24_t
 {

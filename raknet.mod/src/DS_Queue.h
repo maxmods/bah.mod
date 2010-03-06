@@ -96,7 +96,7 @@ namespace DataStructures
 		inline queue_type Queue<queue_type>::Pop( void )
 	{
 #ifdef _DEBUG
-		RakAssert( allocation_size > 0 && Size() >= 0 && head != tail);
+		RakAssert( head != tail);
 #endif
 		//head=(head+1) % allocation_size;
 
@@ -176,7 +176,6 @@ namespace DataStructures
 	{
 #ifdef _DEBUG
 		RakAssert( head != tail );
-		RakAssert( allocation_size > 0 && Size() >= 0 );
 #endif
 
 		return ( queue_type ) array[ head ];
@@ -187,7 +186,7 @@ namespace DataStructures
 		{
 #ifdef _DEBUG
 			RakAssert( head != tail );
-			RakAssert( allocation_size > 0 && Size() >= 0 );
+			RakAssert( Size() >= 0 );
 #endif
 			if (tail!=0)
 				return ( queue_type ) array[ tail-1 ];

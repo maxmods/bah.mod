@@ -159,7 +159,7 @@ Packet* PacketizedTCP::Receive( void )
 			index = connections.GetIndexAtKey(incomingPacket->systemAddress);
 		else
 			index=(unsigned int) -1;
-		if (index==-1)
+		if ((unsigned int)index==(unsigned int)-1)
 		{
 			DeallocatePacket(incomingPacket);
 			incomingPacket = TCPInterface::Receive();

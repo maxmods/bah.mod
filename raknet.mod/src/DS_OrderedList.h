@@ -86,8 +86,7 @@ namespace DataStructures
 	bool OrderedList<key_type, data_type, default_comparison_function>::HasData(const key_type &key, int (*cf)(const key_type&, const data_type&)) const
 	{
 		bool objectExists;
-		unsigned index;
-		index = GetIndexFromKey(key, &objectExists, cf);
+		GetIndexFromKey(key, &objectExists, cf);
 		return objectExists;
 	}
 
@@ -167,7 +166,7 @@ namespace DataStructures
 		// Don't allow duplicate insertion.
 		if (objectExists)
 		{
-			// This is usually a bug!  Use InsertAllowDuplicate if you want duplicates
+			// This is usually a bug!
 			RakAssert(assertOnDuplicate==false);
 			return (unsigned)-1;
 		}
