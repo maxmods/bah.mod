@@ -9,6 +9,22 @@
 #include <alloca.h>
 #else
 #endif
+#ifndef WIN32
+#include <ctype.h>
+extern "C" {
+char *strlwr(char *st)
+{
+      char *s;
+
+      if (st)
+      {
+            for (s = st; *s; ++s)
+                  *s = tolower(*s);
+      }
+      return st;
+}
+}
+#endif
 
 char ProfanityFilter::BANCHARS[] = "!@#$%^&*()";
 char ProfanityFilter::WORDCHARS[] = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -38,7 +54,7 @@ int ProfanityFilter::FilterProfanity(const char *input, char *output, bool filte
 	int count = 0;
 	char* b = (char *) alloca(strlen(input) + 1); 
 	strcpy(b, input);
-	_strlwr(b);
+	strlwr(b);
 	char *start = b;
 	if (output)
 		strcpy(output,input);
@@ -56,7 +72,7 @@ int ProfanityFilter::FilterProfanity(const char *input, char *output, bool filte
 			// loop through profanity list			
 			for (unsigned int i = 0, size = words.Size(); i < size; i++)
 			{
-				if (_stricmp(start, words[i].C_String()) == 0)
+				if (strcasecmp(start, words[i].C_String()) == 0)
 				{
 					count++;
 
