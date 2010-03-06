@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -243,7 +243,7 @@ Extern
 
 	
 	Function bmx_boost_math_pareto_distribution_create:Byte Ptr(location:Double, shape:Double)
-	Function bmx_boost_math_pareto_distribution_location:Double(handle:Byte Ptr)
+	Function bmx_boost_math_pareto_distribution_scale:Double(handle:Byte Ptr)
 	Function bmx_boost_math_pareto_distribution_shape:Double(handle:Byte Ptr)
 	Function bmx_boost_math_pareto_distribution_mean:Double(handle:Byte Ptr)
 	Function bmx_boost_math_pareto_distribution_mode:Double(handle:Byte Ptr)

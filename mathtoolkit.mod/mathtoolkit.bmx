@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@ bbdoc: Math Toolkit
 End Rem
 Module BaH.MathToolkit
 
-ModuleInfo "Version: 1.00"
+ModuleInfo "Version: 1.01"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
 
+ModuleInfo "History: 1.01"
+ModuleInfo "History: Changed Location() to Scale() in Pareto Distribution."
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release."
 
@@ -2027,10 +2029,10 @@ Type TParetoDistribution Extends TDistribution
 	End Method
 	
 	Rem
-	bbdoc: Returns the location parameter of this distribution.
+	bbdoc: Returns the scale parameter of this distribution.
 	End Rem
-	Method Location:Double()
-		Return bmx_boost_math_pareto_distribution_location(objectPtr)
+	Method Scale:Double()
+		Return bmx_boost_math_pareto_distribution_scale(objectPtr)
 	End Method
 
 	Rem

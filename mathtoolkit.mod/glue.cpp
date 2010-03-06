@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2009 Bruce A Henderson
+ Copyright (c) 2009-2010 Bruce A Henderson
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -272,7 +272,7 @@ extern "C" {
 
 	
 	boost::math::pareto_distribution<double> * bmx_boost_math_pareto_distribution_create(double location, double shape);
-	double bmx_boost_math_pareto_distribution_location(boost::math::pareto_distribution<double> * dist);
+	double bmx_boost_math_pareto_distribution_scale(boost::math::pareto_distribution<double> * dist);
 	double bmx_boost_math_pareto_distribution_shape(boost::math::pareto_distribution<double> * dist);
 	double bmx_boost_math_pareto_distribution_mean(boost::math::pareto_distribution<double> * dist);
 	double bmx_boost_math_pareto_distribution_mode(boost::math::pareto_distribution<double> * dist);
@@ -1929,8 +1929,8 @@ boost::math::pareto_distribution<double> * bmx_boost_math_pareto_distribution_cr
 	}
 }
 
-double bmx_boost_math_pareto_distribution_location(boost::math::pareto_distribution<double> * dist) {
-	return dist->location();
+double bmx_boost_math_pareto_distribution_scale(boost::math::pareto_distribution<double> * dist) {
+	return dist->scale();
 }
 
 double bmx_boost_math_pareto_distribution_shape(boost::math::pareto_distribution<double> * dist) {
