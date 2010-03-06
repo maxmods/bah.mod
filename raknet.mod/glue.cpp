@@ -975,7 +975,7 @@ BBString * bmx_BitStream_ReadString(RakNet::BitStream * stream) {
 	if (!ret) {
 		return &bbEmptyString;
 	} else {
-		return bbStringFromCString(s.C_String());
+		return bbStringFromUTF8String(s.C_String());
 	}
 }
 
@@ -986,7 +986,7 @@ BBString * bmx_BitStream_ReadCompressedString(RakNet::BitStream * stream) {
 	if (!ret) {
 		return &bbEmptyString;
 	} else {
-		return bbStringFromCString(s.C_String());
+		return bbStringFromUTF8String(s.C_String());
 	}
 }
 
