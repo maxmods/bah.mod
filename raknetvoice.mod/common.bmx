@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,10 @@ Extern
 	Function bmx_RakVoice_IsNoiseFilterActive:Int(handle:Byte Ptr)
 	Function bmx_RakVoice_IsVBRActive:Int(handle:Byte Ptr)
 	Function bmx_RakVoice_Deinit(handle:Byte Ptr)
-	Function bmx_RakVoice_RequestVoiceChannel(handle:Byte Ptr, recipient:Byte Ptr)
-	Function bmx_RakVoice_CloseVoiceChannel(handle:Byte Ptr, recipient:Byte Ptr)
+	Function bmx_RakVoice_RequestVoiceChannel(handle:Byte Ptr, guid:Byte Ptr)
+	Function bmx_RakVoice_CloseVoiceChannel(handle:Byte Ptr, guid:Byte Ptr)
 	Function bmx_RakVoice_CloseAllChannels(handle:Byte Ptr)
-	Function bmx_RakVoice_IsSendingVoiceDataTo:Int(handle:Byte Ptr, recipient:Byte Ptr)
+	Function bmx_RakVoice_IsSendingVoiceDataTo:Int(handle:Byte Ptr, guid:Byte Ptr)
 	Function bmx_RakVoice_GetSampleRate:Int(handle:Byte Ptr)
 	Function bmx_RakVoice_GetBufferSizeBytes:Int(handle:Byte Ptr)
 	Function bmx_RakVoice_IsInitialized:Int(handle:Byte Ptr)

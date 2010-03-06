@@ -14,7 +14,6 @@
 #endif
 
 /// To test sending to myself. Also uncomment in main.cpp
-//#define _TEST_LOOPBACK
 //#define PRINT_DEBUG_INFO
 
 #define SAMPLESIZE 2
@@ -23,11 +22,11 @@
 #include <stdio.h>
 #endif
 
-int VoiceChannelComp( const SystemAddress &key, VoiceChannel * const &data )
+int VoiceChannelComp( const RakNetGUID &key, VoiceChannel * const &data )
 {
-	if (key < data->systemAddress)
+	if (key < data->guid)
 		return -1;
-	if (key == data->systemAddress)
+	if (key == data->guid)
 		return 0;
 	return 1;
 }
@@ -39,6 +38,7 @@ RakVoice::RakVoice()
 	defaultVADState=true;
 	defaultDENOISEState=false;
 	defaultVBRState=false;
+	loopbackMode=false;
 }
 RakVoice::~RakVoice()
 {
@@ -57,36 +57,50 @@ void RakVoice::Init(unsigned short sampleRate, unsigned bufferSizeBytes)
 		bufferedOutput[i]=0.0f;
 	zeroBufferedOutput=false;
 
-#ifdef _TEST_LOOPBACK
-	Packet p;
-	RakNet::BitStream out;
-	out.Write((unsigned char)ID_RAKVOICE_OPEN_CHANNEL_REQUEST);
-	out.Write((int)sampleRate);
-	p.data=out.GetData();
-	p.systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
-	p.length=out.GetNumberOfBytesUsed();
-	OpenChannel(rakPeerInterface, &p);
-#endif
 }
 void RakVoice::Deinit(void)
 {
-	// LWS : check pointer before free
-	if( bufferedOutput )
+	// check pointer before free
+	if (bufferedOutput)
 	{
 		rakFree_Ex(bufferedOutput, __FILE__, __LINE__ );
 		bufferedOutput = 0;
 		CloseAllChannels();
 	}
 }
-void RakVoice::RequestVoiceChannel(SystemAddress recipient)
+void RakVoice::SetLoopbackMode(bool enabled)
+{
+	if (enabled)
+	{
+		Packet p;
+		RakNet::BitStream out;
+		out.Write((unsigned char)ID_RAKVOICE_OPEN_CHANNEL_REQUEST);
+		out.Write((int32_t)sampleRate);
+		p.data=out.GetData();
+		p.systemAddress=UNASSIGNED_SYSTEM_ADDRESS;
+		p.guid=UNASSIGNED_RAKNET_GUID;
+		p.length=out.GetNumberOfBytesUsed();
+		OpenChannel(&p);
+	}
+	else
+	{
+		FreeChannelMemory(UNASSIGNED_RAKNET_GUID);
+	}
+	loopbackMode=enabled;
+}
+bool RakVoice::IsLoopbackMode(void) const
+{
+	return loopbackMode;
+}
+void RakVoice::RequestVoiceChannel(RakNetGUID recipient)
 {
 	// Send a reliable ordered message to the other system to open a voice channel
 	RakNet::BitStream out;
 	out.Write((unsigned char)ID_RAKVOICE_OPEN_CHANNEL_REQUEST);
-	out.Write((int)sampleRate);
+	out.Write((int32_t)sampleRate);
 	SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,recipient,false);	
 }
-void RakVoice::CloseVoiceChannel(SystemAddress recipient)
+void RakVoice::CloseVoiceChannel(RakNetGUID recipient)
 {
 	FreeChannelMemory(recipient);
 	
@@ -104,13 +118,13 @@ void RakVoice::CloseAllChannels(void)
 	unsigned index;
 	for (index=0; index < voiceChannels.Size(); index++)
 	{
-		SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,voiceChannels[index]->systemAddress,false);	
+		SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,voiceChannels[index]->guid,false);	
 		FreeChannelMemory(index,false);
 	}
 
 	voiceChannels.Clear(false, __FILE__, __LINE__);
 }
-bool RakVoice::SendFrame(SystemAddress recipient, void *inputBuffer)
+bool RakVoice::SendFrame(RakNetGUID recipient, void *inputBuffer)
 {
 	bool objectExists;
 	unsigned index;
@@ -170,7 +184,7 @@ bool RakVoice::SendFrame(SystemAddress recipient, void *inputBuffer)
 	
 	return false;
 }
-bool RakVoice::IsSendingVoiceDataTo(SystemAddress recipient)
+bool RakVoice::IsSendingVoiceDataTo(RakNetGUID recipient)
 {
 	bool objectExists;
 	unsigned index;
@@ -221,14 +235,14 @@ RakPeerInterface* RakVoice::GetRakPeerInterface(void) const
 {
 	return rakPeerInterface;
 }
-unsigned RakVoice::GetBufferedBytesToSend(SystemAddress systemAddress) const
+unsigned RakVoice::GetBufferedBytesToSend(RakNetGUID guid) const
 {
 	bool objectExists;
 	VoiceChannel *channel;
 	unsigned totalBufferSize=bufferSizeBytes * FRAME_OUTGOING_BUFFER_COUNT;
-	if (systemAddress!=UNASSIGNED_SYSTEM_ADDRESS)
+	if (guid!=UNASSIGNED_RAKNET_GUID)
 	{
-		unsigned index = voiceChannels.GetIndexFromKey(systemAddress, &objectExists);
+		unsigned index = voiceChannels.GetIndexFromKey(guid, &objectExists);
 		channel = voiceChannels[index];
 		if (objectExists)
 		{
@@ -245,23 +259,23 @@ unsigned RakVoice::GetBufferedBytesToSend(SystemAddress systemAddress) const
 		{
 			channel=voiceChannels[i];
 			if (channel->outgoingWriteIndex>=channel->outgoingReadIndex)
-				return channel->outgoingWriteIndex-channel->outgoingReadIndex;
+				total+=channel->outgoingWriteIndex-channel->outgoingReadIndex;
 			else
-				return channel->outgoingWriteIndex + (totalBufferSize-channel->outgoingReadIndex);
+				total+=channel->outgoingWriteIndex + (totalBufferSize-channel->outgoingReadIndex);
 		}
 		return total;
 	}
 	
 	return 0;
 }
-unsigned RakVoice::GetBufferedBytesToReturn(SystemAddress systemAddress) const
+unsigned RakVoice::GetBufferedBytesToReturn(RakNetGUID guid) const
 {
 	bool objectExists;
 	VoiceChannel *channel;
 	unsigned totalBufferSize=bufferSizeBytes * FRAME_OUTGOING_BUFFER_COUNT;
-	if (systemAddress!=UNASSIGNED_SYSTEM_ADDRESS)
+	if (guid!=UNASSIGNED_RAKNET_GUID)
 	{
-		unsigned index = voiceChannels.GetIndexFromKey(systemAddress, &objectExists);
+		unsigned index = voiceChannels.GetIndexFromKey(guid, &objectExists);
 		channel = voiceChannels[index];
 		if (objectExists)
 		{
@@ -458,15 +472,17 @@ printf("%i ", voicePacketsSent++);
 					memcpy(tempOutput+1, &channel->outgoingMessageNumber, sizeof(unsigned short));
 					channel->outgoingMessageNumber++;
 					RakNet::BitStream tempOutputBs((unsigned char*) tempOutput,bytesWritten+headerSize,false);
-					SendUnified(&tempOutputBs, HIGH_PRIORITY, UNRELIABLE,0,channel->systemAddress,false);
+					SendUnified(&tempOutputBs, HIGH_PRIORITY, UNRELIABLE,0,channel->guid,false);
 
-#ifdef _TEST_LOOPBACK
-					Packet p;
-					p.length=bytesWritten+1;
-					p.data=(unsigned char*)tempOutput;
-					p.systemAddress=channel->systemAddress;
-					OnVoiceData(peer,&p);
-#endif
+					if (loopbackMode)
+					{
+						Packet p;
+						p.length=bytesWritten+1;
+						p.data=(unsigned char*)tempOutput;
+						p.guid=channel->guid;
+						p.systemAddress=rakPeerInterface->GetSystemAddressFromGuid(p.guid);
+						OnVoiceData(&p);
+					}
 				}
 
 				speex_bits_destroy(&speexBits);
@@ -542,7 +558,7 @@ PluginReceiveResult RakVoice::OnReceive(Packet *packet)
 		OnOpenChannelReply(packet);
 		break;
 	case ID_RAKVOICE_CLOSE_CHANNEL:
-		FreeChannelMemory(packet->systemAddress);
+		FreeChannelMemory(packet->guid);
 	break;
 	case ID_RAKVOICE_DATA:
 		OnVoiceData(packet);
@@ -553,15 +569,17 @@ PluginReceiveResult RakVoice::OnReceive(Packet *packet)
 }
 void RakVoice::OnClosedConnection(SystemAddress systemAddress, RakNetGUID rakNetGUID, PI2_LostConnectionReason lostConnectionReason )
 {
+	(void)systemAddress;
+
 	if (lostConnectionReason==LCR_CLOSED_BY_USER)
-		CloseVoiceChannel(systemAddress);
+		CloseVoiceChannel(rakNetGUID);
 	else
-		FreeChannelMemory(systemAddress);
+		FreeChannelMemory(rakNetGUID);
 }
 
 void RakVoice::OnOpenChannelRequest(Packet *packet)
 {
-	if (voiceChannels.HasData(packet->systemAddress))
+	if (voiceChannels.HasData(packet->guid))
 		return;
 
 	// If the system is not initialized, just return
@@ -572,14 +590,13 @@ void RakVoice::OnOpenChannelRequest(Packet *packet)
 
 	RakNet::BitStream out;
 	out.Write((unsigned char)ID_RAKVOICE_OPEN_CHANNEL_REPLY);
-	out.Write((int)sampleRate);
+	out.Write((int32_t)sampleRate);
 	SendUnified(&out, HIGH_PRIORITY, RELIABLE_ORDERED,0,packet->systemAddress,false);	
 }
 void RakVoice::OnOpenChannelReply(Packet *packet)
 {
-	if (voiceChannels.HasData(packet->systemAddress))
+	if (voiceChannels.HasData(packet->guid))
 		return;
-
 	OpenChannel(packet);
 }
 void RakVoice::OpenChannel(Packet *packet)
@@ -587,10 +604,10 @@ void RakVoice::OpenChannel(Packet *packet)
 	RakNet::BitStream in(packet->data, packet->length, false);
 	in.IgnoreBits(8);
 
-	FreeChannelMemory(packet->systemAddress);
+	FreeChannelMemory(packet->guid);
 
 	VoiceChannel *channel=RakNet::OP_NEW<VoiceChannel>( __FILE__, __LINE__ );
-	channel->systemAddress=packet->systemAddress;
+	channel->guid=packet->guid;
 	channel->isSendingVoiceData=false;
 	int sampleRate;
 	in.Read(sampleRate);
@@ -651,7 +668,7 @@ void RakVoice::OpenChannel(Packet *packet)
 	SetPreprocessorParameter(channel->pre_state, SPEEX_PREPROCESS_SET_DENOISE, (defaultDENOISEState) ? 1 : 2);
 	SetPreprocessorParameter(channel->pre_state, SPEEX_PREPROCESS_SET_VAD, (defaultVADState) ? 1 : 2);
 
-	voiceChannels.Insert(packet->systemAddress, channel, true, __FILE__, __LINE__);
+	voiceChannels.Insert(packet->guid, channel, true, __FILE__, __LINE__);
 }
 
 
@@ -727,7 +744,7 @@ bool RakVoice::IsVBRActive()
 }
 
 
-void RakVoice::FreeChannelMemory(SystemAddress recipient)
+void RakVoice::FreeChannelMemory(RakNetGUID recipient)
 {
 	bool objectExists;
 	unsigned index;
@@ -763,7 +780,7 @@ void RakVoice::OnVoiceData(Packet *packet)
 	// 1 byte for ID, 2 bytes(short) for message number
 	static const int headerSize=sizeof(unsigned char) + sizeof(unsigned short);
 
-	index = voiceChannels.GetIndexFromKey(packet->systemAddress, &objectExists);
+	index = voiceChannels.GetIndexFromKey(packet->guid, &objectExists);
 	if (objectExists)
 	{
 		SpeexBits speexBits;

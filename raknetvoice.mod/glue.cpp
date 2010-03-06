@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009 Bruce A Henderson
+  Copyright (c) 2009-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -66,20 +66,20 @@ void bmx_RakVoice_Deinit(RakVoice * voice) {
 	voice->Deinit();
 }
 
-void bmx_RakVoice_RequestVoiceChannel(RakVoice * voice, MaxSystemAddress * recipient) {
-	voice->RequestVoiceChannel(recipient->Address());
+void bmx_RakVoice_RequestVoiceChannel(RakVoice * voice, RakNetGUID * guid) {
+	voice->RequestVoiceChannel(*guid);
 }
 
-void bmx_RakVoice_CloseVoiceChannel(RakVoice * voice, MaxSystemAddress * recipient) {
-	voice->CloseVoiceChannel(recipient->Address());
+void bmx_RakVoice_CloseVoiceChannel(RakVoice * voice, RakNetGUID * guid) {
+	voice->CloseVoiceChannel(*guid);
 }
 
 void bmx_RakVoice_CloseAllChannels(RakVoice * voice) {
 	voice->CloseAllChannels();
 }
 
-bool bmx_RakVoice_IsSendingVoiceDataTo(RakVoice * voice, MaxSystemAddress * recipient) {
-	return voice->IsSendingVoiceDataTo(recipient->Address());
+bool bmx_RakVoice_IsSendingVoiceDataTo(RakVoice * voice, RakNetGUID * guid) {
+	return voice->IsSendingVoiceDataTo(*guid);
 }
 
 int bmx_RakVoice_GetSampleRate(RakVoice * voice) {

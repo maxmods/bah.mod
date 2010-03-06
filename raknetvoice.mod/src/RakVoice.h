@@ -13,6 +13,7 @@ class RakPeerInterface;
 #include "RakNetTypes.h"
 #include "PluginInterface2.h"
 #include "DS_OrderedList.h"
+#include "NativeTypes.h"
 
 // How many frames large to make the circular buffers in the VoiceChannel structure
 #define FRAME_OUTGOING_BUFFER_COUNT 100
@@ -21,7 +22,7 @@ class RakPeerInterface;
 /// \internal
 struct VoiceChannel
 {
-	SystemAddress systemAddress;
+	RakNetGUID guid;
 	void *enc_state;
 	void *dec_state;
 	void *pre_state;
@@ -47,7 +48,7 @@ struct VoiceChannel
 
 	RakNetTime lastSend;
 };
-int VoiceChannelComp( const SystemAddress &key, VoiceChannel * const &data );
+int VoiceChannelComp( const RakNetGUID &key, VoiceChannel * const &data );
 
 /// Voice compression and transmission interface
 class RakVoice : public PluginInterface2
@@ -114,12 +115,12 @@ public:
 	/// \brief Opens a channel to another connected system
 	/// You will get ID_RAKVOICE_OPEN_CHANNEL_REPLY on success
 	/// \param[in] recipient Which system to open a channel to
-	void RequestVoiceChannel(SystemAddress recipient);
+	void RequestVoiceChannel(RakNetGUID recipient);
 
 	/// \brief Closes an existing voice channel.
 	/// Other system will get ID_RAKVOICE_CLOSE_CHANNEL
 	/// \param[in] recipient Which system to close a channel with
-	void CloseVoiceChannel(SystemAddress recipient);
+	void CloseVoiceChannel(RakNetGUID recipient);
 
 	/// \brief Closes all existing voice channels
 	/// Other systems will get ID_RAKVOICE_CLOSE_CHANNEL
@@ -129,12 +130,12 @@ public:
 	/// \pre \a recipient must refer to a system with an open channel via RequestVoiceChannel
 	/// \param[in] recipient The system to send voice data to
 	/// \param[in] inputBuffer The voice data.  The size of inputBuffer should be what was specified as bufferSizeBytes in Init
-	bool SendFrame(SystemAddress recipient, void *inputBuffer);
+	bool SendFrame(RakNetGUID recipient, void *inputBuffer);
 
 	/// \brief Returns if we are currently sending voice data, accounting for voice activity detection
 	/// \param[in] Which system to check
 	/// \return If we are sending voice data for the specified system
-	bool IsSendingVoiceDataTo(SystemAddress recipient);
+	bool IsSendingVoiceDataTo(RakNetGUID recipient);
 
 	/// \brief Gets decoded voice data, from one or more remote senders
 	/// \param[out] outputBuffer The voice data.  The size of outputBuffer should be what was specified as bufferSizeBytes in Init
@@ -158,15 +159,23 @@ public:
 
 	/// How many bytes are on the write buffer, waiting to be passed to a call to RakPeer::Send (internally)
 	/// This should remain at a fairly small near-constant size as outgoing data is sent to the Send function
-	/// \param[in] systemAddress The system to query, or UNASSIGNED_SYSTEM_ADDRESS for the sum of all channels.
+	/// \param[in] guid The system to query, or UNASSIGNED_SYSTEM_ADDRESS for the sum of all channels.
 	/// \return Number of bytes on the write buffer
-	unsigned GetBufferedBytesToSend(SystemAddress systemAddress) const;
+	unsigned GetBufferedBytesToSend(RakNetGUID guid) const;
 
 	/// How many bytes are on the read buffer, waiting to be passed to a call to ReceiveFrame
 	/// This should remain at a fairly small near-constant size as incoming data is read out at the same rate as outgoing data from the remote system
-	/// \param[in] systemAddress The system to query, or UNASSIGNED_SYSTEM_ADDRESS for the sum of all channels.
+	/// \param[in] guid The system to query, or UNASSIGNED_SYSTEM_ADDRESS for the sum of all channels.
 	/// \return Number of bytes on the read buffer.
-	unsigned GetBufferedBytesToReturn(SystemAddress systemAddress) const;
+	unsigned GetBufferedBytesToReturn(RakNetGUID guid) const;
+
+	/// Enables/disables loopback mode
+	/// \param[in] true to enable, false to disable
+	void SetLoopbackMode(bool enabled);
+
+	/// Returns true or false, indicating if the loopback mode is enabled
+	/// \return true if enabled, false otherwise.
+	bool IsLoopbackMode(void) const;
 
 	// --------------------------------------------------------------------------------------------
 	// Message handling functions
@@ -178,16 +187,16 @@ public:
 protected:
 	void OnOpenChannelRequest(Packet *packet);
 	void OnOpenChannelReply(Packet *packet);
-	void OnVoiceData(Packet *packet);
+	virtual void OnVoiceData(Packet *packet);
 	void OpenChannel(Packet *packet);
-	void FreeChannelMemory(SystemAddress recipient);
+	void FreeChannelMemory(RakNetGUID recipient);
 	void FreeChannelMemory(unsigned index, bool removeIndex);
 	void WriteOutputToChannel(VoiceChannel *channel, char *dataToWrite);
 	void SetEncoderParameter(void* enc_state, int vartype, int val);
 	void SetPreprocessorParameter(void* pre_state, int vartype, int val);
 	
-	DataStructures::OrderedList<SystemAddress, VoiceChannel*, VoiceChannelComp> voiceChannels;
-	int sampleRate;
+	DataStructures::OrderedList<RakNetGUID, VoiceChannel*, VoiceChannelComp> voiceChannels;
+	int32_t sampleRate;
 	unsigned bufferSizeBytes;
 	float *bufferedOutput;
 	unsigned bufferedOutputCount;
@@ -196,6 +205,7 @@ protected:
 	bool defaultVADState;
 	bool defaultDENOISEState;
 	bool defaultVBRState;
+	bool loopbackMode;
 
 };
 

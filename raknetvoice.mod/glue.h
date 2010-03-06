@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009 Bruce A Henderson
+  Copyright (c) 2009-2010 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,10 @@ extern "C" {
 	bool bmx_RakVoice_IsNoiseFilterActive(RakVoice * voice);
 	bool bmx_RakVoice_IsVBRActive(RakVoice * voice);
 	void bmx_RakVoice_Deinit(RakVoice * voice);
-	void bmx_RakVoice_RequestVoiceChannel(RakVoice * voice, MaxSystemAddress * recipient);
-	void bmx_RakVoice_CloseVoiceChannel(RakVoice * voice, MaxSystemAddress * recipient);
+	void bmx_RakVoice_RequestVoiceChannel(RakVoice * voice, RakNetGUID * guid);
+	void bmx_RakVoice_CloseVoiceChannel(RakVoice * voice, RakNetGUID * guid);
 	void bmx_RakVoice_CloseAllChannels(RakVoice * voice);
-	bool bmx_RakVoice_IsSendingVoiceDataTo(RakVoice * voice, MaxSystemAddress * recipient);
+	bool bmx_RakVoice_IsSendingVoiceDataTo(RakVoice * voice, RakNetGUID * guid);
 	int bmx_RakVoice_GetSampleRate(RakVoice * voice);
 	int bmx_RakVoice_GetBufferSizeBytes(RakVoice * voice);
 	bool bmx_RakVoice_IsInitialized(RakVoice * voice);

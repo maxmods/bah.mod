@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ Module BaH.RaknetVoice
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: Raknet - The Creative Commons Attribution - NonCommercial 2.5, or see http://www.rakkarsoft.com/SingleApplicationLicense.html"
-ModuleInfo "Copyright: 2009 Bruce A Henderson"
+ModuleInfo "Copyright: 2009-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Version"
@@ -176,12 +176,12 @@ Type TRKRakVoice Extends TRKPluginInterface
 	about: You will get ID_RAKVOICE_OPEN_CHANNEL_REPLY on success.
 	<p>Parameters: 
 	<ul>
-	<li><b>recipient</b> : Which system to open a channel to</li>
+	<li><b>guid</b> : Which system to open a channel to</li>
 	</ul>
 	</p>
 	End Rem
-	Method RequestVoiceChannel(recipient:TRKSystemAddress)
-		bmx_RakVoice_RequestVoiceChannel(pluginPtr, recipient.systemAddressPtr)
+	Method RequestVoiceChannel(guid:TRKRakNetGUID)
+		bmx_RakVoice_RequestVoiceChannel(pluginPtr, guid.guidPtr)
 	End Method
 	
 	Rem
@@ -189,12 +189,12 @@ Type TRKRakVoice Extends TRKPluginInterface
 	about: Other system will get ID_RAKVOICE_CLOSE_CHANNEL
 	<p>Parameters: 
 	<ul>
-	<li><b>recipient</b> : Which system to close a channel with</li>
+	<li><b>guid</b> : Which system to close a channel with</li>
 	</ul>
 	</p>
 	End Rem
-	Method CloseVoiceChannel(recipient:TRKSystemAddress)
-		bmx_RakVoice_CloseVoiceChannel(pluginPtr, recipient.systemAddressPtr)
+	Method CloseVoiceChannel(guid:TRKRakNetGUID)
+		bmx_RakVoice_CloseVoiceChannel(pluginPtr, guid.guidPtr)
 	End Method
 	
 	Rem
@@ -210,11 +210,11 @@ Type TRKRakVoice Extends TRKPluginInterface
 	returns: True if we are sending voice data for the specified system.
 	about: Parameters: 
 	<ul>
-	<li><b>recipient</b> :Which system to check</li>
+	<li><b>guid</b> :Which system to check</li>
 	</ul>
 	End Rem
-	Method IsSendingVoiceDataTo:Int(recipient:TRKSystemAddress)
-		Return bmx_RakVoice_IsSendingVoiceDataTo(pluginPtr, recipient.systemAddressPtr)
+	Method IsSendingVoiceDataTo:Int(guid:TRKRakNetGUID)
+		Return bmx_RakVoice_IsSendingVoiceDataTo(pluginPtr, guid.guidPtr)
 	End Method
 	
 	Rem
