@@ -111,14 +111,14 @@ Type FMOD Extends TExampleHelper
 		While p
 
 			If p.GetData()[0] = ID_CONNECTION_REQUEST_ACCEPTED Then
-				AddMessage "ID_CONNECTION_REQUEST_ACCEPTED from " + p.GetSystemAddress().ToString()
-				rakVoice.RequestVoiceChannel(p.GetSystemAddress())
+				AddMessage "ID_CONNECTION_REQUEST_ACCEPTED from " + p.GetGuid().ToString()
+				rakVoice.RequestVoiceChannel(p.GetGuid())
 
 			Else If p.GetData()[0] = ID_RAKVOICE_OPEN_CHANNEL_REQUEST Then
-				AddMessage "Open Channel request from " + p.GetSystemAddress().ToString()
+				AddMessage "Open Channel request from " + p.GetGuid().ToString()
 
 			Else If p.GetData()[0] = ID_RAKVOICE_OPEN_CHANNEL_REPLY Then
-				AddMessage "Got new channel from " + p.GetSystemAddress().ToString()
+				AddMessage "Got new channel from " + p.GetGuid().ToString()
 			End If
 
 			rakPeer.DeallocatePacket(p)

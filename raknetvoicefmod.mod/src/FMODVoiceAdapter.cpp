@@ -201,6 +201,6 @@ void FMODVoiceAdapter::BroadcastFrame(void *ptr)
 	unsigned int numPeers = rakVoice->GetRakPeerInterface()->GetMaximumNumberOfPeers();
 	for (i=0; i < numPeers; i++)
 	{
-		rakVoice->SendFrame(rakVoice->GetRakPeerInterface()->GetSystemAddressFromIndex(i), ptr);
+		rakVoice->SendFrame(rakVoice->GetRakPeerInterface()->GetGUIDFromIndex(i), ptr);
 	}
 }
