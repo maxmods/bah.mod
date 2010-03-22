@@ -2,7 +2,11 @@
  * automatically by autoheader / autoconf / configure. */
 
 /* the location of <hash_map> */
+#if __GNUC__ > 3
+#define HASH_MAP_H <hash_map>
+#else
 #define HASH_MAP_H <hash_map.h>
+#endif
 #define HASH_MAP_CLASS hash_map
 
 /* the namespace of hash_map/hash_set */
@@ -19,7 +23,11 @@
 
 
 /* the location of <hash_set> */
+#if __GNUC__ > 3
+#define HASH_SET_H <hash_set>
+#else
 #define HASH_SET_H <hash_set.h>
+#endif
 #define HASH_SET_CLASS hash_set
 
 /* define if the compiler has hash_map */
