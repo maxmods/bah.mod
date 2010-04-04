@@ -1,9 +1,8 @@
-/* Copyright (C) 2000 MySQL AB
+/* Copyright 2000-2008 MySQL AB, 2008 Sun Microsystems, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+   the Free Software Foundation; version 2 of the License.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,11 +15,14 @@
 
 /* Defines for Win32 to make it compatible for MySQL */
 
-#ifdef __WIN2000__
-/* We have to do this define before including windows.h to get the AWE API
-functions */
+#define BIG_TABLES
+
+/* 
+  Minimal version of Windows we should be able to run on.
+  Currently Windows 2000
+*/
 #define _WIN32_WINNT     0x0500
-#endif
+
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
 /* Avoid endless warnings about sprintf() etc. being unsafe. */
@@ -28,11 +30,14 @@ functions */
 #endif
 
 #include <sys/locking.h>
-#include <windows.h>
-#include <math.h>			/* Because of rint() */
+#include <sys/stat.h>			/* chmod() constants*/
+#include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <fcntl.h>
 #include <io.h>
 #include <malloc.h>
+#include <sys/stat.h>
+#include <process.h>     /* getpid()*/
 
 #define HAVE_SMEM 1
 
@@ -71,7 +76,6 @@ functions */
 #endif
 
 /* File and lock constants */
-#define O_SHARE		0x1000		/* Open file in sharing mode */
 #ifdef __BORLANDC__
 #define F_RDLCK		LK_NBLCK	/* read lock */
 #define F_WRLCK		LK_NBRLCK	/* write lock */
@@ -89,13 +93,33 @@ functions */
 
 #define S_IROTH		S_IREAD		/* for my_lib */
 
+/* for MY_S_ISFIFO() macro from my_lib */
+#if defined (_S_IFIFO) && !defined (S_IFIFO)
+#define S_IFIFO _S_IFIFO
+#endif
+
+/* Winsock2 constant (Vista SDK and later)*/
+#define IPPROTO_IPV6 41
+#ifndef IPV6_V6ONLY
+#define IPV6_V6ONLY 27
+#endif
+
+/* 
+   Constants used by chmod. Note, that group/others is ignored
+   - because unsupported by Windows due to different access control model.
+*/
+#define S_IRWXU S_IREAD|S_IWRITE 
+#define S_IRWXG 0
+#define S_IRWXO 0
+typedef int mode_t; 
+
 #ifdef __BORLANDC__
 #define FILE_BINARY	O_BINARY	/* my_fopen in binary mode */
 #define O_TEMPORARY	0
 #define O_SHORT_LIVED	0
 #define SH_DENYNO	_SH_DENYNO
 #else
-#define O_BINARY	_O_BINARY	/* compability with MSDOS */
+#define O_BINARY	_O_BINARY	/* compability with older style names */
 #define FILE_BINARY	_O_BINARY	/* my_fopen in binary mode */
 #define O_TEMPORARY	_O_TEMPORARY
 #define O_SHORT_LIVED	_O_SHORT_LIVED
@@ -108,26 +132,18 @@ functions */
 #undef _REENTRANT			/* Crashes something for win32 */
 #undef SAFE_MUTEX			/* Can't be used on windows */
 
-#if defined(_MSC_VER) && _MSC_VER >= 1310
-#define LL(A)           A##ll
-#define ULL(A)          A##ull
-#else
-#define LL(A)           ((__int64) A)
-#define ULL(A)          ((unsigned __int64) A)
-#endif
-
-#define LONGLONG_MIN	LL(0x8000000000000000)
-#define LONGLONG_MAX	LL(0x7FFFFFFFFFFFFFFF)
-#define ULONGLONG_MAX	ULL(0xFFFFFFFFFFFFFFFF)
+#define LONGLONG_MIN	0x8000000000000000LL
+#define LONGLONG_MAX	0x7FFFFFFFFFFFFFFFLL
+#define ULONGLONG_MAX	0xFFFFFFFFFFFFFFFFULL
 
 /* Type information */
 
-#if defined(__EMX__) || !defined(HAVE_UINT)
+#if !defined(HAVE_UINT)
 #undef HAVE_UINT
 #define HAVE_UINT
 typedef unsigned short	ushort;
 typedef unsigned int	uint;
-#endif /* defined(__EMX__) || !defined(HAVE_UINT) */
+#endif /* !defined(HAVE_UINT) */
 
 typedef unsigned __int64 ulonglong;	/* Microsofts 64 bit types */
 typedef __int64 longlong;
@@ -146,22 +162,30 @@ typedef __int64 os_off_t;
 #ifdef _WIN64
 typedef UINT_PTR rf_SetTimer;
 #else
-#ifndef HAVE_SIZE_T
-typedef unsigned int size_t;
-#endif
 typedef uint rf_SetTimer;
+#endif
+
+#ifndef HAVE_SIZE_T
+#ifndef _SIZE_T_DEFINED
+typedef SIZE_T size_t;
+#define _SIZE_T_DEFINED
+#endif
+#endif
+
+#ifndef HAVE_SSIZE_T
+#ifndef _SSIZE_T_DEFINED
+typedef SSIZE_T ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 #endif
 
 #define Socket_defined
 #define my_socket SOCKET
-#define bool BOOL
 #define SIGPIPE SIGINT
 #define RETQSORTTYPE void
 #define QSORT_TYPE_IS_VOID
-#define RETSIGTYPE void
 #define SOCKET_SIZE_TYPE int
 #define my_socket_defined
-#define bool_defined
 #define byte_defined
 #define HUGE_PTR
 #define STDCALL __stdcall	    /* Used by libmysql.dll */
@@ -173,6 +197,7 @@ typedef uint rf_SetTimer;
 #endif
 #define VOID_SIGHANDLER
 #define SIZEOF_CHAR		1
+#define SIZEOF_INT		4
 #define SIZEOF_LONG		4
 #define SIZEOF_LONG_LONG	8
 #define SIZEOF_OFF_T		8
@@ -182,7 +207,7 @@ typedef uint rf_SetTimer;
 #define SIZEOF_CHARP		4
 #endif
 #define HAVE_BROKEN_NETINET_INCLUDES
-#ifdef __NT__
+#ifdef _WIN32
 #define HAVE_NAMED_PIPE			/* We can only create pipes on NT */
 #endif
 
@@ -194,17 +219,15 @@ typedef uint rf_SetTimer;
 #define SIGNAL_WITH_VIO_CLOSE
 #endif
 
-/* Use all character sets in MySQL */
-#define USE_MB 1
-#define USE_MB_IDENT 1
-#define USE_STRCOLL 1
-
 /* All windows servers should support .sym files */
 #undef USE_SYMDIR
 #define USE_SYMDIR
 
 /* If LOAD DATA LOCAL INFILE should be enabled by default */
 #define ENABLED_LOCAL_INFILE 1
+
+/* If query profiling should be enabled by default */
+#define ENABLED_PROFILING 1
 
 /* Convert some simple functions to Posix */
 
@@ -222,13 +245,6 @@ typedef uint rf_SetTimer;
 #define inline __inline
 #endif /* __cplusplus */
 
-inline double rint(double nr)
-{
-  double f = floor(nr);
-  double c = ceil(nr);
-  return (((c-nr) >= (nr-f)) ? f :c);
-}
-
 #ifdef _WIN64
 #define ulonglong2double(A) ((double) (ulonglong) (A))
 #define my_off_t2double(A)  ((double) (my_off_t) (A))
@@ -244,67 +260,24 @@ inline double ulonglong2double(ulonglong value)
 #define my_off_t2double(A) ulonglong2double(A)
 #endif /* _WIN64 */
 
+inline ulonglong double2ulonglong(double d)
+{
+  double t= d - (double) 0x8000000000000000ULL;
+
+  if (t >= 0)
+    return  ((ulonglong) t) + 0x8000000000000000ULL;
+  return (ulonglong) d;
+}
+
 #if SIZEOF_OFF_T > 4
 #define lseek(A,B,C) _lseeki64((A),(longlong) (B),(C))
 #define tell(A) _telli64(A)
 #endif
 
-#define set_timespec(ABSTIME,SEC) { (ABSTIME).tv_sec=time((time_t*)0) + (time_t) (SEC); (ABSTIME).tv_nsec=0; }
-
 #define STACK_DIRECTION -1
 
-/* Optimized store functions for Intel x86 */
-
-#ifndef _WIN64
-#define sint2korr(A)	(*((int16 *) (A)))
-#define sint3korr(A)	((int32) ((((uchar) (A)[2]) & 128) ? \
-				  (((uint32) 255L << 24) | \
-				   (((uint32) (uchar) (A)[2]) << 16) |\
-				   (((uint32) (uchar) (A)[1]) << 8) | \
-				   ((uint32) (uchar) (A)[0])) : \
-				  (((uint32) (uchar) (A)[2]) << 16) |\
-				  (((uint32) (uchar) (A)[1]) << 8) | \
-				  ((uint32) (uchar) (A)[0])))
-#define sint4korr(A)	(*((long *) (A)))
-#define uint2korr(A)	(*((uint16 *) (A)))
-/*
-   ATTENTION !
-   
-    Please, note, uint3korr reads 4 bytes (not 3) !
-    It means, that you have to provide enough allocated space !
-*/
-#define uint3korr(A)	(long) (*((unsigned int *) (A)) & 0xFFFFFF)
-#define uint4korr(A)	(*((unsigned long *) (A)))
-#define uint5korr(A)	((ulonglong)(((uint32) ((uchar) (A)[0])) +\
-				    (((uint32) ((uchar) (A)[1])) << 8) +\
-				    (((uint32) ((uchar) (A)[2])) << 16) +\
-				    (((uint32) ((uchar) (A)[3])) << 24)) +\
-				    (((ulonglong) ((uchar) (A)[4])) << 32))
-#define uint8korr(A)	(*((ulonglong *) (A)))
-#define sint8korr(A)	(*((longlong *) (A)))
-#define int2store(T,A)	*((uint16*) (T))= (uint16) (A)
-#define int3store(T,A)		{ *(T)=  (uchar) ((A));\
-				  *(T+1)=(uchar) (((uint) (A) >> 8));\
-				  *(T+2)=(uchar) (((A) >> 16)); }
-#define int4store(T,A)	*((long *) (T))= (long) (A)
-#define int5store(T,A)	{ *(T)= (uchar)((A));\
-			  *((T)+1)=(uchar) (((A) >> 8));\
-			  *((T)+2)=(uchar) (((A) >> 16));\
-			  *((T)+3)=(uchar) (((A) >> 24)); \
-			  *((T)+4)=(uchar) (((A) >> 32)); }
-#define int8store(T,A)	*((ulonglong *) (T))= (ulonglong) (A)
-
-#define doubleget(V,M)	do { *((long *) &V) = *((long*) M); \
-			    *(((long *) &V)+1) = *(((long*) M)+1); } while(0)
-#define doublestore(T,V) do { *((long *) T) = *((long*) &V); \
-			      *(((long *) T)+1) = *(((long*) &V)+1); } while(0)
-#define float4get(V,M) { *((long *) &(V)) = *((long*) (M)); }
-#define floatstore(T,V) memcpy((byte*)(T), (byte*)(&V), sizeof(float))
-#define floatget(V,M)   memcpy((byte*)(&V), (byte*)(M), sizeof(float))
-#define float8get(V,M) doubleget((V),(M))
-#define float4store(V,M) memcpy((byte*) V,(byte*) (&M),sizeof(float))
-#define float8store(V,M) doublestore((V),(M))
-#endif /* _WIN64 */
+/* Difference between GetSystemTimeAsFileTime() and now() */
+#define OFFSET_TO_EPOCH 116444736000000000ULL
 
 #define HAVE_PERROR
 #define HAVE_VFPRINT
@@ -326,7 +299,6 @@ inline double ulonglong2double(ulonglong value)
 #define HAVE_FLOAT_H
 #define HAVE_LIMITS_H
 #define HAVE_STDDEF_H
-#define HAVE_RINT		/* defined in this file */
 #define NO_FCNTL_NONBLOCK	/* No FCNTL */
 #define HAVE_ALLOCA
 #define HAVE_STRPBRK
@@ -339,9 +311,16 @@ inline double ulonglong2double(ulonglong value)
 #define SPRINTF_RETURNS_INT
 #define HAVE_SETFILEPOINTER
 #define HAVE_VIO_READ_BUFF
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+/* strnlen() appeared in Studio 2005 */
 #define HAVE_STRNLEN
+#endif
+#define HAVE_WINSOCK2
 
-#ifndef __NT__
+#define strcasecmp stricmp
+#define strncasecmp strnicmp
+
+#ifndef _WIN32
 #undef FILE_SHARE_DELETE
 #define FILE_SHARE_DELETE 0     /* Not implemented on Win 98/ME */
 #endif
@@ -387,37 +366,19 @@ inline double ulonglong2double(ulonglong value)
 #define FN_DEVCHAR	':'
 #define FN_NETWORK_DRIVES	/* Uses \\ to indicate network drives */
 #define FN_NO_CASE_SENCE	/* Files are not case-sensitive */
-#define OS_FILE_LIMIT	2048
+#define OS_FILE_LIMIT	UINT_MAX /* No limit*/
 
 #define DO_NOT_REMOVE_THREAD_WRAPPERS
 #define thread_safe_increment(V,L) InterlockedIncrement((long*) &(V))
 #define thread_safe_decrement(V,L) InterlockedDecrement((long*) &(V))
 /* The following is only used for statistics, so it should be good enough */
-#ifdef __NT__  /* This should also work on Win98 but .. */
+#ifdef _WIN32  /* This should also work on Win98 but .. */
 #define thread_safe_add(V,C,L) InterlockedExchangeAdd((long*) &(V),(C))
 #define thread_safe_sub(V,C,L) InterlockedExchangeAdd((long*) &(V),-(long) (C))
-#define statistic_add(V,C,L) thread_safe_add((V),(C),(L))
-#else
-#define thread_safe_add(V,C,L) \
-	pthread_mutex_lock((L)); (V)+=(C); pthread_mutex_unlock((L));
-#define thread_safe_sub(V,C,L) \
-	pthread_mutex_lock((L)); (V)-=(C); pthread_mutex_unlock((L));
-#define statistic_add(V,C,L)	 (V)+=(C)
 #endif
-#define statistic_increment(V,L) thread_safe_increment((V),(L))
-#define statistic_decrement(V,L) thread_safe_decrement((V),(L))
 
 #define shared_memory_buffer_length 16000
 #define default_shared_memory_base_name "MYSQL"
-
-#ifdef CYBOZU
-#define MYSQL_DEFAULT_CHARSET_NAME "utf8"
-#define MYSQL_DEFAULT_COLLATION_NAME "utf8_general_cs"
-#define HAVE_UTF8_GENERAL_CS 1
-#else
-#define MYSQL_DEFAULT_CHARSET_NAME "latin1"
-#define MYSQL_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
-#endif
 
 #define HAVE_SPATIAL 1
 #define HAVE_RTREE_KEYS 1
@@ -425,48 +386,7 @@ inline double ulonglong2double(ulonglong value)
 #define HAVE_OPENSSL 1
 #define HAVE_YASSL 1
 
-/* Define charsets you want */
-/* #undef HAVE_CHARSET_armscii8 */
-/* #undef HAVE_CHARSET_ascii */
-#ifndef CYBOZU
-#define HAVE_CHARSET_big5 1
-#define HAVE_CHARSET_cp1250 1
-#endif
-/* #undef HAVE_CHARSET_cp1251 */
-/* #undef HAVE_CHARSET_cp1256 */
-/* #undef HAVE_CHARSET_cp1257 */
-/* #undef HAVE_CHARSET_cp850 */
-/* #undef HAVE_CHARSET_cp852 */
-/* #undef HAVE_CHARSET_cp866 */
-#define HAVE_CHARSET_cp932 1
-/* #undef HAVE_CHARSET_dec8 */
-#ifndef CYBOZU
-#define HAVE_CHARSET_eucjpms 1
-#define HAVE_CHARSET_euckr 1
-#define HAVE_CHARSET_gb2312 1
-#define HAVE_CHARSET_gbk 1
-#endif
-/* #undef HAVE_CHARSET_greek */
-/* #undef HAVE_CHARSET_hebrew */
-/* #undef HAVE_CHARSET_hp8 */
-/* #undef HAVE_CHARSET_keybcs2 */
-/* #undef HAVE_CHARSET_koi8r */
-/* #undef HAVE_CHARSET_koi8u */
-#ifndef CYBOZU
-#define HAVE_CHARSET_latin1 1
-#define HAVE_CHARSET_latin2 1
-#endif
-/* #undef HAVE_CHARSET_latin5 */
-/* #undef HAVE_CHARSET_latin7 */
-/* #undef HAVE_CHARSET_macce */
-/* #undef HAVE_CHARSET_macroman */
-#define HAVE_CHARSET_sjis 1
-/* #undef HAVE_CHARSET_swe7 */
-#ifndef CYBOZU
-#define HAVE_CHARSET_tis620 1
-#define HAVE_CHARSET_ucs2 1
-#define HAVE_CHARSET_ujis 1
-#endif
-#define HAVE_CHARSET_utf8 1
-#define HAVE_UCA_COLLATIONS 1
+#define COMMUNITY_SERVER 1
+#define ENABLED_PROFILING 1
 
+#define HAVE_BOOL 1
