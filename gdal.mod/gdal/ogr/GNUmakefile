@@ -15,6 +15,10 @@ ifeq ($(OGR_ENABLED),yes)
 CXXFLAGS 	:=	-DHAVE_MITAB $(CXXFLAGS)
 endif
 
+ifeq ($(HAVE_EXPAT),yes)
+CPPFLAGS 	:=	-DHAVE_EXPAT $(EXPAT_INCLUDE) $(CPPFLAGS)
+endif
+
 CPPFLAGS	:=	-Iogrsf_frmts -I. $(GDAL_INCLUDE) $(PROJ_INCLUDE) $(PROJ_FLAGS) $(CPPFLAGS)
 
 default:	lib
@@ -64,9 +68,11 @@ $(GDAL_SLIB):
 	(cd ..; $(MAKE) check-lib)
 
 web-update:	docs
-	cp html/* /u/www/projects/opengis/ogrhtml
-	cp ogrsf_frmts/*/drv_*.html /u/www/projects/opengis/ogrhtml
-	cp ogrsf_frmts/ogr_formats.html /u/www/projects/opengis/ogrhtml
+	$(INSTALL_DIR) $(INST_HTML)/ogr
+	cp html/* $(INST_HTML)/ogr
+	cp ogrsf_frmts/*/drv_*.html $(INST_HTML)/ogr
+	cp ogrsf_frmts/ogr_formats.html $(INST_HTML)/ogr
+	cp ../doc/ogr/*.gif $(INST_HTML)/ogr
 
 install:
 	for f in $(INST_H_FILES) ; \

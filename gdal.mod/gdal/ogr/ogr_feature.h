@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_feature.h 14773 2008-06-27 20:13:02Z rouault $
+ * $Id: ogr_feature.h 18226 2009-12-09 09:30:48Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Class for representing a whole feature, and layer schemas.
@@ -32,6 +32,7 @@
 
 #include "ogr_geometry.h"
 #include "ogr_featurestyle.h"
+#include "cpl_atomic_ops.h"
 
 /**
  * \file ogr_feature.h
@@ -112,7 +113,7 @@ class CPL_DLL OGRFieldDefn
 class CPL_DLL OGRFeatureDefn
 {
   private:
-    int         nRefCount;
+    volatile int nRefCount;
     
     int         nFieldCount;
     OGRFieldDefn **papoFieldDefn;
@@ -138,8 +139,8 @@ class CPL_DLL OGRFeatureDefn
 
     OGRFeatureDefn *Clone();
 
-    int         Reference() { return ++nRefCount; }
-    int         Dereference() { return --nRefCount; }
+    int         Reference() { return CPLAtomicInc(&nRefCount); }
+    int         Dereference() { return CPLAtomicDec(&nRefCount); }
     int         GetReferenceCount() { return nRefCount; }
     void        Release();
 
@@ -270,6 +271,7 @@ class CPL_DLL OGRFeature
     void                DumpReadable( FILE *, char** papszOptions = NULL );
 
     OGRErr              SetFrom( OGRFeature *, int = TRUE);
+    OGRErr              SetFrom( OGRFeature *, int *, int = TRUE );
 
     OGRErr              RemapFields( OGRFeatureDefn *poNewDefn, 
                                      int *panRemapSource );

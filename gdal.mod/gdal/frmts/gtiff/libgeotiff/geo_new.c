@@ -12,34 +12,12 @@
  *    20 June, 1995      Niles D. Ritter         New
  *    7 July,  1995      Greg Martin             Fix index
  *
- * $Log: geo_new.c,v $
- * Revision 1.13  2007/10/03 04:08:03  fwarmerdam
- * avoid memory leak in case of error
- *
- * Revision 1.12  2006/06/26 20:03:37  fwarmerdam
- * If the ascii parameters list is too short for the declared size
- * of an ascii parameter, but it doesn't start off the end of the
- * available string then just trim the length.  This is to make the
- * ESRI sample data file 34105h2.tif work properly.  I wish we had
- * a way of issuing warnings!
- *
- * Revision 1.11  2004/04/27 21:32:08  warmerda
- * Allow GTIFNew(NULL) to work
- *
- * Revision 1.10  2003/09/02 13:52:17  warmerda
- * various hacks to support improperly terminated asciiparms
- *
- * Revision 1.9  2003/06/19 20:04:11  warmerda
- * fix memory underwrite if ascii parameter string is zero length
- *
- * Revision 1.8  2003/06/05 14:20:45  warmerda
- * cosmetic formatting changes
- *
  **********************************************************************/
 
 #include "geotiffio.h"   /* public interface        */
 #include "geo_tiffp.h" /* external TIFF interface */
 #include "geo_keyp.h"  /* private interface       */
+#include "geo_simpletags.h" 
 
 /* private local routines */
 static int ReadKey(GTIF* gt, TempKeyData* tempData,
@@ -72,8 +50,34 @@ still returned.  GTIFNew() is used both for existing files being read, and
 for new TIFF files that will have GeoTIFF tags written to them.<p>
 
  */
- 
+
 GTIF* GTIFNew(void *tif)
+
+{
+    TIFFMethod default_methods;
+    _GTIFSetDefaultTIFF( &default_methods );
+
+    return GTIFNewWithMethods( tif, &default_methods );
+}
+
+GTIF *GTIFNewSimpleTags( void *tif )
+
+{
+    TIFFMethod default_methods;
+    GTIFSetSimpleTagsMethods( &default_methods );
+
+    return GTIFNewWithMethods( tif, &default_methods );
+}
+
+/************************************************************************/
+/*                         GTIFNewWithMethods()                         */
+/*                                                                      */
+/*      Create a new geotiff, passing in the methods structure to       */
+/*      support not libtiff implementations without replacing the       */
+/*      default methods.                                                */
+/************************************************************************/
+
+GTIF* GTIFNewWithMethods(void *tif, TIFFMethod* methods)
 {
     GTIF* gt=(GTIF*)0;
     int count,bufcount,index;
@@ -89,7 +93,7 @@ GTIF* GTIFNew(void *tif)
 	
     /* install TIFF file and I/O methods */
     gt->gt_tif = (tiff_t *)tif;
-    _GTIFSetDefaultTIFF(&gt->gt_methods);
+    memcpy( &gt->gt_methods, methods, sizeof(TIFFMethod) );
 
     /* since this is an array, GTIF will allocate the memory */
     if ( tif == NULL 
@@ -103,6 +107,11 @@ GTIF* GTIFNew(void *tif)
         header->hdr_rev_major = GvCurrentRevision;
         header->hdr_rev_minor = GvCurrentMinorRev;
         gt->gt_nshorts=sizeof(KeyHeader)/sizeof(pinfo_t);
+    }
+    else
+    {
+        /* resize data array so it can be extended if needed */
+        data = (pinfo_t*) _GTIFrealloc(data,(4+MAX_VALUES)*sizeof(pinfo_t));
     }
     gt->gt_short = data;
     header = (KeyHeader *)data;
@@ -129,6 +138,12 @@ GTIF* GTIFNew(void *tif)
     {
         gt->gt_double=(double*)_GTIFcalloc(MAX_VALUES*sizeof(double));
         if (!gt->gt_double) goto failure;	
+    }
+    else
+    {
+        /* resize data array so it can be extended if needed */
+        gt->gt_double = (double*) _GTIFrealloc(gt->gt_double,
+                                               (MAX_VALUES)*sizeof(double));
     }
     if ( tif == NULL
          || !(gt->gt_methods.get)(tif, GTIFF_ASCIIPARAMS,
@@ -240,11 +255,16 @@ static int ReadKey(GTIF* gt, TempKeyData* tempData,
             else if (offset + count > tempData->tk_asciiParamsLength)
                 return (0);
 
-            keyptr->gk_data = (char *) _GTIFcalloc (MAX(1,count+1));
+            keyptr->gk_count = MAX(1,count+1);
+            keyptr->gk_data = (char *) _GTIFcalloc (keyptr->gk_count);
+
             _GTIFmemcpy (keyptr->gk_data,
                          tempData->tk_asciiParams + offset, count);
             if( keyptr->gk_data[MAX(0,count-1)] == '|' )
+            {
                 keyptr->gk_data[MAX(0,count-1)] = '\0';
+                keyptr->gk_count = count;
+            }
             else
                 keyptr->gk_data[MAX(0,count)] = '\0';
             break;

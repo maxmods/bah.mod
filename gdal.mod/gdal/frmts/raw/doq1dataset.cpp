@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: doq1dataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: doq1dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  USGS DOQ Driver (First Generation Format)
  * Purpose:  Implementation of DOQ1Dataset
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: doq1dataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: doq1dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 static double DOQGetField( unsigned char *, int );
 static void DOQGetDescription( GDALDataset *, unsigned char * );
@@ -176,6 +176,17 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
     }
     
 /* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The DOQ1 driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
+/* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
     DOQ1Dataset 	*poDS;
@@ -286,6 +297,7 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
         CPLError( CE_Failure, CPLE_FileIO,
                   "Header read error on %s.\n",
                   poOpenInfo->pszFilename );
+        delete poDS;
         return NULL;
     }
 
@@ -298,6 +310,7 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
         CPLError( CE_Failure, CPLE_FileIO,
                   "Header read error on %s.\n",
                   poOpenInfo->pszFilename );
+        delete poDS;
         return NULL;
     }
 
@@ -305,15 +318,15 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->dfYPixelSize = DOQGetField( abyRecordData + 71, 12 );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtfilters.cpp 15541 2008-10-16 13:54:16Z dron $
+ * $Id: vrtfilters.cpp 17636 2009-09-12 23:19:18Z warmerdam $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of some filter types.
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtfilters.cpp 15541 2008-10-16 13:54:16Z dron $");
+CPL_CVSID("$Id: vrtfilters.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -455,7 +455,7 @@ FilterData( int nXSize, int nYSize, GDALDataType eType,
         int iX, iY;
 
         int bHasNoData;
-        float fNoData = poRasterBand->GetNoDataValue(&bHasNoData);
+        float fNoData = (float) poRasterBand->GetNoDataValue(&bHasNoData);
 
         for( iY = 0; iY < nYSize; iY++ )
         {

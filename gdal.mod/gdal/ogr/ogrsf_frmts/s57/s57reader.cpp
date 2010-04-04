@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp 17954 2009-11-02 21:14:05Z rouault $
+ * $Id: s57reader.cpp 17953 2009-11-02 21:13:56Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -35,7 +35,7 @@
 #include <string>
 #include <fstream>
 
-CPL_CVSID("$Id: s57reader.cpp 17954 2009-11-02 21:14:05Z rouault $");
+CPL_CVSID("$Id: s57reader.cpp 17953 2009-11-02 21:13:56Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846

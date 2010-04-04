@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: wmsdriver.cpp 18020 2009-11-14 14:33:20Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -39,6 +40,18 @@ GDALDataset *GDALWMSDatasetOpen(GDALOpenInfo *poOpenInfo) {
         config = CPLParseXMLFile(poOpenInfo->pszFilename);
     } else return NULL;
     if (config == NULL) return NULL;
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLDestroyXMLNode(config);
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The WMS driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 
     GDALWMSDataset *ds = new GDALWMSDataset();
     ret = ds->Initialize(config);
@@ -80,5 +93,6 @@ void GDALRegister_WMS() {
         mdm->Register(new GDALWMSMiniDriverFactory_WMS());
         mdm->Register(new GDALWMSMiniDriverFactory_TileService());
         mdm->Register(new GDALWMSMiniDriverFactory_WorldWind());
+        mdm->Register(new GDALWMSMiniDriverFactory_TMS());
     }
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_overview.cpp 17417 2009-07-19 14:30:05Z rouault $
+ * $Id: gt_overview.cpp 18243 2009-12-10 17:01:50Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Code to build overviews of external databases as a TIFF file. 
@@ -36,7 +36,7 @@
 #include "geotiff.h"
 #include "gt_overview.h"
 
-CPL_CVSID("$Id: gt_overview.cpp 17417 2009-07-19 14:30:05Z rouault $");
+CPL_CVSID("$Id: gt_overview.cpp 18243 2009-12-10 17:01:50Z warmerdam $");
 
 #define TIFFTAG_GDAL_METADATA  42112
 
@@ -263,6 +263,11 @@ GTIFFBuildOverviews( const char * pszFilename,
             nBandFormat = SAMPLEFORMAT_COMPLEXINT;
             break;
 
+          case GDT_CInt32:
+            nBandBits = 64;
+            nBandFormat = SAMPLEFORMAT_COMPLEXINT;
+            break;
+
           case GDT_CFloat32:
             nBandBits = 64;
             nBandFormat = SAMPLEFORMAT_COMPLEXIEEEFP;
@@ -276,6 +281,16 @@ GTIFFBuildOverviews( const char * pszFilename,
           default:
             CPLAssert( FALSE );
             return CE_Failure;
+        }
+
+        if( hBand->GetMetadataItem( "NBITS", "IMAGE_STRUCTURE" ) )
+        {
+            nBandBits = 
+                atoi(hBand->GetMetadataItem("NBITS","IMAGE_STRUCTURE"));
+
+            if( nBandBits == 1 
+                && EQUALN(pszResampling,"AVERAGE_BIT2",12) )
+                nBandBits = 8;
         }
 
         if( iBand == 0 )
@@ -329,7 +344,7 @@ GTIFFBuildOverviews( const char * pszFilename,
                       "COMPRESS_OVERVIEW=%s value not recognised, ignoring.",
                       pszCompress );
     }
-
+    
 /* -------------------------------------------------------------------- */
 /*      Figure out the planar configuration to use.                     */
 /* -------------------------------------------------------------------- */
@@ -441,11 +456,94 @@ GTIFFBuildOverviews( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Create the file, if it does not already exist.                  */
 /* -------------------------------------------------------------------- */
-    VSIStatBuf  sStatBuf;
+    VSIStatBufL  sStatBuf;
 
-    if( VSIStat( pszFilename, &sStatBuf ) != 0 )
+    if( VSIStatL( pszFilename, &sStatBuf ) != 0 )
     {
-        hOTIFF = XTIFFOpen( pszFilename, "w+" );
+    /* -------------------------------------------------------------------- */
+    /*      Compute the uncompressed size.                                  */
+    /* -------------------------------------------------------------------- */
+        double  dfUncompressedOverviewSize = 0;
+        int nDataTypeSize = GDALGetDataTypeSize(papoBandList[0]->GetRasterDataType())/8;
+
+        for( iOverview = 0; iOverview < nOverviews; iOverview++ )
+        {
+            int    nOXSize, nOYSize;
+
+            nOXSize = (nXSize + panOverviewList[iOverview] - 1) 
+                / panOverviewList[iOverview];
+            nOYSize = (nYSize + panOverviewList[iOverview] - 1) 
+                / panOverviewList[iOverview];
+
+            dfUncompressedOverviewSize += 
+                nOXSize * ((double)nOYSize) * nBands * nDataTypeSize;
+        }
+
+        if( nCompression == COMPRESSION_NONE 
+            && dfUncompressedOverviewSize > 4200000000.0 )
+        {
+    #ifndef BIGTIFF_SUPPORT
+            CPLError( CE_Failure, CPLE_NotSupported, 
+                    "The overview file would be larger than 4GB\n"
+                    "but this is the largest size a TIFF can be, and BigTIFF is unavailable.\n"
+                    "Creation failed." );
+            return CE_Failure;
+    #endif
+        }
+    /* -------------------------------------------------------------------- */
+    /*      Should the file be created as a bigtiff file?                   */
+    /* -------------------------------------------------------------------- */
+        const char *pszBIGTIFF = CPLGetConfigOption( "BIGTIFF_OVERVIEW", NULL );
+
+        if( pszBIGTIFF == NULL )
+            pszBIGTIFF = "IF_NEEDED";
+
+        int bCreateBigTIFF = FALSE;
+        if( EQUAL(pszBIGTIFF,"IF_NEEDED") )
+        {
+            if( nCompression == COMPRESSION_NONE 
+                && dfUncompressedOverviewSize > 4200000000.0 )
+                bCreateBigTIFF = TRUE;
+        }
+        else if( EQUAL(pszBIGTIFF,"IF_SAFER") )
+        {
+            /* Look at the size of the base image and suppose that */
+            /* the added overview levels won't be more than 1/2 of */
+            /* the size of the base image. The theory says 1/3 of the */
+            /* base image size if the overview levels are 2, 4, 8, 16... */
+            /* Thus take 1/2 as the security margin for 1/3 */
+            double dfUncompressedImageSize =
+                        nXSize * ((double)nYSize) * nBands * nDataTypeSize;
+            if( dfUncompressedImageSize * .5 > 4200000000.0 )
+                bCreateBigTIFF = TRUE;
+        }
+        else
+        {
+            bCreateBigTIFF = CSLTestBoolean( pszBIGTIFF );
+            if (!bCreateBigTIFF && nCompression == COMPRESSION_NONE 
+                && dfUncompressedOverviewSize > 4200000000.0 )
+            {
+                CPLError( CE_Failure, CPLE_NotSupported, 
+                    "The overview file will be larger than 4GB, so BigTIFF is necessary.\n"
+                    "Creation failed.");
+                return CE_Failure;
+            }
+        }
+
+    #ifndef BIGTIFF_SUPPORT
+        if( bCreateBigTIFF )
+        {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                    "BigTIFF requested, but GDAL built without BigTIFF\n"
+                    "enabled libtiff, request ignored." );
+            bCreateBigTIFF = FALSE;
+        }
+    #endif
+
+        if( bCreateBigTIFF )
+            CPLDebug( "GTiff", "File being created as a BigTIFF." );
+
+        hOTIFF = XTIFFOpen( pszFilename, (bCreateBigTIFF) ? "w+8" : "w+" );
         if( hOTIFF == NULL )
         {
             if( CPLGetLastErrorNo() == 0 )
@@ -524,22 +622,20 @@ GTIFFBuildOverviews( const char * pszFilename,
     for( iOverview = 0; iOverview < nOverviews; iOverview++ )
     {
         int    nOXSize, nOYSize;
-        uint32 nDirOffset;
 
         nOXSize = (nXSize + panOverviewList[iOverview] - 1) 
             / panOverviewList[iOverview];
         nOYSize = (nYSize + panOverviewList[iOverview] - 1) 
             / panOverviewList[iOverview];
 
-        nDirOffset = 
-            GTIFFWriteDirectory(hOTIFF, FILETYPE_REDUCEDIMAGE,
-                                nOXSize, nOYSize, nBitsPerPixel, 
-                                nPlanarConfig, nBands,
-                                128, 128, TRUE, nCompression,
-                                nPhotometric, nSampleFormat, 
-                                panRed, panGreen, panBlue,
-                                0, NULL, /* FIXME ? how can we fetch extrasamples from here */
-                                osMetadata );
+        GTIFFWriteDirectory(hOTIFF, FILETYPE_REDUCEDIMAGE,
+                            nOXSize, nOYSize, nBitsPerPixel, 
+                            nPlanarConfig, nBands,
+                            128, 128, TRUE, nCompression,
+                            nPhotometric, nSampleFormat, 
+                            panRed, panGreen, panBlue,
+                            0, NULL, /* FIXME? how can we fetch extrasamples */
+                            osMetadata );
     }
 
     if (panRed)
@@ -563,6 +659,18 @@ GTIFFBuildOverviews( const char * pszFilename,
     if( hODS == NULL )
         return CE_Failure;
     
+/* -------------------------------------------------------------------- */
+/*      Do we need to set the jpeg quality?                             */
+/* -------------------------------------------------------------------- */
+    TIFF *hTIFF = (TIFF*) hODS->GetInternalHandle(NULL);
+
+    if( nCompression == COMPRESSION_JPEG 
+        && CPLGetConfigOption( "JPEG_QUALITY_OVERVIEW", NULL ) != NULL )
+    {
+        TIFFSetField( hTIFF, TIFFTAG_JPEGQUALITY, 
+                      atoi(CPLGetConfigOption("JPEG_QUALITY_OVERVIEW","75")) );
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Loop writing overview data.                                     */
 /* -------------------------------------------------------------------- */

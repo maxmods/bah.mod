@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcurve.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrcurve.cpp 16574 2009-03-14 13:09:10Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRCurve geometry class. 
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrcurve.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrcurve.cpp 16574 2009-03-14 13:09:10Z rouault $");
 
 OGRCurve::OGRCurve()
 {
@@ -45,7 +45,7 @@ OGRCurve::~OGRCurve()
 /************************************************************************/
 
 /**
- * Return TRUE if curve is closed.
+ * \brief Return TRUE if curve is closed.
  *
  * Tests if a curve is closed. A curve is closed if its start point is
  * equal to its end point.
@@ -77,7 +77,7 @@ int OGRCurve::get_IsClosed() const
 /**
  * \fn double OGRCurve::get_Length() const;
  *
- * Returns the length of the curve.
+ * \brief Returns the length of the curve.
  *
  * This method relates to the SFCOM ICurve::get_Length() method.
  *
@@ -88,7 +88,7 @@ int OGRCurve::get_IsClosed() const
 /**
  * \fn void OGRCurve::StartPoint( OGRPoint * poPoint ) const;
  *
- * Return the curve start point.
+ * \brief Return the curve start point.
  *
  * This method relates to the SF COM ICurve::get_StartPoint() method.
  *
@@ -98,7 +98,7 @@ int OGRCurve::get_IsClosed() const
 /**
  * \fn void OGRCurve::EndPoint( OGRPoint * poPoint ) const;
  *
- * Return the curve end point.
+ * \brief Return the curve end point.
  *
  * This method relates to the SF COM ICurve::get_EndPoint() method.
  *
@@ -108,7 +108,7 @@ int OGRCurve::get_IsClosed() const
 /**
  * \fn void OGRCurve::Value( double dfDistance, OGRPoint * poPoint ) const;
  *
- * Fetch point at given distance along curve.
+ * \brief Fetch point at given distance along curve.
  *
  * This method relates to the SF COM ICurve::get_Value() method.
  *

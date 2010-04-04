@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa.h 15913 2008-12-08 19:04:24Z warmerdam $
+ * $Id: hfa.h 17710 2009-09-29 14:02:33Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Public (C callable) interface for the Erdas Imagine reading
@@ -157,18 +157,24 @@ CPLErr CPL_DLL HFAGetRasterInfo( HFAHandle hHFA, int *pnXSize, int *pnYSize,
                                  int *pnBands );
 CPLErr CPL_DLL HFAGetBandInfo( HFAHandle hHFA, int nBand, int * pnDataType,
                                int * pnBlockXSize, int * pnBlockYSize, 
-                               int * pnOverviews, int *pnCompressionType );
+                               int *pnCompressionType );
 int    CPL_DLL HFAGetBandNoData( HFAHandle hHFA, int nBand, double *pdfValue );
 CPLErr CPL_DLL HFASetBandNoData( HFAHandle hHFA, int nBand, double dfValue );
+int    CPL_DLL HFAGetOverviewCount( HFAHandle hHFA, int nBand );
 CPLErr CPL_DLL HFAGetOverviewInfo( HFAHandle hHFA, int nBand, int nOverview, 
                                    int * pnXSize, int * pnYSize,
                                    int * pnBlockXSize, int * pnBlockYSize,
                                    int * pnHFADataType );
 CPLErr CPL_DLL HFAGetRasterBlock( HFAHandle hHFA, int nBand, int nXBlock, 
                                   int nYBlock, void * pData );
+CPLErr CPL_DLL HFAGetRasterBlockEx( HFAHandle hHFA, int nBand, int nXBlock, 
+                                    int nYBlock, void * pData, int nDataSize );
 CPLErr CPL_DLL HFAGetOverviewRasterBlock( HFAHandle hHFA, int nBand, 
                                           int iOverview,
                                    int nXBlock, int nYBlock, void * pData );
+CPLErr CPL_DLL HFAGetOverviewRasterBlockEx( HFAHandle hHFA, int nBand, 
+                                          int iOverview,
+                                   int nXBlock, int nYBlock, void * pData, int nDataSize );
 CPLErr CPL_DLL HFASetRasterBlock( HFAHandle hHFA, int nBand, 
                                   int nXBlock, int nYBlock,
                                   void * pData );
@@ -297,6 +303,8 @@ HFAPCSStructToWKT( const Eprj_Datum *psDatum,
 #define EPRJ_STEREOGRAPHIC_EXTENDED             50
 #define EPRJ_CASSINI                            51
 #define EPRJ_TWO_POINT_EQUIDISTANT              52
+#define EPRJ_STEREOGRAPHIC_NORTH_POLE           53
+#define EPRJ_STEREOGRAPHIC_SOUTH_POLE           54
 
 #define EPRJ_EXTERNAL_RSO			"eprj_rso"
 #define EPRJ_EXTERNAL_NZMG                      "nzmg"

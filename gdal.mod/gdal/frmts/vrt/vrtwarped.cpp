@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtwarped.cpp 15926 2008-12-10 02:48:48Z warmerdam $
+ * $Id: vrtwarped.cpp 17852 2009-10-18 11:15:09Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTWarpedRasterBand *and VRTWarpedDataset.
@@ -31,8 +31,9 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 #include "gdalwarper.h"
+#include <cassert>
 
-CPL_CVSID("$Id: vrtwarped.cpp 15926 2008-12-10 02:48:48Z warmerdam $");
+CPL_CVSID("$Id: vrtwarped.cpp 17852 2009-10-18 11:15:09Z rouault $");
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -204,10 +205,13 @@ GDALAutoCreateWarpedVRT( GDALDatasetH hSrcDS,
  *
  * @param hSrcDS The source dataset. 
  *
- * @param nOverviewLevels The number of "power of 2" overview levels to be 
- * built.  If zero, no overview levels will be managed.  
+ * @param nPixels Width of the virtual warped dataset to create
  *
- * @param psOptions Additional warp options, normally NULL.
+ * @param nLines Height of the virtual warped dataset to create
+ *
+ * @param padfGeoTransform Geotransform matrix of the virtual warped dataset to create
+ *
+ * @param psOptions Warp options. Must be different from NULL.
  *
  * @return NULL on failure, or a new virtual dataset handle on success.
  */
@@ -359,10 +363,40 @@ CPLErr VRTWarpedDataset::Initialize( void *psWO )
 }
 
 /************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char** VRTWarpedDataset::GetFileList()
+{
+    char** papszFileList = GDALDataset::GetFileList();
+    
+    if( poWarper != NULL )
+    {
+        const GDALWarpOptions *psWO = poWarper->GetOptions();
+        const char* pszFilename;
+        
+        if( psWO->hSrcDS != NULL &&
+            (pszFilename =
+                    ((GDALDataset*)psWO->hSrcDS)->GetDescription()) != NULL )
+        {
+            VSIStatBufL  sStat;
+            if( VSIStatL( pszFilename, &sStat ) == 0 )
+            {
+                papszFileList = CSLAddString(papszFileList, pszFilename);
+            }
+        }
+    }
+    
+    return papszFileList;
+}
+
+/************************************************************************/
 /*                     VRTWarpedOverviewTransform()                     */
 /************************************************************************/
 
 typedef struct {
+    GDALTransformerInfo sTI;
+
     GDALTransformerFunc pfnBaseTransformer;
     void              *pBaseTransformerArg;
 
@@ -370,6 +404,7 @@ typedef struct {
     double            dfYOverviewFactor;
 } VWOTInfo;
 
+static
 int VRTWarpedOverviewTransform( void *pTransformArg, int bDstToSrc, 
                                 int nPointCount, 
                                 double *padfX, double *padfY, double *padfZ,
@@ -403,6 +438,13 @@ int VRTWarpedOverviewTransform( void *pTransformArg, int bDstToSrc,
     }
 
     return bSuccess;
+}
+
+static void VRTWarpedOverviewCleanup(void* pTransformArg)
+{
+    VWOTInfo *psInfo = (VWOTInfo *) pTransformArg;
+
+    CPLFree( psInfo );
 }
 
 /************************************************************************/
@@ -507,6 +549,12 @@ VRTWarpedDataset::IBuildOverviews( const char *pszResampling,
 /* -------------------------------------------------------------------- */
         GDALWarpOptions *psWO = (GDALWarpOptions *) poWarper->GetOptions();
         psInfo = (VWOTInfo *) CPLCalloc(sizeof(VWOTInfo),1);
+
+        strcpy( psInfo->sTI.szSignature, "GTI" );
+        psInfo->sTI.pszClassName = "VRTWarpedOverviewTransform";
+        psInfo->sTI.pfnTransform = VRTWarpedOverviewTransform;
+        psInfo->sTI.pfnCleanup = VRTWarpedOverviewCleanup;
+        psInfo->sTI.pfnSerialize = NULL;
 
         psInfo->pfnBaseTransformer = psWO->pfnTransformer;
         psInfo->pBaseTransformerArg = psWO->pTransformerArg;
@@ -677,7 +725,11 @@ CPLErr VRTWarpedDataset::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
     {
         int nOvFactor = atoi(papszTokens[iOverview]);
 
-        BuildOverviews( "NEAREST", 1, &nOvFactor, 0, NULL, NULL, NULL );
+        if (nOvFactor > 0)
+            BuildOverviews( "NEAREST", 1, &nOvFactor, 0, NULL, NULL, NULL );
+        else
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "Bad value for overview factor : %s", papszTokens[iOverview]);
     }
 
     CSLDestroy( papszTokens );
@@ -792,6 +844,9 @@ CPLXMLNode *VRTWarpedDataset::SerializeToXML( const char *pszVRTPath )
 void VRTWarpedDataset::GetBlockSize( int *pnBlockXSize, int *pnBlockYSize )
 
 {
+    assert( NULL != pnBlockXSize );
+    assert( NULL != pnBlockYSize );
+
     *pnBlockXSize = nBlockXSize;
     *pnBlockYSize = nBlockYSize;
 }
@@ -838,11 +893,13 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
 /* -------------------------------------------------------------------- */
 /*      Process INIT_DEST option to initialize the buffer prior to      */
 /*      warping into it.                                                */
+/* NOTE:The following code is 99% similar in gdalwarpoperation.cpp and  */
+/*      vrtwarped.cpp. Be careful to keep it in sync !                  */
 /* -------------------------------------------------------------------- */
     const char *pszInitDest = CSLFetchNameValue( psWO->papszWarpOptions,
                                                  "INIT_DEST" );
 
-    if( pszInitDest != NULL )
+    if( pszInitDest != NULL && !EQUAL(pszInitDest, "") )
     {
         char **papszInitValues = 
             CSLTokenizeStringComplex( pszInitDest, ",", FALSE, FALSE );
@@ -946,6 +1003,8 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
 CPLErr VRTWarpedDataset::AddBand( GDALDataType eType, char **papszOptions )
 
 {
+    UNREFERENCED_PARAM( papszOptions );
+
     SetBand( GetRasterCount() + 1,
              new VRTWarpedRasterBand( this, GetRasterCount() + 1, eType ) );
 

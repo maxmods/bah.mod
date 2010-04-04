@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbctablelayer.cpp 17872 2009-10-22 15:10:32Z warmerdam $
+ * $Id: ogrodbctablelayer.cpp 17870 2009-10-22 04:47:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_odbc.h"
 
-CPL_CVSID("$Id: ogrodbctablelayer.cpp 17872 2009-10-22 15:10:32Z warmerdam $");
+CPL_CVSID("$Id: ogrodbctablelayer.cpp 17870 2009-10-22 04:47:29Z warmerdam $");
 /************************************************************************/
 /*                          OGRODBCTableLayer()                         */
 /************************************************************************/
@@ -327,13 +327,9 @@ OGRErr OGRODBCTableLayer::SetAttributeFilter( const char *pszQuery )
 int OGRODBCTableLayer::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,OLCSequentialWrite) 
-             || EQUAL(pszCap,OLCRandomWrite) )
-        return bUpdateAccess;
-
-    else if( EQUAL(pszCap,OLCCreateField) )
-        return bUpdateAccess;
-
+    if( EQUAL(pszCap,OLCRandomRead) )
+        return TRUE;
+        
     else 
         return OGRODBCLayer::TestCapability( pszCap );
 }

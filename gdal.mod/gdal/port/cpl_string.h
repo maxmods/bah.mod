@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.h 14851 2008-07-07 18:57:42Z mloskot $
+ * $Id: cpl_string.h 18103 2009-11-25 21:03:23Z rouault $
  *
  * Name:     cpl_string.h
  * Project:  CPL - Common Portability Library
@@ -79,6 +79,7 @@ char CPL_DLL **CSLTokenizeString2( const char *pszString,
 
 int CPL_DLL CSLPrint(char **papszStrList, FILE *fpOut);
 char CPL_DLL **CSLLoad(const char *pszFname);
+char CPL_DLL **CSLLoad2(const char *pszFname, int nMaxLines, int nMaxCols, char** papszOptions);
 int CPL_DLL CSLSave(char **papszStrList, const char *pszFname);
 
 char CPL_DLL **CSLInsertStrings(char **papszStrList, int nInsertAtLineNo, 
@@ -103,6 +104,9 @@ const char CPL_DLL *
       CPLParseNameValue(const char *pszNameValue, char **ppszKey );
 const char CPL_DLL *
       CSLFetchNameValue(char **papszStrList, const char *pszName);
+const char CPL_DLL *
+      CSLFetchNameValueDef(char **papszStrList, const char *pszName,
+                           const char *pszDefault );
 char CPL_DLL **
       CSLFetchNameValueMultiple(char **papszStrList, const char *pszName);
 char CPL_DLL **
@@ -137,6 +141,10 @@ typedef enum
 
 CPLValueType CPL_DLL CPLGetValueType(const char* pszValue);
 
+size_t CPL_DLL CPLStrlcpy(char* pszDest, const char* pszSrc, size_t nDestSize);
+size_t CPL_DLL CPLStrlcat(char* pszDest, const char* pszSrc, size_t nDestSize);
+size_t CPL_DLL CPLStrnlen (const char *pszStr, size_t nMaxLen);
+
 /* -------------------------------------------------------------------- */
 /*      RFC 23 character set conversion/recoding API (cpl_recode.cpp).  */
 /* -------------------------------------------------------------------- */
@@ -157,6 +165,8 @@ char CPL_DLL *CPLRecodeFromWChar( const wchar_t *pwszSource,
 wchar_t CPL_DLL *CPLRecodeToWChar( const char *pszSource,
                                    const char *pszSrcEncoding, 
                                    const char *pszDstEncoding );
+int CPL_DLL CPLIsUTF8(const char* pabyData, int nLen);
+char CPL_DLL *CPLForceToASCII(const char* pabyData, int nLen, char chReplacementChar);
 
 CPL_C_END
 

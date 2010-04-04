@@ -5,6 +5,12 @@
  *  libgeotiff. 
  *
  *  Written By: Niles Ritter
+ *
+ *  copyright (c) 1995   Niles D. Ritter
+ *
+ *  Permission granted to use this software, so long as this copyright
+ *  notice accompanies any products derived therefrom.
+ *
  */
 
 #include "geotiffio.h"
@@ -75,6 +81,7 @@ char *GTIFValueName(geokey_t key, int value)
 	case ProjLinearUnitsGeoKey: 
 	case GeogAngularUnitsGeoKey: 
 	case GeogAzimuthUnitsGeoKey: 
+        case VerticalUnitsGeoKey:
 		                      info=_geounitsValue; break;
 
    	/* put other key-dependent lists here */

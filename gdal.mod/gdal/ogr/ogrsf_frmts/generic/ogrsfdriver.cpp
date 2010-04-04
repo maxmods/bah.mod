@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsfdriver.cpp 14432 2008-05-10 18:47:46Z warmerdam $
+ * $Id: ogrsfdriver.cpp 16319 2009-02-13 23:17:58Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFDriver class.
@@ -31,7 +31,7 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrsfdriver.cpp 14432 2008-05-10 18:47:46Z warmerdam $");
+CPL_CVSID("$Id: ogrsfdriver.cpp 16319 2009-02-13 23:17:58Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRSFDriver()                            */
@@ -152,6 +152,7 @@ int OGR_Dr_TestCapability( OGRSFDriverH hDriver, const char *pszCap )
 
 {
     VALIDATE_POINTER1( hDriver, "OGR_Dr_TestCapability", 0 );
+    VALIDATE_POINTER1( pszCap, "OGR_Dr_TestCapability", 0 );
 
     return ((OGRSFDriver *) hDriver)->TestCapability( pszCap );
 }

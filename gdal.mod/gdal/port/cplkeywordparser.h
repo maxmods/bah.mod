@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdsdataset.cpp 12658 2007-11-07 23:14:33Z warmerdam $
+ * $Id: cplkeywordparser.h 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  Common Portability Library
  * Purpose:  Implementation of CPLKeywordParser - a class for parsing

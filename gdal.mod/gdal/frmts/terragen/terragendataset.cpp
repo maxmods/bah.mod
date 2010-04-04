@@ -106,7 +106,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-// CPL_CVSID("$Id: terragendataset.cpp 13442 2007-12-21 23:16:31Z rayg $");
+// CPL_CVSID("$Id: terragendataset.cpp 18240 2009-12-10 15:53:48Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_Terragen(void);
@@ -406,7 +406,7 @@ CPLErr TerragenRasterBand::IWriteBlock
 		float* pfImage = (float*)pImage;
 		for(size_t x = 0; x < (size_t)nBlockXSize; x++)
 		{
-			float f = pfImage[x];
+			double f = pfImage[x];
 			f *= ds.m_dMetersPerElevUnit;
 			f /= ds.m_dSCAL;
 			GInt16 hv = 
@@ -896,7 +896,7 @@ CPLErr TerragenDataset::SetProjection( const char * pszNewProjection )
 /* -------------------------------------------------------------------- */
 /*      Linear units.                                                   */
 /* -------------------------------------------------------------------- */
-    m_bIsGeo = oSRS.IsGeographic();
+    m_bIsGeo = (oSRS.IsGeographic() != FALSE);
     if(m_bIsGeo)
     {
         // The caller is using degrees. We need to convert 
@@ -1120,6 +1120,11 @@ GDALDataset *TerragenDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Support overviews.                                              */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

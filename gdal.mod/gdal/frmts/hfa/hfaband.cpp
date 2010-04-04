@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 17691 2009-09-25 18:02:43Z rouault $
+ * $Id: hfaband.cpp 18631 2010-01-24 04:45:31Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -32,7 +32,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 17691 2009-09-25 18:02:43Z rouault $");
+CPL_CVSID("$Id: hfaband.cpp 18631 2010-01-24 04:45:31Z warmerdam $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -43,6 +43,8 @@ HFABand::HFABand( HFAInfo_t * psInfoIn, HFAEntry * poNodeIn )
 {
     psInfo = psInfoIn;
     poNode = poNodeIn;
+
+    bOverviewsPending = TRUE;
 
     nBlockXSize = poNodeIn->GetIntField( "blockWidth" );
     nBlockYSize = poNodeIn->GetIntField( "blockHeight" );
@@ -99,6 +101,50 @@ HFABand::HFABand( HFAInfo_t * psInfoIn, HFAEntry * poNodeIn )
         dfNoData = poNDNode->GetDoubleField( "valueBD" );
     }
 
+}
+
+/************************************************************************/
+/*                              ~HFABand()                              */
+/************************************************************************/
+
+HFABand::~HFABand()
+
+{
+    for( int iOverview = 0; iOverview < nOverviews; iOverview++ )
+        delete papoOverviews[iOverview];
+
+    if( nOverviews > 0 )
+        CPLFree( papoOverviews );
+
+    if ( panBlockStart )
+        CPLFree( panBlockStart );
+    if ( panBlockSize )
+        CPLFree( panBlockSize );
+    if ( panBlockFlag )
+        CPLFree( panBlockFlag );
+
+    CPLFree( apadfPCT[0] );
+    CPLFree( apadfPCT[1] );
+    CPLFree( apadfPCT[2] );
+    CPLFree( apadfPCT[3] );
+    CPLFree( padfPCTBins );
+
+    if( fpExternal != NULL )
+        VSIFCloseL( fpExternal );
+}
+
+/************************************************************************/
+/*                           LoadOverviews()                            */
+/************************************************************************/
+
+CPLErr HFABand::LoadOverviews()
+
+{
+    if( !bOverviewsPending )
+        return CE_None;
+
+    bOverviewsPending = FALSE;
+
 /* -------------------------------------------------------------------- */
 /*      Does this band have overviews?  Try to find them.               */
 /* -------------------------------------------------------------------- */
@@ -144,7 +190,7 @@ HFABand::HFABand( HFAInfo_t * psInfoIn, HFAEntry * poNodeIn )
             if( psHFA == NULL )
             {
                 char *pszBasename = 
-                    CPLStrdup(CPLGetBasename(psInfoIn->pszFilename));
+                    CPLStrdup(CPLGetBasename(psInfo->pszFilename));
                 
                 pszJustFilename = 
                     CPLStrdup(CPLFormFilename(NULL, pszBasename, "rrd"));
@@ -189,7 +235,7 @@ HFABand::HFABand( HFAInfo_t * psInfoIn, HFAEntry * poNodeIn )
                 nWidth = nHeight = 0;
                 delete papoOverviews[nOverviews-1];
                 papoOverviews[nOverviews-1] = NULL;
-                return;
+                return CE_None;
             }
         }
     }
@@ -217,41 +263,13 @@ HFABand::HFABand( HFAInfo_t * psInfoIn, HFAEntry * poNodeIn )
                     nWidth = nHeight = 0;
                     delete papoOverviews[nOverviews-1];
                     papoOverviews[nOverviews-1] = NULL;
-                    return;
+                    return CE_None;
                 }
             }
         }
     }
-}
 
-/************************************************************************/
-/*                              ~HFABand()                              */
-/************************************************************************/
-
-HFABand::~HFABand()
-
-{
-    for( int iOverview = 0; iOverview < nOverviews; iOverview++ )
-        delete papoOverviews[iOverview];
-
-    if( nOverviews > 0 )
-        CPLFree( papoOverviews );
-
-    if ( panBlockStart )
-        CPLFree( panBlockStart );
-    if ( panBlockSize )
-        CPLFree( panBlockSize );
-    if ( panBlockFlag )
-        CPLFree( panBlockFlag );
-
-    CPLFree( apadfPCT[0] );
-    CPLFree( apadfPCT[1] );
-    CPLFree( apadfPCT[2] );
-    CPLFree( apadfPCT[3] );
-    CPLFree( padfPCTBins );
-
-    if( fpExternal != NULL )
-        VSIFCloseL( fpExternal );
+    return CE_None;
 }
 
 /************************************************************************/
@@ -454,16 +472,22 @@ CPLErr	HFABand::LoadExternalBlockInfo()
 /*      Uncompress ESRI Grid compression format block.                  */
 /************************************************************************/
 
-static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
+#define CHECK_ENOUGH_BYTES(n) \
+    if (nSrcBytes < (n)) goto not_enough_bytes;
+
+static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
                                GByte *pabyDest, int nMaxPixels, 
                                int nDataType )
 
 {
-    GUInt32  nDataMin, nDataOffset;
+    GUInt32  nDataMin;
     int      nNumBits, nPixelsOutput=0;			
-    GInt32   nNumRuns;
+    GInt32   nNumRuns, nDataOffset;
     GByte *pabyCounter, *pabyValues;
     int   nValueBitOffset;
+    int nCounterOffset;
+    
+    CHECK_ENOUGH_BYTES(13);
 
     memcpy( &nDataMin, pabyCData, 4 );
     nDataMin = CPL_LSBWORD32( nDataMin );
@@ -484,6 +508,15 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
     {
         pabyValues = pabyCData + 13;
         nValueBitOffset = 0;
+        
+        if (nNumBits > INT_MAX / nMaxPixels ||
+            nNumBits * nMaxPixels > INT_MAX - 7 ||
+            (nNumBits * nMaxPixels + 7)/8 > INT_MAX - 13)
+        {
+            CPLError(CE_Failure, CPLE_AppDefined, "Integer overflow : nNumBits * nMaxPixels + 7");
+            return CE_Failure;
+        }
+        CHECK_ENOUGH_BYTES(13 + (nNumBits * nMaxPixels + 7)/8);
 
 /* -------------------------------------------------------------------- */
 /*      Loop over block pixels.                                         */
@@ -563,11 +596,11 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
             }
             else if( nDataType == EPT_u2 )
             {
-                if( (nPixelsOutput & 0x1) == 0 )
+                if( (nPixelsOutput & 0x3) == 0 )
                     pabyDest[nPixelsOutput>>2] = (GByte) nDataValue;
-                else if( (nPixelsOutput & 0x1) == 1 )
+                else if( (nPixelsOutput & 0x3) == 1 )
                     pabyDest[nPixelsOutput>>2] |= (GByte) (nDataValue<<2);
-                else if( (nPixelsOutput & 0x1) == 2 )
+                else if( (nPixelsOutput & 0x3) == 2 )
                     pabyDest[nPixelsOutput>>2] |= (GByte) (nDataValue<<4);
                 else
                     pabyDest[nPixelsOutput>>2] |= (GByte) (nDataValue<<6);
@@ -619,7 +652,25 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
 /* ==================================================================== */
 /*      Establish data pointers for runs.                               */
 /* ==================================================================== */
+    if (nNumRuns < 0 || nDataOffset < 0)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "nNumRuns=%d, nDataOffset=%d",
+                 nNumRuns, nDataOffset);
+        return CE_Failure;
+    }
+    
+    if (nNumBits > INT_MAX / nNumRuns ||
+        nNumBits * nNumRuns > INT_MAX - 7 ||
+        (nNumBits * nNumRuns + 7)/8 > INT_MAX - nDataOffset)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Integer overflow : nDataOffset + (nNumBits * nNumRuns + 7)/8");
+        return CE_Failure;
+    }
+    CHECK_ENOUGH_BYTES(nDataOffset + (nNumBits * nNumRuns + 7)/8);
+    
     pabyCounter = pabyCData + 13;
+    nCounterOffset = 13;
     pabyValues = pabyCData + nDataOffset;
     nValueBitOffset = 0;
     
@@ -638,27 +689,35 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
 /*      or four bytes depending on the low order two bits of the        */
 /*      first byte.                                                     */
 /* -------------------------------------------------------------------- */
+        CHECK_ENOUGH_BYTES(nCounterOffset+1);
         if( ((*pabyCounter) & 0xc0) == 0x00 )
         {
             nRepeatCount = (*(pabyCounter++)) & 0x3f;
+            nCounterOffset ++;
         }
         else if( ((*pabyCounter) & 0xc0) == 0x40 )
         {
+            CHECK_ENOUGH_BYTES(nCounterOffset + 2);
             nRepeatCount = (*(pabyCounter++)) & 0x3f;
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
+            nCounterOffset += 2;
         }
         else if( ((*pabyCounter) & 0xc0) == 0x80 )
         {
+            CHECK_ENOUGH_BYTES(nCounterOffset + 3);
             nRepeatCount = (*(pabyCounter++)) & 0x3f;
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
+            nCounterOffset += 3;
         }
         else if( ((*pabyCounter) & 0xc0) == 0xc0 )
         {
+            CHECK_ENOUGH_BYTES(nCounterOffset + 4);
             nRepeatCount = (*(pabyCounter++)) & 0x3f;
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
             nRepeatCount = nRepeatCount * 256 + (*(pabyCounter++));
+            nCounterOffset += 4;
         }
 
 /* -------------------------------------------------------------------- */
@@ -706,9 +765,9 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
         }
         else
         {
-            printf( "nNumBits = %d\n", nNumBits );
-            CPLAssert( FALSE );
-            nDataValue = 0;
+            CPLError( CE_Failure, CPLE_NotSupported,
+                      "nNumBits = %d", nNumBits );
+            return CE_Failure;
         }
 
 /* -------------------------------------------------------------------- */
@@ -721,7 +780,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
 /* -------------------------------------------------------------------- */
         if( nPixelsOutput + nRepeatCount > nMaxPixels )
         {
-            CPLAssert( FALSE );
+            CPLDebug("HFA", "Repeat count too big : %d", nRepeatCount);
             nRepeatCount = nMaxPixels - nPixelsOutput;
         }
         
@@ -840,6 +899,11 @@ static CPLErr UncompressBlock( GByte *pabyCData, int /* nSrcBytes */,
     }
 
     return CE_None;
+    
+not_enough_bytes:
+
+    CPLError(CE_Failure, CPLE_AppDefined, "Not enough bytes in compressed block");
+    return CE_Failure;
 }
 
 /************************************************************************/
@@ -935,7 +999,7 @@ void HFABand::NullBlock( void *pData )
             break;
 
           case EPT_c64:
-            ((float *) &adfND)[0] = dfNoData;
+            ((float *) &adfND)[0] = (float) dfNoData;
             ((float *) &adfND)[1] = 0;
             break;
 
@@ -956,7 +1020,7 @@ void HFABand::NullBlock( void *pData )
 /*                           GetRasterBlock()                           */
 /************************************************************************/
 
-CPLErr HFABand::GetRasterBlock( int nXBlock, int nYBlock, void * pData )
+CPLErr HFABand::GetRasterBlock( int nXBlock, int nYBlock, void * pData, int nDataSize )
 
 {
     int		iBlock;
@@ -1070,6 +1134,14 @@ CPLErr HFABand::GetRasterBlock( int nXBlock, int nYBlock, void * pData )
 /* -------------------------------------------------------------------- */
 /*      Read uncompressed data directly into the return buffer.         */
 /* -------------------------------------------------------------------- */
+    if ( nDataSize != -1 && (nBlockSize > INT_MAX ||
+                             (int)nBlockSize > nDataSize) )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Invalid block size : %d", (int)nBlockSize);
+        return CE_Failure;
+    }
+
     if( VSIFReadL( pData, (size_t) nBlockSize, 1, fpData ) != 1 )
     {
 	memset( pData, 0, 
@@ -1151,7 +1223,7 @@ void HFABand::ReAllocBlock( int iBlock, int nSize )
 	 	
         char	szVarName[64];
         sprintf( szVarName, "blockinfo[%d].offset", iBlock );
-        poDMS->SetIntField( szVarName, panBlockStart[iBlock] );
+        poDMS->SetIntField( szVarName, (int) panBlockStart[iBlock] );
 		
         sprintf( szVarName, "blockinfo[%d].size", iBlock );
         poDMS->SetIntField( szVarName, panBlockSize[iBlock] );
@@ -1480,10 +1552,10 @@ void HFABand::SetBandName(const char *pszName)
 
 CPLErr HFABand::SetNoDataValue( double dfValue ) 
 { 
- 	CPLErr eErr = CE_Failure; 
- 	
- 	if ( psInfo->eAccess == HFA_Update ) 
- 	{ 
+    CPLErr eErr = CE_Failure; 
+    
+    if ( psInfo->eAccess == HFA_Update ) 
+    { 
         HFAEntry *poNDNode = poNode->GetNamedChild( "Eimg_NonInitializedValue" ); 
         
         if ( poNDNode == NULL ) 
@@ -1507,18 +1579,18 @@ CPLErr HFABand::SetNoDataValue( double dfValue )
             eErr = CE_None; 
         } 
     } 
-
+    
     return eErr;     
 }
 
 /************************************************************************/
-/*                           HFAReadPCTBins()                           */
+/*                        HFAReadBFUniqueBins()                         */
 /*                                                                      */
-/*      Attempt to read the bins used for a PCT from a BinFunction      */
-/*      node.  On failure just return NULL.                             */
+/*      Attempt to read the bins used for a PCT or RAT from a           */
+/*      BinFunction node.  On failure just return NULL.                 */
 /************************************************************************/
 
-static double *HFAReadPCTBins( HFAEntry *poBinFunc, int nPCTColors )
+double *HFAReadBFUniqueBins( HFAEntry *poBinFunc, int nPCTColors )
 
 {
 /* -------------------------------------------------------------------- */
@@ -1535,8 +1607,12 @@ static double *HFAReadPCTBins( HFAEntry *poBinFunc, int nPCTColors )
 /* -------------------------------------------------------------------- */
 /*      Process dictionary.                                             */
 /* -------------------------------------------------------------------- */
-    HFADictionary oMiniDict( 
-        poBinFunc->GetStringField( "binFunction.MIFDictionary" ) );
+    const char *pszDict = 
+        poBinFunc->GetStringField( "binFunction.MIFDictionary.string" );
+    if( pszDict == NULL )
+        poBinFunc->GetStringField( "binFunction.MIFDictionary" );
+
+    HFADictionary oMiniDict( pszDict );
 
     HFAType *poBFUnique = oMiniDict.FindType( "BFUnique" );
     if( poBFUnique == NULL )
@@ -1550,6 +1626,15 @@ static double *HFAReadPCTBins( HFAEntry *poBinFunc, int nPCTColors )
     
     if( pabyMIFObject == NULL )
         return NULL;
+
+/* -------------------------------------------------------------------- */
+/*      Confirm that this is a 64bit floating point basearray.          */
+/* -------------------------------------------------------------------- */
+    if( pabyMIFObject[20] != 0x0a || pabyMIFObject[21] != 0x00 )
+    {
+        CPLDebug( "HFA", "HFAReadPCTBins(): The basedata does not appear to be EGDA_TYPE_F64." );
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Decode bins.                                                    */
@@ -1660,7 +1745,7 @@ CPLErr HFABand::GetPCT( int * pnColors,
         
         if( poBinFunc != NULL )
         {
-            padfPCTBins = HFAReadPCTBins( poBinFunc, nPCTColors );
+            padfPCTBins = HFAReadBFUniqueBins( poBinFunc, nPCTColors );
         }
     }
 
@@ -1929,6 +2014,12 @@ int HFABand::CreateOverview( int nOverviewLevel )
     papoOverviews = (HFABand **) 
         CPLRealloc(papoOverviews, sizeof(void*) * ++nOverviews );
     papoOverviews[nOverviews-1] = new HFABand( psRRDInfo, poOverLayer );
+
+/* -------------------------------------------------------------------- */
+/*      If there is a nodata value, copy it to the overview band.       */
+/* -------------------------------------------------------------------- */
+    if( bNoDataSet )
+        papoOverviews[nOverviews-1]->SetNoDataValue( dfNoData );
 
     return nOverviews-1;
 }

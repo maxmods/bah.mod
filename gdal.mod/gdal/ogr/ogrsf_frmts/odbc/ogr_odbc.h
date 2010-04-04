@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_odbc.h 17872 2009-10-22 15:10:32Z warmerdam $
+ * $Id: ogr_odbc.h 17870 2009-10-22 04:47:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/ODBC driver.

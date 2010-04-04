@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: memdataset.cpp 15233 2008-08-27 19:23:03Z rouault $
+ * $Id: memdataset.cpp 17837 2009-10-15 21:20:09Z rouault $
  *
  * Project:  Memory Array Translator
  * Purpose:  Complete implementation.
@@ -30,7 +30,7 @@
 #include "memdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: memdataset.cpp 15233 2008-08-27 19:23:03Z rouault $");
+CPL_CVSID("$Id: memdataset.cpp 17837 2009-10-15 21:20:09Z rouault $");
 
 /************************************************************************/
 /*                        MEMCreateRasterBand()                         */
@@ -454,6 +454,35 @@ CPLErr MEMDataset::SetGeoTransform( double *padfGeoTransform )
 }
 
 /************************************************************************/
+/*                          GetInternalHandle()                         */
+/************************************************************************/
+
+void *MEMDataset::GetInternalHandle( const char * pszRequest)
+
+{
+    // check for MEMORYnnn string in pszRequest (nnnn can be up to 10 
+    // digits, or even omitted)
+    if( EQUALN(pszRequest,"MEMORY",6))
+    {
+        if(int BandNumber = CPLScanLong(&pszRequest[6], 10))
+        {
+            MEMRasterBand *RequestedRasterBand = 
+                (MEMRasterBand *)GetRasterBand(BandNumber);
+
+            // we're within a MEMDataset so the only thing a RasterBand 
+            // could be is a MEMRasterBand
+
+            if( RequestedRasterBand != NULL )
+            {
+                // return the internal band data pointer
+                return(RequestedRasterBand->GetData());
+            }
+        }
+    }
+
+    return NULL;
+}
+/************************************************************************/
 /*                            GetGCPCount()                             */
 /************************************************************************/
 
@@ -617,26 +646,7 @@ GDALDataset *MEMDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS = new MEMDataset();
 
     poDS->nRasterXSize = atoi(CSLFetchNameValue(papszOptions,"PIXELS"));
-    if (poDS->nRasterXSize <= 0)
-    {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Invalid value : PIXELS=%s.", CSLFetchNameValue(papszOptions,"PIXELS"));
-
-        CSLDestroy( papszOptions );
-        delete poDS;
-        return NULL;
-    }
     poDS->nRasterYSize = atoi(CSLFetchNameValue(papszOptions,"LINES"));
-    if (poDS->nRasterYSize <= 0)
-    {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Invalid value : LINES=%s.", CSLFetchNameValue(papszOptions,"LINES"));
-
-        CSLDestroy( papszOptions );
-        delete poDS;
-        return NULL;
-    }
-
     poDS->eAccess = GA_Update;
 
 /* -------------------------------------------------------------------- */
@@ -655,15 +665,14 @@ GDALDataset *MEMDataset::Open( GDALOpenInfo * poOpenInfo )
     else
     {
         nBands = atoi(pszOption);
-        if (nBands > 10000)
-        {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                    "Invalid value : BANDS=%s.", CSLFetchNameValue(papszOptions,"BANDS"));
+    }
 
-            CSLDestroy( papszOptions );
-            delete poDS;
-            return NULL;
-        }
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(nBands, TRUE))
+    {
+        CSLDestroy( papszOptions );
+        delete poDS;
+        return NULL;
     }
 
     pszOption = CSLFetchNameValue(papszOptions,"DATATYPE");
@@ -759,11 +768,21 @@ GDALDataset *MEMDataset::Create( const char * pszFilename,
     int   	iBand;
     int         nWordSize = GDALGetDataTypeSize(eType) / 8;
 
-    papBandData = (GByte **) CPLCalloc(sizeof(void *),nBands);
+    papBandData = (GByte **) VSICalloc(sizeof(void *),nBands);
+    if (papBandData == NULL)
+    {
+        CPLError( CE_Failure, CPLE_OutOfMemory,
+                      "Unable to create band arrays ... out of memory." );
+        return NULL;
+    }
+
     for( iBand = 0; iBand < nBands; iBand++ )
     {
-        // FIXME? : risk of overflow in multiplication
-        papBandData[iBand] = (GByte *) VSICalloc( nWordSize, nXSize * nYSize );
+        size_t nMulResult = ((size_t)nXSize) * nYSize;
+        if ( nMulResult / nXSize != (size_t)nYSize )
+            papBandData[iBand] = NULL;
+        else
+            papBandData[iBand] = (GByte *) VSICalloc( nWordSize, nMulResult );
         if( papBandData[iBand] == NULL )
         {
             for( iBand = 0; iBand < nBands; iBand++ )
@@ -847,8 +866,14 @@ void GDALRegister_MEM()
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, 
                                    "Byte Int16 UInt16 Int32 UInt32 Float32 Float64 CInt16 CInt32 CFloat32 CFloat64" );
 
+/* Define GDAL_NO_OPEN_FOR_MEM_DRIVER macro to undefine Open() method for MEM driver. */
+/* Otherwise, bad user input can trigger easily a GDAL crash as random pointers can be passed as a string. */
+/* All code in GDAL tree using the MEM driver use the Create() method only, so Open() */
+/* is not needed, except for esoteric uses */
+#ifndef GDAL_NO_OPEN_FOR_MEM_DRIVER
         poDriver->pfnOpen = MEMDataset::Open;
         poDriver->pfnIdentify = MEMDatasetIdentify;
+#endif
         poDriver->pfnCreate = MEMDataset::Create;
         poDriver->pfnDelete = MEMDatasetDelete;
 

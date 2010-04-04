@@ -349,7 +349,8 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
         }
         else if( EQUAL(papszTokens[0],"FORMAT") )
         {
-            strncpy( szLayout, papszTokens[1], sizeof(szLayout)-1 );
+            strncpy( szLayout, papszTokens[1], sizeof(szLayout) );
+            szLayout[sizeof(szLayout)-1] = '\0';
         }
         else if( EQUAL(papszTokens[0],"DATATYPE") )
         {
@@ -388,6 +389,9 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
                 CPLError( CE_Failure, CPLE_NotSupported, 
                   "EIR driver does not support DATATYPE %s.", 
                   papszTokens[1] );
+                CSLDestroy( papszTokens );
+                CSLDestroy( papszHDR );
+                VSIFCloseL( fp );
                 return NULL;
             }
         }
@@ -417,8 +421,25 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
         CSLDestroy( papszHDR );
         return NULL;
     }
-    
 
+    if (!GDALCheckDatasetDimensions(nCols, nRows) ||
+        !GDALCheckBandCount(nBands, FALSE))
+    {
+        CSLDestroy( papszHDR );
+        return NULL;
+    }
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CSLDestroy( papszHDR );
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The EIR driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
@@ -457,25 +478,25 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Compute the line offset.                                        */
 /* -------------------------------------------------------------------- */
     int             nItemSize = GDALGetDataTypeSize(eDataType)/8;
-    int             nPixelOffset;
-    vsi_l_offset    nLineOffset, nBandOffset;
+    int             nPixelOffset, nLineOffset;
+    vsi_l_offset    nBandOffset;
 
     if( EQUAL(szLayout,"BIP") )
     {
         nPixelOffset = nItemSize * nBands;
-        nLineOffset = (vsi_l_offset)nPixelOffset * nCols;
+        nLineOffset = nPixelOffset * nCols;
         nBandOffset = (vsi_l_offset)nItemSize;
     }
     else if( EQUAL(szLayout,"BSQ") )
     {
         nPixelOffset = nItemSize;
-        nLineOffset = (vsi_l_offset)nPixelOffset * nCols;
+        nLineOffset = nPixelOffset * nCols;
         nBandOffset = (vsi_l_offset)nLineOffset * nRows;
     }
     else /* assume BIL */
     {
         nPixelOffset = nItemSize;
-        nLineOffset = (vsi_l_offset)nItemSize * nBands * nCols;
+        nLineOffset = nItemSize * nBands * nCols;
         nBandOffset = (vsi_l_offset)nItemSize * nCols;
     }
     
@@ -520,18 +541,16 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
             GDALReadWorldFile( poOpenInfo->pszFilename, "wld", 
                                poDS->adfGeoTransform );
     
-
-/* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->TryLoadXML();
     
-    
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
     return( poDS );
 }
 

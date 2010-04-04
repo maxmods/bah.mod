@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.cpp 17650 2009-09-17 15:24:40Z warmerdam $
+ * $Id: ogr_gensql.cpp 17648 2009-09-17 15:11:18Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGenSQLResultsLayer.
@@ -31,7 +31,7 @@
 #include "ogr_gensql.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogr_gensql.cpp 17650 2009-09-17 15:24:40Z warmerdam $");
+CPL_CVSID("$Id: ogr_gensql.cpp 17648 2009-09-17 15:11:18Z warmerdam $");
 
 /************************************************************************/
 /*                       OGRGenSQLResultsLayer()                        */
@@ -599,6 +599,9 @@ OGRFeature *OGRGenSQLResultsLayer::TranslateFeature( OGRFeature *poSrcFeat )
               case SWQ_INTEGER:
                 poDstFeat->SetField( iField, poSrcFeat->GetFieldAsInteger(psColDef->field_index) );
                 break;
+              case SWQ_FLOAT:
+                poDstFeat->SetField( iField, poSrcFeat->GetFieldAsDouble(psColDef->field_index) );
+                break;
               default:
                 poDstFeat->SetField( iField, poSrcFeat->GetFieldAsString(psColDef->field_index) );
             }
@@ -926,6 +929,10 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
                         psDstField->Integer = poSrcFeat->GetFieldAsInteger(psKeyDef->field_index);
                         break;
 
+                      case SWQ_FLOAT:
+                        psDstField->Real = poSrcFeat->GetFieldAsDouble(psKeyDef->field_index);
+                        break;
+
                       default:
                         psDstField->String = CPLStrdup( poSrcFeat->GetFieldAsString(psKeyDef->field_index) );
                         break;
@@ -1155,6 +1162,12 @@ int OGRGenSQLResultsLayer::Compare( OGRField *pasFirstTuple,
                 if( pasFirstTuple[iKey].Integer < pasSecondTuple[iKey].Integer )
                     nResult = -1;
                 else if( pasFirstTuple[iKey].Integer > pasSecondTuple[iKey].Integer )
+                    nResult = 1;
+                break;
+              case SWQ_FLOAT:
+                if( pasFirstTuple[iKey].Real < pasSecondTuple[iKey].Real )
+                    nResult = -1;
+                else if( pasFirstTuple[iKey].Real > pasSecondTuple[iKey].Real )
                     nResult = 1;
                 break;
               case SWQ_STRING:

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlvector.cpp 16909 2009-05-02 14:56:22Z rouault $
+ * $Id: kmlvector.cpp 17491 2009-08-01 17:22:37Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Specialization of the kml class, only for vectors in kml files.
@@ -137,6 +137,8 @@ void KMLVector::findLayers(KMLNode* poNode)
             nodeType == MultiLineString || nodeType == MultiPolygon)
         {
             poNode->setLayerNumber(nNumLayers_++);
+            papoLayers_ = (KMLNode**)CPLRealloc(papoLayers_, nNumLayers_ * sizeof(KMLNode*));
+            papoLayers_[nNumLayers_ - 1] = poNode;
         }
         else
         {

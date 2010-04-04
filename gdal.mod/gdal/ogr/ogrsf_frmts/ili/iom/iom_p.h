@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: iom_p.h 17913 2009-10-27 15:54:26Z chaitanya $
+ * $Id: iom_p.h 17910 2009-10-27 02:07:33Z chaitanya $
  *
  * Project:  iom - The INTERLIS Object Model
  * Purpose:  For more information, please see <http://iom.sourceforge.net>
@@ -556,6 +556,7 @@ public:
 	// void  startPrefixMapping (const XMLCh *const prefix, const XMLCh *const uri);
 	// void  endPrefixMapping (const XMLCh *const prefix);
 	// void  skippedEntity (const XMLCh *const name);
+        void startEntity (const XMLCh *const name);
  
 
     void warning(const SAXParseException& exc);
@@ -574,6 +575,7 @@ private:
 	XMLBuffer propertyValue;
 	IomBasket dataContainer; 
 	IomObject object;
+        int m_nEntityCounter;
 	std::stack<class Element> objStack;
 	std::stack<int> stateStack;
 	void pushReturnState(int returnState);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometrycollection.cpp 14881 2008-07-10 20:30:19Z rouault $
+ * $Id: ogrgeometrycollection.cpp 16898 2009-05-01 12:23:36Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRGeometryCollection class.
@@ -30,14 +30,14 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeometrycollection.cpp 14881 2008-07-10 20:30:19Z rouault $");
+CPL_CVSID("$Id: ogrgeometrycollection.cpp 16898 2009-05-01 12:23:36Z rouault $");
 
 /************************************************************************/
 /*                       OGRGeometryCollection()                        */
 /************************************************************************/
 
 /**
- * Create an empty geometry collection.
+ * \brief Create an empty geometry collection.
  */
 
 OGRGeometryCollection::OGRGeometryCollection()
@@ -150,7 +150,7 @@ const char * OGRGeometryCollection::getGeometryName() const
 /************************************************************************/
 
 /**
- * Fetch number of geometries in container.
+ * \brief Fetch number of geometries in container.
  *
  * This method relates to the SFCOM IGeometryCollect::get_NumGeometries()
  * method.
@@ -169,7 +169,7 @@ int OGRGeometryCollection::getNumGeometries() const
 /************************************************************************/
 
 /**
- * Fetch geometry from container.
+ * \brief Fetch geometry from container.
  *
  * This method returns a pointer to an geometry within the container.  The
  * returned geometry remains owned by the container, and should not be
@@ -210,7 +210,7 @@ const OGRGeometry * OGRGeometryCollection::getGeometryRef( int i ) const
 /************************************************************************/
 
 /**
- * Add a geometry to the container.
+ * \brief Add a geometry to the container.
  *
  * Some subclasses of OGRGeometryCollection restrict the types of geometry
  * that can be added, and may return an error.  The passed geometry is cloned
@@ -248,7 +248,7 @@ OGRErr OGRGeometryCollection::addGeometry( const OGRGeometry * poNewGeom )
 /************************************************************************/
 
 /**
- * Add a geometry directly to the container.
+ * \brief Add a geometry directly to the container.
  *
  * Some subclasses of OGRGeometryCollection restrict the types of geometry
  * that can be added, and may return an error.  Ownership of the passed
@@ -286,7 +286,7 @@ OGRErr OGRGeometryCollection::addGeometryDirectly( OGRGeometry * poNewGeom )
 /************************************************************************/
 
 /**
- * Remove a geometry from the container.
+ * \brief Remove a geometry from the container.
  *
  * Removing a geometry will cause the geometry count to drop by one, and all
  * "higher" geometries will shuffle down one in index.
@@ -372,7 +372,8 @@ OGRErr OGRGeometryCollection::importFromWkb( unsigned char * pabyData,
 /*      Get the byte order byte.                                        */
 /* -------------------------------------------------------------------- */
     eByteOrder = DB2_V72_FIX_BYTE_ORDER((OGRwkbByteOrder) *pabyData);
-    CPLAssert( eByteOrder == wkbXDR || eByteOrder == wkbNDR );
+    if (!( eByteOrder == wkbXDR || eByteOrder == wkbNDR ))
+        return OGRERR_CORRUPT_DATA;
 
 /* -------------------------------------------------------------------- */
 /*      Get the geometry feature type.  For now we assume that          */
@@ -391,10 +392,11 @@ OGRErr OGRGeometryCollection::importFromWkb( unsigned char * pabyData,
         eGeometryType = (OGRwkbGeometryType) pabyData[4];
     }
 
-    CPLAssert( eGeometryType == wkbGeometryCollection
+    if (! ( eGeometryType == wkbGeometryCollection
                || eGeometryType == wkbMultiPolygon 
                || eGeometryType == wkbMultiLineString 
-               || eGeometryType == wkbMultiPoint );
+               || eGeometryType == wkbMultiPoint ))
+        return OGRERR_CORRUPT_DATA;
 #endif    
 
 /* -------------------------------------------------------------------- */
@@ -410,7 +412,27 @@ OGRErr OGRGeometryCollection::importFromWkb( unsigned char * pabyData,
     if( OGR_SWAP( eByteOrder ) )
         nGeomCount = CPL_SWAP32(nGeomCount);
 
-    papoGeoms = (OGRGeometry **) OGRMalloc(sizeof(void*) * nGeomCount);
+    if (nGeomCount < 0 || nGeomCount > INT_MAX / 9)
+    {
+        nGeomCount = 0;
+        return OGRERR_CORRUPT_DATA;
+    }
+
+    /* Each geometry has a minimum of 9 bytes */
+    if (nSize != -1 && nSize - 9 < nGeomCount * 9)
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Length of input WKB is too small" );
+        nGeomCount = 0;
+        return OGRERR_NOT_ENOUGH_DATA;
+    }
+
+    papoGeoms = (OGRGeometry **) VSIMalloc2(sizeof(void*), nGeomCount);
+    if (nGeomCount != 0 && papoGeoms == NULL)
+    {
+        nGeomCount = 0;
+        return OGRERR_NOT_ENOUGH_MEMORY;
+    }
 
     nDataOffset = 9;
     if( nSize != -1 )
@@ -626,7 +648,7 @@ OGRErr OGRGeometryCollection::exportToWkt( char ** ppszDstText ) const
     {
         eErr = papoGeoms[iGeom]->exportToWkt( &(papszGeoms[iGeom]) );
         if( eErr != OGRERR_NONE )
-            return eErr;
+            goto error;
 
         nCumulativeLength += strlen(papszGeoms[iGeom]);
     }
@@ -637,28 +659,41 @@ OGRErr OGRGeometryCollection::exportToWkt( char ** ppszDstText ) const
     *ppszDstText = (char *) VSIMalloc(nCumulativeLength + nGeomCount + 23);
 
     if( *ppszDstText == NULL )
-        return OGRERR_NOT_ENOUGH_MEMORY;
+    {
+        eErr = OGRERR_NOT_ENOUGH_MEMORY;
+        goto error;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Build up the string, freeing temporary strings as we go.        */
 /* -------------------------------------------------------------------- */
     strcpy( *ppszDstText, getGeometryName() );
     strcat( *ppszDstText, " (" );
+    nCumulativeLength = strlen(*ppszDstText);
 
     for( iGeom = 0; iGeom < nGeomCount; iGeom++ )
     {                                                           
         if( iGeom > 0 )
-            strcat( *ppszDstText, "," );
+            (*ppszDstText)[nCumulativeLength++] = ',';
         
-        strcat( *ppszDstText, papszGeoms[iGeom] );
+        int nGeomLength = strlen(papszGeoms[iGeom]);
+        memcpy( *ppszDstText + nCumulativeLength, papszGeoms[iGeom], nGeomLength );
+        nCumulativeLength += nGeomLength;
         VSIFree( papszGeoms[iGeom] );
     }
 
-    strcat( *ppszDstText, ")" );
+    (*ppszDstText)[nCumulativeLength++] = ')';
+    (*ppszDstText)[nCumulativeLength] = '\0';
 
     CPLFree( papszGeoms );
 
     return OGRERR_NONE;
+
+error:
+    for( iGeom = 0; iGeom < nGeomCount; iGeom++ )
+        CPLFree( papszGeoms[iGeom] );
+    CPLFree( papszGeoms );
+    return eErr;
 }
 
 /************************************************************************/
@@ -791,7 +826,7 @@ void OGRGeometryCollection::setCoordinateDimension( int nNewDimension )
 /************************************************************************/
 
 /**
- * Compute area of geometry collection.
+ * \brief Compute area of geometry collection.
  *
  * The area is computed as the sum of the areas of all members
  * in this collection.

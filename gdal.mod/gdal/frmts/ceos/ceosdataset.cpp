@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ceosdataset.cpp 12285 2007-10-01 04:04:24Z warmerdam $
+ * $Id: ceosdataset.cpp 18570 2010-01-17 13:13:07Z rouault $
  *
  * Project:  CEOS Translator
  * Purpose:  GDALDataset driver for CEOS translator.
@@ -30,7 +30,7 @@
 #include "ceosopen.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: ceosdataset.cpp 12285 2007-10-01 04:04:24Z warmerdam $");
+CPL_CVSID("$Id: ceosdataset.cpp 18570 2010-01-17 13:13:07Z rouault $");
 
 CPL_C_START
 void	GDALRegister_CEOS(void);
@@ -164,6 +164,33 @@ GDALDataset *CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
     if( psCEOS == NULL )
         return( NULL );
 
+    if( psCEOS->nBitsPerPixel != 8 )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The CEOS driver cannot handle nBitsPerPixel = %d",
+                  psCEOS->nBitsPerPixel );
+        CEOSClose(psCEOS);
+        return NULL;
+    }
+
+    if( !GDALCheckDatasetDimensions(psCEOS->nPixels, psCEOS->nBands) ||
+        !GDALCheckBandCount(psCEOS->nBands, FALSE) )
+    {
+        CEOSClose( psCEOS );
+        return NULL;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CEOSClose(psCEOS);
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The CEOS driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
@@ -188,15 +215,15 @@ GDALDataset *CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetBand( i+1, new CEOSRasterBand( poDS, i+1 ) );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

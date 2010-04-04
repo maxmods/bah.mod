@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_p.h 14288 2008-04-13 15:56:22Z rouault $
+ * $Id: ogr_p.h 17696 2009-09-26 15:56:39Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Some private helper functions and stuff for OGR implementation.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_P_H_INCLUDED
-#define _OGR_P_H_INCLUDED
+#ifndef OGR_P_H_INCLUDED
+#define OGR_P_H_INCLUDED
 
 /* -------------------------------------------------------------------- */
 /*      Include the common portability library ... lets us do lots      */
@@ -37,6 +37,8 @@
 
 #include "cpl_string.h"
 #include "cpl_conv.h"
+
+#include "ogr_core.h"
 
 #ifdef CPL_MSB 
 #  define OGR_SWAP(x)   (x == wkbNDR)
@@ -62,6 +64,25 @@ const char CPL_DLL * OGRWktReadPoints( const char * pszInput,
 void CPL_DLL OGRMakeWktCoordinate( char *, double, double, double, int );
 #endif
 
+/* -------------------------------------------------------------------- */
+/*      Date-time parsing and processing functions                      */
+/* -------------------------------------------------------------------- */
+
+/* Internal use by OGR drivers only, CPL_DLL is just there in case */
+/* they are compiled as plugins  */
+int CPL_DLL OGRGetDayOfWeek(int day, int month, int year);
+int CPL_DLL OGRParseXMLDateTime( const char* pszXMLDateTime,
+                               int *pnYear, int *pnMonth, int *pnDay,
+                               int *pnHour, int *pnMinute, float* pfSecond, int *pnTZ);
+int CPL_DLL OGRParseRFC822DateTime( const char* pszRFC822DateTime,
+                                  int *pnYear, int *pnMonth, int *pnDay,
+                                  int *pnHour, int *pnMinute, int *pnSecond, int *pnTZ);
+char CPL_DLL * OGRGetRFC822DateTime(int year, int month, int day,
+                                    int hour, int minute, int second, int TZ);
+char CPL_DLL * OGRGetXMLDateTime(int year, int month, int day,
+                                 int hour, int minute, int second, int TZFlag);
+char CPL_DLL * OGRGetXML_UTF8_EscapedString(const char* pszString);
+
 
 /* General utility option processing. */
 int CPL_DLL OGRGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions );
@@ -77,9 +98,19 @@ CPL_C_END
 #define SPF_OGR_GEOMETRY 1
 #define SPF_OGR_STYLE 2
 #define SPF_OGR_GEOM_WKT 3
-#define SPECIAL_FIELD_COUNT 4
+#define SPF_OGR_GEOM_AREA 4
+#define SPECIAL_FIELD_COUNT 5
 
 extern const char* SpecialFieldNames[SPECIAL_FIELD_COUNT];
 extern const swq_field_type SpecialFieldTypes[SPECIAL_FIELD_COUNT];
 
-#endif /* ndef _OGR_P_H_INCLUDED */
+/************************************************************************/
+/*     Some SRS related stuff, search in SRS data files.                */
+/************************************************************************/
+
+OGRErr CPL_DLL OSRGetEllipsoidInfo( int, char **, double *, double *);
+
+/* Fast atof function */
+double OGRFastAtof(const char* pszStr);
+
+#endif /* ndef OGR_P_H_INCLUDED */

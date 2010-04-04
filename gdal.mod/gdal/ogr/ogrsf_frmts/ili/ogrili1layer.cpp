@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1layer.cpp 15268 2008-08-31 19:03:09Z pka $
+ * $Id: ogrili1layer.cpp 16925 2009-05-03 14:16:49Z rouault $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1Layer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrili1layer.cpp 15268 2008-08-31 19:03:09Z pka $");
+CPL_CVSID("$Id: ogrili1layer.cpp 16925 2009-05-03 14:16:49Z rouault $");
 
 /************************************************************************/
 /*                           OGRILI1Layer()                              */
@@ -360,7 +360,7 @@ OGRErr OGRILI1Layer::CreateFeature( OGRFeature *poFeature ) {
         if (EQUAL(poFeatureDefn->GetFieldDefn(poFeatureDefn->GetFieldCount()-1)->GetNameRef(), "ILI_Geometry"))
         {
             //Write original ILI geometry
-            VSIFPrintf( poDS->GetTransferFile(), poFeature->GetFieldAsString( poFeatureDefn->GetFieldCount()-1 ) );
+            VSIFPrintf( poDS->GetTransferFile(), "%s", poFeature->GetFieldAsString( poFeatureDefn->GetFieldCount()-1 ) );
         }
         else
         {

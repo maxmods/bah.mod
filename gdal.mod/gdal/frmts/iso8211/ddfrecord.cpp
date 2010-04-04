@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfrecord.cpp 15632 2008-10-28 17:33:19Z warmerdam $
+ * $Id: ddfrecord.cpp 16282 2009-02-09 20:41:42Z warmerdam $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFRecord class.
@@ -30,7 +30,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp 15632 2008-10-28 17:33:19Z warmerdam $");
+CPL_CVSID("$Id: ddfrecord.cpp 16282 2009-02-09 20:41:42Z warmerdam $");
 
 static const size_t nLeaderSize = 24;
 
@@ -682,10 +682,17 @@ int DDFRecord::GetIntSubfield( const char * pszField, int iFieldIndex,
 
 /* -------------------------------------------------------------------- */
 /*      Return the extracted value.                                     */
+/*                                                                      */
+/*      Assume an error has occured if no bytes are consumed.           */
 /* -------------------------------------------------------------------- */
-    *pnSuccess = TRUE;
+    int nConsumedBytes = 0;
+    int nResult = poSFDefn->ExtractIntData( pachData, nBytesRemaining, 
+                                            &nConsumedBytes );
 
-    return( poSFDefn->ExtractIntData( pachData, nBytesRemaining, NULL ) );
+    if( nConsumedBytes > 0 )
+        *pnSuccess = TRUE;
+
+    return nResult;
 }
 
 /************************************************************************/
@@ -749,9 +756,14 @@ double DDFRecord::GetFloatSubfield( const char * pszField, int iFieldIndex,
 /* -------------------------------------------------------------------- */
 /*      Return the extracted value.                                     */
 /* -------------------------------------------------------------------- */
-    *pnSuccess = TRUE;
+    int nConsumedBytes = 0;
+    double dfResult = poSFDefn->ExtractFloatData( pachData, nBytesRemaining, 
+                                                  &nConsumedBytes );
 
-    return( poSFDefn->ExtractFloatData( pachData, nBytesRemaining, NULL ) );
+    if( nConsumedBytes > 0 )
+        *pnSuccess = TRUE;
+
+    return dfResult;
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtsrasterreader.cpp 14523 2008-05-25 19:14:38Z rouault $
+ * $Id: sdtsrasterreader.cpp 17213 2009-06-07 11:55:50Z rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  Implementation of SDTSRasterReader class.
@@ -29,7 +29,7 @@
 
 #include "sdts_al.h"
 
-CPL_CVSID("$Id: sdtsrasterreader.cpp 14523 2008-05-25 19:14:38Z rouault $");
+CPL_CVSID("$Id: sdtsrasterreader.cpp 17213 2009-06-07 11:55:50Z rouault $");
 
 /************************************************************************/
 /*                          SDTSRasterReader()                          */
@@ -78,6 +78,7 @@ int SDTSRasterReader::Open( SDTS_CATD * poCATD, SDTS_IREF * poIREF,
 
 {
     strncpy( szModule, pszModule, sizeof(szModule) );
+    szModule[sizeof(szModule) - 1] = '\0';
     
 /* ==================================================================== */
 /*      Search the LDEF module for the requested cell module.           */

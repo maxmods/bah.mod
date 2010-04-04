@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: landataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $
+ * $Id: landataset.cpp 17117 2009-05-25 19:26:01Z warmerdam $
  *
  * Project:  eCognition
  * Purpose:  Implementation of Erdas .LAN / .GIS format.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: landataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $");
+CPL_CVSID("$Id: landataset.cpp 17117 2009-05-25 19:26:01Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_LAN(void);
@@ -444,6 +444,13 @@ GDALDataset *LANDataset::Open( GDALOpenInfo * poOpenInfo )
 
     nBandCount = *((GInt16 *) (poDS->pachHeader + 8));
 
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(nBandCount, FALSE))
+    {
+        delete poDS;
+        return NULL;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Create band information object.                                 */
 /* -------------------------------------------------------------------- */
@@ -464,16 +471,16 @@ GDALDataset *LANDataset::Open( GDALOpenInfo * poOpenInfo )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->CheckForStatistics();
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
 /* -------------------------------------------------------------------- */
 /*      Try to interprete georeferencing.                               */
@@ -580,26 +587,31 @@ GDALDataset *LANDataset::Open( GDALOpenInfo * poOpenInfo )
 CPLErr LANDataset::GetGeoTransform( double * padfTransform )
 
 {
-    if( adfGeoTransform[1] == 0.0 || adfGeoTransform[5] == 0.0 )
-        return CE_Failure;
-    else
+    if( adfGeoTransform[1] != 0.0 && adfGeoTransform[5] != 0.0 )
     {
         memcpy( padfTransform, adfGeoTransform, sizeof(double)*6 );
         return CE_None;
     }
+    else
+        return GDALPamDataset::GetGeoTransform( padfTransform );
 }
 
 /************************************************************************/
 /*                          GetProjectionRef()                          */
+/*                                                                      */
+/*      Use PAM coordinate system if available in preference to the     */
+/*      generally poor value derived from the file itself.              */
 /************************************************************************/
 
 const char *LANDataset::GetProjectionRef()
 
 {
-    if( pszProjection == NULL )
-        return "";
-    else
+    const char* pszPamPrj = GDALPamDataset::GetProjectionRef();
+
+    if( pszProjection != NULL && strlen(pszPamPrj) == 0 )
         return pszProjection;
+    else
+        return pszPamPrj;
 }
 
 /************************************************************************/

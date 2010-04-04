@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmemlayer.cpp 13236 2007-12-04 20:08:56Z warmerdam $
+ * $Id: ogrmemlayer.cpp 17807 2009-10-13 18:18:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMemLayer class.
@@ -30,7 +30,7 @@
 #include "ogr_mem.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrmemlayer.cpp 13236 2007-12-04 20:08:56Z warmerdam $");
+CPL_CVSID("$Id: ogrmemlayer.cpp 17807 2009-10-13 18:18:09Z rouault $");
 
 /************************************************************************/
 /*                            OGRMemLayer()                             */
@@ -124,9 +124,6 @@ OGRFeature *OGRMemLayer::GetNextFeature()
 
 /************************************************************************/
 /*                           SetNextByIndex()                           */
-/*                                                                      */
-/*      If we already have an FID list, we can easily resposition       */
-/*      ourselves in it.                                                */
 /************************************************************************/
 
 OGRErr OGRMemLayer::SetNextByIndex( long nIndex )
@@ -134,6 +131,9 @@ OGRErr OGRMemLayer::SetNextByIndex( long nIndex )
 {
     if( m_poFilterGeom != NULL || m_poAttrQuery != NULL )
         return OGRLayer::SetNextByIndex( nIndex );
+        
+    if (iNextReadFID < 0 || iNextReadFID >= nMaxFeatureCount)
+        return OGRERR_FAILURE;
 
     iNextReadFID = nIndex;
 
@@ -172,13 +172,26 @@ OGRErr OGRMemLayer::SetFeature( OGRFeature *poFeature )
             iNextCreateFID++;
         poFeature->SetFID( iNextCreateFID++ );
     }
+    else if ( poFeature->GetFID() < OGRNullFID )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "negative FID are not supported");
+        return OGRERR_FAILURE;
+    }
 
     if( poFeature->GetFID() >= nMaxFeatureCount )
     {
         int nNewCount = MAX(2*nMaxFeatureCount+10, poFeature->GetFID() + 1 );
 
-        papoFeatures = (OGRFeature **) 
-            CPLRealloc( papoFeatures, sizeof(OGRFeature *) * nNewCount);
+        OGRFeature** papoNewFeatures = (OGRFeature **) 
+            VSIRealloc( papoFeatures, sizeof(OGRFeature *) * nNewCount);
+        if (papoNewFeatures == NULL)
+        {
+            CPLError(CE_Failure, CPLE_OutOfMemory,
+                     "Cannot allocate array of %d elements", nNewCount);
+            return OGRERR_FAILURE;
+        }
+        papoFeatures = papoNewFeatures;
         memset( papoFeatures + nMaxFeatureCount, 0, 
                 sizeof(OGRFeature *) * (nNewCount - nMaxFeatureCount) );
         nMaxFeatureCount = nNewCount;
@@ -258,22 +271,6 @@ int OGRMemLayer::GetFeatureCount( int bForce )
 }
 
 /************************************************************************/
-/*                             GetExtent()                              */
-/*                                                                      */
-/*      Fetch extent of the data currently stored in the dataset.       */
-/*      The bForce flag has no effect on SHO files since that value     */
-/*      is always in the header.                                        */
-/*                                                                      */
-/*      Returns OGRERR_NONE/OGRRERR_FAILURE.                            */
-/************************************************************************/
-
-OGRErr OGRMemLayer::GetExtent (OGREnvelope *psExtent, int bForce)
-
-{
-    return OGRLayer::GetExtent( psExtent, bForce );
-}
-
-/************************************************************************/
 /*                           TestCapability()                           */
 /************************************************************************/
 
@@ -288,13 +285,10 @@ int OGRMemLayer::TestCapability( const char * pszCap )
         return TRUE;
 
     else if( EQUAL(pszCap,OLCFastFeatureCount) )
-        return m_poFilterGeom == NULL;
+        return m_poFilterGeom == NULL && m_poAttrQuery == NULL;
 
     else if( EQUAL(pszCap,OLCFastSpatialFilter) )
         return FALSE;
-
-    else if( EQUAL(pszCap,OLCFastGetExtent) )
-        return TRUE;
 
     else if( EQUAL(pszCap,OLCDeleteFeature) )
         return TRUE;
@@ -303,7 +297,7 @@ int OGRMemLayer::TestCapability( const char * pszCap )
         return TRUE;
 
     else if( EQUAL(pszCap,OLCFastSetNextByIndex) )
-        return m_poFilterGeom != NULL && m_poAttrQuery == NULL;
+        return m_poFilterGeom == NULL && m_poAttrQuery == NULL;
 
     else 
         return FALSE;

@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -68,6 +68,9 @@ Import "gdal/port/cpl_vsisimple.cpp"
 Import "gdal/port/cplgetsymbol.cpp"
 Import "gdal/port/cplkeywordparser.cpp"
 Import "gdal/port/cplstring.cpp"
+Import "gdal/port/cpl_vsil_stdout.cpp"
+Import "gdal/port/cpl_vsil_subfile.cpp"
+Import "gdal/port/cpl_atomic_ops.cpp"
 
 Import "gdal/gcore/*.h"
 
@@ -136,6 +139,7 @@ Import "gdal/frmts/gtiff/libgeotiff/*.h"
 Import "gdal/frmts/gtiff/libtiff/*.h"
 
 Import "gdal/frmts/gtiff/geotiff.cpp"
+Import "gdal/frmts/gtiff/gt_citation.cpp"
 Import "gdal/frmts/gtiff/gt_overview.cpp"
 Import "gdal/frmts/gtiff/gt_wkt_srs.cpp"
 Import "gdal/frmts/gtiff/tif_float.c"
@@ -154,6 +158,7 @@ Import "gdal/frmts/gtiff/libgeotiff/geo_normalize.c"
 Import "gdal/frmts/gtiff/libgeotiff/geotiff_proj4.c"
 Import "gdal/frmts/gtiff/libgeotiff/geo_extra.c"
 Import "gdal/frmts/gtiff/libgeotiff/geo_trans.c"
+Import "gdal/frmts/gtiff/libgeotiff/geo_simpletags.c"
 
 Import "gdal/frmts/gtiff/libtiff/tif_aux.c"
 Import "gdal/frmts/gtiff/libtiff/tif_close.c"
@@ -464,6 +469,7 @@ Import "gdal/frmts/gif/*.h"
 Import "gdal/frmts/gif/libungif/*.h"
 Import "gdal/frmts/gif/libungif/dgif_lib.c"
 Import "gdal/frmts/gif/libungif/gif_err.c"
+Import "gdal/frmts/gif/libungif/gif_hash.c"
 Import "gdal/frmts/gif/libungif/egif_lib.c"
 Import "gdal/frmts/gif/libungif/gifalloc.c"
 Import "gdal/frmts/gif/gifdataset.cpp"
@@ -476,6 +482,10 @@ Import "gdal/frmts/gff/gff_dataset.cpp"
 ' cosar
 Import "gdal/frmts/cosar/*.h"
 Import "gdal/frmts/cosar/cosar_dataset.cpp"
+
+' dods
+'Import "gdal/frmts/dods/*.h"
+'Import "gdal/frmts/dods/dodsdataset2.cpp"
 
 ' ingr
 Import "gdal/frmts/ingr/*.h"
@@ -519,6 +529,7 @@ Import "gdal/frmts/wms/stuff.cpp"
 Import "gdal/frmts/wms/rasterband.cpp"
 Import "gdal/frmts/wms/minidriver.cpp"
 Import "gdal/frmts/wms/minidriver_worldwind.cpp"
+Import "gdal/frmts/wms/minidriver_tms.cpp"
 Import "gdal/frmts/wms/minidriver_wms.cpp"
 Import "gdal/frmts/wms/minidriver_tileservice.cpp"
 Import "gdal/frmts/wms/gdalhttp.cpp"
@@ -562,6 +573,7 @@ Import "gdal/frmts/rmf/rmfdataset.cpp"
 ' adrg
 Import "gdal/frmts/adrg/*.h"
 Import "gdal/frmts/adrg/adrgdataset.cpp"
+Import "gdal/frmts/adrg/srpdataset.cpp"
 
 ' ers
 Import "gdal/frmts/ers/*.h"
@@ -605,12 +617,54 @@ Import "gdal/frmts/ceos2/ceos.c"
 
 ' pcidsk
 Import "gdal/frmts/pcidsk/*.h"
-Import "gdal/frmts/pcidsk/pcidsktiledrasterband.cpp"
+Import "gdal/frmts/pcidsk/sdk/*.h"
+Import "gdal/frmts/pcidsk/sdk/channel/*.h"
+Import "gdal/frmts/pcidsk/sdk/core/*.h"
+Import "gdal/frmts/pcidsk/sdk/segment/*.h"
 Import "gdal/frmts/pcidsk/pcidskdataset.cpp"
+Import "gdal/frmts/pcidsk/pcidsktiledrasterband.cpp"
+Import "gdal/frmts/pcidsk/sdk/channel/cbandinterleavedchannel.cpp"
+Import "gdal/frmts/pcidsk/sdk/channel/cpcidskchannel.cpp"
+Import "gdal/frmts/pcidsk/sdk/channel/cpixelinterleavedchannel.cpp"
+Import "gdal/frmts/pcidsk/sdk/channel/ctiledchannel.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/cpcidskfile.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/libjpeg_io.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/metadataset_p.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidskbuffer.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidskcreate.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidskexception.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidskinterfaces.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidskopen.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidsk_pubutils.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/pcidsk_utils.cpp"
+Import "gdal/frmts/pcidsk/sdk/core/sysvirtualfile.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/cpcidskgeoref.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/cpcidsksegment.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/cpcidskvectorsegment.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/metadatasegment_p.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/sysblockmap.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/cpcidskpct.cpp"
+Import "gdal/frmts/pcidsk/sdk/segment/cpcidskrpcmodel.cpp"
+
+' r
+Import "gdal/frmts/r/rcreatecopy.cpp"
+Import "gdal/frmts/r/rdataset.cpp"
+
+' rasterlite
+Import "gdal/frmts/rasterlite/*.h"
+Import "gdal/frmts/rasterlite/rasterlitecreatecopy.cpp"
+Import "gdal/frmts/rasterlite/rasterlitedataset.cpp"
+Import "gdal/frmts/rasterlite/rasterliteoverviews.cpp"
+
+' saga
+Import "gdal/frmts/saga/sagadataset.cpp"
 
 ' sgi
 Import "gdal/frmts/sgi/*.h"
 Import "gdal/frmts/sgi/sgidataset.cpp"
+
+' til
+Import "gdal/frmts/til/tildataset.cpp"
 
 ' dimap
 Import "gdal/frmts/dimap/*.h"
@@ -632,6 +686,7 @@ Import "gdal/frmts/jpeg/vsidataio.cpp"
 ' jpeg2000
 Import "gdal/frmts/jpeg2000/*.h"
 Import "gdal/frmts/jpeg2000/jpeg2000dataset.cpp"
+Import "gdal/frmts/jpeg2000/jpeg2000_vsil_io.cpp"
 
 ' OGR
 Import "gdal/ogr/*.h"
@@ -651,6 +706,7 @@ Import "gdal/ogr/ogrsurface.cpp"
 Import "gdal/ogr/ogrmultipoint.cpp"
 Import "gdal/ogr/ogrmultilinestring.cpp"
 Import "gdal/ogr/ogr_api.cpp"
+Import "gdal/ogr/ogr_expat.cpp"
 Import "gdal/ogr/ogrfeature.cpp"
 Import "gdal/ogr/ogrfeaturedefn.cpp"
 Import "gdal/ogr/ogrfeaturequery.cpp"
@@ -668,6 +724,7 @@ Import "gdal/ogr/ogr_srs_usgs.cpp"
 Import "gdal/ogr/ogr_srs_dict.cpp"
 Import "gdal/ogr/ogr_srs_panorama.cpp"
 Import "gdal/ogr/ogr_srs_erm.cpp"
+Import "gdal/ogr/ogr_srs_ozi.cpp"
 Import "gdal/ogr/swq.c"
 Import "gdal/ogr/ogr_srs_validate.cpp"
 Import "gdal/ogr/ogr_srs_xml.cpp"
@@ -738,6 +795,17 @@ Import "gdal/ogr/ogrsf_frmts/dgn/ogrdgndriver.cpp"
 Import "gdal/ogr/ogrsf_frmts/dgn/ogrdgndatasource.cpp"
 Import "gdal/ogr/ogrsf_frmts/dgn/ogrdgnlayer.cpp"
 
+' OGR - dxf
+Import "gdal/ogr/ogrsf_frmts/dxf/*.h"
+Import "gdal/ogr/ogrsf_frmts/dxf/intronurbs.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxf_blockmap.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxf_dimension.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxf_diskio.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxfdatasource.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxfdriver.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxfwriterds.cpp"
+Import "gdal/ogr/ogrsf_frmts/dxf/ogrdxfwriterlayer.cpp"
 
 ' OGR - mem
 Import "gdal/ogr/ogrsf_frmts/mem/*.h"
@@ -775,6 +843,8 @@ Import "gdal/ogr/ogrsf_frmts/gml/gmlpropertydefn.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/gmlfeatureclass.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/gmlfeature.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/gmlreader.cpp"
+Import "gdal/ogr/ogrsf_frmts/gml/gmlreadstate.cpp"
+Import "gdal/ogr/ogrsf_frmts/gml/gmlhandler.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/parsexsd.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/ogrgmldriver.cpp"
 Import "gdal/ogr/ogrsf_frmts/gml/ogrgmldatasource.cpp"
@@ -786,6 +856,15 @@ Import "gdal/ogr/ogrsf_frmts/gmt/*.h"
 Import "gdal/ogr/ogrsf_frmts/gmt/ogrgmtdatasource.cpp"
 Import "gdal/ogr/ogrsf_frmts/gmt/ogrgmtlayer.cpp"
 Import "gdal/ogr/ogrsf_frmts/gmt/ogrgmtdriver.cpp"
+
+' OGR - gtm
+Import "gdal/ogr/ogrsf_frmts/gtm/*.h"
+Import "gdal/ogr/ogrsf_frmts/gtm/gtm.cpp"
+Import "gdal/ogr/ogrsf_frmts/gtm/gtmtracklayer.cpp"
+Import "gdal/ogr/ogrsf_frmts/gtm/gtmwaypointlayer.cpp"
+Import "gdal/ogr/ogrsf_frmts/gtm/ogrgtmdatasource.cpp"
+Import "gdal/ogr/ogrsf_frmts/gtm/ogrgtmdriver.cpp"
+Import "gdal/ogr/ogrsf_frmts/gtm/ogrgtmlayer.cpp"
 
 ' OGR - kml
 Import "gdal/ogr/ogrsf_frmts/kml/*.h"
@@ -899,6 +978,17 @@ Import "gdal/ogr/ogrsf_frmts/tiger/tigertlidrange.cpp"
 Import "gdal/ogr/ogrsf_frmts/tiger/tigerzerocellid.cpp"
 Import "gdal/ogr/ogrsf_frmts/tiger/tigerzipcodes.cpp"
 
+' OGR - vfk
+Import "gdal/ogr/ogrsf_frmts/vfk/*.h"
+Import "gdal/ogr/ogrsf_frmts/vfk/ogrvfkdatasource.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/ogrvfkdriver.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/ogrvfklayer.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/vfkdatablock.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/vfkfeature.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/vfkproperty.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/vfkpropertydefn.cpp"
+Import "gdal/ogr/ogrsf_frmts/vfk/vfkreader.cpp"
+
 ' OGR - vrt
 Import "gdal/ogr/ogrsf_frmts/vrt/*.h"
 Import "gdal/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp"
@@ -927,16 +1017,16 @@ Import "gdal/ogr/ogrsf_frmts/xplane/ogr_xplane_awy_reader.cpp"
 
 ' HFA
 Import "gdal/frmts/hfa/*.h"
-Import "gdal/frmts/hfa/hfaopen.cpp"
-Import "gdal/frmts/hfa/hfaentry.cpp"
-Import "gdal/frmts/hfa/hfadictionary.cpp"
-Import "gdal/frmts/hfa/hfafield.cpp"
-Import "gdal/frmts/hfa/hfatype.cpp"
+Import "gdal/frmts/hfa/hfa_overviews.cpp"
 Import "gdal/frmts/hfa/hfaband.cpp"
 Import "gdal/frmts/hfa/hfacompress.cpp"
 Import "gdal/frmts/hfa/hfadataset.cpp"
-Import "gdal/frmts/hfa/hfa_overviews.cpp"
-
+Import "gdal/frmts/hfa/hfadictionary.cpp"
+Import "gdal/frmts/hfa/hfaentry.cpp"
+Import "gdal/frmts/hfa/hfafield.cpp"
+Import "gdal/frmts/hfa/hfaopen.cpp"
+Import "gdal/frmts/hfa/hfatest.cpp"
+Import "gdal/frmts/hfa/hfatype.cpp"
 
 ' aigrid
 Import "gdal/frmts/aigrid/*.h"

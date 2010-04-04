@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamdataset.cpp 11782 2007-07-25 22:18:54Z warmerdam $
+ * $Id: gdalpamproxydb.cpp 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of the GDAL PAM Proxy database interface.
@@ -35,7 +35,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalpamdataset.cpp 11782 2007-07-25 22:18:54Z warmerdam $");
+CPL_CVSID("$Id: gdalpamproxydb.cpp 18063 2009-11-21 21:11:49Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -158,6 +158,8 @@ void GDALPamProxyDB::LoadDB()
         aosOriginalFiles.push_back( osOriginal );
         aosProxyFiles.push_back( osProxy );
     }        
+
+    CPLFree( pszDBData );
 }
 
 /************************************************************************/
@@ -329,13 +331,61 @@ const char *PamAllocateProxy( const char *pszOriginal )
 
     poProxyDB->CheckLoadDB();
 
+/* -------------------------------------------------------------------- */
+/*      Form the proxy filename based on the original path if           */
+/*      possible, but dummy out any questionable characters, path       */
+/*      delimiters and such.  This is intended to make the proxy        */
+/*      name be identifiable by folks digging around in the proxy       */
+/*      database directory.                                             */
+/*                                                                      */
+/*      We also need to be careful about length.                        */
+/* -------------------------------------------------------------------- */
+    CPLString osRevProxyFile;
+    int   i;
+
+    i = strlen(pszOriginal) - 1;
+    while( i >= 0 && osRevProxyFile.size() < 220 )
+    {
+        if( i > 6 && EQUALN(pszOriginal+i-5,":::OVR",6) )
+            i -= 6;
+
+        // make some effort to break long names at path delimiters.
+        if( (pszOriginal[i] == '/' || pszOriginal[i] == '\\') 
+            && osRevProxyFile.size() > 200 )
+            break;
+
+        if( (pszOriginal[i] >= 'A' && pszOriginal[i] <= 'Z') 
+            || (pszOriginal[i] >= 'a' && pszOriginal[i] <= 'z') 
+            || (pszOriginal[i] >= '0' && pszOriginal[i] <= '9') 
+            || pszOriginal[i] == '.' )
+            osRevProxyFile += pszOriginal[i];
+        else
+            osRevProxyFile += '_';
+
+        i--;
+    }
+    
     CPLString osOriginal = pszOriginal;
     CPLString osProxy;
+    CPLString osCounter;
 
-    osProxy.Printf( "%s/proxy_%d.aux.xml", 
-                    poProxyDB->osProxyDBDir.c_str(),
-                    poProxyDB->nUpdateCounter++ );
+    osProxy = poProxyDB->osProxyDBDir + "/";
 
+    osCounter.Printf( "%06d_", poProxyDB->nUpdateCounter++ );
+    osProxy += osCounter;
+
+    for( i = osRevProxyFile.size()-1; i >= 0; i-- )
+        osProxy += osRevProxyFile[i];
+
+    if( osOriginal.find(":::OVR") != CPLString::npos )
+        osProxy += ".ovr";
+    else
+        osProxy += ".aux.xml";
+
+/* -------------------------------------------------------------------- */
+/*      Add the proxy and the original to the proxy list and resave     */
+/*      the database.                                                   */
+/* -------------------------------------------------------------------- */
     poProxyDB->aosOriginalFiles.push_back( osOriginal );
     poProxyDB->aosProxyFiles.push_back( osProxy );
 

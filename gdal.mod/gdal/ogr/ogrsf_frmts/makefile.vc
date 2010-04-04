@@ -2,12 +2,22 @@ GDAL_ROOT	=	..\..
 
 DIRLIST		=	generic geojson shape ntf sdts tiger s57 dgn mitab gml \
 			avc rec mem vrt csv gmt bna kml gpx \
-			geoconcept xplane \
+			geoconcept xplane georss gtm dxf vfk \
 			$(OGDIDIR) $(FMEDIR) $(OCIDIR) $(PG_DIR) $(DWGDIR) \
 			$(ODBCDIR) $(SQLITE_DIR) $(MYSQL_DIR) $(ILI_DIR) \
-			$(SDE_DIR) $(IDB_DIR) $(NAS_DIR) $(DODSDIR)
+			$(SDE_DIR) $(IDB_DIR) $(NAS_DIR) $(DODSDIR) \
+			$(PCIDSK_DIR)
 
 !INCLUDE $(GDAL_ROOT)\nmake.opt
+
+!IF "$(PCIDSK_SETTING)" == "EXTERNAL"
+PCIDSK_DIR	=	pcidsk
+PCIDSKOBJ	=	pcidsk\*.obj
+!ENDIF
+!IF "$(PCIDSK_SETTING)" == "INTERNAL"
+PCIDSK_DIR	=	pcidsk
+PCIDSKOBJ	=	pcidsk\*.obj
+!ENDIF
 
 !IFDEF OGDIDIR
 OGDIDIR	=	ogdi
@@ -77,8 +87,9 @@ DODS_OBJ = dods\*.obj
 default:
 	for %d in ( $(DIRLIST) ) do \
 		cd %d \
-		&& nmake /NOLOGO /f makefile.vc \
-		&& cd ..
+		&& $(MAKE) /f makefile.vc \
+		&& cd .. \
+		|| exit 1
 
 	lib /out:ogrsf_frmts.lib generic\*.obj shape\*.obj ntf\*.obj \
 				 sdts\*.obj s57\*.obj tiger\*.obj gml\*.obj \
@@ -86,11 +97,12 @@ default:
 				 vrt\*.obj csv\*.obj rec\*.obj kml\*.obj \
 				 gmt\*.obj bna\*.obj geoconcept\*.obj \
 				 geojson\*.obj geojson\jsonc\*.obj \
-				 gpx\*.obj xplane\*.obj \
+				 gpx\*.obj xplane\*.obj georss\*.obj gtm\*.obj \
+				 dxf\*.obj vfk\*.obj \
 				$(OGDIOBJ) $(ODBCOBJ) $(SQLITE_OBJ) \
 				$(FMEOBJ) $(OCIOBJ) $(PG_OBJ) $(MYSQL_OBJ) \
 				$(ILI_OBJ) $(DWG_OBJ) $(SDE_OBJ) $(IDB_OBJ) \
-				$(DODS_OBJ) $(NAS_OBJ)
+				$(DODS_OBJ) $(NAS_OBJ) $(PCIDSKOBJ)
 	lib /out:ogrsf_frmts_sup.lib \
 				 ..\..\frmts\iso8211\*.obj \
 				 ..\..\frmts\sdts\sdtsattrreader.obj \
@@ -110,8 +122,9 @@ clean:
 	-del ogrsf_frmts_sup.lib
 	for %d in ( $(DIRLIST) ) do \
 		cd %d \
-		&& nmake /NOLOGO /f makefile.vc clean \
-		&& cd ..
+		&& $(MAKE) /f makefile.vc clean \
+		&& cd .. \
+		|| exit 1
 
 html-install:
 	copy *.html $(HTMLDIR)

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp 16866 2009-04-27 12:52:26Z chaitanya $
+ * $Id: cpl_conv.cpp 18060 2009-11-21 20:26:25Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -34,7 +34,7 @@
 #include "cpl_vsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
+CPL_CVSID("$Id: cpl_conv.cpp 18060 2009-11-21 20:26:25Z rouault $");
 
 #if defined(WIN32CE)
 #  include "cpl_wince.h"
@@ -260,7 +260,7 @@ char *CPLStrlwr( char *pszString )
 
         while (*pszTemp)
         {
-            *pszTemp = tolower (*pszTemp);
+            *pszTemp = (char) tolower (*pszTemp);
             pszTemp++;
         }
     }
@@ -431,12 +431,14 @@ static char *CPLReadLineBuffer( int nRequiredSize )
     {
         int nNewSize = nRequiredSize + 4 + 500;
 
-        pnAlloc = (GUInt32 *) CPLRealloc(pnAlloc,nNewSize);
-        if( pnAlloc == NULL )
+        GUInt32* pnAllocNew = (GUInt32 *) VSIRealloc(pnAlloc,nNewSize);
+        if( pnAllocNew == NULL )
         {
+            VSIFree( pnAlloc );
             CPLSetTLS( CTLS_RLBUFFERINFO, NULL, FALSE );
             return NULL;
         }
+        pnAlloc = pnAllocNew;
             
         *pnAlloc = nNewSize - 4;
         CPLSetTLS( CTLS_RLBUFFERINFO, pnAlloc, TRUE );
@@ -535,6 +537,31 @@ const char *CPLReadLine( FILE * fp )
  */
 
 const char *CPLReadLineL( FILE * fp )
+{
+    return CPLReadLine2L( fp, -1, NULL );
+}
+
+/************************************************************************/
+/*                           CPLReadLine2L()                            */
+/************************************************************************/
+
+/**
+ * Simplified line reading from text file.
+ * 
+ * Similar to CPLReadLine(), but reading from a large file API handle.
+ *
+ * @param fp file pointer opened with VSIFOpenL().
+ * @param nMaxCars  maximum number of characters allowed, or -1 for no limit.
+ * @param papszOptions NULL-terminated array of options. Unused for now.
+
+ * @return pointer to an internal buffer containing a line of text read
+ * from the file or NULL if the end of file was encountered or the maximum
+ * number of characters allowed readched.
+ *
+ * @since GDAL 1.7.0
+ */
+
+const char *CPLReadLine2L( FILE * fp, int nMaxCars, char** papszOptions )
 
 {
 /* -------------------------------------------------------------------- */
@@ -609,7 +636,15 @@ const char *CPLReadLineL( FILE * fp )
                 bBreak = TRUE;
             }
             else
+            {
                 pszRLBuffer[nBufLength++] = szChunk[nChunkBytesConsumed++];
+                if (nMaxCars >= 0 && nBufLength == nMaxCars)
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined,
+                             "Maximum number of characters allowed reached.");
+                    return NULL;
+                }
+            }
         }
 
         if( bBreak )
@@ -824,7 +859,7 @@ GUIntBig CPLScanUIntBig( const char *pszString, int nMaxLength )
 /* -------------------------------------------------------------------- */
 /*      Fetch out the result                                            */
 /* -------------------------------------------------------------------- */
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(__MSVCRT__) || (defined(WIN32) && defined(_MSC_VER))
     iValue = (GUIntBig)_atoi64( pszValue );
 # elif HAVE_ATOLL
     iValue = atoll( pszValue );
@@ -878,7 +913,7 @@ void *CPLScanPointer( const char *pszString, int nMaxLength )
     {
         pResult = NULL;
 
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(__MSVCRT__) || (defined(WIN32) && defined(_MSC_VER))
         sscanf( szTemp+2, "%p", &pResult );
 #else
         sscanf( szTemp, "%p", &pResult );
@@ -1103,7 +1138,7 @@ int CPLPrintUIntBig( char *pszBuffer, GUIntBig iValue, int nMaxLen )
     if ( nMaxLen >= 64 )
         nMaxLen = 63;
 
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(__MSVCRT__) || (defined(WIN32) && defined(_MSC_VER))
     sprintf( szTemp, "%*I64d", nMaxLen, iValue );
 # elif HAVE_LONG_LONG
     sprintf( szTemp, "%*lld", nMaxLen, (long long) iValue );
@@ -1206,6 +1241,8 @@ int CPLPrintDouble( char *pszBuffer, const char *pszFormat,
         // Set locale to the specified value
         setlocale( LC_ALL, pszLocale );
     }
+#else
+    (void) pszLocale;
 #endif
 
 #if defined(HAVE_SNPRINTF)
@@ -1288,6 +1325,8 @@ int CPLPrintTime( char *pszBuffer, int nMaxLen, const char *pszFormat,
         // Set locale to the specified value
         setlocale( LC_ALL, pszLocale );
     }
+#else
+    (void) pszLocale;
 #endif
     
     if ( !strftime( pszTemp, nMaxLen + 1, pszFormat, poBrokenTime ) )
@@ -1348,12 +1387,30 @@ void CPLVerifyConfiguration()
 /*                         CPLGetConfigOption()                         */
 /************************************************************************/
 
+/**
+  * Get the value of a configuration option.
+  * 
+  * The value is the value of a (key, value) option set with CPLSetConfigOption().
+  * If the given option was no defined with CPLSetConfigOption(), it tries to find
+  * it in environment variables.
+  *
+  * @param pszKey the key of the option to retrieve
+  * @param pszDefault a default value if the key does not match existing defined options (may be NULL)
+  * @return the value associated to the key, or the default value if not found
+  *
+  * @see CPLSetConfigOption()
+  */
 const char * CPL_STDCALL
 CPLGetConfigOption( const char *pszKey, const char *pszDefault )
 
 {
     const char *pszResult = NULL;
 
+    char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
+    if( papszTLConfigOptions != NULL )
+        pszResult = CSLFetchNameValue( papszTLConfigOptions, pszKey );
+
+    if( pszResult == NULL )
     {
         CPLMutexHolderD( &hConfigMutex );
 
@@ -1375,6 +1432,26 @@ CPLGetConfigOption( const char *pszKey, const char *pszDefault )
 /*                         CPLSetConfigOption()                         */
 /************************************************************************/
 
+/**
+  * Set a configuration option for GDAL/OGR use.
+  *
+  * Those options are defined as a (key, value) couple. The value corresponding
+  * to a key can be got later with the CPLGetConfigOption() method.
+  *
+  * This mechanism is similar to environment variables, but options set with
+  * CPLSetConfigOption() overrides, for CPLGetConfigOption() point of view,
+  * values defined in the environment.
+  *
+  * If CPLSetConfigOption() is called several times with the same key, the
+  * value provided during the last call will be used.
+  *
+  * Options can also be passed on the command line of most GDAL utilities
+  * with the with '--config KEY VALUE'. For example,
+  * ogrinfo --config CPL_DEBUG ON ~/data/test/point.shp
+  *
+  * @param pszKey the key of the option
+  * @param pszValue the value of the option
+  */
 void CPL_STDCALL 
 CPLSetConfigOption( const char *pszKey, const char *pszValue )
 
@@ -1383,6 +1460,36 @@ CPLSetConfigOption( const char *pszKey, const char *pszValue )
 
     papszConfigOptions = (volatile char **) 
         CSLSetNameValue( (char **) papszConfigOptions, pszKey, pszValue );
+}
+
+/************************************************************************/
+/*                   CPLSetThreadLocalConfigOption()                    */
+/************************************************************************/
+
+/**
+  * Set a configuration option for GDAL/OGR use.
+  *
+  * Those options are defined as a (key, value) couple. The value corresponding
+  * to a key can be got later with the CPLGetConfigOption() method.  
+  *
+  * This function sets the configuration option that only applies in the
+  * current thread, as opposed to CPLSetConfigOption() which sets an option
+  * that applies on all threads.
+  *
+  * @param pszKey the key of the option
+  * @param pszValue the value of the option
+  */
+
+void CPL_STDCALL 
+CPLSetThreadLocalConfigOption( const char *pszKey, const char *pszValue )
+
+{
+    char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
+
+    papszTLConfigOptions = 
+        CSLSetNameValue( papszTLConfigOptions, pszKey, pszValue );
+
+    CPLSetTLS( CTLS_CONFIGOPTIONS, papszTLConfigOptions, FALSE );
 }
 
 /************************************************************************/
@@ -1396,6 +1503,13 @@ void CPL_STDCALL CPLFreeConfig()
 
     CSLDestroy( (char **) papszConfigOptions);
     papszConfigOptions = NULL;
+
+    char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
+    if( papszTLConfigOptions != NULL )
+    {
+        CSLDestroy( papszTLConfigOptions );
+        CPLSetTLS( CTLS_CONFIGOPTIONS, NULL, FALSE );
+    }
 }
 
 /************************************************************************/
@@ -1410,10 +1524,12 @@ int CPLStat( const char *pszPath, VSIStatBuf *psStatBuf )
 {
     if( strlen(pszPath) == 2 && pszPath[1] == ':' )
     {
-        char    szAltPath[10];
+        char    szAltPath[4];
         
-        strncpy( szAltPath, pszPath, 10 );
-        strcat( szAltPath, "\\" );
+        szAltPath[0] = pszPath[0];
+        szAltPath[1] = pszPath[1];
+        szAltPath[2] = '\\';
+        szAltPath[3] = '\0';
         return VSIStat( szAltPath, psStatBuf );
     }
     else
@@ -1541,6 +1657,10 @@ const char *CPLDecToDMS( double dfAngle, const char * pszAxis,
     dfEpsilon = (0.5/3600.0) * pow(0.1,nPrecision);
 
     dfABSAngle = ABS(dfAngle) + dfEpsilon;
+    if (dfABSAngle > 361)
+    {
+        return "Invalid angle";
+    }
 
     nDegrees = (int) dfABSAngle;
     nMinutes = (int) ((dfABSAngle - nDegrees) * 60);
@@ -2090,12 +2210,14 @@ int CPLMoveFile( const char *pszNewPath, const char *pszOldPath )
 /*                             CPLLocaleC()                             */
 /************************************************************************/
 
-CPLLocaleC::CPLLocaleC()
+CPLLocaleC::CPLLocaleC() : pszOldLocale(CPLStrdup(setlocale(LC_NUMERIC,NULL)))
 
 {
-    pszOldLocale = strdup(setlocale(LC_NUMERIC,NULL));
     if( setlocale(LC_NUMERIC,"C") == NULL )
+    {
+        CPLFree( pszOldLocale );
         pszOldLocale = NULL;
+    }
 }
 
 /************************************************************************/

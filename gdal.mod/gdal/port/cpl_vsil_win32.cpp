@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_win32.cpp 17270 2009-06-20 03:43:35Z warmerdam $
+ * $Id: cpl_vsil_win32.cpp 17269 2009-06-20 03:42:47Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for Win32.
@@ -29,7 +29,7 @@
 
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: cpl_vsil_win32.cpp 17270 2009-06-20 03:43:35Z warmerdam $");
+CPL_CVSID("$Id: cpl_vsil_win32.cpp 17269 2009-06-20 03:42:47Z warmerdam $");
 
 #if defined(WIN32)
 

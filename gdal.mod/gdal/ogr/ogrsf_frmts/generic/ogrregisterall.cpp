@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrregisterall.cpp 14784 2008-06-28 22:25:49Z warmerdam $
+ * $Id: ogrregisterall.cpp 18449 2010-01-07 09:09:09Z martinl $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Function to register all known OGR drivers.
@@ -29,7 +29,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 14784 2008-06-28 22:25:49Z warmerdam $");
+CPL_CVSID("$Id: ogrregisterall.cpp 18449 2010-01-07 09:09:09Z martinl $");
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -124,6 +124,9 @@ void OGRRegisterAll()
 #ifdef INGRES_ENABLED
     RegisterOGRIngres();
 #endif
+#ifdef PCIDSK_ENABLED
+    RegisterOGRPCIDSK();
+#endif
 #ifdef SDE_ENABLED
     RegisterOGRSDE();
 #endif
@@ -137,6 +140,9 @@ void OGRRegisterAll()
 #ifdef DWGDIRECT_ENABLED
     RegisterOGRDXFDWG();
 #endif
+#ifdef DXF_ENABLED
+    RegisterOGRDXF();
+#endif
 #ifdef GRASS_ENABLED
     RegisterOGRGRASS();
 #endif
@@ -149,5 +155,15 @@ void OGRRegisterAll()
 #ifdef GEOCONCEPT_ENABLED
     RegisterOGRGeoconcept();
 #endif
+#ifdef GEORSS_ENABLED
+    RegisterOGRGeoRSS();
+#endif
+#ifdef GTM_ENABLED
+    RegisterOGRGTM();
+#endif
+#ifdef VFK_ENABLED
+    RegisterOGRVFK();
+#endif
+
 } /* OGRRegisterAll */
 

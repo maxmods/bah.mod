@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil.cpp 17132 2009-05-26 22:05:47Z rouault $
+ * $Id: cpl_vsil.cpp 18725 2010-02-04 21:02:19Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation VSI*L File API and other file system access
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cpl_vsil.cpp 17132 2009-05-26 22:05:47Z rouault $");
+CPL_CVSID("$Id: cpl_vsil.cpp 18725 2010-02-04 21:02:19Z rouault $");
 
 /************************************************************************/
 /*                             VSIReadDir()                             */
@@ -275,8 +275,12 @@ FILE *VSIFOpenL( const char * pszFilename, const char * pszAccess )
 {
     VSIFilesystemHandler *poFSHandler = 
         VSIFileManager::GetHandler( pszFilename );
+        
+    FILE* fp = (FILE *) poFSHandler->Open( pszFilename, pszAccess );
 
-    return (FILE *) poFSHandler->Open( pszFilename, pszAccess );
+    VSIDebug3( "VSIFOpenL(%s,%s) = %p", pszFilename, pszAccess, fp );
+        
+    return fp;
 }
 
 /************************************************************************/
@@ -302,6 +306,9 @@ int VSIFCloseL( FILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
+    
+    VSIDebug1( "VSICloseL(%p)", fp );
+    
     int nResult = poFileHandle->Close();
     
     delete poFileHandle;
@@ -595,11 +602,13 @@ VSIFileManager *VSIFileManager::Get()
     {
         poManager = new VSIFileManager;
         VSIInstallLargeFileHandler();
+        VSIInstallSubFileHandler();
         VSIInstallMemFileHandler();
 #ifdef HAVE_LIBZ
         VSIInstallGZipFileHandler();
         VSIInstallZipFileHandler();
 #endif
+        VSIInstallStdoutHandler();
     }
     
     return poManager;

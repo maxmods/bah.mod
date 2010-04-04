@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msg_basic_types.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: msg_basic_types.cpp 17686 2009-09-25 13:35:11Z dron $
  *
  * Project:  MSG Native Reader
  * Purpose:  Basic types implementation.
@@ -30,7 +30,7 @@
 #include "msg_basic_types.h"
 #include "cpl_port.h"
 
-CPL_CVSID("$Id: msg_basic_types.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: msg_basic_types.cpp 17686 2009-09-25 13:35:11Z dron $");
 
 #include <stdio.h>
 
@@ -97,23 +97,23 @@ void to_string(PH_DATA& d) {
 bool perform_type_size_check(void) {
     bool success = true;
     if (sizeof(MAIN_PROD_HEADER) != 3674) {
-        fprintf(stderr, "MAIN_PROD_HEADER size not 3674 (%d)\n",sizeof(MAIN_PROD_HEADER));
+        fprintf(stderr, "MAIN_PROD_HEADER size not 3674 (%lu)\n", (unsigned long)sizeof(MAIN_PROD_HEADER));
         success = false;
     }
     if (sizeof(SECONDARY_PROD_HEADER) != 1120) {
-        fprintf(stderr, "SECONDARY_PROD_HEADER size not 1120 (%d)\n",sizeof(SECONDARY_PROD_HEADER));
+        fprintf(stderr, "SECONDARY_PROD_HEADER size not 1120 (%lu)\n", (unsigned long)sizeof(SECONDARY_PROD_HEADER));
         success = false;
     }
     if (sizeof(SUB_VISIRLINE) != 27) {
-        fprintf(stderr, "SUB_VISIRLINE size not 17 (%d)\n", sizeof(SUB_VISIRLINE));
+        fprintf(stderr, "SUB_VISIRLINE size not 17 (%lu)\n", (unsigned long)sizeof(SUB_VISIRLINE));
         success = false;
     }
     if (sizeof(GP_PK_HEADER) != 22) {
-        fprintf(stderr, "GP_PK_HEADER size not 22 (%d)\n", sizeof(GP_PK_HEADER));
+        fprintf(stderr, "GP_PK_HEADER size not 22 (%lu)\n", (unsigned long)sizeof(GP_PK_HEADER));
         success = false;
     }
     if (sizeof(GP_PK_SH1) != 16) {
-        fprintf(stderr, "GP_PK_SH1 size not 16 (%d)\n", sizeof(GP_PK_SH1));
+        fprintf(stderr, "GP_PK_SH1 size not 16 (%lu)\n", (unsigned long)sizeof(GP_PK_SH1));
         success = false;
     }
     return success;

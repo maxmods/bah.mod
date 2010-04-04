@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57layer.cpp 17954 2009-11-02 21:14:05Z rouault $
+ * $Id: ogrs57layer.cpp 17953 2009-11-02 21:13:56Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57Layer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57layer.cpp 17954 2009-11-02 21:14:05Z rouault $");
+CPL_CVSID("$Id: ogrs57layer.cpp 17953 2009-11-02 21:13:56Z rouault $");
 
 /************************************************************************/
 /*                            OGRS57Layer()                             */

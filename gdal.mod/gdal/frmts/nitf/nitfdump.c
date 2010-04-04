@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdump.c 17653 2009-09-17 22:10:35Z warmerdam $
+ * $Id: nitfdump.c 17779 2009-10-09 16:38:08Z warmerdam $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Simple test mainline to dump info about NITF file. 
@@ -30,7 +30,7 @@
 #include "nitflib.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfdump.c 17653 2009-09-17 22:10:35Z warmerdam $");
+CPL_CVSID("$Id: nitfdump.c 17779 2009-10-09 16:38:08Z warmerdam $");
 
 static void DumpRPC( NITFImage *psImage, NITFRPC00BInfo *psRPC );
 static void DumpMetadata( const char *, const char *, char ** );
@@ -112,7 +112,7 @@ int main( int nArgc, char ** papszArgv )
             printf( "Segment %d (Type=%s):\n", 
                     iSegment + 1, psSegInfo->szSegmentType );
 
-            printf( "  HeaderStart=" CPL_FRMT_GUIB ", HeaderSize=" CPL_FRMT_GUIB ", DataStart=" CPL_FRMT_GUIB ", DataSize=" CPL_FRMT_GUIB "\n",
+            printf( "  HeaderStart=" CPL_FRMT_GUIB ", HeaderSize=%u, DataStart=" CPL_FRMT_GUIB ", DataSize=" CPL_FRMT_GUIB "\n",
                     psSegInfo->nSegmentHeaderStart,
                     psSegInfo->nSegmentHeaderSize, 
                     psSegInfo->nSegmentStart,
@@ -157,7 +157,7 @@ int main( int nArgc, char ** papszArgv )
                     psImage->chICORDS );
             if( psImage->chICORDS != ' ' )
             {
-                printf( "  UL=(%g,%g), UR=(%g,%g)\n  LL=(%g,%g), LR=(%g,%g)\n", 
+                printf( "  UL=(%.15g,%.15g), UR=(%.15g,%.15g)\n  LL=(%.15g,%.15g), LR=(%.15g,%.15g)\n", 
                         psImage->dfULX, psImage->dfULY,
                         psImage->dfURX, psImage->dfURY,
                         psImage->dfLLX, psImage->dfLLY,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane_reader.cpp 14977 2008-07-19 13:17:25Z rouault $
+ * $Id: ogr_xplane_reader.cpp 18548 2010-01-14 22:01:35Z rouault $
  *
  * Project:  X-Plane aeronautical data reader
  * Purpose:  Definition of classes for OGR X-Plane aeronautical data driver.
@@ -29,7 +29,7 @@
 
 #include "ogr_xplane_reader.h"
 
-CPL_CVSID("$Id: ogr_xplane_reader.cpp 14977 2008-07-19 13:17:25Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_reader.cpp 18548 2010-01-14 22:01:35Z rouault $");
 
 /***********************************************************************/
 /*                       OGRXPlaneReader()                             */
@@ -42,6 +42,8 @@ OGRXPlaneReader::OGRXPlaneReader()
     pszFilename = NULL;
     bEOF = FALSE;
     nLineNumber = 0;
+    poInterestLayer = NULL;
+    nTokens = 0;
 }
 
 /***********************************************************************/

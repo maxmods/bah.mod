@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgrassdatasource.cpp 15235 2008-08-27 19:44:56Z rouault $
+ * $Id: ogrgrassdatasource.cpp 16813 2009-04-21 20:05:19Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGRASSDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgrassdatasource.cpp 15235 2008-08-27 19:44:56Z rouault $");
+CPL_CVSID("$Id: ogrgrassdatasource.cpp 16813 2009-04-21 20:05:19Z rouault $");
 
 /************************************************************************/
 /*                         Grass2CPLErrorHook()                         */
@@ -84,7 +84,7 @@ OGRGRASSDataSource::~OGRGRASSDataSource()
 /*                                Open()                                */
 /************************************************************************/
 
-#if GRASS_VERSION_MAJOR  >= 6 && GRASS_VERSION_MINOR  >= 3
+#if (GRASS_VERSION_MAJOR  >= 6 && GRASS_VERSION_MINOR  >= 3) || GRASS_VERSION_MAJOR  >= 7 
 typedef int (*GrassErrorHandler)(const char *, int);
 #else
 typedef int (*GrassErrorHandler)(char *, int);
@@ -152,14 +152,17 @@ int OGRGRASSDataSource::Open( const char * pszNewName, int bUpdate,
     // GISBASE is path to the directory where GRASS is installed,
     // it is necessary because there are database drivers.
     if ( !getenv( "GISBASE" ) ) {
-	char *gisbase = GRASS_GISBASE;
+        static char* gisbaseEnv = NULL;
+        const char *gisbase = GRASS_GISBASE;
         CPLError( CE_Warning, CPLE_AppDefined, "GRASS warning: GISBASE "
-		  "enviroment variable was not set, using:\n%s", gisbase );
-	char buf[2000];
-	sprintf ( buf, "GISBASE=%s", gisbase );
+                "enviroment variable was not set, using:\n%s", gisbase );
+        char buf[2000];
+        snprintf ( buf, sizeof(buf), "GISBASE=%s", gisbase );
+        buf[sizeof(buf)-1] = '\0';
 
- 	char *gisbaseEnv = CPLStrdup ( buf );
-	putenv( gisbaseEnv );
+        CPLFree(gisbaseEnv);
+        gisbaseEnv = CPLStrdup ( buf );
+        putenv( gisbaseEnv );
     }
 
     // Don't use GISRC file and read/write GRASS variables 

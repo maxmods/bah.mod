@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdidriver.cpp 12396 2007-10-13 10:02:17Z rouault $
+ * $Id: ogrogdidriver.cpp 16861 2009-04-26 19:22:29Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDIDriver class.
@@ -31,7 +31,7 @@
 #include "ogrogdi.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrogdidriver.cpp 12396 2007-10-13 10:02:17Z rouault $");
+CPL_CVSID("$Id: ogrogdidriver.cpp 16861 2009-04-26 19:22:29Z rouault $");
 
 /************************************************************************/
 /*                           ~OGROGDIDriver()                           */

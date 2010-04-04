@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $
+ * $Id: biggifdataset.cpp 17666 2009-09-22 10:34:11Z mloskot $
  *
  * Project:  BIGGIF Driver
  * Purpose:  Implement GDAL support for reading large GIF files in a 
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 15186 2008-08-22 21:58:17Z warmerdam $");
+CPL_CVSID("$Id: biggifdataset.cpp 17666 2009-09-22 10:34:11Z mloskot $");
 
 CPL_C_START
 #include "gif_lib.h"
@@ -42,8 +42,8 @@ CPL_C_START
 void	GDALRegister_BIGGIF(void);
 CPL_C_END
 
-static int InterlacedOffset[] = { 0, 4, 2, 1 }; 
-static int InterlacedJumps[] = { 8, 8, 4, 2 };  
+static const int InterlacedOffset[] = { 0, 4, 2, 1 }; 
+static const int InterlacedJumps[] = { 8, 8, 4, 2 };  
 
 static int VSIGIFReadFunc( GifFileType *, GifByteType *, int);
 
@@ -391,14 +391,14 @@ CPLErr BIGGIFDataset::ReOpen()
         {
             /* Create as a sparse file to avoid filling up the whole file */
             /* while closing and then destroying this temporary dataset */
-            char *apszOptions[] = { "COMPRESS=LZW", "SPARSE_OK=YES", NULL };
+            const char* apszOptions[] = { "COMPRESS=LZW", "SPARSE_OK=YES", NULL };
             CPLString osTempFilename = CPLGenerateTempFilename("biggif");
 
             osTempFilename += ".tif";
 
             poWorkDS = poGTiffDriver->Create( osTempFilename, 
                                               nRasterXSize, nRasterYSize, 1, 
-                                              GDT_Byte, apszOptions );
+                                              GDT_Byte, const_cast<char**>(apszOptions));
         }
     }
 
@@ -516,15 +516,15 @@ GDALDataset *BIGGIFDataset::Open( GDALOpenInfo * poOpenInfo )
                               poDS->adfGeoTransform );
 
 /* -------------------------------------------------------------------- */
-/*      Support overviews.                                              */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Support overviews.                                              */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return poDS;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 14286 2008-04-13 14:37:05Z warmerdam $
+ * $Id: gdaljp2metadata.cpp 17636 2009-09-12 23:19:18Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -34,7 +34,7 @@
 #include "ogr_geometry.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 14286 2008-04-13 14:37:05Z warmerdam $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -220,7 +220,7 @@ int GDALJP2Metadata::ReadBoxes( FILE *fpVSIL )
         if( EQUAL(oBox.GetType(),"uuid") 
             && memcmp( oBox.GetUUID(), msi_uuid2, 16 ) == 0 )
         {
-            nGeoTIFFSize = oBox.GetDataLength();
+	    nGeoTIFFSize = (int) oBox.GetDataLength();
             pabyGeoTIFFData = oBox.ReadBoxData();
         }
 
@@ -230,7 +230,7 @@ int GDALJP2Metadata::ReadBoxes( FILE *fpVSIL )
         if( EQUAL(oBox.GetType(),"uuid") 
             && memcmp( oBox.GetUUID(), msig_uuid, 16 ) == 0 )
         {
-            nMSIGSize = oBox.GetDataLength();
+	    nMSIGSize = (int) oBox.GetDataLength();
             pabyMSIGData = oBox.ReadBoxData();
 
             if( nMSIGSize < 70 

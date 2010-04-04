@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmllayer.cpp 16900 2009-05-01 13:15:31Z rouault $
+ * $Id: ogrgmllayer.cpp 18077 2009-11-22 19:15:34Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLLayer class.
@@ -31,8 +31,9 @@
 #include "cpl_conv.h"
 #include "cpl_port.h"
 #include "cpl_string.h"
+#include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgmllayer.cpp 16900 2009-05-01 13:15:31Z rouault $");
+CPL_CVSID("$Id: ogrgmllayer.cpp 18077 2009-11-22 19:15:34Z rouault $");
 
 /************************************************************************/
 /*                           OGRGMLLayer()                              */
@@ -51,7 +52,9 @@ OGRGMLLayer::OGRGMLLayer( const char * pszName,
     
     iNextGMLId = 0;
     nTotalGMLCount = -1;
-    
+    bInvalidFIDFound = FALSE;
+    pszFIDPrefix = NULL;
+        
     poDS = poDSIn;
 
     if ( EQUALN(pszName, "ogr:", 4) )
@@ -80,6 +83,8 @@ OGRGMLLayer::OGRGMLLayer( const char * pszName,
 OGRGMLLayer::~OGRGMLLayer()
 
 {
+    CPLFree(pszFIDPrefix);
+
     if( poFeatureDefn )
         poFeatureDefn->Release();
 
@@ -152,7 +157,69 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
         if( poGMLFeature->GetClass() != poFClass )
             continue;
 
-        iNextGMLId++;
+/* -------------------------------------------------------------------- */
+/*      Extract the fid:                                                */
+/*      -Assumes the fids are non-negative integers with an optional    */
+/*       prefix                                                         */
+/*      -If a prefix differs from the prefix of the first feature from  */
+/*       the poDS then the fids from the poDS are ignored and are       */
+/*       assigned serially thereafter                                   */
+/* -------------------------------------------------------------------- */
+        int nFID;
+        const char * pszGML_FID = poGMLFeature->GetFID();
+        if( bInvalidFIDFound )
+        {
+            nFID = iNextGMLId++;
+        }
+        else if( pszGML_FID == NULL )
+        {
+            bInvalidFIDFound = TRUE;
+            nFID = iNextGMLId++;
+        }
+        else if( iNextGMLId == 0 )
+        {
+            int i = strlen( pszGML_FID )-1, j = 0;
+            while( i >= 0 && pszGML_FID[i] >= '0'
+                          && pszGML_FID[i] <= '9' && j<8)
+                i--, j++;
+            /* i points the last character of the fid */
+            if( i >= 0 && j < 8 && pszFIDPrefix == NULL)
+            {
+                pszFIDPrefix = (char *) CPLMalloc(i+2);
+                pszFIDPrefix[i+1] = '\0';
+                strncpy(pszFIDPrefix, pszGML_FID, i+1);
+            }
+            /* pszFIDPrefix now contains the prefix or NULL if no prefix is found */
+            if( j < 8 && sscanf(pszGML_FID+i+1, "%d", &nFID)==1)
+            {
+                if( iNextGMLId <= nFID )
+                    iNextGMLId = nFID + 1;
+            }
+            else
+            {
+                bInvalidFIDFound = TRUE;
+                nFID = iNextGMLId++;
+            }
+        }
+        else if( iNextGMLId != 0 )
+        {
+            const char* pszFIDPrefix_notnull = pszFIDPrefix;
+            if (pszFIDPrefix_notnull == NULL) pszFIDPrefix_notnull = "";
+            int nLenPrefix = strlen(pszFIDPrefix_notnull);
+
+            if(  strncmp(pszGML_FID, pszFIDPrefix_notnull, nLenPrefix) == 0 &&
+                 strlen(pszGML_FID+nLenPrefix) <= 9 &&
+                 sscanf(pszGML_FID+nLenPrefix, "%d", &nFID) == 1 )
+            { /* fid with the prefix. Using its numerical part */
+                if( iNextGMLId < nFID )
+                    iNextGMLId = nFID + 1;
+            }
+            else
+            { /* fid without the aforementioned prefix or a valid numerical part */
+                bInvalidFIDFound = TRUE;
+                nFID = iNextGMLId++;
+            }
+        }
 
 /* -------------------------------------------------------------------- */
 /*      Does it satisfy the spatial query, if there is one?             */
@@ -179,7 +246,7 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
         int iField;
         OGRFeature *poOGRFeature = new OGRFeature( GetLayerDefn() );
 
-        poOGRFeature->SetFID( iNextGMLId );
+        poOGRFeature->SetFID( nFID );
 
         for( iField = 0; iField < poFClass->GetPropertyCount(); iField++ )
         {
@@ -310,8 +377,7 @@ OGRErr OGRGMLLayer::CreateFeature( OGRFeature *poFeature )
             while( *pszRaw == ' ' )
                 pszRaw++;
 
-            char *pszEscaped = CPLEscapeString( pszRaw, -1, CPLES_XML );
-
+            char *pszEscaped = OGRGetXML_UTF8_EscapedString( pszRaw );
             VSIFPrintf( fp, "      <ogr:%s>%s</ogr:%s>\n", 
                         poField->GetNameRef(), pszEscaped, 
                         poField->GetNameRef() );

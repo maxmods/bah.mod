@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.h 15574 2008-10-22 04:58:43Z warmerdam $
+ * $Id: cpl_conv.h 17742 2009-10-03 16:13:16Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions declarations.
@@ -52,6 +52,8 @@ void CPL_DLL CPLVerifyConfiguration(void);
 const char CPL_DLL * CPL_STDCALL
 CPLGetConfigOption( const char *, const char * );
 void CPL_DLL CPL_STDCALL CPLSetConfigOption( const char *, const char * );
+void CPL_DLL CPL_STDCALL CPLSetThreadLocalConfigOption( const char *pszKey, 
+                                                        const char *pszValue );
 void CPL_DLL CPL_STDCALL CPLFreeConfig(void);
 
 /* -------------------------------------------------------------------- */
@@ -72,6 +74,7 @@ char CPL_DLL *CPLStrlwr( char *);
 char CPL_DLL *CPLFGets( char *, int, FILE *);
 const char CPL_DLL *CPLReadLine( FILE * );
 const char CPL_DLL *CPLReadLineL( FILE * );
+const char CPL_DLL *CPLReadLine2L( FILE * , int nMaxCols, char** papszOptions);
 
 /* -------------------------------------------------------------------- */
 /*      Convert ASCII string to floationg point number                  */
@@ -217,12 +220,16 @@ CPL_C_END
 
 class CPLLocaleC
 {
-  private:
-    char *pszOldLocale;
-
-  public:
+public:
     CPLLocaleC();
     ~CPLLocaleC();
+
+private:
+    char *pszOldLocale;
+
+    // Make it non-copyable
+    CPLLocaleC(CPLLocaleC&);
+    CPLLocaleC& operator=(CPLLocaleC&);
 };
 
 #endif /* def __cplusplus */

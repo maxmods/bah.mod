@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeotablelayer.cpp 17620 2009-09-08 20:14:53Z chaitanya $
+ * $Id: ogrpgeotablelayer.cpp 17755 2009-10-04 21:04:10Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
 
-CPL_CVSID("$Id: ogrpgeotablelayer.cpp 17620 2009-09-08 20:14:53Z chaitanya $");
+CPL_CVSID("$Id: ogrpgeotablelayer.cpp 17755 2009-10-04 21:04:10Z rouault $");
 
 /************************************************************************/
 /*                          OGRPGeoTableLayer()                         */
@@ -318,14 +318,7 @@ OGRErr OGRPGeoTableLayer::SetAttributeFilter( const char *pszQuery )
 int OGRPGeoTableLayer::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,OLCSequentialWrite) 
-             || EQUAL(pszCap,OLCRandomWrite) )
-        return bUpdateAccess;
-
-    else if( EQUAL(pszCap,OLCCreateField) )
-        return bUpdateAccess;
-
-    else if( EQUAL(pszCap,OLCRandomRead) )
+    if( EQUAL(pszCap,OLCRandomRead) )
         return TRUE;
 
     else if( EQUAL(pszCap,OLCFastFeatureCount) )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rpftocfile.cpp 17618 2009-09-07 19:14:58Z rouault $
+ * $Id: rpftocfile.cpp 17617 2009-09-07 19:14:46Z rouault $
  *
  * Project:  RPF A.TOC read Library
  * Purpose:  Module responsible for opening a RPF TOC file, populating RPFToc
@@ -49,7 +49,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rpftocfile.cpp 17618 2009-09-07 19:14:58Z rouault $");
+CPL_CVSID("$Id: rpftocfile.cpp 17617 2009-09-07 19:14:46Z rouault $");
 
 /************************************************************************/
 /*                        RPFTOCTrim()                                    */
@@ -93,6 +93,21 @@ RPFToc* RPFTOCRead(const char* pszFilename, NITFFile* psFile)
     {
         CPLError( CE_Failure, CPLE_NotSupported, 
                   "Invalid TOC file. Can't find RPFHDR." );
+        return NULL;
+    }
+
+    if (TRESize < 48)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "Not enough bytes in RPFHDR." );
+        return NULL;
+    }
+
+    int nRemainingBytes = psFile->nTREBytes - (pachTRE - psFile->pachTRE);
+    if (nRemainingBytes < 48)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                "Cannot read RPFHDR TRE. Not enough bytes");
         return NULL;
     }
 
@@ -409,7 +424,7 @@ RPFToc* RPFTOCReadFromBuffer(const char* pszFilename, FILE* fp, const char* tocH
         else
         {
             /* Trick so that frames are numbered north to south */
-            frameRow = (entry->nVertFrames-1) - frameRow;
+            frameRow = (unsigned short)((entry->nVertFrames-1) - frameRow);
         }
    
         if (frameRow >= entry->nVertFrames)

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.h 14816 2008-07-05 08:54:56Z rouault $
+ * $Id: gdal.h 17687 2009-09-25 13:43:56Z dron $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C/Public declarations.
@@ -36,9 +36,11 @@
  * Public (C callable) GDAL entry points.
  */
 
+#ifndef DOXYGEN_SKIP
 #include "gdal_version.h"
 #include "cpl_port.h"
 #include "cpl_error.h"
+#endif
 
 /* -------------------------------------------------------------------- */
 /*      Significant constants.                                          */
@@ -48,7 +50,7 @@ CPL_C_START
 
 /*! Pixel data types */
 typedef enum {
-    GDT_Unknown = 0,
+    /*! Unknown or unspecified type */ 		    GDT_Unknown = 0,
     /*! Eight bit unsigned integer */           GDT_Byte = 1,
     /*! Sixteen bit unsigned integer */         GDT_UInt16 = 2,
     /*! Sixteen bit signed integer */           GDT_Int16 = 3,
@@ -104,8 +106,8 @@ typedef enum
     /*! Max current value */                              GCI_Max=16
 } GDALColorInterp;
 
-/*! Translate a GDALColorInterp into a user displayable string. */
 const char CPL_DLL *GDALGetColorInterpretationName( GDALColorInterp );
+GDALColorInterp CPL_DLL GDALGetColorInterpretationByName( const char *pszName );
 
 /*! Types of color interpretations for a GDALColorTable. */
 typedef enum 
@@ -116,7 +118,6 @@ typedef enum
   /*! Hue, Lightness and Saturation (in c1, c2, and c3) */     GPI_HLS=3
 } GDALPaletteInterp;
 
-/*! Translate a GDALPaletteInterp into a user displayable string. */
 const char CPL_DLL *GDALGetPaletteInterpretationName( GDALPaletteInterp );
 
 /* "well known" metadata items. */
@@ -135,19 +136,36 @@ const char CPL_DLL *GDALGetPaletteInterpretationName( GDALPaletteInterp );
 /* -------------------------------------------------------------------- */
 /*      Define handle types related to various internal classes.        */
 /* -------------------------------------------------------------------- */
+
+/** Opaque type used for the C bindings of the C++ GDALMajorObject class */
 typedef void *GDALMajorObjectH;
+
+/** Opaque type used for the C bindings of the C++ GDALDataset class */
 typedef void *GDALDatasetH;
+
+/** Opaque type used for the C bindings of the C++ GDALRasterBand class */
 typedef void *GDALRasterBandH;
+
+/** Opaque type used for the C bindings of the C++ GDALDriver class */
 typedef void *GDALDriverH;
+
+#ifndef DOXYGEN_SKIP
+/* Deprecated / unused */
 typedef void *GDALProjDefH;
+#endif
+
+/** Opaque type used for the C bindings of the C++ GDALColorTable class */
 typedef void *GDALColorTableH;
+
+/** Opaque type used for the C bindings of the C++ GDALRasterAttributeTable class */
 typedef void *GDALRasterAttributeTableH;
 
 /* -------------------------------------------------------------------- */
 /*      Callback "progress" function.                                   */
 /* -------------------------------------------------------------------- */
 
-typedef int (CPL_STDCALL *GDALProgressFunc)(double,const char *, void *);
+typedef int (CPL_STDCALL *GDALProgressFunc)(double dfComplete, const char *pszMessage, void *pProgressArg);
+
 int CPL_DLL CPL_STDCALL GDALDummyProgress( double, const char *, void *);
 int CPL_DLL CPL_STDCALL GDALTermProgress( double, const char *, void *);
 int CPL_DLL CPL_STDCALL GDALScaledProgress( double, const char *, void *);
@@ -159,6 +177,8 @@ void CPL_DLL CPL_STDCALL GDALDestroyScaledProgress( void * );
 /*      Registration/driver related.                                    */
 /* ==================================================================== */
 
+#ifndef DOXYGEN_SKIP
+/* Deprecated / unused */
 typedef struct {
     char      *pszOptionName;
     char      *pszValueType;   /* "boolean", "int", "float", "string", 
@@ -166,6 +186,7 @@ typedef struct {
     char      *pszDescription;
     char      **papszOptions;
 } GDALOptionDefinition;
+#endif
 
 #define GDAL_DMD_LONGNAME "DMD_LONGNAME"
 #define GDAL_DMD_HELPTOPIC "DMD_HELPTOPIC"
@@ -504,6 +525,10 @@ int CPL_DLL CPL_STDCALL GDALLoadTabFile( const char *, double *, char **,
                                          int *, GDAL_GCP ** );
 int CPL_DLL CPL_STDCALL GDALReadTabFile( const char *, double *, char **,
                                          int *, GDAL_GCP ** );
+int CPL_DLL CPL_STDCALL GDALLoadOziMapFile( const char *, double *, char **,
+                                            int *, GDAL_GCP ** );
+int CPL_DLL CPL_STDCALL GDALReadOziMapFile( const char * ,  double *,
+                                            char **, int *, GDAL_GCP ** );
 char CPL_DLL ** CPL_STDCALL GDALLoadRPBFile( const char *pszFilename, 
                                              char **papszSiblingFiles );
 CPLErr CPL_DLL CPL_STDCALL GDALWriteRPBFile( const char *pszFilename, 
@@ -526,21 +551,12 @@ const char CPL_DLL * CPL_STDCALL GDALVersionInfo( const char * );
 
 #ifndef GDAL_CHECK_VERSION
 
-/** Return TRUE if GDAL library version at runtime matches nVersionMajor.nVersionMinor.
-
-    The purpose of this method is to ensure that calling code will run with the GDAL
-    version it is compiled for. It is primarly intented for external plugins.
-
-    @param nVersionMajor Major version to be tested against
-    @param nVersionMinor Minor version to be tested against
-    @param pszCallingComponentName If not NULL, in case of version mismatch, the method
-                                   will issue a failure mentionning the name of
-                                   the calling component.
-  */
 int CPL_DLL CPL_STDCALL GDALCheckVersion( int nVersionMajor, int nVersionMinor,
                                           const char* pszCallingComponentName);
 
-/** Helper macro for GDALCheckVersion */
+/** Helper macro for GDALCheckVersion()
+  @see GDALCheckVersion()
+  */
 #define GDAL_CHECK_VERSION(pszCallingComponentName) \
  GDALCheckVersion(GDAL_VERSION_MAJOR, GDAL_VERSION_MINOR, pszCallingComponentName)
 
@@ -576,6 +592,7 @@ int CPL_DLL CPL_STDCALL GDALExtractRPCInfo( char **, GDALRPCInfo * );
 /* ==================================================================== */
 /*      Color tables.                                                   */
 /* ==================================================================== */
+
 /** Color tuple */
 typedef struct
 {
@@ -608,12 +625,14 @@ void CPL_DLL CPL_STDCALL GDALCreateColorRamp( GDALColorTableH hTable,
 /*      Raster Attribute Table						*/
 /* ==================================================================== */
 
+/** Field type of raster attribute table */
 typedef enum {
     /*! Integer field */	   	   GFT_Integer , 
     /*! Floating point (double) field */   GFT_Real,
     /*! String field */                    GFT_String
 } GDALRATFieldType;
 
+/** Field usage of raster attribute table */
 typedef enum {
     /*! General purpose field. */          GFU_Generic = 0,  
     /*! Histogram pixel count */           GFU_PixelCount = 1,
@@ -679,8 +698,8 @@ int CPL_DLL CPL_STDCALL GDALRATGetLinearBinning( GDALRasterAttributeTableH,
                                                  double *, double * );
 CPLErr CPL_DLL CPL_STDCALL GDALRATInitializeFromColorTable(
     GDALRasterAttributeTableH, GDALColorTableH );
-GDALColorTableH CPL_DLL CPL_STDCALL GDALRATTranslateToColorTable( 
-    int nEntryCount );
+GDALColorTableH CPL_DLL CPL_STDCALL GDALRATTranslateToColorTable(
+    GDALRasterAttributeTableH, int nEntryCount );
 void CPL_DLL CPL_STDCALL GDALRATDumpReadable( GDALRasterAttributeTableH, 
                                               FILE * );
 GDALRasterAttributeTableH CPL_DLL CPL_STDCALL 

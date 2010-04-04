@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tifvsi.cpp 17675 2009-09-24 13:41:12Z chaitanya $
+ * $Id: tifvsi.cpp 17674 2009-09-24 13:40:55Z chaitanya $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implement system hook functions for libtiff on top of CPL/VSI,

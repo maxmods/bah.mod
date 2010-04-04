@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalcutline.cpp 16415 2009-02-25 20:14:43Z warmerdam $
+ * $Id: gdalcutline.cpp 17041 2009-05-17 22:35:15Z warmerdam $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implement cutline/blend mask generator.
@@ -34,7 +34,7 @@
 #include "ogr_geometry.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalcutline.cpp 16415 2009-02-25 20:14:43Z warmerdam $");
+CPL_CVSID("$Id: gdalcutline.cpp 17041 2009-05-17 22:35:15Z warmerdam $");
 
 /************************************************************************/
 /*                         BlendMaskGenerator()                         */
@@ -60,6 +60,40 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
     OGRGeometry *poLines
         = OGRGeometryFactory::forceToMultiLineString( 
             ((OGRGeometry *) hPolygon)->clone() );
+
+/* -------------------------------------------------------------------- */
+/*      Prepare a clipping polygon a bit bigger than the area of        */
+/*      interest in the hopes of simplifying the cutline down to        */
+/*      stuff that will be relavent for this area of interest.          */
+/* -------------------------------------------------------------------- */
+    CPLString osClipRectWKT;
+
+    osClipRectWKT.Printf( "POLYGON((%g %g,%g %g,%g %g,%g %g,%g %g))", 
+                          nXOff - (dfBlendDist+1), 
+                          nYOff - (dfBlendDist+1), 
+                          nXOff + nXSize + (dfBlendDist+1), 
+                          nYOff - (dfBlendDist+1), 
+                          nXOff + nXSize + (dfBlendDist+1), 
+                          nYOff + nYSize + (dfBlendDist+1), 
+                          nXOff - (dfBlendDist+1), 
+                          nYOff + nYSize + (dfBlendDist+1), 
+                          nXOff - (dfBlendDist+1), 
+                          nYOff - (dfBlendDist+1) );
+    
+    OGRPolygon *poClipRect = NULL;
+    char *pszWKT = (char *) osClipRectWKT.c_str();
+    
+    OGRGeometryFactory::createFromWkt( &pszWKT, NULL, 
+                                       (OGRGeometry**) (&poClipRect) );
+
+    if( poClipRect )
+    {
+        OGRGeometry *poClippedLines = 
+            poLines->Intersection( poClipRect );
+        delete poLines;
+        poLines = poClippedLines;
+        delete poClipRect;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Convert our polygon into GEOS format, and compute an            */
@@ -285,7 +319,13 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
     int nTargetBand = 1;
     double dfBurnValue = 255.0;
     int    anXYOff[2];
+    char   **papszRasterizeOptions = NULL;
     
+
+    if( CSLFetchBoolean( psWO->papszWarpOptions, "CUTLINE_ALL_TOUCHED", FALSE ))
+        papszRasterizeOptions = 
+            CSLSetNameValue( papszRasterizeOptions, "ALL_TOUCHED", "TRUE" );
+
     anXYOff[0] = nXOff;
     anXYOff[1] = nYOff;
 
@@ -293,7 +333,10 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
         GDALRasterizeGeometries( hMemDS, 1, &nTargetBand, 
                                  1, &hPolygon, 
                                  CutlineTransformer, anXYOff, 
-                                 &dfBurnValue, NULL, NULL, NULL );
+                                 &dfBurnValue, papszRasterizeOptions, 
+                                 NULL, NULL );
+
+    CSLDestroy( papszRasterizeOptions );
 
     // Close and ensure data flushed to underlying array.
     GDALClose( hMemDS );

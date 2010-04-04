@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ehdrdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ersdataset.cpp 17867 2009-10-21 21:04:49Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of .ers driver.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ehdrdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ersdataset.cpp 17867 2009-10-21 21:04:49Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -309,10 +309,12 @@ CPLErr ERSDataset::SetGCPs( int nGCPCountIn, const GDAL_GCP *pasGCPListIn,
 const char *ERSDataset::GetProjectionRef()
 
 {
-    if (pszProjection && strlen(pszProjection) > 0)
-        return pszProjection;
+    // try xml first
+    const char* pszPrj = GDALPamDataset::GetProjectionRef();
+    if(pszPrj && strlen(pszPrj) > 0)
+        return pszPrj;
 
-    return GDALPamDataset::GetProjectionRef();
+    return pszProjection;
 }
 
 /************************************************************************/
@@ -636,6 +638,7 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
     if( !poHeader->ParseChildren( fpERS ) )
     {
         delete poHeader;
+        VSIFCloseL( fpERS );
         return NULL;
     }
 
@@ -673,6 +676,13 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
     int nBands = atoi(poHeader->Find( "RasterInfo.NrOfBands" ));
     poDS->nRasterXSize = atoi(poHeader->Find( "RasterInfo.NrOfCellsPerLine" ));
     poDS->nRasterYSize = atoi(poHeader->Find( "RasterInfo.NrOfLines" ));
+    
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(nBands, FALSE))
+    {
+        delete poDS;
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*     Get the HeaderOffset if it exists in the header                  */
@@ -868,7 +878,7 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
             poHeader->Find( "RasterInfo.CellInfo.Ydimension", "" ));
     }
     else if( poHeader->Find( "RasterInfo.RegistrationCoord.Latitude", NULL )
-        && poHeader->Find( "RasterInfo.CellInfo.Xdimension", NULL ) )
+             && poHeader->Find( "RasterInfo.CellInfo.Xdimension", NULL ) )
     {
         poDS->bGotTransform = TRUE;
         poDS->adfGeoTransform[0] = ERSDMS2Dec( 
@@ -977,15 +987,34 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->ReadGCPs();
 
 /* -------------------------------------------------------------------- */
+/*      Initialize any PAM information.                                 */
+/* -------------------------------------------------------------------- */
+    poDS->SetDescription( poOpenInfo->pszFilename );
+    poDS->TryLoadXML();
+    
+    // if no SR in xml, try aux
+    const char* pszPrj = poDS->GDALPamDataset::GetProjectionRef();
+    if( !pszPrj || strlen(pszPrj) == 0 )
+    {
+        // try aux
+        GDALDataset* poAuxDS = GDALFindAssociatedAuxFile( poOpenInfo->pszFilename, GA_ReadOnly, poDS );
+        if( poAuxDS )
+        {
+            pszPrj = poAuxDS->GetProjectionRef();
+            if( pszPrj && strlen(pszPrj) > 0 )
+            {
+                CPLFree( poDS->pszProjection );
+                poDS->pszProjection = CPLStrdup(pszPrj);
+            }
+
+            GDALClose( poAuxDS );
+        }
+    }
+/* -------------------------------------------------------------------- */
 /*      Check for overviews.                                            */
 /* -------------------------------------------------------------------- */
     poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
-/* -------------------------------------------------------------------- */
-/*      Initialize any PAM information.                                 */
-/* -------------------------------------------------------------------- */
-    poDS->TryLoadXML();
-    
     return( poDS );
 }
 

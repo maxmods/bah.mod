@@ -1,6 +1,6 @@
 /*-*-C++-*-*/
 /******************************************************************************
- * $Id: ogr_tiger.h 14288 2008-04-13 15:56:22Z rouault $
+ * $Id: ogr_tiger.h 17224 2009-06-07 20:20:23Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Main declarations for Tiger translator.
@@ -169,7 +169,7 @@ public:
 
   OGRFeatureDefn     *GetFeatureDefn() { return poFeatureDefn; }
 
-  static const char * GetField( const char *, int, int );
+  static CPLString    GetField( const char *, int, int );
   static void         SetField( OGRFeature *, const char *, const char *,
                                 int, int );
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sgidataset.cpp 16188 2009-01-26 20:24:38Z rouault $
+ * $Id: sgidataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
  *
  * Project:  SGI Image Driver
  * Purpose:  Implement SGI Image Support based on Paul Bourke's SGI Image code.
@@ -35,7 +35,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: sgidataset.cpp 16188 2009-01-26 20:24:38Z rouault $");
+CPL_CVSID("$Id: sgidataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_SGI(void);
@@ -666,15 +666,15 @@ GDALDataset* SGIDataset::Open(GDALOpenInfo* poOpenInfo)
                           poDS->adfGeoTransform);
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription(poOpenInfo->pszFilename);
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return poDS;
 }

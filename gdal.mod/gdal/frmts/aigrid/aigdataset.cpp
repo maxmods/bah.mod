@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigdataset.cpp 17431 2009-07-22 17:27:11Z rouault $
+ * $Id: aigdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  Arc/Info Binary Grid Driver
  * Purpose:  Implements GDAL interface to underlying library.
@@ -34,13 +34,13 @@
 #include "aigrid.h"
 #include "avc.h"
 
-CPL_CVSID("$Id: aigdataset.cpp 17431 2009-07-22 17:27:11Z rouault $");
+CPL_CVSID("$Id: aigdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_AIGrid(void);
 CPL_C_END
 
-static const char*OSR_GDS( char **papszNV, const char * pszField, 
+static CPLString OSR_GDS( char **papszNV, const char * pszField, 
                            const char *pszDefaultValue );
 
 
@@ -62,6 +62,7 @@ class CPL_DLL AIGDataset : public GDALPamDataset
     char	*pszProjection;
 
     GDALColorTable *poCT;
+    int         bHasReadRat;
 
     void        TranslateColorTable( const char * );
 
@@ -151,8 +152,9 @@ CPLErr AIGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
     if( poODS->psInfo->nCellType == AIG_CELLTYPE_INT )
     {
-        panGridRaster = (GInt32 *) CPLMalloc(4*nBlockXSize*nBlockYSize);
-        if( AIGReadTile( poODS->psInfo, nBlockXOff, nBlockYOff, panGridRaster )
+        panGridRaster = (GInt32 *) VSIMalloc3(4,nBlockXSize,nBlockYSize);
+        if( panGridRaster == NULL ||
+            AIGReadTile( poODS->psInfo, nBlockXOff, nBlockYOff, panGridRaster )
             != CE_None )
         {
             CPLFree( panGridRaster );
@@ -204,6 +206,16 @@ const GDALRasterAttributeTable *AIGRasterBand::GetDefaultRAT()
 
 {
     AIGDataset	*poODS = (AIGDataset *) poDS;
+
+/* -------------------------------------------------------------------- */
+/*      Read info raster attribute table, if present.                   */
+/* -------------------------------------------------------------------- */
+    if (!poODS->bHasReadRat)
+    {
+        poODS->ReadRAT();
+        poODS->bHasReadRat = TRUE;
+    }
+
     return poODS->poRAT;
 }
 
@@ -303,6 +315,7 @@ AIGDataset::AIGDataset()
     pszProjection = CPLStrdup("");
     poCT = NULL;
     poRAT = NULL;
+    bHasReadRat = FALSE;
 }
 
 /************************************************************************/
@@ -566,6 +579,17 @@ GDALDataset *AIGDataset::Open( GDALOpenInfo * poOpenInfo )
     }
     
 /* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        AIGClose(psInfo);
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The AIG driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+/* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
     AIGDataset 	*poDS;
@@ -634,11 +658,6 @@ GDALDataset *AIGDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetBand( 1, new AIGRasterBand( poDS, 1 ) );
 
 /* -------------------------------------------------------------------- */
-/*      Read info raster attribute table, if present.                   */
-/* -------------------------------------------------------------------- */
-    poDS->ReadRAT();
-
-/* -------------------------------------------------------------------- */
 /*	Try to read projection file.					*/
 /* -------------------------------------------------------------------- */
     const char	*pszPrjFilename;
@@ -669,15 +688,15 @@ GDALDataset *AIGDataset::Open( GDALOpenInfo * poOpenInfo )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Open overviews.                                                 */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, psInfo->pszCoverName );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( psInfo->pszCoverName );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Open overviews.                                                 */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, psInfo->pszCoverName );
 
     return( poDS );
 }
@@ -765,7 +784,7 @@ void AIGDataset::TranslateColorTable( const char *pszClrFilename )
 /*                              OSR_GDS()                               */
 /************************************************************************/
 
-static const char*OSR_GDS( char **papszNV, const char * pszField, 
+static CPLString OSR_GDS( char **papszNV, const char * pszField, 
                            const char *pszDefaultValue )
 
 {
@@ -783,18 +802,18 @@ static const char*OSR_GDS( char **papszNV, const char * pszField,
         return pszDefaultValue;
     else
     {
-        static char     szResult[80];
+        CPLString osResult;
         char    **papszTokens;
         
         papszTokens = CSLTokenizeString(papszNV[iLine]);
 
         if( CSLCount(papszTokens) > 1 )
-            strncpy( szResult, papszTokens[1], sizeof(szResult));
+            osResult = papszTokens[1];
         else
-            strncpy( szResult, pszDefaultValue, sizeof(szResult));
+            osResult = pszDefaultValue;
         
         CSLDestroy( papszTokens );
-        return szResult;
+        return osResult;
     }
 }
 

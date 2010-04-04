@@ -274,9 +274,8 @@ CPLErr GenBinBitRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /*      Establish desired position.                                     */
 /* -------------------------------------------------------------------- */
     nLineStart = (((vsi_l_offset)nBlockXSize) * nBlockYOff * nBits) / 8;
-    iBitOffset = (((vsi_l_offset)nBlockXSize) * nBlockYOff * nBits) % 8;
-    nLineBytes = (((vsi_l_offset)nBlockXSize) * (nBlockYOff+1) * nBits + 7) / 8
-        - nLineStart;
+    iBitOffset = (int)((((vsi_l_offset)nBlockXSize) * nBlockYOff * nBits) % 8);
+    nLineBytes = (int) ((((vsi_l_offset)nBlockXSize) * (nBlockYOff+1) * nBits + 7) / 8 - nLineStart);
 
 /* -------------------------------------------------------------------- */
 /*      Read data into buffer.                                          */
@@ -684,6 +683,13 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterYSize = atoi(CSLFetchNameValue( papszHdr, "ROWS" ));
     poDS->papszHDR = papszHdr;
 
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(nBands, FALSE))
+    {
+        delete poDS;
+        return NULL;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Open target binary file.                                        */
 /* -------------------------------------------------------------------- */
@@ -764,8 +770,9 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     int nItemSize = GDALGetDataTypeSize(eDataType)/8;
     const char *pszInterleaving = CSLFetchNameValue(papszHdr,"INTERLEAVING");
-    int             nPixelOffset;
-    vsi_l_offset    nLineOffset, nBandOffset;
+    int             nPixelOffset, nLineOffset;
+    vsi_l_offset    nBandOffset;
+    int bIntOverflow = FALSE;
 
     if( pszInterleaving == NULL )
         pszInterleaving = "BIL";
@@ -773,12 +780,14 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
     if( EQUAL(pszInterleaving,"BSQ") || EQUAL(pszInterleaving,"NA") )
     {
         nPixelOffset = nItemSize;
+        if (poDS->nRasterXSize > INT_MAX / nItemSize) bIntOverflow = TRUE;
         nLineOffset = nItemSize * poDS->nRasterXSize;
         nBandOffset = nLineOffset * poDS->nRasterYSize;
     }
     else if( EQUAL(pszInterleaving,"BIP") )
     {
         nPixelOffset = nItemSize * nBands;
+        if (poDS->nRasterXSize > INT_MAX / nPixelOffset) bIntOverflow = TRUE;
         nLineOffset = nPixelOffset * poDS->nRasterXSize;
         nBandOffset = nItemSize;
     }
@@ -790,8 +799,17 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
                       pszInterleaving );
 
         nPixelOffset = nItemSize;
+        if (poDS->nRasterXSize > INT_MAX / (nPixelOffset * nBands)) bIntOverflow = TRUE;
         nLineOffset = nPixelOffset * nBands * poDS->nRasterXSize;
         nBandOffset = nItemSize * poDS->nRasterXSize;
+    }
+
+    if (bIntOverflow)
+    {
+        delete poDS;
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Int overflow occured.");
+        return NULL;
     }
 
     poDS->SetDescription( poOpenInfo->pszFilename );
@@ -845,15 +863,15 @@ GDALDataset *GenBinDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->ParseCoordinateSystem( papszHdr );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->TryLoadXML();
     
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
     return( poDS );
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpcimdio.cpp 17297 2009-06-27 03:29:41Z warmerdam $
+ * $Id: gdal_rpcimdio.cpp 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Functions for reading RPC and IMD formats, and normalizing.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cplkeywordparser.h"
 
-CPL_CVSID("$Id: gdal_rpcimdio.cpp 17297 2009-06-27 03:29:41Z warmerdam $");
+CPL_CVSID("$Id: gdal_rpcimdio.cpp 18063 2009-11-21 21:11:49Z warmerdam $");
 
 /************************************************************************/
 /*                          GDALLoadRPBFile()                           */

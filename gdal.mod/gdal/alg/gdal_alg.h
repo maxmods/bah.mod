@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg.h 15399 2008-09-21 22:40:54Z warmerdam $
+ * $Id: gdal_alg.h 18227 2009-12-09 13:08:16Z chaitanya $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes, and definitions for various GDAL based algorithms.
@@ -36,9 +36,11 @@
  * Public (C callable) GDAL algorithm entry points, and definitions.
  */
 
+#ifndef DOXYGEN_SKIP
 #include "gdal.h"
 #include "cpl_minixml.h"
 #include "ogr_api.h"
+#endif
 
 CPL_C_START
 
@@ -73,7 +75,7 @@ CPLErr CPL_DLL CPL_STDCALL
 GDALFillNodata( GDALRasterBandH hTargetBand, 
                 GDALRasterBandH hMaskBand,
                 double dfMaxSearchDist, 
-                int bConicSearch, 
+                int bDeprecatedOption,
                 int nSmoothingIterations,
                 char **papszOptions,
                 GDALProgressFunc pfnProgress, 
@@ -130,6 +132,11 @@ GDALCreateGenImgProjTransformer( GDALDatasetH hSrcDS, const char *pszSrcWKT,
 void CPL_DLL *
 GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS, 
                                   char **papszOptions );
+void CPL_DLL *
+GDALCreateGenImgProjTransformer3( const char *pszSrcWKT,
+                                  const double *padfSrcGeoTransform,
+                                  const char *pszDstWKT,
+                                  const double *padfDstGeoTransform );
 void CPL_DLL GDALSetGenImgProjTransformerDstGeoTransform( void *, 
                                                           const double * );
 void CPL_DLL GDALDestroyGenImgProjTransformer( void * );
@@ -298,18 +305,34 @@ GDALRasterizeLayers( GDALDatasetH hDS,
                      GDALProgressFunc pfnProgress, 
                      void *pProgressArg );
 
+CPLErr CPL_DLL 
+GDALRasterizeLayersBuf( void *pData, int nBufXSize, int nBufYSize,
+                        GDALDataType eBufType, int nPixelSpace, int nLineSpace,
+                        int nLayerCount, OGRLayerH *pahLayers,
+                        const char *pszDstProjection,
+                        double *padfDstGeoTransform,
+                        GDALTransformerFunc pfnTransformer, 
+                        void *pTransformArg, double dfBurnValue,
+                        char **papszOptions, GDALProgressFunc pfnProgress, 
+                        void *pProgressArg );
+
+
 /************************************************************************/
 /*  Gridding interface.                                                 */
 /************************************************************************/
 
-/*! Gridding Algorithms */
+/** Gridding Algorithms */
 typedef enum {
   /*! Inverse distance to a power */    GGA_InverseDistanceToAPower = 1,
   /*! Moving Average */                 GGA_MovingAverage = 2,
   /*! Nearest Neighbor */               GGA_NearestNeighbor = 3,
   /*! Minimum Value (Data Metric) */    GGA_MetricMinimum = 4,
   /*! Maximum Value (Data Metric) */    GGA_MetricMaximum = 5,
-  /*! Data Range (Data Metric) */       GGA_MetricRange = 6
+  /*! Data Range (Data Metric) */       GGA_MetricRange = 6,
+  /*! Number of Points (Data Metric) */ GGA_MetricCount = 7,
+  /*! Average Distance (Data Metric) */ GGA_MetricAverageDistance = 8,
+  /*! Average Distance Between Data Points (Data Metric) */
+                                        GGA_MetricAverageDistancePts = 9
 } GDALGridAlgorithm;
 
 /** Inverse distance to a power method control options */
@@ -415,7 +438,6 @@ GDALGridCreate( GDALGridAlgorithm, const void *, GUInt32,
                 double, double, double, double,
                 GUInt32, GUInt32, GDALDataType, void *,
                 GDALProgressFunc, void *);
-
 CPL_C_END
                             
 #endif /* ndef GDAL_ALG_H_INCLUDED */

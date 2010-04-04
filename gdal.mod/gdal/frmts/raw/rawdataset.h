@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rawdataset.h 14719 2008-06-17 21:19:41Z rouault $
+ * $Id: rawdataset.h 18538 2010-01-12 17:52:08Z mloskot $
  *
  * Project:  Raw Translator
  * Purpose:  Implementation of RawDataset class.  Intented to be subclassed
@@ -28,6 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#ifndef GDAL_FRMTS_RAW_RAWDATASET_H_INCLUDED
+#define GDAL_FRMTS_RAW_RAWDATASET_H_INCLUDED
+
 #include "gdal_pam.h"
 
 /************************************************************************/
@@ -38,6 +41,9 @@
 
 class RawRasterBand;
 
+/**
+ * \brief Abstract Base Class dedicated to define new raw dataset types.
+ */
 class CPL_DLL RawDataset : public GDALPamDataset
 {
     friend class RawRasterBand;
@@ -48,7 +54,7 @@ class CPL_DLL RawDataset : public GDALPamDataset
                                    int, int *, int, int, int );
   public:
                  RawDataset();
-                 ~RawDataset();
+                 ~RawDataset() = 0;
 
 };
 
@@ -58,6 +64,11 @@ class CPL_DLL RawDataset : public GDALPamDataset
 /* ==================================================================== */
 /************************************************************************/
 
+/**
+ * \brief Abstract Base Class dedicated to define raw datasets.
+ * \note It is not defined an Abstract Base Class, but it's advised to
+ * consider it as such and not use it directly in client's code.
+ */
 class CPL_DLL RawRasterBand : public GDALPamRasterBand
 {
 protected:
@@ -96,7 +107,7 @@ protected:
                               void *, int, int, GDALDataType,
                               int, int );
 
-  public:
+public:
 
                  RawRasterBand( GDALDataset *poDS, int nBand, FILE * fpRaw, 
                                 vsi_l_offset nImgOffset, int nPixelOffset,
@@ -110,7 +121,7 @@ protected:
                                 GDALDataType eDataType, int bNativeOrder,
                                 int nXSize, int nYSize, int bIsVSIL = FALSE, int bOwnsFP = FALSE );
 
-                 ~RawRasterBand();
+                 ~RawRasterBand() /* = 0 */ ;
 
     // should override RasterIO eventually.
     
@@ -129,6 +140,8 @@ protected:
 
     CPLErr          AccessLine( int iLine );
 
+    void            SetAccess( GDALAccess eAccess );
+    
     // this is deprecated.
     void	 StoreNoDataValue( double );
 
@@ -142,3 +155,4 @@ protected:
     int          GetOwnsFP() { return bOwnsFP; }
 };
 
+#endif // GDAL_FRMTS_RAW_RAWDATASET_H_INCLUDED

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcrasterdataset.cpp 15452 2008-10-03 10:59:52Z kdejong $
+ * $Id: pcrasterdataset.cpp 16442 2009-03-01 16:46:45Z rouault $
  *
  * Project:  PCRaster Integration
  * Purpose:  PCRaster CSF 2.0 raster file driver
@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: pcrasterdataset.cpp 15452 2008-10-03 10:59:52Z kdejong $");
+CPL_CVSID("$Id: pcrasterdataset.cpp 16442 2009-03-01 16:46:45Z rouault $");
 
 #ifndef INCLUDED_PCRASTERDATASET
 #include "pcrasterdataset.h"
@@ -216,6 +216,7 @@ GDALDataset* PCRasterDataset::createCopy(
   if(RuseAs(map, appCellRepresentation)) {
     CPLError(CE_Failure, CPLE_NotSupported,
          "PCRaster driver: Cannot convert cells: %s", MstrError());
+    Mclose(map);
     return 0;
   }
 

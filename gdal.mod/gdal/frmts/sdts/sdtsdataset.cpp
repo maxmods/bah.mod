@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtsdataset.cpp 14526 2008-05-25 20:12:40Z rouault $
+ * $Id: sdtsdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  GDALDataset driver for SDTS Raster translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: sdtsdataset.cpp 14526 2008-05-25 20:12:40Z rouault $");
+CPL_CVSID("$Id: sdtsdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 /**
  \file sdtsdataset.cpp
@@ -142,7 +142,19 @@ GDALDataset *SDTSDataset::Open( GDALOpenInfo * poOpenInfo )
         delete poTransfer;
         return NULL;
     }
-        
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        delete poTransfer;
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The SDTS driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Find the first raster layer.  If there are none, abort          */
 /*      returning an error.                                             */

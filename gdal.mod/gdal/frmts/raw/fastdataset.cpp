@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fastdataset.cpp 14720 2008-06-17 21:22:28Z rouault $
+ * $Id: fastdataset.cpp 18415 2009-12-30 23:56:35Z warmerdam $
  *
  * Project:  EOSAT FAST Format reader
  * Purpose:  Reads Landsat FAST-L7A, IRS 1C/1D
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: fastdataset.cpp 14720 2008-06-17 21:22:28Z rouault $");
+CPL_CVSID("$Id: fastdataset.cpp 18415 2009-12-30 23:56:35Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_FAST(void);
@@ -111,11 +111,14 @@ class FASTDataset : public GDALPamDataset
     char        *pszProjection;
 
     FILE	*fpHeader;
-    FILE	*fpChannels[6];
+    CPLString apoChannelFilenames[7];
+    FILE	*fpChannels[7];
     const char	*pszFilename;
     char	*pszDirname;
     GDALDataType eDataType;
     FASTSatellite iSatellite;
+    
+    int         OpenChannel( const char *pszFilename, int iBand );
 
   public:
                 FASTDataset();
@@ -127,6 +130,8 @@ class FASTDataset : public GDALPamDataset
     const char	*GetProjectionRef();
     FILE	*FOpenChannel( const char *, int iBand, int iFASTBand );
     void        TryEuromap_IRS_1C_1D_ChannelNameConvention();
+    
+    virtual  char** GetFileList();
 };
 
 /************************************************************************/
@@ -230,9 +235,41 @@ const char *FASTDataset::GetProjectionRef()
     else
         return "";
 }
+
+/************************************************************************/
+/*                             GetFileList()                            */
+/************************************************************************/
+
+char** FASTDataset::GetFileList()
+{
+    char** papszFileList = GDALPamDataset::GetFileList();
+    int i;
+    for(i=0;i<6;i++)
+    {
+        if (apoChannelFilenames[i].size() > 0)
+            papszFileList =
+                CSLAddString(papszFileList, apoChannelFilenames[i].c_str());
+    }
+    
+    return papszFileList;
+}
+
+/************************************************************************/
+/*                             OpenChannel()                            */
+/************************************************************************/
+
+int FASTDataset::OpenChannel( const char *pszFilename, int iBand )
+{
+    fpChannels[iBand] = VSIFOpenL( pszFilename, "rb" );
+    if (fpChannels[iBand])
+        apoChannelFilenames[iBand] = pszFilename;
+    return fpChannels[iBand] != NULL;
+}
+
 /************************************************************************/
 /*                             FOpenChannel()                           */
 /************************************************************************/
+
 
 FILE *FASTDataset::FOpenChannel( const char *pszBandname, int iBand, int iFASTBand )
 {
@@ -240,6 +277,8 @@ FILE *FASTDataset::FOpenChannel( const char *pszBandname, int iBand, int iFASTBa
     char	*pszPrefix = CPLStrdup( CPLGetBasename( pszFilename ) );
     char	*pszSuffix = CPLStrdup( CPLGetExtension( pszFilename ) );
 
+    fpChannels[iBand] = NULL;
+    
     switch ( iSatellite )
     {
 	case LANDSAT:
@@ -247,84 +286,68 @@ FILE *FASTDataset::FOpenChannel( const char *pszBandname, int iBand, int iFASTBa
             {
                 pszChannelFilename =
                     CPLFormCIFilename( pszDirname, pszBandname, NULL );
-                fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-                if ( !fpChannels[iBand] )
-                {
-                    pszChannelFilename =
-                        CPLFormFilename( pszDirname,
-                                CPLSPrintf( "%s.b%02d", pszPrefix, iFASTBand ),
-                                NULL );
-                    fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-                }
+                if ( OpenChannel( pszChannelFilename, iBand ) )
+                    break;
+                pszChannelFilename =
+                    CPLFormFilename( pszDirname,
+                            CPLSPrintf( "%s.b%02d", pszPrefix, iFASTBand ),
+                            NULL );
+                OpenChannel( pszChannelFilename, iBand );
             }
-            else
-                fpChannels[iBand] = NULL;
             break;
 	case IRS:
 	default:
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "%s.%d", pszPrefix, iFASTBand ), pszSuffix );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "IMAGERY%d", iFASTBand ), pszSuffix );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "imagery%d", iFASTBand ), pszSuffix );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "IMAGERY%d.DAT", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "imagery%d.dat", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "IMAGERY%d.dat", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "imagery%d.DAT", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "BAND%d", iFASTBand ), pszSuffix );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "band%d", iFASTBand ), pszSuffix );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "BAND%d.DAT", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "band%d.dat", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "BAND%d.dat", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
-            if ( fpChannels[iBand] )
+            if ( OpenChannel( pszChannelFilename, iBand ) )
                 break;
             pszChannelFilename = CPLFormFilename( pszDirname,
                 CPLSPrintf( "band%d.DAT", iFASTBand ), NULL );
-            fpChannels[iBand] = VSIFOpenL( pszChannelFilename, "rb" );
+            OpenChannel( pszChannelFilename, iBand );
             break;
     }
     
@@ -355,8 +378,7 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
             char chLastLetterData = chLastLetterHeader - 'a' + '0';
             char* pszChannelFilename = CPLStrdup(pszFilename);
             pszChannelFilename[strlen(pszChannelFilename)-1] = chLastLetterData;
-            fpChannels[0] = VSIFOpenL( pszChannelFilename, "rb" );
-            if (fpChannels[0])
+            if (OpenChannel( pszChannelFilename, 0 ))
                 nBands++;
             else
                 CPLDebug("FAST", "Could not find %s", pszChannelFilename);
@@ -367,15 +389,13 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
             char chLastLetterData = chLastLetterHeader - 'k' + 'n';
             char* pszChannelFilename = CPLStrdup(pszFilename);
             pszChannelFilename[strlen(pszChannelFilename)-1] = chLastLetterData;
-            fpChannels[0] = VSIFOpenL( pszChannelFilename, "rb" );
-            if (fpChannels[0])
+            if (OpenChannel( pszChannelFilename, 0 ))
                 nBands++;
             else
             {
                 /* Trying upper-case */
                 pszChannelFilename[strlen(pszChannelFilename)-1] = chLastLetterData - 'a' + 'A';
-                fpChannels[0] = VSIFOpenL( pszChannelFilename, "rb" );
-                if (fpChannels[0])
+                if (OpenChannel( pszChannelFilename, 0 ))
                     nBands++;
                 else
                     CPLDebug("FAST", "Could not find %s", pszChannelFilename);
@@ -409,15 +429,13 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
                 {
                     char* pszChannelFilename = CPLStrdup(pszFilename);
                     pszChannelFilename[strlen(pszChannelFilename)-1] = apchLISSFilenames[i][j+1];
-                    fpChannels[nBands] = VSIFOpenL( pszChannelFilename, "rb" );
-                    if (fpChannels[nBands])
+                    if (OpenChannel( pszChannelFilename, nBands ))
                         nBands++;
                     else if (apchLISSFilenames[i][j+1] >= 'a' && apchLISSFilenames[i][j+1] <= 'z')
                     {
                         /* Trying upper-case */
                         pszChannelFilename[strlen(pszChannelFilename)-1] = apchLISSFilenames[i][j+1] - 'a' + 'A';
-                        fpChannels[nBands] = VSIFOpenL( pszChannelFilename, "rb" );
-                        if (fpChannels[nBands])
+                        if (OpenChannel( pszChannelFilename, nBands ))
                             nBands++;
                         else
                         {
@@ -446,8 +464,7 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
             {
                 char* pszChannelFilename = CPLStrdup(pszFilename);
                 pszChannelFilename[strlen(pszChannelFilename)-1] = '1' + j;
-                fpChannels[nBands] = VSIFOpenL( pszChannelFilename, "rb" );
-                if (fpChannels[nBands])
+                if (OpenChannel( pszChannelFilename, nBands ))
                     nBands++;
                 else
                 {
@@ -472,7 +489,7 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
 /************************************************************************/
 
 static char *GetValue( const char *pszString, const char *pszName,
-                       int iValueSize, int iNormalize )
+                       int iValueSize, int bNormalize )
 {
     char    *pszTemp = strstr( (char *) pszString, pszName );
 
@@ -486,7 +503,7 @@ static char *GetValue( const char *pszString, const char *pszName,
         while ( *pszTemp == '=' )
             pszTemp++;
 
-        pszTemp = CPLScanString( pszTemp, iValueSize, TRUE, iNormalize );
+        pszTemp = CPLScanString( pszTemp, iValueSize, TRUE, bNormalize );
     }
 
     return pszTemp;
@@ -617,11 +634,21 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
     // Read acquisition date
     pszTemp = GetValue( pszHeader, ACQUISITION_DATE,
                         ACQUISITION_DATE_SIZE, TRUE );
+    if (pszTemp == NULL)
+    {
+        CPLDebug( "FAST", "Cannot get ACQUISITION_DATE, using empty value." );
+        pszTemp = CPLStrdup("");
+    }
     poDS->SetMetadataItem( "ACQUISITION_DATE", pszTemp );
     CPLFree( pszTemp );
 
     // Read satellite name (will read the first one only)
     pszTemp = GetValue( pszHeader, SATELLITE_NAME, SATELLITE_NAME_SIZE, TRUE );
+    if (pszTemp == NULL)
+    {
+        CPLDebug( "FAST", "Cannot get SATELLITE_NAME, using empty value." );
+        pszTemp = CPLStrdup( "" );
+    }
     poDS->SetMetadataItem( "SATELLITE", pszTemp );
     if ( EQUALN(pszTemp, "LANDSAT", 7) )
 	poDS->iSatellite = LANDSAT;
@@ -633,6 +660,11 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
 
     // Read sensor name (will read the first one only)
     pszTemp = GetValue( pszHeader, SENSOR_NAME, SENSOR_NAME_SIZE, TRUE );
+    if (pszTemp == NULL)
+    {
+        CPLDebug( "FAST", "Cannot get SENSOR_NAME, using empty value." );
+        pszTemp = CPLStrdup("");
+    }
     poDS->SetMetadataItem( "SENSOR", pszTemp );
     CPLFree( pszTemp );
 
@@ -664,8 +696,7 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
                 for ( i=0;i<4;i++)
                 {
                     CPLString osChannelFilename = CPLFormFilename( poDS->pszDirname, papszBasenames[i], osSuffix );
-                    poDS->fpChannels[0] = VSIFOpenL( osChannelFilename, "rb" );
-                    if ( poDS->fpChannels[0] )
+                    if (poDS->OpenChannel( osChannelFilename, 0 ))
                     {
                         poDS->nBands = 1;
                         break;
@@ -697,7 +728,7 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
     /* the usual patterns like bandX.dat, etc... */
     if ( !poDS->nBands )
     {
-        for ( i = 0; i < 6; i++ )
+        for ( i = 0; i < 7; i++ )
         {
             char *pszFilename = NULL ;
     
@@ -761,6 +792,15 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
         CPLFree(pszHeader);
         delete poDS;
 	return NULL;
+    }
+
+
+    
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+    {
+        CPLFree(pszHeader);
+        delete poDS;
+        return NULL;
     }
 
     pszTemp = GetValue( pszHeader, BITS_PER_PIXEL, BITS_PER_PIXEL_SIZE, FALSE );
@@ -1047,14 +1087,26 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
 
     CPLFree( pszHeader );
 
-    // opens overviews.
-    poDS->oOvManager.Initialize(poDS, poDS->pszFilename);
-
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+    
+    // opens overviews.
+    poDS->oOvManager.Initialize(poDS, poDS->pszFilename);
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        delete poDS;
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The FAST driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
     
     return( poDS );
 }

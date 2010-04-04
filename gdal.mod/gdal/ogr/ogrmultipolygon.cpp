@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmultipolygon.cpp 14336 2008-04-20 14:36:09Z rouault $
+ * $Id: ogrmultipolygon.cpp 16898 2009-05-01 12:23:36Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRMultiPolygon class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmultipolygon.cpp 14336 2008-04-20 14:36:09Z rouault $");
+CPL_CVSID("$Id: ogrmultipolygon.cpp 16898 2009-05-01 12:23:36Z rouault $");
 
 /************************************************************************/
 /*                          OGRMultiPolygon()                           */
@@ -178,6 +178,7 @@ OGRErr OGRMultiPolygon::importFromWkt( char ** ppszInput )
         if( szToken[0] != '(' )
         {
             eErr = OGRERR_CORRUPT_DATA;
+            delete poPolygon;
             break;
         }
 
@@ -233,6 +234,8 @@ OGRErr OGRMultiPolygon::importFromWkt( char ** ppszInput )
 /* -------------------------------------------------------------------- */
         if( eErr == OGRERR_NONE )
             eErr = addGeometryDirectly( poPolygon );
+        else
+            delete poPolygon;
 
     } while( szToken[0] == ',' && eErr == OGRERR_NONE );
 
@@ -262,31 +265,32 @@ OGRErr OGRMultiPolygon::importFromWkt( char ** ppszInput )
 OGRErr OGRMultiPolygon::exportToWkt( char ** ppszDstText ) const
 
 {
-    char        **papszLines;
-    int         iLine, nCumulativeLength = 0, nValidPolys=0;
+    char        **papszPolygons;
+    int         iPoly, nCumulativeLength = 0, nValidPolys=0;
     OGRErr      eErr;
+    int         bMustWriteComma = FALSE;
 
 /* -------------------------------------------------------------------- */
 /*      Build a list of strings containing the stuff for each ring.     */
 /* -------------------------------------------------------------------- */
-    papszLines = (char **) CPLCalloc(sizeof(char *),getNumGeometries());
+    papszPolygons = (char **) CPLCalloc(sizeof(char *),getNumGeometries());
 
-    for( iLine = 0; iLine < getNumGeometries(); iLine++ )
+    for( iPoly = 0; iPoly < getNumGeometries(); iPoly++ )
     {
-        eErr = getGeometryRef(iLine)->exportToWkt( &(papszLines[iLine]) );
+        eErr = getGeometryRef(iPoly)->exportToWkt( &(papszPolygons[iPoly]) );
         if( eErr != OGRERR_NONE )
-            return eErr;
+            goto error;
 
-        if( !EQUALN(papszLines[iLine],"POLYGON (", 9) )
+        if( !EQUALN(papszPolygons[iPoly],"POLYGON (", 9) )
         {
             CPLDebug( "OGR", "OGRMultiPolygon::exportToWkt() - skipping %s.",
-                      papszLines[iLine] );
-            CPLFree( papszLines[iLine] );
-            papszLines[iLine] = NULL;
+                      papszPolygons[iPoly] );
+            CPLFree( papszPolygons[iPoly] );
+            papszPolygons[iPoly] = NULL;
             continue;
         }
         
-        nCumulativeLength += strlen(papszLines[iLine] + 8);
+        nCumulativeLength += strlen(papszPolygons[iPoly] + 8);
         nValidPolys++;
     }
     
@@ -295,7 +299,7 @@ OGRErr OGRMultiPolygon::exportToWkt( char ** ppszDstText ) const
 /* -------------------------------------------------------------------- */
     if( nValidPolys == 0 )
     {
-        CPLFree( papszLines );
+        CPLFree( papszPolygons );
         *ppszDstText = CPLStrdup("MULTIPOLYGON EMPTY");
         return OGRERR_NONE;
     }
@@ -307,32 +311,44 @@ OGRErr OGRMultiPolygon::exportToWkt( char ** ppszDstText ) const
     *ppszDstText = (char *) VSIMalloc(nCumulativeLength+getNumGeometries()+20);
 
     if( *ppszDstText == NULL )
-        return OGRERR_NOT_ENOUGH_MEMORY;
+    {
+        eErr = OGRERR_NOT_ENOUGH_MEMORY;
+        goto error;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Build up the string, freeing temporary strings as we go.        */
 /* -------------------------------------------------------------------- */
     strcpy( *ppszDstText, "MULTIPOLYGON (" );
+    nCumulativeLength = strlen(*ppszDstText);
 
-    int bMustWriteComma = FALSE;
-    for( iLine = 0; iLine < getNumGeometries(); iLine++ )
+    for( iPoly = 0; iPoly < getNumGeometries(); iPoly++ )
     {                                                           
-        if( papszLines[iLine] == NULL )
+        if( papszPolygons[iPoly] == NULL )
             continue;
 
         if( bMustWriteComma )
-            strcat( *ppszDstText, "," );
+            (*ppszDstText)[nCumulativeLength++] = ',';
         bMustWriteComma = TRUE;
         
-        strcat( *ppszDstText, papszLines[iLine] + 8 );
-        VSIFree( papszLines[iLine] );
+        int nPolyLength = strlen(papszPolygons[iPoly] + 8);
+        memcpy( *ppszDstText + nCumulativeLength, papszPolygons[iPoly] + 8, nPolyLength );
+        nCumulativeLength += nPolyLength;
+        VSIFree( papszPolygons[iPoly] );
     }
 
-    strcat( *ppszDstText, ")" );
+    (*ppszDstText)[nCumulativeLength++] = ')';
+    (*ppszDstText)[nCumulativeLength] = '\0';
 
-    CPLFree( papszLines );
+    CPLFree( papszPolygons );
 
     return OGRERR_NONE;
+
+error:
+    for( iPoly = 0; iPoly < getNumGeometries(); iPoly++ )
+        CPLFree( papszPolygons[iPoly] );
+    CPLFree( papszPolygons );
+    return eErr;
 }
 
 /************************************************************************/

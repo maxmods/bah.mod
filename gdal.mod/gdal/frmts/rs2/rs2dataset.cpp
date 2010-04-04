@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rs2dataset.cpp 15537 2008-10-15 16:48:31Z warmerdam $
+ * $Id: rs2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Radarsat 2 - XML Products (product.xml) driver
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rs2dataset.cpp 15537 2008-10-15 16:48:31Z warmerdam $");
+CPL_CVSID("$Id: rs2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RS2(void);
@@ -317,7 +317,7 @@ void RS2CalibRasterBand::ReadLUT() {
 
     psLUT = CPLParseXMLFile(m_pszLUTFile);
     
-    this->m_nfOffset = CPLAtof(CPLGetXMLValue(psLUT, "=lut.offset",
+    this->m_nfOffset = (float) CPLAtof(CPLGetXMLValue(psLUT, "=lut.offset",
         "0.0"));
 
     papszLUTList = CSLTokenizeString2( CPLGetXMLValue(psLUT,
@@ -328,7 +328,7 @@ void RS2CalibRasterBand::ReadLUT() {
     this->m_nfTable = (float *)CPLMalloc(sizeof(float) * this->m_nTableSize);
 
     for (int i = 0; i < this->m_nTableSize; i++) {
-        m_nfTable[i] = CPLAtof(papszLUTList[i]);
+        m_nfTable[i] = (float) CPLAtof(papszLUTList[i]);
     }
 
     CPLDestroyXMLNode(psLUT);
@@ -689,7 +689,19 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     psProduct = CPLParseXMLFile( osMDFilename );
     if( psProduct == NULL )
         return NULL;
-
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLDestroyXMLNode( psProduct );
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The RS2 driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
     psImageAttributes = CPLGetXMLNode(psProduct, "=product.imageAttributes" );
     if( psImageAttributes == NULL )
     {
@@ -726,13 +738,13 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
         atoi(CPLGetXMLValue( psImageAttributes, 
                              "rasterAttributes.numberofLines", 
                              "-1" ));
-    if (poDS->nRasterXSize <= 0 || poDS->nRasterYSize <= 0) {
-        CPLDestroyXMLNode( psProduct );
-        delete poDS;
+    if (poDS->nRasterXSize <= 1 || poDS->nRasterYSize <= 1) {
         CPLError( CE_Failure, CPLE_OpenFailed,
             "Non-sane raster dimensions provided in product.xml. If this is "
             "a valid RADARSAT-2 scene, please contact your data provider for "
             "a corrected dataset." );
+        delete poDS;
+        return NULL;
     }
 
 /* -------------------------------------------------------------------- */
@@ -905,7 +917,16 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 
         poBandFile = (GDALDataset *) GDALOpen( pszFullname, GA_ReadOnly );
         if( poBandFile == NULL )
+        {
+            CPLFree(pszFullname);
             continue;
+        }
+        if (poBandFile->GetRasterCount() == 0)
+        {
+            GDALClose( (GDALRasterBandH) poBandFile );
+            CPLFree(pszFullname);
+            continue;
+        }
         
         poDS->papszExtraFiles = CSLAddString( poDS->papszExtraFiles,
                                               pszFullname );
@@ -1287,11 +1308,6 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     if (pszGammaLUT) CPLFree(pszGammaLUT);
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, osMDFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     char *pszDescription = NULL;
@@ -1326,9 +1342,17 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->papszExtraFiles = 
             CSLAddString( poDS->papszExtraFiles, osMDFilename );
 
+/* -------------------------------------------------------------------- */
+/*      Initialize any PAM information.                                 */
+/* -------------------------------------------------------------------- */
     poDS->SetDescription( pszDescription );
     CPLFree( pszDescription );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, osMDFilename );
 
     return( poDS );
 }

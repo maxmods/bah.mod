@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envisatdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $
+ * $Id: envisatdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  APP ENVISAT Support
  * Purpose:  Reader for ENVISAT format image data.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"					       
 
-CPL_CVSID("$Id: envisatdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $");
+CPL_CVSID("$Id: envisatdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 #include "EnvisatFile.h"
@@ -603,7 +603,18 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
         if( EQUAL(pszDSType,"M") )
             break;
     }
-
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        EnvisatFile_Close( hEnvisatFile );
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The ENVISAT driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
@@ -740,15 +751,15 @@ GDALDataset *EnvisatDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->ScanForGCPs_ASAR();
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

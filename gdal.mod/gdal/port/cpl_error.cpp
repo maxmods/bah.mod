@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_error.cpp 14633 2008-06-05 14:14:53Z warmerdam $
+ * $Id: cpl_error.cpp 17293 2009-06-26 14:55:34Z warmerdam $
  *
  * Name:     cpl_error.cpp
  * Project:  CPL - Common Portability Library
@@ -40,7 +40,7 @@
  
 #define TIMESTAMP_DEBUG
 
-CPL_CVSID("$Id: cpl_error.cpp 14633 2008-06-05 14:14:53Z warmerdam $");
+CPL_CVSID("$Id: cpl_error.cpp 17293 2009-06-26 14:55:34Z warmerdam $");
 
 static void *hErrorMutex = NULL;
 static CPLErrorHandler pfnErrorHandler = CPLDefaultErrorHandler;
@@ -157,12 +157,11 @@ void    CPLErrorV(CPLErr eErrClass, int err_no, const char *fmt, va_list args )
 #endif
 
 /* -------------------------------------------------------------------- */
-/*      If CPL_ACCUM_ERROR_MSG=ON and the active error handler          */
-/*      is CPLQuietErrorHandler, accumulate the error messages          */
+/*      If CPL_ACCUM_ERROR_MSG=ON accumulate the error messages,        */
+/*      rather than just replacing the last error message.              */
 /* -------------------------------------------------------------------- */
         int nPreviousSize = 0;
         if ( psCtx->psHandlerStack != NULL &&
-             psCtx->psHandlerStack->pfnHandler == CPLQuietErrorHandler &&
              EQUAL(CPLGetConfigOption( "CPL_ACCUM_ERROR_MSG", "" ), "ON"))
         {
             nPreviousSize = strlen(psCtx->szLastErrMsg);
@@ -535,20 +534,20 @@ void CPL_STDCALL CPLLoggingErrorHandler( CPLErr eErrClass, int nError,
         }
         else if( cpl_log != NULL )
         {
-            char      path[5000];
+            char*     pszPath;
             int       i = 0;
 
-            strncpy( path, cpl_log, sizeof(path) - 10 );
-            path[sizeof(path)-1] = '\0';
+            pszPath = (char*)CPLMalloc(strlen(cpl_log) + 20);
+            strcpy(pszPath, cpl_log);
 
-            while( (fpLog = fopen( path, "rt" )) != NULL ) 
+            while( (fpLog = fopen( pszPath, "rt" )) != NULL ) 
             {
                 fclose( fpLog );
 
                 /* generate sequenced log file names, inserting # before ext.*/
                 if (strrchr(cpl_log, '.') == NULL)
                 {
-                    sprintf( path, "%s_%d%s", cpl_log, i++,
+                    sprintf( pszPath, "%s_%d%s", cpl_log, i++,
                              ".log" );
                 }
                 else
@@ -560,12 +559,14 @@ void CPL_STDCALL CPLLoggingErrorHandler( CPLErr eErrClass, int nError,
                     {
                         cpl_log_base[pos] = '\0';
                     }
-                    sprintf( path, "%s_%d%s", cpl_log_base,
+                    sprintf( pszPath, "%s_%d%s", cpl_log_base,
                              i++, ".log" );
+                    free(cpl_log_base);
                 }
             }
 
-            fpLog = fopen( path, "wt" );
+            fpLog = fopen( pszPath, "wt" );
+            CPLFree(pszPath);
         }
     }
 

@@ -31,7 +31,9 @@
 #include "ogrgeojsonreader.h"
 #include <cpl_http.h>
 #include <jsonc/json.h> // JSON-C
+#include <cstddef>
 #include <cstdlib>
+using namespace std;
 
 /************************************************************************/
 /*                           OGRGeoJSONDataSource()                     */
@@ -56,11 +58,8 @@ OGRGeoJSONDataSource::~OGRGeoJSONDataSource()
     
     if( NULL != fpOut_ )
     {
-        if ( fpOut_ != stdout )
-        {
-            VSIFClose( fpOut_ );
-            fpOut_ = NULL;
-        }
+        VSIFCloseL( fpOut_ );
+        fpOut_ = NULL;
     }
 }
 
@@ -152,7 +151,7 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
 
 const char* OGRGeoJSONDataSource::GetName()
 {
-    return pszName_;
+    return pszName_ ? pszName_ : "";
 }
 
 /************************************************************************/
@@ -210,7 +209,7 @@ OGRLayer* OGRGeoJSONDataSource::CreateLayer( const char* pszName_,
 
     if( NULL != fpOut_ )
     {
-        VSIFPrintf( fpOut_, "{\n\"type\": \"FeatureCollection\",\n\"features\": [\n" );
+        VSIFPrintfL( fpOut_, "{\n\"type\": \"FeatureCollection\",\n\"features\": [\n" );
     }
 
     return poLayer;
@@ -251,9 +250,9 @@ int OGRGeoJSONDataSource::Create( const char* pszName, char** papszOptions )
 /*      Create the output file.                                         */
 /* -------------------------------------------------------------------- */
     if( EQUAL( pszName, "stdout" ) )
-        fpOut_ = stdout;
+        fpOut_ = VSIFOpenL( "/vsistdout/", "w" );
     else
-        fpOut_ = VSIFOpen( pszName, "w" );
+        fpOut_ = VSIFOpenL( pszName, "w" );
 
     if( NULL == fpOut_)
     {
@@ -309,9 +308,9 @@ void OGRGeoJSONDataSource::Clear()
     CPLFree( pszGeoData_ );
     pszGeoData_ = NULL;
 
-    if( NULL != fpOut_ && stdout != fpOut_ )
+    if( NULL != fpOut_ )
     {
-        VSIFClose( fpOut_ );
+        VSIFCloseL( fpOut_ );
     }
     fpOut_ = NULL;
 }
@@ -331,29 +330,31 @@ int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
     }
 
     FILE* fp = NULL;
-
-    fp = VSIFOpen( pszSource, "rb" );
+    fp = VSIFOpenL( pszSource, "rb" );
     if( NULL == fp )
+    {
+        CPLDebug( "GeoJSON", "Failed to open input file '%s'", pszSource );
         return FALSE;
+    }
 
     size_t nDataLen = 0;
 
-    VSIFSeek( fp, 0, SEEK_END );
-    nDataLen = VSIFTell( fp );
-    VSIFSeek( fp, 0, SEEK_SET );
+    VSIFSeekL( fp, 0, SEEK_END );
+    nDataLen = VSIFTellL( fp );
+    VSIFSeekL( fp, 0, SEEK_SET );
 
     pszGeoData_ = (char*)CPLMalloc(nDataLen + 1);
     if( NULL == pszGeoData_ )
         return FALSE;
 
     pszGeoData_[nDataLen] = '\0';
-    if( ( nDataLen != VSIFRead( pszGeoData_, 1, nDataLen, fp ) ) )
+    if( ( nDataLen != VSIFReadL( pszGeoData_, 1, nDataLen, fp ) ) )
     {
         Clear();
-        VSIFClose( fp );
+        VSIFCloseL( fp );
         return FALSE;
     }
-    VSIFClose( fp );
+    VSIFCloseL( fp );
 
     pszName_ = CPLStrdup( pszSource );
 
@@ -452,6 +453,12 @@ OGRGeoJSONLayer* OGRGeoJSONDataSource::LoadLayer()
         return NULL;
     }
 
+    if ( !GeoJSONIsObject( pszGeoData_) )
+    {
+        CPLDebug( "GeoJSON", "No valid GeoJSON data found in source '%s'", pszName_ );
+        return NULL;
+    }
+
     OGRErr err = OGRERR_NONE;
     OGRGeoJSONLayer* poLayer = NULL;    
     
@@ -484,4 +491,3 @@ OGRGeoJSONLayer* OGRGeoJSONDataSource::LoadLayer()
 
     return poLayer;
 }
-

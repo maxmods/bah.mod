@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgndataset.cpp 14563 2008-05-28 22:53:30Z rouault $
+ * $Id: msgndataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  MSG Native Reader
  * Purpose:  All code for EUMETSAT Archive format reader
@@ -33,7 +33,7 @@
 #include "msg_reader_core.h"
 using namespace msg_native_format;
 
-CPL_CVSID("$Id: msgndataset.cpp 14563 2008-05-28 22:53:30Z rouault $");
+CPL_CVSID("$Id: msgndataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void   GDALRegister_MSGN(void);
@@ -366,7 +366,18 @@ GDALDataset *MSGNDataset::Open( GDALOpenInfo * poOpenInfo )
     {
         return NULL;
     }
-
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The MSGN driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */

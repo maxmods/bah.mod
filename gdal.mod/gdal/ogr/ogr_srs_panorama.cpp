@@ -1,13 +1,13 @@
 /******************************************************************************
- * $Id: ogr_srs_panorama.cpp 15643 2008-10-29 21:18:47Z warmerdam $
+ * $Id: ogr_srs_panorama.cpp 17681 2009-09-25 08:41:18Z dron $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from "Panorama" GIS
  *           georeferencing information (also know as GIS "Integration").
- * Author:   Andrey Kiselev, dron@remotesensing.org
+ * Author:   Andrey Kiselev, dron@ak4719.spb.edu
  *
  ******************************************************************************
- * Copyright (c) 2005, Andrey Kiselev <dron@remotesensing.org>
+ * Copyright (c) 2005, Andrey Kiselev <dron@ak4719.spb.edu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,10 +29,11 @@
  ****************************************************************************/
 
 #include "ogr_spatialref.h"
+#include "ogr_p.h"
 #include "cpl_conv.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_srs_panorama.cpp 15643 2008-10-29 21:18:47Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_panorama.cpp 17681 2009-09-25 08:41:18Z dron $");
 
 #define TO_DEGREES 57.2957795130823208766
 #define TO_RADIANS 0.017453292519943295769
@@ -98,7 +99,14 @@ static const long aoDatums[] =
 {
     0,
     4284,   // Pulkovo, 1942
-    4326    // WGS, 1984
+    4326,   // WGS, 1984,
+    4277,   // OSGB 1936 (British National Grid)
+    0,
+    0,
+    0,
+    0,
+    0,
+    4200    // Pulkovo, 1995
 };
 
 #define NUMBER_OF_DATUMS        (long)(sizeof(aoDatums)/sizeof(aoDatums[0]))
@@ -122,160 +130,6 @@ static const long aoEllips[] =
 };
 
 #define NUMBER_OF_ELLIPSOIDS    (sizeof(aoEllips)/sizeof(aoEllips[0]))
-
-/************************************************************************/
-/*                    PanoramaGetUOMLengthInfo()                        */
-/*                                                                      */
-/*      Note: This function should eventually also know how to          */
-/*      lookup length aliases in the UOM_LE_ALIAS table.                */
-/************************************************************************/
-
-static int 
-PanoramaGetUOMLengthInfo( int nUOMLengthCode, char **ppszUOMName,
-                          double * pdfInMeters )
-
-{
-    char        **papszUnitsRecord;
-    char        szSearchKey[24];
-    int         iNameField;
-
-#define UOM_FILENAME CSVFilename( "unit_of_measure.csv" )
-
-/* -------------------------------------------------------------------- */
-/*      We short cut meter to save work in the most common case.        */
-/* -------------------------------------------------------------------- */
-    if( nUOMLengthCode == 9001 )
-    {
-        if( ppszUOMName != NULL )
-            *ppszUOMName = CPLStrdup( "metre" );
-        if( pdfInMeters != NULL )
-            *pdfInMeters = 1.0;
-
-        return TRUE;
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Search the units database for this unit.  If we don't find      */
-/*      it return failure.                                              */
-/* -------------------------------------------------------------------- */
-    sprintf( szSearchKey, "%d", nUOMLengthCode );
-    papszUnitsRecord =
-        CSVScanFileByName( UOM_FILENAME, "UOM_CODE", szSearchKey, CC_Integer );
-
-    if( papszUnitsRecord == NULL )
-        return FALSE;
-
-/* -------------------------------------------------------------------- */
-/*      Get the name, if requested.                                     */
-/* -------------------------------------------------------------------- */
-    if( ppszUOMName != NULL )
-    {
-        iNameField = CSVGetFileFieldId( UOM_FILENAME, "UNIT_OF_MEAS_NAME" );
-        *ppszUOMName = CPLStrdup( CSLGetField(papszUnitsRecord, iNameField) );
-    }
-    
-/* -------------------------------------------------------------------- */
-/*      Get the A and B factor fields, and create the multiplicative    */
-/*      factor.                                                         */
-/* -------------------------------------------------------------------- */
-    if( pdfInMeters != NULL )
-    {
-        int     iBFactorField, iCFactorField;
-        
-        iBFactorField = CSVGetFileFieldId( UOM_FILENAME, "FACTOR_B" );
-        iCFactorField = CSVGetFileFieldId( UOM_FILENAME, "FACTOR_C" );
-
-        if( atof(CSLGetField(papszUnitsRecord, iCFactorField)) > 0.0 )
-            *pdfInMeters = atof(CSLGetField(papszUnitsRecord, iBFactorField))
-                / atof(CSLGetField(papszUnitsRecord, iCFactorField));
-        else
-            *pdfInMeters = 0.0;
-    }
-    
-    return( TRUE );
-}
-
-/************************************************************************/
-/*                     PanoramaGetEllipsoidInfo()                       */
-/*                                                                      */
-/*      Fetch info about an ellipsoid.  Axes are always returned in     */
-/*      meters.  SemiMajor computed based on inverse flattening         */
-/*      where that is provided.                                         */
-/************************************************************************/
-
-static int 
-PanoramaGetEllipsoidInfo( int nCode, char ** ppszName,
-                          double * pdfSemiMajor, double * pdfInvFlattening )
-
-{
-    char        szSearchKey[24];
-    double      dfSemiMajor, dfToMeters = 1.0;
-    int         nUOMLength;
-    
-/* -------------------------------------------------------------------- */
-/*      Get the semi major axis.                                        */
-/* -------------------------------------------------------------------- */
-    sprintf( szSearchKey, "%d", nCode );
-
-    dfSemiMajor =
-        atof(CSVGetField( CSVFilename("ellipsoid.csv" ),
-                          "ELLIPSOID_CODE", szSearchKey, CC_Integer,
-                          "SEMI_MAJOR_AXIS" ) );
-    if( dfSemiMajor == 0.0 )
-        return FALSE;
-
-/* -------------------------------------------------------------------- */
-/*      Get the translation factor into meters.                         */
-/* -------------------------------------------------------------------- */
-    nUOMLength = atoi(CSVGetField( CSVFilename("ellipsoid.csv" ),
-                                   "ELLIPSOID_CODE", szSearchKey, CC_Integer,
-                                   "UOM_CODE" ));
-    PanoramaGetUOMLengthInfo( nUOMLength, NULL, &dfToMeters );
-
-    dfSemiMajor *= dfToMeters;
-    
-    if( pdfSemiMajor != NULL )
-        *pdfSemiMajor = dfSemiMajor;
-    
-/* -------------------------------------------------------------------- */
-/*      Get the semi-minor if requested.  If the Semi-minor axis        */
-/*      isn't available, compute it based on the inverse flattening.    */
-/* -------------------------------------------------------------------- */
-    if( pdfInvFlattening != NULL )
-    {
-        *pdfInvFlattening = 
-            atof(CSVGetField( CSVFilename("ellipsoid.csv" ),
-                              "ELLIPSOID_CODE", szSearchKey, CC_Integer,
-                              "INV_FLATTENING" ));
-
-        if( *pdfInvFlattening == 0.0 )
-        {
-            double dfSemiMinor;
-
-            dfSemiMinor =
-                atof(CSVGetField( CSVFilename("ellipsoid.csv" ),
-                                  "ELLIPSOID_CODE", szSearchKey, CC_Integer,
-                                  "SEMI_MINOR_AXIS" )) * dfToMeters;
-
-            if( dfSemiMajor != 0.0 && dfSemiMajor != dfSemiMinor )
-                *pdfInvFlattening = 
-                    -1.0 / (dfSemiMinor/dfSemiMajor - 1.0);
-            else
-                *pdfInvFlattening = 0.0;
-        }
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Get the name, if requested.                                     */
-/* -------------------------------------------------------------------- */
-    if( ppszName != NULL )
-        *ppszName =
-            CPLStrdup(CSVGetField( CSVFilename("ellipsoid.csv" ),
-                                   "ELLIPSOID_CODE", szSearchKey, CC_Integer,
-                                   "ELLIPSOID_NAME" ));
-    
-    return( TRUE );
-}
 
 /************************************************************************/
 /*                        OSRImportFromPanorama()                       */
@@ -331,6 +185,8 @@ OGRErr OSRImportFromPanorama( OGRSpatialReferenceH hSRS,
  * <pre>
  *       1: Pulkovo, 1942
  *       2: WGS, 1984
+ *       3: OSGB 1936 (British National Grid)
+ *       9: Pulkovo, 1995
  * </pre>
  *
  * @param iEllips Input spheroid.
@@ -544,14 +400,14 @@ OGRErr OGRSpatialReference::importFromPanorama( long iProjSys, long iDatum,
             char    *pszName = NULL;
             double  dfSemiMajor, dfInvFlattening;
 
-            if( PanoramaGetEllipsoidInfo( aoEllips[iEllips],
-                                          &pszName,
-                                          &dfSemiMajor, &dfInvFlattening ) )
+            if ( OSRGetEllipsoidInfo( aoEllips[iEllips], &pszName,
+                            &dfSemiMajor, &dfInvFlattening ) == OGRERR_NONE )
             {
-                SetGeogCS( CPLString().Printf("Unknown datum based upon the %s ellipsoid",
-                                      pszName ),
-                           CPLString().Printf( "Not specified (based on %s spheroid)",
-                                       pszName ),
+                SetGeogCS( CPLString().Printf(
+                            "Unknown datum based upon the %s ellipsoid",
+                            pszName ),
+                           CPLString().Printf(
+                            "Not specified (based on %s spheroid)", pszName ),
                            pszName, dfSemiMajor, dfInvFlattening,
                            NULL, 0.0, NULL, 0.0 );
                 SetAuthority( "SPHEROID", "EPSG", aoEllips[iEllips] );
@@ -910,9 +766,10 @@ OGRErr OGRSpatialReference::exportToPanorama( long *piProjSys, long *piDatum,
                 double  dfSM = 0.0;
                 double  dfIF = 1.0;
 
-                PanoramaGetEllipsoidInfo( aoEllips[i], NULL, &dfSM, &dfIF );
-                if( CPLIsEqual(dfSemiMajor, dfSM)
-                    && CPLIsEqual(dfInvFlattening, dfIF) )
+                if ( OSRGetEllipsoidInfo( aoEllips[i], NULL,
+                                          &dfSM, &dfIF ) == OGRERR_NONE
+                     && CPLIsEqual(dfSemiMajor, dfSM)
+                     && CPLIsEqual(dfInvFlattening, dfIF) )
                 {
                     *piEllips = i;
                     break;

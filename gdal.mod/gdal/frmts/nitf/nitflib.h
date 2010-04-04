@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitflib.h 17653 2009-09-17 22:10:35Z warmerdam $
+ * $Id: nitflib.h 17062 2009-05-19 21:58:16Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Main GDAL independent include file for NITF support.  
@@ -39,7 +39,7 @@ typedef struct {
     char szSegmentType[3]; /* one of "IM", ... */
 
     GUIntBig nSegmentHeaderStart;
-    GUIntBig nSegmentHeaderSize;
+    GUInt32 nSegmentHeaderSize;
     GUIntBig nSegmentStart;
     GUIntBig nSegmentSize;
 
@@ -223,7 +223,8 @@ GUIntBig  CPL_DLL NITFIHFieldOffset( NITFImage *psImage,
 #define BLKREAD_NULL  1
 #define BLKREAD_FAIL  2
 
-int NITFUncompressARIDPCM( NITFImage *psImage, GByte *pabyInputData,
+int NITFUncompressARIDPCM( NITFImage *psImage,
+                           GByte *pabyInputData, int nInputBytes,
                            GByte *pabyOutputImage );
 int NITFUncompressBILEVEL( NITFImage *psImage, 
                            GByte *pabyInputData, int nInputBytes,

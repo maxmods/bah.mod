@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rawdataset.cpp 15394 2008-09-19 18:20:39Z rouault $
+ * $Id: rawdataset.cpp 18525 2010-01-11 23:54:26Z mloskot $
  *
  * Project:  Generic Raw Binary Driver
  * Purpose:  Implementation of RawDataset and RawRasterBand classes.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rawdataset.cpp 15394 2008-09-19 18:20:39Z rouault $");
+CPL_CVSID("$Id: rawdataset.cpp 18525 2010-01-11 23:54:26Z mloskot $");
 
 /************************************************************************/
 /*                           RawRasterBand()                            */
@@ -75,8 +75,16 @@ RawRasterBand::RawRasterBand( GDALDataset *poDS, int nBand,
 /*      Allocate working scanline.                                      */
 /* -------------------------------------------------------------------- */
     nLoadedScanline = -1;
-    nLineSize = nPixelOffset * nBlockXSize;
-    pLineBuffer = (nLineSize <= 0 ) ? NULL : VSIMalloc2( nPixelOffset, nBlockXSize );
+    if (nPixelOffset <= 0 || nBlockXSize <= 0 || nPixelOffset > INT_MAX / nBlockXSize)
+    {
+        nLineSize = 0;
+        pLineBuffer = NULL;
+    }
+    else
+    {
+        nLineSize = nPixelOffset * nBlockXSize;
+        pLineBuffer = VSIMalloc2( nPixelOffset, nBlockXSize );
+    }
     if (pLineBuffer == NULL)
     {
         CPLError(CE_Failure, CPLE_AppDefined,
@@ -122,13 +130,26 @@ RawRasterBand::RawRasterBand( FILE * fpRaw, vsi_l_offset nImgOffset,
     nBlockYSize = 1;
     nRasterXSize = nXSize;
     nRasterYSize = nYSize;
+    if (!GDALCheckDatasetDimensions(nXSize, nYSize))
+    {
+        pLineBuffer = NULL;
+        return;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Allocate working scanline.                                      */
 /* -------------------------------------------------------------------- */
     nLoadedScanline = -1;
-    nLineSize = nPixelOffset * nBlockXSize;
-    pLineBuffer = (nLineSize <= 0 ) ? NULL : VSIMalloc2( nPixelOffset, nBlockXSize );
+    if (nPixelOffset <= 0 || nPixelOffset > INT_MAX / nBlockXSize)
+    {
+        nLineSize = 0;
+        pLineBuffer = NULL;
+    }
+    else
+    {
+        nLineSize = nPixelOffset * nBlockXSize;
+        pLineBuffer = VSIMalloc2( nPixelOffset, nBlockXSize );
+    }
     if (pLineBuffer == NULL)
     {
         CPLError(CE_Failure, CPLE_AppDefined,
@@ -176,6 +197,16 @@ RawRasterBand::~RawRasterBand()
     }
     
     CPLFree( pLineBuffer );
+}
+
+
+/************************************************************************/
+/*                             SetAccess()                              */
+/************************************************************************/
+
+void  RawRasterBand::SetAccess( GDALAccess eAccess )
+{
+    this->eAccess = eAccess;
 }
 
 /************************************************************************/
@@ -1007,6 +1038,7 @@ RawDataset::RawDataset()
 RawDataset::~RawDataset()
 
 {
+    /* It's pure virtual function but must be defined, even if empty. */
 }
 
 /************************************************************************/

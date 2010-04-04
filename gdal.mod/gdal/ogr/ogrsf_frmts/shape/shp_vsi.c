@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: shp_vsi.c 17131 2009-05-26 22:03:31Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  IO Redirection via VSI services for shp/dbf io.
@@ -31,7 +31,7 @@
 #include "cpl_vsi.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id$");
+CPL_CVSID("$Id: shp_vsi.c 17131 2009-05-26 22:03:31Z rouault $");
 
 /************************************************************************/
 /*                            VSI_SHP_Open()                            */

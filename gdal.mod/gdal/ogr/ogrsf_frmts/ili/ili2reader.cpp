@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2reader.cpp 14993 2008-07-22 18:40:40Z mloskot $
+ * $Id: ili2reader.cpp 15947 2008-12-13 22:53:24Z rouault $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Reader class.
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-CPL_CVSID("$Id: ili2reader.cpp 14993 2008-07-22 18:40:40Z mloskot $");
+CPL_CVSID("$Id: ili2reader.cpp 15947 2008-12-13 22:53:24Z rouault $");
 
 //
 // constants
@@ -668,7 +668,19 @@ int ILI2Reader::SaveClasses( const char *pszFile = NULL ) {
         return FALSE;
 
     // parse and create layers and features
-    m_poSAXReader->parse(pszFile);
+    try
+    {
+        m_poSAXReader->parse(pszFile);
+    }
+    catch (const SAXException& toCatch)
+    {
+        char* msg = XMLString::transcode(toCatch.getMessage());
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Parsing failed: %s\n", msg );
+        XMLString::release(&msg);
+
+        return FALSE;
+    }
 
   if (m_missAttrs.size() != 0) {
     m_missAttrs.sort();

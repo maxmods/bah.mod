@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: stuff.cpp 18020 2009-11-14 14:33:20Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -118,4 +119,21 @@ int StrToBool(const char *p) {
     if (EQUAL(p, "1") || EQUAL(p, "true") || EQUAL(p, "yes") || EQUAL(p, "enable") || EQUAL(p, "enabled") || EQUAL(p, "on")) return 1;
     if (EQUAL(p, "0") || EQUAL(p, "false") || EQUAL(p, "no") || EQUAL(p, "disable") || EQUAL(p, "disabled") || EQUAL(p, "off")) return 0;
     return -1;
+}
+
+int URLSearchAndReplace (CPLString *base, const char *search, const char *fmt, ...) {
+    CPLString tmp;
+    va_list args;
+
+    size_t start = base->find(search);
+    if (start == std::string::npos) {
+        return -1;
+    }
+
+    va_start(args, fmt);
+    tmp.vPrintf(fmt, args);
+    va_end(args);
+
+    base->replace(start, strlen(search), tmp);
+    return start;
 }

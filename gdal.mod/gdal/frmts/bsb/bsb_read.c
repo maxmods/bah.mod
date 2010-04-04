@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsb_read.c 16181 2009-01-25 17:22:04Z rouault $
+ * $Id: bsb_read.c 17405 2009-07-17 06:13:24Z chaitanya $
  *
  * Project:  BSB Reader
  * Purpose:  Low level BSB Access API Implementation (non-GDAL).
@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bsb_read.c 16181 2009-01-25 17:22:04Z rouault $");
+CPL_CVSID("$Id: bsb_read.c 17405 2009-07-17 06:13:24Z chaitanya $");
 
 static int BSBReadHeaderLine( BSBInfo *psInfo, char* pszLine, int nLineMaxLen, int bNO1 );
 static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
@@ -320,9 +320,9 @@ BSBInfo *BSBOpen( const char *pszFilename )
             }
             if( iPCT > psInfo->nPCTSize-1 )
             {
-                psInfo->pabyPCT = (unsigned char *) 
+                unsigned char* pabyNewPCT = (unsigned char *) 
                     VSIRealloc(psInfo->pabyPCT,(iPCT+1) * 3);
-                if (psInfo->pabyPCT == NULL)
+                if (pabyNewPCT == NULL)
                 {
                     CSLDestroy( papszTokens );
                     CPLError( CE_Failure, CPLE_OutOfMemory, 
@@ -331,6 +331,7 @@ BSBInfo *BSBOpen( const char *pszFilename )
                     BSBClose( psInfo );
                     return NULL;
                 }
+                psInfo->pabyPCT = pabyNewPCT;
                 memset( psInfo->pabyPCT + psInfo->nPCTSize*3, 0, 
                         (iPCT+1-psInfo->nPCTSize) * 3);
                 psInfo->nPCTSize = iPCT+1;
@@ -462,7 +463,7 @@ BSBInfo *BSBOpen( const char *pszFilename )
     }
 
     /* This is the offset to the data of first line, if there is no index table */
-    nOffsetFirstLine = VSIFTellL( fp ) - psInfo->nBufferSize + psInfo->nBufferOffset;
+    nOffsetFirstLine = (int)(VSIFTellL( fp ) - psInfo->nBufferSize) + psInfo->nBufferOffset;
 
 /* -------------------------------------------------------------------- */
 /*       Read the line offset list                                      */
@@ -480,7 +481,7 @@ BSBInfo *BSBOpen( const char *pszFilename )
         /* Seek fp to point the last 4 byte integer which points
         * the offset of the first line */
         VSIFSeekL( fp, 0, SEEK_END );
-        nFileLen = VSIFTellL( fp );
+        nFileLen = (int)VSIFTellL( fp );
         VSIFSeekL( fp, nFileLen - 4, SEEK_SET );
 
         VSIFReadL(&nVal, 1, 4, fp);//last 4 bytes
@@ -790,6 +791,13 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
             }
 
             /* Prevent over-run of line data */
+            if (nRunCount < 0 || nRunCount > psInfo->nXSize)
+            {
+                CPLError( CE_Failure, CPLE_FileIO, 
+                          "Corrupted run count : %d", nRunCount );
+                return FALSE;
+            }
+
             if( iPixel + nRunCount + 1 > psInfo->nXSize )
                 nRunCount = psInfo->nXSize - iPixel - 1;
 
@@ -821,7 +829,8 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
                  nScanline != psInfo->nYSize-1 &&
                  psInfo->panLineOffset[nScanline+1] == -1)
         {
-            int nCurOffset = VSIFTellL( fp ) - psInfo->nBufferSize + psInfo->nBufferOffset;
+            int nCurOffset = (int)(VSIFTellL( fp ) - psInfo->nBufferSize) + 
+                                psInfo->nBufferOffset;
             psInfo->panLineOffset[nScanline+1] = nCurOffset;
             if (BSBSeekAndCheckScanlineNumber(psInfo, nScanline + 1, FALSE))
             {
@@ -861,8 +870,8 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
     if( nScanline < psInfo->nYSize-1 &&
         psInfo->panLineOffset[nScanline+1] == -1 )
     {
-        psInfo->panLineOffset[nScanline+1] = 
-            VSIFTellL( fp ) - psInfo->nBufferSize + psInfo->nBufferOffset;
+        psInfo->panLineOffset[nScanline+1] = (int)
+            (VSIFTellL( fp ) - psInfo->nBufferSize) + psInfo->nBufferOffset;
     }
 
     return TRUE;

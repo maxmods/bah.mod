@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogringresstatement.cpp 14312 2008-04-17 19:01:18Z warmerdam $
+ * $Id: ogringresstatement.cpp 18518 2010-01-11 03:25:51Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIngresStatement class.
@@ -30,7 +30,7 @@
 #include "ogr_ingres.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogringresstatement.cpp 14312 2008-04-17 19:01:18Z warmerdam $");
+CPL_CVSID("$Id: ogringresstatement.cpp 18518 2010-01-11 03:25:51Z warmerdam $");
 
 /************************************************************************/
 /*                         OGRIngresStatement()                         */
@@ -626,7 +626,8 @@ void OGRIngresStatement::addInputParameter(
 
 {
     CPLAssert( !bHaveParm );
-    CPLAssert( eDType == IIAPI_LVCH_TYPE ); // support only long varchar now
+    CPLAssert( eDType == IIAPI_LVCH_TYPE || eDType == IIAPI_LBYTE_TYPE ); 
+    // support long varchar and long byte
 
     bHaveParm = TRUE;
     nParmLen = nLength;

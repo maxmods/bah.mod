@@ -4,7 +4,7 @@ include ../../GDALmake.opt
 SUBDIRS-yes	:= \
 	generic avc bna csv dgn geojson gml gmt mem kml \
 	mitab ntf gpx rec s57 sdts shape tiger vrt \
-	geoconcept xplane
+	geoconcept xplane georss gtm dxf
 
 SUBDIRS-$(HAVE_DODS)	+= dods
 SUBDIRS-$(HAVE_DWGDIRECT) += dxfdwg
@@ -21,6 +21,14 @@ SUBDIRS-$(HAVE_OGR_PG)	+= pg
 SUBDIRS-$(HAVE_SQLITE)	+= sqlite
 SUBDIRS-$(HAVE_SDE)     += sde
 SUBDIRS-$(HAVE_INGRES)  += ingres
+SUBDIRS-$(HAVE_VFK)     += vfk
+
+ifeq ($(PCIDSK_SETTING),internal)
+SUBDIRS-yes  += pcidsk
+endif
+ifeq ($(PCIDSK_SETTING),external)
+SUBDIRS-yes  += pcidsk
+endif
 
 default:	$(foreach d,$(SUBDIRS-yes),$(d)-target)
 

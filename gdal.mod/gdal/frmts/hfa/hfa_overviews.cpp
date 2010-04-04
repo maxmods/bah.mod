@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa_overviews.cpp 12514 2007-10-23 14:44:41Z dron $
+ * $Id: hfa_overviews.cpp 18092 2009-11-24 20:48:51Z rouault $
  *
  * Project:  Erdas Imagine Driver
  * Purpose:  Entry point for building overviews, used by non-imagine formats.
@@ -31,7 +31,7 @@
 #include "hfa_p.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: hfa_overviews.cpp 12514 2007-10-23 14:44:41Z dron $");
+CPL_CVSID("$Id: hfa_overviews.cpp 18092 2009-11-24 20:48:51Z rouault $");
 
 CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename, 
                              GDALDataset *poParentDS,
@@ -80,6 +80,13 @@ CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename,
 /*      base band.                                                      */
 /* -------------------------------------------------------------------- */
         GDALDriver *poHFADriver = (GDALDriver *) GDALGetDriverByName("HFA");
+        if (poHFADriver == NULL)
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "HFA driver is unavailable." );
+            return CE_Failure;
+        }
+        
         const char *apszOptions[3] = { "COMPRESSED=YES", NULL, NULL };
         
         CPLString osDepFileOpt = "DEPENDENT_FILE=";

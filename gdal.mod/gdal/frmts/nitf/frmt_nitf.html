@@ -53,25 +53,30 @@ Creation Options:<p>
 
 <ul>
 
-<li> Most file header, and imagery header metadata and security fields can
-be set with appropriate creation options.  For instance setting 
+<li> Most file header, imagery header metadata and security fields can
+be set with appropriate <b>creation options</b> (although they are reported as metadata
+item, but must not be set as metadata).  For instance setting 
 <tt>"FTITLE=Image of abandoned missle silo south west of Karsk"</tt> in the
 creation option list would result in setting of the FTITLE field in the NITF
 file header.  Use the official field names from the NITF specification 
-document.<p>
+document; do not put the "NITF_" prefix that is reported when asking the metadata
+list.<p>
 
-<li> <b>IC=NC/C3/C8</b> : Set the compression method.
+<li> <b>IC=NC/C3/M3/C8</b> : Set the compression method.
 <ul>
 <li>NC is the default value, and means no compression.
-<li>C3 means JPEG compression (one block) and is only available for the
+<li>C3 means JPEG compression and is only available for the
 CreateCopy() method. The QUALITY and PROGRESSIVE JPEG-specific
 creation options can be used. See the <a href="frmt_jpeg.html">JPEG driver
-documentation</a>
+documentation</a>. Starting with GDAL 1.7.0, multi-block images can be written.
+<li>M3 is a variation of C3. The only difference is that a block map is written,
+which allow for fast seeking to any block. (Starting with GDAL 1.7.0.)
 <li>C8 means JPEG2000 compression (one block) and is available for both
 CreateCopy() and Create() methods. JPEG2000 compression is only available
 if the JP2ECW driver is available. The TARGET and PROFILE JP2ECW-specific
 creation options can be used. See the <a href="frmt_jp2ecw.html">JP2ECW driver
-documentation</a>
+documentation</a>. Starting with GDAL 1.7.0, if JP2ECW driver is not available,
+Jasper JPEG2000 driver can be used in the CreateCopy() case.
 </ul>
 </li>
 <p>
@@ -114,9 +119,9 @@ exactly the same organization as the NITF_BLOCKA metadata reported when
 reading an NITF file with BLOCKA TREs then a file will be created with BLOCKA 
 TREs. <p>
 
-<li> <b>TRE=tre-name,tre-contents</b>: One or more TRE creation options may 
+<li> <b>TRE=tre-name=tre-contents</b>: One or more TRE creation options may 
 be used provided to write arbitrary user defined TREs to the image header.  The
-tre-name should be at most six characters, nad the tre-contents should be 
+tre-name should be at most six characters, and the tre-contents should be 
 "backslash escaped" if it contains blackslashes or zero bytes.  The argument
 is the same format as returned in the TRE metadata domain when reading.<p>
 

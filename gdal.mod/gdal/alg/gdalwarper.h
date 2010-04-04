@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.h 15291 2008-09-02 14:06:14Z dron $
+ * $Id: gdalwarper.h 17659 2009-09-20 19:02:37Z rouault $
  *
  * Project:  GDAL High Performance Warper
  * Purpose:  Prototypes, and definitions for warping related work.
@@ -169,8 +169,11 @@ typedef struct {
     CPLErr              (*pfnPostWarpChunkProcessor)( void *pKern, void *pArg);
     void               *pPostWarpProcessorArg;
 
-    void               *hCutline;           /* OGRPolygonH in src pixels */
-    double              dfCutlineBlendDist; /* distance in src pixels */
+    /*! Optional OGRPolygonH for a masking cutline. */
+    void               *hCutline;
+
+    /*! Optional blending distance to apply across cutline in pixels, default is zero. */
+    double              dfCutlineBlendDist;
 
 } GDALWarpOptions;
 
@@ -284,6 +287,8 @@ public:
 
     double              dfProgressBase;
     double              dfProgressScale;
+    
+    double              *padfDstNoDataReal;
 
                        GDALWarpKernel();
     virtual           ~GDALWarpKernel();

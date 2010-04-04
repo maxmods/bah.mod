@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geometry.h 15517 2008-10-11 18:34:03Z rouault $
+ * $Id: ogr_geometry.h 18155 2009-12-02 15:27:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes for manipulating simple features that is not specific
@@ -67,6 +67,14 @@ typedef struct GEOSGeom_t *GEOSGeom;
  * ConvexHull(), Buffer(), ...) are not implemented at ths time.  Some other
  * required and optional geometry methods have also been omitted at this
  * time.
+ *
+ * Some spatial analysis methods require that OGR is built on the GEOS library
+ * to work properly. The precise meaning of methods that describe spatial relationships
+ * between geometries is described in the SFCOM, or other simple features interface
+ * specifications, like "OpenGIS® Implementation Specification for
+ * Geographic information - Simple feature access - Part 1: Common architecture"
+ * (<a href="http://www.opengeospatial.org/standards/sfa">OGC 06-103r3</a>)
+ *
  */
  
 class CPL_DLL OGRGeometry
@@ -622,6 +630,16 @@ class CPL_DLL OGRGeometryFactory
 
     static int haveGEOS();
 
+    static OGRGeometry* transformWithOptions( const OGRGeometry* poSrcGeom,
+                                              OGRCoordinateTransformation *poCT,
+                                              char** papszOptions );
+
+    static OGRGeometry* 
+        approximateArcAngles( double dfX, double dfY, double dfZ,
+                              double dfPrimaryRadius, double dfSecondaryAxis, 
+                              double dfRotation, 
+                              double dfStartAngle, double dfEndAngle,
+                              double dfMaxAngleStepSizeDegrees );
 };
 
 #endif /* ndef _OGR_GEOMETRY_H_INCLUDED */

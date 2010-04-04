@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: coasp_dataset.cpp 14101 2008-03-28 16:17:15Z dron $
+ * $Id: coasp_dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  DRDC Configurable Airborne SAR Processor (COASP) data reader
  * Purpose:  Support in GDAL for the DRDC COASP format data, both Metadata
@@ -38,7 +38,7 @@
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: coasp_dataset.cpp 14101 2008-03-28 16:17:15Z dron $");
+CPL_CVSID("$Id: coasp_dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void    GDALRegister_COASP(void);
@@ -369,7 +369,17 @@ GDALDataset *COASPDataset::Open( GDALOpenInfo *poOpenInfo )
 {
 	if (!COASPDataset::Identify(poOpenInfo))
 		return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The COASP driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 	/* Create a fresh dataset for us to work with */
 	COASPDataset *poDS;
 	poDS = new COASPDataset();

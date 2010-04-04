@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dipxdataset.cpp 14049 2008-03-20 19:01:59Z rouault $
+ * $Id: dipxdataset.cpp 16396 2009-02-22 20:49:52Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implementation for ELAS DIPEx format variant.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dipxdataset.cpp 14049 2008-03-20 19:01:59Z rouault $");
+CPL_CVSID("$Id: dipxdataset.cpp 16396 2009-02-22 20:49:52Z rouault $");
 
 CPL_C_START
 void	GDALRegister_DIPEx(void);
@@ -123,7 +123,8 @@ DIPExDataset::DIPExDataset()
 DIPExDataset::~DIPExDataset()
 
 {
-    VSIFCloseL( fp );
+    if (fp)
+        VSIFCloseL( fp );
     fp = NULL;
 }
 
@@ -166,6 +167,7 @@ GDALDataset *DIPExDataset::Open( GDALOpenInfo * poOpenInfo )
         CPLError( CE_Failure, CPLE_OpenFailed,
                   "Attempt to open `%s' with acces `%s' failed.\n",
                   poOpenInfo->pszFilename, pszAccess );
+        delete poDS;
         return NULL;
     }
 
@@ -179,6 +181,7 @@ GDALDataset *DIPExDataset::Open( GDALOpenInfo * poOpenInfo )
         CPLError( CE_Failure, CPLE_FileIO,
                   "Attempt to read 1024 byte header filed on file %s\n",
                   poOpenInfo->pszFilename );
+        delete poDS;
         return NULL;
     }
 
@@ -199,6 +202,13 @@ GDALDataset *DIPExDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterXSize = nEnd - nStart + 1;
 
     poDS->nBands = CPL_LSBWORD32( poDS->sHeader.NC );
+
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(poDS->nBands, FALSE))
+    {
+        delete poDS;
+        return NULL;
+    }
 
     nDIPExDataType = (poDS->sHeader.IH19[1] & 0x7e) >> 2;
     nBytesPerSample = poDS->sHeader.IH19[0];

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 15372 2008-09-14 17:38:49Z rouault $
+ * $Id: cpl_port.h 17734 2009-10-03 09:48:01Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -177,23 +177,35 @@ typedef int             GBool;
 #define VSI_LARGE_API_SUPPORTED
 typedef __int64          GIntBig;
 typedef unsigned __int64 GUIntBig;
-#define CPL_FRMT_GIB     "%I64d"
-#define CPL_FRMT_GUIB     "%I64u"
 
 #elif HAVE_LONG_LONG
 
 typedef long long        GIntBig;
 typedef unsigned long long GUIntBig;
-#define CPL_FRMT_GIB     "%lld"
-#define CPL_FRMT_GUIB     "%llu"
 
 #else
 
 typedef long             GIntBig;
 typedef unsigned long    GUIntBig;
-#define CPL_FRMT_GIB     "%ld"
-#define CPL_FRMT_GUIB     "%lu"
 
+#endif
+
+#if defined(__MSVCRT__) || (defined(WIN32) && defined(_MSC_VER))
+  #define CPL_FRMT_GB_WITHOUT_PREFIX     "I64"
+#elif HAVE_LONG_LONG
+  #define CPL_FRMT_GB_WITHOUT_PREFIX     "ll"
+#else
+  #define CPL_FRMT_GB_WITHOUT_PREFIX     "l"
+#endif
+
+#define CPL_FRMT_GIB     "%" CPL_FRMT_GB_WITHOUT_PREFIX "d"
+#define CPL_FRMT_GUIB    "%" CPL_FRMT_GB_WITHOUT_PREFIX "u"
+
+/* Workaround VC6 bug */
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+#define GUINTBIG_TO_DOUBLE(x) (double)(GIntBig)(x)
+#else
+#define GUINTBIG_TO_DOUBLE(x) (double)(x)
 #endif
 
 /* ==================================================================== */
@@ -241,8 +253,8 @@ typedef unsigned long    GUIntBig;
 #endif
 
 /* TODO : support for other compilers needed */
-#if defined(__GNUC__)
-#define CPL_INLINE inline
+#if defined(__GNUC__) || defined(_MSC_VER)
+#define CPL_INLINE __inline
 #else
 #define CPL_INLINE
 #endif
@@ -467,13 +479,17 @@ char * strdup (char *instr);
  */
 
 #ifndef DISABLE_CVSID
+#if defined(__GNUC__) && __GNUC__ >= 4
+#  define CPL_CVSID(string)     static char cpl_cvsid[] __attribute__((used)) = string;
+#else
 #  define CPL_CVSID(string)     static char cpl_cvsid[] = string; \
 static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
+#endif
 #else
 #  define CPL_CVSID(string)
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 3
+#if defined(__GNUC__) && __GNUC__ >= 3 && !defined(DOXYGEN_SKIP)
 #define CPL_PRINT_FUNC_FORMAT( format_idx, arg_idx )  __attribute__((__format__ (__printf__, format_idx, arg_idx)))
 #else
 #define CPL_PRINT_FUNC_FORMAT( format_idx, arg_idx )

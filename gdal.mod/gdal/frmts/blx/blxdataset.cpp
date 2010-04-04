@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: blxdataset.cpp 15368 2008-09-13 15:59:39Z rouault $
+ * $Id: blxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  BLX Driver
  * Purpose:  GDAL BLX support.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: blxdataset.cpp 15368 2008-09-13 15:59:39Z rouault $");
+CPL_CVSID("$Id: blxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 #include <blx.h>
@@ -103,6 +103,13 @@ GDALDataset *BLXDataset::Open( GDALOpenInfo * poOpenInfo )
 
     if(poDS->blxcontext==NULL)
 	return NULL;
+    
+    if ((poDS->blxcontext->cell_xsize % (1 << (1+BLX_OVERVIEWLEVELS))) != 0 ||
+        (poDS->blxcontext->cell_ysize % (1 << (1+BLX_OVERVIEWLEVELS))) != 0)
+    {
+        delete poDS;
+        return NULL;
+    }
 
     // Update dataset header from BLX context
     poDS->nRasterXSize = poDS->blxcontext->xsize;
@@ -124,6 +131,18 @@ GDALDataset *BLXDataset::Open( GDALOpenInfo * poOpenInfo )
 	poDS->papoOverviewDS[i]->nRasterYSize = poDS->nRasterYSize >> (i+1);
 	poDS->nBands = 1;
 	poDS->papoOverviewDS[i]->SetBand(1, new BLXRasterBand( poDS->papoOverviewDS[i], 1, i+1));
+    }
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        delete poDS;
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The BLX driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
     }
 
     return( poDS );
@@ -228,7 +247,6 @@ GDALColorInterp BLXRasterBand::GetColorInterpretation(void) {
 }
 
 /* TODO: check if georeference is the same as for BLX files, WGS84
-         call progress function 
 */
 static GDALDataset *
 BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
@@ -338,6 +356,9 @@ BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
     pabyTile = (GInt16 *) CPLMalloc( sizeof(GInt16)*ctx->cell_xsize*ctx->cell_ysize );
 
+    if( !pfnProgress( 0.0, NULL, pProgressData ) )
+        eErr = CE_Failure;
+
     for(int i=0; (i < ctx->cell_rows) && (eErr == CE_None); i++)
 	for(int j=0; j < ctx->cell_cols; j++) {
 	    blxdata *celldata;
@@ -349,8 +370,20 @@ BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 	    if(eErr >= CE_Failure) 
 	       break;
 	    celldata = pabyTile;
-	    blx_writecell(ctx, celldata, i, j);
+	    if (blx_writecell(ctx, celldata, i, j) != 0)
+            {
+                eErr = CE_Failure;
+                break;
+            }
+
+            if ( ! pfnProgress( 1.0 * (i * ctx->cell_cols + j) / (ctx->cell_rows * ctx->cell_cols), NULL, pProgressData ))
+            {
+                eErr = CE_Failure;
+                break;
+            }
     }
+
+    pfnProgress( 1.0, NULL, pProgressData );
 
     CPLFree( pabyTile );
 
@@ -366,7 +399,10 @@ BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     blxclose(ctx);
     blx_free_context(ctx);
 
-    return (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
+    if (eErr == CE_None)
+        return (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
+    else
+        return NULL;
 }
 
 

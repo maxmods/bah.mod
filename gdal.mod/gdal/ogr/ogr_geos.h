@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geos.h 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogr_geos.h 17469 2009-07-28 18:28:27Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definitions related to support for use of GEOS in OGR.

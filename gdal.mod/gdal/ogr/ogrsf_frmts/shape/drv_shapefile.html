@@ -58,6 +58,17 @@ in a shapefile and its value ranges from 1 to 12.</p>
 <pre>DROP SPATIAL INDEX ON tablename</pre>
 </p>
 
+
+<p>
+  Otherwise, the <a href="http://mapserver.org">MapServer</a> shptree utility can be used:
+<pre>shptree &lt;shpfile&gt; [&lt;depth&gt;] [&lt;index_format&gt;]</pre>
+</p>
+
+<p>
+More information is available about this utility at the
+<a href="http://mapserver.org/utilities/shptree.html">MapServer shptree page</a>
+</p>
+
 <p>Currently the OGR Shapefile driver only supports attribute indexes for 
 looking up specific values in a unique key column.  To create an attribute
 index for a column issue an SQL command of the form "CREATE INDEX ON tablename
@@ -98,6 +109,14 @@ attributes suffer a number of limitations:<P>
 be silently truncated.  This may result in non-unique column names, which 
 will definitely cause problems later. <p>
 
+<li> Starting with version 1.7, the OGR Shapefile driver tries to generate
+unique field names. Successive duplicate field names, including those created
+by truncation to 10 characters, will be truncated to 8 characters and appended
+with a serial number from 1 to 99. <br>For example:
+<ul><li>a &rarr; a, a &rarr; a_1, A &rarr; A_2;
+<li>abcdefghijk &rarr; abcdefghij, abcdefghijkl &rarr; abcdefgh_1</ul>
+<p>
+
 <li> Only Integer, Real, String and Date (not DateTime, just year/month/day)
 field types are supported.  The various list, and binary field types cannot
 be created.<p>
@@ -125,6 +144,15 @@ as well as deleting shapes.  Deleted shapes are marked for deletion in
 the .dbf file, and then ignored by OGR.  To actually remove them permanently
 (resulting in renumbering of FIDs) invoke the SQL 'REPACK <tablename>' via
 the datasource ExecuteSQL() method.<p>
+
+<h2>Size Issues</h2>
+
+Geometry: The Shapefile format explicitly uses 32bit offsets and so cannot
+go over 8GB (it actually uses 32bit offsets to 16bit words).
+Hence, it is is not recommended to use a file size over 4GB.<p>
+
+Attributes: The dbf format does not have any offsets in it, so it can be
+arbitrarily large.
 
 <h3>Dataset Creation Options</h3>
 

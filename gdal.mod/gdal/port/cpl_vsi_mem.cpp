@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsi_mem.cpp 15219 2008-08-25 20:38:56Z mloskot $
+ * $Id: cpl_vsi_mem.cpp 18253 2009-12-10 19:53:21Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation of Memory Buffer virtual IO functions.
@@ -42,7 +42,7 @@
 #endif
 
 
-CPL_CVSID("$Id: cpl_vsi_mem.cpp 15219 2008-08-25 20:38:56Z mloskot $");
+CPL_CVSID("$Id: cpl_vsi_mem.cpp 18253 2009-12-10 19:53:21Z rouault $");
 
 /*
 ** Notes on Multithreading:
@@ -190,12 +190,26 @@ bool VSIMemFile::SetLength( vsi_l_offset nNewLength )
 /* -------------------------------------------------------------------- */
     if( nNewLength > nAllocLength )
     {
+        /* If we don't own the buffer, we cannot reallocate it because */
+        /* the return address might be different from the one passed by */
+        /* the caller. Hence, the caller would not be able to free */
+        /* the buffer... */
+        if( !bOwnData )
+        {
+            CPLError(CE_Failure, CPLE_NotSupported,
+                     "Cannot extended in-memory file whose ownership was not transfered");
+            return false;
+        }
+        
         GByte *pabyNewData;
         vsi_l_offset nNewAlloc = (nNewLength + nNewLength / 10) + 5000;
 
-        pabyNewData = (GByte *) CPLRealloc(pabyData, (size_t)nNewAlloc);
+        pabyNewData = (GByte *) VSIRealloc(pabyData, (size_t)nNewAlloc);
         if( pabyNewData == NULL )
             return false;
+            
+        /* Clear the new allocated part of the buffer */
+        memset(pabyNewData + nAllocLength, 0, nNewAlloc - nAllocLength);
 
         pabyData = pabyNewData;
         nAllocLength = nNewAlloc;
@@ -298,7 +312,7 @@ size_t VSIMemHandle::Read( void * pBuffer, size_t nSize, size_t nCount )
 
     if( nBytesToRead + nOffset > poFile->nLength )
     {
-        nBytesToRead = poFile->nLength - nOffset;
+        nBytesToRead = (size_t)(poFile->nLength - nOffset);
         nCount = nBytesToRead / nSize;
     }
 
@@ -480,7 +494,7 @@ int VSIMemFilesystemHandler::Stat( const char * pszFilename,
     }
     else
     {
-        pStatBuf->st_size = poFile->nLength;
+        pStatBuf->st_size = (long)poFile->nLength;
         pStatBuf->st_mode = S_IFREG;
     }
 

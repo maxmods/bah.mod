@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocisession.cpp 16516 2009-03-08 19:36:58Z warmerdam $
+ * $Id: ogrocisession.cpp 16515 2009-03-08 19:25:45Z warmerdam $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of OGROCISession, which encapsulates much of the
@@ -31,7 +31,7 @@
 #include "ogr_oci.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrocisession.cpp 16516 2009-03-08 19:36:58Z warmerdam $");
+CPL_CVSID("$Id: ogrocisession.cpp 16515 2009-03-08 19:25:45Z warmerdam $");
 
 static OCIEnv *ghOracleEnvironment = NULL;
 

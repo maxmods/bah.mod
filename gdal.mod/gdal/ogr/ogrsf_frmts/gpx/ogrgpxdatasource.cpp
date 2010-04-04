@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgpxdatasource.cpp 15805 2008-11-23 21:42:01Z rouault $
+ * $Id: ogrgpxdatasource.cpp 17848 2009-10-17 12:59:16Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Implements OGRGPXDataSource class
@@ -32,7 +32,9 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrgpxdatasource.cpp 15805 2008-11-23 21:42:01Z rouault $");
+CPL_CVSID("$Id: ogrgpxdatasource.cpp 17848 2009-10-17 12:59:16Z rouault $");
+
+#define SPACE_FOR_METADATA 160
 
 /************************************************************************/
 /*                          OGRGPXDataSource()                          */
@@ -49,6 +51,11 @@ OGRGPXDataSource::OGRGPXDataSource()
     nLayers = 0;
     
     fpOutput = NULL;
+    nOffsetBounds = -1;
+    dfMinLat = 90;
+    dfMinLon = 180;
+    dfMaxLat = -90;
+    dfMaxLon = -180;
 
     pszName = NULL;
     pszVersion = NULL;
@@ -65,7 +72,18 @@ OGRGPXDataSource::~OGRGPXDataSource()
     {
         VSIFPrintf(fpOutput, "</gpx>\n");
         if ( fpOutput != stdout )
+        {
+            /* Write the <bound> element in the reserved space */
+            if (dfMinLon <= dfMaxLon)
+            {
+                char szMetadata[SPACE_FOR_METADATA+1];
+                sprintf(szMetadata, "<metadata><bounds minlat=\"%.15f\" minlon=\"%.15f\" maxlat=\"%.15f\" maxlon=\"%.15f\"/></metadata>",
+                        dfMinLat, dfMinLon, dfMaxLat, dfMaxLon);
+                VSIFSeek(fpOutput, nOffsetBounds, SEEK_SET);
+                VSIFWrite(szMetadata, 1, strlen(szMetadata), fpOutput);
+            }
             VSIFClose( fpOutput);
+        }
     }
 
     for( int i = 0; i < nLayers; i++ )
@@ -155,6 +173,8 @@ OGRLayer * OGRGPXDataSource::CreateLayer( const char * pszLayerName,
     return papoLayers[nLayers-1];
 }
 
+#ifdef HAVE_EXPAT
+
 /************************************************************************/
 /*                startElementValidateCbk()                             */
 /************************************************************************/
@@ -191,11 +211,32 @@ void OGRGPXDataSource::startElementValidateCbk(const char *pszName, const char *
     }
 }
 
-#ifdef HAVE_EXPAT
+
+/************************************************************************/
+/*                      dataHandlerValidateCbk()                        */
+/************************************************************************/
+
+void OGRGPXDataSource::dataHandlerValidateCbk(const char *data, int nLen)
+{
+    nDataHandlerCounter ++;
+    if (nDataHandlerCounter >= BUFSIZ)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "File probably corrupted (million laugh pattern)");
+        XML_StopParser(oCurrentParser, XML_FALSE);
+    }
+}
+
+
 static void XMLCALL startElementValidateCbk(void *pUserData, const char *pszName, const char **ppszAttr)
 {
     OGRGPXDataSource* poDS = (OGRGPXDataSource*) pUserData;
     poDS->startElementValidateCbk(pszName, ppszAttr);
+}
+
+static void XMLCALL dataHandlerValidateCbk(void *pUserData, const char *data, int nLen)
+{
+    OGRGPXDataSource* poDS = (OGRGPXDataSource*) pUserData;
+    poDS->dataHandlerValidateCbk(data, nLen);
 }
 #endif
 
@@ -236,9 +277,11 @@ int OGRGPXDataSource::Open( const char * pszFilename, int bUpdateIn)
     bUseExtensions = FALSE;
     nElementsRead = 0;
     
-    XML_Parser oParser = XML_ParserCreate(NULL);
+    XML_Parser oParser = OGRCreateExpatXMLParser();
+    oCurrentParser = oParser;
     XML_SetUserData(oParser, this);
     XML_SetElementHandler(oParser, ::startElementValidateCbk, NULL);
+    XML_SetCharacterDataHandler(oParser, ::dataHandlerValidateCbk);
     
     char aBuf[BUFSIZ];
     int nDone;
@@ -251,6 +294,7 @@ int OGRGPXDataSource::Open( const char * pszFilename, int bUpdateIn)
     /* handle the file or not with that driver */
     do
     {
+        nDataHandlerCounter = 0;
         nLen = (unsigned int) VSIFReadL( aBuf, 1, sizeof(aBuf), fp );
         nDone = VSIFEofL(fp);
         if (XML_Parse(oParser, aBuf, nLen, nDone) == XML_STATUS_ERROR)
@@ -267,6 +311,7 @@ int OGRGPXDataSource::Open( const char * pszFilename, int bUpdateIn)
                         (int)XML_GetCurrentLineNumber(oParser),
                         (int)XML_GetCurrentColumnNumber(oParser));
             }
+            validity = GPX_VALIDITY_INVALID;
             break;
         }
         if (validity == GPX_VALIDITY_INVALID)
@@ -384,7 +429,7 @@ int OGRGPXDataSource::Create( const char *pszFilename,
     if( EQUAL(pszFilename,"stdout") )
         fpOutput = stdout;
     else
-        fpOutput = VSIFOpen( pszFilename, "w" );
+        fpOutput = VSIFOpen( pszFilename, "w+" );
     if( fpOutput == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -426,6 +471,27 @@ int OGRGPXDataSource::Create( const char *pszFilename,
         VSIFPrintf(fpOutput, "xmlns:%s=\"%s\" ", pszExtensionsNS, pszExtensionsNSURL);
     VSIFPrintf(fpOutput, "xmlns=\"http://www.topografix.com/GPX/1/1\" ");
     VSIFPrintf(fpOutput, "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n");
+    if (fpOutput != stdout)
+    {
+      /* Reserve space for <metadata><bounds/></metadata> */
+      char szMetadata[SPACE_FOR_METADATA+1];
+      memset(szMetadata, ' ', SPACE_FOR_METADATA);
+      szMetadata[SPACE_FOR_METADATA] = '\0';
+      nOffsetBounds = VSIFTell(fpOutput);
+      VSIFPrintf(fpOutput, "%s\n", szMetadata);
+    }
 
     return TRUE;
+}
+
+/************************************************************************/
+/*                             AddCoord()                               */
+/************************************************************************/
+
+void OGRGPXDataSource::AddCoord(double dfLon, double dfLat)
+{
+    if (dfLon < dfMinLon) dfMinLon = dfLon;
+    if (dfLat < dfMinLat) dfMinLat = dfLat;
+    if (dfLon > dfMaxLon) dfMaxLon = dfLon;
+    if (dfLat > dfMaxLat) dfMaxLat = dfLat;
 }

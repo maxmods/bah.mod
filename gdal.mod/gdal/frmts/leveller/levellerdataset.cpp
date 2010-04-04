@@ -34,7 +34,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: levellerdataset.cpp 11897 2007-08-17 21:26:29Z rouault $");
+CPL_CVSID("$Id: levellerdataset.cpp 16444 2009-03-01 19:46:43Z rouault $");
 
 CPL_C_START
 void	GDALRegister_Leveller(void);
@@ -641,7 +641,8 @@ double LevellerRasterBand::GetOffset(int* pbSuccess)
 LevellerDataset::LevellerDataset()
 {
     m_fp = NULL;
-	m_pszProjection = NULL;
+    m_pszProjection = NULL;
+    m_pszFilename = NULL;
 }
 
 /************************************************************************/
@@ -652,7 +653,8 @@ LevellerDataset::~LevellerDataset()
 {
     FlushCache();
 
-	CPLFree(m_pszProjection);
+    CPLFree(m_pszProjection);
+    CPLFree(m_pszFilename);
 
     if( m_fp != NULL )
         VSIFCloseL( m_fp );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxypool.cpp 16295 2009-02-11 20:48:36Z rouault $
+ * $Id: gdalproxypool.cpp 17636 2009-09-12 23:19:18Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that differ the opening of the
@@ -31,7 +31,7 @@
 #include "gdal_proxy.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalproxypool.cpp 16295 2009-02-11 20:48:36Z rouault $");
+CPL_CVSID("$Id: gdalproxypool.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
 
 /* Functions shared between gdalproxypool.cpp and gdaldataset.cpp */
 void** GDALGetphDLMutex();
@@ -170,13 +170,10 @@ void GDALDatasetPool::CheckLinks()
     int i = 0;
     while(cur)
     {
-        if (cur != firstEntry)
-            CPLAssert(cur->prev->next == cur);
-        if (cur != lastEntry)
-            CPLAssert(cur->next->prev == cur);
+        CPLAssert(cur == firstEntry || cur->prev->next == cur);
+        CPLAssert(cur == lastEntry || cur->next->prev == cur);
         i++;
-        if (cur->next == NULL)
-            CPLAssert(cur == lastEntry);
+	CPLAssert(cur->next != NULL || cur == lastEntry);
         cur = cur->next;
     }
     CPLAssert(i == currentSize);

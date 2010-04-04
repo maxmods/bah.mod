@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdilayer.cpp 14048 2008-03-20 18:47:21Z rouault $
+ * $Id: ogrogdilayer.cpp 18502 2010-01-09 19:38:29Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDILayer class.
@@ -56,7 +56,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrogdilayer.cpp 14048 2008-03-20 18:47:21Z rouault $");
+CPL_CVSID("$Id: ogrogdilayer.cpp 18502 2010-01-09 19:38:29Z rouault $");
 
 /************************************************************************/
 /*                           OGROGDILayer()                            */
@@ -119,28 +119,8 @@ void OGROGDILayer::SetSpatialFilter( OGRGeometry * poGeomIn )
     if( !InstallFilter( poGeomIn ) )
         return;
 
-    if( m_poFilterGeom != NULL )
-    {
-        OGREnvelope     oEnv;
-        ecs_Result     *psResult;
+    ResetReading();
 
-        m_poFilterGeom->getEnvelope(&oEnv);
-
-        m_sFilterBounds.north = oEnv.MaxY;
-        m_sFilterBounds.south = oEnv.MinY;
-        m_sFilterBounds.east  = oEnv.MinX;
-        m_sFilterBounds.west  = oEnv.MaxX;
-
-        psResult = cln_SelectRegion( m_nClientID, &m_sFilterBounds);
-        if( ECSERROR(psResult) )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "%s", psResult->message );
-            return;
-        }
-    }
-
-    m_iNextShapeId = 0;
     m_nTotalShapeCount = -1;
 }
 
@@ -166,6 +146,38 @@ void OGROGDILayer::ResetReading()
         return;
     }
 
+    /* Reset spatial filter */
+    if( m_poFilterGeom != NULL )
+    {
+        OGREnvelope     oEnv;
+
+        m_poFilterGeom->getEnvelope(&oEnv);
+
+        m_sFilterBounds.north = oEnv.MaxY;
+        m_sFilterBounds.south = oEnv.MinY;
+        m_sFilterBounds.east  = oEnv.MinX;
+        m_sFilterBounds.west  = oEnv.MaxX;
+
+        psResult = cln_SelectRegion( m_nClientID, &m_sFilterBounds);
+        if( ECSERROR(psResult) )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "%s", psResult->message );
+            return;
+        }
+    }
+    else
+    {
+        /* Reset to global bounds */
+        psResult = cln_SelectRegion( m_nClientID, m_poODS->GetGlobalBounds() );
+        if( ECSERROR(psResult) )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "%s", psResult->message );
+            return;
+        }
+    }
+
     m_iNextShapeId = 0;
 }
 
@@ -179,6 +191,14 @@ OGRFeature *OGROGDILayer::GetNextFeature()
     OGRFeature  *poFeature=NULL;
     ecs_Result  *psResult;
     int         i;
+
+    /* Reset reading if we are not the current layer */
+    /* WARNING : this does not allow interleaved reading of layers */ 
+    if( m_poODS->GetCurrentLayer() != this )
+    {
+        m_poODS->SetCurrentLayer(this);
+        ResetReading();
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Retrieve object from OGDI server and create new feature         */

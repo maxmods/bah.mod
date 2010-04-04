@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: idadataset.cpp 14048 2008-03-20 18:47:21Z rouault $
+ * $Id: idadataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
  *
  * Project:  IDA Raster Driver
  * Purpose:  Implemenents IDA driver/dataset/rasterband.
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: idadataset.cpp 14048 2008-03-20 18:47:21Z rouault $");
+CPL_CVSID("$Id: idadataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_IDA(void);
@@ -923,14 +923,14 @@ CALCULATED =200
     poDS->ReadColorTable();
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

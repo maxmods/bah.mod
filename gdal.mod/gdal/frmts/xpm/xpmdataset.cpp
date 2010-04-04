@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xpmdataset.cpp 15202 2008-08-23 21:42:12Z rouault $
+ * $Id: xpmdataset.cpp 18239 2009-12-10 15:48:43Z warmerdam $
  *
  * Project:  XPM Driver
  * Purpose:  Implement GDAL XPM Support
@@ -33,7 +33,7 @@
 #include "gdal_frmts.h"						      
 
 
-CPL_CVSID("$Id: xpmdataset.cpp 15202 2008-08-23 21:42:12Z rouault $");
+CPL_CVSID("$Id: xpmdataset.cpp 18239 2009-12-10 15:48:43Z warmerdam $");
 
 static unsigned char *ParseXPM( const char *pszInput,
                                 int *pnXSize, int *pnYSize, 
@@ -120,6 +120,7 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
                   poOpenInfo->pszFilename );
         return NULL;
     }
+    pszFileContents[nFileSize] = '\0';
     
     VSIFSeek( poOpenInfo->fp, 0, SEEK_SET );
 
@@ -179,6 +180,11 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Support overviews.                                              */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return poDS;
 }
@@ -479,6 +485,12 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
 
             while( pszNext[i] != '\0' && pszNext[i] != '"' )
                 i++;
+
+            if( pszNext[i] == '\0' )
+            {
+                CSLDestroy( papszXPMList );
+                return NULL;
+            }
 
             pszLine = (char *) CPLMalloc(i+1);
             strncpy( pszLine, pszNext, i );

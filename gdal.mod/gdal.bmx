@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ ModuleInfo "Version: 1.00"
 ModuleInfo "License: Wrapper - MIT"
 ModuleInfo "License: GDAL - Copyright (c) 2000, Frank Warmerdam"
 ModuleInfo "License: PROJ.4 - Copyright (c) 2000, Frank Warmerdam"
-ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
 
 ModuleInfo "CC_OPTS: -DCPL_DISABLE_DLL -DCPL_DISABLE_STDCALL -DCURL_STATICLIB"
 ModuleInfo "CC_OPTS: -DPIXARLOG_SUPPORT -DZIP_SUPPORT -DJPEG_SUPPORT -DOJPEG_SUPPORT -DBIGTIFF_SUPPORT"
@@ -54,7 +54,7 @@ ModuleInfo "CC_OPTS: -fexceptions"
 
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial release (gdal 1.6.3, proj4 4.7.0)"
+ModuleInfo "History: Initial release (gdal 1.7.1, proj4 4.7.0)"
 
 
 Import "common.bmx"

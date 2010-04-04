@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmllayer.cpp 16909 2009-05-02 14:56:22Z rouault $
+ * $Id: ogrkmllayer.cpp 16908 2009-05-02 14:53:26Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLLayer class.
@@ -32,6 +32,7 @@
 #include "ogr_api.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "ogr_p.h"
 
 /* Function utility to dump OGRGeometry to KML text. */
 char *OGR_G_ExportToKML( OGRGeometryH hGeometry, const char* pszAltitudeMode );
@@ -324,7 +325,7 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
                 while( *pszRaw == ' ' )
                     pszRaw++;
 
-                char *pszEscaped = CPLEscapeString( pszRaw, -1, CPLES_XML );
+                char *pszEscaped = OGRGetXML_UTF8_EscapedString( pszRaw );
 
                 VSIFPrintf( fp, "\t<name>%s</name>\n", pszEscaped);
                 CPLFree( pszEscaped );
@@ -345,7 +346,7 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
                 while( *pszRaw == ' ' )
                     pszRaw++;
 
-                char *pszEscaped = CPLEscapeString( pszRaw, -1, CPLES_XML );
+                char *pszEscaped = OGRGetXML_UTF8_EscapedString( pszRaw );
 
                 VSIFPrintf( fp, "\t<description>%s</description>\n", pszEscaped);
                 CPLFree( pszEscaped );
@@ -383,7 +384,7 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
             while( *pszRaw == ' ' )
                 pszRaw++;
 
-            char *pszEscaped = CPLEscapeString( pszRaw, -1, CPLES_XML );
+            char *pszEscaped = OGRGetXML_UTF8_EscapedString( pszRaw );
 
             VSIFPrintf( fp, "\t\t<SimpleData name=\"%s\">%s</SimpleData>\n", 
                         poField->GetNameRef(), pszEscaped);

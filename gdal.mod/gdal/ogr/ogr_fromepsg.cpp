@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_fromepsg.cpp 17671 2009-09-23 20:15:43Z warmerdam $
+ * $Id: ogr_fromepsg.cpp 18571 2010-01-17 13:56:32Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Generate an OGRSpatialReference object based on an EPSG
@@ -29,9 +29,10 @@
  ****************************************************************************/
 
 #include "ogr_spatialref.h"
+#include "ogr_p.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_fromepsg.cpp 17671 2009-09-23 20:15:43Z warmerdam $");
+CPL_CVSID("$Id: ogr_fromepsg.cpp 18571 2010-01-17 13:56:32Z rouault $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -64,6 +65,9 @@ void OGREPSGDatumNameMassage( char ** ppszDatum )
 {
     int         i, j;
     char        *pszDatum = *ppszDatum;
+
+    if (pszDatum[0] == '\0')
+        return;
 
 /* -------------------------------------------------------------------- */
 /*      Translate non-alphanumeric values to underscores.               */
@@ -641,16 +645,33 @@ EPSGGetGCSInfo( int nGCSCode, char ** ppszName,
 }
 
 /************************************************************************/
-/*                        EPSGGetEllipsoidInfo()                        */
-/*                                                                      */
-/*      Fetch info about an ellipsoid.  Axes are always returned in     */
-/*      meters.  SemiMajor computed based on inverse flattening         */
-/*      where that is provided.                                         */
+/*                         OSRGetEllipsoidInfo()                        */
 /************************************************************************/
 
-static int 
-EPSGGetEllipsoidInfo( int nCode, char ** ppszName,
-                      double * pdfSemiMajor, double * pdfInvFlattening )
+/**
+ * Fetch info about an ellipsoid.
+ *
+ * This helper function will return ellipsoid parameters corresponding to EPSG
+ * code provided. Axes are always returned in meters.  Semi major computed
+ * based on inverse flattening where that is provided.
+ *
+ * @param nCode EPSG code of the requested ellipsoid
+ *
+ * @param ppszName pointer to string where ellipsoid name will be returned. It
+ * is caller responsibility to free this string after using with CPLFree().
+ *
+ * @param pdfSemiMajor pointer to variable where semi major axis will be
+ * returned.
+ *
+ * @param pdfInvFlattening pointer to variable where inverse flattening will
+ * be returned.
+ *
+ * @return OGRERR_NONE on success or an error code in case of failure.
+ **/
+
+OGRErr 
+OSRGetEllipsoidInfo( int nCode, char ** ppszName,
+                     double * pdfSemiMajor, double * pdfInvFlattening )
 
 {
     char        szSearchKey[24];
@@ -660,14 +681,15 @@ EPSGGetEllipsoidInfo( int nCode, char ** ppszName,
 /* -------------------------------------------------------------------- */
 /*      Get the semi major axis.                                        */
 /* -------------------------------------------------------------------- */
-    sprintf( szSearchKey, "%d", nCode );
+    snprintf( szSearchKey, sizeof(szSearchKey), "%d", nCode );
+    szSearchKey[sizeof(szSearchKey) - 1] = '\n';
 
     dfSemiMajor =
         CPLAtof(CSVGetField( CSVFilename("ellipsoid.csv" ),
                              "ELLIPSOID_CODE", szSearchKey, CC_Integer,
                              "SEMI_MAJOR_AXIS" ) );
     if( dfSemiMajor == 0.0 )
-        return FALSE;
+        return OGRERR_UNSUPPORTED_SRS;
 
 /* -------------------------------------------------------------------- */
 /*      Get the translation factor into meters.                         */
@@ -718,8 +740,8 @@ EPSGGetEllipsoidInfo( int nCode, char ** ppszName,
             CPLStrdup(CSVGetField( CSVFilename("ellipsoid.csv" ),
                                    "ELLIPSOID_CODE", szSearchKey, CC_Integer,
                                    "ELLIPSOID_NAME" ));
-    
-    return( TRUE );
+
+    return OGRERR_NONE;
 }
 
 #define NatOriginLat         8801
@@ -1091,7 +1113,7 @@ static OGRErr SetEPSGAxisInfo( OGRSpatialReference *poSRS,
 /* -------------------------------------------------------------------- */
 /*      Do we need to switch the axes around?                           */
 /* -------------------------------------------------------------------- */
-    if( atoi(papszAxis2[iAxisOrderField]) < atoi(papszAxis2[iAxisOrderField]) )
+    if( atoi(papszAxis2[iAxisOrderField]) < atoi(papszAxis1[iAxisOrderField]) )
     {
         papszRecord = papszAxis1;
         papszAxis1 = papszAxis2;
@@ -1174,8 +1196,8 @@ static OGRErr SetEPSGGeogCS( OGRSpatialReference * poSRS, int nGeogCS )
 
     OGREPSGDatumNameMassage( &pszDatumName );
 
-    if( !EPSGGetEllipsoidInfo( nEllipsoidCode, &pszEllipsoidName, 
-                               &dfSemiMajor, &dfInvFlattening ) )
+    if( OSRGetEllipsoidInfo( nEllipsoidCode, &pszEllipsoidName, 
+                             &dfSemiMajor, &dfInvFlattening ) != OGRERR_NONE )
         return OGRERR_UNSUPPORTED_SRS;
 
     if( !EPSGGetUOMAngleInfo( nUOMAngle, &pszAngleName, &dfAngleInDegrees ) )
@@ -1558,7 +1580,7 @@ static OGRErr SetEPSGProjCS( OGRSpatialReference * poSRS, int nPCSCode )
 /************************************************************************/
 
 /**
- * Initialize SRS based on EPSG GCS or PCS code.
+ * \brief Initialize SRS based on EPSG GCS or PCS code.
  *
  * This method will initialize the spatial reference based on the
  * passed in EPSG GCS or PCS code.  The coordinate system definitions
@@ -1607,6 +1629,12 @@ OGRErr OGRSpatialReference::importFromEPSG( int nCode )
 /*                         OSRImportFromEPSG()                          */
 /************************************************************************/
 
+/**
+ * \brief  Initialize SRS based on EPSG GCS or PCS code.
+ *
+ * This function is the same as OGRSpatialReference::importFromEPSG().
+ */
+
 OGRErr CPL_STDCALL OSRImportFromEPSG( OGRSpatialReferenceH hSRS, int nCode )
 
 {
@@ -1620,12 +1648,12 @@ OGRErr CPL_STDCALL OSRImportFromEPSG( OGRSpatialReferenceH hSRS, int nCode )
 /************************************************************************/
 
 /**
- * Initialize SRS based on EPSG GCS or PCS code.
+ * \brief Initialize SRS based on EPSG GCS or PCS code.
  *
  * This method will initialize the spatial reference based on the
  * passed in EPSG GCS or PCS code.  
  * 
- * This method is similar to importFromEPSGA() except that EPSG preferred 
+ * This method is similar to importFromEPSG() except that EPSG preferred 
  * axis ordering *will* be applied for geographic coordinate systems.
  * EPSG normally defines geographic coordinate systems to use lat/long 
  * contrary to typical GIS use).  See OGRSpatialReference::importFromEPSG() 
@@ -1746,6 +1774,12 @@ OGRErr OGRSpatialReference::importFromEPSGA( int nCode )
 /*                         OSRImportFromEPSGA()                         */
 /************************************************************************/
 
+/**
+ * \brief  Initialize SRS based on EPSG GCS or PCS code.
+ *
+ * This function is the same as OGRSpatialReference::importFromEPSGA().
+ */
+
 OGRErr CPL_STDCALL OSRImportFromEPSGA( OGRSpatialReferenceH hSRS, int nCode )
 
 {
@@ -1759,7 +1793,7 @@ OGRErr CPL_STDCALL OSRImportFromEPSGA( OGRSpatialReferenceH hSRS, int nCode )
 /************************************************************************/
 
 /**
- * Set State Plane projection definition.
+ * \brief Set State Plane projection definition.
  *
  * This will attempt to generate a complete definition of a state plane
  * zone based on generating the entire SRS from the EPSG tables.  If the
@@ -1993,7 +2027,7 @@ int OGRSpatialReference::GetEPSGGeogCS()
 /************************************************************************/
 
 /**
- * Set EPSG authority info if possible.
+ * \brief Set EPSG authority info if possible.
  *
  * This method inspects a WKT definition, and adds EPSG authority nodes
  * where an aspect of the coordinate system can be easily and safely 
@@ -2094,7 +2128,7 @@ OGRErr OSRAutoIdentifyEPSG( OGRSpatialReferenceH hSRS )
 /************************************************************************/
 
 /**
- * This method returns TRUE if EPSG feels this geographic coordinate
+ * \brief This method returns TRUE if EPSG feels this geographic coordinate
  * system should be treated as having lat/long coordinate ordering.
  *
  * Currently this returns TRUE for all geographic coordinate systems
@@ -2130,3 +2164,16 @@ int OGRSpatialReference::EPSGTreatsAsLatLong()
 
     return FALSE;
 }
+
+/************************************************************************/
+/*                       OSREPSGTreatsAsLatLong()                       */
+/************************************************************************/
+
+int OSREPSGTreatsAsLatLong( OGRSpatialReferenceH hSRS )
+
+{
+    VALIDATE_POINTER1( hSRS, "OSREPSGTreatsAsLatLong", CE_Failure );
+
+    return ((OGRSpatialReference *) hSRS)->EPSGTreatsAsLatLong();
+}
+

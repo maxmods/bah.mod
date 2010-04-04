@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbcdatasource.cpp 17872 2009-10-22 15:10:32Z warmerdam $
+ * $Id: ogrodbcdatasource.cpp 17870 2009-10-22 04:47:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrodbcdatasource.cpp 17872 2009-10-22 15:10:32Z warmerdam $");
+CPL_CVSID("$Id: ogrodbcdatasource.cpp 17870 2009-10-22 04:47:29Z warmerdam $");
 /************************************************************************/
 /*                         OGRODBCDataSource()                          */
 /************************************************************************/
@@ -98,8 +98,20 @@ int OGRODBCDataSource::Open( const char * pszNewName, int bUpdate,
     if ( (pszDelimiter = strrchr( pszWrkName, ':' )) != NULL )
     {
         char *pszOBracket = strchr( pszDelimiter + 1, '(' );
-        if( pszOBracket == NULL )
+
+        if( strchr(pszDelimiter,'\\') != NULL
+            || strchr(pszDelimiter,'/') != NULL )
+        {
+            /*
+            ** if there are special tokens then this isn't really
+            ** the srs table name, so avoid further processing.
+            */
+        }
+        else if( pszOBracket == NULL )
+        {
             pszSRSTableName = CPLStrdup( pszDelimiter + 1 );
+            *pszDelimiter = '\0';
+        }
         else
         {
             char *pszCBracket = strchr( pszOBracket, ')' );
@@ -116,8 +128,9 @@ int OGRODBCDataSource::Open( const char * pszNewName, int bUpdate,
             *pszOBracket = '\0';
             pszSRSTableName = CPLStrdup( pszDelimiter + 1 );
             pszSRTextCol = CPLStrdup( pszOBracket + 1 );
+
+            *pszDelimiter = '\0';
         }
-        *pszDelimiter = '\0';
     }
 
 /* -------------------------------------------------------------------- */
@@ -398,10 +411,7 @@ int OGRODBCDataSource::OpenTable( const char *pszNewName,
 int OGRODBCDataSource::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,ODsCCreateLayer) )
-        return TRUE;
-    else
-        return FALSE;
+    return FALSE;
 }
 
 /************************************************************************/

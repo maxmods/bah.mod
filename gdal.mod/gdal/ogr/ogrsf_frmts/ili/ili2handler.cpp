@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2handler.cpp 17913 2009-10-27 15:54:26Z chaitanya $
+ * $Id: ili2handler.cpp 17910 2009-10-27 02:07:33Z chaitanya $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Handler class.
@@ -34,7 +34,7 @@
 #include "ili2readerp.h"
 #include <xercesc/sax2/Attributes.hpp>
 
-CPL_CVSID("$Id: ili2handler.cpp 17913 2009-10-27 15:54:26Z chaitanya $");
+CPL_CVSID("$Id: ili2handler.cpp 17910 2009-10-27 02:07:33Z chaitanya $");
 
 // 
 // constants
@@ -85,6 +85,7 @@ ILI2Handler::~ILI2Handler() {
 void ILI2Handler::startDocument() {
   // the level counter starts with DATASECTION
   level = -1;
+  m_nEntityCounter = 0;
 }
 
 void ILI2Handler::endDocument() {
@@ -100,6 +101,7 @@ void ILI2Handler::startElement(
   
   // start to add the layers, features with the DATASECTION  
   char *tmpC = NULL;
+  m_nEntityCounter = 0;
   if ((level >= 0) || (cmpStr(ILI2_DATASECTION, tmpC = XMLString::transcode(qname)) == 0)) {
     level++;
     
@@ -125,6 +127,7 @@ void ILI2Handler::endElement(
         const   XMLCh* const    qname
     ) {
     
+  m_nEntityCounter = 0;
   if (level >= 0) {
     if (level == 2) {
     
@@ -147,7 +150,7 @@ void ILI2Handler::endElement(
 
 #if XERCES_VERSION_MAJOR >= 3
 /************************************************************************/
-/*                     characters()                                     */
+/*                     characters() (xerces 3 version)                  */
 /************************************************************************/
 
 void ILI2Handler::characters( const XMLCh *const chars,
@@ -167,7 +170,7 @@ void ILI2Handler::characters( const XMLCh *const chars,
 
 #else
 /************************************************************************/
-/*                     characters()                                     */
+/*                     characters() (xerces 2 version)                  */
 /************************************************************************/
 
 void ILI2Handler::characters( const XMLCh *const chars,
@@ -185,6 +188,15 @@ void ILI2Handler::characters( const XMLCh *const chars,
   }
 }
 #endif
+
+void ILI2Handler::startEntity (const XMLCh *const name)
+{
+    m_nEntityCounter ++;
+    if (m_nEntityCounter > 1000)
+    {
+        throw SAXNotSupportedException ("File probably corrupted (million laugh pattern)");
+    }
+}
 
 void ILI2Handler::fatalError(const SAXParseException&) {
   // FIXME Error handling

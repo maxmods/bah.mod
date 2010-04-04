@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamdataset.cpp 15033 2008-07-25 22:35:50Z warmerdam $
+ * $Id: gdalpamdataset.cpp 18321 2009-12-17 04:44:03Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamDataset, a dataset base class that 
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalpamdataset.cpp 15033 2008-07-25 22:35:50Z warmerdam $");
+CPL_CVSID("$Id: gdalpamdataset.cpp 18321 2009-12-17 04:44:03Z warmerdam $");
 
 /************************************************************************/
 /*                           GDALPamDataset()                           */
@@ -205,7 +205,7 @@ CPLXMLNode *GDALPamDataset::SerializeToXML( const char *pszVRTPath )
     psMD = oMDMD.Serialize();
     if( psMD != NULL )
     {
-        if( psMD->psChild == NULL )
+        if( psMD->psChild == NULL && psMD->psNext == NULL )
             CPLDestroyXMLNode( psMD );
         else
             CPLAddXMLChild( psDSTree, psMD );
@@ -514,6 +514,21 @@ void GDALPamDataset::SetPhysicalFilename( const char *pszFilename )
 }
 
 /************************************************************************/
+/*                        GetPhysicalFilename()                         */
+/************************************************************************/
+
+const char *GDALPamDataset::GetPhysicalFilename()
+
+{
+    PamInitialize();
+
+    if( psPam )
+        return psPam->osPhysicalFilename;
+    else
+        return "";
+}
+
+/************************************************************************/
 /*                         SetSubdatasetName()                          */
 /************************************************************************/
 
@@ -524,6 +539,21 @@ void GDALPamDataset::SetSubdatasetName( const char *pszSubdataset )
 
     if( psPam )
         psPam->osSubdatasetName = pszSubdataset;
+}
+
+/************************************************************************/
+/*                         GetSubdatasetName()                          */
+/************************************************************************/
+
+const char *GDALPamDataset::GetSubdatasetName()
+
+{
+    PamInitialize();
+
+    if( psPam )
+        return psPam->osSubdatasetName;
+    else
+        return "";
 }
 
 /************************************************************************/
@@ -706,7 +736,7 @@ CPLErr GDALPamDataset::TrySaveXML()
         if( psOldTree == NULL )
             psOldTree = CPLCreateXMLNode( NULL, CXT_Element, "PAMDataset" );
 
-        for( psSubTree = psTree->psChild; 
+        for( psSubTree = psOldTree->psChild; 
              psSubTree != NULL;
              psSubTree = psSubTree->psNext )
         {
@@ -744,7 +774,6 @@ CPLErr GDALPamDataset::TrySaveXML()
 /* -------------------------------------------------------------------- */
 /*      Try saving the auxilary metadata.                               */
 /* -------------------------------------------------------------------- */
-    const char *pszNewPam;
     int bSaved;
     
     CPLPushErrorHandler( CPLQuietErrorHandler );
@@ -757,20 +786,29 @@ CPLErr GDALPamDataset::TrySaveXML()
 /* -------------------------------------------------------------------- */
     if( bSaved )
         eErr = CE_None;
-    else if( PamGetProxy(GetDescription()) == NULL 
-             && ((pszNewPam = PamAllocateProxy(GetDescription())) != NULL))
-    {
-        CPLErrorReset();
-        CPLFree( psPam->pszPamFilename );
-        psPam->pszPamFilename = CPLStrdup(pszNewPam);
-        eErr = TrySaveXML();
-    }
     else
     {
-        CPLError( CE_Warning, CPLE_AppDefined, 
-                  "Unable to save auxilary information in %s.",
-                  psPam->pszPamFilename );
-        eErr = CE_Warning;
+        const char *pszNewPam;
+        const char *pszBasename = GetDescription();
+
+        if( psPam && psPam->osPhysicalFilename.length() > 0 )
+            pszBasename = psPam->osPhysicalFilename;
+            
+        if( PamGetProxy(pszBasename) == NULL 
+            && ((pszNewPam = PamAllocateProxy(pszBasename)) != NULL))
+        {
+            CPLErrorReset();
+            CPLFree( psPam->pszPamFilename );
+            psPam->pszPamFilename = CPLStrdup(pszNewPam);
+            eErr = TrySaveXML();
+        }
+        else
+        {
+            CPLError( CE_Warning, CPLE_AppDefined, 
+                      "Unable to save auxilary information in %s.",
+                      psPam->pszPamFilename );
+            eErr = CE_Warning;
+        }
     }
     
 /* -------------------------------------------------------------------- */
@@ -926,10 +964,10 @@ char **GDALPamDataset::GetFileList()
     char **papszFileList = GDALDataset::GetFileList();
 
     if( psPam && psPam->osPhysicalFilename.size() > 0 
-        && CSLCount( papszFileList ) == 0 )
+        && CSLFindString( papszFileList, psPam->osPhysicalFilename ) == -1 )
     {
-        papszFileList = CSLAddString( papszFileList, 
-                                      psPam->osPhysicalFilename );
+        papszFileList = CSLInsertString( papszFileList, 0, 
+                                         psPam->osPhysicalFilename );
     }
 
     if( psPam && psPam->pszPamFilename 
@@ -941,6 +979,43 @@ char **GDALPamDataset::GetFileList()
 
     return papszFileList;
 }
+
+/************************************************************************/
+/*                          IBuildOverviews()                           */
+/************************************************************************/
+
+CPLErr GDALPamDataset::IBuildOverviews( const char *pszResampling, 
+                                        int nOverviews, int *panOverviewList, 
+                                        int nListBands, int *panBandList,
+                                        GDALProgressFunc pfnProgress, 
+                                        void * pProgressData )
+    
+{
+/* -------------------------------------------------------------------- */
+/*      Initialize PAM.                                                 */
+/* -------------------------------------------------------------------- */
+    PamInitialize();
+    if( psPam == NULL )
+        return CE_None;
+
+/* -------------------------------------------------------------------- */
+/*      If we appear to have subdatasets and to have a physical         */
+/*      filename, use that physical filename to derive a name for a     */
+/*      new overview file.                                              */
+/* -------------------------------------------------------------------- */
+    if( oOvManager.IsInitialized() && psPam->osPhysicalFilename.length() != 0 )
+        return oOvManager.BuildOverviewsSubDataset( 
+            psPam->osPhysicalFilename, pszResampling, 
+            nOverviews, panOverviewList,
+            nListBands, panBandList,
+            pfnProgress, pProgressData );
+    else 
+        return GDALDataset::IBuildOverviews( pszResampling, 
+                                             nOverviews, panOverviewList, 
+                                             nListBands, panBandList, 
+                                             pfnProgress, pProgressData );
+}
+
 
 /************************************************************************/
 /*                          GetProjectionRef()                          */
@@ -1117,6 +1192,82 @@ CPLErr GDALPamDataset::SetMetadataItem( const char *pszName,
         MarkPamDirty();
 
     return GDALDataset::SetMetadataItem( pszName, pszValue, pszDomain );
+}
+
+/************************************************************************/
+/*                          GetMetadataItem()                           */
+/************************************************************************/
+
+const char *GDALPamDataset::GetMetadataItem( const char *pszName, 
+                                             const char *pszDomain )
+
+{
+/* -------------------------------------------------------------------- */
+/*      A request against the ProxyOverviewRequest is a special         */
+/*      mechanism to request an overview filename be allocated in       */
+/*      the proxy pool location.  The allocated name is saved as        */
+/*      metadata as well as being returned.                             */
+/* -------------------------------------------------------------------- */
+    if( pszDomain != NULL && EQUAL(pszDomain,"ProxyOverviewRequest") )
+    {
+        CPLString osPrelimOvr = GetDescription();
+        osPrelimOvr += ":::OVR";
+        
+        const char *pszProxyOvrFilename = PamAllocateProxy( osPrelimOvr );
+        if( pszProxyOvrFilename == NULL )
+            return NULL;
+        
+        SetMetadataItem( "OVERVIEW_FILE", pszProxyOvrFilename, "OVERVIEWS" );
+        
+        return pszProxyOvrFilename;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If the OVERVIEW_FILE metadata is requested, we intercept the    */
+/*      request in order to replace ":::BASE:::" with the path to       */
+/*      the physical file - if available.  This is primarily for the    */
+/*      purpose of managing subdataset overview filenames as being      */
+/*      relative to the physical file the subdataset comes              */
+/*      from. (#3287).                                                  */
+/* -------------------------------------------------------------------- */
+    else if( pszDomain != NULL 
+             && EQUAL(pszDomain,"OVERVIEWS") 
+             && EQUAL(pszName,"OVERVIEW_FILE") )
+    {
+        const char *pszOverviewFile = 
+            GDALDataset::GetMetadataItem( pszName, pszDomain );
+
+        if( pszOverviewFile == NULL 
+            || !EQUALN(pszOverviewFile,":::BASE:::",10) )
+            return pszOverviewFile;
+        
+        CPLString osPath;
+
+        if( strlen(GetPhysicalFilename()) > 0 )
+            osPath = CPLGetPath(GetPhysicalFilename());
+        else
+            osPath = CPLGetPath(GetDescription());
+
+        return CPLFormFilename( osPath, pszOverviewFile + 10, NULL );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Everything else is a pass through.                              */
+/* -------------------------------------------------------------------- */
+    else
+        return GDALDataset::GetMetadataItem( pszName, pszDomain );
+
+}
+
+/************************************************************************/
+/*                            GetMetadata()                             */
+/************************************************************************/
+
+char **GDALPamDataset::GetMetadata( const char *pszDomain )
+
+{
+//    if( pszDomain == NULL || !EQUAL(pszDomain,"ProxyOverviewRequest") )
+        return GDALDataset::GetMetadata( pszDomain );
 }
 
 /************************************************************************/

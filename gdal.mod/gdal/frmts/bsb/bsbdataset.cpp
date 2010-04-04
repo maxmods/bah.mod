@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsbdataset.cpp 16540 2009-03-10 23:25:20Z rouault $
+ * $Id: bsbdataset.cpp 18181 2009-12-05 01:07:47Z warmerdam $
  *
  * Project:  BSB Reader
  * Purpose:  BSBDataset implementation for BSB format.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: bsbdataset.cpp 16540 2009-03-10 23:25:20Z rouault $");
+CPL_CVSID("$Id: bsbdataset.cpp 18181 2009-12-05 01:07:47Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_BSB(void);
@@ -443,6 +443,8 @@ void BSBDataset::ScanForGCPs( bool isNos, const char *pszFilename )
 
             delete poCT;
         }
+        else
+            CPLErrorReset();
     }
 
 /* -------------------------------------------------------------------- */
@@ -642,6 +644,14 @@ GDALDataset *BSBDataset::Open( GDALOpenInfo * poOpenInfo )
         pszRA = strstr((const char*)poOpenInfo->pabyHeader + i, "[JF");
     if (pszRA == NULL || pszRA - ((const char*)poOpenInfo->pabyHeader + i) > 100 )
         return NULL;
+        
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The BSB driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
@@ -669,13 +679,14 @@ GDALDataset *BSBDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetBand( 1, new BSBRasterBand( poDS ));
 
     poDS->ScanForGCPs( isNos, poOpenInfo->pszFilename );
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

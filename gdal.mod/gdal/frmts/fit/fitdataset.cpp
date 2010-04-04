@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fitdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
+ * $Id: fitdataset.cpp 16443 2009-03-01 19:01:54Z rouault $
  *
  * Project:  FIT Driver
  * Purpose:  Implement FIT Support - not using the SGI iflFIT library.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: fitdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
+CPL_CVSID("$Id: fitdataset.cpp 16443 2009-03-01 19:01:54Z rouault $");
 
 CPL_C_START
  
@@ -1139,13 +1139,13 @@ static GDALDataset *FITCreateCopy(const char * pszFilename,
 
     GDALRasterBand *firstBand = poSrcDS->GetRasterBand(1);
     if (! firstBand) {
-        //free(head);
+        VSIFCloseL(fpImage);
         return NULL;
     }
 
     head->dtype = fitGetDataType(firstBand->GetRasterDataType());
     if (! head->dtype) {
-        //free(head);
+        VSIFCloseL(fpImage);
         return NULL;
     }
     gst_swapb(head->dtype);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalmultidomainmetadata.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: gdalmultidomainmetadata.cpp 17282 2009-06-22 19:19:46Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALMultiDomainMetadata class.  This class
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalmultidomainmetadata.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: gdalmultidomainmetadata.cpp 17282 2009-06-22 19:19:46Z warmerdam $");
 
 /************************************************************************/
 /*                      GDALMultiDomainMetadata()                       */
@@ -61,13 +61,13 @@ GDALMultiDomainMetadata::~GDALMultiDomainMetadata()
 void GDALMultiDomainMetadata::Clear()
 
 {
-    int i;
+    int i, nDomainCount;
 
+    nDomainCount = CSLCount( papszDomainList );
     CSLDestroy( papszDomainList );
     papszDomainList = NULL;
 
-    for( i = 0; papapszMetadataLists != NULL 
-                && papapszMetadataLists[i] != NULL; i++ )
+    for( i = 0; i < nDomainCount; i++ )
     {
         CSLDestroy( papapszMetadataLists[i] );
     }
@@ -157,6 +157,9 @@ CPLErr GDALMultiDomainMetadata::SetMetadataItem( const char *pszName,
 
     int iDomain = CSLFindString( papszDomainList, pszDomain );
 
+/* -------------------------------------------------------------------- */
+/*      Create the domain if it does not already exist.                 */
+/* -------------------------------------------------------------------- */
     if( iDomain == -1 )
     {
         int nDomainCount;
@@ -167,14 +170,30 @@ CPLErr GDALMultiDomainMetadata::SetMetadataItem( const char *pszName,
         papapszMetadataLists = (char ***) 
             CPLRealloc( papapszMetadataLists, sizeof(char*)*(nDomainCount+1) );
         papapszMetadataLists[nDomainCount] = NULL;
-        papapszMetadataLists[nDomainCount-1] = 
-            CSLSetNameValue( NULL, pszName, pszValue );
+        iDomain = nDomainCount-1;
+        papapszMetadataLists[iDomain] = NULL;
     }
-    else
+
+/* -------------------------------------------------------------------- */
+/*      Set the value in the domain list.                               */
+/* -------------------------------------------------------------------- */
+    if( pszValue != NULL )
     {
         papapszMetadataLists[iDomain] = 
             CSLSetNameValue( papapszMetadataLists[iDomain], 
                              pszName, pszValue );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Remove the target key from the domain list.                     */
+/* -------------------------------------------------------------------- */
+    else
+    {
+        int iKey = CSLFindName( papapszMetadataLists[iDomain], pszName );
+
+        if( iKey != -1 )
+            papapszMetadataLists[iDomain] = 
+                CSLRemoveStrings(papapszMetadataLists[iDomain],iKey,1,NULL);
     }
 
     return CE_None;

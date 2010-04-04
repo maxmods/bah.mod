@@ -18,6 +18,7 @@ OBJ	= \
 	tif_fax3sm.o \
 	tif_getimage.o \
 	tif_jpeg.o \
+	tif_jpeg_12.o \
 	tif_flush.o \
 	tif_luv.o \
 	tif_lzw.o \
@@ -47,10 +48,10 @@ ifeq ($(LIBZ_SETTING),internal)
 XTRA_OPT =      -I../../zlib 
 else 
 XTRA_OPT = 
-endif 
+endif
 
 ifneq ($(LIBZ_SETTING),no)
-ALL_C_FLAGS     :=      $(ALL_C_FLAGS) -DPIXARLOG_SUPPORT -DZIP_SUPPORT $(XTRA_OPT)
+ALL_C_FLAGS 	:=	$(ALL_C_FLAGS) -DPIXARLOG_SUPPORT -DZIP_SUPPORT $(XTRA_OPT)
 endif
 
 ifneq ($(JPEG_SETTING),no)
@@ -61,7 +62,12 @@ ifeq ($(JPEG_SETTING),internal)
 ALL_C_FLAGS 	:=	$(ALL_C_FLAGS) -I../../jpeg/libjpeg
 endif
 
-default:	$(OBJ:.o=.$(OBJ_EXT))
+ifeq ($(JPEG12_ENABLED),yes)
+ALL_C_FLAGS	:=      $(ALL_C_FLAGS) -DJPEG_DUAL_MODE_8_12
+EXTRA_DEP	=	libjpeg12src	
+endif
+
+default:	$(EXTRA_DEP) $(OBJ:.o=.$(OBJ_EXT))
 
 clean:
 	rm -f $(O_OBJ) *.o *.a
@@ -80,10 +86,13 @@ import:
 
 	@echo
 	@echo 'Now do something like:'
-	@echo '% cvs commit -m "updated to libtiff 3.6.0"'
+	@echo '% svn commit -m "updated to libtiff 3.6.0"'
 	@echo
 
-install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))
+install-obj:	$(EXTRA_DEP) $(O_OBJ:.o=.$(OBJ_EXT))
 
-../../o/%.$(OBJ_EXT):	%.c
+../../o/%.$(OBJ_EXT):	%.c t4.h tif_config.h tif_dir.h tif_fax3.h tif_predict.h tiff.h tiffconf.h tiffio.h tiffiop.h tiffvers.h uvcode.h
 	$(CC) -c -I../../port $(ALL_C_FLAGS) $< -o $@
+
+libjpeg12src:
+	(cd ../../jpeg; $(MAKE) libjpeg12/jcapimin12.c)

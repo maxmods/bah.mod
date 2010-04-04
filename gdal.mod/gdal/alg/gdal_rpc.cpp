@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpc.cpp 14158 2008-03-31 03:44:13Z warmerdam $
+ * $Id: gdal_rpc.cpp 16666 2009-03-28 12:46:49Z rouault $
  *
  * Project:  Image Warper
  * Purpose:  Implements a rational polynomail (RPC) based transformer. 
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: gdal_rpc.cpp 14158 2008-03-31 03:44:13Z warmerdam $");
+CPL_CVSID("$Id: gdal_rpc.cpp 16666 2009-03-28 12:46:49Z rouault $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeRPCTransformer( void *pTransformArg );
@@ -367,7 +367,7 @@ void *GDALCreateRPCTransformer( GDALRPCInfo *psRPCInfo, int bReversed,
 /*      geotransform approximate transformation.                        */
 /* -------------------------------------------------------------------- */
     double adfGTFromLL[6], dfRefPixel = -1.0, dfRefLine = -1.0;
-    double dfRefLong, dfRefLat;
+    double dfRefLong = 0.0, dfRefLat = 0.0;
 
     if( psRPCInfo->dfMIN_LONG != -180 || psRPCInfo->dfMAX_LONG != 180 )
     {

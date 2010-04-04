@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: doq2dataset.cpp 16288 2009-02-10 22:55:44Z rouault $
+ * $Id: doq2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  USGS DOQ Driver (Second Generation Format)
  * Purpose:  Implementation of DOQ2Dataset
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: doq2dataset.cpp 16288 2009-02-10 22:55:44Z rouault $");
+CPL_CVSID("$Id: doq2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_DOQ2(void);
@@ -329,6 +329,17 @@ GDALDataset *DOQ2Dataset::Open( GDALOpenInfo * poOpenInfo )
     }
     
 /* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CSLDestroy( papszMetadata );
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The DOQ2 driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+/* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
     DOQ2Dataset 	*poDS;
@@ -390,15 +401,15 @@ GDALDataset *DOQ2Dataset::Open( GDALOpenInfo * poOpenInfo )
     if ( pszState) CPLFree( pszState );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

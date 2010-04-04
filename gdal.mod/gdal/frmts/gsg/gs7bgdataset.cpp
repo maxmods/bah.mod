@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 17606 2009-09-02 19:14:05Z warmerdam $
+ * $Id: gs7bgdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -59,7 +59,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 17606 2009-09-02 19:14:05Z warmerdam $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GS7BG(void);
@@ -220,7 +220,17 @@ GDALDataset *GS7BGDataset::Open( GDALOpenInfo * poOpenInfo )
     {
         return NULL;
     }
-
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The GS7BG driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
     /* ------------------------------------------------------------------- */
     /*      Create a corresponding GDALDataset.                            */
     /* ------------------------------------------------------------------- */
@@ -364,6 +374,12 @@ GDALDataset *GS7BGDataset::Open( GDALOpenInfo * poOpenInfo )
     }
     CPL_LSBPTR32( &nCols );
     poDS->nRasterXSize = nCols;
+
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+    {
+        delete poDS;
+        return NULL;
+    }
 
     /* --------------------------------------------------------------------*/
     /*      Create band information objects.                               */

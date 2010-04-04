@@ -121,7 +121,7 @@ int OGRGeoconceptDataSource::Open( const char* pszName, int bTestOpen, int bUpda
         if( !bTestOpen )
         {
             CPLError( CE_Failure, CPLE_AppDefined,
-                    "%s is neither a file or directory, Geoconcept access failed.\n",
+                    "%s is neither a file or directory, Geoconcept access failed.",
                     pszName );
         }
 
@@ -167,21 +167,15 @@ int OGRGeoconceptDataSource::LoadFile( const char *pszMode )
 {
     OGRGeoconceptLayer *poFile;
 
-    if( !_pszExt )
+    if( _pszExt == NULL)
     {
-      _pszExt = (char *)CPLGetExtension(_pszName);
-      if( !EQUAL(_pszExt,"gxt") && !EQUAL(_pszExt,"txt") )
+      const char* pszExtension = CPLGetExtension(_pszName);
+      if( !EQUAL(pszExtension,"gxt") && !EQUAL(pszExtension,"txt") )
       {
-        _pszExt = NULL;
         return FALSE;
       }
+      _pszExt = CPLStrdup(pszExtension);
     }
-    if( EQUAL(_pszExt,"txt") )
-      _pszExt = CPLStrdup("txt");
-    else if( EQUAL(_pszExt,"gxt") )
-      _pszExt = NULL;
-    else
-      _pszExt = NULL;
     CPLStrlwr( _pszExt );
 
     if( !_pszDirectory )
@@ -252,42 +246,65 @@ int OGRGeoconceptDataSource::LoadFile( const char *pszMode )
 int OGRGeoconceptDataSource::Create( const char *pszName, char** papszOptions )
 
 {
-    char *conf;
-
-    if( strlen(CPLGetExtension(pszName)) == 0 )
-    {
-        VSIStatBuf  sStat;
-
-        if( VSIStat( pszName, &sStat ) == 0 )
-        {
-            CPLError( CE_Failure, CPLE_OpenFailed,
-                      "Attempt to create dataset named %s,\n"
-                      "but that is an existing file or directory.",
-                      pszName );
-            return FALSE;
-        }
-    }
+    const char *pszConf;
+    const char *pszExtension;
 
     if( _pszName ) CPLFree(_pszName);
-    _pszName = CPLStrdup( pszName );
     _papszOptions = CSLDuplicate( papszOptions );
 
-    if( (conf= (char *)CSLFetchNameValue(papszOptions,"CONFIG")) )
+    pszConf= CSLFetchNameValue(papszOptions,"CONFIG");
+    if( pszConf != NULL )
     {
-      _pszGCT = CPLStrdup(conf);
+      _pszGCT = CPLStrdup(pszConf);
     }
 
     _pszExt = (char *)CSLFetchNameValue(papszOptions,"EXTENSION");
-    if( _pszExt == NULL )
+    pszExtension = CSLFetchNameValue(papszOptions,"EXTENSION");
+    if( pszExtension == NULL )
     {
-        _pszExt = (char *)CPLGetExtension(pszName);
+        _pszExt = CPLStrdup(CPLGetExtension(pszName));
+    }
+    else
+    {
+        _pszExt = CPLStrdup(pszExtension);
+    }
+
+    if( strlen(_pszExt) == 0 )
+    {
+        if( VSIMkdir( pszName, 0755 ) != 0 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Directory %s already exists"
+                      " as geoconcept datastore or"
+                      " is made up of a non existing list of directories.",
+                      pszName );
+
+            return FALSE;
+        }
+        _pszDirectory = CPLStrdup( pszName );
+        CPLFree(_pszExt);
+        _pszExt = CPLStrdup("gxt");
+        char *pszbName = CPLStrdup(CPLGetBasename( pszName ));
+        if (strlen(pszbName)==0) {/* pszName ends with '/' */
+            CPLFree(pszbName);
+            char *pszNameDup= CPLStrdup(pszName);
+            pszNameDup[strlen(pszName)-2] = '\0';
+            pszbName = CPLStrdup(CPLGetBasename( pszNameDup ));
+            CPLFree(pszNameDup);
+        }
+        _pszName = CPLStrdup((char *)CPLFormFilename( _pszDirectory, pszbName, NULL ));
+        CPLFree(pszbName);
+    }
+    else
+    {
+        _pszDirectory = CPLStrdup( CPLGetPath(pszName) );
+        _pszName = CPLStrdup( pszName );
     }
 
 /* -------------------------------------------------------------------- */
 /*      Create a new single file.                                       */
 /*      OGRGeoconceptDriver::CreateLayer() will do the job.             */
 /* -------------------------------------------------------------------- */
-    _pszDirectory = CPLStrdup( CPLGetPath(pszName) );
     _bSingleNewFile = TRUE;
 
     if( !LoadFile( "wt" ) )
@@ -318,12 +335,23 @@ OGRLayer *OGRGeoconceptDataSource::CreateLayer( const char * pszLayerName,
     GCTypeKind gcioFeaType;
     GCDim gcioDim;
     OGRGeoconceptLayer *poFile= NULL;
-    char *pszFeatureType, **ft;
+    const char *pszFeatureType; 
+    char **ft;
     int iLayer;
+    char pszln[512];
 
-    if( poSRS == NULL && !_bUpdate) {
+    if( _hGXT == NULL )
+    {
         CPLError( CE_Failure, CPLE_NotSupported,
-                  "SRS is mandatory of creating a Geoconcept Layer.\n"
+                  "Internal Error : null datasource handler."
+                );
+        return NULL;
+    }
+
+    if( poSRS == NULL && !_bUpdate)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "SRS is mandatory of creating a Geoconcept Layer."
                 );
         return NULL;
     }
@@ -331,19 +359,17 @@ OGRLayer *OGRGeoconceptDataSource::CreateLayer( const char * pszLayerName,
     /*
      * pszLayerName Class.Subclass if -nln option used, otherwise file name
      */
-    if( !(pszFeatureType = (char *)CSLFetchNameValue(papszOptions,"FEATURETYPE")) )
+    if( !(pszFeatureType = CSLFetchNameValue(papszOptions,"FEATURETYPE")) )
     {
       if( !pszLayerName || !strchr(pszLayerName,'.') )
       {
-        char pszln[512];
-
         snprintf(pszln,511,"%s.%s", pszLayerName? pszLayerName:"ANONCLASS",
                                     pszLayerName? pszLayerName:"ANONSUBCLASS");
         pszln[511]= '\0';
         pszFeatureType= pszln;
       }
       else
-        pszFeatureType= (char *)pszLayerName;
+        pszFeatureType= pszLayerName;
     }
 
     if( !(ft= CSLTokenizeString2(pszFeatureType,".",0)) ||
@@ -409,7 +435,7 @@ OGRLayer *OGRGeoconceptDataSource::CreateLayer( const char * pszLayerName,
     {
         CSLDestroy(ft);
         CPLError( CE_Failure, CPLE_NotSupported,
-                  "Geometry type of '%s' not supported in Geoconcept files.\n",
+                  "Geometry type of '%s' not supported in Geoconcept files.",
                   OGRGeometryTypeToName(eType) );
         return NULL;
     }

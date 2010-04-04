@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_http.cpp 13859 2008-02-23 17:20:49Z rouault $
+ * $Id: cpl_http.cpp 17927 2009-10-30 18:37:12Z rouault $
  *
  * Project:  WCS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WCS.
@@ -34,7 +34,7 @@
 #  include <curl/curl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_http.cpp 13859 2008-02-23 17:20:49Z rouault $");
+CPL_CVSID("$Id: cpl_http.cpp 17927 2009-10-30 18:37:12Z rouault $");
 
 /************************************************************************/
 /*                            CPLWriteFct()                             */
@@ -55,15 +55,18 @@ CPLWriteFct(void *buffer, size_t size, size_t nmemb, void *reqInfo)
     if( nNewSize > psResult->nDataAlloc )
     {
         psResult->nDataAlloc = (int) (nNewSize * 1.25 + 100);
-        psResult->pabyData = (GByte *) VSIRealloc(psResult->pabyData,
+        GByte* pabyNewData = (GByte *) VSIRealloc(psResult->pabyData,
                                                   psResult->nDataAlloc);
-        if( psResult->pabyData == NULL )
+        if( pabyNewData == NULL )
         {
+            VSIFree(psResult->pabyData);
+            psResult->pabyData = NULL;
             psResult->pszErrBuf = CPLStrdup(CPLString().Printf("Out of memory allocating %d bytes for HTTP data buffer.", psResult->nDataAlloc));
             psResult->nDataAlloc = psResult->nDataLen = 0;
 
             return 0;
         }
+        psResult->pabyData = pabyNewData;
     }
 
     memcpy( psResult->pabyData + psResult->nDataLen, buffer,
@@ -78,10 +81,25 @@ CPLWriteFct(void *buffer, size_t size, size_t nmemb, void *reqInfo)
 
 /************************************************************************/
 /*                           CPLHTTPFetch()                             */
-/*                                                                      */
-/*      Fetch a document from an url and return in a string.            */
 /************************************************************************/
 
+/**
+ * \brief Fetch a document from an url and return in a string.
+ *
+ * @param pszURL valid URL recognized by underlying download library (libcurl)
+ * @param papszOptions option list as a NULL-terminated array of strings. May be NULL.
+ *                     The following options are handled :
+ * <ul>
+ * <li>TIMEOUT=val, where val is in seconds</li>
+ * <li>HEADERS=val, where val is an extra header to use when getting a web page.
+ *                  For example "Accept: application/x-ogcwkt"
+ * <li>HTTPAUTH=[BASIC/NTLM/ANY] to specify an authentication scheme to use.
+ * <li>USERPWD=userid:password to specify a user and password for authentication
+ * </ul>
+ *
+ * @return a CPLHTTPResult* structure that must be freed by CPLHTTPDestroyResult(),
+ *         or NULL if libcurl support is diabled
+ */
 CPLHTTPResult *CPLHTTPFetch( const char *pszURL, char **papszOptions )
 
 {
@@ -103,6 +121,38 @@ CPLHTTPResult *CPLHTTPFetch( const char *pszURL, char **papszOptions )
     http_handle = curl_easy_init();
 
     curl_easy_setopt(http_handle, CURLOPT_URL, pszURL );
+
+    /* Support control over HTTPAUTH */
+    const char *pszHttpAuth = CSLFetchNameValue( papszOptions, "HTTPAUTH" );
+    if( pszHttpAuth == NULL )
+        /* do nothing */;
+
+    /* CURLOPT_HTTPAUTH is defined in curl 7.11.0 or newer */
+#if LIBCURL_VERSION_NUM >= 0x70B00
+    else if( EQUAL(pszHttpAuth,"BASIC") )
+        curl_easy_setopt(http_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC );
+    else if( EQUAL(pszHttpAuth,"NTLM") )
+        curl_easy_setopt(http_handle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM );
+    else if( EQUAL(pszHttpAuth,"ANY") )
+        curl_easy_setopt(http_handle, CURLOPT_HTTPAUTH, CURLAUTH_ANY );
+    else
+    {
+        CPLError( CE_Warning, CPLE_AppDefined,
+                  "Unsupported HTTPAUTH value '%s', ignored.", 
+                  pszHttpAuth );
+    }
+#else
+    else
+    {
+        CPLError( CE_Warning, CPLE_AppDefined,
+                  "HTTPAUTH option needs curl >= 7.11.0" );
+    }
+#endif
+
+    /* Support setting userid:password */
+    const char *pszUserPwd = CSLFetchNameValue( papszOptions, "USERPWD" );
+    if( pszUserPwd != NULL )
+        curl_easy_setopt(http_handle, CURLOPT_USERPWD, pszUserPwd );
 
     /* Enable following redirections.  Requires libcurl 7.10.1 at least */
     curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1 );
@@ -171,6 +221,13 @@ CPLHTTPResult *CPLHTTPFetch( const char *pszURL, char **papszOptions )
 /*                           CPLHTTPEnabled()                           */
 /************************************************************************/
 
+/**
+ * \brief Return if CPLHTTP services can be usefull
+ *
+ * Those services depend on GDAL being build with libcurl support.
+ *
+ * @return TRUE if libcurl support is enabled
+ */
 int CPLHTTPEnabled()
 
 {
@@ -185,6 +242,9 @@ int CPLHTTPEnabled()
 /*                           CPLHTTPCleanup()                           */
 /************************************************************************/
 
+/**
+ * \brief Cleanup function to call at application termination
+ */
 void CPLHTTPCleanup()
 
 {
@@ -196,6 +256,11 @@ void CPLHTTPCleanup()
 /*                        CPLHTTPDestroyResult()                        */
 /************************************************************************/
 
+/**
+ * \brief Clean the memory associated with the return value of CPLHTTPFetch()
+ *
+ * @param psResult pointer to the return value of CPLHTTPFetch()
+ */
 void CPLHTTPDestroyResult( CPLHTTPResult *psResult )
 
 {
@@ -212,6 +277,15 @@ void CPLHTTPDestroyResult( CPLHTTPResult *psResult )
 /*                     CPLHTTPParseMultipartMime()                      */
 /************************************************************************/
 
+/**
+ * \brief Parses a a MIME multipart message
+ *
+ * This function will iterate over each part and put it in a separate
+ * element of the pasMimePart array of the provided psResult structure.
+ *
+ * @param psResult pointer to the return value of CPLHTTPFetch()
+ * @return TRUE if the message contains MIME multipart message.
+ */
 int CPLHTTPParseMultipartMime( CPLHTTPResult *psResult )
 
 {

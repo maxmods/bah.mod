@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wcsdataset.cpp 14221 2008-04-07 17:49:02Z warmerdam $
+ * $Id: wcsdataset.cpp 17921 2009-10-30 04:41:31Z warmerdam $
  *
  * Project:  WCS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WCS.
@@ -33,7 +33,7 @@
 #include "cpl_http.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: wcsdataset.cpp 14221 2008-04-07 17:49:02Z warmerdam $");
+CPL_CVSID("$Id: wcsdataset.cpp 17921 2009-10-30 04:41:31Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -82,6 +82,8 @@ class CPL_DLL WCSDataset : public GDALPamDataset
     void        FlushMemoryResult();
     CPLString   osResultFilename;
     GByte      *pabySavedDataBuffer;
+
+    char      **papszHttpOptions;
     
   public:
                 WCSDataset();
@@ -264,6 +266,7 @@ CPLErr WCSRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                   "Got %dx%d instead of %dx%d.", 
                   poTileDS->GetRasterXSize(), poTileDS->GetRasterYSize(),
                   nBlockXSize, nBlockYSize );
+        delete poTileDS;
         return CE_Failure;
     }
 
@@ -273,6 +276,7 @@ CPLErr WCSRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Returned tile does not match expected band configuration.");
+        delete poTileDS;
         return CE_Failure;
     }
 
@@ -419,6 +423,7 @@ WCSDataset::WCSDataset()
     adfGeoTransform[5] = 1.0;
 
     pabySavedDataBuffer = NULL;
+    papszHttpOptions = NULL;
 }
 
 /************************************************************************/
@@ -439,6 +444,8 @@ WCSDataset::~WCSDataset()
 
     CPLFree( pszProjection );
     pszProjection = NULL;
+
+    CSLDestroy( papszHttpOptions );
 
     FlushMemoryResult();
 }
@@ -549,6 +556,7 @@ WCSDataset::DirectRasterIO( GDALRWFlag eRWFlag,
                   "Got %dx%d instead of %dx%d.", 
                   poTileDS->GetRasterXSize(), poTileDS->GetRasterYSize(),
                   nBufXSize, nBufXSize );
+        delete poTileDS;
         return CE_Failure;
     }
 
@@ -558,6 +566,7 @@ WCSDataset::DirectRasterIO( GDALRWFlag eRWFlag,
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Returned tile does not match expected band count." );
+        delete poTileDS;
         return CE_Failure;
     }
     
@@ -770,16 +779,9 @@ CPLErr WCSDataset::GetCoverage( int nXOff, int nYOff, int nXSize, int nYSize,
 /* -------------------------------------------------------------------- */
 /*      Fetch the result.                                               */
 /* -------------------------------------------------------------------- */
-    CPLString osTimeout = "TIMEOUT=";
-    osTimeout += CPLGetXMLValue( psService, "Timeout", "30" );
-    char *apszOptions[] = { 
-        (char *) osTimeout.c_str(),
-        NULL 
-    };
-
     CPLErrorReset();
 
-    *ppsResult = CPLHTTPFetch( osRequest, apszOptions );
+    *ppsResult = CPLHTTPFetch( osRequest, papszHttpOptions );
 
     if( ProcessError( *ppsResult ) )
         return CE_Failure;
@@ -819,7 +821,7 @@ int WCSDataset::DescribeCoverage()
 
     CPLErrorReset();
     
-    CPLHTTPResult *psResult = CPLHTTPFetch( osRequest, NULL );
+    CPLHTTPResult *psResult = CPLHTTPFetch( osRequest, papszHttpOptions );
 
     if( ProcessError( psResult ) )
         return FALSE;
@@ -1567,9 +1569,29 @@ int WCSDataset::ProcessError( CPLHTTPResult *psResult )
 /*      In this case we can presume the error was already issued by     */
 /*      CPLHTTPFetch().                                                 */
 /* -------------------------------------------------------------------- */
-    if( psResult == NULL || psResult->nDataLen == 0 
-        || CPLGetLastErrorNo() != 0 )
+    if( psResult == NULL || psResult->nDataLen == 0 ||
+        CPLGetLastErrorNo() != 0 )
     {
+        CPLHTTPDestroyResult( psResult );
+        return TRUE;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If we got an html document, we presume it is an error           */
+/*      message and report it verbatim up to a certain size limit.      */
+/* -------------------------------------------------------------------- */
+
+    if( psResult->pszContentType != NULL 
+        && strstr(psResult->pszContentType, "html") != NULL )
+    {
+        CPLString osErrorMsg = (char *) psResult->pabyData;
+
+        if( osErrorMsg.size() > 2048 )
+            osErrorMsg.resize( 2048 );
+
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Malformed Result:\n%s", 
+                  osErrorMsg.c_str() );
         CPLHTTPDestroyResult( psResult );
         return TRUE;
     }
@@ -1654,7 +1676,10 @@ int WCSDataset::EstablishRasterDetails()
 /*      Record details.                                                 */
 /* -------------------------------------------------------------------- */
     if( poDS->GetRasterCount() < 1 )
+    {
+        delete poDS;
         return FALSE;
+    }
     
     if( CPLGetXMLValue(psService,"BandCount",NULL) == NULL )
         CPLCreateXMLElementAndValue( 
@@ -1688,7 +1713,7 @@ void WCSDataset::FlushMemoryResult()
 {
     if( strlen(osResultFilename) > 0 )
     {
-//        VSIUnlink( osResultFilename );
+        VSIUnlink( osResultFilename );
         osResultFilename = "";
     }
 
@@ -1748,7 +1773,10 @@ GDALDataset *WCSDataset::GDALOpenResult( CPLHTTPResult *psResult )
                                      FALSE );
 
     if( fp == NULL )
+    {
+        CPLHTTPDestroyResult(psResult);
         return NULL;
+    }
 
     VSIFCloseL( fp );
 
@@ -1810,6 +1838,8 @@ GDALDataset *WCSDataset::GDALOpenResult( CPLHTTPResult *psResult )
     if( poDS == NULL )
         FlushMemoryResult();
 
+    CPLHTTPDestroyResult(psResult);
+
     return poDS;
 }
 
@@ -1841,7 +1871,19 @@ GDALDataset *WCSDataset::Open( GDALOpenInfo * poOpenInfo )
 
     if( psService == NULL )
         return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLDestroyXMLNode( psService );
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The WCS driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Check for required minimum fields.                              */
 /* -------------------------------------------------------------------- */
@@ -1886,6 +1928,28 @@ GDALDataset *WCSDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->psService = psService;
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->nVersion = nVersion;
+
+/* -------------------------------------------------------------------- */
+/*      Capture HTTP parameters.                                        */
+/* -------------------------------------------------------------------- */
+    const char  *pszParm;
+
+    poDS->papszHttpOptions = 
+        CSLSetNameValue(poDS->papszHttpOptions,
+                        "TIMEOUT",
+                        CPLGetXMLValue( psService, "Timeout", "30" ) );
+
+    pszParm = CPLGetXMLValue( psService, "HTTPAUTH", NULL );
+    if( pszParm )
+        poDS->papszHttpOptions = 
+            CSLSetNameValue( poDS->papszHttpOptions, 
+                             "HTTPAUTH", pszParm );
+
+    pszParm = CPLGetXMLValue( psService, "USERPWD", NULL );
+    if( pszParm )
+        poDS->papszHttpOptions = 
+            CSLSetNameValue( poDS->papszHttpOptions, 
+                             "USERPWD", pszParm );
 
 /* -------------------------------------------------------------------- */
 /*      If we don't have the DescribeCoverage result for this           */

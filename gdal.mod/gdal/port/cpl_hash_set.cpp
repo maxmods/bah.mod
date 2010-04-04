@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_hash_set.cpp $
+ * $Id: cpl_hash_set.cpp 16029 2009-01-01 19:32:39Z rouault $
  *
  * Name:     cpl_hash_set.cpp
  * Project:  CPL - Common Portability Library

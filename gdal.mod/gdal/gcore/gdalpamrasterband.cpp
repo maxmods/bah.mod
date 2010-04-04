@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamrasterband.cpp 15320 2008-09-06 17:08:20Z warmerdam $
+ * $Id: gdalpamrasterband.cpp 17579 2009-08-25 18:31:50Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamRasterBand, a raster band base class
@@ -33,7 +33,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp 15320 2008-09-06 17:08:20Z warmerdam $");
+CPL_CVSID("$Id: gdalpamrasterband.cpp 17579 2009-08-25 18:31:50Z rouault $");
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -342,19 +342,8 @@ CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
     if( CPLGetXMLValue( psTree, "ColorInterp", NULL ) != NULL )
     {
         const char *pszInterp = CPLGetXMLValue( psTree, "ColorInterp", NULL );
-        int        iInterp;
-        
-        for( iInterp = 0; iInterp < 13; iInterp++ )
-        {
-            const char *pszCandidate 
-                = GDALGetColorInterpretationName( (GDALColorInterp) iInterp );
-
-            if( pszCandidate != NULL && EQUAL(pszCandidate,pszInterp) )
-            {
-                GDALPamRasterBand::SetColorInterpretation( (GDALColorInterp) iInterp );
-                break;
-            }
-        }
+        GDALPamRasterBand::SetColorInterpretation(
+                                GDALGetColorInterpretationByName(pszInterp));
     }
 
 /* -------------------------------------------------------------------- */
@@ -693,8 +682,11 @@ CPLErr GDALPamRasterBand::SetOffset( double dfNewOffset )
 
     if( psPam != NULL )
     {
-        psPam->dfOffset = dfNewOffset;
-        psPam->poParentDS->MarkPamDirty();
+        if( psPam->dfOffset != dfNewOffset )
+        {
+            psPam->dfOffset = dfNewOffset;
+            psPam->poParentDS->MarkPamDirty();
+        }
 
         return CE_None;
     }
@@ -731,8 +723,11 @@ CPLErr GDALPamRasterBand::SetScale( double dfNewScale )
 
     if( psPam != NULL )
     {
-        psPam->dfScale = dfNewScale;
-        psPam->poParentDS->MarkPamDirty();
+        if( dfNewScale != psPam->dfScale )
+        {
+            psPam->dfScale = dfNewScale;
+            psPam->poParentDS->MarkPamDirty();
+        }
         return CE_None;
     }
     else
@@ -912,6 +907,8 @@ PamParseHistogram( CPLXMLNode *psHistItem,
     *pdfMin = atof(CPLGetXMLValue( psHistItem, "HistMin", "0"));
     *pdfMax = atof(CPLGetXMLValue( psHistItem, "HistMax", "1"));
     *pnBuckets = atoi(CPLGetXMLValue( psHistItem, "BucketCount","2"));
+    if (*pnBuckets <= 0)
+        return FALSE;
 
     if( ppanHistogram == NULL )
         return TRUE;
@@ -921,7 +918,13 @@ PamParseHistogram( CPLXMLNode *psHistItem,
     const char *pszHistCounts = CPLGetXMLValue( psHistItem, 
                                                 "HistCounts", "" );
 
-    *ppanHistogram = (int *) CPLCalloc(sizeof(int),*pnBuckets);
+    *ppanHistogram = (int *) VSICalloc(sizeof(int),*pnBuckets);
+    if (*ppanHistogram == NULL)
+    {
+        CPLError(CE_Failure, CPLE_OutOfMemory,
+                 "Cannot allocate memory for %d buckets", *pnBuckets);
+        return FALSE;
+    }
 
     for( iBucket = 0; iBucket < *pnBuckets; iBucket++ )
     {

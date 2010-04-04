@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinearring.cpp 16126 2009-01-19 18:58:35Z rouault $
+ * $Id: ogrlinearring.cpp 18676 2010-01-27 23:18:08Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLinearRing geometry class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrlinearring.cpp 16126 2009-01-19 18:58:35Z rouault $");
+CPL_CVSID("$Id: ogrlinearring.cpp 18676 2010-01-27 23:18:08Z rouault $");
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */
@@ -157,9 +157,11 @@ OGRErr OGRLinearRing::_importFromWkb( OGRwkbByteOrder eByteOrder, int b3D,
      * 16 or 24 - size of point structure
      */
     int nPointSize = (b3D ? 24 : 16);
+    if (nNewNumPoints < 0 || nNewNumPoints > INT_MAX / nPointSize)
+        return OGRERR_CORRUPT_DATA;
     int nBufferMinSize = nPointSize * nNewNumPoints;
    
-    if( nBufferMinSize > nBytesAvailable && nBytesAvailable > 0 )
+    if( nBytesAvailable != -1 && nBufferMinSize > nBytesAvailable - 4 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Length of input WKB is too small" );
@@ -178,38 +180,15 @@ OGRErr OGRLinearRing::_importFromWkb( OGRwkbByteOrder eByteOrder, int b3D,
 /*      Get the vertices                                                */
 /* -------------------------------------------------------------------- */
     int i = 0;
-    int nBytesToCopy = 0;
 
     if( !b3D )
     {
-        nBytesToCopy = 16 * nPointCount;
-        
-        if( nBytesToCopy > nBytesAvailable && nBytesAvailable > 0 )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "WKB buffer with OGRLinearRing points is too small! \
-                      \n\tWKB stream may be corrupted or it is EWKB stream which is not supported");
-            return OGRERR_NOT_ENOUGH_DATA;
-        }
-
-        memcpy( paoPoints, pabyData + 4, nBytesToCopy );
+        memcpy( paoPoints, pabyData + 4, 16 * nPointCount );
     }
     else
     {
         for( int i = 0; i < nPointCount; i++ )
         {
-            nBytesToCopy = 24;
-
-            if( nBytesToCopy > nBytesAvailable && nBytesAvailable > 0 )
-            {
-                CPLError( CE_Failure, CPLE_AppDefined,
-                          "WKB buffer with OGRLinearRing points is too small! \
-                          \n\tWKB stream may be corrupted or it is EWKB stream which is not supported");
-                return OGRERR_NOT_ENOUGH_DATA;
-            }
-            if ( nBytesAvailable > 0 )
-                nBytesAvailable -= nBytesToCopy;
-
             memcpy( &(paoPoints[i].x), pabyData + 4 + 24 * i, 8 );
             memcpy( &(paoPoints[i].y), pabyData + 4 + 24 * i + 8, 8 );
             memcpy( padfZ + i, pabyData + 4 + 24 * i + 16, 8 );
@@ -330,12 +309,24 @@ OGRGeometry *OGRLinearRing::clone() const
     return poNewLinearRing;
 }
 
+
+/************************************************************************/
+/*                            epsilonEqual()                            */
+/************************************************************************/
+
+static const double EPSILON = 1E-5;
+
+static inline bool epsilonEqual(double a, double b, double eps) 
+{
+    return (::fabs(a - b) < eps);
+}
+
 /************************************************************************/
 /*                            isClockwise()                             */
 /************************************************************************/
 
 /**
- * Returns TRUE if the ring has clockwise winding (or less than 2 points)
+ * \brief Returns TRUE if the ring has clockwise winding (or less than 2 points)
  *
  * @return TRUE if clockwise otherwise FALSE.
  */
@@ -343,21 +334,99 @@ OGRGeometry *OGRLinearRing::clone() const
 int OGRLinearRing::isClockwise() const
 
 {
-    double dfSum = 0.0;
+    int    i, v, next;
+    double  dx0, dy0, dx1, dy1, crossproduct; 
 
     if( nPointCount < 2 )
         return TRUE;
 
-    for( int iVert = 0; iVert < nPointCount-1; iVert++ )
+    /* Find the lowest rightmost vertex */
+    v = 0;
+    for ( i = 1; i < nPointCount - 1; i++ )
     {
-        dfSum += paoPoints[iVert].x * paoPoints[iVert+1].y
-            - paoPoints[iVert].y * paoPoints[iVert+1].x;
+        /* => v < end */
+        if ( paoPoints[i].y< paoPoints[v].y ||
+             ( paoPoints[i].y== paoPoints[v].y &&
+               paoPoints[i].x > paoPoints[v].x ) )
+        {
+            v = i;
+        }
+    }
+    
+    /* Vertices may be duplicate, we have to go to nearest different in each direction */
+    /* preceding */
+    next = v - 1;
+    while ( 1 )
+    {
+        if ( next < 0 ) 
+        {
+            next = nPointCount - 1 - 1; 
+        }
+
+        if( !epsilonEqual(paoPoints[next].x, paoPoints[v].x, EPSILON) 
+            || !epsilonEqual(paoPoints[next].y, paoPoints[v].y, EPSILON) )
+        {
+            break;
+        }
+
+        if ( next == v ) /* So we cannot get into endless loop */
+        {
+            break;
+        }
+
+        next--;
+    }
+	    
+    dx0 = paoPoints[next].x - paoPoints[v].x;
+    dy0 = paoPoints[next].y - paoPoints[v].y;
+    
+    
+    /* following */
+    next = v + 1;
+    while ( 1 )
+    {
+        if ( next >= nPointCount - 1 ) 
+        {
+            next = 0; 
+        }
+
+        if ( !epsilonEqual(paoPoints[next].x, paoPoints[v].x, EPSILON) 
+             || !epsilonEqual(paoPoints[next].y, paoPoints[v].y, EPSILON) )
+        {
+            break;
+        }
+
+        if ( next == v ) /* So we cannot get into endless loop */
+        {
+            break;
+        }
+
+        next++;
     }
 
-    dfSum += paoPoints[nPointCount-1].x * paoPoints[0].y
-        - paoPoints[nPointCount-1].y * paoPoints[0].x;
+    dx1 = paoPoints[next].x - paoPoints[v].x;
+    dy1 = paoPoints[next].y - paoPoints[v].y;
 
-    return dfSum < 0.0;
+    crossproduct = dx1 * dy0 - dx0 * dy1;
+    
+    if ( crossproduct > 0 )      /* CCW */
+	return FALSE;
+    else if ( crossproduct < 0 )  /* CW */
+	return TRUE;
+    
+    /* ok, this is a degenerate case : the extent of the polygon is less than EPSILON */
+    /* Try with Green Formula as a fallback, but this is not a guarantee */
+    /* as we'll probably be affected by numerical instabilities */
+    
+    double dfSum = paoPoints[0].x * (paoPoints[1].y - paoPoints[nPointCount-1].y);
+
+    for (i=1; i<nPointCount-1; i++) {
+        dfSum += paoPoints[i].x * (paoPoints[i+1].y - paoPoints[i-1].y);
+    }
+
+    dfSum += paoPoints[nPointCount-1].x * (paoPoints[0].y - paoPoints[nPointCount-2].y);
+
+    return dfSum < 0;
 }
 
 /************************************************************************/ 
@@ -409,11 +478,11 @@ void OGRLinearRing::closeRings()
 /************************************************************************/
 
 /**
- * Compute area of ring.
+ * \brief Compute area of ring.
  *
  * The area is computed according to Green's Theorem:  
  *
- * Area is "Sum(x(i)*y(i+1) - x(i+1)*y(i))/2" for i = 0 to pointCount-1, 
+ * Area is "Sum(x(i)*(y(i+1) - y(i-1)))/2" for i = 0 to pointCount-1, 
  * assuming the last point is a duplicate of the first. 
  *
  * @return computed area.
@@ -428,16 +497,16 @@ double OGRLinearRing::get_Area() const
     if( nPointCount < 2 )
         return 0;
 
-    for( i = 0; i < nPointCount-1; i++ )
+    dfAreaSum = paoPoints[0].x * (paoPoints[1].y - paoPoints[nPointCount-1].y);
+
+    for( i = 1; i < nPointCount-1; i++ )
     {
-        dfAreaSum += 0.5 * ( paoPoints[i].x * paoPoints[i+1].y 
-                             - paoPoints[i+1].x * paoPoints[i].y );
+        dfAreaSum += paoPoints[i].x * (paoPoints[i+1].y - paoPoints[i-1].y);
     }
 
-    dfAreaSum += 0.5 * ( paoPoints[nPointCount-1].x * paoPoints[0].y 
-                         - paoPoints[0].x * paoPoints[nPointCount-1].y );
+    dfAreaSum += paoPoints[nPointCount-1].x * (paoPoints[0].y - paoPoints[nPointCount-2].y);
 
-    return fabs(dfAreaSum);
+    return 0.5 * fabs(dfAreaSum);
 }
 
 /************************************************************************/

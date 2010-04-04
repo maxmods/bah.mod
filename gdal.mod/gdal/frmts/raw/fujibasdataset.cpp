@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fujibasdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: fujibasdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  eCognition
  * Purpose:  Implementation of FUJI BAS Format
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: fujibasdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: fujibasdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_FujiBAS(void);
@@ -141,8 +141,22 @@ GDALDataset *FujiBASDataset::Open( GDALOpenInfo * poOpenInfo )
     pszOrgFile = CSLFetchNameValue(papszHeader,"OrgFile");
 
     if( nXSize < 1 || nYSize < 1 )
+    {
+        CSLDestroy( papszHeader );
         return NULL;
+    }
 
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The FUJIBAS driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Try to open the original data file.                             */
 /* -------------------------------------------------------------------- */
@@ -164,6 +178,7 @@ GDALDataset *FujiBASDataset::Open( GDALOpenInfo * poOpenInfo )
                   "Perhaps the raw file needs to be renamed to match expected?",
                   poOpenInfo->pszFilename, 
                   pszRawFile );
+        CSLDestroy( papszHeader );
         return NULL;
     }
 
@@ -185,14 +200,15 @@ GDALDataset *FujiBASDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Create band information object.                                 */
 /* -------------------------------------------------------------------- */
+    int bNativeOrder;
+#ifdef CPL_MSB
+    bNativeOrder = TRUE;
+#else
+    bNativeOrder = FALSE;
+#endif
     poDS->SetBand( 1, 
                    new RawRasterBand( poDS, 1, poDS->fpImage, 
-                                      0, 2, nXSize * 2, GDT_UInt16, FALSE ));
-
-/* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+                                      0, 2, nXSize * 2, GDT_UInt16, bNativeOrder ));
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -200,6 +216,11 @@ GDALDataset *FujiBASDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
     
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
     return( poDS );
 }
 

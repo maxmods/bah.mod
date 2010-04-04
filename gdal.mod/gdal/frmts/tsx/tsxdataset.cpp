@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tsxdataset.cpp 15456 2008-10-04 06:28:14Z pvachon $
+ * $Id: tsxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:     TerraSAR-X XML Product Support
  * Purpose:     Support for TerraSAR-X XML Metadata files
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: tsxdataset.cpp 15456 2008-10-04 06:28:14Z pvachon $");
+CPL_CVSID("$Id: tsxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void GDALRegister_TSX(void);
@@ -253,7 +253,18 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
 	if (!TSXDataset::Identify( poOpenInfo )) {
 		return NULL; /* nope */
 	}
-
+    
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The TSX driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 	/* Ingest the XML */
 	CPLXMLNode *psData, *psComponents, *psProductInfo;
 	psData = CPLParseXMLFile( poOpenInfo->pszFilename );
@@ -467,17 +478,17 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
     }
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
 
-	CPLDestroyXMLNode(psData);
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
+    CPLDestroyXMLNode(psData);
 
     return poDS;
 }

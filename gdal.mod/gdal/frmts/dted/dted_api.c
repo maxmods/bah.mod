@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.c 14979 2008-07-19 18:11:24Z rouault $
+ * $Id: dted_api.c 17398 2009-07-16 04:16:26Z chaitanya $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTED/CDED access functions.
@@ -30,7 +30,7 @@
 #include "dted_api.h"
 
 #ifndef AVOID_CPL
-CPL_CVSID("$Id: dted_api.c 14979 2008-07-19 18:11:24Z rouault $");
+CPL_CVSID("$Id: dted_api.c 17398 2009-07-16 04:16:26Z chaitanya $");
 #endif
 
 static int bWarnedTwoComplement = FALSE;
@@ -174,15 +174,15 @@ DTEDInfo * DTEDOpen( const char * pszFilename,
     psDInfo->nXSize = atoi(DTEDGetField(szResult,achRecord,48,4));
     psDInfo->nYSize = atoi(DTEDGetField(szResult,achRecord,52,4));
 
-    psDInfo->nUHLOffset = VSIFTellL( fp ) - DTED_UHL_SIZE;
+    psDInfo->nUHLOffset = (int)VSIFTellL( fp ) - DTED_UHL_SIZE;
     psDInfo->pachUHLRecord = (char *) CPLMalloc(DTED_UHL_SIZE);
     memcpy( psDInfo->pachUHLRecord, achRecord, DTED_UHL_SIZE );
 
-    psDInfo->nDSIOffset = VSIFTellL( fp );
+    psDInfo->nDSIOffset = (int)VSIFTellL( fp );
     psDInfo->pachDSIRecord = (char *) CPLMalloc(DTED_DSI_SIZE);
     VSIFReadL( psDInfo->pachDSIRecord, 1, DTED_DSI_SIZE, fp );
     
-    psDInfo->nACCOffset = VSIFTellL( fp );
+    psDInfo->nACCOffset = (int)VSIFTellL( fp );
     psDInfo->pachACCRecord = (char *) CPLMalloc(DTED_ACC_SIZE);
     VSIFReadL( psDInfo->pachACCRecord, 1, DTED_ACC_SIZE, fp );
 
@@ -201,7 +201,7 @@ DTEDInfo * DTEDOpen( const char * pszFilename,
         return NULL;
     }
 
-    psDInfo->nDataOffset = VSIFTellL( fp );
+    psDInfo->nDataOffset = (int)VSIFTellL( fp );
 
 /* -------------------------------------------------------------------- */
 /*      Parse out position information.  Note that we are extracting    */
@@ -429,7 +429,7 @@ int DTEDReadProfileEx( DTEDInfo * psDInfo, int nColumnOffset,
                         (pabyRecord[8+psDInfo->nYSize*2+2] << 8) |
                         pabyRecord[8+psDInfo->nYSize*2+3];
 
-        if (fileCheckSum > 0xff * (8+psDInfo->nYSize*2))
+        if ((GIntBig)fileCheckSum > (GIntBig)(0xff * (8+psDInfo->nYSize*2)))
         {
             static int bWarned = FALSE;
             if (! bWarned)
@@ -700,7 +700,7 @@ int DTEDSetMetadata( DTEDInfo *psDInfo, DTEDMetaDataCode eCode,
 /* -------------------------------------------------------------------- */
     memset( pszFieldSrc, ' ', nFieldLen );
     strncpy( pszFieldSrc, pszNewValue, 
-             MIN(nFieldLen,strlen(pszNewValue)) );
+             MIN((size_t)nFieldLen,strlen(pszNewValue)) );
 
 /* -------------------------------------------------------------------- */
 /*      Write all headers back to disk.                                 */

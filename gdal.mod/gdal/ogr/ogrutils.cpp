@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrutils.cpp 14816 2008-07-05 08:54:56Z rouault $
+ * $Id: ogrutils.cpp 17696 2009-09-26 15:56:39Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Utility functions for OGR classes, including some related to
@@ -37,7 +37,7 @@
 # include "ogrsf_frmts.h"
 #endif /* OGR_ENABLED */
 
-CPL_CVSID("$Id: ogrutils.cpp 14816 2008-07-05 08:54:56Z rouault $");
+CPL_CVSID("$Id: ogrutils.cpp 17696 2009-09-26 15:56:39Z rouault $");
 
 /************************************************************************/
 /*                         OGRTrimExtraZeros()                          */
@@ -392,7 +392,6 @@ void OGRFree( void * pMemory )
  * commandline options:
  *  
  *  --formats: report all format drivers configured.
- *  --format [format]: report details of one format driver. 
  *  --optfile filename: expand an option file into the argument list. 
  *  --config key value: set system configuration option. 
  *  --debug [on/off/value]: set debug level.
@@ -401,7 +400,7 @@ void OGRFree( void * pMemory )
  * The argument array is replaced "in place" and should be freed with 
  * CSLDestroy() when no longer needed.  The typical usage looks something
  * like the following.  Note that the formats should be registered so that
- * the --formats and --format options will work properly.
+ * the --formats option will work properly.
  *
  *  int main( int argc, char ** argv )
  *  { 
@@ -712,7 +711,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
     
     if( strstr(pszInput,"-") != NULL || strstr(pszInput,"/") != NULL )
     {
-        psField->Date.Year = atoi(pszInput);
+        psField->Date.Year = (GInt16)atoi(pszInput);
         if( psField->Date.Year < 100 && psField->Date.Year >= 30 )
             psField->Date.Year += 1900;
         else if( psField->Date.Year < 30 && psField->Date.Year >= 0 )
@@ -725,7 +724,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else 
             pszInput++;
 
-        psField->Date.Month = atoi(pszInput);
+        psField->Date.Month = (GByte)atoi(pszInput);
         if( psField->Date.Month > 12 )
             return FALSE;
 
@@ -736,7 +735,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else 
             pszInput++;
 
-        psField->Date.Day = atoi(pszInput);
+        psField->Date.Day = (GByte)atoi(pszInput);
         if( psField->Date.Day > 31 )
             return FALSE;
 
@@ -754,7 +753,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
     
     if( strstr(pszInput,":") != NULL )
     {
-        psField->Date.Hour = atoi(pszInput);
+        psField->Date.Hour = (GByte)atoi(pszInput);
         if( psField->Date.Hour > 23 )
             return FALSE;
 
@@ -765,7 +764,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else 
             pszInput++;
 
-        psField->Date.Minute = atoi(pszInput);
+        psField->Date.Minute = (GByte)atoi(pszInput);
         if( psField->Date.Minute > 59 )
             return FALSE;
 
@@ -776,7 +775,7 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else 
             pszInput++;
 
-        psField->Date.Second = atoi(pszInput);
+        psField->Date.Second = (GByte)atoi(pszInput);
         if( psField->Date.Second > 59 )
             return FALSE;
 
@@ -801,14 +800,14 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
     {
         // +HH integral offset
         if( strlen(pszInput) <= 3 )
-            psField->Date.TZFlag = 100 + atoi(pszInput) * 4;
+            psField->Date.TZFlag = (GByte)(100 + atoi(pszInput) * 4);
 
         else if( pszInput[3] == ':'  // +HH:MM offset
                  && atoi(pszInput+4) % 15 == 0 )
         {
-            psField->Date.TZFlag = 100 
+            psField->Date.TZFlag = (GByte)(100 
                 + atoi(pszInput+1) * 4
-                + (atoi(pszInput+4) / 15);
+                + (atoi(pszInput+4) / 15));
 
             if( pszInput[0] == '-' )
                 psField->Date.TZFlag = -1 * (psField->Date.TZFlag - 100) + 100;
@@ -816,9 +815,9 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else if( isdigit(pszInput[3]) && isdigit(pszInput[4])  // +HHMM offset
                  && atoi(pszInput+3) % 15 == 0 )
         {
-            psField->Date.TZFlag = 100 
+            psField->Date.TZFlag = (GByte)(100 
                 + static_cast<GByte>(CPLScanLong(pszInput+1,2)) * 4
-                + (atoi(pszInput+3) / 15);
+                + (atoi(pszInput+3) / 15));
 
             if( pszInput[0] == '-' )
                 psField->Date.TZFlag = -1 * (psField->Date.TZFlag - 100) + 100;
@@ -826,9 +825,9 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
         else if( isdigit(pszInput[3]) && pszInput[4] == '\0'  // +HMM offset
                  && atoi(pszInput+2) % 15 == 0 )
         {
-            psField->Date.TZFlag = 100 
+            psField->Date.TZFlag = (GByte)(100 
                 + static_cast<GByte>(CPLScanLong(pszInput+1,1)) * 4
-                + (atoi(pszInput+2) / 15);
+                + (atoi(pszInput+2) / 15));
 
             if( pszInput[0] == '-' )
                 psField->Date.TZFlag = -1 * (psField->Date.TZFlag - 100) + 100;
@@ -837,4 +836,379 @@ int OGRParseDate( const char *pszInput, OGRField *psField, int nOptions )
     }
 
     return TRUE;
+}
+
+
+/************************************************************************/
+/*                           OGRParseXMLDateTime()                      */
+/************************************************************************/
+
+int OGRParseXMLDateTime( const char* pszXMLDateTime,
+                               int *pnYear, int *pnMonth, int *pnDay,
+                               int *pnHour, int *pnMinute, float* pfSecond, int *pnTZ)
+{
+    int year = 0, month = 0, day = 0, hour = 0, minute = 0, TZHour, TZMinute;
+    float second = 0;
+    char c;
+    int TZ = 0;
+    int bRet = FALSE;
+
+    /* Date is expressed as a UTC date */
+    if (sscanf(pszXMLDateTime, "%04d-%02d-%02dT%02d:%02d:%f%c",
+                &year, &month, &day, &hour, &minute, &second, &c) == 7 && c == 'Z')
+    {
+        TZ = 100;
+        bRet = TRUE;
+    }
+    /* Date is expressed as a UTC date, with a timezone */
+    else if (sscanf(pszXMLDateTime, "%04d-%02d-%02dT%02d:%02d:%f%c%02d:%02d",
+                &year, &month, &day, &hour, &minute, &second, &c, &TZHour, &TZMinute) == 9 &&
+                (c == '+' || c == '-'))
+    {
+        TZ = 100 + ((c == '+') ? 1 : -1) * ((TZHour * 60 + TZMinute) / 15);
+        bRet = TRUE;
+    }
+    /* Date is expressed into an unknown timezone */
+    else if (sscanf(pszXMLDateTime, "%04d-%02d-%02dT%02d:%02d:%f",
+                    &year, &month, &day, &hour, &minute, &second) == 6)
+    {
+        TZ = 0;
+        bRet = TRUE;
+    }
+    if (bRet)
+    {
+        if (pnYear) *pnYear = year;
+        if (pnMonth) *pnMonth = month;
+        if (pnDay) *pnDay = day;
+        if (pnHour) *pnHour = hour;
+        if (pnMinute) *pnMinute = minute;
+        if (pfSecond) *pfSecond = second;
+        if (pnTZ) *pnTZ = TZ;
+    }
+
+    return bRet;
+}
+
+/************************************************************************/
+/*                      OGRParseRFC822DateTime()                        */
+/************************************************************************/
+
+static const char* aszMonthStr[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+int OGRParseRFC822DateTime( const char* pszRFC822DateTime,
+                                  int *pnYear, int *pnMonth, int *pnDay,
+                                  int *pnHour, int *pnMinute, int *pnSecond, int *pnTZ)
+{
+    /* Following http://asg.web.cmu.edu/rfc/rfc822.html#sec-5 : [Fri,] 28 Dec 2007 05:24[:17] GMT */
+    char** papszTokens = CSLTokenizeStringComplex( pszRFC822DateTime, " ,:", TRUE, FALSE );
+    char** papszVal = papszTokens;
+    int bRet = FALSE;
+    int nTokens = CSLCount(papszTokens);
+    if (nTokens >= 6)
+    {
+        if ( ! ((*papszVal)[0] >= '0' && (*papszVal)[0] <= '9') )
+        {
+            /* Ignore day of week */
+            papszVal ++;
+        }
+
+        int day = atoi(*papszVal);
+        papszVal ++;
+
+        int month = 0;
+
+        for(int i = 0; i < 12; i++)
+        {
+            if (EQUAL(*papszVal, aszMonthStr[i]))
+                month = i + 1;
+        }
+        papszVal ++;
+
+        int year = atoi(*papszVal);
+        papszVal ++;
+        if( year < 100 && year >= 30 )
+            year += 1900;
+        else if( year < 30 && year >= 0 )
+            year += 2000;
+
+        int hour = atoi(*papszVal);
+        papszVal ++;
+
+        int minute = atoi(*papszVal);
+        papszVal ++;
+
+        int second = 0;
+        if (*papszVal != NULL && (*papszVal)[0] >= '0' && (*papszVal)[0] <= '9')
+        {
+            second = atoi(*papszVal);
+            papszVal ++;
+        }
+
+        if (month != 0)
+        {
+            bRet = TRUE;
+            int TZ = 0;
+
+            if (*papszVal == NULL)
+            {
+            }
+            else if (strlen(*papszVal) == 5 &&
+                     ((*papszVal)[0] == '+' || (*papszVal)[0] == '-'))
+            {
+                char szBuf[3];
+                szBuf[0] = (*papszVal)[1];
+                szBuf[1] = (*papszVal)[2];
+                szBuf[2] = 0;
+                int TZHour = atoi(szBuf);
+                szBuf[0] = (*papszVal)[3];
+                szBuf[1] = (*papszVal)[4];
+                szBuf[2] = 0;
+                int TZMinute = atoi(szBuf);
+                TZ = 100 + (((*papszVal)[0] == '+') ? 1 : -1) * ((TZHour * 60 + TZMinute) / 15);
+            }
+            else
+            {
+                const char* aszTZStr[] = { "GMT", "UT", "Z", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT" };
+                int anTZVal[] = { 0, 0, 0, -5, -4, -6, -5, -7, -6, -8, -7 };
+                for(int i = 0; i < 11; i++)
+                {
+                    if (EQUAL(*papszVal, aszTZStr[i]))
+                    {
+                        TZ =  100 + anTZVal[i] * 4;
+                        break;
+                    }
+                }
+            }
+
+            if (pnYear) *pnYear = year;
+            if (pnMonth) *pnMonth = month;
+            if (pnDay) *pnDay = day;
+            if (pnHour) *pnHour = hour;
+            if (pnMinute) *pnMinute = minute;
+            if (pnSecond) *pnSecond = second;
+            if (pnTZ) *pnTZ = TZ;
+        }
+    }
+    CSLDestroy(papszTokens);
+    return bRet;
+}
+
+
+/**
+  * Returns the day of the week in Gregorian calendar
+  *
+  * @param day : day of the month, between 1 and 31
+  * @param month : month of the year, between 1 (Jan) and 12 (Dec)
+  * @param year : year
+
+  * @return day of the week : 0 for Monday, ... 6 for Sunday
+  */
+
+int OGRGetDayOfWeek(int day, int month, int year)
+{
+    /* Reference: Zeller's congruence */
+    int q = day;
+    int m;
+    if (month >=3)
+        m = month;
+    else
+    {
+        m = month + 12;
+        year --;
+    }
+    int K = year % 100;
+    int J = year / 100;
+    int h = ( q + (((m+1)*26)/10) + K + K/4 + J/4 + 5 * J) % 7;
+    return ( h + 5 ) % 7;
+}
+
+
+/************************************************************************/
+/*                         OGRGetRFC822DateTime()                       */
+/************************************************************************/
+
+char* OGRGetRFC822DateTime(int year, int month, int day, int hour, int minute, int second, int TZFlag)
+{
+    char* pszTZ = NULL;
+    const char* aszDayOfWeek[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    int dayofweek = OGRGetDayOfWeek(day, month, year);
+
+    if (month < 1 || month > 12)
+        month = 1;
+
+    if (TZFlag == 0 || TZFlag == 100)
+    {
+        pszTZ = CPLStrdup("GMT");
+    }
+    else
+    {
+        int TZOffset = ABS(TZFlag - 100) * 15;
+        int TZHour = TZOffset / 60;
+        int TZMinute = TZOffset - TZHour * 60;
+        pszTZ = CPLStrdup(CPLSPrintf("%c%02d%02d", TZFlag > 100 ? '+' : '-',
+                                        TZHour, TZMinute));
+    }
+    char* pszRet = CPLStrdup(CPLSPrintf("%s, %02d %s %04d %02d:%02d:%02d %s",
+                     aszDayOfWeek[dayofweek], day, aszMonthStr[month - 1], year, hour, minute, second, pszTZ));
+    CPLFree(pszTZ);
+    return pszRet;
+}
+
+/************************************************************************/
+/*                            OGRGetXMLDateTime()                       */
+/************************************************************************/
+
+char* OGRGetXMLDateTime(int year, int month, int day, int hour, int minute, int second, int TZFlag)
+{
+    char* pszRet;
+    if (TZFlag == 0 || TZFlag == 100)
+    {
+        pszRet = CPLStrdup(CPLSPrintf("%04d-%02d-%02dT%02d:%02d:%02dZ",
+                           year, month, day, hour, minute, second));
+    }
+    else
+    {
+        int TZOffset = ABS(TZFlag - 100) * 15;
+        int TZHour = TZOffset / 60;
+        int TZMinute = TZOffset - TZHour * 60;
+        pszRet = CPLStrdup(CPLSPrintf("%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
+                           year, month, day, hour, minute, second,
+                           (TZFlag > 100) ? '+' : '-', TZHour, TZMinute));
+    }
+    return pszRet;
+}
+
+/************************************************************************/
+/*                 OGRGetXML_UTF8_EscapedString()                       */
+/************************************************************************/
+
+char* OGRGetXML_UTF8_EscapedString(const char* pszString)
+{
+    char *pszEscaped;
+    if (!CPLIsUTF8(pszString, -1) &&
+         CSLTestBoolean(CPLGetConfigOption("OGR_FORCE_ASCII", "YES")))
+    {
+        static int bFirstTime = TRUE;
+        if (bFirstTime)
+        {
+            bFirstTime = FALSE;
+            CPLError(CE_Warning, CPLE_AppDefined,
+                    "%s is not a valid UTF-8 string. Forcing it to ASCII.\n"
+                    "If you still want the original string and change the XML file encoding\n"
+                    "afterwards, you can define OGR_FORCE_ASCII=NO as configuration option.\n"
+                    "This warning won't be issued anymore", pszString);
+        }
+        else
+        {
+            CPLDebug("OGR", "%s is not a valid UTF-8 string. Forcing it to ASCII",
+                    pszString);
+        }
+        char* pszTemp = CPLForceToASCII(pszString, -1, '?');
+        pszEscaped = CPLEscapeString( pszTemp, -1, CPLES_XML );
+        CPLFree(pszTemp);
+    }
+    else
+        pszEscaped = CPLEscapeString( pszString, -1, CPLES_XML );
+    return pszEscaped;
+}
+
+/************************************************************************/
+/*                        OGRFastAtof()                                 */
+/************************************************************************/
+
+/* On Windows, atof() is very slow if the number */
+/* is followed by other long content. */
+/* So we just extract the number into a short string */
+/* before calling atof() on it */
+static
+double OGRCallAtofOnShortString(const char* pszStr)
+{
+    char szTemp[128];
+    int nCounter = 0;
+    const char* p = pszStr;
+    while(*p == ' ' || *p == '\t')
+        p++;
+    while(*p == '+'  ||
+          *p == '-'  ||
+          (*p >= '0' && *p <= '9') ||
+          (*p == 'e' || *p == 'E' || *p == 'd' || *p == 'D'))
+    {
+        szTemp[nCounter++] = *(p++);
+        if (nCounter == 127)
+            return atof(pszStr);
+    }
+    szTemp[nCounter] = '\0';
+    return atof(szTemp);
+}
+
+/** Same contract as CPLAtof, except than it doesn't always call the
+ *  system atof() that may be slow on some platforms. For simple but
+ *  common strings, it'll use a faster implementation (up to 20x faster
+ *  than atof() on MS runtime libraries) that has no garanty to return
+ *  exactly the same floating point number.
+ */
+ 
+double OGRFastAtof(const char* pszStr)
+{
+    double dfVal = 0;
+    double dfSign = 1.0;
+    const char* p = pszStr;
+    
+    static const double adfTenPower[] =
+    {
+        1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10,
+        1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20,
+        1e21, 1e22, 1e23, 1e24, 1e25, 1e26, 1e27, 1e28, 1e29, 1e30, 1e31
+    };
+        
+    while(*p == ' ' || *p == '\t')
+        p++;
+
+    if (*p == '+')
+        p++;
+    else if (*p == '-')
+    {
+        dfSign = -1.0;
+        p++;
+    }
+    
+    while(TRUE)
+    {
+        if (*p >= '0' && *p <= '9')
+        {
+            dfVal = dfVal * 10.0 + (*p - '0');
+            p++;
+        }
+        else if (*p == '.')
+        {
+            p++;
+            break;
+        }
+        else if (*p == 'e' || *p == 'E' || *p == 'd' || *p == 'D')
+            return OGRCallAtofOnShortString(pszStr);
+        else
+            return dfSign * dfVal;
+    }
+    
+    unsigned int countFractionnal = 0;
+    while(TRUE)
+    {
+        if (*p >= '0' && *p <= '9')
+        {
+            dfVal = dfVal * 10.0 + (*p - '0');
+            countFractionnal ++;
+            p++;
+        }
+        else if (*p == 'e' || *p == 'E' || *p == 'd' || *p == 'D')
+            return OGRCallAtofOnShortString(pszStr);
+        else
+        {
+            if (countFractionnal < sizeof(adfTenPower) / sizeof(adfTenPower[0]))
+                return dfSign * (dfVal / adfTenPower[countFractionnal]);
+            else
+                return OGRCallAtofOnShortString(pszStr);
+        }
+    }
 }

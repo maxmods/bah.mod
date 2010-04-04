@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigccitt.c 11903 2007-08-18 15:03:55Z warmerdam $
+ * $Id: aigccitt.c 16403 2009-02-23 21:55:44Z rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Code for decoding CCITT RLE (G1) compressed data.
@@ -1864,7 +1864,11 @@ CPLErr DecompressCCITTRLETile( unsigned char *pabySrcData, int nSrcBytes,
     DecoderState(sp)->runs = NULL;
     DecoderState(sp)->fill = _TIFFFax3fillruns;
 
-    assert( sizeof(runs_buf) >= (nBlockXSize * 2 + 3) );
+    if( sizeof(runs_buf) < (nBlockXSize * 2 + 3) )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "Run buffer too small");
+        return CE_Failure;
+    }
 
 /* -------------------------------------------------------------------- */
 /*                                                                      */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_api.h 16108 2009-01-18 09:43:31Z rouault $
+ * $Id: ogr_srs_api.h 17970 2009-11-06 20:00:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  C API and constant declarations for OGR Spatial References.
@@ -30,6 +30,7 @@
 #ifndef _OGR_SRS_API_H_INCLUDED
 #define _OGR_SRS_API_H_INCLUDED
 
+#ifndef SWIG
 #include "ogr_core.h"
 
 CPL_C_START
@@ -79,6 +80,8 @@ typedef enum {
     ODT_LD_Min=10000,
     ODT_LD_Max=32767
 } OGRDatumType; 
+
+#endif // ndef SWIG
 
 /* ==================================================================== */
 /*      Some standard WKT geographic coordinate systems.                */
@@ -210,8 +213,8 @@ typedef enum {
 #define SRS_UL_METER            "Meter"
 #define SRS_UL_FOOT             "Foot (International)" /* or just "FOOT"? */
 #define SRS_UL_FOOT_CONV                    "0.3048"
-#define SRS_UL_US_FOOT          "U.S. Foot" /* or "US survey foot" */
-#define SRS_UL_US_FOOT_CONV                 "0.3048006"
+#define SRS_UL_US_FOOT          "Foot_US" /* or "US survey foot" from EPSG */
+#define SRS_UL_US_FOOT_CONV                 "0.3048006096012192"
 #define SRS_UL_NAUTICAL_MILE    "Nautical Mile"
 #define SRS_UL_NAUTICAL_MILE_CONV           "1852.0"
 #define SRS_UL_LINK             "Link"          /* Based on US Foot */
@@ -235,6 +238,7 @@ typedef enum {
 #define SRS_WGS84_SEMIMAJOR     6378137.0                                
 #define SRS_WGS84_INVFLATTENING 298.257223563
 
+#ifndef SWIG
 /* -------------------------------------------------------------------- */
 /*      C Wrappers for C++ objects and methods.                         */
 /* -------------------------------------------------------------------- */
@@ -281,6 +285,8 @@ OGRErr CPL_DLL OSRImportFromDict( OGRSpatialReferenceH, const char *,
                                   const char * );
 OGRErr CPL_DLL OSRImportFromPanorama( OGRSpatialReferenceH, long, long, long,
                                       double * );
+OGRErr OSRImportFromOzi( OGRSpatialReferenceH , const char *, const char *,
+                         const char * );
 OGRErr CPL_DLL OSRImportFromMICoordSys( OGRSpatialReferenceH, const char *);
 OGRErr CPL_DLL OSRImportFromUrl( OGRSpatialReferenceH, const char * );
 
@@ -377,10 +383,16 @@ OGRErr CPL_DLL OSRSetStatePlaneWithUnits( OGRSpatialReferenceH hSRS,
                                           const char *pszOverrideUnitName,
                                           double dfOverrideUnit );
 OGRErr CPL_DLL OSRAutoIdentifyEPSG( OGRSpatialReferenceH hSRS );
+
+int    CPL_DLL OSREPSGTreatsAsLatLong( OGRSpatialReferenceH hSRS );
 const char CPL_DLL *OSRGetAxis( OGRSpatialReferenceH hSRS,
                                 const char *pszTargetKey, int iAxis, 
                                 OGRAxisOrientation *peOrientation );
-
+OGRErr CPL_DLL OSRSetAxes( const char *pszTargetKey,
+                           const char *pszXAxisName,
+                           OGRAxisOrientation eXAxisOrientation,
+                           const char *pszYAxisName, 
+                           OGRAxisOrientation eYAxisOrientation );
 /** Albers Conic Equal Area */
 OGRErr CPL_DLL OSRSetACEA( OGRSpatialReferenceH hSRS, double dfStdP1, double dfStdP2,
                          double dfCenterLat, double dfCenterLong,
@@ -647,5 +659,7 @@ int CPL_DLL OPTGetParameterInfo( const char * pszProjectionMethod,
                                  double *pdfDefaultValue );
 
 CPL_C_END
+
+#endif /* ndef SWIG */
 
 #endif /* ndef _OGR_SRS_API_H_INCLUDED */

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_minixml.cpp 17931 2009-10-30 22:58:25Z rouault $
+ * $Id: cpl_minixml.cpp 17930 2009-10-30 22:58:03Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implementation of MiniXML Parser and handling.
@@ -44,7 +44,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: cpl_minixml.cpp 17931 2009-10-30 22:58:25Z rouault $");
+CPL_CVSID("$Id: cpl_minixml.cpp 17930 2009-10-30 22:58:03Z rouault $");
 
 typedef enum {
     TNone,
@@ -1820,7 +1820,7 @@ int CPLSerializeXMLTreeToFile( CPLXMLNode *psTree, const char *pszFilename )
 /* -------------------------------------------------------------------- */
 /*      Write file.                                                     */
 /* -------------------------------------------------------------------- */
-    if( VSIFWriteL( pszDoc, 1, nLength, fp ) != nLength )
+    if( VSIFWriteL( pszDoc, 1, (size_t)nLength, fp ) != nLength )
     {
         CPLError( CE_Failure, CPLE_FileIO, 
                   "Failed to write whole XML document (%.500s).",

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerfilebase.cpp 14430 2008-05-10 18:42:32Z warmerdam $
+ * $Id: tigerfilebase.cpp 17225 2009-06-07 20:59:19Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerBaseFile class, providing common services to all
@@ -33,7 +33,7 @@
 #include "cpl_error.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: tigerfilebase.cpp 14430 2008-05-10 18:42:32Z warmerdam $");
+CPL_CVSID("$Id: tigerfilebase.cpp 17225 2009-06-07 20:59:19Z rouault $");
 
 /************************************************************************/
 /*                           TigerFileBase()                            */
@@ -233,11 +233,11 @@ void TigerFileBase::EstablishFeatureCount()
 /*                              GetField()                              */
 /************************************************************************/
 
-const char *TigerFileBase::GetField( const char * pachRawDataRecord,
+CPLString TigerFileBase::GetField( const char * pachRawDataRecord,
                                      int nStartChar, int nEndChar )
 
 {
-    static char         aszField[128];
+    char         aszField[128];
     int                 nLength = nEndChar - nStartChar + 1;
     
     CPLAssert( nEndChar - nStartChar + 2 < (int) sizeof(aszField) );

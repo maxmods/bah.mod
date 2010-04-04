@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdi.h 15583 2008-10-23 00:04:33Z warmerdam $
+ * $Id: ogrogdi.h 18502 2010-01-09 19:38:29Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Private definitions within the OGDI driver to implement
@@ -118,6 +118,9 @@ class OGROGDIDataSource : public OGRDataSource
     ecs_Region         *GetGlobalBounds() { return &m_sGlobalBounds; }
     OGRSpatialReference*GetSpatialRef() { return m_poSpatialRef; }
     int                 GetClientID() { return m_nClientID; }
+
+    OGROGDILayer       *GetCurrentLayer() { return m_poCurrentLayer; }
+    void                SetCurrentLayer(OGROGDILayer* poLayer) { m_poCurrentLayer = poLayer ; }
 };
 
 /************************************************************************/

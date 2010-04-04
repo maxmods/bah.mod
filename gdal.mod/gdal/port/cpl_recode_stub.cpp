@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_recode_stub.cpp 14368 2008-04-30 02:22:31Z warmerdam $
+ * $Id: cpl_recode_stub.cpp 17405 2009-07-17 06:13:24Z chaitanya $
  *
  * Name:     cpl_recode.cpp
  * Project:  CPL - Common Portability Library
@@ -29,7 +29,7 @@
 
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_recode_stub.cpp 14368 2008-04-30 02:22:31Z warmerdam $");
+CPL_CVSID("$Id: cpl_recode_stub.cpp 17405 2009-07-17 06:13:24Z chaitanya $");
 
 #define CPL_RECODE_STUB
 
@@ -44,6 +44,7 @@ static unsigned utf8fromwc(char* dst, unsigned dstlen,
                            const wchar_t* src, unsigned srclen);
 static unsigned utf8froma(char* dst, unsigned dstlen,
                           const char* src, unsigned srclen);
+static int utf8test(const char* src, unsigned srclen);
 
 #ifdef FUTURE_NEEDS
 static const char* utf8fwd(const char* p, const char* start, const char* end);
@@ -61,6 +62,28 @@ static int utf8bytes(unsigned ucs);
 /************************************************************************/
 /*                             CPLRecode()                              */
 /************************************************************************/
+
+/**
+ * Convert a string from a source encoding to a destination encoding.
+ *
+ * The only guaranteed supported encodings are CPL_ENC_UTF8, CPL_ENC_ASCII
+ * and CPL_ENC_ISO8859_1. Currently, the following conversions are supported :
+ * <ul>
+ *  <li>CPL_ENC_ASCII -> CPL_ENC_UTF8 or CPL_ENC_ISO8859_1 (no conversion in fact)</li>
+ *  <li>CPL_ENC_ISO8859_1 -> CPL_ENC_UTF8</li>
+ *  <li>CPL_ENC_UTF8 -> CPL_ENC_ISO8859_1</li>
+ * </ul>
+ *
+ * If an error occurs an error may, or may not be posted with CPLError(). 
+ *
+ * @param pszSource a NUL terminated string.
+ * @param pszSrcEncoding the source encoding.
+ * @param pszDstEncoding the destination encoding.
+ *
+ * @return a NUL terminated string which should be freed with CPLFree().
+ *
+ * @since GDAL 1.6.0
+ */
 
 char CPL_DLL *CPLRecode( const char *pszSource, 
                          const char *pszSrcEncoding, 
@@ -207,6 +230,8 @@ char CPL_DLL *CPLRecode( const char *pszSource,
  *
  * @return a zero terminated multi-byte string which should be freed with 
  * CPLFree(), or NULL if an error occurs. 
+ *
+ * @since GDAL 1.6.0
  */
 
 char CPL_DLL *CPLRecodeFromWChar( const wchar_t *pwszSource, 
@@ -296,6 +321,8 @@ char CPL_DLL *CPLRecodeFromWChar( const wchar_t *pwszSource,
  *
  * @return the zero terminated wchar_t string (to be freed with CPLFree()) or
  * NULL on error.
+ *
+ * @since GDAL 1.6.0
  */
 
 wchar_t CPL_DLL *CPLRecodeToWChar( const char *pszSource,
@@ -341,6 +368,65 @@ wchar_t CPL_DLL *CPLRecodeToWChar( const char *pszSource,
 
     return pwszResult;
 }
+
+
+/************************************************************************/
+/*                                 CPLIsUTF8()                          */
+/************************************************************************/
+
+/**
+ * Test if a string is encoded as UTF-8.
+ *
+ * @param pabyData input string to test
+ * @param nLen length of the input string, or -1 if the function must compute
+ *             the string length. In which case it must be null terminated.
+ * @return TRUE if the string is encoded as UTF-8. FALSE otherwise
+ *
+ * @since GDAL 1.7.0
+ */
+int CPLIsUTF8(const char* pabyData, int nLen)
+{
+    if (nLen < 0)
+        nLen = strlen(pabyData);
+    return utf8test(pabyData, (unsigned)nLen) != 0;
+}
+
+/************************************************************************/
+/*                          CPLForceToASCII()                           */
+/************************************************************************/
+
+/**
+ * Return a new string that is made only of ASCII characters. If non-ASCII
+ * characters are found in the input string, they will be replaced by the
+ * provided replacement character.
+ *
+ * @param pabyData input string to test
+ * @param nLen length of the input string, or -1 if the function must compute
+ *             the string length. In which case it must be null terminated.
+ * @param chReplacementChar character which will be used when the input stream
+ *                          contains a non ASCII character. Must be valid ASCII !
+ *
+ * @return a new string that must be freed with CPLFree().
+ *
+ * @since GDAL 1.7.0
+ */
+char CPL_DLL *CPLForceToASCII(const char* pabyData, int nLen, char chReplacementChar)
+{
+    if (nLen < 0)
+        nLen = strlen(pabyData);
+    char* pszOutputString = (char*)CPLMalloc(nLen + 1);
+    int i;
+    for(i=0;i<nLen;i++)
+    {
+        if (((unsigned char*)pabyData)[i] > 127)
+            pszOutputString[i] = chReplacementChar;
+        else
+            pszOutputString[i] = pabyData[i];
+    }
+    pszOutputString[i] = '\0';
+    return pszOutputString;
+}
+
 
 /************************************************************************/
 /* ==================================================================== */
@@ -699,12 +785,12 @@ static unsigned utf8towc(const char* src, unsigned srclen,
       p += len;
 #ifdef _WIN32
       if (ucs < 0x10000) {
-	dst[count] = ucs;
+          dst[count] = (wchar_t)ucs;
       } else {
 	// make a surrogate pair:
 	if (count+2 >= dstlen) {dst[count] = 0; count += 2; break;}
-	dst[count] = (((ucs-0x10000u)>>10)&0x3ff) | 0xd800;
-	dst[++count] = (ucs&0x3ff) | 0xdc00;
+        dst[count] = (wchar_t)((((ucs-0x10000u)>>10)&0x3ff) | 0xd800);
+        dst[++count] = (wchar_t)((ucs&0x3ff) | 0xdc00);
       }
 #else
       dst[count] = (wchar_t)ucs;
@@ -769,7 +855,7 @@ static unsigned utf8toa(const char* src, unsigned srclen,
     } else {
       int len; unsigned ucs = utf8decode(p,e,&len);
       p += len;
-      if (ucs < 0x100) dst[count] = ucs;
+      if (ucs < 0x100) dst[count] = (char)ucs;
       else dst[count] = '?';
     }
     if (++count >= dstlen) {dst[count-1] = 0; break;}
@@ -826,12 +912,12 @@ static unsigned utf8fromwc(char* dst, unsigned dstlen,
     if (i >= srclen) {dst[count] = 0; return count;}
     ucs = src[i++];
     if (ucs < 0x80U) {
-      dst[count++] = ucs;
+      dst[count++] = (char)ucs;
       if (count >= dstlen) {dst[count-1] = 0; break;}
     } else if (ucs < 0x800U) { // 2 bytes
       if (count+2 >= dstlen) {dst[count] = 0; count += 2; break;}
-      dst[count++] = 0xc0 | (ucs >> 6);
-      dst[count++] = 0x80 | (ucs & 0x3F);
+      dst[count++] = 0xc0 | (char)(ucs >> 6);
+      dst[count++] = 0x80 | (char)(ucs & 0x3F);
 #ifdef _WIN32
     } else if (ucs >= 0xd800 && ucs <= 0xdbff && i < srclen &&
 	       src[i] >= 0xdc00 && src[i] <= 0xdfff) {
@@ -847,19 +933,19 @@ static unsigned utf8fromwc(char* dst, unsigned dstlen,
       }
 #endif
       if (count+4 >= dstlen) {dst[count] = 0; count += 4; break;}
-      dst[count++] = 0xf0 | (ucs >> 18);
-      dst[count++] = 0x80 | ((ucs >> 12) & 0x3F);
-      dst[count++] = 0x80 | ((ucs >> 6) & 0x3F);
-      dst[count++] = 0x80 | (ucs & 0x3F);
+      dst[count++] = 0xf0 | (char)(ucs >> 18);
+      dst[count++] = 0x80 | (char)((ucs >> 12) & 0x3F);
+      dst[count++] = 0x80 | (char)((ucs >> 6) & 0x3F);
+      dst[count++] = 0x80 | (char)(ucs & 0x3F);
     } else {
 #ifndef _WIN32
     J1:
 #endif
       // all others are 3 bytes:
       if (count+3 >= dstlen) {dst[count] = 0; count += 3; break;}
-      dst[count++] = 0xe0 | (ucs >> 12);
-      dst[count++] = 0x80 | ((ucs >> 6) & 0x3F);
-      dst[count++] = 0x80 | (ucs & 0x3F);
+      dst[count++] = 0xe0 | (char)(ucs >> 12);
+      dst[count++] = 0x80 | (char)((ucs >> 6) & 0x3F);
+      dst[count++] = 0x80 | (char)(ucs & 0x3F);
     }
   }
   // we filled dst, measure the rest:
@@ -1121,6 +1207,8 @@ unsigned utf8frommb(char* dst, unsigned dstlen,
   return srclen;
 }
 
+#endif /* def notdef - disabled locale specific stuff */
+
 /*! Examines the first \a srclen bytes in \a src and return a verdict
     on whether it is UTF-8 or not.
     - Returns 0 if there is any illegal UTF-8 sequences, using the
@@ -1141,7 +1229,8 @@ unsigned utf8frommb(char* dst, unsigned dstlen,
     this is done we will be able to cleanly transition to a locale-less
     encoding.
 */
-int utf8test(const char* src, unsigned srclen) {
+
+static int utf8test(const char* src, unsigned srclen) {
   int ret = 1;
   const char* p = src;
   const char* e = src+srclen;
@@ -1157,7 +1246,5 @@ int utf8test(const char* src, unsigned srclen) {
   }
   return ret;
 }
-
-#endif /* def notdef - disabled locale specific stuff */
 
 #endif /* defined(CPL_RECODE_STUB) */

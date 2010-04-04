@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_proxy.h $
+ * $Id: gdal_proxy.h 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C++/Private declarations

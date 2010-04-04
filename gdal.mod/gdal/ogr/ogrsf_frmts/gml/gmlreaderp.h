@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreaderp.h 17913 2009-10-27 15:54:26Z chaitanya $
+ * $Id: gmlreaderp.h 18188 2009-12-05 22:19:00Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Private Declarations for OGR free GML Reader code.
@@ -31,6 +31,44 @@
 #define _CPL_GMLREADERP_H_INCLUDED
 
 #include "gmlreader.h"
+#include "ogr_api.h"
+
+class GMLReader;
+
+/************************************************************************/
+/*                              GMLHandler                              */
+/************************************************************************/
+class GMLHandler
+{
+    char       *m_pszCurField;
+
+    char       *m_pszGeometry;
+    int        m_nGeomAlloc;
+    int        m_nGeomLen;
+
+    int        m_nGeometryDepth;
+
+    int        m_nDepth;
+    int        m_nDepthFeature;
+
+protected:
+    GMLReader  *m_poReader;
+
+public:
+    GMLHandler( GMLReader *poReader );
+    virtual ~GMLHandler();
+
+    virtual OGRErr      startElement(const char *pszName, void* attr);
+    virtual OGRErr      endElement(const char *pszName);
+    virtual OGRErr      dataHandler(const char *data, int nLen);
+    virtual char*       GetFID(void* attr) = 0;
+    virtual char*       GetAttributes(void* attr) = 0;
+
+    int         IsGeometryElement( const char *pszElement );
+};
+
+
+#if HAVE_XERCES == 1
 
 // This works around problems with math.h on some platforms #defining INFINITY
 #ifdef INFINITY
@@ -49,6 +87,7 @@
 XERCES_CPP_NAMESPACE_USE
 #endif
 
+
 /************************************************************************/
 /*          XMLCh / char translation functions - trstring.cpp           */
 /************************************************************************/
@@ -58,28 +97,15 @@ void tr_strcpy( char *, const XMLCh * );
 char *tr_strdup( const XMLCh * );
 int tr_strlen( const XMLCh * );
 
-
-class GMLReader;
-
 /************************************************************************/
-/*                            GMLHandler                                */
+/*                         GMLXercesHandler                             */
 /************************************************************************/
-class GMLHandler : public DefaultHandler 
+class GMLXercesHandler : public DefaultHandler, public GMLHandler
 {
-    GMLReader  *m_poReader;
-
-    char       *m_pszCurField;
-
-    char       *m_pszGeometry;
-    int        m_nGeomAlloc;
-    int        m_nGeomLen;
-
-    int        m_nGeometryDepth;
-    int        IsGeometryElement( const char * );
+    int        m_nEntityCounter;
 
 public:
-    GMLHandler( GMLReader *poReader );
-    virtual ~GMLHandler();
+    GMLXercesHandler( GMLReader *poReader );
     
     void startElement(
         const   XMLCh* const    uri,
@@ -101,7 +127,43 @@ public:
 #endif
 
     void fatalError(const SAXParseException&);
+
+    void startEntity (const XMLCh *const name);
+
+    virtual char*       GetFID(void* attr);
+    virtual char*       GetAttributes(void* attr);
 };
+
+#elif defined(HAVE_EXPAT)
+
+#include "ogr_expat.h"
+
+/************************************************************************/
+/*                           GMLExpatHandler                            */
+/************************************************************************/
+class GMLExpatHandler : public GMLHandler
+{
+    XML_Parser m_oParser;
+    int        m_bStopParsing;
+    int        m_nDataHandlerCounter;
+
+public:
+    GMLExpatHandler( GMLReader *poReader, XML_Parser oParser );
+
+    virtual OGRErr      startElement(const char *pszName, void* attr);
+    virtual OGRErr      endElement(const char *pszName);
+    virtual OGRErr      dataHandler(const char *data, int nLen);
+
+    int         HasStoppedParsing() { return m_bStopParsing; }
+
+    void        ResetDataHandlerCounter() { m_nDataHandlerCounter = 0; }
+    int         GetDataHandlerCounter() { return m_nDataHandlerCounter; }
+
+    virtual char*       GetFID(void* attr);
+    virtual char*       GetAttributes(void* attr);
+};
+
+#endif
 
 /************************************************************************/
 /*                             GMLReadState                             */
@@ -138,6 +200,8 @@ public:
 class GMLReader : public IGMLReader 
 {
 private:
+    static int    m_bXercesInitialized;
+    static int    m_nInstanceCount;
     int           m_bClassListLocked;
 
     int         m_nClassCount;
@@ -145,14 +209,24 @@ private:
 
     char          *m_pszFilename;
 
-    GMLHandler    *m_poGMLHandler;
+#if HAVE_XERCES == 1
+    GMLXercesHandler    *m_poGMLHandler;
     SAX2XMLReader *m_poSAXReader;
-    int           m_bReadStarted;
     XMLPScanToken m_oToFill;
+    GMLFeature   *m_poCompleteFeature;
+#else
+    GMLExpatHandler    *m_poGMLHandler;
+    FILE*         fpGML;
+    XML_Parser    oParser;
+    GMLFeature ** ppoFeatureTab;
+    int           nFeatureTabLength;
+    int           nFeatureTabIndex;
+#endif
+    int           m_bReadStarted;
 
     GMLReadState *m_poState;
 
-    GMLFeature   *m_poCompleteFeature;
+    int           m_bStopParsing;
 
     int           SetupParser();
     void          CleanupParser();
@@ -194,10 +268,12 @@ public:
     int         IsAttributeElement( const char *pszElement );
 
     void        PushFeature( const char *pszElement, 
-                             const Attributes &attrs );
+                             const char *pszFID );
 
     void        SetFeatureProperty( const char *pszElement,
                                     const char *pszValue );
+
+    int         HasStoppedParsing() { return m_bStopParsing; }
 
 };
 

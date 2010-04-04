@@ -27,10 +27,11 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "ogr_xplane_geo_utils.h"
 #include <math.h>
 #include "cpl_port.h"
 
-CPL_CVSID("$Id: ogr_xplane_geo_utils.cpp 14977 2008-07-19 13:17:25Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_geo_utils.cpp 18430 2010-01-03 15:10:02Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795

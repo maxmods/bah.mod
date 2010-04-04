@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_pcidsk.h 11405 2007-05-03 15:41:15Z warmerdam $
+ * $Id: gdal_pcidsk.h 17688 2009-09-25 16:01:19Z dron $
  *
  * Project:  PCIDSK Database File
  * Purpose:  PCIDSK driver declarations.
@@ -51,6 +51,8 @@ class PCIDSKDataset : public RawDataset
     const char          *pszFilename;
     FILE                *fp;
 
+    vsi_l_offset        nFileSize;
+
     char                *pszCreatTime;  // Date/time of the database creation
 
     vsi_l_offset        nGeoPtrOffset;  // Offset in bytes to the pointer
@@ -61,6 +63,7 @@ class PCIDSKDataset : public RawDataset
     vsi_l_offset        nGcpOffset;     // Offset in bytes to the GCP segment
 
     int                 bGeoSegmentDirty;
+    int		        bGeoTransformValid;
 
     int                 nBlockMapSeg;
 
@@ -139,6 +142,8 @@ class PCIDSKTiledRasterBand : public GDALPamRasterBand
 
     int         nOverviewCount;
     GDALRasterBand **papoOverviews;
+
+    char        szCompression[9];
     
     void        AttachOverview( GDALRasterBand *poOvBand ) {
 
@@ -199,9 +204,18 @@ class PCIDSKRawRasterBand : public RawRasterBand
         CPLFree( papoOverviews );
     }
 
-    virtual int GetOverviewCount() { return nOverviewCount; }
-    virtual GDALRasterBand *GetOverview(int iOverview)
-        { return papoOverviews[iOverview]; }
+    virtual int GetOverviewCount() { 
+        if (nOverviewCount > 0)
+            return nOverviewCount; 
+
+        return RawRasterBand::GetOverviewCount();
+    }
+    virtual GDALRasterBand *GetOverview(int iOverview) { 
+        if (iOverview < nOverviewCount)
+            return papoOverviews[iOverview]; 
+
+        return RawRasterBand::GetOverview(iOverview);
+    }
 };
 
 

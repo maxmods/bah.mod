@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: mkcatalog.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: mkcatalog.cpp 16861 2009-04-26 19:22:29Z rouault $
  *
  * Project:  ISO8211 Library
  * Purpose:  Test ISO8211 writing capability.
@@ -29,7 +29,7 @@
 
 #include "iso8211.h"
 
-CPL_CVSID("$Id: mkcatalog.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: mkcatalog.cpp 16861 2009-04-26 19:22:29Z rouault $");
 
 
 /************************************************************************/
@@ -49,9 +49,7 @@ void mk_s57()
 /* -------------------------------------------------------------------- */
     poFDefn = new DDFFieldDefn();
 
-    poFDefn->Create( "0000", "", "0001DSIDDSIDDSSI0001DSPM0001VRIDVRIDATTVVRIDVRPCVRIDVRPTVRIDSGCCVRIDSG2DVRIDSG3D0001FRIDFRIDFOIDFRIDATTFFRIDNATFFRIDFFPCFRIDFFPTFRIDFSPCFRIDFSPT",
-                     DDFFieldDefn::elementary, 
-                     DDFFieldDefn::char_string );
+    poFDefn->Create( "0000", "", "0001DSIDDSIDDSSI0001DSPM0001VRIDVRIDATTVVRIDVRPCVRIDVRPTVRIDSGCCVRIDSG2DVRIDSG3D0001FRIDFRIDFOIDFRIDATTFFRIDNATFFRIDFFPCFRIDFFPTFRIDFSPCFRIDFSPT", dsc_elementary, dtc_char_string );
 
     oModule.AddField( poFDefn );
 
@@ -61,7 +59,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "0001", "ISO 8211 Record Identifier", "", 
-                     DDFFieldDefn::elementary, DDFFieldDefn::bit_string,
+                     dsc_elementary, dtc_bit_string,
                      "(b12)" );
 
     oModule.AddField( poFDefn );
@@ -72,7 +70,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "DSID", "Data set identification field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     poFDefn->AddSubfield( "RCNM", "b11" );
     poFDefn->AddSubfield( "RCID", "b14" );
@@ -99,7 +97,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "DSSI", "Data set structure information field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     poFDefn->AddSubfield( "DSTR", "b11" );
     poFDefn->AddSubfield( "AALL", "b11" );
@@ -121,7 +119,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "DSPM", "Data set parameter field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     poFDefn->AddSubfield( "RCNM", "b11" );
     poFDefn->AddSubfield( "RCID", "b14" );
@@ -145,7 +143,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "VRID", "Vector record identifier field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     poFDefn->AddSubfield( "RCNM", "b11" );
     poFDefn->AddSubfield( "RCID", "b14" );
@@ -160,7 +158,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "ATTV", "Vector record attribute field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     /* how do I mark this as repeating? */
     poFDefn->AddSubfield( "ATTL", "b12" );
@@ -174,7 +172,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "SG2D", "2-D coordinate field", "*",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     /* how do I mark this as repeating? */
     poFDefn->AddSubfield( "YCOO", "b24" );
@@ -188,7 +186,7 @@ void mk_s57()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "SG3D", "3-D coordinate (sounding array) field", "*",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     /* how do I mark this as repeating? */
     poFDefn->AddSubfield( "YCOO", "b24" );
@@ -328,8 +326,8 @@ void mk_catalog()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "0000", "", "0001CATD", 
-                     DDFFieldDefn::elementary, 
-                     DDFFieldDefn::char_string );
+                     dsc_elementary, 
+                     dtc_char_string );
 
     oModule.AddField( poFDefn );
 
@@ -339,7 +337,7 @@ void mk_catalog()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "0001", "ISO 8211 Record Identifier", "", 
-                     DDFFieldDefn::elementary, DDFFieldDefn::bit_string,
+                     dsc_elementary, dtc_bit_string,
                      "(b12)" );
 
     oModule.AddField( poFDefn );
@@ -350,7 +348,7 @@ void mk_catalog()
     poFDefn = new DDFFieldDefn();
 
     poFDefn->Create( "CATD", "Catalog Directory field", "",
-                     DDFFieldDefn::vector, DDFFieldDefn::mixed_data_type );
+                     dsc_vector, dtc_mixed_data_type );
 
     poFDefn->AddSubfield( "RCNM", "A(2)" );
     poFDefn->AddSubfield( "RCID", "I(10)" );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 16201 2009-01-28 21:29:52Z warmerdam $
+ * $Id: shape2ogr.cpp 18473 2010-01-07 23:40:39Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -31,7 +31,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 16201 2009-01-28 21:29:52Z warmerdam $");
+CPL_CVSID("$Id: shape2ogr.cpp 18473 2010-01-07 23:40:39Z rouault $");
 
 static const double EPSILON = 1E-5;
 
@@ -95,14 +95,14 @@ OGRLinearRing * CreateLinearRing ( SHPObject *psShape, int ring )
 /*      representation.                                                 */
 /************************************************************************/
 
-OGRGeometry *SHPReadOGRObject( SHPHandle hSHP, int iShape )
+OGRGeometry *SHPReadOGRObject( SHPHandle hSHP, int iShape, SHPObject *psShape )
 {
     // CPLDebug( "Shape", "SHPReadOGRObject( iShape=%d )\n", iShape );
 
-    SHPObject   *psShape;
     OGRGeometry *poOGR = NULL;
 
-    psShape = SHPReadObject( hSHP, iShape );
+    if( psShape == NULL )
+        psShape = SHPReadObject( hSHP, iShape );
 
     if( psShape == NULL )
     {
@@ -315,6 +315,7 @@ OGRGeometry *SHPReadOGRObject( SHPHandle hSHP, int iShape )
 OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
 
 {
+    int nReturnedShapeID;
 /* ==================================================================== */
 /*      Write "shape" with no geometry or with empty geometry           */
 /* ==================================================================== */
@@ -323,8 +324,13 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         SHPObject       *psShape;
 
         psShape = SHPCreateSimpleObject( SHPT_NULL, 0, NULL, NULL, NULL );
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
+        if( nReturnedShapeID == -1 )
+        {
+            //Assuming error is reported by SHPWriteObject()
+            return OGRERR_FAILURE;
+        }
     }
 
 /* ==================================================================== */
@@ -355,8 +361,10 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         
         psShape = SHPCreateSimpleObject( hSHP->nShapeType, 1,
                                          &dfX, &dfY, &dfZ );
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
+        if( nReturnedShapeID == -1 )
+            return OGRERR_FAILURE;
     }
 /* ==================================================================== */
 /*      MultiPoint.                                                     */
@@ -405,12 +413,14 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         psShape = SHPCreateSimpleObject( hSHP->nShapeType,
                                          iDstPoints,
                                          padfX, padfY, padfZ );
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
         
         CPLFree( padfX );
         CPLFree( padfY );
         CPLFree( padfZ );
+        if( nReturnedShapeID == -1 )
+            return OGRERR_FAILURE;
     }
 
 /* ==================================================================== */
@@ -440,12 +450,14 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         psShape = SHPCreateSimpleObject( hSHP->nShapeType,
                                          poArc->getNumPoints(),
                                          padfX, padfY, padfZ );
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
         
         CPLFree( padfX );
         CPLFree( padfY );
         CPLFree( padfZ );
+        if( nReturnedShapeID == -1 )
+            return OGRERR_FAILURE;
     }
 /* ==================================================================== */
 /*      Arcs - Try to treat as MultiLineString.                         */
@@ -486,10 +498,11 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
 
             /* Ignore LINESTRING EMPTY */
             if (nNewPoints == 0)
-                continue;
-            else
+            {
                 CPLDebug( "OGR", 
-                              "Ignore LINESTRING EMPTY inside MULTILINESTRING in shapefile writer." );
+                          "Ignore LINESTRING EMPTY inside MULTILINESTRING in shapefile writer." );
+                continue;
+            }
 
             panRingStart[nParts ++] = nPointCount;
 
@@ -515,7 +528,7 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
                                     nParts, 
                                     panRingStart, NULL,
                                     nPointCount, padfX, padfY, padfZ, NULL);
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
 
         CPLFree( panRingStart );
@@ -524,6 +537,8 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         CPLFree( padfZ );
 
         delete poML;
+        if( nReturnedShapeID == -1 )
+            return OGRERR_FAILURE;
     }
 
 /* ==================================================================== */
@@ -590,8 +605,8 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
                     CPLFree( papoRings );
                     CPLError( CE_Failure, CPLE_AppDefined,
                               "Attempt to write non-polygon (%s) geometry to "
-                              " type shapefile.",
-                              poGeom->getGeometryName() );
+                              "POLYGON type shapefile.",
+                              poGeom->getGeometryName());
 
                     return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
                 }
@@ -630,7 +645,7 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         {
             CPLError( CE_Failure, CPLE_AppDefined,
                       "Attempt to write non-polygon (%s) geometry to "
-                      " type shapefile.",
+                      "POLYGON type shapefile.",
                       poGeom->getGeometryName() );
 
             return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
@@ -645,8 +660,12 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
             SHPObject       *psShape;
             
             psShape = SHPCreateSimpleObject( SHPT_NULL, 0, NULL, NULL, NULL );
-            SHPWriteObject( hSHP, iShape, psShape );
+            nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
             SHPDestroyObject( psShape );
+
+            if( nReturnedShapeID == -1 )
+                return OGRERR_FAILURE;
+
             return OGRERR_NONE;
         }
         
@@ -680,7 +699,7 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
                                    panRingStart, NULL,
                                    nVertex, padfX, padfY, padfZ, NULL );
         SHPRewindObject( hSHP, psShape );
-        SHPWriteObject( hSHP, iShape, psShape );
+        nReturnedShapeID = SHPWriteObject( hSHP, iShape, psShape );
         SHPDestroyObject( psShape );
         
         CPLFree( papoRings );
@@ -688,6 +707,8 @@ OGRErr SHPWriteOGRObject( SHPHandle hSHP, int iShape, OGRGeometry *poGeom )
         CPLFree( padfX );
         CPLFree( padfY );
         CPLFree( padfZ );
+        if( nReturnedShapeID == -1 )
+            return OGRERR_FAILURE;
     }
     else
     {
@@ -804,7 +825,8 @@ OGRFeatureDefn *SHPReadOGRFeatureDefn( const char * pszName,
 /************************************************************************/
 
 OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
-                               OGRFeatureDefn * poDefn, int iShape )
+                               OGRFeatureDefn * poDefn, int iShape,
+                               SHPObject *psShape )
 
 {
     if( iShape < 0 
@@ -833,7 +855,7 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
     if( hSHP != NULL )
     {
         OGRGeometry* poGeometry = NULL;
-        poGeometry = SHPReadOGRObject( hSHP, iShape );
+        poGeometry = SHPReadOGRObject( hSHP, iShape, psShape );
 
         /*
          * NOTE - mloskot:
@@ -888,9 +910,9 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
               if( pszDateValue[2] == '/' && pszDateValue[5] == '/' 
                   && strlen(pszDateValue) >= 10 )
               {
-                  sFld.Date.Month = atoi(pszDateValue+0);
-                  sFld.Date.Day   = atoi(pszDateValue+3);
-                  sFld.Date.Year  = atoi(pszDateValue+6);
+                  sFld.Date.Month = (GByte)atoi(pszDateValue+0);
+                  sFld.Date.Day   = (GByte)atoi(pszDateValue+3);
+                  sFld.Date.Year  = (GInt16)atoi(pszDateValue+6);
               }
               else
               {
@@ -954,6 +976,20 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
             return eErr;
     }
     
+/* -------------------------------------------------------------------- */
+/*      If there is no DBF, the job is done now.                        */
+/* -------------------------------------------------------------------- */
+    if( hDBF == NULL )
+    {
+/* -------------------------------------------------------------------- */
+/*      If this is a new feature, establish it's feature id.            */
+/* -------------------------------------------------------------------- */
+        if( hSHP != NULL && poFeature->GetFID() == OGRNullFID )
+            poFeature->SetFID( hSHP->nRecords - 1 );
+
+        return OGRERR_NONE;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      If this is a new feature, establish it's feature id.            */
 /* -------------------------------------------------------------------- */

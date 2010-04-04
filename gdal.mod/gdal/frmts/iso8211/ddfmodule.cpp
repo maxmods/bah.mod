@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfmodule.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ddfmodule.cpp 17405 2009-07-17 06:13:24Z chaitanya $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFModule class.
@@ -30,7 +30,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfmodule.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ddfmodule.cpp 17405 2009-07-17 06:13:24Z chaitanya $");
 
 /************************************************************************/
 /*                             DDFModule()                              */
@@ -334,7 +334,7 @@ int DDFModule::Open( const char * pszFilename, int bFailQuietly )
 /*      Record the current file offset, the beginning of the first      */
 /*      data record.                                                    */
 /* -------------------------------------------------------------------- */
-    nFirstRecordOffset = VSIFTellL( fpDDF );
+    nFirstRecordOffset = (long)VSIFTellL( fpDDF );
     
     return TRUE;
 }

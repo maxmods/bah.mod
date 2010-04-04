@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.cpp 16866 2009-04-27 12:52:26Z chaitanya $
+ * $Id: cpl_string.cpp 18179 2009-12-05 00:40:04Z warmerdam $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -54,7 +54,7 @@
 #  include <wce_string.h>
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
+CPL_CVSID("$Id: cpl_string.cpp 18179 2009-12-05 00:40:04Z warmerdam $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -267,6 +267,89 @@ char **CSLMerge( char **papszOrig, char **papszOverride )
 }
 
 /************************************************************************/
+/*                             CSLLoad2()                               */
+/************************************************************************/
+
+/**
+ * Load a text file into a string list.
+ *
+ * The VSI*L API is used, so VSIFOpenL() supported objects that aren't
+ * physical files can also be accessed.  Files are returned as a string list,
+ * with one item in the string list per line.  End of line markers are
+ * stripped (by CPLReadLineL()). 
+ *
+ * If reading the file fails a CPLError() will be issued and NULL returned.
+ *
+ * @param pszFname the name of the file to read.
+ * @param nMaxLines maximum number of lines to read before stopping, or -1 for no limit.
+ * @param nMaxCols  maximum number of characters in a line before stopping, or -1 for no limit.
+ * @param papszOptions NULL-terminated array of options. Unused for now.
+ * 
+ * @return a string list with the files lines, now owned by caller. To be freed with CSLDestroy()
+ *
+ * @since GDAL 1.7.0
+ */
+
+char **CSLLoad2(const char *pszFname, int nMaxLines, int nMaxCols, char** papszOptions)
+{
+    FILE        *fp;
+    const char  *pszLine;
+    char        **papszStrList=NULL;
+    int          nLines = 0;
+    int          nAllocatedLines = 0;
+
+    fp = VSIFOpenL(pszFname, "rb");
+
+    if (fp)
+    {
+        CPLErrorReset();
+        while(!VSIFEofL(fp) && (nMaxLines == -1 || nLines < nMaxLines))
+        {
+            if ( (pszLine = CPLReadLine2L(fp, nMaxCols, papszOptions)) != NULL )
+            {
+                if (nLines + 1 >= nAllocatedLines)
+                {
+                    char** papszStrListNew;
+                    nAllocatedLines = 16 + nAllocatedLines * 2;
+                    papszStrListNew = (char**) VSIRealloc(papszStrList,
+                                                nAllocatedLines * sizeof(char*));
+                    if (papszStrListNew == NULL)
+                    {
+                        VSIFCloseL(fp);
+                        CPLReadLineL( NULL );
+                        CPLError( CE_Failure, CPLE_OutOfMemory,
+                             "CSLLoad2(\"%s\") failed: not enough memory to allocate lines.",
+                            pszFname );
+                        return papszStrList;
+                    }
+                    papszStrList = papszStrListNew;
+                }
+                papszStrList[nLines] = CPLStrdup(pszLine);
+                papszStrList[nLines + 1] = NULL;
+                nLines ++;
+            }
+            else if (CPLGetLastErrorType() != 0)
+            {
+                break;
+            }
+        }
+
+        VSIFCloseL(fp);
+
+        CPLReadLineL( NULL );
+    }
+    else
+    {
+        /* Unable to open file */
+        CPLError( CE_Failure, CPLE_OpenFailed,
+                  "CSLLoad2(\"%s\") failed: unable to open output file.",
+                  pszFname );
+    }
+
+    return papszStrList;
+}
+
+/************************************************************************/
 /*                              CSLLoad()                               */
 /************************************************************************/
 
@@ -282,40 +365,12 @@ char **CSLMerge( char **papszOrig, char **papszOverride )
  *
  * @param pszFname the name of the file to read.
  * 
- * @return a string list with the files lines, now owned by caller.
+ * @return a string list with the files lines, now owned by caller. To be freed with CSLDestroy()
  */
-
+ 
 char **CSLLoad(const char *pszFname)
 {
-    FILE        *fp;
-    const char  *pszLine;
-    char        **papszStrList=NULL;
-
-    fp = VSIFOpenL(pszFname, "rb");
-
-    if (fp)
-    {
-        while(!VSIFEofL(fp))
-        {
-            if ( (pszLine = CPLReadLineL(fp)) != NULL )
-            {
-                papszStrList = CSLAddString(papszStrList, pszLine);
-            }
-        }
-
-        VSIFCloseL(fp);
-
-        CPLReadLineL( NULL );
-    }
-    else
-    {
-        /* Unable to open file */
-        CPLError( CE_Failure, CPLE_OpenFailed,
-                  "CSLLoad(\"%s\") failed: unable to open output file.",
-                  pszFname );
-    }
-
-    return papszStrList;
+    return CSLLoad2(pszFname, -1, -1, NULL);
 }
 
 /**********************************************************************
@@ -1037,6 +1092,22 @@ int CSLFetchBoolean( char **papszStrList, const char *pszKey, int bDefault )
         return CSLTestBoolean( pszValue );
 }
 
+/************************************************************************/
+/*                     CSLFetchNameValueDefaulted()                     */
+/************************************************************************/
+
+const char *CSLFetchNameValueDef( char **papszStrList, 
+                                  const char *pszName,
+                                  const char *pszDefault )
+
+{
+    const char *pszResult = CSLFetchNameValue( papszStrList, pszName );
+    if( pszResult )
+        return pszResult;
+    else
+        return pszDefault;
+}
+
 /**********************************************************************
  *                       CSLFetchNameValue()
  *
@@ -1401,7 +1472,7 @@ void CSLSetNameValueSeparator( char ** papszList, const char *pszSeparator )
  * Suitable for use when constructing literal values for SQL commands where
  * the literal will be enclosed in single quotes.
  *
- * CPLES_CSV(4): If the values contains commas, double quotes, or newlines it 
+ * CPLES_CSV(4): If the values contains commas, semicolons, tabs, double quotes, or newlines it 
  * placed in double quotes, and double quotes in the value are doubled.
  * Suitable for use when constructing field values for .csv files.  Note that
  * CPLUnescapeString() currently does not support this format, only 
@@ -1542,6 +1613,8 @@ char *CPLEscapeString( const char *pszInput, int nLength,
     {
         if( strchr( pszInput, '\"' ) == NULL
             && strchr( pszInput, ',') == NULL
+            && strchr( pszInput, ';') == NULL
+            && strchr( pszInput, '\t') == NULL
             && strchr( pszInput, 10) == NULL 
             && strchr( pszInput, 13) == NULL )
         {
@@ -1916,4 +1989,134 @@ CPLValueType CPLGetValueType(const char* pszValue)
     }
 
     return (bIsReal) ? CPL_VALUE_REAL : CPL_VALUE_INTEGER;
+}
+
+/************************************************************************/
+/*                              CPLStrlcpy()                            */
+/************************************************************************/
+
+/**
+ * Copy source string to a destination buffer.
+ *
+ * This function ensures that the destination buffer is always NUL terminated
+ * (provided that its length is at least 1).
+ *
+ * This function is designed to be a safer, more consistent, and less error
+ * prone replacement for strncpy. Its contract is identical to libbsd's strlcpy.
+ *
+ * Truncation can be detected by testing if the return value of CPLStrlcpy
+ * is greater or equal to nDestSize.
+
+\verbatim
+char szDest[5];
+if (CPLStrlcpy(szDest, "abcde", sizeof(szDest)) >= sizeof(szDest))
+    fprintf(stderr, "truncation occured !\n");
+\endverbatim
+
+ * @param pszDest   destination buffer
+ * @param pszSrc    source string. Must be NUL terminated
+ * @param nDestSize size of destination buffer (including space for the NUL terminator character)
+ *
+ * @return the length of the source string (=strlen(pszSrc))
+ *
+ * @since GDAL 1.7.0
+ */
+size_t CPLStrlcpy(char* pszDest, const char* pszSrc, size_t nDestSize)
+{
+    char* pszDestIter = pszDest;
+    const char* pszSrcIter = pszSrc;
+
+    if (nDestSize == 0)
+        return strlen(pszSrc);
+
+    nDestSize --;
+    while(nDestSize != 0 && *pszSrcIter != '\0')
+    {
+        *pszDestIter = *pszSrcIter;
+        pszDestIter ++;
+        pszSrcIter ++;
+        nDestSize --;
+    }
+    *pszDestIter = '\0';
+    return pszSrcIter - pszSrc + strlen(pszSrcIter);
+}
+
+/************************************************************************/
+/*                              CPLStrlcat()                            */
+/************************************************************************/
+
+/**
+ * Appends a source string to a destination buffer.
+ *
+ * This function ensures that the destination buffer is always NUL terminated
+ * (provided that its length is at least 1 and that there is at least one byte
+ * free in pszDest, that is to say strlen(pszDest_before) < nDestSize)
+ *
+ * This function is designed to be a safer, more consistent, and less error
+ * prone replacement for strncat. Its contract is identical to libbsd's strlcat.
+ *
+ * Truncation can be detected by testing if the return value of CPLStrlcat
+ * is greater or equal to nDestSize.
+
+\verbatim
+char szDest[5];
+CPLStrlcpy(szDest, "ab", sizeof(szDest));
+if (CPLStrlcat(szDest, "cde", sizeof(szDest)) >= sizeof(szDest))
+    fprintf(stderr, "truncation occured !\n");
+\endverbatim
+
+ * @param pszDest   destination buffer. Must be NUL terminated before running CPLStrlcat
+ * @param pszSrc    source string. Must be NUL terminated
+ * @param nDestSize size of destination buffer (including space for the NUL terminator character)
+ *
+ * @return the thoretical length of the destination string after concatenation
+ *         (=strlen(pszDest_before) + strlen(pszSrc)).
+ *         If strlen(pszDest_before) >= nDestSize, then it returns nDestSize + strlen(pszSrc)
+ *
+ * @since GDAL 1.7.0
+ */
+size_t CPLStrlcat(char* pszDest, const char* pszSrc, size_t nDestSize)
+{
+    char* pszDestIter = pszDest;
+
+    while(nDestSize != 0 && *pszDestIter != '\0')
+    {
+        pszDestIter ++;
+        nDestSize --;
+    }
+
+    return pszDestIter - pszDest + CPLStrlcpy(pszDestIter, pszSrc, nDestSize);
+}
+
+/************************************************************************/
+/*                              CPLStrnlen()                            */
+/************************************************************************/
+
+/**
+ * Returns the length of a NUL terminated string by reading at most
+ * the specified number of bytes.
+ *
+ * The CPLStrnlen() function returns MIN(strlen(pszStr), nMaxLen).
+ * Only the first nMaxLen bytes of the string will be read. Usefull to
+ * test if a string contains at least nMaxLen characters without reading
+ * the full string up to the NUL terminating character.
+ *
+ * @param pszStr    a NUL terminated string
+ * @param nMaxLen   maximum number of bytes to read in pszStr
+ *
+ * @return strlen(pszStr) if the length is lesser than nMaxLen, otherwise
+ * nMaxLen if the NUL character has not been found in the first nMaxLen bytes.
+ *
+ * @since GDAL 1.7.0
+ */
+ 
+size_t CPLStrnlen (const char *pszStr, size_t nMaxLen)
+{
+    size_t nLen = 0;
+    while(nLen < nMaxLen && *pszStr != '\0')
+    {
+        nLen ++;
+        pszStr ++;
+    }
+    return nLen;
 }

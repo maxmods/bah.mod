@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: gdalhttp.cpp 18020 2009-11-14 14:33:20Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -29,6 +30,11 @@
 
 #include "stdinc.h"
 
+/* CURLINFO_RESPONSE_CODE was known as CURLINFO_HTTP_CODE in libcurl 7.10.7 and earlier */
+#if LIBCURL_VERSION_NUM < 0x070a07
+#define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
+#endif
+
 static size_t CPLHTTPWriteFunc(void *buffer, size_t count, size_t nmemb, void *req) {
     CPLHTTPRequest *psRequest = reinterpret_cast<CPLHTTPRequest *>(req);
     size_t size = count * nmemb;
@@ -40,13 +46,16 @@ static size_t CPLHTTPWriteFunc(void *buffer, size_t count, size_t nmemb, void *r
         size_t new_size = required_size * 2;
         if (new_size < 512) new_size = 512;
         psRequest->nDataAlloc = new_size;
-        psRequest->pabyData = reinterpret_cast<GByte *>(VSIRealloc(psRequest->pabyData, new_size));
-        if (psRequest->pabyData == NULL) {
+        GByte * pabyNewData = reinterpret_cast<GByte *>(VSIRealloc(psRequest->pabyData, new_size));
+        if (pabyNewData == NULL) {
+            VSIFree(psRequest->pabyData);
+            psRequest->pabyData = NULL;
             psRequest->pszError = CPLStrdup(CPLString().Printf("Out of memory allocating %u bytes for HTTP data buffer.", static_cast<int>(new_size)));
             psRequest->nDataAlloc = 0;
             psRequest->nDataLen = 0;
             return 0;
         }
+        psRequest->pabyData = pabyNewData;
     }
     memcpy(psRequest->pabyData + psRequest->nDataLen, buffer, size);
     psRequest->nDataLen += size;
@@ -72,6 +81,7 @@ void CPLHTTPInitializeRequest(CPLHTTPRequest *psRequest, const char *pszURL, con
         CPLError(CE_Fatal, CPLE_AppDefined, "CPLHTTPInitializeRequest(): Unable to create CURL handle.");
     }
 
+    curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_USERAGENT, "GDAL WMS driver (http://www.gdal.org/frmt_wms.html)");
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_URL, psRequest->pszURL);
 
     const char *timeout = CSLFetchNameValue(const_cast<char **>(psRequest->papszOptions), "TIMEOUT");

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtdatasource.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrvrtdatasource.cpp 17506 2009-08-02 17:09:10Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvrtdatasource.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrvrtdatasource.cpp 17506 2009-08-02 17:09:10Z rouault $");
 /************************************************************************/
 /*                          OGRVRTDataSource()                          */
 /************************************************************************/
@@ -65,7 +65,8 @@ OGRVRTDataSource::~OGRVRTDataSource()
 /*                             Initialize()                             */
 /************************************************************************/
 
-int OGRVRTDataSource::Initialize( CPLXMLNode *psTree, const char *pszNewName )
+int OGRVRTDataSource::Initialize( CPLXMLNode *psTree, const char *pszNewName,
+                                  int bUpdate )
 
 {
     CPLAssert( nLayers == 0 );
@@ -96,7 +97,7 @@ int OGRVRTDataSource::Initialize( CPLXMLNode *psTree, const char *pszNewName )
         
         poLayer = new OGRVRTLayer();
         
-        if( !poLayer->Initialize( psLTree, pszVRTDirectory ) )
+        if( !poLayer->Initialize( psLTree, pszVRTDirectory, bUpdate ) )
         {
             CPLFree( pszVRTDirectory );
             delete poLayer;

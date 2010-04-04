@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_frmts.h 16026 2009-01-01 18:47:30Z warmerdam $
+ * $Id: gdal_frmts.h 18207 2009-12-07 21:37:49Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Prototypes for all format specific driver initializations.
@@ -99,6 +99,7 @@ void CPL_DLL GDALRegister_PCRaster(void);
 void CPL_DLL GDALRegister_IDA(void);
 void CPL_DLL GDALRegister_NDF(void);
 void CPL_DLL GDALRegister_RMF(void);
+void CPL_DLL GDALRegister_BAG(void);
 void CPL_DLL GDALRegister_HDF5(void);
 void CPL_DLL GDALRegister_HDF5Image(void);
 void CPL_DLL GDALRegister_MSGN(void);
@@ -129,6 +130,7 @@ void CPL_DLL GDALRegister_GFF(void);
 void CPL_DLL GDALRegister_COSAR(void);
 void CPL_DLL GDALRegister_TSX(void);
 void CPL_DLL GDALRegister_ADRG(void);
+void CPL_DLL GDALRegister_SRP(void);
 void CPL_DLL GDALRegister_COASP(void);
 void CPL_DLL GDALRegister_BLX(void);
 void CPL_DLL GDALRegister_LCP(void);
@@ -136,6 +138,14 @@ void CPL_DLL GDALRegister_PGCHIP(void);
 void CPL_DLL GDALRegister_TMS(void);
 void CPL_DLL GDALRegister_EIR(void);
 void CPL_DLL GDALRegister_GEOR(void);
+void CPL_DLL GDALRegister_TIL(void);
+void CPL_DLL GDALRegister_R(void);
+void CPL_DLL GDALRegister_Rasterlite(void);
+void CPL_DLL GDALRegister_EPSILON(void);
+void CPL_DLL GDALRegister_WKTRaster(void);
+void CPL_DLL GDALRegister_NWT_GRD(void);
+void CPL_DLL GDALRegister_NWT_GRC(void);
+void CPL_DLL GDALRegister_SAGA(void);
 CPL_C_END
 
 #endif /* ndef GDAL_FRMTS_H_INCLUDED */

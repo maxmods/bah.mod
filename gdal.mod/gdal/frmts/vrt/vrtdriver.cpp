@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdriver.cpp 14111 2008-03-29 00:14:10Z warmerdam $
+ * $Id: vrtdriver.cpp 17852 2009-10-18 11:15:09Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDriver
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtdriver.cpp 14111 2008-03-29 00:14:10Z warmerdam $");
+CPL_CVSID("$Id: vrtdriver.cpp 17852 2009-10-18 11:15:09Z rouault $");
 
 /************************************************************************/
 /*                             VRTDriver()                              */
@@ -302,6 +302,7 @@ void GDALRegister_VRT()
         poDriver->pfnCreateCopy = VRTCreateCopy;
         poDriver->pfnCreate = VRTDataset::Create;
         poDriver->pfnIdentify = VRTDataset::Identify;
+        poDriver->pfnDelete = VRTDataset::Delete;
 
         poDriver->AddSourceParser( "SimpleSource", 
                                    VRTParseCoreSources );

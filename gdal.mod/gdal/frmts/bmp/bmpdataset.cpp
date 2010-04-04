@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bmpdataset.cpp 16254 2009-02-07 17:09:23Z rouault $
+ * $Id: bmpdataset.cpp 17544 2009-08-20 22:26:18Z rouault $
  *
  * Project:  Microsoft Windows Bitmap
  * Purpose:  Read/write MS Windows Device Independent Bitmap (DIB) files
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bmpdataset.cpp 16254 2009-02-07 17:09:23Z rouault $");
+CPL_CVSID("$Id: bmpdataset.cpp 17544 2009-08-20 22:26:18Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BMP(void);
@@ -689,7 +689,7 @@ class BMPComprRasterBand : public BMPRasterBand
 BMPComprRasterBand::BMPComprRasterBand( BMPDataset *poDS, int nBand )
     : BMPRasterBand( poDS, nBand )
 {
-    unsigned int    i, j, k, iLength;
+    unsigned int    i, j, k, iLength = 0;
     GUInt32         iComprSize, iUncomprSize;
 
     iComprSize = poDS->sFileHeader.iSize - poDS->sFileHeader.iOffBits;
@@ -912,12 +912,25 @@ BMPDataset::~BMPDataset()
 
 CPLErr BMPDataset::GetGeoTransform( double * padfTransform )
 {
-    memcpy( padfTransform, adfGeoTransform, sizeof(adfGeoTransform[0]) * 6 );
-
     if( bGeoTransformValid )
+    {
+        memcpy( padfTransform, adfGeoTransform, sizeof(adfGeoTransform[0])*6 );
         return CE_None;
-    else
-        return GDALPamDataset::GetGeoTransform( padfTransform );
+    }
+
+    if( GDALPamDataset::GetGeoTransform( padfTransform ) == CE_None)
+        return CE_None;
+
+    if (sInfoHeader.iXPelsPerMeter > 0 && sInfoHeader.iYPelsPerMeter > 0)
+    {
+        padfTransform[1] = sInfoHeader.iXPelsPerMeter;
+        padfTransform[5] = -sInfoHeader.iYPelsPerMeter;
+        padfTransform[0] = -0.5*padfTransform[1];
+        padfTransform[3] = -0.5*padfTransform[5];
+        return CE_None;
+    }
+
+    return CE_Failure;
 }
 
 /************************************************************************/
@@ -928,19 +941,20 @@ CPLErr BMPDataset::SetGeoTransform( double * padfTransform )
 {
     CPLErr              eErr = CE_None;
 
-    memcpy( adfGeoTransform, padfTransform, sizeof(double) * 6 );
-
     if ( pszFilename && bGeoTransformValid )
     {
+        memcpy( adfGeoTransform, padfTransform, sizeof(double) * 6 );
+
         if ( GDALWriteWorldFile( pszFilename, "wld", adfGeoTransform )
              == FALSE )
         {
             CPLError( CE_Failure, CPLE_FileIO, "Can't write world file." );
             eErr = CE_Failure;
         }
+        return eErr;
     }
-
-    return eErr;
+    else
+        return GDALPamDataset::SetGeoTransform( padfTransform );
 }
 
 /************************************************************************/
@@ -1011,7 +1025,10 @@ GDALDataset *BMPDataset::Open( GDALOpenInfo * poOpenInfo )
     else
         poDS->fp = VSIFOpenL( poOpenInfo->pszFilename, "r+b" );
     if ( !poDS->fp )
+    {
+        delete poDS;
         return NULL;
+    }
 
     VSIStatL(poOpenInfo->pszFilename, &sStat);
 
@@ -1259,15 +1276,15 @@ GDALDataset *BMPDataset::Open( GDALOpenInfo * poOpenInfo )
                                poDS->adfGeoTransform );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }
@@ -1313,6 +1330,7 @@ GDALDataset *BMPDataset::Create( const char * pszFilename,
         CPLError( CE_Failure, CPLE_OpenFailed,
                   "Unable to create file %s.\n",
                   pszFilename );
+        delete poDS;
         return NULL;
     }
 
@@ -1349,7 +1367,6 @@ GDALDataset *BMPDataset::Create( const char * pszFilename,
         CPLError( CE_Failure, CPLE_FileIO,
                   "Wrong image parameters; "
                   "can't allocate space for scanline buffer" );
-        VSIFCloseL( poDS->fp );
         delete poDS;
 
         return NULL;
@@ -1407,7 +1424,6 @@ GDALDataset *BMPDataset::Create( const char * pszFilename,
                   "Write of first 2 bytes to BMP file %s failed.\n"
                   "Is file system full?",
                   pszFilename );
-        VSIFCloseL( poDS->fp );
         delete poDS;
 
         return NULL;
@@ -1457,7 +1473,6 @@ GDALDataset *BMPDataset::Create( const char * pszFilename,
         {
             CPLError( CE_Failure, CPLE_FileIO, 
                       "Error writing color table.  Is disk full?" );
-            VSIFCloseL( poDS->fp );
             delete poDS;
 
             return NULL;

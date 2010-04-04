@@ -29,7 +29,7 @@
 
 #include "ogr_xplane_nav_reader.h"
 
-CPL_CVSID("$Id: ogr_xplane_nav_reader.cpp 14977 2008-07-19 13:17:25Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_nav_reader.cpp 18548 2010-01-14 22:01:35Z rouault $");
 
 /************************************************************************/
 /*                   OGRXPlaneCreateNavFileReader                       */
@@ -47,6 +47,13 @@ OGRXPlaneReader* OGRXPlaneCreateNavFileReader( OGRXPlaneDataSource* poDataSource
 /************************************************************************/
 OGRXPlaneNavReader::OGRXPlaneNavReader()
 {
+    poILSLayer = NULL;
+    poVORLayer = NULL;
+    poNDBLayer = NULL;
+    poGSLayer = NULL;
+    poMarkerLayer = NULL;
+    poDMELayer = NULL;
+    poDMEILSLayer = NULL;
 }
 
 /************************************************************************/
@@ -55,8 +62,6 @@ OGRXPlaneNavReader::OGRXPlaneNavReader()
 
 OGRXPlaneNavReader::OGRXPlaneNavReader( OGRXPlaneDataSource* poDataSource )
 {
-    poInterestLayer = NULL;
-
     poILSLayer = new OGRXPlaneILSLayer();
     poVORLayer = new OGRXPlaneVORLayer();
     poNDBLayer = new OGRXPlaneNDBLayer();

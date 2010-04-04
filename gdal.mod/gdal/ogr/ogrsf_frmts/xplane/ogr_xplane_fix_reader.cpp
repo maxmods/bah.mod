@@ -29,7 +29,7 @@
 
 #include "ogr_xplane_fix_reader.h"
 
-CPL_CVSID("$Id: ogr_xplane_fix_reader.cpp 14977 2008-07-19 13:17:25Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_fix_reader.cpp 18548 2010-01-14 22:01:35Z rouault $");
 
 /************************************************************************/
 /*                   OGRXPlaneCreateFixFileReader                       */
@@ -47,6 +47,7 @@ OGRXPlaneReader* OGRXPlaneCreateFixFileReader( OGRXPlaneDataSource* poDataSource
 /************************************************************************/
 OGRXPlaneFixReader::OGRXPlaneFixReader()
 {
+    poFIXLayer = NULL;
 }
 
 /************************************************************************/
@@ -55,8 +56,6 @@ OGRXPlaneFixReader::OGRXPlaneFixReader()
 
 OGRXPlaneFixReader::OGRXPlaneFixReader( OGRXPlaneDataSource* poDataSource )
 {
-    poInterestLayer = NULL;
-
     poFIXLayer = new OGRXPlaneFIXLayer();
 
     poDataSource->RegisterLayer(poFIXLayer);

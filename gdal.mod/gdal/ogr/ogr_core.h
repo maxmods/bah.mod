@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_core.h 15084 2008-07-30 23:27:04Z warmerdam $
+ * $Id: ogr_core.h 17722 2009-10-01 16:40:26Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Define some core portability services for cross-platform OGR code.
@@ -87,7 +87,34 @@ class CPL_DLL OGREnvelope
             MinY = MaxY = dfY;
         }
     }
-
+    
+    void Intersect( OGREnvelope const& sOther ) {
+        if(Intersects(sOther))
+        {
+            if( IsInit() )
+            {
+                MinX = MAX(MinX,sOther.MinX);
+                MaxX = MIN(MaxX,sOther.MaxX);
+                MinY = MAX(MinY,sOther.MinY);
+                MaxY = MIN(MaxY,sOther.MaxY);
+            }
+            else
+            {
+                MinX = sOther.MinX;
+                MaxX = sOther.MaxX;
+                MinY = sOther.MinY;
+                MaxY = sOther.MaxY;
+            }
+        }
+        else
+        {
+            MinX = 0;
+            MaxX = 0;
+            MinY = 0;
+            MaxY = 0;
+        }
+    }
+ 
     int Intersects(OGREnvelope const& other) const
     {
         return MinX <= other.MaxX && MaxX >= other.MinX && 
@@ -216,7 +243,8 @@ typedef enum
   /** Raw Binary data */                        OFTBinary = 8,
   /** Date */                                   OFTDate = 9,
   /** Time */                                   OFTTime = 10,
-  /** Date and Time */                          OFTDateTime = 11
+  /** Date and Time */                          OFTDateTime = 11,
+                                                OFTMaxType = 11
 } OGRFieldType;
 
 /**

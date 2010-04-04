@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: elasdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
+ * $Id: elasdataset.cpp 16396 2009-02-22 20:49:52Z rouault $
  *
  * Project:  ELAS Translator
  * Purpose:  Complete implementation of ELAS translator module for GDAL.
@@ -29,7 +29,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: elasdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
+CPL_CVSID("$Id: elasdataset.cpp 16396 2009-02-22 20:49:52Z rouault $");
 
 CPL_C_START
 void	GDALRegister_ELAS(void);
@@ -342,6 +342,13 @@ GDALDataset *ELASDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterXSize = nEnd - nStart + 1;
 
     poDS->nBands = CPL_MSBWORD32( poDS->sHeader.NC );
+
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize) ||
+        !GDALCheckBandCount(poDS->nBands, FALSE))
+    {
+        delete poDS;
+        return NULL;
+    }
 
     nELASDataType = (poDS->sHeader.IH19[2] & 0x7e) >> 2;
     nBytesPerSample = poDS->sHeader.IH19[3];

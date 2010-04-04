@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: minidriver_wms.h 18326 2009-12-17 20:17:29Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -55,4 +56,5 @@ protected:
     CPLString m_image_format;
     CPLString m_projection_wkt;
     CPLString m_bbox_order;
+    CPLString m_transparent;
 };

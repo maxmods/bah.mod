@@ -622,12 +622,12 @@ static int ReadGrib1Sect1 (uChar *pds, uInt4 gribLen, uInt4 *curLoc,
        * http://www.ecmwf.int/publications/manuals/libraries/gribex/
        * localGRIBUsage.html */
    } else if (*center == ECMWF) {
-      sInt4 i_temp;
       if (sectLen < 45) {
          printf ("Warning! Problems with ECMWF PDS extension\n");
          return 0;
       }
       /*
+      sInt4 i_temp;
       pds += 12;
       i_temp = GRIB_SIGN_INT2 (pds[3], pds[4]);
       printf ("ID %d Class %d Type %d Stream %d", pds[0], pds[1], pds[2],
@@ -1729,9 +1729,6 @@ int ReadGrib1Record (DataSource &fp, sChar f_unit, double **Grib_Data,
 
    /* Make room for entire message, and read it in. */
    /* nd5 needs to be gribLen in (sInt4) units rounded up. */
-#ifdef DEBUG
-   printf ("GribLen == %d\n", gribLen);
-#endif
    nd5 = (gribLen + 3) / 4;
    if (nd5 > IS->ipackLen) {
       IS->ipackLen = nd5;

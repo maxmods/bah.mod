@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: minidriver_tileservice.cpp 18020 2009-11-14 14:33:20Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS

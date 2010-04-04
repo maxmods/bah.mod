@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_multiproc.h 15194 2008-08-23 12:24:11Z rouault $
+ * $Id: cpl_multiproc.h 17143 2009-05-28 18:26:05Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL Multi-Threading, and process handling portability functions.
@@ -104,6 +104,10 @@ class CPL_DLL CPLMutexHolder
 #define CTLS_SWQ_ERRBUF                 9         /* swq.c */
 #define CTLS_CPLSPRINTF                10         /* cpl_string.h */
 #define CTLS_RESPONSIBLEPID            11         /* gdaldataset.cpp */
+#define CTLS_VERSIONINFO               12         /* gdal_misc.cpp */
+#define CTLS_VERSIONINFO_LICENCE       13         /* gdal_misc.cpp */
+#define CTLS_CONFIGOPTIONS             14         /* cpl_conv.cpp */
+#define CTLS_FINDFILE                  15         /* cpl_findfile.cpp */
 
 #define CTLS_MAX                       32         
 

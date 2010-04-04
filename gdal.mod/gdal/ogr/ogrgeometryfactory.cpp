@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp 15945 2008-12-12 16:15:41Z warmerdam $
+ * $Id: ogrgeometryfactory.cpp 18320 2009-12-17 02:22:03Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -31,18 +31,20 @@
 #include "ogr_geometry.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
-#include <assert.h>
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 15945 2008-12-12 16:15:41Z warmerdam $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 18320 2009-12-17 02:22:03Z warmerdam $");
+
+#ifndef PI
+#define PI  3.14159265358979323846
+#endif 
 
 /************************************************************************/
 /*                           createFromWkb()                            */
 /************************************************************************/
 
 /**
- * Create a geometry object of the appropriate type from it's well known
- * binary representation.
+ * \brief Create a geometry object of the appropriate type from it's well known binary representation.
  *
  * Note that if nBytes is passed as zero, no checking can be done on whether
  * the pabyData is sufficient.  This can result in a crash if the input
@@ -83,7 +85,7 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
 
     *ppoReturn = NULL;
 
-    if( nBytes < 5 && nBytes != -1 )
+    if( nBytes < 9 && nBytes != -1 )
         return OGRERR_NOT_ENOUGH_DATA;
 
 /* -------------------------------------------------------------------- */
@@ -97,7 +99,7 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
     {
         CPLDebug( "OGR", 
                   "OGRGeometryFactory::createFromWkb() - got corrupt data.\n"
-                  "%02X%02X%02X%02X%02X%02X%02X%02X\n", 
+                  "%02X%02X%02X%02X%02X%02X%02X%02X%02X\n", 
                   pabyData[0],
                   pabyData[1],
                   pabyData[2],
@@ -105,7 +107,8 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
                   pabyData[4],
                   pabyData[5],
                   pabyData[6],
-                  pabyData[7] );
+                  pabyData[7],
+                  pabyData[8]);
         return OGRERR_CORRUPT_DATA;
     }
 
@@ -153,8 +156,7 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
 /*                        OGR_G_CreateFromWkb()                         */
 /************************************************************************/
 /**
- * Create a geometry object of the appropriate type from it's well known
- * binary representation.
+ * \brief Create a geometry object of the appropriate type from it's well known binary representation.
  *
  * Note that if nBytes is passed as zero, no checking can be done on whether
  * the pabyData is sufficient.  This can result in a crash if the input
@@ -197,8 +199,7 @@ OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData,
 /************************************************************************/
 
 /**
- * Create a geometry object of the appropriate type from it's well known
- * text representation.
+ * \brief Create a geometry object of the appropriate type from it's well known text representation.
  *
  * The C function OGR_G_CreateFromWkt() is the same as this method.
  *
@@ -317,8 +318,7 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
 /*                        OGR_G_CreateFromWkt()                         */
 /************************************************************************/
 /**
- * Create a geometry object of the appropriate type from it's well known
- * text representation.
+ * \brief Create a geometry object of the appropriate type from it's well known text representation.
  *
  * The OGRGeometryFactory::createFromWkt CPP method is the same as this
  * function.
@@ -352,7 +352,7 @@ OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData,
 /************************************************************************/
 
 /** 
- * Create an empty geometry of desired type.
+ * \brief Create an empty geometry of desired type.
  *
  * This is equivelent to allocating the desired geometry with new, but
  * the allocation is guaranteed to take place in the context of the 
@@ -398,15 +398,13 @@ OGRGeometryFactory::createGeometry( OGRwkbGeometryType eGeometryType )
       default:
           return NULL;
     }
-
-    return NULL;
 }
 
 /************************************************************************/
 /*                        OGR_G_CreateGeometry()                        */
 /************************************************************************/
 /** 
- * Create an empty geometry of desired type.
+ * \brief Create an empty geometry of desired type.
  *
  * This is equivelent to allocating the desired geometry with new, but
  * the allocation is guaranteed to take place in the context of the 
@@ -432,7 +430,7 @@ OGRGeometryH OGR_G_CreateGeometry( OGRwkbGeometryType eGeometryType )
 /************************************************************************/
 
 /**
- * Destroy geometry object.
+ * \brief Destroy geometry object.
  *
  * Equivalent to invoking delete on a geometry, but it guaranteed to take 
  * place within the context of the GDAL/OGR heap.
@@ -453,7 +451,7 @@ void OGRGeometryFactory::destroyGeometry( OGRGeometry *poGeom )
 /*                        OGR_G_DestroyGeometry()                       */
 /************************************************************************/
 /**
- * Destroy geometry object.
+ * \brief Destroy geometry object.
  *
  * Equivalent to invoking delete on a geometry, but it guaranteed to take 
  * place within the context of the GDAL/OGR heap.
@@ -475,7 +473,7 @@ void OGR_G_DestroyGeometry( OGRGeometryH hGeom )
 /************************************************************************/
 
 /**
- * Convert to polygon.
+ * \brief Convert to polygon.
  *
  * Tries to force the provided geometry to be a polygon.  Currently
  * this just effects a change on multipolygons.  The passed in geometry is
@@ -524,7 +522,7 @@ OGRGeometry *OGRGeometryFactory::forceToPolygon( OGRGeometry *poGeom )
 /************************************************************************/
 
 /**
- * Convert to multipolygon.
+ * \brief Convert to multipolygon.
  *
  * Tries to force the provided geometry to be a multipolygon.  Currently
  * this just effects a change on polygons.  The passed in geometry is
@@ -590,7 +588,7 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPolygon( OGRGeometry *poGeom )
 /************************************************************************/
 
 /**
- * Convert to multipoint.
+ * \brief Convert to multipoint.
  *
  * Tries to force the provided geometry to be a multipoint.  Currently
  * this just effects a change on points.  The passed in geometry is
@@ -652,7 +650,7 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPoint( OGRGeometry *poGeom )
 /************************************************************************/
 
 /**
- * Convert to multilinestring.
+ * \brief Convert to multilinestring.
  *
  * Tries to force the provided geometry to be a multilinestring.
  *
@@ -833,7 +831,7 @@ typedef enum
 } OrganizePolygonMethod;
 
 /**
- * Organize polygons based on geometries.
+ * \brief Organize polygons based on geometries.
  *
  * Analyse a set of rings (passed as simple polygons), and based on a 
  * geometric analysis convert them into a polygon with inner rings, 
@@ -1282,7 +1280,7 @@ OGRGeometry* OGRGeometryFactory::organizePolygons( OGRGeometry **papoPolygons,
 /************************************************************************/
 
 /**
- * Create geometry from GML.
+ * \brief Create geometry from GML.
  *
  * This method translates a fragment of GML containing only the geometry
  * portion into a corresponding OGRGeometry.  There are many limitations
@@ -1341,7 +1339,11 @@ OGRGeometryFactory::createFromGEOS( GEOSGeom geosGeom )
 
     if( pabyBuf != NULL )
     {
+#if GEOS_CAPI_VERSION_MAJOR >= 2 || (GEOS_CAPI_VERSION_MAJOR == 1 && GEOS_CAPI_VERSION_MINOR >= 6)
+        GEOSFree( pabyBuf );
+#else
         free( pabyBuf );
+#endif
     }
 
     return poGeometry;
@@ -1366,7 +1368,7 @@ void *OGRGeometryFactory::getGEOSGeometryFactory()
 /************************************************************************/
 
 /**
- * Test if GEOS enabled.
+ * \brief Test if GEOS enabled.
  *
  * This static method returns TRUE if GEOS support is built into OGR,
  * otherwise it returns FALSE.
@@ -1389,8 +1391,7 @@ int OGRGeometryFactory::haveGEOS()
 /************************************************************************/
 
 /**
- * Create a geometry object of the appropriate type from it's FGF (FDO 
- * Geometry Format) binary representation.
+ * \brief Create a geometry object of the appropriate type from it's FGF (FDO Geometry Format) binary representation.
  *
  * Also note that this is a static method, and that there
  * is no need to instantiate an OGRGeometryFactory object.  
@@ -1519,8 +1520,11 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
 
         memcpy( &nPointCount, pabyData + 8, 4 );
         CPL_LSBPTR32( &nPointCount );
-        
-        if( nBytes < nTupleSize * 8 * nPointCount + 12 )
+
+        if (nPointCount < 0 || nPointCount > INT_MAX / (nTupleSize * 8))
+            return OGRERR_CORRUPT_DATA;
+
+        if( nBytes - 12 < nTupleSize * 8 * nPointCount )
             return OGRERR_NOT_ENOUGH_DATA;
 
         poGeom = poLS = new OGRLineString();
@@ -1563,6 +1567,13 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
         memcpy( &nRingCount, pabyData + 8, 4 );
         CPL_LSBPTR32( &nRingCount );
 
+        if (nRingCount < 0 || nRingCount > INT_MAX / 4)
+            return OGRERR_CORRUPT_DATA;
+
+        /* Each ring takes at least 4 bytes */
+        if (nBytes - 12 < nRingCount * 4)
+            return OGRERR_NOT_ENOUGH_DATA;
+
         nNextByte = 12;
         
         poGeom = poPoly = new OGRPolygon();
@@ -1574,6 +1585,9 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
 
             memcpy( &nPointCount, pabyData + nNextByte, 4 );
             CPL_LSBPTR32( &nPointCount );
+
+            if (nPointCount < 0 || nPointCount > INT_MAX / (nTupleSize * 8))
+                return OGRERR_CORRUPT_DATA;
 
             nNextByte += 4;
 
@@ -1631,6 +1645,13 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
 
         memcpy( &nGeomCount, pabyData + 4, 4 );
         CPL_LSBPTR32( &nGeomCount );
+
+        if (nGeomCount < 0 || nGeomCount > INT_MAX / 4)
+            return OGRERR_CORRUPT_DATA;
+
+        /* Each geometry takes at least 4 bytes */
+        if (nBytes - 8 < 4 * nGeomCount)
+            return OGRERR_NOT_ENOUGH_DATA;
 
         nBytesUsed = 8;
 
@@ -1704,3 +1725,384 @@ OGRErr CPL_DLL OGR_G_CreateFromFgf( unsigned char *pabyData,
                                               nBytes, pnBytesConsumed );
 }
 
+
+/************************************************************************/
+/*                           Add360ToNegLon()                           */
+/************************************************************************/
+
+static void Add360ToNegLon( OGRGeometry* poGeom )
+{
+    switch (wkbFlatten(poGeom->getGeometryType()))
+    {
+        case wkbPolygon:
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            int nSubGeomCount = OGR_G_GetGeometryCount((OGRGeometryH)poGeom);
+            for( int iGeom = 0; iGeom < nSubGeomCount; iGeom++ )
+            {
+                Add360ToNegLon((OGRGeometry*)OGR_G_GetGeometryRef((OGRGeometryH)poGeom, iGeom));
+            }
+            
+            break;
+        }
+            
+        case wkbLineString:
+        case wkbLinearRing:
+        {
+            OGRLineString* poLineString = (OGRLineString* )poGeom;
+            int nPointCount = poLineString->getNumPoints();
+            int nCoordDim = poLineString->getCoordinateDimension();
+            for( int iPoint = 0; iPoint < nPointCount; iPoint++)
+            {
+                if (poLineString->getX(iPoint) < -90)
+                {
+                    if (nCoordDim == 2)
+                        poLineString->setPoint(iPoint,
+                                         poLineString->getX(iPoint) + 360,
+                                         poLineString->getY(iPoint));
+                    else
+                        poLineString->setPoint(iPoint,
+                                         poLineString->getX(iPoint) + 360,
+                                         poLineString->getY(iPoint),
+                                         poLineString->getZ(iPoint));
+                }
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+/************************************************************************/
+/*                            Sub360ToLon()                             */
+/************************************************************************/
+
+static void Sub360ToLon( OGRGeometry* poGeom )
+{
+    switch (wkbFlatten(poGeom->getGeometryType()))
+    {
+        case wkbPolygon:
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            int nSubGeomCount = OGR_G_GetGeometryCount((OGRGeometryH)poGeom);
+            for( int iGeom = 0; iGeom < nSubGeomCount; iGeom++ )
+            {
+                Sub360ToLon((OGRGeometry*)OGR_G_GetGeometryRef((OGRGeometryH)poGeom, iGeom));
+            }
+            
+            break;
+        }
+            
+        case wkbLineString:
+        case wkbLinearRing:
+        {
+            OGRLineString* poLineString = (OGRLineString* )poGeom;
+            int nPointCount = poLineString->getNumPoints();
+            int nCoordDim = poLineString->getCoordinateDimension();
+            for( int iPoint = 0; iPoint < nPointCount; iPoint++)
+            {
+                if (nCoordDim == 2)
+                    poLineString->setPoint(iPoint,
+                                     poLineString->getX(iPoint) - 360,
+                                     poLineString->getY(iPoint));
+                else
+                    poLineString->setPoint(iPoint,
+                                     poLineString->getX(iPoint) - 360,
+                                     poLineString->getY(iPoint),
+                                     poLineString->getZ(iPoint));
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+/************************************************************************/
+/*                        AddSimpleGeomToMulti()                        */
+/************************************************************************/
+
+static void AddSimpleGeomToMulti(OGRGeometryCollection* poMulti,
+                                 const OGRGeometry* poGeom)
+{
+    switch (wkbFlatten(poGeom->getGeometryType()))
+    {
+        case wkbPolygon:
+        case wkbLineString:
+            poMulti->addGeometry(poGeom);
+            break;
+            
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            int nSubGeomCount = OGR_G_GetGeometryCount((OGRGeometryH)poGeom);
+            for( int iGeom = 0; iGeom < nSubGeomCount; iGeom++ )
+            {
+                OGRGeometry* poSubGeom =
+                    (OGRGeometry*)OGR_G_GetGeometryRef((OGRGeometryH)poGeom, iGeom);
+                AddSimpleGeomToMulti(poMulti, poSubGeom);
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+/************************************************************************/
+/*                 CutGeometryOnDateLineAndAddToMulti()                 */
+/************************************************************************/
+
+static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
+                                               const OGRGeometry* poGeom)
+{
+    switch (wkbFlatten(poGeom->getGeometryType()))
+    {
+        case wkbPolygon:
+        case wkbLineString:
+        {
+            int bWrapDateline = FALSE;
+            OGREnvelope oEnvelope;
+            
+            poGeom->getEnvelope(&oEnvelope);
+            
+            /* Naive heuristics... Place to improvement... */
+            OGRGeometry* poDupGeom = NULL;
+            
+            if (oEnvelope.MinX < -170 && oEnvelope.MaxX > 170)
+            {
+                bWrapDateline = TRUE;
+                poDupGeom = poGeom->clone();
+                Add360ToNegLon(poDupGeom);
+            }
+            else if (oEnvelope.MinX > 170 && oEnvelope.MaxX > 180)
+                bWrapDateline = TRUE;
+
+            if (bWrapDateline)
+            {
+#ifndef HAVE_GEOS
+                CPLError( CE_Failure, CPLE_NotSupported, 
+                          "GEOS support not enabled." );
+
+                poMulti->addGeometry(poGeom);
+#else
+                const OGRGeometry* poWorkGeom = (poDupGeom) ? poDupGeom : poGeom;
+                OGRGeometry* poRectangle1 = NULL;
+                OGRGeometry* poRectangle2 = NULL;
+                const char* pszWKT1 = "POLYGON((0 90,180 90,180 -90,0 -90,0 90))";
+                const char* pszWKT2 = "POLYGON((180 90,360 90,360 -90,180 -90,180 90))";
+                OGRGeometryFactory::createFromWkt((char**)&pszWKT1, NULL, &poRectangle1);
+                OGRGeometryFactory::createFromWkt((char**)&pszWKT2, NULL, &poRectangle2);
+                OGRGeometry* poGeom1 = poWorkGeom->Intersection(poRectangle1);
+                OGRGeometry* poGeom2 = poWorkGeom->Intersection(poRectangle2);
+                delete poRectangle1;
+                delete poRectangle2;
+                
+                if (poGeom1 != NULL && poGeom2 != NULL)
+                {
+                    AddSimpleGeomToMulti(poMulti, poGeom1);
+                    Sub360ToLon(poGeom2);
+                    AddSimpleGeomToMulti(poMulti, poGeom2);
+                }
+                else
+                {
+                    AddSimpleGeomToMulti(poMulti, poGeom);
+                }
+                
+                delete poGeom1;
+                delete poGeom2;
+                delete poDupGeom;
+#endif
+            }
+            else
+            {
+                poMulti->addGeometry(poGeom);
+            }   
+            break;
+        }
+            
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            int nSubGeomCount = OGR_G_GetGeometryCount((OGRGeometryH)poGeom);
+            for( int iGeom = 0; iGeom < nSubGeomCount; iGeom++ )
+            {
+                OGRGeometry* poSubGeom =
+                    (OGRGeometry*)OGR_G_GetGeometryRef((OGRGeometryH)poGeom, iGeom);
+                CutGeometryOnDateLineAndAddToMulti(poMulti, poSubGeom);
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+/************************************************************************/
+/*                       transformWithOptions()                         */
+/************************************************************************/
+
+OGRGeometry* OGRGeometryFactory::transformWithOptions( const OGRGeometry* poSrcGeom,
+                                                       OGRCoordinateTransformation *poCT,
+                                                       char** papszOptions )
+{
+    OGRGeometry* poDstGeom = poSrcGeom->clone();
+    OGRErr eErr = poDstGeom->transform(poCT);
+    if (eErr != OGRERR_NONE)
+    {
+        delete poDstGeom;
+        return NULL;
+    }
+    
+    if (CSLTestBoolean(CSLFetchNameValueDef(papszOptions, "WRAPDATELINE", "NO")))
+    {
+        OGRwkbGeometryType eType = wkbFlatten(poSrcGeom->getGeometryType());
+        OGRwkbGeometryType eNewType;
+        if (eType == wkbPolygon || eType == wkbMultiPolygon)
+            eNewType = wkbMultiPolygon;
+        else if (eType == wkbLineString || eType == wkbMultiLineString)
+            eNewType = wkbMultiLineString;
+        else
+            eNewType = wkbGeometryCollection;
+        
+        OGRGeometryCollection* poMulti =
+            (OGRGeometryCollection* )createGeometry(eNewType);
+            
+        CutGeometryOnDateLineAndAddToMulti(poMulti, poDstGeom);
+        
+        if (poMulti->getNumGeometries() == 0)
+        {
+            delete poMulti;
+        }            
+        else if (poMulti->getNumGeometries() == 1)
+        {
+            delete poDstGeom;
+            poDstGeom = poMulti->getGeometryRef(0)->clone();
+            delete poMulti;
+        }
+        else
+        {
+            delete poDstGeom;
+            poDstGeom = poMulti;
+        }
+    }
+
+    return poDstGeom;
+}
+
+/************************************************************************/
+/*                        approximateArcAngles()                        */
+/************************************************************************/
+
+/**
+ * Stroke arc to linestring.
+ *
+ * Stroke an arc of a circle to a linestring based on a center
+ * point, radius, start angle and end angle, all angles in degrees.
+ *
+ * If the dfMaxAngleStepSizeDegrees is zero, then a default value will be
+ * used.  This is currently 4 degrees unless the user has overridden the
+ * value with the OGR_ARC_STEPSIZE configuration variable. 
+ *
+ * @see CPLSetConfigOption()
+ *
+ * @param dfCenterX center X
+ * @param dfCenterY center Y
+ * @param dfZ center Z
+ * @param dfPrimaryRadius X radius of ellipse.
+ * @param dfSecondaryRadius Y radius of ellipse. 
+ * @param dfRotation rotation of the ellipse clockwise.
+ * @param dfStartAngle angle to first point on arc (clockwise of X-positive) 
+ * @param dfEndAngle angle to last point on arc (clockwise of X-positive) 
+ * @param dfMaxAngleStepSizeDegrees the largest step in degrees along the
+ * arc, zero to use the default setting.
+ * 
+ * @return OGRLineString geometry representing an approximation of the arc.
+ */
+
+OGRGeometry* OGRGeometryFactory::approximateArcAngles( 
+    double dfCenterX, double dfCenterY, double dfZ,
+    double dfPrimaryRadius, double dfSecondaryRadius, double dfRotation, 
+    double dfStartAngle, double dfEndAngle,
+    double dfMaxAngleStepSizeDegrees )
+
+{
+    double             dfSlice;
+    int                iPoint, nVertexCount;
+    OGRLineString     *poLine = new OGRLineString();
+    double             dfRotationRadians = dfRotation * PI / 180.0;
+
+    // support default arc step setting.
+    if( dfMaxAngleStepSizeDegrees == 0 )
+    {
+        dfMaxAngleStepSizeDegrees = 
+            atof(CPLGetConfigOption("OGR_ARC_STEPSIZE","4"));
+    }
+
+    // switch direction 
+    dfStartAngle *= -1;
+    dfEndAngle *= -1;
+
+    // Figure out the number of slices to make this into.
+    nVertexCount = (int) 
+        ceil(fabs(dfEndAngle - dfStartAngle)/dfMaxAngleStepSizeDegrees) + 1;
+    nVertexCount = MAX(2,nVertexCount);
+    dfSlice = (dfEndAngle-dfStartAngle)/(nVertexCount-1);
+
+/* -------------------------------------------------------------------- */
+/*      Compute the interpolated points.                                */
+/* -------------------------------------------------------------------- */
+    for( iPoint=0; iPoint < nVertexCount; iPoint++ )
+    {
+        double      dfAngleOnEllipse;
+        double      dfArcX, dfArcY;
+        double      dfEllipseX, dfEllipseY;
+
+        dfAngleOnEllipse = (dfStartAngle + iPoint * dfSlice) * PI / 180.0;
+
+        // Compute position on the unrotated ellipse. 
+        dfEllipseX = cos(dfAngleOnEllipse) * dfPrimaryRadius;
+        dfEllipseY = sin(dfAngleOnEllipse) * dfSecondaryRadius;
+        
+        // Rotate this position around the center of the ellipse.
+        dfArcX = dfCenterX 
+            + dfEllipseX * cos(dfRotationRadians) 
+            + dfEllipseY * sin(dfRotationRadians);
+        dfArcY = dfCenterY 
+            - dfEllipseX * sin(dfRotationRadians)
+            + dfEllipseY * cos(dfRotationRadians);
+
+        poLine->setPoint( iPoint, dfArcX, dfArcY, dfZ );
+    }
+
+    return poLine;
+}
+
+/************************************************************************/
+/*                     OGR_G_ApproximateArcAngles()                     */
+/************************************************************************/
+
+OGRGeometryH CPL_DLL 
+OGR_G_ApproximateArcAngles( 
+    double dfCenterX, double dfCenterY, double dfZ,
+    double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation, 
+    double dfStartAngle, double dfEndAngle,
+    double dfMaxAngleStepSizeDegrees )
+
+{
+    return (OGRGeometryH) OGRGeometryFactory::approximateArcAngles(
+        dfCenterX, dfCenterY, dfZ, 
+        dfPrimaryRadius, dfSecondaryAxis, dfRotation,
+        dfStartAngle, dfEndAngle, dfMaxAngleStepSizeDegrees );
+}

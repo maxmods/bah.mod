@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.h 17630 2009-09-10 15:30:44Z chaitanya $
+ * $Id: gmlreader.h 17629 2009-09-10 14:51:45Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Public Declarations for OGR free GML Reader code.
@@ -153,6 +153,9 @@ class CPL_DLL GMLFeature
 
     char            *m_pszGeometry;
 
+    // string list of named non-schema properties - used by NAS driver.
+    char           **m_papszOBProperties; 
+    
 public:
                     GMLFeature( GMLFeatureClass * );
                    ~GMLFeature();
@@ -174,6 +177,11 @@ public:
     void             SetFID( const char *pszFID );
 
     void             Dump( FILE *fp );
+
+    // Out of Band property handling - special stuff like relations for NAS.
+    void             AddOBProperty( const char *pszName, const char *pszValue );
+    const char      *GetOBProperty( const char *pszName );
+    char           **GetOBProperties();
 };
 
 /************************************************************************/
@@ -205,6 +213,8 @@ public:
     virtual int  ParseXSD( const char *pszFile ) = 0;
 
     virtual int PrescanForSchema( int bGetExtents = TRUE ) = 0;
+
+    virtual int HasStoppedParsing() = 0;
 };
 
 IGMLReader *CreateGMLReader();

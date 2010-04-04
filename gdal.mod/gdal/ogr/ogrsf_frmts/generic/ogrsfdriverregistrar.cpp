@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsfdriverregistrar.cpp 15208 2008-08-25 16:46:14Z rouault $
+ * $Id: ogrsfdriverregistrar.cpp 18695 2010-02-01 17:23:44Z hobu $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSFDriverRegistrar class implementation.
@@ -32,10 +32,10 @@
 #include "ogr_p.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 15208 2008-08-25 16:46:14Z rouault $");
+CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 18695 2010-02-01 17:23:44Z hobu $");
 
 static void *hDRMutex = NULL;
-static OGRSFDriverRegistrar *poRegistrar = NULL;
+static OGRSFDriverRegistrar * volatile poRegistrar = NULL;
 
 static const char *pszUpdatableINST_DATA = 
 "__INST_DATA_TARGET:                                                                                                                                      ";
@@ -44,7 +44,7 @@ static const char *pszUpdatableINST_DATA =
 /************************************************************************/
 
 /**
- * Constructor
+ * \brief Constructor
  *
  * Normally the driver registrar is constucted by the 
  * OGRSFDriverRegistrar::GetRegistrar() accessor which ensures singleton
@@ -115,7 +115,7 @@ OGRSFDriverRegistrar::~OGRSFDriverRegistrar()
 /************************************************************************/
 
 /**
- * Cleanup all OGR related resources. 
+ * \brief Cleanup all OGR related resources. 
  *
  * This function will destroy the OGRSFDriverRegistrar along with all registered
  * drivers, and then cleanup long lived OSR (OGRSpatialReference) and CPL
@@ -156,7 +156,7 @@ void OGRCleanupAll()
 /************************************************************************/
 
 /**
- * Fetch registrar.
+ * \brief Fetch registrar.
  *
  * This static method should be used to fetch the singleton 
  * registrar.  It will create a registrar if there is not already
@@ -168,11 +168,15 @@ void OGRCleanupAll()
 OGRSFDriverRegistrar *OGRSFDriverRegistrar::GetRegistrar()
 
 {
-    CPLMutexHolderD( &hDRMutex );
-    
     if( poRegistrar == NULL )
-        poRegistrar = new OGRSFDriverRegistrar();
+    {
+        CPLMutexHolderD( &hDRMutex );
 
+        if( poRegistrar == NULL )
+            poRegistrar = new OGRSFDriverRegistrar();
+    }
+   
+    CPLAssert( NULL != poRegistrar );
     return poRegistrar;
 }
 
@@ -542,7 +546,25 @@ void OGRSFDriverRegistrar::RegisterDriver( OGRSFDriver * poDriver )
             delete poDriver;
             return;
         }
-    }                                                   
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Skip and destroy drivers in the black list.                     */
+/* -------------------------------------------------------------------- */
+    char** papszSkipDrivers =
+            CSLTokenizeStringComplex(CPLGetConfigOption("OGR_SKIP", ""), ",", FALSE, FALSE);
+    char** iter = papszSkipDrivers;
+    while(*iter)
+    {
+        if (strcmp(*iter, poDriver->GetName()) == 0)
+        {
+            CSLDestroy(papszSkipDrivers);
+            delete poDriver;
+            return;
+        }
+        iter ++;
+    }
+    CSLDestroy(papszSkipDrivers);
 
 /* -------------------------------------------------------------------- */
 /*      Add to the end of the driver list.                              */
@@ -653,7 +675,7 @@ OGRSFDriverH OGRGetDriverByName( const char *pszName )
 /************************************************************************/
 
 /**
- * Auto-load GDAL drivers from shared libraries.
+ * \brief Auto-load GDAL drivers from shared libraries.
  *
  * This function will automatically load drivers from shared libraries.  It
  * searches the "driver path" for .so (or .dll) files that start with the
@@ -731,8 +753,12 @@ void OGRSFDriverRegistrar::AutoLoadDrivers()
 #endif 
 
 #ifdef MACOSX_FRAMEWORK
+#define num2str(x) str(x)
+#define str(x) #x 
         papszSearchPath = CSLAddString( papszSearchPath, 
-                                        "/Library/Application Support/GDAL/PlugIns" );
+                                        "/Library/Application Support/GDAL/"
+                                        num2str(GDAL_VERSION_MAJOR) "."
+                                        num2str(GDAL_VERSION_MINOR) "PlugIns" );
 #endif
 
     }

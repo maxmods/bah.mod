@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdsdataset.cpp 12658 2007-11-07 23:14:33Z warmerdam $
+ * $Id: cplkeywordparser.cpp 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  Common Portability Library
  * Purpose:  Implementation of CPLKeywordParser - a class for parsing
@@ -32,6 +32,8 @@
 
 #include "cpl_string.h" 
 #include "cplkeywordparser.h"
+
+CPL_CVSID("$Id");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -170,16 +172,39 @@ int CPLKeywordParser::ReadPair( CPLString &osName, CPLString &osValue )
     osValue = "";
 
     // Handle value lists like:     Name   = (Red, Red)
+    // or list of lists like : TLCList = ( (0,  0.000000), (8299,  4.811014) );
     if( *pszHeaderNext == '(' )
     {
         CPLString osWord;
+        int nDepth = 0;
+        const char* pszLastPos = pszHeaderNext;
 
-        while( ReadWord( osWord ) )
+        while( ReadWord( osWord ) && pszLastPos != pszHeaderNext)
         {
             SkipWhite();
+            pszLastPos = pszHeaderNext;
 
             osValue += osWord;
-            if( osWord[strlen(osWord)-1] == ')' )
+            const char* pszIter = osWord.c_str();
+            int bInQuote = FALSE;
+            while(*pszIter != '\0')
+            {
+                if (*pszIter == '"')
+                    bInQuote = !bInQuote;
+                else if (!bInQuote)
+                {
+                    if (*pszIter == '(')
+                        nDepth ++;
+                    else if (*pszIter == ')')
+                    {
+                        nDepth --;
+                        if (nDepth == 0)
+                            break;
+                    }
+                }
+                pszIter ++;
+            }
+            if (*pszIter == ')' && nDepth == 0)
                 break;
         }
     }

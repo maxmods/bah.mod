@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srsnode.cpp 12006 2007-08-30 14:10:05Z warmerdam $
+ * $Id: ogr_srsnode.cpp 18443 2010-01-05 19:33:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGR_SRSNode class.
@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srsnode.cpp 12006 2007-08-30 14:10:05Z warmerdam $");
+CPL_CVSID("$Id: ogr_srsnode.cpp 18443 2010-01-05 19:33:15Z rouault $");
 
 /************************************************************************/
 /*                            OGR_SRSNode()                             */
@@ -382,6 +382,11 @@ int OGR_SRSNode::NeedsQuoting() const
     if( poParent != NULL && EQUAL(poParent->GetValue(),"AXIS") 
         && this != poParent->GetChild(0) )
         return FALSE;
+
+    // Strings starting with e or E are not valid numeric values, so they
+    // need quoting, like in AXIS["E",EAST] 
+    if( (pszValue[0] == 'e' || pszValue[0] == 'E') )
+        return TRUE;
 
     // Non-numeric tokens are generally quoted while clean numeric values
     // are generally not. 

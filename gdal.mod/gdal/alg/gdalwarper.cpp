@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 15927 2008-12-10 02:49:55Z warmerdam $
+ * $Id: gdalwarper.cpp 18092 2009-11-24 20:48:51Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 15927 2008-12-10 02:49:55Z warmerdam $");
+CPL_CVSID("$Id: gdalwarper.cpp 18092 2009-11-24 20:48:51Z rouault $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -238,7 +238,15 @@ CPLErr CPL_STDCALL GDALCreateAndReprojectImage(
 /*      Default a few parameters.                                       */
 /* -------------------------------------------------------------------- */
     if( hDstDriver == NULL )
+    {
         hDstDriver = GDALGetDriverByName( "GTiff" );
+        if (hDstDriver == NULL)
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "GDALCreateAndReprojectImage needs GTiff driver");
+            return CE_Failure;
+        }
+    }
 
     if( pszSrcWKT == NULL )
         pszSrcWKT = GDALGetProjectionRef( hSrcDS );
@@ -646,6 +654,11 @@ GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
  * destination (INIT_DEST) and all other processing, and so should be used
  * careful.  Mostly useful to short circuit a lot of extra work in mosaicing 
  * situations.
+ * 
+ * - UNIFIED_SRC_NODATA=YES/[NO]: By default nodata masking values considered
+ * independently for each band.  However, sometimes it is desired to treat all
+ * bands as nodata if and only if, all bands match the corresponding nodata
+ * values.  To get this behavior set this option to YES. 
  *
  * Normally when computing the source raster data to 
  * load to generate a particular output area, the warper samples transforms
@@ -672,6 +685,19 @@ GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
  * window for a given request, and by default it is 1 to take care of rounding
  * error.  Setting this larger will incease the amount of data that needs to
  * be read, but can avoid missing source data.  
+ *
+ * - CUTLINE: This may contain the WKT geometry for a cutline.  It will
+ * be converted into a geometry by GDALWarpOperation::Initialize() and assigned
+ * to the GDALWarpOptions hCutline field.
+ *
+ * - CUTLINE_BLEND_DIST: This may be set with a distance in pixels which
+ * will be assigned to the dfCutlineBlendDist field in the GDALWarpOptions.
+ *
+ * - CUTLINE_ALL_TOUCHED: This defaults to FALSE, but may be set to TRUE
+ * to enable ALL_TOUCHEd mode when rasterizing cutline polygons.  This is
+ * useful to ensure that that all pixels overlapping the cutline polygon
+ * will be selected, not just those whose center point falls within the 
+ * polygon.
  */
 
 /************************************************************************/
@@ -1193,6 +1219,16 @@ GDALWarpOptions * CPL_STDCALL GDALDeserializeWarpOptions( CPLXMLNode *psTree )
         {
             GDALDestroyTransformer( psWO->pTransformerArg );
             psWO->pTransformerArg = NULL;
+        }
+        if( psWO->hSrcDS != NULL )
+        {
+            GDALClose( psWO->hSrcDS );
+            psWO->hSrcDS = NULL;
+        }
+        if( psWO->hDstDS != NULL )
+        {
+            GDALClose( psWO->hDstDS );
+            psWO->hDstDS = NULL;
         }
         GDALDestroyWarpOptions( psWO );
         return NULL;

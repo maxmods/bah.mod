@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_tps.cpp 12686 2007-11-09 19:31:29Z warmerdam $
+ * $Id: gdal_tps.cpp 16861 2009-04-26 19:22:29Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Thin Plate Spline transformer (GDAL wrapper portion)
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdal_tps.cpp 12686 2007-11-09 19:31:29Z warmerdam $");
+CPL_CVSID("$Id: gdal_tps.cpp 16861 2009-04-26 19:22:29Z rouault $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeTPSTransformer( void *pTransformArg );

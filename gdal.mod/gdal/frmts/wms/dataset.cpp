@@ -1,4 +1,5 @@
 /******************************************************************************
+ * $Id: dataset.cpp 18020 2009-11-14 14:33:20Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -109,6 +110,23 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
         const char *block_size_y = CPLGetXMLValue(config, "BlockSizeY", "1024");
         m_block_size_x = atoi(block_size_x);
         m_block_size_y = atoi(block_size_y);
+        if (m_block_size_x <= 0 || m_block_size_y <= 0)
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "GDALWMS: Invalid value in BlockSizeX or BlockSizeY" );
+            ret = CE_Failure;
+        }
+    }
+    if (ret == CE_None)
+    {
+        const char *data_type = CPLGetXMLValue(config, "DataType", "Byte");
+        m_data_type = GDALGetDataTypeByName( data_type );
+        if ( m_data_type == GDT_Unknown || m_data_type >= GDT_TypeCount )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "GDALWMS: Invalid value in DataType. Data type \"%s\" is not supported.", data_type );
+            ret = CE_Failure;
+        }
     }
     if (ret == CE_None) {
     	const int clamp_requests_bool = StrToBool(CPLGetXMLValue(config, "ClampRequests", "true"));
@@ -137,6 +155,7 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
             const char *tlevel = CPLGetXMLValue(data_window_node, "TileLevel", "");
             const char *str_tile_count_x = CPLGetXMLValue(data_window_node, "TileCountX", "1");
             const char *str_tile_count_y = CPLGetXMLValue(data_window_node, "TileCountY", "1");
+            const char *y_origin = CPLGetXMLValue(data_window_node, "YOrigin", "default");
 
             if (ret == CE_None) {
                 if ((ulx[0] != '\0') && (uly[0] != '\0') && (lrx[0] != '\0') && (lry[0] != '\0')) {
@@ -191,6 +210,20 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
                     m_overview_count = MAX(0, MIN(static_cast<int>(ceil(a)), 32));
                 }
             }
+            if (ret == CE_None) {
+                CPLString y_origin_str = y_origin;
+                if (y_origin_str == "top") {
+                    m_data_window.m_y_origin = GDALWMSDataWindow::TOP;
+                } else if (y_origin_str == "bottom") {
+                    m_data_window.m_y_origin = GDALWMSDataWindow::BOTTOM;
+                } else if (y_origin_str == "default") {
+                    m_data_window.m_y_origin = GDALWMSDataWindow::DEFAULT;
+                } else {
+                    CPLError(CE_Failure, CPLE_AppDefined, "GDALWMS: DataWindow YOrigin must be set to " 
+                                "one of 'default', 'top', or 'bottom', not '%s'.", y_origin_str.c_str());
+                    ret = CE_Failure;
+                }
+            }
         }
     }
     if (ret == CE_None) {
@@ -203,10 +236,10 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
             }
         }
     }
-    if (ret == CE_None) {
-        const char *bands_count = CPLGetXMLValue(config, "BandsCount", "3");
-        m_bands_count = atoi(bands_count);
-    }
+    
+    const char *bands_count = CPLGetXMLValue(config, "BandsCount", "3");
+    int nBandCount = atoi(bands_count);
+    
     if (ret == CE_None) {
         CPLXMLNode *cache_node = CPLGetXMLNode(config, "Cache");
         if (cache_node != NULL) {
@@ -259,7 +292,14 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
     if (ret == CE_None) {
         nRasterXSize = m_data_window.m_sx;
         nRasterYSize = m_data_window.m_sy;
-        for (int i = 0; i < m_bands_count; ++i) {
+
+        if (!GDALCheckDatasetDimensions(nRasterXSize, nRasterYSize) ||
+            !GDALCheckBandCount(nBandCount, TRUE))
+        {
+            return CE_Failure;
+        }
+
+        for (int i = 0; i < nBandCount; ++i) {
             GDALWMSRasterBand *band = new GDALWMSRasterBand(this, i, 1.0);
             SetBand(i + 1, band);
             double scale = 0.5;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: llrasterize.cpp 15629 2008-10-28 10:38:48Z dron $
+ * $Id: llrasterize.cpp 18340 2009-12-19 04:41:45Z chaitanya $
  *
  * Project:  GDAL
  * Purpose:  Vector polygon rasterization code.
@@ -33,6 +33,13 @@
 static int llCompareInt(const void *a, const void *b)
 {
 	return (*(const int *)a) - (*(const int *)b);
+}
+
+static void llSwapDouble(double *a, double *b)
+{
+	double temp = *a;
+	*a = *b;
+	*b = temp;
 }
 
 /************************************************************************/
@@ -80,6 +87,7 @@ static int llCompareInt(const void *a, const void *b)
 void GDALdllImageFilledPolygon(int nRasterXSize, int nRasterYSize, 
                                int nPartCount, int *panPartSize,
                                double *padfX, double *padfY,
+                               double *dfVariant,
                                llScanlineFunc pfnScanlineFunc, void *pCBData )
 {
 /*************************************************************************
@@ -151,12 +159,8 @@ No known bug
         part = 0;
         ints = 0;
 
-
         /*Initialize polyInts, otherwise it can sometimes causes a seg fault */
-        for (i=0; (i < n); i++) {
-            polyInts[i] = -1;
-        }
-
+        memset(polyInts, -1, sizeof(int) * n);
 
         for (i=0; (i < n); i++) {
         
@@ -205,7 +209,7 @@ No known bug
                         continue;
 
 		    /*fill the horizontal segment (separately from the rest)*/
-		    pfnScanlineFunc( pCBData, y, horizontal_x1, horizontal_x2 - 1 );
+		    pfnScanlineFunc( pCBData, y, horizontal_x1, horizontal_x2 - 1, (dfVariant == NULL)?0:dfVariant[0] );
 		    continue;
 		}
 		else /*skip top horizontal segments (they are already filled in the regular loop)*/
@@ -232,13 +236,12 @@ No known bug
         qsort(polyInts, ints, sizeof(int), llCompareInt);
 
 
-        for (i=0; (i < (ints)); i+=2) {
-
+        for (i=0; (i < (ints)); i+=2)
+        {
             if( polyInts[i] <= maxx && polyInts[i+1] > minx )
             {
-                pfnScanlineFunc( pCBData, y, polyInts[i], polyInts[i+1] - 1 );
-	    }
-            
+                pfnScanlineFunc( pCBData, y, polyInts[i], polyInts[i+1] - 1, (dfVariant == NULL)?0:dfVariant[0] );
+            }
         }
     }
 
@@ -251,7 +254,7 @@ No known bug
 
 void GDALdllImagePoint( int nRasterXSize, int nRasterYSize, 
                         int nPartCount, int *panPartSize,
-                        double *padfX, double *padfY,
+                        double *padfX, double *padfY, double *padfVariant,
                         llPointFunc pfnPointFunc, void *pCBData )
 {
     int     i;
@@ -260,9 +263,12 @@ void GDALdllImagePoint( int nRasterXSize, int nRasterYSize,
     {
         int nX = (int)floor( padfX[i] + 0.5 );
         int nY = (int)floor( padfY[i] + 0.5 );
+        double dfVariant = 0;
+        if( padfVariant != NULL )
+            dfVariant = padfVariant[i];
 
         if ( 0 <= nX && nX < nRasterXSize && 0 <= nY && nY < nRasterYSize )
-            pfnPointFunc( pCBData, nY, nX );
+            pfnPointFunc( pCBData, nY, nX, dfVariant );
     }
 }
 
@@ -272,7 +278,7 @@ void GDALdllImagePoint( int nRasterXSize, int nRasterYSize,
 
 void GDALdllImageLine( int nRasterXSize, int nRasterYSize, 
                        int nPartCount, int *panPartSize,
-                       double *padfX, double *padfY,
+                       double *padfX, double *padfY, double *padfVariant,
                        llPointFunc pfnPointFunc, void *pCBData )
 {
     int     i, n;
@@ -286,18 +292,20 @@ void GDALdllImageLine( int nRasterXSize, int nRasterYSize,
 
         for ( j = 1; j < panPartSize[i]; j++ )
         {
-/* -------------------------------------------------------------------- */
-/*      Draw the line segment.                                          */
-/*      This is a straightforward Bresenham's algorithm handling        */
-/*      all slopes and directions.                                      */
-/*      TODO: line clipping prior to drawing; some optimisations are    */
-/*      certainly possible here.                                        */
-/* -------------------------------------------------------------------- */
             int iX = (int)floor( padfX[n + j - 1] + 0.5 );
             int iY = (int)floor( padfY[n + j - 1] + 0.5 );
 
             const int iX1 = (int)floor( padfX[n + j] + 0.5 );
             const int iY1 = (int)floor( padfY[n + j] + 0.5 );
+
+            double dfVariant = 0, dfVariant1 = 0;
+            if( padfVariant != NULL && 
+                ((GDALRasterizeInfo *)pCBData)->eBurnValueSource !=
+                    GBV_UserBurnValue )
+            {
+                dfVariant = padfVariant[n + j - 1];
+                dfVariant1 = padfVariant[n + j];
+            }
 
             int nDeltaX = ABS( iX1 - iX );
             int nDeltaY = ABS( iY1 - iY );
@@ -312,13 +320,16 @@ void GDALdllImageLine( int nRasterXSize, int nRasterYSize,
                 const int nXError = nDeltaY << 1;
                 const int nYError = nXError - (nDeltaX << 1);
                 int nError = nXError - nDeltaX;
+                double dfDeltaVariant = (dfVariant1 - dfVariant) /
+                                                           (double)nDeltaX;
 
                 while ( nDeltaX-- >= 0 )
                 {
                     if ( 0 <= iX && iX < nRasterXSize
                          && 0 <= iY && iY < nRasterYSize )
-                        pfnPointFunc( pCBData, iY, iX );
+                        pfnPointFunc( pCBData, iY, iX, dfVariant );
 
+                    dfVariant += dfDeltaVariant;
                     iX += nXStep;
                     if ( nError > 0 )
                     { 
@@ -334,13 +345,16 @@ void GDALdllImageLine( int nRasterXSize, int nRasterYSize,
                 const int nXError = nDeltaX << 1;
                 const int nYError = nXError - (nDeltaY << 1);
                 int nError = nXError - nDeltaY;
+                double dfDeltaVariant = (dfVariant1 - dfVariant) /
+                                                           (double)nDeltaY;
 
                 while ( nDeltaY-- >= 0 )
                 {
                     if ( 0 <= iX && iX < nRasterXSize
                          && 0 <= iY && iY < nRasterYSize )
-                        pfnPointFunc( pCBData, iY, iX );
+                        pfnPointFunc( pCBData, iY, iX, dfVariant );
 
+                    dfVariant += dfDeltaVariant;
                     iY += nYStep;
                     if ( nError > 0 )
                     { 
@@ -353,5 +367,239 @@ void GDALdllImageLine( int nRasterXSize, int nRasterYSize,
             }
         }
     }
+}
+
+/************************************************************************/
+/*                     GDALdllImageLineAllTouched()                     */
+/*                                                                      */
+/*      This alternate line drawing algorithm attempts to ensure        */
+/*      that every pixel touched at all by the line will get set.       */
+/*      @param padfVariant should contain the values that are to be     */
+/*      added to the burn value.  The values along the line between the */
+/*      points will be linearly interpolated. These values are used     */
+/*      only if pCBData->eBurnValueSource is set to something other     */
+/*      than GBV_UserBurnValue. If NULL is passed, a monotonous line    */
+/*      will be drawn with the burn value.                              */
+/************************************************************************/
+
+void 
+GDALdllImageLineAllTouched(int nRasterXSize, int nRasterYSize, 
+                           int nPartCount, int *panPartSize,
+                           double *padfX, double *padfY, double *padfVariant,
+                           llPointFunc pfnPointFunc, void *pCBData )
+
+{
+    int     i, n;
+
+    if ( !nPartCount )
+        return;
+
+    for ( i = 0, n = 0; i < nPartCount; n += panPartSize[i++] )
+    {
+        int j;
+
+        for ( j = 1; j < panPartSize[i]; j++ )
+        {
+            double dfX = padfX[n + j - 1];
+            double dfY = padfY[n + j - 1];
+
+            double dfXEnd = padfX[n + j];
+            double dfYEnd = padfY[n + j];
+
+            double dfVariant = 0, dfVariantEnd = 0;
+            if( padfVariant != NULL &&
+                ((GDALRasterizeInfo *)pCBData)->eBurnValueSource !=
+                    GBV_UserBurnValue )
+            {
+                dfVariant = padfVariant[n + j - 1];
+                dfVariantEnd = padfVariant[n + j];
+            }
+
+            // Skip segments that are off the target region.
+            if( (dfY < 0 && dfYEnd < 0)
+                || (dfY > nRasterYSize && dfYEnd > nRasterYSize)
+                || (dfX < 0 && dfXEnd < 0)
+                || (dfX > nRasterXSize && dfXEnd > nRasterXSize) )
+                continue;
+
+            // Swap if needed so we can proceed from left2right (X increasing)
+            if( dfX > dfXEnd )
+            {
+                llSwapDouble( &dfX, &dfXEnd );
+                llSwapDouble( &dfY, &dfYEnd );
+                llSwapDouble( &dfVariant, &dfVariantEnd );
+            }
+            
+            // Special case for vertical lines.
+            if( floor(dfX) == floor(dfXEnd) )
+            {
+                if( dfYEnd < dfY )
+                {
+                    llSwapDouble( &dfY, &dfYEnd );
+                    llSwapDouble( &dfVariant, &dfVariantEnd );
+                }
+
+                int iX = (int) floor(dfX);
+                int iY = (int) floor(dfY);
+                int iYEnd = (int) floor(dfYEnd);
+
+                if( iX >= nRasterXSize )
+                    continue;
+
+                double dfDeltaVariant = 0;
+                if(( dfYEnd - dfY ) > 0)
+                    dfDeltaVariant = ( dfVariantEnd - dfVariant )
+                                     / ( dfYEnd - dfY );//per unit change in iY
+
+                // Clip to the borders of the target region
+                if( iY < 0 )
+                    iY = 0;
+                if( iYEnd >= nRasterYSize )
+                    iYEnd = nRasterYSize - 1;
+                dfVariant += dfDeltaVariant * ( (double)iY - dfY );
+
+                if( padfVariant == NULL )
+                    for( ; iY <= iYEnd; iY++ )
+                        pfnPointFunc( pCBData, iY, iX, 0.0 );
+                else
+                    for( ; iY <= iYEnd; iY++, dfVariant +=  dfDeltaVariant )
+                        pfnPointFunc( pCBData, iY, iX, dfVariant );
+
+                continue; // next segment
+            }
+
+            double dfDeltaVariant = ( dfVariantEnd - dfVariant )
+                                    / ( dfXEnd - dfX );//per unit change in iX
+
+            // special case for horizontal lines
+            if( floor(dfY) == floor(dfYEnd) )
+            {
+                if( dfXEnd < dfX )
+                {
+                    llSwapDouble( &dfX, &dfXEnd );
+                    llSwapDouble( &dfVariant, &dfVariantEnd );
+                }
+
+                int iX = (int) floor(dfX);
+                int iY = (int) floor(dfY);
+                int iXEnd = (int) floor(dfXEnd);
+                
+                if( iY >= nRasterYSize )
+                    continue;
+
+                // Clip to the borders of the target region
+                if( iX < 0 )
+                    iX = 0;
+                if( iXEnd >= nRasterXSize )
+                    iXEnd = nRasterXSize - 1;
+                dfVariant += dfDeltaVariant * ( (double)iX - dfX );
+
+                if( padfVariant == NULL )
+                    for( ; iX <= iXEnd; iX++ )
+                        pfnPointFunc( pCBData, iY, iX, 0.0 );
+                else
+                    for( ; iX <= iXEnd; iX++, dfVariant +=  dfDeltaVariant )
+                        pfnPointFunc( pCBData, iY, iX, dfVariant );
+
+                continue; // next segment
+            }
+
+/* -------------------------------------------------------------------- */
+/*      General case - left to right sloped.                            */
+/* -------------------------------------------------------------------- */
+            double dfSlope = (dfYEnd - dfY) / (dfXEnd - dfX);
+
+            // clip segment in X
+            if( dfXEnd > nRasterXSize )
+            {
+                dfYEnd -= ( dfXEnd - (double)nRasterXSize ) * dfSlope;
+                dfXEnd = nRasterXSize;
+            }
+            if( dfX < 0 )
+            {
+                dfY += (0 - dfX) * dfSlope;
+                dfVariant += dfDeltaVariant * (0.0 - dfX);
+                dfX = 0.0;
+            }
+
+            // clip segment in Y
+            double dfDiffX;
+            if( dfYEnd > dfY )
+            {
+                if( dfY < 0 )
+                {
+                    dfX += (dfDiffX = (0 - dfY) / dfSlope);
+                    dfVariant += dfDeltaVariant * dfDiffX;
+                    dfY = 0.0;
+                }
+                if( dfYEnd >= nRasterYSize )
+                {
+                    dfXEnd += ( dfYEnd - (double)nRasterYSize ) / dfSlope;
+                    dfYEnd = nRasterXSize;
+                }
+            }
+            else
+            {
+                if( dfY >= nRasterYSize )
+                {
+                    dfX += (dfDiffX = ((double)nRasterYSize - dfY) / dfSlope);
+                    dfVariant += dfDeltaVariant * dfDiffX;
+                    dfY = nRasterYSize;
+                }
+                if( dfYEnd < 0 )
+                {
+                    dfXEnd -= ( dfYEnd - 0 ) / dfSlope;
+                    dfYEnd = 0;
+                }
+            }
+
+            // step from pixel to pixel.
+            while( dfX < dfXEnd )
+            {
+                int iX = (int) floor(dfX);
+                int iY = (int) floor(dfY);
+
+                // burn in the current point.
+                // We should be able to drop the Y check because we cliped in Y,
+                // but there may be some error with all the small steps.
+                if( iY >= 0 && iY < nRasterYSize )
+                    pfnPointFunc( pCBData, iY, iX, dfVariant );
+
+                double dfStepX = floor(dfX+1.0) - dfX;
+                double dfStepY = dfStepX * dfSlope;
+
+                // step to right pixel without changing scanline?
+                if( (int) floor(dfY + dfStepY) == iY )
+                {
+                    dfX += dfStepX;
+                    dfY += dfStepY;
+                    dfVariant += dfDeltaVariant * dfStepX;
+                }
+                else if( dfSlope < 0 )
+                {
+                    dfStepY = iY - dfY;
+                    if( dfStepY > -0.000000001 )
+                        dfStepY = -0.000000001;
+
+                    dfStepX = dfStepY / dfSlope;
+                    dfX += dfStepX;
+                    dfY += dfStepY;
+                    dfVariant += dfDeltaVariant * dfStepX;
+                }
+                else
+                {
+                    dfStepY = (iY + 1) - dfY;
+                    if( dfStepY < 0.000000001 )
+                        dfStepY = 0.000000001;
+
+                    dfStepX = dfStepY / dfSlope;
+                    dfX += dfStepX;
+                    dfY += dfStepY;
+                    dfVariant += dfDeltaVariant * dfStepX;
+                }
+            } // next step along sement.
+
+        } // next segment
+    } // next part
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_validate.cpp 15949 2008-12-13 23:24:36Z rouault $
+ * $Id: ogr_srs_validate.cpp 18033 2009-11-15 19:18:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of the OGRSpatialReference::Validate() method and
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srs_validate.cpp 15949 2008-12-13 23:24:36Z rouault $");
+CPL_CVSID("$Id: ogr_srs_validate.cpp 18033 2009-11-15 19:18:57Z rouault $");
 
 /* why would fipszone and zone be paramers when they relate to a composite
    projection which renders done into a non-zoned projection? */
@@ -81,7 +81,11 @@ static const char *papszProjectionSupported[] =
     SRS_PT_BONNE,
     SRS_PT_EQUIDISTANT_CONIC,
     SRS_PT_EQUIRECTANGULAR,
+    SRS_PT_ECKERT_I,
+    SRS_PT_ECKERT_II,
+    SRS_PT_ECKERT_III,
     SRS_PT_ECKERT_IV,
+    SRS_PT_ECKERT_V,
     SRS_PT_ECKERT_VI,
     SRS_PT_MERCATOR_1SP,
     SRS_PT_MERCATOR_2SP,
@@ -487,7 +491,7 @@ static const char *papszAliasGroupList[] = {
 /************************************************************************/
 
 /**
- * Validate SRS tokens.
+ * \brief Validate SRS tokens.
  *
  * This method attempts to verify that the spatial reference system is
  * well formed, and consists of known tokens.  The validation is not
@@ -846,7 +850,11 @@ OGRErr OGRSpatialReference::Validate()
 /************************************************************************/
 /*                            OSRValidate()                             */
 /************************************************************************/
-
+/** 
+ * \brief Validate SRS tokens.
+ *
+ * This function is the same as the C++ method OGRSpatialReference::Validate().
+ */
 OGRErr OSRValidate( OGRSpatialReferenceH hSRS )
 
 {
@@ -857,11 +865,17 @@ OGRErr OSRValidate( OGRSpatialReferenceH hSRS )
 
 /************************************************************************/
 /*                             IsAliasFor()                             */
-/*                                                                      */
-/*      Is the first string passed in an acceptable alias for the       */
-/*      second string according to the AliasGroupList?                  */
 /************************************************************************/
 
+/**
+ * \brief Return whether the first string passed in an acceptable alias for the
+ * second string according to the AliasGroupList
+ *
+ * @param pszParm1 first string
+ * @param pszParm2 second string
+ *
+ * @return TRUE if both strings are aliases according to the AliasGroupList, FALSE otherwise
+ */
 int OGRSpatialReference::IsAliasFor( const char *pszParm1, 
                                      const char *pszParm2 )
 
@@ -901,10 +915,14 @@ int OGRSpatialReference::IsAliasFor( const char *pszParm1,
 
 /************************************************************************/
 /*                         ValidateProjection()                         */
-/*                                                                      */
-/*      Validate the current PROJECTION's arguments.                    */
 /************************************************************************/
 
+/**
+ * \brief Validate the current PROJECTION's arguments.
+ *
+ * @return OGRERR_NONE if the PROJECTION's arguments validate, an error code
+ *         otherwise
+ */
 OGRErr OGRSpatialReference::ValidateProjection()
 
 {

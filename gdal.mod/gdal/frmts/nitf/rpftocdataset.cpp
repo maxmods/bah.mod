@@ -42,7 +42,7 @@
 #define GEOTRSFRM_ROTATION_PARAM2      4
 #define GEOTRSFRM_NS_RES               5
 
-CPL_CVSID("$Id: rpftocdataset.cpp 15225 2008-08-26 19:02:17Z rouault $");
+CPL_CVSID("$Id: rpftocdataset.cpp 17929 2009-10-30 19:51:58Z rouault $");
 
 
 /** Overview of used classes :
@@ -50,8 +50,7 @@ CPL_CVSID("$Id: rpftocdataset.cpp 15225 2008-08-26 19:02:17Z rouault $");
                      as subdatasets
    - RPFTOCSubDataset : one of these subdatasets, implemented as a VRT, of
                         the relevant NITF tiles
-   - RPFTOCGDALDatasetCache : a cache of a number of simultaneously opened datasets
-   - RPFTOCProxyRasterDataSet : a "fake" dataset that maps to a real datasets
+   - RPFTOCProxyRasterDataSet : a "proxy" dataset that maps to a NITF tile
    - RPFTOCProxyRasterBandPalette / RPFTOCProxyRasterBandRGBA : bands of RPFTOCProxyRasterDataSet
 */
 
@@ -412,15 +411,18 @@ CPLErr RPFTOCProxyRasterBandRGBA::IReadBlock( int nBlockXOff, int nBlockYOff,
 
                 poBlock = 
                     poDS->GetRasterBand(2)->GetLockedBlockRef(nBlockXOff,nBlockYOff);
-                poBlock->DropLock();
+                if (poBlock)
+                    poBlock->DropLock();
 
                 poBlock = 
                     poDS->GetRasterBand(3)->GetLockedBlockRef(nBlockXOff,nBlockYOff);
-                poBlock->DropLock();
+                if (poBlock)
+                    poBlock->DropLock();
 
                 poBlock = 
                     poDS->GetRasterBand(4)->GetLockedBlockRef(nBlockXOff,nBlockYOff);
-                poBlock->DropLock();
+                if (poBlock)
+                    poBlock->DropLock();
             }
         }
         else
@@ -1164,8 +1166,16 @@ GDALDataset *RPFTOCDataset::Open( GDALOpenInfo * poOpenInfo )
     if (IsNonNITFFileTOC((entryName != NULL) ? NULL : poOpenInfo, pszFilename))
     {
         GDALDataset* poDS = OpenFileTOC(NULL, pszFilename, entryName, poOpenInfo->pszFilename);
+        
         CPLFree(entryName);
 
+        if (poDS && poOpenInfo->eAccess == GA_Update)
+        {
+            CPLError(CE_Failure, CPLE_NotSupported, "RPFTOC driver does not support update mode");
+            delete poDS;
+            return NULL;
+        }
+        
         return poDS;
     }
 
@@ -1174,7 +1184,7 @@ GDALDataset *RPFTOCDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     NITFFile *psFile;
 
-    psFile = NITFOpen( pszFilename, poOpenInfo->eAccess == GA_Update );
+    psFile = NITFOpen( pszFilename, FALSE );
     if( psFile == NULL )
     {
         CPLFree(entryName);
@@ -1190,6 +1200,13 @@ GDALDataset *RPFTOCDataset::Open( GDALOpenInfo * poOpenInfo )
         NITFClose( psFile );
         CPLFree(entryName);
 
+        if (poDS && poOpenInfo->eAccess == GA_Update)
+        {
+            CPLError(CE_Failure, CPLE_NotSupported, "RPFTOC driver does not support update mode");
+            delete poDS;
+            return NULL;
+        }
+        
         return poDS;
     }
     else

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 17630 2009-09-10 15:30:44Z chaitanya $
+ * $Id: parsexsd.cpp 17629 2009-09-10 14:51:45Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader::ParseXSD() method.
@@ -30,7 +30,7 @@
 #include "gmlreader.h"
 #include "cpl_error.h"
 
-#if HAVE_XERCES != 0
+#if HAVE_XERCES != 0 || defined(HAVE_EXPAT)
 
 #include "gmlreaderp.h"
 #include "cpl_conv.h"
@@ -137,9 +137,10 @@ int GMLReader::ParseXSD( const char *pszFile )
 
         pszType = CPLGetXMLValue( psThis, "type", NULL );
         if( strstr( pszType, ":" ) != NULL )
-            pszType = strstr( pszType, ":" ) + 1;
+            pszType = strstr( pszType, ":" ) + 1; 
         if( pszType == NULL || !EQUALN(pszType,pszName,strlen(pszName)) 
-            || !EQUAL(pszType+strlen(pszName),"_Type") )
+            || !(EQUAL(pszType+strlen(pszName),"_Type") ||
+                    EQUAL(pszType+strlen(pszName),"Type")) )
         {
             bIsLevel0 = FALSE;
             break;
@@ -266,5 +267,5 @@ int GMLReader::ParseXSD( const char *pszFile )
         return FALSE;
 }
 
-#endif /* HAVE_XERCES == 1 */
+#endif /* HAVE_XERCES == 1  || defined(HAVE_EXPAT) */
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: isis2dataset.cpp 16593 2009-03-15 07:14:45Z chaitanya $
+ * $Id: isis2dataset.cpp 17786 2009-10-09 19:35:19Z warmerdam $
  *
  * Project:  ISIS Version 2 Driver
  * Purpose:  Implementation of ISIS2Dataset
@@ -48,7 +48,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp 16593 2009-03-15 07:14:45Z chaitanya $");
+CPL_CVSID("$Id: isis2dataset.cpp 17786 2009-10-09 19:35:19Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_ISIS2(void);
@@ -201,13 +201,11 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     const char *pszQube = poDS->GetKeyword( "^QUBE" );
     int nQube = atoi(pszQube);
 
-    if( pszQube[0] == '"' )
+    if( pszQube[0] == '"' || pszQube[0] == '(' )
     {
-        CPLAssert( FALSE ); // TODO
-    }
-    else if( pszQube[0] == '(' )
-    {
-        CPLAssert( FALSE ); // TODO
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "ISIS2 driver does not support detached images." );
+        return NULL;
     }
 
 /* -------------------------------------------------------------------- */
@@ -519,18 +517,6 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     
 /* -------------------------------------------------------------------- */
-/*     Is the CUB detached - if so, reset name to binary file?          */
-/* -------------------------------------------------------------------- */
-#ifdef notdef
-    // Frank - is this correct?
-    //The extension already added on so don't add another. But is this needed?
-    char *pszPath = CPLStrdup( CPLGetPath( poOpenInfo->pszFilename ) );
-    char *pszName = CPLStrdup( CPLGetBasename( poOpenInfo->pszFilename ) );
-    if (bIsDetached)
-        pszCUBFilename = CPLFormCIFilename( pszPath, detachedCub, "" );
-#endif
-
-/* -------------------------------------------------------------------- */
 /*      Did we get the required keywords?  If not we return with        */
 /*      this never having been considered to be a match. This isn't     */
 /*      an error!                                                       */
@@ -676,16 +662,16 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
             GDALReadWorldFile( poOpenInfo->pszFilename, "wld", 
                                poDS->adfGeoTransform );
 
-/* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
 /* -------------------------------------------------------------------- */ 
 /*      Initialize any PAM information.                                 */ 
 /* -------------------------------------------------------------------- */ 
     poDS->SetDescription( poOpenInfo->pszFilename ); 
     poDS->TryLoadXML(); 
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

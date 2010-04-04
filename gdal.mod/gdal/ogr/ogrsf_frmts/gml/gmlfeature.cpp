@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlfeature.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: gmlfeature.cpp 17165 2009-06-01 22:44:30Z warmerdam $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLFeature.
@@ -29,6 +29,7 @@
 
 #include "gmlreader.h"
 #include "cpl_conv.h"
+#include "cpl_string.h"
 
 /************************************************************************/
 /*                             GMLFeature()                             */
@@ -43,6 +44,8 @@ GMLFeature::GMLFeature( GMLFeatureClass *poClass )
     
     m_nPropertyCount = 0;
     m_papszProperty = NULL;
+    
+    m_papszOBProperties = NULL;
 }
 
 /************************************************************************/
@@ -62,6 +65,7 @@ GMLFeature::~GMLFeature()
 
     CPLFree( m_papszProperty );
     CPLFree( m_pszGeometry );
+    CSLDestroy( m_papszOBProperties );
 }
 
 /************************************************************************/
@@ -150,4 +154,35 @@ void GMLFeature::SetGeometryDirectly( char *pszGeometry )
         CPLFree( m_pszGeometry );
 
     m_pszGeometry = pszGeometry;
+}
+
+/************************************************************************/
+/*                           AddOBProperty()                            */
+/************************************************************************/
+
+void GMLFeature::AddOBProperty( const char *pszName, const char *pszValue )
+
+{
+    m_papszOBProperties = 
+        CSLAddNameValue( m_papszOBProperties, pszName, pszValue );
+}
+
+/************************************************************************/
+/*                           GetOBProperty()                            */
+/************************************************************************/
+
+const char *GMLFeature::GetOBProperty( const char *pszName )
+
+{
+    return CSLFetchNameValue( m_papszOBProperties, pszName );
+}
+
+/************************************************************************/
+/*                          GetOBProperties()                           */
+/************************************************************************/
+
+char **GMLFeature::GetOBProperties()
+
+{
+    return m_papszOBProperties;
 }

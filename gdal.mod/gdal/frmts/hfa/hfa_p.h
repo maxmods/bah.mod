@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa_p.h 15987 2008-12-21 17:49:42Z warmerdam $
+ * $Id: hfa_p.h 17710 2009-09-29 14:02:33Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Private class declarations for the HFA classes used to read
@@ -108,6 +108,8 @@ int HFACreateSpillStack( HFAInfo_t *, int nXSize, int nYSize, int nLayers,
 
 const char ** GetHFAAuxMetaDataList();
 
+double *HFAReadBFUniqueBins( HFAEntry *poBinFunc, int nPCTColors );
+
 #define HFA_PRIVATE
 
 #include "hfa.h"
@@ -167,10 +169,11 @@ class HFABand
     int         bNoDataSet;
     double      dfNoData;
 
+    int         bOverviewsPending;
     int		nOverviews;
     HFABand     **papoOverviews;
     
-    CPLErr	GetRasterBlock( int nXBlock, int nYBlock, void * pData );
+    CPLErr	GetRasterBlock( int nXBlock, int nYBlock, void * pData, int nDataSize );
     CPLErr	SetRasterBlock( int nXBlock, int nYBlock, void * pData );
     
     const char * GetBandName();
@@ -183,6 +186,9 @@ class HFABand
     CPLErr	SetPCT( int, double *, double *, double *, double * );
 
     int         CreateOverview( int nOverviewLevel );
+    CPLErr      CleanOverviews();
+
+    CPLErr      LoadOverviews();
 };
 
 

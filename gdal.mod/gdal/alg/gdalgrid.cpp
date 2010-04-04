@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.cpp 17956 2009-11-03 10:40:26Z dron $
+ * $Id: gdalgrid.cpp 18041 2009-11-17 14:14:43Z dron $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Implementation of GDAL scattered data gridder.
@@ -27,9 +27,10 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_vsi.h"
 #include "gdalgrid.h"
 
-CPL_CVSID("$Id: gdalgrid.cpp 17956 2009-11-03 10:40:26Z dron $");
+CPL_CVSID("$Id: gdalgrid.cpp 18041 2009-11-17 14:14:43Z dron $");
 
 #define TO_RADIANS (3.14159265358979323846 / 180.0)
 
@@ -56,9 +57,10 @@ CPL_CVSID("$Id: gdalgrid.cpp 17956 2009-11-03 10:40:26Z dron $");
  *  where 
  *  <ul>
  *      <li> \f$Z_i\f$ is a known value at point \f$i\f$,
- *      <li> \f$r\f$ is a distance from the grid node to point \f$i\f$,
+ *      <li> \f$r_i\f$ is an Euclidean distance from the grid node
+ *           to point \f$i\f$,
  *      <li> \f$p\f$ is a weighting power,
- *      <li> \f$n\f$ is a number of points in search ellipse.
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
  *  </ul>
  *
  *  In this method the weighting factor \f$w\f$ is
@@ -255,7 +257,7 @@ GDALGridInverseDistanceToAPowerNoSearch( const void *poOptions, GUInt32 nPoints,
  *  <ul>
  *      <li> \f$Z\f$ is a resulting value at the grid node,
  *      <li> \f$Z_i\f$ is a known value at point \f$i\f$,
- *      <li> \f$n\f$ is a number of points in search ellipse.
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
  *  </ul>
  *
  * @param poOptions Algorithm parameters. This should point to
@@ -456,7 +458,7 @@ GDALGridNearestNeighbor( const void *poOptions, GUInt32 nPoints,
  *  <ul>
  *      <li> \f$Z\f$ is a resulting value at the grid node,
  *      <li> \f$Z_i\f$ is a known value at point \f$i\f$,
- *      <li> \f$n\f$ is a number of points in search ellipse.
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
  *  </ul>
  *
  * @param poOptions Algorithm parameters. This should point to
@@ -567,7 +569,7 @@ GDALGridDataMetricMinimum( const void *poOptions, GUInt32 nPoints,
  *  <ul>
  *      <li> \f$Z\f$ is a resulting value at the grid node,
  *      <li> \f$Z_i\f$ is a known value at point \f$i\f$,
- *      <li> \f$n\f$ is a number of points in search ellipse.
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
  *  </ul>
  *
  * @param poOptions Algorithm parameters. This should point to
@@ -679,7 +681,7 @@ GDALGridDataMetricMaximum( const void *poOptions, GUInt32 nPoints,
  *  <ul>
  *      <li> \f$Z\f$ is a resulting value at the grid node,
  *      <li> \f$Z_i\f$ is a known value at point \f$i\f$,
- *      <li> \f$n\f$ is a number of points in search ellipse.
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
  *  </ul>
  *
  * @param poOptions Algorithm parameters. This should point to
@@ -775,6 +777,348 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
 }
 
 /************************************************************************/
+/*                       GDALGridDataMetricCount()                      */
+/************************************************************************/
+
+/**
+ * Number of data points (data metric).
+ *
+ * A number of data points found in grid node search ellipse.
+ *
+ * \f[
+ *      Z=n
+ * \f]
+ *
+ *  where 
+ *  <ul>
+ *      <li> \f$Z\f$ is a resulting value at the grid node,
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
+ *  </ul>
+ *
+ * @param poOptions Algorithm parameters. This should point to
+ * GDALGridDataMetricsOptions object. 
+ * @param nPoints Number of elements in input arrays.
+ * @param padfX Input array of X coordinates. 
+ * @param padfY Input array of Y coordinates. 
+ * @param padfZ Input array of Z values. 
+ * @param dfXPoint X coordinate of the point to compute.
+ * @param dfYPoint Y coordinate of the point to compute.
+ * @param pdfValue Pointer to variable where the computed grid node value
+ * will be returned.
+ *
+ * @return CE_None on success or CE_Failure if something goes wrong.
+ */
+
+CPLErr
+GDALGridDataMetricCount( const void *poOptions, GUInt32 nPoints,
+                         const double *padfX, const double *padfY,
+                         const double *padfZ,
+                         double dfXPoint, double dfYPoint, double *pdfValue )
+{
+    // TODO: For optimization purposes pre-computed parameters should be moved
+    // out of this routine to the calling function.
+
+    // Pre-compute search ellipse parameters
+    double  dfRadius1 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
+    double  dfRadius2 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
+    double  dfR12;
+
+    dfRadius1 *= dfRadius1;
+    dfRadius2 *= dfRadius2;
+    dfR12 = dfRadius1 * dfRadius2;
+
+    // Compute coefficients for coordinate system rotation.
+    double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
+    const double    dfAngle =
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
+    const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
+    if ( bRotated )
+    {
+        dfCoeff1 = cos(dfAngle);
+        dfCoeff2 = sin(dfAngle);
+    }
+
+    GUInt32     i = 0, n = 0;
+
+    while ( i < nPoints )
+    {
+        double  dfRX = padfX[i] - dfXPoint;
+        double  dfRY = padfY[i] - dfYPoint;
+
+        if ( bRotated )
+        {
+            double dfRXRotated = dfRX * dfCoeff1 + dfRY * dfCoeff2;
+            double dfRYRotated = dfRY * dfCoeff1 - dfRX * dfCoeff2;
+
+            dfRX = dfRXRotated;
+            dfRY = dfRYRotated;
+        }
+
+        // Is this point located inside the search ellipse?
+        if ( dfRadius2 * dfRX * dfRX + dfRadius1 * dfRY * dfRY <= dfR12 )
+            n++;
+
+        i++;
+    }
+
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints )
+    {
+        (*pdfValue) =
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
+    }
+    else
+        (*pdfValue) = (double)n;
+
+    return CE_None;
+}
+
+/************************************************************************/
+/*                 GDALGridDataMetricAverageDistance()                  */
+/************************************************************************/
+
+/**
+ * Average distance (data metric).
+ *
+ * An average distance between the grid node (center of the search ellipse)
+ * and all of the data points found in grid node search ellipse. If there are
+ * no points found, the specified NODATA value will be returned.
+ *
+ * \f[
+ *      Z=\frac{\sum_{i = 1}^n r_i}{n}
+ * \f]
+ *
+ *  where 
+ *  <ul>
+ *      <li> \f$Z\f$ is a resulting value at the grid node,
+ *      <li> \f$r_i\f$ is an Euclidean distance from the grid node
+ *           to point \f$i\f$,
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
+ *  </ul>
+ *
+ * @param poOptions Algorithm parameters. This should point to
+ * GDALGridDataMetricsOptions object. 
+ * @param nPoints Number of elements in input arrays.
+ * @param padfX Input array of X coordinates. 
+ * @param padfY Input array of Y coordinates. 
+ * @param padfZ Input array of Z values. 
+ * @param dfXPoint X coordinate of the point to compute.
+ * @param dfYPoint Y coordinate of the point to compute.
+ * @param pdfValue Pointer to variable where the computed grid node value
+ * will be returned.
+ *
+ * @return CE_None on success or CE_Failure if something goes wrong.
+ */
+
+CPLErr
+GDALGridDataMetricAverageDistance( const void *poOptions, GUInt32 nPoints,
+                                   const double *padfX, const double *padfY,
+                                   const double *padfZ,
+                                   double dfXPoint, double dfYPoint,
+                                   double *pdfValue )
+{
+    // TODO: For optimization purposes pre-computed parameters should be moved
+    // out of this routine to the calling function.
+
+    // Pre-compute search ellipse parameters
+    double  dfRadius1 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
+    double  dfRadius2 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
+    double  dfR12;
+
+    dfRadius1 *= dfRadius1;
+    dfRadius2 *= dfRadius2;
+    dfR12 = dfRadius1 * dfRadius2;
+
+    // Compute coefficients for coordinate system rotation.
+    double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
+    const double    dfAngle =
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
+    const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
+    if ( bRotated )
+    {
+        dfCoeff1 = cos(dfAngle);
+        dfCoeff2 = sin(dfAngle);
+    }
+
+    double      dfAccumulator = 0.0;
+    GUInt32     i = 0, n = 0;
+
+    while ( i < nPoints )
+    {
+        double  dfRX = padfX[i] - dfXPoint;
+        double  dfRY = padfY[i] - dfYPoint;
+
+        if ( bRotated )
+        {
+            double dfRXRotated = dfRX * dfCoeff1 + dfRY * dfCoeff2;
+            double dfRYRotated = dfRY * dfCoeff1 - dfRX * dfCoeff2;
+
+            dfRX = dfRXRotated;
+            dfRY = dfRYRotated;
+        }
+
+        // Is this point located inside the search ellipse?
+        if ( dfRadius2 * dfRX * dfRX + dfRadius1 * dfRY * dfRY <= dfR12 )
+        {
+            dfAccumulator += sqrt( dfRX * dfRX + dfRY * dfRY );
+            n++;
+        }
+
+        i++;
+    }
+
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints
+         || n == 0 )
+    {
+        (*pdfValue) =
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
+    }
+    else
+        (*pdfValue) = dfAccumulator / n;
+
+    return CE_None;
+}
+
+/************************************************************************/
+/*                 GDALGridDataMetricAverageDistance()                  */
+/************************************************************************/
+
+/**
+ * Average distance between points (data metric).
+ *
+ * An average distance between the data points found in grid node search
+ * ellipse. The distance between each pair of points within ellipse is
+ * calculated and average of all distances is set as a grid node value. If
+ * there are no points found, the specified NODATA value will be returned.
+
+ *
+ * \f[
+ *      Z=\frac{\sum_{i = 1}^{n-1}\sum_{j=i+1}^{n} r_{ij}}{\left(n-1\right)\,n-\frac{n+{\left(n-1\right)}^{2}-1}{2}}
+ * \f]
+ *
+ *  where 
+ *  <ul>
+ *      <li> \f$Z\f$ is a resulting value at the grid node,
+ *      <li> \f$r_{ij}\f$ is an Euclidean distance between points
+ *           \f$i\f$ and \f$j\f$,
+ *      <li> \f$n\f$ is a total number of points in search ellipse.
+ *  </ul>
+ *
+ * @param poOptions Algorithm parameters. This should point to
+ * GDALGridDataMetricsOptions object. 
+ * @param nPoints Number of elements in input arrays.
+ * @param padfX Input array of X coordinates. 
+ * @param padfY Input array of Y coordinates. 
+ * @param padfZ Input array of Z values. 
+ * @param dfXPoint X coordinate of the point to compute.
+ * @param dfYPoint Y coordinate of the point to compute.
+ * @param pdfValue Pointer to variable where the computed grid node value
+ * will be returned.
+ *
+ * @return CE_None on success or CE_Failure if something goes wrong.
+ */
+
+CPLErr
+GDALGridDataMetricAverageDistancePts( const void *poOptions, GUInt32 nPoints,
+                                      const double *padfX, const double *padfY,
+                                      const double *padfZ,
+                                      double dfXPoint, double dfYPoint,
+                                      double *pdfValue )
+{
+    // TODO: For optimization purposes pre-computed parameters should be moved
+    // out of this routine to the calling function.
+
+    // Pre-compute search ellipse parameters
+    double  dfRadius1 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius1;
+    double  dfRadius2 =
+        ((GDALGridDataMetricsOptions *)poOptions)->dfRadius2;
+    double  dfR12;
+
+    dfRadius1 *= dfRadius1;
+    dfRadius2 *= dfRadius2;
+    dfR12 = dfRadius1 * dfRadius2;
+
+    // Compute coefficients for coordinate system rotation.
+    double      dfCoeff1 = 0.0, dfCoeff2 = 0.0;
+    const double    dfAngle =
+        TO_RADIANS * ((GDALGridDataMetricsOptions *)poOptions)->dfAngle;
+    const bool  bRotated = ( dfAngle == 0.0 ) ? false : true;
+    if ( bRotated )
+    {
+        dfCoeff1 = cos(dfAngle);
+        dfCoeff2 = sin(dfAngle);
+    }
+
+    double      dfAccumulator = 0.0;
+    GUInt32     i = 0, n = 0;
+
+    // Search for the first point within the search ellipse
+    while ( i < nPoints - 1 )
+    {
+        double  dfRX1 = padfX[i] - dfXPoint;
+        double  dfRY1 = padfY[i] - dfYPoint;
+
+        if ( bRotated )
+        {
+            double dfRXRotated = dfRX1 * dfCoeff1 + dfRY1 * dfCoeff2;
+            double dfRYRotated = dfRY1 * dfCoeff1 - dfRX1 * dfCoeff2;
+
+            dfRX1 = dfRXRotated;
+            dfRY1 = dfRYRotated;
+        }
+
+        // Is this point located inside the search ellipse?
+        if ( dfRadius2 * dfRX1 * dfRX1 + dfRadius1 * dfRY1 * dfRY1 <= dfR12 )
+        {
+            GUInt32 j;
+            
+            // Search all the remaining points within the ellipse and compute
+            // distances between them and the first point
+            for ( j = i + 1; j < nPoints; j++ )
+            {
+                double  dfRX2 = padfX[j] - dfXPoint;
+                double  dfRY2 = padfY[j] - dfYPoint;
+                
+                if ( bRotated )
+                {
+                    double dfRXRotated = dfRX2 * dfCoeff1 + dfRY2 * dfCoeff2;
+                    double dfRYRotated = dfRY2 * dfCoeff1 - dfRX2 * dfCoeff2;
+
+                    dfRX2 = dfRXRotated;
+                    dfRY2 = dfRYRotated;
+                }
+
+                if ( dfRadius2 * dfRX2 * dfRX2 + dfRadius1 * dfRY2 * dfRY2 <= dfR12 )
+                {
+                    const double dfRX = padfX[j] - padfX[i];
+                    const double dfRY = padfY[j] - padfY[i];
+
+                    dfAccumulator += sqrt( dfRX * dfRX + dfRY * dfRY );
+                    n++;
+                }
+            }
+        }
+
+        i++;
+    }
+
+    if ( n < ((GDALGridDataMetricsOptions *)poOptions)->nMinPoints
+         || n == 0 )
+    {
+        (*pdfValue) =
+            ((GDALGridDataMetricsOptions *)poOptions)->dfNoDataValue;
+    }
+    else
+        (*pdfValue) = dfAccumulator / n;
+
+    return CE_None;
+}
+
+/************************************************************************/
 /*                            GDALGridCreate()                          */
 /************************************************************************/
 
@@ -820,7 +1164,7 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
     CPLAssert( padfY );
     CPLAssert( padfZ );
     CPLAssert( pData );
-    
+
     if ( pfnProgress == NULL )
         pfnProgress = GDALDummyProgress;
 
@@ -865,6 +1209,18 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
             pfnGDALGridMethod = GDALGridDataMetricRange;
             break;
 
+        case GGA_MetricCount:
+            pfnGDALGridMethod = GDALGridDataMetricCount;
+            break;
+
+        case GGA_MetricAverageDistance:
+            pfnGDALGridMethod = GDALGridDataMetricAverageDistance;
+            break;
+
+        case GGA_MetricAverageDistancePts:
+            pfnGDALGridMethod = GDALGridDataMetricAverageDistancePts;
+            break;
+
         default:
             CPLError( CE_Failure, CPLE_IllegalArg,
                       "GDAL does not support gridding method %d", eAlgorithm );
@@ -875,16 +1231,27 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
     const double    dfDeltaX = ( dfXMax - dfXMin ) / nXSize;
     const double    dfDeltaY = ( dfYMax - dfYMin ) / nYSize;
 
+/* -------------------------------------------------------------------- */
+/*  Allocate a buffer of scanline size, fill it with gridded values     */
+/*  and use GDALCopyWords() to copy values into output data array with  */
+/*  appropriate data type conversion.                                   */
+/* -------------------------------------------------------------------- */
+    double      *padfValues = (double *)VSIMalloc( sizeof(double) * nXSize );
+    GByte       *pabyData = (GByte *)pData;
+    int         nDataTypeSize = GDALGetDataTypeSize(eType) / 8;
+    int         nLineSpace = nXSize * nDataTypeSize;
+    
     for ( nYPoint = 0; nYPoint < nYSize; nYPoint++ )
     {
         const double    dfYPoint = dfYMin + ( nYPoint + 0.5 ) * dfDeltaY;
+
         for ( nXPoint = 0; nXPoint < nXSize; nXPoint++ )
         {
             const double    dfXPoint = dfXMin + ( nXPoint + 0.5 ) * dfDeltaX;
-            double          dfValue = 0.0;
+
             if ( (*pfnGDALGridMethod)( poOptions, nPoints, padfX, padfY, padfZ,
                                        dfXPoint, dfYPoint,
-                                       &dfValue ) != CE_None )
+                                       padfValues + nXPoint ) != CE_None )
             {
                 CPLError( CE_Failure, CPLE_AppDefined,
                           "Gridding failed at X position %lu, Y position %lu",
@@ -892,29 +1259,21 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
                           (long unsigned int)nYPoint );
                 return CE_Failure;
             }
-
-            if ( eType == GDT_Byte )
-                ((GByte *)pData)[nYPoint * nXSize + nXPoint] = (GByte)dfValue;
-            else if ( eType == GDT_UInt16 )
-                ((GUInt16 *)pData)[nYPoint * nXSize + nXPoint] = (GUInt16)dfValue;
-            else if ( eType == GDT_Int16 )
-                ((GInt16 *)pData)[nYPoint * nXSize + nXPoint] = (GInt16)dfValue;
-            else if ( eType == GDT_UInt32 )
-                ((GUInt32 *)pData)[nYPoint * nXSize + nXPoint] = (GUInt32)dfValue;
-            else if ( eType == GDT_Int32 )
-                ((GInt32 *)pData)[nYPoint * nXSize + nXPoint] = (GInt32)dfValue;
-            else if ( eType == GDT_Float32 )
-                ((float *)pData)[nYPoint * nXSize + nXPoint] = (float)dfValue;
-            else if ( eType == GDT_Float64 )
-                ((double *)pData)[nYPoint * nXSize + nXPoint] = dfValue;
         }
 
-	if( !pfnProgress( (double)(nYPoint + 1) / nYSize, NULL, pProgressArg ) )
-	{
-	    CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
-	    return CE_Failure;
-	}
+        GDALCopyWords( padfValues, GDT_Float64, sizeof(double),
+                       pabyData, eType, nDataTypeSize,
+                       nXSize );
+        pabyData += nLineSpace;
+
+        if( !pfnProgress( (double)(nYPoint + 1) / nYSize, NULL, pProgressArg ) )
+        {
+            CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
+            return CE_Failure;
+        }
     }
+
+    VSIFree( padfValues );
 
     return CE_None;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 17630 2009-09-10 15:30:44Z chaitanya $
+ * $Id: ogrgmldatasource.cpp 17629 2009-09-10 14:51:45Z chaitanya $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 17630 2009-09-10 15:30:44Z chaitanya $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 17629 2009-09-10 14:51:45Z chaitanya $");
 
 /************************************************************************/
 /*                         OGRGMLDataSource()                         */
@@ -176,7 +176,7 @@ int OGRGMLDataSource::Open( const char * pszNewName, int bTestOpen )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "File %s appears to be GML but the GML reader can't\n"
-                  "be instantiated, likely because Xerces support wasn't\n"
+                  "be instantiated, likely because Xerces or Expat support wasn't\n"
                   "configured in.", 
                   pszNewName );
         return FALSE;
@@ -243,7 +243,7 @@ int OGRGMLDataSource::Open( const char * pszNewName, int bTestOpen )
 /*      Save the schema file if possible.  Don't make a fuss if we      */
 /*      can't ... could be read-only directory or something.            */
 /* -------------------------------------------------------------------- */
-    if( !bHaveSchema )
+    if( !bHaveSchema && !poReader->HasStoppedParsing())
     {
         FILE    *fp = NULL;
 

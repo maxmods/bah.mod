@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.h 15701 2008-11-10 15:40:02Z warmerdam $
+ * $Id: gdalgrid.h 17957 2009-11-03 14:21:12Z dron $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Prototypes, and definitions for of GDAL scattered data gridder.
@@ -74,6 +74,19 @@ CPLErr
 GDALGridDataMetricRange( const void *, GUInt32,
                          const double *, const double *, const double *,
                          double, double, double * );
+CPLErr
+GDALGridDataMetricCount( const void *, GUInt32,
+                         const double *, const double *, const double *,
+                         double, double, double * );
+CPLErr
+GDALGridDataMetricAverageDistance( const void *, GUInt32,
+                                   const double *, const double *,
+                                   const double *, double, double, double * );
+CPLErr
+GDALGridDataMetricAverageDistancePts( const void *, GUInt32,
+                                      const double *, const double *,
+                                      const double *, double, double,
+                                      double * );
 CPL_C_END
 
 #endif /* GDALGRID_H_INCLUDED */

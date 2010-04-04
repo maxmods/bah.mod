@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogringreslayer.cpp 14313 2008-04-17 19:39:42Z warmerdam $
+ * $Id: ogringreslayer.cpp 18518 2010-01-11 03:25:51Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIngresLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogringreslayer.cpp 14313 2008-04-17 19:39:42Z warmerdam $");
+CPL_CVSID("$Id: ogringreslayer.cpp 18518 2010-01-11 03:25:51Z warmerdam $");
 
 /************************************************************************/
 /*                           OGRIngresLayer()                            */
@@ -374,8 +374,21 @@ OGRFeature *OGRIngresLayer::RecordToFeature( char **papszRow )
         if( osGeomColumn.size() 
             && EQUAL(psFDesc->ds_columnName,osGeomColumn))
         {
-            poFeature->SetGeometryDirectly( 
-                TranslateGeometry( papszRow[iField] ) );
+        	if( poDS->IsNewIngres() )
+        	{
+        		OGRGeometry *poGeometry = NULL;
+        		unsigned char *pszWKB = (unsigned char *) papszRow[iField];
+
+//        		OGRGeometryFactory::createFromWkt(&pszWKT, NULL, &poGeometry);
+        		OGRGeometryFactory::createFromWkb(pszWKB, NULL, &poGeometry, -1);
+
+        		poFeature->SetGeometryDirectly(poGeometry);
+        	}
+        	else
+        	{
+        		poFeature->SetGeometryDirectly(
+        			TranslateGeometry( papszRow[iField] ) );
+        	}
             continue;
         }
 
@@ -405,7 +418,13 @@ OGRFeature *OGRIngresLayer::RecordToFeature( char **papszRow )
             break;
 
           case IIAPI_INT_TYPE:
-            if( psDV->dv_length == 4 )
+            if( psDV->dv_length == 8 )
+            {
+                GIntBig nValue;
+                memcpy( &nValue, papszRow[iField], 8 );
+                poFeature->SetField( iOGRField, (int) nValue );
+            }
+            else if( psDV->dv_length == 4 )
             {
                 GInt32 nValue;
                 memcpy( &nValue, papszRow[iField], 4 );

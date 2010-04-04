@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedriver.cpp 14353 2008-04-21 16:40:21Z warmerdam $
+ * $Id: ogrsqlitedriver.cpp 16847 2009-04-25 15:36:18Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDriver class.
@@ -30,7 +30,7 @@
 #include "ogr_sqlite.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 14353 2008-04-21 16:40:21Z warmerdam $");
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 16847 2009-04-25 15:36:18Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRSQLiteDriver()                            */
@@ -134,9 +134,53 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
     }
 
 /* -------------------------------------------------------------------- */
-/*      Create the geometry_columns metadata table.                     */
+/*      Create the SpatiaLite metadata tables.                          */
 /* -------------------------------------------------------------------- */
-    if( CSLFetchBoolean( papszOptions, "METADATA", TRUE ) )
+    if ( CSLFetchBoolean( papszOptions, "SPATIALITE", FALSE ) )
+    {
+        CPLString osCommand;
+        char *pszErrMsg = NULL;
+
+        osCommand = 
+            "CREATE TABLE geometry_columns ("
+            "     f_table_name VARCHAR, "
+            "     f_geometry_column VARCHAR, "
+            "     type VARCHAR, "
+            "     coord_dimension INTEGER, "
+            "     srid INTEGER,"
+            "     spatial_index_enabled INTEGER )";
+        rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
+        if( rc != SQLITE_OK )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "Unable to create table geometry_columns: %s",
+                      pszErrMsg );
+            sqlite3_free( pszErrMsg );
+            return NULL;
+        }
+
+        osCommand = 
+            "CREATE TABLE spatial_ref_sys        ("
+            "     srid INTEGER UNIQUE,"
+            "     auth_name VARCHAR,"
+            "     auth_srid INTEGER,"
+            "     ref_sys_name VARCHAR,"
+            "     proj4text VARCHAR )";
+        rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
+        if( rc != SQLITE_OK )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "Unable to create table spatial_ref_sys: %s",
+                      pszErrMsg );
+            sqlite3_free( pszErrMsg );
+            return NULL;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*  Create the geometry_columns and spatial_ref_sys metadata tables.    */
+/* -------------------------------------------------------------------- */
+    else if( CSLFetchBoolean( papszOptions, "METADATA", TRUE ) )
     {
         CPLString osCommand;
         char *pszErrMsg = NULL;
@@ -174,6 +218,24 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
             sqlite3_free( pszErrMsg );
             return NULL;
         }
+    }
+    else
+    {
+/* -------------------------------------------------------------------- */
+/*      Close the DB file so we can reopen it normally.                 */
+/* -------------------------------------------------------------------- */
+        sqlite3_close( hDB );
+
+        OGRSQLiteDataSource     *poDS;
+        poDS = new OGRSQLiteDataSource();
+
+        if( !poDS->Open( pszName ) )
+        {
+            delete poDS;
+            return NULL;
+        }
+        else
+            return poDS;
     }
 
 /* -------------------------------------------------------------------- */

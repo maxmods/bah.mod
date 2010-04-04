@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogr_gml.h 16241 2009-02-06 06:05:51Z warmerdam $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -47,6 +47,8 @@ class OGRGMLLayer : public OGRLayer
 
     int                 iNextGMLId;
     int                 nTotalGMLCount;
+    int                 bInvalidFIDFound;
+    char                *pszFIDPrefix;
 
     int                 bWriter;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.h 16909 2009-05-02 14:56:22Z rouault $
+ * $Id: kml.h 17734 2009-10-03 09:48:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -29,23 +29,22 @@
 #ifndef OGR_KML_KML_H_INCLUDED
 #define OGR_KML_KML_H_INCLUDED
 
-#include <expat.h>
+#include "ogr_expat.h"
 // std
 #include <iostream>
 #include <string>
 #include <vector>
 
+/* Workaround VC6 bug */
+#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+namespace std
+{
+  typedef ::size_t size_t;
+}
+#endif
+
 #include "cpl_port.h"
 #include "kmlutility.h"
-
-/* Compatibility stuff for expat >=1.95.0 and < 1.95.7 */
-#ifndef XMLCALL
-#define XMLCALL
-#endif
-#ifndef XML_STATUS_OK
-#define XML_STATUS_OK    1
-#define XML_STATUS_ERROR 0
-#endif
 
 class KMLNode;
 
@@ -91,12 +90,14 @@ protected:
 	static void XMLCALL startElement(void *, const char *, const char **);
 	static void XMLCALL startElementValidate(void *, const char *, const char **);
 	static void XMLCALL dataHandler(void *, const char *, int);
+        static void XMLCALL dataHandlerValidate(void *, const char *, int);
 	static void XMLCALL endElement(void *, const char *);
 
 	// trunk of KMLnodes
 	KMLNode* poTrunk_;
 	// number of layers;
 	int nNumLayers_;
+        KMLNode** papoLayers_;
 
 private:
 	// depth of the DOM
@@ -111,7 +112,10 @@ private:
 	std::string sError_;
 	// current KMLNode
 	KMLNode *poCurrent_;
-        int nCurrentLayer_;
+        
+        XML_Parser oCurrentParser;
+        int nDataHandlerCounter;
+        int nWithoutEventCounter;
 };
 
 #endif /* OGR_KML_KML_H_INCLUDED */

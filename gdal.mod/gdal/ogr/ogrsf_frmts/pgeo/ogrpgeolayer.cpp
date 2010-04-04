@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeolayer.cpp 17845 2009-10-17 09:41:03Z rouault $
+ * $Id: ogrpgeolayer.cpp 18133 2009-11-30 11:01:21Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoLayer class, code shared between 
@@ -32,7 +32,7 @@
 #include "ogr_pgeo.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrpgeolayer.cpp 17845 2009-10-17 09:41:03Z rouault $");
+CPL_CVSID("$Id: ogrpgeolayer.cpp 18133 2009-11-30 11:01:21Z chaitanya $");
 
 /************************************************************************/
 /*                            OGRPGeoLayer()                            */
@@ -321,20 +321,7 @@ OGRFeature *OGRPGeoLayer::GetFeature( long nFeatureId )
 int OGRPGeoLayer::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,OLCRandomRead) )
-        return FALSE;
-
-    else if( EQUAL(pszCap,OLCFastFeatureCount) )
-        return FALSE;
-
-    else if( EQUAL(pszCap,OLCFastSpatialFilter) )
-        return FALSE;
-
-    else if( EQUAL(pszCap,OLCTransactions) )
-        return FALSE;
-
-    else 
-        return FALSE;
+    return FALSE;
 }
 
 /************************************************************************/
@@ -442,9 +429,27 @@ OGRErr OGRPGeoLayer::createFromShapeBin( GByte *pabyShape,
 /* -------------------------------------------------------------------- */
 /*      type 50 appears to just be an alias for normal line             */
 /*      strings. (#1484)                                                */
+/*      Type 51 appears to just be an alias for normal polygon. (#3100) */
+/*      TODO: These types include additional attributes including       */
+/*      non-linear segments and such. They should be handled.           */
 /* -------------------------------------------------------------------- */
-    if( nSHPType == 50 )
+    switch( nSHPType )
+    {
+      case 50:
         nSHPType = SHPT_ARC;
+        break;
+      case 51:
+        nSHPType = SHPT_POLYGON;
+        break;
+      case 52:
+        nSHPType = SHPT_POINT;
+        break;
+      case 53:
+        nSHPType = SHPT_MULTIPOINT;
+        break;
+      case 54:
+        nSHPType = SHPT_MULTIPATCH;
+    }
 
 /* ==================================================================== */
 /*  Extract vertices for a Polygon or Arc.				*/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitelayer.cpp 15543 2008-10-16 17:13:30Z warmerdam $
+ * $Id: ogrsqlitelayer.cpp 18761 2010-02-08 16:41:51Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteLayer class, code shared between 
@@ -31,8 +31,9 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "ogr_sqlite.h"
+#include <cassert>
 
-CPL_CVSID("$Id: ogrsqlitelayer.cpp 15543 2008-10-16 17:13:30Z warmerdam $");
+CPL_CVSID("$Id: ogrsqlitelayer.cpp 18761 2010-02-08 16:41:51Z chaitanya $");
 
 /************************************************************************/
 /*                           OGRSQLiteLayer()                           */
@@ -45,6 +46,8 @@ OGRSQLiteLayer::OGRSQLiteLayer()
 
     pszFIDColumn = NULL;
 
+    eGeomFormat = OSGF_None;
+
     hStmt = NULL;
 
     iNextShapeId = 0;
@@ -53,6 +56,9 @@ OGRSQLiteLayer::OGRSQLiteLayer()
     nSRSId = -2; // we haven't even queried the database for it yet. 
 
     panFieldOrdinals = NULL;
+
+    bTriedAsSpatiaLite = FALSE;
+    bHasSpatialIndex = FALSE;
 }
 
 /************************************************************************/
@@ -117,27 +123,52 @@ CPLErr OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         if( poFeatureDefn->GetFieldIndex( oField.GetNameRef() ) != -1 )
             continue;
 
+        if( pszFIDColumn != NULL && EQUAL(pszFIDColumn, oField.GetNameRef()))
+            continue;
+
         //oField.SetWidth( MAX(0,poStmt->GetColSize( iCol )) );
 
         if( osGeomColumn.size()
             && EQUAL(oField.GetNameRef(),osGeomColumn) )
             continue;
+        
+        int nColType = sqlite3_column_type( hStmt, iCol );
+        const char * pszDeclType = sqlite3_column_decltype(hStmt, iCol);
+        //CPLDebug("SQLITE", "decltype(%s) = %s",
+        //         oField.GetNameRef(), pszDeclType ? pszDeclType : "null");
+        if (pszDeclType != NULL)
+        {
+            if (EQUAL(pszDeclType, "INTEGER"))
+                nColType = SQLITE_INTEGER;
+            else if (EQUAL(pszDeclType, "FLOAT"))
+                nColType = SQLITE_FLOAT;
+            else if (EQUAL(pszDeclType, "BLOB"))
+                nColType = SQLITE_BLOB;
+            else if (EQUAL(pszDeclType, "TEXT") ||
+                     EQUAL(pszDeclType, "VARCHAR"))
+                nColType = SQLITE_TEXT;
+        }
 
         // Recognise some common geometry column names.
         if( (EQUAL(oField.GetNameRef(),"wkt_geometry") 
-             || EQUAL(oField.GetNameRef(),"geometry"))
+             || EQUAL(oField.GetNameRef(),"geometry")
+             || EQUALN(oField.GetNameRef(), "asbinary(", 9)
+             || EQUALN(oField.GetNameRef(), "astext(", 7))
             && osGeomColumn.size() == 0 )
         {
-            if( sqlite3_column_type( hStmt, iCol ) == SQLITE_BLOB )
+            if( nColType == SQLITE_BLOB )
             {
                 osGeomColumn = oField.GetNameRef();
-                osGeomFormat = "WKB";
+                eGeomFormat = OSGF_WKB;
+                /* This could also be a SpatialLite geometry, so */
+                /* we'll also try to decode as SpatialLite if */
+                /* bTriedAsSpatiaLite is not FALSE */
                 continue;
             }
-            else if( sqlite3_column_type( hStmt, iCol ) == SQLITE_TEXT )
+            else if( nColType == SQLITE_TEXT )
             {
                 osGeomColumn = oField.GetNameRef();
-                osGeomFormat = "WKT";
+                eGeomFormat = OSGF_WKT;
                 continue;
             }
         }
@@ -147,7 +178,7 @@ CPLErr OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
             && osGeomColumn.size() == 0 )
         {
             osGeomColumn = oField.GetNameRef();
-            osGeomFormat = "SpatiaLite";
+            eGeomFormat = OSGF_SpatiaLite;
             continue;
         }
 
@@ -159,7 +190,7 @@ CPLErr OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         if( EQUAL(oField.GetNameRef(),"OGC_FID") )
             continue;
 
-        switch( sqlite3_column_type( hStmt, iCol ) )
+        switch( nColType )
         {
           case SQLITE_INTEGER:
             oField.SetType( OFTInteger );
@@ -189,6 +220,32 @@ CPLErr OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         poFeatureDefn->SetGeomType( wkbNone );
 
     return CE_None;
+}
+
+/************************************************************************/
+/*                            GetFIDColumn()                            */
+/************************************************************************/
+
+const char *OGRSQLiteLayer::GetFIDColumn() 
+
+{
+    if( pszFIDColumn != NULL )
+        return pszFIDColumn;
+    else
+        return "";
+}
+
+/************************************************************************/
+/*                         GetGeometryColumn()                          */
+/************************************************************************/
+
+const char *OGRSQLiteLayer::GetGeometryColumn() 
+
+{
+    if( osGeomColumn.size() != 0 )
+        return osGeomColumn.c_str();
+    else
+        return "";
 }
 
 /************************************************************************/
@@ -244,7 +301,13 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
     rc = sqlite3_step( hStmt );
     if( rc != SQLITE_ROW )
     {
-        // we really should check for errors 
+        if ( rc != SQLITE_DONE )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                    "In GetNextRawFeature(): sqlite3_step() : %s", 
+                    sqlite3_errmsg(poDS->GetDB()) );
+        }
+
         ClearStatement();
 
         return NULL;
@@ -309,10 +372,10 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
             return NULL;
         }
 
-        if( EQUAL(osGeomFormat,"WKT") )
+        OGRGeometry *poGeometry = NULL;
+        if ( eGeomFormat == OSGF_WKT )
         {
             char *pszWKTCopy, *pszWKT = NULL;
-            OGRGeometry *poGeometry = NULL;
 
             pszWKT = (char *) sqlite3_column_text( hStmt, iGeomCol );
             pszWKTCopy = pszWKT;
@@ -320,36 +383,49 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
                     &pszWKTCopy, NULL, &poGeometry ) == OGRERR_NONE )
                 poFeature->SetGeometryDirectly( poGeometry );
         }
-        else if( EQUAL(osGeomFormat,"WKB") )
+        else if ( eGeomFormat == OSGF_WKB )
         {
             const int nBytes = sqlite3_column_bytes( hStmt, iGeomCol );
-            OGRGeometry *poGeometry = NULL;
 
             if( OGRGeometryFactory::createFromWkb( 
                     (GByte*)sqlite3_column_blob( hStmt, iGeomCol ),
                     NULL, &poGeometry, nBytes ) == OGRERR_NONE )
                 poFeature->SetGeometryDirectly( poGeometry );
+            else if (!bTriedAsSpatiaLite)
+            {
+                /* If the layer is the result of a sql select, we cannot be sure if it is */
+                /* WKB or SpatialLite format */
+                if( ImportSpatiaLiteGeometry( 
+                    (GByte*)sqlite3_column_blob( hStmt, iGeomCol ), nBytes,
+                    &poGeometry ) == OGRERR_NONE )
+                {
+                    poFeature->SetGeometryDirectly( poGeometry );
+                    eGeomFormat = OSGF_SpatiaLite;
+                }
+                bTriedAsSpatiaLite = TRUE;
+            }
         }
-        else if( EQUAL(osGeomFormat,"FGF") )
+        else if ( eGeomFormat == OSGF_FGF )
         {
             const int nBytes = sqlite3_column_bytes( hStmt, iGeomCol );
-            OGRGeometry *poGeometry = NULL;
 
             if( OGRGeometryFactory::createFromFgf( 
                     (GByte*)sqlite3_column_blob( hStmt, iGeomCol ),
                     NULL, &poGeometry, nBytes, NULL ) == OGRERR_NONE )
                 poFeature->SetGeometryDirectly( poGeometry );
         }
-        else if( EQUAL(osGeomFormat,"SpatiaLite") )
+        else if ( eGeomFormat == OSGF_SpatiaLite )
         {
             const int nBytes = sqlite3_column_bytes( hStmt, iGeomCol );
-            OGRGeometry *poGeometry = NULL;
 
-            if( ImportSpatialiteGeometry( 
+            if( ImportSpatiaLiteGeometry( 
                     (GByte*)sqlite3_column_blob( hStmt, iGeomCol ), nBytes,
                     &poGeometry ) == OGRERR_NONE )
                 poFeature->SetGeometryDirectly( poGeometry );
         }
+
+        if (poGeometry != NULL && poSRS != NULL)
+            poGeometry->assignSpatialReference(poSRS);
     }
 
 /* -------------------------------------------------------------------- */
@@ -395,25 +471,6 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
         }
     }
 
-/* -------------------------------------------------------------------- */
-/*      Try to extract a geometry.                                      */
-/* -------------------------------------------------------------------- */
-#ifdef notdef
-    if( pszGeomColumn != NULL )
-    {
-        int iField = poStmt->GetColId( pszGeomColumn );
-        const char *pszGeomText = poStmt->GetColData( iField );
-        OGRGeometry *poGeom = NULL;
-
-        if( pszGeomText != NULL )
-            OGRGeometryFactory::createFromWkt( (char **) &pszGeomText,
-                                               NULL, &poGeom );
-        
-        if( poGeom != NULL )
-            poFeature->SetGeometryDirectly( poGeom );
-    }
-#endif
-
     return poFeature;
 }
 
@@ -427,36 +484,569 @@ OGRFeature *OGRSQLiteLayer::GetFeature( long nFeatureId )
     return OGRLayer::GetFeature( nFeatureId );
 }
 
+
 /************************************************************************/
-/*                      ImportSpatialiteGeometry()                      */
+/*                     createFromSpatialiteInternal()                   */
 /************************************************************************/
 
-OGRErr OGRSQLiteLayer::ImportSpatialiteGeometry(
-    const GByte *pabyData, int nBytes, OGRGeometry **ppoGeometry )
+/* See http://www.gaia-gis.it/spatialite/spatialite-manual-2.3.0.html#t3.3 */
+/* for the specification of the spatialite BLOB geometry format */
+/* Derived from WKB, but unfortunately it is not practical to reuse existing */
+/* WKB encoding/decoding code */
 
+#ifdef CPL_LSB
+#define NEED_SWAP_SPATIALITE()  (eByteOrder != wkbNDR)
+#else
+#define NEED_SWAP_SPATIALITE()  (eByteOrder == wkbNDR)
+#endif
+
+
+OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
+                                                    OGRGeometry **ppoReturn,
+                                                    int nBytes,
+                                                    OGRwkbByteOrder eByteOrder,
+                                                    int* pnBytesConsumed)
 {
-    *ppoGeometry = NULL;
+    OGRErr      eErr = OGRERR_NONE;
+    OGRGeometry *poGeom = NULL;
+    GInt32       nGType;
 
-    if( nBytes < 43 || pabyData[0] != 0 || pabyData[nBytes-1] != 0xFE )
-        return OGRERR_CORRUPT_DATA;
+    *ppoReturn = NULL;
 
-    GByte *pabyWKB = (GByte *) CPLMalloc(nBytes);
-    
-    // copy endian flag. 
-    memcpy( pabyWKB, pabyData + 1, 1 );
+    if (nBytes < 4)
+        return OGRERR_NOT_ENOUGH_DATA;
 
-    // copy class type. 
-    memcpy( pabyWKB + 1, pabyData + 39, 4 );
+/* -------------------------------------------------------------------- */
+/*      Decode the geometry type.                                       */
+/* -------------------------------------------------------------------- */
+    memcpy( &nGType, pabyData, 4 );
+    if (NEED_SWAP_SPATIALITE())
+        CPL_SWAP32PTR( &nGType );
 
-    // copy the remainder.
-    memcpy( pabyWKB + 5, pabyData + 43, nBytes - 44 );
+    if( nGType < 1 || nGType > 7 )
+        return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
 
-    OGRErr eErr = OGRGeometryFactory::createFromWkb( pabyWKB, NULL, 
-                                                     ppoGeometry, nBytes - 39);
-    
-    CPLFree( pabyWKB );
+/* -------------------------------------------------------------------- */
+/*      Point                                                           */
+/* -------------------------------------------------------------------- */
+    if( nGType == 1 )
+    {
+        double  adfTuple[2];
+
+        if( nBytes < 4 + 2 * 8 )
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        memcpy( adfTuple, pabyData + 4, 2*8 );
+        if (NEED_SWAP_SPATIALITE())
+        {
+            CPL_SWAP64PTR( adfTuple );
+            CPL_SWAP64PTR( adfTuple + 1 );
+        }
+
+        poGeom = new OGRPoint( adfTuple[0], adfTuple[1] );
+
+        if( pnBytesConsumed )
+            *pnBytesConsumed = 4 + 2 * 8;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      LineString                                                      */
+/* -------------------------------------------------------------------- */
+    else if( nGType == 2 )
+    {
+        double adfTuple[2];
+        GInt32 nPointCount;
+        int    iPoint;
+        OGRLineString *poLS;
+
+        if( nBytes < 8 )
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        memcpy( &nPointCount, pabyData + 4, 4 );
+        if (NEED_SWAP_SPATIALITE())
+            CPL_SWAP32PTR( &nPointCount );
+
+        if( nPointCount < 0 || nPointCount > INT_MAX / (2 * 8))
+            return OGRERR_CORRUPT_DATA;
+
+        if (nBytes - 8 < 2 * 8 * nPointCount )
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        poGeom = poLS = new OGRLineString();
+        poLS->setNumPoints( nPointCount );
+
+        for( iPoint = 0; iPoint < nPointCount; iPoint++ )
+        {
+            memcpy( adfTuple, pabyData + 8 + 2*8*iPoint, 2*8 );
+            if (NEED_SWAP_SPATIALITE())
+            {
+                CPL_SWAP64PTR( adfTuple );
+                CPL_SWAP64PTR( adfTuple + 1 );
+            }
+
+            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+        }
+
+        if( pnBytesConsumed )
+            *pnBytesConsumed = 8 + 2 * 8 * nPointCount;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Polygon                                                         */
+/* -------------------------------------------------------------------- */
+    else if( nGType == 3 )
+    {
+        double adfTuple[2];
+        GInt32 nPointCount;
+        GInt32 nRingCount;
+        int    iPoint, iRing;
+        OGRLinearRing *poLR;
+        OGRPolygon *poPoly;
+        int    nNextByte;
+
+        if( nBytes < 8 )
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        memcpy( &nRingCount, pabyData + 4, 4 );
+        if (NEED_SWAP_SPATIALITE())
+            CPL_SWAP32PTR( &nRingCount );
+
+        if (nRingCount < 0 || nRingCount > INT_MAX / 4)
+            return OGRERR_CORRUPT_DATA;
+
+        /* Each ring has a minimum of 4 bytes */
+        if (nBytes - 8 < nRingCount * 4)
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        nNextByte = 8;
+        
+        poGeom = poPoly = new OGRPolygon();
+
+        for( iRing = 0; iRing < nRingCount; iRing++ )
+        {
+            if( nBytes - nNextByte < 4 )
+                return OGRERR_NOT_ENOUGH_DATA;
+
+            memcpy( &nPointCount, pabyData + nNextByte, 4 );
+            if (NEED_SWAP_SPATIALITE())
+                CPL_SWAP32PTR( &nPointCount );
+
+            if (nPointCount < 0 || nPointCount > INT_MAX / (2 * 8))
+                return OGRERR_CORRUPT_DATA;
+
+            nNextByte += 4;
+
+            if( nBytes - nNextByte < 2 * 8 * nPointCount )
+                return OGRERR_NOT_ENOUGH_DATA;
+
+            poLR = new OGRLinearRing();
+            poLR->setNumPoints( nPointCount );
+            
+            for( iPoint = 0; iPoint < nPointCount; iPoint++ )
+            {
+                memcpy( adfTuple, pabyData + nNextByte, 2*8 );
+                nNextByte += 2 * 8;
+
+                if (NEED_SWAP_SPATIALITE())
+                {
+                    CPL_SWAP64PTR( adfTuple );
+                    CPL_SWAP64PTR( adfTuple + 1 );
+                }
+
+                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+            }
+
+            poPoly->addRingDirectly( poLR );
+        }
+
+        if( pnBytesConsumed )
+            *pnBytesConsumed = nNextByte;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      GeometryCollections of various kinds.                           */
+/* -------------------------------------------------------------------- */
+    else if( nGType == 4         // MultiPoint
+             || nGType == 5      // MultiLineString
+             || nGType == 6      // MultiPolygon
+             || nGType == 7 )    // MultiGeometry
+    {
+        OGRGeometryCollection *poGC = NULL;
+        GInt32 nGeomCount = 0;
+        int iGeom = 0;
+        int nBytesUsed = 0;
+
+        if( nGType == 4 )
+            poGC = new OGRMultiPoint();
+        else if( nGType == 5 )
+            poGC = new OGRMultiLineString();
+        else if( nGType == 6 )
+            poGC = new OGRMultiPolygon();
+        else if( nGType == 7 )
+            poGC = new OGRGeometryCollection();
+
+        assert(NULL != poGC);
+
+        if( nBytes < 8 )
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        memcpy( &nGeomCount, pabyData + 4, 4 );
+        if (NEED_SWAP_SPATIALITE())
+            CPL_SWAP32PTR( &nGeomCount );
+
+        if (nGeomCount < 0 || nGeomCount > INT_MAX / 9)
+            return OGRERR_CORRUPT_DATA;
+
+        /* Each sub geometry takes at least 9 bytes */
+        if (nBytes - 8 < nGeomCount * 9)
+            return OGRERR_NOT_ENOUGH_DATA;
+
+        nBytesUsed = 8;
+
+        for( iGeom = 0; iGeom < nGeomCount; iGeom++ )
+        {
+            int nThisGeomSize;
+            OGRGeometry *poThisGeom = NULL;
+
+            if (nBytes - nBytesUsed < 5)
+                return OGRERR_NOT_ENOUGH_DATA;
+
+            if (pabyData[nBytesUsed] != 0x69)
+                return OGRERR_CORRUPT_DATA;
+
+            nBytesUsed ++;
+
+            eErr = createFromSpatialiteInternal( pabyData + nBytesUsed,
+                                                 &poThisGeom, nBytes - nBytesUsed,
+                                                 eByteOrder, &nThisGeomSize);
+            if( eErr != OGRERR_NONE )
+            {
+                delete poGC;
+                return eErr;
+            }
+
+            nBytesUsed += nThisGeomSize;
+            eErr = poGC->addGeometryDirectly( poThisGeom );
+            if( eErr != OGRERR_NONE )
+            {
+                delete poGC;
+                return eErr;
+            }
+        }
+
+        poGeom = poGC;
+        if( pnBytesConsumed )
+            *pnBytesConsumed = nBytesUsed;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Currently unsupported geometry.                                 */
+/* -------------------------------------------------------------------- */
+    else
+    {
+        return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Assign spatial reference system.                                */
+/* -------------------------------------------------------------------- */
+    if( eErr == OGRERR_NONE )
+    {
+        *ppoReturn = poGeom;
+    }
+    else
+    {
+        delete poGeom;
+    }
 
     return eErr;
+}
+
+/************************************************************************/
+/*                      ImportSpatiaLiteGeometry()                      */
+/************************************************************************/
+
+OGRErr OGRSQLiteLayer::ImportSpatiaLiteGeometry( const GByte *pabyData,
+                                                 int nBytes,
+                                                 OGRGeometry **ppoGeometry )
+
+{
+    OGRwkbByteOrder eByteOrder;
+
+    *ppoGeometry = NULL;
+
+    if( nBytes < 44
+        || pabyData[0] != 0
+        || pabyData[38] != 0x7C
+        || pabyData[nBytes-1] != 0xFE )
+        return OGRERR_CORRUPT_DATA;
+
+    eByteOrder = (OGRwkbByteOrder) pabyData[1];
+
+    return createFromSpatialiteInternal(pabyData + 39, ppoGeometry,
+                                        nBytes - 39, eByteOrder, NULL);
+}
+
+/************************************************************************/
+/*                  ComputeSpatiaLiteGeometrySize()                     */
+/************************************************************************/
+
+int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry)
+{
+    switch (wkbFlatten(poGeometry->getGeometryType()))
+    {
+        case wkbPoint:
+            return 16;
+
+        case wkbLineString:
+        case wkbLinearRing:
+            return 4 + 16 * ((OGRLineString*)poGeometry)->getNumPoints();
+
+        case wkbPolygon:
+        {
+            int nSize = 4;
+            OGRPolygon* poPoly = (OGRPolygon*) poGeometry;
+            if (poPoly->getExteriorRing() != NULL)
+            {
+                nSize += ComputeSpatiaLiteGeometrySize(poPoly->getExteriorRing());
+
+                int nInteriorRingCount = poPoly->getNumInteriorRings();
+                for(int i=0;i<nInteriorRingCount;i++)
+                    nSize += ComputeSpatiaLiteGeometrySize(poPoly->getInteriorRing(i));
+            }
+            return nSize;
+        }
+
+        case wkbMultiPoint:
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            int nSize = 4;
+            OGRGeometryCollection* poGeomCollection = (OGRGeometryCollection*) poGeometry;
+            int nParts = poGeomCollection->getNumGeometries();
+            for(int i=0;i<nParts;i++)
+                nSize += 5 + ComputeSpatiaLiteGeometrySize(poGeomCollection->getGeometryRef(i));
+            return nSize;
+        }
+
+        default:
+            CPLError(CE_Failure, CPLE_AppDefined, "Unexpected geometry type");
+            return 0;
+    }
+}
+
+/************************************************************************/
+/*                      ExportSpatiaLiteGeometry()                      */
+/************************************************************************/
+
+int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeometry,
+                                                     OGRwkbByteOrder eByteOrder,
+                                                     GByte* pabyData)
+{
+    switch (wkbFlatten(poGeometry->getGeometryType()))
+    {
+        case wkbPoint:
+        {
+            OGRPoint* poPoint = (OGRPoint*) poGeometry;
+            double x = poPoint->getX();
+            double y = poPoint->getY();
+            memcpy(pabyData, &x, 8);
+            memcpy(pabyData + 8, &y, 8);
+            if (NEED_SWAP_SPATIALITE())
+            {
+                CPL_SWAP64PTR( pabyData );
+                CPL_SWAP64PTR( pabyData + 8 );
+            }
+            return 16;
+        }
+
+        case wkbLineString:
+        case wkbLinearRing:
+        {
+            OGRLineString* poLineString = (OGRLineString*) poGeometry;
+            int nTotalSize = 4;
+            int nPointCount = poLineString->getNumPoints();
+            memcpy(pabyData, &nPointCount, 4);
+            if (NEED_SWAP_SPATIALITE())
+                CPL_SWAP32PTR( pabyData );
+            for(int i=0;i<nPointCount;i++)
+            {
+                double x = poLineString->getX(i);
+                double y = poLineString->getY(i);
+                memcpy(pabyData + nTotalSize, &x, 8);
+                memcpy(pabyData + nTotalSize + 8, &y, 8);
+                if (NEED_SWAP_SPATIALITE())
+                {
+                    CPL_SWAP64PTR( pabyData + nTotalSize );
+                    CPL_SWAP64PTR( pabyData + nTotalSize + 8 );
+                }
+                nTotalSize += 16;
+            }
+            return nTotalSize;
+        }
+
+        case wkbPolygon:
+        {
+            OGRPolygon* poPoly = (OGRPolygon*) poGeometry;
+            int nParts = 0;
+            int nTotalSize = 4;
+            if (poPoly->getExteriorRing() != NULL)
+            {
+                int nInteriorRingCount = poPoly->getNumInteriorRings();
+                nParts = 1 + nInteriorRingCount;
+                memcpy(pabyData, &nParts, 4);
+                if (NEED_SWAP_SPATIALITE())
+                    CPL_SWAP32PTR( pabyData );
+
+                nTotalSize += ExportSpatiaLiteGeometryInternal(poPoly->getExteriorRing(),
+                                                              eByteOrder, pabyData + nTotalSize);
+
+                for(int i=0;i<nInteriorRingCount;i++)
+                {
+                    nTotalSize += ExportSpatiaLiteGeometryInternal(poPoly->getInteriorRing(i),
+                                                                   eByteOrder, pabyData + nTotalSize);
+                }
+            }
+            else
+            {
+                memset(pabyData, 0, 4);
+            }
+            return nTotalSize;
+        }
+
+        case wkbMultiPoint:
+        case wkbMultiLineString:
+        case wkbMultiPolygon:
+        case wkbGeometryCollection:
+        {
+            OGRGeometryCollection* poGeomCollection = (OGRGeometryCollection*) poGeometry;
+            int nTotalSize = 4;
+            int nParts = poGeomCollection->getNumGeometries();
+            memcpy(pabyData, &nParts, 4);
+            if (NEED_SWAP_SPATIALITE())
+                CPL_SWAP32PTR( pabyData );
+
+            for(int i=0;i<nParts;i++)
+            {
+                pabyData[nTotalSize] = 0x69;
+                nTotalSize ++;
+                int nCode;
+                switch (wkbFlatten(poGeomCollection->getGeometryRef(i)->getGeometryType()))
+                {
+                    case wkbPoint: nCode = 1; break;
+                    case wkbLineString: nCode = 2; break;
+                    case wkbPolygon: nCode = 3; break;
+                    default: CPLError(CE_Failure, CPLE_AppDefined, "Unexpected geometry type"); return 0;
+                }
+                memcpy(pabyData + nTotalSize, &nCode, 4);
+                if (NEED_SWAP_SPATIALITE())
+                    CPL_SWAP32PTR( pabyData + nTotalSize );
+                nTotalSize += 4;
+                nTotalSize += ExportSpatiaLiteGeometryInternal(poGeomCollection->getGeometryRef(i),
+                                                               eByteOrder, pabyData + nTotalSize);
+            }
+            return nTotalSize;
+        }
+
+        default:
+            return 0;
+    }
+}
+
+
+OGRErr OGRSQLiteLayer::ExportSpatiaLiteGeometry( const OGRGeometry *poGeometry,
+                                                 GInt32 nSRID,
+                                                 OGRwkbByteOrder eByteOrder,
+                                                 GByte **ppabyData,
+                                                 int *pnDataLenght )
+
+{
+    int     nDataLen = 44 + ComputeSpatiaLiteGeometrySize(poGeometry);
+    OGREnvelope sEnvelope;
+
+    *ppabyData =  (GByte *) CPLMalloc( nDataLen );
+
+    (*ppabyData)[0] = 0x00;
+    (*ppabyData)[1] = eByteOrder;
+
+    // Write out SRID
+    memcpy( *ppabyData + 2, &nSRID, 4 );
+
+    // Write out the geometry bounding rectangle
+    poGeometry->getEnvelope( &sEnvelope );
+    memcpy( *ppabyData + 6, &sEnvelope.MinX, 8 );
+    memcpy( *ppabyData + 14, &sEnvelope.MinY, 8 );
+    memcpy( *ppabyData + 22, &sEnvelope.MaxX, 8 );
+    memcpy( *ppabyData + 30, &sEnvelope.MaxY, 8 );
+
+    (*ppabyData)[38] = 0x7C;
+
+    int nCode = 0;
+    switch (wkbFlatten(poGeometry->getGeometryType()))
+    {
+        case wkbPoint:
+            nCode = 1;
+            break;
+
+        case wkbLineString:
+        case wkbLinearRing:
+            nCode = 2;
+            break;
+
+        case wkbPolygon:
+            nCode = 3;
+            break;
+
+        case wkbMultiPoint:
+            nCode = 4;
+            break;
+
+        case wkbMultiLineString:
+            nCode = 5;
+            break;
+
+        case wkbMultiPolygon:
+            nCode = 6;
+            break;
+
+        case wkbGeometryCollection:
+            nCode = 7;
+            break;
+
+        default:
+            CPLError(CE_Failure, CPLE_AppDefined, "Unexpected geometry type");
+            CPLFree(*ppabyData);
+            *ppabyData = NULL;
+            *pnDataLenght = 0;
+            return CE_Failure;
+    }
+    memcpy( *ppabyData + 39, &nCode, 4 );
+
+    int nWritten = ExportSpatiaLiteGeometryInternal(poGeometry, eByteOrder, *ppabyData + 43);
+    if (nWritten == 0)
+    {
+        CPLFree(*ppabyData);
+        *ppabyData = NULL;
+        *pnDataLenght = 0;
+        return CE_Failure;
+    }
+
+    (*ppabyData)[nDataLen - 1] = 0xFE;
+
+    if( NEED_SWAP_SPATIALITE() )
+    {
+        CPL_SWAP32PTR( *ppabyData + 2 );
+        CPL_SWAP64PTR( *ppabyData + 6 );
+        CPL_SWAP64PTR( *ppabyData + 14 );
+        CPL_SWAP64PTR( *ppabyData + 22 );
+        CPL_SWAP64PTR( *ppabyData + 30 );
+        CPL_SWAP32PTR( *ppabyData + 39 );
+    }
+
+    *pnDataLenght = nDataLen;
+
+    return CE_None;
 }
 
 /************************************************************************/
@@ -476,7 +1066,7 @@ int OGRSQLiteLayer::TestCapability( const char * pszCap )
         return FALSE;
 
     else if( EQUAL(pszCap,OLCTransactions) )
-        return FALSE;
+        return TRUE;
 
     else 
         return FALSE;

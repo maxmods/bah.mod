@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfdataset.cpp 16259 2009-02-07 17:53:10Z rouault $
+ * $Id: gxfdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  GDAL binding for GXF reader.
@@ -30,7 +30,7 @@
 #include "gxfopen.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gxfdataset.cpp 16259 2009-02-07 17:53:10Z rouault $");
+CPL_CVSID("$Id: gxfdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -287,7 +287,19 @@ GDALDataset *GXFDataset::Open( GDALOpenInfo * poOpenInfo )
     
     if( hGXF == NULL )
         return( NULL );
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        GXFClose(hGXF);
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The GXF driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */

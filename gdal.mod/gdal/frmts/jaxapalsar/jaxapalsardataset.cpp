@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jaxapalsardataset.cpp 13810 2008-02-17 20:23:03Z rouault $
+ * $Id: jaxapalsardataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  PALSAR JAXA imagery reader
  * Purpose:  Support for PALSAR L1.1/1.5 imagery and appropriate metadata from
@@ -31,7 +31,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jaxapalsardataset.cpp 13810 2008-02-17 20:23:03Z rouault $");
+CPL_CVSID("$Id: jaxapalsardataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PALSARJaxa(void);
@@ -510,7 +510,18 @@ GDALDataset *PALSARJaxaDataset::Open( GDALOpenInfo * poOpenInfo ) {
     /* Check that this actually is a JAXA PALSAR product */
     if ( !PALSARJaxaDataset::Identify(poOpenInfo) )
         return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The JAXAPALSAR driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
     PALSARJaxaDataset *poDS = new PALSARJaxaDataset();
 
     /* Get the suffix of the filename, we'll need this */
@@ -593,15 +604,15 @@ GDALDataset *PALSARJaxaDataset::Open( GDALOpenInfo * poOpenInfo ) {
     VSIFree( pszSuffix );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return poDS;
 }

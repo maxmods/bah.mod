@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 16798 2009-04-18 22:12:03Z rouault $
+ * $Id: dteddataset.cpp 18060 2009-11-21 20:26:25Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dteddataset.cpp 16798 2009-04-18 22:12:03Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 18060 2009-11-21 20:26:25Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -52,6 +52,7 @@ class DTEDDataset : public GDALPamDataset
     char        *pszFilename;
     DTEDInfo    *psDTED;
     int         bVerifyChecksum;
+    char       *pszProjection;
 
   public:
                  DTEDDataset();
@@ -247,6 +248,7 @@ double DTEDRasterBand::GetNoDataValue( int * pbSuccess )
 DTEDDataset::DTEDDataset()
 {
     pszFilename = CPLStrdup("unknown");
+    pszProjection = CPLStrdup("");
     bVerifyChecksum = CSLTestBoolean(CPLGetConfigOption("DTED_VERIFY_CHECKSUM", "NO"));
 }
 
@@ -259,6 +261,7 @@ DTEDDataset::~DTEDDataset()
 {
     FlushCache();
     CPLFree(pszFilename);
+    CPLFree( pszProjection );
     if( psDTED != NULL )
         DTEDClose( psDTED );
 }
@@ -334,6 +337,12 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterXSize = psDTED->nXSize;
     poDS->nRasterYSize = psDTED->nYSize;
     
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+    {
+        delete poDS;
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Create band information objects.                                */
 /* -------------------------------------------------------------------- */
@@ -348,86 +357,81 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_VERTACCURACY_UHL );
     poDS->SetMetadataItem( "DTED_VerticalAccuracy_UHL", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_VERTACCURACY_ACC );
     poDS->SetMetadataItem( "DTED_VerticalAccuracy_ACC", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_SECURITYCODE_UHL );
     poDS->SetMetadataItem( "DTED_SecurityCode_UHL", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_SECURITYCODE_DSI );
     poDS->SetMetadataItem( "DTED_SecurityCode_DSI", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_UNIQUEREF_UHL );
     poDS->SetMetadataItem( "DTED_UniqueRef_UHL", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_UNIQUEREF_DSI );
     poDS->SetMetadataItem( "DTED_UniqueRef_DSI", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_DATA_EDITION );
     poDS->SetMetadataItem( "DTED_DataEdition", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_MATCHMERGE_VERSION );
     poDS->SetMetadataItem( "DTED_MatchMergeVersion", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_MAINT_DATE );
     poDS->SetMetadataItem( "DTED_MaintenanceDate", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_MATCHMERGE_DATE );
     poDS->SetMetadataItem( "DTED_MatchMergeDate", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_MAINT_DESCRIPTION );
     poDS->SetMetadataItem( "DTED_MaintenanceDescription", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_PRODUCER );
     poDS->SetMetadataItem( "DTED_Producer", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_VERTDATUM );
     poDS->SetMetadataItem( "DTED_VerticalDatum", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_HORIZDATUM );
     poDS->SetMetadataItem( "DTED_HorizontalDatum", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_DIGITIZING_SYS );
     poDS->SetMetadataItem( "DTED_DigitizingSystem", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_COMPILATION_DATE );
     poDS->SetMetadataItem( "DTED_CompilationDate", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_HORIZACCURACY );
     poDS->SetMetadataItem( "DTED_HorizontalAccuracy", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_REL_HORIZACCURACY );
     poDS->SetMetadataItem( "DTED_RelHorizontalAccuracy", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
 
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_REL_VERTACCURACY );
     poDS->SetMetadataItem( "DTED_RelVerticalAccuracy", pszValue );
-    CPLFree( pszValue );
+    free( pszValue );
     
     poDS->SetMetadataItem( GDALMD_AREA_OR_POINT, GDALMD_AOP_POINT );
-
-/* -------------------------------------------------------------------- */
-/*      Support overviews.                                              */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -435,7 +439,28 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
 
+    // if no SR in xml, try aux
+    const char* pszPrj = poDS->GDALPamDataset::GetProjectionRef();
+    if( !pszPrj || strlen(pszPrj) == 0 )
+    {
+        GDALDataset* poAuxDS = GDALFindAssociatedAuxFile( poOpenInfo->pszFilename, GA_ReadOnly, poDS );
+        if( poAuxDS )
+        {
+            pszPrj = poAuxDS->GetProjectionRef();
+            if( pszPrj && strlen(pszPrj) > 0 )
+            {
+                CPLFree( poDS->pszProjection );
+                poDS->pszProjection = CPLStrdup(pszPrj);
+            }
 
+            GDALClose( poAuxDS );
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Support overviews.                                              */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
     return( poDS );
 }
 
@@ -463,39 +488,47 @@ CPLErr DTEDDataset::GetGeoTransform( double * padfTransform )
 const char *DTEDDataset::GetProjectionRef()
 
 {
-    const char* pszProjection = GetMetadataItem( "DTED_HorizontalDatum");
-    if (EQUAL(pszProjection, "WGS84"))
+    // get xml and aux SR first
+    const char* pszPrj = GDALPamDataset::GetProjectionRef();
+    if(pszPrj && strlen(pszPrj) > 0)
+        return pszPrj;
+
+    if (pszProjection && strlen(pszProjection) > 0)
+        return pszProjection;
+
+    pszPrj = GetMetadataItem( "DTED_HorizontalDatum");
+    if (EQUAL(pszPrj, "WGS84"))
     {
-      return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]" );
+        return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]" );
     }
-    else if (EQUAL(pszProjection, "WGS72"))
+    else if (EQUAL(pszPrj, "WGS72"))
     {
-      static int bWarned = FALSE;
-      if (!bWarned)
-      {
-        bWarned = TRUE;
-        CPLError( CE_Warning, CPLE_AppDefined,
-                  "The DTED file %s indicates WGS72 as horizontal datum. \n"
-                  "As this is outdated nowadays, you should contact your data producer to get data georeferenced in WGS84.\n"
-                  "In some cases, WGS72 is a wrong indication and the georeferencing is really WGS84. In that case\n"
-                  "you might consider doing 'gdal_translate -of DTED -mo \"DTED_HorizontalDatum=WGS84\" src.dtX dst.dtX' to\n"
-                  "fix the DTED file.\n"
-                  "No more warnings will be issued in this session about this operation.", GetFileName() );
-      }
-      return "GEOGCS[\"WGS 72\",DATUM[\"WGS_1972\",SPHEROID[\"WGS 72\",6378135,298.26]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4322\"]]"; 
+        static int bWarned = FALSE;
+        if (!bWarned)
+        {
+            bWarned = TRUE;
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "The DTED file %s indicates WGS72 as horizontal datum. \n"
+                      "As this is outdated nowadays, you should contact your data producer to get data georeferenced in WGS84.\n"
+                      "In some cases, WGS72 is a wrong indication and the georeferencing is really WGS84. In that case\n"
+                      "you might consider doing 'gdal_translate -of DTED -mo \"DTED_HorizontalDatum=WGS84\" src.dtX dst.dtX' to\n"
+                      "fix the DTED file.\n"
+                      "No more warnings will be issued in this session about this operation.", GetFileName() );
+        }
+        return "GEOGCS[\"WGS 72\",DATUM[\"WGS_1972\",SPHEROID[\"WGS 72\",6378135,298.26]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4322\"]]"; 
     }
     else
     {
-      static int bWarned = FALSE;
-      if (!bWarned)
-      {
-        bWarned = TRUE;
-        CPLError( CE_Warning, CPLE_AppDefined,
-                  "The DTED file %s indicates %s as horizontal datum, which is not recognized by the DTED driver. \n"
-                  "The DTED driver is going to consider it as WGS84.\n"
-                  "No more warnings will be issued in this session about this operation.", GetFileName(),pszProjection );
-      }
-      return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]" );
+        static int bWarned = FALSE;
+        if (!bWarned)
+        {
+            bWarned = TRUE;
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "The DTED file %s indicates %s as horizontal datum, which is not recognized by the DTED driver. \n"
+                      "The DTED driver is going to consider it as WGS84.\n"
+                      "No more warnings will be issued in this session about this operation.", GetFileName(), pszProjection );
+        }
+        return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]" );
     }
 }
 
@@ -528,7 +561,8 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                   "DTED driver does not support source dataset with zero band.\n");
         return NULL;
     }
-    else if (nBands != 1)
+    
+    if (nBands != 1)
     {
         CPLError( (bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported, 
                   "DTED driver only uses the first band of the dataset.\n");
@@ -714,7 +748,7 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         iPartialCell = 0;
     else
     {
-      iPartialCell = int(floor(100.0 - 
+      iPartialCell = (GByte)int(floor(100.0 - 
            (dfNodataCount*100.0/(psDTED->nXSize * psDTED->nYSize))));
         if (iPartialCell < 1)
            iPartialCell=1;

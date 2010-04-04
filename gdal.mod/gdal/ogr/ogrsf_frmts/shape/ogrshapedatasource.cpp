@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 17132 2009-05-26 22:05:47Z rouault $
+ * $Id: ogrshapedatasource.cpp 17806 2009-10-13 17:27:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 17132 2009-05-26 22:05:47Z rouault $");
+CPL_CVSID("$Id: ogrshapedatasource.cpp 17806 2009-10-13 17:27:54Z rouault $");
 
 /************************************************************************/
 /*                         OGRShapeDataSource()                         */
@@ -610,9 +610,9 @@ int OGRShapeDataSource::TestCapability( const char * pszCap )
 
 {
     if( EQUAL(pszCap,ODsCCreateLayer) )
-        return TRUE;
+        return bDSUpdate;
     else if( EQUAL(pszCap,ODsCDeleteLayer) )
-        return TRUE;
+        return bDSUpdate;
     else
         return FALSE;
 }
@@ -747,6 +747,19 @@ OGRErr OGRShapeDataSource::DeleteLayer( int iLayer )
 
 {
     char *pszFilename;
+
+/* -------------------------------------------------------------------- */
+/*      Verify we are in update mode.                                   */
+/* -------------------------------------------------------------------- */
+    if( !bDSUpdate )
+    {
+        CPLError( CE_Failure, CPLE_NoWriteAccess,
+                  "Data source %s opened read-only.\n"
+                  "Layer %d cannot be deleted.\n",
+                  pszName, iLayer );
+
+        return OGRERR_FAILURE;
+    }
 
     if( iLayer < 0 || iLayer >= nLayers )
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_erm.cpp 10929 2007-03-11 08:41:47Z warmerdam $
+ * $Id: ogr_srs_erm.cpp 18063 2009-11-21 21:11:49Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implement ERMapper projection conversions.
@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogr_srs_erm.cpp 10929 2007-03-11 08:41:47Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_erm.cpp 18063 2009-11-21 21:11:49Z warmerdam $");
 
 /************************************************************************/
 /*                           importFromERM()                            */

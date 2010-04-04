@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: l1bdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $
+ * $Id: l1bdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  NOAA Polar Orbiter Level 1b Dataset Reader (AVHRR)
  * Purpose:  Can read NOAA-9(F)-NOAA-17(M) AVHRR datasets
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: l1bdataset.cpp 16019 2008-12-31 04:10:29Z warmerdam $");
+CPL_CVSID("$Id: l1bdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void    GDALRegister_L1B(void);
@@ -1603,7 +1603,18 @@ GDALDataset *L1BDataset::Open( GDALOpenInfo * poOpenInfo )
     int     eL1BFormat = DetectFormat( poOpenInfo );
     if ( eL1BFormat == L1B_NONE )
         return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The L1B driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 #if 0
     Geolocation
     if ( EQUAL( poOpenInfo->pszFilename, "L1BGCPS:" ) )

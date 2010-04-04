@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_xml.cpp 14288 2008-04-13 15:56:22Z rouault $
+ * $Id: ogr_srs_xml.cpp 16587 2009-03-15 00:09:42Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference interface to OGC XML (014r4).
@@ -693,8 +693,27 @@ static CPLXMLNode *exportProjCSToXML( const OGRSpatialReference *poSRS )
 /*                            exportToXML()                             */
 /************************************************************************/
 
+/**
+ * \brief Export coordinate system in XML format.
+ *
+ * Converts the loaded coordinate reference system into XML format
+ * to the extent possible.  The string returned in ppszRawXML should be
+ * deallocated by the caller with CPLFree() when no longer needed.
+ *
+ * LOCAL_CS coordinate systems are not translatable.  An empty string
+ * will be returned along with OGRERR_NONE.  
+ *
+ * This method is the equivelent of the C function OSRExportToXML().
+ *
+ * @param ppszRawXML pointer to which dynamically allocated XML definition 
+ * will be assigned. 
+ * @param pszDialect currently ignored. The dialect used is GML based.
+ *
+ * @return OGRERR_NONE on success or an error code on failure. 
+ */
+
 OGRErr OGRSpatialReference::exportToXML( char **ppszRawXML, 
-                                         const char * /*pszDialect*/ ) const
+                                         const char * pszDialect ) const
 
 {
     CPLXMLNode *psXMLTree = NULL;
@@ -719,6 +738,11 @@ OGRErr OGRSpatialReference::exportToXML( char **ppszRawXML,
 /************************************************************************/
 /*                           OSRExportToXML()                           */
 /************************************************************************/
+/** 
+ * \brief Export coordinate system in XML format.
+ *
+ * This function is the same as OGRSpatialReference::exportToXML().
+ */
 
 OGRErr OSRExportToXML( OGRSpatialReferenceH hSRS, char **ppszRawXML, 
                        const char *pszDialect )
@@ -914,8 +938,13 @@ static int getEPSGObjectCodeValue( CPLXMLNode *psNode,
         return nDefault;
     
     CPLString osObjectType, osAuthority, osValue;
+    const char* pszHrefVal;
     
-    if( !ParseOGCDefURN( CPLGetXMLValue( psNode, "href", NULL ),
+    pszHrefVal = CPLGetXMLValue( psNode, "xlink:href", NULL );
+    if (pszHrefVal == NULL)
+        pszHrefVal = CPLGetXMLValue( psNode, "href", NULL );
+    
+    if( !ParseOGCDefURN( pszHrefVal,
                          &osObjectType, &osAuthority, NULL, &osValue ) )
         return nDefault;
 
@@ -1237,6 +1266,13 @@ static OGRErr importProjCSFromXML( OGRSpatialReference *poSRS,
 /*                           importFromXML()                            */
 /************************************************************************/
 
+/** 
+ * \brief Import coordinate system from XML format (GML only currently).
+ *
+ * This method is the same as the C function OSRImportFromXML()
+ * @param pszXML XML string to import
+ * @return OGRERR_NONE on success or OGRERR_CORRUPT_DATA on failure.
+ */
 OGRErr OGRSpatialReference::importFromXML( const char *pszXML )
 
 {
@@ -1286,6 +1322,11 @@ OGRErr OGRSpatialReference::importFromXML( const char *pszXML )
 /*                          OSRImportFromXML()                          */
 /************************************************************************/
 
+/** 
+ * \brief Import coordinate system from XML format (GML only currently).
+ *
+ * This function is the same as OGRSpatialReference::importFromXML().
+ */
 OGRErr OSRImportFromXML( OGRSpatialReferenceH hSRS, const char *pszXML )
 
 {

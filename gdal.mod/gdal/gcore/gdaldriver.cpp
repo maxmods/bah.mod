@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 16736 2009-04-07 03:10:37Z warmerdam $
+ * $Id: gdaldriver.cpp 18348 2009-12-19 14:32:39Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -29,7 +29,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 16736 2009-04-07 03:10:37Z warmerdam $");
+CPL_CVSID("$Id: gdaldriver.cpp 18348 2009-12-19 14:32:39Z rouault $");
 
 /************************************************************************/
 /*                             GDALDriver()                             */
@@ -65,7 +65,7 @@ GDALDriver::~GDALDriver()
 /************************************************************************/
 
 /**
- * Destroy a GDALDriver.
+ * \brief Destroy a GDALDriver.
  * 
  * This is roughly equivelent to deleting the driver, but is guaranteed
  * to take place in the GDAL heap.  It is important this that function
@@ -87,7 +87,7 @@ void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
 /************************************************************************/
 
 /**
- * Create a new dataset with this driver.
+ * \brief Create a new dataset with this driver.
  *
  * What argument values are legal for particular drivers is driver specific,
  * and there is no way to query in advance to establish legal values.
@@ -95,6 +95,11 @@ void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
  * That function will try to validate the creation option list passed to the driver
  * with the GDALValidateCreationOptions() method. This check can be disabled
  * by defining the configuration option GDAL_VALIDATE_CREATION_OPTIONS=NO.
+ *
+ * After you have finished working with the returned dataset, it is <b>required</b>
+ * to close it with GDALClose(). This does not only close the file handle, but
+ * also ensures that all the data and metadata has been written to the dataset
+ * (GDALFlushCache() is not sufficient for that purpose).
  *
  * Equivelent of the C function GDALCreate().
  * 
@@ -187,6 +192,8 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
 /************************************************************************/
 
 /**
+ * \brief Create a new dataset with this driver.
+ *
  * @see GDALDriver::Create()
  */
 
@@ -407,6 +414,8 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
     eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
     poDstDS = Create( pszFilename, nXSize, nYSize, 
                       nBands, eType, papszCreateOptions );
+                      
+    CSLDestroy(papszCreateOptions);
 
     if( poDstDS == NULL )
         return NULL;
@@ -455,7 +464,8 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Copy metadata.                                                  */
 /* -------------------------------------------------------------------- */
-    poDstDS->SetMetadata( poSrcDS->GetMetadata() );
+    if( poSrcDS->GetMetadata() != NULL )
+        poDstDS->SetMetadata( poSrcDS->GetMetadata() );
 
 /* -------------------------------------------------------------------- */
 /*      Copy transportable special domain metadata (RPCs).  It would    */
@@ -497,7 +507,8 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
         if( strlen(poSrcBand->GetDescription()) > 0 )
             poDstBand->SetDescription( poSrcBand->GetDescription() );
 
-        poDstBand->SetMetadata( poSrcBand->GetMetadata() );
+        if( CSLCount(poSrcBand->GetMetadata()) > 0 )
+            poDstBand->SetMetadata( poSrcBand->GetMetadata() );
 
         dfValue = poSrcBand->GetOffset( &bSuccess );
         if( bSuccess && dfValue != 0.0 )
@@ -565,7 +576,7 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 /************************************************************************/
 
 /**
- * Create a copy of a dataset.
+ * \brief Create a copy of a dataset.
  *
  * This method will attempt to create a copy of a raster dataset with the
  * indicated filename, and in this drivers format.  Band number, size, 
@@ -586,6 +597,11 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
  * That function will try to validate the creation option list passed to the driver
  * with the GDALValidateCreationOptions() method. This check can be disabled
  * by defining the configuration option GDAL_VALIDATE_CREATION_OPTIONS=NO.
+ *
+ * After you have finished working with the returned dataset, it is <b>required</b>
+ * to close it with GDALClose(). This does not only close the file handle, but
+ * also ensures that all the data and metadata has been written to the dataset
+ * (GDALFlushCache() is not sufficient for that purpose).
  *
  * @param pszFilename the name for the new dataset. 
  * @param poSrcDS the dataset being duplicated. 
@@ -655,6 +671,8 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
 /************************************************************************/
 
 /**
+ * \brief Create a copy of a dataset.
+ *
  * @see GDALDriver::CreateCopy()
  */
 
@@ -679,7 +697,7 @@ GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
 /************************************************************************/
 
 /**
- * Delete dataset if found.
+ * \brief Delete dataset if found.
  *
  * This is a helper method primarily used by Create() and
  * CreateCopy() to predelete any dataset of the name soon to be
@@ -713,7 +731,7 @@ CPLErr GDALDriver::QuietDelete( const char *pszName )
 /************************************************************************/
 
 /**
- * Delete named dataset.
+ * \brief Delete named dataset.
  *
  * The driver will attempt to delete the named dataset in a driver specific
  * fashion.  Full featured drivers will delete all associated files,
@@ -792,6 +810,8 @@ CPLErr GDALDriver::Delete( const char * pszFilename )
 /************************************************************************/
 
 /**
+ * \brief Delete named dataset.
+ *
  * @see GDALDriver::Delete()
  */
 
@@ -817,7 +837,7 @@ CPLErr CPL_STDCALL GDALDeleteDataset( GDALDriverH hDriver, const char * pszFilen
 /************************************************************************/
 
 /**
- * Rename a dataset.
+ * \brief Rename a dataset.
  *
  * Rename a dataset. This may including moving the dataset to a new directory
  * or even a new filesystem.  
@@ -901,6 +921,8 @@ CPLErr GDALDriver::Rename( const char * pszNewName, const char *pszOldName )
 /************************************************************************/
 
 /**
+ * \brief Rename a dataset.
+ *
  * @see GDALDriver::Rename()
  */
 
@@ -928,7 +950,7 @@ CPLErr CPL_STDCALL GDALRenameDataset( GDALDriverH hDriver,
 /************************************************************************/
 
 /**
- * Copy the files of a dataset.
+ * \brief Copy the files of a dataset.
  *
  * Copy all the files associated with a dataset.
  *
@@ -1008,6 +1030,8 @@ CPLErr GDALDriver::CopyFiles( const char * pszNewName, const char *pszOldName )
 /************************************************************************/
 
 /**
+ * \brief Copy the files of a dataset.
+ *
  * @see GDALDriver::CopyFiles()
  */
 
@@ -1035,9 +1059,9 @@ CPLErr CPL_STDCALL GDALCopyDatasetFiles( GDALDriverH hDriver,
 /************************************************************************/
 
 /**
- * Return the short name of a driver
+ * \brief Return the short name of a driver
  *
- * Return the short name of a the driver. This is the string that can be
+ * This is the string that can be
  * passed to the GDALGetDriverByName() function.
  *
  * For the GeoTIFF driver, this is "GTiff"
@@ -1060,9 +1084,7 @@ const char * CPL_STDCALL GDALGetDriverShortName( GDALDriverH hDriver )
 /************************************************************************/
 
 /**
- * Return the long name of a driver
- *
- * Return the long name of a the driver.
+ * \brief Return the long name of a driver
  *
  * For the GeoTIFF driver, this is "GeoTIFF"
  *
@@ -1090,10 +1112,9 @@ const char * CPL_STDCALL GDALGetDriverLongName( GDALDriverH hDriver )
 /************************************************************************/
 
 /**
- * Return the URL to the help that describes the driver
+ * \brief Return the URL to the help that describes the driver
  *
- * Return the URL to the help that describes the driver. That URL is
- * relative to the GDAL documentation directory.
+ * That URL is relative to the GDAL documentation directory.
  *
  * For the GeoTIFF driver, this is "frmt_gtiff.html"
  *
@@ -1115,7 +1136,7 @@ const char * CPL_STDCALL GDALGetDriverHelpTopic( GDALDriverH hDriver )
 /************************************************************************/
 
 /**
- * Return the list of creation options of the driver
+ * \brief Return the list of creation options of the driver
  *
  * Return the list of creation options of the driver used by Create() and
  * CreateCopy() as an XML string
@@ -1145,7 +1166,7 @@ const char * CPL_STDCALL GDALGetDriverCreationOptionList( GDALDriverH hDriver )
 /************************************************************************/
 
 /**
- * Validate the list of creation options that are handled by a driver
+ * \brief Validate the list of creation options that are handled by a driver
  *
  * This is a helper method primarily used by Create() and
  * CreateCopy() to validate that the passed in list of creation options
@@ -1368,7 +1389,7 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
 /************************************************************************/
 
 /**
- * Identify the driver that can open a raster file.
+ * \brief Identify the driver that can open a raster file.
  *
  * This function will try to identify the driver that can open the passed file
  * name by invoking the Identify method of each registered GDALDriver in turn. 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hkvdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
+ * $Id: hkvdataset.cpp 18183 2009-12-05 01:20:02Z warmerdam $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis HKV labelled blob support
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: hkvdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
+CPL_CVSID("$Id: hkvdataset.cpp 18183 2009-12-05 01:20:02Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_HKV(void);
@@ -561,8 +561,10 @@ CPLErr HKVDataset::SetGeoTransform( double * padfTransform )
         oLL.importFromWkt(&pszGCPtemp);
         poTransform = OGRCreateCoordinateTransformation( &oUTM, &oLL );
         if( poTransform == NULL )
+        {
             bSuccess = FALSE;
-
+            CPLErrorReset();
+        }
     }
     else if ((( CSLFetchNameValue( papszGeoref, "projection.name" ) != NULL ) &&
               ( !EQUAL(CSLFetchNameValue( papszGeoref, "projection.name" ),"LL" ))) ||
@@ -828,13 +830,11 @@ CPLErr HKVDataset::SetGCPProjection( const char *pszNewProjection )
 CPLErr HKVDataset::SetProjection( const char * pszNewProjection )
 
 {
-    OGRSpatialReference *oSRS;
     HKVSpheroidList *hkvEllipsoids;
     double eq_radius, inv_flattening;
     OGRErr ogrerrorEq=OGRERR_NONE;
     OGRErr ogrerrorInvf=OGRERR_NONE;
     OGRErr ogrerrorOl=OGRERR_NONE;
-    char *modifiableProjection = NULL;
 
     char *spheroid_name = NULL;
 
@@ -865,24 +865,20 @@ CPLErr HKVDataset::SetProjection( const char * pszNewProjection )
     pszProjection = (char *) CPLStrdup(pszNewProjection);
    
 
-    /* importFromWkt updates the pointer, so don't use pszNewProjection directly */
-    modifiableProjection=CPLStrdup(pszNewProjection);
+    OGRSpatialReference oSRS(pszNewProjection);
 
-    oSRS = new OGRSpatialReference;
-    oSRS->importFromWkt(&modifiableProjection);
-
-    if ((oSRS->GetAttrValue("PROJECTION") != NULL) && 
-        (EQUAL(oSRS->GetAttrValue("PROJECTION"),SRS_PT_TRANSVERSE_MERCATOR)))
+    if ((oSRS.GetAttrValue("PROJECTION") != NULL) && 
+        (EQUAL(oSRS.GetAttrValue("PROJECTION"),SRS_PT_TRANSVERSE_MERCATOR)))
     {
       char *ol_txt;
         ol_txt=(char *) CPLMalloc(255);
         papszGeoref = CSLSetNameValue( papszGeoref, "projection.name", "utm" );
-        sprintf(ol_txt,"%f",oSRS->GetProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0,&ogrerrorOl));
+        sprintf(ol_txt,"%f",oSRS.GetProjParm(SRS_PP_CENTRAL_MERIDIAN,0.0,&ogrerrorOl));
         papszGeoref = CSLSetNameValue( papszGeoref, "projection.origin_longitude",
         ol_txt );
         CPLFree(ol_txt);
     }
-    else if ((oSRS->GetAttrValue("PROJECTION") == NULL) && (oSRS->IsGeographic()))
+    else if ((oSRS.GetAttrValue("PROJECTION") == NULL) && (oSRS.IsGeographic()))
     {
         papszGeoref = CSLSetNameValue( papszGeoref, "projection.name", "LL" );
     }
@@ -892,8 +888,8 @@ CPLErr HKVDataset::SetProjection( const char * pszNewProjection )
                 "Unrecognized projection.");
       return CE_Failure;
     }
-    eq_radius = oSRS->GetSemiMajor(&ogrerrorEq);
-    inv_flattening = oSRS->GetInvFlattening(&ogrerrorInvf);
+    eq_radius = oSRS.GetSemiMajor(&ogrerrorEq);
+    inv_flattening = oSRS.GetInvFlattening(&ogrerrorInvf);
     if ((ogrerrorEq == OGRERR_NONE) && (ogrerrorInvf == OGRERR_NONE)) 
     {
         hkvEllipsoids = new HKVSpheroidList;
@@ -903,6 +899,7 @@ CPLErr HKVDataset::SetProjection( const char * pszNewProjection )
             papszGeoref = CSLSetNameValue( papszGeoref, "spheroid.name", 
                                            spheroid_name );
         }
+        CPLFree(spheroid_name);
         delete hkvEllipsoids;
     }
     else
@@ -922,7 +919,6 @@ CPLErr HKVDataset::SetProjection( const char * pszNewProjection )
         }                                   
     }
     bGeorefChanged = TRUE;
-    delete oSRS;
     return CE_None;
 }
 
@@ -1163,7 +1159,10 @@ void HKVDataset::ProcessGeoref( const char * pszFilename )
   
         poTransform = OGRCreateCoordinateTransformation( &oLL, &oUTM );
         if( poTransform == NULL )
+        {
+            CPLErrorReset();
             bSuccess = FALSE;
+        }
 
         for(gcp_index=0;gcp_index<5;gcp_index++)
         {
@@ -1352,9 +1351,14 @@ GDALDataset *HKVDataset::Open( GDALOpenInfo * poOpenInfo )
         || CSLFetchNameValue( papszAttrib, "extent.rows" ) == NULL )
         return NULL;
 
-    poDS->RasterInitialize( 
-        atoi(CSLFetchNameValue(papszAttrib,"extent.cols")),
-        atoi(CSLFetchNameValue(papszAttrib,"extent.rows")) );
+    poDS->nRasterXSize = atoi(CSLFetchNameValue(papszAttrib,"extent.cols"));
+    poDS->nRasterYSize = atoi(CSLFetchNameValue(papszAttrib,"extent.rows"));
+
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+    {
+        delete poDS;
+        return NULL;
+    }
 
     pszValue = CSLFetchNameValue(papszAttrib,"pixel.order");
     if( pszValue == NULL )
@@ -1380,6 +1384,12 @@ GDALDataset *HKVDataset::Open( GDALOpenInfo * poOpenInfo )
         nRawBands = atoi(pszValue);
     else
         nRawBands = 1;
+
+    if (!GDALCheckBandCount(nRawBands, TRUE))
+    {
+        delete poDS;
+        return NULL;
+    }
 
     pszValue = CSLFetchNameValue(papszAttrib,"pixel.field");
     if( pszValue != NULL && strstr(pszValue,"*complex") != NULL )
@@ -1520,16 +1530,16 @@ GDALDataset *HKVDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->ProcessGeoref(pszFilename);
 
 /* -------------------------------------------------------------------- */
-/*      Handle overviews.                                               */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, pszOvrFilename, NULL, TRUE );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( pszOvrFilename );
     poDS->TryLoadXML();
     
+/* -------------------------------------------------------------------- */
+/*      Handle overviews.                                               */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, pszOvrFilename, NULL, TRUE );
+
     CPLFree( pszOvrFilename );
 
     return( poDS );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: airsardataset.cpp 13500 2008-01-08 22:17:42Z rouault $
+ * $Id: airsardataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  AirSAR Reader
  * Purpose:  Implements read support for AirSAR Polarimetric data.
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: airsardataset.cpp 13500 2008-01-08 22:17:42Z rouault $");
+CPL_CVSID("$Id: airsardataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 CPL_C_START
 void	GDALRegister_AirSAR(void);
@@ -195,7 +195,7 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         {
             double *m = padfMatrix + 10 * iPixel;
 
-            pafLine[iPixel*2+0] = m[M11] + m[M22] + 2 * m[M12];
+            pafLine[iPixel*2+0] = (float)(m[M11] + m[M22] + 2 * m[M12]);
             pafLine[iPixel*2+1] = 0.0;
         }
     }
@@ -206,10 +206,10 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             double *m = padfMatrix + 10 * iPixel;
             
             // real
-            pafLine[iPixel*2 + 0] = SQRT_2 * (m[M13] + m[M23]);
+            pafLine[iPixel*2 + 0] = (float)(SQRT_2 * (m[M13] + m[M23]));
 
             // imaginary
-            pafLine[iPixel*2 + 1] = - SQRT_2 * (m[M24] + m[M14]);
+            pafLine[iPixel*2 + 1] = (float)(- SQRT_2 * (m[M24] + m[M14]));
         }
     }
     else if( nBand == 3 ) /* C13 */
@@ -219,10 +219,10 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             double *m = padfMatrix + 10 * iPixel;
             
             // real
-            pafLine[iPixel*2 + 0] = 2*m[M33] + m[M22] - m[M11];
+            pafLine[iPixel*2 + 0] = (float)(2*m[M33] + m[M22] - m[M11]);
 
             // imaginary
-            pafLine[iPixel*2 + 1] = -2 * m[M34];
+            pafLine[iPixel*2 + 1] = (float)(-2 * m[M34]);
         }
     }
     else if( nBand == 4 ) /* C22 */
@@ -231,7 +231,7 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         {
             double *m = padfMatrix + 10 * iPixel;
             
-            pafLine[iPixel*2+0] = 2 * (m[M11] - m[M22]);
+            pafLine[iPixel*2+0] = (float)(2 * (m[M11] - m[M22]));
             pafLine[iPixel*2+1] = 0.0;
         }
     }
@@ -242,10 +242,10 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             double *m = padfMatrix + 10 * iPixel;
             
             // real
-            pafLine[iPixel*2 + 0] = SQRT_2 * (m[M13] - m[M23]);
+            pafLine[iPixel*2 + 0] = (float)(SQRT_2 * (m[M13] - m[M23]));
 
             // imaginary
-            pafLine[iPixel*2 + 1] = SQRT_2 * (m[M23] - m[M14]);
+            pafLine[iPixel*2 + 1] = (float)(SQRT_2 * (m[M23] - m[M14]));
         }
     }
     else if( nBand == 6 ) /* C33 */
@@ -254,7 +254,7 @@ CPLErr AirSARRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         {
             double *m = padfMatrix + 10 * iPixel;
             
-            pafLine[iPixel*2+0] = m[M11] + m[M22] - 2 * m[M12];
+            pafLine[iPixel*2+0] = (float)(m[M11] + m[M22] - 2 * m[M12]);
             pafLine[iPixel*2+1] = 0.0;
         }
     }
@@ -545,6 +545,16 @@ GDALDataset *AirSARDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
 
 /* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The AIRSAR driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+/* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
     AirSARDataset 	*poDS;
@@ -621,8 +631,6 @@ GDALDataset *AirSARDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetBand( 5, new AirSARRasterBand( poDS, 5 ));
     poDS->SetBand( 6, new AirSARRasterBand( poDS, 6 ));
 
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
     poDS->SetMetadataItem( "MATRIX_REPRESENTATION", "SYMMETRIZED_COVARIANCE" );
 
 /* -------------------------------------------------------------------- */
@@ -630,6 +638,8 @@ GDALDataset *AirSARDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }

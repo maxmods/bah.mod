@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.cpp 13685 2008-02-03 19:42:27Z rouault $
+ * $Id: vrtdataset.cpp 17852 2009-10-18 11:15:09Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDataset
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: vrtdataset.cpp 13685 2008-02-03 19:42:27Z rouault $");
+CPL_CVSID("$Id: vrtdataset.cpp 17852 2009-10-18 11:15:09Z rouault $");
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -634,7 +634,7 @@ GDALDataset *VRTDataset::Open( GDALOpenInfo * poOpenInfo )
         unsigned int nLength;
      
         VSIFSeekL( fp, 0, SEEK_END );
-        nLength = VSIFTellL( fp );
+        nLength = (int) VSIFTellL( fp );
         VSIFSeekL( fp, 0, SEEK_SET );
         
         nLength = MAX(0,nLength);
@@ -675,7 +675,7 @@ GDALDataset *VRTDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Turn the XML representation into a VRTDataset.                  */
 /* -------------------------------------------------------------------- */
-    VRTDataset *poDS = (VRTDataset *) OpenXML( pszXML, pszVRTPath );
+    VRTDataset *poDS = (VRTDataset *) OpenXML( pszXML, pszVRTPath, poOpenInfo->eAccess );
 
     if( poDS != NULL )
         poDS->bNeedsFlush = FALSE;
@@ -699,7 +699,8 @@ GDALDataset *VRTDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      of the dataset.                                                 */
 /************************************************************************/
 
-GDALDataset *VRTDataset::OpenXML( const char *pszXML, const char *pszVRTPath )
+GDALDataset *VRTDataset::OpenXML( const char *pszXML, const char *pszVRTPath,
+                                  GDALAccess eAccess)
 
 {
  /* -------------------------------------------------------------------- */
@@ -729,11 +730,20 @@ GDALDataset *VRTDataset::OpenXML( const char *pszXML, const char *pszVRTPath )
     VRTDataset *poDS;
     int nXSize = atoi(CPLGetXMLValue(psTree,"rasterXSize","0"));
     int nYSize = atoi(CPLGetXMLValue(psTree,"rasterYSize","0"));
+    
+    if ( !GDALCheckDatasetDimensions(nXSize, nYSize) )
+    {
+        CPLDestroyXMLNode( psTree );
+        return NULL;
+    }
 
     if( strstr(pszXML,"VRTWarpedDataset") != NULL )
         poDS = new VRTWarpedDataset( nXSize, nYSize );
     else
+    {
         poDS = new VRTDataset( nXSize, nYSize );
+        poDS->eAccess = eAccess;
+    }
 
     if( poDS->XMLInit( psTree, pszVRTPath ) != CE_None )
     {
@@ -913,7 +923,7 @@ VRTDataset::Create( const char * pszName,
 
     if( EQUALN(pszName,"<VRTDataset",11) )
     {
-        GDALDataset *poDS = OpenXML( pszName, NULL );
+        GDALDataset *poDS = OpenXML( pszName, NULL, GA_Update );
         poDS->SetDescription( "<FromXML>" );
         return poDS;
     }
@@ -935,6 +945,7 @@ VRTDataset::Create( const char * pszName,
                       pszSubclass );
             return NULL;
         }
+        poDS->eAccess = GA_Update;
 
         poDS->SetDescription( pszName );
         
@@ -949,3 +960,57 @@ VRTDataset::Create( const char * pszName,
     }
 }
 
+/************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char** VRTDataset::GetFileList()
+{
+    char** papszFileList = GDALDataset::GetFileList();
+    
+    int nSize = CSLCount(papszFileList);
+    int nMaxSize = nSize;
+    
+    /* Don't need an element desallocator as each string points to an */
+    /* element of the papszFileList */
+    CPLHashSet* hSetFiles = CPLHashSetNew(CPLHashSetHashStr,
+                                          CPLHashSetEqualStr,
+                                          NULL);
+                                          
+    for( int iBand = 0; iBand < nBands; iBand++ )
+    {
+       ((VRTRasterBand *) papoBands[iBand])->GetFileList(
+                                &papszFileList, &nSize, &nMaxSize, hSetFiles);
+    }
+                                          
+    CPLHashSetDestroy(hSetFiles);
+    
+    return papszFileList;
+}
+
+/************************************************************************/
+/*                              Delete()                                */
+/************************************************************************/
+
+/* We implement Delete() to avoid that the default implementation */
+/* in GDALDriver::Delete() destroys the source files listed by GetFileList(),*/
+/* which would be an undesired effect... */
+CPLErr VRTDataset::Delete( const char * pszFilename )
+{
+    GDALDriverH hDriver = GDALIdentifyDriver(pszFilename, NULL);
+    if (hDriver && EQUAL(GDALGetDriverShortName(hDriver), "VRT"))
+    {
+        if( VSIUnlink( pszFilename ) != 0 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Deleting %s failed:\n%s",
+                      pszFilename,
+                      VSIStrerror(errno) );
+            return CE_Failure;
+        }
+        
+        return CE_None;
+    }
+    else
+        return CE_Failure;
+}

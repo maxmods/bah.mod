@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalallregister.cpp 16026 2009-01-01 18:47:30Z warmerdam $
+ * $Id: gdalallregister.cpp 18207 2009-12-07 21:37:49Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALAllRegister(), primary format registration.
@@ -30,7 +30,7 @@
 #include "gdal_priv.h"
 #include "gdal_frmts.h"
 
-CPL_CVSID("$Id: gdalallregister.cpp 16026 2009-01-01 18:47:30Z warmerdam $");
+CPL_CVSID("$Id: gdalallregister.cpp 18207 2009-12-07 21:37:49Z rouault $");
 
 #ifdef notdef
 // we may have a use for this some day
@@ -47,8 +47,8 @@ static char *szConfiguredFormats = "GDAL_FORMATS";
  * Register all known configured GDAL drivers.
  *
  * This function will drive any of the following that are configured into
- * GDAL.  Possible others as well that haven't been updated in this
- * documentation:
+ * GDAL.  Many others as well haven't been updated in this
+ * documentation (see <a href="http://gdal.org/formats_list.html">full list</a>):
  *
  * <ul>
  * <li> GeoTIFF (GTiff)
@@ -67,6 +67,7 @@ static char *szConfiguredFormats = "GDAL_FORMATS";
  * <li> GSBG Golden Software Binary Grid
  * </ul>
  *
+ * This function should generally be called once at the beginning of the application.
  */
 
 void CPL_STDCALL GDALAllRegister()
@@ -233,6 +234,10 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_PDS();
 #endif
 
+#ifdef FRMT_til
+    GDALRegister_TIL();
+#endif
+
 #ifdef FRMT_ers
     GDALRegister_ERS();
 #endif
@@ -324,6 +329,10 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_TMS();
 #endif
 
+#ifdef FRMT_r
+    GDALRegister_R();
+#endif
+
 /* -------------------------------------------------------------------- */
 /*      Put raw formats at the end of the list. These drivers support   */
 /*      various ASCII-header labeled formats, so the driver could be    */
@@ -384,12 +393,19 @@ void CPL_STDCALL GDALAllRegister()
 #endif
 
 #ifdef FRMT_hdf5
+    GDALRegister_BAG();
     GDALRegister_HDF5();
     GDALRegister_HDF5Image();
 #endif
 
+#ifdef FRMT_northwood
+	GDALRegister_NWT_GRD();
+	GDALRegister_NWT_GRC();
+#endif
+
 #ifdef FRMT_adrg
     GDALRegister_ADRG();
+    GDALRegister_SRP();
 #endif
 
 #ifdef FRMT_blx
@@ -404,6 +420,21 @@ void CPL_STDCALL GDALAllRegister()
     GDALRegister_GEOR();
 #endif
 
+#ifdef FRMT_rasterlite
+    GDALRegister_Rasterlite();
+#endif
+
+#ifdef FRMT_epsilon
+    GDALRegister_EPSILON();
+#endif
+
+#ifdef FRMT_wktraster
+    GDALRegister_WKTRaster();
+#endif
+
+#ifdef FRMT_saga
+    GDALRegister_SAGA();
+#endif
 /* -------------------------------------------------------------------- */
 /*      Deregister any drivers explicitly marked as supressed by the    */
 /*      GDAL_SKIP environment variable.                                 */

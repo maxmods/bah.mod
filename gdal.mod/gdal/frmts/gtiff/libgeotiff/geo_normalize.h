@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geo_normalize.h,v 1.12 2005/08/26 16:08:14 fwarmerdam Exp $
+ * $Id: geo_normalize.h 1641 2009-09-24 19:35:59Z warmerdam $
  *
  * Project:  libgeotiff
  * Purpose:  Include file related to geo_normalize.c containing Code to
@@ -26,43 +26,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- ******************************************************************************
- *
- * $Log: geo_normalize.h,v $
- * Revision 1.12  2005/08/26 16:08:14  fwarmerdam
- * Include void in empty argument list for prototype.
- *
- * Revision 1.11  2004/02/03 17:19:50  warmerda
- * export GTIFAngleToDD() - used by GDAL mrsiddataset.cpp
- *
- * Revision 1.10  2003/01/15 04:39:16  warmerda
- * Added GTIFDeaccessCSV
- *
- * Revision 1.9  2003/01/15 03:37:40  warmerda
- * added GTIFFreeMemory()
- *
- * Revision 1.8  2002/11/28 22:27:42  warmerda
- * preliminary upgrade to EPSG 6.2.2 tables
- *
- * Revision 1.7  1999/09/17 00:55:26  warmerda
- * added GTIFGetUOMAngleInfo(), and UOMAngle in GTIFDefn
- *
- * Revision 1.6  1999/05/04 03:13:42  warmerda
- * Added prototype
- *
- * Revision 1.5  1999/04/29 23:02:55  warmerda
- * added docs, and MapSys related stuff
- *
- * Revision 1.4  1999/03/18 21:35:19  geotiff
- * Added PROJ.4 related stuff
- *
- * Revision 1.3  1999/03/17 20:44:04  geotiff
- * added CPL_DLL related support
- *
- * Revision 1.2  1999/03/10 18:24:06  geotiff
- * corrected to use int'
- *
- */
+ *****************************************************************************/
 
 #ifndef GEO_NORMALIZE_H_INCLUDED
 #define GEO_NORMALIZE_H_INCLUDED
@@ -164,6 +128,9 @@ typedef struct {
     /** UTM, or State Plane Zone number, zero if not known. */
     int		Zone;
 
+    /** Do we have any definition at all?  0 if no geokeys found */
+    int         DefnSet;
+
 } GTIFDefn;
 
 int CPL_DLL GTIFGetPCSInfo( int nPCSCode, char **ppszEPSGName,
@@ -224,8 +191,11 @@ int CPL_DLL   GTIFProjToMapSys( int ProjCode, int * pZone );
  * These are only useful if using libgeotiff with libproj (PROJ.4+).
  */
 char CPL_DLL *GTIFGetProj4Defn( GTIFDefn * );
+
 int  CPL_DLL  GTIFProj4ToLatLong( GTIFDefn *, int, double *, double * );
 int  CPL_DLL  GTIFProj4FromLatLong( GTIFDefn *, int, double *, double * );
+
+int  CPL_DLL  GTIFSetFromProj4( GTIF *gtif, const char *proj4 );
 
 #if defined(HAVE_LIBPROJ) && defined(HAVE_PROJECTS_H)
 #  define HAVE_GTIFPROJ4

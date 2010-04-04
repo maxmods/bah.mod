@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_opt.cpp 15827 2008-11-27 22:30:18Z warmerdam $
+ * $Id: ogr_opt.cpp 18033 2009-11-15 19:18:57Z rouault $
  *
  * Project:  OpenGIS Simple Features
  * Purpose:  Functions for getting list of projection types, and their parms.
@@ -30,7 +30,7 @@
 #include "ogr_srs_api.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogr_opt.cpp 15827 2008-11-27 22:30:18Z warmerdam $");
+CPL_CVSID("$Id: ogr_opt.cpp 18033 2009-11-15 19:18:57Z rouault $");
 
 static const char *papszParameterDefinitions[] = {
     SRS_PP_CENTRAL_MERIDIAN,    "Central Meridian",     "Long",  "0.0",
@@ -128,12 +128,40 @@ static const char *papszProjectionDefinitions[] = {
     SRS_PP_FALSE_NORTHING,
 
     "*",
+    SRS_PT_ECKERT_I,
+    "Eckert I",
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+    
+    "*",
+    SRS_PT_ECKERT_II,
+    "Eckert II",
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+    
+    "*",
+    SRS_PT_ECKERT_III,
+    "Eckert III",
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+    
+    "*",
     SRS_PT_ECKERT_IV,
     "Eckert IV",
     SRS_PP_CENTRAL_MERIDIAN, 
     SRS_PP_FALSE_EASTING, 
     SRS_PP_FALSE_NORTHING,
-
+    
+    "*",
+    SRS_PT_ECKERT_V,
+    "Eckert V",
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+    
     "*",
     SRS_PT_ECKERT_VI,
     "Eckert VI",

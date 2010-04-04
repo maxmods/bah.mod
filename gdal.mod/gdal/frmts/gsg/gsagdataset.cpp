@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsagdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $
+ * $Id: gsagdataset.cpp 16925 2009-05-03 14:16:49Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software ASCII Grid Format.
@@ -49,7 +49,7 @@
 # define INT_MAX 2147483647
 #endif /* INT_MAX */
 
-CPL_CVSID("$Id: gsagdataset.cpp 16866 2009-04-27 12:52:26Z chaitanya $");
+CPL_CVSID("$Id: gsagdataset.cpp 16925 2009-05-03 14:16:49Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GSAG(void);
@@ -1059,7 +1059,7 @@ error:
     delete poDS;
 
     if (szErrorMsg)
-        CPLError( CE_Failure, CPLE_AppDefined, szErrorMsg );
+        CPLError( CE_Failure, CPLE_AppDefined, "%s", szErrorMsg );
     return NULL;
 }
 

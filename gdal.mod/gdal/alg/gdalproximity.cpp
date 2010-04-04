@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproximity.cpp 15701 2008-11-10 15:40:02Z warmerdam $
+ * $Id: gdalproximity.cpp 18092 2009-11-24 20:48:51Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Compute each pixel's proximity to a set of target pixels.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalproximity.cpp 15701 2008-11-10 15:40:02Z warmerdam $");
+CPL_CVSID("$Id: gdalproximity.cpp 18092 2009-11-24 20:48:51Z rouault $");
 
 static CPLErr
 ProcessProximityLine( GInt32 *panSrcScanline, int *panNearX, int *panNearY, 
@@ -43,7 +43,8 @@ ProcessProximityLine( GInt32 *panSrcScanline, int *panNearX, int *panNearY,
 /*                        GDALComputeProximity()                        */
 /************************************************************************/
 
-/*
+/**
+Compute the proximity of all pixels in the image to a set of pixels in the source image.
 
 This function attempts to compute the proximity of all pixels in
 the image to a set of pixels in the source image.  The following
@@ -101,7 +102,7 @@ GDALComputeProximity( GDALRasterBandH hSrcBand,
     int nXSize, nYSize, i, bFixedBufVal = FALSE;
     const char *pszOpt;
     double dfMaxDist;
-    double dfFixedBufVal;
+    double dfFixedBufVal = 0.0;
 
     VALIDATE_POINTER1( hSrcBand, "GDALComputeProximity", CE_Failure );
     VALIDATE_POINTER1( hProximityBand, "GDALComputeProximity", CE_Failure );
@@ -216,6 +217,7 @@ GDALComputeProximity( GDALRasterBandH hSrcBand,
     if( !pfnProgress( 0.0, "", pProgressArg ) )
     {
         CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
+        CPLFree(panTargetValues);
         return CE_Failure;
     }
 
@@ -227,15 +229,33 @@ GDALComputeProximity( GDALRasterBandH hSrcBand,
     GDALRasterBandH hWorkProximityBand = hProximityBand;
     GDALDatasetH hWorkProximityDS = NULL;
     GDALDataType eProxType = GDALGetRasterDataType( hProximityBand );
+    int   *panNearX = NULL, *panNearY = NULL;
+    float *pafProximity = NULL;
+    GInt32 *panSrcScanline = NULL;
+    int iLine;
+    CPLErr eErr = CE_None;
 
     if( eProxType == GDT_Byte 
         || eProxType == GDT_UInt16
         || eProxType == GDT_UInt32 )
     {
+        GDALDriverH hDriver = GDALGetDriverByName("GTiff");
+        if (hDriver == NULL)
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "GDALComputeProximity needs GTiff driver");
+            eErr = CE_Failure;
+            goto end;
+        }
         CPLString osTmpFile = CPLGenerateTempFilename( "proximity" );
         hWorkProximityDS = 
-            GDALCreate( GDALGetDriverByName("GTiff"), osTmpFile,
+            GDALCreate( hDriver, osTmpFile,
                         nXSize, nYSize, 1, GDT_Float32, NULL );
+        if (hWorkProximityDS == NULL)
+        {
+            eErr = CE_Failure;
+            goto end;
+        }
         hWorkProximityBand = GDALGetRasterBand( hWorkProximityDS, 1 );
     }
 
@@ -243,30 +263,25 @@ GDALComputeProximity( GDALRasterBandH hSrcBand,
 /*      Allocate buffer for two scanlines of distances as floats        */
 /*      (the current and last line).                                    */
 /* -------------------------------------------------------------------- */
-    int   *panNearX, *panNearY;
-    float *pafProximity;
-    GInt32 *panSrcScanline;
-
-    pafProximity = (float *) VSIMalloc(4 * nXSize);
-    panNearX = (int *) VSIMalloc(sizeof(int) * nXSize);
-    panNearY = (int *) VSIMalloc(sizeof(int) * nXSize);
-    panSrcScanline = (GInt32 *) VSIMalloc(4 * nXSize);
+    pafProximity = (float *) VSIMalloc2(sizeof(float), nXSize);
+    panNearX = (int *) VSIMalloc2(sizeof(int), nXSize);
+    panNearY = (int *) VSIMalloc2(sizeof(int), nXSize);
+    panSrcScanline = (GInt32 *) VSIMalloc2(sizeof(GInt32), nXSize);
 
     if( pafProximity== NULL 
         || panNearX == NULL 
-        || panNearY == NULL )
+        || panNearY == NULL
+        || panSrcScanline == NULL)
     {
         CPLError( CE_Failure, CPLE_OutOfMemory, 
-                  "Out of memory allocating %d byte buffer.", 
-                  4 * nXSize );
-        return CE_Failure;
+                  "Out of memory allocating working buffers.");
+        eErr = CE_Failure;
+        goto end;
     }
 
 /* -------------------------------------------------------------------- */
 /*      Loop from top to bottom of the image.                           */
 /* -------------------------------------------------------------------- */
-    int iLine;
-    CPLErr eErr = CE_None;
 
     for( i = 0; i < nXSize; i++ )
         panNearX[i] = panNearY[i] = -1;
@@ -374,10 +389,12 @@ GDALComputeProximity( GDALRasterBandH hSrcBand,
 /* -------------------------------------------------------------------- */
 /*      Cleanup                                                         */
 /* -------------------------------------------------------------------- */
+end:
     CPLFree( panNearX );
     CPLFree( panNearY );
     CPLFree( panSrcScanline );
     CPLFree( pafProximity );
+    CPLFree(panTargetValues);
 
     if( hWorkProximityDS != NULL )
     {

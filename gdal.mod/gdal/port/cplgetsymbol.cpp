@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplgetsymbol.cpp 13271 2007-12-06 04:44:19Z warmerdam $
+ * $Id: cplgetsymbol.cpp 16702 2009-04-01 20:42:49Z rouault $
  *
  * Project:  Common Portability Library
  * Purpose:  Fetch a function pointer from a shared library / DLL.
@@ -29,13 +29,15 @@
 
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cplgetsymbol.cpp 13271 2007-12-06 04:44:19Z warmerdam $");
+CPL_CVSID("$Id: cplgetsymbol.cpp 16702 2009-04-01 20:42:49Z rouault $");
 
 
 /* ==================================================================== */
 /*                  Unix Implementation                                 */
 /* ==================================================================== */
-#if defined(HAVE_DLFCN_H)
+
+/* MinGW32 might define HAVE_DLFCN_H, so skip the unix implementation */
+#if defined(HAVE_DLFCN_H) && !defined(WIN32)
 
 #define GOT_GETSYMBOL
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 16909 2009-05-02 14:56:22Z rouault $
+ * $Id: kmlnode.cpp 17734 2009-10-03 09:48:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -126,17 +126,19 @@ KMLNode::~KMLNode()
     CPLAssert( NULL != pvpoChildren_ );
     CPLAssert( NULL != pvoAttributes_ );
 
-    for( kml_nodes_t::iterator it = pvpoChildren_->begin();
-         it != pvpoChildren_->end(); ++it)
+    kml_nodes_t::iterator itChild;
+    for( itChild = pvpoChildren_->begin();
+         itChild != pvpoChildren_->end(); ++itChild)
     {
-        delete (*it);
+        delete (*itChild);
     }
     delete pvpoChildren_;
 
-    for( kml_attributes_t::iterator it = pvoAttributes_->begin();
-         it != pvoAttributes_->end(); ++it)
+    kml_attributes_t::iterator itAttr;
+    for( itAttr = pvoAttributes_->begin();
+         itAttr != pvoAttributes_->end(); ++itAttr)
     {
-        delete (*it);
+        delete (*itAttr);
     }
     delete pvoAttributes_;
 
@@ -146,7 +148,7 @@ KMLNode::~KMLNode()
 void KMLNode::print(unsigned int what)
 {
     std::string indent;
-    for(std::size_t z = 0; z < nLevel_; z++)
+    for(std::size_t l = 0; l < nLevel_; l++)
         indent += " ";
 
     if(nLevel_ > 0)
@@ -317,7 +319,7 @@ void KMLNode::setName(std::string const& sIn)
     sName_ = sIn;
 }
 
-std::string KMLNode::getName() const
+const std::string& KMLNode::getName() const
 {
     return sName_;
 }
@@ -375,12 +377,7 @@ void KMLNode::appendContent(std::string const& text)
 
 std::string KMLNode::getContent(std::size_t index) const
 {
-    std::string tmp;
-    if( index < pvsContent_->size() )
-    {
-        tmp = (*pvsContent_)[index];
-    }
-    return tmp;
+    return (*pvsContent_)[index];
 }
 
 void KMLNode::deleteContent(std::size_t index)
@@ -406,25 +403,8 @@ int KMLNode::getLayerNumber() const
     return nLayerNumber_;
 }
 
-KMLNode* KMLNode::getLayer(int nNum)
-{
-    KMLNode* poTmp = NULL;
-    if(nLayerNumber_ == nNum)
-        return this;
-
-    kml_nodes_t::size_type size = pvpoChildren_->size();
-    for( kml_nodes_t::size_type i = 0; i < size; ++i )
-    {
-        if((poTmp = (*pvpoChildren_)[i]->getLayer(nNum)) != NULL)
-            return poTmp;
-    }
-
-    return NULL;
-}
-
 std::string KMLNode::getNameElement() const
 {
-    std::string sElem;
     kml_nodes_t::size_type subsize = 0;
     kml_nodes_t::size_type size = pvpoChildren_->size();
 
@@ -435,12 +415,7 @@ std::string KMLNode::getNameElement() const
             subsize = (*pvpoChildren_)[i]->pvsContent_->size();
             if( subsize > 0 )
             {
-                sElem = (*(*pvpoChildren_)[i]->pvsContent_)[0];
-                for( kml_nodes_t::size_type j = 1; j < subsize; ++j )
-                {
-                    sElem += " " + (*(*pvpoChildren_)[i]->pvsContent_)[j];
-                }
-                return sElem;
+                return (*(*pvpoChildren_)[i]->pvsContent_)[0];
             }
             break;
         }
@@ -450,7 +425,6 @@ std::string KMLNode::getNameElement() const
 
 std::string KMLNode::getDescriptionElement() const
 {
-    std::string sElem;
     kml_nodes_t::size_type subsize = 0;
     kml_nodes_t::size_type size = pvpoChildren_->size();
     for( kml_nodes_t::size_type i = 0; i < size; ++i )
@@ -460,12 +434,7 @@ std::string KMLNode::getDescriptionElement() const
             subsize = (*pvpoChildren_)[i]->pvsContent_->size();
             if ( subsize > 0 )
             {
-                sElem = (*(*pvpoChildren_)[i]->pvsContent_)[0];
-                for( kml_nodes_t::size_type j = 1; j < subsize; ++j )
-                {
-                    sElem += " " + (*(*pvpoChildren_)[i]->pvsContent_)[j];
-                }
-                return sElem;
+                return (*(*pvpoChildren_)[i]->pvsContent_)[0];
             }
             break;
         }

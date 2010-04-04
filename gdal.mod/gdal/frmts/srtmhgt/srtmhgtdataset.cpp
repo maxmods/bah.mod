@@ -1,11 +1,11 @@
 /******************************************************************************
- * $Id: srtmhgtdataset.cpp 16171 2009-01-24 20:17:32Z rouault $
+ * $Id: srtmhgtdataset.cpp 18117 2009-11-27 19:42:29Z rouault $
  *
  * Project:  SRTM HGT Driver
  * Purpose:  SRTM HGT File Read Support.
- *           ftp://e0srp01u.ecs.nasa.gov/srtm/version2/Documentation/SRTM_Topo.pdf
+ *           http://dds.cr.usgs.gov/srtm/version2_1/Documentation/SRTM_Topo.pdf
  *           http://www2.jpl.nasa.gov/srtm/faq.html
- *           ftp://e0srp01u.ecs.nasa.gov/srtm/version2
+ *           http://dds.cr.usgs.gov/srtm/version2_1
  * Authors:  Michael Mazzella, Even Rouault
  *
  ******************************************************************************
@@ -37,7 +37,7 @@
 
 #define SRTMHG_NODATA_VALUE -32768
 
-CPL_CVSID("$Id: srtmhgtdataset.cpp 16171 2009-01-24 20:17:32Z rouault $");
+CPL_CVSID("$Id: srtmhgtdataset.cpp 18117 2009-11-27 19:42:29Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SRTMHGT(void);
@@ -358,6 +358,8 @@ GDALDataset* SRTMHGTDataset::Open(GDALOpenInfo* poOpenInfo)
   poDS->adfGeoTransform[4] = 0.0000000000;
   poDS->adfGeoTransform[5] = -1.0 / (numPixels-1);
 
+  poDS->SetMetadataItem( GDALMD_AREA_OR_POINT, GDALMD_AOP_POINT );
+  
 /* -------------------------------------------------------------------- */
 /*      Create band information object.                                 */
 /* -------------------------------------------------------------------- */
@@ -365,15 +367,15 @@ GDALDataset* SRTMHGTDataset::Open(GDALOpenInfo* poOpenInfo)
   poDS->SetBand(1, tmpBand);
 
 /* -------------------------------------------------------------------- */
-/*      Support overviews.                                              */
-/* -------------------------------------------------------------------- */
-  poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
   poDS->SetDescription(poOpenInfo->pszFilename);
   poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Support overviews.                                              */
+/* -------------------------------------------------------------------- */
+  poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
   return poDS;
 }

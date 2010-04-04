@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: usgsdem_create.cpp 14522 2008-05-25 13:28:11Z rouault $
+ * $Id: usgsdem_create.cpp 17551 2009-08-21 11:49:27Z rouault $
  *
  * Project:  USGS DEM Driver
  * Purpose:  CreateCopy() implementation.
@@ -36,7 +36,7 @@
 #include "gdalwarper.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: usgsdem_create.cpp 14522 2008-05-25 13:28:11Z rouault $");
+CPL_CVSID("$Id: usgsdem_create.cpp 17551 2009-08-21 11:49:27Z rouault $");
 
 typedef struct 
 {
@@ -158,12 +158,12 @@ static void TextFillR( char *pszTarget, unsigned int nMaxChars,
 /************************************************************************/
 /*                         USGSDEMPrintDouble()                         */
 /*                                                                      */
-/*      On MS Visual C++ system the C runtime library uses 3 digits     */
+/*      The MSVC C runtime library uses 3 digits                        */
 /*      for the exponent.  This causes various problems, so we try      */
 /*      to correct it here.                                             */
 /************************************************************************/
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MSVCRT__)
 #  define MSVC_HACK
 #endif
 
@@ -212,7 +212,7 @@ static void USGSDEMPrintDouble( char *pszBuffer, double dfValue )
 /************************************************************************/
 /*                         USGSDEMPrintSingle()                         */
 /*                                                                      */
-/*      On MS Visual C++ system the C runtime library uses 3 digits     */
+/*      The MSVC C runtime library uses 3 digits                        */
 /*      for the exponent.  This causes various problems, so we try      */
 /*      to correct it here.                                             */
 /************************************************************************/

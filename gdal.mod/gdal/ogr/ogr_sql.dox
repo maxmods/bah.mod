@@ -170,7 +170,7 @@ SELECT *, OGR_STYLE 'STYLE' FROM polylayer
 
 \subsubsection ogr_sql_ftype_cast Changing the type of the fields
 
-OGR SQL supports changing the type of the columns by using the SQL92 compliant CAST
+Starting with GDAL 1.6.0, OGR SQL supports changing the type of the columns by using the SQL92 compliant CAST
 operator according to the following example:
 
 \code
@@ -180,7 +180,7 @@ SELECT *, CAST(OGR_STYLE AS character(255)) FROM rivers
 Currently casting to the following target types are supported:
 
 <ol>
-<li> character(field_length)
+<li> character(field_length). By default, field_length=1.
 <li> float(field_length)
 <li> numeric(field_length, field_precision)
 <li> integer(field_length)
@@ -474,6 +474,21 @@ clause we can get similar effect as using OGR_GEOMETRY:
 \code
 SELECT OGR_GEOM_WKT, * FROM nation WHERE OGR_GEOM_WKT
    LIKE 'POINT%' OR OGR_GEOM_WKT LIKE 'POLYGON%'
+\endcode 
+
+\subsection ogr_sql_geom_area OGR_GEOM_AREA
+
+(Since GDAL 1.7.0)
+
+The <b>OGR_GEOM_AREA</b> special field returns the area of the feature's 
+geometry computed by the OGRSurface::get_Area() method. For 
+OGRGeometryCollection and OGRMultiPolygon the value is the sum of the 
+areas of its members. For non-surface geometries the returned area is 0.0.
+
+For example, to select only polygon features larger than a given area:
+
+\code
+SELECT * FROM nation WHERE OGR_GEOM_AREA > 10000000'
 \endcode 
 
 \subsection ogr_sql_style OGR_STYLE

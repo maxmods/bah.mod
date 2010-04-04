@@ -1,5 +1,5 @@
 /******************************************************************************
- * lcpdataset.cpp
+ * $Id: lcpdataset.cpp 18125 2009-11-28 11:07:24Z rouault $
  *
  * Project:  LCP Driver
  * Purpose:  FARSITE v.4 Landscape file (.lcp) reader for GDAL
@@ -29,6 +29,9 @@
 
 #include "rawdataset.h"
 #include "cpl_string.h"
+#include "ogr_spatialref.h"
+
+CPL_CVSID("$Id: lcpdataset.cpp 18125 2009-11-28 11:07:24Z rouault $");
 
 CPL_C_START
 void    GDALRegister_LCP(void);
@@ -47,16 +50,21 @@ class LCPDataset : public RawDataset
     FILE    *fpImage;       // image data file.
     char	pachHeader[LCP_HEADER_SIZE];
 
-    double  adfGeoTransform[6];
+    CPLString   osPrjFilename;
+    char        *pszProjection;
 
   public:
                 LCPDataset();
                 ~LCPDataset();
 
+    virtual char **GetFileList(void);
+
     virtual CPLErr GetGeoTransform( double * );
 
     static int          Identify( GDALOpenInfo * );
     static GDALDataset *Open( GDALOpenInfo * );
+    
+    virtual const char *GetProjectionRef(void);
 };
 
 /************************************************************************/
@@ -66,12 +74,7 @@ class LCPDataset : public RawDataset
 LCPDataset::LCPDataset()
 {
     fpImage = NULL;
-    adfGeoTransform[0] = 0.0;
-    adfGeoTransform[1] = 1.0;
-    adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;
-    adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;
+    pszProjection = NULL;
 }
 
 /************************************************************************/
@@ -84,6 +87,7 @@ LCPDataset::~LCPDataset()
     FlushCache();
     if( fpImage != NULL )
         VSIFCloseL( fpImage );
+    CPLFree(pszProjection);
 }
 
 /************************************************************************/
@@ -94,12 +98,12 @@ CPLErr LCPDataset::GetGeoTransform( double * padfTransform )
 {
     double      dfEast, dfWest, dfNorth, dfSouth, dfCellX, dfCellY;
 
-    dfEast = *((double *) (pachHeader + 4172));
-    dfWest = *((double *) (pachHeader + 4180));
-    dfNorth = *((double *) (pachHeader + 4188));
-    dfSouth = *((double *) (pachHeader + 4196));
-    dfCellX = *((double *) (pachHeader + 4208));
-    dfCellY = *((double *) (pachHeader + 4216));
+    memcpy(&dfEast, pachHeader + 4172, sizeof(double));
+    memcpy(&dfWest, pachHeader + 4180, sizeof(double));
+    memcpy(&dfNorth, pachHeader + 4188, sizeof(double));
+    memcpy(&dfSouth, pachHeader + 4196, sizeof(double));
+    memcpy(&dfCellX, pachHeader + 4208, sizeof(double));
+    memcpy(&dfCellY, pachHeader + 4216, sizeof(double));
     CPL_LSBPTR64(&dfEast);
     CPL_LSBPTR64(&dfWest);
     CPL_LSBPTR64(&dfNorth);
@@ -146,6 +150,21 @@ int LCPDataset::Identify( GDALOpenInfo * poOpenInfo )
 }
 
 /************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char **LCPDataset::GetFileList()
+
+{
+    char **papszFileList = GDALPamDataset::GetFileList();
+
+    if( pszProjection != NULL )
+        papszFileList = CSLAddString( papszFileList, osPrjFilename );
+
+    return papszFileList;
+}
+
+/************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
@@ -157,7 +176,18 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     if( !Identify( poOpenInfo ) )
         return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The LCP driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
@@ -189,13 +219,17 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
        return NULL;
    }
 
-   pszList = (char*)CPLMalloc(2048);
-
    nWidth = CPL_LSBINT32PTR (poDS->pachHeader + 4164);
    nHeight = CPL_LSBINT32PTR (poDS->pachHeader + 4168);
 
    poDS->nRasterXSize = nWidth;
    poDS->nRasterYSize = nHeight;
+
+   if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+   {
+       delete poDS;
+       return NULL;
+   }
 
    // crown fuels = canopy height, canopy base height, canopy bulk density
    // 21 = have them, 20 = don't have them
@@ -230,6 +264,7 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
    if ( nTemp == 1 )
       poDS->SetMetadataItem( "LINEAR_UNIT", "Feet" );
 
+   poDS->pachHeader[LCP_HEADER_SIZE-1] = '\0';
    poDS->SetMetadataItem( "DESCRIPTION", poDS->pachHeader + 6804 );
 
 
@@ -241,11 +276,20 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
    iPixelSize = nBands * 2;
    int          bNativeOrder;
 
+   if (nWidth > INT_MAX / iPixelSize)
+   {
+       CPLError( CE_Failure, CPLE_AppDefined,  "Int overflow occured");
+       delete poDS;
+       return NULL;
+   }
+
 #ifdef CPL_LSB
    bNativeOrder = TRUE;
 #else
    bNativeOrder = FALSE;
 #endif
+
+   pszList = (char*)CPLMalloc(2048);
 
    for( int iBand = 1; iBand <= nBands; iBand++ )
    {
@@ -639,6 +683,46 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
            break;
         }
    }
+   
+/* -------------------------------------------------------------------- */
+/*      Try to read projection file.                                    */
+/* -------------------------------------------------------------------- */
+    char        *pszDirname, *pszBasename;
+    VSIStatBufL   sStatBuf;
+
+    pszDirname = CPLStrdup(CPLGetPath(poOpenInfo->pszFilename));
+    pszBasename = CPLStrdup(CPLGetBasename(poOpenInfo->pszFilename));
+
+    poDS->osPrjFilename = CPLFormFilename( pszDirname, pszBasename, "prj" );
+    int nRet = VSIStatL( poDS->osPrjFilename, &sStatBuf );
+
+#ifndef WIN32
+    if( nRet != 0 )
+    {
+        poDS->osPrjFilename = CPLFormFilename( pszDirname, pszBasename, "PRJ" );
+        nRet = VSIStatL( poDS->osPrjFilename, &sStatBuf );
+    }
+#endif
+
+    if( nRet == 0 )
+    {
+        OGRSpatialReference     oSRS;
+
+        char** papszPrj = CSLLoad( poDS->osPrjFilename );
+
+        CPLDebug( "LCP", "Loaded SRS from %s", 
+                  poDS->osPrjFilename.c_str() );
+
+        if( oSRS.importFromESRI( papszPrj ) == OGRERR_NONE )
+        {
+            oSRS.exportToWkt( &(poDS->pszProjection) );
+        }
+        
+        CSLDestroy(papszPrj);
+    }
+
+    CPLFree( pszDirname );
+    CPLFree( pszBasename );
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -650,7 +734,16 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 
     return( poDS );
 }
+ 
+/************************************************************************/
+/*                          GetProjectionRef()                          */
+/************************************************************************/
+ 
+const char *LCPDataset::GetProjectionRef()
 
+{
+    return pszProjection;
+}
 
 /************************************************************************/
 /*                         GDALRegister_LCP()                           */

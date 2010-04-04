@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gscdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: gscdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
  *
  * Project:  GSC Geogrid format driver.
  * Purpose:  Implements support for reading and writing GSC Geogrid format.
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gscdataset.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: gscdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -122,7 +122,18 @@ GDALDataset *GSCDataset::Open( GDALOpenInfo * poOpenInfo )
 
     if( nRecordLen != nPixels * 4 )
         return NULL;
-
+        
+/* -------------------------------------------------------------------- */
+/*      Confirm the requested access is supported.                      */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->eAccess == GA_Update )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported, 
+                  "The GSC driver does not support update access to existing"
+                  " datasets.\n" );
+        return NULL;
+    }
+    
     nRecordLen += 8; /* for record length markers */
 
 /* -------------------------------------------------------------------- */
@@ -187,16 +198,16 @@ GDALDataset *GSCDataset::Open( GDALOpenInfo * poOpenInfo )
     poBand->SetNoDataValue( -1.0000000150474662199e+30 );
 
 /* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
     
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
     return( poDS );
 }
 

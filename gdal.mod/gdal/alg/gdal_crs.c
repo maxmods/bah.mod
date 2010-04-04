@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_crs.c 14223 2008-04-08 13:06:25Z dron $
+ * $Id: gdal_crs.c 16614 2009-03-17 23:46:39Z rouault $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implemention of the GDALTransformer wrapper around CRS.C functions
@@ -55,7 +55,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdal_crs.c 14223 2008-04-08 13:06:25Z dron $");
+CPL_CVSID("$Id: gdal_crs.c 16614 2009-03-17 23:46:39Z rouault $");
 
 #define MAXORDER 3
 
@@ -213,7 +213,7 @@ void *GDALCreateGCPTransformer( int nGCPCount, const GDAL_GCP *pasGCPList,
 
     if (nCRSresult != 1)
     {
-        CPLError( CE_Failure, CPLE_AppDefined, CRS_error_message[-nCRSresult]);
+        CPLError( CE_Failure, CPLE_AppDefined, "%s", CRS_error_message[-nCRSresult]);
         GDALDestroyGCPTransformer( psInfo );
         return NULL;
     }

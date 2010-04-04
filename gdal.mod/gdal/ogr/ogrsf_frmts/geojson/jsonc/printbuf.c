@@ -7,14 +7,22 @@
  * This library is free software; you can redistribute it and/or modify
  * it under the terms of the MIT license. See COPYING for details.
  *
+ *
+ * Copyright (c) 2008-2009 Yahoo! Inc.  All rights reserved.
+ * The copyrights to the contents of this file are licensed under the MIT License
+ * (http://www.opensource.org/licenses/mit-license.php)
  */
 
-/* json-c private config. */
 #include "config.h"
 
+#if defined(__GNUC__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1 /* seems to be required to bring in vasprintf */
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "cpl_string.h" 
 
 #if HAVE_STDARG_H
 # include <stdarg.h>
@@ -26,17 +34,15 @@
 #include "debug.h"
 #include "printbuf.h"
 
-#include <cpl_port.h> /* MIN and MAX macros */
-#include <cpl_string.h>
-
-struct printbuf* printbuf_new()
+struct printbuf* printbuf_new(void)
 {
   struct printbuf *p;
 
-  if((p = calloc(1, sizeof(struct printbuf))) == NULL) return NULL;
+  p = (struct printbuf*)calloc(1, sizeof(struct printbuf));
+  if(!p) return NULL;
   p->size = 32;
   p->bpos = 0;
-  if((p->buf = malloc(p->size)) == NULL) {
+  if(!(p->buf = (char*)malloc(p->size))) {
     free(p);
     return NULL;
   }
@@ -44,17 +50,17 @@ struct printbuf* printbuf_new()
 }
 
 
-int printbuf_memappend(struct printbuf *p, char *buf, int size)
+int printbuf_memappend(struct printbuf *p, const char *buf, int size)
 {
   char *t;
   if(p->size - p->bpos <= size) {
-    int new_size = MAX(p->size * 2, p->bpos + size + 8);
+    int new_size = json_max(p->size * 2, p->bpos + size + 8);
 #ifdef PRINTBUF_DEBUG
-    mc_debug("printbuf_memappend: realloc "
+    MC_DEBUG("printbuf_memappend: realloc "
 	     "bpos=%d wrsize=%d old_size=%d new_size=%d\n",
 	     p->bpos, size, p->size, new_size);
 #endif /* PRINTBUF_DEBUG */
-    if((t = realloc(p->buf, new_size)) == NULL) return -1;
+    if(!(t = (char*)realloc(p->buf, new_size))) return -1;
     p->size = new_size;
     p->buf = t;
   }
@@ -64,19 +70,21 @@ int printbuf_memappend(struct printbuf *p, char *buf, int size)
   return size;
 }
 
+/* Use CPLVASPrintf for portability issues */
 int sprintbuf(struct printbuf *p, const char *msg, ...)
 {
   va_list ap;
   char *t;
-  int size, ret;
+  int size, ret; 
 
+  /* user stack buffer first */
   va_start(ap, msg);
-  if((size = CPLVASPrintf(&t, msg, ap)) == -1) return -1;
+  if((size = CPLVASPrintf(&t, msg, ap)) == -1) return -1; 
   va_end(ap);
   
-  ret = printbuf_memappend(p, t, size);
-  free(t);
-  return ret;
+  ret = printbuf_memappend(p, t, size); 
+  free(t); 
+  return ret; 
 }
 
 void printbuf_reset(struct printbuf *p)

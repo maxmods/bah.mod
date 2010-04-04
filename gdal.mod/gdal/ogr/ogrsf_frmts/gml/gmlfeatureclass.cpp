@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlfeatureclass.cpp 17630 2009-09-10 15:30:44Z chaitanya $
+ * $Id: gmlfeatureclass.cpp 17629 2009-09-10 14:51:45Z chaitanya $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLFeatureClass.

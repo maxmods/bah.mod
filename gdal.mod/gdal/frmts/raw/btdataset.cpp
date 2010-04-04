@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 12232 2007-09-23 18:13:59Z rouault $
+ * $Id: btdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -31,7 +31,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: btdataset.cpp 12232 2007-09-23 18:13:59Z rouault $");
+CPL_CVSID("$Id: btdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_BT(void);
@@ -580,6 +580,12 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
     memcpy( &nIntTemp, poDS->abyHeader + 14, 4 );
     poDS->nRasterYSize = CPL_LSBWORD32( nIntTemp );
 
+    if (!GDALCheckDatasetDimensions(poDS->nRasterXSize, poDS->nRasterYSize))
+    {
+        delete poDS;
+        return NULL;
+    }
+
     memcpy( &nDataSize, poDS->abyHeader+18, 2 );
     nDataSize = CPL_LSBWORD16( nDataSize );
 
@@ -594,6 +600,7 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
         CPLError( CE_Failure, CPLE_AppDefined, 
                   ".bt file data type unknown, got datasize=%d.", 
                   nDataSize );
+        delete poDS;
         return NULL;
     }
 
@@ -772,11 +779,6 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetBand( 1, new BTRasterBand( poDS, poDS->fpImage, eType ) );
 
-/* -------------------------------------------------------------------- */
-/*      Check for overviews.                                            */
-/* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
-
 #ifdef notdef
     poDS->bGeoTransformValid = 
         GDALReadWorldFile( poOpenInfo->pszFilename, ".wld", 
@@ -788,6 +790,11 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for overviews.                                            */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
     return( poDS );
 }
