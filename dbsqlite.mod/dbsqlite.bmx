@@ -39,7 +39,7 @@ ModuleInfo "Copyright: SQLite - The original author of SQLite has dedicated the 
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.12"
-ModuleInfo "History: Update to SQLite 3.6.22."
+ModuleInfo "History: Update to SQLite 3.6.23.1."
 ModuleInfo "History: Updated documentation."
 ModuleInfo "History: 1.11"
 ModuleInfo "History: Update to SQLite 3.6.15."
