@@ -81,6 +81,8 @@ ModuleInfo "History: 1.00 Initial Release (Cairo 1.0.4)"
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?macosx86
 ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX"
+?win32
+ModuleInfo "CC_OPTS: -DGLEW_STATIC"
 ?
 
 ' build notes
@@ -3526,9 +3528,12 @@ Type TCairoGLContext
 	Field contextPtr:Byte Ptr
 
 	Function CreateContext:TCairoGLContext(context:Int)
+	' Mac only for now...
+?macos
 		Local this:TCairoGLContext = New TCairoGLContext
 		this.contextPtr = bmx_cairo_glcontext_create(context)
 		Return this
+?
 	End Function
 
 End Type
