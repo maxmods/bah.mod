@@ -35,6 +35,7 @@
  */
 
 #include "cairoint.h"
+#include "cairo-error-private.h"
 #include "cairo-output-stream-private.h"
 
 typedef struct _cairo_base85_stream {
@@ -102,9 +103,6 @@ _cairo_base85_stream_close (cairo_output_stream_t *base)
 	_cairo_output_stream_write (stream->output, five_tuple, stream->pending + 1);
     }
 
-    /* Mark end of base85 data */
-    _cairo_output_stream_printf (stream->output, "~>");
-
     return _cairo_output_stream_get_status (stream->output);
 }
 
@@ -117,13 +115,14 @@ _cairo_base85_stream_create (cairo_output_stream_t *output)
 	return _cairo_output_stream_create_in_error (output->status);
 
     stream = malloc (sizeof (cairo_base85_stream_t));
-    if (stream == NULL) {
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
     _cairo_output_stream_init (&stream->base,
 			       _cairo_base85_stream_write,
+			       NULL,
 			       _cairo_base85_stream_close);
     stream->output = output;
     stream->pending = 0;

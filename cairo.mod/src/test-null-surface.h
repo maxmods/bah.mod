@@ -1,6 +1,6 @@
-/* Cairo - a vector graphics library with display and print output
+/* cairo - a vector graphics library with display and print output
  *
- * Copyright © 2005 Red Hat, Inc.
+ * Copyright © 2009 Chris Wilson
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -27,15 +27,20 @@
  *
  * The Original Code is the cairo graphics library.
  *
- * The Initial Developer of the Original Code is Red Hat, Inc.
+ * Contributor(s):
+ *	Chris Wilson <chris@chris-wilson.co.uk>
  */
 
-#ifndef CAIRO_GLITZ_PRIVATE_H
-#define CAIRO_GLITZ_PRIVATE_H
+#ifndef TEST_NULL_SURFACE_H
+#define TEST_NULL_SURFACE_H
 
-#include "cairoint.h"
-#include "cairo-glitz.h"
+#include "cairo.h"
 
-slim_hidden_proto (cairo_glitz_surface_create);
+CAIRO_BEGIN_DECLS
 
-#endif /* CAIRO_GLITZ_PRIVATE_H */
+cairo_public cairo_surface_t *
+_cairo_test_null_surface_create (cairo_content_t content);
+
+CAIRO_END_DECLS
+
+#endif /* TEST_NULL_SURFACE_H */

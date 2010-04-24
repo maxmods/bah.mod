@@ -25,6 +25,7 @@
 /* Define to 1 if you have the <pthread.h> header file. */
 #if !defined(WIN32)
 #define HAVE_PTHREAD_H 1
+#define CAIRO_NO_MUTEX 1
 #else
 #define CAIRO_NO_MUTEX 1
 #define CAIRO_HAS_WIN32_SURFACE 1
@@ -83,13 +84,13 @@
 #define PACKAGE_NAME "cairo"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "cairo 1.4.2"
+#define PACKAGE_STRING "cairo 1.9.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "cairo"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.4.2"
+#define PACKAGE_VERSION "1.9.4"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -98,7 +99,7 @@
 /* #undef USE_MMX */
 
 /* Version number of package */
-#define VERSION "1.4.2"
+#define VERSION "1.9.4"
 
 /* Deal with multiple architecture compiles on Mac OS X */
 #ifdef __APPLE_CC__

@@ -37,6 +37,8 @@
 
 #include "cairo-xlib-private.h"
 
+#include "cairo-error-private.h"
+
 /* A perceptual distance metric between two colors. No sqrt needed
  * since the square of the distance is still a valid metric. */
 
@@ -78,7 +80,7 @@ _cairo_xlib_visual_info_create (Display *dpy,
 	ramp_index_to_short[i] = (0xffff * i + ((RAMP_SIZE-1)>>1)) / (RAMP_SIZE-1);
 
     info = malloc (sizeof (cairo_xlib_visual_info_t));
-    if (info == NULL)
+    if (unlikely (info == NULL))
 	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
 
     info->visualid = visualid;

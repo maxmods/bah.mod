@@ -6,12 +6,16 @@ bbdoc: Cairo Vector Graphics Library
 End Rem
 Module BaH.cairo
 
-ModuleInfo "Version: 1.23"
+ModuleInfo "Version: 1.24"
 ModuleInfo "License: MPL / LGPL"
-ModuleInfo "Author: University of Southern California and Carl D. Worth"
-ModuleInfo "Credit: Adapted for BlitzMax by Duncan Cross and Bruce A Henderson"
+ModuleInfo "Copyright: Cairo -  University of Southern California and Carl D. Worth"
+ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Duncan Cross."
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.24"
+ModuleInfo "History: Cairo update to 1.9.6."
+ModuleInfo "History: Added support for TStream surface writing (PDF, PS, etc)"
+ModuleInfo "History: Fixed CopyPath and CopyPathFlat not returning value."
 ModuleInfo "History: 1.23"
 ModuleInfo "History: Cairo update to 1.8.8. Pixmap update to 0.17.2."
 ModuleInfo "History: 1.22"
@@ -173,10 +177,6 @@ Const CAIRO_OPERATOR_DEST_ATOP:Int = 10
 Const CAIRO_OPERATOR_XOR:Int = 11
 Const CAIRO_OPERATOR_ADD:Int = 12
 Const CAIRO_OPERATOR_SATURATE:Int = 13
-
-Const CAIRO_CONTENT_COLOR:Int = 4096
-Const CAIRO_CONTENT_ALPHA:Int = 8192
-Const CAIRO_CONTENT_COLOR_ALPHA:Int = 12288
 
 Const CAIRO_SUBPIXEL_ORDER_DEFAULT:Int = 0
 Const CAIRO_SUBPIXEL_ORDER_RGB:Int = 1
@@ -442,7 +442,7 @@ Restore()
 	returns: The copy of the current path. The caller owns the returned object and should call #Destroy when finished with it.
 	End Rem
 	Method CopyPath:TCairoPath()
-		TCairoPath._create(cairo_copy_path(contextPtr))
+		Return TCairoPath._create(cairo_copy_path(contextPtr))
 	End Method
 
 	Rem
@@ -454,7 +454,7 @@ Restore()
 	a series of CAIRO_PATH_LINE_TO elements.
 	End Rem
 	Method CopyPathFlat:TCairoPath()
-		TCairoPath._create(cairo_copy_path(contextPtr))
+		Return TCairoPath._create(cairo_copy_path(contextPtr))
 	End Method
 
 	Rem
@@ -1717,7 +1717,9 @@ End Rem
 Type TCairoSurface
 
 	Field surfacePtr:Byte Ptr
-
+	
+	Field stream:TStream
+	
 	Function _create:TCairoSurface(surfacePtr:Byte Ptr)
 		If surfacePtr <> Null Then
 			Local surface:TCairoSurface = New TCairoSurface
@@ -1726,6 +1728,14 @@ Type TCairoSurface
 		End If
 		
 		Return Null
+	End Function
+	
+	Function _writeCallback:Int(obj:Object, data:Byte Ptr, length:Int)
+		Local res:Int = TCairoSurface(obj).stream.write(data, length)
+		If res <> length Then
+			Return CAIRO_STATUS_WRITE_ERROR
+		End If
+		Return CAIRO_STATUS_SUCCESS
 	End Function
 
 	Rem
@@ -1949,20 +1959,26 @@ End Rem
 Type TCairoPDFSurface Extends TCairoSurface
 
 	Rem
-	bbdoc: Creates an PDF surface for the specified filename (which will be created) and dimensions.
+	bbdoc: Creates an PDF surface for the specified file (which will be created if passed a filename) and dimensions.
 	returns: The newly created surface.
 	about: Parameters:
 	<ul>
-	<li><b>filename</b> : the name of the PDF file to create.</li>
+	<li><b>file</b> : the name of the PDF file to create, or a writable TStream object.</li>
 	<li><b>width</b> : width of the surface, in points. (1 point == 1/72.0 inch)</li>
 	<li><b>height</b> : height of the surface, in points. (1 point == 1/72.0 inch)</li>
 	</ul>
 	End Rem
-	Function CreateForPDF:TCairoPDFSurface(filename:String, width:Double, height:Double)
+	Function CreateForPDF:TCairoPDFSurface(file:Object, width:Double, height:Double)
 		Local surf:TCairoPDFSurface = New TCairoPDFSurface
-		Local cStr:Byte Ptr = filename.toCString()
-		surf.surfacePtr = cairo_pdf_surface_create(cStr, width, height)
-		MemFree cStr
+		
+		If String(file) Then
+			Local cStr:Byte Ptr = String(file).toCString()
+			surf.surfacePtr = cairo_pdf_surface_create(cStr, width, height)
+			MemFree cStr
+		Else If TStream(file) Then
+			surf.stream = TStream(file)
+			surf.surfacePtr = cairo_pdf_surface_create_for_stream(_writeCallback, surf, width, height)
+		End If
 		Return surf
 	End Function
 	
@@ -1998,11 +2014,17 @@ Type TCairoPSSurface Extends TCairoSurface
 	<li><b>height</b> : height of the surface, in pixels.</li>
 	</ul>
 	End Rem
-	Function CreateForPS:TCairoPSSurface(filename:String, width:Double, height:Double)
+	Function CreateForPS:TCairoPSSurface(file:Object, width:Double, height:Double)
 		Local surf:TCairoPSSurface = New TCairoPSSurface
-		Local cStr:Byte Ptr = filename.toCString()
-		surf.surfacePtr = cairo_ps_surface_create(cStr, width, height)
-		MemFree cStr
+		
+		If String(file) Then
+			Local cStr:Byte Ptr = String(file).toCString()
+			surf.surfacePtr = cairo_ps_surface_create(cStr, width, height)
+			MemFree cStr
+		Else If TStream(file) Then
+			surf.stream = TStream(file)
+			surf.surfacePtr = cairo_ps_surface_create_for_stream(_writeCallback, surf, width, height)
+		End If
 		Return surf
 	End Function
 	
@@ -2892,6 +2914,13 @@ Type TCairoFontFace
 		Return cairo_font_face_status(facePtr)
 	End Method
 
+	Method Delete()
+		If facePtr Then
+			cairo_font_face_destroy(facePtr)
+			facePtr = Null
+		End If
+	End Method
+	
 End Type
 
 Type TCairoFontOptionsStruct
@@ -3472,4 +3501,53 @@ Type TCairoNoContextException
 		Return "Call CreateContext() before attempting to use the context methods"
 	End Method
 End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TCairoGLSurface Extends TCairoSurface
+
+	Rem
+	bbdoc: 
+	about: @content is one of CAIRO_CONTENT_COLOR, CAIRO_CONTENT_ALPHA, or CAIRO_CONTENT_COLOR_ALPHA.
+	End Rem
+	Function CreateForContext:TCairoGLSurface(context:Int, content:Int, width:Int, height:Int)
+		Local ctx:TCairoGLContext = TCairoGLContext.CreateContext(context)
+	
+		Local surf:TCairoGLSurface = New TCairoGLSurface
+		surf.surfacePtr = cairo_gl_surface_create(ctx.contextPtr, content, width, height)
+		Return surf
+	End Function
+
+End Type
+
+Type TCairoGLContext
+
+	Field contextPtr:Byte Ptr
+
+	Function CreateContext:TCairoGLContext(context:Int)
+		Local this:TCairoGLContext = New TCairoGLContext
+		this.contextPtr = bmx_cairo_glcontext_create(context)
+		Return this
+	End Function
+
+End Type
+
+
+Rem
+bbdoc: The surface will hold color content only.
+about: Describes the content that a surface will contain.
+End Rem
+Const CAIRO_CONTENT_COLOR:Int = $1000
+Rem
+bbdoc: The surface will hold alpha content only.
+about: Describes the content that a surface will contain.
+End Rem
+Const CAIRO_CONTENT_ALPHA:Int = $2000
+Rem
+bbdoc: The surface will hold color and alpha content.
+about: Describes the content that a surface will contain.
+End Rem
+Const CAIRO_CONTENT_COLOR_ALPHA:Int = $3000
+
 

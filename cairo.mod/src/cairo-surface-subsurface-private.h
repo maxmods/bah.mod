@@ -1,6 +1,6 @@
 /* cairo - a vector graphics library with display and print output
  *
- * Copyright © 2002 University of Southern California
+ * Copyright © 2009 Intel Corporation
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -27,31 +27,22 @@
  *
  * The Original Code is the cairo graphics library.
  *
- * The Initial Developer of the Original Code is University of Southern
- * California.
+ * The Initial Developer of the Original Code is Intel Corporation.
  *
  * Contributor(s):
- *	Carl D. Worth <cworth@cworth.org>
+ *      Chris Wilson <chris@chris-wilson.co.uk>
  */
 
-#ifndef CAIRO_GLITZ_H
-#define CAIRO_GLITZ_H
+#ifndef CAIRO_SURFACE_SUBSURFACE_PRIVATE_H
+#define CAIRO_SURFACE_SUBSURFACE_PRIVATE_H
 
-#include "cairo.h"
+#include "cairo-surface-private.h"
 
-#if CAIRO_HAS_GLITZ_SURFACE
+struct _cairo_surface_subsurface {
+    cairo_surface_t base;
 
-#include <glitz.h>
+    cairo_surface_t *target;
+    cairo_rectangle_int_t extents;
+};
 
-CAIRO_BEGIN_DECLS
-
-cairo_public cairo_surface_t *
-cairo_glitz_surface_create (glitz_surface_t *surface);
-
-CAIRO_END_DECLS
-
-#else  /* CAIRO_HAS_GLITZ_SURFACE */
-# error Cairo was not compiled with support for the glitz backend
-#endif /* CAIRO_HAS_GLITZ_SURFACE */
-
-#endif /* CAIRO_GLITZ_H */
+#endif /* CAIRO_SURFACE_SUBSURFACE_PRIVATE_H */

@@ -34,11 +34,12 @@
  *	Adrian Johnson <ajohnson@redneon.com>
  */
 
-#ifndef CAIRO_META_SURFACE_H
-#define CAIRO_META_SURFACE_H
+#ifndef CAIRO_RECORDING_SURFACE_H
+#define CAIRO_RECORDING_SURFACE_H
 
 #include "cairoint.h"
 #include "cairo-path-fixed-private.h"
+#include "cairo-clip-private.h"
 
 typedef enum {
     /* The 5 basic drawing operations. */
@@ -47,44 +48,34 @@ typedef enum {
     CAIRO_COMMAND_STROKE,
     CAIRO_COMMAND_FILL,
     CAIRO_COMMAND_SHOW_TEXT_GLYPHS,
-
-    /* Other junk. For most of these, we should be able to assert that
-     * they never get called except as part of fallbacks for the 5
-     * basic drawing operations (which we implement already so the
-     * fallbacks should never get triggered). So the plan is to
-     * eliminate as many of these as possible. */
-
-    CAIRO_COMMAND_INTERSECT_CLIP_PATH
-
 } cairo_command_type_t;
 
 typedef enum {
-    CAIRO_META_REGION_ALL,
-    CAIRO_META_REGION_NATIVE,
-    CAIRO_META_REGION_IMAGE_FALLBACK
-} cairo_meta_region_type_t;
+    CAIRO_RECORDING_REGION_ALL,
+    CAIRO_RECORDING_REGION_NATIVE,
+    CAIRO_RECORDING_REGION_IMAGE_FALLBACK
+} cairo_recording_region_type_t;
 
 typedef struct _cairo_command_header {
     cairo_command_type_t	 type;
-    cairo_meta_region_type_t     region;
+    cairo_recording_region_type_t     region;
+    cairo_operator_t		 op;
+    cairo_clip_t		 clip;
 } cairo_command_header_t;
 
 typedef struct _cairo_command_paint {
     cairo_command_header_t       header;
-    cairo_operator_t		 op;
     cairo_pattern_union_t	 source;
 } cairo_command_paint_t;
 
 typedef struct _cairo_command_mask {
     cairo_command_header_t       header;
-    cairo_operator_t		 op;
     cairo_pattern_union_t	 source;
     cairo_pattern_union_t	 mask;
 } cairo_command_mask_t;
 
 typedef struct _cairo_command_stroke {
     cairo_command_header_t       header;
-    cairo_operator_t		 op;
     cairo_pattern_union_t	 source;
     cairo_path_fixed_t		 path;
     cairo_stroke_style_t	 style;
@@ -96,7 +87,6 @@ typedef struct _cairo_command_stroke {
 
 typedef struct _cairo_command_fill {
     cairo_command_header_t       header;
-    cairo_operator_t		 op;
     cairo_pattern_union_t	 source;
     cairo_path_fixed_t		 path;
     cairo_fill_rule_t		 fill_rule;
@@ -106,7 +96,6 @@ typedef struct _cairo_command_fill {
 
 typedef struct _cairo_command_show_text_glyphs {
     cairo_command_header_t       header;
-    cairo_operator_t		 op;
     cairo_pattern_union_t	 source;
     char			*utf8;
     int				 utf8_len;
@@ -118,73 +107,65 @@ typedef struct _cairo_command_show_text_glyphs {
     cairo_scaled_font_t		*scaled_font;
 } cairo_command_show_text_glyphs_t;
 
-typedef struct _cairo_command_intersect_clip_path {
-    cairo_command_header_t      header;
-    cairo_path_fixed_t	       *path_pointer;
-    cairo_path_fixed_t		path;
-    cairo_fill_rule_t		fill_rule;
-    double			tolerance;
-    cairo_antialias_t		antialias;
-} cairo_command_intersect_clip_path_t;
-
 typedef union _cairo_command {
     cairo_command_header_t      header;
 
-    /* The 5 basic drawing operations. */
     cairo_command_paint_t			paint;
     cairo_command_mask_t			mask;
     cairo_command_stroke_t			stroke;
     cairo_command_fill_t			fill;
     cairo_command_show_text_glyphs_t		show_text_glyphs;
-
-    /* The other junk. */
-    cairo_command_intersect_clip_path_t		intersect_clip_path;
 } cairo_command_t;
 
-typedef struct _cairo_meta_surface {
+typedef struct _cairo_recording_surface {
     cairo_surface_t base;
 
     cairo_content_t content;
 
-    /* A meta-surface is logically unbounded, but when used as a
+    /* A recording-surface is logically unbounded, but when used as a
      * source we need to render it to an image, so we need a size at
      * which to create that image. */
-    int width_pixels;
-    int height_pixels;
+    cairo_rectangle_t extents_pixels;
+    cairo_rectangle_int_t extents;
+    cairo_bool_t unbounded;
+
+    cairo_clip_t clip;
 
     cairo_array_t commands;
     cairo_surface_t *commands_owner;
 
-    cairo_bool_t is_clipped;
     int replay_start_idx;
-} cairo_meta_surface_t;
+} cairo_recording_surface_t;
 
-cairo_private cairo_surface_t *
-_cairo_meta_surface_create (cairo_content_t	content,
-			    int			width_pixels,
-			    int			height_pixels);
+slim_hidden_proto (cairo_recording_surface_create);
 
 cairo_private cairo_int_status_t
-_cairo_meta_surface_get_path (cairo_surface_t	 *surface,
-			      cairo_path_fixed_t *path);
+_cairo_recording_surface_get_path (cairo_surface_t	 *surface,
+				   cairo_path_fixed_t *path);
 
 cairo_private cairo_status_t
-_cairo_meta_surface_replay (cairo_surface_t *surface,
-			    cairo_surface_t *target);
+_cairo_recording_surface_replay (cairo_surface_t *surface,
+				 cairo_surface_t *target);
+
 
 cairo_private cairo_status_t
-_cairo_meta_surface_replay_analyze_meta_pattern (cairo_surface_t *surface,
-						 cairo_surface_t *target);
+_cairo_recording_surface_replay_analyze_recording_pattern (cairo_surface_t *surface,
+							   cairo_surface_t *target);
 
 cairo_private cairo_status_t
-_cairo_meta_surface_replay_and_create_regions (cairo_surface_t *surface,
-					       cairo_surface_t *target);
+_cairo_recording_surface_replay_and_create_regions (cairo_surface_t *surface,
+						    cairo_surface_t *target);
 cairo_private cairo_status_t
-_cairo_meta_surface_replay_region (cairo_surface_t          *surface,
-				   cairo_surface_t          *target,
-				   cairo_meta_region_type_t  region);
+_cairo_recording_surface_replay_region (cairo_surface_t			*surface,
+					cairo_surface_t			*target,
+					cairo_recording_region_type_t	region);
+
+cairo_private cairo_status_t
+_cairo_recording_surface_get_bbox (cairo_recording_surface_t *recording,
+				   cairo_box_t *bbox,
+				   const cairo_matrix_t *transform);
 
 cairo_private cairo_bool_t
-_cairo_surface_is_meta (const cairo_surface_t *surface);
+_cairo_surface_is_recording (const cairo_surface_t *surface);
 
-#endif /* CAIRO_META_SURFACE_H */
+#endif /* CAIRO_RECORDING_SURFACE_H */

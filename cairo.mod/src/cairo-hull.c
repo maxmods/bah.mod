@@ -36,6 +36,9 @@
 
 #include "cairoint.h"
 
+#include "cairo-error-private.h"
+#include "cairo-slope-private.h"
+
 typedef struct cairo_hull {
     cairo_point_t point;
     cairo_slope_t slope;
@@ -198,9 +201,12 @@ _cairo_hull_compute (cairo_pen_vertex_t *vertices, int *num_vertices)
     cairo_hull_t *hull;
     int num_hull = *num_vertices;
 
+    if (CAIRO_INJECT_FAULT ())
+	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+
     if (num_hull > ARRAY_LENGTH (hull_stack)) {
 	hull = _cairo_malloc_ab (num_hull, sizeof (cairo_hull_t));
-	if (hull == NULL)
+	if (unlikely (hull == NULL))
 	    return _cairo_error (CAIRO_STATUS_NO_MEMORY);
     } else {
 	hull = hull_stack;

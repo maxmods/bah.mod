@@ -57,7 +57,12 @@
 #include "cairo-xlib-private.h"
 #include "cairo-xlib-xrender-private.h"
 
+#include "cairo-xlib-surface-private.h"
+#include "cairo-error-private.h"
+
+#if CAIRO_HAS_FC_FONT
 #include <fontconfig/fontconfig.h>
+#endif
 
 static int
 parse_boolean (const char *v)
@@ -110,7 +115,7 @@ get_integer_default (Display    *dpy,
 
     v = XGetDefault (dpy, "Xft", option);
     if (v) {
-#if CAIRO_HAS_FT_FONT
+#if CAIRO_HAS_FC_FONT
 	if (FcNameConstant ((FcChar8 *) v, value))
 	    return TRUE;
 #endif
@@ -123,7 +128,15 @@ get_integer_default (Display    *dpy,
     return FALSE;
 }
 
-/* Old versions of fontconfig didn't have these options */
+#ifndef FC_RGBA_UNKNOWN
+#define FC_RGBA_UNKNOWN	    0
+#define FC_RGBA_RGB	    1
+#define FC_RGBA_BGR	    2
+#define FC_RGBA_VRGB	    3
+#define FC_RGBA_VBGR	    4
+#define FC_RGBA_NONE	    5
+#endif
+
 #ifndef FC_HINT_NONE
 #define FC_HINT_NONE        0
 #define FC_HINT_SLIGHT      1
@@ -131,20 +144,9 @@ get_integer_default (Display    *dpy,
 #define FC_HINT_FULL        3
 #endif
 
-/* Fontconfig version older than 2.6 didn't have these options */
-#ifndef FC_LCD_FILTER
-#define FC_LCD_FILTER	"lcdfilter"
-#endif
-/* Some Ubuntu versions defined FC_LCD_FILTER without defining the following */
-#ifndef FC_LCD_NONE
-#define FC_LCD_NONE	0
-#define FC_LCD_DEFAULT	1
-#define FC_LCD_LIGHT	2
-#define FC_LCD_LEGACY	3
-#endif
-
 static void
-_cairo_xlib_init_screen_font_options (Display *dpy, cairo_xlib_screen_info_t *info)
+_cairo_xlib_init_screen_font_options (Display *dpy,
+				      cairo_xlib_screen_t *info)
 {
     cairo_bool_t xft_hinting;
     cairo_bool_t xft_antialias;
@@ -254,8 +256,8 @@ _cairo_xlib_init_screen_font_options (Display *dpy, cairo_xlib_screen_info_t *in
     cairo_font_options_set_hint_metrics (&info->font_options, CAIRO_HINT_METRICS_ON);
 }
 
-cairo_xlib_screen_info_t *
-_cairo_xlib_screen_info_reference (cairo_xlib_screen_info_t *info)
+cairo_xlib_screen_t *
+_cairo_xlib_screen_reference (cairo_xlib_screen_t *info)
 {
     assert (CAIRO_REFERENCE_COUNT_HAS_REFERENCE (&info->ref_count));
 
@@ -265,48 +267,50 @@ _cairo_xlib_screen_info_reference (cairo_xlib_screen_info_t *info)
 }
 
 void
-_cairo_xlib_screen_info_close_display (cairo_xlib_screen_info_t *info)
+_cairo_xlib_screen_close_display (cairo_xlib_screen_t *info)
 {
     cairo_xlib_visual_info_t **visuals;
+    Display *dpy;
+    cairo_atomic_int_t old;
     int i;
 
     CAIRO_MUTEX_LOCK (info->mutex);
+
+    dpy = _cairo_xlib_display_get_dpy (info->display);
+
+#if HAS_ATOMIC_OPS
+    do {
+	old = _cairo_atomic_int_get (&info->gc_depths);
+    } while (_cairo_atomic_int_cmpxchg (&info->gc_depths, old, 0) != old);
+#else
+    old = info->gc_depths;
+    info->gc_depths = 0;
+#endif
+
     for (i = 0; i < ARRAY_LENGTH (info->gc); i++) {
-	if (info->gc[i] != NULL) {
-	    XFreeGC (info->display->display, info->gc[i]);
-	    info->gc[i] = NULL;
-	}
+	if ((old >> (8*i)) & 0xff)
+	    XFreeGC (dpy, info->gc[i]);
     }
 
     visuals = _cairo_array_index (&info->visuals, 0);
     for (i = 0; i < _cairo_array_num_elements (&info->visuals); i++)
-	_cairo_xlib_visual_info_destroy (info->display->display, visuals[i]);
+	_cairo_xlib_visual_info_destroy (dpy, visuals[i]);
     _cairo_array_truncate (&info->visuals, 0);
 
     CAIRO_MUTEX_UNLOCK (info->mutex);
 }
 
 void
-_cairo_xlib_screen_info_destroy (cairo_xlib_screen_info_t *info)
+_cairo_xlib_screen_destroy (cairo_xlib_screen_t *info)
 {
-    cairo_xlib_screen_info_t **prev;
-    cairo_xlib_screen_info_t *list;
-
     assert (CAIRO_REFERENCE_COUNT_HAS_REFERENCE (&info->ref_count));
 
     if (! _cairo_reference_count_dec_and_test (&info->ref_count))
 	return;
 
-    CAIRO_MUTEX_LOCK (info->display->mutex);
-    for (prev = &info->display->screens; (list = *prev); prev = &list->next) {
-	if (list == info) {
-	    *prev = info->next;
-	    break;
-	}
-    }
-    CAIRO_MUTEX_UNLOCK (info->display->mutex);
+    _cairo_xlib_display_remove_screen (info->display, info);
 
-    _cairo_xlib_screen_info_close_display (info);
+    _cairo_xlib_screen_close_display (info);
 
     _cairo_xlib_display_destroy (info->display);
 
@@ -317,138 +321,223 @@ _cairo_xlib_screen_info_destroy (cairo_xlib_screen_info_t *info)
     free (info);
 }
 
-cairo_xlib_screen_info_t *
-_cairo_xlib_screen_info_get (cairo_xlib_display_t *display, Screen *screen)
+cairo_status_t
+_cairo_xlib_screen_get (Display *dpy,
+			Screen *screen,
+			cairo_xlib_screen_t **out)
 {
-    cairo_xlib_screen_info_t *info = NULL, **prev;
+    cairo_xlib_display_t *display;
+    cairo_xlib_screen_t *info;
+    cairo_status_t status;
 
-    CAIRO_MUTEX_LOCK (display->mutex);
-    if (display->closed) {
-	CAIRO_MUTEX_UNLOCK (display->mutex);
-	return NULL;
+    status = _cairo_xlib_display_get (dpy, &display);
+    if (likely (status == CAIRO_STATUS_SUCCESS))
+	status = _cairo_xlib_display_get_screen (display, screen, &info);
+    if (unlikely (status))
+	goto CLEANUP_DISPLAY;
+
+    if (info != NULL) {
+	*out = _cairo_xlib_screen_reference (info);
+	goto CLEANUP_DISPLAY;
     }
 
-    for (prev = &display->screens; (info = *prev); prev = &(*prev)->next) {
-	if (info->screen == screen) {
-	    /*
-	     * MRU the list
-	     */
-	    if (prev != &display->screens) {
-		*prev = info->next;
-		info->next = display->screens;
-		display->screens = info;
-	    }
+    info = malloc (sizeof (cairo_xlib_screen_t));
+    if (unlikely (info == NULL)) {
+	status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
+	goto CLEANUP_DISPLAY;
+    }
+
+    CAIRO_REFERENCE_COUNT_INIT (&info->ref_count, 2); /* Add one for display cache */
+    CAIRO_MUTEX_INIT (info->mutex);
+    info->display = display;
+    info->screen = screen;
+    info->has_render = FALSE;
+    info->has_font_options = FALSE;
+    info->gc_depths = 0;
+    memset (info->gc, 0, sizeof (info->gc));
+
+    _cairo_array_init (&info->visuals,
+		       sizeof (cairo_xlib_visual_info_t*));
+
+    if (screen) {
+	int event_base, error_base;
+
+	info->has_render =
+	    XRenderQueryExtension (dpy, &event_base, &error_base) &&
+	    (XRenderFindVisualFormat (dpy, DefaultVisual (dpy, DefaultScreen (dpy))) != 0);
+    }
+
+    /* Small window of opportunity for two screen infos for the same
+     * Screen - just wastes a little bit of memory but should not cause
+     * any corruption.
+     */
+    _cairo_xlib_display_add_screen (display, info);
+
+    *out = info;
+    return CAIRO_STATUS_SUCCESS;
+
+  CLEANUP_DISPLAY:
+    _cairo_xlib_display_destroy (display);
+    return status;
+}
+
+#if HAS_ATOMIC_OPS
+GC
+_cairo_xlib_screen_get_gc (cairo_xlib_screen_t *info,
+			   int depth,
+			   Drawable drawable)
+{
+    XGCValues gcv;
+    cairo_atomic_int_t old, new;
+    int i;
+    GC gc;
+
+    do {
+	gc = NULL;
+	old = info->gc_depths;
+	if (old == 0)
+	    break;
+
+	if (((old >> 0) & 0xff) == depth)
+	    i = 0;
+	else if (((old >> 8) & 0xff) == depth)
+	    i = 1;
+	else if (((old >> 16) & 0xff) == depth)
+	    i = 2;
+	else if (((old >> 24) & 0xff) == depth)
+	    i = 3;
+	else
+	    break;
+
+	gc = info->gc[i];
+	new = old & ~(0xff << (8*i));
+    } while (_cairo_atomic_int_cmpxchg (&info->gc_depths, old, new) != old);
+
+    if (likely (gc != NULL)) {
+	(void) _cairo_atomic_ptr_cmpxchg (&info->gc[i], gc, NULL);
+	return gc;
+    }
+
+    gcv.graphics_exposures = False;
+    gcv.fill_style = FillTiled;
+    return XCreateGC (_cairo_xlib_display_get_dpy (info->display),
+		      drawable,
+		      GCGraphicsExposures | GCFillStyle, &gcv);
+}
+
+void
+_cairo_xlib_screen_put_gc (cairo_xlib_screen_t *info,
+			   int depth,
+			   GC gc)
+{
+    int i, old, new;
+
+    do {
+	do {
+	    i = -1;
+	    old = info->gc_depths;
+
+	    if (((old >> 0) & 0xff) == 0)
+		i = 0;
+	    else if (((old >> 8) & 0xff) == 0)
+		i = 1;
+	    else if (((old >> 16) & 0xff) == 0)
+		i = 2;
+	    else if (((old >> 24) & 0xff) == 0)
+		i = 3;
+	    else
+		goto out;
+
+	    new = old | (depth << (8*i));
+	} while (_cairo_atomic_ptr_cmpxchg (&info->gc[i], NULL, gc) != NULL);
+    } while (_cairo_atomic_int_cmpxchg (&info->gc_depths, old, new) != old);
+
+    return;
+
+out:
+    if (unlikely (_cairo_xlib_display_queue_work (info->display,
+				(cairo_xlib_notify_func) XFreeGC,
+				gc,
+				NULL)))
+    {
+	/* leak the server side resource... */
+	XFree ((char *) gc);
+    }
+}
+#else
+GC
+_cairo_xlib_screen_get_gc (cairo_xlib_screen_t *info,
+			   int depth,
+			   Drawable drawable)
+{
+    GC gc = NULL;
+    int i;
+
+    CAIRO_MUTEX_LOCK (info->mutex);
+    for (i = 0; i < ARRAY_LENGTH (info->gc); i++) {
+	if (((info->gc_depths >> (8*i)) & 0xff) == depth) {
+	    info->gc_depths &= ~(0xff << (8*i));
+	    gc = info->gc[i];
 	    break;
 	}
     }
-    CAIRO_MUTEX_UNLOCK (display->mutex);
-
-    if (info != NULL) {
-	info = _cairo_xlib_screen_info_reference (info);
-    } else {
-	info = malloc (sizeof (cairo_xlib_screen_info_t));
-	if (info != NULL) {
-	    CAIRO_REFERENCE_COUNT_INIT (&info->ref_count, 2); /* Add one for display cache */
-	    CAIRO_MUTEX_INIT (info->mutex);
-	    info->display = _cairo_xlib_display_reference (display);
-	    info->screen = screen;
-	    info->has_render = FALSE;
-	    _cairo_font_options_init_default (&info->font_options);
-	    memset (info->gc, 0, sizeof (info->gc));
-	    info->gc_needs_clip_reset = 0;
-
-	    _cairo_array_init (&info->visuals,
-			       sizeof (cairo_xlib_visual_info_t*));
-
-	    if (screen) {
-		Display *dpy = display->display;
-		int event_base, error_base;
-
-		info->has_render = (XRenderQueryExtension (dpy, &event_base, &error_base) &&
-			(XRenderFindVisualFormat (dpy, DefaultVisual (dpy, DefaultScreen (dpy))) != 0));
-		_cairo_xlib_init_screen_font_options (dpy, info);
-	    }
-
-	    CAIRO_MUTEX_LOCK (display->mutex);
-	    info->next = display->screens;
-	    display->screens = info;
-	    CAIRO_MUTEX_UNLOCK (display->mutex);
-	}
-    }
-
-    return info;
-}
-
-static int
-depth_to_index (int depth)
-{
-    switch(depth){
-	case 1:  return 1;
-	case 8:  return 2;
-	case 12: return 3;
-	case 15: return 4;
-	case 16: return 5;
-	case 24: return 6;
-	case 30: return 7;
-	case 32: return 8;
-    }
-    return 0;
-}
-
-GC
-_cairo_xlib_screen_get_gc (cairo_xlib_screen_info_t *info, int depth)
-{
-    GC gc;
-    cairo_bool_t needs_reset;
-
-    depth = depth_to_index (depth);
-
-    CAIRO_MUTEX_LOCK (info->mutex);
-    gc = info->gc[depth];
-    info->gc[depth] = NULL;
-    needs_reset = info->gc_needs_clip_reset & (1 << depth);
-    info->gc_needs_clip_reset &= ~(1 << depth);
     CAIRO_MUTEX_UNLOCK (info->mutex);
 
-    if (needs_reset)
-	XSetClipMask(info->display->display, gc, None);
+    if (gc == NULL) {
+	XGCValues gcv;
+
+	gcv.graphics_exposures = False;
+	gcv.fill_style = FillTiled;
+	gc = XCreateGC (_cairo_xlib_display_get_dpy (info->display),
+			drawable,
+			GCGraphicsExposures | GCFillStyle, &gcv);
+    }
 
     return gc;
 }
 
-cairo_status_t
-_cairo_xlib_screen_put_gc (cairo_xlib_screen_info_t *info, int depth, GC gc, cairo_bool_t reset_clip)
+void
+_cairo_xlib_screen_put_gc (cairo_xlib_screen_t *info,
+			   int depth,
+			   GC gc)
 {
-    cairo_status_t status = CAIRO_STATUS_SUCCESS;
-    GC oldgc;
-
-    depth = depth_to_index (depth);
+    int i;
 
     CAIRO_MUTEX_LOCK (info->mutex);
-    oldgc = info->gc[depth];
-    info->gc[depth] = gc;
-    if (reset_clip)
-	info->gc_needs_clip_reset |= 1 << depth;
-    else
-	info->gc_needs_clip_reset &= ~(1 << depth);
-    CAIRO_MUTEX_UNLOCK (info->mutex);
-
-    if (oldgc != NULL) {
-	status = _cairo_xlib_display_queue_work (info->display,
-		                               (cairo_xlib_notify_func) XFreeGC,
-					       oldgc,
-					       NULL);
+    for (i = 0; i < ARRAY_LENGTH (info->gc); i++) {
+	if (((info->gc_depths >> (8*i)) & 0xff) == 0)
+	    break;
     }
 
-    return status;
+    if (i == ARRAY_LENGTH (info->gc)) {
+	cairo_status_t status;
+
+	/* perform random substitution to ensure fair caching over depths */
+	i = rand () % ARRAY_LENGTH (info->gc);
+	status =
+	    _cairo_xlib_display_queue_work (info->display,
+					    (cairo_xlib_notify_func) XFreeGC,
+					    info->gc[i],
+					    NULL);
+	if (unlikely (status)) {
+	    /* leak the server side resource... */
+	    XFree ((char *) info->gc[i]);
+	}
+    }
+
+    info->gc[i] = gc;
+    info->gc_depths &= ~(0xff << (8*i));
+    info->gc_depths |= depth << (8*i);
+    CAIRO_MUTEX_UNLOCK (info->mutex);
 }
+#endif
 
 cairo_status_t
-_cairo_xlib_screen_get_visual_info (cairo_xlib_screen_info_t *info,
+_cairo_xlib_screen_get_visual_info (cairo_xlib_screen_t *info,
 				    Visual *visual,
 				    cairo_xlib_visual_info_t **out)
 {
-    Display *dpy = info->display->display;
+    Display *dpy = _cairo_xlib_display_get_dpy (info->display);
     cairo_xlib_visual_info_t **visuals, *ret = NULL;
     cairo_status_t status;
     int i, n_visuals;
@@ -473,7 +562,7 @@ _cairo_xlib_screen_get_visual_info (cairo_xlib_screen_info_t *info,
 					     XScreenNumberOfScreen (info->screen),
 					     visual->visualid,
 					     &ret);
-    if (status)
+    if (unlikely (status))
 	return status;
 
     CAIRO_MUTEX_LOCK (info->mutex);
@@ -494,11 +583,33 @@ _cairo_xlib_screen_get_visual_info (cairo_xlib_screen_info_t *info,
 	status = _cairo_array_append (&info->visuals, &ret);
     CAIRO_MUTEX_UNLOCK (info->mutex);
 
-    if (status) {
+    if (unlikely (status)) {
 	_cairo_xlib_visual_info_destroy (dpy, ret);
 	return status;
     }
 
     *out = ret;
     return CAIRO_STATUS_SUCCESS;
+}
+
+cairo_font_options_t *
+_cairo_xlib_screen_get_font_options (cairo_xlib_screen_t *info)
+{
+    if (info->has_font_options)
+	return &info->font_options;
+
+    CAIRO_MUTEX_LOCK (info->mutex);
+    if (! info->has_font_options) {
+	_cairo_font_options_init_default (&info->font_options);
+
+	if (info->screen != NULL) {
+	    _cairo_xlib_init_screen_font_options (_cairo_xlib_display_get_dpy (info->display),
+						  info);
+	}
+
+	info->has_font_options = TRUE;
+    }
+    CAIRO_MUTEX_UNLOCK (info->mutex);
+
+    return &info->font_options;
 }

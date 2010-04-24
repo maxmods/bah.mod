@@ -3,6 +3,7 @@ SuperStrict
 Import Pub.FreeType
 Import BRL.Stream
 Import BRL.FileSystem
+Import Pub.Glew
 ?Not linux
 Import BRL.Map
 ?
@@ -226,6 +227,8 @@ Extern
 	Function cairo_pdf_surface_set_size(surfacePtr:Byte Ptr, width:Double, height:Double)
 	Function cairo_ps_surface_create:Byte Ptr(filename:Byte Ptr, width:Double, height:Double)
 	Function cairo_ps_surface_set_size(surfacePtr:Byte Ptr, width:Double, height:Double)
+	Function cairo_pdf_surface_create_for_stream:Byte Ptr(cb:Int(obj:Object, data:Byte Ptr, length:Int), obj:Object, width:Double, height:Double)
+	Function cairo_ps_surface_create_for_stream:Byte Ptr(cb:Int(obj:Object, data:Byte Ptr, length:Int), obj:Object, width:Double, height:Double)
 	
 	Function cairo_push_group(context:Byte Ptr)
 	Function cairo_push_group_with_content(context:Byte Ptr, content:Int)
@@ -235,6 +238,9 @@ Extern
 
 	Function cairo_ft_font_face_create_for_ft_face:Byte Ptr(ft_face:Byte Ptr, loadFlags:Int)
 
+	
+	Function cairo_gl_surface_create:Byte Ptr(context:Byte Ptr, content:Int, width:Int, height:Int)
+	Function bmx_cairo_glcontext_create:Byte Ptr(context:Int)
 	
 End Extern
 
