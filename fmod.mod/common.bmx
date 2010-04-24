@@ -161,7 +161,7 @@ Extern
 	Function FMOD_System_GetRecordPosition:Int(handle:Byte Ptr, id:Int, position:Int Ptr)
 	Function FMOD_System_GetWaveData:Int(handle:Byte Ptr, waveArray:Float Ptr, numValues:Int, channelOffset:Int)
 	Function FMOD_System_IsRecording:Int(handle:Byte Ptr, id:Int, recording:Int Ptr)
-	Function FMOD_System_RecordStop:Int(handle:Byte Ptr)
+	Function FMOD_System_RecordStop:Int(handle:Byte Ptr, id:Int)
 	Function FMOD_System_Set3DListenerAttributes:Int(handle:Byte Ptr, listener:Int, pos:Byte Ptr, vel:Byte Ptr, forward:Byte Ptr, up:Byte Ptr)
 	Function FMOD_System_Set3DNumListeners:Int(handle:Byte Ptr, numListeners:Int)
 	Function FMOD_System_Set3DSettings:Int(handle:Byte Ptr, dopplerScale:Float, distanceFactor:Float, rolloffScale:Float)

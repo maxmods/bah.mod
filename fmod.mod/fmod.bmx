@@ -779,8 +779,8 @@ Type TFMODSystem
 	Rem
 	bbdoc: Stops the recording engine from recording to the specified recording sound.  
 	End Rem
-	Method RecordStop:Int()
-		Return FMOD_System_RecordStop(systemPtr)
+	Method RecordStop:Int(id:Int)
+		Return FMOD_System_RecordStop(systemPtr, id)
 	End Method
 	
 	Rem
