@@ -1,4 +1,4 @@
-' Copyright (c) 2006-2009 Bruce A Henderson
+' Copyright (c) 2006-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,11 @@ ModuleInfo "Version: 1.04"
 ModuleInfo "License: MIT"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "Credit: Based loosely on the JUnit testing framework by Erich Gamma and Kent Beck. see junit.org"
-ModuleInfo "Copyright: (c) 2006-2009 Bruce A Henderson"
+ModuleInfo "Copyright: (c) 2006-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.04"
 ModuleInfo "History: Modified summary to count test runs, and tests."
+ModuleInfo "History: TTestSuite.run() now returns number of failures. (Muttley)"
 ModuleInfo "History: 1.03"
 ModuleInfo "History: Improved multiple test-types support."
 ModuleInfo "History: Changed tags to before/after and beforetype/aftertype"
@@ -121,7 +122,7 @@ Type TTestSuite Extends TAssert
 	Rem
 	bbdoc: Runs the suite of tests.
 	End Rem
-	Method run()
+	Method run:Int()
 		startTime = MilliSecs()
 	
 		_addTests()
@@ -223,6 +224,7 @@ Type TTestSuite Extends TAssert
 		
 		_PrintLine("Time: " + ((endTime - startTime)/1000) + "." + (((endTime - startTime) Mod 1000)))
 	
+		Return f
 	End Method
 	
 	Method performTest(t:TTestFunction, First:Int = False, last:Int = False)
