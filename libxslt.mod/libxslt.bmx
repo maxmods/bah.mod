@@ -69,6 +69,7 @@ Import "src/xsltlocale.c"
 ' Build notes
 '
 ' xsltconfig.h : locale ifdef tweak for multi-platform build.
+'                WITH_MODULES disabled.
 '
 '
 

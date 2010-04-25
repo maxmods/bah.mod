@@ -116,7 +116,7 @@ extern "C" {
  * Whether module support is configured into libxslt
  * Note: no default module path for win32 platforms
  */
-#if 1
+#if 0
 #ifndef WITH_MODULES
 #define WITH_MODULES
 #endif

@@ -113,7 +113,7 @@ Import "libxml_base.bmx"
 '
 ' config.h : customized for multi-platform builds.
 '
-' xmlversion.h : disable LIBXML_ICONV_ENABLED and LIBXML_THREAD_ENABLED.
+' xmlversion.h : disable LIBXML_ICONV_ENABLED, LIBXML_THREAD_ENABLED and LIBXML_MODULES_ENABLED.
 '
 
 Extern
