@@ -1840,3 +1840,33 @@ bbdoc: For use with FMOD_SPEAKERMODE_7POINT1 on PS3 where the extra speakers are
 end rem
 Const FMOD_SPEAKER_SBR:Int = FMOD_SPEAKER_SIDE_RIGHT
 
+Rem
+bbdoc: FFT Windowing method : w[n] = 1.0 
+End Rem
+Const FMOD_DSP_FFT_WINDOW_RECT:Int = 0
+Rem
+bbdoc: FFT Windowing method : w[n] = TRI(2n/N)   
+End Rem
+Const FMOD_DSP_FFT_WINDOW_TRIANGLE:Int = 1
+Rem
+bbdoc: FFT Windowing method : w[n] = 0.54 - (0.46 * COS(n/N) )
+End Rem
+Const FMOD_DSP_FFT_WINDOW_HAMMING:Int = 2
+Rem
+bbdoc: FFT Windowing method : w[n] = 0.5 *  (1.0  - COS(n/N) )
+End Rem
+Const FMOD_DSP_FFT_WINDOW_HANNING:Int = 3
+Rem
+bbdoc: FFT Windowing method : w[n] = 0.42 - (0.5  * COS(n/N) ) + (0.08 * COS(2.0 * n/N) )
+End Rem
+Const FMOD_DSP_FFT_WINDOW_BLACKMAN:Int = 4
+Rem
+bbdoc: FFT Windowing method : w[n] = 0.35875 - (0.48829 * COS(1.0 * n/N)) + (0.14128 * COS(2.0 * n/N)) - (0.01168 * COS(3.0 * n/N))
+End Rem
+Const FMOD_DSP_FFT_WINDOW_BLACKMANHARRIS:Int = 5
+Rem
+bbdoc: Maximum number of FFT window types supported.
+End Rem
+Const FMOD_DSP_FFT_WINDOW_MAX:Int = 6
+Const FMOD_DSP_FFT_WINDOW_FORCEINT:Int = 65536
+
