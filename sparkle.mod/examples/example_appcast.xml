@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"  xmlns:dc="http://purl.org/dc/elements/1.1/">
+	<channel>
+		<title>Sparkle Example Changelog</title>
+		<link>http://brucey.net/programming/blitz/sparkletest/example_appcast.xml</link>
+		<description>Get your application updates here.</description>
+		<language>en</language>
+		<item>
+			<title>Version 1.0.1 (New, and improved)</title>
+			<sparkle:releaseNotesLink>
+				http://brucey.net/programming/blitz/sparkletest/rel_1.0.1.html
+			</sparkle:releaseNotesLink>
+			<pubDate>Mon, 28 Dec 2009 17:04:19 +0000</pubDate>
+			<enclosure url="http://brucey.net/programming/blitz/sparkletest/example_app_1.0.1.zip" sparkle:version="1.0.1" length="1472893" type="application/octet-stream" sparkle:dsaSignature="234818feCa1JyW30nbkBwainOzrN6EQuAh" />
+		</item>
+	</channel>
+</rss>

@@ -1,0 +1,87 @@
+# post build script
+#
+#
+
+@define createInfoPlist
+
+	local plist = io.open(%exepath% .. "/../Info.plist", "w+")
+	io.output(plist)
+	io.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+	io.write("<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n")
+	io.write("<plist version=\"1.0\">\n")
+	io.write("<dict>\n")
+	io.write("\t<key>CFBundleExecutable</key>\n")
+	io.write("\t<string>" .. %appId% .. "</string>\n")
+	io.write("\t<key>CFBundleIconFile</key>\n")
+	io.write("\t<string>" .. %appId% .. "</string>\n")
+	io.write("\t<key>CFBundlePackageType</key>\n")
+	io.write("\t<string>APPL</string>\n")
+	
+	# Unique application identifier
+	io.write("\t<key>CFBundleIdentifier</key>\n")
+	io.write("\t<string>net.brucey.blitzmax.sparkleexample</string>\n")
+	
+	# Application version
+	io.write("\t<key>CFBundleVersion</key>\n")
+	io.write("\t<string>1.0.0</string>\n")
+
+	# Update URL
+	io.write("\t<key>SUFeedURL</key>\n")
+	io.write("\t<string>http://brucey.net/programming/blitz/sparkletest/example_appcast.xml</string>\n")
+	
+	# DSA KeyFile
+	io.write("\t<key>SUPublicDSAKeyFile</key>\n")
+	io.write("\t<string>dsa_pub.pem</string>\n")
+
+	io.write("\t<key>SUEnableAutomaticChecks</key>\n")
+	io.write("\t<string>YES</string>\n")
+	
+	
+	io.write("</dict>\n")
+	io.write("</plist>\n")
+	plist:close()
+
+@end
+
+@define copyFramework
+
+	framework = "Sparkle.framework"
+
+	# frameworks folder exists?
+	folder = %exepath% .. "/../Frameworks"
+	
+	if sys.FileType(folder) == 0 then
+		sys.CreateDir(folder)
+	end
+	
+	# framework exists?
+	if sys.FileType(folder .. "/" .. framework) == 0 then
+
+		# assumes Sparkle.framework.zip is in the module folder.
+		zip = utils.ModulePath("bah.sparkle") .. "/" .. framework .. ".zip"
+		
+		os.execute("unzip -qq " .. zip .. " -d " .. folder)
+	
+	end
+
+@end
+
+@define copyKey
+	
+	# assumes the public keyfile (dsa_pub.pem) is in the current folder...
+	key = "dsa_pub.pem"
+	
+	#copy into resources
+	sys.CopyFile(%buildpath% .. "/" .. key, %exepath% .. "/../Resources/" .. key)
+
+@end
+
+
+# create the Info.plist file
+createInfoPlist
+
+#copy the framework
+copyFramework
+
+#copy public key file
+copyKey
