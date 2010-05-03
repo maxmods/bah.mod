@@ -89,6 +89,18 @@ MP4::File::audioProperties() const
   return d->properties;
 }
 
+bool
+MP4::File::checkValid(const MP4::AtomList &list)
+{
+  for(uint i = 0; i < list.size(); i++) {
+    if(list[i]->length == 0)
+      return false;
+    if(!checkValid(list[i]->children))
+      return false;
+  }
+  return true;
+}
+
 void
 MP4::File::read(bool readProperties, Properties::ReadStyle audioPropertiesStyle)
 {
@@ -96,6 +108,18 @@ MP4::File::read(bool readProperties, Properties::ReadStyle audioPropertiesStyle)
     return;
 
   d->atoms = new Atoms(this);
+  if (!checkValid(d->atoms->atoms)) {
+    setValid(false);
+    return;
+  }
+
+  // must have a moov atom, otherwise consider it invalid
+  MP4::Atom *moov = d->atoms->find("moov");
+  if(!moov) {
+    setValid(false);
+    return;
+  }
+
   d->tag = new Tag(this, d->atoms);
   if(readProperties) {
     d->properties = new Properties(this, d->atoms, audioPropertiesStyle);
@@ -105,6 +129,9 @@ MP4::File::read(bool readProperties, Properties::ReadStyle audioPropertiesStyle)
 bool
 MP4::File::save()
 {
+  if(!isValid())
+    return false;
+
   return d->tag->save();
 }
 

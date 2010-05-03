@@ -42,12 +42,12 @@ class MP4::Tag::TagPrivate
 public:
   TagPrivate() : file(0), atoms(0) {}
   ~TagPrivate() {}
-  File *file;
+  TagLib::File *file;
   Atoms *atoms;
   ItemListMap items;
 };
 
-MP4::Tag::Tag(File *file, MP4::Atoms *atoms)
+MP4::Tag::Tag(TagLib::File *file, MP4::Atoms *atoms)
 {
   d = new TagPrivate;
   d->file = file;
@@ -143,8 +143,8 @@ MP4::Tag::parseGnre(MP4::Atom *atom, TagLib::File *file)
   ByteVectorList data = parseData(atom, file);
   if(data.size()) {
     int idx = (int)data[0].toShort();
-    if(!d->items.contains("\251gen")) {
-      d->items.insert("\251gen", StringList(ID3v1::genre(idx)));
+    if(!d->items.contains("\251gen") && idx > 0) {
+      d->items.insert("\251gen", StringList(ID3v1::genre(idx - 1)));
     }
   }
 }
@@ -209,7 +209,7 @@ MP4::Tag::parseCovr(MP4::Atom *atom, TagLib::File *file)
     int flags = data.mid(pos + 8, 4).toUInt();
     if(name != "data") {
       debug("MP4: Unexpected atom \"" + name + "\", expecting \"data\"");
-      return;
+      break;
     }
     if(flags == MP4::CoverArt::PNG || flags == MP4::CoverArt::JPEG) {
       value.append(MP4::CoverArt(MP4::CoverArt::Format(flags),
@@ -270,7 +270,7 @@ MP4::Tag::renderIntPair(const ByteVector &name, MP4::Item &item)
               ByteVector::fromShort(item.toIntPair().first) +
               ByteVector::fromShort(item.toIntPair().second) +
               ByteVector(2, '\0'));
-  return renderData(name, 0x15, data);
+  return renderData(name, 0x00, data);
 }
 
 ByteVector
@@ -280,7 +280,7 @@ MP4::Tag::renderIntPairNoTrailing(const ByteVector &name, MP4::Item &item)
   data.append(ByteVector(2, '\0') +
               ByteVector::fromShort(item.toIntPair().first) +
               ByteVector::fromShort(item.toIntPair().second));
-  return renderData(name, 0x15, data);
+  return renderData(name, 0x00, data);
 }
 
 ByteVector

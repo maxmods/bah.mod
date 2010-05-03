@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2009 Bruce A Henderson
+   Copyright (c) 2009-2010 Bruce A Henderson
  
    The contents of this file are subject to the Mozilla Public License
    Version 1.1 (the "License"); you may not use this file except in

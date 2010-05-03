@@ -282,7 +282,8 @@ bool FrameFactory::updateFrame(Frame::Header *header) const
        frameID == "LNK" ||
        frameID == "RVA" ||
        frameID == "TIM" ||
-       frameID == "TSI")
+       frameID == "TSI" ||
+       frameID == "TDA")
     {
       debug("ID3v2.4 no longer supports the frame type " + String(frameID) +
             ".  It will be discarded from the tag.");
@@ -310,7 +311,6 @@ bool FrameFactory::updateFrame(Frame::Header *header) const
     convertFrame("TCM", "TCOM", header);
     convertFrame("TCO", "TCON", header);
     convertFrame("TCR", "TCOP", header);
-    convertFrame("TDA", "TDRC", header);
     convertFrame("TDY", "TDLY", header);
     convertFrame("TEN", "TENC", header);
     convertFrame("TFT", "TFLT", header);
@@ -412,10 +412,11 @@ void FrameFactory::updateGenre(TextIdentificationFrame *frame) const
     if(s.startsWith("(") && end > 0) {
       // "(12)Genre"
       String text = s.substr(end + 1);
-      int number = s.substr(1, end - 1).toInt();
-      if (number > 0 && number <= 255 && !(ID3v1::genre(number) == text))
+      bool ok;
+      int number = s.substr(1, end - 1).toInt(&ok);
+      if(ok && number >= 0 && number <= 255 && !(ID3v1::genre(number) == text))
         newfields.append(s.substr(1, end - 1));
-      if (!text.isEmpty())
+      if(!text.isEmpty())
         newfields.append(text);
     }
     else {
