@@ -5,17 +5,23 @@
 
 @define copydll
 	local ext
-	local pre
+	local pre = ""
 
 	if bmk.Platform() == "win32" then
 		ext = "dll"
-		pre = "i"
+		if arg2 == "1" then
+			pre = "i"
+		end
 	elseif bmk.Platform() == "linux" then
 		ext = "so"
-		pre = "libI"
+		if arg2 == "1" then
+			pre = "libI"
+		end
 	else
 		ext = "dylib"
-		pre = "libi"
+		if arg2 == "1" then
+			pre = "libi"
+		end
 	end
 
 	local path = utils.ModulePath("bah.irrklang") .. "/lib/" .. bmk.Platform() .. "/"
@@ -25,5 +31,5 @@
 @end
 
 # do the copy
-copydll rrKlang
-copydll ikpMP3
+copydll rrKlang 1
+copydll ikpMP3 0
