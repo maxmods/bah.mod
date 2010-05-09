@@ -21,6 +21,7 @@
 SuperStrict
 
 Import BRL.Blitz
+Import BRL.FileSystem
 
 Import "-lirrKlang"
 
@@ -47,7 +48,7 @@ Extern
 	Function bmx_soundengine_getdefault3dsoundmaxdistance:Float(handle:Byte Ptr)
 	Function bmx_soundengine_setrollofffactor(handle:Byte Ptr, rolloff:Float)
 	Function bmx_soundengine_setdopplereffectparameters(handle:Byte Ptr, dopplerFactor:Float, distanceFactor:Float)
-	Function bmx_soundengine_addsoundsourcefromfile:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, mode:Int, preload:Int)
+	Function bmx_soundengine_addsoundsourcefromfile:Byte Ptr(handle:Byte Ptr, filename:Byte Ptr, Mode:Int, preload:Int)
 	Function bmx_soundengine_addsoundsourcefrommemory:Byte Ptr(handle:Byte Ptr, memory:Byte Ptr, sizeInBytes:Int, name:Byte Ptr, copyMemory:Int)
 	Function bmx_soundengine_play2dsource:Byte Ptr(handle:Byte Ptr, source:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, enableSoundEffects:Int)
 	Function bmx_soundengine_play3d:Byte Ptr(handle:Byte Ptr, s:Byte Ptr, pos:Byte Ptr, playLooped:Int, startPaused:Int, track:Int, streamMode:Int, enableSoundEffects:Int)
@@ -60,6 +61,7 @@ Extern
 	Function bmx_soundengine_removesoundsourcesource(handle:Byte Ptr, source:Byte Ptr)
 	Function bmx_soundengine_getdrivername:Byte Ptr(handle:Byte Ptr)
 	Function bmx_soundengine_addsoundsourcealias:Byte Ptr(handle:Byte Ptr, baseSource:Byte Ptr, s:Byte Ptr)
+	Function bmx_soundengine_loadplugins:Int(handle:Byte Ptr, path:Byte Ptr)
 
 	Function bmx_sound_setispaused(handle:Byte Ptr, paused:Int)
 	Function bmx_sound_getispaused:Int(handle:Byte Ptr)
@@ -89,7 +91,7 @@ Extern
 	Function bmx_sound_getvelocity:Byte Ptr(handle:Byte Ptr)
 
 	Function bmx_soundsource_getname:Byte Ptr(handle:Byte Ptr)
-	Function bmx_soundsource_setstreammode(handle:Byte Ptr, mode:Int)
+	Function bmx_soundsource_setstreammode(handle:Byte Ptr, Mode:Int)
 	Function bmx_soundsource_getstreammode:Int(handle:Byte Ptr)
 	Function bmx_soundsource_getplaylength:Int(handle:Byte Ptr)
 	Function bmx_soundsource_getaudioformat:Byte Ptr(handle:Byte Ptr)

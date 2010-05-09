@@ -11,6 +11,7 @@
 #include "ik_ISound.h"
 #include "ik_EStreamModes.h"
 #include "ik_IFileFactory.h"
+#include "ik_ISoundMixedOutputReceiver.h"
 
 
 namespace irrklang
@@ -392,6 +393,13 @@ namespace irrklang
 		/** Use this with caution. This is only exposed to make it possible for other libraries
 		such as Video playback packages to extend or use the sound driver irrklang uses. */
 		virtual const SInternalAudioInterface& getInternalAudioInterface() = 0;		
+
+		//! Sets the OutputMixedDataReceiver, so you can receive the pure mixed output audio data while it is being played.
+		/** This can be used to store the sound output as .wav file or for creating a Oscillograph or similar.
+		This works only with software based audio drivers, that is ESOD_WIN_MM, ESOD_ALSA, and ESOD_CORE_AUDIO. 
+		Returns true if sucessful and fals if the current audio driver doesn't support this feature. Set this to null
+		again once you don't need it anymore. */
+		virtual bool setMixedDataOutputReceiver(ISoundMixedOutputReceiver* receiver) = 0;
 	};
 
 

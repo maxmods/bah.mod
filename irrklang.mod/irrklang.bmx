@@ -55,15 +55,24 @@ about: The irrKlang device is the root object for using the sound engine.
 End Rem
 Function CreateIrrKlangDevice:TISoundEngine(driver:Int = ESOD_AUTO_DETECT, options:Int = ESEO_DEFAULT_OPTIONS, ..
 		deviceID:String = Null)
+	?macos
+	Local c:String = CurrentDir()
+	ChangeDir(ExtractDir(AppFile))
+	?
+	
 	Local eng:Byte Ptr
 	If deviceID Then
-		Local s:Byte Ptr = deviceID.ToCString()
+		Local s:Byte Ptr = deviceID.ToUTF8String()
 		eng = bmx_createIrrKlangDevice(driver, options, s)
 		MemFree(s)
 	Else
 		eng = bmx_createIrrKlangDevice(driver, options, Null)
 	End If
-	Return TISoundEngine._create(eng)
+	Local e:TISoundEngine = TISoundEngine._create(eng)
+	?macos
+		ChangeDir(c)
+	?
+	Return e
 End Function
 
 Rem
@@ -96,7 +105,7 @@ Type TISoundEngine
 	</ul>
 	End Rem
 	Method AddSoundSourceFromFile:TISoundSource(fileName:String, Mode:Int = ESM_AUTO_DETECT, preload:Int = False)
-		Local s:Byte Ptr = fileName.ToCString()
+		Local s:Byte Ptr = fileName.ToUTF8String()
 		Local source:Byte Ptr = bmx_soundengine_addsoundsourcefromfile(refPtr, s, Mode, preload)
 		MemFree(s)
 		Return TISoundSource._create(source)
@@ -124,7 +133,7 @@ Type TISoundEngine
 	</p>
 	End Rem
 	Method AddSoundSourceFromMemory:TISoundSource(memory:Byte Ptr, sizeInBytes:Int, soundName:String, copyMemory:Int = True)
-		Local s:Byte Ptr = soundName.ToCString()
+		Local s:Byte Ptr = soundName.ToUTF8String()
 		Local source:Byte Ptr = bmx_soundengine_addsoundsourcefrommemory(refPtr, memory, sizeInBytes, s, copyMemory)
 		MemFree(s)
 		Return TISoundSource._create(source)
@@ -144,7 +153,7 @@ Type TISoundEngine
 	</p>
 	End Rem
 	Method AddSoundSourceAlias:TISoundSource(baseSource:TISoundSource, soundName:String)
-		Local s:Byte Ptr = soundName.ToCString()
+		Local s:Byte Ptr = soundName.ToUTF8String()
 		Local source:Byte Ptr = bmx_soundengine_addsoundsourcealias(refPtr, baseSource.soundSourcePtr, s)
 		MemFree(s)
 		Return TISoundSource._create(source)
@@ -161,7 +170,7 @@ Type TISoundEngine
 	bbdoc: Returns the name of the sound driver, like 'ALSA' for the alsa device.
 	End Rem
 	Method GetDriverName:String()
-		Return String.fromCString(bmx_soundengine_getdrivername(refPtr))
+		Return String.fromUTF8String(bmx_soundengine_getdrivername(refPtr))
 	End Method
 	
 	Rem
@@ -189,7 +198,7 @@ Type TISoundEngine
 	Method Play2D:TISound(soundfileName:String, playLooped:Int = False, startPaused:Int = False, ..  
 			track:Int = False, streamMode:Int = ESM_AUTO_DETECT, enableSoundEffects:Int = False)
 
-		Local s:Byte Ptr = soundfileName.ToCString()
+		Local s:Byte Ptr = soundfileName.ToUTF8String()
 		Local sound:Byte Ptr = bmx_soundengine_play2d(refPtr, s, playLooped, startPaused, track, streamMode, enableSoundEffects)
 		MemFree(s)
 
@@ -233,7 +242,7 @@ Type TISoundEngine
 			track:Int = False, streamMode:Int = ESM_AUTO_DETECT, enableSoundEffects:Int = False)
 		Assert pos, "Please provide a position vector"
 			
-		Local s:Byte Ptr = soundfileName.ToCString()
+		Local s:Byte Ptr = soundfileName.ToUTF8String()
 		Local sound:Byte Ptr = bmx_soundengine_play3d(refPtr, s, pos.vecPtr, playLooped, startPaused, track, streamMode, enableSoundEffects)
 		MemFree(s)
 
@@ -283,7 +292,7 @@ Type TISoundEngine
 	bbdoc: Removes a sound source from the engine, freeing the memory it occupies.
 	End Rem
 	Method RemoveSoundSource(name:String)
-		Local s:Byte Ptr = name.ToCString()
+		Local s:Byte Ptr = name.ToUTF8String()
 		bmx_soundengine_removesoundsource(refPtr, s)
 		MemFree(s)
 	End Method
@@ -359,7 +368,7 @@ Type TISoundEngine
 	bbdoc: Returns if a sound with the specified name is currently playing.
 	End Rem
 	Method IsCurrentlyPlaying:Int(soundName:String)
-		Local s:Byte Ptr = soundName.ToCString()
+		Local s:Byte Ptr = soundName.ToUTF8String()
 		Local ret:Int = bmx_soundengine_iscurrentlyplaying(refPtr, s)
 		MemFree(s)
 		Return ret
@@ -470,6 +479,20 @@ Type TISoundEngine
 		bmx_soundengine_setdopplereffectparameters(refPtr, dopplerFactor, distanceFactor)
 	End Method
 
+	Rem
+	bbdoc: Loads irrKlang plugins from a custom path.
+	about: Plugins usually are .dll, .so or .dylib files named for example ikpMP3.dll (= short for irrKlangPluginMP3) which make
+	it possible to play back mp3 files. Plugins are being loaded from the current working directory at startup of the sound
+	engine if the parameter ESEO_LOAD_PLUGINS is set (which it is by default), but using this method, it is possible to load plugins
+	from a custom path in addition.
+	End Rem
+	Method LoadPlugins:Int(path:String)
+		Local s:Byte Ptr = path.ToUTF8String()
+		Local ret:Int = bmx_soundengine_loadplugins(refPtr, s)
+		MemFree(s)
+		Return ret
+	End Method
+	
 End Type
 
 Rem
@@ -805,7 +828,7 @@ Type TISoundSource
 	bbdoc: Returns the name of the sound source (usually, this is the file name)
 	End Rem
 	Method GetName:String()
-		Return String.FromCString(bmx_soundsource_getname(soundSourcePtr))
+		Return String.FromUTF8String(bmx_soundsource_getname(soundSourcePtr))
 	End Method
 	
 	Rem

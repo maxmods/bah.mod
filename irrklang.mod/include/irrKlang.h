@@ -31,11 +31,12 @@
 #include "ik_IFileReader.h"
 #include "ik_ISoundDeviceList.h"
 #include "ik_IAudioRecorder.h"
+#include "ik_ISoundMixedOutputReceiver.h"
 
 //! irrKlang Version
-#define IRR_KLANG_VERSION "1.2.0"
+#define IRR_KLANG_VERSION "1.3.0"
 
-/*! \mainpage irrKlang 1.2.0 API documentation
+/*! \mainpage irrKlang 1.3.0 API documentation
  *
  * <div align="center"><img src="logobig.png" ></div>
 
