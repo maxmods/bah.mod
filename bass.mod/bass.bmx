@@ -2409,7 +2409,7 @@ Type TBass
 		Return BASS_SetEAXParameters(env, vol, decay, damp)
 	End Function
 ?
-?Not Linux
+'?Not Linux
 	Rem
 	bbdoc: Retrieves the factors that affect the calculations of 3D sound. 
 	returns: If successful, then TRUE is returned, else FALSE is returned. Use TBass.ErrorGetCode to get the error code. 
