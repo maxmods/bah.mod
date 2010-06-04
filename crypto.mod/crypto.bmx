@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,13 @@ bbdoc: Cryptography
 End Rem
 Module BaH.Crypto
 
-ModuleInfo "Version: 1.02"
+ModuleInfo "Version: 1.03"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Wrapper - 2007-2009 Bruce A Henderson"
 
+ModuleInfo "History: 1.03"
+ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
+ModuleInfo "History: Removed support for MD2. (deprecated)"
 ModuleInfo "History: 1.02"
 ModuleInfo "History: Added TStream support for the 'easy' digest API."
 ModuleInfo "History: Added AES cipher support."
@@ -887,15 +890,6 @@ Type EVP_MD
 	Rem
 	bbdoc: A cryptographic hash function with a 128 bit output.
 	End Rem
-	Function MD2:EVP_MD()
-		Local this:EVP_MD = New EVP_MD
-		this.digestPtr = EVP_md2()
-		Return this
-	End Function
-
-	Rem
-	bbdoc: A cryptographic hash function with a 128 bit output.
-	End Rem
 	Function MD5:EVP_MD()
 		Local this:EVP_MD = New EVP_MD
 		this.digestPtr = EVP_md5()
@@ -958,15 +952,6 @@ Type EVP_MD
 	End Function
 
 End Type
-
-Rem
-bbdoc: Creates an MD2 hash for @data.
-about: @data can be a String or TStream.
-returns: The hashed text or Null on error.
-End Rem
-Function MD2:String(data:Object)
-	Return _processDigest(EVP_MD.MD2(), data)
-End Function
 
 Rem
 bbdoc: Creates an MD5 hash for @data.

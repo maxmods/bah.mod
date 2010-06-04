@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2010 Bruce A Henderson
 ' All rights reserved.
 '
 ' Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ Module BaH.libssh2
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: BSD"
-ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2010 Bruce A Henderson"
 
 ?win32
 ModuleInfo "LD_OPTS: -L%PWD%/ssl/lib"

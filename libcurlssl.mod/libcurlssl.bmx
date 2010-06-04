@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,11 @@ ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libcurl) 1998 - 2007, Daniel Stenberg"
 ModuleInfo "Copyright: (c-ares) 1998 Massachusetts Institute of Technology."
-ModuleInfo "Copyright: (Wrapper) 2007-2009 Bruce A Henderson"
+ModuleInfo "Copyright: (Wrapper) 2007-2010 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.02"
+ModuleInfo "History: Updated Win32 SSL support to OpenSSL 1.0."
 ModuleInfo "History: Added ssh support. Now requires BaH.libssh2."
 ModuleInfo "History: Update to c-ares 1.6.0"
 ModuleInfo "History: Fixed ResponseCode() not returning correct codes."

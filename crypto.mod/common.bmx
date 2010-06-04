@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -133,8 +133,7 @@ End Rem
 	Function EVP_MD_CTX_destroy(ctxPtr:Byte Ptr)
 	Function EVP_DigestUpdate:Int(ctxPtr:Byte Ptr, data:Byte Ptr, length:Int)
 	Function EVP_MD_CTX_cleanup:Int(ctxPtr:Byte Ptr)
-
-	Function EVP_md2:Byte Ptr()
+	
 	Function EVP_md5:Byte Ptr()
 	Function EVP_sha:Byte Ptr()
 	Function EVP_sha1:Byte Ptr()
