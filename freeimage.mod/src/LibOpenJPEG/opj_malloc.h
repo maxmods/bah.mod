@@ -64,8 +64,8 @@ Allocate memory aligned to a 16 byte boundry
 #ifdef WIN32
 	/* Someone should tell the mingw people that their malloc.h ought to provide _mm_malloc() */
 	#ifdef __GNUC__
-		#include <malloc.h>
-		//#define HAVE_MM_MALLOC
+		#include <mm_malloc.h>
+		#define HAVE_MM_MALLOC
 	#else /* MSVC, Intel C++ */
 		#include <malloc.h>
 		#ifdef _mm_malloc

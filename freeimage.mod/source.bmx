@@ -1,4 +1,4 @@
-' Copyright (c) 2007-2009 Bruce A Henderson
+' Copyright (c) 2007-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -161,6 +161,7 @@ Import "src/LibTIFF/tif_fax3sm.c"
 Import "src/LibTIFF/tif_flush.c"
 Import "src/LibTIFF/tif_getimage.c"
 Import "src/LibTIFF/tif_jpeg.c"
+Import "src/LibTIFF/tif_ojpeg.c"
 Import "src/LibTIFF/tif_luv.c"
 Import "src/LibTIFF/tif_lzw.c"
 Import "src/LibTIFF/tif_next.c"
@@ -203,7 +204,7 @@ Import "src/LibJPEG/jcmarker.c"
 Import "src/LibJPEG/jcmaster.c"
 Import "src/LibJPEG/jcomapi.c"
 Import "src/LibJPEG/jcparam.c"
-Import "src/LibJPEG/jcphuff.c"
+'Import "src/LibJPEG/jcphuff.c"
 Import "src/LibJPEG/jcprepct.c"
 Import "src/LibJPEG/jcsample.c"
 Import "src/LibJPEG/jctrans.c"
@@ -221,7 +222,7 @@ Import "src/LibJPEG/jdmainct.c"
 Import "src/LibJPEG/jdmarker.c"
 Import "src/LibJPEG/jdmaster.c"
 Import "src/LibJPEG/jdmerge.c"
-Import "src/LibJPEG/jdphuff.c"
+'Import "src/LibJPEG/jdphuff.c"
 Import "src/LibJPEG/jdpostct.c"
 Import "src/LibJPEG/jdsample.c"
 Import "src/LibJPEG/jdtrans.c"

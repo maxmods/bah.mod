@@ -1,4 +1,4 @@
-/* $Id: tif_getimage.c,v 1.29 2009/09/06 13:11:28 drolon Exp $ */
+/* $Id: tif_getimage.c,v 1.30 2009/11/07 19:18:27 drolon Exp $ */
 
 /*
  * Copyright (c) 1991-1997 Sam Leffler
@@ -481,7 +481,7 @@ TIFFReadRGBAImageOriented(TIFF* tif,
 			rwidth, img.height);
 		TIFFRGBAImageEnd(&img);
 	} else {
-		TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), emsg);
+		TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), "%s", emsg);
 		ok = 0;
     }
     return (ok);
@@ -2555,7 +2555,7 @@ TIFFReadRGBAStrip(TIFF* tif, uint32 row, uint32 * raster )
         
 	TIFFRGBAImageEnd(&img);
     } else {
-		TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), emsg);
+		TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), "%s", emsg);
 		ok = 0;
     }
     
@@ -2607,7 +2607,7 @@ TIFFReadRGBATile(TIFF* tif, uint32 col, uint32 row, uint32 * raster)
     
     if (!TIFFRGBAImageOK(tif, emsg) 
 	|| !TIFFRGBAImageBegin(&img, tif, 0, emsg)) {
-	    TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), emsg);
+	    TIFFErrorExt(tif->tif_clientdata, TIFFFileName(tif), "%s", emsg);
 	    return( 0 );
     }
 

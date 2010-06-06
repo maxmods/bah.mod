@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2007-2009 Bruce A Henderson
+ Copyright (c) 2007-2010 Bruce A Henderson
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -188,10 +188,12 @@ unsigned DLL_CALLCONV bmx_stream_read(void *buffer, unsigned size, unsigned coun
 	// convert to number of bytes to read...
 	unsigned fullSize = count * size;
 	unsigned actual = _bah_freeimage_TFreeImage_read(handle, buffer, fullSize);
+
 	if ((count != 0) && (actual == fullSize / count)) {
 		return count;
 	}
-	return fullSize;
+
+	return (actual <= 0) ? 0 : fullSize;
 }
 
 unsigned DLL_CALLCONV bmx_stream_write(void *buffer, unsigned size, unsigned count, fi_handle handle) {
@@ -202,7 +204,7 @@ unsigned DLL_CALLCONV bmx_stream_write(void *buffer, unsigned size, unsigned cou
 	if ((count != 0) && (actual == fullSize / count)) {
 		return count;
 	}
-	return fullSize;
+	return (actual <= 0) ? 0 : fullSize;
 }
 
 long DLL_CALLCONV bmx_stream_tell(fi_handle handle) {

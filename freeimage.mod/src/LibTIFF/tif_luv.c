@@ -1,4 +1,4 @@
-/* $Id: tif_luv.c,v 1.27 2009/09/06 13:11:28 drolon Exp $ */
+/* $Id: tif_luv.c,v 1.28 2009/11/07 19:18:27 drolon Exp $ */
 
 /*
  * Copyright (c) 1997 Greg Ward Larson

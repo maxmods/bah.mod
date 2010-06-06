@@ -1,4 +1,4 @@
-/* $Id: tif_ojpeg.c,v 1.25 2009/09/06 13:11:28 drolon Exp $ */
+/* $Id: tif_ojpeg.c,v 1.27 2009/11/08 19:22:38 drolon Exp $ */
 
 /* WARNING: The type of JPEG encapsulation defined by the TIFF Version 6.0
    specification is now totally obsolete and deprecated for new applications and
@@ -189,8 +189,8 @@ static const TIFFFieldInfo ojpeg_field_info[] = {
 #include <setjmp.h>
 #endif
 
-#include "jpeglib.h"
-#include "jerror.h"
+#include "../LibJPEG/jpeglib.h"
+#include "../LibJPEG/jerror.h"
 
 typedef struct jpeg_error_mgr jpeg_error_mgr;
 typedef struct jpeg_common_struct jpeg_common_struct;
@@ -1127,6 +1127,9 @@ OJPEGWriteHeaderInfo(TIFF* tif)
 	if ((sp->subsampling_force_desubsampling_inside_decompression==0) && (sp->samples_per_pixel_per_plane>1))
 	{
 		sp->libjpeg_jpeg_decompress_struct.raw_data_out=1;
+#if JPEG_LIB_VERSION >= 70
+		sp->libjpeg_jpeg_decompress_struct.do_fancy_upsampling=FALSE;
+#endif
 		sp->libjpeg_jpeg_query_style=0;
 		if (sp->subsampling_convert_log==0)
 		{
@@ -2359,7 +2362,7 @@ OJPEGLibjpegJpegErrorMgrOutputMessage(jpeg_common_struct* cinfo)
 {
 	char buffer[JMSG_LENGTH_MAX];
 	(*cinfo->err->format_message)(cinfo,buffer);
-	TIFFWarningExt(((TIFF*)(cinfo->client_data))->tif_clientdata,"LibJpeg",buffer);
+	TIFFWarningExt(((TIFF*)(cinfo->client_data))->tif_clientdata,"LibJpeg", "%s", buffer);
 }
 
 static void
@@ -2367,7 +2370,7 @@ OJPEGLibjpegJpegErrorMgrErrorExit(jpeg_common_struct* cinfo)
 {
 	char buffer[JMSG_LENGTH_MAX];
 	(*cinfo->err->format_message)(cinfo,buffer);
-	TIFFErrorExt(((TIFF*)(cinfo->client_data))->tif_clientdata,"LibJpeg",buffer);
+	TIFFErrorExt(((TIFF*)(cinfo->client_data))->tif_clientdata,"LibJpeg", "%s", buffer);
 	jpeg_encap_unwind((TIFF*)(cinfo->client_data));
 }
 

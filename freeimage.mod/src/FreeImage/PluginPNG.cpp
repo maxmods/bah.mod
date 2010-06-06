@@ -370,9 +370,10 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 				case PNG_COLOR_TYPE_GRAY:
 					// expand grayscale images to the full 8 bits from 2 bits/pixel
+					// but *do not* expand fully transparent palette entries to a full alpha channel
 
 					if (pixel_depth == 2) {
-						png_set_expand(png_ptr);
+						png_set_expand_gray_1_2_4_to_8(png_ptr);
 						pixel_depth = 8;
 					}
 
@@ -809,7 +810,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 
 			// set the transparency table
 
-			if ((pixel_depth == 8) && (FreeImage_IsTransparent(dib)) && (FreeImage_GetTransparencyCount(dib) > 0)) {
+			if (FreeImage_IsTransparent(dib) && (FreeImage_GetTransparencyCount(dib) > 0)) {
 				png_set_tRNS(png_ptr, info_ptr, FreeImage_GetTransparencyTable(dib), FreeImage_GetTransparencyCount(dib), NULL);
 			}
 

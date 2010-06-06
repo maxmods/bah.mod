@@ -1213,9 +1213,6 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			// check for unsupported formats
 			// ---------------------------------------------------------------------------------
 
-			if (compression == COMPRESSION_OJPEG)
-				throw "6.0 JPEG encoding is not supported";
-
 			if((photometric == PHOTOMETRIC_SEPARATED) && (bitspersample == 16))
 				throw "Unable to handle 16-bit CMYK TIFF";
 
@@ -1256,7 +1253,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 				// read the image in one chunk into an RGBA array
 
-				if (!TIFFReadRGBAImage(tif, width, height, raster, 0)) {
+				if (!TIFFReadRGBAImage(tif, width, height, raster, 1)) {
 					_TIFFfree(raster);
 					throw FI_MSG_ERROR_UNSUPPORTED_FORMAT;
 				}
@@ -1920,7 +1917,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		uint16 bitspersample;
 		uint16 samplesperpixel;
 		uint16 photometric;
-		uint16 pitch;
+		uint32 pitch;
 		int32 x, y;
 
 		FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
@@ -2068,7 +2065,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		// and save them in the TIF
 		// -------------------------------------
 		
-		pitch = (uint16)FreeImage_GetPitch(dib);
+		pitch = FreeImage_GetPitch(dib);
 
 		if(image_type == FIT_BITMAP) {
 			// standard bitmap type
