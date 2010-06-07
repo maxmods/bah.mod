@@ -101,7 +101,11 @@
 #if defined(FREEIMAGE_BIGENDIAN)
 #define FREEIMAGE_COLORORDER FREEIMAGE_COLORORDER_RGB
 #else
+#ifdef __APPLE__ // BaH
+#define FREEIMAGE_COLORORDER FREEIMAGE_COLORORDER_RGB
+#else
 #define FREEIMAGE_COLORORDER FREEIMAGE_COLORORDER_BGR
+#endif
 #endif
 
 // Ensure 4-byte enums if we're using Borland C++ compilers
