@@ -1,0 +1,14 @@
+<p>
+Ever need to find out your network cards' IP address or MAC address? This cross-platform module helps you to access that information easily.
+</p>
+<p>
+The module provides a <a href="#TInet">TInet</a> Type which represents the information of a particular network interface.
+</p>
+<p>
+TInets can be retrieved via two functions. The first, <a href="#GetInetInterfaces">GetInetInterfaces</a>,  retrieves a list of all of the network
+interfaces on your computer.
+</p>
+<p>
+The second, <a href="#GetInetInterface">GetInetInterface</a>, expects a valid interface name, for example "en0". Interface naming conventions are
+platform dependent.
+</p>
