@@ -1,0 +1,107 @@
+<p>
+BaH.Sfxr is a BlitzMax port of DrPetter's <a href="http://drpetter.se/project_sfxr.html">sfxr</a> sound fx
+generation utility, wrapped up in a OO API, with a few more useful features for developers.
+</p>
+<p>
+The sound generation has been split from the generator application, allowing you to generate sound data in-memory
+for use immediately by your game or application. Loading and Saving of settings has also been enhanced to support
+a custom handler which can process the data via TStreams in whichever way is suitable for your project.
+</p>
+<h2>Using the Generator application</h2>
+<h3>Basic usage</h3>
+<p>
+Start the application, then hit some of the buttons on the left
+side to generate random sounds matching the button descriptions.
+</p>
+<p>
+Press "Export .WAV" to save the current sound as a WAV audio file.
+Click the buttons below to change WAV format in terms of bits per sample and sample rate.
+</p>
+<p>
+If you find a sound that is sort of interesting but not quite what
+you want, you can drag some sliders around until it sounds better.
+</p>
+<p>
+The Randomize button generates something completely random.
+</p>
+<p>
+Mutate slightly alters the current parameters to automatically create a variation of the sound.
+</p>
+<h3>Advanced Usage</h3>
+<p>
+Figure out what each slider does and use them to adjust particular aspects
+of the current sound...
+</p>
+<p>
+Press the right mouse button on a slider to reset it to a value of zero.
+</p>
+<p>
+The Save/Load sound buttons allow saving and loading of program parameters to work
+on a sound over several sessions.
+</p>
+<p>
+Volume setting is saved with the sound and exported to WAV. If you increase it too much
+there's a risk of clipping.
+</p>
+<p>
+Parameter description:
+<ul>
+<li>The top four buttons select base waveform
+</li>
+<li>First four parameters control the volume envelope
+  Attack is the beginning of the sound,
+  longer attack means a smoother start.<br>
+  Sustain is how long the volume is held constant
+  before fading out.<br>
+  Increase Sustain Punch to cause a popping
+  effect with increased (and falling) volume
+  during the sustain phase.<br>
+  Decay is the fade-out time.
+</li>
+<li>Next six are for controlling the sound pitch or
+  frequency.<br>
+  Start frequency is pretty obvious. Has a large
+  impact on the overall sound.<br>
+  Min frequency represents a cutoff that stops all
+  sound if it's passed during a downward slide.<br>
+  Slide sets the speed at which the frequency should
+  be swept (up or down).<br>
+  Delta slide is the "slide of slide", or rate of change
+  in the slide speed.<br>
+  Vibrato depth/speed makes for an oscillating
+  frequency effect at various strengths and rates.
+</li>
+<li>Then we have two parameters for causing an abrupt
+  change in pitch after a ceratin delay.<br>
+  Amount is pitch change (up or down)
+  and Speed indicates time to wait before changing
+  the pitch.
+</li>
+<li>Following those are two parameters specific to the
+  squarewave waveform.<br>
+  The duty cycle of a square describes its shape
+  in terms of how large the positive vs negative
+  sections are. It can be swept up or down by
+  changing the second parameter.
+</li>
+<li>Repeat speed, when not zero, causes the frequency
+  and duty parameters to be reset at regular intervals
+  while the envelope and filter continue unhindered.<br>
+  This can make for some interesting pulsating effects.
+</li>
+<li>Phaser offset overlays a delayed copy of the audio
+  stream on top of itself, resulting in a kind of tight
+  reverb or sci-fi effect.<br>
+  This parameter can also be swept like many others.
+</li>
+<li>Finally, the bottom five sliders control two filters
+  which are applied after all other effects.<br>
+  The first one is a resonant lowpass filter which has
+  a sweepable cutoff frequency.<br>
+  The other is a highpass filter which can be used to
+  remove undesired low frequency hum in "light" sounds.
+</li>
+</ul>
+</p>
+
+
