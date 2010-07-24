@@ -146,7 +146,7 @@ End Extern
 
 ?win32
 Extern "win32"
-?Not win32
+?macos
 Extern
 ?
 	Function BASS_Init:Int(device:Int, freq:Int, flags:Int, win:Byte Ptr, clsid:Byte Ptr)
@@ -265,6 +265,7 @@ Const BASS_ERROR_SPEAKER:Int = 42	' unavailable speaker
 Const BASS_ERROR_VERSION:Int = 43	' invalid BASS version (used by add-ons)
 Const BASS_ERROR_CODEC:Int = 44	' codec is not available/supported
 Const BASS_ERROR_ENDED:Int = 45	' the channel/file has ended
+Const BASS_ERROR_BUSY:Int = 46 ' the device is busy
 Const BASS_ERROR_UNKNOWN:Int = -1	' some other mystery problem
 
 ' BASS_SetConfig options
@@ -287,7 +288,9 @@ Const BASS_CONFIG_NET_PLAYLIST:Int = 21
 Const BASS_CONFIG_MUSIC_VIRTUAL:Int = 22
 Const BASS_CONFIG_VERIFY:Int = 23
 Const BASS_CONFIG_UPDATETHREADS:Int = 24
-
+?linux
+Const BASS_CONFIG_DEV_BUFFER:Int = 27
+?
 ' BASS_SetConfigPtr options
 Const BASS_CONFIG_NET_AGENT:Int = 16
 Const BASS_CONFIG_NET_PROXY:Int = 17
@@ -300,6 +303,9 @@ Const BASS_DEVICE_LATENCY:Int = 256	' calculate device latency (BASS_INFO struct
 Const BASS_DEVICE_CPSPEAKERS:Int = 1024 ' detect speakers via Windows control panel
 Const BASS_DEVICE_SPEAKERS:Int = 2048 ' force enabling of speaker assignment
 Const BASS_DEVICE_NOSPEAKER:Int = 4096 ' ignore speaker arrangement
+?linux
+Const BASS_DEVICE_DMIX:Int = 8192 ' use "dmix" (shared) output
+?
 
 ' DirectSound interfaces (for use with BASS_GetDSoundObject)
 Const BASS_OBJECT_DS:Int = 1	' IDirectSound
@@ -536,4 +542,23 @@ Const BASS_FX_DX8_GARGLE:Int = 5
 Const BASS_FX_DX8_I3DL2REVERB:Int = 6
 Const BASS_FX_DX8_PARAMEQ:Int = 7
 Const BASS_FX_DX8_REVERB:Int = 8
+
+' BASS_RecordSetInput flags
+Const BASS_INPUT_OFF:Int = $10000
+Const BASS_INPUT_ON:Int = $20000
+
+Const BASS_INPUT_TYPE_MASK:Int = $ff000000
+Const BASS_INPUT_TYPE_UNDEF	:Int = $00000000
+Const BASS_INPUT_TYPE_DIGITAL:Int = $01000000
+Const BASS_INPUT_TYPE_LINE:Int = $02000000
+Const BASS_INPUT_TYPE_MIC:Int = $03000000
+Const BASS_INPUT_TYPE_SYNTH	:Int = $04000000
+Const BASS_INPUT_TYPE_CD:Int = $05000000
+Const BASS_INPUT_TYPE_PHONE	:Int = $06000000
+Const BASS_INPUT_TYPE_SPEAKER:Int = $07000000
+Const BASS_INPUT_TYPE_WAVE:Int = $08000000
+Const BASS_INPUT_TYPE_AUX:Int = $09000000
+Const BASS_INPUT_TYPE_ANALOG:Int = $0a000000
+
+
 

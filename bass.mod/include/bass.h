@@ -1,6 +1,6 @@
 /*
 	BASS 2.4 C/C++ header file
-	Copyright (c) 1999-2009 Un4seen Developments Ltd.
+	Copyright (c) 1999-2010 Un4seen Developments Ltd.
 
 	See the BASS.CHM file for more detailed documentation
 */
@@ -90,6 +90,7 @@ typedef DWORD HPLUGIN;		// Plugin handle
 #define BASS_ERROR_VERSION	43	// invalid BASS version (used by add-ons)
 #define BASS_ERROR_CODEC	44	// codec is not available/supported
 #define BASS_ERROR_ENDED	45	// the channel/file has ended
+#define BASS_ERROR_BUSY		46	// the device is busy
 #define BASS_ERROR_UNKNOWN	-1	// some other mystery problem
 
 // BASS_SetConfig options
@@ -560,6 +561,7 @@ RETURN : TRUE = continue recording, FALSE = stop */
 #define BASS_DATA_FFT8192	0x80000005	// 8192 FFT
 #define BASS_DATA_FFT_INDIVIDUAL 0x10	// FFT flag: FFT for each channel, else all combined
 #define BASS_DATA_FFT_NOWINDOW	0x20	// FFT flag: no Hanning window
+#define BASS_DATA_FFT_REMOVEDC	0x40	// FFT flag: pre-remove DC bias
 
 // BASS_ChannelGetTags types : what's returned
 #define BASS_TAG_ID3		0	// ID3v1 tags : TAG_ID3 structure
@@ -568,12 +570,14 @@ RETURN : TRUE = continue recording, FALSE = stop */
 #define BASS_TAG_HTTP		3	// HTTP headers : series of null-terminated ANSI strings
 #define BASS_TAG_ICY		4	// ICY headers : series of null-terminated ANSI strings
 #define BASS_TAG_META		5	// ICY metadata : ANSI string
+#define BASS_TAG_APE		6	// APEv2 tags : series of null-terminated UTF-8 strings
 #define BASS_TAG_VENDOR		9	// OGG encoder : UTF-8 string
 #define BASS_TAG_LYRICS3	10	// Lyric3v2 tag : ASCII string
 #define BASS_TAG_CA_CODEC	11	// CoreAudio codec info : TAG_CA_CODEC structure
 #define BASS_TAG_RIFF_INFO	0x100 // RIFF "INFO" tags : series of null-terminated ANSI strings
 #define BASS_TAG_RIFF_BEXT	0x101 // RIFF/BWF "bext" tags : TAG_BEXT structure
 #define BASS_TAG_RIFF_CART	0x102 // RIFF/BWF "cart" tags : TAG_CART structure
+#define BASS_TAG_APE_BINARY	0x1000	// + index #, binary APEv2 tag : TAG_APE_BINARY structure
 #define BASS_TAG_MUSIC_NAME		0x10000	// MOD music name : ANSI string
 #define BASS_TAG_MUSIC_MESSAGE	0x10001	// MOD message : ANSI string
 #define BASS_TAG_MUSIC_ORDERS	0x10002	// MOD order list : BYTE array of pattern numbers
@@ -590,6 +594,13 @@ typedef struct {
 	char comment[30];
 	BYTE genre;
 } TAG_ID3;
+
+// Binary APEv2 tag structure
+typedef struct {
+	const char *key;
+	const void *data;
+	DWORD length;
+} TAG_APE_BINARY;
 
 // BWF "bext" tag structure
 #ifdef _MSC_VER
