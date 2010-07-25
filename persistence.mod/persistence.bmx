@@ -1,4 +1,4 @@
-' Copyright (c) 2008 Bruce A Henderson
+' Copyright (c) 2008-2010 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ Module BaH.Persistence
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
@@ -39,11 +39,6 @@ Import BRL.Reflection
 Import BRL.Map
 Import BRL.Stream
 
-' libxml global... FIXME : fix in libxml
-Extern 
-	Global xmlParserMaxDepth:Int
-End Extern
-
 Rem
 bbdoc: Object Persistence.
 End Rem
@@ -52,7 +47,7 @@ Type TPersist
 	Rem
 	bbdoc: File format version
 	End Rem
-	Const BMO_VERSION:Int = 4
+	Const BMO_VERSION:Int = 5
 
 	Field doc:TxmlDoc
 	Field objectMap:TMap = New TMap
@@ -204,7 +199,14 @@ Type TPersist
 								elementNode.setContent(String(aObj))
 							End If
 						Default
-							SerializeObject(aObj, elementNode)
+							Local objRef:String = GetObjRef(aObj)
+							
+							' file version 5 ... array cells can contain references
+							If Not objectMap.Contains(objRef) Then
+								SerializeObject(aObj, elementNode)
+							Else
+								elementNode.setAttribute("ref", objRef)
+							End If
 					End Select
 				Next
 				
@@ -535,7 +537,20 @@ Type TPersist
 										Case StringTypeId
 											objType.SetArrayElement(obj, i, arrayNode.GetContent())
 										Default
-											objType.SetArrayElement(obj, i, DeSerializeObject("", arrayNode))
+											' file version 5 ... array cells can contain references
+											' is this a reference?
+											Local ref:String = arrayNode.getAttribute("ref")
+											If ref Then
+												Local objRef:Object = objectMap.ValueForKey(ref)
+												If objRef Then
+													objType.SetArrayElement(obj, i, objRef)
+												Else
+													Throw New "Reference not mapped yet : " + ref
+												End If
+											Else
+												objType.SetArrayElement(obj, i, DeSerializeObject("", arrayNode))
+											End If	
+
 									End Select
 		
 									i:+ 1
@@ -635,7 +650,19 @@ Type TPersist
 																Case StringTypeId
 																	arrayType.SetArrayElement(arrayObj, i, arrayNode.GetContent())
 																Default
-																	arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+																	' file version 5 ... array cells can contain references
+																	' is this a reference?
+																	Local ref:String = arrayNode.getAttribute("ref")
+																	If ref Then
+																		Local objRef:Object = objectMap.ValueForKey(ref)
+																		If objRef Then
+																			arrayType.SetArrayElement(arrayObj, i, objRef)
+																		Else
+																			Throw New "Reference not mapped yet : " + ref
+																		End If
+																	Else
+																		arrayType.SetArrayElement(arrayObj, i, DeSerializeObject("", arrayNode))
+																	End If	
 															End Select
 						
 															i:+ 1
