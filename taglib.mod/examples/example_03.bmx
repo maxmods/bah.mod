@@ -1,5 +1,5 @@
 '
-' Show framelists, tags and properties for 
+' Show framelists, tags, properties and embedded images for an mp3.
 '
 SuperStrict
 
@@ -76,6 +76,7 @@ Function ShowTagInfo(filename:String)
 						Local bank:TBank = data.bank()
 						If bank Then
 							' load into a pixmap
+							' images are stored in their original format. e.g. JPEG, PNG, etc.
 							Local pixmap:TPixmap = LoadPixmap(CreateBankStream(bank))
 							If pixmap Then
 								Print "   w = " + pixmap.width + " : h = " + pixmap.height
