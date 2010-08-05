@@ -1552,6 +1552,18 @@ Type TTLByteVector
 		Return bmx_taglib_bytevector_tostring(bvPtr)
 	End Method
 	
+	Rem
+	bbdoc: Returns a TBank representation of the byte vector.
+	about: The data in the bank is only valid for the life of the parent TTLByteVector object.
+	End Rem
+	Method bank:TBank()
+		If size() > 0 Then
+			Return TBank.CreateStatic(data(), size())
+		Else
+			Return Null
+		End If
+	End Method
+	
 	Method Delete()
 		If bvPtr Then
 			bmx_taglib_bytevector_free(bvPtr)

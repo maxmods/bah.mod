@@ -18,6 +18,7 @@ SuperStrict
 
 Import BRL.Map
 Import BRL.LinkedList
+Import BRL.Bank
 
 Import "source.bmx"
 
