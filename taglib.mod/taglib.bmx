@@ -743,6 +743,381 @@ Type TTLWavPackFile Extends TTLFile
 End Type
 
 Rem
+bbdoc: This implements and provides an interface for MP4 files.
+End Rem
+Type TTLMP4File Extends TTLFile
+
+	Rem
+	bbdoc: 
+	End Rem
+	Function CreateMP4File:TTLMP4File(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		Return New TTLMP4File.Create(filename, readProperties, propertiesStyle)
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Create:TTLMP4File(filename:String, readProperties:Int = True, propertiesStyle:Int = TTLAudioProperties.READSTYLE_AVERAGE)
+		filePtr = bmx_taglib_mp4file_create(filename, readProperties, propertiesStyle)
+		Return Self
+	End Method
+
+	Rem
+	bbdoc: Returns the TTLMPEGProperties for this file.
+	about: If no audio properties were read then this will return Null.
+	End Rem
+	Method audioProperties:TTLAudioProperties()
+		Return TTLMP4Properties._create(bmx_taglib_mp4file_audioproperties(filePtr))
+	End Method
+	
+	Rem
+	bbdoc: Saves the file.
+	about: If at least one tag -- ID3v1 or ID3v2 -- exists this will duplicate its content into the other tag.
+	This returns true if saving was successful.
+	<p>
+	If neither exists or if both tags are empty, this will strip the tags from the file.
+	</p>
+	<p>
+	This is the same as calling save(AllTags);
+	</p>
+	<p>
+	If you would like more granular control over the content of the tags, with the concession of generality, use paramaterized saveTags call.
+	</p>
+	End Rem
+	Method save:Int()
+		Return bmx_taglib_mp4file_save(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Returns the tag for the file.
+	End Rem
+	Method tag:TTLMP4Tag()
+		Return TTLMP4Tag._create(bmx_taglib_mp4file_tag(filePtr))
+	End Method
+
+	Rem
+	bbdoc: Since the file can currently only be opened as an argument to the constructor (sort-of by design), this returns if that open succeeded.
+	End Rem
+	Method isOpen:Int()
+		Return bmx_taglib_mp4file_isopen(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Returns true if the file is open and readble and valid information for the Tag and / or AudioProperties was found.
+	End Rem
+	Method isValid:Int()
+		Return bmx_taglib_mp4file_isvalid(filePtr)
+	End Method
+	
+	Rem
+	bbdoc: Resets the end-of-file and error flags on the file.
+	End Rem
+	Method clear()
+		bmx_taglib_mp4file_clear(filePtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the length of the file.
+	End Rem
+	Method length:Int()
+		Return bmx_taglib_mp4file_length(filePtr)
+	End Method
+
+	Rem
+	bbdoc: Frees and closes the file.
+	End Rem
+	Method Free()
+		If filePtr Then
+			bmx_taglib_mp4file_free(filePtr)
+			filePtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMP4Properties Extends TTLAudioProperties
+
+	Function _create:TTLMP4Properties(apPtr:Byte Ptr)
+		If apPtr Then
+			Local this:TTLMP4Properties = New TTLMP4Properties
+			this.apPtr = apPtr
+			Return this
+		End If
+	End Function
+
+	Method bitsPerSample:Int()
+	End Method
+	
+End Type
+
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMP4Tag Extends TTLTag
+
+	Function _create:TTLMP4Tag(tagPtr:Byte Ptr)
+		If tagPtr Then
+			Local this:TTLMP4Tag = New TTLMP4Tag
+			this.tagPtr = tagPtr
+			Return this
+		End If
+	End Function
+
+	Method itemList:TTLMP4ItemListMap()
+		Return TTLMP4ItemListMap._create(bmx_taglib_mp4tag_itemlist(tagPtr))
+	End Method
+
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMP4ItemListMap
+
+	Field itemListPtr:Byte Ptr
+	
+	Function _create:TTLMP4ItemListMap(itemListPtr:Byte Ptr)
+		If itemListPtr Then
+			Local this:TTLMP4ItemListMap = New TTLMP4ItemListMap
+			this.itemListPtr = itemListPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: Returns the item for the specified key.
+	End Rem
+	Method item:TTLMP4Item(key:String)
+		Return TTLMP4Item(bmx_taglib_mp4itemlistmap_item(itemListPtr, key))
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the list is empty.
+	End Rem
+	Method isEmpty:Int()
+		Return bmx_taglib_mp4itemlistmap_isempty(itemListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the list.
+	End Rem
+	Method size:Int()
+		Return bmx_taglib_mp4itemlistmap_size(itemListPtr)
+	End Method
+
+	Method ObjectEnumerator:TTLMP4ItemListMapEnumerator()
+		' Reset the iterator
+		bmx_taglib_mp4itemlistmap_reset(itemListPtr)
+	
+		Local enum:TTLMP4ItemListMapEnumerator = New TTLMP4ItemListMapEnumerator
+		enum.list = Self
+		Return enum
+	End Method
+
+	Method Delete()
+		If itemListPtr Then
+			bmx_taglib_mp4itemlistmap_free(itemListPtr)
+			itemListPtr = Null
+		End If
+	End Method
+	
+End Type
+
+' internal support for EachIn
+Type TTLMP4ItemListMapEnumerator
+	Field list:TTLMP4ItemListMap
+	Field nextItem:TTLMP4Item
+
+	Method HasNext:Int()
+		If Not nextItem Then
+			nextItem = TTLMP4Item(bmx_taglib_mp4itemlistmap_nextitem(list.itemListPtr))
+		End If
+		
+		If nextItem Then
+			Return True
+		End If
+	End Method
+	
+	Method NextObject:Object()
+		Local tmpItem:TTLMP4Item = nextItem
+		nextItem = Null
+		Return tmpItem
+	End Method
+End Type
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMP4CoverArt
+
+	Field coverArtPtr:Byte Ptr
+	
+	Function _create:TTLMP4CoverArt(coverArtPtr:Byte Ptr)
+		If coverArtPtr Then
+			Local this:TTLMP4CoverArt = New TTLMP4CoverArt
+			this.coverArtPtr = coverArtPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method format:Int()
+		Return bmx_taglib_mp4coverart_format(coverArtPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method data:TTLByteVector()
+		Return TTLByteVector._create(bmx_taglib_mp4coverart_data(coverArtPtr))
+	End Method
+	
+End Type
+
+Type TTLMP4CoverArtList
+
+	Field coverArtListPtr:Byte Ptr
+
+	Function _create:TTLMP4CoverArtList(coverArtListPtr:Byte Ptr)
+		If coverArtListPtr Then
+			Local this:TTLMP4CoverArtList = New TTLMP4CoverArtList
+			this.coverArtListPtr = coverArtListPtr
+			Return this
+		End If
+	End Function
+	
+	Rem
+	bbdoc: Returns the frame at the specified index.
+	End Rem
+	Method coverArt:TTLMP4CoverArt(index:Int)
+		Return TTLMP4CoverArt(bmx_taglib_mp4coverartlist_coverart(coverArtListPtr, index))
+	End Method
+	
+	Rem
+	bbdoc: Returns True if the list is empty.
+	End Rem
+	Method isEmpty:Int()
+		Return bmx_taglib_mp4coverartlist_isempty(coverArtListPtr)
+	End Method
+	
+	Rem
+	bbdoc: Returns the size of the list.
+	End Rem
+	Method size:Int()
+		Return bmx_taglib_mp4coverartlist_size(coverArtListPtr)
+	End Method
+
+	Method ObjectEnumerator:TTLMP4CoverArtListEnumerator()
+		' Reset the iterator
+		bmx_taglib_mp4coverartlist_reset(coverArtListPtr)
+	
+		Local enum:TTLMP4CoverArtListEnumerator = New TTLMP4CoverArtListEnumerator
+		enum.list = Self
+		Return enum
+	End Method
+
+	Method Delete()
+		If coverArtListPtr Then
+			bmx_taglib_mp4coverartlist_free(coverArtListPtr)
+			coverArtListPtr = Null
+		End If
+	End Method
+	
+End Type
+
+' internal support for EachIn
+Type TTLMP4CoverArtListEnumerator
+	Field list:TTLMP4CoverArtList
+	Field nextItem:TTLMP4CoverArt
+
+	Method HasNext:Int()
+		If Not nextItem Then
+			nextItem = TTLMP4CoverArt(bmx_taglib_mp4coverartlist_nextitem(list.coverArtListPtr))
+		End If
+		
+		If nextItem Then
+			Return True
+		End If
+	End Method
+	
+	Method NextObject:Object()
+		Local tmpItem:TTLMP4CoverArt = nextItem
+		nextItem = Null
+		Return tmpItem
+	End Method
+End Type
+
+
+Rem
+bbdoc: 
+End Rem
+Type TTLMP4Item
+
+	Field itemPtr:Byte Ptr
+	
+	Function _create:TTLMP4Item(itemPtr:Byte Ptr)
+		If itemPtr Then
+			Local this:TTLMP4Item = New TTLMP4Item
+			this.itemPtr = itemPtr
+			Return this
+		End If
+	End Function
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method toInt:Int()
+		Return bmx_taglib_mp4item_toint(itemPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method toBool:Int()
+		Return bmx_taglib_mp4item_tobool(itemPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method toIntPair(_first:Int Var, _second:Int Var)
+		bmx_taglib_mp4item_tointpair(itemPtr, Varptr _first, Varptr _second)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method toStrings:String[]()
+		Return bmx_taglib_mp4item_tostrings(itemPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method toCoverArtList:TTLMP4CoverArtList()
+		Return TTLMP4CoverArtList._create(bmx_taglib_mp4item_coverartlist(itemPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method isValid:Int()
+		Return bmx_taglib_mp4item_isvalid(itemPtr)
+	End Method
+
+End Type
+
+Rem
 bbdoc: The main type in the ID3v2 implementation.
 about: ID3v2 tags have several parts, TagLib attempts to provide an interface for them all.
 header(), footer() and extendedHeader() corespond to those data structures in the ID3v2 standard and the APIs for the types that they

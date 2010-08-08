@@ -32,8 +32,12 @@
 #include <urllinkframe.h>
 #include <vorbisfile.h>
 #include <vorbisproperties.h>
+#include <mp4file.h>
+#include <mp4tag.h>
 
 class MaxID3v2FrameList;
+class MaxMP4ItemListMap;
+class MaxMP4CoverArtList;
 class MaxByteVector;
 
 extern "C" {
@@ -52,6 +56,10 @@ extern "C" {
 	BBObject * _bah_taglib_TTLID3v2UnsynchronizedLyricsFrame__create(TagLib::ID3v2::Header * header);
 	BBObject * _bah_taglib_TTLID3v2Frame__create(TagLib::ID3v2::Header * header);
 	BBObject * _bah_taglib_TTLID3v2Header__create(TagLib::ID3v2::Header * header);
+	
+	BBObject * _bah_taglib_TTLMP4Item__create(const TagLib::MP4::Item * item);
+	
+	BBObject * _bah_taglib_TTLMP4CoverArt__create(const TagLib::MP4::CoverArt * art);
 	
 	BBObject * getID3v2Header(TagLib::ID3v2::Header * header);
 	BBObject * getID3v2Frame(const TagLib::ID3v2::Frame * header);
@@ -171,6 +179,42 @@ extern "C" {
 	void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text);
 	BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame);
 
+	TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle);
+	TagLib::MP4::Properties * bmx_taglib_mp4file_audioproperties(TagLib::MP4::File * file);
+	int bmx_taglib_mp4file_save(TagLib::MP4::File * file);
+	TagLib::MP4::Tag * bmx_taglib_mp4file_tag(TagLib::MP4::File * file);
+	void bmx_taglib_mp4file_free(TagLib::MP4::File * file);
+	int bmx_taglib_mp4file_isopen(TagLib::MP4::File * file);
+	int bmx_taglib_mp4file_isvalid(TagLib::MP4::File * file);
+	void bmx_taglib_mp4file_clear(TagLib::MP4::File * file);
+	int bmx_taglib_mp4file_length(TagLib::MP4::File * file);
+
+	MaxMP4ItemListMap * bmx_taglib_mp4tag_itemlist(TagLib::MP4::Tag * tag);
+
+	BBObject * bmx_taglib_mp4itemlistmap_item(MaxMP4ItemListMap * list, BBString * key);
+	int bmx_taglib_mp4itemlistmap_isempty(MaxMP4ItemListMap * list);
+	int bmx_taglib_mp4itemlistmap_size(MaxMP4ItemListMap * list);
+	void bmx_taglib_mp4itemlistmap_reset(MaxMP4ItemListMap * list);
+	void bmx_taglib_mp4itemlistmap_free(MaxMP4ItemListMap * list);
+	BBObject * bmx_taglib_mp4itemlistmap_nextitem(MaxMP4ItemListMap * list);
+
+	BBObject * bmx_taglib_mp4coverartlist_coverart(MaxMP4CoverArtList * list, int index);
+	int bmx_taglib_mp4coverartlist_isempty(MaxMP4CoverArtList * list);
+	int bmx_taglib_mp4coverartlist_size(MaxMP4CoverArtList * list);
+	void bmx_taglib_mp4coverartlist_reset(MaxMP4CoverArtList * list);
+	void bmx_taglib_mp4coverartlist_free(MaxMP4CoverArtList * list);
+	BBObject * bmx_taglib_mp4coverartlist_nextitem(MaxMP4CoverArtList * list);
+
+	TagLib::MP4::CoverArt::Format bmx_taglib_mp4coverart_format(TagLib::MP4::CoverArt * art);
+	MaxByteVector * bmx_taglib_mp4coverart_data(TagLib::MP4::CoverArt * art);
+
+	MaxMP4CoverArtList * bmx_taglib_mp4item_coverartlist(TagLib::MP4::Item * item);
+	int bmx_taglib_mp4item_isvalid(TagLib::MP4::Item * item);
+	int bmx_taglib_mp4item_toint(TagLib::MP4::Item * item);
+	int bmx_taglib_mp4item_tobool(TagLib::MP4::Item * item);
+	void bmx_taglib_mp4item_tointpair(TagLib::MP4::Item * item, int * _first, int * _second);
+	BBArray * bmx_taglib_mp4item_tostrings(TagLib::MP4::Item * item);
+
 }
 
 // ****************************************
@@ -232,6 +276,77 @@ private:
 };
 
 // ****************************************
+
+class MaxMP4ItemListMap
+{
+public:
+	MaxMP4ItemListMap(const TagLib::MP4::ItemListMap & f)
+		: itemList(f)
+	{
+		it = itemList.begin();
+	}
+	
+	~MaxMP4ItemListMap()
+	{
+	}
+	
+	BBObject * nextItem() {
+		if (it != itemList.end()) {
+			return _bah_taglib_TTLMP4Item__create(&(*it++).second);
+		} else {
+			return &bbNullObject;
+		}
+	}
+	
+	void reset() {
+		it = itemList.begin();
+	}
+	
+	TagLib::MP4::ItemListMap & List() {
+		return itemList;
+	}
+
+private:
+	TagLib::MP4::ItemListMap itemList;
+	TagLib::MP4::ItemListMap::ConstIterator it;
+};
+
+// ****************************************
+
+class MaxMP4CoverArtList
+{
+public:
+	MaxMP4CoverArtList(const TagLib::MP4::CoverArtList & f)
+		: coverArtList(f)
+	{
+		it = coverArtList.begin();
+	}
+	
+	~MaxMP4CoverArtList()
+	{
+	}
+	
+	BBObject * nextItem() {
+		if (it != coverArtList.end()) {
+			return _bah_taglib_TTLMP4CoverArt__create(&(*it++));
+		} else {
+			return &bbNullObject;
+		}
+	}
+	
+	void reset() {
+		it = coverArtList.begin();
+	}
+	
+	TagLib::MP4::CoverArtList & List() {
+		return coverArtList;
+	}
+
+private:
+	TagLib::MP4::CoverArtList coverArtList;
+	TagLib::MP4::CoverArtList::ConstIterator it;
+};
+
 
 BBObject * getID3v2Header(TagLib::ID3v2::Header * header) {
 
@@ -794,9 +909,12 @@ MaxByteVector * bmx_taglib_id3v2attachedpictureframe_picture(TagLib::ID3v2::Atta
 // ****************************************
 
 void bmx_taglib_id3v2textidentificationframe_settext(TagLib::ID3v2::TextIdentificationFrame * frame, BBString * text) {
-	char * t = bbStringToUTF8String(text);
-	frame->setText(t);
-	bbMemFree(t);
+	char * t = 0;
+	if (text != &bbEmptyString) {
+		t = bbStringToUTF8String(text);
+	}
+	frame->setText((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
 }
 
 void bmx_taglib_id3v2textidentificationframe_settextlist(TagLib::ID3v2::TextIdentificationFrame * frame, BBArray * text) {
@@ -843,17 +961,194 @@ BBString * bmx_taglib_id3v2urllinkframe_url(TagLib::ID3v2::UrlLinkFrame * frame)
 }
 
 void bmx_taglib_id3v2urllinkframe_seturl(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text) {
-	char * t = bbStringToUTF8String(text);
-	frame->setUrl(t);
-	bbMemFree(t);
+	char * t = 0;
+	if (text != &bbEmptyString) {
+		t = bbStringToUTF8String(text);
+	}
+	frame->setUrl((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
 }
 
 void bmx_taglib_id3v2urllinkframe_settext(TagLib::ID3v2::UrlLinkFrame * frame, BBString * text) {
-	char * t = bbStringToUTF8String(text);
-	frame->setText(t);
-	bbMemFree(t);
+	char * t = 0;
+	if (text != &bbEmptyString) {
+		t = bbStringToUTF8String(text);
+	}
+	frame->setText((t) ? TagLib::String(t, TagLib::String::UTF8) : TagLib::String::null);
+	if (t) bbMemFree(t);
 }
 
 BBString * bmx_taglib_id3v2urllinkframe_tostring(TagLib::ID3v2::UrlLinkFrame * frame) {
 	return bbStringFromUTF8String(frame->toString().toCString(true));
 }
+
+// ****************************************
+
+TagLib::MP4::File * bmx_taglib_mp4file_create(BBString * filename, int readProperties, TagLib::AudioProperties::ReadStyle propertiesStyle) {
+
+
+#ifdef WIN32
+	wchar_t * f = (wchar_t*)bbStringToWString(filename);
+#else
+	char * f = bbStringToUTF8String(filename);
+#endif
+
+	TagLib::MP4::File * file = new TagLib::MP4::File(f, static_cast<bool>(readProperties), propertiesStyle);
+	bbMemFree(f);
+	
+	return file;
+}
+
+TagLib::MP4::Properties * bmx_taglib_mp4file_audioproperties(TagLib::MP4::File * file) {
+	return file->audioProperties();
+}
+
+int bmx_taglib_mp4file_save(TagLib::MP4::File * file) {
+	return static_cast<int>(file->save());
+}
+
+TagLib::MP4::Tag * bmx_taglib_mp4file_tag(TagLib::MP4::File * file) {
+	return file->tag();
+}
+
+void bmx_taglib_mp4file_free(TagLib::MP4::File * file) {
+	delete file;
+}
+
+int bmx_taglib_mp4file_isopen(TagLib::MP4::File * file) {
+	return static_cast<int>(file->isOpen());
+}
+
+int bmx_taglib_mp4file_isvalid(TagLib::MP4::File * file) {
+	return static_cast<int>(file->isValid());
+}
+
+void bmx_taglib_mp4file_clear(TagLib::MP4::File * file) {
+	file->clear();
+}
+
+int bmx_taglib_mp4file_length(TagLib::MP4::File * file) {
+	return file->length();
+}
+
+
+// ****************************************
+
+MaxMP4ItemListMap * bmx_taglib_mp4tag_itemlist(TagLib::MP4::Tag * tag) {
+	return new MaxMP4ItemListMap(tag->itemListMap());
+}
+
+
+// ****************************************
+
+BBObject * bmx_taglib_mp4itemlistmap_item(MaxMP4ItemListMap * list, BBString * key) {
+
+	char * k = 0;
+	if (key != &bbEmptyString) {
+		k = bbStringToUTF8String(key);
+	}
+	
+	if (k) {
+		BBObject * obj = _bah_taglib_TTLMP4Item__create(&list->List()[TagLib::String(k, TagLib::String::UTF8)]);
+		bbMemFree(k);
+		return obj;
+	} else {
+		return &bbNullObject;
+	}
+	
+}
+
+int bmx_taglib_mp4itemlistmap_isempty(MaxMP4ItemListMap * list) {
+	return static_cast<int>(list->List().isEmpty());
+}
+
+int bmx_taglib_mp4itemlistmap_size(MaxMP4ItemListMap * list) {
+	return list->List().size();
+}
+
+void bmx_taglib_mp4itemlistmap_reset(MaxMP4ItemListMap * list) {
+	list->reset();
+}
+
+void bmx_taglib_mp4itemlistmap_free(MaxMP4ItemListMap * list) {
+	delete list;
+}
+
+BBObject * bmx_taglib_mp4itemlistmap_nextitem(MaxMP4ItemListMap * list) {
+	return list->nextItem();
+}
+
+
+// ****************************************
+
+BBObject * bmx_taglib_mp4coverartlist_coverart(MaxMP4CoverArtList * list, int index) {
+	return _bah_taglib_TTLMP4CoverArt__create(&list->List()[index]);
+}
+
+int bmx_taglib_mp4coverartlist_isempty(MaxMP4CoverArtList * list) {
+	return static_cast<int>(list->List().isEmpty());
+}
+
+int bmx_taglib_mp4coverartlist_size(MaxMP4CoverArtList * list) {
+	return list->List().size();
+}
+
+void bmx_taglib_mp4coverartlist_reset(MaxMP4CoverArtList * list) {
+	list->reset();
+}
+
+void bmx_taglib_mp4coverartlist_free(MaxMP4CoverArtList * list) {
+	delete list;
+}
+
+BBObject * bmx_taglib_mp4coverartlist_nextitem(MaxMP4CoverArtList * list) {
+	return list->nextItem();
+}
+
+// ****************************************
+
+TagLib::MP4::CoverArt::Format bmx_taglib_mp4coverart_format(TagLib::MP4::CoverArt * art) {
+	return art->format();
+}
+
+MaxByteVector * bmx_taglib_mp4coverart_data(TagLib::MP4::CoverArt * art) {
+	return new MaxByteVector(art->data());
+}
+
+// ****************************************
+
+MaxMP4CoverArtList * bmx_taglib_mp4item_coverartlist(TagLib::MP4::Item * item) {
+	return new MaxMP4CoverArtList(item->toCoverArtList());
+}
+
+int bmx_taglib_mp4item_isvalid(TagLib::MP4::Item * item) {
+	return static_cast<int>(item->isValid());
+}
+
+int bmx_taglib_mp4item_toint(TagLib::MP4::Item * item) {
+	return item->toInt();
+}
+
+int bmx_taglib_mp4item_tobool(TagLib::MP4::Item * item) {
+	return static_cast<int>(item->toBool());
+}
+
+void bmx_taglib_mp4item_tointpair(TagLib::MP4::Item * item, int * _first, int * _second) {
+	TagLib::MP4::Item::IntPair pair = item->toIntPair();
+	*_first = pair.first;
+	*_second = pair.second;
+}
+
+BBArray * bmx_taglib_mp4item_tostrings(TagLib::MP4::Item * item) {
+	TagLib::StringList list = item->toStringList();
+	
+	int n = list.size();
+	BBArray *p = bbArrayNew1D("$",n);
+	BBString **s=(BBString**)BBARRAYDATA( p,p->dims );
+	for( int i=0;i<n;++i ){
+		s[i] = bbStringFromUTF8String(list[i].toCString(true));
+		BBRETAIN( s[i] );
+	}
+	return p;
+}
+

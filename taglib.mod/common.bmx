@@ -139,6 +139,42 @@ Extern
 	Function bmx_taglib_id3v2urllinkframe_settext(handle:Byte Ptr, text:String)
 	Function bmx_taglib_id3v2urllinkframe_tostring:String(handle:Byte Ptr)
 
+	Function bmx_taglib_mp4file_create:Byte Ptr(filename:String, readProperties:Int, propertiesStyle:Int)
+	Function bmx_taglib_mp4file_audioproperties:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_save:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_tag:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_free(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_isopen:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_isvalid:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_clear(handle:Byte Ptr)
+	Function bmx_taglib_mp4file_length:Int(handle:Byte Ptr)
+
+	Function bmx_taglib_mp4tag_itemlist:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_mp4itemlistmap_item:Object(handle:Byte Ptr, key:String)
+	Function bmx_taglib_mp4itemlistmap_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4itemlistmap_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4itemlistmap_reset(handle:Byte Ptr)
+	Function bmx_taglib_mp4itemlistmap_free(handle:Byte Ptr)
+	Function bmx_taglib_mp4itemlistmap_nextitem:Object(handle:Byte Ptr)
+
+	Function bmx_taglib_mp4coverartlist_coverart:Object(handle:Byte Ptr, index:Int)
+	Function bmx_taglib_mp4coverartlist_isempty:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4coverartlist_size:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4coverartlist_reset(handle:Byte Ptr)
+	Function bmx_taglib_mp4coverartlist_free(handle:Byte Ptr)
+	Function bmx_taglib_mp4coverartlist_nextitem:Object(handle:Byte Ptr)
+	
+	Function bmx_taglib_mp4coverart_format:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4coverart_data:Byte Ptr(handle:Byte Ptr)
+
+	Function bmx_taglib_mp4item_coverartlist:Byte Ptr(handle:Byte Ptr)
+	Function bmx_taglib_mp4item_isvalid:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4item_toint:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4item_tobool:Int(handle:Byte Ptr)
+	Function bmx_taglib_mp4item_tointpair(handle:Byte Ptr, _first:Int Ptr, _second:Int Ptr)
+	Function bmx_taglib_mp4item_tostrings:String[](handle:Byte Ptr)
+
 End Extern
 
 Rem
