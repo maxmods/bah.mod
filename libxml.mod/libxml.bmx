@@ -4443,10 +4443,10 @@ Type TxmlTextReader
 	about: The parser property can be one of the following values:
 	<table>
 	<tr><th>Constant</th></tr>
-	<tr><td>XXML_PARSER_LOADDTD</td></tr>
-	<tr><td>XXML_PARSER_DEFAULTATTRS</td></tr>
-	<tr><td>XXML_PARSER_VALIDATE</td></tr>
-	<tr><td>XXML_PARSER_SUBST_ENTITIES</td></tr>
+	<tr><td>XML_PARSER_LOADDTD</td></tr>
+	<tr><td>XML_PARSER_DEFAULTATTRS</td></tr>
+	<tr><td>XML_PARSER_VALIDATE</td></tr>
+	<tr><td>XML_PARSER_SUBST_ENTITIES</td></tr>
 	</table>
 	<p>Parameters:
 	<ul>
