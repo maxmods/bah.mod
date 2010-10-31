@@ -25,12 +25,14 @@ bbdoc: Libxml
 End Rem
 Module BaH.LibXml
 
-ModuleInfo "Version: 1.15"
+ModuleInfo "Version: 1.16"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: (libxml2) 1998-2009 Daniel Veillard"
 ModuleInfo "Copyright: (wrapper) 2006-2010 Bruce A Henderson"
 ModuleInfo "Modserver: BRL"
 
+ModuleInfo "History: 1.16"
+ModuleInfo "History: Updated to Libxml 2.7.7."
 ModuleInfo "History: 1.15"
 ModuleInfo "History: Updated to Libxml 2.7.6."
 ModuleInfo "History: Added missing xmlParserOptions."
