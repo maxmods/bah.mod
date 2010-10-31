@@ -70,7 +70,7 @@ void bmx_barcode_multiformatreader_free(zxing::MultiFormatReader * reader) {
 	delete reader;
 }
 
-MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height) {
+MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height, unsigned int hints) {
 	try {
 
 		zxing::Ref<MaxBitmapSource> source(new MaxBitmapSource(pixels, width, height));
@@ -80,7 +80,7 @@ MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * read
 
 		zxing::Ref<zxing::BinaryBitmap> image(new zxing::BinaryBitmap(binarizer));
 
-		zxing::Ref<zxing::Result> result(reader->decode(image));
+		zxing::Ref<zxing::Result> result(reader->decode(image, hints));
 		return new MaxResult(result);
 		
 	} catch (std::exception & e) {

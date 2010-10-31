@@ -66,7 +66,7 @@ Type TBCMultiFormatReader
 		Return this
 	End Function
 	
-	Method decode:TBCResult(pixmap:TPixmap)
+	Method decode:TBCResult(pixmap:TPixmap, hints:Int = DEFAULT_HINT)
 
 		Local pixels:Byte[] = New Byte[pixmap.width * pixmap.height]
 		Local p:Int = 0
@@ -100,7 +100,7 @@ Type TBCMultiFormatReader
 		Next
 		
 		Try
-			Return TBCResult._create(bmx_barcode_multiFormatReader_decode(readerPtr, pixels, pixmap.width, pixmap.height))
+			Return TBCResult._create(bmx_barcode_multiFormatReader_decode(readerPtr, pixels, pixmap.width, pixmap.height, hints))
 		Catch ex:String
 			Local res:TBCResult = New TBCResult
 			res.error = ex

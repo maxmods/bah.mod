@@ -28,7 +28,7 @@ extern "C" {
 
 	zxing::MultiFormatReader * bmx_barcode_multiFormatReader_create();
 	void bmx_barcode_multiformatreader_free(zxing::MultiFormatReader * reader);
-	MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height);
+	MaxResult * bmx_barcode_multiFormatReader_decode(zxing::MultiFormatReader * reader, unsigned char * pixels, int width, int height, unsigned int hints);
 
 	BBString * bmx_barcode_result_getText(MaxResult * result);
 	int bmx_barcode_result_getBarcodeFormat(MaxResult * result);
