@@ -5,8 +5,7 @@
  *  FinderPattern.h
  *  zxing
  *
- *  Created by Christian Brunschen on 13/05/2008.
- *  Copyright 2008 ZXing authors All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +35,12 @@ namespace zxing {
 			
 		public:
 			FinderPattern(float posX, float posY, float estimatedModuleSize);
-			float getX();
-			float getY();
-			int getCount();
-			float getEstimatedModuleSize();
+			float getX() const;
+			float getY() const;
+			int getCount() const;
+			float getEstimatedModuleSize() const;
 			void incrementCount();
-			bool aboutEquals(float moduleSize, float i, float j);
+			bool aboutEquals(float moduleSize, float i, float j) const;
 		};
 	}
 }

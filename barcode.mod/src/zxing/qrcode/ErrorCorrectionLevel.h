@@ -5,8 +5,7 @@
  *  ErrorCorrectionLevel.h
  *  zxing
  *
- *  Created by Christian Brunschen on 15/05/2008.
- *  Copyright 2008 ZXing authors All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +28,7 @@ namespace qrcode {
 class ErrorCorrectionLevel {
 private:
   int ordinal_;
-  ErrorCorrectionLevel(int ordinal);
+  ErrorCorrectionLevel(int inOrdinal);
   static ErrorCorrectionLevel *FOR_BITS[];
   static int N_LEVELS;
 public:

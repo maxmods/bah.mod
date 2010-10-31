@@ -36,19 +36,24 @@ MaxBitmapSource::~MaxBitmapSource()
 {
 }
 
-int MaxBitmapSource::getWidth() {
+int MaxBitmapSource::getWidth() const {
 	return width;
 }
 
-int MaxBitmapSource::getHeight() {
+int MaxBitmapSource::getHeight() const {
 	return height;
 }
 
-unsigned char MaxBitmapSource::getPixel(int x, int y) {
-	return pixels[y * width + x];
+unsigned char * MaxBitmapSource::getRow(int y, unsigned char* row) {
+  if (row == NULL) {
+    row = new unsigned char[width];
+  }
+  int offset = y * width;
+  memcpy(row, &pixels[offset], width);
+  return row;
 }
 
-unsigned char* MaxBitmapSource::copyMatrix() {
+unsigned char* MaxBitmapSource::getMatrix() {
 	unsigned char* matrix = new unsigned char[width*height];
 	memcpy(matrix, pixels, sizeof(unsigned char) * width * height);
 	return matrix;

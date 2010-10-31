@@ -1,8 +1,10 @@
+#ifndef __MULTI_FORMAT_READER_H__
+#define __MULTI_FORMAT_READER_H__
+
 /*
  *  MultiFormatBarcodeReader.h
  *  ZXing
  *
- *  Created by Lukasz Warchol on 10-01-26.
  *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,17 +24,26 @@
 #include <zxing/Reader.h>
 #include <zxing/common/BitArray.h>
 #include <zxing/Result.h>
+#include <zxing/DecodeHints.h>
 
 namespace zxing {
-	class MultiFormatReader : public Reader {
-		
-	private:
-		std::vector<Reader*>* readers;
-	public:
-		MultiFormatReader();
-		
-		Ref<Result> decode(Ref<BinaryBitmap> image);
-		
-		~MultiFormatReader();
-	};
+  class MultiFormatReader : public Reader {
+    
+  private:
+    Ref<Result> decodeInternal(Ref<BinaryBitmap> image);
+  
+    std::vector<Ref<Reader> > readers_;
+    DecodeHints hints_;
+
+  public:
+    MultiFormatReader();
+    
+    Ref<Result> decode(Ref<BinaryBitmap> image);
+    Ref<Result> decode(Ref<BinaryBitmap> image, DecodeHints hints);
+    Ref<Result> decodeWithState(Ref<BinaryBitmap> image);
+    void setHints(DecodeHints hints);
+    ~MultiFormatReader();
+  };
 }
+
+#endif

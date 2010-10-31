@@ -5,8 +5,7 @@
  *  PerspectiveTransform.h
  *  zxing
  *
- *  Created by Christian Brunschen on 12/05/2008.
- *  Copyright 2008 Google UK. All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +21,7 @@
  */
 
 #include <zxing/common/Counted.h>
-#include <valarray>
+#include <vector>
 
 namespace zxing {
 class PerspectiveTransform : public Counted {
@@ -41,9 +40,9 @@ public:
       float x3, float y3);
   Ref<PerspectiveTransform> buildAdjoint();
   Ref<PerspectiveTransform> times(Ref<PerspectiveTransform> other);
-  void transformPoints(std::valarray<float> &points);
+  void transformPoints(std::vector<float> &points);
 
-  friend std::ostream& operator<<(std::ostream& out, PerspectiveTransform &pt);
+  friend std::ostream& operator<<(std::ostream& out, const PerspectiveTransform &pt);
 };
 }
 

@@ -54,10 +54,10 @@ public:
 	MaxBitmapSource(unsigned char * p, int w, int h);
 	~MaxBitmapSource();
 
-	int getWidth();
-	int getHeight();
-	unsigned char getPixel(int x, int y);
-	unsigned char* copyMatrix();
+	int getWidth() const;
+	int getHeight() const;
+	unsigned char * getRow(int y, unsigned char* row);
+	unsigned char* getMatrix();
 
 private:
 	int width;

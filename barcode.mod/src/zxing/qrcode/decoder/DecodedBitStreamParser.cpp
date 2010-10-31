@@ -20,7 +20,9 @@
 
 #include <zxing/qrcode/decoder/DecodedBitStreamParser.h>
 #include <iostream>
+#ifndef NO_ICONV
 #include <iconv.h>
+#endif
 
 // Required for compatibility. TODO: test on Symbian
 #ifdef ZXING_ICONV_CONST
@@ -50,7 +52,8 @@ const char *DecodedBitStreamParser::UTF8 = "UTF-8";
 const char *DecodedBitStreamParser::SHIFT_JIS = "SHIFT_JIS";
 const char *DecodedBitStreamParser::EUC_JP = "EUC-JP";
 
-void DecodedBitStreamParser::append(ostream &ost, const unsigned char *bufIn, size_t nIn, const char *src) {
+void DecodedBitStreamParser::append(std::string &result, const unsigned char *bufIn, size_t nIn, const char *src) {
+#ifndef NO_ICONV
   if (nIn == 0) {
     return;
   }
@@ -76,12 +79,14 @@ void DecodedBitStreamParser::append(ostream &ost, const unsigned char *bufIn, si
 
   int nResult = maxOut - nTo;
   bufOut[nResult] = '\0';
-
-  ost << bufOut;
+  result.append((const char *)bufOut);
   delete[] bufOut;
+ #else
+  result.append((const char *)bufIn, nIn);
+ #endif
 }
 
-void DecodedBitStreamParser::decodeKanjiSegment(Ref<BitSource> bits, ostringstream &result, int count) {
+void DecodedBitStreamParser::decodeKanjiSegment(Ref<BitSource> bits, std::string &result, int count) {
   // Each character will require 2 bytes. Read the characters as 2-byte pairs
   // and decode as Shift_JIS afterwards
   size_t nBytes = 2 * count;
@@ -109,7 +114,7 @@ void DecodedBitStreamParser::decodeKanjiSegment(Ref<BitSource> bits, ostringstre
   delete[] buffer;
 }
 
-void DecodedBitStreamParser::decodeByteSegment(Ref<BitSource> bits, ostringstream &result, int count) {
+void DecodedBitStreamParser::decodeByteSegment(Ref<BitSource> bits, std::string &result, int count) {
   int nBytes = count;
   unsigned char* readBytes = new unsigned char[nBytes];
   if (count << 3 > bits->available()) {
@@ -131,7 +136,7 @@ void DecodedBitStreamParser::decodeByteSegment(Ref<BitSource> bits, ostringstrea
   delete[] readBytes;
 }
 
-void DecodedBitStreamParser::decodeNumericSegment(Ref<BitSource> bits, ostringstream &result, int count) {
+void DecodedBitStreamParser::decodeNumericSegment(Ref<BitSource> bits, std::string &result, int count) {
   int nBytes = count;
   unsigned char* bytes = new unsigned char[nBytes];
   int i = 0;
@@ -176,7 +181,7 @@ void DecodedBitStreamParser::decodeNumericSegment(Ref<BitSource> bits, ostringst
   delete[] bytes;
 }
 
-void DecodedBitStreamParser::decodeAlphanumericSegment(Ref<BitSource> bits, ostringstream &result, int count) {
+void DecodedBitStreamParser::decodeAlphanumericSegment(Ref<BitSource> bits, std::string &result, int count) {
   int nBytes = count;
   unsigned char* bytes = new unsigned char[nBytes];
   int i = 0;
@@ -196,6 +201,9 @@ void DecodedBitStreamParser::decodeAlphanumericSegment(Ref<BitSource> bits, ostr
 
 const char *
 DecodedBitStreamParser::guessEncoding(unsigned char *bytes, int length) {
+  const bool ASSUME_SHIFT_JIS = false;
+  char const* const PLATFORM_DEFAULT_ENCODING="UTF-8";
+
   // Does it start with the UTF-8 byte order mark? then guess it's UTF-8
   if (length > 3 && bytes[0] == (unsigned char)0xEF && bytes[1] == (unsigned char)0xBB && bytes[2]
       == (unsigned char)0xBF) {
@@ -209,17 +217,56 @@ DecodedBitStreamParser::guessEncoding(unsigned char *bytes, int length) {
   // If we see something else in that second byte, we'll make the risky guess
   // that it's UTF-8.
   bool canBeISO88591 = true;
+  bool canBeShiftJIS = true;
+  bool canBeUTF8 = true;
+  int utf8BytesLeft = 0;
+  int maybeDoubleByteCount = 0;
+  int maybeSingleByteKatakanaCount = 0;
+  bool sawLatin1Supplement = false;
+  bool sawUTF8Start = false;
   bool lastWasPossibleDoubleByteStart = false;
-  for (int i = 0; i < length; i++) {
+  for (int i = 0;
+       i < length && (canBeISO88591 || canBeShiftJIS || canBeUTF8);
+       i++) {
     int value = bytes[i] & 0xFF;
-    if (value >= 0x80 && value <= 0x9F && i < length - 1) {
-      canBeISO88591 = false;
-      // ISO-8859-1 shouldn't use this, but before we decide it is Shift_JIS,
-      // just double check that it is followed by a byte that's valid in
-      // the Shift_JIS encoding
+
+    // UTF-8 stuff
+    if (value >= 0x80 && value <= 0xBF) {
+      if (utf8BytesLeft > 0) {
+        utf8BytesLeft--;
+      }
+    } else {
+      if (utf8BytesLeft > 0) {
+        canBeUTF8 = false;
+      }
+      if (value >= 0xC0 && value <= 0xFD) {
+        sawUTF8Start = true;
+        int valueCopy = value;
+        while ((valueCopy & 0x40) != 0) {
+          utf8BytesLeft++;
+          valueCopy <<= 1;
+        }
+      }
+    }
+
+    // Shift_JIS stuff
+
+    if (value >= 0xA1 && value <= 0xDF) {
+      // count the number of characters that might be a Shift_JIS single-byte Katakana character
+      if (!lastWasPossibleDoubleByteStart) {
+        maybeSingleByteKatakanaCount++;
+      }
+    }
+    if (!lastWasPossibleDoubleByteStart &&
+        ((value >= 0xF0 && value <= 0xFF) || value == 0x80 || value == 0xA0)) {
+      canBeShiftJIS = false;
+    }
+    if (((value >= 0x81 && value <= 0x9F) || (value >= 0xE0 && value <= 0xEF))) {
+      // These start double-byte characters in Shift_JIS. Let's see if it's followed by a valid
+      // second byte.
       if (lastWasPossibleDoubleByteStart) {
         // If we just checked this and the last byte for being a valid double-byte
-        // char, don't check starting on this byte. If the this and the last byte
+        // char, don't check starting on this byte. If this and the last byte
         // formed a valid pair, then this shouldn't be checked to see if it starts
         // a double byte pair of course.
         lastWasPossibleDoubleByteStart = false;
@@ -227,28 +274,52 @@ DecodedBitStreamParser::guessEncoding(unsigned char *bytes, int length) {
         // ... otherwise do check to see if this plus the next byte form a valid
         // double byte pair encoding a character.
         lastWasPossibleDoubleByteStart = true;
-        int nextValue = bytes[i + 1] & 0xFF;
-        if ((value & 0x1) == 0) {
-          // if even, next value should be in [0x9F,0xFC]
-          // if not, we'll guess UTF-8
-          if (nextValue < 0x9F || nextValue > 0xFC) {
-            return UTF8;
-          }
+        if (i >= length - 1) {
+          canBeShiftJIS = false;
         } else {
-          // if odd, next value should be in [0x40,0x9E]
-          // if not, we'll guess UTF-8
-          if (nextValue < 0x40 || nextValue > 0x9E) {
-            return UTF8;
+          int nextValue = bytes[i + 1] & 0xFF;
+          if (nextValue < 0x40 || nextValue > 0xFC) {
+            canBeShiftJIS = false;
+          } else {
+            maybeDoubleByteCount++;
           }
+          // There is some conflicting information out there about which bytes can follow which in
+          // double-byte Shift_JIS characters. The rule above seems to be the one that matches practice.
         }
       }
+    } else {
+      lastWasPossibleDoubleByteStart = false;
     }
   }
-  return canBeISO88591 ? ISO88591 : SHIFT_JIS;
+  if (utf8BytesLeft > 0) {
+    canBeUTF8 = false;
+  }
+
+  // Easy -- if assuming Shift_JIS and no evidence it can't be, done
+  if (canBeShiftJIS && ASSUME_SHIFT_JIS) {
+    return SHIFT_JIS;
+  }
+  if (canBeUTF8 && sawUTF8Start) {
+    return UTF8;
+  }
+  // Distinguishing Shift_JIS and ISO-8859-1 can be a little tough. The crude heuristic is:
+  // - If we saw
+  //   - at least 3 bytes that starts a double-byte value (bytes that are rare in ISO-8859-1), or
+  //   - over 5% of bytes could be single-byte Katakana (also rare in ISO-8859-1),
+  // - and, saw no sequences that are invalid in Shift_JIS, then we conclude Shift_JIS
+  if (canBeShiftJIS && (maybeDoubleByteCount >= 3 || 20 * maybeSingleByteKatakanaCount > length)) {
+    return SHIFT_JIS;
+  }
+  // Otherwise, we default to ISO-8859-1 unless we know it can't be
+  if (!sawLatin1Supplement && canBeISO88591) {
+    return ISO88591;
+  }
+  // Otherwise, we take a wild guess with platform encoding
+  return PLATFORM_DEFAULT_ENCODING;
 }
 
 string DecodedBitStreamParser::decode(ArrayRef<unsigned char> bytes, Version *version) {
-  ostringstream result;
+  string result;
   Ref<BitSource> bits(new BitSource(bytes));
   Mode *mode = &Mode::TERMINATOR;
   do {
@@ -275,7 +346,7 @@ string DecodedBitStreamParser::decode(ArrayRef<unsigned char> bytes, Version *ve
       }
     }
   } while (mode != &Mode::TERMINATOR);
-  return result.str();
+  return result;
 }
 
 }

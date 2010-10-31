@@ -5,8 +5,7 @@
  *  Result.h
  *  zxing
  *
- *  Created by Christian Brunschen on 13/05/2008.
- *  Copyright 2008 ZXing authors All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +43,8 @@ public:
   ~Result();
   Ref<String> getText();
   ArrayRef<unsigned char> getRawBytes();
-  std::vector<Ref<ResultPoint> > getResultPoints();
-  BarcodeFormat getBarcodeFormat();
+  const std::vector<Ref<ResultPoint> >& getResultPoints() const;
+  BarcodeFormat getBarcodeFormat() const;
 
   friend std::ostream& operator<<(std::ostream &out, Result& result);
 };

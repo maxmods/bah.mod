@@ -5,8 +5,7 @@
  *  GridSampler.h
  *  zxing
  *
- *  Created by Christian Brunschen on 18/05/2008.
- *  Copyright 2008 ZXing authors All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +35,7 @@ public:
   Ref<BitMatrix> sampleGrid(Ref<BitMatrix> image, int dimension, float p1ToX, float p1ToY, float p2ToX, float p2ToY,
                             float p3ToX, float p3ToY, float p4ToX, float p4ToY, float p1FromX, float p1FromY, float p2FromX,
                             float p2FromY, float p3FromX, float p3FromY, float p4FromX, float p4FromY);
-  static void checkAndNudgePoints(Ref<BitMatrix> image, std::valarray<float> &points);
+  static void checkAndNudgePoints(Ref<BitMatrix> image, std::vector<float> &points);
   static GridSampler &getInstance();
 };
 }

@@ -5,8 +5,7 @@
  *  BitArray.h
  *  zxing
  *
- *  Created by Christian Brunschen on 09/05/2008.
- *  Copyright 2008 Google UK. All rights reserved.
+ *  Copyright 2010 ZXing authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +22,7 @@
 
 #include <zxing/common/Counted.h>
 #include <zxing/common/IllegalArgumentException.h>
-#include <valarray>
-#include <limits>
+#include <vector>
 #include <iostream>
 
 namespace zxing {
@@ -32,7 +30,7 @@ namespace zxing {
 class BitArray : public Counted {
 private:
   size_t size_;
-  std::valarray<unsigned int> bits_;
+  std::vector<unsigned int> bits_;
   static const unsigned int bitsPerWord_;
   static const unsigned int logBits_;
   static const unsigned int bitsMask_;
@@ -48,7 +46,7 @@ public:
   void setBulk(size_t i, unsigned int newBits);
   void clear();
   bool isRange(size_t start, size_t end, bool value);
-  std::valarray<unsigned int>& getBitArray();
+  std::vector<unsigned int>& getBitArray();
   void reverse();
 };
 

@@ -1,8 +1,9 @@
+#ifndef __UPCA_READER_H__
+#define __UPCA_READER_H__
 /*
  *  UPCAReader.h
  *  ZXing
  *
- *  Created by Lukasz Warchol on 10-01-25.
  *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,28 +19,31 @@
  * limitations under the License.
  */
 
-#include <zxing/oned/UPCEANReader.h>
-#include <zxing/Result.h>
+#include <zxing/oned/EAN13Reader.h>
+#include <zxing/DecodeHints.h>
 
 namespace zxing {
-	namespace oned {
-		class UPCAReader : public UPCEANReader {
-			
-		private:
-			UPCEANReader* ean13Reader;
-			static Ref<Result> maybeReturnResult(Ref<Result> result);														//throws ReaderException
-			
-		public:
-			UPCAReader();
-			
-			int decodeMiddle(Ref<BitArray> row, int startRange[], int startRangeLen, std::string& resultString);			//throws ReaderException
-			
-			Ref<Result> decodeRow(int rowNumber, Ref<BitArray> row);														//throws ReaderException
-			Ref<Result> decodeRow(int rowNumber, Ref<BitArray> row, int startGuardRange[]);									//throws ReaderException
-			Ref<Result> decode(Ref<BinaryBitmap> image);
-			
-			BarcodeFormat getBarcodeFormat();
-			~UPCAReader();
-		};
-	}
+  namespace oned {
+    class UPCAReader : public UPCEANReader {
+
+    private:
+      EAN13Reader ean13Reader;
+      static Ref<Result> maybeReturnResult(Ref<Result> result);
+
+    public:
+      UPCAReader();
+
+      int decodeMiddle(Ref<BitArray> row, int startGuardBegin, int startGuardEnd,
+          std::string& resultString);
+
+      Ref<Result> decodeRow(int rowNumber, Ref<BitArray> row);
+      Ref<Result> decodeRow(int rowNumber, Ref<BitArray> row, int startGuardBegin,
+          int startGuardEnd);
+      Ref<Result> decode(Ref<BinaryBitmap> image, DecodeHints hints);
+
+      BarcodeFormat getBarcodeFormat();
+    };
+  }
 }
+
+#endif

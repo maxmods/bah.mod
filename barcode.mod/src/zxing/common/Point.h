@@ -1,9 +1,11 @@
+#ifndef __POINT_H__
+#define __POINT_H__
+
 /*
  *  Point.h
  *  zxing
  *
- *  Created by Ralf Kistner on 7/12/2009.
- *  Copyright 2008 ZXing authors All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +20,6 @@
  * limitations under the License.
  */
 
-#ifndef ZXING_POINT_H_
-#define ZXING_POINT_H_
-
 namespace zxing {
 class PointI {
 public:
@@ -30,6 +29,7 @@ public:
 
 class Point {
 public:
+  Point() : x(0.0f), y(0.0f) {};
   Point(float x_, float y_) : x(x_), y(y_) {};
 
   float x;

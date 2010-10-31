@@ -25,8 +25,10 @@
 #include <zxing/qrcode/detector/AlignmentPatternFinder.h>
 #include <zxing/qrcode/Version.h>
 #include <zxing/common/GridSampler.h>
+#include <zxing/DecodeHints.h>
 #include <cmath>
 #include <sstream>
+#include <cstdlib>
 
 namespace zxing {
 namespace qrcode {
@@ -41,15 +43,19 @@ Ref<BitMatrix> Detector::getImage() {
    return image_;
 }
 
-Ref<DetectorResult> Detector::detect() {
-  FinderPatternFinder finder(image_);
-  Ref<FinderPatternInfo> info(finder.find());
+Ref<DetectorResult> Detector::detect(DecodeHints const& hints) {
+  callback_ = hints.getResultPointCallback();
+  FinderPatternFinder finder(image_, hints.getResultPointCallback());
+  Ref<FinderPatternInfo> info(finder.find(hints));
 
   Ref<FinderPattern> topLeft(info->getTopLeft());
   Ref<FinderPattern> topRight(info->getTopRight());
   Ref<FinderPattern> bottomLeft(info->getBottomLeft());
 
   float moduleSize = calculateModuleSize(topLeft, topRight, bottomLeft);
+  if (moduleSize < 1.0f) {
+    throw zxing::ReaderException("bad module size");
+  }
   int dimension = computeDimension(topLeft, topRight, bottomLeft, moduleSize);
   Version *provisionalVersion = Version::getProvisionalVersionForDimension(dimension);
   int modulesBetweenFPCenters = provisionalVersion->getDimensionForVersion() - 7;
@@ -133,8 +139,8 @@ Ref<BitMatrix> Detector::sampleGrid(Ref<BitMatrix> image, int dimension, Ref<Per
 
 int Detector::computeDimension(Ref<ResultPoint> topLeft, Ref<ResultPoint> topRight, Ref<ResultPoint> bottomLeft,
                                float moduleSize) {
-  int tltrCentersDimension = lround(FinderPatternFinder::distance(topLeft, topRight) / moduleSize);
-  int tlblCentersDimension = lround(FinderPatternFinder::distance(topLeft, bottomLeft) / moduleSize);
+  int tltrCentersDimension = int(FinderPatternFinder::distance(topLeft, topRight) / moduleSize + 0.5f);
+  int tlblCentersDimension = int(FinderPatternFinder::distance(topLeft, bottomLeft) / moduleSize + 0.5f);
   int dimension = ((tltrCentersDimension + tlblCentersDimension) >> 1) + 7;
   switch (dimension & 0x03) { // mod 4
   case 0:
@@ -175,26 +181,32 @@ float Detector::calculateModuleSizeOneWay(Ref<ResultPoint> pattern, Ref<ResultPo
 
 float Detector::sizeOfBlackWhiteBlackRunBothWays(int fromX, int fromY, int toX, int toY) {
 
-  float result = sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
+   float result = sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
 
+   // Now count other way -- don't run off image though of course
+   float scale = 1.0f;
+   int otherToX = fromX - (toX - fromX);
+   if (otherToX < 0) {
+     scale = (float) fromX / (float) (fromX - otherToX);
+     otherToX = 0;
+   } else if (otherToX > (int)image_->getWidth()) {
+     scale = (float) (image_->getWidth() - fromX) / (float) (otherToX - fromX);
+     otherToX = image_->getWidth();
+   }
+   int otherToY = (int) (fromY - (toY - fromY) * scale);
 
-  // Now count other way -- don't run off image though of course
-  int otherToX = fromX - (toX - fromX);
-  if (otherToX < 0) {
-    // "to" should the be the first value not included, so, the first value off
-    // the edge is -1
-    otherToX = -1;
-  } else if (otherToX >= (int)image_->getWidth()) {
-    otherToX = image_->getWidth();
-  }
-  int otherToY = fromY - (toY - fromY);
-  if (otherToY < 0) {
-    otherToY = -1;
-  } else if (otherToY >= (int)image_->getHeight()) {
-    otherToY = image_->getHeight();
-  }
-  result += sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
-  return result - 1.0f; // -1 because we counted the middle pixel twice
+   scale = 1.0f;
+   if (otherToY < 0) {
+     scale = (float) fromY / (float) (fromY - otherToY);
+     otherToY = 0;
+   } else if (otherToY > (int)image_->getHeight()) {
+     scale = (float) (image_->getHeight() - fromY) / (float) (otherToY - fromY);
+     otherToY = image_->getHeight();
+   }
+   otherToX = (int) (fromX + (otherToX - fromX) * scale);
+
+   result += sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
+   return result;
 }
 
 float Detector::sizeOfBlackWhiteBlackRun(int fromX, int fromY, int toX, int toY) {
@@ -233,6 +245,9 @@ float Detector::sizeOfBlackWhiteBlackRun(int fromX, int fromY, int toX, int toY)
     if (state == 3) { // Found black, white, black, and stumbled back onto white; done
       int diffX = x - fromX;
       int diffY = y - fromY;
+      if (xstep < 0) {
+          diffX++;
+      }
       return (float)sqrt((double)(diffX * diffX + diffY * diffY));
     }
     error += dy;
@@ -253,11 +268,17 @@ Ref<AlignmentPattern> Detector::findAlignmentInRegion(float overallEstModuleSize
   int allowance = (int)(allowanceFactor * overallEstModuleSize);
   int alignmentAreaLeftX = max(0, estAlignmentX - allowance);
   int alignmentAreaRightX = min((int)(image_->getWidth() - 1), estAlignmentX + allowance);
+  if (alignmentAreaRightX - alignmentAreaLeftX < overallEstModuleSize * 3) {
+      throw zxing::ReaderException("region too small to hold alignment pattern");
+  }
   int alignmentAreaTopY = max(0, estAlignmentY - allowance);
   int alignmentAreaBottomY = min((int)(image_->getHeight() - 1), estAlignmentY + allowance);
+  if (alignmentAreaBottomY - alignmentAreaTopY < overallEstModuleSize * 3) {
+      throw zxing::ReaderException("region too small to hold alignment pattern");
+  }
 
   AlignmentPatternFinder alignmentFinder(image_, alignmentAreaLeftX, alignmentAreaTopY, alignmentAreaRightX
-                                         - alignmentAreaLeftX, alignmentAreaBottomY - alignmentAreaTopY, overallEstModuleSize);
+                                         - alignmentAreaLeftX, alignmentAreaBottomY - alignmentAreaTopY, overallEstModuleSize, callback_);
   return alignmentFinder.find();
 }
 

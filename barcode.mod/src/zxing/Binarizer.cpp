@@ -29,19 +29,7 @@ namespace zxing {
 	Binarizer::~Binarizer() {
 	}
 	
-	Ref<BitArray> Binarizer::getBlackRow(int y, Ref<BitArray> row){
-		if (array_ == NULL)
-			array_ = estimateBlackRow(y, row);
-		return array_;
-	}
-	
-	Ref<BitMatrix> Binarizer::getBlackMatrix() {
-		if (matrix_ == NULL)
-			matrix_ = estimateBlackMatrix();
-		return matrix_;
-	}
-	
-	Ref<LuminanceSource> Binarizer::getSource() {
+	Ref<LuminanceSource> Binarizer::getLuminanceSource() const {
 		return source_;
 	}
 	

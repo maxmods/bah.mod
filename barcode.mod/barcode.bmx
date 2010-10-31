@@ -25,7 +25,7 @@ ModuleInfo "Copyright: ZXing - 2010 ZXing authors All rights reserved"
 ModuleInfo "Copyright: Wrapper - 2010 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (ZXing - SVN rev 1212)"
+ModuleInfo "History: Initial Release. (ZXing - SVN rev 1633)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ?win32

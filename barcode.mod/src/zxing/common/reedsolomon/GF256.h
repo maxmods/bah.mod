@@ -5,8 +5,7 @@
  *  GF256.h
  *  zxing
  *
- *  Created by Christian Brunschen on 05/05/2008.
- *  Copyright 2008 Google UK. All rights reserved.
+ *  Copyright 2010 ZXing authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +21,7 @@
  */
 
 #include <memory>
-#include <valarray>
+#include <vector>
 #include <zxing/common/Counted.h>
 
 namespace zxing {
@@ -42,8 +41,8 @@ class GF256 {
    * @author christian.brunschen@gmail.com (Christian Brunschen)
    */
 private:
-  std::valarray<int> exp_;
-  std::valarray<int> log_;
+  std::vector<int> exp_;
+  std::vector<int> log_;
   Ref<GF256Poly> zero_;
   Ref<GF256Poly> one_;
 
