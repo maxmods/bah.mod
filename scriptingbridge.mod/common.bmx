@@ -30,11 +30,15 @@ Import "glue.m"
 
 
 Extern
+	Function bmx_sb_nsautoreleasepool_new:Byte Ptr()
+	Function bmx_sb_nsautoreleasepool_free(handle:Byte Ptr)
+
 	Function bmx_sb_sbapplication_applicationWithBundleIdentifier:Byte Ptr(ident:String)
 	Function bmx_sb_sbapplication_applicationWithProcessIdentifier:Byte Ptr(pid:Int)
 	Function bmx_sb_sbapplication_applicationWithURL:Byte Ptr(url:String)
 	Function bmx_sb_sbapplication_isRunning:Int(handle:Byte Ptr)
 	Function bmx_sb_sbapplication_activate(handle:Byte Ptr)
+	Function bmx_sb_sbapplication_free(handle:Byte Ptr)
 
 	Function bmx_sb_sbobject_propertyAsString:String(handle:Byte Ptr, name:String)
 	Function bmx_sb_sbobject_propertyAsObject:Object(handle:Byte Ptr, name:String, predicate:String)

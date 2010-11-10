@@ -46,7 +46,6 @@ ModuleInfo "History: 1.00 Initial Release"
 Import "common.bmx"
 
 
-
 Rem
 bbdoc: Declares methods that can be invoked on any object in a scriptable application.
 about: It defines methods for getting elements and properties of an object, as well as setting a given object to a new value.
@@ -217,6 +216,13 @@ Type SBApplication Extends SBObject
 			Return this
 		End If
 	End Function
+	
+	Method Delete()
+		If objectPtr Then
+			bmx_sb_sbapplication_free(objectPtr)
+			objectPtr = Null
+		End If
+	End Method
 
 	Rem
 	bbdoc: Returns the shared instance representing the target application specified by its bundle identifier.
@@ -362,6 +368,32 @@ Type SBObjectEnum
 
 End Type
 
-
+Rem
+bbdoc: Auto Release pool
+about: Required when using scripting bridge inside a thread.
+Create a new NSAutoReleasePool at the beginning of the thread function, and Free() it at the end of the function.
+End Rem
+Type NSAutoReleasePool
+	Field poolPtr:Byte Ptr
+	
+	Method New()
+		poolPtr = bmx_sb_nsautoreleasepool_new()
+	End Method
+	
+	Rem
+	bbdoc: Releases the pool.
+	End Rem
+	Method Free()
+		If poolPtr Then
+			bmx_sb_nsautoreleasepool_free(poolPtr)
+			poolPtr = Null
+		End If
+	End Method
+	
+	Method Delete()
+		Free()
+	End Method
+	
+End Type
 
 ?

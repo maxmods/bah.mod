@@ -23,7 +23,6 @@
 #import <AppKit/AppKit.h>
 #import <ScriptingBridge/ScriptingBridge.h>
 
-
 #include <blitz.h>
 
 // a class to keep the array and enumerator in scope!
@@ -72,6 +71,7 @@ extern BBObject * _bah_scriptingbridge_SBElementArray__create(MaxArray * arr);
 		BBRETAIN( s[i] );
 		i++;
 	}
+
 	return p;
 }
 -(void)setPropertyArrayAsInt:(NSString *)name withValue:(int)value {
@@ -106,6 +106,20 @@ int bmx_sb_sbapplication_isRunning(SBApplication * app) {
 
 void bmx_sb_sbapplication_activate(SBApplication * app) {
 	[app activate];
+}
+
+void bmx_sb_sbapplication_free(SBApplication * app) {
+	[app release];
+}
+
+// --------------------------------------------------------
+
+NSAutoreleasePool * bmx_sb_nsautoreleasepool_new() {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; 
+}
+
+void bmx_sb_nsautoreleasepool_free(NSAutoreleasePool *pool) {
+	[pool drain];
 }
 
 // --------------------------------------------------------
@@ -301,5 +315,3 @@ BBString * bmx_sb_sbelementarray_description(MaxArray * array) {
 SBObject * bmx_sb_sbobjectenum_nextObject(MaxArray * array) {
 	return [array nextObject];
 }
-
-
