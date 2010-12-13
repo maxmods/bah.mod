@@ -1,3 +1,6 @@
+'
+' Parsing an Incbin'd file.
+'
 SuperStrict
 
 Framework BaH.Expat

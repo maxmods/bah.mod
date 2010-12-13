@@ -1,3 +1,6 @@
+'
+' Parsing a String.
+'
 SuperStrict
 
 Framework BaH.Expat
