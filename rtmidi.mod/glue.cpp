@@ -31,7 +31,7 @@ extern "C" {
 	void bmx_rtmidiin_openPort(RtMidiIn * m, int portNumber, BBString * portName);
 	void bmx_rtmidiin_closePort(RtMidiIn * m);
 	void bmx_rtmidiin_openVirtualPort(RtMidiIn * m, BBString * portName);
-	unsigned int bmx_rtmidiin_getPortCount(RtMidiIn * m);
+	int bmx_rtmidiin_getPortCount(RtMidiIn * m);
 	BBString * bmx_rtmidiin_getPortName(RtMidiIn * m, int portNumber);
 	void bmx_rtmidiin_free(RtMidiIn * m);
 	BBArray * bmx_rtmidiin_getMessage(RtMidiIn * m, double * timestamp);
@@ -42,7 +42,7 @@ extern "C" {
 	void bmx_rtmidiout_openPort(RtMidiOut * m, int portNumber, BBString * portName);
 	void bmx_rtmidiout_closePort(RtMidiOut * m);
 	void bmx_rtmidiout_openVirtualPort(RtMidiOut * m, BBString * portName);
-	unsigned int bmx_rtmidiout_getPortCount(RtMidiOut * m);
+	int bmx_rtmidiout_getPortCount(RtMidiOut * m);
 	BBString * bmx_rtmidiout_getPortName(RtMidiOut * m, int portNumber);
 	void bmx_rtmidiout_sendMessage(RtMidiOut * m, unsigned char * message, int length);
 	void bmx_rtmidiout_free(RtMidiOut * m);
@@ -100,12 +100,14 @@ void bmx_rtmidiin_openVirtualPort(RtMidiIn * m, BBString * portName) {
 	}
 }
 
-unsigned int bmx_rtmidiin_getPortCount(RtMidiIn * m) {
+int bmx_rtmidiin_getPortCount(RtMidiIn * m) {
+	unsigned int n = 0;
 	try {
-		return m->getPortCount();
+		n = m->getPortCount();
 	} catch (RtError &error) {
 		bmx_rtmidi_throw(error);
 	}
+	return n;
 }
 
 BBString * bmx_rtmidiin_getPortName(RtMidiIn * m, int portNumber) {
@@ -214,12 +216,14 @@ void bmx_rtmidiout_openVirtualPort(RtMidiOut * m, BBString * portName) {
 	}
 }
 
-unsigned int bmx_rtmidiout_getPortCount(RtMidiOut * m) {
+int bmx_rtmidiout_getPortCount(RtMidiOut * m) {
+	unsigned int n = 0;
 	try {
-		return m->getPortCount();
+		n = m->getPortCount();
 	} catch (RtError &error) {
 		bmx_rtmidi_throw(error);
 	}
+	return n;
 }
 
 BBString * bmx_rtmidiout_getPortName(RtMidiOut * m, int portNumber) {
