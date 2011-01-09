@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -48,18 +48,6 @@ _copy_transformed_pattern (cairo_pattern_t *pattern,
 			   const cairo_matrix_t  *ctm_inverse)
 {
     _cairo_pattern_init_static_copy (pattern, original);
-
-    /* apply device_transform first so that it is transformed by ctm_inverse */
-    if (original->type == CAIRO_PATTERN_TYPE_SURFACE) {
-	cairo_surface_pattern_t *surface_pattern;
-	cairo_surface_t *surface;
-
-        surface_pattern = (cairo_surface_pattern_t *) original;
-        surface = surface_pattern->surface;
-
-	if (_cairo_surface_has_device_transform (surface))
-	    _cairo_pattern_transform (pattern, &surface->device_transform);
-    }
 
     if (! _cairo_matrix_is_identity (ctm_inverse))
 	_cairo_pattern_transform (pattern, ctm_inverse);
@@ -147,7 +135,7 @@ _cairo_surface_offset_mask (cairo_surface_t		*target,
     }
 
     status = _cairo_surface_mask (target, op,
-				  &source_copy.base, &mask_copy.base,
+				  source, mask,
 				  dev_clip);
 
   FINISH:

@@ -75,6 +75,7 @@ Import "src/cairo-matrix.c"
 Import "src/cairo-misc.c"
 Import "src/cairo-mutex.c"
 Import "src/cairo-output-stream.c"
+Import "src/cairo-observer.c"
 Import "src/cairo-paginated-surface.c"
 Import "src/cairo-path-bounds.c"
 Import "src/cairo-path.c"
@@ -101,7 +102,7 @@ Import "src/cairo-surface-clipper.c"
 Import "src/cairo-surface-snapshot.c"
 Import "src/cairo-surface-wrapper.c"
 Import "src/cairo-system.c"
-Import "src/cairo-tee-surface.c"
+'Import "src/cairo-tee-surface.c"
 Import "src/cairo-tor-scan-converter.c"
 Import "src/cairo-toy-font-face.c"
 Import "src/cairo-traps.c"
@@ -129,9 +130,12 @@ Import "src/cairo-ps-surface.c"
 
 Import "src/cairo-ft-font.c"
 
-Import "src/cairo-gl-shaders.c"
-Import "src/cairo-gl-surface.c"
-Import "src/cairo-gl-glyphs.c"
+'Import "src/cairo-gl-shaders.c"
+'Import "src/cairo-gl-surface.c"
+'Import "src/cairo-gl-glyphs.c"
+'Import "src/cairo-gl-device.c"
+'Import "src/cairo-gl-composite.c"
+'Import "src/cairo-gl-gradient.c"
 
 Import "src/cairo-script-surface.c"
 
@@ -140,6 +144,6 @@ Import "src/cairo-svg-surface.c"
 Import "src/cairo-xml-surface.c"
 
 ?macos
-Import "glglue_macos.m"
+'Import "glglue_macos.m"
 ?
 

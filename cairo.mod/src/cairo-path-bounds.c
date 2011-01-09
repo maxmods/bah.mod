@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -131,6 +131,8 @@ _cairo_path_bounder_curve_to (void *closure,
     else
     {
 	/* All control points are within the current extents. */
+	bounder->current_point = *d;
+
 	return CAIRO_STATUS_SUCCESS;
     }
 }
@@ -331,7 +333,9 @@ _cairo_path_fixed_extents (const cairo_path_fixed_t *path,
 
     if (! path->has_curve_to) {
 	*box = path->extents;
-	return path->extents.p1.x < path->extents.p2.x;
+	/* empty extents should still have an origin and should not
+	 * be {0, 0, 0, 0} */
+	return path->extents.p1.x <= path->extents.p2.x;
     }
 
     _cairo_path_bounder_init (&bounder);

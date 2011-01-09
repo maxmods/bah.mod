@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -430,7 +430,7 @@ _vg_surface_clipper_intersect_clip_path (cairo_surface_clipper_t *clipper,
 
     status = _cairo_surface_fill (&mask->base,
 				  CAIRO_OPERATOR_SOURCE,
-				  _cairo_pattern_white.base,
+				  &_cairo_pattern_white.base,
 				  path, fill_rule, tolerance, antialias,
 				  NULL);
     if (status) {
@@ -982,12 +982,8 @@ _vg_setup_surface_source (cairo_vg_context_t *context,
 	return status;
     }
 
-    status = _cairo_surface_attach_snapshot (spat->surface, &clone->base,
-					     _vg_surface_remove_from_cache);
-    if (unlikely (status)) {
-	cairo_surface_destroy (&clone->base);
-	return status;
-    }
+    _cairo_surface_attach_snapshot (spat->surface, &clone->base,
+				    _vg_surface_remove_from_cache);
 
 DONE:
     cairo_surface_destroy (&context->source->base);

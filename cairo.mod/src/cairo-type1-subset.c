@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -69,8 +69,8 @@ typedef struct _cairo_type1_font_subset {
 	unsigned int font_id;
 	char *base_font;
 	unsigned int num_glyphs;
-	long x_min, y_min, x_max, y_max;
-	long ascent, descent;
+	double x_min, y_min, x_max, y_max;
+	double ascent, descent;
 
 	const char    *data;
 	unsigned long  header_size;
@@ -83,7 +83,7 @@ typedef struct _cairo_type1_font_subset {
 
     struct {
 	int subset_index;
-	int width;
+	double width;
 	char *name;
     } *glyphs;
 
@@ -146,12 +146,12 @@ _cairo_type1_font_subset_init (cairo_type1_font_subset_t  *font,
     memset (font, 0, sizeof (*font));
     font->base.unscaled_font = _cairo_unscaled_font_reference (unscaled_font);
     font->base.num_glyphs = face->num_glyphs;
-    font->base.x_min = face->bbox.xMin;
-    font->base.y_min = face->bbox.yMin;
-    font->base.x_max = face->bbox.xMax;
-    font->base.y_max = face->bbox.yMax;
-    font->base.ascent = face->ascender;
-    font->base.descent = face->descender;
+    font->base.x_min = face->bbox.xMin / (double)face->units_per_EM;
+    font->base.y_min = face->bbox.yMin / (double)face->units_per_EM;
+    font->base.x_max = face->bbox.xMax / (double)face->units_per_EM;
+    font->base.y_max = face->bbox.yMax / (double)face->units_per_EM;
+    font->base.ascent = face->ascender / (double)face->units_per_EM;
+    font->base.descent = face->descender / (double)face->units_per_EM;
 
     if (face->family_name) {
 	font->base.base_font = strdup (face->family_name);
@@ -566,7 +566,7 @@ cairo_type1_font_subset_get_glyph_names_and_widths (cairo_type1_font_subset_t *f
 	    return CAIRO_INT_STATUS_UNSUPPORTED;
 	}
 
-	font->glyphs[i].width = font->face->glyph->metrics.horiAdvance;
+	font->glyphs[i].width = font->face->glyph->metrics.horiAdvance / (double)font->face->units_per_EM;
 
 	error = FT_Get_Glyph_Name(font->face, i, buffer, sizeof buffer);
 	if (error != FT_Err_Ok) {
@@ -1346,7 +1346,7 @@ _cairo_type1_subset_init (cairo_type1_subset_t		*type1_subset,
     if (unlikely (type1_subset->base_font == NULL))
 	goto fail1;
 
-    type1_subset->widths = calloc (sizeof (int), font.num_glyphs);
+    type1_subset->widths = calloc (sizeof (double), font.num_glyphs);
     if (unlikely (type1_subset->widths == NULL))
 	goto fail2;
     for (i = 0; i < font.base.num_glyphs; i++) {

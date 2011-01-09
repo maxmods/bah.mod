@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -39,6 +39,8 @@
  */
 
 #include "cairoint.h"
+
+#include "cairo-tee.h"
 
 #include "cairo-error-private.h"
 #include "cairo-tee-surface-private.h"
@@ -468,6 +470,11 @@ cairo_tee_surface_add (cairo_surface_t *abstract_surface,
 
     if (unlikely (abstract_surface->status))
 	return;
+    if (unlikely (abstract_surface->finished)) {
+	status = _cairo_surface_set_error (abstract_surface,
+					   _cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
+	return;
+    }
 
     if (abstract_surface->backend != &cairo_tee_surface_backend) {
 	status = _cairo_surface_set_error (abstract_surface,
@@ -499,6 +506,14 @@ cairo_tee_surface_remove (cairo_surface_t *abstract_surface,
     cairo_surface_wrapper_t *slaves;
     int n, num_slaves;
     cairo_status_t status;
+
+    if (unlikely (abstract_surface->status))
+	return;
+    if (unlikely (abstract_surface->finished)) {
+	status = _cairo_surface_set_error (abstract_surface,
+					   _cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
+	return;
+    }
 
     if (abstract_surface->backend != &cairo_tee_surface_backend) {
 	status = _cairo_surface_set_error (abstract_surface,
@@ -540,6 +555,8 @@ cairo_tee_surface_index (cairo_surface_t *abstract_surface,
 
     if (unlikely (abstract_surface->status))
 	return _cairo_surface_create_in_error (abstract_surface->status);
+    if (unlikely (abstract_surface->finished))
+	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
 
     if (abstract_surface->backend != &cairo_tee_surface_backend)
 	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_SURFACE_TYPE_MISMATCH));

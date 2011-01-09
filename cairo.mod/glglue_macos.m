@@ -46,6 +46,17 @@ printf("_bmx_cairo_gl_destroy\n");fflush(stdout);
 
 }
 
+static void _bmx_cairo_gl_acquire(void *abstract_ctx) {
+//printf("_bmx_cairo_gl_acquire\n");fflush(stdout);
+
+}
+
+
+static void _bmx_cairo_gl_release(void *abstract_ctx) {
+//printf("_bmx_cairo_gl_release\n");fflush(stdout);
+
+}
+
 
 cairo_gl_context_t * bmx_cairo_glcontext_create(BBGLContext * context) {
 	cairo_maxgl_context_t * ctx;
@@ -57,6 +68,12 @@ cairo_gl_context_t * bmx_cairo_glcontext_create(BBGLContext * context) {
 		return _cairo_gl_context_create_in_error (CAIRO_STATUS_NO_MEMORY);
 	}
 	
+    //ctx->display = NULL;
+
+    ctx->base.acquire = _bmx_cairo_gl_acquire;
+    ctx->base.release = _bmx_cairo_gl_release;
+
+
 	ctx->context = context;
 	ctx->base.make_current = _bmx_cairo_gl_make_current;
 	ctx->base.swap_buffers = _bmx_cairo_gl_swap_buffers;

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -120,7 +120,7 @@ _cairo_type3_glyph_surface_emit_image (cairo_type3_glyph_surface_t *surface,
     cairo_status_t status;
 
     /* The only image type supported by Type 3 fonts are 1-bit masks */
-    image = _cairo_image_surface_coerce (image, CAIRO_FORMAT_A1);
+    image = _cairo_image_surface_coerce_to_format (image, CAIRO_FORMAT_A1);
     status = image->base.status;
     if (unlikely (status))
 	return status;
@@ -430,7 +430,6 @@ _cairo_type3_glyph_surface_analyze_glyph (void		     *abstract_surface,
     _cairo_scaled_font_freeze_cache (surface->scaled_font);
     status = _cairo_scaled_glyph_lookup (surface->scaled_font,
 					 glyph_index,
-					 CAIRO_SCALED_GLYPH_INFO_METRICS |
 					 CAIRO_SCALED_GLYPH_INFO_RECORDING_SURFACE,
 					 &scaled_glyph);
 
@@ -447,10 +446,7 @@ _cairo_type3_glyph_surface_analyze_glyph (void		     *abstract_surface,
     if (unlikely (status))
 	goto cleanup;
 
-    status2 = _cairo_pdf_operators_flush (&surface->pdf_operators);
-    if (status == CAIRO_STATUS_SUCCESS)
-	status = status2;
-
+    status = _cairo_pdf_operators_flush (&surface->pdf_operators);
     if (status == CAIRO_INT_STATUS_IMAGE_FALLBACK)
 	status = CAIRO_STATUS_SUCCESS;
 
@@ -507,7 +503,7 @@ _cairo_type3_glyph_surface_emit_glyph (void		     *abstract_surface,
     status2 = cairo_matrix_invert (&font_matrix_inverse);
 
     /* The invertability of font_matrix is tested in
-     * pdf_operators_show_glyphs before any glyphs are mappped to the
+     * pdf_operators_show_glyphs before any glyphs are mapped to the
      * subset. */
     assert (status2 == CAIRO_STATUS_SUCCESS);
 

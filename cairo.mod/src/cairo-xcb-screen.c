@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -116,7 +116,8 @@ _surface_cache_entry_destroy (void *closure)
 {
     struct pattern_cache_entry *entry = closure;
 
-    cairo_surface_finish (entry->picture);
+    if (entry->picture->snapshot_of != NULL)
+	_cairo_surface_detach_snapshot (entry->picture);
     cairo_surface_destroy (entry->picture);
     _cairo_freelist_free (&entry->screen->pattern_cache_entry_freelist, entry);
 }
@@ -246,6 +247,11 @@ _cairo_xcb_screen_get (xcb_connection_t *xcb_connection,
     screen->connection = connection;
     screen->xcb_screen = xcb_screen;
 
+    _cairo_freelist_init (&screen->pattern_cache_entry_freelist,
+			  sizeof (struct pattern_cache_entry));
+    cairo_list_init (&screen->link);
+    cairo_list_init (&screen->surfaces);
+
     if (connection->flags & CAIRO_XCB_HAS_DRI2)
 	screen->device = _xcb_drm_device (xcb_connection, xcb_screen);
     else
@@ -282,25 +288,21 @@ _cairo_xcb_screen_get (xcb_connection_t *xcb_connection,
     if (unlikely (status))
 	goto error_linear;
 
-    _cairo_freelist_init (&screen->pattern_cache_entry_freelist,
-			  sizeof (struct pattern_cache_entry));
-
     cairo_list_add (&screen->link, &connection->screens);
-    cairo_list_init (&screen->surfaces);
 
 unlock:
     CAIRO_MUTEX_UNLOCK (connection->screens_mutex);
 
     return screen;
 
-error_surface:
-    _cairo_cache_fini (&screen->surface_pattern_cache);
 error_linear:
     _cairo_cache_fini (&screen->linear_pattern_cache);
+error_surface:
+    _cairo_cache_fini (&screen->surface_pattern_cache);
 error_screen:
+    CAIRO_MUTEX_UNLOCK (connection->screens_mutex);
     cairo_device_destroy (screen->device);
     free (screen);
-    CAIRO_MUTEX_UNLOCK (connection->screens_mutex);
 
     return NULL;
 }
@@ -381,6 +383,7 @@ _cairo_xcb_screen_store_surface_picture (cairo_xcb_screen_t *screen,
     status = _cairo_cache_insert (&screen->surface_pattern_cache,
 				  &entry->key);
     if (unlikely (status)) {
+	cairo_surface_destroy (picture);
 	_cairo_freelist_free (&screen->pattern_cache_entry_freelist, entry);
 	return status;
     }

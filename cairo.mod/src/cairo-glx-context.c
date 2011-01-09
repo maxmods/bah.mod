@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -61,14 +61,38 @@ typedef struct _cairo_glx_surface {
 } cairo_glx_surface_t;
 
 static void
-_glx_make_current (void *abstract_ctx,
-	           cairo_gl_surface_t *abstract_surface)
+_glx_acquire (void *abstract_ctx)
+{
+    cairo_glx_context_t *ctx = abstract_ctx;
+    GLXDrawable current_drawable;
+
+    if (ctx->base.current_target == NULL ||
+        _cairo_gl_surface_is_texture (ctx->base.current_target)) {
+        current_drawable = ctx->dummy_window;
+    } else {
+        cairo_glx_surface_t *surface = (cairo_glx_surface_t *) ctx->base.current_target;
+        current_drawable = surface->win;
+    }
+
+    glXMakeCurrent (ctx->display, current_drawable, ctx->context);
+}
+
+static void
+_glx_make_current (void *abstract_ctx, cairo_gl_surface_t *abstract_surface)
 {
     cairo_glx_context_t *ctx = abstract_ctx;
     cairo_glx_surface_t *surface = (cairo_glx_surface_t *) abstract_surface;
 
     /* Set the window as the target of our context. */
     glXMakeCurrent (ctx->display, surface->win, ctx->context);
+}
+
+static void
+_glx_release (void *abstract_ctx)
+{
+    cairo_glx_context_t *ctx = abstract_ctx;
+
+    glXMakeCurrent (ctx->display, None, None);
 }
 
 static void
@@ -163,6 +187,8 @@ cairo_glx_device_create (Display *dpy, GLXContext gl_ctx)
     ctx->dummy_window = dummy;
     ctx->context = gl_ctx;
 
+    ctx->base.acquire = _glx_acquire;
+    ctx->base.release = _glx_release;
     ctx->base.make_current = _glx_make_current;
     ctx->base.swap_buffers = _glx_swap_buffers;
     ctx->base.destroy = _glx_destroy;
@@ -173,7 +199,39 @@ cairo_glx_device_create (Display *dpy, GLXContext gl_ctx)
 	return _cairo_gl_context_create_in_error (status);
     }
 
+    ctx->base.release (ctx);
+
     return &ctx->base.base;
+}
+
+Display *
+cairo_glx_device_get_display (cairo_device_t *device)
+{
+    cairo_glx_context_t *ctx;
+
+    if (device->backend->type != CAIRO_DEVICE_TYPE_GL) {
+	_cairo_error_throw (CAIRO_STATUS_DEVICE_TYPE_MISMATCH);
+	return NULL;
+    }
+
+    ctx = (cairo_glx_context_t *) device;
+
+    return ctx->display;
+}
+
+GLXContext
+cairo_glx_device_get_context (cairo_device_t *device)
+{
+    cairo_glx_context_t *ctx;
+
+    if (device->backend->type != CAIRO_DEVICE_TYPE_GL) {
+	_cairo_error_throw (CAIRO_STATUS_DEVICE_TYPE_MISMATCH);
+	return NULL;
+    }
+
+    ctx = (cairo_glx_context_t *) device;
+
+    return ctx->context;
 }
 
 cairo_surface_t *

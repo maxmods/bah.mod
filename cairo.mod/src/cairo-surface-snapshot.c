@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -46,10 +46,16 @@ static cairo_status_t
 _cairo_surface_snapshot_finish (void *abstract_surface)
 {
     cairo_surface_snapshot_t *surface = abstract_surface;
+    cairo_status_t status = CAIRO_STATUS_SUCCESS;
 
-    cairo_surface_destroy (surface->clone);
+    if (surface->clone != NULL) {
+	cairo_surface_finish (surface->clone);
+	status = surface->clone->status;
 
-    return CAIRO_STATUS_SUCCESS;
+	cairo_surface_destroy (surface->clone);
+    }
+
+    return status;
 }
 
 static cairo_status_t
@@ -119,6 +125,7 @@ _cairo_surface_snapshot_copy_on_write (cairo_surface_t *surface)
     status = _cairo_surface_acquire_source_image (snapshot->target, &image, &extra);
     if (unlikely (status)) {
 	snapshot->target = _cairo_surface_create_in_error (status);
+	status = _cairo_surface_set_error (surface, status);
 	return;
     }
 
@@ -129,21 +136,27 @@ _cairo_surface_snapshot_copy_on_write (cairo_surface_t *surface)
 							image->height,
 							0);
     if (likely (clone->base.status == CAIRO_STATUS_SUCCESS)) {
-	pixman_image_composite (PIXMAN_OP_SRC,
-				image->pixman_image, NULL, clone->pixman_image,
-				0, 0,
-				0, 0,
-				0, 0,
-				image->width, image->height);
+	if (clone->stride == image->stride) {
+	    memcpy (clone->data, image->data, image->stride * image->height);
+	} else {
+	    pixman_image_composite32 (PIXMAN_OP_SRC,
+				      image->pixman_image, NULL, clone->pixman_image,
+				      0, 0,
+				      0, 0,
+				      0, 0,
+				      image->width, image->height);
+	}
 	clone->base.is_clear = FALSE;
 
 	snapshot->clone = &clone->base;
     } else {
 	snapshot->clone = &clone->base;
+	status = _cairo_surface_set_error (surface, clone->base.status);
     }
 
     _cairo_surface_release_source_image (snapshot->target, image, extra);
     snapshot->target = snapshot->clone;
+    snapshot->base.type = snapshot->target->type;
 }
 
 /**
@@ -183,9 +196,28 @@ _cairo_surface_snapshot (cairo_surface_t *surface)
     if (surface->backend->snapshot != NULL) {
 	cairo_surface_t *snap;
 
-	snap = surface->backend->snapshot (surface);
+	snap = _cairo_surface_has_snapshot (surface, surface->backend);
 	if (snap != NULL)
+	    return cairo_surface_reference (snap);
+
+	snap = surface->backend->snapshot (surface);
+	if (snap != NULL) {
+	    if (unlikely (snap->status))
+		return snap;
+
+	    status = _cairo_surface_copy_mime_data (snap, surface);
+	    if (unlikely (status)) {
+		cairo_surface_destroy (snap);
+		return _cairo_surface_create_in_error (status);
+	    }
+
+	    snap->device_transform = surface->device_transform;
+	    snap->device_transform_inverse = surface->device_transform_inverse;
+
+	    _cairo_surface_attach_snapshot (surface, snap, NULL);
+
 	    return snap;
+	}
     }
 
     snapshot = (cairo_surface_snapshot_t *)
@@ -201,6 +233,7 @@ _cairo_surface_snapshot (cairo_surface_t *surface)
 			 &_cairo_surface_snapshot_backend,
 			 NULL, /* device */
 			 surface->content);
+    snapshot->base.type = surface->type;
 
     snapshot->target = surface;
     snapshot->clone = NULL;
@@ -214,13 +247,9 @@ _cairo_surface_snapshot (cairo_surface_t *surface)
     snapshot->base.device_transform = surface->device_transform;
     snapshot->base.device_transform_inverse = surface->device_transform_inverse;
 
-    status = _cairo_surface_attach_snapshot (surface,
-					     &snapshot->base,
-					     _cairo_surface_snapshot_copy_on_write);
-    if (unlikely (status)) {
-	cairo_surface_destroy (&snapshot->base);
-	return _cairo_surface_create_in_error (status);
-    }
+    _cairo_surface_attach_snapshot (surface,
+				    &snapshot->base,
+				    _cairo_surface_snapshot_copy_on_write);
 
     return &snapshot->base;
 }

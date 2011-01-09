@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -70,17 +70,6 @@ struct _cairo_xml_surface {
 slim_hidden_proto (cairo_xml_for_recording_surface);
 
 static const cairo_surface_backend_t _cairo_xml_surface_backend;
-
-static const char *
-_direction_to_string (cairo_bool_t backward)
-{
-    static const char *names[] = {
-	"FORWARD",
-	"BACKWARD"
-    };
-    assert (backward < ARRAY_LENGTH (names));
-    return names[backward];
-}
 
 static const char *
 _operator_to_string (cairo_operator_t op)
@@ -214,23 +203,27 @@ _content_to_string (cairo_content_t content)
 static const char *
 _format_to_string (cairo_format_t format)
 {
-    static const char *names[] = {
-	"ARGB32",	/* CAIRO_FORMAT_ARGB32 */
-	"RGB24",	/* CAIRO_FORMAT_RGB24 */
-	"A8",		/* CAIRO_FORMAT_A8 */
-	"A1"		/* CAIRO_FORMAT_A1 */
-    };
-    assert (format < ARRAY_LENGTH (names));
-    return names[format];
+    switch (format) {
+    case CAIRO_FORMAT_ARGB32:  return "ARGB32";
+    case CAIRO_FORMAT_RGB24:   return "RGB24";
+    case CAIRO_FORMAT_RGB16_565:   return "RGB16_565";
+    case CAIRO_FORMAT_A8:      return "A8";
+    case CAIRO_FORMAT_A1:      return "A1";
+    case CAIRO_FORMAT_INVALID: return "INVALID";
+    }
+    ASSERT_NOT_REACHED;
+    return "INVALID";
 }
 
-static void
+static cairo_status_t
 _device_flush (void *abstract_device)
 {
     cairo_xml_t *xml = abstract_device;
     cairo_status_t status;
 
     status = _cairo_output_stream_flush (xml->stream);
+
+    return status;
 }
 
 static void
@@ -435,7 +428,7 @@ _cairo_xml_emit_path (cairo_xml_t *xml,
 					_cairo_xml_close_path,
 					xml);
     assert (status == CAIRO_STATUS_SUCCESS);
-    _cairo_xml_printf_start (xml, "</path>");
+    _cairo_xml_printf_end (xml, "</path>");
 }
 
 static void

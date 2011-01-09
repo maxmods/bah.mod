@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -43,7 +43,9 @@
 #include "cairo-xcb.h"
 #include "cairo-xcb-private.h"
 
+#if CAIRO_HAS_XCB_DRM_FUNCTIONS
 #include <xcb/dri2.h>
+#endif
 
 #define AllPlanes ((unsigned) -1)
 #define CAIRO_ASSUME_PIXMAP 20
@@ -58,6 +60,19 @@ slim_hidden_proto (cairo_xcb_surface_create_with_xrender_format);
 #if CAIRO_HAS_DRM_SURFACE && CAIRO_HAS_XCB_DRM_FUNCTIONS
 #include "drm/cairo-drm-private.h"
 #endif
+
+/**
+ * SECTION:cairo-xcb
+ * @Title: XCB Surfaces
+ * @Short_Description: X Window System rendering using the XCB library
+ * @See_Also: #cairo_surface_t
+ *
+ * The XCB surface is used to render cairo graphics to X Window System
+ * windows and pixmaps using the XCB library.
+ *
+ * Note that the XCB surface automatically takes advantage of the X render
+ * extension if it is available.
+ */
 
 #if CAIRO_HAS_XCB_SHM_FUNCTIONS
 static cairo_status_t
@@ -255,7 +270,10 @@ _cairo_xcb_surface_finish (void *abstract_surface)
     cairo_xcb_surface_t *surface = abstract_surface;
     cairo_status_t status;
 
-    assert (surface->fallback == NULL);
+    if (surface->fallback != NULL) {
+	cairo_surface_finish (surface->fallback);
+	cairo_surface_destroy (surface->fallback);
+    }
 
     cairo_list_del (&surface->link);
 
@@ -393,6 +411,17 @@ _get_image (cairo_xcb_surface_t		 *surface,
     xcb_get_image_reply_t *reply;
     cairo_status_t status;
 
+    if (surface->base.is_clear || surface->deferred_clear) {
+	image = (cairo_image_surface_t *)
+	    _cairo_image_surface_create_with_pixman_format (NULL,
+							    surface->pixman_format,
+							    surface->width,
+							    surface->height,
+							    0);
+	*image_out = image;
+	return image->base.status;
+    }
+
     connection = surface->connection;
 
     status = _cairo_xcb_connection_acquire (connection);
@@ -407,18 +436,6 @@ _get_image (cairo_xcb_surface_t		 *surface,
 	status = _get_shm_image (surface, image_out);
 	if (status != CAIRO_INT_STATUS_UNSUPPORTED)
 	    goto FAIL;
-    }
-
-    if (surface->base.is_clear) {
-	image = (cairo_image_surface_t *)
-	    _cairo_image_surface_create_with_pixman_format (NULL,
-							    surface->pixman_format,
-							    surface->width,
-							    surface->height,
-							    0);
-	status = image->base.status;
-	*image_out = image;
-	goto FAIL;
     }
 
     if (surface->use_pixmap == 0) {
@@ -548,11 +565,7 @@ _cairo_xcb_surface_acquire_source_image (void *abstract_surface,
     if (unlikely (status))
 	return status;
 
-    status = _cairo_surface_attach_snapshot (&surface->base, &image->base, NULL);
-    if (unlikely (status)) {
-	cairo_surface_destroy (&image->base);
-	return status;
-    }
+    _cairo_surface_attach_snapshot (&surface->base, &image->base, NULL);
 
 DONE:
     *image_out = image;
@@ -567,12 +580,10 @@ _cairo_xcb_surface_release_source_image (void *abstract_surface,
 {
     cairo_xcb_surface_t *surface = abstract_surface;
 
-    if (surface->drm != NULL && ! surface->marked_dirty) {
-	return _cairo_surface_release_source_image (surface->drm,
-						    image, image_extra);
-    }
-
-    cairo_surface_destroy (&image->base);
+    if (surface->drm != NULL && !surface->marked_dirty)
+	_cairo_surface_release_source_image (surface->drm, image, image_extra);
+    else
+	cairo_surface_destroy (&image->base);
 }
 
 static cairo_bool_t
@@ -681,25 +692,32 @@ static cairo_status_t
 _cairo_xcb_surface_flush (void *abstract_surface)
 {
     cairo_xcb_surface_t *surface = abstract_surface;
-    cairo_status_t status = CAIRO_STATUS_SUCCESS;
+    cairo_status_t status;
 
     if (surface->drm != NULL && ! surface->marked_dirty)
 	return surface->drm->backend->flush (surface->drm);
 
-    if (likely (surface->fallback == NULL))
-	return CAIRO_STATUS_SUCCESS;
+    if (likely (surface->fallback == NULL)) {
+	status = CAIRO_STATUS_SUCCESS;
+	if (! surface->base.finished && surface->deferred_clear)
+	    status = _cairo_xcb_surface_clear (surface);
 
-    if (! surface->base.finished) {
-	status = _put_image (surface,
-			     (cairo_image_surface_t *) surface->fallback);
+	return status;
+    }
 
-	if (status == CAIRO_STATUS_SUCCESS)
-	    status = cairo_surface_status (surface->fallback);
+    status = surface->base.status;
+    if (status == CAIRO_STATUS_SUCCESS && ! surface->base.finished) {
+	status = cairo_surface_status (surface->fallback);
 
 	if (status == CAIRO_STATUS_SUCCESS) {
-	    status = _cairo_surface_attach_snapshot (&surface->base,
-						     surface->fallback,
-						     cairo_surface_finish);
+	    status = _put_image (surface,
+				 (cairo_image_surface_t *) surface->fallback);
+	}
+
+	if (status == CAIRO_STATUS_SUCCESS) {
+	    _cairo_surface_attach_snapshot (&surface->base,
+					    surface->fallback,
+					    cairo_surface_finish);
 	}
     }
 
@@ -1074,6 +1092,8 @@ _cairo_xcb_surface_create_internal (cairo_xcb_screen_t		*screen,
     surface->owns_pixmap = owns_pixmap;
     surface->use_pixmap = 0;
 
+    surface->deferred_clear = FALSE;
+
     surface->width  = width;
     surface->height = height;
     surface->depth  = PIXMAN_FORMAT_DEPTH (pixman_format);
@@ -1315,15 +1335,24 @@ cairo_xcb_surface_set_size (cairo_surface_t *abstract_surface,
     cairo_xcb_surface_t *surface;
     cairo_status_t status_ignored;
 
+    if (unlikely (abstract_surface->status))
+	return;
+    if (unlikely (abstract_surface->finished)) {
+	status_ignored = _cairo_surface_set_error (abstract_surface,
+						   _cairo_error (CAIRO_STATUS_SURFACE_FINISHED));
+	return;
+    }
+
+
     if (abstract_surface->type != CAIRO_SURFACE_TYPE_XCB) {
 	status_ignored = _cairo_surface_set_error (abstract_surface,
-						   CAIRO_STATUS_SURFACE_TYPE_MISMATCH);
+						   _cairo_error (CAIRO_STATUS_SURFACE_TYPE_MISMATCH));
 	return;
     }
 
     if (width > XLIB_COORD_MAX || height > XLIB_COORD_MAX) {
 	status_ignored = _cairo_surface_set_error (abstract_surface,
-						   CAIRO_STATUS_INVALID_SIZE);
+						   _cairo_error (CAIRO_STATUS_INVALID_SIZE));
 	return;
     }
 

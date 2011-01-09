@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -50,16 +50,22 @@ typedef struct {
     int top;
 } freed_pool_t;
 
-static inline void *
+static cairo_always_inline void *
 _atomic_fetch (void **slot)
 {
-    return _cairo_atomic_ptr_cmpxchg (slot, *slot, NULL);
+    void *ptr;
+
+    do {
+        ptr = _cairo_atomic_ptr_get (slot);
+    } while (! _cairo_atomic_ptr_cmpxchg (slot, ptr, NULL));
+
+    return ptr;
 }
 
-static inline cairo_bool_t
+static cairo_always_inline cairo_bool_t
 _atomic_store (void **slot, void *ptr)
 {
-    return _cairo_atomic_ptr_cmpxchg (slot, NULL, ptr) == NULL;
+    return _cairo_atomic_ptr_cmpxchg (slot, NULL, ptr);
 }
 
 cairo_private void *
@@ -94,7 +100,9 @@ _freed_pool_put (freed_pool_t *pool, void *ptr)
     int i;
 
     i = pool->top;
-    if (likely (_atomic_store (&pool->pool[i], ptr))) {
+    if (likely (i < ARRAY_LENGTH (pool->pool) &&
+		_atomic_store (&pool->pool[i], ptr)))
+    {
 	pool->top = i + 1;
 	return;
     }

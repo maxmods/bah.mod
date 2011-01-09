@@ -2,6 +2,7 @@
  *
  * Copyright © 2009 Chris Wilson
  * Copyright © 2010 Intel Corporation
+ * Copyright © 2010 Red Hat, Inc
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -13,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -29,6 +30,10 @@
  * The Original Code is the cairo graphics library.
  *
  * The Initial Developer of the Original Code is Chris Wilson.
+ *
+ * Contributors:
+ *      Benjamin Otte <otte@gnome.org>
+ *	Chris Wilson <chris@chris-wilson.co.uk>
  */
 
 #include "cairoint.h"
@@ -55,36 +60,11 @@ _cairo_gl_glyph_cache_add_glyph (cairo_gl_context_t *ctx,
 				 cairo_scaled_glyph_t  *scaled_glyph)
 {
     cairo_image_surface_t *glyph_surface = scaled_glyph->surface;
+    cairo_gl_surface_t *cache_surface;
     cairo_gl_glyph_private_t *glyph_private;
     cairo_rtree_node_t *node = NULL;
-    cairo_image_surface_t *clone = NULL;
     cairo_status_t status;
     int width, height;
-    GLenum internal_format, format, type;
-    cairo_bool_t has_alpha;
-
-    if (! _cairo_gl_get_image_format_and_type (glyph_surface->pixman_format,
-					       &internal_format,
-					       &format,
-					       &type,
-					       &has_alpha))
-    {
-	cairo_bool_t is_supported;
-
-	clone = _cairo_image_surface_coerce (glyph_surface,
-		                             _cairo_format_from_content (glyph_surface->base.content));
-	if (unlikely (clone->base.status))
-	    return clone->base.status;
-
-	is_supported =
-	    _cairo_gl_get_image_format_and_type (clone->pixman_format,
-					         &internal_format,
-						 &format,
-						 &type,
-						 &has_alpha);
-	assert (is_supported);
-	glyph_surface = clone;
-    }
 
     width = glyph_surface->width;
     if (width < GLYPH_CACHE_MIN_SIZE)
@@ -107,16 +87,17 @@ _cairo_gl_glyph_cache_add_glyph (cairo_gl_context_t *ctx,
     if (status)
 	return status;
 
-    glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei (GL_UNPACK_ROW_LENGTH,
-		   glyph_surface->stride /
-		   (PIXMAN_FORMAT_BPP (glyph_surface->pixman_format) / 8));
-    glTexSubImage2D (ctx->tex_target, 0,
-		     node->x, node->y,
-		     glyph_surface->width, glyph_surface->height,
-		     format, type,
-		     glyph_surface->data);
-    glPixelStorei (GL_UNPACK_ROW_LENGTH, 0);
+    cache_surface = (cairo_gl_surface_t *) cache->pattern.surface;
+
+    /* XXX: Make sure we use the mask texture. This should work automagically somehow */
+    glActiveTexture (GL_TEXTURE1);
+    status = _cairo_gl_surface_draw_image (cache_surface,
+                                           glyph_surface,
+                                           0, 0,
+                                           glyph_surface->width, glyph_surface->height,
+                                           node->x, node->y);
+    if (unlikely (status))
+	return status;
 
     scaled_glyph->surface_private = node;
     node->owner = &scaled_glyph->surface_private;
@@ -129,14 +110,12 @@ _cairo_gl_glyph_cache_add_glyph (cairo_gl_context_t *ctx,
     glyph_private->p1.y = node->y;
     glyph_private->p2.x = node->x + glyph_surface->width;
     glyph_private->p2.y = node->y + glyph_surface->height;
-    if (ctx->tex_target != GL_TEXTURE_RECTANGLE_EXT) {
-	glyph_private->p1.x /= cache->width;
-	glyph_private->p1.y /= cache->height;
-	glyph_private->p2.x /= cache->width;
-	glyph_private->p2.y /= cache->height;
+    if (! _cairo_gl_device_requires_power_of_two_textures (&ctx->base)) {
+	glyph_private->p1.x /= cache_surface->width;
+	glyph_private->p1.y /= cache_surface->height;
+	glyph_private->p2.x /= cache_surface->width;
+	glyph_private->p2.y /= cache_surface->height;
     }
-
-    cairo_surface_destroy (&clone->base);
 
     return CAIRO_STATUS_SUCCESS;
 }
@@ -148,53 +127,50 @@ _cairo_gl_glyph_cache_lock (cairo_gl_glyph_cache_t *cache,
     return _cairo_rtree_pin (&cache->rtree, scaled_glyph->surface_private);
 }
 
-static cairo_gl_glyph_cache_t *
+static cairo_status_t
 cairo_gl_context_get_glyph_cache (cairo_gl_context_t *ctx,
-				  cairo_format_t format)
+				  cairo_format_t format,
+                                  cairo_gl_glyph_cache_t **cache_out)
 {
     cairo_gl_glyph_cache_t *cache;
+    cairo_content_t content;
 
     switch (format) {
+    case CAIRO_FORMAT_RGB16_565:
     case CAIRO_FORMAT_ARGB32:
     case CAIRO_FORMAT_RGB24:
 	cache = &ctx->glyph_cache[0];
-	format = CAIRO_FORMAT_ARGB32;
+        content = CAIRO_CONTENT_COLOR_ALPHA;
 	break;
     case CAIRO_FORMAT_A8:
     case CAIRO_FORMAT_A1:
 	cache = &ctx->glyph_cache[1];
-	format = CAIRO_FORMAT_A8;
+        content = CAIRO_CONTENT_ALPHA;
 	break;
+    case CAIRO_FORMAT_INVALID:
+	ASSERT_NOT_REACHED;
+	return _cairo_error (CAIRO_STATUS_INVALID_FORMAT);
     }
 
-    if (unlikely (cache->tex == 0)) {
-	GLenum internal_format;
-
-	cache->width = GLYPH_CACHE_WIDTH;
-	cache->height = GLYPH_CACHE_HEIGHT;
-
-	switch (format) {
-	    case CAIRO_FORMAT_A1:
-	    case CAIRO_FORMAT_RGB24:
-		ASSERT_NOT_REACHED;
-	    case CAIRO_FORMAT_ARGB32:
-		internal_format = GL_RGBA;
-		break;
-	    case CAIRO_FORMAT_A8:
-		internal_format = GL_ALPHA;
-		break;
-	}
-
-	glGenTextures (1, &cache->tex);
-	glBindTexture (ctx->tex_target, cache->tex);
-	glTexParameteri (ctx->tex_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri (ctx->tex_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D (ctx->tex_target, 0, internal_format,
-		      GLYPH_CACHE_WIDTH, GLYPH_CACHE_HEIGHT, 0,
-		      internal_format, GL_FLOAT, NULL);
+    if (unlikely (cache->pattern.surface == NULL)) {
+        cairo_surface_t *surface;
+        surface = cairo_gl_surface_create (&ctx->base,
+                                           content,
+                                           GLYPH_CACHE_WIDTH,
+                                           GLYPH_CACHE_HEIGHT);
+        if (unlikely (surface->status)) {
+            cairo_status_t status = surface->status;
+            cairo_surface_destroy (surface);
+            return status;
+        }
+        _cairo_surface_release_device_reference (surface);
+        _cairo_pattern_init_for_surface (&cache->pattern, surface);
+        cairo_surface_destroy (surface);
+        cache->pattern.base.has_component_alpha = (content == CAIRO_CONTENT_COLOR_ALPHA);
     }
 
-    return cache;
+    *cache_out = cache;
+    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
@@ -221,6 +197,12 @@ _cairo_gl_surface_owns_font (cairo_gl_surface_t *surface,
 }
 
 void
+_cairo_gl_surface_scaled_font_fini (cairo_scaled_font_t  *scaled_font)
+{
+    cairo_list_del (&scaled_font->link);
+}
+
+void
 _cairo_gl_surface_scaled_glyph_fini (cairo_scaled_glyph_t *scaled_glyph,
 				     cairo_scaled_font_t  *scaled_font)
 {
@@ -237,211 +219,6 @@ _cairo_gl_surface_scaled_glyph_fini (cairo_scaled_glyph_t *scaled_glyph,
     }
 }
 
-typedef struct _cairo_gl_glyphs_setup
-{
-    unsigned int vbo_size; /* units of floats */
-    unsigned int vb_offset; /* units of floats */
-    unsigned int vertex_size; /* units of floats */
-    unsigned int num_prims;
-    float *vb;
-    cairo_gl_composite_setup_t *composite;
-    cairo_region_t *clip;
-    cairo_gl_surface_t *dst;
-    cairo_operator_t op;
-    cairo_bool_t component_alpha;
-    cairo_gl_shader_in_t in;
-} cairo_gl_glyphs_setup_t;
-
-static void
-_cairo_gl_glyphs_set_shader_fixed (cairo_gl_context_t *ctx,
-				   cairo_gl_glyphs_setup_t *setup,
-				   cairo_gl_shader_in_t in)
-{
-    if (setup->in == in)
-	return;
-
-    setup->in = in;
-
-    if (in != CAIRO_GL_SHADER_IN_CA_SOURCE_ALPHA)
-	_cairo_gl_set_src_operand (ctx, setup->composite);
-    else
-	_cairo_gl_set_src_alpha_operand (ctx, setup->composite);
-
-    /* Set up the IN operator for source IN mask.
-     *
-     * IN (normal, any op): dst.argb = src.argb * mask.aaaa
-     * IN (component, ADD): dst.argb = src.argb * mask.argb
-     *
-     * The mask channel selection for component alpha ADD will be updated in
-     * the loop over glyphs below.
-     */
-    glActiveTexture (GL_TEXTURE1);
-    glEnable (ctx->tex_target);
-    glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-    glTexEnvi (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-    glTexEnvi (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-
-    glTexEnvi (GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE1);
-    glTexEnvi (GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE1);
-    if (in == CAIRO_GL_SHADER_IN_NORMAL)
-	glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_ALPHA);
-    else
-	glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-    glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-
-    glTexEnvi (GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PREVIOUS);
-    glTexEnvi (GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_PREVIOUS);
-    glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-    glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
-}
-
-static void
-_cairo_gl_glyphs_set_shader (cairo_gl_context_t *ctx,
-			     cairo_gl_glyphs_setup_t *setup,
-			     cairo_gl_shader_in_t in)
-{
-    if (setup->in == in)
-	return;
-
-    if (ctx->using_glsl) {
-	cairo_status_t status;
-
-	status = _cairo_gl_get_program (ctx,
-					setup->composite->src.source,
-					CAIRO_GL_SHADER_MASK_TEXTURE,
-					in,
-					&setup->composite->shader);
-	if (!_cairo_status_is_error (status)) {
-	    setup->in = in;
-	    _cairo_gl_use_program (setup->composite->shader);
-	    _cairo_gl_set_src_operand (ctx, setup->composite);
-	    return;
-	}
-    }
-
-    _cairo_gl_glyphs_set_shader_fixed (ctx, setup, in);
-}
-
-static void
-_cairo_gl_glyphs_draw (cairo_gl_context_t *ctx,
-		       cairo_gl_glyphs_setup_t *setup)
-{
-    if (!setup->component_alpha || setup->op != CAIRO_OPERATOR_OVER) {
-	glDrawArrays (GL_QUADS, 0, 4 * setup->num_prims);
-    } else {
-	_cairo_gl_set_operator (setup->dst, CAIRO_OPERATOR_DEST_OUT, TRUE);
-	_cairo_gl_glyphs_set_shader(ctx, setup,
-				    CAIRO_GL_SHADER_IN_CA_SOURCE_ALPHA);
-	glDrawArrays (GL_QUADS, 0, 4 * setup->num_prims);
-
-	_cairo_gl_set_operator (setup->dst, CAIRO_OPERATOR_ADD, TRUE);
-	_cairo_gl_glyphs_set_shader(ctx, setup,
-				    CAIRO_GL_SHADER_IN_CA_SOURCE);
-	glDrawArrays (GL_QUADS, 0, 4 * setup->num_prims);
-    }
-}
-
-static void
-_cairo_gl_flush_glyphs (cairo_gl_context_t *ctx,
-			cairo_gl_glyphs_setup_t *setup)
-{
-    int i;
-
-    if (setup->vb == NULL)
-	return;
-
-    glUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
-    setup->vb = NULL;
-
-    if (setup->num_prims == 0)
-	return;
-
-    if (!setup->component_alpha) {
-	_cairo_gl_set_operator (setup->dst, setup->op, FALSE);
-	_cairo_gl_glyphs_set_shader(ctx, setup, CAIRO_GL_SHADER_IN_NORMAL);
-    } else if (setup->op == CAIRO_OPERATOR_ADD) {
-	_cairo_gl_set_operator (setup->dst, setup->op, FALSE);
-	_cairo_gl_glyphs_set_shader(ctx, setup, CAIRO_GL_SHADER_IN_CA_SOURCE);
-    }
-
-    if (setup->clip) {
-	int num_rectangles = cairo_region_num_rectangles (setup->clip);
-
-	glEnable (GL_SCISSOR_TEST);
-	for (i = 0; i < num_rectangles; i++) {
-	    cairo_rectangle_int_t rect;
-
-	    cairo_region_get_rectangle (setup->clip, i, &rect);
-
-	    glScissor (rect.x,
-		       _cairo_gl_y_flip (setup->dst, rect.y),
-		       rect.x + rect.width,
-		       _cairo_gl_y_flip (setup->dst,
-					 rect.y + rect.height));
-	    _cairo_gl_glyphs_draw (ctx, setup);
-	}
-	glDisable (GL_SCISSOR_TEST);
-    } else {
-	_cairo_gl_glyphs_draw (ctx, setup);
-    }
-    setup->num_prims = 0;
-}
-
-static void
-_cairo_gl_glyphs_emit_vertex (cairo_gl_glyphs_setup_t *setup,
-			      int x, int y, float glyph_x, float glyph_y)
-{
-    int i = 0;
-    float *vb = &setup->vb[setup->vb_offset];
-    cairo_surface_attributes_t *src_attributes;
-
-    src_attributes = &setup->composite->src.operand.texture.attributes;
-
-    vb[i++] = x;
-    vb[i++] = y;
-
-    vb[i++] = glyph_x;
-    vb[i++] = glyph_y;
-
-    if (setup->composite->src.type == OPERAND_TEXTURE) {
-	double s = x;
-	double t = y;
-	cairo_matrix_transform_point (&src_attributes->matrix, &s, &t);
-	vb[i++] = s;
-	vb[i++] = t;
-    }
-
-    setup->vb_offset += setup->vertex_size;
-}
-
-
-static void
-_cairo_gl_emit_glyph_rectangle (cairo_gl_context_t *ctx,
-				cairo_gl_glyphs_setup_t *setup,
-				int x1, int y1,
-				int x2, int y2,
-				cairo_gl_glyph_private_t *glyph)
-{
-    if (setup->vb != NULL &&
-	setup->vb_offset + 4 * setup->vertex_size > setup->vbo_size) {
-	_cairo_gl_flush_glyphs (ctx, setup);
-    }
-
-    if (setup->vb == NULL) {
-	glBufferDataARB (GL_ARRAY_BUFFER_ARB,
-			 setup->vbo_size * sizeof (GLfloat),
-			 NULL, GL_STREAM_DRAW_ARB);
-	setup->vb = glMapBufferARB (GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-	setup->vb_offset = 0;
-    }
-
-    _cairo_gl_glyphs_emit_vertex (setup, x1, y1, glyph->p1.x, glyph->p1.y);
-    _cairo_gl_glyphs_emit_vertex (setup, x2, y1, glyph->p2.x, glyph->p1.y);
-    _cairo_gl_glyphs_emit_vertex (setup, x2, y2, glyph->p2.x, glyph->p2.y);
-    _cairo_gl_glyphs_emit_vertex (setup, x1, y2, glyph->p1.x, glyph->p2.y);
-    setup->num_prims++;
-}
-
 static cairo_status_t
 _render_glyphs (cairo_gl_surface_t	*dst,
 	        int dst_x, int dst_y,
@@ -455,81 +232,51 @@ _render_glyphs (cairo_gl_surface_t	*dst,
 		cairo_region_t		*clip_region,
 		int			*remaining_glyphs)
 {
-    cairo_format_t last_format = (cairo_format_t) -1;
+    cairo_format_t last_format = CAIRO_FORMAT_INVALID;
     cairo_gl_glyph_cache_t *cache = NULL;
     cairo_gl_context_t *ctx;
-    cairo_gl_glyphs_setup_t setup;
-    cairo_gl_composite_setup_t composite_setup;
+    cairo_gl_composite_t setup;
     cairo_status_t status;
     int i = 0;
 
     *has_component_alpha = FALSE;
 
-    memset (&composite_setup, 0, sizeof(composite_setup));
-
-    status = _cairo_gl_operand_init (&composite_setup.src, source, dst,
-				     glyph_extents->x, glyph_extents->y,
-				     dst_x, dst_y,
-				     glyph_extents->width,
-				     glyph_extents->height);
-    if (unlikely (status))
-	return status;
-
     status = _cairo_gl_context_acquire (dst->base.device, &ctx);
     if (unlikely (status))
 	return status;
 
-    _cairo_gl_set_destination (dst);
-
     _cairo_scaled_font_freeze_cache (scaled_font);
+
+    status = _cairo_gl_composite_init (&setup, op, dst,
+                                       TRUE, glyph_extents);
+
+    if (unlikely (status))
+	goto FINISH;
+
     if (! _cairo_gl_surface_owns_font (dst, scaled_font)) {
 	status = CAIRO_INT_STATUS_UNSUPPORTED;
-	goto CLEANUP_FONT;
+	goto FINISH;
     }
+
+    status = _cairo_gl_composite_set_source (&setup, source,
+                                             glyph_extents->x, glyph_extents->y,
+                                             dst_x, dst_y,
+                                             glyph_extents->width,
+                                             glyph_extents->height);
+    if (unlikely (status))
+	goto FINISH;
 
     if (scaled_font->surface_private == NULL) {
-	/* XXX couple into list to remove on context destruction */
 	scaled_font->surface_private = ctx;
 	scaled_font->surface_backend = &_cairo_gl_surface_backend;
+	cairo_list_add (&scaled_font->link, &ctx->fonts);
     }
 
-    /* Create our VBO so that we can accumulate a bunch of glyph primitives
-     * into one giant DrawArrays.
-     */
-    memset(&setup, 0, sizeof(setup));
-    setup.composite = &composite_setup;
-    setup.clip = clip_region;
-    setup.dst = dst;
-    setup.vertex_size = 4;
-    if (composite_setup.src.type == OPERAND_TEXTURE)
-	setup.vertex_size += 2;
-    setup.vbo_size = num_glyphs * 4 * setup.vertex_size;
-    if (setup.vbo_size > 4096)
-	setup.vbo_size = 4096;
-    setup.op = op;
-    setup.in = CAIRO_GL_SHADER_IN_COUNT; /* unset */
-
-    glBindBufferARB (GL_ARRAY_BUFFER_ARB, ctx->vbo);
-
-    glVertexPointer (2, GL_FLOAT, setup.vertex_size * sizeof (GLfloat),
-		     (void *)(uintptr_t)(0));
-    glEnableClientState (GL_VERTEX_ARRAY);
-    if (composite_setup.src.type == OPERAND_TEXTURE) {
-	/* Note that we're packing texcoord 0 after texcoord 1, for
-	 * convenience.
-	 */
-	glClientActiveTexture (GL_TEXTURE0);
-	glTexCoordPointer (2, GL_FLOAT, setup.vertex_size * sizeof (GLfloat),
-			   (void *)(uintptr_t)(4 * sizeof (GLfloat)));
-	glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-    }
-    glClientActiveTexture (GL_TEXTURE1);
-    glTexCoordPointer (2, GL_FLOAT, setup.vertex_size * sizeof (GLfloat),
-		       (void *)(uintptr_t)(2 * sizeof (GLfloat)));
-    glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+    _cairo_gl_composite_set_clip_region (&setup, clip_region);
 
     for (i = 0; i < num_glyphs; i++) {
 	cairo_scaled_glyph_t *scaled_glyph;
+	cairo_gl_glyph_private_t *glyph;
 	double x_offset, y_offset;
 	double x1, x2, y1, y2;
 
@@ -553,26 +300,30 @@ _render_glyphs (cairo_gl_surface_t	*dst,
 	}
 
 	if (scaled_glyph->surface->format != last_format) {
-	    /* Switching textures, so flush any queued prims. */
-	    _cairo_gl_flush_glyphs (ctx, &setup);
-
-	    glActiveTexture (GL_TEXTURE1);
-	    cache = cairo_gl_context_get_glyph_cache (ctx,
-						      scaled_glyph->surface->format);
-
-	    glBindTexture (ctx->tex_target, cache->tex);
+	    status = cairo_gl_context_get_glyph_cache (ctx,
+						       scaled_glyph->surface->format,
+                                                       &cache);
+            if (unlikely (status))
+                goto FINISH;
 
 	    last_format = scaled_glyph->surface->format;
-	    /* If we're doing component alpha in this function, it should
-	     * only be in the case of CAIRO_OPERATOR_ADD.  In that case, we just
-	     * need to make sure we send the rgb bits down to the destination.
-	     */
-	    if (last_format == CAIRO_FORMAT_ARGB32) {
-		*has_component_alpha = TRUE;
-		setup.component_alpha = TRUE;
-	    } else {
-		setup.component_alpha = FALSE;
-	    }
+
+            status = _cairo_gl_composite_set_mask (&setup,
+                                                   &cache->pattern.base,
+                                                   0, 0, 0, 0, 0, 0);
+            if (unlikely (status))
+                goto FINISH;
+
+	    *has_component_alpha |= cache->pattern.base.has_component_alpha;
+
+            /* XXX: _cairo_gl_composite_begin() acquires the context a
+             * second time. Need to refactor this loop so this doesn't happen.
+             */
+            status = _cairo_gl_composite_begin (&setup, &ctx);
+
+            status = _cairo_gl_context_release (ctx, status);
+	    if (unlikely (status))
+		goto FINISH;
 	}
 
 	if (scaled_glyph->surface_private == NULL) {
@@ -580,7 +331,7 @@ _render_glyphs (cairo_gl_surface_t	*dst,
 
 	    if (status == CAIRO_INT_STATUS_UNSUPPORTED) {
 		/* Cache is full, so flush existing prims and try again. */
-		_cairo_gl_flush_glyphs (ctx, &setup);
+                _cairo_gl_composite_flush (ctx);
 		_cairo_gl_glyph_cache_unlock (cache);
 		status = _cairo_gl_glyph_cache_add_glyph (ctx, cache, scaled_glyph);
 	    }
@@ -597,38 +348,20 @@ _render_glyphs (cairo_gl_surface_t	*dst,
 	x2 = x1 + scaled_glyph->surface->width;
 	y2 = y1 + scaled_glyph->surface->height;
 
-	_cairo_gl_emit_glyph_rectangle (ctx, &setup,
+	glyph = _cairo_gl_glyph_cache_lock (cache, scaled_glyph);
+	_cairo_gl_composite_emit_glyph (ctx,
 					x1, y1, x2, y2,
-					_cairo_gl_glyph_cache_lock (cache, scaled_glyph));
+                                        glyph->p1.x, glyph->p1.y,
+                                        glyph->p2.x, glyph->p2.y);
     }
 
     status = CAIRO_STATUS_SUCCESS;
   FINISH:
-    _cairo_gl_flush_glyphs (ctx, &setup);
-  CLEANUP_FONT:
     _cairo_scaled_font_thaw_cache (scaled_font);
 
-    glDisable (GL_BLEND);
-    glDisable (GL_SCISSOR_TEST);
+    status = _cairo_gl_context_release (ctx, status);
 
-    glDisableClientState (GL_VERTEX_ARRAY);
-
-    glClientActiveTexture (GL_TEXTURE0);
-    glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-    glActiveTexture (GL_TEXTURE0);
-    glDisable (GL_TEXTURE_1D);
-    glDisable (ctx->tex_target);
-
-    glClientActiveTexture (GL_TEXTURE1);
-    glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-    glActiveTexture (GL_TEXTURE1);
-    glDisable (ctx->tex_target);
-    _cairo_gl_use_program (NULL);
-
-    glBindBufferARB (GL_ARRAY_BUFFER_ARB, 0);
-    _cairo_gl_context_release (ctx);
-
-    _cairo_gl_operand_destroy (&composite_setup.src);
+    _cairo_gl_composite_fini (&setup);
 
     *remaining_glyphs = num_glyphs - i;
     return status;
@@ -645,43 +378,18 @@ _cairo_gl_surface_show_glyphs_via_mask (cairo_gl_surface_t	*dst,
 					cairo_clip_t		*clip,
 					int			*remaining_glyphs)
 {
-    cairo_gl_context_t *ctx;
     cairo_surface_t *mask;
     cairo_status_t status;
     cairo_bool_t has_component_alpha;
     int i;
 
-    status = _cairo_gl_context_acquire (dst->base.device, &ctx);
-    if (unlikely (status))
-	return status;
-
     /* XXX: For non-CA, this should be CAIRO_CONTENT_ALPHA to save memory */
-    if (ctx->glyphs_temporary_mask) {
-	if (glyph_extents->width  <= ctx->glyphs_temporary_mask->width &&
-	    glyph_extents->height <= ctx->glyphs_temporary_mask->height)
-	{
-	    status = _cairo_gl_surface_clear (ctx->glyphs_temporary_mask);
-	    if (unlikely (status)) {
-		_cairo_gl_context_release (ctx);
-		return status;
-	    }
-
-	    mask = &ctx->glyphs_temporary_mask->base;
-	} else {
-	    cairo_surface_destroy (&ctx->glyphs_temporary_mask->base);
-	    ctx->glyphs_temporary_mask = NULL;
-	}
-    }
-    if (mask == NULL) {
-	mask = cairo_gl_surface_create (dst->base.device,
-					CAIRO_CONTENT_COLOR_ALPHA,
-					glyph_extents->width,
-					glyph_extents->height);
-	if (unlikely (mask->status)) {
-	    _cairo_gl_context_release (ctx);
-	    return mask->status;
-	}
-    }
+    mask = cairo_gl_surface_create (dst->base.device,
+                                    CAIRO_CONTENT_COLOR_ALPHA,
+                                    glyph_extents->width,
+                                    glyph_extents->height);
+    if (unlikely (mask->status))
+        return mask->status;
 
     for (i = 0; i < num_glyphs; i++) {
 	glyphs[i].x -= glyph_extents->x;
@@ -713,10 +421,7 @@ _cairo_gl_surface_show_glyphs_via_mask (cairo_gl_surface_t	*dst,
 	*remaining_glyphs = num_glyphs;
     }
 
-    if (ctx->glyphs_temporary_mask == NULL)
-	ctx->glyphs_temporary_mask = (cairo_gl_surface_t *) mask;
-
-    _cairo_gl_context_release (ctx);
+    cairo_surface_destroy (mask);
 
     return status;
 }
@@ -739,9 +444,6 @@ _cairo_gl_surface_show_glyphs (void			*abstract_dst,
     cairo_bool_t has_component_alpha;
     cairo_status_t status;
     int i;
-
-    if (! GLEW_ARB_vertex_buffer_object)
-	return UNSUPPORTED ("requires ARB_vertex_buffer_object");
 
     if (! _cairo_gl_operator_is_supported (op))
 	return UNSUPPORTED ("unsupported operator");
@@ -880,26 +582,24 @@ EMPTY:
 }
 
 void
-_cairo_gl_glyph_cache_fini (cairo_gl_glyph_cache_t *cache)
-{
-    if (cache->tex == 0)
-	return;
-
-    glDeleteTextures (1, &cache->tex);
-
-    _cairo_rtree_fini (&cache->rtree);
-}
-
-void
 _cairo_gl_glyph_cache_init (cairo_gl_glyph_cache_t *cache)
 {
-    cache->tex = 0;
-
     _cairo_rtree_init (&cache->rtree,
 		       GLYPH_CACHE_WIDTH,
 		       GLYPH_CACHE_HEIGHT,
 		       GLYPH_CACHE_MIN_SIZE,
-		       sizeof (cairo_gl_glyph_private_t),
-		       NULL);
+		       sizeof (cairo_gl_glyph_private_t));
+}
+
+void
+_cairo_gl_glyph_cache_fini (cairo_gl_context_t *ctx,
+			    cairo_gl_glyph_cache_t *cache)
+{
+    _cairo_rtree_fini (&cache->rtree);
+
+    if (cache->pattern.surface) {
+        _cairo_pattern_fini (&cache->pattern.base);
+        cache->pattern.surface = NULL;
+    }
 }
 

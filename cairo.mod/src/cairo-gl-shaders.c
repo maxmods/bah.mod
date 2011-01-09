@@ -1,7 +1,8 @@
 /* cairo - a vector graphics library with display and print output
  *
- * Copyright © 2010 Eric Anholt
  * Copyright © 2009 T. Zachary Laine
+ * Copyright © 2010 Eric Anholt
+ * Copyright © 2010 Red Hat, Inc
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -13,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -29,56 +30,79 @@
  * The Original Code is the cairo graphics library.
  *
  * The Initial Developer of the Original Code is T. Zachary Laine.
+ *
+ * Contributor(s):
+ *	Benjamin Otte <otte@gnome.org>
+ *	Eric Anholt <eric@anholt.net>
+ *	T. Zachary Laine <whatwasthataddress@gmail.com>
  */
 
 #include "cairoint.h"
 #include "cairo-gl-private.h"
 #include "cairo-error-private.h"
+#include "cairo-output-stream-private.h"
 
-typedef struct _shader_impl {
-    cairo_status_t
+typedef struct cairo_gl_shader_impl {
+    void
     (*compile_shader) (GLuint *shader, GLenum type, const char *text);
 
-    cairo_status_t
+    void
     (*link_shader) (GLuint *program, GLuint vert, GLuint frag);
 
     void
-    (*destroy_shader_program) (cairo_gl_shader_program_t *program);
-
-    cairo_status_t
-    (*bind_float_to_shader) (GLuint program, const char *name,
-                             float value);
-
-    cairo_status_t
-    (*bind_vec2_to_shader) (GLuint program, const char *name,
-                            float value0, float value1);
-
-    cairo_status_t
-    (*bind_vec3_to_shader) (GLuint program, const char *name,
-                            float value0, float value1,
-                            float value2);
-
-    cairo_status_t
-    (*bind_vec4_to_shader) (GLuint program, const char *name,
-                            float value0, float value1,
-                            float value2, float value3);
-
-    cairo_status_t
-    (*bind_matrix_to_shader) (GLuint program, const char *name, cairo_matrix_t* m);
-
-    cairo_status_t
-    (*bind_texture_to_shader) (GLuint program, const char *name, GLuint tex_unit);
+    (*destroy_shader) (GLuint shader);
 
     void
-    (*use_program) (cairo_gl_shader_program_t *program);
+    (*destroy_program) (GLuint program);
+
+    void
+    (*bind_float) (cairo_gl_shader_t *shader,
+		   const char *name,
+		   float value);
+
+    void
+    (*bind_vec2) (cairo_gl_shader_t *shader,
+		  const char *name,
+		  float value0,
+		  float value1);
+
+    void
+    (*bind_vec3) (cairo_gl_shader_t *shader,
+		  const char *name,
+		  float value0,
+		  float value1,
+		  float value2);
+
+    void
+    (*bind_vec4) (cairo_gl_shader_t *shader,
+		  const char *name,
+		  float value0, float value1,
+		  float value2, float value3);
+
+    void
+    (*bind_matrix) (cairo_gl_shader_t *shader,
+		    const char *name,
+		    cairo_matrix_t* m);
+
+    void
+    (*bind_texture) (cairo_gl_shader_t *shader,
+		     const char *name,
+		     cairo_gl_tex_t tex_unit);
+
+    void
+    (*use) (cairo_gl_shader_t *shader);
 } shader_impl_t;
 
-static const shader_impl_t*
-get_impl (void);
+static cairo_status_t
+_cairo_gl_shader_compile (cairo_gl_context_t *ctx,
+			  cairo_gl_shader_t *shader,
+			  cairo_gl_var_type_t src,
+			  cairo_gl_var_type_t mask,
+			  const char *fragment_text);
 
 /* ARB_shader_objects / ARB_vertex_shader / ARB_fragment_shader extensions
    API. */
-static cairo_status_t
+static void
 compile_shader_arb (GLuint *shader, GLenum type, const char *text)
 {
     const char* strings[1] = { text };
@@ -108,13 +132,11 @@ compile_shader_arb (GLuint *shader, GLenum type, const char *text)
             printf ("OpenGL shader compilation failed.\n");
         }
 
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+	ASSERT_NOT_REACHED;
     }
-
-    return CAIRO_STATUS_SUCCESS;
 }
 
-static cairo_status_t
+static void
 link_shader_arb (GLuint *program, GLuint vert, GLuint frag)
 {
     GLint gl_status;
@@ -140,106 +162,104 @@ link_shader_arb (GLuint *program, GLuint vert, GLuint frag)
             printf ("OpenGL shader link failed.\n");
         }
 
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+	ASSERT_NOT_REACHED;
     }
-
-    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
-destroy_shader_program_arb (cairo_gl_shader_program_t *program)
+destroy_shader_arb (GLuint shader)
 {
-    if (program->vertex_shader)
-        glDeleteObjectARB (program->vertex_shader);
-    if (program->fragment_shader)
-        glDeleteObjectARB (program->fragment_shader);
-    if (program->program)
-        glDeleteObjectARB (program->program);
+  glDeleteObjectARB (shader);
 }
 
-static cairo_status_t
-bind_float_to_shader_arb (GLuint program, const char *name,
-                               float value)
+static void
+destroy_program_arb (GLuint shader)
 {
-    GLint location = glGetUniformLocationARB (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+  glDeleteObjectARB (shader);
+}
+
+static void
+bind_float_arb (cairo_gl_shader_t *shader,
+		const char *name,
+		float value)
+{
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    assert (location != -1);
     glUniform1fARB (location, value);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec2_to_shader_arb (GLuint program, const char *name,
-                              float value0, float value1)
-{
-    GLint location = glGetUniformLocationARB (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform2fARB (location, value0, value1);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec3_to_shader_arb (GLuint program, const char *name,
-                              float value0, float value1,
-                              float value2)
-{
-    GLint location = glGetUniformLocationARB (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform3fARB (location, value0, value1, value2);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec4_to_shader_arb (GLuint program, const char *name,
-                              float value0, float value1,
-                              float value2, float value3)
-{
-    GLint location = glGetUniformLocationARB (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform4fARB (location, value0, value1, value2, value3);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_matrix_to_shader_arb (GLuint program, const char *name, cairo_matrix_t* m)
-{
-    GLint location = glGetUniformLocationARB (program, name);
-    float gl_m[16] = {
-        m->xx, m->xy, 0,     m->x0,
-        m->yx, m->yy, 0,     m->y0,
-        0,     0,     1,     0,
-        0,     0,     0,     1
-    };
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniformMatrix4fvARB (location, 1, GL_TRUE, gl_m);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_texture_to_shader_arb (GLuint program, const char *name, GLuint tex_unit)
-{
-    GLint location = glGetUniformLocationARB (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform1iARB (location, tex_unit);
-    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
-use_program_arb (cairo_gl_shader_program_t *program)
+bind_vec2_arb (cairo_gl_shader_t *shader,
+	       const char *name,
+	       float value0,
+	       float value1)
 {
-    if (program)
-	glUseProgramObjectARB (program->program);
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    assert (location != -1);
+    glUniform2fARB (location, value0, value1);
+}
+
+static void
+bind_vec3_arb (cairo_gl_shader_t *shader,
+	       const char *name,
+	       float value0,
+	       float value1,
+	       float value2)
+{
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    assert (location != -1);
+    glUniform3fARB (location, value0, value1, value2);
+}
+
+static void
+bind_vec4_arb (cairo_gl_shader_t *shader,
+	       const char *name,
+	       float value0,
+	       float value1,
+	       float value2,
+	       float value3)
+{
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    assert (location != -1);
+    glUniform4fARB (location, value0, value1, value2, value3);
+}
+
+static void
+bind_matrix_arb (cairo_gl_shader_t *shader,
+		 const char *name,
+		 cairo_matrix_t* m)
+{
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    float gl_m[9] = {
+        m->xx, m->xy, m->x0,
+        m->yx, m->yy, m->y0,
+        0,     0,     1
+    };
+    assert (location != -1);
+    glUniformMatrix3fvARB (location, 1, GL_TRUE, gl_m);
+}
+
+static void
+bind_texture_arb (cairo_gl_shader_t *shader,
+		  const char *name,
+		  cairo_gl_tex_t tex_unit)
+{
+    GLint location = glGetUniformLocationARB (shader->program, name);
+    assert (location != -1);
+    glUniform1iARB (location, tex_unit);
+}
+
+static void
+use_program_arb (cairo_gl_shader_t *shader)
+{
+    if (shader)
+	glUseProgramObjectARB (shader->program);
     else
 	glUseProgramObjectARB (0);
 }
 
 /* OpenGL Core 2.0 API. */
-static cairo_status_t
+static void
 compile_shader_core_2_0 (GLuint *shader, GLenum type, const char *text)
 {
     const char* strings[1] = { text };
@@ -269,13 +289,11 @@ compile_shader_core_2_0 (GLuint *shader, GLenum type, const char *text)
             printf ("OpenGL shader compilation failed.\n");
         }
 
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+	ASSERT_NOT_REACHED;
     }
-
-    return CAIRO_STATUS_SUCCESS;
 }
 
-static cairo_status_t
+static void
 link_shader_core_2_0 (GLuint *program, GLuint vert, GLuint frag)
 {
     GLint gl_status;
@@ -301,605 +319,677 @@ link_shader_core_2_0 (GLuint *program, GLuint vert, GLuint frag)
             printf ("OpenGL shader link failed.\n");
         }
 
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+	ASSERT_NOT_REACHED;
     }
-
-    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
-destroy_shader_program_core_2_0 (cairo_gl_shader_program_t *program)
+destroy_shader_core_2_0 (GLuint shader)
 {
-    glDeleteShader (program->vertex_shader);
-    glDeleteShader (program->fragment_shader);
-    glDeleteProgram (program->program);
+  glDeleteShader (shader);
 }
 
-static cairo_status_t
-bind_float_to_shader_core_2_0 (GLuint program, const char *name,
-                               float value)
+static void
+destroy_program_core_2_0 (GLuint shader)
 {
-    GLint location = glGetUniformLocation (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+    glDeleteProgram (shader);
+}
+
+static void
+bind_float_core_2_0 (cairo_gl_shader_t *shader,
+		     const char *name,
+		     float value)
+{
+    GLint location = glGetUniformLocation (shader->program, name);
+    assert (location != -1);
     glUniform1f (location, value);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec2_to_shader_core_2_0 (GLuint program, const char *name,
-                              float value0, float value1)
-{
-    GLint location = glGetUniformLocation (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform2f (location, value0, value1);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec3_to_shader_core_2_0 (GLuint program, const char *name,
-                              float value0, float value1,
-                              float value2)
-{
-    GLint location = glGetUniformLocation (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform3f (location, value0, value1, value2);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_vec4_to_shader_core_2_0 (GLuint program, const char *name,
-                              float value0, float value1,
-                              float value2, float value3)
-{
-    GLint location = glGetUniformLocation (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform4f (location, value0, value1, value2, value3);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_matrix_to_shader_core_2_0 (GLuint program, const char *name, cairo_matrix_t* m)
-{
-    GLint location = glGetUniformLocation (program, name);
-    float gl_m[16] = {
-        m->xx, m->xy, 0,     m->x0,
-        m->yx, m->yy, 0,     m->y0,
-        0,     0,     1,     0,
-        0,     0,     0,     1
-    };
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniformMatrix4fv (location, 1, GL_TRUE, gl_m);
-    return CAIRO_STATUS_SUCCESS;
-}
-
-static cairo_status_t
-bind_texture_to_shader_core_2_0 (GLuint program, const char *name, GLuint tex_unit)
-{
-    GLint location = glGetUniformLocation (program, name);
-    if (location == -1)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
-    glUniform1i (location, tex_unit);
-    return CAIRO_STATUS_SUCCESS;
 }
 
 static void
-use_program_core_2_0 (cairo_gl_shader_program_t *program)
+bind_vec2_core_2_0 (cairo_gl_shader_t *shader,
+		    const char *name,
+		    float value0,
+		    float value1)
 {
-    if (program)
-	glUseProgram (program->program);
+    GLint location = glGetUniformLocation (shader->program, name);
+    assert (location != -1);
+    glUniform2f (location, value0, value1);
+}
+
+static void
+bind_vec3_core_2_0 (cairo_gl_shader_t *shader,
+		    const char *name,
+		    float value0,
+		    float value1,
+		    float value2)
+{
+    GLint location = glGetUniformLocation (shader->program, name);
+    assert (location != -1);
+    glUniform3f (location, value0, value1, value2);
+}
+
+static void
+bind_vec4_core_2_0 (cairo_gl_shader_t *shader,
+		    const char *name,
+		    float value0,
+		    float value1,
+		    float value2,
+		    float value3)
+{
+    GLint location = glGetUniformLocation (shader->program, name);
+    assert (location != -1);
+    glUniform4f (location, value0, value1, value2, value3);
+}
+
+static void
+bind_matrix_core_2_0 (cairo_gl_shader_t *shader, const char *name, cairo_matrix_t* m)
+{
+    GLint location = glGetUniformLocation (shader->program, name);
+    float gl_m[16] = {
+        m->xx, m->xy, m->x0,
+        m->yx, m->yy, m->y0,
+        0,     0,     1
+    };
+    assert (location != -1);
+    glUniformMatrix3fv (location, 1, GL_TRUE, gl_m);
+}
+
+static void
+bind_texture_core_2_0 (cairo_gl_shader_t *shader, const char *name, cairo_gl_tex_t tex_unit)
+{
+    GLint location = glGetUniformLocation (shader->program, name);
+    assert (location != -1);
+    glUniform1i (location, tex_unit);
+}
+
+static void
+use_program_core_2_0 (cairo_gl_shader_t *shader)
+{
+    if (shader)
+	glUseProgram (shader->program);
     else
 	glUseProgram (0);
 }
 
-static const shader_impl_t shader_impl_core_2_0 = {
+static const cairo_gl_shader_impl_t shader_impl_core_2_0 = {
     compile_shader_core_2_0,
     link_shader_core_2_0,
-    destroy_shader_program_core_2_0,
-    bind_float_to_shader_core_2_0,
-    bind_vec2_to_shader_core_2_0,
-    bind_vec3_to_shader_core_2_0,
-    bind_vec4_to_shader_core_2_0,
-    bind_matrix_to_shader_core_2_0,
-    bind_texture_to_shader_core_2_0,
+    destroy_shader_core_2_0,
+    destroy_program_core_2_0,
+    bind_float_core_2_0,
+    bind_vec2_core_2_0,
+    bind_vec3_core_2_0,
+    bind_vec4_core_2_0,
+    bind_matrix_core_2_0,
+    bind_texture_core_2_0,
     use_program_core_2_0,
 };
 
-static const shader_impl_t shader_impl_arb = {
+static const cairo_gl_shader_impl_t shader_impl_arb = {
     compile_shader_arb,
     link_shader_arb,
-    destroy_shader_program_arb,
-    bind_float_to_shader_arb,
-    bind_vec2_to_shader_arb,
-    bind_vec3_to_shader_arb,
-    bind_vec4_to_shader_arb,
-    bind_matrix_to_shader_arb,
-    bind_texture_to_shader_arb,
+    destroy_shader_arb,
+    destroy_program_arb,
+    bind_float_arb,
+    bind_vec2_arb,
+    bind_vec3_arb,
+    bind_vec4_arb,
+    bind_matrix_arb,
+    bind_texture_arb,
     use_program_arb,
 };
 
-static const shader_impl_t*
-get_impl (void)
-{
-    if (GLEW_VERSION_2_0) {
-        return &shader_impl_core_2_0;
-    } else if (GLEW_ARB_shader_objects &&
-               GLEW_ARB_fragment_shader &&
-               GLEW_ARB_vertex_program) {
-        return &shader_impl_arb;
-    }
+typedef struct _cairo_shader_cache_entry {
+    cairo_cache_entry_t base;
 
-    ASSERT_NOT_REACHED;
-    return NULL;
+    cairo_gl_operand_type_t src;
+    cairo_gl_operand_type_t mask;
+    cairo_gl_operand_type_t dest;
+    cairo_gl_shader_in_t in;
+
+    cairo_gl_context_t *ctx; /* XXX: needed to destroy the program */
+    cairo_gl_shader_t shader;
+} cairo_shader_cache_entry_t;
+
+static cairo_bool_t
+_cairo_gl_shader_cache_equal (const void *key_a, const void *key_b)
+{
+    const cairo_shader_cache_entry_t *a = key_a;
+    const cairo_shader_cache_entry_t *b = key_b;
+
+    return a->src  == b->src  &&
+           a->mask == b->mask &&
+           a->dest == b->dest &&
+           a->in   == b->in;
 }
 
-void
-init_shader_program (cairo_gl_shader_program_t *program)
+static unsigned long
+_cairo_gl_shader_cache_hash (const cairo_shader_cache_entry_t *entry)
 {
-    program->vertex_shader = 0;
-    program->fragment_shader = 0;
-    program->program = 0;
-    program->build_failure = FALSE;
+    return (entry->src << 24) | (entry->mask << 16) | (entry->dest << 8) | (entry->in);
 }
 
-void
-destroy_shader_program (cairo_gl_shader_program_t *program)
+static void
+_cairo_gl_shader_cache_destroy (void *data)
 {
-    return get_impl()->destroy_shader_program(program);
+    cairo_shader_cache_entry_t *entry = data;
+
+    _cairo_gl_shader_fini (entry->ctx, &entry->shader);
+    if (entry->ctx->current_shader == &entry->shader)
+        entry->ctx->current_shader = NULL;
+    free (entry);
+}
+
+static void
+_cairo_gl_shader_init (cairo_gl_shader_t *shader)
+{
+    shader->fragment_shader = 0;
+    shader->program = 0;
 }
 
 cairo_status_t
-create_shader_program (cairo_gl_shader_program_t *program,
-                       const char *vertex_text,
-                       const char *fragment_text)
+_cairo_gl_context_init_shaders (cairo_gl_context_t *ctx)
 {
+    static const char *fill_fs_source =
+	"uniform vec4 color;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = color;\n"
+	"}\n";
     cairo_status_t status;
 
-    if (program->program != 0)
+    /* XXX multiple device support? */
+    if (GLEW_VERSION_2_0) {
+        ctx->shader_impl = &shader_impl_core_2_0;
+    } else if (GLEW_ARB_shader_objects &&
+               GLEW_ARB_fragment_shader &&
+               GLEW_ARB_vertex_program) {
+        ctx->shader_impl = &shader_impl_arb;
+    } else {
+        ctx->shader_impl = NULL;
+    }
+
+    memset (ctx->vertex_shaders, 0, sizeof (ctx->vertex_shaders));
+
+    status = _cairo_cache_init (&ctx->shaders,
+                                _cairo_gl_shader_cache_equal,
+                                NULL,
+                                _cairo_gl_shader_cache_destroy,
+                                CAIRO_GL_MAX_SHADERS_PER_CONTEXT);
+    if (unlikely (status))
+	return status;
+
+    if (ctx->shader_impl != NULL) {
+	_cairo_gl_shader_init (&ctx->fill_rectangles_shader);
+	status = _cairo_gl_shader_compile (ctx,
+					   &ctx->fill_rectangles_shader,
+					   CAIRO_GL_VAR_NONE,
+					   CAIRO_GL_VAR_NONE,
+					   fill_fs_source);
+	if (unlikely (status))
+	    return status;
+    }
+
+    return CAIRO_STATUS_SUCCESS;
+}
+
+void
+_cairo_gl_context_fini_shaders (cairo_gl_context_t *ctx)
+{
+    int i;
+
+    for (i = 0; i <= CAIRO_GL_VAR_TYPE_MAX; i++) {
+	if (ctx->vertex_shaders[i])
+	    ctx->shader_impl->destroy_shader (ctx->vertex_shaders[i]);
+    }
+
+    _cairo_cache_fini (&ctx->shaders);
+}
+
+void
+_cairo_gl_shader_fini (cairo_gl_context_t *ctx,
+		       cairo_gl_shader_t *shader)
+{
+    if (shader->fragment_shader)
+        ctx->shader_impl->destroy_shader (shader->fragment_shader);
+
+    if (shader->program)
+        ctx->shader_impl->destroy_program (shader->program);
+}
+
+static const char *operand_names[] = { "source", "mask", "dest" };
+
+static cairo_gl_var_type_t
+cairo_gl_operand_get_var_type (cairo_gl_operand_type_t type)
+{
+    switch (type) {
+    default:
+    case CAIRO_GL_OPERAND_COUNT:
+        ASSERT_NOT_REACHED;
+    case CAIRO_GL_OPERAND_NONE:
+    case CAIRO_GL_OPERAND_CONSTANT:
+    case CAIRO_GL_OPERAND_LINEAR_GRADIENT:
+    case CAIRO_GL_OPERAND_RADIAL_GRADIENT:
+        return CAIRO_GL_VAR_NONE;
+    case CAIRO_GL_OPERAND_TEXTURE:
+        return CAIRO_GL_VAR_TEXCOORDS;
+    case CAIRO_GL_OPERAND_SPANS:
+        return CAIRO_GL_VAR_COVERAGE;
+    }
+}
+
+static void
+cairo_gl_shader_emit_variable (cairo_output_stream_t *stream,
+                               cairo_gl_var_type_t type,
+                               cairo_gl_tex_t name)
+{
+    switch (type) {
+    default:
+        ASSERT_NOT_REACHED;
+    case CAIRO_GL_VAR_NONE:
+        break;
+    case CAIRO_GL_VAR_TEXCOORDS:
+        _cairo_output_stream_printf (stream, 
+                                     "varying vec2 %s_texcoords;\n", 
+                                     operand_names[name]);
+        break;
+    case CAIRO_GL_VAR_COVERAGE:
+        _cairo_output_stream_printf (stream, 
+                                     "varying float %s_coverage;\n", 
+                                     operand_names[name]);
+        break;
+    }
+}
+
+static void
+cairo_gl_shader_emit_vertex (cairo_output_stream_t *stream,
+                             cairo_gl_var_type_t type,
+                             cairo_gl_tex_t name)
+{
+    switch (type) {
+    default:
+        ASSERT_NOT_REACHED;
+    case CAIRO_GL_VAR_NONE:
+        break;
+    case CAIRO_GL_VAR_TEXCOORDS:
+        _cairo_output_stream_printf (stream, 
+                                     "    %s_texcoords = gl_MultiTexCoord%d.xy;\n",
+                                     operand_names[name], name);
+        break;
+    case CAIRO_GL_VAR_COVERAGE:
+        _cairo_output_stream_printf (stream, 
+                                     "    %s_coverage = gl_Color.a;\n",
+                                     operand_names[name]);
+        break;
+    }
+}
+
+static cairo_status_t
+cairo_gl_shader_get_vertex_source (cairo_gl_var_type_t src,
+                                   cairo_gl_var_type_t mask,
+                                   cairo_gl_var_type_t dest,
+				   char **out)
+{
+    cairo_output_stream_t *stream = _cairo_memory_stream_create ();
+    unsigned char *source;
+    unsigned long length;
+    cairo_status_t status;
+
+    cairo_gl_shader_emit_variable (stream, src, CAIRO_GL_TEX_SOURCE);
+    cairo_gl_shader_emit_variable (stream, mask, CAIRO_GL_TEX_MASK);
+
+    _cairo_output_stream_printf (stream,
+				 "void main()\n"
+				 "{\n"
+				 "    gl_Position = ftransform();\n");
+
+    cairo_gl_shader_emit_vertex (stream, src, CAIRO_GL_TEX_SOURCE);
+    cairo_gl_shader_emit_vertex (stream, mask, CAIRO_GL_TEX_MASK);
+
+    _cairo_output_stream_write (stream,
+				"}\n\0", 3);
+
+    status = _cairo_memory_stream_destroy (stream, &source, &length);
+    if (unlikely (status))
+	return status;
+
+    *out = (char *) source;
+    return CAIRO_STATUS_SUCCESS;
+}
+
+static void
+cairo_gl_shader_emit_color (cairo_output_stream_t *stream,
+                            GLuint tex_target,
+                            cairo_gl_operand_type_t type,
+                            cairo_gl_tex_t name)
+{
+    const char *namestr = operand_names[name];
+    const char *rectstr = (tex_target == GL_TEXTURE_RECTANGLE_EXT ? "Rect" : "");
+
+    switch (type) {
+    case CAIRO_GL_OPERAND_COUNT:
+    default:
+        ASSERT_NOT_REACHED;
+        break;
+    case CAIRO_GL_OPERAND_NONE:
+        _cairo_output_stream_printf (stream, 
+            "vec4 get_%s()\n"
+            "{\n"
+            "    return vec4 (0, 0, 0, 1);\n"
+            "}\n",
+            namestr);
+        break;
+    case CAIRO_GL_OPERAND_CONSTANT:
+        _cairo_output_stream_printf (stream, 
+            "uniform vec4 %s_constant;\n"
+            "vec4 get_%s()\n"
+            "{\n"
+            "    return %s_constant;\n"
+            "}\n",
+            namestr, namestr, namestr);
+        break;
+    case CAIRO_GL_OPERAND_TEXTURE:
+        _cairo_output_stream_printf (stream, 
+            "uniform sampler2D%s %s_sampler;\n"
+            "varying vec2 %s_texcoords;\n"
+            "vec4 get_%s()\n"
+            "{\n"
+            "    return texture2D%s(%s_sampler, %s_texcoords);\n"
+            "}\n",
+            rectstr, namestr, namestr, namestr, rectstr, namestr, namestr);
+        break;
+    case CAIRO_GL_OPERAND_LINEAR_GRADIENT:
+        _cairo_output_stream_printf (stream, 
+            "uniform sampler1D %s_sampler;\n"
+            "uniform mat3 %s_matrix;\n"
+            "uniform vec2 %s_segment;\n"
+            "\n"
+            "vec4 get_%s()\n"
+            "{\n"
+            "    vec2 pos = (%s_matrix * vec3 (gl_FragCoord.xy, 1.0)).xy;\n"
+            "    float t = dot (pos, %s_segment) / dot (%s_segment, %s_segment);\n"
+            "    return texture1D (%s_sampler, t);\n"
+            "}\n",
+            namestr, namestr, namestr, namestr, namestr, 
+            namestr, namestr, namestr, namestr);
+        break;
+    case CAIRO_GL_OPERAND_RADIAL_GRADIENT:
+        _cairo_output_stream_printf (stream, 
+            "uniform sampler1D %s_sampler;\n"
+            "uniform mat3 %s_matrix;\n"
+            "uniform vec2 %s_circle_1;\n"
+            "uniform float %s_radius_0;\n"
+            "uniform float %s_radius_1;\n"
+            "\n"
+            "vec4 get_%s()\n"
+            "{\n"
+            "    vec2 pos = (%s_matrix * vec3 (gl_FragCoord.xy, 1.0)).xy;\n"
+            "    \n"
+            "    float dr = %s_radius_1 - %s_radius_0;\n"
+            "    float dot_circle_1 = dot (%s_circle_1, %s_circle_1);\n"
+            "    float dot_pos_circle_1 = dot (pos, %s_circle_1);\n"
+            "    \n"
+            "    float A = dot_circle_1 - dr * dr;\n"
+            "    float B = -2.0 * (dot_pos_circle_1 + %s_radius_0 * dr);\n"
+            "    float C = dot (pos, pos) - %s_radius_0 * %s_radius_0;\n"
+            "    float det = B * B - 4.0 * A * C;\n"
+            "    det = max (det, 0.0);\n"
+            "    \n"
+            "    float sqrt_det = sqrt (det);\n"
+            "    sqrt_det *= sign(A);\n"
+            "    \n"
+            "    float t = (-B + sqrt_det) / (2.0 * A);\n"
+            "    return texture1D (%s_sampler, t);\n"
+            "}\n",
+            namestr, namestr, namestr, namestr, namestr, 
+            namestr, namestr, namestr, namestr, namestr, 
+            namestr, namestr, namestr, namestr, namestr, 
+            namestr);
+        break;
+    case CAIRO_GL_OPERAND_SPANS:
+        _cairo_output_stream_printf (stream, 
+            "varying float %s_coverage;\n"
+            "vec4 get_%s()\n"
+            "{\n"
+            "    return vec4(0, 0, 0, %s_coverage);\n"
+            "}\n",
+            namestr, namestr, namestr);
+        break;
+    }
+}
+
+static cairo_status_t
+cairo_gl_shader_get_fragment_source (GLuint tex_target,
+                                     cairo_gl_shader_in_t in,
+                                     cairo_gl_operand_type_t src,
+                                     cairo_gl_operand_type_t mask,
+                                     cairo_gl_operand_type_t dest,
+				     char **out)
+{
+    cairo_output_stream_t *stream = _cairo_memory_stream_create ();
+    unsigned char *source;
+    unsigned long length;
+    cairo_status_t status;
+
+    cairo_gl_shader_emit_color (stream, tex_target, src, CAIRO_GL_TEX_SOURCE);
+    cairo_gl_shader_emit_color (stream, tex_target, mask, CAIRO_GL_TEX_MASK);
+
+    _cairo_output_stream_printf (stream,
+        "void main()\n"
+        "{\n");
+    switch (in) {
+    case CAIRO_GL_SHADER_IN_COUNT:
+    default:
+        ASSERT_NOT_REACHED;
+    case CAIRO_GL_SHADER_IN_NORMAL:
+        _cairo_output_stream_printf (stream,
+            "    gl_FragColor = get_source() * get_mask().a;\n");
+        break;
+    case CAIRO_GL_SHADER_IN_CA_SOURCE:
+        _cairo_output_stream_printf (stream,
+            "    gl_FragColor = get_source() * get_mask();\n");
+        break;
+    case CAIRO_GL_SHADER_IN_CA_SOURCE_ALPHA:
+        _cairo_output_stream_printf (stream,
+            "    gl_FragColor = get_source().a * get_mask();\n");
+        break;
+    }
+
+    _cairo_output_stream_write (stream,
+                                "}\n\0", 3);
+
+    status = _cairo_memory_stream_destroy (stream, &source, &length);
+    if (unlikely (status))
+        return status;
+
+    *out = (char *) source;
+    return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
+_cairo_gl_shader_compile (cairo_gl_context_t *ctx,
+			  cairo_gl_shader_t *shader,
+			  cairo_gl_var_type_t src,
+			  cairo_gl_var_type_t mask,
+			  const char *fragment_text)
+{
+    unsigned int vertex_shader;
+    cairo_status_t status;
+
+    if (ctx->shader_impl == NULL)
         return CAIRO_STATUS_SUCCESS;
 
-    if (program->build_failure)
-        return CAIRO_INT_STATUS_UNSUPPORTED;
+    assert (shader->program == 0);
 
-    status = get_impl()->compile_shader (&program->vertex_shader,
-                                         GL_VERTEX_SHADER,
-                                         vertex_text);
-    if (unlikely (status))
-        goto FAILURE;
+    vertex_shader = cairo_gl_var_type_hash (src, mask, CAIRO_GL_VAR_NONE);
+    if (ctx->vertex_shaders[vertex_shader] == 0) {
+	char *source;
 
-    status = get_impl()->compile_shader (&program->fragment_shader,
-                                         GL_FRAGMENT_SHADER,
-                                         fragment_text);
-    if (unlikely (status))
-        goto FAILURE;
+	status = cairo_gl_shader_get_vertex_source (src,
+						    mask,
+						    CAIRO_GL_VAR_NONE,
+						    &source);
+        if (unlikely (status))
+            goto FAILURE;
 
-    status = get_impl()->link_shader (&program->program,
-                                      program->vertex_shader,
-                                      program->fragment_shader);
-    if (unlikely (status))
-        goto FAILURE;
+	ctx->shader_impl->compile_shader (&ctx->vertex_shaders[vertex_shader],
+					  GL_VERTEX_SHADER,
+					  source);
+        free (source);
+    }
+
+    ctx->shader_impl->compile_shader (&shader->fragment_shader,
+				      GL_FRAGMENT_SHADER,
+				      fragment_text);
+
+    ctx->shader_impl->link_shader (&shader->program,
+				   ctx->vertex_shaders[vertex_shader],
+				   shader->fragment_shader);
 
     return CAIRO_STATUS_SUCCESS;
 
  FAILURE:
-    destroy_shader_program (program);
-    program->vertex_shader = 0;
-    program->fragment_shader = 0;
-    program->program = 0;
-    program->build_failure = TRUE;
+    _cairo_gl_shader_fini (ctx, shader);
+    shader->fragment_shader = 0;
+    shader->program = 0;
 
-    return CAIRO_INT_STATUS_UNSUPPORTED;
-}
-
-cairo_status_t
-bind_float_to_shader (GLuint program, const char *name,
-                      float value)
-{
-    return get_impl()->bind_float_to_shader(program, name, value);
-}
-
-cairo_status_t
-bind_vec2_to_shader (GLuint program, const char *name,
-                     float value0, float value1)
-{
-    return get_impl()->bind_vec2_to_shader(program, name, value0, value1);
-}
-
-cairo_status_t
-bind_vec3_to_shader (GLuint program, const char *name,
-                     float value0, float value1,
-                     float value2)
-{
-    return get_impl()->bind_vec3_to_shader(program, name, value0, value1, value2);
-}
-
-cairo_status_t
-bind_vec4_to_shader (GLuint program, const char *name,
-                     float value0, float value1,
-                     float value2, float value3)
-{
-    return get_impl()->bind_vec4_to_shader(program, name, value0, value1, value2, value3);
-}
-
-cairo_status_t
-bind_matrix_to_shader (GLuint program, const char *name, cairo_matrix_t* m)
-{
-    return get_impl()->bind_matrix_to_shader(program, name, m);
-}
-
-cairo_status_t
-bind_texture_to_shader (GLuint program, const char *name, GLuint tex_unit)
-{
-    return get_impl()->bind_texture_to_shader(program, name, tex_unit);
+    return status;
 }
 
 void
-_cairo_gl_use_program (cairo_gl_shader_program_t *program)
+_cairo_gl_shader_bind_float (cairo_gl_context_t *ctx,
+			     const char *name,
+			     float value)
 {
-    get_impl()->use_program (program);
+    ctx->shader_impl->bind_float (ctx->current_shader, name, value);
 }
 
-static const char *vs_no_coords =
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "}\n";
-static const char *vs_source_coords =
-    "varying vec2 source_texcoords;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "	source_texcoords = gl_MultiTexCoord0.xy;\n"
-    "}\n";
-static const char *vs_mask_coords =
-    "varying vec2 mask_texcoords;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "	mask_texcoords = gl_MultiTexCoord1.xy;\n"
-    "}\n";
-static const char *vs_source_mask_coords =
-    "varying vec2 source_texcoords;\n"
-    "varying vec2 mask_texcoords;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "	source_texcoords = gl_MultiTexCoord0.xy;\n"
-    "	mask_texcoords = gl_MultiTexCoord1.xy;\n"
-    "}\n";
-static const char *vs_spans_no_coords =
-    "varying float coverage;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "   coverage = gl_Color.a;\n"
-    "}\n";
-static const char *vs_spans_source_coords =
-    "varying vec2 source_texcoords;\n"
-    "varying float coverage;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_Position = ftransform();\n"
-    "	source_texcoords = gl_MultiTexCoord0.xy;\n"
-    "   coverage = gl_Color.a;\n"
-    "}\n";
-static const char *fs_source_constant =
-    "uniform vec4 constant_source;\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "	return constant_source;\n"
-    "}\n";
-static const char *fs_source_texture =
-    "uniform sampler2D source_sampler;\n"
-    "varying vec2 source_texcoords;\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "	return texture2D(source_sampler, source_texcoords);\n"
-    "}\n";
-static const char *fs_source_texture_rect =
-    "uniform sampler2DRect source_sampler;\n"
-    "varying vec2 source_texcoords;\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "	return texture2DRect(source_sampler, source_texcoords);\n"
-    "}\n";
-static const char *fs_source_texture_alpha =
-    "uniform sampler2D source_sampler;\n"
-    "varying vec2 source_texcoords;\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, texture2D(source_sampler, source_texcoords).a);\n"
-    "}\n";
-static const char *fs_source_texture_alpha_rect =
-    "uniform sampler2DRect source_sampler;\n"
-    "varying vec2 source_texcoords;\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, texture2DRect(source_sampler, source_texcoords).a);\n"
-    "}\n";
-static const char *fs_source_linear_gradient =
-    "uniform sampler1D source_sampler;\n"
-    "uniform mat4 source_matrix;\n"
-    "uniform vec2 source_segment;\n"
-    "\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "    vec2 pos = (source_matrix * vec4 (gl_FragCoord.xy, 0.0, 1.0)).xy;\n"
-    "    float t = dot (pos, source_segment) / dot (source_segment, source_segment);\n"
-    "    return texture1D (source_sampler, t);\n"
-    "}\n";
-static const char *fs_source_radial_gradient =
-    "uniform sampler1D source_sampler;\n"
-    "uniform mat4 source_matrix;\n"
-    "uniform vec2 source_circle_1;\n"
-    "uniform float source_radius_0;\n"
-    "uniform float source_radius_1;\n"
-    "\n"
-    "vec4 get_source()\n"
-    "{\n"
-    "    vec2 pos = (source_matrix * vec4 (gl_FragCoord.xy, 0.0, 1.0)).xy;\n"
-    "    \n"
-    "    float dr = source_radius_1 - source_radius_0;\n"
-    "    float dot_circle_1 = dot (source_circle_1, source_circle_1);\n"
-    "    float dot_pos_circle_1 = dot (pos, source_circle_1);\n"
-    "    \n"
-    "    float A = dot_circle_1 - dr * dr;\n"
-    "    float B = -2.0 * (dot_pos_circle_1 + source_radius_0 * dr);\n"
-    "    float C = dot (pos, pos) - source_radius_0 * source_radius_0;\n"
-    "    float det = B * B - 4.0 * A * C;\n"
-    "    det = max (det, 0.0);\n"
-    "    \n"
-    "    float sqrt_det = sqrt (det);\n"
-    "    sqrt_det *= sign(A);\n"
-    "    \n"
-    "    float t = (-B + sqrt_det) / (2.0 * A);\n"
-    "    return texture1D (source_sampler, t);\n"
-    "}\n";
-static const char *fs_mask_constant =
-    "uniform vec4 constant_mask;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return constant_mask;\n"
-    "}\n";
-static const char *fs_mask_texture =
-    "uniform sampler2D mask_sampler;\n"
-    "varying vec2 mask_texcoords;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return texture2D(mask_sampler, mask_texcoords);\n"
-    "}\n";
-static const char *fs_mask_texture_rect =
-    "uniform sampler2DRect mask_sampler;\n"
-    "varying vec2 mask_texcoords;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return texture2DRect(mask_sampler, mask_texcoords);\n"
-    "}\n";
-static const char *fs_mask_texture_alpha =
-    "uniform sampler2D mask_sampler;\n"
-    "varying vec2 mask_texcoords;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, texture2D(mask_sampler, mask_texcoords).a);\n"
-    "}\n";
-static const char *fs_mask_texture_alpha_rect =
-    "uniform sampler2DRect mask_sampler;\n"
-    "varying vec2 mask_texcoords;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, texture2DRect(mask_sampler, mask_texcoords).a);\n"
-    "}\n";
-static const char *fs_mask_linear_gradient =
-    "uniform sampler1D mask_sampler;\n"
-    "uniform mat4 mask_matrix;\n"
-    "uniform vec2 mask_segment;\n"
-    "\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "    vec2 pos = (mask_matrix * vec4 (gl_FragCoord.xy, 0.0, 1.0)).xy;\n"
-    "    float t = dot (pos, mask_segment) / dot (mask_segment, mask_segment);\n"
-    "    return texture1D (mask_sampler, t);\n"
-    "}\n";
-static const char *fs_mask_radial_gradient =
-    "uniform sampler1D mask_sampler;\n"
-    "uniform mat4 mask_matrix;\n"
-    "uniform vec2 mask_circle_1;\n"
-    "uniform float mask_radius_0;\n"
-    "uniform float mask_radius_1;\n"
-    "\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "    vec2 pos = (mask_matrix * vec4 (gl_FragCoord.xy, 0.0, 1.0)).xy;\n"
-    "    \n"
-    "    float dr = mask_radius_1 - mask_radius_0;\n"
-    "    float dot_circle_1 = dot (mask_circle_1, mask_circle_1);\n"
-    "    float dot_pos_circle_1 = dot (pos, mask_circle_1);\n"
-    "    \n"
-    "    float A = dot_circle_1 - dr * dr;\n"
-    "    float B = -2.0 * (dot_pos_circle_1 + mask_radius_0 * dr);\n"
-    "    float C = dot (pos, pos) - mask_radius_0 * mask_radius_0;\n"
-    "    float det = B * B - 4.0 * A * C;\n"
-    "    det = max (det, 0.0);\n"
-    "    \n"
-    "    float sqrt_det = sqrt (det);\n"
-    "    sqrt_det *= sign(A);\n"
-    "    \n"
-    "    float t = (-B + sqrt_det) / (2.0 * A);\n"
-    "    return texture1D (mask_sampler, t);\n"
-    "}\n";
-static const char *fs_mask_none =
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, 1);\n"
-    "}\n";
-static const char *fs_mask_spans =
-    "varying float coverage;\n"
-    "vec4 get_mask()\n"
-    "{\n"
-    "	return vec4(0, 0, 0, coverage);\n"
-    "}\n";
-static const char *fs_in_normal =
-    "void main()\n"
-    "{\n"
-    "	gl_FragColor = get_source() * get_mask().a;\n"
-    "}\n";
-static const char *fs_in_component_alpha_source =
-    "void main()\n"
-    "{\n"
-    "	gl_FragColor = get_source() * get_mask();\n"
-    "}\n";
-static const char *fs_in_component_alpha_alpha =
-    "void main()\n"
-    "{\n"
-    "	gl_FragColor = get_source().a * get_mask();\n"
-    "}\n";
-
-/**
- * This function reduces the GLSL program combinations we compile when
- * there are non-functional differences.
- */
-static cairo_gl_shader_program_t *
-_cairo_gl_select_program (cairo_gl_context_t *ctx,
-			  cairo_gl_shader_source_t source,
-			  cairo_gl_shader_mask_t mask,
-			  cairo_gl_shader_in_t in)
+void
+_cairo_gl_shader_bind_vec2 (cairo_gl_context_t *ctx,
+			    const char *name,
+			    float value0,
+			    float value1)
 {
-    if (in == CAIRO_GL_SHADER_IN_NORMAL &&
-	mask == CAIRO_GL_SHADER_MASK_TEXTURE_ALPHA)
-    {
-	mask = CAIRO_GL_SHADER_MASK_TEXTURE;
-    }
-    if (in == CAIRO_GL_SHADER_IN_CA_SOURCE_ALPHA &&
-	source == CAIRO_GL_SHADER_SOURCE_TEXTURE_ALPHA)
-    {
-	source = CAIRO_GL_SHADER_SOURCE_TEXTURE;
-    }
+    ctx->shader_impl->bind_vec2 (ctx->current_shader, name, value0, value1);
+}
 
-    return &ctx->shaders[source][mask][in];
+void
+_cairo_gl_shader_bind_vec3 (cairo_gl_context_t *ctx,
+			    const char *name,
+			    float value0,
+			    float value1,
+			    float value2)
+{
+    ctx->shader_impl->bind_vec3 (ctx->current_shader, name, value0, value1, value2);
+}
+
+void
+_cairo_gl_shader_bind_vec4 (cairo_gl_context_t *ctx,
+			    const char *name,
+			    float value0, float value1,
+			    float value2, float value3)
+{
+    ctx->shader_impl->bind_vec4 (ctx->current_shader, name, value0, value1, value2, value3);
+}
+
+void
+_cairo_gl_shader_bind_matrix (cairo_gl_context_t *ctx,
+			      const char *name, cairo_matrix_t* m)
+{
+    ctx->shader_impl->bind_matrix (ctx->current_shader, name, m);
+}
+
+void
+_cairo_gl_shader_bind_texture (cairo_gl_context_t *ctx,
+			       const char *name, GLuint tex_unit)
+{
+    ctx->shader_impl->bind_texture (ctx->current_shader, name, tex_unit);
+}
+
+void
+_cairo_gl_set_shader (cairo_gl_context_t *ctx,
+		      cairo_gl_shader_t *shader)
+{
+    if (ctx->shader_impl == NULL)
+	return;
+
+    if (ctx->current_shader == shader)
+        return;
+
+    ctx->shader_impl->use (shader);
+
+    ctx->current_shader = shader;
 }
 
 cairo_status_t
-_cairo_gl_get_program (cairo_gl_context_t *ctx,
-		       cairo_gl_shader_source_t source,
-		       cairo_gl_shader_mask_t mask,
-		       cairo_gl_shader_in_t in,
-		       cairo_gl_shader_program_t **out_program)
+_cairo_gl_get_shader_by_type (cairo_gl_context_t *ctx,
+                              cairo_gl_operand_type_t source,
+                              cairo_gl_operand_type_t mask,
+                              cairo_gl_shader_in_t in,
+                              cairo_gl_shader_t **shader)
 {
-    const char *source_sources[CAIRO_GL_SHADER_SOURCE_COUNT] = {
-	fs_source_constant,
-	fs_source_texture,
-	fs_source_texture_alpha,
-	fs_source_linear_gradient,
-	fs_source_radial_gradient,
-    };
-    const char *mask_sources[CAIRO_GL_SHADER_MASK_COUNT] = {
-	fs_mask_constant,
-	fs_mask_texture,
-	fs_mask_texture_alpha,
-	fs_mask_linear_gradient,
-	fs_mask_radial_gradient,
-	fs_mask_none,
-	fs_mask_spans,
-    };
-    const char *in_sources[CAIRO_GL_SHADER_IN_COUNT] = {
-	fs_in_normal,
-	fs_in_component_alpha_source,
-	fs_in_component_alpha_alpha,
-    };
-    cairo_gl_shader_program_t *program;
-    const char *source_source, *mask_source, *in_source;
-    const char *vs_source;
+    cairo_shader_cache_entry_t lookup, *entry;
     char *fs_source;
     cairo_status_t status;
 
-    program = _cairo_gl_select_program(ctx, source, mask, in);
-    if (program->program) {
-	*out_program = program;
+    if (ctx->shader_impl == NULL) {
+        *shader = NULL;
 	return CAIRO_STATUS_SUCCESS;
     }
 
-    if (program->build_failure)
-	return CAIRO_INT_STATUS_UNSUPPORTED;
+    lookup.src = source;
+    lookup.mask = mask;
+    lookup.dest = CAIRO_GL_OPERAND_NONE;
+    lookup.in = in;
+    lookup.base.hash = _cairo_gl_shader_cache_hash (&lookup);
+    lookup.base.size = 1;
 
-    source_source = source_sources[source];
-    mask_source = mask_sources[mask];
-    in_source = in_sources[in];
-
-    /* For ARB_texture_rectangle, rewrite sampler2D and texture2D to
-     * sampler2DRect and texture2DRect.
-     */
-    if (ctx->tex_target == GL_TEXTURE_RECTANGLE_EXT) {
-	if (source_source == fs_source_texture)
-	    source_source = fs_source_texture_rect;
-	else if (source_source == fs_source_texture_alpha)
-	    source_source = fs_source_texture_alpha_rect;
-
-	if (mask_source == fs_mask_texture)
-	    mask_source = fs_mask_texture_rect;
-	else if (mask_source == fs_mask_texture_alpha)
-	    mask_source = fs_mask_texture_alpha_rect;
+    entry = _cairo_cache_lookup (&ctx->shaders, &lookup.base);
+    if (entry) {
+        assert (entry->shader.program);
+        *shader = &entry->shader;
+	return CAIRO_STATUS_SUCCESS;
     }
 
-    fs_source = _cairo_malloc (strlen(source_source) +
-			       strlen(mask_source) +
-			       strlen(in_source) +
-			       1);
-
-    if (source == CAIRO_GL_SHADER_SOURCE_CONSTANT ||
-	source == CAIRO_GL_SHADER_SOURCE_LINEAR_GRADIENT ||
-	source == CAIRO_GL_SHADER_SOURCE_RADIAL_GRADIENT) {
-	if (mask == CAIRO_GL_SHADER_MASK_SPANS)
-	    vs_source = vs_spans_no_coords;
-	else if (mask == CAIRO_GL_SHADER_MASK_CONSTANT ||
-		 mask == CAIRO_GL_SHADER_MASK_LINEAR_GRADIENT ||
-		 mask == CAIRO_GL_SHADER_MASK_RADIAL_GRADIENT)
-	    vs_source = vs_no_coords;
-	else
-	    vs_source = vs_mask_coords;
-    } else {
-	if (mask == CAIRO_GL_SHADER_MASK_SPANS)
-	    vs_source = vs_spans_source_coords;
-	else if (mask == CAIRO_GL_SHADER_MASK_CONSTANT ||
-		 mask == CAIRO_GL_SHADER_MASK_LINEAR_GRADIENT ||
-		 mask == CAIRO_GL_SHADER_MASK_RADIAL_GRADIENT)
-	    vs_source = vs_source_coords;
-	else
-	    vs_source = vs_source_mask_coords;
-    }
-
-    if (!fs_source)
-	return CAIRO_STATUS_NO_MEMORY;
-
-    sprintf(fs_source, "%s%s%s", source_source, mask_source, in_source);
-
-    init_shader_program (program);
-    status = create_shader_program (program,
-				    vs_source,
-				    fs_source);
-    free (fs_source);
-
-    if (_cairo_status_is_error (status))
+    status = cairo_gl_shader_get_fragment_source (ctx->tex_target,
+						  in,
+						  source,
+						  mask,
+						  CAIRO_GL_OPERAND_NONE,
+						  &fs_source);
+    if (unlikely (status))
 	return status;
 
-    _cairo_gl_use_program (program);
-    if (source != CAIRO_GL_SHADER_SOURCE_CONSTANT) {
-	status = bind_texture_to_shader (program->program, "source_sampler", 0);
-	assert (!_cairo_status_is_error (status));
-    }
-    if (mask != CAIRO_GL_SHADER_MASK_CONSTANT &&
-	mask != CAIRO_GL_SHADER_MASK_SPANS &&
-	mask != CAIRO_GL_SHADER_MASK_NONE) {
-	status = bind_texture_to_shader (program->program, "mask_sampler", 1);
-	assert (!_cairo_status_is_error (status));
+    entry = malloc (sizeof (cairo_shader_cache_entry_t));
+    if (unlikely (entry == NULL)) {
+        free (fs_source);
+        return _cairo_error (CAIRO_STATUS_NO_MEMORY);
     }
 
-    _cairo_gl_use_program (NULL);
+    memcpy (entry, &lookup, sizeof (cairo_shader_cache_entry_t));
 
-    *out_program = program;
+    entry->ctx = ctx;
+    _cairo_gl_shader_init (&entry->shader);
+    status = _cairo_gl_shader_compile (ctx,
+				       &entry->shader,
+				       cairo_gl_operand_get_var_type (source),
+				       cairo_gl_operand_get_var_type (mask),
+				       fs_source);
+    free (fs_source);
+
+    if (unlikely (status)) {
+	free (entry);
+	return status;
+    }
+
+    status = _cairo_cache_insert (&ctx->shaders, &entry->base);
+    if (unlikely (status)) {
+	_cairo_gl_shader_fini (ctx, &entry->shader);
+	free (entry);
+	return status;
+    }
+
+    *shader = &entry->shader;
 
     return CAIRO_STATUS_SUCCESS;
 }

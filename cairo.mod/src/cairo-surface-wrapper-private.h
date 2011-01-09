@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -46,12 +46,17 @@ CAIRO_BEGIN_DECLS
 struct _cairo_surface_wrapper {
     cairo_surface_t *target;
 
-    /* any other information? */
+    cairo_bool_t has_extents;
+    cairo_rectangle_int_t extents;
 };
 
 cairo_private void
 _cairo_surface_wrapper_init (cairo_surface_wrapper_t *wrapper,
 			     cairo_surface_t *target);
+
+cairo_private void
+_cairo_surface_wrapper_set_extents (cairo_surface_wrapper_t *wrapper,
+				    const cairo_rectangle_int_t *extents);
 
 cairo_private void
 _cairo_surface_wrapper_fini (cairo_surface_wrapper_t *wrapper);

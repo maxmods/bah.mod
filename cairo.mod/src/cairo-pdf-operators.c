@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -481,6 +481,12 @@ _cairo_pdf_operators_clip (cairo_pdf_operators_t	*pdf_operators,
     const char *pdf_operator;
     cairo_status_t status;
 
+    if (pdf_operators->in_text_object) {
+	status = _cairo_pdf_operators_end_text (pdf_operators);
+	if (unlikely (status))
+	    return status;
+    }
+
     if (! path->has_current_point) {
 	/* construct an empty path */
 	_cairo_output_stream_printf (pdf_operators->stream, "0 0 m ");
@@ -494,14 +500,14 @@ _cairo_pdf_operators_clip (cairo_pdf_operators_t	*pdf_operators,
     }
 
     switch (fill_rule) {
+    default:
+	ASSERT_NOT_REACHED;
     case CAIRO_FILL_RULE_WINDING:
 	pdf_operator = "W";
 	break;
     case CAIRO_FILL_RULE_EVEN_ODD:
 	pdf_operator = "W*";
 	break;
-    default:
-	ASSERT_NOT_REACHED;
     }
 
     _cairo_output_stream_printf (pdf_operators->stream,
@@ -828,14 +834,14 @@ _cairo_pdf_operators_fill (cairo_pdf_operators_t	*pdf_operators,
 	return status;
 
     switch (fill_rule) {
+    default:
+	ASSERT_NOT_REACHED;
     case CAIRO_FILL_RULE_WINDING:
 	pdf_operator = "f";
 	break;
     case CAIRO_FILL_RULE_EVEN_ODD:
 	pdf_operator = "f*";
 	break;
-    default:
-	ASSERT_NOT_REACHED;
     }
 
     _cairo_output_stream_printf (pdf_operators->stream,
@@ -856,14 +862,14 @@ _cairo_pdf_operators_fill_stroke (cairo_pdf_operators_t		*pdf_operators,
     const char *operator;
 
     switch (fill_rule) {
+    default:
+	ASSERT_NOT_REACHED;
     case CAIRO_FILL_RULE_WINDING:
 	operator = "B";
 	break;
     case CAIRO_FILL_RULE_EVEN_ODD:
 	operator = "B*";
 	break;
-    default:
-	ASSERT_NOT_REACHED;
     }
 
     return _cairo_pdf_operators_emit_stroke (pdf_operators,
@@ -984,6 +990,7 @@ _cairo_pdf_operators_flush_glyphs (cairo_pdf_operators_t    *pdf_operators)
     }
 
     pdf_operators->num_glyphs = 0;
+    pdf_operators->glyph_buf_x_pos = pdf_operators->cur_x;
     status2 = _cairo_output_stream_destroy (word_wrap_stream);
     if (status == CAIRO_STATUS_SUCCESS)
 	status = status2;
@@ -1006,6 +1013,7 @@ _cairo_pdf_operators_add_glyph (cairo_pdf_operators_t             *pdf_operators
     pdf_operators->glyphs[pdf_operators->num_glyphs].x_position = x_position;
     pdf_operators->glyphs[pdf_operators->num_glyphs].glyph_index = glyph->subset_glyph_index;
     pdf_operators->glyphs[pdf_operators->num_glyphs].x_advance = x;
+    pdf_operators->glyph_buf_x_pos += x;
     pdf_operators->num_glyphs++;
     if (pdf_operators->num_glyphs == PDF_GLYPH_BUFFER_SIZE)
 	return _cairo_pdf_operators_flush_glyphs (pdf_operators);
@@ -1030,6 +1038,7 @@ _cairo_pdf_operators_set_text_matrix (cairo_pdf_operators_t  *pdf_operators,
     pdf_operators->text_matrix = *matrix;
     pdf_operators->cur_x = 0;
     pdf_operators->cur_y = 0;
+    pdf_operators->glyph_buf_x_pos = 0;
     _cairo_output_stream_printf (pdf_operators->stream,
 				 "%f %f %f %f %f %f Tm\n",
 				 pdf_operators->text_matrix.xx,
@@ -1085,6 +1094,7 @@ _cairo_pdf_operators_set_text_position (cairo_pdf_operators_t  *pdf_operators,
 				 translate.y0);
     pdf_operators->cur_x = 0;
     pdf_operators->cur_y = 0;
+    pdf_operators->glyph_buf_x_pos = 0;
 
     pdf_operators->cairo_to_pdftext = pdf_operators->text_matrix;
     status = cairo_matrix_invert (&pdf_operators->cairo_to_pdftext);
@@ -1134,6 +1144,7 @@ _cairo_pdf_operators_begin_text (cairo_pdf_operators_t    *pdf_operators)
 
     pdf_operators->in_text_object = TRUE;
     pdf_operators->num_glyphs = 0;
+    pdf_operators->glyph_buf_x_pos = 0;
 
     return _cairo_output_stream_get_status (pdf_operators->stream);
 }
@@ -1238,7 +1249,7 @@ _cairo_pdf_operators_emit_glyph (cairo_pdf_operators_t             *pdf_operator
      * PDF consumers that do not handle very large position
      * adjustments in TJ.
      */
-    if (fabs(x - pdf_operators->cur_x) > 10 ||
+    if (fabs(x - pdf_operators->glyph_buf_x_pos) > 10 ||
 	fabs(y - pdf_operators->cur_y) > GLYPH_POSITION_TOLERANCE)
     {
 	status = _cairo_pdf_operators_flush_glyphs (pdf_operators);
@@ -1276,7 +1287,7 @@ _cairo_pdf_operators_emit_cluster (cairo_pdf_operators_t      *pdf_operators,
 {
     cairo_scaled_font_subsets_glyph_t subset_glyph;
     cairo_glyph_t *cur_glyph;
-    cairo_status_t status;
+    cairo_status_t status = CAIRO_STATUS_SUCCESS;
     int i;
 
     /* If the cluster maps 1 glyph to 1 or more unicode characters, we
@@ -1311,15 +1322,17 @@ _cairo_pdf_operators_emit_cluster (cairo_pdf_operators_t      *pdf_operators,
 	}
     }
 
-    /* Fallback to using ActualText to map zero or more glyphs to a
-     * unicode string. */
-    status = _cairo_pdf_operators_flush_glyphs (pdf_operators);
-    if (unlikely (status))
-	return status;
+    if (pdf_operators->use_actual_text) {
+	/* Fallback to using ActualText to map zero or more glyphs to a
+	 * unicode string. */
+	status = _cairo_pdf_operators_flush_glyphs (pdf_operators);
+	if (unlikely (status))
+	    return status;
 
-    status = _cairo_pdf_operators_begin_actualtext (pdf_operators, utf8, utf8_len);
-    if (unlikely (status))
-	return status;
+	status = _cairo_pdf_operators_begin_actualtext (pdf_operators, utf8, utf8_len);
+	if (unlikely (status))
+	    return status;
+    }
 
     cur_glyph = glyphs;
     /* XXX
@@ -1344,11 +1357,14 @@ _cairo_pdf_operators_emit_cluster (cairo_pdf_operators_t      *pdf_operators,
 	else
 	    cur_glyph++;
     }
-    status = _cairo_pdf_operators_flush_glyphs (pdf_operators);
-    if (unlikely (status))
-	return status;
 
-    status = _cairo_pdf_operators_end_actualtext (pdf_operators);
+    if (pdf_operators->use_actual_text) {
+	status = _cairo_pdf_operators_flush_glyphs (pdf_operators);
+	if (unlikely (status))
+	    return status;
+
+	status = _cairo_pdf_operators_end_actualtext (pdf_operators);
+    }
 
     return status;
 }
@@ -1375,8 +1391,7 @@ _cairo_pdf_operators_show_text_glyphs (cairo_pdf_operators_t	  *pdf_operators,
     status = cairo_matrix_invert (&pdf_operators->font_matrix_inverse);
     if (status == CAIRO_STATUS_INVALID_MATRIX)
 	return CAIRO_STATUS_SUCCESS;
-    if (unlikely (status))
-	return status;
+    assert (status == CAIRO_STATUS_SUCCESS);
 
     pdf_operators->is_new_text_object = FALSE;
     if (pdf_operators->in_text_object == FALSE) {

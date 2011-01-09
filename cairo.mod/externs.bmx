@@ -89,6 +89,7 @@ Extern
 	Function cairo_image_surface_get_format:Int(surface:Byte Ptr)
 	Function cairo_image_surface_get_stride:Int(surface:Byte Ptr)
 	
+	Function cairo_in_clip:Int(context:Byte Ptr, x:Double, y:Double)
 	Function cairo_in_fill:Int(context:Byte Ptr, x:Double, y:Double)
 	Function cairo_in_stroke:Int(context:Byte Ptr, x:Double, y:Double)
 	Function cairo_line_to(context:Byte Ptr, x:Double, y:Double)
@@ -229,6 +230,9 @@ Extern
 	Function cairo_ps_surface_set_size(surfacePtr:Byte Ptr, width:Double, height:Double)
 	Function cairo_pdf_surface_create_for_stream:Byte Ptr(cb:Int(obj:Object, data:Byte Ptr, length:Int), obj:Object, width:Double, height:Double)
 	Function cairo_ps_surface_create_for_stream:Byte Ptr(cb:Int(obj:Object, data:Byte Ptr, length:Int), obj:Object, width:Double, height:Double)
+	Function cairo_pdf_version_to_string:Byte Ptr(version:Int)
+	Function cairo_pdf_surface_restrict_to_version(surfacePtr:Byte Ptr, version:Int)
+	Function cairo_pdf_get_versions(versions:Int Ptr Ptr, count:Int Var)
 	
 	Function cairo_push_group(context:Byte Ptr)
 	Function cairo_push_group_with_content(context:Byte Ptr, content:Int)
@@ -238,9 +242,37 @@ Extern
 
 	Function cairo_ft_font_face_create_for_ft_face:Byte Ptr(ft_face:Byte Ptr, loadFlags:Int)
 
+	Function cairo_region_create:Byte Ptr()
+	Function cairo_region_create_rectangle:Byte Ptr(rect:TCairoRectangleInt Ptr)
+	Function cairo_region_copy:Byte Ptr(regionPtr:Byte Ptr)
+	Function cairo_region_equal:Int(regionPtr:Byte Ptr, other:Byte Ptr)
+	Function cairo_region_reference:Byte Ptr(regionPtr:Byte Ptr)
+	Function cairo_region_status:Int(regionPtr:Byte Ptr)
+	Function cairo_region_contains_point:Int(regionPtr:Byte Ptr, x:Int, y:Int)
+	Function cairo_region_contains_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_is_empty:Int(regionPtr:Byte Ptr)
+	Function cairo_region_translate(regionPtr:Byte Ptr, dx:Int, dy:Int)
+	Function cairo_region_xor:Int(regionPtr:Byte Ptr, other:Byte Ptr)
+	Function cairo_region_union:Int(regionPtr:Byte Ptr, other:Byte Ptr)
+	Function cairo_region_get_extents(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_num_rectangles:Int(regionPtr:Byte Ptr)
+	Function cairo_region_get_rectangle(regionPtr:Byte Ptr, index:Int, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_destroy(regionPtr:Byte Ptr)
+	Function cairo_region_intersect:Int(regionPtr:Byte Ptr, other:Byte Ptr)
+	Function cairo_region_subtract:Int(regionPtr:Byte Ptr, other:Byte Ptr)
+	Function cairo_region_subtract_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_union_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
+	Function cairo_region_xor_rectangle:Int(regionPtr:Byte Ptr, rect:TCairoRectangleInt Ptr)
 	
-	Function cairo_gl_surface_create:Byte Ptr(context:Byte Ptr, content:Int, width:Int, height:Int)
-	Function bmx_cairo_glcontext_create:Byte Ptr(context:Int)
+	'Function cairo_gl_surface_create:Byte Ptr(context:Byte Ptr, content:Int, width:Int, height:Int)
+	'Function bmx_cairo_glcontext_create:Byte Ptr(context:Int)
+	
+	Type TCairoRectangleInt
+		Field x:Int
+		Field y:Int
+		Field width:Int
+		Field height:Int
+	End Type
 	
 End Extern
 

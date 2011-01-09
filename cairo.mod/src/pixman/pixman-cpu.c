@@ -61,6 +61,29 @@ pixman_have_vmx (void)
     return have_vmx;
 }
 
+#elif defined (__OpenBSD__)
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <machine/cpu.h>
+
+static pixman_bool_t
+pixman_have_vmx (void)
+{
+    if (!initialized)
+    {
+	int mib[2] = { CTL_MACHDEP, CPU_ALTIVEC };
+	size_t length = sizeof(have_vmx);
+	int error =
+	    sysctl (mib, 2, &have_vmx, &length, NULL, 0);
+
+	if (error != 0)
+	    have_vmx = FALSE;
+
+	initialized = TRUE;
+    }
+    return have_vmx;
+}
+
 #elif defined (__linux__)
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -123,7 +146,7 @@ pixman_have_vmx (void)
     return have_vmx;
 }
 
-#else /* !__APPLE__ && !__linux__ */
+#else /* !__APPLE__ && !__OpenBSD__ && !__linux__ */
 #include <signal.h>
 #include <setjmp.h>
 
@@ -253,8 +276,6 @@ pixman_arm_read_auxv ()
 	    if (aux.a_type == AT_HWCAP)
 	    {
 		uint32_t hwcap = aux.a_un.a_val;
-		if (getenv ("ARM_FORCE_HWCAP"))
-		    hwcap = strtoul (getenv ("ARM_FORCE_HWCAP"), NULL, 0);
 		/* hardcode these values to avoid depending on specific
 		 * versions of the hwcap header, e.g. HWCAP_NEON
 		 */
@@ -266,8 +287,6 @@ pixman_arm_read_auxv ()
 	    else if (aux.a_type == AT_PLATFORM)
 	    {
 		const char *plat = (const char*) aux.a_un.a_val;
-		if (getenv ("ARM_FORCE_PLATFORM"))
-		    plat = getenv ("ARM_FORCE_PLATFORM");
 		if (strncmp (plat, "v7l", 3) == 0)
 		{
 		    arm_has_v7 = TRUE;
@@ -280,12 +299,6 @@ pixman_arm_read_auxv ()
 	    }
 	}
 	close (fd);
-
-	/* if we don't have 2.6.29, we have to do this hack; set
-	 * the env var to trust HWCAP.
-	 */
-	if (!getenv ("ARM_TRUST_HWCAP") && arm_has_v7)
-	    arm_has_neon = TRUE;
     }
 
     arm_tests_initialized = TRUE;
@@ -319,7 +332,7 @@ pixman_have_arm_neon (void)
 
 #endif /* USE_ARM_SIMD || USE_ARM_NEON */
 
-#ifdef USE_MMX
+#if defined(USE_MMX) || defined(USE_SSE2)
 /* The CPU detection code needs to be in a file not compiled with
  * "-mmmx -msse", as gcc would generate CMOV instructions otherwise
  * that would lead to SIGILL instructions on old CPUs that don't have

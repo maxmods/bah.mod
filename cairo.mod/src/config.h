@@ -75,22 +75,22 @@
 
 
 /* Name of package */
-#define PACKAGE "cairo"
+#define PACKAGE "cairographics"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "http://bugs.freedesktop.org/enter_bug.cgi?product=cairo"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "cairo"
+#define PACKAGE_NAME "cairographics"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "cairo 1.9.4"
+#define PACKAGE_STRING "cairographics 10.0.2"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "cairo"
+#define PACKAGE_TARNAME "cairographics"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.9.4"
+#define PACKAGE_VERSION "cairographics 10.0.2"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -99,7 +99,7 @@
 /* #undef USE_MMX */
 
 /* Version number of package */
-#define VERSION "1.9.4"
+#define VERSION "cairographics 10.0.2"
 
 /* Deal with multiple architecture compiles on Mac OS X */
 #ifdef __APPLE_CC__

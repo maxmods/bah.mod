@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -74,6 +74,30 @@
 
 #define PELS_72DPI  ((LONG)(72. / 0.0254))
 
+/**
+ * SECTION:cairo-win32
+ * @Title: Win32 Surfaces
+ * @Short_Description: Microsoft Windows surface support
+ * @See_Also: #cairo_surface_t
+ *
+ * The Microsoft Windows surface is used to render cairo graphics to
+ * Microsoft Windows windows, bitmaps, and printing device contexts.
+ *
+ * The surface returned by cairo_win32_printing_surface_create() is of surface
+ * type %CAIRO_SURFACE_TYPE_WIN32_PRINTING and is a multi-page vector surface
+ * type.
+ *
+ * The surface returned by the other win32 constructors is of surface type
+ * %CAIRO_SURFACE_TYPE_WIN32 and is a raster surface type.
+ */
+
+/**
+ * CAIRO_HAS_WIN32_SURFACE:
+ *
+ * Defined if the Microsoft Windows surface backend is available.
+ * This macro can be used to conditionally compile backend-specific code.
+ */
+
 static const cairo_surface_backend_t cairo_win32_surface_backend;
 
 /**
@@ -96,11 +120,11 @@ _cairo_win32_print_gdi_error (const char *context)
 			 NULL,
 			 last_error,
 			 MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-			 (LPSTR) &lpMsgBuf,
+			 (LPWSTR) &lpMsgBuf,
 			 0, NULL)) {
 	fprintf (stderr, "%s: Unknown GDI error", context);
     } else {
-	fwprintf (stderr, "%S: %s", context, (char *)lpMsgBuf);
+	fwprintf (stderr, L"%s: %S", context, (wchar_t *)lpMsgBuf);
 
 	LocalFree (lpMsgBuf);
     }
@@ -176,6 +200,9 @@ _create_dc_and_bitmap (cairo_win32_surface_t *surface,
     surface->is_dib = FALSE;
 
     switch (format) {
+    default:
+    case CAIRO_FORMAT_INVALID:
+	return _cairo_error (CAIRO_STATUS_INVALID_FORMAT);
     case CAIRO_FORMAT_ARGB32:
     case CAIRO_FORMAT_RGB24:
 	num_palette = 0;
@@ -336,6 +363,9 @@ _cairo_win32_surface_create_for_dc (HDC             original_dc,
     cairo_win32_surface_t *surface;
     unsigned char *bits;
     int rowstride;
+
+    if (! CAIRO_FORMAT_VALID (format))
+	return _cairo_surface_create_in_error (_cairo_error (CAIRO_STATUS_INVALID_FORMAT));
 
     surface = malloc (sizeof (cairo_win32_surface_t));
     if (surface == NULL)
@@ -1859,8 +1889,7 @@ cairo_win32_surface_get_image (cairo_surface_t *surface)
 
 static cairo_bool_t
 _cairo_win32_surface_is_similar (void *surface_a,
-	                         void *surface_b,
-				 cairo_content_t content)
+	                         void *surface_b)
 {
     cairo_win32_surface_t *a = surface_a;
     cairo_win32_surface_t *b = surface_b;

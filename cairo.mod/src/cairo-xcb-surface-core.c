@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -363,7 +363,6 @@ _cairo_xcb_surface_pixmap (cairo_xcb_surface_t *target,
 {
     cairo_surface_t *source;
     cairo_xcb_pixmap_t *pixmap;
-    cairo_status_t status;
 
     source =  pattern->surface;
     pixmap = (cairo_xcb_pixmap_t *)
@@ -405,11 +404,7 @@ _cairo_xcb_surface_pixmap (cairo_xcb_surface_t *target,
     if (unlikely (pixmap->base.status))
 	return pixmap;
 
-    status = _cairo_surface_attach_snapshot (source, &pixmap->base, NULL);
-    if (unlikely (status)) {
-	cairo_surface_destroy (&pixmap->base);
-	return (cairo_xcb_pixmap_t *) _cairo_surface_create_in_error (status);
-    }
+    _cairo_surface_attach_snapshot (source, &pixmap->base, NULL);
 
     if (pattern->base.extend != CAIRO_EXTEND_NONE) {
 	if (extents->x < 0 || extents->y < 0 ||

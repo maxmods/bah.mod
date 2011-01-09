@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -155,10 +155,12 @@ typedef struct _cairo_surface cairo_surface_t;
  * cairo_xcb_device_create() creates a device that wraps the connection
  * to an X Windows System using the XCB library.
  *
- * The type of a surface can be queried with cairo_device_get_type().
+ * The type of a device can be queried with cairo_device_get_type().
  *
  * Memory management of #cairo_device_t is done with
  * cairo_device_reference() and cairo_device_destroy().
+ *
+ * Since: 1.10
  **/
 typedef struct _cairo_device cairo_device_t;
 
@@ -1939,28 +1941,13 @@ cairo_device_reference (cairo_device_t *device);
 
 /**
  * cairo_device_type_t:
- * @CAIRO_DEVICE_TYPE_IMAGE: The surface is of type image
- * @CAIRO_DEVICE_TYPE_PDF: The surface is of type pdf
- * @CAIRO_DEVICE_TYPE_PS: The surface is of type ps
- * @CAIRO_DEVICE_TYPE_XLIB: The surface is of type xlib
- * @CAIRO_DEVICE_TYPE_XCB: The surface is of type xcb
- * @CAIRO_DEVICE_TYPE_GLITZ: The surface is of type glitz
- * @CAIRO_DEVICE_TYPE_QUARTZ: The surface is of type quartz
- * @CAIRO_DEVICE_TYPE_WIN32: The surface is of type win32
- * @CAIRO_DEVICE_TYPE_BEOS: The surface is of type beos
- * @CAIRO_DEVICE_TYPE_DIRECTFB: The surface is of type directfb
- * @CAIRO_DEVICE_TYPE_SVG: The surface is of type svg
- * @CAIRO_DEVICE_TYPE_OS2: The surface is of type os2
- * @CAIRO_DEVICE_TYPE_WIN32_PRINTING: The surface is a win32 printing surface
- * @CAIRO_DEVICE_TYPE_QUARTZ_IMAGE: The surface is of type quartz_image
- * @CAIRO_DEVICE_TYPE_SCRIPT: The surface is of type script
- * @CAIRO_DEVICE_TYPE_QT: The surface is of type Qt
- * @CAIRO_DEVICE_TYPE_RECORDING: The surface is of type recording
- * @CAIRO_DEVICE_TYPE_VG: The surface is a OpenVG surface
- * @CAIRO_DEVICE_TYPE_GL: The surface is of type OpenGL
  * @CAIRO_DEVICE_TYPE_DRM: The surface is of type Direct Render Manager
+ * @CAIRO_DEVICE_TYPE_GL: The surface is of type OpenGL
+ * @CAIRO_DEVICE_TYPE_SCRIPT: The surface is of type script
+ * @CAIRO_DEVICE_TYPE_XCB: The surface is of type xcb
+ * @CAIRO_DEVICE_TYPE_XLIB: The surface is of type xlib
  * @CAIRO_DEVICE_TYPE_XML: The surface is of type XML
- * @CAIRO_DEVICE_TYPE_SKIA: The surface is of type Skia
+ *   cairo_surface_create_for_rectangle()
  *
  * #cairo_device_type_t is used to describe the type of a given
  * device. The devices types are also known as "backends" within cairo.
@@ -1981,28 +1968,12 @@ cairo_device_reference (cairo_device_t *device);
  * Since: 1.10
  **/
 typedef enum _cairo_device_type {
-    CAIRO_DEVICE_TYPE_IMAGE,
-    CAIRO_DEVICE_TYPE_PDF,
-    CAIRO_DEVICE_TYPE_PS,
-    CAIRO_DEVICE_TYPE_XLIB,
-    CAIRO_DEVICE_TYPE_XCB,
-    CAIRO_DEVICE_TYPE_GLITZ,
-    CAIRO_DEVICE_TYPE_QUARTZ,
-    CAIRO_DEVICE_TYPE_WIN32,
-    CAIRO_DEVICE_TYPE_BEOS,
-    CAIRO_DEVICE_TYPE_DIRECTFB,
-    CAIRO_DEVICE_TYPE_SVG,
-    CAIRO_DEVICE_TYPE_OS2,
-    CAIRO_DEVICE_TYPE_WIN32_PRINTING,
-    CAIRO_DEVICE_TYPE_QUARTZ_IMAGE,
-    CAIRO_DEVICE_TYPE_SCRIPT,
-    CAIRO_DEVICE_TYPE_QT,
-    CAIRO_DEVICE_TYPE_RECORDING,
-    CAIRO_DEVICE_TYPE_VG,
-    CAIRO_DEVICE_TYPE_GL,
     CAIRO_DEVICE_TYPE_DRM,
-    CAIRO_DEVICE_TYPE_XML,
-    CAIRO_DEVICE_TYPE_SKIA
+    CAIRO_DEVICE_TYPE_GL,
+    CAIRO_DEVICE_TYPE_SCRIPT,
+    CAIRO_DEVICE_TYPE_XCB,
+    CAIRO_DEVICE_TYPE_XLIB,
+    CAIRO_DEVICE_TYPE_XML
 } cairo_device_type_t;
 
 cairo_public cairo_device_type_t
@@ -2026,6 +1997,20 @@ cairo_device_finish (cairo_device_t *device);
 cairo_public void
 cairo_device_destroy (cairo_device_t *device);
 
+cairo_public unsigned int
+cairo_device_get_reference_count (cairo_device_t *device);
+
+cairo_public void *
+cairo_device_get_user_data (cairo_device_t		 *device,
+			    const cairo_user_data_key_t *key);
+
+cairo_public cairo_status_t
+cairo_device_set_user_data (cairo_device_t		 *device,
+			    const cairo_user_data_key_t *key,
+			    void			 *user_data,
+			    cairo_destroy_func_t	  destroy);
+
+
 /* Surface manipulation */
 
 cairo_public cairo_surface_t *
@@ -2035,11 +2020,11 @@ cairo_surface_create_similar (cairo_surface_t  *other,
 			      int		height);
 
 cairo_public cairo_surface_t *
-cairo_surface_create_for_region (cairo_surface_t	*target,
-				 int			 x,
-				 int			 y,
-				 int			 width,
-				 int			 height);
+cairo_surface_create_for_rectangle (cairo_surface_t	*target,
+                                    double		 x,
+                                    double		 y,
+                                    double		 width,
+                                    double		 height);
 
 cairo_public cairo_surface_t *
 cairo_surface_reference (cairo_surface_t *surface);
@@ -2084,6 +2069,8 @@ cairo_surface_status (cairo_surface_t *surface);
  * @CAIRO_SURFACE_TYPE_TEE: The surface is of type 'tee' (a multiplexing surface), since 1.10
  * @CAIRO_SURFACE_TYPE_XML: The surface is of type XML (for debugging), since 1.10
  * @CAIRO_SURFACE_TYPE_SKIA: The surface is of type Skia, since 1.10
+ * @CAIRO_SURFACE_TYPE_SUBSURFACE: The surface is a subsurface created with
+ *   cairo_surface_create_for_rectangle(), since 1.10
  *
  * #cairo_surface_type_t is used to describe the type of a given
  * surface. The surface types are also known as "backends" or "surface
@@ -2131,7 +2118,8 @@ typedef enum _cairo_surface_type {
     CAIRO_SURFACE_TYPE_DRM,
     CAIRO_SURFACE_TYPE_TEE,
     CAIRO_SURFACE_TYPE_XML,
-    CAIRO_SURFACE_TYPE_SKIA
+    CAIRO_SURFACE_TYPE_SKIA,
+    CAIRO_SURFACE_TYPE_SUBSURFACE
 } cairo_surface_type_t;
 
 cairo_public cairo_surface_type_t
@@ -2166,18 +2154,19 @@ cairo_surface_set_user_data (cairo_surface_t		 *surface,
 #define CAIRO_MIME_TYPE_JPEG "image/jpeg"
 #define CAIRO_MIME_TYPE_PNG "image/png"
 #define CAIRO_MIME_TYPE_JP2 "image/jp2"
+#define CAIRO_MIME_TYPE_URI "text/x-uri"
 
 cairo_public void
 cairo_surface_get_mime_data (cairo_surface_t		*surface,
                              const char			*mime_type,
                              const unsigned char       **data,
-                             unsigned int		*length);
+                             unsigned long		*length);
 
 cairo_public cairo_status_t
 cairo_surface_set_mime_data (cairo_surface_t		*surface,
                              const char			*mime_type,
                              const unsigned char	*data,
-                             unsigned int		 length,
+                             unsigned long		 length,
 			     cairo_destroy_func_t	 destroy,
 			     void			*closure);
 
@@ -2231,6 +2220,7 @@ cairo_surface_has_show_text_glyphs (cairo_surface_t *surface);
 
 /**
  * cairo_format_t:
+ * @CAIRO_FORMAT_INVALID: no such format exists or is supported.
  * @CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
  *   alpha in the upper 8 bits, then red, then green, then blue.
  *   The 32-bit quantities are stored native-endian. Pre-multiplied
@@ -2247,9 +2237,9 @@ cairo_surface_has_show_text_glyphs (cairo_surface_t *surface);
  *   endianess of the platform. On a big-endian machine, the
  *   first pixel is in the uppermost bit, on a little-endian
  *   machine the first pixel is in the least-significant bit.
- * @CAIRO_FORMAT_RGB16_565: This format value is deprecated. It has
- *   never been properly implemented in cairo and should not be used
- *   by applications. (since 1.2)
+ * @CAIRO_FORMAT_RGB16_565: each pixel is a 16-bit quantity
+ *   with red in the upper 5 bits, then green in the middle
+ *   6 bits, and blue in the lower 5 bits.
  *
  * #cairo_format_t is used to identify the memory format of
  * image data.
@@ -2257,14 +2247,12 @@ cairo_surface_has_show_text_glyphs (cairo_surface_t *surface);
  * New entries may be added in future versions.
  **/
 typedef enum _cairo_format {
-    CAIRO_FORMAT_ARGB32,
-    CAIRO_FORMAT_RGB24,
-    CAIRO_FORMAT_A8,
-    CAIRO_FORMAT_A1
-    /* The value of 4 is reserved by a deprecated enum value.
-     * The next format added must have an explicit value of 5.
-    CAIRO_FORMAT_RGB16_565 = 4,
-    */
+    CAIRO_FORMAT_INVALID   = -1,
+    CAIRO_FORMAT_ARGB32    = 0,
+    CAIRO_FORMAT_RGB24     = 1,
+    CAIRO_FORMAT_A8        = 2,
+    CAIRO_FORMAT_A1        = 3,
+    CAIRO_FORMAT_RGB16_565 = 4
 } cairo_format_t;
 
 cairo_public cairo_surface_t *
@@ -2321,23 +2309,6 @@ cairo_recording_surface_ink_extents (cairo_surface_t *surface,
                                      double *y0,
                                      double *width,
                                      double *height);
-
-/* Tee-surface functions */
-
-cairo_public cairo_surface_t *
-cairo_tee_surface_create (cairo_surface_t *master);
-
-cairo_public void
-cairo_tee_surface_add (cairo_surface_t *surface,
-		       cairo_surface_t *target);
-
-cairo_public void
-cairo_tee_surface_remove (cairo_surface_t *surface,
-			  cairo_surface_t *target);
-
-cairo_public cairo_surface_t *
-cairo_tee_surface_index (cairo_surface_t *surface,
-			 int index);
 
 /* Pattern creation functions */
 
@@ -2587,7 +2558,32 @@ cairo_matrix_transform_point (const cairo_matrix_t *matrix,
 
 /* Region functions */
 
+/**
+ * cairo_region_t:
+ *
+ * A #cairo_region_t represents a set of integer-aligned rectangles.
+ *
+ * It allows set-theoretical operations like cairo_region_union() and
+ * cairo_region_intersect() to be performed on them.
+ *
+ * Memory management of #cairo_region_t is done with
+ * cairo_region_reference() and cairo_region_destroy().
+ *
+ * Since: 1.10
+ **/
 typedef struct _cairo_region cairo_region_t;
+
+/**
+ * cairo_rectangle_int_t:
+ * @x: X coordinate of the left side of the rectangle
+ * @y: Y coordinate of the the top side of the rectangle
+ * @width: width of the rectangle
+ * @height: height of the rectangle
+ *
+ * A data structure for holding a rectangle with integer coordinates.
+ *
+ * Since: 1.10
+ **/
 
 typedef struct _cairo_rectangle_int {
     int x, y;
@@ -2614,7 +2610,7 @@ cairo_public cairo_region_t *
 cairo_region_copy (const cairo_region_t *original);
 
 cairo_public cairo_region_t *
-cairo_region_reference (cairo_region_t *);
+cairo_region_reference (cairo_region_t *region);
 
 cairo_public void
 cairo_region_destroy (cairo_region_t *region);
@@ -2633,8 +2629,8 @@ cairo_public int
 cairo_region_num_rectangles (const cairo_region_t *region);
 
 cairo_public void
-cairo_region_get_rectangle (const cairo_region_t        *region,
-			    int                    nth_rectangle,
+cairo_region_get_rectangle (const cairo_region_t  *region,
+			    int                    nth,
 			    cairo_rectangle_int_t *rectangle);
 
 cairo_public cairo_bool_t
@@ -2658,19 +2654,25 @@ cairo_region_subtract_rectangle (cairo_region_t *dst,
 				 const cairo_rectangle_int_t *rectangle);
 
 cairo_public cairo_status_t
-cairo_region_intersect (cairo_region_t *dst, cairo_region_t *other);
+cairo_region_intersect (cairo_region_t *dst, const cairo_region_t *other);
 
 cairo_public cairo_status_t
 cairo_region_intersect_rectangle (cairo_region_t *dst,
 				  const cairo_rectangle_int_t *rectangle);
 
 cairo_public cairo_status_t
-cairo_region_union (cairo_region_t *dst, cairo_region_t *other);
+cairo_region_union (cairo_region_t *dst, const cairo_region_t *other);
 
 cairo_public cairo_status_t
 cairo_region_union_rectangle (cairo_region_t *dst,
 			      const cairo_rectangle_int_t *rectangle);
 
+cairo_public cairo_status_t
+cairo_region_xor (cairo_region_t *dst, const cairo_region_t *other);
+
+cairo_public cairo_status_t
+cairo_region_xor_rectangle (cairo_region_t *dst,
+			    const cairo_rectangle_int_t *rectangle);
 
 /* Functions to be used while debugging (not intended for use in production code) */
 cairo_public void

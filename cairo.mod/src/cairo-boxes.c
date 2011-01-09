@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -128,7 +128,7 @@ _cairo_boxes_add_internal (cairo_boxes_t *boxes,
 					       sizeof (cairo_box_t),
 					       sizeof (struct _cairo_boxes_chunk));
 
-	if (unlikely (chunk == NULL)) {
+	if (unlikely (chunk->next == NULL)) {
 	    boxes->status = _cairo_error (CAIRO_STATUS_NO_MEMORY);
 	    return;
 	}
@@ -237,6 +237,37 @@ _cairo_boxes_add (cairo_boxes_t *boxes,
     }
 
     return boxes->status;
+}
+
+void
+_cairo_boxes_extents (const cairo_boxes_t *boxes,
+		      cairo_rectangle_int_t *extents)
+{
+    const struct _cairo_boxes_chunk *chunk;
+    cairo_box_t box;
+    int i;
+
+    box.p1.y = box.p1.x = INT_MAX;
+    box.p2.y = box.p2.x = INT_MIN;
+
+    for (chunk = &boxes->chunks; chunk != NULL; chunk = chunk->next) {
+	const cairo_box_t *b = chunk->base;
+	for (i = 0; i < chunk->count; i++) {
+	    if (b[i].p1.x < box.p1.x)
+		box.p1.x = b[i].p1.x;
+
+	    if (b[i].p1.y < box.p1.y)
+		box.p1.y = b[i].p1.y;
+
+	    if (b[i].p2.x > box.p2.x)
+		box.p2.x = b[i].p2.x;
+
+	    if (b[i].p2.y > box.p2.y)
+		box.p2.y = b[i].p2.y;
+	}
+    }
+
+    _cairo_box_round_to_rectangle (&box, extents);
 }
 
 void

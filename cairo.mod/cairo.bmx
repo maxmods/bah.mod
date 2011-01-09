@@ -13,11 +13,13 @@ ModuleInfo "Copyright: Wrapper - Bruce A Henderson, based on initial work by Dun
 ModuleInfo "Modserver: BRL"
 
 ModuleInfo "History: 1.24"
-ModuleInfo "History: Cairo update to 1.9.6."
+ModuleInfo "History: Cairo update to 1.10.2."
+ModuleInfo "History: Pixman update to 0.21.2."
 ModuleInfo "History: Added support for TStream surface writing (PDF, PS, etc)"
 ModuleInfo "History: Fixed CopyPath and CopyPathFlat not returning value."
+ModuleInfo "History: Added TCairoRegion and TCairoRectangleInt."
 ModuleInfo "History: 1.23"
-ModuleInfo "History: Cairo update to 1.8.8. Pixmap update to 0.17.2."
+ModuleInfo "History: Cairo update to 1.8.8. Pixman update to 0.17.2."
 ModuleInfo "History: 1.22"
 ModuleInfo "History: Version bump... problem with release 1.21"
 ModuleInfo "History: 1.21"
@@ -80,9 +82,7 @@ ModuleInfo "History: 1.00 Initial Release (Cairo 1.0.4)"
 
 ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
 ?macosx86
-ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX"
-?win32
-ModuleInfo "CC_OPTS: -DGLEW_STATIC"
+ModuleInfo "CC_OPTS: -DUSE_SSE2 -DUSE_MMX -DHAVE_PTHREAD_SETSPECIFIC"
 ?
 
 ' build notes
@@ -683,6 +683,21 @@ Restore()
 	Method IdentityMatrix()
 		NoContextError()
 		cairo_identity_matrix(contextPtr)
+	End Method
+	
+	Rem
+	bbdoc: Tests whether the given point is inside the area that would be visible through the current clip.
+	returns: A non-zero value if the point is inside, or zero if outside.
+	about: i.e. the area that would be filled by a #Paint operation.
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : X coordinate of the point to test</li>
+	<li><b>y</b> : Y coordinate of the point to test</li>
+	</ul>
+	</p>
+	End Rem
+	Method InClip:Int(x:Double, y:Double)
+		Return cairo_in_clip(contextPtr, x, y)
 	End Method
 
 	Rem
@@ -1999,6 +2014,54 @@ Type TCairoPDFSurface Extends TCairoSurface
 	Method SetSize(width:Double, height:Double)
 		cairo_pdf_surface_set_size(surfacePtr, width, height)
 	End Method
+	
+	Rem
+	bbdoc: Restricts the generated PDF file to @version.
+	about: This method should only be called before any drawing operations have been performed on the given surface.
+	The simplest way to do this is to call this function immediately after creating the surface.
+	<p>Parameters:
+	<ul>
+	<li><b>version</b> : PDF version. One of #CAIRO_PDF_VERSION_1_4  or #CAIRO_PDF_VERSION_1_5 .</li>
+	</ul>
+	</p>
+	End Rem
+	Method RestrictToVersion(version:Int)
+		cairo_pdf_surface_restrict_to_version(surfacePtr, version)
+	End Method
+	
+	Rem
+	bbdoc: Used to retrieve the list of supported versions.
+	End Rem
+	Function GetVersions:Int[]()
+		Local v:Int[]
+		Local versions:Int Ptr
+		Local count:Int
+		
+		cairo_pdf_get_versions(Varptr versions, count)
+		
+		If count Then
+			v = New Int[count]
+			For Local i:Int = 0 Until count
+				v[i] = versions[i]
+			Next
+		End If
+		
+		Return v
+	End Function
+	
+	Rem
+	bbdoc: Gets the string representation of the given version id.
+	about: This function will return Null if version isn't valid.
+	<p>Parameters:
+	<ul>
+	<li><b>version</b> : PDF version. One of #CAIRO_PDF_VERSION_1_4  or #CAIRO_PDF_VERSION_1_5 .</li>
+	</ul>
+	</p>
+	End Rem
+	Function VersionToString:String(version:Int)
+		Return String.FromCString(cairo_pdf_version_to_string(version))
+	End Function
+	
 End Type
 
 Rem
@@ -3505,38 +3568,246 @@ Type TCairoNoContextException
 End Type
 
 Rem
-bbdoc: 
+bbdoc: Representing a pixel-aligned area.
+about: Regions are a simple graphical data type representing an area of integer-aligned rectangles.
+They are often used on raster surfaces to track areas of interest, such as change or clip areas.
+<p>
+It allows set-theoretical operations like Union() and Intersect() to be performed on them.
+</p>
 End Rem
-Type TCairoGLSurface Extends TCairoSurface
+Type TCairoRegion
+
+	Field regionPtr:Byte Ptr
+	
+	Function _create:TCairoRegion(regionPtr:Byte Ptr)
+		If regionPtr <> Null Then
+			Local region:TCairoRegion = New TCairoRegion
+			region.regionPtr = regionPtr
+			Return region
+		End If
+		
+		Return Null
+	End Function
+
+	Rem
+	bbdoc: Allocates a new empty region object.
+	about: This function always returns an object; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing.
+	You can check for this with Status().
+	End Rem
+	Function Create:TCairoRegion()
+		Return TCairoRegion._create(cairo_region_create())
+	End Function
 
 	Rem
 	bbdoc: 
-	about: @content is one of CAIRO_CONTENT_COLOR, CAIRO_CONTENT_ALPHA, or CAIRO_CONTENT_COLOR_ALPHA.
-	End Rem
-	Function CreateForContext:TCairoGLSurface(context:Int, content:Int, width:Int, height:Int)
-		Local ctx:TCairoGLContext = TCairoGLContext.CreateContext(context)
+	End Rem	
+	Function CreateRectangle:TCairoRegion(rect:TCairoRectangleInt)
+		Return TCairoRegion._create(cairo_region_create_rectangle(Varptr rect))
+	End Function
 	
-		Local surf:TCairoGLSurface = New TCairoGLSurface
-		surf.surfacePtr = cairo_gl_surface_create(ctx.contextPtr, content, width, height)
-		Return surf
+	Rem
+	bbdoc: 
+	End Rem	
+	Function CreateRectangles:TCairoRegion(rect:TCairoRectangleInt[])
+		'Return TCairoRegion._create(cairo_region_create_rectangle_rectangles(Varptr rect))
 	End Function
+
+	Rem
+	bbdoc: Checks whether (#x, #y) is contained in #region.
+	returns: 
+	about: 
+	End Rem
+	Method ContainsPoint:Int(x:Int, y:Int)
+		Return cairo_region_contains_point(regionPtr, x, y)
+	End Method
+	
+	Rem
+	bbdoc: Checks whether @rect is inside, outside or partially contained within the region.
+	returns: #CAIRO_REGION_OVERLAP_IN if @rect is entirely inside the region, #CAIRO_REGION_OVERLAP_OUT if @rect is entirely outside the region, or #CAIRO_REGION_OVERLAP_PART if @rect is partially inside and partially outside the region.
+	about: 
+	End Rem
+	Method ContainsRectangle:Int(rect:TCairoRectangleInt)
+		Return cairo_region_contains_rectangle(regionPtr, Varptr rect)
+	End Method
+	
+	Rem
+	bbdoc: Allocates a new region object copying the area from this one.
+	returns: A newly allocated TCairoRegion. Free with Free(). This method always returns a valid Object; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing. You can check for this with #Status().
+	End Rem
+	Method Copy:TCairoRegion()
+		Return TCairoRegion._create(cairo_region_copy(regionPtr))
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Destroy()
+		cairo_region_destroy(regionPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Equal:Int(region:TCairoRegion)
+		Return cairo_region_equal(regionPtr, region.regionPtr)
+	End Method
+	
+	Rem
+	bbdoc: Gets the bounding rectangle of the region.
+	End Rem
+	Method GetExtents:TCairoRectangleInt()
+		Local rect:TCairoRectangleInt
+		
+		cairo_region_get_extents(regionPtr, Varptr rect)
+		
+		Return rect
+	End Method
+	
+	Rem
+	bbdoc: Returns the nth rectangle from the region.
+	End Rem
+	Method GetRectangle:TCairoRectangleInt(index:Int)
+		Local rect:TCairoRectangleInt
+
+		cairo_region_get_rectangle(regionPtr, index, Varptr rect)
+		
+		Return rect
+	End Method
+
+	Rem
+	bbdoc: Checks whether the region is empty.
+	returns: True if region is empty, False if it isn't.
+	End Rem
+	Method IsEmpty:Int()
+		Return cairo_region_is_empty(regionPtr)
+	End Method 
+
+	Rem
+	bbdoc: Computes the intersection of the region with @other and places the result in this region.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	End Rem
+	Method Intersect:Int(other:TCairoRegion)
+		Return cairo_region_intersect(regionPtr, other.regionPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method NumRectangles:Int()
+		Return cairo_region_num_rectangles(regionPtr)
+	End Method
+	
+	Rem
+	bbdoc: 
+	End Rem
+	Method Reference:TCairoRegion()
+		Return TCairoRegion._create(cairo_region_reference(regionPtr))
+	End Method
+	
+	Rem
+	bbdoc: Checks whether an error has previous occured for this region object.
+	returns: CAIRO_STATUS_SUCCESS or CAIRO_STATUS_NO_MEMORY
+	End Rem
+	Method Status:Int()
+		Return cairo_region_status(regionPtr)
+	End Method
+
+	Rem
+	bbdoc: Subtracts @other from this region, placing the result here.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	End Rem
+	Method Subtract:Int(region:TCairoRegion)
+		Return cairo_region_subtract(regionPtr, region.regionPtr)
+	End Method
+
+	Rem
+	bbdoc: Subtracts @rect from this region, placing the result here.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	End Rem
+	Method SubtractRectangle:Int(rect:TCairoRectangleInt)
+		Return cairo_region_subtract_rectangle(regionPtr, Varptr rect)
+	End Method
+
+	Rem
+	bbdoc: Translates the region by @dx, @dy.
+	End Rem
+	Method Translate(dx:Int, dy:Int)
+		cairo_region_translate(regionPtr, dx, dy)
+	End Method
+
+	Rem
+	bbdoc: Computes the union of this region with @other and places the result in this region.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	End Rem
+	Method Union:Int(region:TCairoRegion)
+		Return cairo_region_union(regionPtr, region.regionPtr)
+	End Method
+
+	Rem
+	bbdoc: Computes the union of thisregion with @rect and places the result in this region.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	End Rem
+	Method UnionRectangle:Int(rect:TCairoRectangleInt)
+		Return cairo_region_union_rectangle(regionPtr, Varptr rect)
+	End Method
+
+	Rem
+	bbdoc: Computes the exclusive difference of this region with @other and places the result in this region.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY
+	about: That is, this region will be set to contain all areas that are either in this region or in @other, but not in both.
+	End Rem
+	Method Xor:Int(other:TCairoRegion)
+		Return cairo_region_xor(regionPtr, other.regionPtr)
+	End Method
+
+	Rem
+	bbdoc: Computes the exclusive difference of this region with @rect and places the result in this region.
+	returns: #CAIRO_STATUS_SUCCESS or #CAIRO_STATUS_NO_MEMORY.
+	about: That is, this region will be set to contain all areas that are either in this region or in @rect, but not in both.
+	End Rem
+	Method XorRectangle:Int(rect:TCairoRectangleInt)
+		Return cairo_region_xor_rectangle(regionPtr, Varptr rect)
+	End Method
+
+	Method Delete()
+		If regionPtr Then
+			cairo_region_destroy(regionPtr)
+			regionPtr = Null
+		End If
+	End Method
 
 End Type
 
-Type TCairoGLContext
-
-	Field contextPtr:Byte Ptr
-
-	Function CreateContext:TCairoGLContext(context:Int)
-	' Mac only for now...
-?macos
-		Local this:TCairoGLContext = New TCairoGLContext
-		this.contextPtr = bmx_cairo_glcontext_create(context)
-		Return this
-?
-	End Function
-
-End Type
+Rem
+bbdoc: 
+End Rem
+'Type TCairoGLSurface Extends TCairoSurface
+'
+'	Rem
+'	bbdoc: 
+'	about: @content is one of CAIRO_CONTENT_COLOR, CAIRO_CONTENT_ALPHA, Or CAIRO_CONTENT_COLOR_ALPHA.
+'	End Rem
+'	Function CreateForContext:TCairoGLSurface(context:Int, content:Int, width:Int, height:Int)
+'		Local ctx:TCairoGLContext = TCairoGLContext.CreateContext(context)
+'	
+'		Local surf:TCairoGLSurface = New TCairoGLSurface
+'		surf.surfacePtr = cairo_gl_surface_create(ctx.contextPtr, content, width, height)
+'		Return surf
+'	End Function
+'
+'End Type
+'
+'Type TCairoGLContext
+'
+'	Field contextPtr:Byte Ptr
+'
+'	Function CreateContext:TCairoGLContext(context:Int)
+'		Local this:TCairoGLContext = New TCairoGLContext
+'		this.contextPtr = bmx_cairo_glcontext_create(context)
+'		Return this
+'	End Function
+'
+'End Type
 
 
 Rem
@@ -3555,4 +3826,12 @@ about: Describes the content that a surface will contain.
 End Rem
 Const CAIRO_CONTENT_COLOR_ALPHA:Int = $3000
 
+Rem
+bbdoc: The version 1.4 of the PDF specification.
+End Rem
+Const CAIRO_PDF_VERSION_1_4:Int = 0
+Rem
+bbdoc: The version 1.5 of the PDF specification.
+End Rem
+Const CAIRO_PDF_VERSION_1_5:Int = 1
 

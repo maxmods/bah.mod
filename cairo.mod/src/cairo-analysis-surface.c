@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -40,6 +40,7 @@
 #include "cairo-error-private.h"
 #include "cairo-paginated-private.h"
 #include "cairo-recording-surface-private.h"
+#include "cairo-surface-subsurface-private.h"
 #include "cairo-region-private.h"
 
 typedef struct {
@@ -100,10 +101,11 @@ _analyze_recording_surface_pattern (cairo_analysis_surface_t *surface,
     cairo_bool_t old_has_ctm;
     cairo_matrix_t old_ctm, p2d;
     cairo_status_t status;
+    cairo_surface_t *source;
 
     assert (pattern->type == CAIRO_PATTERN_TYPE_SURFACE);
     surface_pattern = (const cairo_surface_pattern_t *) pattern;
-    assert (_cairo_surface_is_recording (surface_pattern->surface));
+    assert (surface_pattern->surface->type == CAIRO_SURFACE_TYPE_RECORDING);
 
     old_ctm = surface->ctm;
     old_has_ctm = surface->has_ctm;
@@ -115,8 +117,13 @@ _analyze_recording_surface_pattern (cairo_analysis_surface_t *surface,
     cairo_matrix_multiply (&surface->ctm, &p2d, &surface->ctm);
     surface->has_ctm = ! _cairo_matrix_is_identity (&surface->ctm);
 
-    status = _cairo_recording_surface_replay_and_create_regions (surface_pattern->surface,
-							    &surface->base);
+    source = surface_pattern->surface;
+    if (source->backend->type == CAIRO_SURFACE_TYPE_SUBSURFACE) {
+	cairo_surface_subsurface_t *sub = (cairo_surface_subsurface_t *) source;
+	source = sub->target;
+    }
+
+    status = _cairo_recording_surface_replay_and_create_regions (source, &surface->base);
 
     surface->ctm = old_ctm;
     surface->has_ctm = old_has_ctm;
@@ -431,27 +438,14 @@ _cairo_analysis_surface_stroke (void			*abstract_surface,
 
     if (_cairo_operator_bounded_by_mask (op)) {
 	cairo_rectangle_int_t mask_extents;
+	cairo_status_t status;
 
-	/* If the backend can handle the stroke, then mark the approximate
-	 * extents of the operation. However, if we need to fallback in order
-	 * to draw the stroke, then ensure that the fallback is as tight as
-	 * possible -- both to minimise output file size and to ensure good
-	 * quality printed output for neighbouring regions.
-	 */
-	if (backend_status == CAIRO_STATUS_SUCCESS) {
-	    _cairo_path_fixed_approximate_stroke_extents (path,
-							  style, ctm,
-							  &mask_extents);
-	} else {
-	    cairo_status_t status;
-
-	    status = _cairo_path_fixed_stroke_extents (path, style,
-						       ctm, ctm_inverse,
-						       tolerance,
-						       &mask_extents);
-	    if (unlikely (status))
-		return status;
-	}
+	status = _cairo_path_fixed_stroke_extents (path, style,
+						   ctm, ctm_inverse,
+						   tolerance,
+						   &mask_extents);
+	if (unlikely (status))
+	    return status;
 
 	is_empty = _cairo_rectangle_intersect (&extents, &mask_extents);
     }
@@ -496,16 +490,9 @@ _cairo_analysis_surface_fill (void			*abstract_surface,
     if (_cairo_operator_bounded_by_mask (op)) {
 	cairo_rectangle_int_t mask_extents;
 
-	/* We want speed for the likely case where the operation can be
-	 * performed natively, but accuracy if we have to resort to
-	 * using images.
-	 */
-	if (backend_status == CAIRO_STATUS_SUCCESS) {
-	    _cairo_path_fixed_approximate_fill_extents (path, &mask_extents);
-	} else {
-	     _cairo_path_fixed_fill_extents (path, fill_rule, tolerance,
-					     &mask_extents);
-	}
+	_cairo_path_fixed_fill_extents (path, fill_rule, tolerance,
+					&mask_extents);
+
 	is_empty = _cairo_rectangle_intersect (&extents, &mask_extents);
     }
 

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -84,6 +84,8 @@ struct _cairo_xcb_surface {
     xcb_drawable_t drawable;
     cairo_bool_t owns_pixmap;
     int use_pixmap;
+
+    cairo_bool_t deferred_clear;
 
     int width;
     int height;
@@ -434,6 +436,9 @@ _cairo_xcb_surface_scaled_font_fini (cairo_scaled_font_t *scaled_font);
 cairo_private void
 _cairo_xcb_surface_scaled_glyph_fini (cairo_scaled_glyph_t *scaled_glyph,
 				      cairo_scaled_font_t  *scaled_font);
+
+cairo_private cairo_status_t
+_cairo_xcb_surface_clear (cairo_xcb_surface_t *dst);
 
 cairo_private cairo_status_t
 _cairo_xcb_surface_core_copy_boxes (cairo_xcb_surface_t		*dst,

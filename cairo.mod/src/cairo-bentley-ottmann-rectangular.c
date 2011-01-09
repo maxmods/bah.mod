@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -437,27 +437,31 @@ active_edges_to_traps (sweep_line_t	*sweep,
 	    pos = right->next;
 	} while (pos != &sweep->tail);
     } else {
-	edge_t *left, *right;
 	do {
-	    left = pos;
-	    pos = left->next;
-	    do {
-		right = pos;
-		pos = pos->next;
+	    edge_t *right = pos->next;
+	    int count = 0;
 
-		if (right->right != NULL) {
+	    do {
+		/* End all subsumed traps */
+		if (unlikely (right->right != NULL)) {
 		    edge_end_box (sweep,
 				  right, top, do_traps, container);
 		}
 
-		/* skip co-linear edges */
-		if (right->x != pos->x)
-		    break;
+		if (++count & 1) {
+		    /* skip co-linear edges */
+		    if (likely (right->x != right->next->x))
+			break;
+		}
+
+		right = right->next;
 	    } while (TRUE);
 
 	    edge_start_or_continue_box (sweep,
-					left, right, top,
+					pos, right, top,
 					do_traps, container);
+
+	    pos = right->next;
 	} while (pos != &sweep->tail);
     }
 
@@ -710,7 +714,6 @@ _cairo_bentley_ottmann_tessellate_rectangular_traps (cairo_traps_t *traps,
 	free (rectangles);
 
     dump_traps (traps, "bo-rects-traps-out.txt");
-
 
     return status;
 }

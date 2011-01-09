@@ -57,17 +57,6 @@ general_composite_rect  (pixman_implementation_t *imp,
                          int32_t                  height)
 {
     uint8_t stack_scanline_buffer[SCANLINE_BUFFER_LENGTH * 3];
-    const pixman_format_code_t src_format =
-	src->type == BITS ? src->bits.format : 0;
-    const pixman_format_code_t mask_format =
-	mask && mask->type == BITS ? mask->bits.format : 0;
-    const pixman_format_code_t dest_format =
-	dest->type == BITS ? dest->bits.format : 0;
-    const int src_wide = PIXMAN_FORMAT_IS_WIDE (src_format);
-    const int mask_wide = mask && PIXMAN_FORMAT_IS_WIDE (mask_format);
-    const int dest_wide = PIXMAN_FORMAT_IS_WIDE (dest_format);
-    const int wide = src_wide || mask_wide || dest_wide;
-    const int Bpp = wide ? 8 : 4;
     uint8_t *scanline_buffer = stack_scanline_buffer;
     uint8_t *src_buffer, *mask_buffer, *dest_buffer;
     fetch_scanline_t fetch_src = NULL, fetch_mask = NULL, fetch_dest = NULL;
@@ -77,7 +66,14 @@ general_composite_rect  (pixman_implementation_t *imp,
     pixman_bool_t component_alpha;
     uint32_t *bits;
     int32_t stride;
+    int narrow, Bpp;
     int i;
+
+    narrow =
+	(src->common.flags & FAST_PATH_NARROW_FORMAT)		&&
+	(!mask || mask->common.flags & FAST_PATH_NARROW_FORMAT)	&&
+	(dest->common.flags & FAST_PATH_NARROW_FORMAT);
+    Bpp = narrow ? 4 : 8;
 
     if (width * Bpp > SCANLINE_BUFFER_LENGTH)
     {
@@ -106,29 +102,29 @@ general_composite_rect  (pixman_implementation_t *imp,
 
     if (op == PIXMAN_OP_CLEAR)
 	fetch_src = NULL;
-    else if (wide)
-	fetch_src = _pixman_image_get_scanline_64;
-    else
+    else if (narrow)
 	fetch_src = _pixman_image_get_scanline_32;
+    else
+	fetch_src = _pixman_image_get_scanline_64;
 
     if (!mask || op == PIXMAN_OP_CLEAR)
 	fetch_mask = NULL;
-    else if (wide)
-	fetch_mask = _pixman_image_get_scanline_64;
-    else
+    else if (narrow)
 	fetch_mask = _pixman_image_get_scanline_32;
+    else
+	fetch_mask = _pixman_image_get_scanline_64;
 
     if (op == PIXMAN_OP_CLEAR || op == PIXMAN_OP_SRC)
 	fetch_dest = NULL;
-    else if (wide)
-	fetch_dest = _pixman_image_get_scanline_64;
-    else
+    else if (narrow)
 	fetch_dest = _pixman_image_get_scanline_32;
-
-    if (wide)
-	store = _pixman_image_store_scanline_64;
     else
+	fetch_dest = _pixman_image_get_scanline_64;
+
+    if (narrow)
 	store = _pixman_image_store_scanline_32;
+    else
+	store = _pixman_image_store_scanline_64;
 
     /* Skip the store step and composite directly into the
      * destination if the output format of the compose func matches
@@ -148,7 +144,7 @@ general_composite_rect  (pixman_implementation_t *imp,
 	  op == PIXMAN_OP_OUT_REVERSE	||
 	  op == PIXMAN_OP_DST)))
     {
-	if (!wide &&
+	if (narrow &&
 	    !dest->common.alpha_map &&
 	    !dest->bits.write_func)
 	{
@@ -175,19 +171,19 @@ general_composite_rect  (pixman_implementation_t *imp,
         mask->common.component_alpha    &&
         PIXMAN_FORMAT_RGB (mask->bits.format);
 
-    if (wide)
-    {
-	if (component_alpha)
-	    compose = (pixman_combine_32_func_t)_pixman_implementation_combine_64_ca;
-	else
-	    compose = (pixman_combine_32_func_t)_pixman_implementation_combine_64;
-    }
-    else
+    if (narrow)
     {
 	if (component_alpha)
 	    compose = _pixman_implementation_combine_32_ca;
 	else
 	    compose = _pixman_implementation_combine_32;
+    }
+    else
+    {
+	if (component_alpha)
+	    compose = (pixman_combine_32_func_t)_pixman_implementation_combine_64_ca;
+	else
+	    compose = (pixman_combine_32_func_t)_pixman_implementation_combine_64;
     }
 
     if (!compose)
@@ -206,7 +202,7 @@ general_composite_rect  (pixman_implementation_t *imp,
 		/* fetch mask before source so that fetching of
 		   source can be optimized */
 		fetch_mask (mask, mask_x, mask_y + i,
-		            width, (void *)mask_buffer, 0, 0);
+		            width, (void *)mask_buffer, 0);
 
 		if (mask_class == SOURCE_IMAGE_CLASS_HORIZONTAL)
 		    fetch_mask = NULL;
@@ -215,20 +211,19 @@ general_composite_rect  (pixman_implementation_t *imp,
 	    if (src_class == SOURCE_IMAGE_CLASS_HORIZONTAL)
 	    {
 		fetch_src (src, src_x, src_y + i,
-		           width, (void *)src_buffer, 0, 0);
+		           width, (void *)src_buffer, 0);
 		fetch_src = NULL;
 	    }
 	    else
 	    {
 		fetch_src (src, src_x, src_y + i,
-		           width, (void *)src_buffer, (void *)mask_buffer,
-		           0xffffffff);
+		           width, (void *)src_buffer, (void *)mask_buffer);
 	    }
 	}
 	else if (fetch_mask)
 	{
 	    fetch_mask (mask, mask_x, mask_y + i,
-	                width, (void *)mask_buffer, 0, 0);
+	                width, (void *)mask_buffer, 0);
 	}
 
 	if (store)
@@ -237,7 +232,7 @@ general_composite_rect  (pixman_implementation_t *imp,
 	    if (fetch_dest)
 	    {
 		fetch_dest (dest, dest_x, dest_y + i,
-		            width, (void *)dest_buffer, 0, 0);
+		            width, (void *)dest_buffer, 0);
 	    }
 
 	    /* blend */
@@ -264,26 +259,11 @@ general_composite_rect  (pixman_implementation_t *imp,
 	free (scanline_buffer);
 }
 
-static void
-general_composite (pixman_implementation_t * imp,
-                   pixman_op_t               op,
-                   pixman_image_t *          src,
-                   pixman_image_t *          mask,
-                   pixman_image_t *          dest,
-                   int32_t                   src_x,
-                   int32_t                   src_y,
-                   int32_t                   mask_x,
-                   int32_t                   mask_y,
-                   int32_t                   dest_x,
-                   int32_t                   dest_y,
-                   int32_t                   width,
-                   int32_t                   height)
+static const pixman_fast_path_t general_fast_path[] =
 {
-    _pixman_walk_composite_region (imp, op, src, mask, dest, src_x, src_y,
-                                   mask_x, mask_y, dest_x, dest_y,
-				   width, height,
-                                   general_composite_rect);
-}
+    { PIXMAN_OP_any, PIXMAN_any, 0, PIXMAN_any,	0, PIXMAN_any, 0, general_composite_rect },
+    { PIXMAN_OP_NONE }
+};
 
 static pixman_bool_t
 general_blt (pixman_implementation_t *imp,
@@ -322,12 +302,11 @@ general_fill (pixman_implementation_t *imp,
 pixman_implementation_t *
 _pixman_implementation_create_general (void)
 {
-    pixman_implementation_t *imp = _pixman_implementation_create (NULL);
+    pixman_implementation_t *imp = _pixman_implementation_create (NULL, general_fast_path);
 
     _pixman_setup_combiner_functions_32 (imp);
     _pixman_setup_combiner_functions_64 (imp);
 
-    imp->composite = general_composite;
     imp->blt = general_blt;
     imp->fill = general_fill;
 

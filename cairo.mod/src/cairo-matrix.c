@@ -12,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -42,6 +42,29 @@
 #else
 #define ISFINITE(x) ((x) * (x) >= 0.) /* check for NaNs */
 #endif
+
+/**
+ * SECTION:cairo-matrix
+ * @Title: cairo_matrix_t
+ * @Short_Description: Generic matrix operations
+ * @See_Also: #cairo_t
+ *
+ * #cairo_matrix_t is used throughout cairo to convert between different
+ * coordinate spaces.  A #cairo_matrix_t holds an affine transformation,
+ * such as a scale, rotation, shear, or a combination of these.
+ * The transformation of a point (<literal>x</literal>,<literal>y</literal>)
+ * is given by:
+ *
+ * <programlisting>
+ * x_new = xx * x + xy * y + x0;
+ * y_new = yx * x + yy * y + y0;
+ * </programlisting>
+ *
+ * The current transformation matrix of a #cairo_t, represented as a
+ * #cairo_matrix_t, defines the transformation from user-space
+ * coordinates to device-space coordinates. See cairo_get_matrix() and
+ * cairo_set_matrix().
+ */
 
 static void
 _cairo_matrix_scalar_multiply (cairo_matrix_t *matrix, double scalar);
@@ -576,6 +599,15 @@ _cairo_matrix_is_invertible (const cairo_matrix_t *matrix)
     det = _cairo_matrix_compute_determinant (matrix);
 
     return ISFINITE (det) && det != 0.;
+}
+
+cairo_bool_t
+_cairo_matrix_is_scale_0 (const cairo_matrix_t *matrix)
+{
+    return matrix->xx == 0. &&
+           matrix->xy == 0. &&
+           matrix->yx == 0. &&
+           matrix->yy == 0.;
 }
 
 double
