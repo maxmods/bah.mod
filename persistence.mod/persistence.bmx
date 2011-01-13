@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2010 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ Module BaH.Persistence
 ModuleInfo "Version: 1.00"
 ModuleInfo "Author: Bruce A Henderson"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: 2008-2010 Bruce A Henderson"
+ModuleInfo "Copyright: 2008-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
 ModuleInfo "History: Initial Release"
@@ -512,6 +512,7 @@ Type TPersist
 				
 				Local size:Int = node.getAttribute("size").toInt()
 				obj = objType.NewArray(size)
+				objectMap.Insert(node.getAttribute("ref"), obj)
 
 				If size > 0 Then
 					Local arrayElementType:TTypeId = objType.ElementType()
@@ -611,7 +612,7 @@ Type TPersist
 		
 										Local arrayType:TTypeId = fieldObj.TypeId()
 										Local arrayElementType:TTypeId = arrayType.ElementType()
-					
+
 										If fileVersion Then
 											
 											' for file version 3+
