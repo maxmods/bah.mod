@@ -18,13 +18,19 @@
  **********************************************************************/
 
 #include "mfcpch.h"
-#include          <string.h>
+#include <string.h>
 #ifdef __UNIX__
-#include          <assert.h>
+#include <assert.h>
 #endif
-#include          "coutln.h"
+#include "coutln.h"
+#include "allheaders.h"
 
-ELISTIZE_S (C_OUTLINE)
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
+ELISTIZE (C_OUTLINE)
 ICOORD C_OUTLINE::step_coords[4] = {
   ICOORD (-1, 0), ICOORD (0, -1), ICOORD (1, 0), ICOORD (0, 1)
 };
@@ -143,6 +149,12 @@ C_OUTLINE::C_OUTLINE(                     //constructor
   uinT8 new_step;
 
   stepcount = srcline->stepcount * 2;
+  if (stepcount == 0) {
+    steps = NULL;
+    box = srcline->box;
+    box.rotate(rotation);
+    return;
+  }
                                  //get memory
   steps = (uinT8 *) alloc_mem (step_mem());
   memset(steps, 0, step_mem());
@@ -212,6 +224,7 @@ C_OUTLINE::C_OUTLINE(                     //constructor
     if (destindex >= 4)
       break;
   }
+  ASSERT_HOST(destindex <= stepcount);
   stepcount = destindex;
   destpos = start;
   for (stepindex = 0; stepindex < stepcount; stepindex++) {
@@ -220,6 +233,16 @@ C_OUTLINE::C_OUTLINE(                     //constructor
   ASSERT_HOST (destpos.x () == start.x () && destpos.y () == start.y ());
 }
 
+// Build a fake outline, given just a bounding box and append to the list.
+void C_OUTLINE::FakeOutline(const TBOX& box, C_OUTLINE_LIST* outlines) {
+  C_OUTLINE_IT ol_it(outlines);
+  // Make a C_OUTLINE from the bounds. This is a bit of a hack,
+  // as there is no outline, just a bounding box, but it works nicely.
+  CRACKEDGE start;
+  start.pos = box.topleft();
+  C_OUTLINE* outline = new C_OUTLINE(&start, box.topleft(), box.botright(), 0);
+  ol_it.add_to_end(outline);
+}
 
 /**********************************************************************
  * C_OUTLINE::area
@@ -578,6 +601,42 @@ void C_OUTLINE::move(                  // reposition OUTLINE
     it.data ()->move (vec);      // move child outlines
 }
 
+// If this outline is smaller than the given min_size, delete this and
+// remove from its list, via *it, after checking that *it points to this.
+// Otherwise, if any children of this are too small, delete them.
+// On entry, *it must be an iterator pointing to this. If this gets deleted
+// then this is extracted from *it, so an iteration can continue.
+void C_OUTLINE::RemoveSmallRecursive(int min_size, C_OUTLINE_IT* it) {
+  if (box.width() < min_size || box.height() < min_size) {
+    ASSERT_HOST(this == it->data());
+    delete it->extract();  // Too small so get rid of it and any children.
+  } else if (!children.empty()) {
+    // Search the children of this, deleting any that are too small.
+    C_OUTLINE_IT child_it(&children);
+    for (child_it.mark_cycle_pt(); !child_it.cycled_list();
+         child_it.forward()) {
+      C_OUTLINE* child = child_it.data();
+      child->RemoveSmallRecursive(min_size, &child_it);
+    }
+  }
+}
+
+// Renders the outline to the given pix, with left and top being
+// the coords of the upper-left corner of the pix.
+void C_OUTLINE::render(int left, int top, Pix* pix) {
+  ICOORD pos = start;
+  for (int stepindex = 0; stepindex < stepcount; ++stepindex) {
+    ICOORD next_step = step(stepindex);
+    if (next_step.y() < 0) {
+      pixRasterop(pix, 0, top - pos.y(), pos.x() - left, 1,
+                  PIX_NOT(PIX_DST), NULL, 0, 0);
+    } else if (next_step.y() > 0) {
+      pixRasterop(pix, 0, top - pos.y() - 1, pos.x() - left, 1,
+                  PIX_NOT(PIX_DST), NULL, 0, 0);
+    }
+    pos += next_step;
+  }
+}
 
 /**********************************************************************
  * C_OUTLINE::plot
@@ -587,15 +646,14 @@ void C_OUTLINE::move(                  // reposition OUTLINE
 
 #ifndef GRAPHICS_DISABLED
 void C_OUTLINE::plot(                //draw it
-                     ScrollView* window,  //window to draw in
-                     ScrollView::Color colour   //colour to draw in
+                     ScrollView* window,       // window to draw in
+                     ScrollView::Color colour  // colour to draw in
                     ) const {
-  inT16 stepindex;               //index to cstep
-  ICOORD pos;                    //current position
-  DIR128 stepdir;                //direction of step
-  DIR128 oldstepdir;             //previous stepdir
+  inT16 stepindex;               // index to cstep
+  ICOORD pos;                    // current position
+  DIR128 stepdir;                // direction of step
 
-  pos = start;                   //current position
+  pos = start;                   // current position
   window->Pen(colour);
   if (stepcount == 0) {
     window->Rectangle(box.left(), box.top(), box.right(), box.bottom());
@@ -604,19 +662,17 @@ void C_OUTLINE::plot(                //draw it
   window->SetCursor(pos.x(), pos.y());
 
   stepindex = 0;
-  stepdir = step_dir (0);        //get direction
   while (stepindex < stepcount) {
-    do {
-      pos += step (stepindex);   //step to next
-      stepindex++;               //count steps
-      oldstepdir = stepdir;
-                                 //new direction
-      stepdir = step_dir (stepindex);
+    pos += step(stepindex);    // step to next
+    stepdir = step_dir(stepindex);
+    stepindex++;               // count steps
+    // merge straight lines
+    while (stepindex < stepcount &&
+           stepdir.get_dir() == step_dir(stepindex).get_dir()) {
+      pos += step(stepindex);
+      stepindex++;
     }
-    while (stepindex < stepcount
-      && oldstepdir.get_dir () == stepdir.get_dir ());
-    //merge straight lines
-     window->DrawTo(pos.x(), pos.y());
+    window->DrawTo(pos.x(), pos.y());
   }
 }
 #endif

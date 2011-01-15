@@ -29,13 +29,13 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the `jpeg' library (-ljpeg). */
-#define HAVE_LIBJPEG 1
+// #undef HAVE_LIBJPEG
 
 /* Define to 1 if you have the `lept' library (-llept). */
-/* #undef HAVE_LIBLEPT */
+#define HAVE_LIBLEPT 1
 
 /* Define to 1 if you have the `png' library (-lpng). */
-#define HAVE_LIBPNG 1
+// #define HAVE_LIBPNG 1
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #define HAVE_LIBPTHREAD 1
@@ -127,29 +127,36 @@
 /* Define to 1 if the system has the type `_Bool'. */
 /* #undef HAVE__BOOL */
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
+
 /* Name of package */
-#define PACKAGE ""
+#define PACKAGE "tesseract"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "theraysmith@gmail.com"
 
 /* Official date of release */
-#define PACKAGE_DATE "04/22"
+#define PACKAGE_DATE "09/30"
 
 /* Name of package */
 #define PACKAGE_NAME "tesseract"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "tesseract 2.03"
+#define PACKAGE_STRING "tesseract 3.01"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "tesseract"
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
 /* Version number */
-#define PACKAGE_VERSION "2.03"
+#define PACKAGE_VERSION "3.01"
 
 /* Official year for this release */
-#define PACKAGE_YEAR "2008"
+#define PACKAGE_YEAR "2010"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -158,7 +165,8 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION ""
+#define VERSION "3.01"
+
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

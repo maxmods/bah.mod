@@ -23,6 +23,9 @@
 #include          "blobbox.h"
 #include          "notdll.h"
 
+namespace tesseract {
+class Tesseract;
+}
 extern BOOL_VAR_H (textord_debug_pitch_test, FALSE,
 "Debug on fixed pitch test");
 extern BOOL_VAR_H (textord_debug_pitch_metric, FALSE,
@@ -39,15 +42,12 @@ extern double_VAR_H (textord_projection_scale, 0.125,
 "Ding rate for mid-cuts");
 extern double_VAR_H (textord_balance_factor, 2.0,
 "Ding rate for unbalanced char cells");
-extern double_VAR_H (textord_repch_width_variance, 0.2,
-"Max width change of gap/blob");
-void compute_fixed_pitch(                             //determine pitch
-                         ICOORD page_tr,              //top right
-                         TO_BLOCK_LIST *port_blocks,  //input list
-                         float gradient,              //page skew
-                         FCOORD rotation,             //for drawing
-                         BOOL8 testing_on             //correct orientation
-                        );
+
+void compute_fixed_pitch(ICOORD page_tr,              // top right
+                         TO_BLOCK_LIST *port_blocks,  // input list
+                         float gradient,              // page skew
+                         FCOORD rotation,             // for drawing
+                         BOOL8 testing_on);           // correct orientation
 void fix_row_pitch(                        //get some value
                    TO_ROW *bad_row,        //row to fix
                    TO_BLOCK *bad_block,    //block of bad_row
@@ -55,12 +55,10 @@ void fix_row_pitch(                        //get some value
                    inT32 row_target,       //number of row
                    inT32 block_target      //number of block
                   );
-void compute_block_pitch(                    //process each block
-                         TO_BLOCK *block,    //input list
-                         FCOORD rotation,    //for drawing
-                         inT32 block_index,  //block number
-                         BOOL8 testing_on    //correct orientation
-                        );
+void compute_block_pitch( TO_BLOCK *block,     // input list
+                         FCOORD rotation,      // for drawing
+                         inT32 block_index,    // block number
+                         BOOL8 testing_on);    // correct orientation
 BOOL8 compute_rows_pitch(                    //find line stats
                          TO_BLOCK *block,    //block to do
                          inT32 block_index,  //block number
@@ -180,13 +178,8 @@ void print_pitch_sd(                        //find fp cells
                     float space_size,
                     float initial_pitch     //guess at pitch
                    );
-int sort_floats2(                   //qsort function
-                 const void *arg1,  //ptrs to floats
-                 const void *arg2);
-void find_repeated_chars(                  //search for equal chars
-                         TO_BLOCK *block,  //block to search
-                         BOOL8 testing_on  //dbug mode
-                        );
+void find_repeated_chars(TO_BLOCK *block,    // Block to search.
+                         BOOL8 testing_on);  // Debug mode.
 void plot_fp_word(                  //draw block of words
                   TO_BLOCK *block,  //block to draw
                   float pitch,      //pitch to draw with

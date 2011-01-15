@@ -18,19 +18,19 @@
 #ifndef   EXTRACT_H
 #define   EXTRACT_H
 
-#include "fxdefs.h"
 #include "featdefs.h"
 #include <stdio.h>
 
-/**----------------------------------------------------------------------------
-          Public Function Prototypes
-----------------------------------------------------------------------------**/
-CHAR_DESC ExtractBlobFeatures(TBLOB *Blob, LINE_STATS *LineStats); 
+class DENORM;
 
-void InitExtractorVars(); 
+/*-----------------------------------------------------------------------------
+          Public Function Prototypes
+-----------------------------------------------------------------------------*/
+CHAR_DESC ExtractBlobFeatures(const FEATURE_DEFS_STRUCT &FeatureDefs,
+                              const DENORM& denorm, TBLOB *Blob);
 
 /*---------------------------------------------------------------------------
           Private Function Prototypes
 ----------------------------------------------------------------------------*/
-void ExtractorStub(); 
+void ExtractorStub();
 #endif

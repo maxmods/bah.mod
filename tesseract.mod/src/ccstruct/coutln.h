@@ -38,8 +38,9 @@ enum C_OUTLINE_FLAGS
 };
 
 class DLLSYM C_OUTLINE;          //forward declaration
+struct Pix;
 
-ELISTIZEH_S (C_OUTLINE)
+ELISTIZEH (C_OUTLINE)
 class DLLSYM C_OUTLINE:public ELIST_LINK
 {
   public:
@@ -56,6 +57,10 @@ class DLLSYM C_OUTLINE:public ELIST_LINK
               inT16 length);     //length of loop
                                  //outline to copy
     C_OUTLINE(C_OUTLINE *srcline, FCOORD rotation);  //and rotate
+
+    // Build a fake outline, given just a bounding box and append to the list.
+    static void FakeOutline(const TBOX& box, C_OUTLINE_LIST* outlines);
+
     ~C_OUTLINE () {              //destructor
       if (steps != NULL)
         free_mem(steps);
@@ -138,29 +143,20 @@ class DLLSYM C_OUTLINE:public ELIST_LINK
     void move(                    // reposition outline
               const ICOORD vec);  // by vector
 
+    // If this outline is smaller than the given min_size, delete this and
+    // remove from its list, via *it, after checking that *it points to this.
+    // Otherwise, if any children of this are too small, delete them.
+    // On entry, *it must be an iterator pointing to this. If this gets deleted
+    // then this is extracted from *it, so an iteration can continue.
+    void RemoveSmallRecursive(int min_size, C_OUTLINE_IT* it);
+
+    // Renders the outline to the given pix, with left and top being
+    // the coords of the upper-left corner of the pix.
+    void render(int left, int top, Pix* pix);
+
     void plot(                       //draw one
               ScrollView* window,         //window to draw in
               ScrollView::Color colour) const;  //colour to draw it
-
-    void prep_serialise() {  //set ptrs to counts
-      children.prep_serialise ();
-    }
-
-    void dump(  //write external bits
-              FILE *f) {
-                                 //stepcount = # bytes
-      serialise_bytes (f, (void *) steps, step_mem());
-      children.dump (f);
-    }
-
-    void de_dump(  //read external bits
-                 FILE *f) {
-      steps = (uinT8 *) de_serialise_bytes (f, step_mem());
-      children.de_dump (f);
-    }
-
-                                 //assignment
-    make_serialise (C_OUTLINE)
 
     C_OUTLINE& operator=(const C_OUTLINE& source);
 

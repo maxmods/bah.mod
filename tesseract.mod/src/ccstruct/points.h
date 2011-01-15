@@ -1,8 +1,8 @@
 /**********************************************************************
  * File:        points.h  (Formerly coords.h)
  * Description: Coordinate class definitions.
- * Author:					Ray Smith
- * Created:					Fri Mar 15 08:32:45 GMT 1991
+ * Author:      Ray Smith
+ * Created:     Fri Mar 15 08:32:45 GMT 1991
  *
  * (C) Copyright 1991, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,55 +23,64 @@
 #include          <stdio.h>
 #include          <math.h>
 #include          "elst.h"
-//#include                                      "ipeerr.h"
 
 class FCOORD;
 
-class DLLSYM ICOORD              //integer coordinate
+///integer coordinate
+class ICOORD
 {
   friend class FCOORD;
 
   public:
-    ICOORD() {  //empty constructor
+    ///empty constructor
+    ICOORD() {
       xcoord = ycoord = 0;       //default zero
     }
-    ICOORD(              //constructor
-           inT16 xin,    //x value
-           inT16 yin) {  //y value
+    ///constructor
+    ///@param xin x value
+    ///@param yin y value
+    ICOORD(inT16 xin,
+           inT16 yin) {
       xcoord = xin;
       ycoord = yin;
     }
-    ~ICOORD () {                 //destructor
+    ///destructor
+    ~ICOORD () {
     }
 
-                                 //access function
-    NEWDELETE2 (ICOORD) inT16 x () const
-    {
+    ///access function
+    inT16 x() const {
       return xcoord;
     }
-    inT16 y() const {  //access_function
+    ///access_function
+    inT16 y() const {
       return ycoord;
     }
 
-    void set_x(  //rewrite function
-               inT16 xin) {
+    ///rewrite function
+    void set_x(inT16 xin) {
       xcoord = xin;              //write new value
     }
-    void set_y(              //rewrite function
-               inT16 yin) {  //value to set
+    ///rewrite function
+    void set_y(inT16 yin) {  //value to set
       ycoord = yin;
     }
 
-    float sqlength() const {  //find sq length
+    /// Set from the given x,y, shrinking the vector to fit if needed.
+    void set_with_shrink(int x, int y);
+
+    ///find sq length
+    float sqlength() const {
       return (float) (xcoord * xcoord + ycoord * ycoord);
     }
 
-    float length() const {  //find length
+    ///find length
+    float length() const {
       return (float) sqrt (sqlength ());
     }
 
-    float pt_to_pt_sqdist(  //sq dist between pts
-                          const ICOORD &pt) const {
+    ///sq dist between pts
+    float pt_to_pt_sqdist(const ICOORD &pt) const {
       ICOORD gap;
 
       gap.xcoord = xcoord - pt.xcoord;
@@ -79,106 +88,88 @@ class DLLSYM ICOORD              //integer coordinate
       return gap.sqlength ();
     }
 
-    float pt_to_pt_dist(  //Distance between pts
-                        const ICOORD &pt) const {
+    ///Distance between pts
+    float pt_to_pt_dist(const ICOORD &pt) const {
       return (float) sqrt (pt_to_pt_sqdist (pt));
     }
 
-    float angle() const {  //find angle
+    ///find angle
+    float angle() const {
       return (float) atan2 ((double) ycoord, (double) xcoord);
     }
 
-    BOOL8 operator== (           //test equality
-    const ICOORD & other) {
+    ///test equality
+    BOOL8 operator== (const ICOORD & other) {
       return xcoord == other.xcoord && ycoord == other.ycoord;
     }
-    BOOL8 operator!= (           //test inequality
-    const ICOORD & other) {
+    ///test inequality
+    BOOL8 operator!= (const ICOORD & other) {
       return xcoord != other.xcoord || ycoord != other.ycoord;
     }
-    friend ICOORD operator! (    //rotate 90 deg anti
-      const ICOORD &);
-    friend ICOORD operator- (    //unary minus
-      const ICOORD &);
-    friend ICOORD operator+ (    //add
-      const ICOORD &, const ICOORD &);
-    friend ICOORD & operator+= ( //add
-      ICOORD &, const ICOORD &);
-    friend ICOORD operator- (    //subtract
-      const ICOORD &, const ICOORD &);
-    friend ICOORD & operator-= ( //subtract
-      ICOORD &, const ICOORD &);
-    friend inT32 operator% (     //scalar product
-      const ICOORD &, const ICOORD &);
-    friend inT32 operator *(  //cross product
-                            const ICOORD &,
+    ///rotate 90 deg anti
+    friend ICOORD operator! (const ICOORD &);
+    ///unary minus
+    friend ICOORD operator- (const ICOORD &);
+    ///add
+    friend ICOORD operator+ (const ICOORD &, const ICOORD &);
+    ///add
+    friend ICOORD & operator+= (ICOORD &, const ICOORD &);
+    ///subtract
+    friend ICOORD operator- (const ICOORD &, const ICOORD &);
+    ///subtract
+    friend ICOORD & operator-= (ICOORD &, const ICOORD &);
+    ///scalar product
+    friend inT32 operator% (const ICOORD &, const ICOORD &);
+    ///cross product
+    friend inT32 operator *(const ICOORD &,
                             const ICOORD &);
-    friend ICOORD operator *(  //multiply
-                             const ICOORD &,
+    ///multiply
+    friend ICOORD operator *(const ICOORD &,
                              inT16);
-    friend ICOORD operator *(  //multiply
-                             inT16,
+    ///multiply
+    friend ICOORD operator *(inT16,
                              const ICOORD &);
-    friend ICOORD & operator*= ( //multiply
-      ICOORD &, inT16);
-    friend ICOORD operator/ (    //divide
-      const ICOORD &, inT16);
-                                 //divide
+    ///multiply
+    friend ICOORD & operator*= (ICOORD &, inT16);
+    ///divide
+    friend ICOORD operator/ (const ICOORD &, inT16);
+    ///divide
     friend ICOORD & operator/= (ICOORD &, inT16);
-    void rotate(                    //rotate
-                const FCOORD& vec);  //by vector
+    ///rotate
+    ///@param vec by vector
+    void rotate(const FCOORD& vec);
 
-    // Setup for iterating over the pixels in a vector by the well-known
-    // Bresenham rendering algorithm.
-    // Starting with major/2 in the accumulator, on each step move by
-    // major_step, and then add minor to the accumulator. When
-    // accumulator >= major subtract major and also move by minor_step.
+    /// Setup for iterating over the pixels in a vector by the well-known
+    /// Bresenham rendering algorithm.
+    /// Starting with major/2 in the accumulator, on each step move by
+    /// major_step, and then add minor to the accumulator. When
+    /// accumulator >= major subtract major and also move by minor_step.
     void setup_render(ICOORD* major_step, ICOORD* minor_step,
-                      int* major, int* minor);
-
-    void serialise_asc(  //serialise to ascii
-                       FILE *f);
-    void de_serialise_asc(  //serialise from ascii
-                          FILE *f);
+                      int* major, int* minor) const;
 
   protected:
-    inT16 xcoord;                //x value
-    inT16 ycoord;                //y value
+    inT16 xcoord;                //< x value
+    inT16 ycoord;                //< y value
 };
 
 class DLLSYM ICOORDELT:public ELIST_LINK, public ICOORD
                                  //embedded coord list
 {
   public:
-    ICOORDELT() {  //empty constructor
+    ///empty constructor
+    ICOORDELT() {  
     }
-    ICOORDELT (                  //constructor
-                                 //from ICOORD
-    ICOORD icoord):ICOORD (icoord) {
+    ///constructor from ICOORD
+    ICOORDELT (ICOORD icoord):ICOORD (icoord) {
     }
-    ICOORDELT(              //constructor
-              inT16 xin,    //x value
-              inT16 yin) {  //y value
+    ///constructor
+    ///@param xin x value
+    ///@param yin y value
+    ICOORDELT(inT16 xin,
+              inT16 yin) {
       xcoord = xin;
       ycoord = yin;
     }
-
-    /* Note that prep_serialise() dump() and de_dump() dont need to do anything
-    more than terminate recursion. */
-
-    void prep_serialise() const {  //set ptrs to counts
-    }
-
-    void dump(  //write external bits
-              FILE *) const {
-    }
-
-    void de_dump(  //read external bits
-                 FILE *) {
-    }
-
-                                 //serialise to ascii
-    make_serialise(ICOORDELT)
 
     static ICOORDELT* deep_copy(const ICOORDELT* src) {
       ICOORDELT* elt = new ICOORDELT;
@@ -186,20 +177,19 @@ class DLLSYM ICOORDELT:public ELIST_LINK, public ICOORD
       return elt;
     }
 
-    void serialise_asc(FILE * f);
-    void de_serialise_asc(  //serialise from ascii
-                          FILE *f);
-
 };
 
-ELISTIZEH_S (ICOORDELT)
+ELISTIZEH (ICOORDELT)
 class DLLSYM FCOORD
 {
   public:
+    ///empty constructor
     FCOORD() {
-    }                            //empty constructor
-    FCOORD(               //constructor
-           float xvalue,  //coords to set
+    }
+    ///constructor
+    ///@param xvalue x value
+    ///@param yvalue y value
+    FCOORD(float xvalue,
            float yvalue) {
       xcoord = xvalue;           //set coords
       ycoord = yvalue;
@@ -216,25 +206,27 @@ class DLLSYM FCOORD
     float y() const {
       return ycoord;
     }
-    void set_x(  //rewrite function
-               float xin) {
+    ///rewrite function
+    void set_x(float xin) {
       xcoord = xin;              //write new value
     }
-    void set_y(              //rewrite function
-               float yin) {  //value to set
+    ///rewrite function
+    void set_y(float yin) {  //value to set
       ycoord = yin;
     }
 
-    float sqlength() const {  //find sq length
+    ///find sq length
+    float sqlength() const {
       return xcoord * xcoord + ycoord * ycoord;
     }
 
-    float length() const {  //find length
+    ///find length
+    float length() const {
       return (float) sqrt (sqlength ());
     }
 
-    float pt_to_pt_sqdist(  //sq dist between pts
-                          const FCOORD &pt) const {
+    ///sq dist between pts
+    float pt_to_pt_sqdist(const FCOORD &pt) const {
       FCOORD gap;
 
       gap.xcoord = xcoord - pt.xcoord;
@@ -242,52 +234,56 @@ class DLLSYM FCOORD
       return gap.sqlength ();
     }
 
-    float pt_to_pt_dist(  //Distance between pts
-                        const FCOORD &pt) const {
+    ///Distance between pts
+    float pt_to_pt_dist(const FCOORD &pt) const {
       return (float) sqrt (pt_to_pt_sqdist (pt));
     }
 
-    float angle() const {  //find angle
+    ///find angle
+    float angle() const {
       return (float) atan2 (ycoord, xcoord);
     }
 
-    bool normalise();  //Convert to unit vec
+    ///Convert to unit vec
+    bool normalise();
 
-    BOOL8 operator== (           //test equality
-    const FCOORD & other) {
+    ///test equality
+    BOOL8 operator== (const FCOORD & other) {
       return xcoord == other.xcoord && ycoord == other.ycoord;
     }
-    BOOL8 operator!= (           //test inequality
-    const FCOORD & other) {
+    ///test inequality
+    BOOL8 operator!= (const FCOORD & other) {
       return xcoord != other.xcoord || ycoord != other.ycoord;
     }
-                                 //rotate 90 deg anti
+    ///rotate 90 deg anti
     friend FCOORD operator! (const FCOORD &);
-                                 //unary minus
+    ///unary minus
     friend FCOORD operator- (const FCOORD &);
-                                 //add
+    ///add
     friend FCOORD operator+ (const FCOORD &, const FCOORD &);
-                                 //add
+    ///add
     friend FCOORD & operator+= (FCOORD &, const FCOORD &);
-                                 //subtract
+    ///subtract
     friend FCOORD operator- (const FCOORD &, const FCOORD &);
-                                 //subtract
+    ///subtract
     friend FCOORD & operator-= (FCOORD &, const FCOORD &);
-                                 //scalar product
+    ///scalar product
     friend float operator% (const FCOORD &, const FCOORD &);
-                                 //cross product
+    ///cross product
     friend float operator *(const FCOORD &, const FCOORD &);
+    ///multiply
     friend FCOORD operator *(const FCOORD &, float);
-    //multiply
+    ///multiply
     friend FCOORD operator *(float, const FCOORD &);
-    //multiply
-                                 //multiply
+
+    ///multiply
     friend FCOORD & operator*= (FCOORD &, float);
+    ///divide
     friend FCOORD operator/ (const FCOORD &, float);
-    //divide
-    void rotate(                    //rotate
-                const FCOORD vec);  //by vector
-                                 //divide
+    ///rotate
+    ///@param vec by vector
+    void rotate(const FCOORD vec);
+    ///divide
     friend FCOORD & operator/= (FCOORD &, float);
 
   private:

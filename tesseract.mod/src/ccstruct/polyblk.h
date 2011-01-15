@@ -19,104 +19,92 @@
 #ifndef           POLYBLK_H
 #define           POLYBLK_H
 
-#include          "rect.h"
-#include          "points.h"
-#include          "scrollview.h"
-#include          "elst.h"
+#include "publictypes.h"
+#include "elst.h"
+#include "points.h"
+#include "rect.h"
+#include "scrollview.h"
 
-#include          "hpddef.h"     //must be last (handpd.dll)
+#include          "hpddef.h"     // must be last (handpd.dll)
 
-enum POLY_TYPE
-{
-  POLY_TEXT,                     // Text region
-  POLY_PAGE,                     // Page block
-  POLY_X                         // Don't care
+class DLLSYM POLY_BLOCK {
+ public:
+  POLY_BLOCK() {
+  }
+  // Initialize from box coordinates.
+  POLY_BLOCK(const TBOX& box, PolyBlockType type);
+  POLY_BLOCK(ICOORDELT_LIST *points, PolyBlockType type);
+  ~POLY_BLOCK () {
+  }
+
+  TBOX *bounding_box() {  // access function
+    return &box;
+  }
+
+  ICOORDELT_LIST *points() {  // access function
+    return &vertices;
+  }
+
+  void compute_bb();
+
+  PolyBlockType isA() const {
+    return type;
+  }
+
+  bool IsText() const {
+    return PTIsTextType(type);
+  }
+
+  // Rotate about the origin by the given rotation. (Analogous to
+  // multiplying by a complex number.
+  void rotate(FCOORD rotation);
+  // Move by adding shift to all coordinates.
+  void move(ICOORD shift);
+
+  void plot(ScrollView* window, inT32 num);
+
+  void fill(ScrollView* window, ScrollView::Color colour);
+
+  // Returns true if other is inside this.
+  bool contains(POLY_BLOCK *other);
+
+  // Returns true if the polygons of other and this overlap.
+  bool overlap(POLY_BLOCK *other);
+
+  // Returns the winding number of this around the test_pt.
+  // Positive for anticlockwise, negative for clockwise, and zero for
+  // test_pt outside this.
+  inT16 winding_number(const ICOORD &test_pt);
+
+  // Static utility functions to handle the PolyBlockType.
+
+  // Returns a color to draw the given type.
+  static ScrollView::Color ColorForPolyBlockType(PolyBlockType type);
+
+ private:
+  ICOORDELT_LIST vertices;     // vertices
+  TBOX box;                     // bounding box
+  PolyBlockType type;              // Type of this region.
 };
 
-class DLLSYM POLY_BLOCK          //poly block
-{
+// Class to iterate the scanlines of a polygon.
+class DLLSYM PB_LINE_IT {
+ public:
+  PB_LINE_IT(POLY_BLOCK *blkptr) {
+    block = blkptr;
+  }
 
-  public:
-    POLY_BLOCK() {
-    }                            //empty constructor
-    POLY_BLOCK(  //simple constructor
-               ICOORDELT_LIST *points,
-               POLY_TYPE t);
-    ~POLY_BLOCK () {
-    }                            //destructor
+  void set_to_block(POLY_BLOCK * blkptr) {
+    block = blkptr;
+  }
 
-    TBOX *bounding_box() {  // access function
-      return &box;
-    }
+  // Returns a list of runs of pixels for the given y coord.
+  // Each element of the returned list is the start (x) and extent(y) of
+  // a run inside the region.
+  // Delete the returned list after use.
+  ICOORDELT_LIST *get_line(inT16 y);
 
-    ICOORDELT_LIST *points() {  // access function
-      return &vertices;
-    }
-
-    void compute_bb();
-
-    POLY_TYPE isA() {
-      return type;
-    }
-
-    void rotate(  //rotate it
-                FCOORD rotation);
-    void move(                //move it
-              ICOORD shift);  //vector
-
-    void plot(ScrollView* window, ScrollView::Color colour, inT32 num);
-
-    void fill(ScrollView* window, ScrollView::Color colour);
-
-    BOOL8 contains(  // is poly inside poly
-                   POLY_BLOCK *poly);
-
-    BOOL8 overlap(  // do polys overlap
-                  POLY_BLOCK *poly);
-
-    inT16 winding_number(                         // get winding number
-                         const ICOORD &test_pt);  // around this point
-
-    void prep_serialise() {
-      vertices.prep_serialise ();
-    }
-
-    void dump(FILE *f) {
-      vertices.dump (f);
-    }
-
-    void de_dump(FILE *f) {
-      vertices.de_dump (f);
-    }
-
-                                 //convert to ascii
-    make_serialise (POLY_BLOCK) void serialise_asc (
-      FILE * f);
-    void de_serialise_asc(  //convert from ascii
-                          FILE *f);
-
-  private:
-    ICOORDELT_LIST vertices;     // vertices
-    TBOX box;                     // bounding box
-    POLY_TYPE type;              // Page block or
-    // text region
-};
-
-class DLLSYM PB_LINE_IT          //line iterator
-{
-  public:
-    PB_LINE_IT(  //constructor
-               POLY_BLOCK *blkptr) {
-      block = blkptr;
-    }
-
-    NEWDELETE2 (PB_LINE_IT) void set_to_block (POLY_BLOCK * blkptr) {
-      block = blkptr;
-    }
-
-    ICOORDELT_LIST *get_line(inT16 y);
-
-  private:
-    POLY_BLOCK * block;
+ private:
+  POLY_BLOCK * block;
 };
 #endif

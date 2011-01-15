@@ -23,13 +23,21 @@
 #include          "coutln.h"
 #include          "rect.h"
 
+struct Pix;
+
 class C_BLOB:public ELIST_LINK
 {
   public:
     C_BLOB() {
-    }                            //empty constructor
-    C_BLOB(  //constructor //in random order
-           C_OUTLINE_LIST *outline_list);
+    }
+    explicit C_BLOB(C_OUTLINE_LIST *outline_list);
+    // Simpler constructor to build a blob from a single outline that has
+    // already been fully initialized.
+    explicit C_BLOB(C_OUTLINE* outline);
+
+    // Build and return a fake blob containing a single fake outline with no
+    // steps.
+    static C_BLOB* FakeBlob(const TBOX& box);
 
     C_OUTLINE_LIST *out_list() {  //get outline list
       return &outlines;
@@ -42,30 +50,16 @@ class C_BLOB:public ELIST_LINK
     inT32 count_transitions(                   //count maxima
                             inT32 threshold);  //size threshold
 
-    void move(                    // reposition blob
-              const ICOORD vec);  // by vector
+    void move(const ICOORD vec);  // repostion blob by vector
+    void rotate(const FCOORD& rotation);  // Rotate by given vector.
+
+    // Returns a Pix rendering of the blob. pixDestroy after use.
+    Pix* render();
 
     void plot(                       //draw one
               ScrollView* window,         //window to draw in
               ScrollView::Color blob_colour,    //for outer bits
               ScrollView::Color child_colour);  //for holes
-
-    void prep_serialise() {  //set ptrs to counts
-      outlines.prep_serialise ();
-    }
-
-    void dump(  //write external bits
-              FILE *f) {
-      outlines.dump (f);
-    }
-
-    void de_dump(  //read external bits
-                 FILE *f) {
-      outlines.de_dump (f);
-    }
-
-                                 //assignment
-    make_serialise(C_BLOB)
 
     C_BLOB& operator= (const C_BLOB & source) {
       if (!outlines.empty ())
@@ -84,5 +78,5 @@ class C_BLOB:public ELIST_LINK
     C_OUTLINE_LIST outlines;     //master elements
 };
 
-ELISTIZEH_S (C_BLOB)
+ELISTIZEH (C_BLOB)
 #endif

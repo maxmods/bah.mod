@@ -1,8 +1,8 @@
 /**********************************************************************
  * File:        quspline.cpp  (Formerly qspline.c)
  * Description: Code for the QSPLINE class.
- * Author:		Ray Smith
- * Created:		Tue Oct 08 17:16:12 BST 1991
+ * Author:	Ray Smith
+ * Created:	Tue Oct 08 17:16:12 BST 1991
  *
  * (C) Copyright 1991, Hewlett-Packard Ltd.
  ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,11 @@
 #include          "memry.h"
 #include          "quadlsq.h"
 #include          "quspline.h"
+
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
 
 #define QSPLINE_PRECISION 16     //no of steps to draw
 
@@ -372,9 +377,9 @@ void QSPLINE::plot(                //draw it
     x = xcoords[segment];
     for (step = 0; step <= QSPLINE_PRECISION; step++) {
       if (segment == 0 && step == 0)
- 	window->SetCursor(x, quadratics[segment].y (x));
+        window->SetCursor(x, quadratics[segment].y (x));
       else
-	window->DrawTo(x, quadratics[segment].y (x));
+        window->DrawTo(x, quadratics[segment].y (x));
       x += increment;
     }
   }

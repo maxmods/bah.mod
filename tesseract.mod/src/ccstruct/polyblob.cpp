@@ -18,18 +18,20 @@
  **********************************************************************/
 
 #include "mfcpch.h"
-#include          "varable.h"
+#include          "params.h"
 #include          "ocrrow.h"
 #include          "polyblob.h"
 //#include                                                      "lapoly.h"
 #include          "polyaprx.h"
 
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
 #define EXTERN
 
-EXTERN BOOL_VAR (polygon_tess_approximation, TRUE,
-"Do tess poly instead of greyscale");
-
-ELISTIZE_S (PBLOB)
+ELISTIZE (PBLOB)
 /**********************************************************************
  * position_outline
  *
@@ -141,56 +143,41 @@ PBLOB::PBLOB(                            //constructor
 /**********************************************************************
  * approximate_outline_list
  *
- * Convert a list of outlines to polygonal form.
+ * Convert a list of chain-coded outlines (srclist) to polygonal form.
  **********************************************************************/
 
-static void approximate_outline_list(                          //do list of outlines
-                                     C_OUTLINE_LIST *srclist,  //list to convert
-                                     OUTLINE_LIST *destlist,   //desstination list
-                                     float xheight             //height of line
-                                    ) {
-  C_OUTLINE *src_outline;        //outline from src list
-  OUTLINE *dest_outline;         //result
-  C_OUTLINE_IT src_it = srclist; //source iterator
-  OUTLINE_IT dest_it = destlist; //iterator
+static void approximate_outline_list(C_OUTLINE_LIST *srclist,
+                                     OUTLINE_LIST *destlist) {
+  C_OUTLINE *src_outline;         // outline from src list
+  OUTLINE *dest_outline;          // result
+  C_OUTLINE_IT src_it = srclist;  // source iterator
+  OUTLINE_IT dest_it = destlist;  // iterator
 
   do {
     src_outline = src_it.data ();
-    //              if (polygon_tess_approximation)
-    dest_outline = tesspoly_outline (src_outline, xheight);
-    //              else
-    //                      dest_outline=greypoly_outline(src_outline,xheight);
+    dest_outline = tesspoly_outline(src_outline);
     if (dest_outline != NULL) {
-      dest_it.add_after_then_move (dest_outline);
-      if (!src_outline->child ()->empty ())
-                                 //do child list
-        approximate_outline_list (src_outline->child (), dest_outline->child (), xheight);
+      dest_it.add_after_then_move(dest_outline);
+      if (!src_outline->child()->empty())
+        // do child list
+        approximate_outline_list(src_outline->child(), dest_outline->child());
     }
-    src_it.forward ();
+    src_it.forward();
   }
-  while (!src_it.at_first ());
+  while (!src_it.at_first());
 }
 
 
 /**********************************************************************
  * PBLOB::PBLOB
  *
- * Constructor to build a PBLOB from a C_BLOB by polygonal approximation.
+ * Constructor to build a PBLOB (polygonal blob) from a C_BLOB
+ * (chain-coded blob) by polygonal approximation.
  **********************************************************************/
 
-PBLOB::PBLOB(                //constructor
-             C_BLOB *cblob,  //compact blob
-             float xheight   //height of line
-            ) {
-  TBOX bbox;                      //bounding box
-
+PBLOB::PBLOB(C_BLOB *cblob) {
   if (!cblob->out_list ()->empty ()) {
-                                 //get bounding box
-    bbox = cblob->bounding_box ();
-    if (bbox.height () > xheight)
-      xheight = bbox.height ();  //max of line and blob
-                                 //copy it
-    approximate_outline_list (cblob->out_list (), &outlines, xheight);
+    approximate_outline_list (cblob->out_list (), &outlines);
   }
 }
 
@@ -231,51 +218,6 @@ float PBLOB::area() {  //area
     total += outline->area ();
   }
   return total;
-}
-
-
-/**********************************************************************
- * PBLOB::baseline_normalise
- *
- * Baseline normalize a blob
- **********************************************************************/
-
-PBLOB *PBLOB::baseline_normalise(                //normalize blob
-                                 ROW *row,       //row it came from
-                                 DENORM *denorm  //inverse mapping
-                                ) {
-  TBOX blob_box = bounding_box ();
-  float x_centre = (blob_box.left () + blob_box.right ()) / 2.0;
-  PBLOB *bn_blob;                //copied blob
-
-  *denorm = DENORM (x_centre, bln_x_height / row->x_height (), row);
-  bn_blob = new PBLOB;           //get one
-  *bn_blob = *this;              //deep copy
-  bn_blob->move (FCOORD (-denorm->origin (), -row->base_line (x_centre)));
-  bn_blob->scale (denorm->scale ());
-  bn_blob->move (FCOORD (0.0, bln_baseline_offset));
-  return bn_blob;
-}
-
-
-/**********************************************************************
- * PBLOB::baseline_denormalise
- *
- * DeBaseline Normalise the blob properly with the given denorm.
- **********************************************************************/
-
-void PBLOB::baseline_denormalise(                      // Tess style BL Norm
-                                 const DENORM *denorm  //antidote
-                                ) {
-  float blob_x_left;           // Left edge of blob.
-  TBOX blob_box;                  //blob bounding box
-
-  move(FCOORD (0.0f, 0.0f - bln_baseline_offset));
-  blob_box = bounding_box ();
-  blob_x_left = blob_box.left ();
-  scale (1.0 / denorm->scale_at_x (blob_x_left));
-  move (FCOORD (denorm->origin (),
-    denorm->yshift_at_x (blob_x_left)));
 }
 
 
@@ -329,14 +271,27 @@ void PBLOB::scale(                  // scale blob
 /**********************************************************************
  * PBLOB::rotate
  *
- * Rotate PBLOB 90 deg anti
+ * Rotate PBLOB 90 deg anticlockwise about the origin.
  **********************************************************************/
 
 void PBLOB::rotate() {  // Rotate 90 deg anti
-  OUTLINE_IT it(&outlines);  // iterator
+  rotate(FCOORD(0.0f, 1.0f));
+}
 
-  for (it.mark_cycle_pt (); !it.cycled_list (); it.forward ()) {
-    it.data ()->rotate (FCOORD(0.0f, 1.0f));     // rotate each outline
+/**********************************************************************
+ * PBLOB::rotate
+ *
+ * Rotate PBLOB by the given rotation about the origin.
+ * The rotation is defined to be (cos a, sin a) where a is the anticlockwise
+ * rotation angle (in units appropriate for cos, sin).
+ * Alternatively think of multiplication by the complex number
+ * rotation = z = (x + iy), with |z| = 1.
+ **********************************************************************/
+void PBLOB::rotate(const FCOORD& rotation) {  // Rotate by given rotation.
+  OUTLINE_IT it(&outlines);
+
+  for (it.mark_cycle_pt(); !it.cycled_list(); it.forward()) {
+    it.data()->rotate(rotation);     // Rotate each outline.
   }
 }
 

@@ -31,7 +31,11 @@
 #include <math.h>
 
 #include "vecfuncs.h"
-#include "debug.h"
+
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
 
 /*----------------------------------------------------------------------
               V a r i a b l e s
@@ -42,18 +46,16 @@ C_COL color_list[] = {
   Red, Cyan, Yellow, Blue, Green, White
 };
 
-make_toggle_var (display_all_blobs, 0, make_disp_all_blobs,
-5, 1, toggle_blobs, "Display Blobs");
+BOOL_VAR(wordrec_display_all_blobs, 0, "Display Blobs");
 
-make_toggle_var (display_all_words, 0, make_disp_all_words,
-5, 2, toggle_wdisp, "Display Words");
+BOOL_VAR(wordrec_display_all_words, 0, "Display Words");
 
-make_toggle_var (blob_pause, 0, make_blob_pause,
-5, 6, toggle_pause, "Blob pause");
+BOOL_VAR(wordrec_blob_pause, 0, "Blob pause");
 
 /*----------------------------------------------------------------------
               F u n c t i o n s
 ----------------------------------------------------------------------*/
+#ifndef GRAPHICS_DISABLED
 /**********************************************************************
  * display_blob
  *
@@ -71,19 +73,6 @@ void display_blob(TBLOB *blob, C_COL color) {
 
   render_blob(blob_window, blob, color);
 }
-
-
-/**********************************************************************
- * init_render_vars
- *
- * Initialize the render graphics menu items.
- **********************************************************************/
-void init_render_vars() {
-  make_disp_all_blobs();
-  make_disp_all_words();
-  make_blob_pause();
-}
-
 
 /**********************************************************************
  * render_blob
@@ -143,7 +132,6 @@ void render_outline(void *window,
     render_edgepts (window, outline->loop, color);
   /* Add on next outlines */
   render_outline (window, outline->next, color);
-
-  /* Add on child outlines */
-  render_outline(window, outline->child, Grey);
 }
+
+#endif  // GRAPHICS_DISABLED

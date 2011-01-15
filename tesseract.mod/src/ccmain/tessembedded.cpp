@@ -48,7 +48,7 @@ void tessembedded_read_file(STRING &name,
   block_it.move_to_last ();
 
                                  // ptr to last dot
-  filename_extension = strrchr (const_cast<char*>(name.string ()), '.');
+  filename_extension = strrchr (name.string (), '.');
   #ifdef __UNIX__
   if (strcmp (filename_extension, ".pb") == 0) {
     tprintf ("Converting from .pb file format.\n");

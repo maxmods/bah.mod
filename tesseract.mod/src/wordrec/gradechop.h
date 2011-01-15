@@ -30,16 +30,12 @@
               I n c l u d e s
 ----------------------------------------------------------------------*/
 #include "seam.h"
+#include "ndminx.h"
 
 /*----------------------------------------------------------------------
               T y p e s
 ----------------------------------------------------------------------*/
 typedef inT16 BOUNDS_RECT[4];
-
-/*----------------------------------------------------------------------
-              V a r i a b l e s
----------------------------------------------------------------------*/
-extern int x_y_weight;
 
 /*----------------------------------------------------------------------
               M a c r o s
@@ -65,27 +61,9 @@ extern int x_y_weight;
  **********************************************************************/
 
 #define split_bounds_overlap(split,outline)  \
-(outline->topleft.x  <= max (split->point1->pos.x,split->point2->pos.x) && \
-	outline->botright.x >= min (split->point1->pos.x,split->point2->pos.x) && \
-	outline->botright.y <= max (split->point1->pos.y,split->point2->pos.y) && \
-	outline->topleft.y  >= min (split->point1->pos.y,split->point2->pos.y))
+(outline->topleft.x  <= MAX (split->point1->pos.x,split->point2->pos.x) && \
+	outline->botright.x >= MIN (split->point1->pos.x,split->point2->pos.x) && \
+	outline->botright.y <= MAX (split->point1->pos.y,split->point2->pos.y) && \
+	outline->topleft.y  >= MIN (split->point1->pos.y,split->point2->pos.y))
 
-/*----------------------------------------------------------------------
-              F u n c t i o n s
-----------------------------------------------------------------------*/
-PRIORITY full_split_priority(SPLIT *split, inT16 xmin, inT16 xmax);
-
-PRIORITY grade_center_of_blob(register BOUNDS_RECT rect);
-
-PRIORITY grade_overlap(register BOUNDS_RECT rect);
-
-PRIORITY grade_split_length(register SPLIT *split);
-
-PRIORITY grade_sharpness(register SPLIT *split);
-
-PRIORITY grade_width_change(register BOUNDS_RECT rect);
-
-void set_outline_bounds(register EDGEPT *point1,
-                        register EDGEPT *point2,
-                        BOUNDS_RECT rect);
 #endif

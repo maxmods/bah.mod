@@ -25,16 +25,15 @@
 #include          "normalis.h"
 #include          "stepblob.h"
 
-class PBLOB:public ELIST_LINK
-{
+class PBLOB : public ELIST_LINK {
   public:
-    PBLOB() {
-    }                            //empty constructor
-    PBLOB(                              //constructor
-          OUTLINE_LIST *outline_list);  //in random order
-    PBLOB(                //constructor
-          C_BLOB *cblob,  //polygonal approx
-          float xheight);
+    PBLOB() {}
+
+    // Create from a list of polygonal outlines.
+    PBLOB(OUTLINE_LIST *outline_list);
+
+    // Create from a chain-coded form.
+    PBLOB(C_BLOB *cblob);
 
     OUTLINE_LIST *out_list() {  //get outline list
       return &outlines;
@@ -42,12 +41,6 @@ class PBLOB:public ELIST_LINK
 
     TBOX bounding_box();  //compute bounding box
     float area();  //get area of blob
-
-    PBLOB *baseline_normalise(                  //normalise single blob
-                              ROW *row,         //row it came from
-                              DENORM *denorm);  //inverse mapping out
-    void baseline_denormalise(                        //denormalise
-                              const DENORM *denorm);  //antidote
 
     void plot(                       //draw one
               ScrollView* window,         //window to draw in
@@ -62,23 +55,7 @@ class PBLOB:public ELIST_LINK
     void scale(                    // scale blob
                const FCOORD vec);  // by FLOAT vector
     void rotate();  // Rotate 90 deg anti
-
-    void prep_serialise() {  //set ptrs to counts
-      outlines.prep_serialise ();
-    }
-
-    void dump(  //write external bits
-              FILE *f) {
-      outlines.dump (f);
-    }
-
-    void de_dump(  //read external bits
-                 FILE *f) {
-      outlines.de_dump (f);
-    }
-
-                                 //assignment
-    make_serialise(PBLOB)
+    void rotate(const FCOORD& rotation);  // Rotate by given rotation.
 
     PBLOB& operator=(const PBLOB & source) {
       if (!outlines.empty ())
@@ -98,5 +75,5 @@ class PBLOB:public ELIST_LINK
     OUTLINE_LIST outlines;       //master elements
 };
 
-ELISTIZEH_S (PBLOB)
+ELISTIZEH (PBLOB)
 #endif

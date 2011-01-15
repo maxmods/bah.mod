@@ -1,4 +1,4 @@
-' Copyright 2008,2009 Bruce A Henderson
+' Copyright 2008-2011 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -23,14 +23,16 @@ Module BaH.tesseract
 
 ModuleInfo "Version: 1.01"
 ModuleInfo "License: Apache 2.0"
-ModuleInfo "Copyright: Wrapper - 2008,2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2008-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.01"
-ModuleInfo "History: Update to SVN rev 227."
+ModuleInfo "History: Update to Tesseract-3.x SVN rev 551."
+ModuleInfo "History: Renamed Tess type to Tesseract. Tesseract can now use multiple instances instead of one global instance."
+ModuleInfo "History: "
 ModuleInfo "History: 1.00 Initial Release (Tesseract-2.03 SVNr205)"
 
 
-ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H"
+ModuleInfo "CC_OPTS: -DHAVE_CONFIG_H -DUSE_STD_NAMESPACE -DPI=3.14159265f"
 ModuleInfo "CC_OPTS: -I../ccutil -I../cutil"
 ?win32
 ModuleInfo "CC_OPTS: -D__MSW32__ -D__BLOB_T_DEFINED"
@@ -64,7 +66,20 @@ about: Steps for success:
 <li>Optionally call EndTess() when you are finished using the engine.</li>
 </ol>
 End Rem
-Type Tess
+Type Tesseract
+
+	Field tessPtr:Byte Ptr
+
+	Method New()
+		tessPtr = bmx_tess_new()
+	End Method
+	
+	Method Delete()
+		If tessPtr Then
+			bmx_tess_free(tessPtr)
+			tessPtr = Null
+		End If
+	End Method
 
 	Rem
 	bbdoc: Initialises tesseract.
@@ -77,27 +92,70 @@ Type Tess
 	</ul>
 	</p>
 	End Rem
-	Function Init(datapath:String, lang:String = "eng", numericMode:Int = False)
-		bmx_tess_init(datapath, lang, numericMode)
-	End Function
+	Method Init:Int(datapath:String, lang:String = "eng", numericMode:Int = False)
+		Return bmx_tess_init(tessPtr, datapath, lang, numericMode)
+	End Method
 
 	Rem
-	bbdoc: Sets the value of an internal "variable" (of either old or new types).
+	bbdoc: Sets the value of an internal 'parameter'.
+
 	returns: False if the name lookup failed.
-	about: For most variables, it is wise to set them before calling Init().
+	about: Supply the name of the parameter and the value as a string, just as you would in a config file.
 	<p>
-	eg. Tess.SetVariable("tessedit_char_blacklist", "xyz")
+	eg. Tess.SetVariable("tessedit_char_blacklist", "xyz") - to ignore x, y and z.<br>
+	Or SetVariable("bln_numericmode", "1") - to set numeric-only mode.
+	</p>
+	<p>
+	SetVariable may be used before Init, but settings will revert to defaults on EndTess().
 	</p>
 	<p>Parameters:
 	<ul>
-	<li><b>variable</b> : Name of the variable to set.</li>
+	<li><b>name</b> : Name of the variable to set.</li>
 	<li><b>value</b> : New value for the variable.</li>
 	</ul>
 	</p>
 	End Rem
-	Function SetVariable:Int(variable:String, value:String)
-		Return bmx_tess_setvariable(variable, value)
-	End Function
+	Method SetVariable:Int(name:String, value:String)
+		Return bmx_tess_setvariable(tessPtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: Same as SetVariable, but the parameter is set only if it is one of the 'init' parameters (defined with *_INIT_* macro).
+	End Rem
+	Method SetVariableIfInit:Int(name:String, value:String)
+		Return bmx_tess_setvariableifinit(tessPtr, name, value)
+	End Method
+	
+	Rem
+	bbdoc: Fills in @value with the value of the parameter.
+	returns: True if the parameter was found among Tesseract parameters, False otherwise.
+	End Rem
+	Method GetIntVariable:Int(name:String, value:Int Var)
+		Return bmx_tess_getintvariable(tessPtr, name, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: Fills in @value with the value of the parameter.
+	returns: True if the parameter was found among Tesseract parameters, False otherwise.
+	End Rem
+	Method GetBoolVariable:Int(name:String, value:Int Var)
+		Return bmx_tess_getboolvariable(tessPtr, name, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: Fills in @value with the value of the parameter.
+	returns: True if the parameter was found among Tesseract parameters, False otherwise.
+	End Rem
+	Method GetDoubleVariable:Int(name:String, value:Double Var)
+		Return bmx_tess_getdoublevariable(tessPtr, name, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: Returns the value of a string variable, if found among Tesseract parameters.
+	End Rem
+	Method GetStringVariable:String(name:String)
+		Return bmx_tess_getstringvariable(tessPtr, name)
+	End Method
 
 	Rem
 	bbdoc: Recognizes a rectangle from a pixmap and returns the result as a string.
@@ -115,7 +173,7 @@ Type Tess
 	</ul>
 	</p>
 	End Rem
-	Function Rect:String(pixmap:TPixmap, x:Int = -1, y:Int = -1, width:Int = -1, height:Int = -1)
+	Method Rect:String(pixmap:TPixmap, x:Int = -1, y:Int = -1, width:Int = -1, height:Int = -1)
 		Local pix:TPixmap = pixmap
 		
 		' upgrade pixmap if required
@@ -141,7 +199,7 @@ Type Tess
 		End If
 		
 		Return RectRaw(pix.pixels, BytesPerPixel[pix.format], pix.pitch, x, y, width, height)
-	End Function
+	End Method
 
 	Rem
 	bbdoc: Recognizes a rectangle from raw pixel data and returns the result as a string.
@@ -161,25 +219,26 @@ Type Tess
 	</ul>
 	</p>
 	End Rem
-	Function RectRaw:String(imagedata:Byte Ptr, bytesPerPixel:Int, bytesPerLine:Int, x:Int, y:Int, width:Int, height:Int)
-		Return bmx_tess_rect(imagedata, bytesPerPixel, bytesPerLine, x, y, width, height)
-	End Function
+	Method RectRaw:String(imagedata:Byte Ptr, bytesPerPixel:Int, bytesPerLine:Int, x:Int, y:Int, width:Int, height:Int)
+		Return bmx_tess_rect(tessPtr, imagedata, bytesPerPixel, bytesPerLine, x, y, width, height)
+	End Method
 
 
 	Rem
-	bbdoc: Frees up memory and forgets adaptive data.
-	about: Call between pages or documents etc.
+	bbdoc: Call between pages or documents etc to free up memory and forget adaptive data.
 	End Rem
-	Function Clear()
-		bmx_tess_clear()
-	End Function
+	Method ClearAdaptiveClassifier()
+		bmx_tess_clearadaptiveclassifier(tessPtr)
+	End Method
 
 	Rem
-	bbdoc: Closes down tesseract and frees up memory.
+	bbdoc: Closes down tesseract and free up all memory.
+	about: EndTess() is equivalent to destructing and reconstructing your #Tesseract object. Once EndTess() has been used, none of the other API functions may be used
+	other than Init and anything declared above it in the class definition.
 	End Rem
-	Function EndTess()
-		bmx_tess_end()
-	End Function
+	Method EndTess()
+		bmx_tess_end(tessPtr)
+	End Method
 
 	Rem
 	bbdoc: Checks whether a word is valid according to Tesseract's language model.
@@ -189,46 +248,9 @@ Type Tess
 	<li><b>word</b> : The word to test for validity.</li>
 	</ul>
 	End Rem
-	Function IsValidWord:Int(word:String)
-		Return bmx_tess_isvalidword(word)
-	End Function
-
-
-	' ye olde utf8 converter
-	Function _convertUTF8ToMax:String(s:Byte Ptr)
-		If s Then
-			Local l:Int = _strlen(s)
-			Local b:Short[] = New Short[l]
-			Local bc:Int = -1
-			Local c:Int
-			Local d:Int
-			Local e:Int
-			For Local i:Int = 0 Until l
-				bc:+1
-				c = s[i]
-				If c<128 
-					b[bc] = c
-					Continue
-				End If
-				i:+1
-				d=s[i]
-				If c<224 
-					b[bc] = (c-192)*64+(d-128)
-					Continue
-				End If
-				i:+1
-				e = s[i]
-				If c < 240 
-					b[bc] = (c-224)*4096+(d-128)*64+(e-128)
-					Continue
-				End If
-			Next
-			Return String.fromshorts(b, bc + 1)
-		End If
-		
-		Return ""
-		
-	End Function
+	Method IsValidWord:Int(word:String)
+		Return bmx_tess_isvalidword(tessPtr, word)
+	End Method
 
 End Type
 

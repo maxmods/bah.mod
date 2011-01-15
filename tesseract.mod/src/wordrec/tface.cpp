@@ -16,257 +16,171 @@
  ** limitations under the License.
  *
  **********************************************************************/
-#include "tface.h"
-#include "danerror.h"
-#include "globals.h"
-#include "tordvars.h"            /* Feature stuff */
-#include "fxid.h"
-#include "wordclass.h"
+
 #include "bestfirst.h"
-#include "context.h"
-#include "gradechop.h"
-#include "hyphen.h"
-/* includes for init */
-#include "msmenus.h"
-#include "djmenus.h"
-#include "tessinit.h"
-#include "mfvars.h"
-#include "variables.h"
-#include "metrics.h"
-#include "adaptmatch.h"
-#include "matchtab.h"
-#include "chopper.h"
-#include "permdawg.h"
-#include "permute.h"
-#include "chop.h"
 #include "callcpp.h"
-#include "badwords.h"
+#include "chop.h"
+#include "chopper.h"
+#include "danerror.h"
+#include "fxdefs.h"
+#include "globals.h"
+#include "gradechop.h"
+#include "matchtab.h"
+#include "pageres.h"
+#include "permute.h"
+#include "wordclass.h"
+#include "wordrec.h"
+#include "featdefs.h"
 
 #include <math.h>
 #ifdef __UNIX__
 #include <unistd.h>
 #endif
-//extern "C" int record_matcher_output;
-
-/*----------------------------------------------------------------------
-              Variables
-----------------------------------------------------------------------*/
-static PRIORITY pass2_ok_split;
-static int pass2_seg_states;
-extern int NO_BLOCK;
-/*----------------------------------------------------------------------
-              Function Code
-----------------------------------------------------------------------*/
-/**********************************************************************
- * start_recog
- *
- * Startup recog program ready to recognize words.
- **********************************************************************/
-int start_recog(const char *configfile, const char *textbase) {
-
-  program_editup(configfile);
-  program_editup2(textbase);
-  return (0);
-}
 
 
-/**********************************************************************
- * program_editup
+namespace tesseract {
+
+/**
+ * @name program_editup
  *
  * Initialize all the things in the program that need to be initialized.
- **********************************************************************/
-void program_editup(const char *configfile) {
-  init_ms_debug();
-  init_dj_debug();
-
-  program_variables();
-  mfeature_variables();
-
-  if (configfile != NULL) {
-    //              cprintf ("Reading configuration from file '%s'\n", configfile);
-    /* Read config file */
-    read_variables(configfile);
-  }
-  /* Initialize subsystems */
-  program_init();
-  mfeature_init();
-  init_permute();
-  setup_cp_maps();
+ * init_permute determines whether to initialize the permute functions
+ * and Dawg models.
+ */
+void Wordrec::program_editup(const char *textbase,
+                             bool init_classifier,
+                             bool init_dict) {
+  if (textbase != NULL) imagefile = textbase;
+  InitFeatureDefs(&feature_defs_);
+  SetupExtractors(&feature_defs_);
+  InitAdaptiveClassifier(init_classifier);
+  if (init_dict) getDict().Load();
+  pass2_ok_split = chop_ok_split;
+  pass2_seg_states = wordrec_num_seg_states;
 }
 
-
-/*-------------------------------------------------------------------------*/
-void program_editup2(const char *textbase) {
-  if (textbase != NULL) {
-    strcpy(imagefile, textbase);
-    /* Read in data files */
-    edit_with_ocr(textbase);
-  }
-
-  init_metrics();
-  pass2_ok_split = ok_split;
-  pass2_seg_states = num_seg_states;
-}
-
-
-/**********************************************************************
- * edit_with_ocr
- *
- * Initialize all the things in the program needed before the classifier
- * code is called.
- **********************************************************************/
-void edit_with_ocr(const char *imagename) {
-  char name[FILENAMESIZE];       /*base name of file */
-
-  if (write_output) {
-    strcpy(name, imagename);
-    strcat (name, ".txt");
-                                 //xiaofan
-    textfile = open_file (name, "w");
-  }
-  if (write_raw_output) {
-    strcpy(name, imagename);
-    strcat (name, ".raw");
-    rawfile = open_file (name, "w");
-  }
-  if (record_matcher_output) {
-    strcpy(name, imagename);
-    strcat (name, ".mlg");
-    matcher_fp = open_file (name, "w");
-    strcpy(name, imagename);
-    strcat (name, ".ctx");
-    correct_fp = open_file (name, "r");
-  }
-}
-
-
-/**********************************************************************
- * end_recog
+/**
+ * @name end_recog
  *
  * Cleanup and exit the recog program.
- **********************************************************************/
-int end_recog() {
+ */
+int Wordrec::end_recog() {
   program_editdown (0);
 
   return (0);
 }
 
 
-/**********************************************************************
- * program_editdown
+/**
+ * @name program_editdown
  *
  * This function holds any nessessary post processing for the Wise Owl
  * program.
- **********************************************************************/
-void program_editdown(inT32 elasped_time) {
-  dj_cleanup();
-  if (display_text)
-    cprintf ("\n");
-  if (!NO_BLOCK && write_output)
-    fprintf (textfile, "\n");
-  if (write_raw_output)
-    fprintf (rawfile, "\n");
-  if (write_output) {
-    #ifdef __UNIX__
-    fsync (fileno (textfile));
-    #endif
-    fclose(textfile);
-  }
-  if (write_raw_output) {
-    #ifdef __UNIX__
-    fsync (fileno (rawfile));
-    #endif
-    fclose(rawfile);
-  }
-  close_choices();
-  if (tessedit_save_stats)
-    save_summary (elasped_time);
-  end_match_table();
-  InitChoiceAccum();
-  if (global_hash != NULL) {
-    free_mem(global_hash);
-    global_hash = NULL;
-  }
-  end_metrics();
-  end_permute();
-  free_variables();
+ */
+void Wordrec::program_editdown(inT32 elasped_time) {
+  EndAdaptiveClassifier();
+  blob_match_table.end_match_table();
+  getDict().InitChoiceAccum();
+  getDict().End();
 }
 
 
-/**********************************************************************
- * set_pass1
+/**
+ * @name set_pass1
  *
  * Get ready to do some pass 1 stuff.
- **********************************************************************/
-void set_pass1() {
-  blob_skip = FALSE;
-  ok_split = 70.0;
-  num_seg_states = 15;
+ */
+void Wordrec::set_pass1() {
+  chop_ok_split.set_value(70.0);
+  wordrec_num_seg_states.set_value(15);
   SettupPass1();
-  first_pass = 1;
 }
 
 
-/**********************************************************************
- * set_pass2
+/**
+ * @name set_pass2
  *
  * Get ready to do some pass 2 stuff.
- **********************************************************************/
-void set_pass2() {
-  blob_skip = FALSE;
-  ok_split = pass2_ok_split;
-  num_seg_states = pass2_seg_states;
+ */
+void Wordrec::set_pass2() {
+  chop_ok_split.set_value(pass2_ok_split);
+  wordrec_num_seg_states.set_value(pass2_seg_states);
   SettupPass2();
-  first_pass = 0;
 }
 
 
-/**********************************************************************
- * cc_recog
+/**
+ * @name cc_recog
  *
  * Recognize a word.
- **********************************************************************/
-CHOICES_LIST cc_recog(TWERD *tessword,
-                      A_CHOICE *best_choice,
-                      A_CHOICE *best_raw_choice,
-                      BOOL8 tester,
-                      BOOL8 trainer) {
-  int fx;
-  CHOICES_LIST results;          /*matcher results */
-
-  if (SetErrorTrap (NULL)) {
-    cprintf ("Tess copped out!\n");
-    ReleaseErrorTrap();
-    class_string (best_choice) = NULL;
-    return NULL;
-  }
-  InitChoiceAccum();
-  init_match_table();
-  for (fx = 0; fx < MAX_FX && (acts[OCR] & (FXSELECT << fx)) == 0; fx++);
-  results =
-    chop_word_main(tessword,
-                   fx,
-                   best_choice,
-                   best_raw_choice,
-                   tester,
-                   trainer);
-  DebugWordChoices();
-  reset_hyphen_word();
-  ReleaseErrorTrap();
+ */
+BLOB_CHOICE_LIST_VECTOR *Wordrec::cc_recog(WERD_RES *word) {
+  getDict().InitChoiceAccum();
+  getDict().reset_hyphen_vars(word->word->flag(W_EOL));
+  blob_match_table.init_match_table();
+  BLOB_CHOICE_LIST_VECTOR *results = chop_word_main(word);
+  getDict().DebugWordChoices();
   return results;
 }
 
 
-/**********************************************************************
- * dict_word()
+/**
+ * @name dict_word()
  *
- * Test the dictionaries, returning NO_PERM (0) if not found, or one of the
- * DAWG_PERM values if found, according to the dictionary.
- **********************************************************************/
-int dict_word(const char *word) {
-
-  if (test_freq_words (word))
-    return FREQ_DAWG_PERM;
-  else
-    return valid_word (word);
+ * Test the dictionaries, returning NO_PERM (0) if not found, or one
+ * of the PermuterType values if found, according to the dictionary.
+ */
+int Wordrec::dict_word(const WERD_CHOICE &word) {
+  return getDict().valid_word(word);
 }
+
+/**
+ * @name call_matcher
+ *
+ * Called from Tess with a blob in tess form.
+ * The blob may need rotating to the correct orientation for classification.
+ */
+BLOB_CHOICE_LIST *Wordrec::call_matcher(TBLOB *tessblob) {
+  TBLOB* rotated_blob = NULL;
+  // If necessary, copy the blob and rotate it.
+  if (denorm_.block() != NULL &&
+      denorm_.block()->classify_rotation().y() != 0.0) {
+    TBOX box = tessblob->bounding_box();
+    int src_width = box.width();
+    int src_height = box.height();
+    src_width = static_cast<int>(src_width / denorm_.y_scale() + 0.5);
+    src_height = static_cast<int>(src_height / denorm_.y_scale() + 0.5);
+    int x_middle = (box.left() + box.right()) / 2;
+    int y_middle = (box.top() + box.bottom()) / 2;
+    rotated_blob = new TBLOB(*tessblob);
+    rotated_blob->Move(ICOORD(-x_middle, -y_middle));
+    rotated_blob->Rotate(denorm_.block()->classify_rotation());
+    tessblob = rotated_blob;
+    ICOORD median_size = denorm_.block()->median_size();
+    int tolerance = median_size.x() / 8;
+    // TODO(dsl/rays) find a better normalization solution. In the mean time
+    // make it work for CJK by normalizing for Cap height in the same way
+    // as is applied in compute_block_xheight when the row is presumed to
+    // be ALLCAPS, i.e. the x-height is the fixed fraction
+    // blob height * CCStruct::kXHeightFraction /
+    // (CCStruct::kXHeightFraction + CCStruct::kXAscenderFraction)
+    if (NearlyEqual(src_width, static_cast<int>(median_size.x()), tolerance) &&
+        NearlyEqual(src_height, static_cast<int>(median_size.y()), tolerance)) {
+      float target_height = kBlnXHeight *
+          (CCStruct::kXHeightFraction + CCStruct::kAscenderFraction) /
+          CCStruct::kXHeightFraction;
+      rotated_blob->Scale(target_height / box.width());
+      rotated_blob->Move(ICOORD(0,
+                                kBlnBaselineOffset -
+                                rotated_blob->bounding_box().bottom()));
+    }
+  }
+  BLOB_CHOICE_LIST *ratings = new BLOB_CHOICE_LIST();  // matcher result
+  AdaptiveClassifier(tessblob, ratings, NULL);
+  if (rotated_blob != NULL)
+    delete rotated_blob;
+  return ratings;
+}
+
+
+}  // namespace tesseract

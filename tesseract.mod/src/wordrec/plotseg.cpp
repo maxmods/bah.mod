@@ -28,19 +28,23 @@
 #include "plotseg.h"
 #include "callcpp.h"
 #include "scrollview.h"
-#include "tessclas.h"
 #include "blobs.h"
-#include "debug.h"
 #include "const.h"
 #include <math.h>
+
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
+#ifndef GRAPHICS_DISABLED
 
 /*----------------------------------------------------------------------
               V a r i a b l e s
 ----------------------------------------------------------------------*/
 ScrollView *segm_window = NULL;
 
-make_int_var (display_segmentations, 0, make_display_seg,
-9, 2, toggle_segmentations, "Display Segmentations");
+INT_VAR(wordrec_display_segmentations, 0, "Display Segmentations");
 
 /*----------------------------------------------------------------------
               F u n c t i o n s
@@ -65,17 +69,6 @@ void display_segmentation(TBLOB *chunks, SEARCH_STATE segmentation) {
   c_make_current(segm_window);
 }
 
-
-/**********************************************************************
- * init_plotseg
- *
- * Intialize the plotseg control variables.
- **********************************************************************/
-void init_plotseg() {
-  make_display_seg();
-}
-
-
 /**********************************************************************
  * render_segmentation
  *
@@ -96,7 +89,7 @@ void render_segmentation(ScrollView *window,
   // Find bounding box.
   blobs_bounding_box(chunks, &topleft, &botright);
 
-  iterate_blobs(blob, chunks) {
+  for (blob = chunks; blob != NULL; blob = blob->next) {
 
     if (chunks_left-- == 0) {
       color = color_list[++char_num % NUM_COLORS];
@@ -104,9 +97,11 @@ void render_segmentation(ScrollView *window,
       if (char_num < segmentation[0])
         chunks_left = segmentation[char_num + 1];
       else
-        chunks_left = MAXINT;
+        chunks_left = MAX_INT32;
     }
     render_outline(window, blob->outlines, color);
   }
   window->ZoomToRectangle(topleft.x, topleft.y, botright.x, botright.y);
 }
+
+#endif  // GRPAHICS_DISABLED

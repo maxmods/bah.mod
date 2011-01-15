@@ -24,7 +24,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <klibc/extern.h>
+//#include <klibc/extern.h>
+#include <sys/stat.h>
 
 // Attempts to parse the given file stream s as an integer of the base
 // 'base'. Returns the first successfully parsed integer as a uintmax_t, or

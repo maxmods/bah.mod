@@ -20,9 +20,10 @@
 #ifndef           OLDBASEL_H
 #define           OLDBASEL_H
 
-#include          "varable.h"
+#include          "params.h"
 #include          "blobbox.h"
 #include          "notdll.h"
+
 extern BOOL_VAR_H (textord_really_old_xheight, FALSE,
 "Use original wiseowl xheight");
 extern BOOL_VAR_H (textord_oldbl_debug, FALSE,
@@ -41,28 +42,6 @@ extern INT_VAR_H (oldbl_holed_losscount, 10,
 extern double_VAR_H (oldbl_dot_error_size, 1.26, "Max aspect ratio of a dot");
 extern double_VAR_H (textord_oldbl_jumplimit, 0.15,
 "X fraction for new partition");
-void make_old_baselines(                  //make splines
-                        TO_BLOCK *block,  //block to do
-                        BOOL8 testing_on  //correct orientation
-                       );
-void correlate_lines(                 //cleanup lines
-                     TO_BLOCK *block  //block to do
-                    );
-void correlate_neighbours(                  //fix bad rows
-                          TO_BLOCK *block,  /*block rows are in */
-                          TO_ROW **rows,    /*rows of block */
-                          int rowcount      /*no of rows to do */
-                         );
-int correlate_with_stats(                //fix xheights
-                         TO_ROW **rows,  /*rows of block */
-                         int rowcount    /*no of rows to do */
-                        );
-void find_textlines(                  //get baseline
-                    TO_BLOCK *block,  //block row is in
-                    TO_ROW *row,      //row to do
-                    int degree,       //required approximation
-                    QSPLINE *spline   //starting spline
-                   );
 int get_blob_coords(                    //get boxes
                     TO_ROW *row,        //row to use
                     inT32 lineheight,   //block level
@@ -115,6 +94,8 @@ register float diff,             /*diff from spline */
 float partdiffs[],               /*diff on all parts */
 int lastpart,                    /*last assigned partition */
 float jumplimit,                 /*new part threshold */
+float* drift,
+float* last_delta,
 int *partcount                   /*no of partitions */
 );
 int partition_coords (           //find relevant coords

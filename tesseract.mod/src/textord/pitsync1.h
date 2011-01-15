@@ -23,7 +23,7 @@
 #include          "elst.h"
 #include          "clst.h"
 #include          "blobbox.h"
-#include          "varable.h"
+#include          "params.h"
 #include          "statistc.h"
 #include          "pithsync.h"
 #include          "notdll.h"
@@ -68,7 +68,7 @@ class FPSEGPT:public ELIST_LINK
     }
 
                                  //faked split point
-    NEWDELETE2 (FPSEGPT) BOOL8 faked;
+    BOOL8 faked;
     BOOL8 terminal;              //successful end
     inT16 fake_count;            //total fakes to here
 
@@ -82,9 +82,6 @@ class FPSEGPT:public ELIST_LINK
 };
 
 ELISTIZEH (FPSEGPT) CLISTIZEH (FPSEGPT_LIST)
-extern
-BOOL_VAR_H (pitsync_projection_fix, FALSE,
-"Fix bug in projection profile");
 extern
 INT_VAR_H (pitsync_linear_version, 0, "Use new fast algorithm");
 extern

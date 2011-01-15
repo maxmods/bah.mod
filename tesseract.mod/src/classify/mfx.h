@@ -21,32 +21,20 @@
 /**----------------------------------------------------------------------------
           Include Files and Type Defines
 ----------------------------------------------------------------------------**/
-#include "fxdefs.h"
+#include "params.h"
+/**----------------------------------------------------------------------------
+          Variables
+----------------------------------------------------------------------------**/
 
-extern FLOAT32 MinSlope;
-extern FLOAT32 MaxSlope;
+/* old numbers corresponded to 10.0 degrees and 80.0 degrees */
+extern double_VAR_H(classify_min_slope, 0.414213562,
+                    "Slope below which lines are called horizontal");
+extern double_VAR_H(classify_max_slope, 2.414213562,
+                    "Slope above which lines are called vertical");
+
 /**----------------------------------------------------------------------------
           Public Function Prototypes
 ----------------------------------------------------------------------------**/
-void InitMicroFxVars(); 
+CHAR_FEATURES BlobMicroFeatures(TBLOB *Blob, const DENORM& denorm);
 
-CHAR_FEATURES BlobMicroFeatures(TBLOB *Blob, LINE_STATS *LineStats); 
-
-/*
-#if defined(__STDC__) || defined(__cplusplus)
-# define _ARGS(s) s
-#else
-# define _ARGS(s) ()
-#endif*/
-
-/* mfx.c
-void InitMicroFxVars
-  _ARGS((void));
-
-CHAR_FEATURES BlobMicroFeatures
-  _ARGS((BLOB *Blob,
-  LINE_STATS *LineStats));
-
-#undef _ARGS
-*/
 #endif

@@ -15,111 +15,101 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  ******************************************************************************/
-/**----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
           Include Files and Type Defines
-----------------------------------------------------------------------------**/
+-----------------------------------------------------------------------------*/
 #include "speckle.h"
-#include "debug.h"
+
 #include "blobs.h"
+#include "ratngs.h"
+#include "params.h"
 
-/**----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
         Global Data Definitions and Declarations
-----------------------------------------------------------------------------**/
-/* define control knobs for adjusting definition of speckle*/
-make_float_var (MaxLargeSpeckleSize, 0.30, MakeMaxLargeSpeckleSize,
-16, 2, SetMaxLargeSpeckleSize, "Max Large Speckle Size ...");
+-----------------------------------------------------------------------------*/
+/** define control knobs for adjusting definition of speckle*/
+double_VAR(speckle_large_max_size, 0.30, "Max large speckle size");
 
-make_float_var (SmallSpecklePenalty, 10.0, MakeSmallSpecklePenalty,
-16, 3, SetSmallSpecklePenalty, "Small Speckle Penalty ...");
+double_VAR(speckle_small_penalty, 10.0, "Small speckle penalty");
 
-make_float_var (LargeSpecklePenalty, 10.0, MakeLargeSpecklePenalty,
-16, 4, SetLargeSpecklePenalty, "Large Speckle Penalty ...");
+double_VAR(speckle_large_penalty, 10.0, "Large speckle penalty");
 
-make_float_var (SmallSpeckleCertainty, -1.0, MakeSmallSpeckleCertainty,
-16, 5, SetSmallSpeckleCertainty,
-"Small Speckle Certainty ...");
+double_VAR(speckle_small_certainty, -1.0, "Small speckle certainty");
 
-/**----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
               Public Code
-----------------------------------------------------------------------------**/
+-----------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
-LIST AddLargeSpeckleTo(LIST Choices) {
-/*
- **	Parameters:
- **		Choices		choices to add a speckle choice to
- **	Globals:
- **		SmallSpecklePenalty	rating for a small speckle
- **		LargeSpecklePenalty	rating penalty for a large speckle
- **		SmallSpeckleCertainty	certainty for a small speckle
- **	Operation: This routine adds a null choice to Choices with a
- **		rating equal to the worst rating in Choices plus a pad.
- **		The certainty of the new choice is the same as the
- **		certainty of the worst choice in Choices.  The new choice
- **		is added to the end of Choices.
- **	Return: New Choices list with null choice added to end.
- **	Exceptions: none
- **	History: Mon Mar 11 11:08:11 1991, DSJ, Created.
+/**
+ * This routine adds a null choice to Choices with a
+ * rating equal to the worst rating in Choices plus a pad.
+ * The certainty of the new choice is the same as the
+ * certainty of the worst choice in Choices.  The new choice
+ * is added to the end of Choices.
+ *
+ * Globals:
+ * - #speckle_small_penalty rating for a small speckle
+ * - #speckle_large_penalty rating penalty for a large speckle
+ * - #speckle_small_certainty certainty for a small speckle
+ *
+ * @param Choices choices to add a speckle choice to
+ *
+ * @return New Choices list with null choice added to end.
+ *
+ * Exceptions: none
+ * History: Mon Mar 11 11:08:11 1991, DSJ, Created.
  */
-  LIST WorstChoice;
-  char empty_lengths[] = {0};
+void AddLargeSpeckleTo(BLOB_CHOICE_LIST *Choices) {
+  assert(Choices != NULL);
+  BLOB_CHOICE *blob_choice;
+  BLOB_CHOICE_IT temp_it;
+  temp_it.set_to_list(Choices);
 
-  /* if there are no other choices, use the small speckle penalty plus
-     the large speckle penalty */
-  if (Choices == NIL)
-    return (append_choice (NIL, "", empty_lengths, SmallSpecklePenalty + LargeSpecklePenalty,
-      SmallSpeckleCertainty, -1));
+  // If there are no other choices, use the small speckle penalty plus
+  // the large speckle penalty.
+  if (Choices->length() == 0) {
+    blob_choice =
+      new BLOB_CHOICE(0, speckle_small_certainty + speckle_large_penalty,
+                      speckle_small_certainty, -1, -1, NULL);
+    temp_it.add_to_end(blob_choice);
+    return;
+  }
 
-  /* if there are other choices,  add a null choice that is slightly worse
-     than the worst choice so far */
-  WorstChoice = last (Choices);
-  return (append_choice (Choices, "", empty_lengths,
-    best_probability (WorstChoice) + LargeSpecklePenalty,
-    best_certainty (WorstChoice), -1));
-
+  // If there are other choices,  add a null choice that is slightly worse
+  // than the worst choice so far.
+  temp_it.move_to_last();
+  blob_choice = temp_it.data();  // pick the worst choice
+  temp_it.add_to_end(
+      new BLOB_CHOICE(0, blob_choice->rating() + speckle_large_penalty,
+                      blob_choice->certainty(), -1, -1, NULL));
 }                                /* AddLargeSpeckleTo */
 
 
 /*---------------------------------------------------------------------------*/
-void InitSpeckleVars() {
-/*
- **	Parameters: none
- **	Globals: none
- **	Operation: Install the control variables needed for the speckle
- **		filters.
- **	Return: none
- **	Exceptions: none
- **	History: Mon Mar 11 12:04:59 1991, DSJ, Created.
+/**
+ * This routine returns TRUE if both the width of height
+ * of Blob are less than the MaxLargeSpeckleSize.
+ *
+ * Globals:
+ * - #speckle_large_max_size largest allowed speckle
+ *
+ * Exceptions: none
+ * History: Mon Mar 11 10:06:49 1991, DSJ, Created.
+ *
+ * @param Blob blob to test against speckle criteria
+ *
+ * @return TRUE if Blob is speckle, FALSE otherwise.
  */
-  MakeMaxLargeSpeckleSize();
-  MakeSmallSpecklePenalty();
-  MakeLargeSpecklePenalty();
-  MakeSmallSpeckleCertainty();
-}                                /* InitSpeckleVars */
-
-
-/*---------------------------------------------------------------------------*/
-BOOL8 LargeSpeckle(TBLOB *Blob, TEXTROW *Row) {
-/*
- **	Parameters:
- **		Blob		blob to test against speckle criteria
- **		Row		text row that blob is in
- **	Globals:
- **		MaxLargeSpeckleSize	largest allowed speckle
- **	Operation: This routine returns TRUE if both the width of height
- **		of Blob are less than the MaxLargeSpeckleSize.
- **	Return: TRUE if Blob is speckle, FALSE otherwise.
- **	Exceptions: none
- **	History: Mon Mar 11 10:06:49 1991, DSJ, Created.
- */
-  FLOAT32 SpeckleSize;
+BOOL8 LargeSpeckle(TBLOB *Blob) {
+  double speckle_size;
   TPOINT TopLeft;
   TPOINT BottomRight;
 
-  SpeckleSize = RowHeight (Row) * MaxLargeSpeckleSize;
+  speckle_size = BASELINE_SCALE * speckle_large_max_size;
   blob_bounding_box(Blob, &TopLeft, &BottomRight);
 
-  if (TopLeft.y - BottomRight.y < SpeckleSize &&
-    BottomRight.x - TopLeft.x < SpeckleSize)
+  if (TopLeft.y - BottomRight.y < speckle_size &&
+    BottomRight.x - TopLeft.x < speckle_size)
     return (TRUE);
   else
     return (FALSE);

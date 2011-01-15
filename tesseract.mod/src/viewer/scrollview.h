@@ -29,8 +29,8 @@
 // API calls at all and generate a java user interface from scratch (or
 // basically generate any kind of java program, possibly even dangerous ones).
 
-#ifndef THIRD_PARTY_TESSERACT_VIEWER_SCROLLVIEW_H__
-#define THIRD_PARTY_TESSERACT_VIEWER_SCROLLVIEW_H__
+#ifndef TESSERACT_VIEWER_SCROLLVIEW_H__
+#define TESSERACT_VIEWER_SCROLLVIEW_H__
 
 #include <stdio.h>
 
@@ -83,6 +83,8 @@ struct SVEvent {
 // called whenever an appropriate event occurs.
 class SVEventHandler {
   public:
+    virtual ~SVEventHandler() {}
+
 // Gets called by the SV Window. Does nothing on default, overwrite this
 // to implement the desired behaviour
     virtual void Notify(const SVEvent* sve) { }
@@ -149,6 +151,8 @@ class ScrollView {
     WHEAT,
     GREEN_YELLOW  // Make sure this one is last.
 };
+
+#ifndef GRAPHICS_DISABLED
 
 // Create a window. The pixel size of the window may be 0,0, in which case
 // a default size is selected based on the size of your canvas.
@@ -388,6 +392,8 @@ class ScrollView {
   SVPolyLineBuffer* points_;
   // Whether the axis is reversed.
   bool y_axis_is_reversed_;
+  // Set to true only after the event handler has terminated.
+  bool event_handler_ended_;
   // If the y axis is reversed, flip all y values by ySize.
   int y_size_;
   // # of created windows (used to assign an id to each ScrollView* for svmap).
@@ -404,6 +410,7 @@ class ScrollView {
 
   // Semaphore to the thread belonging to this window.
   SVSemaphore* semaphore_;
+#endif  // GRAPHICS_DISABLED
 };
 
-#endif  // THIRD_PARTY_TESSERACT_VIEWER_SCROLLVIEW_H__
+#endif  // TESSERACT_VIEWER_SCROLLVIEW_H__

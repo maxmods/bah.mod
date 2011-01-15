@@ -26,6 +26,11 @@
 #include          "tprintf.h"
 #include          "statistc.h"
 
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
 #define SEED1       0x1234       //default seeds
 #define SEED2       0x5678
 #define SEED3       0x9abc
@@ -735,8 +740,6 @@ DLLSYM inT32 choose_nth_item(               //fast median
                              float *array,  //array of items
                              inT32 count    //no of items
                             ) {
-  static uinT16 seeds[3] = { SEED1, SEED2, SEED3 };
-  //for nrand
   inT32 next_sample;             //next one to do
   inT32 next_lesser;             //space for new
   inT32 prev_greater;            //last one saved
@@ -759,11 +762,7 @@ DLLSYM inT32 choose_nth_item(               //fast median
       index = 0;                 //ensure lergal
     else if (index >= count)
       index = count - 1;
-    #ifdef __UNIX__
-    equal_count = (inT32) (nrand48 (seeds) % count);
-    #else
-    equal_count = (inT32) (rand () % count);
-    #endif
+    equal_count = (inT32) (rand() % count);
     pivot = array[equal_count];
                                  //fill gap
     array[equal_count] = array[0];
@@ -818,8 +817,6 @@ size_t size,                     //element size
                                  //comparator
 int (*compar) (const void *, const void *)
 ) {
-  static uinT16 seeds[3] = { SEED1, SEED2, SEED3 };
-  //for nrand
   int result;                    //of compar
   inT32 next_sample;             //next one to do
   inT32 next_lesser;             //space for new
@@ -841,11 +838,7 @@ int (*compar) (const void *, const void *)
     index = 0;                   //ensure lergal
   else if (index >= count)
     index = count - 1;
-  #ifdef __UNIX__
-  pivot = (inT32) (nrand48 (seeds) % count);
-  #else
   pivot = (inT32) (rand () % count);
-  #endif
   swap_entries (array, size, pivot, 0);
   next_lesser = 0;
   prev_greater = count;

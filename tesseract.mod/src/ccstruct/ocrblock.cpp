@@ -25,32 +25,33 @@
 
 #define BLOCK_LABEL_HEIGHT  150  //char height of block id
 
-ELISTIZE_S (BLOCK)
-/**********************************************************************
+ELISTIZE (BLOCK)
+/**
  * BLOCK::BLOCK
  *
  * Constructor for a simple rectangular block.
- **********************************************************************/
-BLOCK::BLOCK (                   //rectangular block
-const char *name,                //filename
-BOOL8 prop,                      //proportional
-inT16 kern,                      //kerning
-inT16 space,                     //spacing
-inT16 xmin,                      //bottom left
-inT16 ymin, inT16 xmax,          //top right
-inT16 ymax):
-PDBLK (xmin, ymin, xmax, ymax),
-filename(name) {  //box(ICOORD(xmin,ymin),ICOORD(xmax,ymax))
-                                 //boundaries
+ */
+BLOCK::BLOCK(const char *name,                //< filename
+             BOOL8 prop,                      //< proportional
+             inT16 kern,                      //< kerning
+             inT16 space,                     //< spacing
+             inT16 xmin,                      //< bottom left
+             inT16 ymin, inT16 xmax,          //< top right
+             inT16 ymax)
+  : PDBLK (xmin, ymin, xmax, ymax),
+    filename(name),
+    re_rotation_(1.0f, 0.0f),
+    classify_rotation_(1.0f, 0.0f),
+    skew_(1.0f, 0.0f) {
   ICOORDELT_IT left_it = &leftside;
   ICOORDELT_IT right_it = &rightside;
 
   proportional = prop;
+  right_to_left_ = false;
   kerning = kern;
   spacing = space;
   font_class = -1;               //not assigned
   cell_over_xheight_ = 2.0f;
-  hand_block = NULL;
   hand_poly = NULL;
   left_it.set_to_list (&leftside);
   right_it.set_to_list (&rightside);
@@ -61,84 +62,11 @@ filename(name) {  //box(ICOORD(xmin,ymin),ICOORD(xmax,ymax))
   right_it.add_to_end (new ICOORDELT (xmax, ymax));
 }
 
-
-/**********************************************************************
- * BLOCK::set_sides
- *
- * Sets left and right vertex lists
- **********************************************************************/
-
-//void                                                          BLOCK::set_sides(                       //set vertex lists
-//ICOORDELT_LIST             *left,                        //left vertices
-//ICOORDELT_LIST             *right                        //right vertices
-//)
-//{
-//      ICOORDELT_IT                            left_it= &leftside;                             //boundaries
-//      ICOORDELT_IT                            right_it= &rightside;
-
-//      leftside.clear();
-//      left_it.move_to_first();
-//      left_it.add_list_before(left);
-//      rightside.clear();
-//      right_it.move_to_first();
-//      right_it.add_list_before(right);
-//}
-
-/**********************************************************************
- * BLOCK::contains
- *
- * Return TRUE if the given point is within the block.
- **********************************************************************/
-
-//BOOL8                                                         BLOCK::contains(                                        //test containment
-//ICOORD                                                        pt                                                                              //point to test
-//)
-//{
-//      BLOCK_RECT_IT                           it=this;                                                                //rectangle iterator
-//      ICOORD                                          bleft,tright;                                           //corners of rectangle
-
-//      for (it.start_block();!it.cycled_rects();it.forward())
-//      {
-//              it.bounding_box(bleft,tright);                                                  //get rectangle
-//              if (pt.x()>=bleft.x() && pt.x()<=tright.x()                     //inside rect
-//              && pt.y()>=bleft.y() && pt.y()<=tright.y())
-//                      return TRUE;                                                                                            //is inside
-//      }
-//      return FALSE;                                                                                                           //not inside
-//}
-
-/**********************************************************************
- * BLOCK::move
- *
- * Reposition block
- **********************************************************************/
-
-//void                                                     BLOCK::move(                                         // reposition block
-//const ICOORD                                  vec                                                                     // by vector
-//)
-//{
-//   ROW_IT                                             row_it( &rows );
-//      ICOORDELT_IT                            it( &leftside );
-
-//      for( row_it.mark_cycle_pt(); !row_it.cycled_list(); row_it.forward() )
-//         row_it.data()->move( vec );
-
-//      for( it.mark_cycle_pt(); !it.cycled_list(); it.forward() )
-//         *(it.data()) += vec;
-
-//   it.set_to_list( &rightside );
-
-//   for( it.mark_cycle_pt(); !it.cycled_list(); it.forward() )
-//         *(it.data()) += vec;
-
-//   box.move( vec );
-//}
-
-/**********************************************************************
+/**
  * decreasing_top_order
  *
  * Sort Comparator: Return <0 if row1 top < row2 top
- **********************************************************************/
+ */
 
 int decreasing_top_order(  //
                          const void *row1,
@@ -148,11 +76,21 @@ int decreasing_top_order(  //
 }
 
 
-/**********************************************************************
+/**
+ * BLOCK::rotate
+ *
+ * Rotate the polygon by the given rotation and recompute the bounding_box.
+ */
+void BLOCK::rotate(const FCOORD& rotation) {
+  poly_block()->rotate(rotation);
+  box = *poly_block()->bounding_box();
+}
+
+/**
  * BLOCK::sort_rows
  *
  * Order rows so that they are in order of decreasing Y coordinate
- **********************************************************************/
+ */
 
 void BLOCK::sort_rows() {  // order on "top"
   ROW_IT row_it(&rows);
@@ -161,12 +99,12 @@ void BLOCK::sort_rows() {  // order on "top"
 }
 
 
-/**********************************************************************
+/**
  * BLOCK::compress
  *
  * Delete space between the rows. (And maybe one day, compress the rows)
  * Fill space of block from top down, left aligning rows.
- **********************************************************************/
+ */
 
 void BLOCK::compress() {  // squash it up
   #define           ROW_SPACING 5
@@ -199,12 +137,12 @@ void BLOCK::compress() {  // squash it up
 }
 
 
-/**********************************************************************
+/**
  * BLOCK::check_pitch
  *
  * Check whether the block is fixed or prop, set the flag, and set
  * the pitch if it is fixed.
- **********************************************************************/
+ */
 
 void BLOCK::check_pitch() {  // check prop
   //      tprintf("Missing FFT fixed pitch stuff!\n");
@@ -212,11 +150,11 @@ void BLOCK::check_pitch() {  // check prop
 }
 
 
-/**********************************************************************
+/**
  * BLOCK::compress
  *
  * Compress and move in a single operation.
- **********************************************************************/
+ */
 
 void BLOCK::compress(                  // squash it up
                      const ICOORD vec  // and move
@@ -226,15 +164,15 @@ void BLOCK::compress(                  // squash it up
 }
 
 
-/**********************************************************************
+/**
  * BLOCK::print
  *
  * Print the info on a block
- **********************************************************************/
+ */
 
 void BLOCK::print(            //print list of sides
-                  FILE *,     //file to print on
-                  BOOL8 dump  //print full detail
+                  FILE *,     //< file to print on
+                  BOOL8 dump  //< print full detail
                  ) {
   ICOORDELT_IT it = &leftside;   //iterator
 
@@ -258,94 +196,11 @@ void BLOCK::print(            //print list of sides
   }
 }
 
-
-/**********************************************************************
- * BLOCK::plot
- *
- * Plot the outline of a block in the given colour.
- **********************************************************************/
-
-//void                                                          BLOCK::plot(                                            //draw outline
-//WINDOW                                                        window,                                                         //window to draw in
-//inT32                                                         serial,                                                         //serial number
-//COLOUR                                                        colour                                                          //colour to draw in
-//)
-//{
-//      ICOORD                                          startpt;                                                                //start of outline
-//      ICOORD                                          endpt;                                                          //end of outline
-//      ICOORD                                          prevpt;                                                         //previous point
-//      ICOORDELT_IT                            it= &leftside;                                          //iterator
-//      char                                                    number[32];                                                     //block id
-
-//      line_color_index(window,colour);                                                                //set the colour
-//      text_color_index(window,colour);
-//      character_height(window,(float)BLOCK_LABEL_HEIGHT);
-//      text_font_index(window,6);
-
-//      if (!leftside.empty())
-//      {
-//              startpt= *(it.data());                                                                          //bottom left corner
-////            fprintf(stderr,"Block %d bottom left is (%d,%d)\n",
-////                    serial,startpt.x(),startpt.y());
-//              sprintf(number,"%d",serial);
-//              text2d(window,startpt.x(),startpt.y(),number,0,FALSE);
-
-//              move2d(window,startpt.x(),startpt.y());
-//              do
-//              {
-//                      prevpt= *(it.data());                                                                   //previous point
-//                      it.forward();                                                                                           //move to next point
-//                      draw2d(window,prevpt.x(),it.data()->y());                       //draw round corner
-//                      draw2d(window,it.data()->x(),it.data()->y());
-//              }
-//              while (!it.at_last());                                                                          //until end of list
-//              endpt= *(it.data());                                                                                    //end point
-
-//              move2d(window,startpt.x(),startpt.y());                         //other side of boundary
-//              it.set_to_list(&rightside);
-//              prevpt=startpt;
-//              for (it.mark_cycle_pt();!it.cycled_list();it.forward())
-//              {
-//                      draw2d(window,prevpt.x(),it.data()->y());                       //draw round corner
-//                      draw2d(window,it.data()->x(),it.data()->y());
-//                      prevpt= *(it.data());                                                                   //previous point
-//              }
-//              draw2d(window,endpt.x(),endpt.y());                                             //close boundary
-//              if (hand_block!=NULL)
-//                      hand_block->plot(window,colour,serial);
-//      }
-//}
-
-/**********************************************************************
- * BLOCK::show
- *
- * Show the image corresponding to a block as its set of rectangles.
- **********************************************************************/
-
-//void                                                          BLOCK::show(                                            //show image block
-//IMAGE                                                         *image,                                                         //image to show
-//WINDOW                                                        window                                                          //window to show in
-//)
-//{
-//      BLOCK_RECT_IT                           it=this;                                                                //rectangle iterator
-//      ICOORD                                          bleft,tright;                                           //corners of rectangle
-
-//      for (it.start_block();!it.cycled_rects();it.forward())
-//      {
-//              it.bounding_box(bleft,tright);                                                  //get rectangle
-////            fprintf(stderr,"Drawing a block with a bottom left of (%d,%d)\n",
-////                    bleft.x(),bleft.y());
-//              show_sub_image(image,bleft.x(),bleft.y(),
-//                      tright.x()-bleft.x(),tright.y()-bleft.y(),
-//                      window,bleft.x(),bleft.y());                                                    //show it
-//      }
-//}
-
-/**********************************************************************
+/**
  * BLOCK::operator=
  *
  * Assignment - duplicate the block structure, but with an EMPTY row list.
- **********************************************************************/
+ */
 
 BLOCK & BLOCK::operator= (       //assignment
 const BLOCK & source             //from this
@@ -358,12 +213,122 @@ const BLOCK & source             //from this
   filename = source.filename;    //STRINGs assign ok
   if (!rows.empty ())
     rows.clear ();
-  //   if ( !leftside.empty() )
-  //              leftside.clear();
-  // if ( !rightside.empty() )
-  //              rightside.clear();
-  //   leftside.deep_copy( &source.leftside );
-  //   rightside.deep_copy( &source.rightside );
-  //      box=source.box;
+  re_rotation_ = source.re_rotation_;
+  classify_rotation_ = source.classify_rotation_;
+  skew_ = source.skew_;
   return *this;
+}
+
+/**********************************************************************
+ * PrintSegmentationStats
+ *
+ * Prints segmentation stats for the given block list.
+ **********************************************************************/
+
+void PrintSegmentationStats(BLOCK_LIST* block_list) {
+  int num_blocks = 0;
+  int num_rows = 0;
+  int num_words = 0;
+  int num_blobs = 0;
+  BLOCK_IT block_it(block_list);
+  for (block_it.mark_cycle_pt(); !block_it.cycled_list(); block_it.forward()) {
+    BLOCK* block = block_it.data();
+    ++num_blocks;
+    ROW_IT row_it(block->row_list());
+    for (row_it.mark_cycle_pt(); !row_it.cycled_list(); row_it.forward()) {
+      ++num_rows;
+      ROW* row = row_it.data();
+      // Iterate over all werds in the row.
+      WERD_IT werd_it(row->word_list());
+      for (werd_it.mark_cycle_pt(); !werd_it.cycled_list(); werd_it.forward()) {
+        WERD* werd = werd_it.data();
+        ++num_words;
+        num_blobs += werd->cblob_list()->length();
+      }
+    }
+  }
+  tprintf("Block list stats:\nBlocks = %d\nRows = %d\nWords = %d\nBlobs = %d\n",
+          num_blocks, num_rows, num_words, num_blobs);
+}
+
+/**********************************************************************
+ * ExtractBlobsFromSegmentation
+ *
+ * Extracts blobs from the given block list and adds them to the output list.
+ * The block list must have been created by performing a page segmentation.
+ **********************************************************************/
+
+void ExtractBlobsFromSegmentation(BLOCK_LIST* blocks,
+                                  C_BLOB_LIST* output_blob_list) {
+  C_BLOB_IT return_list_it(output_blob_list);
+  BLOCK_IT block_it(blocks);
+  for (block_it.mark_cycle_pt(); !block_it.cycled_list(); block_it.forward()) {
+    BLOCK* block = block_it.data();
+    ROW_IT row_it(block->row_list());
+    for (row_it.mark_cycle_pt(); !row_it.cycled_list(); row_it.forward()) {
+      ROW* row = row_it.data();
+      // Iterate over all werds in the row.
+      WERD_IT werd_it(row->word_list());
+      for (werd_it.mark_cycle_pt(); !werd_it.cycled_list(); werd_it.forward()) {
+        WERD* werd = werd_it.data();
+        return_list_it.move_to_last();
+        return_list_it.add_list_after(werd->cblob_list());
+        return_list_it.move_to_last();
+        return_list_it.add_list_after(werd->rej_cblob_list());
+      }
+    }
+  }
+}
+
+/**********************************************************************
+ * RefreshWordBlobsFromNewBlobs()
+ *
+ * Refreshes the words in the block_list by using blobs in the
+ * new_blobs list.
+ * Block list must have word segmentation in it.
+ * It consumes the blobs provided in the new_blobs list. The blobs leftover in
+ * the new_blobs list after the call weren't matched to any blobs of the words
+ * in block list.
+ * The output not_found_blobs is a list of blobs from the original segmentation
+ * in the block_list for which no corresponding new blobs were found.
+ **********************************************************************/
+
+void RefreshWordBlobsFromNewBlobs(BLOCK_LIST* block_list,
+                                  C_BLOB_LIST* new_blobs,
+                                  C_BLOB_LIST* not_found_blobs) {
+  // Now iterate over all the blobs in the segmentation_block_list_, and just
+  // replace the corresponding c-blobs inside the werds.
+  BLOCK_IT block_it(block_list);
+  for (block_it.mark_cycle_pt(); !block_it.cycled_list(); block_it.forward()) {
+    BLOCK* block = block_it.data();
+    // Iterate over all rows in the block.
+    ROW_IT row_it(block->row_list());
+    for (row_it.mark_cycle_pt(); !row_it.cycled_list(); row_it.forward()) {
+      ROW* row = row_it.data();
+      // Iterate over all werds in the row.
+      WERD_IT werd_it(row->word_list());
+      WERD_LIST new_words;
+      WERD_IT new_words_it(&new_words);
+      for (werd_it.mark_cycle_pt(); !werd_it.cycled_list(); werd_it.forward()) {
+        WERD* werd = werd_it.extract();
+        WERD* new_werd = werd->ConstructWerdWithNewBlobs(new_blobs,
+                                                         not_found_blobs);
+        if (new_werd) {
+          // Insert this new werd into the actual row's werd-list. Remove the
+          // existing one.
+          new_words_it.add_after_then_move(new_werd);
+          delete werd;
+        } else {
+          // Reinsert the older word back, for lack of better options.
+          // This is critical since dropping the words messes up segmentation:
+          // eg. 1st word in the row might otherwise have W_FUZZY_NON turned on.
+          new_words_it.add_after_then_move(werd);
+        }
+      }
+      // Get rid of the old word list & replace it with the new one.
+      row->word_list()->clear();
+      werd_it.move_to_first();
+      werd_it.add_list_after(&new_words);
+    }
+  }
 }

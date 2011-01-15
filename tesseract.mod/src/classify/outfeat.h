@@ -33,12 +33,6 @@ typedef enum {
 } OUTLINE_FEAT_PARAM_NAME;
 
 #define MAX_OUTLINE_FEATURES  (100)
-/**----------------------------------------------------------------------------
-          Public Function Prototypes
-----------------------------------------------------------------------------**/
-FEATURE_SET ExtractOutlineFeatures(TBLOB *Blob, LINE_STATS *LineStats); 
-
-void InitOutlineFXVars(); 
 
 /*---------------------------------------------------------------------------
           Privat Function Prototypes
@@ -47,30 +41,8 @@ void AddOutlineFeatureToSet(FPOINT *Start,
                             FPOINT *End,
                             FEATURE_SET FeatureSet);
 
-void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet); 
+void ConvertToOutlineFeatures(MFOUTLINE Outline, FEATURE_SET FeatureSet);
 
-void NormalizeOutlineX(FEATURE_SET FeatureSet); 
+void NormalizeOutlineX(FEATURE_SET FeatureSet);
 
-/*
-#if defined(__STDC__) || defined(__cplusplus)
-# define        _ARGS(s) s
-#else
-# define        _ARGS(s) ()
-#endif*/
-
-/* outfeat.c *
-FEATURE_SET ExtractOutlineFeatures
-    _ARGS((BLOB *Blob,
-  LINE_STATS *LineStats));
-
-void InitOutlineFXVars
-    _ARGS((void));
-
-#undef _ARGS
-*/
-
-/**----------------------------------------------------------------------------
-        Global Data Definitions and Declarations
-----------------------------------------------------------------------------**/
-extern FEATURE_DESC_STRUCT OutlineFeatDesc;
 #endif

@@ -53,7 +53,7 @@
 #define MAX_6BIT      128
 #define BLACK_PIX     0
 
-static uinT8 grey_scales[FIXED_COLOURS] = {
+const uinT8 grey_scales[FIXED_COLOURS] = {
   0, 255, 76, 227, 151, 179, 28, 104,
   149, 72, 215, 67, 53, 44, 156, 137,
   110, 153, 79, 181, 166, 218, 55, 81,
@@ -63,6 +63,8 @@ static uinT8 grey_scales[FIXED_COLOURS] = {
 #undef EXTERN
 #define EXTERN
 
+// Parameter remains truly global, as it is tough to make a member of Image
+// and the whole of this code is likely to go away in the future.
 EXTERN INT_VAR (image_default_resolution, 300, "Image resolution dpi");
 
 /**********************************************************************
@@ -249,8 +251,9 @@ inT32 check_legal_image_size(                     //get rest of image
     return -1;                   //failed
   }
   if (bits_per_pixel != 1 && bits_per_pixel != 2
-    && bits_per_pixel != 4 && bits_per_pixel != 5
-  && bits_per_pixel != 6 && bits_per_pixel != 8 && bits_per_pixel != 24) {
+      && bits_per_pixel != 4 && bits_per_pixel != 5
+      && bits_per_pixel != 6 && bits_per_pixel != 8 && bits_per_pixel != 24
+      && bits_per_pixel != 32) {
     BADBPP.error ("check_legal_image_size", TESSLOG, "%d", bits_per_pixel);
     return -1;
   }
@@ -643,7 +646,7 @@ DLLSYM void fast_reduce_sub_image(                   //reduce rectangle
                                  //put in destination
     dest->put_line (xdest, ydest, destext, &copyline, 0);
   }
-  delete linesums;
+  delete [] linesums;
 }
 
 
@@ -784,7 +787,7 @@ DLLSYM void reduce_sub_image(                   //reduce rectangle
                                  //put in destination
     dest->put_line (xdest, ydest, destext, &copyline, 0);
   }
-  delete linesums;
+  delete [] linesums;
 }
 
 
@@ -1007,15 +1010,14 @@ void IMAGE::get_line(                     //get image line
                      IMAGELINE *linebuf,  //line to copy to
                      inT32 margins        //size of margins
                     ) {
-  uinT8 *src;                    //source pointer
-  uinT8 *dest;                   //destination pointer
-  uinT8 *unpacksrc;              //unpacking pointer
-  inT8 bit;                      //bit index
-  inT8 pixperbyte;               //pixels per byte
-  uinT8 white;                   //white colour
-  inT32 pixel;                   //pixel index
+  uinT8 *src;                    // source pointer
+  uinT8 *dest;                   // destination pointer
+  const uinT8 *unpacksrc;        // unpacking pointer
+  inT8 bit;                      // bit index
+  inT8 pixperbyte;               // pixels per byte
+  uinT8 white;                   // white colour
+  inT32 pixel;                   // pixel index
 
-                                 //test coords
   this->check_legal_access (x, y, width);
   if (width > xsize - x)
     width = xsize - x;           //clip to image
@@ -1508,7 +1510,7 @@ Pix* IMAGE::ToPix() {
   int height = this->get_ysize();
   int bpp = this->get_bpp();
   Pix* pix = pixCreate(width, height, bpp == 24 ? 32 : bpp);
-  uint32* data = pixGetData(pix);
+  l_uint32* data = pixGetData(pix);
   IMAGELINE line;
   if (bpp == 24) {
     line.init(width * 3);
@@ -1577,7 +1579,7 @@ void IMAGE::FromPix(const Pix* src_pix) {
   }
   int width = pixGetWidth(pix);
   int height = pixGetHeight(pix);
-  const uint32* data = pixGetData(pix);
+  const l_uint32* data = pixGetData(pix);
   this->create(width, height, depth == 32 ? 24 : depth);
   // For each line in the image, fill the IMAGELINE class and put it into the
   // destination image. Note that Tesseract stores images with the
@@ -1594,7 +1596,7 @@ void IMAGE::FromPix(const Pix* src_pix) {
     // Binary images just flip the data bit.
     for (int y = height - 1 ; y >= 0; --y) {
       for (int x = 0; x < width; ++x)
-        line.pixels[x] = GET_DATA_BIT(data, x) ^ 1;
+        line.pixels[x] = GET_DATA_BIT((void *)data, x) ^ 1;
       this->put_line(0, y, width, &line, 0);
       data += pixGetWpl(pix);
     }
@@ -1604,7 +1606,7 @@ void IMAGE::FromPix(const Pix* src_pix) {
     // Greyscale just copies the bytes in the right order.
     for (int y = height - 1 ; y >= 0; --y) {
       for (int x = 0; x < width; ++x)
-        line.pixels[x] = GET_DATA_BYTE(data, x);
+        line.pixels[x] = GET_DATA_BYTE((void *)data, x);
       this->put_line(0, y, width, &line, 0);
       data += pixGetWpl(pix);
     }
@@ -1614,9 +1616,9 @@ void IMAGE::FromPix(const Pix* src_pix) {
     // Put the colors in the correct places in the line buffer.
     for (int y = height - 1 ; y >= 0; --y) {
       for (int x = 0; x < width; ++x, ++data) {
-        line[x][RED_PIX] = GET_DATA_BYTE(data, COLOR_RED);
-        line[x][GREEN_PIX] = GET_DATA_BYTE(data, COLOR_GREEN);
-        line[x][BLUE_PIX] = GET_DATA_BYTE(data, COLOR_BLUE);
+        line[x][RED_PIX] = GET_DATA_BYTE((void *)data, COLOR_RED);
+        line[x][GREEN_PIX] = GET_DATA_BYTE((void *)data, COLOR_GREEN);
+        line[x][BLUE_PIX] = GET_DATA_BYTE((void *)data, COLOR_BLUE);
       }
       this->put_line(0, y, width, &line, 0);
     }

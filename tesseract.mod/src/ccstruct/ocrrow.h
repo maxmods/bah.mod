@@ -28,7 +28,7 @@ class TO_ROW;
 
 class ROW:public ELIST_LINK
 {
-  friend void tweak_row_baseline(ROW *);
+  friend void tweak_row_baseline(ROW *, double, double);
   public:
     ROW() {
     }                            //empty constructor
@@ -57,6 +57,9 @@ class ROW:public ELIST_LINK
     }
     float x_height() const {  //return x height
       return xheight;
+    }
+    void set_x_height(float new_xheight) {  // set x height
+      xheight = new_xheight;
     }
     inT32 kern() const {  //return kerning
       return kerning;
@@ -96,27 +99,7 @@ class ROW:public ELIST_LINK
       baseline.plot (window, colour);
     }
 #endif
-
-    void prep_serialise() {  //set ptrs to counts
-      words.prep_serialise ();
-      baseline.prep_serialise ();
-    }
-
-    void dump(  //write external bits
-              FILE *f) {
-      words.dump (f);
-      baseline.dump (f);
-    }
-
-    void de_dump(  //read external bits
-                 FILE *f) {
-      words.de_dump (f);
-      baseline.de_dump (f);
-    }
-
-                                 //assignment
-    make_serialise (ROW) ROW & operator= (
-      const ROW & source);       //from this
+    ROW& operator= (const ROW & source);
 
   private:
     inT32 kerning;               //inter char gap
@@ -129,5 +112,5 @@ class ROW:public ELIST_LINK
     QSPLINE baseline;            //baseline spline
 };
 
-ELISTIZEH_S (ROW)
+ELISTIZEH (ROW)
 #endif

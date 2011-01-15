@@ -23,13 +23,17 @@
 #endif
 #include          "stderr.h"
 #include          "blobbox.h"
-#include          "lmedsq.h"
 #include          "statistc.h"
 #include          "drawtord.h"
 #include          "tovars.h"
 #include          "topitch.h"
 #include          "fpchop.h"
 #include          "notdll.h"
+
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
 
 #define EXTERN
 

@@ -18,9 +18,15 @@
  **********************************************************************/
 
 #include "mfcpch.h"
-#include          "stepblob.h"
+#include "stepblob.h"
+#include "allheaders.h"
 
-ELISTIZE_S (C_BLOB)
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
+ELISTIZE (C_BLOB)
 /**********************************************************************
  * position_outline
  *
@@ -161,6 +167,21 @@ C_BLOB::C_BLOB(                              //constructor
   }
 }
 
+// Simpler constructor to build a blob from a single outline that has
+// already been fully initialized.
+C_BLOB::C_BLOB(C_OUTLINE* outline) {
+  C_OUTLINE_IT it(&outlines);
+  it.add_to_end(outline);
+}
+
+
+// Build and return a fake blob containing a single fake outline with no
+// steps.
+C_BLOB* C_BLOB::FakeBlob(const TBOX& box) {
+  C_OUTLINE_LIST outlines;
+  C_OUTLINE::FakeOutline(box, &outlines);
+  return new C_BLOB(&outlines);
+}
 
 /**********************************************************************
  * C_BLOB::bounding_box
@@ -278,6 +299,54 @@ void C_BLOB::move(                  // reposition blob
     it.data ()->move (vec);      // move each outline
 }
 
+// Static helper for C_BLOB::rotate to allow recursion of child outlines.
+void RotateOutlineList(const FCOORD& rotation, C_OUTLINE_LIST* outlines) {
+  C_OUTLINE_LIST new_outlines;
+  C_OUTLINE_IT src_it(outlines);
+  C_OUTLINE_IT dest_it(&new_outlines);
+  while (!src_it.empty()) {
+    C_OUTLINE* old_outline = src_it.extract();
+    src_it.forward();
+    C_OUTLINE* new_outline = new C_OUTLINE(old_outline, rotation);
+    if (!old_outline->child()->empty()) {
+      RotateOutlineList(rotation, old_outline->child());
+      C_OUTLINE_IT child_it(new_outline->child());
+      child_it.add_list_after(old_outline->child());
+    }
+    delete old_outline;
+    dest_it.add_to_end(new_outline);
+  }
+  src_it.add_list_after(&new_outlines);
+}
+
+/**********************************************************************
+ * C_BLOB::rotate
+ *
+ * Rotate C_BLOB by rotation.
+ * Warning! has to rebuild all the C_OUTLINEs.
+ **********************************************************************/
+void C_BLOB::rotate(const FCOORD& rotation) {
+  RotateOutlineList(rotation, &outlines);
+}
+
+static void render_outline_list(C_OUTLINE_LIST *list,
+                                int left, int top, Pix* pix) {
+  C_OUTLINE_IT it(list);
+  for (it.mark_cycle_pt(); !it.cycled_list(); it.forward()) {
+    C_OUTLINE* outline = it.data();
+    outline->render(left, top, pix);
+    if (!outline->child()->empty())
+      render_outline_list(outline->child(), left, top, pix);
+  }
+}
+
+// Returns a Pix rendering of the blob. pixDestroy after use.
+Pix* C_BLOB::render() {
+  TBOX box = bounding_box();
+  Pix* pix = pixCreate(box.width(), box.height(), 1);
+  render_outline_list(&outlines, box.left(), box.top(), pix);
+  return pix;
+}
 
 /**********************************************************************
  * C_BLOB::plot

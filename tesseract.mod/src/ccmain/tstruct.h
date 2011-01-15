@@ -20,87 +20,14 @@
 #ifndef           TSTRUCT_H
 #define           TSTRUCT_H
 
-#include          "tessarray.h"
 #include          "werd.h"
-#include          "tessclas.h"
+#include          "blobs.h"
 #include          "ratngs.h"
 #include          "notdll.h"
-#include "oldlist.h"
 
-/*
-struct TESS_LIST
-{
-  TESS_LIST				*node;						//data
-  TESS_LIST				*next;						//next in list
-};
-
-struct TESS_CHOICE
-{
-  float					rating;						//scaled
-  float					certainty;					//absolute
-  char					permuter;					//which permuter code
-  inT8					config;						//which config
-  char*					string;						//really can!
-};
-*/
-class FRAGMENT:public ELIST_LINK
-{
-  public:
-    FRAGMENT() {  //constructor
-    }
-    FRAGMENT(EDGEPT *head_pt,   //start
-             EDGEPT *tail_pt);  //end
-
-    ICOORD head;                 //coords of start
-    ICOORD tail;                 //coords of end
-    EDGEPT *headpt;              //start point
-    EDGEPT *tailpt;              //end point
-
-    NEWDELETE2 (FRAGMENT)
-};
-
-ELISTIZEH (FRAGMENT)
-WERD *make_ed_word(                  //construct word
-                   TWERD *tessword,  //word to convert
-                   WERD *clone       //clone this one
-                  );
-PBLOB *make_ed_blob(                 //construct blob
-                    TBLOB *tessblob  //blob to convert
-                   );
-OUTLINE *make_ed_outline(                     //constructoutline
-                         FRAGMENT_LIST *list  //list of fragments
-                        );
-void register_outline(                     //add fragments
-                      TESSLINE *outline,   //tess format
-                      FRAGMENT_LIST *list  //list to add to
-                     );
-void convert_choice_lists(                                 //convert lists
-                          ARRAY tessarray,                 //list from tess
-                          BLOB_CHOICE_LIST_CLIST *ratings  //list of results
-                         );
-void convert_choice_list(                           //convert lists
-                         LIST list,                 //list from tess
-                         BLOB_CHOICE_LIST &ratings  //list of results
-                        );
-void make_tess_row(                  //make fake row
-                   DENORM *denorm,   //row info
-                   TEXTROW *tessrow  //output row
-                  );
-TWERD *make_tess_word(              //convert owrd
-                      WERD *word,   //word to do
-                      TEXTROW *row  //fake row
-                     );
-TBLOB *make_tess_blobs(                      //make tess blobs
-                       PBLOB_LIST *bloblist  //list to convert
-                      );
-TBLOB *make_tess_blob(               //make tess blob
-                      PBLOB *blob,   //blob to convert
-                      BOOL8 flatten  //flatten outline structure
-                     );
-TESSLINE *make_tess_outlines(                            //make tess outlines
-                             OUTLINE_LIST *outlinelist,  //list to convert
-                             BOOL8 flatten               //flatten outline structure
-                            );
+TBLOB *make_tess_blob(PBLOB *blob);
+TESSLINE *make_tess_outlines(OUTLINE_LIST *outlinelist,  // List to convert
+                             bool is_holes);  // These are hole outlines.
 EDGEPT *make_tess_edgepts(                          //make tess edgepts
                           POLYPT_LIST *edgeptlist,  //list to convert
                           TPOINT &tl,               //bounding box

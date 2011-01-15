@@ -28,8 +28,7 @@
 /*----------------------------------------------------------------------
               I n c l u d e s
 ----------------------------------------------------------------------*/
-#include "tessclas.h"
-#include "general.h"
+#include "blobs.h"
 
 /*----------------------------------------------------------------------
               M a c r o s
@@ -44,22 +43,7 @@
  **********************************************************************/
 
 #define is_inside_angle(pt)                                  \
-(angle_change ((pt)->prev, (pt), (pt)->next) < inside_angle)
-
-/**********************************************************************
- * point_in_outline
- *
- * Check to see if this point falls within the bounding box of this
- * outline.  Note that this does not totally ensure that the edge
- * point falls on this outline.
- **********************************************************************/
-
-#define point_in_outline(p,o)         \
-((p)->pos.x >= (o)->topleft.x  &&   \
-	(p)->pos.y <= (o)->topleft.y  &&   \
-	(p)->pos.x <= (o)->botright.x &&   \
-	(p)->pos.y >= (o)->botright.y)     \
-
+(angle_change ((pt)->prev, (pt), (pt)->next) < chop_inside_angle)
 
 /**********************************************************************
  * same_outline_bounds
@@ -80,49 +64,19 @@
  * Return the distance (squared) between the two edge points.
  **********************************************************************/
 
-#define weighted_edgept_dist(p1,p2,x_y_weight)  \
+#define weighted_edgept_dist(p1,p2,chop_x_y_weight)  \
 (((p1)->pos.x - (p2)->pos.x) *                \
-	((p1)->pos.x - (p2)->pos.x) * x_y_weight +  \
+	((p1)->pos.x - (p2)->pos.x) * chop_x_y_weight +  \
 	((p1)->pos.y - (p2)->pos.y) *               \
 	((p1)->pos.y - (p2)->pos.y))
 
 /*----------------------------------------------------------------------
               F u n c t i o n s
 ----------------------------------------------------------------------*/
-void check_outline_mem(); 
-
 void correct_blob_order(TBLOB *blob1, TBLOB *blob2); 
 
 void eliminate_duplicate_outlines(TBLOB *blob); 
 
-void setup_outline(TESSLINE *outline); 
-
 void setup_blob_outlines(TBLOB *blob); 
 
-/*
-#if defined(__STDC__) || defined(__cplusplus)
-# define	_ARGS(s) s
-#else
-# define	_ARGS(s) ()
-#endif*/
-
-/* olutil.c
-void check_outline_mem
-  _ARGS((void));
-
-void correct_blob_order
-  _ARGS((BLOB *blob1,
-  BLOB *blob2));
-
-void eliminate_duplicate_outlines
-  _ARGS((BLOB *blob));
-
-void setup_outline
-  _ARGS((TESSLINE *outline));
-
-void setup_blob_outlines
-  _ARGS((BLOB *blob));
-
-#undef _ARGS
-*/
 #endif

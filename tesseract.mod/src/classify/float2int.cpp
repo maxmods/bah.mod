@@ -15,34 +15,39 @@
  ** See the License for the specific language governing permissions and
  ** limitations under the License.
  ******************************************************************************/
-/**----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
           Include Files and Type Defines
-----------------------------------------------------------------------------**/
+-----------------------------------------------------------------------------*/
 #include "float2int.h"
 #include "normmatch.h"
 #include "mfoutline.h"
+#include "classify.h"
 #include "picofeat.h"
 
 #define MAX_INT_CHAR_NORM (INT_CHAR_NORM_RANGE - 1)
 
-/**----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
               Public Code
-----------------------------------------------------------------------------**/
+-----------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
+namespace tesseract {
+
+/**
+ * For each class in Templates, clear the corresponding
+ * entry in CharNormArray.  CharNormArray is indexed by class
+ * indicies (as obtained from Templates) rather than class id's.
+ *
+ * Globals: 
+ * - none
+ *
+ * @param Templates specifies classes currently defined
+ * @param CharNormArray array to be cleared
+ *
+ * @note Exceptions: none
+ * @note History: Wed Feb 20 11:20:54 1991, DSJ, Created.
+ */
 void ClearCharNormArray(INT_TEMPLATES Templates,
                         CLASS_NORMALIZATION_ARRAY CharNormArray) {
-/*
- **	Parameters:
- **		Templates	specifies classes currently defined
- **		CharNormArray	array to be cleared
- **	Globals: none
- **	Operation: For each class in Templates, clear the corresponding
- **		entry in CharNormArray.  CharNormArray is indexed by class
- **		indicies (as obtained from Templates) rather than class id's.
- **	Return: none
- **	Exceptions: none
- **	History: Wed Feb 20 11:20:54 1991, DSJ, Created.
- */
   int i;
 
   for (i = 0; i < Templates->NumClasses; i++) {
@@ -53,31 +58,32 @@ void ClearCharNormArray(INT_TEMPLATES Templates,
 
 
 /*---------------------------------------------------------------------------*/
-void ComputeIntCharNormArray(FEATURE NormFeature,
-                             INT_TEMPLATES Templates,
-                             CLASS_NORMALIZATION_ARRAY CharNormArray) {
-/*
- **	Parameters:
- **		NormFeature	character normalization feature
- **		Templates	specifies classes currently defined
- **		CharNormArray	place to put results
- **	Globals: none
- **	Operation: For each class in Templates, compute the match between
- **		NormFeature and the normalization protos for that class.
- **		Convert this number to the range from 0 - 255 and store it
- **		into CharNormArray.  CharNormArray is indexed by class
- **		indicies (as obtained from Templates) rather than class id's.
- **	Return: none (results are returned in CharNormArray)
- **	Exceptions: none
- **	History: Wed Feb 20 11:20:54 1991, DSJ, Created.
+/** 
+ * For each class in Templates, compute the match between
+ * NormFeature and the normalization protos for that class.
+ * Convert this number to the range from 0 - 255 and store it
+ * into CharNormArray.  CharNormArray is indexed by class
+ * indicies (as obtained from Templates) rather than class id's.
+ *
+ * Globals: 
+ * - none
+ *
+ * @param NormFeature character normalization feature
+ * @param Templates specifies classes currently defined
+ * @param[out] CharNormArray place to put results
+ *
+ * @note Exceptions: none
+ * @note History: Wed Feb 20 11:20:54 1991, DSJ, Created.
  */
+void Classify::ComputeIntCharNormArray(
+  FEATURE NormFeature, INT_TEMPLATES Templates,
+  CLASS_NORMALIZATION_ARRAY CharNormArray) {
   int i;
   int NormAdjust;
 
   for (i = 0; i < Templates->NumClasses; i++) {
     NormAdjust = (int) (INT_CHAR_NORM_RANGE *
-      ComputeNormMatch (Templates->ClassIdFor[i],
-      NormFeature, FALSE));
+      ComputeNormMatch (i, NormFeature, FALSE));
     if (NormAdjust < 0)
       NormAdjust = 0;
     else if (NormAdjust > MAX_INT_CHAR_NORM)
@@ -85,29 +91,31 @@ void ComputeIntCharNormArray(FEATURE NormFeature,
 
     CharNormArray[i] = NormAdjust;
   }
-
 }                                /* ComputeIntCharNormArray */
 
 
 /*---------------------------------------------------------------------------*/
-void ComputeIntFeatures(FEATURE_SET Features, INT_FEATURE_ARRAY IntFeatures) {
-/*
- **	Parameters:
- **		Features	floating point pico-features to be converted
- **		IntFeatures	array to put converted features into
- **	Globals: none
- **	Operation: This routine converts each floating point pico-feature
- **		in Features into integer format and saves it into
- **		IntFeatures.
- **	Return: none (results are returned in IntFeatures)
- **	Exceptions: none
- **	History: Wed Feb 20 10:58:45 1991, DSJ, Created.
+/**
+ * This routine converts each floating point pico-feature
+ * in Features into integer format and saves it into
+ * IntFeatures.
+ *
+ * Globals: 
+ * - none
+ *
+ * @param Features floating point pico-features to be converted
+ * @param[out] IntFeatures array to put converted features into
+ *
+ * @note Exceptions: none
+ * @note History: Wed Feb 20 10:58:45 1991, DSJ, Created.
  */
+void Classify::ComputeIntFeatures(FEATURE_SET Features,
+                                  INT_FEATURE_ARRAY IntFeatures) {
   int Fid;
   FEATURE Feature;
   FLOAT32 YShift;
 
-  if (NormMethod == baseline)
+  if (classify_norm_method == baseline)
     YShift = BASELINE_Y_SHIFT;
   else
     YShift = Y_SHIFT;
@@ -124,3 +132,4 @@ void ComputeIntFeatures(FEATURE_SET Features, INT_FEATURE_ARRAY IntFeatures) {
     IntFeatures[Fid].CP_misses = 0;
   }
 }                                /* ComputeIntFeatures */
+}  // namespace tesseract

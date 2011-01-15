@@ -160,8 +160,8 @@ void CLIST::assign_to_sublist(                           //to this list
  *  Return count of elements on list
  **********************************************************************/
 
-inT32 CLIST::length() {  //count elements
-  CLIST_ITERATOR it(this);
+inT32 CLIST::length() const {  //count elements
+  CLIST_ITERATOR it(const_cast<CLIST*>(this));
   inT32 count = 0;
 
   #ifndef NDEBUG
@@ -169,7 +169,7 @@ inT32 CLIST::length() {  //count elements
     NULL_OBJECT.error ("CLIST::length", ABORT, NULL);
   #endif
 
-  for (it.mark_cycle_pt (); !it.cycled_list (); it.forward ())
+  for (it.mark_cycle_pt(); !it.cycled_list(); it.forward())
     count++;
   return count;
 }
@@ -225,7 +225,8 @@ const void *, const void *)) {
 // indirection. Time is O(1) to add to beginning or end.
 // Time is linear to add pre-sorted items to an empty list.
 // If unique, then don't add duplicate entries.
-void CLIST::add_sorted(int comparator(const void*, const void*),
+// Returns true if the element was added to the list.
+bool CLIST::add_sorted(int comparator(const void*, const void*),
                        bool unique, void* new_data) {
   // Check for adding at the end.
   if (last == NULL || comparator(&last->data, &new_data) < 0) {
@@ -238,13 +239,14 @@ void CLIST::add_sorted(int comparator(const void*, const void*),
       last->next = new_element;
     }
     last = new_element;
+    return true;
   } else if (!unique || last->data != new_data) {
     // Need to use an iterator.
     CLIST_ITERATOR it(this);
     for (it.mark_cycle_pt(); !it.cycled_list(); it.forward()) {
       void* data = it.data();
       if (data == new_data && unique)
-        return;
+        return false;
       if (comparator(&data, &new_data) > 0)
         break;
     }
@@ -252,84 +254,38 @@ void CLIST::add_sorted(int comparator(const void*, const void*),
       it.add_to_end(new_data);
     else
       it.add_before_then_move(new_data);
+    return true;
   }
+  return false;
 }
 
-/***********************************************************************
- *							CLIST::prep_serialise
- *
- *  Replace the last member with a count of elements for serialisation.
- *  This is used on list objects which are members of objects being
- *  serialised.  The containing object has been shallow copied and this member
- *  function is invoked on the COPY.
- **********************************************************************/
-
-void CLIST::prep_serialise() {
-  CLIST_ITERATOR this_it(this);
-  inT32 count = 0;
-
-  #ifndef NDEBUG
-  if (!this)
-    NULL_OBJECT.error ("CLIST::prep_serialise", ABORT, NULL);
-  #endif
-
-  count = 0;
-  if (!empty ())
-    for (this_it.mark_cycle_pt ();
-    !this_it.cycled_list (); this_it.forward ())
-  count++;
-  last = (CLIST_LINK *) count;
-}
-
-
-/***********************************************************************
- *							CLIST::internal_dump
- *
- *  Cause each element on the list to be serialised by walking the list and
- *  calling the element_serialiser function for each element.  The
- *  element_serialiser simply does the appropriate coercion of the element to
- *  its real type and then invokes the elements serialise function
- **********************************************************************/
-
-void
-CLIST::internal_dump (FILE * f, void element_serialiser (FILE *, void *)) {
-  CLIST_ITERATOR this_it(this);
-
-  #ifndef NDEBUG
-  if (!this)
-    NULL_OBJECT.error ("CLIST::internal_dump", ABORT, NULL);
-  #endif
-
-  if (!empty ())
-    for (this_it.mark_cycle_pt ();
-    !this_it.cycled_list (); this_it.forward ())
-  element_serialiser (f, this_it.data ());
-}
-
-
-/***********************************************************************
- *							CLIST::internal_de_dump
- *
- *  Cause each element on the list to be de_serialised by extracting the count
- *  of elements on the list, (held in the last member of the dumped version of
- *  the list object), and then de-serialising that number of list elements,
- *  adding each to the end of the reconstructed list.
- **********************************************************************/
-
-void
-CLIST::internal_de_dump (FILE * f, void *element_de_serialiser (FILE *)) {
-  inT32 count = (ptrdiff_t) last;
-  CLIST_ITERATOR this_it;
-
-  #ifndef NDEBUG
-  if (!this)
-    NULL_OBJECT.error ("CLIST::internal_de_dump", ABORT, NULL);
-  #endif
-
-  last = NULL;
-  this_it.set_to_list (this);
-  for (; count > 0; count--)
-    this_it.add_to_end (element_de_serialiser (f));
+// Assuming that the minuend and subtrahend are already sorted with
+// the same comparison function, shallow clears this and then copies
+// the set difference minuend - subtrahend to this, being the elements
+// of minuend that do not compare equal to anything in subtrahend.
+// If unique is true, any duplicates in minuend are also eliminated.
+void CLIST::set_subtract(int comparator(const void*, const void*),
+                         bool unique,
+                         CLIST* minuend, CLIST* subtrahend) {
+  shallow_clear();
+  CLIST_ITERATOR m_it(minuend);
+  CLIST_ITERATOR s_it(subtrahend);
+  // Since both lists are sorted, finding the subtras that are not
+  // minus is a case of a parallel iteration.
+  for (m_it.mark_cycle_pt(); !m_it.cycled_list(); m_it.forward()) {
+    void* minu = m_it.data();
+    void* subtra = NULL;
+    if (!s_it.empty()) {
+      subtra = s_it.data();
+      while (!s_it.at_last() &&
+             comparator(&subtra, &minu) < 0) {
+        s_it.forward();
+        subtra = s_it.data();
+      }
+    }
+    if (subtra == NULL || comparator(&subtra, &minu) != 0)
+      add_sorted(comparator, unique, minu);
+  }
 }
 
 

@@ -22,214 +22,199 @@
 
 #include          "img.h"
 #include          "ocrrow.h"
-#include          "pageblk.h"
 #include          "pdblock.h"
 
 class BLOCK;                     //forward decl
 
-ELISTIZEH_S (BLOCK)
+ELISTIZEH (BLOCK)
 class BLOCK:public ELIST_LINK, public PDBLK
 //page block
 {
   friend class BLOCK_RECT_IT;    //block iterator
 
-                                 //block label
-  friend void scan_hpd_blocks(const char *name,
-                              PAGE_BLOCK_LIST *page_blocks,  //head of full pag
-                              inT32 &block_no,               //no of blocks
-                              BLOCK_IT *block_it);
-  friend BOOL8 read_vec_file(              //read uscan output
-                             STRING name,  //basename of file
-                             inT32 xsize,  //page size //output list
-                             inT32 ysize,
-                             BLOCK_LIST *blocks);
-  friend BOOL8 read_pd_file(              //read uscan output
-                            STRING name,  //basename of file
-                            inT32 xsize,  //page size //output list
-                            inT32 ysize,
-                            BLOCK_LIST *blocks);
+ public:
+  BLOCK()
+    : re_rotation_(1.0f, 0.0f),
+      classify_rotation_(1.0f, 0.0f),
+      skew_(1.0f, 0.0f) {
+    right_to_left_ = false;
+    hand_poly = NULL;
+  }
+  BLOCK(const char *name,  //< filename
+        BOOL8 prop,        //< proportional
+        inT16 kern,        //< kerning
+        inT16 space,       //< spacing
+        inT16 xmin,        //< bottom left
+        inT16 ymin,
+        inT16 xmax,        //< top right
+        inT16 ymax);
 
-  public:
-    BLOCK() {  //empty constructor
-      hand_block = NULL;
-      hand_poly = NULL;
-    }
-    BLOCK(                   //simple constructor
-          const char *name,  //filename
-          BOOL8 prop,        //proportional
-          inT16 kern,        //kerning
-          inT16 space,       //spacing
-          inT16 xmin,        //bottom left
-          inT16 ymin,
-          inT16 xmax,        //top right
-          inT16 ymax);
+  ~BLOCK () {
+  }
 
-    //      void                                            set_sides(                                                 //set vertex lists
-    //              ICOORDELT_LIST       *left,                        //list of left vertices
-    //              ICOORDELT_LIST       *right);                      //list of right vertices
+  /**
+   * set space size etc.
+   * @param prop proportional
+   * @param kern inter char size
+   * @param space inter word size
+   * @param ch_pitch pitch if fixed
+   */
+  void set_stats(BOOL8 prop,
+                 inT16 kern,
+                 inT16 space,
+                 inT16 ch_pitch) {
+    proportional = prop;
+    kerning = (inT8) kern;
+    spacing = space;
+    pitch = ch_pitch;
+  }
+  /// set char size
+  void set_xheight(inT32 height) {
+    xheight = height;
+  }
+  /// set font class
+  void set_font_class(inT16 font) {
+    font_class = font;
+  }
+  /// return proportional
+  BOOL8 prop() const {
+    return proportional;
+  }
+  bool right_to_left() const {
+    return right_to_left_;
+  }
+  void set_right_to_left(bool value) {
+    right_to_left_ = value;
+  }
+  /// return pitch
+  inT32 fixed_pitch() const {
+    return pitch;
+  }
+  /// return kerning
+  inT16 kern() const {
+    return kerning;
+  }
+  /// return font class
+  inT16 font() const {
+    return font_class;
+  }
+  /// return spacing
+  inT16 space() const {
+    return spacing;
+  }
+  /// return filename
+  const char *name() const {
+    return filename.string ();
+  }
+  /// return xheight
+  inT32 x_height() const {
+    return xheight;
+  }
+  float cell_over_xheight() const {
+    return cell_over_xheight_;
+  }
+  void set_cell_over_xheight(float ratio) {
+    cell_over_xheight_ = ratio;
+  }
+  /// get rows
+  ROW_LIST *row_list() {
+    return &rows;
+  }
+  /// get blobs
+  C_BLOB_LIST *blob_list() {
+    return &c_blobs;
+  }
+  C_BLOB_LIST *reject_blobs() {
+    return &rej_blobs;
+  }
+  FCOORD re_rotation() const {
+    return re_rotation_;         // How to transform coords back to image.
+  }
+  void set_re_rotation(const FCOORD& rotation) {
+    re_rotation_ = rotation;
+  }
+  FCOORD classify_rotation() const {
+    return classify_rotation_;   // Apply this before classifying.
+  }
+  void set_classify_rotation(const FCOORD& rotation) {
+    classify_rotation_ = rotation;
+  }
+  FCOORD skew() const {
+    return skew_;                // Direction of true horizontal.
+  }
+  void set_skew(const FCOORD& skew) {
+    skew_ = skew;
+  }
+  const ICOORD& median_size() const {
+    return median_size_;
+  }
+  void set_median_size(int x, int y) {
+    median_size_.set_x(x);
+    median_size_.set_y(y);
+  }
 
-    ~BLOCK () {                  //destructor
-    }
+  Pix* render_mask() {
+    return PDBLK::render_mask(re_rotation_);
+  }
 
-    void set_stats(                   //set space size etc.
-                   BOOL8 prop,        //proportional
-                   inT16 kern,        //inter char size
-                   inT16 space,       //inter word size
-                   inT16 ch_pitch) {  //pitch if fixed
-      proportional = prop;
-      kerning = (inT8) kern;
-      spacing = space;
-      pitch = ch_pitch;
-    }
-    void set_xheight(  //set char size
-                     inT32 height) {
-      xheight = height;
-    }
-    void set_font_class(  //set font class
-                        inT16 font) {
-      font_class = font;
-    }
-    //      TEXT_REGION*                            text_region()
-    //      {
-    //              return hand_block;
-    //      }
-    //      POLY_BLOCK*                                     poly_block()
-    //      {
-    //              return hand_poly;
-    //      }
-    BOOL8 prop() const {  //return proportional
-      return proportional;
-    }
-    inT32 fixed_pitch() const {  //return pitch
-      return pitch;
-    }
-    inT16 kern() const {  //return kerning
-      return kerning;
-    }
-    inT16 font() const {  //return font class
-      return font_class;
-    }
-    inT16 space() const {  //return spacing
-      return spacing;
-    }
-    const char *name() const {  //return filename
-      return filename.string ();
-    }
-    inT32 x_height() const {  //return xheight
-      return xheight;
-    }
-    float cell_over_xheight() const {
-      return cell_over_xheight_;
-    }
-    void set_cell_over_xheight(float ratio) {
-      cell_over_xheight_ = ratio;
-    }
-    ROW_LIST *row_list() {  //get rows
-      return &rows;
-    }
-    C_BLOB_LIST *blob_list() {  //get blobs
-      return &c_blobs;
-    }
-    C_BLOB_LIST *reject_blobs() {
-      return &rej_blobs;
-    }
-    //      void                                                    bounding_box(                                           //get box
-    //              ICOORD&                                 bottom_left,                                            //bottom left
-    //              ICOORD&                                 top_right) const                                        //topright
-    //      {
-    //              bottom_left=box.botleft();
-    //              top_right=box.topright();
-    //      }
-    //      const TBOX&                                      bounding_box() const                            //get real box
-    //      {
-    //              return box;
-    //      }
+  void rotate(const FCOORD& rotation);
 
-    //      BOOL8                                                   contains(                                                       //is pt inside block
-    //              ICOORD                                  pt);
+  /// decreasing y order
+  void sort_rows();
 
-    //      void                                                    move(                                                                   // reposition block
-    //         const ICOORD                 vec);                                                                   // by vector
+  /// shrink white space
+  void compress();
 
-    void sort_rows();  //decreasing y order
+  /// check proportional
+  void check_pitch();
 
-    void compress();  //shrink white space
+  /// shrink white space and move by vector
+  void compress(const ICOORD vec);
 
-    void check_pitch();  //check proportional
+  /// dump whole table
+  void print(FILE *fp, BOOL8 dump);
 
-    void compress(                    //shrink white space
-                  const ICOORD vec);  //and move by vector
+  BLOCK& operator=(const BLOCK & source);
 
-    void print(              //print summary/table
-               FILE *fp,     //file to print on
-               BOOL8 dump);  //dump whole table
-
-    //      void                                                    plot(                                                                   //draw histogram
-    //              WINDOW                                  window,                                                         //window to draw in
-    //              inT32                                           serial,                                                         //serial number
-    //              COLOUR                                  colour);                                                                //colour to draw in
-
-    //      void                                                    show(                                                                   //show image
-    //              IMAGE                                           *image,                                                         //image to show
-    //              WINDOW                                  window);                                                                //window to show in
-
-    void prep_serialise() {  //set ptrs to counts
-      filename.prep_serialise ();
-      rows.prep_serialise ();
-      c_blobs.prep_serialise ();
-      rej_blobs.prep_serialise ();
-      leftside.prep_serialise ();
-      rightside.prep_serialise ();
-    }
-
-    void dump(  //write external bits
-              FILE *f) {
-      filename.dump (f);
-      rows.dump (f);
-      c_blobs.dump (f);
-      rej_blobs.dump (f);
-      leftside.dump (f);
-      rightside.dump (f);
-      if (hand_block != NULL)
-        hand_block->serialise (f);
-    }
-
-    void de_dump(  //read external bits
-                 FILE *f) {
-      filename.de_dump (f);
-      rows.de_dump (f);
-      c_blobs.de_dump (f);
-      rej_blobs.de_dump (f);
-      leftside.de_dump (f);
-      rightside.de_dump (f);
-      if (hand_block != NULL)
-        hand_block = TEXT_REGION::de_serialise (f);
-    }
-
-                                 //assignment
-    make_serialise (BLOCK) BLOCK & operator= (
-      const BLOCK & source);     //from this
-
-  private:
-    BOOL8 proportional;          //proportional
-    inT8 kerning;                //inter blob gap
-    inT16 spacing;               //inter word gap
-    inT16 pitch;                 //pitch of non-props
-    inT16 font_class;            //correct font class
-    inT32 xheight;               //height of chars
-    float cell_over_xheight_;    // Ratio of cell height to xheight.
-    STRING filename;             //name of block
-    //      TEXT_REGION*                            hand_block;                                                     //if it exists
-    //      POLY_BLOCK*                                     hand_poly;                                                      //wierd as well
-    ROW_LIST rows;               //rows in block
-    C_BLOB_LIST c_blobs;         //before textord
-    C_BLOB_LIST rej_blobs;       //duff stuff
-    //      ICOORDELT_LIST                          leftside;                                                       //left side vertices
-    //      ICOORDELT_LIST                          rightside;                                                      //right side vertices
-    //      TBOX                                                     box;                                                                    //bounding box
+ private:
+  BOOL8 proportional;          //< proportional
+  bool right_to_left_;         //< major script is right to left.
+  inT8 kerning;                //< inter blob gap
+  inT16 spacing;               //< inter word gap
+  inT16 pitch;                 //< pitch of non-props
+  inT16 font_class;            //< correct font class
+  inT32 xheight;               //< height of chars
+  float cell_over_xheight_;    //< Ratio of cell height to xheight.
+  STRING filename;             //< name of block
+  ROW_LIST rows;               //< rows in block
+  C_BLOB_LIST c_blobs;         //< before textord
+  C_BLOB_LIST rej_blobs;       //< duff stuff
+  FCOORD re_rotation_;         //< How to transform coords back to image.
+  FCOORD classify_rotation_;   //< Apply this before classifying.
+  FCOORD skew_;                //< Direction of true horizontal.
+  ICOORD median_size_;         //< Median size of blobs.
 };
 
-int decreasing_top_order(  //
-                         const void *row1,
-                         const void *row2);
+int decreasing_top_order(const void *row1, const void *row2);
+
+// A function to print segmentation stats for the given block list.
+void PrintSegmentationStats(BLOCK_LIST* block_list);
+
+// Extracts blobs fromo the given block list and adds them to the output list.
+// The block list must have been created by performing a page segmentation.
+void ExtractBlobsFromSegmentation(BLOCK_LIST* blocks,
+                                  C_BLOB_LIST* output_blob_list);
+
+// Refreshes the words in the block_list by using blobs in the
+// new_blobs list.
+// Block list must have word segmentation in it.
+// It consumes the blobs provided in the new_blobs list. The blobs leftover in
+// the new_blobs list after the call weren't matched to any blobs of the words
+// in block list.
+// The output not_found_blobs is a list of blobs from the original segmentation
+// in the block_list for which no corresponding new blobs were found.
+void RefreshWordBlobsFromNewBlobs(BLOCK_LIST* block_list,
+                                  C_BLOB_LIST* new_blobs,
+                                  C_BLOB_LIST* not_found_blobs);
+
 #endif

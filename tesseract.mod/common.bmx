@@ -1,4 +1,4 @@
-' Copyright 2008,2009 Bruce A Henderson
+' Copyright 2008-2011 Bruce A Henderson
 '
 ' Licensed under the Apache License, Version 2.0 (the "License");
 ' you may not use this file except in compliance with the License.
@@ -19,14 +19,21 @@ Import "source.bmx"
 
 
 Extern
-	Function _strlen:Int(s:Byte Ptr) = "strlen"
+	'Function _strlen:Int(s:Byte Ptr) = "strlen"
 
-	Function bmx_tess_init(datapath:String, lang:String, numericMode:Int)
-	Function bmx_tess_rect:String(imagedata:Byte Ptr, bytesPerPixel:Int, bytesPerLine:Int, x:Int, y:Int, width:Int, height:Int)
-	Function bmx_tess_setvariable:Int(variable:String, value:String)
-	Function bmx_tess_clear()
-	Function bmx_tess_end()
-	Function bmx_tess_isvalidword:Int(word:String)
+	Function bmx_tess_new:Byte Ptr()
+	Function bmx_tess_free(handle:Byte Ptr)
+	Function bmx_tess_init:Int(handle:Byte Ptr, datapath:String, lang:String, numericMode:Int)
+	Function bmx_tess_rect:String(handle:Byte Ptr, imagedata:Byte Ptr, bytesPerPixel:Int, bytesPerLine:Int, x:Int, y:Int, width:Int, height:Int)
+	Function bmx_tess_setvariable:Int(handle:Byte Ptr, variable:String, value:String)
+	Function bmx_tess_clearadaptiveclassifier(handle:Byte Ptr)
+	Function bmx_tess_end(handle:Byte Ptr)
+	Function bmx_tess_isvalidword:Int(handle:Byte Ptr, word:String)
+	Function bmx_tess_setvariableifinit:Int(handle:Byte Ptr, name:String, value:String)
+	Function bmx_tess_getintvariable:Int(handle:Byte Ptr, name:String, value:Int Ptr)
+	Function bmx_tess_getboolvariable:Int(handle:Byte Ptr, name:String, value:Int Ptr)
+	Function bmx_tess_getdoublevariable:Int(handle:Byte Ptr, name:String, value:Double Ptr)
+	Function bmx_tess_getstringvariable:String(handle:Byte Ptr, name:String)
 
 
 End Extern

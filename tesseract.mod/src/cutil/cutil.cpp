@@ -46,9 +46,6 @@ Import original HP distribution
 
 #define RESET_COUNT 2000
 
-void_proc deallocate = (void_proc) c_free_string;
-char_proc allocate = (char_proc) c_alloc_string;
-
 /**********************************************************************
  * long_rand
  *
@@ -89,4 +86,15 @@ FILE *open_file(const char *filename, const char *mode) {
     exit (1);
   }
   return (thisfile);
+}
+
+/// Check whether the file exists
+bool exists_file(const char *filename) {
+  bool exists = false;
+  FILE *f = NULL;
+  if ((f = fopen(filename, "r")) != NULL) {
+    fclose(f);
+    exists = true;
+  }
+  return exists;
 }

@@ -27,6 +27,10 @@
 #include          "img.h"
 #include          "imgbmp.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:4244)  // Conversion warnings
+#endif
+
 typedef struct
 {                                // bmfh
   char bfType1;                  //'B'
@@ -63,11 +67,11 @@ typedef struct
   uinT8 rgbReserved;             //0
 } WIN32_RGBQUAD;
 
-/**********************************************************************
- * open_bmp_image
+/**
+ * @name open_bmp_image
  *
  * Read the header of a bmp format image and prepare to read the rest.
- **********************************************************************/
+ */
 
 inT8 open_bmp_image(               //read header
                     int fd,        //file to read
@@ -106,11 +110,11 @@ inT8 open_bmp_image(               //read header
 }
 
 
-/**********************************************************************
- * read_bmp_image
+/**
+ * @name read_bmp_image
  *
  * Read a whole lz format image and close the file.
- **********************************************************************/
+ */
 
 inT8 read_bmp_image(                //read header
                     int fd,         //file to read
@@ -139,11 +143,11 @@ inT8 read_bmp_image(                //read header
 }
 
 
-/**********************************************************************
- * write_bmp_image
+/**
+ * @name write_bmp_image
  *
  * Write a whole lz format image and close the file.
- **********************************************************************/
+ */
 
 inT8 write_bmp_image(                //write whole image
                      int fd,         //file to write on

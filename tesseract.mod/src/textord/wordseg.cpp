@@ -23,67 +23,110 @@
 #endif
 #include          "stderr.h"
 #include          "blobbox.h"
-#include          "ocrclass.h"
-#include          "lmedsq.h"
 #include          "statistc.h"
 #include          "drawtord.h"
 #include          "makerow.h"
 #include          "pitsync1.h"
-#include          "blobcmpl.h"
 #include          "tovars.h"
 #include          "topitch.h"
-#include          "tospace.h"
+#include          "textord.h"
 #include          "fpchop.h"
 #include          "wordseg.h"
 
+// Include automatically generated configuration file if running autoconf.
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif
+
 #define EXTERN
 
-EXTERN BOOL_VAR (textord_fp_chopping, TRUE, "Do fixed pitch chopping");
-extern /*"C" */ ETEXT_DESC *global_monitor;     //progress monitor
+EXTERN BOOL_VAR(textord_fp_chopping, TRUE, "Do fixed pitch chopping");
+EXTERN BOOL_VAR(textord_force_make_prop_words, FALSE,
+                "Force proportional word segmentation on all rows");
+EXTERN BOOL_VAR(textord_chopper_test, FALSE,
+                "Chopper is being tested.");
 
 #define FIXED_WIDTH_MULTIPLE  5
 #define BLOCK_STATS_CLUSTERS  10
 
-/**********************************************************************
+
+/**
+ * @name make_single_word
+ *
+ * For each row, arrange the blobs into one word. There is no fixed
+ * pitch detection.
+ */
+
+void make_single_word(bool one_blob, TO_ROW_LIST *rows, ROW_LIST* real_rows) {
+  TO_ROW_IT to_row_it(rows);
+  ROW_IT row_it(real_rows);
+  for (to_row_it.mark_cycle_pt(); !to_row_it.cycled_list();
+       to_row_it.forward()) {
+    TO_ROW* row = to_row_it.data();
+    // The blobs have to come out of the BLOBNBOX into the C_BLOB_LIST ready
+    // to create the word.
+    C_BLOB_LIST cblobs;
+    C_BLOB_IT cblob_it(&cblobs);
+    BLOBNBOX_IT box_it(row->blob_list());
+    for (;!box_it.empty(); box_it.forward()) {
+      BLOBNBOX* bblob= box_it.extract();
+      if (bblob->joined_to_prev() || (one_blob && !cblob_it.empty())) {
+        if (bblob->cblob() != NULL) {
+          C_OUTLINE_IT cout_it(cblob_it.data()->out_list());
+          cout_it.move_to_last();
+          cout_it.add_list_after(bblob->cblob()->out_list());
+          delete bblob->cblob();
+        }
+      } else {
+        if (bblob->cblob() != NULL)
+          cblob_it.add_after_then_move(bblob->cblob());
+      }
+      delete bblob;
+    }
+    // Convert the TO_ROW to a ROW.
+    ROW* real_row = new ROW(row, static_cast<inT16>(row->kern_size),
+                            static_cast<inT16>(row->space_size));
+    WERD_IT word_it(real_row->word_list());
+    WERD* word = new WERD(&cblobs, 0, NULL);
+    word->set_flag(W_BOL, TRUE);
+    word->set_flag(W_EOL, TRUE);
+    word->set_flag(W_DONT_CHOP, one_blob);
+    word_it.add_after_then_move(word);
+    row_it.add_after_then_move(real_row);
+  }
+}
+
+/**
  * make_words
  *
  * Arrange the blobs into words.
- **********************************************************************/
+ */
 
-void make_words(                             //make words
-                ICOORD page_tr,              //top right
-                float gradient,              //page skew
-                BLOCK_LIST *blocks,          //block list
-                TO_BLOCK_LIST *land_blocks,  //rotated for landscape
-                TO_BLOCK_LIST *port_blocks   //output list
-               ) {
-  TO_BLOCK_IT block_it;          //iterator
-  TO_BLOCK *block;               //current block;
+void make_words(tesseract::Textord *textord,
+                ICOORD page_tr,                // top right
+                float gradient,                // page skew
+                BLOCK_LIST *blocks,            // block list
+                TO_BLOCK_LIST *port_blocks) {  // output list
+  TO_BLOCK_IT block_it;          // iterator
+  TO_BLOCK *block;               // current block
 
-  compute_fixed_pitch (page_tr, port_blocks, gradient, FCOORD (0.0f, -1.0f),
-    !(BOOL8) textord_test_landscape);
-  if (global_monitor != NULL) {
-    global_monitor->ocr_alive = TRUE;
-    global_monitor->progress = 25;
-  }
-  to_spacing(page_tr, port_blocks);
-  block_it.set_to_list (port_blocks);
-  for (block_it.mark_cycle_pt (); !block_it.cycled_list ();
-  block_it.forward ()) {
-    block = block_it.data ();
-    //              set_row_spaces(block,FCOORD(1,0),!(BOOL8)textord_test_landscape);
-                                 //make proper classes
-    make_real_words (block, FCOORD (1.0f, 0.0f));
+  compute_fixed_pitch(page_tr, port_blocks, gradient, FCOORD(0.0f, -1.0f),
+                      !(BOOL8) textord_test_landscape);
+  textord->to_spacing(page_tr, port_blocks);
+  block_it.set_to_list(port_blocks);
+  for (block_it.mark_cycle_pt(); !block_it.cycled_list(); block_it.forward()) {
+    block = block_it.data();
+    make_real_words(textord, block, FCOORD(1.0f, 0.0f));
   }
 }
 
 
-/**********************************************************************
- * set_row_spaces
+/**
+ * @name set_row_spaces
  *
  * Set the min_space and max_nonspace members of the row so that
  * the blobs can be arranged into words.
- **********************************************************************/
+ */
 
 void set_row_spaces(                  //find space sizes
                     TO_BLOCK *block,  //block to do
@@ -131,11 +174,11 @@ void set_row_spaces(                  //find space sizes
 }
 
 
-/**********************************************************************
- * row_words
+/**
+ * @name row_words
  *
  * Compute the max nonspace and min space for the row.
- **********************************************************************/
+ */
 
 inT32 row_words(                  //compute space size
                 TO_BLOCK *block,  //block it came from
@@ -304,11 +347,11 @@ inT32 row_words(                  //compute space size
 }
 
 
-/**********************************************************************
- * row_words2
+/**
+ * @name row_words2
  *
  * Compute the max nonspace and min space for the row.
- **********************************************************************/
+ */
 
 inT32 row_words2(                  //compute space size
                  TO_BLOCK *block,  //block it came from
@@ -460,13 +503,14 @@ inT32 row_words2(                  //compute space size
 }
 
 
-/**********************************************************************
- * make_real_words
+/**
+ * @name make_real_words
  *
  * Convert a TO_BLOCK to a BLOCK.
- **********************************************************************/
+ */
 
-void make_real_words(                  //find lines
+void make_real_words(
+                     tesseract::Textord *textord,
                      TO_BLOCK *block,  //block to do
                      FCOORD rotation   //for drawing
                     ) {
@@ -482,15 +526,22 @@ void make_real_words(                  //find lines
     if (row->blob_list ()->empty () && !row->rep_words.empty ()) {
       real_row = make_rep_words (row, block);
     }
-    else if (!row->blob_list ()->empty ()) {
-      //                      tprintf("Row pitch_decision=%d",row->pitch_decision);
-      if (row->pitch_decision == PITCH_DEF_FIXED
-        || row->pitch_decision == PITCH_CORR_FIXED)
+    else if (!row->blob_list()->empty()) {
+      // In a fixed pitch document, some lines may be detected as fixed pitch
+      // while others don't, and will go through different path.
+      // For non-space delimited language like CJK, fixed pitch chop always
+      // leave the entire line as one word.  We can force consistent chopping
+      // with force_make_prop_words flag.
+      if (textord_chopper_test) {
+        real_row = textord->make_blob_words (row, rotation);
+      } else if (textord_force_make_prop_words ||
+          row->pitch_decision == PITCH_DEF_PROP ||
+          row->pitch_decision == PITCH_CORR_PROP) {
+        real_row = textord->make_prop_words (row, rotation);
+      } else if (row->pitch_decision == PITCH_DEF_FIXED ||
+                 row->pitch_decision == PITCH_CORR_FIXED) {
         real_row = fixed_pitch_words (row, rotation);
-      else if (row->pitch_decision == PITCH_DEF_PROP
-        || row->pitch_decision == PITCH_CORR_PROP)
-        real_row = make_prop_words (row, rotation);
-      else
+      } else
         ASSERT_HOST(FALSE);
     }
     if (real_row != NULL) {
@@ -505,12 +556,12 @@ void make_real_words(                  //find lines
 }
 
 
-/**********************************************************************
- * make_rep_words
+/**
+ * @name make_rep_words
  *
  * Fabricate a real row from only the repeated blob words.
  * Get the xheight from the block as it may be more meaningful.
- **********************************************************************/
+ */
 
 ROW *make_rep_words(                 //make a row
                     TO_ROW *row,     //row to convert
@@ -534,7 +585,7 @@ ROW *make_rep_words(                 //make a row
   coeffs[1] = row->line_m ();
   coeffs[2] = row->line_c ();
   row->xheight = block->xheight;
-  real_row = new ROW (row,
+  real_row = new ROW(row,
     (inT16) block->kern_size, (inT16) block->space_size);
   word_it.set_to_list (real_row->word_list ());
                                  //put words in row
@@ -544,77 +595,66 @@ ROW *make_rep_words(                 //make a row
 }
 
 
-/**********************************************************************
- * make_real_word
+/**
+ * @name make_real_word
  *
  * Construct a WERD from a given number of adjacent entries in a
  * list of BLOBNBOXs.
- **********************************************************************/
+ */
 
-WERD *make_real_word(                      //make a WERD
-                     BLOBNBOX_IT *box_it,  //iterator
+WERD *make_real_word(BLOBNBOX_IT *box_it,  //iterator
                      inT32 blobcount,      //no of blobs to use
                      BOOL8 bol,            //start of line
-                     BOOL8 fuzzy_sp,       //fuzzy space
-                     BOOL8 fuzzy_non,      //fuzzy non-space
                      uinT8 blanks          //no of blanks
                     ) {
-  OUTLINE_IT out_it;             //outlines
+  OUTLINE_IT out_it;             // outlines
   C_OUTLINE_IT cout_it;
-  PBLOB_LIST blobs;              //blobs in word
+  PBLOB_LIST blobs;              // blobs in word
   C_BLOB_LIST cblobs;
-  PBLOB_IT blob_it = &blobs;     //iterator
+  PBLOB_IT blob_it = &blobs;     // iterator
   C_BLOB_IT cblob_it = &cblobs;
-  WERD *word;                    //new word
-  BLOBNBOX *bblob;               //current blob
-  inT32 blobindex;               //in row
+  WERD *word;                    // new word
+  BLOBNBOX *bblob;               // current blob
+  inT32 blobindex;               // in row
 
   for (blobindex = 0; blobindex < blobcount; blobindex++) {
-    bblob = box_it->extract ();
-    if (bblob->joined_to_prev ()) {
-      if (bblob->blob () != NULL) {
-        out_it.set_to_list (blob_it.data ()->out_list ());
-        out_it.move_to_last ();
-        out_it.add_list_after (bblob->blob ()->out_list ());
-        delete bblob->blob ();
+    bblob = box_it->extract();
+    if (bblob->joined_to_prev()) {
+      if (bblob->blob() != NULL) {
+        out_it.set_to_list(blob_it.data()->out_list());
+        out_it.move_to_last();
+        out_it.add_list_after(bblob->blob()->out_list());
+        delete bblob->blob();
       }
-      else if (bblob->cblob () != NULL) {
-        cout_it.set_to_list (cblob_it.data ()->out_list ());
-        cout_it.move_to_last ();
-        cout_it.add_list_after (bblob->cblob ()->out_list ());
-        delete bblob->cblob ();
+      else if (bblob->cblob() != NULL) {
+        cout_it.set_to_list(cblob_it.data()->out_list());
+        cout_it.move_to_last();
+        cout_it.add_list_after(bblob->cblob()->out_list());
+        delete bblob->cblob();
       }
     }
     else {
-      if (bblob->blob () != NULL)
-        blob_it.add_after_then_move (bblob->blob ());
-      else if (bblob->cblob () != NULL)
-        cblob_it.add_after_then_move (bblob->cblob ());
+      if (bblob->blob() != NULL)
+        blob_it.add_after_then_move(bblob->blob());
+      else if (bblob->cblob() != NULL)
+        cblob_it.add_after_then_move(bblob->cblob());
     }
     delete bblob;
-    box_it->forward ();          //next one
+    box_it->forward();          // next one
   }
 
   if (blanks < 1)
     blanks = 1;
-  if (!blob_it.empty ()) {
-                                 //make real word
-    word = new WERD (&blobs, blanks, NULL);
-  }
-  else {
-    word = new WERD (&cblobs, blanks, NULL);
-  }
-  if (bol) {
-    word->set_flag (W_BOL, TRUE);
-  }
-  if (fuzzy_sp)
-                                 //probably space
-    word->set_flag (W_FUZZY_SP, TRUE);
-  else if (fuzzy_non)
-                                 //probably not
-    word->set_flag (W_FUZZY_NON, TRUE);
-  if (box_it->at_first ()) {
-    word->set_flag (W_EOL, TRUE);//at end of line
-  }
+
+  if (blob_it.empty())
+    word = new WERD(&cblobs, blanks, NULL);
+  else
+    word = new WERD(&blobs, blanks, NULL);
+
+  if (bol)
+    word->set_flag(W_BOL, TRUE);
+  if (box_it->at_first())
+    word->set_flag(W_EOL, TRUE);  // at end of line
+
   return word;
 }

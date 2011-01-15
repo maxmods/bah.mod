@@ -31,6 +31,8 @@
 #include "bitvec.h"
 #include "cutil.h"
 #include "unichar.h"
+#include "unicity_table.h"
+#include "params.h"
 
 /*----------------------------------------------------------------------
               T y p e s
@@ -57,6 +59,7 @@ typedef struct
   inT16 NumConfigs;
   inT16 MaxNumConfigs;
   CONFIGS Configurations;
+  UnicityTableEqEq<int> font_set;
 } CLASS_STRUCT;
 typedef CLASS_STRUCT *CLASS_TYPE;
 typedef CLASS_STRUCT *CLASSES;
@@ -73,69 +76,71 @@ typedef CLASS_STRUCT *CLASSES;
 ----------------------------------------------------------------------*/
 extern CLASS_STRUCT TrainingData[];
 
+extern STRING_VAR_H(classify_training_file, "MicroFeatures", "Training file");
+
 /*----------------------------------------------------------------------
               M a c r o s
 ----------------------------------------------------------------------*/
-/**********************************************************************
+/**
  * AddProtoToConfig
  *
  * Set a single proto bit in the specified configuration.
- **********************************************************************/
+ */
 
 #define AddProtoToConfig(Pid,Config)	\
 (SET_BIT (Config, Pid))
 
-/**********************************************************************
+/**
  * RemoveProtoFromConfig
  *
  * Clear a single proto bit in the specified configuration.
- **********************************************************************/
+ */
 
 #define RemoveProtoFromConfig(Pid,Config)	\
 (reset_bit (Config, Pid))
 
-/**********************************************************************
+/**
  * ClassOfChar
  *
  * Return the class of a particular ASCII character value.
- **********************************************************************/
+ */
 
 #define ClassOfChar(Char)            \
 ((TrainingData [Char].NumProtos) ? \
 	(& TrainingData [Char])         : \
 	NO_CLASS)
 
-/**********************************************************************
+/**
  * ProtoIn
  *
  * Choose the selected prototype in this class record.  Return the
  * pointer to it (type PROTO).
- **********************************************************************/
+ */
 
 #define ProtoIn(Class,Pid)  \
 (& (Class)->Prototypes [Pid])
 
-/**********************************************************************
+/**
  * PrintProto
  *
  * Print out the contents of a prototype.   The 'Proto' argument is of
  * type 'PROTO'.
- **********************************************************************/
+ */
 
 #define PrintProto(Proto)                      \
 (cprintf ("X=%4.2f, Y=%4.2f, Angle=%4.2f",    \
-			Proto->X,                \
-			Proto->Y,                \
-			Proto->Length,                \
-			Proto->Angle))                \
+          Proto->X,                \
+          Proto->Y,                \
+          Proto->Length,                \
+          Proto->Angle))                \
 
 
-/**********************************************************************
+/**
  * PrintProtoLine
  *
  * Print out the contents of a prototype.   The 'Proto' argument is of
  * type 'PROTO'.
- **********************************************************************/
+ */
 
 #define PrintProtoLine(Proto)             \
 (cprintf ("A=%4.2f, B=%4.2f, C=%4.2f",   \
@@ -168,8 +173,6 @@ CLASS_TYPE NewClass(int NumProtos, int NumConfigs);
 
 void PrintProtos(CLASS_TYPE Class);
 
-void ReadClassFile();
-
 void ReadClassFromFile(FILE *File, UNICHAR_ID unichar_id);
 
 void ReadConfigs(register FILE *File, CLASS_TYPE Class);
@@ -182,77 +185,4 @@ void WriteOldConfigFile(FILE *File, CLASS_TYPE Class);
 
 void WriteOldProtoFile(FILE *File, CLASS_TYPE Class);
 
-/*
-#if defined(__STDC__) || defined(__cplusplus)
-# define _ARGS(s) s
-#else
-# define _ARGS(s) ()
-#endif*/
-
-/* protos.c *
-int AddConfigToClass
-  _ARGS((CLASS_TYPE Class));
-
-int AddProtoToClass
-  _ARGS((CLASS_TYPE Class));
-
-FLOAT32 ClassConfigLength
-  _ARGS((CLASS_TYPE Class,
-  BIT_VECTOR Config));
-
-FLOAT32 ClassProtoLength
-  _ARGS((CLASS_TYPE Class));
-
-void CopyProto
-  _ARGS((PROTO Src,
-  PROTO Dest));
-
-void FillABC
-  _ARGS((PROTO Proto));
-
-void FreeClass
-  _ARGS((CLASS_TYPE Class));
-
-void FreeClassFields
-  _ARGS((CLASS_TYPE Class));
-
-void InitPrototypes
-  _ARGS((void));
-
-CLASS_TYPE NewClass
-  _ARGS((int NumProtos,
-  int NumConfigs));
-
-void PrintProtos
-  _ARGS((CLASS_TYPE Class));
-
-void ReadClassFile
-  _ARGS((void));
-
-void ReadClassFromFile
-  _ARGS((FILE *File,
-  int ClassChar));
-
-void ReadConfigs
-  _ARGS((FILE *File,
-  CLASS_TYPE Class));
-
-void ReadProtos
-  _ARGS((FILE *File,
-  CLASS_TYPE Class));
-
-int SplitProto
-  _ARGS((CLASS_TYPE Class,
-  int OldPid));
-
-void WriteOldConfigFile
-  _ARGS((FILE *File,
-  CLASS_TYPE Class));
-
-void WriteOldProtoFile
-  _ARGS((FILE *File,
-  CLASS_TYPE Class));
-
-#undef _ARGS
-*/
 #endif
