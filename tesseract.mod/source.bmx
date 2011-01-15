@@ -35,6 +35,11 @@ Import "src/pageseg/*.h"
 Import "src/ccmain/*.h"
 Import "src/wordrec/*.h"
 
+?win32
+Import "src/win32/*.h"
+Import "src/win32/strtok.cpp"
+?
+
 Import "src/api/baseapi.cpp"
 Import "src/api/tesseractmain.cpp"
 Import "src/api/pageiterator.cpp"

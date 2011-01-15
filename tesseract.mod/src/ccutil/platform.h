@@ -1,6 +1,13 @@
 // Place holder
 #define DLLSYM
 #ifdef __MSW32__
+#ifdef __GNUC__
+#define ultoa _ultoa
+typedef struct _BLOB {
+	unsigned int	cbSize;
+	char	*pBlobData;
+} BLOB,*LPBLOB;
+#endif
 #define SIGNED
 #define snprintf _snprintf
 #if (_MSC_VER <= 1400)

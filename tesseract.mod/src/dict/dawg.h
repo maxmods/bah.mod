@@ -36,7 +36,11 @@
 #include "params.h"
 
 #ifdef __MSW32__
-#define NO_EDGE                (inT64) 0xffffffffffffffffi64
+#ifndef __GNUC__
+#define NO_EDGE                (inT64) 0xffffffffffffffffll
+#else
+#define NO_EDGE                (inT64) 0x001fffffffffffffLL
+#endif
 #else
 #define NO_EDGE                (inT64) 0xffffffffffffffffll
 #endif

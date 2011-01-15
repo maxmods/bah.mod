@@ -22,8 +22,10 @@
 
 #include <stdio.h>
 #ifdef WIN32
+#ifndef __GNUC__
 #include <windows.h>
 #include <winsock.h>
+#endif
 struct addrinfo {
   struct sockaddr* ai_addr;
   int ai_addrlen;

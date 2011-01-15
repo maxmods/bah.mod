@@ -25,18 +25,24 @@
 #define TESSERACT_VIEWER_SVUTIL_H__
 
 #ifdef WIN32
+#ifndef __GNUC__
 #include <windows.h>
 #define snprintf _snprintf
 #if (_MSC_VER <= 1400)
 #define vsnprintf _vsnprintf
 #endif
 #pragma warning(disable:4786)
+#include <string>
+#else
+#include <string>
+#include "platform.h"
+#include <windows.h>
+#endif
 #else
 #include <pthread.h>
 #include <semaphore.h>
-#endif
-
 #include <string>
+#endif
 
 #ifndef MAX
 #define MAX(a, b)  ((a > b) ? a : b)

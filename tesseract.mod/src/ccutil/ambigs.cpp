@@ -22,7 +22,11 @@
 #include "helpers.h"
 
 #ifdef WIN32
+#ifndef __GNUC__
 #define strtok_r strtok_s
+#else
+char *strtok_r(char *str, const char *delim, char **save);
+#endif
 #endif
 
 namespace tesseract {

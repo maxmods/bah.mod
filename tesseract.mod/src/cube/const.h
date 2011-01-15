@@ -32,4 +32,8 @@
 #define HIST_WND_RATIO    0.1f
 #define SEG_PT_WND_RATIO  0.1f
 
+#ifdef __MSW32__ && __GNUC__
+#include <climits>
+#endif
+
 #endif  // CUBE_CONST_H

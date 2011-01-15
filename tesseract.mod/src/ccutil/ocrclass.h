@@ -27,9 +27,11 @@
 #ifndef           OCRCLASS_H
 #define           OCRCLASS_H
 
+#ifndef __GNUC__
 #ifdef __MSW32__
 #include          <windows.h>
 #include          "gettimeofday.h"
+#endif
 #else
 #include          <sys/time.h>
 #endif

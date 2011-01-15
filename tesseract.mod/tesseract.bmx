@@ -48,12 +48,14 @@ Import "common.bmx"
 '
 ' Changes to support compilation under MinGW on Win32.
 '
-' platform.h   - Win32 __GNUC__ changes
-' dawg.h       - Win32 __GNUC__ changes
-' dawg.cpp     - Win32 __GNUC__ changes
-' makedawg.cpp - Win32 __GNUC__ changes
-' ocrclass.h   - Win32 __GNUC__ changes
-' svutil.h     - Win32 __GNUC__ changes
+' ambigs.cpp      - Win32 __GNUC__ changes
+' platform.h      - Win32 __GNUC__ changes
+' dawg.h          - Win32 __GNUC__ changes
+' pagesegmain.cpp - Win32 __GNUC__ changes
+' ocrclass.h      - Win32 __GNUC__ changes
+' svutil.h        - Win32 __GNUC__ changes
+' svutil.cpp      - Win32 __GNUC__ changes
+' cube/const.h    - Win32 __GNUC__ changes
 '
 
 Rem
