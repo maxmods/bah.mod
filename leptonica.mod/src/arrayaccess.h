@@ -47,8 +47,12 @@
  */
 
 
-#if 1   /* Inline Accessors */
-#ifndef COMPILER_MSVC
+    /* Use the inline accessors (except with _MSC_VER), because they
+     * are faster.  */
+#define  USE_INLINE_ACCESSORS    1
+
+#if USE_INLINE_ACCESSORS
+#ifndef _MSC_VER
 
     /*--------------------------------------------------*
      *                     1 bit access                 *
@@ -80,7 +84,7 @@
     ({l_uint32 *_TEMP_WORD_PTR_; \
      _TEMP_WORD_PTR_ = (l_uint32 *)(pdata) + ((n) >> 4); \
      *_TEMP_WORD_PTR_ &= ~(0xc0000000 >> (2 * ((n) & 15))); \
-     *_TEMP_WORD_PTR_ |= ((val) << (30 - 2 * ((n) & 15))); \
+     *_TEMP_WORD_PTR_ |= (((val) & 3) << (30 - 2 * ((n) & 15))); \
     })
 
 #define  CLEAR_DATA_DIBIT(pdata, n) \
@@ -97,7 +101,7 @@
     ({l_uint32 *_TEMP_WORD_PTR_; \
      _TEMP_WORD_PTR_ = (l_uint32 *)(pdata) + ((n) >> 3); \
      *_TEMP_WORD_PTR_ &= ~(0xf0000000 >> (4 * ((n) & 7))); \
-     *_TEMP_WORD_PTR_ |= ((val) << (28 - 4 * ((n) & 7))); \
+     *_TEMP_WORD_PTR_ |= (((val) & 15) << (28 - 4 * ((n) & 7))); \
     })
 
 #define  CLEAR_DATA_QBIT(pdata, n) \
@@ -154,15 +158,15 @@
              (*((l_uint32 *)(pdata) + (n)) = (val))
 
 
-#endif  /* COMPILER_MSVC */
-#endif  /* Inline Accessors */
+#endif  /* ! _MSC_VER */
+#endif  /* USE_INLINE_ACCESSORS */
 
 
 
     /*--------------------------------------------------*
      *  Slower, using function calls for all accessors  *
      *--------------------------------------------------*/
-#if 0 || COMPILER_MSVC
+#if !USE_INLINE_ACCESSORS || defined(_MSC_VER)
 #define  GET_DATA_BIT(pdata, n)               l_getDataBit(pdata, n)
 #define  SET_DATA_BIT(pdata, n)               l_setDataBit(pdata, n)
 #define  CLEAR_DATA_BIT(pdata, n)             l_clearDataBit(pdata, n)
@@ -184,7 +188,7 @@
 
 #define  GET_DATA_FOUR_BYTES(pdata, n)         l_getDataFourBytes(pdata, n)
 #define  SET_DATA_FOUR_BYTES(pdata, n, val)    l_setDataFourBytes(pdata, n, val)
-#endif
+#endif  /* !USE_INLINE_ACCESSORS || _MSC_VER */
 
 
 #endif /* LEPTONICA_ARRAY_ACCESS_H */

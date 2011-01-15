@@ -16,9 +16,18 @@
 /*
  *   numafunc2.c
  *
- *      Transformations
+ *      Morphological (min/max) operations
+ *          NUMA        *numaErode()
+ *          NUMA        *numaDilate()
+ *          NUMA        *numaOpen()
+ *          NUMA        *numaClose()
+ *
+ *      Other transforms
  *          NUMA        *numaTransform()
- *          NUMA        *numaConvolve()
+ *          l_int32      numaWindowedStats()
+ *          NUMA        *numaWindowedMean()
+ *          NUMA        *numaWindowedMeanSquare()
+ *          l_int32      numaWindowedVariance()
  *          NUMA        *numaConvertToInt()
  *
  *      Histogram generation and statistics
@@ -33,6 +42,8 @@
  *          l_int32      numaMakeRankFromHistogram()
  *          l_int32      numaHistogramGetRankFromVal()
  *          l_int32      numaHistogramGetValFromRank()
+ *          l_int32      numaDiscretizeRankAndIntensity()
+ *          l_int32      numaGetRankBinValues()
  *
  *      Splitting a distribution
  *          l_int32      numaSplitDistribution()
@@ -40,6 +51,7 @@
  *      Extrema finding
  *          NUMA        *numaFindPeaks()
  *          NUMA        *numaFindExtrema()
+ *          l_int32     *numaCountReversals()
  *
  *      Threshold crossings and frequency analysis
  *          l_int32      numaSelectCrossingThreshold()
@@ -83,9 +95,6 @@
  *        must have these two numbers properly set.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -105,7 +114,235 @@ static const l_int32 NBinSizes = 24;
 
 
 /*----------------------------------------------------------------------*
- *                             Transformations                          *
+ *                     Morphological operations                         *
+ *----------------------------------------------------------------------*/
+/*!
+ *  numaErode()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (eroded), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ *      (3) General comment.  The morphological operations are equivalent
+ *          to those that would be performed on a 1-dimensional fpix.
+ *          However, because we have not implemented morphological
+ *          operations on fpix, we do this here.  Because it is only
+ *          1 dimensional, there is no reason to use the more
+ *          complicated van Herk/Gil-Werman algorithm, and we do it
+ *          by brute force.
+ */
+NUMA *
+numaErode(NUMA    *nas,
+          l_int32  size)
+{
+l_int32     i, j, n, hsize, len;
+l_float32   minval;
+l_float32  *fa, *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaErode");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+        /* Make a source fa (fas) that has an added (size / 2) boundary
+         * on left and right, contains a copy of nas in the interior region
+         * (between 'size' and 'size + n', and has large values
+         * inserted in the boundary (because it is an erosion). */
+    n = numaGetCount(nas);
+    hsize = size / 2;
+    len = n + 2 * hsize;
+    if ((fas = (l_float32 *)CALLOC(len, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+    for (i = 0; i < hsize; i++)
+         fas[i] = 1.0e37;
+    for (i = hsize + n; i < len; i++)
+         fas[i] = 1.0e37;
+    fa = numaGetFArray(nas, L_NOCOPY);
+    for (i = 0; i < n; i++)
+         fas[hsize + i] = fa[i];
+
+    nad = numaMakeConstant(0, n);
+    numaCopyXParameters(nad, nas);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < n; i++) {
+        minval = 1.0e37;  /* start big */
+        for (j = 0; j < size; j++)
+            minval = L_MIN(minval, fas[i + j]);
+        fad[i] = minval;
+    }
+
+    FREE(fas);
+    return nad;
+}
+
+
+/*!
+ *  numaDilate()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (dilated), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ */
+NUMA *
+numaDilate(NUMA    *nas,
+           l_int32  size)
+{
+l_int32     i, j, n, hsize, len;
+l_float32   maxval;
+l_float32  *fa, *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaDilate");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+        /* Make a source fa (fas) that has an added (size / 2) boundary
+         * on left and right, contains a copy of nas in the interior region
+         * (between 'size' and 'size + n', and has small values
+         * inserted in the boundary (because it is a dilation). */
+    n = numaGetCount(nas);
+    hsize = size / 2;
+    len = n + 2 * hsize;
+    if ((fas = (l_float32 *)CALLOC(len, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+    for (i = 0; i < hsize; i++)
+         fas[i] = -1.0e37;
+    for (i = hsize + n; i < len; i++)
+         fas[i] = -1.0e37;
+    fa = numaGetFArray(nas, L_NOCOPY);
+    for (i = 0; i < n; i++)
+         fas[hsize + i] = fa[i];
+
+    nad = numaMakeConstant(0, n);
+    numaCopyXParameters(nad, nas);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < n; i++) {
+        maxval = -1.0e37;  /* start small */
+        for (j = 0; j < size; j++)
+            maxval = L_MAX(maxval, fas[i + j]);
+        fad[i] = maxval;
+    }
+
+    FREE(fas);
+    return nad;
+}
+
+
+/*!
+ *  numaOpen()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (opened), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ */
+NUMA *
+numaOpen(NUMA    *nas,
+         l_int32  size)
+{
+NUMA  *nat, *nad;
+
+    PROCNAME("numaOpen");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+    nat = numaErode(nas, size);
+    nad = numaDilate(nat, size);
+    numaDestroy(&nat);
+    return nad;
+}
+
+
+/*!
+ *  numaClose()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (opened), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ *      (3) We add a border before doing this operation, for the same
+ *          reason that we add a border to a pix before doing a safe closing.
+ *          Without the border, a small component near the border gets
+ *          clipped at the border on dilation, and can be entirely removed
+ *          by the following erosion, violating the basic extensivity
+ *          property of closing.
+ */
+NUMA *
+numaClose(NUMA    *nas,
+          l_int32  size)
+{
+NUMA  *nab, *nat1, *nat2, *nad;
+
+    PROCNAME("numaClose");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+    nab = numaAddBorder(nas, size, size, 0);  /* to preserve extensivity */
+    nat1 = numaDilate(nab, size);
+    nat2 = numaErode(nat1, size);
+    nad = numaRemoveBorder(nat2, size, size);
+    numaDestroy(&nab);
+    numaDestroy(&nat1);
+    numaDestroy(&nat2);
+    return nad;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                            Other transforms                          *
  *----------------------------------------------------------------------*/
 /*!
  *  numaTransform()
@@ -113,7 +350,7 @@ static const l_int32 NBinSizes = 24;
  *      Input:  nas
  *              shift (add this to each number)
  *              scale (multiply each number by this)
- *      Return: na with all values shifted and scaled, or null on error
+ *      Return: nad (with all values shifted and scaled, or null on error)
  *
  *  Notes:
  *      (1) Each number is shifted before scaling.
@@ -146,69 +383,247 @@ NUMA      *nad;
 
 
 /*!
- *  numaConvolve()
+ *  numaWindowedStats()
  *
- *      Input:  na
- *              halfwidth (of rectangular filter, minus the center)
- *      Return: na (after low-pass filtering), or null on error
+ *      Input:  nas (input numa)
+ *              wc (half width of the window)
+ *              &nam (<optional return> mean value in window)
+ *              &nams (<optional return> mean square value in window)
+ *              &pnav (<optional return> variance in window)
+ *              &pnarv (<optional return> rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Full convolution takes place only from i = halfwidth to
- *          i = n - halfwidth - 1.  We do the end parts using only
- *          the partial array available.  We do not pad the ends with 0.
- *      (2) This implementation assumes specific fields in the Numa!
+ *      (1) This is a high-level convenience function for calculating
+ *          any or all of these derived arrays.
+ *      (2) These statistical measures over the values in the
+ *          rectangular window are:
+ *            - average value: <x>  (nam)
+ *            - average squared value: <x*x> (nams)
+ *            - variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
+ *            - square-root of variance: (narv)
+ *          where the brackets < .. > indicate that the average value is
+ *          to be taken over the window.
+ *      (3) Note that the variance is just the mean square difference from
+ *          the mean value; and the square root of the variance is the
+ *          root mean square difference from the mean, sometimes also
+ *          called the 'standard deviation'.
+ *      (4) Internally, use mirrored borders to handle values near the
+ *          end of each array.
  */
-NUMA *
-numaConvolve(NUMA    *na,
-             l_int32  halfwidth)
+l_int32
+numaWindowedStats(NUMA    *nas,
+                  l_int32  wc,
+                  NUMA   **pnam,
+                  NUMA   **pnams,
+                  NUMA   **pnav,
+                  NUMA   **pnarv)
 {
-l_int32     i, n, rval;
-l_float32   sum, norm;
-l_float32  *array, *carray, *sumarray;
-NUMA       *nac;
+NUMA  *nam, *nams;
 
-    PROCNAME("numaConvolve");
+    PROCNAME("numaWindowedStats");
 
-    if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
-    n = numaGetCount(na);
-    if (2 * halfwidth + 1 > n)
+    if (!nas)
+        return ERROR_INT("nas not defined", procName, 1);
+    if (2 * wc + 1 > numaGetCount(nas))
         L_WARNING("filter wider than input array!", procName);
-    array = na->array;
 
-    if ((nac = numaCreate(n)) == NULL)
-        return (NUMA *)ERROR_PTR("nac not made", procName, NULL);
-    carray = nac->array;
-    nac->n = n;  /* fill with zeroes */
-
-        /* Make sum array; note the indexing */
-    if ((sumarray = (l_float32 *)CALLOC(n + 1, sizeof(l_float32))) == NULL)
-        return (NUMA *)ERROR_PTR("sumarray not made", procName, NULL);
-    sum = 0.0;
-    sumarray[0] = 0.0;
-    for (i = 0; i < n; i++) {
-        sum += array[i];
-        sumarray[i + 1] = sum;
+    if (!pnav && !pnarv) {
+        if (pnam) *pnam = numaWindowedMean(nas, wc);
+        if (pnams) *pnams = numaWindowedMeanSquare(nas, wc);
+        return 0;
     }
 
-        /* Central part */
-    norm = 1. / (2 * halfwidth + 1);
-    rval = n - halfwidth;
-    for (i = halfwidth; i < rval; ++i)
-        carray[i] = norm *
-                      (sumarray[i + halfwidth + 1] - sumarray[i - halfwidth]);
+    nam = numaWindowedMean(nas, wc);
+    nams = numaWindowedMeanSquare(nas, wc);
+    numaWindowedVariance(nam, nams, pnav, pnarv);
+    if (pnam)
+        *pnam = nam;
+    else
+        numaDestroy(&nam);
+    if (pnams)
+        *pnams = nams;
+    else
+        numaDestroy(&nams);
+    return 0;
+}
 
-        /* Left side */
-    for (i = 0; i < halfwidth; i++)
-        carray[i] = sumarray[i + halfwidth + 1] / (halfwidth + i + 1);
 
-        /* Right side */
-    for (i = rval; i < n; i++)
-        carray[i] = (1. / (n - i + halfwidth)) *
-                       (sumarray[n] - sumarray[i - halfwidth]);
-        
-    FREE(sumarray);
-    return nac;
+/*!
+ *  numaWindowedMean()
+ *
+ *      Input:  nas
+ *              wc (half width of the convolution window)
+ *      Return: nad (after low-pass filtering), or null on error
+ *
+ *  Notes:
+ *      (1) This is a convolution.  The window has width = 2 * @wc + 1.
+ *      (2) We add a mirrored border of size @wc to each end of the array.
+ */
+NUMA *
+numaWindowedMean(NUMA    *nas,
+                 l_int32  wc)
+{
+l_int32     i, n, n1, width;
+l_float32   sum, norm;
+l_float32  *fa1, *fad, *suma;
+NUMA       *na1, *nad;
+
+    PROCNAME("numaWindowedMean");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    n = numaGetCount(nas);
+    width = 2 * wc + 1;  /* filter width */
+    if (width > n)
+        L_WARNING("filter wider than input array!", procName);
+
+    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    n1 = n + 2 * wc;
+    fa1 = numaGetFArray(na1, L_NOCOPY);
+    nad = numaMakeConstant(0, n);
+    fad = numaGetFArray(nad, L_NOCOPY);
+
+        /* Make sum array; note the indexing */
+    if ((suma = (l_float32 *)CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    sum = 0.0;
+    suma[0] = 0.0;
+    for (i = 0; i < n1; i++) {
+        sum += fa1[i];
+        suma[i + 1] = sum;
+    }
+
+    norm = 1. / (2 * wc + 1);
+    for (i = 0; i < n; i++)
+        fad[i] = norm * (suma[width + i] - suma[i]);
+
+    FREE(suma);
+    numaDestroy(&na1);
+    return nad;
+}
+
+
+/*!
+ *  numaWindowedMeanSquare()
+ *
+ *      Input:  nas
+ *              wc (half width of the window)
+ *      Return: nad (containing windowed mean square values), or null on error
+ *
+ *  Notes:
+ *      (1) The window has width = 2 * @wc + 1.
+ *      (2) We add a mirrored border of size @wc to each end of the array.
+ */
+NUMA *
+numaWindowedMeanSquare(NUMA    *nas,
+                       l_int32  wc)
+{
+l_int32     i, n, n1, width;
+l_float32   sum, norm;
+l_float32  *fa1, *fad, *suma;
+NUMA       *na1, *nad;
+
+    PROCNAME("numaWindowedMeanSquare");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    n = numaGetCount(nas);
+    width = 2 * wc + 1;  /* filter width */
+    if (width > n)
+        L_WARNING("filter wider than input array!", procName);
+
+    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    n1 = n + 2 * wc;
+    fa1 = numaGetFArray(na1, L_NOCOPY);
+    nad = numaMakeConstant(0, n);
+    fad = numaGetFArray(nad, L_NOCOPY);
+
+        /* Make sum array; note the indexing */
+    if ((suma = (l_float32 *)CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    sum = 0.0;
+    suma[0] = 0.0;
+    for (i = 0; i < n1; i++) {
+        sum += fa1[i] * fa1[i];
+        suma[i + 1] = sum;
+    }
+
+    norm = 1. / (2 * wc + 1);
+    for (i = 0; i < n; i++)
+        fad[i] = norm * (suma[width + i] - suma[i]);
+
+    FREE(suma);
+    numaDestroy(&na1);
+    return nad;
+}
+
+
+/*!
+ *  numaWindowedVariance()
+ *
+ *      Input:  nam (windowed mean values)
+ *              nams (windowed mean square values)
+ *              &pnav (<optional return> numa of variance -- the ms deviation
+ *                     from the mean)
+ *              &pnarv (<optional return> numa of rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The numas of windowed mean and mean square are precomputed,
+ *          using numaWindowedMean() and numaWindowedMeanSquare().
+ *      (2) Either or both of the variance and square-root of variance
+ *          are returned, where the variance is the average over the
+ *          window of the mean square difference of the pixel value
+ *          from the mean:
+ *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
+ */
+l_int32
+numaWindowedVariance(NUMA   *nam,
+                     NUMA   *nams,
+                     NUMA  **pnav,
+                     NUMA  **pnarv)
+{
+l_int32     i, nm, nms;
+l_float32   var;
+l_float32  *fam, *fams, *fav, *farv;
+NUMA       *nav, *narv;  /* variance and square root of variance */
+
+    PROCNAME("numaWindowedVariance");
+
+    if (!nam)
+        return ERROR_INT("nam not defined", procName, 1);
+    if (!nams)
+        return ERROR_INT("nams not defined", procName, 1);
+    if (!pnav && !pnarv)
+        return ERROR_INT("neither &nav nor &narv are defined", procName, 1);
+    nm = numaGetCount(nam);
+    nms = numaGetCount(nams);
+    if (nm != nms)
+        return ERROR_INT("sizes of nam and nams differ", procName, 1);
+
+    if (pnav) {
+        nav = numaMakeConstant(0, nm);
+        *pnav = nav;
+        fav = numaGetFArray(nav, L_NOCOPY);
+    }
+    if (pnarv) {
+        narv = numaMakeConstant(0, nm);
+        *pnarv = narv;
+        farv = numaGetFArray(narv, L_NOCOPY);
+    }
+    fam = numaGetFArray(nam, L_NOCOPY);
+    fams = numaGetFArray(nams, L_NOCOPY);
+
+    for (i = 0; i < nm; i++) {
+        var = fams[i] - fam[i] * fam[i];
+        if (pnav)
+            fav[i] = var;
+        if (pnarv)
+            farv[i] = (l_float32)sqrt(var);
+    }
+
+    return 0;
 }
 
 
@@ -431,6 +846,7 @@ NUMA      *nah;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &fval);
         ibin = (l_int32)((fval - minval) / binsize);
+        ibin = L_MIN(ibin, maxbins - 1);  /* "edge" case; stay in bounds */
         numaGetIValue(nah, ibin, &ival);
         numaSetValue(nah, ibin, ival + 1.0);
     }
@@ -1039,6 +1455,210 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
 }
 
 
+/*!
+ *  numaDiscretizeRankAndIntensity()
+ *
+ *      Input:  na (normalized histogram of probability density vs intensity)
+ *              nbins (number of bins at which the rank is divided)
+ *              &pnarbin (<optional return> rank bin value vs intensity)
+ *              &pnam (<optional return> median intensity in a bin vs
+ *                     rank bin value, with @nbins of discretized rank values)
+ *              &pnar (<optional return> rank vs intensity; this is
+ *                     a cumulative norm histogram)
+ *              &pnabb (<optional return> intensity at the right bin boundary
+ *                      vs rank bin)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We are inverting the rank(intensity) function to get
+ *          the intensity(rank) function at @nbins equally spaced
+ *          values of rank between 0.0 and 1.0.  We save integer values
+ *          for the intensity.
+ *      (2) We are using the word "intensity" to describe the type of
+ *          array values, but any array of non-negative numbers will work.
+ *      (3) The output arrays give the following mappings, where the
+ *          input is a normalized histogram of array values:
+ *             array values     -->  rank bin number  (narbin)
+ *             rank bin number  -->  median array value in bin (nam)
+ *             array values     -->  cumulative norm = rank  (nar)
+ *             rank bin number  -->  array value at right bin edge (nabb)
+ */
+l_int32
+numaDiscretizeRankAndIntensity(NUMA    *na,
+                               l_int32  nbins,
+                               NUMA   **pnarbin,
+                               NUMA   **pnam,
+                               NUMA   **pnar,
+                               NUMA   **pnabb)
+{
+NUMA      *nar;  /* rank value as function of intensity */
+NUMA      *nam;  /* median intensity in the rank bins */
+NUMA      *nabb;  /* rank bin right boundaries (in intensity) */
+NUMA      *narbin;  /* binned rank value as a function of intensity */
+l_int32    i, j, npts, start, midfound, mcount, rightedge;
+l_float32  sum, midrank, endrank, val;
+
+    PROCNAME("numaDiscretizeRankAndIntensity");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be > 1", procName, 1);
+    if (!pnarbin && !pnam && !pnar && !pnabb)
+        return ERROR_INT("no output requested", procName, 1);
+
+        /* Get cumulative normalized histogram (rank vs intensity value).
+         * For a normalized histogram from an 8 bpp grayscale image
+         * as input, we have 256 bins and 257 points in the
+         * cumulative (rank) histogram. */
+    npts = numaGetCount(na);
+    nar = numaCreate(npts + 1);
+    sum = 0.0;
+    numaAddNumber(nar, sum);  /* left side of first bin */
+    for (i = 0; i < npts; i++) {
+        numaGetFValue(na, i, &val);
+        sum += val;
+        numaAddNumber(nar, sum);
+    }
+
+    if ((nam = numaCreate(nbins)) == NULL)
+        return ERROR_INT("nam not made", procName, 1);
+    if ((narbin = numaCreate(npts)) == NULL)
+        return ERROR_INT("narbin not made", procName, 1);
+    if ((nabb = numaCreate(nbins)) == NULL)
+        return ERROR_INT("nabb not made", procName, 1);
+
+        /* We find the intensity value at the right edge of each of
+         * the rank bins.  We also find the median intensity in the bin,
+         * where approximately half the samples are lower and half are
+         * higher.  This can be considered as a simple approximation
+         * for the average intensity in the bin. */
+    start = 0;  /* index in nar */
+    mcount = 0;  /* count of median values in rank bins; not to exceed nbins */
+    for (i = 0; i < nbins; i++) {
+        midrank = (l_float32)(i + 0.5) / (l_float32)(nbins);
+        endrank = (l_float32)(i + 1.0) / (l_float32)(nbins);
+        endrank = L_MAX(0.0, L_MIN(endrank - 0.001, 1.0));
+        midfound = FALSE;
+        for (j = start; j < npts; j++) {  /* scan up for each bin value */
+            numaGetFValue(nar, j, &val);
+                /* Use (j == npts - 1) tests in case all weight is at top end */
+            if ((!midfound && val >= midrank) ||
+                (mcount < nbins && j == npts - 1)) {
+                midfound = TRUE;
+                numaAddNumber(nam, j);
+                mcount++;
+            }
+            if ((val >= endrank) || (j == npts - 1)) {
+                numaAddNumber(nabb, j);
+                if (val == endrank)
+                    start = j;
+                else
+                    start = j - 1;
+                break;
+            }
+        }
+    }
+    numaSetValue(nabb, nbins - 1, npts - 1);  /* extend to max */
+
+        /* Error checking: did we get data in all bins? */
+    if (mcount != nbins)
+        L_WARNING_INT2("found data for %d bins; should be %d",
+                       procName, mcount, nbins);
+
+        /* Generate LUT that maps from intensity to bin number */
+    start = 0;
+    for (i = 0; i < nbins; i++) {
+        numaGetIValue(nabb, i, &rightedge);
+        for (j = start; j < npts; j++) {
+            if (j <= rightedge)
+                numaAddNumber(narbin, i);
+            if (j > rightedge) {
+                start = j;
+                break;
+            }
+            if (j == npts - 1) {  /* we're done */
+                start = j + 1;
+                break;
+            }
+        }
+    }
+
+    if (pnarbin)
+        *pnarbin = narbin;
+    else
+        numaDestroy(&narbin);
+    if (pnam)
+        *pnam = nam;
+    else
+        numaDestroy(&nam);
+    if (pnar)
+        *pnar = nar;
+    else
+        numaDestroy(&nar);
+    if (pnabb)
+        *pnabb = nabb;
+    else
+        numaDestroy(&nabb);
+    return 0;
+}
+
+
+/*!
+ *  numaGetRankBinValues()
+ *
+ *      Input:  na (just an array of values)
+ *              nbins (number of bins at which the rank is divided)
+ *              &pnarbin (<optional return> rank bin value vs array value)
+ *              &pnam (<optional return> median intensity in a bin vs
+ *                     rank bin value, with @nbins of discretized rank values)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Simple interface for getting a binned rank representation
+ *          of an input array of values.  This returns two mappings:
+ *             array value     -->  rank bin number  (narbin)
+ *             rank bin number -->  median array value in each rank bin (nam)
+ */
+l_int32
+numaGetRankBinValues(NUMA    *na,
+                     l_int32  nbins,
+                     NUMA   **pnarbin,
+                     NUMA   **pnam)
+{
+NUMA      *nah, *nan;  /* histo and normalized histo */
+l_int32    maxbins, discardval;
+l_float32  maxval, delx;
+
+    PROCNAME("numaGetRankBinValues");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be > 1", procName, 1);
+    if (!pnarbin && !pnam)
+        return ERROR_INT("no output requested", procName, 1);
+
+        /* Get normalized histogram  */
+    numaGetMax(na, &maxval, NULL);
+    maxbins = L_MIN(100002, (l_int32)maxval + 2);
+    nah = numaMakeHistogram(na, maxbins, &discardval, NULL);
+    nan = numaNormalizeHistogram(nah, 1.0);
+
+        /* Warn if there is a scale change.  This shouldn't happen
+         * unless the max value is above 100000.  */
+    numaGetXParameters(nan, NULL, &delx);
+    if (delx > 1.0)
+        L_WARNING_FLOAT("scale change: delx = %6.2f", procName, delx);
+
+        /* Rank bin the results */
+    numaDiscretizeRankAndIntensity(nan, nbins, pnarbin, pnam, NULL, NULL);
+    numaDestroy(&nah);
+    numaDestroy(&nan);
+    return 0;
+}
+
+
 /*----------------------------------------------------------------------*
  *                      Splitting a distribution                        *
  *----------------------------------------------------------------------*/
@@ -1059,23 +1679,33 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *  Notes:
  *      (1) This function is intended to be used on a distribution of
  *          values that represent two sets, such as a histogram of
- *          pixel values, and the goal is to determine the means of
- *          the two sets and the best splitting point.
+ *          pixel values for an image with a fg and bg, and the goal
+ *          is to determine the averages of the two sets and the
+ *          best splitting point.
  *      (2) The Otsu method finds a split point that divides the distribution
  *          into two parts by maximizing a score function that is the
  *          product of two terms:
  *            (a) the square of the difference of centroids, (ave1 - ave2)^2
  *            (b) fract1 * (1 - fract1)
  *          where fract1 is the fraction in the lower distribution.
- *          This biases the split point into the larger "bump" (i.e., toward
- *          the point where the (b) term reaches its maximum of 0.25 at
- *          fract1 = 0.5.  To avoid this, we define a range of values near
- *          the maximum of the score function, and choose the value within
+ *      (3) This works well for images where the fg and bg are
+ *          each relatively homogeneous and well-separated in color.
+ *          However, if the actual fg and bg sets are very different
+ *          in size, and the bg is highly varied, as can occur in some
+ *          scanned document images, this will bias the split point
+ *          into the larger "bump" (i.e., toward the point where the
+ *          (b) term reaches its maximum of 0.25 at fract1 = 0.5.
+ *          To avoid this, we define a range of values near the
+ *          maximum of the score function, and choose the value within
  *          this range such that the histogram itself has a minimum value.
  *          The range is determined by scorefract: we include all abscissa
  *          values to the left and right of the value that maximizes the
  *          score, such that the score stays above (1 - scorefract) * maxscore.
- *      (3) We normalize the score so that if the two distributions
+ *          The intuition behind this modification is to try to find
+ *          a split point that both has a high variance score and is
+ *          at or near a minimum in the histogram, so that the histogram
+ *          slope is small at the split point.
+ *      (4) We normalize the score so that if the two distributions
  *          were of equal size and at opposite ends of the numa, the
  *          score would be 1.0.
  */
@@ -1178,6 +1808,11 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         }
     }
 
+        /* Add one to the bestsplit value to get the threshold value,
+         * because when we take a threshold, as in pixThresholdToBinary(),
+         * we always choose the set with values below the threshold. */
+    bestsplit = L_MIN(255, bestsplit + 1);
+
     if (psplitindex) *psplitindex = bestsplit;
     if (pave1) numaGetFValue(naave1, bestsplit, pave1);
     if (pave2) numaGetFValue(naave2, bestsplit, pave2);
@@ -1187,7 +1822,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnascore) {  /* debug mode */
         fprintf(stderr, "minrange = %d, maxrange = %d\n", minrange, maxrange);
         fprintf(stderr, "minval = %10.0f\n", minval);
-        gplotSimple1(nascore, GPLOT_X11, "junkoutroot",
+        gplotSimple1(nascore, GPLOT_PNG, "/tmp/nascore",
                      "Score for split distribution");
         *pnascore = nascore;
     }
@@ -1401,6 +2036,54 @@ NUMA      *nad;
         /* Save the final extremum */
 /*    numaAddNumber(nad, loc); */
     return nad;
+}
+
+
+/*!
+ *  numaCountReversals()
+ *
+ *      Input:  nas (input values)
+ *              minreversal (relative amount to resolve peaks and valleys)
+ *              &nr (<optional return> number of reversals
+ *              &nrpl (<optional return> reversal density: reversals/length)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The input numa is can be generated from pixExtractAlongLine().
+ *          If so, the x parameters can be used to find the reversal
+ *          frequency along a line.
+ */
+l_int32
+numaCountReversals(NUMA       *nas,
+                   l_float32   minreversal,
+                   l_int32    *pnr,
+                   l_float32  *pnrpl)
+{
+l_int32    n, nr;
+l_float32  delx, len;
+NUMA      *nat;
+
+    PROCNAME("numaCountReversals");
+
+    if (!pnr && !pnrpl)
+        return ERROR_INT("neither &nr nor &nrpl are defined", procName, 1);
+    if (pnr) *pnr = 0;
+    if (pnrpl) *pnrpl = 0.0;
+    if (!nas)
+        return ERROR_INT("nas not defined", procName, 1);
+
+    n = numaGetCount(nas);
+    nat = numaFindExtrema(nas, minreversal);
+    nr = numaGetCount(nat);
+    if (pnr) *pnr = nr;
+    if (pnrpl) {
+        numaGetXParameters(nas, NULL, &delx);
+        len = delx * n;
+        *pnrpl = (l_float32)nr / len;
+    }
+
+    numaDestroy(&nat);
+    return 0;
 }
 
 

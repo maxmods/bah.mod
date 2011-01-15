@@ -208,8 +208,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -342,8 +347,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -468,8 +478,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -593,8 +608,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -1201,7 +1221,7 @@ PIX     *pixs, *pixd;
             L_WARNING_INT("box %d not found", procName, i);
             break;
         }
-        boxAdjustSides(box, box, -left, -right, top, bot);
+        boxAdjustSides(box, box, -left, right, -top, bot);
         if (pixad == pixas)  /* replace */
             boxaReplaceBox(boxad, i, box);
         else

@@ -23,7 +23,13 @@
  *  was not read from file, the input format field will be
  *  IFF_UNKNOWN and the output file format will be chosen to
  *  be compressed and lossless; namely, IFF_TIFF_G4 for d = 1
- *  and IFF_PNG for everything else.
+ *  and IFF_PNG for everything else.   IFF_JP2 is for jpeg2000, which
+ *  is not supported in leptonica.
+ *
+ *  In the future, new format types that have defined extensions
+ *  will be added before IFF_DEFAULT, and will be kept in sync with
+ *  the file format extensions in writefile.c.  The positions of
+ *  file formats before IFF_DEFAULT will remain invariant.
  */
 enum {
     IFF_UNKNOWN        = 0,
@@ -40,7 +46,10 @@ enum {
     IFF_PNM            = 11,
     IFF_PS             = 12,
     IFF_GIF            = 13,
-    IFF_DEFAULT        = 14
+    IFF_JP2            = 14,
+    IFF_WEBP           = 15,
+    IFF_DEFAULT        = 16,
+    IFF_SPIX           = 17
 };
 
 
@@ -48,12 +57,14 @@ enum {
 enum {
     BMP_ID             = 0x4d42,
     TIFF_BIGEND_ID     = 0x4d4d,     /* MM - for 'motorola' */
-    TIFF_LITTLEEND_ID  = 0x4949      /* II - for 'intel' */
+    TIFF_LITTLEEND_ID  = 0x4949      /* II - for 'intel'    */
 };
 
-/* ------------------ Format header ids --------------- */
+/* ------------------ Gray hinting in jpeg reader --------------- */
 enum {
     L_HINT_GRAY = 1,  /* only want grayscale information */
 };
 
+
 #endif  /* LEPTONICA_IMAGEIO_H */
+

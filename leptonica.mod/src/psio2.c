@@ -73,6 +73,9 @@
  *          l_int32         *convertChunkToAscii85()
  *          l_uint8         *decodeAscii85()
  *
+ *     Setting flag for writing bounding box hint
+ *          void             l_psWriteBoundingBox()
+ *
  *  See psio1.c for higher-level functions and their usage.
  */
 
@@ -84,7 +87,9 @@
 /* --------------------------------------------*/
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
-
+ 
+    /* Set default for writing bounding box hint */
+static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
 
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
@@ -288,7 +293,6 @@ pixWriteStringPS(PIX       *pixs,
                  l_float32  scale)
 {
 char       nib1, nib2;
-char       bigbuf[L_BUF_SIZE];
 char      *hexdata, *outstr;
 l_uint8    byteval;
 l_int32    i, j, k, w, h, d;
@@ -664,9 +668,10 @@ l_float32  xpt, ypt, wpt, hpt;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information */
+        /* Generate the PS.
+         * The bounding box information should be inserted (default). */
     outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, 1, 1, 1);
+                            xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -690,9 +695,9 @@ l_float32  xpt, ypt, wpt, hpt;
  *              res (resolution of the input image, in ppi; use 0 for default)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -791,9 +796,9 @@ l_int32  nbytes;
  *              res (resolution of the input image, in ppi; use 0 for default)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -863,9 +868,9 @@ l_float32  xpt, ypt, wpt, hpt;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_JPEG */
 
-        /* Generate the PS, omitting bounding box information. */
+        /* Generate the PS */
     outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, 0, pageno, endpage);
+                            xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -883,15 +888,13 @@ l_float32  xpt, ypt, wpt, hpt;
  *              bps (bits/sample: usually 8)
  *              spp (samples/pixel: 1 (grayscale); 3 (rgb; typical), 4 (rgba))
  *              xpt, ypt (location of LL corner of image, in pts, relative
- *                    to the PostScript origin (0,0) at the LL corner
- *                    of the page)
+ *                        to the PostScript origin (0,0) at the LL corner
+ *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. for embedded images;
- *                      0 for full page (non-embedded) images)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: use TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page.)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: PS string, or null on error
  *
  *  Notes:
@@ -908,7 +911,6 @@ generateJpegPS(const char  *filein,
                l_float32    ypt,
                l_float32    wpt,
                l_float32    hpt,
-               l_int32      bbflag,
                l_int32      pageno,
                l_int32      endpage)
 {
@@ -932,7 +934,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {  /* embedded */
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                        xpt, ypt, xpt + wpt, ypt + hpt);
@@ -941,10 +943,8 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%%LanguageLevel: 2", L_COPY);
     sarrayAddString(sa, (char *)"%%EndComments", L_COPY);
-    if (!bbflag) {  /* numbered pages */
-        sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
+    sarrayAddString(sa, bigbuf, L_COPY);
 
     sarrayAddString(sa, (char *)"save", L_COPY);
     sarrayAddString(sa,
@@ -1070,10 +1070,10 @@ l_float32  xpt, ypt, wpt, hpt;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information and
-         * painting through the image mask. */
+        /* Generate the PS, painting through the image mask.
+         * The bounding box information should be inserted (default). */
     outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              1, minisblack, 1, 1, 1);
+                              minisblack, 1, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1099,11 +1099,11 @@ l_float32  xpt, ypt, wpt, hpt;
  *                   based on image size)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
+ *                      if there is only one page.)
  *              maskflag (boolean: use TRUE if just painting through fg;
  *                        FALSE if painting both fg and bg.
- *              endpage (boolean: use TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1191,11 +1191,11 @@ l_int32  nbytes;
  *                   based on image size)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
+ *                      if there is only one page.)
  *              maskflag (boolean: use TRUE if just painting through fg;
- *                    FALSE if painting both fg and bg.
- *              endpage (boolean: use TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                        FALSE if painting both fg and bg.
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1272,9 +1272,9 @@ l_float32  xpt, ypt, wpt, hpt;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_G4 */
 
-        /* Generate the PS, omitting bounding box information. */
+        /* Generate the PS */
     outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              0, minisblack, maskflag, pageno, endpage);
+                              minisblack, maskflag, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -1290,18 +1290,16 @@ l_float32  xpt, ypt, wpt, hpt;
  *              data85 (ascii85 encoded ccittg4 compressed raster data)
  *              w, h  (raster image size in pixels)
  *              xpt, ypt (location of LL corner of image, in pts, relative
- *                    to the PostScript origin (0,0) at the LL corner
- *                    of the page)
+ *                        to the PostScript origin (0,0) at the LL corner
+ *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. for embedded images;
- *                      0 for full page (non-embedded) images)
  *              minisblack (boolean: typ. FALSE for 1 bpp images)
  *              maskflag (boolean: use TRUE if just painting through fg;
  *                        FALSE if painting both fg and bg.
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: use TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page.)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: PS string, or null on error
  *
  *  Notes:
@@ -1316,7 +1314,6 @@ generateTiffG4PS(const char  *filein,
                  l_float32    ypt,
                  l_float32    wpt,
                  l_float32    hpt,
-                 l_int32      bbflag,
                  l_int32      minisblack,
                  l_int32      maskflag,
                  l_int32      pageno,
@@ -1342,7 +1339,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {  /* embedded */
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                     xpt, ypt, xpt + wpt, ypt + hpt);
@@ -1351,10 +1348,8 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%%LanguageLevel: 2", L_COPY);
     sarrayAddString(sa, (char *)"%%EndComments", L_COPY);
-    if (!bbflag) {  /* numbered pages */
-        sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
+    sarrayAddString(sa, bigbuf, L_COPY);
 
     sarrayAddString(sa, (char *)"save", L_COPY);
     sarrayAddString(sa, (char *)"100 dict begin", L_COPY);
@@ -1462,7 +1457,7 @@ FILE        *fp;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-    if ((fp = fopen(filein, "r")) == NULL)
+    if ((fp = fopen(filein, "rb")) == NULL)
         return ERROR_INT("file not found", procName, 1);
     istiff = fileFormatIsTiff(fp);
     if (!istiff) {
@@ -1604,9 +1599,10 @@ PIXCMAP   *cmap;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information */
+        /* Generate the PS.
+         * The bounding box information should be inserted (default). */
     outstr = generateFlatePS(filein, data85, cmapdata85, ncolors,
-                             w, h, bps, spp, xpt, ypt, wpt, hpt, 1, 1, 1);
+                             w, h, bps, spp, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1630,9 +1626,9 @@ PIXCMAP   *cmap;
  *              res (resolution of the input image, in ppi; use 0 for default)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page.)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1730,9 +1726,9 @@ l_int32  nbytes;
  *              res (resolution of the input image, in ppi; use 0 for default)
  *              scale (scaling by printer; use 0.0 or 1.0 for no scaling)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page.)
- *              endpage (boolean: TRUE if the last image to be
- *                  added to the page; FALSE otherwise)
+ *                      if there is only one page.)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1844,10 +1840,9 @@ PIXCMAP   *cmap;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_FLATE */
 
-        /* Generate the PS, omitting bounding box information. */
-    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors,
-                             w, h, bps, spp, xpt, ypt, wpt, hpt,
-                             0, pageno, endpage);
+        /* Generate the PS */
+    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors, w, h,
+                             bps, spp, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -1867,15 +1862,13 @@ PIXCMAP   *cmap;
  *              bps (bits/sample: usually 8)
  *              spp (samples/pixel: 1 (grayscale); 3 (rgb; typical), 4 (rgba))
  *              xpt, ypt (location of LL corner of image, in pts, relative
- *                    to the PostScript origin (0,0) at the LL corner
- *                    of the page)
+ *                        to the PostScript origin (0,0) at the LL corner
+ *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. for embedded images;
- *                      0 for full page (non-embedded) images)
  *              pageno (page number; must start with 1; you can use 0
- *                  if there is only one page; ignored if bbflag = TRUE)
- *              endpage (boolean: use TRUE if the last image to be
- *                  added to the page or if bbflag = TRUE; FALSE otherwise)
+ *                      if there is only one page)
+ *              endpage (boolean: use TRUE if this is the last image to be
+ *                       added to the page; FALSE otherwise)
  *      Return: PS string, or null on error
  */
 char *
@@ -1891,7 +1884,6 @@ generateFlatePS(const char  *filein,
                 l_float32    ypt,
                 l_float32    wpt,
                 l_float32    hpt,
-                l_int32      bbflag,
                 l_int32      pageno,
                 l_int32      endpage)
 {
@@ -1915,7 +1907,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {  /* embedded */
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                        xpt, ypt, xpt + wpt, ypt + hpt);
@@ -1924,10 +1916,8 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%%LanguageLevel: 3", L_COPY);
     sarrayAddString(sa, (char *)"%%EndComments", L_COPY);
-    if (!bbflag) {   /* numbered pages */
-        sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
+    sarrayAddString(sa, bigbuf, L_COPY);
 
     sarrayAddString(sa, (char *)"save", L_COPY);
     sprintf(bigbuf,
@@ -2325,6 +2315,17 @@ l_uint32  oword;
 
     return outa;
 }
+
+
+/*-------------------------------------------------------------*
+ *           Setting flag for writing bounding box hint        *
+ *-------------------------------------------------------------*/
+void
+l_psWriteBoundingBox(l_int32  flag)
+{
+    var_PS_WRITE_BOUNDING_BOX = flag;
+}
+
 
 /* --------------------------------------------*/
 #endif  /* USE_PSIO */

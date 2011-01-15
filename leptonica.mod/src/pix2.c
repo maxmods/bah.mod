@@ -22,6 +22,7 @@
  *          pad pixels, border pixels, and color components for RGB
  *      (2) Add and remove border pixels
  *      (3) Endian byte swaps
+ *      (4) Simple method for byte-processing images (instead of words)
  *
  *      Pixel poking
  *           l_int32     pixGetPixel()
@@ -52,11 +53,13 @@
  *      Assign border pixels
  *           l_int32     pixSetOrClearBorder()
  *           l_int32     pixSetBorderVal()
+ *           l_int32     pixSetBorderRingVal()
  *           l_int32     pixSetMirroredBorder()
  *           PIX        *pixCopyBorder()
  *
  *      Add and remove border
  *           PIX        *pixAddBorder()
+ *           PIX        *pixAddBlackBorder()
  *           PIX        *pixAddBorderGeneral()
  *           PIX        *pixRemoveBorder()
  *           PIX        *pixRemoveBorderGeneral()
@@ -71,6 +74,7 @@
  *           PIX        *pixGetRGBComponentCmap()
  *           l_int32     composeRGBPixel()
  *           void        extractRGBValues()
+ *           l_int32     extractMinMaxComponent()
  *           l_int32     pixGetRGBLine()
  *
  *      Conversion between big and little endians
@@ -83,9 +87,12 @@
  *      Extract raster data as binary string
  *           l_int32     pixGetRasterData()
  *
- *      Serialization of pix to/from memory (uncompressed)
- *           l_int32     pixSerializeToMemory()
- *           PIX        *pixDeserializeFromMemory()
+ *      Setup helpers for 8 bpp byte processing
+ *           l_uint8   **pixSetupByteProcessing()
+ *           l_int32     pixCleanupByteProcessing()
+ *
+ *      Setting parameters for antialias masking with alpha transforms
+ *           void        l_setAlphaMaskBorder()
  *
  *      *** indicates implicit assumption about RGB component ordering
  */
@@ -105,6 +112,11 @@ static const l_uint32 rmask32[] = {0x0,
     0x001fffff, 0x003fffff, 0x007fffff, 0x00ffffff,
     0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff,
     0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff};
+
+    /* This is a global that determines the default 8 bpp alpha mask values
+     * for rings at distance 1 and 2 from the border.  Declare extern
+     * to use.  To change the values, use l_setAlphaMaskBorder(). */
+LEPT_DLL l_float32  AlphaMaskBorderVals[2] = {0.0, 0.5};
 
 
 #ifndef  NO_CONSOLE_IO
@@ -126,6 +138,13 @@ static const l_uint32 rmask32[] = {0x0,
  *  Notes:
  *      (1) This returns the value in the data array.  If the pix is
  *          colormapped, it returns the colormap index, not the rgb value.
+ *      (2) Because of the function overhead and the parameter checking,
+ *          this is much slower than using the GET_DATA_*() macros directly.
+ *          Speed on a 1 Mpixel RGB image, using a 3 GHz machine:
+ *            * pixGet/pixSet: ~25 Mpix/sec
+ *            * GET_DATA/SET_DATA: ~350 MPix/sec
+ *          If speed is important and you're doing random access into
+ *          the pix, use pixGetLinePtrs() and the array access macros.
  */
 l_int32
 pixGetPixel(PIX       *pix,
@@ -190,8 +209,13 @@ l_uint32  *line, *data;
  *              val (value to be inserted)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: the input value is not checked for overflow, and
- *        the sign bit (if any) is ignored.
+ *  Notes:
+ *      (1) Warning: the input value is not checked for overflow with respect
+ *          the the depth of @pix, and the sign bit (if any) is ignored.
+ *          * For d == 1, @val > 0 sets the bit on.
+ *          * For d == 2, 4, 8 and 16, @val is masked to the maximum allowable
+ *            pixel value, and any (invalid) higher order bits are discarded.
+ *      (2) See pixGetPixel() for information on performance.
  */
 l_int32
 pixSetPixel(PIX      *pix,
@@ -1272,7 +1296,54 @@ l_uint32  *datas, *lines;
 
     return 0;
 }
-        
+
+
+/*!
+ *  pixSetBorderRingVal()
+ *
+ *      Input:  pixs (any depth; cmap OK)
+ *              dist (distance from outside; must be > 0; first ring is 1)
+ *              val (value to set at each border pixel)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) The rings are single-pixel-wide rectangular sets of
+ *          pixels at a given distance from the edge of the pix.
+ *          This sets all pixels in a given ring to a value.
+ */
+l_int32
+pixSetBorderRingVal(PIX      *pixs,
+                    l_int32   dist,
+                    l_uint32  val)
+{
+l_int32  w, h, d, i, j, xend, yend;
+
+    PROCNAME("pixSetBorderRingVal");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (dist < 1)
+        return ERROR_INT("dist must be > 0", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (w < 2 * dist + 1 || h < 2 * dist + 1)
+        return ERROR_INT("ring doesn't exist", procName, 1);
+    if (d < 32 && (val >= (1 << d)))
+        return ERROR_INT("invalid pixel value", procName, 1);
+
+    xend = w - dist;
+    yend = h - dist;
+    for (j = dist - 1; j <= xend; j++)
+        pixSetPixel(pixs, j, dist - 1, val);
+    for (j = dist - 1; j <= xend; j++)
+        pixSetPixel(pixs, j, yend, val);
+    for (i = dist - 1; i <= yend; i++)
+        pixSetPixel(pixs, dist - 1, i, val);
+    for (i = dist - 1; i <= yend; i++)
+        pixSetPixel(pixs, xend, i, val);
+
+    return 0;
+}
+
 
 /*!
  *  pixSetMirroredBorder()
@@ -1385,7 +1456,7 @@ l_int32  w, h;
  *      Input:  pixs (all depths; colormap ok)
  *              npix (number of pixels to be added to each side)
  *              val  (value of added border pixels)
- *      Return: pixd (with the input pixs centered), or null on error
+ *      Return: pixd (with the added exterior pixels), or null on error
  *
  *  Notes:
  *      (1) See pixAddBorderGeneral() for values of white & black pixels.
@@ -1406,12 +1477,43 @@ pixAddBorder(PIX      *pixs,
 
 
 /*!
+ *  pixAddBlackBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              npix (number of pixels to be added to each side)
+ *      Return: pixd (with the added exterior pixels), or null on error
+ */
+PIX *
+pixAddBlackBorder(PIX      *pixs,
+                  l_int32   npix)
+{
+l_int32   d, val;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixAddBlackBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (npix == 0)
+        return pixClone(pixs);
+
+    if ((cmap = pixGetColormap(pixs)) != NULL)
+        pixcmapGetRankIntensity(cmap, 0.0, &val);
+    else {
+        d = pixGetDepth(pixs);
+        val = (d == 1) ? 1 : 0;
+    }
+    return pixAddBorderGeneral(pixs, npix, npix, npix, npix, val);
+}
+
+
+/*!
  *  pixAddBorderGeneral()
  *
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot  (number of pixels added)
  *              val   (value of added border pixels)
- *      Return: pixd (with the input pixs inserted), or null on error
+ *      Return: pixd (with the added exterior pixels), or null on error
  *
  *  Notes:
  *      (1) For binary images:
@@ -1984,7 +2086,7 @@ composeRGBPixel(l_int32    rval,
         return ERROR_INT("&pixel not defined", procName, 1);
 
     *ppixel = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
-              (bval << L_BLUE_SHIFT);
+              (bval << L_BLUE_SHIFT) | (255 << L_ALPHA_SHIFT); // BaH
     return 0;
 }
 
@@ -2014,6 +2116,32 @@ extractRGBValues(l_uint32  pixel,
     if (pgval) *pgval = (pixel >> L_GREEN_SHIFT) & 0xff;
     if (pbval) *pbval = (pixel >> L_BLUE_SHIFT) & 0xff;
     return;
+}
+
+
+/*!
+ *  extractMinMaxComponent()
+ *
+ *      Input:  pixel (32 bpp RGB)
+ *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *      Return: componet (in range [0 ... 255], or null on error
+ */
+l_int32
+extractMinMaxComponent(l_uint32  pixel,
+                       l_int32   type)
+{
+l_int32  rval, gval, bval, val;
+
+    extractRGBValues(pixel, &rval, &gval, &bval);
+    if (type == L_CHOOSE_MIN) {
+        val = L_MIN(rval, gval);
+        val = L_MIN(val, bval);
+    }
+    else {  /* type == L_CHOOSE_MAX */
+        val = L_MAX(rval, gval);
+        val = L_MAX(val, bval);
+    }
+    return val;
 }
 
 
@@ -2427,142 +2555,114 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
 
 
 /*-------------------------------------------------------------*
- *       Serialization of pix to/from memory (uncompressed)    *
+ *             Setup helpers for 8 bpp byte processing         *
  *-------------------------------------------------------------*/
 /*!
- *  pixSerializeToMemory()
+ *  pixSetupByteProcessing()
  *
- *      Input:  pixs (1, 8, 32 bpp)
- *              &data (<return> serialized data in memory)
- *              &nbytes (<return> number of bytes in data string)
- *      Return: 0 if OK, 1 on error
+ *      Input:  pix (8 bpp, no colormap)
+ *              &w (<optional return> width)
+ *              &h (<optional return> height)
+ *      Return: line ptr array, or null on error
  *
  *  Notes:
- *      (1) This does a fast serialization of the principal elements
- *          of the pix, as follows:
- *            w         (4 bytes)
- *            h         (4 bytes)
- *            d         (4 bytes)
- *            wpl       (4 bytes)
- *            ncolors   (4 bytes) -- in colormap; 0 if there is no colormap
- *            cdatasize (4 bytes) -- size of serialized colormap
- *                                   = 4 * (num colors)
- *            cdata     (cdatasize)
- *            rdatasize (4 bytes) -- size of serialized raster data
- *                                   = 4 * wpl * h
- *            rdata     (rdatasize)
+ *      (1) This is a simple helper for processing 8 bpp images with
+ *          direct byte access.  It can swap byte order within each word.
+ *      (2) After processing, you must call pixCleanupByteProcessing(),
+ *          which frees the lineptr array and restores byte order.
+ *      (3) Usage:
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixCleanupByteProcessing(pix, lineptrs);
  */
-l_int32
-pixSerializeToMemory(PIX        *pixs,
-                     l_uint32  **pdata,
-                     l_int32    *pnbytes)
+l_uint8 **
+pixSetupByteProcessing(PIX      *pix,
+                       l_int32  *pw,
+                       l_int32  *ph)
 {
-l_int32    w, h, d, wpl, rdatasize, cdatasize, ncolors, nbytes, index;
-l_uint8   *cdata;  /* data in colormap (4 bytes/color table entry) */
-l_uint32  *data;
-l_uint32  *rdata;  /* data in pix raster */
-PIXCMAP   *cmap;
+l_int32  w, h;
 
-    PROCNAME("pixSerializeToMemory");
+    PROCNAME("pixSetupByteProcessing");
 
-    if (!pdata || !pnbytes)
-        return ERROR_INT("&data and &nbytes not both defined", procName, 1);
-    *pdata = NULL;
-    *pnbytes = 0;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (!pix || pixGetDepth(pix) != 8)
+        return (l_uint8 **)ERROR_PTR("pix not defined or not 8 bpp",
+                                     procName, NULL);
+    if (pixGetColormap(pix))
+        return (l_uint8 **)ERROR_PTR("pix has colormap", procName, NULL);
 
-    pixGetDimensions(pixs, &w, &h, &d);
-    wpl = pixGetWpl(pixs);
-    rdata = pixGetData(pixs);
-    rdatasize = 4 * wpl * h;
-    cdatasize = 0;
-    ncolors = 0;
-    cdata = NULL;
-    if ((cmap = pixGetColormap(pixs)) != NULL)
-        pixcmapSerializeToMemory(cmap, 4, &ncolors, &cdata, &cdatasize);
-
-    nbytes = 28 + cdatasize + rdatasize;
-    if ((data = (l_uint32 *)CALLOC(nbytes / 4, sizeof(l_uint32))) == NULL)
-        return ERROR_INT("data not made", procName, 1);
-    *pdata = data;
-    *pnbytes = nbytes;
-    data[0] = w;
-    data[1] = h;
-    data[2] = d;
-    data[3] = wpl;
-    data[4] = ncolors;
-    data[5] = cdatasize;
-    if (cdatasize > 0)
-        memcpy((char *)(data + 6), (char *)cdata, cdatasize);
-    index = 6 + cdatasize / 4;
-    data[index] = rdatasize;
-    memcpy((char *)(data + index + 1), (char *)rdata, rdatasize);
-
-#if  DEBUG_SERIALIZE
-    fprintf(stderr, "Serialize:   "
-            "raster size = %d, ncolors in cmap = %d, total bytes = %d\n",
-            rdatasize, ncolors, nbytes);
-#endif  /* DEBUG_SERIALIZE */
-
-    FREE(cdata);
-    return 0;
+    pixGetDimensions(pix, &w, &h, NULL);
+    if (pw) *pw = w;
+    if (ph) *ph = h;
+    pixEndianByteSwap(pix);
+    return (l_uint8 **)pixGetLinePtrs(pix, NULL);
 }
 
 
 /*!
- *  pixDeserializeFromMemory()
+ *  pixCleanupByteProcessing()
  *
- *      Input:  data (serialized data in memory)
- *              nbytes (number of bytes in data string)
- *      Return: pix, or NULL on error
+ *      Input:  pix (8 bpp, no colormap)
+ *              lineptrs (ptrs to the beginning of each raster line of data)
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) See pixSerializeToMemory() for the binary format.
+ *      (1) This must be called after processing that was initiated
+ *          by pixSetupByteProcessing() has finished.
  */
-PIX *
-pixDeserializeFromMemory(l_uint32  *data,
-                         l_int32    nbytes)
+l_int32
+pixCleanupByteProcessing(PIX      *pix,
+                         l_uint8 **lineptrs)
 {
-l_int32    w, h, d, wpl, imdatasize, cdatasize, ncolors;
-l_uint32  *imdata;  /* data in pix raster */
-PIX       *pixd;
-PIXCMAP   *cmap;
+    PROCNAME("pixCleanupByteProcessing");
 
-    PROCNAME("pixDeserializeFromMemory");
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!lineptrs)
+        return ERROR_INT("lineptrs not defined", procName, 1);
 
-    if (!data)
-        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
-    if (nbytes < 28)
-        return (PIX *)ERROR_PTR("invalid data", procName, NULL);
+    pixEndianByteSwap(pix);
+    FREE(lineptrs);
+    return 0;
+}
 
-    w = data[0];
-    h = data[1];
-    d = data[2];
-    if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
 
-    wpl = data[3];
-    ncolors = data[4];
-    if ((cdatasize = data[5]) > 0) {
-        cmap = pixcmapDeserializeFromMemory((l_uint8 *)(&data[6]), ncolors,
-                                            cdatasize);
-        if (!cmap)
-            return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
-        pixSetColormap(pixd, cmap);
-    }
-
-    imdata = pixGetData(pixd);
-    imdatasize = nbytes - 28 - cdatasize;
-    memcpy((char *)imdata, (char *)(data + 7 + cdatasize / 4), imdatasize);
-
-#if  DEBUG_SERIALIZE
-    fprintf(stderr, "Deserialize: "
-            "raster size = %d, ncolors in cmap = %d, total bytes = %d\n",
-            imdatasize, ncolors, nbytes);
-#endif  /* DEBUG_SERIALIZE */
-
-    return pixd;
+/*------------------------------------------------------------------------*
+ *      Setting parameters for antialias masking with alpha transforms    *
+ *------------------------------------------------------------------------*/
+/*!
+ *  l_setAlphaMaskBorder()
+ *
+ *      Input:  val1, val2 (in [0.0 ... 1.0])
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) This sets the opacity values used to generate the two outer
+ *          boundary rings in the alpha mask associated with geometric
+ *          transforms such as pixRotateWithAlpha().
+ *      (2) The default values are val1 = 0.0 (completely transparent
+ *          in the outermost ring) and val2 = 0.5 (half transparent
+ *          in the second ring).  When the image is blended, this
+ *          completely removes the outer ring (shrinking the image by
+ *          2 in each direction), and alpha-blends with 0.5 the second ring.
+ *      (3) The actual mask values are found by multiplying these
+ *          normalized opacity values by 255.
+ */
+void
+l_setAlphaMaskBorder(l_float32  val1,
+                     l_float32  val2)
+{
+    val1 = L_MAX(0.0, L_MIN(1.0, val1));
+    val2 = L_MAX(0.0, L_MIN(1.0, val2));
+    AlphaMaskBorderVals[0] = val1;
+    AlphaMaskBorderVals[1] = val2;
 }
 
 

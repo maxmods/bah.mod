@@ -43,33 +43,31 @@
  *          l_int32          convertSegmentedPagesToPS()
  *          l_int32          pixWriteSegmentedPageToPS()
  *          l_int32          pixWriteMixedToPS()
- *          NUMA            *sarrayFindMaskAndPagePairings()
  *
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
  *
- *  These PostScript converters are used in three different ways:
+ *     Write all images in a pixa out to PS
+ *          l_int32          pixaWriteCompressedToPS()
  *
- *  (1) For embedding a PS file in a program like TeX.  We must have
- *      a bounding box.  convertToPSEmbed() handles this for
- *      levels 1, 2 and 3 output, and prog/converttops
- *      wraps this in an executable.  converttops is a generalization
- *      of Thomas Merz's jpeg2ps wrapper, in that it works for
- *      all types (formats, depth, colormap) of input images and
- *      gives PS output in one of these formats
+ *  These PostScript converters are used in three different ways.
+ *
+ *  (1) For embedding a PS file in a program like TeX.
+ *      convertToPSEmbed() handles this for levels 1, 2 and 3 output,
+ *      and prog/converttops wraps this in an executable.
+ *      converttops is a generalization of Thomas Merz's jpeg2ps wrapper,
+ *      in that it works for all types (formats, depth, colormap)
+ *      of input images and gives PS output in one of these formats
  *        * level 1 (uncompressed)
  *        * level 2 (compressed ccittg4 or dct)
  *        * level 3 (compressed flate)
  *
  *  (2) For composing a set of pages with any number of images
  *      painted on them, in either level 2 or level 3 formats.
- *      Because we append each PS string and specify the scaling
- *      and placement explicitly, one must NOT have a bounding box
- *      attached to each separate image.
  *
  *  (3) For printing a page image or a set of page images, at a
- *      resolution that optimally fills the page.  Here we use
- *      a bounding box and scale the image appropriately.
+ *      resolution that optimally fills the page, using
+ *      convertFilesFittedToPS().
  *
  *  The top-level calls of utilities in category 2, which can compose
  *  multiple images on a page, and which generate a PostScript file for
@@ -77,6 +75,16 @@
  *      convertFilesToPS()
  *      convertFilesFittedToPS()
  *      convertSegmentedPagesToPS()
+ *
+ *  All images are output with page numbers.  Bounding box hints are
+ *  more subtle.  They must be included for embeding images in
+ *  TeX, for example, and the low-level writers include bounding
+ *  box hints by default.  However, these hints should not be included for
+ *  multi-page PostScript that is composed of a sequence of images;
+ *  consequently, they are not written when calling higher level
+ *  functions such as convertFilesToPS(), convertFilesFittedToPS()
+ *  and convertSegmentedPagesToPS().  The function l_psWriteBoundingBox()
+ *  sets a flag to give low-level control over this.
  */
 
 #include <stdio.h>
@@ -87,14 +95,6 @@
 /* --------------------------------------------*/
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
-
-static const char *TEMP_G4TIFF_FILE = "/tmp/junk_temp_g4tiff.tif";
-static const char *TEMP_JPEG_FILE   = "/tmp/junk_temp_jpeg.jpg";
-
-#ifndef  NO_CONSOLE_IO
-#define  DEBUG_MIXED_PS   0
-#endif  /* ~NO_CONSOLE_IO */
-
 
 /*-------------------------------------------------------------*
  *                Convert files in a directory to PS           *
@@ -159,8 +159,10 @@ SARRAY  *sa;
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
 
-        /* Generate the PS file. */
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     sarrayConvertFilesToPS(sa, res, fileout);
+    l_psWriteBoundingBox(TRUE);
     sarrayDestroy(&sa);
     return 0;
 }
@@ -271,8 +273,10 @@ SARRAY  *sa;
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
 
-        /* Generate the PS file. */
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     sarrayConvertFilesFittedToPS(sa, xpts, ypts, fileout);
+    l_psWriteBoundingBox(TRUE);
     sarrayDestroy(&sa);
     return 0;
 }
@@ -418,60 +422,69 @@ FILE        *fp;
  *  convertSegmentedPagesToPS()
  *
  *      Input:  pagedir (input page image directory)
+ *              pagestr (<optional> substring filter on page filenames;
+ *                       can be NULL)
  *              maskdir (input mask image directory)
+ *              maskstr (<optional> substring filter on mask filenames;
+ *                       can be NULL)
+ *              numpre (number of characters in name before number)
+ *              numpost (number of characters in name after number)
+ *              maxnum (only consider page numbers up to this value)
  *              textscale (scale of text output relative to pixs)
  *              imagescale (scale of image output relative to pixs)
  *              threshold (for binarization; typ. about 190; 0 for default)
- *              numpre (number of characters in name before number)
- *              numpost (number of characters in name after number)
  *              fileout (output ps file)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This generates a PS file for all page image and mask files in two
- *          specified directories that contain the page numbers as
- *          specified below.  The page images are taken in lexicographic order.
+ *          specified directories and that contain the page numbers as
+ *          specified below.  The two directories can be the same, in which
+ *          case the page and mask files are differentiated by the two
+ *          substrings for string matches.
+ *      (2) The page images are taken in lexicographic order.
  *          Mask images whose numbers match the page images are used to
- *          segment the page images.  Page imaes without a matching 
+ *          segment the page images.  Page images without a matching 
  *          mask image are scaled, thresholded and rendered entirely as text.
- *      (2) Each PS page is generated as a compressed representation of
+ *      (3) Each PS page is generated as a compressed representation of
  *          the page image, where the part of the image under the mask
  *          is suitably scaled and compressed as DCT (i.e., jpeg), and
  *          the remaining part of the page is suitably scaled, thresholded,
  *          compressed as G4 (i.e., tiff g4), and rendered by painting
  *          black through the resulting text mask.
- *      (3) The scaling is typically 2x down for the DCT component
+ *      (4) The scaling is typically 2x down for the DCT component
  *          (@imagescale = 0.5) and 2x up for the G4 component
  *          (@textscale = 2.0).
- *      (4) The resolution is automatically set to fit to a
+ *      (5) The resolution is automatically set to fit to a
  *          letter-size (8.5 x 11 inch) page.
- *      (5) Both the DCT and the G4 encoding are PostScript level 2.
- *      (6) It is assumed that the page number is contained within
+ *      (6) Both the DCT and the G4 encoding are PostScript level 2.
+ *      (7) It is assumed that the page number is contained within
  *          the basename (the filename without directory or extension).
  *          @numpre is the number of characters in the basename
  *          preceeding the actual page numer; @numpost is the number
- *          following the page number. 
- *      (7) To render a page as is -- that is, with no thresholding
+ *          following the page number.  Note: the same numbers must be
+ *          applied to both the page and mask image names.
+ *      (8) To render a page as is -- that is, with no thresholding
  *          of any pixels -- use a mask in the mask directory that is
  *          full size with all pixels set to 1.  If the page is 1 bpp,
  *          it is not necessary to have a mask.
  */
 l_int32
 convertSegmentedPagesToPS(const char  *pagedir,
+                          const char  *pagestr,
                           const char  *maskdir,
+                          const char  *maskstr,
+                          l_int32      numpre,
+                          l_int32      numpost,
+                          l_int32      maxnum,
                           l_float32    textscale,
                           l_float32    imagescale,
                           l_int32      threshold,
-                          l_int32      numpre,
-                          l_int32      numpost,
                           const char  *fileout)
 {
-char       *pagefile, *maskfile; 
-l_int32     pageno, i, npages;
-l_int32     pageindex, maskindex;
-NUMA       *naindex;
-PIX        *pixs, *pixm;
-SARRAY     *sapage, *samask;
+l_int32  pageno, i, npages;
+PIX     *pixs, *pixm;
+SARRAY  *sapage, *samask;
 
     PROCNAME("convertSegmentedPagesToPS");
 
@@ -486,36 +499,24 @@ SARRAY     *sapage, *samask;
         threshold = 190;
     }
 
-        /* Get sorted full pathnames. */
-    sapage = getSortedPathnamesInDirectory(pagedir, NULL, 0, 0);
-    samask = getSortedPathnamesInDirectory(maskdir, NULL, 0, 0);
+        /* Get numbered full pathnames; max size of sarray is maxnum */
+    sapage = getNumberedPathnamesInDirectory(pagedir, pagestr,
+                                             numpre, numpost, maxnum);
+    samask = getNumberedPathnamesInDirectory(maskdir, maskstr,
+                                             numpre, numpost, maxnum);
+    sarrayPadToSameSize(sapage, samask, (char *)"");
+    if ((npages = sarrayGetCount(sapage)) == 0) {
+        sarrayDestroy(&sapage);
+        sarrayDestroy(&samask);
+        return ERROR_INT("no matching pages found", procName, 1);
+    }
 
-        /* Go through the filenames, locating the page numbers
-         * and matching page images with mask images. */
-    naindex = sarrayFindMaskAndPagePairings(sapage, samask, numpre,
-                                            numpost, 10000);
-    npages = numaGetCount(naindex) / 2;
-
-        /* Generate the PS file. */
+        /* Generate the PS file */
     pageno = 1;
-    for (i = 0; i < 2 * npages; i += 2) {
-        numaGetIValue(naindex, i, &pageindex);
-        numaGetIValue(naindex, i + 1, &maskindex);
-        pagefile = sarrayGetString(sapage, pageindex, L_NOCOPY);
-        pixs = pixRead(pagefile);
-        pixm = NULL;
-        if (maskindex != -1) {
-            maskfile = sarrayGetString(samask, maskindex, L_NOCOPY);
-            pixm = pixRead(maskfile);
-        }
-#if DEBUG_MIXED_PS
-        fprintf(stderr, "pageindex[%d] = %d, maskindex[%d] = %d\n",
-                i, pageindex, i, maskindex);
-        fprintf(stderr, "  pagefile[%d]: %s\n", i / 2, pagefile);
-        if (pixm)
-            fprintf(stderr, "  maskfile[%d]: %s\n", i / 2, maskfile);
-#endif  /* DEBUG_MIXED_PS */
-
+    for (i = 0; i < npages; i++) {
+        if ((pixs = pixReadIndexed(sapage, i)) == NULL)
+            continue;
+        pixm = pixReadIndexed(samask, i);
         pixWriteSegmentedPageToPS(pixs, pixm, textscale, imagescale,
                                   threshold, pageno, fileout);
         pixDestroy(&pixs);
@@ -525,7 +526,6 @@ SARRAY     *sapage, *samask;
 
     sarrayDestroy(&sapage);
     sarrayDestroy(&samask);
-    numaDestroy(&naindex);
     return 0;
 }
 
@@ -607,7 +607,7 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
         }
     }
 
-    if (pixGetDepth(pixs) == 1) {  /* special case; render tiff g4 */
+    if (pixGetDepth(pixs) == 1) {  /* render tiff g4 */
         pixb = pixClone(pixs);
         pixc = NULL;
     }
@@ -669,7 +669,10 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
         pixDestroy(&pixt);
     }
 
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     ret = pixWriteMixedToPS(pixb, pixc, scaleratio, pageno, fileout);
+    l_psWriteBoundingBox(TRUE);
     pixDestroy(&pixb);
     pixDestroy(&pixc);
     return ret;
@@ -718,7 +721,8 @@ pixWriteMixedToPS(PIX         *pixb,
                   l_int32      pageno,
                   const char  *fileout)
 {
-char        *tnameb, *tnamec;
+const char   tnameb[] = "/tmp/junk_pix_write_mixed.tif";
+const char   tnamec[] = "/tmp/junk_pix_write_mixed.jpg";
 const char  *op;
 l_int32      resb, resc, endpage, maskop, ret;
 
@@ -740,13 +744,11 @@ l_int32      resb, resc, endpage, maskop, ret;
 
         /* Write the jpeg image first */
     if (pixc) {
-        tnamec = genTempFilename("/tmp", ".jpg");
         pixWrite(tnamec, pixc, IFF_JFIF_JPEG);
         endpage = (pixb) ? FALSE : TRUE;
         op = (pageno <= 1) ? "w" : "a";
         ret = convertJpegToPS(tnamec, fileout, op, 0, 0, resc, 1.0,
                               pageno, endpage);
-        FREE(tnamec);
         if (ret)
             return ERROR_INT("jpeg data not written", procName, 1);
     }
@@ -754,13 +756,11 @@ l_int32      resb, resc, endpage, maskop, ret;
         /* Write the binary data, either directly or, if there is
          * a jpeg image on the page, through the mask. */
     if (pixb) {
-        tnameb = genTempFilename("/tmp", ".tif");
         pixWrite(tnameb, pixb, IFF_TIFF_G4);
         op = (pageno <= 1 && !pixc) ? "w" : "a";
         maskop = (pixc) ? 1 : 0;
         ret = convertTiffG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
               pageno, maskop, 1);
-        FREE(tnameb);
         if (ret)
             return ERROR_INT("tiff data not written", procName, 1);
     }
@@ -768,122 +768,6 @@ l_int32      resb, resc, endpage, maskop, ret;
     return 0;
 }
 
-
-/*
- *  sarrayFindMaskAndPagePairings()
- *
- *      Input:  sapage (array of full pathnames for page images)
- *              samask (array of full pathnames for mask images)
- *              numpre (number of characters in name before number)
- *              numpost (number of characters in name after number)
- *              maxnum (only consider page numbers up to this value)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) The pages and masks are matched by the located numbers, so
- *          their order in @sapage and @samask doesn't matter.
- *      (2) It is assumed that the page number is contained within
- *          the basename (the filename without directory or extension).
- *          @numpre is the number of characters in the basename
- *          preceeding the actual page number; @numpost is the number
- *          following the page number. 
- *      (3) To use a O(n) matching algorithm, the largest page number
- *          is found and two internal arrays of this size are created.
- *          This maximum is constrained not to exceed @maxsum,
- *          to make sure that an unrealistically large number is not
- *          accidentally used to determine the array sizes.
- */
-NUMA *
-sarrayFindMaskAndPagePairings(SARRAY  *sapage,
-                              SARRAY  *samask,
-                              l_int32  numpre,
-                              l_int32  numpost,
-                              l_int32  maxnum)
-{
-char      *pagename, *maskname;
-l_int32    i, npage, nmask, ipage, imask, num, max, ret;
-l_int32   *arraypage, *arraymask;
-l_float32  fmax;
-NUMA      *napage, *namask, *naindex;
-
-    PROCNAME("sarrayFindMaskAndPagePairings");
-
-    if (!sapage)
-        return (NUMA *)ERROR_PTR("sapage not defined", procName, NULL);
-    if (!samask)
-        return (NUMA *)ERROR_PTR("samask not defined", procName, NULL);
-
-        /* First generate two arrays, corresponding to the filename
-         * arrays, that contain the page number extracted from each name. */
-    npage = sarrayGetCount(sapage);
-    nmask = sarrayGetCount(samask);
-    napage = numaCreate(npage);
-    namask = numaCreate(nmask);
-    for (i = 0; i < npage; i++) {
-         pagename = sarrayGetString(sapage, i, L_NOCOPY);
-         num = extractNumberFromFilename(pagename, numpre, numpost);
-         if (num >= 0)
-             numaAddNumber(napage, num);
-    }
-    for (i = 0; i < nmask; i++) {
-         maskname = sarrayGetString(samask, i, L_NOCOPY);
-         num = extractNumberFromFilename(maskname, numpre, numpost);
-         if (num >= 0)
-             numaAddNumber(namask, num);
-    }
-
-        /* Generate two new arrays with the page number as the
-         * array index and the index of the filename in the sarray
-         * as the array content.  If there is no file with
-         * a page number, the content is -1.  */
-    numaGetMax(napage, &fmax, NULL);
-    max = L_MIN(10000, (l_int32)fmax);
-    arraypage = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
-    arraymask = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
-    for (i = 0; i <= max; i++) {  /* initialize to -1 */
-        arraypage[i] = -1;
-        arraymask[i] = -1;
-    }
-    for (i = 0; i < npage; i++) {
-         ret = numaGetIValue(napage, i, &ipage);
-         if (ret == 1 || ipage > max) {
-             pagename = sarrayGetString(sapage, i, L_NOCOPY);
-             L_WARNING_STRING("bad page name: %s", procName, pagename);
-         }
-         else
-             arraypage[ipage] = i;
-    }
-    for (i = 0; i < nmask; i++) {
-         ret = numaGetIValue(namask, i, &imask);
-         if (ret == 1 || imask > max) {
-             maskname = sarrayGetString(samask, i, L_NOCOPY);
-             L_WARNING_STRING("bad mask name = %s", procName, maskname);
-         }
-         else
-             arraymask[imask] = i;
-    }
-
-
-        /* Store the result in a single array that holds each
-         * pair of page indices.  There should be no situation where
-         * the mask exists and the page doesn't, so if the page
-         * is not found, we don't store anything.  */
-    naindex = numaCreate(2 * (max + 1));
-    for (i = 0; i <= max; i++) {
-        ipage = arraypage[i];
-        imask = arraymask[i];
-        if (ipage == -1) continue;
-        numaAddNumber(naindex, ipage);
-        numaAddNumber(naindex, imask);
-    }
-
-    numaDestroy(&napage);
-    numaDestroy(&namask);
-    FREE(arraypage);
-    FREE(arraymask);
-    return naindex;
-}
- 
 
 /*-------------------------------------------------------------*
  *            Convert any image file to PS for embedding       *
@@ -915,9 +799,11 @@ convertToPSEmbed(const char  *filein,
                  const char  *fileout,
                  l_int32      level)
 {
-l_int32  d, format;
-FILE    *fp;
-PIX     *pix, *pixs;
+const char  nametif[] = "/tmp/junk_convert_ps_embed.tif";
+const char  namejpg[] = "/tmp/junk_convert_ps_embed.jpg";
+l_int32     d, format;
+FILE       *fp;
+PIX        *pix, *pixs;
 
     PROCNAME("convertToPSEmbed");
 
@@ -936,7 +822,7 @@ PIX     *pix, *pixs;
     }
 
         /* Find the format and write out directly if in jpeg or tiff g4 */
-    if ((fp = fopen(filein, "r")) == NULL)
+    if ((fp = fopen(filein, "rb")) == NULL)
         return ERROR_INT("filein not found", procName, 1);
     findFileFormat(fp, &format);
     fclose(fp);
@@ -959,26 +845,119 @@ PIX     *pix, *pixs;
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("image not read from file", procName, 1);
     d = pixGetDepth(pixs);
-    if (d == 2 || d == 4)
+    if ((d == 2 || d == 4) && !pixGetColormap(pixs))
         pix = pixConvertTo8(pixs, 0);
     else if (d == 16)
         pix = pixConvert16To8(pixs, 1);
     else
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+
     d = pixGetDepth(pix);
     if (d == 1) {
-        pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
-        convertTiffG4ToPSEmbed(TEMP_G4TIFF_FILE, fileout);
+        pixWrite(nametif, pix, IFF_TIFF_G4);
+        convertTiffG4ToPSEmbed(nametif, fileout);
     }
     else {
-        pixWrite(TEMP_JPEG_FILE, pix, IFF_JFIF_JPEG);
-        convertJpegToPSEmbed(TEMP_JPEG_FILE, fileout);
+        pixWrite(namejpg, pix, IFF_JFIF_JPEG);
+        convertJpegToPSEmbed(namejpg, fileout);
     }
 
     pixDestroy(&pix);
     pixDestroy(&pixs);
     return 0;
 }
+
+
+/*-------------------------------------------------------------*
+ *              Write all images in a pixa out to PS           *
+ *-------------------------------------------------------------*/
+/*
+ *  pixaWriteCompressedToPS()
+ *
+ *      Input:  pixa (any set of images)
+ *              fileout (output ps file)
+ *              res (of input image)
+ *              level (compression: 2 or 3)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a PS file of multiple page images, all
+ *          with bounding boxes.
+ *      (2) It compresses to:
+ *              1 bpp:          tiffg4
+ *              cmap + level3:  flate
+ *              cmap + level2:  jpeg
+ *              16 bpp:         flate
+ *              2, 4 or 8 bpp:  jpeg (after conversion to 8 bpp)
+ *              32 bpp:         jpeg
+ *      (3) To generate a pdf, use: ps2pdf <infile.ps> <outfile.pdf>
+ */
+l_int32
+pixaWriteCompressedToPS(PIXA        *pixa,
+                        const char  *fileout,
+                        l_int32      res,
+                        l_int32      level)
+{
+l_int32   i, n, firstfile, index, writeout, d;
+PIX      *pix, *pixt;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixaWriteCompressedToPS");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (level != 2 && level != 3) {
+        L_ERROR("only levels 2 and 3 permitted; using level 2", procName);
+        level = 2;
+    }
+
+    n = pixaGetCount(pixa);
+    firstfile = TRUE;
+    index = 0;
+    for (i = 0; i < n; i++) {
+        writeout = TRUE;
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        d = pixGetDepth(pix);
+        cmap = pixGetColormap(pix);
+        if (d == 1)
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_TIFF_G4);
+        else if (cmap) {
+            if (level == 3)
+                pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
+            else {
+                pixt = pixConvertForPSWrap(pix);
+                pixWrite("/tmp/junk_compr_tmp", pixt, IFF_JFIF_JPEG);
+                pixDestroy(&pixt);
+            }
+        }
+        else if (d == 16) {
+            L_WARNING("d = 16; must write out flate", procName);
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
+        }
+        else if (d == 2 || d == 4 || d == 8) {
+            pixt = pixConvertTo8(pix, 0);
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
+            pixDestroy(&pixt);
+        }
+        else if (d == 32)
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
+        else {  /* shouldn't happen */
+            L_ERROR_INT("invalid depth: %d", procName, d);
+            writeout = FALSE;
+        }
+        pixDestroy(&pix);
+
+        if (writeout)
+            writeImageCompressedToPSFile("/tmp/junk_compr_tmp", fileout,
+                                         res, &firstfile, &index);
+    }
+
+    return 0;
+}
+
+
 
 /* --------------------------------------------*/
 #endif  /* USE_PSIO */

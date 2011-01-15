@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,21 @@ Module BaH.Leptonica
 
 ModuleInfo "Version: 1.00"
 ModuleInfo "License: MIT"
-ModuleInfo "Copyright: Wrapper - 2009 Bruce A Henderson"
+ModuleInfo "Copyright: Wrapper - 2009-2011 Bruce A Henderson"
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial release. (leptonica 1.63)"
+ModuleInfo "History: Initial release. (leptonica 1.67)"
 
+?Not debug
+ModuleInfo "CC_OPTS: -DNO_CONSOLE_IO"
+?
 
 Import "common.bmx"
 
+' Changes :
+'
+' pix2.c - Added 255 Alpha to composeRGBPixel(), to prevent invisible pixel issue.
+'
 
 Rem
 bbdoc: 
@@ -77,6 +84,7 @@ Type TLPIX
 		Local depth:Int = BitsPerPixel[pixmap.format]
 		If depth = 24 Then
 			' upgrade to 32 (ARGB)
+'DebugStop
 			pixmap = ConvertPixmap(pixmap, PF_RGBA8888)
 		End If
 
@@ -110,9 +118,12 @@ Type TLPIX
 	bbdoc: Returns a TPixmap representation of the image. 
 	End Rem
 	Method GetPixmap:TPixmap(static:Int = True)
-		If static Then
-			Return CreateStaticPixmap(pixGetData(pixPtr), pixGetWidth(pixPtr), pixGetHeight(pixPtr), pixGetWpl(pixPtr) * 4, _mapDepthToPixFormat(pixGetDepth(pixPtr)))
-		End If
+		'If static Then
+		'	Return CreateStaticPixmap(pixGetData(pixPtr), pixGetWidth(pixPtr), pixGetHeight(pixPtr), pixGetWpl(pixPtr) * 4, _mapDepthToPixFormat(pixGetDepth(pixPtr)))
+		'End If
+		Local pix:TPixmap = TPixmap.Create(pixGetWidth(pixPtr), pixGetHeight(pixPtr), _mapDepthToPixFormat(pixGetDepth(pixPtr)), pixGetWpl(pixPtr) * 4)
+		ConvertPixelsFromARGBFormatToStd(pix, pixGetData(pixPtr))
+		Return pix
 	End Method
 
 	Rem
@@ -892,6 +903,7 @@ Type TLPIX
 	<li><b>ptas</b> : 3 pts of initial coordinate space.</li>
 	<li><b> inColor </b> : L_BRING_IN_WHITE or L_BRING_IN_BLACK.</li>
 	</ul>
+	</p>
 	End Rem
 	Method AffinePta:TLPIX(ptad:TLPTA, ptas:TLPTA, inColor:Int)
 		Return TLPIX._create(pixAffinePta(pixPtr, ptad.ptaPtr, ptas.ptaPtr, inColor))
@@ -904,6 +916,120 @@ Type TLPIX
 	Method Affine:TLPIX(vc:Float[], inColor:Int)
 		Assert vc.length = 6, "Vector of 6 coefficients expected"
 		Return TLPIX._create(pixAffine(pixPtr, vc, inColor))
+	End Method
+
+	Rem
+	bbdoc: Returns the value in the data array.
+	returns: 0 if OK, 1 on Error
+	about: If the pix is colour mapped, it returns the colormap index, not the RGB value.
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : pixel coordinate.</li>
+	<li><b>y</b> : pixel coordinate.</li>
+	<li><b>value</b> : return pixel value.</li>
+	</ul>
+	</p>
+	End Rem	
+	Method GetPixel:Int(x:Int, y:Int, value:Int Var)
+		Return pixGetPixel(pixPtr, x, y, Varptr value)
+	End Method
+	
+	Rem
+	bbdoc: Sets a pixel using the @value.
+	returns: 0 if OK, 1 on Error
+	about: The input value is not checked for overflow, and the sign bit (if any) is ignored.
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : pixel coordinate.</li>
+	<li><b>y</b> : pixel coordinate.</li>
+	<li><b>value</b> : Value to be inserted.</li>
+	</ul>
+	</p>
+	End Rem	
+	Method SetPixel:Int(x:Int, y:Int, value:Int)
+		Return pixSetPixel(pixPtr, x, y, value)
+	End Method
+	
+	Rem
+	bbdoc: Returns the RGB values for a pixel.
+	returns: 0 if OK, 1 on Error
+	about: The pix should be 32bpp.
+	<p>Parameters:
+	<ul>
+	<li><b>x</b> : pixel coordinate.</li>
+	<li><b>y</b> : pixel coordinate.</li>
+	<li><b>rval</b> : the red component.</li>
+	<li><b>gval</b> : the green component.</li>
+	<li><b>bval</b> : the blue component.</li>
+	</ul>
+	</p>
+	End Rem	
+	Method GetRGBPixel:Int(x:Int, y:Int, rval:Int Var, gval:Int Var, bval:Int Var)
+		Return pixGetRGBPixel(pixPtr, x, y, Varptr rval, Varptr gval, Varptr bval)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method SetRGBPixel:Int(x:Int, y:Int, rval:Int, gval:Int, bval:Int)
+		Return pixSetRGBPixel(pixPtr, x, y, rval, gval, bval)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method GetRandomPixel:Int(x:Int Var, y:Int Var, value:Int Var)
+		Return pixGetRandomPixel(pixPtr, Varptr value, Varptr x, Varptr y)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method ClearPixel:Int(x:Int, y:Int)
+		Return pixClearPixel(pixPtr, x, y)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method FlipPixel:Int(x:Int, y:Int)
+		Return pixFlipPixel(pixPtr, x, y)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method ClearAll:Int()
+		Return pixClearAll(pixPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method SetAll:Int()
+		Return pixSetAll(pixPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method SetAllArbitrary:Int(value:Int)
+		Return pixSetAllArbitrary(pixPtr, value)
+	End Method
+
+	Rem
+	bbdoc: 
+	returns: 0 if OK, 1 on Error
+	End Rem	
+	Method SetBlackOrWhite:Int(inColor:Int)
+		Return pixSetBlackOrWhite(pixPtr, inColor)
 	End Method
 
 	Rem
@@ -1060,12 +1186,12 @@ Type TLPTA
 		Return ptaGetIPt(ptaPtr, index, Varptr px, Varptr py)
 	End Method
 	
-	Rem
-	bbdoc: 
-	End Rem
-	Method GetExtent:TLBOX()
-		Return TLBOX._create(ptaGetExtent(ptaPtr))
-	End Method
+'	Rem
+'	bbdoc: 
+'	End Rem
+'	Method GetExtent:TLBOX()
+'		Return TLBOX._create(ptaGetExtent(ptaPtr))
+'	End Method
 	
 	Rem
 	bbdoc: 

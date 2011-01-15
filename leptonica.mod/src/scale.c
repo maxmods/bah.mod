@@ -13,12 +13,12 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  scale.c
  *
  *         Top-level scaling
  *               PIX    *pixScale()     ***
+ *               PIX    *pixScaleToSize()     ***
  *               PIX    *pixScaleGeneral()     ***
  *
  *         Linearly interpreted (usually up-) scaling
@@ -30,8 +30,9 @@
  *               PIX    *pixScaleGray2xLI()
  *               PIX    *pixScaleGray4xLI()
  *
- *         General scaling by closest pixel sampling
+ *         Scaling by closest pixel sampling
  *               PIX    *pixScaleBySampling()
+ *               PIX    *pixScaleByIntSubsampling()
  *
  *         Fast integer factor subsampling RGB to gray and to binary
  *               PIX    *pixScaleRGBToGrayFast()
@@ -86,14 +87,18 @@
  *               PIX    *pixScaleGrayRankCascade()
  *               PIX    *pixScaleGrayRank2()
  *
+ *         RGB scaling including alpha (blend) component and gamma transform
+ *               PIX    *pixScaleWithAlpha()   ***
+ *               PIX    *pixScaleGammaXform()  ***
+ *
  *  *** Note: these functions make an implicit assumption about RGB
  *            component ordering.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
+
+extern l_float32  AlphaMaskBorderVals[2];
 
 
 /*------------------------------------------------------------------*
@@ -114,14 +119,19 @@
  *  the colormap has color entries.  Images with 2, 4 or 16 bpp are
  *  converted to 8 bpp.
  *
- *  Grayscale and color images are scaled using one of four methods,
- *  depending on the scale factors:
+ *  Because pixScale() is meant to be a very simple interface to a
+ *  number of scaling functions, including the use of unsharp masking,
+ *  the type of scaling and the sharpening parameters are chosen
+ *  by default.  Grayscale and color images are scaled using one
+ *  of four methods, depending on the scale factors:
  *   (1) antialiased subsampling (lowpass filtering followed by
  *       subsampling, implemented here by area mapping), for scale factors
- *       less than 0.7
- *   (2) linear interpolation with sharpening, for scale factors between
+ *       less than 0.2
+ *   (2) antialiased subsampling with sharpening, for scale factors
+ *       between 0.2 and 0.7
+ *   (3) linear interpolation with sharpening, for scale factors between
  *       0.7 and 1.4
- *   (3) linear interpolation alone, for scale factors >= 1.4.
+ *   (4) linear interpolation without sharpening, for scale factors >= 1.4.
  *
  *  One could use subsampling for scale factors very close to 1.0,
  *  because it preserves sharp edges.  Linear interpolation blurs
@@ -135,22 +145,29 @@
  *  a sharpening filter.
  *
  *  For images with sharp edges, sharpening substantially improves the
- *  image quality for scale factors between 0.7 and about 2.0.  However,
+ *  image quality for scale factors between about 0.2 and about 2.0.  However,
  *  the generic sharpening operation is about 3 times slower than linear
  *  interpolation, so there is a speed-vs-quality tradeoff.  (Note: the
- *  special cases where the sharpening halfwidth is 1 or 2 are about
- *  twice as fast as the general case).  When the scale factor is
- *  larger than 1.4, the cost, which is proportional to image area, is very
- *  large for the incremental quality improvement, so we cut off the
- *  use of sharpening at 1.4.  For scale factors greater than 1.4,
- *  these high-level scaling functions only do linear interpolation.
+ *  cases where the sharpening halfwidth is 1 or 2 have special
+ *  implementations and are about twice as fast as the general case).
+ *  When the scale factor is larger than 1.4, the cost, which is
+ *  proportional to image area, is very large for the incremental
+ *  quality improvement, so we cut off the use of sharpening at 1.4.
+ *  For scale factors greater than 1.4, these high-level scaling
+ *  functions only do linear interpolation.
  *
  *  Because sharpening is computationally expensive, we provide the
  *  option of not doing it.  To avoid sharpening, call pixScaleGeneral()
- *  with @sharpfract == 0.0.  Note that pixScale() calls with default
- *  sharpening factors: @sharpwidth = 2, @sharpfract = 0.4.  The results
- *  are generally better with a small amount of sharpening because
- *  it strengthens edge pixels that are weak due to anti-aliasing.
+ *  with @sharpfract = 0.0.  pixScale() uses a small amount of
+ *  of sharpening because it strengthens edge pixels that are weak
+ *  due to anti-aliasing.  The sharpening factors are:
+ *      * for scaling factors < 0.7:   sharpfract = 0.2    sharpwidth = 1
+ *      * for scaling factors >= 0.7:  sharpfract = 0.4    sharpwidth = 2
+ *
+ *  The constraints that tie sharpening to the scale factor
+ *  in pixScaleGeneral() can be circumvented by calling with
+ *  @sharpfract = 0.0.  This can be followed by the sharpening of
+ *  choice; e.g., pixUnsharpMasking().
  *
  *  Binary images are scaled by sampling the closest pixel, without
  *  any low-pass filtering (averaging of neighboring pixels).
@@ -165,7 +182,65 @@ pixScale(PIX       *pixs,
          l_float32  scalex,
          l_float32  scaley)
 {
-    return pixScaleGeneral(pixs, scalex, scaley, 0.4, 2);
+l_int32    sharpwidth;
+l_float32  maxscale, sharpfract;
+
+        /* Reduce the default sharpening factors by 2 if maxscale < 0.7 */
+    maxscale = L_MAX(scalex, scaley);
+    sharpfract = (maxscale < 0.7) ? 0.2 : 0.4;
+    sharpwidth = (maxscale < 0.7) ? 1 : 2;
+
+    return pixScaleGeneral(pixs, scalex, scaley, sharpfract, sharpwidth);
+}
+
+
+/*!
+ *  pixScaleToSize()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 and 32 bpp)
+ *              wd  (target width; use 0 if using height as target)
+ *              hd  (target height; use 0 if using width as target)
+ *      Return: pixd, or null on error
+ * 
+ *  Notes:
+ *      (1) The guarantees that the output scaled image has the
+ *          dimension(s) you specify.
+ *           - To specify the width with isotropic scaling, set @hd = 0.
+ *           - To specify the height with isotropic scaling, set @wd = 0.
+ *           - If both @wd and @hd are specified, the image is scaled
+ *             (in general, anisotropically) to that size.
+ *           - It is an error to set both @wd and @hd to 0.
+ */
+PIX *
+pixScaleToSize(PIX     *pixs,
+               l_int32  wd,
+               l_int32  hd)
+{
+l_int32    w, h;
+l_float32  scalex, scaley;
+
+    PROCNAME("pixScaleToSize");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (wd <= 0 && hd <= 0)
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (wd <= 0) {
+        scaley = (l_float32)hd / (l_float32)h;
+        scalex = scaley;
+    }
+    else if (hd <= 0) {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = scalex;
+    }
+    else {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = (l_float32)hd / (l_float32)h;
+    }
+
+    return pixScale(pixs, scalex, scaley);
 }
 
 
@@ -182,9 +257,17 @@ pixScale(PIX       *pixs,
  *      (1) See pixScale() for usage.
  *      (2) This interface may change in the future, as other special
  *          cases are added.
- *      (3) Call this function with @sharpfract == 0.0 to avoid sharpening
- *          for grayscale and color images with scaling factors between
- *          0.7 and 1.4.
+ *      (3) The actual sharpening factors used depend on the maximum
+ *          of the two scale factors (maxscale):
+ *            maxscale <= 0.2:        no sharpening
+ *            0.2 < maxscale < 1.4:   uses the input parameters
+ *            maxscale >= 1.4:        no sharpening
+ *      (4) To avoid sharpening for grayscale and color images with
+ *          scaling factors between 0.2 and 1.4, call this function
+ *          with @sharpfract == 0.0.
+ *      (5) To use arbitrary sharpening in conjunction with scaling,
+ *          call this function with @sharpfract = 0.0, and follow this
+ *          with a call to pixUnsharpMasking() with your chosen parameters.
  */
 PIX *
 pixScaleGeneral(PIX       *pixs,
@@ -218,7 +301,11 @@ PIX       *pixt, *pixt2, *pixd;
     d = pixGetDepth(pixt);
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {  /* area mapping for anti-aliasing */
-        pixd = pixScaleAreaMap(pixt, scalex, scaley);
+        pixt2 = pixScaleAreaMap(pixt, scalex, scaley);
+        if (maxscale > 0.2 && sharpfract > 0.0 && sharpwidth > 0)
+            pixd = pixUnsharpMasking(pixt2, sharpwidth, sharpfract);
+        else
+            pixd = pixClone(pixt2);
     } 
     else {  /* use linear interpolation */
         if (d == 8)
@@ -229,10 +316,10 @@ PIX       *pixt, *pixt2, *pixd;
             pixd = pixUnsharpMasking(pixt2, sharpwidth, sharpfract);
         else
             pixd = pixClone(pixt2);
-        pixDestroy(&pixt2);
     }
 
     pixDestroy(&pixt);
+    pixDestroy(&pixt2);
     return pixd;
 }
 
@@ -663,7 +750,7 @@ PIX       *pixd;
 
 
 /*------------------------------------------------------------------*
- *              General scaling by closest pixel sampling           *
+ *                  Scaling by closest pixel sampling               *
  *------------------------------------------------------------------*/
 /*!
  *  pixScaleBySampling()
@@ -675,7 +762,8 @@ PIX       *pixd;
  *  Notes:
  *      (1) This function samples from the source without
  *          filtering.  As a result, aliasing will occur for
- *          subsampling (scalex and/or scaley < 1.0).
+ *          subsampling (@scalex and/or @scaley < 1.0).
+ *      (2) If @scalex == 1.0 and @scaley == 1.0, returns a copy.
  */
 PIX *
 pixScaleBySampling(PIX       *pixs,
@@ -709,6 +797,39 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     scaleBySamplingLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls);
     return pixd;
+}
+
+
+/*!
+ *  pixScaleByIntSubsampling()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
+ *              factor (integer subsampling)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Simple interface to pixScaleBySampling(), for
+ *          isotropic integer reduction.
+ *      (2) If @factor == 1, returns a copy.
+ */
+PIX *
+pixScaleByIntSubsampling(PIX     *pixs,
+                         l_int32  factor)
+{
+l_float32  scale;
+
+    PROCNAME("pixScaleByIntSubsampling");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (factor <= 1) {
+        if (factor < 1)
+            L_ERROR("factor must be >= 1; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    scale = 1. / (l_float32)factor;
+    return pixScaleBySampling(pixs, scale, scale);
 }
 
 
@@ -1509,17 +1630,17 @@ PIX       *pixt, *pixd;
 
         /* Handle the special cases */
     if (scalefactor > 0.5 - eps && scalefactor < 0.5 + eps)
-        return pixScaleToGray2(pixt);
+        return pixScaleToGray2(pixs);
     else if (scalefactor > 0.33333 - eps && scalefactor < 0.33333 + eps)
-        return pixScaleToGray3(pixt);
+        return pixScaleToGray3(pixs);
     else if (scalefactor > 0.25 - eps && scalefactor < 0.25 + eps)
-        return pixScaleToGray4(pixt);
+        return pixScaleToGray4(pixs);
     else if (scalefactor > 0.16666 - eps && scalefactor < 0.16666 + eps)
-        return pixScaleToGray6(pixt);
+        return pixScaleToGray6(pixs);
     else if (scalefactor > 0.125 - eps && scalefactor < 0.125 + eps)
-        return pixScaleToGray8(pixt);
+        return pixScaleToGray8(pixs);
     else if (scalefactor > 0.0625 - eps && scalefactor < 0.0625 + eps)
-        return pixScaleToGray16(pixt);
+        return pixScaleToGray16(pixs);
 
     if (scalefactor > 0.0625) {  /* scale binary first */
         factor = 2.0 * scalefactor;
@@ -2602,12 +2723,22 @@ PIX       *pixd;
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
         type != L_CHOOSE_MAX_MIN_DIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    if (xfact < 1 || yfact < 1)
+        return (PIX *)ERROR_PTR("xfact and yfact must be > 0", procName, NULL);
 
     if (xfact == 2 && yfact == 2)
         return pixScaleGrayMinMax2(pixs, type);
 
-    wd = L_MAX(ws / xfact, 1);
-    hd = L_MAX(hs / yfact, 1);
+    wd = ws / xfact;
+    if (wd == 0) {  /* single tile */
+        wd = 1;
+        xfact = ws;
+    }
+    hd = hs / yfact;
+    if (hd == 0) {  /* single tile */
+        hd = 1;
+        yfact = hs;
+    }
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
@@ -2691,6 +2822,8 @@ PIX       *pixd;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &ws, &hs, &d);
+    if (ws < 2 || hs < 2)
+        return (PIX *)ERROR_PTR("too small: ws < 2 or hs < 2", procName, NULL);
     if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
@@ -2887,6 +3020,146 @@ PIX       *pixd;
         }
     }
             
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------------*
+ *    RGB scaling including alpha (blend) component and gamma transform   *
+ *------------------------------------------------------------------------*/
+/*!
+ *  pixScaleWithAlpha()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              scalex, scaley
+ *              pixg (<optional> 8 bpp, can be null)
+ *              fract (between 0.0 and 1.0, with 0.0 fully transparent
+ *                     and 1.0 fully opaque)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The alpha channel is transformed separately from pixs,
+ *          and aligns with it, being fully transparent outside the
+ *          boundary of the transformed pixs.  For pixels that are fully
+ *          transparent, a blending function like pixBlendWithGrayMask()
+ *          will give zero weight to corresponding pixels in pixs.
+ *      (2) Scaling is done with area mapping or linear interpolation,
+ *          depending on the scale factors.  Default sharpening is done.
+ *      (3) If pixg is NULL, it is generated as an alpha layer that is
+ *          partially opaque, using @fract.  Otherwise, it is cropped
+ *          to pixs if required, and @fract is ignored.  The alpha
+ *          channel in pixs is never used.
+ *      (4) Colormaps are removed.
+ *      (5) The default setting for the border values in the alpha channel
+ *          is 0 (transparent) for the outermost ring of pixels and
+ *          (0.5 * fract * 255) for the second ring.  When blended over
+ *          a second image, this
+ *          (a) shrinks the visible image to make a clean overlap edge
+ *              with an image below, and
+ *          (b) softens the edges by weakening the aliasing there.
+ *          Use l_setAlphaMaskBorder() to change these values.
+ *
+ *  *** Warning: implicit assumption about RGB component ordering ***
+ */
+PIX *
+pixScaleWithAlpha(PIX       *pixs,
+                  l_float32  scalex,
+                  l_float32  scaley,
+                  PIX       *pixg,
+                  l_float32  fract)
+{
+l_int32  ws, hs, d;
+PIX     *pixd, *pixg2, *pixgs;
+
+    PROCNAME("pixScaleWithAlpha");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 32 && pixGetColormap(pixs) == NULL)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (pixg && pixGetDepth(pixg) != 8) {
+        L_WARNING("pixg not 8 bpp; using @fract transparent alpha", procName);
+        pixg = NULL;
+    }
+    if (!pixg && (fract < 0.0 || fract > 1.0)) {
+        L_WARNING("invalid fract; using 1.0 (fully transparent)", procName);
+        fract = 1.0;
+    }
+    if (!pixg && fract == 0.0)
+        L_WARNING("fully opaque alpha; image will not be blended", procName);
+
+        /* Do separate scaling of rgb channels of pixs and of pixg */
+    pixd = pixScale(pixs, scalex, scaley);
+    if (!pixg) {
+        pixg2 = pixCreate(ws, hs, 8);
+        if (fract == 1.0)
+            pixSetAll(pixg2);
+        else
+            pixSetAllArbitrary(pixg2, (l_int32)(255.0 * fract));
+    }
+    else
+        pixg2 = pixResizeToMatch(pixg, NULL, ws, hs);
+    if (ws > 10 && hs > 10) {  /* see note 4 */
+        pixSetBorderRingVal(pixg2, 1,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[0]));
+        pixSetBorderRingVal(pixg2, 2,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[1]));
+    }
+    pixgs = pixScaleGeneral(pixg2, scalex, scaley, 0.0, 0);
+    pixSetRGBComponent(pixd, pixgs, L_ALPHA_CHANNEL);
+
+    pixDestroy(&pixg2);
+    pixDestroy(&pixgs);
+    return pixd;
+}
+
+
+/*!
+ *  pixScaleGammaXform()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              gamma (gamma correction; must be > 0.0)
+ *              scalex, scaley
+ *              fract (between 0.0 and 1.0, with 1.0 fully transparent)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This wraps a gamma/inverse-gamma photometric transform
+ *          around pixScaleWithAlpha().
+ *      (2) For usage, see notes in pixScaleWithAlpha() and
+ *          pixGammaTRCWithAlpha().
+ *      (3) The basic idea of a gamma/inverse-gamma transform is
+ *          to remove gamma correction before scaling and restore
+ *          it afterward.  The effects can be subtle, but important for
+ *          some applications.  For example, using gamma > 1.0 will
+ *          cause the dark areas to become somewhat lighter and slightly
+ *          reduce aliasing effects when blending using the alpha channel.
+ */
+PIX *
+pixScaleGammaXform(PIX       *pixs,
+                   l_float32  gamma,
+                   l_float32  scalex,
+                   l_float32  scaley,
+                   l_float32  fract)
+{
+PIX  *pixg, *pixd;
+
+    PROCNAME("pixScaleGammaXform");
+
+    if (!pixs || (pixGetDepth(pixs) != 32))
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (fract == 0.0)
+        L_WARNING("fully opaque alpha; image cannot be blended", procName);
+    if (gamma <= 0.0)  {
+        L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
+        gamma = 1.0;
+    }
+
+    pixg = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
+    pixd = pixScaleWithAlpha(pixg, scalex, scaley, NULL, fract);
+    pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
+    pixDestroy(&pixg);
     return pixd;
 }
 

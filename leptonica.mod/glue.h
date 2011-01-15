@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009 Bruce A Henderson
+  Copyright (c) 2009-2011 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,8 @@
 
 
 extern "C" {
+
+#include "blitz.h"
 
 	int pixDisplay(PIX * pixs, int x, int y);
 	int pixWrite(const char  *filename,  PIX *pix,  int format);

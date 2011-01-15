@@ -19,6 +19,7 @@
  *      Numa creation, destruction, copy, clone, etc.
  *          NUMA        *numaCreate()
  *          NUMA        *numaCreateFromIArray()
+ *          NUMA        *numaCreateFromFArray()
  *          void        *numaDestroy()
  *          NUMA        *numaCopy()
  *          NUMA        *numaClone()
@@ -67,7 +68,7 @@
  *          NUMA        *numaaGetNuma()
  *          NUMA        *numaaReplaceNuma()
  *          l_int32      numaaAddNumber()
- *       
+ *
  *      Serialize numaa for I/O
  *          l_int32      numaaRead()
  *          l_int32      numaaReadStream()
@@ -95,7 +96,7 @@
  *
  *    (1) The numa is a struct, not an array.  Always use the accessors
  *        in this file, never the fields directly.
- *                   
+ *
  *    (2) The number array holds l_float32 values.  It can also
  *        be used to store l_int32 values.
  *
@@ -154,9 +155,7 @@
  *        that use numa histograms rely on the correctness of these values.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -200,16 +199,18 @@ NUMA  *na;
 /*!
  *  numaCreateFromIArray()
  *
- *      Input:  int array
+ *      Input:  iarray (integer)
  *              size (of the array)
  *      Return: na, or null on error
  *
  *  Notes:
- *      (1) This just copies the data from the int array into the numa.
- *      (2) The input array is NOT owned by the numa.
+ *      (1) We can't insert this int array into the numa, because a numa
+ *          takes a float array.  So this just copies the data from the
+ *          input array into the numa.  The input array continues to be
+ *          owned by the caller.
  */
 NUMA *
-numaCreateFromIArray(l_int32  *array,
+numaCreateFromIArray(l_int32  *iarray,
                      l_int32   size)
 {
 l_int32  i;
@@ -217,12 +218,59 @@ NUMA    *na;
 
     PROCNAME("numaCreateFromIArray");
 
-    if (!array)
-        return (NUMA *)ERROR_PTR("array not defined", procName, NULL);
+    if (!iarray)
+        return (NUMA *)ERROR_PTR("iarray not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
 
     na = numaCreate(size);
     for (i = 0; i < size; i++)
-        numaAddNumber(na, array[i]);
+        numaAddNumber(na, iarray[i]);
+
+    return na;
+}
+
+
+/*!
+ *  numaCreateFromFArray()
+ *
+ *      Input:  farray (float)
+ *              size (of the array)
+ *              copyflag (L_INSERT or L_COPY)
+ *      Return: na, or null on error
+ *
+ *  Notes:
+ *      (1) With L_INSERT, ownership of the input array is transferred
+ *          to the returned numa, and all @size elements are considered
+ *          to be valid.
+ */
+NUMA *
+numaCreateFromFArray(l_float32  *farray,
+                     l_int32     size,
+                     l_int32     copyflag)
+{
+l_int32  i;
+NUMA    *na;
+
+    PROCNAME("numaCreateFromFArray");
+
+    if (!farray)
+        return (NUMA *)ERROR_PTR("farray not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if (copyflag != L_INSERT && copyflag != L_COPY)
+        return (NUMA *)ERROR_PTR("invalid copyflag", procName, NULL);
+
+    na = numaCreate(size);
+    if (copyflag == L_INSERT) {
+        if (na->array) FREE(na->array);
+        na->array = farray;
+        na->n = size;
+    }
+    else {  /* just copy the contents */
+        for (i = 0; i < size; i++)
+            numaAddNumber(na, farray[i]);
+    }
 
     return na;
 }
@@ -265,7 +313,7 @@ NUMA  *na;
     return;
 }
 
-        
+
 /*!
  *  numaCopy()
  *
@@ -359,7 +407,7 @@ l_int32  n;
 
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
-    
+
     n = numaGetCount(na);
     if (n >= na->nalloc)
         numaExtendArray(na);
@@ -512,7 +560,7 @@ numaGetCount(NUMA  *na)
         return ERROR_INT("na not defined", procName, 0);
     return na->n;
 }
-        
+
 
 /*!
  *  numaSetCount()
@@ -546,7 +594,7 @@ numaSetCount(NUMA    *na,
     na->n = newcount;
     return 0;
 }
-        
+
 
 /*!
  *  numaGetFValue()
@@ -723,8 +771,9 @@ l_int32  *array;
  *          will be in the numa.  Do not write beyond the size of
  *          the count field, because it will not be accessable
  *          from the numa!  If necessary, be sure to set the count
- *          the count field to a larger number (such as the alloc
- *          size) BEFORE calling this function.
+ *          field to a larger number (such as the alloc size)
+ *          BEFORE calling this function.  Creating with numaMakeConstant()
+ *          is another way to insure full initialization.
  */
 l_float32 *
 numaGetFArray(NUMA    *na,
@@ -894,7 +943,7 @@ NUMA  *na;
     fclose(fp);
     return na;
 }
-        
+
 
 /*!
  *  numaReadStream()
@@ -919,24 +968,25 @@ NUMA      *na;
         return (NUMA *)ERROR_PTR("not a numa file", procName, NULL);
     if (version != NUMA_VERSION_NUMBER)
         return (NUMA *)ERROR_PTR("invalid numa version", procName, NULL);
-    fscanf(fp, "Number of numbers = %d\n", &n);
+    if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
+        return (NUMA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
     if ((na = numaCreate(n)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        if ((fscanf(fp, "  [%d] = %f\n", &index, &val)) != 2)
+        if (fscanf(fp, "  [%d] = %f\n", &index, &val) != 2)
             return (NUMA *)ERROR_PTR("bad input data", procName, NULL);
         numaAddNumber(na, val);
     }
 
         /* Optional data */
-    if ((fscanf(fp, "startx = %f, delx = %f\n", &startx, &delx)) == 2)
+    if (fscanf(fp, "startx = %f, delx = %f\n", &startx, &delx) == 2)
         numaSetXParameters(na, startx, delx);
 
     return na;
 }
-        
+
 
 /*!
  *  numaWrite()
@@ -965,7 +1015,7 @@ FILE  *fp;
 
     return 0;
 }
-        
+
 
 /*!
  *  numaWriteStream()
@@ -1001,7 +1051,7 @@ l_float32  startx, delx;
 
     return 0;
 }
-        
+
 
 
 /*--------------------------------------------------------------------------*
@@ -1067,7 +1117,7 @@ NUMAA   *naa;
     return;
 }
 
-        
+
 
 /*--------------------------------------------------------------------------*
  *                              Add Numa to Numaa                           *
@@ -1094,7 +1144,7 @@ NUMA    *nac;
         return ERROR_INT("naa not defined", procName, 1);
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
-    
+
     if (copyflag == L_INSERT)
         nac = na;
     else if (copyflag == L_COPY) {
@@ -1157,7 +1207,7 @@ numaaGetCount(NUMAA  *naa)
         return ERROR_INT("naa not defined", procName, 0);
     return naa->n;
 }
-        
+
 
 /*!
  *  numaaGetNumberCount()
@@ -1355,7 +1405,7 @@ NUMAA  *naa;
     fclose(fp);
     return naa;
 }
-        
+
 
 /*!
  *  numaaReadStream()
@@ -1380,12 +1430,14 @@ NUMAA     *naa;
         return (NUMAA *)ERROR_PTR("not a numa file", procName, NULL);
     if (version != NUMA_VERSION_NUMBER)
         return (NUMAA *)ERROR_PTR("invalid numaa version", procName, NULL);
-    fscanf(fp, "Number of numa = %d\n\n", &n);
+    if (fscanf(fp, "Number of numa = %d\n\n", &n) != 1)
+        return (NUMAA *)ERROR_PTR("invalid number of numa", procName, NULL);
     if ((naa = numaaCreate(n)) == NULL)
         return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        fscanf(fp, "Numa[%d]:", &index);
+        if (fscanf(fp, "Numa[%d]:", &index) != 1)
+            return (NUMAA *)ERROR_PTR("invalid numa header", procName, NULL);
         if ((na = numaReadStream(fp)) == NULL)
             return (NUMAA *)ERROR_PTR("na not made", procName, NULL);
         numaaAddNuma(naa, na, L_INSERT);
@@ -1393,7 +1445,7 @@ NUMAA     *naa;
 
     return naa;
 }
-        
+
 
 /*!
  *  numaaWrite()
@@ -1422,7 +1474,7 @@ FILE  *fp;
 
     return 0;
 }
-        
+
 
 /*!
  *  numaaWriteStream()
@@ -1457,7 +1509,7 @@ NUMA    *na;
 
     return 0;
 }
-        
+
 
 /*--------------------------------------------------------------------------*
  *                      Numa2d creation, destruction                        *
@@ -1542,7 +1594,7 @@ NUMA2D  *na2d;
 }
 
 
-        
+
 /*--------------------------------------------------------------------------*
  *                               Numa2d accessors                           *
  *--------------------------------------------------------------------------*/
@@ -1738,7 +1790,7 @@ numaHashCreate(l_int32  nbuckets,
 NUMAHASH  *nahash;
 
     PROCNAME("numaHashCreate");
-    
+
     if (nbuckets <= 0)
         return (NUMAHASH *)ERROR_PTR("negative hash size", procName, NULL);
     if ((nahash = (NUMAHASH *)CALLOC(1, sizeof(NUMAHASH))) == NULL)
@@ -1845,5 +1897,4 @@ NUMA    *na;
     numaAddNumber(na, value);
     return 0;
 }
-
 

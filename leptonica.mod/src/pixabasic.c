@@ -27,6 +27,7 @@
  *      Pixa addition
  *           l_int32   pixaAddPix()
  *           l_int32   pixaExtendArray()
+ *           l_int32   pixaExtendArrayToSize()
  *           l_int32   pixaAddBox()
  *
  *      Pixa accessors
@@ -44,6 +45,8 @@
  *           l_int32   pixaReplacePix()
  *           l_int32   pixaInsertPix()
  *           l_int32   pixaRemovePix()
+ *           l_int32   pixaInitFull()
+ *           l_int32   pixaClear()
  *
  *      Pixa combination
  *           PIXA     *pixaJoin()
@@ -468,10 +471,7 @@ PIX     *pixc;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) We extend the boxa array simultaneously.  This is
- *          necessary in case we are NOT adding boxes simultaneously
- *          with adding pix.  We always want the sizes of the
- *          pixa and boxa ptr arrays to be equal.
+ *      (1) Doubles the size of the pixa and boxa ptr arrays.
  */
 l_int32
 pixaExtendArray(PIXA  *pixa)
@@ -481,13 +481,37 @@ pixaExtendArray(PIXA  *pixa)
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
 
-    if ((pixa->pix = (PIX **)reallocNew((void **)&pixa->pix,
-                             sizeof(PIX *) * pixa->nalloc,
-                             2 * sizeof(PIX *) * pixa->nalloc)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
-    pixa->nalloc = 2 * pixa->nalloc;
-    boxaExtendArray(pixa->boxa);
-    return 0;
+    return pixaExtendArrayToSize(pixa, 2 * pixa->nalloc);
+}
+
+
+/*!
+ *  pixaExtendArrayToSize()
+ *
+ *      Input:  pixa
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If necessary, reallocs new pixa and boxa ptrs arrays to @size.
+ *          The pixa and boxa ptr arrays must always be equal in size.
+ */
+l_int32
+pixaExtendArrayToSize(PIXA    *pixa,
+                      l_int32  size)
+{
+    PROCNAME("pixaExtendArrayToSize");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    if (size > pixa->nalloc) {
+        if ((pixa->pix = (PIX **)reallocNew((void **)&pixa->pix,
+                                 sizeof(PIX *) * pixa->nalloc,
+                                 size * sizeof(PIX *))) == NULL)
+            return ERROR_INT("new ptr array not returned", procName, 1);
+        pixa->nalloc = size;
+    }
+    return boxaExtendArrayToSize(pixa->boxa, size);
 }
 
 
@@ -783,8 +807,8 @@ pixaGetPixArray(PIXA  *pixa)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      - In-place replacement of one pix
- *      - The previous pix at that location is destroyed
+ *      (1) In-place replacement of one pix.
+ *      (2) The previous pix at that location is destroyed.
  */
 l_int32
 pixaReplacePix(PIXA    *pixa,
@@ -912,6 +936,97 @@ PIX    **array;
     if (index < nbox)
         boxaRemoveBox(boxa, index);
 
+    return 0;
+}
+
+
+/*!
+ *  pixaInitFull()
+ *
+ *      Input:  pixa (typically empty)
+ *              pix (to be replicated into the entire pixa ptr array)
+ *              box (<optional> to be replicated into the entire boxa ptr array)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This initializes a pixa by filling up the entire pix ptr array
+ *          with copies of @pix.  Any existing pix are destroyed.
+ *          It also fills the boxa with copies of @box.
+ *          After this oepration, the numbers of pix and boxes are equal to
+ *          the number of allocated ptrs.
+ *      (2) Note that we use pixaReplacePix() instead of pixaInsertPix().
+ *          They both have the same effect when inserting into a NULL ptr
+ *          in the pixa ptr array:
+ *      (3) Example usage.  This function is useful to prepare for a
+ *          random insertion (or replacement) of pix into a pixa.
+ *          To randomly insert pix into a pixa, up to some index "max":
+ *             Pixa *pixa = pixaCreate(max);
+ *             Pix *pix = pixCreate(1, 1, 1);  // little memory
+ *             Box *box = boxCreate(...);
+ *             pixaInitFull(pixa, pix, box);
+ *          An existing pixa with a smaller ptr array can also be reused:
+ *             pixaExtendArrayToSize(pixa, max);
+ *             Pix *pix = pixCreate(...);
+ *             Box *box = boxCreate(...);
+ *             pixaInitFull(pixa, pix, box);
+ *          For these situations, the pix should be small and disposable.
+ *          The initialization allows the pixa to always be properly
+ *          filled, even if all pix (and boxes) are not later replaced.
+ */
+l_int32
+pixaInitFull(PIXA  *pixa,
+             PIX   *pix,
+             BOX   *box)
+{
+l_int32  i, n;
+PIX     *pixt;
+
+    PROCNAME("pixaInitFull");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+
+    n = pixa->nalloc;
+    pixa->n = n;
+    for (i = 0; i < n; i++) {
+        pixt = pixCopy(NULL, pix);
+        pixaReplacePix(pixa, i, pixt, NULL);
+    }
+    if (box)
+        boxaInitFull(pixa->boxa, box);
+
+    return 0;
+}
+
+
+/*!
+ *  pixaClear()
+ *
+ *      Input:  pixa
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This destroys all pix in the pixa, as well as
+ *          all boxes in the boxa.  The ptrs in the pix ptr array
+ *          are all null'd.  The number of allocated pix, n, is set to 0.
+ */
+l_int32
+pixaClear(PIXA  *pixa)
+{
+l_int32  i, n;
+
+    PROCNAME("pixaClear");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    n = pixaGetCount(pixa);
+    for (i = 0; i < n; i++)
+        pixDestroy(&pixa->pix[i]);
+    pixa->n = 0;
+    boxaClear(pixa->boxa);
     return 0;
 }
 
@@ -1406,8 +1521,8 @@ PIXA    *pixa;
         if ((fscanf(fp, " pix[%d]: xres = %d, yres = %d\n",
               &ignore, &xres, &yres)) != 3)
             return (PIXA *)ERROR_PTR("res reading", procName, NULL);
-        //if ((pix = pixReadStreamPng(fp)) == NULL)
-        //    return (PIXA *)ERROR_PTR("pix not read", procName, NULL);
+        if ((pix = pixReadStreamPng(fp)) == NULL)
+            return (PIXA *)ERROR_PTR("pix not read", procName, NULL);
         pixSetXRes(pix, xres);
         pixSetYRes(pix, yres);
         pixaAddPix(pixa, pix, L_INSERT);
@@ -1486,7 +1601,7 @@ PIX     *pix;
             return ERROR_INT("pix not found", procName, 1);
         fprintf(fp, " pix[%d]: xres = %d, yres = %d\n",
                 i, pix->xres, pix->yres);
-        //pixWriteStreamPng(fp, pix, 0.0);
+        pixWriteStreamPng(fp, pix, 0.0);
         pixDestroy(&pix);
     }
     return 0;

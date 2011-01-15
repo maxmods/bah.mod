@@ -126,8 +126,6 @@
  *             selSetElement(), with input (row, col, type)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1349,7 +1347,7 @@ selReadStream(FILE  *fp)
 {
 char    *selname;
 char     linebuf[L_BUF_SIZE];
-l_int32  sy, sx, cy, cx, i, j, ret, version;
+l_int32  sy, sx, cy, cx, i, j, version, ignore;
 SEL     *sel;
 
     PROCNAME("selReadStream");
@@ -1357,13 +1355,13 @@ SEL     *sel;
     if (!fp)
         return (SEL *)ERROR_PTR("stream not defined", procName, NULL);
 
-    ret = fscanf(fp, "  Sel Version %d\n", &version);
-    if (ret != 1)
+    if (fscanf(fp, "  Sel Version %d\n", &version) != 1)
         return (SEL *)ERROR_PTR("not a sel file", procName, NULL);
     if (version != SEL_VERSION_NUMBER)
         return (SEL *)ERROR_PTR("invalid sel version", procName, NULL);
 
-    fgets(linebuf, L_BUF_SIZE, fp);
+    if (fgets(linebuf, L_BUF_SIZE, fp) == NULL)
+        return (SEL *)ERROR_PTR("error reading into linebuf", procName, NULL);
     selname = stringNew(linebuf);
     sscanf(linebuf, "  ------  %s  ------", selname);
 
@@ -1376,12 +1374,12 @@ SEL     *sel;
     selSetOrigin(sel, cy, cx);
 
     for (i = 0; i < sy; i++) {
-        fscanf(fp, "    ");
+        ignore = fscanf(fp, "    ");
         for (j = 0; j < sx; j++)
-            fscanf(fp, "%1d", &sel->data[i][j]);
-        fscanf(fp, "\n");
+            ignore = fscanf(fp, "%1d", &sel->data[i][j]);
+        ignore = fscanf(fp, "\n");
     }
-    fscanf(fp, "\n");
+    ignore = fscanf(fp, "\n");
 
     FREE(selname);
     return sel;
@@ -1882,7 +1880,7 @@ SEL     *sel;
     if (n == 0)
         return (SEL *)ERROR_PTR("no pts in pta", procName, NULL);
 
-    box = ptaGetExtent(pta);
+    box = ptaGetBoundingRegion(pta);
     boxGetGeometry(box, &x, &y, &w, &h);
     boxDestroy(&box);
     if (x < 0 || y < 0)
@@ -1972,8 +1970,8 @@ char  *basename, *selname;
     splitPathAtDirectory (basename, NULL, &selname);
     FREE(basename);
 
-    //if ((pix = pixRead(pathname)) == NULL)
-    //    return (SEL *)ERROR_PTR("pix not returned", procName, NULL);
+    if ((pix = pixRead(pathname)) == NULL)
+        return (SEL *)ERROR_PTR("pix not returned", procName, NULL);
     if ((sel = selCreateFromColorPix(pix, selname)) == NULL)
         return (SEL *)ERROR_PTR("sel not made", procName, NULL);
     FREE(selname);

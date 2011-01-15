@@ -16,13 +16,14 @@
 /*
  *  pix1.c
  *
- *    The pixN.c {N = 1,2,3,4} files are sorted by the type of operation.
+ *    The pixN.c {N = 1,2,3,4,5} files are sorted by the type of operation.
  *    The primary functions in these files are:
  *
  *        pix1.c: constructors, destructors and field accessors
  *        pix2.c: pixel poking of image, pad and border pixels
  *        pix3.c: masking and logical ops, counting, mirrored tiling
- *        pix4.c: histograms, fg/bg estimation, rectangle extraction
+ *        pix4.c: histograms, statistics, fg/bg estimation
+ *        pix5.c: property measurements, rectangle extraction
  *
  *
  *    This file has the basic constructors, destructors and field accessors
@@ -198,27 +199,27 @@ static struct PixMemoryManager  pix_mem_manager = {
 static void *
 pix_malloc(size_t  size)
 {
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
     return (*pix_mem_manager.allocator)(size);
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
     return malloc(size);
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 }
 
 static void
 pix_free(void  *ptr)
 {
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
     (*pix_mem_manager.deallocator)(ptr);
     return;
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
     free(ptr);
     return;
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 }
 
 /*!
@@ -232,7 +233,7 @@ pix_free(void  *ptr)
  *      (1) Use this to change the alloc and/or dealloc functions;
  *          e.g., setPixMemoryManager(my_malloc, my_free).
  */
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
 void
 setPixMemoryManager(void  *(allocator(size_t)),
                     void  (deallocator(void *)))
@@ -241,7 +242,7 @@ setPixMemoryManager(void  *(allocator(size_t)),
     if (deallocator) pix_mem_manager.deallocator = deallocator;
     return;
 }
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* MSVC++ wants type (*fun)(types...) syntax */
 void
 setPixMemoryManager(void  *((*allocator)(size_t)),
@@ -251,7 +252,7 @@ setPixMemoryManager(void  *((*allocator)(size_t)),
     if (deallocator) pix_mem_manager.deallocator = deallocator;
     return;
 }
-#endif /* COMPILER_MSVC */
+#endif /* _MSC_VER */
 
 
 /*--------------------------------------------------------------------*
@@ -269,7 +270,7 @@ pixCreate(l_int32  width,
           l_int32  height,
           l_int32  depth)
 {
-PIX       *pixd;
+PIX  *pixd;
 
     PROCNAME("pixCreate");
 
@@ -301,8 +302,8 @@ PIX       *pixd;
 l_uint32  *data;
 
     PROCNAME("pixCreateNoInit");
-    pixd = pixCreateHeader(width, height, depth);
-    if (!pixd) return NULL;
+    if ((pixd = pixCreateHeader(width, height, depth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     wpl = pixGetWpl(pixd);
     if ((data = (l_uint32 *)pix_malloc(4 * wpl * height)) == NULL)
         return (PIX *)ERROR_PTR("pix_malloc fail for data", procName, NULL);
@@ -326,7 +327,7 @@ l_uint32  *data;
 PIX *
 pixCreateTemplate(PIX  *pixs)
 {
-PIX     *pixd;
+PIX  *pixd;
 
     PROCNAME("pixCreateTemplate");
 
@@ -385,8 +386,8 @@ pixCreateHeader(l_int32  width,
                 l_int32  height,
                 l_int32  depth)
 {
-l_int32    wpl;
-PIX       *pixd;
+l_int32  wpl;
+PIX     *pixd;
 
     PROCNAME("pixCreateHeader");
 
@@ -409,7 +410,6 @@ PIX       *pixd;
 
     pixd->refcount = 1;
     pixd->informat = IFF_UNKNOWN;
-
     return pixd;
 }
 
@@ -735,7 +735,8 @@ pixSizesEqual(PIX  *pix1,
  *              to return the new Pix in the input Pix struct:
  *                  void function-inplace(PIX *pix, ...) {
  *                      PIX *pixt = function-makenew(pix);
- *                      pixTransferAllData(pix, &pixt);  // pixt is destroyed
+ *                      pixTransferAllData(pix, &pixt, 0, 0);
+ *                               // pixDestroy() is called on pixt
  *                      return;
  *                  }
  *              Here, the input and returned pix are the same, as viewed
@@ -1490,6 +1491,34 @@ l_uint32  *data;
  *              val = GET_DATA_BYTE(lineg8[i], j);  // fast access; BYTE, 8
  *              ...
  *              FREE(lineg8);  // don't forget this
+ *      (5) These are convenient for accessing bytes sequentially in an
+ *          8 bpp grayscale image.  People who write image processing code
+ *          on 8 bpp images are accustomed to grabbing pixels directly out
+ *          of the raster array.  Note that for little endians, you first
+ *          need to reverse the byte order in each 32-bit word.
+ *          Here's a typical usage pattern:
+ *              pixEndianByteSwap(pix);   // always safe; no-op on big-endians
+ *              l_uint8 **lineptrs = (l_uint8 **)pixGetLinePtrs(pix, NULL);
+ *              pixGetDimensions(pix, &w, &h, NULL);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixEndianByteSwap(pix);  // restore big-endian order
+ *              FREE(lineptrs);
+ *          This can be done even more simply as follows:
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixCleanupByteProcessing(pix, lineptrs);
  */
 void **
 pixGetLinePtrs(PIX      *pix,
@@ -1505,6 +1534,7 @@ void     **lines;
         return (void **)ERROR_PTR("pix not defined", procName, NULL);
 
     h = pixGetHeight(pix);
+    if (psize) *psize = h;
     if ((lines = (void **)CALLOC(h, sizeof(void *))) == NULL)
         return (void **)ERROR_PTR("lines not made", procName, NULL);
     wpl = pixGetWpl(pix);
@@ -1519,7 +1549,7 @@ void     **lines;
 /*--------------------------------------------------------------------*
  *                    Print output for debugging                      *
  *--------------------------------------------------------------------*/
-//extern const char *ImageFileFormatExtensions[];
+extern const char *ImageFileFormatExtensions[];
 
 /*!
  *  pixPrintStreamInfo()
@@ -1555,8 +1585,8 @@ PIXCMAP  *cmap;
     else
         fprintf(fp, "    no colormap\n");
     informat = pixGetInputFormat(pix);
-    //fprintf(fp, "    input format: %d (%s)\n", informat,
-    //        ImageFileFormatExtensions[informat]);
+    fprintf(fp, "    input format: %d (%s)\n", informat,
+            ImageFileFormatExtensions[informat]);
 
     return 0;
 }

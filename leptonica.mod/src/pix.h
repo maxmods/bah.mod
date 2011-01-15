@@ -39,6 +39,7 @@
  *
  *   Contains definitions for:
  *       Colors for RGB
+ *       Perceptual color weights
  *       Colormap conversion flags
  *       Rasterop bit flags
  *       Structure access flags (for insert, copy, clone, copy-clone)
@@ -46,6 +47,7 @@
  *       Blending flags
  *       Graphics pixel setting flags
  *       Size filtering flags
+ *       Color component selection flags
  *       Rotation and shear flags
  *       Affine transform order flags
  *       Grayscale filling flags
@@ -57,6 +59,8 @@
  *       Edge orientation flags
  *       Line orientation flags
  *       Scan direction flags
+ *       Horizontal warp
+ *       Pixel selection for resampling
  *       Thinning flags
  *       Runlength flags
  *       Edge filter flags
@@ -66,6 +70,7 @@
  *       HSV histogram flags
  *       Region flags (inclusion, exclusion)
  *       Flags for adding text to a pix
+ *       Flags for selecting display program
  */
 
 
@@ -93,10 +98,10 @@ typedef struct Pix PIX;
 
 struct PixColormap
 {
-        void        *array;     /* colormap table (array of RGBA_QUAD)     */
-        l_int32      depth;     /* of pix (1, 2, 4 or 8 bpp)               */
-        l_int32      nalloc;    /* number of color entries allocated       */
-        l_int32      n;         /* number of color entries used            */
+    void            *array;     /* colormap table (array of RGBA_QUAD)     */
+    l_int32          depth;     /* of pix (1, 2, 4 or 8 bpp)               */
+    l_int32          nalloc;    /* number of color entries allocated       */
+    l_int32          n;         /* number of color entries used            */
 };
 typedef struct PixColormap  PIXCMAP;
 
@@ -139,14 +144,29 @@ enum {
     L_ALPHA_CHANNEL = 3
 };
 
-static const l_int32  L_RED_SHIFT = 
+static const l_int32  L_RED_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_RED);           /* 24 */
-static const l_int32  L_GREEN_SHIFT = 
+static const l_int32  L_GREEN_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_GREEN);         /* 16 */
-static const l_int32  L_BLUE_SHIFT = 
+static const l_int32  L_BLUE_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_BLUE);          /*  8 */
-static const l_int32  L_ALPHA_SHIFT = 
+static const l_int32  L_ALPHA_SHIFT =
        8 * (sizeof(l_uint32) - 1 - L_ALPHA_CHANNEL);     /*  0 */
+
+
+/*-------------------------------------------------------------------------*
+ *                       Perceptual color weights                          *
+ *-------------------------------------------------------------------------*/
+/*  Notes:
+ *      (1) These numbers are ad-hoc, but they do add up to 1.
+ *          Unlike, for example, the weighting factor for conversion
+ *          of RGB to luminance, or more specifically to Y in the
+ *          YUV colorspace.  Those numbers come from the
+ *          International Telecommunications Union, via ITU-R.
+ */
+static const l_float32  L_RED_WEIGHT =   0.3;
+static const l_float32  L_GREEN_WEIGHT = 0.5;
+static const l_float32  L_BLUE_WEIGHT =  0.2;
 
 
 /*-------------------------------------------------------------------------*
@@ -452,6 +472,8 @@ typedef struct PixTiling PIXTILING;
 /*-------------------------------------------------------------------------*
  *                       FPix: pix with float array                        *
  *-------------------------------------------------------------------------*/
+#define  FPIX_VERSION_NUMBER      1
+
 struct FPix
 {
     l_int32              w;           /* width in pixels                   */
@@ -470,6 +492,8 @@ typedef struct FPix FPIX;
 /*-------------------------------------------------------------------------*
  *                       DPix: pix with double array                       *
  *-------------------------------------------------------------------------*/
+#define  DPIX_VERSION_NUMBER      1
+
 struct DPix
 {
     l_int32              w;           /* width in pixels                   */
@@ -634,6 +658,18 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *                     Color component selection flags                     *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_SELECT_RED = 1,             /* use red component                     */
+    L_SELECT_GREEN = 2,           /* use green component                   */
+    L_SELECT_BLUE = 3,            /* use blue component                    */
+    L_SELECT_MIN = 4,             /* use min color component               */
+    L_SELECT_MAX = 5              /* use max color component               */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                        Rotate and shear flags                           *
  *-------------------------------------------------------------------------*/
 enum {
@@ -749,7 +785,8 @@ enum {
     L_HORIZONTAL_LINE = 0,     /* horizontal line                          */
     L_POS_SLOPE_LINE = 1,      /* 45 degree line with positive slope       */
     L_VERTICAL_LINE = 2,       /* vertical line                            */
-    L_NEG_SLOPE_LINE = 3       /* 45 degree line with negative slope       */
+    L_NEG_SLOPE_LINE = 3,      /* 45 degree line with negative slope       */
+    L_OBLIQUE_LINE = 4         /* neither horizontal nor vertical */
 };
 
 
@@ -761,6 +798,29 @@ enum {
     L_FROM_RIGHT = 1,          /* scan from right                          */
     L_FROM_TOP = 2,            /* scan from top                            */
     L_FROM_BOTTOM = 3          /* scan from bottom                         */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                            Horizontal warp                              *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_WARP_TO_LEFT = 1,      /* increasing stretch or contraction to left  */
+    L_WARP_TO_RIGHT = 2      /* increasing stretch or contraction to right */
+};
+
+enum {
+    L_LINEAR_WARP = 1,       /* stretch or contraction grows linearly      */
+    L_QUADRATIC_WARP = 2     /* stretch or contraction grows quadratically */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                      Pixel selection for resampling                     *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_INTERPOLATED = 1,      /* linear interpolation from src pixels       */
+    L_SAMPLED = 2            /* nearest src pixel sampling only            */
 };
 
 
@@ -805,7 +865,9 @@ enum {
  *-------------------------------------------------------------------------*/
 enum {
     L_SUBPIXEL_ORDER_RGB = 1,   /* sensor order left-to-right RGB          */
-    L_SUBPIXEL_ORDER_BGR = 2    /* sensor order left-to-right BGR          */
+    L_SUBPIXEL_ORDER_BGR = 2,   /* sensor order left-to-right BGR          */
+    L_SUBPIXEL_ORDER_VRGB = 3,  /* sensor order top-to-bottom RGB          */
+    L_SUBPIXEL_ORDER_VBGR = 4   /* sensor order top-to-bottom BGR          */
 };
 
 
@@ -849,5 +911,14 @@ enum {
 };
 
 
-#endif  /* LEPTONICA_PIX_H */
+/*-------------------------------------------------------------------------*
+ *                   Flags for selecting display program                   *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_DISPLAY_WITH_XV = 1,      /* Use xv with pixDisplay()                */
+    L_DISPLAY_WITH_XLI = 2,     /* Use xli with pixDisplay()               */
+    L_DISPLAY_WITH_XZGV = 3,    /* Use xzgv with pixDisplay()              */
+    L_DISPLAY_WITH_IV = 4       /* Use irfvanview with pixDisplay()        */
+};
 
+#endif  /* LEPTONICA_PIX_H */

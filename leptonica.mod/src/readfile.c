@@ -22,6 +22,7 @@
  *           PIXA      *pixaReadFilesSA()
  *           PIX       *pixRead()
  *           PIX       *pixReadWithHint()
+ *           PIX       *pixReadIndexed()
  *           PIX       *pixReadStream()
  *
  *      Read header information from file
@@ -40,11 +41,8 @@
  *           l_int32    ioFormatTest()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
     /*  choose type of PIX to be generated  */
 enum {
@@ -65,8 +63,14 @@ static const char *FILE_PB   =  "/tmp/junkout_packbits.tif";
 static const char *FILE_LZW  =  "/tmp/junkout_lzw.tif";
 static const char *FILE_ZIP  =  "/tmp/junkout_zip.tif";
 static const char *FILE_TIFF =  "/tmp/junkout.tif";
-static const char *FILE_JPG  =  "/tmp/junkout.jpg"; 
+static const char *FILE_JPG  =  "/tmp/junkout.jpg";
 
+    /* I found these from the source code to the unix file */
+    /* command. man 1 file */
+static const char JP2K_CODESTREAM[4] = { 0xff, 0x4f, 0xff, 0x51 };
+static const char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0C,
+                                          0x6A, 0x50, 0x20, 0x20,
+                                          0x0D, 0x0A, 0x87, 0x0A };
 
 /*---------------------------------------------------------------------*
  *          Top-level functions for reading images from file           *
@@ -160,12 +164,21 @@ PIX   *pix;
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIX *)ERROR_PTR("image file not found", procName, NULL);
     pix = pixReadStream(fp, 0);
-    fclose(fp);
+
+        /* Close the stream except if GIF under windows, because
+         * DGifCloseFile() closes the windows file stream! */
+    if (pixGetInputFormat(pix) != IFF_GIF)
+        fclose(fp);
+#ifndef _WIN32
+    else  /* gif file */
+        fclose(fp);
+#endif  /* ! _WIN32 */
 
     if (!pix)
         return (PIX *)ERROR_PTR("image not returned", procName, NULL);
     return pix;
 }
+
 
 /*!
  *  pixReadWithHint()
@@ -197,6 +210,61 @@ PIX   *pix;
 
     if (!pix)
         return (PIX *)ERROR_PTR("image not returned", procName, NULL);
+    return pix;
+}
+
+
+/*!
+ *  pixReadIndexed()
+ *
+ *      Input:  sarray (of full pathnames)
+ *              index (into pathname array)
+ *      Return: pix if OK; null if not found
+ *
+ *  Notes:
+ *      (1) This function is useful for selecting image files from a
+ *          directory, where the integer @index is embedded into
+ *          the file name.
+ *      (2) This is typically done by generating the sarray using
+ *          getNumberedPathnamesInDirectory(), so that the @index
+ *          pathname would have the number @index in it.  The size
+ *          of the sarray should be the largest number (plus 1) appearing
+ *          in the file names, respecting the constraints in the
+ *          call to getNumberedPathnamesInDirectory().
+ *      (3) Consequently, for some indices into the sarray, there may
+ *          be no pathnames in the directory containing that number.
+ *          By convention, we place empty C strings ("") in those
+ *          locations in the sarray, and it is not an error if such
+ *          a string is encountered and no pix is returned.
+ *          Therefore, the caller must verify that a pix is returned.
+ *      (4) See convertSegmentedPagesToPS() in src/psio1.c for an
+ *          example of usage.
+ */
+PIX *
+pixReadIndexed(SARRAY  *sa,
+               l_int32  index)
+{
+char    *fname;
+l_int32  n;
+PIX     *pix;
+
+    PROCNAME("pixReadIndexed");
+
+    if (!sa)
+        return (PIX *)ERROR_PTR("sa not defined", procName, NULL);
+    n = sarrayGetCount(sa);
+    if (index < 0 || index >= n)
+        return (PIX *)ERROR_PTR("index out of bounds", procName, NULL);
+
+    fname = sarrayGetString(sa, index, L_NOCOPY);
+    if (fname[0] == '\0')
+        return NULL;
+
+    if ((pix = pixRead(fname)) == NULL) {
+        L_ERROR_STRING("pix not read from file %s", procName, fname);
+        return NULL;
+    }
+
     return pix;
 }
 
@@ -264,6 +332,20 @@ PIX     *pix;
             return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
         break;
 
+    case IFF_JP2:
+        return (PIX *)ERROR_PTR("jp2: format not supported", procName, NULL);
+        break;
+
+    case IFF_WEBP:
+        if ((pix = pixReadStreamWebP(fp)) == NULL)
+            return (PIX *)ERROR_PTR("webp: no pix returned", procName, NULL);
+        break;
+
+    case IFF_SPIX:
+        if ((pix = pixReadStreamSpix(fp)) == NULL)
+            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
+        break;
+
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR( "Unknown format: no pix returned",
                 procName, NULL);
@@ -292,8 +374,9 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This only works for jpeg, png and tiff.  We should eventually
- *          allow reading header data for the other formats.
+ *      (1) This reads the actual headers for jpeg, png, tiff and pnm.
+ *          For bmp and gif, we cheat and read the entire file into a pix,
+ *          from which we extract the "header" information.
  */
 l_int32
 pixReadHeader(const char  *filename,
@@ -325,13 +408,13 @@ PIX      *pix;
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
     findFileFormat(fp, &format);
-    if (pformat) *pformat = format;
     fclose(fp);
 
     switch (format)
     {
     case IFF_BMP:  /* cheating: reading the entire file */
-        pix = pixRead(filename);
+        if ((pix = pixRead(filename)) == NULL)
+            return ERROR_INT( "bmp: pix not read", procName, 1);
         pixGetDimensions(pix, &w, &h, &d);
         pixDestroy(&pix);
         bps = (d == 32) ? 8 : d;
@@ -359,27 +442,45 @@ PIX      *pix;
     case IFF_TIFF_G4:
     case IFF_TIFF_LZW:
     case IFF_TIFF_ZIP:
-            /* Reading page 0 by default */
-        ret = readHeaderTiff(filename, 0, &w, &h, &bps, &spp, NULL, &iscmap);
+            /* Reading page 0 by default; possibly redefine format */
+        ret = readHeaderTiff(filename, 0, &w, &h, &bps, &spp, NULL, &iscmap,
+                             &format);
         if (ret)
             return ERROR_INT( "tiff: no header info returned", procName, 1);
         break;
 
     case IFF_PNM:
-        if ((fp = fopenReadStream(filename)) == NULL)
-            return ERROR_INT("file stream not opened", procName, 1);
-        ret = freadHeaderPnm(fp, NULL, &w, &h, &d, &type, &bps, &spp);
-        fclose(fp);
+        ret = readHeaderPnm(filename, NULL, &w, &h, &d, &type, &bps, &spp);
         if (ret)
             return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
 
     case IFF_GIF:  /* cheating: reading the entire file */
-        pix = pixRead(filename);
+        if ((pix = pixRead(filename)) == NULL)
+            return ERROR_INT( "gif: pix not read", procName, 1);
         pixGetDimensions(pix, &w, &h, &d);
         pixDestroy(&pix);
-        bps = (d == 32) ? 8 : d;
-        spp = (d == 32) ? 3 : 1;
+        iscmap = 1;  /* always colormapped; max 256 colors */
+        spp = 1;
+        bps = d;
+        break;
+
+    case IFF_JP2:
+        return ERROR_INT("jp2: format not supported", procName, 1);
+        break;
+
+    case IFF_WEBP:
+        ret = readHeaderWebP(filename, &w, &h);
+        bps = 8;
+        spp = 3;
+        if (ret)
+            return ERROR_INT( "pnm: no header info returned", procName, 1);
+        break;
+
+    case IFF_SPIX:
+        ret = readHeaderSpix(filename, &w, &h, &bps, &spp, &iscmap);
+        if (ret)
+            return ERROR_INT( "spix: no header info returned", procName, 1);
         break;
 
     case IFF_UNKNOWN:
@@ -393,7 +494,7 @@ PIX      *pix;
     if (pbps) *pbps = bps;
     if (pspp) *pspp = spp;
     if (piscmap) *piscmap = iscmap;
-
+    if (pformat) *pformat = format;
     return 0;
 }
 
@@ -415,7 +516,7 @@ l_int32
 findFileFormat(FILE     *fp,
                l_int32  *pformat)
 {
-l_uint8  firstbytes[8]; 
+l_uint8  firstbytes[12];
 l_int32  format;
 
     PROCNAME("findFileFormat");
@@ -427,11 +528,11 @@ l_int32  format;
         return ERROR_INT("stream not defined", procName, 1);
 
     rewind(fp);
-    if (fnbytesInFile(fp) < 8)
+    if (fnbytesInFile(fp) < 12)
         return ERROR_INT("truncated file", procName, 1);
 
-    if (fread((char *)&firstbytes, 1, 8, fp) != 8)
-        return ERROR_INT("failed to read first 8 bytes of file", procName, 1);
+    if (fread((char *)&firstbytes, 1, 12, fp) != 12)
+        return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
     rewind(fp);
 
     findFileFormatBuffer(firstbytes, &format);
@@ -450,12 +551,12 @@ l_int32  format;
 /*!
  *  findFileFormatBuffer()
  *
- *      Input:  byte buffer (at least 8 bytes in size; we can't check) 
+ *      Input:  byte buffer (at least 12 bytes in size; we can't check)
  *              &format (<return>)
  *      Return: 0 if OK, 1 on error or if format is not recognized
  *
  *  Notes:
- *      (1) This determines the file format from the first 8 bytes in
+ *      (1) This determines the file format from the first 12 bytes in
  *          the compressed data stream, which are stored in memory.
  *      (2) For tiff files, this returns IFF_TIFF.  The specific tiff
  *          compression is then determined using findTiffCompression().
@@ -509,7 +610,7 @@ l_uint16  twobytepw;
 
         /*  Consider the first 11 bytes of the standard JFIF JPEG header:
          *    - The first two bytes are the most important:  0xffd8.
-         *    - The next two bytes are the jfif marker: 0xffe0. 
+         *    - The next two bytes are the jfif marker: 0xffe0.
          *      Not all jpeg files have this marker.
          *    - The next two bytes are the header length.
          *    - The next 5 bytes are a null-terminated string.
@@ -535,6 +636,26 @@ l_uint16  twobytepw;
     if (buf[0] == 'G' && buf[1] == 'I' && buf[2] == 'F' && buf[3] == '8' &&
         (buf[4] == '7' || buf[4] == '9') && buf[5] == 'a') {
         *pformat = IFF_GIF;
+        return 0;
+    }
+
+        /* Check for both types of jp2k file */
+    if (strncmp((const char *)buf, JP2K_CODESTREAM, 4) == 0 ||
+        strncmp((const char *)buf, JP2K_IMAGE_DATA, 12) == 0) {
+        *pformat = IFF_JP2;
+        return 0;
+    }
+
+        /* Check for webp */
+    if (buf[0] == 'R' && buf[1] == 'I' && buf[2] == 'F' && buf[3] == 'F' &&
+        buf[8] == 'W' && buf[9] == 'E' && buf[10] == 'B' && buf[11] == 'P') {
+        *pformat = IFF_WEBP;
+        return 0;
+    }
+
+        /* Check for "spix" serialized pix */
+    if (buf[0] == 's' && buf[1] == 'p' && buf[2] == 'i' && buf[3] == 'x') {
+        *pformat = IFF_SPIX;
         return 0;
     }
 
@@ -645,6 +766,15 @@ PIX     *pix;
             return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
         break;
 
+    case IFF_JP2:
+        return (PIX *)ERROR_PTR("jp2: format not supported", procName, NULL);
+        break;
+
+    case IFF_SPIX:
+        if ((pix = pixReadMemSpix(data, size)) == NULL)
+            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
+        break;
+
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR("Unknown format: no pix returned",
                 procName, NULL);
@@ -676,8 +806,9 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This only works for jpeg, png and tiff.  We should eventually
- *          allow reading header data for the other formats.
+ *      (1) This reads the actual headers for jpeg, png, tiff and pnm.
+ *          For bmp and gif, we cheat and read all the data into a pix,
+ *          from which we extract the "header" information.
  *      (2) On windows, this will only read tiff formatted files from
  *          memory.  For other formats, it requires fmemopen(3).
  *          Attempts to read those formats will fail at runtime.
@@ -694,8 +825,9 @@ pixReadHeaderMem(const l_uint8  *data,
                  l_int32        *pspp,
                  l_int32        *piscmap)
 {
-l_int32  format, ret, w, h, bps, spp, iscmap;
-l_int32  d, type;  /* not used */
+l_int32  format, ret, w, h, d, bps, spp, iscmap;
+l_int32  type;  /* not used */
+PIX     *pix;
 
     PROCNAME("pixReadHeaderMem");
 
@@ -712,12 +844,17 @@ l_int32  d, type;  /* not used */
         return ERROR_INT("size < 8", procName, 1);
 
     findFileFormatBuffer(data, &format);
-    if (pformat) *pformat = format;
 
     switch (format)
     {
-    case IFF_BMP:
-        return ERROR_INT("bmp: not implemented; no data returned", procName, 1);
+    case IFF_BMP:  /* cheating: read the pix */
+        if ((pix = pixReadMemBmp(data, size)) == NULL)
+            return ERROR_INT( "bmp: pix not read", procName, 1);
+        pixGetDimensions(pix, &w, &h, &d);
+        pixDestroy(&pix);
+        bps = (d == 32) ? 8 : d;
+        spp = (d == 32) ? 3 : 1;
+        break;
 
     case IFF_JFIF_JPEG:
         ret = extractJpegDataFromArray(data, (l_int32)size, &w, &h, &bps, &spp);
@@ -738,9 +875,9 @@ l_int32  d, type;  /* not used */
     case IFF_TIFF_G4:
     case IFF_TIFF_LZW:
     case IFF_TIFF_ZIP:
-            /* Reading page 0 by default */
+            /* Reading page 0 by default; possibly redefine format */
         ret = readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp,
-                                NULL, &iscmap);
+                                NULL, &iscmap, &format);
         if (ret)
             return ERROR_INT( "tiff: no header info returned", procName, 1);
         break;
@@ -751,8 +888,25 @@ l_int32  d, type;  /* not used */
             return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
 
-    case IFF_GIF:
-        return ERROR_INT("gif: not implemented; no data returned", procName, 1);
+    case IFF_GIF:  /* cheating: read the pix */
+        if ((pix = pixReadMemGif(data, size)) == NULL)
+            return ERROR_INT( "gif: pix not read", procName, 1);
+        pixGetDimensions(pix, &w, &h, &d);
+        pixDestroy(&pix);
+        iscmap = 1;  /* always colormapped; max 256 colors */
+        spp = 1;
+        bps = d;
+        break;
+
+    case IFF_JP2:
+        return ERROR_INT("jp2: format not supported", procName, 1);
+        break;
+
+    case IFF_SPIX:
+        ret = sreadHeaderSpix((l_uint32 *)data, &w, &h, &bps,
+                               &spp, &iscmap);
+        if (ret)
+            return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
 
     case IFF_UNKNOWN:
@@ -765,7 +919,7 @@ l_int32  d, type;  /* not used */
     if (pbps) *pbps = bps;
     if (pspp) *pspp = spp;
     if (piscmap) *piscmap = iscmap;
-
+    if (pformat) *pformat = format;
     return 0;
 }
 
@@ -984,4 +1138,3 @@ PIXCMAP  *cmap;
     pixDestroy(&pixs);
     return problems;
 }
-

@@ -1,4 +1,4 @@
-' Copyright (c) 2009 Bruce A Henderson
+' Copyright (c) 2009-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -116,6 +116,18 @@ Extern
 	Function pixAffineSampled:Byte Ptr(handle:Byte Ptr, vc:Float Ptr, inColor:Int)
 	Function pixAffinePta:Byte Ptr(handle:Byte Ptr, ptad:Byte Ptr, ptas:Byte Ptr, inColor:Int)
 	Function pixAffine:Byte Ptr(handle:Byte Ptr, vc:Float Ptr, inColor:Int)
+	
+	Function pixGetPixel:Int(handle:Byte Ptr, x:Int, y:Int, value:Int Ptr)
+	Function pixSetPixel:Int(handle:Byte Ptr, x:Int, y:Int, value:Int)
+	Function pixGetRGBPixel:Int(handle:Byte Ptr, x:Int, y:Int, rval:Int Ptr, gval:Int Ptr, bval:Int Ptr)
+	Function pixSetRGBPixel:Int(handle:Byte Ptr, x:Int, y:Int, rval:Int, gval:Int, bval:Int)
+	Function pixGetRandomPixel:Int(handle:Byte Ptr, value:Int Ptr, x:Int Ptr, y:Int Ptr)
+	Function pixClearPixel:Int(handle:Byte Ptr, x:Int, y:Int)
+	Function pixFlipPixel:Int(handle:Byte Ptr, x:Int, y:Int)
+	Function pixClearAll:Int(handle:Byte Ptr)
+	Function pixSetAll:Int(handle:Byte Ptr)
+	Function pixSetAllArbitrary:Int(handle:Byte Ptr, value:Int)
+	Function pixSetBlackOrWhite:Int(handle:Byte Ptr, inColor:Int)
 
 	Function bmx_pixFree(handle:Byte Ptr)
 
@@ -133,7 +145,7 @@ Extern
 	Function ptaGetCount:Int(handle:Byte Ptr)
 	Function ptaGetPt:Int(handle:Byte Ptr, index:Int, px:Float Ptr, py:Float Ptr)
 	Function ptaGetIPt:Int(handle:Byte Ptr, index:Int, px:Int Ptr, py:Int Ptr)
-	Function ptaGetExtent:Byte Ptr(handle:Byte Ptr)
+	'Function ptaGetExtent:Byte Ptr(handle:Byte Ptr)
 	Function ptaGetInsideBox:Byte Ptr(handle:Byte Ptr, box:Byte Ptr)
 	Function pixFindCornerPixels:Byte Ptr(handle:Byte Ptr)
 	Function ptaContainsPt:Int(handle:Byte Ptr, x:Int, y:Int)
@@ -170,7 +182,7 @@ Function _mapDepthToPixFormat:Int(depth:Int)
 		Case 24
 			Return PF_RGB888
 		Case 32
-			Return PF_BGRA8888
+			Return PF_RGBA8888
 	End Select
 	Return 0	
 End Function
@@ -185,12 +197,16 @@ Function ConvertPixelsFromStdFormatToARGB( pixmap:TPixmap,out_buf:Byte Ptr )
 		Local out:Byte Ptr = out_buf + y * pitch
 		Local in:Byte Ptr = pixmap.pixels + y * pitch
 		Local in_end:Byte Ptr = in + count * 4
-	
+	'BGRA
 		While in<>in_end
-			out[0]=in[2]
-			out[1]=in[1]
-			out[2]=in[0]
-			out[3]=in[3]
+			out[0]=in[3]
+			out[1]=in[2]
+			out[2]=in[1]
+			out[3]=in[0]
+'			out[0]=in[2]
+'			out[1]=in[1]
+'			out[2]=in[0]
+'			out[3]=in[3]
 			in:+4;out:+4
 		Wend
 
@@ -198,6 +214,30 @@ Function ConvertPixelsFromStdFormatToARGB( pixmap:TPixmap,out_buf:Byte Ptr )
 
 End Function
 
+Function ConvertPixelsFromARGBFormatToStd( pixmap:TPixmap, in_buf:Byte Ptr )
+
+' pixGetData(pixPtr), pixGetWidth(pixPtr), pixGetHeight(pixPtr), pixGetWpl(pixPtr) * 4, _mapDepthToPixFormat(pixGetDepth(pixPtr))
+
+	Local count:Int = pixmap.width
+	Local pitch:Int = pixmap.pitch
+
+	For Local y:Int = 0 Until pixmap.height
+
+		Local in:Byte Ptr = pixmap.pixels + y * pitch
+		Local out:Byte Ptr = in_buf + y * pitch
+		Local out_end:Byte Ptr = out + count * 4
+	
+		While out<>out_end
+			in[0]=out[3]
+			in[1]=out[2]
+			in[2]=out[1]
+			in[3]=out[0]
+			in:+4;out:+4
+		Wend
+
+	Next
+
+End Function
 
 
 
@@ -313,3 +353,62 @@ Rem
 bbdoc: Shear image about center.
 End Rem
 Const L_SHEAR_ABOUT_CENTER:Int = 2
+
+
+
+Rem
+bbdoc: Unknown barcode format                            
+end rem
+Const L_BF_UNKNOWN:Int = 0       
+Rem
+bbdoc: Try decoding with all known formats       
+end rem
+Const L_BF_ANY:Int = 1
+Rem
+bbdoc: Decode with Code128 format                
+end rem
+Const L_BF_CODE128:Int = 2
+Rem
+bbdoc: Decode with EAN8 format                   
+end rem
+Const L_BF_EAN8:Int = 3
+Rem
+bbdoc: Decode with EAN13 format                  
+end rem
+Const L_BF_EAN13:Int = 4
+Rem
+bbdoc: Decode with Code 2 of 5 format            
+end rem
+Const L_BF_CODE2OF5:Int = 5
+Rem
+bbdoc: Decode with Interleaved 2 of 5 format     
+end rem
+Const L_BF_CODEI2OF5:Int = 6
+Rem
+bbdoc: Decode with Code39 format                 
+end rem
+Const L_BF_CODE39:Int = 7
+Rem
+bbdoc: Decode with Code93 format                 
+end rem
+Const L_BF_CODE93:Int = 8
+Rem
+bbdoc: Decode with Code93 format                 
+end rem
+Const L_BF_CODABAR:Int = 9
+Rem
+bbdoc: Decode with UPC A format 
+end rem
+Const L_BF_UPCA:Int = 10
+
+
+Rem
+bbdoc: Use histogram of barcode widths
+End Rem
+Const L_USE_WIDTHS:Int = 1
+Rem
+bbdoc: Find best window for decoding transitions.
+End Rem
+Const L_USE_WINDOWS:Int = 2
+
+

@@ -27,7 +27,7 @@
  *          l_int32     pixWriteStreamPng()
  *          
  *    Read and write of png to/from RGBA pix
- *          PIX        *pixReadRGGAPng();
+ *          PIX        *pixReadRGBAPng();
  *          l_int32     pixWriteRGBAPng();
  *
  *    Setting flags for special modes
@@ -51,34 +51,35 @@
  *    3 component color image.
  *
  *    In the following, we use these abbreviations:
- *       bpc == bit/component
- *       cpp == component/pixel
+ *       bps == bit/sample
+ *       spp == samples/pixel
  *       bpp == bits/pixel of image in Pix (memory)
+ *    where each component is referred to as a "sample".
  *
  *    There are three special flags for determining the number or
- *    size of components retained or written:
- *    (1) L_PNG_STRIP_16_to_8: default is TRUE.  This strips each
- *        16 bit component down to 8 bpc:
- *         - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
- *         - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
- *    (2) L_PNG_STRIP_ALPHA: default is TRUE.  This does not copy
+ *    size of samples retained or written:
+ *    (1) var_PNG_STRIP_16_to_8: default is TRUE.  This strips each
+ *        16 bit sample down to 8 bps:
+ *         - For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
+ *         - For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
+ *    (2) var_PNG_STRIP_ALPHA: default is TRUE.  This does not copy
  *        the alpha channel to the pix:
- *         - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
- *    (3) L_PNG_WRITE_ALPHA: default is FALSE.  The default generates
- *        an RGB png file with 3 cpp.  If set to TRUE, this generates
- *        an RGBA png file with 4 cpp, and writes the alpha channel.
+ *         - For 8 bps rgba (8 bps, 4 spp) --> 32 bpp rgb Pix
+ *    (3) var_PNG_WRITE_ALPHA: default is FALSE.  The default generates
+ *        an RGB png file with 3 spp.  If set to TRUE, this generates
+ *        an RGBA png file with 4 spp, and writes the alpha channel.
  *    These are set with accessors.
  *
  *    Two convenience functions are included for reading the alpha
  *    channel (if it exists) into the pix, and for writing out the
- *    alpha component of a pix to a png file:
+ *    alpha sample of a pix to a png file:
  *        pixReadRGBAPng()
  *        pixWriteRGBAPng()
  *    These use two of the special flags, setting to the non-default
  *    value before use and resetting to default afterwards.
  *    In leptonica, we make almost no explicit use of the alpha channel.
  *        
- *    Another special flag, L_ZLIB_COMPRESSION, is used to determine
+ *    Another special flag, var_ZLIB_COMPRESSION, is used to determine
  *    the compression level.  Default is for standard png compression.
  *    The zlib compression value can be set [0 ... 9], with
  *         0     no compression (huge files)
@@ -93,8 +94,6 @@
  *          multi-threaded applications, results can be non-deterministic.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -110,13 +109,13 @@
 
 /* ----------------Set defaults for read/write options ----------------- */
     /* strip 16 bpp --> 8 bpp on reading png; default is for stripping */
-static l_int32   L_PNG_STRIP_16_TO_8 = 1;
+static l_int32   var_PNG_STRIP_16_TO_8 = 1;
     /* strip alpha on reading png; default is for stripping */
-static l_int32   L_PNG_STRIP_ALPHA = 1;
+static l_int32   var_PNG_STRIP_ALPHA = 1;
     /* write alpha for 32 bpp images; default is to write only RGB */
-static l_int32   L_PNG_WRITE_ALPHA = 0;
+static l_int32   var_PNG_WRITE_ALPHA = 0;
     /* zlib compression in png; default is for standard compression */
-static l_int32   L_ZLIB_COMPRESSION = Z_DEFAULT_COMPRESSION;
+static l_int32   var_ZLIB_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
 
 #ifndef  NO_CONSOLE_IO
@@ -194,12 +193,12 @@ PIXCMAP     *cmap;
          *  NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
          * ---------------------------------------------------------- */
         /* To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
-    if (L_PNG_STRIP_16_TO_8 == 1)   /* our default */
+    if (var_PNG_STRIP_16_TO_8 == 1)   /* our default */
         png_transforms = PNG_TRANSFORM_STRIP_16;
     else
         png_transforms = PNG_TRANSFORM_IDENTITY;
         /* To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA */
-    if (L_PNG_STRIP_ALPHA == 1)   /* our default */
+    if (var_PNG_STRIP_ALPHA == 1)   /* our default */
         png_transforms |= PNG_TRANSFORM_STRIP_ALPHA;
 
         /* Read it */
@@ -334,8 +333,8 @@ PIXCMAP     *cmap;
  *      Input:  filename
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -346,8 +345,8 @@ l_int32
 readHeaderPng(const char *filename,
               l_int32    *pwidth,
               l_int32    *pheight,
-              l_int32    *pbpc,
-              l_int32    *pcpp,
+              l_int32    *pbps,
+              l_int32    *pspp,
               l_int32    *piscmap)
 {
 l_int32  ret;
@@ -357,11 +356,11 @@ FILE    *fp;
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    ret = freadHeaderPng(fp, pwidth, pheight, pbpc, pcpp, piscmap);
+    ret = freadHeaderPng(fp, pwidth, pheight, pbps, pspp, piscmap);
     fclose(fp);
     return ret;
 }
@@ -373,8 +372,8 @@ FILE    *fp;
  *      Input:  stream
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -385,8 +384,8 @@ l_int32
 freadHeaderPng(FILE     *fp,
                l_int32  *pwidth,
                l_int32  *pheight,
-               l_int32  *pbpc,
-               l_int32  *pcpp,
+               l_int32  *pbps,
+               l_int32  *pspp,
                l_int32  *piscmap)
 {
 l_int32   nbytes, ret;
@@ -396,7 +395,7 @@ l_uint8  *data;
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     
     nbytes = fnbytesInFile(fp);
@@ -404,8 +403,9 @@ l_uint8  *data;
         return ERROR_INT("file too small to be png", procName, 1);
     if ((data = (l_uint8 *)CALLOC(40, sizeof(l_uint8))) == NULL)
         return ERROR_INT("CALLOC fail for data", procName, 1);
-    fread(data, 40, 1, fp);
-    ret = sreadHeaderPng(data, pwidth, pheight, pbpc, pcpp, piscmap);
+    if (fread(data, 1, 40, fp) != 40)
+        return ERROR_INT("error reading data", procName, 1);
+    ret = sreadHeaderPng(data, pwidth, pheight, pbps, pspp, piscmap);
     FREE(data);
     return ret;
 }
@@ -417,8 +417,8 @@ l_uint8  *data;
  *      Input:  data
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -429,11 +429,11 @@ l_int32
 sreadHeaderPng(const l_uint8  *data,
                l_int32        *pwidth,
                l_int32        *pheight,
-               l_int32        *pbpc,
-               l_int32        *pcpp,
+               l_int32        *pbps,
+               l_int32        *pspp,
                l_int32        *piscmap)
 {
-l_uint8    colortype, bpc;
+l_uint8    colortype, bps;
 l_uint16   twobytes;
 l_uint16  *pshort;
 l_uint32  *pword;
@@ -442,9 +442,9 @@ l_uint32  *pword;
 
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
-    *pwidth = *pheight = *pbpc = *pcpp = 0;
+    *pwidth = *pheight = *pbps = *pspp = 0;
     if (piscmap)
       *piscmap = 0;
     
@@ -458,17 +458,17 @@ l_uint32  *pword;
     pshort = (l_uint16 *)data;
     *pwidth = convertOnLittleEnd32(pword[4]);
     *pheight = convertOnLittleEnd32(pword[5]);
-    twobytes = convertOnLittleEnd16(pshort[12]); /* contains depth/component */
-                                                 /* and the color type       */
+    twobytes = convertOnLittleEnd16(pshort[12]); /* contains depth/sample  */
+                                                 /* and the color type     */
     colortype = twobytes & 0xff;  /* color type */
-    bpc = twobytes >> 8;   /* bits/component */
-    *pbpc = bpc;
+    bps = twobytes >> 8;   /* bits/sample */
+    *pbps = bps;
     if (colortype == 2)  /* RGB */
-        *pcpp = 3;
+        *pspp = 3;
     else if (colortype == 6)  /* RGBA */
-        *pcpp = 4;
+        *pspp = 4;
     else   /* palette or gray */
-        *pcpp = 1;
+        *pspp = 1;
     if (piscmap) {
         if (colortype & 1)  /* palette: see png.h, PNG_COLOR_TYPE_... */
             *piscmap = 1;
@@ -575,13 +575,15 @@ FILE  *fp;
  *          and 32.  However, it is possible, and in some cases desirable,
  *          to write out a png file using an rgb pix that has 24 bpp.
  *          For example, the open source xpdf SplashBitmap class generates
- *          24 bpp rgb images.  To write these directly to file in leptonica,
- *          you can make a 24 bpp pix without data and assign the data array
- *          to the pix; e.g.,
+ *          24 bpp rgb images.  Consequently, we anble writing 24 bpp pix.
+ *          To generate such a pix, you can make a 24 bpp pix without data
+ *          and assign the data array to the pix; e.g.,
  *              pix = pixCreateHeader(w, h, 24);
  *              pixSetData(pix, rgbdata);
- *              pixSetPadBits(pix, 0);
- *          Consequently, we enable writing 24 bpp pix.
+ *          See pixConvert32To24() for an example, where we get rgbdata
+ *          from the 32 bpp pix.  Caution: do not call pixSetPadBits(),
+ *          because the alignment is wrong and you may erase part of the
+ *          last pixel on each line.
  */
 l_int32
 pixWriteStreamPng(FILE      *fp,
@@ -634,7 +636,7 @@ char        *text;
         /* With best zlib compression (9), get between 1 and 10% improvement
          * over default (5), but the compression is 3 to 10 times slower.
          * Our default compression is the zlib default (5). */
-    png_set_compression_level(png_ptr, L_ZLIB_COMPRESSION);
+    png_set_compression_level(png_ptr, var_ZLIB_COMPRESSION);
 
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
@@ -645,7 +647,7 @@ char        *text;
         cmflag = 0;
 
         /* Set the color type and bit depth. */
-    if (d == 32 && L_PNG_WRITE_ALPHA == 1) {
+    if (d == 32 && var_PNG_WRITE_ALPHA == 1) {
         bit_depth = 8;
         color_type = PNG_COLOR_TYPE_RGBA;   /* 6 */
         cmflag = 0;  /* ignore if it exists */
@@ -785,7 +787,7 @@ char        *text;
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-                if (L_PNG_WRITE_ALPHA == 1)
+                if (var_PNG_WRITE_ALPHA == 1)
                     rowbuffer[k++] = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
                 ppixel++;
             }
@@ -839,7 +841,7 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("filename not defined", procName, NULL);
 
         /* If alpha channel reading is enabled, just read it */
-    if (L_PNG_STRIP_ALPHA == FALSE)
+    if (var_PNG_STRIP_ALPHA == FALSE)
         return pixRead(filename);
 
         /* Make sure it's a png file */
@@ -870,10 +872,10 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Wrapper to write the alpha component of a 32 bpp pix to
+ *      (1) Wrapper to write the alpha sample of a 32 bpp pix to
  *          a png file in rgba format.
  *      (2) The default behavior of pix write to png is to ignore
- *          the alpha component.
+ *          the alpha sample.
  *      (3) This always leaves alpha writing in the same mode as
  *          when this function begins.  So if alpha writing is in
  *          default mode, this enables it, writes out a rgba png file
@@ -894,7 +896,7 @@ l_int32  ret;
         return ERROR_INT("filename not defined", procName, 1);
 
         /* If alpha channel writing is enabled, just write it */
-    if (L_PNG_WRITE_ALPHA == TRUE)
+    if (var_PNG_WRITE_ALPHA == TRUE)
         return pixWrite(filename, pix, IFF_PNG);
 
     l_pngSetWriteAlpha(1);
@@ -916,10 +918,7 @@ l_int32  ret;
 void
 l_pngSetStrip16To8(l_int32  flag)
 {
-    if (flag == 1)
-        L_PNG_STRIP_16_TO_8 = 1;
-    else
-        L_PNG_STRIP_16_TO_8 = 0;
+    var_PNG_STRIP_16_TO_8 = flag;
 }
 
 
@@ -932,10 +931,7 @@ l_pngSetStrip16To8(l_int32  flag)
 void
 l_pngSetStripAlpha(l_int32  flag)
 {
-    if (flag == 1)
-        L_PNG_STRIP_ALPHA = 1;
-    else
-        L_PNG_STRIP_ALPHA = 0;
+    var_PNG_STRIP_ALPHA = flag;
 }
 
 
@@ -948,10 +944,7 @@ l_pngSetStripAlpha(l_int32  flag)
 void
 l_pngSetWriteAlpha(l_int32  flag)
 {
-    if (flag == 1)
-        L_PNG_WRITE_ALPHA = 1;
-    else
-        L_PNG_WRITE_ALPHA = 0;
+    var_PNG_WRITE_ALPHA = flag;
 }
 
 
@@ -981,7 +974,7 @@ l_pngSetZlibCompression(l_int32  val)
         L_ERROR("Invalid zlib comp val; using default", procName);
         val = Z_DEFAULT_COMPRESSION;
     }
-    L_ZLIB_COMPRESSION = val;
+    var_ZLIB_COMPRESSION = val;
 }
 
 

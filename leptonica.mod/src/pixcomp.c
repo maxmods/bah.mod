@@ -31,15 +31,18 @@
  *
  *      Pixacomp creation and destruction
  *           PIXAC    *pixacompCreate()
+ *           PIXAC    *pixacompCreateInitialized()
  *           PIXAC    *pixacompCreateFromPixa()
  *           PIXAC    *pixacompCreateFromFiles()
  *           PIXAC    *pixacompCreateFromSA()
  *           void      pixacompDestroy()
  *
- *      Pixacomp addition
+ *      Pixacomp addition/replacement
  *           l_int32   pixacompAddPix()
  *           l_int32   pixacompAddPixcomp()
  *           l_int32   pixacompExtendArray()
+ *           l_int32   pixacompReplacePix()
+ *           l_int32   pixacompReplacePixcomp()
  *           l_int32   pixacompAddBox()
  *
  *      Pixacomp accessors
@@ -83,10 +86,13 @@
  *   tiffg4, png, or jpeg.  Unlike serialization of the Pixa,
  *   serialization of the Pixacomp does not require any imaging
  *   libraries because it simply reads and writes the compressed data.
+ *
+ *   For random insertion and replacement of pixcomp into a pixcomp,
+ *   initialize a fully populated array using pixacompCreateInitialized().
+ *   Then use pixacompReplacePix() or pixacompReplacePixcomp() for
+ *   the random insertion.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -104,8 +110,7 @@ extern const char *ImageFileFormatExtensions[];
  *  pixcompCreateFromPix()
  *
  *      Input:  pix
- *              comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG or IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *      Return: pixc, or null on error
  *
  *  Notes:
@@ -187,9 +192,10 @@ PIXC    *pixc;
         return (PIXC *)ERROR_PTR("header data not read", procName, NULL);
     if ((pixc = (PIXC *)CALLOC(1, sizeof(PIXC))) == NULL)
         return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
+    d = (spp == 3) ? 32 : bps * spp;
     pixc->w = w;
-    pixc->w = h;
-    pixc->w = d;
+    pixc->h = h;
+    pixc->d = d;
     pixc->comptype = format;
     pixc->cmapflag = iscmap;
     if (copyflag == L_INSERT)
@@ -205,8 +211,7 @@ PIXC    *pixc;
  *  pixcompCreateFromFile()
  *
  *      Input:  filename
- *              comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG or IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *      Return: pixc, or null on error
  *
  *  Notes:
@@ -220,7 +225,7 @@ pixcompCreateFromFile(const char  *filename,
                       l_int32      comptype)
 {
 l_uint8  *data;
-l_int32   nbytes, format, w, h, d, bps, spp, iscmap;
+l_int32   nbytes, format;
 FILE     *fp;
 PIX      *pix;
 PIXC     *pixc;
@@ -242,8 +247,8 @@ PIXC     *pixc;
          * png is the "universal" compression type, so if requested
          * it takes precedence.  Otherwise, if the file is already
          * compressed in g4 or jpeg, just accept the string. */
-    if (format == IFF_TIFF_G4 && comptype != IFF_PNG ||
-        format == IFF_JFIF_JPEG && comptype != IFF_PNG)
+    if ((format == IFF_TIFF_G4 && comptype != IFF_PNG) ||
+        (format == IFF_JFIF_JPEG && comptype != IFF_PNG))
         comptype = format;
     if (comptype != IFF_DEFAULT && comptype == format) { 
         data = arrayRead(filename, &nbytes);
@@ -251,13 +256,6 @@ PIXC     *pixc;
             FREE(data);
             return (PIXC *)ERROR_PTR("pixc not made (string)", procName, NULL);
         }
-        pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap);
-        d = (spp == 3) ? 32 : bps * spp;
-        pixc->w = w;
-        pixc->h = h;
-        pixc->d = d;
-        pixc->cmapflag = iscmap;
-        pixc->comptype = format;
         return pixc;
     }
 
@@ -329,14 +327,14 @@ pixcompGetDimensions(PIXC     *pixc,
     if (pw) *pw = pixc->w;
     if (ph) *ph = pixc->h;
     if (pd) *pd = pixc->d;
+    return 0;
 }
 
 
 /*!
  *  pixcompDetermineFormat()
  *
- *      Input:  comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG, IFF_JFIF_JPEG)
+ *      Input:  comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *              d (pix depth)
  *              cmapflag (1 if pix to be compressed as a colormap; 0 otherwise)
  *              &format (return IFF_TIFF, IFF_PNG or IFF_JFIF_JPEG)
@@ -472,10 +470,61 @@ PIXAC  *pixac;
 
 
 /*!
+ *  pixacompCreateInitialized()
+ *
+ *      Input:  n  (initial number of ptrs)
+ *              pix (initialize each ptr in pixacomp to this pix)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
+ *      Return: pixac, or null on error
+ *
+ *  Notes:
+ *      (1) Initializes a pixacomp to be fully populated with @pix.
+ *      (2) Typically use a very small @pix (w = h = 1) with
+ *          @comptype == IFF_TIFF_G4 for the initialization.
+ *      (3) Example usage:
+ *            Pix *pix = pixCreate(1, 1, 1);
+ *            Pixacomp *pixac = pixacompCreateInitialized(50, pix, IFF_TIFF_G4);
+ *            for (i = 0; i < 50; i++) {
+ *                Pix *pixt = ...
+ *                if (pixt)
+ *                    pixacompReplacePix(pixac, i, pixt, IFF_TIFF_G4);
+ *                pixDestroy(&pixt);
+ *            }
+ *          The result is a fully populated pixac with selected pixt
+ *          replacing the placeholders.
+ */
+PIXAC *
+pixacompCreateInitialized(l_int32  n,
+                          PIX     *pix,
+                          l_int32  comptype)
+{
+l_int32  i;
+PIXC    *pixc;
+PIXAC   *pixac;
+
+    PROCNAME("pixacompCreateInitialized");
+
+    if (n <= 0)
+        return (PIXAC *)ERROR_PTR("n must be > 0", procName, NULL);
+    if (!pix)
+        return (PIXAC *)ERROR_PTR("pix not defined", procName, NULL);
+
+    if ((pixac = pixacompCreate(n)) == NULL)
+        return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        pixc = pixcompCreateFromPix(pix, comptype);
+        pixacompAddPixcomp(pixac, pixc);
+    }
+
+    return pixac;
+}
+
+
+/*!
  *  pixacompCreateFromPixa()
  *
  *      Input:  pixa
- *              comptype (one of IFF_DEFAULT, IFF_TIFF, IFF_PNG, IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *              accesstype (L_COPY, L_CLONE, L_COPY_CLONE; for boxa)
  *      Return: 0 if OK, 1 on error
  *
@@ -531,8 +580,7 @@ PIXAC   *pixac;
  *
  *      Input:  dirname
  *              substr (<optional> substring filter on filenames; can be null)
- *              comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG or IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *      Return: pixac, or null on error
  *
  *  Notes:
@@ -574,8 +622,7 @@ SARRAY   *sa;
  *  pixacompCreateFromSA()
  *
  *      Input:  sarray (full pathnames for all files)
- *              comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG or IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *      Return: pixac, or null on error
  *
  *  Notes:
@@ -659,8 +706,7 @@ PIXAC   *pixac;
  *
  *      Input:  pixac
  *              pix  (to be added)
- *              comptype (one of IFF_DEFAULT, IFF_TIFF_G4,
- *                        IFF_PNG or IFF_JFIF_JPEG)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
  *      Return: 0 if OK; 1 on error
  */
 l_int32
@@ -751,6 +797,85 @@ pixacompExtendArray(PIXAC  *pixac)
 
 
 /*!
+ *  pixacompReplacePix()
+ *
+ *      Input:  pixac
+ *              index (of pixc within pixac to be replaced)
+ *              pix  (owned by the caller)
+ *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) The input @pix is converted to a pixc, which is then inserted
+ *          into the pixac.
+ */
+l_int32
+pixacompReplacePix(PIXAC   *pixac,
+                   l_int32  index,
+                   PIX     *pix,
+                   l_int32  comptype)
+{
+l_int32  n;
+PIXC    *pixc;
+
+    PROCNAME("pixacompReplacePix");
+
+    if (!pixac)
+        return ERROR_INT("pixac not defined", procName, 1);
+    n = pixacompGetCount(pixac);
+    if (index < 0 || index >= n)
+        return ERROR_INT("array index out of bounds", procName, 1);
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
+        comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
+        return ERROR_INT("invalid format", procName, 1);
+
+    pixc = pixcompCreateFromPix(pix, comptype);
+    pixacompReplacePixcomp(pixac, index, pixc);
+    return 0;
+}
+
+
+/*!
+ *  pixacompReplacePixcomp()
+ *
+ *      Input:  pixac
+ *              index (of pixc within pixac to be replaced)
+ *              pixc  (to replace existing one, which is destroyed)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) The inserted @pixc is now owned by the pixac.  The caller
+ *          must not destroy it.
+ */
+l_int32
+pixacompReplacePixcomp(PIXAC   *pixac,
+                       l_int32  index,
+                       PIXC    *pixc)
+{
+l_int32  n;
+PIXC    *pixct;
+
+    PROCNAME("pixacompReplacePixcomp");
+
+    if (!pixac)
+        return ERROR_INT("pixac not defined", procName, 1);
+    n = pixacompGetCount(pixac);
+    if (index < 0 || index >= n)
+        return ERROR_INT("array index out of bounds", procName, 1);
+    if (!pixc)
+        return ERROR_INT("pixc not defined", procName, 1);
+
+    pixct = pixacompGetPixcomp(pixac, index);
+    pixcompDestroy(&pixct);
+    pixac->pixc[index] = pixc;  /* replace */
+
+    return 0;
+}
+
+
+/*!
  *  pixacompAddBox()
  *
  *      Input:  pixac
@@ -806,8 +931,8 @@ pixacompGetCount(PIXAC  *pixac)
  *      Return: pixc, or null on error
  *
  *  Notes:
- *      (1) Important: do not destroy!  This is just a ptr to
- *          the pixc owned by the pixac.
+ *      (1) Important: this is just a ptr to the pixc owned by the pixac.
+ *          Do not destroy unless you are replacing the pixc.
  */
 PIXC *
 pixacompGetPixcomp(PIXAC   *pixac,
@@ -850,7 +975,7 @@ PIXC  *pixc;
 
 
 /*!
- *  pixaGetPixDimensions()
+ *  pixacompGetPixDimensions()
  *
  *      Input:  pixa
  *              index  (to the index-th box)
@@ -1134,7 +1259,8 @@ PIXAC    *pixac;
             return (PIXAC *)ERROR_PTR("res reading", procName, NULL);
         if ((data = (l_uint8 *)CALLOC(1, size)) == NULL)
             return (PIXAC *)ERROR_PTR("calloc fail for data", procName, NULL);
-        fread(data, size, 1, fp);
+        if (fread(data, 1, size, fp) != size)
+            return (PIXAC *)ERROR_PTR("error reading data", procName, NULL);
         pixc->w = w;
         pixc->h = h;
         pixc->d = d;

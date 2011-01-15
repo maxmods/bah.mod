@@ -1,4 +1,28 @@
+' Copyright (c) 2009-2011 Bruce A Henderson
+' 
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+' 
+' The above copyright notice and this permission notice shall be included in
+' all copies or substantial portions of the Software.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+' THE SOFTWARE.
+' 
 SuperStrict
+
+Import BRL.Blitz
+Import Pub.ZLib
+'Import BaH.FreeImage
 
 Import "../../pub.mod/zlib.mod/*.h"
 Import "src/*.h"
@@ -19,6 +43,7 @@ Import "src/binreduce.c"
 Import "src/binreducelow.c"
 Import "src/blend.c"
 Import "src/bmf.c"
+Import "src/bmpiostub.c"
 Import "src/boxbasic.c"
 Import "src/boxfunc1.c"
 Import "src/boxfunc2.c"
@@ -52,6 +77,7 @@ Import "src/fmorphgen.1.c"
 Import "src/fmorphgenlow.1.c"
 Import "src/fpix1.c"
 Import "src/fpix2.c"
+Import "src/gifiostub.c"
 Import "src/gplot.c"
 Import "src/graphics.c"
 Import "src/graymorph.c"
@@ -60,6 +86,7 @@ Import "src/grayquant.c"
 Import "src/grayquantlow.c"
 Import "src/heap.c"
 Import "src/jbclass.c"
+Import "src/jpegiostub.c"
 Import "src/kernel.c"
 Import "src/list.c"
 Import "src/maze.c"
@@ -74,10 +101,13 @@ Import "src/pageseg.c"
 Import "src/paintcmap.c"
 Import "src/parseprotos.c"
 Import "src/partition.c"
+'Import "src/pngio.c"
+Import "src/pngiostub.c"
 Import "src/pix1.c"
 Import "src/pix2.c"
 Import "src/pix3.c"
 Import "src/pix4.c"
+Import "src/pix5.c"
 Import "src/pixabasic.c"
 Import "src/pixacc.c"
 Import "src/pixafunc1.c"
@@ -87,17 +117,20 @@ Import "src/pixarith.c"
 Import "src/pixcomp.c"
 Import "src/pixconv.c"
 Import "src/pixtiling.c"
+Import "src/pnmiostub.c"
 Import "src/projective.c"
-Import "src/psio1.c"
+'Import "src/psio1.c"
 Import "src/psio1stub.c"
-Import "src/psio2.c"
+'Import "src/psio2.c"
 Import "src/psio2stub.c"
+Import "src/ptabasic.c"
+Import "src/ptafunc1.c"
 Import "src/ptra.c"
-Import "src/pts.c"
+'Import "src/pts.c"
 Import "src/queue.c"
 Import "src/rank.c"
 Import "src/readbarcode.c"
-'Import "src/readfile.c"
+Import "src/readfile.c"
 Import "src/rop.c"
 Import "src/ropiplow.c"
 Import "src/roplow.c"
@@ -118,13 +151,16 @@ Import "src/sel2.c"
 Import "src/selgen.c"
 Import "src/shear.c"
 Import "src/skew.c"
+Import "src/spixio.c"
 Import "src/stack.c"
 Import "src/textops.c"
+Import "src/tiffiostub.c"
 Import "src/utils.c"
 Import "src/viewfiles.c"
 Import "src/warper.c"
 Import "src/watershed.c"
-'Import "src/writefile.c"
+Import "src/webpiostub.c"
+Import "src/writefile.c"
 Import "src/zlibmem.c"
 Import "src/zlibmemstub.c"
 

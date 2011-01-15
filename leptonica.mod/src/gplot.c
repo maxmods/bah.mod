@@ -78,8 +78,6 @@
  *           dvips -o <psname>.ps <latexname>.dvi
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -131,6 +129,7 @@ gplotCreate(const char  *rootname,
             const char  *xlabel,
             const char  *ylabel)
 {
+char   *newroot;
 char    buf[L_BUF_SIZE];
 GPLOT  *gplot;
 
@@ -152,18 +151,19 @@ GPLOT  *gplot;
     gplot->plotstyles = numaCreate(0);
 
         /* Save title, labels, rootname, outformat, cmdname, outname */
-    gplot->rootname = stringNew(rootname);
+    newroot = mungePathnameForWindows(rootname);  /* remove '/tmp' on windows */
+    gplot->rootname = newroot;
     gplot->outformat = outformat;
-    snprintf(buf, L_BUF_SIZE, "%s.cmd", rootname);
+    snprintf(buf, L_BUF_SIZE, "%s.cmd", newroot);
     gplot->cmdname = stringNew(buf);
     if (outformat == GPLOT_PNG)
-        snprintf(buf, L_BUF_SIZE, "%s.png", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.png", newroot);
     else if (outformat == GPLOT_PS)
-        snprintf(buf, L_BUF_SIZE, "%s.ps", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.ps", newroot);
     else if (outformat == GPLOT_EPS)
-        snprintf(buf, L_BUF_SIZE, "%s.eps", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.eps", newroot);
     else if (outformat == GPLOT_LATEX)
-        snprintf(buf, L_BUF_SIZE, "%s.tex", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.tex", newroot);
     else  /* outformat == GPLOT_X11 */
         buf[0] = '\0';
     gplot->outname = stringNew(buf);
@@ -337,14 +337,18 @@ gplotSetScaling(GPLOT   *gplot,
  *      Input:  gplot
  *      Return: 0 if OK; 1 on error
  *
- *  Action: this uses gplot and the new arrays to add a plot
+ *  Notes:
+ *      (1) This uses gplot and the new arrays to add a plot
  *          to the output, by writing a new data file and appending
  *          the appropriate plot commands to the command file.
+ *      (2) The gnuplot program for windows is wgnuplot.exe.  The
+ *          standard gp426win32 distribution does not have a X11 terminal.
  */
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
 {
-char  buf[L_BUF_SIZE];
+char     buf[L_BUF_SIZE];
+l_int32  ignore;
 
     PROCNAME("gplotMakeOutput");
 
@@ -354,12 +358,20 @@ char  buf[L_BUF_SIZE];
     gplotGenCommandFile(gplot);
     gplotGenDataFiles(gplot);
 
+#ifndef _WIN32
     if (gplot->outformat != GPLOT_X11)
         snprintf(buf, L_BUF_SIZE, "gnuplot %s &", gplot->cmdname);
     else
         snprintf(buf, L_BUF_SIZE,
                  "gnuplot -persist -geometry +10+10 %s &", gplot->cmdname);
-    system(buf);
+#else
+   if (gplot->outformat != GPLOT_X11)
+       snprintf(buf, L_BUF_SIZE, "wgnuplot %s", gplot->cmdname);
+   else
+       snprintf(buf, L_BUF_SIZE,
+               "wgnuplot -persist %s", gplot->cmdname);
+#endif  /* _WIN32 */
+    ignore = system(buf);
     return 0;
 }
 
@@ -414,7 +426,11 @@ FILE    *fp;
         snprintf(buf, L_BUF_SIZE, "set terminal latex; set output '%s'",
                  gplot->outname);
     else  /* gplot->outformat == GPLOT_X11 */
+#ifndef _WIN32
         snprintf(buf, L_BUF_SIZE, "set terminal x11");
+#else
+        snprintf(buf, L_BUF_SIZE, "set terminal windows");
+#endif  /* _WIN32 */
     sarrayAddString(gplot->cmddata, buf, L_COPY);
 
     if (gplot->scaling == GPLOT_LOG_SCALE_X ||
@@ -659,8 +675,8 @@ GPLOT *
 gplotRead(const char  *filename)
 {
 char     buf[L_BUF_SIZE];
-char    *rootname, *title, *xlabel, *ylabel;
-l_int32  outformat, ret, version;
+char    *rootname, *title, *xlabel, *ylabel, *ignores;
+l_int32  outformat, ret, version, ignore;
 FILE    *fp;
 GPLOT   *gplot;
 
@@ -682,16 +698,16 @@ GPLOT   *gplot;
         return (GPLOT *)ERROR_PTR("invalid gplot version", procName, NULL);
     }
 
-    fscanf(fp, "Rootname: %s\n", buf);
+    ignore = fscanf(fp, "Rootname: %s\n", buf);
     rootname = stringNew(buf);
-    fscanf(fp, "Output format: %d\n", &outformat);
-    fgets(buf, L_BUF_SIZE, fp);   /* Title: ... */
+    ignore = fscanf(fp, "Output format: %d\n", &outformat);
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* Title: ... */
     title = stringNew(buf + 7);
     title[strlen(title) - 1] = '\0';
-    fgets(buf, L_BUF_SIZE, fp);   /* X axis label: ... */
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* X axis label: ... */
     xlabel = stringNew(buf + 14);
     xlabel[strlen(xlabel) - 1] = '\0';
-    fgets(buf, L_BUF_SIZE, fp);   /* Y axis label: ... */
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* Y axis label: ... */
     ylabel = stringNew(buf + 14);
     ylabel[strlen(ylabel) - 1] = '\0';
 
@@ -709,23 +725,23 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->plottitles);
     numaDestroy(&gplot->plotstyles);
 
-    fscanf(fp, "Commandfile name: %s\n", buf);
+    ignore = fscanf(fp, "Commandfile name: %s\n", buf);
     stringReplace(&gplot->cmdname, buf);
-    fscanf(fp, "\nCommandfile data:");
+    ignore = fscanf(fp, "\nCommandfile data:");
     gplot->cmddata = sarrayReadStream(fp);
-    fscanf(fp, "\nDatafile names:");
+    ignore = fscanf(fp, "\nDatafile names:");
     gplot->datanames = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot data:");
+    ignore = fscanf(fp, "\nPlot data:");
     gplot->plotdata = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot titles:");
+    ignore = fscanf(fp, "\nPlot titles:");
     gplot->plottitles = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot styles:");
+    ignore = fscanf(fp, "\nPlot styles:");
     gplot->plotstyles = numaReadStream(fp);
 
-    fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
-    fscanf(fp, "Output file name: %s\n", buf);
+    ignore = fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
+    ignore = fscanf(fp, "Output file name: %s\n", buf);
     stringReplace(&gplot->outname, buf);
-    fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
+    ignore = fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
 
     fclose(fp);
     return gplot;

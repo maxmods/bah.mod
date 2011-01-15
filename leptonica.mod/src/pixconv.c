@@ -94,6 +94,10 @@
  *      Top-level conversion to 8 or 32 bpp, without colormap
  *           PIX        *pixConvertTo8Or32
  *
+ *      Conversion between 24 bpp and 32 bpp rgb
+ *           PIX        *pixConvert24To32()
+ *           PIX        *pixConvert32To24()
+ *
  *      Lossless depth conversion (unpacking)
  *           PIX        *pixConvertLossless()
  *
@@ -109,8 +113,10 @@
  *           PIX        *pixConvertRGBToSaturation()
  *           PIX        *pixConvertRGBToValue()
  *
- *      Conversion from grayscale to scaled color
- *           PIX        *pixConvertGrayToScaledColor()
+ *      Scaling conversion to subpixel RGB
+ *           PIX        *pixConvertToSubpixelRGB()
+ *           PIX        *pixConvertGrayToSubpixelRGB()
+ *           PIX        *pixConvertColorToSubpixelRGB()
  *
  *      *** indicates implicit assumption about RGB component ordering
  */
@@ -120,16 +126,6 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
-
-    /* These numbers are ad-hoc, but at least they add up
-       to 1. Unlike, for example, the weighting factor for
-       conversion of RGB to luminance, or more specifically
-       to Y in the YUV colorspace. Those numbers come
-       from the International Telecommunications Union, via ITU-R
-       (and formerly ITU CCIR 601). */
-static const l_float32  L_RED_WEIGHT =   0.3;
-static const l_float32  L_GREEN_WEIGHT = 0.5;
-static const l_float32  L_BLUE_WEIGHT =  0.2;
 
 
 #ifndef  NO_CONSOLE_IO
@@ -644,7 +640,8 @@ pixConvertRGBToGray(PIX       *pixs,
                     l_float32  gwt,
                     l_float32  bwt)
 {
-l_int32    i, j, w, h, wpls, wpld, rval, gval, bval, val;
+l_int32    i, j, w, h, wpls, wpld, val;
+l_uint32   word;
 l_uint32  *datas, *lines, *datad, *lined;
 l_float32  sum;
 PIX       *pixd;
@@ -682,14 +679,16 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    for (i = 0; i < h; i++) {
-        lines = datas + i * wpls;
-        lined = datad + i * wpld;
+    for (i = 0, lines = datas, lined = datad; i < h; i++) {
         for (j = 0; j < w; j++) {
-            extractRGBValues(lines[j], &rval, &gval, &bval);
-            val = (l_int32)(rwt * rval + gwt * gval + bwt * bval + 0.5);
+            word = *(lines + j);
+            val = (l_int32)(rwt * ((word >> L_RED_SHIFT) & 0xff) +
+                            gwt * ((word >> L_GREEN_SHIFT) & 0xff) +
+                            bwt * ((word >> L_BLUE_SHIFT) & 0xff) + 0.5);
             SET_DATA_BYTE(lined, j, val);
         }
+        lines += wpls;
+        lined += wpld;
     }
 
     return pixd;
@@ -1086,11 +1085,15 @@ PIX     *pixd;
 
         /* If there are too many occupied leaf octcubes to be
          * represented directly in a colormap, fall back to octree
-         * quantization with dithering. */
+         * quantization, optionally with dithering. */
     if (ncolors > 256) {
-        L_INFO("More than 256 colors; using octree quant with dithering",
-               procName);
         numaDestroy(&na);
+        if (ditherflag)
+            L_INFO("More than 256 colors; using octree quant with dithering",
+                   procName);
+        else
+            L_INFO("More than 256 colors; using octree quant; no dithering",
+                   procName);
         return pixOctreeColorQuant(pixs, 240, ditherflag);
     }
 
@@ -1184,7 +1187,7 @@ PIX     *pixg, *pixd;
          *      For level 3, the quality is usually good enough and there
          *      is negligible chance of getting more than 256 colors.
          *  (2) For grayscale, multiply ncolors by 1.5 for extra quality,
-         *      but use at least mingraycolors. */
+         *      but use at least mingraycolors and not more than 256. */
     if (iscolor) {
         pixd = pixFewColorsOctcubeQuant1(pixs, octlevel);
         if (!pixd) {  /* backoff */
@@ -1199,6 +1202,7 @@ PIX     *pixg, *pixd;
         else
             pixg = pixClone(pixs);
         graycolors = L_MAX(mingraycolors, (l_int32)(1.5 * ncolors));
+        graycolors = L_MIN(graycolors, 256);
         if (graycolors < 16)
             pixd = pixThresholdTo4bpp(pixg, graycolors, 1);
         else
@@ -2450,8 +2454,9 @@ l_int32  d;
  *              replicate 2 nybs into a byte, and then into R,G,B components
  *      8 bpp:  if colormapped, use the colormap values; otherwise,
  *              replicate gray values into R, G and B components
- *      16 bpp:  replicate MSB into R, G and B components
- *      32 bpp:  makes a copy
+ *      16 bpp: replicate MSB into R, G and B components
+ *      24 bpp: unpack the pixels, maintaining word alignment on each scanline
+ *      32 bpp: makes a copy
  *
  *  Notes:
  *      (1) Implicit assumption about RGB component ordering.
@@ -2490,6 +2495,8 @@ PIX     *pixt, *pixd;
         pixDestroy(&pixt);
         return pixd;
     }
+    else if (d == 24)
+        return pixConvert32To24(pixs);
     else if (d == 32)
         return pixCopy(NULL, pixs);
     else
@@ -2644,6 +2651,117 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, NULL);
     }
 
+    return pixd;
+}
+ 
+
+/*---------------------------------------------------------------------------*
+ *                 Conversion between 24 bpp and 32 bpp rgb                  *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixConvert24To32()
+ *
+ *      Input:  pixs (24 bpp rgb)
+ *      Return: pixd (32 bpp rgb), or null on error
+ *
+ *  Notes:
+ *      (1) 24 bpp rgb pix are not supported in leptonica.
+ *          The data is a byte array, with pixels in order r,g,b, and
+ *          padded to 32 bit boundaries in each line.
+ *      (2) Because they are conveniently generated by programs
+ *          such as xpdf, we need to provide the ability to write them
+ *          in png, jpeg and tiff, as well as to convert between 24 and
+ *          32 bpp in memory.
+ */
+PIX *
+pixConvert24To32(PIX  *pixs)
+{
+l_uint8   *lines;
+l_int32    w, h, d, i, j, wpls, wpld, rval, gval, bval;
+l_uint32   pixel;
+l_uint32  *datas, *datad, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixConvert24to32");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 24)
+        return (PIX *)ERROR_PTR("pixs not 24 bpp", procName, NULL);
+
+    pixd = pixCreateNoInit(w, h, 32);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = (l_uint8 *)(datas + i * wpls);
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            rval = *lines++;
+            gval = *lines++;
+            bval = *lines++;
+            composeRGBPixel(rval, gval, bval, &pixel);
+            lined[j] = pixel;
+        }
+    }
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    return pixd;
+}
+
+
+/*!
+ *  pixConvert32To24()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *      Return: pixd (24 bpp rgb), or null on error
+ *
+ *  Notes:
+ *      (1) 24 bpp rgb pix are not supported in leptonica.
+ *          The data is a byte array, with pixels in order r,g,b, and
+ *          padded to 32 bit boundaries in each line.
+ *      (2) This function is put here for completeness, and so that we
+ *          can generate 24 bpp for testing.  The test has two parts:
+ *          (a) convert the 24 bpp pix back to 32 bpp, and test
+ *              for pixel component equality
+ *          (b) write the 24 bpp pix as a png and verify that it is
+ *              identical to the file obtained by writing the 32 bpp pix.
+ */
+PIX *
+pixConvert32To24(PIX  *pixs)
+{
+l_uint8   *rgbdata8;
+l_int32    w, h, d, i, j, wpls, wpld, rval, gval, bval;
+l_uint32  *datas, *lines, *rgbdata;
+PIX       *pixd;
+
+    PROCNAME("pixConvert32to24");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32)
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    pixd = pixCreateNoInit(w, h, 24);
+    rgbdata = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        rgbdata8 = (l_uint8 *)(rgbdata + i * wpld);
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            *rgbdata8++ = rval;
+            *rgbdata8++ = gval;
+            *rgbdata8++ = bval;
+        }
+    }
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     return pixd;
 }
 
@@ -3299,38 +3417,110 @@ PIX       *pixt, *pixd;
 
 
 /*---------------------------------------------------------------------------*
- *                 Conversion from grayscale to subpixel RGB                 *
+ *                      Scaling conversion to subpixel RGB                   *
  *---------------------------------------------------------------------------*/
+/*!
+ *  pixConvertToSubpixelRGB()
+ *
+ *      Input:  pixs (8 bpp grayscale, 32 bpp rgb, or colormapped)
+ *              scalex, scaley (anisotropic scaling permitted between
+ *                              source and destination)
+ *              order (of subpixel rgb color components in composition of pixd:
+ *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
+ *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
+ *
+ *      Return: pixd (32 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs has a colormap, it is removed based on its contents
+ *          to either 8 bpp gray or rgb.
+ *      (2) For horizontal subpixel splitting, the input image
+ *          is rescaled by @scaley vertically and by 3.0 times
+ *          @scalex horizontally.  Then each horizontal triplet
+ *          of pixels is mapped back to a single rgb pixel, with the
+ *          r, g and b values being assigned based on the pixel triplet.
+ *          For gray triplets, the r, g, and b values are set equal to
+ *          the three gray values.  For color triplets, the r, g and b
+ *          values are set equal to the components from the appropriate
+ *          subpixel.  Vertical subpixel splitting is handled similarly.
+ *      (3) See pixConvertGrayToSubpixelRGB() and
+ *          pixConvertColorToSubpixelRGB() for further details.
+ */
+PIX *
+pixConvertToSubpixelRGB(PIX       *pixs,
+                        l_float32  scalex,
+                        l_float32  scaley,
+                        l_int32    order)
+{
+l_int32    d;
+PIX       *pixt, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixConvertToSubpixelRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    cmap = pixGetColormap(pixs);
+    if (d != 8 && d != 32 && !cmap)
+        return (PIX *)ERROR_PTR("pix not 8 or 32 bpp and not cmapped",
+                                procName, NULL);
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIX *)ERROR_PTR("scale factors must be > 0", procName, NULL);
+    if (order != L_SUBPIXEL_ORDER_RGB && order != L_SUBPIXEL_ORDER_BGR &&
+        order != L_SUBPIXEL_ORDER_VRGB && order != L_SUBPIXEL_ORDER_VBGR)
+        return (PIX *)ERROR_PTR("invalid subpixel order", procName, NULL);
+    if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+
+    d = pixGetDepth(pixt);
+    pixd = NULL;
+    if (d == 8)
+        pixd = pixConvertGrayToSubpixelRGB(pixt, scalex, scaley, order);
+    else if (d == 32)
+        pixd = pixConvertColorToSubpixelRGB(pixt, scalex, scaley, order);
+    else
+        L_ERROR_INT("invalid depth %d", procName, d);
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
 /*!
  *  pixConvertGrayToSubpixelRGB()
  *
  *      Input:  pixs (8 bpp or colormapped)
- *              scalefactor (between destination and source)
- *              direction (of subpixels: L_HORIZ or L_VERT)
+ *              scalex, scaley
  *              order (of subpixel rgb color components in composition of pixd:
- *                     L_SUBPIXEL_ORDER_RGB and L_SUBPIXEL_ORDER_BGR)
+ *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
+ *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
+ *
  *      Return: pixd (32 bpp), or null on error
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is removed to 8 bpp.
- *      (2) The input gray image is rescaled by the scalefactor
- *          vertically and by 3.0 times the scalefactor horizontally.
- *          Then each horizontal triplet of pixels is mapped back to
- *          a single rgb pixel, with the r, g and b values being assigned
- *          from the triplet of gray values.
- *      (3) This is a form of sub-pixel rendering that tends to give the
+ *      (2) For horizontal subpixel splitting, the input gray image
+ *          is rescaled by @scaley vertically and by 3.0 times
+ *          @scalex horizontally.  Then each horizontal triplet
+ *          of pixels is mapped back to a single rgb pixel, with the
+ *          r, g and b values being assigned from the triplet of gray values.
+ *          Similar operations are used for vertical subpixel splitting.
+ *      (3) This is a form of subpixel rendering that tends to give the
  *          resulting text a sharper and somewhat chromatic display.
- *          The observable difference between @order=1 and @order=-1
- *          is reduced by light diffusers in the display that make the
- *          pixel color appear to emerge from the entire pixel.
+ *          For horizontal subpixel splitting, the observable difference
+ *          between @order=L_SUBPIXEL_ORDER_RGB and
+ *          @order=L_SUBPIXEL_ORDER_BGR is reduced by optical diffusers
+ *          in the display that make the pixel color appear to emerge
+ *          from the entire pixel.
  */
 PIX *
 pixConvertGrayToSubpixelRGB(PIX       *pixs,
-                            l_float32  scalefactor,
-                            l_int32    direction,
+                            l_float32  scalex,
+                            l_float32  scaley,
                             l_int32    order)
 {
-l_int32    w, h, d, wd, hd, wplt, wpld, i, j, rval, gval, bval;
+l_int32    w, h, d, wd, hd, wplt, wpld, i, j, rval, gval, bval, direction;
 l_uint32  *datat, *datad, *linet, *lined;
 PIX       *pixt1, *pixt2, *pixd;
 PIXCMAP   *cmap;
@@ -3343,16 +3533,20 @@ PIXCMAP   *cmap;
     cmap = pixGetColormap(pixs);
     if (d != 8 && !cmap)
         return (PIX *)ERROR_PTR("pix not 8 bpp & not cmapped", procName, NULL);
-    if (direction != L_HORIZ && direction != L_VERT)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
-    if (order != L_SUBPIXEL_ORDER_RGB && order != L_SUBPIXEL_ORDER_BGR)
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIX *)ERROR_PTR("scale factors must be > 0", procName, NULL);
+    if (order != L_SUBPIXEL_ORDER_RGB && order != L_SUBPIXEL_ORDER_BGR &&
+        order != L_SUBPIXEL_ORDER_VRGB && order != L_SUBPIXEL_ORDER_VBGR)
         return (PIX *)ERROR_PTR("invalid subpixel order", procName, NULL);
 
+    direction =
+        (order == L_SUBPIXEL_ORDER_RGB || order == L_SUBPIXEL_ORDER_BGR)
+        ? L_HORIZ : L_VERT;
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     if (direction == L_HORIZ)
-        pixt2 = pixScale(pixt1, 3.0 * scalefactor, scalefactor);
+        pixt2 = pixScale(pixt1, 3.0 * scalex, scaley);
     else  /* L_VERT */
-        pixt2 = pixScale(pixt1, scalefactor, 3.0 * scalefactor);
+        pixt2 = pixScale(pixt1, scalex, 3.0 * scaley);
 
     pixGetDimensions(pixt2, &w, &h, NULL);
     wd = (direction == L_HORIZ) ? w / 3 : w;
@@ -3372,7 +3566,7 @@ PIXCMAP   *cmap;
                 bval = GET_DATA_BYTE(linet, 3 * j + 2);
                 if (order == L_SUBPIXEL_ORDER_RGB)
                     composeRGBPixel(rval, gval, bval, &lined[j]);
-                else  /* order BGA */
+                else  /* order BGR */
                     composeRGBPixel(bval, gval, rval, &lined[j]);
             }
         }
@@ -3385,9 +3579,9 @@ PIXCMAP   *cmap;
                 rval = GET_DATA_BYTE(linet, j);
                 gval = GET_DATA_BYTE(linet + wplt, j);
                 bval = GET_DATA_BYTE(linet + 2 * wplt, j);
-                if (order == L_SUBPIXEL_ORDER_RGB)
+                if (order == L_SUBPIXEL_ORDER_VRGB)
                     composeRGBPixel(rval, gval, bval, &lined[j]);
-                else  /* order BGA */
+                else  /* order VBGR */
                     composeRGBPixel(bval, gval, rval, &lined[j]);
             }
         }
@@ -3398,4 +3592,115 @@ PIXCMAP   *cmap;
     return pixd;
 }
 
+
+/*!
+ *  pixConvertColorToSubpixelRGB()
+ *
+ *      Input:  pixs (32 bpp or colormapped)
+ *              scalex, scaley
+ *              order (of subpixel rgb color components in composition of pixd:
+ *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
+ *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
+ *
+ *      Return: pixd (32 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs has a colormap, it is removed to 32 bpp rgb.
+ *          If the colormap has no color, pixConvertGrayToSubpixelRGB()
+ *          should be called instead, because it will give the same result
+ *          more efficiently.  The function pixConvertToSubpixelRGB()
+ *          will do the best thing for all cases.
+ *      (2) For horizontal subpixel splitting, the input rgb image
+ *          is rescaled by @scalev vertically and by 3.0 times
+ *          @scalex horizontally.  Then for each horizontal triplet
+ *          of pixels, the r component of the final pixel is selected
+ *          from the r component of the appropriate pixel in the triplet,
+ *          and likewise for g and b.  Vertical subpixel splitting is
+ *          handled similarly.
+ */
+PIX *
+pixConvertColorToSubpixelRGB(PIX       *pixs,
+                             l_float32  scalex,
+                             l_float32  scaley,
+                             l_int32    order)
+{
+l_int32    w, h, d, wd, hd, wplt, wpld, i, j, rval, gval, bval, direction;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt1, *pixt2, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixConvertColorToSubpixelRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    cmap = pixGetColormap(pixs);
+    if (d != 32 && !cmap)
+        return (PIX *)ERROR_PTR("pix not 32 bpp & not cmapped", procName, NULL);
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIX *)ERROR_PTR("scale factors must be > 0", procName, NULL);
+    if (order != L_SUBPIXEL_ORDER_RGB && order != L_SUBPIXEL_ORDER_BGR &&
+        order != L_SUBPIXEL_ORDER_VRGB && order != L_SUBPIXEL_ORDER_VBGR)
+        return (PIX *)ERROR_PTR("invalid subpixel order", procName, NULL);
+
+    direction =
+        (order == L_SUBPIXEL_ORDER_RGB || order == L_SUBPIXEL_ORDER_BGR)
+        ? L_HORIZ : L_VERT;
+    pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
+    if (direction == L_HORIZ)
+        pixt2 = pixScale(pixt1, 3.0 * scalex, scaley);
+    else  /* L_VERT */
+        pixt2 = pixScale(pixt1, scalex, 3.0 * scaley);
+
+    pixGetDimensions(pixt2, &w, &h, NULL);
+    wd = (direction == L_HORIZ) ? w / 3 : w;
+    hd = (direction == L_VERT) ? h / 3 : h;
+    pixd = pixCreate(wd, hd, 32);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datat = pixGetData(pixt2);
+    wplt = pixGetWpl(pixt2);
+    if (direction == L_HORIZ) {
+        for (i = 0; i < hd; i++) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                if (order == L_SUBPIXEL_ORDER_RGB) {
+                    extractRGBValues(linet[3 * j], &rval, NULL, NULL);
+                    extractRGBValues(linet[3 * j + 1], NULL, &gval, NULL);
+                    extractRGBValues(linet[3 * j + 2], NULL, NULL, &bval);
+                }
+                else {  /* order BGR */
+                    extractRGBValues(linet[3 * j], NULL, NULL, &bval);
+                    extractRGBValues(linet[3 * j + 1], NULL, &gval, NULL);
+                    extractRGBValues(linet[3 * j + 2], &rval, NULL, NULL);
+                }
+                composeRGBPixel(rval, gval, bval, &lined[j]);
+            }
+        }
+    }
+    else {  /* L_VERT */
+        for (i = 0; i < hd; i++) {
+            linet = datat + 3 * i * wplt;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                if (order == L_SUBPIXEL_ORDER_VRGB) {
+                    extractRGBValues(linet[j], &rval, NULL, NULL);
+                    extractRGBValues((linet + wplt)[j], NULL, &gval, NULL);
+                    extractRGBValues((linet + 2 * wplt)[j], NULL, NULL, &bval);
+                }
+                else {  /* order VBGR */
+                    extractRGBValues(linet[j], NULL, NULL, &bval);
+                    extractRGBValues((linet + wplt)[j], NULL, &gval, NULL);
+                    extractRGBValues((linet + 2 * wplt)[j], &rval, NULL, NULL);
+                }
+                composeRGBPixel(rval, gval, bval, &lined[j]);
+            }
+        }
+    }
+
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    return pixd;
+}
 

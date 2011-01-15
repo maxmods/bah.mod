@@ -22,6 +22,12 @@
  *      useful in applications.  Most are morphological in
  *      nature.
  *
+ *      Extraction of boundary pixels
+ *            PIX     *pixExtractBoundary()
+ *
+ *      Selective morph sequence operation under mask
+ *            PIX     *pixMorphSequenceMasked()
+ *
  *      Selective morph sequence operation on each component
  *            PIX     *pixMorphSequenceByComponent()
  *            PIXA    *pixaMorphSequenceByComponent()
@@ -63,6 +69,79 @@
 #include "allheaders.h"
 
 #define   SWAP(x, y)   {temp = (x); (x) = (y); (y) = temp;}
+
+
+/*-----------------------------------------------------------------*
+ *                   Extraction of boundary pixels                 *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixExtractBoundary()
+ *
+ *      Input:  pixs (1 bpp)
+ *              type (0 for background pixels; 1 for foreground pixels)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Extracts the fg or bg boundary pixels for each component.
+ *          Components are assumed to end at the boundary of pixs.
+ */
+PIX *
+pixExtractBoundary(PIX     *pixs,
+                   l_int32  type)
+{
+PIX  *pixd;
+
+    PROCNAME("pixExtractBoundary");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    if (type == 0)
+        pixd = pixDilateBrick(NULL, pixs, 3, 3);
+    else
+        pixd = pixErodeBrick(NULL, pixs, 3, 3);
+    pixXor(pixd, pixd, pixs);
+    return pixd;
+}
+
+
+/*-----------------------------------------------------------------*
+ *           Selective morph sequence operation under mask         *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixMorphSequenceMasked()
+ *
+ *      Input:  pixs (1 bpp)
+ *              pixm (<optional> 1 bpp mask)
+ *              sequence (string specifying sequence of operations)
+ *              dispsep (horizontal separation in pixels between
+ *                       successive displays; use zero to suppress display)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This applies the morph sequence to the image, but only allows
+ *          changes in pixs for pixels under the background of pixm.
+ *      (5) If pixm is NULL, this is just pixMorphSequence().
+ */
+PIX *
+pixMorphSequenceMasked(PIX         *pixs,
+                       PIX         *pixm,
+                       const char  *sequence,
+                       l_int32      dispsep)
+{
+PIX  *pixd;
+
+    PROCNAME("pixMorphSequenceMasked");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+
+    pixd = pixMorphSequence(pixs, sequence, dispsep);
+    pixCombineMasked(pixd, pixs, pixm);  /* restore src pixels under mask fg */
+    return pixd;
+}
 
 
 /*-----------------------------------------------------------------*
@@ -377,7 +456,7 @@ PIXA    *pixad;
  *  pixUnionOfMorphOps()
  *
  *      Input:  pixs (binary)
- *              sela 
+ *              sela
  *              type (L_MORPH_DILATE, etc.)
  *      Return: pixd (union of the specified morphological operation
  *                    on pixs for each Sel in the Sela), or null on error

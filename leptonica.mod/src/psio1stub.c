@@ -50,10 +50,12 @@ l_int32 sarrayConvertFilesFittedToPS(SARRAY *sa, l_float32 xpts,
     return ERROR_INT("function not present", "sarrayConvertFilesFittedToPS", 1);
 }
 
-l_int32 convertSegmentedPagesToPS(const char *pagedir, const char *maskdir,
-                                  l_float32 textscale, l_float32 imagescale,
-                                  l_int32 threshold, l_int32 numpre,
-                                  l_int32 numpost, const char *fileout)
+l_int32 convertSegmentedPagesToPS(const char *pagedir, const char *pagestr,
+                                  const char *maskdir, const char *maskstr,
+                                  l_int32 numpre, l_int32 numpost,
+                                  l_int32 maxnum, l_float32 textscale,
+                                  l_float32 imagescale, l_int32 threshold,
+                                  const char *fileout)
 {
     return ERROR_INT("function not present", "convertSegmentedPagesToPS", 1);
 }
@@ -71,17 +73,15 @@ l_int32 pixWriteMixedToPS(PIX *pixb, PIX *pixc, l_float32 scale,
     return ERROR_INT("function not present", "pixWriteMixedToPS", 1);
 }
 
-NUMA * sarrayFindMaskAndPagePairings(SARRAY *sapage, SARRAY *samask,
-                                     l_int32 numpre, l_int32 numpost,
-                                     l_int32 maxnum)
-{
-    return (NUMA *)ERROR_PTR("function not present",
-                             "sarrayFindMaskAndPagePairings", NULL);
-}
-
 l_int32 convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
 {
     return ERROR_INT("function not present", "convertToPSEmbed", 1);
+}
+
+l_int32 pixaWriteCompressedToPS(PIXA *pixa, const char *fileout,
+                                l_int32 res, l_int32 level)
+{
+    return ERROR_INT("function not present", "pixaWriteCompressedtoPS", 1);
 }
 
 /* --------------------------------------------*/
