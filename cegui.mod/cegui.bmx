@@ -45,7 +45,7 @@ ModuleInfo "CC_OPTS: -DGLEW_STATIC"
 Import "base.bmx"
 
 '
-' NOTES
+' NOTES 
 '
 ' Modified CEGUIConfig.h
 '  Changed to include options for all platforms.
