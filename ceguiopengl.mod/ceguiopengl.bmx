@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2009 Bruce A Henderson
+' Copyright (c) 2008-2011 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ End Rem
 Module BaH.CEGUIOpenGL
 
 ModuleInfo "History: 1.00"
-ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2357)"
+ModuleInfo "History: Initial Release. (CEGUI 0.7.x - SVN rev 2772)"
 
 ModuleInfo "CC_OPTS: -fexceptions"
 ModuleInfo "CC_OPTS: -DPCRE_STATIC"
@@ -48,6 +48,10 @@ Type TCEOpenGLRenderer Extends TCERenderer
 		objectPtr = bmx_cegui_openglrenderer_new()
 	End Method
 
+	Method init:TCERenderer(g:Object = Null)
+		Return Self
+	End Method
+	
 	Rem
 	bbdoc: 
 	End Rem
